@@ -11,12 +11,12 @@ Include the affected commit, reproduction conditions, expected and observed beha
 known mitigation. Remove credentials, tokens, personal data, and production secrets from the report.
 
 Maintainers will acknowledge the report through the same private channel, assess severity and affected
-versions or commits, coordinate a correction, and decide disclosure timing. Private repository visibility,
-public repository visibility, commits, version tags, Packagist publication, security disclosure, and release
-publication remain separate approval-gated effects.
+versions or commits, coordinate a correction, and decide disclosure timing. Public repository visibility,
+commits, version tags, Packagist publication, security disclosure, and release publication remain separate
+approval-gated effects.
 
 ## Supported versions
 
-Fight AccessControl is in private incubation and has no released or publicly supported version. Security
-review applies to the current authorized integration commit. A future support policy will accompany an
-approved release; the existence of a tag alone will not establish support.
+Fight AccessControl is in public-source incubation and has no released or supported version. Security review
+applies to the current integration line. A future support policy will accompany an approved release; the
+existence of a tag alone will not establish support.

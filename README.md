@@ -3,8 +3,8 @@
 Framework-neutral identity, credential, session, authorization, and account-lifecycle contracts for Fight
 applications.
 
-This repository is in private incubation. It currently establishes the package boundary, local planning
-authority, isolated tooling, and quality contracts; it does not yet claim a public release or provide the
+This repository is in public-source incubation. It currently establishes the package boundary, local planning
+authority, isolated tooling, and quality contracts; it does not yet claim a release or provide the
 capabilities described by the adopted product specification.
 
 ## Package boundary
@@ -46,22 +46,21 @@ Coordinate-build scratch work belongs under gitignored `.runs/`. Never stage it.
 Do not disclose suspected vulnerabilities in public issues or pull requests. Follow the private reporting
 process in [SECURITY.md](SECURITY.md).
 
-## Private-incubation effects
+## Visibility and release effects
 
 These are independent operational effects. Approval for one is not approval for another; each requires a
 separate approval:
 
-- **Private repository visibility** permits invited collaborators to inspect the incubation repository.
-- **Public repository visibility** exposes the repository and its history to everyone.
+- **Public repository visibility** exposes the source and history under the repository license.
 - **Commit creation** records reviewed work in Git history.
 - **Version tag creation** gives a selected commit a version identifier.
 - **Packagist publication** makes package metadata discoverable and installable through Packagist.
 - **Release publication** creates a hosted release and its release notes or artifacts.
 
-The repository is private, untagged, unpublished on Packagist, and unreleased during incubation unless each
-effect is separately approved and verified. A commit hash may be used privately for reproducible integration
+The repository is public under the MIT License, but remains untagged, unpublished on Packagist, and unreleased
+unless each effect is separately approved and verified. A commit hash may be used for reproducible integration
 testing, but it is not a version tag or release.
 
 ## License
 
-This private-incubation repository is proprietary. No public license is granted. See [LICENSE](LICENSE).
+Fight AccessControl is available under the [MIT License](LICENSE).

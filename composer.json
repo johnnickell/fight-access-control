@@ -1,7 +1,7 @@
 {
     "name": "johnnickell/fight-access-control",
     "description": "Framework-neutral identity, credential, session, authorization, and account-lifecycle contracts",
-    "license": "proprietary",
+    "license": "MIT",
     "type": "library",
     "require": {
         "php": ">=8.5",

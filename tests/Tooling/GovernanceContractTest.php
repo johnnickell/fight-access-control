@@ -12,12 +12,12 @@ final class GovernanceContractTest extends TestCase
 {
     private string $root;
 
-    public function test_that_private_incubation_does_not_grant_a_public_license(): void
+    public function test_that_public_source_is_licensed_under_mit(): void
     {
         $composer = json_decode($this->read('composer.json'), true, 512, JSON_THROW_ON_ERROR);
 
-        self::assertSame('proprietary', $composer['license'] ?? null);
-        self::assertStringContainsString('No public license is granted', $this->read('LICENSE'));
+        self::assertSame('MIT', $composer['license'] ?? null);
+        self::assertStringContainsString('Permission is hereby granted', $this->read('LICENSE'));
     }
 
     public function test_that_maintainer_guidance_covers_governance_and_isolation(): void
@@ -31,7 +31,7 @@ final class GovernanceContractTest extends TestCase
 
         foreach (
             [
-                'private incubation',
+                'public-source incubation',
                 'security',
                 'Git Flow',
                 '.runs/',
@@ -53,7 +53,6 @@ final class GovernanceContractTest extends TestCase
 
         foreach (
             [
-                'Private repository visibility',
                 'Public repository visibility',
                 'Commit creation',
                 'Version tag creation',

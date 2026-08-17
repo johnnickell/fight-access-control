@@ -8,7 +8,7 @@ Last updated: 2026-08-17
 ## Bootstrap Authority
 
 Repository-local guidance and PRD-00001, the canonical build, and fresh Standards and Spec review are green on
-the bootstrap branch. Fight Common T-00061 remains open until the private pull request, hosted CI, immutable
+the bootstrap branch. Fight Common T-00061 remains open until the public pull request, hosted CI, immutable
 clean-clone receipt, and handoff are accepted. No implementation ticket is executable;
 detailed capability tickets remain deferred.
 

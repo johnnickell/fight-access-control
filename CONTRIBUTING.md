@@ -1,8 +1,8 @@
 # Contributing
 
-Fight AccessControl is in private incubation. Contributions are accepted only from explicitly authorized
-maintainers while repository access remains private. The [LICENSE](LICENSE) notice governs all access and
-contributions; contributing does not select or grant a public license.
+Fight AccessControl is in public-source incubation. Contributions are welcome through reviewed pull requests
+that follow this repository's planning, architecture, quality, and Git Flow contracts. Contributions are
+provided under the repository's [MIT License](LICENSE).
 
 ## Before changing code
 
