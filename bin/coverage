@@ -1,0 +1,48 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+directive_file=''
+if directive_files="$(LC_ALL=C grep -rIl --include='*.php' -- '@codeCoverageIgnore' src 2>/dev/null)"; then
+    directive_files="$(LC_ALL=C sort <<< "${directive_files}")"
+    directive_file="${directive_files%%$'\n'*}"
+else
+    scan_status=$?
+    if (( scan_status != 1 )); then
+        echo 'Unable to scan production PHP: src' >&2
+        exit 1
+    fi
+fi
+
+if [[ -n "${directive_file}" ]]; then
+    echo "Coverage-ignore directive found in production PHP: ${directive_file}" >&2
+    exit 1
+fi
+
+clover_report='var/reports/coverage/clover.xml'
+if [[ ! -f "${clover_report}" ]]; then
+    if ! find src -type f -name '*.php' -print -quit | grep -q .; then
+        echo 'Statement coverage is exact: 0/0 statements covered'
+        exit 0
+    fi
+
+    echo "Clover report not found: ${clover_report}" >&2
+    exit 1
+fi
+
+php -r '
+libxml_use_internal_errors(true);
+$report = $argv[1];
+$xml = simplexml_load_file($report, SimpleXMLElement::class, LIBXML_NONET);
+if ($xml === false) { fwrite(STDERR, "Clover report is malformed: {$report}\n"); exit(1); }
+$metrics = $xml->xpath("/coverage/project/metrics");
+if (!is_array($metrics) || count($metrics) !== 1) { fwrite(STDERR, "Clover project statement metrics are missing: {$report}\n"); exit(1); }
+$attributes = $metrics[0]->attributes();
+if (!isset($attributes["statements"], $attributes["coveredstatements"])) { fwrite(STDERR, "Clover project statement metrics are missing: {$report}\n"); exit(1); }
+$statements = (string) $attributes["statements"];
+$covered = (string) $attributes["coveredstatements"];
+if (!ctype_digit($statements) || !ctype_digit($covered)) { fwrite(STDERR, "Clover project statement metrics must be non-negative integers: {$report}\n"); exit(1); }
+if ((int) $covered > (int) $statements) { fwrite(STDERR, "Clover project statement metrics are contradictory: {$covered} covered exceeds {$statements} statements\n"); exit(1); }
+if ($covered !== $statements) { fwrite(STDERR, "Statement coverage is incomplete: {$covered}/{$statements} statements covered\n"); exit(1); }
+fwrite(STDOUT, "Statement coverage is exact: {$covered}/{$statements} statements covered\n");
+' "${clover_report}"
