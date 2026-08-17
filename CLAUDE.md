@@ -8,7 +8,7 @@ Read root `CONTEXT.md` for the package vocabulary and accepted architecture. Dur
 repository under `planning/`; no Fight Common checkout is needed to determine AccessControl implementation
 status or readiness.
 
-- `planning/specs/00017-PRD.md` is the repository-local behavioral and security authority.
+- `planning/specs/00001-PRD.md` is the repository-local behavioral and security authority.
 - `planning/ROADMAP.md` and `planning/epics/` define the local delivery parent and sequencing authority.
 - `planning/adr/` records accepted architecture and quality decisions.
 - `planning/agents/issue-tracker.md` defines ticket resolution, readiness, and completion.

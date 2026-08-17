@@ -16,7 +16,7 @@ Production code follows `Domain <- Application`:
 - Consumer repositories own framework, persistence, HTTP, mail, queue, JWT, realtime, and composition-root
   adapters. This package has no production Adapter layer.
 
-See [CONTEXT.md](CONTEXT.md) for the accepted vocabulary and [planning/specs/00017-PRD.md](planning/specs/00017-PRD.md)
+See [CONTEXT.md](CONTEXT.md) for the accepted vocabulary and [planning/specs/00001-PRD.md](planning/specs/00001-PRD.md)
 for the repository-local behavioral and security authority.
 
 ## Local development

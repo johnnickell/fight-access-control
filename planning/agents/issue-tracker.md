@@ -10,5 +10,5 @@ criteria pass, `./bin/planning-check` and `./bin/build` are green, durable evide
 projection is synchronized.
 
 Use `.runs/` for coordinate-build scratch and spoke reports; never stage it. Copy durable outcomes and deviations
-back into the canonical local ticket. Detailed PRD-00017 capability tickets do not exist during bootstrap; create
-them only through the later local `$aios /to-tickets 00017-PRD` workflow after bootstrap authority is green.
+back into the canonical local ticket. Detailed PRD-00001 capability tickets do not exist during bootstrap; create
+them only through the later local `$aios /to-tickets 00001-PRD` workflow after bootstrap authority is green.

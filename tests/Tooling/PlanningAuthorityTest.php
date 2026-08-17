@@ -30,21 +30,21 @@ final class PlanningAuthorityTest extends TestCase
 
         self::assertStringContainsString('Domain <- Application', $context);
         self::assertStringContainsString('no production Adapter layer', $context);
-        self::assertStringContainsString('PRD-00017', $context);
+        self::assertStringContainsString('PRD-00001', $context);
         self::assertStringContainsString('planning/tickets/', $context);
     }
 
-    public function test_that_prd_00017_is_the_valid_local_behavioral_authority(): void
+    public function test_that_prd_00001_is_the_valid_local_behavioral_authority(): void
     {
-        $spec = $this->read('planning/specs/00017-PRD.md');
+        $spec = $this->read('planning/specs/00001-PRD.md');
         $index = $this->read('planning/specs/README.md');
         $provenance = $this->read('planning/provenance/fight-common-bootstrap.md');
 
-        self::assertStringContainsString('id: PRD-00017', $spec);
+        self::assertStringContainsString('id: PRD-00001', $spec);
         self::assertStringContainsString('epic: EPIC-00001', $spec);
         self::assertStringNotContainsString('epic: EPIC-00004', $spec);
         self::assertStringContainsString('repository-local behavioral and security authority', $spec);
-        self::assertStringContainsString('[00017](00017-PRD.md)', $index);
+        self::assertStringContainsString('[00001](00001-PRD.md)', $index);
         self::assertStringContainsString('1b58c1455225965cbadcd35b6899d642a2141140', $provenance);
         self::assertStringContainsString('planning/specs/00016-PRD.md', $provenance);
         self::assertStringContainsString(
@@ -70,7 +70,7 @@ final class PlanningAuthorityTest extends TestCase
         self::assertStringContainsString('[EPIC-00001](epics/00001-EPIC.md)', $roadmap);
         self::assertStringContainsString('[00001](00001-EPIC.md)', $epicIndex);
         self::assertStringContainsString('id: EPIC-00001', $epic);
-        self::assertStringContainsString('PRD-00017', $epic);
+        self::assertStringContainsString('PRD-00001', $epic);
         self::assertStringContainsString('[0001](0001-domain-application-package-boundary.md)', $adrIndex);
         self::assertStringContainsString('[0002](0002-single-quality-gate.md)', $adrIndex);
         self::assertStringContainsString('- Status: accepted', $architecture);
@@ -93,7 +93,7 @@ final class PlanningAuthorityTest extends TestCase
         self::assertStringContainsString('ready-for-agent', $triage);
         self::assertStringContainsString('ready-for-human', $triage);
         self::assertStringContainsString('No detailed capability tickets exist yet', $tickets);
-        self::assertStringContainsString('$aios /to-tickets 00017-PRD', $tickets);
+        self::assertStringContainsString('$aios /to-tickets 00001-PRD', $tickets);
         self::assertStringContainsString('Bootstrap Authority', $board);
         self::assertStringContainsString('detailed capability tickets remain deferred', $board);
     }

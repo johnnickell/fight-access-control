@@ -4,7 +4,7 @@
 
 Fight AccessControl owns framework-neutral identity, credential, session, authorization, and account-lifecycle
 behavior shared by Fight applications. The repository-local behavioral and security authority is
-[PRD-00017](planning/specs/00017-PRD.md).
+[PRD-00001](planning/specs/00001-PRD.md).
 
 ## Vocabulary
 
