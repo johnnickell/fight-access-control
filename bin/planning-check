@@ -1,0 +1,17 @@
+#!/usr/bin/env sh
+
+set -eu
+
+ROOT_DIR="$(CDPATH='' cd -- "$(dirname "$0")/.." && pwd)"
+
+if [ -f "${ROOT_DIR}/scripts/planning_portfolio.py" ]; then
+    cd "${ROOT_DIR}"
+    exec python3 scripts/planning_portfolio.py
+fi
+
+if [ -d "${ROOT_DIR}/planning" ]; then
+    echo 'Planning authority exists without scripts/planning_portfolio.py.' >&2
+    exit 1
+fi
+
+echo 'Planning authority is not established yet; bootstrap integrity is unchanged.'

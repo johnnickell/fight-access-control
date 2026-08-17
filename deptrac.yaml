@@ -1,0 +1,42 @@
+deptrac:
+    paths:
+        - ./src
+    layers:
+        - name: Domain
+          collectors:
+              - type: classLike
+                value: ^Fight\\AccessControl\\Domain\\.*
+        - name: Application
+          collectors:
+              - type: classLike
+                value: ^Fight\\AccessControl\\Application\\.*
+        - name: CommonDomain
+          collectors:
+              - type: classLike
+                value: ^Fight\\Common\\Domain\\.*
+        - name: CommonApplication
+          collectors:
+              - type: classLike
+                value: ^Fight\\Common\\Application\\.*
+        - name: PhpInternal
+          collectors:
+              - type: php_internal
+                value: .*
+    ruleset:
+        Domain:
+            - Domain
+            - CommonDomain
+            - PhpInternal
+        Application:
+            - Application
+            - Domain
+            - CommonDomain
+            - CommonApplication
+            - PhpInternal
+        CommonDomain:
+            - PhpInternal
+        CommonApplication:
+            - CommonDomain
+            - PhpInternal
+        PhpInternal: []
+    skip_violations: {}

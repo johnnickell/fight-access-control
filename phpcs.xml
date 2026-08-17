@@ -1,0 +1,124 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ruleset name="FightAccessControl">
+    <description>Fight Access Control coding standard</description>
+    <file>src</file>
+    <file>tests/Tooling</file>
+    <file>tests/Domain</file>
+    <file>tests/Application</file>
+    <file>scripts</file>
+    <config name="installed_paths" value="vendor/slevomat/coding-standard" />
+    <rule ref="PSR12">
+        <exclude name="Squiz.WhiteSpace.CastSpacing" />
+        <exclude name="PSR12.Operators.OperatorSpacing" />
+        <exclude name="PSR1.Methods.CamelCapsMethodName" />
+    </rule>
+    <rule ref="Generic.Formatting.SpaceAfterCast" />
+    <rule ref="Squiz.WhiteSpace.OperatorSpacing" />
+    <rule ref="Squiz.Strings.ConcatenationSpacing">
+        <properties>
+            <property name="spacing" value="0" />
+        </properties>
+    </rule>
+    <rule ref="Generic.Files.LineLength">
+        <properties>
+            <property name="lineLimit" value="120" />
+        </properties>
+    </rule>
+    <rule ref="SlevomatCodingStandard.Namespaces.AlphabeticallySortedUses" />
+    <rule ref="SlevomatCodingStandard.Arrays.DisallowPartiallyKeyed" />
+    <rule ref="SlevomatCodingStandard.Arrays.MultiLineArrayEndBracketPlacement" />
+    <rule ref="SlevomatCodingStandard.Arrays.SingleLineArrayWhitespace" />
+    <rule ref="SlevomatCodingStandard.Functions.DisallowTrailingCommaInCall" />
+    <rule ref="SlevomatCodingStandard.Functions.DisallowTrailingCommaInDeclaration" />
+    <rule ref="SlevomatCodingStandard.TypeHints.DeclareStrictTypes">
+        <properties>
+            <property name="linesCountBeforeDeclare" value="1" />
+            <property name="linesCountAfterDeclare" value="1" />
+            <property name="spacesCountAroundEqualsSign" value="0" />
+        </properties>
+    </rule>
+    <rule ref="SlevomatCodingStandard.Classes.ClassStructure">
+        <properties>
+            <property name="groups" type="array">
+                <element value="uses" />
+                <element value="enum cases" />
+                <element value="public constants" />
+                <element value="protected constants" />
+                <element value="private constants" />
+                <element value="public static properties" />
+                <element value="public properties" />
+                <element value="protected static properties" />
+                <element value="protected properties" />
+                <element value="private static properties" />
+                <element value="private properties" />
+                <element value="constructor" />
+                <element value="static constructors, public static final methods, public static abstract methods, public static methods" />
+                <element value="public final methods, public abstract methods, public methods" />
+                <element value="protected static final methods, protected static abstract methods, protected static methods" />
+                <element value="protected final methods, protected abstract methods, protected methods" />
+                <element value="private static methods" />
+                <element value="private methods" />
+                <element value="destructor, invoke method, magic methods" />
+            </property>
+        </properties>
+    </rule>
+    <rule ref="SlevomatCodingStandard.Classes.ClassMemberSpacing">
+        <properties>
+            <property name="linesCountBetweenMembers" value="1" />
+        </properties>
+    </rule>
+    <rule ref="SlevomatCodingStandard.Classes.MethodSpacing">
+        <properties>
+            <property name="minLinesCount" value="1" />
+            <property name="maxLinesCount" value="1" />
+        </properties>
+    </rule>
+    <rule ref="SlevomatCodingStandard.ControlStructures.JumpStatementsSpacing">
+        <properties>
+            <property name="jumpStatements" type="array">
+                <element value="return" />
+            </property>
+            <property name="linesCountBefore" value="1" />
+            <property name="linesCountBeforeFirst" value="0" />
+            <property name="linesCountAfter" value="0" />
+            <property name="linesCountAfterLast" value="0" />
+        </properties>
+    </rule>
+    <rule ref="Generic.NamingConventions.UpperCaseConstantName" />
+    <rule ref="Squiz.Commenting.ClassComment">
+        <exclude-pattern>tests/*</exclude-pattern>
+        <exclude-pattern>scripts/*</exclude-pattern>
+        <exclude name="Squiz.Commenting.ClassComment.TagNotAllowed" />
+    </rule>
+    <rule ref="Squiz.Commenting.FunctionComment">
+        <exclude-pattern>tests/*</exclude-pattern>
+        <exclude-pattern>scripts/*</exclude-pattern>
+        <exclude name="Squiz.Commenting.FunctionComment.MissingParamComment" />
+        <exclude name="Squiz.Commenting.FunctionComment.MissingParamName" />
+        <exclude name="Squiz.Commenting.FunctionComment.MissingParamTag" />
+        <exclude name="Squiz.Commenting.FunctionComment.MissingReturn" />
+        <exclude name="Squiz.Commenting.FunctionComment.MissingReturnTag" />
+        <exclude name="Squiz.Commenting.FunctionComment.ParamCommentFullStop" />
+        <exclude name="Squiz.Commenting.FunctionComment.ParamCommentNotCapital" />
+        <exclude name="Squiz.Commenting.FunctionComment.SpacingAfterParamName" />
+        <exclude name="Squiz.Commenting.FunctionComment.SpacingAfterParamType" />
+        <exclude name="Squiz.Commenting.FunctionComment.ThrowsNoFullStop" />
+        <exclude name="Squiz.Commenting.FunctionComment.ThrowsNotCapital" />
+        <exclude name="Squiz.Commenting.FunctionComment.EmptyThrows" />
+        <exclude name="Squiz.Commenting.FunctionComment.ThrowsNotForType" />
+    </rule>
+    <rule ref="Squiz.Commenting.FunctionCommentThrowTag">
+        <exclude-pattern>tests/*</exclude-pattern>
+        <exclude-pattern>scripts/*</exclude-pattern>
+        <exclude name="Squiz.Commenting.FunctionCommentThrowTag.WrongType" />
+        <exclude name="Squiz.Commenting.FunctionCommentThrowTag.Missing" />
+    </rule>
+    <rule ref="Generic.Commenting.DocComment">
+        <exclude-pattern>tests/*</exclude-pattern>
+        <exclude-pattern>scripts/*</exclude-pattern>
+        <exclude name="Generic.Commenting.DocComment.TagValueIndent" />
+        <exclude name="Generic.Commenting.DocComment.MissingShort" />
+        <exclude name="Generic.Commenting.DocComment.ContentAfterOpen" />
+        <exclude name="Generic.Commenting.DocComment.ContentBeforeClose" />
+    </rule>
+</ruleset>

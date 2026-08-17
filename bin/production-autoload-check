@@ -1,0 +1,27 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+COMPOSER_BIN="${COMPOSER_BIN:-composer}"
+PHP_BIN="${PHP_BIN:-php}"
+INSTALL_ROOT="$(mktemp -d "${TMPDIR:-/tmp}/fight-access-control-production.XXXXXX")"
+
+cleanup() {
+    local status=$?
+    rm -rf -- "${INSTALL_ROOT}"
+    exit "${status}"
+}
+trap cleanup EXIT
+
+cp "${ROOT_DIR}/composer.json" "${ROOT_DIR}/composer.lock" "${INSTALL_ROOT}/"
+cp -R "${ROOT_DIR}/src" "${INSTALL_ROOT}/src"
+
+cd "${INSTALL_ROOT}"
+"${COMPOSER_BIN}" install \
+    --no-dev \
+    --no-interaction \
+    --no-progress \
+    --prefer-dist \
+    --classmap-authoritative
+"${PHP_BIN}" "${ROOT_DIR}/tests/Architecture/ProductionInstallTest.php" "${INSTALL_ROOT}"
