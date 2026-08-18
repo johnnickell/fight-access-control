@@ -81,21 +81,24 @@ final class PlanningAuthorityTest extends TestCase
         self::assertStringContainsString('./bin/build', $quality);
     }
 
-    public function test_that_ticket_readiness_is_local_and_capability_tickets_are_deferred(): void
+    public function test_that_ticket_readiness_is_local_and_the_approved_capability_frontier_is_indexed(): void
     {
         $tracker = $this->read('planning/agents/issue-tracker.md');
         $triage = $this->read('planning/agents/triage-labels.md');
         $tickets = $this->read('planning/tickets/README.md');
         $board = $this->read('planning/tickets/BOARD.md');
+        $frontier = $this->read('planning/tickets/T-00001-invite-pending-user.md');
 
         self::assertStringContainsString('ready-for-agent', $tracker);
         self::assertStringContainsString('blocked_by', $tracker);
         self::assertStringContainsString('ready-for-agent', $triage);
         self::assertStringContainsString('ready-for-human', $triage);
-        self::assertStringContainsString('No detailed capability tickets exist yet', $tickets);
-        self::assertStringContainsString('$aios /to-tickets 00001-PRD', $tickets);
-        self::assertStringContainsString('Bootstrap Authority', $board);
-        self::assertStringContainsString('detailed capability tickets remain deferred', $board);
+        self::assertStringContainsString('Each ticket belongs to', $tickets);
+        self::assertStringContainsString('Ready Frontier', $board);
+        self::assertStringContainsString('T-00001', $board);
+        self::assertStringContainsString('id: T-00001', $frontier);
+        self::assertStringContainsString('status: ready-for-agent', $frontier);
+        self::assertStringContainsString('blocked_by: []', $frontier);
     }
 
     public function test_that_the_repository_validator_accepts_the_indexed_local_authority(): void
