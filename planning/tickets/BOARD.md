@@ -7,12 +7,13 @@ Last updated: 2026-08-17
 
 ## Bootstrap Authority
 
-Repository-local guidance and PRD-00001, the canonical build, and fresh Standards and Spec review are green on
-the bootstrap branch. Fight Common T-00061 remains open until the public pull request, hosted CI, immutable
-clean-clone receipt, and handoff are accepted. No implementation ticket is executable;
-detailed capability tickets remain deferred.
+Repository-local guidance and PRD-00001, the canonical build, hosted CI, immutable public clean-clone receipt,
+and fresh Standards and Spec review are green. Fight Common T-00061 accepted the handoff after AccessControl
+PR #1 merged into `develop` as `2dc82081256d5c79e7d775fbbcfdb860bf8b3cb9`. Implementation authority is now
+local to this repository; detailed capability tickets remain deferred until the next planning action is
+reviewed and approved.
 
 ## Next Planning Action
 
-After the Fight Common T-00061 handoff is accepted, run `$aios /to-tickets 00001-PRD` inside Fight
-AccessControl. Review and approve the proposed tracer-bullet slices before publishing local tickets.
+Run `$aios /to-tickets 00001-PRD` inside Fight AccessControl. Review and approve the proposed tracer-bullet
+slices before publishing the first repository-local capability tickets.
