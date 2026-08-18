@@ -1,8 +1,7 @@
 # Tickets
 
-Ticket files in this directory are canonical for implementation status, dependencies, acceptance, and evidence.
-`BOARD.md` ranks executable work.
+Ticket files in this directory are canonical for implementation scope, status, dependencies, acceptance, and
+durable evidence. `BOARD.md` ranks executable work.
 
-No detailed capability tickets exist yet. Bootstrap must first establish and verify this repository-local
-authority. After that bootstrap is green, run the local `$aios /to-tickets 00001-PRD` workflow and review its
-proposed vertical slices before creating ticket files.
+Each ticket belongs to [PRD-00001](../specs/00001-PRD.md). A `ready-for-agent` ticket is executable only when
+all of its `blocked_by` edges are terminal, as defined by `planning/agents/issue-tracker.md`.
