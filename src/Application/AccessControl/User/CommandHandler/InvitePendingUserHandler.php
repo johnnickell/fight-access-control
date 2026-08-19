@@ -6,16 +6,16 @@ namespace Fight\AccessControl\Application\AccessControl\User\CommandHandler;
 
 use DateInterval;
 use Fight\AccessControl\Application\AccessControl\User\Service\ActivationCredentialGenerator;
-use Fight\AccessControl\Application\AccessControl\User\Service\ActivationDeliveryCipher;
 use Fight\AccessControl\Application\AccessControl\User\Service\InvitationClock;
+use Fight\AccessControl\Application\AccessControl\User\Service\InvitationDeliveryCipher;
 use Fight\AccessControl\Domain\AccessControl\Audit\AuditEvidence;
 use Fight\AccessControl\Domain\AccessControl\Audit\AuditEvidenceRepository;
-use Fight\AccessControl\Domain\AccessControl\User\ActivationDeliveryWork;
-use Fight\AccessControl\Domain\AccessControl\User\ActivationDeliveryWorkRepository;
 use Fight\AccessControl\Domain\AccessControl\User\ActivationGrant;
 use Fight\AccessControl\Domain\AccessControl\User\ActivationGrantRepository;
 use Fight\AccessControl\Domain\AccessControl\User\Command\InvitePendingUser;
 use Fight\AccessControl\Domain\AccessControl\User\Event\UserInvited;
+use Fight\AccessControl\Domain\AccessControl\User\InvitationDelivery;
+use Fight\AccessControl\Domain\AccessControl\User\InvitationDeliveryRepository;
 use Fight\AccessControl\Domain\AccessControl\User\User;
 use Fight\AccessControl\Domain\AccessControl\User\UserRepository;
 use Fight\Common\Application\Messaging\Command\CommandHandler;
@@ -36,11 +36,11 @@ final readonly class InvitePendingUserHandler implements CommandHandler
     public function __construct(
         private UserRepository $userRepository,
         private ActivationGrantRepository $activationGrantRepository,
-        private ActivationDeliveryWorkRepository $activationDeliveryWorkRepository,
+        private InvitationDeliveryRepository $invitationDeliveryRepository,
         private AuditEvidenceRepository $auditEvidenceRepository,
         private UnitOfWork $unitOfWork,
         private ActivationCredentialGenerator $credentials,
-        private ActivationDeliveryCipher $cipher,
+        private InvitationDeliveryCipher $cipher,
         private InvitationClock $clock,
         private EventDispatcher $eventDispatcher
     ) {
@@ -75,14 +75,14 @@ final readonly class InvitePendingUserHandler implements CommandHandler
                     $issuedAt,
                     $issuedAt->add(new DateInterval('P7D'))
                 );
-                $delivery = ActivationDeliveryWork::create(
+                $delivery = InvitationDelivery::create(
                     $grant->getUserId(),
                     $user->getEmail()->toString(),
                     $this->cipher->encrypt($credential),
                     $grant->getExpiresAt()
                 );
                 $this->activationGrantRepository->add($grant);
-                $this->activationDeliveryWorkRepository->add($delivery);
+                $this->invitationDeliveryRepository->add($delivery);
                 $this->auditEvidenceRepository->add(AuditEvidence::record(
                     $command->getActorId(),
                     'user.invited',

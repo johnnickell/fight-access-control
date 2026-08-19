@@ -5,23 +5,23 @@ declare(strict_types=1);
 namespace Fight\Test\AccessControl\Domain\AccessControl\User;
 
 use DateTimeImmutable;
-use Fight\AccessControl\Domain\AccessControl\User\ActivationDeliveryStatus;
-use Fight\AccessControl\Domain\AccessControl\User\ActivationDeliveryWork;
-use Fight\AccessControl\Domain\AccessControl\User\Exception\ActivationDeliveryNotRetryableException;
+use Fight\AccessControl\Domain\AccessControl\User\Exception\InvitationDeliveryNotRetryableException;
+use Fight\AccessControl\Domain\AccessControl\User\InvitationDelivery;
+use Fight\AccessControl\Domain\AccessControl\User\InvitationDeliveryStatus;
 use Fight\AccessControl\Domain\AccessControl\User\UserId;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
 
-#[CoversClass(ActivationDeliveryWork::class)]
-#[CoversClass(ActivationDeliveryStatus::class)]
-final class ActivationDeliveryWorkLifecycleTest extends TestCase
+#[CoversClass(InvitationDelivery::class)]
+#[CoversClass(InvitationDeliveryStatus::class)]
+final class InvitationDeliveryLifecycleTest extends TestCase
 {
     public function test_that_confirmed_delivery_and_terminal_expiry_destroy_recoverable_ciphertext(): void
     {
         $userId = UserId::generate();
         $expiresAt = new DateTimeImmutable('2026-08-25T12:00:00+00:00');
-        $confirmed = ActivationDeliveryWork::create($userId, 'alice@example.test', 'ciphertext', $expiresAt);
-        $expired = ActivationDeliveryWork::create($userId, 'alice@example.test', 'ciphertext', $expiresAt);
+        $confirmed = InvitationDelivery::create($userId, 'alice@example.test', 'ciphertext', $expiresAt);
+        $expired = InvitationDelivery::create($userId, 'alice@example.test', 'ciphertext', $expiresAt);
 
         $confirmed->confirm();
         $confirmed->confirm();
@@ -29,15 +29,15 @@ final class ActivationDeliveryWorkLifecycleTest extends TestCase
         $expired->expireAt(new DateTimeImmutable('2026-08-25T11:59:59+00:00'));
         $expired->expireAt(new DateTimeImmutable('2026-08-25T12:00:00+00:00'));
 
-        self::assertSame(ActivationDeliveryStatus::CONFIRMED, $confirmed->getStatus());
+        self::assertSame(InvitationDeliveryStatus::CONFIRMED, $confirmed->getStatus());
         self::assertNull($confirmed->ciphertext());
-        self::assertSame(ActivationDeliveryStatus::EXPIRED, $expired->getStatus());
+        self::assertSame(InvitationDeliveryStatus::EXPIRED, $expired->getStatus());
         self::assertNull($expired->ciphertext());
     }
 
     public function test_that_failed_delivery_remains_recoverable_until_a_retry_confirms_it(): void
     {
-        $work = ActivationDeliveryWork::create(
+        $work = InvitationDelivery::create(
             UserId::generate(),
             'alice@example.test',
             'ciphertext',
@@ -47,19 +47,19 @@ final class ActivationDeliveryWorkLifecycleTest extends TestCase
         $work->fail();
         $work->fail();
 
-        self::assertSame(ActivationDeliveryStatus::FAILED, $work->getStatus());
+        self::assertSame(InvitationDeliveryStatus::FAILED, $work->getStatus());
         self::assertSame('ciphertext', $work->ciphertext());
         self::assertTrue($work->isRetryable());
 
         $work->confirm();
 
-        self::assertSame(ActivationDeliveryStatus::CONFIRMED, $work->getStatus());
+        self::assertSame(InvitationDeliveryStatus::CONFIRMED, $work->getStatus());
         self::assertNull($work->ciphertext());
     }
 
     public function test_that_terminal_delivery_work_cannot_be_marked_failed(): void
     {
-        $work = ActivationDeliveryWork::create(
+        $work = InvitationDelivery::create(
             UserId::generate(),
             'alice@example.test',
             'ciphertext',
@@ -67,13 +67,13 @@ final class ActivationDeliveryWorkLifecycleTest extends TestCase
         );
         $work->expireAt(new DateTimeImmutable('2026-08-25T12:00:00+00:00'));
 
-        $this->expectException(ActivationDeliveryNotRetryableException::class);
+        $this->expectException(InvitationDeliveryNotRetryableException::class);
         $work->fail();
     }
 
     public function test_that_terminal_delivery_work_cannot_be_confirmed(): void
     {
-        $work = ActivationDeliveryWork::create(
+        $work = InvitationDelivery::create(
             UserId::generate(),
             'alice@example.test',
             'ciphertext',
@@ -81,13 +81,13 @@ final class ActivationDeliveryWorkLifecycleTest extends TestCase
         );
         $work->expireAt(new DateTimeImmutable('2026-08-25T12:00:00+00:00'));
 
-        $this->expectException(ActivationDeliveryNotRetryableException::class);
+        $this->expectException(InvitationDeliveryNotRetryableException::class);
         $work->confirm();
     }
 
     public function test_that_failed_delivery_expires_terminally_and_destroys_its_ciphertext(): void
     {
-        $work = ActivationDeliveryWork::create(
+        $work = InvitationDelivery::create(
             UserId::generate(),
             'alice@example.test',
             'ciphertext',
@@ -97,7 +97,7 @@ final class ActivationDeliveryWorkLifecycleTest extends TestCase
 
         $work->expireAt(new DateTimeImmutable('2026-08-25T12:00:00+00:00'));
 
-        self::assertSame(ActivationDeliveryStatus::EXPIRED, $work->getStatus());
+        self::assertSame(InvitationDeliveryStatus::EXPIRED, $work->getStatus());
         self::assertNull($work->ciphertext());
     }
 }

@@ -4,13 +4,13 @@ declare(strict_types=1);
 
 namespace Fight\Test\AccessControl\Application\AccessControl\User\Service;
 
-use Fight\AccessControl\Application\AccessControl\User\Service\ActivationDeliveryInvoker;
-use Fight\AccessControl\Domain\AccessControl\User\ActivationDeliveryWork;
+use Fight\AccessControl\Application\AccessControl\User\Service\InvitationDeliveryInvoker;
+use Fight\AccessControl\Domain\AccessControl\User\InvitationDelivery;
 use Throwable;
 
-final class RecordingActivationDeliveryInvoker implements ActivationDeliveryInvoker
+final class RecordingInvitationDeliveryInvoker implements InvitationDeliveryInvoker
 {
-    /** @var list<ActivationDeliveryWork> */
+    /** @var list<InvitationDelivery> */
     private array $invokedWork = [];
 
     /**
@@ -20,7 +20,7 @@ final class RecordingActivationDeliveryInvoker implements ActivationDeliveryInvo
     {
     }
 
-    public function invoke(ActivationDeliveryWork $work): void
+    public function invoke(InvitationDelivery $work): void
     {
         $this->invokedWork[] = $work;
 
@@ -32,7 +32,7 @@ final class RecordingActivationDeliveryInvoker implements ActivationDeliveryInvo
     /**
      * Returns every work item passed to the consumer-owned invoker.
      *
-     * @return list<ActivationDeliveryWork>
+     * @return list<InvitationDelivery>
      */
     public function invokedWork(): array
     {

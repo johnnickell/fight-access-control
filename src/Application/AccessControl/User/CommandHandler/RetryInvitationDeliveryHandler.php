@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace Fight\AccessControl\Application\AccessControl\User\CommandHandler;
 
-use Fight\AccessControl\Application\AccessControl\User\Service\InvitationDeliveryInvoker;
 use Fight\AccessControl\Domain\AccessControl\Audit\AuditEvidence;
 use Fight\AccessControl\Domain\AccessControl\Audit\AuditEvidenceRepository;
-use Fight\AccessControl\Domain\AccessControl\User\Command\DeliverUserInvitation;
+use Fight\AccessControl\Domain\AccessControl\User\Command\RetryInvitationDelivery;
+use Fight\AccessControl\Domain\AccessControl\User\Event\InvitationDeliveryRetryRequested;
 use Fight\AccessControl\Domain\AccessControl\User\Exception\InvitationDeliveryNotRetryableException;
 use Fight\AccessControl\Domain\AccessControl\User\InvitationDelivery;
 use Fight\AccessControl\Domain\AccessControl\User\InvitationDeliveryRepository;
@@ -19,18 +19,17 @@ use Fight\Common\Domain\Messaging\Event\CommandFailedEvent;
 use Throwable;
 
 /**
- * Invokes durable activation delivery through a consumer-owned transport-neutral port.
+ * Publishes a durable request to retry existing activation delivery work.
  */
-final readonly class DeliverUserInvitationHandler implements CommandHandler
+final readonly class RetryInvitationDeliveryHandler implements CommandHandler
 {
     /**
-     * Creates the invitation-delivery handler.
+     * Creates the activation-delivery retry handler.
      */
     public function __construct(
         private InvitationDeliveryRepository $invitationDeliveryRepository,
         private AuditEvidenceRepository $auditEvidenceRepository,
         private UnitOfWork $unitOfWork,
-        private InvitationDeliveryInvoker $invitationDeliveryInvoker,
         private EventDispatcher $eventDispatcher
     ) {
     }
@@ -40,7 +39,7 @@ final readonly class DeliverUserInvitationHandler implements CommandHandler
      */
     public static function commandRegistration(): string
     {
-        return DeliverUserInvitation::class;
+        return RetryInvitationDelivery::class;
     }
 
     /**
@@ -48,7 +47,7 @@ final readonly class DeliverUserInvitationHandler implements CommandHandler
      */
     public function handle(CommandMessage $commandMessage): void
     {
-        /** @var DeliverUserInvitation $command */
+        /** @var RetryInvitationDelivery $command */
         $command = $commandMessage->payload();
 
         try {
@@ -60,33 +59,18 @@ final readonly class DeliverUserInvitationHandler implements CommandHandler
                 );
             }
 
-            $deliveryFailure = null;
-            $this->unitOfWork->commitTransactional(function () use ($command, $work, &$deliveryFailure): void {
-                try {
-                    $this->invitationDeliveryInvoker->invoke($work);
-                } catch (Throwable $throwable) {
-                    $this->auditEvidenceRepository->add(AuditEvidence::record(
-                        $command->getActorId(),
-                        'user.invitation_delivery.failed',
-                        $command->getUserId()
-                    ));
-                    $work->fail();
-                    $deliveryFailure = $throwable;
-
-                    return;
-                }
-
+            $this->unitOfWork->commitTransactional(function () use ($command): void {
                 $this->auditEvidenceRepository->add(AuditEvidence::record(
                     $command->getActorId(),
-                    'user.invitation_delivery.confirmed',
+                    'user.invitation_delivery.retry_requested',
                     $command->getUserId()
                 ));
-                $work->confirm();
             });
 
-            if ($deliveryFailure instanceof Throwable) {
-                throw $deliveryFailure;
-            }
+            $this->eventDispatcher->trigger(new InvitationDeliveryRetryRequested(
+                $command->getActorId(),
+                $command->getUserId()
+            ));
         } catch (Throwable $throwable) {
             $this->eventDispatcher->trigger(new CommandFailedEvent($command, $throwable->getMessage()));
             throw $throwable;

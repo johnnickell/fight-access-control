@@ -9,6 +9,6 @@ use Fight\Common\Domain\Exception\DomainException;
 /**
  * Indicates that activation delivery work no longer retains recoverable credential material.
  */
-final class ActivationDeliveryNotRetryableException extends DomainException
+final class InvitationDeliveryNotRetryableException extends DomainException
 {
 }

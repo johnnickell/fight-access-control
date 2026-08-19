@@ -7,7 +7,7 @@ namespace Fight\AccessControl\Application\AccessControl\User\Service;
 /**
  * Encrypts recoverable delivery content with consumer-owned keys.
  */
-interface ActivationDeliveryCipher
+interface InvitationDeliveryCipher
 {
     /**
      * Encrypts a raw credential for bounded delivery work.

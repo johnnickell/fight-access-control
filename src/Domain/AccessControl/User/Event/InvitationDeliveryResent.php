@@ -2,19 +2,19 @@
 
 declare(strict_types=1);
 
-namespace Fight\AccessControl\Domain\AccessControl\User\Command;
+namespace Fight\AccessControl\Domain\AccessControl\User\Event;
 
 use Fight\AccessControl\Domain\AccessControl\User\UserId;
 use Fight\Common\Domain\Exception\DomainException;
-use Fight\Common\Domain\Messaging\Command\Command;
+use Fight\Common\Domain\Messaging\Event\Event;
 
 /**
- * Replaces an existing activation grant and stages a replacement delivery.
+ * Records a replacement activation delivery staged after its durable state committed.
  */
-final readonly class ResendActivationDelivery implements Command
+final readonly class InvitationDeliveryResent implements Event
 {
     /**
-     * Constructs the activation-delivery resend command.
+     * Constructs the activation-delivery resend event.
      */
     public function __construct(
         private string $actorId,
@@ -49,7 +49,7 @@ final readonly class ResendActivationDelivery implements Command
     }
 
     /**
-     * Returns the actor requesting the replacement delivery.
+     * Returns the actor who requested the replacement delivery.
      */
     public function getActorId(): string
     {
@@ -57,7 +57,7 @@ final readonly class ResendActivationDelivery implements Command
     }
 
     /**
-     * Returns the pending user's identifier.
+     * Returns the target user's identifier.
      */
     public function getUserId(): UserId
     {

@@ -6,15 +6,17 @@ namespace Fight\AccessControl\Application\AccessControl\User\CommandHandler;
 
 use DateInterval;
 use Fight\AccessControl\Application\AccessControl\User\Service\ActivationCredentialGenerator;
-use Fight\AccessControl\Application\AccessControl\User\Service\ActivationDeliveryCipher;
 use Fight\AccessControl\Application\AccessControl\User\Service\InvitationClock;
-use Fight\AccessControl\Domain\AccessControl\User\ActivationDeliveryWork;
-use Fight\AccessControl\Domain\AccessControl\User\ActivationDeliveryWorkRepository;
+use Fight\AccessControl\Application\AccessControl\User\Service\InvitationDeliveryCipher;
+use Fight\AccessControl\Domain\AccessControl\Audit\AuditEvidence;
+use Fight\AccessControl\Domain\AccessControl\Audit\AuditEvidenceRepository;
 use Fight\AccessControl\Domain\AccessControl\User\ActivationGrant;
 use Fight\AccessControl\Domain\AccessControl\User\ActivationGrantRepository;
-use Fight\AccessControl\Domain\AccessControl\User\Command\ResendActivationDelivery;
-use Fight\AccessControl\Domain\AccessControl\User\Event\ActivationDeliveryResent;
-use Fight\AccessControl\Domain\AccessControl\User\Exception\ActivationDeliveryNotResendableException;
+use Fight\AccessControl\Domain\AccessControl\User\Command\ResendInvitationDelivery;
+use Fight\AccessControl\Domain\AccessControl\User\Event\InvitationDeliveryResent;
+use Fight\AccessControl\Domain\AccessControl\User\Exception\InvitationDeliveryNotResendableException;
+use Fight\AccessControl\Domain\AccessControl\User\InvitationDelivery;
+use Fight\AccessControl\Domain\AccessControl\User\InvitationDeliveryRepository;
 use Fight\Common\Application\Messaging\Command\CommandHandler;
 use Fight\Common\Application\Messaging\Event\EventDispatcher;
 use Fight\Common\Application\Repository\UnitOfWork;
@@ -25,17 +27,18 @@ use Throwable;
 /**
  * Atomically replaces an activation grant and stages its recoverable replacement delivery work.
  */
-final readonly class ResendActivationDeliveryHandler implements CommandHandler
+final readonly class ResendInvitationDeliveryHandler implements CommandHandler
 {
     /**
      * Creates the activation-delivery resend handler.
      */
     public function __construct(
         private ActivationGrantRepository $activationGrantRepository,
-        private ActivationDeliveryWorkRepository $activationDeliveryWorkRepository,
+        private InvitationDeliveryRepository $invitationDeliveryRepository,
+        private AuditEvidenceRepository $auditEvidenceRepository,
         private UnitOfWork $unitOfWork,
         private ActivationCredentialGenerator $credentials,
-        private ActivationDeliveryCipher $cipher,
+        private InvitationDeliveryCipher $cipher,
         private InvitationClock $clock,
         private EventDispatcher $eventDispatcher
     ) {
@@ -46,7 +49,7 @@ final readonly class ResendActivationDeliveryHandler implements CommandHandler
      */
     public static function commandRegistration(): string
     {
-        return ResendActivationDelivery::class;
+        return ResendInvitationDelivery::class;
     }
 
     /**
@@ -54,21 +57,21 @@ final readonly class ResendActivationDeliveryHandler implements CommandHandler
      */
     public function handle(CommandMessage $commandMessage): void
     {
-        /** @var ResendActivationDelivery $command */
+        /** @var ResendInvitationDelivery $command */
         $command = $commandMessage->payload();
 
         try {
             $issuedAt = $this->clock->now();
             $this->unitOfWork->commitTransactional(function () use ($command, $issuedAt): void {
                 $predecessor = $this->activationGrantRepository->getByUserId($command->getUserId());
-                $previousDelivery = $this->activationDeliveryWorkRepository->getByUserId($command->getUserId());
+                $previousDelivery = $this->invitationDeliveryRepository->getByUserId($command->getUserId());
 
                 if (
                     !$predecessor instanceof ActivationGrant
                     || $predecessor->isIssued() === false
-                    || !$previousDelivery instanceof ActivationDeliveryWork
+                    || !$previousDelivery instanceof InvitationDelivery
                 ) {
-                    throw new ActivationDeliveryNotResendableException(
+                    throw new InvitationDeliveryNotResendableException(
                         'The activation delivery cannot be resent.'
                     );
                 }
@@ -81,7 +84,7 @@ final readonly class ResendActivationDeliveryHandler implements CommandHandler
                     $issuedAt,
                     $issuedAt->add(new DateInterval('P7D'))
                 );
-                $delivery = ActivationDeliveryWork::create(
+                $delivery = InvitationDelivery::create(
                     $command->getUserId(),
                     $previousDelivery->email(),
                     $this->cipher->encrypt($credential),
@@ -92,10 +95,15 @@ final readonly class ResendActivationDeliveryHandler implements CommandHandler
                     $revokedPredecessor,
                     $replacement
                 );
-                $this->activationDeliveryWorkRepository->add($delivery);
+                $this->invitationDeliveryRepository->add($delivery);
+                $this->auditEvidenceRepository->add(AuditEvidence::record(
+                    $command->getActorId(),
+                    'user.invitation_delivery.resent',
+                    $command->getUserId()
+                ));
             });
 
-            $this->eventDispatcher->trigger(new ActivationDeliveryResent(
+            $this->eventDispatcher->trigger(new InvitationDeliveryResent(
                 $command->getActorId(),
                 $command->getUserId()
             ));

@@ -5,14 +5,14 @@ declare(strict_types=1);
 namespace Fight\AccessControl\Domain\AccessControl\User;
 
 use DateTimeImmutable;
-use Fight\AccessControl\Domain\AccessControl\User\Exception\ActivationDeliveryNotRetryableException;
+use Fight\AccessControl\Domain\AccessControl\User\Exception\InvitationDeliveryNotRetryableException;
 
 /**
  * Represents encrypted activation delivery work awaiting execution or destruction at terminal expiry.
  *
  * @phpstan-consistent-constructor
  */
-class ActivationDeliveryWork
+class InvitationDelivery
 {
     /**
      * Creates pending encrypted delivery work.
@@ -22,7 +22,7 @@ class ActivationDeliveryWork
         private readonly string $email,
         private ?string $ciphertext,
         private readonly DateTimeImmutable $expiresAt,
-        private ActivationDeliveryStatus $status = ActivationDeliveryStatus::PENDING
+        private InvitationDeliveryStatus $status = InvitationDeliveryStatus::PENDING
     ) {
     }
 
@@ -67,16 +67,16 @@ class ActivationDeliveryWork
      */
     public function confirm(): void
     {
-        if ($this->status === ActivationDeliveryStatus::CONFIRMED) {
+        if ($this->status === InvitationDeliveryStatus::CONFIRMED) {
             return;
         }
 
         if ($this->isRetryable() === false) {
-            throw new ActivationDeliveryNotRetryableException('The activation delivery work is no longer retryable.');
+            throw new InvitationDeliveryNotRetryableException('The activation delivery work is no longer retryable.');
         }
 
         $this->ciphertext = null;
-        $this->status = ActivationDeliveryStatus::CONFIRMED;
+        $this->status = InvitationDeliveryStatus::CONFIRMED;
     }
 
     /**
@@ -84,15 +84,15 @@ class ActivationDeliveryWork
      */
     public function fail(): void
     {
-        if ($this->status === ActivationDeliveryStatus::FAILED) {
+        if ($this->status === InvitationDeliveryStatus::FAILED) {
             return;
         }
 
         if ($this->isRetryable() === false) {
-            throw new ActivationDeliveryNotRetryableException('The activation delivery work is no longer retryable.');
+            throw new InvitationDeliveryNotRetryableException('The activation delivery work is no longer retryable.');
         }
 
-        $this->status = ActivationDeliveryStatus::FAILED;
+        $this->status = InvitationDeliveryStatus::FAILED;
     }
 
     /**
@@ -105,7 +105,7 @@ class ActivationDeliveryWork
         }
 
         $this->ciphertext = null;
-        $this->status = ActivationDeliveryStatus::EXPIRED;
+        $this->status = InvitationDeliveryStatus::EXPIRED;
     }
 
     /**
@@ -119,7 +119,7 @@ class ActivationDeliveryWork
     /**
      * Returns the operational status without exposing the recoverable credential.
      */
-    public function getStatus(): ActivationDeliveryStatus
+    public function getStatus(): InvitationDeliveryStatus
     {
         return $this->status;
     }
@@ -129,7 +129,7 @@ class ActivationDeliveryWork
      */
     public function isRetryable(): bool
     {
-        return in_array($this->status, [ActivationDeliveryStatus::PENDING, ActivationDeliveryStatus::FAILED], true)
+        return in_array($this->status, [InvitationDeliveryStatus::PENDING, InvitationDeliveryStatus::FAILED], true)
             && $this->ciphertext !== null;
     }
 }

@@ -6,12 +6,12 @@ namespace Fight\Test\AccessControl\Application\AccessControl\User;
 
 use DateTimeImmutable;
 use Fight\AccessControl\Domain\AccessControl\Audit\AuditEvidence;
-use Fight\AccessControl\Domain\AccessControl\User\ActivationDeliveryWork;
+use Fight\AccessControl\Domain\AccessControl\User\InvitationDelivery;
 use Fight\AccessControl\Domain\AccessControl\User\UserId;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
 
-#[CoversClass(ActivationDeliveryWork::class)]
+#[CoversClass(InvitationDelivery::class)]
 #[CoversClass(AuditEvidence::class)]
 final class ApplicationRecordsTest extends TestCase
 {
@@ -19,7 +19,7 @@ final class ApplicationRecordsTest extends TestCase
     {
         $userId = UserId::generate();
         $expiresAt = new DateTimeImmutable('2026-08-25T12:00:00+00:00');
-        $work = ActivationDeliveryWork::create($userId, 'alice@example.test', 'ciphertext', $expiresAt);
+        $work = InvitationDelivery::create($userId, 'alice@example.test', 'ciphertext', $expiresAt);
 
         self::assertSame($userId, $work->userId());
         self::assertSame('alice@example.test', $work->email());

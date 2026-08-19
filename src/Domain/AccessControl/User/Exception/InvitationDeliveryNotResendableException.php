@@ -9,6 +9,6 @@ use Fight\Common\Domain\Exception\DomainException;
 /**
  * Indicates that a replacement activation delivery cannot be staged.
  */
-final class ActivationDeliveryNotResendableException extends DomainException
+final class InvitationDeliveryNotResendableException extends DomainException
 {
 }

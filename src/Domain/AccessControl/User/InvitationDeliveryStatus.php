@@ -7,7 +7,7 @@ namespace Fight\AccessControl\Domain\AccessControl\User;
 /**
  * Identifies the safe operational state of activation delivery work.
  */
-enum ActivationDeliveryStatus: string
+enum InvitationDeliveryStatus: string
 {
     case PENDING = 'pending';
     case FAILED = 'failed';

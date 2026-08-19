@@ -7,21 +7,21 @@ namespace Fight\AccessControl\Domain\AccessControl\User;
 use Exception;
 
 /**
- * Interface ActivationDeliveryWorkRepository
+ * Interface InvitationDeliveryRepository
  */
-interface ActivationDeliveryWorkRepository
+interface InvitationDeliveryRepository
 {
     /**
      * Retrieves activation delivery work for a user.
      *
      * @throws Exception When an error occurs
      */
-    public function getByUserId(UserId $userId): ?ActivationDeliveryWork;
+    public function getByUserId(UserId $userId): ?InvitationDelivery;
 
     /**
      * Adds encrypted activation delivery work.
      *
      * @throws Exception When an error occurs
      */
-    public function add(ActivationDeliveryWork $work): void;
+    public function add(InvitationDelivery $work): void;
 }

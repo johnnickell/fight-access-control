@@ -2,19 +2,19 @@
 
 declare(strict_types=1);
 
-namespace Fight\AccessControl\Domain\AccessControl\User\Event;
+namespace Fight\AccessControl\Domain\AccessControl\User\Command;
 
 use Fight\AccessControl\Domain\AccessControl\User\UserId;
 use Fight\Common\Domain\Exception\DomainException;
-use Fight\Common\Domain\Messaging\Event\Event;
+use Fight\Common\Domain\Messaging\Command\Command;
 
 /**
- * Requests an invocation-neutral retry of durable activation-delivery work.
+ * Retries durable activation-delivery work for one pending user.
  */
-final readonly class ActivationDeliveryRetryRequested implements Event
+final readonly class RetryInvitationDelivery implements Command
 {
     /**
-     * Constructs the activation-delivery retry-request event.
+     * Constructs the activation-delivery retry command.
      */
     public function __construct(
         private string $actorId,
@@ -34,10 +34,7 @@ final readonly class ActivationDeliveryRetryRequested implements Event
             }
         }
 
-        return new static(
-            (string) $data['actor_id'],
-            UserId::fromString((string) $data['user_id'])
-        );
+        return new static((string) $data['actor_id'], UserId::fromString((string) $data['user_id']));
     }
 
     /**
@@ -52,7 +49,7 @@ final readonly class ActivationDeliveryRetryRequested implements Event
     }
 
     /**
-     * Returns the actor who requested the retry.
+     * Returns the actor retrying delivery.
      */
     public function getActorId(): string
     {
@@ -60,7 +57,7 @@ final readonly class ActivationDeliveryRetryRequested implements Event
     }
 
     /**
-     * Returns the target user's identifier.
+     * Returns the pending user's identifier.
      */
     public function getUserId(): UserId
     {
