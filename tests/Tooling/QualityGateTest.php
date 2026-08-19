@@ -47,7 +47,10 @@ final class QualityGateTest extends TestCase
                 'php vendor/bin/deptrac debug:unassigned --no-cache',
                 'php tests/Architecture/PackageBoundaryTest.php',
                 'php tests/Architecture/PackageBoundaryBehaviorTest.php',
-                'php vendor/bin/rector process src/ tests/Tooling/ tests/Domain/ tests/Application/ scripts/ --dry-run',
+                implode(' ', [
+                    'php vendor/bin/rector process src/',
+                    'tests/Tooling/ tests/Domain/ tests/Application/ scripts/ --dry-run',
+                ]),
                 'php vendor/bin/phpunit --fail-on-skipped',
                 'coverage',
                 'documentation-check',
@@ -84,7 +87,14 @@ final class QualityGateTest extends TestCase
         mkdir($this->directory.'/src', 0777, true);
         mkdir($this->directory.'/tests', 0777, true);
         mkdir($this->directory.'/scripts', 0777, true);
-        foreach (['rector.php', 'src/Example.php', 'tests/ExampleTest.php', 'scripts/Tool.php'] as $file) {
+        foreach (
+            [
+                'rector.php',
+                'src/Example.php',
+                'tests/ExampleTest.php',
+                'scripts/Tool.php',
+            ] as $file
+        ) {
             file_put_contents($this->directory.'/'.$file, "<?php\n");
         }
 

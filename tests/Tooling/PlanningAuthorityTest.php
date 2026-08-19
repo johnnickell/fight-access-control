@@ -95,9 +95,10 @@ final class PlanningAuthorityTest extends TestCase
         self::assertStringContainsString('ready-for-human', $triage);
         self::assertStringContainsString('Each ticket belongs to', $tickets);
         self::assertStringContainsString('Ready Frontier', $board);
-        self::assertStringContainsString('T-00001', $board);
+        self::assertStringContainsString('T-00002', $board);
+        self::assertStringContainsString('T-00003', $board);
         self::assertStringContainsString('id: T-00001', $frontier);
-        self::assertStringContainsString('status: ready-for-agent', $frontier);
+        self::assertStringContainsString('status: done', $frontier);
         self::assertStringContainsString('blocked_by: []', $frontier);
     }
 

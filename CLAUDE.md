@@ -26,8 +26,9 @@ Fight AccessControl is a framework-neutral PHP library. Production dependency di
 and public Fight Common contracts. There is no production Adapter layer. Framework, persistence, HTTP, mail,
 queue, JWT, realtime, and composition-root implementations belong to consumer repositories.
 
-Production namespaces are `Fight\AccessControl\Domain\` and `Fight\AccessControl\Application\`. Test namespaces
-mirror them under `Fight\Test\AccessControl\`.
+The two production namespaces are `Fight\AccessControl\Domain\` and
+`Fight\AccessControl\Application\`. Test namespaces mirror the production layers under
+`Fight\Test\AccessControl\`.
 
 ## Commands
 
