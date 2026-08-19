@@ -60,6 +60,24 @@ final class InMemoryActivationGrantRepository implements ActivationGrantReposito
         throw new LogicException('The predecessor activation grant was not found.');
     }
 
+    public function replaceConsumed(ActivationGrant $predecessor, ActivationGrant $consumedGrant): void
+    {
+        $grants = $this->grants;
+
+        foreach ($this->grants as $index => $grant) {
+            if ($grant === $predecessor) {
+                $this->grants[$index] = $consumedGrant;
+                $this->unitOfWork?->onRollback(function () use ($grants): void {
+                    $this->grants = $grants;
+                });
+
+                return;
+            }
+        }
+
+        throw new LogicException('The predecessor activation grant was not found.');
+    }
+
     /** @return list<ActivationGrant> */
     public function all(): array
     {

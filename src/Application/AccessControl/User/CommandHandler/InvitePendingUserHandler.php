@@ -78,7 +78,7 @@ final readonly class InvitePendingUserHandler implements CommandHandler
                 $delivery = InvitationDelivery::create(
                     $grant->getUserId(),
                     $user->getEmail()->toString(),
-                    $this->cipher->encrypt($credential),
+                    $this->cipher->encrypt($credential->toString()),
                     $grant->getExpiresAt()
                 );
                 $this->activationGrantRepository->add($grant);

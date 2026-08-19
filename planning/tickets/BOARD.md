@@ -13,7 +13,7 @@ materially cheaper.
 
 | Rank | Ticket | Parent PRD | Why next |
 | --- | --- | --- | --- |
-| 1 | [T-00003 — Activate an invited account](T-00003-activate-invited-account.md) | [PRD-00001](../specs/00001-PRD.md) | Completes the invited user's activation journey from the pending identity and one-time grant. |
+| 1 | [T-00004 — Login, cold restore, and current-session logout](T-00004-login-restore-logout.md) | [PRD-00001](../specs/00001-PRD.md) | Builds the first authenticated journey on the activation-created server-side session. |
 
 ## Completed
 
@@ -21,6 +21,7 @@ materially cheaper.
 | --- | --- | --- |
 | [T-00001 — Invite a pending user](T-00001-invite-pending-user.md) | [PRD-00001](../specs/00001-PRD.md) | Canonical pending-user invitation Command, Event, handler, and Domain repositories with durable activation work, audit evidence, and exact statement coverage. |
 | [T-00002 — Recover and resend activation delivery](T-00002-recover-resend-activation-delivery.md) | [PRD-00001](../specs/00001-PRD.md) | Safe delivery-status query, retryable delivery work, atomic predecessor-grant revocation and replacement, and exact statement coverage. |
+| [T-00003 — Activate an invited account](T-00003-activate-invited-account.md) | [PRD-00001](../specs/00001-PRD.md) | Atomic activation grant redemption, initial credential, active identity transition, and first server-side session with exact coverage. |
 
 ## Waiting
 
@@ -28,7 +29,6 @@ Waiting tickets retain `ready-for-agent`; their position here is derived from un
 
 | Suggested order | Ticket | Parent PRD | Waiting on |
 | --- | --- | --- | --- |
-| 3 | [T-00004 — Login, cold restore, and current-session logout](T-00004-login-restore-logout.md) | [PRD-00001](../specs/00001-PRD.md) | T-00003 |
 | 4 | [T-00005 — Secure refresh-session rotation](T-00005-secure-refresh-session-rotation.md) | [PRD-00001](../specs/00001-PRD.md) | T-00004 |
 | 5 | [T-00006 — Manage active sessions](T-00006-manage-active-sessions.md) | [PRD-00001](../specs/00001-PRD.md) | T-00004 |
 | 6 | [T-00007 — Recover a forgotten password](T-00007-recover-forgotten-password.md) | [PRD-00001](../specs/00001-PRD.md) | T-00004 |

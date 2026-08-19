@@ -30,7 +30,7 @@ class ActivationGrant
      */
     public static function issue(
         UserId $userId,
-        string $credential,
+        ActivationCredential $credential,
         DateTimeImmutable $issuedAt,
         DateTimeImmutable $expiresAt
     ): self {
@@ -38,7 +38,7 @@ class ActivationGrant
             throw new InvalidArgumentException('The activation grant expiry must be later than its issuance time.');
         }
 
-        return new self($userId, hash('sha256', $credential), $expiresAt);
+        return new self($userId, hash('sha256', $credential->toString()), $expiresAt);
     }
 
     /**
@@ -55,6 +55,14 @@ class ActivationGrant
     public function getCredentialHash(): string
     {
         return $this->credentialHash;
+    }
+
+    /**
+     * Returns whether a raw credential matches this grant without retaining it.
+     */
+    public function matchesCredential(ActivationCredential $credential): bool
+    {
+        return hash_equals($this->credentialHash, hash('sha256', $credential->toString()));
     }
 
     /**

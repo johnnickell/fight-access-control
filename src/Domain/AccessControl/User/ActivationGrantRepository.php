@@ -26,6 +26,13 @@ interface ActivationGrantRepository
     public function add(ActivationGrant $grant): void;
 
     /**
+     * Replaces an issued activation grant with its consumed immutable version.
+     *
+     * @throws Exception When an error occurs
+     */
+    public function replaceConsumed(ActivationGrant $predecessor, ActivationGrant $consumedGrant): void;
+
+    /**
      * Replaces a predecessor activation grant with its revoked version and a newly issued grant.
      *
      * @throws Exception When an error occurs

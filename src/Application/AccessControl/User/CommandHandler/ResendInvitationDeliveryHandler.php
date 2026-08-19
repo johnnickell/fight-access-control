@@ -87,7 +87,7 @@ final readonly class ResendInvitationDeliveryHandler implements CommandHandler
                 $delivery = InvitationDelivery::create(
                     $command->getUserId(),
                     $previousDelivery->email(),
-                    $this->cipher->encrypt($credential),
+                    $this->cipher->encrypt($credential->toString()),
                     $replacement->getExpiresAt()
                 );
                 $this->activationGrantRepository->replace(
