@@ -12,6 +12,7 @@ use Fight\AccessControl\Domain\AccessControl\RefreshSession\RefreshSessionReposi
 use Fight\AccessControl\Domain\AccessControl\User\ActivationGrant;
 use Fight\AccessControl\Domain\AccessControl\User\ActivationGrantRepository;
 use Fight\AccessControl\Domain\AccessControl\User\Command\ActivateInvitedAccount;
+use Fight\AccessControl\Domain\AccessControl\User\Event\RedactedCommandFailed;
 use Fight\AccessControl\Domain\AccessControl\User\Event\UserActivated;
 use Fight\AccessControl\Domain\AccessControl\User\User;
 use Fight\AccessControl\Domain\AccessControl\User\UserRepository;
@@ -20,7 +21,6 @@ use Fight\Common\Application\Messaging\Command\CommandHandler;
 use Fight\Common\Application\Messaging\Event\EventDispatcher;
 use Fight\Common\Application\Repository\UnitOfWork;
 use Fight\Common\Domain\Messaging\Command\CommandMessage;
-use Fight\Common\Domain\Messaging\Event\CommandFailedEvent;
 use LogicException;
 use Throwable;
 
@@ -95,7 +95,11 @@ final readonly class ActivateInvitedAccountHandler implements CommandHandler
 
             $this->eventDispatcher->trigger(new UserActivated($command->getUserId(), ...$activation));
         } catch (Throwable $throwable) {
-            $this->eventDispatcher->trigger(new CommandFailedEvent($command, $throwable->getMessage()));
+            $this->eventDispatcher->trigger(new RedactedCommandFailed(
+                $command::class,
+                ['user_id' => $command->getUserId()->toString()],
+                $throwable->getMessage()
+            ));
             throw $throwable;
         }
     }

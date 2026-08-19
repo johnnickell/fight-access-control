@@ -8,6 +8,7 @@ use DateTimeImmutable;
 use Fight\AccessControl\Domain\AccessControl\RefreshSession\RefreshSession;
 use Fight\AccessControl\Domain\AccessControl\RefreshSession\RefreshSessionId;
 use Fight\AccessControl\Domain\AccessControl\User\Command\ActivateInvitedAccount;
+use Fight\AccessControl\Domain\AccessControl\User\Event\RedactedCommandFailed;
 use Fight\AccessControl\Domain\AccessControl\User\Event\UserActivated;
 use Fight\AccessControl\Domain\AccessControl\User\Exception\UserNotPendingActivationException;
 use Fight\AccessControl\Domain\AccessControl\User\User;
@@ -20,6 +21,7 @@ use PHPUnit\Framework\TestCase;
 
 #[CoversClass(ActivateInvitedAccount::class)]
 #[CoversClass(RefreshSession::class)]
+#[CoversClass(RedactedCommandFailed::class)]
 #[CoversClass(UserActivated::class)]
 #[CoversClass(User::class)]
 final class ActivateInvitedAccountTest extends TestCase
@@ -49,6 +51,32 @@ final class ActivateInvitedAccountTest extends TestCase
         self::assertSame('2026-08-19T12:00:00+00:00', $event->getActivatedAt()->format(DATE_ATOM));
         $this->expectException(DomainException::class);
         UserActivated::fromArray([]);
+    }
+
+    public function test_that_a_redacted_command_failure_round_trips_without_command_secrets(): void
+    {
+        $event = new RedactedCommandFailed(
+            ActivateInvitedAccount::class,
+            ['user_id' => UserId::generate()->toString()],
+            'The activation grant cannot activate this invited account.'
+        );
+
+        self::assertSame($event->toArray(), RedactedCommandFailed::fromArray($event->toArray())->toArray());
+        self::assertSame(ActivateInvitedAccount::class, $event->getCommandClass());
+        self::assertArrayHasKey('user_id', $event->getRedactedCommandData());
+        self::assertSame('The activation grant cannot activate this invited account.', $event->getErrorMessage());
+        $this->expectException(DomainException::class);
+        RedactedCommandFailed::fromArray([]);
+    }
+
+    public function test_that_a_redacted_command_failure_rejects_non_array_command_data(): void
+    {
+        $this->expectException(DomainException::class);
+        RedactedCommandFailed::fromArray([
+            'command_class' => ActivateInvitedAccount::class,
+            'command_data'  => 'not-an-array',
+            'error_message' => 'Activation failed.',
+        ]);
     }
 
     public function test_that_a_first_refresh_session_keeps_its_identity_and_activation_time(): void

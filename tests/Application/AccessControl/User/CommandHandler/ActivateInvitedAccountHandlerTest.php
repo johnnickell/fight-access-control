@@ -12,13 +12,13 @@ use Fight\AccessControl\Domain\AccessControl\RefreshSession\RefreshSessionReposi
 use Fight\AccessControl\Domain\AccessControl\User\ActivationGrant;
 use Fight\AccessControl\Domain\AccessControl\User\ActivationGrantRepository;
 use Fight\AccessControl\Domain\AccessControl\User\Command\ActivateInvitedAccount;
+use Fight\AccessControl\Domain\AccessControl\User\Event\RedactedCommandFailed;
 use Fight\AccessControl\Domain\AccessControl\User\Event\UserActivated;
 use Fight\AccessControl\Domain\AccessControl\User\Exception\UserNotPendingActivationException;
 use Fight\AccessControl\Domain\AccessControl\User\User;
 use Fight\AccessControl\Domain\AccessControl\User\UserId;
 use Fight\AccessControl\Domain\AccessControl\User\UserState;
 use Fight\Common\Domain\Messaging\Command\CommandMessage;
-use Fight\Common\Domain\Messaging\Event\CommandFailedEvent;
 use Fight\Common\Domain\Value\Internet\EmailAddress;
 use Fight\Test\AccessControl\Application\AccessControl\Event\InMemoryEventDispatcher;
 use Fight\Test\AccessControl\Application\AccessControl\RefreshSession\Repository\InMemoryRefreshSessionRepository;
@@ -36,6 +36,7 @@ use RuntimeException;
 #[CoversClass(ActivationGrant::class)]
 #[CoversClass(RefreshSession::class)]
 #[CoversClass(ActivateInvitedAccount::class)]
+#[CoversClass(RedactedCommandFailed::class)]
 #[CoversClass(UserActivated::class)]
 #[CoversClass(User::class)]
 final class ActivateInvitedAccountHandlerTest extends TestCase
@@ -80,7 +81,12 @@ final class ActivateInvitedAccountHandlerTest extends TestCase
             self::assertSame(UserState::PENDING_ACTIVATION, $user->getState());
             self::assertFalse($grantRepository->all()[0]->isConsumed());
             self::assertCount(0, $refreshSessionRepository->all());
-            self::assertInstanceOf(CommandFailedEvent::class, $events->events()[0]);
+            $event = $events->events()[0];
+            self::assertInstanceOf(RedactedCommandFailed::class, $event);
+            self::assertSame(ActivateInvitedAccount::class, $event->getCommandClass());
+            self::assertSame(['user_id' => $user->getId()->toString()], $event->getRedactedCommandData());
+            self::assertStringNotContainsString('wrong-credential', serialize($event->toArray()));
+            self::assertStringNotContainsString('initial-password', serialize($event->toArray()));
         }
     }
 
@@ -139,7 +145,7 @@ final class ActivateInvitedAccountHandlerTest extends TestCase
             )));
         } finally {
             self::assertSame(UserState::PENDING_ACTIVATION, $user->getState());
-            self::assertInstanceOf(CommandFailedEvent::class, $events->events()[0]);
+            self::assertInstanceOf(RedactedCommandFailed::class, $events->events()[0]);
         }
     }
 
@@ -192,7 +198,7 @@ final class ActivateInvitedAccountHandlerTest extends TestCase
             )));
         } finally {
             self::assertSame(UserState::PENDING_ACTIVATION, $user->getState());
-            self::assertInstanceOf(CommandFailedEvent::class, $events->events()[0]);
+            self::assertInstanceOf(RedactedCommandFailed::class, $events->events()[0]);
         }
     }
 
@@ -213,7 +219,7 @@ final class ActivateInvitedAccountHandlerTest extends TestCase
             self::assertSame(UserState::ACTIVE, $user->getState());
             self::assertTrue($grantRepository->all()[0]->isConsumed());
             self::assertCount(1, $refreshSessionRepository->all());
-            self::assertInstanceOf(CommandFailedEvent::class, $events->events()[1]);
+            self::assertInstanceOf(RedactedCommandFailed::class, $events->events()[1]);
         }
     }
 
@@ -235,7 +241,7 @@ final class ActivateInvitedAccountHandlerTest extends TestCase
             self::assertSame('existing-hash', $user->getPasswordHash());
             self::assertFalse($grantRepository->all()[0]->isConsumed());
             self::assertCount(0, $refreshSessionRepository->all());
-            self::assertInstanceOf(CommandFailedEvent::class, $events->events()[0]);
+            self::assertInstanceOf(RedactedCommandFailed::class, $events->events()[0]);
         }
     }
 
@@ -278,7 +284,7 @@ final class ActivateInvitedAccountHandlerTest extends TestCase
         } finally {
             self::assertSame(UserState::PENDING_ACTIVATION, $user->getState());
             self::assertFalse($grants->all()[0]->isConsumed());
-            self::assertInstanceOf(CommandFailedEvent::class, $events->events()[0]);
+            self::assertInstanceOf(RedactedCommandFailed::class, $events->events()[0]);
         }
     }
 
@@ -297,7 +303,7 @@ final class ActivateInvitedAccountHandlerTest extends TestCase
             self::fail('Expected the hasher failure.');
         } catch (RuntimeException $runtimeException) {
             self::assertSame('Hashing failed.', $runtimeException->getMessage());
-            self::assertInstanceOf(CommandFailedEvent::class, $events->events()[0]);
+            self::assertInstanceOf(RedactedCommandFailed::class, $events->events()[0]);
         }
 
         [$handler, $user, , , , $events] = $this->readyHandler(
@@ -316,7 +322,7 @@ final class ActivateInvitedAccountHandlerTest extends TestCase
                 'initial-password'
             )));
         } finally {
-            self::assertInstanceOf(CommandFailedEvent::class, $events->events()[0]);
+            self::assertInstanceOf(RedactedCommandFailed::class, $events->events()[0]);
         }
     }
 
