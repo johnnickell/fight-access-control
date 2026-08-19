@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Fight\AccessControl\Application\AccessControl\User\EventSubscriber;
 
 use Fight\AccessControl\Domain\AccessControl\User\Command\DeliverUserInvitation;
+use Fight\AccessControl\Domain\AccessControl\User\Event\InvitationDeliveryResent;
 use Fight\AccessControl\Domain\AccessControl\User\Event\InvitationDeliveryRetryRequested;
 use Fight\AccessControl\Domain\AccessControl\User\Event\UserInvited;
 use Fight\Common\Application\Messaging\Command\CommandBus;
@@ -29,9 +30,20 @@ final readonly class InvitationDeliverySubscriber implements EventSubscriber
     public static function eventRegistration(): array
     {
         return [
+            InvitationDeliveryResent::class => 'onInvitationDeliveryResent',
             InvitationDeliveryRetryRequested::class => 'onInvitationDeliveryRetryRequested',
             UserInvited::class => 'onUserInvited',
         ];
+    }
+
+    /**
+     * Dispatches delivery after a replacement invitation is published.
+     */
+    public function onInvitationDeliveryResent(EventMessage $eventMessage): void
+    {
+        /** @var InvitationDeliveryResent $event */
+        $event = $eventMessage->payload();
+        $this->commandBus->execute(new DeliverUserInvitation($event->getActorId(), $event->getUserId()));
     }
 
     /**
