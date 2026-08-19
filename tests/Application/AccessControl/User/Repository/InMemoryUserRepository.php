@@ -6,6 +6,7 @@ namespace Fight\Test\AccessControl\Application\AccessControl\User\Repository;
 
 use Fight\AccessControl\Domain\AccessControl\User\Exception\DuplicateEmailException;
 use Fight\AccessControl\Domain\AccessControl\User\User;
+use Fight\AccessControl\Domain\AccessControl\User\UserId;
 use Fight\AccessControl\Domain\AccessControl\User\UserRepository;
 use Fight\Test\AccessControl\Application\AccessControl\User\InMemoryUnitOfWork;
 
@@ -33,6 +34,17 @@ final class InMemoryUserRepository implements UserRepository
         $this->unitOfWork?->onRollback(function (): void {
             array_pop($this->users);
         });
+    }
+
+    public function getById(UserId $id): ?User
+    {
+        foreach ($this->users as $user) {
+            if ($user->getId()->equals($id)) {
+                return $user;
+            }
+        }
+
+        return null;
     }
 
     /** @return list<User> */

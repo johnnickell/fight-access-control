@@ -58,6 +58,14 @@ class ActivationGrant
     }
 
     /**
+     * Returns whether a raw credential matches this grant without retaining it.
+     */
+    public function matchesCredential(string $credential): bool
+    {
+        return hash_equals($this->credentialHash, hash('sha256', $credential));
+    }
+
+    /**
      * Returns the credential expiration time.
      */
     public function getExpiresAt(): DateTimeImmutable

@@ -12,6 +12,13 @@ use Exception;
 interface UserRepository
 {
     /**
+     * Retrieves a user by its stable identifier.
+     *
+     * @throws Exception When an error occurs
+     */
+    public function getById(UserId $id): ?User;
+
+    /**
      * Adds a User.
      *
      * Implementations must reject a duplicate canonical email atomically.
