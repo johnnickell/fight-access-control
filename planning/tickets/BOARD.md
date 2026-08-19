@@ -4,7 +4,7 @@ Operational execution view for Fight AccessControl. Ticket files are canonical f
 `blocked_by` edges; this board is canonical for recommended order. Update this file whenever ticket status,
 dependencies, or roadmap priority changes.
 
-Last updated: 2026-08-18
+Last updated: 2026-08-19
 
 ## Ready Frontier
 
@@ -13,14 +13,14 @@ materially cheaper.
 
 | Rank | Ticket | Parent PRD | Why next |
 | --- | --- | --- | --- |
-| 1 | [T-00002 — Recover and resend activation delivery](T-00002-recover-resend-activation-delivery.md) | [PRD-00001](../specs/00001-PRD.md) | Builds recovery and resend behavior on the durable invitation, activation-grant, and delivery seam. |
-| 2 | [T-00003 — Activate an invited account](T-00003-activate-invited-account.md) | [PRD-00001](../specs/00001-PRD.md) | Completes the invited user's activation journey from the pending identity and one-time grant. |
+| 1 | [T-00003 — Activate an invited account](T-00003-activate-invited-account.md) | [PRD-00001](../specs/00001-PRD.md) | Completes the invited user's activation journey from the pending identity and one-time grant. |
 
 ## Completed
 
 | Ticket | Parent PRD | Outcome |
 | --- | --- | --- |
 | [T-00001 — Invite a pending user](T-00001-invite-pending-user.md) | [PRD-00001](../specs/00001-PRD.md) | Canonical pending-user invitation Command, Event, handler, and Domain repositories with durable activation work, audit evidence, and exact statement coverage. |
+| [T-00002 — Recover and resend activation delivery](T-00002-recover-resend-activation-delivery.md) | [PRD-00001](../specs/00001-PRD.md) | Safe delivery-status query, retryable delivery work, atomic predecessor-grant revocation and replacement, and exact statement coverage. |
 
 ## Waiting
 

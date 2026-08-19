@@ -11,6 +11,8 @@ final class InMemoryUnitOfWork implements UnitOfWork
 {
     public int $transactions = 0;
 
+    public bool $transactionCompleted = false;
+
     /** @var list<callable(): void> */
     private array $rollbackActions = [];
 
@@ -24,7 +26,10 @@ final class InMemoryUnitOfWork implements UnitOfWork
         $rollbackStart = count($this->rollbackActions);
 
         try {
-            return $operation();
+            $result = $operation();
+            $this->transactionCompleted = true;
+
+            return $result;
         } catch (Throwable $throwable) {
             for ($index = count($this->rollbackActions) - 1; $index >= $rollbackStart; --$index) {
                 ($this->rollbackActions[$index])();

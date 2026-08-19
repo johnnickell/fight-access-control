@@ -17,4 +17,11 @@ interface ActivationDeliveryWorkRepository
      * @throws Exception When an error occurs
      */
     public function add(ActivationDeliveryWork $work): void;
+
+    /**
+     * Retrieves activation delivery work for a user.
+     *
+     * @throws Exception When an error occurs
+     */
+    public function getByUserId(UserId $userId): ?ActivationDeliveryWork;
 }

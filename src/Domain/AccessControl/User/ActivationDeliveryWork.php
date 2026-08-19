@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Fight\AccessControl\Domain\AccessControl\User;
 
 use DateTimeImmutable;
+use Fight\AccessControl\Domain\AccessControl\User\Exception\ActivationDeliveryNotRetryableException;
 
 /**
  * Represents encrypted activation delivery work awaiting execution or destruction at terminal expiry.
@@ -19,8 +20,9 @@ class ActivationDeliveryWork
     protected function __construct(
         private readonly UserId $userId,
         private readonly string $email,
-        private readonly string $ciphertext,
-        private readonly DateTimeImmutable $expiresAt
+        private ?string $ciphertext,
+        private readonly DateTimeImmutable $expiresAt,
+        private ActivationDeliveryStatus $status = ActivationDeliveryStatus::PENDING
     ) {
     }
 
@@ -55,9 +57,55 @@ class ActivationDeliveryWork
     /**
      * Returns the encrypted credential payload.
      */
-    public function ciphertext(): string
+    public function ciphertext(): ?string
     {
         return $this->ciphertext;
+    }
+
+    /**
+     * Confirms successful delivery and destroys the recoverable credential.
+     */
+    public function confirm(): void
+    {
+        if ($this->status === ActivationDeliveryStatus::CONFIRMED) {
+            return;
+        }
+
+        if ($this->isRetryable() === false) {
+            throw new ActivationDeliveryNotRetryableException('The activation delivery work is no longer retryable.');
+        }
+
+        $this->ciphertext = null;
+        $this->status = ActivationDeliveryStatus::CONFIRMED;
+    }
+
+    /**
+     * Records an unsuccessful invocation while retaining the recoverable credential for a later retry.
+     */
+    public function fail(): void
+    {
+        if ($this->status === ActivationDeliveryStatus::FAILED) {
+            return;
+        }
+
+        if ($this->isRetryable() === false) {
+            throw new ActivationDeliveryNotRetryableException('The activation delivery work is no longer retryable.');
+        }
+
+        $this->status = ActivationDeliveryStatus::FAILED;
+    }
+
+    /**
+     * Expires pending work at its terminal expiry and destroys the recoverable credential.
+     */
+    public function expireAt(DateTimeImmutable $occurredAt): void
+    {
+        if ($this->isRetryable() === false || $occurredAt < $this->expiresAt) {
+            return;
+        }
+
+        $this->ciphertext = null;
+        $this->status = ActivationDeliveryStatus::EXPIRED;
     }
 
     /**
@@ -66,5 +114,22 @@ class ActivationDeliveryWork
     public function expiresAt(): DateTimeImmutable
     {
         return $this->expiresAt;
+    }
+
+    /**
+     * Returns the operational status without exposing the recoverable credential.
+     */
+    public function getStatus(): ActivationDeliveryStatus
+    {
+        return $this->status;
+    }
+
+    /**
+     * Returns whether the delivery work retains credential material that may be invoked again.
+     */
+    public function isRetryable(): bool
+    {
+        return in_array($this->status, [ActivationDeliveryStatus::PENDING, ActivationDeliveryStatus::FAILED], true)
+            && $this->ciphertext !== null;
     }
 }
