@@ -2,12 +2,13 @@
 
 declare(strict_types=1);
 
-namespace Fight\Test\AccessControl\Application\AccessControl\User\CommandHandler;
+namespace Fight\Test\AccessControl\Application\AccessControl\User\Repository;
 
-use Fight\AccessControl\Application\AccessControl\User\ActivationDeliveryWork;
-use Fight\AccessControl\Application\AccessControl\User\ActivationDeliveryWorkStore;
+use Fight\AccessControl\Domain\AccessControl\User\ActivationDeliveryWork;
+use Fight\AccessControl\Domain\AccessControl\User\ActivationDeliveryWorkRepository;
+use Fight\Test\AccessControl\Application\AccessControl\User\InMemoryUnitOfWork;
 
-final class InMemoryActivationDeliveryWorkStore implements ActivationDeliveryWorkStore
+final class InMemoryActivationDeliveryWorkRepository implements ActivationDeliveryWorkRepository
 {
     /** @var list<ActivationDeliveryWork> */
     private array $work = [];
@@ -16,7 +17,7 @@ final class InMemoryActivationDeliveryWorkStore implements ActivationDeliveryWor
     {
     }
 
-    public function save(ActivationDeliveryWork $work): void
+    public function add(ActivationDeliveryWork $work): void
     {
         $this->work[] = $work;
         $this->unitOfWork?->onRollback(function (): void {

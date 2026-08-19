@@ -16,6 +16,12 @@ Common contract or an established bounded-context structure already exists.
 - Command and query handlers implement the corresponding public Fight Common handler interface, declare their
   registration method, extract the typed payload from its message, and use the package Unit of Work and event
   dispatcher in the established order.
+- Persistence contracts are Domain repository interfaces beside their aggregates, named `*Repository` and using
+  canonical methods such as `add()`, `getById()`, and `remove()`. Handlers depend on those Domain repositories;
+  do not introduce Application `*Store` interfaces, `save()` ports, or preflight `reserve()` calls. Enforce
+  canonical-email uniqueness atomically in `UserRepository::add()`.
+- Keep in-memory repository implementations in the Application test boundary under `Repository/`. Production
+  persistence adapters remain consumer-owned; do not add a package Adapter layer without explicit approval.
 - Reuse public Fight Common values and identities. In particular use
   `Fight\Common\Domain\Value\Internet\EmailAddress` rather than creating a local email value object. Context-owned
   IDs extend `Fight\Common\Domain\Identity\UniqueId`.

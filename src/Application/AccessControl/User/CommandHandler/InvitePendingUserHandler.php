@@ -7,18 +7,17 @@ namespace Fight\AccessControl\Application\AccessControl\User\CommandHandler;
 use DateInterval;
 use Fight\AccessControl\Application\AccessControl\User\ActivationCredentialGenerator;
 use Fight\AccessControl\Application\AccessControl\User\ActivationDeliveryCipher;
-use Fight\AccessControl\Application\AccessControl\User\ActivationDeliveryWork;
-use Fight\AccessControl\Application\AccessControl\User\ActivationDeliveryWorkStore;
-use Fight\AccessControl\Application\AccessControl\User\ActivationGrantStore;
-use Fight\AccessControl\Application\AccessControl\User\AuditEvidence;
-use Fight\AccessControl\Application\AccessControl\User\AuditEvidenceStore;
-use Fight\AccessControl\Application\AccessControl\User\DuplicateEmail;
 use Fight\AccessControl\Application\AccessControl\User\InvitationClock;
-use Fight\AccessControl\Application\AccessControl\User\UserStore;
+use Fight\AccessControl\Domain\AccessControl\User\ActivationDeliveryWork;
+use Fight\AccessControl\Domain\AccessControl\User\ActivationDeliveryWorkRepository;
 use Fight\AccessControl\Domain\AccessControl\User\ActivationGrant;
+use Fight\AccessControl\Domain\AccessControl\User\ActivationGrantRepository;
+use Fight\AccessControl\Domain\AccessControl\User\AuditEvidence;
+use Fight\AccessControl\Domain\AccessControl\User\AuditEvidenceRepository;
 use Fight\AccessControl\Domain\AccessControl\User\Command\InvitePendingUser;
 use Fight\AccessControl\Domain\AccessControl\User\Event\UserInvited;
 use Fight\AccessControl\Domain\AccessControl\User\User;
+use Fight\AccessControl\Domain\AccessControl\User\UserRepository;
 use Fight\Common\Application\Messaging\Command\CommandHandler;
 use Fight\Common\Application\Messaging\Event\EventDispatcher;
 use Fight\Common\Application\Repository\UnitOfWork;
@@ -35,10 +34,10 @@ final readonly class InvitePendingUserHandler implements CommandHandler
      * Creates the invitation handler.
      */
     public function __construct(
-        private UserStore $users,
-        private ActivationGrantStore $grants,
-        private ActivationDeliveryWorkStore $deliveries,
-        private AuditEvidenceStore $audits,
+        private UserRepository $users,
+        private ActivationGrantRepository $grants,
+        private ActivationDeliveryWorkRepository $deliveries,
+        private AuditEvidenceRepository $audits,
         private UnitOfWork $unitOfWork,
         private ActivationCredentialGenerator $credentials,
         private ActivationDeliveryCipher $cipher,
@@ -67,9 +66,7 @@ final readonly class InvitePendingUserHandler implements CommandHandler
         try {
             $this->unitOfWork->commitTransactional(function () use ($command, $issuedAt): void {
                 $user = User::invite($command->getUserId(), $command->getEmail());
-                if ($this->users->reserve($user) === false) {
-                    throw new DuplicateEmail('The email address is already reserved.');
-                }
+                $this->users->add($user);
 
                 $credential = $this->credentials->generate();
                 $grant = ActivationGrant::issue(
@@ -78,15 +75,15 @@ final readonly class InvitePendingUserHandler implements CommandHandler
                     $issuedAt,
                     $issuedAt->add(new DateInterval('P7D'))
                 );
-                $delivery = new ActivationDeliveryWork(
+                $delivery = ActivationDeliveryWork::create(
                     $grant->getUserId(),
                     $user->getEmail()->toString(),
                     $this->cipher->encrypt($credential),
                     $grant->getExpiresAt()
                 );
-                $this->grants->save($grant);
-                $this->deliveries->save($delivery);
-                $this->audits->save(new AuditEvidence($command->getActorId(), 'user.invited', $user->getId()));
+                $this->grants->add($grant);
+                $this->deliveries->add($delivery);
+                $this->audits->add(AuditEvidence::record($command->getActorId(), 'user.invited', $user->getId()));
             });
 
             $this->eventDispatcher->trigger(new UserInvited(

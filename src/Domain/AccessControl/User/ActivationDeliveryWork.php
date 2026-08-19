@@ -2,25 +2,38 @@
 
 declare(strict_types=1);
 
-namespace Fight\AccessControl\Application\AccessControl\User;
+namespace Fight\AccessControl\Domain\AccessControl\User;
 
 use DateTimeImmutable;
-use Fight\AccessControl\Domain\AccessControl\User\UserId;
 
 /**
  * Represents encrypted activation delivery work awaiting execution or destruction at terminal expiry.
+ *
+ * @phpstan-consistent-constructor
  */
-final readonly class ActivationDeliveryWork
+class ActivationDeliveryWork
 {
     /**
      * Creates pending encrypted delivery work.
      */
-    public function __construct(
-        private UserId $userId,
-        private string $email,
-        private string $ciphertext,
-        private DateTimeImmutable $expiresAt
+    protected function __construct(
+        private readonly UserId $userId,
+        private readonly string $email,
+        private readonly string $ciphertext,
+        private readonly DateTimeImmutable $expiresAt
     ) {
+    }
+
+    /**
+     * Creates encrypted activation delivery work.
+     */
+    public static function create(
+        UserId $userId,
+        string $email,
+        string $ciphertext,
+        DateTimeImmutable $expiresAt
+    ): static {
+        return new static($userId, $email, $ciphertext, $expiresAt);
     }
 
     /**

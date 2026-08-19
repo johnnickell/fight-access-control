@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace Fight\Test\AccessControl\Application\AccessControl\User;
 
 use DateTimeImmutable;
-use Fight\AccessControl\Application\AccessControl\User\ActivationDeliveryWork;
-use Fight\AccessControl\Application\AccessControl\User\AuditEvidence;
+use Fight\AccessControl\Domain\AccessControl\User\ActivationDeliveryWork;
+use Fight\AccessControl\Domain\AccessControl\User\AuditEvidence;
 use Fight\AccessControl\Domain\AccessControl\User\UserId;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
@@ -19,7 +19,7 @@ final class ApplicationRecordsTest extends TestCase
     {
         $userId = UserId::generate();
         $expiresAt = new DateTimeImmutable('2026-08-25T12:00:00+00:00');
-        $work = new ActivationDeliveryWork($userId, 'alice@example.test', 'ciphertext', $expiresAt);
+        $work = ActivationDeliveryWork::create($userId, 'alice@example.test', 'ciphertext', $expiresAt);
 
         self::assertSame($userId, $work->userId());
         self::assertSame('alice@example.test', $work->email());
@@ -30,7 +30,7 @@ final class ApplicationRecordsTest extends TestCase
     public function test_that_audit_evidence_never_contains_the_raw_credential(): void
     {
         $userId = UserId::generate();
-        $evidence = new AuditEvidence('Admin-42', 'user.invited', $userId);
+        $evidence = AuditEvidence::record('Admin-42', 'user.invited', $userId);
 
         self::assertSame('Admin-42', $evidence->actorId());
         self::assertSame('user.invited', $evidence->action());

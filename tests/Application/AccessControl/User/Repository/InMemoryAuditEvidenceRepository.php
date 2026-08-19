@@ -2,13 +2,14 @@
 
 declare(strict_types=1);
 
-namespace Fight\Test\AccessControl\Application\AccessControl\User\CommandHandler;
+namespace Fight\Test\AccessControl\Application\AccessControl\User\Repository;
 
-use Fight\AccessControl\Application\AccessControl\User\AuditEvidence;
-use Fight\AccessControl\Application\AccessControl\User\AuditEvidenceStore;
+use Fight\AccessControl\Domain\AccessControl\User\AuditEvidence;
+use Fight\AccessControl\Domain\AccessControl\User\AuditEvidenceRepository;
+use Fight\Test\AccessControl\Application\AccessControl\User\InMemoryUnitOfWork;
 use RuntimeException;
 
-final class InMemoryAuditEvidenceStore implements AuditEvidenceStore
+final class InMemoryAuditEvidenceRepository implements AuditEvidenceRepository
 {
     /** @var list<AuditEvidence> */
     private array $evidence = [];
@@ -19,7 +20,7 @@ final class InMemoryAuditEvidenceStore implements AuditEvidenceStore
     ) {
     }
 
-    public function save(AuditEvidence $evidence): void
+    public function add(AuditEvidence $evidence): void
     {
         $this->evidence[] = $evidence;
         $this->unitOfWork?->onRollback(function (): void {

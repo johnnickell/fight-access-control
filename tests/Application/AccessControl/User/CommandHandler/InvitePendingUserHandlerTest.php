@@ -4,12 +4,12 @@ declare(strict_types=1);
 
 namespace Fight\Test\AccessControl\Application\AccessControl\User\CommandHandler;
 
-use Fight\AccessControl\Application\AccessControl\User\ActivationDeliveryWork;
-use Fight\AccessControl\Application\AccessControl\User\AuditEvidence;
 use Fight\AccessControl\Application\AccessControl\User\CommandHandler\InvitePendingUserHandler;
-use Fight\AccessControl\Application\AccessControl\User\DuplicateEmail;
+use Fight\AccessControl\Domain\AccessControl\User\ActivationDeliveryWork;
 use Fight\AccessControl\Domain\AccessControl\User\ActivationGrant;
+use Fight\AccessControl\Domain\AccessControl\User\AuditEvidence;
 use Fight\AccessControl\Domain\AccessControl\User\Command\InvitePendingUser;
+use Fight\AccessControl\Domain\AccessControl\User\DuplicateEmail;
 use Fight\AccessControl\Domain\AccessControl\User\Event\UserInvited;
 use Fight\AccessControl\Domain\AccessControl\User\User;
 use Fight\AccessControl\Domain\AccessControl\User\UserId;
@@ -17,6 +17,11 @@ use Fight\AccessControl\Domain\AccessControl\User\UserState;
 use Fight\Common\Domain\Messaging\Command\CommandMessage;
 use Fight\Common\Domain\Value\Internet\EmailAddress;
 use Fight\Test\AccessControl\Application\AccessControl\Event\InMemoryEventDispatcher;
+use Fight\Test\AccessControl\Application\AccessControl\User\InMemoryUnitOfWork;
+use Fight\Test\AccessControl\Application\AccessControl\User\Repository\InMemoryActivationDeliveryWorkRepository;
+use Fight\Test\AccessControl\Application\AccessControl\User\Repository\InMemoryActivationGrantRepository;
+use Fight\Test\AccessControl\Application\AccessControl\User\Repository\InMemoryAuditEvidenceRepository;
+use Fight\Test\AccessControl\Application\AccessControl\User\Repository\InMemoryUserRepository;
 use Fight\Test\AccessControl\Domain\AccessControl\User\UserFixture;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\DataProvider;
@@ -45,10 +50,10 @@ final class InvitePendingUserHandlerTest extends TestCase
 
     public function test_it_records_an_invitation_and_emits_a_domain_event_after_commit(): void
     {
-        $users = new InMemoryUserStore();
-        $grants = new InMemoryActivationGrantStore();
-        $deliveries = new InMemoryActivationDeliveryWorkStore();
-        $audits = new InMemoryAuditEvidenceStore();
+        $users = new InMemoryUserRepository();
+        $grants = new InMemoryActivationGrantRepository();
+        $deliveries = new InMemoryActivationDeliveryWorkRepository();
+        $audits = new InMemoryAuditEvidenceRepository();
         $unitOfWork = new InMemoryUnitOfWork();
         $events = new InMemoryEventDispatcher();
         $handler = $this->handler($users, $grants, $deliveries, $audits, $unitOfWork, $events);
@@ -79,14 +84,15 @@ final class InvitePendingUserHandlerTest extends TestCase
     #[DataProvider('reservingUserStates')]
     public function test_it_rejects_every_existing_lifecycle_email_reservation(UserState $state): void
     {
-        $users = new InMemoryUserStore();
-        self::assertTrue($users->reserve(UserFixture::withState('alice@example.test', $state)));
+        $users = new InMemoryUserRepository();
+        $users->add(UserFixture::withState('alice@example.test', $state));
+
         $events = new InMemoryEventDispatcher();
         $handler = $this->handler(
             $users,
-            new InMemoryActivationGrantStore(),
-            new InMemoryActivationDeliveryWorkStore(),
-            new InMemoryAuditEvidenceStore(),
+            new InMemoryActivationGrantRepository(),
+            new InMemoryActivationDeliveryWorkRepository(),
+            new InMemoryAuditEvidenceRepository(),
             new InMemoryUnitOfWork(),
             $events
         );
@@ -107,13 +113,13 @@ final class InvitePendingUserHandlerTest extends TestCase
     public function test_it_rolls_back_every_durable_invitation_record_when_a_late_save_fails(): void
     {
         $unitOfWork = new InMemoryUnitOfWork();
-        $users = new InMemoryUserStore($unitOfWork);
+        $users = new InMemoryUserRepository($unitOfWork);
         $events = new InMemoryEventDispatcher();
         $handler = $this->handler(
             $users,
-            new InMemoryActivationGrantStore($unitOfWork),
-            new InMemoryActivationDeliveryWorkStore($unitOfWork),
-            new InMemoryAuditEvidenceStore($unitOfWork, failAfterSave: true),
+            new InMemoryActivationGrantRepository($unitOfWork),
+            new InMemoryActivationDeliveryWorkRepository($unitOfWork),
+            new InMemoryAuditEvidenceRepository($unitOfWork, failAfterSave: true),
             $unitOfWork,
             $events
         );
@@ -133,16 +139,16 @@ final class InvitePendingUserHandlerTest extends TestCase
 
     public function test_it_reads_the_current_time_for_each_invitation(): void
     {
-        $grants = new InMemoryActivationGrantStore();
+        $grants = new InMemoryActivationGrantRepository();
         $clock = new FixedInvitationClock(
             '2026-08-18T12:00:00+00:00',
             '2026-08-19T12:00:00+00:00'
         );
         $handler = new InvitePendingUserHandler(
-            new InMemoryUserStore(),
+            new InMemoryUserRepository(),
             $grants,
-            new InMemoryActivationDeliveryWorkStore(),
-            new InMemoryAuditEvidenceStore(),
+            new InMemoryActivationDeliveryWorkRepository(),
+            new InMemoryAuditEvidenceRepository(),
             new InMemoryUnitOfWork(),
             new FixedCredentialGenerator('activate-once'),
             new PrefixCipher(),
@@ -167,10 +173,10 @@ final class InvitePendingUserHandlerTest extends TestCase
     }
 
     private function handler(
-        InMemoryUserStore $users,
-        InMemoryActivationGrantStore $grants,
-        InMemoryActivationDeliveryWorkStore $deliveries,
-        InMemoryAuditEvidenceStore $audits,
+        InMemoryUserRepository $users,
+        InMemoryActivationGrantRepository $grants,
+        InMemoryActivationDeliveryWorkRepository $deliveries,
+        InMemoryAuditEvidenceRepository $audits,
         InMemoryUnitOfWork $unitOfWork,
         InMemoryEventDispatcher $events
     ): InvitePendingUserHandler {

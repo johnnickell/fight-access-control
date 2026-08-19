@@ -35,5 +35,5 @@ No mail transport, encryption-key implementation, persistence adapter, HTTP acti
 ## Evidence
 
 - `./bin/planning-check` passed after ticket and board synchronization.
-- `./bin/build` passed with 52 tests, 280 assertions, and 108/108 exact statement coverage.
-- The invitation follows the established `Domain\\AccessControl\\User` and `Application\\AccessControl\\User` Command/Event/Handler layout, reuses Fight Common values, and retains no public conformance-contract surface.
+- `./bin/build` passed with 52 tests, 276 assertions, and 109/109 exact statement coverage.
+- The invitation follows the established `Domain\\AccessControl\\User` and `Application\\AccessControl\\User` Command/Event/Handler layout, reuses Fight Common values, uses Domain repository interfaces with atomic `add()` operations, and retains no public conformance-contract surface.

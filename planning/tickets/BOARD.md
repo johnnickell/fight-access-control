@@ -20,7 +20,7 @@ materially cheaper.
 
 | Ticket | Parent PRD | Outcome |
 | --- | --- | --- |
-| [T-00001 — Invite a pending user](T-00001-invite-pending-user.md) | [PRD-00001](../specs/00001-PRD.md) | Canonical pending-user invitation Command, Event, and handler with durable activation work and audit evidence. |
+| [T-00001 — Invite a pending user](T-00001-invite-pending-user.md) | [PRD-00001](../specs/00001-PRD.md) | Canonical pending-user invitation Command, Event, handler, and Domain repositories with durable activation work and audit evidence. |
 
 ## Waiting
 

@@ -2,23 +2,31 @@
 
 declare(strict_types=1);
 
-namespace Fight\AccessControl\Application\AccessControl\User;
-
-use Fight\AccessControl\Domain\AccessControl\User\UserId;
+namespace Fight\AccessControl\Domain\AccessControl\User;
 
 /**
  * Represents the secret-free durable evidence for a sensitive action.
+ *
+ * @phpstan-consistent-constructor
  */
-final readonly class AuditEvidence
+class AuditEvidence
 {
     /**
      * Records an invitation action without credential material.
      */
-    public function __construct(
-        private string $actorId,
-        private string $action,
-        private UserId $userId
+    protected function __construct(
+        private readonly string $actorId,
+        private readonly string $action,
+        private readonly UserId $userId
     ) {
+    }
+
+    /**
+     * Records secret-free evidence for a sensitive action.
+     */
+    public static function record(string $actorId, string $action, UserId $userId): static
+    {
+        return new static($actorId, $action, $userId);
     }
 
     /**

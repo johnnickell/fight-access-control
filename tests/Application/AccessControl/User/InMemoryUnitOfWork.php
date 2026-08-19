@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Fight\Test\AccessControl\Application\AccessControl\User\CommandHandler;
+namespace Fight\Test\AccessControl\Application\AccessControl\User;
 
 use Fight\Common\Application\Repository\UnitOfWork;
 use Throwable;
