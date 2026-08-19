@@ -12,12 +12,11 @@ use Fight\AccessControl\Domain\AccessControl\Audit\AuditEvidence;
 use Fight\AccessControl\Domain\AccessControl\Audit\AuditEvidenceRepository;
 use Fight\AccessControl\Domain\AccessControl\User\ActivationGrant;
 use Fight\AccessControl\Domain\AccessControl\User\ActivationGrantRepository;
-use Fight\AccessControl\Domain\AccessControl\User\Command\InvitePendingUser;
-use Fight\AccessControl\Domain\AccessControl\User\Event\UserInvited;
+use Fight\AccessControl\Domain\AccessControl\User\Command\ResendInvitationDelivery;
+use Fight\AccessControl\Domain\AccessControl\User\Event\InvitationDeliveryResent;
+use Fight\AccessControl\Domain\AccessControl\User\Exception\InvitationDeliveryNotResendableException;
 use Fight\AccessControl\Domain\AccessControl\User\InvitationDelivery;
 use Fight\AccessControl\Domain\AccessControl\User\InvitationDeliveryRepository;
-use Fight\AccessControl\Domain\AccessControl\User\User;
-use Fight\AccessControl\Domain\AccessControl\User\UserRepository;
 use Fight\Common\Application\Messaging\Command\CommandHandler;
 use Fight\Common\Application\Messaging\Event\EventDispatcher;
 use Fight\Common\Application\Repository\UnitOfWork;
@@ -26,15 +25,14 @@ use Fight\Common\Domain\Messaging\Event\CommandFailedEvent;
 use Throwable;
 
 /**
- * Atomically records a pending invitation and its required durable work.
+ * Atomically replaces an activation grant and stages its recoverable replacement delivery work.
  */
-final readonly class InvitePendingUserHandler implements CommandHandler
+final readonly class ResendInvitationDeliveryHandler implements CommandHandler
 {
     /**
-     * Creates the invitation handler.
+     * Creates the activation-delivery resend handler.
      */
     public function __construct(
-        private UserRepository $userRepository,
         private ActivationGrantRepository $activationGrantRepository,
         private InvitationDeliveryRepository $invitationDeliveryRepository,
         private AuditEvidenceRepository $auditEvidenceRepository,
@@ -51,7 +49,7 @@ final readonly class InvitePendingUserHandler implements CommandHandler
      */
     public static function commandRegistration(): string
     {
-        return InvitePendingUser::class;
+        return ResendInvitationDelivery::class;
     }
 
     /**
@@ -59,42 +57,55 @@ final readonly class InvitePendingUserHandler implements CommandHandler
      */
     public function handle(CommandMessage $commandMessage): void
     {
-        /** @var InvitePendingUser $command */
+        /** @var ResendInvitationDelivery $command */
         $command = $commandMessage->payload();
-        $issuedAt = $this->clock->now();
 
         try {
+            $issuedAt = $this->clock->now();
             $this->unitOfWork->commitTransactional(function () use ($command, $issuedAt): void {
-                $user = User::invite($command->getUserId(), $command->getEmail());
-                $this->userRepository->add($user);
+                $predecessor = $this->activationGrantRepository->getByUserId($command->getUserId());
+                $previousDelivery = $this->invitationDeliveryRepository->getByUserId($command->getUserId());
+
+                if (
+                    !$predecessor instanceof ActivationGrant
+                    || $predecessor->isIssued() === false
+                    || !$previousDelivery instanceof InvitationDelivery
+                ) {
+                    throw new InvitationDeliveryNotResendableException(
+                        'The activation delivery cannot be resent.'
+                    );
+                }
 
                 $credential = $this->credentials->generate();
-                $grant = ActivationGrant::issue(
-                    $user->getId(),
+                $revokedPredecessor = $predecessor->revoke($issuedAt);
+                $replacement = ActivationGrant::issue(
+                    $command->getUserId(),
                     $credential,
                     $issuedAt,
                     $issuedAt->add(new DateInterval('P7D'))
                 );
                 $delivery = InvitationDelivery::create(
-                    $grant->getUserId(),
-                    $user->getEmail()->toString(),
+                    $command->getUserId(),
+                    $previousDelivery->email(),
                     $this->cipher->encrypt($credential),
-                    $grant->getExpiresAt()
+                    $replacement->getExpiresAt()
                 );
-                $this->activationGrantRepository->add($grant);
+                $this->activationGrantRepository->replace(
+                    $predecessor,
+                    $revokedPredecessor,
+                    $replacement
+                );
                 $this->invitationDeliveryRepository->add($delivery);
                 $this->auditEvidenceRepository->add(AuditEvidence::record(
                     $command->getActorId(),
-                    'user.invited',
-                    $user->getId()
+                    'user.invitation_delivery.resent',
+                    $command->getUserId()
                 ));
             });
 
-            $this->eventDispatcher->trigger(new UserInvited(
+            $this->eventDispatcher->trigger(new InvitationDeliveryResent(
                 $command->getActorId(),
-                $command->getUserId(),
-                $command->getEmail(),
-                $issuedAt
+                $command->getUserId()
             ));
         } catch (Throwable $throwable) {
             $this->eventDispatcher->trigger(new CommandFailedEvent($command, $throwable->getMessage()));

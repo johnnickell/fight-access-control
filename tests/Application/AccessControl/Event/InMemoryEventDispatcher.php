@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Fight\Test\AccessControl\Application\AccessControl\Event;
 
+use Closure;
 use Fight\Common\Application\Messaging\Event\EventDispatcher;
 use Fight\Common\Application\Messaging\Event\EventSubscriber;
 use Fight\Common\Domain\Messaging\Event\Event;
@@ -14,8 +15,19 @@ final class InMemoryEventDispatcher implements EventDispatcher
     /** @var list<Event> */
     private array $events = [];
 
+    /**
+     * Creates the in-memory event dispatcher.
+     */
+    public function __construct(private readonly ?Closure $onTrigger = null)
+    {
+    }
+
     public function trigger(Event $event): void
     {
+        if ($this->onTrigger instanceof Closure) {
+            ($this->onTrigger)($event);
+        }
+
         $this->events[] = $event;
     }
 
