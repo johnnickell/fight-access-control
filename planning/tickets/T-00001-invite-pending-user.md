@@ -20,7 +20,7 @@ grant, encrypted pending delivery work, and required secret-free audit evidence 
 - [x] Invitation persists the User, activation grant, pending delivery work, and required audit evidence atomically.
 - [x] No raw activation credential is persisted outside the approved recoverable delivery boundary.
 - [x] Domain and Application tests demonstrate the successful and rejected invitation outcomes through in-memory ports.
-- [x] The reusable conformance suite captures these observable outcomes without framework dependencies.
+- [x] Canonical Command, Event, and CommandHandler tests capture successful and rejected invitation outcomes without framework dependencies.
 
 ## Exclusions
 
@@ -35,5 +35,5 @@ No mail transport, encryption-key implementation, persistence adapter, HTTP acti
 ## Evidence
 
 - `./bin/planning-check` passed after ticket and board synchronization.
-- `./bin/build` passed with 53 tests, 282 assertions, and 76/76 exact statement coverage.
-- The consumer-bindable invitation conformance contract proves normalized success and canonical-email rejection.
+- `./bin/build` passed with 52 tests, 280 assertions, and 108/108 exact statement coverage.
+- The invitation follows the established `Domain\\AccessControl\\User` and `Application\\AccessControl\\User` Command/Event/Handler layout, reuses Fight Common values, and retains no public conformance-contract surface.

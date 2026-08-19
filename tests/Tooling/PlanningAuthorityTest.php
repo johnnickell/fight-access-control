@@ -27,8 +27,6 @@ final class PlanningAuthorityTest extends TestCase
         self::assertStringContainsString('./bin/build', $claude);
         self::assertStringContainsString('feature/', $claude);
         self::assertStringContainsString('.runs/', $claude);
-        self::assertStringContainsString('Fight\\AccessControl\\Conformance\\', $claude);
-        self::assertStringContainsString('public, non-runtime contract', $claude);
 
         self::assertStringContainsString('Domain <- Application', $context);
         self::assertStringContainsString('no production Adapter layer', $context);

@@ -10,7 +10,7 @@ composer validate --strict --no-interaction
 printf '[quality] PHP syntax\n'
 {
     find . -maxdepth 1 -type f -name '*.php' -print
-    find src contracts tests scripts -type f -name '*.php' -print
+    find src tests scripts -type f -name '*.php' -print
 } | LC_ALL=C sort | while IFS= read -r php_file; do
     php -l "${php_file#./}"
 done
@@ -35,7 +35,7 @@ printf '[quality] Package boundary negative fixtures\n'
 php tests/Architecture/PackageBoundaryBehaviorTest.php
 
 printf '[quality] Rector dry-run\n'
-php vendor/bin/rector process src/ contracts/ tests/Tooling/ tests/Domain/ tests/Application/ scripts/ --dry-run
+php vendor/bin/rector process src/ tests/Tooling/ tests/Domain/ tests/Application/ scripts/ --dry-run
 
 printf '[quality] PHPUnit\n'
 rm -f var/reports/coverage/clover.xml

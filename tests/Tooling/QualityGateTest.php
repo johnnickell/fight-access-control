@@ -37,7 +37,6 @@ final class QualityGateTest extends TestCase
             [
                 'composer validate --strict --no-interaction',
                 'php -l rector.php',
-                'php -l contracts/Example.php',
                 'php -l scripts/Tool.php',
                 'php -l src/Example.php',
                 'php -l tests/ExampleTest.php',
@@ -49,7 +48,7 @@ final class QualityGateTest extends TestCase
                 'php tests/Architecture/PackageBoundaryTest.php',
                 'php tests/Architecture/PackageBoundaryBehaviorTest.php',
                 implode(' ', [
-                    'php vendor/bin/rector process src/ contracts/',
+                    'php vendor/bin/rector process src/',
                     'tests/Tooling/ tests/Domain/ tests/Application/ scripts/ --dry-run',
                 ]),
                 'php vendor/bin/phpunit --fail-on-skipped',
@@ -86,14 +85,12 @@ final class QualityGateTest extends TestCase
         $this->directory = sys_get_temp_dir().'/fight-access-control-quality-'.bin2hex(random_bytes(8));
         mkdir($this->directory.'/bin', 0777, true);
         mkdir($this->directory.'/src', 0777, true);
-        mkdir($this->directory.'/contracts', 0777, true);
         mkdir($this->directory.'/tests', 0777, true);
         mkdir($this->directory.'/scripts', 0777, true);
         foreach (
             [
                 'rector.php',
                 'src/Example.php',
-                'contracts/Example.php',
                 'tests/ExampleTest.php',
                 'scripts/Tool.php',
             ] as $file

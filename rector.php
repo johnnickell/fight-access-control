@@ -8,7 +8,6 @@ return RectorConfig::configure()
     ->withCache(__DIR__.'/var/cache/rector')
     ->withPaths([
         __DIR__.'/src',
-        __DIR__.'/contracts',
         __DIR__.'/tests/Tooling',
         __DIR__.'/tests/Domain',
         __DIR__.'/tests/Application',

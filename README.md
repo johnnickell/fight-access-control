@@ -13,7 +13,6 @@ Production code follows `Domain <- Application`:
 
 - `Domain` contains framework-independent business concepts and depends on no other package layer.
 - `Application` coordinates use cases through Domain types and public Fight Common contracts.
-- `Conformance` exposes framework-neutral test contracts that consumers bind to their own adapters.
 - Consumer repositories own framework, persistence, HTTP, mail, queue, JWT, realtime, and composition-root
   adapters. This package has no production Adapter layer.
 

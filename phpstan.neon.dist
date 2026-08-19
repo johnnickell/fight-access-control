@@ -6,6 +6,5 @@ parameters:
     tmpDir: var/cache/phpstan
     paths:
         - src
-        - contracts
         - tests
         - scripts

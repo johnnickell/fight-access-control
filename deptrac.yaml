@@ -2,7 +2,6 @@ deptrac:
     cache_file: var/cache/deptrac.cache
     paths:
         - ./src
-        - ./contracts
     layers:
         - name: Domain
           collectors:
@@ -12,10 +11,6 @@ deptrac:
           collectors:
               - type: classLike
                 value: ^Fight\\AccessControl\\Application\\.*
-        - name: Conformance
-          collectors:
-              - type: classLike
-                value: ^Fight\\AccessControl\\Conformance\\.*
         - name: CommonDomain
           collectors:
               - type: classLike
@@ -34,13 +29,6 @@ deptrac:
             - CommonDomain
             - PhpInternal
         Application:
-            - Application
-            - Domain
-            - CommonDomain
-            - CommonApplication
-            - PhpInternal
-        Conformance:
-            - Conformance
             - Application
             - Domain
             - CommonDomain
