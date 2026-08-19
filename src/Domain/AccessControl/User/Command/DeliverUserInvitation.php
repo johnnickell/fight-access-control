@@ -2,19 +2,19 @@
 
 declare(strict_types=1);
 
-namespace Fight\AccessControl\Domain\AccessControl\User\Event;
+namespace Fight\AccessControl\Domain\AccessControl\User\Command;
 
 use Fight\AccessControl\Domain\AccessControl\User\UserId;
 use Fight\Common\Domain\Exception\DomainException;
-use Fight\Common\Domain\Messaging\Event\Event;
+use Fight\Common\Domain\Messaging\Command\Command;
 
 /**
- * Records a confirmed activation-delivery retry after its durable state has committed.
+ * Invokes one user's durable activation delivery work.
  */
-final readonly class ActivationDeliveryRetried implements Event
+final readonly class DeliverUserInvitation implements Command
 {
     /**
-     * Constructs the confirmed delivery-retry event.
+     * Constructs the delivery invocation command.
      */
     public function __construct(
         private string $actorId,
@@ -34,10 +34,7 @@ final readonly class ActivationDeliveryRetried implements Event
             }
         }
 
-        return new static(
-            (string) $data['actor_id'],
-            UserId::fromString((string) $data['user_id'])
-        );
+        return new static((string) $data['actor_id'], UserId::fromString((string) $data['user_id']));
     }
 
     /**
@@ -52,7 +49,7 @@ final readonly class ActivationDeliveryRetried implements Event
     }
 
     /**
-     * Returns the actor who retried delivery.
+     * Returns the actor that caused delivery invocation.
      */
     public function getActorId(): string
     {

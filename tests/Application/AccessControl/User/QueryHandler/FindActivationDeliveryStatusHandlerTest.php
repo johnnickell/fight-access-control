@@ -5,11 +5,11 @@ declare(strict_types=1);
 namespace Fight\Test\AccessControl\Application\AccessControl\User\QueryHandler;
 
 use DateTimeImmutable;
-use Fight\AccessControl\Application\AccessControl\User\QueryHandler\GetActivationDeliveryStatusHandler;
+use Fight\AccessControl\Application\AccessControl\User\QueryHandler\FindActivationDeliveryStatusHandler;
 use Fight\AccessControl\Domain\AccessControl\User\ActivationDeliveryStatus;
 use Fight\AccessControl\Domain\AccessControl\User\ActivationDeliveryWork;
 use Fight\AccessControl\Domain\AccessControl\User\Query\ActivationDeliveryStatusView;
-use Fight\AccessControl\Domain\AccessControl\User\Query\GetActivationDeliveryStatus;
+use Fight\AccessControl\Domain\AccessControl\User\Query\FindActivationDeliveryStatus;
 use Fight\AccessControl\Domain\AccessControl\User\UserId;
 use Fight\Common\Domain\Exception\DomainException;
 use Fight\Common\Domain\Messaging\Query\QueryMessage;
@@ -17,10 +17,10 @@ use Fight\Test\AccessControl\Application\AccessControl\User\Repository\InMemoryA
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
 
-#[CoversClass(GetActivationDeliveryStatusHandler::class)]
-#[CoversClass(GetActivationDeliveryStatus::class)]
+#[CoversClass(FindActivationDeliveryStatusHandler::class)]
+#[CoversClass(FindActivationDeliveryStatus::class)]
 #[CoversClass(ActivationDeliveryStatusView::class)]
-final class GetActivationDeliveryStatusHandlerTest extends TestCase
+final class FindActivationDeliveryStatusHandlerTest extends TestCase
 {
     public function test_that_it_returns_a_safe_status_view_without_credential_material(): void
     {
@@ -32,10 +32,10 @@ final class GetActivationDeliveryStatusHandlerTest extends TestCase
             'ciphertext',
             new DateTimeImmutable('2026-08-25T12:00:00+00:00')
         ));
-        $handler = new GetActivationDeliveryStatusHandler($repository);
+        $handler = new FindActivationDeliveryStatusHandler($repository);
 
-        self::assertSame(GetActivationDeliveryStatus::class, GetActivationDeliveryStatusHandler::queryRegistration());
-        $view = $handler->handle(QueryMessage::create(new GetActivationDeliveryStatus($userId)));
+        self::assertSame(FindActivationDeliveryStatus::class, FindActivationDeliveryStatusHandler::queryRegistration());
+        $view = $handler->handle(QueryMessage::create(new FindActivationDeliveryStatus($userId)));
 
         self::assertInstanceOf(ActivationDeliveryStatusView::class, $view);
         self::assertSame($userId, $view->getUserId());
@@ -46,18 +46,18 @@ final class GetActivationDeliveryStatusHandlerTest extends TestCase
 
     public function test_that_the_query_round_trips_and_rejects_missing_user_id(): void
     {
-        $query = new GetActivationDeliveryStatus(UserId::generate());
+        $query = new FindActivationDeliveryStatus(UserId::generate());
 
-        self::assertEquals($query, GetActivationDeliveryStatus::fromArray($query->toArray()));
+        self::assertEquals($query, FindActivationDeliveryStatus::fromArray($query->toArray()));
         $this->expectException(DomainException::class);
-        GetActivationDeliveryStatus::fromArray([]);
+        FindActivationDeliveryStatus::fromArray([]);
     }
 
     public function test_that_it_returns_null_when_no_delivery_work_exists(): void
     {
-        $handler = new GetActivationDeliveryStatusHandler(new InMemoryActivationDeliveryWorkRepository());
+        $handler = new FindActivationDeliveryStatusHandler(new InMemoryActivationDeliveryWorkRepository());
 
-        $view = $handler->handle(QueryMessage::create(new GetActivationDeliveryStatus(UserId::generate())));
+        $view = $handler->handle(QueryMessage::create(new FindActivationDeliveryStatus(UserId::generate())));
 
         self::assertNull($view);
     }

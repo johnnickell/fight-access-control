@@ -12,18 +12,18 @@ use Exception;
 interface ActivationGrantRepository
 {
     /**
-     * Adds an activation grant.
-     *
-     * @throws Exception When an error occurs
-     */
-    public function add(ActivationGrant $grant): void;
-
-    /**
      * Retrieves the most recently recorded activation grant for a user.
      *
      * @throws Exception When an error occurs
      */
     public function getByUserId(UserId $userId): ?ActivationGrant;
+
+    /**
+     * Adds an activation grant.
+     *
+     * @throws Exception When an error occurs
+     */
+    public function add(ActivationGrant $grant): void;
 
     /**
      * Replaces a predecessor activation grant with its revoked version and a newly issued grant.

@@ -7,14 +7,14 @@ namespace Fight\AccessControl\Application\AccessControl\User\QueryHandler;
 use Fight\AccessControl\Domain\AccessControl\User\ActivationDeliveryWork;
 use Fight\AccessControl\Domain\AccessControl\User\ActivationDeliveryWorkRepository;
 use Fight\AccessControl\Domain\AccessControl\User\Query\ActivationDeliveryStatusView;
-use Fight\AccessControl\Domain\AccessControl\User\Query\GetActivationDeliveryStatus;
+use Fight\AccessControl\Domain\AccessControl\User\Query\FindActivationDeliveryStatus;
 use Fight\Common\Application\Messaging\Query\QueryHandler;
 use Fight\Common\Domain\Messaging\Query\QueryMessage;
 
 /**
  * Retrieves a safe activation delivery-status view.
  */
-final readonly class GetActivationDeliveryStatusHandler implements QueryHandler
+final readonly class FindActivationDeliveryStatusHandler implements QueryHandler
 {
     /**
      * Creates the delivery-status query handler.
@@ -28,7 +28,7 @@ final readonly class GetActivationDeliveryStatusHandler implements QueryHandler
      */
     public static function queryRegistration(): string
     {
-        return GetActivationDeliveryStatus::class;
+        return FindActivationDeliveryStatus::class;
     }
 
     /**
@@ -36,7 +36,7 @@ final readonly class GetActivationDeliveryStatusHandler implements QueryHandler
      */
     public function handle(QueryMessage $queryMessage): ?ActivationDeliveryStatusView
     {
-        /** @var GetActivationDeliveryStatus $query */
+        /** @var FindActivationDeliveryStatus $query */
         $query = $queryMessage->payload();
         $work = $this->activationDeliveryWorkRepository->getByUserId($query->getUserId());
 

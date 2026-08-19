@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace Fight\AccessControl\Application\AccessControl\User\CommandHandler;
 
+use Fight\AccessControl\Application\AccessControl\User\Service\ActivationDeliveryInvoker;
 use Fight\AccessControl\Domain\AccessControl\User\ActivationDeliveryWork;
 use Fight\AccessControl\Domain\AccessControl\User\ActivationDeliveryWorkRepository;
-use Fight\AccessControl\Domain\AccessControl\User\Command\RetryActivationDelivery;
-use Fight\AccessControl\Domain\AccessControl\User\Event\ActivationDeliveryRetryRequested;
+use Fight\AccessControl\Domain\AccessControl\User\Command\DeliverUserInvitation;
 use Fight\AccessControl\Domain\AccessControl\User\Exception\ActivationDeliveryNotRetryableException;
 use Fight\Common\Application\Messaging\Command\CommandHandler;
 use Fight\Common\Application\Messaging\Event\EventDispatcher;
@@ -17,16 +17,17 @@ use Fight\Common\Domain\Messaging\Event\CommandFailedEvent;
 use Throwable;
 
 /**
- * Publishes a durable request to retry existing activation delivery work.
+ * Invokes durable activation delivery through a consumer-owned transport-neutral port.
  */
-final readonly class RetryActivationDeliveryHandler implements CommandHandler
+final readonly class DeliverUserInvitationHandler implements CommandHandler
 {
     /**
-     * Creates the activation-delivery retry handler.
+     * Creates the invitation-delivery handler.
      */
     public function __construct(
         private ActivationDeliveryWorkRepository $activationDeliveryWorkRepository,
         private UnitOfWork $unitOfWork,
+        private ActivationDeliveryInvoker $activationDeliveryInvoker,
         private EventDispatcher $eventDispatcher
     ) {
     }
@@ -36,7 +37,7 @@ final readonly class RetryActivationDeliveryHandler implements CommandHandler
      */
     public static function commandRegistration(): string
     {
-        return RetryActivationDelivery::class;
+        return DeliverUserInvitation::class;
     }
 
     /**
@@ -44,7 +45,7 @@ final readonly class RetryActivationDeliveryHandler implements CommandHandler
      */
     public function handle(CommandMessage $commandMessage): void
     {
-        /** @var RetryActivationDelivery $command */
+        /** @var DeliverUserInvitation $command */
         $command = $commandMessage->payload();
 
         try {
@@ -56,13 +57,23 @@ final readonly class RetryActivationDeliveryHandler implements CommandHandler
                 );
             }
 
-            $this->unitOfWork->commitTransactional(static function (): void {
+            $deliveryFailure = null;
+            $this->unitOfWork->commitTransactional(function () use ($work, &$deliveryFailure): void {
+                try {
+                    $this->activationDeliveryInvoker->invoke($work);
+                } catch (Throwable $throwable) {
+                    $work->fail();
+                    $deliveryFailure = $throwable;
+
+                    return;
+                }
+
+                $work->confirm();
             });
 
-            $this->eventDispatcher->trigger(new ActivationDeliveryRetryRequested(
-                $command->getActorId(),
-                $command->getUserId()
-            ));
+            if ($deliveryFailure instanceof Throwable) {
+                throw $deliveryFailure;
+            }
         } catch (Throwable $throwable) {
             $this->eventDispatcher->trigger(new CommandFailedEvent($command, $throwable->getMessage()));
             throw $throwable;

@@ -11,7 +11,7 @@ use Fight\Common\Domain\Messaging\Query\Query;
 /**
  * Queries the safe operational status for a user's activation delivery work.
  */
-final readonly class GetActivationDeliveryStatus implements Query
+final readonly class FindActivationDeliveryStatus implements Query
 {
     /**
      * Constructs the delivery-status query.
