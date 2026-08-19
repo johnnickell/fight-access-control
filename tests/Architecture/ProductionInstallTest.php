@@ -28,6 +28,7 @@ $prefixes = $loader->getPrefixesPsr4();
 $expected = [
     'Fight\\AccessControl\\Domain\\' => [$root.'/src/Domain'],
     'Fight\\AccessControl\\Application\\' => [$root.'/src/Application'],
+    'Fight\\AccessControl\\Conformance\\' => [$root.'/contracts/Conformance'],
 ];
 
 foreach ($expected as $namespace => $paths) {
@@ -47,7 +48,12 @@ sort($accessControlPrefixes);
 $expectedPrefixes = array_keys($expected);
 sort($expectedPrefixes);
 if ($accessControlPrefixes !== $expectedPrefixes) {
-    fwrite(STDERR, "FAIL: production autoload exposes an AccessControl namespace outside Domain or Application.\n");
+    fwrite(STDERR, "FAIL: production autoload exposes an AccessControl namespace outside Domain, Application, or Conformance.\n");
+    exit(1);
+}
+
+if (!trait_exists(Fight\AccessControl\Conformance\Invitation\InvitationConformance::class)) {
+    fwrite(STDERR, "FAIL: production install does not autoload the public invitation conformance suite.\n");
     exit(1);
 }
 

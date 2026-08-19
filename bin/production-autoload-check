@@ -16,6 +16,7 @@ trap cleanup EXIT
 
 cp "${ROOT_DIR}/composer.json" "${ROOT_DIR}/composer.lock" "${INSTALL_ROOT}/"
 cp -R "${ROOT_DIR}/src" "${INSTALL_ROOT}/src"
+cp -R "${ROOT_DIR}/contracts" "${INSTALL_ROOT}/contracts"
 
 cd "${INSTALL_ROOT}"
 "${COMPOSER_BIN}" install \

@@ -56,6 +56,7 @@ final class ProductionAutoloadCheckContractTest extends TestCase
         mkdir($this->directory.'/bin', 0777, true);
         mkdir($this->directory.'/src/Domain', 0777, true);
         mkdir($this->directory.'/src/Application', 0777, true);
+        mkdir($this->directory.'/contracts/Conformance', 0777, true);
         mkdir($this->directory.'/tests/Architecture', 0777, true);
         mkdir($this->directory.'/vendor', 0777, true);
         mkdir($this->directory.'/tmp', 0777, true);
@@ -66,6 +67,7 @@ final class ProductionAutoloadCheckContractTest extends TestCase
         file_put_contents($this->directory.'/composer.lock', "{\"packages\": []}\n");
         file_put_contents($this->directory.'/src/Domain/Contract.php', "<?php\n");
         file_put_contents($this->directory.'/src/Application/UseCase.php', "<?php\n");
+        file_put_contents($this->directory.'/contracts/Conformance/Contract.php', "<?php\n");
         file_put_contents($this->directory.'/tests/Architecture/ProductionInstallTest.php', "<?php exit(0);\n");
         file_put_contents($this->directory.'/vendor/root-install-marker', "must remain untouched\n");
 

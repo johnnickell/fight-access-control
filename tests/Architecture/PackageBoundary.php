@@ -38,8 +38,9 @@ final class PackageBoundary
         $expectedAutoload = [
             'Fight\\AccessControl\\Domain\\' => 'src/Domain',
             'Fight\\AccessControl\\Application\\' => 'src/Application',
+            'Fight\\AccessControl\\Conformance\\' => 'contracts/Conformance',
         ];
-        $expect(($composer['autoload']['psr-4'] ?? null) === $expectedAutoload, 'Production PSR-4 autoloading must expose only explicit Domain and Application boundaries.');
+        $expect(($composer['autoload']['psr-4'] ?? null) === $expectedAutoload, 'Production PSR-4 autoloading must expose only Domain, Application, and non-runtime Conformance boundaries.');
 
         $expect(!is_dir($root.'/src/Adapter'), 'Production Adapter code is forbidden.');
         $expect(!is_dir($root.'/src/Common'), 'Copied Fight Common source is forbidden.');

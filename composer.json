@@ -19,7 +19,8 @@
     "autoload": {
         "psr-4": {
             "Fight\\AccessControl\\Domain\\": "src/Domain",
-            "Fight\\AccessControl\\Application\\": "src/Application"
+            "Fight\\AccessControl\\Application\\": "src/Application",
+            "Fight\\AccessControl\\Conformance\\": "contracts/Conformance"
         }
     },
     "autoload-dev": {

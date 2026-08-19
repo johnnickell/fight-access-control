@@ -2,6 +2,7 @@
 <ruleset name="FightAccessControl">
     <description>Fight Access Control coding standard</description>
     <file>src</file>
+    <file>contracts</file>
     <file>tests/Tooling</file>
     <file>tests/Domain</file>
     <file>tests/Application</file>
