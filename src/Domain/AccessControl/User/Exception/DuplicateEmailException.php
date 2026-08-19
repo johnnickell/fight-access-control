@@ -2,13 +2,13 @@
 
 declare(strict_types=1);
 
-namespace Fight\AccessControl\Domain\AccessControl\User;
+namespace Fight\AccessControl\Domain\AccessControl\User\Exception;
 
 use Fight\Common\Domain\Exception\DomainException;
 
 /**
  * Indicates that a canonical email remains reserved by an identity.
  */
-final class DuplicateEmail extends DomainException
+final class DuplicateEmailException extends DomainException
 {
 }

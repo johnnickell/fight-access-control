@@ -22,11 +22,18 @@ Common contract or an established bounded-context structure already exists.
   canonical-email uniqueness atomically in `UserRepository::add()`.
 - Keep in-memory repository implementations in the Application test boundary under `Repository/`. Production
   persistence adapters remain consumer-owned; do not add a package Adapter layer without explicit approval.
+- Application ports such as clocks, credential generators, and ciphers belong in `Application/AccessControl/<Aggregate>/Service`.
+  Keep their test implementations in the matching test `Service/` namespace; reserve `CommandHandler/` and
+  `QueryHandler/` for handlers only.
 - Reuse public Fight Common values and identities. In particular use
   `Fight\Common\Domain\Value\Internet\EmailAddress` rather than creating a local email value object. Context-owned
   IDs extend `Fight\Common\Domain\Identity\UniqueId`.
 - Backed enum case names are uppercase (`PENDING_ACTIVATION`, `ACTIVE`), with stable serialized string values.
 - Match established PHP style: `final readonly` where appropriate, class and method docblocks, explicit
-  constructors, one declaration per line, and no compressed one-line methods.
+  constructors, one declaration per line, no compressed one-line methods, and alphabetically sorted `use`
+  statements at all times.
+- Every production statement under `src/` requires executable coverage. `./bin/build` must generate Clover from
+  PHPUnit, reject coverage-ignore directives, and fail unless statement coverage is exact; do not weaken or bypass
+  this gate.
 - Do not add a public `contracts/` directory, a production Adapter layer, or a Composer production namespace
   without explicit approval.

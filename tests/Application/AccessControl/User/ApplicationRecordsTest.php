@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace Fight\Test\AccessControl\Application\AccessControl\User;
 
 use DateTimeImmutable;
+use Fight\AccessControl\Domain\AccessControl\Audit\AuditEvidence;
 use Fight\AccessControl\Domain\AccessControl\User\ActivationDeliveryWork;
-use Fight\AccessControl\Domain\AccessControl\User\AuditEvidence;
 use Fight\AccessControl\Domain\AccessControl\User\UserId;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;

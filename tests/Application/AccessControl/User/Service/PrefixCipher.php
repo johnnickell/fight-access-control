@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace Fight\Test\AccessControl\Application\AccessControl\User\CommandHandler;
+namespace Fight\Test\AccessControl\Application\AccessControl\User\Service;
 
-use Fight\AccessControl\Application\AccessControl\User\ActivationDeliveryCipher;
+use Fight\AccessControl\Application\AccessControl\User\Service\ActivationDeliveryCipher;
 
 final class PrefixCipher implements ActivationDeliveryCipher
 {

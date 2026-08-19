@@ -5,15 +5,15 @@ declare(strict_types=1);
 namespace Fight\AccessControl\Application\AccessControl\User\CommandHandler;
 
 use DateInterval;
-use Fight\AccessControl\Application\AccessControl\User\ActivationCredentialGenerator;
-use Fight\AccessControl\Application\AccessControl\User\ActivationDeliveryCipher;
-use Fight\AccessControl\Application\AccessControl\User\InvitationClock;
+use Fight\AccessControl\Application\AccessControl\User\Service\ActivationCredentialGenerator;
+use Fight\AccessControl\Application\AccessControl\User\Service\ActivationDeliveryCipher;
+use Fight\AccessControl\Application\AccessControl\User\Service\InvitationClock;
+use Fight\AccessControl\Domain\AccessControl\Audit\AuditEvidence;
+use Fight\AccessControl\Domain\AccessControl\Audit\AuditEvidenceRepository;
 use Fight\AccessControl\Domain\AccessControl\User\ActivationDeliveryWork;
 use Fight\AccessControl\Domain\AccessControl\User\ActivationDeliveryWorkRepository;
 use Fight\AccessControl\Domain\AccessControl\User\ActivationGrant;
 use Fight\AccessControl\Domain\AccessControl\User\ActivationGrantRepository;
-use Fight\AccessControl\Domain\AccessControl\User\AuditEvidence;
-use Fight\AccessControl\Domain\AccessControl\User\AuditEvidenceRepository;
 use Fight\AccessControl\Domain\AccessControl\User\Command\InvitePendingUser;
 use Fight\AccessControl\Domain\AccessControl\User\Event\UserInvited;
 use Fight\AccessControl\Domain\AccessControl\User\User;
@@ -34,10 +34,10 @@ final readonly class InvitePendingUserHandler implements CommandHandler
      * Creates the invitation handler.
      */
     public function __construct(
-        private UserRepository $users,
-        private ActivationGrantRepository $grants,
-        private ActivationDeliveryWorkRepository $deliveries,
-        private AuditEvidenceRepository $audits,
+        private UserRepository $userRepository,
+        private ActivationGrantRepository $activationGrantRepository,
+        private ActivationDeliveryWorkRepository $activationDeliveryWorkRepository,
+        private AuditEvidenceRepository $auditEvidenceRepository,
         private UnitOfWork $unitOfWork,
         private ActivationCredentialGenerator $credentials,
         private ActivationDeliveryCipher $cipher,
@@ -66,7 +66,7 @@ final readonly class InvitePendingUserHandler implements CommandHandler
         try {
             $this->unitOfWork->commitTransactional(function () use ($command, $issuedAt): void {
                 $user = User::invite($command->getUserId(), $command->getEmail());
-                $this->users->add($user);
+                $this->userRepository->add($user);
 
                 $credential = $this->credentials->generate();
                 $grant = ActivationGrant::issue(
@@ -81,9 +81,13 @@ final readonly class InvitePendingUserHandler implements CommandHandler
                     $this->cipher->encrypt($credential),
                     $grant->getExpiresAt()
                 );
-                $this->grants->add($grant);
-                $this->deliveries->add($delivery);
-                $this->audits->add(AuditEvidence::record($command->getActorId(), 'user.invited', $user->getId()));
+                $this->activationGrantRepository->add($grant);
+                $this->activationDeliveryWorkRepository->add($delivery);
+                $this->auditEvidenceRepository->add(AuditEvidence::record(
+                    $command->getActorId(),
+                    'user.invited',
+                    $user->getId()
+                ));
             });
 
             $this->eventDispatcher->trigger(new UserInvited(

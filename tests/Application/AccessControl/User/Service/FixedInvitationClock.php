@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace Fight\Test\AccessControl\Application\AccessControl\User\CommandHandler;
+namespace Fight\Test\AccessControl\Application\AccessControl\User\Service;
 
 use DateTimeImmutable;
-use Fight\AccessControl\Application\AccessControl\User\InvitationClock;
+use Fight\AccessControl\Application\AccessControl\User\Service\InvitationClock;
 use LogicException;
 
 final class FixedInvitationClock implements InvitationClock

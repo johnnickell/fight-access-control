@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Fight\AccessControl\Application\AccessControl\User;
+namespace Fight\AccessControl\Application\AccessControl\User\Service;
 
 /**
  * Generates raw activation credentials at the application boundary.

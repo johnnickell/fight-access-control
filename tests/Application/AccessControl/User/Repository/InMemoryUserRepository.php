@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Fight\Test\AccessControl\Application\AccessControl\User\Repository;
 
-use Fight\AccessControl\Domain\AccessControl\User\DuplicateEmail;
+use Fight\AccessControl\Domain\AccessControl\User\Exception\DuplicateEmailException;
 use Fight\AccessControl\Domain\AccessControl\User\User;
 use Fight\AccessControl\Domain\AccessControl\User\UserRepository;
 use Fight\Test\AccessControl\Application\AccessControl\User\InMemoryUnitOfWork;
@@ -26,7 +26,7 @@ final class InMemoryUserRepository implements UserRepository
                 static fn(User $reserved): bool => $reserved->getEmail()->canonical() === $user->getEmail()->canonical()
             )
         ) {
-            throw new DuplicateEmail('The email address is already reserved.');
+            throw new DuplicateEmailException('The email address is already reserved.');
         }
 
         $this->users[] = $user;

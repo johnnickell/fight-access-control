@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace Fight\Test\AccessControl\Application\AccessControl\User\CommandHandler;
+namespace Fight\Test\AccessControl\Application\AccessControl\User\Service;
 
-use Fight\AccessControl\Application\AccessControl\User\ActivationCredentialGenerator;
+use Fight\AccessControl\Application\AccessControl\User\Service\ActivationCredentialGenerator;
 
 final readonly class FixedCredentialGenerator implements ActivationCredentialGenerator
 {

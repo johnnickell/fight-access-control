@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace Fight\Test\AccessControl\Application\AccessControl\User\Repository;
+namespace Fight\Test\AccessControl\Application\AccessControl\Audit\Repository;
 
-use Fight\AccessControl\Domain\AccessControl\User\AuditEvidence;
-use Fight\AccessControl\Domain\AccessControl\User\AuditEvidenceRepository;
+use Fight\AccessControl\Domain\AccessControl\Audit\AuditEvidence;
+use Fight\AccessControl\Domain\AccessControl\Audit\AuditEvidenceRepository;
 use Fight\Test\AccessControl\Application\AccessControl\User\InMemoryUnitOfWork;
 use RuntimeException;
 

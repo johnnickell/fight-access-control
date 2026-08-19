@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Fight\AccessControl\Domain\AccessControl\User;
+namespace Fight\AccessControl\Domain\AccessControl\Audit;
 
 use Exception;
 

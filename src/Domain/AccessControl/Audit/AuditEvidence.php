@@ -2,7 +2,9 @@
 
 declare(strict_types=1);
 
-namespace Fight\AccessControl\Domain\AccessControl\User;
+namespace Fight\AccessControl\Domain\AccessControl\Audit;
+
+use Fight\AccessControl\Domain\AccessControl\User\UserId;
 
 /**
  * Represents the secret-free durable evidence for a sensitive action.
