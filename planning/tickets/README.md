@@ -1,7 +1,11 @@
 # Tickets
 
-Ticket files in this directory are canonical for implementation scope, status, dependencies, acceptance, and
-durable evidence. `BOARD.md` ranks executable work.
+Ticket files are canonical for implementation scope, status, dependencies, acceptance, verification, and durable
+evidence. [BOARD.md](BOARD.md) ranks the execution frontier; it never replaces the ticket's `blocked_by` edges.
 
-Each ticket belongs to [PRD-00001](../specs/00001-PRD.md). A `ready-for-agent` ticket is executable only when
-all of its `blocked_by` edges are terminal, as defined by `planning/agents/issue-tracker.md`.
+| Parent PRD | Tickets | Current frontier |
+| --- | --- | --- |
+| [PRD-00001 — Identity and Authentication Lifecycle](../specs/00001-PRD.md) | [T-00001 through T-00013](BOARD.md#waiting) | [T-00001 — Invite a pending user](T-00001-invite-pending-user.md) |
+
+A `ready-for-agent` ticket is executable only when all `blocked_by` edges are terminal, as defined by the
+[issue-tracker rules](../agents/issue-tracker.md). Each ticket belongs to [PRD-00001](../specs/00001-PRD.md).

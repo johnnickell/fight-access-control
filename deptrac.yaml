@@ -1,4 +1,5 @@
 deptrac:
+    cache_file: var/cache/deptrac.cache
     paths:
         - ./src
     layers:
