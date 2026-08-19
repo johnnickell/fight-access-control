@@ -16,7 +16,6 @@ use Fight\AccessControl\Domain\AccessControl\User\Event\RedactedCommandFailed;
 use Fight\AccessControl\Domain\AccessControl\User\Event\UserActivated;
 use Fight\AccessControl\Domain\AccessControl\User\User;
 use Fight\AccessControl\Domain\AccessControl\User\UserRepository;
-use Fight\Common\Application\Auth\Security\PasswordHasher;
 use Fight\Common\Application\Messaging\Command\CommandHandler;
 use Fight\Common\Application\Messaging\Event\EventDispatcher;
 use Fight\Common\Application\Repository\UnitOfWork;
@@ -37,7 +36,6 @@ final readonly class ActivateInvitedAccountHandler implements CommandHandler
         private ActivationGrantRepository $activationGrantRepository,
         private RefreshSessionRepository $refreshSessionRepository,
         private UnitOfWork $unitOfWork,
-        private PasswordHasher $passwordHasher,
         private ActivationClock $clock,
         private EventDispatcher $eventDispatcher
     ) {
@@ -78,7 +76,6 @@ final readonly class ActivateInvitedAccountHandler implements CommandHandler
                     throw new LogicException('The activation grant cannot activate this invited account.');
                 }
 
-                $passwordHash = $this->passwordHasher->hash($command->getInitialPassword());
                 $consumedGrant = $grant->consume($activatedAt);
                 $refreshSessionId = RefreshSessionId::generate();
                 $refreshSession = RefreshSession::start(
@@ -88,7 +85,7 @@ final readonly class ActivateInvitedAccountHandler implements CommandHandler
                 );
                 $this->activationGrantRepository->replaceConsumed($grant, $consumedGrant);
                 $this->refreshSessionRepository->add($refreshSession);
-                $user->activate($passwordHash);
+                $user->activate($command->getPasswordHash());
 
                 return [$refreshSessionId, $activatedAt];
             });

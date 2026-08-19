@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Fight\Test\AccessControl\Domain\AccessControl\User;
 
 use DateTimeImmutable;
+use Fight\AccessControl\Domain\AccessControl\User\ActivationCredential;
 use Fight\AccessControl\Domain\AccessControl\User\ActivationGrant;
 use Fight\AccessControl\Domain\AccessControl\User\User;
 use Fight\AccessControl\Domain\AccessControl\User\UserId;
@@ -16,6 +17,7 @@ use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
 
 #[CoversClass(User::class)]
+#[CoversClass(ActivationCredential::class)]
 #[CoversClass(ActivationGrant::class)]
 #[CoversClass(UserId::class)]
 final class InvitationTest extends TestCase
@@ -33,7 +35,7 @@ final class InvitationTest extends TestCase
     {
         $grant = ActivationGrant::issue(
             UserId::generate(),
-            'activate-once',
+            ActivationCredential::fromString('activate-once'),
             new DateTimeImmutable('2026-08-18T12:00:00+00:00'),
             new DateTimeImmutable('2026-08-25T12:00:00+00:00')
         );
@@ -49,7 +51,7 @@ final class InvitationTest extends TestCase
     {
         $grant = ActivationGrant::issue(
             UserId::generate(),
-            'activate-once',
+            ActivationCredential::fromString('activate-once'),
             new DateTimeImmutable('2026-08-18T12:00:00+00:00'),
             new DateTimeImmutable('2026-08-25T12:00:00+00:00')
         );
@@ -71,7 +73,7 @@ final class InvitationTest extends TestCase
     {
         $grant = ActivationGrant::issue(
             UserId::generate(),
-            'activate-once',
+            ActivationCredential::fromString('activate-once'),
             new DateTimeImmutable('2026-08-18T12:00:00+00:00'),
             new DateTimeImmutable('2026-08-25T12:00:00+00:00')
         );
@@ -90,7 +92,7 @@ final class InvitationTest extends TestCase
     {
         $grant = ActivationGrant::issue(
             UserId::generate(),
-            'activate-once',
+            ActivationCredential::fromString('activate-once'),
             new DateTimeImmutable('2026-08-18T12:00:00+00:00'),
             new DateTimeImmutable('2026-08-25T12:00:00+00:00')
         );
@@ -105,7 +107,7 @@ final class InvitationTest extends TestCase
     {
         $grant = ActivationGrant::issue(
             UserId::generate(),
-            'activate-once',
+            ActivationCredential::fromString('activate-once'),
             new DateTimeImmutable('2026-08-18T12:00:00+00:00'),
             new DateTimeImmutable('2026-08-25T12:00:00+00:00')
         );
@@ -123,6 +125,11 @@ final class InvitationTest extends TestCase
 
         $this->expectException(InvalidArgumentException::class);
 
-        ActivationGrant::issue(UserId::generate(), 'activate-once', $issuedAt, $issuedAt);
+        ActivationGrant::issue(
+            UserId::generate(),
+            ActivationCredential::fromString('activate-once'),
+            $issuedAt,
+            $issuedAt
+        );
     }
 }

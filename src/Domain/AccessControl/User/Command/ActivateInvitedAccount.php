@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Fight\AccessControl\Domain\AccessControl\User\Command;
 
+use Fight\AccessControl\Domain\AccessControl\User\ActivationCredential;
+use Fight\AccessControl\Domain\AccessControl\User\PasswordHash;
 use Fight\AccessControl\Domain\AccessControl\User\UserId;
 use Fight\Common\Domain\Exception\DomainException;
 use Fight\Common\Domain\Messaging\Command\Command;
@@ -18,8 +20,8 @@ final readonly class ActivateInvitedAccount implements Command
      */
     public function __construct(
         private UserId $userId,
-        private string $activationCredential,
-        private string $initialPassword
+        private ActivationCredential $activationCredential,
+        private PasswordHash $passwordHash
     ) {
     }
 
@@ -28,7 +30,7 @@ final readonly class ActivateInvitedAccount implements Command
      */
     public static function fromArray(array $data): static
     {
-        foreach (['user_id', 'activation_credential', 'initial_password'] as $key) {
+        foreach (['user_id', 'activation_credential', 'password_hash'] as $key) {
             if (!array_key_exists($key, $data)) {
                 $message = sprintf('Missing required key "%s" in data array', $key);
                 throw new DomainException($message);
@@ -37,8 +39,8 @@ final readonly class ActivateInvitedAccount implements Command
 
         return new static(
             UserId::fromString((string) $data['user_id']),
-            (string) $data['activation_credential'],
-            (string) $data['initial_password']
+            ActivationCredential::fromString((string) $data['activation_credential']),
+            PasswordHash::fromString((string) $data['password_hash'])
         );
     }
 
@@ -49,8 +51,8 @@ final readonly class ActivateInvitedAccount implements Command
     {
         return [
             'user_id'               => $this->userId->toString(),
-            'activation_credential' => $this->activationCredential,
-            'initial_password'      => $this->initialPassword,
+            'activation_credential' => $this->activationCredential->toString(),
+            'password_hash'         => $this->passwordHash->toString(),
         ];
     }
 
@@ -65,16 +67,16 @@ final readonly class ActivateInvitedAccount implements Command
     /**
      * Returns the one-time activation credential.
      */
-    public function getActivationCredential(): string
+    public function getActivationCredential(): ActivationCredential
     {
         return $this->activationCredential;
     }
 
     /**
-     * Returns the selected initial password for hashing at the application boundary.
+     * Returns the selected initial password hash.
      */
-    public function getInitialPassword(): string
+    public function getPasswordHash(): PasswordHash
     {
-        return $this->initialPassword;
+        return $this->passwordHash;
     }
 }

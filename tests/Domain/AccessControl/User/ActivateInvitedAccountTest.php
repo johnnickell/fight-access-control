@@ -7,10 +7,12 @@ namespace Fight\Test\AccessControl\Domain\AccessControl\User;
 use DateTimeImmutable;
 use Fight\AccessControl\Domain\AccessControl\RefreshSession\RefreshSession;
 use Fight\AccessControl\Domain\AccessControl\RefreshSession\RefreshSessionId;
+use Fight\AccessControl\Domain\AccessControl\User\ActivationCredential;
 use Fight\AccessControl\Domain\AccessControl\User\Command\ActivateInvitedAccount;
 use Fight\AccessControl\Domain\AccessControl\User\Event\RedactedCommandFailed;
 use Fight\AccessControl\Domain\AccessControl\User\Event\UserActivated;
 use Fight\AccessControl\Domain\AccessControl\User\Exception\UserNotPendingActivationException;
+use Fight\AccessControl\Domain\AccessControl\User\PasswordHash;
 use Fight\AccessControl\Domain\AccessControl\User\User;
 use Fight\AccessControl\Domain\AccessControl\User\UserId;
 use Fight\AccessControl\Domain\AccessControl\User\UserState;
@@ -20,6 +22,8 @@ use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
 
 #[CoversClass(ActivateInvitedAccount::class)]
+#[CoversClass(ActivationCredential::class)]
+#[CoversClass(PasswordHash::class)]
 #[CoversClass(RefreshSession::class)]
 #[CoversClass(RedactedCommandFailed::class)]
 #[CoversClass(UserActivated::class)]
@@ -28,11 +32,13 @@ final class ActivateInvitedAccountTest extends TestCase
 {
     public function test_that_the_activation_command_round_trips_and_rejects_missing_data(): void
     {
-        $command = new ActivateInvitedAccount(UserId::generate(), 'activate-once', 'initial-password');
+        $passwordHash = $this->passwordHash();
+        $credential = ActivationCredential::fromString('activate-once');
+        $command = new ActivateInvitedAccount(UserId::generate(), $credential, $passwordHash);
 
         self::assertSame($command->toArray(), ActivateInvitedAccount::fromArray($command->toArray())->toArray());
-        self::assertSame('activate-once', $command->getActivationCredential());
-        self::assertSame('initial-password', $command->getInitialPassword());
+        self::assertSame($credential, $command->getActivationCredential());
+        self::assertSame($passwordHash, $command->getPasswordHash());
         $this->expectException(DomainException::class);
         ActivateInvitedAccount::fromArray([]);
     }
@@ -96,11 +102,31 @@ final class ActivateInvitedAccountTest extends TestCase
     {
         $user = User::invite(UserId::generate(), EmailAddress::fromString('alice@example.test'));
 
-        $user->activate('hash:initial-password');
+        $passwordHash = $this->passwordHash();
+        $user->activate($passwordHash);
 
         self::assertSame(UserState::ACTIVE, $user->getState());
-        self::assertSame('hash:initial-password', $user->getPasswordHash());
+        self::assertSame($passwordHash, $user->getPasswordHash());
         $this->expectException(UserNotPendingActivationException::class);
-        $user->activate('hash:replacement');
+        $user->activate($this->passwordHash());
+    }
+
+    public function test_that_a_password_hash_rejects_non_password_hash_values(): void
+    {
+        $this->expectException(DomainException::class);
+        PasswordHash::fromString('initial-password');
+    }
+
+    public function test_that_an_activation_credential_rejects_an_empty_value(): void
+    {
+        $this->expectException(DomainException::class);
+        ActivationCredential::fromString('');
+    }
+
+    private function passwordHash(): PasswordHash
+    {
+        $passwordHash = password_hash('initial-password', PASSWORD_DEFAULT);
+
+        return PasswordHash::fromString($passwordHash);
     }
 }

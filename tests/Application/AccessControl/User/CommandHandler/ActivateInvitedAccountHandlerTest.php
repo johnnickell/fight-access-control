@@ -9,12 +9,14 @@ use Fight\AccessControl\Application\AccessControl\User\CommandHandler\ActivateIn
 use Fight\AccessControl\Domain\AccessControl\RefreshSession\RefreshSession;
 use Fight\AccessControl\Domain\AccessControl\RefreshSession\RefreshSessionId;
 use Fight\AccessControl\Domain\AccessControl\RefreshSession\RefreshSessionRepository;
+use Fight\AccessControl\Domain\AccessControl\User\ActivationCredential;
 use Fight\AccessControl\Domain\AccessControl\User\ActivationGrant;
 use Fight\AccessControl\Domain\AccessControl\User\ActivationGrantRepository;
 use Fight\AccessControl\Domain\AccessControl\User\Command\ActivateInvitedAccount;
 use Fight\AccessControl\Domain\AccessControl\User\Event\RedactedCommandFailed;
 use Fight\AccessControl\Domain\AccessControl\User\Event\UserActivated;
 use Fight\AccessControl\Domain\AccessControl\User\Exception\UserNotPendingActivationException;
+use Fight\AccessControl\Domain\AccessControl\User\PasswordHash;
 use Fight\AccessControl\Domain\AccessControl\User\User;
 use Fight\AccessControl\Domain\AccessControl\User\UserId;
 use Fight\AccessControl\Domain\AccessControl\User\UserState;
@@ -26,7 +28,6 @@ use Fight\Test\AccessControl\Application\AccessControl\User\InMemoryUnitOfWork;
 use Fight\Test\AccessControl\Application\AccessControl\User\Repository\InMemoryActivationGrantRepository;
 use Fight\Test\AccessControl\Application\AccessControl\User\Repository\InMemoryUserRepository;
 use Fight\Test\AccessControl\Application\AccessControl\User\Service\FixedActivationClock;
-use Fight\Test\AccessControl\Application\AccessControl\User\Service\FixedPasswordHasher;
 use LogicException;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
@@ -36,6 +37,8 @@ use RuntimeException;
 #[CoversClass(ActivationGrant::class)]
 #[CoversClass(RefreshSession::class)]
 #[CoversClass(ActivateInvitedAccount::class)]
+#[CoversClass(ActivationCredential::class)]
+#[CoversClass(PasswordHash::class)]
 #[CoversClass(RedactedCommandFailed::class)]
 #[CoversClass(UserActivated::class)]
 #[CoversClass(User::class)]
@@ -47,16 +50,17 @@ final class ActivateInvitedAccountHandlerTest extends TestCase
             assertPostCommitEvent: true
         );
 
+        $passwordHash = $this->passwordHash();
         $handler->handle(CommandMessage::create(new ActivateInvitedAccount(
             $user->getId(),
-            'activate-once',
-            'initial-password'
+            $this->credential('activate-once'),
+            $passwordHash
         )));
 
         self::assertSame(ActivateInvitedAccount::class, ActivateInvitedAccountHandler::commandRegistration());
         self::assertSame(1, $unitOfWork->transactions);
         self::assertSame(UserState::ACTIVE, $user->getState());
-        self::assertSame('hash:initial-password', $user->getPasswordHash());
+        self::assertSame($passwordHash, $user->getPasswordHash());
         self::assertTrue($grantRepository->all()[0]->isConsumed());
         self::assertCount(1, $refreshSessionRepository->all());
         self::assertSame($user->getId(), $refreshSessionRepository->all()[0]->getUserId());
@@ -68,10 +72,11 @@ final class ActivateInvitedAccountHandlerTest extends TestCase
     public function test_that_a_wrong_credential_leaves_no_partial_durable_state(): void
     {
         [$handler, $user, $grantRepository, $refreshSessionRepository, , $events] = $this->readyHandler();
+        $passwordHash = $this->passwordHash();
         $command = CommandMessage::create(new ActivateInvitedAccount(
             $user->getId(),
-            'wrong-credential',
-            'initial-password'
+            $this->credential('wrong-credential'),
+            $passwordHash
         ));
 
         $this->expectException(LogicException::class);
@@ -86,7 +91,7 @@ final class ActivateInvitedAccountHandlerTest extends TestCase
             self::assertSame(ActivateInvitedAccount::class, $event->getCommandClass());
             self::assertSame(['user_id' => $user->getId()->toString()], $event->getRedactedCommandData());
             self::assertStringNotContainsString('wrong-credential', serialize($event->toArray()));
-            self::assertStringNotContainsString('initial-password', serialize($event->toArray()));
+            self::assertStringNotContainsString($passwordHash->toString(), serialize($event->toArray()));
         }
     }
 
@@ -99,7 +104,7 @@ final class ActivateInvitedAccountHandlerTest extends TestCase
 
         $expiredGrant = ActivationGrant::issue(
             $user->getId(),
-            'activate-once',
+            $this->credential('activate-once'),
             new DateTimeImmutable('2026-08-17T12:00:00+00:00'),
             new DateTimeImmutable('2026-08-18T12:00:00+00:00')
         );
@@ -140,8 +145,8 @@ final class ActivateInvitedAccountHandlerTest extends TestCase
         try {
             $handler->handle(CommandMessage::create(new ActivateInvitedAccount(
                 $user->getId(),
-                'activate-once',
-                'initial-password'
+                $this->credential('activate-once'),
+                $this->passwordHash()
             )));
         } finally {
             self::assertSame(UserState::PENDING_ACTIVATION, $user->getState());
@@ -193,8 +198,8 @@ final class ActivateInvitedAccountHandlerTest extends TestCase
         try {
             $handler->handle(CommandMessage::create(new ActivateInvitedAccount(
                 $user->getId(),
-                'activate-once',
-                'initial-password'
+                $this->credential('activate-once'),
+                $this->passwordHash()
             )));
         } finally {
             self::assertSame(UserState::PENDING_ACTIVATION, $user->getState());
@@ -207,8 +212,8 @@ final class ActivateInvitedAccountHandlerTest extends TestCase
         [$handler, $user, $grantRepository, $refreshSessionRepository, , $events] = $this->readyHandler();
         $command = CommandMessage::create(new ActivateInvitedAccount(
             $user->getId(),
-            'activate-once',
-            'initial-password'
+            $this->credential('activate-once'),
+            $this->passwordHash()
         ));
         $handler->handle($command);
 
@@ -226,7 +231,8 @@ final class ActivateInvitedAccountHandlerTest extends TestCase
     public function test_that_a_non_pending_identity_cannot_be_activated_or_create_a_session(): void
     {
         [$handler, $user, $grantRepository, $refreshSessionRepository, , $events] = $this->readyHandler();
-        $user->activate('existing-hash');
+        $existingPasswordHash = $this->passwordHash();
+        $user->activate($existingPasswordHash);
 
         $this->expectException(
             UserNotPendingActivationException::class
@@ -234,11 +240,11 @@ final class ActivateInvitedAccountHandlerTest extends TestCase
         try {
             $handler->handle(CommandMessage::create(new ActivateInvitedAccount(
                 $user->getId(),
-                'activate-once',
-                'initial-password'
+                $this->credential('activate-once'),
+                $this->passwordHash()
             )));
         } finally {
-            self::assertSame('existing-hash', $user->getPasswordHash());
+            self::assertSame($existingPasswordHash, $user->getPasswordHash());
             self::assertFalse($grantRepository->all()[0]->isConsumed());
             self::assertCount(0, $refreshSessionRepository->all());
             self::assertInstanceOf(RedactedCommandFailed::class, $events->events()[0]);
@@ -278,8 +284,8 @@ final class ActivateInvitedAccountHandlerTest extends TestCase
         try {
             $handler->handle(CommandMessage::create(new ActivateInvitedAccount(
                 $user->getId(),
-                'activate-once',
-                'initial-password'
+                $this->credential('activate-once'),
+                $this->passwordHash()
             )));
         } finally {
             self::assertSame(UserState::PENDING_ACTIVATION, $user->getState());
@@ -288,24 +294,8 @@ final class ActivateInvitedAccountHandlerTest extends TestCase
         }
     }
 
-    public function test_that_hashing_and_success_event_dispatch_failures_rethrow_and_publish_command_failure(): void
+    public function test_that_a_success_event_dispatch_failure_rethrows_and_publishes_command_failure(): void
     {
-        [$handler, $user, , , , $events] = $this->readyHandler(
-            new FixedPasswordHasher(new RuntimeException('Hashing failed.'))
-        );
-
-        try {
-            $handler->handle(CommandMessage::create(new ActivateInvitedAccount(
-                $user->getId(),
-                'activate-once',
-                'initial-password'
-            )));
-            self::fail('Expected the hasher failure.');
-        } catch (RuntimeException $runtimeException) {
-            self::assertSame('Hashing failed.', $runtimeException->getMessage());
-            self::assertInstanceOf(RedactedCommandFailed::class, $events->events()[0]);
-        }
-
         [$handler, $user, , , , $events] = $this->readyHandler(
             eventDispatcher: new InMemoryEventDispatcher(static function ($event): void {
                 if ($event instanceof UserActivated) {
@@ -318,8 +308,8 @@ final class ActivateInvitedAccountHandlerTest extends TestCase
         try {
             $handler->handle(CommandMessage::create(new ActivateInvitedAccount(
                 $user->getId(),
-                'activate-once',
-                'initial-password'
+                $this->credential('activate-once'),
+                $this->passwordHash()
             )));
         } finally {
             self::assertInstanceOf(RedactedCommandFailed::class, $events->events()[0]);
@@ -328,7 +318,6 @@ final class ActivateInvitedAccountHandlerTest extends TestCase
 
     /** @return array{ActivateInvitedAccountHandler, User, InMemoryActivationGrantRepository, InMemoryRefreshSessionRepository, InMemoryUnitOfWork, InMemoryEventDispatcher} */
     private function readyHandler(
-        ?FixedPasswordHasher $passwordHasher = null,
         ?InMemoryEventDispatcher $eventDispatcher = null,
         bool $assertPostCommitEvent = false
     ): array {
@@ -350,7 +339,7 @@ final class ActivateInvitedAccountHandlerTest extends TestCase
         );
 
         return [
-            $this->handler($users, $grants, $refreshSessions, $unitOfWork, $events, $passwordHasher),
+            $this->handler($users, $grants, $refreshSessions, $unitOfWork, $events),
             $user,
             $grants,
             $refreshSessions,
@@ -364,15 +353,13 @@ final class ActivateInvitedAccountHandlerTest extends TestCase
         ActivationGrantRepository $grants,
         RefreshSessionRepository $refreshSessions,
         InMemoryUnitOfWork $unitOfWork,
-        InMemoryEventDispatcher $events,
-        ?FixedPasswordHasher $passwordHasher = null
+        InMemoryEventDispatcher $events
     ): ActivateInvitedAccountHandler {
         return new ActivateInvitedAccountHandler(
             $users,
             $grants,
             $refreshSessions,
             $unitOfWork,
-            $passwordHasher ?? new FixedPasswordHasher(),
             new FixedActivationClock(new DateTimeImmutable('2026-08-19T12:00:00+00:00')),
             $events
         );
@@ -382,9 +369,21 @@ final class ActivateInvitedAccountHandlerTest extends TestCase
     {
         return ActivationGrant::issue(
             $userId,
-            'activate-once',
+            $this->credential('activate-once'),
             new DateTimeImmutable('2026-08-18T12:00:00+00:00'),
             new DateTimeImmutable('2026-08-25T12:00:00+00:00')
         );
+    }
+
+    private function passwordHash(): PasswordHash
+    {
+        $passwordHash = password_hash('initial-password', PASSWORD_DEFAULT);
+
+        return PasswordHash::fromString($passwordHash);
+    }
+
+    private function credential(string $value): ActivationCredential
+    {
+        return ActivationCredential::fromString($value);
     }
 }

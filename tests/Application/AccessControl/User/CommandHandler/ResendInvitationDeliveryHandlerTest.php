@@ -6,6 +6,7 @@ namespace Fight\Test\AccessControl\Application\AccessControl\User\CommandHandler
 
 use DateTimeImmutable;
 use Fight\AccessControl\Application\AccessControl\User\CommandHandler\ResendInvitationDeliveryHandler;
+use Fight\AccessControl\Domain\AccessControl\User\ActivationCredential;
 use Fight\AccessControl\Domain\AccessControl\User\ActivationGrant;
 use Fight\AccessControl\Domain\AccessControl\User\Command\ResendInvitationDelivery;
 use Fight\AccessControl\Domain\AccessControl\User\Event\InvitationDeliveryResent;
@@ -31,6 +32,7 @@ use RuntimeException;
 
 #[CoversClass(ResendInvitationDeliveryHandler::class)]
 #[CoversClass(InvitationDeliveryResent::class)]
+#[CoversClass(ActivationCredential::class)]
 #[CoversClass(ActivationGrant::class)]
 #[CoversClass(ResendInvitationDelivery::class)]
 final class ResendInvitationDeliveryHandlerTest extends TestCase
@@ -40,7 +42,7 @@ final class ResendInvitationDeliveryHandlerTest extends TestCase
         $userId = UserId::generate();
         $predecessor = ActivationGrant::issue(
             $userId,
-            'activate-old',
+            ActivationCredential::fromString('activate-old'),
             new DateTimeImmutable('2026-08-18T12:00:00+00:00'),
             new DateTimeImmutable('2026-08-25T12:00:00+00:00')
         );
@@ -93,7 +95,7 @@ final class ResendInvitationDeliveryHandlerTest extends TestCase
         $userId = UserId::generate();
         $predecessor = ActivationGrant::issue(
             $userId,
-            'activate-old',
+            ActivationCredential::fromString('activate-old'),
             new DateTimeImmutable('2026-08-18T12:00:00+00:00'),
             new DateTimeImmutable('2026-08-25T12:00:00+00:00')
         );
@@ -135,7 +137,7 @@ final class ResendInvitationDeliveryHandlerTest extends TestCase
         $activationGrantRepository = new InMemoryActivationGrantRepository($unitOfWork);
         $activationGrantRepository->add(ActivationGrant::issue(
             $userId,
-            'activate-old',
+            ActivationCredential::fromString('activate-old'),
             new DateTimeImmutable('2026-08-18T12:00:00+00:00'),
             new DateTimeImmutable('2026-08-25T12:00:00+00:00')
         ));
@@ -174,7 +176,7 @@ final class ResendInvitationDeliveryHandlerTest extends TestCase
         $activationGrantRepository = new InMemoryActivationGrantRepository();
         $activationGrantRepository->add(ActivationGrant::issue(
             $userId,
-            'activate-old',
+            ActivationCredential::fromString('activate-old'),
             new DateTimeImmutable('2026-08-18T12:00:00+00:00'),
             new DateTimeImmutable('2026-08-25T12:00:00+00:00')
         )->revoke(new DateTimeImmutable('2026-08-19T11:00:00+00:00')));

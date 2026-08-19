@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Fight\Test\AccessControl\Application\AccessControl\User\Service;
 
 use Fight\AccessControl\Application\AccessControl\User\Service\ActivationCredentialGenerator;
+use Fight\AccessControl\Domain\AccessControl\User\ActivationCredential;
 
 final readonly class FixedCredentialGenerator implements ActivationCredentialGenerator
 {
@@ -12,8 +13,8 @@ final readonly class FixedCredentialGenerator implements ActivationCredentialGen
     {
     }
 
-    public function generate(): string
+    public function generate(): ActivationCredential
     {
-        return $this->credential;
+        return ActivationCredential::fromString($this->credential);
     }
 }

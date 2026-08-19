@@ -19,7 +19,7 @@ class User
         private readonly UserId $id,
         private readonly EmailAddress $email,
         private UserState $state,
-        private ?string $passwordHash = null
+        private ?PasswordHash $passwordHash = null
     ) {
     }
 
@@ -60,7 +60,7 @@ class User
      *
      * @throws UserNotPendingActivationException When the identity is not pending activation.
      */
-    public function activate(string $passwordHash): void
+    public function activate(PasswordHash $passwordHash): void
     {
         if ($this->state !== UserState::PENDING_ACTIVATION) {
             throw new UserNotPendingActivationException('Only a pending user can be activated.');
@@ -73,7 +73,7 @@ class User
     /**
      * Returns the established password hash.
      */
-    public function getPasswordHash(): ?string
+    public function getPasswordHash(): ?PasswordHash
     {
         return $this->passwordHash;
     }
