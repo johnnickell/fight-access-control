@@ -6,6 +6,7 @@
     <file>tests/Domain</file>
     <file>tests/Application</file>
     <file>scripts</file>
+    <arg name="cache" value="var/cache/phpcs.cache" />
     <config name="installed_paths" value="vendor/slevomat/coding-standard" />
     <rule ref="PSR12">
         <exclude name="Squiz.WhiteSpace.CastSpacing" />

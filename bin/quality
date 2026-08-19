@@ -2,6 +2,8 @@
 
 set -euo pipefail
 
+mkdir -p var/cache
+
 printf '[quality] Composer validation\n'
 composer validate --strict --no-interaction
 

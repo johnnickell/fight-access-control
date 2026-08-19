@@ -2,4 +2,5 @@
 
 set -euo pipefail
 DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+mkdir -p "${DIR}/../var/cache"
 exec "${DIR}/.container-run" php vendor/bin/phpcs "$@"
