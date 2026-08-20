@@ -19,7 +19,8 @@ class User
         private readonly UserId $id,
         private readonly EmailAddress $email,
         private UserState $state,
-        private ?PasswordHash $passwordHash = null
+        private ?PasswordHash $passwordHash = null,
+        private readonly int $authenticationVersion = 1
     ) {
     }
 
@@ -76,5 +77,13 @@ class User
     public function getPasswordHash(): ?PasswordHash
     {
         return $this->passwordHash;
+    }
+
+    /**
+     * Returns the authoritative authentication version.
+     */
+    public function getAuthenticationVersion(): int
+    {
+        return $this->authenticationVersion;
     }
 }

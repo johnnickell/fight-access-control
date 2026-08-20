@@ -29,6 +29,7 @@ final class InvitationTest extends TestCase
         self::assertSame('alice@example.test', $user->getEmail()->canonical());
         self::assertNotSame('', $user->getId()->toString());
         self::assertSame(UserState::PENDING_ACTIVATION, $user->getState());
+        self::assertSame(1, $user->getAuthenticationVersion());
     }
 
     public function test_an_activation_grant_retains_only_a_hash_of_its_raw_credential(): void

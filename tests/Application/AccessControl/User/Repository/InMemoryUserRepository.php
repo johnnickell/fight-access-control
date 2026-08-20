@@ -8,6 +8,7 @@ use Fight\AccessControl\Domain\AccessControl\User\Exception\DuplicateEmailExcept
 use Fight\AccessControl\Domain\AccessControl\User\User;
 use Fight\AccessControl\Domain\AccessControl\User\UserId;
 use Fight\AccessControl\Domain\AccessControl\User\UserRepository;
+use Fight\Common\Domain\Value\Internet\EmailAddress;
 use Fight\Test\AccessControl\Application\AccessControl\User\InMemoryUnitOfWork;
 
 final class InMemoryUserRepository implements UserRepository
@@ -40,6 +41,17 @@ final class InMemoryUserRepository implements UserRepository
     {
         foreach ($this->users as $user) {
             if ($user->getId()->equals($id)) {
+                return $user;
+            }
+        }
+
+        return null;
+    }
+
+    public function getByEmail(EmailAddress $email): ?User
+    {
+        foreach ($this->users as $user) {
+            if ($user->getEmail()->canonical() === $email->canonical()) {
                 return $user;
             }
         }

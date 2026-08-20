@@ -21,4 +21,22 @@ final class UserFixture extends User
     {
         return new self(UserId::generate(), EmailAddress::fromString($email), $state);
     }
+
+    /**
+     * Reconstitutes a user at an explicit authentication version.
+     */
+    public static function withIdAndAuthenticationVersion(
+        UserId $id,
+        string $email,
+        UserState $state,
+        int $authenticationVersion
+    ): User {
+        return new self(
+            $id,
+            EmailAddress::fromString($email),
+            $state,
+            null,
+            $authenticationVersion
+        );
+    }
 }

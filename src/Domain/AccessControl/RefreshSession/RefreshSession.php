@@ -19,7 +19,8 @@ class RefreshSession
         private readonly RefreshSessionId $id,
         private readonly UserId $userId,
         private readonly DateTimeImmutable $activatedAt,
-        private readonly int $authenticationVersion
+        private readonly int $authenticationVersion,
+        private bool $revoked = false
     ) {
     }
 
@@ -64,5 +65,21 @@ class RefreshSession
     public function getAuthenticationVersion(): int
     {
         return $this->authenticationVersion;
+    }
+
+    /**
+     * Revokes this specific authoritative session.
+     */
+    public function revoke(): void
+    {
+        $this->revoked = true;
+    }
+
+    /**
+     * Returns whether this authoritative session is no longer usable.
+     */
+    public function isRevoked(): bool
+    {
+        return $this->revoked;
     }
 }
