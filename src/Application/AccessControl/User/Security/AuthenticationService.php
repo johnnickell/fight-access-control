@@ -1,0 +1,332 @@
+<?php
+
+declare(strict_types=1);
+
+namespace Fight\AccessControl\Application\AccessControl\User\Security;
+
+use DateTimeImmutable;
+use Fight\AccessControl\Application\AccessControl\RefreshSession\Service\RefreshCredentialGenerator;
+use Fight\AccessControl\Application\AccessControl\User\Service\AuthenticationClock;
+use Fight\AccessControl\Application\AccessControl\User\Service\LoginThrottle;
+use Fight\AccessControl\Domain\AccessControl\RefreshSession\Event\CurrentSessionLoggedOut;
+use Fight\AccessControl\Domain\AccessControl\RefreshSession\Exception\RefreshSessionNotFoundException;
+use Fight\AccessControl\Domain\AccessControl\RefreshSession\RefreshCredential;
+use Fight\AccessControl\Domain\AccessControl\RefreshSession\RefreshSession;
+use Fight\AccessControl\Domain\AccessControl\RefreshSession\RefreshSessionId;
+use Fight\AccessControl\Domain\AccessControl\RefreshSession\RefreshSessionRepository;
+use Fight\AccessControl\Domain\AccessControl\User\ActivationCredential;
+use Fight\AccessControl\Domain\AccessControl\User\ActivationGrant;
+use Fight\AccessControl\Domain\AccessControl\User\ActivationGrantRepository;
+use Fight\AccessControl\Domain\AccessControl\User\Event\RedactedCommandFailed;
+use Fight\AccessControl\Domain\AccessControl\User\Event\UserActivated;
+use Fight\AccessControl\Domain\AccessControl\User\Event\UserLoggedIn;
+use Fight\AccessControl\Domain\AccessControl\User\Exception\LoginRejectedException;
+use Fight\AccessControl\Domain\AccessControl\User\PasswordHash;
+use Fight\AccessControl\Domain\AccessControl\User\User;
+use Fight\AccessControl\Domain\AccessControl\User\UserId;
+use Fight\AccessControl\Domain\AccessControl\User\UserRepository;
+use Fight\AccessControl\Domain\AccessControl\User\UserState;
+use Fight\Common\Application\Auth\Security\PasswordHasher;
+use Fight\Common\Application\Auth\Security\PasswordValidator;
+use Fight\Common\Application\Auth\Security\TokenEncoder;
+use Fight\Common\Application\Messaging\Event\EventDispatcher;
+use Fight\Common\Application\Repository\UnitOfWork;
+use Fight\Common\Domain\Value\Internet\EmailAddress;
+use LogicException;
+use SensitiveParameter;
+use Throwable;
+
+/**
+ * Coordinates the supported synchronous JWT and refresh-session authentication lifecycle.
+ */
+final readonly class AuthenticationService
+{
+    /**
+     * Creates the authentication service.
+     */
+    public function __construct(
+        private UserRepository $userRepository,
+        private ActivationGrantRepository $activationGrantRepository,
+        private RefreshSessionRepository $refreshSessionRepository,
+        private UnitOfWork $unitOfWork,
+        private AuthenticationClock $clock,
+        private LoginThrottle $loginThrottle,
+        private RefreshCredentialGenerator $refreshCredentialGenerator,
+        private PasswordHasher $passwordHasher,
+        private PasswordValidator $passwordValidator,
+        private TokenEncoder $tokenEncoder,
+        private AuthenticationTokenPolicy $tokenPolicy,
+        private PasswordHash $dummyPasswordHash,
+        private EventDispatcher $eventDispatcher
+    ) {
+    }
+
+    /**
+     * Activates an invited identity and returns its first token set.
+     */
+    public function activate(
+        UserId $userId,
+        #[SensitiveParameter] string $activationCredential,
+        #[SensitiveParameter] string $plainPassword,
+        bool $remember = false
+    ): TokenSet {
+        try {
+            /** @var array{TokenSet, DateTimeImmutable} $activation */
+            $activation = $this->unitOfWork->commitTransactional(function () use (
+                $userId,
+                $activationCredential,
+                $plainPassword,
+                $remember
+            ): array {
+                $authenticatedAt = $this->clock->now();
+                $user = $this->userRepository->getById($userId);
+                $grant = $this->activationGrantRepository->getByUserId($userId);
+                $credential = ActivationCredential::fromString($activationCredential);
+
+                if (
+                    !$user instanceof User
+                    || !$user->getId()->equals($userId)
+                    || !$grant instanceof ActivationGrant
+                    || !$grant->getUserId()->equals($userId)
+                    || $grant->purpose() !== 'activation'
+                    || !$grant->isUsableAt($authenticatedAt)
+                    || !$grant->matchesCredential($credential)
+                ) {
+                    throw new LogicException('The activation grant cannot activate this invited account.');
+                }
+
+                $passwordHash = PasswordHash::fromString($this->passwordHasher->hash($plainPassword));
+                $refreshCredential = $this->refreshCredentialGenerator->generate();
+                $refreshSession = $this->newRefreshSession(
+                    $user,
+                    $refreshCredential,
+                    $authenticatedAt,
+                    $remember
+                );
+                $tokenSet = $this->tokenSet($user, $refreshSession, $refreshCredential, $authenticatedAt);
+                $consumedGrant = $grant->consume($authenticatedAt);
+                $this->activationGrantRepository->replaceConsumed($grant, $consumedGrant);
+                $this->refreshSessionRepository->add($refreshSession);
+                $user->activate($passwordHash);
+
+                return [$tokenSet, $authenticatedAt];
+            });
+
+            $this->eventDispatcher->trigger(new UserActivated(
+                $userId,
+                $activation[0]->getRefreshSessionId(),
+                $activation[1]
+            ));
+
+            return $activation[0];
+        } catch (Throwable $throwable) {
+            $this->publishFailure('activate', ['user_id' => $userId->toString()], $throwable);
+            throw $throwable;
+        }
+    }
+
+    /**
+     * Verifies an active identity and returns a new token set.
+     */
+    public function login(
+        string $email,
+        #[SensitiveParameter] string $plainPassword,
+        bool $remember = false
+    ): TokenSet {
+        try {
+            /** @var array{TokenSet, DateTimeImmutable} $login */
+            $login = $this->unitOfWork->commitTransactional(function () use (
+                $email,
+                $plainPassword,
+                $remember
+            ): array {
+                $emailAddress = EmailAddress::fromString($email);
+                $user = $this->userRepository->getByEmail($emailAddress);
+                $passwordHash = $user?->getPasswordHash();
+                $isActiveUser = $user instanceof User
+                    && $user->getState() === UserState::ACTIVE
+                    && $passwordHash instanceof PasswordHash;
+                $loginIsAllowed = $this->loginThrottle->allows($emailAddress);
+                $verificationHash = $this->dummyPasswordHash;
+                if ($loginIsAllowed && $isActiveUser) {
+                    $verificationHash = $passwordHash;
+                }
+
+                $credentialsMatch = $this->passwordValidator->validate(
+                    $plainPassword,
+                    $verificationHash->toString()
+                );
+
+                if (!$isActiveUser || !$credentialsMatch || !$loginIsAllowed) {
+                    throw new LoginRejectedException('Login rejected.');
+                }
+
+                $authenticatedAt = $this->clock->now();
+                $refreshCredential = $this->refreshCredentialGenerator->generate();
+                $refreshSession = $this->newRefreshSession(
+                    $user,
+                    $refreshCredential,
+                    $authenticatedAt,
+                    $remember
+                );
+                $tokenSet = $this->tokenSet($user, $refreshSession, $refreshCredential, $authenticatedAt);
+                $this->refreshSessionRepository->add($refreshSession);
+
+                if ($this->passwordValidator->needsRehash($passwordHash->toString())) {
+                    $user->rehashPassword(PasswordHash::fromString($this->passwordHasher->hash($plainPassword)));
+                }
+
+                return [$tokenSet, $authenticatedAt];
+            });
+
+            $this->eventDispatcher->trigger(new UserLoggedIn(
+                $login[0]->getUserId(),
+                $login[0]->getRefreshSessionId(),
+                $login[1]
+            ));
+
+            return $login[0];
+        } catch (Throwable $throwable) {
+            $this->publishFailure('login', [], $throwable);
+            throw $throwable;
+        }
+    }
+
+    /**
+     * Revalidates a refresh credential and returns a fresh access JWT.
+     */
+    public function refresh(#[SensitiveParameter] string $refreshCredential): TokenSet
+    {
+        try {
+            return $this->unitOfWork->commitTransactional(function () use ($refreshCredential): TokenSet {
+                $authenticatedAt = $this->clock->now();
+                $credential = RefreshCredential::fromString($refreshCredential);
+                $refreshSession = $this->refreshSessionRepository->getByCredential($credential);
+                $user = null;
+                if ($refreshSession instanceof RefreshSession) {
+                    $user = $this->userRepository->getById($refreshSession->getUserId());
+                }
+
+                $this->assertAuthoritativeSession($refreshSession, $user, $authenticatedAt);
+
+                return $this->tokenSet($user, $refreshSession, $credential, $authenticatedAt);
+            });
+        } catch (Throwable $throwable) {
+            $this->publishFailure('refresh', [], $throwable);
+            throw $throwable;
+        }
+    }
+
+    /**
+     * Revokes only the session selected by the presented refresh credential.
+     */
+    public function logout(#[SensitiveParameter] string $refreshCredential): void
+    {
+        try {
+            $refreshSessionId = $this->unitOfWork->commitTransactional(function () use (
+                $refreshCredential
+            ): RefreshSessionId {
+                $credential = RefreshCredential::fromString($refreshCredential);
+                $refreshSession = $this->refreshSessionRepository->getByCredential($credential);
+                if (!$refreshSession instanceof RefreshSession) {
+                    throw new RefreshSessionNotFoundException('The refresh session does not exist.');
+                }
+
+                $refreshSession->revoke();
+
+                return $refreshSession->getId();
+            });
+
+            $this->eventDispatcher->trigger(new CurrentSessionLoggedOut($refreshSessionId));
+        } catch (Throwable $throwable) {
+            $this->publishFailure('logout', [], $throwable);
+            throw $throwable;
+        }
+    }
+
+    /**
+     * Creates one authoritative refresh session using configured lifetime policy.
+     */
+    private function newRefreshSession(
+        User $user,
+        RefreshCredential $refreshCredential,
+        DateTimeImmutable $authenticatedAt,
+        bool $remember
+    ): RefreshSession {
+        return RefreshSession::start(
+            RefreshSessionId::generate(),
+            $user->getId(),
+            $refreshCredential,
+            $authenticatedAt,
+            $this->tokenPolicy->refreshIdleExpiresAt($authenticatedAt, $remember),
+            $this->tokenPolicy->refreshAbsoluteExpiresAt($authenticatedAt, $remember),
+            $user->getAuthenticationVersion(),
+            $remember
+        );
+    }
+
+    /**
+     * Creates safe access and refresh material for one authoritative session.
+     */
+    private function tokenSet(
+        User $user,
+        RefreshSession $refreshSession,
+        RefreshCredential $refreshCredential,
+        DateTimeImmutable $authenticatedAt
+    ): TokenSet {
+        $accessTokenExpiresAt = $this->tokenPolicy->accessExpiresAt($authenticatedAt);
+        $accessToken = $this->tokenEncoder->encode([
+            'auth_version' => $user->getAuthenticationVersion(),
+            'iat'          => $authenticatedAt->getTimestamp(),
+            'sid'          => $refreshSession->getId()->toString(),
+            'sub'          => $user->getId()->toString(),
+            'type'         => 'access',
+        ], $accessTokenExpiresAt);
+
+        return new TokenSet(
+            $user->getId(),
+            $refreshSession->getId(),
+            $refreshCredential,
+            $refreshSession->getAbsoluteExpiresAt(),
+            $refreshSession->isRemembered(),
+            AccessToken::fromString($accessToken),
+            $accessTokenExpiresAt
+        );
+    }
+
+    /**
+     * Rejects any session or owner that is no longer authoritative.
+     */
+    private function assertAuthoritativeSession(
+        ?RefreshSession $refreshSession,
+        ?User $user,
+        DateTimeImmutable $authenticatedAt
+    ): void {
+        if (
+            !$refreshSession instanceof RefreshSession
+            || !$user instanceof User
+            || !$user->getId()->equals($refreshSession->getUserId())
+            || $user->getState() !== UserState::ACTIVE
+            || $user->getAuthenticationVersion() !== $refreshSession->getAuthenticationVersion()
+            || !$refreshSession->isUsableAt($authenticatedAt)
+        ) {
+            throw new RefreshSessionNotFoundException('The refresh session is not authoritative.');
+        }
+    }
+
+    /**
+     * Publishes only allowlisted operation context after a sensitive failure.
+     *
+     * @param string               $operation
+     * @param array<string, mixed> $safeData
+     * @param Throwable            $throwable
+     */
+    private function publishFailure(string $operation, array $safeData, Throwable $throwable): void
+    {
+        $this->eventDispatcher->trigger(new RedactedCommandFailed(
+            self::class.'::'.$operation,
+            $safeData,
+            $throwable->getMessage()
+        ));
+    }
+}

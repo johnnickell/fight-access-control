@@ -12,7 +12,9 @@ Common contract or an established bounded-context structure already exists.
   bounded context in every production namespace and mirror it in `tests/`.
 - Model a feature under its aggregate, for example `User/Command`, `User/Event`, and `User/Query` in Domain, with
   `Application/AccessControl/User/CommandHandler` and `QueryHandler` for handlers.
-- Commands implement `Fight\Common\Domain\Messaging\Command\Command`; queries implement its Query counterpart;
+- Secret-bearing activation, login, refresh, logout, and password operations use the synchronous
+  `Application/AccessControl/User/Security/AuthenticationService` and must never be serializable messages.
+  Other commands implement `Fight\Common\Domain\Messaging\Command\Command`; queries implement its Query counterpart;
   domain events implement `Fight\Common\Domain\Messaging\Event\Event`. Messages are immutable DTOs: provide
   canonical `fromArray()`, `toArray()`, and named `get...()` accessors; round-trip serialization must be tested and
   missing required data must reject with a Domain exception.
@@ -24,6 +26,9 @@ Common contract or an established bounded-context structure already exists.
   `try`/`catch (Throwable $throwable)`, triggers `CommandFailedEvent` with the original command and failure message,
   then rethrows the same exception. Never swallow failures, dispatch success before commit, or split one use case
   into multiple commands.
+- The synchronous `AuthenticationService` applies the same one-Unit-of-Work and post-commit success ordering,
+  accepts raw secrets only as `#[\SensitiveParameter]` method arguments, uses Fight Common password and token
+  ports, returns non-serializable token results, and dispatches `RedactedCommandFailed` without secret inputs.
 - A QueryHandler reads through Domain repositories only. It does not mutate aggregates, commit a Unit of Work, or
   dispatch domain events.
 - Aggregate roots own their state changes; a handler coordinates aggregates but does not reconstruct their internal

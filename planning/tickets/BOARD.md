@@ -26,7 +26,7 @@ materially cheaper.
 | [T-00001 — Invite a pending user](T-00001-invite-pending-user.md) | [PRD-00001](../specs/00001-PRD.md) | Canonical pending-user invitation Command, Event, handler, and Domain repositories with durable activation work, audit evidence, and exact statement coverage. |
 | [T-00002 — Recover and resend activation delivery](T-00002-recover-resend-activation-delivery.md) | [PRD-00001](../specs/00001-PRD.md) | Safe delivery-status query, retryable delivery work, atomic predecessor-grant revocation and replacement, and exact statement coverage. |
 | [T-00003 — Activate an invited account](T-00003-activate-invited-account.md) | [PRD-00001](../specs/00001-PRD.md) | Atomic activation grant redemption, initial credential, active identity transition, and first server-side session with exact coverage. |
-| [T-00004 — Login, cold restore, and current-session logout](T-00004-login-restore-logout.md) | [PRD-00001](../specs/00001-PRD.md) | Canonical login with timing-uniform failure, authoritative cold restoration, current-only logout, and exact statement coverage. |
+| [T-00004 — Login, cold restore, and current-session logout](T-00004-login-restore-logout.md) | [PRD-00001](../specs/00001-PRD.md) | Synchronous secret-safe authentication service issuing access JWTs and opaque refresh credentials with authoritative cold refresh and current-only logout. |
 
 ## Waiting
 

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Fight\Test\AccessControl\Application\AccessControl\RefreshSession\Repository;
 
+use Fight\AccessControl\Domain\AccessControl\RefreshSession\RefreshCredential;
 use Fight\AccessControl\Domain\AccessControl\RefreshSession\RefreshSession;
 use Fight\AccessControl\Domain\AccessControl\RefreshSession\RefreshSessionId;
 use Fight\AccessControl\Domain\AccessControl\RefreshSession\RefreshSessionRepository;
@@ -30,6 +31,17 @@ final class InMemoryRefreshSessionRepository implements RefreshSessionRepository
     {
         foreach ($this->refreshSessions as $refreshSession) {
             if ($refreshSession->getId()->equals($id)) {
+                return $refreshSession;
+            }
+        }
+
+        return null;
+    }
+
+    public function getByCredential(RefreshCredential $refreshCredential): ?RefreshSession
+    {
+        foreach ($this->refreshSessions as $refreshSession) {
+            if ($refreshSession->matchesCredential($refreshCredential)) {
                 return $refreshSession;
             }
         }

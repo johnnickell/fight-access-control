@@ -6,6 +6,7 @@ namespace Fight\AccessControl\Domain\AccessControl\RefreshSession;
 
 use DateTimeImmutable;
 use Fight\AccessControl\Domain\AccessControl\User\UserId;
+use InvalidArgumentException;
 
 /**
  * Represents authoritative server-side state for an authenticated refresh session.
@@ -18,8 +19,12 @@ class RefreshSession
     protected function __construct(
         private readonly RefreshSessionId $id,
         private readonly UserId $userId,
-        private readonly DateTimeImmutable $activatedAt,
+        private readonly string $credentialDigest,
+        private readonly DateTimeImmutable $createdAt,
+        private readonly DateTimeImmutable $idleExpiresAt,
+        private readonly DateTimeImmutable $absoluteExpiresAt,
         private readonly int $authenticationVersion,
+        private readonly bool $remembered,
         private bool $revoked = false
     ) {
     }
@@ -30,9 +35,31 @@ class RefreshSession
     public static function start(
         RefreshSessionId $id,
         UserId $userId,
-        DateTimeImmutable $activatedAt
+        RefreshCredential $refreshCredential,
+        DateTimeImmutable $createdAt,
+        DateTimeImmutable $idleExpiresAt,
+        DateTimeImmutable $absoluteExpiresAt,
+        int $authenticationVersion,
+        bool $remembered
     ): self {
-        return new self($id, $userId, $activatedAt, 1);
+        if (
+            $idleExpiresAt <= $createdAt
+            || $absoluteExpiresAt <= $createdAt
+            || $idleExpiresAt > $absoluteExpiresAt
+        ) {
+            throw new InvalidArgumentException('Refresh-session expiry must form a valid bounded lifetime.');
+        }
+
+        return new self(
+            $id,
+            $userId,
+            $refreshCredential->digest(),
+            $createdAt,
+            $idleExpiresAt,
+            $absoluteExpiresAt,
+            $authenticationVersion,
+            $remembered
+        );
     }
 
     /**
@@ -52,11 +79,51 @@ class RefreshSession
     }
 
     /**
+     * Returns the one-way credential digest for persistence.
+     */
+    public function getCredentialDigest(): string
+    {
+        return $this->credentialDigest;
+    }
+
+    /**
      * Returns when this first session was established.
      */
-    public function getActivatedAt(): DateTimeImmutable
+    public function getCreatedAt(): DateTimeImmutable
     {
-        return $this->activatedAt;
+        return $this->createdAt;
+    }
+
+    /**
+     * Returns the current idle deadline.
+     */
+    public function getIdleExpiresAt(): DateTimeImmutable
+    {
+        return $this->idleExpiresAt;
+    }
+
+    /**
+     * Returns the immutable absolute deadline.
+     */
+    public function getAbsoluteExpiresAt(): DateTimeImmutable
+    {
+        return $this->absoluteExpiresAt;
+    }
+
+    /**
+     * Returns whether browser-restart persistence was requested for this session.
+     */
+    public function isRemembered(): bool
+    {
+        return $this->remembered;
+    }
+
+    /**
+     * Returns whether a presented refresh credential matches this session.
+     */
+    public function matchesCredential(RefreshCredential $refreshCredential): bool
+    {
+        return hash_equals($this->credentialDigest, $refreshCredential->digest());
     }
 
     /**
@@ -81,5 +148,13 @@ class RefreshSession
     public function isRevoked(): bool
     {
         return $this->revoked;
+    }
+
+    /**
+     * Returns whether the session remains authoritative at the supplied time.
+     */
+    public function isUsableAt(DateTimeImmutable $at): bool
+    {
+        return !$this->revoked && $at < $this->idleExpiresAt && $at < $this->absoluteExpiresAt;
     }
 }

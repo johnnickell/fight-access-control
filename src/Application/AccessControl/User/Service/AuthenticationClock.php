@@ -7,12 +7,12 @@ namespace Fight\AccessControl\Application\AccessControl\User\Service;
 use DateTimeImmutable;
 
 /**
- * Provides the current time for account activation.
+ * Provides the current time for synchronous authentication operations.
  */
-interface ActivationClock
+interface AuthenticationClock
 {
     /**
-     * Returns the current activation time at invocation.
+     * Returns the current authentication time.
      */
     public function now(): DateTimeImmutable;
 }

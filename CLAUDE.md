@@ -23,11 +23,13 @@ be staged. Durable decisions and outcomes belong in the canonical local planning
 
 Fight AccessControl is a framework-neutral PHP library. Production dependency direction is
 `Domain <- Application`: Domain depends on no other package layer, and Application may depend only on Domain
-and public Fight Common contracts. There is no production Adapter layer. Framework, persistence, HTTP, mail,
-queue, JWT, realtime, and composition-root implementations belong to consumer repositories.
+and public Fight Common contracts. There is no production Adapter layer. Application owns JWT/refresh
+authentication orchestration through Fight Common ports; consumers own framework, persistence, HTTP, cookies,
+signing keys, mail, queue, realtime, and composition-root implementations.
 
-The two production namespaces are `Fight\AccessControl\Domain\` and
-`Fight\AccessControl\Application\`. Test namespaces mirror the production layers under
+The two PHP production namespaces are `Fight\AccessControl\Domain\` and
+`Fight\AccessControl\Application\`. The supported editable React client is a repository source artifact outside
+the PHP namespaces, and framework-native session authentication is unsupported. Test namespaces mirror the production layers under
 `Fight\Test\AccessControl\`.
 
 ## Commands

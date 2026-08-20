@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Fight\AccessControl\Domain\AccessControl\User;
 
+use Fight\AccessControl\Domain\AccessControl\User\Exception\UserNotActiveException;
 use Fight\AccessControl\Domain\AccessControl\User\Exception\UserNotPendingActivationException;
 use Fight\Common\Domain\Value\Internet\EmailAddress;
 
@@ -77,6 +78,18 @@ class User
     public function getPasswordHash(): ?PasswordHash
     {
         return $this->passwordHash;
+    }
+
+    /**
+     * Replaces an active identity's password hash after successful verification.
+     */
+    public function rehashPassword(PasswordHash $passwordHash): void
+    {
+        if ($this->state !== UserState::ACTIVE || !$this->passwordHash instanceof PasswordHash) {
+            throw new UserNotActiveException('Only an active user can rehash an established password.');
+        }
+
+        $this->passwordHash = $passwordHash;
     }
 
     /**
