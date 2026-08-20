@@ -25,7 +25,8 @@ a bounded benign conflict outcome, and family revocation for credential reuse ou
 
 ## Exclusions
 
-No database locking implementation, cookie transport, JWT signing, browser replay logic, or cache adapter.
+No database locking implementation, cookie construction, signing-key adapter, or cache adapter. React refresh
+coordination and bounded replay behavior are delivered with the supported editable client profile.
 
 ## Verification
 

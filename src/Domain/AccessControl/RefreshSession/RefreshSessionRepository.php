@@ -24,4 +24,11 @@ interface RefreshSessionRepository
      * @throws Exception When an error occurs
      */
     public function getById(RefreshSessionId $id): ?RefreshSession;
+
+    /**
+     * Retrieves a refresh session by a presented opaque credential.
+     *
+     * @throws Exception When an error occurs
+     */
+    public function getByCredential(RefreshCredential $refreshCredential): ?RefreshSession;
 }
