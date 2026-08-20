@@ -214,18 +214,7 @@ final readonly class AuthenticationService
                         $user = $this->userRepository->getById($refreshSession->getUserId());
                     }
 
-                    $this->assertAuthoritativeSession($refreshSession, $user, $authenticatedAt);
-                    if (
-                        $refreshSession->matchesMostRecentlyUsedCredentialWithin(
-                            $credential,
-                            $authenticatedAt,
-                            $this->tokenPolicy->refreshConflictWindow()
-                        )
-                    ) {
-                        return RefreshResult::conflict();
-                    }
-
-                    return $this->revokeCompromisedSession($refreshSession);
+                    return $this->resolveUsedCredential($refreshSession, $user, $credential, $authenticatedAt);
                 }
 
                 $user = $this->userRepository->getById($refreshSession->getUserId());
@@ -240,19 +229,10 @@ final readonly class AuthenticationService
                 $idleExpiry = $proposedIdleExpiry < $absoluteExpiry ? $proposedIdleExpiry : $absoluteExpiry;
                 $rotatedSession = $refreshSession->rotate($rotatedCredential, $authenticatedAt, $idleExpiry);
                 if (!$this->refreshSessionRepository->replace($refreshSession, $rotatedSession)) {
+                    $observedAt = $this->clock->now();
                     $currentSession = $this->refreshSessionRepository->getById($refreshSession->getId());
-                    $this->assertAuthoritativeSession($currentSession, $user, $authenticatedAt);
-                    if (
-                        $currentSession->matchesMostRecentlyUsedCredentialWithin(
-                            $credential,
-                            $authenticatedAt,
-                            $this->tokenPolicy->refreshConflictWindow()
-                        )
-                    ) {
-                        return RefreshResult::conflict();
-                    }
 
-                    return $this->revokeCompromisedSession($currentSession);
+                    return $this->resolveUsedCredential($currentSession, $user, $credential, $observedAt);
                 }
 
                 return RefreshResult::rotated(
@@ -366,6 +346,29 @@ final readonly class AuthenticationService
         ) {
             throw new RefreshSessionNotFoundException('The refresh session is not authoritative.');
         }
+    }
+
+    /**
+     * Resolves a previously authoritative credential as a benign conflict or terminal replay.
+     */
+    private function resolveUsedCredential(
+        ?RefreshSession $refreshSession,
+        ?User $user,
+        RefreshCredential $credential,
+        DateTimeImmutable $observedAt
+    ): RefreshResult|RefreshSessionNotFoundException {
+        $this->assertAuthoritativeSession($refreshSession, $user, $observedAt);
+        if (
+            $refreshSession->matchesMostRecentlyUsedCredentialWithin(
+                $credential,
+                $observedAt,
+                $this->tokenPolicy->refreshConflictWindow()
+            )
+        ) {
+            return RefreshResult::conflict();
+        }
+
+        return $this->revokeCompromisedSession($refreshSession);
     }
 
     /**

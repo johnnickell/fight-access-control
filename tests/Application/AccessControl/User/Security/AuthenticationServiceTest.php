@@ -14,6 +14,7 @@ use Fight\AccessControl\Application\AccessControl\User\Security\AuthenticationTo
 use Fight\AccessControl\Application\AccessControl\User\Security\RefreshOutcome;
 use Fight\AccessControl\Application\AccessControl\User\Security\RefreshResult;
 use Fight\AccessControl\Application\AccessControl\User\Security\TokenSet;
+use Fight\AccessControl\Application\AccessControl\User\Service\AuthenticationClock;
 use Fight\AccessControl\Application\AccessControl\User\Service\LoginThrottle;
 use Fight\AccessControl\Domain\AccessControl\RefreshSession\Event\CurrentSessionLoggedOut;
 use Fight\AccessControl\Domain\AccessControl\RefreshSession\Exception\RefreshSessionNotFoundException;
@@ -627,16 +628,35 @@ final class AuthenticationServiceTest extends TestCase
             $racingSessions,
             new InMemoryUnitOfWork(),
             $winnerEvents,
+            authenticationClock: new FixedAuthenticationClock(
+                new DateTimeImmutable('2026-08-19T12:00:01+00:00')
+            ),
             refreshCredentialGenerator: new FixedRefreshCredentialGenerator(
                 RefreshCredential::fromString(self::WINNER_CREDENTIAL)
             )
         );
+        $loserClock = new class implements AuthenticationClock {
+            private int $observations = 0;
+
+            public function now(): DateTimeImmutable
+            {
+                $observedAt = '2026-08-19T12:00:00+00:00';
+                if ($this->observations > 0) {
+                    $observedAt = '2026-08-19T12:00:02+00:00';
+                }
+
+                ++$this->observations;
+
+                return new DateTimeImmutable($observedAt);
+            }
+        };
         $loserService = $this->service(
             $users,
             new InMemoryActivationGrantRepository(),
             $racingSessions,
             new InMemoryUnitOfWork(),
             $loserEvents,
+            authenticationClock: $loserClock,
             refreshCredentialGenerator: new FixedRefreshCredentialGenerator(
                 RefreshCredential::fromString(self::ROTATED_CREDENTIAL)
             )
@@ -663,6 +683,7 @@ final class AuthenticationServiceTest extends TestCase
         self::assertNull($storedSessions->getByCredential(
             RefreshCredential::fromString(self::ROTATED_CREDENTIAL)
         ));
+        self::assertFalse($storedSessions->getById($originalSession->getId())->isRevoked());
         self::assertSame([], $winnerEvents->events());
         self::assertSame([], $loserEvents->events());
     }
@@ -1194,6 +1215,7 @@ final class AuthenticationServiceTest extends TestCase
         RefreshSessionRepository $sessions,
         InMemoryUnitOfWork $unitOfWork,
         InMemoryEventDispatcher $events,
+        ?AuthenticationClock $authenticationClock = null,
         ?LoginThrottle $loginThrottle = null,
         ?PasswordHasher $passwordHasher = null,
         ?PasswordValidator $passwordValidator = null,
@@ -1208,7 +1230,9 @@ final class AuthenticationServiceTest extends TestCase
             $grants,
             $sessions,
             $unitOfWork,
-            new FixedAuthenticationClock(new DateTimeImmutable('2026-08-19T12:00:00+00:00')),
+            $authenticationClock ?? new FixedAuthenticationClock(
+                new DateTimeImmutable('2026-08-19T12:00:00+00:00')
+            ),
             $loginThrottle ?? new FixedLoginThrottle(true),
             $refreshCredentialGenerator ?? new FixedRefreshCredentialGenerator($this->refreshCredential()),
             $passwordHasher ?? $passwordSecurity,

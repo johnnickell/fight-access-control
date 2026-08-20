@@ -4,7 +4,7 @@ Operational execution view for Fight AccessControl. Ticket files are canonical f
 `blocked_by` edges; this board is canonical for recommended order. Update this file whenever ticket status,
 dependencies, or roadmap priority changes.
 
-Last updated: 2026-08-19
+Last updated: 2026-08-20
 
 ## Ready Frontier
 

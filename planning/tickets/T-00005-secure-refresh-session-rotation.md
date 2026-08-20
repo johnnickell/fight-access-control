@@ -50,6 +50,6 @@ coordination and bounded replay behavior are delivered with the supported editab
   generic terminal failure with redacted context.
 - Tests cover sequential and interleaved rotation races, `C0 → C1 → C2` replay, timeout, authentication-version
   mismatch, concurrent revocation, retry exhaustion, and post-compromise behavior.
-- Final `./bin/planning-check` passed. Final `./bin/build` passed 124 tests with 764 assertions and exact statement
-  coverage at 729/729; PHPCS, PHPStan, architecture, package-boundary, Rector, documentation, and production
+- Final `./bin/planning-check` passed. Final `./bin/build` passed 124 tests with 765 assertions and exact statement
+  coverage at 724/724; PHPCS, PHPStan, architecture, package-boundary, Rector, documentation, and production
   autoload checks passed. Independent Standards and Spec reviews both passed.
