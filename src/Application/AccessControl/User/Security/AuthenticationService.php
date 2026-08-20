@@ -41,6 +41,8 @@ use Throwable;
  */
 final readonly class AuthenticationService
 {
+    private const int REVOCATION_RETRY_LIMIT = 3;
+
     /**
      * Creates the authentication service.
      */
@@ -193,24 +195,76 @@ final readonly class AuthenticationService
     }
 
     /**
-     * Revalidates a refresh credential and returns a fresh access JWT.
+     * Revalidates a refresh credential and returns a rotation or bounded-conflict outcome.
      */
-    public function refresh(#[SensitiveParameter] string $refreshCredential): TokenSet
+    public function refresh(#[SensitiveParameter] string $refreshCredential): RefreshResult
     {
         try {
-            return $this->unitOfWork->commitTransactional(function () use ($refreshCredential): TokenSet {
+            /** @var RefreshResult|RefreshSessionNotFoundException $refreshResult */
+            $refreshResult = $this->unitOfWork->commitTransactional(function () use (
+                $refreshCredential
+            ): RefreshResult|RefreshSessionNotFoundException {
                 $authenticatedAt = $this->clock->now();
                 $credential = RefreshCredential::fromString($refreshCredential);
                 $refreshSession = $this->refreshSessionRepository->getByCredential($credential);
-                $user = null;
-                if ($refreshSession instanceof RefreshSession) {
-                    $user = $this->userRepository->getById($refreshSession->getUserId());
+                if (!$refreshSession instanceof RefreshSession) {
+                    $refreshSession = $this->refreshSessionRepository->getByUsedCredential($credential);
+                    $user = null;
+                    if ($refreshSession instanceof RefreshSession) {
+                        $user = $this->userRepository->getById($refreshSession->getUserId());
+                    }
+
+                    $this->assertAuthoritativeSession($refreshSession, $user, $authenticatedAt);
+                    if (
+                        $refreshSession->matchesMostRecentlyUsedCredentialWithin(
+                            $credential,
+                            $authenticatedAt,
+                            $this->tokenPolicy->refreshConflictWindow()
+                        )
+                    ) {
+                        return RefreshResult::conflict();
+                    }
+
+                    return $this->revokeCompromisedSession($refreshSession);
                 }
 
-                $this->assertAuthoritativeSession($refreshSession, $user, $authenticatedAt);
+                $user = $this->userRepository->getById($refreshSession->getUserId());
 
-                return $this->tokenSet($user, $refreshSession, $credential, $authenticatedAt);
+                $this->assertAuthoritativeSession($refreshSession, $user, $authenticatedAt);
+                $rotatedCredential = $this->refreshCredentialGenerator->generate();
+                $proposedIdleExpiry = $this->tokenPolicy->refreshIdleExpiresAt(
+                    $authenticatedAt,
+                    $refreshSession->isRemembered()
+                );
+                $absoluteExpiry = $refreshSession->getAbsoluteExpiresAt();
+                $idleExpiry = $proposedIdleExpiry < $absoluteExpiry ? $proposedIdleExpiry : $absoluteExpiry;
+                $rotatedSession = $refreshSession->rotate($rotatedCredential, $authenticatedAt, $idleExpiry);
+                if (!$this->refreshSessionRepository->replace($refreshSession, $rotatedSession)) {
+                    $currentSession = $this->refreshSessionRepository->getById($refreshSession->getId());
+                    $this->assertAuthoritativeSession($currentSession, $user, $authenticatedAt);
+                    if (
+                        $currentSession->matchesMostRecentlyUsedCredentialWithin(
+                            $credential,
+                            $authenticatedAt,
+                            $this->tokenPolicy->refreshConflictWindow()
+                        )
+                    ) {
+                        return RefreshResult::conflict();
+                    }
+
+                    return $this->revokeCompromisedSession($currentSession);
+                }
+
+                return RefreshResult::rotated(
+                    $this->tokenSet($user, $rotatedSession, $rotatedCredential, $authenticatedAt)
+                );
             });
+
+            if ($refreshResult instanceof RefreshSessionNotFoundException) {
+                throw $refreshResult;
+            }
+
+            return $refreshResult;
         } catch (Throwable $throwable) {
             $this->publishFailure('refresh', [], $throwable);
             throw $throwable;
@@ -232,7 +286,7 @@ final readonly class AuthenticationService
                     throw new RefreshSessionNotFoundException('The refresh session does not exist.');
                 }
 
-                $refreshSession->revoke();
+                $refreshSession = $this->revokeSession($refreshSession);
 
                 return $refreshSession->getId();
             });
@@ -312,6 +366,42 @@ final readonly class AuthenticationService
         ) {
             throw new RefreshSessionNotFoundException('The refresh session is not authoritative.');
         }
+    }
+
+    /**
+     * Atomically revokes the authoritative session family after terminal credential replay.
+     */
+    private function revokeCompromisedSession(RefreshSession $refreshSession): RefreshSessionNotFoundException
+    {
+        $this->revokeSession($refreshSession);
+
+        return new RefreshSessionNotFoundException('The refresh session is not authoritative.');
+    }
+
+    /**
+     * Replaces the latest authoritative session state with an immutable revocation.
+     */
+    private function revokeSession(RefreshSession $refreshSession): RefreshSession
+    {
+        $attempts = 0;
+        while (!$refreshSession->isRevoked() && $attempts < self::REVOCATION_RETRY_LIMIT) {
+            ++$attempts;
+            $revokedSession = $refreshSession->revoke();
+            if ($this->refreshSessionRepository->replace($refreshSession, $revokedSession)) {
+                return $revokedSession;
+            }
+
+            $refreshSession = $this->refreshSessionRepository->getById($refreshSession->getId());
+            if (!$refreshSession instanceof RefreshSession) {
+                throw new RefreshSessionNotFoundException('The refresh session is not authoritative.');
+            }
+        }
+
+        if ($refreshSession->isRevoked()) {
+            return $refreshSession;
+        }
+
+        throw new RefreshSessionNotFoundException('The refresh session is not authoritative.');
     }
 
     /**
