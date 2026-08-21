@@ -27,11 +27,13 @@ use Fight\AccessControl\Domain\AccessControl\RefreshSession\RefreshSessionReposi
 use Fight\AccessControl\Domain\AccessControl\User\ActivationCredential;
 use Fight\AccessControl\Domain\AccessControl\User\ActivationGrant;
 use Fight\AccessControl\Domain\AccessControl\User\ActivationGrantRepository;
+use Fight\AccessControl\Domain\AccessControl\User\Event\PasswordChanged;
 use Fight\AccessControl\Domain\AccessControl\User\Event\PasswordResetCompleted;
 use Fight\AccessControl\Domain\AccessControl\User\Event\RedactedCommandFailed;
 use Fight\AccessControl\Domain\AccessControl\User\Event\UserActivated;
 use Fight\AccessControl\Domain\AccessControl\User\Event\UserLoggedIn;
 use Fight\AccessControl\Domain\AccessControl\User\Exception\LoginRejectedException;
+use Fight\AccessControl\Domain\AccessControl\User\Exception\PasswordChangeRejectedException;
 use Fight\AccessControl\Domain\AccessControl\User\Exception\PasswordResetRejectedException;
 use Fight\AccessControl\Domain\AccessControl\User\PasswordHash;
 use Fight\AccessControl\Domain\AccessControl\User\PasswordResetCredential;
@@ -80,6 +82,8 @@ use RuntimeException;
 #[CoversClass(ActivationGrant::class)]
 #[CoversClass(AuditEvidence::class)]
 #[CoversClass(PasswordHash::class)]
+#[CoversClass(PasswordChanged::class)]
+#[CoversClass(PasswordChangeRejectedException::class)]
 #[CoversClass(PasswordResetCompleted::class)]
 #[CoversClass(PasswordResetDelivery::class)]
 #[CoversClass(PasswordResetGrant::class)]
@@ -166,6 +170,361 @@ final class AuthenticationServiceTest extends TestCase
             'absent delivery' => [false],
             'already invalidated delivery' => [true],
         ];
+    }
+
+    public function test_that_unproven_password_change_is_generic_redacted_and_mutation_free(): void
+    {
+        $missingUserId = UserId::generate();
+        foreach (
+            [
+                'missing authority' => [
+                    $missingUserId,
+                    null,
+                    $this->activeUserFor('missing-password-change@example.test', $missingUserId),
+                    'correct-secret',
+                ],
+                'inactive authority' => [
+                    UserId::generate(),
+                    UserFixture::withState('inactive-password-change@example.test', UserState::DISABLED),
+                    null,
+                    'correct-secret',
+                ],
+                'incorrect current password' => [
+                    UserId::generate(),
+                    $this->activeUserFor('incorrect-password-change@example.test'),
+                    null,
+                    'incorrect-current-password',
+                ],
+            ] as [$authenticatedUserId, $storedUser, $sessionOwner, $currentPassword]
+        ) {
+            $unitOfWork = new InMemoryUnitOfWork();
+            $users = new InMemoryUserRepository($unitOfWork);
+            $sessions = new InMemoryRefreshSessionRepository($unitOfWork);
+            $auditEvidence = new InMemoryAuditEvidenceRepository($unitOfWork);
+            if ($storedUser instanceof User) {
+                $authenticatedUserId = $storedUser->getId();
+                $users->add($storedUser);
+                $sessionOwner = $storedUser;
+            }
+
+            self::assertInstanceOf(User::class, $sessionOwner);
+            $refreshSession = $this->session($sessionOwner, $this->refreshCredential(), false);
+            $sessions->add($refreshSession);
+            $originalPasswordHash = $storedUser?->getPasswordHash()?->toString();
+            $events = new InMemoryEventDispatcher();
+            $service = $this->service(
+                $users,
+                new InMemoryActivationGrantRepository($unitOfWork),
+                $sessions,
+                $unitOfWork,
+                $events,
+                auditEvidenceRepository: $auditEvidence
+            );
+
+            try {
+                $service->changePassword(
+                    $authenticatedUserId,
+                    $currentPassword,
+                    'a sufficiently long rejected changed password'
+                );
+                self::fail('Expected password change rejection.');
+            } catch (DomainException $domainException) {
+                self::assertInstanceOf(PasswordChangeRejectedException::class, $domainException);
+                self::assertSame('Password change rejected.', $domainException->getMessage());
+            }
+
+            $authoritativeUser = $users->getById($authenticatedUserId);
+            if ($storedUser instanceof User) {
+                self::assertInstanceOf(User::class, $authoritativeUser);
+                self::assertSame($originalPasswordHash, $authoritativeUser->getPasswordHash()?->toString());
+                self::assertSame(1, $authoritativeUser->getAuthenticationVersion());
+                self::assertSame(0, $authoritativeUser->getAuthenticationAuthorityRevision());
+            } else {
+                self::assertNull($authoritativeUser);
+            }
+
+            self::assertSame(1, $unitOfWork->transactions);
+            self::assertSame([$refreshSession], $sessions->all());
+            self::assertFalse($refreshSession->isRevoked());
+            self::assertSame([], $auditEvidence->all());
+            self::assertCount(1, $events->events());
+            self::assertInstanceOf(RedactedCommandFailed::class, $events->events()[0]);
+            self::assertSame(
+                AuthenticationService::class.'::changePassword',
+                $events->events()[0]->getCommandClass()
+            );
+            self::assertSame(
+                ['user_id' => $authenticatedUserId->toString()],
+                $events->events()[0]->getRedactedCommandData()
+            );
+            self::assertSame('Password change rejected.', $events->events()[0]->getErrorMessage());
+            self::assertStringNotContainsString(
+                $currentPassword,
+                serialize($events->events()[0]->toArray())
+            );
+            self::assertStringNotContainsString(
+                'a sufficiently long rejected changed password',
+                serialize($events->events()[0]->toArray())
+            );
+        }
+    }
+
+    public function test_that_proven_password_change_atomically_replaces_authority_and_revokes_all_sessions(): void
+    {
+        $unitOfWork = new InMemoryUnitOfWork();
+        $users = new InMemoryUserRepository($unitOfWork);
+        $sessions = new InMemoryRefreshSessionRepository($unitOfWork);
+        $auditEvidence = new InMemoryAuditEvidenceRepository($unitOfWork);
+        $user = $this->activeUserFor('change-password@example.test');
+        $users->add($user);
+        $sessions->add($this->session($user, $this->refreshCredential(), false));
+        $sessions->add($this->session(
+            $user,
+            RefreshCredential::fromString(self::SIBLING_CREDENTIAL),
+            true
+        ));
+        $events = new InMemoryEventDispatcher(static function () use (
+            $auditEvidence,
+            $sessions,
+            $unitOfWork,
+            $user,
+            $users
+        ): void {
+            self::assertTrue($unitOfWork->transactionCompleted);
+            self::assertSame(2, $users->getById($user->getId())?->getAuthenticationVersion());
+            self::assertTrue(array_all(
+                $sessions->all(),
+                static fn(RefreshSession $refreshSession): bool => $refreshSession->isRevoked()
+            ));
+            self::assertCount(1, $auditEvidence->all());
+        });
+        $service = $this->service(
+            $users,
+            new InMemoryActivationGrantRepository($unitOfWork),
+            $sessions,
+            $unitOfWork,
+            $events,
+            auditEvidenceRepository: $auditEvidence
+        );
+
+        $service->changePassword(
+            $user->getId(),
+            'correct-secret',
+            'a sufficiently long changed password'
+        );
+
+        $authoritativeUser = $users->getById($user->getId());
+        self::assertInstanceOf(User::class, $authoritativeUser);
+        self::assertSame(1, $unitOfWork->transactions);
+        self::assertTrue(password_verify(
+            'a sufficiently long changed password',
+            $authoritativeUser->getPasswordHash()?->toString() ?? ''
+        ));
+        self::assertSame(2, $authoritativeUser->getAuthenticationVersion());
+        self::assertSame(1, $authoritativeUser->getAuthenticationAuthorityRevision());
+        self::assertTrue(array_all(
+            $sessions->all(),
+            static fn(RefreshSession $refreshSession): bool => $refreshSession->isRevoked()
+        ));
+        self::assertSame(1, $sessions->getAllActiveByUserIdCalls());
+        self::assertSame(0, $sessions->getByUserIdCalls());
+        self::assertSame($user->getId()->toString(), $auditEvidence->all()[0]->actorId());
+        self::assertSame('user.password_changed', $auditEvidence->all()[0]->action());
+        self::assertSame($user->getId(), $auditEvidence->all()[0]->userId());
+        self::assertSame([], $auditEvidence->all()[0]->context());
+        self::assertCount(1, $events->events());
+        self::assertInstanceOf(PasswordChanged::class, $events->events()[0]);
+        self::assertSame($user->getId(), $events->events()[0]->getUserId());
+        self::assertSame('2026-08-19T12:00:00+00:00', $events->events()[0]->getChangedAt()->format(DATE_ATOM));
+        self::assertSame(
+            $events->events()[0]->toArray(),
+            PasswordChanged::fromArray($events->events()[0]->toArray())->toArray()
+        );
+        self::assertStringNotContainsString('correct-secret', serialize($events->events()[0]->toArray()));
+        self::assertStringNotContainsString(
+            'a sufficiently long changed password',
+            serialize($events->events()[0]->toArray())
+        );
+
+        $this->expectException(DomainException::class);
+        PasswordChanged::fromArray([]);
+    }
+
+    public function test_that_password_change_authority_cas_loss_is_generic_redacted_and_mutation_free(): void
+    {
+        $unitOfWork = new InMemoryUnitOfWork();
+        $users = new InMemoryUserRepository(
+            $unitOfWork,
+            replaceAuthenticationAuthoritySucceeds: false
+        );
+        $sessions = new InMemoryRefreshSessionRepository($unitOfWork);
+        $auditEvidence = new InMemoryAuditEvidenceRepository($unitOfWork);
+        $user = $this->activeUserFor('change-password-cas-loss@example.test');
+        $users->add($user);
+        $refreshSession = $this->session($user, $this->refreshCredential(), false);
+        $sessions->add($refreshSession);
+        $originalPasswordHash = $user->getPasswordHash()?->toString();
+        $events = new InMemoryEventDispatcher();
+        $service = $this->service(
+            $users,
+            new InMemoryActivationGrantRepository($unitOfWork),
+            $sessions,
+            $unitOfWork,
+            $events,
+            auditEvidenceRepository: $auditEvidence
+        );
+
+        try {
+            $service->changePassword(
+                $user->getId(),
+                'correct-secret',
+                'a sufficiently long rejected changed password'
+            );
+            self::fail('Expected password change rejection.');
+        } catch (DomainException $domainException) {
+            self::assertInstanceOf(PasswordChangeRejectedException::class, $domainException);
+            self::assertSame('Password change rejected.', $domainException->getMessage());
+        }
+
+        $authoritativeUser = $users->getById($user->getId());
+        self::assertInstanceOf(User::class, $authoritativeUser);
+        self::assertSame($originalPasswordHash, $authoritativeUser->getPasswordHash()?->toString());
+        self::assertSame(1, $authoritativeUser->getAuthenticationVersion());
+        self::assertSame(0, $authoritativeUser->getAuthenticationAuthorityRevision());
+        self::assertSame([$refreshSession], $sessions->all());
+        self::assertFalse($refreshSession->isRevoked());
+        self::assertSame([], $auditEvidence->all());
+        $this->assertPasswordChangeFailureIsRedacted(
+            $events,
+            $user->getId(),
+            'Password change rejected.',
+            'correct-secret',
+            'a sufficiently long rejected changed password'
+        );
+    }
+
+    public function test_that_session_revocation_failure_rolls_back_password_change_and_prior_revocations(): void
+    {
+        $unitOfWork = new InMemoryUnitOfWork();
+        $users = new InMemoryUserRepository($unitOfWork);
+        $replacementCalls = 0;
+        $failure = new RuntimeException('The refresh-session revocation write failed.');
+        $sessions = new InMemoryRefreshSessionRepository(
+            $unitOfWork,
+            beforeReplace: static function () use (&$replacementCalls, $failure): void {
+                ++$replacementCalls;
+                if ($replacementCalls === 2) {
+                    throw $failure;
+                }
+            }
+        );
+        $auditEvidence = new InMemoryAuditEvidenceRepository($unitOfWork);
+        $user = $this->activeUserFor('change-password-session-rollback@example.test');
+        $users->add($user);
+        $originalPasswordHash = $user->getPasswordHash()?->toString();
+        $firstSession = $this->session($user, $this->refreshCredential(), false);
+        $secondSession = $this->session(
+            $user,
+            RefreshCredential::fromString(self::SIBLING_CREDENTIAL),
+            true
+        );
+        $sessions->add($firstSession);
+        $sessions->add($secondSession);
+
+        $events = new InMemoryEventDispatcher();
+        $service = $this->service(
+            $users,
+            new InMemoryActivationGrantRepository($unitOfWork),
+            $sessions,
+            $unitOfWork,
+            $events,
+            auditEvidenceRepository: $auditEvidence
+        );
+
+        try {
+            $service->changePassword(
+                $user->getId(),
+                'correct-secret',
+                'a sufficiently long rolled back changed password'
+            );
+            self::fail('Expected refresh-session revocation failure.');
+        } catch (RuntimeException $runtimeException) {
+            self::assertSame($failure, $runtimeException);
+        }
+
+        $authoritativeUser = $users->getById($user->getId());
+        self::assertInstanceOf(User::class, $authoritativeUser);
+        self::assertSame($originalPasswordHash, $authoritativeUser->getPasswordHash()?->toString());
+        self::assertSame(1, $authoritativeUser->getAuthenticationVersion());
+        self::assertSame(0, $authoritativeUser->getAuthenticationAuthorityRevision());
+        self::assertSame([$firstSession, $secondSession], $sessions->all());
+        self::assertFalse($firstSession->isRevoked());
+        self::assertFalse($secondSession->isRevoked());
+        self::assertSame([], $auditEvidence->all());
+        $this->assertPasswordChangeFailureIsRedacted(
+            $events,
+            $user->getId(),
+            'The refresh-session revocation write failed.',
+            'correct-secret',
+            'a sufficiently long rolled back changed password'
+        );
+    }
+
+    public function test_that_late_password_change_audit_failure_rolls_back_every_staged_effect(): void
+    {
+        $unitOfWork = new InMemoryUnitOfWork();
+        $users = new InMemoryUserRepository($unitOfWork);
+        $sessions = new InMemoryRefreshSessionRepository($unitOfWork);
+        $auditEvidence = new InMemoryAuditEvidenceRepository($unitOfWork, failAfterSave: true);
+        $user = $this->activeUserFor('change-password-audit-rollback@example.test');
+        $users->add($user);
+        $originalPasswordHash = $user->getPasswordHash()?->toString();
+        $firstSession = $this->session($user, $this->refreshCredential(), false);
+        $secondSession = $this->session(
+            $user,
+            RefreshCredential::fromString(self::SIBLING_CREDENTIAL),
+            true
+        );
+        $sessions->add($firstSession);
+        $sessions->add($secondSession);
+
+        $events = new InMemoryEventDispatcher();
+        $service = $this->service(
+            $users,
+            new InMemoryActivationGrantRepository($unitOfWork),
+            $sessions,
+            $unitOfWork,
+            $events,
+            auditEvidenceRepository: $auditEvidence
+        );
+
+        try {
+            $service->changePassword(
+                $user->getId(),
+                'correct-secret',
+                'a sufficiently long audit rolled back password'
+            );
+            self::fail('Expected audit persistence failure.');
+        } catch (RuntimeException $runtimeException) {
+            self::assertSame($auditEvidence->failure(), $runtimeException);
+        }
+
+        $authoritativeUser = $users->getById($user->getId());
+        self::assertInstanceOf(User::class, $authoritativeUser);
+        self::assertSame($originalPasswordHash, $authoritativeUser->getPasswordHash()?->toString());
+        self::assertSame(1, $authoritativeUser->getAuthenticationVersion());
+        self::assertSame(0, $authoritativeUser->getAuthenticationAuthorityRevision());
+        self::assertSame([$firstSession, $secondSession], $sessions->all());
+        self::assertFalse($firstSession->isRevoked());
+        self::assertFalse($secondSession->isRevoked());
+        self::assertSame([], $auditEvidence->all());
+        $this->assertPasswordChangeFailureIsRedacted(
+            $events,
+            $user->getId(),
+            'The audit persistence write failed.',
+            'correct-secret',
+            'a sufficiently long audit rolled back password'
+        );
     }
 
     public function test_that_activation_hashes_secrets_and_commits_a_token_set_before_safe_publication(): void
@@ -2389,6 +2748,28 @@ final class AuthenticationServiceTest extends TestCase
         $user->activate(PasswordHash::fromString(password_hash('correct-secret', PASSWORD_DEFAULT)));
 
         return $user;
+    }
+
+    private function assertPasswordChangeFailureIsRedacted(
+        InMemoryEventDispatcher $events,
+        UserId $userId,
+        string $errorMessage,
+        string $currentPassword,
+        string $newPassword
+    ): void {
+        self::assertCount(1, $events->events());
+        self::assertInstanceOf(RedactedCommandFailed::class, $events->events()[0]);
+        self::assertSame(
+            AuthenticationService::class.'::changePassword',
+            $events->events()[0]->getCommandClass()
+        );
+        self::assertSame(
+            ['user_id' => $userId->toString()],
+            $events->events()[0]->getRedactedCommandData()
+        );
+        self::assertSame($errorMessage, $events->events()[0]->getErrorMessage());
+        self::assertStringNotContainsString($currentPassword, serialize($events->events()[0]->toArray()));
+        self::assertStringNotContainsString($newPassword, serialize($events->events()[0]->toArray()));
     }
 
     private function grant(UserId $userId): ActivationGrant

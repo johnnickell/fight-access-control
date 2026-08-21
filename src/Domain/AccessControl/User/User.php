@@ -94,6 +94,19 @@ class User
     }
 
     /**
+     * Replaces a verified active identity's password and invalidates prior authentication authority.
+     */
+    public function changePassword(PasswordHash $passwordHash): void
+    {
+        if ($this->state !== UserState::ACTIVE || !$this->passwordHash instanceof PasswordHash) {
+            throw new UserNotActiveException('Only an active user can change an established password.');
+        }
+
+        $this->passwordHash = $passwordHash;
+        ++$this->authenticationVersion;
+    }
+
+    /**
      * Replaces an active identity's password and invalidates prior authentication authority.
      */
     public function resetPassword(PasswordHash $passwordHash): void

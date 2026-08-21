@@ -13,8 +13,7 @@ materially cheaper.
 
 | Rank | Ticket | Parent PRD | Why next |
 | --- | --- | --- | --- |
-| 1 | [T-00008 — Change an authenticated password](T-00008-change-authenticated-password.md) | [PRD-00001](../specs/00001-PRD.md) | Builds authenticated credential change on the completed recovery and login authority seams. |
-| 2 | [T-00009 — Establish principals and authorization primitives](T-00009-principals-authorization-primitives.md) | [PRD-00001](../specs/00001-PRD.md) | Generalizes the current authenticated-session authority into reusable principal and authorization contracts. |
+| 1 | [T-00009 — Establish principals and authorization primitives](T-00009-principals-authorization-primitives.md) | [PRD-00001](../specs/00001-PRD.md) | Generalizes the current authenticated-session authority into reusable principal and authorization contracts. |
 
 ## Waiting
 
@@ -42,3 +41,4 @@ No tickets currently require a decision authority.
 | [T-00005 — Secure refresh-session rotation](T-00005-secure-refresh-session-rotation.md) | [PRD-00001](../specs/00001-PRD.md) | One-winner refresh rotation, secret-free bounded conflicts, and fail-closed used-credential family revocation with exact coverage. |
 | [T-00006 — Manage active sessions](T-00006-manage-active-sessions.md) | [PRD-00001](../specs/00001-PRD.md) | Safe active-session views, owned-session revocation, and authorized reasoned administrative intervention with atomic audit evidence. |
 | [T-00007 — Recover a forgotten password](T-00007-recover-forgotten-password.md) | [PRD-00001](../specs/00001-PRD.md) | Generic recovery requests, historically unique one-time reset authority, generation-bound delivery lifecycle, atomic credential replacement and complete session revocation. |
+| [T-00008 — Change an authenticated password](T-00008-change-authenticated-password.md) | [PRD-00001](../specs/00001-PRD.md) | Current-password proof, atomic credential and authentication-authority replacement, complete session revocation, and durable audit evidence. |

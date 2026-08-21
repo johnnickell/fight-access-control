@@ -125,6 +125,28 @@ final class AuthenticationDomainTest extends TestCase
         $user->rehashPassword($this->passwordHash());
     }
 
+    public function test_that_password_change_requires_active_authority_and_advances_version_once(): void
+    {
+        $user = User::invite(UserId::generate(), EmailAddress::fromString('change-password@example.test'));
+        $user->activate($this->passwordHash());
+
+        $replacementPasswordHash = PasswordHash::fromString(password_hash(
+            'a sufficiently long changed password',
+            PASSWORD_DEFAULT
+        ));
+
+        $user->changePassword($replacementPasswordHash);
+
+        self::assertSame($replacementPasswordHash, $user->getPasswordHash());
+        self::assertSame(2, $user->getAuthenticationVersion());
+
+        $pendingUser = User::invite(UserId::generate(), EmailAddress::fromString('pending-change@example.test'));
+        $this->expectException(UserNotActiveException::class);
+        $this->expectExceptionMessage('Only an active user can change an established password.');
+
+        $pendingUser->changePassword($replacementPasswordHash);
+    }
+
     public function test_that_authentication_authority_revision_advancement_is_monotonic_and_domain_owned(): void
     {
         $user = User::invite(UserId::generate(), EmailAddress::fromString('authority-revision@example.test'));
