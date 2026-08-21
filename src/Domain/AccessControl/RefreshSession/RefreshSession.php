@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Fight\AccessControl\Domain\AccessControl\RefreshSession;
 
+use DateInterval;
 use DateTimeImmutable;
 use Fight\AccessControl\Domain\AccessControl\User\UserId;
 use InvalidArgumentException;
@@ -20,12 +21,17 @@ class RefreshSession
         private readonly RefreshSessionId $id,
         private readonly UserId $userId,
         private readonly string $credentialDigest,
+        /** @var list<string> */
+        private readonly array $usedCredentialDigests,
         private readonly DateTimeImmutable $createdAt,
+        private readonly DateTimeImmutable $lastActivityAt,
+        private readonly ?DateTimeImmutable $rotatedAt,
         private readonly DateTimeImmutable $idleExpiresAt,
         private readonly DateTimeImmutable $absoluteExpiresAt,
         private readonly int $authenticationVersion,
         private readonly bool $remembered,
-        private bool $revoked = false
+        private readonly int $revision,
+        private readonly bool $revoked
     ) {
     }
 
@@ -54,11 +60,16 @@ class RefreshSession
             $id,
             $userId,
             $refreshCredential->digest(),
+            [],
             $createdAt,
+            $createdAt,
+            null,
             $idleExpiresAt,
             $absoluteExpiresAt,
             $authenticationVersion,
-            $remembered
+            $remembered,
+            0,
+            false
         );
     }
 
@@ -95,6 +106,14 @@ class RefreshSession
     }
 
     /**
+     * Returns when this session last proved refresh activity.
+     */
+    public function getLastActivityAt(): DateTimeImmutable
+    {
+        return $this->lastActivityAt;
+    }
+
+    /**
      * Returns the current idle deadline.
      */
     public function getIdleExpiresAt(): DateTimeImmutable
@@ -127,6 +146,38 @@ class RefreshSession
     }
 
     /**
+     * Returns whether the most recently used credential is inside the accepted conflict window.
+     */
+    public function matchesMostRecentlyUsedCredentialWithin(
+        RefreshCredential $refreshCredential,
+        DateTimeImmutable $presentedAt,
+        DateInterval $conflictWindow
+    ): bool {
+        $mostRecentlyUsedCredentialDigest = $this->usedCredentialDigests[array_key_last(
+            $this->usedCredentialDigests
+        )] ?? null;
+
+        return $mostRecentlyUsedCredentialDigest !== null
+            && hash_equals($mostRecentlyUsedCredentialDigest, $refreshCredential->digest())
+            && $this->rotatedAt instanceof DateTimeImmutable
+            && $presentedAt >= $this->rotatedAt
+            && $presentedAt < $this->rotatedAt->add($conflictWindow);
+    }
+
+    /**
+     * Returns whether a credential digest was previously authoritative for this session.
+     */
+    public function matchesUsedCredential(RefreshCredential $refreshCredential): bool
+    {
+        $presentedDigest = $refreshCredential->digest();
+
+        return array_any(
+            $this->usedCredentialDigests,
+            fn(string $usedCredentialDigest): bool => hash_equals($usedCredentialDigest, $presentedDigest)
+        );
+    }
+
+    /**
      * Returns the authentication version captured by this session.
      */
     public function getAuthenticationVersion(): int
@@ -135,11 +186,70 @@ class RefreshSession
     }
 
     /**
-     * Revokes this specific authoritative session.
+     * Returns the authoritative persistence revision.
      */
-    public function revoke(): void
+    public function getRevision(): int
     {
-        $this->revoked = true;
+        return $this->revision;
+    }
+
+    /**
+     * Rotates to a fresh credential while preserving the absolute session boundary.
+     */
+    public function rotate(
+        RefreshCredential $refreshCredential,
+        DateTimeImmutable $rotatedAt,
+        DateTimeImmutable $idleExpiresAt
+    ): self {
+        if ($rotatedAt < $this->lastActivityAt) {
+            throw new InvalidArgumentException('Refresh-session activity must advance monotonically.');
+        }
+
+        if (!$this->isUsableAt($rotatedAt)) {
+            throw new InvalidArgumentException('Refresh session must be usable when rotated.');
+        }
+
+        if ($idleExpiresAt <= $rotatedAt || $idleExpiresAt > $this->absoluteExpiresAt) {
+            throw new InvalidArgumentException('Refresh-session rotation must remain within its absolute lifetime.');
+        }
+
+        return new self(
+            $this->id,
+            $this->userId,
+            $refreshCredential->digest(),
+            [...$this->usedCredentialDigests, $this->credentialDigest],
+            $this->createdAt,
+            $rotatedAt,
+            $rotatedAt,
+            $idleExpiresAt,
+            $this->absoluteExpiresAt,
+            $this->authenticationVersion,
+            $this->remembered,
+            $this->revision + 1,
+            $this->revoked
+        );
+    }
+
+    /**
+     * Returns an immutable replacement that revokes this authoritative session.
+     */
+    public function revoke(): self
+    {
+        return new self(
+            $this->id,
+            $this->userId,
+            $this->credentialDigest,
+            $this->usedCredentialDigests,
+            $this->createdAt,
+            $this->lastActivityAt,
+            $this->rotatedAt,
+            $this->idleExpiresAt,
+            $this->absoluteExpiresAt,
+            $this->authenticationVersion,
+            $this->remembered,
+            $this->revision + 1,
+            true
+        );
     }
 
     /**

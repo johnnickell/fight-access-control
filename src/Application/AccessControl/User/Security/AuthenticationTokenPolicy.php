@@ -20,21 +20,23 @@ final readonly class AuthenticationTokenPolicy
         private DateInterval $ordinaryIdleLifetime,
         private DateInterval $ordinaryAbsoluteLifetime,
         private DateInterval $rememberedIdleLifetime,
-        private DateInterval $rememberedAbsoluteLifetime
+        private DateInterval $rememberedAbsoluteLifetime,
+        private DateInterval $refreshConflictWindow
     ) {
     }
 
     /**
      * Creates the certified starter lifetime policy.
      */
-    public static function starterDefaults(): self
+    public static function starterDefaults(DateInterval $refreshConflictWindow): self
     {
         return new self(
             new DateInterval('PT15M'),
             new DateInterval('P1D'),
             new DateInterval('P2D'),
             new DateInterval('P15D'),
-            new DateInterval('P30D')
+            new DateInterval('P30D'),
+            $refreshConflictWindow
         );
     }
 
@@ -60,5 +62,13 @@ final readonly class AuthenticationTokenPolicy
     public function refreshAbsoluteExpiresAt(DateTimeImmutable $issuedAt, bool $remembered): DateTimeImmutable
     {
         return $issuedAt->add($remembered ? $this->rememberedAbsoluteLifetime : $this->ordinaryAbsoluteLifetime);
+    }
+
+    /**
+     * Returns the explicitly configured bounded refresh-conflict interval.
+     */
+    public function refreshConflictWindow(): DateInterval
+    {
+        return $this->refreshConflictWindow;
     }
 }

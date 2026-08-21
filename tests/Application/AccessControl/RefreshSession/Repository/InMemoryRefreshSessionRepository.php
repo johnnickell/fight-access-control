@@ -49,6 +49,38 @@ final class InMemoryRefreshSessionRepository implements RefreshSessionRepository
         return null;
     }
 
+    public function getByUsedCredential(RefreshCredential $refreshCredential): ?RefreshSession
+    {
+        foreach ($this->refreshSessions as $refreshSession) {
+            if ($refreshSession->matchesUsedCredential($refreshCredential)) {
+                return $refreshSession;
+            }
+        }
+
+        return null;
+    }
+
+    public function replace(RefreshSession $expected, RefreshSession $replacement): bool
+    {
+        foreach ($this->refreshSessions as $index => $refreshSession) {
+            if (
+                $refreshSession->getId()->equals($expected->getId())
+                && $replacement->getId()->equals($expected->getId())
+                && $refreshSession->getRevision() === $expected->getRevision()
+                && $replacement->getRevision() === $expected->getRevision() + 1
+            ) {
+                $this->refreshSessions[$index] = $replacement;
+                $this->unitOfWork?->onRollback(function () use ($index, $refreshSession): void {
+                    $this->refreshSessions[$index] = $refreshSession;
+                });
+
+                return true;
+            }
+        }
+
+        return false;
+    }
+
     /** @return list<RefreshSession> */
     public function all(): array
     {
