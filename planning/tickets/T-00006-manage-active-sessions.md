@@ -34,8 +34,9 @@ No admin UI, device fingerprinting, persistence records, or audit projection ada
 
 ## Delivery Evidence
 
-- `ListActiveSessionsHandler` returns only immutable, credential-free `SessionView` values for currently usable
-  owner-scoped sessions. Cross-user inspection authorizes before reading the session repository.
+- `ListActiveSessions` contains the canonical Fight Common `Pagination` value, and `ListActiveSessionsHandler`
+  returns a metadata-preserving `ResultSet` containing only immutable, credential-free `SessionView` values for
+  currently usable owner-scoped sessions. Cross-user inspection authorizes before reading the session repository.
 - `RevokeSessionHandler` revokes an owned non-current session through revision compare-and-replace in one Unit of
   Work and dispatches the safe success event only after commit.
 - Cross-user revocation requires the narrow session-administration authorization port and a trimmed Unicode-aware
@@ -43,6 +44,6 @@ No admin UI, device fingerprinting, persistence records, or audit projection ada
   from the success event.
 - Administrative revocation and its audit evidence commit atomically; a late audit write failure rolls back the
   session replacement, dispatches `CommandFailedEvent`, and rethrows the original failure.
-- Final `./bin/planning-check` passed. Final `./bin/build` passed 140 tests with 880 assertions and exact statement
-  coverage at 886/886; PHPCS, PHPStan, architecture, package-boundary, Rector, documentation, and production
+- Final `./bin/planning-check` passed. Final `./bin/build` passed 141 tests with 894 assertions and exact statement
+  coverage at 895/895; PHPCS, PHPStan, architecture, package-boundary, Rector, documentation, and production
   autoload checks passed. Independent Standards and Spec reviews reported no remaining P0–P3 findings.

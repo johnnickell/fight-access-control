@@ -4,11 +4,15 @@ declare(strict_types=1);
 
 namespace Fight\Test\AccessControl\Application\AccessControl\RefreshSession\Repository;
 
+use DateTimeImmutable;
 use Fight\AccessControl\Domain\AccessControl\RefreshSession\RefreshCredential;
 use Fight\AccessControl\Domain\AccessControl\RefreshSession\RefreshSession;
 use Fight\AccessControl\Domain\AccessControl\RefreshSession\RefreshSessionId;
 use Fight\AccessControl\Domain\AccessControl\RefreshSession\RefreshSessionRepository;
 use Fight\AccessControl\Domain\AccessControl\User\UserId;
+use Fight\Common\Domain\Collection\ArrayList;
+use Fight\Common\Domain\Repository\Pagination;
+use Fight\Common\Domain\Repository\ResultSet;
 use Throwable;
 
 final class ControllableRefreshSessionRepository implements RefreshSessionRepository
@@ -38,13 +42,28 @@ final class ControllableRefreshSessionRepository implements RefreshSessionReposi
         return null;
     }
 
-    public function getByUserId(UserId $userId): array
+    public function getByUserId(UserId $userId, DateTimeImmutable $at, Pagination $pagination): ResultSet
     {
-        if ($this->refreshSession?->getUserId()->equals($userId)) {
-            return [$this->refreshSession];
+        $refreshSessions = [];
+        if (
+            $this->refreshSession?->getUserId()->equals($userId)
+            && $this->refreshSession->isUsableAt($at)
+        ) {
+            $refreshSessions[] = $this->refreshSession;
         }
 
-        return [];
+        $records = ArrayList::of(RefreshSession::class)->replace(array_slice(
+            $refreshSessions,
+            $pagination->offset(),
+            $pagination->limit()
+        ));
+
+        return new ResultSet(
+            $pagination->page(),
+            $pagination->perPage(),
+            count($refreshSessions),
+            $records
+        );
     }
 
     public function getByCredential(RefreshCredential $refreshCredential): ?RefreshSession

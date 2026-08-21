@@ -15,6 +15,8 @@ use Fight\AccessControl\Domain\AccessControl\RefreshSession\RefreshSessionId;
 use Fight\AccessControl\Domain\AccessControl\User\UserId;
 use Fight\Common\Domain\Exception\DomainException;
 use Fight\Common\Domain\Messaging\Query\QueryMessage;
+use Fight\Common\Domain\Repository\Pagination;
+use Fight\Common\Domain\Repository\ResultSet;
 use Fight\Test\AccessControl\Application\AccessControl\RefreshSession\Repository\InMemoryRefreshSessionRepository;
 use Fight\Test\AccessControl\Application\AccessControl\RefreshSession\Service\FixedRefreshSessionClock;
 use Fight\Test\AccessControl\Application\AccessControl\RefreshSession\Service\FixedSessionAdministrationAuthorization;
@@ -81,8 +83,18 @@ final class ListActiveSessionsHandlerTest extends TestCase
         );
 
         self::assertSame(ListActiveSessions::class, ListActiveSessionsHandler::queryRegistration());
-        $views = $handler->handle(QueryMessage::create(new ListActiveSessions($userId, $userId, $currentSessionId)));
+        $resultSet = $handler->handle(QueryMessage::create(new ListActiveSessions(
+            $userId,
+            $userId,
+            $currentSessionId,
+            new Pagination(1, 25, ['created_at' => Pagination::DESC])
+        )));
+        $views = $resultSet->records();
 
+        self::assertInstanceOf(ResultSet::class, $resultSet);
+        self::assertSame(1, $resultSet->page());
+        self::assertSame(25, $resultSet->perPage());
+        self::assertSame(2, $resultSet->totalRecords());
         self::assertCount(2, $views);
         self::assertSame($currentSessionId, $views[0]->getSessionId());
         self::assertSame($userId, $views[0]->getUserId());
@@ -119,22 +131,20 @@ final class ListActiveSessionsHandlerTest extends TestCase
         $query = new ListActiveSessions(
             UserId::fromString('018f0000-0000-7000-8000-000000000008'),
             UserId::fromString('018f0000-0000-7000-8000-000000000001'),
-            RefreshSessionId::fromString('018f0000-0000-7000-8000-000000000002')
+            RefreshSessionId::fromString('018f0000-0000-7000-8000-000000000002'),
+            new Pagination(2, 25, ['created_at' => Pagination::DESC])
         );
 
         self::assertEquals($query, ListActiveSessions::fromArray($query->toArray()));
+        self::assertSame(2, $query->getPagination()->page());
+        self::assertSame(25, $query->getPagination()->perPage());
+        self::assertSame(['created_at' => Pagination::DESC], $query->getPagination()->orderings());
 
         $rejectedPayloads = 0;
-        foreach (
-            [
-                [],
-                ['actor_id' => '018f0000-0000-7000-8000-000000000008'],
-                [
-                    'actor_id' => '018f0000-0000-7000-8000-000000000008',
-                    'user_id' => '018f0000-0000-7000-8000-000000000001',
-                ],
-            ] as $incompleteData
-        ) {
+        foreach (array_keys($query->toArray()) as $requiredKey) {
+            $incompleteData = $query->toArray();
+            unset($incompleteData[$requiredKey]);
+
             try {
                 ListActiveSessions::fromArray($incompleteData);
                 self::fail('Incomplete query data must be rejected.');
@@ -143,7 +153,7 @@ final class ListActiveSessionsHandlerTest extends TestCase
             }
         }
 
-        self::assertSame(3, $rejectedPayloads);
+        self::assertSame(6, $rejectedPayloads);
     }
 
     public function test_that_an_authorized_administrator_can_inspect_another_users_sessions(): void
@@ -167,8 +177,15 @@ final class ListActiveSessionsHandlerTest extends TestCase
             $authorization
         );
 
-        $views = $handler->handle(QueryMessage::create(new ListActiveSessions($actorId, $userId, $sessionId)));
+        $resultSet = $handler->handle(QueryMessage::create(new ListActiveSessions(
+            $actorId,
+            $userId,
+            $sessionId,
+            new Pagination(1, 10)
+        )));
+        $views = $resultSet->records();
 
+        self::assertInstanceOf(ResultSet::class, $resultSet);
         self::assertCount(1, $views);
         self::assertSame($sessionId, $views[0]->getSessionId());
         self::assertSame(1, $authorization->calls());
@@ -193,7 +210,8 @@ final class ListActiveSessionsHandlerTest extends TestCase
             $handler->handle(QueryMessage::create(new ListActiveSessions(
                 $actorId,
                 $userId,
-                RefreshSessionId::fromString('018f0000-0000-7000-8000-000000000002')
+                RefreshSessionId::fromString('018f0000-0000-7000-8000-000000000002'),
+                new Pagination()
             )));
             self::fail('Unauthorized administrative inspection must be rejected.');
         } catch (SessionAdministrationAuthorizationException $sessionAdministrationAuthorizationException) {
@@ -205,6 +223,57 @@ final class ListActiveSessionsHandlerTest extends TestCase
 
         self::assertSame(1, $authorization->calls());
         self::assertSame(0, $repository->getByUserIdCalls());
+    }
+
+    public function test_that_pagination_is_applied_after_active_session_filtering(): void
+    {
+        $userId = UserId::fromString('018f0000-0000-7000-8000-000000000001');
+        $currentSessionId = RefreshSessionId::fromString('018f0000-0000-7000-8000-000000000002');
+        $expectedSessionId = RefreshSessionId::fromString('018f0000-0000-7000-8000-000000000004');
+        $repository = new InMemoryRefreshSessionRepository();
+        $repository->add($this->session(
+            RefreshSessionId::fromString('018f0000-0000-7000-8000-000000000003'),
+            $userId,
+            '2026-08-17T06:00:00+00:00',
+            '2026-08-20T11:59:59+00:00',
+            '2026-08-22T06:00:00+00:00',
+            false
+        ));
+        $repository->add($this->session(
+            $currentSessionId,
+            $userId,
+            '2026-08-19T08:00:00+00:00',
+            '2026-08-21T08:00:00+00:00',
+            '2026-08-22T08:00:00+00:00',
+            false
+        ));
+        $repository->add($this->session(
+            $expectedSessionId,
+            $userId,
+            '2026-08-18T07:00:00+00:00',
+            '2026-08-21T07:00:00+00:00',
+            '2026-08-22T07:00:00+00:00',
+            false
+        ));
+        $handler = new ListActiveSessionsHandler(
+            $repository,
+            new FixedRefreshSessionClock(new DateTimeImmutable('2026-08-20T12:00:00+00:00')),
+            new FixedSessionAdministrationAuthorization(true)
+        );
+
+        $resultSet = $handler->handle(QueryMessage::create(new ListActiveSessions(
+            $userId,
+            $userId,
+            $currentSessionId,
+            new Pagination(2, 1, ['created_at' => Pagination::DESC])
+        )));
+
+        self::assertSame(2, $resultSet->page());
+        self::assertSame(1, $resultSet->perPage());
+        self::assertSame(2, $resultSet->totalRecords());
+        self::assertSame(2, $resultSet->totalPages());
+        self::assertCount(1, $resultSet->records());
+        self::assertSame($expectedSessionId, $resultSet->records()->get(0)->getSessionId());
     }
 
     private function session(

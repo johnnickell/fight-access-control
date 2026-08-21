@@ -12,6 +12,7 @@ use Fight\AccessControl\Domain\AccessControl\RefreshSession\RefreshSession;
 use Fight\AccessControl\Domain\AccessControl\RefreshSession\RefreshSessionRepository;
 use Fight\Common\Application\Messaging\Query\QueryHandler;
 use Fight\Common\Domain\Messaging\Query\QueryMessage;
+use Fight\Common\Domain\Repository\ResultSet;
 
 /**
  * Retrieves safe active-session views for a user.
@@ -38,10 +39,8 @@ final readonly class ListActiveSessionsHandler implements QueryHandler
 
     /**
      * @inheritDoc
-     *
-     * @return list<SessionView>
      */
-    public function handle(QueryMessage $queryMessage): array
+    public function handle(QueryMessage $queryMessage): ResultSet
     {
         /** @var ListActiveSessions $query */
         $query = $queryMessage->payload();
@@ -54,17 +53,24 @@ final readonly class ListActiveSessionsHandler implements QueryHandler
         }
 
         $now = $this->refreshSessionClock->now();
-        $activeSessions = array_filter(
-            $this->refreshSessionRepository->getByUserId($query->getUserId()),
-            static fn(RefreshSession $refreshSession): bool => $refreshSession->isUsableAt($now)
+        $activeSessions = $this->refreshSessionRepository->getByUserId(
+            $query->getUserId(),
+            $now,
+            $query->getPagination()
         );
-
-        return array_values(array_map(
+        $views = $activeSessions->records()->map(
             fn(RefreshSession $refreshSession): SessionView => SessionView::fromSession(
                 $refreshSession,
                 $query->getCurrentSessionId()
             ),
-            $activeSessions
-        ));
+            SessionView::class
+        );
+
+        return new ResultSet(
+            $activeSessions->page(),
+            $activeSessions->perPage(),
+            $activeSessions->totalRecords(),
+            $views
+        );
     }
 }
