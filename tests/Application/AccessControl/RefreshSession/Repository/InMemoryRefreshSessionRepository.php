@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Fight\Test\AccessControl\Application\AccessControl\RefreshSession\Repository;
 
+use Closure;
 use DateTimeImmutable;
 use Fight\AccessControl\Domain\AccessControl\RefreshSession\RefreshCredential;
 use Fight\AccessControl\Domain\AccessControl\RefreshSession\RefreshSession;
@@ -25,7 +26,8 @@ final class InMemoryRefreshSessionRepository implements RefreshSessionRepository
 
     public function __construct(
         private readonly ?InMemoryUnitOfWork $unitOfWork = null,
-        ?InMemoryRefreshSessionRepositoryState $state = null
+        ?InMemoryRefreshSessionRepositoryState $state = null,
+        private readonly ?Closure $beforeReplace = null
     ) {
         $this->state = $state ?? new InMemoryRefreshSessionRepositoryState();
     }
@@ -129,6 +131,8 @@ final class InMemoryRefreshSessionRepository implements RefreshSessionRepository
 
     public function replace(RefreshSession $expected, RefreshSession $replacement): bool
     {
+        $this->beforeReplace?->__invoke();
+
         foreach ($this->state->refreshSessions as $index => $refreshSession) {
             if (
                 $refreshSession->getId()->equals($expected->getId())

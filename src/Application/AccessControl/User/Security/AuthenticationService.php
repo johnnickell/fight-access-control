@@ -19,11 +19,13 @@ use Fight\AccessControl\Domain\AccessControl\RefreshSession\RefreshSessionReposi
 use Fight\AccessControl\Domain\AccessControl\User\ActivationCredential;
 use Fight\AccessControl\Domain\AccessControl\User\ActivationGrant;
 use Fight\AccessControl\Domain\AccessControl\User\ActivationGrantRepository;
+use Fight\AccessControl\Domain\AccessControl\User\Event\PasswordChanged;
 use Fight\AccessControl\Domain\AccessControl\User\Event\PasswordResetCompleted;
 use Fight\AccessControl\Domain\AccessControl\User\Event\RedactedCommandFailed;
 use Fight\AccessControl\Domain\AccessControl\User\Event\UserActivated;
 use Fight\AccessControl\Domain\AccessControl\User\Event\UserLoggedIn;
 use Fight\AccessControl\Domain\AccessControl\User\Exception\LoginRejectedException;
+use Fight\AccessControl\Domain\AccessControl\User\Exception\PasswordChangeRejectedException;
 use Fight\AccessControl\Domain\AccessControl\User\Exception\PasswordResetRejectedException;
 use Fight\AccessControl\Domain\AccessControl\User\PasswordHash;
 use Fight\AccessControl\Domain\AccessControl\User\PasswordResetCredential;
@@ -70,6 +72,75 @@ final readonly class AuthenticationService
         private PasswordResetGrantRepository $passwordResetGrantRepository,
         private AuditEvidenceRepository $auditEvidenceRepository
     ) {
+    }
+
+    /**
+     * Verifies the authenticated owner before changing their established password.
+     */
+    public function changePassword(
+        UserId $authenticatedUserId,
+        #[SensitiveParameter] string $currentPassword,
+        #[SensitiveParameter] string $newPassword
+    ): void {
+        try {
+            $changedAt = $this->unitOfWork->commitTransactional(function () use (
+                $authenticatedUserId,
+                $currentPassword,
+                $newPassword
+            ): DateTimeImmutable {
+                $user = $this->userRepository->getById($authenticatedUserId);
+                $passwordHash = $user?->getPasswordHash();
+                $isActiveUser = $user instanceof User
+                    && $user->getId()->equals($authenticatedUserId)
+                    && $user->getState() === UserState::ACTIVE
+                    && $passwordHash instanceof PasswordHash;
+                $verificationHash = $this->dummyPasswordHash;
+                if ($isActiveUser) {
+                    $verificationHash = $passwordHash;
+                }
+
+                $credentialsMatch = $this->passwordValidator->validate(
+                    $currentPassword,
+                    $verificationHash->toString()
+                );
+                if (!$isActiveUser || !$credentialsMatch) {
+                    throw new PasswordChangeRejectedException('Password change rejected.');
+                }
+
+                $changedAt = $this->clock->now();
+                $replacementUser = clone $user;
+                $replacementUser->changePassword(
+                    PasswordHash::fromString($this->passwordHasher->hash($newPassword))
+                );
+                $replacementUser->advanceAuthenticationAuthorityRevision();
+                if (!$this->userRepository->replaceAuthenticationAuthority($user, $replacementUser)) {
+                    throw new PasswordChangeRejectedException('Password change rejected.');
+                }
+
+                foreach (
+                    $this->refreshSessionRepository->getAllActiveByUserId($authenticatedUserId, $changedAt) as $session
+                ) {
+                    $this->revokeSession($session);
+                }
+
+                $this->auditEvidenceRepository->add(AuditEvidence::record(
+                    $authenticatedUserId->toString(),
+                    'user.password_changed',
+                    $authenticatedUserId
+                ));
+
+                return $changedAt;
+            });
+
+            $this->eventDispatcher->trigger(new PasswordChanged($authenticatedUserId, $changedAt));
+        } catch (Throwable $throwable) {
+            $this->publishFailure(
+                'changePassword',
+                ['user_id' => $authenticatedUserId->toString()],
+                $throwable
+            );
+            throw $throwable;
+        }
     }
 
     /**
