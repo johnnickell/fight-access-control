@@ -8,10 +8,13 @@ use Fight\AccessControl\Domain\AccessControl\RefreshSession\RefreshCredential;
 use Fight\AccessControl\Domain\AccessControl\RefreshSession\RefreshSession;
 use Fight\AccessControl\Domain\AccessControl\RefreshSession\RefreshSessionId;
 use Fight\AccessControl\Domain\AccessControl\RefreshSession\RefreshSessionRepository;
+use Fight\AccessControl\Domain\AccessControl\User\UserId;
 use Fight\Test\AccessControl\Application\AccessControl\User\InMemoryUnitOfWork;
 
 final class InMemoryRefreshSessionRepository implements RefreshSessionRepository
 {
+    private int $getByUserIdCalls = 0;
+
     /** @var list<RefreshSession> */
     private array $refreshSessions = [];
 
@@ -36,6 +39,21 @@ final class InMemoryRefreshSessionRepository implements RefreshSessionRepository
         }
 
         return null;
+    }
+
+    public function getByUserId(UserId $userId): array
+    {
+        ++$this->getByUserIdCalls;
+
+        return array_values(array_filter(
+            $this->refreshSessions,
+            static fn(RefreshSession $refreshSession): bool => $refreshSession->getUserId()->equals($userId)
+        ));
+    }
+
+    public function getByUserIdCalls(): int
+    {
+        return $this->getByUserIdCalls;
     }
 
     public function getByCredential(RefreshCredential $refreshCredential): ?RefreshSession

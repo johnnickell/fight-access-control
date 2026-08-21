@@ -13,20 +13,9 @@ materially cheaper.
 
 | Rank | Ticket | Parent PRD | Why next |
 | --- | --- | --- | --- |
-| 1 | [T-00006 — Manage active sessions](T-00006-manage-active-sessions.md) | [PRD-00001](../specs/00001-PRD.md) | Extends current-session authority into user and administrator session management. |
-| 2 | [T-00007 — Recover a forgotten password](T-00007-recover-forgotten-password.md) | [PRD-00001](../specs/00001-PRD.md) | Adds the next credential-recovery journey now that authenticated-session invalidation is established. |
-| 3 | [T-00008 — Change an authenticated password](T-00008-change-authenticated-password.md) | [PRD-00001](../specs/00001-PRD.md) | Builds authenticated credential change on the completed login and restoration seams. |
-| 4 | [T-00009 — Establish principals and authorization primitives](T-00009-principals-authorization-primitives.md) | [PRD-00001](../specs/00001-PRD.md) | Generalizes the current authenticated-session authority into reusable principal and authorization contracts. |
-
-## Completed
-
-| Ticket | Parent PRD | Outcome |
-| --- | --- | --- |
-| [T-00001 — Invite a pending user](T-00001-invite-pending-user.md) | [PRD-00001](../specs/00001-PRD.md) | Canonical pending-user invitation Command, Event, handler, and Domain repositories with durable activation work, audit evidence, and exact statement coverage. |
-| [T-00002 — Recover and resend activation delivery](T-00002-recover-resend-activation-delivery.md) | [PRD-00001](../specs/00001-PRD.md) | Safe delivery-status query, retryable delivery work, atomic predecessor-grant revocation and replacement, and exact statement coverage. |
-| [T-00003 — Activate an invited account](T-00003-activate-invited-account.md) | [PRD-00001](../specs/00001-PRD.md) | Atomic activation grant redemption, initial credential, active identity transition, and first server-side session with exact coverage. |
-| [T-00004 — Login, cold restore, and current-session logout](T-00004-login-restore-logout.md) | [PRD-00001](../specs/00001-PRD.md) | Synchronous secret-safe authentication service issuing access JWTs and opaque refresh credentials with authoritative cold refresh and current-only logout. |
-| [T-00005 — Secure refresh-session rotation](T-00005-secure-refresh-session-rotation.md) | [PRD-00001](../specs/00001-PRD.md) | One-winner refresh rotation, secret-free bounded conflicts, and fail-closed used-credential family revocation with exact coverage. |
+| 1 | [T-00007 — Recover a forgotten password](T-00007-recover-forgotten-password.md) | [PRD-00001](../specs/00001-PRD.md) | Adds the next credential-recovery journey now that authenticated-session invalidation is established. |
+| 2 | [T-00008 — Change an authenticated password](T-00008-change-authenticated-password.md) | [PRD-00001](../specs/00001-PRD.md) | Builds authenticated credential change on the completed login and restoration seams. |
+| 3 | [T-00009 — Establish principals and authorization primitives](T-00009-principals-authorization-primitives.md) | [PRD-00001](../specs/00001-PRD.md) | Generalizes the current authenticated-session authority into reusable principal and authorization contracts. |
 
 ## Waiting
 
@@ -42,3 +31,14 @@ Waiting tickets retain `ready-for-agent`; their position here is derived from un
 ## Needs Info
 
 No tickets currently require a decision authority.
+
+## Completed
+
+| Ticket | Parent PRD | Outcome |
+| --- | --- | --- |
+| [T-00001 — Invite a pending user](T-00001-invite-pending-user.md) | [PRD-00001](../specs/00001-PRD.md) | Canonical pending-user invitation Command, Event, handler, and Domain repositories with durable activation work, audit evidence, and exact statement coverage. |
+| [T-00002 — Recover and resend activation delivery](T-00002-recover-resend-activation-delivery.md) | [PRD-00001](../specs/00001-PRD.md) | Safe delivery-status query, retryable delivery work, atomic predecessor-grant revocation and replacement, and exact statement coverage. |
+| [T-00003 — Activate an invited account](T-00003-activate-invited-account.md) | [PRD-00001](../specs/00001-PRD.md) | Atomic activation grant redemption, initial credential, active identity transition, and first server-side session with exact coverage. |
+| [T-00004 — Login, cold restore, and current-session logout](T-00004-login-restore-logout.md) | [PRD-00001](../specs/00001-PRD.md) | Synchronous secret-safe authentication service issuing access JWTs and opaque refresh credentials with authoritative cold refresh and current-only logout. |
+| [T-00005 — Secure refresh-session rotation](T-00005-secure-refresh-session-rotation.md) | [PRD-00001](../specs/00001-PRD.md) | One-winner refresh rotation, secret-free bounded conflicts, and fail-closed used-credential family revocation with exact coverage. |
+| [T-00006 — Manage active sessions](T-00006-manage-active-sessions.md) | [PRD-00001](../specs/00001-PRD.md) | Safe active-session views, owned-session revocation, and authorized reasoned administrative intervention with atomic audit evidence. |

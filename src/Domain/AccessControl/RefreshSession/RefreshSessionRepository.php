@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Fight\AccessControl\Domain\AccessControl\RefreshSession;
 
 use Exception;
+use Fight\AccessControl\Domain\AccessControl\User\UserId;
 
 /**
  * Provides authoritative refresh-session persistence.
@@ -24,6 +25,15 @@ interface RefreshSessionRepository
      * @throws Exception When an error occurs
      */
     public function getById(RefreshSessionId $id): ?RefreshSession;
+
+    /**
+     * Retrieves refresh sessions owned by a user.
+     *
+     * @return list<RefreshSession>
+     *
+     * @throws Exception When an error occurs
+     */
+    public function getByUserId(UserId $userId): array;
 
     /**
      * Retrieves a refresh session by a presented opaque credential.

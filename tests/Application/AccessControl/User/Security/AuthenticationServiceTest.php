@@ -600,6 +600,11 @@ final class AuthenticationServiceTest extends TestCase
                 return $this->sessions->getById($id);
             }
 
+            public function getByUserId(UserId $userId): array
+            {
+                return $this->sessions->getByUserId($userId);
+            }
+
             public function getByCredential(RefreshCredential $refreshCredential): ?RefreshSession
             {
                 return $this->sessions->getByCredential($refreshCredential);
@@ -714,6 +719,11 @@ final class AuthenticationServiceTest extends TestCase
                 return $this->sessions->getById($id);
             }
 
+            public function getByUserId(UserId $userId): array
+            {
+                return $this->sessions->getByUserId($userId);
+            }
+
             public function getByCredential(RefreshCredential $refreshCredential): ?RefreshSession
             {
                 return $this->sessions->getByCredential($refreshCredential);
@@ -792,6 +802,11 @@ final class AuthenticationServiceTest extends TestCase
             public function getById(RefreshSessionId $id): ?RefreshSession
             {
                 return $this->sessions->getById($id);
+            }
+
+            public function getByUserId(UserId $userId): array
+            {
+                return $this->sessions->getByUserId($userId);
             }
 
             public function getByCredential(RefreshCredential $refreshCredential): ?RefreshSession
@@ -987,6 +1002,11 @@ final class AuthenticationServiceTest extends TestCase
                 return null;
             }
 
+            public function getByUserId(UserId $userId): array
+            {
+                return $this->session->getUserId()->equals($userId) ? [$this->session] : [];
+            }
+
             public function getByCredential(RefreshCredential $refreshCredential): ?RefreshSession
             {
                 return $this->session->matchesCredential($refreshCredential) ? $this->session : null;
@@ -1056,6 +1076,11 @@ final class AuthenticationServiceTest extends TestCase
                 ++$this->authoritativeReads;
 
                 return $this->authoritativeSession;
+            }
+
+            public function getByUserId(UserId $userId): array
+            {
+                return $this->authoritativeSession->getUserId()->equals($userId) ? [$this->authoritativeSession] : [];
             }
 
             public function getByCredential(RefreshCredential $refreshCredential): ?RefreshSession
