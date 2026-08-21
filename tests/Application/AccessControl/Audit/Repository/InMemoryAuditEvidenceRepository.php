@@ -14,6 +14,8 @@ final class InMemoryAuditEvidenceRepository implements AuditEvidenceRepository
     /** @var list<AuditEvidence> */
     private array $evidence = [];
 
+    private ?RuntimeException $failure = null;
+
     public function __construct(
         private readonly ?InMemoryUnitOfWork $unitOfWork = null,
         private readonly bool $failAfterSave = false
@@ -28,7 +30,9 @@ final class InMemoryAuditEvidenceRepository implements AuditEvidenceRepository
         });
 
         if ($this->failAfterSave) {
-            throw new RuntimeException('The audit persistence write failed.');
+            $this->failure = new RuntimeException('The audit persistence write failed.');
+
+            throw $this->failure;
         }
     }
 
@@ -36,5 +40,10 @@ final class InMemoryAuditEvidenceRepository implements AuditEvidenceRepository
     public function all(): array
     {
         return $this->evidence;
+    }
+
+    public function failure(): ?RuntimeException
+    {
+        return $this->failure;
     }
 }

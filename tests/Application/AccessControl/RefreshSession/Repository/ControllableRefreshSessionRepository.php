@@ -66,6 +66,18 @@ final class ControllableRefreshSessionRepository implements RefreshSessionReposi
         );
     }
 
+    public function getAllActiveByUserId(UserId $userId, DateTimeImmutable $at): array
+    {
+        if (
+            $this->refreshSession?->getUserId()->equals($userId)
+            && $this->refreshSession->isUsableAt($at)
+        ) {
+            return [$this->refreshSession];
+        }
+
+        return [];
+    }
+
     public function getByCredential(RefreshCredential $refreshCredential): ?RefreshSession
     {
         if ($this->refreshSession?->matchesCredential($refreshCredential)) {

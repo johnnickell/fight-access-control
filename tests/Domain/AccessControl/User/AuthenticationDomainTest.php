@@ -125,6 +125,31 @@ final class AuthenticationDomainTest extends TestCase
         $user->rehashPassword($this->passwordHash());
     }
 
+    public function test_that_authentication_authority_revision_advancement_is_monotonic_and_domain_owned(): void
+    {
+        $user = User::invite(UserId::generate(), EmailAddress::fromString('authority-revision@example.test'));
+
+        self::assertSame(0, $user->getAuthenticationAuthorityRevision());
+
+        $user->advanceAuthenticationAuthorityRevision();
+
+        self::assertSame(1, $user->getAuthenticationAuthorityRevision());
+
+        $user->advanceAuthenticationAuthorityRevision();
+
+        self::assertSame(2, $user->getAuthenticationAuthorityRevision());
+    }
+
+    public function test_that_password_reset_requires_an_active_identity_with_an_established_password(): void
+    {
+        $user = User::invite(UserId::generate(), EmailAddress::fromString('pending@example.test'));
+
+        $this->expectException(UserNotActiveException::class);
+        $this->expectExceptionMessage('Only an active user can reset an established password.');
+
+        $user->resetPassword($this->passwordHash());
+    }
+
     public function test_that_password_hashes_and_activation_credentials_validate_transport_values(): void
     {
         self::assertSame('activate-once', ActivationCredential::fromString('activate-once')->toString());

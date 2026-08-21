@@ -16,13 +16,6 @@ use Fight\Common\Domain\Repository\ResultSet;
 interface RefreshSessionRepository
 {
     /**
-     * Adds a refresh session.
-     *
-     * @throws Exception When an error occurs
-     */
-    public function add(RefreshSession $refreshSession): void;
-
-    /**
      * Retrieves a refresh session by its stable identifier.
      *
      * @throws Exception When an error occurs
@@ -35,6 +28,15 @@ interface RefreshSessionRepository
      * @throws Exception When an error occurs
      */
     public function getByUserId(UserId $userId, DateTimeImmutable $at, Pagination $pagination): ResultSet;
+
+    /**
+     * Retrieves every usable refresh session owned by a user for complete mutation.
+     *
+     * @return list<RefreshSession>
+     *
+     * @throws Exception When an error occurs
+     */
+    public function getAllActiveByUserId(UserId $userId, DateTimeImmutable $at): array;
 
     /**
      * Retrieves a refresh session by a presented opaque credential.
