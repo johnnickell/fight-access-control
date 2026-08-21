@@ -19,24 +19,39 @@ final class InMemoryRefreshSessionRepository implements RefreshSessionRepository
 {
     private int $getByUserIdCalls = 0;
 
-    /** @var list<RefreshSession> */
-    private array $refreshSessions = [];
+    private int $getAllActiveByUserIdCalls = 0;
 
-    public function __construct(private readonly ?InMemoryUnitOfWork $unitOfWork = null)
-    {
+    private readonly InMemoryRefreshSessionRepositoryState $state;
+
+    public function __construct(
+        private readonly ?InMemoryUnitOfWork $unitOfWork = null,
+        ?InMemoryRefreshSessionRepositoryState $state = null
+    ) {
+        $this->state = $state ?? new InMemoryRefreshSessionRepositoryState();
     }
 
     public function add(RefreshSession $refreshSession): void
     {
-        $this->refreshSessions[] = $refreshSession;
+        $this->state->refreshSessions[] = $refreshSession;
         $this->unitOfWork?->onRollback(function (): void {
-            array_pop($this->refreshSessions);
+            array_pop($this->state->refreshSessions);
+        });
+    }
+
+    public function addAsPartOfAuthenticationAuthorityReplacement(RefreshSession $refreshSession): void
+    {
+        $this->state->refreshSessions[] = $refreshSession;
+        $this->unitOfWork?->onRollback(function () use ($refreshSession): void {
+            $index = array_search($refreshSession, $this->state->refreshSessions, true);
+            if ($index !== false) {
+                array_splice($this->state->refreshSessions, $index, 1);
+            }
         });
     }
 
     public function getById(RefreshSessionId $id): ?RefreshSession
     {
-        foreach ($this->refreshSessions as $refreshSession) {
+        foreach ($this->state->refreshSessions as $refreshSession) {
             if ($refreshSession->getId()->equals($id)) {
                 return $refreshSession;
             }
@@ -50,7 +65,7 @@ final class InMemoryRefreshSessionRepository implements RefreshSessionRepository
         ++$this->getByUserIdCalls;
 
         $refreshSessions = array_values(array_filter(
-            $this->refreshSessions,
+            $this->state->refreshSessions,
             static fn(RefreshSession $refreshSession): bool => $refreshSession->getUserId()->equals($userId)
                 && $refreshSession->isUsableAt($at)
         ));
@@ -68,6 +83,23 @@ final class InMemoryRefreshSessionRepository implements RefreshSessionRepository
         );
     }
 
+    public function getAllActiveByUserId(UserId $userId, DateTimeImmutable $at): array
+    {
+        ++$this->getAllActiveByUserIdCalls;
+        $refreshSessions = array_values(array_filter(
+            $this->state->refreshSessions,
+            static fn(RefreshSession $refreshSession): bool => $refreshSession->getUserId()->equals($userId)
+                && $refreshSession->isUsableAt($at)
+        ));
+
+        return $refreshSessions;
+    }
+
+    public function getAllActiveByUserIdCalls(): int
+    {
+        return $this->getAllActiveByUserIdCalls;
+    }
+
     public function getByUserIdCalls(): int
     {
         return $this->getByUserIdCalls;
@@ -75,7 +107,7 @@ final class InMemoryRefreshSessionRepository implements RefreshSessionRepository
 
     public function getByCredential(RefreshCredential $refreshCredential): ?RefreshSession
     {
-        foreach ($this->refreshSessions as $refreshSession) {
+        foreach ($this->state->refreshSessions as $refreshSession) {
             if ($refreshSession->matchesCredential($refreshCredential)) {
                 return $refreshSession;
             }
@@ -86,7 +118,7 @@ final class InMemoryRefreshSessionRepository implements RefreshSessionRepository
 
     public function getByUsedCredential(RefreshCredential $refreshCredential): ?RefreshSession
     {
-        foreach ($this->refreshSessions as $refreshSession) {
+        foreach ($this->state->refreshSessions as $refreshSession) {
             if ($refreshSession->matchesUsedCredential($refreshCredential)) {
                 return $refreshSession;
             }
@@ -97,16 +129,18 @@ final class InMemoryRefreshSessionRepository implements RefreshSessionRepository
 
     public function replace(RefreshSession $expected, RefreshSession $replacement): bool
     {
-        foreach ($this->refreshSessions as $index => $refreshSession) {
+        foreach ($this->state->refreshSessions as $index => $refreshSession) {
             if (
                 $refreshSession->getId()->equals($expected->getId())
                 && $replacement->getId()->equals($expected->getId())
                 && $refreshSession->getRevision() === $expected->getRevision()
                 && $replacement->getRevision() === $expected->getRevision() + 1
             ) {
-                $this->refreshSessions[$index] = $replacement;
-                $this->unitOfWork?->onRollback(function () use ($index, $refreshSession): void {
-                    $this->refreshSessions[$index] = $refreshSession;
+                $this->state->refreshSessions[$index] = $replacement;
+                $this->unitOfWork?->onRollback(function () use ($index, $refreshSession, $replacement): void {
+                    if (($this->state->refreshSessions[$index] ?? null) === $replacement) {
+                        $this->state->refreshSessions[$index] = $refreshSession;
+                    }
                 });
 
                 return true;
@@ -119,6 +153,6 @@ final class InMemoryRefreshSessionRepository implements RefreshSessionRepository
     /** @return list<RefreshSession> */
     public function all(): array
     {
-        return $this->refreshSessions;
+        return $this->state->refreshSessions;
     }
 }

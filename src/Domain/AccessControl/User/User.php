@@ -21,7 +21,8 @@ class User
         private readonly EmailAddress $email,
         private UserState $state,
         private ?PasswordHash $passwordHash = null,
-        private readonly int $authenticationVersion = 1
+        private int $authenticationVersion = 1,
+        private int $authenticationAuthorityRevision = 0
     ) {
     }
 
@@ -93,10 +94,39 @@ class User
     }
 
     /**
+     * Replaces an active identity's password and invalidates prior authentication authority.
+     */
+    public function resetPassword(PasswordHash $passwordHash): void
+    {
+        if ($this->state !== UserState::ACTIVE || !$this->passwordHash instanceof PasswordHash) {
+            throw new UserNotActiveException('Only an active user can reset an established password.');
+        }
+
+        $this->passwordHash = $passwordHash;
+        ++$this->authenticationVersion;
+    }
+
+    /**
      * Returns the authoritative authentication version.
      */
     public function getAuthenticationVersion(): int
     {
         return $this->authenticationVersion;
+    }
+
+    /**
+     * Advances the monotonic revision used to serialize credential-authority persistence.
+     */
+    public function advanceAuthenticationAuthorityRevision(): void
+    {
+        ++$this->authenticationAuthorityRevision;
+    }
+
+    /**
+     * Returns the monotonic credential-authority persistence revision.
+     */
+    public function getAuthenticationAuthorityRevision(): int
+    {
+        return $this->authenticationAuthorityRevision;
     }
 }

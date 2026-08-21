@@ -82,11 +82,11 @@ final class InMemoryRefreshSessionRepositoryTest extends TestCase
         ));
     }
 
-    private function session(): RefreshSession
+    private function session(?UserId $userId = null): RefreshSession
     {
         return RefreshSession::start(
             RefreshSessionId::generate(),
-            UserId::generate(),
+            $userId ?? UserId::generate(),
             RefreshCredential::fromString(self::CURRENT_CREDENTIAL),
             new DateTimeImmutable('2026-08-19T11:00:00+00:00'),
             new DateTimeImmutable('2026-08-20T11:00:00+00:00'),

@@ -13,8 +13,13 @@ final class InMemoryUnitOfWork implements UnitOfWork
 
     public bool $transactionCompleted = false;
 
+    public bool $transactionActive = false;
+
     /** @var list<callable(): void> */
     private array $rollbackActions = [];
+
+    /** @var list<callable(): void> */
+    private array $completionActions = [];
 
     public function commit(): void
     {
@@ -23,7 +28,9 @@ final class InMemoryUnitOfWork implements UnitOfWork
     public function commitTransactional(callable $operation): mixed
     {
         ++$this->transactions;
+        $this->transactionActive = true;
         $rollbackStart = count($this->rollbackActions);
+        $completionStart = count($this->completionActions);
 
         try {
             $result = $operation();
@@ -37,7 +44,13 @@ final class InMemoryUnitOfWork implements UnitOfWork
 
             throw $throwable;
         } finally {
+            for ($index = count($this->completionActions) - 1; $index >= $completionStart; --$index) {
+                ($this->completionActions[$index])();
+            }
+
+            $this->transactionActive = false;
             array_splice($this->rollbackActions, $rollbackStart);
+            array_splice($this->completionActions, $completionStart);
         }
     }
 
@@ -47,6 +60,14 @@ final class InMemoryUnitOfWork implements UnitOfWork
     public function onRollback(callable $action): void
     {
         $this->rollbackActions[] = $action;
+    }
+
+    /**
+     * Registers an action to run after the current transaction commits or rolls back.
+     */
+    public function onCompletion(callable $action): void
+    {
+        $this->completionActions[] = $action;
     }
 
     public function isClosed(): bool

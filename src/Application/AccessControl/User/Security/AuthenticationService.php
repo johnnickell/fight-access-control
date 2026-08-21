@@ -8,6 +8,8 @@ use DateTimeImmutable;
 use Fight\AccessControl\Application\AccessControl\RefreshSession\Service\RefreshCredentialGenerator;
 use Fight\AccessControl\Application\AccessControl\User\Service\AuthenticationClock;
 use Fight\AccessControl\Application\AccessControl\User\Service\LoginThrottle;
+use Fight\AccessControl\Domain\AccessControl\Audit\AuditEvidence;
+use Fight\AccessControl\Domain\AccessControl\Audit\AuditEvidenceRepository;
 use Fight\AccessControl\Domain\AccessControl\RefreshSession\Event\CurrentSessionLoggedOut;
 use Fight\AccessControl\Domain\AccessControl\RefreshSession\Exception\RefreshSessionNotFoundException;
 use Fight\AccessControl\Domain\AccessControl\RefreshSession\RefreshCredential;
@@ -17,11 +19,16 @@ use Fight\AccessControl\Domain\AccessControl\RefreshSession\RefreshSessionReposi
 use Fight\AccessControl\Domain\AccessControl\User\ActivationCredential;
 use Fight\AccessControl\Domain\AccessControl\User\ActivationGrant;
 use Fight\AccessControl\Domain\AccessControl\User\ActivationGrantRepository;
+use Fight\AccessControl\Domain\AccessControl\User\Event\PasswordResetCompleted;
 use Fight\AccessControl\Domain\AccessControl\User\Event\RedactedCommandFailed;
 use Fight\AccessControl\Domain\AccessControl\User\Event\UserActivated;
 use Fight\AccessControl\Domain\AccessControl\User\Event\UserLoggedIn;
 use Fight\AccessControl\Domain\AccessControl\User\Exception\LoginRejectedException;
+use Fight\AccessControl\Domain\AccessControl\User\Exception\PasswordResetRejectedException;
 use Fight\AccessControl\Domain\AccessControl\User\PasswordHash;
+use Fight\AccessControl\Domain\AccessControl\User\PasswordResetCredential;
+use Fight\AccessControl\Domain\AccessControl\User\PasswordResetGrant;
+use Fight\AccessControl\Domain\AccessControl\User\PasswordResetGrantRepository;
 use Fight\AccessControl\Domain\AccessControl\User\User;
 use Fight\AccessControl\Domain\AccessControl\User\UserId;
 use Fight\AccessControl\Domain\AccessControl\User\UserRepository;
@@ -59,8 +66,84 @@ final readonly class AuthenticationService
         private TokenEncoder $tokenEncoder,
         private AuthenticationTokenPolicy $tokenPolicy,
         private PasswordHash $dummyPasswordHash,
-        private EventDispatcher $eventDispatcher
+        private EventDispatcher $eventDispatcher,
+        private PasswordResetGrantRepository $passwordResetGrantRepository,
+        private AuditEvidenceRepository $auditEvidenceRepository
     ) {
+    }
+
+    /**
+     * Redeems a password-reset credential and invalidates all prior authentication authority.
+     */
+    public function resetPassword(
+        UserId $userId,
+        #[SensitiveParameter] string $resetCredential,
+        #[SensitiveParameter] string $plainPassword
+    ): void {
+        try {
+            $completedAt = $this->unitOfWork->commitTransactional(function () use (
+                $userId,
+                $resetCredential,
+                $plainPassword
+            ): DateTimeImmutable {
+                $completedAt = $this->clock->now();
+                $user = $this->userRepository->getById($userId);
+                $passwordResetGrant = $this->passwordResetGrantRepository->getByUserId($userId);
+                try {
+                    $credential = PasswordResetCredential::fromString($resetCredential);
+                } catch (Throwable) {
+                    throw new PasswordResetRejectedException('Password reset rejected.');
+                }
+
+                if (
+                    !$user instanceof User
+                    || !$user->getId()->equals($userId)
+                    || $user->getState() !== UserState::ACTIVE
+                    || !$user->getPasswordHash() instanceof PasswordHash
+                    || !$passwordResetGrant instanceof PasswordResetGrant
+                    || !$passwordResetGrant->getUserId()->equals($userId)
+                    || $passwordResetGrant->purpose() !== 'password_reset'
+                    || !$passwordResetGrant->isUsableAt($completedAt)
+                    || !$passwordResetGrant->matchesCredential($credential)
+                ) {
+                    throw new PasswordResetRejectedException('Password reset rejected.');
+                }
+
+                $passwordHash = PasswordHash::fromString($this->passwordHasher->hash($plainPassword));
+                $replacementUser = clone $user;
+                $replacementUser->resetPassword($passwordHash);
+                $replacementUser->advanceAuthenticationAuthorityRevision();
+                if (
+                    !$this->passwordResetGrantRepository->replaceConsumed(
+                        $passwordResetGrant,
+                        $passwordResetGrant->consume($completedAt)
+                    )
+                ) {
+                    throw new PasswordResetRejectedException('Password reset rejected.');
+                }
+
+                if (!$this->userRepository->replaceAuthenticationAuthority($user, $replacementUser)) {
+                    throw new PasswordResetRejectedException('Password reset rejected.');
+                }
+
+                foreach ($this->refreshSessionRepository->getAllActiveByUserId($userId, $completedAt) as $session) {
+                    $this->revokeSession($session);
+                }
+
+                $this->auditEvidenceRepository->add(AuditEvidence::record(
+                    $userId->toString(),
+                    'user.password_reset_completed',
+                    $userId
+                ));
+
+                return $completedAt;
+            });
+
+            $this->eventDispatcher->trigger(new PasswordResetCompleted($userId, $completedAt));
+        } catch (Throwable $throwable) {
+            $this->publishFailure('resetPassword', ['user_id' => $userId->toString()], $throwable);
+            throw $throwable;
+        }
     }
 
     /**
@@ -98,18 +181,34 @@ final readonly class AuthenticationService
                 }
 
                 $passwordHash = PasswordHash::fromString($this->passwordHasher->hash($plainPassword));
+                $replacementUser = clone $user;
+                $replacementUser->activate($passwordHash);
+                $replacementUser->advanceAuthenticationAuthorityRevision();
+
                 $refreshCredential = $this->refreshCredentialGenerator->generate();
                 $refreshSession = $this->newRefreshSession(
-                    $user,
+                    $replacementUser,
                     $refreshCredential,
                     $authenticatedAt,
                     $remember
                 );
-                $tokenSet = $this->tokenSet($user, $refreshSession, $refreshCredential, $authenticatedAt);
+                $tokenSet = $this->tokenSet(
+                    $replacementUser,
+                    $refreshSession,
+                    $refreshCredential,
+                    $authenticatedAt
+                );
                 $consumedGrant = $grant->consume($authenticatedAt);
                 $this->activationGrantRepository->replaceConsumed($grant, $consumedGrant);
-                $this->refreshSessionRepository->add($refreshSession);
-                $user->activate($passwordHash);
+                if (
+                    !$this->userRepository->replaceAuthenticationAuthorityAndAddRefreshSession(
+                        $user,
+                        $replacementUser,
+                        $refreshSession
+                    )
+                ) {
+                    throw new LogicException('The invited account changed concurrently.');
+                }
 
                 return [$tokenSet, $authenticatedAt];
             });
@@ -163,19 +262,37 @@ final readonly class AuthenticationService
                     throw new LoginRejectedException('Login rejected.');
                 }
 
+                $replacementUser = clone $user;
+                if ($this->passwordValidator->needsRehash($passwordHash->toString())) {
+                    $replacementUser->rehashPassword(
+                        PasswordHash::fromString($this->passwordHasher->hash($plainPassword))
+                    );
+                }
+
+                $replacementUser->advanceAuthenticationAuthorityRevision();
+
                 $authenticatedAt = $this->clock->now();
                 $refreshCredential = $this->refreshCredentialGenerator->generate();
                 $refreshSession = $this->newRefreshSession(
-                    $user,
+                    $replacementUser,
                     $refreshCredential,
                     $authenticatedAt,
                     $remember
                 );
-                $tokenSet = $this->tokenSet($user, $refreshSession, $refreshCredential, $authenticatedAt);
-                $this->refreshSessionRepository->add($refreshSession);
-
-                if ($this->passwordValidator->needsRehash($passwordHash->toString())) {
-                    $user->rehashPassword(PasswordHash::fromString($this->passwordHasher->hash($plainPassword)));
+                $tokenSet = $this->tokenSet(
+                    $replacementUser,
+                    $refreshSession,
+                    $refreshCredential,
+                    $authenticatedAt
+                );
+                if (
+                    !$this->userRepository->replaceAuthenticationAuthorityAndAddRefreshSession(
+                        $user,
+                        $replacementUser,
+                        $refreshSession
+                    )
+                ) {
+                    throw new LoginRejectedException('Login rejected.');
                 }
 
                 return [$tokenSet, $authenticatedAt];
