@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Fight\AccessControl\Domain\AccessControl\Audit;
 
+use Fight\AccessControl\Domain\AccessControl\RefreshSession\RefreshSessionId;
+use Fight\AccessControl\Domain\AccessControl\RefreshSession\SessionRevocationReason;
 use Fight\AccessControl\Domain\AccessControl\User\UserId;
 
 /**
@@ -14,12 +16,14 @@ use Fight\AccessControl\Domain\AccessControl\User\UserId;
 class AuditEvidence
 {
     /**
-     * Records an invitation action without credential material.
+     * Creates secret-free durable audit evidence.
      */
     protected function __construct(
         private readonly string $actorId,
         private readonly string $action,
-        private readonly UserId $userId
+        private readonly UserId $userId,
+        /** @var array<string, string> */
+        private readonly array $context = []
     ) {
     }
 
@@ -29,6 +33,26 @@ class AuditEvidence
     public static function record(string $actorId, string $action, UserId $userId): static
     {
         return new static($actorId, $action, $userId);
+    }
+
+    /**
+     * Records the reasoned administrative revocation of a user's refresh session.
+     */
+    public static function administrativeSessionRevocation(
+        UserId $actorId,
+        UserId $userId,
+        RefreshSessionId $refreshSessionId,
+        SessionRevocationReason $reason
+    ): static {
+        return new static(
+            $actorId->toString(),
+            'refresh_session.administratively_revoked',
+            $userId,
+            [
+                'refresh_session_id' => $refreshSessionId->toString(),
+                'reason' => $reason->toString(),
+            ]
+        );
     }
 
     /**
@@ -58,10 +82,10 @@ class AuditEvidence
     /**
      * Returns public audit context.
      *
-     * @return array<never, never>
+     * @return array<string, string>
      */
     public function context(): array
     {
-        return [];
+        return $this->context;
     }
 }

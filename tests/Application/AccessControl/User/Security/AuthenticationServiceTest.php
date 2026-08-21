@@ -37,7 +37,10 @@ use Fight\AccessControl\Domain\AccessControl\User\UserState;
 use Fight\Common\Application\Auth\Security\PasswordHasher;
 use Fight\Common\Application\Auth\Security\PasswordValidator;
 use Fight\Common\Application\Auth\Security\TokenEncoder;
+use Fight\Common\Domain\Collection\ArrayList;
 use Fight\Common\Domain\Exception\DomainException;
+use Fight\Common\Domain\Repository\Pagination;
+use Fight\Common\Domain\Repository\ResultSet;
 use Fight\Common\Domain\Value\Internet\EmailAddress;
 use Fight\Test\AccessControl\Application\AccessControl\Event\InMemoryEventDispatcher;
 use Fight\Test\AccessControl\Application\AccessControl\RefreshSession\Repository\InMemoryRefreshSessionRepository;
@@ -600,6 +603,14 @@ final class AuthenticationServiceTest extends TestCase
                 return $this->sessions->getById($id);
             }
 
+            public function getByUserId(
+                UserId $userId,
+                DateTimeImmutable $at,
+                Pagination $pagination
+            ): ResultSet {
+                return $this->sessions->getByUserId($userId, $at, $pagination);
+            }
+
             public function getByCredential(RefreshCredential $refreshCredential): ?RefreshSession
             {
                 return $this->sessions->getByCredential($refreshCredential);
@@ -714,6 +725,14 @@ final class AuthenticationServiceTest extends TestCase
                 return $this->sessions->getById($id);
             }
 
+            public function getByUserId(
+                UserId $userId,
+                DateTimeImmutable $at,
+                Pagination $pagination
+            ): ResultSet {
+                return $this->sessions->getByUserId($userId, $at, $pagination);
+            }
+
             public function getByCredential(RefreshCredential $refreshCredential): ?RefreshSession
             {
                 return $this->sessions->getByCredential($refreshCredential);
@@ -792,6 +811,14 @@ final class AuthenticationServiceTest extends TestCase
             public function getById(RefreshSessionId $id): ?RefreshSession
             {
                 return $this->sessions->getById($id);
+            }
+
+            public function getByUserId(
+                UserId $userId,
+                DateTimeImmutable $at,
+                Pagination $pagination
+            ): ResultSet {
+                return $this->sessions->getByUserId($userId, $at, $pagination);
             }
 
             public function getByCredential(RefreshCredential $refreshCredential): ?RefreshSession
@@ -987,6 +1014,28 @@ final class AuthenticationServiceTest extends TestCase
                 return null;
             }
 
+            public function getByUserId(
+                UserId $userId,
+                DateTimeImmutable $at,
+                Pagination $pagination
+            ): ResultSet {
+                $refreshSessions = [];
+                if ($this->session->getUserId()->equals($userId) && $this->session->isUsableAt($at)) {
+                    $refreshSessions[] = $this->session;
+                }
+
+                return new ResultSet(
+                    $pagination->page(),
+                    $pagination->perPage(),
+                    count($refreshSessions),
+                    ArrayList::of(RefreshSession::class)->replace(array_slice(
+                        $refreshSessions,
+                        $pagination->offset(),
+                        $pagination->limit()
+                    ))
+                );
+            }
+
             public function getByCredential(RefreshCredential $refreshCredential): ?RefreshSession
             {
                 return $this->session->matchesCredential($refreshCredential) ? $this->session : null;
@@ -1056,6 +1105,31 @@ final class AuthenticationServiceTest extends TestCase
                 ++$this->authoritativeReads;
 
                 return $this->authoritativeSession;
+            }
+
+            public function getByUserId(
+                UserId $userId,
+                DateTimeImmutable $at,
+                Pagination $pagination
+            ): ResultSet {
+                $refreshSessions = [];
+                if (
+                    $this->authoritativeSession->getUserId()->equals($userId)
+                    && $this->authoritativeSession->isUsableAt($at)
+                ) {
+                    $refreshSessions[] = $this->authoritativeSession;
+                }
+
+                return new ResultSet(
+                    $pagination->page(),
+                    $pagination->perPage(),
+                    count($refreshSessions),
+                    ArrayList::of(RefreshSession::class)->replace(array_slice(
+                        $refreshSessions,
+                        $pagination->offset(),
+                        $pagination->limit()
+                    ))
+                );
             }
 
             public function getByCredential(RefreshCredential $refreshCredential): ?RefreshSession

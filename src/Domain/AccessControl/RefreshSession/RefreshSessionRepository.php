@@ -4,7 +4,11 @@ declare(strict_types=1);
 
 namespace Fight\AccessControl\Domain\AccessControl\RefreshSession;
 
+use DateTimeImmutable;
 use Exception;
+use Fight\AccessControl\Domain\AccessControl\User\UserId;
+use Fight\Common\Domain\Repository\Pagination;
+use Fight\Common\Domain\Repository\ResultSet;
 
 /**
  * Provides authoritative refresh-session persistence.
@@ -24,6 +28,13 @@ interface RefreshSessionRepository
      * @throws Exception When an error occurs
      */
     public function getById(RefreshSessionId $id): ?RefreshSession;
+
+    /**
+     * Retrieves one page of usable refresh sessions owned by a user.
+     *
+     * @throws Exception When an error occurs
+     */
+    public function getByUserId(UserId $userId, DateTimeImmutable $at, Pagination $pagination): ResultSet;
 
     /**
      * Retrieves a refresh session by a presented opaque credential.

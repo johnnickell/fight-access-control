@@ -4,14 +4,21 @@ declare(strict_types=1);
 
 namespace Fight\Test\AccessControl\Application\AccessControl\RefreshSession\Repository;
 
+use DateTimeImmutable;
 use Fight\AccessControl\Domain\AccessControl\RefreshSession\RefreshCredential;
 use Fight\AccessControl\Domain\AccessControl\RefreshSession\RefreshSession;
 use Fight\AccessControl\Domain\AccessControl\RefreshSession\RefreshSessionId;
 use Fight\AccessControl\Domain\AccessControl\RefreshSession\RefreshSessionRepository;
+use Fight\AccessControl\Domain\AccessControl\User\UserId;
+use Fight\Common\Domain\Collection\ArrayList;
+use Fight\Common\Domain\Repository\Pagination;
+use Fight\Common\Domain\Repository\ResultSet;
 use Fight\Test\AccessControl\Application\AccessControl\User\InMemoryUnitOfWork;
 
 final class InMemoryRefreshSessionRepository implements RefreshSessionRepository
 {
+    private int $getByUserIdCalls = 0;
+
     /** @var list<RefreshSession> */
     private array $refreshSessions = [];
 
@@ -36,6 +43,34 @@ final class InMemoryRefreshSessionRepository implements RefreshSessionRepository
         }
 
         return null;
+    }
+
+    public function getByUserId(UserId $userId, DateTimeImmutable $at, Pagination $pagination): ResultSet
+    {
+        ++$this->getByUserIdCalls;
+
+        $refreshSessions = array_values(array_filter(
+            $this->refreshSessions,
+            static fn(RefreshSession $refreshSession): bool => $refreshSession->getUserId()->equals($userId)
+                && $refreshSession->isUsableAt($at)
+        ));
+        $records = ArrayList::of(RefreshSession::class)->replace(array_slice(
+            $refreshSessions,
+            $pagination->offset(),
+            $pagination->limit()
+        ));
+
+        return new ResultSet(
+            $pagination->page(),
+            $pagination->perPage(),
+            count($refreshSessions),
+            $records
+        );
+    }
+
+    public function getByUserIdCalls(): int
+    {
+        return $this->getByUserIdCalls;
     }
 
     public function getByCredential(RefreshCredential $refreshCredential): ?RefreshSession
