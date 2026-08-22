@@ -70,7 +70,12 @@ try {
         $frameworkMetadata,
     );
 
-    $expectViolation('Production Adapter code is forbidden.', $composer, ['src/Adapter/' => '']);
+    $expectViolation('Production Adapter code is forbidden.', $composer, ['src/Adapter/Repository.php' => "<?php\nnamespace Fight\\AccessControl\\Adapter;\n"]);
+    $expectViolation(
+        'src/Application/FrameworkToken.php may not import framework security-token types.',
+        $composer,
+        ['src/Application/FrameworkToken.php' => "<?php\nnamespace Fight\\AccessControl\\Application;\nuse Symfony\\Component\\Security\\Core\\Authentication\\Token\\TokenInterface;\n"],
+    );
     $expectViolation('Copied Fight Common source is forbidden.', $composer, ['src/Common/' => '']);
     $expectViolation(
         'src/Infrastructure/Connection.php is outside the Domain and Application production roots.',

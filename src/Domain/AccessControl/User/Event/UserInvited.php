@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Fight\AccessControl\Domain\AccessControl\User\Event;
 
 use DateTimeImmutable;
+use Fight\AccessControl\Domain\AccessControl\ActivationGrant\ActivationDeliveryId;
 use Fight\AccessControl\Domain\AccessControl\User\UserId;
 use Fight\Common\Domain\Exception\DomainException;
 use Fight\Common\Domain\Messaging\Event\Event;
@@ -21,6 +22,7 @@ final readonly class UserInvited implements Event
     public function __construct(
         private string $actorId,
         private UserId $userId,
+        private ActivationDeliveryId $activationDeliveryId,
         private EmailAddress $email,
         private DateTimeImmutable $issuedAt
     ) {
@@ -31,7 +33,7 @@ final readonly class UserInvited implements Event
      */
     public static function fromArray(array $data): static
     {
-        foreach (['actor_id', 'user_id', 'email', 'issued_at'] as $key) {
+        foreach (['actor_id', 'user_id', 'activation_delivery_id', 'email', 'issued_at'] as $key) {
             if (!array_key_exists($key, $data)) {
                 $message = sprintf('Missing required key "%s" in data array', $key);
                 throw new DomainException($message);
@@ -41,6 +43,7 @@ final readonly class UserInvited implements Event
         return new static(
             (string) $data['actor_id'],
             UserId::fromString((string) $data['user_id']),
+            ActivationDeliveryId::fromString((string) $data['activation_delivery_id']),
             EmailAddress::fromString((string) $data['email']),
             new DateTimeImmutable((string) $data['issued_at'])
         );
@@ -52,10 +55,11 @@ final readonly class UserInvited implements Event
     public function toArray(): array
     {
         return [
-            'actor_id'  => $this->actorId,
-            'user_id'   => $this->userId->toString(),
-            'email'     => $this->email->toString(),
-            'issued_at' => $this->issuedAt->format(DATE_ATOM),
+            'actor_id'               => $this->actorId,
+            'user_id'                => $this->userId->toString(),
+            'activation_delivery_id' => $this->activationDeliveryId->toString(),
+            'email'                  => $this->email->toString(),
+            'issued_at'              => $this->issuedAt->format(DATE_ATOM),
         ];
     }
 
@@ -73,6 +77,14 @@ final readonly class UserInvited implements Event
     public function getUserId(): UserId
     {
         return $this->userId;
+    }
+
+    /**
+     * Returns the initial activation-delivery generation.
+     */
+    public function getActivationDeliveryId(): ActivationDeliveryId
+    {
+        return $this->activationDeliveryId;
     }
 
     /**

@@ -8,17 +8,21 @@ use DateTimeImmutable;
 use Fight\AccessControl\Application\AccessControl\RefreshSession\Service\RefreshCredentialGenerator;
 use Fight\AccessControl\Application\AccessControl\User\Service\AuthenticationClock;
 use Fight\AccessControl\Application\AccessControl\User\Service\LoginThrottle;
+use Fight\AccessControl\Domain\AccessControl\ActivationGrant\ActivationCredential;
+use Fight\AccessControl\Domain\AccessControl\ActivationGrant\ActivationGrant;
+use Fight\AccessControl\Domain\AccessControl\ActivationGrant\ActivationGrantRepository;
 use Fight\AccessControl\Domain\AccessControl\Audit\AuditEvidence;
 use Fight\AccessControl\Domain\AccessControl\Audit\AuditEvidenceRepository;
+use Fight\AccessControl\Domain\AccessControl\PasswordResetGrant\Exception\PasswordResetRejectedException;
+use Fight\AccessControl\Domain\AccessControl\PasswordResetGrant\PasswordResetCredential;
+use Fight\AccessControl\Domain\AccessControl\PasswordResetGrant\PasswordResetGrant;
+use Fight\AccessControl\Domain\AccessControl\PasswordResetGrant\PasswordResetGrantRepository;
 use Fight\AccessControl\Domain\AccessControl\RefreshSession\Event\CurrentSessionLoggedOut;
 use Fight\AccessControl\Domain\AccessControl\RefreshSession\Exception\RefreshSessionNotFoundException;
 use Fight\AccessControl\Domain\AccessControl\RefreshSession\RefreshCredential;
 use Fight\AccessControl\Domain\AccessControl\RefreshSession\RefreshSession;
 use Fight\AccessControl\Domain\AccessControl\RefreshSession\RefreshSessionId;
 use Fight\AccessControl\Domain\AccessControl\RefreshSession\RefreshSessionRepository;
-use Fight\AccessControl\Domain\AccessControl\User\ActivationCredential;
-use Fight\AccessControl\Domain\AccessControl\User\ActivationGrant;
-use Fight\AccessControl\Domain\AccessControl\User\ActivationGrantRepository;
 use Fight\AccessControl\Domain\AccessControl\User\Event\PasswordChanged;
 use Fight\AccessControl\Domain\AccessControl\User\Event\PasswordResetCompleted;
 use Fight\AccessControl\Domain\AccessControl\User\Event\RedactedCommandFailed;
@@ -26,11 +30,7 @@ use Fight\AccessControl\Domain\AccessControl\User\Event\UserActivated;
 use Fight\AccessControl\Domain\AccessControl\User\Event\UserLoggedIn;
 use Fight\AccessControl\Domain\AccessControl\User\Exception\LoginRejectedException;
 use Fight\AccessControl\Domain\AccessControl\User\Exception\PasswordChangeRejectedException;
-use Fight\AccessControl\Domain\AccessControl\User\Exception\PasswordResetRejectedException;
 use Fight\AccessControl\Domain\AccessControl\User\PasswordHash;
-use Fight\AccessControl\Domain\AccessControl\User\PasswordResetCredential;
-use Fight\AccessControl\Domain\AccessControl\User\PasswordResetGrant;
-use Fight\AccessControl\Domain\AccessControl\User\PasswordResetGrantRepository;
 use Fight\AccessControl\Domain\AccessControl\User\User;
 use Fight\AccessControl\Domain\AccessControl\User\UserId;
 use Fight\AccessControl\Domain\AccessControl\User\UserRepository;
@@ -159,7 +159,7 @@ final readonly class AuthenticationService
             ): DateTimeImmutable {
                 $completedAt = $this->clock->now();
                 $user = $this->userRepository->getById($userId);
-                $passwordResetGrant = $this->passwordResetGrantRepository->getByUserId($userId);
+                $passwordResetGrant = $this->passwordResetGrantRepository->getLatestByUserId($userId);
                 try {
                     $credential = PasswordResetCredential::fromString($resetCredential);
                 } catch (Throwable) {
@@ -185,7 +185,7 @@ final readonly class AuthenticationService
                 $replacementUser->resetPassword($passwordHash);
                 $replacementUser->advanceAuthenticationAuthorityRevision();
                 if (
-                    !$this->passwordResetGrantRepository->replaceConsumed(
+                    !$this->passwordResetGrantRepository->replace(
                         $passwordResetGrant,
                         $passwordResetGrant->consume($completedAt)
                     )
@@ -236,7 +236,7 @@ final readonly class AuthenticationService
             ): array {
                 $authenticatedAt = $this->clock->now();
                 $user = $this->userRepository->getById($userId);
-                $grant = $this->activationGrantRepository->getByUserId($userId);
+                $grant = $this->activationGrantRepository->getLatestByUserId($userId);
                 $credential = ActivationCredential::fromString($activationCredential);
 
                 if (
@@ -270,7 +270,10 @@ final readonly class AuthenticationService
                     $authenticatedAt
                 );
                 $consumedGrant = $grant->consume($authenticatedAt);
-                $this->activationGrantRepository->replaceConsumed($grant, $consumedGrant);
+                if (!$this->activationGrantRepository->replace($grant, $consumedGrant)) {
+                    throw new LogicException('The activation grant changed concurrently.');
+                }
+
                 if (
                     !$this->userRepository->replaceAuthenticationAuthorityAndAddRefreshSession(
                         $user,

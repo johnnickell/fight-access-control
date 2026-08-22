@@ -6,6 +6,7 @@ namespace Fight\Test\AccessControl\Application\AccessControl\User\Repository;
 
 use Closure;
 use Fight\AccessControl\Domain\AccessControl\RefreshSession\RefreshSession;
+use Fight\AccessControl\Domain\AccessControl\Role\RoleId;
 use Fight\AccessControl\Domain\AccessControl\User\Exception\DuplicateEmailException;
 use Fight\AccessControl\Domain\AccessControl\User\PasswordHash;
 use Fight\AccessControl\Domain\AccessControl\User\User;
@@ -140,6 +141,18 @@ final class InMemoryUserRepository implements UserRepository
         return true;
     }
 
+    public function replaceRoleAssignments(User $expected, User $replacement): bool
+    {
+        $index = $this->roleAssignmentReplacementIndex($expected, $replacement);
+        if ($index === null) {
+            return false;
+        }
+
+        $this->replaceAt($index, $replacement);
+
+        return true;
+    }
+
     public function bindRefreshSessionRepository(InMemoryRefreshSessionRepository $refreshSessionRepository): void
     {
         $this->refreshSessionRepository = $refreshSessionRepository;
@@ -178,6 +191,8 @@ final class InMemoryUserRepository implements UserRepository
         return $stateIsValid
             && $authenticationVersionIsValid
             && $authenticationAuthorityRevisionIsValid
+            && $replacement->getAuthorizationAssignmentRevision() === $expected->getAuthorizationAssignmentRevision()
+            && $this->roleAssignmentsMatch($replacement, $expected)
             && $replacement->getPasswordHash() instanceof PasswordHash;
     }
 
@@ -195,7 +210,9 @@ final class InMemoryUserRepository implements UserRepository
                 && $user->getState() === $expected->getState()
                 && $user->getAuthenticationVersion() === $expected->getAuthenticationVersion()
                 && $user->getAuthenticationAuthorityRevision() === $expected->getAuthenticationAuthorityRevision()
+                && $user->getAuthorizationAssignmentRevision() === $expected->getAuthorizationAssignmentRevision()
                 && $this->passwordHashesMatch($user->getPasswordHash(), $expected->getPasswordHash())
+                && $this->roleAssignmentsMatch($user, $expected)
                 && $this->replacementIsValid($expected, $replacement)
             ) {
                 return $index;
@@ -203,6 +220,50 @@ final class InMemoryUserRepository implements UserRepository
         }
 
         return null;
+    }
+
+    private function roleAssignmentReplacementIndex(User $expected, User $replacement): ?int
+    {
+        $expectedAuthenticationAuthorityRevision = $expected->getAuthenticationAuthorityRevision();
+        $expectedAuthorizationAssignmentRevision = $expected->getAuthorizationAssignmentRevision();
+
+        foreach ($this->state->users as $index => $user) {
+            if (
+                $user->getId()->equals($expected->getId())
+                && $replacement->getId()->equals($expected->getId())
+                && $user->getEmail()->canonical() === $expected->getEmail()->canonical()
+                && $replacement->getEmail()->canonical() === $expected->getEmail()->canonical()
+                && $user->getState() === $expected->getState()
+                && $replacement->getState() === $expected->getState()
+                && $user->getAuthenticationVersion() === $expected->getAuthenticationVersion()
+                && $replacement->getAuthenticationVersion() === $expected->getAuthenticationVersion()
+                && $user->getAuthenticationAuthorityRevision() === $expectedAuthenticationAuthorityRevision
+                && $replacement->getAuthenticationAuthorityRevision() === $expectedAuthenticationAuthorityRevision
+                && $user->getAuthorizationAssignmentRevision() === $expectedAuthorizationAssignmentRevision
+                && $replacement->getAuthorizationAssignmentRevision() === $expectedAuthorizationAssignmentRevision + 1
+                && $this->passwordHashesMatch($user->getPasswordHash(), $expected->getPasswordHash())
+                && $this->passwordHashesMatch($replacement->getPasswordHash(), $expected->getPasswordHash())
+                && $this->roleAssignmentsMatch($user, $expected)
+                && !$this->roleAssignmentsMatch($replacement, $expected)
+            ) {
+                return $index;
+            }
+        }
+
+        return null;
+    }
+
+    private function roleAssignmentsMatch(User $left, User $right): bool
+    {
+        $leftRoleIds = $left->getRoleIds();
+        if (count($leftRoleIds) !== count($right->getRoleIds())) {
+            return false;
+        }
+
+        return array_all(
+            $leftRoleIds,
+            static fn(RoleId $roleId): bool => $right->hasRole($roleId)
+        );
     }
 
     private function replaceAt(int $index, User $replacement): void
