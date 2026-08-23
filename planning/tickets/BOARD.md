@@ -27,10 +27,7 @@ Waiting tickets retain `ready-for-agent`; their position here is derived from un
 
 ## In Progress
 
-| Ticket | Parent PRD | Remaining gap |
-| --- | --- | --- |
-| [T-00014 — Unify password-reset grant persistence](T-00014-unify-password-reset-grant-persistence.md) | [PRD-00001](../specs/00001-PRD.md) | Enforce valid initial issuance and preserve extensible aggregate subtypes across transitions. |
-| [T-00015 — Unify activation-grant persistence](T-00015-unify-activation-grant-persistence.md) | [PRD-00001](../specs/00001-PRD.md) | Enforce claim-before-outcome transitions, valid initial issuance, and subtype-preserving transitions. |
+No tickets are currently in progress.
 
 ## Needs Info
 
@@ -49,3 +46,5 @@ No tickets currently require a decision authority.
 | [T-00007 — Recover a forgotten password](T-00007-recover-forgotten-password.md) | [PRD-00001](../specs/00001-PRD.md) | Generic recovery requests, historically unique one-time reset authority, generation-bound delivery lifecycle, atomic credential replacement and complete session revocation. |
 | [T-00008 — Change an authenticated password](T-00008-change-authenticated-password.md) | [PRD-00001](../specs/00001-PRD.md) | Current-password proof, atomic credential and authentication-authority replacement, complete session revocation, and durable audit evidence. |
 | [T-00009 — Establish principals and authorization primitives](T-00009-principals-authorization-primitives.md) | [PRD-00001](../specs/00001-PRD.md) | Context-only consumer composition, request-scoped authoritative principal resolution, and foundational Role, Permission, and User assignment state. |
+| [T-00014 — Unify password-reset grant persistence](T-00014-unify-password-reset-grant-persistence.md) | [PRD-00001](../specs/00001-PRD.md) | One aggregate repository boundary with pristine issuance and successor contracts, historical uniqueness, CAS fencing, and subtype-preserving transitions. |
+| [T-00015 — Unify activation-grant persistence](T-00015-unify-activation-grant-persistence.md) | [PRD-00001](../specs/00001-PRD.md) | One aggregate repository boundary with claim-only delivery outcomes, pristine issuance and successors, CAS fencing, and subtype-preserving transitions. |

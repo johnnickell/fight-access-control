@@ -68,6 +68,30 @@ final class PasswordResetDeliveryLifecycleTest extends TestCase
         );
     }
 
+    public function test_that_factory_reconstitution_and_transitions_preserve_the_runtime_subtype(): void
+    {
+        $id = PasswordResetDeliveryId::generate();
+        $userId = UserId::generate();
+        $email = EmailAddress::fromString('alice@example.test');
+        $expiresAt = new DateTimeImmutable('2026-08-20T13:00:00+00:00');
+        $created = ExtensiblePasswordResetDelivery::create($id, $userId, $email, 'ciphertext', $expiresAt);
+        $reconstituted = ExtensiblePasswordResetDelivery::reconstitute(
+            $id,
+            $userId,
+            $email,
+            'ciphertext',
+            $expiresAt
+        );
+
+        self::assertInstanceOf(ExtensiblePasswordResetDelivery::class, $created);
+        self::assertInstanceOf(ExtensiblePasswordResetDelivery::class, $reconstituted->confirm());
+        self::assertInstanceOf(ExtensiblePasswordResetDelivery::class, $created->invalidate());
+        self::assertInstanceOf(
+            ExtensiblePasswordResetDelivery::class,
+            $created->expireAt($expiresAt)
+        );
+    }
+
     private function delivery(): PasswordResetDelivery
     {
         return PasswordResetDelivery::create(

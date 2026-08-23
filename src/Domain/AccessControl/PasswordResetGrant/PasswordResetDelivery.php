@@ -106,7 +106,7 @@ class PasswordResetDelivery
             return $this;
         }
 
-        return new self($this->id, $this->userId, $this->email, null, $this->expiresAt);
+        return new static($this->id, $this->userId, $this->email, null, $this->expiresAt);
     }
 
     /**

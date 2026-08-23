@@ -118,10 +118,12 @@ final class RequestPasswordResetHandlerTest extends TestCase
         $user = UserFixture::withState('alice@example.test', UserState::ACTIVE);
         $users->add($user);
         $repository = new InMemoryPasswordResetGrants($unitOfWork);
-        $terminal = $this->grant($user->getId(), 'old')->consume(
+        $issued = $this->grant($user->getId(), 'old');
+        self::assertTrue($repository->add($issued));
+        $terminal = $issued->consume(
             new DateTimeImmutable('2026-08-20T12:05:00+00:00')
         )->invalidateDelivery();
-        $repository->add($terminal);
+        self::assertTrue($repository->replace($issued, $terminal));
 
         $this->handler(
             $users,
@@ -143,10 +145,12 @@ final class RequestPasswordResetHandlerTest extends TestCase
         $user = UserFixture::withState('alice@example.test', UserState::ACTIVE);
         $users->add($user);
         $repository = new InMemoryPasswordResetGrants($unitOfWork);
-        $consumed = $this->grant($user->getId(), 'old')->consume(
+        $issued = $this->grant($user->getId(), 'old');
+        self::assertTrue($repository->add($issued));
+        $consumed = $issued->consume(
             new DateTimeImmutable('2026-08-20T12:05:00+00:00')
         );
-        $repository->add($consumed);
+        self::assertTrue($repository->replace($issued, $consumed));
 
         $this->handler(
             $users,
@@ -228,8 +232,10 @@ final class RequestPasswordResetHandlerTest extends TestCase
         $user = UserFixture::withState('alice@example.test', UserState::ACTIVE);
         $users->add($user);
         $repository = new InMemoryPasswordResetGrants($unitOfWork, appendAfterTerminalSucceeds: false);
-        $terminal = $this->grant($user->getId(), 'old')->revoke(new DateTimeImmutable())->invalidateDelivery();
-        $repository->add($terminal);
+        $issued = $this->grant($user->getId(), 'old');
+        self::assertTrue($repository->add($issued));
+        $terminal = $issued->revoke(new DateTimeImmutable())->invalidateDelivery();
+        self::assertTrue($repository->replace($issued, $terminal));
         $events = new InMemoryEventDispatcher();
 
         $this->expectException(LogicException::class);

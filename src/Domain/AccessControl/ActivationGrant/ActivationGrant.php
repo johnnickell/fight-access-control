@@ -12,6 +12,8 @@ use LogicException;
 
 /**
  * Owns one generation of activation authority and its delivery work.
+ *
+ * @phpstan-consistent-constructor
  */
 class ActivationGrant
 {
@@ -40,12 +42,12 @@ class ActivationGrant
         DateTimeImmutable $expiresAt,
         EmailAddress $email,
         string $ciphertext
-    ): self {
+    ): static {
         if ($expiresAt <= $issuedAt) {
             throw new InvalidArgumentException('The activation grant expiry must be later than its issuance time.');
         }
 
-        return new self(
+        return new static(
             ActivationGrantId::generate(),
             $userId,
             hash('sha256', $credential->toString()),
@@ -173,7 +175,7 @@ class ActivationGrant
             throw new LogicException('The activation grant is no longer usable.');
         }
 
-        return new self(
+        return new static(
             $this->id,
             $this->userId,
             $this->credentialHash,
@@ -194,7 +196,7 @@ class ActivationGrant
             throw new LogicException('The activation grant is no longer issued.');
         }
 
-        return new self(
+        return new static(
             $this->id,
             $this->userId,
             $this->credentialHash,
@@ -270,7 +272,7 @@ class ActivationGrant
             return $this;
         }
 
-        return new self(
+        return new static(
             $this->id,
             $this->userId,
             $this->credentialHash,

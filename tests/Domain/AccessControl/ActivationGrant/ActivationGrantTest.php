@@ -6,8 +6,10 @@ namespace Fight\Test\AccessControl\Domain\AccessControl\ActivationGrant;
 
 use DateTimeImmutable;
 use Fight\AccessControl\Domain\AccessControl\ActivationGrant\ActivationCredential;
+use Fight\AccessControl\Domain\AccessControl\ActivationGrant\ActivationDeliveryId;
 use Fight\AccessControl\Domain\AccessControl\ActivationGrant\ActivationDeliveryStatus;
 use Fight\AccessControl\Domain\AccessControl\ActivationGrant\ActivationGrant;
+use Fight\AccessControl\Domain\AccessControl\ActivationGrant\ActivationGrantId;
 use Fight\AccessControl\Domain\AccessControl\User\User;
 use Fight\AccessControl\Domain\AccessControl\User\UserId;
 use Fight\AccessControl\Domain\AccessControl\User\UserState;
@@ -34,7 +36,7 @@ final class ActivationGrantTest extends TestCase
             'ciphertext'
         );
 
-        $failed = $grant->failDelivery();
+        $failed = $grant->claimDelivery()->failDelivery();
         self::assertSame($grant->getId(), $failed->getId());
         self::assertTrue($failed->getDelivery()->isRetryable());
         self::assertFalse($grant->expireDeliveryAt(new DateTimeImmutable('2026-08-25T11:00:00+00:00'))
@@ -47,7 +49,7 @@ final class ActivationGrantTest extends TestCase
         );
         self::assertSame(
             ActivationDeliveryStatus::CONFIRMED,
-            $grant->confirmDelivery()->getDelivery()->getStatus()
+            $grant->claimDelivery()->confirmDelivery()->getDelivery()->getStatus()
         );
     }
 
@@ -173,5 +175,48 @@ final class ActivationGrantTest extends TestCase
             EmailAddress::fromString('alice@example.test'),
             'ciphertext'
         );
+    }
+
+    public function test_that_factory_reconstitution_and_all_replacements_preserve_the_runtime_subtype(): void
+    {
+        $userId = UserId::generate();
+        $issuedAt = new DateTimeImmutable('2026-08-18T12:00:00+00:00');
+        $expiresAt = new DateTimeImmutable('2026-08-25T12:00:00+00:00');
+        $grant = ExtensibleActivationGrant::issue(
+            $userId,
+            ActivationCredential::fromString('activate-once'),
+            $issuedAt,
+            $expiresAt,
+            EmailAddress::fromString('alice@example.test'),
+            'ciphertext'
+        );
+        $reconstituted = ExtensibleActivationGrant::reconstitute(
+            ActivationGrantId::generate(),
+            $userId,
+            hash('sha256', 'activate-reconstituted'),
+            $expiresAt,
+            ExtensibleActivationDelivery::create(
+                ActivationDeliveryId::generate(),
+                $userId,
+                EmailAddress::fromString('alice@example.test'),
+                'ciphertext',
+                $expiresAt
+            )
+        );
+
+        self::assertInstanceOf(ExtensibleActivationGrant::class, $grant);
+        self::assertInstanceOf(ExtensibleActivationGrant::class, $reconstituted);
+        $failed = $grant->claimDelivery()->failDelivery();
+        self::assertInstanceOf(ExtensibleActivationGrant::class, $failed);
+        self::assertInstanceOf(
+            ExtensibleActivationGrant::class,
+            $failed->requestDeliveryRetry()->claimDelivery()->confirmDelivery()
+        );
+        self::assertInstanceOf(
+            ExtensibleActivationGrant::class,
+            $reconstituted->expireDeliveryAt($expiresAt)
+        );
+        self::assertInstanceOf(ExtensibleActivationGrant::class, $grant->consume($issuedAt));
+        self::assertInstanceOf(ExtensibleActivationGrant::class, $grant->revoke($issuedAt));
     }
 }

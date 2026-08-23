@@ -38,7 +38,7 @@ final class ActivationDeliveryLifecycleTest extends TestCase
             $expiresAt
         );
 
-        $confirmed = $confirmed->confirm()->confirm();
+        $confirmed = $confirmed->claim()->confirm();
 
         $expired = $expired->expireAt(new DateTimeImmutable('2026-08-25T11:59:59+00:00'));
         $expired = $expired->expireAt(new DateTimeImmutable('2026-08-25T12:00:00+00:00'));
@@ -59,13 +59,13 @@ final class ActivationDeliveryLifecycleTest extends TestCase
             new DateTimeImmutable('2026-08-25T12:00:00+00:00')
         );
 
-        $work = $work->fail()->fail();
+        $work = $work->claim()->fail();
 
         self::assertSame(ActivationDeliveryStatus::FAILED, $work->getStatus());
         self::assertSame('ciphertext', $work->getCiphertext());
         self::assertTrue($work->isRetryable());
 
-        $work = $work->confirm();
+        $work = $work->requestRetry()->claim()->confirm();
 
         self::assertSame(ActivationDeliveryStatus::CONFIRMED, $work->getStatus());
         self::assertNull($work->getCiphertext());
@@ -115,6 +115,77 @@ final class ActivationDeliveryLifecycleTest extends TestCase
         $work->fail();
     }
 
+    public function test_that_pending_delivery_cannot_bypass_a_successful_claim_for_an_outcome(): void
+    {
+        $pending = ActivationDelivery::create(
+            ActivationDeliveryId::generate(),
+            UserId::generate(),
+            EmailAddress::fromString('alice@example.test'),
+            'ciphertext',
+            new DateTimeImmutable('2026-08-25T12:00:00+00:00')
+        );
+
+        try {
+            $pending->confirm();
+            self::fail('Pending delivery was confirmed without a claim.');
+        } catch (ActivationDeliveryNotRetryableException) {
+            self::assertSame(ActivationDeliveryStatus::PENDING, $pending->getStatus());
+            self::assertSame('ciphertext', $pending->getCiphertext());
+        }
+
+        try {
+            $pending->fail();
+            self::fail('Pending delivery was failed without a claim.');
+        } catch (ActivationDeliveryNotRetryableException) {
+            self::assertSame(ActivationDeliveryStatus::PENDING, $pending->getStatus());
+            self::assertSame('ciphertext', $pending->getCiphertext());
+        }
+    }
+
+    public function test_that_failed_delivery_must_retry_and_be_claimed_before_confirmation(): void
+    {
+        $failed = ActivationDelivery::create(
+            ActivationDeliveryId::generate(),
+            UserId::generate(),
+            EmailAddress::fromString('alice@example.test'),
+            'ciphertext',
+            new DateTimeImmutable('2026-08-25T12:00:00+00:00')
+        )->claim()->fail();
+
+        try {
+            $failed->confirm();
+            self::fail('Failed delivery was confirmed without a retry claim.');
+        } catch (ActivationDeliveryNotRetryableException) {
+            self::assertSame(ActivationDeliveryStatus::FAILED, $failed->getStatus());
+            self::assertSame('ciphertext', $failed->getCiphertext());
+        }
+
+        $this->expectException(ActivationDeliveryNotRetryableException::class);
+        $failed->fail();
+    }
+
+    public function test_that_confirmed_delivery_cannot_record_another_outcome(): void
+    {
+        $confirmed = ActivationDelivery::create(
+            ActivationDeliveryId::generate(),
+            UserId::generate(),
+            EmailAddress::fromString('alice@example.test'),
+            'ciphertext',
+            new DateTimeImmutable('2026-08-25T12:00:00+00:00')
+        )->claim()->confirm();
+
+        try {
+            $confirmed->confirm();
+            self::fail('Confirmed delivery was confirmed again without a claim.');
+        } catch (ActivationDeliveryNotRetryableException) {
+            self::assertSame(ActivationDeliveryStatus::CONFIRMED, $confirmed->getStatus());
+            self::assertNull($confirmed->getCiphertext());
+        }
+
+        $this->expectException(ActivationDeliveryNotRetryableException::class);
+        $confirmed->fail();
+    }
+
     public function test_that_terminal_delivery_work_cannot_be_confirmed(): void
     {
         $work = ActivationDelivery::create(
@@ -139,7 +210,7 @@ final class ActivationDeliveryLifecycleTest extends TestCase
             'ciphertext',
             new DateTimeImmutable('2026-08-25T12:00:00+00:00')
         );
-        $work = $work->fail();
+        $work = $work->claim()->fail();
 
         $work = $work->expireAt(new DateTimeImmutable('2026-08-25T12:00:00+00:00'));
 
@@ -180,6 +251,34 @@ final class ActivationDeliveryLifecycleTest extends TestCase
             EmailAddress::fromString('alice@example.test'),
             '',
             new DateTimeImmutable('2026-08-25T12:00:00+00:00')
+        );
+    }
+
+    public function test_that_factories_reconstitution_and_transitions_preserve_runtime_subtypes(): void
+    {
+        $id = ActivationDeliveryId::generate();
+        $userId = UserId::generate();
+        $email = EmailAddress::fromString('alice@example.test');
+        $expiresAt = new DateTimeImmutable('2026-08-25T12:00:00+00:00');
+        $created = ExtensibleActivationDelivery::create($id, $userId, $email, 'ciphertext', $expiresAt);
+        $reconstituted = ExtensibleActivationDelivery::reconstitute(
+            $id,
+            $userId,
+            $email,
+            'ciphertext',
+            $expiresAt,
+            ActivationDeliveryStatus::PENDING
+        );
+
+        self::assertInstanceOf(ExtensibleActivationDelivery::class, $created);
+        $failed = $reconstituted->claim()->fail();
+        self::assertInstanceOf(ExtensibleActivationDelivery::class, $failed);
+        $confirmed = $failed->requestRetry()->claim()->confirm();
+        self::assertInstanceOf(ExtensibleActivationDelivery::class, $confirmed);
+        self::assertInstanceOf(ExtensibleActivationDelivery::class, $created->invalidate());
+        self::assertInstanceOf(
+            ExtensibleActivationDelivery::class,
+            $created->expireAt($expiresAt)
         );
     }
 }

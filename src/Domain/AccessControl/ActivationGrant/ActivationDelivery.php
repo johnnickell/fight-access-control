@@ -84,22 +84,11 @@ class ActivationDelivery
      */
     public function confirm(): self
     {
-        if ($this->status === ActivationDeliveryStatus::CONFIRMED) {
-            return $this;
-        }
-
-        if (
-            $this->ciphertext === null
-            || in_array(
-                $this->status,
-                [ActivationDeliveryStatus::CONFIRMED, ActivationDeliveryStatus::EXPIRED],
-                true
-            )
-        ) {
+        if ($this->status !== ActivationDeliveryStatus::CLAIMED || $this->ciphertext === null) {
             throw new ActivationDeliveryNotRetryableException('The activation delivery work is no longer retryable.');
         }
 
-        return new self(
+        return new static(
             $this->id,
             $this->userId,
             $this->email,
@@ -118,7 +107,7 @@ class ActivationDelivery
             throw new ActivationDeliveryNotRetryableException('The activation delivery work is no longer retryable.');
         }
 
-        return new self(
+        return new static(
             $this->id,
             $this->userId,
             $this->email,
@@ -133,22 +122,11 @@ class ActivationDelivery
      */
     public function fail(): self
     {
-        if ($this->status === ActivationDeliveryStatus::FAILED) {
-            return $this;
-        }
-
-        if (
-            $this->ciphertext === null
-            || !in_array(
-                $this->status,
-                [ActivationDeliveryStatus::PENDING, ActivationDeliveryStatus::CLAIMED],
-                true
-            )
-        ) {
+        if ($this->status !== ActivationDeliveryStatus::CLAIMED || $this->ciphertext === null) {
             throw new ActivationDeliveryNotRetryableException('The activation delivery work is no longer retryable.');
         }
 
-        return new self(
+        return new static(
             $this->id,
             $this->userId,
             $this->email,
@@ -167,7 +145,7 @@ class ActivationDelivery
             throw new ActivationDeliveryNotRetryableException('The activation delivery work is no longer retryable.');
         }
 
-        return new self(
+        return new static(
             $this->id,
             $this->userId,
             $this->email,
@@ -194,7 +172,7 @@ class ActivationDelivery
             return $this;
         }
 
-        return new self(
+        return new static(
             $this->id,
             $this->userId,
             $this->email,
@@ -213,7 +191,7 @@ class ActivationDelivery
             return $this;
         }
 
-        return new self(
+        return new static(
             $this->id,
             $this->userId,
             $this->email,

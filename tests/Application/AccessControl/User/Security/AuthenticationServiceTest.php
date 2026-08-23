@@ -1450,7 +1450,7 @@ final class AuthenticationServiceTest extends TestCase
         $events = new InMemoryEventDispatcher();
         $user = $this->activeUserFor('reset-without-delivery@example.test');
         $users->add($user);
-        $passwordResetGrant = PasswordResetGrant::issue(
+        $issuedPasswordResetGrant = PasswordResetGrant::issue(
             $user->getId(),
             PasswordResetCredential::fromString(self::RESET_CREDENTIAL),
             new DateTimeImmutable('2026-08-19T11:00:00+00:00'),
@@ -1458,11 +1458,15 @@ final class AuthenticationServiceTest extends TestCase
             $user->getEmail(),
             'ciphertext:reset-once'
         );
+        $passwordResetGrant = $issuedPasswordResetGrant;
         if ($hasInvalidatedDelivery) {
             $passwordResetGrant = $passwordResetGrant->invalidateDelivery();
         }
 
-        $passwordResetGrants->add($passwordResetGrant);
+        self::assertTrue($passwordResetGrants->add($issuedPasswordResetGrant));
+        if ($passwordResetGrant !== $issuedPasswordResetGrant) {
+            self::assertTrue($passwordResetGrants->replace($issuedPasswordResetGrant, $passwordResetGrant));
+        }
 
         $refreshSession = $this->session($user, $this->refreshCredential(), false);
         $sessions->add($refreshSession);
@@ -1521,7 +1525,7 @@ final class AuthenticationServiceTest extends TestCase
             $expiresAt = new DateTimeImmutable('2026-08-19T12:00:00+00:00');
         }
 
-        $passwordResetGrant = PasswordResetGrant::issue(
+        $issuedPasswordResetGrant = PasswordResetGrant::issue(
             $user->getId(),
             PasswordResetCredential::fromString(self::RESET_CREDENTIAL),
             new DateTimeImmutable('2026-08-19T11:00:00+00:00'),
@@ -1529,6 +1533,7 @@ final class AuthenticationServiceTest extends TestCase
             $user->getEmail(),
             'ciphertext:reset-once'
         );
+        $passwordResetGrant = $issuedPasswordResetGrant;
         if ($scenario === 'consumed grant replay') {
             $passwordResetGrant = $passwordResetGrant->consume(
                 new DateTimeImmutable('2026-08-19T11:30:00+00:00')
@@ -1542,7 +1547,10 @@ final class AuthenticationServiceTest extends TestCase
         }
 
         if ($scenario !== 'missing grant authority') {
-            $passwordResetGrants->add($passwordResetGrant);
+            self::assertTrue($passwordResetGrants->add($issuedPasswordResetGrant));
+            if ($passwordResetGrant !== $issuedPasswordResetGrant) {
+                self::assertTrue($passwordResetGrants->replace($issuedPasswordResetGrant, $passwordResetGrant));
+            }
         }
 
         $refreshSession = $this->session($user, $this->refreshCredential(), false);

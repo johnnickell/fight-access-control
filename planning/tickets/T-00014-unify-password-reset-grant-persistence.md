@@ -1,7 +1,7 @@
 ---
 id: T-00014
 title: Unify password-reset grant persistence
-status: in-progress
+status: done
 parent: PRD-00001
 blocked_by:
   - T-00007
@@ -19,7 +19,7 @@ completed recovery lifecycle's concurrency, replay, secrecy, or rollback guarant
 
 - [x] `PasswordResetGrantRepository` is the sole Domain persistence contract for PasswordResetGrant and its
   delivery entity; the separate delivery repository contract and handler dependency are removed.
-- [ ] Repository operations preserve grant identity, latest-generation delivery identity, historical credential
+- [x] Repository operations preserve grant identity, latest-generation delivery identity, historical credential
   uniqueness, and compare-and-set semantics for issuance, reissue, terminal delivery changes, and consumption.
 - [x] Confirmation and terminal expiry destroy recoverable ciphertext, and stale callbacks cannot mutate or
   invalidate newer delivery generations.
@@ -46,10 +46,12 @@ No recovery-policy change, credential format change, email transport, persistenc
   stale-callback rejection, ciphertext destruction, and atomic rollback of grant and delivery state.
 - Existing recovery behavior remains generic and secret-redacted while consumption retains authentication-authority
   fencing, complete session revocation, replay/expiry rejection, and durable audit atomicity.
-- The focused PasswordResetGrant and ActivationGrant regression run passed 86 tests with 373 assertions; final
-  repository verification is recorded by the shared completion gate rather than attributed to this slice alone.
-- Final `./bin/planning-check` passed. Final `./bin/build` passed 278 tests with 1,722 assertions and exact statement
-  coverage at 1,689/1,689; PHPCS, PHPStan, architecture, package boundaries, Rector, documentation, and production
-  autoload checks passed.
-- Final Standards review remains blocked because repository issuance does not yet reject non-initial or already
-  transitioned generations, and extensible aggregate transitions do not preserve runtime subtypes.
+- Initial issuance, terminal append, and replacement-with-successor now reject nonzero revisions, terminal authority,
+  non-recoverable delivery, ownership mismatches, reused identities or digests, and every non-pristine successor state
+  without mutation.
+- Concrete runtime subclasses survive issue and reconstitution plus delivery invalidation, confirmation, expiry,
+  aggregate consumption, revocation, and owned-delivery replacement transitions.
+- The post-fix grant-focused regression run passed 108 tests with 574 assertions.
+- Final `./bin/planning-check` passed with 2 records and 2 active. Final `./bin/build` passed 300 tests with 1,934
+  assertions and exact statement coverage at 1,675/1,675; PHPCS, PHPStan, architecture, package boundaries, Rector,
+  documentation, and production autoload checks passed.

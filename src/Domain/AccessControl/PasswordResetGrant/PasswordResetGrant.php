@@ -12,6 +12,8 @@ use LogicException;
 
 /**
  * Owns one generation of password-reset authority and its delivery work.
+ *
+ * @phpstan-consistent-constructor
  */
 class PasswordResetGrant
 {
@@ -40,12 +42,12 @@ class PasswordResetGrant
         DateTimeImmutable $expiresAt,
         EmailAddress $email,
         string $ciphertext
-    ): self {
+    ): static {
         if ($expiresAt <= $issuedAt) {
             throw new DomainException('The password-reset grant expiry must be later than its issuance time.');
         }
 
-        return new self(
+        return new static(
             PasswordResetGrantId::generate(),
             $userId,
             hash('sha256', $credential->toString()),
@@ -173,7 +175,7 @@ class PasswordResetGrant
             throw new LogicException('The password-reset grant is no longer usable.');
         }
 
-        return new self(
+        return new static(
             $this->id,
             $this->userId,
             $this->credentialHash,
@@ -194,7 +196,7 @@ class PasswordResetGrant
             throw new LogicException('The password-reset grant is no longer issued.');
         }
 
-        return new self(
+        return new static(
             $this->id,
             $this->userId,
             $this->credentialHash,
@@ -247,7 +249,7 @@ class PasswordResetGrant
             return $this;
         }
 
-        return new self(
+        return new static(
             $this->id,
             $this->userId,
             $this->credentialHash,

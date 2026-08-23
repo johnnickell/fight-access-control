@@ -125,14 +125,14 @@ final class ResendInvitationDeliveryHandlerTest extends TestCase
         $userId = UserId::generate();
         $unitOfWork = new InMemoryUnitOfWork();
         $activationGrantRepository = new InMemoryActivationGrantRepository($unitOfWork);
-        $activationGrantRepository->add(ActivationGrant::issue(
+        self::assertTrue($activationGrantRepository->add(ActivationGrant::issue(
             $userId,
             ActivationCredential::fromString('activate-old'),
             new DateTimeImmutable('2026-08-18T12:00:00+00:00'),
             new DateTimeImmutable('2026-08-25T12:00:00+00:00'),
             EmailAddress::fromString('alice@example.test'),
             'ciphertext:activate-old'
-        ));
+        )));
         $events = new InMemoryEventDispatcher();
         $handler = $this->handler(
             $activationGrantRepository,
@@ -157,14 +157,19 @@ final class ResendInvitationDeliveryHandlerTest extends TestCase
     {
         $userId = UserId::generate();
         $activationGrantRepository = new InMemoryActivationGrantRepository();
-        $activationGrantRepository->add(ActivationGrant::issue(
+        $issued = ActivationGrant::issue(
             $userId,
             ActivationCredential::fromString('activate-old'),
             new DateTimeImmutable('2026-08-18T12:00:00+00:00'),
             new DateTimeImmutable('2026-08-25T12:00:00+00:00'),
             EmailAddress::fromString('alice@example.test'),
             'ciphertext:activate-old'
-        )->revoke(new DateTimeImmutable('2026-08-19T11:00:00+00:00')));
+        );
+        self::assertTrue($activationGrantRepository->add($issued));
+        self::assertTrue($activationGrantRepository->replace(
+            $issued,
+            $issued->revoke(new DateTimeImmutable('2026-08-19T11:00:00+00:00'))
+        ));
         $events = new InMemoryEventDispatcher();
         $handler = $this->handler(
             $activationGrantRepository,
