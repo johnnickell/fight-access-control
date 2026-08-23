@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Fight\Test\AccessControl\Application\AccessControl\User\QueryHandler;
 
+use DateTimeImmutable;
 use Fight\AccessControl\Application\AccessControl\User\QueryHandler\ListUsersHandler;
 use Fight\AccessControl\Domain\AccessControl\Role\RoleId;
 use Fight\AccessControl\Domain\AccessControl\User\Query\ListUsers;
@@ -50,6 +51,10 @@ final class ListUsersHandlerTest extends TestCase
         self::assertSame($active->getEmail(), $views->get(0)->getEmail());
         self::assertSame(UserState::ACTIVE, $views->get(0)->getState());
         self::assertSame([$roleId], $views->get(0)->getRoleIds());
+        self::assertInstanceOf(DateTimeImmutable::class, $views->get(0)->getCreatedAt());
+        self::assertEquals(new DateTimeImmutable('2026-01-01T00:00:00+00:00'), $views->get(0)->getCreatedAt());
+        self::assertInstanceOf(DateTimeImmutable::class, $views->get(0)->getUpdatedAt());
+        self::assertEquals(new DateTimeImmutable('2026-01-01T00:00:00+00:00'), $views->get(0)->getUpdatedAt());
         self::assertSame($disabled->getId(), $views->get(1)->getUserId());
         self::assertSame(UserState::DISABLED, $views->get(1)->getState());
         self::assertSame([], $views->get(1)->getRoleIds());
@@ -60,7 +65,7 @@ final class ListUsersHandlerTest extends TestCase
         );
         sort($properties);
 
-        self::assertSame(['email', 'roleIds', 'state', 'userId'], $properties);
+        self::assertSame(['createdAt', 'email', 'roleIds', 'state', 'updatedAt', 'userId'], $properties);
     }
 
     public function test_that_the_query_round_trips_and_rejects_missing_required_data(): void

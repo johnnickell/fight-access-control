@@ -28,9 +28,9 @@ use Fight\Test\AccessControl\Application\AccessControl\Audit\Repository\InMemory
 use Fight\Test\AccessControl\Application\AccessControl\Event\InMemoryEventDispatcher;
 use Fight\Test\AccessControl\Application\AccessControl\RefreshSession\Repository\ControllableRefreshSessionRepository;
 use Fight\Test\AccessControl\Application\AccessControl\RefreshSession\Repository\InMemoryRefreshSessionRepository;
-use Fight\Test\AccessControl\Application\AccessControl\RefreshSession\Service\FailingRefreshSessionClock;
-use Fight\Test\AccessControl\Application\AccessControl\RefreshSession\Service\FixedRefreshSessionClock;
 use Fight\Test\AccessControl\Application\AccessControl\RefreshSession\Service\FixedSessionAdministrationAuthorization;
+use Fight\Test\AccessControl\Application\AccessControl\Timing\Service\FailingClock;
+use Fight\Test\AccessControl\Application\AccessControl\Timing\Service\FixedClock;
 use Fight\Test\AccessControl\Application\AccessControl\User\InMemoryUnitOfWork;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
@@ -88,7 +88,7 @@ final class RevokeSessionHandlerTest extends TestCase
         $auditEvidenceRepository = new InMemoryAuditEvidenceRepository($unitOfWork);
         $handler = new RevokeSessionHandler(
             $repository,
-            new FixedRefreshSessionClock(new DateTimeImmutable('2026-08-20T12:00:00+00:00')),
+            new FixedClock(new DateTimeImmutable('2026-08-20T12:00:00+00:00')),
             $authorization,
             $auditEvidenceRepository,
             $unitOfWork,
@@ -228,7 +228,7 @@ final class RevokeSessionHandlerTest extends TestCase
         $events = new InMemoryEventDispatcher();
         $handler = new RevokeSessionHandler(
             new ControllableRefreshSessionRepository($this->session($targetSessionId, $actorId)),
-            new FailingRefreshSessionClock($expectedFailure),
+            new FailingClock($expectedFailure),
             new FixedSessionAdministrationAuthorization(true),
             new InMemoryAuditEvidenceRepository(),
             new InMemoryUnitOfWork(),
@@ -443,7 +443,7 @@ final class RevokeSessionHandlerTest extends TestCase
     ): RevokeSessionHandler {
         return new RevokeSessionHandler(
             $refreshSessionRepository,
-            new FixedRefreshSessionClock(new DateTimeImmutable('2026-08-20T12:00:00+00:00')),
+            new FixedClock(new DateTimeImmutable('2026-08-20T12:00:00+00:00')),
             $sessionAdministrationAuthorization ?? new FixedSessionAdministrationAuthorization(true),
             $auditEvidenceRepository ?? new InMemoryAuditEvidenceRepository($unitOfWork),
             $unitOfWork,

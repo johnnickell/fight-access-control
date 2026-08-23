@@ -35,13 +35,22 @@ final class InMemoryUserRepositoryTest extends TestCase
             if ($emailTransition === 'reservation') {
                 $staleReplacement->advanceAuthenticationAuthorityRevision();
                 $winner = clone $current;
-                $winner->requestEmailChange(EmailAddress::fromString('reserved@example.test'));
+                $winner->requestEmailChange(
+                    EmailAddress::fromString('reserved@example.test'),
+                    new DateTimeImmutable('2026-01-01T00:00:00+00:00')
+                );
                 self::assertTrue($repository->replaceEmailChangeReservation($current, $winner));
             } else {
-                $staleReplacement->activate($this->passwordHash('stale-activation-password'));
+                $staleReplacement->activate(
+                    $this->passwordHash('stale-activation-password'),
+                    new DateTimeImmutable('2026-01-01T00:00:00+00:00')
+                );
                 $staleReplacement->advanceAuthenticationAuthorityRevision();
                 $winner = clone $current;
-                $winner->correctPendingInvitationEmail(EmailAddress::fromString('corrected@example.test'));
+                $winner->correctPendingInvitationEmail(
+                    EmailAddress::fromString('corrected@example.test'),
+                    new DateTimeImmutable('2026-01-01T00:00:00+00:00')
+                );
                 self::assertTrue($repository->replacePendingInvitationEmail($current, $winner));
             }
 
@@ -73,7 +82,10 @@ final class InMemoryUserRepositoryTest extends TestCase
 
         $session = $this->session($staleReplacement);
         $winner = clone $current;
-        $winner->requestEmailChange(EmailAddress::fromString('reserved@example.test'));
+        $winner->requestEmailChange(
+            EmailAddress::fromString('reserved@example.test'),
+            new DateTimeImmutable('2026-01-01T00:00:00+00:00')
+        );
         self::assertTrue($repository->replaceEmailChangeReservation($current, $winner));
 
         self::assertFalse($repository->replaceAuthenticationAuthorityAndAddRefreshSession(
@@ -94,14 +106,23 @@ final class InMemoryUserRepositoryTest extends TestCase
             $repository->add($current);
             $staleExpected = clone $current;
             $staleReplacement = clone $staleExpected;
-            $staleReplacement->replaceRoleAssignments([RoleId::generate()]);
+            $staleReplacement->replaceRoleAssignments(
+                [RoleId::generate()],
+                new DateTimeImmutable('2026-01-01T00:00:00+00:00')
+            );
             if ($emailTransition === 'reservation') {
                 $winner = clone $current;
-                $winner->requestEmailChange(EmailAddress::fromString('reserved@example.test'));
+                $winner->requestEmailChange(
+                    EmailAddress::fromString('reserved@example.test'),
+                    new DateTimeImmutable('2026-01-01T00:00:00+00:00')
+                );
                 self::assertTrue($repository->replaceEmailChangeReservation($current, $winner));
             } else {
                 $winner = clone $current;
-                $winner->correctPendingInvitationEmail(EmailAddress::fromString('corrected@example.test'));
+                $winner->correctPendingInvitationEmail(
+                    EmailAddress::fromString('corrected@example.test'),
+                    new DateTimeImmutable('2026-01-01T00:00:00+00:00')
+                );
                 self::assertTrue($repository->replacePendingInvitationEmail($current, $winner));
             }
 
@@ -127,22 +148,32 @@ final class InMemoryUserRepositoryTest extends TestCase
                 $repository->add($current);
                 $replacement = clone $current;
                 if ($emailTransition === 'reservation') {
-                    $replacement->requestEmailChange(EmailAddress::fromString('reserved@example.test'));
+                    $replacement->requestEmailChange(
+                        EmailAddress::fromString('reserved@example.test'),
+                        new DateTimeImmutable('2026-01-01T00:00:00+00:00')
+                    );
                 } else {
                     $replacement->correctPendingInvitationEmail(
-                        EmailAddress::fromString('corrected@example.test')
+                        EmailAddress::fromString('corrected@example.test'),
+                        new DateTimeImmutable('2026-01-01T00:00:00+00:00')
                     );
                 }
 
                 if ($replacementType === 'authentication') {
                     if ($emailTransition === 'canonical correction') {
-                        $replacement->activate($this->passwordHash('replacement-password'));
+                        $replacement->activate(
+                            $this->passwordHash('replacement-password'),
+                            new DateTimeImmutable('2026-01-01T00:00:00+00:00')
+                        );
                     }
 
                     $replacement->advanceAuthenticationAuthorityRevision();
                     $result = $repository->replaceAuthenticationAuthority($current, $replacement);
                 } else {
-                    $replacement->replaceRoleAssignments([RoleId::generate()]);
+                    $replacement->replaceRoleAssignments(
+                        [RoleId::generate()],
+                        new DateTimeImmutable('2026-01-01T00:00:00+00:00')
+                    );
                     $result = $repository->replaceRoleAssignments($current, $replacement);
                 }
 
@@ -162,7 +193,10 @@ final class InMemoryUserRepositoryTest extends TestCase
         $repository = new InMemoryUserRepository();
         $current = $this->activeUser();
         $replacement = clone $current;
-        $replacement->requestEmailChange(EmailAddress::fromString('reserved@example.test'));
+        $replacement->requestEmailChange(
+            EmailAddress::fromString('reserved@example.test'),
+            new DateTimeImmutable('2026-01-01T00:00:00+00:00')
+        );
 
         $repository->add($current);
         self::assertTrue($repository->replaceEmailChangeReservation($current, $replacement));
@@ -170,7 +204,8 @@ final class InMemoryUserRepositoryTest extends TestCase
         $this->expectException(DuplicateEmailException::class);
         $repository->add(User::invite(
             UserId::generate(),
-            EmailAddress::fromString('reserved@example.test')
+            EmailAddress::fromString('reserved@example.test'),
+            new DateTimeImmutable('2026-01-01T00:00:00+00:00')
         ));
     }
 
@@ -180,10 +215,16 @@ final class InMemoryUserRepositoryTest extends TestCase
         $current = $this->activeUser();
         $repository->add($current);
         $winner = clone $current;
-        $winner->requestEmailChange(EmailAddress::fromString('winner@example.test'));
+        $winner->requestEmailChange(
+            EmailAddress::fromString('winner@example.test'),
+            new DateTimeImmutable('2026-01-01T00:00:00+00:00')
+        );
 
         $stale = clone $current;
-        $stale->requestEmailChange(EmailAddress::fromString('stale@example.test'));
+        $stale->requestEmailChange(
+            EmailAddress::fromString('stale@example.test'),
+            new DateTimeImmutable('2026-01-01T00:00:00+00:00')
+        );
 
         self::assertTrue($repository->replaceEmailChangeReservation($current, $winner));
         self::assertFalse($repository->replaceEmailChangeReservation($current, $stale));
@@ -196,15 +237,19 @@ final class InMemoryUserRepositoryTest extends TestCase
         $current = $this->activeUser();
         $repository->add($current);
         $reserved = clone $current;
-        $reserved->requestEmailChange(EmailAddress::fromString('released@example.test'));
+        $reserved->requestEmailChange(
+            EmailAddress::fromString('released@example.test'),
+            new DateTimeImmutable('2026-01-01T00:00:00+00:00')
+        );
         self::assertTrue($repository->replaceEmailChangeReservation($current, $reserved));
         $cancelled = clone $reserved;
-        $cancelled->cancelEmailChange();
+        $cancelled->cancelEmailChange(new DateTimeImmutable('2026-01-01T00:00:00+00:00'));
 
         self::assertTrue($repository->replaceEmailChangeReservation($reserved, $cancelled));
         $replacementIdentity = User::invite(
             UserId::generate(),
-            EmailAddress::fromString('released@example.test')
+            EmailAddress::fromString('released@example.test'),
+            new DateTimeImmutable('2026-01-01T00:00:00+00:00')
         );
         $repository->add($replacementIdentity);
 
@@ -220,10 +265,13 @@ final class InMemoryUserRepositoryTest extends TestCase
         $current = $this->activeUser();
         $repository->add($current);
         $winner = clone $current;
-        $winner->replaceRoleAssignments([RoleId::generate()]);
+        $winner->replaceRoleAssignments([RoleId::generate()], new DateTimeImmutable('2026-01-01T00:00:00+00:00'));
 
         $staleCandidate = clone $current;
-        $staleCandidate->replaceRoleAssignments([RoleId::generate()]);
+        $staleCandidate->replaceRoleAssignments(
+            [RoleId::generate()],
+            new DateTimeImmutable('2026-01-01T00:00:00+00:00')
+        );
 
         self::assertTrue($repository->replaceRoleAssignments($current, $winner));
         self::assertFalse($repository->replaceRoleAssignments($current, $staleCandidate));
@@ -236,8 +284,11 @@ final class InMemoryUserRepositoryTest extends TestCase
         $current = $this->activeUser();
         $repository->add($current);
         $replacement = clone $current;
-        $replacement->replaceRoleAssignments([RoleId::generate()]);
-        $replacement->rehashPassword($this->passwordHash('unrelated-password-change'));
+        $replacement->replaceRoleAssignments([RoleId::generate()], new DateTimeImmutable('2026-01-01T00:00:00+00:00'));
+        $replacement->rehashPassword(
+            $this->passwordHash('unrelated-password-change'),
+            new DateTimeImmutable('2026-01-01T00:00:00+00:00')
+        );
 
         self::assertFalse($repository->replaceRoleAssignments($current, $replacement));
         self::assertSame($current, $repository->getById($current->getId()));
@@ -249,8 +300,11 @@ final class InMemoryUserRepositoryTest extends TestCase
         $current = $this->activeUser();
         $repository->add($current);
         $replacement = clone $current;
-        $replacement->replaceRoleAssignments([RoleId::generate(), RoleId::generate()]);
-        $replacement->replaceRoleAssignments([RoleId::generate()]);
+        $replacement->replaceRoleAssignments(
+            [RoleId::generate(), RoleId::generate()],
+            new DateTimeImmutable('2026-01-01T00:00:00+00:00')
+        );
+        $replacement->replaceRoleAssignments([RoleId::generate()], new DateTimeImmutable('2026-01-01T00:00:00+00:00'));
 
         self::assertFalse($repository->replaceRoleAssignments($current, $replacement));
         self::assertSame($current, $repository->getById($current->getId()));
@@ -261,10 +315,13 @@ final class InMemoryUserRepositoryTest extends TestCase
         $repository = new InMemoryUserRepository();
         $current = $this->activeUser();
         $roleId = RoleId::generate();
-        $current->replaceRoleAssignments([$roleId]);
+        $current->replaceRoleAssignments([$roleId], new DateTimeImmutable('2026-01-01T00:00:00+00:00'));
         $repository->add($current);
         $replacement = clone $current;
-        $replacement->rehashPassword($this->passwordHash('replacement-password'));
+        $replacement->rehashPassword(
+            $this->passwordHash('replacement-password'),
+            new DateTimeImmutable('2026-01-01T00:00:00+00:00')
+        );
         $replacement->advanceAuthenticationAuthorityRevision();
 
         self::assertTrue($repository->replaceAuthenticationAuthority($current, $replacement));
@@ -281,7 +338,7 @@ final class InMemoryUserRepositoryTest extends TestCase
         $current = $this->activeUser();
         $repository->add($current);
         $replacement = clone $current;
-        $replacement->replaceRoleAssignments([RoleId::generate()]);
+        $replacement->replaceRoleAssignments([RoleId::generate()], new DateTimeImmutable('2026-01-01T00:00:00+00:00'));
         $replacement->advanceAuthenticationAuthorityRevision();
 
         self::assertFalse($repository->replaceAuthenticationAuthority($current, $replacement));
@@ -311,7 +368,10 @@ final class InMemoryUserRepositoryTest extends TestCase
 
         $session = $this->session($loginReplacement);
         $resetReplacement = clone $resetExpected;
-        $resetReplacement->resetPassword($this->passwordHash('reset-password'));
+        $resetReplacement->resetPassword(
+            $this->passwordHash('reset-password'),
+            new DateTimeImmutable('2026-01-01T00:00:00+00:00')
+        );
         $resetReplacement->advanceAuthenticationAuthorityRevision();
 
         self::assertTrue($loginUnitOfWork->commitTransactional(
@@ -348,7 +408,10 @@ final class InMemoryUserRepositoryTest extends TestCase
         self::assertInstanceOf(User::class, $resetExpected);
         self::assertInstanceOf(User::class, $loginExpected);
         $resetReplacement = clone $resetExpected;
-        $resetReplacement->resetPassword($this->passwordHash('reset-password'));
+        $resetReplacement->resetPassword(
+            $this->passwordHash('reset-password'),
+            new DateTimeImmutable('2026-01-01T00:00:00+00:00')
+        );
         $resetReplacement->advanceAuthenticationAuthorityRevision();
 
         $loginReplacement = clone $loginExpected;
@@ -413,7 +476,10 @@ final class InMemoryUserRepositoryTest extends TestCase
         $winnerExpected = $winnerRepository->getById($current->getId());
         self::assertInstanceOf(User::class, $winnerExpected);
         $winnerReplacement = clone $winnerExpected;
-        $winnerReplacement->rehashPassword($this->passwordHash('winner-password'));
+        $winnerReplacement->rehashPassword(
+            $this->passwordHash('winner-password'),
+            new DateTimeImmutable('2026-01-01T00:00:00+00:00')
+        );
         $winnerReplacement->advanceAuthenticationAuthorityRevision();
 
         self::assertTrue($winnerUnitOfWork->commitTransactional(
@@ -471,11 +537,17 @@ final class InMemoryUserRepositoryTest extends TestCase
         $current = $this->activeUser();
         $repository->add($current);
         $winner = clone $current;
-        $winner->resetPassword($this->passwordHash('winner-password'));
+        $winner->resetPassword(
+            $this->passwordHash('winner-password'),
+            new DateTimeImmutable('2026-01-01T00:00:00+00:00')
+        );
         $winner->advanceAuthenticationAuthorityRevision();
 
         $staleCandidate = clone $current;
-        $staleCandidate->rehashPassword($this->passwordHash('stale-password'));
+        $staleCandidate->rehashPassword(
+            $this->passwordHash('stale-password'),
+            new DateTimeImmutable('2026-01-01T00:00:00+00:00')
+        );
         $staleCandidate->advanceAuthenticationAuthorityRevision();
 
         self::assertTrue($repository->replaceAuthenticationAuthority($current, $winner));
@@ -495,7 +567,10 @@ final class InMemoryUserRepositoryTest extends TestCase
         $current = $this->activeUser();
         $repository->add($current);
         $replacement = clone $current;
-        $replacement->rehashPassword($this->passwordHash('replacement-password'));
+        $replacement->rehashPassword(
+            $this->passwordHash('replacement-password'),
+            new DateTimeImmutable('2026-01-01T00:00:00+00:00')
+        );
         $replacement->advanceAuthenticationAuthorityRevision();
 
         try {
@@ -519,9 +594,10 @@ final class InMemoryUserRepositoryTest extends TestCase
     {
         $user = User::invite(
             UserId::generate(),
-            EmailAddress::fromString('authority@example.test')
+            EmailAddress::fromString('authority@example.test'),
+            new DateTimeImmutable('2026-01-01T00:00:00+00:00')
         );
-        $user->activate($this->passwordHash('correct-secret'));
+        $user->activate($this->passwordHash('correct-secret'), new DateTimeImmutable('2026-01-01T00:00:00+00:00'));
 
         return $user;
     }
@@ -537,7 +613,11 @@ final class InMemoryUserRepositoryTest extends TestCase
             return $this->activeUser();
         }
 
-        return User::invite(UserId::generate(), EmailAddress::fromString('invited@example.test'));
+        return User::invite(
+            UserId::generate(),
+            EmailAddress::fromString('invited@example.test'),
+            new DateTimeImmutable('2026-01-01T00:00:00+00:00')
+        );
     }
 
     private function session(User $user): RefreshSession

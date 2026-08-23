@@ -22,10 +22,10 @@ use Fight\Common\Domain\Value\Internet\EmailAddress;
 use Fight\Test\AccessControl\Application\AccessControl\Audit\Repository\InMemoryAuditEvidenceRepository;
 use Fight\Test\AccessControl\Application\AccessControl\EmailChangeGrant\Repository\InMemoryEmailChangeGrantRepository;
 use Fight\Test\AccessControl\Application\AccessControl\EmailChangeGrant\Service as EmailChangeService;
-use Fight\Test\AccessControl\Application\AccessControl\EmailChangeGrant\Service\FixedEmailChangeClock;
 use Fight\Test\AccessControl\Application\AccessControl\EmailChangeGrant\Service\FixedEmailChangeCredentialGenerator;
 use Fight\Test\AccessControl\Application\AccessControl\EmailChangeGrant\Service\PrefixEmailChangeDeliveryCipher;
 use Fight\Test\AccessControl\Application\AccessControl\Event\InMemoryEventDispatcher;
+use Fight\Test\AccessControl\Application\AccessControl\Timing\Service\FixedClock;
 use Fight\Test\AccessControl\Application\AccessControl\User\InMemoryUnitOfWork;
 use Fight\Test\AccessControl\Application\AccessControl\User\Repository\InMemoryUserRepository;
 use Fight\Test\AccessControl\Domain\AccessControl\User\UserFixture;
@@ -49,7 +49,9 @@ final class RequestEmailChangeHandlerTest extends TestCase
             $user = UserFixture::withState('old@example.test', UserState::ACTIVE);
             $users->add($user);
             $reservedUser = clone $user;
-            $reservedUser->requestEmailChange(EmailAddress::fromString('first@example.test'));
+            $reservedUser->requestEmailChange(EmailAddress::fromString('first@example.test'), new DateTimeImmutable(
+                '2026-01-01T00:00:00+00:00'
+            ));
             self::assertTrue($users->replaceEmailChangeReservation($user, $reservedUser));
             $grants = new InMemoryEmailChangeGrantRepository($unitOfWork);
             $predecessor = EmailChangeGrant::issue(
@@ -63,7 +65,7 @@ final class RequestEmailChangeHandlerTest extends TestCase
             self::assertTrue($grants->add($predecessor));
             if ($outcome === 'confirmed') {
                 $terminalUser = clone $reservedUser;
-                $terminalUser->confirmEmailChange();
+                $terminalUser->confirmEmailChange(new DateTimeImmutable('2026-01-01T00:00:00+00:00'));
                 $terminalUser->advanceAuthenticationAuthorityRevision();
                 self::assertTrue($users->replaceEmailChangeConfirmation($reservedUser, $terminalUser));
                 $terminalPredecessor = $predecessor->consume(
@@ -71,14 +73,14 @@ final class RequestEmailChangeHandlerTest extends TestCase
                 );
             } elseif ($outcome === 'cancelled') {
                 $terminalUser = clone $reservedUser;
-                $terminalUser->cancelEmailChange();
+                $terminalUser->cancelEmailChange(new DateTimeImmutable('2026-01-01T00:00:00+00:00'));
                 self::assertTrue($users->replaceEmailChangeReservation($reservedUser, $terminalUser));
                 $terminalPredecessor = $predecessor->revoke(
                     new DateTimeImmutable('2026-08-22T10:30:00+00:00')
                 );
             } else {
                 $terminalUser = clone $reservedUser;
-                $terminalUser->expireEmailChange();
+                $terminalUser->expireEmailChange(new DateTimeImmutable('2026-01-01T00:00:00+00:00'));
                 self::assertTrue($users->replaceEmailChangeReservation($reservedUser, $terminalUser));
                 $terminalPredecessor = $predecessor->expireAt(
                     new DateTimeImmutable('2026-08-22T11:00:00+00:00')
@@ -140,7 +142,7 @@ final class RequestEmailChangeHandlerTest extends TestCase
             $unitOfWork,
             new FixedEmailChangeCredentialGenerator('change-once'),
             new PrefixEmailChangeDeliveryCipher(),
-            new FixedEmailChangeClock('2026-08-22T12:00:00+00:00'),
+            new FixedClock('2026-08-22T12:00:00+00:00'),
             $events
         );
 
@@ -397,7 +399,7 @@ final class RequestEmailChangeHandlerTest extends TestCase
             $unitOfWork,
             new FixedEmailChangeCredentialGenerator('change-once'),
             new PrefixEmailChangeDeliveryCipher(),
-            new FixedEmailChangeClock('2026-08-22T12:00:00+00:00'),
+            new FixedClock('2026-08-22T12:00:00+00:00'),
             $events
         );
         $actorId = UserId::generate();
@@ -443,7 +445,7 @@ final class RequestEmailChangeHandlerTest extends TestCase
             $unitOfWork,
             new FixedEmailChangeCredentialGenerator('change-once'),
             new PrefixEmailChangeDeliveryCipher(),
-            new FixedEmailChangeClock('2026-08-22T12:00:00+00:00'),
+            new FixedClock('2026-08-22T12:00:00+00:00'),
             $events
         );
         $actorId = UserId::generate();
@@ -481,7 +483,7 @@ final class RequestEmailChangeHandlerTest extends TestCase
             $unitOfWork,
             new FixedEmailChangeCredentialGenerator('change-once'),
             new PrefixEmailChangeDeliveryCipher(),
-            new FixedEmailChangeClock('2026-08-22T12:00:00+00:00'),
+            new FixedClock('2026-08-22T12:00:00+00:00'),
             $events
         );
 
@@ -514,7 +516,7 @@ final class RequestEmailChangeHandlerTest extends TestCase
             $unitOfWork,
             new FixedEmailChangeCredentialGenerator('change-once'),
             new PrefixEmailChangeDeliveryCipher(),
-            new FixedEmailChangeClock('2026-08-22T12:00:00+00:00'),
+            new FixedClock('2026-08-22T12:00:00+00:00'),
             $events
         );
     }

@@ -43,7 +43,9 @@ final class DeliverEmailChangeHandlerTest extends TestCase
     public function test_requested_event_routes_bounded_work_then_success_confirms_only_delivery_atomically(): void
     {
         $user = UserFixture::withState('old@example.test', UserState::ACTIVE);
-        $user->requestEmailChange(EmailAddress::fromString('new@example.test'));
+        $user->requestEmailChange(EmailAddress::fromString('new@example.test'), new DateTimeImmutable(
+            '2026-01-01T00:00:00+00:00'
+        ));
 
         $grant = EmailChangeGrant::issue(
             $user->getId(),

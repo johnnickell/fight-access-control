@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace Fight\AccessControl\Application\AccessControl\RefreshSession\CommandHandler;
 
 use DateTimeImmutable;
-use Fight\AccessControl\Application\AccessControl\RefreshSession\Service\RefreshSessionClock;
 use Fight\AccessControl\Application\AccessControl\RefreshSession\Service\SessionAdministrationAuthorization;
+use Fight\AccessControl\Application\AccessControl\Timing\Service\Clock;
 use Fight\AccessControl\Domain\AccessControl\Audit\AuditEvidence;
 use Fight\AccessControl\Domain\AccessControl\Audit\AuditEvidenceRepository;
 use Fight\AccessControl\Domain\AccessControl\RefreshSession\Command\RevokeSession;
@@ -36,7 +36,7 @@ final readonly class RevokeSessionHandler implements CommandHandler
      */
     public function __construct(
         private RefreshSessionRepository $refreshSessionRepository,
-        private RefreshSessionClock $refreshSessionClock,
+        private Clock $refreshSessionClock,
         private SessionAdministrationAuthorization $sessionAdministrationAuthorization,
         private AuditEvidenceRepository $auditEvidenceRepository,
         private UnitOfWork $unitOfWork,

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Fight\AccessControl\Domain\AccessControl\Role;
 
+use DateTimeImmutable;
 use Fight\AccessControl\Domain\AccessControl\Permission\PermissionId;
 use Fight\Common\Domain\Collection\HashSet;
 
@@ -25,7 +26,9 @@ class Role
     protected function __construct(
         private readonly RoleId $id,
         private readonly RoleName $name,
-        array $permissionIds
+        array $permissionIds,
+        private readonly DateTimeImmutable $createdAt,
+        private readonly DateTimeImmutable $updatedAt
     ) {
         $this->permissionIds = HashSet::of(PermissionId::class);
 
@@ -39,9 +42,13 @@ class Role
      *
      * @phpstan-param list<PermissionId> $permissionIds
      */
-    public static function define(RoleId $id, RoleName $name, array $permissionIds): static
-    {
-        return new static($id, $name, $permissionIds);
+    public static function define(
+        RoleId $id,
+        RoleName $name,
+        array $permissionIds,
+        DateTimeImmutable $createdAt
+    ): static {
+        return new static($id, $name, $permissionIds, $createdAt, $createdAt);
     }
 
     /**
@@ -50,6 +57,22 @@ class Role
     public function getId(): RoleId
     {
         return $this->id;
+    }
+
+    /**
+     * Returns the datetime when the role was created.
+     */
+    public function getCreatedAt(): DateTimeImmutable
+    {
+        return $this->createdAt;
+    }
+
+    /**
+     * Returns the datetime when the role was last updated.
+     */
+    public function getUpdatedAt(): DateTimeImmutable
+    {
+        return $this->updatedAt;
     }
 
     /**

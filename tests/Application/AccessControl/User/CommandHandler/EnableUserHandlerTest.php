@@ -16,6 +16,7 @@ use Fight\Common\Domain\Messaging\Command\CommandMessage;
 use Fight\Common\Domain\Messaging\Event\CommandFailedEvent;
 use Fight\Test\AccessControl\Application\AccessControl\Audit\Repository\InMemoryAuditEvidenceRepository;
 use Fight\Test\AccessControl\Application\AccessControl\Event\InMemoryEventDispatcher;
+use Fight\Test\AccessControl\Application\AccessControl\Timing\Service\FixedClock;
 use Fight\Test\AccessControl\Application\AccessControl\User\InMemoryUnitOfWork;
 use Fight\Test\AccessControl\Application\AccessControl\User\Repository\InMemoryUserRepository;
 use Fight\Test\AccessControl\Domain\AccessControl\User\UserFixture;
@@ -40,7 +41,13 @@ final class EnableUserHandlerTest extends TestCase
             self::assertCount(1, $audit->all());
             self::assertTrue($unitOfWork->transactionCompleted);
         });
-        $handler = new EnableUserHandler($users, $audit, $unitOfWork, $events);
+        $handler = new EnableUserHandler(
+            $users,
+            $audit,
+            $unitOfWork,
+            $events,
+            new FixedClock('2026-01-01T00:00:00+00:00')
+        );
         $actorId = UserId::generate();
 
         $handler->handle(CommandMessage::create(new EnableUser($actorId, $user->getId())));
@@ -113,7 +120,13 @@ final class EnableUserHandlerTest extends TestCase
             $events = new InMemoryEventDispatcher();
 
             try {
-                new EnableUserHandler($users, $audit, $unitOfWork, $events)->handle(
+                new EnableUserHandler(
+                    $users,
+                    $audit,
+                    $unitOfWork,
+                    $events,
+                    new FixedClock('2026-01-01T00:00:00+00:00')
+                )->handle(
                     CommandMessage::create(new EnableUser(UserId::generate(), $user->getId()))
                 );
                 self::fail('A non-disabled identity was enabled.');
@@ -133,7 +146,13 @@ final class EnableUserHandlerTest extends TestCase
         $events = new InMemoryEventDispatcher();
 
         try {
-            new EnableUserHandler($users, $audit, $unitOfWork, $events)->handle(
+            new EnableUserHandler(
+                $users,
+                $audit,
+                $unitOfWork,
+                $events,
+                new FixedClock('2026-01-01T00:00:00+00:00')
+            )->handle(
                 CommandMessage::create(new EnableUser(UserId::generate(), UserId::generate()))
             );
             self::fail('A missing identity was enabled.');
@@ -153,7 +172,13 @@ final class EnableUserHandlerTest extends TestCase
         $events = new InMemoryEventDispatcher();
 
         try {
-            new EnableUserHandler($users, $audit, $unitOfWork, $events)->handle(
+            new EnableUserHandler(
+                $users,
+                $audit,
+                $unitOfWork,
+                $events,
+                new FixedClock('2026-01-01T00:00:00+00:00')
+            )->handle(
                 CommandMessage::create(new EnableUser(UserId::generate(), $user->getId()))
             );
             self::fail('A stale lifecycle state was replaced.');

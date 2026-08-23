@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Fight\AccessControl\Application\AccessControl\Authorization\Service;
 
-use Fight\AccessControl\Application\AccessControl\User\Service\AuthenticationClock;
+use Fight\AccessControl\Application\AccessControl\Timing\Service\Clock;
 use Fight\AccessControl\Domain\AccessControl\Authorization\AuthenticatedPrincipal;
 use Fight\AccessControl\Domain\AccessControl\Authorization\Exception\PrincipalResolutionException;
 use Fight\AccessControl\Domain\AccessControl\Authorization\PrincipalPermission;
@@ -32,7 +32,7 @@ final readonly class AuthoritativePrincipalResolver
         private RefreshSessionRepository $refreshSessionRepository,
         private RoleRepository $roleRepository,
         private PermissionRepository $permissionRepository,
-        private AuthenticationClock $authenticationClock
+        private Clock $authenticationClock
     ) {
     }
 

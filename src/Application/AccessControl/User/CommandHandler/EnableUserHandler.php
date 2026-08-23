@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Fight\AccessControl\Application\AccessControl\User\CommandHandler;
 
+use Fight\AccessControl\Application\AccessControl\Timing\Service\Clock;
 use Fight\AccessControl\Domain\AccessControl\Audit\AuditEvidence;
 use Fight\AccessControl\Domain\AccessControl\Audit\AuditEvidenceRepository;
 use Fight\AccessControl\Domain\AccessControl\User\Command\EnableUser;
@@ -31,7 +32,8 @@ final readonly class EnableUserHandler implements CommandHandler
         private UserRepository $userRepository,
         private AuditEvidenceRepository $auditEvidenceRepository,
         private UnitOfWork $unitOfWork,
-        private EventDispatcher $eventDispatcher
+        private EventDispatcher $eventDispatcher,
+        private Clock $clock
     ) {
     }
 
@@ -59,7 +61,7 @@ final readonly class EnableUserHandler implements CommandHandler
                 }
 
                 $replacementUser = clone $user;
-                $replacementUser->enable();
+                $replacementUser->enable($this->clock->now());
                 if (!$this->userRepository->replaceLifecycleState($user, $replacementUser)) {
                     throw new LogicException('The user lifecycle state changed concurrently.');
                 }

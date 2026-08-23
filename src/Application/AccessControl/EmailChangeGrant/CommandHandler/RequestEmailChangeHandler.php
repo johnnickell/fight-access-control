@@ -6,9 +6,9 @@ namespace Fight\AccessControl\Application\AccessControl\EmailChangeGrant\Command
 
 use DateInterval;
 use Fight\AccessControl\Application\AccessControl\EmailChangeGrant\Service\EmailChangeAdministrationAuthorization;
-use Fight\AccessControl\Application\AccessControl\EmailChangeGrant\Service\EmailChangeClock;
 use Fight\AccessControl\Application\AccessControl\EmailChangeGrant\Service\EmailChangeCredentialGenerator;
 use Fight\AccessControl\Application\AccessControl\EmailChangeGrant\Service\EmailChangeDeliveryCipher;
+use Fight\AccessControl\Application\AccessControl\Timing\Service\Clock;
 use Fight\AccessControl\Domain\AccessControl\Audit\AuditEvidence;
 use Fight\AccessControl\Domain\AccessControl\Audit\AuditEvidenceRepository;
 use Fight\AccessControl\Domain\AccessControl\EmailChangeGrant\Command\RequestEmailChange;
@@ -44,7 +44,7 @@ final readonly class RequestEmailChangeHandler implements CommandHandler
         private UnitOfWork $unitOfWork,
         private EmailChangeCredentialGenerator $emailChangeCredentialGenerator,
         private EmailChangeDeliveryCipher $emailChangeDeliveryCipher,
-        private EmailChangeClock $emailChangeClock,
+        private Clock $emailChangeClock,
         private EventDispatcher $eventDispatcher
     ) {
     }
@@ -81,7 +81,7 @@ final readonly class RequestEmailChangeHandler implements CommandHandler
                 }
 
                 $replacement = clone $user;
-                $replacement->requestEmailChange($command->getEmail());
+                $replacement->requestEmailChange($command->getEmail(), $this->emailChangeClock->now());
                 if (!$this->userRepository->replaceEmailChangeReservation($user, $replacement)) {
                     throw new LogicException('The email-change destination is unavailable.');
                 }

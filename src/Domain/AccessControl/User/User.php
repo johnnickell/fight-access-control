@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Fight\AccessControl\Domain\AccessControl\User;
 
+use DateTimeImmutable;
 use Fight\AccessControl\Domain\AccessControl\Role\RoleId;
 use Fight\AccessControl\Domain\AccessControl\User\Exception\EmailChangeCancellationException;
 use Fight\AccessControl\Domain\AccessControl\User\Exception\EmailChangeConfirmationException;
@@ -33,6 +34,8 @@ class User
         private readonly UserId $id,
         private EmailAddress $email,
         private UserState $state,
+        private readonly DateTimeImmutable $createdAt,
+        private DateTimeImmutable $updatedAt,
         private ?PasswordHash $passwordHash = null,
         private int $authenticationVersion = 1,
         private int $authenticationAuthorityRevision = 0,
@@ -52,9 +55,9 @@ class User
     /**
      * Creates a pending user from an email address.
      */
-    public static function invite(UserId $id, EmailAddress $email): self
+    public static function invite(UserId $id, EmailAddress $email, DateTimeImmutable $createdAt): self
     {
-        return new self($id, $email, UserState::PENDING_ACTIVATION);
+        return new self($id, $email, UserState::PENDING_ACTIVATION, $createdAt, $createdAt);
     }
 
     /**
@@ -63,6 +66,22 @@ class User
     public function getId(): UserId
     {
         return $this->id;
+    }
+
+    /**
+     * Returns the creation timestamp.
+     */
+    public function getCreatedAt(): DateTimeImmutable
+    {
+        return $this->createdAt;
+    }
+
+    /**
+     * Returns the last-update timestamp.
+     */
+    public function getUpdatedAt(): DateTimeImmutable
+    {
+        return $this->updatedAt;
     }
 
     /**
@@ -78,7 +97,7 @@ class User
      *
      * @throws EmailChangeRequestException When the identity cannot begin an email change.
      */
-    public function requestEmailChange(EmailAddress $email): void
+    public function requestEmailChange(EmailAddress $email, DateTimeImmutable $now): void
     {
         if ($this->state !== UserState::ACTIVE) {
             throw new EmailChangeRequestException('Only an active user can request an email change.');
@@ -94,6 +113,7 @@ class User
 
         $this->pendingEmailChange = $email;
         ++$this->emailChangeReservationRevision;
+        $this->updatedAt = $now;
     }
 
     /**
@@ -117,7 +137,7 @@ class User
      *
      * @throws PendingInvitationCorrectionException When the identity cannot be corrected.
      */
-    public function correctPendingInvitationEmail(EmailAddress $email): void
+    public function correctPendingInvitationEmail(EmailAddress $email, DateTimeImmutable $now): void
     {
         if ($this->state !== UserState::PENDING_ACTIVATION) {
             throw new PendingInvitationCorrectionException('Only a pending invitation can be corrected.');
@@ -129,6 +149,7 @@ class User
 
         $this->email = $email;
         ++$this->canonicalEmailRevision;
+        $this->updatedAt = $now;
     }
 
     /**
@@ -144,7 +165,7 @@ class User
      *
      * @throws EmailChangeConfirmationException When no destination can be promoted.
      */
-    public function confirmEmailChange(): void
+    public function confirmEmailChange(DateTimeImmutable $now): void
     {
         if ($this->state !== UserState::ACTIVE || !$this->pendingEmailChange instanceof EmailAddress) {
             throw new EmailChangeConfirmationException('The user has no confirmable email change.');
@@ -155,6 +176,7 @@ class User
         ++$this->authenticationVersion;
         ++$this->emailChangeReservationRevision;
         ++$this->canonicalEmailRevision;
+        $this->updatedAt = $now;
     }
 
     /**
@@ -162,7 +184,7 @@ class User
      *
      * @throws EmailChangeCancellationException When no reservation can be cancelled.
      */
-    public function cancelEmailChange(): void
+    public function cancelEmailChange(DateTimeImmutable $now): void
     {
         if ($this->state !== UserState::ACTIVE || !$this->pendingEmailChange instanceof EmailAddress) {
             throw new EmailChangeCancellationException('The user has no cancellable email change.');
@@ -170,6 +192,7 @@ class User
 
         $this->pendingEmailChange = null;
         ++$this->emailChangeReservationRevision;
+        $this->updatedAt = $now;
     }
 
     /**
@@ -177,7 +200,7 @@ class User
      *
      * @throws EmailChangeExpirationException When no reservation can expire.
      */
-    public function expireEmailChange(): void
+    public function expireEmailChange(DateTimeImmutable $now): void
     {
         if ($this->state !== UserState::ACTIVE || !$this->pendingEmailChange instanceof EmailAddress) {
             throw new EmailChangeExpirationException('The user has no expirable email change.');
@@ -185,6 +208,7 @@ class User
 
         $this->pendingEmailChange = null;
         ++$this->emailChangeReservationRevision;
+        $this->updatedAt = $now;
     }
 
     /**
@@ -200,13 +224,14 @@ class User
      *
      * @throws UserLifecycleException When the identity is not active.
      */
-    public function disable(): void
+    public function disable(DateTimeImmutable $now): void
     {
         if ($this->state !== UserState::ACTIVE) {
             throw new UserLifecycleException('Only an active user can be disabled.');
         }
 
         $this->state = UserState::DISABLED;
+        $this->updatedAt = $now;
     }
 
     /**
@@ -214,13 +239,14 @@ class User
      *
      * @throws UserLifecycleException When the identity is not disabled.
      */
-    public function enable(): void
+    public function enable(DateTimeImmutable $now): void
     {
         if ($this->state !== UserState::DISABLED) {
             throw new UserLifecycleException('Only a disabled user can be enabled.');
         }
 
         $this->state = UserState::ACTIVE;
+        $this->updatedAt = $now;
     }
 
     /**
@@ -228,13 +254,14 @@ class User
      *
      * @throws UserLifecycleException When the identity cannot be deleted.
      */
-    public function delete(): void
+    public function delete(DateTimeImmutable $now): void
     {
         if ($this->state !== UserState::ACTIVE && $this->state !== UserState::DISABLED) {
             throw new UserLifecycleException('Only an active or disabled user can be deleted.');
         }
 
         $this->state = UserState::DELETED;
+        $this->updatedAt = $now;
     }
 
     /**
@@ -242,7 +269,7 @@ class User
      *
      * @throws UserLifecycleException When the identity is not deleted or the target is unsupported.
      */
-    public function restore(UserState $target): void
+    public function restore(UserState $target, DateTimeImmutable $now): void
     {
         if ($this->state !== UserState::DELETED) {
             throw new UserLifecycleException('Only a deleted user can be restored.');
@@ -259,6 +286,8 @@ class User
         if ($target === UserState::PENDING_ACTIVATION) {
             $this->passwordHash = null;
         }
+
+        $this->updatedAt = $now;
     }
 
     /**
@@ -284,7 +313,7 @@ class User
      *
      * @phpstan-param iterable<RoleId> $roleIds
      */
-    public function replaceRoleAssignments(iterable $roleIds): void
+    public function replaceRoleAssignments(iterable $roleIds, DateTimeImmutable $now): void
     {
         $replacementRoleIds = HashSet::of(RoleId::class);
         foreach ($roleIds as $roleId) {
@@ -297,6 +326,7 @@ class User
 
         $this->roleIds = $replacementRoleIds;
         ++$this->authorizationAssignmentRevision;
+        $this->updatedAt = $now;
     }
 
     /**
@@ -312,7 +342,7 @@ class User
      *
      * @throws UserNotPendingActivationException When the identity is not pending activation.
      */
-    public function activate(PasswordHash $passwordHash): void
+    public function activate(PasswordHash $passwordHash, DateTimeImmutable $now): void
     {
         if ($this->state !== UserState::PENDING_ACTIVATION) {
             throw new UserNotPendingActivationException('Only a pending user can be activated.');
@@ -320,6 +350,7 @@ class User
 
         $this->passwordHash = $passwordHash;
         $this->state = UserState::ACTIVE;
+        $this->updatedAt = $now;
     }
 
     /**
@@ -333,19 +364,20 @@ class User
     /**
      * Replaces an active identity's password hash after successful verification.
      */
-    public function rehashPassword(PasswordHash $passwordHash): void
+    public function rehashPassword(PasswordHash $passwordHash, DateTimeImmutable $now): void
     {
         if ($this->state !== UserState::ACTIVE || !$this->passwordHash instanceof PasswordHash) {
             throw new UserNotActiveException('Only an active user can rehash an established password.');
         }
 
         $this->passwordHash = $passwordHash;
+        $this->updatedAt = $now;
     }
 
     /**
      * Replaces a verified active identity's password and invalidates prior authentication authority.
      */
-    public function changePassword(PasswordHash $passwordHash): void
+    public function changePassword(PasswordHash $passwordHash, DateTimeImmutable $now): void
     {
         if ($this->state !== UserState::ACTIVE || !$this->passwordHash instanceof PasswordHash) {
             throw new UserNotActiveException('Only an active user can change an established password.');
@@ -353,12 +385,13 @@ class User
 
         $this->passwordHash = $passwordHash;
         ++$this->authenticationVersion;
+        $this->updatedAt = $now;
     }
 
     /**
      * Replaces an active identity's password and invalidates prior authentication authority.
      */
-    public function resetPassword(PasswordHash $passwordHash): void
+    public function resetPassword(PasswordHash $passwordHash, DateTimeImmutable $now): void
     {
         if ($this->state !== UserState::ACTIVE || !$this->passwordHash instanceof PasswordHash) {
             throw new UserNotActiveException('Only an active user can reset an established password.');
@@ -366,6 +399,7 @@ class User
 
         $this->passwordHash = $passwordHash;
         ++$this->authenticationVersion;
+        $this->updatedAt = $now;
     }
 
     /**

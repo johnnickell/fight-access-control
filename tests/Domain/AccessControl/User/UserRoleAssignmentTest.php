@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Fight\Test\AccessControl\Domain\AccessControl\User;
 
+use DateTimeImmutable;
 use Fight\AccessControl\Domain\AccessControl\Role\RoleId;
 use Fight\AccessControl\Domain\AccessControl\User\PasswordHash;
 use Fight\AccessControl\Domain\AccessControl\User\User;
@@ -41,7 +42,7 @@ final class UserRoleAssignmentTest extends TestCase
         $roleId = RoleId::generate();
         $equalRoleId = RoleId::fromString($roleId->toString());
 
-        $user->replaceRoleAssignments([$roleId, $equalRoleId]);
+        $user->replaceRoleAssignments([$roleId, $equalRoleId], new DateTimeImmutable('2026-01-01T00:00:00+00:00'));
 
         $roleIds = $user->getRoleIds();
         $roleIds[] = RoleId::generate();
@@ -57,11 +58,14 @@ final class UserRoleAssignmentTest extends TestCase
         $user = $this->pendingUser();
         $firstRoleId = RoleId::generate();
         $secondRoleId = RoleId::generate();
-        $user->replaceRoleAssignments([$firstRoleId]);
+        $user->replaceRoleAssignments([$firstRoleId], new DateTimeImmutable('2026-01-01T00:00:00+00:00'));
         $authenticationVersion = $user->getAuthenticationVersion();
         $authenticationAuthorityRevision = $user->getAuthenticationAuthorityRevision();
 
-        $user->replaceRoleAssignments([$secondRoleId, RoleId::fromString($secondRoleId->toString())]);
+        $user->replaceRoleAssignments(
+            [$secondRoleId, RoleId::fromString($secondRoleId->toString())],
+            new DateTimeImmutable('2026-01-01T00:00:00+00:00')
+        );
 
         self::assertFalse($user->hasRole($firstRoleId));
         self::assertTrue($user->hasRole($secondRoleId));
@@ -75,9 +79,15 @@ final class UserRoleAssignmentTest extends TestCase
         $user = $this->pendingUser();
         $firstRoleId = RoleId::generate();
         $secondRoleId = RoleId::generate();
-        $user->replaceRoleAssignments([$firstRoleId, $secondRoleId]);
+        $user->replaceRoleAssignments(
+            [$firstRoleId, $secondRoleId],
+            new DateTimeImmutable('2026-01-01T00:00:00+00:00')
+        );
 
-        $user->replaceRoleAssignments([$secondRoleId, RoleId::fromString($firstRoleId->toString())]);
+        $user->replaceRoleAssignments(
+            [$secondRoleId, RoleId::fromString($firstRoleId->toString())],
+            new DateTimeImmutable('2026-01-01T00:00:00+00:00')
+        );
 
         self::assertSame(1, $user->getAuthorizationAssignmentRevision());
         self::assertTrue($user->hasRole($firstRoleId));
@@ -89,10 +99,10 @@ final class UserRoleAssignmentTest extends TestCase
         $user = $this->pendingUser();
         $existingRoleId = RoleId::generate();
         $replacementRoleId = RoleId::generate();
-        $user->replaceRoleAssignments([$existingRoleId]);
+        $user->replaceRoleAssignments([$existingRoleId], new DateTimeImmutable('2026-01-01T00:00:00+00:00'));
         $replacement = clone $user;
 
-        $replacement->replaceRoleAssignments([$replacementRoleId]);
+        $replacement->replaceRoleAssignments([$replacementRoleId], new DateTimeImmutable('2026-01-01T00:00:00+00:00'));
 
         self::assertTrue($user->hasRole($existingRoleId));
         self::assertFalse($user->hasRole($replacementRoleId));
@@ -104,13 +114,19 @@ final class UserRoleAssignmentTest extends TestCase
     {
         $user = $this->pendingUser();
         $roleId = RoleId::generate();
-        $user->replaceRoleAssignments([$roleId]);
+        $user->replaceRoleAssignments([$roleId], new DateTimeImmutable('2026-01-01T00:00:00+00:00'));
         $authorizationAssignmentRevision = $user->getAuthorizationAssignmentRevision();
 
-        $user->activate($this->passwordHash('initial-password'));
-        $user->rehashPassword($this->passwordHash('rehash-password'));
-        $user->changePassword($this->passwordHash('changed-password'));
-        $user->resetPassword($this->passwordHash('reset-password'));
+        $user->activate($this->passwordHash('initial-password'), new DateTimeImmutable('2026-01-01T00:00:00+00:00'));
+        $user->rehashPassword(
+            $this->passwordHash('rehash-password'),
+            new DateTimeImmutable('2026-01-01T00:00:00+00:00')
+        );
+        $user->changePassword(
+            $this->passwordHash('changed-password'),
+            new DateTimeImmutable('2026-01-01T00:00:00+00:00')
+        );
+        $user->resetPassword($this->passwordHash('reset-password'), new DateTimeImmutable('2026-01-01T00:00:00+00:00'));
         $user->advanceAuthenticationAuthorityRevision();
 
         self::assertSame([$roleId], $user->getRoleIds());
@@ -126,7 +142,8 @@ final class UserRoleAssignmentTest extends TestCase
     {
         return User::invite(
             UserId::generate(),
-            EmailAddress::fromString('role-assignment@example.test')
+            EmailAddress::fromString('role-assignment@example.test'),
+            new DateTimeImmutable('2026-01-01T00:00:00+00:00')
         );
     }
 }

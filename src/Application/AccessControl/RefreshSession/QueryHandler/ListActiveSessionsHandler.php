@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Fight\AccessControl\Application\AccessControl\RefreshSession\QueryHandler;
 
-use Fight\AccessControl\Application\AccessControl\RefreshSession\Service\RefreshSessionClock;
 use Fight\AccessControl\Application\AccessControl\RefreshSession\Service\SessionAdministrationAuthorization;
+use Fight\AccessControl\Application\AccessControl\Timing\Service\Clock;
 use Fight\AccessControl\Domain\AccessControl\RefreshSession\Query\ListActiveSessions;
 use Fight\AccessControl\Domain\AccessControl\RefreshSession\Query\SessionView;
 use Fight\AccessControl\Domain\AccessControl\RefreshSession\RefreshSession;
@@ -24,7 +24,7 @@ final readonly class ListActiveSessionsHandler implements QueryHandler
      */
     public function __construct(
         private RefreshSessionRepository $refreshSessionRepository,
-        private RefreshSessionClock $refreshSessionClock,
+        private Clock $refreshSessionClock,
         private SessionAdministrationAuthorization $sessionAdministrationAuthorization
     ) {
     }

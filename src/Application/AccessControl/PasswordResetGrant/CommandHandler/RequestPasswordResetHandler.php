@@ -5,9 +5,9 @@ declare(strict_types=1);
 namespace Fight\AccessControl\Application\AccessControl\PasswordResetGrant\CommandHandler;
 
 use DateInterval;
-use Fight\AccessControl\Application\AccessControl\PasswordResetGrant\Service\PasswordResetClock;
 use Fight\AccessControl\Application\AccessControl\PasswordResetGrant\Service\PasswordResetCredentialGenerator;
 use Fight\AccessControl\Application\AccessControl\PasswordResetGrant\Service\PasswordResetDeliveryCipher;
+use Fight\AccessControl\Application\AccessControl\Timing\Service\Clock;
 use Fight\AccessControl\Domain\AccessControl\Audit\AuditEvidence;
 use Fight\AccessControl\Domain\AccessControl\Audit\AuditEvidenceRepository;
 use Fight\AccessControl\Domain\AccessControl\PasswordResetGrant\Command\RequestPasswordReset;
@@ -42,7 +42,7 @@ final readonly class RequestPasswordResetHandler implements CommandHandler
         private UnitOfWork $unitOfWork,
         private PasswordResetCredentialGenerator $passwordResetCredentialGenerator,
         private PasswordResetDeliveryCipher $passwordResetDeliveryCipher,
-        private PasswordResetClock $passwordResetClock,
+        private Clock $passwordResetClock,
         private EventDispatcher $eventDispatcher
     ) {
     }

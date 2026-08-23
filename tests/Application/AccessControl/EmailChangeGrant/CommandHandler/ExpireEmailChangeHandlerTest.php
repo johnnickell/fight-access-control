@@ -42,7 +42,9 @@ final class ExpireEmailChangeHandlerTest extends TestCase
         $user = UserFixture::withState('old@example.test', UserState::ACTIVE);
         $users->add($user);
         $reserved = clone $user;
-        $reserved->requestEmailChange(EmailAddress::fromString('new@example.test'));
+        $reserved->requestEmailChange(EmailAddress::fromString('new@example.test'), new DateTimeImmutable(
+            '2026-01-01T00:00:00+00:00'
+        ));
         self::assertTrue($users->replaceEmailChangeReservation($user, $reserved));
         $grants = new InMemoryEmailChangeGrantRepository($unitOfWork);
         $grant = EmailChangeGrant::issue(
@@ -210,7 +212,9 @@ final class ExpireEmailChangeHandlerTest extends TestCase
         $user = UserFixture::withState('old@example.test', UserState::ACTIVE);
         $seedUsers->add($user);
         $reserved = clone $user;
-        $reserved->requestEmailChange(EmailAddress::fromString('new@example.test'));
+        $reserved->requestEmailChange(EmailAddress::fromString('new@example.test'), new DateTimeImmutable(
+            '2026-01-01T00:00:00+00:00'
+        ));
         self::assertTrue($seedUsers->replaceEmailChangeReservation($user, $reserved));
         $users = new InMemoryUserRepository(
             $unitOfWork,

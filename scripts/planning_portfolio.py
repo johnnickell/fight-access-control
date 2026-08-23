@@ -23,11 +23,23 @@ def frontmatter(path: Path) -> dict[str, str]:
         raise ValueError("missing frontmatter")
     _, block, _ = text.split("---", 2)
     values: dict[str, str] = {}
+    last_key: str | None = None
     for line in block.strip().splitlines():
+        if line.startswith(("  - ", "    - ")):
+            if last_key and last_key in values:
+                item = line.strip().removeprefix("- ").strip()
+                if values[last_key]:
+                    values[last_key] += ", " + item
+                else:
+                    values[last_key] = item
+            continue
         key, separator, value = line.partition(":")
         if not separator:
             raise ValueError(f"invalid frontmatter line: {line}")
-        values[key.strip()] = value.strip()
+        last_key = key.strip()
+        values[last_key] = value.strip()
+        if values[last_key] == "[]":
+            values[last_key] = ""
     return values
 
 
@@ -41,8 +53,12 @@ def main() -> int:
     }
 
     for directory, pattern in patterns.items():
-        suffix = {"epics": "-EPIC.md", "specs": "-PRD.md", "tickets": "-TICKET.md"}[directory]
-        for path in sorted((PLANNING / directory).glob(f"*{suffix}")):
+        suffix = (
+            "T-[0-9][0-9][0-9][0-9][0-9]-*.md"
+            if directory == "tickets"
+            else {"epics": "-EPIC.md", "specs": "-PRD.md"}[directory]
+        )
+        for path in sorted((PLANNING / directory).glob(suffix if directory == "tickets" else f"*{suffix}")):
             try:
                 data = frontmatter(path)
             except ValueError as exception:
@@ -64,7 +80,7 @@ def main() -> int:
         parent = data.get("epic") or data.get("prd")
         if parent and parent not in records:
             errors.append(f"{path.relative_to(ROOT)}: unknown parent {parent}")
-        blockers = [value for value in data.get("blocked_by", "").split(",") if value]
+        blockers = [value.strip() for value in data.get("blocked_by", "").split(",") if value.strip()]
         for blocker in blockers:
             if blocker not in records:
                 errors.append(f"{path.relative_to(ROOT)}: unknown blocker {blocker}")

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Fight\AccessControl\Domain\AccessControl\User\Query;
 
+use DateTimeImmutable;
 use Fight\AccessControl\Domain\AccessControl\Role\RoleId;
 use Fight\AccessControl\Domain\AccessControl\User\User;
 use Fight\AccessControl\Domain\AccessControl\User\UserId;
@@ -25,7 +26,9 @@ final readonly class UserView
         private EmailAddress $email,
         private UserState $state,
         /** @var list<RoleId> */
-        private array $roleIds
+        private array $roleIds,
+        private DateTimeImmutable $createdAt,
+        private DateTimeImmutable $updatedAt
     ) {
     }
 
@@ -38,7 +41,9 @@ final readonly class UserView
             $user->getId(),
             $user->getEmail(),
             $user->getState(),
-            $user->getRoleIds()
+            $user->getRoleIds(),
+            $user->getCreatedAt(),
+            $user->getUpdatedAt()
         );
     }
 
@@ -74,5 +79,21 @@ final readonly class UserView
     public function getRoleIds(): array
     {
         return $this->roleIds;
+    }
+
+    /**
+     * Returns the creation timestamp.
+     */
+    public function getCreatedAt(): DateTimeImmutable
+    {
+        return $this->createdAt;
+    }
+
+    /**
+     * Returns the last-update timestamp.
+     */
+    public function getUpdatedAt(): DateTimeImmutable
+    {
+        return $this->updatedAt;
     }
 }
