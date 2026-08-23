@@ -21,6 +21,10 @@ use Fight\AccessControl\Domain\AccessControl\ActivationGrant\ActivationGrant;
 use Fight\AccessControl\Domain\AccessControl\ActivationGrant\ActivationGrantRepository;
 use Fight\AccessControl\Domain\AccessControl\Audit\AuditEvidence;
 use Fight\AccessControl\Domain\AccessControl\Audit\AuditEvidenceRepository;
+use Fight\AccessControl\Domain\AccessControl\EmailChangeGrant\EmailChangeCredential;
+use Fight\AccessControl\Domain\AccessControl\EmailChangeGrant\EmailChangeGrant;
+use Fight\AccessControl\Domain\AccessControl\EmailChangeGrant\EmailChangeGrantRepository;
+use Fight\AccessControl\Domain\AccessControl\EmailChangeGrant\Exception\EmailChangeConfirmationRejectedException;
 use Fight\AccessControl\Domain\AccessControl\PasswordResetGrant\Exception\PasswordResetRejectedException;
 use Fight\AccessControl\Domain\AccessControl\PasswordResetGrant\PasswordResetCredential;
 use Fight\AccessControl\Domain\AccessControl\PasswordResetGrant\PasswordResetGrant;
@@ -31,6 +35,7 @@ use Fight\AccessControl\Domain\AccessControl\RefreshSession\RefreshCredential;
 use Fight\AccessControl\Domain\AccessControl\RefreshSession\RefreshSession;
 use Fight\AccessControl\Domain\AccessControl\RefreshSession\RefreshSessionId;
 use Fight\AccessControl\Domain\AccessControl\RefreshSession\RefreshSessionRepository;
+use Fight\AccessControl\Domain\AccessControl\User\Event\EmailChangeConfirmed;
 use Fight\AccessControl\Domain\AccessControl\User\Event\PasswordChanged;
 use Fight\AccessControl\Domain\AccessControl\User\Event\PasswordResetCompleted;
 use Fight\AccessControl\Domain\AccessControl\User\Event\RedactedCommandFailed;
@@ -53,6 +58,7 @@ use Fight\Common\Domain\Repository\ResultSet;
 use Fight\Common\Domain\Value\Internet\EmailAddress;
 use Fight\Test\AccessControl\Application\AccessControl\ActivationGrant\Repository\InMemoryActivationGrantRepository;
 use Fight\Test\AccessControl\Application\AccessControl\Audit\Repository\InMemoryAuditEvidenceRepository;
+use Fight\Test\AccessControl\Application\AccessControl\EmailChangeGrant\Repository\InMemoryEmailChangeGrantRepository;
 use Fight\Test\AccessControl\Application\AccessControl\Event\InMemoryEventDispatcher;
 use Fight\Test\AccessControl\Application\AccessControl\PasswordResetGrant\Repository\InMemoryPasswordResetGrants;
 use Fight\Test\AccessControl\Application\AccessControl\RefreshSession\Repository\InMemoryRefreshSessionRepository;
@@ -78,6 +84,8 @@ use RuntimeException;
 #[CoversClass(RefreshResult::class)]
 #[CoversClass(ActivationGrant::class)]
 #[CoversClass(AuditEvidence::class)]
+#[CoversClass(EmailChangeConfirmed::class)]
+#[CoversClass(EmailChangeGrant::class)]
 #[CoversClass(PasswordHash::class)]
 #[CoversClass(PasswordChanged::class)]
 #[CoversClass(PasswordChangeRejectedException::class)]
@@ -97,6 +105,8 @@ final class AuthenticationServiceTest extends TestCase
     private const string REFRESH_CREDENTIAL = '0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef';
 
     private const string RESET_CREDENTIAL = 'reset-once';
+
+    private const string EMAIL_CHANGE_CREDENTIAL = 'confirm-email-once';
 
     private const string ROTATED_CREDENTIAL = '1111111111111111111111111111111111111111111111111111111111111111';
 
@@ -166,6 +176,320 @@ final class AuthenticationServiceTest extends TestCase
             'absent delivery' => [false],
             'already invalidated delivery' => [true],
         ];
+    }
+
+    /**
+     * @return array<string, array{string, string}>
+     */
+    public static function rejectedEmailConfirmationAuthority(): array
+    {
+        return [
+            'wrong credential' => ['wrong', 'wrong-confirmation'],
+            'malformed credential' => ['malformed', ''],
+            'expiry boundary' => ['expired', self::EMAIL_CHANGE_CREDENTIAL],
+            'consumed grant replay' => ['consumed', self::EMAIL_CHANGE_CREDENTIAL],
+            'revoked grant replay' => ['revoked', self::EMAIL_CHANGE_CREDENTIAL],
+            'mismatched destination' => ['mismatched', self::EMAIL_CHANGE_CREDENTIAL],
+            'missing user' => ['missing_user', self::EMAIL_CHANGE_CREDENTIAL],
+            'missing reservation' => ['missing_reservation', self::EMAIL_CHANGE_CREDENTIAL],
+            'missing grant' => ['missing_grant', self::EMAIL_CHANGE_CREDENTIAL],
+        ];
+    }
+
+    public function test_that_email_confirmation_atomically_promotes_identity_and_invalidates_authentication(): void
+    {
+        $unitOfWork = new InMemoryUnitOfWork();
+        $users = new InMemoryUserRepository($unitOfWork);
+        $user = $this->activeUserFor('old@example.test');
+        $users->add($user);
+        $reservedUser = clone $user;
+        $reservedUser->requestEmailChange(EmailAddress::fromString('new@example.test'));
+        self::assertTrue($users->replaceEmailChangeReservation($user, $reservedUser));
+        $grants = new InMemoryEmailChangeGrantRepository($unitOfWork);
+        self::assertTrue($grants->add(EmailChangeGrant::issue(
+            $user->getId(),
+            EmailChangeCredential::fromString(self::EMAIL_CHANGE_CREDENTIAL),
+            new DateTimeImmutable('2026-08-19T11:00:00+00:00'),
+            new DateTimeImmutable('2026-08-19T13:00:00+00:00'),
+            EmailAddress::fromString('new@example.test'),
+            'ciphertext:confirm-email-once'
+        )));
+        $sessions = new InMemoryRefreshSessionRepository($unitOfWork);
+        $sessions->add($this->session($reservedUser, $this->refreshCredential(), false));
+        $sessions->add($this->session(
+            $reservedUser,
+            RefreshCredential::fromString(self::SIBLING_CREDENTIAL),
+            false
+        ));
+        $audit = new InMemoryAuditEvidenceRepository($unitOfWork);
+        $events = new InMemoryEventDispatcher(static function ($event) use ($audit, $unitOfWork): void {
+            if ($event instanceof EmailChangeConfirmed) {
+                self::assertCount(1, $audit->all());
+                self::assertTrue($unitOfWork->transactionCompleted);
+            }
+        });
+        $service = $this->service(
+            $users,
+            new InMemoryActivationGrantRepository($unitOfWork),
+            $sessions,
+            $unitOfWork,
+            $events,
+            auditEvidenceRepository: $audit,
+            emailChangeGrantRepository: $grants
+        );
+
+        $service->confirmEmail($user->getId(), self::EMAIL_CHANGE_CREDENTIAL);
+
+        $storedUser = $users->getById($user->getId());
+        self::assertInstanceOf(User::class, $storedUser);
+        self::assertSame('new@example.test', $storedUser->getEmail()->canonical());
+        self::assertNull($users->getByEmail(EmailAddress::fromString('old@example.test')));
+        self::assertSame($storedUser, $users->getByEmail(EmailAddress::fromString('new@example.test')));
+        self::assertNull($storedUser->getPendingEmailChange());
+        self::assertSame(2, $storedUser->getAuthenticationVersion());
+        self::assertSame(1, $storedUser->getAuthenticationAuthorityRevision());
+        self::assertTrue($grants->all()[0]->isConsumed());
+        self::assertFalse($grants->all()[0]->getDelivery()->isRecoverable());
+        self::assertCount(2, $sessions->all());
+        self::assertTrue($sessions->all()[0]->isRevoked());
+        self::assertTrue($sessions->all()[1]->isRevoked());
+        self::assertSame('user.email_change_confirmed', $audit->all()[0]->action());
+        self::assertSame(1, $unitOfWork->transactions);
+        self::assertCount(1, $events->events());
+        self::assertInstanceOf(EmailChangeConfirmed::class, $events->events()[0]);
+
+        try {
+            $service->refresh(self::REFRESH_CREDENTIAL);
+            self::fail('A pre-confirmation refresh credential remained authoritative.');
+        } catch (RefreshSessionNotFoundException) {
+            self::addToAssertionCount(1);
+        }
+    }
+
+    public function test_that_email_confirmation_event_round_trips_without_identity_or_secret_material(): void
+    {
+        $userId = UserId::generate();
+        $event = new EmailChangeConfirmed($userId, new DateTimeImmutable('2026-08-19T12:00:00+00:00'));
+
+        self::assertEquals($event, EmailChangeConfirmed::fromArray($event->toArray()));
+        self::assertSame($userId, $event->getUserId());
+        self::assertSame('2026-08-19T12:00:00+00:00', $event->getConfirmedAt()->format(DATE_ATOM));
+        self::assertSame([
+            'user_id' => $userId->toString(),
+            'confirmed_at' => '2026-08-19T12:00:00+00:00',
+        ], $event->toArray());
+
+        foreach (['user_id', 'confirmed_at'] as $missing) {
+            $data = $event->toArray();
+            unset($data[$missing]);
+
+            try {
+                EmailChangeConfirmed::fromArray($data);
+                self::fail('Missing event data was accepted.');
+            } catch (DomainException) {
+            }
+        }
+
+        self::addToAssertionCount(2);
+    }
+
+    #[DataProvider('rejectedEmailConfirmationAuthority')]
+    public function test_that_non_authoritative_email_confirmation_is_generic_redacted_and_mutation_free(
+        string $condition,
+        string $credential
+    ): void {
+        $unitOfWork = new InMemoryUnitOfWork();
+        $users = new InMemoryUserRepository($unitOfWork);
+        $user = $this->activeUserFor('old@example.test');
+        $reservedUser = clone $user;
+        $reservedUser->requestEmailChange(EmailAddress::fromString('new@example.test'));
+        if ($condition !== 'missing_user') {
+            $users->add($condition === 'missing_reservation' ? $user : $reservedUser);
+        }
+
+        $grants = new InMemoryEmailChangeGrantRepository($unitOfWork);
+        if ($condition !== 'missing_grant') {
+            $expiresAt = new DateTimeImmutable('2026-08-19T13:00:00+00:00');
+            if ($condition === 'expired') {
+                $expiresAt = new DateTimeImmutable('2026-08-19T12:00:00+00:00');
+            }
+
+            $grant = EmailChangeGrant::issue(
+                $user->getId(),
+                EmailChangeCredential::fromString(self::EMAIL_CHANGE_CREDENTIAL),
+                new DateTimeImmutable('2026-08-19T11:00:00+00:00'),
+                $expiresAt,
+                EmailAddress::fromString(
+                    $condition === 'mismatched' ? 'mismatched@example.test' : 'new@example.test'
+                ),
+                'ciphertext:confirm-email-once'
+            );
+            self::assertTrue($grants->add($grant));
+            if ($condition === 'consumed') {
+                self::assertTrue($grants->replace(
+                    $grant,
+                    $grant->consume(new DateTimeImmutable('2026-08-19T11:30:00+00:00'))
+                ));
+            } elseif ($condition === 'revoked') {
+                self::assertTrue($grants->replace(
+                    $grant,
+                    $grant->revoke(new DateTimeImmutable('2026-08-19T11:30:00+00:00'))
+                ));
+            }
+        }
+
+        $originalGrant = $grants->all()[0] ?? null;
+        $sessions = new InMemoryRefreshSessionRepository($unitOfWork);
+        $audit = new InMemoryAuditEvidenceRepository($unitOfWork);
+        $events = new InMemoryEventDispatcher();
+        $service = $this->service(
+            $users,
+            new InMemoryActivationGrantRepository($unitOfWork),
+            $sessions,
+            $unitOfWork,
+            $events,
+            auditEvidenceRepository: $audit,
+            emailChangeGrantRepository: $grants
+        );
+
+        $this->expectException(EmailChangeConfirmationRejectedException::class);
+        try {
+            $service->confirmEmail($user->getId(), $credential);
+        } finally {
+            self::assertSame(
+                $condition === 'missing_user' ? null : ($condition === 'missing_reservation' ? $user : $reservedUser),
+                $users->getById($user->getId())
+            );
+            self::assertSame($originalGrant, $grants->all()[0] ?? null);
+            self::assertSame([], $audit->all());
+            $this->assertEmailConfirmationFailureIsRedacted($events, $user->getId(), $credential);
+        }
+    }
+
+    public function test_that_confirmation_cas_losses_roll_back_every_authority_change(): void
+    {
+        foreach (['grant', 'user'] as $casLoss) {
+            $unitOfWork = new InMemoryUnitOfWork();
+            $users = new InMemoryUserRepository(
+                $unitOfWork,
+                replaceEmailChangeConfirmationSucceeds: $casLoss !== 'user'
+            );
+            $user = $this->activeUserFor('old@example.test');
+            $users->add($user);
+            $reservedUser = clone $user;
+            $reservedUser->requestEmailChange(EmailAddress::fromString('new@example.test'));
+            self::assertTrue($users->replaceEmailChangeReservation($user, $reservedUser));
+            $grants = new InMemoryEmailChangeGrantRepository(
+                $unitOfWork,
+                replaceSucceeds: $casLoss !== 'grant'
+            );
+            self::assertTrue($grants->add($this->emailChangeGrant($user->getId())));
+            $events = new InMemoryEventDispatcher();
+
+            try {
+                $this->service(
+                    $users,
+                    new InMemoryActivationGrantRepository($unitOfWork),
+                    new InMemoryRefreshSessionRepository($unitOfWork),
+                    $unitOfWork,
+                    $events,
+                    emailChangeGrantRepository: $grants
+                )->confirmEmail($user->getId(), self::EMAIL_CHANGE_CREDENTIAL);
+                self::fail('A stale confirmation compare-and-set was accepted.');
+            } catch (EmailChangeConfirmationRejectedException) {
+                self::assertSame($reservedUser, $users->getById($user->getId()));
+                self::assertTrue($grants->all()[0]->isIssued());
+                $this->assertEmailConfirmationFailureIsRedacted(
+                    $events,
+                    $user->getId(),
+                    self::EMAIL_CHANGE_CREDENTIAL
+                );
+            }
+        }
+    }
+
+    public function test_that_session_revocation_failure_rolls_back_confirmation(): void
+    {
+        $unitOfWork = new InMemoryUnitOfWork();
+        $users = new InMemoryUserRepository($unitOfWork);
+        $user = $this->activeUserFor('old@example.test');
+        $users->add($user);
+        $reservedUser = clone $user;
+        $reservedUser->requestEmailChange(EmailAddress::fromString('new@example.test'));
+        self::assertTrue($users->replaceEmailChangeReservation($user, $reservedUser));
+        $grants = new InMemoryEmailChangeGrantRepository($unitOfWork);
+        self::assertTrue($grants->add($this->emailChangeGrant($user->getId())));
+        $sessions = new InMemoryRefreshSessionRepository(
+            $unitOfWork,
+            beforeReplace: static function (): never {
+                throw new RuntimeException('Session persistence failed after secret-bearing confirmation.');
+            }
+        );
+        $sessions->add($this->session($reservedUser, $this->refreshCredential(), false));
+
+        $events = new InMemoryEventDispatcher();
+
+        $this->expectException(EmailChangeConfirmationRejectedException::class);
+        try {
+            $this->service(
+                $users,
+                new InMemoryActivationGrantRepository($unitOfWork),
+                $sessions,
+                $unitOfWork,
+                $events,
+                emailChangeGrantRepository: $grants
+            )->confirmEmail($user->getId(), self::EMAIL_CHANGE_CREDENTIAL);
+        } finally {
+            self::assertSame($reservedUser, $users->getById($user->getId()));
+            self::assertTrue($grants->all()[0]->isIssued());
+            self::assertFalse($sessions->all()[0]->isRevoked());
+            $this->assertEmailConfirmationFailureIsRedacted(
+                $events,
+                $user->getId(),
+                self::EMAIL_CHANGE_CREDENTIAL
+            );
+        }
+    }
+
+    public function test_that_late_confirmation_audit_failure_rolls_back_all_staged_authority(): void
+    {
+        $unitOfWork = new InMemoryUnitOfWork();
+        $users = new InMemoryUserRepository($unitOfWork);
+        $user = $this->activeUserFor('old@example.test');
+        $users->add($user);
+        $reservedUser = clone $user;
+        $reservedUser->requestEmailChange(EmailAddress::fromString('new@example.test'));
+        self::assertTrue($users->replaceEmailChangeReservation($user, $reservedUser));
+        $grants = new InMemoryEmailChangeGrantRepository($unitOfWork);
+        self::assertTrue($grants->add($this->emailChangeGrant($user->getId())));
+        $sessions = new InMemoryRefreshSessionRepository($unitOfWork);
+        $sessions->add($this->session($reservedUser, $this->refreshCredential(), false));
+
+        $audit = new InMemoryAuditEvidenceRepository($unitOfWork, failAfterSave: true);
+        $events = new InMemoryEventDispatcher();
+
+        $this->expectException(EmailChangeConfirmationRejectedException::class);
+        try {
+            $this->service(
+                $users,
+                new InMemoryActivationGrantRepository($unitOfWork),
+                $sessions,
+                $unitOfWork,
+                $events,
+                auditEvidenceRepository: $audit,
+                emailChangeGrantRepository: $grants
+            )->confirmEmail($user->getId(), self::EMAIL_CHANGE_CREDENTIAL);
+        } finally {
+            self::assertSame($reservedUser, $users->getById($user->getId()));
+            self::assertTrue($grants->all()[0]->isIssued());
+            self::assertFalse($sessions->all()[0]->isRevoked());
+            self::assertSame([], $audit->all());
+            $this->assertEmailConfirmationFailureIsRedacted(
+                $events,
+                $user->getId(),
+                self::EMAIL_CHANGE_CREDENTIAL
+            );
+        }
     }
 
     public function test_that_unproven_password_change_is_generic_redacted_and_mutation_free(): void
@@ -1156,6 +1480,21 @@ final class AuthenticationServiceTest extends TestCase
             public function replaceRoleAssignments(User $expected, User $replacement): bool
             {
                 return $this->users->replaceRoleAssignments($expected, $replacement);
+            }
+
+            public function replaceEmailChangeReservation(User $expected, User $replacement): bool
+            {
+                return $this->users->replaceEmailChangeReservation($expected, $replacement);
+            }
+
+            public function replaceEmailChangeConfirmation(User $expected, User $replacement): bool
+            {
+                return $this->users->replaceEmailChangeConfirmation($expected, $replacement);
+            }
+
+            public function replacePendingInvitationEmail(User $expected, User $replacement): bool
+            {
+                return $this->users->replacePendingInvitationEmail($expected, $replacement);
             }
 
             public function add(User $user): void
@@ -2790,6 +3129,43 @@ final class AuthenticationServiceTest extends TestCase
         self::assertStringNotContainsString($newPassword, serialize($events->events()[0]->toArray()));
     }
 
+    private function assertEmailConfirmationFailureIsRedacted(
+        InMemoryEventDispatcher $events,
+        UserId $userId,
+        string $credential
+    ): void {
+        self::assertCount(1, $events->events());
+        self::assertInstanceOf(RedactedCommandFailed::class, $events->events()[0]);
+        self::assertSame(
+            AuthenticationService::class.'::confirmEmail',
+            $events->events()[0]->getCommandClass()
+        );
+        self::assertSame(
+            ['user_id' => $userId->toString()],
+            $events->events()[0]->getRedactedCommandData()
+        );
+        self::assertSame('Email change confirmation rejected.', $events->events()[0]->getErrorMessage());
+        $serializedFailure = serialize($events->events()[0]->toArray());
+        if ($credential !== '') {
+            self::assertStringNotContainsString($credential, $serializedFailure);
+        }
+
+        self::assertStringNotContainsString('new@example.test', $serializedFailure);
+        self::assertStringNotContainsString('ciphertext:confirm-email-once', $serializedFailure);
+    }
+
+    private function emailChangeGrant(UserId $userId): EmailChangeGrant
+    {
+        return EmailChangeGrant::issue(
+            $userId,
+            EmailChangeCredential::fromString(self::EMAIL_CHANGE_CREDENTIAL),
+            new DateTimeImmutable('2026-08-19T11:00:00+00:00'),
+            new DateTimeImmutable('2026-08-19T13:00:00+00:00'),
+            EmailAddress::fromString('new@example.test'),
+            'ciphertext:confirm-email-once'
+        );
+    }
+
     private function grant(UserId $userId): ActivationGrant
     {
         return ActivationGrant::issue(
@@ -2837,7 +3213,8 @@ final class AuthenticationServiceTest extends TestCase
         ?RefreshCredentialGenerator $refreshCredentialGenerator = null,
         ?AuthenticationTokenPolicy $tokenPolicy = null,
         ?PasswordResetGrantRepository $passwordResetGrantRepository = null,
-        ?AuditEvidenceRepository $auditEvidenceRepository = null
+        ?AuditEvidenceRepository $auditEvidenceRepository = null,
+        ?EmailChangeGrantRepository $emailChangeGrantRepository = null
     ): AuthenticationService {
         $passwordSecurity = new TestPasswordSecurity();
         if (
@@ -2864,7 +3241,8 @@ final class AuthenticationServiceTest extends TestCase
             PasswordHash::fromString(password_hash('dummy-password', PASSWORD_DEFAULT)),
             $events,
             $passwordResetGrantRepository ?? new InMemoryPasswordResetGrants($unitOfWork),
-            $auditEvidenceRepository ?? new InMemoryAuditEvidenceRepository($unitOfWork)
+            $auditEvidenceRepository ?? new InMemoryAuditEvidenceRepository($unitOfWork),
+            $emailChangeGrantRepository ?? new InMemoryEmailChangeGrantRepository($unitOfWork)
         );
     }
 

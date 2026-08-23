@@ -72,9 +72,44 @@ interface UserRepository
     public function replaceRoleAssignments(User $expected, User $replacement): bool;
 
     /**
+     * Atomically replaces an email-change reservation while the expected identity remains current.
+     *
+     * Implementations compare the complete expected User state and permit only one valid reservation transition with
+     * exactly one revision advancement. A new destination must not be claimed by any canonical email or live
+     * reservation. Returns false without mutation when the predecessor changed or the transition is invalid.
+     *
+     * @throws Exception When an error occurs
+     */
+    public function replaceEmailChangeReservation(User $expected, User $replacement): bool;
+
+    /**
+     * Atomically promotes an email-change reservation and replaces authentication authority.
+     *
+     * Implementations compare complete expected User state and permit only promotion of the live destination to the
+     * canonical email, reservation clearing, exact authentication-version, authentication-authority,
+     * reservation-revision, and canonical-email-revision advancement. The operation participates in the same
+     * transaction-duration authentication-authority fence as other authority replacements. Returns false without
+     * mutation when the predecessor changed or the transition is invalid.
+     *
+     * @throws Exception When an error occurs
+     */
+    public function replaceEmailChangeConfirmation(User $expected, User $replacement): bool;
+
+    /**
+     * Atomically corrects a pending identity's canonical email while the expected identity remains current.
+     *
+     * Implementations compare complete expected User state, permit only a pending-activation canonical-email change
+     * with exactly one revision advancement, and reject a destination claimed by any canonical email or live
+     * email-change reservation. Returns false without mutation when the predecessor changed or destination is reserved.
+     *
+     * @throws Exception When an error occurs
+     */
+    public function replacePendingInvitationEmail(User $expected, User $replacement): bool;
+
+    /**
      * Adds a User.
      *
-     * Implementations must reject a duplicate canonical email atomically.
+     * Implementations must reject a canonical email claimed by another canonical email or live reservation atomically.
      *
      * @throws Exception When an error occurs
      */

@@ -13,6 +13,10 @@ use Fight\AccessControl\Domain\AccessControl\ActivationGrant\ActivationGrant;
 use Fight\AccessControl\Domain\AccessControl\ActivationGrant\ActivationGrantRepository;
 use Fight\AccessControl\Domain\AccessControl\Audit\AuditEvidence;
 use Fight\AccessControl\Domain\AccessControl\Audit\AuditEvidenceRepository;
+use Fight\AccessControl\Domain\AccessControl\EmailChangeGrant\EmailChangeCredential;
+use Fight\AccessControl\Domain\AccessControl\EmailChangeGrant\EmailChangeGrant;
+use Fight\AccessControl\Domain\AccessControl\EmailChangeGrant\EmailChangeGrantRepository;
+use Fight\AccessControl\Domain\AccessControl\EmailChangeGrant\Exception\EmailChangeConfirmationRejectedException;
 use Fight\AccessControl\Domain\AccessControl\PasswordResetGrant\Exception\PasswordResetRejectedException;
 use Fight\AccessControl\Domain\AccessControl\PasswordResetGrant\PasswordResetCredential;
 use Fight\AccessControl\Domain\AccessControl\PasswordResetGrant\PasswordResetGrant;
@@ -23,6 +27,7 @@ use Fight\AccessControl\Domain\AccessControl\RefreshSession\RefreshCredential;
 use Fight\AccessControl\Domain\AccessControl\RefreshSession\RefreshSession;
 use Fight\AccessControl\Domain\AccessControl\RefreshSession\RefreshSessionId;
 use Fight\AccessControl\Domain\AccessControl\RefreshSession\RefreshSessionRepository;
+use Fight\AccessControl\Domain\AccessControl\User\Event\EmailChangeConfirmed;
 use Fight\AccessControl\Domain\AccessControl\User\Event\PasswordChanged;
 use Fight\AccessControl\Domain\AccessControl\User\Event\PasswordResetCompleted;
 use Fight\AccessControl\Domain\AccessControl\User\Event\RedactedCommandFailed;
@@ -70,8 +75,81 @@ final readonly class AuthenticationService
         private PasswordHash $dummyPasswordHash,
         private EventDispatcher $eventDispatcher,
         private PasswordResetGrantRepository $passwordResetGrantRepository,
-        private AuditEvidenceRepository $auditEvidenceRepository
+        private AuditEvidenceRepository $auditEvidenceRepository,
+        private EmailChangeGrantRepository $emailChangeGrantRepository
     ) {
+    }
+
+    /**
+     * Confirms a current email-change credential without issuing new authentication tokens.
+     */
+    public function confirmEmail(
+        UserId $userId,
+        #[SensitiveParameter] string $emailChangeCredential
+    ): void {
+        try {
+            $confirmedAt = $this->unitOfWork->commitTransactional(function () use (
+                $userId,
+                $emailChangeCredential
+            ): DateTimeImmutable {
+                try {
+                    $confirmedAt = $this->clock->now();
+                    $user = $this->userRepository->getById($userId);
+                    $grant = $this->emailChangeGrantRepository->getLatestByUserId($userId);
+                    $credential = EmailChangeCredential::fromString($emailChangeCredential);
+                    $pendingEmail = $user?->getPendingEmailChange();
+
+                    if (
+                        !$user instanceof User
+                        || !$user->getId()->equals($userId)
+                        || $user->getState() !== UserState::ACTIVE
+                        || !$pendingEmail instanceof EmailAddress
+                        || !$grant instanceof EmailChangeGrant
+                        || !$grant->getUserId()->equals($userId)
+                        || $grant->purpose() !== 'email_change'
+                        || !$grant->isUsableAt($confirmedAt)
+                        || !$grant->matchesCredential($credential)
+                        || $grant->getDelivery()->getEmail()->canonical() !== $pendingEmail->canonical()
+                    ) {
+                        throw new EmailChangeConfirmationRejectedException('Email change confirmation rejected.');
+                    }
+
+                    $replacementUser = clone $user;
+                    $replacementUser->confirmEmailChange();
+                    $replacementUser->advanceAuthenticationAuthorityRevision();
+                    if (!$this->emailChangeGrantRepository->replace($grant, $grant->consume($confirmedAt))) {
+                        throw new EmailChangeConfirmationRejectedException('Email change confirmation rejected.');
+                    }
+
+                    if (!$this->userRepository->replaceEmailChangeConfirmation($user, $replacementUser)) {
+                        throw new EmailChangeConfirmationRejectedException('Email change confirmation rejected.');
+                    }
+
+                    foreach ($this->refreshSessionRepository->getAllActiveByUserId($userId, $confirmedAt) as $session) {
+                        $this->revokeSession($session);
+                    }
+
+                    $this->auditEvidenceRepository->add(AuditEvidence::record(
+                        $userId->toString(),
+                        'user.email_change_confirmed',
+                        $userId
+                    ));
+
+                    return $confirmedAt;
+                } catch (Throwable $throwable) {
+                    if ($throwable instanceof EmailChangeConfirmationRejectedException) {
+                        throw $throwable;
+                    }
+
+                    throw new EmailChangeConfirmationRejectedException('Email change confirmation rejected.');
+                }
+            });
+
+            $this->eventDispatcher->trigger(new EmailChangeConfirmed($userId, $confirmedAt));
+        } catch (Throwable $throwable) {
+            $this->publishFailure('confirmEmail', ['user_id' => $userId->toString()], $throwable);
+            throw $throwable;
+        }
     }
 
     /**

@@ -5,6 +5,11 @@ declare(strict_types=1);
 namespace Fight\AccessControl\Domain\AccessControl\User;
 
 use Fight\AccessControl\Domain\AccessControl\Role\RoleId;
+use Fight\AccessControl\Domain\AccessControl\User\Exception\EmailChangeCancellationException;
+use Fight\AccessControl\Domain\AccessControl\User\Exception\EmailChangeConfirmationException;
+use Fight\AccessControl\Domain\AccessControl\User\Exception\EmailChangeExpirationException;
+use Fight\AccessControl\Domain\AccessControl\User\Exception\EmailChangeRequestException;
+use Fight\AccessControl\Domain\AccessControl\User\Exception\PendingInvitationCorrectionException;
 use Fight\AccessControl\Domain\AccessControl\User\Exception\UserNotActiveException;
 use Fight\AccessControl\Domain\AccessControl\User\Exception\UserNotPendingActivationException;
 use Fight\Common\Domain\Collection\HashSet;
@@ -25,13 +30,16 @@ class User
      */
     protected function __construct(
         private readonly UserId $id,
-        private readonly EmailAddress $email,
+        private EmailAddress $email,
         private UserState $state,
         private ?PasswordHash $passwordHash = null,
         private int $authenticationVersion = 1,
         private int $authenticationAuthorityRevision = 0,
         array $roleIds = [],
-        private int $authorizationAssignmentRevision = 0
+        private int $authorizationAssignmentRevision = 0,
+        private ?EmailAddress $pendingEmailChange = null,
+        private int $emailChangeReservationRevision = 0,
+        private int $canonicalEmailRevision = 0
     ) {
         $this->roleIds = HashSet::of(RoleId::class);
 
@@ -62,6 +70,120 @@ class User
     public function getEmail(): EmailAddress
     {
         return $this->email;
+    }
+
+    /**
+     * Reserves a destination email while retaining the canonical identity.
+     *
+     * @throws EmailChangeRequestException When the identity cannot begin an email change.
+     */
+    public function requestEmailChange(EmailAddress $email): void
+    {
+        if ($this->state !== UserState::ACTIVE) {
+            throw new EmailChangeRequestException('Only an active user can request an email change.');
+        }
+
+        if ($this->pendingEmailChange instanceof EmailAddress) {
+            throw new EmailChangeRequestException('The user already has a pending email change.');
+        }
+
+        if ($this->email->canonical() === $email->canonical()) {
+            throw new EmailChangeRequestException('The email-change destination must differ from the canonical email.');
+        }
+
+        $this->pendingEmailChange = $email;
+        ++$this->emailChangeReservationRevision;
+    }
+
+    /**
+     * Returns the pending email-change destination.
+     */
+    public function getPendingEmailChange(): ?EmailAddress
+    {
+        return $this->pendingEmailChange;
+    }
+
+    /**
+     * Returns the monotonic email-change reservation revision.
+     */
+    public function getEmailChangeReservationRevision(): int
+    {
+        return $this->emailChangeReservationRevision;
+    }
+
+    /**
+     * Corrects the canonical email of an identity still pending activation.
+     *
+     * @throws PendingInvitationCorrectionException When the identity cannot be corrected.
+     */
+    public function correctPendingInvitationEmail(EmailAddress $email): void
+    {
+        if ($this->state !== UserState::PENDING_ACTIVATION) {
+            throw new PendingInvitationCorrectionException('Only a pending invitation can be corrected.');
+        }
+
+        if ($this->email->canonical() === $email->canonical()) {
+            throw new PendingInvitationCorrectionException('The corrected email must differ from the current email.');
+        }
+
+        $this->email = $email;
+        ++$this->canonicalEmailRevision;
+    }
+
+    /**
+     * Returns the monotonic canonical-email persistence revision.
+     */
+    public function getCanonicalEmailRevision(): int
+    {
+        return $this->canonicalEmailRevision;
+    }
+
+    /**
+     * Promotes a live destination and invalidates prior authentication authority.
+     *
+     * @throws EmailChangeConfirmationException When no destination can be promoted.
+     */
+    public function confirmEmailChange(): void
+    {
+        if ($this->state !== UserState::ACTIVE || !$this->pendingEmailChange instanceof EmailAddress) {
+            throw new EmailChangeConfirmationException('The user has no confirmable email change.');
+        }
+
+        $this->email = $this->pendingEmailChange;
+        $this->pendingEmailChange = null;
+        ++$this->authenticationVersion;
+        ++$this->emailChangeReservationRevision;
+        ++$this->canonicalEmailRevision;
+    }
+
+    /**
+     * Clears the active identity's pending email-change reservation.
+     *
+     * @throws EmailChangeCancellationException When no reservation can be cancelled.
+     */
+    public function cancelEmailChange(): void
+    {
+        if ($this->state !== UserState::ACTIVE || !$this->pendingEmailChange instanceof EmailAddress) {
+            throw new EmailChangeCancellationException('The user has no cancellable email change.');
+        }
+
+        $this->pendingEmailChange = null;
+        ++$this->emailChangeReservationRevision;
+    }
+
+    /**
+     * Clears the active identity's expired email-change reservation.
+     *
+     * @throws EmailChangeExpirationException When no reservation can expire.
+     */
+    public function expireEmailChange(): void
+    {
+        if ($this->state !== UserState::ACTIVE || !$this->pendingEmailChange instanceof EmailAddress) {
+            throw new EmailChangeExpirationException('The user has no expirable email change.');
+        }
+
+        $this->pendingEmailChange = null;
+        ++$this->emailChangeReservationRevision;
     }
 
     /**

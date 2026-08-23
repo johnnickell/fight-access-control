@@ -34,7 +34,10 @@ final class InMemoryUserRepository implements UserRepository
         private readonly ?Closure $beforeGetByEmail = null,
         private readonly bool $replaceAuthenticationAuthoritySucceeds = true,
         ?InMemoryUserRepositoryState $state = null,
-        private readonly ?Closure $afterReplaceAuthenticationAuthority = null
+        private readonly ?Closure $afterReplaceAuthenticationAuthority = null,
+        private readonly bool $replaceEmailChangeReservationSucceeds = true,
+        private readonly bool $replacePendingInvitationEmailSucceeds = true,
+        private readonly bool $replaceEmailChangeConfirmationSucceeds = true
     ) {
         $this->state = $state ?? new InMemoryUserRepositoryState();
         $this->authenticationAuthorityFenceOwner = new stdClass();
@@ -42,10 +45,13 @@ final class InMemoryUserRepository implements UserRepository
 
     public function add(User $user): void
     {
+        $canonical = $user->getEmail()->canonical();
         if (
             array_any(
                 $this->state->users,
-                static fn(User $reserved): bool => $reserved->getEmail()->canonical() === $user->getEmail()->canonical()
+                static fn(User $reserved): bool =>
+                    $reserved->getEmail()->canonical() === $canonical
+                    || $reserved->getPendingEmailChange()?->canonical() === $canonical
             )
         ) {
             throw new DuplicateEmailException('The email address is already reserved.');
@@ -153,6 +159,96 @@ final class InMemoryUserRepository implements UserRepository
         return true;
     }
 
+    public function replaceEmailChangeReservation(User $expected, User $replacement): bool
+    {
+        if (!$this->replaceEmailChangeReservationSucceeds) {
+            return false;
+        }
+
+        $index = $this->emailChangeReservationReplacementIndex($expected, $replacement);
+        if ($index === null) {
+            return false;
+        }
+
+        $destination = $replacement->getPendingEmailChange();
+        if ($destination instanceof EmailAddress) {
+            foreach ($this->state->users as $reserved) {
+                if ($reserved->getId()->equals($expected->getId())) {
+                    continue;
+                }
+
+                if (
+                    $reserved->getEmail()->canonical() === $destination->canonical()
+                    || $reserved->getPendingEmailChange()?->canonical() === $destination->canonical()
+                ) {
+                    return false;
+                }
+            }
+        }
+
+        $this->replaceAt($index, $replacement);
+
+        return true;
+    }
+
+    public function replacePendingInvitationEmail(User $expected, User $replacement): bool
+    {
+        if (!$this->replacePendingInvitationEmailSucceeds) {
+            return false;
+        }
+
+        $index = $this->pendingInvitationEmailReplacementIndex($expected, $replacement);
+        if ($index === null) {
+            return false;
+        }
+
+        $destination = $replacement->getEmail()->canonical();
+        foreach ($this->state->users as $reserved) {
+            if ($reserved->getId()->equals($expected->getId())) {
+                continue;
+            }
+
+            if (
+                $reserved->getEmail()->canonical() === $destination
+                || $reserved->getPendingEmailChange()?->canonical() === $destination
+            ) {
+                return false;
+            }
+        }
+
+        $this->replaceAt($index, $replacement);
+
+        return true;
+    }
+
+    public function replaceEmailChangeConfirmation(User $expected, User $replacement): bool
+    {
+        if (
+            !$this->replaceEmailChangeConfirmationSucceeds
+            || !$this->acquireAuthenticationAuthorityFence($expected)
+        ) {
+            return false;
+        }
+
+        $index = $this->emailChangeConfirmationReplacementIndex($expected, $replacement);
+        if ($index === null || $this->emailIsClaimedByAnotherUser($expected, $replacement->getEmail())) {
+            $this->releaseAuthenticationAuthorityFence($expected->getId());
+
+            return false;
+        }
+
+        $releaseAfterOperation = $this->holdAuthenticationAuthorityFenceThroughCompletion($expected->getId());
+        try {
+            $this->replaceAt($index, $replacement);
+        } finally {
+            if ($releaseAfterOperation) {
+                $this->releaseAuthenticationAuthorityFence($expected->getId());
+            }
+        }
+
+        return true;
+    }
+
     public function bindRefreshSessionRepository(InMemoryRefreshSessionRepository $refreshSessionRepository): void
     {
         $this->refreshSessionRepository = $refreshSessionRepository;
@@ -193,6 +289,7 @@ final class InMemoryUserRepository implements UserRepository
             && $authenticationAuthorityRevisionIsValid
             && $replacement->getAuthorizationAssignmentRevision() === $expected->getAuthorizationAssignmentRevision()
             && $this->roleAssignmentsMatch($replacement, $expected)
+            && $this->emailStateMatches($replacement, $expected)
             && $replacement->getPasswordHash() instanceof PasswordHash;
     }
 
@@ -206,7 +303,7 @@ final class InMemoryUserRepository implements UserRepository
             if (
                 $user->getId()->equals($expected->getId())
                 && $replacement->getId()->equals($expected->getId())
-                && $replacement->getEmail()->canonical() === $expected->getEmail()->canonical()
+                && $this->emailStateMatches($user, $expected)
                 && $user->getState() === $expected->getState()
                 && $user->getAuthenticationVersion() === $expected->getAuthenticationVersion()
                 && $user->getAuthenticationAuthorityRevision() === $expected->getAuthenticationAuthorityRevision()
@@ -245,12 +342,172 @@ final class InMemoryUserRepository implements UserRepository
                 && $this->passwordHashesMatch($replacement->getPasswordHash(), $expected->getPasswordHash())
                 && $this->roleAssignmentsMatch($user, $expected)
                 && !$this->roleAssignmentsMatch($replacement, $expected)
+                && $this->emailStateMatches($user, $expected)
+                && $this->emailStateMatches($replacement, $expected)
             ) {
                 return $index;
             }
         }
 
         return null;
+    }
+
+    private function emailChangeReservationReplacementIndex(User $expected, User $replacement): ?int
+    {
+        $authenticationAuthorityRevision = $expected->getAuthenticationAuthorityRevision();
+        $authorizationAssignmentRevision = $expected->getAuthorizationAssignmentRevision();
+        $emailChangeReservationRevision = $expected->getEmailChangeReservationRevision();
+        $expectedPendingEmailChange = $expected->getPendingEmailChange();
+        $replacementPendingEmailChange = $replacement->getPendingEmailChange();
+        $reservationTransitionIsValid = (
+            !$expectedPendingEmailChange instanceof EmailAddress
+            && $replacementPendingEmailChange instanceof EmailAddress
+        ) || (
+            $expectedPendingEmailChange instanceof EmailAddress
+            && !$replacementPendingEmailChange instanceof EmailAddress
+        );
+
+        foreach ($this->state->users as $index => $user) {
+            if (
+                $user->getId()->equals($expected->getId())
+                && $replacement->getId()->equals($expected->getId())
+                && $user->getEmail()->canonical() === $expected->getEmail()->canonical()
+                && $replacement->getEmail()->canonical() === $expected->getEmail()->canonical()
+                && $user->getState() === $expected->getState()
+                && $replacement->getState() === $expected->getState()
+                && $this->passwordHashesMatch($user->getPasswordHash(), $expected->getPasswordHash())
+                && $this->passwordHashesMatch($replacement->getPasswordHash(), $expected->getPasswordHash())
+                && $user->getAuthenticationVersion() === $expected->getAuthenticationVersion()
+                && $replacement->getAuthenticationVersion() === $expected->getAuthenticationVersion()
+                && $user->getAuthenticationAuthorityRevision() === $authenticationAuthorityRevision
+                && $replacement->getAuthenticationAuthorityRevision() === $authenticationAuthorityRevision
+                && $user->getAuthorizationAssignmentRevision() === $authorizationAssignmentRevision
+                && $replacement->getAuthorizationAssignmentRevision() === $authorizationAssignmentRevision
+                && $this->roleAssignmentsMatch($user, $expected)
+                && $this->roleAssignmentsMatch($replacement, $expected)
+                && $user->getEmailChangeReservationRevision() === $emailChangeReservationRevision
+                && $replacement->getEmailChangeReservationRevision() === $emailChangeReservationRevision + 1
+                && $user->getCanonicalEmailRevision() === $expected->getCanonicalEmailRevision()
+                && $replacement->getCanonicalEmailRevision() === $expected->getCanonicalEmailRevision()
+                && $user->getPendingEmailChange()?->canonical() === $expectedPendingEmailChange?->canonical()
+                && $reservationTransitionIsValid
+            ) {
+                return $index;
+            }
+        }
+
+        return null;
+    }
+
+    private function pendingInvitationEmailReplacementIndex(User $expected, User $replacement): ?int
+    {
+        $authenticationAuthorityRevision = $expected->getAuthenticationAuthorityRevision();
+        $authorizationAssignmentRevision = $expected->getAuthorizationAssignmentRevision();
+        $canonicalEmailRevision = $expected->getCanonicalEmailRevision();
+        $emailChangeReservationRevision = $expected->getEmailChangeReservationRevision();
+        $pendingEmailChange = $expected->getPendingEmailChange()?->canonical();
+
+        foreach ($this->state->users as $index => $user) {
+            if (
+                $user->getId()->equals($expected->getId())
+                && $replacement->getId()->equals($expected->getId())
+                && $user->getEmail()->canonical() === $expected->getEmail()->canonical()
+                && $replacement->getEmail()->canonical() !== $expected->getEmail()->canonical()
+                && $user->getState() === UserState::PENDING_ACTIVATION
+                && $expected->getState() === UserState::PENDING_ACTIVATION
+                && $replacement->getState() === UserState::PENDING_ACTIVATION
+                && $this->passwordHashesMatch($user->getPasswordHash(), $expected->getPasswordHash())
+                && $this->passwordHashesMatch($replacement->getPasswordHash(), $expected->getPasswordHash())
+                && $user->getAuthenticationVersion() === $expected->getAuthenticationVersion()
+                && $replacement->getAuthenticationVersion() === $expected->getAuthenticationVersion()
+                && $user->getAuthenticationAuthorityRevision() === $authenticationAuthorityRevision
+                && $replacement->getAuthenticationAuthorityRevision() === $authenticationAuthorityRevision
+                && $user->getAuthorizationAssignmentRevision() === $authorizationAssignmentRevision
+                && $replacement->getAuthorizationAssignmentRevision() === $authorizationAssignmentRevision
+                && $this->roleAssignmentsMatch($user, $expected)
+                && $this->roleAssignmentsMatch($replacement, $expected)
+                && $user->getPendingEmailChange()?->canonical() === $pendingEmailChange
+                && $replacement->getPendingEmailChange()?->canonical() === $pendingEmailChange
+                && $user->getEmailChangeReservationRevision() === $emailChangeReservationRevision
+                && $replacement->getEmailChangeReservationRevision() === $emailChangeReservationRevision
+                && $user->getCanonicalEmailRevision() === $canonicalEmailRevision
+                && $replacement->getCanonicalEmailRevision() === $canonicalEmailRevision + 1
+            ) {
+                return $index;
+            }
+        }
+
+        return null;
+    }
+
+    private function emailChangeConfirmationReplacementIndex(User $expected, User $replacement): ?int
+    {
+        $pendingEmailChange = $expected->getPendingEmailChange();
+        if (!$pendingEmailChange instanceof EmailAddress) {
+            return null;
+        }
+
+        $authenticationAuthorityRevision = $expected->getAuthenticationAuthorityRevision();
+        $authorizationAssignmentRevision = $expected->getAuthorizationAssignmentRevision();
+        $canonicalEmailRevision = $expected->getCanonicalEmailRevision();
+        $emailChangeReservationRevision = $expected->getEmailChangeReservationRevision();
+
+        foreach ($this->state->users as $index => $user) {
+            if (
+                $user->getId()->equals($expected->getId())
+                && $replacement->getId()->equals($expected->getId())
+                && $user->getEmail()->canonical() === $expected->getEmail()->canonical()
+                && $replacement->getEmail()->canonical() === $pendingEmailChange->canonical()
+                && $user->getState() === $expected->getState()
+                && $replacement->getState() === UserState::ACTIVE
+                && $this->passwordHashesMatch($user->getPasswordHash(), $expected->getPasswordHash())
+                && $this->passwordHashesMatch($replacement->getPasswordHash(), $expected->getPasswordHash())
+                && $user->getAuthenticationVersion() === $expected->getAuthenticationVersion()
+                && $replacement->getAuthenticationVersion() === $expected->getAuthenticationVersion() + 1
+                && $user->getAuthenticationAuthorityRevision() === $authenticationAuthorityRevision
+                && $replacement->getAuthenticationAuthorityRevision() === $authenticationAuthorityRevision + 1
+                && $user->getAuthorizationAssignmentRevision() === $authorizationAssignmentRevision
+                && $replacement->getAuthorizationAssignmentRevision() === $authorizationAssignmentRevision
+                && $this->roleAssignmentsMatch($user, $expected)
+                && $this->roleAssignmentsMatch($replacement, $expected)
+                && $user->getPendingEmailChange()?->canonical() === $pendingEmailChange->canonical()
+                && !$replacement->getPendingEmailChange() instanceof EmailAddress
+                && $user->getEmailChangeReservationRevision() === $emailChangeReservationRevision
+                && $replacement->getEmailChangeReservationRevision() === $emailChangeReservationRevision + 1
+                && $user->getCanonicalEmailRevision() === $canonicalEmailRevision
+                && $replacement->getCanonicalEmailRevision() === $canonicalEmailRevision + 1
+            ) {
+                return $index;
+            }
+        }
+
+        return null;
+    }
+
+    private function emailIsClaimedByAnotherUser(User $expected, EmailAddress $email): bool
+    {
+        foreach ($this->state->users as $reserved) {
+            if ($reserved->getId()->equals($expected->getId())) {
+                continue;
+            }
+
+            if (
+                $reserved->getEmail()->canonical() === $email->canonical()
+                || $reserved->getPendingEmailChange()?->canonical() === $email->canonical()
+            ) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private function emailStateMatches(User $left, User $right): bool
+    {
+        return $left->getEmail()->canonical() === $right->getEmail()->canonical()
+            && $left->getPendingEmailChange()?->canonical() === $right->getPendingEmailChange()?->canonical()
+            && $left->getEmailChangeReservationRevision() === $right->getEmailChangeReservationRevision()
+            && $left->getCanonicalEmailRevision() === $right->getCanonicalEmailRevision();
     }
 
     private function roleAssignmentsMatch(User $left, User $right): bool
