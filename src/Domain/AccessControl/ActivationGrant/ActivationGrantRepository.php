@@ -84,4 +84,17 @@ interface ActivationGrantRepository
         ActivationGrant $terminalPredecessor,
         ActivationGrant $successor
     ): bool;
+
+    /**
+     * Adds a pristine successor generation once the user's latest generation is terminal.
+     *
+     * Used when a user with prior activation history must receive fresh activation authority, for example restoring a
+     * deleted identity to pending activation. The latest generation must be terminal with no issued authority or
+     * retryable delivery. The successor must be a pristine initial generation, belong to the same user, and use fresh
+     * grant and delivery identifiers plus a digest absent from all history. Returns false without mutation when the
+     * latest generation is not terminal or the successor is invalid.
+     *
+     * @throws Exception When an error occurs.
+     */
+    public function addSuccessor(ActivationGrant $successor): bool;
 }

@@ -31,7 +31,8 @@ final class InMemoryActivationGrantRepository implements ActivationGrantReposito
         private readonly bool $replaceWithSuccessorSucceeds = true,
         private readonly ?Closure $beforeReplace = null,
         private readonly ?int $replaceFailureOnCall = null,
-        private readonly int $beforeReplaceOnCall = 1
+        private readonly int $beforeReplaceOnCall = 1,
+        private readonly bool $addSuccessorSucceeds = true
     ) {
     }
 
@@ -149,6 +150,25 @@ final class InMemoryActivationGrantRepository implements ActivationGrantReposito
         }
 
         return false;
+    }
+
+    public function addSuccessor(ActivationGrant $successor): bool
+    {
+        $current = $this->getLatestByUserId($successor->getUserId());
+        if (
+            !$this->addSuccessorSucceeds
+            || !$current instanceof ActivationGrant
+            || $current->isIssued()
+            || $current->getDelivery()->isRetryable()
+            || !$this->validSuccessor($current, $successor)
+        ) {
+            return false;
+        }
+
+        $this->activationGrants[] = $successor;
+        $this->recordRollback();
+
+        return true;
     }
 
     /** @return list<ActivationGrant> */
