@@ -9,13 +9,13 @@ use DateInterval;
 use DateTimeImmutable;
 use Fight\AccessControl\Application\AccessControl\RefreshSession\Service\RefreshCredentialGenerator;
 use Fight\AccessControl\Application\AccessControl\RefreshSession\Service\SessionRevocationService;
+use Fight\AccessControl\Application\AccessControl\Timing\Service\Clock;
 use Fight\AccessControl\Application\AccessControl\User\Security\AccessToken;
 use Fight\AccessControl\Application\AccessControl\User\Security\AuthenticationService;
 use Fight\AccessControl\Application\AccessControl\User\Security\AuthenticationTokenPolicy;
 use Fight\AccessControl\Application\AccessControl\User\Security\RefreshOutcome;
 use Fight\AccessControl\Application\AccessControl\User\Security\RefreshResult;
 use Fight\AccessControl\Application\AccessControl\User\Security\TokenSet;
-use Fight\AccessControl\Application\AccessControl\User\Service\AuthenticationClock;
 use Fight\AccessControl\Application\AccessControl\User\Service\LoginThrottle;
 use Fight\AccessControl\Domain\AccessControl\ActivationGrant\ActivationCredential;
 use Fight\AccessControl\Domain\AccessControl\ActivationGrant\ActivationGrant;
@@ -65,10 +65,10 @@ use Fight\Test\AccessControl\Application\AccessControl\PasswordResetGrant\Reposi
 use Fight\Test\AccessControl\Application\AccessControl\RefreshSession\Repository\InMemoryRefreshSessionRepository;
 use Fight\Test\AccessControl\Application\AccessControl\RefreshSession\Repository\InMemoryRefreshSessionRepositoryState;
 use Fight\Test\AccessControl\Application\AccessControl\RefreshSession\Service\FixedRefreshCredentialGenerator;
+use Fight\Test\AccessControl\Application\AccessControl\Timing\Service\FixedClock;
 use Fight\Test\AccessControl\Application\AccessControl\User\InMemoryUnitOfWork;
 use Fight\Test\AccessControl\Application\AccessControl\User\Repository\InMemoryUserRepository;
 use Fight\Test\AccessControl\Application\AccessControl\User\Repository\InMemoryUserRepositoryState;
-use Fight\Test\AccessControl\Application\AccessControl\User\Service\FixedAuthenticationClock;
 use Fight\Test\AccessControl\Application\AccessControl\User\Service\FixedLoginThrottle;
 use Fight\Test\AccessControl\Domain\AccessControl\User\UserFixture;
 use InvalidArgumentException;
@@ -123,8 +123,15 @@ final class AuthenticationServiceTest extends TestCase
     public static function rejectedLoginStates(): array
     {
         $activeUser = static function (string $email): User {
-            $user = User::invite(UserId::generate(), EmailAddress::fromString($email));
-            $user->activate(PasswordHash::fromString(password_hash('correct-secret', PASSWORD_DEFAULT)));
+            $user = User::invite(
+                UserId::generate(),
+                EmailAddress::fromString($email),
+                new DateTimeImmutable('2026-01-01T00:00:00+00:00')
+            );
+            $user->activate(
+                PasswordHash::fromString(password_hash('correct-secret', PASSWORD_DEFAULT)),
+                new DateTimeImmutable('2026-01-01T00:00:00+00:00')
+            );
 
             return $user;
         };
@@ -132,7 +139,11 @@ final class AuthenticationServiceTest extends TestCase
         return [
             'unknown identity' => [null, true],
             'pending identity' => [
-                User::invite(UserId::generate(), EmailAddress::fromString('pending@example.test')),
+                User::invite(
+                    UserId::generate(),
+                    EmailAddress::fromString('pending@example.test'),
+                    new DateTimeImmutable('2026-01-01T00:00:00+00:00')
+                ),
                 true,
             ],
             'disabled identity' => [UserFixture::withState('disabled@example.test', UserState::DISABLED), true],
@@ -204,7 +215,10 @@ final class AuthenticationServiceTest extends TestCase
         $user = $this->activeUserFor('old@example.test');
         $users->add($user);
         $reservedUser = clone $user;
-        $reservedUser->requestEmailChange(EmailAddress::fromString('new@example.test'));
+        $reservedUser->requestEmailChange(
+            EmailAddress::fromString('new@example.test'),
+            new DateTimeImmutable('2026-01-01T00:00:00+00:00')
+        );
         self::assertTrue($users->replaceEmailChangeReservation($user, $reservedUser));
         $grants = new InMemoryEmailChangeGrantRepository($unitOfWork);
         self::assertTrue($grants->add(EmailChangeGrant::issue(
@@ -303,7 +317,10 @@ final class AuthenticationServiceTest extends TestCase
         $users = new InMemoryUserRepository($unitOfWork);
         $user = $this->activeUserFor('old@example.test');
         $reservedUser = clone $user;
-        $reservedUser->requestEmailChange(EmailAddress::fromString('new@example.test'));
+        $reservedUser->requestEmailChange(
+            EmailAddress::fromString('new@example.test'),
+            new DateTimeImmutable('2026-01-01T00:00:00+00:00')
+        );
         if ($condition !== 'missing_user') {
             $users->add($condition === 'missing_reservation' ? $user : $reservedUser);
         }
@@ -378,7 +395,10 @@ final class AuthenticationServiceTest extends TestCase
             $user = $this->activeUserFor('old@example.test');
             $users->add($user);
             $reservedUser = clone $user;
-            $reservedUser->requestEmailChange(EmailAddress::fromString('new@example.test'));
+            $reservedUser->requestEmailChange(
+                EmailAddress::fromString('new@example.test'),
+                new DateTimeImmutable('2026-01-01T00:00:00+00:00')
+            );
             self::assertTrue($users->replaceEmailChangeReservation($user, $reservedUser));
             $grants = new InMemoryEmailChangeGrantRepository(
                 $unitOfWork,
@@ -416,7 +436,10 @@ final class AuthenticationServiceTest extends TestCase
         $user = $this->activeUserFor('old@example.test');
         $users->add($user);
         $reservedUser = clone $user;
-        $reservedUser->requestEmailChange(EmailAddress::fromString('new@example.test'));
+        $reservedUser->requestEmailChange(
+            EmailAddress::fromString('new@example.test'),
+            new DateTimeImmutable('2026-01-01T00:00:00+00:00')
+        );
         self::assertTrue($users->replaceEmailChangeReservation($user, $reservedUser));
         $grants = new InMemoryEmailChangeGrantRepository($unitOfWork);
         self::assertTrue($grants->add($this->emailChangeGrant($user->getId())));
@@ -459,7 +482,10 @@ final class AuthenticationServiceTest extends TestCase
         $user = $this->activeUserFor('old@example.test');
         $users->add($user);
         $reservedUser = clone $user;
-        $reservedUser->requestEmailChange(EmailAddress::fromString('new@example.test'));
+        $reservedUser->requestEmailChange(
+            EmailAddress::fromString('new@example.test'),
+            new DateTimeImmutable('2026-01-01T00:00:00+00:00')
+        );
         self::assertTrue($users->replaceEmailChangeReservation($user, $reservedUser));
         $grants = new InMemoryEmailChangeGrantRepository($unitOfWork);
         self::assertTrue($grants->add($this->emailChangeGrant($user->getId())));
@@ -854,7 +880,11 @@ final class AuthenticationServiceTest extends TestCase
         $users = new InMemoryUserRepository($unitOfWork);
         $grants = new InMemoryActivationGrantRepository($unitOfWork);
         $sessions = new InMemoryRefreshSessionRepository($unitOfWork);
-        $user = User::invite(UserId::generate(), EmailAddress::fromString('activate@example.test'));
+        $user = User::invite(
+            UserId::generate(),
+            EmailAddress::fromString('activate@example.test'),
+            new DateTimeImmutable('2026-01-01T00:00:00+00:00')
+        );
         $users->add($user);
         $grants->add($this->grant($user->getId()));
         $events = new InMemoryEventDispatcher(static function () use ($unitOfWork): void {
@@ -903,7 +933,11 @@ final class AuthenticationServiceTest extends TestCase
         $grants = new InMemoryActivationGrantRepository($unitOfWork);
         $sessions = new InMemoryRefreshSessionRepository($unitOfWork);
         $events = new InMemoryEventDispatcher();
-        $user = User::invite(UserId::generate(), EmailAddress::fromString('activate@example.test'));
+        $user = User::invite(
+            UserId::generate(),
+            EmailAddress::fromString('activate@example.test'),
+            new DateTimeImmutable('2026-01-01T00:00:00+00:00')
+        );
         $users->add($user);
         $grants->add($this->grant($user->getId()));
         $service = $this->service($users, $grants, $sessions, $unitOfWork, $events);
@@ -932,7 +966,11 @@ final class AuthenticationServiceTest extends TestCase
         $grants = new InMemoryActivationGrantRepository($unitOfWork);
         $sessions = new InMemoryRefreshSessionRepository($unitOfWork);
         $events = new InMemoryEventDispatcher();
-        $user = User::invite(UserId::generate(), EmailAddress::fromString('activate-conflict@example.test'));
+        $user = User::invite(
+            UserId::generate(),
+            EmailAddress::fromString('activate-conflict@example.test'),
+            new DateTimeImmutable('2026-01-01T00:00:00+00:00')
+        );
         $users->add($user);
         $grant = $this->grant($user->getId());
         $grants->add($grant);
@@ -969,7 +1007,11 @@ final class AuthenticationServiceTest extends TestCase
         $grants = new InMemoryActivationGrantRepository($unitOfWork, replaceSucceeds: false);
         $sessions = new InMemoryRefreshSessionRepository($unitOfWork);
         $events = new InMemoryEventDispatcher();
-        $user = User::invite(UserId::generate(), EmailAddress::fromString('activate-race@example.test'));
+        $user = User::invite(
+            UserId::generate(),
+            EmailAddress::fromString('activate-race@example.test'),
+            new DateTimeImmutable('2026-01-01T00:00:00+00:00')
+        );
         $users->add($user);
         $grant = $this->grant($user->getId());
         $grants->add($grant);
@@ -2474,14 +2516,14 @@ final class AuthenticationServiceTest extends TestCase
             $racingSessions,
             new InMemoryUnitOfWork(),
             $winnerEvents,
-            authenticationClock: new FixedAuthenticationClock(
+            authenticationClock: new FixedClock(
                 new DateTimeImmutable('2026-08-19T12:00:01+00:00')
             ),
             refreshCredentialGenerator: new FixedRefreshCredentialGenerator(
                 RefreshCredential::fromString(self::WINNER_CREDENTIAL)
             )
         );
-        $loserClock = new class implements AuthenticationClock {
+        $loserClock = new class implements Clock {
             private int $observations = 0;
 
             public function now(): DateTimeImmutable
@@ -3112,8 +3154,15 @@ final class AuthenticationServiceTest extends TestCase
 
     private function activeUserFor(string $email, ?UserId $userId = null): User
     {
-        $user = User::invite($userId ?? UserId::generate(), EmailAddress::fromString($email));
-        $user->activate(PasswordHash::fromString(password_hash('correct-secret', PASSWORD_DEFAULT)));
+        $user = User::invite(
+            $userId ?? UserId::generate(),
+            EmailAddress::fromString($email),
+            new DateTimeImmutable('2026-01-01T00:00:00+00:00')
+        );
+        $user->activate(
+            PasswordHash::fromString(password_hash('correct-secret', PASSWORD_DEFAULT)),
+            new DateTimeImmutable('2026-01-01T00:00:00+00:00')
+        );
 
         return $user;
     }
@@ -3216,7 +3265,7 @@ final class AuthenticationServiceTest extends TestCase
         RefreshSessionRepository $sessions,
         InMemoryUnitOfWork $unitOfWork,
         InMemoryEventDispatcher $events,
-        ?AuthenticationClock $authenticationClock = null,
+        ?Clock $authenticationClock = null,
         ?LoginThrottle $loginThrottle = null,
         ?PasswordHasher $passwordHasher = null,
         ?PasswordValidator $passwordValidator = null,
@@ -3241,7 +3290,7 @@ final class AuthenticationServiceTest extends TestCase
             $sessions,
             new SessionRevocationService($sessions),
             $unitOfWork,
-            $authenticationClock ?? new FixedAuthenticationClock(
+            $authenticationClock ?? new FixedClock(
                 new DateTimeImmutable('2026-08-19T12:00:00+00:00')
             ),
             $loginThrottle ?? new FixedLoginThrottle(true),

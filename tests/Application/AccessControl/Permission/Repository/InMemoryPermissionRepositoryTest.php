@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Fight\Test\AccessControl\Application\AccessControl\Permission\Repository;
 
+use DateTimeImmutable;
 use Fight\AccessControl\Domain\AccessControl\Permission\Permission;
 use Fight\AccessControl\Domain\AccessControl\Permission\PermissionId;
 use Fight\AccessControl\Domain\AccessControl\Permission\PermissionName;
@@ -76,6 +77,10 @@ final class InMemoryPermissionRepositoryTest extends TestCase
 
     private function permission(string $name): Permission
     {
-        return Permission::define(PermissionId::generate(), PermissionName::fromString($name));
+        return Permission::define(
+            PermissionId::generate(),
+            PermissionName::fromString($name),
+            new DateTimeImmutable('2026-01-01T00:00:00+00:00')
+        );
     }
 }

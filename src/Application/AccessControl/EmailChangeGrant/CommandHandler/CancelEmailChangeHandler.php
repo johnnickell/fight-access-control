@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Fight\AccessControl\Application\AccessControl\EmailChangeGrant\CommandHandler;
 
 use Fight\AccessControl\Application\AccessControl\EmailChangeGrant\Service\EmailChangeAdministrationAuthorization;
-use Fight\AccessControl\Application\AccessControl\EmailChangeGrant\Service\EmailChangeClock;
+use Fight\AccessControl\Application\AccessControl\Timing\Service\Clock;
 use Fight\AccessControl\Domain\AccessControl\Audit\AuditEvidence;
 use Fight\AccessControl\Domain\AccessControl\Audit\AuditEvidenceRepository;
 use Fight\AccessControl\Domain\AccessControl\EmailChangeGrant\Command\CancelEmailChange;
@@ -38,7 +38,7 @@ final readonly class CancelEmailChangeHandler implements CommandHandler
         private EmailChangeAdministrationAuthorization $emailChangeAdministrationAuthorization,
         private AuditEvidenceRepository $auditEvidenceRepository,
         private UnitOfWork $unitOfWork,
-        private EmailChangeClock $emailChangeClock,
+        private Clock $emailChangeClock,
         private EventDispatcher $eventDispatcher
     ) {
     }
@@ -87,7 +87,7 @@ final readonly class CancelEmailChangeHandler implements CommandHandler
 
                 $cancelledAt = $this->emailChangeClock->now();
                 $replacementUser = clone $user;
-                $replacementUser->cancelEmailChange();
+                $replacementUser->cancelEmailChange($cancelledAt);
                 if (!$this->userRepository->replaceEmailChangeReservation($user, $replacementUser)) {
                     throw new LogicException('The email-change reservation changed concurrently.');
                 }

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Fight\Test\AccessControl\Domain\AccessControl\Permission;
 
+use DateTimeImmutable;
 use Fight\AccessControl\Domain\AccessControl\Permission\Permission;
 use Fight\AccessControl\Domain\AccessControl\Permission\PermissionId;
 use Fight\AccessControl\Domain\AccessControl\Permission\PermissionName;
@@ -18,17 +19,22 @@ final class PermissionTest extends TestCase
         $id = PermissionId::generate();
         $name = PermissionName::fromString('MANAGE_USERS');
 
-        $permission = Permission::define($id, $name);
+        $permission = Permission::define($id, $name, new DateTimeImmutable('2026-01-01T00:00:00+00:00'));
 
         self::assertSame($id, $permission->getId());
         self::assertSame($name, $permission->getName());
+
+        self::assertInstanceOf(DateTimeImmutable::class, $permission->getCreatedAt());
+        self::assertEquals(new DateTimeImmutable('2026-01-01T00:00:00+00:00'), $permission->getCreatedAt());
+        self::assertInstanceOf(DateTimeImmutable::class, $permission->getUpdatedAt());
+        self::assertEquals(new DateTimeImmutable('2026-01-01T00:00:00+00:00'), $permission->getUpdatedAt());
     }
 
     public function test_it_is_extensible_through_its_factory(): void
     {
         $id = PermissionId::generate();
         $name = PermissionName::fromString('VIEW_USERS');
-        $permission = ExtensiblePermission::define($id, $name);
+        $permission = ExtensiblePermission::define($id, $name, new DateTimeImmutable('2026-01-01T00:00:00+00:00'));
 
         self::assertInstanceOf(ExtensiblePermission::class, $permission);
     }

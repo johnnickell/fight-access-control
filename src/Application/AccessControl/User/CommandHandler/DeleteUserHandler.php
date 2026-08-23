@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Fight\AccessControl\Application\AccessControl\User\CommandHandler;
 
-use Fight\AccessControl\Application\AccessControl\RefreshSession\Service\RefreshSessionClock;
 use Fight\AccessControl\Application\AccessControl\RefreshSession\Service\SessionRevocationService;
+use Fight\AccessControl\Application\AccessControl\Timing\Service\Clock;
 use Fight\AccessControl\Domain\AccessControl\Audit\AuditEvidence;
 use Fight\AccessControl\Domain\AccessControl\Audit\AuditEvidenceRepository;
 use Fight\AccessControl\Domain\AccessControl\User\Command\DeleteUser;
@@ -32,7 +32,7 @@ final readonly class DeleteUserHandler implements CommandHandler
     public function __construct(
         private UserRepository $userRepository,
         private SessionRevocationService $sessionRevocationService,
-        private RefreshSessionClock $refreshSessionClock,
+        private Clock $refreshSessionClock,
         private AuditEvidenceRepository $auditEvidenceRepository,
         private UnitOfWork $unitOfWork,
         private EventDispatcher $eventDispatcher
@@ -62,15 +62,16 @@ final readonly class DeleteUserHandler implements CommandHandler
                     throw new UserLifecycleException('The user cannot be deleted.');
                 }
 
+                $now = $this->refreshSessionClock->now();
                 $replacementUser = clone $user;
-                $replacementUser->delete();
+                $replacementUser->delete($now);
                 if (!$this->userRepository->replaceLifecycleState($user, $replacementUser)) {
                     throw new LogicException('The user lifecycle state changed concurrently.');
                 }
 
                 $this->sessionRevocationService->revokeAllActiveFor(
                     $command->getUserId(),
-                    $this->refreshSessionClock->now()
+                    $now
                 );
 
                 $this->auditEvidenceRepository->add(AuditEvidence::record(

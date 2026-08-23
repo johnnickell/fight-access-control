@@ -10,7 +10,7 @@ use Fight\AccessControl\Application\AccessControl\Authorization\Service\Authenti
 use Fight\AccessControl\Application\AccessControl\Authorization\Service\AuthenticationContextProvider;
 use Fight\AccessControl\Application\AccessControl\Authorization\Service\AuthoritativePrincipalResolver;
 use Fight\AccessControl\Application\AccessControl\Authorization\Service\CurrentPrincipalProvider;
-use Fight\AccessControl\Application\AccessControl\User\Service\AuthenticationClock;
+use Fight\AccessControl\Application\AccessControl\Timing\Service\Clock;
 use Fight\AccessControl\Domain\AccessControl\Authorization\AuthenticatedPrincipal;
 use Fight\AccessControl\Domain\AccessControl\Permission\PermissionRepository;
 use Fight\AccessControl\Domain\AccessControl\RefreshSession\RefreshCredential;
@@ -87,7 +87,7 @@ final class CurrentPrincipalProviderTest extends TestCase
         $roleRepository->expects(self::once())->method('getByIds')->with([])->willReturn([]);
         $permissionRepository = $this->createMock(PermissionRepository::class);
         $permissionRepository->expects(self::once())->method('getByIds')->with([])->willReturn([]);
-        $clock = $this->createStub(AuthenticationClock::class);
+        $clock = $this->createStub(Clock::class);
         $clock->method('now')->willReturn($now);
         $provider = new CurrentPrincipalProvider(
             $authenticationContextProvider,

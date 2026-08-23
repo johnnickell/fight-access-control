@@ -7,8 +7,8 @@ namespace Fight\AccessControl\Application\AccessControl\User\CommandHandler;
 use DateInterval;
 use Fight\AccessControl\Application\AccessControl\ActivationGrant\Service\ActivationCredentialGenerator;
 use Fight\AccessControl\Application\AccessControl\ActivationGrant\Service\InvitationAdministrationAuthorization;
-use Fight\AccessControl\Application\AccessControl\ActivationGrant\Service\InvitationClock;
 use Fight\AccessControl\Application\AccessControl\ActivationGrant\Service\InvitationDeliveryCipher;
+use Fight\AccessControl\Application\AccessControl\Timing\Service\Clock;
 use Fight\AccessControl\Domain\AccessControl\ActivationGrant\ActivationGrant;
 use Fight\AccessControl\Domain\AccessControl\ActivationGrant\ActivationGrantRepository;
 use Fight\AccessControl\Domain\AccessControl\Audit\AuditEvidence;
@@ -42,7 +42,7 @@ final readonly class CorrectPendingInvitationHandler implements CommandHandler
         private UnitOfWork $unitOfWork,
         private ActivationCredentialGenerator $activationCredentialGenerator,
         private InvitationDeliveryCipher $invitationDeliveryCipher,
-        private InvitationClock $invitationClock,
+        private Clock $invitationClock,
         private EventDispatcher $eventDispatcher
     ) {
     }
@@ -84,7 +84,7 @@ final readonly class CorrectPendingInvitationHandler implements CommandHandler
                 }
 
                 $replacementUser = clone $user;
-                $replacementUser->correctPendingInvitationEmail($command->getEmail());
+                $replacementUser->correctPendingInvitationEmail($command->getEmail(), $this->invitationClock->now());
                 if (!$this->userRepository->replacePendingInvitationEmail($user, $replacementUser)) {
                     throw new LogicException('The pending invitation email changed concurrently or is reserved.');
                 }

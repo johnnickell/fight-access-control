@@ -55,7 +55,11 @@ final class ActivationGrantTest extends TestCase
 
     public function test_an_invited_user_has_a_canonical_email_and_pending_state(): void
     {
-        $user = User::invite(UserId::generate(), EmailAddress::fromString('Alice@Example.Test'));
+        $user = User::invite(
+            UserId::generate(),
+            EmailAddress::fromString('Alice@Example.Test'),
+            new DateTimeImmutable('2026-01-01T00:00:00+00:00')
+        );
 
         self::assertSame('alice@example.test', $user->getEmail()->canonical());
         self::assertNotSame('', $user->getId()->toString());

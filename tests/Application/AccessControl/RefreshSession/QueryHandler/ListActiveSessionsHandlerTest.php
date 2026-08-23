@@ -18,8 +18,8 @@ use Fight\Common\Domain\Messaging\Query\QueryMessage;
 use Fight\Common\Domain\Repository\Pagination;
 use Fight\Common\Domain\Repository\ResultSet;
 use Fight\Test\AccessControl\Application\AccessControl\RefreshSession\Repository\InMemoryRefreshSessionRepository;
-use Fight\Test\AccessControl\Application\AccessControl\RefreshSession\Service\FixedRefreshSessionClock;
 use Fight\Test\AccessControl\Application\AccessControl\RefreshSession\Service\FixedSessionAdministrationAuthorization;
+use Fight\Test\AccessControl\Application\AccessControl\Timing\Service\FixedClock;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
 use ReflectionClass;
@@ -78,7 +78,7 @@ final class ListActiveSessionsHandlerTest extends TestCase
         ));
         $handler = new ListActiveSessionsHandler(
             $repository,
-            new FixedRefreshSessionClock(new DateTimeImmutable('2026-08-20T12:00:00+00:00')),
+            new FixedClock(new DateTimeImmutable('2026-08-20T12:00:00+00:00')),
             $authorization = new FixedSessionAdministrationAuthorization(true)
         );
 
@@ -173,7 +173,7 @@ final class ListActiveSessionsHandlerTest extends TestCase
         $authorization = new FixedSessionAdministrationAuthorization(true);
         $handler = new ListActiveSessionsHandler(
             $repository,
-            new FixedRefreshSessionClock(new DateTimeImmutable('2026-08-20T12:00:00+00:00')),
+            new FixedClock(new DateTimeImmutable('2026-08-20T12:00:00+00:00')),
             $authorization
         );
 
@@ -202,7 +202,7 @@ final class ListActiveSessionsHandlerTest extends TestCase
         $authorization = new FixedSessionAdministrationAuthorization(false);
         $handler = new ListActiveSessionsHandler(
             $repository,
-            new FixedRefreshSessionClock(new DateTimeImmutable('2026-08-20T12:00:00+00:00')),
+            new FixedClock(new DateTimeImmutable('2026-08-20T12:00:00+00:00')),
             $authorization
         );
 
@@ -257,7 +257,7 @@ final class ListActiveSessionsHandlerTest extends TestCase
         ));
         $handler = new ListActiveSessionsHandler(
             $repository,
-            new FixedRefreshSessionClock(new DateTimeImmutable('2026-08-20T12:00:00+00:00')),
+            new FixedClock(new DateTimeImmutable('2026-08-20T12:00:00+00:00')),
             new FixedSessionAdministrationAuthorization(true)
         );
 

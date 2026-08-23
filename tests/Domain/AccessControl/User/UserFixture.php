@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Fight\Test\AccessControl\Domain\AccessControl\User;
 
+use DateTimeImmutable;
 use Fight\AccessControl\Domain\AccessControl\Role\RoleId;
 use Fight\AccessControl\Domain\AccessControl\User\User;
 use Fight\AccessControl\Domain\AccessControl\User\UserId;
@@ -20,7 +21,9 @@ final class UserFixture extends User
      */
     public static function withState(string $email, UserState $state): User
     {
-        return new self(UserId::generate(), EmailAddress::fromString($email), $state);
+        $now = new DateTimeImmutable('2026-01-01T00:00:00+00:00');
+
+        return new self(UserId::generate(), EmailAddress::fromString($email), $state, createdAt: $now, updatedAt: $now);
     }
 
     /**
@@ -32,10 +35,14 @@ final class UserFixture extends User
         UserState $state,
         int $authenticationVersion
     ): User {
+        $now = new DateTimeImmutable('2026-01-01T00:00:00+00:00');
+
         return new self(
             $id,
             EmailAddress::fromString($email),
             $state,
+            $now,
+            $now,
             null,
             $authenticationVersion
         );
@@ -48,10 +55,14 @@ final class UserFixture extends User
      */
     public static function withRoleAssignments(array $roleIds, int $authorizationAssignmentRevision): User
     {
+        $now = new DateTimeImmutable('2026-01-01T00:00:00+00:00');
+
         return new self(
             UserId::generate(),
             EmailAddress::fromString('reconstituted-role-assignments@example.test'),
             UserState::ACTIVE,
+            $now,
+            $now,
             null,
             1,
             0,

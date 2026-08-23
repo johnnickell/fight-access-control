@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Fight\Test\AccessControl\Domain\AccessControl\User;
 
+use DateTimeImmutable;
 use Fight\AccessControl\Domain\AccessControl\User\Exception\EmailChangeCancellationException;
 use Fight\AccessControl\Domain\AccessControl\User\Exception\EmailChangeConfirmationException;
 use Fight\AccessControl\Domain\AccessControl\User\Exception\EmailChangeExpirationException;
@@ -36,7 +37,10 @@ final class EmailChangeReservationTest extends TestCase
     {
         $user = UserFixture::withState('old@example.test', UserState::ACTIVE);
 
-        $user->requestEmailChange(EmailAddress::fromString('New@Example.test'));
+        $user->requestEmailChange(
+            EmailAddress::fromString('New@Example.test'),
+            new DateTimeImmutable('2026-01-01T00:00:00+00:00')
+        );
 
         self::assertSame('old@example.test', $user->getEmail()->canonical());
         self::assertSame('new@example.test', $user->getPendingEmailChange()?->canonical());
@@ -49,7 +53,10 @@ final class EmailChangeReservationTest extends TestCase
         $user = UserFixture::withState('old@example.test', $state);
 
         $this->expectException(EmailChangeRequestException::class);
-        $user->requestEmailChange(EmailAddress::fromString('new@example.test'));
+        $user->requestEmailChange(
+            EmailAddress::fromString('new@example.test'),
+            new DateTimeImmutable('2026-01-01T00:00:00+00:00')
+        );
     }
 
     public function test_the_canonical_email_cannot_be_reserved_as_its_own_destination(): void
@@ -57,24 +64,36 @@ final class EmailChangeReservationTest extends TestCase
         $user = UserFixture::withState('old@example.test', UserState::ACTIVE);
 
         $this->expectException(EmailChangeRequestException::class);
-        $user->requestEmailChange(EmailAddress::fromString('OLD@example.test'));
+        $user->requestEmailChange(
+            EmailAddress::fromString('OLD@example.test'),
+            new DateTimeImmutable('2026-01-01T00:00:00+00:00')
+        );
     }
 
     public function test_a_second_destination_cannot_displace_a_live_reservation(): void
     {
         $user = UserFixture::withState('old@example.test', UserState::ACTIVE);
-        $user->requestEmailChange(EmailAddress::fromString('first@example.test'));
+        $user->requestEmailChange(
+            EmailAddress::fromString('first@example.test'),
+            new DateTimeImmutable('2026-01-01T00:00:00+00:00')
+        );
 
         $this->expectException(EmailChangeRequestException::class);
-        $user->requestEmailChange(EmailAddress::fromString('second@example.test'));
+        $user->requestEmailChange(
+            EmailAddress::fromString('second@example.test'),
+            new DateTimeImmutable('2026-01-01T00:00:00+00:00')
+        );
     }
 
     public function test_an_active_identity_cancels_only_its_pending_destination(): void
     {
         $user = UserFixture::withState('old@example.test', UserState::ACTIVE);
-        $user->requestEmailChange(EmailAddress::fromString('new@example.test'));
+        $user->requestEmailChange(
+            EmailAddress::fromString('new@example.test'),
+            new DateTimeImmutable('2026-01-01T00:00:00+00:00')
+        );
 
-        $user->cancelEmailChange();
+        $user->cancelEmailChange(new DateTimeImmutable('2026-01-01T00:00:00+00:00'));
 
         self::assertSame('old@example.test', $user->getEmail()->canonical());
         self::assertNull($user->getPendingEmailChange());
@@ -84,9 +103,12 @@ final class EmailChangeReservationTest extends TestCase
     public function test_confirmation_promotes_the_destination_and_invalidates_authentication_authority(): void
     {
         $user = UserFixture::withState('old@example.test', UserState::ACTIVE);
-        $user->requestEmailChange(EmailAddress::fromString('new@example.test'));
+        $user->requestEmailChange(
+            EmailAddress::fromString('new@example.test'),
+            new DateTimeImmutable('2026-01-01T00:00:00+00:00')
+        );
 
-        $user->confirmEmailChange();
+        $user->confirmEmailChange(new DateTimeImmutable('2026-01-01T00:00:00+00:00'));
 
         self::assertSame('new@example.test', $user->getEmail()->canonical());
         self::assertNull($user->getPendingEmailChange());
@@ -100,7 +122,7 @@ final class EmailChangeReservationTest extends TestCase
         $user = UserFixture::withState('old@example.test', UserState::ACTIVE);
 
         $this->expectException(EmailChangeConfirmationException::class);
-        $user->confirmEmailChange();
+        $user->confirmEmailChange(new DateTimeImmutable('2026-01-01T00:00:00+00:00'));
     }
 
     public function test_an_identity_without_a_live_reservation_cannot_cancel(): void
@@ -108,15 +130,18 @@ final class EmailChangeReservationTest extends TestCase
         $user = UserFixture::withState('old@example.test', UserState::ACTIVE);
 
         $this->expectException(EmailChangeCancellationException::class);
-        $user->cancelEmailChange();
+        $user->cancelEmailChange(new DateTimeImmutable('2026-01-01T00:00:00+00:00'));
     }
 
     public function test_expiry_clears_only_the_pending_destination(): void
     {
         $user = UserFixture::withState('old@example.test', UserState::ACTIVE);
-        $user->requestEmailChange(EmailAddress::fromString('new@example.test'));
+        $user->requestEmailChange(
+            EmailAddress::fromString('new@example.test'),
+            new DateTimeImmutable('2026-01-01T00:00:00+00:00')
+        );
 
-        $user->expireEmailChange();
+        $user->expireEmailChange(new DateTimeImmutable('2026-01-01T00:00:00+00:00'));
 
         self::assertSame('old@example.test', $user->getEmail()->canonical());
         self::assertNull($user->getPendingEmailChange());
@@ -128,6 +153,6 @@ final class EmailChangeReservationTest extends TestCase
         $user = UserFixture::withState('old@example.test', UserState::ACTIVE);
 
         $this->expectException(EmailChangeExpirationException::class);
-        $user->expireEmailChange();
+        $user->expireEmailChange(new DateTimeImmutable('2026-01-01T00:00:00+00:00'));
     }
 }

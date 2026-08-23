@@ -2,14 +2,14 @@
 
 declare(strict_types=1);
 
-namespace Fight\AccessControl\Application\AccessControl\EmailChangeGrant\Service;
+namespace Fight\AccessControl\Application\AccessControl\Timing\Service;
 
 use DateTimeImmutable;
 
 /**
- * Supplies authoritative email-change lifecycle time.
+ * Provides the current time for application operations.
  */
-interface EmailChangeClock
+interface Clock
 {
     /**
      * Returns the current time at invocation.

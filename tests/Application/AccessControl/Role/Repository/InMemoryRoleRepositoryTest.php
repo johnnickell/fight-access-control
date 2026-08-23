@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Fight\Test\AccessControl\Application\AccessControl\Role\Repository;
 
+use DateTimeImmutable;
 use Fight\AccessControl\Domain\AccessControl\Role\Role;
 use Fight\AccessControl\Domain\AccessControl\Role\RoleId;
 use Fight\AccessControl\Domain\AccessControl\Role\RoleName;
@@ -76,6 +77,11 @@ final class InMemoryRoleRepositoryTest extends TestCase
 
     private function role(string $name): Role
     {
-        return Role::define(RoleId::generate(), RoleName::fromString($name), []);
+        return Role::define(
+            RoleId::generate(),
+            RoleName::fromString($name),
+            [],
+            new DateTimeImmutable('2026-01-01T00:00:00+00:00')
+        );
     }
 }

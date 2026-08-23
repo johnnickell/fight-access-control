@@ -6,8 +6,8 @@ namespace Fight\AccessControl\Application\AccessControl\User\CommandHandler;
 
 use DateInterval;
 use Fight\AccessControl\Application\AccessControl\ActivationGrant\Service\ActivationCredentialGenerator;
-use Fight\AccessControl\Application\AccessControl\ActivationGrant\Service\InvitationClock;
 use Fight\AccessControl\Application\AccessControl\ActivationGrant\Service\InvitationDeliveryCipher;
+use Fight\AccessControl\Application\AccessControl\Timing\Service\Clock;
 use Fight\AccessControl\Domain\AccessControl\ActivationGrant\ActivationGrant;
 use Fight\AccessControl\Domain\AccessControl\ActivationGrant\ActivationGrantRepository;
 use Fight\AccessControl\Domain\AccessControl\Audit\AuditEvidence;
@@ -39,7 +39,7 @@ final readonly class RestoreUserHandler implements CommandHandler
         private ActivationGrantRepository $activationGrantRepository,
         private ActivationCredentialGenerator $activationCredentialGenerator,
         private InvitationDeliveryCipher $invitationDeliveryCipher,
-        private InvitationClock $invitationClock,
+        private Clock $invitationClock,
         private AuditEvidenceRepository $auditEvidenceRepository,
         private UnitOfWork $unitOfWork,
         private EventDispatcher $eventDispatcher
@@ -69,8 +69,9 @@ final readonly class RestoreUserHandler implements CommandHandler
                     throw new UserLifecycleException('The user cannot be restored.');
                 }
 
+                $now = $this->invitationClock->now();
                 $replacementUser = clone $user;
-                $replacementUser->restore($command->getRestorationState());
+                $replacementUser->restore($command->getRestorationState(), $now);
                 if (!$this->userRepository->replaceLifecycleState($user, $replacementUser)) {
                     throw new LogicException('The user lifecycle state changed concurrently.');
                 }

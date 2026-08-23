@@ -67,7 +67,7 @@ final readonly class ExpireEmailChangeHandler implements CommandHandler
                 }
 
                 $expiredUser = clone $user;
-                $expiredUser->expireEmailChange();
+                $expiredUser->expireEmailChange($command->getOccurredAt());
                 if (!$this->userRepository->replaceEmailChangeReservation($user, $expiredUser)) {
                     throw new LogicException('The email-change reservation changed concurrently.');
                 }

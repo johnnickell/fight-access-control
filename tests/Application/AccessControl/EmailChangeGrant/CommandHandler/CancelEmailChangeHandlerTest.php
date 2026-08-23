@@ -22,8 +22,8 @@ use Fight\Common\Domain\Value\Internet\EmailAddress;
 use Fight\Test\AccessControl\Application\AccessControl\Audit\Repository\InMemoryAuditEvidenceRepository;
 use Fight\Test\AccessControl\Application\AccessControl\EmailChangeGrant\Repository\InMemoryEmailChangeGrantRepository;
 use Fight\Test\AccessControl\Application\AccessControl\EmailChangeGrant\Service as EmailChangeService;
-use Fight\Test\AccessControl\Application\AccessControl\EmailChangeGrant\Service\FixedEmailChangeClock;
 use Fight\Test\AccessControl\Application\AccessControl\Event\InMemoryEventDispatcher;
+use Fight\Test\AccessControl\Application\AccessControl\Timing\Service\FixedClock;
 use Fight\Test\AccessControl\Application\AccessControl\User\InMemoryUnitOfWork;
 use Fight\Test\AccessControl\Application\AccessControl\User\Repository\InMemoryUserRepository;
 use Fight\Test\AccessControl\Application\AccessControl\User\Repository\InMemoryUserRepositoryState;
@@ -47,7 +47,9 @@ final class CancelEmailChangeHandlerTest extends TestCase
         $user = UserFixture::withState('old@example.test', UserState::ACTIVE);
         $users->add($user);
         $reserved = clone $user;
-        $reserved->requestEmailChange(EmailAddress::fromString('new@example.test'));
+        $reserved->requestEmailChange(EmailAddress::fromString('new@example.test'), new DateTimeImmutable(
+            '2026-01-01T00:00:00+00:00'
+        ));
         self::assertTrue($users->replaceEmailChangeReservation($user, $reserved));
         $grants = new InMemoryEmailChangeGrantRepository($unitOfWork);
         self::assertTrue($grants->add(EmailChangeGrant::issue(
@@ -69,7 +71,7 @@ final class CancelEmailChangeHandlerTest extends TestCase
             $authorization,
             $audit,
             $unitOfWork,
-            new FixedEmailChangeClock('2026-08-22T12:30:00+00:00'),
+            new FixedClock('2026-08-22T12:30:00+00:00'),
             $events
         );
 
@@ -159,7 +161,9 @@ final class CancelEmailChangeHandlerTest extends TestCase
             $user = UserFixture::withState('old@example.test', UserState::ACTIVE);
             $users->add($user);
             $reserved = clone $user;
-            $reserved->requestEmailChange(EmailAddress::fromString('new@example.test'));
+            $reserved->requestEmailChange(EmailAddress::fromString('new@example.test'), new DateTimeImmutable(
+                '2026-01-01T00:00:00+00:00'
+            ));
             self::assertTrue($users->replaceEmailChangeReservation($user, $reserved));
             $grants = new InMemoryEmailChangeGrantRepository($unitOfWork);
             if ($mismatchedDelivery) {
@@ -210,7 +214,9 @@ final class CancelEmailChangeHandlerTest extends TestCase
         $user = UserFixture::withState('old@example.test', UserState::ACTIVE);
         $seedUsers->add($user);
         $reserved = clone $user;
-        $reserved->requestEmailChange(EmailAddress::fromString('new@example.test'));
+        $reserved->requestEmailChange(EmailAddress::fromString('new@example.test'), new DateTimeImmutable(
+            '2026-01-01T00:00:00+00:00'
+        ));
         self::assertTrue($seedUsers->replaceEmailChangeReservation($user, $reserved));
         $users = new InMemoryUserRepository(
             $unitOfWork,
@@ -243,7 +249,9 @@ final class CancelEmailChangeHandlerTest extends TestCase
         $other = UserFixture::withState('other@example.test', UserState::ACTIVE);
         $users->add($other);
         $reservedOther = clone $other;
-        $reservedOther->requestEmailChange(EmailAddress::fromString('other-new@example.test'));
+        $reservedOther->requestEmailChange(EmailAddress::fromString('other-new@example.test'), new DateTimeImmutable(
+            '2026-01-01T00:00:00+00:00'
+        ));
         self::assertTrue($users->replaceEmailChangeReservation($other, $reservedOther));
 
         $this->expectException(LogicException::class);
@@ -267,7 +275,9 @@ final class CancelEmailChangeHandlerTest extends TestCase
         $target = UserFixture::withState('old@example.test', UserState::ACTIVE);
         $users->add($target);
         $reserved = clone $target;
-        $reserved->requestEmailChange(EmailAddress::fromString('new@example.test'));
+        $reserved->requestEmailChange(EmailAddress::fromString('new@example.test'), new DateTimeImmutable(
+            '2026-01-01T00:00:00+00:00'
+        ));
         self::assertTrue($users->replaceEmailChangeReservation($target, $reserved));
         $grants = new InMemoryEmailChangeGrantRepository($unitOfWork);
         self::assertTrue($grants->add($this->grant($target->getId(), 'new@example.test')));
@@ -283,7 +293,7 @@ final class CancelEmailChangeHandlerTest extends TestCase
             $authorization,
             $audit,
             $unitOfWork,
-            new FixedEmailChangeClock('2026-08-22T12:30:00+00:00'),
+            new FixedClock('2026-08-22T12:30:00+00:00'),
             $events
         );
         $actorId = UserId::generate();
@@ -311,7 +321,9 @@ final class CancelEmailChangeHandlerTest extends TestCase
         $target = UserFixture::withState('old@example.test', UserState::ACTIVE);
         $users->add($target);
         $reserved = clone $target;
-        $reserved->requestEmailChange(EmailAddress::fromString('new@example.test'));
+        $reserved->requestEmailChange(EmailAddress::fromString('new@example.test'), new DateTimeImmutable(
+            '2026-01-01T00:00:00+00:00'
+        ));
         self::assertTrue($users->replaceEmailChangeReservation($target, $reserved));
         $grants = new InMemoryEmailChangeGrantRepository($unitOfWork);
         self::assertTrue($grants->add($this->grant($target->getId(), 'new@example.test')));
@@ -324,7 +336,7 @@ final class CancelEmailChangeHandlerTest extends TestCase
             $authorization,
             $audit,
             $unitOfWork,
-            new FixedEmailChangeClock('2026-08-22T12:30:00+00:00'),
+            new FixedClock('2026-08-22T12:30:00+00:00'),
             $events
         );
 
@@ -353,7 +365,9 @@ final class CancelEmailChangeHandlerTest extends TestCase
         $target = UserFixture::withState('old@example.test', UserState::ACTIVE);
         $users->add($target);
         $reserved = clone $target;
-        $reserved->requestEmailChange(EmailAddress::fromString('new@example.test'));
+        $reserved->requestEmailChange(EmailAddress::fromString('new@example.test'), new DateTimeImmutable(
+            '2026-01-01T00:00:00+00:00'
+        ));
         self::assertTrue($users->replaceEmailChangeReservation($target, $reserved));
         $grants = new InMemoryEmailChangeGrantRepository($unitOfWork);
         self::assertTrue($grants->add($this->grant($target->getId(), 'new@example.test')));
@@ -365,7 +379,7 @@ final class CancelEmailChangeHandlerTest extends TestCase
             new EmailChangeService\FixedEmailChangeAdministrationAuthorization(true),
             $audit,
             $unitOfWork,
-            new FixedEmailChangeClock('2026-08-22T12:30:00+00:00'),
+            new FixedClock('2026-08-22T12:30:00+00:00'),
             $events
         );
 
@@ -405,7 +419,9 @@ final class CancelEmailChangeHandlerTest extends TestCase
         );
         $users->add($user);
         $reserved = clone $user;
-        $reserved->requestEmailChange(EmailAddress::fromString('new@example.test'));
+        $reserved->requestEmailChange(EmailAddress::fromString('new@example.test'), new DateTimeImmutable(
+            '2026-01-01T00:00:00+00:00'
+        ));
         self::assertTrue($users->replaceEmailChangeReservation($user, $reserved));
         $grants = new InMemoryEmailChangeGrantRepository(
             $unitOfWork,
@@ -441,7 +457,7 @@ final class CancelEmailChangeHandlerTest extends TestCase
             new EmailChangeService\FixedEmailChangeAdministrationAuthorization(true),
             new InMemoryAuditEvidenceRepository($unitOfWork),
             $unitOfWork,
-            new FixedEmailChangeClock('2026-08-22T12:30:00+00:00'),
+            new FixedClock('2026-08-22T12:30:00+00:00'),
             $events
         );
     }

@@ -7,7 +7,7 @@ namespace Fight\AccessControl\Application\AccessControl\User\Security;
 use DateTimeImmutable;
 use Fight\AccessControl\Application\AccessControl\RefreshSession\Service\RefreshCredentialGenerator;
 use Fight\AccessControl\Application\AccessControl\RefreshSession\Service\SessionRevocationService;
-use Fight\AccessControl\Application\AccessControl\User\Service\AuthenticationClock;
+use Fight\AccessControl\Application\AccessControl\Timing\Service\Clock;
 use Fight\AccessControl\Application\AccessControl\User\Service\LoginThrottle;
 use Fight\AccessControl\Domain\AccessControl\ActivationGrant\ActivationCredential;
 use Fight\AccessControl\Domain\AccessControl\ActivationGrant\ActivationGrant;
@@ -65,7 +65,7 @@ final readonly class AuthenticationService
         private RefreshSessionRepository $refreshSessionRepository,
         private SessionRevocationService $sessionRevocationService,
         private UnitOfWork $unitOfWork,
-        private AuthenticationClock $clock,
+        private Clock $clock,
         private LoginThrottle $loginThrottle,
         private RefreshCredentialGenerator $refreshCredentialGenerator,
         private PasswordHasher $passwordHasher,
@@ -115,7 +115,7 @@ final readonly class AuthenticationService
                     }
 
                     $replacementUser = clone $user;
-                    $replacementUser->confirmEmailChange();
+                    $replacementUser->confirmEmailChange($confirmedAt);
                     $replacementUser->advanceAuthenticationAuthorityRevision();
                     if (!$this->emailChangeGrantRepository->replace($grant, $grant->consume($confirmedAt))) {
                         throw new EmailChangeConfirmationRejectedException('Email change confirmation rejected.');
@@ -186,7 +186,8 @@ final readonly class AuthenticationService
                 $changedAt = $this->clock->now();
                 $replacementUser = clone $user;
                 $replacementUser->changePassword(
-                    PasswordHash::fromString($this->passwordHasher->hash($newPassword))
+                    PasswordHash::fromString($this->passwordHasher->hash($newPassword)),
+                    $changedAt
                 );
                 $replacementUser->advanceAuthenticationAuthorityRevision();
                 if (!$this->userRepository->replaceAuthenticationAuthority($user, $replacementUser)) {
@@ -254,7 +255,7 @@ final readonly class AuthenticationService
 
                 $passwordHash = PasswordHash::fromString($this->passwordHasher->hash($plainPassword));
                 $replacementUser = clone $user;
-                $replacementUser->resetPassword($passwordHash);
+                $replacementUser->resetPassword($passwordHash, $completedAt);
                 $replacementUser->advanceAuthenticationAuthorityRevision();
                 if (
                     !$this->passwordResetGrantRepository->replace(
@@ -323,7 +324,7 @@ final readonly class AuthenticationService
 
                 $passwordHash = PasswordHash::fromString($this->passwordHasher->hash($plainPassword));
                 $replacementUser = clone $user;
-                $replacementUser->activate($passwordHash);
+                $replacementUser->activate($passwordHash, $authenticatedAt);
                 $replacementUser->advanceAuthenticationAuthorityRevision();
 
                 $refreshCredential = $this->refreshCredentialGenerator->generate();
@@ -407,15 +408,16 @@ final readonly class AuthenticationService
                 }
 
                 $replacementUser = clone $user;
+                $authenticatedAt = $this->clock->now();
                 if ($this->passwordValidator->needsRehash($passwordHash->toString())) {
                     $replacementUser->rehashPassword(
-                        PasswordHash::fromString($this->passwordHasher->hash($plainPassword))
+                        PasswordHash::fromString($this->passwordHasher->hash($plainPassword)),
+                        $authenticatedAt
                     );
                 }
 
                 $replacementUser->advanceAuthenticationAuthorityRevision();
 
-                $authenticatedAt = $this->clock->now();
                 $refreshCredential = $this->refreshCredentialGenerator->generate();
                 $refreshSession = $this->newRefreshSession(
                     $replacementUser,

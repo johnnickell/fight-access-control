@@ -106,50 +106,70 @@ final class AuthenticationDomainTest extends TestCase
 
     public function test_that_only_a_pending_identity_can_establish_its_initial_password_hash(): void
     {
-        $user = User::invite(UserId::generate(), EmailAddress::fromString('alice@example.test'));
+        $user = User::invite(
+            UserId::generate(),
+            EmailAddress::fromString('alice@example.test'),
+            new DateTimeImmutable('2026-01-01T00:00:00+00:00')
+        );
         $passwordHash = $this->passwordHash();
 
-        $user->activate($passwordHash);
+        $user->activate($passwordHash, new DateTimeImmutable('2026-01-01T00:00:00+00:00'));
 
         self::assertSame(UserState::ACTIVE, $user->getState());
         self::assertSame($passwordHash, $user->getPasswordHash());
         $this->expectException(UserNotPendingActivationException::class);
-        $user->activate($this->passwordHash());
+        $user->activate($this->passwordHash(), new DateTimeImmutable('2026-01-01T00:00:00+00:00'));
     }
 
     public function test_that_password_rehash_requires_an_active_identity_with_a_password(): void
     {
-        $user = User::invite(UserId::generate(), EmailAddress::fromString('pending@example.test'));
+        $user = User::invite(
+            UserId::generate(),
+            EmailAddress::fromString('pending@example.test'),
+            new DateTimeImmutable('2026-01-01T00:00:00+00:00')
+        );
 
         $this->expectException(UserNotActiveException::class);
-        $user->rehashPassword($this->passwordHash());
+        $user->rehashPassword($this->passwordHash(), new DateTimeImmutable('2026-01-01T00:00:00+00:00'));
     }
 
     public function test_that_password_change_requires_active_authority_and_advances_version_once(): void
     {
-        $user = User::invite(UserId::generate(), EmailAddress::fromString('change-password@example.test'));
-        $user->activate($this->passwordHash());
+        $user = User::invite(
+            UserId::generate(),
+            EmailAddress::fromString('change-password@example.test'),
+            new DateTimeImmutable('2026-01-01T00:00:00+00:00')
+        );
+        $user->activate($this->passwordHash(), new DateTimeImmutable('2026-01-01T00:00:00+00:00'));
 
         $replacementPasswordHash = PasswordHash::fromString(password_hash(
             'a sufficiently long changed password',
             PASSWORD_DEFAULT
         ));
 
-        $user->changePassword($replacementPasswordHash);
+        $user->changePassword($replacementPasswordHash, new DateTimeImmutable('2026-01-01T00:00:00+00:00'));
 
         self::assertSame($replacementPasswordHash, $user->getPasswordHash());
         self::assertSame(2, $user->getAuthenticationVersion());
 
-        $pendingUser = User::invite(UserId::generate(), EmailAddress::fromString('pending-change@example.test'));
+        $pendingUser = User::invite(
+            UserId::generate(),
+            EmailAddress::fromString('pending-change@example.test'),
+            new DateTimeImmutable('2026-01-01T00:00:00+00:00')
+        );
         $this->expectException(UserNotActiveException::class);
         $this->expectExceptionMessage('Only an active user can change an established password.');
 
-        $pendingUser->changePassword($replacementPasswordHash);
+        $pendingUser->changePassword($replacementPasswordHash, new DateTimeImmutable('2026-01-01T00:00:00+00:00'));
     }
 
     public function test_that_authentication_authority_revision_advancement_is_monotonic_and_domain_owned(): void
     {
-        $user = User::invite(UserId::generate(), EmailAddress::fromString('authority-revision@example.test'));
+        $user = User::invite(
+            UserId::generate(),
+            EmailAddress::fromString('authority-revision@example.test'),
+            new DateTimeImmutable('2026-01-01T00:00:00+00:00')
+        );
 
         self::assertSame(0, $user->getAuthenticationAuthorityRevision());
 
@@ -164,12 +184,16 @@ final class AuthenticationDomainTest extends TestCase
 
     public function test_that_password_reset_requires_an_active_identity_with_an_established_password(): void
     {
-        $user = User::invite(UserId::generate(), EmailAddress::fromString('pending@example.test'));
+        $user = User::invite(
+            UserId::generate(),
+            EmailAddress::fromString('pending-reset@example.test'),
+            new DateTimeImmutable('2026-01-01T00:00:00+00:00')
+        );
 
         $this->expectException(UserNotActiveException::class);
         $this->expectExceptionMessage('Only an active user can reset an established password.');
 
-        $user->resetPassword($this->passwordHash());
+        $user->resetPassword($this->passwordHash(), new DateTimeImmutable('2026-01-01T00:00:00+00:00'));
     }
 
     public function test_that_password_hashes_and_activation_credentials_validate_transport_values(): void

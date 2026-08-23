@@ -6,8 +6,8 @@ namespace Fight\AccessControl\Application\AccessControl\User\CommandHandler;
 
 use DateInterval;
 use Fight\AccessControl\Application\AccessControl\ActivationGrant\Service\ActivationCredentialGenerator;
-use Fight\AccessControl\Application\AccessControl\ActivationGrant\Service\InvitationClock;
 use Fight\AccessControl\Application\AccessControl\ActivationGrant\Service\InvitationDeliveryCipher;
+use Fight\AccessControl\Application\AccessControl\Timing\Service\Clock;
 use Fight\AccessControl\Domain\AccessControl\ActivationGrant\ActivationDeliveryId;
 use Fight\AccessControl\Domain\AccessControl\ActivationGrant\ActivationGrant;
 use Fight\AccessControl\Domain\AccessControl\ActivationGrant\ActivationGrantRepository;
@@ -40,7 +40,7 @@ final readonly class InvitePendingUserHandler implements CommandHandler
         private UnitOfWork $unitOfWork,
         private ActivationCredentialGenerator $credentials,
         private InvitationDeliveryCipher $cipher,
-        private InvitationClock $clock,
+        private Clock $clock,
         private EventDispatcher $eventDispatcher
     ) {
     }
@@ -67,7 +67,7 @@ final readonly class InvitePendingUserHandler implements CommandHandler
                 $command,
                 $issuedAt
             ): ActivationDeliveryId {
-                $user = User::invite($command->getUserId(), $command->getEmail());
+                $user = User::invite($command->getUserId(), $command->getEmail(), $issuedAt);
                 $this->userRepository->add($user);
 
                 $credential = $this->credentials->generate();

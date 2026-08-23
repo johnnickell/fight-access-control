@@ -23,7 +23,7 @@ use Fight\Common\Domain\Messaging\Event\CommandFailedEvent;
 use Fight\Test\AccessControl\Application\AccessControl\Audit\Repository\InMemoryAuditEvidenceRepository;
 use Fight\Test\AccessControl\Application\AccessControl\Event\InMemoryEventDispatcher;
 use Fight\Test\AccessControl\Application\AccessControl\RefreshSession\Repository\InMemoryRefreshSessionRepository;
-use Fight\Test\AccessControl\Application\AccessControl\RefreshSession\Service\FixedRefreshSessionClock;
+use Fight\Test\AccessControl\Application\AccessControl\Timing\Service\FixedClock;
 use Fight\Test\AccessControl\Application\AccessControl\User\InMemoryUnitOfWork;
 use Fight\Test\AccessControl\Application\AccessControl\User\Repository\InMemoryUserRepository;
 use Fight\Test\AccessControl\Domain\AccessControl\User\UserFixture;
@@ -197,7 +197,7 @@ final class DisableUserHandlerTest extends TestCase
         return new DisableUserHandler(
             $users,
             new SessionRevocationService($sessions),
-            new FixedRefreshSessionClock(new DateTimeImmutable('2026-08-20T12:00:00+00:00')),
+            new FixedClock(new DateTimeImmutable('2026-08-20T12:00:00+00:00')),
             $audit,
             $unitOfWork,
             $events

@@ -23,10 +23,10 @@ use Fight\Common\Domain\Value\Internet\EmailAddress;
 use Fight\Test\AccessControl\Application\AccessControl\ActivationGrant\Repository\InMemoryActivationGrantRepository;
 use Fight\Test\AccessControl\Application\AccessControl\ActivationGrant\Service as ActivationService;
 use Fight\Test\AccessControl\Application\AccessControl\ActivationGrant\Service\FixedCredentialGenerator;
-use Fight\Test\AccessControl\Application\AccessControl\ActivationGrant\Service\FixedInvitationClock;
 use Fight\Test\AccessControl\Application\AccessControl\ActivationGrant\Service\PrefixInvitationDeliveryCipher;
 use Fight\Test\AccessControl\Application\AccessControl\Audit\Repository\InMemoryAuditEvidenceRepository;
 use Fight\Test\AccessControl\Application\AccessControl\Event\InMemoryEventDispatcher;
+use Fight\Test\AccessControl\Application\AccessControl\Timing\Service\FixedClock;
 use Fight\Test\AccessControl\Application\AccessControl\User\InMemoryUnitOfWork;
 use Fight\Test\AccessControl\Application\AccessControl\User\Repository\InMemoryUserRepository;
 use Fight\Test\AccessControl\Domain\AccessControl\User\UserFixture;
@@ -47,7 +47,11 @@ final class CorrectPendingInvitationHandlerTest extends TestCase
     {
         $unitOfWork = new InMemoryUnitOfWork();
         $users = new InMemoryUserRepository($unitOfWork);
-        $user = User::invite(UserId::generate(), EmailAddress::fromString('old@example.test'));
+        $user = User::invite(
+            UserId::generate(),
+            EmailAddress::fromString('old@example.test'),
+            new DateTimeImmutable('2026-01-01T00:00:00+00:00')
+        );
         $users->add($user);
         $activationGrants = new InMemoryActivationGrantRepository($unitOfWork);
         $predecessor = ActivationGrant::issue(
@@ -73,7 +77,7 @@ final class CorrectPendingInvitationHandlerTest extends TestCase
             $unitOfWork,
             new FixedCredentialGenerator('activate-new'),
             new PrefixInvitationDeliveryCipher(),
-            new FixedInvitationClock('2026-08-22T13:00:00+00:00'),
+            new FixedClock('2026-08-22T13:00:00+00:00'),
             $events
         );
         $actorId = UserId::generate();
@@ -190,7 +194,11 @@ final class CorrectPendingInvitationHandlerTest extends TestCase
     {
         $unitOfWork = new InMemoryUnitOfWork();
         $users = new InMemoryUserRepository($unitOfWork);
-        $user = User::invite(UserId::generate(), EmailAddress::fromString('old@example.test'));
+        $user = User::invite(
+            UserId::generate(),
+            EmailAddress::fromString('old@example.test'),
+            new DateTimeImmutable('2026-01-01T00:00:00+00:00')
+        );
         $users->add($user);
         $grants = new InMemoryActivationGrantRepository($unitOfWork);
         $authorization = new ActivationService\FixedInvitationAdministrationAuthorization(false);
@@ -220,7 +228,11 @@ final class CorrectPendingInvitationHandlerTest extends TestCase
         foreach ([UserState::ACTIVE, UserState::PENDING_ACTIVATION] as $state) {
             $unitOfWork = new InMemoryUnitOfWork();
             $users = new InMemoryUserRepository($unitOfWork);
-            $user = User::invite(UserId::generate(), EmailAddress::fromString('old@example.test'));
+            $user = User::invite(
+                UserId::generate(),
+                EmailAddress::fromString('old@example.test'),
+                new DateTimeImmutable('2026-01-01T00:00:00+00:00')
+            );
             if ($state === UserState::ACTIVE) {
                 $user = UserFixture::withState('old@example.test', UserState::ACTIVE);
             }
@@ -259,7 +271,11 @@ final class CorrectPendingInvitationHandlerTest extends TestCase
         foreach ([false, true] as $liveReservation) {
             $unitOfWork = new InMemoryUnitOfWork();
             $users = new InMemoryUserRepository($unitOfWork);
-            $target = User::invite(UserId::generate(), EmailAddress::fromString('old@example.test'));
+            $target = User::invite(
+                UserId::generate(),
+                EmailAddress::fromString('old@example.test'),
+                new DateTimeImmutable('2026-01-01T00:00:00+00:00')
+            );
             $reserved = UserFixture::withState('claimed@example.test', UserState::ACTIVE);
             $users->add($target);
             $users->add($reserved);
@@ -267,7 +283,10 @@ final class CorrectPendingInvitationHandlerTest extends TestCase
             if ($liveReservation) {
                 $destination = 'reserved@example.test';
                 $replacement = clone $reserved;
-                $replacement->requestEmailChange(EmailAddress::fromString($destination));
+                $replacement->requestEmailChange(
+                    EmailAddress::fromString($destination),
+                    new DateTimeImmutable('2026-01-01T00:00:00+00:00')
+                );
                 self::assertTrue($users->replaceEmailChangeReservation($reserved, $replacement));
             }
 
@@ -302,7 +321,11 @@ final class CorrectPendingInvitationHandlerTest extends TestCase
         foreach (['missing', 'terminal', 'mismatched'] as $condition) {
             $unitOfWork = new InMemoryUnitOfWork();
             $users = new InMemoryUserRepository($unitOfWork);
-            $user = User::invite(UserId::generate(), EmailAddress::fromString('old@example.test'));
+            $user = User::invite(
+                UserId::generate(),
+                EmailAddress::fromString('old@example.test'),
+                new DateTimeImmutable('2026-01-01T00:00:00+00:00')
+            );
             $users->add($user);
             $grants = new InMemoryActivationGrantRepository($unitOfWork);
             if ($condition !== 'missing') {
@@ -347,7 +370,11 @@ final class CorrectPendingInvitationHandlerTest extends TestCase
     {
         $unitOfWork = new InMemoryUnitOfWork();
         $users = new InMemoryUserRepository($unitOfWork);
-        $user = User::invite(UserId::generate(), EmailAddress::fromString('old@example.test'));
+        $user = User::invite(
+            UserId::generate(),
+            EmailAddress::fromString('old@example.test'),
+            new DateTimeImmutable('2026-01-01T00:00:00+00:00')
+        );
         $users->add($user);
         $grants = new InMemoryActivationGrantRepository($unitOfWork, replaceWithSuccessorSucceeds: false);
         self::assertTrue($grants->add($this->grant($user)));
@@ -379,7 +406,11 @@ final class CorrectPendingInvitationHandlerTest extends TestCase
     {
         $unitOfWork = new InMemoryUnitOfWork();
         $users = new InMemoryUserRepository($unitOfWork);
-        $user = User::invite(UserId::generate(), EmailAddress::fromString('old@example.test'));
+        $user = User::invite(
+            UserId::generate(),
+            EmailAddress::fromString('old@example.test'),
+            new DateTimeImmutable('2026-01-01T00:00:00+00:00')
+        );
         $users->add($user);
         $grants = new InMemoryActivationGrantRepository($unitOfWork);
         self::assertTrue($grants->add($this->grant($user)));
@@ -431,7 +462,7 @@ final class CorrectPendingInvitationHandlerTest extends TestCase
             $unitOfWork,
             new FixedCredentialGenerator('activate-new'),
             new PrefixInvitationDeliveryCipher(),
-            new FixedInvitationClock('2026-08-22T13:00:00+00:00'),
+            new FixedClock('2026-08-22T13:00:00+00:00'),
             $events
         );
     }
@@ -452,7 +483,11 @@ final class CorrectPendingInvitationHandlerTest extends TestCase
     {
         $unitOfWork = new InMemoryUnitOfWork();
         $users = new InMemoryUserRepository($unitOfWork);
-        $user = User::invite(UserId::generate(), EmailAddress::fromString('old@example.test'));
+        $user = User::invite(
+            UserId::generate(),
+            EmailAddress::fromString('old@example.test'),
+            new DateTimeImmutable('2026-01-01T00:00:00+00:00')
+        );
         $users->add($user);
         $grants = new InMemoryActivationGrantRepository($unitOfWork);
         self::assertTrue($grants->add($this->grant($user)));

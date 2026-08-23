@@ -6,8 +6,8 @@ namespace Fight\AccessControl\Application\AccessControl\ActivationGrant\CommandH
 
 use DateInterval;
 use Fight\AccessControl\Application\AccessControl\ActivationGrant\Service\ActivationCredentialGenerator;
-use Fight\AccessControl\Application\AccessControl\ActivationGrant\Service\InvitationClock;
 use Fight\AccessControl\Application\AccessControl\ActivationGrant\Service\InvitationDeliveryCipher;
+use Fight\AccessControl\Application\AccessControl\Timing\Service\Clock;
 use Fight\AccessControl\Domain\AccessControl\ActivationGrant\ActivationDeliveryId;
 use Fight\AccessControl\Domain\AccessControl\ActivationGrant\ActivationGrant;
 use Fight\AccessControl\Domain\AccessControl\ActivationGrant\ActivationGrantRepository;
@@ -38,7 +38,7 @@ final readonly class ResendInvitationDeliveryHandler implements CommandHandler
         private UnitOfWork $unitOfWork,
         private ActivationCredentialGenerator $activationCredentialGenerator,
         private InvitationDeliveryCipher $invitationDeliveryCipher,
-        private InvitationClock $invitationClock,
+        private Clock $invitationClock,
         private EventDispatcher $eventDispatcher
     ) {
     }

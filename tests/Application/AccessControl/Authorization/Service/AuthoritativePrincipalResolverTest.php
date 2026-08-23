@@ -26,8 +26,8 @@ use Fight\AccessControl\Domain\AccessControl\User\UserState;
 use Fight\Test\AccessControl\Application\AccessControl\Permission\Repository\InMemoryPermissionRepository;
 use Fight\Test\AccessControl\Application\AccessControl\RefreshSession\Repository\InMemoryRefreshSessionRepository;
 use Fight\Test\AccessControl\Application\AccessControl\Role\Repository\InMemoryRoleRepository;
+use Fight\Test\AccessControl\Application\AccessControl\Timing\Service\FixedClock;
 use Fight\Test\AccessControl\Application\AccessControl\User\Repository\InMemoryUserRepository;
-use Fight\Test\AccessControl\Application\AccessControl\User\Service\FixedAuthenticationClock;
 use Fight\Test\AccessControl\Domain\AccessControl\User\UserFixture;
 use InvalidArgumentException;
 use PHPUnit\Framework\Attributes\CoversClass;
@@ -50,17 +50,30 @@ final class AuthoritativePrincipalResolverTest extends TestCase
         $editor = Role::define(
             RoleId::generate(),
             RoleName::fromString('ROLE_EDITOR'),
-            [$sharedPermissionId, $sharedPermissionId]
+            [$sharedPermissionId, $sharedPermissionId],
+            new DateTimeImmutable('2026-01-01T00:00:00+00:00')
         );
         $publisher = Role::define(
             RoleId::generate(),
             RoleName::fromString('ROLE_PUBLISHER'),
-            [$sharedPermissionId, $otherPermissionId]
+            [$sharedPermissionId, $otherPermissionId],
+            new DateTimeImmutable('2026-01-01T00:00:00+00:00')
         );
-        $user->replaceRoleAssignments([$editor->getId(), $publisher->getId()]);
+        $user->replaceRoleAssignments(
+            [$editor->getId(), $publisher->getId()],
+            new DateTimeImmutable('2026-01-01T00:00:00+00:00')
+        );
 
-        $permission = Permission::define($sharedPermissionId, PermissionName::fromString('VIEW_ARTICLE'));
-        $otherPermission = Permission::define($otherPermissionId, PermissionName::fromString('PUBLISH_ARTICLE'));
+        $permission = Permission::define(
+            $sharedPermissionId,
+            PermissionName::fromString('VIEW_ARTICLE'),
+            new DateTimeImmutable('2026-01-01T00:00:00+00:00')
+        );
+        $otherPermission = Permission::define(
+            $otherPermissionId,
+            PermissionName::fromString('PUBLISH_ARTICLE'),
+            new DateTimeImmutable('2026-01-01T00:00:00+00:00')
+        );
         $session = $this->session($user->getId(), 7, $now);
         $resolver = $this->resolver($now, $user, $session, [$editor, $publisher], [$permission, $otherPermission]);
         $context = new AuthenticationContext($user->getId(), $session->getId(), 7);
@@ -157,7 +170,7 @@ final class AuthoritativePrincipalResolverTest extends TestCase
     {
         $now = new DateTimeImmutable('2026-08-21T12:00:00+00:00');
         $user = $this->activeUser(7);
-        $user->replaceRoleAssignments([RoleId::generate()]);
+        $user->replaceRoleAssignments([RoleId::generate()], new DateTimeImmutable('2026-01-01T00:00:00+00:00'));
 
         $session = $this->session($user->getId(), 7, $now);
 
@@ -171,13 +184,14 @@ final class AuthoritativePrincipalResolverTest extends TestCase
     {
         $now = new DateTimeImmutable('2026-08-21T12:00:00+00:00');
         $user = $this->activeUser(7);
-        $user->replaceRoleAssignments([RoleId::generate()]);
+        $user->replaceRoleAssignments([RoleId::generate()], new DateTimeImmutable('2026-01-01T00:00:00+00:00'));
 
         $session = $this->session($user->getId(), 7, $now);
         $unexpectedRole = Role::define(
             RoleId::generate(),
             RoleName::fromString('ROLE_UNEXPECTED'),
-            []
+            [],
+            new DateTimeImmutable('2026-01-01T00:00:00+00:00')
         );
         $roleRepository = $this->createStub(RoleRepository::class);
         $roleRepository->method('getByIds')->willReturn([$unexpectedRole]);
@@ -195,9 +209,10 @@ final class AuthoritativePrincipalResolverTest extends TestCase
         $role = Role::define(
             RoleId::generate(),
             RoleName::fromString('ROLE_EDITOR'),
-            [PermissionId::generate()]
+            [PermissionId::generate()],
+            new DateTimeImmutable('2026-01-01T00:00:00+00:00')
         );
-        $user->replaceRoleAssignments([$role->getId()]);
+        $user->replaceRoleAssignments([$role->getId()], new DateTimeImmutable('2026-01-01T00:00:00+00:00'));
         $session = $this->session($user->getId(), 7, $now);
 
         $this->expectException(PrincipalResolutionException::class);
@@ -213,13 +228,15 @@ final class AuthoritativePrincipalResolverTest extends TestCase
         $role = Role::define(
             RoleId::generate(),
             RoleName::fromString('ROLE_EDITOR'),
-            [PermissionId::generate()]
+            [PermissionId::generate()],
+            new DateTimeImmutable('2026-01-01T00:00:00+00:00')
         );
-        $user->replaceRoleAssignments([$role->getId()]);
+        $user->replaceRoleAssignments([$role->getId()], new DateTimeImmutable('2026-01-01T00:00:00+00:00'));
         $session = $this->session($user->getId(), 7, $now);
         $unexpectedPermission = Permission::define(
             PermissionId::generate(),
-            PermissionName::fromString('UNEXPECTED_PERMISSION')
+            PermissionName::fromString('UNEXPECTED_PERMISSION'),
+            new DateTimeImmutable('2026-01-01T00:00:00+00:00')
         );
         $permissionRepository = $this->createStub(PermissionRepository::class);
         $permissionRepository->method('getByIds')->willReturn([$unexpectedPermission]);
@@ -280,7 +297,7 @@ final class AuthoritativePrincipalResolverTest extends TestCase
             new InMemoryRefreshSessionRepository(),
             new InMemoryRoleRepository(),
             new InMemoryPermissionRepository(),
-            new FixedAuthenticationClock(new DateTimeImmutable('2026-08-21T12:00:00+00:00'))
+            new FixedClock(new DateTimeImmutable('2026-08-21T12:00:00+00:00'))
         );
     }
 
@@ -316,7 +333,7 @@ final class AuthoritativePrincipalResolverTest extends TestCase
             $sessionRepository,
             $roleRepository ?? $inMemoryRoleRepository,
             $permissionRepository ?? $inMemoryPermissionRepository,
-            new FixedAuthenticationClock($now)
+            new FixedClock($now)
         );
     }
 
