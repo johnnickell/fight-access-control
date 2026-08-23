@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Fight\Test\AccessControl\Domain\AccessControl\User;
 
+use Fight\AccessControl\Domain\AccessControl\Role\RoleId;
 use Fight\AccessControl\Domain\AccessControl\User\User;
 use Fight\AccessControl\Domain\AccessControl\User\UserId;
 use Fight\AccessControl\Domain\AccessControl\User\UserState;
@@ -37,6 +38,25 @@ final class UserFixture extends User
             $state,
             null,
             $authenticationVersion
+        );
+    }
+
+    /**
+     * Reconstitutes a user with persisted role-assignment authority.
+     *
+     * @phpstan-param list<RoleId> $roleIds
+     */
+    public static function withRoleAssignments(array $roleIds, int $authorizationAssignmentRevision): User
+    {
+        return new self(
+            UserId::generate(),
+            EmailAddress::fromString('reconstituted-role-assignments@example.test'),
+            UserState::ACTIVE,
+            null,
+            1,
+            0,
+            $roleIds,
+            $authorizationAssignmentRevision
         );
     }
 }

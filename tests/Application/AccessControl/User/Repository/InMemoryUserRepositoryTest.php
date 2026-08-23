@@ -8,6 +8,7 @@ use DateTimeImmutable;
 use Fight\AccessControl\Domain\AccessControl\RefreshSession\RefreshCredential;
 use Fight\AccessControl\Domain\AccessControl\RefreshSession\RefreshSession;
 use Fight\AccessControl\Domain\AccessControl\RefreshSession\RefreshSessionId;
+use Fight\AccessControl\Domain\AccessControl\Role\RoleId;
 use Fight\AccessControl\Domain\AccessControl\User\PasswordHash;
 use Fight\AccessControl\Domain\AccessControl\User\User;
 use Fight\AccessControl\Domain\AccessControl\User\UserId;
@@ -22,6 +23,80 @@ use RuntimeException;
 #[CoversNothing]
 final class InMemoryUserRepositoryTest extends TestCase
 {
+    public function test_that_only_the_expected_role_assignments_can_be_replaced(): void
+    {
+        $repository = new InMemoryUserRepository();
+        $current = $this->activeUser();
+        $repository->add($current);
+        $winner = clone $current;
+        $winner->replaceRoleAssignments([RoleId::generate()]);
+
+        $staleCandidate = clone $current;
+        $staleCandidate->replaceRoleAssignments([RoleId::generate()]);
+
+        self::assertTrue($repository->replaceRoleAssignments($current, $winner));
+        self::assertFalse($repository->replaceRoleAssignments($current, $staleCandidate));
+        self::assertSame($winner, $repository->getById($current->getId()));
+    }
+
+    public function test_that_role_assignment_replacement_rejects_unrelated_user_changes(): void
+    {
+        $repository = new InMemoryUserRepository();
+        $current = $this->activeUser();
+        $repository->add($current);
+        $replacement = clone $current;
+        $replacement->replaceRoleAssignments([RoleId::generate()]);
+        $replacement->rehashPassword($this->passwordHash('unrelated-password-change'));
+
+        self::assertFalse($repository->replaceRoleAssignments($current, $replacement));
+        self::assertSame($current, $repository->getById($current->getId()));
+    }
+
+    public function test_that_role_assignment_replacement_requires_exactly_one_revision_advance(): void
+    {
+        $repository = new InMemoryUserRepository();
+        $current = $this->activeUser();
+        $repository->add($current);
+        $replacement = clone $current;
+        $replacement->replaceRoleAssignments([RoleId::generate(), RoleId::generate()]);
+        $replacement->replaceRoleAssignments([RoleId::generate()]);
+
+        self::assertFalse($repository->replaceRoleAssignments($current, $replacement));
+        self::assertSame($current, $repository->getById($current->getId()));
+    }
+
+    public function test_that_authentication_replacement_preserves_role_assignments(): void
+    {
+        $repository = new InMemoryUserRepository();
+        $current = $this->activeUser();
+        $roleId = RoleId::generate();
+        $current->replaceRoleAssignments([$roleId]);
+        $repository->add($current);
+        $replacement = clone $current;
+        $replacement->rehashPassword($this->passwordHash('replacement-password'));
+        $replacement->advanceAuthenticationAuthorityRevision();
+
+        self::assertTrue($repository->replaceAuthenticationAuthority($current, $replacement));
+        self::assertSame([$roleId], $replacement->getRoleIds());
+        self::assertSame(
+            $current->getAuthorizationAssignmentRevision(),
+            $replacement->getAuthorizationAssignmentRevision()
+        );
+    }
+
+    public function test_that_authentication_replacement_rejects_role_assignment_changes(): void
+    {
+        $repository = new InMemoryUserRepository();
+        $current = $this->activeUser();
+        $repository->add($current);
+        $replacement = clone $current;
+        $replacement->replaceRoleAssignments([RoleId::generate()]);
+        $replacement->advanceAuthenticationAuthorityRevision();
+
+        self::assertFalse($repository->replaceAuthenticationAuthority($current, $replacement));
+        self::assertSame($current, $repository->getById($current->getId()));
+    }
+
     public function test_that_atomic_login_authority_and_session_win_before_a_stale_reset_or_both_lose(): void
     {
         $userState = new InMemoryUserRepositoryState();

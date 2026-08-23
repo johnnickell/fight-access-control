@@ -4,8 +4,10 @@ declare(strict_types=1);
 
 namespace Fight\AccessControl\Domain\AccessControl\User;
 
+use Fight\AccessControl\Domain\AccessControl\Role\RoleId;
 use Fight\AccessControl\Domain\AccessControl\User\Exception\UserNotActiveException;
 use Fight\AccessControl\Domain\AccessControl\User\Exception\UserNotPendingActivationException;
+use Fight\Common\Domain\Collection\HashSet;
 use Fight\Common\Domain\Value\Internet\EmailAddress;
 
 /**
@@ -13,8 +15,13 @@ use Fight\Common\Domain\Value\Internet\EmailAddress;
  */
 class User
 {
+    /** @var HashSet<RoleId> */
+    private HashSet $roleIds;
+
     /**
      * Creates a user identity.
+     *
+     * @phpstan-param list<RoleId> $roleIds
      */
     protected function __construct(
         private readonly UserId $id,
@@ -22,8 +29,15 @@ class User
         private UserState $state,
         private ?PasswordHash $passwordHash = null,
         private int $authenticationVersion = 1,
-        private int $authenticationAuthorityRevision = 0
+        private int $authenticationAuthorityRevision = 0,
+        array $roleIds = [],
+        private int $authorizationAssignmentRevision = 0
     ) {
+        $this->roleIds = HashSet::of(RoleId::class);
+
+        foreach ($roleIds as $roleId) {
+            $this->roleIds->add($roleId);
+        }
     }
 
     /**
@@ -56,6 +70,52 @@ class User
     public function getState(): UserState
     {
         return $this->state;
+    }
+
+    /**
+     * Returns an isolated snapshot of assigned role identifiers.
+     *
+     * @return list<RoleId>
+     */
+    public function getRoleIds(): array
+    {
+        return $this->roleIds->toArray();
+    }
+
+    /**
+     * Determines whether the user has a role assignment.
+     */
+    public function hasRole(RoleId $roleId): bool
+    {
+        return $this->roleIds->contains($roleId);
+    }
+
+    /**
+     * Replaces the complete role-assignment set and advances its authority once when changed.
+     *
+     * @phpstan-param iterable<RoleId> $roleIds
+     */
+    public function replaceRoleAssignments(iterable $roleIds): void
+    {
+        $replacementRoleIds = HashSet::of(RoleId::class);
+        foreach ($roleIds as $roleId) {
+            $replacementRoleIds->add($roleId);
+        }
+
+        if ($this->roleIds->difference($replacementRoleIds)->isEmpty()) {
+            return;
+        }
+
+        $this->roleIds = $replacementRoleIds;
+        ++$this->authorizationAssignmentRevision;
+    }
+
+    /**
+     * Returns the monotonic authorization-assignment persistence revision.
+     */
+    public function getAuthorizationAssignmentRevision(): int
+    {
+        return $this->authorizationAssignmentRevision;
     }
 
     /**
@@ -141,5 +201,18 @@ class User
     public function getAuthenticationAuthorityRevision(): int
     {
         return $this->authenticationAuthorityRevision;
+    }
+
+    /**
+     * Gives a cloned identity an independent mutable assignment set.
+     */
+    public function __clone(): void
+    {
+        $roleIds = $this->roleIds->toArray();
+        $this->roleIds = HashSet::of(RoleId::class);
+
+        foreach ($roleIds as $roleId) {
+            $this->roleIds->add($roleId);
+        }
     }
 }

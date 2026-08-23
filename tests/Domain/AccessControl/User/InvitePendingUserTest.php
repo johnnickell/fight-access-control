@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Fight\Test\AccessControl\Domain\AccessControl\User;
 
 use DateTimeImmutable;
+use Fight\AccessControl\Domain\AccessControl\ActivationGrant\ActivationDeliveryId;
 use Fight\AccessControl\Domain\AccessControl\User\Command\InvitePendingUser;
 use Fight\AccessControl\Domain\AccessControl\User\Event\UserInvited;
 use Fight\AccessControl\Domain\AccessControl\User\UserId;
@@ -43,12 +44,14 @@ final class InvitePendingUserTest extends TestCase
         $event = new UserInvited(
             'Admin-42',
             UserId::generate(),
+            ActivationDeliveryId::generate(),
             EmailAddress::fromString('Alice@example.test'),
             new DateTimeImmutable('2026-08-18T12:00:00+00:00')
         );
 
         self::assertSame('Admin-42', $event->getActorId());
         self::assertInstanceOf(UserId::class, $event->getUserId());
+        self::assertInstanceOf(ActivationDeliveryId::class, $event->getActivationDeliveryId());
         self::assertSame('Alice@example.test', $event->getEmail()->toString());
         self::assertSame('2026-08-18T12:00:00+00:00', $event->getIssuedAt()->format(DATE_ATOM));
         self::assertSame($event->toArray(), UserInvited::fromArray($event->toArray())->toArray());

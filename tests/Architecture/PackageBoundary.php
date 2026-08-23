@@ -66,6 +66,7 @@ final class PackageBoundary
             );
             $expect(!preg_match('/namespace\s+Fight\\\\Common\\\\/', $contents), sprintf('%s copies a Fight Common namespace.', $relative));
             $expect(!preg_match('/Fight\\\\AccessControl\\\\Adapter\\\\/', $contents), sprintf('%s may not reference a production Adapter namespace.', $relative));
+            $expect(!preg_match('/use\s+(?!Fight\\\\)[^;\n]*Security[^;\n]*Token/i', $contents), sprintf('%s may not import framework security-token types.', $relative));
 
             if ($isDomain) {
                 $expect(!preg_match('/Fight\\\\Common\\\\(?!Domain\\\\)/', $contents), sprintf('%s may use only Fight Common public Domain primitives.', $relative));

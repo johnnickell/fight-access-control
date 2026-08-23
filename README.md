@@ -21,6 +21,15 @@ Production code follows `Domain <- Application`:
 See [CONTEXT.md](CONTEXT.md) for the accepted vocabulary and [planning/specs/00001-PRD.md](planning/specs/00001-PRD.md)
 for the repository-local behavioral and security authority.
 
+### Current principal composition
+
+Consumers implement `AuthenticationContextProvider` to expose only the authenticated User ID, refresh-session ID,
+and authentication version for the current request. The composition root must create a new
+`CurrentPrincipalProvider` for each request with that context provider and the package
+`AuthoritativePrincipalResolver`. Application handlers use `CurrentPrincipalProvider`; its first lookup resolves
+all principal roles and permissions from authoritative repositories and later lookups in the same request return
+that cached result. Consumers cannot inject role or permission snapshots through this boundary.
+
 ## Local development
 
 PHP 8.5 and Docker are required. Tooling follows the Fight Common conventions and runs in the isolated

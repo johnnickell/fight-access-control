@@ -61,6 +61,17 @@ interface UserRepository
     ): bool;
 
     /**
+     * Atomically replaces role assignments while the expected predecessor remains current.
+     *
+     * Implementations compare all User state, reject replacement changes outside role assignments, and require the
+     * authorization-assignment revision to advance by exactly one. Returns false when the expected predecessor has
+     * lost authority or the replacement is invalid.
+     *
+     * @throws Exception When an error occurs
+     */
+    public function replaceRoleAssignments(User $expected, User $replacement): bool;
+
+    /**
      * Adds a User.
      *
      * Implementations must reject a duplicate canonical email atomically.

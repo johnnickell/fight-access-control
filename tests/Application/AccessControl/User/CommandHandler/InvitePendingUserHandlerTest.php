@@ -5,34 +5,33 @@ declare(strict_types=1);
 namespace Fight\Test\AccessControl\Application\AccessControl\User\CommandHandler;
 
 use Fight\AccessControl\Application\AccessControl\User\CommandHandler\InvitePendingUserHandler;
+use Fight\AccessControl\Domain\AccessControl\ActivationGrant\ActivationGrant;
 use Fight\AccessControl\Domain\AccessControl\Audit\AuditEvidence;
-use Fight\AccessControl\Domain\AccessControl\User\ActivationGrant;
 use Fight\AccessControl\Domain\AccessControl\User\Command\InvitePendingUser;
 use Fight\AccessControl\Domain\AccessControl\User\Event\UserInvited;
 use Fight\AccessControl\Domain\AccessControl\User\Exception\DuplicateEmailException;
-use Fight\AccessControl\Domain\AccessControl\User\InvitationDelivery;
 use Fight\AccessControl\Domain\AccessControl\User\User;
 use Fight\AccessControl\Domain\AccessControl\User\UserId;
 use Fight\AccessControl\Domain\AccessControl\User\UserState;
 use Fight\Common\Domain\Messaging\Command\CommandMessage;
+use Fight\Common\Domain\Messaging\Event\CommandFailedEvent;
 use Fight\Common\Domain\Value\Internet\EmailAddress;
+use Fight\Test\AccessControl\Application\AccessControl\ActivationGrant\Repository\InMemoryActivationGrantRepository;
+use Fight\Test\AccessControl\Application\AccessControl\ActivationGrant\Service\FixedCredentialGenerator;
+use Fight\Test\AccessControl\Application\AccessControl\ActivationGrant\Service\FixedInvitationClock;
+use Fight\Test\AccessControl\Application\AccessControl\ActivationGrant\Service\PrefixInvitationDeliveryCipher;
 use Fight\Test\AccessControl\Application\AccessControl\Audit\Repository\InMemoryAuditEvidenceRepository;
 use Fight\Test\AccessControl\Application\AccessControl\Event\InMemoryEventDispatcher;
 use Fight\Test\AccessControl\Application\AccessControl\User\InMemoryUnitOfWork;
-use Fight\Test\AccessControl\Application\AccessControl\User\Repository\InMemoryActivationGrantRepository;
-use Fight\Test\AccessControl\Application\AccessControl\User\Repository\InMemoryInvitationDeliveryRepository;
 use Fight\Test\AccessControl\Application\AccessControl\User\Repository\InMemoryUserRepository;
-use Fight\Test\AccessControl\Application\AccessControl\User\Service\FixedCredentialGenerator;
-use Fight\Test\AccessControl\Application\AccessControl\User\Service\FixedInvitationClock;
-use Fight\Test\AccessControl\Application\AccessControl\User\Service\PrefixInvitationDeliveryCipher;
 use Fight\Test\AccessControl\Domain\AccessControl\User\UserFixture;
+use LogicException;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 use RuntimeException;
 
 #[CoversClass(InvitePendingUserHandler::class)]
-#[CoversClass(InvitationDelivery::class)]
 #[CoversClass(ActivationGrant::class)]
 #[CoversClass(AuditEvidence::class)]
 #[CoversClass(InvitePendingUser::class)]
@@ -55,14 +54,12 @@ final class InvitePendingUserHandlerTest extends TestCase
     {
         $userRepository = new InMemoryUserRepository();
         $activationGrantRepository = new InMemoryActivationGrantRepository();
-        $invitationDeliveryRepository = new InMemoryInvitationDeliveryRepository();
         $auditEvidenceRepository = new InMemoryAuditEvidenceRepository();
         $unitOfWork = new InMemoryUnitOfWork();
         $events = new InMemoryEventDispatcher();
         $handler = $this->handler(
             $userRepository,
             $activationGrantRepository,
-            $invitationDeliveryRepository,
             $auditEvidenceRepository,
             $unitOfWork,
             $events
@@ -79,14 +76,13 @@ final class InvitePendingUserHandlerTest extends TestCase
         self::assertSame(1, $unitOfWork->transactions);
         self::assertCount(1, $userRepository->all());
         self::assertCount(1, $activationGrantRepository->all());
-        self::assertCount(1, $invitationDeliveryRepository->all());
         self::assertCount(1, $auditEvidenceRepository->all());
         self::assertCount(1, $events->events());
         self::assertSame($userId, $userRepository->all()[0]->getId());
         self::assertSame('alice@example.test', $userRepository->all()[0]->getEmail()->canonical());
         self::assertSame(UserState::PENDING_ACTIVATION, $userRepository->all()[0]->getState());
         self::assertSame($userId, $activationGrantRepository->all()[0]->getUserId());
-        self::assertSame($userId, $invitationDeliveryRepository->all()[0]->userId());
+        self::assertSame($userId, $activationGrantRepository->all()[0]->getDelivery()->getUserId());
         self::assertSame($userId, $auditEvidenceRepository->all()[0]->userId());
         self::assertInstanceOf(UserInvited::class, $events->events()[0]);
     }
@@ -101,7 +97,6 @@ final class InvitePendingUserHandlerTest extends TestCase
         $handler = $this->handler(
             $userRepository,
             new InMemoryActivationGrantRepository(),
-            new InMemoryInvitationDeliveryRepository(),
             new InMemoryAuditEvidenceRepository(),
             new InMemoryUnitOfWork(),
             $events
@@ -128,7 +123,6 @@ final class InvitePendingUserHandlerTest extends TestCase
         $handler = $this->handler(
             $userRepository,
             new InMemoryActivationGrantRepository($unitOfWork),
-            new InMemoryInvitationDeliveryRepository($unitOfWork),
             new InMemoryAuditEvidenceRepository($unitOfWork, failAfterSave: true),
             $unitOfWork,
             $events
@@ -157,7 +151,6 @@ final class InvitePendingUserHandlerTest extends TestCase
         $handler = new InvitePendingUserHandler(
             new InMemoryUserRepository(),
             $activationGrantRepository,
-            new InMemoryInvitationDeliveryRepository(),
             new InMemoryAuditEvidenceRepository(),
             new InMemoryUnitOfWork(),
             new FixedCredentialGenerator('activate-once'),
@@ -184,10 +177,32 @@ final class InvitePendingUserHandlerTest extends TestCase
         self::assertSame('2026-08-26T12:00:00+00:00', $activationGrants[1]->getExpiresAt()->format(DATE_ATOM));
     }
 
+    public function test_it_rejects_an_initial_activation_generation_race(): void
+    {
+        $events = new InMemoryEventDispatcher();
+        $handler = $this->handler(
+            new InMemoryUserRepository(),
+            new InMemoryActivationGrantRepository(addSucceeds: false),
+            new InMemoryAuditEvidenceRepository(),
+            new InMemoryUnitOfWork(),
+            $events
+        );
+
+        $this->expectException(LogicException::class);
+        try {
+            $handler->handle(CommandMessage::create(new InvitePendingUser(
+                'Admin-42',
+                UserId::generate(),
+                EmailAddress::fromString('alice@example.test')
+            )));
+        } finally {
+            self::assertInstanceOf(CommandFailedEvent::class, $events->events()[0]);
+        }
+    }
+
     private function handler(
         InMemoryUserRepository $userRepository,
         InMemoryActivationGrantRepository $activationGrantRepository,
-        InMemoryInvitationDeliveryRepository $invitationDeliveryRepository,
         InMemoryAuditEvidenceRepository $auditEvidenceRepository,
         InMemoryUnitOfWork $unitOfWork,
         InMemoryEventDispatcher $events
@@ -195,7 +210,6 @@ final class InvitePendingUserHandlerTest extends TestCase
         return new InvitePendingUserHandler(
             $userRepository,
             $activationGrantRepository,
-            $invitationDeliveryRepository,
             $auditEvidenceRepository,
             $unitOfWork,
             new FixedCredentialGenerator('activate-once'),

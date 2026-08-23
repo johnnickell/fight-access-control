@@ -16,17 +16,21 @@ use Fight\AccessControl\Application\AccessControl\User\Security\RefreshResult;
 use Fight\AccessControl\Application\AccessControl\User\Security\TokenSet;
 use Fight\AccessControl\Application\AccessControl\User\Service\AuthenticationClock;
 use Fight\AccessControl\Application\AccessControl\User\Service\LoginThrottle;
+use Fight\AccessControl\Domain\AccessControl\ActivationGrant\ActivationCredential;
+use Fight\AccessControl\Domain\AccessControl\ActivationGrant\ActivationGrant;
+use Fight\AccessControl\Domain\AccessControl\ActivationGrant\ActivationGrantRepository;
 use Fight\AccessControl\Domain\AccessControl\Audit\AuditEvidence;
 use Fight\AccessControl\Domain\AccessControl\Audit\AuditEvidenceRepository;
+use Fight\AccessControl\Domain\AccessControl\PasswordResetGrant\Exception\PasswordResetRejectedException;
+use Fight\AccessControl\Domain\AccessControl\PasswordResetGrant\PasswordResetCredential;
+use Fight\AccessControl\Domain\AccessControl\PasswordResetGrant\PasswordResetGrant;
+use Fight\AccessControl\Domain\AccessControl\PasswordResetGrant\PasswordResetGrantRepository;
 use Fight\AccessControl\Domain\AccessControl\RefreshSession\Event\CurrentSessionLoggedOut;
 use Fight\AccessControl\Domain\AccessControl\RefreshSession\Exception\RefreshSessionNotFoundException;
 use Fight\AccessControl\Domain\AccessControl\RefreshSession\RefreshCredential;
 use Fight\AccessControl\Domain\AccessControl\RefreshSession\RefreshSession;
 use Fight\AccessControl\Domain\AccessControl\RefreshSession\RefreshSessionId;
 use Fight\AccessControl\Domain\AccessControl\RefreshSession\RefreshSessionRepository;
-use Fight\AccessControl\Domain\AccessControl\User\ActivationCredential;
-use Fight\AccessControl\Domain\AccessControl\User\ActivationGrant;
-use Fight\AccessControl\Domain\AccessControl\User\ActivationGrantRepository;
 use Fight\AccessControl\Domain\AccessControl\User\Event\PasswordChanged;
 use Fight\AccessControl\Domain\AccessControl\User\Event\PasswordResetCompleted;
 use Fight\AccessControl\Domain\AccessControl\User\Event\RedactedCommandFailed;
@@ -34,13 +38,7 @@ use Fight\AccessControl\Domain\AccessControl\User\Event\UserActivated;
 use Fight\AccessControl\Domain\AccessControl\User\Event\UserLoggedIn;
 use Fight\AccessControl\Domain\AccessControl\User\Exception\LoginRejectedException;
 use Fight\AccessControl\Domain\AccessControl\User\Exception\PasswordChangeRejectedException;
-use Fight\AccessControl\Domain\AccessControl\User\Exception\PasswordResetRejectedException;
 use Fight\AccessControl\Domain\AccessControl\User\PasswordHash;
-use Fight\AccessControl\Domain\AccessControl\User\PasswordResetCredential;
-use Fight\AccessControl\Domain\AccessControl\User\PasswordResetDelivery;
-use Fight\AccessControl\Domain\AccessControl\User\PasswordResetDeliveryId;
-use Fight\AccessControl\Domain\AccessControl\User\PasswordResetGrant;
-use Fight\AccessControl\Domain\AccessControl\User\PasswordResetGrantRepository;
 use Fight\AccessControl\Domain\AccessControl\User\User;
 use Fight\AccessControl\Domain\AccessControl\User\UserId;
 use Fight\AccessControl\Domain\AccessControl\User\UserRepository;
@@ -53,15 +51,14 @@ use Fight\Common\Domain\Exception\DomainException;
 use Fight\Common\Domain\Repository\Pagination;
 use Fight\Common\Domain\Repository\ResultSet;
 use Fight\Common\Domain\Value\Internet\EmailAddress;
+use Fight\Test\AccessControl\Application\AccessControl\ActivationGrant\Repository\InMemoryActivationGrantRepository;
 use Fight\Test\AccessControl\Application\AccessControl\Audit\Repository\InMemoryAuditEvidenceRepository;
 use Fight\Test\AccessControl\Application\AccessControl\Event\InMemoryEventDispatcher;
+use Fight\Test\AccessControl\Application\AccessControl\PasswordResetGrant\Repository\InMemoryPasswordResetGrants;
 use Fight\Test\AccessControl\Application\AccessControl\RefreshSession\Repository\InMemoryRefreshSessionRepository;
 use Fight\Test\AccessControl\Application\AccessControl\RefreshSession\Repository\InMemoryRefreshSessionRepositoryState;
 use Fight\Test\AccessControl\Application\AccessControl\RefreshSession\Service\FixedRefreshCredentialGenerator;
 use Fight\Test\AccessControl\Application\AccessControl\User\InMemoryUnitOfWork;
-use Fight\Test\AccessControl\Application\AccessControl\User\Repository\InMemoryActivationGrantRepository;
-use Fight\Test\AccessControl\Application\AccessControl\User\Repository\InMemoryPasswordResetDeliveryRepository;
-use Fight\Test\AccessControl\Application\AccessControl\User\Repository\InMemoryPasswordResetGrantRepository;
 use Fight\Test\AccessControl\Application\AccessControl\User\Repository\InMemoryUserRepository;
 use Fight\Test\AccessControl\Application\AccessControl\User\Repository\InMemoryUserRepositoryState;
 use Fight\Test\AccessControl\Application\AccessControl\User\Service\FixedAuthenticationClock;
@@ -85,7 +82,6 @@ use RuntimeException;
 #[CoversClass(PasswordChanged::class)]
 #[CoversClass(PasswordChangeRejectedException::class)]
 #[CoversClass(PasswordResetCompleted::class)]
-#[CoversClass(PasswordResetDelivery::class)]
 #[CoversClass(PasswordResetGrant::class)]
 #[CoversClass(PasswordResetRejectedException::class)]
 #[CoversClass(RefreshCredential::class)]
@@ -641,6 +637,34 @@ final class AuthenticationServiceTest extends TestCase
         );
     }
 
+    public function test_that_activation_rejects_concurrent_grant_consumption(): void
+    {
+        $unitOfWork = new InMemoryUnitOfWork();
+        $users = new InMemoryUserRepository($unitOfWork);
+        $grants = new InMemoryActivationGrantRepository($unitOfWork, replaceSucceeds: false);
+        $sessions = new InMemoryRefreshSessionRepository($unitOfWork);
+        $events = new InMemoryEventDispatcher();
+        $user = User::invite(UserId::generate(), EmailAddress::fromString('activate-race@example.test'));
+        $users->add($user);
+        $grant = $this->grant($user->getId());
+        $grants->add($grant);
+        $service = $this->service($users, $grants, $sessions, $unitOfWork, $events);
+
+        $this->expectException(LogicException::class);
+        try {
+            $service->activate(
+                $user->getId(),
+                self::ACTIVATION_CREDENTIAL,
+                'a sufficiently long initial password'
+            );
+        } finally {
+            self::assertSame($user, $users->getById($user->getId()));
+            self::assertSame([$grant], $grants->all());
+            self::assertSame([], $sessions->all());
+            self::assertInstanceOf(RedactedCommandFailed::class, $events->events()[0]);
+        }
+    }
+
     public function test_that_login_uses_fight_common_password_services_and_rehashes_after_success(): void
     {
         $unitOfWork = new InMemoryUnitOfWork();
@@ -685,7 +709,7 @@ final class AuthenticationServiceTest extends TestCase
         $resetUnitOfWork = new InMemoryUnitOfWork();
         $resetUsers = new InMemoryUserRepository($resetUnitOfWork, state: $userState);
         $resetSessions = new InMemoryRefreshSessionRepository($resetUnitOfWork, state: $sessionState);
-        $passwordResetGrants = new InMemoryPasswordResetGrantRepository($resetUnitOfWork);
+        $passwordResetGrants = new InMemoryPasswordResetGrants($resetUnitOfWork);
         $auditEvidence = new InMemoryAuditEvidenceRepository($resetUnitOfWork);
         $resetEvents = new InMemoryEventDispatcher();
         $loginEvents = new InMemoryEventDispatcher();
@@ -693,7 +717,9 @@ final class AuthenticationServiceTest extends TestCase
             $user->getId(),
             PasswordResetCredential::fromString(self::RESET_CREDENTIAL),
             new DateTimeImmutable('2026-08-19T11:00:00+00:00'),
-            new DateTimeImmutable('2026-08-19T13:00:00+00:00')
+            new DateTimeImmutable('2026-08-19T13:00:00+00:00'),
+            $user->getEmail(),
+            'ciphertext:reset-once'
         ));
         $resetService = $this->service(
             $resetUsers,
@@ -792,7 +818,7 @@ final class AuthenticationServiceTest extends TestCase
         $resetUnitOfWork = new InMemoryUnitOfWork();
         $resetUsers = new InMemoryUserRepository($resetUnitOfWork, state: $userState);
         $resetSessions = new InMemoryRefreshSessionRepository($resetUnitOfWork, state: $sessionState);
-        $passwordResetGrants = new InMemoryPasswordResetGrantRepository($resetUnitOfWork);
+        $passwordResetGrants = new InMemoryPasswordResetGrants($resetUnitOfWork);
         $auditEvidence = new InMemoryAuditEvidenceRepository($resetUnitOfWork);
         $resetEvents = new InMemoryEventDispatcher();
         $loginEvents = new InMemoryEventDispatcher();
@@ -800,7 +826,9 @@ final class AuthenticationServiceTest extends TestCase
             $user->getId(),
             PasswordResetCredential::fromString(self::RESET_CREDENTIAL),
             new DateTimeImmutable('2026-08-19T11:00:00+00:00'),
-            new DateTimeImmutable('2026-08-19T13:00:00+00:00')
+            new DateTimeImmutable('2026-08-19T13:00:00+00:00'),
+            $user->getEmail(),
+            'ciphertext:reset-once'
         ));
         $resetService = $this->service(
             $resetUsers,
@@ -900,14 +928,16 @@ final class AuthenticationServiceTest extends TestCase
         $resetUnitOfWork = new InMemoryUnitOfWork();
         $resetUsers = new InMemoryUserRepository($resetUnitOfWork, state: $userState);
         $resetSessions = new InMemoryRefreshSessionRepository($resetUnitOfWork, state: $sessionState);
-        $passwordResetGrants = new InMemoryPasswordResetGrantRepository($resetUnitOfWork);
+        $passwordResetGrants = new InMemoryPasswordResetGrants($resetUnitOfWork);
         $auditEvidence = new InMemoryAuditEvidenceRepository($resetUnitOfWork);
         $resetEvents = new InMemoryEventDispatcher();
         $passwordResetGrants->add(PasswordResetGrant::issue(
             $user->getId(),
             PasswordResetCredential::fromString(self::RESET_CREDENTIAL),
             new DateTimeImmutable('2026-08-19T11:00:00+00:00'),
-            new DateTimeImmutable('2026-08-19T13:00:00+00:00')
+            new DateTimeImmutable('2026-08-19T13:00:00+00:00'),
+            $user->getEmail(),
+            'ciphertext:reset-once'
         ));
         $interleavingHasher = new readonly class ($loginService) implements PasswordHasher {
             public function __construct(private AuthenticationService $loginService)
@@ -997,14 +1027,16 @@ final class AuthenticationServiceTest extends TestCase
         $resetUnitOfWork = new InMemoryUnitOfWork();
         $resetUsers = new InMemoryUserRepository($resetUnitOfWork, state: $userState);
         $resetSessions = new InMemoryRefreshSessionRepository($resetUnitOfWork, state: $sessionState);
-        $passwordResetGrants = new InMemoryPasswordResetGrantRepository($resetUnitOfWork);
+        $passwordResetGrants = new InMemoryPasswordResetGrants($resetUnitOfWork);
         $auditEvidence = new InMemoryAuditEvidenceRepository($resetUnitOfWork);
         $resetEvents = new InMemoryEventDispatcher();
         $passwordResetGrants->add(PasswordResetGrant::issue(
             $user->getId(),
             PasswordResetCredential::fromString(self::RESET_CREDENTIAL),
             new DateTimeImmutable('2026-08-19T11:00:00+00:00'),
-            new DateTimeImmutable('2026-08-19T13:00:00+00:00')
+            new DateTimeImmutable('2026-08-19T13:00:00+00:00'),
+            $user->getEmail(),
+            'ciphertext:reset-once'
         ));
         $resetService = $this->service(
             $resetUsers,
@@ -1067,14 +1099,16 @@ final class AuthenticationServiceTest extends TestCase
             }
         );
         $resetSessions = new InMemoryRefreshSessionRepository($resetUnitOfWork, state: $sessionState);
-        $passwordResetGrants = new InMemoryPasswordResetGrantRepository($resetUnitOfWork);
+        $passwordResetGrants = new InMemoryPasswordResetGrants($resetUnitOfWork);
         $auditEvidence = new InMemoryAuditEvidenceRepository($resetUnitOfWork);
         $resetEvents = new InMemoryEventDispatcher();
         $passwordResetGrants->add(PasswordResetGrant::issue(
             $user->getId(),
             PasswordResetCredential::fromString(self::RESET_CREDENTIAL),
             new DateTimeImmutable('2026-08-19T11:00:00+00:00'),
-            new DateTimeImmutable('2026-08-19T13:00:00+00:00')
+            new DateTimeImmutable('2026-08-19T13:00:00+00:00'),
+            $user->getEmail(),
+            'ciphertext:reset-once'
         ));
         $loginUnitOfWork = new InMemoryUnitOfWork();
         $loginUsers = new InMemoryUserRepository($loginUnitOfWork, state: $userState);
@@ -1117,6 +1151,11 @@ final class AuthenticationServiceTest extends TestCase
                     $replacement,
                     $refreshSession
                 );
+            }
+
+            public function replaceRoleAssignments(User $expected, User $replacement): bool
+            {
+                return $this->users->replaceRoleAssignments($expected, $replacement);
             }
 
             public function add(User $user): void
@@ -1178,8 +1217,7 @@ final class AuthenticationServiceTest extends TestCase
     {
         $unitOfWork = new InMemoryUnitOfWork();
         $users = new InMemoryUserRepository($unitOfWork);
-        $passwordResetGrants = new InMemoryPasswordResetGrantRepository($unitOfWork);
-        $passwordResetDeliveries = new InMemoryPasswordResetDeliveryRepository($unitOfWork);
+        $passwordResetGrants = new InMemoryPasswordResetGrants($unitOfWork);
         $sessions = new InMemoryRefreshSessionRepository($unitOfWork);
         $auditEvidence = new InMemoryAuditEvidenceRepository($unitOfWork);
         $user = $this->activeUserFor('reset@example.test');
@@ -1190,16 +1228,10 @@ final class AuthenticationServiceTest extends TestCase
             $user->getId(),
             PasswordResetCredential::fromString(self::RESET_CREDENTIAL),
             $issuedAt,
-            $expiresAt
+            $expiresAt,
+            $user->getEmail(),
+            'ciphertext:reset-once'
         ));
-        $passwordResetDelivery = PasswordResetDelivery::create(
-            PasswordResetDeliveryId::generate(),
-            $user->getId(),
-            $user->getEmail()->canonical(),
-            'ciphertext:reset-once',
-            $expiresAt
-        );
-        $passwordResetDeliveries->add($passwordResetDelivery);
         $sessions->add($this->session($user, $this->refreshCredential(), false));
         $sessions->add($this->session(
             $user,
@@ -1208,8 +1240,6 @@ final class AuthenticationServiceTest extends TestCase
         ));
         $events = new InMemoryEventDispatcher(static function () use (
             $auditEvidence,
-            $passwordResetDelivery,
-            $passwordResetDeliveries,
             $passwordResetGrants,
             $sessions,
             $unitOfWork,
@@ -1218,8 +1248,7 @@ final class AuthenticationServiceTest extends TestCase
         ): void {
             self::assertTrue($unitOfWork->transactionCompleted);
             self::assertTrue($passwordResetGrants->all()[0]->isConsumed());
-            self::assertSame($passwordResetDelivery, $passwordResetDeliveries->all()[0]);
-            self::assertTrue($passwordResetDeliveries->all()[0]->isRecoverable());
+            self::assertFalse($passwordResetGrants->all()[0]->getDelivery()->isRecoverable());
             self::assertTrue(array_all(
                 $sessions->all(),
                 static fn(RefreshSession $refreshSession): bool => $refreshSession->isRevoked()
@@ -1257,8 +1286,7 @@ final class AuthenticationServiceTest extends TestCase
             '2026-08-19T12:00:00+00:00',
             $passwordResetGrants->all()[0]->getConsumedAt()?->format(DATE_ATOM)
         );
-        self::assertSame($passwordResetDelivery, $passwordResetDeliveries->all()[0]);
-        self::assertTrue($passwordResetDeliveries->all()[0]->isRecoverable());
+        self::assertFalse($passwordResetGrants->all()[0]->getDelivery()->isRecoverable());
         self::assertTrue(array_all(
             $sessions->all(),
             static fn(RefreshSession $refreshSession): bool => $refreshSession->isRevoked()
@@ -1295,7 +1323,7 @@ final class AuthenticationServiceTest extends TestCase
     {
         $unitOfWork = new InMemoryUnitOfWork();
         $users = new InMemoryUserRepository($unitOfWork);
-        $passwordResetGrants = new InMemoryPasswordResetGrantRepository(
+        $passwordResetGrants = new InMemoryPasswordResetGrants(
             $unitOfWork,
             replaceConsumedSucceeds: false
         );
@@ -1309,7 +1337,9 @@ final class AuthenticationServiceTest extends TestCase
             $user->getId(),
             PasswordResetCredential::fromString(self::RESET_CREDENTIAL),
             new DateTimeImmutable('2026-08-19T11:00:00+00:00'),
-            new DateTimeImmutable('2026-08-19T13:00:00+00:00')
+            new DateTimeImmutable('2026-08-19T13:00:00+00:00'),
+            $user->getEmail(),
+            'ciphertext:reset-once'
         );
         $passwordResetGrants->add($passwordResetGrant);
         $refreshSession = $this->session($user, $this->refreshCredential(), false);
@@ -1355,7 +1385,7 @@ final class AuthenticationServiceTest extends TestCase
             $unitOfWork,
             replaceAuthenticationAuthoritySucceeds: false
         );
-        $passwordResetGrants = new InMemoryPasswordResetGrantRepository($unitOfWork);
+        $passwordResetGrants = new InMemoryPasswordResetGrants($unitOfWork);
         $sessions = new InMemoryRefreshSessionRepository($unitOfWork);
         $auditEvidence = new InMemoryAuditEvidenceRepository($unitOfWork);
         $events = new InMemoryEventDispatcher();
@@ -1366,7 +1396,9 @@ final class AuthenticationServiceTest extends TestCase
             $user->getId(),
             PasswordResetCredential::fromString(self::RESET_CREDENTIAL),
             new DateTimeImmutable('2026-08-19T11:00:00+00:00'),
-            new DateTimeImmutable('2026-08-19T13:00:00+00:00')
+            new DateTimeImmutable('2026-08-19T13:00:00+00:00'),
+            $user->getEmail(),
+            'ciphertext:reset-once'
         );
         $passwordResetGrants->add($passwordResetGrant);
         $refreshSession = $this->session($user, $this->refreshCredential(), false);
@@ -1412,27 +1444,28 @@ final class AuthenticationServiceTest extends TestCase
     {
         $unitOfWork = new InMemoryUnitOfWork();
         $users = new InMemoryUserRepository($unitOfWork);
-        $passwordResetGrants = new InMemoryPasswordResetGrantRepository($unitOfWork);
-        $passwordResetDeliveries = new InMemoryPasswordResetDeliveryRepository($unitOfWork);
+        $passwordResetGrants = new InMemoryPasswordResetGrants($unitOfWork);
         $sessions = new InMemoryRefreshSessionRepository($unitOfWork);
         $auditEvidence = new InMemoryAuditEvidenceRepository($unitOfWork);
         $events = new InMemoryEventDispatcher();
         $user = $this->activeUserFor('reset-without-delivery@example.test');
         $users->add($user);
-        $passwordResetGrants->add(PasswordResetGrant::issue(
+        $issuedPasswordResetGrant = PasswordResetGrant::issue(
             $user->getId(),
             PasswordResetCredential::fromString(self::RESET_CREDENTIAL),
             new DateTimeImmutable('2026-08-19T11:00:00+00:00'),
-            new DateTimeImmutable('2026-08-19T13:00:00+00:00')
-        ));
+            new DateTimeImmutable('2026-08-19T13:00:00+00:00'),
+            $user->getEmail(),
+            'ciphertext:reset-once'
+        );
+        $passwordResetGrant = $issuedPasswordResetGrant;
         if ($hasInvalidatedDelivery) {
-            $passwordResetDeliveries->add(PasswordResetDelivery::create(
-                PasswordResetDeliveryId::generate(),
-                $user->getId(),
-                $user->getEmail()->canonical(),
-                'ciphertext:already-invalidated',
-                new DateTimeImmutable('2026-08-19T13:00:00+00:00')
-            )->invalidate());
+            $passwordResetGrant = $passwordResetGrant->invalidateDelivery();
+        }
+
+        self::assertTrue($passwordResetGrants->add($issuedPasswordResetGrant));
+        if ($passwordResetGrant !== $issuedPasswordResetGrant) {
+            self::assertTrue($passwordResetGrants->replace($issuedPasswordResetGrant, $passwordResetGrant));
         }
 
         $refreshSession = $this->session($user, $this->refreshCredential(), false);
@@ -1464,10 +1497,7 @@ final class AuthenticationServiceTest extends TestCase
         self::assertSame(1, $authoritativeUser->getAuthenticationAuthorityRevision());
         self::assertTrue($passwordResetGrants->all()[0]->isConsumed());
         self::assertTrue($sessions->all()[0]->isRevoked());
-        self::assertSame($hasInvalidatedDelivery ? 1 : 0, count($passwordResetDeliveries->all()));
-        if ($hasInvalidatedDelivery) {
-            self::assertFalse($passwordResetDeliveries->all()[0]->isRecoverable());
-        }
+        self::assertFalse($passwordResetGrants->all()[0]->getDelivery()->isRecoverable());
 
         self::assertSame('user.password_reset_completed', $auditEvidence->all()[0]->action());
         self::assertCount(1, $events->events());
@@ -1481,8 +1511,7 @@ final class AuthenticationServiceTest extends TestCase
     ): void {
         $unitOfWork = new InMemoryUnitOfWork();
         $users = new InMemoryUserRepository($unitOfWork);
-        $passwordResetGrants = new InMemoryPasswordResetGrantRepository($unitOfWork);
-        $passwordResetDeliveries = new InMemoryPasswordResetDeliveryRepository($unitOfWork);
+        $passwordResetGrants = new InMemoryPasswordResetGrants($unitOfWork);
         $sessions = new InMemoryRefreshSessionRepository($unitOfWork);
         $auditEvidence = new InMemoryAuditEvidenceRepository($unitOfWork);
         $user = $this->activeUserFor('reset-rejected@example.test');
@@ -1496,12 +1525,15 @@ final class AuthenticationServiceTest extends TestCase
             $expiresAt = new DateTimeImmutable('2026-08-19T12:00:00+00:00');
         }
 
-        $passwordResetGrant = PasswordResetGrant::issue(
+        $issuedPasswordResetGrant = PasswordResetGrant::issue(
             $user->getId(),
             PasswordResetCredential::fromString(self::RESET_CREDENTIAL),
             new DateTimeImmutable('2026-08-19T11:00:00+00:00'),
-            $expiresAt
+            $expiresAt,
+            $user->getEmail(),
+            'ciphertext:reset-once'
         );
+        $passwordResetGrant = $issuedPasswordResetGrant;
         if ($scenario === 'consumed grant replay') {
             $passwordResetGrant = $passwordResetGrant->consume(
                 new DateTimeImmutable('2026-08-19T11:30:00+00:00')
@@ -1515,17 +1547,12 @@ final class AuthenticationServiceTest extends TestCase
         }
 
         if ($scenario !== 'missing grant authority') {
-            $passwordResetGrants->add($passwordResetGrant);
+            self::assertTrue($passwordResetGrants->add($issuedPasswordResetGrant));
+            if ($passwordResetGrant !== $issuedPasswordResetGrant) {
+                self::assertTrue($passwordResetGrants->replace($issuedPasswordResetGrant, $passwordResetGrant));
+            }
         }
 
-        $passwordResetDelivery = PasswordResetDelivery::create(
-            PasswordResetDeliveryId::generate(),
-            $user->getId(),
-            $user->getEmail()->canonical(),
-            'ciphertext:reset-once',
-            $expiresAt
-        );
-        $passwordResetDeliveries->add($passwordResetDelivery);
         $refreshSession = $this->session($user, $this->refreshCredential(), false);
         $sessions->add($refreshSession);
         $events = new InMemoryEventDispatcher();
@@ -1558,7 +1585,6 @@ final class AuthenticationServiceTest extends TestCase
             $scenario === 'missing grant authority' ? [] : [$passwordResetGrant],
             $passwordResetGrants->all()
         );
-        self::assertSame([$passwordResetDelivery], $passwordResetDeliveries->all());
         self::assertSame([$refreshSession], $sessions->all());
         self::assertFalse($refreshSession->isRevoked());
         self::assertSame([], $auditEvidence->all());
@@ -1591,8 +1617,7 @@ final class AuthenticationServiceTest extends TestCase
         $unitOfWork = new InMemoryUnitOfWork();
         $userState = new InMemoryUserRepositoryState();
         $users = new InMemoryUserRepository($unitOfWork, state: $userState);
-        $passwordResetGrants = new InMemoryPasswordResetGrantRepository($unitOfWork);
-        $passwordResetDeliveries = new InMemoryPasswordResetDeliveryRepository($unitOfWork);
+        $passwordResetGrants = new InMemoryPasswordResetGrants($unitOfWork);
         $sessions = new InMemoryRefreshSessionRepository($unitOfWork);
         $auditEvidence = new InMemoryAuditEvidenceRepository($unitOfWork, failAfterSave: true);
         $user = $this->activeUserFor('reset-rollback@example.test');
@@ -1603,14 +1628,9 @@ final class AuthenticationServiceTest extends TestCase
             $user->getId(),
             PasswordResetCredential::fromString(self::RESET_CREDENTIAL),
             new DateTimeImmutable('2026-08-19T11:00:00+00:00'),
-            $expiresAt
-        );
-        $passwordResetDelivery = PasswordResetDelivery::create(
-            PasswordResetDeliveryId::generate(),
-            $user->getId(),
-            $user->getEmail()->canonical(),
-            'ciphertext:reset-once',
-            $expiresAt
+            $expiresAt,
+            $user->getEmail(),
+            'ciphertext:reset-once'
         );
         $firstSession = $this->session($user, $this->refreshCredential(), false);
         $secondSession = $this->session(
@@ -1619,7 +1639,6 @@ final class AuthenticationServiceTest extends TestCase
             true
         );
         $passwordResetGrants->add($passwordResetGrant);
-        $passwordResetDeliveries->add($passwordResetDelivery);
         $sessions->add($firstSession);
         $sessions->add($secondSession);
 
@@ -1653,8 +1672,7 @@ final class AuthenticationServiceTest extends TestCase
         self::assertFalse($userState->isAuthenticationAuthorityFenceHeld($user->getId()));
         self::assertSame([$passwordResetGrant], $passwordResetGrants->all());
         self::assertFalse($passwordResetGrants->all()[0]->isConsumed());
-        self::assertSame([$passwordResetDelivery], $passwordResetDeliveries->all());
-        self::assertTrue($passwordResetDeliveries->all()[0]->isRecoverable());
+        self::assertTrue($passwordResetGrants->all()[0]->getDelivery()->isRecoverable());
         self::assertSame([$firstSession, $secondSession], $sessions->all());
         self::assertFalse($firstSession->isRevoked());
         self::assertFalse($secondSession->isRevoked());
@@ -2778,7 +2796,9 @@ final class AuthenticationServiceTest extends TestCase
             $userId,
             ActivationCredential::fromString(self::ACTIVATION_CREDENTIAL),
             new DateTimeImmutable('2026-08-18T12:00:00+00:00'),
-            new DateTimeImmutable('2026-08-22T12:00:00+00:00')
+            new DateTimeImmutable('2026-08-22T12:00:00+00:00'),
+            EmailAddress::fromString('alice@example.test'),
+            'ciphertext:activation'
         );
     }
 
@@ -2843,7 +2863,7 @@ final class AuthenticationServiceTest extends TestCase
             $tokenPolicy ?? AuthenticationTokenPolicy::starterDefaults(new DateInterval('PT5S')),
             PasswordHash::fromString(password_hash('dummy-password', PASSWORD_DEFAULT)),
             $events,
-            $passwordResetGrantRepository ?? new InMemoryPasswordResetGrantRepository($unitOfWork),
+            $passwordResetGrantRepository ?? new InMemoryPasswordResetGrants($unitOfWork),
             $auditEvidenceRepository ?? new InMemoryAuditEvidenceRepository($unitOfWork)
         );
     }
