@@ -6,6 +6,7 @@ namespace Fight\AccessControl\Application\AccessControl\User\Security;
 
 use DateTimeImmutable;
 use Fight\AccessControl\Application\AccessControl\RefreshSession\Service\RefreshCredentialGenerator;
+use Fight\AccessControl\Application\AccessControl\RefreshSession\Service\SessionRevocationService;
 use Fight\AccessControl\Application\AccessControl\User\Service\AuthenticationClock;
 use Fight\AccessControl\Application\AccessControl\User\Service\LoginThrottle;
 use Fight\AccessControl\Domain\AccessControl\ActivationGrant\ActivationCredential;
@@ -55,8 +56,6 @@ use Throwable;
  */
 final readonly class AuthenticationService
 {
-    private const int REVOCATION_RETRY_LIMIT = 3;
-
     /**
      * Creates the authentication service.
      */
@@ -64,6 +63,7 @@ final readonly class AuthenticationService
         private UserRepository $userRepository,
         private ActivationGrantRepository $activationGrantRepository,
         private RefreshSessionRepository $refreshSessionRepository,
+        private SessionRevocationService $sessionRevocationService,
         private UnitOfWork $unitOfWork,
         private AuthenticationClock $clock,
         private LoginThrottle $loginThrottle,
@@ -125,9 +125,7 @@ final readonly class AuthenticationService
                         throw new EmailChangeConfirmationRejectedException('Email change confirmation rejected.');
                     }
 
-                    foreach ($this->refreshSessionRepository->getAllActiveByUserId($userId, $confirmedAt) as $session) {
-                        $this->revokeSession($session);
-                    }
+                    $this->sessionRevocationService->revokeAllActiveFor($userId, $confirmedAt);
 
                     $this->auditEvidenceRepository->add(AuditEvidence::record(
                         $userId->toString(),
@@ -195,11 +193,7 @@ final readonly class AuthenticationService
                     throw new PasswordChangeRejectedException('Password change rejected.');
                 }
 
-                foreach (
-                    $this->refreshSessionRepository->getAllActiveByUserId($authenticatedUserId, $changedAt) as $session
-                ) {
-                    $this->revokeSession($session);
-                }
+                $this->sessionRevocationService->revokeAllActiveFor($authenticatedUserId, $changedAt);
 
                 $this->auditEvidenceRepository->add(AuditEvidence::record(
                     $authenticatedUserId->toString(),
@@ -275,9 +269,7 @@ final readonly class AuthenticationService
                     throw new PasswordResetRejectedException('Password reset rejected.');
                 }
 
-                foreach ($this->refreshSessionRepository->getAllActiveByUserId($userId, $completedAt) as $session) {
-                    $this->revokeSession($session);
-                }
+                $this->sessionRevocationService->revokeAllActiveFor($userId, $completedAt);
 
                 $this->auditEvidenceRepository->add(AuditEvidence::record(
                     $userId->toString(),
@@ -535,7 +527,7 @@ final readonly class AuthenticationService
                     throw new RefreshSessionNotFoundException('The refresh session does not exist.');
                 }
 
-                $refreshSession = $this->revokeSession($refreshSession);
+                $refreshSession = $this->sessionRevocationService->revoke($refreshSession);
 
                 return $refreshSession->getId();
             });
@@ -645,35 +637,9 @@ final readonly class AuthenticationService
      */
     private function revokeCompromisedSession(RefreshSession $refreshSession): RefreshSessionNotFoundException
     {
-        $this->revokeSession($refreshSession);
+        $this->sessionRevocationService->revoke($refreshSession);
 
         return new RefreshSessionNotFoundException('The refresh session is not authoritative.');
-    }
-
-    /**
-     * Replaces the latest authoritative session state with an immutable revocation.
-     */
-    private function revokeSession(RefreshSession $refreshSession): RefreshSession
-    {
-        $attempts = 0;
-        while (!$refreshSession->isRevoked() && $attempts < self::REVOCATION_RETRY_LIMIT) {
-            ++$attempts;
-            $revokedSession = $refreshSession->revoke();
-            if ($this->refreshSessionRepository->replace($refreshSession, $revokedSession)) {
-                return $revokedSession;
-            }
-
-            $refreshSession = $this->refreshSessionRepository->getById($refreshSession->getId());
-            if (!$refreshSession instanceof RefreshSession) {
-                throw new RefreshSessionNotFoundException('The refresh session is not authoritative.');
-            }
-        }
-
-        if ($refreshSession->isRevoked()) {
-            return $refreshSession;
-        }
-
-        throw new RefreshSessionNotFoundException('The refresh session is not authoritative.');
     }
 
     /**

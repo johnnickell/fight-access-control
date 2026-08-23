@@ -4,10 +4,12 @@ declare(strict_types=1);
 
 namespace Fight\AccessControl\Application\AccessControl\ActivationGrant\EventSubscriber;
 
+use Fight\AccessControl\Domain\AccessControl\ActivationGrant\ActivationDeliveryId;
 use Fight\AccessControl\Domain\AccessControl\ActivationGrant\Command\DeliverUserInvitation;
 use Fight\AccessControl\Domain\AccessControl\ActivationGrant\Event\InvitationDeliveryResent;
 use Fight\AccessControl\Domain\AccessControl\ActivationGrant\Event\InvitationDeliveryRetryRequested;
 use Fight\AccessControl\Domain\AccessControl\User\Event\UserInvited;
+use Fight\AccessControl\Domain\AccessControl\User\Event\UserRestored;
 use Fight\Common\Application\Messaging\Command\CommandBus;
 use Fight\Common\Application\Messaging\Event\EventSubscriber;
 use Fight\Common\Domain\Messaging\Event\EventMessage;
@@ -33,6 +35,7 @@ final readonly class InvitationDeliverySubscriber implements EventSubscriber
             InvitationDeliveryResent::class => 'onInvitationDeliveryResent',
             InvitationDeliveryRetryRequested::class => 'onInvitationDeliveryRetryRequested',
             UserInvited::class => 'onUserInvited',
+            UserRestored::class => 'onUserRestored',
         ];
     }
 
@@ -75,6 +78,25 @@ final readonly class InvitationDeliverySubscriber implements EventSubscriber
             $event->getActorId(),
             $event->getUserId(),
             $event->getActivationDeliveryId()
+        ));
+    }
+
+    /**
+     * Dispatches delivery after a pending-activation restoration publishes its replacement invitation.
+     */
+    public function onUserRestored(EventMessage $eventMessage): void
+    {
+        /** @var UserRestored $event */
+        $event = $eventMessage->payload();
+        $activationDeliveryId = $event->getActivationDeliveryId();
+        if (!$activationDeliveryId instanceof ActivationDeliveryId) {
+            return;
+        }
+
+        $this->commandBus->execute(new DeliverUserInvitation(
+            $event->getActorId()->toString(),
+            $event->getUserId(),
+            $activationDeliveryId
         ));
     }
 }

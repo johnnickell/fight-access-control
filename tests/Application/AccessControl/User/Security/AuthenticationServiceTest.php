@@ -8,6 +8,7 @@ use Closure;
 use DateInterval;
 use DateTimeImmutable;
 use Fight\AccessControl\Application\AccessControl\RefreshSession\Service\RefreshCredentialGenerator;
+use Fight\AccessControl\Application\AccessControl\RefreshSession\Service\SessionRevocationService;
 use Fight\AccessControl\Application\AccessControl\User\Security\AccessToken;
 use Fight\AccessControl\Application\AccessControl\User\Security\AuthenticationService;
 use Fight\AccessControl\Application\AccessControl\User\Security\AuthenticationTokenPolicy;
@@ -1495,6 +1496,16 @@ final class AuthenticationServiceTest extends TestCase
             public function replacePendingInvitationEmail(User $expected, User $replacement): bool
             {
                 return $this->users->replacePendingInvitationEmail($expected, $replacement);
+            }
+
+            public function replaceLifecycleState(User $expected, User $replacement): bool
+            {
+                return $this->users->replaceLifecycleState($expected, $replacement);
+            }
+
+            public function getAll(Pagination $pagination): ResultSet
+            {
+                return $this->users->getAll($pagination);
             }
 
             public function add(User $user): void
@@ -3228,6 +3239,7 @@ final class AuthenticationServiceTest extends TestCase
             $users,
             $grants,
             $sessions,
+            new SessionRevocationService($sessions),
             $unitOfWork,
             $authenticationClock ?? new FixedAuthenticationClock(
                 new DateTimeImmutable('2026-08-19T12:00:00+00:00')

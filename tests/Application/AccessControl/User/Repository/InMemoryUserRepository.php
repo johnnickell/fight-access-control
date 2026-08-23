@@ -13,6 +13,9 @@ use Fight\AccessControl\Domain\AccessControl\User\User;
 use Fight\AccessControl\Domain\AccessControl\User\UserId;
 use Fight\AccessControl\Domain\AccessControl\User\UserRepository;
 use Fight\AccessControl\Domain\AccessControl\User\UserState;
+use Fight\Common\Domain\Collection\ArrayList;
+use Fight\Common\Domain\Repository\Pagination;
+use Fight\Common\Domain\Repository\ResultSet;
 use Fight\Common\Domain\Value\Internet\EmailAddress;
 use Fight\Test\AccessControl\Application\AccessControl\RefreshSession\Repository\InMemoryRefreshSessionRepository;
 use Fight\Test\AccessControl\Application\AccessControl\User\InMemoryUnitOfWork;
@@ -37,7 +40,8 @@ final class InMemoryUserRepository implements UserRepository
         private readonly ?Closure $afterReplaceAuthenticationAuthority = null,
         private readonly bool $replaceEmailChangeReservationSucceeds = true,
         private readonly bool $replacePendingInvitationEmailSucceeds = true,
-        private readonly bool $replaceEmailChangeConfirmationSucceeds = true
+        private readonly bool $replaceEmailChangeConfirmationSucceeds = true,
+        private readonly bool $replaceLifecycleStateSucceeds = true
     ) {
         $this->state = $state ?? new InMemoryUserRepositoryState();
         $this->authenticationAuthorityFenceOwner = new stdClass();
@@ -85,6 +89,22 @@ final class InMemoryUserRepository implements UserRepository
         }
 
         return null;
+    }
+
+    public function getAll(Pagination $pagination): ResultSet
+    {
+        $records = ArrayList::of(User::class)->replace(array_slice(
+            $this->state->users,
+            $pagination->offset(),
+            $pagination->limit()
+        ));
+
+        return new ResultSet(
+            $pagination->page(),
+            $pagination->perPage(),
+            count($this->state->users),
+            $records
+        );
     }
 
     public function replaceAuthenticationAuthority(User $expected, User $replacement): bool
@@ -245,6 +265,22 @@ final class InMemoryUserRepository implements UserRepository
                 $this->releaseAuthenticationAuthorityFence($expected->getId());
             }
         }
+
+        return true;
+    }
+
+    public function replaceLifecycleState(User $expected, User $replacement): bool
+    {
+        if (!$this->replaceLifecycleStateSucceeds) {
+            return false;
+        }
+
+        $index = $this->lifecycleStateReplacementIndex($expected, $replacement);
+        if ($index === null) {
+            return false;
+        }
+
+        $this->replaceAt($index, $replacement);
 
         return true;
     }
@@ -482,6 +518,77 @@ final class InMemoryUserRepository implements UserRepository
         }
 
         return null;
+    }
+
+    private function lifecycleStateReplacementIndex(User $expected, User $replacement): ?int
+    {
+        if (!$this->lifecycleTransitionIsValid($expected->getState(), $replacement->getState())) {
+            return null;
+        }
+
+        if (!$this->lifecyclePasswordTransitionIsValid($expected, $replacement)) {
+            return null;
+        }
+
+        $authenticationAuthorityRevision = $expected->getAuthenticationAuthorityRevision();
+        $authorizationAssignmentRevision = $expected->getAuthorizationAssignmentRevision();
+        $emailChangeReservationRevision = $expected->getEmailChangeReservationRevision();
+        $canonicalEmailRevision = $expected->getCanonicalEmailRevision();
+        $pendingEmailChange = $expected->getPendingEmailChange()?->canonical();
+
+        foreach ($this->state->users as $index => $user) {
+            if (
+                $user->getId()->equals($expected->getId())
+                && $replacement->getId()->equals($expected->getId())
+                && $user->getEmail()->canonical() === $expected->getEmail()->canonical()
+                && $replacement->getEmail()->canonical() === $expected->getEmail()->canonical()
+                && $user->getState() === $expected->getState()
+                && $this->passwordHashesMatch($user->getPasswordHash(), $expected->getPasswordHash())
+                && $user->getAuthenticationVersion() === $expected->getAuthenticationVersion()
+                && $replacement->getAuthenticationVersion() === $expected->getAuthenticationVersion()
+                && $user->getAuthenticationAuthorityRevision() === $authenticationAuthorityRevision
+                && $replacement->getAuthenticationAuthorityRevision() === $authenticationAuthorityRevision
+                && $user->getAuthorizationAssignmentRevision() === $authorizationAssignmentRevision
+                && $replacement->getAuthorizationAssignmentRevision() === $authorizationAssignmentRevision
+                && $this->roleAssignmentsMatch($user, $expected)
+                && $this->roleAssignmentsMatch($replacement, $expected)
+                && $user->getPendingEmailChange()?->canonical() === $pendingEmailChange
+                && $replacement->getPendingEmailChange()?->canonical() === $pendingEmailChange
+                && $user->getEmailChangeReservationRevision() === $emailChangeReservationRevision
+                && $replacement->getEmailChangeReservationRevision() === $emailChangeReservationRevision
+                && $user->getCanonicalEmailRevision() === $canonicalEmailRevision
+                && $replacement->getCanonicalEmailRevision() === $canonicalEmailRevision
+            ) {
+                return $index;
+            }
+        }
+
+        return null;
+    }
+
+    private function lifecycleTransitionIsValid(UserState $expected, UserState $target): bool
+    {
+        return match (true) {
+            $expected === UserState::ACTIVE && $target === UserState::DISABLED,
+            $expected === UserState::DISABLED && $target === UserState::ACTIVE,
+            $expected === UserState::ACTIVE && $target === UserState::DELETED,
+            $expected === UserState::DISABLED && $target === UserState::DELETED,
+            $expected === UserState::DELETED && $target === UserState::ACTIVE,
+            $expected === UserState::DELETED && $target === UserState::PENDING_ACTIVATION => true,
+            default => false,
+        };
+    }
+
+    private function lifecyclePasswordTransitionIsValid(User $expected, User $replacement): bool
+    {
+        if ($replacement->getState() === UserState::PENDING_ACTIVATION) {
+            return !$replacement->getPasswordHash() instanceof PasswordHash;
+        }
+
+        return $this->passwordHashesMatch(
+            $expected->getPasswordHash(),
+            $replacement->getPasswordHash()
+        );
     }
 
     private function emailIsClaimedByAnotherUser(User $expected, EmailAddress $email): bool

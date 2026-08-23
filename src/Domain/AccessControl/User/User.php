@@ -10,6 +10,7 @@ use Fight\AccessControl\Domain\AccessControl\User\Exception\EmailChangeConfirmat
 use Fight\AccessControl\Domain\AccessControl\User\Exception\EmailChangeExpirationException;
 use Fight\AccessControl\Domain\AccessControl\User\Exception\EmailChangeRequestException;
 use Fight\AccessControl\Domain\AccessControl\User\Exception\PendingInvitationCorrectionException;
+use Fight\AccessControl\Domain\AccessControl\User\Exception\UserLifecycleException;
 use Fight\AccessControl\Domain\AccessControl\User\Exception\UserNotActiveException;
 use Fight\AccessControl\Domain\AccessControl\User\Exception\UserNotPendingActivationException;
 use Fight\Common\Domain\Collection\HashSet;
@@ -192,6 +193,72 @@ class User
     public function getState(): UserState
     {
         return $this->state;
+    }
+
+    /**
+     * Suspends an active identity without deleting it.
+     *
+     * @throws UserLifecycleException When the identity is not active.
+     */
+    public function disable(): void
+    {
+        if ($this->state !== UserState::ACTIVE) {
+            throw new UserLifecycleException('Only an active user can be disabled.');
+        }
+
+        $this->state = UserState::DISABLED;
+    }
+
+    /**
+     * Restores a disabled identity to active without returning prior sessions.
+     *
+     * @throws UserLifecycleException When the identity is not disabled.
+     */
+    public function enable(): void
+    {
+        if ($this->state !== UserState::DISABLED) {
+            throw new UserLifecycleException('Only a disabled user can be enabled.');
+        }
+
+        $this->state = UserState::ACTIVE;
+    }
+
+    /**
+     * Soft-deletes an active or disabled identity while retaining its stable identity.
+     *
+     * @throws UserLifecycleException When the identity cannot be deleted.
+     */
+    public function delete(): void
+    {
+        if ($this->state !== UserState::ACTIVE && $this->state !== UserState::DISABLED) {
+            throw new UserLifecycleException('Only an active or disabled user can be deleted.');
+        }
+
+        $this->state = UserState::DELETED;
+    }
+
+    /**
+     * Restores a deleted identity to an active or pending-activation state.
+     *
+     * @throws UserLifecycleException When the identity is not deleted or the target is unsupported.
+     */
+    public function restore(UserState $target): void
+    {
+        if ($this->state !== UserState::DELETED) {
+            throw new UserLifecycleException('Only a deleted user can be restored.');
+        }
+
+        if ($target !== UserState::ACTIVE && $target !== UserState::PENDING_ACTIVATION) {
+            throw new UserLifecycleException(
+                'A restored user must target active or pending activation.'
+            );
+        }
+
+        $this->state = $target;
+
+        if ($target === UserState::PENDING_ACTIVATION) {
+            $this->passwordHash = null;
+        }
     }
 
     /**

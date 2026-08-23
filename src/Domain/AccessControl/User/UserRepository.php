@@ -6,6 +6,8 @@ namespace Fight\AccessControl\Domain\AccessControl\User;
 
 use Exception;
 use Fight\AccessControl\Domain\AccessControl\RefreshSession\RefreshSession;
+use Fight\Common\Domain\Repository\Pagination;
+use Fight\Common\Domain\Repository\ResultSet;
 use Fight\Common\Domain\Value\Internet\EmailAddress;
 
 /**
@@ -105,6 +107,26 @@ interface UserRepository
      * @throws Exception When an error occurs
      */
     public function replacePendingInvitationEmail(User $expected, User $replacement): bool;
+
+    /**
+     * Atomically replaces the lifecycle state while the expected identity remains current.
+     *
+     * Implementations compare the complete expected User state and permit only one valid lifecycle transition:
+     * active to disabled, disabled to active, active or disabled to deleted, or deleted to active or pending
+     * activation. A restoration to pending activation clears the password hash; every other transition preserves it.
+     * No other field may change. Returns false without mutation when the predecessor changed or the transition is
+     * invalid.
+     *
+     * @throws Exception When an error occurs
+     */
+    public function replaceLifecycleState(User $expected, User $replacement): bool;
+
+    /**
+     * Retrieves one page of user identities.
+     *
+     * @throws Exception When an error occurs
+     */
+    public function getAll(Pagination $pagination): ResultSet;
 
     /**
      * Adds a User.

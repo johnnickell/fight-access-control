@@ -13,8 +13,7 @@ materially cheaper.
 
 | Rank | Ticket | Parent PRD | Why next |
 | --- | --- | --- | --- |
-| 1 | [T-00011 — Administer account lifecycle](T-00011-administer-account-lifecycle.md) | [PRD-00001](../specs/00001-PRD.md) | Adds administrative lifecycle transitions on completed session and principal foundations. |
-| 2 | [T-00012 — Reconcile managed policy and custom roles](T-00012-reconcile-managed-policy-custom-roles.md) | [PRD-00001](../specs/00001-PRD.md) | Owns managed policy, custom-role management, and authorized element-level User assignment commands. |
+| 1 | [T-00012 — Reconcile managed policy and custom roles](T-00012-reconcile-managed-policy-custom-roles.md) | [PRD-00001](../specs/00001-PRD.md) | Owns managed policy, custom-role management, and authorized element-level User assignment commands. |
 
 ## Waiting
 
@@ -46,5 +45,6 @@ No tickets currently require a decision authority.
 | [T-00008 — Change an authenticated password](T-00008-change-authenticated-password.md) | [PRD-00001](../specs/00001-PRD.md) | Current-password proof, atomic credential and authentication-authority replacement, complete session revocation, and durable audit evidence. |
 | [T-00009 — Establish principals and authorization primitives](T-00009-principals-authorization-primitives.md) | [PRD-00001](../specs/00001-PRD.md) | Context-only consumer composition, request-scoped authoritative principal resolution, and foundational Role, Permission, and User assignment state. |
 | [T-00010 — Change and correct identity journeys](T-00010-change-correct-identity-journeys.md) | [PRD-00001](../specs/00001-PRD.md) | Reserved email-change lifecycle with secret-safe confirmation, complete session revocation, authorized audited assistance, pending-invitation correction, and exact coverage. |
+| [T-00011 — Administer account lifecycle](T-00011-administer-account-lifecycle.md) | [PRD-00001](../specs/00001-PRD.md) | Atomic disable, enable, soft-delete, and restore transitions with session revocation, durable audit evidence, paginated safe User views, and exact coverage. |
 | [T-00014 — Unify password-reset grant persistence](T-00014-unify-password-reset-grant-persistence.md) | [PRD-00001](../specs/00001-PRD.md) | One aggregate repository boundary with pristine issuance and successor contracts, historical uniqueness, CAS fencing, and subtype-preserving transitions. |
 | [T-00015 — Unify activation-grant persistence](T-00015-unify-activation-grant-persistence.md) | [PRD-00001](../specs/00001-PRD.md) | One aggregate repository boundary with claim-only delivery outcomes, pristine issuance and successors, CAS fencing, and subtype-preserving transitions. |

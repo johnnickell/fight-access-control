@@ -11,7 +11,9 @@ use Fight\AccessControl\Domain\AccessControl\ActivationGrant\Command\DeliverUser
 use Fight\AccessControl\Domain\AccessControl\ActivationGrant\Event\InvitationDeliveryResent;
 use Fight\AccessControl\Domain\AccessControl\ActivationGrant\Event\InvitationDeliveryRetryRequested;
 use Fight\AccessControl\Domain\AccessControl\User\Event\UserInvited;
+use Fight\AccessControl\Domain\AccessControl\User\Event\UserRestored;
 use Fight\AccessControl\Domain\AccessControl\User\UserId;
+use Fight\AccessControl\Domain\AccessControl\User\UserState;
 use Fight\Common\Domain\Messaging\Event\EventMessage;
 use Fight\Common\Domain\Value\Internet\EmailAddress;
 use Fight\Test\AccessControl\Application\AccessControl\User\InMemoryCommandBus;
@@ -36,6 +38,7 @@ final class InvitationDeliverySubscriberTest extends TestCase
                 InvitationDeliveryResent::class => 'onInvitationDeliveryResent',
                 InvitationDeliveryRetryRequested::class => 'onInvitationDeliveryRetryRequested',
                 UserInvited::class => 'onUserInvited',
+                UserRestored::class => 'onUserRestored',
             ],
             InvitationDeliverySubscriber::eventRegistration()
         );
@@ -79,5 +82,46 @@ final class InvitationDeliverySubscriberTest extends TestCase
         self::assertInstanceOf(DeliverUserInvitation::class, $commandBus->executedCommands()[0]);
         self::assertSame('Admin-42', $commandBus->executedCommands()[0]->getActorId());
         self::assertSame($userId, $commandBus->executedCommands()[0]->getUserId());
+    }
+
+    public function test_that_it_dispatches_delivery_for_a_pending_activation_restoration(): void
+    {
+        $commandBus = new InMemoryCommandBus();
+        $subscriber = new InvitationDeliverySubscriber($commandBus);
+        $actorId = UserId::generate();
+        $userId = UserId::generate();
+        $activationDeliveryId = ActivationDeliveryId::generate();
+
+        $subscriber->onUserRestored(EventMessage::create(new UserRestored(
+            $actorId,
+            $userId,
+            UserState::PENDING_ACTIVATION,
+            $activationDeliveryId
+        )));
+
+        self::assertCount(1, $commandBus->executedCommands());
+        self::assertInstanceOf(DeliverUserInvitation::class, $commandBus->executedCommands()[0]);
+        self::assertSame($actorId->toString(), $commandBus->executedCommands()[0]->getActorId());
+        self::assertSame($userId, $commandBus->executedCommands()[0]->getUserId());
+        self::assertSame(
+            $activationDeliveryId,
+            $commandBus->executedCommands()[0]->getActivationDeliveryId()
+        );
+    }
+
+    public function test_that_it_does_not_dispatch_delivery_for_an_active_restoration(): void
+    {
+        $commandBus = new InMemoryCommandBus();
+        $subscriber = new InvitationDeliverySubscriber($commandBus);
+        $actorId = UserId::generate();
+        $userId = UserId::generate();
+
+        $subscriber->onUserRestored(EventMessage::create(new UserRestored(
+            $actorId,
+            $userId,
+            UserState::ACTIVE
+        )));
+
+        self::assertSame([], $commandBus->executedCommands());
     }
 }
