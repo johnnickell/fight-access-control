@@ -8,6 +8,7 @@ use DateInterval;
 use DateTimeImmutable;
 use Fight\AccessControl\Application\AccessControl\Authorization\Service\AuthenticationContext;
 use Fight\AccessControl\Application\AccessControl\Authorization\Service\AuthoritativePrincipalResolver;
+use Fight\AccessControl\Domain\AccessControl\Authorization\Exception\PrincipalResolutionException;
 use Fight\AccessControl\Domain\AccessControl\Permission\Permission;
 use Fight\AccessControl\Domain\AccessControl\Permission\PermissionId;
 use Fight\AccessControl\Domain\AccessControl\Permission\PermissionName;
@@ -22,7 +23,6 @@ use Fight\AccessControl\Domain\AccessControl\Role\RoleRepository;
 use Fight\AccessControl\Domain\AccessControl\User\User;
 use Fight\AccessControl\Domain\AccessControl\User\UserId;
 use Fight\AccessControl\Domain\AccessControl\User\UserState;
-use Fight\Common\Domain\Exception\DomainException;
 use Fight\Test\AccessControl\Application\AccessControl\Permission\Repository\InMemoryPermissionRepository;
 use Fight\Test\AccessControl\Application\AccessControl\RefreshSession\Repository\InMemoryRefreshSessionRepository;
 use Fight\Test\AccessControl\Application\AccessControl\Role\Repository\InMemoryRoleRepository;
@@ -36,6 +36,7 @@ use ReflectionClass;
 
 #[CoversClass(AuthenticationContext::class)]
 #[CoversClass(AuthoritativePrincipalResolver::class)]
+#[CoversClass(PrincipalResolutionException::class)]
 final class AuthoritativePrincipalResolverTest extends TestCase
 {
     private const string CREDENTIAL = '0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef';
@@ -100,7 +101,7 @@ final class AuthoritativePrincipalResolverTest extends TestCase
 
     public function test_it_denies_missing_user_or_session_authority(): void
     {
-        $this->expectException(DomainException::class);
+        $this->expectException(PrincipalResolutionException::class);
         $this->emptyResolver()->resolve(new AuthenticationContext(UserId::generate(), RefreshSessionId::generate(), 1));
     }
 
@@ -126,7 +127,7 @@ final class AuthoritativePrincipalResolverTest extends TestCase
         $session = $this->session(UserId::generate(), 7, $now);
         $resolver = $this->resolver($now, $user, $session);
 
-        $this->expectException(DomainException::class);
+        $this->expectException(PrincipalResolutionException::class);
         $resolver->resolve(new AuthenticationContext($user->getId(), $session->getId(), 7));
     }
 
@@ -137,7 +138,7 @@ final class AuthoritativePrincipalResolverTest extends TestCase
         $session = $this->session($user->getId(), 7, $now)->revoke();
         $resolver = $this->resolver($now, $user, $session);
 
-        $this->expectException(DomainException::class);
+        $this->expectException(PrincipalResolutionException::class);
         $resolver->resolve(new AuthenticationContext($user->getId(), $session->getId(), 7));
     }
 
@@ -148,7 +149,7 @@ final class AuthoritativePrincipalResolverTest extends TestCase
         $session = $this->session($user->getId(), 7, $now, new DateTimeImmutable('2026-08-21T11:59:59+00:00'));
         $resolver = $this->resolver($now, $user, $session);
 
-        $this->expectException(DomainException::class);
+        $this->expectException(PrincipalResolutionException::class);
         $resolver->resolve(new AuthenticationContext($user->getId(), $session->getId(), 7));
     }
 
@@ -160,7 +161,7 @@ final class AuthoritativePrincipalResolverTest extends TestCase
 
         $session = $this->session($user->getId(), 7, $now);
 
-        $this->expectException(DomainException::class);
+        $this->expectException(PrincipalResolutionException::class);
         $this->resolver($now, $user, $session)->resolve(
             new AuthenticationContext($user->getId(), $session->getId(), 7)
         );
@@ -181,7 +182,7 @@ final class AuthoritativePrincipalResolverTest extends TestCase
         $roleRepository = $this->createStub(RoleRepository::class);
         $roleRepository->method('getByIds')->willReturn([$unexpectedRole]);
 
-        $this->expectException(DomainException::class);
+        $this->expectException(PrincipalResolutionException::class);
         $this->resolver($now, $user, $session, roleRepository: $roleRepository)->resolve(
             new AuthenticationContext($user->getId(), $session->getId(), 7)
         );
@@ -199,7 +200,7 @@ final class AuthoritativePrincipalResolverTest extends TestCase
         $user->replaceRoleAssignments([$role->getId()]);
         $session = $this->session($user->getId(), 7, $now);
 
-        $this->expectException(DomainException::class);
+        $this->expectException(PrincipalResolutionException::class);
         $this->resolver($now, $user, $session, [$role])->resolve(
             new AuthenticationContext($user->getId(), $session->getId(), 7)
         );
@@ -223,7 +224,7 @@ final class AuthoritativePrincipalResolverTest extends TestCase
         $permissionRepository = $this->createStub(PermissionRepository::class);
         $permissionRepository->method('getByIds')->willReturn([$unexpectedPermission]);
 
-        $this->expectException(DomainException::class);
+        $this->expectException(PrincipalResolutionException::class);
         $this->resolver(
             $now,
             $user,
@@ -264,8 +265,11 @@ final class AuthoritativePrincipalResolverTest extends TestCase
                 new AuthenticationContext($user->getId(), $session->getId(), $contextAuthenticationVersion)
             );
             self::fail('Expected principal resolution to fail closed.');
-        } catch (DomainException $domainException) {
-            self::assertSame('The current principal authority is not valid.', $domainException->getMessage());
+        } catch (PrincipalResolutionException $principalResolutionException) {
+            self::assertSame(
+                'The current principal authority is not valid.',
+                $principalResolutionException->getMessage()
+            );
         }
     }
 

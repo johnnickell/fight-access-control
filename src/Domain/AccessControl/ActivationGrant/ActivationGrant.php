@@ -5,10 +5,9 @@ declare(strict_types=1);
 namespace Fight\AccessControl\Domain\AccessControl\ActivationGrant;
 
 use DateTimeImmutable;
+use Fight\AccessControl\Domain\AccessControl\ActivationGrant\Exception\ActivationGrantException;
 use Fight\AccessControl\Domain\AccessControl\User\UserId;
 use Fight\Common\Domain\Value\Internet\EmailAddress;
-use InvalidArgumentException;
-use LogicException;
 
 /**
  * Owns one generation of activation authority and its delivery work.
@@ -44,7 +43,9 @@ class ActivationGrant
         string $ciphertext
     ): static {
         if ($expiresAt <= $issuedAt) {
-            throw new InvalidArgumentException('The activation grant expiry must be later than its issuance time.');
+            throw new ActivationGrantException(
+                'The activation grant expiry must be later than its issuance time.'
+            );
         }
 
         return new static(
@@ -172,7 +173,7 @@ class ActivationGrant
     public function consume(DateTimeImmutable $at): self
     {
         if (!$this->isUsableAt($at)) {
-            throw new LogicException('The activation grant is no longer usable.');
+            throw new ActivationGrantException('The activation grant is no longer usable.');
         }
 
         return new static(
@@ -193,7 +194,7 @@ class ActivationGrant
     public function revoke(DateTimeImmutable $at): self
     {
         if (!$this->isIssued()) {
-            throw new LogicException('The activation grant is no longer issued.');
+            throw new ActivationGrantException('The activation grant is no longer issued.');
         }
 
         return new static(

@@ -5,10 +5,9 @@ declare(strict_types=1);
 namespace Fight\AccessControl\Domain\AccessControl\PasswordResetGrant;
 
 use DateTimeImmutable;
+use Fight\AccessControl\Domain\AccessControl\PasswordResetGrant\Exception\PasswordResetGrantException;
 use Fight\AccessControl\Domain\AccessControl\User\UserId;
-use Fight\Common\Domain\Exception\DomainException;
 use Fight\Common\Domain\Value\Internet\EmailAddress;
-use LogicException;
 
 /**
  * Owns one generation of password-reset authority and its delivery work.
@@ -44,7 +43,9 @@ class PasswordResetGrant
         string $ciphertext
     ): static {
         if ($expiresAt <= $issuedAt) {
-            throw new DomainException('The password-reset grant expiry must be later than its issuance time.');
+            throw new PasswordResetGrantException(
+                'The password-reset grant expiry must be later than its issuance time.'
+            );
         }
 
         return new static(
@@ -172,7 +173,7 @@ class PasswordResetGrant
     public function consume(DateTimeImmutable $at): self
     {
         if ($this->isUsableAt($at) === false) {
-            throw new LogicException('The password-reset grant is no longer usable.');
+            throw new PasswordResetGrantException('The password-reset grant is no longer usable.');
         }
 
         return new static(
@@ -193,7 +194,7 @@ class PasswordResetGrant
     public function revoke(DateTimeImmutable $at): self
     {
         if ($this->isIssued() === false) {
-            throw new LogicException('The password-reset grant is no longer issued.');
+            throw new PasswordResetGrantException('The password-reset grant is no longer issued.');
         }
 
         return new static(

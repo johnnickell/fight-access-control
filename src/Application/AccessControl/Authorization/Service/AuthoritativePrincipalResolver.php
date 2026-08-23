@@ -6,6 +6,7 @@ namespace Fight\AccessControl\Application\AccessControl\Authorization\Service;
 
 use Fight\AccessControl\Application\AccessControl\User\Service\AuthenticationClock;
 use Fight\AccessControl\Domain\AccessControl\Authorization\AuthenticatedPrincipal;
+use Fight\AccessControl\Domain\AccessControl\Authorization\Exception\PrincipalResolutionException;
 use Fight\AccessControl\Domain\AccessControl\Authorization\PrincipalPermission;
 use Fight\AccessControl\Domain\AccessControl\Authorization\PrincipalRole;
 use Fight\AccessControl\Domain\AccessControl\Permission\PermissionId;
@@ -17,7 +18,6 @@ use Fight\AccessControl\Domain\AccessControl\User\User;
 use Fight\AccessControl\Domain\AccessControl\User\UserRepository;
 use Fight\AccessControl\Domain\AccessControl\User\UserState;
 use Fight\Common\Domain\Collection\HashSet;
-use Fight\Common\Domain\Exception\DomainException;
 
 /**
  * Resolves request authentication claims against all authoritative principal state.
@@ -32,14 +32,14 @@ final readonly class AuthoritativePrincipalResolver
         private RefreshSessionRepository $refreshSessionRepository,
         private RoleRepository $roleRepository,
         private PermissionRepository $permissionRepository,
-        private AuthenticationClock $clock
+        private AuthenticationClock $authenticationClock
     ) {
     }
 
     /**
      * Returns a principal only when every authentication and authorization reference remains valid.
      *
-     * @throws DomainException When current principal authority is not valid
+     * @throws PrincipalResolutionException When current principal authority is not valid
      */
     public function resolve(AuthenticationContext $authenticationContext): AuthenticatedPrincipal
     {
@@ -56,7 +56,7 @@ final readonly class AuthoritativePrincipalResolver
             || $user->getState() !== UserState::ACTIVE
             || $user->getAuthenticationVersion() !== $authenticationContext->getAuthenticationVersion()
             || $refreshSession->getAuthenticationVersion() !== $authenticationContext->getAuthenticationVersion()
-            || !$refreshSession->isUsableAt($this->clock->now())
+            || !$refreshSession->isUsableAt($this->authenticationClock->now())
         ) {
             $this->deny();
         }
@@ -120,10 +120,10 @@ final readonly class AuthoritativePrincipalResolver
     /**
      * Rejects invalid or incomplete principal authority without disclosing which reference failed.
      *
-     * @throws DomainException Always
+     * @throws PrincipalResolutionException Always
      */
     private function deny(): never
     {
-        throw new DomainException('The current principal authority is not valid.');
+        throw new PrincipalResolutionException('The current principal authority is not valid.');
     }
 }

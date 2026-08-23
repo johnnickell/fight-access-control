@@ -5,13 +5,13 @@ declare(strict_types=1);
 namespace Fight\Test\AccessControl\Application\AccessControl\PasswordResetGrant\Repository;
 
 use DateTimeImmutable;
+use Fight\AccessControl\Domain\AccessControl\PasswordResetGrant\Exception\PasswordResetGrantException;
 use Fight\AccessControl\Domain\AccessControl\PasswordResetGrant\PasswordResetDeliveryId;
 use Fight\AccessControl\Domain\AccessControl\PasswordResetGrant\PasswordResetGrant;
 use Fight\AccessControl\Domain\AccessControl\PasswordResetGrant\PasswordResetGrantId;
 use Fight\AccessControl\Domain\AccessControl\PasswordResetGrant\PasswordResetGrantRepository;
 use Fight\AccessControl\Domain\AccessControl\User\UserId;
 use Fight\Test\AccessControl\Application\AccessControl\User\InMemoryUnitOfWork;
-use LogicException;
 
 final class InMemoryPasswordResetGrants implements PasswordResetGrantRepository
 {
@@ -231,7 +231,7 @@ final class InMemoryPasswordResetGrants implements PasswordResetGrantRepository
             } else {
                 $expected = $predecessor->revoke($transitionedAt);
             }
-        } catch (LogicException) {
+        } catch (PasswordResetGrantException) {
             return false;
         }
 

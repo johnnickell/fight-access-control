@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Fight\AccessControl\Domain\AccessControl\Permission;
 
-use Fight\Common\Domain\Exception\DomainException;
+use Fight\AccessControl\Domain\AccessControl\Permission\Exception\PermissionNameException;
 use Fight\Common\Domain\Value\ValueObject;
 
 /**
@@ -25,7 +25,9 @@ final readonly class PermissionName extends ValueObject
     public static function fromString(string $value): self
     {
         if (preg_match('/^[A-Z]+(?:_[A-Z]+)*$/', $value) !== 1) {
-            throw new DomainException('A permission name must contain uppercase words separated by underscores.');
+            throw new PermissionNameException(
+                'A permission name must contain uppercase words separated by underscores.'
+            );
         }
 
         return new self($value);

@@ -5,9 +5,9 @@ declare(strict_types=1);
 namespace Fight\AccessControl\Domain\AccessControl\ActivationGrant;
 
 use DateTimeImmutable;
+use Fight\AccessControl\Domain\AccessControl\ActivationGrant\Exception\ActivationDeliveryException;
 use Fight\AccessControl\Domain\AccessControl\ActivationGrant\Exception\ActivationDeliveryNotRetryableException;
 use Fight\AccessControl\Domain\AccessControl\User\UserId;
-use Fight\Common\Domain\Exception\DomainException;
 use Fight\Common\Domain\Value\Internet\EmailAddress;
 
 /**
@@ -41,7 +41,7 @@ class ActivationDelivery
         DateTimeImmutable $expiresAt
     ): static {
         if ($ciphertext === '') {
-            throw new DomainException('The activation delivery ciphertext must not be empty.');
+            throw new ActivationDeliveryException('The activation delivery ciphertext must not be empty.');
         }
 
         return new static($id, $userId, $email, $ciphertext, $expiresAt);

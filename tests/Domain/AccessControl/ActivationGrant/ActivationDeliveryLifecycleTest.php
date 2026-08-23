@@ -8,14 +8,15 @@ use DateTimeImmutable;
 use Fight\AccessControl\Domain\AccessControl\ActivationGrant\ActivationDelivery;
 use Fight\AccessControl\Domain\AccessControl\ActivationGrant\ActivationDeliveryId;
 use Fight\AccessControl\Domain\AccessControl\ActivationGrant\ActivationDeliveryStatus;
+use Fight\AccessControl\Domain\AccessControl\ActivationGrant\Exception\ActivationDeliveryException;
 use Fight\AccessControl\Domain\AccessControl\ActivationGrant\Exception\ActivationDeliveryNotRetryableException;
 use Fight\AccessControl\Domain\AccessControl\User\UserId;
-use Fight\Common\Domain\Exception\DomainException;
 use Fight\Common\Domain\Value\Internet\EmailAddress;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
 
 #[CoversClass(ActivationDelivery::class)]
+#[CoversClass(ActivationDeliveryException::class)]
 #[CoversClass(ActivationDeliveryStatus::class)]
 final class ActivationDeliveryLifecycleTest extends TestCase
 {
@@ -242,7 +243,7 @@ final class ActivationDeliveryLifecycleTest extends TestCase
 
     public function test_that_delivery_rejects_empty_ciphertext(): void
     {
-        $this->expectException(DomainException::class);
+        $this->expectException(ActivationDeliveryException::class);
         $this->expectExceptionMessage('The activation delivery ciphertext must not be empty.');
 
         ActivationDelivery::create(

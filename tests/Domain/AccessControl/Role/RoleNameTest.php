@@ -4,12 +4,13 @@ declare(strict_types=1);
 
 namespace Fight\Test\AccessControl\Domain\AccessControl\Role;
 
+use Fight\AccessControl\Domain\AccessControl\Role\Exception\RoleNameException;
 use Fight\AccessControl\Domain\AccessControl\Role\RoleName;
-use Fight\Common\Domain\Exception\DomainException;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
 
 #[CoversClass(RoleName::class)]
+#[CoversClass(RoleNameException::class)]
 final class RoleNameTest extends TestCase
 {
     public function test_it_accepts_a_role_prefixed_uppercase_underscore_name(): void
@@ -37,7 +38,7 @@ final class RoleNameTest extends TestCase
             try {
                 RoleName::fromString($invalidName);
                 self::fail(sprintf('Expected "%s" to be rejected.', $invalidName));
-            } catch (DomainException) {
+            } catch (RoleNameException) {
                 self::addToAssertionCount(1);
             }
         }

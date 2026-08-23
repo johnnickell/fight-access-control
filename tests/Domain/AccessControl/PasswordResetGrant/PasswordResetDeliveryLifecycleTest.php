@@ -5,15 +5,16 @@ declare(strict_types=1);
 namespace Fight\Test\AccessControl\Domain\AccessControl\PasswordResetGrant;
 
 use DateTimeImmutable;
+use Fight\AccessControl\Domain\AccessControl\PasswordResetGrant\Exception\PasswordResetDeliveryException;
 use Fight\AccessControl\Domain\AccessControl\PasswordResetGrant\PasswordResetDelivery;
 use Fight\AccessControl\Domain\AccessControl\PasswordResetGrant\PasswordResetDeliveryId;
 use Fight\AccessControl\Domain\AccessControl\User\UserId;
-use Fight\Common\Domain\Exception\DomainException;
 use Fight\Common\Domain\Value\Internet\EmailAddress;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
 
 #[CoversClass(PasswordResetDelivery::class)]
+#[CoversClass(PasswordResetDeliveryException::class)]
 #[CoversClass(PasswordResetDeliveryId::class)]
 final class PasswordResetDeliveryLifecycleTest extends TestCase
 {
@@ -56,7 +57,7 @@ final class PasswordResetDeliveryLifecycleTest extends TestCase
 
     public function test_that_delivery_rejects_empty_ciphertext(): void
     {
-        $this->expectException(DomainException::class);
+        $this->expectException(PasswordResetDeliveryException::class);
         $this->expectExceptionMessage('The password-reset delivery ciphertext must not be empty.');
 
         PasswordResetDelivery::create(

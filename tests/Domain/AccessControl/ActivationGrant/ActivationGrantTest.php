@@ -10,18 +10,18 @@ use Fight\AccessControl\Domain\AccessControl\ActivationGrant\ActivationDeliveryI
 use Fight\AccessControl\Domain\AccessControl\ActivationGrant\ActivationDeliveryStatus;
 use Fight\AccessControl\Domain\AccessControl\ActivationGrant\ActivationGrant;
 use Fight\AccessControl\Domain\AccessControl\ActivationGrant\ActivationGrantId;
+use Fight\AccessControl\Domain\AccessControl\ActivationGrant\Exception\ActivationGrantException;
 use Fight\AccessControl\Domain\AccessControl\User\User;
 use Fight\AccessControl\Domain\AccessControl\User\UserId;
 use Fight\AccessControl\Domain\AccessControl\User\UserState;
 use Fight\Common\Domain\Value\Internet\EmailAddress;
-use InvalidArgumentException;
-use LogicException;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
 
 #[CoversClass(User::class)]
 #[CoversClass(ActivationCredential::class)]
 #[CoversClass(ActivationGrant::class)]
+#[CoversClass(ActivationGrantException::class)]
 #[CoversClass(UserId::class)]
 final class ActivationGrantTest extends TestCase
 {
@@ -100,7 +100,7 @@ final class ActivationGrantTest extends TestCase
         self::assertFalse($consumed->isUsableAt(new DateTimeImmutable('2026-08-20T12:00:00+00:00')));
         self::assertSame('2026-08-20T12:00:00+00:00', $consumed->getConsumedAt()?->format(DATE_ATOM));
 
-        $this->expectException(LogicException::class);
+        $this->expectException(ActivationGrantException::class);
 
         $consumed->consume(new DateTimeImmutable('2026-08-20T12:01:00+00:00'));
     }
@@ -121,7 +121,7 @@ final class ActivationGrantTest extends TestCase
         self::assertFalse($revoked->isUsableAt(new DateTimeImmutable('2026-08-20T12:00:00+00:00')));
         self::assertSame('2026-08-20T12:00:00+00:00', $revoked->getRevokedAt()?->format(DATE_ATOM));
 
-        $this->expectException(LogicException::class);
+        $this->expectException(ActivationGrantException::class);
 
         $revoked->consume(new DateTimeImmutable('2026-08-20T12:01:00+00:00'));
     }
@@ -138,7 +138,7 @@ final class ActivationGrantTest extends TestCase
         );
         $consumed = $grant->consume(new DateTimeImmutable('2026-08-20T12:00:00+00:00'));
 
-        $this->expectException(LogicException::class);
+        $this->expectException(ActivationGrantException::class);
 
         $consumed->revoke(new DateTimeImmutable('2026-08-20T12:01:00+00:00'));
     }
@@ -156,7 +156,7 @@ final class ActivationGrantTest extends TestCase
 
         self::assertFalse($grant->isUsableAt(new DateTimeImmutable('2026-08-25T12:00:00+00:00')));
 
-        $this->expectException(LogicException::class);
+        $this->expectException(ActivationGrantException::class);
 
         $grant->consume(new DateTimeImmutable('2026-08-25T12:00:00+00:00'));
     }
@@ -165,7 +165,7 @@ final class ActivationGrantTest extends TestCase
     {
         $issuedAt = new DateTimeImmutable('2026-08-18T12:00:00+00:00');
 
-        $this->expectException(InvalidArgumentException::class);
+        $this->expectException(ActivationGrantException::class);
 
         ActivationGrant::issue(
             UserId::generate(),

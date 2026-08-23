@@ -7,6 +7,7 @@ namespace Fight\Test\AccessControl\Domain\AccessControl\PasswordResetGrant;
 use DateTimeImmutable;
 use Fight\AccessControl\Domain\AccessControl\PasswordResetGrant\Command\RequestPasswordReset;
 use Fight\AccessControl\Domain\AccessControl\PasswordResetGrant\Event\PasswordResetRequested;
+use Fight\AccessControl\Domain\AccessControl\PasswordResetGrant\Exception\PasswordResetGrantException;
 use Fight\AccessControl\Domain\AccessControl\PasswordResetGrant\PasswordResetCredential;
 use Fight\AccessControl\Domain\AccessControl\PasswordResetGrant\PasswordResetDeliveryId;
 use Fight\AccessControl\Domain\AccessControl\PasswordResetGrant\PasswordResetGrant;
@@ -14,13 +15,13 @@ use Fight\AccessControl\Domain\AccessControl\PasswordResetGrant\PasswordResetGra
 use Fight\AccessControl\Domain\AccessControl\User\UserId;
 use Fight\Common\Domain\Exception\DomainException;
 use Fight\Common\Domain\Value\Internet\EmailAddress;
-use LogicException;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
 
 #[CoversClass(RequestPasswordReset::class)]
 #[CoversClass(PasswordResetCredential::class)]
 #[CoversClass(PasswordResetGrant::class)]
+#[CoversClass(PasswordResetGrantException::class)]
 #[CoversClass(PasswordResetGrantId::class)]
 #[CoversClass(PasswordResetRequested::class)]
 final class RequestPasswordResetTest extends TestCase
@@ -78,7 +79,7 @@ final class RequestPasswordResetTest extends TestCase
             self::assertSame('The password-reset credential must not be empty.', $domainException->getMessage());
         }
 
-        $this->expectException(DomainException::class);
+        $this->expectException(PasswordResetGrantException::class);
         $this->expectExceptionMessage('The password-reset grant expiry must be later than its issuance time.');
 
         PasswordResetGrant::issue(
@@ -110,7 +111,7 @@ final class RequestPasswordResetTest extends TestCase
         self::assertTrue($revoked->isRevoked());
         self::assertSame('2026-08-20T12:15:00+00:00', $revoked->getRevokedAt()?->format(DATE_ATOM));
 
-        $this->expectException(LogicException::class);
+        $this->expectException(PasswordResetGrantException::class);
         $this->expectExceptionMessage('The password-reset grant is no longer issued.');
 
         $revoked->revoke(new DateTimeImmutable('2026-08-20T12:30:00+00:00'));
@@ -127,7 +128,7 @@ final class RequestPasswordResetTest extends TestCase
             'ciphertext'
         );
 
-        $this->expectException(LogicException::class);
+        $this->expectException(PasswordResetGrantException::class);
         $this->expectExceptionMessage('The password-reset grant is no longer usable.');
 
         $grant->consume(new DateTimeImmutable('2026-08-20T13:00:00+00:00'));

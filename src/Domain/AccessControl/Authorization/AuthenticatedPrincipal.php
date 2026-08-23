@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace Fight\AccessControl\Domain\AccessControl\Authorization;
 
+use Fight\AccessControl\Domain\AccessControl\Authorization\Exception\AuthenticatedPrincipalException;
 use Fight\AccessControl\Domain\AccessControl\Permission\PermissionName;
 use Fight\AccessControl\Domain\AccessControl\RefreshSession\RefreshSessionId;
 use Fight\AccessControl\Domain\AccessControl\Role\RoleName;
 use Fight\AccessControl\Domain\AccessControl\User\UserId;
-use Fight\Common\Domain\Exception\DomainException;
 
 /**
  * Captures an authenticated identity and its authoritative authorization snapshot.
@@ -38,13 +38,15 @@ final readonly class AuthenticatedPrincipal
         array $permissions
     ) {
         if ($authenticationVersion < 1) {
-            throw new DomainException('The authentication version must be positive.');
+            throw new AuthenticatedPrincipalException('The authentication version must be positive.');
         }
 
         $uniqueRoles = [];
         foreach ($roles as $role) {
             if (!$role instanceof PrincipalRole) {
-                throw new DomainException('Authenticated principal roles must be PrincipalRole snapshots.');
+                throw new AuthenticatedPrincipalException(
+                    'Authenticated principal roles must be PrincipalRole snapshots.'
+                );
             }
 
             $uniqueRoles[$role->getId()->toString()] ??= $role;
@@ -53,7 +55,7 @@ final readonly class AuthenticatedPrincipal
         $uniquePermissions = [];
         foreach ($permissions as $permission) {
             if (!$permission instanceof PrincipalPermission) {
-                throw new DomainException(
+                throw new AuthenticatedPrincipalException(
                     'Authenticated principal permissions must be PrincipalPermission snapshots.'
                 );
             }

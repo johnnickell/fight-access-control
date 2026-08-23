@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Fight\Test\AccessControl\Domain\AccessControl\Authorization;
 
 use Fight\AccessControl\Domain\AccessControl\Authorization\AuthenticatedPrincipal;
+use Fight\AccessControl\Domain\AccessControl\Authorization\Exception\AuthenticatedPrincipalException;
 use Fight\AccessControl\Domain\AccessControl\Authorization\PrincipalPermission;
 use Fight\AccessControl\Domain\AccessControl\Authorization\PrincipalRole;
 use Fight\AccessControl\Domain\AccessControl\Permission\PermissionId;
@@ -13,11 +14,11 @@ use Fight\AccessControl\Domain\AccessControl\RefreshSession\RefreshSessionId;
 use Fight\AccessControl\Domain\AccessControl\Role\RoleId;
 use Fight\AccessControl\Domain\AccessControl\Role\RoleName;
 use Fight\AccessControl\Domain\AccessControl\User\UserId;
-use Fight\Common\Domain\Exception\DomainException;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
 
 #[CoversClass(AuthenticatedPrincipal::class)]
+#[CoversClass(AuthenticatedPrincipalException::class)]
 #[CoversClass(PrincipalPermission::class)]
 #[CoversClass(PrincipalRole::class)]
 final class AuthenticatedPrincipalTest extends TestCase
@@ -61,21 +62,21 @@ final class AuthenticatedPrincipalTest extends TestCase
 
     public function test_it_rejects_a_non_positive_authentication_version(): void
     {
-        $this->expectException(DomainException::class);
+        $this->expectException(AuthenticatedPrincipalException::class);
 
         new AuthenticatedPrincipal(UserId::generate(), RefreshSessionId::generate(), 0, [], []);
     }
 
     public function test_it_rejects_untyped_role_snapshots(): void
     {
-        $this->expectException(DomainException::class);
+        $this->expectException(AuthenticatedPrincipalException::class);
 
         new AuthenticatedPrincipal(UserId::generate(), RefreshSessionId::generate(), 1, ['ROLE_EDITOR'], []);
     }
 
     public function test_it_rejects_untyped_permission_snapshots(): void
     {
-        $this->expectException(DomainException::class);
+        $this->expectException(AuthenticatedPrincipalException::class);
 
         new AuthenticatedPrincipal(UserId::generate(), RefreshSessionId::generate(), 1, [], ['VIEW_ARTICLE']);
     }

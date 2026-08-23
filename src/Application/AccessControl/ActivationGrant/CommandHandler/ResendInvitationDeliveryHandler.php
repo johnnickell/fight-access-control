@@ -36,9 +36,9 @@ final readonly class ResendInvitationDeliveryHandler implements CommandHandler
         private ActivationGrantRepository $activationGrantRepository,
         private AuditEvidenceRepository $auditEvidenceRepository,
         private UnitOfWork $unitOfWork,
-        private ActivationCredentialGenerator $credentials,
-        private InvitationDeliveryCipher $cipher,
-        private InvitationClock $clock,
+        private ActivationCredentialGenerator $activationCredentialGenerator,
+        private InvitationDeliveryCipher $invitationDeliveryCipher,
+        private InvitationClock $invitationClock,
         private EventDispatcher $eventDispatcher
     ) {
     }
@@ -60,7 +60,7 @@ final readonly class ResendInvitationDeliveryHandler implements CommandHandler
         $command = $commandMessage->payload();
 
         try {
-            $issuedAt = $this->clock->now();
+            $issuedAt = $this->invitationClock->now();
             $activationDeliveryId = $this->unitOfWork->commitTransactional(function () use (
                 $command,
                 $issuedAt
@@ -70,14 +70,13 @@ final readonly class ResendInvitationDeliveryHandler implements CommandHandler
                 if (
                     !$predecessor instanceof ActivationGrant
                     || $predecessor->isIssued() === false
-                    || !$predecessor->getDelivery()->isRetryable()
                 ) {
                     throw new ActivationDeliveryNotResendableException(
                         'The activation delivery cannot be resent.'
                     );
                 }
 
-                $credential = $this->credentials->generate();
+                $credential = $this->activationCredentialGenerator->generate();
                 $revokedPredecessor = $predecessor->revoke($issuedAt);
                 $replacement = ActivationGrant::issue(
                     $command->getUserId(),
@@ -85,7 +84,7 @@ final readonly class ResendInvitationDeliveryHandler implements CommandHandler
                     $issuedAt,
                     $issuedAt->add(new DateInterval('P7D')),
                     $predecessor->getDelivery()->getEmail(),
-                    $this->cipher->encrypt($credential->toString())
+                    $this->invitationDeliveryCipher->encrypt($credential->toString())
                 );
                 if (
                     !$this->activationGrantRepository->replaceWithSuccessor(

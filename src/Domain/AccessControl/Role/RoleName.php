@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Fight\AccessControl\Domain\AccessControl\Role;
 
-use Fight\Common\Domain\Exception\DomainException;
+use Fight\AccessControl\Domain\AccessControl\Role\Exception\RoleNameException;
 use Fight\Common\Domain\Value\ValueObject;
 
 /**
@@ -25,7 +25,7 @@ final readonly class RoleName extends ValueObject
     public static function fromString(string $value): self
     {
         if (preg_match('/^ROLE_[A-Z_]+$/', $value) !== 1) {
-            throw new DomainException(
+            throw new RoleNameException(
                 'A role name must start with ROLE_ and contain only uppercase letters and underscores.'
             );
         }

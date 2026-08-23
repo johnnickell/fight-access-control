@@ -4,12 +4,13 @@ declare(strict_types=1);
 
 namespace Fight\Test\AccessControl\Domain\AccessControl\Permission;
 
+use Fight\AccessControl\Domain\AccessControl\Permission\Exception\PermissionNameException;
 use Fight\AccessControl\Domain\AccessControl\Permission\PermissionName;
-use Fight\Common\Domain\Exception\DomainException;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
 
 #[CoversClass(PermissionName::class)]
+#[CoversClass(PermissionNameException::class)]
 final class PermissionNameTest extends TestCase
 {
     public function test_it_accepts_an_uppercase_underscore_name(): void
@@ -39,7 +40,7 @@ final class PermissionNameTest extends TestCase
             try {
                 PermissionName::fromString($invalidName);
                 self::fail(sprintf('Expected "%s" to be rejected.', $invalidName));
-            } catch (DomainException) {
+            } catch (PermissionNameException) {
                 self::addToAssertionCount(1);
             }
         }

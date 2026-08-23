@@ -11,9 +11,9 @@ use Fight\AccessControl\Domain\AccessControl\ActivationGrant\ActivationDeliveryS
 use Fight\AccessControl\Domain\AccessControl\ActivationGrant\ActivationGrant;
 use Fight\AccessControl\Domain\AccessControl\ActivationGrant\ActivationGrantId;
 use Fight\AccessControl\Domain\AccessControl\ActivationGrant\ActivationGrantRepository;
+use Fight\AccessControl\Domain\AccessControl\ActivationGrant\Exception\ActivationGrantException;
 use Fight\AccessControl\Domain\AccessControl\User\UserId;
 use Fight\Test\AccessControl\Application\AccessControl\User\InMemoryUnitOfWork;
-use LogicException;
 
 final class InMemoryActivationGrantRepository implements ActivationGrantRepository
 {
@@ -219,7 +219,7 @@ final class InMemoryActivationGrantRepository implements ActivationGrantReposito
             } else {
                 $expected = $predecessor->revoke($transitionedAt);
             }
-        } catch (LogicException) {
+        } catch (ActivationGrantException) {
             return false;
         }
 

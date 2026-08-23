@@ -81,6 +81,43 @@ final class ResendInvitationDeliveryHandlerTest extends TestCase
         self::assertInstanceOf(InvitationDeliveryResent::class, $events->events()[0]);
     }
 
+    public function test_that_it_resends_a_confirmed_but_unredeemed_invitation(): void
+    {
+        $userId = UserId::generate();
+        $issued = ActivationGrant::issue(
+            $userId,
+            ActivationCredential::fromString('activate-old'),
+            new DateTimeImmutable('2026-08-18T12:00:00+00:00'),
+            new DateTimeImmutable('2026-08-25T12:00:00+00:00'),
+            EmailAddress::fromString('alice@example.test'),
+            'ciphertext:activate-old'
+        );
+        $claimed = $issued->claimDelivery();
+        $confirmed = $claimed->confirmDelivery();
+        $activationGrantRepository = new InMemoryActivationGrantRepository();
+        self::assertTrue($activationGrantRepository->add($issued));
+        self::assertTrue($activationGrantRepository->replace($issued, $claimed));
+        self::assertTrue($activationGrantRepository->replace($claimed, $confirmed));
+        self::assertFalse($confirmed->getDelivery()->isRetryable());
+
+        $events = new InMemoryEventDispatcher();
+        $handler = $this->handler(
+            $activationGrantRepository,
+            new InMemoryAuditEvidenceRepository(),
+            new InMemoryUnitOfWork(),
+            $events
+        );
+
+        $handler->handle(CommandMessage::create(new ResendInvitationDelivery('Admin-42', $userId)));
+
+        $grants = $activationGrantRepository->all();
+        self::assertCount(2, $grants);
+        self::assertTrue($grants[0]->isRevoked());
+        self::assertTrue($grants[1]->isIssued());
+        self::assertSame('ciphertext:activate-new', $grants[1]->getDelivery()->getCiphertext());
+        self::assertInstanceOf(InvitationDeliveryResent::class, $events->events()[0]);
+    }
+
     public function test_that_a_delivery_storage_failure_restores_the_predecessor_before_rethrowing(): void
     {
         $userId = UserId::generate();
