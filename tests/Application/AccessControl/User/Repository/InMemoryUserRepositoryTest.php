@@ -9,6 +9,7 @@ use Fight\AccessControl\Domain\AccessControl\RefreshSession\RefreshCredential;
 use Fight\AccessControl\Domain\AccessControl\RefreshSession\RefreshSession;
 use Fight\AccessControl\Domain\AccessControl\RefreshSession\RefreshSessionId;
 use Fight\AccessControl\Domain\AccessControl\Role\RoleId;
+use Fight\AccessControl\Domain\AccessControl\User\Exception\DuplicateEmailException;
 use Fight\AccessControl\Domain\AccessControl\User\PasswordHash;
 use Fight\AccessControl\Domain\AccessControl\User\User;
 use Fight\AccessControl\Domain\AccessControl\User\UserId;
@@ -23,6 +24,196 @@ use RuntimeException;
 #[CoversNothing]
 final class InMemoryUserRepositoryTest extends TestCase
 {
+    public function test_stale_authentication_replacement_cannot_erase_later_email_state(): void
+    {
+        foreach (['reservation', 'canonical correction'] as $emailTransition) {
+            $repository = new InMemoryUserRepository();
+            $current = $this->userBeforeEmailTransition($emailTransition);
+            $repository->add($current);
+            $staleExpected = clone $current;
+            $staleReplacement = clone $staleExpected;
+            if ($emailTransition === 'reservation') {
+                $staleReplacement->advanceAuthenticationAuthorityRevision();
+                $winner = clone $current;
+                $winner->requestEmailChange(EmailAddress::fromString('reserved@example.test'));
+                self::assertTrue($repository->replaceEmailChangeReservation($current, $winner));
+            } else {
+                $staleReplacement->activate($this->passwordHash('stale-activation-password'));
+                $staleReplacement->advanceAuthenticationAuthorityRevision();
+                $winner = clone $current;
+                $winner->correctPendingInvitationEmail(EmailAddress::fromString('corrected@example.test'));
+                self::assertTrue($repository->replacePendingInvitationEmail($current, $winner));
+            }
+
+            self::assertFalse($repository->replaceAuthenticationAuthority($staleExpected, $staleReplacement));
+            self::assertSame($winner, $repository->getById($current->getId()));
+            self::assertSame(
+                $emailTransition === 'reservation' ? 'authority@example.test' : 'corrected@example.test',
+                $repository->getById($current->getId())->getEmail()->canonical()
+            );
+            self::assertSame(
+                $emailTransition === 'reservation' ? 'reserved@example.test' : null,
+                $repository->getById($current->getId())->getPendingEmailChange()?->canonical()
+            );
+        }
+    }
+
+    public function test_stale_coupled_authentication_and_session_replacement_cannot_erase_a_reservation(): void
+    {
+        $unitOfWork = new InMemoryUnitOfWork();
+        $sessions = new InMemoryRefreshSessionRepository($unitOfWork);
+        $repository = new InMemoryUserRepository($unitOfWork);
+        $repository->bindRefreshSessionRepository($sessions);
+
+        $current = $this->activeUser();
+        $repository->add($current);
+        $staleExpected = clone $current;
+        $staleReplacement = clone $staleExpected;
+        $staleReplacement->advanceAuthenticationAuthorityRevision();
+
+        $session = $this->session($staleReplacement);
+        $winner = clone $current;
+        $winner->requestEmailChange(EmailAddress::fromString('reserved@example.test'));
+        self::assertTrue($repository->replaceEmailChangeReservation($current, $winner));
+
+        self::assertFalse($repository->replaceAuthenticationAuthorityAndAddRefreshSession(
+            $staleExpected,
+            $staleReplacement,
+            $session
+        ));
+        self::assertSame($winner, $repository->getById($current->getId()));
+        self::assertSame('reserved@example.test', $winner->getPendingEmailChange()?->canonical());
+        self::assertSame([], $sessions->all());
+    }
+
+    public function test_stale_role_replacement_cannot_erase_later_email_state(): void
+    {
+        foreach (['reservation', 'canonical correction'] as $emailTransition) {
+            $repository = new InMemoryUserRepository();
+            $current = $this->userBeforeEmailTransition($emailTransition);
+            $repository->add($current);
+            $staleExpected = clone $current;
+            $staleReplacement = clone $staleExpected;
+            $staleReplacement->replaceRoleAssignments([RoleId::generate()]);
+            if ($emailTransition === 'reservation') {
+                $winner = clone $current;
+                $winner->requestEmailChange(EmailAddress::fromString('reserved@example.test'));
+                self::assertTrue($repository->replaceEmailChangeReservation($current, $winner));
+            } else {
+                $winner = clone $current;
+                $winner->correctPendingInvitationEmail(EmailAddress::fromString('corrected@example.test'));
+                self::assertTrue($repository->replacePendingInvitationEmail($current, $winner));
+            }
+
+            self::assertFalse($repository->replaceRoleAssignments($staleExpected, $staleReplacement));
+            self::assertSame($winner, $repository->getById($current->getId()));
+            self::assertSame(
+                $emailTransition === 'reservation' ? 1 : 0,
+                $repository->getById($current->getId())->getEmailChangeReservationRevision()
+            );
+            self::assertSame(
+                $emailTransition === 'reservation' ? 0 : 1,
+                $repository->getById($current->getId())->getCanonicalEmailRevision()
+            );
+        }
+    }
+
+    public function test_preexisting_replacements_cannot_mutate_email_state_they_do_not_own(): void
+    {
+        foreach (['authentication', 'role'] as $replacementType) {
+            foreach (['reservation', 'canonical correction'] as $emailTransition) {
+                $repository = new InMemoryUserRepository();
+                $current = $this->userBeforeEmailTransition($emailTransition);
+                $repository->add($current);
+                $replacement = clone $current;
+                if ($emailTransition === 'reservation') {
+                    $replacement->requestEmailChange(EmailAddress::fromString('reserved@example.test'));
+                } else {
+                    $replacement->correctPendingInvitationEmail(
+                        EmailAddress::fromString('corrected@example.test')
+                    );
+                }
+
+                if ($replacementType === 'authentication') {
+                    if ($emailTransition === 'canonical correction') {
+                        $replacement->activate($this->passwordHash('replacement-password'));
+                    }
+
+                    $replacement->advanceAuthenticationAuthorityRevision();
+                    $result = $repository->replaceAuthenticationAuthority($current, $replacement);
+                } else {
+                    $replacement->replaceRoleAssignments([RoleId::generate()]);
+                    $result = $repository->replaceRoleAssignments($current, $replacement);
+                }
+
+                self::assertFalse($result);
+                self::assertSame($current, $repository->getById($current->getId()));
+                self::assertSame(
+                    $emailTransition === 'reservation' ? 'authority@example.test' : 'invited@example.test',
+                    $repository->getById($current->getId())->getEmail()->canonical()
+                );
+                self::assertNull($repository->getById($current->getId())->getPendingEmailChange());
+            }
+        }
+    }
+
+    public function test_a_live_email_change_reservation_blocks_a_new_canonical_identity(): void
+    {
+        $repository = new InMemoryUserRepository();
+        $current = $this->activeUser();
+        $replacement = clone $current;
+        $replacement->requestEmailChange(EmailAddress::fromString('reserved@example.test'));
+
+        $repository->add($current);
+        self::assertTrue($repository->replaceEmailChangeReservation($current, $replacement));
+
+        $this->expectException(DuplicateEmailException::class);
+        $repository->add(User::invite(
+            UserId::generate(),
+            EmailAddress::fromString('reserved@example.test')
+        ));
+    }
+
+    public function test_a_stale_email_change_reservation_replacement_loses_without_mutation(): void
+    {
+        $repository = new InMemoryUserRepository();
+        $current = $this->activeUser();
+        $repository->add($current);
+        $winner = clone $current;
+        $winner->requestEmailChange(EmailAddress::fromString('winner@example.test'));
+
+        $stale = clone $current;
+        $stale->requestEmailChange(EmailAddress::fromString('stale@example.test'));
+
+        self::assertTrue($repository->replaceEmailChangeReservation($current, $winner));
+        self::assertFalse($repository->replaceEmailChangeReservation($current, $stale));
+        self::assertSame($winner, $repository->getById($current->getId()));
+    }
+
+    public function test_cancelling_a_reservation_releases_only_its_destination(): void
+    {
+        $repository = new InMemoryUserRepository();
+        $current = $this->activeUser();
+        $repository->add($current);
+        $reserved = clone $current;
+        $reserved->requestEmailChange(EmailAddress::fromString('released@example.test'));
+        self::assertTrue($repository->replaceEmailChangeReservation($current, $reserved));
+        $cancelled = clone $reserved;
+        $cancelled->cancelEmailChange();
+
+        self::assertTrue($repository->replaceEmailChangeReservation($reserved, $cancelled));
+        $replacementIdentity = User::invite(
+            UserId::generate(),
+            EmailAddress::fromString('released@example.test')
+        );
+        $repository->add($replacementIdentity);
+
+        self::assertSame($replacementIdentity, $repository->getByEmail(
+            EmailAddress::fromString('released@example.test')
+        ));
+        self::assertSame('authority@example.test', $repository->getById($current->getId())?->getEmail()->canonical());
+    }
+
     public function test_that_only_the_expected_role_assignments_can_be_replaced(): void
     {
         $repository = new InMemoryUserRepository();
@@ -338,6 +529,15 @@ final class InMemoryUserRepositoryTest extends TestCase
     private function passwordHash(string $password): PasswordHash
     {
         return PasswordHash::fromString(password_hash($password, PASSWORD_DEFAULT));
+    }
+
+    private function userBeforeEmailTransition(string $emailTransition): User
+    {
+        if ($emailTransition === 'reservation') {
+            return $this->activeUser();
+        }
+
+        return User::invite(UserId::generate(), EmailAddress::fromString('invited@example.test'));
     }
 
     private function session(User $user): RefreshSession
