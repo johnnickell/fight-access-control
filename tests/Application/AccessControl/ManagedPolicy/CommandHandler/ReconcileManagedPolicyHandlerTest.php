@@ -2,24 +2,25 @@
 
 declare(strict_types=1);
 
-namespace Fight\Test\AccessControl\Application\AccessControl\Permission\CommandHandler;
+namespace Fight\Test\AccessControl\Application\AccessControl\ManagedPolicy\CommandHandler;
 
 use DateTimeImmutable;
-use Fight\AccessControl\Application\AccessControl\Permission\CommandHandler\ReconcileManagedPolicyHandler;
-use Fight\AccessControl\Application\AccessControl\Permission\QueryHandler\PreviewManagedPolicyHandler;
-use Fight\AccessControl\Application\AccessControl\Permission\Service\ManagedPolicyPlanner;
-use Fight\AccessControl\Domain\AccessControl\Permission\Command\ReconcileManagedPolicy;
-use Fight\AccessControl\Domain\AccessControl\Permission\Event\ManagedPolicyReconciled;
-use Fight\AccessControl\Domain\AccessControl\Permission\Exception\ManagedPolicyDefinitionException;
-use Fight\AccessControl\Domain\AccessControl\Permission\ManagedPermissionDefinition;
+use Fight\AccessControl\Application\AccessControl\ManagedPolicy\CommandHandler\ReconcileManagedPolicyHandler;
+use Fight\AccessControl\Application\AccessControl\ManagedPolicy\QueryHandler\PreviewManagedPolicyHandler;
+use Fight\AccessControl\Application\AccessControl\ManagedPolicy\Service\ManagedPolicyPlanner;
+use Fight\AccessControl\Domain\AccessControl\ManagedPolicy\Command\ReconcileManagedPolicy;
+use Fight\AccessControl\Domain\AccessControl\ManagedPolicy\Event\ManagedPolicyReconciled;
+use Fight\AccessControl\Domain\AccessControl\ManagedPolicy\Exception\ManagedPolicyDefinitionException;
+use Fight\AccessControl\Domain\AccessControl\ManagedPolicy\ManagedPermissionDefinition;
+use Fight\AccessControl\Domain\AccessControl\ManagedPolicy\ManagedPolicy;
+use Fight\AccessControl\Domain\AccessControl\ManagedPolicy\ManagedPolicyPlan;
+use Fight\AccessControl\Domain\AccessControl\ManagedPolicy\ManagedRoleDefinition;
+use Fight\AccessControl\Domain\AccessControl\ManagedPolicy\Query\PreviewManagedPolicy;
 use Fight\AccessControl\Domain\AccessControl\Permission\Permission;
 use Fight\AccessControl\Domain\AccessControl\Permission\PermissionId;
 use Fight\AccessControl\Domain\AccessControl\Permission\PermissionName;
 use Fight\AccessControl\Domain\AccessControl\Permission\PermissionRepository;
 use Fight\AccessControl\Domain\AccessControl\Permission\PermissionTier;
-use Fight\AccessControl\Domain\AccessControl\Permission\Query\ManagedPolicyPlan;
-use Fight\AccessControl\Domain\AccessControl\Permission\Query\PreviewManagedPolicy;
-use Fight\AccessControl\Domain\AccessControl\Role\ManagedRoleDefinition;
 use Fight\AccessControl\Domain\AccessControl\Role\Role;
 use Fight\AccessControl\Domain\AccessControl\Role\RoleId;
 use Fight\AccessControl\Domain\AccessControl\Role\RoleName;
@@ -39,6 +40,8 @@ use Fight\Test\AccessControl\Domain\AccessControl\User\UserFixture;
 use LogicException;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
+use ReflectionClass;
+use ReflectionNamedType;
 use RuntimeException;
 
 #[CoversClass(ReconcileManagedPolicyHandler::class)]
@@ -51,6 +54,40 @@ use RuntimeException;
 #[CoversClass(Role::class)]
 final class ReconcileManagedPolicyHandlerTest extends TestCase
 {
+    public function test_command_accepts_the_policy_value_without_a_query_in_its_handler_seam(): void
+    {
+        $policy = new ManagedPolicy([], [], []);
+        $command = new ReconcileManagedPolicy($policy);
+        $constructor = new ReflectionClass($command)->getConstructor();
+        self::assertNotNull($constructor);
+        $parameters = $constructor->getParameters();
+        self::assertCount(1, $parameters);
+        $type = $parameters[0]->getType();
+        self::assertInstanceOf(ReflectionNamedType::class, $type);
+        self::assertSame(ManagedPolicy::class, $type->getName());
+        self::assertSame($policy, $command->getPolicy());
+
+        $unitOfWork = new InMemoryUnitOfWork();
+        $permissions = new InMemoryPermissionRepository($unitOfWork);
+        $roles = new InMemoryRoleRepository($unitOfWork);
+        $handler = new ReconcileManagedPolicyHandler(
+            $permissions,
+            $roles,
+            new ManagedPolicyPlanner(
+                $permissions,
+                $roles,
+                new InMemoryUserRepository($unitOfWork)
+            ),
+            $unitOfWork,
+            new InMemoryEventDispatcher(),
+            new FixedClock(new DateTimeImmutable('2026-08-23T12:00:00+00:00'))
+        );
+
+        $handler->handle(CommandMessage::create($command));
+
+        self::assertTrue($unitOfWork->transactionCompleted);
+    }
+
     public function test_it_applies_the_literal_preview_plan_atomically_and_preserves_custom_state(): void
     {
         $unitOfWork = new InMemoryUnitOfWork();
@@ -109,11 +146,7 @@ final class ReconcileManagedPolicyHandlerTest extends TestCase
         $preview = new PreviewManagedPolicyHandler(
             new ManagedPolicyPlanner($permissions, $roles, $users)
         )->handle(QueryMessage::create(
-            new PreviewManagedPolicy(
-                $command->getPermissions(),
-                $command->getRoles(),
-                $command->getReferencedPermissionIds()
-            )
+            new PreviewManagedPolicy($command->getPolicy())
         ));
         $expectedPlan = [
             'permissions' => [
@@ -217,7 +250,11 @@ final class ReconcileManagedPolicyHandlerTest extends TestCase
                 $events,
                 new FixedClock($createdAt)
             );
-            $command = new ReconcileManagedPolicy([], [], $codeReference ? [$this->permissionId(104)] : []);
+            $command = new ReconcileManagedPolicy(new ManagedPolicy(
+                [],
+                [],
+                $codeReference ? [$this->permissionId(104)] : []
+            ));
 
             try {
                 $handler->handle(CommandMessage::create($command));
@@ -249,8 +286,9 @@ final class ReconcileManagedPolicyHandlerTest extends TestCase
         $users = new InMemoryUserRepository($unitOfWork);
         $users->add(UserFixture::withRoleAssignments([$role->getId()], 1));
 
-        $query = new PreviewManagedPolicy([], [], []);
-        $command = new ReconcileManagedPolicy([], [], []);
+        $policy = new ManagedPolicy([], [], []);
+        $query = new PreviewManagedPolicy($policy);
+        $command = new ReconcileManagedPolicy($policy);
         $events = new InMemoryEventDispatcher();
         $rejections = 0;
 
@@ -337,7 +375,12 @@ final class ReconcileManagedPolicyHandlerTest extends TestCase
     {
         $rejections = 0;
         try {
-            new ReconcileManagedPolicy([], [], [$this->permissionId(101), $this->permissionId(101)]);
+            $invalidCommand = new ReconcileManagedPolicy(new ManagedPolicy(
+                [],
+                [],
+                [$this->permissionId(101), $this->permissionId(101)]
+            ));
+            self::assertInstanceOf(ReconcileManagedPolicy::class, $invalidCommand);
             self::fail('Duplicate consumer code references must be rejected.');
         } catch (ManagedPolicyDefinitionException) {
             ++$rejections;
@@ -478,11 +521,11 @@ final class ReconcileManagedPolicyHandlerTest extends TestCase
 
             $planner = new ManagedPolicyPlanner($permissions, $roles, new InMemoryUserRepository());
             try {
-                $planner->plan(
+                $planner->plan(new ManagedPolicy(
                     $type === 'permission' ? [$this->permission(101, 'VIEW_USERS', PermissionTier::ADMIN_SAFE)] : [],
                     $type === 'role' ? [$this->role(201, 'ROLE_VIEWER', [])] : [],
                     []
-                );
+                ));
                 self::fail('Custom records must not be claimed by managed policy.');
             } catch (ManagedPolicyDefinitionException) {
                 ++$rejections;
@@ -520,24 +563,28 @@ final class ReconcileManagedPolicyHandlerTest extends TestCase
         ) {
             $permissionRepository = $this->createStub(PermissionRepository::class);
             $roleRepository = $this->createStub(RoleRepository::class);
-            $command = new ReconcileManagedPolicy([], [], []);
+            $command = new ReconcileManagedPolicy(new ManagedPolicy([], [], []));
 
             if ($scenario === 'permission_reconcile') {
                 $permissionRepository->method('getManaged')->willReturn([]);
                 $roleRepository->method('getManaged')->willReturn([]);
                 $permissionRepository->method('getById')->willReturn($permission, null);
                 $permissionRepository->method('getByName')->willReturn(null);
-                $command = new ReconcileManagedPolicy(
+                $command = new ReconcileManagedPolicy(new ManagedPolicy(
                     [$this->permission(101, 'RENAMED_PERMISSION', PermissionTier::ADMIN_SAFE)],
                     [],
                     []
-                );
+                ));
             } elseif ($scenario === 'role_reconcile') {
                 $permissionRepository->method('getManaged')->willReturn([]);
                 $roleRepository->method('getManaged')->willReturn([]);
                 $roleRepository->method('getById')->willReturn($role, null);
                 $roleRepository->method('getByName')->willReturn(null);
-                $command = new ReconcileManagedPolicy([], [$this->role(201, 'ROLE_RENAMED', [])], []);
+                $command = new ReconcileManagedPolicy(new ManagedPolicy(
+                    [],
+                    [$this->role(201, 'ROLE_RENAMED', [])],
+                    []
+                ));
             } elseif ($scenario === 'permission_remove') {
                 $permissionRepository->method('getManaged')->willReturn([$permission]);
                 $roleRepository->method('getManaged')->willReturn([]);
@@ -629,7 +676,9 @@ final class ReconcileManagedPolicyHandlerTest extends TestCase
         );
 
         try {
-            $handler->handle(CommandMessage::create(new ReconcileManagedPolicy([], [], [])));
+            $handler->handle(CommandMessage::create(
+                new ReconcileManagedPolicy(new ManagedPolicy([], [], []))
+            ));
             self::fail('A newly live Role reference must block final Permission removal.');
         } catch (LogicException $logicException) {
             $failure = $logicException;
@@ -649,7 +698,7 @@ final class ReconcileManagedPolicyHandlerTest extends TestCase
 
     private function command(): ReconcileManagedPolicy
     {
-        return new ReconcileManagedPolicy(
+        return new ReconcileManagedPolicy(new ManagedPolicy(
             [
                 $this->permission(103, 'ARCHIVE_USERS', PermissionTier::ADMIN_SAFE),
                 $this->permission(102, 'MANAGE_USERS', PermissionTier::SUPER_ADMIN_ONLY),
@@ -661,7 +710,7 @@ final class ReconcileManagedPolicyHandlerTest extends TestCase
                 $this->role(201, 'ROLE_VIEWER', [101]),
             ],
             [$this->permissionId(101)]
-        );
+        ));
     }
 
     private function permission(int $suffix, string $name, PermissionTier $tier): ManagedPermissionDefinition

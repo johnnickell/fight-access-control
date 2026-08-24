@@ -2,9 +2,13 @@
 
 declare(strict_types=1);
 
-namespace Fight\AccessControl\Domain\AccessControl\Permission;
+namespace Fight\AccessControl\Domain\AccessControl\ManagedPolicy;
 
-use Fight\AccessControl\Domain\AccessControl\Permission\Exception\ManagedPolicyDefinitionException;
+use Fight\AccessControl\Domain\AccessControl\ManagedPolicy\Exception\ManagedPolicyDefinitionException;
+use Fight\AccessControl\Domain\AccessControl\Permission\PermissionId;
+use Fight\AccessControl\Domain\AccessControl\Permission\PermissionName;
+use Fight\AccessControl\Domain\AccessControl\Permission\PermissionTier;
+use Throwable;
 
 /**
  * Defines one version-controlled managed permission.
@@ -37,11 +41,19 @@ final readonly class ManagedPermissionDefinition
             }
         }
 
-        return new self(
-            PermissionId::fromString((string) $data['id']),
-            PermissionName::fromString((string) $data['name']),
-            PermissionTier::from((string) $data['tier'])
-        );
+        try {
+            return new self(
+                PermissionId::fromString((string) $data['id']),
+                PermissionName::fromString((string) $data['name']),
+                PermissionTier::from((string) $data['tier'])
+            );
+        } catch (Throwable $throwable) {
+            throw new ManagedPolicyDefinitionException(
+                'Invalid managed permission definition: '.$throwable->getMessage(),
+                0,
+                $throwable
+            );
+        }
     }
 
     /**

@@ -2,24 +2,20 @@
 
 declare(strict_types=1);
 
-namespace Fight\AccessControl\Domain\AccessControl\Permission\Query;
+namespace Fight\AccessControl\Domain\AccessControl\ManagedPolicy;
 
-use Fight\AccessControl\Domain\AccessControl\Permission\Exception\ManagedPolicyDefinitionException;
-use Fight\AccessControl\Domain\AccessControl\Permission\ManagedPermissionDefinition;
+use Fight\AccessControl\Domain\AccessControl\ManagedPolicy\Exception\ManagedPolicyDefinitionException;
 use Fight\AccessControl\Domain\AccessControl\Permission\PermissionId;
-use Fight\AccessControl\Domain\AccessControl\Role\ManagedRoleDefinition;
-use Fight\Common\Domain\Messaging\Query\Query;
 
 /**
- * Requests a deterministic dry-run of managed authorization definitions.
+ * Owns one complete version-controlled authorization policy.
  */
-final readonly class PreviewManagedPolicy implements Query
+final readonly class ManagedPolicy
 {
     /**
-     * Constructs a managed-policy preview query.
-     *
      * @phpstan-param list<ManagedPermissionDefinition> $permissions
      * @phpstan-param list<ManagedRoleDefinition> $roles
+     * @phpstan-param list<PermissionId> $referencedPermissionIds
      */
     public function __construct(
         /** @var list<ManagedPermissionDefinition> */
@@ -59,9 +55,11 @@ final readonly class PreviewManagedPolicy implements Query
     }
 
     /**
-     * @inheritDoc
+     * Creates a policy from its serialized representation.
+     *
+     * @param array<string, mixed> $data
      */
-    public static function fromArray(array $data): static
+    public static function fromArray(array $data): self
     {
         foreach (['permissions', 'roles', 'referenced_permission_ids'] as $key) {
             if (!array_key_exists($key, $data)) {
@@ -79,7 +77,7 @@ final readonly class PreviewManagedPolicy implements Query
             }
         }
 
-        return new static(
+        return new self(
             array_map(
                 static fn(mixed $definition): ManagedPermissionDefinition =>
                     ManagedPermissionDefinition::fromArray((array) $definition),
@@ -98,21 +96,13 @@ final readonly class PreviewManagedPolicy implements Query
         );
     }
 
-    /**
-     * Returns managed permission definitions.
-     *
-     * @return list<ManagedPermissionDefinition>
-     */
+    /** @return list<ManagedPermissionDefinition> */
     public function getPermissions(): array
     {
         return $this->permissions;
     }
 
-    /**
-     * Returns managed role definitions.
-     *
-     * @return list<ManagedRoleDefinition>
-     */
+    /** @return list<ManagedRoleDefinition> */
     public function getRoles(): array
     {
         return $this->roles;
@@ -125,7 +115,13 @@ final readonly class PreviewManagedPolicy implements Query
     }
 
     /**
-     * @inheritDoc
+     * Returns the canonical serialized policy.
+     *
+     * @return array{
+     *     permissions: list<array{id: string, name: string, tier: string}>,
+     *     roles: list<array{id: string, name: string, permission_ids: list<string>}>,
+     *     referenced_permission_ids: list<string>
+     * }
      */
     public function toArray(): array
     {

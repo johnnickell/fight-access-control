@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Fight\Test\AccessControl\Domain\AccessControl\Permission;
 
 use DateTimeImmutable;
-use Fight\AccessControl\Domain\AccessControl\Permission\Exception\ManagedPolicyDefinitionException;
+use Fight\AccessControl\Domain\AccessControl\Permission\Exception\ManagedPermissionException;
 use Fight\AccessControl\Domain\AccessControl\Permission\Permission;
 use Fight\AccessControl\Domain\AccessControl\Permission\PermissionId;
 use Fight\AccessControl\Domain\AccessControl\Permission\PermissionName;
@@ -71,11 +71,11 @@ final class PermissionTest extends TestCase
         try {
             $custom->getManagedTier();
             self::fail('A custom permission must not expose a managed tier.');
-        } catch (ManagedPolicyDefinitionException) {
+        } catch (ManagedPermissionException) {
             self::assertNull($custom->getTier());
         }
 
-        $this->expectException(ManagedPolicyDefinitionException::class);
+        $this->expectException(ManagedPermissionException::class);
         $custom->reconcileManaged(
             PermissionName::fromString('CLAIMED'),
             PermissionTier::ADMIN_SAFE,

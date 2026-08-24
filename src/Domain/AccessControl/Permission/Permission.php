@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Fight\AccessControl\Domain\AccessControl\Permission;
 
 use DateTimeImmutable;
-use Fight\AccessControl\Domain\AccessControl\Permission\Exception\ManagedPolicyDefinitionException;
+use Fight\AccessControl\Domain\AccessControl\Permission\Exception\ManagedPermissionException;
 
 /**
  * Represents a stable permission definition.
@@ -56,7 +56,7 @@ class Permission
         DateTimeImmutable $updatedAt
     ): static {
         if (!$this->managed) {
-            throw new ManagedPolicyDefinitionException(
+            throw new ManagedPermissionException(
                 'A custom permission cannot be claimed by managed policy.'
             );
         }
@@ -118,7 +118,7 @@ class Permission
     public function getManagedTier(): PermissionTier
     {
         if (!$this->tier instanceof PermissionTier) {
-            throw new ManagedPolicyDefinitionException('A custom permission has no managed tier.');
+            throw new ManagedPermissionException('A custom permission has no managed tier.');
         }
 
         return $this->tier;

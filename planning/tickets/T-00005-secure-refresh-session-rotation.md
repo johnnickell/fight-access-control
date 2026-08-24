@@ -12,8 +12,8 @@ branch: feature/t-00005-secure-refresh-session-rotation
 
 ## Outcome
 
-An authenticated browser receives rotation outcomes from an authoritative server-side refresh session: one winner,
-a bounded benign conflict outcome, and family revocation for credential reuse outside that window.
+A caller receives rotation outcomes from an authoritative server-side refresh session: one winner, a bounded
+benign conflict outcome, and family revocation for credential reuse outside that window.
 
 ## Acceptance criteria
 
@@ -25,8 +25,8 @@ a bounded benign conflict outcome, and family revocation for credential reuse ou
 
 ## Exclusions
 
-No database locking implementation, cookie construction, signing-key adapter, or cache adapter. React refresh
-coordination and bounded replay behavior are delivered with the supported editable client profile.
+No database locking implementation, cookie construction, signing-key adapter, cache adapter, or client refresh
+coordination.
 
 ## Verification
 

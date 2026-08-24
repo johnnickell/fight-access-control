@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Fight\AccessControl\Domain\AccessControl\Permission\Query;
+namespace Fight\AccessControl\Domain\AccessControl\ManagedPolicy;
 
 /**
  * Describes the mutation required to reach one managed definition.

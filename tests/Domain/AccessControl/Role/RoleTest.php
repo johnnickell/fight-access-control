@@ -7,7 +7,7 @@ namespace Fight\Test\AccessControl\Domain\AccessControl\Role;
 use DateTimeImmutable;
 use Fight\AccessControl\Domain\AccessControl\Permission\PermissionId;
 use Fight\AccessControl\Domain\AccessControl\Role\Exception\CustomRoleException;
-use Fight\AccessControl\Domain\AccessControl\Role\Exception\ManagedRoleDefinitionException;
+use Fight\AccessControl\Domain\AccessControl\Role\Exception\ManagedRoleException;
 use Fight\AccessControl\Domain\AccessControl\Role\Role;
 use Fight\AccessControl\Domain\AccessControl\Role\RoleId;
 use Fight\AccessControl\Domain\AccessControl\Role\RoleName;
@@ -105,7 +105,7 @@ final class RoleTest extends TestCase
         self::assertSame($createdAt, $replacement->getCreatedAt());
         self::assertSame($updatedAt, $replacement->getUpdatedAt());
 
-        $this->expectException(ManagedRoleDefinitionException::class);
+        $this->expectException(ManagedRoleException::class);
         Role::define(
             RoleId::generate(),
             RoleName::fromString('ROLE_CUSTOM'),

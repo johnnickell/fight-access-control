@@ -2,18 +2,19 @@
 
 declare(strict_types=1);
 
-namespace Fight\AccessControl\Application\AccessControl\Permission\Service;
+namespace Fight\AccessControl\Application\AccessControl\ManagedPolicy\Service;
 
-use Fight\AccessControl\Domain\AccessControl\Permission\Exception\ManagedPolicyDefinitionException;
-use Fight\AccessControl\Domain\AccessControl\Permission\ManagedPermissionDefinition;
+use Fight\AccessControl\Domain\AccessControl\ManagedPolicy\Exception\ManagedPolicyDefinitionException;
+use Fight\AccessControl\Domain\AccessControl\ManagedPolicy\ManagedPermissionDefinition;
+use Fight\AccessControl\Domain\AccessControl\ManagedPolicy\ManagedPermissionPlanItem;
+use Fight\AccessControl\Domain\AccessControl\ManagedPolicy\ManagedPolicy;
+use Fight\AccessControl\Domain\AccessControl\ManagedPolicy\ManagedPolicyChangeAction;
+use Fight\AccessControl\Domain\AccessControl\ManagedPolicy\ManagedPolicyPlan;
+use Fight\AccessControl\Domain\AccessControl\ManagedPolicy\ManagedRoleDefinition;
+use Fight\AccessControl\Domain\AccessControl\ManagedPolicy\ManagedRolePlanItem;
 use Fight\AccessControl\Domain\AccessControl\Permission\Permission;
 use Fight\AccessControl\Domain\AccessControl\Permission\PermissionId;
 use Fight\AccessControl\Domain\AccessControl\Permission\PermissionRepository;
-use Fight\AccessControl\Domain\AccessControl\Permission\Query\ManagedPermissionPlanItem;
-use Fight\AccessControl\Domain\AccessControl\Permission\Query\ManagedPolicyChangeAction;
-use Fight\AccessControl\Domain\AccessControl\Permission\Query\ManagedPolicyPlan;
-use Fight\AccessControl\Domain\AccessControl\Permission\Query\ManagedRolePlanItem;
-use Fight\AccessControl\Domain\AccessControl\Role\ManagedRoleDefinition;
 use Fight\AccessControl\Domain\AccessControl\Role\Role;
 use Fight\AccessControl\Domain\AccessControl\Role\RoleRepository;
 use Fight\AccessControl\Domain\AccessControl\User\UserRepository;
@@ -34,12 +35,13 @@ final readonly class ManagedPolicyPlanner
     }
 
     /**
-     * @phpstan-param list<ManagedPermissionDefinition> $permissions
-     * @phpstan-param list<ManagedRoleDefinition> $roles
-     * @phpstan-param list<PermissionId> $referencedPermissionIds
+     * Plans the complete desired managed policy against authoritative state.
      */
-    public function plan(array $permissions, array $roles, array $referencedPermissionIds): ManagedPolicyPlan
+    public function plan(ManagedPolicy $policy): ManagedPolicyPlan
     {
+        $permissions = $policy->getPermissions();
+        $roles = $policy->getRoles();
+        $referencedPermissionIds = $policy->getReferencedPermissionIds();
         $permissionItems = [];
         $desiredPermissionIds = [];
         foreach ($permissions as $definition) {

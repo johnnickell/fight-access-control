@@ -22,7 +22,7 @@ logout without exposing whether an identity exists.
 - [x] Login uses Fight Common password validation, normalizes canonical email, and returns generic failure behavior with a bounded throttling port.
 - [x] Activation hashes the submitted password inside the service and never serializes the raw activation credential or password.
 - [x] Successful activation and login atomically create an authoritative refresh session and return a safe token set containing a 15-minute access JWT and one opaque refresh credential.
-- [x] Cold restoration revalidates account/session authority and returns a new access JWT without browser-persisted access tokens.
+- [x] Refresh restoration revalidates account/session authority and returns a new access JWT.
 - [x] Logout resolves and revokes only the submitted current refresh credential while leaving sibling sessions active.
 - [x] Tests demonstrate redacted failures, account-state denial, token claims and lifetimes, restoration, and single-session revocation.
 
@@ -47,8 +47,8 @@ No HTTP endpoint, cookie construction, signing-key adapter, rate-limiter backend
   absolute lifetime policy.
 - Cold refresh revalidates active account state, ownership, authentication version, revocation, and expiry before
   issuing a new JWT. Logout resolves authority from the presented refresh credential and revokes only that session.
-- The local PRD, engineering guidance, ADR 0003, and T-00013 now restore the supported editable React client and
-  explicitly classify framework-native session authentication as an unsupported fallback.
+- The local PRD, engineering guidance, and ADR 0003 define the package-owned JWT/refresh lifecycle while leaving
+  clients and transports to consumer repositories.
 - Red-first focused PHPUnit failed before the service existed, then passed with 14 tests and 123 assertions. The
   final `./bin/build` passed 104 tests with 584 assertions and exact statement coverage at 617/617, plus PHPCS,
   PHPStan, Deptrac, Rector, planning, documentation-link, package-boundary, and production-autoload checks.

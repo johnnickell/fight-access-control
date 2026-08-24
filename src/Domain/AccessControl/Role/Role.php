@@ -7,7 +7,7 @@ namespace Fight\AccessControl\Domain\AccessControl\Role;
 use DateTimeImmutable;
 use Fight\AccessControl\Domain\AccessControl\Permission\PermissionId;
 use Fight\AccessControl\Domain\AccessControl\Role\Exception\CustomRoleException;
-use Fight\AccessControl\Domain\AccessControl\Role\Exception\ManagedRoleDefinitionException;
+use Fight\AccessControl\Domain\AccessControl\Role\Exception\ManagedRoleException;
 use Fight\Common\Domain\Collection\HashSet;
 
 /**
@@ -79,7 +79,7 @@ class Role
         DateTimeImmutable $updatedAt
     ): static {
         if (!$this->managed) {
-            throw new ManagedRoleDefinitionException(
+            throw new ManagedRoleException(
                 'A custom role cannot be claimed by managed policy.'
             );
         }

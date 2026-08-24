@@ -2,17 +2,17 @@
 
 declare(strict_types=1);
 
-namespace Fight\AccessControl\Application\AccessControl\Permission\CommandHandler;
+namespace Fight\AccessControl\Application\AccessControl\ManagedPolicy\CommandHandler;
 
 use DateTimeImmutable;
-use Fight\AccessControl\Application\AccessControl\Permission\Service\ManagedPolicyPlanner;
+use Fight\AccessControl\Application\AccessControl\ManagedPolicy\Service\ManagedPolicyPlanner;
 use Fight\AccessControl\Application\AccessControl\Timing\Service\Clock;
-use Fight\AccessControl\Domain\AccessControl\Permission\Command\ReconcileManagedPolicy;
-use Fight\AccessControl\Domain\AccessControl\Permission\Event\ManagedPolicyReconciled;
+use Fight\AccessControl\Domain\AccessControl\ManagedPolicy\Command\ReconcileManagedPolicy;
+use Fight\AccessControl\Domain\AccessControl\ManagedPolicy\Event\ManagedPolicyReconciled;
+use Fight\AccessControl\Domain\AccessControl\ManagedPolicy\ManagedPolicyChangeAction;
+use Fight\AccessControl\Domain\AccessControl\ManagedPolicy\ManagedPolicyPlan;
 use Fight\AccessControl\Domain\AccessControl\Permission\Permission;
 use Fight\AccessControl\Domain\AccessControl\Permission\PermissionRepository;
-use Fight\AccessControl\Domain\AccessControl\Permission\Query\ManagedPolicyChangeAction;
-use Fight\AccessControl\Domain\AccessControl\Permission\Query\ManagedPolicyPlan;
 use Fight\AccessControl\Domain\AccessControl\Role\Role;
 use Fight\AccessControl\Domain\AccessControl\Role\RoleRepository;
 use Fight\Common\Application\Messaging\Command\CommandHandler;
@@ -55,11 +55,7 @@ final readonly class ReconcileManagedPolicyHandler implements CommandHandler
 
         try {
             $event = $this->unitOfWork->commitTransactional(function () use ($command): ManagedPolicyReconciled {
-                $plan = $this->managedPolicyPlanner->plan(
-                    $command->getPermissions(),
-                    $command->getRoles(),
-                    $command->getReferencedPermissionIds()
-                );
+                $plan = $this->managedPolicyPlanner->plan($command->getPolicy());
                 $occurredAt = $this->clock->now();
                 $this->removeManagedRoles($plan);
                 $this->applyManagedPermissions($plan, $occurredAt);

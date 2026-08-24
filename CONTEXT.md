@@ -26,8 +26,8 @@ behavior shared by Fight applications. The repository-local behavioral and secur
 Production dependencies flow `Domain <- Application`. Domain owns invariants and lifecycle state. Application
 owns a synchronous secret-bearing authentication service, explicit non-sensitive commands and queries, portable
 ports, immutable token/read results, and transaction orchestration. This package has no production Adapter layer and no
-framework dependency. It also owns the editable React authentication client. Consumers own persistence, HTTP and
-cookie adapters, cryptographic keys, mail, queues, realtime delivery, hosting, and runtime composition.
+framework dependency. Consumers own clients, persistence, HTTP and cookie adapters, cryptographic keys, mail,
+queues, realtime delivery, hosting, and runtime composition.
 
 ## Planning and Completion
 
