@@ -1,13 +1,9 @@
 ---
 id: T-00010
+prd: PRD-00001
 title: Change and correct identity journeys
 status: done
-parent: PRD-00001
-blocked_by:
-  - T-00002
-  - T-00007
-  - T-00009
-branch: feature/t-00010-change-correct-identity-journeys
+blocked_by: T-00002,T-00007,T-00009
 ---
 
 # Change and correct identity journeys
@@ -17,7 +13,7 @@ branch: feature/t-00010-change-correct-identity-journeys
 An active user can reserve and confirm a new email address without displacing the old one prematurely; authorized
 assistance follows the same confirmation journey, and a pending invitation can be corrected atomically.
 
-## Acceptance criteria
+## Acceptance Criteria
 
 - [x] Email change reserves the destination until confirmed; cancellation and expiry release only that reservation.
 - [x] Confirmation uses an unrelated, hashed, expiring, single-use grant and revokes sessions before requiring new login.
@@ -25,7 +21,9 @@ assistance follows the same confirmation journey, and a pending invitation can b
 - [x] Pending-invitation correction replaces its prior address, grant, and delivery atomically.
 - [x] Tests prove uniqueness, confirmation, cancellation, expiry, authorization, and predecessor rejection.
 
-## Exclusions
+## Scope
+
+### Out of Scope
 
 No mailbox implementation, HTTP confirmation page, persistence unique-index implementation, or admin UI.
 
@@ -35,7 +33,7 @@ No mailbox implementation, HTTP confirmation page, persistence unique-index impl
 - `./bin/planning-check`
 - `./bin/build`
 
-## Delivery Evidence
+## Completion Notes
 
 - Email-change reservation, cancellation, expiry, invocation-neutral encrypted delivery, terminal successor
   generations, and synchronous secret-bearing confirmation are implemented through framework-neutral Domain and

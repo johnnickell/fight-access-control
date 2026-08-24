@@ -13,7 +13,11 @@ $iterator = new RecursiveIteratorIterator(
 );
 
 foreach ($iterator as $file) {
-    if (!$file->isFile() || strtolower($file->getExtension()) !== 'md') {
+    if (
+        !$file->isFile()
+        || strtolower($file->getExtension()) !== 'md'
+        || str_starts_with($file->getFilename(), '_')
+    ) {
         continue;
     }
 

@@ -1,13 +1,9 @@
 ---
 id: T-00015
+prd: PRD-00001
 title: Unify activation-grant persistence
 status: done
-parent: PRD-00001
-blocked_by:
-  - T-00001
-  - T-00002
-  - T-00003
-branch: feature/t-00015-unify-activation-grant-persistence
+blocked_by: T-00001,T-00002,T-00003
 ---
 
 # Unify activation-grant persistence
@@ -17,7 +13,7 @@ branch: feature/t-00015-unify-activation-grant-persistence
 Activation authority and its delivery entity share one aggregate repository boundary while preserving invitation,
 resend, delivery recovery, and activation guarantees.
 
-## Acceptance criteria
+## Acceptance Criteria
 
 - [x] ActivationGrant and its delivery entity have stable IDs and are persisted solely through
   `ActivationGrantRepository`; the separate delivery repository contract and handler dependency are removed.
@@ -30,7 +26,9 @@ resend, delivery recovery, and activation guarantees.
 - [x] Tests preserve T-00001 through T-00003 atomic rollback, retry, predecessor rejection, replay, expiry,
   concurrent replacement, durable audit, and post-commit event behavior.
 
-## Exclusions
+## Scope
+
+### Out of Scope
 
 No invitation or activation policy change, credential format change, mail or queue implementation, persistence
 adapter, schema, or migration.
@@ -41,7 +39,7 @@ adapter, schema, or migration.
 - `./bin/planning-check`
 - `./bin/build`
 
-## Delivery Evidence
+## Completion Notes
 
 - ActivationGrant owns its delivery generation and is persisted solely through `ActivationGrantRepository`; the
   former split delivery repository and handler dependencies are absent.

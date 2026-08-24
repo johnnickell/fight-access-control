@@ -1,10 +1,9 @@
 ---
 id: T-00018
+prd: PRD-00001
 title: Publish successful security-email delivery events
 status: done
-parent: PRD-00001
-blocked_by: []
-branch: feature/t-00018-publish-security-email-delivery-events
+blocked_by:
 ---
 
 # Publish successful security-email delivery events
@@ -14,7 +13,7 @@ branch: feature/t-00018-publish-security-email-delivery-events
 Consumers receive explicit, serializable Domain events after a user invitation or email-change message has been
 successfully invoked and its confirmed delivery state has committed durably.
 
-## Acceptance criteria
+## Acceptance Criteria
 
 - [x] `UserInvitationDelivered` lives under the `ActivationGrant` aggregate boundary and identifies the actor, User,
   and activation-delivery generation associated with the confirmed invitation delivery.
@@ -29,7 +28,9 @@ successfully invoked and its confirmed delivery state has committed durably.
 - [x] Tests prove invocation, persistence commit, and success-event ordering for both journeys while retaining exact
   executable statement coverage.
 
-## Exclusions
+## Scope
+
+### Out of Scope
 
 No new delivery command, retry or resend semantic change, mail transport, template, worker, queue, persistence
 adapter, schema, migration, HTTP or OpenAPI contract, generated client, React application, or other UI work.
@@ -40,7 +41,7 @@ adapter, schema, migration, HTTP or OpenAPI contract, generated client, React ap
 - `./bin/planning-check`
 - `./bin/build`
 
-## Delivery Evidence
+## Completion Notes
 
 - Added aggregate-scoped `UserInvitationDelivered` and `EmailChangeDelivered` Domain events with canonical
   serialization, named accessors, and missing-data rejection.

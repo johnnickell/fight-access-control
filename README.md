@@ -49,7 +49,9 @@ single ordered `./bin/quality` gate. `./bin/build --latest` checks the latest de
 with `composer.json`; hosted CI performs that same latest-compatible resolution before invoking
 `./bin/quality` directly.
 
-Coordinate-build scratch work belongs under gitignored `.runs/`. Never stage it. See
+Coordinate-build scratch work belongs under gitignored `.runs/<YYYY-MM-DD>-<slug>/`. Never stage it. When an
+approved task needs isolation, create its disposable linked worktree under that run directory at `worktree/`; run
+commands from that checkout and remove it only with separate cleanup authorization. See
 [CONTRIBUTING.md](CONTRIBUTING.md) for Git Flow, isolation, and review expectations.
 
 ## Security

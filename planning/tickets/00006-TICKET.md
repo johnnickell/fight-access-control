@@ -1,11 +1,9 @@
 ---
 id: T-00006
+prd: PRD-00001
 title: Manage active sessions
 status: done
-parent: PRD-00001
-blocked_by:
-  - T-00004
-branch: feature/t-00006-manage-active-sessions
+blocked_by: T-00004
 ---
 
 # Manage active sessions
@@ -15,14 +13,16 @@ branch: feature/t-00006-manage-active-sessions
 A user can inspect coarse information about active sessions and revoke another one; an authorized super
 administrator can inspect and revoke another user's session with an auditable reason.
 
-## Acceptance criteria
+## Acceptance Criteria
 
 - [x] Session queries return immutable safe views and never aggregate or credential material.
 - [x] Self-service revocation cannot revoke an unrelated user's session.
 - [x] Super-administrator revocation requires authorization and makes the reasoned audit record durable with the mutation.
 - [x] Tests prove ownership denial, successful self-service revocation, authorized intervention, and audit atomicity.
 
-## Exclusions
+## Scope
+
+### Out of Scope
 
 No admin UI, device fingerprinting, persistence records, or audit projection adapter.
 
@@ -32,7 +32,7 @@ No admin UI, device fingerprinting, persistence records, or audit projection ada
 - `./bin/planning-check`
 - `./bin/build`
 
-## Delivery Evidence
+## Completion Notes
 
 - `ListActiveSessions` contains the canonical Fight Common `Pagination` value, and `ListActiveSessionsHandler`
   returns a metadata-preserving `ResultSet` containing only immutable, credential-free `SessionView` values for

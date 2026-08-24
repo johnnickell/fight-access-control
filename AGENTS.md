@@ -1,4 +1,45 @@
-@CLAUDE.md
+# AGENTS.md
+
+Agent instructions for `johnnickell/fight-access-control`. This file is the canonical agent and contributor
+guidance for this repository. Read it before planning, changing, validating, committing, or publishing work.
+
+## Work Routing
+
+**Frontier:** When `/ask-matt` is invoked without a task or additional context, read
+`planning/tickets/BOARD.md` and `planning/CONVENTIONS.md` before responding. Use the board's “What's Next?”
+contract to return the current human decision and first ready implementation ticket, and use the conventions to
+interpret ticket status and ordering.
+
+## Local Authority
+
+Read root `CONTEXT.md` for the package vocabulary and accepted architecture. Durable planning lives in this
+repository under `planning/`; no Fight Common checkout is needed to determine AccessControl implementation
+status or readiness. `planning/specs/00001-PRD.md` is the repository-local behavioral and security authority.
+`planning/ROADMAP.md`, `planning/epics/`, `planning/adr/`, `planning/agents/`, and
+`planning/tickets/BOARD.md` provide the remaining local planning authority.
+
+## Run and Worktree Isolation
+
+Coordinate-build evidence belongs in `.runs/<YYYY-MM-DD>-<slug>/`. It is gitignored and must never be staged.
+Use that run directory as the parent for any disposable linked worktree required by the approved task:
+
+```bash
+git worktree add -b feature/<slug> .runs/<YYYY-MM-DD>-<slug>/worktree develop
+```
+
+Run all commands from that linked worktree, preserve other worktrees and services, and remove only the
+task-owned worktree after separate cleanup authorization. Durable decisions and outcomes belong in the canonical
+planning artifact, not the ignored run directory.
+
+Tooling runs in the isolated `fight-access-control` PHP container. For focused iteration, run the noninteractive
+container command from the target checkout:
+
+```bash
+docker container run --rm -e XDEBUG_MODE=coverage -v "$PWD:/app:delegated" -w /app fight-access-control \
+  php vendor/bin/phpunit tests/Tooling/PlanningAuthorityTest.php
+```
+
+`./bin/build` is the canonical completion gate.
 
 ## AccessControl implementation conventions
 
@@ -61,3 +102,36 @@ Common contract or an established bounded-context structure already exists.
   this gate.
 - Do not add a public `contracts/` directory, a production Adapter layer, or a Composer production namespace
   without explicit approval.
+
+## Pre-Submit Gate
+
+Always run `./bin/planning-check` and `./bin/build` before declaring a ticket complete, committing, or creating a
+pull request. The build runs the complete quality gate, including PHPCS, PHPStan, architecture enforcement,
+Rector dry-run, PHPUnit, and exact statement coverage.
+
+## Git Flow
+
+- `main` contains the stable production line and merges from `develop` only.
+- `develop` integrates completed features.
+- `feature/<name>` branches from `develop` and returns through review.
+- Never commit directly to `develop` or `main`.
+
+Commit, push, pull request, public visibility, version tags, and package publication are separate effects and
+require their own authorization.
+
+## Planning
+
+See `planning/CONVENTIONS.md` for ticket lifecycle, BOARD.md execution frontier, Wayfinder maps, PRD and epic
+conventions, file naming, templates, and explicit-only archive operations. Never archive planning records as a
+completion side effect; run `./bin/archive-planning` only on an explicit request, review its dry run, then apply.
+
+### Pre-PR Sync Checklist
+
+Before final commit and PR for any feature or bug fix:
+
+1. Mark the ticket `done` with verified acceptance criteria.
+2. Move the ticket to **Recently Done** in `planning/tickets/BOARD.md`.
+3. Recalculate the “What's Next?” contract if dependencies shifted.
+4. Update parent PRD and epic progress sections.
+5. Update `ROADMAP.md` if strategic progress changed.
+6. Verify no downstream ticket still lists the completed ticket as `blocked_by`.

@@ -1,11 +1,9 @@
 ---
 id: T-00014
+prd: PRD-00001
 title: Unify password-reset grant persistence
 status: done
-parent: PRD-00001
-blocked_by:
-  - T-00007
-branch: feature/t-00014-unify-password-reset-grant-persistence
+blocked_by: T-00007
 ---
 
 # Unify password-reset grant persistence
@@ -15,7 +13,7 @@ branch: feature/t-00014-unify-password-reset-grant-persistence
 Password-reset authority and its delivery entity share one aggregate repository boundary without weakening the
 completed recovery lifecycle's concurrency, replay, secrecy, or rollback guarantees.
 
-## Acceptance criteria
+## Acceptance Criteria
 
 - [x] `PasswordResetGrantRepository` is the sole Domain persistence contract for PasswordResetGrant and its
   delivery entity; the separate delivery repository contract and handler dependency are removed.
@@ -28,7 +26,9 @@ completed recovery lifecycle's concurrency, replay, secrecy, or rollback guarant
 - [x] Tests prove race losers and stale callbacks are mutation-free, failed Units of Work roll back grant and
   delivery state together, and all T-00007 observable behavior remains unchanged.
 
-## Exclusions
+## Scope
+
+### Out of Scope
 
 No recovery-policy change, credential format change, email transport, persistence adapter, schema, or migration.
 
@@ -38,7 +38,7 @@ No recovery-policy change, credential format change, email transport, persistenc
 - `./bin/planning-check`
 - `./bin/build`
 
-## Delivery Evidence
+## Completion Notes
 
 - Password-reset grant and delivery behavior now live under one `PasswordResetGrant` aggregate boundary and one
   `PasswordResetGrantRepository`; the separate delivery repository and split handler dependencies are absent.

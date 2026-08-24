@@ -19,14 +19,13 @@ final class PlanningAuthorityTest extends TestCase
         $claude = $this->read('CLAUDE.md');
         $context = $this->read('CONTEXT.md');
 
-        self::assertStringContainsString('@CLAUDE.md', $agents);
-        self::assertStringContainsString('planning/agents/issue-tracker.md', $claude);
-        self::assertStringContainsString('planning/agents/triage-labels.md', $claude);
-        self::assertStringContainsString('planning/agents/domain.md', $claude);
-        self::assertStringContainsString('./bin/planning-check', $claude);
-        self::assertStringContainsString('./bin/build', $claude);
-        self::assertStringContainsString('feature/', $claude);
-        self::assertStringContainsString('.runs/', $claude);
+        self::assertStringContainsString('[`AGENTS.md`](AGENTS.md)', $claude);
+        self::assertStringContainsString('planning/agents/', $agents);
+        self::assertStringContainsString('./bin/planning-check', $agents);
+        self::assertStringContainsString('./bin/build', $agents);
+        self::assertStringContainsString('feature/', $agents);
+        self::assertStringContainsString('.runs/', $agents);
+        self::assertStringContainsString('/worktree', $agents);
 
         self::assertStringContainsString('Domain <- Application', $context);
         self::assertStringContainsString('no production Adapter layer', $context);
@@ -87,23 +86,31 @@ final class PlanningAuthorityTest extends TestCase
         $triage = $this->read('planning/agents/triage-labels.md');
         $tickets = $this->read('planning/tickets/README.md');
         $board = $this->read('planning/tickets/BOARD.md');
-        $completedTicket = $this->read('planning/tickets/T-00017-complete-administrative-reads.md');
-        $completedFrontier = $this->read('planning/tickets/T-00018-publish-security-email-delivery-events.md');
+        $completedTicket = $this->read('planning/tickets/00017-TICKET.md');
+        $completedFrontier = $this->read('planning/tickets/00018-TICKET.md');
 
         self::assertStringContainsString('ready-for-agent', $tracker);
         self::assertStringContainsString('blocked_by', $tracker);
         self::assertStringContainsString('ready-for-agent', $triage);
         self::assertStringContainsString('ready-for-human', $triage);
-        self::assertStringContainsString('Each ticket belongs to', $tickets);
+        self::assertStringContainsString('Ticket files are canonical', $tickets);
         self::assertStringContainsString('Ready Frontier', $board);
-        self::assertStringContainsString('Completed', $board);
+        self::assertStringContainsString('What’s Next?', $board);
+        self::assertStringContainsString('Recently Done', $board);
         self::assertStringContainsString('T-00018', $board);
-        self::assertStringContainsString('T-00017', $board);
         self::assertStringContainsString('id: T-00018', $completedFrontier);
+        self::assertStringContainsString('prd: PRD-00001', $completedFrontier);
         self::assertStringContainsString('status: done', $completedFrontier);
         self::assertStringContainsString('id: T-00017', $completedTicket);
         self::assertStringContainsString('status: done', $completedTicket);
-        self::assertStringContainsString('blocked_by: []', $completedTicket);
+        self::assertStringContainsString('blocked_by:', $completedTicket);
+
+        self::assertFileExists($this->root.'/planning/CONVENTIONS.md');
+        self::assertFileExists($this->root.'/planning/tickets/_TICKET_TEMPLATE.md');
+        self::assertFileExists($this->root.'/planning/wayfinder/_MAP_TEMPLATE.md');
+        self::assertFileExists($this->root.'/planning/wayfinder/tickets/_WAYFINDER_TICKET_TEMPLATE.md');
+        self::assertFileExists($this->root.'/planning/tickets/archive/README.md');
+        self::assertFileExists($this->root.'/bin/archive-planning');
     }
 
     public function test_that_the_repository_validator_accepts_the_indexed_local_authority(): void

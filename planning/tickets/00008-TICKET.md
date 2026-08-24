@@ -1,11 +1,9 @@
 ---
 id: T-00008
+prd: PRD-00001
 title: Change an authenticated password
 status: done
-parent: PRD-00001
-blocked_by:
-  - T-00004
-branch: feature/t-00008-change-authenticated-password
+blocked_by: T-00004
 ---
 
 # Change an authenticated password
@@ -15,14 +13,16 @@ branch: feature/t-00008-change-authenticated-password
 An authenticated active user can change a password only by proving the current password; the change applies the
 defined authentication-version, audit, and session effects.
 
-## Acceptance criteria
+## Acceptance Criteria
 
 - [x] The command requires an authenticated owner and current-password verification.
 - [x] Incorrect current-password and invalid account-state outcomes do not mutate credentials or sessions.
 - [x] Successful change updates the credential and makes required audit evidence durable with the mutation.
 - [x] Tests prove authorization, current-password proof, audit durability, and revalidation effects.
 
-## Exclusions
+## Scope
+
+### Out of Scope
 
 No password manager UI, HTTP action, hash algorithm, or session-store adapter.
 
@@ -32,7 +32,7 @@ No password manager UI, HTTP action, hash algorithm, or session-store adapter.
 - `./bin/planning-check`
 - `./bin/build`
 
-## Delivery Evidence
+## Completion Notes
 
 - The synchronous `AuthenticationService::changePassword()` seam accepts only the consumer-authenticated caller
   identity and sensitive current/new password arguments. Missing, inactive, and incorrect-proof authority use one
