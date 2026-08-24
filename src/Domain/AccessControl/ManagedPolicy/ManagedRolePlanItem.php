@@ -2,17 +2,15 @@
 
 declare(strict_types=1);
 
-namespace Fight\AccessControl\Domain\AccessControl\Permission\Query;
-
-use Fight\AccessControl\Domain\AccessControl\Role\ManagedRoleDefinition;
+namespace Fight\AccessControl\Domain\AccessControl\ManagedPolicy;
 
 /**
- * Describes one deterministic managed-role preview item.
+ * Describes one deterministic managed-role plan item.
  */
 final readonly class ManagedRolePlanItem
 {
     /**
-     * Constructs a managed-role preview item.
+     * Constructs a managed-role plan item.
      */
     public function __construct(
         private ManagedRoleDefinition $definition,

@@ -7,8 +7,8 @@ namespace Fight\AccessControl\Domain\AccessControl\Role\Exception;
 use Fight\Common\Domain\Exception\DomainException;
 
 /**
- * Indicates that a managed role definition is invalid.
+ * Indicates that managed role state cannot satisfy an aggregate operation.
  */
-final class ManagedRoleDefinitionException extends DomainException
+final class ManagedRoleException extends DomainException
 {
 }

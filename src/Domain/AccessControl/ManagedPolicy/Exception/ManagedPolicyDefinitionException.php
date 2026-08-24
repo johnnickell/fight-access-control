@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Fight\AccessControl\Domain\AccessControl\Permission\Exception;
+namespace Fight\AccessControl\Domain\AccessControl\ManagedPolicy\Exception;
 
 use Fight\Common\Domain\Exception\DomainException;
 

@@ -2,17 +2,15 @@
 
 declare(strict_types=1);
 
-namespace Fight\AccessControl\Domain\AccessControl\Permission\Query;
-
-use Fight\AccessControl\Domain\AccessControl\Permission\ManagedPermissionDefinition;
+namespace Fight\AccessControl\Domain\AccessControl\ManagedPolicy;
 
 /**
- * Describes one deterministic managed-permission preview item.
+ * Describes one deterministic managed-permission plan item.
  */
 final readonly class ManagedPermissionPlanItem
 {
     /**
-     * Constructs a managed-permission preview item.
+     * Constructs a managed-permission plan item.
      */
     public function __construct(
         private ManagedPermissionDefinition $definition,

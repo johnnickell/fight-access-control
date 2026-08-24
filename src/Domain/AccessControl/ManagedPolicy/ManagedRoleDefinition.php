@@ -2,10 +2,13 @@
 
 declare(strict_types=1);
 
-namespace Fight\AccessControl\Domain\AccessControl\Role;
+namespace Fight\AccessControl\Domain\AccessControl\ManagedPolicy;
 
+use Fight\AccessControl\Domain\AccessControl\ManagedPolicy\Exception\ManagedPolicyDefinitionException;
 use Fight\AccessControl\Domain\AccessControl\Permission\PermissionId;
-use Fight\AccessControl\Domain\AccessControl\Role\Exception\ManagedRoleDefinitionException;
+use Fight\AccessControl\Domain\AccessControl\Role\RoleId;
+use Fight\AccessControl\Domain\AccessControl\Role\RoleName;
+use Throwable;
 
 /**
  * Defines one version-controlled managed role and its exact permission membership.
@@ -28,7 +31,7 @@ final readonly class ManagedRoleDefinition
         foreach ($permissionIds as $permissionId) {
             $key = $permissionId->toString();
             if (isset($seen[$key])) {
-                throw new ManagedRoleDefinitionException(sprintf(
+                throw new ManagedPolicyDefinitionException(sprintf(
                     'Managed role "%s" contains duplicate permission "%s".',
                     $name->toString(),
                     $key
@@ -48,7 +51,7 @@ final readonly class ManagedRoleDefinition
     {
         foreach (['id', 'name', 'permission_ids'] as $key) {
             if (!array_key_exists($key, $data)) {
-                throw new ManagedRoleDefinitionException(sprintf(
+                throw new ManagedPolicyDefinitionException(sprintf(
                     'Missing required managed role key "%s".',
                     $key
                 ));
@@ -56,17 +59,25 @@ final readonly class ManagedRoleDefinition
         }
 
         if (!is_array($data['permission_ids'])) {
-            throw new ManagedRoleDefinitionException('Managed role permission_ids must be an array.');
+            throw new ManagedPolicyDefinitionException('Managed role permission_ids must be an array.');
         }
 
-        return new self(
-            RoleId::fromString((string) $data['id']),
-            RoleName::fromString((string) $data['name']),
-            array_map(
-                static fn(mixed $permissionId): PermissionId => PermissionId::fromString((string) $permissionId),
-                array_values($data['permission_ids'])
-            )
-        );
+        try {
+            return new self(
+                RoleId::fromString((string) $data['id']),
+                RoleName::fromString((string) $data['name']),
+                array_map(
+                    static fn(mixed $permissionId): PermissionId => PermissionId::fromString((string) $permissionId),
+                    array_values($data['permission_ids'])
+                )
+            );
+        } catch (Throwable $throwable) {
+            throw new ManagedPolicyDefinitionException(
+                'Invalid managed role definition: '.$throwable->getMessage(),
+                0,
+                $throwable
+            );
+        }
     }
 
     /**

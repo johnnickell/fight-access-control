@@ -14,9 +14,9 @@ Production code follows `Domain <- Application`:
 - `Domain` contains framework-independent business concepts and depends on no other package layer.
 - `Application` coordinates use cases through Domain types and public Fight Common contracts.
 - Application owns the supported access-JWT/opaque-refresh authentication lifecycle through Fight Common ports,
-  and the repository supplies its editable React client. Consumer repositories own framework, persistence, HTTP,
-  cookies, signing-key configuration, mail, queue, realtime, hosting, and composition-root adapters. This package
-  has no PHP production Adapter layer. Framework-native session authentication is an unsupported fallback.
+  while consumer repositories own clients, framework integration, persistence, HTTP, cookies, signing-key
+  configuration, mail, queues, realtime, hosting, and composition-root adapters. This package has no PHP
+  production Adapter layer.
 
 See [CONTEXT.md](CONTEXT.md) for the accepted vocabulary and [planning/specs/00001-PRD.md](planning/specs/00001-PRD.md)
 for the repository-local behavioral and security authority.

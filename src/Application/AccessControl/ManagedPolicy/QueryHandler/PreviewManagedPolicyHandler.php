@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace Fight\AccessControl\Application\AccessControl\Permission\QueryHandler;
+namespace Fight\AccessControl\Application\AccessControl\ManagedPolicy\QueryHandler;
 
-use Fight\AccessControl\Application\AccessControl\Permission\Service\ManagedPolicyPlanner;
-use Fight\AccessControl\Domain\AccessControl\Permission\Query\ManagedPolicyPlan;
-use Fight\AccessControl\Domain\AccessControl\Permission\Query\PreviewManagedPolicy;
+use Fight\AccessControl\Application\AccessControl\ManagedPolicy\Service\ManagedPolicyPlanner;
+use Fight\AccessControl\Domain\AccessControl\ManagedPolicy\ManagedPolicyPlan;
+use Fight\AccessControl\Domain\AccessControl\ManagedPolicy\Query\PreviewManagedPolicy;
 use Fight\Common\Application\Messaging\Query\QueryHandler;
 use Fight\Common\Domain\Messaging\Query\QueryMessage;
 
@@ -39,10 +39,6 @@ final readonly class PreviewManagedPolicyHandler implements QueryHandler
         /** @var PreviewManagedPolicy $query */
         $query = $queryMessage->payload();
 
-        return $this->managedPolicyPlanner->plan(
-            $query->getPermissions(),
-            $query->getRoles(),
-            $query->getReferencedPermissionIds()
-        );
+        return $this->managedPolicyPlanner->plan($query->getPolicy());
     }
 }

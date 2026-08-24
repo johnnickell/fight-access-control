@@ -2,15 +2,15 @@
 
 declare(strict_types=1);
 
-namespace Fight\AccessControl\Domain\AccessControl\Permission\Query;
+namespace Fight\AccessControl\Domain\AccessControl\ManagedPolicy;
 
 /**
- * Provides an immutable deterministic managed-policy reconciliation preview.
+ * Provides an immutable deterministic managed-policy reconciliation plan.
  */
 final readonly class ManagedPolicyPlan
 {
     /**
-     * Constructs a managed-policy preview.
+     * Constructs a managed-policy plan.
      *
      * @phpstan-param list<ManagedPermissionPlanItem> $permissions
      * @phpstan-param list<ManagedRolePlanItem> $roles
@@ -23,21 +23,13 @@ final readonly class ManagedPolicyPlan
     ) {
     }
 
-    /**
-     * Returns ordered permission preview items.
-     *
-     * @return list<ManagedPermissionPlanItem>
-     */
+    /** @return list<ManagedPermissionPlanItem> */
     public function getPermissions(): array
     {
         return $this->permissions;
     }
 
-    /**
-     * Returns ordered role preview items.
-     *
-     * @return list<ManagedRolePlanItem>
-     */
+    /** @return list<ManagedRolePlanItem> */
     public function getRoles(): array
     {
         return $this->roles;

@@ -28,9 +28,8 @@ authentication orchestration through Fight Common ports; consumers own framework
 signing keys, mail, queue, realtime, and composition-root implementations.
 
 The two PHP production namespaces are `Fight\AccessControl\Domain\` and
-`Fight\AccessControl\Application\`. The supported editable React client is a repository source artifact outside
-the PHP namespaces, and framework-native session authentication is unsupported. Test namespaces mirror the production layers under
-`Fight\Test\AccessControl\`.
+`Fight\AccessControl\Application\`. Client applications and transport contracts are consumer-owned. Test
+namespaces mirror the production layers under `Fight\Test\AccessControl\`.
 
 ## Commands
 

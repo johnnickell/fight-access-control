@@ -2,23 +2,24 @@
 
 declare(strict_types=1);
 
-namespace Fight\Test\AccessControl\Application\AccessControl\Permission\QueryHandler;
+namespace Fight\Test\AccessControl\Application\AccessControl\ManagedPolicy\QueryHandler;
 
 use DateTimeImmutable;
-use Fight\AccessControl\Application\AccessControl\Permission\QueryHandler\PreviewManagedPolicyHandler;
-use Fight\AccessControl\Application\AccessControl\Permission\Service\ManagedPolicyPlanner;
-use Fight\AccessControl\Domain\AccessControl\Permission\Exception\ManagedPolicyDefinitionException;
-use Fight\AccessControl\Domain\AccessControl\Permission\ManagedPermissionDefinition;
+use Fight\AccessControl\Application\AccessControl\ManagedPolicy\QueryHandler\PreviewManagedPolicyHandler;
+use Fight\AccessControl\Application\AccessControl\ManagedPolicy\Service\ManagedPolicyPlanner;
+use Fight\AccessControl\Domain\AccessControl\ManagedPolicy\Exception\ManagedPolicyDefinitionException;
+use Fight\AccessControl\Domain\AccessControl\ManagedPolicy\ManagedPermissionDefinition;
+use Fight\AccessControl\Domain\AccessControl\ManagedPolicy\ManagedPermissionPlanItem;
+use Fight\AccessControl\Domain\AccessControl\ManagedPolicy\ManagedPolicy;
+use Fight\AccessControl\Domain\AccessControl\ManagedPolicy\ManagedPolicyChangeAction;
+use Fight\AccessControl\Domain\AccessControl\ManagedPolicy\ManagedPolicyPlan;
+use Fight\AccessControl\Domain\AccessControl\ManagedPolicy\ManagedRoleDefinition;
+use Fight\AccessControl\Domain\AccessControl\ManagedPolicy\ManagedRolePlanItem;
+use Fight\AccessControl\Domain\AccessControl\ManagedPolicy\Query\PreviewManagedPolicy;
 use Fight\AccessControl\Domain\AccessControl\Permission\Permission;
 use Fight\AccessControl\Domain\AccessControl\Permission\PermissionId;
 use Fight\AccessControl\Domain\AccessControl\Permission\PermissionName;
 use Fight\AccessControl\Domain\AccessControl\Permission\PermissionTier;
-use Fight\AccessControl\Domain\AccessControl\Permission\Query\ManagedPermissionPlanItem;
-use Fight\AccessControl\Domain\AccessControl\Permission\Query\ManagedPolicyChangeAction;
-use Fight\AccessControl\Domain\AccessControl\Permission\Query\ManagedPolicyPlan;
-use Fight\AccessControl\Domain\AccessControl\Permission\Query\ManagedRolePlanItem;
-use Fight\AccessControl\Domain\AccessControl\Permission\Query\PreviewManagedPolicy;
-use Fight\AccessControl\Domain\AccessControl\Role\ManagedRoleDefinition;
 use Fight\AccessControl\Domain\AccessControl\Role\Role;
 use Fight\AccessControl\Domain\AccessControl\Role\RoleId;
 use Fight\AccessControl\Domain\AccessControl\Role\RoleName;
@@ -74,7 +75,7 @@ final class PreviewManagedPolicyHandlerTest extends TestCase
             [PermissionId::fromString('018f0000-0000-7000-8000-000000000101')],
             new DateTimeImmutable('2026-08-01T00:00:00+00:00')
         ));
-        $query = new PreviewManagedPolicy(
+        $query = $this->preview(
             [
                 $this->permission('018f0000-0000-7000-8000-000000000101', 'VIEW_USERS', 'ADMIN_SAFE'),
                 $this->permission('018f0000-0000-7000-8000-000000000102', 'MANAGE_USERS', 'SUPER_ADMIN_ONLY'),
@@ -157,7 +158,7 @@ final class PreviewManagedPolicyHandlerTest extends TestCase
 
     public function test_the_query_round_trips_and_rejects_missing_or_non_array_collections(): void
     {
-        $query = new PreviewManagedPolicy(
+        $query = $this->preview(
             [$this->permission('018f0000-0000-7000-8000-000000000101', 'VIEW_USERS', 'ADMIN_SAFE')],
             [$this->role(
                 '018f0000-0000-7000-8000-000000000201',
@@ -167,8 +168,8 @@ final class PreviewManagedPolicyHandlerTest extends TestCase
         );
 
         self::assertEquals($query, PreviewManagedPolicy::fromArray($query->toArray()));
-        self::assertCount(1, $query->getPermissions());
-        self::assertCount(1, $query->getRoles());
+        self::assertCount(1, $query->getPolicy()->getPermissions());
+        self::assertCount(1, $query->getPolicy()->getRoles());
         $rejections = 0;
 
         foreach (['permissions', 'roles'] as $field) {
@@ -250,7 +251,7 @@ final class PreviewManagedPolicyHandlerTest extends TestCase
 
         foreach ($invalidQueries as [$permissions, $roles]) {
             try {
-                new PreviewManagedPolicy($permissions, $roles);
+                new ManagedPolicy($permissions, $roles);
                 self::fail('Ambiguous managed definitions must be rejected.');
             } catch (ManagedPolicyDefinitionException) {
                 ++$rejections;
@@ -284,7 +285,7 @@ final class PreviewManagedPolicyHandlerTest extends TestCase
         );
 
         try {
-            $handler->handle(QueryMessage::create(new PreviewManagedPolicy(
+            $handler->handle(QueryMessage::create($this->preview(
                 [$this->permission(
                     '018f0000-0000-7000-8000-000000000101',
                     'VIEW_USERS',
@@ -301,7 +302,7 @@ final class PreviewManagedPolicyHandlerTest extends TestCase
         }
 
         try {
-            $handler->handle(QueryMessage::create(new PreviewManagedPolicy(
+            $handler->handle(QueryMessage::create($this->preview(
                 [],
                 [$this->role(
                     '018f0000-0000-7000-8000-000000000201',
@@ -328,6 +329,15 @@ final class PreviewManagedPolicyHandlerTest extends TestCase
             PermissionName::fromString($name),
             PermissionTier::from($tier)
         );
+    }
+
+    /**
+     * @param list<ManagedPermissionDefinition> $permissions
+     * @param list<ManagedRoleDefinition> $roles
+     */
+    private function preview(array $permissions, array $roles): PreviewManagedPolicy
+    {
+        return new PreviewManagedPolicy(new ManagedPolicy($permissions, $roles));
     }
 
     /**

@@ -11,9 +11,9 @@ Application types, AccessControl Domain, PHP internals, and public Fight Common 
 Application contracts. Neither layer may depend on Fight Common Adapter or Standards code.
 
 Fight AccessControl has no production Adapter layer. Framework, persistence, HTTP, mail, queue, realtime, key,
-and composition-root implementations belong to consumer repositories. Application-level JWT orchestration and
-the editable React client are governed by ADR 0003 and supersede this record's original JWT/client exclusion.
-Tests may provide in-memory doubles and conformance fixtures without turning them into production adapters.
+client, and composition-root implementations belong to consumer repositories. Application-level JWT orchestration
+is governed by ADR 0003 and supersedes this record's original JWT exclusion. Tests may provide in-memory doubles
+and conformance fixtures without turning them into production adapters.
 
 ## Consequences
 
