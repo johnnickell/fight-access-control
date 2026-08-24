@@ -1,11 +1,9 @@
 ---
 id: T-00004
+prd: PRD-00001
 title: Login, cold restore, and current-session logout
 status: done
-parent: PRD-00001
-blocked_by:
-  - T-00003
-branch: feature/t-00004-login-restore-logout
+blocked_by: T-00003
 ---
 
 # Login, cold restore, and current-session logout
@@ -16,7 +14,7 @@ An active user can log in through the synchronous authentication service, receiv
 an opaque refresh credential, restore authentication after a cold load, and revoke only the current session on
 logout without exposing whether an identity exists.
 
-## Acceptance criteria
+## Acceptance Criteria
 
 - [x] Secret-bearing activation and login are synchronous `AuthenticationService` methods and never serializable Commands.
 - [x] Login uses Fight Common password validation, normalizes canonical email, and returns generic failure behavior with a bounded throttling port.
@@ -26,7 +24,9 @@ logout without exposing whether an identity exists.
 - [x] Logout resolves and revokes only the submitted current refresh credential while leaving sibling sessions active.
 - [x] Tests demonstrate redacted failures, account-state denial, token claims and lifetimes, restoration, and single-session revocation.
 
-## Exclusions
+## Scope
+
+### Out of Scope
 
 No HTTP endpoint, cookie construction, signing-key adapter, rate-limiter backend, or framework-native session support.
 
@@ -36,7 +36,7 @@ No HTTP endpoint, cookie construction, signing-key adapter, rate-limiter backend
 - `./bin/planning-check`
 - `./bin/build`
 
-## Delivery Evidence
+## Completion Notes
 
 - `AuthenticationService` is the single non-CQRS seam for activation, login, cold refresh, and logout. Raw
   passwords, activation credentials, and refresh credentials exist only as `#[SensitiveParameter]` arguments.

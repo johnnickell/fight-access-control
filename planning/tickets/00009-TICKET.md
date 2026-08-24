@@ -1,11 +1,9 @@
 ---
 id: T-00009
+prd: PRD-00001
 title: Establish principals and authorization primitives
 status: done
-parent: PRD-00001
-blocked_by:
-  - T-00004
-branch: feature/t-00009-principals-authorization-primitives
+blocked_by: T-00004
 ---
 
 # Establish principals and authorization primitives
@@ -15,7 +13,7 @@ branch: feature/t-00009-principals-authorization-primitives
 Application handlers can obtain one immutable framework-neutral authenticated-principal snapshot from
 authoritative package state while consumers supply only the current request's authentication context.
 
-## Acceptance criteria
+## Acceptance Criteria
 
 - [x] Foundational `Role` and `Permission` aggregates own stable IDs and validated names; Role permission membership
   is duplicate-free, HashSet-backed, and read-only in this slice.
@@ -35,7 +33,9 @@ authoritative package state while consumers supply only the current request's au
 - [x] Tests prove successful resolution, duplicate-free relationships, every revalidation denial, missing-reference
   denial, immutable typed views, and absence of framework imports or production Adapter code.
 
-## Exclusions
+## Scope
+
+### Out of Scope
 
 No framework security provider, middleware, request attribute, database query, role/permission mutation,
 Permission tier, managed-policy reconciliation, assignment command, or role-management UI.
@@ -46,7 +46,7 @@ Permission tier, managed-policy reconciliation, assignment command, or role-mana
 - `./bin/planning-check`
 - `./bin/build`
 
-## Delivery Evidence
+## Completion Notes
 
 - `AuthenticationContextProvider` is the only consumer principal-composition port and has one no-argument method
   returning the identity/session/version-only `AuthenticationContext`; no principal, Role, or Permission snapshot

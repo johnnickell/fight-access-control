@@ -1,12 +1,9 @@
 ---
 id: T-00011
+prd: PRD-00001
 title: Administer account lifecycle
 status: done
-parent: PRD-00001
-blocked_by:
-  - T-00006
-  - T-00009
-branch: feature/t-00011-administer-account-lifecycle
+blocked_by: T-00006,T-00009
 ---
 
 # Administer account lifecycle
@@ -16,7 +13,7 @@ branch: feature/t-00011-administer-account-lifecycle
 Authorized administrators can disable, enable, soft-delete, and restore one stable identity while user and session
 administration remains safe, paginated, and auditable.
 
-## Acceptance criteria
+## Acceptance Criteria
 
 - [x] Disable immediately revokes sessions; enable does not restore prior sessions.
 - [x] Delete and restore retain stable identity and canonical-email uniqueness without permitting duplicate reinvitation.
@@ -24,7 +21,9 @@ administration remains safe, paginated, and auditable.
 - [x] Every classified sensitive lifecycle mutation has durable secret-free audit evidence.
 - [x] Tests prove authorization, state transitions, session effects, canonical uniqueness, and safe query output.
 
-## Exclusions
+## Scope
+
+### Out of Scope
 
 No retention-job implementation, database soft-delete mapping, admin UI, or HTTP endpoint.
 
@@ -34,7 +33,7 @@ No retention-job implementation, database soft-delete mapping, admin UI, or HTTP
 - `./bin/planning-check`
 - `./bin/build`
 
-## Delivery Evidence
+## Completion Notes
 
 - The `User` aggregate owns `disable()`, `enable()`, `delete()`, and `restore(UserState)` transitions with
   `UserLifecycleException` guards. Restoration targets `ACTIVE` (retaining the established password) or

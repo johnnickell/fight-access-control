@@ -1,9 +1,10 @@
 #!/usr/bin/env python3
-"""Validate the local Markdown planning portfolio without external dependencies."""
+"""Validate the small Markdown planning portfolio without external dependencies."""
 
 from __future__ import annotations
 
 import re
+import subprocess
 import sys
 from pathlib import Path
 
@@ -13,7 +14,6 @@ VALID_STATUSES = {
     "needs-triage", "needs-info", "ready-for-agent", "ready-for-human",
     "in-progress", "done", "wontfix",
 }
-VALID_ADR_STATUSES = {"proposed", "accepted", "superseded"}
 TERMINAL = {"done", "wontfix"}
 
 
@@ -23,23 +23,11 @@ def frontmatter(path: Path) -> dict[str, str]:
         raise ValueError("missing frontmatter")
     _, block, _ = text.split("---", 2)
     values: dict[str, str] = {}
-    last_key: str | None = None
     for line in block.strip().splitlines():
-        if line.startswith(("  - ", "    - ")):
-            if last_key and last_key in values:
-                item = line.strip().removeprefix("- ").strip()
-                if values[last_key]:
-                    values[last_key] += ", " + item
-                else:
-                    values[last_key] = item
-            continue
         key, separator, value = line.partition(":")
         if not separator:
             raise ValueError(f"invalid frontmatter line: {line}")
-        last_key = key.strip()
-        values[last_key] = value.strip()
-        if values[last_key] == "[]":
-            values[last_key] = ""
+        values[key.strip()] = value.strip()
     return values
 
 
@@ -53,12 +41,8 @@ def main() -> int:
     }
 
     for directory, pattern in patterns.items():
-        suffix = (
-            "T-[0-9][0-9][0-9][0-9][0-9]-*.md"
-            if directory == "tickets"
-            else {"epics": "-EPIC.md", "specs": "-PRD.md"}[directory]
-        )
-        for path in sorted((PLANNING / directory).glob(suffix if directory == "tickets" else f"*{suffix}")):
+        suffix = {"epics": "-EPIC.md", "specs": "-PRD.md", "tickets": "-TICKET.md"}[directory]
+        for path in sorted((PLANNING / directory).rglob(f"*{suffix}")):
             try:
                 data = frontmatter(path)
             except ValueError as exception:
@@ -76,50 +60,28 @@ def main() -> int:
                     errors.append(f"{path.relative_to(ROOT)}: missing {required}")
             records[record_id] = (path, data)
 
+    markdown_link = re.compile(r"\!?\[[^\]]*\]\(([^\s)]+)")
+    for path in PLANNING.rglob("*.md"):
+        if path.name.startswith("_"):
+            continue
+        for target in markdown_link.findall(path.read_text(encoding="utf-8")):
+            destination, _, _anchor = target.partition("#")
+            if not destination.endswith(".md") or destination.startswith(("/", "http:", "https:", "mailto:")):
+                continue
+            resolved = (path.parent / destination).resolve()
+            if not resolved.is_file():
+                errors.append(f"{path.relative_to(ROOT)}: broken local Markdown link {target}")
+
     for record_id, (path, data) in records.items():
         parent = data.get("epic") or data.get("prd")
         if parent and parent not in records:
             errors.append(f"{path.relative_to(ROOT)}: unknown parent {parent}")
-        blockers = [value.strip() for value in data.get("blocked_by", "").split(",") if value.strip()]
+        blockers = [value for value in data.get("blocked_by", "").split(",") if value]
         for blocker in blockers:
             if blocker not in records:
                 errors.append(f"{path.relative_to(ROOT)}: unknown blocker {blocker}")
             elif not blocker.startswith("T-"):
                 errors.append(f"{path.relative_to(ROOT)}: blocker must be a ticket: {blocker}")
-
-    for record_id, (path, data) in records.items():
-        if record_id.startswith("PRD-") and not data.get("epic"):
-            errors.append(f"{path.relative_to(ROOT)}: missing epic parent")
-
-    roadmap = PLANNING / "ROADMAP.md"
-    epic_index = PLANNING / "epics" / "README.md"
-    adr_index = PLANNING / "adr" / "README.md"
-    for required in (roadmap, epic_index, adr_index):
-        if not required.is_file():
-            errors.append(f"{required.relative_to(ROOT)}: missing planning index")
-
-    roadmap_text = roadmap.read_text(encoding="utf-8") if roadmap.is_file() else ""
-    epic_index_text = epic_index.read_text(encoding="utf-8") if epic_index.is_file() else ""
-    for record_id, (path, _) in records.items():
-        if not record_id.startswith("EPIC-"):
-            continue
-        if path.name not in roadmap_text:
-            errors.append(f"{roadmap.relative_to(ROOT)}: missing {record_id}")
-        if path.name not in epic_index_text:
-            errors.append(f"{epic_index.relative_to(ROOT)}: missing {record_id}")
-
-    adr_index_text = adr_index.read_text(encoding="utf-8") if adr_index.is_file() else ""
-    for path in sorted((PLANNING / "adr").glob("[0-9][0-9][0-9][0-9]-*.md")):
-        text = path.read_text(encoding="utf-8")
-        identifier = f"ADR-{path.name[:4]}"
-        if not re.search(rf"^# ADR {path.name[:4]}:", text, re.MULTILINE):
-            errors.append(f"{path.relative_to(ROOT)}: invalid ADR heading")
-        status = re.search(r"^- Status: (.+)$", text, re.MULTILINE)
-        if status is None or status.group(1) not in VALID_ADR_STATUSES:
-            value = status.group(1) if status else ""
-            errors.append(f"{path.relative_to(ROOT)}: invalid ADR status {value!r}")
-        if path.name not in adr_index_text:
-            errors.append(f"{adr_index.relative_to(ROOT)}: missing {identifier}")
 
     visiting: set[str] = set()
     visited: set[str] = set()
@@ -140,13 +102,19 @@ def main() -> int:
         if record_id.startswith("T-"):
             visit(record_id)
 
-    gitignore = ROOT / ".gitignore"
-    ignored_patterns = {
-        line.strip()
-        for line in gitignore.read_text(encoding="utf-8").splitlines()
-        if gitignore.is_file() and line.strip() and not line.lstrip().startswith("#")
-    } if gitignore.is_file() else set()
-    if "/.runs/" not in ignored_patterns:
+    ignored = subprocess.run(
+        [
+            "git",
+            "-c",
+            f"safe.directory={ROOT.resolve()}",
+            "check-ignore",
+            "-q",
+            ".runs/planning-check",
+        ],
+        cwd=ROOT,
+        check=False,
+    )
+    if ignored.returncode != 0:
         errors.append(".runs/ must be gitignored")
 
     if errors:

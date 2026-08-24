@@ -1,11 +1,9 @@
 ---
 id: T-00012
+prd: PRD-00001
 title: Reconcile managed policy and custom roles
 status: done
-parent: PRD-00001
-blocked_by:
-  - T-00009
-branch: feature/t-00012-reconcile-managed-policy-custom-roles
+blocked_by: T-00009
 ---
 
 # Reconcile managed policy and custom roles
@@ -16,7 +14,7 @@ A maintainer can deterministically dry-run and atomically apply version-controll
 definitions over the T-00009 foundations, while authorized super administrators can manage custom roles and User
 role assignments without rewriting managed policy.
 
-## Acceptance criteria
+## Acceptance Criteria
 
 - [x] Managed definitions require stable UUIDs, uppercase names, `ADMIN_SAFE` or `SUPER_ADMIN_ONLY` Permission
   tiers, and exact Role permission membership.
@@ -28,7 +26,9 @@ role assignments without rewriting managed policy.
 - [x] Tests prove dry-run/apply parity, exact-membership removal, managed immutability, Permission-tier enforcement,
   reference protection, custom-role mutation, and assignment-command authorization denial.
 
-## Exclusions
+## Scope
+
+### Out of Scope
 
 No configuration loader, ORM mapping, role-management UI, migration, or framework authorization integration.
 
@@ -38,7 +38,7 @@ No configuration loader, ORM mapping, role-management UI, migration, or framewor
 - `./bin/planning-check`
 - `./bin/build`
 
-## Delivery Evidence
+## Completion Notes
 
 - Immutable managed Permission and Role definitions validate stable identifiers, canonical uppercase names,
   `ADMIN_SAFE` or `SUPER_ADMIN_ONLY` tiers, duplicate-free exact membership, and deterministic serialization.

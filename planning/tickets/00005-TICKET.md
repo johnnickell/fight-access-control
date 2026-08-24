@@ -1,11 +1,9 @@
 ---
 id: T-00005
+prd: PRD-00001
 title: Secure refresh-session rotation
 status: done
-parent: PRD-00001
-blocked_by:
-  - T-00004
-branch: feature/t-00005-secure-refresh-session-rotation
+blocked_by: T-00004
 ---
 
 # Secure refresh-session rotation
@@ -15,7 +13,7 @@ branch: feature/t-00005-secure-refresh-session-rotation
 A caller receives rotation outcomes from an authoritative server-side refresh session: one winner, a bounded
 benign conflict outcome, and family revocation for credential reuse outside that window.
 
-## Acceptance criteria
+## Acceptance Criteria
 
 - [x] Refresh sessions own rotation, revocation, activity, idle and absolute lifetime, and authentication version.
 - [x] A successful rotation emits exactly one new credential result; a bounded concurrent conflict emits no credential.
@@ -23,7 +21,9 @@ benign conflict outcome, and family revocation for credential reuse outside that
 - [x] Remember-me changes only refresh-session persistence and lifetime, never access-token authority or lifetime.
 - [x] Tests cover rotation, race conflict, replay compromise, timeout, and post-revocation behavior.
 
-## Exclusions
+## Scope
+
+### Out of Scope
 
 No database locking implementation, cookie construction, signing-key adapter, cache adapter, or client refresh
 coordination.
@@ -34,7 +34,7 @@ coordination.
 - `./bin/planning-check`
 - `./bin/build`
 
-## Delivery Evidence
+## Completion Notes
 
 - `AuthenticationService::refresh()` returns an explicit immutable `ROTATED` or `CONFLICT` result. Only a
   rotation winner receives a new opaque refresh credential and access JWT; bounded conflicts contain no token

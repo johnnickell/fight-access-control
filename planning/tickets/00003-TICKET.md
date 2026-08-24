@@ -1,11 +1,9 @@
 ---
 id: T-00003
+prd: PRD-00001
 title: Activate an invited account
 status: done
-parent: PRD-00001
-blocked_by:
-  - T-00001
-branch: feature/t-00003-activate-invited-account
+blocked_by: T-00001
 ---
 
 # Activate an invited account
@@ -15,14 +13,16 @@ branch: feature/t-00003-activate-invited-account
 An invited person can redeem one valid activation grant, choose an initial password, transition to active, and end
 the journey authenticated through a newly created first session.
 
-## Acceptance criteria
+## Acceptance Criteria
 
 - [x] Activation accepts only a matching, unexpired, unused purpose-bound grant.
 - [x] Successful activation sets the credential, consumes the grant, activates the identity, and creates the first session atomically.
 - [x] Replay, expiry, mismatch, and non-pending identity outcomes are rejected without partial transition.
 - [x] Tests cover aggregate invariants, Application transaction ownership, and conformance behavior.
 
-## Exclusions
+## Scope
+
+### Out of Scope
 
 No browser cookie, JWT signing, password-hash implementation, persistence adapter, or HTTP flow.
 
@@ -32,7 +32,7 @@ No browser cookie, JWT signing, password-hash implementation, persistence adapte
 - `./bin/planning-check`
 - `./bin/build`
 
-## Delivery Evidence
+## Completion Notes
 
 - T-00003 originally delivered activation through `ActivateInvitedAccount`; the T-00004 security correction
   supersedes that serializable secret-bearing seam with the synchronous `AuthenticationService::activate()`.

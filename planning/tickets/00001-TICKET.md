@@ -1,10 +1,9 @@
 ---
 id: T-00001
+prd: PRD-00001
 title: Invite a pending user
 status: done
-parent: PRD-00001
-blocked_by: []
-branch: feature/t-00001-invite-pending-user
+blocked_by:
 ---
 
 # Invite a pending user
@@ -14,7 +13,7 @@ branch: feature/t-00001-invite-pending-user
 An inviter can create one canonically unique pending identity. The transaction creates its purpose-bound activation
 grant, encrypted pending delivery work, and required secret-free audit evidence before email work can be attempted.
 
-## Acceptance criteria
+## Acceptance Criteria
 
 - [x] Canonical email uniqueness covers pending, active, disabled, and deleted identities.
 - [x] Invitation persists the User, activation grant, pending delivery work, and required audit evidence atomically.
@@ -22,7 +21,9 @@ grant, encrypted pending delivery work, and required secret-free audit evidence 
 - [x] Domain and Application tests demonstrate the successful and rejected invitation outcomes through in-memory ports.
 - [x] Canonical Command, Event, and CommandHandler tests capture successful and rejected invitation outcomes without framework dependencies.
 
-## Exclusions
+## Scope
+
+### Out of Scope
 
 No mail transport, encryption-key implementation, persistence adapter, HTTP action, or framework integration.
 
@@ -32,7 +33,7 @@ No mail transport, encryption-key implementation, persistence adapter, HTTP acti
 - `./bin/planning-check`
 - `./bin/build`
 
-## Evidence
+## Completion Notes
 
 - `./bin/planning-check` passed after ticket and board synchronization.
 - `./bin/build` passed with 54 tests, 290 assertions, and 113/113 exact statement coverage.

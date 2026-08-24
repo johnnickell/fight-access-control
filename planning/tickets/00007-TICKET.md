@@ -1,11 +1,9 @@
 ---
 id: T-00007
+prd: PRD-00001
 title: Recover a forgotten password
 status: done
-parent: PRD-00001
-blocked_by:
-  - T-00004
-branch: feature/t-00007-recover-forgotten-password
+blocked_by: T-00004
 ---
 
 # Recover a forgotten password
@@ -15,14 +13,16 @@ branch: feature/t-00007-recover-forgotten-password
 A person can request password recovery without account enumeration, then redeem a one-time expiring reset grant
 that changes the credential and revokes all sessions.
 
-## Acceptance criteria
+## Acceptance Criteria
 
 - [x] Reset requests return generic outcomes and create delivery work only when appropriate.
 - [x] Reset grants are purpose-bound, hashed, expiring, single-use, and unrelated to activation grants.
 - [x] Successful reset changes the credential and revokes every active session atomically.
 - [x] Tests prove generic response, grant replay and expiry rejection, session revocation, and durable audit behavior.
 
-## Exclusions
+## Scope
+
+### Out of Scope
 
 No email transport, password-hash implementation, reset page, or persistence adapter.
 
@@ -32,7 +32,7 @@ No email transport, password-hash implementation, reset page, or persistence ada
 - `./bin/planning-check`
 - `./bin/build`
 
-## Delivery Evidence
+## Completion Notes
 
 - Generic request handling performs identity lookup, active-user eligibility, reset-grant creation, encrypted
   delivery-work creation, and secret-free audit persistence in one Unit of Work. Unknown and ineligible identities

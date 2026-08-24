@@ -1,10 +1,9 @@
 ---
 id: T-00017
+prd: PRD-00001
 title: Complete administrative identity and authorization reads
 status: done
-parent: PRD-00001
-blocked_by: []
-branch: feature/t-00017-complete-administrative-reads
+blocked_by:
 ---
 
 # Complete administrative identity and authorization reads
@@ -14,7 +13,7 @@ branch: feature/t-00017-complete-administrative-reads
 Administrative clients can page through Users, Roles, and Permissions and retrieve any one of them by stable
 identity through package-native Queries that return immutable safe views rather than aggregates.
 
-## Acceptance criteria
+## Acceptance Criteria
 
 - [x] `GetUserById` complements the existing `ListUsers` query and returns a nullable immutable `UserView` without
   credential, authentication-authority, or persistence state.
@@ -29,7 +28,9 @@ identity through package-native Queries that return immutable safe views rather 
 - [x] Tests cover paginated mapping, stable-identity lookup, absent records, safe view contents, serialization, and
   exact executable statement coverage.
 
-## Exclusions
+## Scope
+
+### Out of Scope
 
 No command or authorization-policy change, aggregate mutation, ManagedPolicy behavior, persistence adapter, schema,
 migration, HTTP or OpenAPI contract, generated client, React application, or other UI work.
@@ -40,7 +41,7 @@ migration, HTTP or OpenAPI contract, generated client, React application, or oth
 - `./bin/planning-check`
 - `./bin/build`
 
-## Delivery Evidence
+## Completion Notes
 
 - Implemented on `feature/t-00017-complete-administrative-reads` through six approved red-green slices covering
   Arrayable Query outputs, User lookup, Role pagination and lookup, and Permission pagination and lookup.

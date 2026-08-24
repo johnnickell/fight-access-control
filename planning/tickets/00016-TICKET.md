@@ -1,10 +1,9 @@
 ---
 id: T-00016
+prd: PRD-00001
 title: Extract the ManagedPolicy capability
 status: done
-parent: PRD-00001
-blocked_by: []
-branch: feature/t-00016-extract-managed-policy-capability
+blocked_by:
 ---
 
 # Extract the ManagedPolicy capability
@@ -15,7 +14,7 @@ Managed policy definition, planning, preview, and reconciliation form one explic
 instead of being split across Permission and Role or represented as Query-owned planning data. Preview and apply
 share the same policy model and repository-backed planner without a Command containing or invoking a Query.
 
-## Acceptance criteria
+## Acceptance Criteria
 
 - [x] Managed policy definitions, the complete desired policy, plan items, change actions, plans, preview Query,
   reconciliation Command and Event, definition exceptions, planner, and handlers live under mirrored Domain and
@@ -36,7 +35,9 @@ share the same policy model and repository-backed planner without a Command cont
 - [x] Tests mirror the new capability boundaries, reject the former Command-to-Query coupling, and retain exact
   executable statement coverage.
 
-## Exclusions
+## Scope
+
+### Out of Scope
 
 No authorization-policy or observable behavior change, new read model or query, delivery event, custom-role or User
 assignment semantic change, persistence adapter, schema, migration, HTTP contract, or UI work.
@@ -47,7 +48,7 @@ assignment semantic change, persistence adapter, schema, migration, HTTP contrac
 - `./bin/planning-check`
 - `./bin/build`
 
-## Delivery Evidence
+## Completion Notes
 
 - Implemented on `feature/t-00016-extract-managed-policy-capability` through three approved red-green slices:
   Domain policy contract, repository-backed preview, and atomic reconciliation.
