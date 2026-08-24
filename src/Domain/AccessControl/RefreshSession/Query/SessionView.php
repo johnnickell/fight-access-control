@@ -8,11 +8,12 @@ use DateTimeImmutable;
 use Fight\AccessControl\Domain\AccessControl\RefreshSession\RefreshSession;
 use Fight\AccessControl\Domain\AccessControl\RefreshSession\RefreshSessionId;
 use Fight\AccessControl\Domain\AccessControl\User\UserId;
+use Fight\Common\Domain\Type\Arrayable;
 
 /**
  * Provides a safe immutable view of an active refresh session.
  */
-final readonly class SessionView
+final readonly class SessionView implements Arrayable
 {
     /**
      * Constructs the safe session view.
@@ -108,5 +109,33 @@ final readonly class SessionView
     public function isCurrent(): bool
     {
         return $this->current;
+    }
+
+    /**
+     * Returns the canonical safe array representation.
+     *
+     * @return array{
+     *     session_id: string,
+     *     user_id: string,
+     *     created_at: string,
+     *     last_activity_at: string,
+     *     idle_expires_at: string,
+     *     absolute_expires_at: string,
+     *     remembered: bool,
+     *     current: bool
+     * }
+     */
+    public function toArray(): array
+    {
+        return [
+            'session_id' => $this->sessionId->toString(),
+            'user_id' => $this->userId->toString(),
+            'created_at' => $this->createdAt->format(DATE_ATOM),
+            'last_activity_at' => $this->lastActivityAt->format(DATE_ATOM),
+            'idle_expires_at' => $this->idleExpiresAt->format(DATE_ATOM),
+            'absolute_expires_at' => $this->absoluteExpiresAt->format(DATE_ATOM),
+            'remembered' => $this->remembered,
+            'current' => $this->current,
+        ];
     }
 }

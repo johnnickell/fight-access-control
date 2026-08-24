@@ -4,10 +4,12 @@ declare(strict_types=1);
 
 namespace Fight\AccessControl\Domain\AccessControl\ManagedPolicy;
 
+use Fight\Common\Domain\Type\Arrayable;
+
 /**
  * Provides an immutable deterministic managed-policy reconciliation plan.
  */
-final readonly class ManagedPolicyPlan
+final readonly class ManagedPolicyPlan implements Arrayable
 {
     /**
      * Constructs a managed-policy plan.

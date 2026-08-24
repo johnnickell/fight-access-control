@@ -81,13 +81,14 @@ final class PlanningAuthorityTest extends TestCase
         self::assertStringContainsString('./bin/build', $quality);
     }
 
-    public function test_that_ticket_readiness_is_local_and_the_approved_capability_frontier_is_indexed(): void
+    public function test_that_ticket_readiness_is_local_and_the_completed_capability_is_indexed(): void
     {
         $tracker = $this->read('planning/agents/issue-tracker.md');
         $triage = $this->read('planning/agents/triage-labels.md');
         $tickets = $this->read('planning/tickets/README.md');
         $board = $this->read('planning/tickets/BOARD.md');
-        $frontier = $this->read('planning/tickets/T-00017-complete-administrative-reads.md');
+        $completedTicket = $this->read('planning/tickets/T-00017-complete-administrative-reads.md');
+        $frontier = $this->read('planning/tickets/T-00018-publish-security-email-delivery-events.md');
 
         self::assertStringContainsString('ready-for-agent', $tracker);
         self::assertStringContainsString('blocked_by', $tracker);
@@ -95,11 +96,14 @@ final class PlanningAuthorityTest extends TestCase
         self::assertStringContainsString('ready-for-human', $triage);
         self::assertStringContainsString('Each ticket belongs to', $tickets);
         self::assertStringContainsString('Ready Frontier', $board);
-        self::assertStringContainsString('T-00017', $board);
+        self::assertStringContainsString('Completed', $board);
         self::assertStringContainsString('T-00018', $board);
-        self::assertStringContainsString('id: T-00017', $frontier);
+        self::assertStringContainsString('T-00017', $board);
+        self::assertStringContainsString('id: T-00018', $frontier);
         self::assertStringContainsString('status: ready-for-agent', $frontier);
-        self::assertStringContainsString('blocked_by: []', $frontier);
+        self::assertStringContainsString('id: T-00017', $completedTicket);
+        self::assertStringContainsString('status: done', $completedTicket);
+        self::assertStringContainsString('blocked_by: []', $completedTicket);
     }
 
     public function test_that_the_repository_validator_accepts_the_indexed_local_authority(): void
@@ -108,7 +112,7 @@ final class PlanningAuthorityTest extends TestCase
         $process->run();
 
         self::assertSame(0, $process->getExitCode(), $process->getErrorOutput().$process->getOutput());
-        self::assertStringContainsString('Planning validation passed: 19 records, 4 active', $process->getOutput());
+        self::assertStringContainsString('Planning validation passed: 19 records, 3 active', $process->getOutput());
     }
 
     protected function setUp(): void

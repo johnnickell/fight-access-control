@@ -8,11 +8,12 @@ use DateTimeImmutable;
 use Fight\AccessControl\Domain\AccessControl\ActivationGrant\ActivationDelivery;
 use Fight\AccessControl\Domain\AccessControl\ActivationGrant\ActivationDeliveryStatus;
 use Fight\AccessControl\Domain\AccessControl\User\UserId;
+use Fight\Common\Domain\Type\Arrayable;
 
 /**
  * Provides the safe operational view of activation delivery work.
  */
-final readonly class InvitationDeliveryStatusView
+final readonly class InvitationDeliveryStatusView implements Arrayable
 {
     /**
      * Constructs the safe delivery-status view.
@@ -54,5 +55,19 @@ final readonly class InvitationDeliveryStatusView
     public function getExpiresAt(): DateTimeImmutable
     {
         return $this->expiresAt;
+    }
+
+    /**
+     * Returns the canonical safe array representation.
+     *
+     * @return array{user_id: string, status: string, expires_at: string}
+     */
+    public function toArray(): array
+    {
+        return [
+            'user_id' => $this->userId->toString(),
+            'status' => $this->status->value,
+            'expires_at' => $this->expiresAt->format(DATE_ATOM),
+        ];
     }
 }
