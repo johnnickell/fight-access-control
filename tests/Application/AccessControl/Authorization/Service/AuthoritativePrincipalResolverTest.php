@@ -27,6 +27,7 @@ use Fight\Test\AccessControl\Application\AccessControl\Permission\Repository\InM
 use Fight\Test\AccessControl\Application\AccessControl\RefreshSession\Repository\InMemoryRefreshSessionRepository;
 use Fight\Test\AccessControl\Application\AccessControl\Role\Repository\InMemoryRoleRepository;
 use Fight\Test\AccessControl\Application\AccessControl\Timing\Service\FixedClock;
+use Fight\Test\AccessControl\Application\AccessControl\User\Repository\InMemoryAuthorizationReferenceState;
 use Fight\Test\AccessControl\Application\AccessControl\User\Repository\InMemoryUserRepository;
 use Fight\Test\AccessControl\Domain\AccessControl\User\UserFixture;
 use InvalidArgumentException;
@@ -214,9 +215,11 @@ final class AuthoritativePrincipalResolverTest extends TestCase
         );
         $user->replaceRoleAssignments([$role->getId()], new DateTimeImmutable('2026-01-01T00:00:00+00:00'));
         $session = $this->session($user->getId(), 7, $now);
+        $roleRepository = $this->createStub(RoleRepository::class);
+        $roleRepository->method('getByIds')->willReturn([$role]);
 
         $this->expectException(PrincipalResolutionException::class);
-        $this->resolver($now, $user, $session, [$role])->resolve(
+        $this->resolver($now, $user, $session, roleRepository: $roleRepository)->resolve(
             new AuthenticationContext($user->getId(), $session->getId(), 7)
         );
     }
@@ -240,13 +243,15 @@ final class AuthoritativePrincipalResolverTest extends TestCase
         );
         $permissionRepository = $this->createStub(PermissionRepository::class);
         $permissionRepository->method('getByIds')->willReturn([$unexpectedPermission]);
+        $roleRepository = $this->createStub(RoleRepository::class);
+        $roleRepository->method('getByIds')->willReturn([$role]);
 
         $this->expectException(PrincipalResolutionException::class);
         $this->resolver(
             $now,
             $user,
             $session,
-            [$role],
+            roleRepository: $roleRepository,
             permissionRepository: $permissionRepository
         )->resolve(new AuthenticationContext($user->getId(), $session->getId(), 7));
     }
@@ -314,18 +319,21 @@ final class AuthoritativePrincipalResolverTest extends TestCase
         ?RoleRepository $roleRepository = null,
         ?PermissionRepository $permissionRepository = null
     ): AuthoritativePrincipalResolver {
-        $userRepository = new InMemoryUserRepository();
+        $authorizationReferences = new InMemoryAuthorizationReferenceState();
+        $userRepository = new InMemoryUserRepository(authorizationReferences: $authorizationReferences);
         $sessionRepository = new InMemoryRefreshSessionRepository();
-        $inMemoryRoleRepository = new InMemoryRoleRepository();
-        $inMemoryPermissionRepository = new InMemoryPermissionRepository();
+        $inMemoryRoleRepository = new InMemoryRoleRepository(authorizationReferences: $authorizationReferences);
+        $inMemoryPermissionRepository = new InMemoryPermissionRepository(
+            authorizationReferences: $authorizationReferences
+        );
         $userRepository->add($user);
         $sessionRepository->add($session);
-        foreach ($roles as $role) {
-            $inMemoryRoleRepository->add($role);
-        }
-
         foreach ($permissions as $permission) {
             $inMemoryPermissionRepository->add($permission);
+        }
+
+        foreach ($roles as $role) {
+            $inMemoryRoleRepository->add($role);
         }
 
         return new AuthoritativePrincipalResolver(

@@ -38,7 +38,7 @@ final readonly class CancelEmailChangeHandler implements CommandHandler
         private EmailChangeAdministrationAuthorization $emailChangeAdministrationAuthorization,
         private AuditEvidenceRepository $auditEvidenceRepository,
         private UnitOfWork $unitOfWork,
-        private Clock $emailChangeClock,
+        private Clock $clock,
         private EventDispatcher $eventDispatcher
     ) {
     }
@@ -85,7 +85,7 @@ final readonly class CancelEmailChangeHandler implements CommandHandler
                     throw new EmailChangeCancellationException('The user has no cancellable email change.');
                 }
 
-                $cancelledAt = $this->emailChangeClock->now();
+                $cancelledAt = $this->clock->now();
                 $replacementUser = clone $user;
                 $replacementUser->cancelEmailChange($cancelledAt);
                 if (!$this->userRepository->replaceEmailChangeReservation($user, $replacementUser)) {

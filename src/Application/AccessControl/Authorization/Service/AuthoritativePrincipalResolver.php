@@ -32,7 +32,7 @@ final readonly class AuthoritativePrincipalResolver
         private RefreshSessionRepository $refreshSessionRepository,
         private RoleRepository $roleRepository,
         private PermissionRepository $permissionRepository,
-        private Clock $authenticationClock
+        private Clock $clock
     ) {
     }
 
@@ -56,7 +56,7 @@ final readonly class AuthoritativePrincipalResolver
             || $user->getState() !== UserState::ACTIVE
             || $user->getAuthenticationVersion() !== $authenticationContext->getAuthenticationVersion()
             || $refreshSession->getAuthenticationVersion() !== $authenticationContext->getAuthenticationVersion()
-            || !$refreshSession->isUsableAt($this->authenticationClock->now())
+            || !$refreshSession->isUsableAt($this->clock->now())
         ) {
             $this->deny();
         }

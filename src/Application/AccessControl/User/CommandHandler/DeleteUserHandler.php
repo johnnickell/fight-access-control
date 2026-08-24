@@ -32,7 +32,7 @@ final readonly class DeleteUserHandler implements CommandHandler
     public function __construct(
         private UserRepository $userRepository,
         private SessionRevocationService $sessionRevocationService,
-        private Clock $refreshSessionClock,
+        private Clock $clock,
         private AuditEvidenceRepository $auditEvidenceRepository,
         private UnitOfWork $unitOfWork,
         private EventDispatcher $eventDispatcher
@@ -62,7 +62,7 @@ final readonly class DeleteUserHandler implements CommandHandler
                     throw new UserLifecycleException('The user cannot be deleted.');
                 }
 
-                $now = $this->refreshSessionClock->now();
+                $now = $this->clock->now();
                 $replacementUser = clone $user;
                 $replacementUser->delete($now);
                 if (!$this->userRepository->replaceLifecycleState($user, $replacementUser)) {

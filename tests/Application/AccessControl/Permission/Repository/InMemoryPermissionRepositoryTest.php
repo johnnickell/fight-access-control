@@ -11,10 +11,18 @@ use Fight\AccessControl\Domain\AccessControl\Permission\PermissionName;
 use Fight\Common\Domain\Repository\Pagination;
 use PHPUnit\Framework\Attributes\CoversNothing;
 use PHPUnit\Framework\TestCase;
+use ReflectionMethod;
 
 #[CoversNothing]
 final class InMemoryPermissionRepositoryTest extends TestCase
 {
+    public function test_remove_has_a_canonical_repository_owned_signature(): void
+    {
+        $remove = new ReflectionMethod(InMemoryPermissionRepository::class, 'remove');
+
+        self::assertSame(1, $remove->getNumberOfParameters());
+    }
+
     public function test_it_retrieves_permissions_by_id_and_name(): void
     {
         $repository = new InMemoryPermissionRepository();

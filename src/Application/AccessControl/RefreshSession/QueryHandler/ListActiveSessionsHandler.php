@@ -24,7 +24,7 @@ final readonly class ListActiveSessionsHandler implements QueryHandler
      */
     public function __construct(
         private RefreshSessionRepository $refreshSessionRepository,
-        private Clock $refreshSessionClock,
+        private Clock $clock,
         private SessionAdministrationAuthorization $sessionAdministrationAuthorization
     ) {
     }
@@ -52,7 +52,7 @@ final readonly class ListActiveSessionsHandler implements QueryHandler
             );
         }
 
-        $now = $this->refreshSessionClock->now();
+        $now = $this->clock->now();
         $activeSessions = $this->refreshSessionRepository->getByUserId(
             $query->getUserId(),
             $now,

@@ -5,16 +5,27 @@ declare(strict_types=1);
 namespace Fight\Test\AccessControl\Application\AccessControl\Role\Repository;
 
 use DateTimeImmutable;
+use Fight\AccessControl\Domain\AccessControl\Permission\PermissionId;
 use Fight\AccessControl\Domain\AccessControl\Role\Role;
 use Fight\AccessControl\Domain\AccessControl\Role\RoleId;
 use Fight\AccessControl\Domain\AccessControl\Role\RoleName;
 use Fight\Common\Domain\Repository\Pagination;
+use Fight\Test\AccessControl\Application\AccessControl\Permission\Repository\InMemoryPermissionRepository;
 use PHPUnit\Framework\Attributes\CoversNothing;
 use PHPUnit\Framework\TestCase;
+use ReflectionMethod;
+use RuntimeException;
 
 #[CoversNothing]
 final class InMemoryRoleRepositoryTest extends TestCase
 {
+    public function test_reference_changing_writes_have_canonical_repository_owned_signatures(): void
+    {
+        self::assertSame(1, new ReflectionMethod(InMemoryRoleRepository::class, 'add')->getNumberOfParameters());
+        self::assertSame(2, new ReflectionMethod(InMemoryRoleRepository::class, 'replace')->getNumberOfParameters());
+        self::assertSame(1, new ReflectionMethod(InMemoryRoleRepository::class, 'remove')->getNumberOfParameters());
+    }
+
     public function test_it_retrieves_roles_by_id_and_name(): void
     {
         $repository = new InMemoryRoleRepository();
@@ -73,6 +84,31 @@ final class InMemoryRoleRepositoryTest extends TestCase
         self::assertSame(Role::class, $resultSet->itemType());
         self::assertSame([], $resultSet->records()->toArray());
         self::assertSame(0, $resultSet->totalRecords());
+    }
+
+    public function test_add_and_replace_reject_non_authoritative_permission_membership(): void
+    {
+        $permissionId = PermissionId::generate();
+        $permissions = new InMemoryPermissionRepository();
+        $repository = new InMemoryRoleRepository();
+        $missingMembership = Role::define(
+            RoleId::generate(),
+            RoleName::fromString('ROLE_MISSING_PERMISSION'),
+            [$permissionId],
+            new DateTimeImmutable('2026-01-01T00:00:00+00:00')
+        );
+
+        try {
+            $repository->add($missingMembership);
+            self::fail('Role add must reject a missing Permission reference.');
+        } catch (RuntimeException $runtimeException) {
+            self::assertSame('Role permission membership is not authoritative.', $runtimeException->getMessage());
+        }
+
+        $current = $this->role('ROLE_CURRENT');
+        $repository->add($current);
+        self::assertFalse($repository->replace($current, $missingMembership));
+        self::assertSame($current, $repository->getById($current->getId()));
     }
 
     private function role(string $name): Role

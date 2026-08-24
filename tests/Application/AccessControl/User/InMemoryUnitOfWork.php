@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Fight\Test\AccessControl\Application\AccessControl\User;
 
 use Fight\Common\Application\Repository\UnitOfWork;
+use Fight\Test\AccessControl\Application\AccessControl\User\Repository\InMemoryAuthorizationReferenceState;
 use Throwable;
 
 final class InMemoryUnitOfWork implements UnitOfWork
@@ -14,6 +15,8 @@ final class InMemoryUnitOfWork implements UnitOfWork
     public bool $transactionCompleted = false;
 
     public bool $transactionActive = false;
+
+    private ?InMemoryAuthorizationReferenceState $authorizationReferenceState = null;
 
     /** @var list<callable(): void> */
     private array $rollbackActions = [];
@@ -73,5 +76,10 @@ final class InMemoryUnitOfWork implements UnitOfWork
     public function isClosed(): bool
     {
         return false;
+    }
+
+    public function authorizationReferenceState(): InMemoryAuthorizationReferenceState
+    {
+        return $this->authorizationReferenceState ??= new InMemoryAuthorizationReferenceState($this);
     }
 }
