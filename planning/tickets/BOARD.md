@@ -13,7 +13,8 @@ materially cheaper.
 
 | Rank | Ticket | Parent PRD | Why now |
 | --- | --- | --- | --- |
-No tickets are currently ready.
+| 1 | [T-00017 — Complete administrative identity and authorization reads](T-00017-complete-administrative-reads.md) | [PRD-00001](../specs/00001-PRD.md) | Completes the safe User, Role, and Permission read surface already required by PRD story 28 and needed by administrative clients. |
+| 2 | [T-00018 — Publish successful security-email delivery events](T-00018-publish-security-email-delivery-events.md) | [PRD-00001](../specs/00001-PRD.md) | Completes the observable success contract for the existing durable invitation and email-change delivery lifecycles. |
 
 ## Waiting
 
