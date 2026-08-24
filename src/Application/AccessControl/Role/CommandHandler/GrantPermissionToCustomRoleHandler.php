@@ -32,7 +32,7 @@ final readonly class GrantPermissionToCustomRoleHandler implements CommandHandle
         private RoleRepository $roleRepository,
         private PermissionRepository $permissionRepository,
         private RoleAdministrationAuthorization $roleAdministrationAuthorization,
-        private Clock $roleClock,
+        private Clock $clock,
         private UnitOfWork $unitOfWork,
         private EventDispatcher $eventDispatcher
     ) {
@@ -64,7 +64,7 @@ final readonly class GrantPermissionToCustomRoleHandler implements CommandHandle
                         throw new CustomRoleException('The permission does not exist.');
                     }
 
-                    $grantedAt = $this->roleClock->now();
+                    $grantedAt = $this->clock->now();
                     $replacement = $role->grantPermissionToCustom($command->getPermissionId(), $grantedAt);
                     if (!$this->roleRepository->replace($role, $replacement)) {
                         throw new CustomRoleException('The custom role changed concurrently.');

@@ -44,7 +44,7 @@ final readonly class RequestEmailChangeHandler implements CommandHandler
         private UnitOfWork $unitOfWork,
         private EmailChangeCredentialGenerator $emailChangeCredentialGenerator,
         private EmailChangeDeliveryCipher $emailChangeDeliveryCipher,
-        private Clock $emailChangeClock,
+        private Clock $clock,
         private EventDispatcher $eventDispatcher
     ) {
     }
@@ -81,12 +81,12 @@ final readonly class RequestEmailChangeHandler implements CommandHandler
                 }
 
                 $replacement = clone $user;
-                $replacement->requestEmailChange($command->getEmail(), $this->emailChangeClock->now());
+                $replacement->requestEmailChange($command->getEmail(), $this->clock->now());
                 if (!$this->userRepository->replaceEmailChangeReservation($user, $replacement)) {
                     throw new LogicException('The email-change destination is unavailable.');
                 }
 
-                $issuedAt = $this->emailChangeClock->now();
+                $issuedAt = $this->clock->now();
                 $predecessor = $this->emailChangeGrantRepository->getLatestByUserId($user->getId());
                 $credential = $this->emailChangeCredentialGenerator->generate();
                 $grant = EmailChangeGrant::issue(

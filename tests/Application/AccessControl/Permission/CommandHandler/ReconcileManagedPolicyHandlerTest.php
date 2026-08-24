@@ -106,7 +106,9 @@ final class ReconcileManagedPolicyHandlerTest extends TestCase
             $createdAt
         ));
         $command = $this->command();
-        $preview = new PreviewManagedPolicyHandler($permissions, $roles, $users)->handle(QueryMessage::create(
+        $preview = new PreviewManagedPolicyHandler(
+            new ManagedPolicyPlanner($permissions, $roles, $users)
+        )->handle(QueryMessage::create(
             new PreviewManagedPolicy(
                 $command->getPermissions(),
                 $command->getRoles(),
@@ -135,7 +137,7 @@ final class ReconcileManagedPolicyHandlerTest extends TestCase
         $handler = new ReconcileManagedPolicyHandler(
             $permissions,
             $roles,
-            $users,
+            new ManagedPolicyPlanner($permissions, $roles, $users),
             $unitOfWork,
             $events,
             new FixedClock(new DateTimeImmutable('2026-08-23T12:00:00+00:00'))
@@ -210,7 +212,7 @@ final class ReconcileManagedPolicyHandlerTest extends TestCase
             $handler = new ReconcileManagedPolicyHandler(
                 $permissions,
                 $roles,
-                $users,
+                new ManagedPolicyPlanner($permissions, $roles, $users),
                 $unitOfWork,
                 $events,
                 new FixedClock($createdAt)
@@ -253,7 +255,9 @@ final class ReconcileManagedPolicyHandlerTest extends TestCase
         $rejections = 0;
 
         try {
-            new PreviewManagedPolicyHandler($permissions, $roles, $users)->handle(QueryMessage::create($query));
+            new PreviewManagedPolicyHandler(
+                new ManagedPolicyPlanner($permissions, $roles, $users)
+            )->handle(QueryMessage::create($query));
             self::fail('Preview must reject removal of an assigned managed Role.');
         } catch (ManagedPolicyDefinitionException $managedPolicyDefinitionException) {
             self::assertSame(
@@ -266,7 +270,7 @@ final class ReconcileManagedPolicyHandlerTest extends TestCase
         $handler = new ReconcileManagedPolicyHandler(
             $permissions,
             $roles,
-            $users,
+            new ManagedPolicyPlanner($permissions, $roles, $users),
             $unitOfWork,
             $events,
             new FixedClock(new DateTimeImmutable('2026-08-23T12:00:00+00:00'))
@@ -305,7 +309,11 @@ final class ReconcileManagedPolicyHandlerTest extends TestCase
         $handler = new ReconcileManagedPolicyHandler(
             $permissions,
             $roles,
-            new InMemoryUserRepository($unitOfWork),
+            new ManagedPolicyPlanner(
+                $permissions,
+                $roles,
+                new InMemoryUserRepository($unitOfWork)
+            ),
             $unitOfWork,
             $events,
             new FixedClock(new DateTimeImmutable('2026-08-23T12:00:00+00:00'))
@@ -556,7 +564,11 @@ final class ReconcileManagedPolicyHandlerTest extends TestCase
             $handler = new ReconcileManagedPolicyHandler(
                 $permissionRepository,
                 $roleRepository,
-                new InMemoryUserRepository(),
+                new ManagedPolicyPlanner(
+                    $permissionRepository,
+                    $roleRepository,
+                    new InMemoryUserRepository()
+                ),
                 new InMemoryUnitOfWork(),
                 $events,
                 new FixedClock($occurredAt)
@@ -606,7 +618,11 @@ final class ReconcileManagedPolicyHandlerTest extends TestCase
         $handler = new ReconcileManagedPolicyHandler(
             $permissions,
             $roles,
-            new InMemoryUserRepository($unitOfWork),
+            new ManagedPolicyPlanner(
+                $permissions,
+                $roles,
+                new InMemoryUserRepository($unitOfWork)
+            ),
             $unitOfWork,
             $events,
             new FixedClock(new DateTimeImmutable('2026-08-23T12:00:00+00:00'))

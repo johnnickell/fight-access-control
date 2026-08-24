@@ -29,7 +29,7 @@ final readonly class RenameCustomRoleHandler implements CommandHandler
     public function __construct(
         private RoleRepository $roleRepository,
         private RoleAdministrationAuthorization $roleAdministrationAuthorization,
-        private Clock $roleClock,
+        private Clock $clock,
         private UnitOfWork $unitOfWork,
         private EventDispatcher $eventDispatcher
     ) {
@@ -61,7 +61,7 @@ final readonly class RenameCustomRoleHandler implements CommandHandler
                     throw new CustomRoleException('The custom role name is already in use.');
                 }
 
-                $renamedAt = $this->roleClock->now();
+                $renamedAt = $this->clock->now();
                 $replacement = $role->renameCustom($command->getName(), $renamedAt);
                 if (!$this->roleRepository->replace($role, $replacement)) {
                     throw new CustomRoleException('The custom role changed concurrently.');

@@ -29,7 +29,7 @@ final readonly class CreateCustomRoleHandler implements CommandHandler
     public function __construct(
         private RoleRepository $roleRepository,
         private RoleAdministrationAuthorization $roleAdministrationAuthorization,
-        private Clock $roleClock,
+        private Clock $clock,
         private UnitOfWork $unitOfWork,
         private EventDispatcher $eventDispatcher
     ) {
@@ -58,7 +58,7 @@ final readonly class CreateCustomRoleHandler implements CommandHandler
                     throw new CustomRoleException('The custom role identifier or name is already in use.');
                 }
 
-                $createdAt = $this->roleClock->now();
+                $createdAt = $this->clock->now();
                 $role = Role::define($command->getRoleId(), $command->getName(), [], $createdAt);
                 $this->roleRepository->add($role);
 

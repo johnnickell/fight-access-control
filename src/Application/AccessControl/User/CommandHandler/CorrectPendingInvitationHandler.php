@@ -42,7 +42,7 @@ final readonly class CorrectPendingInvitationHandler implements CommandHandler
         private UnitOfWork $unitOfWork,
         private ActivationCredentialGenerator $activationCredentialGenerator,
         private InvitationDeliveryCipher $invitationDeliveryCipher,
-        private Clock $invitationClock,
+        private Clock $clock,
         private EventDispatcher $eventDispatcher
     ) {
     }
@@ -84,12 +84,12 @@ final readonly class CorrectPendingInvitationHandler implements CommandHandler
                 }
 
                 $replacementUser = clone $user;
-                $replacementUser->correctPendingInvitationEmail($command->getEmail(), $this->invitationClock->now());
+                $replacementUser->correctPendingInvitationEmail($command->getEmail(), $this->clock->now());
                 if (!$this->userRepository->replacePendingInvitationEmail($user, $replacementUser)) {
                     throw new LogicException('The pending invitation email changed concurrently or is reserved.');
                 }
 
-                $issuedAt = $this->invitationClock->now();
+                $issuedAt = $this->clock->now();
                 $credential = $this->activationCredentialGenerator->generate();
                 $revokedPredecessor = $predecessor->revoke($issuedAt);
                 $successor = ActivationGrant::issue(

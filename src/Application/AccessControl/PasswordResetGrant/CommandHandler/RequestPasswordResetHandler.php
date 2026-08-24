@@ -42,7 +42,7 @@ final readonly class RequestPasswordResetHandler implements CommandHandler
         private UnitOfWork $unitOfWork,
         private PasswordResetCredentialGenerator $passwordResetCredentialGenerator,
         private PasswordResetDeliveryCipher $passwordResetDeliveryCipher,
-        private Clock $passwordResetClock,
+        private Clock $clock,
         private EventDispatcher $eventDispatcher
     ) {
     }
@@ -72,7 +72,7 @@ final readonly class RequestPasswordResetHandler implements CommandHandler
                     return null;
                 }
 
-                $issuedAt = $this->passwordResetClock->now();
+                $issuedAt = $this->clock->now();
                 $predecessorGrant = $this->passwordResetGrantRepository->getLatestByUserId($user->getId());
                 $credential = $this->passwordResetCredentialGenerator->generate();
                 $expiresAt = $issuedAt->add(new DateInterval(self::GRANT_LIFETIME));

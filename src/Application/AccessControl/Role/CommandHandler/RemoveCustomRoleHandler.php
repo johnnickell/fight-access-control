@@ -31,7 +31,7 @@ final readonly class RemoveCustomRoleHandler implements CommandHandler
         private RoleRepository $roleRepository,
         private UserRepository $userRepository,
         private RoleAdministrationAuthorization $roleAdministrationAuthorization,
-        private Clock $roleClock,
+        private Clock $clock,
         private UnitOfWork $unitOfWork,
         private EventDispatcher $eventDispatcher
     ) {
@@ -63,7 +63,7 @@ final readonly class RemoveCustomRoleHandler implements CommandHandler
                     throw new CustomRoleException('The custom role remains assigned to a user.');
                 }
 
-                $removedAt = $this->roleClock->now();
+                $removedAt = $this->clock->now();
                 if (!$this->roleRepository->remove($role)) {
                     throw new CustomRoleException('The custom role changed or became assigned concurrently.');
                 }

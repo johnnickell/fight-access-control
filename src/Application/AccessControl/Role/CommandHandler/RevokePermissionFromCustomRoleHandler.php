@@ -32,7 +32,7 @@ final readonly class RevokePermissionFromCustomRoleHandler implements CommandHan
         private RoleRepository $roleRepository,
         private PermissionRepository $permissionRepository,
         private RoleAdministrationAuthorization $roleAdministrationAuthorization,
-        private Clock $roleClock,
+        private Clock $clock,
         private UnitOfWork $unitOfWork,
         private EventDispatcher $eventDispatcher
     ) {
@@ -64,7 +64,7 @@ final readonly class RevokePermissionFromCustomRoleHandler implements CommandHan
                         throw new CustomRoleException('The permission does not exist.');
                     }
 
-                    $revokedAt = $this->roleClock->now();
+                    $revokedAt = $this->clock->now();
                     $replacement = $role->revokePermissionFromCustom($command->getPermissionId(), $revokedAt);
                     if (!$this->roleRepository->replace($role, $replacement)) {
                         throw new CustomRoleException('The custom role changed concurrently.');

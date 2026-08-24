@@ -105,9 +105,11 @@ final class PreviewManagedPolicyHandlerTest extends TestCase
             ]
         );
         $handler = new PreviewManagedPolicyHandler(
-            $permissionRepository,
-            $roleRepository,
-            new InMemoryUserRepository()
+            new ManagedPolicyPlanner(
+                $permissionRepository,
+                $roleRepository,
+                new InMemoryUserRepository()
+            )
         );
 
         $plan = $handler->handle(QueryMessage::create($query));
@@ -145,7 +147,7 @@ final class PreviewManagedPolicyHandlerTest extends TestCase
         self::assertSame(2, $permissionRepository->getAll(new Pagination())->totalRecords());
         self::assertSame(2, $roleRepository->getAll(new Pagination())->totalRecords());
         self::assertSame(
-            ['permissionRepository', 'roleRepository', 'userRepository'],
+            ['managedPolicyPlanner'],
             array_map(
                 static fn(ReflectionProperty $property): string => $property->getName(),
                 new ReflectionClass($handler)->getProperties()
@@ -274,9 +276,11 @@ final class PreviewManagedPolicyHandlerTest extends TestCase
             new DateTimeImmutable('2026-08-01T00:00:00+00:00')
         ));
         $handler = new PreviewManagedPolicyHandler(
-            $permissionRepository,
-            $roleRepository,
-            new InMemoryUserRepository()
+            new ManagedPolicyPlanner(
+                $permissionRepository,
+                $roleRepository,
+                new InMemoryUserRepository()
+            )
         );
 
         try {

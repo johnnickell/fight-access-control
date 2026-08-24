@@ -39,7 +39,7 @@ final readonly class RestoreUserHandler implements CommandHandler
         private ActivationGrantRepository $activationGrantRepository,
         private ActivationCredentialGenerator $activationCredentialGenerator,
         private InvitationDeliveryCipher $invitationDeliveryCipher,
-        private Clock $invitationClock,
+        private Clock $clock,
         private AuditEvidenceRepository $auditEvidenceRepository,
         private UnitOfWork $unitOfWork,
         private EventDispatcher $eventDispatcher
@@ -69,7 +69,7 @@ final readonly class RestoreUserHandler implements CommandHandler
                     throw new UserLifecycleException('The user cannot be restored.');
                 }
 
-                $now = $this->invitationClock->now();
+                $now = $this->clock->now();
                 $replacementUser = clone $user;
                 $replacementUser->restore($command->getRestorationState(), $now);
                 if (!$this->userRepository->replaceLifecycleState($user, $replacementUser)) {
@@ -78,7 +78,7 @@ final readonly class RestoreUserHandler implements CommandHandler
 
                 $activationDeliveryId = null;
                 if ($command->getRestorationState() === UserState::PENDING_ACTIVATION) {
-                    $issuedAt = $this->invitationClock->now();
+                    $issuedAt = $this->clock->now();
                     $credential = $this->activationCredentialGenerator->generate();
                     $successor = ActivationGrant::issue(
                         $command->getUserId(),

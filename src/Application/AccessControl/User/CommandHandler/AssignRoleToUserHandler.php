@@ -32,7 +32,7 @@ final readonly class AssignRoleToUserHandler implements CommandHandler
         private UserRepository $userRepository,
         private RoleRepository $roleRepository,
         private UserRoleAssignmentAdministrationAuthorization $userRoleAssignmentAdministrationAuthorization,
-        private Clock $userRoleAssignmentClock,
+        private Clock $clock,
         private UnitOfWork $unitOfWork,
         private EventDispatcher $eventDispatcher
     ) {
@@ -65,7 +65,7 @@ final readonly class AssignRoleToUserHandler implements CommandHandler
                     throw new UserRoleAssignmentException('The role does not exist.');
                 }
 
-                $assignedAt = $this->userRoleAssignmentClock->now();
+                $assignedAt = $this->clock->now();
                 $replacement = clone $user;
                 $replacement->assignRole($command->getRoleId(), $assignedAt);
                 if (!$this->userRepository->replaceRoleAssignments($user, $replacement)) {

@@ -38,7 +38,7 @@ final readonly class ResendInvitationDeliveryHandler implements CommandHandler
         private UnitOfWork $unitOfWork,
         private ActivationCredentialGenerator $activationCredentialGenerator,
         private InvitationDeliveryCipher $invitationDeliveryCipher,
-        private Clock $invitationClock,
+        private Clock $clock,
         private EventDispatcher $eventDispatcher
     ) {
     }
@@ -60,7 +60,7 @@ final readonly class ResendInvitationDeliveryHandler implements CommandHandler
         $command = $commandMessage->payload();
 
         try {
-            $issuedAt = $this->invitationClock->now();
+            $issuedAt = $this->clock->now();
             $activationDeliveryId = $this->unitOfWork->commitTransactional(function () use (
                 $command,
                 $issuedAt

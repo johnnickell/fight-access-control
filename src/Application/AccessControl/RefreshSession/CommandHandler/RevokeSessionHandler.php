@@ -36,7 +36,7 @@ final readonly class RevokeSessionHandler implements CommandHandler
      */
     public function __construct(
         private RefreshSessionRepository $refreshSessionRepository,
-        private Clock $refreshSessionClock,
+        private Clock $clock,
         private SessionAdministrationAuthorization $sessionAdministrationAuthorization,
         private AuditEvidenceRepository $auditEvidenceRepository,
         private UnitOfWork $unitOfWork,
@@ -63,7 +63,7 @@ final readonly class RevokeSessionHandler implements CommandHandler
         try {
             /** @var array{UserId, UserId, RefreshSessionId, DateTimeImmutable} $outcome */
             $outcome = $this->unitOfWork->commitTransactional(function () use ($command): array {
-                $revokedAt = $this->refreshSessionClock->now();
+                $revokedAt = $this->clock->now();
                 $refreshSession = $this->refreshSessionRepository->getById($command->getTargetSessionId());
                 if (!$refreshSession instanceof RefreshSession || !$refreshSession->isUsableAt($revokedAt)) {
                     throw new RefreshSessionNotFoundException('The refresh session is not authoritative.');

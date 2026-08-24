@@ -15,7 +15,6 @@ use Fight\AccessControl\Domain\AccessControl\Permission\Query\ManagedPolicyChang
 use Fight\AccessControl\Domain\AccessControl\Permission\Query\ManagedPolicyPlan;
 use Fight\AccessControl\Domain\AccessControl\Role\Role;
 use Fight\AccessControl\Domain\AccessControl\Role\RoleRepository;
-use Fight\AccessControl\Domain\AccessControl\User\UserRepository;
 use Fight\Common\Application\Messaging\Command\CommandHandler;
 use Fight\Common\Application\Messaging\Event\EventDispatcher;
 use Fight\Common\Application\Repository\UnitOfWork;
@@ -35,7 +34,7 @@ final readonly class ReconcileManagedPolicyHandler implements CommandHandler
     public function __construct(
         private PermissionRepository $permissionRepository,
         private RoleRepository $roleRepository,
-        private UserRepository $userRepository,
+        private ManagedPolicyPlanner $managedPolicyPlanner,
         private UnitOfWork $unitOfWork,
         private EventDispatcher $eventDispatcher,
         private Clock $clock
@@ -56,11 +55,7 @@ final readonly class ReconcileManagedPolicyHandler implements CommandHandler
 
         try {
             $event = $this->unitOfWork->commitTransactional(function () use ($command): ManagedPolicyReconciled {
-                $plan = new ManagedPolicyPlanner(
-                    $this->permissionRepository,
-                    $this->roleRepository,
-                    $this->userRepository
-                )->plan(
+                $plan = $this->managedPolicyPlanner->plan(
                     $command->getPermissions(),
                     $command->getRoles(),
                     $command->getReferencedPermissionIds()
