@@ -9,11 +9,13 @@ use Fight\AccessControl\Application\AccessControl\User\QueryHandler\ListUsersHan
 use Fight\AccessControl\Domain\AccessControl\Role\RoleId;
 use Fight\AccessControl\Domain\AccessControl\User\Query\ListUsers;
 use Fight\AccessControl\Domain\AccessControl\User\Query\UserView;
+use Fight\AccessControl\Domain\AccessControl\User\UserId;
 use Fight\AccessControl\Domain\AccessControl\User\UserState;
 use Fight\Common\Domain\Exception\DomainException;
 use Fight\Common\Domain\Messaging\Query\QueryMessage;
 use Fight\Common\Domain\Repository\Pagination;
 use Fight\Common\Domain\Repository\ResultSet;
+use Fight\Common\Domain\Type\Arrayable;
 use Fight\Test\AccessControl\Application\AccessControl\User\Repository\InMemoryUserRepository;
 use Fight\Test\AccessControl\Domain\AccessControl\User\UserFixture;
 use PHPUnit\Framework\Attributes\CoversClass;
@@ -29,8 +31,15 @@ final class ListUsersHandlerTest extends TestCase
     public function test_that_it_returns_a_typed_page_of_safe_user_views(): void
     {
         $users = new InMemoryUserRepository();
-        $roleId = RoleId::generate();
-        $active = UserFixture::withRoleAssignments([$roleId], 1);
+        $roleId = RoleId::fromString('018f0000-0000-7000-8000-000000000002');
+        $active = UserFixture::withIdAndAuthenticationVersion(
+            UserId::fromString('018f0000-0000-7000-8000-000000000001'),
+            'active@example.test',
+            UserState::ACTIVE,
+            1
+        );
+        $active->assignRole($roleId, new DateTimeImmutable('2026-01-01T00:00:00+00:00'));
+
         $disabled = UserFixture::withState('disabled@example.test', UserState::DISABLED);
         $users->add($active);
         $users->add($disabled);
@@ -58,6 +67,18 @@ final class ListUsersHandlerTest extends TestCase
         self::assertSame($disabled->getId(), $views->get(1)->getUserId());
         self::assertSame(UserState::DISABLED, $views->get(1)->getState());
         self::assertSame([], $views->get(1)->getRoleIds());
+        self::assertInstanceOf(Arrayable::class, $views->get(0));
+        self::assertSame(
+            [
+                'user_id' => '018f0000-0000-7000-8000-000000000001',
+                'email' => 'active@example.test',
+                'state' => 'active',
+                'role_ids' => ['018f0000-0000-7000-8000-000000000002'],
+                'created_at' => '2026-01-01T00:00:00+00:00',
+                'updated_at' => '2026-01-01T00:00:00+00:00',
+            ],
+            $views->get(0)->toArray()
+        );
 
         $properties = array_map(
             static fn(ReflectionProperty $property): string => $property->getName(),

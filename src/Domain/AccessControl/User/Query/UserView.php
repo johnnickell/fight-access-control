@@ -9,12 +9,13 @@ use Fight\AccessControl\Domain\AccessControl\Role\RoleId;
 use Fight\AccessControl\Domain\AccessControl\User\User;
 use Fight\AccessControl\Domain\AccessControl\User\UserId;
 use Fight\AccessControl\Domain\AccessControl\User\UserState;
+use Fight\Common\Domain\Type\Arrayable;
 use Fight\Common\Domain\Value\Internet\EmailAddress;
 
 /**
  * Provides a safe immutable view of a user identity.
  */
-final readonly class UserView
+final readonly class UserView implements Arrayable
 {
     /**
      * Constructs the safe user view.
@@ -95,5 +96,32 @@ final readonly class UserView
     public function getUpdatedAt(): DateTimeImmutable
     {
         return $this->updatedAt;
+    }
+
+    /**
+     * Returns the canonical safe array representation.
+     *
+     * @return array{
+     *     user_id: string,
+     *     email: string,
+     *     state: string,
+     *     role_ids: list<string>,
+     *     created_at: string,
+     *     updated_at: string
+     * }
+     */
+    public function toArray(): array
+    {
+        return [
+            'user_id' => $this->userId->toString(),
+            'email' => $this->email->toString(),
+            'state' => $this->state->value,
+            'role_ids' => array_map(
+                static fn(RoleId $roleId): string => $roleId->toString(),
+                $this->roleIds
+            ),
+            'created_at' => $this->createdAt->format(DATE_ATOM),
+            'updated_at' => $this->updatedAt->format(DATE_ATOM),
+        ];
     }
 }

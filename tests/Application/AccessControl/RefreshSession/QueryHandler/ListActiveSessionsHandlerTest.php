@@ -17,6 +17,7 @@ use Fight\Common\Domain\Exception\DomainException;
 use Fight\Common\Domain\Messaging\Query\QueryMessage;
 use Fight\Common\Domain\Repository\Pagination;
 use Fight\Common\Domain\Repository\ResultSet;
+use Fight\Common\Domain\Type\Arrayable;
 use Fight\Test\AccessControl\Application\AccessControl\RefreshSession\Repository\InMemoryRefreshSessionRepository;
 use Fight\Test\AccessControl\Application\AccessControl\RefreshSession\Service\FixedSessionAdministrationAuthorization;
 use Fight\Test\AccessControl\Application\AccessControl\Timing\Service\FixedClock;
@@ -107,6 +108,20 @@ final class ListActiveSessionsHandlerTest extends TestCase
         self::assertSame($otherSessionId, $views[1]->getSessionId());
         self::assertTrue($views[1]->isRemembered());
         self::assertFalse($views[1]->isCurrent());
+        self::assertInstanceOf(Arrayable::class, $views[0]);
+        self::assertSame(
+            [
+                'session_id' => '018f0000-0000-7000-8000-000000000002',
+                'user_id' => '018f0000-0000-7000-8000-000000000001',
+                'created_at' => '2026-08-19T08:00:00+00:00',
+                'last_activity_at' => '2026-08-19T08:00:00+00:00',
+                'idle_expires_at' => '2026-08-21T08:00:00+00:00',
+                'absolute_expires_at' => '2026-08-22T08:00:00+00:00',
+                'remembered' => false,
+                'current' => true,
+            ],
+            $views[0]->toArray()
+        );
         self::assertSame(0, $authorization->calls());
         self::assertSame(
             [

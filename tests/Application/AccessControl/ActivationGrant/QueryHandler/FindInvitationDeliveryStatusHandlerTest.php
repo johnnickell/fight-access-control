@@ -14,6 +14,7 @@ use Fight\AccessControl\Domain\AccessControl\ActivationGrant\Query\InvitationDel
 use Fight\AccessControl\Domain\AccessControl\User\UserId;
 use Fight\Common\Domain\Exception\DomainException;
 use Fight\Common\Domain\Messaging\Query\QueryMessage;
+use Fight\Common\Domain\Type\Arrayable;
 use Fight\Common\Domain\Value\Internet\EmailAddress;
 use Fight\Test\AccessControl\Application\AccessControl\ActivationGrant\Repository\InMemoryActivationGrantRepository;
 use PHPUnit\Framework\Attributes\CoversClass;
@@ -26,7 +27,7 @@ final class FindInvitationDeliveryStatusHandlerTest extends TestCase
 {
     public function test_that_it_returns_a_safe_status_view_without_credential_material(): void
     {
-        $userId = UserId::generate();
+        $userId = UserId::fromString('018f0000-0000-7000-8000-000000000001');
         $repository = new InMemoryActivationGrantRepository();
         $repository->add(ActivationGrant::issue(
             $userId,
@@ -46,6 +47,15 @@ final class FindInvitationDeliveryStatusHandlerTest extends TestCase
         self::assertSame(ActivationDeliveryStatus::PENDING, $view->getStatus());
         self::assertSame('2026-08-25T12:00:00+00:00', $view->getExpiresAt()->format(DATE_ATOM));
         self::assertArrayNotHasKey('ciphertext', get_object_vars($view));
+        self::assertInstanceOf(Arrayable::class, $view);
+        self::assertSame(
+            [
+                'user_id' => '018f0000-0000-7000-8000-000000000001',
+                'status' => 'pending',
+                'expires_at' => '2026-08-25T12:00:00+00:00',
+            ],
+            $view->toArray()
+        );
     }
 
     public function test_that_the_query_round_trips_and_rejects_missing_user_id(): void

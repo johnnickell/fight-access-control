@@ -25,6 +25,7 @@ use Fight\AccessControl\Domain\AccessControl\Role\RoleId;
 use Fight\AccessControl\Domain\AccessControl\Role\RoleName;
 use Fight\Common\Domain\Messaging\Query\QueryMessage;
 use Fight\Common\Domain\Repository\Pagination;
+use Fight\Common\Domain\Type\Arrayable;
 use Fight\Test\AccessControl\Application\AccessControl\Permission\Repository\InMemoryPermissionRepository;
 use Fight\Test\AccessControl\Application\AccessControl\Role\Repository\InMemoryRoleRepository;
 use Fight\Test\AccessControl\Application\AccessControl\User\Repository\InMemoryAuthorizationReferenceState;
@@ -147,6 +148,7 @@ final class PreviewManagedPolicyHandlerTest extends TestCase
         );
         self::assertSame(2, $permissionRepository->getAll(new Pagination())->totalRecords());
         self::assertSame(2, $roleRepository->getAll(new Pagination())->totalRecords());
+        self::assertInstanceOf(Arrayable::class, $plan);
         self::assertSame(
             ['managedPolicyPlanner'],
             array_map(
