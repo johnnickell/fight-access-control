@@ -87,7 +87,7 @@ final class PlanningAuthorityTest extends TestCase
         $triage = $this->read('planning/agents/triage-labels.md');
         $tickets = $this->read('planning/tickets/README.md');
         $board = $this->read('planning/tickets/BOARD.md');
-        $frontier = $this->read('planning/tickets/T-00001-invite-pending-user.md');
+        $frontier = $this->read('planning/tickets/T-00017-complete-administrative-reads.md');
 
         self::assertStringContainsString('ready-for-agent', $tracker);
         self::assertStringContainsString('blocked_by', $tracker);
@@ -95,10 +95,10 @@ final class PlanningAuthorityTest extends TestCase
         self::assertStringContainsString('ready-for-human', $triage);
         self::assertStringContainsString('Each ticket belongs to', $tickets);
         self::assertStringContainsString('Ready Frontier', $board);
-        self::assertStringContainsString('T-00002', $board);
-        self::assertStringContainsString('T-00003', $board);
-        self::assertStringContainsString('id: T-00001', $frontier);
-        self::assertStringContainsString('status: done', $frontier);
+        self::assertStringContainsString('T-00017', $board);
+        self::assertStringContainsString('T-00018', $board);
+        self::assertStringContainsString('id: T-00017', $frontier);
+        self::assertStringContainsString('status: ready-for-agent', $frontier);
         self::assertStringContainsString('blocked_by: []', $frontier);
     }
 
@@ -108,7 +108,7 @@ final class PlanningAuthorityTest extends TestCase
         $process->run();
 
         self::assertSame(0, $process->getExitCode(), $process->getErrorOutput().$process->getOutput());
-        self::assertStringContainsString('Planning validation passed: 17 records, 2 active', $process->getOutput());
+        self::assertStringContainsString('Planning validation passed: 19 records, 4 active', $process->getOutput());
     }
 
     protected function setUp(): void
