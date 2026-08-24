@@ -6,6 +6,7 @@ namespace Fight\AccessControl\Domain\AccessControl\User;
 
 use Exception;
 use Fight\AccessControl\Domain\AccessControl\RefreshSession\RefreshSession;
+use Fight\AccessControl\Domain\AccessControl\Role\RoleId;
 use Fight\Common\Domain\Repository\Pagination;
 use Fight\Common\Domain\Repository\ResultSet;
 use Fight\Common\Domain\Value\Internet\EmailAddress;
@@ -15,6 +16,13 @@ use Fight\Common\Domain\Value\Internet\EmailAddress;
  */
 interface UserRepository
 {
+    /**
+     * Determines whether any user currently references the role.
+     *
+     * @throws Exception When an error occurs
+     */
+    public function hasRoleAssignment(RoleId $roleId): bool;
+
     /**
      * Retrieves a user by its canonical email address.
      *
@@ -66,8 +74,10 @@ interface UserRepository
      * Atomically replaces role assignments while the expected predecessor remains current.
      *
      * Implementations compare all User state, reject replacement changes outside role assignments, and require the
-     * authorization-assignment revision to advance by exactly one. Returns false when the expected predecessor has
-     * lost authority or the replacement is invalid.
+     * authorization-assignment revision to advance by exactly one. Every replacement RoleId must remain authoritative
+     * through the enclosing Unit of Work. Validation and mutation occur under one adapter-owned role-reference fence
+     * shared with RoleRepository::remove(). Returns false when the predecessor or a Role loses authority, or when the
+     * replacement is invalid.
      *
      * @throws Exception When an error occurs
      */

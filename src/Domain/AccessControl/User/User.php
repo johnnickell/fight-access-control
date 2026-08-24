@@ -14,6 +14,7 @@ use Fight\AccessControl\Domain\AccessControl\User\Exception\PendingInvitationCor
 use Fight\AccessControl\Domain\AccessControl\User\Exception\UserLifecycleException;
 use Fight\AccessControl\Domain\AccessControl\User\Exception\UserNotActiveException;
 use Fight\AccessControl\Domain\AccessControl\User\Exception\UserNotPendingActivationException;
+use Fight\AccessControl\Domain\AccessControl\User\Exception\UserRoleAssignmentException;
 use Fight\Common\Domain\Collection\HashSet;
 use Fight\Common\Domain\Value\Internet\EmailAddress;
 
@@ -306,6 +307,38 @@ class User
     public function hasRole(RoleId $roleId): bool
     {
         return $this->roleIds->contains($roleId);
+    }
+
+    /**
+     * Assigns one role and advances assignment authority exactly once.
+     *
+     * @throws UserRoleAssignmentException When the role is already assigned.
+     */
+    public function assignRole(RoleId $roleId, DateTimeImmutable $now): void
+    {
+        if ($this->hasRole($roleId)) {
+            throw new UserRoleAssignmentException('The role is already assigned to the user.');
+        }
+
+        $this->roleIds->add($roleId);
+        ++$this->authorizationAssignmentRevision;
+        $this->updatedAt = $now;
+    }
+
+    /**
+     * Removes one role and advances assignment authority exactly once.
+     *
+     * @throws UserRoleAssignmentException When the role is not assigned.
+     */
+    public function removeRole(RoleId $roleId, DateTimeImmutable $now): void
+    {
+        if (!$this->hasRole($roleId)) {
+            throw new UserRoleAssignmentException('The role is not assigned to the user.');
+        }
+
+        $this->roleIds->remove($roleId);
+        ++$this->authorizationAssignmentRevision;
+        $this->updatedAt = $now;
     }
 
     /**

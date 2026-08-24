@@ -6,6 +6,8 @@ namespace Fight\AccessControl\Domain\AccessControl\Role;
 
 use DateTimeImmutable;
 use Fight\AccessControl\Domain\AccessControl\Permission\PermissionId;
+use Fight\AccessControl\Domain\AccessControl\Role\Exception\CustomRoleException;
+use Fight\AccessControl\Domain\AccessControl\Role\Exception\ManagedRoleDefinitionException;
 use Fight\Common\Domain\Collection\HashSet;
 
 /**
@@ -27,6 +29,7 @@ class Role
         private readonly RoleId $id,
         private readonly RoleName $name,
         array $permissionIds,
+        private readonly bool $managed,
         private readonly DateTimeImmutable $createdAt,
         private readonly DateTimeImmutable $updatedAt
     ) {
@@ -48,7 +51,95 @@ class Role
         array $permissionIds,
         DateTimeImmutable $createdAt
     ): static {
-        return new static($id, $name, $permissionIds, $createdAt, $createdAt);
+        return new static($id, $name, $permissionIds, false, $createdAt, $createdAt);
+    }
+
+    /**
+     * Defines a version-controlled managed role.
+     *
+     * @phpstan-param list<PermissionId> $permissionIds
+     */
+    public static function defineManaged(
+        RoleId $id,
+        RoleName $name,
+        array $permissionIds,
+        DateTimeImmutable $createdAt
+    ): static {
+        return new static($id, $name, $permissionIds, true, $createdAt, $createdAt);
+    }
+
+    /**
+     * Reconciles the exact version-controlled role definition.
+     *
+     * @phpstan-param list<PermissionId> $permissionIds
+     */
+    public function reconcileManaged(
+        RoleName $name,
+        array $permissionIds,
+        DateTimeImmutable $updatedAt
+    ): static {
+        if (!$this->managed) {
+            throw new ManagedRoleDefinitionException(
+                'A custom role cannot be claimed by managed policy.'
+            );
+        }
+
+        return new static($this->id, $name, $permissionIds, true, $this->createdAt, $updatedAt);
+    }
+
+    /**
+     * Renames a runtime-owned custom role.
+     */
+    public function renameCustom(RoleName $name, DateTimeImmutable $updatedAt): static
+    {
+        if ($this->managed) {
+            throw new CustomRoleException('A managed role cannot be renamed at runtime.');
+        }
+
+        return new static(
+            $this->id,
+            $name,
+            $this->permissionIds->toArray(),
+            false,
+            $this->createdAt,
+            $updatedAt
+        );
+    }
+
+    /**
+     * Grants an existing permission to a runtime-owned custom role.
+     */
+    public function grantPermissionToCustom(PermissionId $permissionId, DateTimeImmutable $updatedAt): static
+    {
+        $this->assertCustom();
+
+        if ($this->permissionIds->contains($permissionId)) {
+            throw new CustomRoleException('The custom role already contains the permission.');
+        }
+
+        $permissionIds = $this->permissionIds->toArray();
+        $permissionIds[] = $permissionId;
+
+        return new static($this->id, $this->name, $permissionIds, false, $this->createdAt, $updatedAt);
+    }
+
+    /**
+     * Revokes an existing permission from a runtime-owned custom role.
+     */
+    public function revokePermissionFromCustom(PermissionId $permissionId, DateTimeImmutable $updatedAt): static
+    {
+        $this->assertCustom();
+
+        if (!$this->permissionIds->contains($permissionId)) {
+            throw new CustomRoleException('The custom role does not contain the permission.');
+        }
+
+        $permissionIds = array_values(array_filter(
+            $this->permissionIds->toArray(),
+            static fn(PermissionId $candidate): bool => !$candidate->equals($permissionId)
+        ));
+
+        return new static($this->id, $this->name, $permissionIds, false, $this->createdAt, $updatedAt);
     }
 
     /**
@@ -99,5 +190,23 @@ class Role
     public function hasPermission(PermissionId $permissionId): bool
     {
         return $this->permissionIds->contains($permissionId);
+    }
+
+    /**
+     * Returns whether version-controlled policy owns this role.
+     */
+    public function isManaged(): bool
+    {
+        return $this->managed;
+    }
+
+    /**
+     * Rejects runtime mutation of a managed role.
+     */
+    public function assertCustom(): void
+    {
+        if ($this->managed) {
+            throw new CustomRoleException('A managed role cannot be mutated at runtime.');
+        }
     }
 }

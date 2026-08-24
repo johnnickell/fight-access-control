@@ -36,6 +36,7 @@ use Fight\AccessControl\Domain\AccessControl\RefreshSession\RefreshCredential;
 use Fight\AccessControl\Domain\AccessControl\RefreshSession\RefreshSession;
 use Fight\AccessControl\Domain\AccessControl\RefreshSession\RefreshSessionId;
 use Fight\AccessControl\Domain\AccessControl\RefreshSession\RefreshSessionRepository;
+use Fight\AccessControl\Domain\AccessControl\Role\RoleId;
 use Fight\AccessControl\Domain\AccessControl\User\Event\EmailChangeConfirmed;
 use Fight\AccessControl\Domain\AccessControl\User\Event\PasswordChanged;
 use Fight\AccessControl\Domain\AccessControl\User\Event\PasswordResetCompleted;
@@ -1487,6 +1488,11 @@ final class AuthenticationServiceTest extends TestCase
                 private User $loginReadSnapshot,
                 private InMemoryUserRepository $users
             ) {
+            }
+
+            public function hasRoleAssignment(RoleId $roleId): bool
+            {
+                return $this->users->hasRoleAssignment($roleId);
             }
 
             public function getByEmail(EmailAddress $email): ?User

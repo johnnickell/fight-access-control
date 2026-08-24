@@ -20,6 +20,7 @@ use Fight\Common\Domain\Value\Internet\EmailAddress;
 use Fight\Test\AccessControl\Application\AccessControl\RefreshSession\Repository\InMemoryRefreshSessionRepository;
 use Fight\Test\AccessControl\Application\AccessControl\User\InMemoryUnitOfWork;
 use stdClass;
+use Throwable;
 
 final class InMemoryUserRepository implements UserRepository
 {
@@ -28,6 +29,8 @@ final class InMemoryUserRepository implements UserRepository
     private ?InMemoryRefreshSessionRepository $refreshSessionRepository = null;
 
     private readonly object $authenticationAuthorityFenceOwner;
+
+    private readonly InMemoryAuthorizationReferenceState $authorizationReferences;
 
     /** @var array<string, true> */
     private array $registeredAuthenticationAuthorityFenceReleases = [];
@@ -41,10 +44,24 @@ final class InMemoryUserRepository implements UserRepository
         private readonly bool $replaceEmailChangeReservationSucceeds = true,
         private readonly bool $replacePendingInvitationEmailSucceeds = true,
         private readonly bool $replaceEmailChangeConfirmationSucceeds = true,
-        private readonly bool $replaceLifecycleStateSucceeds = true
+        private readonly bool $replaceLifecycleStateSucceeds = true,
+        private readonly bool $replaceRoleAssignmentsSucceeds = true,
+        private readonly ?Throwable $getByIdFailure = null,
+        private readonly ?Closure $beforeHasRoleAssignment = null,
+        ?InMemoryAuthorizationReferenceState $authorizationReferences = null,
+        private readonly ?Closure $beforeReplaceRoleAssignments = null
     ) {
         $this->state = $state ?? new InMemoryUserRepositoryState();
         $this->authenticationAuthorityFenceOwner = new stdClass();
+        $resolvedAuthorizationReferences = $authorizationReferences ?? new InMemoryAuthorizationReferenceState();
+        if (
+            $unitOfWork instanceof InMemoryUnitOfWork
+            && !$authorizationReferences instanceof InMemoryAuthorizationReferenceState
+        ) {
+            $resolvedAuthorizationReferences = $unitOfWork->authorizationReferenceState();
+        }
+
+        $this->authorizationReferences = $resolvedAuthorizationReferences;
     }
 
     public function add(User $user): void
@@ -62,13 +79,32 @@ final class InMemoryUserRepository implements UserRepository
         }
 
         $this->state->users[] = $user;
-        $this->unitOfWork?->onRollback(function (): void {
+        $this->authorizationReferences->retainUser($user);
+        $this->unitOfWork?->onRollback(function () use ($user): void {
             array_pop($this->state->users);
+            $this->authorizationReferences->removeUser($user);
         });
+    }
+
+    public function hasRoleAssignment(RoleId $roleId): bool
+    {
+        $controlledResult = $this->beforeHasRoleAssignment?->__invoke($roleId);
+        if (is_bool($controlledResult)) {
+            return $controlledResult;
+        }
+
+        return array_any(
+            $this->state->users,
+            static fn(User $user): bool => $user->hasRole($roleId)
+        );
     }
 
     public function getById(UserId $id): ?User
     {
+        if ($this->getByIdFailure instanceof Throwable) {
+            throw $this->getByIdFailure;
+        }
+
         foreach ($this->state->users as $user) {
             if ($user->getId()->equals($id)) {
                 return $user;
@@ -169,12 +205,26 @@ final class InMemoryUserRepository implements UserRepository
 
     public function replaceRoleAssignments(User $expected, User $replacement): bool
     {
+        $this->authorizationReferences->holdThroughCompletion();
+        $this->beforeReplaceRoleAssignments?->__invoke();
+        if (!$this->replaceRoleAssignmentsSucceeds) {
+            return false;
+        }
+
+        if (!$this->authorizationReferences->rolesAreAuthoritative($replacement->getRoleIds())) {
+            return false;
+        }
+
         $index = $this->roleAssignmentReplacementIndex($expected, $replacement);
         if ($index === null) {
             return false;
         }
 
         $this->replaceAt($index, $replacement);
+        $this->authorizationReferences->retainUser($replacement);
+        $this->unitOfWork?->onRollback(function () use ($expected): void {
+            $this->authorizationReferences->retainUser($expected);
+        });
 
         return true;
     }

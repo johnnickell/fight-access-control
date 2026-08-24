@@ -51,4 +51,20 @@ interface PermissionRepository
      * @throws Exception When an error occurs
      */
     public function getAll(Pagination $pagination): ResultSet;
+
+    /** @return list<Permission> */
+    public function getManaged(): array;
+
+    /**
+     * Replaces the expected permission when it remains current.
+     */
+    public function replace(Permission $expected, Permission $replacement): bool;
+
+    /**
+     * Atomically removes the expected Permission only when it remains current and unreferenced.
+     *
+     * Validation and mutation occur under one adapter-owned permission-reference fence held through the enclosing
+     * Unit of Work and shared with RoleRepository reference-changing writes. Returns false when changed or referenced.
+     */
+    public function remove(Permission $permission): bool;
 }

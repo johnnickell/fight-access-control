@@ -8,7 +8,9 @@ use DateTimeImmutable;
 use Fight\AccessControl\Domain\AccessControl\RefreshSession\RefreshCredential;
 use Fight\AccessControl\Domain\AccessControl\RefreshSession\RefreshSession;
 use Fight\AccessControl\Domain\AccessControl\RefreshSession\RefreshSessionId;
+use Fight\AccessControl\Domain\AccessControl\Role\Role;
 use Fight\AccessControl\Domain\AccessControl\Role\RoleId;
+use Fight\AccessControl\Domain\AccessControl\Role\RoleName;
 use Fight\AccessControl\Domain\AccessControl\User\Exception\DuplicateEmailException;
 use Fight\AccessControl\Domain\AccessControl\User\PasswordHash;
 use Fight\AccessControl\Domain\AccessControl\User\User;
@@ -16,6 +18,7 @@ use Fight\AccessControl\Domain\AccessControl\User\UserId;
 use Fight\Common\Domain\Value\Internet\EmailAddress;
 use Fight\Test\AccessControl\Application\AccessControl\RefreshSession\Repository\InMemoryRefreshSessionRepository;
 use Fight\Test\AccessControl\Application\AccessControl\RefreshSession\Repository\InMemoryRefreshSessionRepositoryState;
+use Fight\Test\AccessControl\Application\AccessControl\Role\Repository\InMemoryRoleRepository;
 use Fight\Test\AccessControl\Application\AccessControl\User\InMemoryUnitOfWork;
 use PHPUnit\Framework\Attributes\CoversNothing;
 use PHPUnit\Framework\TestCase;
@@ -261,11 +264,20 @@ final class InMemoryUserRepositoryTest extends TestCase
 
     public function test_that_only_the_expected_role_assignments_can_be_replaced(): void
     {
-        $repository = new InMemoryUserRepository();
+        $authorizationReferences = new InMemoryAuthorizationReferenceState();
+        $repository = new InMemoryUserRepository(authorizationReferences: $authorizationReferences);
+        $roles = new InMemoryRoleRepository(authorizationReferences: $authorizationReferences);
         $current = $this->activeUser();
         $repository->add($current);
+        $winnerRoleId = RoleId::generate();
+        $roles->add(Role::define(
+            $winnerRoleId,
+            RoleName::fromString('ROLE_WINNER'),
+            [],
+            new DateTimeImmutable('2026-01-01T00:00:00+00:00')
+        ));
         $winner = clone $current;
-        $winner->replaceRoleAssignments([RoleId::generate()], new DateTimeImmutable('2026-01-01T00:00:00+00:00'));
+        $winner->replaceRoleAssignments([$winnerRoleId], new DateTimeImmutable('2026-01-01T00:00:00+00:00'));
 
         $staleCandidate = clone $current;
         $staleCandidate->replaceRoleAssignments(
