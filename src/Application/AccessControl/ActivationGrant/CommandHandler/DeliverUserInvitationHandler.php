@@ -8,6 +8,7 @@ use Fight\AccessControl\Application\AccessControl\ActivationGrant\Service\Invita
 use Fight\AccessControl\Domain\AccessControl\ActivationGrant\ActivationGrant;
 use Fight\AccessControl\Domain\AccessControl\ActivationGrant\ActivationGrantRepository;
 use Fight\AccessControl\Domain\AccessControl\ActivationGrant\Command\DeliverUserInvitation;
+use Fight\AccessControl\Domain\AccessControl\ActivationGrant\Event\UserInvitationDelivered;
 use Fight\AccessControl\Domain\AccessControl\ActivationGrant\Exception\ActivationDeliveryNotRetryableException;
 use Fight\AccessControl\Domain\AccessControl\Audit\AuditEvidence;
 use Fight\AccessControl\Domain\AccessControl\Audit\AuditEvidenceRepository;
@@ -53,10 +54,10 @@ final readonly class DeliverUserInvitationHandler implements CommandHandler
 
         try {
             $deliveryFailure = null;
-            $this->unitOfWork->commitTransactional(function () use (
+            $successEvent = $this->unitOfWork->commitTransactional(function () use (
                 $command,
                 &$deliveryFailure
-            ): void {
+            ): ?UserInvitationDelivered {
                 $activationGrant = $this->activationGrantRepository->getByDeliveryId(
                     $command->getActivationDeliveryId()
                 );
@@ -98,7 +99,7 @@ final readonly class DeliverUserInvitationHandler implements CommandHandler
 
                     $deliveryFailure = $throwable;
 
-                    return;
+                    return null;
                 }
 
                 $this->auditEvidenceRepository->add(AuditEvidence::record(
@@ -112,10 +113,20 @@ final readonly class DeliverUserInvitationHandler implements CommandHandler
                         'The activation delivery generation changed concurrently.'
                     );
                 }
+
+                return new UserInvitationDelivered(
+                    $command->getActorId(),
+                    $command->getUserId(),
+                    $command->getActivationDeliveryId()
+                );
             });
 
             if ($deliveryFailure instanceof Throwable) {
                 throw $deliveryFailure;
+            }
+
+            if ($successEvent instanceof UserInvitationDelivered) {
+                $this->eventDispatcher->trigger($successEvent);
             }
         } catch (Throwable $throwable) {
             $this->eventDispatcher->trigger(new CommandFailedEvent($command, $throwable->getMessage()));

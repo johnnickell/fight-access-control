@@ -88,7 +88,7 @@ final class PlanningAuthorityTest extends TestCase
         $tickets = $this->read('planning/tickets/README.md');
         $board = $this->read('planning/tickets/BOARD.md');
         $completedTicket = $this->read('planning/tickets/T-00017-complete-administrative-reads.md');
-        $frontier = $this->read('planning/tickets/T-00018-publish-security-email-delivery-events.md');
+        $completedFrontier = $this->read('planning/tickets/T-00018-publish-security-email-delivery-events.md');
 
         self::assertStringContainsString('ready-for-agent', $tracker);
         self::assertStringContainsString('blocked_by', $tracker);
@@ -99,8 +99,8 @@ final class PlanningAuthorityTest extends TestCase
         self::assertStringContainsString('Completed', $board);
         self::assertStringContainsString('T-00018', $board);
         self::assertStringContainsString('T-00017', $board);
-        self::assertStringContainsString('id: T-00018', $frontier);
-        self::assertStringContainsString('status: ready-for-agent', $frontier);
+        self::assertStringContainsString('id: T-00018', $completedFrontier);
+        self::assertStringContainsString('status: done', $completedFrontier);
         self::assertStringContainsString('id: T-00017', $completedTicket);
         self::assertStringContainsString('status: done', $completedTicket);
         self::assertStringContainsString('blocked_by: []', $completedTicket);
@@ -112,7 +112,7 @@ final class PlanningAuthorityTest extends TestCase
         $process->run();
 
         self::assertSame(0, $process->getExitCode(), $process->getErrorOutput().$process->getOutput());
-        self::assertStringContainsString('Planning validation passed: 19 records, 3 active', $process->getOutput());
+        self::assertStringContainsString('Planning validation passed: 19 records, 2 active', $process->getOutput());
     }
 
     protected function setUp(): void

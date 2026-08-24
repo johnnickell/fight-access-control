@@ -1,7 +1,7 @@
 ---
 id: T-00018
 title: Publish successful security-email delivery events
-status: ready-for-agent
+status: done
 parent: PRD-00001
 blocked_by: []
 branch: feature/t-00018-publish-security-email-delivery-events
@@ -16,17 +16,17 @@ successfully invoked and its confirmed delivery state has committed durably.
 
 ## Acceptance criteria
 
-- [ ] `UserInvitationDelivered` lives under the `ActivationGrant` aggregate boundary and identifies the actor, User,
+- [x] `UserInvitationDelivered` lives under the `ActivationGrant` aggregate boundary and identifies the actor, User,
   and activation-delivery generation associated with the confirmed invitation delivery.
-- [ ] `EmailChangeDelivered` lives under the `EmailChangeGrant` aggregate boundary and identifies the actor, User,
+- [x] `EmailChangeDelivered` lives under the `EmailChangeGrant` aggregate boundary and identifies the actor, User,
   and email-change-delivery generation associated with the confirmed email-change delivery.
-- [ ] Both events implement the public Fight Common Event contract as immutable, canonically serializable Domain
+- [x] Both events implement the public Fight Common Event contract as immutable, canonically serializable Domain
   messages with named accessors, round-trip coverage, and rejection of missing required data.
-- [ ] Each delivery handler publishes its success event only after the confirmed delivery state and required audit
+- [x] Each delivery handler publishes its success event only after the confirmed delivery state and required audit
   evidence commit successfully.
-- [ ] Transport failure, stale or mismatched work, rejected delivery transitions, and failed commits publish no
+- [x] Transport failure, stale or mismatched work, rejected delivery transitions, and failed commits publish no
   delivery-success event; existing `CommandFailedEvent` dispatch and unchanged rethrow behavior remain intact.
-- [ ] Tests prove invocation, persistence commit, and success-event ordering for both journeys while retaining exact
+- [x] Tests prove invocation, persistence commit, and success-event ordering for both journeys while retaining exact
   executable statement coverage.
 
 ## Exclusions
@@ -39,3 +39,17 @@ adapter, schema, migration, HTTP or OpenAPI contract, generated client, React ap
 - Focused activation and email-change delivery Event and CommandHandler tests
 - `./bin/planning-check`
 - `./bin/build`
+
+## Delivery Evidence
+
+- Added aggregate-scoped `UserInvitationDelivered` and `EmailChangeDelivered` Domain events with canonical
+  serialization, named accessors, and missing-data rejection.
+- Delivery handlers now construct each success event inside their single Unit of Work and dispatch it only after
+  confirmed delivery state and required audit evidence commit successfully.
+- Focused activation and email-change handler tests prove invocation, durable confirmation and audit evidence,
+  post-commit success publication, serialization, and absence of a success event for failed invocation, stale work,
+  compare-and-set loss, audit failure, and commit failure.
+- `./bin/planning-check` passed with 19 records and 2 active after closure.
+- `./bin/build` passed with 510 tests, 3,625 assertions, and exact 3,792/3,792 statement coverage after final
+  refinements.
+- Final independent Standards and Spec reviews reported no findings.

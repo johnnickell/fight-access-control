@@ -10,6 +10,7 @@ use Fight\AccessControl\Domain\AccessControl\Audit\AuditEvidenceRepository;
 use Fight\AccessControl\Domain\AccessControl\EmailChangeGrant\Command\DeliverEmailChange;
 use Fight\AccessControl\Domain\AccessControl\EmailChangeGrant\EmailChangeGrant;
 use Fight\AccessControl\Domain\AccessControl\EmailChangeGrant\EmailChangeGrantRepository;
+use Fight\AccessControl\Domain\AccessControl\EmailChangeGrant\Event\EmailChangeDelivered;
 use Fight\AccessControl\Domain\AccessControl\EmailChangeGrant\Exception\EmailChangeDeliveryNotRetryableException;
 use Fight\Common\Application\Messaging\Command\CommandHandler;
 use Fight\Common\Application\Messaging\Event\EventDispatcher;
@@ -53,7 +54,10 @@ final readonly class DeliverEmailChangeHandler implements CommandHandler
 
         try {
             $deliveryFailure = null;
-            $this->unitOfWork->commitTransactional(function () use ($command, &$deliveryFailure): void {
+            $successEvent = $this->unitOfWork->commitTransactional(function () use (
+                $command,
+                &$deliveryFailure
+            ): ?EmailChangeDelivered {
                 $grant = $this->emailChangeGrantRepository->getByDeliveryId(
                     $command->getEmailChangeDeliveryId()
                 );
@@ -93,7 +97,7 @@ final readonly class DeliverEmailChangeHandler implements CommandHandler
 
                     $deliveryFailure = $throwable;
 
-                    return;
+                    return null;
                 }
 
                 $this->auditEvidenceRepository->add(AuditEvidence::record(
@@ -106,10 +110,20 @@ final readonly class DeliverEmailChangeHandler implements CommandHandler
                         'The email-change delivery generation changed concurrently.'
                     );
                 }
+
+                return new EmailChangeDelivered(
+                    $command->getActorId(),
+                    $command->getUserId(),
+                    $command->getEmailChangeDeliveryId()
+                );
             });
 
             if ($deliveryFailure instanceof Throwable) {
                 throw $deliveryFailure;
+            }
+
+            if ($successEvent instanceof EmailChangeDelivered) {
+                $this->eventDispatcher->trigger($successEvent);
             }
         } catch (Throwable $throwable) {
             $this->eventDispatcher->trigger(new CommandFailedEvent($command, $throwable->getMessage()));
