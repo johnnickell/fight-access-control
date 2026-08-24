@@ -13,7 +13,7 @@ materially cheaper.
 
 | Rank | Ticket | Parent PRD | Why now |
 | --- | --- | --- | --- |
-| 1 | [T-00018 — Publish successful security-email delivery events](T-00018-publish-security-email-delivery-events.md) | [PRD-00001](../specs/00001-PRD.md) | Completes the observable success contract for the existing durable invitation and email-change delivery lifecycles. |
+No tickets are currently ready.
 
 ## Waiting
 
@@ -49,3 +49,4 @@ No tickets currently require a decision authority.
 | [T-00015 — Unify activation-grant persistence](T-00015-unify-activation-grant-persistence.md) | [PRD-00001](../specs/00001-PRD.md) | One aggregate repository boundary with claim-only delivery outcomes, pristine issuance and successors, CAS fencing, and subtype-preserving transitions. |
 | [T-00016 — Extract the ManagedPolicy capability](T-00016-extract-managed-policy-capability.md) | [PRD-00001](../specs/00001-PRD.md) | Managed-policy definitions, planning, preview, and atomic reconciliation now live in one explicit capability without Command-to-Query coupling. |
 | [T-00017 — Complete administrative identity and authorization reads](T-00017-complete-administrative-reads.md) | [PRD-00001](../specs/00001-PRD.md) | Package-native safe User, Role, and Permission pagination and stable-identity reads with Arrayable Query outputs. |
+| [T-00018 — Publish successful security-email delivery events](T-00018-publish-security-email-delivery-events.md) | [PRD-00001](../specs/00001-PRD.md) | Serializable invitation and email-change delivery success events emitted only after confirmed delivery and audit evidence commit. |

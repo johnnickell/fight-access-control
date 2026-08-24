@@ -11,8 +11,10 @@ use Fight\AccessControl\Domain\AccessControl\ActivationGrant\ActivationDeliveryI
 use Fight\AccessControl\Domain\AccessControl\ActivationGrant\ActivationDeliveryStatus;
 use Fight\AccessControl\Domain\AccessControl\ActivationGrant\ActivationGrant;
 use Fight\AccessControl\Domain\AccessControl\ActivationGrant\Command\DeliverUserInvitation;
+use Fight\AccessControl\Domain\AccessControl\ActivationGrant\Event\UserInvitationDelivered;
 use Fight\AccessControl\Domain\AccessControl\ActivationGrant\Exception\ActivationDeliveryNotRetryableException;
 use Fight\AccessControl\Domain\AccessControl\User\UserId;
+use Fight\Common\Application\Repository\UnitOfWork;
 use Fight\Common\Domain\Exception\DomainException;
 use Fight\Common\Domain\Messaging\Command\CommandMessage;
 use Fight\Common\Domain\Messaging\Event\CommandFailedEvent;
@@ -29,6 +31,7 @@ use RuntimeException;
 #[CoversClass(DeliverUserInvitationHandler::class)]
 #[CoversClass(ActivationGrant::class)]
 #[CoversClass(DeliverUserInvitation::class)]
+#[CoversClass(UserInvitationDelivered::class)]
 final class DeliverUserInvitationHandlerTest extends TestCase
 {
     public function test_that_it_confirms_delivery_after_invocation_and_one_durable_commit(): void
@@ -38,7 +41,11 @@ final class DeliverUserInvitationHandlerTest extends TestCase
         self::assertTrue($repository->add($activationGrant));
         $unitOfWork = new InMemoryUnitOfWork();
         $auditEvidenceRepository = new InMemoryAuditEvidenceRepository($unitOfWork);
-        $handler = $this->handler($repository, $auditEvidenceRepository, $unitOfWork);
+        $events = new InMemoryEventDispatcher(static function () use ($unitOfWork): void {
+            self::assertTrue($unitOfWork->transactionCompleted);
+        });
+        $invoker = new RecordingInvitationDeliveryInvoker();
+        $handler = $this->handler($repository, $auditEvidenceRepository, $unitOfWork, $invoker, $events);
 
         $handler->handle(CommandMessage::create(new DeliverUserInvitation(
             'Admin-42',
@@ -52,6 +59,10 @@ final class DeliverUserInvitationHandlerTest extends TestCase
         self::assertSame(ActivationDeliveryStatus::CONFIRMED, $replacement->getDelivery()->getStatus());
         self::assertNull($replacement->getDelivery()->getCiphertext());
         self::assertSame('user.invitation_delivery.confirmed', $auditEvidenceRepository->all()[0]->action());
+        self::assertCount(1, $invoker->invokedWork());
+        self::assertSame($activationGrant->getDelivery()->getId(), $invoker->invokedWork()[0]->getId());
+        self::assertCount(1, $events->events());
+        self::assertInstanceOf(UserInvitationDelivered::class, $events->events()[0]);
     }
 
     public function test_that_an_invocation_failure_remains_retryable_then_rethrows_and_publishes_failure(): void
@@ -83,6 +94,7 @@ final class DeliverUserInvitationHandlerTest extends TestCase
             self::assertSame('ciphertext', $replacement->getDelivery()->getCiphertext());
             self::assertSame('user.invitation_delivery.failed', $auditEvidenceRepository->all()[0]->action());
             self::assertInstanceOf(CommandFailedEvent::class, $events->events()[0]);
+            self::assertCount(1, $events->events());
         }
     }
 
@@ -128,6 +140,51 @@ final class DeliverUserInvitationHandlerTest extends TestCase
         } finally {
             self::assertSame($activationGrant, $repository->getLatestByUserId($activationGrant->getUserId()));
             self::assertCount(0, $auditEvidenceRepository->all());
+        }
+    }
+
+    public function test_that_a_failed_commit_publishes_no_success_event(): void
+    {
+        $activationGrant = $this->grant();
+        $repository = new InMemoryActivationGrantRepository();
+        self::assertTrue($repository->add($activationGrant));
+        $events = new InMemoryEventDispatcher();
+        $unitOfWork = new class implements UnitOfWork {
+            public function commit(): void
+            {
+            }
+
+            public function commitTransactional(callable $operation): mixed
+            {
+                $operation();
+
+                throw new RuntimeException('Commit failed.');
+            }
+
+            public function isClosed(): bool
+            {
+                return false;
+            }
+        };
+        $handler = new DeliverUserInvitationHandler(
+            $repository,
+            new InMemoryAuditEvidenceRepository(),
+            $unitOfWork,
+            new RecordingInvitationDeliveryInvoker(),
+            $events
+        );
+
+        $this->expectException(RuntimeException::class);
+        $this->expectExceptionMessage('Commit failed.');
+        try {
+            $handler->handle(CommandMessage::create(new DeliverUserInvitation(
+                'Admin-42',
+                $activationGrant->getUserId(),
+                $activationGrant->getDelivery()->getId()
+            )));
+        } finally {
+            self::assertCount(1, $events->events());
+            self::assertInstanceOf(CommandFailedEvent::class, $events->events()[0]);
         }
     }
 
@@ -192,11 +249,13 @@ final class DeliverUserInvitationHandlerTest extends TestCase
             $successor
         ));
         $invoker = new RecordingInvitationDeliveryInvoker();
+        $events = new InMemoryEventDispatcher();
         $handler = $this->handler(
             $repository,
             new InMemoryAuditEvidenceRepository(),
             new InMemoryUnitOfWork(),
-            $invoker
+            $invoker,
+            $events
         );
 
         $this->expectException(ActivationDeliveryNotRetryableException::class);
@@ -209,6 +268,8 @@ final class DeliverUserInvitationHandlerTest extends TestCase
         } finally {
             self::assertSame([], $invoker->invokedWork());
             self::assertSame($successor, $repository->getLatestByUserId($successor->getUserId()));
+            self::assertCount(1, $events->events());
+            self::assertInstanceOf(CommandFailedEvent::class, $events->events()[0]);
         }
     }
 
@@ -269,6 +330,23 @@ final class DeliverUserInvitationHandlerTest extends TestCase
         self::assertSame('Admin-42', $command->getActorId());
         $this->expectException(DomainException::class);
         DeliverUserInvitation::fromArray([]);
+    }
+
+    public function test_that_the_success_event_round_trips_and_rejects_missing_data(): void
+    {
+        $activationGrant = $this->grant();
+        $event = new UserInvitationDelivered(
+            'Admin-42',
+            $activationGrant->getUserId(),
+            $activationGrant->getDelivery()->getId()
+        );
+
+        self::assertEquals($event, UserInvitationDelivered::fromArray($event->toArray()));
+        self::assertSame('Admin-42', $event->getActorId());
+        self::assertSame($activationGrant->getUserId(), $event->getUserId());
+        self::assertSame($activationGrant->getDelivery()->getId(), $event->getActivationDeliveryId());
+        $this->expectException(DomainException::class);
+        UserInvitationDelivered::fromArray([]);
     }
 
     private function grant(): ActivationGrant

@@ -12,11 +12,13 @@ use Fight\AccessControl\Domain\AccessControl\EmailChangeGrant\EmailChangeCredent
 use Fight\AccessControl\Domain\AccessControl\EmailChangeGrant\EmailChangeDeliveryId;
 use Fight\AccessControl\Domain\AccessControl\EmailChangeGrant\EmailChangeDeliveryStatus;
 use Fight\AccessControl\Domain\AccessControl\EmailChangeGrant\EmailChangeGrant;
+use Fight\AccessControl\Domain\AccessControl\EmailChangeGrant\Event\EmailChangeDelivered;
 use Fight\AccessControl\Domain\AccessControl\EmailChangeGrant\Event\EmailChangeRequested;
 use Fight\AccessControl\Domain\AccessControl\EmailChangeGrant\Exception\EmailChangeDeliveryNotRetryableException;
 use Fight\AccessControl\Domain\AccessControl\User\User;
 use Fight\AccessControl\Domain\AccessControl\User\UserId;
 use Fight\AccessControl\Domain\AccessControl\User\UserState;
+use Fight\Common\Application\Repository\UnitOfWork;
 use Fight\Common\Domain\Exception\DomainException;
 use Fight\Common\Domain\Messaging\Command\CommandMessage;
 use Fight\Common\Domain\Messaging\Event\CommandFailedEvent;
@@ -35,6 +37,7 @@ use RuntimeException;
 
 #[CoversClass(DeliverEmailChangeHandler::class)]
 #[CoversClass(DeliverEmailChange::class)]
+#[CoversClass(EmailChangeDelivered::class)]
 #[CoversClass(EmailChangeDeliverySubscriber::class)]
 #[CoversClass(EmailChangeGrant::class)]
 #[CoversClass(User::class)]
@@ -79,12 +82,15 @@ final class DeliverEmailChangeHandlerTest extends TestCase
         ], $command->toArray());
         $audit = new InMemoryAuditEvidenceRepository($unitOfWork);
         $invoker = new RecordingEmailChangeDeliveryInvoker();
+        $events = new InMemoryEventDispatcher(static function () use ($unitOfWork): void {
+            self::assertTrue($unitOfWork->transactionCompleted);
+        });
         $handler = new DeliverEmailChangeHandler(
             $repository,
             $audit,
             $unitOfWork,
             $invoker,
-            new InMemoryEventDispatcher()
+            $events
         );
 
         $handler->handle(CommandMessage::create($command));
@@ -102,6 +108,11 @@ final class DeliverEmailChangeHandlerTest extends TestCase
         self::assertSame('new@example.test', $user->getPendingEmailChange()?->canonical());
         self::assertSame('user.email_change_delivery.confirmed', $audit->all()[0]->action());
         self::assertSame(1, $unitOfWork->transactions);
+        self::assertCount(1, $events->events());
+        self::assertInstanceOf(EmailChangeDelivered::class, $events->events()[0]);
+        self::assertEquals($user->getId(), $events->events()[0]->getActorId());
+        self::assertEquals($user->getId(), $events->events()[0]->getUserId());
+        self::assertEquals($grant->getDelivery()->getId(), $events->events()[0]->getEmailChangeDeliveryId());
     }
 
     public function test_transport_failure_persists_retryable_work_then_rethrows_and_publishes_failure(): void
@@ -132,6 +143,7 @@ final class DeliverEmailChangeHandlerTest extends TestCase
             self::assertSame('ciphertext:confirm-once', $stored->getDelivery()->getCiphertext());
             self::assertSame('user.email_change_delivery.failed', $audit->all()[0]->action());
             self::assertInstanceOf(CommandFailedEvent::class, $events->events()[0]);
+            self::assertCount(1, $events->events());
             self::assertSame($command, $events->events()[0]->getCommand());
             self::assertStringNotContainsString(
                 'ciphertext:confirm-once',
@@ -214,6 +226,7 @@ final class DeliverEmailChangeHandlerTest extends TestCase
             self::assertSame($successor, $repository->getLatestByUserId($successor->getUserId()));
             self::assertSame('ciphertext:successor-confirmation', $successor->getDelivery()->getCiphertext());
             self::assertInstanceOf(CommandFailedEvent::class, $events->events()[0]);
+            self::assertCount(1, $events->events());
         }
     }
 
@@ -240,6 +253,52 @@ final class DeliverEmailChangeHandlerTest extends TestCase
             self::assertSame([], $invoker->invokedWork());
             self::assertSame([], $audit->all());
             self::assertSame($grant, $repository->getLatestByUserId($grant->getUserId()));
+            self::assertInstanceOf(CommandFailedEvent::class, $events->events()[0]);
+            self::assertCount(1, $events->events());
+        }
+    }
+
+    public function test_failed_commit_publishes_no_email_change_delivery_success_event(): void
+    {
+        $grant = $this->grant();
+        $repository = new InMemoryEmailChangeGrantRepository();
+        self::assertTrue($repository->add($grant));
+        $events = new InMemoryEventDispatcher();
+        $unitOfWork = new class implements UnitOfWork {
+            public function commit(): void
+            {
+            }
+
+            public function commitTransactional(callable $operation): mixed
+            {
+                $operation();
+
+                throw new RuntimeException('Commit failed.');
+            }
+
+            public function isClosed(): bool
+            {
+                return false;
+            }
+        };
+        $handler = new DeliverEmailChangeHandler(
+            $repository,
+            new InMemoryAuditEvidenceRepository(),
+            $unitOfWork,
+            new RecordingEmailChangeDeliveryInvoker(),
+            $events
+        );
+
+        $this->expectException(RuntimeException::class);
+        $this->expectExceptionMessage('Commit failed.');
+        try {
+            $handler->handle(CommandMessage::create(new DeliverEmailChange(
+                $grant->getUserId(),
+                $grant->getUserId(),
+                $grant->getDelivery()->getId()
+            )));
+        } finally {
+            self::assertCount(1, $events->events());
             self::assertInstanceOf(CommandFailedEvent::class, $events->events()[0]);
         }
     }
@@ -289,6 +348,15 @@ final class DeliverEmailChangeHandlerTest extends TestCase
         );
         self::assertArrayNotHasKey('credential', $command->toArray());
         self::assertArrayNotHasKey('ciphertext', $command->toArray());
+        $event = new EmailChangeDelivered(
+            $command->getActorId(),
+            $command->getUserId(),
+            $command->getEmailChangeDeliveryId()
+        );
+        self::assertEquals($event, EmailChangeDelivered::fromArray($event->toArray()));
+        self::assertEquals($command->getActorId(), $event->getActorId());
+        self::assertEquals($command->getUserId(), $event->getUserId());
+        self::assertEquals($command->getEmailChangeDeliveryId(), $event->getEmailChangeDeliveryId());
         $events = new InMemoryEventDispatcher();
 
         try {
@@ -312,9 +380,18 @@ final class DeliverEmailChangeHandlerTest extends TestCase
                 self::fail('Missing delivery command data was accepted.');
             } catch (DomainException) {
             }
+
+            $data = $event->toArray();
+            unset($data[$missing]);
+
+            try {
+                EmailChangeDelivered::fromArray($data);
+                self::fail('Missing delivery success event data was accepted.');
+            } catch (DomainException) {
+            }
         }
 
-        self::addToAssertionCount(3);
+        self::addToAssertionCount(6);
     }
 
     private function grant(): EmailChangeGrant
