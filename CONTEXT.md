@@ -23,6 +23,14 @@ behavior shared by Fight applications. The repository-local behavioral and secur
 - **Agent credential revision**: the monotonically advancing version of an Agent's single credential authority.
   Rotation replaces the active credential at a new revision; revocation is terminal and removes authentication
   authority.
+- **Agent direct Permission assignment**: an Agent-owned, duplicate-free set of stable Permission identities; it
+  grants direct authority without introducing Agent Roles or a policy engine. A Permission cannot be removed while
+  any Agent has it assigned.
+- **Agent Permission-assignment revision**: the monotonically advancing version of an Agent's direct Permission
+  assignment. It advances only when that set changes and is independent of the Agent credential revision.
+- **Agent read result**: an immutable, secret-free record of an Agent's ID, lifecycle state, credential ID and
+  revision, assigned Permissions by ID and canonical name, and Permission-assignment revision. It does not decide
+  whether an action is allowed.
 - **Authenticated Agent principal**: an immutable authoritative Agent identity and direct-Permission snapshot,
   resolved as one authentication flow rather than from an `AgentView` or a follow-up query.
 - **Signed Agent request**: the transport-neutral representation of the Fight Common HMAC v1 canonical request;

@@ -16,14 +16,14 @@ When `/ask-matt` or a plain “What’s next?” is invoked:
 
 ## Now
 
-**Human decision:** [Protect Agent Permission reference integrity](../wayfinder/tickets/WF-003-agent-permission-reference-integrity.md)
-is the remaining active Wayfinder decision. It and the closed credential-lifecycle decision unblock Agent-principal
-resolution and conformance.
+**Human decision:** [Specify Agent principal resolution and conformance](../wayfinder/tickets/WF-004-agent-principal-resolution-conformance.md)
+is the remaining active Wayfinder decision. The closed credential-lifecycle and Permission-reference decisions
+unblock it.
 
 ## Wayfinder Review
 
 [Agent HMAC authentication and direct authority](../wayfinder/agent-hmac-authentication-map.md) is active. Its
-[WF-003](../wayfinder/tickets/WF-003-agent-permission-reference-integrity.md) decision is the next
+[WF-004](../wayfinder/tickets/WF-004-agent-principal-resolution-conformance.md) decision is the next
 `/grill-with-docs` candidate; it does not displace the implementation frontier.
 
 ## Ready Frontier
@@ -49,6 +49,7 @@ No tickets currently require a decision authority.
 |---|---|
 | [WF-001](../wayfinder/tickets/WF-001-hmac-agent-authentication-boundary.md) | Closed the portable Agent HMAC signed-request, Common integration, freshness, replay, and result-boundary decisions. |
 | [WF-002](../wayfinder/tickets/WF-002-agent-credential-revocation-lifecycle.md) | Closed the single-credential lifecycle, secret custody, durable audit ordering, and authentication-race decisions. |
+| [WF-003](../wayfinder/tickets/WF-003-agent-permission-reference-integrity.md) | Closed direct Agent Permission assignment, safe named read results, and fail-closed Permission-reference integrity. |
 
 ## Recently Done
 
