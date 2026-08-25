@@ -8,7 +8,9 @@
 
 ## Route to 0.x
 
-1. Complete the active Agent HMAC Wayfinder map before creating its implementation handoff.
+1. Verify WF-004 through the canonical build, then create the Agent HMAC implementation handoff through an
+   explicitly approved `/to-spec` session; its Wayfinder decisions are settled, but no implementation artifact
+   exists yet.
 2. Create new planning work through Wayfinder when the implementation route is not yet decision-complete.
 3. Keep implementation, commit, push, pull request, merge, release, and publication as separate approvals.
 

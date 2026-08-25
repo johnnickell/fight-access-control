@@ -56,6 +56,10 @@ to its resulting epic, PRDs, and/or implementation tickets.
    assignment work fails with no partial change. Agent reads include safe Permission IDs and names for UI use, while
    consumers remain responsible for server-side authorization. [WF-003](tickets/WF-003-agent-permission-reference-integrity.md)
    records the full decision.
+9. **Agent principal resolution is settled.** A distinct request-scoped Agent principal carries only authoritative
+   Agent and direct-Permission state; all authority failures deny generically while secret-free diagnostics preserve
+   server observability. Consumers own policy and transport behavior. [WF-004](tickets/WF-004-agent-principal-resolution-conformance.md)
+   and [ADR 0006](../adr/0006-agent-principal-observability-boundary.md) record the full decision.
 
 ## Tickets
 
@@ -64,7 +68,7 @@ to its resulting epic, PRDs, and/or implementation tickets.
 | [Define framework-neutral HMAC Agent authentication](tickets/WF-001-hmac-agent-authentication-boundary.md) | Grilling / Domain Modeling | HITL | **Closed** | — |
 | [Establish Agent credential and revocation lifecycle](tickets/WF-002-agent-credential-revocation-lifecycle.md) | Grilling / Domain Modeling | HITL | **Closed** | WF-001 |
 | [Protect Agent Permission reference integrity](tickets/WF-003-agent-permission-reference-integrity.md) | Grilling / Domain Modeling | HITL | **Closed** | WF-001 |
-| [Specify Agent principal resolution and conformance](tickets/WF-004-agent-principal-resolution-conformance.md) | Grilling / Domain Modeling | HITL | Open | WF-002, WF-003 |
+| [Specify Agent principal resolution and conformance](tickets/WF-004-agent-principal-resolution-conformance.md) | Grilling / Domain Modeling | HITL | Open (decision settled; build verification pending) | WF-002, WF-003 |
 
 ## Blocking relationships
 
@@ -75,8 +79,9 @@ HMAC authentication boundary ──┬──→ Credential and revocation lifecy
 
 ## Frontier
 
-[Specify Agent principal resolution and conformance](tickets/WF-004-agent-principal-resolution-conformance.md) is the
-next grillable decision. Its credential-lifecycle and Permission-reference prerequisites are closed.
+No Wayfinder decision remains. WF-004 requires its canonical build verification before it can close. Afterwards, a
+separately approved `/to-spec` handoff is required to create the resulting implementation planning artifacts; until
+then, this map remains active and is not eligible for archive.
 
 ## Not yet specified (fog)
 

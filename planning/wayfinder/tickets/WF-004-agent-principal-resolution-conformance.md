@@ -29,5 +29,23 @@ transport-specific conformance suite.
 
 ## Resolution
 
-Write this only when the decision is closed. Link the epic, PRD, or implementation-ticket handoff created by the
-resolved map where relevant.
+Agent authentication resolves a distinct immutable `AuthenticatedAgentPrincipal`, never a User principal, refresh
+session, `AgentView`, or follow-up Permission query. Its authoritative snapshot contains the Agent ID, current
+credential ID and revision, Permission-assignment revision, and direct Permission snapshots by ID and canonical
+name. It can report only whether that snapshot contains a named Permission.
+
+A consumer composes a request-scoped `CurrentAgentPrincipalProvider` that authenticates one signed request and caches
+the immutable result for that request. Resolution fails closed with one generic caller-visible denial whenever Agent
+authority, credential currency, request authentication, or an assigned Permission reference is invalid. A secret-free
+diagnostic classification and consumer correlation identifier remain available for server observability; they exclude
+raw requests, signatures, nonces, and shared secrets.
+
+Consumers retain authorization policy, transport response mapping, and logging or metric delivery. Package
+conformance proves the complete snapshot, once-per-request resolution, generic fail-closed outcomes with safe
+diagnostics, direct-Permission presence only, and consumer adaptation into `SignedAgentRequest` without prescribing
+headers, middleware, or denial responses. [ADR 0006](../../adr/0006-agent-principal-observability-boundary.md)
+records the durable boundary.
+
+All Agent HMAC Wayfinder decisions are settled. WF-004 remains open until its required canonical build verification
+completes; afterwards, the map requires a separately approved `/to-spec` handoff to create implementation planning
+artifacts.

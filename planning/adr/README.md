@@ -7,3 +7,4 @@
 | [0003](0003-supported-jwt-authentication-profile.md) | Supported JWT authentication profile | accepted |
 | [0004](0004-agent-hmac-credential-lifecycle.md) | Agent HMAC credential lifecycle | accepted |
 | [0005](0005-agent-direct-permission-assignment-revision.md) | Agent direct Permission assignment revision | accepted |
+| [0006](0006-agent-principal-observability-boundary.md) | Agent principal and observability boundary | accepted |

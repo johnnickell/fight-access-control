@@ -33,6 +33,10 @@ behavior shared by Fight applications. The repository-local behavioral and secur
   whether an action is allowed.
 - **Authenticated Agent principal**: an immutable authoritative Agent identity and direct-Permission snapshot,
   resolved as one authentication flow rather than from an `AgentView` or a follow-up query.
+- **Current Agent principal provider**: a consumer-composed, request-scoped service that authenticates one signed
+  Agent request and returns its cached immutable Authenticated Agent principal for that request.
+- **Agent authentication diagnostic**: a secret-free, server-observable classification and correlation identifier
+  for a failed Agent authentication. It is not disclosed to an untrusted caller.
 - **Signed Agent request**: the transport-neutral representation of the Fight Common HMAC v1 canonical request;
   consumer applications map transport data into and out of this representation.
 - **Managed Permission and Managed Role**: stable version-controlled authorization definitions reconciled

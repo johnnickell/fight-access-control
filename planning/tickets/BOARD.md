@@ -16,15 +16,15 @@ When `/ask-matt` or a plain “What’s next?” is invoked:
 
 ## Now
 
-**Human decision:** [Specify Agent principal resolution and conformance](../wayfinder/tickets/WF-004-agent-principal-resolution-conformance.md)
-is the remaining active Wayfinder decision. The closed credential-lifecycle and Permission-reference decisions
-unblock it.
+**Human decision:** no new design decision is pending. [WF-004](../wayfinder/tickets/WF-004-agent-principal-resolution-conformance.md)
+has settled its decision frontier but awaits a passing canonical build before it can close; no implementation ticket
+exists until a later, separately approved `/to-spec` handoff.
 
 ## Wayfinder Review
 
-[Agent HMAC authentication and direct authority](../wayfinder/agent-hmac-authentication-map.md) is active. Its
-[WF-004](../wayfinder/tickets/WF-004-agent-principal-resolution-conformance.md) decision is the next
-`/grill-with-docs` candidate; it does not displace the implementation frontier.
+[Agent HMAC authentication and direct authority](../wayfinder/agent-hmac-authentication-map.md) has no remaining
+decision question. It stays active while WF-004 awaits its canonical build verification, then pending the separately
+approved `/to-spec` implementation handoff; it does not displace the implementation frontier.
 
 ## Ready Frontier
 
