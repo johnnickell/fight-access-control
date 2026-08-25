@@ -1,7 +1,7 @@
 # Wayfinder Map: Agent HMAC authentication and direct authority
 
 **Label:** `wayfinder:map`
-**Status:** Active
+**Status:** Closed
 
 > This map is an **index, not a store**. Each material decision lives in exactly one linked ticket under
 > `tickets/`; this map only summarizes the linked resolutions and shows the next decision frontier.
@@ -68,7 +68,7 @@ to its resulting epic, PRDs, and/or implementation tickets.
 | [Define framework-neutral HMAC Agent authentication](tickets/WF-001-hmac-agent-authentication-boundary.md) | Grilling / Domain Modeling | HITL | **Closed** | — |
 | [Establish Agent credential and revocation lifecycle](tickets/WF-002-agent-credential-revocation-lifecycle.md) | Grilling / Domain Modeling | HITL | **Closed** | WF-001 |
 | [Protect Agent Permission reference integrity](tickets/WF-003-agent-permission-reference-integrity.md) | Grilling / Domain Modeling | HITL | **Closed** | WF-001 |
-| [Specify Agent principal resolution and conformance](tickets/WF-004-agent-principal-resolution-conformance.md) | Grilling / Domain Modeling | HITL | Open (decision settled; build verification pending) | WF-002, WF-003 |
+| [Specify Agent principal resolution and conformance](tickets/WF-004-agent-principal-resolution-conformance.md) | Grilling / Domain Modeling | HITL | **Closed** | WF-002, WF-003 |
 
 ## Blocking relationships
 
@@ -79,9 +79,9 @@ HMAC authentication boundary ──┬──→ Credential and revocation lifecy
 
 ## Frontier
 
-No Wayfinder decision remains. WF-004 requires its canonical build verification before it can close. Afterwards, a
-separately approved `/to-spec` handoff is required to create the resulting implementation planning artifacts; until
-then, this map remains active and is not eligible for archive.
+All Wayfinder decision tickets are closed. The approved `/to-spec` handoff produced
+[EPIC-00002](../epics/00002-EPIC.md) and [PRD-00002](../specs/00002-PRD.md). This map has no remaining frontier;
+derive implementation tickets only through a separately approved `/to-tickets` handoff.
 
 ## Not yet specified (fog)
 
