@@ -16,14 +16,15 @@ When `/ask-matt` or a plain “What’s next?” is invoked:
 
 ## Now
 
-No unresolved human planning decision or ready implementation ticket currently exists. Use `/wayfinder` to chart a
-new feature before creating further epics, PRDs, or implementation tickets. Implementation, commit, push, pull
-request, merge, and release remain separate approvals.
+**Human decision:** [Define framework-neutral HMAC Agent authentication](../wayfinder/tickets/WF-001-hmac-agent-authentication-boundary.md)
+is the active unblocked Wayfinder decision. It must settle the portable signed-request and authentication-result
+boundary before an Agent aggregate becomes implementation planning.
 
 ## Wayfinder Review
 
-No active Wayfinder map currently has an unblocked decision frontier. When one does, list its linked map and
-frontier ticket here as the next `/grill-with-docs` candidate; this does not displace the implementation frontier.
+[Agent HMAC authentication and direct authority](../wayfinder/agent-hmac-authentication-map.md) is active. Its
+[Define framework-neutral HMAC Agent authentication](../wayfinder/tickets/WF-001-hmac-agent-authentication-boundary.md)
+decision is the next `/grill-with-docs` candidate; it does not displace the implementation frontier.
 
 ## Ready Frontier
 
