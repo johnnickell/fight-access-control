@@ -31,12 +31,27 @@ to its resulting epic, PRDs, and/or implementation tickets.
 
 1. **Charting constraints are settled.** Agents use direct permissions only, rotate a single active HMAC credential
    without a grace credential, and authenticate through a framework-neutral signed-request boundary.
+2. **Fight Common integration is settled.** AccessControl owns transport-neutral coordination contracts; consumer
+   applications may bridge those contracts to Fight Common `HmacAuthenticator` and `HmacRequestService`. The
+   deprecated `HmacWebhookDispatcher` is excluded.
+3. **Authentication-result boundary is settled.** Authentication must culminate in an authoritative Agent-principal
+   snapshot, rather than an `AgentView` or a follow-up permission query. WF-004 defines that snapshot's precise
+   fields and conformance after credential lifecycle and permission-reference integrity are settled.
+4. **Canonical compatibility is settled.** Agent HMAC v1 preserves Fight Common's canonical bytes: uppercase method,
+   authority, path, normalized query, timestamp, nonce, and a body digest only for a non-empty body. Credential,
+   authorization algorithm, and signature remain outside the signed canonical request and are validated separately.
+5. **Freshness policy is settled.** Agent HMAC v1 accepts a timestamp no more than five minutes in the past and
+   rejects every future timestamp, matching Fight Common's past-only tolerance behavior.
+6. **Verification ordering is settled.** A consumer bridge must require a nonce repository and preserve Fight
+   Common's order: validate request components and freshness, validate the credential and body digest, verify the
+   signature, then atomically consume the nonce. A unique nonce value is global for its validity window; an invalid
+   signature therefore cannot consume one and a replay fails closed.
 
 ## Tickets
 
 | Ticket | Type | Mode | Status | Depends On |
 |---|---|---|---|---|
-| [Define framework-neutral HMAC Agent authentication](tickets/WF-001-hmac-agent-authentication-boundary.md) | Grilling / Domain Modeling | HITL | **Open** | — |
+| [Define framework-neutral HMAC Agent authentication](tickets/WF-001-hmac-agent-authentication-boundary.md) | Grilling / Domain Modeling | HITL | **Closed** | — |
 | [Establish Agent credential and revocation lifecycle](tickets/WF-002-agent-credential-revocation-lifecycle.md) | Grilling / Domain Modeling | HITL | Open | WF-001 |
 | [Protect Agent Permission reference integrity](tickets/WF-003-agent-permission-reference-integrity.md) | Grilling / Domain Modeling | HITL | Open | WF-001 |
 | [Specify Agent principal resolution and conformance](tickets/WF-004-agent-principal-resolution-conformance.md) | Grilling / Domain Modeling | HITL | Open | WF-002, WF-003 |
@@ -50,8 +65,9 @@ HMAC authentication boundary ──┬──→ Credential and revocation lifecy
 
 ## Frontier
 
-[Define framework-neutral HMAC Agent authentication](tickets/WF-001-hmac-agent-authentication-boundary.md) is the
-one next grillable decision.
+[Establish Agent credential and revocation lifecycle](tickets/WF-002-agent-credential-revocation-lifecycle.md) and
+[Protect Agent Permission reference integrity](tickets/WF-003-agent-permission-reference-integrity.md) are the
+independent next grillable decisions.
 
 ## Not yet specified (fog)
 

@@ -16,6 +16,12 @@ behavior shared by Fight applications. The repository-local behavioral and secur
   lifetime, authentication version, and coarse device information.
 - **Authenticated principal**: an immutable framework-neutral identity and authorization snapshot revalidated
   against authoritative storage once per request.
+- **Agent**: a machine principal with direct Permission authority; it is not a User, refresh session, framework
+  security user, or AI persona.
+- **Authenticated Agent principal**: an immutable authoritative Agent identity and direct-Permission snapshot,
+  resolved as one authentication flow rather than from an `AgentView` or a follow-up query.
+- **Signed Agent request**: the transport-neutral representation of the Fight Common HMAC v1 canonical request;
+  consumer applications map transport data into and out of this representation.
 - **Managed Permission and Managed Role**: stable version-controlled authorization definitions reconciled
   exactly and atomically.
 - **Conformance suite**: reusable tests of observable Domain and Application outcomes which consumer repositories

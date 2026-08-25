@@ -2,7 +2,7 @@
 
 **Labels:** `wayfinder:grilling`
 **Mode:** HITL
-**Status:** Open
+**Status:** Closed
 **Map:** [Agent HMAC authentication and direct authority](../agent-hmac-authentication-map.md)
 **Depends on:** —
 
@@ -30,5 +30,17 @@ permission convention.
 
 ## Resolution
 
-Write this only when the decision is closed. Link the epic, PRD, or implementation-ticket handoff created by the
-resolved map where relevant.
+Agent HMAC v1 is a framework-neutral coordination boundary. Consumer applications map their transport requests to
+the package's signed-request value and may bridge it to Fight Common `HmacAuthenticator` and
+`HmacRequestService`; `HmacWebhookDispatcher` is excluded.
+
+The canonical request preserves Fight Common v1 bytes: uppercase method, authority, path, normalized query,
+timestamp, nonce, and the body digest only when the body is non-empty. Credential, authorization algorithm, and
+signature are validated separately. Timestamps are accepted only when they are no more than five minutes in the
+past; future timestamps fail closed. The bridge requires a nonce repository and preserves the sequence: validate
+components and freshness, validate credential and body digest, verify signature, then atomically consume the nonce.
+
+Authentication culminates in an authoritative Agent-principal snapshot, never an `AgentView` or a follow-up
+permission query. [WF-002](WF-002-agent-credential-revocation-lifecycle.md) owns credential lifecycle and the
+rotation race; [WF-003](WF-003-agent-permission-reference-integrity.md) owns direct-Permission reference integrity;
+[WF-004](WF-004-agent-principal-resolution-conformance.md) defines the snapshot's precise shape and conformance.
