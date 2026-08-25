@@ -6,7 +6,7 @@ none is available, `/ask-matt` should offer `/wayfinder` to chart a new feature.
 
 | Map | Status | Frontier | Handoff |
 |---|---|---|---|
-| [Agent HMAC authentication and direct authority](agent-hmac-authentication-map.md) | Active | [Define framework-neutral HMAC Agent authentication](tickets/WF-001-hmac-agent-authentication-boundary.md) | Pending |
+| [Agent HMAC authentication and direct authority](agent-hmac-authentication-map.md) | Active | WF-004 build verification, then approved `/to-spec` handoff | Pending |
 
 Use `_MAP_TEMPLATE.md` and `tickets/_WAYFINDER_TICKET_TEMPLATE.md` for new work. `research/` holds linked
 evidence, never a parallel decision record. Archive only through `../bin/archive-planning` after a map is Closed,

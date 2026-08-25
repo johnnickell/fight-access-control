@@ -16,15 +16,15 @@ When `/ask-matt` or a plain “What’s next?” is invoked:
 
 ## Now
 
-**Human decision:** [Define framework-neutral HMAC Agent authentication](../wayfinder/tickets/WF-001-hmac-agent-authentication-boundary.md)
-is the active unblocked Wayfinder decision. It must settle the portable signed-request and authentication-result
-boundary before an Agent aggregate becomes implementation planning.
+**Human decision:** no new design decision is pending. [WF-004](../wayfinder/tickets/WF-004-agent-principal-resolution-conformance.md)
+has settled its decision frontier but awaits a passing canonical build before it can close; no implementation ticket
+exists until a later, separately approved `/to-spec` handoff.
 
 ## Wayfinder Review
 
-[Agent HMAC authentication and direct authority](../wayfinder/agent-hmac-authentication-map.md) is active. Its
-[Define framework-neutral HMAC Agent authentication](../wayfinder/tickets/WF-001-hmac-agent-authentication-boundary.md)
-decision is the next `/grill-with-docs` candidate; it does not displace the implementation frontier.
+[Agent HMAC authentication and direct authority](../wayfinder/agent-hmac-authentication-map.md) has no remaining
+decision question. It stays active while WF-004 awaits its canonical build verification, then pending the separately
+approved `/to-spec` implementation handoff; it does not displace the implementation frontier.
 
 ## Ready Frontier
 
@@ -45,7 +45,11 @@ No tickets currently require a decision authority.
 
 ## Recently Closed
 
-No tickets are currently closed without implementation.
+| Ticket | Outcome |
+|---|---|
+| [WF-001](../wayfinder/tickets/WF-001-hmac-agent-authentication-boundary.md) | Closed the portable Agent HMAC signed-request, Common integration, freshness, replay, and result-boundary decisions. |
+| [WF-002](../wayfinder/tickets/WF-002-agent-credential-revocation-lifecycle.md) | Closed the single-credential lifecycle, secret custody, durable audit ordering, and authentication-race decisions. |
+| [WF-003](../wayfinder/tickets/WF-003-agent-permission-reference-integrity.md) | Closed direct Agent Permission assignment, safe named read results, and fail-closed Permission-reference integrity. |
 
 ## Recently Done
 

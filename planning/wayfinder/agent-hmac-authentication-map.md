@@ -31,27 +31,57 @@ to its resulting epic, PRDs, and/or implementation tickets.
 
 1. **Charting constraints are settled.** Agents use direct permissions only, rotate a single active HMAC credential
    without a grace credential, and authenticate through a framework-neutral signed-request boundary.
+2. **Fight Common integration is settled.** AccessControl owns transport-neutral coordination contracts; consumer
+   applications may bridge those contracts to Fight Common `HmacAuthenticator` and `HmacRequestService`. The
+   deprecated `HmacWebhookDispatcher` is excluded.
+3. **Authentication-result boundary is settled.** Authentication must culminate in an authoritative Agent-principal
+   snapshot, rather than an `AgentView` or a follow-up permission query. WF-004 defines that snapshot's precise
+   fields and conformance after credential lifecycle and permission-reference integrity are settled.
+4. **Canonical compatibility is settled.** Agent HMAC v1 preserves Fight Common's canonical bytes: uppercase method,
+   authority, path, normalized query, timestamp, nonce, and a body digest only for a non-empty body. Credential,
+   authorization algorithm, and signature remain outside the signed canonical request and are validated separately.
+5. **Freshness policy is settled.** Agent HMAC v1 accepts a timestamp no more than five minutes in the past and
+   rejects every future timestamp, matching Fight Common's past-only tolerance behavior.
+6. **Verification ordering is settled.** A consumer bridge must require a nonce repository and preserve Fight
+   Common's order: validate request components and freshness, validate the credential and body digest, verify the
+   signature, then atomically consume the nonce. A unique nonce value is global for its validity window; an invalid
+   signature therefore cannot consume one and a replay fails closed.
+7. **Credential lifecycle is settled.** Explicit provision, rotation, and terminal revocation commands govern one
+   public credential ID and consumer-encrypted shared secret. Rotation remains `ACTIVE` while replacing authority
+   immediately; `REVOKED` is terminal. Lifecycle work writes secret-free durable audit evidence, commits before its
+   success event, and authentication confirms the current credential ID and revision while atomically consuming its
+   nonce. [WF-002](tickets/WF-002-agent-credential-revocation-lifecycle.md) records the full decision.
+8. **Permission reference integrity is settled.** Agents own duplicate-free direct Permission assignments with a
+   separate assignment revision. A Permission cannot be removed while an Agent or Role assigns it; stale or invalid
+   assignment work fails with no partial change. Agent reads include safe Permission IDs and names for UI use, while
+   consumers remain responsible for server-side authorization. [WF-003](tickets/WF-003-agent-permission-reference-integrity.md)
+   records the full decision.
+9. **Agent principal resolution is settled.** A distinct request-scoped Agent principal carries only authoritative
+   Agent and direct-Permission state; all authority failures deny generically while secret-free diagnostics preserve
+   server observability. Consumers own policy and transport behavior. [WF-004](tickets/WF-004-agent-principal-resolution-conformance.md)
+   and [ADR 0006](../adr/0006-agent-principal-observability-boundary.md) record the full decision.
 
 ## Tickets
 
 | Ticket | Type | Mode | Status | Depends On |
 |---|---|---|---|---|
-| [Define framework-neutral HMAC Agent authentication](tickets/WF-001-hmac-agent-authentication-boundary.md) | Grilling / Domain Modeling | HITL | **Open** | — |
-| [Establish Agent credential and revocation lifecycle](tickets/WF-002-agent-credential-revocation-lifecycle.md) | Grilling / Domain Modeling | HITL | Open | WF-001 |
-| [Protect Agent Permission reference integrity](tickets/WF-003-agent-permission-reference-integrity.md) | Grilling / Domain Modeling | HITL | Open | WF-001 |
-| [Specify Agent principal resolution and conformance](tickets/WF-004-agent-principal-resolution-conformance.md) | Grilling / Domain Modeling | HITL | Open | WF-002, WF-003 |
+| [Define framework-neutral HMAC Agent authentication](tickets/WF-001-hmac-agent-authentication-boundary.md) | Grilling / Domain Modeling | HITL | **Closed** | — |
+| [Establish Agent credential and revocation lifecycle](tickets/WF-002-agent-credential-revocation-lifecycle.md) | Grilling / Domain Modeling | HITL | **Closed** | WF-001 |
+| [Protect Agent Permission reference integrity](tickets/WF-003-agent-permission-reference-integrity.md) | Grilling / Domain Modeling | HITL | **Closed** | WF-001 |
+| [Specify Agent principal resolution and conformance](tickets/WF-004-agent-principal-resolution-conformance.md) | Grilling / Domain Modeling | HITL | Open (decision settled; build verification pending) | WF-002, WF-003 |
 
 ## Blocking relationships
 
 ```text
 HMAC authentication boundary ──┬──→ Credential and revocation lifecycle ──┐
-                               └──→ Permission reference integrity ────────┼──→ Principal resolution and conformance ──→ Implementation handoff
+                               └──→ Permission reference integrity ───────┼──→ Principal resolution and conformance ──→ Implementation handoff
 ```
 
 ## Frontier
 
-[Define framework-neutral HMAC Agent authentication](tickets/WF-001-hmac-agent-authentication-boundary.md) is the
-one next grillable decision.
+No Wayfinder decision remains. WF-004 requires its canonical build verification before it can close. Afterwards, a
+separately approved `/to-spec` handoff is required to create the resulting implementation planning artifacts; until
+then, this map remains active and is not eligible for archive.
 
 ## Not yet specified (fog)
 
