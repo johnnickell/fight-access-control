@@ -4,7 +4,7 @@ Operational execution view for Fight AccessControl. Ticket files are canonical f
 this board is canonical for recommended order. IDs identify artifacts only. Update this file whenever ticket
 status, dependencies, or roadmap priority changes.
 
-Last updated: 2026-08-24
+Last updated: 2026-08-25
 
 ## “What’s Next?” Contract
 
@@ -43,6 +43,7 @@ Waiting tickets retain `ready-for-agent`; their position here is derived from un
 | [T-00021](00021-TICKET.md) | T-00019 | Manage direct Agent Permissions and reference integrity. |
 | [T-00022](00022-TICKET.md) | T-00020 | Authenticate a signed Agent request. |
 | [T-00023](00023-TICKET.md) | T-00021, T-00022 | Resolve one current Agent identity per request. |
+| [T-00024](00024-TICKET.md) | T-00023 | Unify current User and Agent authority access without conflating their identities. |
 
 ## Needs Info
 
