@@ -309,7 +309,7 @@ final class CancelEmailChangeHandlerTest extends TestCase
         self::assertSame($target->getId(), $authorization->lastUserId());
         self::assertSame('user.email_change_administratively_cancelled', $audit->all()[0]->action());
         self::assertSame($actorId->toString(), $audit->all()[0]->actorId());
-        self::assertSame($target->getId(), $audit->all()[0]->userId());
+        self::assertSame($target->getId(), $audit->all()[0]->subjectId());
         self::assertSame([], $audit->all()[0]->context());
         self::assertCount(1, $events->events());
     }

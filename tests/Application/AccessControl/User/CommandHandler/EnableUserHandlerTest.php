@@ -55,7 +55,7 @@ final class EnableUserHandlerTest extends TestCase
         self::assertSame(UserState::ACTIVE, $users->getById($user->getId())?->getState());
         self::assertSame('user.enabled', $audit->all()[0]->action());
         self::assertSame($actorId->toString(), $audit->all()[0]->actorId());
-        self::assertSame($user->getId(), $audit->all()[0]->userId());
+        self::assertSame($user->getId(), $audit->all()[0]->subjectId());
         self::assertCount(1, $events->events());
         self::assertInstanceOf(UserEnabled::class, $events->events()[0]);
     }

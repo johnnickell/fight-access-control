@@ -8,7 +8,6 @@ use Fight\AccessControl\Domain\AccessControl\Agent\AgentId;
 use Fight\AccessControl\Domain\AccessControl\RefreshSession\RefreshSessionId;
 use Fight\AccessControl\Domain\AccessControl\RefreshSession\SessionRevocationReason;
 use Fight\AccessControl\Domain\AccessControl\User\UserId;
-use LogicException;
 
 /**
  * Represents the secret-free durable evidence for a sensitive action.
@@ -79,18 +78,6 @@ class AuditEvidence
     public function action(): string
     {
         return $this->action;
-    }
-
-    /**
-     * Returns the affected user identifier.
-     */
-    public function userId(): UserId
-    {
-        if (!$this->subjectId instanceof UserId) {
-            throw new LogicException('The audit evidence does not have a User subject.');
-        }
-
-        return $this->subjectId;
     }
 
     /**

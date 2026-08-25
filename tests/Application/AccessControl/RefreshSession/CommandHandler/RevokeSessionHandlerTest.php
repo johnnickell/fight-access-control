@@ -300,7 +300,7 @@ final class RevokeSessionHandlerTest extends TestCase
         $evidence = $auditEvidenceRepository->all()[0];
         self::assertSame('refresh_session.administratively_revoked', $evidence->action());
         self::assertSame($actorId->toString(), $evidence->actorId());
-        self::assertSame($userId, $evidence->userId());
+        self::assertSame($userId, $evidence->subjectId());
         self::assertSame([
             'refresh_session_id' => $targetSessionId->toString(),
             'reason' => 'Compromised device',

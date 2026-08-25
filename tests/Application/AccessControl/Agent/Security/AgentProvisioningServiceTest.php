@@ -321,20 +321,16 @@ final class AgentProvisioningServiceTest extends TestCase
         );
     }
 
-    public function test_audit_evidence_retains_user_subject_access_and_records_agent_subjects_without_context(): void
+    public function test_audit_evidence_records_user_and_agent_subjects_without_context(): void
     {
         $userId = UserId::fromString('018f0000-0000-7000-8000-000000000001');
         $agentId = AgentId::fromString('018f0000-0000-7000-8000-000000000002');
         $userEvidence = AuditEvidence::record('maintainer-42', 'user.invited', $userId);
         $agentEvidence = AuditEvidence::agentProvisioned('maintainer-42', $agentId);
 
-        self::assertSame($userId, $userEvidence->userId());
         self::assertSame($userId, $userEvidence->subjectId());
         self::assertSame($agentId, $agentEvidence->subjectId());
         self::assertSame([], $agentEvidence->context());
-        $this->expectException(LogicException::class);
-        $this->expectExceptionMessage('The audit evidence does not have a User subject.');
-        $agentEvidence->userId();
     }
 
     private function assertFailureIsSafe(InMemoryEventDispatcher $events): void

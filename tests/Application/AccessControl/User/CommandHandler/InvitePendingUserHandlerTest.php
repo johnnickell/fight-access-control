@@ -83,7 +83,7 @@ final class InvitePendingUserHandlerTest extends TestCase
         self::assertSame(UserState::PENDING_ACTIVATION, $userRepository->all()[0]->getState());
         self::assertSame($userId, $activationGrantRepository->all()[0]->getUserId());
         self::assertSame($userId, $activationGrantRepository->all()[0]->getDelivery()->getUserId());
-        self::assertSame($userId, $auditEvidenceRepository->all()[0]->userId());
+        self::assertSame($userId, $auditEvidenceRepository->all()[0]->subjectId());
         self::assertInstanceOf(UserInvited::class, $events->events()[0]);
     }
 

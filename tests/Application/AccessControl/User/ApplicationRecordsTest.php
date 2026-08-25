@@ -19,7 +19,7 @@ final class ApplicationRecordsTest extends TestCase
 
         self::assertSame('Admin-42', $evidence->actorId());
         self::assertSame('user.invited', $evidence->action());
-        self::assertSame($userId, $evidence->userId());
+        self::assertSame($userId, $evidence->subjectId());
         self::assertSame([], $evidence->context());
     }
 }

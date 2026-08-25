@@ -678,7 +678,7 @@ final class AuthenticationServiceTest extends TestCase
         self::assertSame(0, $sessions->getByUserIdCalls());
         self::assertSame($user->getId()->toString(), $auditEvidence->all()[0]->actorId());
         self::assertSame('user.password_changed', $auditEvidence->all()[0]->action());
-        self::assertSame($user->getId(), $auditEvidence->all()[0]->userId());
+        self::assertSame($user->getId(), $auditEvidence->all()[0]->subjectId());
         self::assertSame([], $auditEvidence->all()[0]->context());
         self::assertCount(1, $events->events());
         self::assertInstanceOf(PasswordChanged::class, $events->events()[0]);
@@ -1693,7 +1693,7 @@ final class AuthenticationServiceTest extends TestCase
         self::assertSame(0, $sessions->getByUserIdCalls());
         self::assertSame($user->getId()->toString(), $auditEvidence->all()[0]->actorId());
         self::assertSame('user.password_reset_completed', $auditEvidence->all()[0]->action());
-        self::assertSame($user->getId(), $auditEvidence->all()[0]->userId());
+        self::assertSame($user->getId(), $auditEvidence->all()[0]->subjectId());
         self::assertSame([], $auditEvidence->all()[0]->context());
         self::assertCount(1, $events->events());
         self::assertInstanceOf(PasswordResetCompleted::class, $events->events()[0]);
