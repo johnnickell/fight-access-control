@@ -2,7 +2,7 @@
 
 **Labels:** `wayfinder:grilling`
 **Mode:** HITL
-**Status:** Open
+**Status:** Closed
 **Map:** [Agent HMAC authentication and direct authority](../agent-hmac-authentication-map.md)
 **Depends on:** [Establish Agent credential and revocation lifecycle](WF-002-agent-credential-revocation-lifecycle.md), [Protect Agent Permission reference integrity](WF-003-agent-permission-reference-integrity.md)
 
@@ -46,6 +46,5 @@ diagnostics, direct-Permission presence only, and consumer adaptation into `Sign
 headers, middleware, or denial responses. [ADR 0006](../../adr/0006-agent-principal-observability-boundary.md)
 records the durable boundary.
 
-All Agent HMAC Wayfinder decisions are settled. WF-004 remains open until its required canonical build verification
-completes; afterwards, the map requires a separately approved `/to-spec` handoff to create implementation planning
-artifacts.
+All Agent HMAC Wayfinder decisions are settled. The required canonical build passed, so this decision ticket is
+closed. The map now proceeds to its approved `/to-spec` handoff to create implementation planning artifacts.
