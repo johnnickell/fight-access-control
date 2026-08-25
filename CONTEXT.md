@@ -18,6 +18,11 @@ behavior shared by Fight applications. The repository-local behavioral and secur
   against authoritative storage once per request.
 - **Agent**: a machine principal with direct Permission authority; it is not a User, refresh session, framework
   security user, or AI persona.
+- **Agent credential**: one active HMAC authority belonging to an Agent. It has a public credential ID and a
+  consumer-encrypted shared secret; the raw secret exists only when issued or during authentication verification.
+- **Agent credential revision**: the monotonically advancing version of an Agent's single credential authority.
+  Rotation replaces the active credential at a new revision; revocation is terminal and removes authentication
+  authority.
 - **Authenticated Agent principal**: an immutable authoritative Agent identity and direct-Permission snapshot,
   resolved as one authentication flow rather than from an `AgentView` or a follow-up query.
 - **Signed Agent request**: the transport-neutral representation of the Fight Common HMAC v1 canonical request;

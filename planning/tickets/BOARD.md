@@ -16,16 +16,15 @@ When `/ask-matt` or a plain “What’s next?” is invoked:
 
 ## Now
 
-**Human decisions:** [Establish Agent credential and revocation lifecycle](../wayfinder/tickets/WF-002-agent-credential-revocation-lifecycle.md)
-and [Protect Agent Permission reference integrity](../wayfinder/tickets/WF-003-agent-permission-reference-integrity.md)
-are the independent active Wayfinder decisions. Together they unblock Agent-principal resolution and conformance.
+**Human decision:** [Protect Agent Permission reference integrity](../wayfinder/tickets/WF-003-agent-permission-reference-integrity.md)
+is the remaining active Wayfinder decision. It and the closed credential-lifecycle decision unblock Agent-principal
+resolution and conformance.
 
 ## Wayfinder Review
 
 [Agent HMAC authentication and direct authority](../wayfinder/agent-hmac-authentication-map.md) is active. Its
-[WF-002](../wayfinder/tickets/WF-002-agent-credential-revocation-lifecycle.md) and
-[WF-003](../wayfinder/tickets/WF-003-agent-permission-reference-integrity.md) decisions are the next
-`/grill-with-docs` candidates; they do not displace the implementation frontier.
+[WF-003](../wayfinder/tickets/WF-003-agent-permission-reference-integrity.md) decision is the next
+`/grill-with-docs` candidate; it does not displace the implementation frontier.
 
 ## Ready Frontier
 
@@ -49,6 +48,7 @@ No tickets currently require a decision authority.
 | Ticket | Outcome |
 |---|---|
 | [WF-001](../wayfinder/tickets/WF-001-hmac-agent-authentication-boundary.md) | Closed the portable Agent HMAC signed-request, Common integration, freshness, replay, and result-boundary decisions. |
+| [WF-002](../wayfinder/tickets/WF-002-agent-credential-revocation-lifecycle.md) | Closed the single-credential lifecycle, secret custody, durable audit ordering, and authentication-race decisions. |
 
 ## Recently Done
 

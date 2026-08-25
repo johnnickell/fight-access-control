@@ -46,13 +46,18 @@ to its resulting epic, PRDs, and/or implementation tickets.
    Common's order: validate request components and freshness, validate the credential and body digest, verify the
    signature, then atomically consume the nonce. A unique nonce value is global for its validity window; an invalid
    signature therefore cannot consume one and a replay fails closed.
+7. **Credential lifecycle is settled.** Explicit provision, rotation, and terminal revocation commands govern one
+   public credential ID and consumer-encrypted shared secret. Rotation remains `ACTIVE` while replacing authority
+   immediately; `REVOKED` is terminal. Lifecycle work writes secret-free durable audit evidence, commits before its
+   success event, and authentication confirms the current credential ID and revision while atomically consuming its
+   nonce. [WF-002](tickets/WF-002-agent-credential-revocation-lifecycle.md) records the full decision.
 
 ## Tickets
 
 | Ticket | Type | Mode | Status | Depends On |
 |---|---|---|---|---|
 | [Define framework-neutral HMAC Agent authentication](tickets/WF-001-hmac-agent-authentication-boundary.md) | Grilling / Domain Modeling | HITL | **Closed** | — |
-| [Establish Agent credential and revocation lifecycle](tickets/WF-002-agent-credential-revocation-lifecycle.md) | Grilling / Domain Modeling | HITL | Open | WF-001 |
+| [Establish Agent credential and revocation lifecycle](tickets/WF-002-agent-credential-revocation-lifecycle.md) | Grilling / Domain Modeling | HITL | **Closed** | WF-001 |
 | [Protect Agent Permission reference integrity](tickets/WF-003-agent-permission-reference-integrity.md) | Grilling / Domain Modeling | HITL | Open | WF-001 |
 | [Specify Agent principal resolution and conformance](tickets/WF-004-agent-principal-resolution-conformance.md) | Grilling / Domain Modeling | HITL | Open | WF-002, WF-003 |
 
@@ -65,9 +70,8 @@ HMAC authentication boundary ──┬──→ Credential and revocation lifecy
 
 ## Frontier
 
-[Establish Agent credential and revocation lifecycle](tickets/WF-002-agent-credential-revocation-lifecycle.md) and
-[Protect Agent Permission reference integrity](tickets/WF-003-agent-permission-reference-integrity.md) are the
-independent next grillable decisions.
+[Protect Agent Permission reference integrity](tickets/WF-003-agent-permission-reference-integrity.md) is the next
+grillable decision. It is independent of the closed credential-lifecycle decision.
 
 ## Not yet specified (fog)
 
