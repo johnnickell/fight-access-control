@@ -4,7 +4,7 @@
 
 | Epic | Target | Status | Outcome |
 | --- | --- | --- | --- |
-| [EPIC-00002](epics/00002-EPIC.md) | 0.x | in-progress | Agent HMAC authentication and direct authority are split into T-00019 through T-00023. |
+| [EPIC-00002](epics/00002-EPIC.md) | 0.x | in-progress | Agent HMAC authentication, direct authority, and unified current-authority access are split into T-00019 through T-00024. |
 
 ## Route to 0.x
 
