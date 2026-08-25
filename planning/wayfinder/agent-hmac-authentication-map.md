@@ -45,7 +45,7 @@ to its resulting epic, PRDs, and/or implementation tickets.
 
 ```text
 HMAC authentication boundary ──┬──→ Credential and revocation lifecycle ──┐
-                               └──→ Permission reference integrity ────────┼──→ Principal resolution and conformance ──→ Implementation handoff
+                               └──→ Permission reference integrity ───────┼──→ Principal resolution and conformance ──→ Implementation handoff
 ```
 
 ## Frontier
