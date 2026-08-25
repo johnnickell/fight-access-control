@@ -4,9 +4,11 @@ declare(strict_types=1);
 
 namespace Fight\AccessControl\Domain\AccessControl\Audit;
 
+use Fight\AccessControl\Domain\AccessControl\Agent\AgentId;
 use Fight\AccessControl\Domain\AccessControl\RefreshSession\RefreshSessionId;
 use Fight\AccessControl\Domain\AccessControl\RefreshSession\SessionRevocationReason;
 use Fight\AccessControl\Domain\AccessControl\User\UserId;
+use LogicException;
 
 /**
  * Represents the secret-free durable evidence for a sensitive action.
@@ -21,7 +23,7 @@ class AuditEvidence
     protected function __construct(
         private readonly string $actorId,
         private readonly string $action,
-        private readonly UserId $userId,
+        private readonly UserId|AgentId $subjectId,
         /** @var array<string, string> */
         private readonly array $context = []
     ) {
@@ -33,6 +35,14 @@ class AuditEvidence
     public static function record(string $actorId, string $action, UserId $userId): static
     {
         return new static($actorId, $action, $userId);
+    }
+
+    /**
+     * Records the secret-free provisioning of an Agent authority.
+     */
+    public static function agentProvisioned(string $actorId, AgentId $agentId): static
+    {
+        return new static($actorId, 'agent.provisioned', $agentId);
     }
 
     /**
@@ -76,7 +86,19 @@ class AuditEvidence
      */
     public function userId(): UserId
     {
-        return $this->userId;
+        if (!$this->subjectId instanceof UserId) {
+            throw new LogicException('The audit evidence does not have a User subject.');
+        }
+
+        return $this->subjectId;
+    }
+
+    /**
+     * Returns the affected User or Agent identifier.
+     */
+    public function subjectId(): UserId|AgentId
+    {
+        return $this->subjectId;
     }
 
     /**
