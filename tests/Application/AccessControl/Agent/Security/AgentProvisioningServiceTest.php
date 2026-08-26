@@ -16,6 +16,7 @@ use Fight\AccessControl\Domain\AccessControl\Agent\AgentRepository;
 use Fight\AccessControl\Domain\AccessControl\Agent\AgentState;
 use Fight\AccessControl\Domain\AccessControl\Agent\Event\AgentProvisioned;
 use Fight\AccessControl\Domain\AccessControl\Agent\Event\AgentProvisioningFailed;
+use Fight\AccessControl\Domain\AccessControl\Agent\Exception\AgentNameException;
 use Fight\AccessControl\Domain\AccessControl\Audit\AuditEvidence;
 use Fight\AccessControl\Domain\AccessControl\User\UserId;
 use Fight\Common\Application\Repository\UnitOfWork;
@@ -35,6 +36,7 @@ use Throwable;
 
 #[CoversClass(AgentProvisioningService::class)]
 #[CoversClass(AgentProvisioningResult::class)]
+#[CoversClass(AgentNameException::class)]
 #[CoversClass(AgentProvisioningFailed::class)]
 #[CoversClass(AgentProvisioned::class)]
 #[CoversClass(AuditEvidence::class)]
@@ -84,7 +86,7 @@ final class AgentProvisioningServiceTest extends TestCase
         );
 
         try {
-            $service->provision('maintainer-42');
+            $service->provision('maintainer-42', 'Production deployment');
             self::fail('Expected the shared secret generation failure to be rethrown.');
         } catch (RuntimeException $runtimeException) {
             self::assertSame($failure, $runtimeException);
@@ -291,12 +293,13 @@ final class AgentProvisioningServiceTest extends TestCase
             $events
         );
 
-        $result = $service->provision('maintainer-42');
+        $result = $service->provision('maintainer-42', '  Production deployment  ');
 
         self::assertSame('shared-secret', $result->getHmacSharedSecret());
         self::assertSame(1, $unitOfWork->transactions);
         self::assertCount(1, $agentRepository->all());
         $agent = $agentRepository->all()[0];
+        self::assertSame('Production deployment', $agent->getName()->toString());
         self::assertSame(AgentState::ACTIVE, $agent->getState());
         self::assertSame(0, $agent->getCredentialRevision());
         self::assertSame('encrypted:shared-secret', $agent->getEncryptedHmacSharedSecretEnvelope());
@@ -319,6 +322,39 @@ final class AgentProvisioningServiceTest extends TestCase
             ['agent_id', 'credential_id', 'credential_revision', 'provisioned_at'],
             array_keys($events->events()[0]->toArray())
         );
+    }
+
+    public function test_it_rejects_an_invalid_agent_name_without_persisting_or_publishing_a_success_event(): void
+    {
+        $unitOfWork = new InMemoryUnitOfWork();
+        $agentRepository = new InMemoryAgentRepository($unitOfWork);
+        $auditEvidenceRepository = new InMemoryAuditEvidenceRepository($unitOfWork);
+        $events = new InMemoryEventDispatcher();
+        $service = new AgentProvisioningService(
+            $agentRepository,
+            $auditEvidenceRepository,
+            new readonly class implements HmacSharedSecretGenerator {
+                public function generate(): string
+                {
+                    throw new LogicException('Credential generation must not run for an invalid Agent name.');
+                }
+            },
+            new FixedHmacSharedSecretCipher('encrypted:'),
+            new FixedClock(new DateTimeImmutable('2026-08-25T12:00:00+00:00')),
+            $unitOfWork,
+            $events
+        );
+
+        try {
+            $service->provision('maintainer-42', '   ');
+            self::fail('Expected an invalid Agent name to be rejected.');
+        } catch (AgentNameException) {
+            self::addToAssertionCount(1);
+        }
+
+        self::assertSame([], $agentRepository->all());
+        self::assertSame([], $auditEvidenceRepository->all());
+        $this->assertFailureIsSafe($events);
     }
 
     public function test_audit_evidence_records_user_and_agent_subjects_without_context(): void
@@ -349,7 +385,7 @@ final class AgentProvisioningServiceTest extends TestCase
         ?Throwable $expectedFailure = null
     ): Throwable {
         try {
-            $service->provision('maintainer-42');
+            $service->provision('maintainer-42', 'Production deployment');
             self::fail('Expected the provisioning failure to be rethrown.');
         } catch (Throwable $throwable) {
             if ($expectedFailure instanceof Throwable) {

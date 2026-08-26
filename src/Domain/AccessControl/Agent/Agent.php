@@ -16,6 +16,7 @@ class Agent
      */
     protected function __construct(
         private readonly AgentId $id,
+        private readonly AgentName $name,
         private readonly AgentState $state,
         private readonly AgentCredentialId $credentialId,
         private readonly int $credentialRevision,
@@ -30,12 +31,14 @@ class Agent
      */
     public static function provision(
         AgentId $id,
+        AgentName $name,
         AgentCredentialId $credentialId,
         string $encryptedHmacSharedSecretEnvelope,
         DateTimeImmutable $provisionedAt
     ): self {
         return new self(
             $id,
+            $name,
             AgentState::ACTIVE,
             $credentialId,
             0,
@@ -51,6 +54,14 @@ class Agent
     public function getId(): AgentId
     {
         return $this->id;
+    }
+
+    /**
+     * Returns the required operator-facing name.
+     */
+    public function getName(): AgentName
+    {
+        return $this->name;
     }
 
     /**

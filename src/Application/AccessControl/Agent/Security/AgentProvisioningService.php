@@ -10,6 +10,7 @@ use Fight\AccessControl\Application\AccessControl\Timing\Service\Clock;
 use Fight\AccessControl\Domain\AccessControl\Agent\Agent;
 use Fight\AccessControl\Domain\AccessControl\Agent\AgentCredentialId;
 use Fight\AccessControl\Domain\AccessControl\Agent\AgentId;
+use Fight\AccessControl\Domain\AccessControl\Agent\AgentName;
 use Fight\AccessControl\Domain\AccessControl\Agent\AgentRepository;
 use Fight\AccessControl\Domain\AccessControl\Agent\Event\AgentProvisioned;
 use Fight\AccessControl\Domain\AccessControl\Agent\Event\AgentProvisioningFailed;
@@ -43,17 +44,20 @@ final readonly class AgentProvisioningService
     /**
      * Provisions an Agent for one safe, consumer-supplied maintainer actor identifier.
      */
-    public function provision(string $actorId): AgentProvisioningResult
+    public function provision(string $actorId, string $agentName): AgentProvisioningResult
     {
         try {
+            $name = AgentName::fromString($agentName);
+
             /** @var array{AgentProvisioningResult, AgentProvisioned} $outcome */
-            $outcome = $this->unitOfWork->commitTransactional(function () use ($actorId): array {
+            $outcome = $this->unitOfWork->commitTransactional(function () use ($actorId, $name): array {
                 $provisionedAt = $this->clock->now();
                 $agentId = AgentId::generate();
                 $credentialId = AgentCredentialId::generate();
                 $hmacSharedSecret = $this->hmacSharedSecretGenerator->generate();
                 $agent = Agent::provision(
                     $agentId,
+                    $name,
                     $credentialId,
                     $this->hmacSharedSecretCipher->encrypt($hmacSharedSecret),
                     $provisionedAt
