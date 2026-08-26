@@ -12,6 +12,8 @@ use Fight\AccessControl\Domain\AccessControl\Agent\AgentName;
 use Fight\AccessControl\Domain\AccessControl\Agent\AgentState;
 use Fight\AccessControl\Domain\AccessControl\Agent\Exception\AgentCredentialException;
 use Fight\AccessControl\Domain\AccessControl\Agent\Exception\AgentNameException;
+use Fight\AccessControl\Domain\AccessControl\Agent\Exception\AgentPermissionAssignmentException;
+use Fight\AccessControl\Domain\AccessControl\Permission\PermissionId;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
 
@@ -21,6 +23,7 @@ use PHPUnit\Framework\TestCase;
 #[CoversClass(AgentName::class)]
 #[CoversClass(AgentCredentialException::class)]
 #[CoversClass(AgentNameException::class)]
+#[CoversClass(AgentPermissionAssignmentException::class)]
 #[CoversClass(AgentState::class)]
 final class AgentTest extends TestCase
 {
@@ -64,12 +67,153 @@ final class AgentTest extends TestCase
         self::assertSame(AgentState::ACTIVE, $agent->getState());
         self::assertSame($credentialId, $agent->getCredentialId());
         self::assertSame(0, $agent->getCredentialRevision());
+        self::assertSame([], $agent->getPermissionIds());
+        self::assertSame(1, $agent->getPermissionAssignmentRevision());
         self::assertSame(
             'consumer-encrypted-hmac-shared-secret-envelope',
             $agent->getEncryptedHmacSharedSecretEnvelope()
         );
         self::assertSame($provisionedAt, $agent->getCreatedAt());
         self::assertSame($provisionedAt, $agent->getUpdatedAt());
+    }
+
+    public function test_it_grants_one_unique_permission_and_advances_only_assignment_authority(): void
+    {
+        $credentialId = AgentCredentialId::generate();
+        $permissionId = PermissionId::generate();
+        $provisionedAt = new DateTimeImmutable('2026-08-25T12:00:00+00:00');
+        $grantedAt = new DateTimeImmutable('2026-08-26T12:00:00+00:00');
+        $agent = Agent::provision(
+            AgentId::generate(),
+            AgentName::fromString('Production deployment'),
+            $credentialId,
+            'encrypted:current-secret',
+            $provisionedAt
+        );
+
+        $successor = $agent->grantPermission($permissionId, $grantedAt);
+
+        self::assertFalse($agent->hasPermission($permissionId));
+        self::assertTrue($successor->hasPermission($permissionId));
+        self::assertSame([$permissionId], $successor->getPermissionIds());
+        self::assertSame(1, $agent->getPermissionAssignmentRevision());
+        self::assertSame(2, $successor->getPermissionAssignmentRevision());
+        self::assertSame($agent->getState(), $successor->getState());
+        self::assertSame($credentialId, $successor->getCredentialId());
+        self::assertSame(0, $successor->getCredentialRevision());
+        self::assertSame('encrypted:current-secret', $successor->getEncryptedHmacSharedSecretEnvelope());
+        self::assertSame($provisionedAt, $successor->getCreatedAt());
+        self::assertSame($grantedAt, $successor->getUpdatedAt());
+
+        $this->expectException(AgentPermissionAssignmentException::class);
+        $successor->grantPermission($permissionId, new DateTimeImmutable('2026-08-26T12:05:00+00:00'));
+    }
+
+    public function test_it_revokes_one_assigned_permission_and_advances_only_assignment_authority(): void
+    {
+        $credentialId = AgentCredentialId::generate();
+        $revokedPermissionId = PermissionId::generate();
+        $remainingPermissionId = PermissionId::generate();
+        $provisionedAt = new DateTimeImmutable('2026-08-25T12:00:00+00:00');
+        $revokedAt = new DateTimeImmutable('2026-08-26T12:00:00+00:00');
+        $agent = Agent::provision(
+            AgentId::generate(),
+            AgentName::fromString('Production deployment'),
+            $credentialId,
+            'encrypted:current-secret',
+            $provisionedAt
+        )->grantPermission(
+            $revokedPermissionId,
+            new DateTimeImmutable('2026-08-25T13:00:00+00:00')
+        )->grantPermission(
+            $remainingPermissionId,
+            new DateTimeImmutable('2026-08-25T14:00:00+00:00')
+        );
+
+        $successor = $agent->revokePermission($revokedPermissionId, $revokedAt);
+
+        self::assertTrue($agent->hasPermission($revokedPermissionId));
+        self::assertFalse($successor->hasPermission($revokedPermissionId));
+        self::assertTrue($successor->hasPermission($remainingPermissionId));
+        self::assertSame([$remainingPermissionId], $successor->getPermissionIds());
+        self::assertSame(3, $agent->getPermissionAssignmentRevision());
+        self::assertSame(4, $successor->getPermissionAssignmentRevision());
+        self::assertSame($agent->getState(), $successor->getState());
+        self::assertSame($credentialId, $successor->getCredentialId());
+        self::assertSame(0, $successor->getCredentialRevision());
+        self::assertSame('encrypted:current-secret', $successor->getEncryptedHmacSharedSecretEnvelope());
+        self::assertSame($provisionedAt, $successor->getCreatedAt());
+        self::assertSame($revokedAt, $successor->getUpdatedAt());
+
+        $this->expectException(AgentPermissionAssignmentException::class);
+        $successor->revokePermission(
+            $revokedPermissionId,
+            new DateTimeImmutable('2026-08-26T12:05:00+00:00')
+        );
+    }
+
+    public function test_it_replaces_the_complete_permission_set_with_revision_and_set_semantics(): void
+    {
+        $firstPermissionId = PermissionId::generate();
+        $secondPermissionId = PermissionId::generate();
+        $replacementPermissionId = PermissionId::generate();
+        $agent = Agent::provision(
+            AgentId::generate(),
+            AgentName::fromString('Production deployment'),
+            AgentCredentialId::generate(),
+            'encrypted:current-secret',
+            new DateTimeImmutable('2026-08-25T12:00:00+00:00')
+        )->grantPermission(
+            $firstPermissionId,
+            new DateTimeImmutable('2026-08-25T13:00:00+00:00')
+        )->grantPermission(
+            $secondPermissionId,
+            new DateTimeImmutable('2026-08-25T14:00:00+00:00')
+        );
+
+        $sameSet = $agent->replacePermissions(
+            [$secondPermissionId, $firstPermissionId],
+            3,
+            new DateTimeImmutable('2026-08-26T11:00:00+00:00')
+        );
+        $replacement = $agent->replacePermissions(
+            [$replacementPermissionId, $secondPermissionId],
+            3,
+            new DateTimeImmutable('2026-08-26T12:00:00+00:00')
+        );
+        $empty = $replacement->replacePermissions(
+            [],
+            4,
+            new DateTimeImmutable('2026-08-26T13:00:00+00:00')
+        );
+
+        self::assertSame($agent, $sameSet);
+        self::assertSame([$firstPermissionId, $secondPermissionId], $sameSet->getPermissionIds());
+        self::assertSame(3, $sameSet->getPermissionAssignmentRevision());
+        self::assertSame([$replacementPermissionId, $secondPermissionId], $replacement->getPermissionIds());
+        self::assertSame(4, $replacement->getPermissionAssignmentRevision());
+        self::assertSame([], $empty->getPermissionIds());
+        self::assertSame(5, $empty->getPermissionAssignmentRevision());
+        self::assertSame($agent->getCredentialId(), $replacement->getCredentialId());
+
+        foreach (['stale', 'duplicate'] as $case) {
+            $requestedIds = [$replacementPermissionId];
+            if ($case === 'duplicate') {
+                $requestedIds = [$firstPermissionId, $firstPermissionId];
+            }
+
+            try {
+                $agent->replacePermissions(
+                    $requestedIds,
+                    $case === 'stale' ? 2 : 3,
+                    new DateTimeImmutable('2026-08-26T14:00:00+00:00')
+                );
+                self::fail(sprintf('Invalid complete-set replacement case "%s" was accepted.', $case));
+            } catch (AgentPermissionAssignmentException) {
+                self::assertSame([$firstPermissionId, $secondPermissionId], $agent->getPermissionIds());
+                self::assertSame(3, $agent->getPermissionAssignmentRevision());
+            }
+        }
     }
 
     public function test_that_an_active_agent_rotates_to_one_successor_credential(): void
@@ -98,6 +242,7 @@ final class AgentTest extends TestCase
         self::assertSame($rotatedCredentialId, $successor->getCredentialId());
         self::assertSame(1, $successor->getCredentialRevision());
         self::assertSame('encrypted:rotated-secret', $successor->getEncryptedHmacSharedSecretEnvelope());
+        self::assertSame(1, $successor->getPermissionAssignmentRevision());
         self::assertSame($provisionedAt, $successor->getCreatedAt());
         self::assertSame($rotatedAt, $successor->getUpdatedAt());
     }
@@ -119,6 +264,7 @@ final class AgentTest extends TestCase
         self::assertSame(AgentState::REVOKED, $revoked->getState());
         self::assertSame($credentialId, $revoked->getCredentialId());
         self::assertSame(0, $revoked->getCredentialRevision());
+        self::assertSame(1, $revoked->getPermissionAssignmentRevision());
         self::assertSame($revokedAt, $revoked->getUpdatedAt());
 
         try {

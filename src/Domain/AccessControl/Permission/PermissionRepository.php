@@ -64,7 +64,8 @@ interface PermissionRepository
      * Atomically removes the expected Permission only when it remains current and unreferenced.
      *
      * Validation and mutation occur under one adapter-owned permission-reference fence held through the enclosing
-     * Unit of Work and shared with RoleRepository reference-changing writes. Returns false when changed or referenced.
+     * Unit of Work and shared with RoleRepository and AgentRepository reference-changing writes. Returns false when
+     * changed or referenced.
      */
     public function remove(Permission $permission): bool;
 }

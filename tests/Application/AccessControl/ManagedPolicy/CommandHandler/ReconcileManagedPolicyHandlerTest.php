@@ -8,6 +8,10 @@ use DateTimeImmutable;
 use Fight\AccessControl\Application\AccessControl\ManagedPolicy\CommandHandler\ReconcileManagedPolicyHandler;
 use Fight\AccessControl\Application\AccessControl\ManagedPolicy\QueryHandler\PreviewManagedPolicyHandler;
 use Fight\AccessControl\Application\AccessControl\ManagedPolicy\Service\ManagedPolicyPlanner;
+use Fight\AccessControl\Domain\AccessControl\Agent\Agent;
+use Fight\AccessControl\Domain\AccessControl\Agent\AgentCredentialId;
+use Fight\AccessControl\Domain\AccessControl\Agent\AgentId;
+use Fight\AccessControl\Domain\AccessControl\Agent\AgentName;
 use Fight\AccessControl\Domain\AccessControl\ManagedPolicy\Command\ReconcileManagedPolicy;
 use Fight\AccessControl\Domain\AccessControl\ManagedPolicy\Event\ManagedPolicyReconciled;
 use Fight\AccessControl\Domain\AccessControl\ManagedPolicy\Exception\ManagedPolicyDefinitionException;
@@ -30,6 +34,7 @@ use Fight\Common\Domain\Messaging\Command\CommandMessage;
 use Fight\Common\Domain\Messaging\Event\CommandFailedEvent;
 use Fight\Common\Domain\Messaging\Query\QueryMessage;
 use Fight\Common\Domain\Repository\Pagination;
+use Fight\Test\AccessControl\Application\AccessControl\Agent\Repository\InMemoryAgentRepository;
 use Fight\Test\AccessControl\Application\AccessControl\Event\InMemoryEventDispatcher;
 use Fight\Test\AccessControl\Application\AccessControl\Permission\Repository\InMemoryPermissionRepository;
 use Fight\Test\AccessControl\Application\AccessControl\Role\Repository\InMemoryRoleRepository;
@@ -694,6 +699,124 @@ final class ReconcileManagedPolicyHandlerTest extends TestCase
         self::assertCount(1, $events->events());
         self::assertInstanceOf(CommandFailedEvent::class, $events->events()[0]);
         self::assertSame($failure->getMessage(), $events->events()[0]->getErrorMessage());
+    }
+
+    public function test_agent_reference_at_final_removal_rolls_back_every_prior_policy_mutation(): void
+    {
+        $unitOfWork = new InMemoryUnitOfWork();
+        $createdAt = new DateTimeImmutable('2026-08-01T00:00:00+00:00');
+        $obsoletePermission = Permission::defineManaged(
+            $this->permissionId(104),
+            PermissionName::fromString('OBSOLETE'),
+            PermissionTier::ADMIN_SAFE,
+            $createdAt
+        );
+        $agents = new InMemoryAgentRepository($unitOfWork);
+        $agent = Agent::provision(
+            AgentId::generate(),
+            AgentName::fromString('Production deployment'),
+            AgentCredentialId::generate(),
+            'encrypted:current-secret',
+            $createdAt
+        );
+        $agents->add($agent);
+        $permissions = new InMemoryPermissionRepository(
+            $unitOfWork,
+            beforeRemove: static function () use ($agent, $agents, $obsoletePermission, $unitOfWork): void {
+                self::assertTrue($unitOfWork->authorizationReferenceState()->isReferenceFenceHeld());
+                self::assertTrue($agents->replacePermissionAssignments(
+                    $agent,
+                    $agent->grantPermission(
+                        $obsoletePermission->getId(),
+                        new DateTimeImmutable('2026-08-23T12:00:00+00:00')
+                    )
+                ));
+            }
+        );
+        $permissions->add(Permission::defineManaged(
+            $this->permissionId(101),
+            PermissionName::fromString('VIEW_USERS'),
+            PermissionTier::ADMIN_SAFE,
+            $createdAt
+        ));
+        $permissions->add(Permission::defineManaged(
+            $this->permissionId(102),
+            PermissionName::fromString('OLD_MANAGE_USERS'),
+            PermissionTier::ADMIN_SAFE,
+            $createdAt
+        ));
+        $permissions->add($obsoletePermission);
+
+        $roles = new InMemoryRoleRepository($unitOfWork);
+        $roles->add(Role::defineManaged(
+            $this->roleId(201),
+            RoleName::fromString('ROLE_VIEWER'),
+            [$this->permissionId(101)],
+            $createdAt
+        ));
+        $roles->add(Role::defineManaged(
+            $this->roleId(202),
+            RoleName::fromString('ROLE_EDITOR'),
+            [$this->permissionId(101), $this->permissionId(104)],
+            $createdAt
+        ));
+        $roles->add(Role::defineManaged(
+            $this->roleId(204),
+            RoleName::fromString('ROLE_OBSOLETE'),
+            [$this->permissionId(104)],
+            $createdAt
+        ));
+        $events = new InMemoryEventDispatcher();
+        $handler = new ReconcileManagedPolicyHandler(
+            $permissions,
+            $roles,
+            new ManagedPolicyPlanner(
+                $permissions,
+                $roles,
+                new InMemoryUserRepository($unitOfWork)
+            ),
+            $unitOfWork,
+            $events,
+            new FixedClock(new DateTimeImmutable('2026-08-23T12:00:00+00:00'))
+        );
+
+        try {
+            $handler->handle(CommandMessage::create($this->command()));
+            self::fail('A final Agent reference must fail the complete managed-policy transaction.');
+        } catch (LogicException $logicException) {
+            self::assertSame(
+                'Managed permission changed or became referenced after preflight.',
+                $logicException->getMessage()
+            );
+        }
+
+        self::assertSame('VIEW_USERS', $permissions->getById($this->permissionId(101))?->getName()->toString());
+        $restoredPermission = $permissions->getById($this->permissionId(102));
+        self::assertInstanceOf(Permission::class, $restoredPermission);
+        self::assertSame('OLD_MANAGE_USERS', $restoredPermission->getName()->toString());
+        self::assertSame(PermissionTier::ADMIN_SAFE, $restoredPermission->getTier());
+        self::assertSame($obsoletePermission, $permissions->getById($this->permissionId(104)));
+        self::assertNull($permissions->getById($this->permissionId(103)));
+        self::assertInstanceOf(Role::class, $roles->getById($this->roleId(201)));
+        $restoredRole = $roles->getById($this->roleId(202));
+        self::assertInstanceOf(Role::class, $restoredRole);
+        self::assertSame(
+            [$this->permissionId(101)->toString(), $this->permissionId(104)->toString()],
+            array_map(
+                static fn(PermissionId $id): string => $id->toString(),
+                $restoredRole->getPermissionIds()
+            )
+        );
+        self::assertInstanceOf(Role::class, $roles->getById($this->roleId(204)));
+        self::assertNull($roles->getById($this->roleId(203)));
+        $restoredAgent = $agents->getById($agent->getId());
+        self::assertInstanceOf(Agent::class, $restoredAgent);
+        self::assertSame([], $restoredAgent->getPermissionIds());
+        self::assertSame(1, $restoredAgent->getPermissionAssignmentRevision());
+        self::assertFalse($unitOfWork->transactionCompleted);
+        self::assertCount(1, $events->events());
+        self::assertInstanceOf(CommandFailedEvent::class, $events->events()[0]);
+        self::assertNotInstanceOf(ManagedPolicyReconciled::class, $events->events()[0]);
     }
 
     private function command(): ReconcileManagedPolicy

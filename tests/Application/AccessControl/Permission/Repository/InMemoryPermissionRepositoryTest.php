@@ -5,10 +5,21 @@ declare(strict_types=1);
 namespace Fight\Test\AccessControl\Application\AccessControl\Permission\Repository;
 
 use DateTimeImmutable;
+use Fight\AccessControl\Domain\AccessControl\Agent\Agent;
+use Fight\AccessControl\Domain\AccessControl\Agent\AgentCredentialId;
+use Fight\AccessControl\Domain\AccessControl\Agent\AgentId;
+use Fight\AccessControl\Domain\AccessControl\Agent\AgentName;
 use Fight\AccessControl\Domain\AccessControl\Permission\Permission;
 use Fight\AccessControl\Domain\AccessControl\Permission\PermissionId;
 use Fight\AccessControl\Domain\AccessControl\Permission\PermissionName;
+use Fight\AccessControl\Domain\AccessControl\Role\Role;
+use Fight\AccessControl\Domain\AccessControl\Role\RoleId;
+use Fight\AccessControl\Domain\AccessControl\Role\RoleName;
 use Fight\Common\Domain\Repository\Pagination;
+use Fight\Test\AccessControl\Application\AccessControl\Agent\Repository\InMemoryAgentRepository;
+use Fight\Test\AccessControl\Application\AccessControl\Role\Repository\InMemoryRoleRepository;
+use Fight\Test\AccessControl\Application\AccessControl\User\InMemoryUnitOfWork;
+use Fight\Test\AccessControl\Application\AccessControl\User\Repository\InMemoryAuthorizationReferenceState;
 use PHPUnit\Framework\Attributes\CoversNothing;
 use PHPUnit\Framework\TestCase;
 use ReflectionMethod;
@@ -81,6 +92,99 @@ final class InMemoryPermissionRepositoryTest extends TestCase
         self::assertSame(Permission::class, $resultSet->itemType());
         self::assertSame([], $resultSet->records()->toArray());
         self::assertSame(0, $resultSet->totalRecords());
+    }
+
+    public function test_remove_rejects_a_permission_directly_referenced_by_an_agent(): void
+    {
+        $authorizationReferences = new InMemoryAuthorizationReferenceState();
+        $permissions = new InMemoryPermissionRepository(
+            authorizationReferences: $authorizationReferences
+        );
+        $permission = $this->permission('VIEW_USERS');
+        $permissions->add($permission);
+        $agents = new InMemoryAgentRepository(
+            authorizationReferences: $authorizationReferences
+        );
+        $agent = Agent::provision(
+            AgentId::generate(),
+            AgentName::fromString('Production deployment'),
+            AgentCredentialId::generate(),
+            'encrypted:current-secret',
+            new DateTimeImmutable('2026-08-25T12:00:00+00:00')
+        )->grantPermission(
+            $permission->getId(),
+            new DateTimeImmutable('2026-08-25T13:00:00+00:00')
+        );
+        $agents->add($agent);
+
+        self::assertFalse($permissions->remove($permission));
+        self::assertSame($permission, $permissions->getById($permission->getId()));
+    }
+
+    public function test_remove_preserves_unreferenced_success_and_role_reference_rejection(): void
+    {
+        foreach (['unreferenced', 'role'] as $case) {
+            $authorizationReferences = new InMemoryAuthorizationReferenceState();
+            $permissions = new InMemoryPermissionRepository(
+                authorizationReferences: $authorizationReferences
+            );
+            $permission = $this->permission('VIEW_USERS');
+            $permissions->add($permission);
+            if ($case === 'role') {
+                $roles = new InMemoryRoleRepository(
+                    authorizationReferences: $authorizationReferences
+                );
+                $roles->add(Role::define(
+                    RoleId::generate(),
+                    RoleName::fromString('ROLE_VIEWER'),
+                    [$permission->getId()],
+                    new DateTimeImmutable('2026-08-25T12:00:00+00:00')
+                ));
+            }
+
+            self::assertSame($case === 'unreferenced', $permissions->remove($permission));
+            self::assertSame(
+                $case === 'unreferenced' ? null : $permission,
+                $permissions->getById($permission->getId())
+            );
+        }
+    }
+
+    public function test_remove_rejects_an_agent_reference_introduced_at_the_held_final_boundary(): void
+    {
+        $unitOfWork = new InMemoryUnitOfWork();
+        $permission = $this->permission('VIEW_USERS');
+        $agents = new InMemoryAgentRepository($unitOfWork);
+        $agent = Agent::provision(
+            AgentId::generate(),
+            AgentName::fromString('Production deployment'),
+            AgentCredentialId::generate(),
+            'encrypted:current-secret',
+            new DateTimeImmutable('2026-08-25T12:00:00+00:00')
+        );
+        $agents->add($agent);
+        $permissions = new InMemoryPermissionRepository(
+            $unitOfWork,
+            beforeRemove: static function () use ($agent, $agents, $permission, $unitOfWork): void {
+                self::assertTrue($unitOfWork->authorizationReferenceState()->isReferenceFenceHeld());
+                self::assertTrue($agents->replacePermissionAssignments(
+                    $agent,
+                    $agent->grantPermission(
+                        $permission->getId(),
+                        new DateTimeImmutable('2026-08-25T13:00:00+00:00')
+                    )
+                ));
+            }
+        );
+        $permissions->add($permission);
+
+        $removed = $unitOfWork->commitTransactional(
+            static fn(): bool => $permissions->remove($permission)
+        );
+
+        self::assertFalse($removed);
+        self::assertSame($permission, $permissions->getById($permission->getId()));
+        self::assertTrue($agents->getById($agent->getId())?->hasPermission($permission->getId()));
     }
 
     private function permission(string $name): Permission

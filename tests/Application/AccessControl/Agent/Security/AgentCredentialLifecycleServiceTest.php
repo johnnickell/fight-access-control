@@ -21,6 +21,8 @@ use Fight\AccessControl\Domain\AccessControl\Agent\Exception\AgentCredentialExce
 use Fight\AccessControl\Domain\AccessControl\Audit\AuditEvidence;
 use Fight\Common\Application\Repository\UnitOfWork;
 use Fight\Common\Domain\Exception\DomainException;
+use Fight\Common\Domain\Repository\Pagination;
+use Fight\Common\Domain\Repository\ResultSet;
 use Fight\Test\AccessControl\Application\AccessControl\Agent\Repository\InMemoryAgentRepository;
 use Fight\Test\AccessControl\Application\AccessControl\Agent\Service\FixedHmacSharedSecretCipher;
 use Fight\Test\AccessControl\Application\AccessControl\Agent\Service\FixedHmacSharedSecretGenerator;
@@ -290,9 +292,20 @@ final class AgentCredentialLifecycleServiceTest extends TestCase
                     );
                 }
 
+                public function getAll(
+                    Pagination $pagination
+                ): ResultSet {
+                    throw new LogicException('Not used by this test double.');
+                }
+
                 public function replace(Agent $expected, Agent $replacement): bool
                 {
                     throw $this->failure;
+                }
+
+                public function replacePermissionAssignments(Agent $expected, Agent $replacement): bool
+                {
+                    return false;
                 }
             },
             new InMemoryAuditEvidenceRepository(),
@@ -413,7 +426,18 @@ final class AgentCredentialLifecycleServiceTest extends TestCase
                 return $id->equals($this->agent->getId()) ? $this->agent : null;
             }
 
+            public function getAll(
+                Pagination $pagination
+            ): ResultSet {
+                throw new LogicException('Not used by this test double.');
+            }
+
             public function replace(Agent $expected, Agent $replacement): bool
+            {
+                return false;
+            }
+
+            public function replacePermissionAssignments(Agent $expected, Agent $replacement): bool
             {
                 return false;
             }
@@ -531,9 +555,20 @@ final class AgentCredentialLifecycleServiceTest extends TestCase
                     );
                 }
 
+                public function getAll(
+                    Pagination $pagination
+                ): ResultSet {
+                    throw new LogicException('Not used by this test double.');
+                }
+
                 public function replace(Agent $expected, Agent $replacement): bool
                 {
                     throw $this->failure;
+                }
+
+                public function replacePermissionAssignments(Agent $expected, Agent $replacement): bool
+                {
+                    return false;
                 }
             },
             new InMemoryAuditEvidenceRepository(),

@@ -4,7 +4,7 @@ Operational execution view for Fight AccessControl. Ticket files are canonical f
 this board is canonical for recommended order. IDs identify artifacts only. Update this file whenever ticket
 status, dependencies, or roadmap priority changes.
 
-Last updated: 2026-08-25
+Last updated: 2026-08-26
 
 ## “What’s Next?” Contract
 
@@ -31,7 +31,6 @@ materially cheaper.
 
 | Ticket | Parent PRD | Outcome |
 |---|---|---|
-| [T-00021](00021-TICKET.md) | [PRD-00002](../specs/00002-PRD.md) | Manage direct Agent Permissions and reference integrity. |
 | [T-00022](00022-TICKET.md) | [PRD-00002](../specs/00002-PRD.md) | Authenticate a signed Agent request. |
 
 ## Waiting
@@ -40,7 +39,7 @@ Waiting tickets retain `ready-for-agent`; their position here is derived from un
 
 | Ticket | Blocked by | Outcome |
 |---|---|---|
-| [T-00023](00023-TICKET.md) | T-00021, T-00022 | Resolve one current Agent identity per request. |
+| [T-00023](00023-TICKET.md) | T-00022 | Resolve one current Agent identity per request. |
 | [T-00024](00024-TICKET.md) | T-00023 | Unify current User and Agent authority access without conflating their identities. |
 
 ## Needs Info
@@ -60,6 +59,7 @@ No tickets currently require a decision authority.
 
 | Ticket | Parent PRD | Outcome |
 |--------|------------|---------|
+| [T-00021](00021-TICKET.md) | [PRD-00002](../specs/00002-PRD.md) | Delivered revision-fenced direct Agent Permission management, shared removal reference integrity, and exact secret-free administrative reads. |
 | [T-00020](00020-TICKET.md) | [PRD-00002](../specs/00002-PRD.md) | Replaced an Agent's sole credential atomically with stale-ID fencing and terminal revocation, preserving secret-free audit/event ordering and exact coverage. |
 | [T-00019](00019-TICKET.md) | [PRD-00002](../specs/00002-PRD.md) | Provisioned one active Agent credential with encrypted durable authority, a post-commit raw-secret result, and secret-free audit/event evidence. |
 | [T-00025](00025-TICKET.md) | [PRD-00002](../specs/00002-PRD.md) | Required a normalized, bounded operator-facing Agent name before any Agent credential work, with secret-free failure handling and exact coverage. |

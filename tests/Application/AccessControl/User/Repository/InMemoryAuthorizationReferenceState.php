@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Fight\Test\AccessControl\Application\AccessControl\User\Repository;
 
+use Fight\AccessControl\Domain\AccessControl\Agent\Agent;
 use Fight\AccessControl\Domain\AccessControl\Permission\PermissionId;
 use Fight\AccessControl\Domain\AccessControl\Role\Role;
 use Fight\AccessControl\Domain\AccessControl\Role\RoleId;
@@ -17,6 +18,9 @@ final class InMemoryAuthorizationReferenceState
 {
     /** @var array<string, true> */
     private array $permissions = [];
+
+    /** @var array<string, Agent> */
+    private array $agents = [];
 
     /** @var array<string, Role> */
     private array $roles = [];
@@ -65,6 +69,21 @@ final class InMemoryAuthorizationReferenceState
     public function roleContainsPermission(PermissionId $id): bool
     {
         return array_any($this->roles, static fn(Role $role): bool => $role->hasPermission($id));
+    }
+
+    public function retainAgent(Agent $agent): void
+    {
+        $this->agents[$agent->getId()->toString()] = $agent;
+    }
+
+    public function removeAgent(Agent $agent): void
+    {
+        unset($this->agents[$agent->getId()->toString()]);
+    }
+
+    public function agentContainsPermission(PermissionId $id): bool
+    {
+        return array_any($this->agents, static fn(Agent $agent): bool => $agent->hasPermission($id));
     }
 
     public function retainUser(User $user): void
