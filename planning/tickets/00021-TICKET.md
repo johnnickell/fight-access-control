@@ -3,7 +3,7 @@ id: T-00021
 prd: PRD-00002
 title: Manage direct Agent Permissions safely
 status: ready-for-agent
-blocked_by: T-00019
+blocked_by: T-00019,T-00025
 ---
 
 # Manage direct Agent Permissions safely
@@ -16,8 +16,9 @@ and names but never make an authorization decision.
 
 ## Scope
 
-- In scope: direct Permission assignment operations, assignment revision, safe Agent read result, Agent repository
-  support, and the shared Permission-removal reference fence in deterministic tests.
+- In scope: direct Permission assignment operations, assignment revision, safe Agent read result including the
+  required operator-facing Agent name from T-00025, Agent repository support, and the shared Permission-removal
+  reference fence in deterministic tests.
 - Out of scope: Agent Roles, Permission-name policy, endpoint authorization, signed-request authentication,
   production persistence, database schema, and a general policy engine.
 
@@ -27,7 +28,8 @@ and names but never make an authorization decision.
 - [ ] Assignment revision advances only when assignments change; stale replacement fails with no partial change.
 - [ ] Unknown Permissions, duplicate grants or replacement input, and revocation of an absent assignment fail safely.
 - [ ] Permission removal fails while any Agent references that Permission, using the same authority fence as Roles.
-- [ ] Safe reads expose only Agent lifecycle, credential metadata, assignment revision, and Permission IDs and names.
+- [ ] Safe reads expose only Agent name, lifecycle, credential metadata, assignment revision, and Permission IDs and
+  names.
 - [ ] Tests cover reference integrity, rollback behavior, safe reads, and exact coverage.
 
 ## Verification
