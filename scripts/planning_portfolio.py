@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import re
+import os
 import subprocess
 import sys
 from pathlib import Path
@@ -102,6 +103,9 @@ def main() -> int:
         if record_id.startswith("T-"):
             visit(record_id)
 
+    git_environment = os.environ.copy()
+    git_environment.pop("GIT_DIR", None)
+    git_environment.pop("GIT_WORK_TREE", None)
     ignored = subprocess.run(
         [
             "git",
@@ -112,6 +116,7 @@ def main() -> int:
             ".runs/planning-check",
         ],
         cwd=ROOT,
+        env=git_environment,
         check=False,
     )
     if ignored.returncode != 0:

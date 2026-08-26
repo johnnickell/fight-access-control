@@ -2,7 +2,7 @@
 id: T-00020
 prd: PRD-00002
 title: Rotate and revoke an Agent credential
-status: ready-for-agent
+status: done
 blocked_by: T-00019
 ---
 
@@ -23,14 +23,26 @@ authority and required audit evidence commit.
 
 ## Acceptance Criteria
 
-- [ ] Rotation replaces the sole active credential immediately and advances its revision.
-- [ ] Stale rotation work fails without changing the Agent or exposing a secret.
-- [ ] Revocation is terminal; a revoked Agent cannot rotate or authenticate.
-- [ ] Successful operations commit required audit evidence before publishing their success events.
-- [ ] Tests cover normal and stale rotation, revocation, failures, and exact coverage.
+- [x] Rotation replaces the sole active credential immediately and advances its revision.
+- [x] Stale rotation work fails without changing the Agent or exposing a secret.
+- [x] Revocation is terminal; a revoked Agent cannot rotate or authenticate.
+- [x] Successful operations commit required audit evidence before publishing their success events.
+- [x] Tests cover normal and stale rotation, revocation, failures, and exact coverage.
 
 ## Verification
 
 - Focused Agent credential-lifecycle aggregate and Application tests
 - `./bin/planning-check`
 - `./bin/build`
+
+## Completion Notes
+
+- Added immutable Agent credential-successor and terminal-revocation transitions, with expected-credential fencing,
+  monotonic revisions, and a repository compare-and-replace contract for authoritative persistence.
+- Added a synchronous credential-lifecycle service that commits the replacement/revocation and secret-free audit
+  evidence atomically before publishing safe success events. Rotation returns its non-serializable raw-secret result
+  only after commit; failures rethrow unchanged and publish only generic secret-free evidence.
+- Added aggregate, repository, and Application tests covering normal and stale rotation, terminal revocation,
+  ordering, rollback, serialization safety, and failure publication behavior.
+- `./bin/planning-check` passed with 28 records and 7 active records. `./bin/build` passed with planning integrity,
+  PHPCS, PHPStan, architecture, package boundaries, Rector, PHPUnit, and exact statement coverage.

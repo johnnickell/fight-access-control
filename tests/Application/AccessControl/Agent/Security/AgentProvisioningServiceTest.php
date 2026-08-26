@@ -167,6 +167,16 @@ final class AgentProvisioningServiceTest extends TestCase
                 {
                     throw $this->failure;
                 }
+
+                public function getById(AgentId $id): ?Agent
+                {
+                    return null;
+                }
+
+                public function replace(Agent $expected, Agent $replacement): bool
+                {
+                    return false;
+                }
             },
             new InMemoryAuditEvidenceRepository(),
             new FixedHmacSharedSecretGenerator('shared-secret'),

@@ -45,6 +45,22 @@ class AuditEvidence
     }
 
     /**
+     * Records the secret-free rotation of an Agent credential.
+     */
+    public static function agentCredentialRotated(string $actorId, AgentId $agentId): static
+    {
+        return new static($actorId, 'agent.credential_rotated', $agentId);
+    }
+
+    /**
+     * Records the secret-free terminal revocation of an Agent credential.
+     */
+    public static function agentCredentialRevoked(string $actorId, AgentId $agentId): static
+    {
+        return new static($actorId, 'agent.credential_revoked', $agentId);
+    }
+
+    /**
      * Records the reasoned administrative revocation of a user's refresh session.
      */
     public static function administrativeSessionRevocation(
