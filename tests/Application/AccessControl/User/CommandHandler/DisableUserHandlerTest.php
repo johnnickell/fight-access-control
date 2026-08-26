@@ -63,7 +63,7 @@ final class DisableUserHandlerTest extends TestCase
         self::assertTrue($sessions->all()[0]->isRevoked());
         self::assertSame('user.disabled', $audit->all()[0]->action());
         self::assertSame($actorId->toString(), $audit->all()[0]->actorId());
-        self::assertSame($user->getId(), $audit->all()[0]->userId());
+        self::assertSame($user->getId(), $audit->all()[0]->subjectId());
         self::assertSame([], $audit->all()[0]->context());
         self::assertCount(1, $events->events());
         self::assertInstanceOf(UserDisabled::class, $events->events()[0]);

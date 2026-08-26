@@ -87,7 +87,7 @@ final class PlanningAuthorityTest extends TestCase
         $tickets = $this->read('planning/tickets/README.md');
         $board = $this->read('planning/tickets/BOARD.md');
         $completedTicket = $this->read('planning/tickets/00017-TICKET.md');
-        $completedFrontier = $this->read('planning/tickets/00018-TICKET.md');
+        $completedFrontier = $this->read('planning/tickets/00019-TICKET.md');
 
         self::assertStringContainsString('ready-for-agent', $tracker);
         self::assertStringContainsString('blocked_by', $tracker);
@@ -97,9 +97,9 @@ final class PlanningAuthorityTest extends TestCase
         self::assertStringContainsString('Ready Frontier', $board);
         self::assertStringContainsString('What’s Next?', $board);
         self::assertStringContainsString('Recently Done', $board);
-        self::assertStringContainsString('T-00018', $board);
-        self::assertStringContainsString('id: T-00018', $completedFrontier);
-        self::assertStringContainsString('prd: PRD-00001', $completedFrontier);
+        self::assertStringContainsString('T-00019', $board);
+        self::assertStringContainsString('id: T-00019', $completedFrontier);
+        self::assertStringContainsString('prd: PRD-00002', $completedFrontier);
         self::assertStringContainsString('status: done', $completedFrontier);
         self::assertStringContainsString('id: T-00017', $completedTicket);
         self::assertStringContainsString('status: done', $completedTicket);
@@ -119,7 +119,7 @@ final class PlanningAuthorityTest extends TestCase
         $process->run();
 
         self::assertSame(0, $process->getExitCode(), $process->getErrorOutput().$process->getOutput());
-        self::assertStringContainsString('Planning validation passed: 27 records, 8 active', $process->getOutput());
+        self::assertStringContainsString('Planning validation passed: 27 records, 7 active', $process->getOutput());
     }
 
     protected function setUp(): void

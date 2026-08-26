@@ -116,7 +116,7 @@ final class CorrectPendingInvitationHandlerTest extends TestCase
         self::assertSame($user->getId(), $authorization->lastUserId());
         self::assertSame('user.pending_invitation_corrected', $audit->all()[0]->action());
         self::assertSame($actorId->toString(), $audit->all()[0]->actorId());
-        self::assertSame($user->getId(), $audit->all()[0]->userId());
+        self::assertSame($user->getId(), $audit->all()[0]->subjectId());
         self::assertSame([], $audit->all()[0]->context());
         self::assertCount(1, $events->events());
         self::assertInstanceOf(PendingInvitationCorrected::class, $events->events()[0]);

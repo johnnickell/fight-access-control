@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Fight\AccessControl\Domain\AccessControl\Audit;
 
+use Fight\AccessControl\Domain\AccessControl\Agent\AgentId;
 use Fight\AccessControl\Domain\AccessControl\RefreshSession\RefreshSessionId;
 use Fight\AccessControl\Domain\AccessControl\RefreshSession\SessionRevocationReason;
 use Fight\AccessControl\Domain\AccessControl\User\UserId;
@@ -21,7 +22,7 @@ class AuditEvidence
     protected function __construct(
         private readonly string $actorId,
         private readonly string $action,
-        private readonly UserId $userId,
+        private readonly UserId|AgentId $subjectId,
         /** @var array<string, string> */
         private readonly array $context = []
     ) {
@@ -33,6 +34,14 @@ class AuditEvidence
     public static function record(string $actorId, string $action, UserId $userId): static
     {
         return new static($actorId, $action, $userId);
+    }
+
+    /**
+     * Records the secret-free provisioning of an Agent authority.
+     */
+    public static function agentProvisioned(string $actorId, AgentId $agentId): static
+    {
+        return new static($actorId, 'agent.provisioned', $agentId);
     }
 
     /**
@@ -72,11 +81,11 @@ class AuditEvidence
     }
 
     /**
-     * Returns the affected user identifier.
+     * Returns the affected User or Agent identifier.
      */
-    public function userId(): UserId
+    public function subjectId(): UserId|AgentId
     {
-        return $this->userId;
+        return $this->subjectId;
     }
 
     /**

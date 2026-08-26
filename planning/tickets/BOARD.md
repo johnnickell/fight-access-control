@@ -31,7 +31,8 @@ materially cheaper.
 
 | Ticket | Parent PRD | Outcome |
 |---|---|---|
-| [T-00019](00019-TICKET.md) | [PRD-00002](../specs/00002-PRD.md) | Provision an Agent with its sole HMAC credential and safe durable authority state. |
+| [T-00020](00020-TICKET.md) | [PRD-00002](../specs/00002-PRD.md) | Rotate and revoke an Agent credential safely. |
+| [T-00021](00021-TICKET.md) | [PRD-00002](../specs/00002-PRD.md) | Manage direct Agent Permissions and reference integrity. |
 
 ## Waiting
 
@@ -39,8 +40,6 @@ Waiting tickets retain `ready-for-agent`; their position here is derived from un
 
 | Ticket | Blocked by | Outcome |
 |---|---|---|
-| [T-00020](00020-TICKET.md) | T-00019 | Rotate and revoke an Agent credential safely. |
-| [T-00021](00021-TICKET.md) | T-00019 | Manage direct Agent Permissions and reference integrity. |
 | [T-00022](00022-TICKET.md) | T-00020 | Authenticate a signed Agent request. |
 | [T-00023](00023-TICKET.md) | T-00021, T-00022 | Resolve one current Agent identity per request. |
 | [T-00024](00024-TICKET.md) | T-00023 | Unify current User and Agent authority access without conflating their identities. |
@@ -62,4 +61,5 @@ No tickets currently require a decision authority.
 
 | Ticket | Parent PRD | Outcome |
 |--------|------------|---------|
+| [T-00019](00019-TICKET.md) | [PRD-00002](../specs/00002-PRD.md) | Provisioned one active Agent credential with encrypted durable authority, a post-commit raw-secret result, and secret-free audit/event evidence. |
 | [T-00001](00001-TICKET.md) through [T-00012](00012-TICKET.md), [T-00014](00014-TICKET.md) through [T-00018](00018-TICKET.md) | [PRD-00001](../specs/00001-PRD.md) | Identity, credential, session, authorization, administrative-read, grant-persistence, managed-policy, and post-commit security-email delivery-event capabilities are complete with their recorded acceptance and delivery evidence. |
