@@ -21,6 +21,8 @@ use Fight\AccessControl\Domain\AccessControl\Audit\AuditEvidence;
 use Fight\AccessControl\Domain\AccessControl\User\UserId;
 use Fight\Common\Application\Repository\UnitOfWork;
 use Fight\Common\Domain\Exception\DomainException;
+use Fight\Common\Domain\Repository\Pagination;
+use Fight\Common\Domain\Repository\ResultSet;
 use Fight\Test\AccessControl\Application\AccessControl\Agent\Repository\InMemoryAgentRepository;
 use Fight\Test\AccessControl\Application\AccessControl\Agent\Service\FixedHmacSharedSecretCipher;
 use Fight\Test\AccessControl\Application\AccessControl\Agent\Service\FixedHmacSharedSecretGenerator;
@@ -173,7 +175,18 @@ final class AgentProvisioningServiceTest extends TestCase
                     return null;
                 }
 
+                public function getAll(
+                    Pagination $pagination
+                ): ResultSet {
+                    throw new LogicException('Not used by this test double.');
+                }
+
                 public function replace(Agent $expected, Agent $replacement): bool
+                {
+                    return false;
+                }
+
+                public function replacePermissionAssignments(Agent $expected, Agent $replacement): bool
                 {
                     return false;
                 }

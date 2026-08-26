@@ -6,6 +6,8 @@ namespace Fight\AccessControl\Domain\AccessControl\Agent;
 
 use DateTimeImmutable;
 use Fight\AccessControl\Domain\AccessControl\Agent\Exception\AgentCredentialException;
+use Fight\AccessControl\Domain\AccessControl\Agent\Exception\AgentPermissionAssignmentException;
+use Fight\AccessControl\Domain\AccessControl\Permission\PermissionId;
 
 /**
  * Represents one machine authority with its current HMAC credential.
@@ -22,6 +24,9 @@ class Agent
         private readonly AgentCredentialId $credentialId,
         private readonly int $credentialRevision,
         private readonly string $encryptedHmacSharedSecretEnvelope,
+        /** @var list<PermissionId> */
+        private readonly array $permissionIds,
+        private readonly int $permissionAssignmentRevision,
         private readonly DateTimeImmutable $createdAt,
         private readonly DateTimeImmutable $updatedAt
     ) {
@@ -44,6 +49,8 @@ class Agent
             $credentialId,
             0,
             $encryptedHmacSharedSecretEnvelope,
+            [],
+            1,
             $provisionedAt,
             $provisionedAt
         );
@@ -98,6 +105,133 @@ class Agent
     }
 
     /**
+     * Returns the directly assigned Permission identities.
+     *
+     * @return list<PermissionId>
+     */
+    public function getPermissionIds(): array
+    {
+        return $this->permissionIds;
+    }
+
+    /**
+     * Returns the monotonic Permission-assignment revision.
+     */
+    public function getPermissionAssignmentRevision(): int
+    {
+        return $this->permissionAssignmentRevision;
+    }
+
+    /**
+     * Returns whether the Permission is directly assigned.
+     */
+    public function hasPermission(PermissionId $permissionId): bool
+    {
+        return array_any(
+            $this->permissionIds,
+            static fn(PermissionId $assigned): bool => $assigned->equals($permissionId)
+        );
+    }
+
+    /**
+     * Returns the immutable successor with one newly assigned Permission.
+     */
+    public function grantPermission(PermissionId $permissionId, DateTimeImmutable $grantedAt): self
+    {
+        if ($this->hasPermission($permissionId)) {
+            throw new AgentPermissionAssignmentException('The Permission is already assigned to the Agent.');
+        }
+
+        return new self(
+            $this->id,
+            $this->name,
+            $this->state,
+            $this->credentialId,
+            $this->credentialRevision,
+            $this->encryptedHmacSharedSecretEnvelope,
+            [...$this->permissionIds, $permissionId],
+            $this->permissionAssignmentRevision + 1,
+            $this->createdAt,
+            $grantedAt
+        );
+    }
+
+    /**
+     * Returns the immutable successor without one directly assigned Permission.
+     */
+    public function revokePermission(PermissionId $permissionId, DateTimeImmutable $revokedAt): self
+    {
+        if (!$this->hasPermission($permissionId)) {
+            throw new AgentPermissionAssignmentException('The Permission is not assigned to the Agent.');
+        }
+
+        return new self(
+            $this->id,
+            $this->name,
+            $this->state,
+            $this->credentialId,
+            $this->credentialRevision,
+            $this->encryptedHmacSharedSecretEnvelope,
+            array_values(array_filter(
+                $this->permissionIds,
+                static fn(PermissionId $assigned): bool => !$assigned->equals($permissionId)
+            )),
+            $this->permissionAssignmentRevision + 1,
+            $this->createdAt,
+            $revokedAt
+        );
+    }
+
+    /**
+     * Returns the immutable successor with the complete direct-Permission assignment set.
+     *
+     * @phpstan-param iterable<PermissionId> $permissionIds
+     */
+    public function replacePermissions(
+        iterable $permissionIds,
+        int $expectedPermissionAssignmentRevision,
+        DateTimeImmutable $replacedAt
+    ): self {
+        $replacementIds = [];
+        $seen = [];
+        foreach ($permissionIds as $permissionId) {
+            $key = $permissionId->toString();
+            if (isset($seen[$key])) {
+                throw new AgentPermissionAssignmentException(
+                    'The complete Agent Permission assignment set contains a duplicate.'
+                );
+            }
+
+            $seen[$key] = true;
+            $replacementIds[] = $permissionId;
+        }
+
+        if ($expectedPermissionAssignmentRevision !== $this->permissionAssignmentRevision) {
+            throw new AgentPermissionAssignmentException('The Agent Permission assignment revision is stale.');
+        }
+
+        if (
+            count($replacementIds) === count($this->permissionIds)
+            && array_all($replacementIds, fn(PermissionId $id): bool => $this->hasPermission($id))
+        ) {
+            return $this;
+        }
+
+        return new self(
+            $this->id,
+            $this->name,
+            $this->state,
+            $this->credentialId,
+            $this->credentialRevision,
+            $this->encryptedHmacSharedSecretEnvelope,
+            $replacementIds,
+            $this->permissionAssignmentRevision + 1,
+            $this->createdAt,
+            $replacedAt
+        );
+    }
+
+    /**
      * Returns the provisioning timestamp.
      */
     public function getCreatedAt(): DateTimeImmutable
@@ -133,6 +267,8 @@ class Agent
             $successorCredentialId,
             $this->credentialRevision + 1,
             $encryptedHmacSharedSecretEnvelope,
+            $this->permissionIds,
+            $this->permissionAssignmentRevision,
             $this->createdAt,
             $rotatedAt
         );
@@ -154,6 +290,8 @@ class Agent
             $this->credentialId,
             $this->credentialRevision,
             $this->encryptedHmacSharedSecretEnvelope,
+            $this->permissionIds,
+            $this->permissionAssignmentRevision,
             $this->createdAt,
             $revokedAt
         );

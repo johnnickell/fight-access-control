@@ -26,7 +26,8 @@ final class InMemoryPermissionRepository implements PermissionRepository
         private readonly ?InMemoryUnitOfWork $unitOfWork = null,
         private readonly ?Closure $beforeRemove = null,
         private readonly bool $removeSucceeds = true,
-        ?InMemoryAuthorizationReferenceState $authorizationReferences = null
+        ?InMemoryAuthorizationReferenceState $authorizationReferences = null,
+        private readonly ?Closure $getByIdsResult = null
     ) {
         $resolvedAuthorizationReferences = $authorizationReferences ?? new InMemoryAuthorizationReferenceState();
         if (
@@ -74,6 +75,13 @@ final class InMemoryPermissionRepository implements PermissionRepository
     /** @phpstan-param list<PermissionId> $ids */
     public function getByIds(array $ids): array
     {
+        if ($this->getByIdsResult instanceof Closure) {
+            /** @var list<Permission> $result */
+            $result = ($this->getByIdsResult)($ids);
+
+            return $result;
+        }
+
         $permissions = [];
         $seen = [];
 
@@ -142,6 +150,7 @@ final class InMemoryPermissionRepository implements PermissionRepository
         if (
             !$this->removeSucceeds
             || $this->authorizationReferences->roleContainsPermission($permission->getId())
+            || $this->authorizationReferences->agentContainsPermission($permission->getId())
         ) {
             return false;
         }
