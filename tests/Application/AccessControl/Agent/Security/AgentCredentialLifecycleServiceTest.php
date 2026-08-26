@@ -188,6 +188,25 @@ final class AgentCredentialLifecycleServiceTest extends TestCase
         $this->assertLifecycleFailureIsSafe($events);
     }
 
+    public function test_that_rotation_of_an_unknown_agent_is_rejected_safely(): void
+    {
+        $events = new InMemoryEventDispatcher();
+        $service = $this->service(
+            new InMemoryAgentRepository(),
+            new InMemoryAuditEvidenceRepository(),
+            new InMemoryUnitOfWork(),
+            $events
+        );
+
+        $this->expectException(LogicException::class);
+
+        try {
+            $service->rotate('maintainer-42', AgentId::generate(), AgentCredentialId::generate());
+        } finally {
+            $this->assertLifecycleFailureIsSafe($events);
+        }
+    }
+
     public function test_it_terminally_revokes_an_agent_after_committing_safe_audit_evidence(): void
     {
         $unitOfWork = new InMemoryUnitOfWork();
@@ -357,6 +376,81 @@ final class AgentCredentialLifecycleServiceTest extends TestCase
         }
     }
 
+    public function test_that_revocation_of_an_unknown_agent_is_rejected_safely(): void
+    {
+        $events = new InMemoryEventDispatcher();
+        $service = $this->service(
+            new InMemoryAgentRepository(),
+            new InMemoryAuditEvidenceRepository(),
+            new InMemoryUnitOfWork(),
+            $events
+        );
+
+        $this->expectException(LogicException::class);
+
+        try {
+            $service->revoke('maintainer-42', AgentId::generate());
+        } finally {
+            $this->assertLifecycleFailureIsSafe($events);
+        }
+    }
+
+    public function test_that_stale_repository_replacements_are_rejected_for_both_lifecycle_operations(): void
+    {
+        $agentId = AgentId::generate();
+        $credentialId = AgentCredentialId::generate();
+        $repository = new readonly class ($this->agent($agentId, $credentialId)) implements AgentRepository {
+            public function __construct(private Agent $agent)
+            {
+            }
+
+            public function add(Agent $agent): void
+            {
+            }
+
+            public function getById(AgentId $id): ?Agent
+            {
+                return $id->equals($this->agent->getId()) ? $this->agent : null;
+            }
+
+            public function replace(Agent $expected, Agent $replacement): bool
+            {
+                return false;
+            }
+        };
+
+        foreach (
+            [
+                static fn (AgentCredentialLifecycleService $service): AgentCredentialRotationResult => $service->rotate(
+                    'maintainer-42',
+                    $agentId,
+                    $credentialId
+                ),
+                static fn (AgentCredentialLifecycleService $service): null => $service->revoke(
+                    'maintainer-42',
+                    $agentId
+                ),
+            ] as $operation
+        ) {
+            $events = new InMemoryEventDispatcher();
+            $service = $this->service(
+                $repository,
+                new InMemoryAuditEvidenceRepository(),
+                new InMemoryUnitOfWork(),
+                $events
+            );
+
+            try {
+                $operation($service);
+                self::fail('Expected the stale repository replacement to be rejected.');
+            } catch (LogicException) {
+                self::addToAssertionCount(1);
+            }
+
+            $this->assertLifecycleFailureIsSafe($events);
+        }
+    }
+
     public function test_that_a_revocation_event_round_trips_safely_and_event_publication_failure_rethrows(): void
     {
         $event = new AgentCredentialRevoked(
@@ -472,6 +566,26 @@ final class AgentCredentialLifecycleServiceTest extends TestCase
         AgentCredentialLifecycleFailed::fromArray([]);
     }
 
+    public function test_that_rotated_event_round_trips_and_exposes_its_safe_metadata(): void
+    {
+        $event = new AgentCredentialRotated(
+            AgentId::generate(),
+            AgentCredentialId::generate(),
+            3,
+            new DateTimeImmutable('2026-08-25T12:05:00+00:00')
+        );
+
+        $roundTripped = AgentCredentialRotated::fromArray($event->toArray());
+
+        self::assertEquals($event->getAgentId(), $roundTripped->getAgentId());
+        self::assertEquals($event->getCredentialId(), $roundTripped->getCredentialId());
+        self::assertSame(3, $roundTripped->getCredentialRevision());
+        self::assertEquals(new DateTimeImmutable('2026-08-25T12:05:00+00:00'), $roundTripped->getRotatedAt());
+
+        $this->expectException(DomainException::class);
+        AgentCredentialRotated::fromArray([]);
+    }
+
     private function assertLifecycleFailureIsSafe(InMemoryEventDispatcher $events): void
     {
         self::assertCount(1, $events->events());
@@ -483,12 +597,12 @@ final class AgentCredentialLifecycleServiceTest extends TestCase
         self::assertStringNotContainsString('encrypted:', serialize($events->events()[0]->toArray()));
     }
 
-    private function agent(AgentId $agentId): Agent
+    private function agent(AgentId $agentId, ?AgentCredentialId $credentialId = null): Agent
     {
         return Agent::provision(
             $agentId,
             AgentName::fromString('Production deployment'),
-            AgentCredentialId::generate(),
+            $credentialId ?? AgentCredentialId::generate(),
             'encrypted:current-secret',
             new DateTimeImmutable('2026-08-25T12:00:00+00:00')
         );
