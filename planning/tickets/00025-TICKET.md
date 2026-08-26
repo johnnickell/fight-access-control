@@ -2,7 +2,7 @@
 id: T-00025
 prd: PRD-00002
 title: Require an operator-facing Agent name
-status: ready-for-agent
+status: done
 blocked_by: T-00019
 ---
 
@@ -24,14 +24,14 @@ reads can identify the correct machine authority without making a UUID the only 
 
 ## Acceptance Criteria
 
-- [ ] Provisioning requires a non-empty, normalized, bounded Agent name; invalid input fails without persisting an
+- [x] Provisioning requires a non-empty, normalized, bounded Agent name; invalid input fails without persisting an
   Agent, credential, audit evidence, or success event.
-- [ ] The Agent retains its required name independently of its stable Agent ID and sole HMAC credential state.
-- [ ] The name is not present in raw-secret material, HMAC signing input, credential identity, or authorization
+- [x] The Agent retains its required name independently of its stable Agent ID and sole HMAC credential state.
+- [x] The name is not present in raw-secret material, HMAC signing input, credential identity, or authorization
   checks.
-- [ ] The safe Agent read delivered by T-00021 exposes the name with lifecycle and credential metadata, while the
+- [x] The safe Agent read delivered by T-00021 exposes the name with lifecycle and credential metadata, while the
   authenticated Agent principal remains a security snapshot rather than an administrative view.
-- [ ] Tests cover valid and invalid names, secret-free failure behavior, persistence of the name, and exact coverage.
+- [x] Tests cover valid and invalid names, secret-free failure behavior, persistence of the name, and exact coverage.
 
 ## Verification
 
@@ -41,4 +41,11 @@ reads can identify the correct machine authority without making a UUID the only 
 
 ## Completion Notes
 
-Record the verified outcome only when terminal.
+Added the `AgentName` Domain value with trimming and a 120-character bound, then required it for synchronous Agent
+provisioning. The aggregate retains the normalized name independently of credential state. Invalid names fail before
+any transaction or credential generation, publish only the existing secret-free failure evidence, and persist no
+Agent or audit evidence. T-00021 owns the later safe-read projection of the retained name.
+
+Verified with the focused Agent suites, `./bin/planning-check`, and the complete canonical quality gate: 524 tests,
+3,734 assertions, and exact 3,879/3,879 statement coverage, plus PHPCS, PHPStan, architecture, package-boundary,
+Rector, documentation, and production-autoload checks.
