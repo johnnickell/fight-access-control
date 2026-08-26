@@ -32,7 +32,7 @@ materially cheaper.
 | Ticket | Parent PRD | Outcome |
 |---|---|---|
 | [T-00020](00020-TICKET.md) | [PRD-00002](../specs/00002-PRD.md) | Rotate and revoke an Agent credential safely. |
-| [T-00021](00021-TICKET.md) | [PRD-00002](../specs/00002-PRD.md) | Manage direct Agent Permissions and reference integrity. |
+| [T-00025](00025-TICKET.md) | [PRD-00002](../specs/00002-PRD.md) | Require an operator-facing Agent name for safe administrative identification. |
 
 ## Waiting
 
@@ -40,6 +40,7 @@ Waiting tickets retain `ready-for-agent`; their position here is derived from un
 
 | Ticket | Blocked by | Outcome |
 |---|---|---|
+| [T-00021](00021-TICKET.md) | T-00025 | Manage direct Agent Permissions and reference integrity. |
 | [T-00022](00022-TICKET.md) | T-00020 | Authenticate a signed Agent request. |
 | [T-00023](00023-TICKET.md) | T-00021, T-00022 | Resolve one current Agent identity per request. |
 | [T-00024](00024-TICKET.md) | T-00023 | Unify current User and Agent authority access without conflating their identities. |
