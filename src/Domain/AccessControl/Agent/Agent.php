@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Fight\AccessControl\Domain\AccessControl\Agent;
 
 use DateTimeImmutable;
+use Fight\AccessControl\Domain\AccessControl\Agent\Exception\AgentCredentialException;
 
 /**
  * Represents one machine authority with its current HMAC credential.
@@ -110,5 +111,51 @@ class Agent
     public function getUpdatedAt(): DateTimeImmutable
     {
         return $this->updatedAt;
+    }
+
+    /**
+     * Returns the immutable successor with one immediately active credential.
+     */
+    public function rotateCredential(
+        AgentCredentialId $expectedCredentialId,
+        AgentCredentialId $successorCredentialId,
+        string $encryptedHmacSharedSecretEnvelope,
+        DateTimeImmutable $rotatedAt
+    ): self {
+        if ($this->state !== AgentState::ACTIVE || !$this->credentialId->equals($expectedCredentialId)) {
+            throw new AgentCredentialException('The expected Agent credential is no longer active.');
+        }
+
+        return new self(
+            $this->id,
+            $this->name,
+            $this->state,
+            $successorCredentialId,
+            $this->credentialRevision + 1,
+            $encryptedHmacSharedSecretEnvelope,
+            $this->createdAt,
+            $rotatedAt
+        );
+    }
+
+    /**
+     * Returns the terminally revoked Agent authority.
+     */
+    public function revoke(DateTimeImmutable $revokedAt): self
+    {
+        if ($this->state !== AgentState::ACTIVE) {
+            throw new AgentCredentialException('The Agent credential is no longer active.');
+        }
+
+        return new self(
+            $this->id,
+            $this->name,
+            AgentState::REVOKED,
+            $this->credentialId,
+            $this->credentialRevision,
+            $this->encryptedHmacSharedSecretEnvelope,
+            $this->createdAt,
+            $revokedAt
+        );
     }
 }
