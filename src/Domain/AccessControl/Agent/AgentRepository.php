@@ -21,6 +21,13 @@ interface AgentRepository
     public function getById(AgentId $id): ?Agent;
 
     /**
+     * Retrieves an Agent by its current public credential identifier.
+     *
+     * @throws Exception When an error occurs
+     */
+    public function getByCredentialId(AgentCredentialId $credentialId): ?Agent;
+
+    /**
      * Retrieves one page of Agent authorities.
      *
      * @throws Exception When an error occurs

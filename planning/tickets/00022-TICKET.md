@@ -2,7 +2,7 @@
 id: T-00022
 prd: PRD-00002
 title: Authenticate a signed Agent request
-status: ready-for-agent
+status: done
 blocked_by: T-00020
 ---
 
@@ -22,16 +22,21 @@ when its canonical request, timestamp, body digest, credential, signature, and o
 
 ## Acceptance Criteria
 
-- [ ] The signed-request shape preserves the approved canonical method, authority, path, query, timestamp, nonce,
+- [x] The signed-request shape preserves the approved canonical method, authority, path, query, timestamp, nonce,
   and non-empty-body digest behavior.
-- [ ] Malformed components, future or expired timestamps, credential mismatch, wrong digest, invalid signature, and
+- [x] Malformed components, future or expired timestamps, credential mismatch, wrong digest, invalid signature, and
   replay fail closed.
-- [ ] An invalid signature never consumes a nonce; at most one valid request can consume a nonce in its validity window.
-- [ ] Authentication confirms that the credential ID and revision are still current at nonce consumption.
-- [ ] Tests prove canonical compatibility, validation order, lifecycle-race outcomes, and exact coverage.
+- [x] An invalid signature never consumes a nonce; at most one valid request can consume a nonce in its validity window.
+- [x] Authentication confirms that the credential ID and revision are still current at nonce consumption.
+- [x] Tests prove canonical compatibility, validation order, lifecycle-race outcomes, and exact coverage.
 
 ## Verification
 
 - Focused signed-request authentication and nonce-consumption tests
 - `./bin/planning-check`
 - `./bin/build`
+
+## Delivery Evidence
+
+- `./bin/planning-check` passed.
+- `./bin/build` passed: 586 tests, 4310 assertions, and exact 4506/4506 statement coverage.
