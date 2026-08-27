@@ -13,12 +13,16 @@ use Fight\AccessControl\Domain\AccessControl\Agent\AgentCredentialId;
 use Fight\AccessControl\Domain\AccessControl\Agent\AgentId;
 use Fight\AccessControl\Domain\AccessControl\Agent\AgentName;
 use Fight\AccessControl\Domain\AccessControl\Agent\Exception\AgentAuthenticationRejectedException;
+use Fight\AccessControl\Domain\AccessControl\Permission\Permission;
+use Fight\AccessControl\Domain\AccessControl\Permission\PermissionId;
+use Fight\AccessControl\Domain\AccessControl\Permission\PermissionName;
 use Fight\Common\Adapter\Auth\Hmac\HmacRequestService;
 use Fight\Test\AccessControl\Application\AccessControl\Agent\Repository\InMemoryAgentRepository;
 use Fight\Test\AccessControl\Application\AccessControl\Agent\Service\FightCommonHmacSignedAgentRequestVerifier;
 use Fight\Test\AccessControl\Application\AccessControl\Agent\Service\FixedHmacSharedSecretDecipher;
 use Fight\Test\AccessControl\Application\AccessControl\Agent\Service\FixedHmacSignedAgentRequestVerifier;
 use Fight\Test\AccessControl\Application\AccessControl\Agent\Service\InMemoryAgentRequestNonceConsumer;
+use Fight\Test\AccessControl\Application\AccessControl\Permission\Repository\InMemoryPermissionRepository;
 use Fight\Test\AccessControl\Application\AccessControl\Timing\Service\FixedClock;
 use Fight\Test\AccessControl\Application\AccessControl\User\InMemoryUnitOfWork;
 use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
@@ -358,6 +362,53 @@ final class AgentAuthenticationServiceTest extends TestCase
                     $agent,
                     $agent->revoke(new DateTimeImmutable('2026-08-26T12:04:00+00:00'))
                 );
+            }
+        );
+        $service = new AgentAuthenticationService(
+            $agentRepository,
+            new FixedHmacSharedSecretDecipher('encrypted:'),
+            new FixedHmacSignedAgentRequestVerifier($request, '0123456789abcdef'),
+            new FixedClock(new DateTimeImmutable('2026-08-26T12:05:00+00:00')),
+            $nonceConsumer,
+            $unitOfWork
+        );
+
+        $this->expectException(AgentAuthenticationRejectedException::class);
+        $this->expectExceptionMessage('Agent authentication rejected.');
+
+        try {
+            $service->authenticate($request);
+        } finally {
+            self::assertSame(1, $nonceConsumer->consumptionCalls());
+            self::assertSame(1, $unitOfWork->transactions);
+        }
+    }
+
+    public function test_that_it_rejects_when_permission_assignments_change_before_atomic_nonce_consumption(): void
+    {
+        $request = $this->request();
+        $unitOfWork = new InMemoryUnitOfWork();
+        $agentRepository = $this->agentRepository($request->getCredentialId(), $unitOfWork);
+        $permissionRepository = new InMemoryPermissionRepository($unitOfWork);
+        $permission = Permission::define(
+            PermissionId::fromString('018f0000-0000-7000-8000-000000000003'),
+            PermissionName::fromString('VIEW_AGENTS'),
+            new DateTimeImmutable('2026-08-26T12:04:00+00:00')
+        );
+        $permissionRepository->add($permission);
+        $agent = $agentRepository->getByCredentialId($request->getCredentialId());
+        self::assertInstanceOf(Agent::class, $agent);
+        $nonceConsumer = new InMemoryAgentRequestNonceConsumer(
+            $agentRepository,
+            $unitOfWork,
+            function () use ($agentRepository, $agent, $permission): void {
+                self::assertTrue($agentRepository->replacePermissionAssignments(
+                    $agent,
+                    $agent->grantPermission(
+                        $permission->getId(),
+                        new DateTimeImmutable('2026-08-26T12:04:00+00:00')
+                    )
+                ));
             }
         );
         $service = new AgentAuthenticationService(

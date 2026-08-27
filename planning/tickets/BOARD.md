@@ -31,15 +31,11 @@ materially cheaper.
 
 | Ticket | Parent PRD | Outcome |
 |---|---|---|
-| [T-00023](00023-TICKET.md) | [PRD-00002](../specs/00002-PRD.md) | Resolve one current Agent identity per request. |
+| [T-00024](00024-TICKET.md) | [PRD-00002](../specs/00002-PRD.md) | Unify current User and Agent authority access without conflating their identities. |
 
 ## Waiting
 
-Waiting tickets retain `ready-for-agent`; their position here is derived from unfinished `blocked_by` edges.
-
-| Ticket | Blocked by | Outcome |
-|---|---|---|
-| [T-00024](00024-TICKET.md) | T-00023 | Unify current User and Agent authority access without conflating their identities. |
+No ready-for-agent tickets have unfinished blockers.
 
 ## Needs Info
 
@@ -58,6 +54,7 @@ No tickets currently require a decision authority.
 
 | Ticket | Parent PRD | Outcome |
 |--------|------------|---------|
+| [T-00023](00023-TICKET.md) | [PRD-00002](../specs/00002-PRD.md) | Delivered one immutable request-scoped Agent principal with current credential and Permission-assignment fencing, generic secret-free diagnostics, portable behavioral conformance, and exact coverage. |
 | [T-00022](00022-TICKET.md) | [PRD-00002](../specs/00002-PRD.md) | Delivered portable signed-request authentication, canonical HMAC conformance proof, digest validation, and atomic replay/current-credential fencing with exact coverage. |
 | [T-00021](00021-TICKET.md) | [PRD-00002](../specs/00002-PRD.md) | Delivered revision-fenced direct Agent Permission management, shared removal reference integrity, and exact secret-free administrative reads. |
 | [T-00020](00020-TICKET.md) | [PRD-00002](../specs/00002-PRD.md) | Replaced an Agent's sole credential atomically with stale-ID fencing and terminal revocation, preserving secret-free audit/event ordering and exact coverage. |

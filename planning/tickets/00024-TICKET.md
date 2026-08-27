@@ -3,7 +3,6 @@ id: T-00024
 prd: PRD-00002
 title: Unify current User and Agent authority access
 status: ready-for-agent
-blocked_by: T-00023
 ---
 
 # Unify current User and Agent authority access

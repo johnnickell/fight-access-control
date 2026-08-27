@@ -2,7 +2,7 @@
 id: T-00023
 prd: PRD-00002
 title: Resolve the current Agent identity per request
-status: ready-for-agent
+status: done
 blocked_by: T-00021,T-00022
 ---
 
@@ -23,18 +23,26 @@ diagnostic classification and correlation information remain available to the co
 
 ## Acceptance Criteria
 
-- [ ] A successful resolution returns Agent ID, current credential ID and revision, assignment revision, and direct
+- [x] A successful resolution returns Agent ID, current credential ID and revision, assignment revision, and direct
   Permission IDs and canonical names in an immutable snapshot.
-- [ ] The same request resolves once and returns the same snapshot for its lifetime.
-- [ ] Revoked authority, stale credentials, authentication failure, missing Permissions, and stale assignments each
+- [x] The same request resolves once and returns the same snapshot for its lifetime.
+- [x] Revoked authority, stale credentials, authentication failure, missing Permissions, and stale assignments each
   result in one generic denial with no partial principal.
-- [ ] Diagnostics expose only a safe classification and consumer correlation identifier; they exclude request data,
+- [x] Diagnostics expose only a safe classification and consumer correlation identifier; they exclude request data,
   signatures, nonces, and shared secrets.
-- [ ] Permission checks report only presence in the snapshot; consumer applications retain policy and HTTP mapping.
-- [ ] Behavioral tests prove the same outcomes without requiring common framework middleware, tables, or containers.
+- [x] Permission checks report only presence in the snapshot; consumer applications retain policy and HTTP mapping.
+- [x] Behavioral tests prove the same outcomes without requiring common framework middleware, tables, or containers.
 
 ## Verification
 
 - Focused Agent-principal and request-scoped provider tests plus behavioral conformance tests
 - `./bin/planning-check`
 - `./bin/build`
+
+## Delivery Evidence
+
+- Added the immutable authenticated Agent principal, direct-Permission snapshots, request-scoped provider, and
+  secret-free denial diagnostics.
+- Fenced current credential and Permission-assignment revisions atomically and during principal resolution; stale
+  post-authentication authority fails closed without a partial or replacement principal.
+- Verified the complete quality gate: 599 tests, 4,394 assertions, and exact statement coverage 4,601/4,601.

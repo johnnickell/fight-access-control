@@ -79,6 +79,7 @@ final readonly class AgentAuthenticationService
                     $agent->getId(),
                     $agent->getCredentialId(),
                     $agent->getCredentialRevision(),
+                    $agent->getPermissionAssignmentRevision(),
                     $signedAgentRequest->getNonce(),
                     $signedAgentRequest->getTimestamp()->add(new DateInterval('PT5M'))
                 )
@@ -90,7 +91,8 @@ final readonly class AgentAuthenticationService
             return new AgentAuthenticationResult(
                 $agent->getId(),
                 $agent->getCredentialId(),
-                $agent->getCredentialRevision()
+                $agent->getCredentialRevision(),
+                $agent->getPermissionAssignmentRevision()
             );
         } catch (AgentAuthenticationRejectedException $exception) {
             throw $exception;

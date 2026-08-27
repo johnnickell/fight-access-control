@@ -37,7 +37,8 @@ final class SignedAgentRequestTest extends TestCase
         $result = new AgentAuthenticationResult(
             AgentId::fromString('018f0000-0000-7000-8000-000000000001'),
             $credentialId,
-            0
+            0,
+            1
         );
 
         self::assertSame('POST', $request->getMethod());
@@ -54,6 +55,7 @@ final class SignedAgentRequestTest extends TestCase
         self::assertSame('018f0000-0000-7000-8000-000000000001', $result->getAgentId()->toString());
         self::assertSame($credentialId, $result->getCredentialId());
         self::assertSame(0, $result->getCredentialRevision());
+        self::assertSame(1, $result->getPermissionAssignmentRevision());
 
         try {
             new SignedAgentRequest(
@@ -78,9 +80,22 @@ final class SignedAgentRequestTest extends TestCase
             new AgentAuthenticationResult(
                 AgentId::fromString('018f0000-0000-7000-8000-000000000001'),
                 $credentialId,
-                -1
+                -1,
+                1
             );
             self::fail('Expected an invalid credential revision to reject generically.');
+        } catch (AgentAuthenticationRejectedException $agentAuthenticationRejectedException) {
+            self::assertSame('Agent authentication rejected.', $agentAuthenticationRejectedException->getMessage());
+        }
+
+        try {
+            new AgentAuthenticationResult(
+                AgentId::fromString('018f0000-0000-7000-8000-000000000001'),
+                $credentialId,
+                0,
+                0
+            );
+            self::fail('Expected an invalid Permission-assignment revision to reject generically.');
         } catch (AgentAuthenticationRejectedException $agentAuthenticationRejectedException) {
             self::assertSame('Agent authentication rejected.', $agentAuthenticationRejectedException->getMessage());
         }
