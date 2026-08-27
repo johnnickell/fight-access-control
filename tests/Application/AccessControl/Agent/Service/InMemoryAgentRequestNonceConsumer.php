@@ -42,6 +42,7 @@ final class InMemoryAgentRequestNonceConsumer implements AgentRequestNonceConsum
         AgentId $agentId,
         AgentCredentialId $credentialId,
         int $credentialRevision,
+        int $permissionAssignmentRevision,
         string $nonce,
         DateTimeImmutable $expiresAt
     ): bool {
@@ -54,6 +55,7 @@ final class InMemoryAgentRequestNonceConsumer implements AgentRequestNonceConsum
             || $agent->getState() !== AgentState::ACTIVE
             || !$agent->getCredentialId()->equals($credentialId)
             || $agent->getCredentialRevision() !== $credentialRevision
+            || $agent->getPermissionAssignmentRevision() !== $permissionAssignmentRevision
             || isset($this->consumedNonces[$nonce])
         ) {
             return false;

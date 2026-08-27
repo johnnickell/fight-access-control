@@ -9,7 +9,7 @@ use Fight\AccessControl\Domain\AccessControl\Agent\AgentId;
 use Fight\AccessControl\Domain\AccessControl\Agent\Exception\AgentAuthenticationRejectedException;
 
 /**
- * Carries the current Agent credential authority confirmed by authentication.
+ * Carries the current Agent authority confirmed by authentication.
  */
 final readonly class AgentAuthenticationResult
 {
@@ -19,9 +19,10 @@ final readonly class AgentAuthenticationResult
     public function __construct(
         private AgentId $agentId,
         private AgentCredentialId $credentialId,
-        private int $credentialRevision
+        private int $credentialRevision,
+        private int $permissionAssignmentRevision
     ) {
-        if ($credentialRevision < 0) {
+        if ($credentialRevision < 0 || $permissionAssignmentRevision < 1) {
             throw new AgentAuthenticationRejectedException('Agent authentication rejected.');
         }
     }
@@ -48,5 +49,13 @@ final readonly class AgentAuthenticationResult
     public function getCredentialRevision(): int
     {
         return $this->credentialRevision;
+    }
+
+    /**
+     * Returns the authenticated current Permission-assignment revision.
+     */
+    public function getPermissionAssignmentRevision(): int
+    {
+        return $this->permissionAssignmentRevision;
     }
 }
