@@ -13,7 +13,7 @@ use Fight\AccessControl\Domain\AccessControl\User\UserId;
 /**
  * Captures an authenticated identity and its authoritative authorization snapshot.
  */
-final readonly class AuthenticatedPrincipal
+final readonly class AuthenticatedUserPrincipal implements AuthenticatedAuthority
 {
     /** @var list<PrincipalRole> */
     private array $roles;

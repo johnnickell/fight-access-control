@@ -5,13 +5,15 @@ declare(strict_types=1);
 namespace Fight\AccessControl\Domain\AccessControl\Agent;
 
 use Fight\AccessControl\Domain\AccessControl\Agent\Exception\AuthenticatedAgentPrincipalException;
+use Fight\AccessControl\Domain\AccessControl\Authorization\AuthenticatedAuthority;
 use Fight\AccessControl\Domain\AccessControl\Permission\PermissionName;
+use Fight\AccessControl\Domain\AccessControl\Role\RoleName;
 use Fight\Common\Domain\Type\Arrayable;
 
 /**
  * Captures an authenticated Agent identity and authoritative direct-Permission snapshot.
  */
-final readonly class AuthenticatedAgentPrincipal implements Arrayable
+final readonly class AuthenticatedAgentPrincipal implements Arrayable, AuthenticatedAuthority
 {
     /** @var list<AgentPrincipalPermission> */
     private array $permissions;
@@ -100,6 +102,16 @@ final readonly class AuthenticatedAgentPrincipal implements Arrayable
             $this->permissions,
             static fn(AgentPrincipalPermission $permission): bool => $permission->getName()->equals($permissionName)
         );
+    }
+
+    /**
+     * Determines whether the direct-Permission snapshot contains a role name.
+     *
+     * Agents have no Role authority.
+     */
+    public function hasRole(RoleName $roleName): bool
+    {
+        return false;
     }
 
     /**

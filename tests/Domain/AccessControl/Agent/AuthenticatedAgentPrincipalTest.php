@@ -9,8 +9,10 @@ use Fight\AccessControl\Domain\AccessControl\Agent\AgentId;
 use Fight\AccessControl\Domain\AccessControl\Agent\AgentPrincipalPermission;
 use Fight\AccessControl\Domain\AccessControl\Agent\AuthenticatedAgentPrincipal;
 use Fight\AccessControl\Domain\AccessControl\Agent\Exception\AuthenticatedAgentPrincipalException;
+use Fight\AccessControl\Domain\AccessControl\Authorization\AuthenticatedAuthority;
 use Fight\AccessControl\Domain\AccessControl\Permission\PermissionId;
 use Fight\AccessControl\Domain\AccessControl\Permission\PermissionName;
+use Fight\AccessControl\Domain\AccessControl\Role\RoleName;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
 
@@ -45,6 +47,7 @@ final class AuthenticatedAgentPrincipalTest extends TestCase
         self::assertSame(4, $principal->getCredentialRevision());
         self::assertSame(7, $principal->getPermissionAssignmentRevision());
         self::assertSame([$writePermission, $readPermission], $principal->getPermissions());
+        self::assertInstanceOf(AuthenticatedAuthority::class, $principal);
         self::assertSame(
             '018f0000-0000-7000-8000-000000000032',
             $principal->getPermissions()[0]->getPermissionId()->toString()
@@ -52,6 +55,7 @@ final class AuthenticatedAgentPrincipalTest extends TestCase
         self::assertSame('WRITE_AGENT', $principal->getPermissions()[0]->getName()->toString());
         self::assertTrue($principal->hasPermission(PermissionName::fromString('READ_AGENT')));
         self::assertFalse($principal->hasPermission(PermissionName::fromString('DELETE_AGENT')));
+        self::assertFalse($principal->hasRole(RoleName::fromString('ROLE_AGENT')));
         self::assertSame(
             [
                 'agent_id' => '018f0000-0000-7000-8000-000000000021',

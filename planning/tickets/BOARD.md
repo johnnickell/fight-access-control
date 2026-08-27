@@ -4,7 +4,7 @@ Operational execution view for Fight AccessControl. Ticket files are canonical f
 this board is canonical for recommended order. IDs identify artifacts only. Update this file whenever ticket
 status, dependencies, or roadmap priority changes.
 
-Last updated: 2026-08-26
+Last updated: 2026-08-27
 
 ## “What’s Next?” Contract
 
@@ -29,9 +29,7 @@ not displace the implementation frontier.
 These tickets have no unfinished blockers. Work top to bottom unless current context makes another ready ticket
 materially cheaper.
 
-| Ticket | Parent PRD | Outcome |
-|---|---|---|
-| [T-00024](00024-TICKET.md) | [PRD-00002](../specs/00002-PRD.md) | Unify current User and Agent authority access without conflating their identities. |
+No ready-for-agent tickets remain.
 
 ## Waiting
 
@@ -54,6 +52,7 @@ No tickets currently require a decision authority.
 
 | Ticket | Parent PRD | Outcome |
 |--------|------------|---------|
+| [T-00024](00024-TICKET.md) | [PRD-00002](../specs/00002-PRD.md) | Unified distinct immutable User and Agent authority snapshots through a narrow shared contract and consumer-composed current-security-context facade, with exact coverage. |
 | [T-00023](00023-TICKET.md) | [PRD-00002](../specs/00002-PRD.md) | Delivered one immutable request-scoped Agent principal with current credential and Permission-assignment fencing, generic secret-free diagnostics, portable behavioral conformance, and exact coverage. |
 | [T-00022](00022-TICKET.md) | [PRD-00002](../specs/00002-PRD.md) | Delivered portable signed-request authentication, canonical HMAC conformance proof, digest validation, and atomic replay/current-credential fencing with exact coverage. |
 | [T-00021](00021-TICKET.md) | [PRD-00002](../specs/00002-PRD.md) | Delivered revision-fenced direct Agent Permission management, shared removal reference integrity, and exact secret-free administrative reads. |

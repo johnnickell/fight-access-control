@@ -11,7 +11,7 @@ use Fight\AccessControl\Application\AccessControl\Authorization\Service\Authenti
 use Fight\AccessControl\Application\AccessControl\Authorization\Service\AuthoritativePrincipalResolver;
 use Fight\AccessControl\Application\AccessControl\Authorization\Service\CurrentPrincipalProvider;
 use Fight\AccessControl\Application\AccessControl\Timing\Service\Clock;
-use Fight\AccessControl\Domain\AccessControl\Authorization\AuthenticatedPrincipal;
+use Fight\AccessControl\Domain\AccessControl\Authorization\AuthenticatedUserPrincipal;
 use Fight\AccessControl\Domain\AccessControl\Permission\PermissionRepository;
 use Fight\AccessControl\Domain\AccessControl\RefreshSession\RefreshCredential;
 use Fight\AccessControl\Domain\AccessControl\RefreshSession\RefreshSession;
@@ -121,6 +121,6 @@ final class CurrentPrincipalProviderTest extends TestCase
             [AuthenticationContextProvider::class, AuthoritativePrincipalResolver::class],
             $parameterTypes
         );
-        self::assertNotContains(AuthenticatedPrincipal::class, $parameterTypes);
+        self::assertNotContains(AuthenticatedUserPrincipal::class, $parameterTypes);
     }
 }
