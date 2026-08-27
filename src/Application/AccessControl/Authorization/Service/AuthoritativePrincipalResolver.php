@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Fight\AccessControl\Application\AccessControl\Authorization\Service;
 
 use Fight\AccessControl\Application\AccessControl\Timing\Service\Clock;
-use Fight\AccessControl\Domain\AccessControl\Authorization\AuthenticatedPrincipal;
+use Fight\AccessControl\Domain\AccessControl\Authorization\AuthenticatedUserPrincipal;
 use Fight\AccessControl\Domain\AccessControl\Authorization\Exception\PrincipalResolutionException;
 use Fight\AccessControl\Domain\AccessControl\Authorization\PrincipalPermission;
 use Fight\AccessControl\Domain\AccessControl\Authorization\PrincipalRole;
@@ -41,7 +41,7 @@ final readonly class AuthoritativePrincipalResolver
      *
      * @throws PrincipalResolutionException When current principal authority is not valid
      */
-    public function resolve(AuthenticationContext $authenticationContext): AuthenticatedPrincipal
+    public function resolve(AuthenticationContext $authenticationContext): AuthenticatedUserPrincipal
     {
         $user = $this->userRepository->getById($authenticationContext->getUserId());
         $refreshSession = $this->refreshSessionRepository->getById(
@@ -108,7 +108,7 @@ final readonly class AuthoritativePrincipalResolver
             $this->deny();
         }
 
-        return new AuthenticatedPrincipal(
+        return new AuthenticatedUserPrincipal(
             $user->getId(),
             $refreshSession->getId(),
             $authenticationContext->getAuthenticationVersion(),

@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Fight\AccessControl\Application\AccessControl\Authorization\Service;
 
-use Fight\AccessControl\Domain\AccessControl\Authorization\AuthenticatedPrincipal;
+use Fight\AccessControl\Domain\AccessControl\Authorization\AuthenticatedUserPrincipal;
 
 /**
  * Resolves and caches the authoritative principal for one request.
@@ -13,7 +13,7 @@ use Fight\AccessControl\Domain\AccessControl\Authorization\AuthenticatedPrincipa
  */
 final class CurrentPrincipalProvider
 {
-    private ?AuthenticatedPrincipal $authenticatedPrincipal = null;
+    private ?AuthenticatedUserPrincipal $authenticatedPrincipal = null;
 
     /**
      * Creates a request-scoped current-principal service.
@@ -27,7 +27,7 @@ final class CurrentPrincipalProvider
     /**
      * Returns the request's principal after one authoritative resolution.
      */
-    public function getCurrentPrincipal(): AuthenticatedPrincipal
+    public function getCurrentPrincipal(): AuthenticatedUserPrincipal
     {
         $this->authenticatedPrincipal ??= $this->authoritativePrincipalResolver->resolve(
             $this->authenticationContextProvider->getAuthenticationContext()
