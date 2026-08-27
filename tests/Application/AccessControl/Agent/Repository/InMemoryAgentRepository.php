@@ -6,6 +6,7 @@ namespace Fight\Test\AccessControl\Application\AccessControl\Agent\Repository;
 
 use Closure;
 use Fight\AccessControl\Domain\AccessControl\Agent\Agent;
+use Fight\AccessControl\Domain\AccessControl\Agent\AgentCredentialId;
 use Fight\AccessControl\Domain\AccessControl\Agent\AgentId;
 use Fight\AccessControl\Domain\AccessControl\Agent\AgentRepository;
 use Fight\Common\Domain\Collection\ArrayList;
@@ -56,6 +57,17 @@ final class InMemoryAgentRepository implements AgentRepository
     {
         foreach ($this->agents as $agent) {
             if ($agent->getId()->equals($id)) {
+                return $agent;
+            }
+        }
+
+        return null;
+    }
+
+    public function getByCredentialId(AgentCredentialId $credentialId): ?Agent
+    {
+        foreach ($this->agents as $agent) {
+            if ($agent->getCredentialId()->equals($credentialId)) {
                 return $agent;
             }
         }

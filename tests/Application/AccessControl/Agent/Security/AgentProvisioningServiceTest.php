@@ -175,6 +175,11 @@ final class AgentProvisioningServiceTest extends TestCase
                     return null;
                 }
 
+                public function getByCredentialId(AgentCredentialId $credentialId): ?Agent
+                {
+                    return null;
+                }
+
                 public function getAll(
                     Pagination $pagination
                 ): ResultSet {

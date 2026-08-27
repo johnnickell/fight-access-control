@@ -292,6 +292,11 @@ final class AgentCredentialLifecycleServiceTest extends TestCase
                     );
                 }
 
+                public function getByCredentialId(AgentCredentialId $credentialId): ?Agent
+                {
+                    return null;
+                }
+
                 public function getAll(
                     Pagination $pagination
                 ): ResultSet {
@@ -426,6 +431,11 @@ final class AgentCredentialLifecycleServiceTest extends TestCase
                 return $id->equals($this->agent->getId()) ? $this->agent : null;
             }
 
+            public function getByCredentialId(AgentCredentialId $credentialId): ?Agent
+            {
+                return $credentialId->equals($this->agent->getCredentialId()) ? $this->agent : null;
+            }
+
             public function getAll(
                 Pagination $pagination
             ): ResultSet {
@@ -553,6 +563,11 @@ final class AgentCredentialLifecycleServiceTest extends TestCase
                         'encrypted:current-secret',
                         new DateTimeImmutable('2026-08-25T12:00:00+00:00')
                     );
+                }
+
+                public function getByCredentialId(AgentCredentialId $credentialId): ?Agent
+                {
+                    return null;
                 }
 
                 public function getAll(
