@@ -119,7 +119,7 @@ final class PlanningAuthorityTest extends TestCase
         $process->run();
 
         self::assertSame(0, $process->getExitCode(), $process->getErrorOutput().$process->getOutput());
-        self::assertStringContainsString('Planning validation passed: 28 records, 0 active', $process->getOutput());
+        self::assertStringContainsString('Planning validation passed: 37 records, 9 active', $process->getOutput());
     }
 
     protected function setUp(): void
