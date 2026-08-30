@@ -89,7 +89,7 @@ final class AuthoritativePrincipalResolverTest extends TestCase
         self::assertTrue($principal->hasRole(RoleName::fromString('ROLE_EDITOR')));
         self::assertTrue($principal->hasPermission(PermissionName::fromString('PUBLISH_ARTICLE')));
         self::assertSame($editor->getId(), $principal->getRoles()[0]->getId());
-        self::assertSame($permission->getId(), $principal->getPermissions()[0]->getId());
+        self::assertSame($permission->getId(), $principal->getPermissions()[0]->getPermissionId());
     }
 
     public function test_context_contains_only_authentication_authority_and_requires_a_positive_version(): void

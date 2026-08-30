@@ -41,7 +41,7 @@ foreach ($expected as $namespace => $paths) {
 
 $accessControlPrefixes = array_filter(
     array_keys($prefixes),
-    static fn (string $namespace): bool => str_starts_with($namespace, 'Fight\\AccessControl\\'),
+    static fn (string $namespace): bool => str_starts_with($namespace, 'Fight\\AccessControl\\')
 );
 sort($accessControlPrefixes);
 $expectedPrefixes = array_keys($expected);
@@ -50,6 +50,143 @@ if ($accessControlPrefixes !== $expectedPrefixes) {
     fwrite(STDERR, "FAIL: production autoload exposes an AccessControl namespace outside Domain or Application.\n");
     exit(1);
 }
+
+$expect = static function (bool $condition, string $message): void {
+    if (!$condition) {
+        fwrite(STDERR, sprintf("FAIL: %s\n", $message));
+        exit(1);
+    }
+};
+
+$authenticatedPrincipalType = Fight\AccessControl\Domain\AccessControl\Authorization\AuthenticatedPrincipalType::class;
+$publicTypes = [
+    Fight\AccessControl\Domain\AccessControl\Authorization\AuthenticatedAuthority::class,
+    $authenticatedPrincipalType,
+    Fight\AccessControl\Domain\AccessControl\Authorization\AuthenticatedUserPrincipal::class,
+    Fight\AccessControl\Domain\AccessControl\Agent\AuthenticatedAgentPrincipal::class,
+    Fight\AccessControl\Domain\AccessControl\Authorization\PrincipalPermission::class,
+];
+foreach ($publicTypes as $publicType) {
+    $expect(
+        interface_exists($publicType) || class_exists($publicType) || enum_exists($publicType),
+        sprintf('supported public authority type %s is not production-autoloadable.', $publicType)
+    );
+}
+
+$authority = new ReflectionClass(Fight\AccessControl\Domain\AccessControl\Authorization\AuthenticatedAuthority::class);
+$authorityType = $authority->getMethod('getType')->getReturnType();
+$expect($authority->isInterface(), 'AuthenticatedAuthority must remain a public interface.');
+$expect($authority->hasMethod('getType'), 'AuthenticatedAuthority must expose getType().');
+$expect(
+    $authorityType instanceof ReflectionNamedType && $authorityType->getName() === $authenticatedPrincipalType,
+    'AuthenticatedAuthority::getType() must return AuthenticatedPrincipalType.'
+);
+$expect($authority->hasMethod('hasPermission'), 'AuthenticatedAuthority must expose hasPermission().');
+$expect($authority->hasMethod('hasRole'), 'AuthenticatedAuthority must expose hasRole().');
+
+$principalType = new ReflectionEnum($authenticatedPrincipalType);
+$principalTypeValues = [];
+foreach ($principalType->getCases() as $case) {
+    $principalTypeValues[$case->getName()] = $case->getBackingValue();
+}
+$expect(
+    $principalTypeValues === ['USER' => 'user', 'AGENT' => 'agent'],
+    'AuthenticatedPrincipalType must retain only stable USER and AGENT values.'
+);
+
+$permission = new Fight\AccessControl\Domain\AccessControl\Authorization\PrincipalPermission(
+    Fight\AccessControl\Domain\AccessControl\Permission\PermissionId::fromString(
+        '018f0000-0000-7000-8000-000000000001'
+    ),
+    Fight\AccessControl\Domain\AccessControl\Permission\PermissionName::fromString('READ_PERMISSION')
+);
+$principalPermission = new ReflectionClass($permission);
+$permissionIdType = $principalPermission->getMethod('getPermissionId')->getReturnType();
+$permissionNameType = $principalPermission->getMethod('getName')->getReturnType();
+$expect(
+    $permission->toArray() === [
+        'permission_id' => '018f0000-0000-7000-8000-000000000001',
+        'name' => 'READ_PERMISSION',
+    ],
+    'PrincipalPermission must expose only its safe permission_id and name representation.'
+);
+$expect(
+    $permissionIdType instanceof ReflectionNamedType
+        && $permissionIdType->getName() === Fight\AccessControl\Domain\AccessControl\Permission\PermissionId::class,
+    'PrincipalPermission::getPermissionId() must expose PermissionId.'
+);
+$expect(
+    $permissionNameType instanceof ReflectionNamedType
+        && $permissionNameType->getName() === Fight\AccessControl\Domain\AccessControl\Permission\PermissionName::class,
+    'PrincipalPermission::getName() must expose PermissionName.'
+);
+
+foreach (
+    [
+    Fight\AccessControl\Domain\AccessControl\Authorization\AuthenticatedUserPrincipal::class,
+    Fight\AccessControl\Domain\AccessControl\Agent\AuthenticatedAgentPrincipal::class,
+    ] as $principalType
+) {
+    $principal = new ReflectionClass($principalType);
+    $expect(
+        $principal->implementsInterface(
+            Fight\AccessControl\Domain\AccessControl\Authorization\AuthenticatedAuthority::class
+        ),
+        sprintf('%s must implement AuthenticatedAuthority.', $principalType)
+    );
+    $expect($principal->hasMethod('getType'), sprintf('%s must expose getType().', $principalType));
+    $expect($principal->hasMethod('getPermissions'), sprintf('%s must expose getPermissions().', $principalType));
+    $expect($principal->hasMethod('hasPermission'), sprintf('%s must expose hasPermission().', $principalType));
+    $expect($principal->hasMethod('hasRole'), sprintf('%s must expose hasRole().', $principalType));
+}
+
+foreach (
+    [
+    str_replace('/', '\\', 'Fight/AccessControl/Domain/AccessControl/Agent/AgentPrincipalPermission'),
+    str_replace('/', '\\', 'Fight/AccessControl/Domain/AccessControl/Agent/Query/AgentPermissionView'),
+    ] as $removedType
+) {
+    $expect(
+        !class_exists($removedType),
+        sprintf('removed authority type %s must not have a compatibility alias.', $removedType)
+    );
+}
+
+foreach (
+    [
+    'Fight\\AccessControl\\Application\\AccessControl\\Authorization\\Service\\ExactPermissionResolver',
+    'Fight\\AccessControl\\Application\\AccessControl\\Authorization\\Service\\ExactPermissionResolutionException',
+    'Fight\\AccessControl\\Application\\AccessControl\\Authorization\\Service\\AuthoritativePrincipalResolver',
+    ] as $internalType
+) {
+    $internal = new ReflectionClass($internalType);
+    $expect($internal->isFinal(), sprintf('%s must be final.', $internalType));
+    $expect(
+        str_contains((string) $internal->getDocComment(), '@internal'),
+        sprintf('%s must be documented as internal.', $internalType)
+    );
+}
+
+$currentAgentPrincipalProvider = new ReflectionClass(
+    Fight\AccessControl\Application\AccessControl\Agent\Security\CurrentAgentPrincipalProvider::class
+);
+$expect(
+    !str_contains((string) $currentAgentPrincipalProvider->getDocComment(), '@internal'),
+    'CurrentAgentPrincipalProvider must remain a supported public service.'
+);
+foreach (
+    [
+    Fight\AccessControl\Application\AccessControl\Agent\QueryHandler\GetAgentByIdHandler::class,
+    Fight\AccessControl\Application\AccessControl\Agent\QueryHandler\ListAgentsHandler::class,
+    ] as $publicHandler
+) {
+    $handler = new ReflectionClass($publicHandler);
+    $expect(
+        !str_contains((string) $handler->getDocComment(), '@internal'),
+        sprintf('%s must remain a supported public handler.', $publicHandler)
+    );
+}
+$expect(!is_dir($root.'/src/Adapter'), 'production source must not contain an Adapter boundary.');
 
 if (!interface_exists(Fight\Common\Application\Repository\UnitOfWork::class)) {
     fwrite(STDERR, "FAIL: a Fight Common public Application contract is not autoloadable.\n");
@@ -87,4 +224,7 @@ foreach (array_keys($package['require-dev'] ?? []) as $devPackage) {
     }
 }
 
-fwrite(STDOUT, "PASS: production Composer install exposes only the package boundaries and contains no framework package.\n");
+fwrite(
+    STDOUT,
+    "PASS: production Composer install exposes only the package boundaries and contains no framework package.\n"
+);

@@ -7,7 +7,6 @@ namespace Fight\Test\AccessControl\Application\AccessControl\Authorization\Servi
 use Fight\AccessControl\Application\AccessControl\Authorization\Service\CurrentSecurityContext;
 use Fight\AccessControl\Domain\AccessControl\Agent\AgentCredentialId;
 use Fight\AccessControl\Domain\AccessControl\Agent\AgentId;
-use Fight\AccessControl\Domain\AccessControl\Agent\AgentPrincipalPermission;
 use Fight\AccessControl\Domain\AccessControl\Agent\AuthenticatedAgentPrincipal;
 use Fight\AccessControl\Domain\AccessControl\Authorization\AuthenticatedUserPrincipal;
 use Fight\AccessControl\Domain\AccessControl\Authorization\Exception\CurrentSecurityContextException;
@@ -52,7 +51,7 @@ final class CurrentSecurityContextTest extends TestCase
             AgentCredentialId::generate(),
             2,
             5,
-            [new AgentPrincipalPermission(PermissionId::generate(), PermissionName::fromString('READ_AGENT'))]
+            [new PrincipalPermission(PermissionId::generate(), PermissionName::fromString('READ_AGENT'))]
         );
         $context = new CurrentSecurityContext($agentPrincipal);
 

@@ -7,5 +7,5 @@ and does not make another repository authoritative for local status.
 | --- | --- | --- |
 | [00001](00001-PRD.md) | Fight AccessControl Identity and Authentication Lifecycle | done |
 | [00002](00002-PRD.md) | Agent HMAC Authentication and Direct Authority | done |
-| [00003](00003-PRD.md) | Unified Authenticated Authority | ready-for-agent |
+| [00003](00003-PRD.md) | Unified Authenticated Authority | in-progress |
 | [00004](00004-PRD.md) | Consistent Authorization Modification | ready-for-agent |

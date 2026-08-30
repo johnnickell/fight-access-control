@@ -4,12 +4,12 @@
 
 | Epic | Target | Status | Outcome |
 | --- | --- | --- | --- |
-| [EPIC-00003](epics/00003-EPIC.md) | 0.x | ready-for-agent | Simplify the public authenticated-authority boundary and make authorization modifications consistently idempotent before `1.0.0`. |
+| [EPIC-00003](epics/00003-EPIC.md) | 0.x | in-progress | T-00026 complete: the public authenticated-authority boundary is unified; T-00027 then T-00029 are the Ready Frontier before `1.0.0`. |
 
 ## Route to 0.x
 
-1. Deliver T-00026 through T-00028 for the unified authenticated-authority API and its framework-neutral
-   conformance behavior.
+1. T-00026 complete; deliver T-00027 then T-00028 for the final signed-Agent and `SecurityContext` conformance
+   behavior.
 2. Deliver T-00029 through T-00031 to align Agent Permission, User Role, and custom-Role Permission modification
    behavior.
 3. Run a separate stability review before authorizing a `1.0.0` release.

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Fight\Test\AccessControl\Domain\AccessControl\Authorization;
 
 use Fight\AccessControl\Domain\AccessControl\Authorization\AuthenticatedAuthority;
+use Fight\AccessControl\Domain\AccessControl\Authorization\AuthenticatedPrincipalType;
 use Fight\AccessControl\Domain\AccessControl\Authorization\AuthenticatedUserPrincipal;
 use Fight\AccessControl\Domain\AccessControl\Authorization\Exception\AuthenticatedPrincipalException;
 use Fight\AccessControl\Domain\AccessControl\Authorization\PrincipalPermission;
@@ -15,10 +16,12 @@ use Fight\AccessControl\Domain\AccessControl\RefreshSession\RefreshSessionId;
 use Fight\AccessControl\Domain\AccessControl\Role\RoleId;
 use Fight\AccessControl\Domain\AccessControl\Role\RoleName;
 use Fight\AccessControl\Domain\AccessControl\User\UserId;
+use Fight\Common\Domain\Type\Arrayable;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
 
 #[CoversClass(AuthenticatedUserPrincipal::class)]
+#[CoversClass(AuthenticatedPrincipalType::class)]
 #[CoversClass(AuthenticatedPrincipalException::class)]
 #[CoversClass(PrincipalPermission::class)]
 #[CoversClass(PrincipalRole::class)]
@@ -54,8 +57,14 @@ final class AuthenticatedPrincipalTest extends TestCase
         self::assertSame([$role], $principal->getRoles());
         self::assertSame([$permission], $principal->getPermissions());
         self::assertSame($roleId, $role->getId());
-        self::assertSame($permissionId, $permission->getId());
+        self::assertSame($permissionId, $permission->getPermissionId());
+        self::assertInstanceOf(Arrayable::class, $permission);
+        self::assertSame(
+            ['permission_id' => $permissionId->toString(), 'name' => 'PUBLISH_ARTICLE'],
+            $permission->toArray()
+        );
         self::assertInstanceOf(AuthenticatedAuthority::class, $principal);
+        self::assertSame(AuthenticatedPrincipalType::USER, $principal->getType());
         self::assertTrue($principal->hasRole(RoleName::fromString('ROLE_EDITOR')));
         self::assertFalse($principal->hasRole(RoleName::fromString('ROLE_OTHER')));
         self::assertTrue($principal->hasPermission(PermissionName::fromString('PUBLISH_ARTICLE')));
@@ -88,5 +97,11 @@ final class AuthenticatedPrincipalTest extends TestCase
         self::assertFalse(class_exists(
             'Fight\\AccessControl\\Domain\\AccessControl\\Authorization\\AuthenticatedPrincipal'
         ));
+    }
+
+    public function test_the_principal_type_values_are_stable(): void
+    {
+        self::assertSame('user', AuthenticatedPrincipalType::USER->value);
+        self::assertSame('agent', AuthenticatedPrincipalType::AGENT->value);
     }
 }

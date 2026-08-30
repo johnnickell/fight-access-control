@@ -4,14 +4,13 @@ declare(strict_types=1);
 
 namespace Fight\AccessControl\Application\AccessControl\Agent\QueryHandler;
 
+use Fight\AccessControl\Application\AccessControl\Authorization\Service\ExactPermissionResolutionException;
+use Fight\AccessControl\Application\AccessControl\Authorization\Service\ExactPermissionResolver;
 use Fight\AccessControl\Domain\AccessControl\Agent\Agent;
 use Fight\AccessControl\Domain\AccessControl\Agent\AgentRepository;
 use Fight\AccessControl\Domain\AccessControl\Agent\Exception\AgentReadException;
-use Fight\AccessControl\Domain\AccessControl\Agent\Query\AgentPermissionView;
 use Fight\AccessControl\Domain\AccessControl\Agent\Query\AgentView;
 use Fight\AccessControl\Domain\AccessControl\Agent\Query\GetAgentById;
-use Fight\AccessControl\Domain\AccessControl\Permission\Permission;
-use Fight\AccessControl\Domain\AccessControl\Permission\PermissionId;
 use Fight\AccessControl\Domain\AccessControl\Permission\PermissionRepository;
 use Fight\Common\Application\Messaging\Query\QueryHandler;
 use Fight\Common\Domain\Messaging\Query\QueryMessage;
@@ -46,38 +45,13 @@ final readonly class GetAgentByIdHandler implements QueryHandler
             return null;
         }
 
-        $permissions = $this->permissionRepository->getByIds($agent->getPermissionIds());
-
-        return AgentView::fromAgent($agent, $this->snapshots($agent->getPermissionIds(), $permissions));
-    }
-
-    /**
-     * Returns snapshots in Agent assignment order only when the bulk result matches exactly.
-     *
-     * @phpstan-param list<PermissionId> $requestedIds
-     * @phpstan-param list<Permission> $permissions
-     *
-     * @return list<AgentPermissionView>
-     */
-    private function snapshots(array $requestedIds, array $permissions): array
-    {
-        if (count($requestedIds) !== count($permissions)) {
-            throw new AgentReadException('The Agent Permission snapshot is incomplete.');
+        try {
+            return AgentView::fromAgent(
+                $agent,
+                new ExactPermissionResolver($this->permissionRepository)->resolve($agent->getPermissionIds())
+            );
+        } catch (ExactPermissionResolutionException) {
+            throw new AgentReadException('The Agent Permission snapshot is invalid.');
         }
-
-        $snapshots = [];
-        foreach ($requestedIds as $requestedId) {
-            $matches = array_values(array_filter(
-                $permissions,
-                static fn(Permission $permission): bool => $permission->getId()->equals($requestedId)
-            ));
-            if (count($matches) !== 1) {
-                throw new AgentReadException('The Agent Permission snapshot is mismatched.');
-            }
-
-            $snapshots[] = AgentPermissionView::fromPermission($matches[0]);
-        }
-
-        return $snapshots;
     }
 }

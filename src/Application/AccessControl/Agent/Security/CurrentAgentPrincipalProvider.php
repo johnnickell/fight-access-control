@@ -4,17 +4,16 @@ declare(strict_types=1);
 
 namespace Fight\AccessControl\Application\AccessControl\Agent\Security;
 
+use Fight\AccessControl\Application\AccessControl\Authorization\Service\ExactPermissionResolutionException;
+use Fight\AccessControl\Application\AccessControl\Authorization\Service\ExactPermissionResolver;
 use Fight\AccessControl\Domain\AccessControl\Agent\Agent;
 use Fight\AccessControl\Domain\AccessControl\Agent\AgentAuthenticationDiagnostic;
 use Fight\AccessControl\Domain\AccessControl\Agent\AgentAuthenticationDiagnosticClassification;
-use Fight\AccessControl\Domain\AccessControl\Agent\AgentPrincipalPermission;
 use Fight\AccessControl\Domain\AccessControl\Agent\AgentRepository;
 use Fight\AccessControl\Domain\AccessControl\Agent\AgentState;
 use Fight\AccessControl\Domain\AccessControl\Agent\AuthenticatedAgentPrincipal;
 use Fight\AccessControl\Domain\AccessControl\Agent\Exception\AgentAuthenticationRejectedException;
 use Fight\AccessControl\Domain\AccessControl\Agent\Exception\CurrentAgentPrincipalResolutionRejectedException;
-use Fight\AccessControl\Domain\AccessControl\Permission\Permission;
-use Fight\AccessControl\Domain\AccessControl\Permission\PermissionId;
 use Fight\AccessControl\Domain\AccessControl\Permission\PermissionRepository;
 use Throwable;
 
@@ -65,51 +64,22 @@ final class CurrentAgentPrincipalProvider
                 $this->deny(AgentAuthenticationDiagnosticClassification::AGENT_AUTHORITY_NOT_CURRENT, $correlationId);
             }
 
-            $permissions = $this->permissionRepository->getByIds($agent->getPermissionIds());
             $this->principal = new AuthenticatedAgentPrincipal(
                 $agent->getId(),
                 $agent->getCredentialId(),
                 $agent->getCredentialRevision(),
                 $agent->getPermissionAssignmentRevision(),
-                $this->snapshots($agent->getPermissionIds(), $permissions, $correlationId)
+                new ExactPermissionResolver($this->permissionRepository)->resolve($agent->getPermissionIds())
             );
 
             return $this->principal;
+        } catch (ExactPermissionResolutionException) {
+            $this->deny(AgentAuthenticationDiagnosticClassification::PERMISSION_SNAPSHOT_INVALID, $correlationId);
         } catch (CurrentAgentPrincipalResolutionRejectedException $exception) {
             throw $exception;
         } catch (Throwable) {
             $this->deny(AgentAuthenticationDiagnosticClassification::RESOLUTION_FAILED, $correlationId);
         }
-    }
-
-    /**
-     * Returns ordered snapshots only when authoritative Permission resolution matches exactly.
-     *
-     * @phpstan-param list<PermissionId> $requestedIds
-     * @phpstan-param list<Permission> $permissions
-     *
-     * @return list<AgentPrincipalPermission>
-     */
-    private function snapshots(array $requestedIds, array $permissions, string $correlationId): array
-    {
-        if (count($requestedIds) !== count($permissions)) {
-            $this->deny(AgentAuthenticationDiagnosticClassification::PERMISSION_SNAPSHOT_INVALID, $correlationId);
-        }
-
-        $snapshots = [];
-        foreach ($requestedIds as $requestedId) {
-            $matches = array_values(array_filter(
-                $permissions,
-                static fn(Permission $permission): bool => $permission->getId()->equals($requestedId)
-            ));
-            if (count($matches) !== 1) {
-                $this->deny(AgentAuthenticationDiagnosticClassification::PERMISSION_SNAPSHOT_INVALID, $correlationId);
-            }
-
-            $snapshots[] = new AgentPrincipalPermission($requestedId, $matches[0]->getName());
-        }
-
-        return $snapshots;
     }
 
     /**

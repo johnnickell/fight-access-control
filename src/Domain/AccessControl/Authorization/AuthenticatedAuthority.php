@@ -13,6 +13,11 @@ use Fight\AccessControl\Domain\AccessControl\Role\RoleName;
 interface AuthenticatedAuthority
 {
     /**
+     * Returns the supported authenticated-principal type.
+     */
+    public function getType(): AuthenticatedPrincipalType;
+
+    /**
      * Determines whether the snapshot contains a permission name.
      */
     public function hasPermission(PermissionName $permissionName): bool;
