@@ -13,10 +13,10 @@ use Fight\AccessControl\Domain\AccessControl\Agent\AgentId;
 use Fight\AccessControl\Domain\AccessControl\Agent\AgentName;
 use Fight\AccessControl\Domain\AccessControl\Agent\AgentRepository;
 use Fight\AccessControl\Domain\AccessControl\Agent\Exception\AgentReadException;
-use Fight\AccessControl\Domain\AccessControl\Agent\Query\AgentPermissionView;
 use Fight\AccessControl\Domain\AccessControl\Agent\Query\AgentView;
 use Fight\AccessControl\Domain\AccessControl\Agent\Query\GetAgentById;
 use Fight\AccessControl\Domain\AccessControl\Agent\Query\ListAgents;
+use Fight\AccessControl\Domain\AccessControl\Authorization\PrincipalPermission;
 use Fight\AccessControl\Domain\AccessControl\Permission\Permission;
 use Fight\AccessControl\Domain\AccessControl\Permission\PermissionId;
 use Fight\AccessControl\Domain\AccessControl\Permission\PermissionName;
@@ -38,7 +38,7 @@ use ReflectionProperty;
 #[CoversClass(GetAgentById::class)]
 #[CoversClass(ListAgents::class)]
 #[CoversClass(AgentView::class)]
-#[CoversClass(AgentPermissionView::class)]
+#[CoversClass(PrincipalPermission::class)]
 final class AgentQueryHandlerTest extends TestCase
 {
     public function test_get_returns_the_exact_safe_agent_shape_with_resolved_permission_name(): void
@@ -178,6 +178,58 @@ final class AgentQueryHandlerTest extends TestCase
         );
     }
 
+    public function test_list_resolves_page_permissions_once_and_preserves_each_agent_snapshot_order(): void
+    {
+        $publishPermission = $this->permission('CONTENT_PUBLISH');
+        $reviewPermission = $this->permission('CONTENT_REVIEW');
+        $firstAgent = $this->agent('Production deployment')->grantPermission(
+            $reviewPermission->getId(),
+            new DateTimeImmutable('2026-01-02T00:00:00+00:00')
+        )->grantPermission(
+            $publishPermission->getId(),
+            new DateTimeImmutable('2026-01-03T00:00:00+00:00')
+        );
+        $secondAgent = $this->agent('Review deployment')->grantPermission(
+            $publishPermission->getId(),
+            new DateTimeImmutable('2026-01-04T00:00:00+00:00')
+        )->grantPermission(
+            $reviewPermission->getId(),
+            new DateTimeImmutable('2026-01-05T00:00:00+00:00')
+        );
+        $agents = new InMemoryAgentRepository();
+        $agents->add($firstAgent);
+        $agents->add($secondAgent);
+
+        $permissions = $this->createMock(PermissionRepository::class);
+        $permissions->expects(self::once())
+            ->method('getByIds')
+            ->with(self::callback(function (array $ids) use ($reviewPermission, $publishPermission): bool {
+                self::assertSame([$reviewPermission->getId(), $publishPermission->getId()], $ids);
+
+                return true;
+            }))
+            ->willReturn([$publishPermission, $reviewPermission]);
+
+        $result = new ListAgentsHandler($agents, $permissions)->handle(
+            QueryMessage::create(new ListAgents(new Pagination()))
+        );
+
+        self::assertSame(
+            [
+                ['permission_id' => $reviewPermission->getId()->toString(), 'name' => 'CONTENT_REVIEW'],
+                ['permission_id' => $publishPermission->getId()->toString(), 'name' => 'CONTENT_PUBLISH'],
+            ],
+            $result->records()->get(0)->toArray()['permissions']
+        );
+        self::assertSame(
+            [
+                ['permission_id' => $publishPermission->getId()->toString(), 'name' => 'CONTENT_PUBLISH'],
+                ['permission_id' => $reviewPermission->getId()->toString(), 'name' => 'CONTENT_REVIEW'],
+            ],
+            $result->records()->get(1)->toArray()['permissions']
+        );
+    }
+
     public function test_get_and_list_fail_closed_for_invalid_bulk_permission_results(): void
     {
         foreach (['missing', 'duplicate', 'unexpected', 'mismatched'] as $case) {
@@ -261,14 +313,17 @@ final class AgentQueryHandlerTest extends TestCase
             $permission->getId(),
             new DateTimeImmutable('2026-01-02T00:00:00+00:00')
         );
-        $view = AgentView::fromAgent($agent, [AgentPermissionView::fromPermission($permission)]);
+        $view = AgentView::fromAgent(
+            $agent,
+            [new PrincipalPermission($permission->getId(), $permission->getName())]
+        );
         $agentProperties = array_map(
             static fn(ReflectionProperty $property): string => $property->getName(),
             new ReflectionClass(AgentView::class)->getProperties()
         );
         $permissionProperties = array_map(
             static fn(ReflectionProperty $property): string => $property->getName(),
-            new ReflectionClass(AgentPermissionView::class)->getProperties()
+            new ReflectionClass(PrincipalPermission::class)->getProperties()
         );
         sort($agentProperties);
         sort($permissionProperties);
@@ -296,6 +351,13 @@ final class AgentQueryHandlerTest extends TestCase
         foreach (['encrypted', 'secret', 'createdAt', 'updatedAt', 'tier', 'managed', 'allowed'] as $disallowed) {
             self::assertStringNotContainsString($disallowed, $serialized);
         }
+    }
+
+    public function test_the_obsolete_agent_permission_view_type_is_not_available(): void
+    {
+        self::assertFalse(class_exists(
+            'Fight\\AccessControl\\Domain\\AccessControl\\Agent\\Query\\AgentPermissionView'
+        ));
     }
 
     public function test_query_handlers_depend_only_on_read_repositories(): void

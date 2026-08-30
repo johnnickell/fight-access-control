@@ -7,7 +7,6 @@ namespace Fight\AccessControl\Application\AccessControl\Authorization\Service;
 use Fight\AccessControl\Application\AccessControl\Timing\Service\Clock;
 use Fight\AccessControl\Domain\AccessControl\Authorization\AuthenticatedUserPrincipal;
 use Fight\AccessControl\Domain\AccessControl\Authorization\Exception\PrincipalResolutionException;
-use Fight\AccessControl\Domain\AccessControl\Authorization\PrincipalPermission;
 use Fight\AccessControl\Domain\AccessControl\Authorization\PrincipalRole;
 use Fight\AccessControl\Domain\AccessControl\Permission\PermissionId;
 use Fight\AccessControl\Domain\AccessControl\Permission\PermissionRepository;
@@ -21,6 +20,8 @@ use Fight\Common\Domain\Collection\HashSet;
 
 /**
  * Resolves request authentication claims against all authoritative principal state.
+ *
+ * @internal
  */
 final readonly class AuthoritativePrincipalResolver
 {
@@ -87,24 +88,11 @@ final readonly class AuthoritativePrincipalResolver
             $this->deny();
         }
 
-        $expectedPermissionIds = [];
-        foreach ($permissionIds as $permissionId) {
-            $expectedPermissionIds[$permissionId->toString()] = true;
-        }
-
-        $permissions = $this->permissionRepository->getByIds($permissionIds->toArray());
-        $principalPermissions = [];
-        foreach ($permissions as $permission) {
-            $permissionKey = $permission->getId()->toString();
-            if (!isset($expectedPermissionIds[$permissionKey])) {
-                $this->deny();
-            }
-
-            unset($expectedPermissionIds[$permissionKey]);
-            $principalPermissions[] = new PrincipalPermission($permission->getId(), $permission->getName());
-        }
-
-        if ($expectedPermissionIds !== []) {
+        try {
+            $principalPermissions = new ExactPermissionResolver($this->permissionRepository)->resolve(
+                $permissionIds->toArray()
+            );
+        } catch (ExactPermissionResolutionException) {
             $this->deny();
         }
 

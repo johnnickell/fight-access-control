@@ -3,7 +3,7 @@ id: T-00029
 prd: PRD-00004
 title: Make Agent Permission changes safe to retry
 status: ready-for-agent
-blocked_by: T-00026
+blocked_by:
 ---
 
 # Make Agent Permission changes safe to retry

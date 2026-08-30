@@ -9,6 +9,7 @@ use Fight\AccessControl\Domain\AccessControl\Agent\AgentCredentialId;
 use Fight\AccessControl\Domain\AccessControl\Agent\AgentId;
 use Fight\AccessControl\Domain\AccessControl\Agent\AgentName;
 use Fight\AccessControl\Domain\AccessControl\Agent\AgentState;
+use Fight\AccessControl\Domain\AccessControl\Authorization\PrincipalPermission;
 use Fight\Common\Domain\Type\Arrayable;
 
 /**
@@ -19,7 +20,7 @@ final readonly class AgentView implements Arrayable
     /**
      * Creates the safe Agent view.
      *
-     * @phpstan-param list<AgentPermissionView> $permissions
+     * @phpstan-param list<PrincipalPermission> $permissions
      */
     public function __construct(
         private AgentId $agentId,
@@ -35,7 +36,7 @@ final readonly class AgentView implements Arrayable
     /**
      * Creates the safe view from aggregate state and resolved Permission snapshots.
      *
-     * @phpstan-param list<AgentPermissionView> $permissions
+     * @phpstan-param list<PrincipalPermission> $permissions
      */
     public static function fromAgent(Agent $agent, array $permissions): self
     {
@@ -98,7 +99,7 @@ final readonly class AgentView implements Arrayable
         return $this->permissionAssignmentRevision;
     }
 
-    /** @return list<AgentPermissionView> */
+    /** @return list<PrincipalPermission> */
     public function getPermissions(): array
     {
         return $this->permissions;
@@ -127,7 +128,7 @@ final readonly class AgentView implements Arrayable
             'credential_revision' => $this->credentialRevision,
             'permission_assignment_revision' => $this->permissionAssignmentRevision,
             'permissions' => array_map(
-                static fn(AgentPermissionView $permission): array => $permission->toArray(),
+                static fn(PrincipalPermission $permission): array => $permission->toArray(),
                 $this->permissions
             ),
         ];

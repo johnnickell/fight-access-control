@@ -60,7 +60,7 @@ final readonly class AuthenticatedUserPrincipal implements AuthenticatedAuthorit
                 );
             }
 
-            $uniquePermissions[$permission->getId()->toString()] ??= $permission;
+            $uniquePermissions[$permission->getPermissionId()->toString()] ??= $permission;
         }
 
         $this->roles = array_values($uniqueRoles);
@@ -73,6 +73,14 @@ final readonly class AuthenticatedUserPrincipal implements AuthenticatedAuthorit
     public function getAuthenticationVersion(): int
     {
         return $this->authenticationVersion;
+    }
+
+    /**
+     * Returns the supported authenticated-principal type.
+     */
+    public function getType(): AuthenticatedPrincipalType
+    {
+        return AuthenticatedPrincipalType::USER;
     }
 
     /**

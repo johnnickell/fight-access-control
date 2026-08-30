@@ -6,6 +6,8 @@ namespace Fight\AccessControl\Domain\AccessControl\Agent;
 
 use Fight\AccessControl\Domain\AccessControl\Agent\Exception\AuthenticatedAgentPrincipalException;
 use Fight\AccessControl\Domain\AccessControl\Authorization\AuthenticatedAuthority;
+use Fight\AccessControl\Domain\AccessControl\Authorization\AuthenticatedPrincipalType;
+use Fight\AccessControl\Domain\AccessControl\Authorization\PrincipalPermission;
 use Fight\AccessControl\Domain\AccessControl\Permission\PermissionName;
 use Fight\AccessControl\Domain\AccessControl\Role\RoleName;
 use Fight\Common\Domain\Type\Arrayable;
@@ -15,7 +17,7 @@ use Fight\Common\Domain\Type\Arrayable;
  */
 final readonly class AuthenticatedAgentPrincipal implements Arrayable, AuthenticatedAuthority
 {
-    /** @var list<AgentPrincipalPermission> */
+    /** @var list<PrincipalPermission> */
     private array $permissions;
 
     /**
@@ -40,15 +42,18 @@ final readonly class AuthenticatedAgentPrincipal implements Arrayable, Authentic
             );
         }
 
+        $uniquePermissions = [];
         foreach ($permissions as $permission) {
-            if (!$permission instanceof AgentPrincipalPermission) {
+            if (!$permission instanceof PrincipalPermission) {
                 throw new AuthenticatedAgentPrincipalException(
-                    'Authenticated Agent principal Permissions must be AgentPrincipalPermission snapshots.'
+                    'Authenticated Agent principal Permissions must be PrincipalPermission snapshots.'
                 );
             }
+
+            $uniquePermissions[$permission->getPermissionId()->toString()] ??= $permission;
         }
 
-        $this->permissions = $permissions;
+        $this->permissions = array_values($uniquePermissions);
     }
 
     /**
@@ -84,9 +89,17 @@ final readonly class AuthenticatedAgentPrincipal implements Arrayable, Authentic
     }
 
     /**
+     * Returns the supported authenticated-principal type.
+     */
+    public function getType(): AuthenticatedPrincipalType
+    {
+        return AuthenticatedPrincipalType::AGENT;
+    }
+
+    /**
      * Returns the complete ordered direct-Permission snapshots.
      *
-     * @return list<AgentPrincipalPermission>
+     * @return list<PrincipalPermission>
      */
     public function getPermissions(): array
     {
@@ -100,7 +113,7 @@ final readonly class AuthenticatedAgentPrincipal implements Arrayable, Authentic
     {
         return array_any(
             $this->permissions,
-            static fn(AgentPrincipalPermission $permission): bool => $permission->getName()->equals($permissionName)
+            static fn(PrincipalPermission $permission): bool => $permission->getName()->equals($permissionName)
         );
     }
 
@@ -133,7 +146,7 @@ final readonly class AuthenticatedAgentPrincipal implements Arrayable, Authentic
             'credential_revision' => $this->credentialRevision,
             'permission_assignment_revision' => $this->permissionAssignmentRevision,
             'permissions' => array_map(
-                static fn(AgentPrincipalPermission $permission): array => $permission->toArray(),
+                static fn(PrincipalPermission $permission): array => $permission->toArray(),
                 $this->permissions
             ),
         ];

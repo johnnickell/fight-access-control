@@ -3,7 +3,7 @@ id: T-00027
 prd: PRD-00003
 title: Resolve complete Agent authority from a signed request
 status: ready-for-agent
-blocked_by: T-00026
+blocked_by:
 ---
 
 # Resolve complete Agent authority from a signed request
