@@ -34,9 +34,9 @@ authorization data.
   snapshot is removed without a compatibility alias.
 - [x] Package-owned exact Permission resolution rejects missing, unexpected, duplicated, or stale Permission
   definitions instead of returning a partial authority snapshot.
-- [x] Exact resolution is shared by User and Agent authority construction, while its coordinator and other
-  package-owned workflow coordinators are final `@internal` implementation details rather than consumer extension
-  interfaces.
+- [x] Exact resolution is shared by User and Agent authority construction, while its coordinator and other reusable
+  package-owned service collaborators are final `@internal` implementation details rather than consumer extension
+  interfaces; message handlers remain supported public application entry points.
 - [x] Contract, resolution, public-boundary, and architecture tests prove the complete behavior with exact executable
   coverage and no framework or production Adapter dependency.
 

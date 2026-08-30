@@ -18,8 +18,6 @@ use Fight\Common\Domain\Repository\ResultSet;
 
 /**
  * Retrieves one page of exact secret-free Agent administrative views.
- *
- * @internal
  */
 final readonly class ListAgentsHandler implements QueryHandler
 {

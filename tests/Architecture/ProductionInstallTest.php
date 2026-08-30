@@ -157,8 +157,6 @@ foreach (
     'Fight\\AccessControl\\Application\\AccessControl\\Authorization\\Service\\ExactPermissionResolver',
     'Fight\\AccessControl\\Application\\AccessControl\\Authorization\\Service\\ExactPermissionResolutionException',
     'Fight\\AccessControl\\Application\\AccessControl\\Authorization\\Service\\AuthoritativePrincipalResolver',
-    'Fight\\AccessControl\\Application\\AccessControl\\Agent\\QueryHandler\\GetAgentByIdHandler',
-    'Fight\\AccessControl\\Application\\AccessControl\\Agent\\QueryHandler\\ListAgentsHandler',
     ] as $internalType
 ) {
     $internal = new ReflectionClass($internalType);
@@ -176,6 +174,18 @@ $expect(
     !str_contains((string) $currentAgentPrincipalProvider->getDocComment(), '@internal'),
     'CurrentAgentPrincipalProvider must remain a supported public service.'
 );
+foreach (
+    [
+    Fight\AccessControl\Application\AccessControl\Agent\QueryHandler\GetAgentByIdHandler::class,
+    Fight\AccessControl\Application\AccessControl\Agent\QueryHandler\ListAgentsHandler::class,
+    ] as $publicHandler
+) {
+    $handler = new ReflectionClass($publicHandler);
+    $expect(
+        !str_contains((string) $handler->getDocComment(), '@internal'),
+        sprintf('%s must remain a supported public handler.', $publicHandler)
+    );
+}
 $expect(!is_dir($root.'/src/Adapter'), 'production source must not contain an Adapter boundary.');
 
 if (!interface_exists(Fight\Common\Application\Repository\UnitOfWork::class)) {

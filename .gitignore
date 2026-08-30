@@ -9,6 +9,8 @@ phpunit.xml
 /.claude
 /.idea
 /.runs/
+/.githooks/post-checkout
+/.githooks/post-commit
 /var/
 /graphify-out/
 /nbproject

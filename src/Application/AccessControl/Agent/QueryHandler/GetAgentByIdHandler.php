@@ -17,8 +17,6 @@ use Fight\Common\Domain\Messaging\Query\QueryMessage;
 
 /**
  * Retrieves one exact secret-free Agent administrative view.
- *
- * @internal
  */
 final readonly class GetAgentByIdHandler implements QueryHandler
 {
