@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace Fight\Test\AccessControl\Application\AccessControl\Agent\Security;
 
 use DateTimeImmutable;
-use Fight\AccessControl\Application\AccessControl\Agent\Security\AgentAuthenticationService;
 use Fight\AccessControl\Application\AccessControl\Agent\Security\CurrentAgentPrincipalProvider;
 use Fight\AccessControl\Application\AccessControl\Agent\Security\SignedAgentRequest;
 use Fight\AccessControl\Domain\AccessControl\Agent\Agent;
@@ -132,9 +131,6 @@ final class CurrentAgentPrincipalProviderBehavioralConformanceTest extends TestC
     ): array {
         $agent ??= $this->agent();
         $request = $this->request($signature);
-        $authenticationAgents = new InMemoryAgentRepository();
-        $authenticationAgents->add($agent);
-
         $providerAgents = new InMemoryAgentRepository();
         $providerAgents->add($providerAgent ?? $agent);
 
@@ -148,19 +144,16 @@ final class CurrentAgentPrincipalProviderBehavioralConformanceTest extends TestC
         }
 
         $unitOfWork = new InMemoryUnitOfWork();
-        $authentication = new AgentAuthenticationService(
-            $authenticationAgents,
-            new FixedHmacSharedSecretDecipher('encrypted:'),
-            new FixedHmacSignedAgentRequestVerifier(
-                $this->request('valid-signature'),
-                'current-secret'
-            ),
-            new FixedClock($this->now()),
-            new InMemoryAgentRequestNonceConsumer($authenticationAgents, $unitOfWork),
-            $unitOfWork
-        );
 
-        return [new CurrentAgentPrincipalProvider($authentication, $providerAgents, $permissions), $request];
+        return [new CurrentAgentPrincipalProvider(
+            $providerAgents,
+            $permissions,
+            new FixedHmacSharedSecretDecipher('encrypted:'),
+            new FixedHmacSignedAgentRequestVerifier($this->request('valid-signature'), 'current-secret'),
+            new FixedClock($this->now()),
+            new InMemoryAgentRequestNonceConsumer($providerAgents, $unitOfWork),
+            $unitOfWork
+        ), $request];
     }
 
     private function request(string $signature): SignedAgentRequest

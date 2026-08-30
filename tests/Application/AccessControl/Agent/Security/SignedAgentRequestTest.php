@@ -5,16 +5,13 @@ declare(strict_types=1);
 namespace Fight\Test\AccessControl\Application\AccessControl\Agent\Security;
 
 use DateTimeImmutable;
-use Fight\AccessControl\Application\AccessControl\Agent\Security\AgentAuthenticationResult;
 use Fight\AccessControl\Application\AccessControl\Agent\Security\SignedAgentRequest;
 use Fight\AccessControl\Domain\AccessControl\Agent\AgentCredentialId;
-use Fight\AccessControl\Domain\AccessControl\Agent\AgentId;
 use Fight\AccessControl\Domain\AccessControl\Agent\Exception\AgentAuthenticationRejectedException;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
 
 #[CoversClass(SignedAgentRequest::class)]
-#[CoversClass(AgentAuthenticationResult::class)]
 #[CoversClass(AgentAuthenticationRejectedException::class)]
 final class SignedAgentRequestTest extends TestCase
 {
@@ -34,12 +31,6 @@ final class SignedAgentRequestTest extends TestCase
             'body-digest-value',
             'request-body'
         );
-        $result = new AgentAuthenticationResult(
-            AgentId::fromString('018f0000-0000-7000-8000-000000000001'),
-            $credentialId,
-            0,
-            1
-        );
 
         self::assertSame('POST', $request->getMethod());
         self::assertSame('api.fight.example', $request->getAuthority());
@@ -52,10 +43,6 @@ final class SignedAgentRequestTest extends TestCase
         self::assertSame('signature-value', $request->getSignature());
         self::assertSame('body-digest-value', $request->getBodyDigest());
         self::assertSame('request-body', $request->getBody());
-        self::assertSame('018f0000-0000-7000-8000-000000000001', $result->getAgentId()->toString());
-        self::assertSame($credentialId, $result->getCredentialId());
-        self::assertSame(0, $result->getCredentialRevision());
-        self::assertSame(1, $result->getPermissionAssignmentRevision());
 
         try {
             new SignedAgentRequest(
@@ -72,30 +59,6 @@ final class SignedAgentRequestTest extends TestCase
                 ''
             );
             self::fail('Expected malformed signed-request values to reject generically.');
-        } catch (AgentAuthenticationRejectedException $agentAuthenticationRejectedException) {
-            self::assertSame('Agent authentication rejected.', $agentAuthenticationRejectedException->getMessage());
-        }
-
-        try {
-            new AgentAuthenticationResult(
-                AgentId::fromString('018f0000-0000-7000-8000-000000000001'),
-                $credentialId,
-                -1,
-                1
-            );
-            self::fail('Expected an invalid credential revision to reject generically.');
-        } catch (AgentAuthenticationRejectedException $agentAuthenticationRejectedException) {
-            self::assertSame('Agent authentication rejected.', $agentAuthenticationRejectedException->getMessage());
-        }
-
-        try {
-            new AgentAuthenticationResult(
-                AgentId::fromString('018f0000-0000-7000-8000-000000000001'),
-                $credentialId,
-                0,
-                0
-            );
-            self::fail('Expected an invalid Permission-assignment revision to reject generically.');
         } catch (AgentAuthenticationRejectedException $agentAuthenticationRejectedException) {
             self::assertSame('Agent authentication rejected.', $agentAuthenticationRejectedException->getMessage());
         }

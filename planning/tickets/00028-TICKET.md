@@ -3,7 +3,7 @@ id: T-00028
 prd: PRD-00003
 title: Publish the final SecurityContext boundary
 status: ready-for-agent
-blocked_by: T-00027
+blocked_by:
 ---
 
 # Publish the final SecurityContext boundary

@@ -4,7 +4,7 @@ Operational execution view for Fight AccessControl. Ticket files are canonical f
 this board is canonical for recommended order. IDs identify artifacts only. Update this file whenever ticket
 status, dependencies, or roadmap priority changes.
 
-Last updated: 2026-08-29
+Last updated: 2026-08-30
 
 ## “What’s Next?” Contract
 
@@ -29,14 +29,13 @@ not displace the implementation frontier.
 These tickets have no unfinished blockers. Work top to bottom unless current context makes another ready ticket
 materially cheaper.
 
-1. [T-00027 — Resolve complete Agent authority from a signed request](00027-TICKET.md)
+1. [T-00028 — Publish the final SecurityContext boundary](00028-TICKET.md)
 2. [T-00029 — Make Agent Permission changes safe to retry](00029-TICKET.md)
 
 ## Waiting
 
 | Ticket | Blocked by | Outcome |
 | --- | --- | --- |
-| [T-00028](00028-TICKET.md) | T-00027 | Publish the final SecurityContext boundary. |
 | [T-00030](00030-TICKET.md) | T-00029 | Make User Role changes safe to retry. |
 | [T-00031](00031-TICKET.md) | T-00029 | Make custom Role Permission changes safe to retry. |
 
@@ -57,6 +56,7 @@ No tickets currently require a decision authority.
 
 | Ticket | Parent PRD | Outcome |
 |--------|------------|---------|
+| [T-00027](00027-TICKET.md) | [PRD-00003](../specs/00003-PRD.md) | Delivered direct signed-request-to-Agent authority with atomic replay consumption, post-boundary authority fencing, exact Permission snapshots, safe diagnostics, and request caching. |
 | [T-00026](00026-TICKET.md) | [PRD-00003](../specs/00003-PRD.md) | Delivered the unified principal-type and safe Permission-snapshot contract, exact Permission resolution, and closed internal coordinator boundaries. |
 | [T-00024](00024-TICKET.md) | [PRD-00002](../specs/00002-PRD.md) | Unified distinct immutable User and Agent authority snapshots through a narrow shared contract and consumer-composed current-security-context facade, with exact coverage. |
 | [T-00023](00023-TICKET.md) | [PRD-00002](../specs/00002-PRD.md) | Delivered one immutable request-scoped Agent principal with current credential and Permission-assignment fencing, generic secret-free diagnostics, portable behavioral conformance, and exact coverage. |
