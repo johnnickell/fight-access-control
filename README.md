@@ -30,6 +30,12 @@ and authentication version for the current request. The composition root must cr
 all principal roles and permissions from authoritative repositories and later lookups in the same request return
 that cached result. Consumers cannot inject role or permission snapshots through this boundary.
 
+After a consumer-owned framework adapter selects and resolves the request's authentication path, its composition
+root creates one `SecurityContext` from exactly one `AuthenticatedUserPrincipal` or
+`AuthenticatedAgentPrincipal`. The context exposes that authority's type and delegates its Permission and Role
+checks. Agents retain only their direct Permissions and have no package-level Roles; framework wrappers, endpoint
+policy, and response handling remain consumer-owned.
+
 ## Local development
 
 PHP 8.5 and Docker are required. Tooling follows the Fight Common conventions and runs in the isolated

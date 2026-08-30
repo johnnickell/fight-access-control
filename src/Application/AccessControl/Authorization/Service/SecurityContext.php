@@ -5,31 +5,19 @@ declare(strict_types=1);
 namespace Fight\AccessControl\Application\AccessControl\Authorization\Service;
 
 use Fight\AccessControl\Domain\AccessControl\Authorization\AuthenticatedAuthority;
-use Fight\AccessControl\Domain\AccessControl\Authorization\Exception\CurrentSecurityContextException;
 use Fight\AccessControl\Domain\AccessControl\Permission\PermissionName;
 use Fight\AccessControl\Domain\AccessControl\Role\RoleName;
 
 /**
  * Provides one consumer-selected authenticated authority for a request.
- *
- * Consumers must compose exactly one authority for each request.
  */
-final readonly class CurrentSecurityContext
+final readonly class SecurityContext
 {
-    private AuthenticatedAuthority $authenticatedAuthority;
-
     /**
      * Creates a request-scoped security context from one selected authenticated authority.
      */
-    public function __construct(AuthenticatedAuthority ...$authenticatedAuthorities)
+    public function __construct(private AuthenticatedAuthority $authenticatedAuthority)
     {
-        if (count($authenticatedAuthorities) !== 1) {
-            throw new CurrentSecurityContextException(
-                'The current security context must contain exactly one authenticated authority.'
-            );
-        }
-
-        $this->authenticatedAuthority = $authenticatedAuthorities[0];
     }
 
     /**

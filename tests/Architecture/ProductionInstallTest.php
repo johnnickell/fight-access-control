@@ -60,6 +60,7 @@ $expect = static function (bool $condition, string $message): void {
 
 $authenticatedPrincipalType = Fight\AccessControl\Domain\AccessControl\Authorization\AuthenticatedPrincipalType::class;
 $publicTypes = [
+    Fight\AccessControl\Application\AccessControl\Authorization\Service\SecurityContext::class,
     Fight\AccessControl\Domain\AccessControl\Authorization\AuthenticatedAuthority::class,
     $authenticatedPrincipalType,
     Fight\AccessControl\Domain\AccessControl\Authorization\AuthenticatedUserPrincipal::class,
@@ -72,6 +73,27 @@ foreach ($publicTypes as $publicType) {
         sprintf('supported public authority type %s is not production-autoloadable.', $publicType)
     );
 }
+
+$securityContext = new ReflectionClass(
+    Fight\AccessControl\Application\AccessControl\Authorization\Service\SecurityContext::class
+);
+$securityContextConstructor = $securityContext->getConstructor();
+$expect($securityContext->isFinal(), 'SecurityContext must remain final.');
+$expect($securityContextConstructor instanceof ReflectionMethod, 'SecurityContext must define a constructor.');
+$expect(
+    $securityContextConstructor->getNumberOfParameters() === 1
+        && $securityContextConstructor->getNumberOfRequiredParameters() === 1,
+    'SecurityContext must require exactly one authenticated authority.'
+);
+$securityContextAuthority = $securityContextConstructor->getParameters()[0] ?? null;
+$securityContextAuthorityType = $securityContextAuthority?->getType();
+$expect(
+    $securityContextAuthorityType instanceof ReflectionNamedType
+        && $securityContextAuthorityType->getName()
+            === Fight\AccessControl\Domain\AccessControl\Authorization\AuthenticatedAuthority::class
+        && !$securityContextAuthority->isVariadic(),
+    'SecurityContext must accept one non-variadic AuthenticatedAuthority.'
+);
 
 $authority = new ReflectionClass(Fight\AccessControl\Domain\AccessControl\Authorization\AuthenticatedAuthority::class);
 $authorityType = $authority->getMethod('getType')->getReturnType();
@@ -142,6 +164,8 @@ foreach (
 
 foreach (
     [
+    'Fight\\AccessControl\\Application\\AccessControl\\Authorization\\Service\\CurrentSecurityContext',
+    'Fight\\AccessControl\\Domain\\AccessControl\\Authorization\\Exception\\CurrentSecurityContextException',
     str_replace('/', '\\', 'Fight/AccessControl/Domain/AccessControl/Agent/AgentPrincipalPermission'),
     str_replace('/', '\\', 'Fight/AccessControl/Domain/AccessControl/Agent/Query/AgentPermissionView'),
     ] as $removedType
