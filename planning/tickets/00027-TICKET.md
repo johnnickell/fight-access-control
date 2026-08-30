@@ -2,7 +2,7 @@
 id: T-00027
 prd: PRD-00003
 title: Resolve complete Agent authority from a signed request
-status: ready-for-agent
+status: done
 blocked_by:
 ---
 
@@ -24,21 +24,21 @@ Permission query.
 
 ## Acceptance Criteria
 
-- [ ] `CurrentAgentPrincipalProvider` is the one public consumer-composed Agent flow and returns the complete
+- [x] `CurrentAgentPrincipalProvider` is the one public consumer-composed Agent flow and returns the complete
   `AuthenticatedAgentPrincipal` directly.
-- [ ] Agent authentication details remain inside that flow, and the obsolete intermediate authentication result is
+- [x] Agent authentication details remain inside that flow, and the obsolete intermediate authentication result is
   removed without a compatibility alias.
-- [ ] Malformed requests, invalid freshness or body data, credential rejection, and invalid signatures fail before
+- [x] Malformed requests, invalid freshness or body data, credential rejection, and invalid signatures fail before
   nonce consumption and return only the generic caller-facing denial.
-- [ ] A valid signature crosses the replay boundary exactly once; later credential, assignment-revision, or
+- [x] A valid signature crosses the replay boundary exactly once; later credential, assignment-revision, or
   Permission-resolution failure leaves the nonce consumed and cannot return a partial principal.
-- [ ] Credential identity and revision, active Agent state, Permission-assignment revision, and exact Permission
+- [x] Credential identity and revision, active Agent state, Permission-assignment revision, and exact Permission
   definitions are revalidated before the principal is returned.
-- [ ] Repeated resolution during one request performs authentication and authority resolution once and returns the
+- [x] Repeated resolution during one request performs authentication and authority resolution once and returns the
   identical completed principal object thereafter.
-- [ ] Every denial retains only a safe diagnostic classification and consumer correlation identity, excluding raw
+- [x] Every denial retains only a safe diagnostic classification and consumer correlation identity, excluding raw
   requests, signatures, nonces, shared secrets, and other credential material.
-- [ ] Behavioral tests prove the complete success, ordering, replay, concurrency, caching, and diagnostic outcomes
+- [x] Behavioral tests prove the complete success, ordering, replay, concurrency, caching, and diagnostic outcomes
   using deterministic consumer-owned ports with exact executable coverage.
 
 ## Verification
@@ -50,4 +50,6 @@ Permission query.
 
 ## Completion Notes
 
-Record the verified outcome only when terminal.
+Verified 2026-08-30: `./bin/planning-check` and `./bin/build` passed. The provider now owns complete signed-request
+validation, HMAC verification, nonce consumption, current-authority revalidation, exact Permission resolution, and
+identical-object request caching; the obsolete service and result boundary are absent.

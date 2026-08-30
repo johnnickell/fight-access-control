@@ -113,10 +113,10 @@ final class PlanningAuthorityTest extends TestCase
         self::assertFileExists($this->root.'/bin/archive-planning');
     }
 
-    public function test_that_t_00026_closure_advances_the_exact_ready_frontier(): void
+    public function test_that_t_00027_closure_advances_the_exact_ready_frontier(): void
     {
-        $ticket = $this->read('planning/tickets/00026-TICKET.md');
-        $agentAuthority = $this->read('planning/tickets/00027-TICKET.md');
+        $ticket = $this->read('planning/tickets/00027-TICKET.md');
+        $securityContext = $this->read('planning/tickets/00028-TICKET.md');
         $agentPermissions = $this->read('planning/tickets/00029-TICKET.md');
         $board = $this->read('planning/tickets/BOARD.md');
         $tickets = $this->read('planning/tickets/README.md');
@@ -126,26 +126,26 @@ final class PlanningAuthorityTest extends TestCase
 
         self::assertStringContainsString('status: done', $ticket);
         self::assertStringNotContainsString('- [ ]', $ticket);
-        self::assertStringContainsString('public-boundary and architecture checks passed.', $ticket);
-        self::assertStringContainsString('status: ready-for-agent', $agentAuthority);
-        self::assertStringContainsString("blocked_by:\n", $agentAuthority);
+        self::assertStringContainsString('identical-object request caching', $ticket);
+        self::assertStringContainsString('status: ready-for-agent', $securityContext);
+        self::assertStringContainsString("blocked_by:\n", $securityContext);
         self::assertStringContainsString('status: ready-for-agent', $agentPermissions);
         self::assertStringContainsString("blocked_by:\n", $agentPermissions);
-        self::assertStringContainsString('1. [T-00027', $board);
+        self::assertStringContainsString('1. [T-00028', $board);
         self::assertStringContainsString('2. [T-00029', $board);
         self::assertStringNotContainsString('| [T-00027](00027-TICKET.md) | T-00026 |', $board);
         self::assertStringNotContainsString('| [T-00029](00029-TICKET.md) | T-00026 |', $board);
-        self::assertStringContainsString('| [T-00028](00028-TICKET.md) | T-00027 |', $board);
+        self::assertStringNotContainsString('| [T-00028](00028-TICKET.md) | T-00027 |', $board);
         self::assertStringContainsString('| [T-00030](00030-TICKET.md) | T-00029 |', $board);
         self::assertStringContainsString('| [T-00031](00031-TICKET.md) | T-00029 |', $board);
-        self::assertStringContainsString('| [T-00026](00026-TICKET.md) | [PRD-00003]', $board);
+        self::assertStringContainsString('| [T-00027](00027-TICKET.md) | [PRD-00003]', $board);
         self::assertStringNotContainsString('| [T-00026](00026-TICKET.md)', $tickets);
         self::assertStringContainsString('status: in-progress', $prd);
-        self::assertStringContainsString('T-00026 is complete', $prd);
+        self::assertStringContainsString('T-00027 is complete', $prd);
         self::assertStringContainsString('status: in-progress', $epic);
-        self::assertStringContainsString('T-00026 is complete', $epic);
+        self::assertStringContainsString('T-00027 is complete', $epic);
         self::assertStringContainsString('| [EPIC-00003](epics/00003-EPIC.md) | 0.x | in-progress |', $roadmap);
-        self::assertStringContainsString('T-00026 complete', $roadmap);
+        self::assertStringContainsString('T-00027 complete', $roadmap);
     }
 
     public function test_that_the_repository_validator_accepts_the_indexed_local_authority(): void
@@ -154,7 +154,7 @@ final class PlanningAuthorityTest extends TestCase
         $process->run();
 
         self::assertSame(0, $process->getExitCode(), $process->getErrorOutput().$process->getOutput());
-        self::assertStringContainsString('Planning validation passed: 37 records, 8 active', $process->getOutput());
+        self::assertStringContainsString('Planning validation passed: 37 records, 7 active', $process->getOutput());
     }
 
     protected function setUp(): void

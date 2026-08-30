@@ -109,6 +109,13 @@ Always run `./bin/planning-check` and `./bin/build` before declaring a ticket co
 pull request. The build runs the complete quality gate, including PHPCS, PHPStan, architecture enforcement,
 Rector dry-run, PHPUnit, and exact statement coverage.
 
+### Learning: hooks are non-negotiable gates
+
+If a commit hook runs this package gate, the hook itself must complete successfully before the commit is created.
+Never use `git commit --no-verify`, disable the hook, or otherwise bypass it because a run is slow, interrupted, or
+inconvenient. Diagnose and repair every failure, then rerun the hook to completion. An exception requires the user's
+explicit authorization for that specific commit and must be reported as an unverified delivery state.
+
 ## Git Flow
 
 - `main` contains the stable production line and merges from `develop` only.

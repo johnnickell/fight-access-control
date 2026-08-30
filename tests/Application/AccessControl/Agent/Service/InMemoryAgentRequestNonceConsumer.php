@@ -34,6 +34,7 @@ final class InMemoryAgentRequestNonceConsumer implements AgentRequestNonceConsum
         private readonly AgentRepository $agentRepository,
         private readonly InMemoryUnitOfWork $unitOfWork,
         private readonly ?Closure $beforeConsume = null,
+        private readonly ?Closure $afterConsume = null,
         private readonly ?Throwable $failure = null
     ) {
     }
@@ -67,6 +68,7 @@ final class InMemoryAgentRequestNonceConsumer implements AgentRequestNonceConsum
 
         $this->consumedNonces[$nonce] = $expiresAt;
         $this->expiresAt = $expiresAt;
+        $this->afterConsume?->__invoke();
         $this->unitOfWork->onRollback(function () use ($nonce): void {
             unset($this->consumedNonces[$nonce]);
         });
