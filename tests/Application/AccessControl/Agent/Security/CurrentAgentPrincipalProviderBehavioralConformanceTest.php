@@ -7,14 +7,17 @@ namespace Fight\Test\AccessControl\Application\AccessControl\Agent\Security;
 use DateTimeImmutable;
 use Fight\AccessControl\Application\AccessControl\Agent\Security\CurrentAgentPrincipalProvider;
 use Fight\AccessControl\Application\AccessControl\Agent\Security\SignedAgentRequest;
+use Fight\AccessControl\Application\AccessControl\Authorization\Service\SecurityContext;
 use Fight\AccessControl\Domain\AccessControl\Agent\Agent;
 use Fight\AccessControl\Domain\AccessControl\Agent\AgentCredentialId;
 use Fight\AccessControl\Domain\AccessControl\Agent\AgentId;
 use Fight\AccessControl\Domain\AccessControl\Agent\AgentName;
 use Fight\AccessControl\Domain\AccessControl\Agent\Exception\CurrentAgentPrincipalResolutionRejectedException;
+use Fight\AccessControl\Domain\AccessControl\Authorization\AuthenticatedPrincipalType;
 use Fight\AccessControl\Domain\AccessControl\Permission\Permission;
 use Fight\AccessControl\Domain\AccessControl\Permission\PermissionId;
 use Fight\AccessControl\Domain\AccessControl\Permission\PermissionName;
+use Fight\AccessControl\Domain\AccessControl\Role\RoleName;
 use Fight\Test\AccessControl\Application\AccessControl\Agent\Repository\InMemoryAgentRepository;
 use Fight\Test\AccessControl\Application\AccessControl\Agent\Service\FixedHmacSharedSecretDecipher;
 use Fight\Test\AccessControl\Application\AccessControl\Agent\Service\FixedHmacSignedAgentRequestVerifier;
@@ -31,12 +34,16 @@ final class CurrentAgentPrincipalProviderBehavioralConformanceTest extends TestC
     public function test_that_the_framework_free_public_seam_resolves_one_complete_principal_and_fails_closed(): void
     {
         $viewAgents = PermissionName::fromString('VIEW_AGENTS');
-        [$provider, $request] = $this->provider();
+        [$provider, $request, $nonceConsumer, $agents, $permissions, $unitOfWork] = $this->provider();
 
         $firstPrincipal = $provider->resolve($request, 'correlation-success');
         $secondPrincipal = $provider->resolve($request, 'correlation-success');
+        $context = new SecurityContext($firstPrincipal);
 
         self::assertSame($firstPrincipal, $secondPrincipal);
+        self::assertSame($firstPrincipal, $context->getAuthenticatedAuthority());
+        self::assertSame(AuthenticatedPrincipalType::AGENT, $context->getAuthenticatedAuthority()->getType());
+        self::assertSame(1, $nonceConsumer->consumptionCalls());
         self::assertSame(
             [
                 'agent_id' => '018f0000-0000-7000-8000-000000000101',
@@ -52,8 +59,27 @@ final class CurrentAgentPrincipalProviderBehavioralConformanceTest extends TestC
             ],
             $firstPrincipal->toArray()
         );
-        self::assertTrue($firstPrincipal->hasPermission($viewAgents));
-        self::assertFalse($firstPrincipal->hasPermission(PermissionName::fromString('MANAGE_AGENTS')));
+        self::assertTrue($context->hasPermission($viewAgents));
+        self::assertFalse($context->hasPermission(PermissionName::fromString('MANAGE_AGENTS')));
+        self::assertFalse($context->hasRole(RoleName::fromString('ROLE_USER')));
+
+        $replayProvider = $this->providerFor($agents, $permissions, $nonceConsumer, $unitOfWork);
+        try {
+            $replayProvider->resolve($request, 'correlation-replay');
+            self::fail('A replayed signed Agent request must fail closed.');
+        } catch (CurrentAgentPrincipalResolutionRejectedException $currentAgentPrincipalResolutionRejectedException) {
+            self::assertSame(
+                'Agent authentication rejected.',
+                $currentAgentPrincipalResolutionRejectedException->getMessage()
+            );
+            self::assertSame(
+                'correlation-replay',
+                $currentAgentPrincipalResolutionRejectedException->getDiagnostic()->getCorrelationId()
+            );
+            self::assertSafeDiagnostic($currentAgentPrincipalResolutionRejectedException, $request);
+        }
+
+        self::assertSame(2, $nonceConsumer->consumptionCalls());
 
         foreach ($this->rejectedResolutions() as $name => [$rejectedProvider, $rejectedRequest, $correlationId]) {
             try {
@@ -121,7 +147,14 @@ final class CurrentAgentPrincipalProviderBehavioralConformanceTest extends TestC
     }
 
     /**
-     * @return array{0: CurrentAgentPrincipalProvider, 1: SignedAgentRequest}
+     * @return array{
+     *     0: CurrentAgentPrincipalProvider,
+     *     1: SignedAgentRequest,
+     *     2: InMemoryAgentRequestNonceConsumer,
+     *     3: InMemoryAgentRepository,
+     *     4: InMemoryPermissionRepository,
+     *     5: InMemoryUnitOfWork
+     * }
      */
     private function provider(
         ?Agent $agent = null,
@@ -145,15 +178,33 @@ final class CurrentAgentPrincipalProviderBehavioralConformanceTest extends TestC
 
         $unitOfWork = new InMemoryUnitOfWork();
 
-        return [new CurrentAgentPrincipalProvider(
+        $nonceConsumer = new InMemoryAgentRequestNonceConsumer($providerAgents, $unitOfWork);
+
+        return [
+            $this->providerFor($providerAgents, $permissions, $nonceConsumer, $unitOfWork),
+            $request,
+            $nonceConsumer,
             $providerAgents,
+            $permissions,
+            $unitOfWork,
+        ];
+    }
+
+    private function providerFor(
+        InMemoryAgentRepository $agents,
+        InMemoryPermissionRepository $permissions,
+        InMemoryAgentRequestNonceConsumer $nonceConsumer,
+        InMemoryUnitOfWork $unitOfWork
+    ): CurrentAgentPrincipalProvider {
+        return new CurrentAgentPrincipalProvider(
+            $agents,
             $permissions,
             new FixedHmacSharedSecretDecipher('encrypted:'),
             new FixedHmacSignedAgentRequestVerifier($this->request('valid-signature'), 'current-secret'),
             new FixedClock($this->now()),
-            new InMemoryAgentRequestNonceConsumer($providerAgents, $unitOfWork),
+            $nonceConsumer,
             $unitOfWork
-        ), $request];
+        );
     }
 
     private function request(string $signature): SignedAgentRequest
