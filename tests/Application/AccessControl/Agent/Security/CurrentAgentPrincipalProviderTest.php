@@ -24,6 +24,7 @@ use Fight\Test\AccessControl\Application\AccessControl\Agent\Service\InMemoryAge
 use Fight\Test\AccessControl\Application\AccessControl\Permission\Repository\InMemoryPermissionRepository;
 use Fight\Test\AccessControl\Application\AccessControl\Timing\Service\FixedClock;
 use Fight\Test\AccessControl\Application\AccessControl\User\InMemoryUnitOfWork;
+use InvalidArgumentException;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
 use RuntimeException;
@@ -54,7 +55,10 @@ final class CurrentAgentPrincipalProviderTest extends TestCase
     public function test_that_invalid_requests_do_not_consume_a_nonce_and_retain_only_safe_diagnostics(): void
     {
         foreach (
-            [$this->request(signature: 'wrong-signature'), $this->request(body: 'body', bodyDigest: null)] as $request
+            [
+                $this->request(signature: 'wrong-signature'),
+                $this->request(body: 'body', bodyDigest: null, deriveBodyDigest: false),
+            ] as $request
         ) {
             [$provider, , $nonceConsumer] = $this->provider();
 
@@ -151,6 +155,16 @@ final class CurrentAgentPrincipalProviderTest extends TestCase
         self::assertSame(1, $nonceConsumer->consumptionCalls());
     }
 
+    public function test_that_a_diagnostic_requires_a_correlation_identifier(): void
+    {
+        $this->expectException(InvalidArgumentException::class);
+
+        new AgentAuthenticationDiagnostic(
+            AgentAuthenticationDiagnosticClassification::AUTHENTICATION_REJECTED,
+            ' '
+        );
+    }
+
     /** @return array{0: CurrentAgentPrincipalProvider, 1: SignedAgentRequest, 2: InMemoryAgentRequestNonceConsumer, 3: InMemoryUnitOfWork} */
     private function provider(
         ?InMemoryAgentRepository $agents = null,
@@ -204,7 +218,8 @@ final class CurrentAgentPrincipalProviderTest extends TestCase
     private function request(
         string $signature = 'valid-signature',
         string $body = '',
-        ?string $bodyDigest = null
+        ?string $bodyDigest = null,
+        bool $deriveBodyDigest = true
     ): SignedAgentRequest {
         return new SignedAgentRequest(
             'POST',
@@ -216,7 +231,7 @@ final class CurrentAgentPrincipalProviderTest extends TestCase
             $this->credentialId(),
             'HMAC-SHA256',
             $signature,
-            $body === '' ? $bodyDigest : ($bodyDigest ?? hash('sha256', $body)),
+            $body === '' ? $bodyDigest : ($deriveBodyDigest ? ($bodyDigest ?? hash('sha256', $body)) : $bodyDigest),
             $body
         );
     }
