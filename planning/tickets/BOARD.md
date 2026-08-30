@@ -4,7 +4,7 @@ Operational execution view for Fight AccessControl. Ticket files are canonical f
 this board is canonical for recommended order. IDs identify artifacts only. Update this file whenever ticket
 status, dependencies, or roadmap priority changes.
 
-Last updated: 2026-08-27
+Last updated: 2026-08-29
 
 ## “What’s Next?” Contract
 
@@ -16,7 +16,7 @@ When `/ask-matt` or a plain “What’s next?” is invoked:
 
 ## Now
 
-**Human decision:** no new design decision is pending.
+**Human decision:** no new design or decomposition decision is pending.
 
 ## Wayfinder Review
 
@@ -29,11 +29,17 @@ not displace the implementation frontier.
 These tickets have no unfinished blockers. Work top to bottom unless current context makes another ready ticket
 materially cheaper.
 
-No ready-for-agent tickets remain.
+1. [T-00026 — Establish the unified authority contract](00026-TICKET.md)
 
 ## Waiting
 
-No ready-for-agent tickets have unfinished blockers.
+| Ticket | Blocked by | Outcome |
+| --- | --- | --- |
+| [T-00027](00027-TICKET.md) | T-00026 | Resolve complete Agent authority from a signed request. |
+| [T-00029](00029-TICKET.md) | T-00026 | Make Agent Permission changes safe to retry. |
+| [T-00028](00028-TICKET.md) | T-00027 | Publish the final SecurityContext boundary. |
+| [T-00030](00030-TICKET.md) | T-00029 | Make User Role changes safe to retry. |
+| [T-00031](00031-TICKET.md) | T-00029 | Make custom Role Permission changes safe to retry. |
 
 ## Needs Info
 

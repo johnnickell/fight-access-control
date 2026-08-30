@@ -4,12 +4,16 @@
 
 | Epic | Target | Status | Outcome |
 | --- | --- | --- | --- |
-| No active epic | — | — | Create new planning work through Wayfinder when the implementation route is not yet decision-complete. |
+| [EPIC-00003](epics/00003-EPIC.md) | 0.x | ready-for-agent | Simplify the public authenticated-authority boundary and make authorization modifications consistently idempotent before `1.0.0`. |
 
 ## Route to 0.x
 
-1. Create new planning work through Wayfinder when the implementation route is not yet decision-complete.
-2. Keep implementation, commit, push, pull request, merge, release, and publication as separate approvals.
+1. Deliver T-00026 through T-00028 for the unified authenticated-authority API and its framework-neutral
+   conformance behavior.
+2. Deliver T-00029 through T-00031 to align Agent Permission, User Role, and custom-Role Permission modification
+   behavior.
+3. Run a separate stability review before authorizing a `1.0.0` release.
+4. Keep implementation, commit, push, pull request, merge, release, and publication as separate approvals.
 
 ## Completed
 
