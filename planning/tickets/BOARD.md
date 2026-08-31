@@ -26,10 +26,7 @@ not displace the implementation frontier.
 
 ## Ready Frontier
 
-These tickets have no unfinished blockers. Work top to bottom unless current context makes another ready ticket
-materially cheaper.
-
-1. [T-00031 — Make custom Role Permission changes safe to retry](00031-TICKET.md)
+No implementation tickets are currently ready.
 
 ## Waiting
 
@@ -52,6 +49,7 @@ No tickets currently require a decision authority.
 
 | Ticket | Parent PRD | Outcome |
 |--------|------------|---------|
+| [T-00031](00031-TICKET.md) | [PRD-00004](../specs/00004-PRD.md) | Delivered retry-safe custom-Role Permission grants and revocations with no-write retries, final Permission-reference fencing, and exact coverage. |
 | [T-00030](00030-TICKET.md) | [PRD-00004](../specs/00004-PRD.md) | Delivered aggregate-owned desired-state User Role assignment and removal with non-writing no-op final-reference fencing, expected-plus-successor real-change fencing, purpose-specific event ordering, and exact coverage. |
 | [T-00029](00029-TICKET.md) | [PRD-00004](../specs/00004-PRD.md) | Delivered idempotent direct Agent Permission grants, revocations, and normalized complete-set replacement with authority/reference validation, stale-revision fencing, and exact coverage. |
 | [T-00027](00027-TICKET.md) | [PRD-00003](../specs/00003-PRD.md) | Delivered direct signed-request-to-Agent authority with atomic replay consumption, post-boundary authority fencing, exact Permission snapshots, safe diagnostics, and request caching. |

@@ -63,6 +63,16 @@ interface RoleRepository
     public function getContainingPermission(PermissionId $id): array;
 
     /**
+     * Validates one Permission reference under the transaction-duration permission-reference fence without
+     * replacing a Role.
+     *
+     * Returns false when the Permission is no longer authoritative.
+     *
+     * @throws Exception When an error occurs
+     */
+    public function validatePermissionReference(PermissionId $permissionId): bool;
+
+    /**
      * Replaces the expected role when it remains current and all replacement Permissions remain authoritative.
      *
      * Validation and mutation occur under one adapter-owned permission-reference fence held through the enclosing

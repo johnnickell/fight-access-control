@@ -28,7 +28,8 @@ final class InMemoryRoleRepository implements RoleRepository
         private readonly ?InMemoryUnitOfWork $unitOfWork = null,
         private readonly ?Closure $beforeReplace = null,
         private readonly ?Closure $beforeRemove = null,
-        ?InMemoryAuthorizationReferenceState $authorizationReferences = null
+        ?InMemoryAuthorizationReferenceState $authorizationReferences = null,
+        private readonly ?Closure $beforeValidatePermissionReference = null
     ) {
         $resolvedAuthorizationReferences = $authorizationReferences ?? new InMemoryAuthorizationReferenceState();
         if (
@@ -130,6 +131,14 @@ final class InMemoryRoleRepository implements RoleRepository
             $this->roles,
             static fn(Role $role): bool => $role->hasPermission($id)
         ));
+    }
+
+    public function validatePermissionReference(PermissionId $permissionId): bool
+    {
+        $this->authorizationReferences->holdThroughCompletion();
+        $this->beforeValidatePermissionReference?->__invoke();
+
+        return $this->authorizationReferences->permissionsAreAuthoritative([$permissionId]);
     }
 
     public function replace(Role $expected, Role $replacement): bool

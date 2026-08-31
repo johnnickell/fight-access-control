@@ -52,7 +52,7 @@ final readonly class RevokePermissionFromCustomRoleHandler implements CommandHan
 
         try {
             $event = $this->unitOfWork->commitTransactional(
-                function () use ($command): CustomRolePermissionRevoked {
+                function () use ($command): ?CustomRolePermissionRevoked {
                     $this->roleAdministrationAuthorization->assertCanManageRoles($command->getActorId());
 
                     $role = $this->roleRepository->getById($command->getRoleId());
@@ -62,6 +62,15 @@ final readonly class RevokePermissionFromCustomRoleHandler implements CommandHan
 
                     if (!$this->permissionRepository->getById($command->getPermissionId()) instanceof Permission) {
                         throw new CustomRoleException('The permission does not exist.');
+                    }
+
+                    $role->assertCustom();
+                    if (!$role->hasPermission($command->getPermissionId())) {
+                        if (!$this->roleRepository->validatePermissionReference($command->getPermissionId())) {
+                            throw new CustomRoleException('The authoritative permission changed concurrently.');
+                        }
+
+                        return null;
                     }
 
                     $revokedAt = $this->clock->now();
@@ -79,7 +88,9 @@ final readonly class RevokePermissionFromCustomRoleHandler implements CommandHan
                 }
             );
 
-            $this->eventDispatcher->trigger($event);
+            if ($event instanceof CustomRolePermissionRevoked) {
+                $this->eventDispatcher->trigger($event);
+            }
         } catch (Throwable $throwable) {
             $this->eventDispatcher->trigger(new CommandFailedEvent($command, $throwable->getMessage()));
             throw $throwable;

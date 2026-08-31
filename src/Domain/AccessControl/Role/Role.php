@@ -114,7 +114,7 @@ class Role
         $this->assertCustom();
 
         if ($this->permissionIds->contains($permissionId)) {
-            throw new CustomRoleException('The custom role already contains the permission.');
+            return $this;
         }
 
         $permissionIds = $this->permissionIds->toArray();
@@ -131,7 +131,7 @@ class Role
         $this->assertCustom();
 
         if (!$this->permissionIds->contains($permissionId)) {
-            throw new CustomRoleException('The custom role does not contain the permission.');
+            return $this;
         }
 
         $permissionIds = array_values(array_filter(
