@@ -21,7 +21,8 @@ final class ControllableRoleRepository implements RoleRepository
         private readonly bool $replaceSucceeds = true,
         private readonly bool $removeSucceeds = true,
         private readonly ?Throwable $getFailure = null,
-        private readonly bool $roleRemainsAuthoritative = true
+        private readonly bool $roleRemainsAuthoritative = true,
+        private readonly bool $permissionRemainsAuthoritative = true
     ) {
     }
 
@@ -74,6 +75,11 @@ final class ControllableRoleRepository implements RoleRepository
     public function getContainingPermission(PermissionId $id): array
     {
         return $this->role instanceof Role && $this->role->hasPermission($id) ? [$this->role] : [];
+    }
+
+    public function validatePermissionReference(PermissionId $permissionId): bool
+    {
+        return $this->permissionRemainsAuthoritative;
     }
 
     public function replace(Role $expected, Role $replacement): bool

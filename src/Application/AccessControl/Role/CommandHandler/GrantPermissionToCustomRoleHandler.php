@@ -52,7 +52,7 @@ final readonly class GrantPermissionToCustomRoleHandler implements CommandHandle
 
         try {
             $event = $this->unitOfWork->commitTransactional(
-                function () use ($command): CustomRolePermissionGranted {
+                function () use ($command): ?CustomRolePermissionGranted {
                     $this->roleAdministrationAuthorization->assertCanManageRoles($command->getActorId());
 
                     $role = $this->roleRepository->getById($command->getRoleId());
@@ -62,6 +62,15 @@ final readonly class GrantPermissionToCustomRoleHandler implements CommandHandle
 
                     if (!$this->permissionRepository->getById($command->getPermissionId()) instanceof Permission) {
                         throw new CustomRoleException('The permission does not exist.');
+                    }
+
+                    $role->assertCustom();
+                    if ($role->hasPermission($command->getPermissionId())) {
+                        if (!$this->roleRepository->validatePermissionReference($command->getPermissionId())) {
+                            throw new CustomRoleException('The authoritative permission changed concurrently.');
+                        }
+
+                        return null;
                     }
 
                     $grantedAt = $this->clock->now();
@@ -79,7 +88,9 @@ final readonly class GrantPermissionToCustomRoleHandler implements CommandHandle
                 }
             );
 
-            $this->eventDispatcher->trigger($event);
+            if ($event instanceof CustomRolePermissionGranted) {
+                $this->eventDispatcher->trigger($event);
+            }
         } catch (Throwable $throwable) {
             $this->eventDispatcher->trigger(new CommandFailedEvent($command, $throwable->getMessage()));
             throw $throwable;

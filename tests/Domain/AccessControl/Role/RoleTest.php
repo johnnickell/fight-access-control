@@ -148,7 +148,7 @@ final class RoleTest extends TestCase
         )->renameCustom(RoleName::fromString('ROLE_FORBIDDEN'), $updatedAt);
     }
 
-    public function test_it_grants_and_revokes_custom_role_permissions_with_explicit_duplicate_failures(): void
+    public function test_it_grants_and_revokes_custom_role_permissions_as_immutable_desired_state_transitions(): void
     {
         $createdAt = new DateTimeImmutable('2026-01-01T00:00:00+00:00');
         $grantedAt = new DateTimeImmutable('2026-01-02T00:00:00+00:00');
@@ -169,24 +169,10 @@ final class RoleTest extends TestCase
         self::assertFalse($revoked->hasPermission($permissionId));
         self::assertSame($revokedAt, $revoked->getUpdatedAt());
 
-        $this->expectException(CustomRoleException::class);
-        $granted->grantPermissionToCustom($permissionId, $grantedAt);
-    }
-
-    public function test_revocation_rejects_missing_membership(): void
-    {
-        $role = Role::define(
-            RoleId::generate(),
-            RoleName::fromString('ROLE_SUPPORT'),
-            [],
-            new DateTimeImmutable('2026-01-01T00:00:00+00:00')
-        );
-
-        $this->expectException(CustomRoleException::class);
-        $role->revokePermissionFromCustom(
-            PermissionId::generate(),
-            new DateTimeImmutable('2026-01-02T00:00:00+00:00')
-        );
+        self::assertSame($granted, $granted->grantPermissionToCustom($permissionId, $revokedAt));
+        self::assertSame($grantedAt, $granted->getUpdatedAt());
+        self::assertSame($revoked, $revoked->revokePermissionFromCustom($permissionId, $grantedAt));
+        self::assertSame($revokedAt, $revoked->getUpdatedAt());
     }
 
     public function test_managed_role_rejects_the_shared_custom_mutation_guard(): void
