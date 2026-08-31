@@ -6,12 +6,9 @@ namespace Fight\AccessControl\Application\AccessControl\Agent\CommandHandler;
 
 use Fight\AccessControl\Application\AccessControl\Agent\Service\AgentPermissionAdministrationAuthorization;
 use Fight\AccessControl\Application\AccessControl\Timing\Service\Clock;
-use Fight\AccessControl\Domain\AccessControl\Agent\Agent;
 use Fight\AccessControl\Domain\AccessControl\Agent\AgentRepository;
 use Fight\AccessControl\Domain\AccessControl\Agent\Command\RevokePermissionFromAgent;
 use Fight\AccessControl\Domain\AccessControl\Agent\Event\PermissionRevokedFromAgent;
-use Fight\AccessControl\Domain\AccessControl\Agent\Exception\AgentPermissionAssignmentException;
-use Fight\AccessControl\Domain\AccessControl\Permission\Permission;
 use Fight\AccessControl\Domain\AccessControl\Permission\PermissionRepository;
 use Fight\Common\Application\Messaging\Command\CommandHandler;
 use Fight\Common\Application\Messaging\Event\EventDispatcher;
@@ -51,39 +48,16 @@ final readonly class RevokePermissionFromAgentHandler implements CommandHandler
         $command = $commandMessage->payload();
 
         try {
-            $event = $this->unitOfWork->commitTransactional(
-                function () use ($command): PermissionRevokedFromAgent {
-                    $this->agentPermissionAdministrationAuthorization->assertCanManageAgentPermissions(
-                        $command->getActorId()
-                    );
-
-                    $agent = $this->agentRepository->getById($command->getAgentId());
-                    if (!$agent instanceof Agent) {
-                        throw new AgentPermissionAssignmentException('The Agent does not exist.');
-                    }
-
-                    if (!$this->permissionRepository->getById($command->getPermissionId()) instanceof Permission) {
-                        throw new AgentPermissionAssignmentException('The Permission does not exist.');
-                    }
-
-                    $revokedAt = $this->clock->now();
-                    $replacement = $agent->revokePermission($command->getPermissionId(), $revokedAt);
-                    if (!$this->agentRepository->replacePermissionAssignments($agent, $replacement)) {
-                        throw new AgentPermissionAssignmentException(
-                            'The Agent Permission assignments or authoritative Permissions changed concurrently.'
-                        );
-                    }
-
-                    return new PermissionRevokedFromAgent(
-                        $command->getActorId(),
-                        $command->getAgentId(),
-                        $command->getPermissionId(),
-                        $revokedAt
-                    );
-                }
-            );
-
-            $this->eventDispatcher->trigger($event);
+            $event = new AgentPermissionAssignmentCoordinator(
+                $this->agentRepository,
+                $this->permissionRepository,
+                $this->agentPermissionAdministrationAuthorization,
+                $this->clock,
+                $this->unitOfWork
+            )->revoke($command->getActorId(), $command->getAgentId(), $command->getPermissionId());
+            if ($event instanceof PermissionRevokedFromAgent) {
+                $this->eventDispatcher->trigger($event);
+            }
         } catch (Throwable $throwable) {
             $this->eventDispatcher->trigger(new CommandFailedEvent($command, $throwable->getMessage()));
             throw $throwable;

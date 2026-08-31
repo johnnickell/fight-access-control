@@ -3,7 +3,7 @@ id: T-00030
 prd: PRD-00004
 title: Make User Role changes safe to retry
 status: ready-for-agent
-blocked_by: T-00029
+blocked_by:
 ---
 
 # Make User Role changes safe to retry

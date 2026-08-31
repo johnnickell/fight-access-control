@@ -139,7 +139,7 @@ class Agent
     public function grantPermission(PermissionId $permissionId, DateTimeImmutable $grantedAt): self
     {
         if ($this->hasPermission($permissionId)) {
-            throw new AgentPermissionAssignmentException('The Permission is already assigned to the Agent.');
+            return $this;
         }
 
         return new self(
@@ -162,7 +162,7 @@ class Agent
     public function revokePermission(PermissionId $permissionId, DateTimeImmutable $revokedAt): self
     {
         if (!$this->hasPermission($permissionId)) {
-            throw new AgentPermissionAssignmentException('The Permission is not assigned to the Agent.');
+            return $this;
         }
 
         return new self(
@@ -197,9 +197,7 @@ class Agent
         foreach ($permissionIds as $permissionId) {
             $key = $permissionId->toString();
             if (isset($seen[$key])) {
-                throw new AgentPermissionAssignmentException(
-                    'The complete Agent Permission assignment set contains a duplicate.'
-                );
+                continue;
             }
 
             $seen[$key] = true;
