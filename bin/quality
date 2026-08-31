@@ -1,0 +1,55 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+mkdir -p var/cache
+
+printf '[quality] Composer validation\n'
+composer validate --strict --no-interaction
+
+printf '[quality] PHP syntax\n'
+{
+    find . -maxdepth 1 -type f -name '*.php' -print
+    find src tests scripts -type f -name '*.php' -print
+} | LC_ALL=C sort | while IFS= read -r php_file; do
+    php -l "${php_file#./}"
+done
+
+printf '[quality] Planning integrity\n'
+./bin/planning-check
+
+printf '[quality] PHPCS\n'
+php vendor/bin/phpcs
+
+printf '[quality] PHPStan\n'
+php -d memory_limit=512M vendor/bin/phpstan analyse
+
+printf '[quality] Architecture\n'
+php vendor/bin/deptrac --fail-on-uncovered --report-uncovered --report-skipped
+php vendor/bin/deptrac debug:unassigned --no-cache
+
+printf '[quality] Package boundary current tree\n'
+php tests/Architecture/PackageBoundaryTest.php
+
+printf '[quality] Package boundary negative fixtures\n'
+php tests/Architecture/PackageBoundaryBehaviorTest.php
+
+printf '[quality] Rector dry-run\n'
+php vendor/bin/rector process src/ tests/Tooling/ tests/Domain/ tests/Application/ scripts/ --dry-run
+
+printf '[quality] PHPUnit\n'
+rm -f var/reports/coverage/clover.xml
+if find src -type f -name '*.php' -print -quit | grep -q .; then
+    XDEBUG_MODE=coverage php vendor/bin/phpunit --fail-on-skipped
+else
+    php vendor/bin/phpunit --fail-on-skipped --no-coverage
+fi
+
+printf '[quality] Exact coverage\n'
+./bin/coverage
+
+printf '[quality] Documentation links\n'
+./bin/documentation-check
+
+printf '[quality] Production autoloading\n'
+./bin/production-autoload-check

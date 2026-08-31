@@ -1,0 +1,42 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+COMPOSER_COMMAND='composer install --no-interaction --no-progress --prefer-dist'
+
+if (( $# == 1 )) && [[ "${1}" == '--latest' ]]; then
+    COMPOSER_COMMAND='composer update --no-interaction --no-progress --prefer-dist'
+elif (( $# > 0 )); then
+    echo 'Usage: ./bin/build [--latest]' >&2
+    exit 2
+fi
+
+ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+DOCKER_BIN="${DOCKER_BIN:-docker}"
+GIT_BIN="${GIT_BIN:-git}"
+ID_BIN="${ID_BIN:-id}"
+PHP_IMAGE="${FIGHT_ACCESS_CONTROL_PHP_IMAGE:-fight-access-control}"
+GIT_METADATA_MOUNTS=()
+
+if [[ -f "${ROOT_DIR}/.git" ]]; then
+    GIT_COMMON_DIR="$("${GIT_BIN}" -C "${ROOT_DIR}" rev-parse --path-format=absolute --git-common-dir)"
+    GIT_WORKTREE_DIR="$("${GIT_BIN}" -C "${ROOT_DIR}" rev-parse --absolute-git-dir)"
+    GIT_METADATA_MOUNTS=(
+        -v "${GIT_COMMON_DIR}:${GIT_COMMON_DIR}:ro"
+        -v "${GIT_WORKTREE_DIR}:${GIT_WORKTREE_DIR}:ro"
+    )
+fi
+
+cd "${ROOT_DIR}"
+
+"${DOCKER_BIN}" build -t "${PHP_IMAGE}" ./etc/docker/
+"${DOCKER_BIN}" container run \
+    --rm \
+    -v "${ROOT_DIR}:/app:delegated" \
+    ${GIT_METADATA_MOUNTS[@]+"${GIT_METADATA_MOUNTS[@]}"} \
+    -w /app \
+    --user "$("${ID_BIN}" -u):$("${ID_BIN}" -g)" \
+    --env HOME=/tmp \
+    --env COMPOSER_HOME=/tmp/fight-access-control-composer \
+    "${PHP_IMAGE}" \
+    bash -c "git config --global --add safe.directory /app && ${COMPOSER_COMMAND} && ./bin/quality"

@@ -1,0 +1,6 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+"${DIR}/.container-run" php vendor/bin/deptrac --fail-on-uncovered --report-uncovered --report-skipped "$@"
+"${DIR}/.container-run" php vendor/bin/deptrac debug:unassigned --no-cache

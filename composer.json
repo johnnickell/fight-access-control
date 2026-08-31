@@ -1,0 +1,43 @@
+{
+    "name": "johnnickell/fight-access-control",
+    "description": "Framework-neutral identity, credential, session, authorization, and account-lifecycle contracts",
+    "license": "MIT",
+    "type": "library",
+    "require": {
+        "php": ">=8.5",
+        "johnnickell/fight-common": "^1.1"
+    },
+    "require-dev": {
+        "deptrac/deptrac": "^4.7",
+        "phpstan/phpstan": "^2.1",
+        "phpunit/phpunit": "^13.0",
+        "rector/rector": "^2.4",
+        "slevomat/coding-standard": "^8.27",
+        "squizlabs/php_codesniffer": "^4.0",
+        "symfony/process": "^7.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "Fight\\AccessControl\\Domain\\": "src/Domain",
+            "Fight\\AccessControl\\Application\\": "src/Application"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Fight\\Test\\AccessControl\\": "tests"
+        }
+    },
+    "config": {
+        "allow-plugins": {
+            "dealerdirect/phpcodesniffer-composer-installer": false
+        },
+        "platform": {
+            "php": "8.5.4"
+        },
+        "preferred-install": {
+            "*": "dist"
+        },
+        "sort-packages": true
+    },
+    "minimum-stability": "stable"
+}
