@@ -2,7 +2,7 @@
 id: T-00029
 prd: PRD-00004
 title: Make Agent Permission changes safe to retry
-status: ready-for-agent
+status: done
 blocked_by:
 ---
 
@@ -54,4 +54,8 @@ concurrency expectations continue to fail hard.
 
 ## Completion Notes
 
-Record the verified outcome only when terminal.
+Delivered desired-state direct Agent Permission grants, revocations, and complete-set replacements. No-op retries
+validate authorization, the Agent, and Permission references before completing without a replacement, revision or
+timestamp change, or success event; complete-set input is normalized and still rejects stale revisions. Verified by
+focused Domain and handler tests, `./bin/planning-check`, and the canonical exact-coverage `./bin/build` on
+2026-08-30.

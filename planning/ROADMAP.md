@@ -4,11 +4,11 @@
 
 | Epic | Target | Status | Outcome |
 | --- | --- | --- | --- |
-| [EPIC-00003](epics/00003-EPIC.md) | 0.x | in-progress | T-00027 and T-00028 complete: direct signed-Agent authority is fenced and cached through the final `SecurityContext`; T-00029 is the Ready Frontier before `1.0.0`. |
+| [EPIC-00003](epics/00003-EPIC.md) | 0.x | in-progress | T-00027 through T-00029 complete: direct signed-Agent authority is fenced and cached through the final `SecurityContext`, and Agent Permission retries are idempotent; T-00030 is the Ready Frontier before `1.0.0`. |
 
 ## Route to 0.x
 
-1. Deliver T-00029 through T-00031 to align Agent Permission, User Role, and custom-Role Permission modification
+1. Deliver T-00030 and T-00031 to align User Role and custom-Role Permission modification
    behavior.
 2. Run a separate stability review before authorizing a `1.0.0` release.
 3. Keep implementation, commit, push, pull request, merge, release, and publication as separate approvals.

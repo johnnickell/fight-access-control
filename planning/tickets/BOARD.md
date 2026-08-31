@@ -29,14 +29,12 @@ not displace the implementation frontier.
 These tickets have no unfinished blockers. Work top to bottom unless current context makes another ready ticket
 materially cheaper.
 
-1. [T-00029 — Make Agent Permission changes safe to retry](00029-TICKET.md)
+1. [T-00030 — Make User Role changes safe to retry](00030-TICKET.md)
+2. [T-00031 — Make custom Role Permission changes safe to retry](00031-TICKET.md)
 
 ## Waiting
 
-| Ticket | Blocked by | Outcome |
-| --- | --- | --- |
-| [T-00030](00030-TICKET.md) | T-00029 | Make User Role changes safe to retry. |
-| [T-00031](00031-TICKET.md) | T-00029 | Make custom Role Permission changes safe to retry. |
+No tickets are currently blocked.
 
 ## Needs Info
 
@@ -55,6 +53,7 @@ No tickets currently require a decision authority.
 
 | Ticket | Parent PRD | Outcome |
 |--------|------------|---------|
+| [T-00029](00029-TICKET.md) | [PRD-00004](../specs/00004-PRD.md) | Delivered idempotent direct Agent Permission grants, revocations, and normalized complete-set replacement with authority/reference validation, stale-revision fencing, and exact coverage. |
 | [T-00027](00027-TICKET.md) | [PRD-00003](../specs/00003-PRD.md) | Delivered direct signed-request-to-Agent authority with atomic replay consumption, post-boundary authority fencing, exact Permission snapshots, safe diagnostics, and request caching. |
 | [T-00028](00028-TICKET.md) | [PRD-00003](../specs/00003-PRD.md) | Published final one-authority `SecurityContext`, completed signed-Agent-to-context conformance, removed obsolete context APIs, and documented consumer-owned composition. |
 | [T-00026](00026-TICKET.md) | [PRD-00003](../specs/00003-PRD.md) | Delivered the unified principal-type and safe Permission-snapshot contract, exact Permission resolution, and closed internal coordinator boundaries. |

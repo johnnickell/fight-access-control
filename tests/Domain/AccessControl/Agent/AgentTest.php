@@ -105,8 +105,10 @@ final class AgentTest extends TestCase
         self::assertSame($provisionedAt, $successor->getCreatedAt());
         self::assertSame($grantedAt, $successor->getUpdatedAt());
 
-        $this->expectException(AgentPermissionAssignmentException::class);
-        $successor->grantPermission($permissionId, new DateTimeImmutable('2026-08-26T12:05:00+00:00'));
+        self::assertSame(
+            $successor,
+            $successor->grantPermission($permissionId, new DateTimeImmutable('2026-08-26T12:05:00+00:00'))
+        );
     }
 
     public function test_it_revokes_one_assigned_permission_and_advances_only_assignment_authority(): void
@@ -145,10 +147,9 @@ final class AgentTest extends TestCase
         self::assertSame($provisionedAt, $successor->getCreatedAt());
         self::assertSame($revokedAt, $successor->getUpdatedAt());
 
-        $this->expectException(AgentPermissionAssignmentException::class);
-        $successor->revokePermission(
-            $revokedPermissionId,
-            new DateTimeImmutable('2026-08-26T12:05:00+00:00')
+        self::assertSame(
+            $successor,
+            $successor->revokePermission($revokedPermissionId, new DateTimeImmutable('2026-08-26T12:05:00+00:00'))
         );
     }
 
@@ -196,24 +197,26 @@ final class AgentTest extends TestCase
         self::assertSame(5, $empty->getPermissionAssignmentRevision());
         self::assertSame($agent->getCredentialId(), $replacement->getCredentialId());
 
-        foreach (['stale', 'duplicate'] as $case) {
-            $requestedIds = [$replacementPermissionId];
-            if ($case === 'duplicate') {
-                $requestedIds = [$firstPermissionId, $firstPermissionId];
-            }
-
-            try {
-                $agent->replacePermissions(
-                    $requestedIds,
-                    $case === 'stale' ? 2 : 3,
-                    new DateTimeImmutable('2026-08-26T14:00:00+00:00')
-                );
-                self::fail(sprintf('Invalid complete-set replacement case "%s" was accepted.', $case));
-            } catch (AgentPermissionAssignmentException) {
-                self::assertSame([$firstPermissionId, $secondPermissionId], $agent->getPermissionIds());
-                self::assertSame(3, $agent->getPermissionAssignmentRevision());
-            }
+        try {
+            $agent->replacePermissions(
+                [$replacementPermissionId],
+                2,
+                new DateTimeImmutable('2026-08-26T14:00:00+00:00')
+            );
+            self::fail('A stale complete-set replacement was accepted.');
+        } catch (AgentPermissionAssignmentException) {
+            self::assertSame([$firstPermissionId, $secondPermissionId], $agent->getPermissionIds());
+            self::assertSame(3, $agent->getPermissionAssignmentRevision());
         }
+
+        self::assertSame(
+            $agent,
+            $agent->replacePermissions(
+                [$secondPermissionId, $firstPermissionId, $firstPermissionId],
+                3,
+                new DateTimeImmutable('2026-08-26T14:05:00+00:00')
+            )
+        );
     }
 
     public function test_that_an_active_agent_rotates_to_one_successor_credential(): void
