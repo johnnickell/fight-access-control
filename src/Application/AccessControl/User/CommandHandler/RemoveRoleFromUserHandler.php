@@ -51,7 +51,7 @@ final readonly class RemoveRoleFromUserHandler implements CommandHandler
         $command = $commandMessage->payload();
 
         try {
-            $event = $this->unitOfWork->commitTransactional(function () use ($command): RoleRemovedFromUser {
+            $event = $this->unitOfWork->commitTransactional(function () use ($command): ?RoleRemovedFromUser {
                 $this->userRoleAssignmentAdministrationAuthorization->assertCanManageUserRoleAssignments(
                     $command->getActorId()
                 );
@@ -67,7 +67,16 @@ final readonly class RemoveRoleFromUserHandler implements CommandHandler
 
                 $removedAt = $this->clock->now();
                 $replacement = clone $user;
-                $replacement->removeRole($command->getRoleId(), $removedAt);
+                if (!$replacement->removeRole($command->getRoleId(), $removedAt)) {
+                    if (!$this->userRepository->validateRoleAssignmentReference($command->getRoleId())) {
+                        throw new UserRoleAssignmentException(
+                            'The authoritative role changed concurrently.'
+                        );
+                    }
+
+                    return null;
+                }
+
                 if (!$this->userRepository->replaceRoleAssignments($user, $replacement)) {
                     throw new UserRoleAssignmentException(
                         'The user role assignments or authoritative roles changed concurrently.'
@@ -82,7 +91,9 @@ final readonly class RemoveRoleFromUserHandler implements CommandHandler
                 );
             });
 
-            $this->eventDispatcher->trigger($event);
+            if ($event instanceof RoleRemovedFromUser) {
+                $this->eventDispatcher->trigger($event);
+            }
         } catch (Throwable $throwable) {
             $this->eventDispatcher->trigger(new CommandFailedEvent($command, $throwable->getMessage()));
             throw $throwable;

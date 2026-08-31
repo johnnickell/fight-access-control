@@ -1531,6 +1531,11 @@ final class AuthenticationServiceTest extends TestCase
                 return $this->users->replaceRoleAssignments($expected, $replacement);
             }
 
+            public function validateRoleAssignmentReference(RoleId $roleId): bool
+            {
+                return $this->users->validateRoleAssignmentReference($roleId);
+            }
+
             public function replaceEmailChangeReservation(User $expected, User $replacement): bool
             {
                 return $this->users->replaceEmailChangeReservation($expected, $replacement);
