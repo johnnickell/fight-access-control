@@ -6,7 +6,6 @@ namespace Fight\Test\AccessControl\Domain\AccessControl\User;
 
 use DateTimeImmutable;
 use Fight\AccessControl\Domain\AccessControl\Role\RoleId;
-use Fight\AccessControl\Domain\AccessControl\User\Exception\UserRoleAssignmentException;
 use Fight\AccessControl\Domain\AccessControl\User\PasswordHash;
 use Fight\AccessControl\Domain\AccessControl\User\User;
 use Fight\AccessControl\Domain\AccessControl\User\UserId;
@@ -37,25 +36,18 @@ final class UserRoleAssignmentTest extends TestCase
         self::assertSame($removedAt, $user->getUpdatedAt());
     }
 
-    public function test_duplicate_assignment_and_absent_removal_are_rejected_without_mutation(): void
+    public function test_duplicate_assignment_and_absent_removal_are_desired_state_no_ops_without_mutation(): void
     {
         $user = $this->pendingUser();
         $roleId = RoleId::generate();
         $assignedAt = new DateTimeImmutable('2026-01-01T01:00:00+00:00');
         $user->assignRole($roleId, $assignedAt);
 
-        foreach (['assignRole', 'removeRole'] as $operation) {
-            $candidate = $operation === 'assignRole' ? $roleId : RoleId::generate();
-
-            try {
-                $user->{$operation}($candidate, new DateTimeImmutable('2026-01-01T02:00:00+00:00'));
-                self::fail('An invalid element-level role assignment mutation was accepted.');
-            } catch (UserRoleAssignmentException) {
-                self::assertSame([$roleId], $user->getRoleIds());
-                self::assertSame(1, $user->getAuthorizationAssignmentRevision());
-                self::assertSame($assignedAt, $user->getUpdatedAt());
-            }
-        }
+        self::assertFalse($user->assignRole($roleId, new DateTimeImmutable('2026-01-01T02:00:00+00:00')));
+        self::assertFalse($user->removeRole(RoleId::generate(), new DateTimeImmutable('2026-01-01T02:00:00+00:00')));
+        self::assertSame([$roleId], $user->getRoleIds());
+        self::assertSame(1, $user->getAuthorizationAssignmentRevision());
+        self::assertSame($assignedAt, $user->getUpdatedAt());
     }
 
     public function test_new_users_have_no_role_assignments_at_the_revision_baseline(): void

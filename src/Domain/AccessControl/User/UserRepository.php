@@ -71,13 +71,22 @@ interface UserRepository
     ): bool;
 
     /**
+     * Validates one Role reference under the transaction-duration assignment fence without replacing a User.
+     *
+     * Returns false when the Role is no longer authoritative.
+     *
+     * @throws Exception When an error occurs
+     */
+    public function validateRoleAssignmentReference(RoleId $roleId): bool;
+
+    /**
      * Atomically replaces role assignments while the expected predecessor remains current.
      *
      * Implementations compare all User state, reject replacement changes outside role assignments, and require the
-     * authorization-assignment revision to advance by exactly one. Every replacement RoleId must remain authoritative
-     * through the enclosing Unit of Work. Validation and mutation occur under one adapter-owned role-reference fence
-     * shared with RoleRepository::remove(). Returns false when the predecessor or a Role loses authority, or when the
-     * replacement is invalid.
+     * authorization-assignment revision to advance by exactly one. Every expected or replacement RoleId must remain
+     * authoritative through the enclosing Unit of Work. Validation and mutation occur under one adapter-owned
+     * role-reference fence shared with RoleRepository::remove(). Returns false when the predecessor or a Role loses
+     * authority, or when the replacement is invalid.
      *
      * @throws Exception When an error occurs
      */

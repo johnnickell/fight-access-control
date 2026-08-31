@@ -14,7 +14,6 @@ use Fight\AccessControl\Domain\AccessControl\User\Exception\PendingInvitationCor
 use Fight\AccessControl\Domain\AccessControl\User\Exception\UserLifecycleException;
 use Fight\AccessControl\Domain\AccessControl\User\Exception\UserNotActiveException;
 use Fight\AccessControl\Domain\AccessControl\User\Exception\UserNotPendingActivationException;
-use Fight\AccessControl\Domain\AccessControl\User\Exception\UserRoleAssignmentException;
 use Fight\Common\Domain\Collection\HashSet;
 use Fight\Common\Domain\Value\Internet\EmailAddress;
 
@@ -310,35 +309,39 @@ class User
     }
 
     /**
-     * Assigns one role and advances assignment authority exactly once.
+     * Assigns one role and advances assignment authority exactly once when needed.
      *
-     * @throws UserRoleAssignmentException When the role is already assigned.
+     * Returns whether the User state changed.
      */
-    public function assignRole(RoleId $roleId, DateTimeImmutable $now): void
+    public function assignRole(RoleId $roleId, DateTimeImmutable $now): bool
     {
         if ($this->hasRole($roleId)) {
-            throw new UserRoleAssignmentException('The role is already assigned to the user.');
+            return false;
         }
 
         $this->roleIds->add($roleId);
         ++$this->authorizationAssignmentRevision;
         $this->updatedAt = $now;
+
+        return true;
     }
 
     /**
-     * Removes one role and advances assignment authority exactly once.
+     * Removes one role and advances assignment authority exactly once when needed.
      *
-     * @throws UserRoleAssignmentException When the role is not assigned.
+     * Returns whether the User state changed.
      */
-    public function removeRole(RoleId $roleId, DateTimeImmutable $now): void
+    public function removeRole(RoleId $roleId, DateTimeImmutable $now): bool
     {
         if (!$this->hasRole($roleId)) {
-            throw new UserRoleAssignmentException('The role is not assigned to the user.');
+            return false;
         }
 
         $this->roleIds->remove($roleId);
         ++$this->authorizationAssignmentRevision;
         $this->updatedAt = $now;
+
+        return true;
     }
 
     /**

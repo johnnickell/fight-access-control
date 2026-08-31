@@ -49,7 +49,8 @@ final class InMemoryUserRepository implements UserRepository
         private readonly ?Throwable $getByIdFailure = null,
         private readonly ?Closure $beforeHasRoleAssignment = null,
         ?InMemoryAuthorizationReferenceState $authorizationReferences = null,
-        private readonly ?Closure $beforeReplaceRoleAssignments = null
+        private readonly ?Closure $beforeReplaceRoleAssignments = null,
+        private readonly ?Closure $beforeValidateRoleAssignmentReference = null
     ) {
         $this->state = $state ?? new InMemoryUserRepositoryState();
         $this->authenticationAuthorityFenceOwner = new stdClass();
@@ -211,7 +212,12 @@ final class InMemoryUserRepository implements UserRepository
             return false;
         }
 
-        if (!$this->authorizationReferences->rolesAreAuthoritative($replacement->getRoleIds())) {
+        if (
+            !$this->authorizationReferences->rolesAreAuthoritative([
+                ...$expected->getRoleIds(),
+                ...$replacement->getRoleIds(),
+            ])
+        ) {
             return false;
         }
 
@@ -227,6 +233,14 @@ final class InMemoryUserRepository implements UserRepository
         });
 
         return true;
+    }
+
+    public function validateRoleAssignmentReference(RoleId $roleId): bool
+    {
+        $this->authorizationReferences->holdThroughCompletion();
+        $this->beforeValidateRoleAssignmentReference?->__invoke();
+
+        return $this->authorizationReferences->rolesAreAuthoritative([$roleId]);
     }
 
     public function replaceEmailChangeReservation(User $expected, User $replacement): bool

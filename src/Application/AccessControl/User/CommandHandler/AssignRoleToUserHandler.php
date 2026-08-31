@@ -51,7 +51,7 @@ final readonly class AssignRoleToUserHandler implements CommandHandler
         $command = $commandMessage->payload();
 
         try {
-            $event = $this->unitOfWork->commitTransactional(function () use ($command): RoleAssignedToUser {
+            $event = $this->unitOfWork->commitTransactional(function () use ($command): ?RoleAssignedToUser {
                 $this->userRoleAssignmentAdministrationAuthorization->assertCanManageUserRoleAssignments(
                     $command->getActorId()
                 );
@@ -67,7 +67,16 @@ final readonly class AssignRoleToUserHandler implements CommandHandler
 
                 $assignedAt = $this->clock->now();
                 $replacement = clone $user;
-                $replacement->assignRole($command->getRoleId(), $assignedAt);
+                if (!$replacement->assignRole($command->getRoleId(), $assignedAt)) {
+                    if (!$this->userRepository->validateRoleAssignmentReference($command->getRoleId())) {
+                        throw new UserRoleAssignmentException(
+                            'The authoritative role changed concurrently.'
+                        );
+                    }
+
+                    return null;
+                }
+
                 if (!$this->userRepository->replaceRoleAssignments($user, $replacement)) {
                     throw new UserRoleAssignmentException(
                         'The user role assignments or authoritative roles changed concurrently.'
@@ -82,7 +91,9 @@ final readonly class AssignRoleToUserHandler implements CommandHandler
                 );
             });
 
-            $this->eventDispatcher->trigger($event);
+            if ($event instanceof RoleAssignedToUser) {
+                $this->eventDispatcher->trigger($event);
+            }
         } catch (Throwable $throwable) {
             $this->eventDispatcher->trigger(new CommandFailedEvent($command, $throwable->getMessage()));
             throw $throwable;

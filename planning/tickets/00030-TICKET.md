@@ -2,7 +2,7 @@
 id: T-00030
 prd: PRD-00004
 title: Make User Role changes safe to retry
-status: ready-for-agent
+status: done
 blocked_by:
 ---
 
@@ -24,21 +24,21 @@ completes normally without changing the User, while missing or concurrently chan
 
 ## Acceptance Criteria
 
-- [ ] Assigning an already-assigned Role and removing an already-absent Role complete normally as desired-state
+- [x] Assigning an already-assigned Role and removing an already-absent Role complete normally as desired-state
   no-ops.
-- [ ] Actor authorization, target User existence, and referenced Role existence are validated before either no-op is
+- [x] Actor authorization, target User existence, and referenced Role existence are validated before either no-op is
   accepted.
-- [ ] A no-op performs no User repository replacement, advances no authorization-assignment revision or timestamp,
+- [x] A no-op performs no User repository replacement, advances no authorization-assignment revision or timestamp,
   and publishes no assignment, removal, or synthetic no-op event.
-- [ ] A real assignment or removal uses one `commitTransactional()` boundary, one User-owned state transition, one
+- [x] A real assignment or removal uses one `commitTransactional()` boundary, one User-owned state transition, one
   compare-and-replace persistence operation, and its existing purpose-specific success event after commit.
-- [ ] Role-reference or compare-and-replace authority loss fails without partial User state or a success event.
-- [ ] Users continue to receive effective Permissions only through Role membership; no direct User Permission model
+- [x] Role-reference or compare-and-replace authority loss fails without partial User state or a success event.
+- [x] Users continue to receive effective Permissions only through Role membership; no direct User Permission model
   is introduced.
-- [ ] Every failure dispatches `CommandFailedEvent` for the original command and rethrows the identical `Throwable`.
-- [ ] The shared authorization-modification behavioral matrix proves User real changes and no-op retries alongside
+- [x] Every failure dispatches `CommandFailedEvent` for the original command and rethrows the identical `Throwable`.
+- [x] The shared authorization-modification behavioral matrix proves User real changes and no-op retries alongside
   the Agent contract, including validation, writes, revisions, timestamps, event ordering, and failure identity.
-- [ ] Public commands, authorization ports, events, aggregate behavior, and Domain repository ownership remain
+- [x] Public commands, authorization ports, events, aggregate behavior, and Domain repository ownership remain
   purpose-specific while any reused coordinator stays final and `@internal`.
 
 ## Verification
@@ -51,4 +51,7 @@ completes normally without changing the User, while missing or concurrently chan
 
 ## Completion Notes
 
-Record the verified outcome only when terminal.
+Delivered aggregate-owned desired-state User Role assignment and removal with a non-writing final Role-reference
+fence for no-ops and expected-plus-successor Role fencing for real changes. The public command/event boundary
+remains purpose-specific; no direct User Permission model was introduced. Verified by `./bin/planning-check` and
+the canonical `./bin/build`: 604 tests, 4,538 assertions, and exact statement coverage 4,597/4,597.
