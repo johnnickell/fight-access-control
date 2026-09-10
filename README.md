@@ -3,9 +3,11 @@
 Framework-neutral identity, credential, session, authorization, and account-lifecycle contracts for Fight
 applications.
 
-This repository is in public-source incubation. It currently establishes the package boundary, local planning
-authority, isolated tooling, and quality contracts; it does not yet claim a release or provide the
-capabilities described by the adopted product specification.
+The `0.1.x` release line provides the first public-source package milestone while the API remains intentionally
+pre-`1.0.0`. It delivers the framework-neutral Domain and Application behavior described by the repository-local
+product specifications; consumer projects continue to own framework and infrastructure adapters. Tagged package
+versions intentionally precede full starter implementation so those projects can integrate against immutable
+version tags and return compatibility findings through later `0.x` releases.
 
 ## Package boundary
 
@@ -76,9 +78,9 @@ separate approval:
 - **Packagist publication** makes package metadata discoverable and installable through Packagist.
 - **Release publication** creates a hosted release and its release notes or artifacts.
 
-The repository is public under the MIT License, but remains untagged, unpublished on Packagist, and unreleased
-unless each effect is separately approved and verified. A commit hash may be used for reproducible integration
-testing, but it is not a version tag or release.
+The repository is public under the MIT License. `v0.1.0` is its first public package release; later `0.x`
+versions may refine public contracts before the separate `1.0.0` stability review. A commit hash may still be
+used for reproducible integration testing, but it is not a version tag or release.
 
 ## License
 
