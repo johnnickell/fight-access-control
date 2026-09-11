@@ -3,6 +3,7 @@
 **Labels:** `wayfinder:grilling`
 **Mode:** HITL
 **Status:** Open
+**Gate:** —
 **Map:** [Wayfinder Map](../map-name-map.md)
 **Depends on:** —
 
@@ -13,6 +14,10 @@ State the decision question.
 ## Must decide
 
 - Decision boundary one.
+
+## Required evidence
+
+- Name the evidence that distinguishes a settled decision from an assumption.
 
 ## Resolution boundary
 
