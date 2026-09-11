@@ -11,6 +11,7 @@ No active tickets.
 
 | Ticket | Parent | Outcome |
 | --- | --- | --- |
+| [T-00032](00032-TICKET.md) | [PRD-00001](../specs/00001-PRD.md) | Prepared the reviewed `v0.1.0` release candidate and reconciled release-facing documentation. |
 | [T-00031](00031-TICKET.md) | [PRD-00004](../specs/00004-PRD.md) | Delivered retry-safe custom-Role Permission mutation with final Permission-reference fencing. |
 | [T-00030](00030-TICKET.md) | [PRD-00004](../specs/00004-PRD.md) | Delivered retry-safe User Role mutation with final Role-reference fencing. |
 | [T-00029](00029-TICKET.md) | [PRD-00004](../specs/00004-PRD.md) | Delivered retry-safe direct Agent Permission mutation. |

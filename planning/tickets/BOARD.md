@@ -4,7 +4,7 @@ Operational execution view for Fight AccessControl. Ticket files are canonical f
 this board is canonical for recommended order. IDs identify artifacts only. Update this file whenever ticket
 status, dependencies, or roadmap priority changes.
 
-Last updated: 2026-08-30
+Last updated: 2026-09-10
 
 ## “What’s Next?” Contract
 
@@ -16,7 +16,8 @@ When `/ask-matt` or a plain “What’s next?” is invoked:
 
 ## Now
 
-**Human decision:** no new design or decomposition decision is pending.
+**Human decision:** authorize each external `v0.1.0` publication effect only after the exact release candidate is
+merged to `main`, freshly verified, and bound to the approved signed tag.
 
 ## Wayfinder Review
 
@@ -49,6 +50,7 @@ No tickets currently require a decision authority.
 
 | Ticket | Parent PRD | Outcome |
 |--------|------------|---------|
+| [T-00032](00032-TICKET.md) | [PRD-00001](../specs/00001-PRD.md) | Prepared the reviewed `v0.1.0` release candidate, reconciled release-facing documentation, and preserved publication as separate verified effects. |
 | [T-00031](00031-TICKET.md) | [PRD-00004](../specs/00004-PRD.md) | Delivered retry-safe custom-Role Permission grants and revocations with no-write retries, final Permission-reference fencing, and exact coverage. |
 | [T-00030](00030-TICKET.md) | [PRD-00004](../specs/00004-PRD.md) | Delivered aggregate-owned desired-state User Role assignment and removal with non-writing no-op final-reference fencing, expected-plus-successor real-change fencing, purpose-specific event ordering, and exact coverage. |
 | [T-00029](00029-TICKET.md) | [PRD-00004](../specs/00004-PRD.md) | Delivered idempotent direct Agent Permission grants, revocations, and normalized complete-set replacement with authority/reference validation, stale-revision fencing, and exact coverage. |

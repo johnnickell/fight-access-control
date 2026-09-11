@@ -1,15 +1,27 @@
 # Changelog
 
-All notable changes will be recorded here once release work is authorized.
+All notable changes to this project will be documented in this file.
 
-## Unreleased - public-source incubation
+The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
+and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-- Established the framework-neutral `Domain <- Application` package boundary.
-- Adopted repository-local planning and security authority.
-- Added isolated repository scripts and canonical quality gates.
-- Added maintainer guidance for contribution, security reporting, Git Flow, licensing, and incubation.
-- Opened the source under the MIT License without creating a version tag, Packagist package, or release.
+## [Unreleased]
 
-This section is an incubation record, not a release announcement. Public repository visibility, commit
-creation, version tag creation, Packagist publication, and release publication are distinct effects requiring
-separate approval. The MIT License grants source rights but does not declare a stable or supported version.
+## [0.1.0] - 2026-09-10
+
+### Added
+
+- Framework-neutral User invitation, activation, authentication, refresh-session, logout, password-reset,
+  password-change, email-change, account-state, and account-recovery behavior.
+- Role and Permission definition, assignment, reconciliation, administrative reads, immutable authenticated User
+  authority, and retry-safe desired-state authorization changes.
+- Agent provisioning, credential rotation and revocation, direct Permission authority, HMAC request
+  authentication, replay protection, immutable authenticated Agent authority, and secret-free diagnostics.
+- One final request-scoped `SecurityContext` over distinct User or Agent principals with shared immutable
+  Permission snapshots and package-owned Role and Permission checks.
+- Framework-neutral behavioral conformance support, package-boundary enforcement, deterministic repository
+  tooling, and exact production-statement coverage.
+- Repository-local product, security, architecture, contribution, and Git Flow authority under the MIT License.
+
+[Unreleased]: https://github.com/johnnickell/fight-access-control/compare/v0.1.0...HEAD
+[0.1.0]: https://github.com/johnnickell/fight-access-control/releases/tag/v0.1.0
