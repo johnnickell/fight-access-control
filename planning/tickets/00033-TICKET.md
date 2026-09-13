@@ -49,12 +49,16 @@ runtime or core layers.
       contains representative package and consumer components with expected required fields.
 - [x] `CHANGELOG.md`, README, planning projections, and release-candidate records accurately describe `v0.2.0`;
       tag creation, push, and publication remain separate effects.
+- [x] `./bin/release certify <version>` requires a clean exact candidate, its dated changelog heading, the
+      documented disposable OpenAPI consumer composition proof, planning integrity, and the complete package gate;
+      it records only the resulting per-commit evidence under ignored `.runs/`.
 - [x] `./bin/planning-check` and `./bin/build` pass.
 
 ## Verification
 
 - Run focused source tests where behavior needs coverage.
 - Run the documented disposable local OpenAPI composition command and inspect its JSON output.
+- Run `./bin/release certify 0.2.0` from the exact clean, dated release candidate before retaining terminal status.
 - Run `./bin/planning-check` and `./bin/build`.
 
 ## Completion Notes
@@ -73,3 +77,7 @@ Review remediation verified on 2026-09-13: removed the confirmed tooling meta-te
 boundary tests with their dangling quality wiring. No replacement tests were added because production behavior did
 not change. The Spec finding is explicitly out of scope: consumer fixtures own `OA\Info`, so this package adds no
 root document, metadata change, or package test.
+
+Release certification is verification-only: it binds the dated clean candidate's exact `HEAD` to the composition,
+planning, and package-quality logs under `.runs/`. A fresh `0.2.0` certificate is required on the final release
+candidate before tag signing, push, hosted release, or package publication is considered.

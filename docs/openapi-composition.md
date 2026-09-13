@@ -25,6 +25,13 @@ representative package shapes:
 php -r '$schemas = json_decode(file_get_contents("openapi.json"), true, 512, JSON_THROW_ON_ERROR)["components"]["schemas"]; $paginationOrderings = $schemas["Fight.AccessControl.PaginationRequest"]["properties"]["orderings"]; $sessionOrderings = $schemas["Fight.AccessControl.ListActiveSessions"]["properties"]["orderings"]; $emptySuccessData = $schemas["Fight.AccessControl.JSend.Success.Empty"]["properties"]["data"]; $isOrderingMap = static fn (array $schema): bool => $schema["type"] === "object" && $schema["additionalProperties"]["type"] === "string" && $schema["additionalProperties"]["enum"] === ["ASC", "DESC"]; $acceptsEmptySuccessData = static fn (mixed $value): bool => $emptySuccessData["type"] === ["null"] && $value === null; $valid = isset($schemas["Consumer"]) && $schemas["Fight.AccessControl.Authentication.ActivateRequest"]["required"] === ["user_id", "activation_credential", "plain_password"] && $schemas["Fight.AccessControl.Authentication.ActivateRequest"]["properties"]["remember"]["type"] === "boolean" && $schemas["Fight.AccessControl.Authentication.LoginRequest"]["required"] === ["email", "plain_password"] && $schemas["Fight.AccessControl.Authentication.LoginRequest"]["properties"]["remember"]["type"] === "boolean" && !isset($schemas["Fight.AccessControl.Authentication.LoginRequest"]["properties"]["remembered"]) && $schemas["Fight.AccessControl.RestoreUser"]["properties"]["restoration_state"]["enum"] === ["pending_activation", "active", "disabled", "deleted"] && $isOrderingMap($paginationOrderings) && $isOrderingMap($sessionOrderings) && $acceptsEmptySuccessData(null) && !$acceptsEmptySuccessData("not null") && !$acceptsEmptySuccessData(1) && !$acceptsEmptySuccessData(["value"]) && !$acceptsEmptySuccessData([]); if (!$valid) { throw new RuntimeException("OpenAPI component assertion failed."); }'
 ```
 
+For a release candidate, `./bin/release certify <version>` runs this disposable
+composition proof with its own consumer anchor, plus planning integrity and the
+complete package gate. It requires a clean checkout and a matching dated
+`## [<version>] - YYYY-MM-DD` changelog heading, then records the exact `HEAD`
+and command logs under ignored `.runs/`. Certification does not merge, tag, push,
+or publish anything.
+
 The catalog uses canonical snake-case `toArray()` keys. UUID identifiers use
 `uuid`; `*_at` values use `date-time`; list results have `page`, `per_page`,
 `total_pages`, `total_records`, and typed `records`.
