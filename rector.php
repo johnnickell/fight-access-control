@@ -9,7 +9,6 @@ return RectorConfig::configure()
     ->withPaths([
         __DIR__.'/openapi',
         __DIR__.'/src',
-        __DIR__.'/tests/Tooling',
         __DIR__.'/tests/Domain',
         __DIR__.'/tests/Application',
         __DIR__.'/scripts',

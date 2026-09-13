@@ -28,14 +28,8 @@ printf '[quality] Architecture\n'
 php vendor/bin/deptrac --fail-on-uncovered --report-uncovered --report-skipped
 php vendor/bin/deptrac debug:unassigned --no-cache
 
-printf '[quality] Package boundary current tree\n'
-php tests/Architecture/PackageBoundaryTest.php
-
-printf '[quality] Package boundary negative fixtures\n'
-php tests/Architecture/PackageBoundaryBehaviorTest.php
-
 printf '[quality] Rector dry-run\n'
-php vendor/bin/rector process openapi/ src/ tests/Tooling/ tests/Domain/ tests/Application/ scripts/ --dry-run
+php vendor/bin/rector process openapi/ src/ tests/Domain/ tests/Application/ scripts/ --dry-run
 
 printf '[quality] PHPUnit\n'
 rm -f var/reports/coverage/clover.xml
@@ -50,6 +44,3 @@ printf '[quality] Exact coverage\n'
 
 printf '[quality] Documentation links\n'
 ./bin/documentation-check
-
-printf '[quality] Production autoloading\n'
-./bin/production-autoload-check

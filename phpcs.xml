@@ -3,7 +3,6 @@
     <description>Fight Access Control extensions to the Fight Common coding standard</description>
     <file>openapi</file>
     <file>src</file>
-    <file>tests/Tooling</file>
     <file>tests/Domain</file>
     <file>tests/Application</file>
     <file>scripts</file>

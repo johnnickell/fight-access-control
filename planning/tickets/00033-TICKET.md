@@ -68,3 +68,8 @@ Review remediation verified on 2026-09-13: corrected optional `remember` inputs 
 the incorrect required login `remembered` input, constrained `RestoreUser.restoration_state` to serialized User
 states, strengthened the consumer JSON proof, and reconciled completed planning projections. The disposable scan,
 `./bin/planning-check`, and `./bin/build` passed; publication remains a separate effect.
+
+Review remediation verified on 2026-09-13: removed the confirmed tooling meta-tests and infrastructure/package-
+boundary tests with their dangling quality wiring. No replacement tests were added because production behavior did
+not change. The Spec finding is explicitly out of scope: consumer fixtures own `OA\Info`, so this package adds no
+root document, metadata change, or package test.

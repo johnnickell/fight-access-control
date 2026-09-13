@@ -36,7 +36,7 @@ container command from the target checkout:
 
 ```bash
 docker container run --rm -e XDEBUG_MODE=coverage -v "$PWD:/app:delegated" -w /app fight-access-control \
-  php vendor/bin/phpunit tests/Tooling/PlanningAuthorityTest.php
+  php vendor/bin/phpunit tests/Domain/AccessControl/User/UserLifecycleTest.php
 ```
 
 `./bin/build` is the canonical completion gate.
