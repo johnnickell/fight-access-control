@@ -25,6 +25,8 @@ interface RefreshSessionRepository
     /**
      * Retrieves one page of usable refresh sessions owned by a user.
      *
+     * @return ResultSet<RefreshSession>
+     *
      * @throws Exception When an error occurs
      */
     public function getByUserId(UserId $userId, DateTimeImmutable $at, Pagination $pagination): ResultSet;

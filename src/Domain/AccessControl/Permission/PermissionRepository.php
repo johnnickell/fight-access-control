@@ -48,6 +48,8 @@ interface PermissionRepository
     /**
      * Retrieves one page of permissions.
      *
+     * @return ResultSet<Permission>
+     *
      * @throws Exception When an error occurs
      */
     public function getAll(Pagination $pagination): ResultSet;

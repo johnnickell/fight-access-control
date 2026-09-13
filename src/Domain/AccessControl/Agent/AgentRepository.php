@@ -30,6 +30,8 @@ interface AgentRepository
     /**
      * Retrieves one page of Agent authorities.
      *
+     * @return ResultSet<Agent>
+     *
      * @throws Exception When an error occurs
      */
     public function getAll(Pagination $pagination): ResultSet;

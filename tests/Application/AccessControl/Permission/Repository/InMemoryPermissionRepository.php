@@ -101,6 +101,7 @@ final class InMemoryPermissionRepository implements PermissionRepository
         return $permissions;
     }
 
+    /** @return ResultSet<Permission> */
     public function getAll(Pagination $pagination): ResultSet
     {
         $records = ArrayList::of(Permission::class)->replace(array_slice(

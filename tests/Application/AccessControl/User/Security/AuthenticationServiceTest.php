@@ -1556,6 +1556,7 @@ final class AuthenticationServiceTest extends TestCase
                 return $this->users->replaceLifecycleState($expected, $replacement);
             }
 
+            /** @return ResultSet<User> */
             public function getAll(Pagination $pagination): ResultSet
             {
                 return $this->users->getAll($pagination);
@@ -2486,6 +2487,7 @@ final class AuthenticationServiceTest extends TestCase
                 return $this->sessions->getById($id);
             }
 
+            /** @return ResultSet<RefreshSession> */
             public function getByUserId(
                 UserId $userId,
                 DateTimeImmutable $at,
@@ -2613,6 +2615,7 @@ final class AuthenticationServiceTest extends TestCase
                 return $this->sessions->getById($id);
             }
 
+            /** @return ResultSet<RefreshSession> */
             public function getByUserId(
                 UserId $userId,
                 DateTimeImmutable $at,
@@ -2706,6 +2709,7 @@ final class AuthenticationServiceTest extends TestCase
                 return $this->sessions->getById($id);
             }
 
+            /** @return ResultSet<RefreshSession> */
             public function getByUserId(
                 UserId $userId,
                 DateTimeImmutable $at,
@@ -2912,6 +2916,7 @@ final class AuthenticationServiceTest extends TestCase
                 return null;
             }
 
+            /** @return ResultSet<RefreshSession> */
             public function getByUserId(
                 UserId $userId,
                 DateTimeImmutable $at,
@@ -3014,6 +3019,7 @@ final class AuthenticationServiceTest extends TestCase
                 return $this->authoritativeSession;
             }
 
+            /** @return ResultSet<RefreshSession> */
             public function getByUserId(
                 UserId $userId,
                 DateTimeImmutable $at,

@@ -128,6 +128,7 @@ final class InMemoryUserRepository implements UserRepository
         return null;
     }
 
+    /** @return ResultSet<User> */
     public function getAll(Pagination $pagination): ResultSet
     {
         $records = ArrayList::of(User::class)->replace(array_slice(

@@ -52,6 +52,8 @@ interface RoleRepository
     /**
      * Retrieves one page of roles.
      *
+     * @return ResultSet<Role>
+     *
      * @throws Exception When an error occurs
      */
     public function getAll(Pagination $pagination): ResultSet;

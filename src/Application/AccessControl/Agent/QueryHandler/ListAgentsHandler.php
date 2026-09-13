@@ -36,7 +36,11 @@ final readonly class ListAgentsHandler implements QueryHandler
         return ListAgents::class;
     }
 
-    /** @inheritDoc */
+    /**
+     * @inheritDoc
+     *
+     * @return ResultSet<AgentView>
+     */
     public function handle(QueryMessage $queryMessage): ResultSet
     {
         /** @var ListAgents $query */

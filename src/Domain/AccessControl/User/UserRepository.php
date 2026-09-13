@@ -143,6 +143,8 @@ interface UserRepository
     /**
      * Retrieves one page of user identities.
      *
+     * @return ResultSet<User>
+     *
      * @throws Exception When an error occurs
      */
     public function getAll(Pagination $pagination): ResultSet;

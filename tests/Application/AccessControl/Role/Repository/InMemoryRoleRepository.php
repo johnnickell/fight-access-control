@@ -101,6 +101,7 @@ final class InMemoryRoleRepository implements RoleRepository
         return $roles;
     }
 
+    /** @return ResultSet<Role> */
     public function getAll(Pagination $pagination): ResultSet
     {
         $records = ArrayList::of(Role::class)->replace(array_slice(

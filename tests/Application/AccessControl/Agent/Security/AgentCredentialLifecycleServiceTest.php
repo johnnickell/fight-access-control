@@ -297,6 +297,7 @@ final class AgentCredentialLifecycleServiceTest extends TestCase
                     return null;
                 }
 
+                /** @return ResultSet<Agent> */
                 public function getAll(
                     Pagination $pagination
                 ): ResultSet {
@@ -436,6 +437,7 @@ final class AgentCredentialLifecycleServiceTest extends TestCase
                 return $credentialId->equals($this->agent->getCredentialId()) ? $this->agent : null;
             }
 
+            /** @return ResultSet<Agent> */
             public function getAll(
                 Pagination $pagination
             ): ResultSet {
@@ -570,6 +572,7 @@ final class AgentCredentialLifecycleServiceTest extends TestCase
                     return null;
                 }
 
+                /** @return ResultSet<Agent> */
                 public function getAll(
                     Pagination $pagination
                 ): ResultSet {
