@@ -17,10 +17,16 @@ and one consumer schema, require the bootstrap above, and scan both files:
 vendor/bin/openapi --bootstrap consumer.php consumer.php vendor/johnnickell/fight-access-control/openapi -o openapi.json
 ```
 
-Confirm that `components.schemas` includes both the consumer key and
-`Fight.AccessControl.User`, whose required fields include `user_id`, `email`, and
-`state`. The catalog uses canonical snake-case `toArray()` keys. UUID identifiers
-use `uuid`; `*_at` values use `date-time`; list results have `page`, `per_page`,
+For this disposable proof, name the consumer schema `Consumer`. Then inspect the
+generated document, including that consumer component and the following
+representative package shapes:
+
+```bash
+php -r '$schemas = json_decode(file_get_contents("openapi.json"), true, 512, JSON_THROW_ON_ERROR)["components"]["schemas"]; $valid = isset($schemas["Consumer"]) && $schemas["Fight.AccessControl.Authentication.ActivateRequest"]["required"] === ["user_id", "activation_credential", "plain_password"] && $schemas["Fight.AccessControl.Authentication.ActivateRequest"]["properties"]["remember"]["type"] === "boolean" && $schemas["Fight.AccessControl.Authentication.LoginRequest"]["required"] === ["email", "plain_password"] && $schemas["Fight.AccessControl.Authentication.LoginRequest"]["properties"]["remember"]["type"] === "boolean" && !isset($schemas["Fight.AccessControl.Authentication.LoginRequest"]["properties"]["remembered"]) && $schemas["Fight.AccessControl.RestoreUser"]["properties"]["restoration_state"]["enum"] === ["pending_activation", "active", "disabled", "deleted"]; if (!$valid) { throw new RuntimeException("OpenAPI component assertion failed."); }'
+```
+
+The catalog uses canonical snake-case `toArray()` keys. UUID identifiers use
+`uuid`; `*_at` values use `date-time`; list results have `page`, `per_page`,
 `total_pages`, `total_records`, and typed `records`.
 
 Use `Authentication.BrowserResponse` for browser JSON: it has no refresh token,

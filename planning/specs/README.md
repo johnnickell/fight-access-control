@@ -9,4 +9,4 @@ and does not make another repository authoritative for local status.
 | [00002](00002-PRD.md) | Agent HMAC Authentication and Direct Authority | done |
 | [00003](00003-PRD.md) | Unified Authenticated Authority | done |
 | [00004](00004-PRD.md) | Consistent Authorization Modification | done |
-| [00005](00005-PRD.md) | Composable OpenAPI Schema Components | in-progress |
+| [00005](00005-PRD.md) | Composable OpenAPI Schema Components | done |

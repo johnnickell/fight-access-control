@@ -63,3 +63,8 @@ Verified on 2026-09-13: the disposable consumer scan produced 86 schemas includi
 complete `Fight.AccessControl.*` catalog; representative required-field and nested policy-component assertions
 passed. `./bin/planning-check` and `./bin/build` passed. The `v0.2.0` state is a review candidate only; tag,
 release, and publication remain separate effects.
+
+Review remediation verified on 2026-09-13: corrected optional `remember` inputs for activation and login, removed
+the incorrect required login `remembered` input, constrained `RestoreUser.restoration_state` to serialized User
+states, strengthened the consumer JSON proof, and reconciled completed planning projections. The disposable scan,
+`./bin/planning-check`, and `./bin/build` passed; publication remains a separate effect.
