@@ -14,7 +14,8 @@
         "rector/rector": "^2.4",
         "slevomat/coding-standard": "^8.27",
         "squizlabs/php_codesniffer": "^4.0",
-        "symfony/process": "^7.0"
+        "symfony/process": "^7.0",
+        "zircote/swagger-php": "^6.5"
     },
     "autoload": {
         "psr-4": {
@@ -39,5 +40,8 @@
         },
         "sort-packages": true
     },
-    "minimum-stability": "stable"
+    "minimum-stability": "stable",
+    "suggest": {
+        "zircote/swagger-php": "Generate a consumer-owned OpenAPI document from the opt-in openapi/ component catalog."
+    }
 }

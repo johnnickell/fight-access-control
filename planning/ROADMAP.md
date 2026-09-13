@@ -4,7 +4,7 @@
 
 | Epic | Target | Current outcome |
 | --- | --- | --- |
-| [EPIC-00004](epics/00004-EPIC.md) | `v0.2.0` | Fight Common `v1.2.0` is a completed prerequisite. T-00033 is in progress on its coding-standard and public-PHPDoc migration before publishing consumer-composable OpenAPI schema metadata, a focused guide, local composition proof, and release candidate. |
+No epics are currently in progress.
 
 ## Route to 1.0.0
 
@@ -24,6 +24,7 @@
 
 | Epic | Target | Outcome |
 | --- | --- | --- |
+| [EPIC-00004](epics/00004-EPIC.md) | `v0.2.0` | Delivered the local consumer-composable OpenAPI schema review candidate; tag, release, and publication remain separate effects. |
 | [EPIC-00003](epics/00003-EPIC.md) | 0.x | Delivered the final unified User/Agent `SecurityContext` and retry-safe Agent Permission, User Role, and custom-Role Permission changes. |
 | [EPIC-00001](epics/00001-EPIC.md) | 0.x public-source incubation | Delivered the shared identity, credential, session, authorization, and account-lifecycle package slices; a separate stability decision remains required before release. |
 | [EPIC-00002](epics/00002-EPIC.md) | 0.x | Delivered Agent HMAC authentication, direct Permission authority, request-scoped Agent resolution, and unified distinct User/Agent current-authority access with exact coverage. |

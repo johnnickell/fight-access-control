@@ -7,12 +7,13 @@ work. Terminal ticket sets may move to `archive/` only after their parent PRD cl
 
 | Ticket | Parent | Outcome |
 | --- | --- | --- |
-| [T-00033](00033-TICKET.md) | [PRD-00005](../specs/00005-PRD.md) | In progress: adopt Fight Common coding standards and grammatical public PHPDoc, then publish consumer-composable OpenAPI schema metadata and prepare the `v0.2.0` release candidate. |
+| — | — | No active tickets. |
 
 ## Recently Done
 
 | Ticket | Parent | Outcome |
 | --- | --- | --- |
+| [T-00033](00033-TICKET.md) | [PRD-00005](../specs/00005-PRD.md) | Delivered consumer-composable OpenAPI schema metadata, composition proof, and the local `v0.2.0` review candidate. |
 | [T-00032](00032-TICKET.md) | [PRD-00001](../specs/00001-PRD.md) | Prepared the reviewed `v0.1.0` release candidate and reconciled release-facing documentation. |
 | [T-00031](00031-TICKET.md) | [PRD-00004](../specs/00004-PRD.md) | Delivered retry-safe custom-Role Permission mutation with final Permission-reference fencing. |
 | [T-00030](00030-TICKET.md) | [PRD-00004](../specs/00004-PRD.md) | Delivered retry-safe User Role mutation with final Role-reference fencing. |

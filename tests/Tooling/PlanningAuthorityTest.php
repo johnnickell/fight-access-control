@@ -148,9 +148,10 @@ final class PlanningAuthorityTest extends TestCase
         self::assertStringContainsString('v0.1.0', $releasePreparation);
         self::assertStringContainsString('id: T-00033', $openApiComponents);
         self::assertStringContainsString('prd: PRD-00005', $openApiComponents);
-        self::assertStringContainsString('status: in-progress', $openApiComponents);
+        self::assertStringContainsString('status: done', $openApiComponents);
+        self::assertStringNotContainsString('- [ ]', $openApiComponents);
         self::assertStringContainsString('## In Progress', $board);
-        self::assertStringContainsString('1. [T-00033:', $board);
+        self::assertStringContainsString('No tickets are currently in progress.', $board);
         self::assertStringNotContainsString('1. [T-00030', $board);
         self::assertStringNotContainsString('1. [T-00031', $board);
         self::assertStringNotContainsString('| [T-00027](00027-TICKET.md) | T-00026 |', $board);
@@ -163,6 +164,7 @@ final class PlanningAuthorityTest extends TestCase
         self::assertStringContainsString('| [T-00027](00027-TICKET.md) | [PRD-00003]', $board);
         self::assertStringContainsString('| [T-00028](00028-TICKET.md) | [PRD-00003]', $board);
         self::assertStringContainsString('| [T-00032](00032-TICKET.md) | [PRD-00001]', $board);
+        self::assertStringContainsString('| [T-00033](00033-TICKET.md) | [PRD-00005]', $board);
         self::assertStringNotContainsString('| [T-00026](00026-TICKET.md)', $tickets);
         self::assertStringContainsString('| [T-00029](00029-TICKET.md) | [PRD-00004]', $tickets);
         self::assertStringContainsString('| [T-00030](00030-TICKET.md) | [PRD-00004]', $tickets);
@@ -182,7 +184,7 @@ final class PlanningAuthorityTest extends TestCase
         $process->run();
 
         self::assertSame(0, $process->getExitCode(), $process->getErrorOutput().$process->getOutput());
-        self::assertStringContainsString('Planning validation passed: 41 records, 3 active', $process->getOutput());
+        self::assertStringContainsString('Planning validation passed: 41 records, 0 active', $process->getOutput());
     }
 
     protected function setUp(): void
