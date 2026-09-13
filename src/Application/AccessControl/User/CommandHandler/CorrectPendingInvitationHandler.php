@@ -29,7 +29,7 @@ use Throwable;
 /**
  * Class CorrectPendingInvitationHandler
  *
- * Replaces atomically corrects a pending invitation and replaces its activation authority.
+ * Atomically corrects a pending invitation and replaces its activation authority.
  */
 final readonly class CorrectPendingInvitationHandler implements CommandHandler
 {

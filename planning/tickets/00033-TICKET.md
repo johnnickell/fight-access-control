@@ -2,7 +2,7 @@
 id: T-00033
 prd: PRD-00005
 title: Publish composable OpenAPI schema components for v0.2.0
-status: ready-for-agent
+status: in-progress
 blocked_by:
 ---
 
@@ -16,15 +16,15 @@ runtime or core layers.
 
 ## Scope
 
-- In scope: the tagged `johnnickell/fight-common ^1.2` contract, including generic `ResultSet<T>` annotations for
-  package query handlers and repositories; `swagger-php` development dependency and Composer suggestion; `openapi/`
+- In scope: the tagged `johnnickell/fight-common ^1.2` contract; repository-wide adoption of its PHPCS baseline and
+  grammatical public PHPDoc migration, including generic `ResultSet<T>` annotations for package query handlers and
+  repositories; `swagger-php` development dependency and Composer suggestion; `openapi/`
   attribute anchors and portable
   bootstrap; every WF-006 Command, Query, authentication, safe-result, collection, creation, empty-success, and
   optional JSend-success component; concise composition guide and representative payload examples; changelog and
   release-candidate planning updates for `v0.2.0`.
 - Out of scope: OpenAPI imports under `src/`, a production autoload namespace, endpoints, routes, HTTP adapters,
-  cookie implementation, root document, Swagger UI, generic error envelopes, generated clients, a hosted site, and
-  the broader documentation-quality redesign.
+  cookie implementation, root document, Swagger UI, generic error envelopes, generated clients, and a hosted site.
 
 ## Acceptance Criteria
 
@@ -32,6 +32,10 @@ runtime or core layers.
       dependencies or PSR-4 production autoloading.
 - [ ] Composer requires tagged `johnnickell/fight-common ^1.2`; generic `ResultSet<T>` annotations used by package
       query handlers and repositories rely on that contract and remain covered by focused handler and repository tests.
+- [ ] The repository adopts the Fight Common PHPCS baseline and all public PHPDoc introduced by this migration is
+      grammatical, while preserving existing behavior and signatures.
+- [ ] The documented ResultSet reconstruction remains bounded-context view translation: Agent and session mappings
+      retain their context-specific work, and no shared abstraction is introduced without a contract-risk reduction.
 - [ ] Non-autoloaded `openapi/` anchors and `openapi/bootstrap.php` generate the complete `Fight.AccessControl.*`
       catalog settled in WF-006 and do not introduce a Domain, Application, or production Adapter dependency.
 - [ ] Component fields, requiredness, UUID and timestamp formats, enum values, secret flags, browser and portable

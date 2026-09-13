@@ -84,7 +84,7 @@ interface PasswordResetGrantRepository
     public function replace(PasswordResetGrant $predecessor, PasswordResetGrant $replacement): bool;
 
     /**
-     * Replaces atomically terminalizes the latest predecessor and inserts one valid successor generation
+     * Updates the latest predecessor atomically and inserts one valid successor generation
      *
      * The terminal predecessor must be the predecessor's next revision with no issued authority or recoverable
      * ciphertext. The successor must be a pristine initial generation satisfying the ownership, fresh identity, and

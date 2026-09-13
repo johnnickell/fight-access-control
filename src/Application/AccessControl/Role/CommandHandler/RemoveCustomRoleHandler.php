@@ -22,7 +22,7 @@ use Throwable;
 /**
  * Class RemoveCustomRoleHandler
  *
- * Replaces atomically removes an authorized, unreferenced custom role.
+ * Atomically removes an authorized, unreferenced custom role.
  */
 final readonly class RemoveCustomRoleHandler implements CommandHandler
 {

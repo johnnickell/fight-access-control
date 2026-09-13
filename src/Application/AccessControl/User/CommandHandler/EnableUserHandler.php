@@ -23,7 +23,7 @@ use Throwable;
 /**
  * Class EnableUserHandler
  *
- * Replaces atomically reactivates a disabled identity without restoring prior sessions.
+ * Atomically reactivates a disabled identity without restoring prior sessions.
  */
 final readonly class EnableUserHandler implements CommandHandler
 {

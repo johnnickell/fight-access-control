@@ -26,7 +26,7 @@ use Throwable;
 /**
  * Class ReconcileManagedPolicyHandler
  *
- * Replaces atomically applies the complete managed-policy preflight plan.
+ * Atomically applies the complete managed-policy preflight plan.
  */
 final readonly class ReconcileManagedPolicyHandler implements CommandHandler
 {

@@ -29,7 +29,7 @@ use Throwable;
 /**
  * Class RevokeSessionHandler
  *
- * Replaces atomically revokes a usable refresh session through self-service or authorized administration.
+ * Atomically revokes a usable refresh session through self-service or authorized administration.
  */
 final readonly class RevokeSessionHandler implements CommandHandler
 {

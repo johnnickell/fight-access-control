@@ -27,7 +27,7 @@ use Throwable;
 /**
  * Class CancelEmailChangeHandler
  *
- * Replaces atomically cancels email-change authority and its reservation.
+ * Atomically cancels email-change authority and its reservation.
  */
 final readonly class CancelEmailChangeHandler implements CommandHandler
 {

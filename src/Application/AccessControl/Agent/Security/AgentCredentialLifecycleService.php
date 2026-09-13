@@ -24,7 +24,7 @@ use Throwable;
 /**
  * Class AgentCredentialLifecycleService
  *
- * Replaces atomically rotates an Agent credential and returns its replacement raw HMAC shared secret.
+ * Atomically rotates an Agent credential and returns its replacement raw HMAC shared secret.
  */
 final readonly class AgentCredentialLifecycleService
 {

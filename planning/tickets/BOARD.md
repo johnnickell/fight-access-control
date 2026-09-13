@@ -24,10 +24,15 @@ No human decision is currently required.
 [T-00033](00033-TICKET.md) as the implementation handoff. [Agent HMAC authentication and direct authority](../wayfinder/agent-hmac-authentication-map.md)
 remains closed and does not displace the implementation frontier.
 
+## In Progress
+
+1. [T-00033: Publish composable OpenAPI schema components for v0.2.0](00033-TICKET.md) — is in progress on the
+   Fight Common PHPCS-baseline and public-PHPDoc migration, then implements the non-autoloaded schema distribution,
+   complete catalog, guide, local composition proof, and release candidate.
+
 ## Ready Frontier
 
-1. [T-00033: Publish composable OpenAPI schema components for v0.2.0](00033-TICKET.md) — implements the
-   non-autoloaded schema distribution, complete catalog, guide, local composition proof, and release candidate.
+No tickets are currently ready.
 
 ## Waiting
 

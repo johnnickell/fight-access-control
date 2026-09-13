@@ -24,7 +24,7 @@ use Throwable;
 /**
  * Class DisableUserHandler
  *
- * Replaces atomically disables an active identity and revokes its active sessions.
+ * Atomically disables an active identity and revokes its active sessions.
  */
 final readonly class DisableUserHandler implements CommandHandler
 {

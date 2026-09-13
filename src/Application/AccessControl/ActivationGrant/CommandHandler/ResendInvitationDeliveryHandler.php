@@ -27,7 +27,7 @@ use Throwable;
 /**
  * Class ResendInvitationDeliveryHandler
  *
- * Replaces atomically replaces an activation grant and stages its recoverable replacement delivery work.
+ * Atomically replaces an activation grant and stages its recoverable replacement delivery work.
  */
 final readonly class ResendInvitationDeliveryHandler implements CommandHandler
 {

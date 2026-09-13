@@ -20,7 +20,7 @@ use Throwable;
 /**
  * Class ReplaceAgentPermissionsHandler
  *
- * Replaces atomically replaces an authorized Agent's complete authoritative direct-Permission set.
+ * Atomically replaces an authorized Agent's complete authoritative direct-Permission set.
  */
 final readonly class ReplaceAgentPermissionsHandler implements CommandHandler
 {

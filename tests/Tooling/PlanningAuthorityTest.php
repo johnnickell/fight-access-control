@@ -148,7 +148,8 @@ final class PlanningAuthorityTest extends TestCase
         self::assertStringContainsString('v0.1.0', $releasePreparation);
         self::assertStringContainsString('id: T-00033', $openApiComponents);
         self::assertStringContainsString('prd: PRD-00005', $openApiComponents);
-        self::assertStringContainsString('status: ready-for-agent', $openApiComponents);
+        self::assertStringContainsString('status: in-progress', $openApiComponents);
+        self::assertStringContainsString('## In Progress', $board);
         self::assertStringContainsString('1. [T-00033:', $board);
         self::assertStringNotContainsString('1. [T-00030', $board);
         self::assertStringNotContainsString('1. [T-00031', $board);

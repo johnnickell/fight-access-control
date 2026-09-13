@@ -24,7 +24,7 @@ use Throwable;
 /**
  * Class DeleteUserHandler
  *
- * Replaces atomically soft-deletes an identity and revokes its active sessions.
+ * Atomically soft-deletes an identity and revokes its active sessions.
  */
 final readonly class DeleteUserHandler implements CommandHandler
 {

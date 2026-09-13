@@ -21,7 +21,7 @@ use Throwable;
 /**
  * Class RenameCustomRoleHandler
  *
- * Replaces atomically renames an authorized runtime-owned custom role.
+ * Atomically renames an authorized runtime-owned custom role.
  */
 final readonly class RenameCustomRoleHandler implements CommandHandler
 {

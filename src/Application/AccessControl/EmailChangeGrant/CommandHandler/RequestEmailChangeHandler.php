@@ -29,7 +29,7 @@ use Throwable;
 /**
  * Class RequestEmailChangeHandler
  *
- * Replaces atomically reserves a destination and records mailbox-confirmation work.
+ * Atomically reserves a destination and records mailbox-confirmation work.
  */
 final readonly class RequestEmailChangeHandler implements CommandHandler
 {

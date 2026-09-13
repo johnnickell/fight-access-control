@@ -48,11 +48,11 @@ to its resulting epic, PRDs, and/or implementation tickets.
 
 ## Tickets
 
-| Ticket | Type | Mode | Status | Depends On |
-|---|---|---|---|---|
-| [Choose OpenAPI metadata ownership and component discovery](tickets/WF-005-openapi-metadata-ownership.md) | Grilling / Domain Modeling | HITL | **Done** | — |
-| [Define authentication payload and JSend response catalog](tickets/WF-006-authentication-payload-jsend-catalog.md) | Grilling / Domain Modeling | HITL | **Done** | WF-005 |
-| [Set lightweight composition proof and v0.2.0 handoff](tickets/WF-007-openapi-composition-proof-release-handoff.md) | Grilling | HITL | **Done** | WF-006 |
+| Ticket | Type | Mode | Status | Gate | Depends On |
+|---|---|---|---|---|---|
+| [Choose OpenAPI metadata ownership and component discovery](tickets/WF-005-openapi-metadata-ownership.md) | Grilling / Domain Modeling | HITL | **Closed** | — | — |
+| [Define authentication payload and JSend response catalog](tickets/WF-006-authentication-payload-jsend-catalog.md) | Grilling / Domain Modeling | HITL | **Closed** | — | WF-005 |
+| [Set lightweight composition proof and v0.2.0 handoff](tickets/WF-007-openapi-composition-proof-release-handoff.md) | Grilling | HITL | **Closed** | — | WF-006 |
 
 ## Blocking relationships
 
@@ -62,7 +62,8 @@ Metadata ownership and component discovery ──→ Authentication payload and 
 
 ## Frontier
 
-No Wayfinder decision remains. Implementation begins with [T-00033](../tickets/00033-TICKET.md).
+No Wayfinder decision remains. The implementation handoff is recorded in the
+[Wayfinder map index](README.md).
 
 ## Compatibility resolution
 

@@ -28,7 +28,7 @@ use Throwable;
 /**
  * Class InvitePendingUserHandler
  *
- * Replaces atomically records a pending invitation and its required durable work.
+ * Atomically records a pending invitation and its required durable work.
  */
 final readonly class InvitePendingUserHandler implements CommandHandler
 {

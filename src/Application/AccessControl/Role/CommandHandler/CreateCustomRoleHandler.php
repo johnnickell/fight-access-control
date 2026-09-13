@@ -21,7 +21,7 @@ use Throwable;
 /**
  * Class CreateCustomRoleHandler
  *
- * Replaces atomically creates an authorized runtime-owned custom role.
+ * Atomically creates an authorized runtime-owned custom role.
  */
 final readonly class CreateCustomRoleHandler implements CommandHandler
 {

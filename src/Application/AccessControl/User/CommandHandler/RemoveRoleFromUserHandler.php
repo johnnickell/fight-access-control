@@ -23,7 +23,7 @@ use Throwable;
 /**
  * Class RemoveRoleFromUserHandler
  *
- * Replaces atomically removes an authoritative role from an authorized User target.
+ * Atomically removes an authoritative role from an authorized User target.
  */
 final readonly class RemoveRoleFromUserHandler implements CommandHandler
 {

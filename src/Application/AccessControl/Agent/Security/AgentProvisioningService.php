@@ -23,7 +23,7 @@ use Throwable;
 /**
  * Class AgentProvisioningService
  *
- * Replaces atomically provisions one Agent and returns its first raw HMAC shared secret.
+ * Atomically provisions one Agent and returns its first raw HMAC shared secret.
  */
 final readonly class AgentProvisioningService
 {

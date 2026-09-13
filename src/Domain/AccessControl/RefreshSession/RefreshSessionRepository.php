@@ -57,7 +57,7 @@ interface RefreshSessionRepository
     public function getByUsedCredential(RefreshCredential $refreshCredential): ?RefreshSession;
 
     /**
-     * Replaces atomically replaces the session only while its expected revision remains current
+     * Replaces the session atomically only while its expected revision remains current
      *
      * The replacement must advance the expected revision by exactly one. Returns false
      * when the expected predecessor has already lost authority or the successor is invalid.

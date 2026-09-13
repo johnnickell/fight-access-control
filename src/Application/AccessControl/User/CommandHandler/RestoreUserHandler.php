@@ -29,7 +29,7 @@ use Throwable;
 /**
  * Class RestoreUserHandler
  *
- * Replaces atomically restores a deleted identity, issuing fresh activation authority for pending activation.
+ * Atomically restores a deleted identity, issuing fresh activation authority for pending activation.
  */
 final readonly class RestoreUserHandler implements CommandHandler
 {

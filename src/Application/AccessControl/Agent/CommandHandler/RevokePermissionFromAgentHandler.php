@@ -20,7 +20,7 @@ use Throwable;
 /**
  * Class RevokePermissionFromAgentHandler
  *
- * Replaces atomically revokes an authoritative Permission directly from an authorized Agent.
+ * Atomically revokes an authoritative Permission directly from an authorized Agent.
  */
 final readonly class RevokePermissionFromAgentHandler implements CommandHandler
 {

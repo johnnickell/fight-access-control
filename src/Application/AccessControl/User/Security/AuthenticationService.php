@@ -639,7 +639,7 @@ final readonly class AuthenticationService
     }
 
     /**
-     * Replaces atomically revokes the authoritative session family after terminal credential replay
+     * Revokes the authoritative session family atomically after terminal credential replay
      */
     private function revokeCompromisedSession(RefreshSession $refreshSession): RefreshSessionNotFoundException
     {

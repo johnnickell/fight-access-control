@@ -23,7 +23,7 @@ use Throwable;
 /**
  * Class AssignRoleToUserHandler
  *
- * Replaces atomically assigns an authoritative role to an authorized User target.
+ * Atomically assigns an authoritative role to an authorized User target.
  */
 final readonly class AssignRoleToUserHandler implements CommandHandler
 {

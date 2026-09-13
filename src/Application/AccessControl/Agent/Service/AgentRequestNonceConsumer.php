@@ -11,7 +11,7 @@ use Fight\AccessControl\Domain\AccessControl\Agent\AgentId;
 /**
  * Interface AgentRequestNonceConsumer
  *
- * Replaces atomically confirms current Agent authority while consuming one globally unique request nonce.
+ * Atomically confirms current Agent authority while consuming one globally unique request nonce.
  */
 interface AgentRequestNonceConsumer
 {

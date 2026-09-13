@@ -23,7 +23,7 @@ use Throwable;
 /**
  * Class GrantPermissionToCustomRoleHandler
  *
- * Replaces atomically grants an existing permission to an authorized custom role.
+ * Atomically grants an existing permission to an authorized custom role.
  */
 final readonly class GrantPermissionToCustomRoleHandler implements CommandHandler
 {

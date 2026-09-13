@@ -38,7 +38,7 @@ interface UserRepository
     public function getById(UserId $id): ?User;
 
     /**
-     * Replaces atomically replaces authentication authority while the expected predecessor remains current
+     * Replaces authentication authority atomically while the expected predecessor remains current
      *
      * Implementations compare the stable identity, lifecycle state, password hash, authentication version, and
      * authentication-authority revision. The replacement must advance the authority revision by exactly one.
@@ -51,7 +51,7 @@ interface UserRepository
     public function replaceAuthenticationAuthority(User $expected, User $replacement): bool;
 
     /**
-     * Replaces atomically replaces authentication authority and inserts its refresh session
+     * Replaces authentication authority atomically and inserts its refresh session
      *
      * Implementations must perform the same expected-authority comparison and exact revision advancement as
      * replaceAuthenticationAuthority(), then persist both replacement and session as one indivisible operation.
@@ -80,7 +80,7 @@ interface UserRepository
     public function validateRoleAssignmentReference(RoleId $roleId): bool;
 
     /**
-     * Replaces atomically replaces role assignments while the expected predecessor remains current
+     * Replaces role assignments atomically while the expected predecessor remains current
      *
      * Implementations compare all User state, reject replacement changes outside role assignments, and require the
      * authorization-assignment revision to advance by exactly one. Every expected or replacement RoleId must remain
@@ -93,7 +93,7 @@ interface UserRepository
     public function replaceRoleAssignments(User $expected, User $replacement): bool;
 
     /**
-     * Replaces atomically replaces an email-change reservation while the expected identity remains current
+     * Replaces an email-change reservation atomically while the expected identity remains current
      *
      * Implementations compare the complete expected User state and permit only one valid reservation transition with
      * exactly one revision advancement. A new destination must not be claimed by any canonical email or live
@@ -104,7 +104,7 @@ interface UserRepository
     public function replaceEmailChangeReservation(User $expected, User $replacement): bool;
 
     /**
-     * Replaces atomically promotes an email-change reservation and replaces authentication authority
+     * Replaces an email-change reservation atomically and updates authentication authority
      *
      * Implementations compare complete expected User state and permit only promotion of the live destination to the
      * canonical email, reservation clearing, exact authentication-version, authentication-authority,
@@ -117,7 +117,7 @@ interface UserRepository
     public function replaceEmailChangeConfirmation(User $expected, User $replacement): bool;
 
     /**
-     * Replaces atomically corrects a pending identity's canonical email while the expected identity remains current
+     * Updates a pending identity's canonical email atomically while the expected identity remains current
      *
      * Implementations compare complete expected User state, permit only a pending-activation canonical-email change
      * with exactly one revision advancement, and reject a destination claimed by any canonical email or live
@@ -128,7 +128,7 @@ interface UserRepository
     public function replacePendingInvitationEmail(User $expected, User $replacement): bool;
 
     /**
-     * Replaces atomically replaces the lifecycle state while the expected identity remains current
+     * Replaces the lifecycle state atomically while the expected identity remains current
      *
      * Implementations compare the complete expected User state and permit only one valid lifecycle transition:
      * active to disabled, disabled to active, active or disabled to deleted, or deleted to active or pending

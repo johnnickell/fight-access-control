@@ -23,7 +23,7 @@ use Throwable;
 /**
  * Class RevokePermissionFromCustomRoleHandler
  *
- * Replaces atomically revokes an existing permission from an authorized custom role.
+ * Atomically revokes an existing permission from an authorized custom role.
  */
 final readonly class RevokePermissionFromCustomRoleHandler implements CommandHandler
 {

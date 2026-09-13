@@ -69,7 +69,7 @@ interface PermissionRepository
     public function replace(Permission $expected, Permission $replacement): bool;
 
     /**
-     * Replaces atomically removes the expected Permission only when it remains current and unreferenced
+     * Removes the expected Permission atomically only when it remains current and unreferenced
      *
      * Validation and mutation occur under one adapter-owned permission-reference fence held through the enclosing
      * Unit of Work and shared with RoleRepository and AgentRepository reference-changing writes. Returns false when

@@ -2,7 +2,7 @@
 
 **Labels:** `wayfinder:grilling`
 **Mode:** HITL
-**Status:** Done
+**Status:** Closed
 **Map:** [OpenAPI schema components for v0.2.0](../openapi-schema-components-v0-2-0-map.md)
 **Depends on:** [Define authentication payload and JSend response catalog](WF-006-authentication-payload-jsend-catalog.md)
 

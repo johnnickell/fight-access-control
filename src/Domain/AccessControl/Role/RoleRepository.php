@@ -92,7 +92,7 @@ interface RoleRepository
     public function replace(Role $expected, Role $replacement): bool;
 
     /**
-     * Replaces atomically removes the expected Role only when it remains current and unassigned
+     * Removes the expected Role atomically only when it remains current and unassigned
      *
      * Validation and mutation occur under one adapter-owned role-reference fence held through the enclosing Unit of
      * Work and shared with UserRepository::replaceRoleAssignments(). Returns false when changed or assigned.

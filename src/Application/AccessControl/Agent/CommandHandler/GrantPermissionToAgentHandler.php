@@ -20,7 +20,7 @@ use Throwable;
 /**
  * Class GrantPermissionToAgentHandler
  *
- * Replaces atomically grants an authoritative Permission directly to an authorized Agent.
+ * Atomically grants an authoritative Permission directly to an authorized Agent.
  */
 final readonly class GrantPermissionToAgentHandler implements CommandHandler
 {
