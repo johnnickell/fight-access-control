@@ -16,15 +16,14 @@ When `/ask-matt` or a plain “What’s next?” is invoked:
 
 ## Now
 
-**Human decision:** authorize each external `v0.1.0` publication effect only after the exact release candidate is
-merged to `main`, freshly verified, and bound to the approved signed tag.
+**Human decision:** resolve [Choose OpenAPI metadata ownership and component discovery](../wayfinder/tickets/WF-005-openapi-metadata-ownership.md) before defining the `v0.2.0` schema catalog.
 
 ## Wayfinder Review
 
-[OpenAPI Schema Components 0.2.0](../wayfinder/openapi-schema-components-0-2-map.md) is active. Its current unblocked
-review target is [WF-005 — Shared Schema Component Catalog](../wayfinder/tickets/WF-005-shared-schema-component-catalog.md).
-Run `$aios /grill-with-docs WF-005`. This planning frontier does not displace the implementation frontier or the
-separate human authorization for 0.1.0 publication effects.
+[OpenAPI schema components for v0.2.0](../wayfinder/openapi-schema-components-v0-2-0-map.md) is active. Its first
+frontier decision resolves PHP metadata ownership and consumer component discovery before schema fields or release
+work are specified. [Agent HMAC authentication and direct authority](../wayfinder/agent-hmac-authentication-map.md)
+remains closed and does not displace the implementation frontier.
 
 ## Ready Frontier
 
