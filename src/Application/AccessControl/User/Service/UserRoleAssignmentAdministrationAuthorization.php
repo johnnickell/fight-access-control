@@ -8,12 +8,14 @@ use Fight\AccessControl\Domain\AccessControl\User\Exception\UserRoleAssignmentAu
 use Fight\AccessControl\Domain\AccessControl\User\UserId;
 
 /**
+ * Interface UserRoleAssignmentAdministrationAuthorization
+ *
  * Authorizes administrative User role-assignment changes.
  */
 interface UserRoleAssignmentAdministrationAuthorization
 {
     /**
-     * Rejects an actor who cannot manage User role assignments.
+     * Rejects an actor who cannot manage User role assignments
      *
      * @throws UserRoleAssignmentAuthorizationException When the actor is not authorized
      */

@@ -7,6 +7,8 @@ namespace Fight\AccessControl\Domain\AccessControl\Role\Exception;
 use Fight\Common\Domain\Exception\DomainException;
 
 /**
+ * Class ManagedRoleException
+ *
  * Indicates that managed role state cannot satisfy an aggregate operation.
  */
 final class ManagedRoleException extends DomainException

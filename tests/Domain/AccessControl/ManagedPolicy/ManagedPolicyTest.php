@@ -35,14 +35,14 @@ final class ManagedPolicyTest extends TestCase
                     $permissionId,
                     PermissionName::fromString('MANAGE_USERS'),
                     PermissionTier::SUPER_ADMIN_ONLY
-                ),
+                )
             ],
             [
                 new ManagedRoleDefinition(
                     RoleId::fromString('018f0000-0000-7000-8000-000000000201'),
                     RoleName::fromString('ROLE_ADMIN'),
                     [$permissionId]
-                ),
+                )
             ],
             [$permissionId]
         );
@@ -89,9 +89,9 @@ final class ManagedPolicyTest extends TestCase
     public function test_policy_rejects_each_missing_or_non_array_serialized_collection(): void
     {
         $complete = [
-            'permissions' => [],
-            'roles' => [],
-            'referenced_permission_ids' => [],
+            'permissions'               => [],
+            'roles'                     => [],
+            'referenced_permission_ids' => []
         ];
         $rejections = 0;
 
@@ -155,19 +155,19 @@ final class ManagedPolicyTest extends TestCase
                             $otherPermission->getId(),
                             $permission->getName(),
                             PermissionTier::ADMIN_SAFE
-                        ),
+                        )
                     ],
                     [],
-                    [],
+                    []
                 ],
                 [[$permission], [$role, $role], []],
                 [
                     [$permission],
                     [new ManagedRoleDefinition($otherRole->getId(), $role->getName(), [$permissionId]), $role],
-                    [],
+                    []
                 ],
                 [[$otherPermission], [$role], []],
-                [[$permission], [$role], [$permissionId, $permissionId]],
+                [[$permission], [$role], [$permissionId, $permissionId]]
             ] as [$permissions, $roles, $references]
         ) {
             try {
@@ -184,14 +184,14 @@ final class ManagedPolicyTest extends TestCase
     public function test_definitions_reject_incomplete_or_duplicate_membership_data(): void
     {
         $permissionData = [
-            'id' => '018f0000-0000-7000-8000-000000000101',
+            'id'   => '018f0000-0000-7000-8000-000000000101',
             'name' => 'MANAGE_USERS',
-            'tier' => 'ADMIN_SAFE',
+            'tier' => 'ADMIN_SAFE'
         ];
         $roleData = [
-            'id' => '018f0000-0000-7000-8000-000000000201',
-            'name' => 'ROLE_ADMIN',
-            'permission_ids' => [],
+            'id'             => '018f0000-0000-7000-8000-000000000201',
+            'name'           => 'ROLE_ADMIN',
+            'permission_ids' => []
         ];
         $rejections = 0;
 
@@ -245,35 +245,35 @@ final class ManagedPolicyTest extends TestCase
     {
         $invalidDefinitions = [
             static fn(): ManagedPermissionDefinition => ManagedPermissionDefinition::fromArray([
-                'id' => 'not-a-permission-id',
+                'id'   => 'not-a-permission-id',
                 'name' => 'MANAGE_USERS',
-                'tier' => 'ADMIN_SAFE',
+                'tier' => 'ADMIN_SAFE'
             ]),
             static fn(): ManagedPermissionDefinition => ManagedPermissionDefinition::fromArray([
-                'id' => '018f0000-0000-7000-8000-000000000101',
+                'id'   => '018f0000-0000-7000-8000-000000000101',
                 'name' => 'manage_users',
-                'tier' => 'ADMIN_SAFE',
+                'tier' => 'ADMIN_SAFE'
             ]),
             static fn(): ManagedPermissionDefinition => ManagedPermissionDefinition::fromArray([
-                'id' => '018f0000-0000-7000-8000-000000000101',
+                'id'   => '018f0000-0000-7000-8000-000000000101',
                 'name' => 'MANAGE_USERS',
-                'tier' => 'NOT_A_TIER',
+                'tier' => 'NOT_A_TIER'
             ]),
             static fn(): ManagedRoleDefinition => ManagedRoleDefinition::fromArray([
-                'id' => 'not-a-role-id',
-                'name' => 'ROLE_ADMIN',
-                'permission_ids' => [],
+                'id'             => 'not-a-role-id',
+                'name'           => 'ROLE_ADMIN',
+                'permission_ids' => []
             ]),
             static fn(): ManagedRoleDefinition => ManagedRoleDefinition::fromArray([
-                'id' => '018f0000-0000-7000-8000-000000000201',
-                'name' => 'role_admin',
-                'permission_ids' => [],
+                'id'             => '018f0000-0000-7000-8000-000000000201',
+                'name'           => 'role_admin',
+                'permission_ids' => []
             ]),
             static fn(): ManagedRoleDefinition => ManagedRoleDefinition::fromArray([
-                'id' => '018f0000-0000-7000-8000-000000000201',
-                'name' => 'ROLE_ADMIN',
-                'permission_ids' => ['not-a-permission-id'],
-            ]),
+                'id'             => '018f0000-0000-7000-8000-000000000201',
+                'name'           => 'ROLE_ADMIN',
+                'permission_ids' => ['not-a-permission-id']
+            ])
         ];
         $rejections = 0;
 

@@ -11,11 +11,15 @@ use Fight\Common\Application\Messaging\Query\QueryHandler;
 use Fight\Common\Domain\Messaging\Query\QueryMessage;
 
 /**
+ * Class PreviewManagedPolicyHandler
+ *
  * Preflights managed authorization definitions without side effects.
  */
 final readonly class PreviewManagedPolicyHandler implements QueryHandler
 {
     /**
+     * Constructs PreviewManagedPolicyHandler
+     *
      * Creates the managed-policy preview handler.
      */
     public function __construct(

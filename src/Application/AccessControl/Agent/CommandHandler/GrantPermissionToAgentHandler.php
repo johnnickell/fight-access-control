@@ -18,11 +18,15 @@ use Fight\Common\Domain\Messaging\Event\CommandFailedEvent;
 use Throwable;
 
 /**
+ * Class GrantPermissionToAgentHandler
+ *
  * Atomically grants an authoritative Permission directly to an authorized Agent.
  */
 final readonly class GrantPermissionToAgentHandler implements CommandHandler
 {
     /**
+     * Constructs GrantPermissionToAgentHandler
+     *
      * Creates the direct Agent Permission-grant handler.
      */
     public function __construct(

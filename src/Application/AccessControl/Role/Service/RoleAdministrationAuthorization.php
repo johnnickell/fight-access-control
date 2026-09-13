@@ -8,12 +8,14 @@ use Fight\AccessControl\Domain\AccessControl\Role\Exception\RoleAdministrationAu
 use Fight\AccessControl\Domain\AccessControl\User\UserId;
 
 /**
+ * Interface RoleAdministrationAuthorization
+ *
  * Authorizes administrative custom-role management.
  */
 interface RoleAdministrationAuthorization
 {
     /**
-     * Rejects an actor who cannot manage custom roles.
+     * Rejects an actor who cannot manage custom roles
      *
      * @throws RoleAdministrationAuthorizationException When the actor is not authorized
      */

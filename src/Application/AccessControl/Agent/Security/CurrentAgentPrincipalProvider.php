@@ -24,6 +24,8 @@ use Fight\Common\Application\Repository\UnitOfWork;
 use Throwable;
 
 /**
+ * Class CurrentAgentPrincipalProvider
+ *
  * Resolves one authenticated Agent principal and caches only its complete immutable snapshot for one request.
  */
 final class CurrentAgentPrincipalProvider
@@ -33,6 +35,8 @@ final class CurrentAgentPrincipalProvider
     private ?AuthenticatedAgentPrincipal $principal = null;
 
     /**
+     * Constructs CurrentAgentPrincipalProvider
+     *
      * Creates the request-scoped current Agent-principal provider.
      */
     public function __construct(
@@ -47,7 +51,7 @@ final class CurrentAgentPrincipalProvider
     }
 
     /**
-     * Authenticates and authoritatively resolves the current Agent principal once for this request.
+     * Authenticates and authoritatively resolves the current Agent principal once for this request
      */
     public function resolve(
         SignedAgentRequest $signedAgentRequest,
@@ -81,7 +85,7 @@ final class CurrentAgentPrincipalProvider
     }
 
     /**
-     * Validates the signed request, atomically consumes its nonce, and rechecks its current authority.
+     * Validates the signed request, atomically consumes its nonce, and rechecks its current authority
      */
     private function authenticateAndConsumeNonce(
         SignedAgentRequest $signedAgentRequest,
@@ -151,7 +155,7 @@ final class CurrentAgentPrincipalProvider
     }
 
     /**
-     * Throws the one generic caller-facing denial with a secret-free diagnostic.
+     * Rejects the one generic caller-facing denial with a secret-free diagnostic
      */
     private function deny(AgentAuthenticationDiagnosticClassification $classification, string $correlationId): never
     {

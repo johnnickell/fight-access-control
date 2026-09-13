@@ -60,6 +60,7 @@ final class ControllableRoleRepository implements RoleRepository
         return [];
     }
 
+    /** @return ResultSet<Role> */
     public function getAll(Pagination $pagination): ResultSet
     {
         $roles = $this->role instanceof Role ? [$this->role] : [];

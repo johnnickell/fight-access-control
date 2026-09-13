@@ -7,6 +7,8 @@ namespace Fight\AccessControl\Domain\AccessControl\Agent\Exception;
 use Fight\Common\Domain\Exception\DomainException;
 
 /**
+ * Class AgentPermissionAssignmentException
+ *
  * Reports an invalid Agent direct-Permission assignment operation.
  */
 class AgentPermissionAssignmentException extends DomainException

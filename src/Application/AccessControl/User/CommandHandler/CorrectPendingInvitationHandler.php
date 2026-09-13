@@ -27,11 +27,15 @@ use LogicException;
 use Throwable;
 
 /**
+ * Class CorrectPendingInvitationHandler
+ *
  * Atomically corrects a pending invitation and replaces its activation authority.
  */
 final readonly class CorrectPendingInvitationHandler implements CommandHandler
 {
     /**
+     * Constructs CorrectPendingInvitationHandler
+     *
      * Creates the pending-invitation correction handler.
      */
     public function __construct(

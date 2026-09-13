@@ -8,11 +8,15 @@ use Fight\Common\Domain\Exception\DomainException;
 use Fight\Common\Domain\Messaging\Event\Event;
 
 /**
+ * Class AgentCredentialLifecycleFailed
+ *
  * Records a failed Agent credential lifecycle operation without retaining secret material.
  */
 final readonly class AgentCredentialLifecycleFailed implements Event
 {
     /**
+     * Constructs AgentCredentialLifecycleFailed
+     *
      * Creates safe Agent credential lifecycle failure evidence.
      */
     public function __construct(private string $actorId, private string $errorMessage)
@@ -42,7 +46,7 @@ final readonly class AgentCredentialLifecycleFailed implements Event
     }
 
     /**
-     * Returns the safe consumer-supplied lifecycle actor identifier.
+     * Returns the safe consumer-supplied lifecycle actor identifier
      */
     public function getActorId(): string
     {
@@ -50,7 +54,7 @@ final readonly class AgentCredentialLifecycleFailed implements Event
     }
 
     /**
-     * Returns the generic safe failure message without operation inputs.
+     * Returns the generic safe failure message without operation inputs
      */
     public function getErrorMessage(): string
     {

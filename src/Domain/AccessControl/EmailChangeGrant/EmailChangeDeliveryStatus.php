@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace Fight\AccessControl\Domain\AccessControl\EmailChangeGrant;
 
 /**
+ * Enum EmailChangeDeliveryStatus
+ *
  * Identifies the safe operational state of email-change delivery work.
  */
 enum EmailChangeDeliveryStatus: string

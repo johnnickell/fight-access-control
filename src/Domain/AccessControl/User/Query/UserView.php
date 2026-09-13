@@ -13,11 +13,15 @@ use Fight\Common\Domain\Type\Arrayable;
 use Fight\Common\Domain\Value\Internet\EmailAddress;
 
 /**
+ * Class UserView
+ *
  * Provides a safe immutable view of a user identity.
  */
 final readonly class UserView implements Arrayable
 {
     /**
+     * Constructs UserView
+     *
      * Constructs the safe user view.
      *
      * @phpstan-param list<RoleId> $roleIds
@@ -34,7 +38,7 @@ final readonly class UserView implements Arrayable
     }
 
     /**
-     * Creates a safe view without exposing credential or persistence authority.
+     * Creates a safe view without exposing credential or persistence authority
      */
     public static function fromUser(User $user): self
     {
@@ -49,7 +53,7 @@ final readonly class UserView implements Arrayable
     }
 
     /**
-     * Returns the stable user identifier.
+     * Returns the stable user identifier
      */
     public function getUserId(): UserId
     {
@@ -57,7 +61,7 @@ final readonly class UserView implements Arrayable
     }
 
     /**
-     * Returns the canonical email address.
+     * Returns the canonical email address
      */
     public function getEmail(): EmailAddress
     {
@@ -65,7 +69,7 @@ final readonly class UserView implements Arrayable
     }
 
     /**
-     * Returns the lifecycle state.
+     * Returns the lifecycle state
      */
     public function getState(): UserState
     {
@@ -73,7 +77,7 @@ final readonly class UserView implements Arrayable
     }
 
     /**
-     * Returns an immutable snapshot of assigned role identifiers.
+     * Returns an immutable snapshot of assigned role identifiers
      *
      * @return list<RoleId>
      */
@@ -83,7 +87,7 @@ final readonly class UserView implements Arrayable
     }
 
     /**
-     * Returns the creation timestamp.
+     * Returns the creation timestamp
      */
     public function getCreatedAt(): DateTimeImmutable
     {
@@ -91,7 +95,7 @@ final readonly class UserView implements Arrayable
     }
 
     /**
-     * Returns the last-update timestamp.
+     * Returns the last-update timestamp
      */
     public function getUpdatedAt(): DateTimeImmutable
     {
@@ -99,7 +103,7 @@ final readonly class UserView implements Arrayable
     }
 
     /**
-     * Returns the canonical safe array representation.
+     * Returns the canonical safe array representation
      *
      * @return array{
      *     user_id: string,
@@ -113,15 +117,15 @@ final readonly class UserView implements Arrayable
     public function toArray(): array
     {
         return [
-            'user_id' => $this->userId->toString(),
-            'email' => $this->email->toString(),
-            'state' => $this->state->value,
-            'role_ids' => array_map(
+            'user_id'    => $this->userId->toString(),
+            'email'      => $this->email->toString(),
+            'state'      => $this->state->value,
+            'role_ids'   => array_map(
                 static fn(RoleId $roleId): string => $roleId->toString(),
                 $this->roleIds
             ),
             'created_at' => $this->createdAt->format(DATE_ATOM),
-            'updated_at' => $this->updatedAt->format(DATE_ATOM),
+            'updated_at' => $this->updatedAt->format(DATE_ATOM)
         ];
     }
 }

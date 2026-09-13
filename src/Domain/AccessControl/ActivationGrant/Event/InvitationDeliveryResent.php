@@ -10,11 +10,15 @@ use Fight\Common\Domain\Exception\DomainException;
 use Fight\Common\Domain\Messaging\Event\Event;
 
 /**
+ * Class InvitationDeliveryResent
+ *
  * Records a replacement activation delivery staged after its durable state committed.
  */
 final readonly class InvitationDeliveryResent implements Event
 {
     /**
+     * Constructs InvitationDeliveryResent
+     *
      * Constructs the activation-delivery resend event.
      */
     public function __construct(
@@ -49,14 +53,14 @@ final readonly class InvitationDeliveryResent implements Event
     public function toArray(): array
     {
         return [
-            'actor_id' => $this->actorId,
-            'user_id' => $this->userId->toString(),
-            'activation_delivery_id' => $this->activationDeliveryId->toString(),
+            'actor_id'               => $this->actorId,
+            'user_id'                => $this->userId->toString(),
+            'activation_delivery_id' => $this->activationDeliveryId->toString()
         ];
     }
 
     /**
-     * Returns the actor who requested the replacement delivery.
+     * Returns the actor who requested the replacement delivery
      */
     public function getActorId(): string
     {
@@ -64,7 +68,7 @@ final readonly class InvitationDeliveryResent implements Event
     }
 
     /**
-     * Returns the target user's identifier.
+     * Returns the target user's identifier
      */
     public function getUserId(): UserId
     {
@@ -72,7 +76,7 @@ final readonly class InvitationDeliveryResent implements Event
     }
 
     /**
-     * Returns the replacement delivery generation.
+     * Returns the replacement delivery generation
      */
     public function getActivationDeliveryId(): ActivationDeliveryId
     {

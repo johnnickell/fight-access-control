@@ -19,11 +19,15 @@ use LogicException;
 use Throwable;
 
 /**
+ * Class ExpireEmailChangeHandler
+ *
  * Processes terminal email-change expiry without owning its invocation mechanism.
  */
 final readonly class ExpireEmailChangeHandler implements CommandHandler
 {
     /**
+     * Constructs ExpireEmailChangeHandler
+     *
      * Creates the email-change expiry handler.
      */
     public function __construct(

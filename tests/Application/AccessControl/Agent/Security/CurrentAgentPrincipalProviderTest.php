@@ -57,7 +57,7 @@ final class CurrentAgentPrincipalProviderTest extends TestCase
         foreach (
             [
                 $this->request(signature: 'wrong-signature'),
-                $this->request(body: 'body', bodyDigest: null, deriveBodyDigest: false),
+                $this->request(body: 'body', bodyDigest: null, deriveBodyDigest: false)
             ] as $request
         ) {
             [$provider, , $nonceConsumer] = $this->provider();

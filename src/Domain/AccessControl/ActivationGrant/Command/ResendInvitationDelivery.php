@@ -9,11 +9,15 @@ use Fight\Common\Domain\Exception\DomainException;
 use Fight\Common\Domain\Messaging\Command\Command;
 
 /**
+ * Class ResendInvitationDelivery
+ *
  * Replaces an existing activation grant and stages a replacement delivery.
  */
 final readonly class ResendInvitationDelivery implements Command
 {
     /**
+     * Constructs ResendInvitationDelivery
+     *
      * Constructs the activation-delivery resend command.
      */
     public function __construct(
@@ -44,12 +48,12 @@ final readonly class ResendInvitationDelivery implements Command
     {
         return [
             'actor_id' => $this->actorId,
-            'user_id'  => $this->userId->toString(),
+            'user_id'  => $this->userId->toString()
         ];
     }
 
     /**
-     * Returns the actor requesting the replacement delivery.
+     * Returns the actor requesting the replacement delivery
      */
     public function getActorId(): string
     {
@@ -57,7 +61,7 @@ final readonly class ResendInvitationDelivery implements Command
     }
 
     /**
-     * Returns the pending user's identifier.
+     * Returns the pending user's identifier
      */
     public function getUserId(): UserId
     {

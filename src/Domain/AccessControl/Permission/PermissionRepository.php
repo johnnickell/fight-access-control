@@ -9,33 +9,35 @@ use Fight\Common\Domain\Repository\Pagination;
 use Fight\Common\Domain\Repository\ResultSet;
 
 /**
+ * Interface PermissionRepository
+ *
  * Provides authoritative permission persistence.
  */
 interface PermissionRepository
 {
     /**
-     * Adds a permission.
+     * Adds a permission
      *
      * @throws Exception When an error occurs
      */
     public function add(Permission $permission): void;
 
     /**
-     * Retrieves a permission by its stable identifier.
+     * Retrieves a permission by its stable identifier
      *
      * @throws Exception When an error occurs
      */
     public function getById(PermissionId $id): ?Permission;
 
     /**
-     * Retrieves a permission by its canonical name.
+     * Retrieves a permission by its canonical name
      *
      * @throws Exception When an error occurs
      */
     public function getByName(PermissionName $name): ?Permission;
 
     /**
-     * Retrieves every resolvable permission for the requested identifiers without pagination.
+     * Retrieves every resolvable permission for the requested identifiers without pagination
      *
      * @phpstan-param list<PermissionId> $ids
      *
@@ -46,22 +48,28 @@ interface PermissionRepository
     public function getByIds(array $ids): array;
 
     /**
-     * Retrieves one page of permissions.
+     * Retrieves one page of permissions
+     *
+     * @return ResultSet<Permission>
      *
      * @throws Exception When an error occurs
      */
     public function getAll(Pagination $pagination): ResultSet;
 
-    /** @return list<Permission> */
+    /**
+     * Returns managed Permissions
+     *
+     * @return list<Permission>
+     */
     public function getManaged(): array;
 
     /**
-     * Replaces the expected permission when it remains current.
+     * Replaces the expected permission when it remains current
      */
     public function replace(Permission $expected, Permission $replacement): bool;
 
     /**
-     * Atomically removes the expected Permission only when it remains current and unreferenced.
+     * Removes the expected Permission atomically only when it remains current and unreferenced
      *
      * Validation and mutation occur under one adapter-owned permission-reference fence held through the enclosing
      * Unit of Work and shared with RoleRepository and AgentRepository reference-changing writes. Returns false when

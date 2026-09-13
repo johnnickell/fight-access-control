@@ -10,11 +10,15 @@ use Fight\Common\Domain\Exception\DomainException;
 use Fight\Common\Domain\Messaging\Command\Command;
 
 /**
+ * Class DeliverUserInvitation
+ *
  * Invokes one user's durable activation delivery work.
  */
 final readonly class DeliverUserInvitation implements Command
 {
     /**
+     * Constructs DeliverUserInvitation
+     *
      * Constructs the delivery invocation command.
      */
     public function __construct(
@@ -49,14 +53,14 @@ final readonly class DeliverUserInvitation implements Command
     public function toArray(): array
     {
         return [
-            'actor_id' => $this->actorId,
-            'user_id' => $this->userId->toString(),
-            'activation_delivery_id' => $this->activationDeliveryId->toString(),
+            'actor_id'               => $this->actorId,
+            'user_id'                => $this->userId->toString(),
+            'activation_delivery_id' => $this->activationDeliveryId->toString()
         ];
     }
 
     /**
-     * Returns the actor that caused delivery invocation.
+     * Returns the actor that caused delivery invocation
      */
     public function getActorId(): string
     {
@@ -64,7 +68,7 @@ final readonly class DeliverUserInvitation implements Command
     }
 
     /**
-     * Returns the target user's identifier.
+     * Returns the target user's identifier
      */
     public function getUserId(): UserId
     {
@@ -72,7 +76,7 @@ final readonly class DeliverUserInvitation implements Command
     }
 
     /**
-     * Returns the exact delivery generation to invoke.
+     * Returns the exact delivery generation to invoke
      */
     public function getActivationDeliveryId(): ActivationDeliveryId
     {

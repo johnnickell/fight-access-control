@@ -8,22 +8,24 @@ use Fight\AccessControl\Domain\AccessControl\Permission\PermissionName;
 use Fight\AccessControl\Domain\AccessControl\Role\RoleName;
 
 /**
+ * Interface AuthenticatedAuthority
+ *
  * Defines the framework-neutral authorization checks for an immutable authenticated snapshot.
  */
 interface AuthenticatedAuthority
 {
     /**
-     * Returns the supported authenticated-principal type.
+     * Returns the supported authenticated-principal type
      */
     public function getType(): AuthenticatedPrincipalType;
 
     /**
-     * Determines whether the snapshot contains a permission name.
+     * Determines whether the snapshot contains a permission name
      */
     public function hasPermission(PermissionName $permissionName): bool;
 
     /**
-     * Determines whether the snapshot contains a role name.
+     * Determines whether the snapshot contains a role name
      */
     public function hasRole(RoleName $roleName): bool;
 }

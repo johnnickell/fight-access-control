@@ -16,11 +16,15 @@ use Fight\Common\Domain\Messaging\Event\CommandFailedEvent;
 use Throwable;
 
 /**
+ * Class ExpirePasswordResetDeliveryHandler
+ *
  * Processes terminal password-reset delivery expiry without owning its scheduler.
  */
 final readonly class ExpirePasswordResetDeliveryHandler implements CommandHandler
 {
     /**
+     * Constructs ExpirePasswordResetDeliveryHandler
+     *
      * Creates the password-reset delivery-expiry handler.
      */
     public function __construct(

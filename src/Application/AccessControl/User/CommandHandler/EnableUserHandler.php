@@ -21,11 +21,15 @@ use LogicException;
 use Throwable;
 
 /**
+ * Class EnableUserHandler
+ *
  * Atomically reactivates a disabled identity without restoring prior sessions.
  */
 final readonly class EnableUserHandler implements CommandHandler
 {
     /**
+     * Constructs EnableUserHandler
+     *
      * Creates the user-enable handler.
      */
     public function __construct(

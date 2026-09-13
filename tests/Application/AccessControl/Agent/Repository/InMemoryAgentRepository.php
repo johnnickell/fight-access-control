@@ -75,6 +75,7 @@ final class InMemoryAgentRepository implements AgentRepository
         return null;
     }
 
+    /** @return ResultSet<Agent> */
     public function getAll(Pagination $pagination): ResultSet
     {
         $records = ArrayList::of(Agent::class)->replace(array_slice(

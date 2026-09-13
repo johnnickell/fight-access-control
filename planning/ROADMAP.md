@@ -2,18 +2,23 @@
 
 ## In progress
 
-No epic is currently in progress.
+| Epic | Target | Current outcome |
+| --- | --- | --- |
+| [EPIC-00004](epics/00004-EPIC.md) | `v0.2.0` | Fight Common `v1.2.0` is a completed prerequisite. T-00033 is in progress on its coding-standard and public-PHPDoc migration before publishing consumer-composable OpenAPI schema metadata, a focused guide, local composition proof, and release candidate. |
 
 ## Route to 1.0.0
 
 1. Publish completed framework-neutral capabilities as reviewed pre-`1.0.0` package releases, beginning with
    `v0.1.0`, without making full starter implementation a package-release prerequisite.
-2. Coordinate the separate Fight Common `v1.2.0` release, then implement the full Symfony, Laravel, Yii,
+2. Deliver [T-00033](tickets/00033-TICKET.md) against released Fight Common `v1.2.0` to prepare the framework-neutral
+   `v0.2.0` reusable schema-component release without making a package-owned OpenAPI document or starter
+   implementation a prerequisite.
+3. Implement the full Symfony, Laravel, Yii,
    CodeIgniter, and Slim starter skeletons against tagged package versions.
-3. Feed shared compatibility findings into reviewed subsequent `0.x` releases while framework-specific fixes
+4. Feed shared compatibility findings into reviewed subsequent `0.x` releases while framework-specific fixes
    remain in their owning starter repositories.
-4. Run a separate stability review before authorizing a `1.0.0` release.
-5. Keep implementation, commit, push, pull request, merge, release, and publication as separate approvals.
+5. Run a separate stability review before authorizing a `1.0.0` release.
+6. Keep implementation, commit, push, pull request, merge, release, and publication as separate approvals.
 
 ## Completed
 

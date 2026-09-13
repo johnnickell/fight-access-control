@@ -25,11 +25,15 @@ use LogicException;
 use Throwable;
 
 /**
+ * Class CancelEmailChangeHandler
+ *
  * Atomically cancels email-change authority and its reservation.
  */
 final readonly class CancelEmailChangeHandler implements CommandHandler
 {
     /**
+     * Constructs CancelEmailChangeHandler
+     *
      * Creates the email-change cancellation handler.
      */
     public function __construct(

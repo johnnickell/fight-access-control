@@ -8,11 +8,15 @@ use Fight\AccessControl\Domain\AccessControl\ManagedPolicy\ManagedPolicy;
 use Fight\Common\Domain\Messaging\Query\Query;
 
 /**
+ * Class PreviewManagedPolicy
+ *
  * Requests a deterministic dry-run of managed authorization definitions.
  */
 final readonly class PreviewManagedPolicy implements Query
 {
     /**
+     * Constructs PreviewManagedPolicy
+     *
      * Constructs a managed-policy preview query.
      */
     public function __construct(private ManagedPolicy $policy)
@@ -26,7 +30,7 @@ final readonly class PreviewManagedPolicy implements Query
     }
 
     /**
-     * Returns the complete desired managed policy.
+     * Returns the complete desired managed policy
      */
     public function getPolicy(): ManagedPolicy
     {

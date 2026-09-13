@@ -10,11 +10,15 @@ use Fight\Common\Domain\Messaging\Command\Command;
 use Fight\Common\Domain\Value\Internet\EmailAddress;
 
 /**
+ * Class RequestEmailChange
+ *
  * Requests mailbox-confirmed replacement of an active owner's canonical email.
  */
 final readonly class RequestEmailChange implements Command
 {
     /**
+     * Constructs RequestEmailChange
+     *
      * Creates an email-change request.
      */
     public function __construct(
@@ -49,13 +53,13 @@ final readonly class RequestEmailChange implements Command
     {
         return [
             'actor_id' => $this->actorId->toString(),
-            'user_id' => $this->userId->toString(),
-            'email' => $this->email->toString(),
+            'user_id'  => $this->userId->toString(),
+            'email'    => $this->email->toString()
         ];
     }
 
     /**
-     * Returns the requesting actor identifier.
+     * Returns the requesting actor identifier
      */
     public function getActorId(): UserId
     {
@@ -63,7 +67,7 @@ final readonly class RequestEmailChange implements Command
     }
 
     /**
-     * Returns the active owner's stable identifier.
+     * Returns the active owner's stable identifier
      */
     public function getUserId(): UserId
     {
@@ -71,7 +75,7 @@ final readonly class RequestEmailChange implements Command
     }
 
     /**
-     * Returns the requested destination email.
+     * Returns the requested destination email
      */
     public function getEmail(): EmailAddress
     {

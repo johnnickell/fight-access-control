@@ -10,11 +10,15 @@ use Fight\Common\Domain\Exception\DomainException;
 use Fight\Common\Domain\Messaging\Event\Event;
 
 /**
+ * Class EmailChangeDelivered
+ *
  * Records a successfully confirmed email-change delivery.
  */
 final readonly class EmailChangeDelivered implements Event
 {
     /**
+     * Constructs EmailChangeDelivered
+     *
      * Creates the email-change delivery success event.
      */
     public function __construct(
@@ -47,12 +51,12 @@ final readonly class EmailChangeDelivered implements Event
         return [
             'actor_id'                 => $this->actorId->toString(),
             'user_id'                  => $this->userId->toString(),
-            'email_change_delivery_id' => $this->emailChangeDeliveryId->toString(),
+            'email_change_delivery_id' => $this->emailChangeDeliveryId->toString()
         ];
     }
 
     /**
-     * Returns the actor that caused delivery invocation.
+     * Returns the actor that caused delivery invocation
      */
     public function getActorId(): UserId
     {
@@ -60,7 +64,7 @@ final readonly class EmailChangeDelivered implements Event
     }
 
     /**
-     * Returns the target user's identifier.
+     * Returns the target user's identifier
      */
     public function getUserId(): UserId
     {
@@ -68,7 +72,7 @@ final readonly class EmailChangeDelivered implements Event
     }
 
     /**
-     * Returns the confirmed delivery generation.
+     * Returns the confirmed delivery generation
      */
     public function getEmailChangeDeliveryId(): EmailChangeDeliveryId
     {

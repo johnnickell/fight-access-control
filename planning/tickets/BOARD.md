@@ -4,7 +4,7 @@ Operational execution view for Fight AccessControl. Ticket files are canonical f
 this board is canonical for recommended order. IDs identify artifacts only. Update this file whenever ticket
 status, dependencies, or roadmap priority changes.
 
-Last updated: 2026-09-10
+Last updated: 2026-09-12
 
 ## “What’s Next?” Contract
 
@@ -16,19 +16,23 @@ When `/ask-matt` or a plain “What’s next?” is invoked:
 
 ## Now
 
-**Human decision:** authorize each external `v0.1.0` publication effect only after the exact release candidate is
-merged to `main`, freshly verified, and bound to the approved signed tag.
+No human decision is currently required.
 
 ## Wayfinder Review
 
-[OpenAPI Schema Components 0.2.0](../wayfinder/openapi-schema-components-0-2-map.md) is active. Its current unblocked
-review target is [WF-005 — Shared Schema Component Catalog](../wayfinder/tickets/WF-005-shared-schema-component-catalog.md).
-Run `$aios /grill-with-docs WF-005`. This planning frontier does not displace the implementation frontier or the
-separate human authorization for 0.1.0 publication effects.
+[OpenAPI schema components for v0.2.0](../wayfinder/openapi-schema-components-v0-2-0-map.md) is closed with
+[T-00033](00033-TICKET.md) as the implementation handoff. [Agent HMAC authentication and direct authority](../wayfinder/agent-hmac-authentication-map.md)
+remains closed and does not displace the implementation frontier.
+
+## In Progress
+
+1. [T-00033: Publish composable OpenAPI schema components for v0.2.0](00033-TICKET.md) — is in progress on the
+   Fight Common PHPCS-baseline and public-PHPDoc migration, then implements the non-autoloaded schema distribution,
+   complete catalog, guide, local composition proof, and release candidate.
 
 ## Ready Frontier
 
-No implementation tickets are currently ready.
+No tickets are currently ready.
 
 ## Waiting
 

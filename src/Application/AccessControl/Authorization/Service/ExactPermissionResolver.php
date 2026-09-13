@@ -9,6 +9,8 @@ use Fight\AccessControl\Domain\AccessControl\Permission\PermissionId;
 use Fight\AccessControl\Domain\AccessControl\Permission\PermissionRepository;
 
 /**
+ * Class ExactPermissionResolver
+ *
  * Resolves authoritative Permission definitions into exact principal snapshots.
  *
  * @internal
@@ -16,6 +18,8 @@ use Fight\AccessControl\Domain\AccessControl\Permission\PermissionRepository;
 final readonly class ExactPermissionResolver
 {
     /**
+     * Constructs ExactPermissionResolver
+     *
      * Creates the exact Permission resolver.
      */
     public function __construct(private PermissionRepository $permissionRepository)
@@ -23,7 +27,7 @@ final readonly class ExactPermissionResolver
     }
 
     /**
-     * Returns ordered snapshots only when the authoritative definitions match every requested identity exactly.
+     * Returns ordered snapshots only when the authoritative definitions match every requested identity exactly
      *
      * @phpstan-param list<PermissionId> $requestedIds
      *
@@ -62,7 +66,7 @@ final readonly class ExactPermissionResolver
     }
 
     /**
-     * Rejects incomplete or mismatched authoritative Permission definitions.
+     * Rejects incomplete or mismatched authoritative Permission definitions
      *
      * @throws ExactPermissionResolutionException Always
      */

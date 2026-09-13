@@ -12,11 +12,15 @@ use Fight\Common\Domain\Exception\DomainException;
 use Fight\Common\Domain\Messaging\Event\Event;
 
 /**
+ * Class PermissionRevokedFromAgent
+ *
  * Records a direct Agent Permission revoke after durable commit.
  */
 final readonly class PermissionRevokedFromAgent implements Event
 {
     /**
+     * Constructs PermissionRevokedFromAgent
+     *
      * Creates the Agent Permission-revoked event.
      */
     public function __construct(
@@ -48,15 +52,15 @@ final readonly class PermissionRevokedFromAgent implements Event
     public function toArray(): array
     {
         return [
-            'actor_id' => $this->actorId->toString(),
-            'agent_id' => $this->agentId->toString(),
+            'actor_id'      => $this->actorId->toString(),
+            'agent_id'      => $this->agentId->toString(),
             'permission_id' => $this->permissionId->toString(),
-            'revoked_at' => $this->revokedAt->format(DATE_ATOM),
+            'revoked_at'    => $this->revokedAt->format(DATE_ATOM)
         ];
     }
 
     /**
-     * Returns the administrative actor.
+     * Returns the administrative actor
      */
     public function getActorId(): UserId
     {
@@ -64,7 +68,7 @@ final readonly class PermissionRevokedFromAgent implements Event
     }
 
     /**
-     * Returns the changed Agent.
+     * Returns the changed Agent
      */
     public function getAgentId(): AgentId
     {
@@ -72,7 +76,7 @@ final readonly class PermissionRevokedFromAgent implements Event
     }
 
     /**
-     * Returns the revoked Permission.
+     * Returns the revoked Permission
      */
     public function getPermissionId(): PermissionId
     {
@@ -80,7 +84,7 @@ final readonly class PermissionRevokedFromAgent implements Event
     }
 
     /**
-     * Returns the revoke time.
+     * Returns the revoke time
      */
     public function getRevokedAt(): DateTimeImmutable
     {

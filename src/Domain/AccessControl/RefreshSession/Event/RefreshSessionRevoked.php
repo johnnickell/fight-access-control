@@ -11,11 +11,15 @@ use Fight\Common\Domain\Exception\DomainException;
 use Fight\Common\Domain\Messaging\Event\Event;
 
 /**
+ * Class RefreshSessionRevoked
+ *
  * Announces safe evidence that an active refresh session was revoked.
  */
 final readonly class RefreshSessionRevoked implements Event
 {
     /**
+     * Constructs RefreshSessionRevoked
+     *
      * Creates the safe session-revocation outcome.
      */
     public function __construct(
@@ -51,15 +55,15 @@ final readonly class RefreshSessionRevoked implements Event
     public function toArray(): array
     {
         return [
-            'actor_id' => $this->actorId->toString(),
-            'user_id' => $this->userId->toString(),
+            'actor_id'           => $this->actorId->toString(),
+            'user_id'            => $this->userId->toString(),
             'refresh_session_id' => $this->refreshSessionId->toString(),
-            'revoked_at' => $this->revokedAt->format(DATE_ATOM),
+            'revoked_at'         => $this->revokedAt->format(DATE_ATOM)
         ];
     }
 
     /**
-     * Returns the user who requested revocation.
+     * Returns the user who requested revocation
      */
     public function getActorId(): UserId
     {
@@ -67,7 +71,7 @@ final readonly class RefreshSessionRevoked implements Event
     }
 
     /**
-     * Returns the user who owned the revoked session.
+     * Returns the user who owned the revoked session
      */
     public function getUserId(): UserId
     {
@@ -75,7 +79,7 @@ final readonly class RefreshSessionRevoked implements Event
     }
 
     /**
-     * Returns the revoked refresh session.
+     * Returns the revoked refresh session
      */
     public function getRefreshSessionId(): RefreshSessionId
     {
@@ -83,7 +87,7 @@ final readonly class RefreshSessionRevoked implements Event
     }
 
     /**
-     * Returns when the revocation was authorized.
+     * Returns when the revocation was authorized
      */
     public function getRevokedAt(): DateTimeImmutable
     {

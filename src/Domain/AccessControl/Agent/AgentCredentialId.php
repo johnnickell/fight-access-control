@@ -7,6 +7,8 @@ namespace Fight\AccessControl\Domain\AccessControl\Agent;
 use Fight\Common\Domain\Identity\UniqueId;
 
 /**
+ * Class AgentCredentialId
+ *
  * Represents a public Agent credential identifier.
  */
 final readonly class AgentCredentialId extends UniqueId

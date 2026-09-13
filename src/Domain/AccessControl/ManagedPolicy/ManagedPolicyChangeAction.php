@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace Fight\AccessControl\Domain\AccessControl\ManagedPolicy;
 
 /**
+ * Enum ManagedPolicyChangeAction
+ *
  * Describes the mutation required to reach one managed definition.
  */
 enum ManagedPolicyChangeAction: string

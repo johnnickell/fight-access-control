@@ -9,11 +9,15 @@ use Fight\AccessControl\Domain\AccessControl\Permission\PermissionName;
 use Fight\AccessControl\Domain\AccessControl\Role\RoleName;
 
 /**
+ * Class SecurityContext
+ *
  * Provides one consumer-selected authenticated authority for a request.
  */
 final readonly class SecurityContext
 {
     /**
+     * Constructs SecurityContext
+     *
      * Creates a request-scoped security context from one selected authenticated authority.
      */
     public function __construct(private AuthenticatedAuthority $authenticatedAuthority)
@@ -21,7 +25,7 @@ final readonly class SecurityContext
     }
 
     /**
-     * Returns the selected immutable authenticated authority.
+     * Returns the selected immutable authenticated authority
      */
     public function getAuthenticatedAuthority(): AuthenticatedAuthority
     {
@@ -29,7 +33,7 @@ final readonly class SecurityContext
     }
 
     /**
-     * Determines whether the selected authority contains a permission name.
+     * Determines whether the selected authority contains a permission name
      */
     public function hasPermission(PermissionName $permissionName): bool
     {
@@ -37,7 +41,7 @@ final readonly class SecurityContext
     }
 
     /**
-     * Determines whether the selected authority contains a role name.
+     * Determines whether the selected authority contains a role name
      */
     public function hasRole(RoleName $roleName): bool
     {

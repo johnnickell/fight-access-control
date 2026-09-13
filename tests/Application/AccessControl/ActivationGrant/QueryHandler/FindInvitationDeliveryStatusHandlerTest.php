@@ -50,9 +50,9 @@ final class FindInvitationDeliveryStatusHandlerTest extends TestCase
         self::assertInstanceOf(Arrayable::class, $view);
         self::assertSame(
             [
-                'user_id' => '018f0000-0000-7000-8000-000000000001',
-                'status' => 'pending',
-                'expires_at' => '2026-08-25T12:00:00+00:00',
+                'user_id'    => '018f0000-0000-7000-8000-000000000001',
+                'status'     => 'pending',
+                'expires_at' => '2026-08-25T12:00:00+00:00'
             ],
             $view->toArray()
         );

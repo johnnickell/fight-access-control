@@ -8,11 +8,15 @@ use Fight\AccessControl\Domain\AccessControl\Role\RoleId;
 use Fight\AccessControl\Domain\AccessControl\Role\RoleName;
 
 /**
+ * Class PrincipalRole
+ *
  * Captures one immutable role entry in an authenticated-principal snapshot.
  */
 final readonly class PrincipalRole
 {
     /**
+     * Constructs PrincipalRole
+     *
      * Creates a role snapshot from its stable aggregate identity and canonical name.
      */
     public function __construct(
@@ -22,7 +26,7 @@ final readonly class PrincipalRole
     }
 
     /**
-     * Returns the stable role aggregate identifier.
+     * Returns the stable role aggregate identifier
      */
     public function getId(): RoleId
     {
@@ -30,7 +34,7 @@ final readonly class PrincipalRole
     }
 
     /**
-     * Returns the canonical role name.
+     * Returns the canonical role name
      */
     public function getName(): RoleName
     {

@@ -10,11 +10,15 @@ use Fight\Common\Domain\Messaging\Command\Command;
 use Fight\Common\Domain\Value\Internet\EmailAddress;
 
 /**
+ * Class CorrectPendingInvitation
+ *
  * Requests an authorized correction of a pending invitation.
  */
 final readonly class CorrectPendingInvitation implements Command
 {
     /**
+     * Constructs CorrectPendingInvitation
+     *
      * Creates a pending-invitation correction command.
      */
     public function __construct(
@@ -50,13 +54,13 @@ final readonly class CorrectPendingInvitation implements Command
     {
         return [
             'actor_id' => $this->actorId->toString(),
-            'user_id' => $this->userId->toString(),
-            'email' => $this->email->toString(),
+            'user_id'  => $this->userId->toString(),
+            'email'    => $this->email->toString()
         ];
     }
 
     /**
-     * Returns the administrative actor.
+     * Returns the administrative actor
      */
     public function getActorId(): UserId
     {
@@ -64,7 +68,7 @@ final readonly class CorrectPendingInvitation implements Command
     }
 
     /**
-     * Returns the pending user.
+     * Returns the pending user
      */
     public function getUserId(): UserId
     {
@@ -72,7 +76,7 @@ final readonly class CorrectPendingInvitation implements Command
     }
 
     /**
-     * Returns the corrected destination.
+     * Returns the corrected destination
      */
     public function getEmail(): EmailAddress
     {

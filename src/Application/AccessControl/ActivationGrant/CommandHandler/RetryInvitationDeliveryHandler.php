@@ -20,11 +20,15 @@ use Fight\Common\Domain\Messaging\Event\CommandFailedEvent;
 use Throwable;
 
 /**
- * Publishes a durable request to retry existing activation delivery work.
+ * Class RetryInvitationDeliveryHandler
+ *
+ * Dispatches a durable request to retry existing activation delivery work.
  */
 final readonly class RetryInvitationDeliveryHandler implements CommandHandler
 {
     /**
+     * Constructs RetryInvitationDeliveryHandler
+     *
      * Creates the activation-delivery retry handler.
      */
     public function __construct(

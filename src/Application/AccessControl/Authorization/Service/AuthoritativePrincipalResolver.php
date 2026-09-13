@@ -19,6 +19,8 @@ use Fight\AccessControl\Domain\AccessControl\User\UserState;
 use Fight\Common\Domain\Collection\HashSet;
 
 /**
+ * Class AuthoritativePrincipalResolver
+ *
  * Resolves request authentication claims against all authoritative principal state.
  *
  * @internal
@@ -26,6 +28,8 @@ use Fight\Common\Domain\Collection\HashSet;
 final readonly class AuthoritativePrincipalResolver
 {
     /**
+     * Constructs AuthoritativePrincipalResolver
+     *
      * Creates an authoritative principal resolver.
      */
     public function __construct(
@@ -38,7 +42,7 @@ final readonly class AuthoritativePrincipalResolver
     }
 
     /**
-     * Returns a principal only when every authentication and authorization reference remains valid.
+     * Returns a principal only when every authentication and authorization reference remains valid
      *
      * @throws PrincipalResolutionException When current principal authority is not valid
      */
@@ -106,7 +110,7 @@ final readonly class AuthoritativePrincipalResolver
     }
 
     /**
-     * Rejects invalid or incomplete principal authority without disclosing which reference failed.
+     * Rejects invalid or incomplete principal authority without disclosing which reference failed
      *
      * @throws PrincipalResolutionException Always
      */

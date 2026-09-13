@@ -10,11 +10,15 @@ use LogicException;
 use SensitiveParameter;
 
 /**
+ * Class AgentProvisioningResult
+ *
  * Carries the first raw Agent HMAC shared secret after successful provisioning.
  */
 final readonly class AgentProvisioningResult
 {
     /**
+     * Constructs AgentProvisioningResult
+     *
      * Creates a non-serializable Agent provisioning result.
      */
     public function __construct(
@@ -25,7 +29,7 @@ final readonly class AgentProvisioningResult
     }
 
     /**
-     * Returns the provisioned Agent identifier.
+     * Returns the provisioned Agent identifier
      */
     public function getAgentId(): AgentId
     {
@@ -33,7 +37,7 @@ final readonly class AgentProvisioningResult
     }
 
     /**
-     * Returns the provisioned Agent credential identifier.
+     * Returns the provisioned Agent credential identifier
      */
     public function getCredentialId(): AgentCredentialId
     {
@@ -41,7 +45,7 @@ final readonly class AgentProvisioningResult
     }
 
     /**
-     * Returns the raw HMAC shared secret exactly to the provisioning caller.
+     * Returns the raw HMAC shared secret exactly to the provisioning caller
      */
     public function getHmacSharedSecret(): string
     {
@@ -49,7 +53,7 @@ final readonly class AgentProvisioningResult
     }
 
     /**
-     * Prevents the raw shared secret from being serialized into a message or durable store.
+     * Prevents the raw shared secret from being serialized into a message or durable store
      */
     public function __serialize(): array
     {

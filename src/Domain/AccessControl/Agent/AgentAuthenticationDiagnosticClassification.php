@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace Fight\AccessControl\Domain\AccessControl\Agent;
 
 /**
+ * Enum AgentAuthenticationDiagnosticClassification
+ *
  * Classifies a failed Agent-principal resolution without exposing authentication material.
  */
 enum AgentAuthenticationDiagnosticClassification: string

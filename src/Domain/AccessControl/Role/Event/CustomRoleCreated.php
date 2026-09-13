@@ -12,11 +12,15 @@ use Fight\Common\Domain\Exception\DomainException;
 use Fight\Common\Domain\Messaging\Event\Event;
 
 /**
+ * Class CustomRoleCreated
+ *
  * Records a custom role creation after durable commit.
  */
 final readonly class CustomRoleCreated implements Event
 {
     /**
+     * Constructs CustomRoleCreated
+     *
      * Creates a custom-role-created event.
      */
     public function __construct(
@@ -48,15 +52,15 @@ final readonly class CustomRoleCreated implements Event
     public function toArray(): array
     {
         return [
-            'actor_id' => $this->actorId->toString(),
-            'role_id' => $this->roleId->toString(),
-            'name' => $this->name->toString(),
-            'created_at' => $this->createdAt->format(DATE_ATOM),
+            'actor_id'   => $this->actorId->toString(),
+            'role_id'    => $this->roleId->toString(),
+            'name'       => $this->name->toString(),
+            'created_at' => $this->createdAt->format(DATE_ATOM)
         ];
     }
 
     /**
-     * Returns the administrative actor.
+     * Returns the administrative actor
      */
     public function getActorId(): UserId
     {
@@ -64,7 +68,7 @@ final readonly class CustomRoleCreated implements Event
     }
 
     /**
-     * Returns the created role.
+     * Returns the created role
      */
     public function getRoleId(): RoleId
     {
@@ -72,7 +76,7 @@ final readonly class CustomRoleCreated implements Event
     }
 
     /**
-     * Returns the created role name.
+     * Returns the created role name
      */
     public function getName(): RoleName
     {
@@ -80,7 +84,7 @@ final readonly class CustomRoleCreated implements Event
     }
 
     /**
-     * Returns the creation time.
+     * Returns the creation time
      */
     public function getCreatedAt(): DateTimeImmutable
     {

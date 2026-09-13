@@ -9,11 +9,15 @@ use Fight\Common\Domain\Exception\DomainException;
 use Fight\Common\Domain\Messaging\Command\Command;
 
 /**
+ * Class DeleteUser
+ *
  * Requests a soft-deletion of an identity while retaining its stable identity.
  */
 final readonly class DeleteUser implements Command
 {
     /**
+     * Constructs DeleteUser
+     *
      * Creates a user-delete command.
      */
     public function __construct(
@@ -46,12 +50,12 @@ final readonly class DeleteUser implements Command
     {
         return [
             'actor_id' => $this->actorId->toString(),
-            'user_id' => $this->userId->toString(),
+            'user_id'  => $this->userId->toString()
         ];
     }
 
     /**
-     * Returns the administrative actor.
+     * Returns the administrative actor
      */
     public function getActorId(): UserId
     {
@@ -59,7 +63,7 @@ final readonly class DeleteUser implements Command
     }
 
     /**
-     * Returns the target user.
+     * Returns the target user
      */
     public function getUserId(): UserId
     {

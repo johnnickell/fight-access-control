@@ -80,7 +80,7 @@ final class PreviewManagedPolicyHandlerTest extends TestCase
             [
                 $this->permission('018f0000-0000-7000-8000-000000000101', 'VIEW_USERS', 'ADMIN_SAFE'),
                 $this->permission('018f0000-0000-7000-8000-000000000102', 'MANAGE_USERS', 'SUPER_ADMIN_ONLY'),
-                $this->permission('018f0000-0000-7000-8000-000000000103', 'ARCHIVE_USERS', 'ADMIN_SAFE'),
+                $this->permission('018f0000-0000-7000-8000-000000000103', 'ARCHIVE_USERS', 'ADMIN_SAFE')
             ],
             [
                 $this->role(
@@ -93,7 +93,7 @@ final class PreviewManagedPolicyHandlerTest extends TestCase
                     'ROLE_ADMIN',
                     [
                         '018f0000-0000-7000-8000-000000000102',
-                        '018f0000-0000-7000-8000-000000000103',
+                        '018f0000-0000-7000-8000-000000000103'
                     ]
                 ),
                 $this->role(
@@ -101,9 +101,9 @@ final class PreviewManagedPolicyHandlerTest extends TestCase
                     'ROLE_EDITOR',
                     [
                         '018f0000-0000-7000-8000-000000000101',
-                        '018f0000-0000-7000-8000-000000000102',
+                        '018f0000-0000-7000-8000-000000000102'
                     ]
-                ),
+                )
             ]
         );
         $handler = new PreviewManagedPolicyHandler(
@@ -215,7 +215,7 @@ final class PreviewManagedPolicyHandlerTest extends TestCase
                     'MANAGE_USERS',
                     'SUPER_ADMIN_ONLY'
                 )],
-                [],
+                []
             ],
             [
                 [$permission, $this->permission(
@@ -223,7 +223,7 @@ final class PreviewManagedPolicyHandlerTest extends TestCase
                     'VIEW_USERS',
                     'SUPER_ADMIN_ONLY'
                 )],
-                [],
+                []
             ],
             [
                 [],
@@ -231,7 +231,7 @@ final class PreviewManagedPolicyHandlerTest extends TestCase
                     '018f0000-0000-7000-8000-000000000201',
                     'ROLE_ADMIN',
                     []
-                )],
+                )]
             ],
             [
                 [],
@@ -239,7 +239,7 @@ final class PreviewManagedPolicyHandlerTest extends TestCase
                     '018f0000-0000-7000-8000-000000000202',
                     'ROLE_VIEWER',
                     []
-                )],
+                )]
             ],
             [
                 [],
@@ -247,8 +247,8 @@ final class PreviewManagedPolicyHandlerTest extends TestCase
                     '018f0000-0000-7000-8000-000000000201',
                     'ROLE_VIEWER',
                     ['018f0000-0000-7000-8000-000000000199']
-                )],
-            ],
+                )]
+            ]
         ];
 
         foreach ($invalidQueries as [$permissions, $roles]) {

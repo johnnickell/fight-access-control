@@ -5,11 +5,15 @@ declare(strict_types=1);
 namespace Fight\AccessControl\Domain\AccessControl\ManagedPolicy;
 
 /**
+ * Class ManagedRolePlanItem
+ *
  * Describes one deterministic managed-role plan item.
  */
 final readonly class ManagedRolePlanItem
 {
     /**
+     * Constructs ManagedRolePlanItem
+     *
      * Constructs a managed-role plan item.
      */
     public function __construct(
@@ -19,7 +23,7 @@ final readonly class ManagedRolePlanItem
     }
 
     /**
-     * Returns the desired managed role definition.
+     * Returns the desired managed role definition
      */
     public function getDefinition(): ManagedRoleDefinition
     {
@@ -27,7 +31,7 @@ final readonly class ManagedRolePlanItem
     }
 
     /**
-     * Returns the required reconciliation action.
+     * Returns the required reconciliation action
      */
     public function getAction(): ManagedPolicyChangeAction
     {

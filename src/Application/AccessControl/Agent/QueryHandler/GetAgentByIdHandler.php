@@ -16,11 +16,15 @@ use Fight\Common\Application\Messaging\Query\QueryHandler;
 use Fight\Common\Domain\Messaging\Query\QueryMessage;
 
 /**
+ * Class GetAgentByIdHandler
+ *
  * Retrieves one exact secret-free Agent administrative view.
  */
 final readonly class GetAgentByIdHandler implements QueryHandler
 {
     /**
+     * Constructs GetAgentByIdHandler
+     *
      * Creates the Agent-identity query handler.
      */
     public function __construct(

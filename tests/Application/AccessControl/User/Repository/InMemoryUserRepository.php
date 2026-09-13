@@ -128,6 +128,7 @@ final class InMemoryUserRepository implements UserRepository
         return null;
     }
 
+    /** @return ResultSet<User> */
     public function getAll(Pagination $pagination): ResultSet
     {
         $records = ArrayList::of(User::class)->replace(array_slice(
@@ -215,7 +216,7 @@ final class InMemoryUserRepository implements UserRepository
         if (
             !$this->authorizationReferences->rolesAreAuthoritative([
                 ...$expected->getRoleIds(),
-                ...$replacement->getRoleIds(),
+                ...$replacement->getRoleIds()
             ])
         ) {
             return false;

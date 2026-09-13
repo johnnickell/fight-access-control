@@ -7,12 +7,14 @@ namespace Fight\AccessControl\Application\AccessControl\EmailChangeGrant\Service
 use Fight\AccessControl\Domain\AccessControl\EmailChangeGrant\EmailChangeCredential;
 
 /**
+ * Interface EmailChangeCredentialGenerator
+ *
  * Generates raw email-change confirmation credentials.
  */
 interface EmailChangeCredentialGenerator
 {
     /**
-     * Generates one credential for immediate hashing and encryption.
+     * Generates one credential for immediate hashing and encryption
      */
     public function generate(): EmailChangeCredential;
 }

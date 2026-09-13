@@ -7,12 +7,14 @@ namespace Fight\AccessControl\Application\AccessControl\Agent\Service;
 use SensitiveParameter;
 
 /**
+ * Interface HmacSharedSecretCipher
+ *
  * Encrypts a raw HMAC shared secret for consumer-owned durable storage.
  */
 interface HmacSharedSecretCipher
 {
     /**
-     * Encrypts one raw HMAC shared secret into a consumer-managed envelope.
+     * Encrypts one raw HMAC shared secret into a consumer-managed envelope
      */
     public function encrypt(#[SensitiveParameter] string $hmacSharedSecret): string;
 }

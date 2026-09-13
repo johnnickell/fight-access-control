@@ -12,11 +12,15 @@ use Fight\Common\Application\Messaging\Query\QueryHandler;
 use Fight\Common\Domain\Messaging\Query\QueryMessage;
 
 /**
+ * Class GetPermissionByIdHandler
+ *
  * Retrieves a safe permission-identity view by stable identifier.
  */
 final readonly class GetPermissionByIdHandler implements QueryHandler
 {
     /**
+     * Constructs GetPermissionByIdHandler
+     *
      * Creates the permission-identity query handler.
      */
     public function __construct(private PermissionRepository $permissionRepository)

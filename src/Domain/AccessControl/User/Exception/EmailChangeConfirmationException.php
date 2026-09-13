@@ -7,6 +7,8 @@ namespace Fight\AccessControl\Domain\AccessControl\User\Exception;
 use Fight\Common\Domain\Exception\DomainException;
 
 /**
+ * Class EmailChangeConfirmationException
+ *
  * Reports an invalid aggregate email-change confirmation.
  */
 final class EmailChangeConfirmationException extends DomainException

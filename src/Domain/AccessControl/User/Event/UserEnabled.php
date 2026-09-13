@@ -9,11 +9,15 @@ use Fight\Common\Domain\Exception\DomainException;
 use Fight\Common\Domain\Messaging\Event\Event;
 
 /**
+ * Class UserEnabled
+ *
  * Records an administrative identity reactivation after durable commit.
  */
 final readonly class UserEnabled implements Event
 {
     /**
+     * Constructs UserEnabled
+     *
      * Creates a user-enabled event.
      */
     public function __construct(
@@ -46,12 +50,12 @@ final readonly class UserEnabled implements Event
     {
         return [
             'actor_id' => $this->actorId->toString(),
-            'user_id' => $this->userId->toString(),
+            'user_id'  => $this->userId->toString()
         ];
     }
 
     /**
-     * Returns the administrative actor.
+     * Returns the administrative actor
      */
     public function getActorId(): UserId
     {
@@ -59,7 +63,7 @@ final readonly class UserEnabled implements Event
     }
 
     /**
-     * Returns the enabled user.
+     * Returns the enabled user
      */
     public function getUserId(): UserId
     {

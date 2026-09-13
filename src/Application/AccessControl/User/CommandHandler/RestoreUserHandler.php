@@ -27,11 +27,15 @@ use LogicException;
 use Throwable;
 
 /**
+ * Class RestoreUserHandler
+ *
  * Atomically restores a deleted identity, issuing fresh activation authority for pending activation.
  */
 final readonly class RestoreUserHandler implements CommandHandler
 {
     /**
+     * Constructs RestoreUserHandler
+     *
      * Creates the user-restore handler.
      */
     public function __construct(

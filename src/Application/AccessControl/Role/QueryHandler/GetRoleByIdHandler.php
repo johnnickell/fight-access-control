@@ -12,11 +12,15 @@ use Fight\Common\Application\Messaging\Query\QueryHandler;
 use Fight\Common\Domain\Messaging\Query\QueryMessage;
 
 /**
+ * Class GetRoleByIdHandler
+ *
  * Retrieves a safe role-identity view by stable identifier.
  */
 final readonly class GetRoleByIdHandler implements QueryHandler
 {
     /**
+     * Constructs GetRoleByIdHandler
+     *
      * Creates the role-identity query handler.
      */
     public function __construct(private RoleRepository $roleRepository)

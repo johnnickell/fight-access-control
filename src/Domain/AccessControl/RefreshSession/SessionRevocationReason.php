@@ -7,6 +7,8 @@ namespace Fight\AccessControl\Domain\AccessControl\RefreshSession;
 use Fight\AccessControl\Domain\AccessControl\RefreshSession\Exception\SessionRevocationReasonException;
 
 /**
+ * Class SessionRevocationReason
+ *
  * Represents bounded, secret-free evidence explaining an administrative session revocation.
  */
 final readonly class SessionRevocationReason
@@ -14,6 +16,8 @@ final readonly class SessionRevocationReason
     private const int MAXIMUM_LENGTH = 500;
 
     /**
+     * Constructs SessionRevocationReason
+     *
      * Constructs a validated administrative revocation reason.
      */
     private function __construct(private string $value)
@@ -21,7 +25,7 @@ final readonly class SessionRevocationReason
     }
 
     /**
-     * Creates a reason from user-supplied text after trimming surrounding whitespace.
+     * Creates a reason from user-supplied text after trimming surrounding whitespace
      */
     public static function fromString(string $value): self
     {
@@ -37,7 +41,7 @@ final readonly class SessionRevocationReason
     }
 
     /**
-     * Returns the validated audit text.
+     * Returns the validated audit text
      */
     public function toString(): string
     {

@@ -7,11 +7,15 @@ namespace Fight\AccessControl\Domain\AccessControl\EmailChangeGrant;
 use Fight\Common\Domain\Exception\DomainException;
 
 /**
+ * Class EmailChangeCredential
+ *
  * Represents a raw email-change confirmation credential.
  */
 final readonly class EmailChangeCredential
 {
     /**
+     * Constructs EmailChangeCredential
+     *
      * Creates an email-change credential.
      */
     private function __construct(private string $value)
@@ -19,7 +23,7 @@ final readonly class EmailChangeCredential
     }
 
     /**
-     * Creates a non-empty email-change credential.
+     * Creates a non-empty email-change credential
      */
     public static function fromString(string $value): self
     {
@@ -31,7 +35,7 @@ final readonly class EmailChangeCredential
     }
 
     /**
-     * Returns the raw credential to the immediate security boundary.
+     * Returns the raw credential to the immediate security boundary
      */
     public function toString(): string
     {

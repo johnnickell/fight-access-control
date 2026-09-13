@@ -9,11 +9,15 @@ use Fight\Common\Domain\Exception\DomainException;
 use Fight\Common\Domain\Messaging\Query\Query;
 
 /**
+ * Class GetRoleById
+ *
  * Queries one role identity by its stable identifier.
  */
 final readonly class GetRoleById implements Query
 {
     /**
+     * Constructs GetRoleById
+     *
      * Constructs the role-identity query.
      */
     public function __construct(private RoleId $roleId)
@@ -41,7 +45,7 @@ final readonly class GetRoleById implements Query
     }
 
     /**
-     * Returns the stable role identifier.
+     * Returns the stable role identifier
      */
     public function getRoleId(): RoleId
     {

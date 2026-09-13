@@ -8,11 +8,15 @@ use Fight\Common\Domain\Type\Arrayable;
 use InvalidArgumentException;
 
 /**
+ * Class AgentAuthenticationDiagnostic
+ *
  * Captures the server-observable, secret-free outcome of one rejected Agent-principal resolution.
  */
 final readonly class AgentAuthenticationDiagnostic implements Arrayable
 {
     /**
+     * Constructs AgentAuthenticationDiagnostic
+     *
      * Creates the safe resolution diagnostic.
      */
     public function __construct(
@@ -27,7 +31,7 @@ final readonly class AgentAuthenticationDiagnostic implements Arrayable
     }
 
     /**
-     * Returns the safe failure classification.
+     * Returns the safe failure classification
      */
     public function getClassification(): AgentAuthenticationDiagnosticClassification
     {
@@ -35,7 +39,7 @@ final readonly class AgentAuthenticationDiagnostic implements Arrayable
     }
 
     /**
-     * Returns the consumer-owned correlation identifier.
+     * Returns the consumer-owned correlation identifier
      */
     public function getCorrelationId(): string
     {
@@ -43,7 +47,7 @@ final readonly class AgentAuthenticationDiagnostic implements Arrayable
     }
 
     /**
-     * Returns the exact safe diagnostic representation.
+     * Returns the exact safe diagnostic representation
      *
      * @return array{classification: string, correlation_id: string}
      */
@@ -51,7 +55,7 @@ final readonly class AgentAuthenticationDiagnostic implements Arrayable
     {
         return [
             'classification' => $this->classification->value,
-            'correlation_id' => $this->correlationId,
+            'correlation_id' => $this->correlationId
         ];
     }
 }

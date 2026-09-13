@@ -17,11 +17,15 @@ use Fight\Common\Domain\Messaging\Query\QueryMessage;
 use Fight\Common\Domain\Repository\ResultSet;
 
 /**
+ * Class ListAgentsHandler
+ *
  * Retrieves one page of exact secret-free Agent administrative views.
  */
 final readonly class ListAgentsHandler implements QueryHandler
 {
     /**
+     * Constructs ListAgentsHandler
+     *
      * Creates the Agent-listing query handler.
      */
     public function __construct(
@@ -36,7 +40,11 @@ final readonly class ListAgentsHandler implements QueryHandler
         return ListAgents::class;
     }
 
-    /** @inheritDoc */
+    /**
+     * Returns safe Agent views
+     *
+     * @return ResultSet<AgentView>
+     */
     public function handle(QueryMessage $queryMessage): ResultSet
     {
         /** @var ListAgents $query */

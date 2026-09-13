@@ -4,20 +4,20 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "7ac85694df372399e5dd5b08cb1803ef",
+    "content-hash": "c1bdf0be79b9692e794f85b6decfa49a",
     "packages": [
         {
             "name": "johnnickell/fight-common",
-            "version": "1.1.0",
+            "version": "v1.2.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/johnnickell/fight-common.git",
-                "reference": "fdd48065c5527f4968943db7d61d6f1ad17619e7"
+                "reference": "a2cd615d9b5064c9c30e994655536176249cd73b"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/johnnickell/fight-common/zipball/fdd48065c5527f4968943db7d61d6f1ad17619e7",
-                "reference": "fdd48065c5527f4968943db7d61d6f1ad17619e7",
+                "url": "https://api.github.com/repos/johnnickell/fight-common/zipball/a2cd615d9b5064c9c30e994655536176249cd73b",
+                "reference": "a2cd615d9b5064c9c30e994655536176249cd73b",
                 "shasum": ""
             },
             "require": {
@@ -27,59 +27,93 @@
                 "psr/http-client": "^1.0",
                 "psr/http-factory": "^1.1",
                 "psr/http-message": "^2.0",
+                "psr/http-server-handler": "^1.0",
+                "psr/http-server-middleware": "^1.0",
                 "psr/log": "^3.0"
             },
             "require-dev": {
+                "codeigniter4/framework": "^4.7",
+                "codeigniter4/queue": "^1.0",
+                "deptrac/deptrac": "^4.7",
                 "doctrine/dbal": "^4.4",
                 "doctrine/orm": "^3.6",
                 "dragonmantank/cron-expression": "^3.0",
                 "guzzlehttp/guzzle": "^7.10",
                 "guzzlehttp/promises": "^2.3",
                 "guzzlehttp/psr7": "^2.9",
+                "laravel/framework": "^13.0",
                 "lcobucci/jwt": "^5.6",
                 "league/flysystem": "^3.0",
                 "mockery/mockery": "^1.6",
+                "nikic/php-parser": "^5.8",
                 "phpseclib/phpseclib": "^3.0",
                 "phpstan/phpstan": "^2.1",
                 "phpunit/phpunit": "^13.0",
+                "psr/simple-cache": "^3.0",
                 "rector/rector": "^2.4",
+                "slevomat/coding-standard": "^8.27",
+                "slim/slim": "^4.14",
                 "squizlabs/php_codesniffer": "^4.0",
-                "symfony/dependency-injection": "^8.0",
-                "symfony/event-dispatcher": "^8.0",
-                "symfony/filesystem": "^8.0",
-                "symfony/finder": "^8.0",
-                "symfony/http-foundation": "^8.0",
-                "symfony/http-kernel": "^8.0",
-                "symfony/mailer": "^8.0",
+                "symfony/dependency-injection": "^8.1",
+                "symfony/event-dispatcher": "^8.1",
+                "symfony/filesystem": "^8.1",
+                "symfony/finder": "^8.1",
+                "symfony/http-foundation": "^8.1",
+                "symfony/http-kernel": "^8.1",
+                "symfony/mailer": "^8.1",
                 "symfony/mercure": "^0.7",
-                "symfony/messenger": "^8.0",
-                "symfony/process": "^7.0",
-                "symfony/routing": "^8.0",
+                "symfony/messenger": "^8.1",
+                "symfony/process": "^8.1",
+                "symfony/routing": "^8.1",
                 "twig/twig": "^3.0",
-                "twilio/sdk": "^8.0"
+                "twilio/sdk": "^8.0",
+                "yiisoft/db": "^2.0",
+                "yiisoft/db-sqlite": "^2.0",
+                "yiisoft/di": "^1.4",
+                "yiisoft/files": "^2.0",
+                "yiisoft/mailer": "^6.1",
+                "yiisoft/router": "^4.0",
+                "yiisoft/router-fastroute": "^4.0",
+                "yiisoft/view": "^12.2"
             },
             "suggest": {
+                "codeigniter4/framework": "Required by the CodeIgniter transaction and capability service delegates",
+                "codeigniter4/queue": "Required by the CodeIgniter Queue messaging adapters",
+                "deptrac/deptrac": "Required to run optional architecture checks in a consuming repository",
                 "doctrine/dbal": "Required by the custom doctrine data types",
-                "doctrine/orm": "Required by the doctrine unit of work, audit repository, and base repository",
+                "doctrine/orm": "Required by the canonical Doctrine transactional unit of work, legacy 1.x unit of work, audit repository, and base repository",
                 "dragonmantank/cron-expression": "Required by the Scheduler for cron expression parsing",
                 "guzzlehttp/guzzle": "Required by the guzzle http client adapter",
                 "guzzlehttp/promises": "Required by the guzzle http client adapter",
                 "guzzlehttp/psr7": "Required by the guzzle http client adapter",
+                "laravel/framework": "Required by the Laravel cache, queue, transaction, security, routing, and capability provider adapters",
                 "lcobucci/jwt": "Required by the jwt token encoder and decoder",
                 "league/flysystem": "Required by the flysystem file storage adapter",
                 "phpseclib/phpseclib": "Required by the SFTP file transport adapter",
+                "psr/simple-cache": "Required by the optional PSR-16 read-through cache adapter",
+                "slevomat/coding-standard": "Required by the optional FightCommon PHP_CodeSniffer standard",
+                "slim/slim": "Required by the Slim HTTP and middleware adapter prototypes",
+                "squizlabs/php_codesniffer": "Required to run the optional FightCommon PHP_CodeSniffer standard",
                 "symfony/dependency-injection": "Required by the Symfony compilation passes",
                 "symfony/event-dispatcher": "Required by the validation and other event subscribers",
                 "symfony/filesystem": "Required for the filesystem adapter",
                 "symfony/http-foundation": "Required for the JSend response and other HTTP related utilities",
                 "symfony/http-kernel": "Required for the kernel middleware and other HTTP related utilities",
                 "symfony/mailer": "Required by the Symfony mail transport and attachment adapters",
-                "symfony/mercure": "Required by the Mercure hub publisher",
+                "symfony/mercure": "Required by the public and private Mercure hub publishers",
                 "symfony/messenger": "Required by the async messenger command bus and event dispatcher",
                 "symfony/process": "Required by the Symfony process runner adapter",
                 "symfony/routing": "Required for the URL generator",
                 "twig/twig": "Required by the Twig template engine adapter",
-                "twilio/sdk": "Required by the Twilio SMS transport adapter"
+                "twilio/sdk": "Required by the Twilio SMS transport adapter",
+                "yiisoft/db": "Required by the Yii DB transactional unit of work adapter",
+                "yiisoft/db-sqlite": "Required to run the Yii DB transactional unit of work adapter conformance tests",
+                "yiisoft/di": "Required to boot Yii capability service providers",
+                "yiisoft/files": "Required to evaluate Yii Files against the shared Fight filesystem conformance suite",
+                "yiisoft/mailer": "Required to evaluate Yii Mail against the shared Fight mail conformance suite",
+                "yiisoft/router": "Required by the Yii URL generator adapter",
+                "yiisoft/router-fastroute": "Required to run the Yii URL generator adapter conformance tests",
+                "yiisoft/view": "Required to evaluate Yii View against the shared Fight templating conformance suite"
             },
             "type": "library",
             "autoload": {
@@ -95,12 +129,12 @@
             "license": [
                 "MIT"
             ],
-            "description": "A common library for $FIGHT projects",
+            "description": "A shared PHP library for Hexagonal Architecture, CQRS, and reusable domain primitives",
             "support": {
                 "issues": "https://github.com/johnnickell/fight-common/issues",
-                "source": "https://github.com/johnnickell/fight-common/tree/1.1.0"
+                "source": "https://github.com/johnnickell/fight-common/tree/v1.2.0"
             },
-            "time": "2026-06-04T15:42:59+00:00"
+            "time": "2026-09-13T00:57:20+00:00"
         },
         {
             "name": "psr/cache",
@@ -363,6 +397,119 @@
                 "source": "https://github.com/php-fig/http-message/tree/2.0"
             },
             "time": "2023-04-04T09:54:51+00:00"
+        },
+        {
+            "name": "psr/http-server-handler",
+            "version": "1.0.2",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/php-fig/http-server-handler.git",
+                "reference": "84c4fb66179be4caaf8e97bd239203245302e7d4"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/php-fig/http-server-handler/zipball/84c4fb66179be4caaf8e97bd239203245302e7d4",
+                "reference": "84c4fb66179be4caaf8e97bd239203245302e7d4",
+                "shasum": ""
+            },
+            "require": {
+                "php": ">=7.0",
+                "psr/http-message": "^1.0 || ^2.0"
+            },
+            "type": "library",
+            "extra": {
+                "branch-alias": {
+                    "dev-master": "1.0.x-dev"
+                }
+            },
+            "autoload": {
+                "psr-4": {
+                    "Psr\\Http\\Server\\": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "PHP-FIG",
+                    "homepage": "https://www.php-fig.org/"
+                }
+            ],
+            "description": "Common interface for HTTP server-side request handler",
+            "keywords": [
+                "handler",
+                "http",
+                "http-interop",
+                "psr",
+                "psr-15",
+                "psr-7",
+                "request",
+                "response",
+                "server"
+            ],
+            "support": {
+                "source": "https://github.com/php-fig/http-server-handler/tree/1.0.2"
+            },
+            "time": "2023-04-10T20:06:20+00:00"
+        },
+        {
+            "name": "psr/http-server-middleware",
+            "version": "1.0.2",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/php-fig/http-server-middleware.git",
+                "reference": "c1481f747daaa6a0782775cd6a8c26a1bf4a3829"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/php-fig/http-server-middleware/zipball/c1481f747daaa6a0782775cd6a8c26a1bf4a3829",
+                "reference": "c1481f747daaa6a0782775cd6a8c26a1bf4a3829",
+                "shasum": ""
+            },
+            "require": {
+                "php": ">=7.0",
+                "psr/http-message": "^1.0 || ^2.0",
+                "psr/http-server-handler": "^1.0"
+            },
+            "type": "library",
+            "extra": {
+                "branch-alias": {
+                    "dev-master": "1.0.x-dev"
+                }
+            },
+            "autoload": {
+                "psr-4": {
+                    "Psr\\Http\\Server\\": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "PHP-FIG",
+                    "homepage": "https://www.php-fig.org/"
+                }
+            ],
+            "description": "Common interface for HTTP server-side middleware",
+            "keywords": [
+                "http",
+                "http-interop",
+                "middleware",
+                "psr",
+                "psr-15",
+                "psr-7",
+                "request",
+                "response"
+            ],
+            "support": {
+                "issues": "https://github.com/php-fig/http-server-middleware/issues",
+                "source": "https://github.com/php-fig/http-server-middleware/tree/1.0.2"
+            },
+            "time": "2023-04-11T06:14:47+00:00"
         },
         {
             "name": "psr/log",

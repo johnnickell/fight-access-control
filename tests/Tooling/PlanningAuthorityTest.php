@@ -121,6 +121,7 @@ final class PlanningAuthorityTest extends TestCase
         $userRoles = $this->read('planning/tickets/00030-TICKET.md');
         $customRolePermissions = $this->read('planning/tickets/00031-TICKET.md');
         $releasePreparation = $this->read('planning/tickets/00032-TICKET.md');
+        $openApiComponents = $this->read('planning/tickets/00033-TICKET.md');
         $board = $this->read('planning/tickets/BOARD.md');
         $tickets = $this->read('planning/tickets/README.md');
         $prd = $this->read('planning/specs/00003-PRD.md');
@@ -145,7 +146,11 @@ final class PlanningAuthorityTest extends TestCase
         self::assertStringContainsString('status: done', $releasePreparation);
         self::assertStringNotContainsString('- [ ]', $releasePreparation);
         self::assertStringContainsString('v0.1.0', $releasePreparation);
-        self::assertStringContainsString('No implementation tickets are currently ready.', $board);
+        self::assertStringContainsString('id: T-00033', $openApiComponents);
+        self::assertStringContainsString('prd: PRD-00005', $openApiComponents);
+        self::assertStringContainsString('status: in-progress', $openApiComponents);
+        self::assertStringContainsString('## In Progress', $board);
+        self::assertStringContainsString('1. [T-00033:', $board);
         self::assertStringNotContainsString('1. [T-00030', $board);
         self::assertStringNotContainsString('1. [T-00031', $board);
         self::assertStringNotContainsString('| [T-00027](00027-TICKET.md) | T-00026 |', $board);
@@ -177,7 +182,7 @@ final class PlanningAuthorityTest extends TestCase
         $process->run();
 
         self::assertSame(0, $process->getExitCode(), $process->getErrorOutput().$process->getOutput());
-        self::assertStringContainsString('Planning validation passed: 38 records, 0 active', $process->getOutput());
+        self::assertStringContainsString('Planning validation passed: 41 records, 3 active', $process->getOutput());
     }
 
     protected function setUp(): void

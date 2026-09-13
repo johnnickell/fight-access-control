@@ -11,6 +11,8 @@ use Fight\AccessControl\Domain\AccessControl\User\UserId;
 use Fight\Common\Domain\Value\Internet\EmailAddress;
 
 /**
+ * Class EmailChangeDelivery
+ *
  * Represents bounded encrypted delivery work owned by an email-change grant.
  *
  * @phpstan-consistent-constructor
@@ -18,6 +20,8 @@ use Fight\Common\Domain\Value\Internet\EmailAddress;
 class EmailChangeDelivery
 {
     /**
+     * Constructs EmailChangeDelivery
+     *
      * Creates pending email-change delivery work.
      */
     protected function __construct(
@@ -31,7 +35,7 @@ class EmailChangeDelivery
     }
 
     /**
-     * Creates recoverable delivery work.
+     * Creates recoverable delivery work
      */
     public static function create(
         EmailChangeDeliveryId $id,
@@ -48,7 +52,7 @@ class EmailChangeDelivery
     }
 
     /**
-     * Returns the delivery-generation identifier.
+     * Returns the delivery-generation identifier
      */
     public function getId(): EmailChangeDeliveryId
     {
@@ -56,7 +60,7 @@ class EmailChangeDelivery
     }
 
     /**
-     * Returns the owning user identifier.
+     * Returns the owning user identifier
      */
     public function getUserId(): UserId
     {
@@ -64,7 +68,7 @@ class EmailChangeDelivery
     }
 
     /**
-     * Returns the reserved destination email.
+     * Returns the reserved destination email
      */
     public function getEmail(): EmailAddress
     {
@@ -72,7 +76,7 @@ class EmailChangeDelivery
     }
 
     /**
-     * Returns the encrypted confirmation credential.
+     * Returns the encrypted confirmation credential
      */
     public function getCiphertext(): ?string
     {
@@ -80,7 +84,7 @@ class EmailChangeDelivery
     }
 
     /**
-     * Claims pending work before invoking its consumer-owned transport.
+     * Acquires pending work before invoking its consumer-owned transport
      */
     public function claim(): self
     {
@@ -108,7 +112,7 @@ class EmailChangeDelivery
     }
 
     /**
-     * Confirms successful invocation and destroys recoverable material.
+     * Completes successful invocation and destroys recoverable material
      */
     public function confirm(): self
     {
@@ -129,7 +133,7 @@ class EmailChangeDelivery
     }
 
     /**
-     * Records a failed invocation while retaining recoverable material.
+     * Records a failed invocation while retaining recoverable material
      */
     public function fail(): self
     {
@@ -150,7 +154,7 @@ class EmailChangeDelivery
     }
 
     /**
-     * Returns the terminal expiry shared with the grant.
+     * Returns the terminal expiry shared with the grant
      */
     public function getExpiresAt(): DateTimeImmutable
     {
@@ -158,7 +162,7 @@ class EmailChangeDelivery
     }
 
     /**
-     * Destroys recoverable confirmation material.
+     * Deletes recoverable confirmation material
      */
     public function invalidate(): self
     {
@@ -170,7 +174,7 @@ class EmailChangeDelivery
     }
 
     /**
-     * Returns whether encrypted confirmation material remains recoverable.
+     * Returns whether encrypted confirmation material remains recoverable
      */
     public function isRecoverable(): bool
     {
@@ -178,7 +182,7 @@ class EmailChangeDelivery
     }
 
     /**
-     * Returns the safe operational status.
+     * Returns the safe operational status
      */
     public function getStatus(): EmailChangeDeliveryStatus
     {
@@ -186,7 +190,7 @@ class EmailChangeDelivery
     }
 
     /**
-     * Returns whether invocation may be attempted now or after a failed transport.
+     * Returns whether invocation may be attempted now or after a failed transport
      */
     public function isRetryable(): bool
     {

@@ -18,6 +18,8 @@ use Fight\Common\Domain\Collection\HashSet;
 use Fight\Common\Domain\Value\Internet\EmailAddress;
 
 /**
+ * Class User
+ *
  * Represents a stable user identity.
  */
 class User
@@ -26,6 +28,8 @@ class User
     private HashSet $roleIds;
 
     /**
+     * Constructs User
+     *
      * Creates a user identity.
      *
      * @phpstan-param list<RoleId> $roleIds
@@ -53,7 +57,7 @@ class User
     }
 
     /**
-     * Creates a pending user from an email address.
+     * Creates a pending user from an email address
      */
     public static function invite(UserId $id, EmailAddress $email, DateTimeImmutable $createdAt): self
     {
@@ -61,7 +65,7 @@ class User
     }
 
     /**
-     * Returns the stable user identifier.
+     * Returns the stable user identifier
      */
     public function getId(): UserId
     {
@@ -69,7 +73,7 @@ class User
     }
 
     /**
-     * Returns the creation timestamp.
+     * Returns the creation timestamp
      */
     public function getCreatedAt(): DateTimeImmutable
     {
@@ -77,7 +81,7 @@ class User
     }
 
     /**
-     * Returns the last-update timestamp.
+     * Returns the last-update timestamp
      */
     public function getUpdatedAt(): DateTimeImmutable
     {
@@ -85,7 +89,7 @@ class User
     }
 
     /**
-     * Returns the canonical email address.
+     * Returns the canonical email address
      */
     public function getEmail(): EmailAddress
     {
@@ -93,7 +97,7 @@ class User
     }
 
     /**
-     * Reserves a destination email while retaining the canonical identity.
+     * Stores a destination email while retaining the canonical identity
      *
      * @throws EmailChangeRequestException When the identity cannot begin an email change.
      */
@@ -117,7 +121,7 @@ class User
     }
 
     /**
-     * Returns the pending email-change destination.
+     * Returns the pending email-change destination
      */
     public function getPendingEmailChange(): ?EmailAddress
     {
@@ -125,7 +129,7 @@ class User
     }
 
     /**
-     * Returns the monotonic email-change reservation revision.
+     * Returns the monotonic email-change reservation revision
      */
     public function getEmailChangeReservationRevision(): int
     {
@@ -133,7 +137,7 @@ class User
     }
 
     /**
-     * Corrects the canonical email of an identity still pending activation.
+     * Updates the canonical email of an identity still pending activation
      *
      * @throws PendingInvitationCorrectionException When the identity cannot be corrected.
      */
@@ -153,7 +157,7 @@ class User
     }
 
     /**
-     * Returns the monotonic canonical-email persistence revision.
+     * Returns the monotonic canonical-email persistence revision
      */
     public function getCanonicalEmailRevision(): int
     {
@@ -161,7 +165,7 @@ class User
     }
 
     /**
-     * Promotes a live destination and invalidates prior authentication authority.
+     * Updates a live destination and invalidates prior authentication authority
      *
      * @throws EmailChangeConfirmationException When no destination can be promoted.
      */
@@ -180,7 +184,7 @@ class User
     }
 
     /**
-     * Clears the active identity's pending email-change reservation.
+     * Clears the active identity's pending email-change reservation
      *
      * @throws EmailChangeCancellationException When no reservation can be cancelled.
      */
@@ -196,7 +200,7 @@ class User
     }
 
     /**
-     * Clears the active identity's expired email-change reservation.
+     * Clears the active identity's expired email-change reservation
      *
      * @throws EmailChangeExpirationException When no reservation can expire.
      */
@@ -212,7 +216,7 @@ class User
     }
 
     /**
-     * Returns the lifecycle state.
+     * Returns the lifecycle state
      */
     public function getState(): UserState
     {
@@ -220,7 +224,7 @@ class User
     }
 
     /**
-     * Suspends an active identity without deleting it.
+     * Disables an active identity without deleting it
      *
      * @throws UserLifecycleException When the identity is not active.
      */
@@ -235,7 +239,7 @@ class User
     }
 
     /**
-     * Restores a disabled identity to active without returning prior sessions.
+     * Restores a disabled identity to active without returning prior sessions
      *
      * @throws UserLifecycleException When the identity is not disabled.
      */
@@ -250,7 +254,7 @@ class User
     }
 
     /**
-     * Soft-deletes an active or disabled identity while retaining its stable identity.
+     * Deletes an active or disabled identity while retaining its stable identity
      *
      * @throws UserLifecycleException When the identity cannot be deleted.
      */
@@ -265,7 +269,7 @@ class User
     }
 
     /**
-     * Restores a deleted identity to an active or pending-activation state.
+     * Restores a deleted identity to an active or pending-activation state
      *
      * @throws UserLifecycleException When the identity is not deleted or the target is unsupported.
      */
@@ -291,7 +295,7 @@ class User
     }
 
     /**
-     * Returns an isolated snapshot of assigned role identifiers.
+     * Returns an isolated snapshot of assigned role identifiers
      *
      * @return list<RoleId>
      */
@@ -301,7 +305,7 @@ class User
     }
 
     /**
-     * Determines whether the user has a role assignment.
+     * Determines whether the user has a role assignment
      */
     public function hasRole(RoleId $roleId): bool
     {
@@ -309,7 +313,7 @@ class User
     }
 
     /**
-     * Assigns one role and advances assignment authority exactly once when needed.
+     * Assigns one role and advances assignment authority exactly once when needed
      *
      * Returns whether the User state changed.
      */
@@ -327,7 +331,7 @@ class User
     }
 
     /**
-     * Removes one role and advances assignment authority exactly once when needed.
+     * Removes one role and advances assignment authority exactly once when needed
      *
      * Returns whether the User state changed.
      */
@@ -345,7 +349,7 @@ class User
     }
 
     /**
-     * Replaces the complete role-assignment set and advances its authority once when changed.
+     * Replaces the complete role-assignment set and advances its authority once when changed
      *
      * @phpstan-param iterable<RoleId> $roleIds
      */
@@ -366,7 +370,7 @@ class User
     }
 
     /**
-     * Returns the monotonic authorization-assignment persistence revision.
+     * Returns the monotonic authorization-assignment persistence revision
      */
     public function getAuthorizationAssignmentRevision(): int
     {
@@ -374,7 +378,7 @@ class User
     }
 
     /**
-     * Activates the pending identity with its initial password hash.
+     * Enables the pending identity with its initial password hash
      *
      * @throws UserNotPendingActivationException When the identity is not pending activation.
      */
@@ -390,7 +394,7 @@ class User
     }
 
     /**
-     * Returns the established password hash.
+     * Returns the established password hash
      */
     public function getPasswordHash(): ?PasswordHash
     {
@@ -398,7 +402,7 @@ class User
     }
 
     /**
-     * Replaces an active identity's password hash after successful verification.
+     * Replaces an active identity's password hash after successful verification
      */
     public function rehashPassword(PasswordHash $passwordHash, DateTimeImmutable $now): void
     {
@@ -411,7 +415,7 @@ class User
     }
 
     /**
-     * Replaces a verified active identity's password and invalidates prior authentication authority.
+     * Replaces a verified active identity's password and invalidates prior authentication authority
      */
     public function changePassword(PasswordHash $passwordHash, DateTimeImmutable $now): void
     {
@@ -425,7 +429,7 @@ class User
     }
 
     /**
-     * Replaces an active identity's password and invalidates prior authentication authority.
+     * Replaces an active identity's password and invalidates prior authentication authority
      */
     public function resetPassword(PasswordHash $passwordHash, DateTimeImmutable $now): void
     {
@@ -439,7 +443,7 @@ class User
     }
 
     /**
-     * Returns the authoritative authentication version.
+     * Returns the authoritative authentication version
      */
     public function getAuthenticationVersion(): int
     {
@@ -447,7 +451,7 @@ class User
     }
 
     /**
-     * Advances the monotonic revision used to serialize credential-authority persistence.
+     * Advances the monotonic revision used to serialize credential-authority persistence
      */
     public function advanceAuthenticationAuthorityRevision(): void
     {
@@ -455,7 +459,7 @@ class User
     }
 
     /**
-     * Returns the monotonic credential-authority persistence revision.
+     * Returns the monotonic credential-authority persistence revision
      */
     public function getAuthenticationAuthorityRevision(): int
     {
@@ -463,7 +467,7 @@ class User
     }
 
     /**
-     * Gives a cloned identity an independent mutable assignment set.
+     * Assigns a cloned identity an independent mutable assignment set
      */
     public function __clone(): void
     {

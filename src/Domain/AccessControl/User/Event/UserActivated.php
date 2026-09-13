@@ -11,11 +11,15 @@ use Fight\Common\Domain\Exception\DomainException;
 use Fight\Common\Domain\Messaging\Event\Event;
 
 /**
+ * Class UserActivated
+ *
  * Records an invited identity activation after its durable state committed.
  */
 final readonly class UserActivated implements Event
 {
     /**
+     * Constructs UserActivated
+     *
      * Constructs the account-activation event.
      */
     public function __construct(
@@ -52,12 +56,12 @@ final readonly class UserActivated implements Event
         return [
             'user_id'            => $this->userId->toString(),
             'refresh_session_id' => $this->refreshSessionId->toString(),
-            'activated_at'       => $this->activatedAt->format(DATE_ATOM),
+            'activated_at'       => $this->activatedAt->format(DATE_ATOM)
         ];
     }
 
     /**
-     * Returns the activated user identifier.
+     * Returns the activated user identifier
      */
     public function getUserId(): UserId
     {
@@ -65,7 +69,7 @@ final readonly class UserActivated implements Event
     }
 
     /**
-     * Returns the first refresh-session identifier.
+     * Returns the first refresh-session identifier
      */
     public function getRefreshSessionId(): RefreshSessionId
     {
@@ -73,7 +77,7 @@ final readonly class UserActivated implements Event
     }
 
     /**
-     * Returns when the account became active.
+     * Returns when the account became active
      */
     public function getActivatedAt(): DateTimeImmutable
     {

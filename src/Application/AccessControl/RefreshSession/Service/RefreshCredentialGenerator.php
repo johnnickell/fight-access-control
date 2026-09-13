@@ -7,12 +7,14 @@ namespace Fight\AccessControl\Application\AccessControl\RefreshSession\Service;
 use Fight\AccessControl\Domain\AccessControl\RefreshSession\RefreshCredential;
 
 /**
+ * Interface RefreshCredentialGenerator
+ *
  * Generates opaque refresh credentials using consumer-owned cryptography.
  */
 interface RefreshCredentialGenerator
 {
     /**
-     * Generates one unpredictable refresh credential.
+     * Generates one unpredictable refresh credential
      */
     public function generate(): RefreshCredential;
 }

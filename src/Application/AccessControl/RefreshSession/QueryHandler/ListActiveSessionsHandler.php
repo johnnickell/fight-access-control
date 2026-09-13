@@ -8,18 +8,22 @@ use Fight\AccessControl\Application\AccessControl\RefreshSession\Service\Session
 use Fight\AccessControl\Application\AccessControl\Timing\Service\Clock;
 use Fight\AccessControl\Domain\AccessControl\RefreshSession\Query\ListActiveSessions;
 use Fight\AccessControl\Domain\AccessControl\RefreshSession\Query\SessionView;
-use Fight\AccessControl\Domain\AccessControl\RefreshSession\RefreshSession;
 use Fight\AccessControl\Domain\AccessControl\RefreshSession\RefreshSessionRepository;
 use Fight\Common\Application\Messaging\Query\QueryHandler;
+use Fight\Common\Domain\Collection\ArrayList;
 use Fight\Common\Domain\Messaging\Query\QueryMessage;
 use Fight\Common\Domain\Repository\ResultSet;
 
 /**
+ * Class ListActiveSessionsHandler
+ *
  * Retrieves safe active-session views for a user.
  */
 final readonly class ListActiveSessionsHandler implements QueryHandler
 {
     /**
+     * Constructs ListActiveSessionsHandler
+     *
      * Creates the active-session query handler.
      */
     public function __construct(
@@ -29,16 +33,16 @@ final readonly class ListActiveSessionsHandler implements QueryHandler
     ) {
     }
 
-    /**
-     * @inheritDoc
-     */
+    /** @inheritDoc */
     public static function queryRegistration(): string
     {
         return ListActiveSessions::class;
     }
 
     /**
-     * @inheritDoc
+     * Returns safe active-session views
+     *
+     * @return ResultSet<SessionView>
      */
     public function handle(QueryMessage $queryMessage): ResultSet
     {
@@ -58,13 +62,10 @@ final readonly class ListActiveSessionsHandler implements QueryHandler
             $now,
             $query->getPagination()
         );
-        $views = $activeSessions->records()->map(
-            fn(RefreshSession $refreshSession): SessionView => SessionView::fromSession(
-                $refreshSession,
-                $query->getCurrentSessionId()
-            ),
-            SessionView::class
-        );
+        $views = ArrayList::of(SessionView::class);
+        foreach ($activeSessions->records() as $refreshSession) {
+            $views->add(SessionView::fromSession($refreshSession, $query->getCurrentSessionId()));
+        }
 
         return new ResultSet(
             $activeSessions->page(),

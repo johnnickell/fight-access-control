@@ -20,11 +20,15 @@ use Fight\Common\Domain\Messaging\Event\CommandFailedEvent;
 use Throwable;
 
 /**
+ * Class DeliverEmailChangeHandler
+ *
  * Invokes durable email-change delivery through a consumer-owned transport-neutral port.
  */
 final readonly class DeliverEmailChangeHandler implements CommandHandler
 {
     /**
+     * Constructs DeliverEmailChangeHandler
+     *
      * Creates the email-change delivery handler.
      */
     public function __construct(

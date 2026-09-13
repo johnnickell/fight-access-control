@@ -49,7 +49,7 @@ final class QualityGateTest extends TestCase
                 'php tests/Architecture/PackageBoundaryBehaviorTest.php',
                 implode(' ', [
                     'php vendor/bin/rector process src/',
-                    'tests/Tooling/ tests/Domain/ tests/Application/ scripts/ --dry-run',
+                    'tests/Tooling/ tests/Domain/ tests/Application/ scripts/ --dry-run'
                 ]),
                 'php vendor/bin/phpunit --fail-on-skipped',
                 'coverage',
@@ -92,7 +92,7 @@ final class QualityGateTest extends TestCase
                 'rector.php',
                 'src/Example.php',
                 'tests/ExampleTest.php',
-                'scripts/Tool.php',
+                'scripts/Tool.php'
             ] as $file
         ) {
             file_put_contents($this->directory.'/'.$file, "<?php\n");

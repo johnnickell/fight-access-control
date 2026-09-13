@@ -130,6 +130,7 @@ final class SessionRevocationServiceTest extends TestCase
                 return $this->session;
             }
 
+            /** @return ResultSet<RefreshSession> */
             public function getByUserId(UserId $userId, DateTimeImmutable $at, Pagination $pagination): ResultSet
             {
                 return new ResultSet(1, 1, 0, ArrayList::of(RefreshSession::class));

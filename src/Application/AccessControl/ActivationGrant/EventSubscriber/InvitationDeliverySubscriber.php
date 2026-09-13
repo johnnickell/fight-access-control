@@ -15,11 +15,15 @@ use Fight\Common\Application\Messaging\Event\EventSubscriber;
 use Fight\Common\Domain\Messaging\Event\EventMessage;
 
 /**
+ * Class InvitationDeliverySubscriber
+ *
  * Routes invitation events to invocation-neutral invitation delivery.
  */
 final readonly class InvitationDeliverySubscriber implements EventSubscriber
 {
     /**
+     * Constructs InvitationDeliverySubscriber
+     *
      * Creates the invitation-delivery subscriber.
      */
     public function __construct(private CommandBus $commandBus)
@@ -32,15 +36,15 @@ final readonly class InvitationDeliverySubscriber implements EventSubscriber
     public static function eventRegistration(): array
     {
         return [
-            InvitationDeliveryResent::class => 'onInvitationDeliveryResent',
+            InvitationDeliveryResent::class         => 'onInvitationDeliveryResent',
             InvitationDeliveryRetryRequested::class => 'onInvitationDeliveryRetryRequested',
-            UserInvited::class => 'onUserInvited',
-            UserRestored::class => 'onUserRestored',
+            UserInvited::class                      => 'onUserInvited',
+            UserRestored::class                     => 'onUserRestored'
         ];
     }
 
     /**
-     * Dispatches delivery after a replacement invitation is published.
+     * Dispatches delivery after a replacement invitation is published
      */
     public function onInvitationDeliveryResent(EventMessage $eventMessage): void
     {
@@ -54,7 +58,7 @@ final readonly class InvitationDeliverySubscriber implements EventSubscriber
     }
 
     /**
-     * Dispatches delivery after the retry request is published.
+     * Dispatches delivery after the retry request is published
      */
     public function onInvitationDeliveryRetryRequested(EventMessage $eventMessage): void
     {
@@ -68,7 +72,7 @@ final readonly class InvitationDeliverySubscriber implements EventSubscriber
     }
 
     /**
-     * Dispatches initial invitation delivery after durable invitation creation.
+     * Dispatches initial invitation delivery after durable invitation creation
      */
     public function onUserInvited(EventMessage $eventMessage): void
     {
@@ -82,7 +86,7 @@ final readonly class InvitationDeliverySubscriber implements EventSubscriber
     }
 
     /**
-     * Dispatches delivery after a pending-activation restoration publishes its replacement invitation.
+     * Dispatches delivery after a pending-activation restoration publishes its replacement invitation
      */
     public function onUserRestored(EventMessage $eventMessage): void
     {

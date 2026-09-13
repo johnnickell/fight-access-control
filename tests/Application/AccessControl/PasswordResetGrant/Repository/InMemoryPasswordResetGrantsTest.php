@@ -185,7 +185,7 @@ final class InMemoryPasswordResetGrantsTest extends TestCase
             $this->reconstitute($grant, ciphertext: ''),
             $this->reconstitute($grant, consumedAt: $at, revision: 1, ciphertext: null),
             $this->reconstitute($grant, revokedAt: $at, revision: 1, ciphertext: null),
-            $this->reconstitute($grant, deliveryUserId: UserId::generate()),
+            $this->reconstitute($grant, deliveryUserId: UserId::generate())
         ];
 
         foreach ($candidates as $candidate) {
@@ -231,7 +231,7 @@ final class InMemoryPasswordResetGrantsTest extends TestCase
             [$fabricatedEmail, $fabricatedEmail->invalidateDelivery()],
             [$fabricatedCiphertext, $fabricatedCiphertext->consume(
                 new DateTimeImmutable('2026-08-20T12:15:00+00:00')
-            )],
+            )]
         ];
 
         foreach ($attempts as [$fabricatedPredecessor, $replacement]) {
@@ -323,7 +323,7 @@ final class InMemoryPasswordResetGrantsTest extends TestCase
             $this->reconstitute($successor, consumedAt: new DateTimeImmutable(), revision: 1, ciphertext: null),
             $this->reconstitute($successor, grantId: $predecessor->getId()),
             $this->reconstitute($successor, deliveryId: $predecessor->getDelivery()->getId()),
-            $this->grant($predecessor->getUserId(), 'reset-old', '2026-08-20T15:00:00+00:00'),
+            $this->grant($predecessor->getUserId(), 'reset-old', '2026-08-20T15:00:00+00:00')
         ];
 
         foreach ($malformed as $candidate) {

@@ -6,7 +6,7 @@ none is available, `/ask-matt` should offer `/wayfinder` to chart a new feature.
 
 | Map | Status | Frontier | Handoff |
 |---|---|---|---|
-| [OpenAPI Schema Components 0.2.0](openapi-schema-components-0-2-map.md) | Active | [WF-005 — Shared Schema Component Catalog](tickets/WF-005-shared-schema-component-catalog.md) | Pending |
+| [OpenAPI schema components for v0.2.0](openapi-schema-components-v0-2-0-map.md) | Closed | — | [T-00033](../tickets/00033-TICKET.md) |
 | [Agent HMAC authentication and direct authority](agent-hmac-authentication-map.md) | Closed | — | [PRD-00002](../specs/00002-PRD.md) |
 
 Use `_MAP_TEMPLATE.md` and `tickets/_WAYFINDER_TICKET_TEMPLATE.md` for new work. `research/` holds linked

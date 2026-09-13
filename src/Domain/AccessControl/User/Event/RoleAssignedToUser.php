@@ -11,11 +11,15 @@ use Fight\Common\Domain\Exception\DomainException;
 use Fight\Common\Domain\Messaging\Event\Event;
 
 /**
+ * Class RoleAssignedToUser
+ *
  * Records a User role assignment after durable commit.
  */
 final readonly class RoleAssignedToUser implements Event
 {
     /**
+     * Constructs RoleAssignedToUser
+     *
      * Creates the role-assigned event.
      */
     public function __construct(
@@ -47,15 +51,15 @@ final readonly class RoleAssignedToUser implements Event
     public function toArray(): array
     {
         return [
-            'actor_id' => $this->actorId->toString(),
+            'actor_id'       => $this->actorId->toString(),
             'target_user_id' => $this->targetUserId->toString(),
-            'role_id' => $this->roleId->toString(),
-            'assigned_at' => $this->assignedAt->format(DATE_ATOM),
+            'role_id'        => $this->roleId->toString(),
+            'assigned_at'    => $this->assignedAt->format(DATE_ATOM)
         ];
     }
 
     /**
-     * Returns the administrative actor.
+     * Returns the administrative actor
      */
     public function getActorId(): UserId
     {
@@ -63,7 +67,7 @@ final readonly class RoleAssignedToUser implements Event
     }
 
     /**
-     * Returns the target User.
+     * Returns the target User
      */
     public function getTargetUserId(): UserId
     {
@@ -71,7 +75,7 @@ final readonly class RoleAssignedToUser implements Event
     }
 
     /**
-     * Returns the assigned role.
+     * Returns the assigned role
      */
     public function getRoleId(): RoleId
     {
@@ -79,7 +83,7 @@ final readonly class RoleAssignedToUser implements Event
     }
 
     /**
-     * Returns the assignment time.
+     * Returns the assignment time
      */
     public function getAssignedAt(): DateTimeImmutable
     {

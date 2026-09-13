@@ -11,11 +11,15 @@ use Fight\AccessControl\Domain\AccessControl\Role\RoleName;
 use Fight\Common\Domain\Type\Arrayable;
 
 /**
+ * Class RoleView
+ *
  * Provides a safe immutable view of a role.
  */
 final readonly class RoleView implements Arrayable
 {
     /**
+     * Constructs RoleView
+     *
      * Constructs the safe role view.
      *
      * @phpstan-param list<PermissionId> $permissionIds
@@ -30,7 +34,7 @@ final readonly class RoleView implements Arrayable
     }
 
     /**
-     * Creates a safe view without exposing aggregate or persistence authority.
+     * Creates a safe view without exposing aggregate or persistence authority
      */
     public static function fromRole(Role $role): self
     {
@@ -43,7 +47,7 @@ final readonly class RoleView implements Arrayable
     }
 
     /**
-     * Returns the stable role identifier.
+     * Returns the stable role identifier
      */
     public function getRoleId(): RoleId
     {
@@ -51,7 +55,7 @@ final readonly class RoleView implements Arrayable
     }
 
     /**
-     * Returns the canonical role name.
+     * Returns the canonical role name
      */
     public function getName(): RoleName
     {
@@ -59,7 +63,7 @@ final readonly class RoleView implements Arrayable
     }
 
     /**
-     * Returns whether version-controlled policy owns this role.
+     * Returns whether version-controlled policy owns this role
      */
     public function isManaged(): bool
     {
@@ -67,7 +71,7 @@ final readonly class RoleView implements Arrayable
     }
 
     /**
-     * Returns an immutable snapshot of permission membership.
+     * Returns an immutable snapshot of permission membership
      *
      * @return list<PermissionId>
      */
@@ -77,7 +81,7 @@ final readonly class RoleView implements Arrayable
     }
 
     /**
-     * Returns the canonical safe array representation.
+     * Returns the canonical safe array representation
      *
      * @return array{
      *     role_id: string,
@@ -89,13 +93,13 @@ final readonly class RoleView implements Arrayable
     public function toArray(): array
     {
         return [
-            'role_id' => $this->roleId->toString(),
-            'name' => $this->name->toString(),
-            'managed' => $this->managed,
+            'role_id'        => $this->roleId->toString(),
+            'name'           => $this->name->toString(),
+            'managed'        => $this->managed,
             'permission_ids' => array_map(
                 static fn(PermissionId $permissionId): string => $permissionId->toString(),
                 $this->permissionIds
-            ),
+            )
         ];
     }
 }

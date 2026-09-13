@@ -32,12 +32,12 @@ final class PackageBoundary
         $unexpectedDependencies = array_values(array_diff($productionDependencies, ['php', 'johnnickell/fight-common']));
         $expect($unexpectedDependencies === [], sprintf(
             'Production dependencies may contain only PHP and Fight Common; found: %s.',
-            implode(', ', $unexpectedDependencies),
+            implode(', ', $unexpectedDependencies)
         ));
 
         $expectedAutoload = [
-            'Fight\\AccessControl\\Domain\\' => 'src/Domain',
-            'Fight\\AccessControl\\Application\\' => 'src/Application',
+            'Fight\\AccessControl\\Domain\\'      => 'src/Domain',
+            'Fight\\AccessControl\\Application\\' => 'src/Application'
         ];
         $expect(($composer['autoload']['psr-4'] ?? null) === $expectedAutoload, 'Production PSR-4 autoloading must expose only Domain and Application boundaries.');
 
@@ -62,7 +62,7 @@ final class PackageBoundary
 
             $expect(
                 $isDomain || $isApplication,
-                sprintf('%s is outside the Domain and Application production roots.', $relative),
+                sprintf('%s is outside the Domain and Application production roots.', $relative)
             );
             $expect(!preg_match('/namespace\s+Fight\\\\Common\\\\/', $contents), sprintf('%s copies a Fight Common namespace.', $relative));
             $expect(!preg_match('/Fight\\\\AccessControl\\\\Adapter\\\\/', $contents), sprintf('%s may not reference a production Adapter namespace.', $relative));

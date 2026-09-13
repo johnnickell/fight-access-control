@@ -26,8 +26,8 @@ if (!$loader->isClassMapAuthoritative()) {
 
 $prefixes = $loader->getPrefixesPsr4();
 $expected = [
-    'Fight\\AccessControl\\Domain\\' => [$root.'/src/Domain'],
-    'Fight\\AccessControl\\Application\\' => [$root.'/src/Application'],
+    'Fight\\AccessControl\\Domain\\'      => [$root.'/src/Domain'],
+    'Fight\\AccessControl\\Application\\' => [$root.'/src/Application']
 ];
 
 foreach ($expected as $namespace => $paths) {
@@ -65,7 +65,7 @@ $publicTypes = [
     $authenticatedPrincipalType,
     Fight\AccessControl\Domain\AccessControl\Authorization\AuthenticatedUserPrincipal::class,
     Fight\AccessControl\Domain\AccessControl\Agent\AuthenticatedAgentPrincipal::class,
-    Fight\AccessControl\Domain\AccessControl\Authorization\PrincipalPermission::class,
+    Fight\AccessControl\Domain\AccessControl\Authorization\PrincipalPermission::class
 ];
 foreach ($publicTypes as $publicType) {
     $expect(
@@ -89,8 +89,7 @@ $securityContextAuthority = $securityContextConstructor->getParameters()[0] ?? n
 $securityContextAuthorityType = $securityContextAuthority?->getType();
 $expect(
     $securityContextAuthorityType instanceof ReflectionNamedType
-        && $securityContextAuthorityType->getName()
-            === Fight\AccessControl\Domain\AccessControl\Authorization\AuthenticatedAuthority::class
+        && $securityContextAuthorityType->getName() === Fight\AccessControl\Domain\AccessControl\Authorization\AuthenticatedAuthority::class
         && !$securityContextAuthority->isVariadic(),
     'SecurityContext must accept one non-variadic AuthenticatedAuthority.'
 );
@@ -128,7 +127,7 @@ $permissionNameType = $principalPermission->getMethod('getName')->getReturnType(
 $expect(
     $permission->toArray() === [
         'permission_id' => '018f0000-0000-7000-8000-000000000001',
-        'name' => 'READ_PERMISSION',
+        'name'          => 'READ_PERMISSION'
     ],
     'PrincipalPermission must expose only its safe permission_id and name representation.'
 );
@@ -146,7 +145,7 @@ $expect(
 foreach (
     [
     Fight\AccessControl\Domain\AccessControl\Authorization\AuthenticatedUserPrincipal::class,
-    Fight\AccessControl\Domain\AccessControl\Agent\AuthenticatedAgentPrincipal::class,
+    Fight\AccessControl\Domain\AccessControl\Agent\AuthenticatedAgentPrincipal::class
     ] as $principalType
 ) {
     $principal = new ReflectionClass($principalType);
@@ -167,7 +166,7 @@ foreach (
     'Fight\\AccessControl\\Application\\AccessControl\\Authorization\\Service\\CurrentSecurityContext',
     'Fight\\AccessControl\\Domain\\AccessControl\\Authorization\\Exception\\CurrentSecurityContextException',
     str_replace('/', '\\', 'Fight/AccessControl/Domain/AccessControl/Agent/AgentPrincipalPermission'),
-    str_replace('/', '\\', 'Fight/AccessControl/Domain/AccessControl/Agent/Query/AgentPermissionView'),
+    str_replace('/', '\\', 'Fight/AccessControl/Domain/AccessControl/Agent/Query/AgentPermissionView')
     ] as $removedType
 ) {
     $expect(
@@ -180,7 +179,7 @@ foreach (
     [
     'Fight\\AccessControl\\Application\\AccessControl\\Authorization\\Service\\ExactPermissionResolver',
     'Fight\\AccessControl\\Application\\AccessControl\\Authorization\\Service\\ExactPermissionResolutionException',
-    'Fight\\AccessControl\\Application\\AccessControl\\Authorization\\Service\\AuthoritativePrincipalResolver',
+    'Fight\\AccessControl\\Application\\AccessControl\\Authorization\\Service\\AuthoritativePrincipalResolver'
     ] as $internalType
 ) {
     $internal = new ReflectionClass($internalType);
@@ -201,7 +200,7 @@ $expect(
 foreach (
     [
     Fight\AccessControl\Application\AccessControl\Agent\QueryHandler\GetAgentByIdHandler::class,
-    Fight\AccessControl\Application\AccessControl\Agent\QueryHandler\ListAgentsHandler::class,
+    Fight\AccessControl\Application\AccessControl\Agent\QueryHandler\ListAgentsHandler::class
     ] as $publicHandler
 ) {
     $handler = new ReflectionClass($publicHandler);

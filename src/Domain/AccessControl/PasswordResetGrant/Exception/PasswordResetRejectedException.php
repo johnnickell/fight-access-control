@@ -7,6 +7,8 @@ namespace Fight\AccessControl\Domain\AccessControl\PasswordResetGrant\Exception;
 use Fight\Common\Domain\Exception\DomainException;
 
 /**
+ * Class PasswordResetRejectedException
+ *
  * Indicates a password-reset attempt that consumers must treat generically.
  */
 final class PasswordResetRejectedException extends DomainException

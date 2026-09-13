@@ -180,6 +180,7 @@ final class AgentProvisioningServiceTest extends TestCase
                     return null;
                 }
 
+                /** @return ResultSet<Agent> */
                 public function getAll(
                     Pagination $pagination
                 ): ResultSet {

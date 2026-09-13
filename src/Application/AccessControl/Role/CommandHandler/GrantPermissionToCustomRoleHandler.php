@@ -21,11 +21,15 @@ use Fight\Common\Domain\Messaging\Event\CommandFailedEvent;
 use Throwable;
 
 /**
+ * Class GrantPermissionToCustomRoleHandler
+ *
  * Atomically grants an existing permission to an authorized custom role.
  */
 final readonly class GrantPermissionToCustomRoleHandler implements CommandHandler
 {
     /**
+     * Constructs GrantPermissionToCustomRoleHandler
+     *
      * Creates the custom-role permission-grant handler.
      */
     public function __construct(

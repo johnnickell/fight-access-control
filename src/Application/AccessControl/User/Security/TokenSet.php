@@ -10,11 +10,15 @@ use Fight\AccessControl\Domain\AccessControl\RefreshSession\RefreshSessionId;
 use Fight\AccessControl\Domain\AccessControl\User\UserId;
 
 /**
+ * Class TokenSet
+ *
  * Returns the safe authentication material consumers need to establish browser authentication.
  */
 final readonly class TokenSet
 {
     /**
+     * Constructs TokenSet
+     *
      * Constructs an authentication token result.
      */
     public function __construct(
@@ -29,7 +33,7 @@ final readonly class TokenSet
     }
 
     /**
-     * Returns the authenticated identity.
+     * Returns the authenticated identity
      */
     public function getUserId(): UserId
     {
@@ -37,7 +41,7 @@ final readonly class TokenSet
     }
 
     /**
-     * Returns the authoritative refresh-session identifier.
+     * Returns the authoritative refresh-session identifier
      */
     public function getRefreshSessionId(): RefreshSessionId
     {
@@ -45,7 +49,7 @@ final readonly class TokenSet
     }
 
     /**
-     * Returns the opaque refresh credential for immediate transport.
+     * Returns the opaque refresh credential for immediate transport
      */
     public function getRefreshCredential(): RefreshCredential
     {
@@ -53,7 +57,7 @@ final readonly class TokenSet
     }
 
     /**
-     * Returns the absolute refresh-session deadline.
+     * Returns the absolute refresh-session deadline
      */
     public function getRefreshExpiresAt(): DateTimeImmutable
     {
@@ -61,7 +65,7 @@ final readonly class TokenSet
     }
 
     /**
-     * Returns whether browser-restart persistence was requested.
+     * Returns whether browser-restart persistence was requested
      */
     public function isRemembered(): bool
     {
@@ -69,7 +73,7 @@ final readonly class TokenSet
     }
 
     /**
-     * Returns the encoded access JWT.
+     * Returns the encoded access JWT
      */
     public function getAccessToken(): AccessToken
     {
@@ -77,7 +81,7 @@ final readonly class TokenSet
     }
 
     /**
-     * Returns the access-JWT expiration time.
+     * Returns the access-JWT expiration time
      */
     public function getAccessTokenExpiresAt(): DateTimeImmutable
     {

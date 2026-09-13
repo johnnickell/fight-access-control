@@ -7,6 +7,8 @@ namespace Fight\AccessControl\Domain\AccessControl\Permission;
 use Fight\Common\Domain\Identity\UniqueId;
 
 /**
+ * Class PermissionId
+ *
  * Represents a stable permission identifier.
  */
 final readonly class PermissionId extends UniqueId

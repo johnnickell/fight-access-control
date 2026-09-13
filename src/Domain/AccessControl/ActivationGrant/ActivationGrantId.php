@@ -7,6 +7,8 @@ namespace Fight\AccessControl\Domain\AccessControl\ActivationGrant;
 use Fight\Common\Domain\Identity\UniqueId;
 
 /**
+ * Class ActivationGrantId
+ *
  * Identifies one generation of activation authority.
  */
 final readonly class ActivationGrantId extends UniqueId

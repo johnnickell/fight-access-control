@@ -133,9 +133,9 @@ final class RestoreUserHandlerTest extends TestCase
     {
         foreach (['actor_id', 'user_id', 'restoration_state'] as $missing) {
             $data = [
-                'actor_id' => 'c3bc62b6-b87c-4371-b585-c47a059878f1',
-                'user_id' => 'edb053fd-17d7-49c7-9357-7e4835de9410',
-                'restoration_state' => 'active',
+                'actor_id'          => 'c3bc62b6-b87c-4371-b585-c47a059878f1',
+                'user_id'           => 'edb053fd-17d7-49c7-9357-7e4835de9410',
+                'restoration_state' => 'active'
             ];
             unset($data[$missing]);
 
@@ -148,10 +148,10 @@ final class RestoreUserHandlerTest extends TestCase
 
         foreach (['actor_id', 'user_id', 'restoration_state', 'activation_delivery_id'] as $missing) {
             $data = [
-                'actor_id' => 'c3bc62b6-b87c-4371-b585-c47a059878f1',
-                'user_id' => 'edb053fd-17d7-49c7-9357-7e4835de9410',
-                'restoration_state' => 'active',
-                'activation_delivery_id' => null,
+                'actor_id'               => 'c3bc62b6-b87c-4371-b585-c47a059878f1',
+                'user_id'                => 'edb053fd-17d7-49c7-9357-7e4835de9410',
+                'restoration_state'      => 'active',
+                'activation_delivery_id' => null
             ];
             unset($data[$missing]);
 

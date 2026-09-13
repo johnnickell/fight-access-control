@@ -7,6 +7,8 @@ namespace Fight\AccessControl\Domain\AccessControl\PasswordResetGrant\Exception;
 use Fight\Common\Domain\Exception\DomainException;
 
 /**
+ * Class PasswordResetGrantException
+ *
  * Indicates that password-reset authority cannot satisfy a requested transition.
  */
 final class PasswordResetGrantException extends DomainException

@@ -12,11 +12,15 @@ use Fight\Common\Application\Messaging\Query\QueryHandler;
 use Fight\Common\Domain\Messaging\Query\QueryMessage;
 
 /**
+ * Class FindInvitationDeliveryStatusHandler
+ *
  * Retrieves a safe activation delivery-status view.
  */
 final readonly class FindInvitationDeliveryStatusHandler implements QueryHandler
 {
     /**
+     * Constructs FindInvitationDeliveryStatusHandler
+     *
      * Creates the delivery-status query handler.
      */
     public function __construct(private ActivationGrantRepository $activationGrantRepository)

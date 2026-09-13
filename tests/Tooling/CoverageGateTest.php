@@ -35,32 +35,32 @@ final class CoverageGateTest extends TestCase
         $incompleteReport = implode('', [
             '<?xml version="1.0"?><coverage><project>',
             '<metrics statements="2" coveredstatements="1" />',
-            '</project></coverage>',
+            '</project></coverage>'
         ]);
         $exactReport = implode('', [
             '<?xml version="1.0"?><coverage><project>',
             '<metrics statements="2" coveredstatements="2" />',
-            '</project></coverage>',
+            '</project></coverage>'
         ]);
 
         foreach (
             [
-                'malformed XML' => ['<coverage><project>', 1, 'Clover report is malformed'],
-                'missing metrics' => [
+                'malformed XML'       => ['<coverage><project>', 1, 'Clover report is malformed'],
+                'missing metrics'     => [
                     '<?xml version="1.0"?><coverage><project /></coverage>',
                     1,
-                    'Clover project statement metrics are missing',
+                    'Clover project statement metrics are missing'
                 ],
                 'incomplete coverage' => [
                     $incompleteReport,
                     1,
-                    'Statement coverage is incomplete: 1/2 statements covered',
+                    'Statement coverage is incomplete: 1/2 statements covered'
                 ],
-                'exact coverage' => [
+                'exact coverage'      => [
                     $exactReport,
                     0,
-                    'Statement coverage is exact: 2/2 statements covered',
-                ],
+                    'Statement coverage is exact: 2/2 statements covered'
+                ]
             ] as [$report, $expectedStatus, $expectedMessage]
         ) {
             file_put_contents($this->directory.'/var/reports/coverage/clover.xml', $report);

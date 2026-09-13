@@ -67,47 +67,47 @@ try {
     $frameworkMetadata['require']['symfony/http-kernel'] = '^8.0';
     $expectViolation(
         'Production dependencies may contain only PHP and Fight Common; found: symfony/http-kernel.',
-        $frameworkMetadata,
+        $frameworkMetadata
     );
 
     $expectViolation('Production Adapter code is forbidden.', $composer, ['src/Adapter/Repository.php' => "<?php\nnamespace Fight\\AccessControl\\Adapter;\n"]);
     $expectViolation(
         'src/Application/FrameworkToken.php may not import framework security-token types.',
         $composer,
-        ['src/Application/FrameworkToken.php' => "<?php\nnamespace Fight\\AccessControl\\Application;\nuse Symfony\\Component\\Security\\Core\\Authentication\\Token\\TokenInterface;\n"],
+        ['src/Application/FrameworkToken.php' => "<?php\nnamespace Fight\\AccessControl\\Application;\nuse Symfony\\Component\\Security\\Core\\Authentication\\Token\\TokenInterface;\n"]
     );
     $expectViolation('Copied Fight Common source is forbidden.', $composer, ['src/Common/' => '']);
     $expectViolation(
         'src/Infrastructure/Connection.php is outside the Domain and Application production roots.',
         $composer,
-        ['src/Infrastructure/Connection.php' => "<?php\nnamespace Fight\\AccessControl\\Infrastructure;\n"],
+        ['src/Infrastructure/Connection.php' => "<?php\nnamespace Fight\\AccessControl\\Infrastructure;\n"]
     );
     $expectViolation(
         'src/Domain/Copied.php copies a Fight Common namespace.',
         $composer,
-        ['src/Domain/Copied.php' => "<?php\nnamespace Fight\\Common\\Domain;\n"],
+        ['src/Domain/Copied.php' => "<?php\nnamespace Fight\\Common\\Domain;\n"]
     );
     $expectViolation(
         'src/Domain/LeakyDomain.php has an outward Domain-to-Application dependency.',
         $composer,
-        ['src/Domain/LeakyDomain.php' => "<?php\nnamespace Fight\\AccessControl\\Domain;\nfinal class LeakyDomain { public function leak(): Fight\\AccessControl\\Application\\UseCase {} }\n"],
+        ['src/Domain/LeakyDomain.php' => "<?php\nnamespace Fight\\AccessControl\\Domain;\nfinal class LeakyDomain { public function leak(): Fight\\AccessControl\\Application\\UseCase {} }\n"]
     );
     $expectViolation(
         'src/Domain/LeakyCommonApplication.php may use only Fight Common public Domain primitives.',
         $composer,
-        ['src/Domain/LeakyCommonApplication.php' => "<?php\nnamespace Fight\\AccessControl\\Domain;\nuse Fight\\Common\\Application\\Bus\\CommandBus;\n"],
+        ['src/Domain/LeakyCommonApplication.php' => "<?php\nnamespace Fight\\AccessControl\\Domain;\nuse Fight\\Common\\Application\\Bus\\CommandBus;\n"]
     );
     $expectViolation(
         'src/Application/LeakyApplication.php may use only Fight Common public Domain or Application contracts.',
         $composer,
-        ['src/Application/LeakyApplication.php' => "<?php\nnamespace Fight\\AccessControl\\Application;\nuse Fight\\Common\\Adapter\\Repository;\n"],
+        ['src/Application/LeakyApplication.php' => "<?php\nnamespace Fight\\AccessControl\\Application;\nuse Fight\\Common\\Adapter\\Repository;\n"]
     );
     $expectAccepted(
         $composer,
         [
-            'src/Domain/AllowedCommonDomain.php' => "<?php\nnamespace Fight\\AccessControl\\Domain;\nuse Fight\\Common\\Domain\\Identity\\Id;\n",
-            'src/Application/AllowedCommonContracts.php' => "<?php\nnamespace Fight\\AccessControl\\Application;\nuse Fight\\Common\\Domain\\Identity\\Id;\nuse Fight\\Common\\Application\\Bus\\CommandBus;\n",
-        ],
+            'src/Domain/AllowedCommonDomain.php'         => "<?php\nnamespace Fight\\AccessControl\\Domain;\nuse Fight\\Common\\Domain\\Identity\\Id;\n",
+            'src/Application/AllowedCommonContracts.php' => "<?php\nnamespace Fight\\AccessControl\\Application;\nuse Fight\\Common\\Domain\\Identity\\Id;\nuse Fight\\Common\\Application\\Bus\\CommandBus;\n"
+        ]
     );
 } finally {
     $remove($fixture);

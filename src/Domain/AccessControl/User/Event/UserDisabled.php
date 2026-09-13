@@ -9,11 +9,15 @@ use Fight\Common\Domain\Exception\DomainException;
 use Fight\Common\Domain\Messaging\Event\Event;
 
 /**
+ * Class UserDisabled
+ *
  * Records an administrative identity suspension after durable commit.
  */
 final readonly class UserDisabled implements Event
 {
     /**
+     * Constructs UserDisabled
+     *
      * Creates a user-disabled event.
      */
     public function __construct(
@@ -46,12 +50,12 @@ final readonly class UserDisabled implements Event
     {
         return [
             'actor_id' => $this->actorId->toString(),
-            'user_id' => $this->userId->toString(),
+            'user_id'  => $this->userId->toString()
         ];
     }
 
     /**
-     * Returns the administrative actor.
+     * Returns the administrative actor
      */
     public function getActorId(): UserId
     {
@@ -59,7 +63,7 @@ final readonly class UserDisabled implements Event
     }
 
     /**
-     * Returns the disabled user.
+     * Returns the disabled user
      */
     public function getUserId(): UserId
     {

@@ -10,11 +10,15 @@ use Fight\Common\Domain\Exception\DomainException;
 use Fight\Common\Domain\Messaging\Event\Event;
 
 /**
+ * Class AgentCredentialRevoked
+ *
  * Records a committed terminal Agent credential revocation without secret material.
  */
 final readonly class AgentCredentialRevoked implements Event
 {
     /**
+     * Constructs AgentCredentialRevoked
+     *
      * Creates a safe post-commit Agent credential revocation event.
      */
     public function __construct(private AgentId $agentId, private DateTimeImmutable $revokedAt)
@@ -45,12 +49,12 @@ final readonly class AgentCredentialRevoked implements Event
     {
         return [
             'agent_id'   => $this->agentId->toString(),
-            'revoked_at' => $this->revokedAt->format(DATE_ATOM),
+            'revoked_at' => $this->revokedAt->format(DATE_ATOM)
         ];
     }
 
     /**
-     * Returns the Agent whose credential was terminally revoked.
+     * Returns the Agent whose credential was terminally revoked
      */
     public function getAgentId(): AgentId
     {
@@ -58,7 +62,7 @@ final readonly class AgentCredentialRevoked implements Event
     }
 
     /**
-     * Returns when the Agent credential revocation committed.
+     * Returns when the Agent credential revocation committed
      */
     public function getRevokedAt(): DateTimeImmutable
     {
