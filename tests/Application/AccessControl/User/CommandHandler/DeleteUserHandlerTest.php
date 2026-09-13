@@ -109,7 +109,7 @@ final class DeleteUserHandlerTest extends TestCase
         foreach (['actor_id', 'user_id'] as $missing) {
             $data = [
                 'actor_id' => 'c3bc62b6-b87c-4371-b585-c47a059878f1',
-                'user_id' => 'edb053fd-17d7-49c7-9357-7e4835de9410',
+                'user_id'  => 'edb053fd-17d7-49c7-9357-7e4835de9410'
             ];
             unset($data[$missing]);
 
@@ -123,7 +123,7 @@ final class DeleteUserHandlerTest extends TestCase
         foreach (['actor_id', 'user_id'] as $missing) {
             $data = [
                 'actor_id' => 'c3bc62b6-b87c-4371-b585-c47a059878f1',
-                'user_id' => 'edb053fd-17d7-49c7-9357-7e4835de9410',
+                'user_id'  => 'edb053fd-17d7-49c7-9357-7e4835de9410'
             ];
             unset($data[$missing]);
 

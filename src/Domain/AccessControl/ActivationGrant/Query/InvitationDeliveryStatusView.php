@@ -11,11 +11,15 @@ use Fight\AccessControl\Domain\AccessControl\User\UserId;
 use Fight\Common\Domain\Type\Arrayable;
 
 /**
+ * Class InvitationDeliveryStatusView
+ *
  * Provides the safe operational view of activation delivery work.
  */
 final readonly class InvitationDeliveryStatusView implements Arrayable
 {
     /**
+     * Constructs InvitationDeliveryStatusView
+     *
      * Constructs the safe delivery-status view.
      */
     public function __construct(
@@ -26,7 +30,7 @@ final readonly class InvitationDeliveryStatusView implements Arrayable
     }
 
     /**
-     * Creates the safe view from delivery work without exposing credential material.
+     * Creates the safe view from delivery work without exposing credential material
      */
     public static function fromWork(ActivationDelivery $work): self
     {
@@ -34,7 +38,7 @@ final readonly class InvitationDeliveryStatusView implements Arrayable
     }
 
     /**
-     * Returns the delivery work owner.
+     * Returns the delivery work owner
      */
     public function getUserId(): UserId
     {
@@ -42,7 +46,7 @@ final readonly class InvitationDeliveryStatusView implements Arrayable
     }
 
     /**
-     * Returns the safe operational delivery status.
+     * Returns the safe operational delivery status
      */
     public function getStatus(): ActivationDeliveryStatus
     {
@@ -50,7 +54,7 @@ final readonly class InvitationDeliveryStatusView implements Arrayable
     }
 
     /**
-     * Returns the terminal expiry shared with the activation grant.
+     * Returns the terminal expiry shared with the activation grant
      */
     public function getExpiresAt(): DateTimeImmutable
     {
@@ -58,16 +62,16 @@ final readonly class InvitationDeliveryStatusView implements Arrayable
     }
 
     /**
-     * Returns the canonical safe array representation.
+     * Returns the canonical safe array representation
      *
      * @return array{user_id: string, status: string, expires_at: string}
      */
     public function toArray(): array
     {
         return [
-            'user_id' => $this->userId->toString(),
-            'status' => $this->status->value,
-            'expires_at' => $this->expiresAt->format(DATE_ATOM),
+            'user_id'    => $this->userId->toString(),
+            'status'     => $this->status->value,
+            'expires_at' => $this->expiresAt->format(DATE_ATOM)
         ];
     }
 }

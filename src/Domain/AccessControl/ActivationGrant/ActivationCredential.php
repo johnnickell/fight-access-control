@@ -7,11 +7,15 @@ namespace Fight\AccessControl\Domain\AccessControl\ActivationGrant;
 use Fight\Common\Domain\Exception\DomainException;
 
 /**
+ * Class ActivationCredential
+ *
  * Represents an opaque, single-use activation credential.
  */
 final readonly class ActivationCredential
 {
     /**
+     * Constructs ActivationCredential
+     *
      * Constructs a non-empty activation credential.
      */
     private function __construct(private string $value)
@@ -19,7 +23,7 @@ final readonly class ActivationCredential
     }
 
     /**
-     * Creates a credential from its transport representation.
+     * Creates a credential from its transport representation
      */
     public static function fromString(string $value): self
     {
@@ -31,7 +35,7 @@ final readonly class ActivationCredential
     }
 
     /**
-     * Returns the opaque credential value.
+     * Returns the opaque credential value
      */
     public function toString(): string
     {

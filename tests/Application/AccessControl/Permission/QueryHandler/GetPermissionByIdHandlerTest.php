@@ -48,9 +48,9 @@ final class GetPermissionByIdHandlerTest extends TestCase
         self::assertSame(
             [
                 'permission_id' => '018f0000-0000-7000-8000-000000000001',
-                'name' => 'MANAGE_USERS',
-                'tier' => 'SUPER_ADMIN_ONLY',
-                'managed' => true,
+                'name'          => 'MANAGE_USERS',
+                'tier'          => 'SUPER_ADMIN_ONLY',
+                'managed'       => true
             ],
             $view->toArray()
         );

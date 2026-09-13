@@ -12,11 +12,15 @@ use Fight\Common\Domain\Messaging\Event\Event;
 use Fight\Common\Domain\Value\Internet\EmailAddress;
 
 /**
+ * Class EmailChangeRequested
+ *
  * Records that an email-change reservation and delivery became durable.
  */
 final readonly class EmailChangeRequested implements Event
 {
     /**
+     * Constructs EmailChangeRequested
+     *
      * Creates a secret-free email-change request event.
      */
     public function __construct(
@@ -54,16 +58,16 @@ final readonly class EmailChangeRequested implements Event
     public function toArray(): array
     {
         return [
-            'actor_id' => $this->actorId->toString(),
-            'user_id' => $this->userId->toString(),
+            'actor_id'                 => $this->actorId->toString(),
+            'user_id'                  => $this->userId->toString(),
             'email_change_delivery_id' => $this->emailChangeDeliveryId->toString(),
-            'email' => $this->email->toString(),
-            'issued_at' => $this->issuedAt->format(DATE_ATOM),
+            'email'                    => $this->email->toString(),
+            'issued_at'                => $this->issuedAt->format(DATE_ATOM)
         ];
     }
 
     /**
-     * Returns the requesting actor identifier.
+     * Returns the requesting actor identifier
      */
     public function getActorId(): UserId
     {
@@ -71,7 +75,7 @@ final readonly class EmailChangeRequested implements Event
     }
 
     /**
-     * Returns the owner identifier.
+     * Returns the owner identifier
      */
     public function getUserId(): UserId
     {
@@ -79,7 +83,7 @@ final readonly class EmailChangeRequested implements Event
     }
 
     /**
-     * Returns the durable delivery identifier.
+     * Returns the durable delivery identifier
      */
     public function getEmailChangeDeliveryId(): EmailChangeDeliveryId
     {
@@ -87,7 +91,7 @@ final readonly class EmailChangeRequested implements Event
     }
 
     /**
-     * Returns the reserved destination email.
+     * Returns the reserved destination email
      */
     public function getEmail(): EmailAddress
     {
@@ -95,7 +99,7 @@ final readonly class EmailChangeRequested implements Event
     }
 
     /**
-     * Returns when authority was issued.
+     * Returns when authority was issued
      */
     public function getIssuedAt(): DateTimeImmutable
     {

@@ -52,7 +52,7 @@ final class InMemoryRoleRepositoryTest extends TestCase
                 $second->getId(),
                 RoleId::generate(),
                 $first->getId(),
-                RoleId::fromString($second->getId()->toString()),
+                RoleId::fromString($second->getId()->toString())
             ])
         );
     }

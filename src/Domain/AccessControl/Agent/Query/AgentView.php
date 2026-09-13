@@ -13,11 +13,15 @@ use Fight\AccessControl\Domain\AccessControl\Authorization\PrincipalPermission;
 use Fight\Common\Domain\Type\Arrayable;
 
 /**
+ * Class AgentView
+ *
  * Provides the exact secret-free immutable administrative Agent result.
  */
 final readonly class AgentView implements Arrayable
 {
     /**
+     * Constructs AgentView
+     *
      * Creates the safe Agent view.
      *
      * @phpstan-param list<PrincipalPermission> $permissions
@@ -34,7 +38,7 @@ final readonly class AgentView implements Arrayable
     }
 
     /**
-     * Creates the safe view from aggregate state and resolved Permission snapshots.
+     * Creates the safe view from aggregate state and resolved Permission snapshots
      *
      * @phpstan-param list<PrincipalPermission> $permissions
      */
@@ -52,7 +56,7 @@ final readonly class AgentView implements Arrayable
     }
 
     /**
-     * Returns the stable Agent identifier.
+     * Returns the stable Agent identifier
      */
     public function getAgentId(): AgentId
     {
@@ -60,7 +64,7 @@ final readonly class AgentView implements Arrayable
     }
 
     /**
-     * Returns the operator-facing Agent name.
+     * Returns the operator-facing Agent name
      */
     public function getName(): AgentName
     {
@@ -68,7 +72,7 @@ final readonly class AgentView implements Arrayable
     }
 
     /**
-     * Returns the Agent lifecycle state.
+     * Returns the Agent lifecycle state
      */
     public function getState(): AgentState
     {
@@ -76,7 +80,7 @@ final readonly class AgentView implements Arrayable
     }
 
     /**
-     * Returns the public credential identifier.
+     * Returns the public credential identifier
      */
     public function getCredentialId(): AgentCredentialId
     {
@@ -84,7 +88,7 @@ final readonly class AgentView implements Arrayable
     }
 
     /**
-     * Returns the credential revision.
+     * Returns the credential revision
      */
     public function getCredentialRevision(): int
     {
@@ -92,21 +96,25 @@ final readonly class AgentView implements Arrayable
     }
 
     /**
-     * Returns the Permission-assignment revision.
+     * Returns the Permission-assignment revision
      */
     public function getPermissionAssignmentRevision(): int
     {
         return $this->permissionAssignmentRevision;
     }
 
-    /** @return list<PrincipalPermission> */
+    /**
+     * Returns assigned Permissions
+     *
+     * @return list<PrincipalPermission>
+     */
     public function getPermissions(): array
     {
         return $this->permissions;
     }
 
     /**
-     * Returns the exact secret-free array representation.
+     * Returns the exact secret-free array representation
      *
      * @return array{
      *     agent_id: string,
@@ -121,16 +129,16 @@ final readonly class AgentView implements Arrayable
     public function toArray(): array
     {
         return [
-            'agent_id' => $this->agentId->toString(),
-            'name' => $this->name->toString(),
-            'state' => $this->state->value,
-            'credential_id' => $this->credentialId->toString(),
-            'credential_revision' => $this->credentialRevision,
+            'agent_id'                       => $this->agentId->toString(),
+            'name'                           => $this->name->toString(),
+            'state'                          => $this->state->value,
+            'credential_id'                  => $this->credentialId->toString(),
+            'credential_revision'            => $this->credentialRevision,
             'permission_assignment_revision' => $this->permissionAssignmentRevision,
-            'permissions' => array_map(
+            'permissions'                    => array_map(
                 static fn(PrincipalPermission $permission): array => $permission->toArray(),
                 $this->permissions
-            ),
+            )
         ];
     }
 }

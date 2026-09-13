@@ -8,11 +8,15 @@ use Fight\Common\Domain\Exception\DomainException;
 use Fight\Common\Domain\Messaging\Event\Event;
 
 /**
+ * Class AgentProvisioningFailed
+ *
  * Records a failed Agent provisioning operation without retaining secret material.
  */
 final readonly class AgentProvisioningFailed implements Event
 {
     /**
+     * Constructs AgentProvisioningFailed
+     *
      * Creates a safe Agent provisioning failure event.
      */
     public function __construct(private string $actorId, private string $errorMessage)
@@ -42,7 +46,7 @@ final readonly class AgentProvisioningFailed implements Event
     }
 
     /**
-     * Returns the safe consumer-supplied provisioning actor identifier.
+     * Returns the safe consumer-supplied provisioning actor identifier
      */
     public function getActorId(): string
     {
@@ -50,7 +54,7 @@ final readonly class AgentProvisioningFailed implements Event
     }
 
     /**
-     * Returns the generic safe failure message without operation inputs.
+     * Returns the generic safe failure message without operation inputs
      */
     public function getErrorMessage(): string
     {

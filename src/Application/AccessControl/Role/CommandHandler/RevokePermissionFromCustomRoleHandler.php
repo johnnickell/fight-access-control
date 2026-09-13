@@ -21,11 +21,15 @@ use Fight\Common\Domain\Messaging\Event\CommandFailedEvent;
 use Throwable;
 
 /**
- * Atomically revokes an existing permission from an authorized custom role.
+ * Class RevokePermissionFromCustomRoleHandler
+ *
+ * Replaces atomically revokes an existing permission from an authorized custom role.
  */
 final readonly class RevokePermissionFromCustomRoleHandler implements CommandHandler
 {
     /**
+     * Constructs RevokePermissionFromCustomRoleHandler
+     *
      * Creates the custom-role permission-revocation handler.
      */
     public function __construct(

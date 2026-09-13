@@ -27,11 +27,15 @@ use Fight\Common\Domain\Messaging\Event\CommandFailedEvent;
 use Throwable;
 
 /**
- * Atomically revokes a usable refresh session through self-service or authorized administration.
+ * Class RevokeSessionHandler
+ *
+ * Replaces atomically revokes a usable refresh session through self-service or authorized administration.
  */
 final readonly class RevokeSessionHandler implements CommandHandler
 {
     /**
+     * Constructs RevokeSessionHandler
+     *
      * Creates the session-revocation handler.
      */
     public function __construct(
@@ -108,7 +112,7 @@ final readonly class RevokeSessionHandler implements CommandHandler
                     $command->getActorId(),
                     $revokedSession->getUserId(),
                     $revokedSession->getId(),
-                    $revokedAt,
+                    $revokedAt
                 ];
             });
 

@@ -9,11 +9,15 @@ use Fight\Common\Domain\Exception\DomainException;
 use Fight\Common\Domain\Messaging\Query\Query;
 
 /**
+ * Class GetUserById
+ *
  * Queries one user identity by its stable identifier.
  */
 final readonly class GetUserById implements Query
 {
     /**
+     * Constructs GetUserById
+     *
      * Constructs the user-identity query.
      */
     public function __construct(private UserId $userId)
@@ -41,7 +45,7 @@ final readonly class GetUserById implements Query
     }
 
     /**
-     * Returns the stable user identifier.
+     * Returns the stable user identifier
      */
     public function getUserId(): UserId
     {

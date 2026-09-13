@@ -11,11 +11,15 @@ use Fight\Common\Application\Messaging\Event\EventSubscriber;
 use Fight\Common\Domain\Messaging\Event\EventMessage;
 
 /**
+ * Class EmailChangeDeliverySubscriber
+ *
  * Routes email-change request events to invocation-neutral delivery work.
  */
 final readonly class EmailChangeDeliverySubscriber implements EventSubscriber
 {
     /**
+     * Constructs EmailChangeDeliverySubscriber
+     *
      * Creates the email-change delivery subscriber.
      */
     public function __construct(private CommandBus $commandBus)
@@ -28,12 +32,12 @@ final readonly class EmailChangeDeliverySubscriber implements EventSubscriber
     public static function eventRegistration(): array
     {
         return [
-            EmailChangeRequested::class => 'onEmailChangeRequested',
+            EmailChangeRequested::class => 'onEmailChangeRequested'
         ];
     }
 
     /**
-     * Dispatches exact delivery identity after a durable email-change request.
+     * Dispatches exact delivery identity after a durable email-change request
      */
     public function onEmailChangeRequested(EventMessage $eventMessage): void
     {

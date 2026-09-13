@@ -52,11 +52,15 @@ use SensitiveParameter;
 use Throwable;
 
 /**
+ * Class AuthenticationService
+ *
  * Coordinates the supported synchronous JWT and refresh-session authentication lifecycle.
  */
 final readonly class AuthenticationService
 {
     /**
+     * Constructs AuthenticationService
+     *
      * Creates the authentication service.
      */
     public function __construct(
@@ -81,7 +85,7 @@ final readonly class AuthenticationService
     }
 
     /**
-     * Confirms a current email-change credential without issuing new authentication tokens.
+     * Completes a current email-change credential without issuing new authentication tokens
      */
     public function confirmEmail(
         UserId $userId,
@@ -151,7 +155,7 @@ final readonly class AuthenticationService
     }
 
     /**
-     * Verifies the authenticated owner before changing their established password.
+     * Verifies the authenticated owner before changing their established password
      */
     public function changePassword(
         UserId $authenticatedUserId,
@@ -217,7 +221,7 @@ final readonly class AuthenticationService
     }
 
     /**
-     * Redeems a password-reset credential and invalidates all prior authentication authority.
+     * Uses a password-reset credential and invalidates all prior authentication authority
      */
     public function resetPassword(
         UserId $userId,
@@ -289,7 +293,7 @@ final readonly class AuthenticationService
     }
 
     /**
-     * Activates an invited identity and returns its first token set.
+     * Enables an invited identity and returns its first token set
      */
     public function activate(
         UserId $userId,
@@ -372,7 +376,7 @@ final readonly class AuthenticationService
     }
 
     /**
-     * Verifies an active identity and returns a new token set.
+     * Verifies an active identity and returns a new token set
      */
     public function login(
         string $email,
@@ -458,7 +462,7 @@ final readonly class AuthenticationService
     }
 
     /**
-     * Revalidates a refresh credential and returns a rotation or bounded-conflict outcome.
+     * Validates a refresh credential and returns a rotation or bounded-conflict outcome
      */
     public function refresh(#[SensitiveParameter] string $refreshCredential): RefreshResult
     {
@@ -515,7 +519,7 @@ final readonly class AuthenticationService
     }
 
     /**
-     * Revokes only the session selected by the presented refresh credential.
+     * Revokes only the session selected by the presented refresh credential
      */
     public function logout(#[SensitiveParameter] string $refreshCredential): void
     {
@@ -542,7 +546,7 @@ final readonly class AuthenticationService
     }
 
     /**
-     * Creates one authoritative refresh session using configured lifetime policy.
+     * Creates one authoritative refresh session using configured lifetime policy
      */
     private function newRefreshSession(
         User $user,
@@ -563,7 +567,7 @@ final readonly class AuthenticationService
     }
 
     /**
-     * Creates safe access and refresh material for one authoritative session.
+     * Creates safe access and refresh material for one authoritative session
      */
     private function tokenSet(
         User $user,
@@ -577,7 +581,7 @@ final readonly class AuthenticationService
             'iat'          => $authenticatedAt->getTimestamp(),
             'sid'          => $refreshSession->getId()->toString(),
             'sub'          => $user->getId()->toString(),
-            'type'         => 'access',
+            'type'         => 'access'
         ], $accessTokenExpiresAt);
 
         return new TokenSet(
@@ -592,7 +596,7 @@ final readonly class AuthenticationService
     }
 
     /**
-     * Rejects any session or owner that is no longer authoritative.
+     * Rejects any session or owner that is no longer authoritative
      */
     private function assertAuthoritativeSession(
         ?RefreshSession $refreshSession,
@@ -612,7 +616,7 @@ final readonly class AuthenticationService
     }
 
     /**
-     * Resolves a previously authoritative credential as a benign conflict or terminal replay.
+     * Resolves a previously authoritative credential as a benign conflict or terminal replay
      */
     private function resolveUsedCredential(
         ?RefreshSession $refreshSession,
@@ -635,7 +639,7 @@ final readonly class AuthenticationService
     }
 
     /**
-     * Atomically revokes the authoritative session family after terminal credential replay.
+     * Replaces atomically revokes the authoritative session family after terminal credential replay
      */
     private function revokeCompromisedSession(RefreshSession $refreshSession): RefreshSessionNotFoundException
     {
@@ -645,7 +649,7 @@ final readonly class AuthenticationService
     }
 
     /**
-     * Publishes only allowlisted operation context after a sensitive failure.
+     * Dispatches only allowlisted operation context after a sensitive failure
      *
      * @param string               $operation
      * @param array<string, mixed> $safeData

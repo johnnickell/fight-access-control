@@ -10,11 +10,15 @@ use Fight\AccessControl\Domain\AccessControl\Agent\Exception\AgentPermissionAssi
 use Fight\AccessControl\Domain\AccessControl\Permission\PermissionId;
 
 /**
+ * Class Agent
+ *
  * Represents one machine authority with its current HMAC credential.
  */
 class Agent
 {
     /**
+     * Constructs Agent
+     *
      * Creates an Agent identity with its initial active credential.
      */
     protected function __construct(
@@ -33,7 +37,7 @@ class Agent
     }
 
     /**
-     * Provisions an active Agent with one initial encrypted HMAC credential.
+     * Provisions an active Agent with one initial encrypted HMAC credential
      */
     public static function provision(
         AgentId $id,
@@ -57,7 +61,7 @@ class Agent
     }
 
     /**
-     * Returns the stable Agent identifier.
+     * Returns the stable Agent identifier
      */
     public function getId(): AgentId
     {
@@ -65,7 +69,7 @@ class Agent
     }
 
     /**
-     * Returns the required operator-facing name.
+     * Returns the required operator-facing name
      */
     public function getName(): AgentName
     {
@@ -73,7 +77,7 @@ class Agent
     }
 
     /**
-     * Returns the Agent lifecycle state.
+     * Returns the Agent lifecycle state
      */
     public function getState(): AgentState
     {
@@ -81,7 +85,7 @@ class Agent
     }
 
     /**
-     * Returns the public current credential identifier.
+     * Returns the public current credential identifier
      */
     public function getCredentialId(): AgentCredentialId
     {
@@ -89,7 +93,7 @@ class Agent
     }
 
     /**
-     * Returns the monotonic current credential revision.
+     * Returns the monotonic current credential revision
      */
     public function getCredentialRevision(): int
     {
@@ -97,7 +101,7 @@ class Agent
     }
 
     /**
-     * Returns the consumer-encrypted current HMAC shared-secret envelope.
+     * Returns the consumer-encrypted current HMAC shared-secret envelope
      */
     public function getEncryptedHmacSharedSecretEnvelope(): string
     {
@@ -105,7 +109,7 @@ class Agent
     }
 
     /**
-     * Returns the directly assigned Permission identities.
+     * Returns the directly assigned Permission identities
      *
      * @return list<PermissionId>
      */
@@ -115,7 +119,7 @@ class Agent
     }
 
     /**
-     * Returns the monotonic Permission-assignment revision.
+     * Returns the monotonic Permission-assignment revision
      */
     public function getPermissionAssignmentRevision(): int
     {
@@ -123,7 +127,7 @@ class Agent
     }
 
     /**
-     * Returns whether the Permission is directly assigned.
+     * Returns whether the Permission is directly assigned
      */
     public function hasPermission(PermissionId $permissionId): bool
     {
@@ -134,7 +138,7 @@ class Agent
     }
 
     /**
-     * Returns the immutable successor with one newly assigned Permission.
+     * Returns the immutable successor with one newly assigned Permission
      */
     public function grantPermission(PermissionId $permissionId, DateTimeImmutable $grantedAt): self
     {
@@ -157,7 +161,7 @@ class Agent
     }
 
     /**
-     * Returns the immutable successor without one directly assigned Permission.
+     * Returns the immutable successor without one directly assigned Permission
      */
     public function revokePermission(PermissionId $permissionId, DateTimeImmutable $revokedAt): self
     {
@@ -183,7 +187,7 @@ class Agent
     }
 
     /**
-     * Returns the immutable successor with the complete direct-Permission assignment set.
+     * Returns the immutable successor with the complete direct-Permission assignment set
      *
      * @phpstan-param iterable<PermissionId> $permissionIds
      */
@@ -230,7 +234,7 @@ class Agent
     }
 
     /**
-     * Returns the provisioning timestamp.
+     * Returns the provisioning timestamp
      */
     public function getCreatedAt(): DateTimeImmutable
     {
@@ -238,7 +242,7 @@ class Agent
     }
 
     /**
-     * Returns the last-update timestamp.
+     * Returns the last-update timestamp
      */
     public function getUpdatedAt(): DateTimeImmutable
     {
@@ -246,7 +250,7 @@ class Agent
     }
 
     /**
-     * Returns the immutable successor with one immediately active credential.
+     * Returns the immutable successor with one immediately active credential
      */
     public function rotateCredential(
         AgentCredentialId $expectedCredentialId,
@@ -273,7 +277,7 @@ class Agent
     }
 
     /**
-     * Returns the terminally revoked Agent authority.
+     * Returns the terminally revoked Agent authority
      */
     public function revoke(DateTimeImmutable $revokedAt): self
     {

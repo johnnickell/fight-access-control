@@ -7,12 +7,14 @@ namespace Fight\AccessControl\Application\AccessControl\User\Service;
 use Fight\Common\Domain\Value\Internet\EmailAddress;
 
 /**
+ * Interface LoginThrottle
+ *
  * Applies consumer-owned bounded throttling before credential verification.
  */
 interface LoginThrottle
 {
     /**
-     * Determines whether one login attempt is permitted.
+     * Determines whether one login attempt is permitted
      */
     public function allows(EmailAddress $email): bool;
 }

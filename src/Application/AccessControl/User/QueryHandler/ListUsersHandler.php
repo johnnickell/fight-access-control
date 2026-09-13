@@ -13,11 +13,15 @@ use Fight\Common\Domain\Messaging\Query\QueryMessage;
 use Fight\Common\Domain\Repository\ResultSet;
 
 /**
+ * Class ListUsersHandler
+ *
  * Retrieves safe user-identity views.
  */
 final readonly class ListUsersHandler implements QueryHandler
 {
     /**
+     * Constructs ListUsersHandler
+     *
      * Creates the user-listing query handler.
      */
     public function __construct(private UserRepository $userRepository)
@@ -31,7 +35,7 @@ final readonly class ListUsersHandler implements QueryHandler
     }
 
     /**
-     * @inheritDoc
+     * Returns safe user-identity views
      *
      * @return ResultSet<UserView>
      */

@@ -7,6 +7,8 @@ namespace Fight\AccessControl\Domain\AccessControl\Role;
 use Fight\Common\Domain\Identity\UniqueId;
 
 /**
+ * Class RoleId
+ *
  * Represents a stable role identifier.
  */
 final readonly class RoleId extends UniqueId

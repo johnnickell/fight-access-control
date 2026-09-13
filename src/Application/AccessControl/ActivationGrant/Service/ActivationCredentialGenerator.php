@@ -7,12 +7,14 @@ namespace Fight\AccessControl\Application\AccessControl\ActivationGrant\Service;
 use Fight\AccessControl\Domain\AccessControl\ActivationGrant\ActivationCredential;
 
 /**
+ * Interface ActivationCredentialGenerator
+ *
  * Generates raw activation credentials at the application boundary.
  */
 interface ActivationCredentialGenerator
 {
     /**
-     * Generates one raw credential for immediate hashing and encryption.
+     * Generates one raw credential for immediate hashing and encryption
      */
     public function generate(): ActivationCredential;
 }

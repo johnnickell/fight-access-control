@@ -10,11 +10,15 @@ use Fight\Common\Domain\Exception\DomainException;
 use Fight\Common\Domain\Messaging\Command\Command;
 
 /**
+ * Class RestoreUser
+ *
  * Requests restoration of a deleted identity to active or pending activation.
  */
 final readonly class RestoreUser implements Command
 {
     /**
+     * Constructs RestoreUser
+     *
      * Creates a user-restore command.
      */
     public function __construct(
@@ -48,14 +52,14 @@ final readonly class RestoreUser implements Command
     public function toArray(): array
     {
         return [
-            'actor_id' => $this->actorId->toString(),
-            'user_id' => $this->userId->toString(),
-            'restoration_state' => $this->restorationState->value,
+            'actor_id'          => $this->actorId->toString(),
+            'user_id'           => $this->userId->toString(),
+            'restoration_state' => $this->restorationState->value
         ];
     }
 
     /**
-     * Returns the administrative actor.
+     * Returns the administrative actor
      */
     public function getActorId(): UserId
     {
@@ -63,7 +67,7 @@ final readonly class RestoreUser implements Command
     }
 
     /**
-     * Returns the target user.
+     * Returns the target user
      */
     public function getUserId(): UserId
     {
@@ -71,7 +75,7 @@ final readonly class RestoreUser implements Command
     }
 
     /**
-     * Returns the chosen restoration target state.
+     * Returns the chosen restoration target state
      */
     public function getRestorationState(): UserState
     {

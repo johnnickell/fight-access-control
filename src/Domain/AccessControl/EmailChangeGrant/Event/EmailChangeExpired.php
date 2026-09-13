@@ -11,11 +11,15 @@ use Fight\Common\Domain\Exception\DomainException;
 use Fight\Common\Domain\Messaging\Event\Event;
 
 /**
+ * Class EmailChangeExpired
+ *
  * Records terminal expiry of an email-change reservation and grant.
  */
 final readonly class EmailChangeExpired implements Event
 {
     /**
+     * Constructs EmailChangeExpired
+     *
      * Creates a secret-free expiry event.
      */
     public function __construct(
@@ -47,15 +51,15 @@ final readonly class EmailChangeExpired implements Event
     public function toArray(): array
     {
         return [
-            'actor_id' => $this->actorId,
-            'user_id' => $this->userId->toString(),
+            'actor_id'              => $this->actorId,
+            'user_id'               => $this->userId->toString(),
             'email_change_grant_id' => $this->emailChangeGrantId->toString(),
-            'occurred_at' => $this->occurredAt->format(DATE_ATOM),
+            'occurred_at'           => $this->occurredAt->format(DATE_ATOM)
         ];
     }
 
     /**
-     * Returns the actor processing terminal expiry.
+     * Returns the actor processing terminal expiry
      */
     public function getActorId(): string
     {
@@ -63,7 +67,7 @@ final readonly class EmailChangeExpired implements Event
     }
 
     /**
-     * Returns the target user identifier.
+     * Returns the target user identifier
      */
     public function getUserId(): UserId
     {
@@ -71,7 +75,7 @@ final readonly class EmailChangeExpired implements Event
     }
 
     /**
-     * Returns the expired grant-generation identifier.
+     * Returns the expired grant-generation identifier
      */
     public function getEmailChangeGrantId(): EmailChangeGrantId
     {
@@ -79,7 +83,7 @@ final readonly class EmailChangeExpired implements Event
     }
 
     /**
-     * Returns when terminal expiry completed.
+     * Returns when terminal expiry completed
      */
     public function getOccurredAt(): DateTimeImmutable
     {

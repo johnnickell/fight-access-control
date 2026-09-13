@@ -35,10 +35,10 @@ final class InvitationDeliverySubscriberTest extends TestCase
 
         self::assertSame(
             [
-                InvitationDeliveryResent::class => 'onInvitationDeliveryResent',
+                InvitationDeliveryResent::class         => 'onInvitationDeliveryResent',
                 InvitationDeliveryRetryRequested::class => 'onInvitationDeliveryRetryRequested',
-                UserInvited::class => 'onUserInvited',
-                UserRestored::class => 'onUserRestored',
+                UserInvited::class                      => 'onUserInvited',
+                UserRestored::class                     => 'onUserRestored'
             ],
             InvitationDeliverySubscriber::eventRegistration()
         );

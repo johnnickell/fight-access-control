@@ -22,6 +22,8 @@ use Fight\AccessControl\Domain\AccessControl\User\UserId;
 use Fight\Common\Application\Repository\UnitOfWork;
 
 /**
+ * Class AgentPermissionAssignmentCoordinator
+ *
  * Coordinates the internal desired-state mutation of direct Agent Permissions.
  *
  * @internal
@@ -29,6 +31,8 @@ use Fight\Common\Application\Repository\UnitOfWork;
 final readonly class AgentPermissionAssignmentCoordinator
 {
     /**
+     * Constructs AgentPermissionAssignmentCoordinator
+     *
      * Creates the direct Agent Permission-assignment coordinator.
      */
     public function __construct(
@@ -41,7 +45,7 @@ final readonly class AgentPermissionAssignmentCoordinator
     }
 
     /**
-     * Grants the Permission when it is not already directly assigned.
+     * Grants the Permission when it is not already directly assigned
      */
     public function grant(UserId $actorId, AgentId $agentId, PermissionId $permissionId): ?PermissionGrantedToAgent
     {
@@ -63,7 +67,7 @@ final readonly class AgentPermissionAssignmentCoordinator
     }
 
     /**
-     * Revokes the Permission when it is directly assigned.
+     * Revokes the Permission when it is directly assigned
      */
     public function revoke(UserId $actorId, AgentId $agentId, PermissionId $permissionId): ?PermissionRevokedFromAgent
     {
@@ -85,7 +89,7 @@ final readonly class AgentPermissionAssignmentCoordinator
     }
 
     /**
-     * Replaces the complete direct-Permission assignment set when it differs.
+     * Replaces the complete direct-Permission assignment set when it differs
      *
      * @phpstan-param list<PermissionId> $permissionIds
      */
@@ -129,7 +133,7 @@ final readonly class AgentPermissionAssignmentCoordinator
     }
 
     /**
-     * Returns the authorized target Agent.
+     * Returns the authorized target Agent
      */
     private function authorizedAgent(UserId $actorId, AgentId $agentId): Agent
     {
@@ -143,7 +147,7 @@ final readonly class AgentPermissionAssignmentCoordinator
     }
 
     /**
-     * Validates one authoritative Permission reference.
+     * Validates one authoritative Permission reference
      */
     private function assertPermissionExists(PermissionId $permissionId): void
     {
@@ -153,7 +157,7 @@ final readonly class AgentPermissionAssignmentCoordinator
     }
 
     /**
-     * Validates the normalized complete Permission set exactly.
+     * Validates the normalized complete Permission set exactly
      *
      * @phpstan-param list<PermissionId> $permissionIds
      */
@@ -169,7 +173,7 @@ final readonly class AgentPermissionAssignmentCoordinator
     }
 
     /**
-     * Normalizes supplied Permission identities to their first-occurring set order.
+     * Normalizes supplied Permission identities to their first-occurring set order
      *
      * @phpstan-param list<PermissionId> $permissionIds
      *
@@ -193,7 +197,7 @@ final readonly class AgentPermissionAssignmentCoordinator
     }
 
     /**
-     * Persists exactly one real Agent Permission-assignment transition.
+     * Persists exactly one real Agent Permission-assignment transition
      */
     private function persistReplacement(Agent $agent, Agent $replacement): void
     {

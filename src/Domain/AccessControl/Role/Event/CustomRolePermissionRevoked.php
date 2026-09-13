@@ -12,11 +12,15 @@ use Fight\Common\Domain\Exception\DomainException;
 use Fight\Common\Domain\Messaging\Event\Event;
 
 /**
+ * Class CustomRolePermissionRevoked
+ *
  * Records a custom-role permission revocation after durable commit.
  */
 final readonly class CustomRolePermissionRevoked implements Event
 {
     /**
+     * Constructs CustomRolePermissionRevoked
+     *
      * Creates the permission-revoked event.
      */
     public function __construct(
@@ -48,15 +52,15 @@ final readonly class CustomRolePermissionRevoked implements Event
     public function toArray(): array
     {
         return [
-            'actor_id' => $this->actorId->toString(),
-            'role_id' => $this->roleId->toString(),
+            'actor_id'      => $this->actorId->toString(),
+            'role_id'       => $this->roleId->toString(),
             'permission_id' => $this->permissionId->toString(),
-            'revoked_at' => $this->revokedAt->format(DATE_ATOM),
+            'revoked_at'    => $this->revokedAt->format(DATE_ATOM)
         ];
     }
 
     /**
-     * Returns the administrative actor.
+     * Returns the administrative actor
      */
     public function getActorId(): UserId
     {
@@ -64,7 +68,7 @@ final readonly class CustomRolePermissionRevoked implements Event
     }
 
     /**
-     * Returns the changed role.
+     * Returns the changed role
      */
     public function getRoleId(): RoleId
     {
@@ -72,7 +76,7 @@ final readonly class CustomRolePermissionRevoked implements Event
     }
 
     /**
-     * Returns the revoked permission.
+     * Returns the revoked permission
      */
     public function getPermissionId(): PermissionId
     {
@@ -80,7 +84,7 @@ final readonly class CustomRolePermissionRevoked implements Event
     }
 
     /**
-     * Returns the revocation time.
+     * Returns the revocation time
      */
     public function getRevokedAt(): DateTimeImmutable
     {

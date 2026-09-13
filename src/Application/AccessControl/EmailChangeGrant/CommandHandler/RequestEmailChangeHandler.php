@@ -27,13 +27,17 @@ use LogicException;
 use Throwable;
 
 /**
- * Atomically reserves a destination and records mailbox-confirmation work.
+ * Class RequestEmailChangeHandler
+ *
+ * Replaces atomically reserves a destination and records mailbox-confirmation work.
  */
 final readonly class RequestEmailChangeHandler implements CommandHandler
 {
     private const string GRANT_LIFETIME = 'PT1H';
 
     /**
+     * Constructs RequestEmailChangeHandler
+     *
      * Creates the email-change request handler.
      */
     public function __construct(

@@ -11,11 +11,15 @@ use Fight\AccessControl\Domain\AccessControl\User\UserId;
 use Fight\Common\Domain\Type\Arrayable;
 
 /**
+ * Class SessionView
+ *
  * Provides a safe immutable view of an active refresh session.
  */
 final readonly class SessionView implements Arrayable
 {
     /**
+     * Constructs SessionView
+     *
      * Constructs the safe session view.
      */
     public function __construct(
@@ -31,7 +35,7 @@ final readonly class SessionView implements Arrayable
     }
 
     /**
-     * Creates a safe view without exposing authoritative or credential state.
+     * Creates a safe view without exposing authoritative or credential state
      */
     public static function fromSession(RefreshSession $refreshSession, RefreshSessionId $currentSessionId): self
     {
@@ -48,7 +52,7 @@ final readonly class SessionView implements Arrayable
     }
 
     /**
-     * Returns the stable session identifier.
+     * Returns the stable session identifier
      */
     public function getSessionId(): RefreshSessionId
     {
@@ -56,7 +60,7 @@ final readonly class SessionView implements Arrayable
     }
 
     /**
-     * Returns the identity that owns the session.
+     * Returns the identity that owns the session
      */
     public function getUserId(): UserId
     {
@@ -64,7 +68,7 @@ final readonly class SessionView implements Arrayable
     }
 
     /**
-     * Returns when the session was established.
+     * Returns when the session was established
      */
     public function getCreatedAt(): DateTimeImmutable
     {
@@ -72,7 +76,7 @@ final readonly class SessionView implements Arrayable
     }
 
     /**
-     * Returns when the session last proved refresh activity.
+     * Returns when the session last proved refresh activity
      */
     public function getLastActivityAt(): DateTimeImmutable
     {
@@ -80,7 +84,7 @@ final readonly class SessionView implements Arrayable
     }
 
     /**
-     * Returns the current idle deadline.
+     * Returns the current idle deadline
      */
     public function getIdleExpiresAt(): DateTimeImmutable
     {
@@ -88,7 +92,7 @@ final readonly class SessionView implements Arrayable
     }
 
     /**
-     * Returns the immutable absolute deadline.
+     * Returns the immutable absolute deadline
      */
     public function getAbsoluteExpiresAt(): DateTimeImmutable
     {
@@ -96,7 +100,7 @@ final readonly class SessionView implements Arrayable
     }
 
     /**
-     * Returns whether browser-restart persistence was requested.
+     * Returns whether browser-restart persistence was requested
      */
     public function isRemembered(): bool
     {
@@ -104,7 +108,7 @@ final readonly class SessionView implements Arrayable
     }
 
     /**
-     * Returns whether this session carried the request.
+     * Returns whether this session carried the request
      */
     public function isCurrent(): bool
     {
@@ -112,7 +116,7 @@ final readonly class SessionView implements Arrayable
     }
 
     /**
-     * Returns the canonical safe array representation.
+     * Returns the canonical safe array representation
      *
      * @return array{
      *     session_id: string,
@@ -128,14 +132,14 @@ final readonly class SessionView implements Arrayable
     public function toArray(): array
     {
         return [
-            'session_id' => $this->sessionId->toString(),
-            'user_id' => $this->userId->toString(),
-            'created_at' => $this->createdAt->format(DATE_ATOM),
-            'last_activity_at' => $this->lastActivityAt->format(DATE_ATOM),
-            'idle_expires_at' => $this->idleExpiresAt->format(DATE_ATOM),
+            'session_id'          => $this->sessionId->toString(),
+            'user_id'             => $this->userId->toString(),
+            'created_at'          => $this->createdAt->format(DATE_ATOM),
+            'last_activity_at'    => $this->lastActivityAt->format(DATE_ATOM),
+            'idle_expires_at'     => $this->idleExpiresAt->format(DATE_ATOM),
             'absolute_expires_at' => $this->absoluteExpiresAt->format(DATE_ATOM),
-            'remembered' => $this->remembered,
-            'current' => $this->current,
+            'remembered'          => $this->remembered,
+            'current'             => $this->current
         ];
     }
 }

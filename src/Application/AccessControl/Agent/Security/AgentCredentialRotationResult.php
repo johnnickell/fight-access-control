@@ -10,11 +10,15 @@ use LogicException;
 use SensitiveParameter;
 
 /**
+ * Class AgentCredentialRotationResult
+ *
  * Carries one raw replacement Agent HMAC shared secret after committed rotation.
  */
 final readonly class AgentCredentialRotationResult
 {
     /**
+     * Constructs AgentCredentialRotationResult
+     *
      * Creates a non-serializable Agent credential rotation result.
      */
     public function __construct(
@@ -25,7 +29,7 @@ final readonly class AgentCredentialRotationResult
     }
 
     /**
-     * Returns the Agent whose credential was rotated.
+     * Returns the Agent whose credential was rotated
      */
     public function getAgentId(): AgentId
     {
@@ -33,7 +37,7 @@ final readonly class AgentCredentialRotationResult
     }
 
     /**
-     * Returns the successor credential identifier.
+     * Returns the successor credential identifier
      */
     public function getCredentialId(): AgentCredentialId
     {
@@ -41,7 +45,7 @@ final readonly class AgentCredentialRotationResult
     }
 
     /**
-     * Returns the raw replacement HMAC shared secret exactly to the rotating caller.
+     * Returns the raw replacement HMAC shared secret exactly to the rotating caller
      */
     public function getHmacSharedSecret(): string
     {
@@ -49,7 +53,7 @@ final readonly class AgentCredentialRotationResult
     }
 
     /**
-     * Prevents the raw shared secret from being serialized into a message or durable store.
+     * Prevents the raw shared secret from being serialized into a message or durable store
      */
     public function __serialize(): array
     {

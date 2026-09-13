@@ -12,11 +12,15 @@ use Fight\Common\Application\Messaging\Query\QueryHandler;
 use Fight\Common\Domain\Messaging\Query\QueryMessage;
 
 /**
+ * Class GetUserByIdHandler
+ *
  * Retrieves a safe user-identity view by stable identifier.
  */
 final readonly class GetUserByIdHandler implements QueryHandler
 {
     /**
+     * Constructs GetUserByIdHandler
+     *
      * Creates the user-identity query handler.
      */
     public function __construct(private UserRepository $userRepository)

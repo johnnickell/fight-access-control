@@ -140,7 +140,7 @@ final class EmailChangeGrantTest extends TestCase
             [
                 $claimed->claimDelivery(...),
                 $grant->confirmDelivery(...),
-                $grant->failDelivery(...),
+                $grant->failDelivery(...)
             ] as $invalidTransition
         ) {
             try {

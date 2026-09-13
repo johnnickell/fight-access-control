@@ -8,11 +8,15 @@ use Fight\AccessControl\Domain\AccessControl\Role\Exception\RoleNameException;
 use Fight\Common\Domain\Value\ValueObject;
 
 /**
+ * Class RoleName
+ *
  * Represents a canonical role name.
  */
 final readonly class RoleName extends ValueObject
 {
     /**
+     * Constructs RoleName
+     *
      * Constructs a validated role name.
      */
     private function __construct(private string $value)
@@ -20,7 +24,7 @@ final readonly class RoleName extends ValueObject
     }
 
     /**
-     * Creates a role name from its serialized representation.
+     * Creates a role name from its serialized representation
      */
     public static function fromString(string $value): self
     {
@@ -34,7 +38,7 @@ final readonly class RoleName extends ValueObject
     }
 
     /**
-     * Returns the serialized role name.
+     * Returns the serialized role name
      */
     public function toString(): string
     {

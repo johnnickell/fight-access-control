@@ -47,12 +47,12 @@ final class GetUserByIdHandlerTest extends TestCase
         self::assertInstanceOf(Arrayable::class, $view);
         self::assertSame(
             [
-                'user_id' => '018f0000-0000-7000-8000-000000000001',
-                'email' => 'admin@example.test',
-                'state' => 'active',
-                'role_ids' => ['018f0000-0000-7000-8000-000000000002'],
+                'user_id'    => '018f0000-0000-7000-8000-000000000001',
+                'email'      => 'admin@example.test',
+                'state'      => 'active',
+                'role_ids'   => ['018f0000-0000-7000-8000-000000000002'],
                 'created_at' => '2026-01-01T00:00:00+00:00',
-                'updated_at' => '2026-01-01T00:00:00+00:00',
+                'updated_at' => '2026-01-01T00:00:00+00:00'
             ],
             $view->toArray()
         );

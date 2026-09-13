@@ -8,12 +8,14 @@ use Fight\AccessControl\Domain\AccessControl\EmailChangeGrant\Exception\EmailCha
 use Fight\AccessControl\Domain\AccessControl\User\UserId;
 
 /**
+ * Interface EmailChangeAdministrationAuthorization
+ *
  * Authorizes administration of another user's email-change journey.
  */
 interface EmailChangeAdministrationAuthorization
 {
     /**
-     * Rejects an actor who cannot administer the target user's email change.
+     * Rejects an actor who cannot administer the target user's email change
      *
      * @throws EmailChangeAdministrationAuthorizationException When the actor is not authorized
      */

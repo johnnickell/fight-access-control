@@ -37,20 +37,21 @@ PHP);
         $output = $result->getOutput().$result->getErrorOutput();
         foreach (
             [
-                'SlevomatCodingStandard.TypeHints.DeclareStrictTypes.DeclareStrictTypesMissing',
+                'Phpcs.Files.RequireStrictTypes.Missing',
+                'Phpcs.Commenting.RequireTypeDocComment.MissingDocComment',
                 'Squiz.Commenting.ClassComment.Missing',
                 'Squiz.Commenting.FunctionComment.Missing',
                 'Generic.NamingConventions.UpperCaseConstantName.ClassConstantNotUpperCase',
-                'SlevomatCodingStandard.Classes.ClassStructure.IncorrectGroupOrder',
-                'SlevomatCodingStandard.Classes.MethodSpacing.IncorrectLinesCountBetweenMethods',
-                'SlevomatCodingStandard.ControlStructures.JumpStatementsSpacing.IncorrectLinesCountBefore'
+                'Phpcs.Classes.NamedClassStructure.IncorrectGroupOrder',
+                'Phpcs.Classes.NamedMethodSpacing.IncorrectLinesCountBetweenMethods',
+                'Phpcs.Formatting.RequireBlankLineBeforeReturn.Missing'
             ] as $source
         ) {
             self::assertStringContainsString($source, $output);
         }
     }
 
-    public function test_that_phpcs_rejects_partially_keyed_arrays(): void
+    public function test_that_phpcs_rejects_trailing_array_commas(): void
     {
         $result = $this->runPhpcs(<<<'PHP'
 <?php
@@ -73,7 +74,7 @@ final class BrokenArray
     {
         return [
             'first',
-            2 => 'second'
+            'second',
         ];
     }
 }
@@ -81,7 +82,7 @@ PHP);
 
         self::assertNotSame(0, $result->getExitCode());
         self::assertStringContainsString(
-            'SlevomatCodingStandard.Arrays.DisallowPartiallyKeyed.DisallowedPartiallyKeyed',
+            'Phpcs.Arrays.DisallowTrailingArrayComma.DisallowTrailingArrayComma',
             $result->getOutput().$result->getErrorOutput()
         );
     }

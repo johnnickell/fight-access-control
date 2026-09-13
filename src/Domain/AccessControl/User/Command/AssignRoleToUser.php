@@ -10,11 +10,15 @@ use Fight\Common\Domain\Exception\DomainException;
 use Fight\Common\Domain\Messaging\Command\Command;
 
 /**
+ * Class AssignRoleToUser
+ *
  * Requests assigning an authoritative role to a User.
  */
 final readonly class AssignRoleToUser implements Command
 {
     /**
+     * Constructs AssignRoleToUser
+     *
      * Creates the User role-assignment command.
      */
     public function __construct(
@@ -44,14 +48,14 @@ final readonly class AssignRoleToUser implements Command
     public function toArray(): array
     {
         return [
-            'actor_id' => $this->actorId->toString(),
+            'actor_id'       => $this->actorId->toString(),
             'target_user_id' => $this->targetUserId->toString(),
-            'role_id' => $this->roleId->toString(),
+            'role_id'        => $this->roleId->toString()
         ];
     }
 
     /**
-     * Returns the administrative actor.
+     * Returns the administrative actor
      */
     public function getActorId(): UserId
     {
@@ -59,7 +63,7 @@ final readonly class AssignRoleToUser implements Command
     }
 
     /**
-     * Returns the target User.
+     * Returns the target User
      */
     public function getTargetUserId(): UserId
     {
@@ -67,7 +71,7 @@ final readonly class AssignRoleToUser implements Command
     }
 
     /**
-     * Returns the role to assign.
+     * Returns the role to assign
      */
     public function getRoleId(): RoleId
     {

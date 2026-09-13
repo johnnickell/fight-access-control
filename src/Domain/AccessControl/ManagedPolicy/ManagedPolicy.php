@@ -8,11 +8,15 @@ use Fight\AccessControl\Domain\AccessControl\ManagedPolicy\Exception\ManagedPoli
 use Fight\AccessControl\Domain\AccessControl\Permission\PermissionId;
 
 /**
+ * Class ManagedPolicy
+ *
  * Owns one complete version-controlled authorization policy.
  */
 final readonly class ManagedPolicy
 {
     /**
+     * Constructs ManagedPolicy
+     *
      * @phpstan-param list<ManagedPermissionDefinition> $permissions
      * @phpstan-param list<ManagedRoleDefinition> $roles
      * @phpstan-param list<PermissionId> $referencedPermissionIds
@@ -55,7 +59,7 @@ final readonly class ManagedPolicy
     }
 
     /**
-     * Creates a policy from its serialized representation.
+     * Creates a policy from its serialized representation
      *
      * @param array<string, mixed> $data
      */
@@ -96,26 +100,38 @@ final readonly class ManagedPolicy
         );
     }
 
-    /** @return list<ManagedPermissionDefinition> */
+    /**
+     * Returns managed Permission definitions
+     *
+     * @return list<ManagedPermissionDefinition>
+     */
     public function getPermissions(): array
     {
         return $this->permissions;
     }
 
-    /** @return list<ManagedRoleDefinition> */
+    /**
+     * Returns managed Role definitions
+     *
+     * @return list<ManagedRoleDefinition>
+     */
     public function getRoles(): array
     {
         return $this->roles;
     }
 
-    /** @return list<PermissionId> */
+    /**
+     * Returns referenced Permission identifiers
+     *
+     * @return list<PermissionId>
+     */
     public function getReferencedPermissionIds(): array
     {
         return $this->referencedPermissionIds;
     }
 
     /**
-     * Returns the canonical serialized policy.
+     * Returns the canonical serialized policy
      *
      * @return array{
      *     permissions: list<array{id: string, name: string, tier: string}>,
@@ -126,23 +142,23 @@ final readonly class ManagedPolicy
     public function toArray(): array
     {
         return [
-            'permissions' => array_map(
+            'permissions'               => array_map(
                 static fn(ManagedPermissionDefinition $definition): array => $definition->toArray(),
                 $this->permissions
             ),
-            'roles' => array_map(
+            'roles'                     => array_map(
                 static fn(ManagedRoleDefinition $definition): array => $definition->toArray(),
                 $this->roles
             ),
             'referenced_permission_ids' => array_map(
                 static fn(PermissionId $id): string => $id->toString(),
                 $this->referencedPermissionIds
-            ),
+            )
         ];
     }
 
     /**
-     * Rejects duplicate stable identities and canonical names.
+     * Rejects duplicate stable identities and canonical names
      *
      * @param list<ManagedPermissionDefinition>|list<ManagedRoleDefinition> $definitions
      *

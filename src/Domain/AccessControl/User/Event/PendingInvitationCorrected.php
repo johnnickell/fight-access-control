@@ -11,11 +11,15 @@ use Fight\Common\Domain\Messaging\Event\Event;
 use Fight\Common\Domain\Value\Internet\EmailAddress;
 
 /**
+ * Class PendingInvitationCorrected
+ *
  * Records a corrected pending invitation after durable commit.
  */
 final readonly class PendingInvitationCorrected implements Event
 {
     /**
+     * Constructs PendingInvitationCorrected
+     *
      * Creates a pending-invitation correction event.
      */
     public function __construct(
@@ -52,15 +56,15 @@ final readonly class PendingInvitationCorrected implements Event
     public function toArray(): array
     {
         return [
-            'actor_id' => $this->actorId->toString(),
-            'user_id' => $this->userId->toString(),
-            'email' => $this->email->toString(),
-            'activation_delivery_id' => $this->activationDeliveryId->toString(),
+            'actor_id'               => $this->actorId->toString(),
+            'user_id'                => $this->userId->toString(),
+            'email'                  => $this->email->toString(),
+            'activation_delivery_id' => $this->activationDeliveryId->toString()
         ];
     }
 
     /**
-     * Returns the administrative actor.
+     * Returns the administrative actor
      */
     public function getActorId(): UserId
     {
@@ -68,7 +72,7 @@ final readonly class PendingInvitationCorrected implements Event
     }
 
     /**
-     * Returns the corrected pending user.
+     * Returns the corrected pending user
      */
     public function getUserId(): UserId
     {
@@ -76,7 +80,7 @@ final readonly class PendingInvitationCorrected implements Event
     }
 
     /**
-     * Returns the corrected email.
+     * Returns the corrected email
      */
     public function getEmail(): EmailAddress
     {
@@ -84,7 +88,7 @@ final readonly class PendingInvitationCorrected implements Event
     }
 
     /**
-     * Returns the replacement activation delivery.
+     * Returns the replacement activation delivery
      */
     public function getActivationDeliveryId(): ActivationDeliveryId
     {

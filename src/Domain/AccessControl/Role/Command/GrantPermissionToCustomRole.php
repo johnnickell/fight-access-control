@@ -11,11 +11,15 @@ use Fight\Common\Domain\Exception\DomainException;
 use Fight\Common\Domain\Messaging\Command\Command;
 
 /**
+ * Class GrantPermissionToCustomRole
+ *
  * Requests granting an existing permission to a custom role.
  */
 final readonly class GrantPermissionToCustomRole implements Command
 {
     /**
+     * Constructs GrantPermissionToCustomRole
+     *
      * Creates the custom-role permission-grant command.
      */
     public function __construct(
@@ -45,14 +49,14 @@ final readonly class GrantPermissionToCustomRole implements Command
     public function toArray(): array
     {
         return [
-            'actor_id' => $this->actorId->toString(),
-            'role_id' => $this->roleId->toString(),
-            'permission_id' => $this->permissionId->toString(),
+            'actor_id'      => $this->actorId->toString(),
+            'role_id'       => $this->roleId->toString(),
+            'permission_id' => $this->permissionId->toString()
         ];
     }
 
     /**
-     * Returns the administrative actor.
+     * Returns the administrative actor
      */
     public function getActorId(): UserId
     {
@@ -60,7 +64,7 @@ final readonly class GrantPermissionToCustomRole implements Command
     }
 
     /**
-     * Returns the custom role.
+     * Returns the custom role
      */
     public function getRoleId(): RoleId
     {
@@ -68,7 +72,7 @@ final readonly class GrantPermissionToCustomRole implements Command
     }
 
     /**
-     * Returns the permission to grant.
+     * Returns the permission to grant
      */
     public function getPermissionId(): PermissionId
     {

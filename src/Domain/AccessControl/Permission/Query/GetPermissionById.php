@@ -9,11 +9,15 @@ use Fight\Common\Domain\Exception\DomainException;
 use Fight\Common\Domain\Messaging\Query\Query;
 
 /**
+ * Class GetPermissionById
+ *
  * Queries one permission identity by its stable identifier.
  */
 final readonly class GetPermissionById implements Query
 {
     /**
+     * Constructs GetPermissionById
+     *
      * Constructs the permission-identity query.
      */
     public function __construct(private PermissionId $permissionId)
@@ -41,7 +45,7 @@ final readonly class GetPermissionById implements Query
     }
 
     /**
-     * Returns the stable permission identifier.
+     * Returns the stable permission identifier
      */
     public function getPermissionId(): PermissionId
     {

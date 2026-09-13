@@ -9,11 +9,15 @@ use Fight\Common\Domain\Exception\DomainException;
 use Fight\Common\Domain\Messaging\Command\Command;
 
 /**
+ * Class EnableUser
+ *
  * Requests an administrative reactivation of a disabled identity.
  */
 final readonly class EnableUser implements Command
 {
     /**
+     * Constructs EnableUser
+     *
      * Creates a user-enable command.
      */
     public function __construct(
@@ -46,12 +50,12 @@ final readonly class EnableUser implements Command
     {
         return [
             'actor_id' => $this->actorId->toString(),
-            'user_id' => $this->userId->toString(),
+            'user_id'  => $this->userId->toString()
         ];
     }
 
     /**
-     * Returns the administrative actor.
+     * Returns the administrative actor
      */
     public function getActorId(): UserId
     {
@@ -59,7 +63,7 @@ final readonly class EnableUser implements Command
     }
 
     /**
-     * Returns the target user.
+     * Returns the target user
      */
     public function getUserId(): UserId
     {

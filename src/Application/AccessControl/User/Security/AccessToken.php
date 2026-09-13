@@ -7,11 +7,15 @@ namespace Fight\AccessControl\Application\AccessControl\User\Security;
 use Fight\Common\Domain\Exception\DomainException;
 
 /**
+ * Class AccessToken
+ *
  * Carries one encoded short-lived access JWT.
  */
 final readonly class AccessToken
 {
     /**
+     * Constructs AccessToken
+     *
      * Constructs a non-empty encoded token.
      */
     private function __construct(private string $value)
@@ -19,7 +23,7 @@ final readonly class AccessToken
     }
 
     /**
-     * Creates an access token from its encoded representation.
+     * Creates an access token from its encoded representation
      */
     public static function fromString(string $value): self
     {
@@ -31,7 +35,7 @@ final readonly class AccessToken
     }
 
     /**
-     * Returns the encoded access token.
+     * Returns the encoded access token
      */
     public function toString(): string
     {

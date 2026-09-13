@@ -9,11 +9,15 @@ use Fight\AccessControl\Domain\AccessControl\Permission\PermissionName;
 use Fight\Common\Domain\Type\Arrayable;
 
 /**
+ * Class PrincipalPermission
+ *
  * Captures one immutable permission entry in an authenticated-principal snapshot.
  */
 final readonly class PrincipalPermission implements Arrayable
 {
     /**
+     * Constructs PrincipalPermission
+     *
      * Creates a permission snapshot from its stable aggregate identity and canonical name.
      */
     public function __construct(
@@ -23,7 +27,7 @@ final readonly class PrincipalPermission implements Arrayable
     }
 
     /**
-     * Returns the stable permission aggregate identifier.
+     * Returns the stable permission aggregate identifier
      */
     public function getPermissionId(): PermissionId
     {
@@ -31,7 +35,7 @@ final readonly class PrincipalPermission implements Arrayable
     }
 
     /**
-     * Returns the canonical permission name.
+     * Returns the canonical permission name
      */
     public function getName(): PermissionName
     {
@@ -39,7 +43,7 @@ final readonly class PrincipalPermission implements Arrayable
     }
 
     /**
-     * Returns the exact safe array representation.
+     * Returns the exact safe array representation
      *
      * @return array{permission_id: string, name: string}
      */
@@ -47,7 +51,7 @@ final readonly class PrincipalPermission implements Arrayable
     {
         return [
             'permission_id' => $this->permissionId->toString(),
-            'name' => $this->name->toString(),
+            'name'          => $this->name->toString()
         ];
     }
 }

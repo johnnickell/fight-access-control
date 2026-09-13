@@ -9,11 +9,15 @@ use Fight\AccessControl\Domain\AccessControl\Agent\AgentCredentialId;
 use Fight\AccessControl\Domain\AccessControl\Agent\Exception\AgentAuthenticationRejectedException;
 
 /**
+ * Class SignedAgentRequest
+ *
  * Carries the transport-neutral components of one Agent HMAC request.
  */
 final readonly class SignedAgentRequest
 {
     /**
+     * Constructs SignedAgentRequest
+     *
      * Creates a validated portable signed Agent request.
      */
     public function __construct(
@@ -45,7 +49,7 @@ final readonly class SignedAgentRequest
     }
 
     /**
-     * Returns the request authorization algorithm outside the canonical request.
+     * Returns the request authorization algorithm outside the canonical request
      */
     public function getAuthorizationAlgorithm(): string
     {
@@ -53,7 +57,7 @@ final readonly class SignedAgentRequest
     }
 
     /**
-     * Returns the supplied body digest, which is absent for an empty body.
+     * Returns the supplied body digest, which is absent for an empty body
      */
     public function getBodyDigest(): ?string
     {
@@ -61,7 +65,7 @@ final readonly class SignedAgentRequest
     }
 
     /**
-     * Returns the unmodified request body used to validate its supplied digest.
+     * Returns the unmodified request body used to validate its supplied digest
      */
     public function getBody(): string
     {
@@ -69,7 +73,7 @@ final readonly class SignedAgentRequest
     }
 
     /**
-     * Returns the credential identity outside the canonical request.
+     * Returns the credential identity outside the canonical request
      */
     public function getCredentialId(): AgentCredentialId
     {
@@ -77,7 +81,7 @@ final readonly class SignedAgentRequest
     }
 
     /**
-     * Returns the canonical request authority.
+     * Returns the canonical request authority
      */
     public function getAuthority(): string
     {
@@ -85,7 +89,7 @@ final readonly class SignedAgentRequest
     }
 
     /**
-     * Returns the uppercase canonical request method.
+     * Returns the uppercase canonical request method
      */
     public function getMethod(): string
     {
@@ -93,7 +97,7 @@ final readonly class SignedAgentRequest
     }
 
     /**
-     * Returns the canonical request nonce.
+     * Returns the canonical request nonce
      */
     public function getNonce(): string
     {
@@ -101,7 +105,7 @@ final readonly class SignedAgentRequest
     }
 
     /**
-     * Returns the normalized canonical request query.
+     * Returns the normalized canonical request query
      */
     public function getNormalizedQuery(): string
     {
@@ -109,7 +113,7 @@ final readonly class SignedAgentRequest
     }
 
     /**
-     * Returns the canonical request path.
+     * Returns the canonical request path
      */
     public function getPath(): string
     {
@@ -117,7 +121,7 @@ final readonly class SignedAgentRequest
     }
 
     /**
-     * Returns the supplied signature outside the canonical request.
+     * Returns the supplied signature outside the canonical request
      */
     public function getSignature(): string
     {
@@ -125,7 +129,7 @@ final readonly class SignedAgentRequest
     }
 
     /**
-     * Returns the canonical request timestamp.
+     * Returns the canonical request timestamp
      */
     public function getTimestamp(): DateTimeImmutable
     {

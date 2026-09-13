@@ -7,6 +7,8 @@ namespace Fight\AccessControl\Domain\AccessControl\User\Exception;
 use Fight\Common\Domain\Exception\DomainException;
 
 /**
+ * Class UserRoleAssignmentException
+ *
  * Reports an invalid User role-assignment transition.
  */
 final class UserRoleAssignmentException extends DomainException

@@ -46,16 +46,16 @@ final class CurrentAgentPrincipalProviderBehavioralConformanceTest extends TestC
         self::assertSame(1, $nonceConsumer->consumptionCalls());
         self::assertSame(
             [
-                'agent_id' => '018f0000-0000-7000-8000-000000000101',
-                'credential_id' => '018f0000-0000-7000-8000-000000000102',
-                'credential_revision' => 0,
+                'agent_id'                       => '018f0000-0000-7000-8000-000000000101',
+                'credential_id'                  => '018f0000-0000-7000-8000-000000000102',
+                'credential_revision'            => 0,
                 'permission_assignment_revision' => 2,
-                'permissions' => [
+                'permissions'                    => [
                     [
                         'permission_id' => '018f0000-0000-7000-8000-000000000103',
-                        'name' => 'VIEW_AGENTS',
-                    ],
-                ],
+                        'name'          => 'VIEW_AGENTS'
+                    ]
+                ]
             ],
             $firstPrincipal->toArray()
         );
@@ -118,15 +118,23 @@ final class CurrentAgentPrincipalProviderBehavioralConformanceTest extends TestC
         );
 
         return [
-            'revoked authority' => [$revokedProvider, $revokedRequest, 'correlation-revoked'],
-            'stale credential' => [$staleCredentialProvider, $staleCredentialRequest, 'correlation-stale-credential'],
+            'revoked authority'      => [$revokedProvider, $revokedRequest, 'correlation-revoked'],
+            'stale credential'       => [
+                $staleCredentialProvider,
+                $staleCredentialRequest,
+                'correlation-stale-credential'
+            ],
             'authentication failure' => [$authenticationProvider, $authenticationRequest, 'correlation-authentication'],
-            'missing Permission' => [
+            'missing Permission'     => [
                 $missingPermissionProvider,
                 $missingPermissionRequest,
-                'correlation-missing-permission',
+                'correlation-missing-permission'
             ],
-            'stale assignment' => [$staleAssignmentProvider, $staleAssignmentRequest, 'correlation-stale-assignment'],
+            'stale assignment'       => [
+                $staleAssignmentProvider,
+                $staleAssignmentRequest,
+                'correlation-stale-assignment'
+            ]
         ];
     }
 
@@ -186,7 +194,7 @@ final class CurrentAgentPrincipalProviderBehavioralConformanceTest extends TestC
             $nonceConsumer,
             $providerAgents,
             $permissions,
-            $unitOfWork,
+            $unitOfWork
         ];
     }
 

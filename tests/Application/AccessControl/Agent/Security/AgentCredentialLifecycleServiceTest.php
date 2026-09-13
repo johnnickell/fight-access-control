@@ -465,7 +465,7 @@ final class AgentCredentialLifecycleServiceTest extends TestCase
                 static fn (AgentCredentialLifecycleService $service): null => $service->revoke(
                     'maintainer-42',
                     $agentId
-                ),
+                )
             ] as $operation
         ) {
             $events = new InMemoryEventDispatcher();

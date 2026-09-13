@@ -10,6 +10,8 @@ use Fight\AccessControl\Domain\AccessControl\User\UserId;
 use Fight\Common\Domain\Value\Internet\EmailAddress;
 
 /**
+ * Class PasswordResetGrant
+ *
  * Owns one generation of password-reset authority and its delivery work.
  *
  * @phpstan-consistent-constructor
@@ -17,6 +19,8 @@ use Fight\Common\Domain\Value\Internet\EmailAddress;
 class PasswordResetGrant
 {
     /**
+     * Constructs PasswordResetGrant
+     *
      * Creates one immutable aggregate generation.
      */
     protected function __construct(
@@ -32,7 +36,7 @@ class PasswordResetGrant
     }
 
     /**
-     * Issues an expiring aggregate generation.
+     * Issues an expiring aggregate generation
      */
     public static function issue(
         UserId $userId,
@@ -64,7 +68,7 @@ class PasswordResetGrant
     }
 
     /**
-     * Returns the aggregate-generation identifier.
+     * Returns the aggregate-generation identifier
      */
     public function getId(): PasswordResetGrantId
     {
@@ -72,7 +76,7 @@ class PasswordResetGrant
     }
 
     /**
-     * Returns the owning user identifier.
+     * Returns the owning user identifier
      */
     public function getUserId(): UserId
     {
@@ -80,7 +84,7 @@ class PasswordResetGrant
     }
 
     /**
-     * Returns the monotonic state revision used for compare-and-set persistence.
+     * Returns the monotonic state revision used for compare-and-set persistence
      */
     public function getRevision(): int
     {
@@ -88,7 +92,7 @@ class PasswordResetGrant
     }
 
     /**
-     * Returns the one-way credential hash.
+     * Returns the one-way credential hash
      */
     public function getCredentialHash(): string
     {
@@ -96,7 +100,7 @@ class PasswordResetGrant
     }
 
     /**
-     * Compares raw credential input without retaining it.
+     * Checks raw credential input without retaining it
      */
     public function matchesCredential(PasswordResetCredential $credential): bool
     {
@@ -104,7 +108,7 @@ class PasswordResetGrant
     }
 
     /**
-     * Returns the credential expiry.
+     * Returns the credential expiry
      */
     public function getExpiresAt(): DateTimeImmutable
     {
@@ -112,7 +116,7 @@ class PasswordResetGrant
     }
 
     /**
-     * Returns the owned delivery entity.
+     * Returns the owned delivery entity
      */
     public function getDelivery(): PasswordResetDelivery
     {
@@ -120,7 +124,7 @@ class PasswordResetGrant
     }
 
     /**
-     * Returns whether authority remains issued.
+     * Returns whether authority remains issued
      */
     public function isIssued(): bool
     {
@@ -128,7 +132,7 @@ class PasswordResetGrant
     }
 
     /**
-     * Returns whether authority was consumed.
+     * Returns whether authority was consumed
      */
     public function isConsumed(): bool
     {
@@ -136,7 +140,7 @@ class PasswordResetGrant
     }
 
     /**
-     * Returns when authority was consumed.
+     * Returns when authority was consumed
      */
     public function getConsumedAt(): ?DateTimeImmutable
     {
@@ -144,7 +148,7 @@ class PasswordResetGrant
     }
 
     /**
-     * Returns whether authority was revoked.
+     * Returns whether authority was revoked
      */
     public function isRevoked(): bool
     {
@@ -152,7 +156,7 @@ class PasswordResetGrant
     }
 
     /**
-     * Returns when authority was revoked.
+     * Returns when authority was revoked
      */
     public function getRevokedAt(): ?DateTimeImmutable
     {
@@ -160,7 +164,7 @@ class PasswordResetGrant
     }
 
     /**
-     * Returns whether authority can be consumed at the supplied time.
+     * Returns whether authority can be consumed at the supplied time
      */
     public function isUsableAt(DateTimeImmutable $at): bool
     {
@@ -168,7 +172,7 @@ class PasswordResetGrant
     }
 
     /**
-     * Consumes usable authority.
+     * Uses usable authority
      */
     public function consume(DateTimeImmutable $at): self
     {
@@ -189,7 +193,7 @@ class PasswordResetGrant
     }
 
     /**
-     * Revokes issued authority and destroys its delivery ciphertext.
+     * Revokes issued authority and destroys its delivery ciphertext
      */
     public function revoke(DateTimeImmutable $at): self
     {
@@ -210,7 +214,7 @@ class PasswordResetGrant
     }
 
     /**
-     * Confirms the owned delivery.
+     * Completes the owned delivery
      */
     public function confirmDelivery(): self
     {
@@ -218,7 +222,7 @@ class PasswordResetGrant
     }
 
     /**
-     * Expires the owned delivery at its terminal boundary.
+     * Marks the owned delivery at its terminal boundary
      */
     public function expireDeliveryAt(DateTimeImmutable $occurredAt): self
     {
@@ -226,7 +230,7 @@ class PasswordResetGrant
     }
 
     /**
-     * Destroys recoverable delivery ciphertext.
+     * Deletes recoverable delivery ciphertext
      */
     public function invalidateDelivery(): self
     {
@@ -234,7 +238,7 @@ class PasswordResetGrant
     }
 
     /**
-     * Returns the fixed grant purpose.
+     * Returns the fixed grant purpose
      */
     public function purpose(): string
     {
@@ -242,7 +246,7 @@ class PasswordResetGrant
     }
 
     /**
-     * Replaces only the owned delivery within this immutable generation.
+     * Replaces only the owned delivery within this immutable generation
      */
     private function withDelivery(PasswordResetDelivery $delivery): self
     {

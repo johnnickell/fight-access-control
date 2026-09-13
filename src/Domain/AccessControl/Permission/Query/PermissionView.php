@@ -11,11 +11,15 @@ use Fight\AccessControl\Domain\AccessControl\Permission\PermissionTier;
 use Fight\Common\Domain\Type\Arrayable;
 
 /**
+ * Class PermissionView
+ *
  * Provides a safe immutable view of a permission.
  */
 final readonly class PermissionView implements Arrayable
 {
     /**
+     * Constructs PermissionView
+     *
      * Constructs the safe permission view.
      */
     public function __construct(
@@ -27,7 +31,7 @@ final readonly class PermissionView implements Arrayable
     }
 
     /**
-     * Creates a safe view without exposing aggregate or persistence authority.
+     * Creates a safe view without exposing aggregate or persistence authority
      */
     public static function fromPermission(Permission $permission): self
     {
@@ -40,7 +44,7 @@ final readonly class PermissionView implements Arrayable
     }
 
     /**
-     * Returns the stable permission identifier.
+     * Returns the stable permission identifier
      */
     public function getPermissionId(): PermissionId
     {
@@ -48,7 +52,7 @@ final readonly class PermissionView implements Arrayable
     }
 
     /**
-     * Returns the canonical permission name.
+     * Returns the canonical permission name
      */
     public function getName(): PermissionName
     {
@@ -56,7 +60,7 @@ final readonly class PermissionView implements Arrayable
     }
 
     /**
-     * Returns the managed permission tier, or null for a custom permission.
+     * Returns the managed permission tier, or null for a custom permission
      */
     public function getTier(): ?PermissionTier
     {
@@ -64,7 +68,7 @@ final readonly class PermissionView implements Arrayable
     }
 
     /**
-     * Returns whether version-controlled policy owns this permission.
+     * Returns whether version-controlled policy owns this permission
      */
     public function isManaged(): bool
     {
@@ -72,7 +76,7 @@ final readonly class PermissionView implements Arrayable
     }
 
     /**
-     * Returns the canonical safe array representation.
+     * Returns the canonical safe array representation
      *
      * @return array{
      *     permission_id: string,
@@ -85,9 +89,9 @@ final readonly class PermissionView implements Arrayable
     {
         return [
             'permission_id' => $this->permissionId->toString(),
-            'name' => $this->name->toString(),
-            'tier' => $this->tier?->value,
-            'managed' => $this->managed,
+            'name'          => $this->name->toString(),
+            'tier'          => $this->tier?->value,
+            'managed'       => $this->managed
         ];
     }
 }

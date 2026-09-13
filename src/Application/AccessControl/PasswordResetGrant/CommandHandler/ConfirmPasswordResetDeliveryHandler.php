@@ -16,11 +16,15 @@ use Fight\Common\Domain\Messaging\Event\CommandFailedEvent;
 use Throwable;
 
 /**
- * Confirms successful consumer-owned password-reset delivery and destroys its ciphertext.
+ * Class ConfirmPasswordResetDeliveryHandler
+ *
+ * Completes successful consumer-owned password-reset delivery and destroys its ciphertext.
  */
 final readonly class ConfirmPasswordResetDeliveryHandler implements CommandHandler
 {
     /**
+     * Constructs ConfirmPasswordResetDeliveryHandler
+     *
      * Creates the password-reset delivery-confirmation handler.
      */
     public function __construct(

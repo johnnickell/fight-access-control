@@ -21,13 +21,17 @@ use Fight\Common\Application\Repository\UnitOfWork;
 use Throwable;
 
 /**
- * Atomically provisions one Agent and returns its first raw HMAC shared secret.
+ * Class AgentProvisioningService
+ *
+ * Replaces atomically provisions one Agent and returns its first raw HMAC shared secret.
  */
 final readonly class AgentProvisioningService
 {
     private const string FAILURE_MESSAGE = 'Agent provisioning failed.';
 
     /**
+     * Constructs AgentProvisioningService
+     *
      * Creates the synchronous Agent provisioning service.
      */
     public function __construct(
@@ -42,7 +46,7 @@ final readonly class AgentProvisioningService
     }
 
     /**
-     * Provisions an Agent for one safe, consumer-supplied maintainer actor identifier.
+     * Provisions an Agent for one safe, consumer-supplied maintainer actor identifier
      */
     public function provision(string $actorId, string $agentName): AgentProvisioningResult
     {
@@ -67,7 +71,7 @@ final readonly class AgentProvisioningService
 
                 return [
                     new AgentProvisioningResult($agentId, $credentialId, $hmacSharedSecret),
-                    new AgentProvisioned($agentId, $credentialId, $agent->getCredentialRevision(), $provisionedAt),
+                    new AgentProvisioned($agentId, $credentialId, $agent->getCredentialRevision(), $provisionedAt)
                 ];
             });
 
@@ -82,7 +86,7 @@ final readonly class AgentProvisioningService
     }
 
     /**
-     * Publishes safe failure evidence without allowing a publication fault to replace the original failure.
+     * Dispatches safe failure evidence without allowing a publication fault to replace the original failure
      */
     private function publishFailure(string $actorId, Throwable $throwable): void
     {

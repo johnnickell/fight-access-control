@@ -16,7 +16,9 @@ runtime or core layers.
 
 ## Scope
 
-- In scope: `swagger-php` development dependency and Composer suggestion; `openapi/` attribute anchors and portable
+- In scope: the tagged `johnnickell/fight-common ^1.2` contract, including generic `ResultSet<T>` annotations for
+  package query handlers and repositories; `swagger-php` development dependency and Composer suggestion; `openapi/`
+  attribute anchors and portable
   bootstrap; every WF-006 Command, Query, authentication, safe-result, collection, creation, empty-success, and
   optional JSend-success component; concise composition guide and representative payload examples; changelog and
   release-candidate planning updates for `v0.2.0`.
@@ -28,6 +30,8 @@ runtime or core layers.
 
 - [ ] Composer declares `zircote/swagger-php ^6.5` only in `require-dev` and `suggest`, without changing production
       dependencies or PSR-4 production autoloading.
+- [ ] Composer requires tagged `johnnickell/fight-common ^1.2`; generic `ResultSet<T>` annotations used by package
+      query handlers and repositories rely on that contract and remain covered by focused handler and repository tests.
 - [ ] Non-autoloaded `openapi/` anchors and `openapi/bootstrap.php` generate the complete `Fight.AccessControl.*`
       catalog settled in WF-006 and do not introduce a Domain, Application, or production Adapter dependency.
 - [ ] Component fields, requiredness, UUID and timestamp formats, enum values, secret flags, browser and portable

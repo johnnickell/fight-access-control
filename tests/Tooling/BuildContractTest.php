@@ -82,10 +82,10 @@ BASH);
     private function runBuild(int $gateStatus = 0): Process
     {
         $process = new Process(['bash', 'bin/build'], $this->directory, [
-            'DOCKER_BIN'        => $this->directory.'/docker',
-            'FAKE_DOCKER_LOG'   => $this->directory.'/docker.log',
-            'FAKE_GATE_STATUS'  => (string) $gateStatus,
-            'ID_BIN'            => $this->directory.'/id'
+            'DOCKER_BIN'       => $this->directory.'/docker',
+            'FAKE_DOCKER_LOG'  => $this->directory.'/docker.log',
+            'FAKE_GATE_STATUS' => (string) $gateStatus,
+            'ID_BIN'           => $this->directory.'/id'
         ]);
         $process->run();
 

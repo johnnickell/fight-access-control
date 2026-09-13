@@ -13,11 +13,15 @@ use Fight\Common\Domain\Messaging\Query\QueryMessage;
 use Fight\Common\Domain\Repository\ResultSet;
 
 /**
+ * Class ListRolesHandler
+ *
  * Retrieves safe role views.
  */
 final readonly class ListRolesHandler implements QueryHandler
 {
     /**
+     * Constructs ListRolesHandler
+     *
      * Creates the role-listing query handler.
      */
     public function __construct(private RoleRepository $roleRepository)
@@ -31,7 +35,7 @@ final readonly class ListRolesHandler implements QueryHandler
     }
 
     /**
-     * @inheritDoc
+     * Returns safe Role views
      *
      * @return ResultSet<RoleView>
      */

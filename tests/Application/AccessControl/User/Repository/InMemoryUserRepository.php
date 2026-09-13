@@ -216,7 +216,7 @@ final class InMemoryUserRepository implements UserRepository
         if (
             !$this->authorizationReferences->rolesAreAuthoritative([
                 ...$expected->getRoleIds(),
-                ...$replacement->getRoleIds(),
+                ...$replacement->getRoleIds()
             ])
         ) {
             return false;

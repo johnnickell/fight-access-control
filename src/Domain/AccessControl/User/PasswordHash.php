@@ -7,11 +7,15 @@ namespace Fight\AccessControl\Domain\AccessControl\User;
 use Fight\Common\Domain\Exception\DomainException;
 
 /**
+ * Class PasswordHash
+ *
  * Represents a password hash produced by a supported PHP password algorithm.
  */
 final readonly class PasswordHash
 {
     /**
+     * Constructs PasswordHash
+     *
      * Constructs a validated password hash.
      */
     private function __construct(private string $value)
@@ -19,7 +23,7 @@ final readonly class PasswordHash
     }
 
     /**
-     * Creates a password hash from its serialized representation.
+     * Creates a password hash from its serialized representation
      */
     public static function fromString(string $value): self
     {
@@ -33,7 +37,7 @@ final readonly class PasswordHash
     }
 
     /**
-     * Returns the serialized password hash.
+     * Returns the serialized password hash
      */
     public function toString(): string
     {

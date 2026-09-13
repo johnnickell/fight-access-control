@@ -511,7 +511,7 @@ final class AgentPermissionAssignmentHandlerTest extends TestCase
                 'actor_id',
                 'agent_id',
                 'expected_permission_assignment_revision',
-                'permission_ids',
+                'permission_ids'
             ]],
             [PermissionGrantedToAgent::class, ['actor_id', 'agent_id', 'permission_id', 'granted_at']],
             [PermissionRevokedFromAgent::class, ['actor_id', 'agent_id', 'permission_id', 'revoked_at']],
@@ -520,21 +520,21 @@ final class AgentPermissionAssignmentHandlerTest extends TestCase
                 'agent_id',
                 'permission_ids',
                 'permission_assignment_revision',
-                'replaced_at',
-            ]],
+                'replaced_at'
+            ]]
         ];
         foreach ($cases as [$type, $keys]) {
             foreach ($keys as $missing) {
                 $data = [
-                    'actor_id' => $actorId->toString(),
-                    'agent_id' => $agentId->toString(),
-                    'permission_id' => $permissionId->toString(),
-                    'granted_at' => self::NOW,
-                    'revoked_at' => self::NOW,
+                    'actor_id'                                => $actorId->toString(),
+                    'agent_id'                                => $agentId->toString(),
+                    'permission_id'                           => $permissionId->toString(),
+                    'granted_at'                              => self::NOW,
+                    'revoked_at'                              => self::NOW,
                     'expected_permission_assignment_revision' => 7,
-                    'permission_ids' => [$permissionId->toString()],
-                    'permission_assignment_revision' => 8,
-                    'replaced_at' => self::NOW,
+                    'permission_ids'                          => [$permissionId->toString()],
+                    'permission_assignment_revision'          => 8,
+                    'replaced_at'                             => self::NOW
                 ];
                 unset($data[$missing]);
 

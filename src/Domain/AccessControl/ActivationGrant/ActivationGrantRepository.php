@@ -8,6 +8,8 @@ use Exception;
 use Fight\AccessControl\Domain\AccessControl\User\UserId;
 
 /**
+ * Interface ActivationGrantRepository
+ *
  * Persists complete activation aggregate generations under one atomic boundary.
  *
  * A user's latest generation is authoritative. Implementations compare the predecessor's complete security-relevant
@@ -25,40 +27,41 @@ use Fight\AccessControl\Domain\AccessControl\User\UserId;
 interface ActivationGrantRepository
 {
     /**
-     * Returns a generation by stable identifier, including historical generations.
+     * Returns a generation by stable identifier, including historical generations
      *
      * @throws Exception When an error occurs.
      */
     public function getById(ActivationGrantId $activationGrantId): ?ActivationGrant;
 
     /**
-     * Returns the generation owning a stable delivery identifier, including terminal history.
+     * Returns the generation owning a stable delivery identifier, including terminal history
      *
      * @throws Exception When an error occurs.
      */
     public function getByDeliveryId(ActivationDeliveryId $activationDeliveryId): ?ActivationGrant;
 
     /**
-     * Returns the newest aggregate generation for a user.
+     * Returns the newest aggregate generation for a user
      *
      * @throws Exception When an error occurs.
      */
     public function getLatestByUserId(UserId $userId): ?ActivationGrant;
 
     /**
-     * Adds only a pristine first generation with revision zero, issued authority, pending non-empty recoverable
+     * Adds a pristine first activation-grant generation
+     *
+     * The generation has revision zero, issued authority, and pending non-empty recoverable
      * ciphertext, matching aggregate ownership, globally fresh grant and delivery identifiers, and a historically
      * unused digest.
      *
-     * Returns false without mutation when the generation is not pristine, history already exists, or an identifier or
-     * digest was used.
+     * Returns false when the activation generation is not pristine
      *
      * @throws Exception When an error occurs.
      */
     public function add(ActivationGrant $activationGrant): bool;
 
     /**
-     * Compare-saves one allowed same-generation next revision.
+     * Stores one allowed same-generation next revision
      *
      * The predecessor must equal the latest generation's complete security-relevant state. Returns false without
      * mutation for a stale or fabricated predecessor, skipped revision, changed generation identity, or invalid
@@ -69,7 +72,7 @@ interface ActivationGrantRepository
     public function replace(ActivationGrant $predecessor, ActivationGrant $replacement): bool;
 
     /**
-     * Atomically terminalizes the latest predecessor and inserts one valid successor generation.
+     * Replaces atomically terminalizes the latest predecessor and inserts one valid successor generation
      *
      * The terminal predecessor must be the predecessor's next revision with no issued authority or retryable delivery.
      * The successor must be a pristine initial generation, belong to the same user, have fresh grant and delivery
@@ -86,7 +89,7 @@ interface ActivationGrantRepository
     ): bool;
 
     /**
-     * Adds a pristine successor generation once the user's latest generation is terminal.
+     * Adds a pristine successor generation once the user's latest generation is terminal
      *
      * Used when a user with prior activation history must receive fresh activation authority, for example restoring a
      * deleted identity to pending activation. The latest generation must be terminal with no issued authority or

@@ -71,14 +71,14 @@ final class DeliverEmailChangeHandlerTest extends TestCase
             new DateTimeImmutable('2026-08-23T11:00:00+00:00')
         )));
         self::assertSame([
-            EmailChangeRequested::class => 'onEmailChangeRequested',
+            EmailChangeRequested::class => 'onEmailChangeRequested'
         ], EmailChangeDeliverySubscriber::eventRegistration());
         $command = $commandBus->executedCommands()[0];
         self::assertInstanceOf(DeliverEmailChange::class, $command);
         self::assertSame([
-            'actor_id' => $user->getId()->toString(),
-            'user_id' => $user->getId()->toString(),
-            'email_change_delivery_id' => $grant->getDelivery()->getId()->toString(),
+            'actor_id'                 => $user->getId()->toString(),
+            'user_id'                  => $user->getId()->toString(),
+            'email_change_delivery_id' => $grant->getDelivery()->getId()->toString()
         ], $command->toArray());
         $audit = new InMemoryAuditEvidenceRepository($unitOfWork);
         $invoker = new RecordingEmailChangeDeliveryInvoker();

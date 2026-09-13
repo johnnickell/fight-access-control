@@ -7,6 +7,8 @@ namespace Fight\AccessControl\Domain\AccessControl\User\Exception;
 use Fight\Common\Domain\Exception\DomainException;
 
 /**
+ * Class EmailChangeRequestException
+ *
  * Reports a rejected email-change request.
  */
 final class EmailChangeRequestException extends DomainException

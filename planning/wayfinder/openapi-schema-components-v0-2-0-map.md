@@ -64,10 +64,12 @@ Metadata ownership and component discovery ──→ Authentication payload and 
 
 No Wayfinder decision remains. Implementation begins with [T-00033](../tickets/00033-TICKET.md).
 
-## Not yet specified (fog)
+## Compatibility resolution
 
-- Whether source-level attributes can make an intended schema change a release-blocking compatibility concern
-  without requiring a separate schema-diff tool.
+Published schema keys and fields are public `0.x` contracts. An intended source-level attribute change that removes,
+renames, narrows, or makes a field required is release-blocking until it is released under the compatible minor-version
+policy and recorded in the changelog. T-00033 verifies this initial catalog through the documented local composition
+proof; a separate schema-diff tool is not required for this release.
 
 ## Out of scope
 

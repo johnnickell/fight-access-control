@@ -8,12 +8,14 @@ use Fight\AccessControl\Domain\AccessControl\RefreshSession\Exception\SessionAdm
 use Fight\AccessControl\Domain\AccessControl\User\UserId;
 
 /**
+ * Interface SessionAdministrationAuthorization
+ *
  * Authorizes administrative access to another user's refresh sessions.
  */
 interface SessionAdministrationAuthorization
 {
     /**
-     * Rejects an actor who cannot manage the user's refresh sessions.
+     * Rejects an actor who cannot manage the user's refresh sessions
      *
      * @throws SessionAdministrationAuthorizationException When the actor is not authorized
      */

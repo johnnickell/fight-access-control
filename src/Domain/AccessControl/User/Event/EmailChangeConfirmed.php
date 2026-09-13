@@ -10,11 +10,15 @@ use Fight\Common\Domain\Exception\DomainException;
 use Fight\Common\Domain\Messaging\Event\Event;
 
 /**
+ * Class EmailChangeConfirmed
+ *
  * Records an email-change confirmation after durable commit.
  */
 final readonly class EmailChangeConfirmed implements Event
 {
     /**
+     * Constructs EmailChangeConfirmed
+     *
      * Constructs the secret-free email-change confirmation event.
      */
     public function __construct(
@@ -47,13 +51,13 @@ final readonly class EmailChangeConfirmed implements Event
     public function toArray(): array
     {
         return [
-            'user_id' => $this->userId->toString(),
-            'confirmed_at' => $this->confirmedAt->format(DATE_ATOM),
+            'user_id'      => $this->userId->toString(),
+            'confirmed_at' => $this->confirmedAt->format(DATE_ATOM)
         ];
     }
 
     /**
-     * Returns the changed user.
+     * Returns the changed user
      */
     public function getUserId(): UserId
     {
@@ -61,7 +65,7 @@ final readonly class EmailChangeConfirmed implements Event
     }
 
     /**
-     * Returns when confirmation committed.
+     * Returns when confirmation committed
      */
     public function getConfirmedAt(): DateTimeImmutable
     {

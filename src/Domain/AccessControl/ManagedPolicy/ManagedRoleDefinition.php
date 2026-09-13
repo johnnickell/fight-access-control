@@ -11,11 +11,15 @@ use Fight\AccessControl\Domain\AccessControl\Role\RoleName;
 use Throwable;
 
 /**
+ * Class ManagedRoleDefinition
+ *
  * Defines one version-controlled managed role and its exact permission membership.
  */
 final readonly class ManagedRoleDefinition
 {
     /**
+     * Constructs ManagedRoleDefinition
+     *
      * Constructs a managed role definition.
      *
      * @phpstan-param list<PermissionId> $permissionIds
@@ -43,7 +47,7 @@ final readonly class ManagedRoleDefinition
     }
 
     /**
-     * Creates a definition from its serialized representation.
+     * Creates a definition from its serialized representation
      *
      * @param array<string, mixed> $data
      */
@@ -81,7 +85,7 @@ final readonly class ManagedRoleDefinition
     }
 
     /**
-     * Returns the stable role identifier.
+     * Returns the stable role identifier
      */
     public function getId(): RoleId
     {
@@ -89,7 +93,7 @@ final readonly class ManagedRoleDefinition
     }
 
     /**
-     * Returns the canonical role name.
+     * Returns the canonical role name
      */
     public function getName(): RoleName
     {
@@ -97,7 +101,7 @@ final readonly class ManagedRoleDefinition
     }
 
     /**
-     * Returns the exact managed permission membership.
+     * Returns the exact managed permission membership
      *
      * @return list<PermissionId>
      */
@@ -107,19 +111,19 @@ final readonly class ManagedRoleDefinition
     }
 
     /**
-     * Returns the serialized definition.
+     * Returns the serialized definition
      *
      * @return array{id: string, name: string, permission_ids: list<string>}
      */
     public function toArray(): array
     {
         return [
-            'id' => $this->id->toString(),
-            'name' => $this->name->toString(),
+            'id'             => $this->id->toString(),
+            'name'           => $this->name->toString(),
             'permission_ids' => array_map(
                 static fn(PermissionId $permissionId): string => $permissionId->toString(),
                 $this->permissionIds
-            ),
+            )
         ];
     }
 }

@@ -19,11 +19,15 @@ use Fight\Common\Domain\Messaging\Event\CommandFailedEvent;
 use Throwable;
 
 /**
- * Atomically renames an authorized runtime-owned custom role.
+ * Class RenameCustomRoleHandler
+ *
+ * Replaces atomically renames an authorized runtime-owned custom role.
  */
 final readonly class RenameCustomRoleHandler implements CommandHandler
 {
     /**
+     * Constructs RenameCustomRoleHandler
+     *
      * Creates the custom-role rename handler.
      */
     public function __construct(

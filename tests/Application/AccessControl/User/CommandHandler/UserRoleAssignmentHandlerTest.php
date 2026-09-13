@@ -187,17 +187,17 @@ final class UserRoleAssignmentHandlerTest extends TestCase
             [AssignRoleToUser::class, ['actor_id', 'target_user_id', 'role_id']],
             [RemoveRoleFromUser::class, ['actor_id', 'target_user_id', 'role_id']],
             [RoleAssignedToUser::class, ['actor_id', 'target_user_id', 'role_id', 'assigned_at']],
-            [RoleRemovedFromUser::class, ['actor_id', 'target_user_id', 'role_id', 'removed_at']],
+            [RoleRemovedFromUser::class, ['actor_id', 'target_user_id', 'role_id', 'removed_at']]
         ];
 
         foreach ($cases as [$type, $keys]) {
             foreach ($keys as $missing) {
                 $data = [
-                    'actor_id' => 'c3bc62b6-b87c-4371-b585-c47a059878f1',
+                    'actor_id'       => 'c3bc62b6-b87c-4371-b585-c47a059878f1',
                     'target_user_id' => 'edb053fd-17d7-49c7-9357-7e4835de9410',
-                    'role_id' => '370f0da6-a3ee-4d27-9ef7-79d8fb511deb',
-                    'assigned_at' => self::NOW,
-                    'removed_at' => self::NOW,
+                    'role_id'        => '370f0da6-a3ee-4d27-9ef7-79d8fb511deb',
+                    'assigned_at'    => self::NOW,
+                    'removed_at'     => self::NOW
                 ];
                 unset($data[$missing]);
 
@@ -574,10 +574,10 @@ final class UserRoleAssignmentHandlerTest extends TestCase
     public function test_dependency_failures_are_rethrown_by_identity_and_reported(): void
     {
         $failures = [
-            'authorization' => new RuntimeException('authorization failed'),
+            'authorization'   => new RuntimeException('authorization failed'),
             'user repository' => new RuntimeException('user repository failed'),
             'role repository' => new RuntimeException('role repository failed'),
-            'clock' => new RuntimeException('clock failed'),
+            'clock'           => new RuntimeException('clock failed')
         ];
 
         foreach ([true, false] as $assigning) {

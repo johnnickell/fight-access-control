@@ -22,11 +22,15 @@ use LogicException;
 use Throwable;
 
 /**
- * Atomically soft-deletes an identity and revokes its active sessions.
+ * Class DeleteUserHandler
+ *
+ * Replaces atomically soft-deletes an identity and revokes its active sessions.
  */
 final readonly class DeleteUserHandler implements CommandHandler
 {
     /**
+     * Constructs DeleteUserHandler
+     *
      * Creates the user-delete handler.
      */
     public function __construct(

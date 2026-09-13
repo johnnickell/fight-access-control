@@ -10,11 +10,15 @@ use Fight\Common\Domain\Exception\DomainException;
 use Fight\Common\Domain\Messaging\Event\Event;
 
 /**
+ * Class PasswordResetCompleted
+ *
  * Records a completed password reset after its durable state committed.
  */
 final readonly class PasswordResetCompleted implements Event
 {
     /**
+     * Constructs PasswordResetCompleted
+     *
      * Constructs the secret-free password-reset completion event.
      */
     public function __construct(
@@ -48,12 +52,12 @@ final readonly class PasswordResetCompleted implements Event
     {
         return [
             'user_id'      => $this->userId->toString(),
-            'completed_at' => $this->completedAt->format(DATE_ATOM),
+            'completed_at' => $this->completedAt->format(DATE_ATOM)
         ];
     }
 
     /**
-     * Returns the reset user identifier.
+     * Returns the reset user identifier
      */
     public function getUserId(): UserId
     {
@@ -61,7 +65,7 @@ final readonly class PasswordResetCompleted implements Event
     }
 
     /**
-     * Returns when the password reset completed.
+     * Returns when the password reset completed
      */
     public function getCompletedAt(): DateTimeImmutable
     {

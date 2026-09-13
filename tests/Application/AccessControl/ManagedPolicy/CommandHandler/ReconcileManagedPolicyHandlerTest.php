@@ -158,14 +158,14 @@ final class ReconcileManagedPolicyHandlerTest extends TestCase
                 $this->permissionPlan(103, 'ARCHIVE_USERS', 'ADMIN_SAFE', 'CREATE'),
                 $this->permissionPlan(102, 'MANAGE_USERS', 'SUPER_ADMIN_ONLY', 'RECONCILE'),
                 $this->permissionPlan(104, 'OBSOLETE', 'ADMIN_SAFE', 'REMOVE'),
-                $this->permissionPlan(101, 'VIEW_USERS', 'ADMIN_SAFE', 'UNCHANGED'),
+                $this->permissionPlan(101, 'VIEW_USERS', 'ADMIN_SAFE', 'UNCHANGED')
             ],
-            'roles' => [
+            'roles'       => [
                 $this->rolePlan(203, 'ROLE_ADMIN', [102, 103], 'CREATE'),
                 $this->rolePlan(202, 'ROLE_EDITOR', [102, 103], 'RECONCILE'),
                 $this->rolePlan(204, 'ROLE_OBSOLETE', [104], 'REMOVE'),
-                $this->rolePlan(201, 'ROLE_VIEWER', [101], 'UNCHANGED'),
-            ],
+                $this->rolePlan(201, 'ROLE_VIEWER', [101], 'UNCHANGED')
+            ]
         ];
         self::assertSame($expectedPlan, $preview->toArray());
         $events = new InMemoryEventDispatcher(static function () use ($unitOfWork): void {
@@ -409,8 +409,8 @@ final class ReconcileManagedPolicyHandlerTest extends TestCase
 
         try {
             ManagedPolicyReconciled::fromArray([
-                'plan' => 'invalid',
-                'occurred_at' => '2026-08-23T12:00:00+00:00',
+                'plan'        => 'invalid',
+                'occurred_at' => '2026-08-23T12:00:00+00:00'
             ]);
             self::fail('A non-array event plan must be rejected.');
         } catch (DomainException) {
@@ -424,16 +424,16 @@ final class ReconcileManagedPolicyHandlerTest extends TestCase
     {
         $occurredAt = new DateTimeImmutable('2026-08-23T12:00:00+00:00');
         $permission = [
-            'id' => $this->permissionId(101)->toString(),
-            'name' => 'VIEW_USERS',
-            'tier' => 'ADMIN_SAFE',
-            'action' => 'CREATE',
+            'id'     => $this->permissionId(101)->toString(),
+            'name'   => 'VIEW_USERS',
+            'tier'   => 'ADMIN_SAFE',
+            'action' => 'CREATE'
         ];
         $role = [
-            'id' => $this->roleId(201)->toString(),
-            'name' => 'ROLE_ADMIN',
+            'id'             => $this->roleId(201)->toString(),
+            'name'           => 'ROLE_ADMIN',
             'permission_ids' => [$this->permissionId(101)->toString()],
-            'action' => 'RECONCILE',
+            'action'         => 'RECONCILE'
         ];
         $validPlan = ['permissions' => [$permission], 'roles' => [$role]];
         $event = new ManagedPolicyReconciled($validPlan, $occurredAt);
@@ -453,10 +453,10 @@ final class ReconcileManagedPolicyHandlerTest extends TestCase
             ['permissions' => [], 'unexpected' => []],
             ['permissions' => ['invalid'], 'roles' => []],
             ['permissions' => [[
-                'id' => $permission['id'],
+                'id'   => $permission['id'],
                 'name' => $permission['name'],
-                'tier' => $permission['tier'],
-            ]], 'roles' => []],
+                'tier' => $permission['tier']
+            ]], 'roles'    => []],
             ['permissions' => [[...$permission, 'unexpected' => true]], 'roles' => []],
             ['permissions' => [[...$permission, 'id' => 'invalid']], 'roles' => []],
             ['permissions' => [[...$permission, 'name' => 'invalid']], 'roles' => []],
@@ -465,9 +465,9 @@ final class ReconcileManagedPolicyHandlerTest extends TestCase
             ['permissions' => [[...$permission, 'action' => 1]], 'roles' => []],
             ['permissions' => [], 'roles' => ['invalid']],
             ['permissions' => [], 'roles' => [[
-                'id' => $role['id'],
-                'name' => $role['name'],
-                'permission_ids' => $role['permission_ids'],
+                'id'             => $role['id'],
+                'name'           => $role['name'],
+                'permission_ids' => $role['permission_ids']
             ]]],
             ['permissions' => [], 'roles' => [[...$role, 'unexpected' => true]]],
             ['permissions' => [], 'roles' => [[...$role, 'id' => 'invalid']]],
@@ -476,7 +476,7 @@ final class ReconcileManagedPolicyHandlerTest extends TestCase
             ['permissions' => [], 'roles' => [[...$role, 'permission_ids' => [1]]]],
             ['permissions' => [], 'roles' => [[...$role, 'permission_ids' => ['invalid']]]],
             ['permissions' => [], 'roles' => [[...$role, 'action' => 'INVALID']]],
-            ['permissions' => [], 'roles' => [[...$role, 'action' => 1]]],
+            ['permissions' => [], 'roles' => [[...$role, 'action' => 1]]]
         ];
         $rejections = 0;
 
@@ -487,8 +487,8 @@ final class ReconcileManagedPolicyHandlerTest extends TestCase
                         new ManagedPolicyReconciled($invalidPlan, $occurredAt);
                     } else {
                         ManagedPolicyReconciled::fromArray([
-                            'plan' => $invalidPlan,
-                            'occurred_at' => $occurredAt->format(DATE_ATOM),
+                            'plan'        => $invalidPlan,
+                            'occurred_at' => $occurredAt->format(DATE_ATOM)
                         ]);
                     }
 
@@ -563,7 +563,7 @@ final class ReconcileManagedPolicyHandlerTest extends TestCase
                 'permission_remove',
                 'permission_remove_loss',
                 'role_remove',
-                'role_remove_loss',
+                'role_remove_loss'
             ] as $scenario
         ) {
             $permissionRepository = $this->createStub(PermissionRepository::class);
@@ -825,12 +825,12 @@ final class ReconcileManagedPolicyHandlerTest extends TestCase
             [
                 $this->permission(103, 'ARCHIVE_USERS', PermissionTier::ADMIN_SAFE),
                 $this->permission(102, 'MANAGE_USERS', PermissionTier::SUPER_ADMIN_ONLY),
-                $this->permission(101, 'VIEW_USERS', PermissionTier::ADMIN_SAFE),
+                $this->permission(101, 'VIEW_USERS', PermissionTier::ADMIN_SAFE)
             ],
             [
                 $this->role(203, 'ROLE_ADMIN', [102, 103]),
                 $this->role(202, 'ROLE_EDITOR', [102, 103]),
-                $this->role(201, 'ROLE_VIEWER', [101]),
+                $this->role(201, 'ROLE_VIEWER', [101])
             ],
             [$this->permissionId(101)]
         ));
@@ -869,10 +869,10 @@ final class ReconcileManagedPolicyHandlerTest extends TestCase
     private function permissionPlan(int $suffix, string $name, string $tier, string $action): array
     {
         return [
-            'id' => $this->permissionId($suffix)->toString(),
-            'name' => $name,
-            'tier' => $tier,
-            'action' => $action,
+            'id'     => $this->permissionId($suffix)->toString(),
+            'name'   => $name,
+            'tier'   => $tier,
+            'action' => $action
         ];
     }
 
@@ -884,13 +884,13 @@ final class ReconcileManagedPolicyHandlerTest extends TestCase
     private function rolePlan(int $suffix, string $name, array $permissionSuffixes, string $action): array
     {
         return [
-            'id' => $this->roleId($suffix)->toString(),
-            'name' => $name,
+            'id'             => $this->roleId($suffix)->toString(),
+            'name'           => $name,
             'permission_ids' => array_map(
                 fn(int $permissionSuffix): string => $this->permissionId($permissionSuffix)->toString(),
                 $permissionSuffixes
             ),
-            'action' => $action,
+            'action'         => $action
         ];
     }
 

@@ -7,6 +7,8 @@ namespace Fight\AccessControl\Domain\AccessControl\Agent\Exception;
 use Fight\Common\Domain\Exception\DomainException;
 
 /**
+ * Class AgentReadException
+ *
  * Reports an unsafe or incomplete Agent administrative read.
  */
 final class AgentReadException extends DomainException

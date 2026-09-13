@@ -5,11 +5,15 @@ declare(strict_types=1);
 namespace Fight\AccessControl\Application\AccessControl\User\Security;
 
 /**
+ * Class RefreshResult
+ *
  * Returns either fresh authentication material or a secretless bounded conflict.
  */
 final readonly class RefreshResult
 {
     /**
+     * Constructs RefreshResult
+     *
      * Constructs one typed refresh outcome.
      */
     private function __construct(
@@ -19,7 +23,7 @@ final readonly class RefreshResult
     }
 
     /**
-     * Creates a successful rotation result containing fresh secret material.
+     * Creates a successful rotation result containing fresh secret material
      */
     public static function rotated(TokenSet $tokenSet): self
     {
@@ -27,7 +31,7 @@ final readonly class RefreshResult
     }
 
     /**
-     * Creates a bounded conflict result containing no secret material.
+     * Creates a bounded conflict result containing no secret material
      */
     public static function conflict(): self
     {
@@ -35,7 +39,7 @@ final readonly class RefreshResult
     }
 
     /**
-     * Returns the explicit refresh outcome.
+     * Returns the explicit refresh outcome
      */
     public function getOutcome(): RefreshOutcome
     {
@@ -43,7 +47,7 @@ final readonly class RefreshResult
     }
 
     /**
-     * Returns fresh authentication material only for a rotation winner.
+     * Returns fresh authentication material only for a rotation winner
      */
     public function getTokenSet(): ?TokenSet
     {

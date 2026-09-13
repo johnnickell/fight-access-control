@@ -9,11 +9,15 @@ use Fight\Common\Domain\Messaging\Query\Query;
 use Fight\Common\Domain\Repository\Pagination;
 
 /**
+ * Class ListAgents
+ *
  * Queries one page of secret-free Agent views.
  */
 final readonly class ListAgents implements Query
 {
     /**
+     * Constructs ListAgents
+     *
      * Creates the Agent-listing query.
      */
     public function __construct(private Pagination $pagination)
@@ -40,14 +44,14 @@ final readonly class ListAgents implements Query
     public function toArray(): array
     {
         return [
-            'page' => $this->pagination->page(),
-            'per_page' => $this->pagination->perPage(),
-            'orderings' => $this->pagination->orderings(),
+            'page'      => $this->pagination->page(),
+            'per_page'  => $this->pagination->perPage(),
+            'orderings' => $this->pagination->orderings()
         ];
     }
 
     /**
-     * Returns the requested page configuration.
+     * Returns the requested page configuration
      */
     public function getPagination(): Pagination
     {

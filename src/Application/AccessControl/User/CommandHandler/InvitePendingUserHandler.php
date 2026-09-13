@@ -26,11 +26,15 @@ use LogicException;
 use Throwable;
 
 /**
- * Atomically records a pending invitation and its required durable work.
+ * Class InvitePendingUserHandler
+ *
+ * Replaces atomically records a pending invitation and its required durable work.
  */
 final readonly class InvitePendingUserHandler implements CommandHandler
 {
     /**
+     * Constructs InvitePendingUserHandler
+     *
      * Creates the invitation handler.
      */
     public function __construct(

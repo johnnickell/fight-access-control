@@ -13,6 +13,8 @@ use Fight\AccessControl\Domain\AccessControl\Role\RoleName;
 use Fight\Common\Domain\Type\Arrayable;
 
 /**
+ * Class AuthenticatedAgentPrincipal
+ *
  * Captures an authenticated Agent identity and authoritative direct-Permission snapshot.
  */
 final readonly class AuthenticatedAgentPrincipal implements Arrayable, AuthenticatedAuthority
@@ -21,6 +23,8 @@ final readonly class AuthenticatedAgentPrincipal implements Arrayable, Authentic
     private array $permissions;
 
     /**
+     * Constructs AuthenticatedAgentPrincipal
+     *
      * Creates the immutable authenticated Agent-principal snapshot.
      *
      * @phpstan-param array<mixed> $permissions
@@ -57,7 +61,7 @@ final readonly class AuthenticatedAgentPrincipal implements Arrayable, Authentic
     }
 
     /**
-     * Returns the stable authenticated Agent identity.
+     * Returns the stable authenticated Agent identity
      */
     public function getAgentId(): AgentId
     {
@@ -65,7 +69,7 @@ final readonly class AuthenticatedAgentPrincipal implements Arrayable, Authentic
     }
 
     /**
-     * Returns the authenticated current credential identifier.
+     * Returns the authenticated current credential identifier
      */
     public function getCredentialId(): AgentCredentialId
     {
@@ -73,7 +77,7 @@ final readonly class AuthenticatedAgentPrincipal implements Arrayable, Authentic
     }
 
     /**
-     * Returns the authenticated current credential revision.
+     * Returns the authenticated current credential revision
      */
     public function getCredentialRevision(): int
     {
@@ -81,7 +85,7 @@ final readonly class AuthenticatedAgentPrincipal implements Arrayable, Authentic
     }
 
     /**
-     * Returns the authoritative direct-Permission assignment revision.
+     * Returns the authoritative direct-Permission assignment revision
      */
     public function getPermissionAssignmentRevision(): int
     {
@@ -89,7 +93,7 @@ final readonly class AuthenticatedAgentPrincipal implements Arrayable, Authentic
     }
 
     /**
-     * Returns the supported authenticated-principal type.
+     * Returns the supported authenticated-principal type
      */
     public function getType(): AuthenticatedPrincipalType
     {
@@ -97,7 +101,7 @@ final readonly class AuthenticatedAgentPrincipal implements Arrayable, Authentic
     }
 
     /**
-     * Returns the complete ordered direct-Permission snapshots.
+     * Returns the complete ordered direct-Permission snapshots
      *
      * @return list<PrincipalPermission>
      */
@@ -107,7 +111,7 @@ final readonly class AuthenticatedAgentPrincipal implements Arrayable, Authentic
     }
 
     /**
-     * Determines whether the direct-Permission snapshot contains a canonical name.
+     * Determines whether the direct-Permission snapshot contains a canonical name
      */
     public function hasPermission(PermissionName $permissionName): bool
     {
@@ -118,7 +122,7 @@ final readonly class AuthenticatedAgentPrincipal implements Arrayable, Authentic
     }
 
     /**
-     * Determines whether the direct-Permission snapshot contains a role name.
+     * Determines whether the direct-Permission snapshot contains a role name
      *
      * Agents have no Role authority.
      */
@@ -128,7 +132,7 @@ final readonly class AuthenticatedAgentPrincipal implements Arrayable, Authentic
     }
 
     /**
-     * Returns the exact secret-free array representation.
+     * Returns the exact secret-free array representation
      *
      * @return array{
      *     agent_id: string,
@@ -141,14 +145,14 @@ final readonly class AuthenticatedAgentPrincipal implements Arrayable, Authentic
     public function toArray(): array
     {
         return [
-            'agent_id' => $this->agentId->toString(),
-            'credential_id' => $this->credentialId->toString(),
-            'credential_revision' => $this->credentialRevision,
+            'agent_id'                       => $this->agentId->toString(),
+            'credential_id'                  => $this->credentialId->toString(),
+            'credential_revision'            => $this->credentialRevision,
             'permission_assignment_revision' => $this->permissionAssignmentRevision,
-            'permissions' => array_map(
+            'permissions'                    => array_map(
                 static fn(PrincipalPermission $permission): array => $permission->toArray(),
                 $this->permissions
-            ),
+            )
         ];
     }
 }

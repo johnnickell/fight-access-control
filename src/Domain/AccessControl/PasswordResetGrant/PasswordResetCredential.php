@@ -7,11 +7,15 @@ namespace Fight\AccessControl\Domain\AccessControl\PasswordResetGrant;
 use Fight\Common\Domain\Exception\DomainException;
 
 /**
+ * Class PasswordResetCredential
+ *
  * Represents a raw password-reset credential at the synchronous security boundary.
  */
 final readonly class PasswordResetCredential
 {
     /**
+     * Constructs PasswordResetCredential
+     *
      * Creates a password-reset credential.
      */
     private function __construct(private string $value)
@@ -19,7 +23,7 @@ final readonly class PasswordResetCredential
     }
 
     /**
-     * Creates a non-empty password-reset credential.
+     * Creates a non-empty password-reset credential
      */
     public static function fromString(string $value): self
     {
@@ -31,7 +35,7 @@ final readonly class PasswordResetCredential
     }
 
     /**
-     * Returns the raw credential only to the synchronous security boundary.
+     * Returns the raw credential only to the synchronous security boundary
      */
     public function toString(): string
     {

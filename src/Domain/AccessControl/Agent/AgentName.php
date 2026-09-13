@@ -8,6 +8,8 @@ use Fight\AccessControl\Domain\AccessControl\Agent\Exception\AgentNameException;
 use Fight\Common\Domain\Value\ValueObject;
 
 /**
+ * Class AgentName
+ *
  * Represents a normalized operator-facing Agent name.
  */
 final readonly class AgentName extends ValueObject
@@ -15,6 +17,8 @@ final readonly class AgentName extends ValueObject
     private const int MAXIMUM_LENGTH = 120;
 
     /**
+     * Constructs AgentName
+     *
      * Constructs a validated Agent name.
      */
     private function __construct(private string $value)
@@ -22,7 +26,7 @@ final readonly class AgentName extends ValueObject
     }
 
     /**
-     * Creates an Agent name from its operator-supplied representation.
+     * Creates an Agent name from its operator-supplied representation
      */
     public static function fromString(string $value): self
     {
@@ -36,7 +40,7 @@ final readonly class AgentName extends ValueObject
     }
 
     /**
-     * Returns the normalized operator-facing name.
+     * Returns the normalized operator-facing name
      */
     public function toString(): string
     {

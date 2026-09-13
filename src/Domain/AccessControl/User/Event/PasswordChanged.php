@@ -10,11 +10,15 @@ use Fight\Common\Domain\Exception\DomainException;
 use Fight\Common\Domain\Messaging\Event\Event;
 
 /**
+ * Class PasswordChanged
+ *
  * Records an authenticated password change after its durable state committed.
  */
 final readonly class PasswordChanged implements Event
 {
     /**
+     * Constructs PasswordChanged
+     *
      * Constructs the secret-free password-change event.
      */
     public function __construct(
@@ -48,12 +52,12 @@ final readonly class PasswordChanged implements Event
     {
         return [
             'user_id'    => $this->userId->toString(),
-            'changed_at' => $this->changedAt->format(DATE_ATOM),
+            'changed_at' => $this->changedAt->format(DATE_ATOM)
         ];
     }
 
     /**
-     * Returns the changed user's identifier.
+     * Returns the changed user's identifier
      */
     public function getUserId(): UserId
     {
@@ -61,7 +65,7 @@ final readonly class PasswordChanged implements Event
     }
 
     /**
-     * Returns when the password changed.
+     * Returns when the password changed
      */
     public function getChangedAt(): DateTimeImmutable
     {

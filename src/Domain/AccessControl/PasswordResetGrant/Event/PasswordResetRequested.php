@@ -11,11 +11,15 @@ use Fight\Common\Domain\Exception\DomainException;
 use Fight\Common\Domain\Messaging\Event\Event;
 
 /**
+ * Class PasswordResetRequested
+ *
  * Records that password-reset delivery work became durable.
  */
 final readonly class PasswordResetRequested implements Event
 {
     /**
+     * Constructs PasswordResetRequested
+     *
      * Constructs the secret-free password-reset request event.
      */
     public function __construct(
@@ -50,14 +54,14 @@ final readonly class PasswordResetRequested implements Event
     public function toArray(): array
     {
         return [
-            'user_id'   => $this->userId->toString(),
+            'user_id'                    => $this->userId->toString(),
             'password_reset_delivery_id' => $this->passwordResetDeliveryId->toString(),
-            'issued_at' => $this->issuedAt->format(DATE_ATOM),
+            'issued_at'                  => $this->issuedAt->format(DATE_ATOM)
         ];
     }
 
     /**
-     * Returns the target user identifier.
+     * Returns the target user identifier
      */
     public function getUserId(): UserId
     {
@@ -65,7 +69,7 @@ final readonly class PasswordResetRequested implements Event
     }
 
     /**
-     * Returns the issued delivery-generation identifier.
+     * Returns the issued delivery-generation identifier
      */
     public function getPasswordResetDeliveryId(): PasswordResetDeliveryId
     {
@@ -73,7 +77,7 @@ final readonly class PasswordResetRequested implements Event
     }
 
     /**
-     * Returns when the grant was issued.
+     * Returns when the grant was issued
      */
     public function getIssuedAt(): DateTimeImmutable
     {

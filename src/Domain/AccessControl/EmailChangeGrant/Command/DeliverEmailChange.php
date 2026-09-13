@@ -10,11 +10,15 @@ use Fight\Common\Domain\Exception\DomainException;
 use Fight\Common\Domain\Messaging\Command\Command;
 
 /**
+ * Class DeliverEmailChange
+ *
  * Invokes one exact email-change delivery generation.
  */
 final readonly class DeliverEmailChange implements Command
 {
     /**
+     * Constructs DeliverEmailChange
+     *
      * Constructs the invocation-neutral delivery command.
      */
     public function __construct(
@@ -49,14 +53,14 @@ final readonly class DeliverEmailChange implements Command
     public function toArray(): array
     {
         return [
-            'actor_id' => $this->actorId->toString(),
-            'user_id' => $this->userId->toString(),
-            'email_change_delivery_id' => $this->emailChangeDeliveryId->toString(),
+            'actor_id'                 => $this->actorId->toString(),
+            'user_id'                  => $this->userId->toString(),
+            'email_change_delivery_id' => $this->emailChangeDeliveryId->toString()
         ];
     }
 
     /**
-     * Returns the actor that caused delivery invocation.
+     * Returns the actor that caused delivery invocation
      */
     public function getActorId(): UserId
     {
@@ -64,7 +68,7 @@ final readonly class DeliverEmailChange implements Command
     }
 
     /**
-     * Returns the owning User.
+     * Returns the owning User
      */
     public function getUserId(): UserId
     {
@@ -72,7 +76,7 @@ final readonly class DeliverEmailChange implements Command
     }
 
     /**
-     * Returns the exact delivery generation.
+     * Returns the exact delivery generation
      */
     public function getEmailChangeDeliveryId(): EmailChangeDeliveryId
     {

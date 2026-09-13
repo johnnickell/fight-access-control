@@ -123,7 +123,7 @@ final class CancelEmailChangeHandlerTest extends TestCase
         foreach (['actor_id', 'user_id'] as $missing) {
             $data = [
                 'actor_id' => UserId::generate()->toString(),
-                'user_id' => UserId::generate()->toString(),
+                'user_id'  => UserId::generate()->toString()
             ];
             unset($data[$missing]);
 
@@ -136,10 +136,10 @@ final class CancelEmailChangeHandlerTest extends TestCase
 
         foreach (['actor_id', 'user_id', 'email_change_grant_id', 'cancelled_at'] as $missing) {
             $data = [
-                'actor_id' => UserId::generate()->toString(),
-                'user_id' => UserId::generate()->toString(),
+                'actor_id'              => UserId::generate()->toString(),
+                'user_id'               => UserId::generate()->toString(),
                 'email_change_grant_id' => '4c9eb57c-b493-4cc5-b47a-125ddc840baf',
-                'cancelled_at' => '2026-08-22T12:30:00+00:00',
+                'cancelled_at'          => '2026-08-22T12:30:00+00:00'
             ];
             unset($data[$missing]);
 

@@ -258,8 +258,8 @@ final class RequestEmailChangeHandlerTest extends TestCase
         foreach (['actor_id', 'user_id', 'email'] as $missing) {
             $data = [
                 'actor_id' => UserId::generate()->toString(),
-                'user_id' => UserId::generate()->toString(),
-                'email' => 'new@example.test',
+                'user_id'  => UserId::generate()->toString(),
+                'email'    => 'new@example.test'
             ];
             unset($data[$missing]);
 
@@ -272,11 +272,11 @@ final class RequestEmailChangeHandlerTest extends TestCase
 
         foreach (['actor_id', 'user_id', 'email_change_delivery_id', 'email', 'issued_at'] as $missing) {
             $data = [
-                'actor_id' => UserId::generate()->toString(),
-                'user_id' => UserId::generate()->toString(),
+                'actor_id'                 => UserId::generate()->toString(),
+                'user_id'                  => UserId::generate()->toString(),
                 'email_change_delivery_id' => '4c9eb57c-b493-4cc5-b47a-125ddc840baf',
-                'email' => 'new@example.test',
-                'issued_at' => '2026-08-22T12:00:00+00:00',
+                'email'                    => 'new@example.test',
+                'issued_at'                => '2026-08-22T12:00:00+00:00'
             ];
             unset($data[$missing]);
 

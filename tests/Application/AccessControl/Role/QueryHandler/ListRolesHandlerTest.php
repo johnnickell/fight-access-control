@@ -70,10 +70,10 @@ final class ListRolesHandlerTest extends TestCase
         self::assertInstanceOf(Arrayable::class, $views->get(0));
         self::assertSame(
             [
-                'role_id' => '018f0000-0000-7000-8000-000000000002',
-                'name' => 'ROLE_EDITOR',
-                'managed' => false,
-                'permission_ids' => ['018f0000-0000-7000-8000-000000000001'],
+                'role_id'        => '018f0000-0000-7000-8000-000000000002',
+                'name'           => 'ROLE_EDITOR',
+                'managed'        => false,
+                'permission_ids' => ['018f0000-0000-7000-8000-000000000001']
             ],
             $views->get(0)->toArray()
         );
@@ -83,10 +83,10 @@ final class ListRolesHandlerTest extends TestCase
         self::assertSame([$permissionId], $views->get(1)->getPermissionIds());
         self::assertSame(
             [
-                'role_id' => '018f0000-0000-7000-8000-000000000003',
-                'name' => 'ROLE_ADMINISTRATOR',
-                'managed' => true,
-                'permission_ids' => ['018f0000-0000-7000-8000-000000000001'],
+                'role_id'        => '018f0000-0000-7000-8000-000000000003',
+                'name'           => 'ROLE_ADMINISTRATOR',
+                'managed'        => true,
+                'permission_ids' => ['018f0000-0000-7000-8000-000000000001']
             ],
             $views->get(1)->toArray()
         );
@@ -106,9 +106,9 @@ final class ListRolesHandlerTest extends TestCase
 
         self::assertSame(
             [
-                'page' => 2,
-                'per_page' => 10,
-                'orderings' => ['name' => Pagination::DESC],
+                'page'      => 2,
+                'per_page'  => 10,
+                'orderings' => ['name' => Pagination::DESC]
             ],
             $query->toArray()
         );

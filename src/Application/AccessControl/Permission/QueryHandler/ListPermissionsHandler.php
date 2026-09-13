@@ -13,11 +13,15 @@ use Fight\Common\Domain\Messaging\Query\QueryMessage;
 use Fight\Common\Domain\Repository\ResultSet;
 
 /**
+ * Class ListPermissionsHandler
+ *
  * Retrieves safe permission views.
  */
 final readonly class ListPermissionsHandler implements QueryHandler
 {
     /**
+     * Constructs ListPermissionsHandler
+     *
      * Creates the permission-listing query handler.
      */
     public function __construct(private PermissionRepository $permissionRepository)
@@ -31,7 +35,7 @@ final readonly class ListPermissionsHandler implements QueryHandler
     }
 
     /**
-     * @inheritDoc
+     * Returns safe Permission views
      *
      * @return ResultSet<PermissionView>
      */

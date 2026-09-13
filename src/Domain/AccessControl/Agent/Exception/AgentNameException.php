@@ -7,6 +7,8 @@ namespace Fight\AccessControl\Domain\AccessControl\Agent\Exception;
 use Fight\Common\Domain\Exception\DomainException;
 
 /**
+ * Class AgentNameException
+ *
  * Indicates that an Agent name is not safe for operator-facing identification.
  */
 final class AgentNameException extends DomainException

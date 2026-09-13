@@ -17,28 +17,28 @@ use Fight\Common\Domain\Value\Internet\EmailAddress;
 interface UserRepository
 {
     /**
-     * Determines whether any user currently references the role.
+     * Determines whether any user currently references the role
      *
      * @throws Exception When an error occurs
      */
     public function hasRoleAssignment(RoleId $roleId): bool;
 
     /**
-     * Retrieves a user by its canonical email address.
+     * Retrieves a user by its canonical email address
      *
      * @throws Exception When an error occurs
      */
     public function getByEmail(EmailAddress $email): ?User;
 
     /**
-     * Retrieves a user by its stable identifier.
+     * Retrieves a user by its stable identifier
      *
      * @throws Exception When an error occurs
      */
     public function getById(UserId $id): ?User;
 
     /**
-     * Atomically replaces authentication authority while the expected predecessor remains current.
+     * Replaces atomically replaces authentication authority while the expected predecessor remains current
      *
      * Implementations compare the stable identity, lifecycle state, password hash, authentication version, and
      * authentication-authority revision. The replacement must advance the authority revision by exactly one.
@@ -51,7 +51,7 @@ interface UserRepository
     public function replaceAuthenticationAuthority(User $expected, User $replacement): bool;
 
     /**
-     * Atomically replaces authentication authority and inserts its refresh session.
+     * Replaces atomically replaces authentication authority and inserts its refresh session
      *
      * Implementations must perform the same expected-authority comparison and exact revision advancement as
      * replaceAuthenticationAuthority(), then persist both replacement and session as one indivisible operation.
@@ -71,7 +71,7 @@ interface UserRepository
     ): bool;
 
     /**
-     * Validates one Role reference under the transaction-duration assignment fence without replacing a User.
+     * Validates one Role reference under the transaction-duration assignment fence without replacing a User
      *
      * Returns false when the Role is no longer authoritative.
      *
@@ -80,7 +80,7 @@ interface UserRepository
     public function validateRoleAssignmentReference(RoleId $roleId): bool;
 
     /**
-     * Atomically replaces role assignments while the expected predecessor remains current.
+     * Replaces atomically replaces role assignments while the expected predecessor remains current
      *
      * Implementations compare all User state, reject replacement changes outside role assignments, and require the
      * authorization-assignment revision to advance by exactly one. Every expected or replacement RoleId must remain
@@ -93,7 +93,7 @@ interface UserRepository
     public function replaceRoleAssignments(User $expected, User $replacement): bool;
 
     /**
-     * Atomically replaces an email-change reservation while the expected identity remains current.
+     * Replaces atomically replaces an email-change reservation while the expected identity remains current
      *
      * Implementations compare the complete expected User state and permit only one valid reservation transition with
      * exactly one revision advancement. A new destination must not be claimed by any canonical email or live
@@ -104,7 +104,7 @@ interface UserRepository
     public function replaceEmailChangeReservation(User $expected, User $replacement): bool;
 
     /**
-     * Atomically promotes an email-change reservation and replaces authentication authority.
+     * Replaces atomically promotes an email-change reservation and replaces authentication authority
      *
      * Implementations compare complete expected User state and permit only promotion of the live destination to the
      * canonical email, reservation clearing, exact authentication-version, authentication-authority,
@@ -117,7 +117,7 @@ interface UserRepository
     public function replaceEmailChangeConfirmation(User $expected, User $replacement): bool;
 
     /**
-     * Atomically corrects a pending identity's canonical email while the expected identity remains current.
+     * Replaces atomically corrects a pending identity's canonical email while the expected identity remains current
      *
      * Implementations compare complete expected User state, permit only a pending-activation canonical-email change
      * with exactly one revision advancement, and reject a destination claimed by any canonical email or live
@@ -128,7 +128,7 @@ interface UserRepository
     public function replacePendingInvitationEmail(User $expected, User $replacement): bool;
 
     /**
-     * Atomically replaces the lifecycle state while the expected identity remains current.
+     * Replaces atomically replaces the lifecycle state while the expected identity remains current
      *
      * Implementations compare the complete expected User state and permit only one valid lifecycle transition:
      * active to disabled, disabled to active, active or disabled to deleted, or deleted to active or pending
@@ -141,7 +141,7 @@ interface UserRepository
     public function replaceLifecycleState(User $expected, User $replacement): bool;
 
     /**
-     * Retrieves one page of user identities.
+     * Retrieves one page of user identities
      *
      * @return ResultSet<User>
      *
@@ -150,7 +150,7 @@ interface UserRepository
     public function getAll(Pagination $pagination): ResultSet;
 
     /**
-     * Adds a User.
+     * Adds a User
      *
      * Implementations must reject a canonical email claimed by another canonical email or live reservation atomically.
      *

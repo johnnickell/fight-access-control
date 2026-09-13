@@ -25,11 +25,15 @@ use LogicException;
 use Throwable;
 
 /**
- * Atomically replaces an activation grant and stages its recoverable replacement delivery work.
+ * Class ResendInvitationDeliveryHandler
+ *
+ * Replaces atomically replaces an activation grant and stages its recoverable replacement delivery work.
  */
 final readonly class ResendInvitationDeliveryHandler implements CommandHandler
 {
     /**
+     * Constructs ResendInvitationDeliveryHandler
+     *
      * Creates the activation-delivery resend handler.
      */
     public function __construct(

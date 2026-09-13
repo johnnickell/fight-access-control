@@ -8,11 +8,15 @@ use Fight\AccessControl\Domain\AccessControl\ManagedPolicy\ManagedPolicy;
 use Fight\Common\Domain\Messaging\Command\Command;
 
 /**
+ * Class ReconcileManagedPolicy
+ *
  * Requests atomic reconciliation of version-controlled authorization policy.
  */
 final readonly class ReconcileManagedPolicy implements Command
 {
     /**
+     * Constructs ReconcileManagedPolicy
+     *
      * Constructs a managed-policy reconciliation command.
      */
     public function __construct(private ManagedPolicy $policy)
@@ -26,7 +30,7 @@ final readonly class ReconcileManagedPolicy implements Command
     }
 
     /**
-     * Returns the complete desired managed policy.
+     * Returns the complete desired managed policy
      */
     public function getPolicy(): ManagedPolicy
     {

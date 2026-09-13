@@ -7,11 +7,15 @@ namespace Fight\AccessControl\Domain\AccessControl\RefreshSession;
 use Fight\Common\Domain\Exception\DomainException;
 
 /**
+ * Class RefreshCredential
+ *
  * Represents one opaque refresh credential presented only at the authentication boundary.
  */
 final readonly class RefreshCredential
 {
     /**
+     * Constructs RefreshCredential
+     *
      * Constructs a validated refresh credential.
      */
     private function __construct(private string $value)
@@ -19,7 +23,7 @@ final readonly class RefreshCredential
     }
 
     /**
-     * Creates a refresh credential from its transport value.
+     * Creates a refresh credential from its transport value
      */
     public static function fromString(string $value): self
     {
@@ -31,7 +35,7 @@ final readonly class RefreshCredential
     }
 
     /**
-     * Returns the raw credential for immediate transport only.
+     * Returns the raw credential for immediate transport only
      */
     public function toString(): string
     {
@@ -39,7 +43,7 @@ final readonly class RefreshCredential
     }
 
     /**
-     * Returns the stable one-way digest used by authoritative storage.
+     * Returns the stable one-way digest used by authoritative storage
      */
     public function digest(): string
     {

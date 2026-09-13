@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace Fight\AccessControl\Domain\AccessControl\ActivationGrant;
 
 /**
+ * Enum ActivationDeliveryStatus
+ *
  * Identifies the safe operational state of activation delivery work.
  */
 enum ActivationDeliveryStatus: string

@@ -43,7 +43,7 @@ final class AuthenticatedAgentPrincipalTest extends TestCase
                     PermissionId::fromString($writePermission->getPermissionId()->toString()),
                     $writePermission->getName()
                 ),
-                $readPermission,
+                $readPermission
             ]
         );
 
@@ -67,20 +67,20 @@ final class AuthenticatedAgentPrincipalTest extends TestCase
         self::assertFalse($principal->hasRole(RoleName::fromString('ROLE_AGENT')));
         self::assertSame(
             [
-                'agent_id' => '018f0000-0000-7000-8000-000000000021',
-                'credential_id' => '018f0000-0000-7000-8000-000000000022',
-                'credential_revision' => 4,
+                'agent_id'                       => '018f0000-0000-7000-8000-000000000021',
+                'credential_id'                  => '018f0000-0000-7000-8000-000000000022',
+                'credential_revision'            => 4,
                 'permission_assignment_revision' => 7,
-                'permissions' => [
+                'permissions'                    => [
                     [
                         'permission_id' => '018f0000-0000-7000-8000-000000000032',
-                        'name' => 'WRITE_AGENT',
+                        'name'          => 'WRITE_AGENT'
                     ],
                     [
                         'permission_id' => '018f0000-0000-7000-8000-000000000031',
-                        'name' => 'READ_AGENT',
-                    ],
-                ],
+                        'name'          => 'READ_AGENT'
+                    ]
+                ]
             ],
             $principal->toArray()
         );

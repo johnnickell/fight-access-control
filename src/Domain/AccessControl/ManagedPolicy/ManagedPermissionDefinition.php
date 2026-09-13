@@ -11,11 +11,15 @@ use Fight\AccessControl\Domain\AccessControl\Permission\PermissionTier;
 use Throwable;
 
 /**
+ * Class ManagedPermissionDefinition
+ *
  * Defines one version-controlled managed permission.
  */
 final readonly class ManagedPermissionDefinition
 {
     /**
+     * Constructs ManagedPermissionDefinition
+     *
      * Constructs a managed permission definition.
      */
     public function __construct(
@@ -26,7 +30,7 @@ final readonly class ManagedPermissionDefinition
     }
 
     /**
-     * Creates a definition from its serialized representation.
+     * Creates a definition from its serialized representation
      *
      * @param array<string, mixed> $data
      */
@@ -57,21 +61,21 @@ final readonly class ManagedPermissionDefinition
     }
 
     /**
-     * Returns the serialized definition.
+     * Returns the serialized definition
      *
      * @return array{id: string, name: string, tier: string}
      */
     public function toArray(): array
     {
         return [
-            'id' => $this->id->toString(),
+            'id'   => $this->id->toString(),
             'name' => $this->name->toString(),
-            'tier' => $this->tier->value,
+            'tier' => $this->tier->value
         ];
     }
 
     /**
-     * Returns the stable permission identifier.
+     * Returns the stable permission identifier
      */
     public function getId(): PermissionId
     {
@@ -79,7 +83,7 @@ final readonly class ManagedPermissionDefinition
     }
 
     /**
-     * Returns the canonical permission name.
+     * Returns the canonical permission name
      */
     public function getName(): PermissionName
     {
@@ -87,7 +91,7 @@ final readonly class ManagedPermissionDefinition
     }
 
     /**
-     * Returns the permission grant tier.
+     * Returns the permission grant tier
      */
     public function getTier(): PermissionTier
     {

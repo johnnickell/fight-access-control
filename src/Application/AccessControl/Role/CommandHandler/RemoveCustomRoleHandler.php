@@ -20,11 +20,15 @@ use Fight\Common\Domain\Messaging\Event\CommandFailedEvent;
 use Throwable;
 
 /**
- * Atomically removes an authorized, unreferenced custom role.
+ * Class RemoveCustomRoleHandler
+ *
+ * Replaces atomically removes an authorized, unreferenced custom role.
  */
 final readonly class RemoveCustomRoleHandler implements CommandHandler
 {
     /**
+     * Constructs RemoveCustomRoleHandler
+     *
      * Creates the custom-role removal handler.
      */
     public function __construct(

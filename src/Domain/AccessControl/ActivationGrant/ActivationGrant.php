@@ -10,6 +10,8 @@ use Fight\AccessControl\Domain\AccessControl\User\UserId;
 use Fight\Common\Domain\Value\Internet\EmailAddress;
 
 /**
+ * Class ActivationGrant
+ *
  * Owns one generation of activation authority and its delivery work.
  *
  * @phpstan-consistent-constructor
@@ -17,6 +19,8 @@ use Fight\Common\Domain\Value\Internet\EmailAddress;
 class ActivationGrant
 {
     /**
+     * Constructs ActivationGrant
+     *
      * Creates one immutable activation aggregate generation.
      */
     protected function __construct(
@@ -32,7 +36,7 @@ class ActivationGrant
     }
 
     /**
-     * Issues activation authority and its owned delivery work.
+     * Issues activation authority and its owned delivery work
      */
     public static function issue(
         UserId $userId,
@@ -64,7 +68,7 @@ class ActivationGrant
     }
 
     /**
-     * Returns the aggregate-generation identifier.
+     * Returns the aggregate-generation identifier
      */
     public function getId(): ActivationGrantId
     {
@@ -72,7 +76,7 @@ class ActivationGrant
     }
 
     /**
-     * Returns the owning user identifier.
+     * Returns the owning user identifier
      */
     public function getUserId(): UserId
     {
@@ -80,7 +84,7 @@ class ActivationGrant
     }
 
     /**
-     * Returns the monotonic state revision used for compare-and-set persistence.
+     * Returns the monotonic state revision used for compare-and-set persistence
      */
     public function getRevision(): int
     {
@@ -88,7 +92,7 @@ class ActivationGrant
     }
 
     /**
-     * Returns the one-way credential hash.
+     * Returns the one-way credential hash
      */
     public function getCredentialHash(): string
     {
@@ -96,7 +100,7 @@ class ActivationGrant
     }
 
     /**
-     * Compares a raw credential without retaining it.
+     * Checks a raw credential without retaining it
      */
     public function matchesCredential(ActivationCredential $credential): bool
     {
@@ -104,7 +108,7 @@ class ActivationGrant
     }
 
     /**
-     * Returns the credential expiry.
+     * Returns the credential expiry
      */
     public function getExpiresAt(): DateTimeImmutable
     {
@@ -112,7 +116,7 @@ class ActivationGrant
     }
 
     /**
-     * Returns the owned delivery entity.
+     * Returns the owned delivery entity
      */
     public function getDelivery(): ActivationDelivery
     {
@@ -120,7 +124,7 @@ class ActivationGrant
     }
 
     /**
-     * Returns whether authority remains issued.
+     * Returns whether authority remains issued
      */
     public function isIssued(): bool
     {
@@ -128,7 +132,7 @@ class ActivationGrant
     }
 
     /**
-     * Returns whether authority was consumed.
+     * Returns whether authority was consumed
      */
     public function isConsumed(): bool
     {
@@ -136,7 +140,7 @@ class ActivationGrant
     }
 
     /**
-     * Returns when authority was consumed.
+     * Returns when authority was consumed
      */
     public function getConsumedAt(): ?DateTimeImmutable
     {
@@ -144,7 +148,7 @@ class ActivationGrant
     }
 
     /**
-     * Returns whether authority was revoked.
+     * Returns whether authority was revoked
      */
     public function isRevoked(): bool
     {
@@ -152,7 +156,7 @@ class ActivationGrant
     }
 
     /**
-     * Returns when authority was revoked.
+     * Returns when authority was revoked
      */
     public function getRevokedAt(): ?DateTimeImmutable
     {
@@ -160,7 +164,7 @@ class ActivationGrant
     }
 
     /**
-     * Returns whether authority can be consumed at the supplied time.
+     * Returns whether authority can be consumed at the supplied time
      */
     public function isUsableAt(DateTimeImmutable $at): bool
     {
@@ -168,7 +172,7 @@ class ActivationGrant
     }
 
     /**
-     * Consumes usable activation authority.
+     * Uses usable activation authority
      */
     public function consume(DateTimeImmutable $at): self
     {
@@ -189,7 +193,7 @@ class ActivationGrant
     }
 
     /**
-     * Revokes issued authority and destroys delivery ciphertext.
+     * Revokes issued authority and destroys delivery ciphertext
      */
     public function revoke(DateTimeImmutable $at): self
     {
@@ -210,7 +214,7 @@ class ActivationGrant
     }
 
     /**
-     * Claims the owned delivery before invoking its transport.
+     * Acquires the owned delivery before invoking its transport
      */
     public function claimDelivery(): self
     {
@@ -218,7 +222,7 @@ class ActivationGrant
     }
 
     /**
-     * Confirms the owned delivery.
+     * Completes the owned delivery
      */
     public function confirmDelivery(): self
     {
@@ -226,7 +230,7 @@ class ActivationGrant
     }
 
     /**
-     * Records a failed owned-delivery invocation.
+     * Records a failed owned-delivery invocation
      */
     public function failDelivery(): self
     {
@@ -234,7 +238,7 @@ class ActivationGrant
     }
 
     /**
-     * Moves failed owned delivery work back to pending for a later claim.
+     * Transitions failed owned delivery work back to pending for a later claim
      */
     public function requestDeliveryRetry(): self
     {
@@ -242,7 +246,7 @@ class ActivationGrant
     }
 
     /**
-     * Expires the owned delivery at its terminal boundary.
+     * Marks the owned delivery at its terminal boundary
      */
     public function expireDeliveryAt(DateTimeImmutable $occurredAt): self
     {
@@ -250,7 +254,7 @@ class ActivationGrant
     }
 
     /**
-     * Returns the fixed grant purpose.
+     * Returns the fixed grant purpose
      */
     public function purpose(): string
     {
@@ -258,7 +262,7 @@ class ActivationGrant
     }
 
     /**
-     * Replaces only the owned delivery within this generation.
+     * Replaces only the owned delivery within this generation
      */
     private function withDelivery(ActivationDelivery $delivery): self
     {

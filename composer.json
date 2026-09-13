@@ -5,7 +5,7 @@
     "type": "library",
     "require": {
         "php": ">=8.5",
-        "johnnickell/fight-common": "^1.1"
+        "johnnickell/fight-common": "^1.2"
     },
     "require-dev": {
         "deptrac/deptrac": "^4.7",

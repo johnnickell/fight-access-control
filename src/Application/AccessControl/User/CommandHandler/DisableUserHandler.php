@@ -22,11 +22,15 @@ use LogicException;
 use Throwable;
 
 /**
- * Atomically disables an active identity and revokes its active sessions.
+ * Class DisableUserHandler
+ *
+ * Replaces atomically disables an active identity and revokes its active sessions.
  */
 final readonly class DisableUserHandler implements CommandHandler
 {
     /**
+     * Constructs DisableUserHandler
+     *
      * Creates the user-disable handler.
      */
     public function __construct(

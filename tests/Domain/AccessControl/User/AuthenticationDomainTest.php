@@ -100,7 +100,7 @@ final class AuthenticationDomainTest extends TestCase
         RedactedCommandFailed::fromArray([
             'command_class' => 'AuthenticationService::login',
             'command_data'  => 'not-an-array',
-            'error_message' => 'Login failed.',
+            'error_message' => 'Login failed.'
         ]);
     }
 

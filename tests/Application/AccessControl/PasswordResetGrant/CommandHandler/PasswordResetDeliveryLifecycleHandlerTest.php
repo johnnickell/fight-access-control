@@ -213,7 +213,7 @@ final class PasswordResetDeliveryLifecycleHandlerTest extends TestCase
             new ConfirmPasswordResetDelivery('transport', $grant->getUserId(), $grant->getDelivery()->getId(), $at),
             new ExpirePasswordResetDelivery('expiry', $grant->getUserId(), $grant->getDelivery()->getId(), $at),
             new PasswordResetDeliveryConfirmed('transport', $grant->getUserId(), $grant->getDelivery()->getId(), $at),
-            new PasswordResetDeliveryExpired('expiry', $grant->getUserId(), $grant->getDelivery()->getId(), $at),
+            new PasswordResetDeliveryExpired('expiry', $grant->getUserId(), $grant->getDelivery()->getId(), $at)
         ];
 
         foreach ($messages as $message) {

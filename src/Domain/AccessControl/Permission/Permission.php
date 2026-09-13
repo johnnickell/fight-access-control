@@ -8,6 +8,8 @@ use DateTimeImmutable;
 use Fight\AccessControl\Domain\AccessControl\Permission\Exception\ManagedPermissionException;
 
 /**
+ * Class Permission
+ *
  * Represents a stable permission definition.
  *
  * @phpstan-consistent-constructor
@@ -15,6 +17,8 @@ use Fight\AccessControl\Domain\AccessControl\Permission\Exception\ManagedPermiss
 class Permission
 {
     /**
+     * Constructs Permission
+     *
      * Creates a permission definition.
      */
     protected function __construct(
@@ -28,7 +32,7 @@ class Permission
     }
 
     /**
-     * Defines a permission.
+     * Defines a permission
      */
     public static function define(PermissionId $id, PermissionName $name, DateTimeImmutable $createdAt): static
     {
@@ -36,7 +40,7 @@ class Permission
     }
 
     /**
-     * Defines a version-controlled managed permission.
+     * Defines a version-controlled managed permission
      */
     public static function defineManaged(
         PermissionId $id,
@@ -48,7 +52,7 @@ class Permission
     }
 
     /**
-     * Reconciles the version-controlled name and tier while retaining stable identity and creation time.
+     * Reconciles the version-controlled name and tier while retaining stable identity and creation time
      */
     public function reconcileManaged(
         PermissionName $name,
@@ -65,7 +69,7 @@ class Permission
     }
 
     /**
-     * Returns the stable permission identifier.
+     * Returns the stable permission identifier
      */
     public function getId(): PermissionId
     {
@@ -73,7 +77,7 @@ class Permission
     }
 
     /**
-     * Returns the datetime when the permission was created.
+     * Returns the datetime when the permission was created
      */
     public function getCreatedAt(): DateTimeImmutable
     {
@@ -81,7 +85,7 @@ class Permission
     }
 
     /**
-     * Returns the datetime when the permission was last updated.
+     * Returns the datetime when the permission was last updated
      */
     public function getUpdatedAt(): DateTimeImmutable
     {
@@ -89,7 +93,7 @@ class Permission
     }
 
     /**
-     * Returns the canonical permission name.
+     * Returns the canonical permission name
      */
     public function getName(): PermissionName
     {
@@ -97,7 +101,7 @@ class Permission
     }
 
     /**
-     * Returns whether version-controlled policy owns this permission.
+     * Returns whether version-controlled policy owns this permission
      */
     public function isManaged(): bool
     {
@@ -105,7 +109,7 @@ class Permission
     }
 
     /**
-     * Returns the managed permission tier, or null for a custom permission.
+     * Returns the managed permission tier, or null for a custom permission
      */
     public function getTier(): ?PermissionTier
     {
@@ -113,7 +117,7 @@ class Permission
     }
 
     /**
-     * Returns the tier owned by a managed permission.
+     * Returns the tier owned by a managed permission
      */
     public function getManagedTier(): PermissionTier
     {
