@@ -14,11 +14,11 @@ cleanup() {
 }
 trap cleanup EXIT
 
-cp "${ROOT_DIR}/composer.json" "${ROOT_DIR}/composer.lock" "${INSTALL_ROOT}/"
+cp "${ROOT_DIR}/composer.json" "${INSTALL_ROOT}/"
 cp -R "${ROOT_DIR}/src" "${INSTALL_ROOT}/src"
 
 cd "${INSTALL_ROOT}"
-"${COMPOSER_BIN}" install \
+"${COMPOSER_BIN}" update \
     --no-dev \
     --no-interaction \
     --no-progress \
