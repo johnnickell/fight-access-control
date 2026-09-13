@@ -126,6 +126,13 @@ explicit authorization for that specific commit and must be reported as an unver
 Commit, push, pull request, public visibility, version tags, and package publication are separate effects and
 require their own authorization.
 
+### Learning: review corrections retain original PR ownership
+
+Before pushing a review-remediation branch or creating a pull request, resolve the original ticket's open pull
+request and its head branch. Push confirmed corrections to that branch and reuse the existing pull request; the
+absence of a pull request on a remediation branch does not authorize a parallel pull request. If a duplicate is
+created, verify that the original pull request contains the corrected head before closing only the duplicate.
+
 ## Planning
 
 See `planning/CONVENTIONS.md` for ticket lifecycle, BOARD.md execution frontier, Wayfinder maps, PRD and epic
