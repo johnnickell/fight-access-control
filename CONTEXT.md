@@ -58,6 +58,19 @@ behavior shared by Fight applications. The repository-local behavioral and secur
   exactly and atomically.
 - **Conformance suite**: reusable tests of observable Domain and Application outcomes which consumer repositories
   bind to their own adapters.
+- **OpenAPI schema component**: an opt-in reusable description of a package-owned payload that a consumer's OpenAPI
+  generator scans and incorporates into its own document. It does not create an endpoint, HTTP response, or runtime
+  transport contract. Its stable OpenAPI key begins with `Fight.AccessControl.` and does not need to match its PHP
+  class name.
+- **OpenAPI schema contract**: the stable name and validation shape of a published schema component. It is a public
+  package API even though consumers choose where and how to reference it.
+- **OpenAPI metadata distribution**: the package's non-autoloaded `openapi/` directory, containing schema-anchor
+  attributes and a bootstrap file for a consumer-owned OpenAPI generator. It is neither Domain nor Application
+  production code and does not define a package-owned document.
+- **Browser authentication response**: the public authentication body containing access-token material and session
+  metadata, but never a refresh credential. A consumer may deliver that credential through an `HttpOnly` cookie.
+- **Portable token set response**: the authentication response for a non-browser client or an explicit body-token
+  profile. It includes the sensitive opaque refresh credential as well as the browser-response fields.
 
 ## Package Boundary
 

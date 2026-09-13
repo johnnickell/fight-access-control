@@ -2,15 +2,16 @@
 
 ## In progress
 
-No epic is currently in progress.
+| Epic | Target | Current outcome |
+| --- | --- | --- |
+| [EPIC-00004](epics/00004-EPIC.md) | `v0.2.0` | T-00033 is ready to publish consumer-composable OpenAPI schema metadata, a focused guide, local composition proof, and release candidate. |
 
 ## Route to 1.0.0
 
 1. Publish completed framework-neutral capabilities as reviewed pre-`1.0.0` package releases, beginning with
    `v0.1.0`, without making full starter implementation a package-release prerequisite.
-2. Resolve the [OpenAPI schema components for v0.2.0](wayfinder/openapi-schema-components-v0-2-0-map.md) map, then
-   prepare the framework-neutral reusable schema component release without making a package-owned OpenAPI document
-   or starter implementation a prerequisite.
+2. Deliver [T-00033](tickets/00033-TICKET.md) to prepare the framework-neutral `v0.2.0` reusable schema-component
+   release without making a package-owned OpenAPI document or starter implementation a prerequisite.
 3. Coordinate the separate Fight Common `v1.2.0` release, then implement the full Symfony, Laravel, Yii,
    CodeIgniter, and Slim starter skeletons against tagged package versions.
 4. Feed shared compatibility findings into reviewed subsequent `0.x` releases while framework-specific fixes

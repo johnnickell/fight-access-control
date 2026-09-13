@@ -4,7 +4,7 @@ Operational execution view for Fight AccessControl. Ticket files are canonical f
 this board is canonical for recommended order. IDs identify artifacts only. Update this file whenever ticket
 status, dependencies, or roadmap priority changes.
 
-Last updated: 2026-09-10
+Last updated: 2026-09-12
 
 ## “What’s Next?” Contract
 
@@ -16,18 +16,18 @@ When `/ask-matt` or a plain “What’s next?” is invoked:
 
 ## Now
 
-**Human decision:** resolve [Choose OpenAPI metadata ownership and component discovery](../wayfinder/tickets/WF-005-openapi-metadata-ownership.md) before defining the `v0.2.0` schema catalog.
+No human decision is currently required.
 
 ## Wayfinder Review
 
-[OpenAPI schema components for v0.2.0](../wayfinder/openapi-schema-components-v0-2-0-map.md) is active. Its first
-frontier decision resolves PHP metadata ownership and consumer component discovery before schema fields or release
-work are specified. [Agent HMAC authentication and direct authority](../wayfinder/agent-hmac-authentication-map.md)
+[OpenAPI schema components for v0.2.0](../wayfinder/openapi-schema-components-v0-2-0-map.md) is closed with
+[T-00033](00033-TICKET.md) as the implementation handoff. [Agent HMAC authentication and direct authority](../wayfinder/agent-hmac-authentication-map.md)
 remains closed and does not displace the implementation frontier.
 
 ## Ready Frontier
 
-No implementation tickets are currently ready.
+1. [T-00033: Publish composable OpenAPI schema components for v0.2.0](00033-TICKET.md) — implements the
+   non-autoloaded schema distribution, complete catalog, guide, local composition proof, and release candidate.
 
 ## Waiting
 

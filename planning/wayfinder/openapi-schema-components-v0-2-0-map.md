@@ -1,7 +1,7 @@
 # Wayfinder Map: OpenAPI schema components for v0.2.0
 
 **Label:** `wayfinder:map`
-**Status:** Active
+**Status:** Closed
 
 > This map is an **index, not a store**. Each material decision lives in exactly one linked ticket under
 > `tickets/`; this map only summarizes the linked resolutions and shows the next decision frontier.
@@ -36,14 +36,23 @@ to its resulting epic, PRDs, and/or implementation tickets.
    existing safe administrative payloads.
 3. **Envelope direction is settled.** The package should offer payload components and optional JSend response
    components, allowing consumers to use JSend without imposing it on their own APIs.
+4. **Metadata ownership is settled.** `swagger-php ^6.5` remains a development dependency and Composer suggestion.
+   Non-autoloaded anchors in `openapi/`, loaded with `openapi/bootstrap.php`, are the only package-owned OpenAPI
+   metadata; Domain and Application remain free of OpenAPI imports.
+5. **Payload contract is settled.** Every public Command and Query, safe read result, and authentication operation
+   has a component using canonical values, typed collections, optional JSend success envelopes, browser-safe and
+   portable token profiles, and explicit creation or empty-success results.
+6. **Proof and handoff are settled.** One explicit local consumer-composition scan is release evidence outside the
+   recurring build. A focused guide ships with the implementation, while a broader documentation-quality pass may
+   follow without blocking `v0.2.0`.
 
 ## Tickets
 
 | Ticket | Type | Mode | Status | Depends On |
 |---|---|---|---|---|
-| [Choose OpenAPI metadata ownership and component discovery](tickets/WF-005-openapi-metadata-ownership.md) | Grilling / Domain Modeling | HITL | **Open** | — |
-| [Define authentication payload and JSend response catalog](tickets/WF-006-authentication-payload-jsend-catalog.md) | Grilling / Domain Modeling | HITL | **Open** | WF-005 |
-| [Set lightweight composition proof and v0.2.0 handoff](tickets/WF-007-openapi-composition-proof-release-handoff.md) | Grilling | HITL | **Open** | WF-006 |
+| [Choose OpenAPI metadata ownership and component discovery](tickets/WF-005-openapi-metadata-ownership.md) | Grilling / Domain Modeling | HITL | **Done** | — |
+| [Define authentication payload and JSend response catalog](tickets/WF-006-authentication-payload-jsend-catalog.md) | Grilling / Domain Modeling | HITL | **Done** | WF-005 |
+| [Set lightweight composition proof and v0.2.0 handoff](tickets/WF-007-openapi-composition-proof-release-handoff.md) | Grilling | HITL | **Done** | WF-006 |
 
 ## Blocking relationships
 
@@ -53,15 +62,12 @@ Metadata ownership and component discovery ──→ Authentication payload and 
 
 ## Frontier
 
-[Choose OpenAPI metadata ownership and component discovery](tickets/WF-005-openapi-metadata-ownership.md) is the
-one next grillable decision.
+No Wayfinder decision remains. Implementation begins with [T-00033](../tickets/00033-TICKET.md).
 
 ## Not yet specified (fog)
 
 - Whether source-level attributes can make an intended schema change a release-blocking compatibility concern
   without requiring a separate schema-diff tool.
-- Which additional public command and query messages belong in the initial catalog after the authentication and
-  administrative components are enumerated.
 
 ## Out of scope
 
@@ -69,3 +75,9 @@ one next grillable decision.
   OpenAPI root document.
 - Swagger UI, a hosted documentation site, generated clients, TypeScript models, or browser applications.
 - A mandatory consumer integration or slow recurring documentation-generation test in this package build.
+
+## Resolution
+
+[EPIC-00004](../epics/00004-EPIC.md), [PRD-00005](../specs/00005-PRD.md), and
+[T-00033](../tickets/00033-TICKET.md) implement this map. The focused consumer guide is release work; a later
+broader documentation-quality pass is a non-blocking follow-on decision.

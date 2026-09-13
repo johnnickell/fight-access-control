@@ -28,4 +28,19 @@ consumer integration.
 
 ## Resolution
 
-Write this only when the decision is closed. Link the resulting handoff where relevant.
+The release uses an explicit local composition proof, outside the recurring build. A disposable consumer fixture
+defines an OpenAPI `Info` object and one consumer schema, then a consumer runs `swagger-php` with both the fixture
+bootstrap and `openapi/bootstrap.php`. The generated JSON must contain the consumer component, representative
+`Fight.AccessControl.*` components, and the expected required fields. The command and inspection evidence live in
+the focused consumer guide and a task-owned `.runs/` directory; no package-owned root document or integration suite
+is created.
+
+The release includes a concise composition guide covering Composer installation, bootstrap and scan use, canonical
+payloads, browser cookie and portable token-set profiles, optional JSend success envelopes, creation results,
+mutation results, and empty success. It is a focused first guide and may inform a later documentation-quality pass;
+that broader effort does not block `v0.2.0`.
+
+[EPIC-00004](../../epics/00004-EPIC.md), [PRD-00005](../../specs/00005-PRD.md), and
+[T-00033](../../tickets/00033-TICKET.md) are the implementation handoff. The ticket prepares the changelog and
+release candidate after its local proof and canonical gates pass. Tagging, push, and publication remain separately
+authorized effects.

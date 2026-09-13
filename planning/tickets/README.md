@@ -5,7 +5,9 @@ work. Terminal ticket sets may move to `archive/` only after their parent PRD cl
 
 ## Active Tickets
 
-No active tickets.
+| Ticket | Parent | Outcome |
+| --- | --- | --- |
+| [T-00033](00033-TICKET.md) | [PRD-00005](../specs/00005-PRD.md) | Publish consumer-composable OpenAPI schema metadata and prepare the `v0.2.0` release candidate. |
 
 ## Recently Done
 
