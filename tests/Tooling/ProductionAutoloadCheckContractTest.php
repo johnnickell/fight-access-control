@@ -24,7 +24,7 @@ final class ProductionAutoloadCheckContractTest extends TestCase
         self::assertNotSame($this->directory, $installRoot);
         self::assertStringStartsWith($this->directory.'/tmp/fight-access-control-production.', $installRoot);
         self::assertSame(
-            'install --no-dev --no-interaction --no-progress --prefer-dist --classmap-authoritative',
+            'update --no-dev --no-interaction --no-progress --prefer-dist --classmap-authoritative',
             $composerArguments
         );
 
@@ -63,7 +63,6 @@ final class ProductionAutoloadCheckContractTest extends TestCase
         copy(dirname(__DIR__, 2).'/bin/production-autoload-check', $this->directory.'/bin/production-autoload-check');
         chmod($this->directory.'/bin/production-autoload-check', 0755);
         file_put_contents($this->directory.'/composer.json', "{}\n");
-        file_put_contents($this->directory.'/composer.lock', "{\"packages\": []}\n");
         file_put_contents($this->directory.'/src/Domain/Contract.php', "<?php\n");
         file_put_contents($this->directory.'/src/Application/UseCase.php', "<?php\n");
         file_put_contents($this->directory.'/tests/Architecture/ProductionInstallTest.php', "<?php exit(0);\n");
@@ -73,7 +72,6 @@ final class ProductionAutoloadCheckContractTest extends TestCase
 #!/usr/bin/env bash
 set -eu
 test -f composer.json
-test -f composer.lock
 test -f src/Domain/Contract.php
 test -f src/Application/UseCase.php
 printf '%s|%s\n' "$PWD" "$*" >> "${FAKE_COMPOSER_LOG}"

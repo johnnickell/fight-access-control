@@ -13,7 +13,7 @@ final class BuildContractTest extends TestCase
 {
     private string $directory;
 
-    public function test_that_default_build_installs_the_lock_and_delegates_quality_once_noninteractively(): void
+    public function test_that_default_build_resolves_latest_dependencies_and_delegates_quality_once(): void
     {
         $process = $this->runBuild();
 
@@ -23,7 +23,7 @@ final class BuildContractTest extends TestCase
         self::assertSame(1, substr_count($log, 'container run --rm'));
         self::assertSame(1, substr_count($log, './bin/quality'));
         self::assertStringContainsString(
-            'composer install --no-interaction --no-progress --prefer-dist && ./bin/quality',
+            'composer update --no-interaction --no-progress --prefer-dist && ./bin/quality',
             $log
         );
         self::assertStringContainsString('-v '.$this->directory.':/app:delegated', $log);
@@ -40,6 +40,11 @@ final class BuildContractTest extends TestCase
         self::assertSame(37, $this->runBuild(37)->getExitCode());
     }
 
+    public function test_that_latest_compatibility_argument_remains_accepted(): void
+    {
+        self::assertSame(0, $this->runBuild(0, '--latest')->getExitCode());
+    }
+
     public function test_that_unsupported_arguments_fail_before_container_work(): void
     {
         $process = new Process(['bash', 'bin/build', '--unsupported'], $this->directory, [
@@ -48,7 +53,7 @@ final class BuildContractTest extends TestCase
         $process->run();
 
         self::assertSame(2, $process->getExitCode());
-        self::assertSame("Usage: ./bin/build [--latest]\n", $process->getErrorOutput());
+        self::assertSame("Usage: ./bin/build\n", $process->getErrorOutput());
     }
 
     protected function setUp(): void
@@ -57,7 +62,6 @@ final class BuildContractTest extends TestCase
         mkdir($this->directory.'/bin', 0777, true);
         copy(dirname(__DIR__, 2).'/bin/build', $this->directory.'/bin/build');
         chmod($this->directory.'/bin/build', 0755);
-        file_put_contents($this->directory.'/composer.lock', "tracked resolution\n");
         file_put_contents($this->directory.'/docker', <<<'BASH'
 #!/usr/bin/env bash
 set -eu
@@ -79,9 +83,9 @@ BASH);
         $this->removeDirectory($this->directory);
     }
 
-    private function runBuild(int $gateStatus = 0): Process
+    private function runBuild(int $gateStatus = 0, string ...$arguments): Process
     {
-        $process = new Process(['bash', 'bin/build'], $this->directory, [
+        $process = new Process(['bash', 'bin/build', ...$arguments], $this->directory, [
             'DOCKER_BIN'       => $this->directory.'/docker',
             'FAKE_DOCKER_LOG'  => $this->directory.'/docker.log',
             'FAKE_GATE_STATUS' => (string) $gateStatus,
