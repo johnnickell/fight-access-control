@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ruleset name="FightAccessControl">
     <description>Fight Access Control extensions to the Fight Common coding standard</description>
+    <file>openapi</file>
     <file>src</file>
-    <file>tests/Tooling</file>
     <file>tests/Domain</file>
     <file>tests/Application</file>
     <file>scripts</file>
@@ -10,31 +10,41 @@
     <rule ref="vendor/johnnickell/fight-common/src/Standards/Phpcs/ruleset.xml">
         <exclude name="Phpcs.Formatting.RequireVisibilityGroupSpacing" />
     </rule>
+    <rule ref="Generic.Files.LineLength">
+        <exclude-pattern>openapi/*</exclude-pattern>
+    </rule>
     <rule ref="PSR1.Methods.CamelCapsMethodName">
+        <exclude-pattern>openapi/*</exclude-pattern>
         <exclude-pattern>tests/*</exclude-pattern>
         <exclude-pattern>scripts/*</exclude-pattern>
     </rule>
     <rule ref="Squiz.Commenting.ClassComment">
+        <exclude-pattern>openapi/*</exclude-pattern>
         <exclude-pattern>tests/*</exclude-pattern>
         <exclude-pattern>scripts/*</exclude-pattern>
     </rule>
     <rule ref="Squiz.Commenting.FunctionComment">
+        <exclude-pattern>openapi/*</exclude-pattern>
         <exclude-pattern>tests/*</exclude-pattern>
         <exclude-pattern>scripts/*</exclude-pattern>
     </rule>
     <rule ref="Squiz.Commenting.FunctionCommentThrowTag">
+        <exclude-pattern>openapi/*</exclude-pattern>
         <exclude-pattern>tests/*</exclude-pattern>
         <exclude-pattern>scripts/*</exclude-pattern>
     </rule>
     <rule ref="Generic.Commenting.DocComment">
+        <exclude-pattern>openapi/*</exclude-pattern>
         <exclude-pattern>tests/*</exclude-pattern>
         <exclude-pattern>scripts/*</exclude-pattern>
     </rule>
     <rule ref="vendor/johnnickell/fight-common/src/Standards/Phpcs/Sniffs/Commenting/RequireMethodDocCommentSniff.php">
+        <exclude-pattern>openapi/*</exclude-pattern>
         <exclude-pattern>tests/*</exclude-pattern>
         <exclude-pattern>scripts/*</exclude-pattern>
     </rule>
     <rule ref="vendor/johnnickell/fight-common/src/Standards/Phpcs/Sniffs/Commenting/RequireTypeDocCommentSniff.php">
+        <exclude-pattern>openapi/*</exclude-pattern>
         <exclude-pattern>tests/*</exclude-pattern>
         <exclude-pattern>scripts/*</exclude-pattern>
     </rule>

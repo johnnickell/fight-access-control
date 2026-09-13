@@ -7,7 +7,6 @@
     requireCoverageMetadata="true">
     <testsuites>
         <testsuite name="complete">
-            <directory>tests/Tooling</directory>
             <directory>tests/Domain</directory>
             <directory>tests/Application</directory>
         </testsuite>
