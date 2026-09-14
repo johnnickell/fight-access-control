@@ -7,6 +7,8 @@ namespace Fight\AccessControl\Domain\AccessControl\Authorization\Exception;
 use Fight\Common\Domain\Exception\DomainException;
 
 /**
+ * Class AuthenticatedPrincipalException
+ *
  * Indicates that an authenticated-principal snapshot is invalid.
  */
 final class AuthenticatedPrincipalException extends DomainException

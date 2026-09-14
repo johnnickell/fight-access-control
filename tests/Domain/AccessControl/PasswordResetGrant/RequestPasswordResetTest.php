@@ -166,9 +166,9 @@ final class RequestPasswordResetTest extends TestCase
         self::assertSame('2026-08-20T12:00:00+00:00', $event->getIssuedAt()->format(DATE_ATOM));
         self::assertSame(
             [
-                'user_id' => $userId->toString(),
+                'user_id'                    => $userId->toString(),
                 'password_reset_delivery_id' => $passwordResetDeliveryId->toString(),
-                'issued_at' => '2026-08-20T12:00:00+00:00',
+                'issued_at'                  => '2026-08-20T12:00:00+00:00'
             ],
             PasswordResetRequested::fromArray($event->toArray())->toArray()
         );

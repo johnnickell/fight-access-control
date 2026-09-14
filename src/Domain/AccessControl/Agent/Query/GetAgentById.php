@@ -9,11 +9,15 @@ use Fight\Common\Domain\Exception\DomainException;
 use Fight\Common\Domain\Messaging\Query\Query;
 
 /**
+ * Class GetAgentById
+ *
  * Queries one Agent by stable identifier.
  */
 final readonly class GetAgentById implements Query
 {
     /**
+     * Constructs GetAgentById
+     *
      * Creates the Agent-identity query.
      */
     public function __construct(private AgentId $agentId)
@@ -37,7 +41,7 @@ final readonly class GetAgentById implements Query
     }
 
     /**
-     * Returns the stable Agent identifier.
+     * Returns the stable Agent identifier
      */
     public function getAgentId(): AgentId
     {

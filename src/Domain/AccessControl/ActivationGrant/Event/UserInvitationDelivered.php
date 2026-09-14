@@ -10,11 +10,15 @@ use Fight\Common\Domain\Exception\DomainException;
 use Fight\Common\Domain\Messaging\Event\Event;
 
 /**
+ * Class UserInvitationDelivered
+ *
  * Records a successfully confirmed user-invitation delivery.
  */
 final readonly class UserInvitationDelivered implements Event
 {
     /**
+     * Constructs UserInvitationDelivered
+     *
      * Creates the invitation-delivery success event.
      */
     public function __construct(
@@ -47,12 +51,12 @@ final readonly class UserInvitationDelivered implements Event
         return [
             'actor_id'               => $this->actorId,
             'user_id'                => $this->userId->toString(),
-            'activation_delivery_id' => $this->activationDeliveryId->toString(),
+            'activation_delivery_id' => $this->activationDeliveryId->toString()
         ];
     }
 
     /**
-     * Returns the actor that caused delivery invocation.
+     * Returns the actor that caused delivery invocation
      */
     public function getActorId(): string
     {
@@ -60,7 +64,7 @@ final readonly class UserInvitationDelivered implements Event
     }
 
     /**
-     * Returns the target user's identifier.
+     * Returns the target user's identifier
      */
     public function getUserId(): UserId
     {
@@ -68,7 +72,7 @@ final readonly class UserInvitationDelivered implements Event
     }
 
     /**
-     * Returns the confirmed delivery generation.
+     * Returns the confirmed delivery generation
      */
     public function getActivationDeliveryId(): ActivationDeliveryId
     {

@@ -51,7 +51,7 @@ final readonly class InvitePendingUser implements Command
         return [
             'actor_id' => $this->actorId,
             'user_id'  => $this->userId->toString(),
-            'email'    => $this->email->toString(),
+            'email'    => $this->email->toString()
         ];
     }
 

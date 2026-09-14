@@ -19,11 +19,15 @@ use Fight\Common\Domain\Messaging\Event\CommandFailedEvent;
 use Throwable;
 
 /**
+ * Class CreateCustomRoleHandler
+ *
  * Atomically creates an authorized runtime-owned custom role.
  */
 final readonly class CreateCustomRoleHandler implements CommandHandler
 {
     /**
+     * Constructs CreateCustomRoleHandler
+     *
      * Creates the custom-role creation handler.
      */
     public function __construct(

@@ -11,11 +11,15 @@ use Fight\Common\Domain\Exception\DomainException;
 use Fight\Common\Domain\Messaging\Command\Command;
 
 /**
+ * Class ReplaceAgentPermissions
+ *
  * Requests replacing an Agent's complete direct-Permission assignment set.
  */
 final readonly class ReplaceAgentPermissions implements Command
 {
     /**
+     * Constructs ReplaceAgentPermissions
+     *
      * Creates the complete Agent Permission replacement command.
      *
      * @phpstan-param list<PermissionId> $permissionIds
@@ -52,18 +56,18 @@ final readonly class ReplaceAgentPermissions implements Command
     public function toArray(): array
     {
         return [
-            'actor_id' => $this->actorId->toString(),
-            'agent_id' => $this->agentId->toString(),
+            'actor_id'                                => $this->actorId->toString(),
+            'agent_id'                                => $this->agentId->toString(),
             'expected_permission_assignment_revision' => $this->expectedPermissionAssignmentRevision,
-            'permission_ids' => array_map(
+            'permission_ids'                          => array_map(
                 static fn(PermissionId $id): string => $id->toString(),
                 $this->permissionIds
-            ),
+            )
         ];
     }
 
     /**
-     * Returns the administrative actor.
+     * Returns the administrative actor
      */
     public function getActorId(): UserId
     {
@@ -71,7 +75,7 @@ final readonly class ReplaceAgentPermissions implements Command
     }
 
     /**
-     * Returns the target Agent.
+     * Returns the target Agent
      */
     public function getAgentId(): AgentId
     {
@@ -79,7 +83,7 @@ final readonly class ReplaceAgentPermissions implements Command
     }
 
     /**
-     * Returns the expected assignment revision.
+     * Returns the expected assignment revision
      */
     public function getExpectedPermissionAssignmentRevision(): int
     {
@@ -87,7 +91,7 @@ final readonly class ReplaceAgentPermissions implements Command
     }
 
     /**
-     * Returns the requested complete Permission identity set.
+     * Returns the requested complete Permission identity set
      *
      * @return list<PermissionId>
      */

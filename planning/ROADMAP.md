@@ -2,13 +2,15 @@
 
 ## In progress
 
-No epic is currently in progress.
+| Epic | Target | Current outcome |
+| --- | --- | --- |
+No epics are currently in progress.
 
 ## Route to 1.0.0
 
 1. Publish completed framework-neutral capabilities as reviewed pre-`1.0.0` package releases, beginning with
    `v0.1.0`, without making full starter implementation a package-release prerequisite.
-2. Coordinate the separate Fight Common `v1.2.0` release, then implement the full Symfony, Laravel, Yii,
+2. Implement the full Symfony, Laravel, Yii,
    CodeIgniter, and Slim starter skeletons against tagged package versions.
 3. Feed shared compatibility findings into reviewed subsequent `0.x` releases while framework-specific fixes
    remain in their owning starter repositories.
@@ -19,6 +21,7 @@ No epic is currently in progress.
 
 | Epic | Target | Outcome |
 | --- | --- | --- |
+| [EPIC-00004](epics/00004-EPIC.md) | `v0.2.0` | Delivered the local consumer-composable OpenAPI schema review candidate; tag, release, and publication remain separate effects. |
 | [EPIC-00003](epics/00003-EPIC.md) | 0.x | Delivered the final unified User/Agent `SecurityContext` and retry-safe Agent Permission, User Role, and custom-Role Permission changes. |
 | [EPIC-00001](epics/00001-EPIC.md) | 0.x public-source incubation | Delivered the shared identity, credential, session, authorization, and account-lifecycle package slices; a separate stability decision remains required before release. |
 | [EPIC-00002](epics/00002-EPIC.md) | 0.x | Delivered Agent HMAC authentication, direct Permission authority, request-scoped Agent resolution, and unified distinct User/Agent current-authority access with exact coverage. |

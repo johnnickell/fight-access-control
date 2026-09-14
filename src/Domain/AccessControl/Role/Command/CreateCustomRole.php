@@ -11,11 +11,15 @@ use Fight\Common\Domain\Exception\DomainException;
 use Fight\Common\Domain\Messaging\Command\Command;
 
 /**
+ * Class CreateCustomRole
+ *
  * Requests creation of an empty runtime-owned custom role.
  */
 final readonly class CreateCustomRole implements Command
 {
     /**
+     * Constructs CreateCustomRole
+     *
      * Creates a custom-role creation command.
      */
     public function __construct(
@@ -46,13 +50,13 @@ final readonly class CreateCustomRole implements Command
     {
         return [
             'actor_id' => $this->actorId->toString(),
-            'role_id' => $this->roleId->toString(),
-            'name' => $this->name->toString(),
+            'role_id'  => $this->roleId->toString(),
+            'name'     => $this->name->toString()
         ];
     }
 
     /**
-     * Returns the administrative actor.
+     * Returns the administrative actor
      */
     public function getActorId(): UserId
     {
@@ -60,7 +64,7 @@ final readonly class CreateCustomRole implements Command
     }
 
     /**
-     * Returns the caller-supplied stable role identifier.
+     * Returns the caller-supplied stable role identifier
      */
     public function getRoleId(): RoleId
     {
@@ -68,7 +72,7 @@ final readonly class CreateCustomRole implements Command
     }
 
     /**
-     * Returns the custom role name.
+     * Returns the custom role name
      */
     public function getName(): RoleName
     {

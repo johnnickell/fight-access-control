@@ -112,12 +112,12 @@ final class CustomRoleMembershipHandlerTest extends TestCase
         $commands = [
             [
                 new GrantPermissionToCustomRole($this->actorId(), $this->role()->getId(), $permission->getId()),
-                $this->role([$permission->getId()]),
+                $this->role([$permission->getId()])
             ],
             [
                 new RevokePermissionFromCustomRole($this->actorId(), $this->role()->getId(), $permission->getId()),
-                $this->role(),
-            ],
+                $this->role()
+            ]
         ];
 
         foreach ($commands as [$command, $role]) {
@@ -183,21 +183,21 @@ final class CustomRoleMembershipHandlerTest extends TestCase
                 RevokePermissionFromCustomRole::class,
                 $managedRoleWithoutPermission,
                 true,
-                true,
+                true
             ],
             [
                 'missing permission grant no-op',
                 GrantPermissionToCustomRole::class,
                 $customRoleWithPermission,
                 true,
-                false,
+                false
             ],
             [
                 'missing permission revoke no-op',
                 RevokePermissionFromCustomRole::class,
                 $customRoleWithoutPermission,
                 true,
-                false,
+                false
             ],
             ['denied grant no-op', GrantPermissionToCustomRole::class, $customRoleWithPermission, false, true],
             [
@@ -205,8 +205,8 @@ final class CustomRoleMembershipHandlerTest extends TestCase
                 RevokePermissionFromCustomRole::class,
                 $customRoleWithoutPermission,
                 false,
-                true,
-            ],
+                true
+            ]
         ];
 
         foreach ($cases as [$case, $commandClass, $role, $authorized, $permissionExists]) {
@@ -273,8 +273,8 @@ final class CustomRoleMembershipHandlerTest extends TestCase
             [
                 RevokePermissionFromCustomRole::class,
                 $this->role([$permission->getId()]),
-                CustomRolePermissionRevoked::class,
-            ],
+                CustomRolePermissionRevoked::class
+            ]
         ];
 
         foreach ($cases as [$commandClass, $role, $eventClass]) {
@@ -313,7 +313,7 @@ final class CustomRoleMembershipHandlerTest extends TestCase
         $permission = $this->permission();
         $cases = [
             [GrantPermissionToCustomRole::class, $this->role([$permission->getId()])],
-            [RevokePermissionFromCustomRole::class, $this->role()],
+            [RevokePermissionFromCustomRole::class, $this->role()]
         ];
 
         foreach ($cases as [$commandClass, $role]) {
@@ -431,7 +431,7 @@ final class CustomRoleMembershipHandlerTest extends TestCase
         $commands = [
             new GrantPermissionToCustomRole($this->actorId(), $role->getId(), $permission->getId()),
             new RevokePermissionFromCustomRole($this->actorId(), $role->getId(), $permission->getId()),
-            new RemoveCustomRole($this->actorId(), $role->getId()),
+            new RemoveCustomRole($this->actorId(), $role->getId())
         ];
 
         foreach ($commands as $command) {
@@ -483,23 +483,23 @@ final class CustomRoleMembershipHandlerTest extends TestCase
             [
                 new GrantPermissionToCustomRole($this->actorId(), RoleId::generate(), $permissionId),
                 null,
-                $permission,
+                $permission
             ],
             [
                 new GrantPermissionToCustomRole($this->actorId(), $role->getId(), PermissionId::generate()),
                 $role,
-                null,
+                null
             ],
             [
                 new RevokePermissionFromCustomRole($this->actorId(), RoleId::generate(), $permissionId),
                 null,
-                $permission,
+                $permission
             ],
             [
                 new RevokePermissionFromCustomRole($this->actorId(), $role->getId(), PermissionId::generate()),
                 $role,
-                null,
-            ],
+                null
+            ]
         ];
 
         foreach ($cases as [$command, $seedRole, $seedPermission]) {
@@ -552,7 +552,7 @@ final class CustomRoleMembershipHandlerTest extends TestCase
         $commands = [
             new GrantPermissionToCustomRole($this->actorId(), $role->getId(), PermissionId::generate()),
             new RevokePermissionFromCustomRole($this->actorId(), $role->getId(), $permission->getId()),
-            new RemoveCustomRole($this->actorId(), $role->getId()),
+            new RemoveCustomRole($this->actorId(), $role->getId())
         ];
 
         foreach ($commands as $command) {
@@ -607,7 +607,7 @@ final class CustomRoleMembershipHandlerTest extends TestCase
         $commands = [
             new GrantPermissionToCustomRole($this->actorId(), $this->role()->getId(), $permission->getId()),
             new RevokePermissionFromCustomRole($this->actorId(), $roleWithPermission->getId(), $permission->getId()),
-            new RemoveCustomRole($this->actorId(), $this->role()->getId()),
+            new RemoveCustomRole($this->actorId(), $this->role()->getId())
         ];
 
         foreach ($commands as $command) {
@@ -716,7 +716,7 @@ final class CustomRoleMembershipHandlerTest extends TestCase
         $commands = [
             new GrantPermissionToCustomRole($this->actorId(), RoleId::generate(), $permission->getId()),
             new RevokePermissionFromCustomRole($this->actorId(), RoleId::generate(), $permission->getId()),
-            new RemoveCustomRole($this->actorId(), RoleId::generate()),
+            new RemoveCustomRole($this->actorId(), RoleId::generate())
         ];
 
         foreach ($commands as $command) {
@@ -762,7 +762,7 @@ final class CustomRoleMembershipHandlerTest extends TestCase
             new RemoveCustomRole($actorId, $roleId),
             new CustomRolePermissionGranted($actorId, $roleId, $permissionId, $now),
             new CustomRolePermissionRevoked($actorId, $roleId, $permissionId, $now),
-            new CustomRoleRemoved($actorId, $roleId, $now),
+            new CustomRoleRemoved($actorId, $roleId, $now)
         ];
 
         $rejected = 0;

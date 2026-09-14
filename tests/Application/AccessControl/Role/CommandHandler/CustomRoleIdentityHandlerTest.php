@@ -208,7 +208,7 @@ final class CustomRoleIdentityHandlerTest extends TestCase
                     $this->actorId(),
                     RoleId::fromString('018f0000-0000-7000-8000-000000000004'),
                     $existing->getName()
-                ),
+                )
             ] as $command
         ) {
             $repository = new InMemoryRoleRepository();
@@ -250,7 +250,7 @@ final class CustomRoleIdentityHandlerTest extends TestCase
                 [],
                 new DateTimeImmutable('2026-08-22T12:00:00+00:00')
             )),
-            new ControllableRoleRepository($this->customRole(), replaceSucceeds: false),
+            new ControllableRoleRepository($this->customRole(), replaceSucceeds: false)
         ];
         $commands = [
             new RenameCustomRole($this->actorId(), $roleId, RoleName::fromString('ROLE_RENAMED')),
@@ -260,7 +260,7 @@ final class CustomRoleIdentityHandlerTest extends TestCase
                 RoleName::fromString('ROLE_TAKEN')
             ),
             new RenameCustomRole($this->actorId(), $roleId, RoleName::fromString('ROLE_RENAMED')),
-            new RenameCustomRole($this->actorId(), $roleId, RoleName::fromString('ROLE_RENAMED')),
+            new RenameCustomRole($this->actorId(), $roleId, RoleName::fromString('ROLE_RENAMED'))
         ];
 
         foreach ($cases as $index => $repository) {
@@ -309,7 +309,7 @@ final class CustomRoleIdentityHandlerTest extends TestCase
             new CreateCustomRole($actorId, $roleId, $name),
             new RenameCustomRole($actorId, $roleId, $name),
             new CustomRoleCreated($actorId, $roleId, $name, $now),
-            new CustomRoleRenamed($actorId, $roleId, $name, $now),
+            new CustomRoleRenamed($actorId, $roleId, $name, $now)
         ];
 
         foreach ($messages as $message) {
@@ -321,7 +321,7 @@ final class CustomRoleIdentityHandlerTest extends TestCase
             CreateCustomRole::class,
             RenameCustomRole::class,
             CustomRoleCreated::class,
-            CustomRoleRenamed::class,
+            CustomRoleRenamed::class
         ];
         foreach ($messageClasses as $messageClass) {
             try {

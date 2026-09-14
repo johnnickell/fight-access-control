@@ -8,11 +8,15 @@ use Fight\AccessControl\Domain\AccessControl\Permission\Exception\PermissionName
 use Fight\Common\Domain\Value\ValueObject;
 
 /**
+ * Class PermissionName
+ *
  * Represents a canonical uppercase permission name.
  */
 final readonly class PermissionName extends ValueObject
 {
     /**
+     * Constructs PermissionName
+     *
      * Constructs a validated permission name.
      */
     private function __construct(private string $value)
@@ -20,7 +24,7 @@ final readonly class PermissionName extends ValueObject
     }
 
     /**
-     * Creates a permission name from its serialized representation.
+     * Creates a permission name from its serialized representation
      */
     public static function fromString(string $value): self
     {
@@ -34,7 +38,7 @@ final readonly class PermissionName extends ValueObject
     }
 
     /**
-     * Returns the serialized permission name.
+     * Returns the serialized permission name
      */
     public function toString(): string
     {

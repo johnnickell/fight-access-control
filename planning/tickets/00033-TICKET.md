@@ -1,0 +1,83 @@
+---
+id: T-00033
+prd: PRD-00005
+title: Publish composable OpenAPI schema components for v0.2.0
+status: done
+blocked_by:
+---
+
+# Publish composable OpenAPI schema components for v0.2.0
+
+## Outcome
+
+Consumers can scan a package-owned, non-autoloaded OpenAPI metadata directory alongside their own models and receive
+the complete stable `Fight.AccessControl.*` schema catalog, without adding an OpenAPI dependency to the package
+runtime or core layers.
+
+## Scope
+
+- In scope: the tagged `johnnickell/fight-common ^1.2` contract; repository-wide adoption of its PHPCS baseline and
+  grammatical public PHPDoc migration, including generic `ResultSet<T>` annotations for package query handlers and
+  repositories; `swagger-php` development dependency and Composer suggestion; `openapi/`
+  attribute anchors and portable
+  bootstrap; every WF-006 Command, Query, authentication, safe-result, collection, creation, empty-success, and
+  optional JSend-success component; concise composition guide and representative payload examples; changelog and
+  release-candidate planning updates for `v0.2.0`.
+- Out of scope: OpenAPI imports under `src/`, a production autoload namespace, endpoints, routes, HTTP adapters,
+  cookie implementation, root document, Swagger UI, generic error envelopes, generated clients, and a hosted site.
+
+## Acceptance Criteria
+
+- [x] Composer declares `zircote/swagger-php ^6.5` only in `require-dev` and `suggest`, without changing production
+      dependencies or PSR-4 production autoloading.
+- [x] Composer requires tagged `johnnickell/fight-common ^1.2`; generic `ResultSet<T>` annotations used by package
+      query handlers and repositories rely on that contract and remain covered by focused handler and repository tests.
+- [x] The repository adopts the Fight Common PHPCS baseline and all public PHPDoc introduced by this migration is
+      grammatical, while preserving existing behavior and signatures.
+- [x] The documented ResultSet reconstruction remains bounded-context view translation: Agent and session mappings
+      retain their context-specific work, and no shared abstraction is introduced without a contract-risk reduction.
+- [x] Non-autoloaded `openapi/` anchors and `openapi/bootstrap.php` generate the complete `Fight.AccessControl.*`
+      catalog settled in WF-006 and do not introduce a Domain, Application, or production Adapter dependency.
+- [x] Component fields, requiredness, UUID and timestamp formats, enum values, secret flags, browser and portable
+      authentication profiles, collections, creation result, mutation-result options, and JSend envelopes match
+      ADR 0008.
+- [x] The browser authentication example omits a refresh credential; the portable token-set example includes it
+      without a credential example value.
+- [x] A consumer guide gives the Composer, bootstrap, scan, composition, payload, JSend, browser-cookie, portable
+      token-set, creation, mutation, and empty-success guidance needed to merge with a consumer-owned document.
+- [x] The documented local proof scans the package with a disposable consumer fixture and verifies generated JSON
+      contains representative package and consumer components with expected required fields.
+- [x] `CHANGELOG.md`, README, planning projections, and release-candidate records accurately describe `v0.2.0`;
+      tag creation, push, and publication remain separate effects.
+- [x] `./bin/release certify <version>` requires a clean exact candidate, its dated changelog heading, the
+      documented disposable OpenAPI consumer composition proof, planning integrity, and the complete package gate;
+      it records only the resulting per-commit evidence under ignored `.runs/`.
+- [x] `./bin/planning-check` and `./bin/build` pass.
+
+## Verification
+
+- Run focused source tests where behavior needs coverage.
+- Run the documented disposable local OpenAPI composition command and inspect its JSON output.
+- Run `./bin/release certify 0.2.0` from the exact clean, dated release candidate before retaining terminal status.
+- Run `./bin/planning-check` and `./bin/build`.
+
+## Completion Notes
+
+Verified on 2026-09-13: the disposable consumer scan produced 86 schemas including the consumer anchor and the
+complete `Fight.AccessControl.*` catalog; representative required-field and nested policy-component assertions
+passed. `./bin/planning-check` and `./bin/build` passed. The `v0.2.0` state is a review candidate only; tag,
+release, and publication remain separate effects.
+
+Review remediation verified on 2026-09-13: corrected optional `remember` inputs for activation and login, removed
+the incorrect required login `remembered` input, constrained `RestoreUser.restoration_state` to serialized User
+states, strengthened the consumer JSON proof, and reconciled completed planning projections. The disposable scan,
+`./bin/planning-check`, and `./bin/build` passed; publication remains a separate effect.
+
+Review remediation verified on 2026-09-13: removed the confirmed tooling meta-tests and infrastructure/package-
+boundary tests with their dangling quality wiring. No replacement tests were added because production behavior did
+not change. The Spec finding is explicitly out of scope: consumer fixtures own `OA\Info`, so this package adds no
+root document, metadata change, or package test.
+
+Release certification is verification-only: it binds the dated clean candidate's exact `HEAD` to the composition,
+planning, and package-quality logs under `.runs/`. A fresh `0.2.0` certificate is required on the final release
+candidate before tag signing, push, hosted release, or package publication is considered.

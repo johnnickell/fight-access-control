@@ -60,7 +60,7 @@ final class InMemoryPermissionRepositoryTest extends TestCase
                 $second->getId(),
                 PermissionId::generate(),
                 $first->getId(),
-                PermissionId::fromString($second->getId()->toString()),
+                PermissionId::fromString($second->getId()->toString())
             ])
         );
     }

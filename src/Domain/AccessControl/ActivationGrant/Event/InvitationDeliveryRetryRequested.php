@@ -10,11 +10,15 @@ use Fight\Common\Domain\Exception\DomainException;
 use Fight\Common\Domain\Messaging\Event\Event;
 
 /**
+ * Class InvitationDeliveryRetryRequested
+ *
  * Requests an invocation-neutral retry of durable activation-delivery work.
  */
 final readonly class InvitationDeliveryRetryRequested implements Event
 {
     /**
+     * Constructs InvitationDeliveryRetryRequested
+     *
      * Constructs the activation-delivery retry-request event.
      */
     public function __construct(
@@ -49,14 +53,14 @@ final readonly class InvitationDeliveryRetryRequested implements Event
     public function toArray(): array
     {
         return [
-            'actor_id' => $this->actorId,
-            'user_id' => $this->userId->toString(),
-            'activation_delivery_id' => $this->activationDeliveryId->toString(),
+            'actor_id'               => $this->actorId,
+            'user_id'                => $this->userId->toString(),
+            'activation_delivery_id' => $this->activationDeliveryId->toString()
         ];
     }
 
     /**
-     * Returns the actor who requested the retry.
+     * Returns the actor who requested the retry
      */
     public function getActorId(): string
     {
@@ -64,7 +68,7 @@ final readonly class InvitationDeliveryRetryRequested implements Event
     }
 
     /**
-     * Returns the target user's identifier.
+     * Returns the target user's identifier
      */
     public function getUserId(): UserId
     {
@@ -72,7 +76,7 @@ final readonly class InvitationDeliveryRetryRequested implements Event
     }
 
     /**
-     * Returns the delivery generation selected for retry.
+     * Returns the delivery generation selected for retry
      */
     public function getActivationDeliveryId(): ActivationDeliveryId
     {

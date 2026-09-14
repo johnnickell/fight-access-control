@@ -20,11 +20,15 @@ use Fight\Common\Domain\Messaging\Event\CommandFailedEvent;
 use Throwable;
 
 /**
+ * Class DeliverUserInvitationHandler
+ *
  * Invokes durable activation delivery through a consumer-owned transport-neutral port.
  */
 final readonly class DeliverUserInvitationHandler implements CommandHandler
 {
     /**
+     * Constructs DeliverUserInvitationHandler
+     *
      * Creates the invitation-delivery handler.
      */
     public function __construct(

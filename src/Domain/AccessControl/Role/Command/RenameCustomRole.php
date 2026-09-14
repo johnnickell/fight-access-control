@@ -11,11 +11,15 @@ use Fight\Common\Domain\Exception\DomainException;
 use Fight\Common\Domain\Messaging\Command\Command;
 
 /**
+ * Class RenameCustomRole
+ *
  * Requests a runtime-owned custom-role rename.
  */
 final readonly class RenameCustomRole implements Command
 {
     /**
+     * Constructs RenameCustomRole
+     *
      * Creates a custom-role rename command.
      */
     public function __construct(
@@ -46,13 +50,13 @@ final readonly class RenameCustomRole implements Command
     {
         return [
             'actor_id' => $this->actorId->toString(),
-            'role_id' => $this->roleId->toString(),
-            'name' => $this->name->toString(),
+            'role_id'  => $this->roleId->toString(),
+            'name'     => $this->name->toString()
         ];
     }
 
     /**
-     * Returns the administrative actor.
+     * Returns the administrative actor
      */
     public function getActorId(): UserId
     {
@@ -60,7 +64,7 @@ final readonly class RenameCustomRole implements Command
     }
 
     /**
-     * Returns the stable role identifier.
+     * Returns the stable role identifier
      */
     public function getRoleId(): RoleId
     {
@@ -68,7 +72,7 @@ final readonly class RenameCustomRole implements Command
     }
 
     /**
-     * Returns the replacement custom role name.
+     * Returns the replacement custom role name
      */
     public function getName(): RoleName
     {

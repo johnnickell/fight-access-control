@@ -11,11 +11,15 @@ use Fight\Common\Domain\Exception\DomainException;
 use Fight\Common\Domain\Messaging\Event\Event;
 
 /**
+ * Class PasswordResetDeliveryExpired
+ *
  * Records terminal destruction of expired password-reset delivery ciphertext.
  */
 final readonly class PasswordResetDeliveryExpired implements Event
 {
     /**
+     * Constructs PasswordResetDeliveryExpired
+     *
      * Creates the secret-free terminal-expiry event.
      */
     public function __construct(
@@ -47,15 +51,15 @@ final readonly class PasswordResetDeliveryExpired implements Event
     public function toArray(): array
     {
         return [
-            'actor_id'    => $this->actorId,
-            'user_id'     => $this->userId->toString(),
+            'actor_id'                   => $this->actorId,
+            'user_id'                    => $this->userId->toString(),
             'password_reset_delivery_id' => $this->passwordResetDeliveryId->toString(),
-            'occurred_at' => $this->occurredAt->format(DATE_ATOM),
+            'occurred_at'                => $this->occurredAt->format(DATE_ATOM)
         ];
     }
 
     /**
-     * Returns the actor processing terminal expiry.
+     * Returns the actor processing terminal expiry
      */
     public function getActorId(): string
     {
@@ -63,7 +67,7 @@ final readonly class PasswordResetDeliveryExpired implements Event
     }
 
     /**
-     * Returns the target user identifier.
+     * Returns the target user identifier
      */
     public function getUserId(): UserId
     {
@@ -71,7 +75,7 @@ final readonly class PasswordResetDeliveryExpired implements Event
     }
 
     /**
-     * Returns the expired delivery-generation identifier.
+     * Returns the expired delivery-generation identifier
      */
     public function getPasswordResetDeliveryId(): PasswordResetDeliveryId
     {
@@ -79,7 +83,7 @@ final readonly class PasswordResetDeliveryExpired implements Event
     }
 
     /**
-     * Returns when terminal expiry was processed.
+     * Returns when terminal expiry was processed
      */
     public function getOccurredAt(): DateTimeImmutable
     {

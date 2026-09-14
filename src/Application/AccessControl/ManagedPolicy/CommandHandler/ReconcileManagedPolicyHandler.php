@@ -24,11 +24,15 @@ use LogicException;
 use Throwable;
 
 /**
+ * Class ReconcileManagedPolicyHandler
+ *
  * Atomically applies the complete managed-policy preflight plan.
  */
 final readonly class ReconcileManagedPolicyHandler implements CommandHandler
 {
     /**
+     * Constructs ReconcileManagedPolicyHandler
+     *
      * Creates the managed-policy reconciliation handler.
      */
     public function __construct(
@@ -74,7 +78,7 @@ final readonly class ReconcileManagedPolicyHandler implements CommandHandler
     }
 
     /**
-     * Creates and reconciles desired managed permissions.
+     * Creates and reconciles desired managed permissions
      */
     private function applyManagedPermissions(ManagedPolicyPlan $plan, DateTimeImmutable $occurredAt): void
     {
@@ -104,7 +108,7 @@ final readonly class ReconcileManagedPolicyHandler implements CommandHandler
     }
 
     /**
-     * Creates and reconciles desired managed roles.
+     * Creates and reconciles desired managed roles
      */
     private function applyManagedRoles(ManagedPolicyPlan $plan, DateTimeImmutable $occurredAt): void
     {
@@ -138,7 +142,7 @@ final readonly class ReconcileManagedPolicyHandler implements CommandHandler
     }
 
     /**
-     * Removes managed permissions omitted from desired policy.
+     * Removes managed permissions omitted from desired policy
      */
     private function removeManagedPermissions(ManagedPolicyPlan $plan): void
     {
@@ -159,7 +163,7 @@ final readonly class ReconcileManagedPolicyHandler implements CommandHandler
     }
 
     /**
-     * Removes managed roles omitted from desired policy.
+     * Removes managed roles omitted from desired policy
      */
     private function removeManagedRoles(ManagedPolicyPlan $plan): void
     {

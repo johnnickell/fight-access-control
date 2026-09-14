@@ -34,7 +34,7 @@ final class PermissionNameTest extends TestCase
                 'manage_users',
                 'MANAGE-USERS',
                 'MANAGE USERS',
-                'MANAGE_USERS_1',
+                'MANAGE_USERS_1'
             ] as $invalidName
         ) {
             try {

@@ -42,6 +42,7 @@ final class ControllableRefreshSessionRepository implements RefreshSessionReposi
         return null;
     }
 
+    /** @return ResultSet<RefreshSession> */
     public function getByUserId(UserId $userId, DateTimeImmutable $at, Pagination $pagination): ResultSet
     {
         $refreshSessions = [];

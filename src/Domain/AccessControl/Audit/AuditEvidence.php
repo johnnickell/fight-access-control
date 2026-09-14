@@ -10,6 +10,8 @@ use Fight\AccessControl\Domain\AccessControl\RefreshSession\SessionRevocationRea
 use Fight\AccessControl\Domain\AccessControl\User\UserId;
 
 /**
+ * Class AuditEvidence
+ *
  * Represents the secret-free durable evidence for a sensitive action.
  *
  * @phpstan-consistent-constructor
@@ -17,6 +19,8 @@ use Fight\AccessControl\Domain\AccessControl\User\UserId;
 class AuditEvidence
 {
     /**
+     * Constructs AuditEvidence
+     *
      * Creates secret-free durable audit evidence.
      */
     protected function __construct(
@@ -29,7 +33,7 @@ class AuditEvidence
     }
 
     /**
-     * Records secret-free evidence for a sensitive action.
+     * Records secret-free evidence for a sensitive action
      */
     public static function record(string $actorId, string $action, UserId $userId): static
     {
@@ -37,7 +41,7 @@ class AuditEvidence
     }
 
     /**
-     * Records the secret-free provisioning of an Agent authority.
+     * Records the secret-free provisioning of an Agent authority
      */
     public static function agentProvisioned(string $actorId, AgentId $agentId): static
     {
@@ -45,7 +49,7 @@ class AuditEvidence
     }
 
     /**
-     * Records the secret-free rotation of an Agent credential.
+     * Records the secret-free rotation of an Agent credential
      */
     public static function agentCredentialRotated(string $actorId, AgentId $agentId): static
     {
@@ -53,7 +57,7 @@ class AuditEvidence
     }
 
     /**
-     * Records the secret-free terminal revocation of an Agent credential.
+     * Records the secret-free terminal revocation of an Agent credential
      */
     public static function agentCredentialRevoked(string $actorId, AgentId $agentId): static
     {
@@ -61,7 +65,7 @@ class AuditEvidence
     }
 
     /**
-     * Records the reasoned administrative revocation of a user's refresh session.
+     * Records the reasoned administrative revocation of a user's refresh session
      */
     public static function administrativeSessionRevocation(
         UserId $actorId,
@@ -75,13 +79,13 @@ class AuditEvidence
             $userId,
             [
                 'refresh_session_id' => $refreshSessionId->toString(),
-                'reason' => $reason->toString(),
+                'reason'             => $reason->toString()
             ]
         );
     }
 
     /**
-     * Returns the actor identity.
+     * Returns the actor identity
      */
     public function actorId(): string
     {
@@ -89,7 +93,7 @@ class AuditEvidence
     }
 
     /**
-     * Returns the audited action name.
+     * Returns the audited action name
      */
     public function action(): string
     {
@@ -97,7 +101,7 @@ class AuditEvidence
     }
 
     /**
-     * Returns the affected User or Agent identifier.
+     * Returns the affected User or Agent identifier
      */
     public function subjectId(): UserId|AgentId
     {
@@ -105,7 +109,7 @@ class AuditEvidence
     }
 
     /**
-     * Returns public audit context.
+     * Returns public audit context
      *
      * @return array<string, string>
      */

@@ -9,11 +9,15 @@ use Fight\Common\Domain\Exception\DomainException;
 use Fight\Common\Domain\Messaging\Command\Command;
 
 /**
+ * Class CancelEmailChange
+ *
  * Requests cancellation of a target user's issued email change.
  */
 final readonly class CancelEmailChange implements Command
 {
     /**
+     * Constructs CancelEmailChange
+     *
      * Creates an email-change cancellation.
      */
     public function __construct(
@@ -46,12 +50,12 @@ final readonly class CancelEmailChange implements Command
     {
         return [
             'actor_id' => $this->actorId->toString(),
-            'user_id' => $this->userId->toString(),
+            'user_id'  => $this->userId->toString()
         ];
     }
 
     /**
-     * Returns the requesting actor identifier.
+     * Returns the requesting actor identifier
      */
     public function getActorId(): UserId
     {
@@ -59,7 +63,7 @@ final readonly class CancelEmailChange implements Command
     }
 
     /**
-     * Returns the target user identifier.
+     * Returns the target user identifier
      */
     public function getUserId(): UserId
     {

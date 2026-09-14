@@ -109,10 +109,10 @@ final class ExpireEmailChangeHandlerTest extends TestCase
     {
         foreach (['actor_id', 'user_id', 'email_change_grant_id', 'occurred_at'] as $missing) {
             $data = [
-                'actor_id' => 'email-change-expiry',
-                'user_id' => UserId::generate()->toString(),
+                'actor_id'              => 'email-change-expiry',
+                'user_id'               => UserId::generate()->toString(),
                 'email_change_grant_id' => EmailChangeGrantId::generate()->toString(),
-                'occurred_at' => '2026-08-22T13:00:00+00:00',
+                'occurred_at'           => '2026-08-22T13:00:00+00:00'
             ];
             unset($data[$missing]);
 

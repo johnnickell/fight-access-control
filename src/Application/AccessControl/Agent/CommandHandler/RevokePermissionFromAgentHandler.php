@@ -18,11 +18,15 @@ use Fight\Common\Domain\Messaging\Event\CommandFailedEvent;
 use Throwable;
 
 /**
+ * Class RevokePermissionFromAgentHandler
+ *
  * Atomically revokes an authoritative Permission directly from an authorized Agent.
  */
 final readonly class RevokePermissionFromAgentHandler implements CommandHandler
 {
     /**
+     * Constructs RevokePermissionFromAgentHandler
+     *
      * Creates the direct Agent Permission-revoke handler.
      */
     public function __construct(

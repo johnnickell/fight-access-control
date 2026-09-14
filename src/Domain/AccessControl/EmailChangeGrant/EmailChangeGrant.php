@@ -10,6 +10,8 @@ use Fight\AccessControl\Domain\AccessControl\User\UserId;
 use Fight\Common\Domain\Value\Internet\EmailAddress;
 
 /**
+ * Class EmailChangeGrant
+ *
  * Owns one generation of email-change confirmation authority and delivery work.
  *
  * @phpstan-consistent-constructor
@@ -17,6 +19,8 @@ use Fight\Common\Domain\Value\Internet\EmailAddress;
 class EmailChangeGrant
 {
     /**
+     * Constructs EmailChangeGrant
+     *
      * Creates an immutable email-change authority generation.
      */
     protected function __construct(
@@ -33,7 +37,7 @@ class EmailChangeGrant
     }
 
     /**
-     * Issues unrelated expiring confirmation authority.
+     * Issues unrelated expiring confirmation authority
      */
     public static function issue(
         UserId $userId,
@@ -63,7 +67,7 @@ class EmailChangeGrant
     }
 
     /**
-     * Returns the aggregate-generation identifier.
+     * Returns the aggregate-generation identifier
      */
     public function getId(): EmailChangeGrantId
     {
@@ -71,7 +75,7 @@ class EmailChangeGrant
     }
 
     /**
-     * Returns the owning user identifier.
+     * Returns the owning user identifier
      */
     public function getUserId(): UserId
     {
@@ -79,7 +83,7 @@ class EmailChangeGrant
     }
 
     /**
-     * Returns the one-way credential hash.
+     * Returns the one-way credential hash
      */
     public function getCredentialHash(): string
     {
@@ -87,7 +91,7 @@ class EmailChangeGrant
     }
 
     /**
-     * Compares raw credential input without retaining it.
+     * Checks raw credential input without retaining it
      */
     public function matchesCredential(EmailChangeCredential $credential): bool
     {
@@ -95,7 +99,7 @@ class EmailChangeGrant
     }
 
     /**
-     * Returns the confirmation-authority expiry.
+     * Returns the confirmation-authority expiry
      */
     public function getExpiresAt(): DateTimeImmutable
     {
@@ -103,7 +107,7 @@ class EmailChangeGrant
     }
 
     /**
-     * Returns whether confirmation authority is usable at the supplied time.
+     * Returns whether confirmation authority is usable at the supplied time
      */
     public function isUsableAt(DateTimeImmutable $at): bool
     {
@@ -111,7 +115,7 @@ class EmailChangeGrant
     }
 
     /**
-     * Consumes usable authority and destroys recoverable credential material.
+     * Uses usable authority and destroys recoverable credential material
      */
     public function consume(DateTimeImmutable $at): self
     {
@@ -133,7 +137,7 @@ class EmailChangeGrant
     }
 
     /**
-     * Revokes issued authority and destroys recoverable delivery material.
+     * Revokes issued authority and destroys recoverable delivery material
      */
     public function revoke(DateTimeImmutable $at): self
     {
@@ -155,7 +159,7 @@ class EmailChangeGrant
     }
 
     /**
-     * Terminalizes issued authority once its expiry boundary is reached.
+     * Ends issued authority once its expiry boundary is reached
      */
     public function expireAt(DateTimeImmutable $at): self
     {
@@ -177,7 +181,7 @@ class EmailChangeGrant
     }
 
     /**
-     * Returns whether authority remains issued.
+     * Returns whether authority remains issued
      */
     public function isIssued(): bool
     {
@@ -187,7 +191,7 @@ class EmailChangeGrant
     }
 
     /**
-     * Returns whether authority was consumed.
+     * Returns whether authority was consumed
      */
     public function isConsumed(): bool
     {
@@ -195,7 +199,7 @@ class EmailChangeGrant
     }
 
     /**
-     * Returns when authority was consumed.
+     * Returns when authority was consumed
      */
     public function getConsumedAt(): ?DateTimeImmutable
     {
@@ -203,7 +207,7 @@ class EmailChangeGrant
     }
 
     /**
-     * Returns whether authority was revoked.
+     * Returns whether authority was revoked
      */
     public function isRevoked(): bool
     {
@@ -211,7 +215,7 @@ class EmailChangeGrant
     }
 
     /**
-     * Returns when authority was revoked.
+     * Returns when authority was revoked
      */
     public function getRevokedAt(): ?DateTimeImmutable
     {
@@ -219,7 +223,7 @@ class EmailChangeGrant
     }
 
     /**
-     * Returns whether authority expired.
+     * Returns whether authority expired
      */
     public function isExpired(): bool
     {
@@ -227,7 +231,7 @@ class EmailChangeGrant
     }
 
     /**
-     * Returns when authority was terminalized by expiry.
+     * Returns when authority was terminalized by expiry
      */
     public function getExpiredAt(): ?DateTimeImmutable
     {
@@ -235,7 +239,7 @@ class EmailChangeGrant
     }
 
     /**
-     * Returns the monotonic aggregate revision.
+     * Returns the monotonic aggregate revision
      */
     public function getRevision(): int
     {
@@ -243,7 +247,7 @@ class EmailChangeGrant
     }
 
     /**
-     * Returns the owned recoverable delivery work.
+     * Returns the owned recoverable delivery work
      */
     public function getDelivery(): EmailChangeDelivery
     {
@@ -251,7 +255,7 @@ class EmailChangeGrant
     }
 
     /**
-     * Claims the owned delivery before invoking its transport.
+     * Acquires the owned delivery before invoking its transport
      */
     public function claimDelivery(): self
     {
@@ -259,7 +263,7 @@ class EmailChangeGrant
     }
 
     /**
-     * Confirms the owned delivery after successful invocation.
+     * Completes the owned delivery after successful invocation
      */
     public function confirmDelivery(): self
     {
@@ -267,7 +271,7 @@ class EmailChangeGrant
     }
 
     /**
-     * Records a failed owned-delivery invocation.
+     * Records a failed owned-delivery invocation
      */
     public function failDelivery(): self
     {
@@ -275,7 +279,7 @@ class EmailChangeGrant
     }
 
     /**
-     * Returns the fixed grant purpose.
+     * Returns the fixed grant purpose
      */
     public function purpose(): string
     {
@@ -283,7 +287,7 @@ class EmailChangeGrant
     }
 
     /**
-     * Replaces only the owned delivery within this generation.
+     * Replaces only the owned delivery within this generation
      */
     private function withDelivery(EmailChangeDelivery $delivery): self
     {

@@ -7,6 +7,8 @@ namespace Fight\AccessControl\Application\AccessControl\Authorization\Service;
 use Fight\AccessControl\Domain\AccessControl\Authorization\AuthenticatedUserPrincipal;
 
 /**
+ * Class CurrentPrincipalProvider
+ *
  * Resolves and caches the authoritative principal for one request.
  *
  * Consumers must compose a new instance per request and provide only an AuthenticationContextProvider.
@@ -16,6 +18,8 @@ final class CurrentPrincipalProvider
     private ?AuthenticatedUserPrincipal $authenticatedPrincipal = null;
 
     /**
+     * Constructs CurrentPrincipalProvider
+     *
      * Creates a request-scoped current-principal service.
      */
     public function __construct(
@@ -25,7 +29,7 @@ final class CurrentPrincipalProvider
     }
 
     /**
-     * Returns the request's principal after one authoritative resolution.
+     * Returns the request's principal after one authoritative resolution
      */
     public function getCurrentPrincipal(): AuthenticatedUserPrincipal
     {

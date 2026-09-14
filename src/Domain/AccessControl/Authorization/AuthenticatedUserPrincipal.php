@@ -11,6 +11,8 @@ use Fight\AccessControl\Domain\AccessControl\Role\RoleName;
 use Fight\AccessControl\Domain\AccessControl\User\UserId;
 
 /**
+ * Class AuthenticatedUserPrincipal
+ *
  * Captures an authenticated identity and its authoritative authorization snapshot.
  */
 final readonly class AuthenticatedUserPrincipal implements AuthenticatedAuthority
@@ -22,6 +24,8 @@ final readonly class AuthenticatedUserPrincipal implements AuthenticatedAuthorit
     private array $permissions;
 
     /**
+     * Constructs AuthenticatedUserPrincipal
+     *
      * Constructs an immutable authenticated-principal snapshot.
      *
      * @param UserId            $userId
@@ -68,7 +72,7 @@ final readonly class AuthenticatedUserPrincipal implements AuthenticatedAuthorit
     }
 
     /**
-     * Returns the authoritative authentication version.
+     * Returns the authoritative authentication version
      */
     public function getAuthenticationVersion(): int
     {
@@ -76,7 +80,7 @@ final readonly class AuthenticatedUserPrincipal implements AuthenticatedAuthorit
     }
 
     /**
-     * Returns the supported authenticated-principal type.
+     * Returns the supported authenticated-principal type
      */
     public function getType(): AuthenticatedPrincipalType
     {
@@ -84,7 +88,7 @@ final readonly class AuthenticatedUserPrincipal implements AuthenticatedAuthorit
     }
 
     /**
-     * Returns the permissions captured during authoritative resolution.
+     * Returns the permissions captured during authoritative resolution
      *
      * @return list<PrincipalPermission>
      */
@@ -94,7 +98,7 @@ final readonly class AuthenticatedUserPrincipal implements AuthenticatedAuthorit
     }
 
     /**
-     * Returns the stable refresh-session identity.
+     * Returns the stable refresh-session identity
      */
     public function getRefreshSessionId(): RefreshSessionId
     {
@@ -102,7 +106,7 @@ final readonly class AuthenticatedUserPrincipal implements AuthenticatedAuthorit
     }
 
     /**
-     * Returns the roles captured during authoritative resolution.
+     * Returns the roles captured during authoritative resolution
      *
      * @return list<PrincipalRole>
      */
@@ -112,7 +116,7 @@ final readonly class AuthenticatedUserPrincipal implements AuthenticatedAuthorit
     }
 
     /**
-     * Returns the stable authenticated identity.
+     * Returns the stable authenticated identity
      */
     public function getUserId(): UserId
     {
@@ -120,7 +124,7 @@ final readonly class AuthenticatedUserPrincipal implements AuthenticatedAuthorit
     }
 
     /**
-     * Determines whether the snapshot contains a permission name.
+     * Determines whether the snapshot contains a permission name
      */
     public function hasPermission(PermissionName $permissionName): bool
     {
@@ -131,7 +135,7 @@ final readonly class AuthenticatedUserPrincipal implements AuthenticatedAuthorit
     }
 
     /**
-     * Determines whether the snapshot contains a role name.
+     * Determines whether the snapshot contains a role name
      */
     public function hasRole(RoleName $roleName): bool
     {

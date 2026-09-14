@@ -11,11 +11,15 @@ use Fight\Common\Domain\Exception\DomainException;
 use Fight\Common\Domain\Messaging\Event\Event;
 
 /**
+ * Class AgentProvisioned
+ *
  * Records a committed Agent provisioning without carrying secret material.
  */
 final readonly class AgentProvisioned implements Event
 {
     /**
+     * Constructs AgentProvisioned
+     *
      * Creates a safe post-commit Agent provisioning event.
      */
     public function __construct(
@@ -54,12 +58,12 @@ final readonly class AgentProvisioned implements Event
             'agent_id'            => $this->agentId->toString(),
             'credential_id'       => $this->credentialId->toString(),
             'credential_revision' => $this->credentialRevision,
-            'provisioned_at'      => $this->provisionedAt->format(DATE_ATOM),
+            'provisioned_at'      => $this->provisionedAt->format(DATE_ATOM)
         ];
     }
 
     /**
-     * Returns the provisioned Agent identifier.
+     * Returns the provisioned Agent identifier
      */
     public function getAgentId(): AgentId
     {
@@ -67,7 +71,7 @@ final readonly class AgentProvisioned implements Event
     }
 
     /**
-     * Returns the provisioned Agent credential identifier.
+     * Returns the provisioned Agent credential identifier
      */
     public function getCredentialId(): AgentCredentialId
     {
@@ -75,7 +79,7 @@ final readonly class AgentProvisioned implements Event
     }
 
     /**
-     * Returns the initial credential revision.
+     * Returns the initial credential revision
      */
     public function getCredentialRevision(): int
     {
@@ -83,7 +87,7 @@ final readonly class AgentProvisioned implements Event
     }
 
     /**
-     * Returns when the Agent was provisioned.
+     * Returns when the Agent was provisioned
      */
     public function getProvisionedAt(): DateTimeImmutable
     {

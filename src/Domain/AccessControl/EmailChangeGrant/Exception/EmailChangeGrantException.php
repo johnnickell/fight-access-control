@@ -7,6 +7,8 @@ namespace Fight\AccessControl\Domain\AccessControl\EmailChangeGrant\Exception;
 use Fight\Common\Domain\Exception\DomainException;
 
 /**
+ * Class EmailChangeGrantException
+ *
  * Reports invalid email-change authority or delivery state.
  */
 final class EmailChangeGrantException extends DomainException

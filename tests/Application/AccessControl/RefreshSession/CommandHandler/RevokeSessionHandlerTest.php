@@ -303,7 +303,7 @@ final class RevokeSessionHandlerTest extends TestCase
         self::assertSame($userId, $evidence->subjectId());
         self::assertSame([
             'refresh_session_id' => $targetSessionId->toString(),
-            'reason' => 'Compromised device',
+            'reason'             => 'Compromised device'
         ], $evidence->context());
         self::assertCount(1, $events->events());
         self::assertInstanceOf(RefreshSessionRevoked::class, $events->events()[0]);
@@ -373,32 +373,32 @@ final class RevokeSessionHandlerTest extends TestCase
                 [
                     RevokeSession::class,
                     [
-                        'actor_id' => $actorId->toString(),
-                        'current_session_id' => $currentSessionId->toString(),
-                    ],
+                        'actor_id'           => $actorId->toString(),
+                        'current_session_id' => $currentSessionId->toString()
+                    ]
                 ],
                 [
                     RevokeSession::class,
                     [
-                        'actor_id' => $actorId->toString(),
+                        'actor_id'           => $actorId->toString(),
                         'current_session_id' => $currentSessionId->toString(),
-                        'target_session_id' => $targetSessionId->toString(),
-                    ],
+                        'target_session_id'  => $targetSessionId->toString()
+                    ]
                 ],
                 [RefreshSessionRevoked::class, []],
                 [RefreshSessionRevoked::class, ['actor_id' => $actorId->toString()]],
                 [
                     RefreshSessionRevoked::class,
-                    ['actor_id' => $actorId->toString(), 'user_id' => $actorId->toString()],
+                    ['actor_id' => $actorId->toString(), 'user_id' => $actorId->toString()]
                 ],
                 [
                     RefreshSessionRevoked::class,
                     [
-                        'actor_id' => $actorId->toString(),
-                        'user_id' => $actorId->toString(),
-                        'refresh_session_id' => $targetSessionId->toString(),
-                    ],
-                ],
+                        'actor_id'           => $actorId->toString(),
+                        'user_id'            => $actorId->toString(),
+                        'refresh_session_id' => $targetSessionId->toString()
+                    ]
+                ]
             ] as [$messageClass, $incompleteData]
         ) {
             try {

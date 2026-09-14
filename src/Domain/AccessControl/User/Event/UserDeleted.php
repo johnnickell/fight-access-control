@@ -9,11 +9,15 @@ use Fight\Common\Domain\Exception\DomainException;
 use Fight\Common\Domain\Messaging\Event\Event;
 
 /**
+ * Class UserDeleted
+ *
  * Records an administrative soft-deletion after durable commit.
  */
 final readonly class UserDeleted implements Event
 {
     /**
+     * Constructs UserDeleted
+     *
      * Creates a user-deleted event.
      */
     public function __construct(
@@ -46,12 +50,12 @@ final readonly class UserDeleted implements Event
     {
         return [
             'actor_id' => $this->actorId->toString(),
-            'user_id' => $this->userId->toString(),
+            'user_id'  => $this->userId->toString()
         ];
     }
 
     /**
-     * Returns the administrative actor.
+     * Returns the administrative actor
      */
     public function getActorId(): UserId
     {
@@ -59,7 +63,7 @@ final readonly class UserDeleted implements Event
     }
 
     /**
-     * Returns the deleted user.
+     * Returns the deleted user
      */
     public function getUserId(): UserId
     {

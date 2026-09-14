@@ -7,6 +7,8 @@ namespace Fight\AccessControl\Domain\AccessControl\ActivationGrant\Exception;
 use Fight\Common\Domain\Exception\DomainException;
 
 /**
+ * Class ActivationDeliveryException
+ *
  * Indicates that activation delivery state violates its aggregate invariants.
  */
 final class ActivationDeliveryException extends DomainException

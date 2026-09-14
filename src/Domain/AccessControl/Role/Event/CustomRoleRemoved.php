@@ -11,11 +11,15 @@ use Fight\Common\Domain\Exception\DomainException;
 use Fight\Common\Domain\Messaging\Event\Event;
 
 /**
+ * Class CustomRoleRemoved
+ *
  * Records custom-role removal after durable commit.
  */
 final readonly class CustomRoleRemoved implements Event
 {
     /**
+     * Constructs CustomRoleRemoved
+     *
      * Creates the custom-role-removed event.
      */
     public function __construct(
@@ -45,14 +49,14 @@ final readonly class CustomRoleRemoved implements Event
     public function toArray(): array
     {
         return [
-            'actor_id' => $this->actorId->toString(),
-            'role_id' => $this->roleId->toString(),
-            'removed_at' => $this->removedAt->format(DATE_ATOM),
+            'actor_id'   => $this->actorId->toString(),
+            'role_id'    => $this->roleId->toString(),
+            'removed_at' => $this->removedAt->format(DATE_ATOM)
         ];
     }
 
     /**
-     * Returns the administrative actor.
+     * Returns the administrative actor
      */
     public function getActorId(): UserId
     {
@@ -60,7 +64,7 @@ final readonly class CustomRoleRemoved implements Event
     }
 
     /**
-     * Returns the removed role.
+     * Returns the removed role
      */
     public function getRoleId(): RoleId
     {
@@ -68,7 +72,7 @@ final readonly class CustomRoleRemoved implements Event
     }
 
     /**
-     * Returns the removal time.
+     * Returns the removal time
      */
     public function getRemovedAt(): DateTimeImmutable
     {

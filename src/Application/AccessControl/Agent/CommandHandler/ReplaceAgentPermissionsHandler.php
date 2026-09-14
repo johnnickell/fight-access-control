@@ -18,11 +18,15 @@ use Fight\Common\Domain\Messaging\Event\CommandFailedEvent;
 use Throwable;
 
 /**
+ * Class ReplaceAgentPermissionsHandler
+ *
  * Atomically replaces an authorized Agent's complete authoritative direct-Permission set.
  */
 final readonly class ReplaceAgentPermissionsHandler implements CommandHandler
 {
     /**
+     * Constructs ReplaceAgentPermissionsHandler
+     *
      * Creates the complete Agent Permission replacement handler.
      */
     public function __construct(

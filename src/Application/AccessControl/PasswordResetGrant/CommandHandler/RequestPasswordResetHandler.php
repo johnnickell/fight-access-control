@@ -26,6 +26,8 @@ use LogicException;
 use Throwable;
 
 /**
+ * Class RequestPasswordResetHandler
+ *
  * Silently stages password-reset authority and delivery work for an eligible identity.
  */
 final readonly class RequestPasswordResetHandler implements CommandHandler
@@ -33,6 +35,8 @@ final readonly class RequestPasswordResetHandler implements CommandHandler
     private const string GRANT_LIFETIME = 'PT1H';
 
     /**
+     * Constructs RequestPasswordResetHandler
+     *
      * Creates the password-reset request handler.
      */
     public function __construct(

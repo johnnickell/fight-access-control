@@ -3,6 +3,9 @@
 Framework-neutral identity, credential, session, authorization, and account-lifecycle contracts for Fight
 applications.
 
+The `0.2.0` release adds an opt-in, non-autoloaded OpenAPI component catalog
+for consumer-owned documents. See [OpenAPI composition](docs/openapi-composition.md).
+
 The `0.1.x` release line provides the first public-source package milestone while the API remains intentionally
 pre-`1.0.0`. It delivers the framework-neutral Domain and Application behavior described by the repository-local
 product specifications; consumer projects continue to own framework and infrastructure adapters. Tagged package
@@ -56,6 +59,10 @@ PHP 8.5 and Docker are required. Tooling follows the Fight Common conventions an
 single ordered `./bin/quality` gate. `./bin/build --latest` checks the latest dependency versions compatible
 with `composer.json`; hosted CI performs that same latest-compatible resolution before invoking
 `./bin/quality` directly.
+
+For a clean, dated release candidate, `./bin/release certify <version>` records its exact `HEAD` and the
+OpenAPI consumer-composition, planning, and package-quality evidence under ignored `.runs/`. It is
+verification-only and does not create a commit, merge, tag, push, or publication.
 
 Coordinate-build scratch work belongs under gitignored `.runs/<YYYY-MM-DD>-<slug>/`. Never stage it. When an
 approved task needs isolation, create its disposable linked worktree under that run directory at `worktree/`; run

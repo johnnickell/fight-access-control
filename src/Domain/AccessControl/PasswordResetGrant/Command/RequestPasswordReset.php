@@ -9,11 +9,15 @@ use Fight\Common\Domain\Messaging\Command\Command;
 use Fight\Common\Domain\Value\Internet\EmailAddress;
 
 /**
+ * Class RequestPasswordReset
+ *
  * Requests generic password-recovery delivery for an email address.
  */
 final readonly class RequestPasswordReset implements Command
 {
     /**
+     * Constructs RequestPasswordReset
+     *
      * Constructs a password-reset request.
      */
     public function __construct(private EmailAddress $email)
@@ -41,7 +45,7 @@ final readonly class RequestPasswordReset implements Command
     }
 
     /**
-     * Returns the requested email address.
+     * Returns the requested email address
      */
     public function getEmail(): EmailAddress
     {

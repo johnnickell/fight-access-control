@@ -7,6 +7,8 @@ namespace Fight\AccessControl\Domain\AccessControl\EmailChangeGrant;
 use Fight\Common\Domain\Identity\UniqueId;
 
 /**
+ * Class EmailChangeDeliveryId
+ *
  * Identifies one email-change delivery generation.
  */
 final readonly class EmailChangeDeliveryId extends UniqueId

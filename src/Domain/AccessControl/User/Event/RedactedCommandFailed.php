@@ -8,11 +8,15 @@ use Fight\Common\Domain\Exception\DomainException;
 use Fight\Common\Domain\Messaging\Event\Event;
 
 /**
+ * Class RedactedCommandFailed
+ *
  * Records a sensitive command failure without preserving its secret inputs.
  */
 final readonly class RedactedCommandFailed implements Event
 {
     /**
+     * Constructs RedactedCommandFailed
+     *
      * Constructs the redacted command-failure event.
      *
      * @param string               $commandClass
@@ -57,12 +61,12 @@ final readonly class RedactedCommandFailed implements Event
         return [
             'command_class' => $this->commandClass,
             'command_data'  => $this->redactedCommandData,
-            'error_message' => $this->errorMessage,
+            'error_message' => $this->errorMessage
         ];
     }
 
     /**
-     * Returns the failed command class name.
+     * Returns the failed command class name
      */
     public function getCommandClass(): string
     {
@@ -70,7 +74,7 @@ final readonly class RedactedCommandFailed implements Event
     }
 
     /**
-     * Returns the caller-supplied non-sensitive command data.
+     * Returns the caller-supplied non-sensitive command data
      *
      * @return array<string, mixed>
      */
@@ -80,7 +84,7 @@ final readonly class RedactedCommandFailed implements Event
     }
 
     /**
-     * Returns the original failure message.
+     * Returns the original failure message
      */
     public function getErrorMessage(): string
     {

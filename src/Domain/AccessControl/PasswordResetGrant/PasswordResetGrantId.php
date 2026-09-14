@@ -7,6 +7,8 @@ namespace Fight\AccessControl\Domain\AccessControl\PasswordResetGrant;
 use Fight\Common\Domain\Identity\UniqueId;
 
 /**
+ * Class PasswordResetGrantId
+ *
  * Identifies one generation of password-reset authority.
  */
 final readonly class PasswordResetGrantId extends UniqueId

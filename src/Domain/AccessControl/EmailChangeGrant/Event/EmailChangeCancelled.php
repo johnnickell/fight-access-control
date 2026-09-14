@@ -11,11 +11,15 @@ use Fight\Common\Domain\Exception\DomainException;
 use Fight\Common\Domain\Messaging\Event\Event;
 
 /**
+ * Class EmailChangeCancelled
+ *
  * Records that an email-change reservation and its authority were cancelled.
  */
 final readonly class EmailChangeCancelled implements Event
 {
     /**
+     * Constructs EmailChangeCancelled
+     *
      * Creates a secret-free cancellation event.
      */
     public function __construct(
@@ -51,15 +55,15 @@ final readonly class EmailChangeCancelled implements Event
     public function toArray(): array
     {
         return [
-            'actor_id' => $this->actorId->toString(),
-            'user_id' => $this->userId->toString(),
+            'actor_id'              => $this->actorId->toString(),
+            'user_id'               => $this->userId->toString(),
             'email_change_grant_id' => $this->emailChangeGrantId->toString(),
-            'cancelled_at' => $this->cancelledAt->format(DATE_ATOM),
+            'cancelled_at'          => $this->cancelledAt->format(DATE_ATOM)
         ];
     }
 
     /**
-     * Returns the requesting actor identifier.
+     * Returns the requesting actor identifier
      */
     public function getActorId(): UserId
     {
@@ -67,7 +71,7 @@ final readonly class EmailChangeCancelled implements Event
     }
 
     /**
-     * Returns the target user identifier.
+     * Returns the target user identifier
      */
     public function getUserId(): UserId
     {
@@ -75,7 +79,7 @@ final readonly class EmailChangeCancelled implements Event
     }
 
     /**
-     * Returns the terminalized grant identifier.
+     * Returns the terminalized grant identifier
      */
     public function getEmailChangeGrantId(): EmailChangeGrantId
     {
@@ -83,7 +87,7 @@ final readonly class EmailChangeCancelled implements Event
     }
 
     /**
-     * Returns when cancellation completed.
+     * Returns when cancellation completed
      */
     public function getCancelledAt(): DateTimeImmutable
     {

@@ -2,14 +2,14 @@
 
 set -euo pipefail
 
-COMPOSER_COMMAND='composer install --no-interaction --no-progress --prefer-dist'
-
 if (( $# == 1 )) && [[ "${1}" == '--latest' ]]; then
-    COMPOSER_COMMAND='composer update --no-interaction --no-progress --prefer-dist'
+    :
 elif (( $# > 0 )); then
-    echo 'Usage: ./bin/build [--latest]' >&2
+    echo 'Usage: ./bin/build' >&2
     exit 2
 fi
+
+COMPOSER_COMMAND='composer update --no-interaction --no-progress --prefer-dist'
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 DOCKER_BIN="${DOCKER_BIN:-docker}"

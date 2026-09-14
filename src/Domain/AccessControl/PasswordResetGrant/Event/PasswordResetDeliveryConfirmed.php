@@ -11,11 +11,15 @@ use Fight\Common\Domain\Exception\DomainException;
 use Fight\Common\Domain\Messaging\Event\Event;
 
 /**
+ * Class PasswordResetDeliveryConfirmed
+ *
  * Records that password-reset delivery was confirmed and its ciphertext destroyed.
  */
 final readonly class PasswordResetDeliveryConfirmed implements Event
 {
     /**
+     * Constructs PasswordResetDeliveryConfirmed
+     *
      * Creates the secret-free confirmation event.
      */
     public function __construct(
@@ -47,15 +51,15 @@ final readonly class PasswordResetDeliveryConfirmed implements Event
     public function toArray(): array
     {
         return [
-            'actor_id'    => $this->actorId,
-            'user_id'     => $this->userId->toString(),
+            'actor_id'                   => $this->actorId,
+            'user_id'                    => $this->userId->toString(),
             'password_reset_delivery_id' => $this->passwordResetDeliveryId->toString(),
-            'occurred_at' => $this->occurredAt->format(DATE_ATOM),
+            'occurred_at'                => $this->occurredAt->format(DATE_ATOM)
         ];
     }
 
     /**
-     * Returns the consumer actor that confirmed delivery.
+     * Returns the consumer actor that confirmed delivery
      */
     public function getActorId(): string
     {
@@ -63,7 +67,7 @@ final readonly class PasswordResetDeliveryConfirmed implements Event
     }
 
     /**
-     * Returns the target user identifier.
+     * Returns the target user identifier
      */
     public function getUserId(): UserId
     {
@@ -71,7 +75,7 @@ final readonly class PasswordResetDeliveryConfirmed implements Event
     }
 
     /**
-     * Returns the confirmed delivery-generation identifier.
+     * Returns the confirmed delivery-generation identifier
      */
     public function getPasswordResetDeliveryId(): PasswordResetDeliveryId
     {
@@ -79,7 +83,7 @@ final readonly class PasswordResetDeliveryConfirmed implements Event
     }
 
     /**
-     * Returns when delivery was confirmed.
+     * Returns when delivery was confirmed
      */
     public function getOccurredAt(): DateTimeImmutable
     {

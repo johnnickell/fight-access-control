@@ -7,6 +7,8 @@ namespace Fight\AccessControl\Application\AccessControl\Authorization\Service;
 use RuntimeException;
 
 /**
+ * Class ExactPermissionResolutionException
+ *
  * Indicates that authoritative Permission definitions do not match the requested identities exactly.
  *
  * @internal

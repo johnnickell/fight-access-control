@@ -7,6 +7,8 @@ namespace Fight\AccessControl\Domain\AccessControl\User\Exception;
 use Fight\Common\Domain\Exception\DomainException;
 
 /**
+ * Class DuplicateEmailException
+ *
  * Indicates that a canonical email remains reserved by an identity.
  */
 final class DuplicateEmailException extends DomainException

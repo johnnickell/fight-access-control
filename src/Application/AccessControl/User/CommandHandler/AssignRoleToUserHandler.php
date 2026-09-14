@@ -21,11 +21,15 @@ use Fight\Common\Domain\Messaging\Event\CommandFailedEvent;
 use Throwable;
 
 /**
+ * Class AssignRoleToUserHandler
+ *
  * Atomically assigns an authoritative role to an authorized User target.
  */
 final readonly class AssignRoleToUserHandler implements CommandHandler
 {
     /**
+     * Constructs AssignRoleToUserHandler
+     *
      * Creates the User role-assignment handler.
      */
     public function __construct(

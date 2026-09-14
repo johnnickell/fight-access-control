@@ -8,3 +8,5 @@
 | [0004](0004-agent-hmac-credential-lifecycle.md) | Agent HMAC credential lifecycle | accepted |
 | [0005](0005-agent-direct-permission-assignment-revision.md) | Agent direct Permission assignment revision | accepted |
 | [0006](0006-agent-principal-observability-boundary.md) | Agent principal and observability boundary | accepted |
+| [0007](0007-openapi-schema-metadata-distribution.md) | OpenAPI schema metadata distribution | accepted |
+| [0008](0008-openapi-payload-contract.md) | OpenAPI payload contract | accepted |

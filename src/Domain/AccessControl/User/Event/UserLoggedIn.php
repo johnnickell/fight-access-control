@@ -11,11 +11,15 @@ use Fight\Common\Domain\Exception\DomainException;
 use Fight\Common\Domain\Messaging\Event\Event;
 
 /**
+ * Class UserLoggedIn
+ *
  * Announces an established authoritative session without exposing credentials.
  */
 final readonly class UserLoggedIn implements Event
 {
     /**
+     * Constructs UserLoggedIn
+     *
      * Creates the safe login outcome.
      */
     public function __construct(
@@ -52,12 +56,12 @@ final readonly class UserLoggedIn implements Event
         return [
             'user_id'            => $this->userId->toString(),
             'refresh_session_id' => $this->refreshSessionId->toString(),
-            'logged_in_at'       => $this->loggedInAt->format(DATE_ATOM),
+            'logged_in_at'       => $this->loggedInAt->format(DATE_ATOM)
         ];
     }
 
     /**
-     * Returns the authenticated identity.
+     * Returns the authenticated identity
      */
     public function getUserId(): UserId
     {
@@ -65,7 +69,7 @@ final readonly class UserLoggedIn implements Event
     }
 
     /**
-     * Returns the authoritative session identifier.
+     * Returns the authoritative session identifier
      */
     public function getRefreshSessionId(): RefreshSessionId
     {
@@ -73,7 +77,7 @@ final readonly class UserLoggedIn implements Event
     }
 
     /**
-     * Returns when authentication completed.
+     * Returns when authentication completed
      */
     public function getLoggedInAt(): DateTimeImmutable
     {

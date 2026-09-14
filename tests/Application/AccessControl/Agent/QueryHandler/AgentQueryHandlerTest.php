@@ -73,16 +73,16 @@ final class AgentQueryHandlerTest extends TestCase
         self::assertInstanceOf(Arrayable::class, $view);
         self::assertSame(
             [
-                'agent_id' => '018f0000-0000-7000-8000-000000000002',
-                'name' => 'Production deployment',
-                'state' => 'active',
-                'credential_id' => '018f0000-0000-7000-8000-000000000003',
-                'credential_revision' => 0,
+                'agent_id'                       => '018f0000-0000-7000-8000-000000000002',
+                'name'                           => 'Production deployment',
+                'state'                          => 'active',
+                'credential_id'                  => '018f0000-0000-7000-8000-000000000003',
+                'credential_revision'            => 0,
                 'permission_assignment_revision' => 2,
-                'permissions' => [[
+                'permissions'                    => [[
                     'permission_id' => '018f0000-0000-7000-8000-000000000001',
-                    'name' => 'CONTENT_PUBLISH',
-                ]],
+                    'name'          => 'CONTENT_PUBLISH'
+                ]]
             ],
             $view->toArray()
         );
@@ -168,7 +168,7 @@ final class AgentQueryHandlerTest extends TestCase
         self::assertInstanceOf(AgentView::class, $getView);
         $expected = [
             ['permission_id' => $secondPermission->getId()->toString(), 'name' => 'CONTENT_REVIEW'],
-            ['permission_id' => $firstPermission->getId()->toString(), 'name' => 'CONTENT_PUBLISH'],
+            ['permission_id' => $firstPermission->getId()->toString(), 'name' => 'CONTENT_PUBLISH']
         ];
         self::assertSame($expected, $getView->toArray()['permissions']);
         self::assertSame($expected, $listResult->records()->get(0)->toArray()['permissions']);
@@ -217,14 +217,14 @@ final class AgentQueryHandlerTest extends TestCase
         self::assertSame(
             [
                 ['permission_id' => $reviewPermission->getId()->toString(), 'name' => 'CONTENT_REVIEW'],
-                ['permission_id' => $publishPermission->getId()->toString(), 'name' => 'CONTENT_PUBLISH'],
+                ['permission_id' => $publishPermission->getId()->toString(), 'name' => 'CONTENT_PUBLISH']
             ],
             $result->records()->get(0)->toArray()['permissions']
         );
         self::assertSame(
             [
                 ['permission_id' => $publishPermission->getId()->toString(), 'name' => 'CONTENT_PUBLISH'],
-                ['permission_id' => $reviewPermission->getId()->toString(), 'name' => 'CONTENT_REVIEW'],
+                ['permission_id' => $reviewPermission->getId()->toString(), 'name' => 'CONTENT_REVIEW']
             ],
             $result->records()->get(1)->toArray()['permissions']
         );
@@ -289,7 +289,7 @@ final class AgentQueryHandlerTest extends TestCase
 
         $cases = [
             [GetAgentById::class, ['agent_id'], $get->toArray()],
-            [ListAgents::class, ['page', 'per_page', 'orderings'], $list->toArray()],
+            [ListAgents::class, ['page', 'per_page', 'orderings'], $list->toArray()]
         ];
         foreach ($cases as [$type, $requiredKeys, $data]) {
             foreach ($requiredKeys as $key) {
@@ -336,7 +336,7 @@ final class AgentQueryHandlerTest extends TestCase
                 'name',
                 'permissionAssignmentRevision',
                 'permissions',
-                'state',
+                'state'
             ],
             $agentProperties
         );
@@ -368,7 +368,7 @@ final class AgentQueryHandlerTest extends TestCase
             self::assertSame(
                 [
                     AgentRepository::class,
-                    PermissionRepository::class,
+                    PermissionRepository::class
                 ],
                 array_map(
                     static fn($parameter): string => (string) $parameter->getType(),

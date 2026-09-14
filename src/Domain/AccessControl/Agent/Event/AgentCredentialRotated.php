@@ -11,11 +11,15 @@ use Fight\Common\Domain\Exception\DomainException;
 use Fight\Common\Domain\Messaging\Event\Event;
 
 /**
+ * Class AgentCredentialRotated
+ *
  * Records a committed Agent credential rotation without carrying secret material.
  */
 final readonly class AgentCredentialRotated implements Event
 {
     /**
+     * Constructs AgentCredentialRotated
+     *
      * Creates a safe post-commit Agent credential rotation event.
      */
     public function __construct(
@@ -54,12 +58,12 @@ final readonly class AgentCredentialRotated implements Event
             'agent_id'            => $this->agentId->toString(),
             'credential_id'       => $this->credentialId->toString(),
             'credential_revision' => $this->credentialRevision,
-            'rotated_at'          => $this->rotatedAt->format(DATE_ATOM),
+            'rotated_at'          => $this->rotatedAt->format(DATE_ATOM)
         ];
     }
 
     /**
-     * Returns the Agent whose credential was rotated.
+     * Returns the Agent whose credential was rotated
      */
     public function getAgentId(): AgentId
     {
@@ -67,7 +71,7 @@ final readonly class AgentCredentialRotated implements Event
     }
 
     /**
-     * Returns the successor credential identifier.
+     * Returns the successor credential identifier
      */
     public function getCredentialId(): AgentCredentialId
     {
@@ -75,7 +79,7 @@ final readonly class AgentCredentialRotated implements Event
     }
 
     /**
-     * Returns the successor credential revision.
+     * Returns the successor credential revision
      */
     public function getCredentialRevision(): int
     {
@@ -83,7 +87,7 @@ final readonly class AgentCredentialRotated implements Event
     }
 
     /**
-     * Returns when the credential rotation committed.
+     * Returns when the credential rotation committed
      */
     public function getRotatedAt(): DateTimeImmutable
     {

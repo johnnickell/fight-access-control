@@ -138,18 +138,18 @@ final class AuthenticationServiceTest extends TestCase
         };
 
         return [
-            'unknown identity' => [null, true],
-            'pending identity' => [
+            'unknown identity'          => [null, true],
+            'pending identity'          => [
                 User::invite(
                     UserId::generate(),
                     EmailAddress::fromString('pending@example.test'),
                     new DateTimeImmutable('2026-01-01T00:00:00+00:00')
                 ),
-                true,
+                true
             ],
-            'disabled identity' => [UserFixture::withState('disabled@example.test', UserState::DISABLED), true],
-            'deleted identity' => [UserFixture::withState('deleted@example.test', UserState::DELETED), true],
-            'throttled active identity' => [$activeUser('throttled@example.test'), false],
+            'disabled identity'         => [UserFixture::withState('disabled@example.test', UserState::DISABLED), true],
+            'deleted identity'          => [UserFixture::withState('deleted@example.test', UserState::DELETED), true],
+            'throttled active identity' => [$activeUser('throttled@example.test'), false]
         ];
     }
 
@@ -159,8 +159,8 @@ final class AuthenticationServiceTest extends TestCase
     public static function refreshLifetimeCases(): array
     {
         return [
-            'ordinary session' => [false, '2026-08-20T12:00:00+00:00', '2026-08-21T11:00:00+00:00'],
-            'remembered session' => [true, '2026-09-03T12:00:00+00:00', '2026-09-18T11:00:00+00:00'],
+            'ordinary session'   => [false, '2026-08-20T12:00:00+00:00', '2026-08-21T11:00:00+00:00'],
+            'remembered session' => [true, '2026-09-03T12:00:00+00:00', '2026-09-18T11:00:00+00:00']
         ];
     }
 
@@ -170,13 +170,13 @@ final class AuthenticationServiceTest extends TestCase
     public static function rejectedPasswordResetAuthority(): array
     {
         return [
-            'wrong credential' => ['wrong credential', 'wrong-reset-credential'],
-            'empty credential' => ['empty credential', ''],
-            'expiry boundary' => ['expiry boundary', self::RESET_CREDENTIAL],
-            'consumed grant replay' => ['consumed grant replay', self::RESET_CREDENTIAL],
-            'revoked grant replay' => ['revoked grant replay', self::RESET_CREDENTIAL],
-            'missing user authority' => ['missing user authority', self::RESET_CREDENTIAL],
-            'missing grant authority' => ['missing grant authority', self::RESET_CREDENTIAL],
+            'wrong credential'        => ['wrong credential', 'wrong-reset-credential'],
+            'empty credential'        => ['empty credential', ''],
+            'expiry boundary'         => ['expiry boundary', self::RESET_CREDENTIAL],
+            'consumed grant replay'   => ['consumed grant replay', self::RESET_CREDENTIAL],
+            'revoked grant replay'    => ['revoked grant replay', self::RESET_CREDENTIAL],
+            'missing user authority'  => ['missing user authority', self::RESET_CREDENTIAL],
+            'missing grant authority' => ['missing grant authority', self::RESET_CREDENTIAL]
         ];
     }
 
@@ -186,8 +186,8 @@ final class AuthenticationServiceTest extends TestCase
     public static function nonAuthoritativePasswordResetDeliveryCases(): array
     {
         return [
-            'absent delivery' => [false],
-            'already invalidated delivery' => [true],
+            'absent delivery'              => [false],
+            'already invalidated delivery' => [true]
         ];
     }
 
@@ -197,15 +197,15 @@ final class AuthenticationServiceTest extends TestCase
     public static function rejectedEmailConfirmationAuthority(): array
     {
         return [
-            'wrong credential' => ['wrong', 'wrong-confirmation'],
-            'malformed credential' => ['malformed', ''],
-            'expiry boundary' => ['expired', self::EMAIL_CHANGE_CREDENTIAL],
-            'consumed grant replay' => ['consumed', self::EMAIL_CHANGE_CREDENTIAL],
-            'revoked grant replay' => ['revoked', self::EMAIL_CHANGE_CREDENTIAL],
+            'wrong credential'       => ['wrong', 'wrong-confirmation'],
+            'malformed credential'   => ['malformed', ''],
+            'expiry boundary'        => ['expired', self::EMAIL_CHANGE_CREDENTIAL],
+            'consumed grant replay'  => ['consumed', self::EMAIL_CHANGE_CREDENTIAL],
+            'revoked grant replay'   => ['revoked', self::EMAIL_CHANGE_CREDENTIAL],
             'mismatched destination' => ['mismatched', self::EMAIL_CHANGE_CREDENTIAL],
-            'missing user' => ['missing_user', self::EMAIL_CHANGE_CREDENTIAL],
-            'missing reservation' => ['missing_reservation', self::EMAIL_CHANGE_CREDENTIAL],
-            'missing grant' => ['missing_grant', self::EMAIL_CHANGE_CREDENTIAL],
+            'missing user'           => ['missing_user', self::EMAIL_CHANGE_CREDENTIAL],
+            'missing reservation'    => ['missing_reservation', self::EMAIL_CHANGE_CREDENTIAL],
+            'missing grant'          => ['missing_grant', self::EMAIL_CHANGE_CREDENTIAL]
         ];
     }
 
@@ -291,8 +291,8 @@ final class AuthenticationServiceTest extends TestCase
         self::assertSame($userId, $event->getUserId());
         self::assertSame('2026-08-19T12:00:00+00:00', $event->getConfirmedAt()->format(DATE_ATOM));
         self::assertSame([
-            'user_id' => $userId->toString(),
-            'confirmed_at' => '2026-08-19T12:00:00+00:00',
+            'user_id'      => $userId->toString(),
+            'confirmed_at' => '2026-08-19T12:00:00+00:00'
         ], $event->toArray());
 
         foreach (['user_id', 'confirmed_at'] as $missing) {
@@ -525,24 +525,24 @@ final class AuthenticationServiceTest extends TestCase
         $missingUserId = UserId::generate();
         foreach (
             [
-                'missing authority' => [
+                'missing authority'          => [
                     $missingUserId,
                     null,
                     $this->activeUserFor('missing-password-change@example.test', $missingUserId),
-                    'correct-secret',
+                    'correct-secret'
                 ],
-                'inactive authority' => [
+                'inactive authority'         => [
                     UserId::generate(),
                     UserFixture::withState('inactive-password-change@example.test', UserState::DISABLED),
                     null,
-                    'correct-secret',
+                    'correct-secret'
                 ],
                 'incorrect current password' => [
                     UserId::generate(),
                     $this->activeUserFor('incorrect-password-change@example.test'),
                     null,
-                    'incorrect-current-password',
-                ],
+                    'incorrect-current-password'
+                ]
             ] as [$authenticatedUserId, $storedUser, $sessionOwner, $currentPassword]
         ) {
             $unitOfWork = new InMemoryUnitOfWork();
@@ -1556,6 +1556,7 @@ final class AuthenticationServiceTest extends TestCase
                 return $this->users->replaceLifecycleState($expected, $replacement);
             }
 
+            /** @return ResultSet<User> */
             public function getAll(Pagination $pagination): ResultSet
             {
                 return $this->users->getAll($pagination);
@@ -2325,7 +2326,7 @@ final class AuthenticationServiceTest extends TestCase
         $sessions->add($session);
         $credentialGenerator = new class ([
             RefreshCredential::fromString(self::ROTATED_CREDENTIAL),
-            RefreshCredential::fromString(self::SECOND_ROTATED_CREDENTIAL),
+            RefreshCredential::fromString(self::SECOND_ROTATED_CREDENTIAL)
         ]) implements RefreshCredentialGenerator {
             public int $calls = 0;
 
@@ -2486,6 +2487,7 @@ final class AuthenticationServiceTest extends TestCase
                 return $this->sessions->getById($id);
             }
 
+            /** @return ResultSet<RefreshSession> */
             public function getByUserId(
                 UserId $userId,
                 DateTimeImmutable $at,
@@ -2613,6 +2615,7 @@ final class AuthenticationServiceTest extends TestCase
                 return $this->sessions->getById($id);
             }
 
+            /** @return ResultSet<RefreshSession> */
             public function getByUserId(
                 UserId $userId,
                 DateTimeImmutable $at,
@@ -2706,6 +2709,7 @@ final class AuthenticationServiceTest extends TestCase
                 return $this->sessions->getById($id);
             }
 
+            /** @return ResultSet<RefreshSession> */
             public function getByUserId(
                 UserId $userId,
                 DateTimeImmutable $at,
@@ -2912,6 +2916,7 @@ final class AuthenticationServiceTest extends TestCase
                 return null;
             }
 
+            /** @return ResultSet<RefreshSession> */
             public function getByUserId(
                 UserId $userId,
                 DateTimeImmutable $at,
@@ -3014,6 +3019,7 @@ final class AuthenticationServiceTest extends TestCase
                 return $this->authoritativeSession;
             }
 
+            /** @return ResultSet<RefreshSession> */
             public function getByUserId(
                 UserId $userId,
                 DateTimeImmutable $at,

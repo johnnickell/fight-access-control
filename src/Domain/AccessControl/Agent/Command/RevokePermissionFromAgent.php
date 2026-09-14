@@ -11,11 +11,15 @@ use Fight\Common\Domain\Exception\DomainException;
 use Fight\Common\Domain\Messaging\Command\Command;
 
 /**
+ * Class RevokePermissionFromAgent
+ *
  * Requests revoking an authoritative Permission directly from an Agent.
  */
 final readonly class RevokePermissionFromAgent implements Command
 {
     /**
+     * Constructs RevokePermissionFromAgent
+     *
      * Creates the Agent Permission-revoke command.
      */
     public function __construct(
@@ -45,14 +49,14 @@ final readonly class RevokePermissionFromAgent implements Command
     public function toArray(): array
     {
         return [
-            'actor_id' => $this->actorId->toString(),
-            'agent_id' => $this->agentId->toString(),
-            'permission_id' => $this->permissionId->toString(),
+            'actor_id'      => $this->actorId->toString(),
+            'agent_id'      => $this->agentId->toString(),
+            'permission_id' => $this->permissionId->toString()
         ];
     }
 
     /**
-     * Returns the administrative actor.
+     * Returns the administrative actor
      */
     public function getActorId(): UserId
     {
@@ -60,7 +64,7 @@ final readonly class RevokePermissionFromAgent implements Command
     }
 
     /**
-     * Returns the target Agent.
+     * Returns the target Agent
      */
     public function getAgentId(): AgentId
     {
@@ -68,7 +72,7 @@ final readonly class RevokePermissionFromAgent implements Command
     }
 
     /**
-     * Returns the Permission to revoke.
+     * Returns the Permission to revoke
      */
     public function getPermissionId(): PermissionId
     {

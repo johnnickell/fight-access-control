@@ -10,6 +10,8 @@ use Fight\AccessControl\Domain\AccessControl\User\UserId;
 use Fight\Common\Domain\Value\Internet\EmailAddress;
 
 /**
+ * Class PasswordResetDelivery
+ *
  * Represents bounded encrypted delivery work owned by a password-reset grant.
  *
  * @phpstan-consistent-constructor
@@ -17,6 +19,8 @@ use Fight\Common\Domain\Value\Internet\EmailAddress;
 class PasswordResetDelivery
 {
     /**
+     * Constructs PasswordResetDelivery
+     *
      * Creates pending password-reset delivery work.
      */
     protected function __construct(
@@ -29,7 +33,7 @@ class PasswordResetDelivery
     }
 
     /**
-     * Creates encrypted password-reset delivery work.
+     * Creates encrypted password-reset delivery work
      */
     public static function create(
         PasswordResetDeliveryId $id,
@@ -48,7 +52,7 @@ class PasswordResetDelivery
     }
 
     /**
-     * Returns the delivery-generation identifier.
+     * Returns the delivery-generation identifier
      */
     public function getId(): PasswordResetDeliveryId
     {
@@ -56,7 +60,7 @@ class PasswordResetDelivery
     }
 
     /**
-     * Returns the owning user identifier.
+     * Returns the owning user identifier
      */
     public function getUserId(): UserId
     {
@@ -64,7 +68,7 @@ class PasswordResetDelivery
     }
 
     /**
-     * Returns the canonical destination email.
+     * Returns the canonical destination email
      */
     public function getEmail(): EmailAddress
     {
@@ -72,7 +76,7 @@ class PasswordResetDelivery
     }
 
     /**
-     * Returns the encrypted credential payload.
+     * Returns the encrypted credential payload
      */
     public function getCiphertext(): ?string
     {
@@ -80,7 +84,7 @@ class PasswordResetDelivery
     }
 
     /**
-     * Confirms delivery and destroys recoverable credential material.
+     * Completes delivery and destroys recoverable credential material
      */
     public function confirm(): self
     {
@@ -88,7 +92,7 @@ class PasswordResetDelivery
     }
 
     /**
-     * Destroys recoverable credential material at terminal expiry.
+     * Deletes recoverable credential material at terminal expiry
      */
     public function expireAt(DateTimeImmutable $occurredAt): self
     {
@@ -100,7 +104,7 @@ class PasswordResetDelivery
     }
 
     /**
-     * Returns a terminal ciphertext-free entity.
+     * Returns a terminal ciphertext-free entity
      */
     public function invalidate(): self
     {
@@ -112,7 +116,7 @@ class PasswordResetDelivery
     }
 
     /**
-     * Returns whether encrypted credential material remains recoverable.
+     * Returns whether encrypted credential material remains recoverable
      */
     public function isRecoverable(): bool
     {
@@ -120,7 +124,7 @@ class PasswordResetDelivery
     }
 
     /**
-     * Returns the terminal expiry shared with the owning grant.
+     * Returns the terminal expiry shared with the owning grant
      */
     public function getExpiresAt(): DateTimeImmutable
     {

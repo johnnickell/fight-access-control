@@ -22,6 +22,8 @@ use LogicException;
 use Throwable;
 
 /**
+ * Class AgentCredentialLifecycleService
+ *
  * Atomically rotates an Agent credential and returns its replacement raw HMAC shared secret.
  */
 final readonly class AgentCredentialLifecycleService
@@ -29,6 +31,8 @@ final readonly class AgentCredentialLifecycleService
     private const string FAILURE_MESSAGE = 'Agent credential lifecycle failed.';
 
     /**
+     * Constructs AgentCredentialLifecycleService
+     *
      * Creates the synchronous Agent credential lifecycle service.
      */
     public function __construct(
@@ -43,7 +47,7 @@ final readonly class AgentCredentialLifecycleService
     }
 
     /**
-     * Rotates one authoritative Agent credential only when the expected current identifier still matches.
+     * Updates one authoritative Agent credential only when the expected current identifier still matches
      */
     public function rotate(
         string $actorId,
@@ -86,7 +90,7 @@ final readonly class AgentCredentialLifecycleService
                         $successorCredentialId,
                         $successor->getCredentialRevision(),
                         $rotatedAt
-                    ),
+                    )
                 ];
             });
 
@@ -101,7 +105,7 @@ final readonly class AgentCredentialLifecycleService
     }
 
     /**
-     * Terminally revokes one authoritative Agent credential.
+     * Revokes revokes one authoritative Agent credential
      */
     public function revoke(string $actorId, AgentId $agentId): void
     {
@@ -137,7 +141,7 @@ final readonly class AgentCredentialLifecycleService
     }
 
     /**
-     * Publishes safe failure evidence without allowing a publication fault to replace the original failure.
+     * Dispatches safe failure evidence without allowing a publication fault to replace the original failure
      */
     private function publishFailure(string $actorId): void
     {

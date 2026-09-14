@@ -11,6 +11,8 @@ use Fight\AccessControl\Domain\AccessControl\User\UserId;
 use Fight\Common\Domain\Value\Internet\EmailAddress;
 
 /**
+ * Class ActivationDelivery
+ *
  * Represents bounded encrypted delivery work owned by an activation grant.
  *
  * @phpstan-consistent-constructor
@@ -18,6 +20,8 @@ use Fight\Common\Domain\Value\Internet\EmailAddress;
 class ActivationDelivery
 {
     /**
+     * Constructs ActivationDelivery
+     *
      * Creates activation delivery state.
      */
     protected function __construct(
@@ -31,7 +35,7 @@ class ActivationDelivery
     }
 
     /**
-     * Creates pending encrypted activation delivery work.
+     * Creates pending encrypted activation delivery work
      */
     public static function create(
         ActivationDeliveryId $id,
@@ -48,7 +52,7 @@ class ActivationDelivery
     }
 
     /**
-     * Returns the delivery-generation identifier.
+     * Returns the delivery-generation identifier
      */
     public function getId(): ActivationDeliveryId
     {
@@ -56,7 +60,7 @@ class ActivationDelivery
     }
 
     /**
-     * Returns the owning user identifier.
+     * Returns the owning user identifier
      */
     public function getUserId(): UserId
     {
@@ -64,7 +68,7 @@ class ActivationDelivery
     }
 
     /**
-     * Returns the canonical destination email.
+     * Returns the canonical destination email
      */
     public function getEmail(): EmailAddress
     {
@@ -72,7 +76,7 @@ class ActivationDelivery
     }
 
     /**
-     * Returns the encrypted credential payload.
+     * Returns the encrypted credential payload
      */
     public function getCiphertext(): ?string
     {
@@ -80,7 +84,7 @@ class ActivationDelivery
     }
 
     /**
-     * Confirms delivery and destroys recoverable credential material.
+     * Completes delivery and destroys recoverable credential material
      */
     public function confirm(): self
     {
@@ -99,7 +103,7 @@ class ActivationDelivery
     }
 
     /**
-     * Claims pending work before its transport invocation.
+     * Acquires pending work before its transport invocation
      */
     public function claim(): self
     {
@@ -118,7 +122,7 @@ class ActivationDelivery
     }
 
     /**
-     * Records a failed invocation while retaining recoverable material.
+     * Records a failed invocation while retaining recoverable material
      */
     public function fail(): self
     {
@@ -137,7 +141,7 @@ class ActivationDelivery
     }
 
     /**
-     * Returns failed work to pending so one later invocation may claim it.
+     * Returns failed work to pending so one later invocation may claim it
      */
     public function requestRetry(): self
     {
@@ -156,7 +160,7 @@ class ActivationDelivery
     }
 
     /**
-     * Expires delivery at its terminal boundary.
+     * Marks delivery at its terminal boundary
      */
     public function expireAt(DateTimeImmutable $occurredAt): self
     {
@@ -183,7 +187,7 @@ class ActivationDelivery
     }
 
     /**
-     * Destroys recoverable credential material.
+     * Deletes recoverable credential material
      */
     public function invalidate(): self
     {
@@ -202,7 +206,7 @@ class ActivationDelivery
     }
 
     /**
-     * Returns the terminal delivery expiry.
+     * Returns the terminal delivery expiry
      */
     public function getExpiresAt(): DateTimeImmutable
     {
@@ -210,7 +214,7 @@ class ActivationDelivery
     }
 
     /**
-     * Returns the safe operational status.
+     * Returns the safe operational status
      */
     public function getStatus(): ActivationDeliveryStatus
     {
@@ -218,7 +222,7 @@ class ActivationDelivery
     }
 
     /**
-     * Returns whether delivery may be invoked again.
+     * Returns whether delivery may be invoked again
      */
     public function isRetryable(): bool
     {

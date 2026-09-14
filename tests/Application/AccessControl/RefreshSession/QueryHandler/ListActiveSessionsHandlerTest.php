@@ -111,14 +111,14 @@ final class ListActiveSessionsHandlerTest extends TestCase
         self::assertInstanceOf(Arrayable::class, $views[0]);
         self::assertSame(
             [
-                'session_id' => '018f0000-0000-7000-8000-000000000002',
-                'user_id' => '018f0000-0000-7000-8000-000000000001',
-                'created_at' => '2026-08-19T08:00:00+00:00',
-                'last_activity_at' => '2026-08-19T08:00:00+00:00',
-                'idle_expires_at' => '2026-08-21T08:00:00+00:00',
+                'session_id'          => '018f0000-0000-7000-8000-000000000002',
+                'user_id'             => '018f0000-0000-7000-8000-000000000001',
+                'created_at'          => '2026-08-19T08:00:00+00:00',
+                'last_activity_at'    => '2026-08-19T08:00:00+00:00',
+                'idle_expires_at'     => '2026-08-21T08:00:00+00:00',
                 'absolute_expires_at' => '2026-08-22T08:00:00+00:00',
-                'remembered' => false,
-                'current' => true,
+                'remembered'          => false,
+                'current'             => true
             ],
             $views[0]->toArray()
         );
@@ -132,7 +132,7 @@ final class ListActiveSessionsHandlerTest extends TestCase
                 'idleExpiresAt',
                 'absoluteExpiresAt',
                 'remembered',
-                'current',
+                'current'
             ],
             array_map(
                 static fn(ReflectionProperty $property): string => $property->getName(),

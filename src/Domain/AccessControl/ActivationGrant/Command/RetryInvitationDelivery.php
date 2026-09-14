@@ -9,11 +9,15 @@ use Fight\Common\Domain\Exception\DomainException;
 use Fight\Common\Domain\Messaging\Command\Command;
 
 /**
+ * Class RetryInvitationDelivery
+ *
  * Retries durable activation-delivery work for one pending user.
  */
 final readonly class RetryInvitationDelivery implements Command
 {
     /**
+     * Constructs RetryInvitationDelivery
+     *
      * Constructs the activation-delivery retry command.
      */
     public function __construct(
@@ -44,12 +48,12 @@ final readonly class RetryInvitationDelivery implements Command
     {
         return [
             'actor_id' => $this->actorId,
-            'user_id'  => $this->userId->toString(),
+            'user_id'  => $this->userId->toString()
         ];
     }
 
     /**
-     * Returns the actor retrying delivery.
+     * Returns the actor retrying delivery
      */
     public function getActorId(): string
     {
@@ -57,7 +61,7 @@ final readonly class RetryInvitationDelivery implements Command
     }
 
     /**
-     * Returns the pending user's identifier.
+     * Returns the pending user's identifier
      */
     public function getUserId(): UserId
     {

@@ -7,12 +7,14 @@ namespace Fight\AccessControl\Application\AccessControl\PasswordResetGrant\Servi
 use Fight\AccessControl\Domain\AccessControl\PasswordResetGrant\PasswordResetCredential;
 
 /**
+ * Interface PasswordResetCredentialGenerator
+ *
  * Generates raw password-reset credentials at the application boundary.
  */
 interface PasswordResetCredentialGenerator
 {
     /**
-     * Generates one raw credential for immediate hashing and encryption.
+     * Generates one raw credential for immediate hashing and encryption
      */
     public function generate(): PasswordResetCredential;
 }

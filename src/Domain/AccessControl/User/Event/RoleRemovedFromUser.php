@@ -11,11 +11,15 @@ use Fight\Common\Domain\Exception\DomainException;
 use Fight\Common\Domain\Messaging\Event\Event;
 
 /**
+ * Class RoleRemovedFromUser
+ *
  * Records a User role removal after durable commit.
  */
 final readonly class RoleRemovedFromUser implements Event
 {
     /**
+     * Constructs RoleRemovedFromUser
+     *
      * Creates the role-removed event.
      */
     public function __construct(
@@ -47,15 +51,15 @@ final readonly class RoleRemovedFromUser implements Event
     public function toArray(): array
     {
         return [
-            'actor_id' => $this->actorId->toString(),
+            'actor_id'       => $this->actorId->toString(),
             'target_user_id' => $this->targetUserId->toString(),
-            'role_id' => $this->roleId->toString(),
-            'removed_at' => $this->removedAt->format(DATE_ATOM),
+            'role_id'        => $this->roleId->toString(),
+            'removed_at'     => $this->removedAt->format(DATE_ATOM)
         ];
     }
 
     /**
-     * Returns the administrative actor.
+     * Returns the administrative actor
      */
     public function getActorId(): UserId
     {
@@ -63,7 +67,7 @@ final readonly class RoleRemovedFromUser implements Event
     }
 
     /**
-     * Returns the target User.
+     * Returns the target User
      */
     public function getTargetUserId(): UserId
     {
@@ -71,7 +75,7 @@ final readonly class RoleRemovedFromUser implements Event
     }
 
     /**
-     * Returns the removed role.
+     * Returns the removed role
      */
     public function getRoleId(): RoleId
     {
@@ -79,7 +83,7 @@ final readonly class RoleRemovedFromUser implements Event
     }
 
     /**
-     * Returns the removal time.
+     * Returns the removal time
      */
     public function getRemovedAt(): DateTimeImmutable
     {

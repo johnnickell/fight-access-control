@@ -59,7 +59,7 @@ final readonly class UserInvited implements Event
             'user_id'                => $this->userId->toString(),
             'activation_delivery_id' => $this->activationDeliveryId->toString(),
             'email'                  => $this->email->toString(),
-            'issued_at'              => $this->issuedAt->format(DATE_ATOM),
+            'issued_at'              => $this->issuedAt->format(DATE_ATOM)
         ];
     }
 
@@ -80,7 +80,7 @@ final readonly class UserInvited implements Event
     }
 
     /**
-     * Returns the initial activation-delivery generation.
+     * Returns the initial activation-delivery generation
      */
     public function getActivationDeliveryId(): ActivationDeliveryId
     {

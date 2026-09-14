@@ -1,0 +1,198 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+DOCKER_BIN="${DOCKER_BIN:-docker}"
+GIT_BIN="${GIT_BIN:-git}"
+ID_BIN="${ID_BIN:-id}"
+PHP_IMAGE="${FIGHT_ACCESS_CONTROL_PHP_IMAGE:-fight-access-control}"
+
+usage() {
+    echo 'Usage: ./bin/release certify <version>' >&2
+    exit 2
+}
+
+validate_changelog_version() {
+    local version="$1"
+    local escaped_version="${version//./\\.}"
+
+    CHANGELOG_HEADING="$(grep -E "^## \\[${escaped_version}\\] - [0-9]{4}-[0-9]{2}-[0-9]{2}$" "${ROOT_DIR}/CHANGELOG.md" || true)"
+    if [[ -z "${CHANGELOG_HEADING}" ]]; then
+        echo "bin/release: CHANGELOG.md must contain a dated [${version}] release heading." >&2
+        exit 3
+    fi
+}
+
+run_step() {
+    local name="$1"
+    local output="$2"
+    local status
+
+    shift 2
+
+    printf '[release] %s\n' "${name}"
+    set +e
+    "$@" > "${output}" 2>&1
+    status=$?
+    set -e
+
+    if (( status != 0 )); then
+        tail -80 "${output}" >&2
+        echo "bin/release: ${name} failed with exit code ${status}." >&2
+        return "${status}"
+    fi
+}
+
+write_consumer_anchor() {
+    local target="$1"
+
+    cat > "${target}" <<'PHP'
+<?php
+
+declare(strict_types=1);
+
+require dirname(__DIR__, 2).'/openapi/bootstrap.php';
+
+use OpenApi\Attributes as OA;
+
+#[OA\OpenApi(info: new OA\Info(version: '0.0.0', title: 'Release certification consumer'))]
+#[OA\Schema(
+    schema: 'Consumer',
+    required: ['id'],
+    properties: [new OA\Property(property: 'id', type: 'string')]
+)]
+final class ReleaseCertificationConsumer
+{
+}
+PHP
+}
+
+verify_openapi_composition() {
+    local evidence_dir="$1"
+    local anchor="${evidence_dir}/consumer.php"
+    local document="${evidence_dir}/openapi.json"
+    local evidence_path="${evidence_dir#"${ROOT_DIR}/"}"
+
+    write_consumer_anchor "${anchor}"
+
+    "${DOCKER_BIN}" container run --rm \
+        -v "${ROOT_DIR}:/app:delegated" \
+        -w /app \
+        --user "$("${ID_BIN}" -u):$("${ID_BIN}" -g)" \
+        "${PHP_IMAGE}" \
+        php vendor/bin/openapi \
+        --bootstrap "${evidence_path}/consumer.php" \
+        "${evidence_path}/consumer.php" \
+        openapi \
+        -o "${evidence_path}/openapi.json"
+
+    "${DOCKER_BIN}" container run --rm \
+        -v "${ROOT_DIR}:/app:delegated" \
+        -w /app \
+        --user "$("${ID_BIN}" -u):$("${ID_BIN}" -g)" \
+        "${PHP_IMAGE}" \
+        php -r '
+$schemas = json_decode(
+    file_get_contents($argv[1]),
+    true,
+    512,
+    JSON_THROW_ON_ERROR
+)["components"]["schemas"];
+$paginationOrderings = $schemas["Fight.AccessControl.PaginationRequest"]["properties"]["orderings"];
+$sessionOrderings = $schemas["Fight.AccessControl.ListActiveSessions"]["properties"]["orderings"];
+$emptySuccessData = $schemas["Fight.AccessControl.JSend.Success.Empty"]["properties"]["data"];
+$isOrderingMap = static fn (array $schema): bool => $schema["type"] === "object"
+    && $schema["additionalProperties"]["type"] === "string"
+    && $schema["additionalProperties"]["enum"] === ["ASC", "DESC"];
+$valid = isset($schemas["Consumer"])
+    && $schemas["Fight.AccessControl.Authentication.ActivateRequest"]["required"] === ["user_id", "activation_credential", "plain_password"]
+    && $schemas["Fight.AccessControl.Authentication.ActivateRequest"]["properties"]["remember"]["type"] === "boolean"
+    && $schemas["Fight.AccessControl.Authentication.LoginRequest"]["required"] === ["email", "plain_password"]
+    && $schemas["Fight.AccessControl.Authentication.LoginRequest"]["properties"]["remember"]["type"] === "boolean"
+    && !isset($schemas["Fight.AccessControl.Authentication.LoginRequest"]["properties"]["remembered"])
+    && $schemas["Fight.AccessControl.RestoreUser"]["properties"]["restoration_state"]["enum"] === ["pending_activation", "active", "disabled", "deleted"]
+    && $isOrderingMap($paginationOrderings)
+    && $isOrderingMap($sessionOrderings)
+    && $emptySuccessData["nullable"] === true
+    && !isset($emptySuccessData["type"]);
+if (!$valid) {
+    throw new RuntimeException("OpenAPI component assertion failed.");
+}
+' "${evidence_path}/openapi.json"
+}
+
+write_certification_record() {
+    local target="$1"
+    local version="$2"
+    local commit="$3"
+    local changelog_heading="$4"
+    local certification_path="${target#"${ROOT_DIR}/"}"
+
+    "${DOCKER_BIN}" container run --rm \
+        -v "${ROOT_DIR}:/app:delegated" \
+        -w /app \
+        --user "$("${ID_BIN}" -u):$("${ID_BIN}" -g)" \
+        "${PHP_IMAGE}" \
+        php -r '
+$record = [
+    "version" => $argv[2],
+    "commit" => $argv[3],
+    "changelog_heading" => $argv[4],
+    "clean_checkout" => true,
+    "checks" => [
+        "openapi_consumer_composition" => "openapi-composition.log",
+        "planning_integrity" => "planning-check.log",
+        "package_quality" => "build.log",
+    ],
+];
+file_put_contents(
+    $argv[1],
+    json_encode($record, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_THROW_ON_ERROR)."\n"
+);
+' "${certification_path}" "${version}" "${commit}" "${changelog_heading}"
+}
+
+if (( $# != 2 )) || [[ "$1" != 'certify' ]]; then
+    usage
+fi
+
+VERSION="$2"
+if [[ ! "${VERSION}" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+    usage
+fi
+
+cd "${ROOT_DIR}"
+if [[ -n "$("${GIT_BIN}" status --porcelain --untracked-files=all)" ]]; then
+    echo 'bin/release: certification requires a clean checkout.' >&2
+    exit 3
+fi
+
+validate_changelog_version "${VERSION}"
+
+COMMIT="$("${GIT_BIN}" rev-parse --verify HEAD)"
+if [[ ! "${COMMIT}" =~ ^[a-f0-9]{40}$ ]]; then
+    echo 'bin/release: the exact candidate commit is unavailable.' >&2
+    exit 3
+fi
+
+EVIDENCE_DIR="${ROOT_DIR}/.runs/release-${VERSION}-${COMMIT}"
+if [[ -e "${EVIDENCE_DIR}" ]]; then
+    echo "bin/release: certification evidence already exists: ${EVIDENCE_DIR}" >&2
+    exit 3
+fi
+
+mkdir -p "${EVIDENCE_DIR}"
+
+run_step 'planning integrity' "${EVIDENCE_DIR}/planning-check.log" ./bin/planning-check
+run_step 'package quality' "${EVIDENCE_DIR}/build.log" ./bin/build
+run_step 'OpenAPI consumer composition' "${EVIDENCE_DIR}/openapi-composition.log" verify_openapi_composition "${EVIDENCE_DIR}"
+
+if [[ "$("${GIT_BIN}" rev-parse --verify HEAD)" != "${COMMIT}" ]]; then
+    echo 'bin/release: HEAD changed during certification.' >&2
+    exit 4
+fi
+
+write_certification_record "${EVIDENCE_DIR}/certification.json" "${VERSION}" "${COMMIT}" "${CHANGELOG_HEADING}"
+
+printf 'Certified %s at %s\nEvidence: %s/certification.json\n' "${VERSION}" "${COMMIT}" "${EVIDENCE_DIR}"

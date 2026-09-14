@@ -36,7 +36,7 @@ container command from the target checkout:
 
 ```bash
 docker container run --rm -e XDEBUG_MODE=coverage -v "$PWD:/app:delegated" -w /app fight-access-control \
-  php vendor/bin/phpunit tests/Tooling/PlanningAuthorityTest.php
+  php vendor/bin/phpunit tests/Domain/AccessControl/User/UserLifecycleTest.php
 ```
 
 `./bin/build` is the canonical completion gate.
@@ -125,6 +125,13 @@ explicit authorization for that specific commit and must be reported as an unver
 
 Commit, push, pull request, public visibility, version tags, and package publication are separate effects and
 require their own authorization.
+
+### Learning: review corrections retain original PR ownership
+
+Before pushing a review-remediation branch or creating a pull request, resolve the original ticket's open pull
+request and its head branch. Push confirmed corrections to that branch and reuse the existing pull request; the
+absence of a pull request on a remediation branch does not authorize a parallel pull request. If a duplicate is
+created, verify that the original pull request contains the corrected head before closing only the duplicate.
 
 ## Planning
 

@@ -159,8 +159,8 @@ final class CorrectPendingInvitationHandlerTest extends TestCase
         foreach (['actor_id', 'user_id', 'email'] as $missing) {
             $data = [
                 'actor_id' => 'c3bc62b6-b87c-4371-b585-c47a059878f1',
-                'user_id' => 'edb053fd-17d7-49c7-9357-7e4835de9410',
-                'email' => 'corrected@example.test',
+                'user_id'  => 'edb053fd-17d7-49c7-9357-7e4835de9410',
+                'email'    => 'corrected@example.test'
             ];
             unset($data[$missing]);
 
@@ -173,10 +173,10 @@ final class CorrectPendingInvitationHandlerTest extends TestCase
 
         foreach (['actor_id', 'user_id', 'email', 'activation_delivery_id'] as $missing) {
             $data = [
-                'actor_id' => 'c3bc62b6-b87c-4371-b585-c47a059878f1',
-                'user_id' => 'edb053fd-17d7-49c7-9357-7e4835de9410',
-                'email' => 'corrected@example.test',
-                'activation_delivery_id' => '6cc07528-cfb1-4cb7-a28f-805c5a1d0083',
+                'actor_id'               => 'c3bc62b6-b87c-4371-b585-c47a059878f1',
+                'user_id'                => 'edb053fd-17d7-49c7-9357-7e4835de9410',
+                'email'                  => 'corrected@example.test',
+                'activation_delivery_id' => '6cc07528-cfb1-4cb7-a28f-805c5a1d0083'
             ];
             unset($data[$missing]);
 

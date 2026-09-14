@@ -7,6 +7,8 @@ namespace Fight\AccessControl\Domain\AccessControl\Role\Exception;
 use Fight\Common\Domain\Exception\DomainException;
 
 /**
+ * Class RoleNameException
+ *
  * Indicates that a role name is not canonical.
  */
 final class RoleNameException extends DomainException

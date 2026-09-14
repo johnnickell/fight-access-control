@@ -7,6 +7,8 @@ namespace Fight\AccessControl\Domain\AccessControl\RefreshSession\Exception;
 use Fight\Common\Domain\Exception\DomainException;
 
 /**
+ * Class SessionAdministrationAuthorizationException
+ *
  * Raised when an actor cannot administer another user's refresh sessions.
  */
 final class SessionAdministrationAuthorizationException extends DomainException

@@ -118,7 +118,7 @@ final class InMemoryEmailChangeGrantRepository implements EmailChangeGrantReposi
         $terminalStateCount = array_sum([
             (int) $replacement->isConsumed(),
             (int) $replacement->isRevoked(),
-            (int) $replacement->isExpired(),
+            (int) $replacement->isExpired()
         ]);
         if ($terminalStateCount !== 1) {
             return false;

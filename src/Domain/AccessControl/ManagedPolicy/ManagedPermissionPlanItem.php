@@ -5,11 +5,15 @@ declare(strict_types=1);
 namespace Fight\AccessControl\Domain\AccessControl\ManagedPolicy;
 
 /**
+ * Class ManagedPermissionPlanItem
+ *
  * Describes one deterministic managed-permission plan item.
  */
 final readonly class ManagedPermissionPlanItem
 {
     /**
+     * Constructs ManagedPermissionPlanItem
+     *
      * Constructs a managed-permission plan item.
      */
     public function __construct(
@@ -19,7 +23,7 @@ final readonly class ManagedPermissionPlanItem
     }
 
     /**
-     * Returns the desired managed permission definition.
+     * Returns the desired managed permission definition
      */
     public function getDefinition(): ManagedPermissionDefinition
     {
@@ -27,7 +31,7 @@ final readonly class ManagedPermissionPlanItem
     }
 
     /**
-     * Returns the required reconciliation action.
+     * Returns the required reconciliation action
      */
     public function getAction(): ManagedPolicyChangeAction
     {

@@ -9,11 +9,15 @@ use Fight\Common\Domain\Exception\DomainException;
 use Fight\Common\Domain\Messaging\Event\Event;
 
 /**
+ * Class CurrentSessionLoggedOut
+ *
  * Announces that one authoritative refresh session has been revoked.
  */
 final readonly class CurrentSessionLoggedOut implements Event
 {
     /**
+     * Constructs CurrentSessionLoggedOut
+     *
      * Creates the safe current-session logout outcome.
      */
     public function __construct(private RefreshSessionId $refreshSessionId)
@@ -41,7 +45,7 @@ final readonly class CurrentSessionLoggedOut implements Event
     }
 
     /**
-     * Returns the revoked authoritative refresh session.
+     * Returns the revoked authoritative refresh session
      */
     public function getRefreshSessionId(): RefreshSessionId
     {

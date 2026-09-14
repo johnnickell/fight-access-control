@@ -42,7 +42,7 @@ final class AuthenticatedPrincipalTest extends TestCase
             [$role, new PrincipalRole(RoleId::fromString($roleId->toString()), $role->getName())],
             [
                 $permission,
-                new PrincipalPermission(PermissionId::fromString($permissionId->toString()), $permission->getName()),
+                new PrincipalPermission(PermissionId::fromString($permissionId->toString()), $permission->getName())
             ]
         );
 

@@ -21,11 +21,15 @@ use Fight\Common\Domain\Messaging\Event\CommandFailedEvent;
 use Throwable;
 
 /**
+ * Class RemoveRoleFromUserHandler
+ *
  * Atomically removes an authoritative role from an authorized User target.
  */
 final readonly class RemoveRoleFromUserHandler implements CommandHandler
 {
     /**
+     * Constructs RemoveRoleFromUserHandler
+     *
      * Creates the User role-removal handler.
      */
     public function __construct(

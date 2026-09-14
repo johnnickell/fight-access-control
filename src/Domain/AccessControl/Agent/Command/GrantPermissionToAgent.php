@@ -11,11 +11,15 @@ use Fight\Common\Domain\Exception\DomainException;
 use Fight\Common\Domain\Messaging\Command\Command;
 
 /**
+ * Class GrantPermissionToAgent
+ *
  * Requests granting an authoritative Permission directly to an Agent.
  */
 final readonly class GrantPermissionToAgent implements Command
 {
     /**
+     * Constructs GrantPermissionToAgent
+     *
      * Creates the Agent Permission-grant command.
      */
     public function __construct(
@@ -45,14 +49,14 @@ final readonly class GrantPermissionToAgent implements Command
     public function toArray(): array
     {
         return [
-            'actor_id' => $this->actorId->toString(),
-            'agent_id' => $this->agentId->toString(),
-            'permission_id' => $this->permissionId->toString(),
+            'actor_id'      => $this->actorId->toString(),
+            'agent_id'      => $this->agentId->toString(),
+            'permission_id' => $this->permissionId->toString()
         ];
     }
 
     /**
-     * Returns the administrative actor.
+     * Returns the administrative actor
      */
     public function getActorId(): UserId
     {
@@ -60,7 +64,7 @@ final readonly class GrantPermissionToAgent implements Command
     }
 
     /**
-     * Returns the target Agent.
+     * Returns the target Agent
      */
     public function getAgentId(): AgentId
     {
@@ -68,7 +72,7 @@ final readonly class GrantPermissionToAgent implements Command
     }
 
     /**
-     * Returns the Permission to grant.
+     * Returns the Permission to grant
      */
     public function getPermissionId(): PermissionId
     {

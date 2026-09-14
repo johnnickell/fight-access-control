@@ -12,7 +12,7 @@ use Exception;
 interface AuditEvidenceRepository
 {
     /**
-     * Adds secret-free audit evidence.
+     * Adds secret-free audit evidence
      *
      * @throws Exception When an error occurs
      */

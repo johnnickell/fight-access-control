@@ -10,11 +10,15 @@ use Fight\Common\Domain\Exception\DomainException;
 use Fight\Common\Domain\Messaging\Command\Command;
 
 /**
+ * Class RemoveCustomRole
+ *
  * Requests removal of an unreferenced custom role.
  */
 final readonly class RemoveCustomRole implements Command
 {
     /**
+     * Constructs RemoveCustomRole
+     *
      * Creates the custom-role removal command.
      */
     public function __construct(private UserId $actorId, private RoleId $roleId)
@@ -41,12 +45,12 @@ final readonly class RemoveCustomRole implements Command
     {
         return [
             'actor_id' => $this->actorId->toString(),
-            'role_id' => $this->roleId->toString(),
+            'role_id'  => $this->roleId->toString()
         ];
     }
 
     /**
-     * Returns the administrative actor.
+     * Returns the administrative actor
      */
     public function getActorId(): UserId
     {
@@ -54,7 +58,7 @@ final readonly class RemoveCustomRole implements Command
     }
 
     /**
-     * Returns the custom role.
+     * Returns the custom role
      */
     public function getRoleId(): RoleId
     {

@@ -11,6 +11,8 @@ use Fight\AccessControl\Domain\AccessControl\Role\Exception\ManagedRoleException
 use Fight\Common\Domain\Collection\HashSet;
 
 /**
+ * Class Role
+ *
  * Represents a role and its permission membership.
  *
  * @phpstan-consistent-constructor
@@ -21,6 +23,8 @@ class Role
     private readonly HashSet $permissionIds;
 
     /**
+     * Constructs Role
+     *
      * Creates a role definition.
      *
      * @phpstan-param list<PermissionId> $permissionIds
@@ -41,7 +45,7 @@ class Role
     }
 
     /**
-     * Defines a role.
+     * Defines a role
      *
      * @phpstan-param list<PermissionId> $permissionIds
      */
@@ -55,7 +59,7 @@ class Role
     }
 
     /**
-     * Defines a version-controlled managed role.
+     * Defines a version-controlled managed role
      *
      * @phpstan-param list<PermissionId> $permissionIds
      */
@@ -69,7 +73,7 @@ class Role
     }
 
     /**
-     * Reconciles the exact version-controlled role definition.
+     * Reconciles the exact version-controlled role definition
      *
      * @phpstan-param list<PermissionId> $permissionIds
      */
@@ -88,7 +92,7 @@ class Role
     }
 
     /**
-     * Renames a runtime-owned custom role.
+     * Renames a runtime-owned custom role
      */
     public function renameCustom(RoleName $name, DateTimeImmutable $updatedAt): static
     {
@@ -107,7 +111,7 @@ class Role
     }
 
     /**
-     * Grants an existing permission to a runtime-owned custom role.
+     * Grants an existing permission to a runtime-owned custom role
      */
     public function grantPermissionToCustom(PermissionId $permissionId, DateTimeImmutable $updatedAt): static
     {
@@ -124,7 +128,7 @@ class Role
     }
 
     /**
-     * Revokes an existing permission from a runtime-owned custom role.
+     * Revokes an existing permission from a runtime-owned custom role
      */
     public function revokePermissionFromCustom(PermissionId $permissionId, DateTimeImmutable $updatedAt): static
     {
@@ -143,7 +147,7 @@ class Role
     }
 
     /**
-     * Returns the stable role identifier.
+     * Returns the stable role identifier
      */
     public function getId(): RoleId
     {
@@ -151,7 +155,7 @@ class Role
     }
 
     /**
-     * Returns the datetime when the role was created.
+     * Returns the datetime when the role was created
      */
     public function getCreatedAt(): DateTimeImmutable
     {
@@ -159,7 +163,7 @@ class Role
     }
 
     /**
-     * Returns the datetime when the role was last updated.
+     * Returns the datetime when the role was last updated
      */
     public function getUpdatedAt(): DateTimeImmutable
     {
@@ -167,7 +171,7 @@ class Role
     }
 
     /**
-     * Returns the canonical role name.
+     * Returns the canonical role name
      */
     public function getName(): RoleName
     {
@@ -175,7 +179,7 @@ class Role
     }
 
     /**
-     * Returns an immutable snapshot of permission membership.
+     * Returns an immutable snapshot of permission membership
      *
      * @return list<PermissionId>
      */
@@ -185,7 +189,7 @@ class Role
     }
 
     /**
-     * Determines whether the role contains a permission.
+     * Determines whether the role contains a permission
      */
     public function hasPermission(PermissionId $permissionId): bool
     {
@@ -193,7 +197,7 @@ class Role
     }
 
     /**
-     * Returns whether version-controlled policy owns this role.
+     * Returns whether version-controlled policy owns this role
      */
     public function isManaged(): bool
     {
@@ -201,7 +205,7 @@ class Role
     }
 
     /**
-     * Rejects runtime mutation of a managed role.
+     * Rejects runtime mutation of a managed role
      */
     public function assertCustom(): void
     {

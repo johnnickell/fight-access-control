@@ -11,11 +11,15 @@ use Fight\Common\Domain\Exception\DomainException;
 use Fight\Common\Domain\Messaging\Command\Command;
 
 /**
+ * Class RevokeSession
+ *
  * Requests self-service or reasoned administrative revocation of an active refresh session.
  */
 final readonly class RevokeSession implements Command
 {
     /**
+     * Constructs RevokeSession
+     *
      * Creates a session-revocation command.
      */
     public function __construct(
@@ -51,15 +55,15 @@ final readonly class RevokeSession implements Command
     public function toArray(): array
     {
         return [
-            'actor_id' => $this->actorId->toString(),
+            'actor_id'           => $this->actorId->toString(),
             'current_session_id' => $this->currentSessionId->toString(),
-            'target_session_id' => $this->targetSessionId->toString(),
-            'reason' => $this->reason?->toString(),
+            'target_session_id'  => $this->targetSessionId->toString(),
+            'reason'             => $this->reason?->toString()
         ];
     }
 
     /**
-     * Returns the user requesting revocation.
+     * Returns the user requesting revocation
      */
     public function getActorId(): UserId
     {
@@ -67,7 +71,7 @@ final readonly class RevokeSession implements Command
     }
 
     /**
-     * Returns the refresh session used for this request.
+     * Returns the refresh session used for this request
      */
     public function getCurrentSessionId(): RefreshSessionId
     {
@@ -75,7 +79,7 @@ final readonly class RevokeSession implements Command
     }
 
     /**
-     * Returns the refresh session selected for revocation.
+     * Returns the refresh session selected for revocation
      */
     public function getTargetSessionId(): RefreshSessionId
     {
@@ -83,7 +87,7 @@ final readonly class RevokeSession implements Command
     }
 
     /**
-     * Returns the optional administrative revocation reason.
+     * Returns the optional administrative revocation reason
      */
     public function getReason(): ?SessionRevocationReason
     {

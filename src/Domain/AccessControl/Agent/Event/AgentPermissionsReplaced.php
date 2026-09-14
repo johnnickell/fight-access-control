@@ -12,11 +12,15 @@ use Fight\Common\Domain\Exception\DomainException;
 use Fight\Common\Domain\Messaging\Event\Event;
 
 /**
+ * Class AgentPermissionsReplaced
+ *
  * Records a complete Agent Permission assignment result after durable commit.
  */
 final readonly class AgentPermissionsReplaced implements Event
 {
     /**
+     * Constructs AgentPermissionsReplaced
+     *
      * Creates the complete Agent Permission replacement event.
      *
      * @phpstan-param list<PermissionId> $permissionIds
@@ -57,19 +61,19 @@ final readonly class AgentPermissionsReplaced implements Event
     public function toArray(): array
     {
         return [
-            'actor_id' => $this->actorId->toString(),
-            'agent_id' => $this->agentId->toString(),
-            'permission_ids' => array_map(
+            'actor_id'                       => $this->actorId->toString(),
+            'agent_id'                       => $this->agentId->toString(),
+            'permission_ids'                 => array_map(
                 static fn(PermissionId $id): string => $id->toString(),
                 $this->permissionIds
             ),
             'permission_assignment_revision' => $this->permissionAssignmentRevision,
-            'replaced_at' => $this->replacedAt->format(DATE_ATOM),
+            'replaced_at'                    => $this->replacedAt->format(DATE_ATOM)
         ];
     }
 
     /**
-     * Returns the administrative actor.
+     * Returns the administrative actor
      */
     public function getActorId(): UserId
     {
@@ -77,7 +81,7 @@ final readonly class AgentPermissionsReplaced implements Event
     }
 
     /**
-     * Returns the changed Agent.
+     * Returns the changed Agent
      */
     public function getAgentId(): AgentId
     {
@@ -85,7 +89,7 @@ final readonly class AgentPermissionsReplaced implements Event
     }
 
     /**
-     * Returns the resulting Permission identities.
+     * Returns the resulting Permission identities
      *
      * @return list<PermissionId>
      */
@@ -95,7 +99,7 @@ final readonly class AgentPermissionsReplaced implements Event
     }
 
     /**
-     * Returns the resulting assignment revision.
+     * Returns the resulting assignment revision
      */
     public function getPermissionAssignmentRevision(): int
     {
@@ -103,7 +107,7 @@ final readonly class AgentPermissionsReplaced implements Event
     }
 
     /**
-     * Returns the replacement time.
+     * Returns the replacement time
      */
     public function getReplacedAt(): DateTimeImmutable
     {

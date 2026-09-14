@@ -9,33 +9,37 @@ use Fight\Common\Domain\Repository\Pagination;
 use Fight\Common\Domain\Repository\ResultSet;
 
 /**
+ * Interface AgentRepository
+ *
  * Persists Agent authority aggregates.
  */
 interface AgentRepository
 {
     /**
-     * Retrieves an Agent by its stable identifier.
+     * Retrieves an Agent by its stable identifier
      *
      * @throws Exception When an error occurs
      */
     public function getById(AgentId $id): ?Agent;
 
     /**
-     * Retrieves an Agent by its current public credential identifier.
+     * Retrieves an Agent by its current public credential identifier
      *
      * @throws Exception When an error occurs
      */
     public function getByCredentialId(AgentCredentialId $credentialId): ?Agent;
 
     /**
-     * Retrieves one page of Agent authorities.
+     * Retrieves one page of Agent authorities
+     *
+     * @return ResultSet<Agent>
      *
      * @throws Exception When an error occurs
      */
     public function getAll(Pagination $pagination): ResultSet;
 
     /**
-     * Atomically replaces the current Agent authority with its successor.
+     * Replaces the current Agent authority atomically with its successor
      *
      * Returns false when the expected predecessor has already lost authority, the replacement changes identity, or
      * its direct Permission membership or Permission-assignment revision differs. Direct Permission authority changes
@@ -46,7 +50,7 @@ interface AgentRepository
     public function replace(Agent $expected, Agent $replacement): bool;
 
     /**
-     * Atomically replaces direct Permission assignments while the expected predecessor remains current.
+     * Replaces direct Permission assignments atomically while the expected predecessor remains current
      *
      * Implementations compare all Agent state, reject changes outside Permission assignments, require direct
      * Permission membership to change, and require the assignment revision to advance by exactly one. Every
@@ -58,7 +62,7 @@ interface AgentRepository
     public function replacePermissionAssignments(Agent $expected, Agent $replacement): bool;
 
     /**
-     * Adds one newly provisioned Agent.
+     * Adds one newly provisioned Agent
      *
      * @throws Exception When an error occurs
      */

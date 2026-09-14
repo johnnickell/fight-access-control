@@ -20,11 +20,15 @@ use Fight\AccessControl\Domain\AccessControl\Role\RoleRepository;
 use Fight\AccessControl\Domain\AccessControl\User\UserRepository;
 
 /**
+ * Class ManagedPolicyPlanner
+ *
  * Produces the complete deterministic plan shared by preview and apply.
  */
 final readonly class ManagedPolicyPlanner
 {
     /**
+     * Constructs ManagedPolicyPlanner
+     *
      * Creates the shared managed-policy planner.
      */
     public function __construct(
@@ -35,7 +39,7 @@ final readonly class ManagedPolicyPlanner
     }
 
     /**
-     * Plans the complete desired managed policy against authoritative state.
+     * Builds the complete desired managed policy against authoritative state
      */
     public function plan(ManagedPolicy $policy): ManagedPolicyPlan
     {
@@ -127,7 +131,7 @@ final readonly class ManagedPolicyPlanner
     }
 
     /**
-     * Plans one desired managed permission.
+     * Builds one desired managed permission
      */
     private function planPermission(ManagedPermissionDefinition $definition): ManagedPermissionPlanItem
     {
@@ -156,7 +160,7 @@ final readonly class ManagedPolicyPlanner
     }
 
     /**
-     * Plans one desired managed role.
+     * Builds one desired managed role
      */
     private function planRole(ManagedRoleDefinition $definition): ManagedRolePlanItem
     {
@@ -184,7 +188,11 @@ final readonly class ManagedPolicyPlanner
         return new ManagedRolePlanItem($definition, $action);
     }
 
-    /** @phpstan-param list<ManagedRoleDefinition> $definitions */
+    /**
+     * Finds the definition for a managed Role
+     *
+     * @phpstan-param list<ManagedRoleDefinition> $definitions
+     */
     private function desiredRole(array $definitions, Role $role): ?ManagedRoleDefinition
     {
         foreach ($definitions as $definition) {
@@ -197,7 +205,7 @@ final readonly class ManagedPolicyPlanner
     }
 
     /**
-     * Determines whether a desired role retains one permission.
+     * Determines whether a desired role retains one permission
      */
     private function definitionContains(ManagedRoleDefinition $role, PermissionId $permissionId): bool
     {
@@ -208,7 +216,7 @@ final readonly class ManagedPolicyPlanner
     }
 
     /**
-     * Compares exact permission membership without depending on ordering.
+     * Checks exact permission membership without depending on ordering
      */
     private function sameMembership(Role $role, ManagedRoleDefinition $definition): bool
     {

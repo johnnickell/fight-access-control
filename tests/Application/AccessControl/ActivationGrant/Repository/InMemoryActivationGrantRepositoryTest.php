@@ -117,7 +117,7 @@ final class InMemoryActivationGrantRepositoryTest extends TestCase
             $this->reconstitute($grant, ciphertext: ''),
             $this->reconstitute($grant, consumedAt: $at, revision: 1, ciphertext: null),
             $this->reconstitute($grant, revokedAt: $at, revision: 1, ciphertext: null),
-            $this->reconstitute($grant, deliveryUserId: UserId::generate()),
+            $this->reconstitute($grant, deliveryUserId: UserId::generate())
         ];
 
         foreach ($candidates as $candidate) {
@@ -240,7 +240,7 @@ final class InMemoryActivationGrantRepositoryTest extends TestCase
             $this->reconstitute($successor, revokedAt: new DateTimeImmutable(), revision: 1, ciphertext: null),
             $this->reconstitute($successor, grantId: $predecessor->getId()),
             $this->reconstitute($successor, deliveryId: $predecessor->getDelivery()->getId()),
-            $this->grant($predecessor->getUserId(), 'activate-old'),
+            $this->grant($predecessor->getUserId(), 'activate-old')
         ];
 
         foreach ($malformed as $candidate) {

@@ -11,6 +11,8 @@ use Fight\AccessControl\Domain\AccessControl\RefreshSession\RefreshSessionReposi
 use Fight\AccessControl\Domain\AccessControl\User\UserId;
 
 /**
+ * Class SessionRevocationService
+ *
  * Revokes one or all authoritative refresh sessions through their repository contract.
  */
 final readonly class SessionRevocationService
@@ -18,6 +20,8 @@ final readonly class SessionRevocationService
     private const int REVOCATION_RETRY_LIMIT = 3;
 
     /**
+     * Constructs SessionRevocationService
+     *
      * Creates the session-revocation service.
      */
     public function __construct(private RefreshSessionRepository $refreshSessionRepository)
@@ -25,7 +29,7 @@ final readonly class SessionRevocationService
     }
 
     /**
-     * Replaces the latest authoritative session state with an immutable revocation.
+     * Replaces the latest authoritative session state with an immutable revocation
      */
     public function revoke(RefreshSession $refreshSession): RefreshSession
     {
@@ -51,7 +55,7 @@ final readonly class SessionRevocationService
     }
 
     /**
-     * Revokes every currently usable refresh session owned by a user.
+     * Revokes every currently usable refresh session owned by a user
      */
     public function revokeAllActiveFor(UserId $userId, DateTimeImmutable $at): void
     {

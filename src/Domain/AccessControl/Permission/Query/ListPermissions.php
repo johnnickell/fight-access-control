@@ -9,11 +9,15 @@ use Fight\Common\Domain\Messaging\Query\Query;
 use Fight\Common\Domain\Repository\Pagination;
 
 /**
+ * Class ListPermissions
+ *
  * Queries one page of permissions as safe views.
  */
 final readonly class ListPermissions implements Query
 {
     /**
+     * Constructs ListPermissions
+     *
      * Constructs the permission-listing query.
      */
     public function __construct(private Pagination $pagination)
@@ -42,14 +46,14 @@ final readonly class ListPermissions implements Query
     public function toArray(): array
     {
         return [
-            'page' => $this->pagination->page(),
-            'per_page' => $this->pagination->perPage(),
-            'orderings' => $this->pagination->orderings(),
+            'page'      => $this->pagination->page(),
+            'per_page'  => $this->pagination->perPage(),
+            'orderings' => $this->pagination->orderings()
         ];
     }
 
     /**
-     * Returns the requested page configuration.
+     * Returns the requested page configuration
      */
     public function getPagination(): Pagination
     {

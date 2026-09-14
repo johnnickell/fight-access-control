@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace Fight\AccessControl\Domain\AccessControl\Permission;
 
 /**
+ * Enum PermissionTier
+ *
  * Classifies where a managed permission may safely be granted.
  */
 enum PermissionTier: string

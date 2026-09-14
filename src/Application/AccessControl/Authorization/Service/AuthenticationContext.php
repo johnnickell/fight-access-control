@@ -9,11 +9,15 @@ use Fight\AccessControl\Domain\AccessControl\User\UserId;
 use InvalidArgumentException;
 
 /**
+ * Class AuthenticationContext
+ *
  * Carries transport-neutral authentication authority for one request.
  */
 final readonly class AuthenticationContext
 {
     /**
+     * Constructs AuthenticationContext
+     *
      * Creates request authentication claims without authorization data.
      */
     public function __construct(
@@ -27,7 +31,7 @@ final readonly class AuthenticationContext
     }
 
     /**
-     * Returns the claimed authentication version.
+     * Returns the claimed authentication version
      */
     public function getAuthenticationVersion(): int
     {
@@ -35,7 +39,7 @@ final readonly class AuthenticationContext
     }
 
     /**
-     * Returns the claimed refresh-session identity.
+     * Returns the claimed refresh-session identity
      */
     public function getRefreshSessionId(): RefreshSessionId
     {
@@ -43,7 +47,7 @@ final readonly class AuthenticationContext
     }
 
     /**
-     * Returns the claimed user identity.
+     * Returns the claimed user identity
      */
     public function getUserId(): UserId
     {

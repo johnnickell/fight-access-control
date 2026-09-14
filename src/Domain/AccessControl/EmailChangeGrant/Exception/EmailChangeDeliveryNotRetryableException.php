@@ -7,6 +7,8 @@ namespace Fight\AccessControl\Domain\AccessControl\EmailChangeGrant\Exception;
 use Fight\Common\Domain\Exception\DomainException;
 
 /**
+ * Class EmailChangeDeliveryNotRetryableException
+ *
  * Reports delivery work that can no longer be invoked safely.
  */
 final class EmailChangeDeliveryNotRetryableException extends DomainException

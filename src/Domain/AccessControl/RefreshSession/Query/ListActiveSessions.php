@@ -11,11 +11,15 @@ use Fight\Common\Domain\Messaging\Query\Query;
 use Fight\Common\Domain\Repository\Pagination;
 
 /**
+ * Class ListActiveSessions
+ *
  * Queries the active refresh sessions owned by a user.
  */
 final readonly class ListActiveSessions implements Query
 {
     /**
+     * Constructs ListActiveSessions
+     *
      * Constructs the active-session query.
      */
     public function __construct(
@@ -51,17 +55,17 @@ final readonly class ListActiveSessions implements Query
     public function toArray(): array
     {
         return [
-            'actor_id' => $this->actorId->toString(),
-            'user_id' => $this->userId->toString(),
+            'actor_id'           => $this->actorId->toString(),
+            'user_id'            => $this->userId->toString(),
             'current_session_id' => $this->currentSessionId->toString(),
-            'page' => $this->pagination->page(),
-            'per_page' => $this->pagination->perPage(),
-            'orderings' => $this->pagination->orderings(),
+            'page'               => $this->pagination->page(),
+            'per_page'           => $this->pagination->perPage(),
+            'orderings'          => $this->pagination->orderings()
         ];
     }
 
     /**
-     * Returns the user performing the request.
+     * Returns the user performing the request
      */
     public function getActorId(): UserId
     {
@@ -69,7 +73,7 @@ final readonly class ListActiveSessions implements Query
     }
 
     /**
-     * Returns the user whose active sessions are requested.
+     * Returns the user whose active sessions are requested
      */
     public function getUserId(): UserId
     {
@@ -77,7 +81,7 @@ final readonly class ListActiveSessions implements Query
     }
 
     /**
-     * Returns the refresh session used for the request.
+     * Returns the refresh session used for the request
      */
     public function getCurrentSessionId(): RefreshSessionId
     {
@@ -85,7 +89,7 @@ final readonly class ListActiveSessions implements Query
     }
 
     /**
-     * Returns the requested page configuration.
+     * Returns the requested page configuration
      */
     public function getPagination(): Pagination
     {

@@ -8,12 +8,14 @@ use Fight\AccessControl\Domain\AccessControl\Agent\Exception\AgentPermissionAssi
 use Fight\AccessControl\Domain\AccessControl\User\UserId;
 
 /**
+ * Interface AgentPermissionAdministrationAuthorization
+ *
  * Authorizes administrative Agent Permission-assignment changes.
  */
 interface AgentPermissionAdministrationAuthorization
 {
     /**
-     * Rejects an actor who cannot manage Agent Permission assignments.
+     * Rejects an actor who cannot manage Agent Permission assignments
      *
      * @throws AgentPermissionAssignmentAuthorizationException When the actor is not authorized
      */

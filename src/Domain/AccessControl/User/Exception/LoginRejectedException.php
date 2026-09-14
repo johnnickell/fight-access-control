@@ -7,6 +7,8 @@ namespace Fight\AccessControl\Domain\AccessControl\User\Exception;
 use Fight\Common\Domain\Exception\DomainException;
 
 /**
+ * Class LoginRejectedException
+ *
  * Indicates a login attempt that consumers must treat generically.
  */
 final class LoginRejectedException extends DomainException

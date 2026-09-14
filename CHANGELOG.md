@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.2.0] - 2026-09-13
+
+### Added
+
+- OpenAPI component metadata for consumer-owned `v0.2.0` documents.
+
 ## [0.1.0] - 2026-09-10
 
 ### Added
@@ -23,5 +29,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   tooling, and exact production-statement coverage.
 - Repository-local product, security, architecture, contribution, and Git Flow authority under the MIT License.
 
-[Unreleased]: https://github.com/johnnickell/fight-access-control/compare/v0.1.0...HEAD
+[Unreleased]: https://github.com/johnnickell/fight-access-control/compare/v0.2.0...HEAD
+[0.2.0]: https://github.com/johnnickell/fight-access-control/compare/v0.1.0...v0.2.0
 [0.1.0]: https://github.com/johnnickell/fight-access-control/releases/tag/v0.1.0

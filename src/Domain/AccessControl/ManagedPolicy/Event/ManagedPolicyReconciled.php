@@ -13,6 +13,8 @@ use Fight\Common\Domain\Exception\DomainException;
 use Fight\Common\Domain\Messaging\Event\Event;
 
 /**
+ * Class ManagedPolicyReconciled
+ *
  * Announces one safely committed managed-policy reconciliation.
  */
 final readonly class ManagedPolicyReconciled implements Event
@@ -20,7 +22,11 @@ final readonly class ManagedPolicyReconciled implements Event
     /** @var array{permissions: list<array<string, mixed>>, roles: list<array<string, mixed>>} */
     private array $plan;
 
-    /** @param array<string, mixed> $plan */
+    /**
+     * Constructs ManagedPolicyReconciled
+     *
+     * @param array<string, mixed> $plan
+     */
     public function __construct(array $plan, private DateTimeImmutable $occurredAt)
     {
         $this->plan = self::validatedPlan($plan);
@@ -45,14 +51,18 @@ final readonly class ManagedPolicyReconciled implements Event
         return new static($plan, new DateTimeImmutable((string) $data['occurred_at']));
     }
 
-    /** @return array{permissions: list<array<string, mixed>>, roles: list<array<string, mixed>>} */
+    /**
+     * Returns the reconciled plan
+     *
+     * @return array{permissions: list<array<string, mixed>>, roles: list<array<string, mixed>>}
+     */
     public function getPlan(): array
     {
         return $this->plan;
     }
 
     /**
-     * Returns when reconciliation committed.
+     * Returns when reconciliation committed
      */
     public function getOccurredAt(): DateTimeImmutable
     {
@@ -63,12 +73,14 @@ final readonly class ManagedPolicyReconciled implements Event
     public function toArray(): array
     {
         return [
-            'plan' => $this->plan,
-            'occurred_at' => $this->occurredAt->format(DATE_ATOM),
+            'plan'        => $this->plan,
+            'occurred_at' => $this->occurredAt->format(DATE_ATOM)
         ];
     }
 
     /**
+     * Validates the reconciled plan
+     *
      * @param array<string, mixed> $plan
      *
      * @return array{permissions: list<array<string, mixed>>, roles: list<array<string, mixed>>}
@@ -86,11 +98,15 @@ final readonly class ManagedPolicyReconciled implements Event
 
         return [
             'permissions' => array_map(self::validatedPermissionItem(...), $plan['permissions']),
-            'roles' => array_map(self::validatedRoleItem(...), $plan['roles']),
+            'roles'       => array_map(self::validatedRoleItem(...), $plan['roles'])
         ];
     }
 
-    /** @return array{id: string, name: string, tier: string, action: string} */
+    /**
+     * Validates one Permission plan item
+     *
+     * @return array{id: string, name: string, tier: string, action: string}
+     */
     private static function validatedPermissionItem(mixed $item): array
     {
         if (!is_array($item)) {
@@ -113,7 +129,11 @@ final readonly class ManagedPolicyReconciled implements Event
         return [...$definition->toArray(), 'action' => $action->value];
     }
 
-    /** @return array{id: string, name: string, permission_ids: list<string>, action: string} */
+    /**
+     * Validates one Role plan item
+     *
+     * @return array{id: string, name: string, permission_ids: list<string>, action: string}
+     */
     private static function validatedRoleItem(mixed $item): array
     {
         if (!is_array($item)) {
@@ -143,7 +163,7 @@ final readonly class ManagedPolicyReconciled implements Event
     }
 
     /**
-     * Validates one managed-policy change action.
+     * Validates one managed-policy change action
      */
     private static function validatedAction(mixed $action): ManagedPolicyChangeAction
     {
@@ -155,6 +175,8 @@ final readonly class ManagedPolicyReconciled implements Event
     }
 
     /**
+     * Validates exact plan keys
+     *
      * @phpstan-param array<array-key, mixed> $data
      * @phpstan-param list<string> $requiredKeys
      */

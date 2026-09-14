@@ -12,11 +12,15 @@ use Fight\Common\Domain\Exception\DomainException;
 use Fight\Common\Domain\Messaging\Event\Event;
 
 /**
+ * Class CustomRolePermissionGranted
+ *
  * Records a custom-role permission grant after durable commit.
  */
 final readonly class CustomRolePermissionGranted implements Event
 {
     /**
+     * Constructs CustomRolePermissionGranted
+     *
      * Creates the permission-granted event.
      */
     public function __construct(
@@ -48,15 +52,15 @@ final readonly class CustomRolePermissionGranted implements Event
     public function toArray(): array
     {
         return [
-            'actor_id' => $this->actorId->toString(),
-            'role_id' => $this->roleId->toString(),
+            'actor_id'      => $this->actorId->toString(),
+            'role_id'       => $this->roleId->toString(),
             'permission_id' => $this->permissionId->toString(),
-            'granted_at' => $this->grantedAt->format(DATE_ATOM),
+            'granted_at'    => $this->grantedAt->format(DATE_ATOM)
         ];
     }
 
     /**
-     * Returns the administrative actor.
+     * Returns the administrative actor
      */
     public function getActorId(): UserId
     {
@@ -64,7 +68,7 @@ final readonly class CustomRolePermissionGranted implements Event
     }
 
     /**
-     * Returns the changed role.
+     * Returns the changed role
      */
     public function getRoleId(): RoleId
     {
@@ -72,7 +76,7 @@ final readonly class CustomRolePermissionGranted implements Event
     }
 
     /**
-     * Returns the granted permission.
+     * Returns the granted permission
      */
     public function getPermissionId(): PermissionId
     {
@@ -80,7 +84,7 @@ final readonly class CustomRolePermissionGranted implements Event
     }
 
     /**
-     * Returns the grant time.
+     * Returns the grant time
      */
     public function getGrantedAt(): DateTimeImmutable
     {

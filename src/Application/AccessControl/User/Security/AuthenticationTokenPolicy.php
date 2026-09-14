@@ -8,11 +8,15 @@ use DateInterval;
 use DateTimeImmutable;
 
 /**
+ * Class AuthenticationTokenPolicy
+ *
  * Defines tested access and refresh lifetime policy without making it a Domain constant.
  */
 final readonly class AuthenticationTokenPolicy
 {
     /**
+     * Constructs AuthenticationTokenPolicy
+     *
      * Constructs a configured authentication-token policy.
      */
     public function __construct(
@@ -26,7 +30,7 @@ final readonly class AuthenticationTokenPolicy
     }
 
     /**
-     * Creates the certified starter lifetime policy.
+     * Creates the certified starter lifetime policy
      */
     public static function starterDefaults(DateInterval $refreshConflictWindow): self
     {
@@ -41,7 +45,7 @@ final readonly class AuthenticationTokenPolicy
     }
 
     /**
-     * Returns the access-token deadline for one issuance.
+     * Returns the access-token deadline for one issuance
      */
     public function accessExpiresAt(DateTimeImmutable $issuedAt): DateTimeImmutable
     {
@@ -49,7 +53,7 @@ final readonly class AuthenticationTokenPolicy
     }
 
     /**
-     * Returns the refresh-session idle deadline.
+     * Returns the refresh-session idle deadline
      */
     public function refreshIdleExpiresAt(DateTimeImmutable $issuedAt, bool $remembered): DateTimeImmutable
     {
@@ -57,7 +61,7 @@ final readonly class AuthenticationTokenPolicy
     }
 
     /**
-     * Returns the refresh-session absolute deadline.
+     * Returns the refresh-session absolute deadline
      */
     public function refreshAbsoluteExpiresAt(DateTimeImmutable $issuedAt, bool $remembered): DateTimeImmutable
     {
@@ -65,7 +69,7 @@ final readonly class AuthenticationTokenPolicy
     }
 
     /**
-     * Returns the explicitly configured bounded refresh-conflict interval.
+     * Returns the explicitly configured bounded refresh-conflict interval
      */
     public function refreshConflictWindow(): DateInterval
     {

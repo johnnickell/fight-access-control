@@ -65,9 +65,9 @@ final class ListPermissionsHandlerTest extends TestCase
         self::assertSame(
             [
                 'permission_id' => '018f0000-0000-7000-8000-000000000001',
-                'name' => 'EDIT_CONTENT',
-                'tier' => null,
-                'managed' => false,
+                'name'          => 'EDIT_CONTENT',
+                'tier'          => null,
+                'managed'       => false
             ],
             $views->get(0)->toArray()
         );
@@ -78,9 +78,9 @@ final class ListPermissionsHandlerTest extends TestCase
         self::assertSame(
             [
                 'permission_id' => '018f0000-0000-7000-8000-000000000002',
-                'name' => 'MANAGE_USERS',
-                'tier' => 'SUPER_ADMIN_ONLY',
-                'managed' => true,
+                'name'          => 'MANAGE_USERS',
+                'tier'          => 'SUPER_ADMIN_ONLY',
+                'managed'       => true
             ],
             $views->get(1)->toArray()
         );
@@ -100,9 +100,9 @@ final class ListPermissionsHandlerTest extends TestCase
 
         self::assertSame(
             [
-                'page' => 2,
-                'per_page' => 10,
-                'orderings' => ['name' => Pagination::DESC],
+                'page'      => 2,
+                'per_page'  => 10,
+                'orderings' => ['name' => Pagination::DESC]
             ],
             $query->toArray()
         );
@@ -110,9 +110,9 @@ final class ListPermissionsHandlerTest extends TestCase
             new ListPermissions(new Pagination(2, 10, ['name' => Pagination::DESC])),
             ListPermissions::fromArray(
                 [
-                    'page' => 2,
-                    'per_page' => 10,
-                    'orderings' => ['name' => Pagination::DESC],
+                    'page'      => 2,
+                    'per_page'  => 10,
+                    'orderings' => ['name' => Pagination::DESC]
                 ]
             )
         );
@@ -122,9 +122,9 @@ final class ListPermissionsHandlerTest extends TestCase
 
         foreach (['page', 'per_page', 'orderings'] as $requiredKey) {
             $completeData = [
-                'page' => 2,
-                'per_page' => 10,
-                'orderings' => ['name' => Pagination::DESC],
+                'page'      => 2,
+                'per_page'  => 10,
+                'orderings' => ['name' => Pagination::DESC]
             ];
             unset($completeData[$requiredKey]);
 

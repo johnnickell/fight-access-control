@@ -8,12 +8,14 @@ use Fight\AccessControl\Domain\AccessControl\ActivationGrant\Exception\Invitatio
 use Fight\AccessControl\Domain\AccessControl\User\UserId;
 
 /**
+ * Interface InvitationAdministrationAuthorization
+ *
  * Authorizes administrative correction of a pending invitation.
  */
 interface InvitationAdministrationAuthorization
 {
     /**
-     * Rejects an actor who cannot correct the user's invitation.
+     * Rejects an actor who cannot correct the user's invitation
      *
      * @throws InvitationAdministrationAuthorizationException When the actor is not authorized
      */

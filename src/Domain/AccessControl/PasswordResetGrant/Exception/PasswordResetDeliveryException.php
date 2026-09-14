@@ -7,6 +7,8 @@ namespace Fight\AccessControl\Domain\AccessControl\PasswordResetGrant\Exception;
 use Fight\Common\Domain\Exception\DomainException;
 
 /**
+ * Class PasswordResetDeliveryException
+ *
  * Indicates that password-reset delivery state violates its aggregate invariants.
  */
 final class PasswordResetDeliveryException extends DomainException

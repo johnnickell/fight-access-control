@@ -11,11 +11,15 @@ use Fight\Common\Domain\Exception\DomainException;
 use Fight\Common\Domain\Messaging\Event\Event;
 
 /**
+ * Class UserRestored
+ *
  * Records an administrative identity restoration after durable commit.
  */
 final readonly class UserRestored implements Event
 {
     /**
+     * Constructs UserRestored
+     *
      * Creates a user-restored event.
      */
     public function __construct(
@@ -53,15 +57,15 @@ final readonly class UserRestored implements Event
     public function toArray(): array
     {
         return [
-            'actor_id' => $this->actorId->toString(),
-            'user_id' => $this->userId->toString(),
-            'restoration_state' => $this->restorationState->value,
-            'activation_delivery_id' => $this->activationDeliveryId?->toString(),
+            'actor_id'               => $this->actorId->toString(),
+            'user_id'                => $this->userId->toString(),
+            'restoration_state'      => $this->restorationState->value,
+            'activation_delivery_id' => $this->activationDeliveryId?->toString()
         ];
     }
 
     /**
-     * Returns the administrative actor.
+     * Returns the administrative actor
      */
     public function getActorId(): UserId
     {
@@ -69,7 +73,7 @@ final readonly class UserRestored implements Event
     }
 
     /**
-     * Returns the restored user.
+     * Returns the restored user
      */
     public function getUserId(): UserId
     {
@@ -77,7 +81,7 @@ final readonly class UserRestored implements Event
     }
 
     /**
-     * Returns the chosen restoration target state.
+     * Returns the chosen restoration target state
      */
     public function getRestorationState(): UserState
     {
@@ -85,7 +89,7 @@ final readonly class UserRestored implements Event
     }
 
     /**
-     * Returns the replacement activation delivery, if one was issued.
+     * Returns the replacement activation delivery, if one was issued
      */
     public function getActivationDeliveryId(): ?ActivationDeliveryId
     {

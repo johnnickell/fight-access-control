@@ -10,11 +10,15 @@ use Fight\AccessControl\Domain\AccessControl\User\UserId;
 use InvalidArgumentException;
 
 /**
+ * Class RefreshSession
+ *
  * Represents authoritative server-side state for an authenticated refresh session.
  */
 class RefreshSession
 {
     /**
+     * Constructs RefreshSession
+     *
      * Creates a first refresh session for an activated identity.
      */
     protected function __construct(
@@ -36,7 +40,7 @@ class RefreshSession
     }
 
     /**
-     * Starts the first session at initial authentication version one.
+     * Starts the first session at initial authentication version one
      */
     public static function start(
         RefreshSessionId $id,
@@ -74,7 +78,7 @@ class RefreshSession
     }
 
     /**
-     * Returns the stable session identifier.
+     * Returns the stable session identifier
      */
     public function getId(): RefreshSessionId
     {
@@ -82,7 +86,7 @@ class RefreshSession
     }
 
     /**
-     * Returns the identity that owns this session.
+     * Returns the identity that owns this session
      */
     public function getUserId(): UserId
     {
@@ -90,7 +94,7 @@ class RefreshSession
     }
 
     /**
-     * Returns the one-way credential digest for persistence.
+     * Returns the one-way credential digest for persistence
      */
     public function getCredentialDigest(): string
     {
@@ -98,7 +102,7 @@ class RefreshSession
     }
 
     /**
-     * Returns when this first session was established.
+     * Returns when this first session was established
      */
     public function getCreatedAt(): DateTimeImmutable
     {
@@ -106,7 +110,7 @@ class RefreshSession
     }
 
     /**
-     * Returns when this session last proved refresh activity.
+     * Returns when this session last proved refresh activity
      */
     public function getLastActivityAt(): DateTimeImmutable
     {
@@ -114,7 +118,7 @@ class RefreshSession
     }
 
     /**
-     * Returns the current idle deadline.
+     * Returns the current idle deadline
      */
     public function getIdleExpiresAt(): DateTimeImmutable
     {
@@ -122,7 +126,7 @@ class RefreshSession
     }
 
     /**
-     * Returns the immutable absolute deadline.
+     * Returns the immutable absolute deadline
      */
     public function getAbsoluteExpiresAt(): DateTimeImmutable
     {
@@ -130,7 +134,7 @@ class RefreshSession
     }
 
     /**
-     * Returns whether browser-restart persistence was requested for this session.
+     * Returns whether browser-restart persistence was requested for this session
      */
     public function isRemembered(): bool
     {
@@ -138,7 +142,7 @@ class RefreshSession
     }
 
     /**
-     * Returns whether a presented refresh credential matches this session.
+     * Returns whether a presented refresh credential matches this session
      */
     public function matchesCredential(RefreshCredential $refreshCredential): bool
     {
@@ -146,7 +150,7 @@ class RefreshSession
     }
 
     /**
-     * Returns whether the most recently used credential is inside the accepted conflict window.
+     * Returns whether the most recently used credential is inside the accepted conflict window
      */
     public function matchesMostRecentlyUsedCredentialWithin(
         RefreshCredential $refreshCredential,
@@ -165,7 +169,7 @@ class RefreshSession
     }
 
     /**
-     * Returns whether a credential digest was previously authoritative for this session.
+     * Returns whether a credential digest was previously authoritative for this session
      */
     public function matchesUsedCredential(RefreshCredential $refreshCredential): bool
     {
@@ -178,7 +182,7 @@ class RefreshSession
     }
 
     /**
-     * Returns the authentication version captured by this session.
+     * Returns the authentication version captured by this session
      */
     public function getAuthenticationVersion(): int
     {
@@ -186,7 +190,7 @@ class RefreshSession
     }
 
     /**
-     * Returns the authoritative persistence revision.
+     * Returns the authoritative persistence revision
      */
     public function getRevision(): int
     {
@@ -194,7 +198,7 @@ class RefreshSession
     }
 
     /**
-     * Rotates to a fresh credential while preserving the absolute session boundary.
+     * Updates to a fresh credential while preserving the absolute session boundary
      */
     public function rotate(
         RefreshCredential $refreshCredential,
@@ -231,7 +235,7 @@ class RefreshSession
     }
 
     /**
-     * Returns an immutable replacement that revokes this authoritative session.
+     * Returns an immutable replacement that revokes this authoritative session
      */
     public function revoke(): self
     {
@@ -253,7 +257,7 @@ class RefreshSession
     }
 
     /**
-     * Returns whether this authoritative session is no longer usable.
+     * Returns whether this authoritative session is no longer usable
      */
     public function isRevoked(): bool
     {
@@ -261,7 +265,7 @@ class RefreshSession
     }
 
     /**
-     * Returns whether the session remains authoritative at the supplied time.
+     * Returns whether the session remains authoritative at the supplied time
      */
     public function isUsableAt(DateTimeImmutable $at): bool
     {

@@ -12,11 +12,15 @@ use Fight\Common\Domain\Exception\DomainException;
 use Fight\Common\Domain\Messaging\Event\Event;
 
 /**
+ * Class CustomRoleRenamed
+ *
  * Records a custom role rename after durable commit.
  */
 final readonly class CustomRoleRenamed implements Event
 {
     /**
+     * Constructs CustomRoleRenamed
+     *
      * Creates a custom-role-renamed event.
      */
     public function __construct(
@@ -48,15 +52,15 @@ final readonly class CustomRoleRenamed implements Event
     public function toArray(): array
     {
         return [
-            'actor_id' => $this->actorId->toString(),
-            'role_id' => $this->roleId->toString(),
-            'name' => $this->name->toString(),
-            'renamed_at' => $this->renamedAt->format(DATE_ATOM),
+            'actor_id'   => $this->actorId->toString(),
+            'role_id'    => $this->roleId->toString(),
+            'name'       => $this->name->toString(),
+            'renamed_at' => $this->renamedAt->format(DATE_ATOM)
         ];
     }
 
     /**
-     * Returns the administrative actor.
+     * Returns the administrative actor
      */
     public function getActorId(): UserId
     {
@@ -64,7 +68,7 @@ final readonly class CustomRoleRenamed implements Event
     }
 
     /**
-     * Returns the renamed role.
+     * Returns the renamed role
      */
     public function getRoleId(): RoleId
     {
@@ -72,7 +76,7 @@ final readonly class CustomRoleRenamed implements Event
     }
 
     /**
-     * Returns the replacement role name.
+     * Returns the replacement role name
      */
     public function getName(): RoleName
     {
@@ -80,7 +84,7 @@ final readonly class CustomRoleRenamed implements Event
     }
 
     /**
-     * Returns the rename time.
+     * Returns the rename time
      */
     public function getRenamedAt(): DateTimeImmutable
     {

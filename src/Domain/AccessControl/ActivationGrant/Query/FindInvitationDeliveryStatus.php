@@ -9,11 +9,15 @@ use Fight\Common\Domain\Exception\DomainException;
 use Fight\Common\Domain\Messaging\Query\Query;
 
 /**
+ * Class FindInvitationDeliveryStatus
+ *
  * Queries the safe operational status for a user's activation delivery work.
  */
 final readonly class FindInvitationDeliveryStatus implements Query
 {
     /**
+     * Constructs FindInvitationDeliveryStatus
+     *
      * Constructs the delivery-status query.
      */
     public function __construct(private UserId $userId)
@@ -41,7 +45,7 @@ final readonly class FindInvitationDeliveryStatus implements Query
     }
 
     /**
-     * Returns the user whose activation delivery status is requested.
+     * Returns the user whose activation delivery status is requested
      */
     public function getUserId(): UserId
     {

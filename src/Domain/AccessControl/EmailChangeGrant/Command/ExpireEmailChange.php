@@ -11,11 +11,15 @@ use Fight\Common\Domain\Exception\DomainException;
 use Fight\Common\Domain\Messaging\Command\Command;
 
 /**
+ * Class ExpireEmailChange
+ *
  * Processes terminal expiry for one exact email-change generation.
  */
 final readonly class ExpireEmailChange implements Command
 {
     /**
+     * Constructs ExpireEmailChange
+     *
      * Creates an invocation-neutral expiry command.
      */
     public function __construct(
@@ -47,15 +51,15 @@ final readonly class ExpireEmailChange implements Command
     public function toArray(): array
     {
         return [
-            'actor_id' => $this->actorId,
-            'user_id' => $this->userId->toString(),
+            'actor_id'              => $this->actorId,
+            'user_id'               => $this->userId->toString(),
             'email_change_grant_id' => $this->emailChangeGrantId->toString(),
-            'occurred_at' => $this->occurredAt->format(DATE_ATOM),
+            'occurred_at'           => $this->occurredAt->format(DATE_ATOM)
         ];
     }
 
     /**
-     * Returns the actor processing terminal expiry.
+     * Returns the actor processing terminal expiry
      */
     public function getActorId(): string
     {
@@ -63,7 +67,7 @@ final readonly class ExpireEmailChange implements Command
     }
 
     /**
-     * Returns the target user identifier.
+     * Returns the target user identifier
      */
     public function getUserId(): UserId
     {
@@ -71,7 +75,7 @@ final readonly class ExpireEmailChange implements Command
     }
 
     /**
-     * Returns the exact grant-generation identifier.
+     * Returns the exact grant-generation identifier
      */
     public function getEmailChangeGrantId(): EmailChangeGrantId
     {
@@ -79,7 +83,7 @@ final readonly class ExpireEmailChange implements Command
     }
 
     /**
-     * Returns when terminal expiry was processed.
+     * Returns when terminal expiry was processed
      */
     public function getOccurredAt(): DateTimeImmutable
     {
