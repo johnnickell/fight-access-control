@@ -16,7 +16,9 @@ When `/ask-matt` or a plain “What’s next?” is invoked:
 
 ## Now
 
-No human decision is currently required.
+A human release decision is required before signing `v0.2.0` after its reviewed final `main` merge and fresh
+certification of that exact remote commit. Tag push, hosted release, and Packagist observation remain separate
+approvals.
 
 ## Wayfinder Review
 

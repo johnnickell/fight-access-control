@@ -3,7 +3,7 @@
 Framework-neutral identity, credential, session, authorization, and account-lifecycle contracts for Fight
 applications.
 
-The upcoming `0.2.0` line adds an opt-in, non-autoloaded OpenAPI component catalog
+The `0.2.0` release adds an opt-in, non-autoloaded OpenAPI component catalog
 for consumer-owned documents. See [OpenAPI composition](docs/openapi-composition.md).
 
 The `0.1.x` release line provides the first public-source package milestone while the API remains intentionally
