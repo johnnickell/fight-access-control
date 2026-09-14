@@ -60,6 +60,10 @@ single ordered `./bin/quality` gate. `./bin/build --latest` checks the latest de
 with `composer.json`; hosted CI performs that same latest-compatible resolution before invoking
 `./bin/quality` directly.
 
+For a clean, dated release candidate, `./bin/release certify <version>` records its exact `HEAD` and the
+OpenAPI consumer-composition, planning, and package-quality evidence under ignored `.runs/`. It is
+verification-only and does not create a commit, merge, tag, push, or publication.
+
 Coordinate-build scratch work belongs under gitignored `.runs/<YYYY-MM-DD>-<slug>/`. Never stage it. When an
 approved task needs isolation, create its disposable linked worktree under that run directory at `worktree/`; run
 commands from that checkout and remove it only with separate cleanup authorization. See
