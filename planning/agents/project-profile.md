@@ -44,6 +44,7 @@ Application package boundary.
 - Every production statement requires executable coverage. The isolated fight-access-control PHP container is the
   package runtime; ./bin/planning-check and ./bin/build are mandatory pre-submit gates, and the build enforces
   PHPCS, PHPStan, architecture, Rector, PHPUnit, and exact statement coverage.
-- Use an ignored .runs/date-slug/worktree linked worktree from develop; retain it through review. Branch feature work
-  from develop and never commit directly to develop or main. Release certification, tags, publication, and cleanup
-  remain separately authorized.
+- Use the ignored `.runs/<YYYY-MM-DD>-<slug>/worktree` linked-worktree layout from develop; retain it through
+  review. Store run-local coordination, notes, and gate receipts below that same run directory; store reusable
+  handoffs under `.runs/handoffs/<task>/`. Branch feature work from develop and never commit directly to develop or
+  main. Release certification, tags, publication, and cleanup remain separately authorized.

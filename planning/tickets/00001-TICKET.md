@@ -231,8 +231,8 @@ published immutable release.
   starters then adopt tagged package lines and return compatibility findings through later pre-`1.0.0` releases.
 - This Ticket is the permanent product specification synthesized from WF-011, WF-012, WF-016, the bounded WF-017
   evidence, ADR 0022, and the accepted WF-018 lifecycle and milestone decisions.
-- TICKET-00016 owns repository authority and transfer. TICKET-00018 owns framework-native starter delivery and human
-  acceptance. This Ticket owns only shared AccessControl behavior.
+- Fight Common PRD-00016 owns repository authority and transfer. Fight Common PRD-00018 owns framework-native
+  starter delivery and human acceptance. This local Ticket owns only shared AccessControl behavior.
 - Fight Common remains the temporary specification host until the private Fight AccessControl repository is
   bootstrapped. The bootstrap handoff adopts this specification locally; later detailed ticket status belongs
   only to that repository.

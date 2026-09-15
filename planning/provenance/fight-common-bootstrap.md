@@ -9,5 +9,5 @@ Fight Common source commit `1b58c1455225965cbadcd35b6899d642a2141140`.
 | `planning/specs/00017-PRD.md` | `1890912f75896f8044882b9c5a6ec37f33dae6ab8f0f91e9d3d0e502c8d5793d` | Adopted product, behavioral, and security source |
 
 The source repository is `https://github.com/johnnickell/fight-common`. These identities preserve the immutable
-handoff evidence; [the local PRD](../tickets/00001-TICKET.md) is now canonical for AccessControl behavior. Later local
-ticket status must not be synchronized back into Fight Common.
+handoff evidence; [the local Ticket](../tickets/00001-TICKET.md) is now canonical for AccessControl behavior. Later
+local Ticket status must not be synchronized back into Fight Common.

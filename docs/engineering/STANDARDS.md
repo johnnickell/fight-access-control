@@ -26,3 +26,16 @@ The baseline AGENTS links were rewritten from `Standards/<name>.md` to `docs/eng
 ## Adoption gaps
 
 This adoption does not certify all existing code against the baseline. Its compatibility scan and deferred cleanup are preserved in the ignored adoption handoff. The package’s Domain/Application boundary, container runtime, exact-coverage gate, and release-certification procedure remain project-specific bindings.
+
+## Project deviations
+
+### AccessControl run layout
+
+- **Rule:** In this repository, use `.runs/<YYYY-MM-DD>-<slug>/worktree` for a TASK-owned linked worktree and retain
+  that run's coordination, notes, and gate receipts beneath the same run directory. Reusable handoffs remain under
+  `.runs/handoffs/<task>/`; archived evidence remains under `.runs/archive/`.
+- **Scope:** AccessControl TASK worktrees and their evidence only.
+- **Rationale:** This is the repository's established isolated-worktree layout and keeps the worktree with the exact
+  run evidence that explains its ownership and verification.
+- **Approval/reference:** Existing AccessControl `AGENTS.md` run-and-worktree contract, preserved during the
+  2026-09-15 Fight guidance adoption in PR #55.
