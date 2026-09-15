@@ -2,29 +2,26 @@
 
 This directory is the committed source of truth for Fight AccessControl planning.
 
-- `ROADMAP.md` records strategic progress.
-- `epics/` describes destinations.
-- `specs/` describes coherent product requirements.
-- `tasks/` contains executable work; each ticket is canonical for its own status and dependencies.
-- `tasks/BOARD.md` ranks the current execution frontier.
-- `adr/` records architectural decisions.
-- `agents/` contains focused working instructions.
-- `wayfinder/` contains planning-only investigation maps and decision tasks for efforts whose
-  implementation route is not clear enough for an epic or Ticket yet.
-- `provenance/` retains immutable bootstrap evidence and is not current delivery authority.
+- [ROADMAP.md](ROADMAP.md) records strategy and generated EPIC status.
+- [epics/](epics/) describes business destinations.
+- [tickets/](tickets/) holds coherent product requirements under EPICs.
+- [tasks/](tasks/) contains executable vertical slices and the generated execution Board.
+- [adr/](adr/) records architectural decisions.
+- [agents/](agents/) holds project-specific working guidance.
+- [wayfinder/](wayfinder/) holds planning-only investigation maps, decision tickets, and research.
+- [provenance/](provenance/) retains immutable bootstrap evidence and is not current delivery authority.
+- [MIGRATION.md](MIGRATION.md) maps retained historic PRD and T identifiers to their live records.
 
-Every artifact directory keeps a `_…_TEMPLATE.md` copy-ready starting point. `wayfinder/README.md` is the
-continuity index for charting work and its next decision frontier. Archives remain part of this committed
-planning record: use `./bin/archive-planning` only when explicitly asked, review its dry run, then use `--apply`
-to move eligible terminal records and repair local Markdown links.
+EPIC, TICKET, and TASK identifiers are independent five-digit sequences. Every live migrated record remains in place;
+legacy identifiers are provenance, not aliases for new work. Statuses are needs-triage, needs-info,
+ready-for-agent, ready-for-human, in-progress, done, and wontfix. Blocking is derived from unfinished TASK
+blocked_by edges.
 
-Identifiers are independent five-digit sequences. Ticket identifiers are displayed as `T-NNNNN`. Valid statuses
-are `needs-triage`, `needs-info`, `ready-for-agent`, `ready-for-human`, `in-progress`, `done`, and `wontfix`.
-Blocking is derived from unfinished `blocked_by` edges and is not stored as a status.
+[CONVENTIONS.md](CONVENTIONS.md) defines naming, lifecycle, generated views, Wayfinder maps, explicit archive
+operations, and pre-PR synchronization. After changing a planning record, run:
 
-`CONVENTIONS.md` is the canonical reference for planning structure, file naming, ticket lifecycle, BOARD.md,
-wayfinder maps, epics, Tasks, and pre-PR synchronization.
+    ./bin/planning-check --write
+    ./bin/planning-check
 
-Run `./bin/planning-check` after changing planning files. Coordinate-build scratch belongs in gitignored `.runs/`,
-never here. Approved disposable linked worktrees live beneath their run directory at `worktree/` and are removed
-only with separate cleanup authorization.
+Coordinate-build scratch belongs in ignored .runs/. Approved disposable linked worktrees live beneath their run
+directory and are removed only with separate cleanup authorization.

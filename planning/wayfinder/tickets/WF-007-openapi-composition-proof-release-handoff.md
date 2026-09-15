@@ -40,7 +40,7 @@ payloads, browser cookie and portable token-set profiles, optional JSend success
 mutation results, and empty success. It is a focused first guide and may inform a later documentation-quality pass;
 that broader effort does not block `v0.2.0`.
 
-[EPIC-00004](../../epics/00004-EPIC.md), [TICKET-00005](../../tasks/00005-TASK.md), and
+[EPIC-00004](../../epics/00004-EPIC.md), [TICKET-00005](../../tickets/00005-TICKET.md), and
 [TASK-00033](../../tasks/00033-TASK.md) are the implementation handoff. The ticket prepares the changelog and
 release candidate after its local proof and canonical gates pass. Tagging, push, and publication remain separately
 authorized effects.

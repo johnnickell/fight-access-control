@@ -212,6 +212,8 @@ authorization-mutation work is complete under TICKET-00004. All TICKET-00003 tas
 
 ## Child Tasks
 
-- [TASK-00027](../tasks/00027-TASK.md)
-- [TASK-00026](../tasks/00026-TASK.md)
-- [TASK-00028](../tasks/00028-TASK.md)
+| Order | TASK ID | Title | Status |
+| --- | --- | --- | --- |
+| 26 | [TASK-00026](../tasks/00026-TASK.md) | Establish the unified authority contract | done |
+| 27 | [TASK-00027](../tasks/00027-TASK.md) | Resolve complete Agent authority from a signed request | done |
+| 28 | [TASK-00028](../tasks/00028-TASK.md) | Publish the final SecurityContext boundary | done |

@@ -63,12 +63,12 @@ to its resulting epic, Tasks, and/or implementation tasks.
 
 ## Tasks
 
-| Ticket | Type | Mode | Status | Depends On |
-|---|---|---|---|---|
-| [Define framework-neutral HMAC Agent authentication](tickets/WF-001-hmac-agent-authentication-boundary.md) | Grilling / Domain Modeling | HITL | **Closed** | — |
-| [Establish Agent credential and revocation lifecycle](tickets/WF-002-agent-credential-revocation-lifecycle.md) | Grilling / Domain Modeling | HITL | **Closed** | WF-001 |
-| [Protect Agent Permission reference integrity](tickets/WF-003-agent-permission-reference-integrity.md) | Grilling / Domain Modeling | HITL | **Closed** | WF-001 |
-| [Specify Agent principal resolution and conformance](tickets/WF-004-agent-principal-resolution-conformance.md) | Grilling / Domain Modeling | HITL | **Closed** | WF-002, WF-003 |
+| Decision ID | Title | Type | Mode | Status | Depends on |
+|---|---|---|---|---|---|
+| WF-001 | [Define framework-neutral HMAC Agent authentication](tickets/WF-001-hmac-agent-authentication-boundary.md) | Grilling / Domain Modeling | HITL | **Closed** | — |
+| WF-002 | [Establish Agent credential and revocation lifecycle](tickets/WF-002-agent-credential-revocation-lifecycle.md) | Grilling / Domain Modeling | HITL | **Closed** | WF-001 |
+| WF-003 | [Protect Agent Permission reference integrity](tickets/WF-003-agent-permission-reference-integrity.md) | Grilling / Domain Modeling | HITL | **Closed** | WF-001 |
+| WF-004 | [Specify Agent principal resolution and conformance](tickets/WF-004-agent-principal-resolution-conformance.md) | Grilling / Domain Modeling | HITL | **Closed** | WF-002, WF-003 |
 
 ## Blocking relationships
 
@@ -80,7 +80,7 @@ HMAC authentication boundary ──┬──→ Credential and revocation lifecy
 ## Frontier
 
 All Wayfinder decision tasks are closed. The approved `/to-spec` handoff produced
-[EPIC-00002](../epics/00002-EPIC.md) and [TICKET-00002](../tasks/00002-TASK.md). This map has no remaining frontier;
+[EPIC-00002](../epics/00002-EPIC.md) and [TICKET-00002](../tickets/00002-TICKET.md). This map has no remaining frontier;
 derive implementation tasks only through a separately approved `/to-tasks` handoff.
 
 ## Not yet specified (fog)

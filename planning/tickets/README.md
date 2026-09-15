@@ -1,3 +1,11 @@
-# Tickets
+# TICKETs
 
-Tickets are coherent behavioral requirements. The five migrated Ticket records remain live and terminal; their child Tasks remain in planning/tasks.
+This generated index is a projection; individual records remain canonical.
+
+| ID | Title | Status |
+| --- | --- | --- |
+| [TICKET-00001](00001-TICKET.md) | Fight AccessControl Identity and Authentication Lifecycle | done |
+| [TICKET-00002](00002-TICKET.md) | Agent HMAC Authentication and Direct Authority | done |
+| [TICKET-00003](00003-TICKET.md) | Unified Authenticated Authority | done |
+| [TICKET-00004](00004-TICKET.md) | Consistent Authorization Modification | done |
+| [TICKET-00005](00005-TICKET.md) | Composable OpenAPI Schema Components | done |

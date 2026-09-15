@@ -239,21 +239,23 @@ published immutable release.
 
 ## Child Tasks
 
-- [TASK-00011](../tasks/00011-TASK.md)
-- [TASK-00001](../tasks/00001-TASK.md)
-- [TASK-00008](../tasks/00008-TASK.md)
-- [TASK-00018](../tasks/00018-TASK.md)
-- [TASK-00009](../tasks/00009-TASK.md)
-- [TASK-00010](../tasks/00010-TASK.md)
-- [TASK-00012](../tasks/00012-TASK.md)
-- [TASK-00002](../tasks/00002-TASK.md)
-- [TASK-00003](../tasks/00003-TASK.md)
-- [TASK-00016](../tasks/00016-TASK.md)
-- [TASK-00006](../tasks/00006-TASK.md)
-- [TASK-00007](../tasks/00007-TASK.md)
-- [TASK-00017](../tasks/00017-TASK.md)
-- [TASK-00015](../tasks/00015-TASK.md)
-- [TASK-00005](../tasks/00005-TASK.md)
-- [TASK-00032](../tasks/00032-TASK.md)
-- [TASK-00004](../tasks/00004-TASK.md)
-- [TASK-00014](../tasks/00014-TASK.md)
+| Order | TASK ID | Title | Status |
+| --- | --- | --- | --- |
+| 1 | [TASK-00001](../tasks/00001-TASK.md) | Invite a pending user | done |
+| 2 | [TASK-00002](../tasks/00002-TASK.md) | Recover and resend activation delivery | done |
+| 3 | [TASK-00003](../tasks/00003-TASK.md) | Activate an invited account | done |
+| 4 | [TASK-00004](../tasks/00004-TASK.md) | Login, cold restore, and current-session logout | done |
+| 5 | [TASK-00005](../tasks/00005-TASK.md) | Secure refresh-session rotation | done |
+| 6 | [TASK-00006](../tasks/00006-TASK.md) | Manage active sessions | done |
+| 7 | [TASK-00007](../tasks/00007-TASK.md) | Recover a forgotten password | done |
+| 8 | [TASK-00008](../tasks/00008-TASK.md) | Change an authenticated password | done |
+| 9 | [TASK-00009](../tasks/00009-TASK.md) | Establish principals and authorization primitives | done |
+| 10 | [TASK-00010](../tasks/00010-TASK.md) | Change and correct identity journeys | done |
+| 11 | [TASK-00011](../tasks/00011-TASK.md) | Administer account lifecycle | done |
+| 12 | [TASK-00012](../tasks/00012-TASK.md) | Reconcile managed policy and custom roles | done |
+| 14 | [TASK-00014](../tasks/00014-TASK.md) | Unify password-reset grant persistence | done |
+| 15 | [TASK-00015](../tasks/00015-TASK.md) | Unify activation-grant persistence | done |
+| 16 | [TASK-00016](../tasks/00016-TASK.md) | Extract the ManagedPolicy capability | done |
+| 17 | [TASK-00017](../tasks/00017-TASK.md) | Complete administrative identity and authorization reads | done |
+| 18 | [TASK-00018](../tasks/00018-TASK.md) | Publish successful security-email delivery events | done |
+| 32 | [TASK-00032](../tasks/00032-TASK.md) | Prepare the v0.1.0 Release Candidate | done |

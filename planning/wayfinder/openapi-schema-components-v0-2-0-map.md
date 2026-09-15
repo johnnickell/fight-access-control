@@ -48,11 +48,11 @@ to its resulting epic, Tasks, and/or implementation tasks.
 
 ## Tasks
 
-| Ticket | Type | Mode | Status | Gate | Depends On |
+| Decision ID | Title | Type | Mode | Status | Depends on |
 |---|---|---|---|---|---|
-| [Choose OpenAPI metadata ownership and component discovery](tickets/WF-005-openapi-metadata-ownership.md) | Grilling / Domain Modeling | HITL | **Closed** | — | — |
-| [Define authentication payload and JSend response catalog](tickets/WF-006-authentication-payload-jsend-catalog.md) | Grilling / Domain Modeling | HITL | **Closed** | — | WF-005 |
-| [Set lightweight composition proof and v0.2.0 handoff](tickets/WF-007-openapi-composition-proof-release-handoff.md) | Grilling | HITL | **Closed** | — | WF-006 |
+| WF-005 | [Choose OpenAPI metadata ownership and component discovery](tickets/WF-005-openapi-metadata-ownership.md) | Grilling / Domain Modeling | HITL | **Closed** | — |
+| WF-006 | [Define authentication payload and JSend response catalog](tickets/WF-006-authentication-payload-jsend-catalog.md) | Grilling / Domain Modeling | HITL | **Closed** | WF-005 |
+| WF-007 | [Set lightweight composition proof and v0.2.0 handoff](tickets/WF-007-openapi-composition-proof-release-handoff.md) | Grilling | HITL | **Closed** | WF-006 |
 
 ## Blocking relationships
 
@@ -81,6 +81,6 @@ proof; a separate schema-diff tool is not required for this release.
 
 ## Resolution
 
-[EPIC-00004](../epics/00004-EPIC.md), [TICKET-00005](../tasks/00005-TASK.md), and
+[EPIC-00004](../epics/00004-EPIC.md), [TICKET-00005](../tickets/00005-TICKET.md), and
 [TASK-00033](../tasks/00033-TASK.md) implement this map. The focused consumer guide is release work; a later
 broader documentation-quality pass is a non-blocking follow-on decision.

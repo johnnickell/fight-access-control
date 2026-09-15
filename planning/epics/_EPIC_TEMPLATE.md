@@ -15,9 +15,9 @@ Describe the durable outcome and the boundary of this epic.
 
 - Link accepted decisions and their consequences.
 
-## Tasks
+## Child Tickets
 
-- Ticket-NNNNN — Title
+- TICKET-NNNNN — Title
 
 ## Progress
 

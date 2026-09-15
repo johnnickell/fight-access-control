@@ -123,10 +123,12 @@ are complete with canonical quality gates passing.
 
 ## Child Tasks
 
-- [TASK-00019](../tasks/00019-TASK.md)
-- [TASK-00024](../tasks/00024-TASK.md)
-- [TASK-00025](../tasks/00025-TASK.md)
-- [TASK-00020](../tasks/00020-TASK.md)
-- [TASK-00021](../tasks/00021-TASK.md)
-- [TASK-00023](../tasks/00023-TASK.md)
-- [TASK-00022](../tasks/00022-TASK.md)
+| Order | TASK ID | Title | Status |
+| --- | --- | --- | --- |
+| 19 | [TASK-00019](../tasks/00019-TASK.md) | Provision an Agent with one HMAC credential | done |
+| 20 | [TASK-00020](../tasks/00020-TASK.md) | Rotate and revoke an Agent credential | done |
+| 21 | [TASK-00021](../tasks/00021-TASK.md) | Manage direct Agent Permissions safely | done |
+| 22 | [TASK-00022](../tasks/00022-TASK.md) | Authenticate a signed Agent request | done |
+| 23 | [TASK-00023](../tasks/00023-TASK.md) | Resolve the current Agent identity per request | done |
+| 24 | [TASK-00024](../tasks/00024-TASK.md) | Unify current User and Agent authority access | done |
+| 25 | [TASK-00025](../tasks/00025-TASK.md) | Require an operator-facing Agent name | done |

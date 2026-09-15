@@ -217,6 +217,8 @@ Permission-reference fence and exact coverage. All TICKET-00004 tasks are termin
 
 ## Child Tasks
 
-- [TASK-00030](../tasks/00030-TASK.md)
-- [TASK-00029](../tasks/00029-TASK.md)
-- [TASK-00031](../tasks/00031-TASK.md)
+| Order | TASK ID | Title | Status |
+| --- | --- | --- | --- |
+| 29 | [TASK-00029](../tasks/00029-TASK.md) | Make Agent Permission changes safe to retry | done |
+| 30 | [TASK-00030](../tasks/00030-TASK.md) | Make User Role changes safe to retry | done |
+| 31 | [TASK-00031](../tasks/00031-TASK.md) | Make custom Role Permission changes safe to retry | done |

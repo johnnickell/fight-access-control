@@ -1,5 +1,6 @@
 ---
 id: TASK-NNNNN
+order: N
 ticket: TICKET-NNNNN
 title: Brief executable slice
 status: ready-for-agent

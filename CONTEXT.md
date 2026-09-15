@@ -89,7 +89,7 @@ public commands, services, authenticated principals, and Security context rather
 
 ## Planning and Completion
 
-Local ticket files under `planning/tasks/` are canonical for implementation scope, status, dependencies,
-acceptance, and evidence. The board ranks ready work. A ticket is executable only under the rules in
+Local TASK files under `planning/tasks/` are canonical for implementation scope, status, dependencies,
+acceptance, and evidence. The Board ranks ready work. A TASK is executable only under the rules in
 `planning/agents/issue-tracker.md`. Run `./bin/planning-check` for planning integrity and `./bin/build` for the
 complete package gate.

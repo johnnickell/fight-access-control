@@ -78,4 +78,6 @@ Tasks: TASK-00033. Completed 2026-09-13 as a local review candidate; tagging, re
 
 ## Child Tasks
 
-- [TASK-00033](../tasks/00033-TASK.md)
+| Order | TASK ID | Title | Status |
+| --- | --- | --- | --- |
+| 33 | [TASK-00033](../tasks/00033-TASK.md) | Publish composable OpenAPI schema components for v0.2.0 | done |

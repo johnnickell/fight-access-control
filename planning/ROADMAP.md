@@ -31,3 +31,14 @@ No epics are currently in progress.
 | Version | Date | Outcome |
 | --- | --- | --- |
 | `v0.1.0` | 2026-09-10 | First public package milestone: framework-neutral User and Agent identity, authentication, session, Role, Permission, managed-policy, and current-authority behavior with exact coverage. |
+
+## Record Status Projection
+
+<!-- generated:epic-status:start -->
+| EPIC | Target | Status | Tickets | Tasks |
+| --- | --- | --- | --- | --- |
+| [EPIC-00001](epics/00001-EPIC.md) | 0.x public-source incubation | done | 1 | 18 |
+| [EPIC-00002](epics/00002-EPIC.md) | 0.x | done | 1 | 7 |
+| [EPIC-00003](epics/00003-EPIC.md) | 0.x | done | 2 | 6 |
+| [EPIC-00004](epics/00004-EPIC.md) | v0.2.0 | done | 1 | 1 |
+<!-- generated:epic-status:end -->
