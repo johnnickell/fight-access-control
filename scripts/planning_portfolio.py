@@ -146,7 +146,8 @@ def validate_records(records: dict[str, Record], errors: list[str]) -> None:
             return
         visiting.add(identifier)
         for blocker in blocker_ids(records[identifier]):
-            visit(blocker)
+            if blocker.startswith("TASK-") and blocker in records:
+                visit(blocker)
         visiting.remove(identifier)
         visited.add(identifier)
 
