@@ -1,42 +1,261 @@
 ---
-id: T-00001
-prd: PRD-00001
-title: Invite a pending user
+id: TICKET-00001
+legacy_id: PRD-00001
+title: Fight AccessControl Identity and Authentication Lifecycle
 status: done
-blocked_by:
+epic: EPIC-00001
+source_repository: https://github.com/johnnickell/fight-common
+source_commit: 1b58c1455225965cbadcd35b6899d642a2141140
+source_path: planning/specs/00017-PRD.md
+source_sha256: 1890912f75896f8044882b9c5a6ec37f33dae6ab8f0f91e9d3d0e502c8d5793d
 ---
 
-# Invite a pending user
+# Fight AccessControl Identity and Authentication Lifecycle
 
-## Outcome
+## Problem Statement
 
-An inviter can create one canonically unique pending identity. The transaction creates its purpose-bound activation
-grant, encrypted pending delivery work, and required secret-free audit evidence before email work can be attempted.
+Fight applications need the same identity, authentication, authorization, session, recovery, and account
+lifecycle behavior in Symfony, Laravel, Yii, CodeIgniter, and Slim. Today that behavior has no independent
+package authority. Repeating it in every starter would fork security policy, leak framework interfaces into
+the Domain, and make a defect require five unrelated corrections.
 
-## Acceptance Criteria
+The shared behavior is also larger than login. A useful package must define invited registration, activation,
+durable security-email delivery, multi-device sessions, password and email recovery, account-state changes,
+Managed Roles and Permissions, required security audit evidence, and access-JWT orchestration. It must do this
+without binding the shared Domain and Application behavior to clients, persistence, HTTP, framework security,
+queue, mail, or realtime implementations.
 
-- [x] Canonical email uniqueness covers pending, active, disabled, and deleted identities.
-- [x] Invitation persists the User, activation grant, pending delivery work, and required audit evidence atomically.
-- [x] No raw activation credential is persisted outside the approved recoverable delivery boundary.
-- [x] Domain and Application tests demonstrate the successful and rejected invitation outcomes through in-memory ports.
-- [x] Canonical Command, Event, and CommandHandler tests capture successful and rejected invitation outcomes without framework dependencies.
+## Solution
 
-## Scope
+Create Fight AccessControl as a framework-free Domain and Application package depending on the compatible
+Fight Common line. It owns one identity and authorization model, a synchronous authentication service for
+secret-bearing operations, explicit non-sensitive use-case commands and queries, portable cryptographic ports,
+immutable token and read-model results, and a reusable behavioral conformance suite. Consumer projects own
+clients, persistence, HTTP, cookies, keys, and runtime composition.
 
-### Out of Scope
+Build the package through ordered user-valued slices. The first public `0.1.0` package milestone publishes the
+completed framework-neutral User and Agent identity, credential, session, account-lifecycle, Role, Permission,
+managed-policy, and current-authority behavior. Later `0.x` milestones incorporate compatibility findings and
+coherent refinements discovered during starter implementation. `1.0.0` requires a separate stability decision.
 
-No mail transport, encryption-key implementation, persistence adapter, HTTP action, or framework integration.
+The release qualification seam is one framework-free package build plus its reusable behavioral conformance
+suite. Tagged pre-`1.0.0` package versions intentionally precede full starter implementation so downstream projects
+can adopt immutable version tags instead of development branches. Each starter later applies the same suite
+through its own adapters, proving shared outcomes without requiring identical classes, schemas, transactions, or
+containers. Integration findings feed reviewed fixes into later `0.x` releases without changing an already
+published immutable release.
 
-## Verification
+## User Stories
 
-- `./bin/phpunit`
-- `./bin/planning-check`
-- `./bin/build`
+1. As an invited person, I want to activate my pending account with a one-time grant, so that I can choose my
+   initial password without receiving a reusable credential.
+2. As an inviter, I want a user and activation delivery recorded durably before email is attempted, so that a
+   mail failure does not erase the invitation or claim success.
+3. As an inviter, I want failed activation delivery discoverable and retryable, so that an operational outage
+   does not require creating a duplicate identity.
+4. As an inviter, I want resending activation to revoke the predecessor grant, so that only the newest message
+   can activate the account.
+5. As a pending user, I want activation to transition my account to active and create my first session, so that
+   the completed journey ends in an authenticated state.
+6. As an active user, I want to log in with my canonical email address and password, so that every starter uses
+   one identity model.
+7. As a user, I want generic failed-login responses and bounded throttling, so that authentication does not
+   disclose whether an account exists.
+8. As a package consumer, I want a refresh credential to restore an authenticated session, so that clients can
+   recover authentication without broadening credential authority.
+9. As a user, I want logout to revoke only my current refresh session, so that my other devices remain active.
+10. As a user, I want to inspect coarse information about my active sessions and revoke another one, so that I
+    can remove an untrusted device without ending my current session.
+11. As an authorized super administrator, I want to inspect and revoke another user's session with a reason,
+    so that account recovery and incident response are possible and auditable.
+12. As a user, I want short-lived access tokens refreshed through a rotating server-tracked session, so that a
+    stolen access token has bounded value.
+13. As a user, I want concurrent refreshes from one browser handled without false compromise, so that ordinary
+    request races do not revoke my session family.
+14. As a user, I want refresh reuse outside the accepted conflict window treated as compromise, so that copied
+    credentials fail closed.
+15. As a package consumer, I want explicit refresh success, conflict, and terminal failure outcomes, so that my
+    client can coordinate token rotation without guessing at package state.
+16. As a person who forgot a password, I want a generic reset request and a one-time expiring grant, so that I
+    can recover access without account enumeration.
+17. As a user completing password reset, I want all sessions revoked and fresh login required, so that a
+    compromised account is not left active elsewhere.
+18. As an authenticated user, I want to change my password after proving the current one, so that credential
+    changes cannot be made from a merely unattended session.
+19. As an active user, I want to request an email-address change while my old address remains authoritative,
+    so that an unconfirmed destination cannot take over my identity.
+20. As an active user, I want the new address reserved until confirmation, so that concurrent registrations or
+    changes cannot claim it.
+21. As an active user, I want email confirmation to revoke all sessions and require login with the new address,
+    so that stale credentials and identity snapshots stop immediately.
+22. As an active user, I want a pending email change cancellable or expirable, so that its reservation is
+    released without changing my account.
+23. As an authorized super administrator, I want to initiate or cancel the same email-confirmation journey
+    without bypassing mailbox confirmation, so that assistance remains secure and auditable.
+24. As an administrator, I want to disable an account and revoke its sessions immediately, so that access can
+    be suspended without deleting the identity.
+25. As an administrator, I want to enable a disabled account without restoring prior sessions, so that the user
+    returns through normal authentication.
+26. As an authorized super administrator, I want to soft-delete and restore one stable identity, so that audit
+    and historical references remain valid without permitting duplicate reinvitation.
+27. As an authorized super administrator, I want to correct a pending invitation atomically, so that the old
+    address, grant, and delivery are replaced rather than mutated or reused.
+28. As an administrator, I want paginated User, Role, Permission, and Session views, so that administrative
+    clients never receive aggregates or credential material.
+29. As a project maintainer, I want Managed Permissions and Roles reconciled from stable version-controlled
+    definitions, so that authorization policy is reviewed with code.
+30. As a project maintainer, I want Managed Role membership reconciled exactly and atomically, so that removed
+    permissions do not remain silently assigned.
+31. As a super administrator, I want custom Roles managed from existing Permissions while Managed Roles remain
+    runtime-immutable, so that project customization cannot rewrite version-controlled policy.
+32. As a maintainer, I want Permission removal to fail while code or live assignments still reference it, so
+    that authorization checks cannot become dangling names.
+33. As an Application author, I want one immutable authenticated-principal snapshot and one current-principal
+    port, so that use cases never depend on framework security tokens.
+34. As a security reviewer, I want every classified sensitive command to require a secret-free durable audit
+    record, so that mutation success cannot outlive its required evidence.
+35. As an operator, I want security-email work invocation-neutral, so that a project may execute it
+    synchronously or asynchronously without changing Application handlers.
+36. As a framework maintainer, I want a reusable behavioral conformance suite, so that my adapters prove shared
+    outcomes without importing another framework's implementation.
+37. As a package maintainer, I want test-only in-memory repositories and transports, so that the package build
+    remains deterministic and framework-free.
+38. As a package consumer, I want stable public commit references during private incubation, so that integration
+    failures can be reproduced before release tags exist.
+39. As a release operator, I want coherent `0.x` capability milestones, so that version numbers describe usable
+    lifecycle progress without promising `1.0` stability early.
 
-## Completion Notes
+## Implementation Decisions
 
-- `./bin/planning-check` passed after ticket and board synchronization.
-- `./bin/build` passed with 54 tests, 290 assertions, and 113/113 exact statement coverage.
-- The build regression-tests the exact coverage gate: coverage-ignore directives, malformed reports, missing metrics,
-  and incomplete statement coverage fail the build.
-- The invitation follows the established `Domain\\AccessControl\\User` and `Application\\AccessControl\\User` Command/Event/Handler layout, reuses Fight Common values, uses Domain repository interfaces with atomic `add()` operations, and retains no public conformance-contract surface.
+- Fight AccessControl contains Domain and Application code plus tests. It has no production Adapter layer,
+  client application, transport contract, or framework package dependency.
+- The first aggregates are `User`, `Role`, `Permission`, `ActivationGrant`, `PasswordResetGrant`,
+  `EmailChangeGrant`, and `RefreshSession`. Access tokens, email attempts, device labels, and audit projections
+  are not aggregates.
+- `EmailAddress` is the login identity. Canonical email uniqueness spans pending, active, disabled, and deleted
+  identities. Relationships use stable `UserId`; consumer persistence owns the unique database constraint and
+  its future tenant scope.
+- User states distinguish `PENDING_ACTIVATION`, `ACTIVE`, `DISABLED`, and soft-deleted identity. Enablement is
+  not restoration, and deletion never makes the canonical email available for duplicate reinvitation.
+- Invitation atomically creates the pending User, activation grant, encrypted pending delivery, and required
+  audit evidence. The project owns encryption keys, mail transport, templates, persistence, and workers.
+- Activation, password reset, and email change use unrelated purpose-bound, hashed, expiring, single-use
+  grants. Reissue revokes the predecessor rather than reusing a raw credential.
+- Recoverable raw email credentials exist only as bounded ciphertext under an external key and are destroyed
+  after confirmed delivery or terminal expiry. The delivery record is not the authoritative grant.
+- Secret-bearing activation, login, refresh, logout, and password operations use one synchronous
+  `AuthenticationService` rather than serializable Commands. Other mutations retain explicit Commands for
+  invitation, correction, resend, email-change request/confirm/cancel, disable, enable, delete, restore, role
+  assignment, session revocation, and Managed Role/Permission reconciliation. There is no generic account
+  update command.
+- Queries return immutable `UserView`, `RoleView`, `PermissionView`, `SessionView`, authenticated-principal
+  data, or typed pages. Query handlers never return aggregates.
+- Repositories stage or compare-save aggregate changes. Application handlers own the transactional UnitOfWork
+  boundary and dispatch success events only after commit.
+- A classified sensitive command succeeds only when the mutation and required audit evidence are made durable
+  through one atomic UnitOfWork or an atomic durable audit handoff. Ordinary post-commit publication is not
+  sufficient audit durability.
+- A refresh session is authoritative server-side state shared across application instances. It owns credential
+  rotation, revocation, activity, idle and absolute timeouts, authentication version, and coarse device data.
+- The package returns short-lived access-JWT material and an opaque refresh credential while retaining only the
+  refresh-credential digest in authoritative server state. Consumers own how those results are transported and
+  held. Remember-me changes refresh-session persistence and lifetime, not access-token lifetime or authority.
+- Starter defaults are a 15-minute access JWT; ordinary sessions have a one-day idle and two-day absolute
+  server expiry; remembered sessions have a 15-day idle and 30-day absolute expiry. Rotation advances only the
+  idle deadline, never the absolute deadline, and deployments may supply tested alternatives.
+- Concurrent refresh has an explicit bounded conflict outcome. It emits no credential and permits one bounded
+  retry after the winning refresh; reuse outside that window revokes the family as compromise.
+- `AuthenticatedPrincipal` is framework-neutral and immutable. A consumer-owned `CurrentPrincipalProvider`
+  revalidates account state, authentication version, session ownership, and revocation against authoritative
+  storage once per request.
+- Managed Permission definitions have stable UUIDs, uppercase names, and an `ADMIN_SAFE` or
+  `SUPER_ADMIN_ONLY` tier. Managed Role definitions have stable UUIDs and exact Managed Permission membership.
+  Reconciliation preflights completely, supports deterministic dry-run/apply parity, and applies atomically.
+- Shared Application handlers remain indifferent to synchronous or asynchronous invocation. Consumer projects
+  own bus routing, queueing, retries, dead letters, and worker operations.
+- The conformance suite expresses user-observable Domain and Application outcomes. Consumer repositories bind
+  it to their adapters; it does not assert record classes, table names, framework containers, or identical DDL.
+- `0.1.0` contains the completed framework-neutral invitation, activation, delivery recovery, authentication,
+  refresh-session, password and email change, account administration, Role, Permission, managed-policy, Agent,
+  and unified current-authority capabilities with their reusable conformance coverage. Full implementation across
+  the five starters follows tagged Fight AccessControl and Fight Common package releases and is not a `0.1.0`
+  publication prerequisite.
+- Later coherent compatibility fixes and capability refinements advance `0.x`; only a separate stability review
+  may authorize `1.0.0`.
+
+## Testing Decisions
+
+- The primary seam is the canonical framework-free package build composed with the reusable behavioral
+  conformance suite. No framework or infrastructure package may be required to pass it.
+- Focused aggregate tests prove state transitions, invariants, optimistic concurrency expectations, purpose-
+  bound grant behavior, authentication-version changes, and session revocation effects.
+- Application tests use in-memory repositories and deterministic security ports to prove commands, queries,
+  UnitOfWork ownership, success-event ordering, required audit durability, and invocation-mode independence.
+- Conformance tests cover successful and failed user outcomes, generic authentication responses, session
+  rotation and conflict races, grant replay rejection, canonical-email conflicts, and authorization denial.
+- Package architecture tests reject framework imports, production Adapter code, copied Fight Common
+  primitives, and outward dependency direction.
+- Package-install tests prove production autoloading, the compatible Fight Common dependency, absence of
+  framework dependencies, and execution only through public package contracts.
+- Fight AccessControl creates access-JWT material through Fight Common security ports. The five starter
+  repositories will provide later implementation evidence through their consumer-owned clients, transports,
+  persistence, key configuration, mail, queues, and runtime composition while applying the same conformance
+  outcomes against tagged package versions.
+- A shared defect found during later starter implementation is repaired through a reviewed subsequent `0.x`
+  package release and rerun across affected starters. A framework-specific defect does not change package
+  conformance.
+
+## Out of Scope
+
+- Framework service providers, bundles, containers, security providers, middleware, filters, or request
+  attributes.
+- Production persistence records, ORM mappings, repositories, migrations, database or Redis session stores,
+  and database-specific transaction code.
+- Native HTTP actions, response objects, routing, CORS, CSRF, cookie construction, or SPA hosting.
+- OpenAPI documents, generated TypeScript clients, browser applications, and realtime schemas.
+- Mail, template, JWT signing-key implementation, queue, realtime transport, Mercure Hub, Reverb, monitoring,
+  or deployment adapters.
+- Framework-native session authentication is an unsupported consumer fallback. It is not a certified package
+  profile, compatibility target, or substitute for the JWT/refresh-session conformance suite.
+- Public self-registration, multi-tenant organization membership, generalized policy engines, agents, feature
+  flags, or unrelated business capabilities.
+- Public repository visibility, Packagist publication, template enablement, create-project distribution, or
+  release tagging as an effect of this specification.
+
+## Further Notes
+
+- This adopted copy is the repository-local behavioral and security authority. Its source identity is immutable,
+  while all later implementation status, acceptance, and sequencing belong only to Fight AccessControl.
+- On 2026-09-10, local release sequencing was revised to publish the completed framework-neutral package as
+  `v0.1.0` before full starter implementation. Fight Common `v1.2.0` remains a separate release effort; the five
+  starters then adopt tagged package lines and return compatibility findings through later pre-`1.0.0` releases.
+- This Ticket is the permanent product specification synthesized from WF-011, WF-012, WF-016, the bounded WF-017
+  evidence, ADR 0022, and the accepted WF-018 lifecycle and milestone decisions.
+- Fight Common PRD-00016 owns repository authority and transfer. Fight Common PRD-00018 owns framework-native
+  starter delivery and human acceptance. This local Ticket owns only shared AccessControl behavior.
+- Fight Common remains the temporary specification host until the private Fight AccessControl repository is
+  bootstrapped. The bootstrap handoff adopts this specification locally; later detailed ticket status belongs
+  only to that repository.
+
+## Child Tasks
+
+| Order | TASK ID | Title | Status |
+| --- | --- | --- | --- |
+| 1 | [TASK-00001](../tasks/00001-TASK.md) | Invite a pending user | done |
+| 2 | [TASK-00002](../tasks/00002-TASK.md) | Recover and resend activation delivery | done |
+| 3 | [TASK-00003](../tasks/00003-TASK.md) | Activate an invited account | done |
+| 4 | [TASK-00004](../tasks/00004-TASK.md) | Login, cold restore, and current-session logout | done |
+| 5 | [TASK-00005](../tasks/00005-TASK.md) | Secure refresh-session rotation | done |
+| 6 | [TASK-00006](../tasks/00006-TASK.md) | Manage active sessions | done |
+| 7 | [TASK-00007](../tasks/00007-TASK.md) | Recover a forgotten password | done |
+| 8 | [TASK-00008](../tasks/00008-TASK.md) | Change an authenticated password | done |
+| 9 | [TASK-00009](../tasks/00009-TASK.md) | Establish principals and authorization primitives | done |
+| 10 | [TASK-00010](../tasks/00010-TASK.md) | Change and correct identity journeys | done |
+| 11 | [TASK-00011](../tasks/00011-TASK.md) | Administer account lifecycle | done |
+| 12 | [TASK-00012](../tasks/00012-TASK.md) | Reconcile managed policy and custom roles | done |
+| 14 | [TASK-00014](../tasks/00014-TASK.md) | Unify password-reset grant persistence | done |
+| 15 | [TASK-00015](../tasks/00015-TASK.md) | Unify activation-grant persistence | done |
+| 16 | [TASK-00016](../tasks/00016-TASK.md) | Extract the ManagedPolicy capability | done |
+| 17 | [TASK-00017](../tasks/00017-TASK.md) | Complete administrative identity and authorization reads | done |
+| 18 | [TASK-00018](../tasks/00018-TASK.md) | Publish successful security-email delivery events | done |
+| 32 | [TASK-00032](../tasks/00032-TASK.md) | Prepare the v0.1.0 Release Candidate | done |

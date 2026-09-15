@@ -3,7 +3,7 @@
 **Label:** `wayfinder:map`
 **Status:** Closed
 
-> This map is an **index, not a store**. Each material decision lives in exactly one linked ticket under
+> This map is an **index, not a store**. Each material decision lives in exactly one linked decision ticket under
 > `tickets/`; this map only summarizes the linked resolutions and shows the next decision frontier.
 
 ## Destination
@@ -13,7 +13,7 @@ HMAC signed-request authentication, immediate revocation, and an authoritative a
 must retain ownership of transport mapping, persistence, key storage, runtime composition, and permission checks.
 
 **Done** = every linked decision ticket is closed, the remaining fog is resolved or excluded, and the map links
-to its resulting epic, PRDs, and/or implementation tickets.
+to its resulting EPIC, TICKET, and/or implementation TASKs.
 
 ## Notes
 
@@ -61,14 +61,14 @@ to its resulting epic, PRDs, and/or implementation tickets.
    server observability. Consumers own policy and transport behavior. [WF-004](tickets/WF-004-agent-principal-resolution-conformance.md)
    and [ADR 0006](../adr/0006-agent-principal-observability-boundary.md) record the full decision.
 
-## Tickets
+## Decisions
 
-| Ticket | Type | Mode | Status | Depends On |
-|---|---|---|---|---|
-| [Define framework-neutral HMAC Agent authentication](tickets/WF-001-hmac-agent-authentication-boundary.md) | Grilling / Domain Modeling | HITL | **Closed** | — |
-| [Establish Agent credential and revocation lifecycle](tickets/WF-002-agent-credential-revocation-lifecycle.md) | Grilling / Domain Modeling | HITL | **Closed** | WF-001 |
-| [Protect Agent Permission reference integrity](tickets/WF-003-agent-permission-reference-integrity.md) | Grilling / Domain Modeling | HITL | **Closed** | WF-001 |
-| [Specify Agent principal resolution and conformance](tickets/WF-004-agent-principal-resolution-conformance.md) | Grilling / Domain Modeling | HITL | **Closed** | WF-002, WF-003 |
+| Decision ID | Title | Type | Mode | Status | Depends on |
+|---|---|---|---|---|---|
+| WF-001 | [Define framework-neutral HMAC Agent authentication](tickets/WF-001-hmac-agent-authentication-boundary.md) | Grilling / Domain Modeling | HITL | **Closed** | — |
+| WF-002 | [Establish Agent credential and revocation lifecycle](tickets/WF-002-agent-credential-revocation-lifecycle.md) | Grilling / Domain Modeling | HITL | **Closed** | WF-001 |
+| WF-003 | [Protect Agent Permission reference integrity](tickets/WF-003-agent-permission-reference-integrity.md) | Grilling / Domain Modeling | HITL | **Closed** | WF-001 |
+| WF-004 | [Specify Agent principal resolution and conformance](tickets/WF-004-agent-principal-resolution-conformance.md) | Grilling / Domain Modeling | HITL | **Closed** | WF-002, WF-003 |
 
 ## Blocking relationships
 
@@ -80,8 +80,8 @@ HMAC authentication boundary ──┬──→ Credential and revocation lifecy
 ## Frontier
 
 All Wayfinder decision tickets are closed. The approved `/to-spec` handoff produced
-[EPIC-00002](../epics/00002-EPIC.md) and [PRD-00002](../specs/00002-PRD.md). This map has no remaining frontier;
-derive implementation tickets only through a separately approved `/to-tickets` handoff.
+[EPIC-00002](../epics/00002-EPIC.md) and [TICKET-00002](../tickets/00002-TICKET.md). This map has no remaining frontier;
+derive implementation TASKs only through a separately approved `/to-tasks` handoff.
 
 ## Not yet specified (fog)
 

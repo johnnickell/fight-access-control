@@ -44,6 +44,13 @@ def wayfinder_status(path: Path) -> str:
     return match.group(1).strip().casefold() if match else ""
 
 
+def wayfinder_frontier_is_empty(text: str) -> bool:
+    match = re.search(r"^## Frontier\s*\n+(.*?)(?=^## |\Z)", text, re.MULTILINE | re.DOTALL)
+    if match is None:
+        return False
+    return bool(re.search(r"\b(?:none|no wayfinder decision remains|no remaining frontier)\b", match.group(1), re.IGNORECASE))
+
+
 def local_target(source: Path, destination: str) -> Path | None:
     target, _, _anchor = destination.partition("#")
     if not target or target.startswith(("/", "http:", "https:", "mailto:")):
@@ -57,35 +64,77 @@ def require_terminal(selected: list[Path]) -> None:
             raise ValueError(f"{path.relative_to(ROOT)} is not terminal")
 
 
+def require_no_live_dependents(selected_task_ids: set[str], all_tasks: dict[str, Path]) -> None:
+    dependents: list[str] = []
+    for identifier, path in all_tasks.items():
+        if identifier in selected_task_ids:
+            continue
+        blockers = {
+            blocker.strip()
+            for blocker in frontmatter(path).get("blocked_by", "").split(",")
+            if blocker.strip()
+        }
+        if selected := sorted(blockers & selected_task_ids):
+            dependents.append(f"{identifier} depends on {', '.join(selected)}")
+    if dependents:
+        raise ValueError("selected Tasks remain live blockers: " + "; ".join(dependents))
+
+
+def archive_tasks(identifiers: list[str]) -> dict[Path, Path]:
+    current = records("tasks", "-TASK.md")
+    selected = [current[identifier] for identifier in identifiers]
+    require_terminal(selected)
+    require_no_live_dependents(set(identifiers), current)
+    return {path: PLANNING / "tasks/archive" / path.name for path in selected}
+
+
 def archive_tickets(identifiers: list[str]) -> dict[Path, Path]:
     current = records("tickets", "-TICKET.md")
     selected = [current[identifier] for identifier in identifiers]
     require_terminal(selected)
-    return {path: PLANNING / "tickets/archive" / path.name for path in selected}
-
-
-def archive_specs(identifiers: list[str]) -> dict[Path, Path]:
-    current = records("specs", "-PRD.md")
-    selected = [current[identifier] for identifier in identifiers]
-    require_terminal(selected)
-    all_tickets = records("tickets", "-TICKET.md")
+    all_tasks = records("tasks", "-TASK.md")
     for path in selected:
         identifier = frontmatter(path)["id"]
-        children = [ticket for ticket in all_tickets.values() if frontmatter(ticket).get("prd") == identifier]
+        children = [task for task in all_tasks.values() if frontmatter(task).get("ticket") == identifier]
         require_terminal(children)
-    return {path: PLANNING / "specs/archive" / path.name for path in selected}
+    moves = {path: PLANNING / "tickets/archive" / path.name for path in selected}
+    for task in all_tasks.values():
+        if frontmatter(task).get("ticket") in identifiers:
+            moves[task] = PLANNING / "tasks/archive" / task.name
+    require_no_live_dependents(
+        {identifier for identifier, path in all_tasks.items() if path in moves},
+        all_tasks,
+    )
+    return moves
 
 
 def archive_epics(identifiers: list[str]) -> dict[Path, Path]:
     current = records("epics", "-EPIC.md")
     selected = [current[identifier] for identifier in identifiers]
     require_terminal(selected)
-    all_specs = records("specs", "-PRD.md")
+    all_tickets = records("tickets", "-TICKET.md")
+    all_tasks = records("tasks", "-TASK.md")
     for path in selected:
         identifier = frontmatter(path)["id"]
-        children = [spec for spec in all_specs.values() if frontmatter(spec).get("epic") == identifier]
+        children = [ticket for ticket in all_tickets.values() if frontmatter(ticket).get("epic") == identifier]
         require_terminal(children)
-    return {path: PLANNING / "epics/archive" / path.name for path in selected}
+        for ticket in children:
+            ticket_id = frontmatter(ticket)["id"]
+            require_terminal([task for task in all_tasks.values() if frontmatter(task).get("ticket") == ticket_id])
+    moves = {path: PLANNING / "epics/archive" / path.name for path in selected}
+    selected_ticket_ids = set()
+    for ticket in all_tickets.values():
+        if frontmatter(ticket).get("epic") in identifiers:
+            moves[ticket] = PLANNING / "tickets/archive" / ticket.name
+            selected_ticket_ids.add(frontmatter(ticket)["id"])
+    for task in all_tasks.values():
+        if frontmatter(task).get("ticket") in selected_ticket_ids:
+            moves[task] = PLANNING / "tasks/archive" / task.name
+    require_no_live_dependents(
+        {identifier for identifier, path in all_tasks.items() if path in moves},
+        all_tasks,
+    )
+    return moves
 
 
 def archive_wayfinder(name: str) -> dict[Path, Path]:
@@ -96,7 +145,7 @@ def archive_wayfinder(name: str) -> dict[Path, Path]:
     text = path.read_text(encoding="utf-8")
     if wayfinder_status(path) != "closed":
         raise ValueError(f"{path.relative_to(ROOT)} is not Closed")
-    if not re.search(r"^## Frontier\s*\n+None\.", text, re.MULTILINE):
+    if not wayfinder_frontier_is_empty(text):
         raise ValueError(f"{path.relative_to(ROOT)} still has a Wayfinder frontier")
     ticket_paths = [
         PLANNING / "wayfinder/tickets" / match
@@ -106,7 +155,7 @@ def archive_wayfinder(name: str) -> dict[Path, Path]:
         raise ValueError(f"{path.relative_to(ROOT)} has no linked decision tickets")
     if any(not ticket.is_file() or wayfinder_status(ticket) != "closed" for ticket in ticket_paths):
         raise ValueError(f"{path.relative_to(ROOT)} has unresolved decision tickets")
-    if not re.search(r"\]\(\.\./(?:epics|specs|tickets)/", text):
+    if not re.search(r"\]\(\.\./(?:epics|tickets|tasks)/", text):
         raise ValueError(f"{path.relative_to(ROOT)} lacks a linked implementation handoff")
 
     moves = {path: PLANNING / "wayfinder/archive/maps" / path.name}
@@ -147,16 +196,16 @@ def rewrite_links(moves: dict[Path, Path]) -> None:
 
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("kind", choices=("tickets", "specs", "epics", "wayfinder"))
+    parser.add_argument("kind", choices=("tasks", "tickets", "epics", "wayfinder"))
     parser.add_argument("identifiers", nargs="+")
     parser.add_argument("--apply", action="store_true", help="perform the validated archive move")
     args = parser.parse_args()
 
     try:
-        if args.kind == "tickets":
+        if args.kind == "tasks":
+            moves = archive_tasks(args.identifiers)
+        elif args.kind == "tickets":
             moves = archive_tickets(args.identifiers)
-        elif args.kind == "specs":
-            moves = archive_specs(args.identifiers)
         elif args.kind == "epics":
             moves = archive_epics(args.identifiers)
         else:
@@ -180,6 +229,9 @@ def main() -> int:
         destination.parent.mkdir(parents=True, exist_ok=True)
         shutil.move(source, destination)
     rewrite_links(moves)
+    write = subprocess.run([str(ROOT / "bin/planning-check"), "--write"], cwd=ROOT, check=False)
+    if write.returncode:
+        return write.returncode
     return subprocess.run([str(ROOT / "bin/planning-check")], cwd=ROOT, check=False).returncode
 
 

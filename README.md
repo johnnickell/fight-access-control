@@ -23,7 +23,7 @@ Production code follows `Domain <- Application`:
   configuration, mail, queues, realtime, hosting, and composition-root adapters. This package has no PHP
   production Adapter layer.
 
-See [CONTEXT.md](CONTEXT.md) for the accepted vocabulary and [planning/specs/00001-PRD.md](planning/specs/00001-PRD.md)
+See [CONTEXT.md](CONTEXT.md) for the accepted vocabulary and [TICKET-00001](planning/tickets/00001-TICKET.md)
 for the repository-local behavioral and security authority.
 
 ### Current principal composition
