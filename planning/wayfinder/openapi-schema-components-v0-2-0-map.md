@@ -4,7 +4,7 @@
 **Status:** Closed
 
 > This map is an **index, not a store**. Each material decision lives in exactly one linked decision ticket under
-> `tasks/`; this map only summarizes the linked resolutions and shows the next decision frontier.
+> `tickets/`; this map only summarizes the linked resolutions and shows the next decision frontier.
 
 ## Destination
 
@@ -46,7 +46,7 @@ to its resulting EPIC, TICKET, and/or implementation TASKs.
    recurring build. A focused guide ships with the implementation, while a broader documentation-quality pass may
    follow without blocking `v0.2.0`.
 
-## Tasks
+## Decisions
 
 | Decision ID | Title | Type | Mode | Status | Depends on |
 |---|---|---|---|---|---|

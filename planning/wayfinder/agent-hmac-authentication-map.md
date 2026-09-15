@@ -4,7 +4,7 @@
 **Status:** Closed
 
 > This map is an **index, not a store**. Each material decision lives in exactly one linked decision ticket under
-> `tasks/`; this map only summarizes the linked resolutions and shows the next decision frontier.
+> `tickets/`; this map only summarizes the linked resolutions and shows the next decision frontier.
 
 ## Destination
 
@@ -61,7 +61,7 @@ to its resulting EPIC, TICKET, and/or implementation TASKs.
    server observability. Consumers own policy and transport behavior. [WF-004](tickets/WF-004-agent-principal-resolution-conformance.md)
    and [ADR 0006](../adr/0006-agent-principal-observability-boundary.md) record the full decision.
 
-## Tasks
+## Decisions
 
 | Decision ID | Title | Type | Mode | Status | Depends on |
 |---|---|---|---|---|---|
