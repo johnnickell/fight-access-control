@@ -18,7 +18,7 @@ a consumer-owned model, and what implementation and release records are required
   verification command.
 - The consumer-facing composition example, without supplying a root document, routes, or a complete documentation
   build.
-- The epic, Ticket, implementation-ticket, version, changelog, and release-candidate handoff required to move from
+- The EPIC, TICKET, implementation TASK, version, changelog, and release-candidate handoff required to move from
   planning to `v0.2.0` preparation.
 
 ## Resolution boundary

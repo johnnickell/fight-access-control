@@ -205,7 +205,7 @@ authorization-mutation work is complete under TICKET-00004. All TICKET-00003 tas
 - ADR 0006 remains the binding Agent principal and observability decision. ADR 0005 continues to own direct Agent
   Permission-assignment revision and concurrency behavior.
 - TICKET-00004 owns consistent desired-state authorization modifications. The shared exact Permission resolver is an
-  internal implementation detail of both Tasks rather than a standalone product capability.
+  internal implementation detail of both Tickets rather than a standalone product capability.
 - Tasks: [TASK-00026](../tasks/00026-TASK.md), [TASK-00027](../tasks/00027-TASK.md), and
   [TASK-00028](../tasks/00028-TASK.md) are complete.
 - Implementation remains a separately authorized delivery effect.

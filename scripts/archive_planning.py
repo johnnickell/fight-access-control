@@ -152,9 +152,9 @@ def archive_wayfinder(name: str) -> dict[Path, Path]:
         for match in re.findall(r"\]\(tickets/(WF-\d{3}[^)#]+\.md)\)", text)
     ]
     if not ticket_paths:
-        raise ValueError(f"{path.relative_to(ROOT)} has no linked decision tasks")
+        raise ValueError(f"{path.relative_to(ROOT)} has no linked decision tickets")
     if any(not ticket.is_file() or wayfinder_status(ticket) != "closed" for ticket in ticket_paths):
-        raise ValueError(f"{path.relative_to(ROOT)} has unresolved decision tasks")
+        raise ValueError(f"{path.relative_to(ROOT)} has unresolved decision tickets")
     if not re.search(r"\]\(\.\./(?:epics|tickets|tasks)/", text):
         raise ValueError(f"{path.relative_to(ROOT)} lacks a linked implementation handoff")
 

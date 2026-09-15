@@ -46,7 +46,7 @@ Decision A ──→ Decision B ──→ Implementation handoff
 
 ## Not yet specified (fog)
 
-- Record bounded unknowns that may become decision tasks.
+- Record bounded unknowns that may become decision tickets.
 
 ## Out of scope
 

@@ -25,5 +25,5 @@ State what this ticket may settle and what must remain downstream.
 
 ## Resolution
 
-Write this only when the decision is closed. Link the epic, Ticket, or implementation-ticket handoff created by
+Write this only when the decision is closed. Link the EPIC, TICKET, or implementation TASK handoff created by
 the resolved map where relevant.

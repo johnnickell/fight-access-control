@@ -3,7 +3,7 @@
 **Label:** `wayfinder:map`
 **Status:** Closed
 
-> This map is an **index, not a store**. Each material decision lives in exactly one linked ticket under
+> This map is an **index, not a store**. Each material decision lives in exactly one linked decision ticket under
 > `tasks/`; this map only summarizes the linked resolutions and shows the next decision frontier.
 
 ## Destination
@@ -13,7 +13,7 @@ HMAC signed-request authentication, immediate revocation, and an authoritative a
 must retain ownership of transport mapping, persistence, key storage, runtime composition, and permission checks.
 
 **Done** = every linked decision ticket is closed, the remaining fog is resolved or excluded, and the map links
-to its resulting epic, Tasks, and/or implementation tasks.
+to its resulting EPIC, TICKET, and/or implementation TASKs.
 
 ## Notes
 
@@ -79,9 +79,9 @@ HMAC authentication boundary ──┬──→ Credential and revocation lifecy
 
 ## Frontier
 
-All Wayfinder decision tasks are closed. The approved `/to-spec` handoff produced
+All Wayfinder decision tickets are closed. The approved `/to-spec` handoff produced
 [EPIC-00002](../epics/00002-EPIC.md) and [TICKET-00002](../tickets/00002-TICKET.md). This map has no remaining frontier;
-derive implementation tasks only through a separately approved `/to-tasks` handoff.
+derive implementation TASKs only through a separately approved `/to-tasks` handoff.
 
 ## Not yet specified (fog)
 

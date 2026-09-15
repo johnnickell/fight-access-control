@@ -21,7 +21,7 @@ structure, lifecycle, generated views, Wayfinder continuity, and the explicit ar
 | --- | --- | --- | --- |
 | EPIC | EPIC-NNNNN | planning/epics/NNNNN-EPIC.md | — |
 | TICKET | TICKET-NNNNN | planning/tickets/NNNNN-TICKET.md | epic: EPIC-NNNNN |
-| TASK | TASK-NNNNN | planning/tasks/NNNNN-TASK.md | ticket: TICKET-NNNNN |
+| TASK | TASK-NNNNN | planning/tasks/NNNNN-TASK.md | ticket: TICKET-NNNNN, or standalone bug/chore |
 | Wayfinder decision | WF-NNN | planning/wayfinder/tickets/WF-NNN-*.md | its map |
 
 Each level owns an independent five-digit sequence. Preserve numbers, gaps, terminal records, and legacy_id
@@ -44,6 +44,11 @@ an identifier.
 Valid statuses are needs-triage, needs-info, ready-for-agent, ready-for-human, in-progress, done, and wontfix.
 Blocking is derived from unfinished blocked_by TASK edges, not stored as a status.
 
+TASKs normally declare a live or archived `ticket: TICKET-NNNNN` parent. A standalone repair that does not belong
+to an existing Ticket leaves `ticket` empty and declares `kind: bug` or `kind: chore`; it retains the normal TASK
+order, lifecycle, acceptance, verification, blocker, and optional PR metadata. Do not invent a Ticket or EPIC
+parent for this exception.
+
 ## Generated planning views
 
 Task frontmatter is canonical. planning/tasks/README.md, planning/tasks/BOARD.md, EPIC/TICKET child lists, and the
@@ -63,7 +68,7 @@ Human Action, Triage, and Recently Done records.
 
 Wayfinder maps document uncertainty before implementation. They link decision tickets under
 planning/wayfinder/tickets/, contain one authored frontier, and produce an EPIC/TICKET/TASK handoff when closed.
-Wayfinder decision tickets are planning records, not executable implementation TASKs.
+Wayfinder decision tickets are planning records, not executable TASKs.
 
 ## Archive operation — explicit command only
 

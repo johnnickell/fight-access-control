@@ -16,6 +16,7 @@ PLANNING = ROOT / "planning"
 STATUS = {"needs-triage", "needs-info", "ready-for-agent", "ready-for-human", "in-progress", "done", "wontfix"}
 TERMINAL = {"done", "wontfix"}
 KINDS = {"epics": ("EPIC", "-EPIC.md"), "tickets": ("TICKET", "-TICKET.md"), "tasks": ("TASK", "-TASK.md")}
+STANDALONE_TASK_KINDS = {"bug", "chore"}
 LINK = re.compile(r"!?\[[^\]]*\]\(([^\s)]+)")
 
 
@@ -113,11 +114,19 @@ def validate_records(records: dict[str, Record], errors: list[str]) -> None:
         fields = record.fields
         parent_key = "epic" if identifier.startswith("TICKET-") else "ticket"
         parent = fields.get(parent_key, "")
-        if identifier.startswith(("TICKET-", "TASK-")):
-            expected = "EPIC-" if parent_key == "epic" else "TICKET-"
+        if identifier.startswith("TICKET-"):
+            expected = "EPIC-"
             if not parent.startswith(expected) or parent not in records:
                 errors.append(f"{record.path.relative_to(ROOT)}: invalid {parent_key} {parent!r}")
         if identifier.startswith("TASK-"):
+            kind = fields.get("kind", "")
+            if parent:
+                if not parent.startswith("TICKET-") or parent not in records:
+                    errors.append(f"{record.path.relative_to(ROOT)}: invalid ticket {parent!r}")
+            elif kind not in STANDALONE_TASK_KINDS:
+                errors.append(f"{record.path.relative_to(ROOT)}: parentless TASK requires kind chore or bug")
+            if kind and kind not in STANDALONE_TASK_KINDS:
+                errors.append(f"{record.path.relative_to(ROOT)}: invalid TASK kind {kind!r}")
             try:
                 int(fields["order"])
             except (KeyError, ValueError):
@@ -154,16 +163,22 @@ def link_from(source_directory: Path, record: Record) -> str:
 
 
 def task_row(source_directory: Path, task: Record, all_records: dict[str, Record]) -> str:
-    parent = all_records[task.fields["ticket"]]
     blockers = blocker_ids(task)
     blocked_by = ", ".join(
         link_from(source_directory, all_records[blocker])
         for blocker in blockers
     ) if blockers else "—"
     pr = task.fields.get("pr", "—")
+    parent_id = task.fields.get("ticket", "")
+    parent = all_records.get(parent_id)
+    parent_label = (
+        f"{link_from(source_directory, parent)} — {parent.title}"
+        if parent is not None
+        else f"— (standalone {task.fields['kind']})"
+    )
     return (
-        f"| {task.fields['order']} | {link_from(source_directory, task)} | {task.title} | {link_from(source_directory, parent)} — "
-        f"{parent.title} | {task.fields['status']} | {blocked_by} | {pr} |"
+        f"| {task.fields['order']} | {link_from(source_directory, task)} | {task.title} | {parent_label} | "
+        f"{task.fields['status']} | {blocked_by} | {pr} |"
     )
 
 
@@ -173,9 +188,10 @@ def render_task_index(records: dict[str, Record], all_records: dict[str, Record]
     rows = "\n".join(task_row(source, task, all_records) for task in tasks)
     return f"""# Tasks
 
-Tasks are executable vertical slices. Their `ticket` frontmatter connects them to a parent Ticket, and
-`blocked_by` contains only Task IDs. This generated index is a projection; Task records are canonical for scope,
-dependencies, acceptance, and verification. The [Task Board](BOARD.md) is the operational projection.
+Tasks are executable vertical slices. Their `ticket` frontmatter normally connects them to a parent Ticket;
+standalone bugs and chores leave `ticket` empty and declare `kind`. `blocked_by` contains only Task IDs. This
+generated index is a projection; Task records are canonical for scope, dependencies, acceptance, and verification.
+The [Task Board](BOARD.md) is the operational projection.
 
 <!-- generated:task-index:start -->
 | Order | TASK ID | Title | Parent TICKET | Status | Blocked by | PR |

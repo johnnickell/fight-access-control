@@ -3,7 +3,7 @@
 **Label:** `wayfinder:map`
 **Status:** Closed
 
-> This map is an **index, not a store**. Each material decision lives in exactly one linked ticket under
+> This map is an **index, not a store**. Each material decision lives in exactly one linked decision ticket under
 > `tasks/`; this map only summarizes the linked resolutions and shows the next decision frontier.
 
 ## Destination
@@ -14,7 +14,7 @@ payloads, including authentication input and output payloads, and optional JSend
 will define the work required for a verified `v0.2.0` release candidate.
 
 **Done** = every linked decision ticket is closed, the remaining fog is resolved or excluded, and the map links
-to its resulting epic, Tasks, and/or implementation tasks.
+to its resulting EPIC, TICKET, and/or implementation TASKs.
 
 ## Notes
 

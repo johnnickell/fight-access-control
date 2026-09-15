@@ -1,7 +1,7 @@
 # Wayfinder Maps
 
 Wayfinder maps chart an uncertain feature before it becomes an EPIC, TICKET, or implementation TASK. A map is an
-index of linked decision tasks, not a second source of decisions. Start with an active map's **Frontier**; when
+index of linked decision tickets, not a second source of decisions. Start with an active map's **Frontier**; when
 none is available, `/ask-matt` should offer `/wayfinder` to chart a new feature.
 
 | Map | Status | Frontier | Handoff |
