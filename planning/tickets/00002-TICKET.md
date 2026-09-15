@@ -108,7 +108,7 @@ TASK-00022 delivered portable signed-request authentication, canonical HMAC conf
 and atomic nonce/current-credential fencing with exact coverage. TASK-00023 delivered the immutable request-scoped
 Agent principal, complete direct-Permission snapshots, generic secret-free diagnostics, and atomic
 credential/Permission-assignment authority fencing with exact coverage. TASK-00024 completed the distinct User and
-Agent authority contract plus consumer-composed current-security-context facade; all recorded implementation tasks
+Agent authority contract plus consumer-composed current-security-context facade; all recorded implementation TASKs
 are complete with canonical quality gates passing.
 
 ## Further Notes

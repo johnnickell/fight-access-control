@@ -382,6 +382,11 @@ def main() -> int:
     if not ignored:
         errors.append(".runs must be ignored")
 
+    if errors:
+        print("Planning validation failed:")
+        print("\n".join(f"- {error}" for error in errors))
+        return 1
+
     views = generated_views(records, records | archived_records)
     stale = [path.relative_to(ROOT) for path, rendered in views.items() if path.read_text(encoding="utf-8") != rendered]
     if args.write:

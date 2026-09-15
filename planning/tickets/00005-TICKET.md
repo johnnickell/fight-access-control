@@ -15,7 +15,7 @@ their shapes into its own OpenAPI generation process. Recreating those shapes in
 does not show a consumer the expected authentication, administrative, collection, creation, or optional JSend
 outputs. Putting documentation attributes in the core layers would violate the framework-neutral package boundary.
 The repository also needs to adopt the released Fight Common PHPCS baseline and complete its public PHPDoc migration
-without letting documentation-only work silently escape the implementation ticket that owns the dependency upgrade.
+without letting documentation-only work silently escape the implementation TASK that owns the dependency upgrade.
 
 ## Solution
 

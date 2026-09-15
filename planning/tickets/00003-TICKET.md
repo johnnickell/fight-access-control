@@ -179,7 +179,7 @@ nonce behavior, and safe failure outcome.
 
 ## Out of Scope
 
-- Production adapters or implementation tasks in Symfony, Laravel, Yii, CodeIgniter, Slim, Fight CMS, or another
+- Production adapters or implementation TASKs in Symfony, Laravel, Yii, CodeIgniter, Slim, Fight CMS, or another
   consuming project.
 - A shared HTTP abstraction, framework User implementation, controller attribute, middleware, voter, guard, filter,
   response type, or denial format.
