@@ -4,7 +4,7 @@
 **Status:** Closed
 
 > This map is an **index, not a store**. Each material decision lives in exactly one linked ticket under
-> `tickets/`; this map only summarizes the linked resolutions and shows the next decision frontier.
+> `tasks/`; this map only summarizes the linked resolutions and shows the next decision frontier.
 
 ## Destination
 
@@ -13,7 +13,7 @@ HMAC signed-request authentication, immediate revocation, and an authoritative a
 must retain ownership of transport mapping, persistence, key storage, runtime composition, and permission checks.
 
 **Done** = every linked decision ticket is closed, the remaining fog is resolved or excluded, and the map links
-to its resulting epic, PRDs, and/or implementation tickets.
+to its resulting epic, Tasks, and/or implementation tasks.
 
 ## Notes
 
@@ -61,7 +61,7 @@ to its resulting epic, PRDs, and/or implementation tickets.
    server observability. Consumers own policy and transport behavior. [WF-004](tickets/WF-004-agent-principal-resolution-conformance.md)
    and [ADR 0006](../adr/0006-agent-principal-observability-boundary.md) record the full decision.
 
-## Tickets
+## Tasks
 
 | Ticket | Type | Mode | Status | Depends On |
 |---|---|---|---|---|
@@ -79,9 +79,9 @@ HMAC authentication boundary ──┬──→ Credential and revocation lifecy
 
 ## Frontier
 
-All Wayfinder decision tickets are closed. The approved `/to-spec` handoff produced
-[EPIC-00002](../epics/00002-EPIC.md) and [PRD-00002](../specs/00002-PRD.md). This map has no remaining frontier;
-derive implementation tickets only through a separately approved `/to-tickets` handoff.
+All Wayfinder decision tasks are closed. The approved `/to-spec` handoff produced
+[EPIC-00002](../epics/00002-EPIC.md) and [TICKET-00002](../tasks/00002-TASK.md). This map has no remaining frontier;
+derive implementation tasks only through a separately approved `/to-tasks` handoff.
 
 ## Not yet specified (fog)
 

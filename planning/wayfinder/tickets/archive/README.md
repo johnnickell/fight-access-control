@@ -1,3 +1,3 @@
 # Wayfinder Ticket Archive
 
-Archived Wayfinder tickets remain the authoritative record of their resolved planning decision.
+Archived Wayfinder tasks remain the authoritative record of their resolved planning decision.

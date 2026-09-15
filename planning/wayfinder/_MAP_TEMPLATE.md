@@ -4,14 +4,14 @@
 **Status:** Active
 
 > This map is an **index, not a store**. Each material decision lives in exactly one linked ticket under
-> `tickets/`; this map only summarizes the linked resolutions and shows the next decision frontier.
+> `tasks/`; this map only summarizes the linked resolutions and shows the next decision frontier.
 
 ## Destination
 
 Describe the implementation-ready planning result.
 
 **Done** = every linked decision ticket is closed, the remaining fog is resolved or excluded, and the map links
-to its resulting epic, PRDs, and/or implementation tickets.
+to its resulting epic, Tasks, and/or implementation tasks.
 
 ## Notes
 
@@ -28,7 +28,7 @@ to its resulting epic, PRDs, and/or implementation tickets.
 
 1. **[Decision title](tickets/WF-NNN-decision.md) is open.** State the unresolved decision and its boundary.
 
-## Tickets
+## Tasks
 
 | Ticket | Type | Mode | Status | Depends On | Gate |
 |---|---|---|---|---|---|
@@ -46,7 +46,7 @@ Decision A ──→ Decision B ──→ Implementation handoff
 
 ## Not yet specified (fog)
 
-- Record bounded unknowns that may become decision tickets.
+- Record bounded unknowns that may become decision tasks.
 
 ## Out of scope
 

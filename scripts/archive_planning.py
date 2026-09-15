@@ -57,30 +57,30 @@ def require_terminal(selected: list[Path]) -> None:
             raise ValueError(f"{path.relative_to(ROOT)} is not terminal")
 
 
-def archive_tickets(identifiers: list[str]) -> dict[Path, Path]:
-    current = records("tickets", "-TICKET.md")
+def archive_tasks(identifiers: list[str]) -> dict[Path, Path]:
+    current = records("tasks", "-TICKET.md")
     selected = [current[identifier] for identifier in identifiers]
     require_terminal(selected)
-    return {path: PLANNING / "tickets/archive" / path.name for path in selected}
+    return {path: PLANNING / "tasks/archive" / path.name for path in selected}
 
 
 def archive_specs(identifiers: list[str]) -> dict[Path, Path]:
-    current = records("specs", "-PRD.md")
+    current = records("specs", "-Task.md")
     selected = [current[identifier] for identifier in identifiers]
     require_terminal(selected)
-    all_tickets = records("tickets", "-TICKET.md")
+    all_tasks = records("tasks", "-TICKET.md")
     for path in selected:
         identifier = frontmatter(path)["id"]
-        children = [ticket for ticket in all_tickets.values() if frontmatter(ticket).get("prd") == identifier]
+        children = [ticket for ticket in all_tasks.values() if frontmatter(ticket).get("prd") == identifier]
         require_terminal(children)
-    return {path: PLANNING / "specs/archive" / path.name for path in selected}
+    return {path: PLANNING / "tasks/archive" / path.name for path in selected}
 
 
 def archive_epics(identifiers: list[str]) -> dict[Path, Path]:
     current = records("epics", "-EPIC.md")
     selected = [current[identifier] for identifier in identifiers]
     require_terminal(selected)
-    all_specs = records("specs", "-PRD.md")
+    all_specs = records("specs", "-Task.md")
     for path in selected:
         identifier = frontmatter(path)["id"]
         children = [spec for spec in all_specs.values() if frontmatter(spec).get("epic") == identifier]
@@ -99,19 +99,19 @@ def archive_wayfinder(name: str) -> dict[Path, Path]:
     if not re.search(r"^## Frontier\s*\n+None\.", text, re.MULTILINE):
         raise ValueError(f"{path.relative_to(ROOT)} still has a Wayfinder frontier")
     ticket_paths = [
-        PLANNING / "wayfinder/tickets" / match
-        for match in re.findall(r"\]\(tickets/(WF-\d{3}[^)#]+\.md)\)", text)
+        PLANNING / "wayfinder/tasks" / match
+        for match in re.findall(r"\]\(tasks/(WF-\d{3}[^)#]+\.md)\)", text)
     ]
     if not ticket_paths:
-        raise ValueError(f"{path.relative_to(ROOT)} has no linked decision tickets")
+        raise ValueError(f"{path.relative_to(ROOT)} has no linked decision tasks")
     if any(not ticket.is_file() or wayfinder_status(ticket) != "closed" for ticket in ticket_paths):
-        raise ValueError(f"{path.relative_to(ROOT)} has unresolved decision tickets")
-    if not re.search(r"\]\(\.\./(?:epics|specs|tickets)/", text):
+        raise ValueError(f"{path.relative_to(ROOT)} has unresolved decision tasks")
+    if not re.search(r"\]\(\.\./(?:epics|specs|tasks)/", text):
         raise ValueError(f"{path.relative_to(ROOT)} lacks a linked implementation handoff")
 
     moves = {path: PLANNING / "wayfinder/archive/maps" / path.name}
     for ticket in ticket_paths:
-        moves[ticket] = PLANNING / "wayfinder/tickets/archive" / ticket.name
+        moves[ticket] = PLANNING / "wayfinder/tasks/archive" / ticket.name
         research = PLANNING / "wayfinder/research" / f"{ticket.stem}-research.md"
         if research.is_file():
             moves[research] = PLANNING / "wayfinder/research/archive" / research.name
@@ -147,14 +147,14 @@ def rewrite_links(moves: dict[Path, Path]) -> None:
 
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("kind", choices=("tickets", "specs", "epics", "wayfinder"))
+    parser.add_argument("kind", choices=("tasks", "specs", "epics", "wayfinder"))
     parser.add_argument("identifiers", nargs="+")
     parser.add_argument("--apply", action="store_true", help="perform the validated archive move")
     args = parser.parse_args()
 
     try:
-        if args.kind == "tickets":
-            moves = archive_tickets(args.identifiers)
+        if args.kind == "tasks":
+            moves = archive_tasks(args.identifiers)
         elif args.kind == "specs":
             moves = archive_specs(args.identifiers)
         elif args.kind == "epics":

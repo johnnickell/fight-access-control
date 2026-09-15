@@ -1,0 +1,15 @@
+---
+id: TASK-NNNNN
+ticket: TICKET-NNNNN
+title: Brief executable slice
+status: ready-for-agent
+blocked_by:
+---
+# Brief executable slice
+## What to Build
+Describe one independently verifiable vertical slice.
+## Acceptance Criteria
+- [ ] State observable behavior and the proving seam.
+## Verification
+- planning-check
+- build

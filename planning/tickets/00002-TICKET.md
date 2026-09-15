@@ -1,39 +1,132 @@
 ---
-id: T-00002
-prd: PRD-00001
-title: Recover and resend activation delivery
+id: TICKET-00002
+legacy_id: PRD-00002
+epic: EPIC-00002
+title: Agent HMAC Authentication and Direct Authority
 status: done
-blocked_by: T-00001
 ---
 
-# Recover and resend activation delivery
+# Agent HMAC Authentication and Direct Authority
 
-## Outcome
+## Problem Statement
 
-An inviter can discover failed activation delivery and retry it without duplicating an identity; a resend replaces
-the prior activation grant so only the newest message can activate the account.
+Fight applications need a safe, repeatable way for an external machine to prove its identity when calling an
+application. Reusing a person’s login session for that purpose would blur two different kinds of authority, while
+letting every application invent its own signed-request rules would create inconsistent security behavior.
 
-## Acceptance Criteria
+## Solution
 
-- [x] Delivery work is queryable by a safe operational status and can be retried through an invocation-neutral port.
-- [x] Resend revokes the predecessor activation grant and stages new recoverable delivery work.
-- [x] Confirmed delivery and terminal expiry destroy the recoverable raw credential.
-- [x] Tests prove retry, predecessor rejection, and failure recovery behavior.
+Fight AccessControl will provide framework-free Domain and Application behavior for an Agent with one active HMAC
+credential and direct Permission assignments. A consumer application turns its incoming request into the package’s
+simple signed-request input. The package verifies that input, returns a safe immutable Agent identity for the
+current request, and reports only whether that identity has a named Permission. The consumer retains ownership of
+HTTP, persistence, cryptographic keys, logs, metrics, and the decision about whether a Permission is enough to
+allow a particular action.
 
-## Scope
+## User Stories
 
-### Out of Scope
+1. As an application maintainer, I want to provision one Agent credential, so that a machine can identify itself
+   without using a person’s account or browser session.
+2. As an application maintainer, I want each Agent to have a required human-friendly name, so that I can identify
+   the correct machine authority in a safe administrative read without relying on a UUID alone.
+3. As an application maintainer, I want a credential rotation to replace the old credential immediately, so that a
+   suspected secret exposure has no grace period.
+4. As an application maintainer, I want to revoke an Agent permanently, so that its credential cannot be reused.
+5. As an Agent client, I want to sign one portable request shape, so that the same security rules apply in every
+   supported application.
+6. As a security reviewer, I want invalid, expired, future-dated, malformed, and replayed requests rejected, so
+   that forged or copied requests cannot gain authority.
+7. As an operator, I want generic caller-facing denials with a safe diagnostic category and correlation identifier,
+   so that I can investigate failures without leaking secrets or creating an authentication oracle.
+8. As an application author, I want a distinct immutable Agent identity for one request, so that machine authority
+   cannot be mistaken for a User identity or refresh session.
+9. As an application author, I want resolution performed once per request, so that every use case in that request
+   sees the same authoritative Agent snapshot.
+10. As a maintainer, I want to assign direct Permissions to an Agent, so that its authority is explicit and does not
+   require Agent Roles or a general policy engine.
+11. As a maintainer, I want a Permission removal to fail while an Agent still uses it, so that authority never
+    silently points at a missing Permission.
+12. As a consumer application, I want to decide endpoint policy and HTTP responses myself, so that the package does
+    not prescribe framework middleware, headers, or denial formats.
+13. As a framework maintainer, I want the same observable behavior proven through my adapter, so that portability
+    does not depend on identical controllers, tables, or containers.
 
-No queue worker, mail provider, template, or encryption implementation.
+## Implementation Decisions
 
-## Verification
+- Add an extensible Agent aggregate with a required, operator-facing name, lifecycle state, one public credential
+  identity, credential revision, one consumer-encrypted shared-secret envelope, and a duplicate-free set of direct
+  Permission identifiers. The name is neither unique nor part of credential authentication or authorization.
+- Provision, rotate, and revoke credentials through atomic Application operations. Raw shared-secret material exists
+  only while the operation succeeds or while a signature is verified; messages, views, audit evidence, events, and
+  failures remain secret-free.
+- Accept a framework-free signed request containing uppercase method, authority, path, normalized query, timestamp,
+  nonce, and a digest only for a non-empty body. Validate request shape and freshness, credential and body digest,
+  signature, then atomically consume the nonce.
+- Require timestamps no more than five minutes in the past and reject every future timestamp. Authenticate only
+  against the credential identity and revision that remain current at atomic nonce consumption.
+- Provide a distinct immutable authenticated Agent principal containing Agent ID, credential ID and revision,
+  Permission-assignment revision, and direct Permission snapshots by ID and canonical name. It reports presence of
+  a named Permission but never decides authorization policy.
+- Provide a consumer-composed current-Agent-principal provider that authenticates once and returns the same
+  immutable result for the request lifetime. Never reuse User principals or refresh sessions.
+- Keep User and Agent principals distinct while exposing their common Permission-presence behavior through a narrow
+  authenticated-authority contract and consumer-composed current-security-context facade. User authority retains
+  Role checks; Agent authority reports no Roles. Consumers select the valid request authority and remain responsible
+  for transport mapping and endpoint policy.
+- Return one generic denial for every failed authentication or authority condition. Preserve only a secret-free
+  diagnostic classification and consumer correlation identifier for server-side observability.
+- Use Fight Common’s public HMAC behavior through a transport-neutral bridge. Do not copy HMAC logic or introduce a
+  production Adapter layer.
 
-- `./bin/phpunit`
-- `./bin/planning-check`
-- `./bin/build`
+## Testing Decisions
 
-## Completion Notes
+- The primary proof is a framework-free behavioral test suite: given a signed-request input and authoritative Agent
+  state, it observes success, a complete immutable principal, or one generic safe denial.
+- Tests cover malformed components, expiry and future timestamps, wrong body digest, invalid signature, replay,
+  revoked or rotated credentials, stale revisions, missing Permissions, and stale assignment references.
+- Tests prove that an invalid signature does not consume a nonce, that only one successful request uses a nonce,
+  and that credential or assignment changes at the authority fence fail closed without partial state.
+- Tests prove once-per-request resolution, secret-free diagnostics, Permission presence without policy decisions,
+  and consumer mapping into the signed-request value without assuming headers, middleware, or HTTP responses.
+- Aggregate and Application tests use deterministic in-memory repositories and security ports; consumer adapters
+  apply the same observable suite without requiring identical persistence or framework wiring.
 
-- `./bin/planning-check` passed with 2 records and 2 active.
-- `./bin/build` passed with 73 tests, 378 assertions, and 267/267 exact statement coverage.
-- Safe delivery status, retry failure recovery, and atomic resend are covered through framework-neutral Domain and Application seams; no production Adapter, mail, queue, template, or encryption implementation was introduced.
+## Out of Scope
+
+- HTTP actions, routes, headers, middleware, framework security providers, response objects, and denial formats.
+- Production persistence adapters, schemas, migrations, nonce-store technology, key vaults, encryption-key
+  management, secret-delivery channels, logging backends, metrics backends, queues, and runtime composition.
+- Agent Roles, permission-name conventions, a generalized policy engine, AI personas, autonomous-agent behavior,
+  JWTs, bearer API keys, browser sessions, refresh sessions, and grace credentials.
+- Any public release, tag, package publication, or consumer application implementation.
+
+## Progress
+
+TASK-00019, TASK-00020, TASK-00021, and TASK-00025 are complete with their canonical quality gates passing. TASK-00021 delivered
+revision-fenced direct Permission management, the shared Agent/Role removal fence, and exact secret-free Agent reads.
+TASK-00022 delivered portable signed-request authentication, canonical HMAC conformance proof, body-digest validation,
+and atomic nonce/current-credential fencing with exact coverage. TASK-00023 delivered the immutable request-scoped
+Agent principal, complete direct-Permission snapshots, generic secret-free diagnostics, and atomic
+credential/Permission-assignment authority fencing with exact coverage. TASK-00024 completed the distinct User and
+Agent authority contract plus consumer-composed current-security-context facade; all recorded implementation tasks
+are complete with canonical quality gates passing.
+
+## Further Notes
+
+- This specification synthesizes the closed [Agent HMAC Wayfinder map](../wayfinder/agent-hmac-authentication-map.md)
+  and [WF-001](../wayfinder/tickets/WF-001-hmac-agent-authentication-boundary.md) through
+  [WF-004](../wayfinder/tickets/WF-004-agent-principal-resolution-conformance.md).
+- [ADR 0004](../adr/0004-agent-hmac-credential-lifecycle.md), [ADR 0005](../adr/0005-agent-direct-permission-assignment-revision.md),
+  and [ADR 0006](../adr/0006-agent-principal-observability-boundary.md) are binding decisions.
+- Tasks: [TASK-00019](../tasks/00019-TASK.md) through [TASK-00025](../tasks/00025-TASK.md), ordered by their
+  recorded blocking edges.
+
+## Child Tasks
+
+- [TASK-00019](../tasks/00019-TASK.md)
+- [TASK-00024](../tasks/00024-TASK.md)
+- [TASK-00025](../tasks/00025-TASK.md)
+- [TASK-00020](../tasks/00020-TASK.md)
+- [TASK-00021](../tasks/00021-TASK.md)
+- [TASK-00023](../tasks/00023-TASK.md)
+- [TASK-00022](../tasks/00022-TASK.md)

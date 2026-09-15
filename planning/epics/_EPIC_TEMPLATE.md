@@ -15,9 +15,9 @@ Describe the durable outcome and the boundary of this epic.
 
 - Link accepted decisions and their consequences.
 
-## PRDs
+## Tasks
 
-- PRD-NNNNN — Title
+- Ticket-NNNNN — Title
 
 ## Progress
 

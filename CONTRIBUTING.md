@@ -7,7 +7,7 @@ provided under the repository's [MIT License](LICENSE).
 ## Before changing code
 
 Read [CLAUDE.md](CLAUDE.md), [CONTEXT.md](CONTEXT.md), and the repository-local planning authority under
-[planning/](planning/README.md). Work only from a ready local ticket. Detailed capability tickets are not part
+[planning/](planning/README.md). Work only from a ready local ticket. Detailed capability tasks are not part
 of the bootstrap itself.
 
 Use Git Flow:

@@ -18,7 +18,7 @@ a consumer-owned model, and what implementation and release records are required
   verification command.
 - The consumer-facing composition example, without supplying a root document, routes, or a complete documentation
   build.
-- The epic, PRD, implementation-ticket, version, changelog, and release-candidate handoff required to move from
+- The epic, Ticket, implementation-ticket, version, changelog, and release-candidate handoff required to move from
   planning to `v0.2.0` preparation.
 
 ## Resolution boundary
@@ -40,7 +40,7 @@ payloads, browser cookie and portable token-set profiles, optional JSend success
 mutation results, and empty success. It is a focused first guide and may inform a later documentation-quality pass;
 that broader effort does not block `v0.2.0`.
 
-[EPIC-00004](../../epics/00004-EPIC.md), [PRD-00005](../../specs/00005-PRD.md), and
-[T-00033](../../tickets/00033-TICKET.md) are the implementation handoff. The ticket prepares the changelog and
+[EPIC-00004](../../epics/00004-EPIC.md), [TICKET-00005](../../tasks/00005-TASK.md), and
+[TASK-00033](../../tasks/00033-TASK.md) are the implementation handoff. The ticket prepares the changelog and
 release candidate after its local proof and canonical gates pass. Tagging, push, and publication remain separately
 authorized effects.
