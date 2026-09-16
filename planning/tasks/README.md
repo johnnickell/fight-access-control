@@ -42,5 +42,5 @@ The [Task Board](BOARD.md) is the operational projection.
 | 33 | [TASK-00033](00033-TASK.md) | Publish composable OpenAPI schema components for v0.2.0 | [TICKET-00005](../tickets/00005-TICKET.md) — Composable OpenAPI Schema Components | done | — | — |
 | 34 | [TASK-00034](00034-TASK.md) | Repair PR #55 planning terminology and standalone-chore support | — (standalone chore) | done | — | https://github.com/johnnickell/fight-access-control/pull/55 |
 | 35 | [TASK-00035](00035-TASK.md) | Authorize Agent-protected MCP Tools | [TICKET-00006](../tickets/00006-TICKET.md) — Authorize Agent-Protected MCP Tools | needs-info | — | — |
-| 36 | [TASK-00036](00036-TASK.md) | Keep Board next-action guidance truthful for blocked planning work | — (standalone bug) | done | — |  |
+| 36 | [TASK-00036](00036-TASK.md) | Keep Board next-action guidance truthful for blocked planning work | — (standalone bug) | done | — | https://github.com/johnnickell/fight-access-control/pull/56 |
 <!-- generated:task-index:end -->
