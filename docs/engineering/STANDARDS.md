@@ -4,7 +4,7 @@ Adoption date: 2026-09-15
 Baseline identity: Fight engineering baseline v1
 Project binding: [AccessControl profile](../../planning/agents/project-profile.md)
 
-The ten canonical standards below are copied into this checkout for self-contained use. Source and installed bytes are identical at adoption; the source remains private and its filesystem identity is intentionally not distributed.
+The ten canonical standards below are copied into this checkout for self-contained use. Source and installed bytes were identical at initial adoption; the source remains private and its filesystem identity is intentionally not distributed.
 
 | Standard | Source SHA-256 | Installed SHA-256 |
 | --- | --- | --- |
@@ -15,8 +15,8 @@ The ten canonical standards below are copied into this checkout for self-contain
 | [HTTP](standards/HTTP.md) | `456f7161f08bdd23063bab934ba9a26fb178f0e1ad35e0d898255dd9702626c9` | `456f7161f08bdd23063bab934ba9a26fb178f0e1ad35e0d898255dd9702626c9` |
 | [Naming](standards/Naming.md) | `783c67a53b62f9a1576a3a0c00a6438f1b6c40b0df84f268874689b715e74907` | `783c67a53b62f9a1576a3a0c00a6438f1b6c40b0df84f268874689b715e74907` |
 | [PHP](standards/PHP.md) | `b102071e4939424796e4edc20d0b46373210634189c8f024038214e0e18cf623` | `b102071e4939424796e4edc20d0b46373210634189c8f024038214e0e18cf623` |
-| [Planning](standards/Planning.md) | `c15df40af05655716afef68d6d3368396e335d673a96af319441a2d896792b2b` | `c15df40af05655716afef68d6d3368396e335d673a96af319441a2d896792b2b` |
-| [Review](standards/Review.md) | `1387e6ac9a6d90bf1e7cafecb095071956803c9aa0eea5bd241e2dd41e018568` | `1387e6ac9a6d90bf1e7cafecb095071956803c9aa0eea5bd241e2dd41e018568` |
+| [Planning](standards/Planning.md) | `616c8e3a793e200747a98b9b918ed921ac17708f4e08b0925a94bd04a79a1bd1` | `313bf61c904e9442aa38e28d6a60713fcea83a6cd8d83abbb2c6554150b062ad` |
+| [Review](standards/Review.md) | `2ca7733b638b4106f6fab34c60223c2d3cae95ec657a230d7cc20df63192d942` | `0923c55c50b261f48d13cd0484bd0c6eda872efaadcc6e2e3ef885187c0da8a8` |
 | [Testing](standards/Testing.md) | `fdab5a64ba92f406d63c28d48d6fdf800397c079c29932372746caf31f2c432f` | `fdab5a64ba92f406d63c28d48d6fdf800397c079c29932372746caf31f2c432f` |
 
 ## Link transformations
@@ -39,3 +39,7 @@ This adoption does not certify all existing code against the baseline. Its compa
   run evidence that explains its ownership and verification.
 - **Approval/reference:** Existing AccessControl `AGENTS.md` run-and-worktree contract, preserved during the
   2026-09-15 Fight guidance adoption in PR #55.
+
+## Targeted standards refresh — 2026-09-16
+
+Planning now distinguishes unfinished, executable and attention-needed work, with truthful next-action fallbacks. Review now checks omitted states and cross-view contradictions against independent expected behavior. Only these approved clauses were applied; earlier baseline content, project bindings and exceptions remain unchanged. Installed digests above identify the resulting local documents. Source digests for the refreshed rows identify the current authoring documents; a differing installed digest reflects this selective update rather than full replacement.

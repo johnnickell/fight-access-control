@@ -31,6 +31,8 @@ Only apply relevant standards. Missing runtime behavior is not an automatic fail
 
 ## Scoring
 
+When changed behavior selects work, summarizes state, or supplies a fallback, inspect the relevant states omitted from the happy path and the meaning of empty results. Check summary claims against authoritative records and related views; a generated file matching its generator proves freshness, not correctness. For planning-tool adoption or changes, examine the focused qualification of empty/completed-only, information-needed, triage, dependency-blocked and mixed-priority portfolios. Derive expected outcomes from the contract independently of the selector under review. Map confirmed defects or missing required evidence to the existing criteria without adding scoring categories, requiring literal wording, or expanding into unrelated states and tooling.
+
 Each criterion is **Pass**, **Fail**, **Unverified**, or **Not applicable**, with evidence/reason. Fail needs a confirmed violation. Unverified means required proof is absent, remains applicable, and prevents completion; it is not a proven code defect. N/A requires a valid exclusion rather than missing evidence.
 
 For each axis independently: `score = 100 × passed / (passed + failed + unverified)`. Display counts and the score; if no criteria apply, report N/A, not 100. Every applicable criterion must pass before merging, regardless of rounding, unless John explicitly authorizes the scoped review-score override below. Multiple findings keep their criterion failed until all confirmed violations are resolved. Severity orders repairs; it does not change the score or make a mandatory rule optional. Advisory suggestions do not deduct points.
