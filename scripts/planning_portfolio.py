@@ -235,6 +235,16 @@ def render_board(records: dict[str, Record], all_records: dict[str, Record]) -> 
         next_item = f"Active Task: {link_from(source, in_progress[0])} — {in_progress[0].title}."
     elif ready:
         next_item = f"First ready Task: {link_from(source, ready[0])} — {ready[0].title}."
+    elif needs_info:
+        next_item = (
+            f"Needs information: {link_from(source, needs_info[0])} — {needs_info[0].title}. "
+            "This Task is not executable until the missing information is resolved."
+        )
+    elif triage:
+        next_item = (
+            f"Needs triage: {link_from(source, triage[0])} — {triage[0].title}. "
+            "This Task is not executable until it is triaged."
+        )
     return f"""# Task Board
 
 This generated execution view preserves the portfolio. Individual Task records are canonical for scope,

@@ -36,6 +36,10 @@ behavior shared by Fight applications. The repository-local behavioral and secur
 - **Current Agent principal provider**: a consumer-composed, request-scoped module that authenticates one signed
   Agent request and returns its cached immutable Authenticated Agent principal for that request. Authentication,
   authority revalidation, Permission snapshot resolution, safe diagnostics, and request caching form one flow.
+- **Agent-aware MCP tool availability**: an AccessControl-owned, request-scoped decision that maps a Fight Common
+  canonical tool name to static required-Permission metadata and checks it against one current Authenticated Agent
+  principal snapshot. Common receives only available or unavailable; later MCP requests resolve current authority
+  again, and unavailable and unknown tools remain publicly indistinguishable.
 - **Security context**: one request-specific, consumer-selected Authenticated User or Authenticated Agent authority.
   It is constructed with exactly that one authority and provides the common Permission and Role checks used by
   consuming code. Consumers select the authentication path through their framework adapters; the package does not

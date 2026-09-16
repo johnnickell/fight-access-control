@@ -61,8 +61,9 @@ The write form regenerates views; the read-only form validates IDs, parents, dep
 ignored run space, and view freshness. Do not hand-edit generated rows.
 
 The Board has the contract used by /ask-matt: surface a current human decision first and the active TASK when one
-exists; otherwise surface the first ready TASK. It separates In Progress, Ready Frontier, Waiting, Needs Info,
-Human Action, Triage, and Recently Done records.
+exists; otherwise surface the active TASK, first executable ready TASK, first needs-info TASK, first needs-triage
+TASK, then the empty-portfolio fallback. Needs-info and needs-triage TASKs are not executable. It separates In
+Progress, Ready Frontier, Waiting, Needs Info, Human Action, Triage, and Recently Done records.
 
 ## Wayfinder
 

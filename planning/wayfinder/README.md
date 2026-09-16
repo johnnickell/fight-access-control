@@ -6,6 +6,7 @@ none is available, `/ask-matt` should offer `/wayfinder` to chart a new feature.
 
 | Map | Status | Frontier | Handoff |
 |---|---|---|---|
+| [Agent-aware MCP authorization and self-service profile tools](agent-aware-mcp-authorization-map.md) | Active | Self-service profile contract (not yet opened) | [EPIC-00005](../epics/00005-EPIC.md) |
 | [OpenAPI schema components for v0.2.0](openapi-schema-components-v0-2-0-map.md) | Closed | — | [TASK-00033](../tasks/00033-TASK.md) |
 | [Agent HMAC authentication and direct authority](agent-hmac-authentication-map.md) | Closed | — | [TICKET-00002](../tickets/00002-TICKET.md) |
 
