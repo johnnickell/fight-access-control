@@ -9,3 +9,4 @@ This generated index is a projection; individual records remain canonical.
 | [TICKET-00003](00003-TICKET.md) | Unified Authenticated Authority | done |
 | [TICKET-00004](00004-TICKET.md) | Consistent Authorization Modification | done |
 | [TICKET-00005](00005-TICKET.md) | Composable OpenAPI Schema Components | done |
+| [TICKET-00006](00006-TICKET.md) | Authorize Agent-Protected MCP Tools | needs-info |

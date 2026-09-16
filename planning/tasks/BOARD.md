@@ -5,7 +5,7 @@ dependencies, acceptance, and verification.
 
 ## What's Next?
 
-No non-terminal Task exists. Any future release decision requires separate human authorization.
+Needs information: [TASK-00035](00035-TASK.md) — Authorize Agent-protected MCP Tools. This Task is not executable until the missing information is resolved.
 
 ## In Progress
 
@@ -21,7 +21,9 @@ No Tasks are currently in this state.
 
 ## Needs Info
 
-No Tasks are currently in this state.
+| Order | TASK ID | Title | Parent TICKET | Status | Blocked by | PR |
+| --- | --- | --- | --- | --- | --- | --- |
+| 35 | [TASK-00035](00035-TASK.md) | Authorize Agent-protected MCP Tools | [TICKET-00006](../tickets/00006-TICKET.md) — Authorize Agent-Protected MCP Tools | needs-info | — | — |
 
 ## Human Action
 
@@ -68,3 +70,4 @@ No Tasks are currently in this state.
 | 32 | [TASK-00032](00032-TASK.md) | Prepare the v0.1.0 Release Candidate | [TICKET-00001](../tickets/00001-TICKET.md) — Fight AccessControl Identity and Authentication Lifecycle | done | — | — |
 | 33 | [TASK-00033](00033-TASK.md) | Publish composable OpenAPI schema components for v0.2.0 | [TICKET-00005](../tickets/00005-TICKET.md) — Composable OpenAPI Schema Components | done | — | — |
 | 34 | [TASK-00034](00034-TASK.md) | Repair PR #55 planning terminology and standalone-chore support | — (standalone chore) | done | — | https://github.com/johnnickell/fight-access-control/pull/55 |
+| 36 | [TASK-00036](00036-TASK.md) | Keep Board next-action guidance truthful for blocked planning work | — (standalone bug) | done | — |  |
