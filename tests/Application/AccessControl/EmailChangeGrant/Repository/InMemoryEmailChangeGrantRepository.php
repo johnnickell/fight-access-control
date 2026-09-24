@@ -9,6 +9,7 @@ use Fight\AccessControl\Domain\AccessControl\CredentialDelivery\CredentialDelive
 use Fight\AccessControl\Domain\AccessControl\CredentialDelivery\DueCredentialDelivery;
 use Fight\AccessControl\Domain\AccessControl\EmailChangeGrant\EmailChangeDeliveryId;
 use Fight\AccessControl\Domain\AccessControl\EmailChangeGrant\EmailChangeGrant;
+use Fight\AccessControl\Domain\AccessControl\EmailChangeGrant\EmailChangeGrantId;
 use Fight\AccessControl\Domain\AccessControl\EmailChangeGrant\EmailChangeGrantRepository;
 use Fight\AccessControl\Domain\AccessControl\EmailChangeGrant\Exception\EmailChangeGrantException;
 use Fight\AccessControl\Domain\AccessControl\User\UserId;
@@ -68,11 +69,9 @@ final class InMemoryEmailChangeGrantRepository implements EmailChangeGrantReposi
         if (
             !$this->addSucceeds
             || $this->getLatestByUserId($emailChangeGrant->getUserId()) instanceof EmailChangeGrant
-            || $emailChangeGrant->getRevision() !== 0
-            || !$emailChangeGrant->isIssued()
-            || $emailChangeGrant->getDelivery()->getStatus() !== CredentialDeliveryStatus::PENDING
-            || !$emailChangeGrant->getDelivery()->isRecoverable()
-            || !$emailChangeGrant->getDelivery()->getUserId()->equals($emailChangeGrant->getUserId())
+            || !$this->isPristine($emailChangeGrant)
+            || $this->hasGrantId($emailChangeGrant->getId())
+            || $this->hasDeliveryId($emailChangeGrant->getDelivery()->getId())
             || array_any(
                 $this->emailChangeGrants,
                 static fn(EmailChangeGrant $stored): bool =>
@@ -288,6 +287,35 @@ final class InMemoryEmailChangeGrantRepository implements EmailChangeGrantReposi
         }
 
         return $predecessor->expireDeliveryAt($after->getExpiresAt());
+    }
+
+    private function hasDeliveryId(EmailChangeDeliveryId $emailChangeDeliveryId): bool
+    {
+        return array_any(
+            $this->emailChangeGrants,
+            fn(EmailChangeGrant $emailChangeGrant): bool =>
+                $emailChangeGrant->getDelivery()->getId()->equals($emailChangeDeliveryId)
+        );
+    }
+
+    private function hasGrantId(EmailChangeGrantId $emailChangeGrantId): bool
+    {
+        return array_any(
+            $this->emailChangeGrants,
+            fn(EmailChangeGrant $emailChangeGrant): bool => $emailChangeGrant->getId()->equals($emailChangeGrantId)
+        );
+    }
+
+    private function isPristine(EmailChangeGrant $emailChangeGrant): bool
+    {
+        $delivery = $emailChangeGrant->getDelivery();
+
+        return $emailChangeGrant->getRevision() === 0
+            && $emailChangeGrant->isIssued()
+            && $delivery->getStatus() === CredentialDeliveryStatus::PENDING
+            && $delivery->isRecoverable()
+            && $delivery->getUserId()->equals($emailChangeGrant->getUserId())
+            && $delivery->getExpiresAt() == $emailChangeGrant->getExpiresAt();
     }
 
     private function replaceCurrent(EmailChangeGrant $current, EmailChangeGrant $replacement): bool

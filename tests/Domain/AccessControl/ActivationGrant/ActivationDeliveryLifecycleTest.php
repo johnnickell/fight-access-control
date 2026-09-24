@@ -89,6 +89,31 @@ final class ActivationDeliveryLifecycleTest extends TestCase
         $claimed->materialForClaim(CredentialDeliveryClaimToken::generate(), $this->at('12:04:59'));
     }
 
+    public function test_it_rejects_material_access_and_outcomes_before_the_claim_begins(): void
+    {
+        $token = CredentialDeliveryClaimToken::generate();
+        $claimed = $this->delivery()->claim($token, $this->at('12:00:00'), $this->at('12:05:00'));
+        $beforeClaim = $this->at('11:59:59');
+        $actions = [
+            fn(): EncryptedCredentialMaterial => $claimed->materialForClaim($token, $beforeClaim),
+            fn(): ActivationDelivery => $claimed->confirm($token, $beforeClaim),
+            fn(): ActivationDelivery => $claimed->fail($token, $beforeClaim),
+            fn(): ActivationDelivery => $claimed->failPermanently($token, $beforeClaim)
+        ];
+        $rejectedActions = 0;
+
+        foreach ($actions as $action) {
+            try {
+                $action();
+                self::fail('A claim was used before it began.');
+            } catch (CredentialDeliveryTransitionException) {
+                ++$rejectedActions;
+            }
+        }
+
+        self::assertSame(count($actions), $rejectedActions);
+    }
+
     public function test_it_rejects_early_claims_and_invalid_leases(): void
     {
         $delivery = $this->delivery();

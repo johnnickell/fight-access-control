@@ -482,7 +482,9 @@ abstract class CredentialDelivery
             $this->status !== CredentialDeliveryStatus::CLAIMED
             || !$this->claimToken instanceof CredentialDeliveryClaimToken
             || !$this->claimToken->equals($claimToken)
+            || !$this->claimedAt instanceof DateTimeImmutable
             || !$this->leaseUntil instanceof DateTimeImmutable
+            || $at < $this->claimedAt
             || $at >= $this->leaseUntil
         ) {
             throw new CredentialDeliveryTransitionException('The credential delivery claim is stale or invalid.');
