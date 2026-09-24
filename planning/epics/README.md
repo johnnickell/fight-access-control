@@ -9,3 +9,4 @@ This generated index is a projection; individual records remain canonical.
 | [EPIC-00003](00003-EPIC.md) | Pre-1.0 Authorization Boundary Simplification | done |
 | [EPIC-00004](00004-EPIC.md) | Composable OpenAPI Schema Components | done |
 | [EPIC-00005](00005-EPIC.md) | Agent-Aware MCP Tool Authorization | needs-info |
+| [EPIC-00006](00006-EPIC.md) | Recoverable Credential Delivery | ready-for-agent |
