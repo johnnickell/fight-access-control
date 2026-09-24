@@ -5,50 +5,43 @@ declare(strict_types=1);
 namespace Fight\AccessControl\Domain\AccessControl\PasswordResetGrant;
 
 use DateTimeImmutable;
+use Fight\AccessControl\Domain\AccessControl\CredentialDelivery\CredentialDelivery;
+use Fight\AccessControl\Domain\AccessControl\CredentialDelivery\EncryptedCredentialMaterial;
 use Fight\AccessControl\Domain\AccessControl\PasswordResetGrant\Exception\PasswordResetDeliveryException;
 use Fight\AccessControl\Domain\AccessControl\User\UserId;
 use Fight\Common\Domain\Value\Internet\EmailAddress;
+use InvalidArgumentException;
 
 /**
  * Class PasswordResetDelivery
  *
- * Represents bounded encrypted delivery work owned by a password-reset grant.
+ * Represents recoverable encrypted delivery work owned by a password-reset grant.
  *
  * @phpstan-consistent-constructor
  */
-class PasswordResetDelivery
+class PasswordResetDelivery extends CredentialDelivery
 {
     /**
-     * Constructs PasswordResetDelivery
-     *
-     * Creates pending password-reset delivery work.
-     */
-    protected function __construct(
-        private readonly PasswordResetDeliveryId $id,
-        private readonly UserId $userId,
-        private readonly EmailAddress $email,
-        private readonly ?string $ciphertext,
-        private readonly DateTimeImmutable $expiresAt
-    ) {
-    }
-
-    /**
-     * Creates encrypted password-reset delivery work
+     * Creates pending encrypted password-reset delivery work
      */
     public static function create(
         PasswordResetDeliveryId $id,
         UserId $userId,
         EmailAddress $email,
         string $ciphertext,
-        DateTimeImmutable $expiresAt
+        DateTimeImmutable $expiresAt,
+        ?DateTimeImmutable $dueAt = null
     ): static {
-        if ($ciphertext === '') {
+        try {
+            $encryptedMaterial = EncryptedCredentialMaterial::fromString($ciphertext);
+        } catch (InvalidArgumentException $invalidArgumentException) {
             throw new PasswordResetDeliveryException(
-                'The password-reset delivery ciphertext must not be empty.'
+                'The password-reset delivery ciphertext must not be empty.',
+                previous: $invalidArgumentException
             );
         }
 
-        return new static($id, $userId, $email, $ciphertext, $expiresAt);
+        return new static($id, $userId, $email, $encryptedMaterial, $expiresAt, $dueAt ?? new DateTimeImmutable('@0'));
     }
 
     /**
@@ -56,63 +49,10 @@ class PasswordResetDelivery
      */
     public function getId(): PasswordResetDeliveryId
     {
-        return $this->id;
-    }
+        $id = parent::getId();
+        assert($id instanceof PasswordResetDeliveryId);
 
-    /**
-     * Returns the owning user identifier
-     */
-    public function getUserId(): UserId
-    {
-        return $this->userId;
-    }
-
-    /**
-     * Returns the canonical destination email
-     */
-    public function getEmail(): EmailAddress
-    {
-        return $this->email;
-    }
-
-    /**
-     * Returns the encrypted credential payload
-     */
-    public function getCiphertext(): ?string
-    {
-        return $this->ciphertext;
-    }
-
-    /**
-     * Completes delivery and destroys recoverable credential material
-     */
-    public function confirm(): self
-    {
-        return $this->invalidate();
-    }
-
-    /**
-     * Deletes recoverable credential material at terminal expiry
-     */
-    public function expireAt(DateTimeImmutable $occurredAt): self
-    {
-        if ($occurredAt < $this->expiresAt) {
-            return $this;
-        }
-
-        return $this->invalidate();
-    }
-
-    /**
-     * Returns a terminal ciphertext-free entity
-     */
-    public function invalidate(): self
-    {
-        if (!$this->isRecoverable()) {
-            return $this;
-        }
-
-        return new static($this->id, $this->userId, $this->email, null, $this->expiresAt);
+        return $id;
     }
 
     /**
@@ -120,14 +60,6 @@ class PasswordResetDelivery
      */
     public function isRecoverable(): bool
     {
-        return $this->ciphertext !== null;
-    }
-
-    /**
-     * Returns the terminal expiry shared with the owning grant
-     */
-    public function getExpiresAt(): DateTimeImmutable
-    {
-        return $this->expiresAt;
+        return $this->hasRecoverableMaterial();
     }
 }

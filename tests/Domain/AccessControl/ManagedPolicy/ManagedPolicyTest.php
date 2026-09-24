@@ -220,7 +220,7 @@ final class ManagedPolicyTest extends TestCase
         }
 
         try {
-            ManagedRoleDefinition::fromArray([...$roleData, 'permission_ids' => 'not-an-array']);
+            ManagedRoleDefinition::fromArray(array_replace($roleData, ['permission_ids' => 'not-an-array']));
             self::fail('Non-array managed role membership must be rejected.');
         } catch (ManagedPolicyDefinitionException) {
             ++$rejections;

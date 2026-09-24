@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace Fight\AccessControl\Domain\AccessControl\EmailChangeGrant;
 
 use DateTimeImmutable;
+use Fight\AccessControl\Domain\AccessControl\CredentialDelivery\CredentialDeliveryClaimToken;
+use Fight\AccessControl\Domain\AccessControl\CredentialDelivery\CredentialDeliveryFailure;
 use Fight\AccessControl\Domain\AccessControl\EmailChangeGrant\Exception\EmailChangeGrantException;
 use Fight\AccessControl\Domain\AccessControl\User\UserId;
 use Fight\Common\Domain\Value\Internet\EmailAddress;
@@ -61,7 +63,8 @@ class EmailChangeGrant
                 $userId,
                 $email,
                 $ciphertext,
-                $expiresAt
+                $expiresAt,
+                $issuedAt
             )
         );
     }
@@ -257,25 +260,59 @@ class EmailChangeGrant
     /**
      * Acquires the owned delivery before invoking its transport
      */
-    public function claimDelivery(): self
-    {
-        return $this->withDelivery($this->delivery->claim());
+    public function claimDelivery(
+        ?CredentialDeliveryClaimToken $claimToken = null,
+        ?DateTimeImmutable $claimedAt = null,
+        ?DateTimeImmutable $leaseUntil = null
+    ): self {
+        return $this->withDelivery($this->delivery->claim($claimToken, $claimedAt, $leaseUntil));
     }
 
     /**
      * Completes the owned delivery after successful invocation
      */
-    public function confirmDelivery(): self
-    {
-        return $this->withDelivery($this->delivery->confirm());
+    public function confirmDelivery(
+        ?CredentialDeliveryClaimToken $claimToken = null,
+        ?DateTimeImmutable $occurredAt = null
+    ): self {
+        return $this->withDelivery($this->delivery->confirm($claimToken, $occurredAt));
     }
 
     /**
-     * Records a failed owned-delivery invocation
+     * Records a retryable owned-delivery outcome
      */
-    public function failDelivery(): self
+    public function failDelivery(
+        ?CredentialDeliveryClaimToken $claimToken = null,
+        ?DateTimeImmutable $occurredAt = null,
+        CredentialDeliveryFailure $failure = CredentialDeliveryFailure::UNEXPECTED_PROVIDER
+    ): self {
+        return $this->withDelivery($this->delivery->fail($claimToken, $occurredAt, $failure));
+    }
+
+    /**
+     * Records a permanent owned-delivery outcome
+     */
+    public function failDeliveryPermanently(
+        CredentialDeliveryClaimToken $claimToken,
+        DateTimeImmutable $occurredAt
+    ): self {
+        return $this->withDelivery($this->delivery->failPermanently($claimToken, $occurredAt));
+    }
+
+    /**
+     * Marks owned delivery at its terminal boundary
+     */
+    public function expireDeliveryAt(DateTimeImmutable $occurredAt): self
     {
-        return $this->withDelivery($this->delivery->fail());
+        return $this->withDelivery($this->delivery->expireAt($occurredAt));
+    }
+
+    /**
+     * Returns retry work to immediate eligibility
+     */
+    public function requestDeliveryRetry(): self
+    {
+        return $this->withDelivery($this->delivery->requestRetry());
     }
 
     /**
@@ -291,6 +328,10 @@ class EmailChangeGrant
      */
     private function withDelivery(EmailChangeDelivery $delivery): self
     {
+        if ($delivery->sameStateAs($this->delivery)) {
+            return $this;
+        }
+
         return new static(
             $this->id,
             $this->userId,

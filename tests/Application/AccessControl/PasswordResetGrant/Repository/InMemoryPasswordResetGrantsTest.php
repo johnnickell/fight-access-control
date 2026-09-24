@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Fight\Test\AccessControl\Application\AccessControl\PasswordResetGrant\Repository;
 
 use DateTimeImmutable;
+use Fight\AccessControl\Domain\AccessControl\CredentialDelivery\CredentialDeliveryClaimToken;
 use Fight\AccessControl\Domain\AccessControl\PasswordResetGrant\PasswordResetCredential;
 use Fight\AccessControl\Domain\AccessControl\PasswordResetGrant\PasswordResetDeliveryId;
 use Fight\AccessControl\Domain\AccessControl\PasswordResetGrant\PasswordResetGrant;
@@ -19,6 +20,33 @@ use PHPUnit\Framework\TestCase;
 #[CoversNothing]
 final class InMemoryPasswordResetGrantsTest extends TestCase
 {
+    public function test_it_discovers_only_due_authoritative_password_reset_work(): void
+    {
+        $repository = new InMemoryPasswordResetGrants();
+        $grant = $this->grant(
+            UserId::generate(),
+            'reset-due',
+            '2026-08-20T13:00:00+00:00'
+        );
+        self::assertTrue($repository->add($grant));
+        self::assertSame([], $repository->findDue(new DateTimeImmutable('2026-08-20T11:59:59+00:00'), 10));
+        self::assertSame(
+            $grant->getDelivery()->getId()->toString(),
+            $repository->findDue(new DateTimeImmutable('2026-08-20T12:00:00+00:00'), 10)[0]
+                ->getDeliveryId()
+                ->toString()
+        );
+
+        $claimed = $grant->claimDelivery(
+            CredentialDeliveryClaimToken::generate(),
+            new DateTimeImmutable('2026-08-20T12:00:00+00:00'),
+            new DateTimeImmutable('2026-08-20T12:05:00+00:00')
+        );
+        self::assertTrue($repository->replace($grant, $claimed));
+        self::assertSame([], $repository->findDue(new DateTimeImmutable('2026-08-20T12:04:59+00:00'), 10));
+        self::assertCount(1, $repository->findDue(new DateTimeImmutable('2026-08-20T12:05:00+00:00'), 10));
+    }
+
     public function test_that_issued_reissue_rejects_any_digest_from_the_users_history(): void
     {
         $userId = UserId::generate();

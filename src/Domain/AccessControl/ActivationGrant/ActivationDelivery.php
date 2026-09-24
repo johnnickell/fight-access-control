@@ -6,34 +6,21 @@ namespace Fight\AccessControl\Domain\AccessControl\ActivationGrant;
 
 use DateTimeImmutable;
 use Fight\AccessControl\Domain\AccessControl\ActivationGrant\Exception\ActivationDeliveryException;
-use Fight\AccessControl\Domain\AccessControl\ActivationGrant\Exception\ActivationDeliveryNotRetryableException;
+use Fight\AccessControl\Domain\AccessControl\CredentialDelivery\CredentialDelivery;
+use Fight\AccessControl\Domain\AccessControl\CredentialDelivery\EncryptedCredentialMaterial;
 use Fight\AccessControl\Domain\AccessControl\User\UserId;
 use Fight\Common\Domain\Value\Internet\EmailAddress;
+use InvalidArgumentException;
 
 /**
  * Class ActivationDelivery
  *
- * Represents bounded encrypted delivery work owned by an activation grant.
+ * Represents recoverable encrypted delivery work owned by an activation grant.
  *
  * @phpstan-consistent-constructor
  */
-class ActivationDelivery
+class ActivationDelivery extends CredentialDelivery
 {
-    /**
-     * Constructs ActivationDelivery
-     *
-     * Creates activation delivery state.
-     */
-    protected function __construct(
-        private readonly ActivationDeliveryId $id,
-        private readonly UserId $userId,
-        private readonly EmailAddress $email,
-        private readonly ?string $ciphertext,
-        private readonly DateTimeImmutable $expiresAt,
-        private readonly ActivationDeliveryStatus $status = ActivationDeliveryStatus::PENDING
-    ) {
-    }
-
     /**
      * Creates pending encrypted activation delivery work
      */
@@ -42,13 +29,19 @@ class ActivationDelivery
         UserId $userId,
         EmailAddress $email,
         string $ciphertext,
-        DateTimeImmutable $expiresAt
+        DateTimeImmutable $expiresAt,
+        ?DateTimeImmutable $dueAt = null
     ): static {
-        if ($ciphertext === '') {
-            throw new ActivationDeliveryException('The activation delivery ciphertext must not be empty.');
+        try {
+            $encryptedMaterial = EncryptedCredentialMaterial::fromString($ciphertext);
+        } catch (InvalidArgumentException $invalidArgumentException) {
+            throw new ActivationDeliveryException(
+                'The activation delivery ciphertext must not be empty.',
+                previous: $invalidArgumentException
+            );
         }
 
-        return new static($id, $userId, $email, $ciphertext, $expiresAt);
+        return new static($id, $userId, $email, $encryptedMaterial, $expiresAt, $dueAt ?? new DateTimeImmutable('@0'));
     }
 
     /**
@@ -56,180 +49,9 @@ class ActivationDelivery
      */
     public function getId(): ActivationDeliveryId
     {
-        return $this->id;
-    }
+        $id = parent::getId();
+        assert($id instanceof ActivationDeliveryId);
 
-    /**
-     * Returns the owning user identifier
-     */
-    public function getUserId(): UserId
-    {
-        return $this->userId;
-    }
-
-    /**
-     * Returns the canonical destination email
-     */
-    public function getEmail(): EmailAddress
-    {
-        return $this->email;
-    }
-
-    /**
-     * Returns the encrypted credential payload
-     */
-    public function getCiphertext(): ?string
-    {
-        return $this->ciphertext;
-    }
-
-    /**
-     * Completes delivery and destroys recoverable credential material
-     */
-    public function confirm(): self
-    {
-        if ($this->status !== ActivationDeliveryStatus::CLAIMED || $this->ciphertext === null) {
-            throw new ActivationDeliveryNotRetryableException('The activation delivery work is no longer retryable.');
-        }
-
-        return new static(
-            $this->id,
-            $this->userId,
-            $this->email,
-            null,
-            $this->expiresAt,
-            ActivationDeliveryStatus::CONFIRMED
-        );
-    }
-
-    /**
-     * Acquires pending work before its transport invocation
-     */
-    public function claim(): self
-    {
-        if ($this->status !== ActivationDeliveryStatus::PENDING || $this->ciphertext === null) {
-            throw new ActivationDeliveryNotRetryableException('The activation delivery work is no longer retryable.');
-        }
-
-        return new static(
-            $this->id,
-            $this->userId,
-            $this->email,
-            $this->ciphertext,
-            $this->expiresAt,
-            ActivationDeliveryStatus::CLAIMED
-        );
-    }
-
-    /**
-     * Records a failed invocation while retaining recoverable material
-     */
-    public function fail(): self
-    {
-        if ($this->status !== ActivationDeliveryStatus::CLAIMED || $this->ciphertext === null) {
-            throw new ActivationDeliveryNotRetryableException('The activation delivery work is no longer retryable.');
-        }
-
-        return new static(
-            $this->id,
-            $this->userId,
-            $this->email,
-            $this->ciphertext,
-            $this->expiresAt,
-            ActivationDeliveryStatus::FAILED
-        );
-    }
-
-    /**
-     * Returns failed work to pending so one later invocation may claim it
-     */
-    public function requestRetry(): self
-    {
-        if ($this->status !== ActivationDeliveryStatus::FAILED || $this->ciphertext === null) {
-            throw new ActivationDeliveryNotRetryableException('The activation delivery work is no longer retryable.');
-        }
-
-        return new static(
-            $this->id,
-            $this->userId,
-            $this->email,
-            $this->ciphertext,
-            $this->expiresAt,
-            ActivationDeliveryStatus::PENDING
-        );
-    }
-
-    /**
-     * Marks delivery at its terminal boundary
-     */
-    public function expireAt(DateTimeImmutable $occurredAt): self
-    {
-        if (
-            $this->ciphertext === null
-            || in_array(
-                $this->status,
-                [ActivationDeliveryStatus::CONFIRMED, ActivationDeliveryStatus::EXPIRED],
-                true
-            )
-            || $occurredAt < $this->expiresAt
-        ) {
-            return $this;
-        }
-
-        return new static(
-            $this->id,
-            $this->userId,
-            $this->email,
-            null,
-            $this->expiresAt,
-            ActivationDeliveryStatus::EXPIRED
-        );
-    }
-
-    /**
-     * Deletes recoverable credential material
-     */
-    public function invalidate(): self
-    {
-        if ($this->ciphertext === null) {
-            return $this;
-        }
-
-        return new static(
-            $this->id,
-            $this->userId,
-            $this->email,
-            null,
-            $this->expiresAt,
-            $this->status
-        );
-    }
-
-    /**
-     * Returns the terminal delivery expiry
-     */
-    public function getExpiresAt(): DateTimeImmutable
-    {
-        return $this->expiresAt;
-    }
-
-    /**
-     * Returns the safe operational status
-     */
-    public function getStatus(): ActivationDeliveryStatus
-    {
-        return $this->status;
-    }
-
-    /**
-     * Returns whether delivery may be invoked again
-     */
-    public function isRetryable(): bool
-    {
-        return in_array(
-            $this->status,
-            [ActivationDeliveryStatus::PENDING, ActivationDeliveryStatus::FAILED],
-            true
-        ) && $this->ciphertext !== null;
+        return $id;
     }
 }

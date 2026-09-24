@@ -110,7 +110,10 @@ final class CorrectPendingInvitationHandlerTest extends TestCase
             'corrected@example.test',
             $activationGrants->all()[1]->getDelivery()->getEmail()->canonical()
         );
-        self::assertSame('ciphertext:activate-new', $activationGrants->all()[1]->getDelivery()->getCiphertext());
+        self::assertSame(
+            'ciphertext:activate-new',
+            $activationGrants->all()[1]->getDelivery()->getEncryptedMaterial()?->reveal()
+        );
         self::assertSame(1, $authorization->calls());
         self::assertSame($actorId, $authorization->lastActorId());
         self::assertSame($user->getId(), $authorization->lastUserId());
@@ -436,7 +439,10 @@ final class CorrectPendingInvitationHandlerTest extends TestCase
             self::assertCount(1, $grants->all());
             self::assertTrue($grants->all()[0]->isIssued());
             self::assertTrue($grants->all()[0]->getDelivery()->isRetryable());
-            self::assertSame('ciphertext:activate-old', $grants->all()[0]->getDelivery()->getCiphertext());
+            self::assertSame(
+                'ciphertext:activate-old',
+                $grants->all()[0]->getDelivery()->getEncryptedMaterial()?->reveal()
+            );
             self::assertSame([], $audit->all());
             self::assertInstanceOf(CommandFailedEvent::class, $events->events()[0]);
             self::assertSame(

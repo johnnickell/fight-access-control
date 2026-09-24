@@ -7,10 +7,10 @@ namespace Fight\Test\AccessControl\Domain\AccessControl\ActivationGrant;
 use DateTimeImmutable;
 use Fight\AccessControl\Domain\AccessControl\ActivationGrant\ActivationCredential;
 use Fight\AccessControl\Domain\AccessControl\ActivationGrant\ActivationDeliveryId;
-use Fight\AccessControl\Domain\AccessControl\ActivationGrant\ActivationDeliveryStatus;
 use Fight\AccessControl\Domain\AccessControl\ActivationGrant\ActivationGrant;
 use Fight\AccessControl\Domain\AccessControl\ActivationGrant\ActivationGrantId;
 use Fight\AccessControl\Domain\AccessControl\ActivationGrant\Exception\ActivationGrantException;
+use Fight\AccessControl\Domain\AccessControl\CredentialDelivery\CredentialDeliveryStatus;
 use Fight\AccessControl\Domain\AccessControl\User\User;
 use Fight\AccessControl\Domain\AccessControl\User\UserId;
 use Fight\AccessControl\Domain\AccessControl\User\UserState;
@@ -36,19 +36,27 @@ final class ActivationGrantTest extends TestCase
             'ciphertext'
         );
 
-        $failed = $grant->claimDelivery()->failDelivery();
+        $claimed = $grant->claimDelivery();
+        $failed = $claimed->failDelivery();
         self::assertSame($grant->getId(), $failed->getId());
+        self::assertSame(
+            CredentialDeliveryStatus::PERMANENT_FAILURE,
+            $claimed->failDeliveryPermanently(
+                $claimed->getDelivery()->getClaimToken(),
+                $claimed->getDelivery()->getClaimedAt()
+            )->getDelivery()->getStatus()
+        );
         self::assertTrue($failed->getDelivery()->isRetryable());
         self::assertFalse($grant->expireDeliveryAt(new DateTimeImmutable('2026-08-25T11:00:00+00:00'))
-            ->getDelivery()->getStatus() === ActivationDeliveryStatus::EXPIRED);
+            ->getDelivery()->getStatus() === CredentialDeliveryStatus::EXPIRED);
         self::assertSame(
-            ActivationDeliveryStatus::EXPIRED,
+            CredentialDeliveryStatus::EXPIRED,
             $failed->expireDeliveryAt(new DateTimeImmutable('2026-08-25T12:00:00+00:00'))
                 ->getDelivery()
                 ->getStatus()
         );
         self::assertSame(
-            ActivationDeliveryStatus::CONFIRMED,
+            CredentialDeliveryStatus::DELIVERED,
             $grant->claimDelivery()->confirmDelivery()->getDelivery()->getStatus()
         );
     }

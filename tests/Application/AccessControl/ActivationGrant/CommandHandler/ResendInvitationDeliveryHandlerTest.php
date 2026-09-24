@@ -74,7 +74,10 @@ final class ResendInvitationDeliveryHandlerTest extends TestCase
         self::assertSame(hash('sha256', 'activate-new'), $grants[1]->getCredentialHash());
         self::assertTrue($grants[1]->isUsableAt(new DateTimeImmutable('2026-08-19T12:00:00+00:00')));
         self::assertSame('alice@example.test', $grants[1]->getDelivery()->getEmail()->canonical());
-        self::assertSame('ciphertext:activate-new', $grants[1]->getDelivery()->getCiphertext());
+        self::assertSame(
+            'ciphertext:activate-new',
+            $grants[1]->getDelivery()->getEncryptedMaterial()?->reveal()
+        );
         self::assertCount(1, $auditEvidenceRepository->all());
         self::assertSame('user.invitation_delivery.resent', $auditEvidenceRepository->all()[0]->action());
         self::assertCount(1, $events->events());
@@ -114,7 +117,10 @@ final class ResendInvitationDeliveryHandlerTest extends TestCase
         self::assertCount(2, $grants);
         self::assertTrue($grants[0]->isRevoked());
         self::assertTrue($grants[1]->isIssued());
-        self::assertSame('ciphertext:activate-new', $grants[1]->getDelivery()->getCiphertext());
+        self::assertSame(
+            'ciphertext:activate-new',
+            $grants[1]->getDelivery()->getEncryptedMaterial()?->reveal()
+        );
         self::assertInstanceOf(InvitationDeliveryResent::class, $events->events()[0]);
     }
 

@@ -43,7 +43,7 @@ The [Task Board](BOARD.md) is the operational projection.
 | 34 | [TASK-00034](00034-TASK.md) | Repair PR #55 planning terminology and standalone-chore support | — (standalone chore) | done | — | https://github.com/johnnickell/fight-access-control/pull/55 |
 | 35 | [TASK-00035](00035-TASK.md) | Authorize Agent-protected MCP Tools | [TICKET-00006](../tickets/00006-TICKET.md) — Authorize Agent-Protected MCP Tools | needs-info | — | — |
 | 36 | [TASK-00036](00036-TASK.md) | Keep Board next-action guidance truthful for blocked planning work | — (standalone bug) | done | — | https://github.com/johnnickell/fight-access-control/pull/56 |
-| 37 | [TASK-00037](00037-TASK.md) | Model recoverable credential-delivery state and repository contracts | [TICKET-00007](../tickets/00007-TICKET.md) — Deliver Credentials Recoverably Outside Transactions | ready-for-agent | — | — |
+| 37 | [TASK-00037](00037-TASK.md) | Model recoverable credential-delivery state and repository contracts | [TICKET-00007](../tickets/00007-TICKET.md) — Deliver Credentials Recoverably Outside Transactions | done | — | — |
 | 38 | [TASK-00038](00038-TASK.md) | Orchestrate provider-neutral credential delivery outside transactions | [TICKET-00007](../tickets/00007-TICKET.md) — Deliver Credentials Recoverably Outside Transactions | ready-for-agent | [TASK-00037](00037-TASK.md) | — |
 | 39 | [TASK-00039](00039-TASK.md) | Qualify the v0.3.0 credential-delivery contract and migration | [TICKET-00007](../tickets/00007-TICKET.md) — Deliver Credentials Recoverably Outside Transactions | ready-for-agent | [TASK-00038](00038-TASK.md) | — |
 <!-- generated:task-index:end -->

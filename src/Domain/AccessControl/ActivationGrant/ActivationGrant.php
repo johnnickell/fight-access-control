@@ -5,7 +5,11 @@ declare(strict_types=1);
 namespace Fight\AccessControl\Domain\AccessControl\ActivationGrant;
 
 use DateTimeImmutable;
+use Fight\AccessControl\Domain\AccessControl\ActivationGrant\Exception\ActivationDeliveryNotRetryableException;
 use Fight\AccessControl\Domain\AccessControl\ActivationGrant\Exception\ActivationGrantException;
+use Fight\AccessControl\Domain\AccessControl\CredentialDelivery\CredentialDeliveryClaimToken;
+use Fight\AccessControl\Domain\AccessControl\CredentialDelivery\CredentialDeliveryFailure;
+use Fight\AccessControl\Domain\AccessControl\CredentialDelivery\Exception\CredentialDeliveryTransitionException;
 use Fight\AccessControl\Domain\AccessControl\User\UserId;
 use Fight\Common\Domain\Value\Internet\EmailAddress;
 
@@ -62,7 +66,8 @@ class ActivationGrant
                 $userId,
                 $email,
                 $ciphertext,
-                $expiresAt
+                $expiresAt,
+                $issuedAt
             )
         );
     }
@@ -216,25 +221,43 @@ class ActivationGrant
     /**
      * Acquires the owned delivery before invoking its transport
      */
-    public function claimDelivery(): self
-    {
-        return $this->withDelivery($this->delivery->claim());
+    public function claimDelivery(
+        ?CredentialDeliveryClaimToken $claimToken = null,
+        ?DateTimeImmutable $claimedAt = null,
+        ?DateTimeImmutable $leaseUntil = null
+    ): self {
+        return $this->withDelivery($this->delivery->claim($claimToken, $claimedAt, $leaseUntil));
     }
 
     /**
      * Completes the owned delivery
      */
-    public function confirmDelivery(): self
-    {
-        return $this->withDelivery($this->delivery->confirm());
+    public function confirmDelivery(
+        ?CredentialDeliveryClaimToken $claimToken = null,
+        ?DateTimeImmutable $occurredAt = null
+    ): self {
+        return $this->withDelivery($this->delivery->confirm($claimToken, $occurredAt));
     }
 
     /**
-     * Records a failed owned-delivery invocation
+     * Records a retryable owned-delivery outcome
      */
-    public function failDelivery(): self
-    {
-        return $this->withDelivery($this->delivery->fail());
+    public function failDelivery(
+        ?CredentialDeliveryClaimToken $claimToken = null,
+        ?DateTimeImmutable $occurredAt = null,
+        CredentialDeliveryFailure $failure = CredentialDeliveryFailure::UNEXPECTED_PROVIDER
+    ): self {
+        return $this->withDelivery($this->delivery->fail($claimToken, $occurredAt, $failure));
+    }
+
+    /**
+     * Records a permanent owned-delivery outcome
+     */
+    public function failDeliveryPermanently(
+        CredentialDeliveryClaimToken $claimToken,
+        DateTimeImmutable $occurredAt
+    ): self {
+        return $this->withDelivery($this->delivery->failPermanently($claimToken, $occurredAt));
     }
 
     /**
@@ -242,7 +265,14 @@ class ActivationGrant
      */
     public function requestDeliveryRetry(): self
     {
-        return $this->withDelivery($this->delivery->requestRetry());
+        try {
+            return $this->withDelivery($this->delivery->requestRetry());
+        } catch (CredentialDeliveryTransitionException $credentialDeliveryTransitionException) {
+            throw new ActivationDeliveryNotRetryableException(
+                'The activation delivery work is no longer retryable.',
+                previous: $credentialDeliveryTransitionException
+            );
+        }
     }
 
     /**
@@ -269,10 +299,7 @@ class ActivationGrant
         if (
             $delivery->getId()->equals($this->delivery->getId())
             && $delivery->getUserId()->equals($this->delivery->getUserId())
-            && $delivery->getEmail()->canonical() === $this->delivery->getEmail()->canonical()
-            && $delivery->getCiphertext() === $this->delivery->getCiphertext()
-            && $delivery->getExpiresAt() == $this->delivery->getExpiresAt()
-            && $delivery->getStatus() === $this->delivery->getStatus()
+            && $delivery->sameStateAs($this->delivery)
         ) {
             return $this;
         }

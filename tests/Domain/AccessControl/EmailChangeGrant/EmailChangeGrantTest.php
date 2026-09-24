@@ -5,12 +5,12 @@ declare(strict_types=1);
 namespace Fight\Test\AccessControl\Domain\AccessControl\EmailChangeGrant;
 
 use DateTimeImmutable;
+use Fight\AccessControl\Domain\AccessControl\CredentialDelivery\CredentialDeliveryStatus;
+use Fight\AccessControl\Domain\AccessControl\CredentialDelivery\Exception\CredentialDeliveryTransitionException;
 use Fight\AccessControl\Domain\AccessControl\EmailChangeGrant\EmailChangeCredential;
 use Fight\AccessControl\Domain\AccessControl\EmailChangeGrant\EmailChangeDelivery;
 use Fight\AccessControl\Domain\AccessControl\EmailChangeGrant\EmailChangeDeliveryId;
-use Fight\AccessControl\Domain\AccessControl\EmailChangeGrant\EmailChangeDeliveryStatus;
 use Fight\AccessControl\Domain\AccessControl\EmailChangeGrant\EmailChangeGrant;
-use Fight\AccessControl\Domain\AccessControl\EmailChangeGrant\Exception\EmailChangeDeliveryNotRetryableException;
 use Fight\AccessControl\Domain\AccessControl\EmailChangeGrant\Exception\EmailChangeGrantException;
 use Fight\AccessControl\Domain\AccessControl\User\UserId;
 use Fight\Common\Domain\Exception\DomainException;
@@ -20,8 +20,7 @@ use PHPUnit\Framework\TestCase;
 
 #[CoversClass(EmailChangeCredential::class)]
 #[CoversClass(EmailChangeDelivery::class)]
-#[CoversClass(EmailChangeDeliveryNotRetryableException::class)]
-#[CoversClass(EmailChangeDeliveryStatus::class)]
+#[CoversClass(CredentialDeliveryStatus::class)]
 #[CoversClass(EmailChangeGrant::class)]
 #[CoversClass(EmailChangeGrantException::class)]
 final class EmailChangeGrantTest extends TestCase
@@ -69,7 +68,7 @@ final class EmailChangeGrantTest extends TestCase
         self::assertSame(0, $grant->getRevision());
         self::assertSame($userId, $grant->getDelivery()->getUserId());
         self::assertSame('new@example.test', $grant->getDelivery()->getEmail()->canonical());
-        self::assertSame('ciphertext:change-once', $grant->getDelivery()->getCiphertext());
+        self::assertSame('ciphertext:change-once', $grant->getDelivery()->getEncryptedMaterial()?->reveal());
         self::assertSame($grant->getExpiresAt(), $grant->getDelivery()->getExpiresAt());
         self::assertTrue($grant->getDelivery()->getId()->equals(EmailChangeDeliveryId::fromString(
             $grant->getDelivery()->getId()->toString()
@@ -121,32 +120,45 @@ final class EmailChangeGrantTest extends TestCase
             'ciphertext:change-once'
         );
 
-        self::assertSame(EmailChangeDeliveryStatus::PENDING, $grant->getDelivery()->getStatus());
+        self::assertSame(CredentialDeliveryStatus::PENDING, $grant->getDelivery()->getStatus());
         self::assertTrue($grant->getDelivery()->isRetryable());
         $claimed = $grant->claimDelivery();
-        self::assertSame(EmailChangeDeliveryStatus::CLAIMED, $claimed->getDelivery()->getStatus());
+        self::assertSame(CredentialDeliveryStatus::CLAIMED, $claimed->getDelivery()->getStatus());
         self::assertFalse($claimed->getDelivery()->isRetryable());
         $failed = $claimed->failDelivery();
-        self::assertSame(EmailChangeDeliveryStatus::FAILED, $failed->getDelivery()->getStatus());
+        self::assertSame(CredentialDeliveryStatus::RETRY_PENDING, $failed->getDelivery()->getStatus());
         self::assertTrue($failed->getDelivery()->isRetryable());
+        self::assertSame(
+            CredentialDeliveryStatus::PENDING,
+            $failed->requestDeliveryRetry()->getDelivery()->getStatus()
+        );
+        self::assertSame(
+            CredentialDeliveryStatus::PERMANENT_FAILURE,
+            $claimed->failDeliveryPermanently(
+                $claimed->getDelivery()->getClaimToken(),
+                $claimed->getDelivery()->getClaimedAt()
+            )->getDelivery()->getStatus()
+        );
         $reclaimed = $failed->claimDelivery();
-        self::assertSame(EmailChangeDeliveryStatus::CLAIMED, $reclaimed->getDelivery()->getStatus());
+        self::assertSame(CredentialDeliveryStatus::CLAIMED, $reclaimed->getDelivery()->getStatus());
         $confirmed = $reclaimed->confirmDelivery();
-        self::assertSame(EmailChangeDeliveryStatus::CONFIRMED, $confirmed->getDelivery()->getStatus());
+        self::assertSame(CredentialDeliveryStatus::DELIVERED, $confirmed->getDelivery()->getStatus());
         self::assertFalse($confirmed->getDelivery()->isRecoverable());
         self::assertFalse($confirmed->getDelivery()->isRetryable());
+        $expired = $grant->expireDeliveryAt($grant->getExpiresAt());
+        self::assertSame(CredentialDeliveryStatus::EXPIRED, $expired->getDelivery()->getStatus());
+        self::assertSame($expired, $expired->expireDeliveryAt($grant->getExpiresAt()));
 
-        foreach (
-            [
-                $claimed->claimDelivery(...),
-                $grant->confirmDelivery(...),
-                $grant->failDelivery(...)
-            ] as $invalidTransition
-        ) {
+        self::assertSame(
+            CredentialDeliveryStatus::CLAIMED,
+            $claimed->claimDelivery()->getDelivery()->getStatus()
+        );
+
+        foreach ([$grant->confirmDelivery(...), $grant->failDelivery(...)] as $invalidTransition) {
             try {
                 $invalidTransition();
                 self::fail('An invalid delivery status transition was accepted.');
-            } catch (EmailChangeDeliveryNotRetryableException) {
+            } catch (CredentialDeliveryTransitionException) {
                 self::addToAssertionCount(1);
             }
         }

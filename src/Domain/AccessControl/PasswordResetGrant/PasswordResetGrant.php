@@ -5,6 +5,9 @@ declare(strict_types=1);
 namespace Fight\AccessControl\Domain\AccessControl\PasswordResetGrant;
 
 use DateTimeImmutable;
+use Fight\AccessControl\Domain\AccessControl\CredentialDelivery\CredentialDeliveryClaimToken;
+use Fight\AccessControl\Domain\AccessControl\CredentialDelivery\CredentialDeliveryFailure;
+use Fight\AccessControl\Domain\AccessControl\CredentialDelivery\CredentialDeliveryStatus;
 use Fight\AccessControl\Domain\AccessControl\PasswordResetGrant\Exception\PasswordResetGrantException;
 use Fight\AccessControl\Domain\AccessControl\User\UserId;
 use Fight\Common\Domain\Value\Internet\EmailAddress;
@@ -62,7 +65,8 @@ class PasswordResetGrant
                 $userId,
                 $email,
                 $ciphertext,
-                $expiresAt
+                $expiresAt,
+                $issuedAt
             )
         );
     }
@@ -214,11 +218,63 @@ class PasswordResetGrant
     }
 
     /**
+     * Acquires the owned delivery under one opaque lease
+     */
+    public function claimDelivery(
+        CredentialDeliveryClaimToken $claimToken,
+        DateTimeImmutable $claimedAt,
+        DateTimeImmutable $leaseUntil
+    ): self {
+        return $this->withDelivery($this->delivery->claim($claimToken, $claimedAt, $leaseUntil));
+    }
+
+    /**
      * Completes the owned delivery
      */
-    public function confirmDelivery(): self
+    public function confirmDelivery(
+        ?CredentialDeliveryClaimToken $claimToken = null,
+        ?DateTimeImmutable $occurredAt = null
+    ): self {
+        if ($claimToken === null) {
+            if (!$this->delivery->hasRecoverableMaterial()) {
+                return $this;
+            }
+
+            if ($this->delivery->getStatus() === CredentialDeliveryStatus::PENDING) {
+                return $this->withDelivery($this->delivery->claim()->confirm());
+            }
+        }
+
+        return $this->withDelivery($this->delivery->confirm($claimToken, $occurredAt));
+    }
+
+    /**
+     * Records a retryable owned-delivery outcome
+     */
+    public function failDelivery(
+        CredentialDeliveryClaimToken $claimToken,
+        DateTimeImmutable $occurredAt,
+        CredentialDeliveryFailure $failure
+    ): self {
+        return $this->withDelivery($this->delivery->fail($claimToken, $occurredAt, $failure));
+    }
+
+    /**
+     * Records a permanent owned-delivery outcome
+     */
+    public function failDeliveryPermanently(
+        CredentialDeliveryClaimToken $claimToken,
+        DateTimeImmutable $occurredAt
+    ): self {
+        return $this->withDelivery($this->delivery->failPermanently($claimToken, $occurredAt));
+    }
+
+    /**
+     * Returns retry work to immediate eligibility
+     */
+    public function requestDeliveryRetry(): self
     {
-        return $this->withDelivery($this->delivery->confirm());
+        return $this->withDelivery($this->delivery->requestRetry());
     }
 
     /**

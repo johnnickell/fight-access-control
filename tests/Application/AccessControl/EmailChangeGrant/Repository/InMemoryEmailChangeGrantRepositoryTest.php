@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Fight\Test\AccessControl\Application\AccessControl\EmailChangeGrant\Repository;
 
 use DateTimeImmutable;
+use Fight\AccessControl\Domain\AccessControl\CredentialDelivery\CredentialDeliveryClaimToken;
 use Fight\AccessControl\Domain\AccessControl\EmailChangeGrant\EmailChangeCredential;
 use Fight\AccessControl\Domain\AccessControl\EmailChangeGrant\EmailChangeGrant;
 use Fight\AccessControl\Domain\AccessControl\User\UserId;
@@ -15,6 +16,29 @@ use PHPUnit\Framework\TestCase;
 #[CoversNothing]
 final class InMemoryEmailChangeGrantRepositoryTest extends TestCase
 {
+    public function test_it_discovers_only_due_authoritative_email_change_work(): void
+    {
+        $repository = new InMemoryEmailChangeGrantRepository();
+        $grant = $this->grant(UserId::generate(), 'due', 'due@example.test');
+        self::assertTrue($repository->add($grant));
+        self::assertSame([], $repository->findDue(new DateTimeImmutable('2026-08-22T11:59:59+00:00'), 10));
+        self::assertSame(
+            $grant->getDelivery()->getId()->toString(),
+            $repository->findDue(new DateTimeImmutable('2026-08-22T12:00:00+00:00'), 10)[0]
+                ->getDeliveryId()
+                ->toString()
+        );
+
+        $claimed = $grant->claimDelivery(
+            CredentialDeliveryClaimToken::generate(),
+            new DateTimeImmutable('2026-08-22T12:00:00+00:00'),
+            new DateTimeImmutable('2026-08-22T12:05:00+00:00')
+        );
+        self::assertTrue($repository->replace($grant, $claimed));
+        self::assertSame([], $repository->findDue(new DateTimeImmutable('2026-08-22T12:04:59+00:00'), 10));
+        self::assertCount(1, $repository->findDue(new DateTimeImmutable('2026-08-22T12:05:00+00:00'), 10));
+    }
+
     public function test_only_the_authoritative_terminal_predecessor_can_append_a_fresh_successor(): void
     {
         $repository = new InMemoryEmailChangeGrantRepository();

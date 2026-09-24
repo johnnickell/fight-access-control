@@ -6,7 +6,7 @@ namespace Fight\AccessControl\Domain\AccessControl\ActivationGrant\Query;
 
 use DateTimeImmutable;
 use Fight\AccessControl\Domain\AccessControl\ActivationGrant\ActivationDelivery;
-use Fight\AccessControl\Domain\AccessControl\ActivationGrant\ActivationDeliveryStatus;
+use Fight\AccessControl\Domain\AccessControl\CredentialDelivery\CredentialDeliveryStatus;
 use Fight\AccessControl\Domain\AccessControl\User\UserId;
 use Fight\Common\Domain\Type\Arrayable;
 
@@ -24,7 +24,7 @@ final readonly class InvitationDeliveryStatusView implements Arrayable
      */
     public function __construct(
         private UserId $userId,
-        private ActivationDeliveryStatus $status,
+        private CredentialDeliveryStatus $status,
         private DateTimeImmutable $expiresAt
     ) {
     }
@@ -48,7 +48,7 @@ final readonly class InvitationDeliveryStatusView implements Arrayable
     /**
      * Returns the safe operational delivery status
      */
-    public function getStatus(): ActivationDeliveryStatus
+    public function getStatus(): CredentialDeliveryStatus
     {
         return $this->status;
     }

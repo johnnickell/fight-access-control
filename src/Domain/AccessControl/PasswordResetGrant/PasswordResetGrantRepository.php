@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 namespace Fight\AccessControl\Domain\AccessControl\PasswordResetGrant;
 
+use DateTimeImmutable;
 use Exception;
+use Fight\AccessControl\Domain\AccessControl\CredentialDelivery\DueCredentialDelivery;
 use Fight\AccessControl\Domain\AccessControl\User\UserId;
 
 /**
@@ -25,6 +27,18 @@ use Fight\AccessControl\Domain\AccessControl\User\UserId;
  */
 interface PasswordResetGrantRepository
 {
+    /**
+     * Returns deterministic secret-free due work ordered by eligibility time then delivery identifier
+     *
+     * Pending and due-retry work is eligible at its due time. Claimed work is eligible at lease expiry. Only the
+     * authoritative latest generation for each User participates. The positive limit is applied after ordering.
+     *
+     * @return list<DueCredentialDelivery>
+     *
+     * @throws Exception When an error occurs.
+     */
+    public function findDue(DateTimeImmutable $at, int $limit): array;
+
     /**
      * Returns a generation by stable identifier, including historical generations
      *

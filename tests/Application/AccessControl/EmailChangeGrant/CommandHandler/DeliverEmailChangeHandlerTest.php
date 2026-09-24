@@ -7,10 +7,10 @@ namespace Fight\Test\AccessControl\Application\AccessControl\EmailChangeGrant\Co
 use DateTimeImmutable;
 use Fight\AccessControl\Application\AccessControl\EmailChangeGrant\CommandHandler\DeliverEmailChangeHandler;
 use Fight\AccessControl\Application\AccessControl\EmailChangeGrant\EventSubscriber\EmailChangeDeliverySubscriber;
+use Fight\AccessControl\Domain\AccessControl\CredentialDelivery\CredentialDeliveryStatus;
 use Fight\AccessControl\Domain\AccessControl\EmailChangeGrant\Command\DeliverEmailChange;
 use Fight\AccessControl\Domain\AccessControl\EmailChangeGrant\EmailChangeCredential;
 use Fight\AccessControl\Domain\AccessControl\EmailChangeGrant\EmailChangeDeliveryId;
-use Fight\AccessControl\Domain\AccessControl\EmailChangeGrant\EmailChangeDeliveryStatus;
 use Fight\AccessControl\Domain\AccessControl\EmailChangeGrant\EmailChangeGrant;
 use Fight\AccessControl\Domain\AccessControl\EmailChangeGrant\Event\EmailChangeDelivered;
 use Fight\AccessControl\Domain\AccessControl\EmailChangeGrant\Event\EmailChangeRequested;
@@ -98,12 +98,15 @@ final class DeliverEmailChangeHandlerTest extends TestCase
         $stored = $repository->getLatestByUserId($user->getId());
         self::assertInstanceOf(EmailChangeGrant::class, $stored);
         self::assertTrue($stored->isIssued());
-        self::assertSame(EmailChangeDeliveryStatus::CONFIRMED, $stored->getDelivery()->getStatus());
-        self::assertNull($stored->getDelivery()->getCiphertext());
+        self::assertSame(CredentialDeliveryStatus::DELIVERED, $stored->getDelivery()->getStatus());
+        self::assertNull($stored->getDelivery()->getEncryptedMaterial());
         self::assertCount(1, $invoker->invokedWork());
-        self::assertSame(EmailChangeDeliveryStatus::CLAIMED, $invoker->invokedWork()[0]->getStatus());
+        self::assertSame(CredentialDeliveryStatus::CLAIMED, $invoker->invokedWork()[0]->getStatus());
         self::assertSame('new@example.test', $invoker->invokedWork()[0]->getEmail()->canonical());
-        self::assertSame('ciphertext:confirm-once', $invoker->invokedWork()[0]->getCiphertext());
+        self::assertSame(
+            'ciphertext:confirm-once',
+            $invoker->invokedWork()[0]->getEncryptedMaterial()?->reveal()
+        );
         self::assertSame('old@example.test', $user->getEmail()->canonical());
         self::assertSame('new@example.test', $user->getPendingEmailChange()?->canonical());
         self::assertSame('user.email_change_delivery.confirmed', $audit->all()[0]->action());
@@ -138,9 +141,12 @@ final class DeliverEmailChangeHandlerTest extends TestCase
             $stored = $repository->getLatestByUserId($grant->getUserId());
             self::assertInstanceOf(EmailChangeGrant::class, $stored);
             self::assertTrue($stored->isIssued());
-            self::assertSame(EmailChangeDeliveryStatus::FAILED, $stored->getDelivery()->getStatus());
+            self::assertSame(CredentialDeliveryStatus::RETRY_PENDING, $stored->getDelivery()->getStatus());
             self::assertTrue($stored->getDelivery()->isRetryable());
-            self::assertSame('ciphertext:confirm-once', $stored->getDelivery()->getCiphertext());
+            self::assertSame(
+                'ciphertext:confirm-once',
+                $stored->getDelivery()->getEncryptedMaterial()?->reveal()
+            );
             self::assertSame('user.email_change_delivery.failed', $audit->all()[0]->action());
             self::assertInstanceOf(CommandFailedEvent::class, $events->events()[0]);
             self::assertCount(1, $events->events());
@@ -181,10 +187,10 @@ final class DeliverEmailChangeHandlerTest extends TestCase
 
         $stored = $repository->getLatestByUserId($grant->getUserId());
         self::assertInstanceOf(EmailChangeGrant::class, $stored);
-        self::assertSame(EmailChangeDeliveryStatus::CONFIRMED, $stored->getDelivery()->getStatus());
-        self::assertNull($stored->getDelivery()->getCiphertext());
+        self::assertSame(CredentialDeliveryStatus::DELIVERED, $stored->getDelivery()->getStatus());
+        self::assertNull($stored->getDelivery()->getEncryptedMaterial());
         self::assertCount(1, $invoker->invokedWork());
-        self::assertSame(EmailChangeDeliveryStatus::CLAIMED, $invoker->invokedWork()[0]->getStatus());
+        self::assertSame(CredentialDeliveryStatus::CLAIMED, $invoker->invokedWork()[0]->getStatus());
         self::assertSame('user.email_change_delivery.failed', $audit->all()[0]->action());
         self::assertSame('user.email_change_delivery.confirmed', $audit->all()[1]->action());
         self::assertSame(2, $unitOfWork->transactions);
@@ -224,7 +230,10 @@ final class DeliverEmailChangeHandlerTest extends TestCase
             self::assertSame([], $invoker->invokedWork());
             self::assertSame([], $audit->all());
             self::assertSame($successor, $repository->getLatestByUserId($successor->getUserId()));
-            self::assertSame('ciphertext:successor-confirmation', $successor->getDelivery()->getCiphertext());
+            self::assertSame(
+                'ciphertext:successor-confirmation',
+                $successor->getDelivery()->getEncryptedMaterial()?->reveal()
+            );
             self::assertInstanceOf(CommandFailedEvent::class, $events->events()[0]);
             self::assertCount(1, $events->events());
         }
