@@ -7,6 +7,7 @@ namespace Fight\AccessControl\Application\AccessControl\CredentialDelivery\Servi
 use Fight\Common\Domain\Value\Internet\EmailAddress;
 use LogicException;
 use SensitiveParameter;
+use SensitiveParameterValue;
 
 /**
  * Class CredentialDeliveryInvocation
@@ -15,6 +16,8 @@ use SensitiveParameter;
  */
 final readonly class CredentialDeliveryInvocation
 {
+    private SensitiveParameterValue $credential;
+
     /**
      * Constructs CredentialDeliveryInvocation
      */
@@ -22,8 +25,9 @@ final readonly class CredentialDeliveryInvocation
         private string $purpose,
         private string $idempotencyId,
         private EmailAddress $email,
-        #[SensitiveParameter] private string $credential
+        #[SensitiveParameter] string $credential
     ) {
+        $this->credential = new SensitiveParameterValue($credential);
     }
 
     /**
@@ -55,7 +59,7 @@ final readonly class CredentialDeliveryInvocation
      */
     public function getCredential(): string
     {
-        return $this->credential;
+        return (string) $this->credential->getValue();
     }
 
     /**

@@ -32,9 +32,11 @@ final class CredentialDeliveryInvocationTest extends TestCase
     {
         $invocation = $this->invocation();
         $diagnostic = print_r($invocation, true);
+        $export = var_export($invocation, true);
 
         self::assertStringNotContainsString('RAW-SECRET', $diagnostic);
         self::assertStringContainsString('[REDACTED]', $diagnostic);
+        self::assertStringNotContainsString('RAW-SECRET', $export);
         self::assertSame('activation', $invocation->getPurpose());
         self::assertSame('delivery-generation-42', $invocation->getIdempotencyId());
         self::assertSame('alice@example.test', $invocation->getEmail()->canonical());
