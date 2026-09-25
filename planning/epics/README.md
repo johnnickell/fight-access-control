@@ -10,3 +10,4 @@ This generated index is a projection; individual records remain canonical.
 | [EPIC-00004](00004-EPIC.md) | Composable OpenAPI Schema Components | done |
 | [EPIC-00005](00005-EPIC.md) | Agent-Aware MCP Tool Authorization | needs-info |
 | [EPIC-00006](00006-EPIC.md) | Recoverable Credential Delivery | ready-for-agent |
+| [EPIC-00007](00007-EPIC.md) | Adopt Current Fight Common Contracts | ready-for-agent |

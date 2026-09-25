@@ -11,3 +11,4 @@ This generated index is a projection; individual records remain canonical.
 | [TICKET-00005](00005-TICKET.md) | Composable OpenAPI Schema Components | done |
 | [TICKET-00006](00006-TICKET.md) | Authorize Agent-Protected MCP Tools | needs-info |
 | [TICKET-00007](00007-TICKET.md) | Deliver Credentials Recoverably Outside Transactions | ready-for-agent |
+| [TICKET-00008](00008-TICKET.md) | Use Supported Transactional Unit of Work Contracts | ready-for-agent |
