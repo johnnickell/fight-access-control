@@ -67,8 +67,23 @@ Repository implementations must preserve these rules:
 
 ### Existing rows
 
-Because mixed v0.2/v0.3 operation has no compatibility bridge, migrate a stable snapshot under an atomic database
-lock or a maintenance window with this order:
+Because mixed v0.2/v0.3 operation has no compatibility bridge, migrate one stable snapshot under a maintenance
+window. A database lock prevents concurrent mutation but is not a rollback mechanism. Before stopping writers,
+choose and rehearse one recovery mode:
+
+- **Atomic transformation:** use this only when every schema, row, and encrypted-material mutation is part of one
+  genuinely rollback-capable database transaction, including transactional DDL where required. Stage the v0.3
+  application and external deduplication changes inactive and reversibly until database and external validation is
+  complete. Any pre-activation failure rolls back the whole transformation.
+- **Restorable snapshot and source ledger:** required when any schema operation, row conversion, material destruction,
+  application activation, or external deduplication mutation cannot participate in that transaction. Capture a
+  verified restorable pre-cutover application/configuration artifact, schema, complete source rows including encrypted
+  material and aggregate revisions, and the affected provider deduplication state. Keep a generation-keyed source
+  ledger recording each source shape, planned target, reconciliation decision, and external key's prior and intended
+  state. Protect the backup and ledger as credential material, retain the required decryption key, and rehearse the
+  restore before destructive conversion.
+
+Run the cutover in this order while all writers remain blocked:
 
 1. Stop intake and scheduling for every v0.2 writer that can create, replace, retry, confirm, consume, expire, cancel,
    revoke, or otherwise terminalize an activation, password-reset, or email-change grant or delivery. This includes
@@ -78,11 +93,32 @@ lock or a maintenance window with this order:
 2. Drain every in-flight command transaction, subscriber/worker invocation, consumer transport submission, and
    external provider handoff. Record unresolved external handoffs for the quarantine and reconciliation rules below;
    do not let them continue concurrently with classification.
-3. Establish one migration cutoff while those writers remain blocked. Classify and migrate all rows, install the
-   compatible schema and shared-connection repository adapters, deploy the v0.3 ciphers/provider/direct handlers and
-   code, and validate representative reconstitution, complete-state CAS, and discovery results.
-4. Resume intake and scheduling only through the compatible v0.3 paths after validation succeeds. On failure, keep
-   writers stopped and restore the pre-cutover application/schema pair; never resume a mixed-version pair.
+3. Establish one migration cutoff, then create the selected transaction or snapshot/ledger before the first mutation.
+   Verify source row counts and checksums, encrypted-material recoverability, application and schema identities, and
+   the captured provider deduplication state. A backup file or transaction that has not passed its restore/rollback
+   rehearsal is not recovery evidence.
+4. Classify and convert rows, install the compatible schema and shared-connection repository adapters, and stage the
+   v0.3 ciphers/provider/direct handlers and code without enabling writers. Preserve the source ledger until cutover
+   acceptance. Validate every mapped shape plus representative reconstitution, complete-state CAS, retry scheduling,
+   material destruction, and discovery results.
+5. After database validation, stage provider deduplication entries in an inactive namespace or journal each mutation
+   with its reversible prior value. Validate the exact preserved delivery-ID-to-effect mapping. Do not expose the new
+   application to traffic while database and external state differ or while any seed is unverified.
+6. Activate the v0.3 application, schema, migrated rows, and deduplication state as one accepted set. Resume intake and
+   scheduling only through compatible v0.3 paths after final validation succeeds; never resume a mixed-version pair.
+
+A failure before writer activation is an abort point, not permission to restore only application code and schema. Keep
+writers stopped and either roll forward the corrected v0.3 set, or roll back the complete set in reverse order: disable
+v0.3 activation, remove staged entries or restore every journaled provider deduplication value, restore row data and
+encrypted material, restore schema and application/configuration, then validate v0.2 row checksums, material
+recoverability, adapter reads, and external state before v0.2 writers resume. In atomic mode, roll back the database
+transaction and verify that no external staged state was activated.
+
+Once any v0.3 writer or provider invocation is enabled, the pre-cutover snapshot alone is no longer a safe rollback:
+new database state and external effects may exist. Stop writers again, ledger and reconcile those effects, and prefer a
+validated roll-forward. Roll back only when every post-activation database and external effect has an explicit
+reversible disposition. No v0.2 or v0.3 writer resumes until application, schema, rows/material, and provider
+idempotency state validate as one coherent version.
 
 Preserve every delivery ID: changing it defeats stale-generation fencing and the identity used for new v0.3 provider
 attempts. Preservation alone does not deduplicate a historical v0.2 invocation, because the old invokers were not
@@ -101,7 +137,8 @@ For each quarantined row, use one of these consumer-owned migration paths:
 1. Reconcile provider or transport history and migrate an accepted effect to `delivered` with no encrypted material
    and the terminal `due_at` defined below.
 2. Seed the provider's deduplication store so the preserved delivery ID resolves to the historical effect, then
-   migrate the unresolved row to the retryable target in the table below and let replay converge on that effect.
+   migrate the unresolved row to the retryable target in the table below and let replay converge on that effect. Apply
+   the seed only through the staged or journaled external-state step above, preserving its prior value for recovery.
 3. Destroy the material and migrate to `invalidated` with the terminal `due_at` when an operator decides that
    suppressing a possible effect is safer than replay.
 4. If neither history nor deduplication is available and replay is required, record explicit owner acceptance of a
@@ -231,9 +268,10 @@ vendor exception messages as lifecycle state. Prefer translating known provider 
 an unexpected throwable is converted by the package to `unexpected_provider`, retained only as safe retryable state.
 
 Use `FindCredentialDeliveryStatus` for secret-free operational inspection. Do not log raw credentials, hashes,
-ciphertext, credential-bearing URLs, provider secrets, claim tokens, or arbitrary provider errors. The invocation
-fails closed on serialization and redacts ordinary object diagnostics, but adapters must still avoid custom secret
-capture.
+ciphertext, credential-bearing URLs, provider secrets, claim tokens, or arbitrary provider errors.
+`EncryptedCredentialMaterial` and the invocation redact ordinary object diagnostics and fail closed on direct or
+containing-object serialization, but adapters must still avoid custom secret capture and must not call `reveal()` for
+diagnostics.
 
 ## Fight Agent OS sequencing
 
@@ -256,7 +294,7 @@ adapters should run equivalent cases against their real shared connection.
 | Provider acceptance followed by outcome failure reuses one effect identity | `DeliverUserInvitationHandlerTest::test_provider_acceptance_followed_by_outcome_commit_failure_reuses_idempotency_identity` |
 | Competing claims lose before provider invocation and stale outcomes cannot overwrite current state | The three delivery-handler tests plus [`InMemoryActivationGrantRepositoryTest`](../tests/Application/AccessControl/ActivationGrant/Repository/InMemoryActivationGrantRepositoryTest.php) |
 | Expired leases become due and reject the abandoned claimant's later outcome | [`ActivationDeliveryLifecycleTest`](../tests/Domain/AccessControl/ActivationGrant/ActivationDeliveryLifecycleTest.php) and the repository discovery tests |
-| Due/status results are secret-free and provider material cannot be serialized or exported through ordinary diagnostics | [`DueCredentialDeliveryTest`](../tests/Domain/AccessControl/CredentialDelivery/DueCredentialDeliveryTest.php), `CredentialDeliveryQueryHandlerTest`, and [`CredentialDeliveryInvocationTest`](../tests/Application/AccessControl/CredentialDelivery/Service/CredentialDeliveryInvocationTest.php) |
+| Due/status results are secret-free; encrypted and raw provider material cannot be serialized or exported through ordinary diagnostics, including a containing delivery | [`DueCredentialDeliveryTest`](../tests/Domain/AccessControl/CredentialDelivery/DueCredentialDeliveryTest.php), `CredentialDeliveryQueryHandlerTest`, [`ActivationDeliveryLifecycleTest`](../tests/Domain/AccessControl/ActivationGrant/ActivationDeliveryLifecycleTest.php), and [`CredentialDeliveryInvocationTest`](../tests/Application/AccessControl/CredentialDelivery/Service/CredentialDeliveryInvocationTest.php) |
 
 Run these focused tests during adapter migration, then run this package's complete `./bin/build`. A package build and
 local qualification receipt do not certify a consumer adapter, hosted CI, a tag, signing, publication, upgrade, or

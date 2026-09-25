@@ -16,6 +16,7 @@ use Fight\AccessControl\Domain\AccessControl\CredentialDelivery\EncryptedCredent
 use Fight\AccessControl\Domain\AccessControl\CredentialDelivery\Exception\CredentialDeliveryTransitionException;
 use Fight\AccessControl\Domain\AccessControl\User\UserId;
 use Fight\Common\Domain\Value\Internet\EmailAddress;
+use LogicException;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
 
@@ -55,6 +56,33 @@ final class ActivationDeliveryLifecycleTest extends TestCase
         self::assertTrue($delivery->isDueAt($this->at('12:00:00')));
         self::assertTrue($delivery->sameStateAs($delivery));
         self::assertFalse($delivery->sameStateAs($delivery->invalidate()));
+    }
+
+    public function test_it_redacts_and_rejects_serialization_of_encrypted_material_and_its_delivery(): void
+    {
+        $delivery = $this->delivery();
+        $material = $delivery->getEncryptedMaterial();
+        self::assertInstanceOf(EncryptedCredentialMaterial::class, $material);
+
+        ob_start();
+        var_dump($material, $delivery);
+        $dump = (string) ob_get_clean();
+
+        foreach ([$material, $delivery] as $sensitiveObject) {
+            $diagnostics = print_r($sensitiveObject, true).var_export($sensitiveObject, true).$dump;
+            self::assertStringNotContainsString('ciphertext', $diagnostics);
+            self::assertStringContainsString('[REDACTED]', $diagnostics);
+
+            try {
+                serialize($sensitiveObject);
+                self::fail('Expected encrypted credential material to reject serialization.');
+            } catch (LogicException $logicException) {
+                self::assertSame(
+                    'Encrypted credential material cannot be serialized.',
+                    $logicException->getMessage()
+                );
+            }
+        }
     }
 
     public function test_pristine_state_rejects_metadata_and_due_time_at_or_after_expiry(): void

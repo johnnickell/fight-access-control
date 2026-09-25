@@ -138,7 +138,10 @@ final class DeliverUserInvitationHandlerTest extends TestCase
         $delivery = $repository->getLatestByUserId($grant->getUserId())?->getDelivery();
         self::assertSame(CredentialDeliveryFailure::UNEXPECTED_PROVIDER, $delivery?->getLastFailure());
         self::assertSame([], $events->events());
-        self::assertStringNotContainsString('secret vendor diagnostic', serialize($delivery));
+        self::assertStringNotContainsString(
+            'secret vendor diagnostic',
+            print_r($delivery, true).var_export($delivery, true)
+        );
     }
 
     public function test_provider_acceptance_followed_by_outcome_commit_failure_reuses_idempotency_identity(): void
