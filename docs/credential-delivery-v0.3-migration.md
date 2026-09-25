@@ -17,7 +17,7 @@ There is no compatibility bridge. Remove old bindings and update persistence bef
 | `EmailChangeDeliveryInvoker::invoke(EmailChangeDelivery): void` | The same provider-neutral `CredentialDeliveryProvider` binding |
 | No package-owned password-reset provider path | `DeliverPasswordReset`, `DeliverPasswordResetHandler`, and `PasswordResetDeliverySubscriber` |
 | Purpose-specific cipher interfaces with only `encrypt(string): string` | The three purpose-specific cipher interfaces now extend `CredentialDeliveryCipher` and must also implement `decrypt(EncryptedCredentialMaterial): string` |
-| `ActivationDelivery::getCiphertext()` and `EmailChangeDelivery::getCiphertext()` raw-string access | `CredentialDelivery::getEncryptedMaterial()` returns an `EncryptedCredentialMaterial` value for persistence; call `reveal()` only at that boundary |
+| `ActivationDelivery::getCiphertext()`, `PasswordResetDelivery::getCiphertext()`, and `EmailChangeDelivery::getCiphertext()` raw-string access | `CredentialDelivery::getEncryptedMaterial()` returns an `EncryptedCredentialMaterial` value for persistence; call `reveal()` only at that boundary |
 | `ActivationDeliveryStatus` and `EmailChangeDeliveryStatus` | Shared `CredentialDeliveryStatus` values: `pending`, `claimed`, `retry_pending`, `delivered`, `permanent_failure`, `expired`, and `invalidated` |
 | Consumer/invoker interpretation of success and failure | Provider returns `DELIVERED`, `RETRYABLE_FAILURE`, or `PERMANENT_FAILURE`; package handlers own state transitions and safe failure classification |
 
@@ -108,9 +108,17 @@ limit. For each returned `DueCredentialDelivery`, dispatch the exact direct comm
 | `email_change` | `DeliverEmailChange` with User ID and `EmailChangeDeliveryId` |
 
 Supply the command's actor using the consumer's established audit identity policy; never derive credentials or a
-destination from scheduler data. Re-run discovery until fewer than the requested limit are returned, then wait for
-the next scheduled interval. Concurrent workers may read the same item: the first committed complete-state claim wins,
-and a loser must not invoke the provider.
+destination from scheduler data. Paging depends on the dispatch mode:
+
+- With synchronous dispatch, wait for every direct handler in the page to complete its claim and delivery attempt
+  before re-running discovery. Continue until discovery returns fewer than the requested limit, then wait for the next
+  scheduled interval.
+- With asynchronous queue dispatch, enqueue at most one bounded page per scheduling cycle, then stop. Rediscover only
+  on a later cycle after workers have had an opportunity to commit their claims; do not loop merely because the page
+  was full, because the same rows remain due until those claims commit.
+
+Concurrent workers may read the same item: the first committed complete-state claim wins, and a loser must not invoke
+the provider.
 
 Discovery recovers pending work after a lost post-commit dispatch, retries at package-owned due times, and reclaims an
 abandoned claim after its lease expires. The delivery handler performs three ordered phases:
@@ -155,7 +163,7 @@ adapters should run equivalent cases against their real shared connection.
 | Required behavior | Package evidence |
 | --- | --- |
 | Originating aggregate, delivery, and audit rollback together | [`ResendInvitationDeliveryHandlerTest`](../tests/Application/AccessControl/ActivationGrant/CommandHandler/ResendInvitationDeliveryHandlerTest.php), [`RequestPasswordResetHandlerTest`](../tests/Application/AccessControl/PasswordResetGrant/CommandHandler/RequestPasswordResetHandlerTest.php), and [`RequestEmailChangeHandlerTest`](../tests/Application/AccessControl/EmailChangeGrant/CommandHandler/RequestEmailChangeHandlerTest.php) |
-| Restart discovery returns pending, due-retry, and expired-lease work in deterministic bounded order | The three in-memory repository tests and [`CredentialDeliveryQueryHandlerTest`](../tests/Application/AccessControl/CredentialDelivery/QueryHandler/CredentialDeliveryQueryHandlerTest.php) |
+| Restart discovery returns pending, due-retry, and expired-lease work in deterministic bounded order | [`ActivationDeliveryLifecycleTest`](../tests/Domain/AccessControl/ActivationGrant/ActivationDeliveryLifecycleTest.php) proves due-retry and expired-lease eligibility; the three in-memory repository tests and [`CredentialDeliveryQueryHandlerTest`](../tests/Application/AccessControl/CredentialDelivery/QueryHandler/CredentialDeliveryQueryHandlerTest.php) prove bounded cross-purpose discovery and ordering |
 | Provider invocation occurs after claim commit and outside claim/outcome transactions | [`DeliverUserInvitationHandlerTest`](../tests/Application/AccessControl/ActivationGrant/CommandHandler/DeliverUserInvitationHandlerTest.php), [`DeliverPasswordResetHandlerTest`](../tests/Application/AccessControl/PasswordResetGrant/CommandHandler/DeliverPasswordResetHandlerTest.php), and [`DeliverEmailChangeHandlerTest`](../tests/Application/AccessControl/EmailChangeGrant/CommandHandler/DeliverEmailChangeHandlerTest.php) |
 | Provider acceptance followed by outcome failure reuses one effect identity | `DeliverUserInvitationHandlerTest::test_provider_acceptance_followed_by_outcome_commit_failure_reuses_idempotency_identity` |
 | Competing claims lose before provider invocation and stale outcomes cannot overwrite current state | The three delivery-handler tests plus [`InMemoryActivationGrantRepositoryTest`](../tests/Application/AccessControl/ActivationGrant/Repository/InMemoryActivationGrantRepositoryTest.php) |
