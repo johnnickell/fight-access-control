@@ -5,13 +5,11 @@ dependencies, acceptance, and verification.
 
 ## What's Next?
 
-Active Task: [TASK-00039](00039-TASK.md) — Qualify the v0.3.0 credential-delivery contract and migration.
+Needs information: [TASK-00035](00035-TASK.md) — Authorize Agent-protected MCP Tools. This Task is not executable until the missing information is resolved.
 
 ## In Progress
 
-| Order | TASK ID | Title | Parent TICKET | Status | Blocked by | PR |
-| --- | --- | --- | --- | --- | --- | --- |
-| 39 | [TASK-00039](00039-TASK.md) | Qualify the v0.3.0 credential-delivery contract and migration | [TICKET-00007](../tickets/00007-TICKET.md) — Deliver Credentials Recoverably Outside Transactions | in-progress | [TASK-00038](00038-TASK.md) | — |
+No Tasks are currently in this state.
 
 ## Ready Frontier
 
@@ -75,4 +73,5 @@ No Tasks are currently in this state.
 | 36 | [TASK-00036](00036-TASK.md) | Keep Board next-action guidance truthful for blocked planning work | — (standalone bug) | done | — | https://github.com/johnnickell/fight-access-control/pull/56 |
 | 37 | [TASK-00037](00037-TASK.md) | Model recoverable credential-delivery state and repository contracts | [TICKET-00007](../tickets/00007-TICKET.md) — Deliver Credentials Recoverably Outside Transactions | done | — | https://github.com/johnnickell/fight-access-control/pull/59 |
 | 38 | [TASK-00038](00038-TASK.md) | Orchestrate provider-neutral credential delivery outside transactions | [TICKET-00007](../tickets/00007-TICKET.md) — Deliver Credentials Recoverably Outside Transactions | done | [TASK-00037](00037-TASK.md), [TASK-00040](00040-TASK.md) | https://github.com/johnnickell/fight-access-control/pull/62 |
+| 39 | [TASK-00039](00039-TASK.md) | Qualify the v0.3.0 credential-delivery contract and migration | [TICKET-00007](../tickets/00007-TICKET.md) — Deliver Credentials Recoverably Outside Transactions | done | [TASK-00038](00038-TASK.md) | — |
 | 40 | [TASK-00040](00040-TASK.md) | Remove deprecated Fight Common contract dependencies | [TICKET-00008](../tickets/00008-TICKET.md) — Use Supported Transactional Unit of Work Contracts | done | — | https://github.com/johnnickell/fight-access-control/pull/61 |
