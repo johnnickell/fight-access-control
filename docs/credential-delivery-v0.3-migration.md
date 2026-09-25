@@ -62,22 +62,53 @@ Repository implementations must preserve these rules:
 
 ### Existing rows
 
-Quiesce old delivery workers before migrating rows. Preserve every delivery ID: changing it defeats provider
-idempotency and stale-generation fencing.
+Quiesce old delivery workers before migrating rows. Preserve every delivery ID: changing it defeats stale-generation
+fencing and the identity used for new v0.3 provider attempts. Preservation alone does not deduplicate a historical
+v0.2 invocation, because the old invokers were not required to send that ID to their provider.
 
-- Migrate recoverable `pending` work to `pending` with an immediately eligible `due_at`.
-- After old workers are stopped, migrate an unresolved old `claimed` row back to immediately eligible `pending` with
-  no claim metadata. Reconcile any uncertain provider acceptance before resuming; `v0.2.x` did not require the new
-  idempotency contract, so the package cannot infer whether that historical effect was accepted.
-- Migrate old `failed` work to `retry_pending` with an immediately eligible `due_at` and only safe failure metadata.
-- Map old `confirmed` to `delivered`, and old `expired` to `expired`; terminal rows have no encrypted material.
-- Migrate an unexpired, issued password-reset generation with encrypted delivery material to `pending`. Preserve
-  terminal aggregate state and absent material for consumed, revoked, or expired generations.
+Quarantine every recoverable v0.2 invitation or email-change row whose old status is `pending`, `claimed`, or `failed`.
+Do not make it due until its historical invocation has a recorded disposition. The old handler called the provider
+inside the transaction: acceptance followed by rollback can leave `pending`, while acceptance followed by a timeout
+can commit `failed`; `claimed` is also uncertain. For each such row, use one of these consumer-owned migration paths:
+
+1. Reconcile provider history and migrate an accepted effect to `delivered` with no encrypted material.
+2. Seed the provider's deduplication store so the preserved delivery ID resolves to the historical effect, then
+   migrate the unresolved row to the retryable target in the table below and let replay converge on that effect.
+3. Destroy the material and migrate to `invalidated` when an operator decides that suppressing a possible effect is
+   safer than replay.
+4. If neither history nor deduplication is available and replay is required, record explicit owner acceptance of a
+   possible duplicate before choosing the retryable target. Do not describe that choice as exactly-once.
+
+Password reset is excluded from that historical-provider reconciliation: v0.2 had no package-owned password-reset
+provider call. Apply this complete family-specific mapping at the migration cutoff:
+
+| v0.2 family and persisted shape | v0.3 delivery mapping |
+| --- | --- |
+| Activation with material, an issued grant before expiry, and old `pending` after reconciliation | `pending`, immediately eligible, with no claim metadata |
+| Activation with material, an issued grant before expiry, and old `claimed` after reconciliation | `pending`, immediately eligible, with no claim metadata |
+| Activation with material, an issued grant before expiry, and old `failed` after reconciliation | `retry_pending`, immediately eligible, with only safe failure metadata |
+| Activation with no material and old `confirmed` | `delivered` with no claim metadata |
+| Activation with no material and old `expired`, or recoverable activation work at or after delivery expiry | `expired`, `due_at` equal to expiry, with no material or claim metadata |
+| Activation with no material and old `pending`, `claimed`, or `failed` after grant consumption, revocation, or another material-destroying invalidation | `invalidated` with no claim metadata; never retain an active status without material |
+| Email change with material, issued authority before expiry, and old `pending`, `claimed`, or `failed` after reconciliation | Map respectively to immediately eligible `pending`, `pending`, or `retry_pending`, with no claim metadata |
+| Email change with no material and old `confirmed` | `delivered` with no claim metadata |
+| Email change with material after consumption, revocation, or the authority expiry boundary | Destroy the material and map to `invalidated`; email-change aggregate expiry invalidates delivery rather than creating `expired` delivery state |
+| Email change with no material and old `pending`, `claimed`, or `failed` after consumption, revocation, aggregate expiry, or another material-destroying invalidation | `invalidated` with no claim metadata; never retain an active status without material |
+| Password reset with material and issued, unexpired authority | `pending`, immediately eligible, with no claim or outcome metadata |
+| Password reset with material at or after delivery expiry | `expired`, `due_at` equal to expiry, with no material or claim metadata |
+| Password reset with material after grant consumption or revocation | `invalidated` with no material or claim metadata |
+| Password reset with no material | Use trustworthy event, audit, or adapter history: a confirmed delivery maps to `delivered`, delivery expiry maps to `expired`, and consumption, revocation, or explicit invalidation without prior confirmation maps to `invalidated`. The v0.2 row alone cannot distinguish these outcomes. |
+
+For a ciphertext-free password-reset row without trustworthy history, require an explicit migration-owner decision and
+conservatively classify it as `invalidated`; do not guess `delivered` or `expired`, recreate material, or make it due.
+Reject any remaining source combination that contradicts its aggregate terminal fields instead of coercing it into an
+active state.
 
 Initialize absent claim/outcome timestamps and failure fields to `null`. Use an attempt count of zero only for work
-that was never claimed; an old claimed, failed, or confirmed state proves at least one attempt, but no exact count
-beyond that minimum should be invented without trustworthy adapter history. Validate migrated rows through aggregate
-reconstitution and repository invariants before enabling discovery.
+that trustworthy history shows was never claimed; an old `claimed`, `failed`, or `confirmed` state proves at least one
+attempt, and a retry-restored old `pending` row may also have been attempted. Do not invent an exact count beyond known
+history. Validate representative rows from every mapping through aggregate reconstitution and repository invariants
+before enabling discovery.
 
 ## Register direct package capabilities
 
