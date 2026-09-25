@@ -9,7 +9,9 @@ publication, a consumer upgrade, or deployment.
 
 ## Replace the v0.2.x contracts
 
-There is no compatibility bridge. Remove old bindings and update persistence before enabling the new workers.
+There is no compatibility bridge. Use the stable-snapshot maintenance-window cutover under
+[Existing rows](#existing-rows); do not run v0.2 writers against v0.3 persistence or resume intake before the new
+schema, adapters, bindings, and code are active together.
 
 | v0.2.x contract | v0.3.0 replacement |
 | --- | --- |
@@ -17,7 +19,7 @@ There is no compatibility bridge. Remove old bindings and update persistence bef
 | `EmailChangeDeliveryInvoker::invoke(EmailChangeDelivery): void` | The same provider-neutral `CredentialDeliveryProvider` binding |
 | No package-owned password-reset provider path | `DeliverPasswordReset`, `DeliverPasswordResetHandler`, and `PasswordResetDeliverySubscriber` |
 | Purpose-specific cipher interfaces with only `encrypt(string): string` | The three purpose-specific cipher interfaces now extend `CredentialDeliveryCipher` and must also implement `decrypt(EncryptedCredentialMaterial): string` |
-| `ActivationDelivery::getCiphertext()`, `PasswordResetDelivery::getCiphertext()`, and `EmailChangeDelivery::getCiphertext()` raw-string access | `CredentialDelivery::getEncryptedMaterial()` returns an `EncryptedCredentialMaterial` value for persistence; call `reveal()` only at that boundary |
+| `ActivationDelivery::getCiphertext()`, `PasswordResetDelivery::getCiphertext()`, and `EmailChangeDelivery::getCiphertext()` raw-string access | `CredentialDelivery::getEncryptedMaterial()` returns an `EncryptedCredentialMaterial` boundary value; call `reveal()` only inside an approved persistence adapter or the cipher's committed-claim decryption boundary |
 | `ActivationDeliveryStatus` and `EmailChangeDeliveryStatus` | Shared `CredentialDeliveryStatus` values: `pending`, `claimed`, `retry_pending`, `delivered`, `permanent_failure`, `expired`, and `invalidated` |
 | Consumer/invoker interpretation of success and failure | Provider returns `DELIVERED`, `RETRYABLE_FAILURE`, or `PERMANENT_FAILURE`; package handlers own state transitions and safe failure classification |
 
@@ -37,9 +39,12 @@ credential-delivery state owned by the aggregate:
 - attempt count, latest attempt time, latest outcome time, and safe failure classification; and
 - the owning aggregate revision used by complete-state compare-and-set replacement.
 
-`EncryptedCredentialMaterial` is a boundary value, not a new encryption format. Persist `reveal()` using the existing
-ciphertext storage and reconstitute it with `EncryptedCredentialMaterial::fromString()`. Never project that value into
-due work, status views, messages, audit evidence, or logs.
+`EncryptedCredentialMaterial` is a boundary value, not a new encryption format. A persistence adapter may call
+`reveal()` to write the existing ciphertext storage and reconstitute it with
+`EncryptedCredentialMaterial::fromString()`. A cipher adapter may also call `reveal()` inside
+`CredentialDeliveryCipher::decrypt()` only for the handler's already committed live claim. Neither boundary may
+project, log, diagnose, serialize, or retain the value outside that operation; due work, status views, messages, and
+audit evidence remain secret-free.
 
 All repositories injected into one package handler must participate in the same physical connection and the same
 `TransactionalUnitOfWork` callback. Depending on the originating use case, that includes the User, activation grant,
@@ -62,9 +67,26 @@ Repository implementations must preserve these rules:
 
 ### Existing rows
 
-Quiesce old delivery workers before migrating rows. Preserve every delivery ID: changing it defeats stale-generation
-fencing and the identity used for new v0.3 provider attempts. Preservation alone does not deduplicate a historical
-v0.2 invocation, because the old invokers were not required to send that ID to their provider.
+Because mixed v0.2/v0.3 operation has no compatibility bridge, migrate a stable snapshot under an atomic database
+lock or a maintenance window with this order:
+
+1. Stop intake and scheduling for every v0.2 writer that can create, replace, retry, confirm, consume, expire, cancel,
+   revoke, or otherwise terminalize an activation, password-reset, or email-change grant or delivery. This includes
+   invitation issue/restore/correction/resend/retry, password-reset request and consumer transport/confirmation,
+   email-change request, all three families' credential-consumption or confirmation paths, cancellation/revocation
+   and expiry paths, and old workers/subscribers.
+2. Drain every in-flight command transaction, subscriber/worker invocation, consumer transport submission, and
+   external provider handoff. Record unresolved external handoffs for the quarantine and reconciliation rules below;
+   do not let them continue concurrently with classification.
+3. Establish one migration cutoff while those writers remain blocked. Classify and migrate all rows, install the
+   compatible schema and shared-connection repository adapters, deploy the v0.3 ciphers/provider/direct handlers and
+   code, and validate representative reconstitution, complete-state CAS, and discovery results.
+4. Resume intake and scheduling only through the compatible v0.3 paths after validation succeeds. On failure, keep
+   writers stopped and restore the pre-cutover application/schema pair; never resume a mixed-version pair.
+
+Preserve every delivery ID: changing it defeats stale-generation fencing and the identity used for new v0.3 provider
+attempts. Preservation alone does not deduplicate a historical v0.2 invocation, because the old invokers were not
+required to send that ID to their provider.
 
 Quarantine every recoverable v0.2 delivery that could already have produced an external effect. For activation and
 email change, this includes every old `pending`, `claimed`, or `failed` row: the old handler called the provider inside
@@ -122,11 +144,27 @@ conservatively classify it as `invalidated` with the deterministic terminal `due
 `expired`, recreate material, or make it due. Reject any remaining source combination that contradicts its aggregate
 terminal fields instead of coercing it into an active state.
 
-Initialize absent claim/outcome timestamps and failure fields to `null`. Use an attempt count of zero only for work
-that trustworthy history shows was never claimed or submitted to a consumer transport. An old `claimed`, `failed`, or
-`confirmed` state or a recorded password-reset transport submission proves at least one attempt, and a retry-restored
-old `pending` row may also have been attempted. Do not invent an exact count beyond known history. Validate
-representative rows from every mapping through aggregate reconstitution and repository invariants before enabling
+Treat `attempt_count` as a required operational migration seed, not as a claim of unavailable history:
+
+- When trustworthy complete history supplies the exact nonnegative attempt count, use it and retain only trustworthy
+  latest-attempt/outcome timestamps and a package-defined safe failure classification.
+- Use zero only when trustworthy history proves the credential was never claimed, submitted to a consumer transport,
+  or invoked. Set `last_attempt_at`, `last_outcome_at`, and `last_failure` to `null` for that pristine history.
+- When a row may or must have produced an attempt but exact cardinality is unavailable, use the package migration
+  baseline `attempt_count = 1`. This fixed value marks historical uncertainty; it is not presented as the exact old
+  count. Keep `last_attempt_at` and `last_outcome_at` `null` unless their values are trustworthy. For an old `failed`
+  row, retain only a package-defined safe classification such as `unexpected_provider`; never migrate arbitrary old
+  error text.
+- An active row using the baseline remains due at the migration cutoff. Its first v0.3 claim increments the count to
+  two, so a retryable outcome schedules the package's 120-second second-attempt delay, capped by grant expiry; later
+  attempts follow the normal bounded backoff. Terminal rows are never retried, but retain the same deterministic
+  count/metadata rule for complete-state CAS and status output.
+
+An old `claimed`, `failed`, or `confirmed` state or a recorded password-reset transport submission requires a positive
+count. A retry-restored old `pending` row and every controlled-duplicate replay use the baseline unless complete
+history proves another value. Do not use zero for uncertainty or choose another guessed integer. Validate
+representative exact-history, never-attempted, and normalized-baseline rows from every applicable mapping through
+aggregate reconstitution, status projection, complete-state repository CAS, and retry scheduling before enabling
 discovery.
 
 ## Register direct package capabilities
