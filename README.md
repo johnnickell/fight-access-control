@@ -3,10 +3,9 @@
 Framework-neutral identity, credential, session, authorization, and account-lifecycle contracts for Fight
 applications.
 
-The `v0.3.0` candidate introduces recoverable, provider-neutral credential delivery for invitation, password
+The `v0.3.0` contract introduces recoverable, provider-neutral credential delivery for invitation, password
 reset, and email change. Consumers upgrading from `v0.2.x` must follow the
-[credential-delivery migration guide](docs/credential-delivery-v0.3-migration.md); this candidate does not claim a
-tag, publication, or consumer deployment.
+[credential-delivery migration guide](docs/credential-delivery-v0.3-migration.md).
 
 The `0.2.0` release adds an opt-in, non-autoloaded OpenAPI component catalog
 for consumer-owned documents. See [OpenAPI composition](docs/openapi-composition.md).
@@ -40,8 +39,8 @@ whether that transaction capability remains available. The deprecated `UnitOfWor
 `commit()` method are not supported by AccessControl constructors.
 
 This constructor type change is intentionally breaking while AccessControl remains pre-`1.0.0`: consumers upgrading
-from `0.2.x` must replace `UnitOfWork` bindings with `TransactionalUnitOfWork` bindings. No compatibility adapter or
-release/publication status is implied by this unreleased guidance.
+from `0.2.x` must replace `UnitOfWork` bindings with `TransactionalUnitOfWork` bindings. No compatibility adapter is
+supplied.
 
 ### Recoverable credential delivery composition
 

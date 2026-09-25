@@ -4,8 +4,8 @@ Fight AccessControl `v0.3.0` replaces the `v0.2.x` invitation and email-change i
 provider-neutral delivery lifecycle shared by invitation, password reset, and email change. This is an intentional
 breaking change while the package is pre-`1.0.0`.
 
-This guide describes the consumer migration contract. It does not authorize or claim the `v0.3.0` tag, signing,
-publication, a consumer upgrade, or deployment.
+This guide describes the consumer migration contract. Each consumer must qualify its adapters, stored data,
+provider deduplication state, and cutover before upgrading.
 
 ## Replace the v0.2.x contracts
 

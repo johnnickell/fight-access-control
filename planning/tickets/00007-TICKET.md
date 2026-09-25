@@ -2,7 +2,7 @@
 id: TICKET-00007
 epic: EPIC-00006
 title: Deliver Credentials Recoverably Outside Transactions
-status: ready-for-agent
+status: done
 ---
 
 # Deliver Credentials Recoverably Outside Transactions
@@ -61,21 +61,24 @@ outcome/audit semantics, and direct handler registration.
 
 ## Acceptance Evidence
 
-- [ ] Originating mutations roll back user/grant/delivery/audit atomically and commit discoverable work before any
+- [x] Originating mutations roll back user/grant/delivery/audit atomically and commit discoverable work before any
       provider call.
-- [ ] No provider call occurs with an originating, claim, or outcome transaction active.
-- [ ] Restart discovery schedules pending, due-retry, and expired-lease work deterministically; competing claims and
+- [x] No provider call occurs with an originating, claim, or outcome transaction active.
+- [x] Restart discovery schedules pending, due-retry, and expired-lease work deterministically; competing claims and
       stale outcomes cannot mutate the authoritative generation.
-- [ ] A crash after provider acceptance and before outcome commit may retry with the same idempotency identity and is
+- [x] A crash after provider acceptance and before outcome commit may retry with the same idempotency identity and is
       documented as at-least-once.
-- [ ] Invitation initial/restore/correction/resend/retry, reset request/replacement/confirmation/expiry, and email
+- [x] Invitation initial/restore/correction/resend/retry, reset request/replacement/confirmation/expiry, and email
       request/delivery/cancellation/expiry all obey one compatible lifecycle.
-- [ ] Typed retryable/permanent outcomes, ciphertext destruction, safe audit/status, and secret-free messages are
+- [x] Typed retryable/permanent outcomes, ciphertext destruction, safe audit/status, and secret-free messages are
       proven for every delivery family.
-- [ ] Direct package handler registration and consumer-owned shared Unit of Work composition are documented and
+- [x] Direct package handler registration and consumer-owned shared Unit of Work composition are documented and
       covered by conformance seams.
-- [ ] Migration guide, changelog entry, SemVer classification, release qualification, `./bin/planning-check`, and
+- [x] Migration guide, changelog entry, SemVer classification, release qualification, `./bin/planning-check`, and
       `./bin/build` pass before a separately authorized tag/release.
+
+TASK-00037 through TASK-00039 completed these acceptance checks and the local package qualification. The signed
+`v0.3.0` tag, hosted release, and consumer migrations remain separate follow-up work.
 
 ## Exclusions
 

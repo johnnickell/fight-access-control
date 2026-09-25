@@ -4,7 +4,7 @@
 
 | Epic | Target | Current outcome |
 | --- | --- | --- |
-No epics are currently in progress.
+| [EPIC-00006](epics/00006-EPIC.md) | `v0.3.0` | Credential-delivery contract and migration qualified; release integration and publication remain. |
 
 ## Route to 1.0.0
 
@@ -31,6 +31,7 @@ No epics are currently in progress.
 
 | Version | Date | Outcome |
 | --- | --- | --- |
+| `v0.2.0` | 2026-09-13 | Published consumer-composable OpenAPI schema components. |
 | `v0.1.0` | 2026-09-10 | First public package milestone: framework-neutral User and Agent identity, authentication, session, Role, Permission, managed-policy, and current-authority behavior with exact coverage. |
 
 ## Record Status Projection
@@ -43,6 +44,6 @@ No epics are currently in progress.
 | [EPIC-00003](epics/00003-EPIC.md) | 0.x | done | 2 | 6 |
 | [EPIC-00004](epics/00004-EPIC.md) | v0.2.0 | done | 1 | 1 |
 | [EPIC-00005](epics/00005-EPIC.md) | 0.x | needs-info | 1 | 1 |
-| [EPIC-00006](epics/00006-EPIC.md) | v0.3.0 | ready-for-agent | 1 | 3 |
+| [EPIC-00006](epics/00006-EPIC.md) | v0.3.0 | in-progress | 1 | 3 |
 | [EPIC-00007](epics/00007-EPIC.md) | pre-1.0 | done | 1 | 1 |
 <!-- generated:epic-status:end -->
