@@ -26,6 +26,18 @@ Production code follows `Domain <- Application`:
 See [CONTEXT.md](CONTEXT.md) for the accepted vocabulary and [TICKET-00001](planning/tickets/00001-TICKET.md)
 for the repository-local behavioral and security authority.
 
+### Transaction composition
+
+Transaction-aware Application handlers and security services require Fight Common's supported
+`TransactionalUnitOfWork` contract. Consumer composition roots must supply an implementation whose
+`commitTransactional()` callback encloses the complete package-owned atomic operation and whose `isClosed()` reports
+whether that transaction capability remains available. The deprecated `UnitOfWork` contract and its standalone
+`commit()` method are not supported by AccessControl constructors.
+
+This constructor type change is intentionally breaking while AccessControl remains pre-`1.0.0`: consumers upgrading
+from `0.2.x` must replace `UnitOfWork` bindings with `TransactionalUnitOfWork` bindings. No compatibility adapter or
+release/publication status is implied by this unreleased guidance.
+
 ### Current principal composition
 
 Consumers implement `AuthenticationContextProvider` to expose only the authenticated User ID, refresh-session ID,

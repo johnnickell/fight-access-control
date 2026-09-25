@@ -21,7 +21,7 @@ use Fight\AccessControl\Domain\AccessControl\RefreshSession\RefreshSessionReposi
 use Fight\AccessControl\Domain\AccessControl\User\UserId;
 use Fight\Common\Application\Messaging\Command\CommandHandler;
 use Fight\Common\Application\Messaging\Event\EventDispatcher;
-use Fight\Common\Application\Repository\UnitOfWork;
+use Fight\Common\Application\Repository\TransactionalUnitOfWork;
 use Fight\Common\Domain\Messaging\Command\CommandMessage;
 use Fight\Common\Domain\Messaging\Event\CommandFailedEvent;
 use Throwable;
@@ -43,7 +43,7 @@ final readonly class RevokeSessionHandler implements CommandHandler
         private Clock $clock,
         private SessionAdministrationAuthorization $sessionAdministrationAuthorization,
         private AuditEvidenceRepository $auditEvidenceRepository,
-        private UnitOfWork $unitOfWork,
+        private TransactionalUnitOfWork $unitOfWork,
         private EventDispatcher $eventDispatcher
     ) {
     }

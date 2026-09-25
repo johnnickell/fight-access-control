@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace Fight\Test\AccessControl\Application\AccessControl\User;
 
-use Fight\Common\Application\Repository\UnitOfWork;
+use Fight\Common\Application\Repository\TransactionalUnitOfWork;
 use Fight\Test\AccessControl\Application\AccessControl\User\Repository\InMemoryAuthorizationReferenceState;
 use Throwable;
 
-final class InMemoryUnitOfWork implements UnitOfWork
+final class InMemoryUnitOfWork implements TransactionalUnitOfWork
 {
     public int $transactions = 0;
 
@@ -23,10 +23,6 @@ final class InMemoryUnitOfWork implements UnitOfWork
 
     /** @var list<callable(): void> */
     private array $completionActions = [];
-
-    public function commit(): void
-    {
-    }
 
     public function commitTransactional(callable $operation): mixed
     {

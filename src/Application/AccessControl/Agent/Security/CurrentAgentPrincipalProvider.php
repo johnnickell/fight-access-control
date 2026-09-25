@@ -20,7 +20,7 @@ use Fight\AccessControl\Domain\AccessControl\Agent\AuthenticatedAgentPrincipal;
 use Fight\AccessControl\Domain\AccessControl\Agent\Exception\AgentAuthenticationRejectedException;
 use Fight\AccessControl\Domain\AccessControl\Agent\Exception\CurrentAgentPrincipalResolutionRejectedException;
 use Fight\AccessControl\Domain\AccessControl\Permission\PermissionRepository;
-use Fight\Common\Application\Repository\UnitOfWork;
+use Fight\Common\Application\Repository\TransactionalUnitOfWork;
 use Throwable;
 
 /**
@@ -46,7 +46,7 @@ final class CurrentAgentPrincipalProvider
         private readonly HmacSignedAgentRequestVerifier $hmacSignedAgentRequestVerifier,
         private readonly Clock $clock,
         private readonly AgentRequestNonceConsumer $agentRequestNonceConsumer,
-        private readonly UnitOfWork $unitOfWork
+        private readonly TransactionalUnitOfWork $unitOfWork
     ) {
     }
 

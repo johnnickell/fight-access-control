@@ -2,7 +2,7 @@
 id: TICKET-00008
 epic: EPIC-00007
 title: Use Supported Transactional Unit of Work Contracts
-status: ready-for-agent
+status: done
 ---
 
 # Use Supported Transactional Unit of Work Contracts
@@ -67,20 +67,20 @@ business outcomes remain unchanged.
 
 ## Acceptance Evidence
 
-- [ ] Every maintained production dependency on Common `UnitOfWork` uses `TransactionalUnitOfWork`, and no production
+- [x] Every maintained production dependency on Common `UnitOfWork` uses `TransactionalUnitOfWork`, and no production
       code invokes or requires the deprecated standalone `commit()` journey.
-- [ ] Test doubles, fixtures, type assertions, configuration, and current consumer guidance use the supported
+- [x] Test doubles, fixtures, type assertions, configuration, and current consumer guidance use the supported
       transaction contract without a deprecated compatibility bridge.
-- [ ] Focused behavioral tests prove successful commits, rollback on transactional failure, callback result
+- [x] Focused behavioral tests prove successful commits, rollback on transactional failure, callback result
       propagation, post-commit success publication, existing failure evidence, and unchanged exception identity for
       representative command, authentication-service, Agent-service, and nonce-consumption paths.
-- [ ] Existing transaction-sensitive suites continue to prove authorization/reference fencing, audit durability,
+- [x] Existing transaction-sensitive suites continue to prove authorization/reference fencing, audit durability,
       request-local principal behavior, and no partial persistence.
-- [ ] A recorded one-time comparison against Fight Common 1.2's deprecated declarations finds no deprecated Common
+- [x] A recorded one-time comparison against Fight Common 1.2's deprecated declarations finds no deprecated Common
       API dependency in maintained production code, tests, configuration, or current consumer documentation.
-- [ ] Consumer migration guidance and `CHANGELOG.md` identify the public constructor type change as a breaking
+- [x] Consumer migration guidance and `CHANGELOG.md` identify the public constructor type change as a breaking
       pre-1.0 compatibility change and describe the supported replacement without claiming a tag or publication.
-- [ ] `./bin/planning-check` and the canonical `./bin/build` pass with exact production statement coverage.
+- [x] `./bin/planning-check` and the canonical `./bin/build` pass with exact production statement coverage.
 
 ## Dependencies and Sequencing
 
@@ -108,4 +108,4 @@ business outcomes remain unchanged.
 
 | Order | TASK ID | Title | Status |
 | --- | --- | --- | --- |
-| 40 | [TASK-00040](../tasks/00040-TASK.md) | Remove deprecated Fight Common contract dependencies | ready-for-agent |
+| 40 | [TASK-00040](../tasks/00040-TASK.md) | Remove deprecated Fight Common contract dependencies | done |

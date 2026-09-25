@@ -17,7 +17,7 @@ use Fight\AccessControl\Domain\AccessControl\Role\Role;
 use Fight\AccessControl\Domain\AccessControl\Role\RoleRepository;
 use Fight\Common\Application\Messaging\Command\CommandHandler;
 use Fight\Common\Application\Messaging\Event\EventDispatcher;
-use Fight\Common\Application\Repository\UnitOfWork;
+use Fight\Common\Application\Repository\TransactionalUnitOfWork;
 use Fight\Common\Domain\Messaging\Command\CommandMessage;
 use Fight\Common\Domain\Messaging\Event\CommandFailedEvent;
 use LogicException;
@@ -39,7 +39,7 @@ final readonly class ReconcileManagedPolicyHandler implements CommandHandler
         private PermissionRepository $permissionRepository,
         private RoleRepository $roleRepository,
         private ManagedPolicyPlanner $managedPolicyPlanner,
-        private UnitOfWork $unitOfWork,
+        private TransactionalUnitOfWork $unitOfWork,
         private EventDispatcher $eventDispatcher,
         private Clock $clock
     ) {

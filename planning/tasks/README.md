@@ -46,5 +46,5 @@ The [Task Board](BOARD.md) is the operational projection.
 | 37 | [TASK-00037](00037-TASK.md) | Model recoverable credential-delivery state and repository contracts | [TICKET-00007](../tickets/00007-TICKET.md) — Deliver Credentials Recoverably Outside Transactions | done | — | https://github.com/johnnickell/fight-access-control/pull/59 |
 | 38 | [TASK-00038](00038-TASK.md) | Orchestrate provider-neutral credential delivery outside transactions | [TICKET-00007](../tickets/00007-TICKET.md) — Deliver Credentials Recoverably Outside Transactions | ready-for-agent | [TASK-00037](00037-TASK.md), [TASK-00040](00040-TASK.md) | — |
 | 39 | [TASK-00039](00039-TASK.md) | Qualify the v0.3.0 credential-delivery contract and migration | [TICKET-00007](../tickets/00007-TICKET.md) — Deliver Credentials Recoverably Outside Transactions | ready-for-agent | [TASK-00038](00038-TASK.md) | — |
-| 40 | [TASK-00040](00040-TASK.md) | Remove deprecated Fight Common contract dependencies | [TICKET-00008](../tickets/00008-TICKET.md) — Use Supported Transactional Unit of Work Contracts | ready-for-agent | — | — |
+| 40 | [TASK-00040](00040-TASK.md) | Remove deprecated Fight Common contract dependencies | [TICKET-00008](../tickets/00008-TICKET.md) — Use Supported Transactional Unit of Work Contracts | done | — | — |
 <!-- generated:task-index:end -->

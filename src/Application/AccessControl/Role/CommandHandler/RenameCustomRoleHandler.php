@@ -13,7 +13,7 @@ use Fight\AccessControl\Domain\AccessControl\Role\Role;
 use Fight\AccessControl\Domain\AccessControl\Role\RoleRepository;
 use Fight\Common\Application\Messaging\Command\CommandHandler;
 use Fight\Common\Application\Messaging\Event\EventDispatcher;
-use Fight\Common\Application\Repository\UnitOfWork;
+use Fight\Common\Application\Repository\TransactionalUnitOfWork;
 use Fight\Common\Domain\Messaging\Command\CommandMessage;
 use Fight\Common\Domain\Messaging\Event\CommandFailedEvent;
 use Throwable;
@@ -34,7 +34,7 @@ final readonly class RenameCustomRoleHandler implements CommandHandler
         private RoleRepository $roleRepository,
         private RoleAdministrationAuthorization $roleAdministrationAuthorization,
         private Clock $clock,
-        private UnitOfWork $unitOfWork,
+        private TransactionalUnitOfWork $unitOfWork,
         private EventDispatcher $eventDispatcher
     ) {
     }
