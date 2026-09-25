@@ -6,6 +6,7 @@ namespace Fight\Test\AccessControl\Application\AccessControl\User;
 
 use Fight\Common\Application\Repository\TransactionalUnitOfWork;
 use Fight\Test\AccessControl\Application\AccessControl\User\Repository\InMemoryAuthorizationReferenceState;
+use RuntimeException;
 use Throwable;
 
 final class InMemoryUnitOfWork implements TransactionalUnitOfWork
@@ -24,6 +25,10 @@ final class InMemoryUnitOfWork implements TransactionalUnitOfWork
     /** @var list<callable(): void> */
     private array $completionActions = [];
 
+    public function __construct(private readonly ?int $failOnTransaction = null)
+    {
+    }
+
     public function commitTransactional(callable $operation): mixed
     {
         ++$this->transactions;
@@ -33,6 +38,10 @@ final class InMemoryUnitOfWork implements TransactionalUnitOfWork
 
         try {
             $result = $operation();
+            if ($this->transactions === $this->failOnTransaction) {
+                throw new RuntimeException('Injected transaction failure.');
+            }
+
             $this->transactionCompleted = true;
 
             return $result;

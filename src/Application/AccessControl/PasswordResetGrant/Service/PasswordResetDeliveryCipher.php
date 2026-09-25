@@ -4,15 +4,13 @@ declare(strict_types=1);
 
 namespace Fight\AccessControl\Application\AccessControl\PasswordResetGrant\Service;
 
+use Fight\AccessControl\Application\AccessControl\CredentialDelivery\Service\CredentialDeliveryCipher;
+
 /**
  * Interface PasswordResetDeliveryCipher
  *
  * Encrypts password-reset credentials with consumer-owned keys.
  */
-interface PasswordResetDeliveryCipher
+interface PasswordResetDeliveryCipher extends CredentialDeliveryCipher
 {
-    /**
-     * Encrypts a raw credential for bounded delivery work
-     */
-    public function encrypt(string $plaintext): string;
 }

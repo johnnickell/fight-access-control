@@ -53,6 +53,7 @@ final class InMemoryEmailChangeGrantRepository implements EmailChangeGrantReposi
             $due[] = new DueCredentialDelivery(
                 $emailChangeGrant->purpose(),
                 $delivery->getId(),
+                $emailChangeGrant->getUserId(),
                 $delivery->getNextAttemptAt(),
                 $emailChangeGrant->getRevision(),
                 $delivery->getStatus()

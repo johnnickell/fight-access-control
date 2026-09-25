@@ -87,5 +87,5 @@ outcome/audit semantics, and direct handler registration.
 | Order | TASK ID | Title | Status |
 | --- | --- | --- | --- |
 | 37 | [TASK-00037](../tasks/00037-TASK.md) | Model recoverable credential-delivery state and repository contracts | done |
-| 38 | [TASK-00038](../tasks/00038-TASK.md) | Orchestrate provider-neutral credential delivery outside transactions | ready-for-agent |
+| 38 | [TASK-00038](../tasks/00038-TASK.md) | Orchestrate provider-neutral credential delivery outside transactions | done |
 | 39 | [TASK-00039](../tasks/00039-TASK.md) | Qualify the v0.3.0 credential-delivery contract and migration | ready-for-agent |

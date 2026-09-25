@@ -12,6 +12,10 @@ behavior shared by Fight applications. The repository-local behavioral and secur
   deleted states.
 - **Grant**: a purpose-bound, hashed, expiring, single-use credential for activation, password reset, or email
   change. Reissue revokes its predecessor.
+- **Recoverable credential delivery**: package-owned activation, password-reset, or email-change work whose encrypted
+  material commits with its grant. Workers discover secret-free due state, commit an exact leased claim, invoke a
+  provider outside every transaction with the stable delivery-generation ID, then commit one typed expected-state
+  outcome. Expired leases may repeat invocation, so the guarantee is at-least-once rather than exactly-once.
 - **Refresh session**: authoritative server-side session state owning credential rotation, revocation, activity,
   lifetime, authentication version, and coarse device information.
 - **Authenticated principal**: an immutable framework-neutral identity and authorization snapshot revalidated
@@ -90,6 +94,9 @@ when their own invariants are violated. AccessControl keeps narrow Application a
 decision is part of the package-owned use case and cannot be decided correctly by an outer adapter alone.
 Package-owned workflow coordinators are final implementation details marked `@internal`; consumers depend on the
 public commands, services, authenticated principals, and Security context rather than implementing those coordinators.
+Credential-delivery providers receive only one short-lived sensitive invocation after a committed claim and return a
+typed outcome. Consumer schedulers use the package's secret-free due-work/status queries and direct delivery commands;
+they do not copy claim, retry, terminalization, or stale-generation policy.
 
 ## Planning and Completion
 
