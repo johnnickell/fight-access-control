@@ -66,49 +66,68 @@ Quiesce old delivery workers before migrating rows. Preserve every delivery ID: 
 fencing and the identity used for new v0.3 provider attempts. Preservation alone does not deduplicate a historical
 v0.2 invocation, because the old invokers were not required to send that ID to their provider.
 
-Quarantine every recoverable v0.2 invitation or email-change row whose old status is `pending`, `claimed`, or `failed`.
-Do not make it due until its historical invocation has a recorded disposition. The old handler called the provider
-inside the transaction: acceptance followed by rollback can leave `pending`, while acceptance followed by a timeout
-can commit `failed`; `claimed` is also uncertain. For each such row, use one of these consumer-owned migration paths:
+Quarantine every recoverable v0.2 delivery that could already have produced an external effect. For activation and
+email change, this includes every old `pending`, `claimed`, or `failed` row: the old handler called the provider inside
+the transaction, so acceptance followed by rollback can leave `pending`, acceptance followed by a timeout can commit
+`failed`, and `claimed` is also uncertain. Password reset had no package-owned provider call, but its raw ciphertext
+was available to a consumer-owned transport and a separate `ConfirmPasswordResetDelivery` command destroyed material
+only afterward. A transport acceptance followed by a crash or failed confirmation can therefore leave a recoverable
+password-reset row too. Do not make any such row due until its historical invocation has a recorded disposition.
 
-1. Reconcile provider history and migrate an accepted effect to `delivered` with no encrypted material.
+For each quarantined row, use one of these consumer-owned migration paths:
+
+1. Reconcile provider or transport history and migrate an accepted effect to `delivered` with no encrypted material
+   and the terminal `due_at` defined below.
 2. Seed the provider's deduplication store so the preserved delivery ID resolves to the historical effect, then
    migrate the unresolved row to the retryable target in the table below and let replay converge on that effect.
-3. Destroy the material and migrate to `invalidated` when an operator decides that suppressing a possible effect is
-   safer than replay.
+3. Destroy the material and migrate to `invalidated` with the terminal `due_at` when an operator decides that
+   suppressing a possible effect is safer than replay.
 4. If neither history nor deduplication is available and replay is required, record explicit owner acceptance of a
    possible duplicate before choosing the retryable target. Do not describe that choice as exactly-once.
 
-Password reset is excluded from that historical-provider reconciliation: v0.2 had no package-owned password-reset
-provider call. Apply this complete family-specific mapping at the migration cutoff:
+A recoverable password-reset row may become immediately eligible only when trustworthy consumer history proves that
+its credential was never submitted. Otherwise it requires one of the same accepted-effect, deduplication,
+invalidation, or controlled-duplicate dispositions above. The absence of a package-owned v0.2 provider path is not
+evidence that no consumer-owned transport effect occurred.
+
+Set every required `due_at` deterministically before reconstitution. An active `pending` or `retry_pending` target
+uses the migration cutoff so it is immediately eligible. An `expired` target uses `expires_at`. A `delivered` or
+`invalidated` target uses the generation's trustworthy original issuance or first-eligibility timestamp when that
+history exists; otherwise it uses `expires_at` as the deterministic terminal fallback. Call this value the terminal
+`due_at`. The fallback does not assert when delivery or invalidation happened: terminal rows are never discoverable,
+but `due_at` remains required complete state, participates in compare-and-set equality, and is exposed by the safe
+status query.
+
+Apply this complete family-specific mapping at the migration cutoff:
 
 | v0.2 family and persisted shape | v0.3 delivery mapping |
 | --- | --- |
-| Activation with material, an issued grant before expiry, and old `pending` after reconciliation | `pending`, immediately eligible, with no claim metadata |
-| Activation with material, an issued grant before expiry, and old `claimed` after reconciliation | `pending`, immediately eligible, with no claim metadata |
-| Activation with material, an issued grant before expiry, and old `failed` after reconciliation | `retry_pending`, immediately eligible, with only safe failure metadata |
-| Activation with no material and old `confirmed` | `delivered` with no claim metadata |
-| Activation with no material and old `expired`, or recoverable activation work at or after delivery expiry | `expired`, `due_at` equal to expiry, with no material or claim metadata |
-| Activation with no material and old `pending`, `claimed`, or `failed` after grant consumption, revocation, or another material-destroying invalidation | `invalidated` with no claim metadata; never retain an active status without material |
-| Email change with material, issued authority before expiry, and old `pending`, `claimed`, or `failed` after reconciliation | Map respectively to immediately eligible `pending`, `pending`, or `retry_pending`, with no claim metadata |
-| Email change with no material and old `confirmed` | `delivered` with no claim metadata |
-| Email change with material after consumption, revocation, or the authority expiry boundary | Destroy the material and map to `invalidated`; email-change aggregate expiry invalidates delivery rather than creating `expired` delivery state |
-| Email change with no material and old `pending`, `claimed`, or `failed` after consumption, revocation, aggregate expiry, or another material-destroying invalidation | `invalidated` with no claim metadata; never retain an active status without material |
-| Password reset with material and issued, unexpired authority | `pending`, immediately eligible, with no claim or outcome metadata |
-| Password reset with material at or after delivery expiry | `expired`, `due_at` equal to expiry, with no material or claim metadata |
-| Password reset with material after grant consumption or revocation | `invalidated` with no material or claim metadata |
-| Password reset with no material | Use trustworthy event, audit, or adapter history: a confirmed delivery maps to `delivered`, delivery expiry maps to `expired`, and consumption, revocation, or explicit invalidation without prior confirmation maps to `invalidated`. The v0.2 row alone cannot distinguish these outcomes. |
+| Activation with material, an issued grant before expiry, and old `pending` after reconciliation | `pending`, `due_at` equal to the migration cutoff, with no claim metadata |
+| Activation with material, an issued grant before expiry, and old `claimed` after reconciliation | `pending`, `due_at` equal to the migration cutoff, with no claim metadata |
+| Activation with material, an issued grant before expiry, and old `failed` after reconciliation | `retry_pending`, `due_at` equal to the migration cutoff, with only safe failure metadata |
+| Activation with no material and old `confirmed` | `delivered`, with terminal `due_at` and no claim metadata |
+| Activation with no material and old `expired`, or recoverable activation work at or after delivery expiry | `expired`, `due_at` equal to `expires_at`, with no material or claim metadata |
+| Activation with no material and old `pending`, `claimed`, or `failed` after grant consumption, revocation, or another material-destroying invalidation | `invalidated`, with terminal `due_at` and no claim metadata; never retain an active status without material |
+| Email change with material, issued authority before expiry, and old `pending`, `claimed`, or `failed` after reconciliation | Map respectively to `pending`, `pending`, or `retry_pending`, with `due_at` equal to the migration cutoff and no claim metadata |
+| Email change with no material and old `confirmed` | `delivered`, with terminal `due_at` and no claim metadata |
+| Email change with material after consumption, revocation, or the authority expiry boundary | Destroy the material and map to `invalidated` with terminal `due_at`; email-change aggregate expiry invalidates delivery rather than creating `expired` delivery state |
+| Email change with no material and old `pending`, `claimed`, or `failed` after consumption, revocation, aggregate expiry, or another material-destroying invalidation | `invalidated`, with terminal `due_at` and no claim metadata; never retain an active status without material |
+| Password reset with material and issued, unexpired authority after reconciliation | `pending`, `due_at` equal to the migration cutoff, with no claim or outcome metadata |
+| Password reset with material at or after delivery expiry | `expired`, `due_at` equal to `expires_at`, with no material or claim metadata |
+| Password reset with material after grant consumption or revocation | `invalidated`, with terminal `due_at` and no material or claim metadata |
+| Password reset with no material | Use trustworthy event, audit, or adapter history: a confirmed delivery maps to `delivered` with terminal `due_at`; delivery expiry maps to `expired` with `due_at` equal to `expires_at`; and consumption, revocation, or explicit invalidation without prior confirmation maps to `invalidated` with terminal `due_at`. The v0.2 row alone cannot distinguish these outcomes. |
 
 For a ciphertext-free password-reset row without trustworthy history, require an explicit migration-owner decision and
-conservatively classify it as `invalidated`; do not guess `delivered` or `expired`, recreate material, or make it due.
-Reject any remaining source combination that contradicts its aggregate terminal fields instead of coercing it into an
-active state.
+conservatively classify it as `invalidated` with the deterministic terminal `due_at`; do not guess `delivered` or
+`expired`, recreate material, or make it due. Reject any remaining source combination that contradicts its aggregate
+terminal fields instead of coercing it into an active state.
 
 Initialize absent claim/outcome timestamps and failure fields to `null`. Use an attempt count of zero only for work
-that trustworthy history shows was never claimed; an old `claimed`, `failed`, or `confirmed` state proves at least one
-attempt, and a retry-restored old `pending` row may also have been attempted. Do not invent an exact count beyond known
-history. Validate representative rows from every mapping through aggregate reconstitution and repository invariants
-before enabling discovery.
+that trustworthy history shows was never claimed or submitted to a consumer transport. An old `claimed`, `failed`, or
+`confirmed` state or a recorded password-reset transport submission proves at least one attempt, and a retry-restored
+old `pending` row may also have been attempted. Do not invent an exact count beyond known history. Validate
+representative rows from every mapping through aggregate reconstitution and repository invariants before enabling
+discovery.
 
 ## Register direct package capabilities
 
