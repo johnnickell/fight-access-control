@@ -4,7 +4,7 @@
 
 | Epic | Target | Current outcome |
 | --- | --- | --- |
-| [EPIC-00006](epics/00006-EPIC.md) | `v0.3.0` | Credential-delivery contract and migration qualified; release integration and publication remain. |
+No epics are currently in progress.
 
 ## Route to 1.0.0
 
@@ -21,6 +21,7 @@
 
 | Epic | Target | Outcome |
 | --- | --- | --- |
+| [EPIC-00006](epics/00006-EPIC.md) | `v0.3.0` | Published the recoverable credential-delivery contract and migration after exact-commit certification and signing. Consumer upgrades remain separately qualified. |
 | [EPIC-00007](epics/00007-EPIC.md) | pre-1.0 | Replaced deprecated Fight Common transaction dependencies with the supported `TransactionalUnitOfWork` contract while preserving established behavior. |
 | [EPIC-00004](epics/00004-EPIC.md) | `v0.2.0` | Delivered the local consumer-composable OpenAPI schema review candidate; tag, release, and publication remain separate effects. |
 | [EPIC-00003](epics/00003-EPIC.md) | 0.x | Delivered the final unified User/Agent `SecurityContext` and retry-safe Agent Permission, User Role, and custom-Role Permission changes. |
@@ -31,6 +32,7 @@
 
 | Version | Date | Outcome |
 | --- | --- | --- |
+| `v0.3.0` | 2026-09-25 | Published recoverable, provider-neutral credential delivery for invitations, password resets, and email changes, with pre-1.0 breaking migration guidance. |
 | `v0.2.0` | 2026-09-13 | Published consumer-composable OpenAPI schema components. |
 | `v0.1.0` | 2026-09-10 | First public package milestone: framework-neutral User and Agent identity, authentication, session, Role, Permission, managed-policy, and current-authority behavior with exact coverage. |
 
@@ -44,6 +46,6 @@
 | [EPIC-00003](epics/00003-EPIC.md) | 0.x | done | 2 | 6 |
 | [EPIC-00004](epics/00004-EPIC.md) | v0.2.0 | done | 1 | 1 |
 | [EPIC-00005](epics/00005-EPIC.md) | 0.x | needs-info | 1 | 1 |
-| [EPIC-00006](epics/00006-EPIC.md) | v0.3.0 | in-progress | 1 | 3 |
+| [EPIC-00006](epics/00006-EPIC.md) | v0.3.0 | done | 1 | 3 |
 | [EPIC-00007](epics/00007-EPIC.md) | pre-1.0 | done | 1 | 1 |
 <!-- generated:epic-status:end -->
