@@ -7,10 +7,10 @@ namespace Fight\Test\AccessControl\Application\AccessControl\ActivationGrant\Que
 use DateTimeImmutable;
 use Fight\AccessControl\Application\AccessControl\ActivationGrant\QueryHandler\FindInvitationDeliveryStatusHandler;
 use Fight\AccessControl\Domain\AccessControl\ActivationGrant\ActivationCredential;
-use Fight\AccessControl\Domain\AccessControl\ActivationGrant\ActivationDeliveryStatus;
 use Fight\AccessControl\Domain\AccessControl\ActivationGrant\ActivationGrant;
 use Fight\AccessControl\Domain\AccessControl\ActivationGrant\Query\FindInvitationDeliveryStatus;
 use Fight\AccessControl\Domain\AccessControl\ActivationGrant\Query\InvitationDeliveryStatusView;
+use Fight\AccessControl\Domain\AccessControl\CredentialDelivery\CredentialDeliveryStatus;
 use Fight\AccessControl\Domain\AccessControl\User\UserId;
 use Fight\Common\Domain\Exception\DomainException;
 use Fight\Common\Domain\Messaging\Query\QueryMessage;
@@ -44,7 +44,7 @@ final class FindInvitationDeliveryStatusHandlerTest extends TestCase
 
         self::assertInstanceOf(InvitationDeliveryStatusView::class, $view);
         self::assertSame($userId, $view->getUserId());
-        self::assertSame(ActivationDeliveryStatus::PENDING, $view->getStatus());
+        self::assertSame(CredentialDeliveryStatus::PENDING, $view->getStatus());
         self::assertSame('2026-08-25T12:00:00+00:00', $view->getExpiresAt()->format(DATE_ATOM));
         self::assertArrayNotHasKey('ciphertext', get_object_vars($view));
         self::assertInstanceOf(Arrayable::class, $view);

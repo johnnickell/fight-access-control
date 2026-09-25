@@ -100,7 +100,7 @@ final class RestoreUserHandlerTest extends TestCase
         self::assertCount(2, $grants->all());
         $successor = $grants->all()[1];
         self::assertTrue($successor->isIssued());
-        self::assertSame('ciphertext:restore-credential', $successor->getDelivery()->getCiphertext());
+        self::assertSame('ciphertext:restore-credential', $successor->getDelivery()->getEncryptedMaterial()?->reveal());
         self::assertSame('user.restored', $audit->all()[0]->action());
         self::assertCount(1, $events->events());
         self::assertInstanceOf(UserRestored::class, $events->events()[0]);

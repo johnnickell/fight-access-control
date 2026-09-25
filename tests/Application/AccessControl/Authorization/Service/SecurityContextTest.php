@@ -50,7 +50,6 @@ final class SecurityContextTest extends TestCase
         $context = new SecurityContext($userPrincipal);
 
         self::assertSame($userPrincipal, $context->getAuthenticatedAuthority());
-        self::assertSame($userPrincipal, $context->getAuthenticatedAuthority());
         self::assertTrue($context->hasPermission(PermissionName::fromString('PUBLISH_ARTICLE')));
         self::assertFalse($context->hasPermission(PermissionName::fromString('DELETE_ARTICLE')));
         self::assertTrue($context->hasRole(RoleName::fromString('ROLE_EDITOR')));
@@ -68,7 +67,6 @@ final class SecurityContextTest extends TestCase
         );
         $context = new SecurityContext($agentPrincipal);
 
-        self::assertSame($agentPrincipal, $context->getAuthenticatedAuthority());
         self::assertSame($agentPrincipal, $context->getAuthenticatedAuthority());
         self::assertTrue($context->hasPermission(PermissionName::fromString('READ_AGENT')));
         self::assertFalse($context->hasPermission(PermissionName::fromString('WRITE_AGENT')));

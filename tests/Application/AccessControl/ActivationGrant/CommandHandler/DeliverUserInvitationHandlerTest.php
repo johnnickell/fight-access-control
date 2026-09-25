@@ -8,11 +8,11 @@ use DateTimeImmutable;
 use Fight\AccessControl\Application\AccessControl\ActivationGrant\CommandHandler\DeliverUserInvitationHandler;
 use Fight\AccessControl\Domain\AccessControl\ActivationGrant\ActivationCredential;
 use Fight\AccessControl\Domain\AccessControl\ActivationGrant\ActivationDeliveryId;
-use Fight\AccessControl\Domain\AccessControl\ActivationGrant\ActivationDeliveryStatus;
 use Fight\AccessControl\Domain\AccessControl\ActivationGrant\ActivationGrant;
 use Fight\AccessControl\Domain\AccessControl\ActivationGrant\Command\DeliverUserInvitation;
 use Fight\AccessControl\Domain\AccessControl\ActivationGrant\Event\UserInvitationDelivered;
 use Fight\AccessControl\Domain\AccessControl\ActivationGrant\Exception\ActivationDeliveryNotRetryableException;
+use Fight\AccessControl\Domain\AccessControl\CredentialDelivery\CredentialDeliveryStatus;
 use Fight\AccessControl\Domain\AccessControl\User\UserId;
 use Fight\Common\Application\Repository\UnitOfWork;
 use Fight\Common\Domain\Exception\DomainException;
@@ -56,8 +56,8 @@ final class DeliverUserInvitationHandlerTest extends TestCase
         $replacement = $repository->getLatestByUserId($activationGrant->getUserId());
         self::assertSame(DeliverUserInvitation::class, DeliverUserInvitationHandler::commandRegistration());
         self::assertSame(1, $unitOfWork->transactions);
-        self::assertSame(ActivationDeliveryStatus::CONFIRMED, $replacement->getDelivery()->getStatus());
-        self::assertNull($replacement->getDelivery()->getCiphertext());
+        self::assertSame(CredentialDeliveryStatus::DELIVERED, $replacement->getDelivery()->getStatus());
+        self::assertNull($replacement->getDelivery()->getEncryptedMaterial());
         self::assertSame('user.invitation_delivery.confirmed', $auditEvidenceRepository->all()[0]->action());
         self::assertCount(1, $invoker->invokedWork());
         self::assertSame($activationGrant->getDelivery()->getId(), $invoker->invokedWork()[0]->getId());
@@ -90,8 +90,8 @@ final class DeliverUserInvitationHandlerTest extends TestCase
             )));
         } finally {
             $replacement = $repository->getLatestByUserId($activationGrant->getUserId());
-            self::assertSame(ActivationDeliveryStatus::FAILED, $replacement->getDelivery()->getStatus());
-            self::assertSame('ciphertext', $replacement->getDelivery()->getCiphertext());
+            self::assertSame(CredentialDeliveryStatus::RETRY_PENDING, $replacement->getDelivery()->getStatus());
+            self::assertSame('ciphertext', $replacement->getDelivery()->getEncryptedMaterial()?->reveal());
             self::assertSame('user.invitation_delivery.failed', $auditEvidenceRepository->all()[0]->action());
             self::assertInstanceOf(CommandFailedEvent::class, $events->events()[0]);
             self::assertCount(1, $events->events());

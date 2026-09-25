@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace Fight\Test\AccessControl\Application\AccessControl\PasswordResetGrant\Repository;
 
 use DateTimeImmutable;
+use Fight\AccessControl\Domain\AccessControl\CredentialDelivery\CredentialDeliveryStatus;
+use Fight\AccessControl\Domain\AccessControl\CredentialDelivery\DueCredentialDelivery;
 use Fight\AccessControl\Domain\AccessControl\PasswordResetGrant\Exception\PasswordResetGrantException;
 use Fight\AccessControl\Domain\AccessControl\PasswordResetGrant\PasswordResetDeliveryId;
 use Fight\AccessControl\Domain\AccessControl\PasswordResetGrant\PasswordResetGrant;
@@ -12,6 +14,7 @@ use Fight\AccessControl\Domain\AccessControl\PasswordResetGrant\PasswordResetGra
 use Fight\AccessControl\Domain\AccessControl\PasswordResetGrant\PasswordResetGrantRepository;
 use Fight\AccessControl\Domain\AccessControl\User\UserId;
 use Fight\Test\AccessControl\Application\AccessControl\User\InMemoryUnitOfWork;
+use Throwable;
 
 final class InMemoryPasswordResetGrants implements PasswordResetGrantRepository
 {
@@ -26,6 +29,38 @@ final class InMemoryPasswordResetGrants implements PasswordResetGrantRepository
         private readonly bool $appendAfterTerminalSucceeds = true,
         private readonly bool $addSucceeds = true
     ) {
+    }
+
+    public function findDue(DateTimeImmutable $at, int $limit): array
+    {
+        if ($limit < 1) {
+            return [];
+        }
+
+        $due = [];
+        foreach ($this->passwordResetGrants as $passwordResetGrant) {
+            $latest = $this->getLatestByUserId($passwordResetGrant->getUserId());
+            $delivery = $passwordResetGrant->getDelivery();
+            if (
+                !$latest instanceof PasswordResetGrant
+                || !$latest->getId()->equals($passwordResetGrant->getId())
+                || !$delivery->isDueAt($at)
+            ) {
+                continue;
+            }
+
+            $due[] = new DueCredentialDelivery(
+                $passwordResetGrant->purpose(),
+                $delivery->getId(),
+                $delivery->getNextAttemptAt(),
+                $passwordResetGrant->getRevision(),
+                $delivery->getStatus()
+            );
+        }
+
+        usort($due, $this->compareDue(...));
+
+        return array_slice($due, 0, $limit);
     }
 
     public function add(PasswordResetGrant $passwordResetGrant): bool
@@ -196,6 +231,14 @@ final class InMemoryPasswordResetGrants implements PasswordResetGrantRepository
         );
     }
 
+    private function compareDue(DueCredentialDelivery $left, DueCredentialDelivery $right): int
+    {
+        return [$left->getDueAt()->format('U.u'), $left->getDeliveryId()->toString()] <=> [
+            $right->getDueAt()->format('U.u'),
+            $right->getDeliveryId()->toString()
+        ];
+    }
+
     private function isAllowedReplacement(PasswordResetGrant $predecessor, PasswordResetGrant $replacement): bool
     {
         $predecessorDelivery = $predecessor->getDelivery();
@@ -204,12 +247,12 @@ final class InMemoryPasswordResetGrants implements PasswordResetGrantRepository
             && $replacementDelivery->getEmail()->canonical() === $predecessorDelivery->getEmail()->canonical()
             && $replacementDelivery->getExpiresAt() == $predecessorDelivery->getExpiresAt();
 
-        if (!$deliveryOwnershipIsUnchanged || $replacementDelivery->isRecoverable()) {
+        if (!$deliveryOwnershipIsUnchanged) {
             return false;
         }
 
         if ($predecessor->isIssued() && $replacement->isIssued()) {
-            return $predecessorDelivery->isRecoverable();
+            return $this->isAllowedDeliveryTransition($predecessor, $replacement);
         }
 
         if (!$predecessor->isIssued() || !($replacement->isConsumed() xor $replacement->isRevoked())) {
@@ -238,14 +281,72 @@ final class InMemoryPasswordResetGrants implements PasswordResetGrantRepository
         return $this->sameState($expected, $replacement);
     }
 
+    private function isAllowedDeliveryTransition(
+        PasswordResetGrant $predecessor,
+        PasswordResetGrant $replacement
+    ): bool {
+        $before = $predecessor->getDelivery();
+        $after = $replacement->getDelivery();
+
+        try {
+            $expected = match ($after->getStatus()) {
+                CredentialDeliveryStatus::CLAIMED => $predecessor->claimDelivery(
+                    $after->getClaimToken(),
+                    $after->getClaimedAt(),
+                    $after->getLeaseUntil()
+                ),
+                CredentialDeliveryStatus::RETRY_PENDING => $predecessor->failDelivery(
+                    $before->getClaimToken(),
+                    $after->getLastOutcomeAt(),
+                    $after->getLastFailure()
+                ),
+                CredentialDeliveryStatus::PENDING => $predecessor->requestDeliveryRetry(),
+                CredentialDeliveryStatus::DELIVERED => $predecessor->confirmDelivery(
+                    $before->getClaimToken(),
+                    $after->getLastOutcomeAt()
+                ),
+                CredentialDeliveryStatus::PERMANENT_FAILURE => $predecessor->failDeliveryPermanently(
+                    $before->getClaimToken(),
+                    $after->getLastOutcomeAt()
+                ),
+                CredentialDeliveryStatus::EXPIRED => $this->expiredTransition($predecessor, $replacement),
+                CredentialDeliveryStatus::INVALIDATED => $predecessor->invalidateDelivery(),
+            };
+        } catch (Throwable) {
+            return false;
+        }
+
+        return $this->sameState($expected, $replacement);
+    }
+
+    private function expiredTransition(
+        PasswordResetGrant $predecessor,
+        PasswordResetGrant $replacement
+    ): PasswordResetGrant {
+        $before = $predecessor->getDelivery();
+        $after = $replacement->getDelivery();
+        if (
+            $before->getStatus() === CredentialDeliveryStatus::CLAIMED
+            && $after->getLastOutcomeAt() instanceof DateTimeImmutable
+            && $after->getLastFailure() !== null
+        ) {
+            return $predecessor->failDelivery(
+                $before->getClaimToken(),
+                $after->getLastOutcomeAt(),
+                $after->getLastFailure()
+            );
+        }
+
+        return $predecessor->expireDeliveryAt($after->getExpiresAt());
+    }
+
     private function isPristine(PasswordResetGrant $passwordResetGrant): bool
     {
         $delivery = $passwordResetGrant->getDelivery();
 
         return $passwordResetGrant->getRevision() === 0
             && $passwordResetGrant->isIssued()
-            && $delivery->isRecoverable()
-            && $delivery->getCiphertext() !== ''
+            && $delivery->isPristine()
             && $delivery->getUserId()->equals($passwordResetGrant->getUserId())
             && $delivery->getExpiresAt() == $passwordResetGrant->getExpiresAt();
     }
@@ -304,9 +405,7 @@ final class InMemoryPasswordResetGrants implements PasswordResetGrantRepository
             && $current->getRevokedAt() == $predecessor->getRevokedAt()
             && $currentDelivery->getId()->equals($predecessorDelivery->getId())
             && $currentDelivery->getUserId()->equals($predecessorDelivery->getUserId())
-            && $currentDelivery->getEmail()->canonical() === $predecessorDelivery->getEmail()->canonical()
-            && $currentDelivery->getCiphertext() === $predecessorDelivery->getCiphertext()
-            && $currentDelivery->getExpiresAt() == $predecessorDelivery->getExpiresAt();
+            && $currentDelivery->sameStateAs($predecessorDelivery);
     }
 
     private function validSuccessor(PasswordResetGrant $predecessor, PasswordResetGrant $successor): bool

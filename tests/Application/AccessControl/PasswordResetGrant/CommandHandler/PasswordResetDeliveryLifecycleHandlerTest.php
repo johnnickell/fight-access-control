@@ -157,7 +157,10 @@ final class PasswordResetDeliveryLifecycleHandlerTest extends TestCase
             ))
         );
 
-        self::assertSame('ciphertext:new', $repository->getById($new->getId())?->getDelivery()->getCiphertext());
+        self::assertSame(
+            'ciphertext:new',
+            $repository->getById($new->getId())?->getDelivery()->getEncryptedMaterial()?->reveal()
+        );
         self::assertSame([], $events->events());
     }
 
@@ -251,6 +254,11 @@ final class PasswordResetDeliveryLifecycleHandlerTest extends TestCase
     private function failingRepository(): PasswordResetGrantRepository
     {
         return new class implements PasswordResetGrantRepository {
+            public function findDue(DateTimeImmutable $at, int $limit): array
+            {
+                throw new RuntimeException('Password-reset persistence failed.');
+            }
+
             public function getById(PasswordResetGrantId $passwordResetGrantId): ?PasswordResetGrant
             {
                 throw new RuntimeException('Password-reset persistence failed.');

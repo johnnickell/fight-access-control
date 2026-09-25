@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace Fight\Test\AccessControl\Domain\AccessControl\PasswordResetGrant;
 
 use DateTimeImmutable;
+use Fight\AccessControl\Domain\AccessControl\CredentialDelivery\CredentialDeliveryClaimToken;
+use Fight\AccessControl\Domain\AccessControl\CredentialDelivery\CredentialDeliveryFailure;
 use Fight\AccessControl\Domain\AccessControl\PasswordResetGrant\PasswordResetCredential;
 use Fight\AccessControl\Domain\AccessControl\PasswordResetGrant\PasswordResetDeliveryId;
 use Fight\AccessControl\Domain\AccessControl\PasswordResetGrant\PasswordResetGrant;
@@ -48,6 +50,28 @@ final class PasswordResetGrantSubtypeTest extends TestCase
         self::assertInstanceOf(ExtensiblePasswordResetGrant::class, $grant);
         self::assertInstanceOf(ExtensiblePasswordResetGrant::class, $reconstituted);
         self::assertInstanceOf(ExtensiblePasswordResetGrant::class, $grant->confirmDelivery());
+        $token = CredentialDeliveryClaimToken::generate();
+        $claimed = $grant->claimDelivery(
+            $token,
+            $issuedAt,
+            $issuedAt->modify('+5 minutes')
+        );
+        self::assertInstanceOf(ExtensiblePasswordResetGrant::class, $claimed);
+        self::assertInstanceOf(
+            ExtensiblePasswordResetGrant::class,
+            $claimed->confirmDelivery($token, $issuedAt->modify('+1 minute'))
+        );
+        $retry = $claimed->failDelivery(
+            $token,
+            $issuedAt->modify('+1 minute'),
+            CredentialDeliveryFailure::RETRYABLE_PROVIDER
+        );
+        self::assertInstanceOf(ExtensiblePasswordResetGrant::class, $retry);
+        self::assertInstanceOf(ExtensiblePasswordResetGrant::class, $retry->requestDeliveryRetry());
+        self::assertInstanceOf(
+            ExtensiblePasswordResetGrant::class,
+            $claimed->failDeliveryPermanently($token, $issuedAt->modify('+1 minute'))
+        );
         self::assertInstanceOf(ExtensiblePasswordResetGrant::class, $grant->expireDeliveryAt($expiresAt));
         self::assertInstanceOf(ExtensiblePasswordResetGrant::class, $grant->invalidateDelivery());
         self::assertInstanceOf(ExtensiblePasswordResetGrant::class, $grant->consume($issuedAt));
