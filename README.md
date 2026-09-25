@@ -3,6 +3,11 @@
 Framework-neutral identity, credential, session, authorization, and account-lifecycle contracts for Fight
 applications.
 
+The `v0.3.0` candidate introduces recoverable, provider-neutral credential delivery for invitation, password
+reset, and email change. Consumers upgrading from `v0.2.x` must follow the
+[credential-delivery migration guide](docs/credential-delivery-v0.3-migration.md); this candidate does not claim a
+tag, publication, or consumer deployment.
+
 The `0.2.0` release adds an opt-in, non-autoloaded OpenAPI component catalog
 for consumer-owned documents. See [OpenAPI composition](docs/openapi-composition.md).
 
@@ -39,6 +44,9 @@ from `0.2.x` must replace `UnitOfWork` bindings with `TransactionalUnitOfWork` b
 release/publication status is implied by this unreleased guidance.
 
 ### Recoverable credential delivery composition
+
+See the [v0.3.0 credential-delivery migration guide](docs/credential-delivery-v0.3-migration.md) for replaced public
+contracts, persistence migration, worker composition, and executable qualification evidence.
 
 Invitation, password-reset, and email-change credentials use package-owned recoverable delivery state. Consumers
 supply the three purpose-specific cipher capabilities, one provider-neutral `CredentialDeliveryProvider`, the Domain

@@ -5,17 +5,17 @@ dependencies, acceptance, and verification.
 
 ## What's Next?
 
-First ready Task: [TASK-00039](00039-TASK.md) — Qualify the v0.3.0 credential-delivery contract and migration.
+Active Task: [TASK-00039](00039-TASK.md) — Qualify the v0.3.0 credential-delivery contract and migration.
 
 ## In Progress
 
-No Tasks are currently in this state.
+| Order | TASK ID | Title | Parent TICKET | Status | Blocked by | PR |
+| --- | --- | --- | --- | --- | --- | --- |
+| 39 | [TASK-00039](00039-TASK.md) | Qualify the v0.3.0 credential-delivery contract and migration | [TICKET-00007](../tickets/00007-TICKET.md) — Deliver Credentials Recoverably Outside Transactions | in-progress | [TASK-00038](00038-TASK.md) | — |
 
 ## Ready Frontier
 
-| Order | TASK ID | Title | Parent TICKET | Status | Blocked by | PR |
-| --- | --- | --- | --- | --- | --- | --- |
-| 39 | [TASK-00039](00039-TASK.md) | Qualify the v0.3.0 credential-delivery contract and migration | [TICKET-00007](../tickets/00007-TICKET.md) — Deliver Credentials Recoverably Outside Transactions | ready-for-agent | [TASK-00038](00038-TASK.md) | — |
+No Tasks are currently in this state.
 
 ## Waiting
 
