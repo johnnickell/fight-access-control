@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace Fight\AccessControl\Application\AccessControl\CredentialDelivery\Service;
 
 use Fight\Common\Domain\Value\Internet\EmailAddress;
+use LogicException;
+use SensitiveParameter;
 
 /**
  * Class CredentialDeliveryInvocation
@@ -20,7 +22,7 @@ final readonly class CredentialDeliveryInvocation
         private string $purpose,
         private string $idempotencyId,
         private EmailAddress $email,
-        private string $credential
+        #[SensitiveParameter] private string $credential
     ) {
     }
 
@@ -54,5 +56,33 @@ final readonly class CredentialDeliveryInvocation
     public function getCredential(): string
     {
         return $this->credential;
+    }
+
+    /**
+     * Returns a diagnostic representation without raw credential material
+     *
+     * @return array{
+     *     purpose: string,
+     *     idempotencyId: string,
+     *     email: EmailAddress,
+     *     credential: string
+     * }
+     */
+    public function __debugInfo(): array
+    {
+        return [
+            'purpose'       => $this->purpose,
+            'idempotencyId' => $this->idempotencyId,
+            'email'         => $this->email,
+            'credential'    => '[REDACTED]'
+        ];
+    }
+
+    /**
+     * Prevents raw credential material from being serialized into durable work
+     */
+    public function __serialize(): array
+    {
+        throw new LogicException('Credential-delivery invocations cannot be serialized.');
     }
 }

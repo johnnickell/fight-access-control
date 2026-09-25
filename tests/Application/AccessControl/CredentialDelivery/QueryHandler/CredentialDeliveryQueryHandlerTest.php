@@ -74,6 +74,28 @@ final class CredentialDeliveryQueryHandlerTest extends TestCase
         self::assertSame(2, $query->getLimit());
     }
 
+    public function test_due_query_preserves_fractional_cutoff_and_selection_across_transport(): void
+    {
+        [$activation] = $this->grants(new DateTimeImmutable('2026-08-23T11:00:00.500000+00:00'));
+        $activationRepository = new InMemoryActivationGrantRepository();
+        self::assertTrue($activationRepository->add($activation));
+        $handler = new FindDueCredentialDeliveriesHandler(
+            $activationRepository,
+            new InMemoryPasswordResetGrants(),
+            new InMemoryEmailChangeGrantRepository()
+        );
+        $query = new FindDueCredentialDeliveries(
+            new DateTimeImmutable('2026-08-23T11:00:00.900000+00:00'),
+            1
+        );
+        $transportedQuery = FindDueCredentialDeliveries::fromArray($query->toArray());
+
+        self::assertCount(1, $handler->handle(QueryMessage::create($query)));
+        self::assertCount(1, $handler->handle(QueryMessage::create($transportedQuery)));
+        self::assertEquals($query, $transportedQuery);
+        self::assertSame('2026-08-23T11:00:00.900000+00:00', $query->toArray()['at']);
+    }
+
     public function test_status_query_returns_safe_complete_state_for_every_family(): void
     {
         [$activation, $passwordReset, $emailChange] = $this->grants();
@@ -140,9 +162,9 @@ final class CredentialDeliveryQueryHandlerTest extends TestCase
     }
 
     /** @return array{ActivationGrant, PasswordResetGrant, EmailChangeGrant} */
-    private function grants(): array
+    private function grants(?DateTimeImmutable $issuedAt = null): array
     {
-        $issuedAt = new DateTimeImmutable('2026-08-23T11:00:00+00:00');
+        $issuedAt ??= new DateTimeImmutable('2026-08-23T11:00:00+00:00');
         $expiresAt = new DateTimeImmutable('2026-08-23T12:00:00+00:00');
         $email = EmailAddress::fromString('alice@example.test');
 

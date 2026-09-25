@@ -45,7 +45,7 @@ final readonly class FindDueCredentialDeliveries implements Query
     public function toArray(): array
     {
         return [
-            'at'    => $this->at->format(DATE_ATOM),
+            'at'    => $this->at->format('Y-m-d\TH:i:s.uP'),
             'limit' => $this->limit
         ];
     }
