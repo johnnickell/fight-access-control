@@ -59,6 +59,7 @@ final class InMemoryActivationGrantRepository implements ActivationGrantReposito
             $due[] = new DueCredentialDelivery(
                 $activationGrant->purpose(),
                 $delivery->getId(),
+                $activationGrant->getUserId(),
                 $delivery->getNextAttemptAt(),
                 $activationGrant->getRevision(),
                 $delivery->getStatus()

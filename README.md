@@ -38,6 +38,27 @@ This constructor type change is intentionally breaking while AccessControl remai
 from `0.2.x` must replace `UnitOfWork` bindings with `TransactionalUnitOfWork` bindings. No compatibility adapter or
 release/publication status is implied by this unreleased guidance.
 
+### Recoverable credential delivery composition
+
+Invitation, password-reset, and email-change credentials use package-owned recoverable delivery state. Consumers
+supply the three purpose-specific cipher capabilities, one provider-neutral `CredentialDeliveryProvider`, the Domain
+repositories on the shared transactional connection, and worker scheduling. The package supplies direct
+`DeliverUserInvitationHandler`, `DeliverPasswordResetHandler`, and `DeliverEmailChangeHandler` registrations plus
+`FindDueCredentialDeliveriesHandler` and `FindCredentialDeliveryStatusHandler` query registrations.
+
+An originating handler atomically commits its grant and encrypted delivery generation before publishing its existing
+success event. A delivery handler then commits an exact claim, decrypts and invokes the provider only after that
+transaction closes, and records the typed delivered, retryable, or permanent outcome in a separate expected-state
+transaction. Provider adapters receive a short-lived `CredentialDeliveryInvocation`; its immutable delivery ID is the
+idempotency identity. They must return `CredentialDeliveryOutcome` and must not embed vendor diagnostics in package
+state. Unexpected provider throwables become the package's secret-free retryable classification.
+
+Consumers may use post-commit event subscribers for immediate dispatch, but must schedule
+`FindDueCredentialDeliveries` for restart recovery and dispatch the matching direct command using the returned
+purpose, User ID, and delivery ID. Pending work, due retries, and expired leases are returned in deterministic order.
+A crash after provider acceptance and before outcome commit can repeat the provider call with the same identity, so
+this contract is at-least-once and does not claim exactly-once delivery.
+
 ### Current principal composition
 
 Consumers implement `AuthenticationContextProvider` to expose only the authenticated User ID, refresh-session ID,

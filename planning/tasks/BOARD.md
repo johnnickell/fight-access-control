@@ -5,17 +5,17 @@ dependencies, acceptance, and verification.
 
 ## What's Next?
 
-First ready Task: [TASK-00038](00038-TASK.md) — Orchestrate provider-neutral credential delivery outside transactions.
+Active Task: [TASK-00038](00038-TASK.md) — Orchestrate provider-neutral credential delivery outside transactions.
 
 ## In Progress
 
-No Tasks are currently in this state.
+| Order | TASK ID | Title | Parent TICKET | Status | Blocked by | PR |
+| --- | --- | --- | --- | --- | --- | --- |
+| 38 | [TASK-00038](00038-TASK.md) | Orchestrate provider-neutral credential delivery outside transactions | [TICKET-00007](../tickets/00007-TICKET.md) — Deliver Credentials Recoverably Outside Transactions | in-progress | [TASK-00037](00037-TASK.md), [TASK-00040](00040-TASK.md) | — |
 
 ## Ready Frontier
 
-| Order | TASK ID | Title | Parent TICKET | Status | Blocked by | PR |
-| --- | --- | --- | --- | --- | --- | --- |
-| 38 | [TASK-00038](00038-TASK.md) | Orchestrate provider-neutral credential delivery outside transactions | [TICKET-00007](../tickets/00007-TICKET.md) — Deliver Credentials Recoverably Outside Transactions | ready-for-agent | [TASK-00037](00037-TASK.md), [TASK-00040](00040-TASK.md) | — |
+No Tasks are currently in this state.
 
 ## Waiting
 

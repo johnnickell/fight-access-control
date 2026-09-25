@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Fight\AccessControl\Domain\AccessControl\CredentialDelivery;
 
 use DateTimeImmutable;
+use Fight\AccessControl\Domain\AccessControl\User\UserId;
 use Fight\Common\Domain\Identity\UniqueId;
 use Fight\Common\Domain\Type\Arrayable;
 
@@ -21,6 +22,7 @@ final readonly class DueCredentialDelivery implements Arrayable
     public function __construct(
         private string $purpose,
         private UniqueId $deliveryId,
+        private UserId $userId,
         private DateTimeImmutable $dueAt,
         private int $revision,
         private CredentialDeliveryStatus $status
@@ -41,6 +43,14 @@ final readonly class DueCredentialDelivery implements Arrayable
     public function getDeliveryId(): UniqueId
     {
         return $this->deliveryId;
+    }
+
+    /**
+     * Returns the owning User identifier needed by the exact delivery command
+     */
+    public function getUserId(): UserId
+    {
+        return $this->userId;
     }
 
     /**
@@ -70,13 +80,21 @@ final readonly class DueCredentialDelivery implements Arrayable
     /**
      * Returns the canonical secret-free representation
      *
-     * @return array{purpose: string, delivery_id: string, due_at: string, revision: int, status: string}
+     * @return array{
+     *     purpose: string,
+     *     delivery_id: string,
+     *     user_id: string,
+     *     due_at: string,
+     *     revision: int,
+     *     status: string
+     * }
      */
     public function toArray(): array
     {
         return [
             'purpose'     => $this->purpose,
             'delivery_id' => $this->deliveryId->toString(),
+            'user_id'     => $this->userId->toString(),
             'due_at'      => $this->dueAt->format(DATE_ATOM),
             'revision'    => $this->revision,
             'status'      => $this->status->value

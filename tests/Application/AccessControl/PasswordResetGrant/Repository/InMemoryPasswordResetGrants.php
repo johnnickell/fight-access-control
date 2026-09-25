@@ -21,13 +21,16 @@ final class InMemoryPasswordResetGrants implements PasswordResetGrantRepository
     /** @var list<PasswordResetGrant> */
     private array $passwordResetGrants = [];
 
+    private int $replaceCalls = 0;
+
     public function __construct(
         private readonly ?InMemoryUnitOfWork $unitOfWork = null,
         private readonly bool $replaceSucceeds = true,
         private readonly bool $replaceConsumedSucceeds = true,
         private readonly bool $replaceWithSuccessorSucceeds = true,
         private readonly bool $appendAfterTerminalSucceeds = true,
-        private readonly bool $addSucceeds = true
+        private readonly bool $addSucceeds = true,
+        private readonly ?int $replaceFailureOnCall = null
     ) {
     }
 
@@ -52,6 +55,7 @@ final class InMemoryPasswordResetGrants implements PasswordResetGrantRepository
             $due[] = new DueCredentialDelivery(
                 $passwordResetGrant->purpose(),
                 $delivery->getId(),
+                $passwordResetGrant->getUserId(),
                 $delivery->getNextAttemptAt(),
                 $passwordResetGrant->getRevision(),
                 $delivery->getStatus()
@@ -145,9 +149,11 @@ final class InMemoryPasswordResetGrants implements PasswordResetGrantRepository
 
     public function replace(PasswordResetGrant $predecessor, PasswordResetGrant $replacement): bool
     {
+        ++$this->replaceCalls;
         $current = $this->getLatestByUserId($predecessor->getUserId());
         if (
             !$this->replaceSucceeds
+            || $this->replaceFailureOnCall === $this->replaceCalls
             || ($replacement->isConsumed() && !$this->replaceConsumedSucceeds)
             || !$current instanceof PasswordResetGrant
             || !$this->sameState($current, $predecessor)

@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Fight\AccessControl\Application\AccessControl\EmailChangeGrant\CommandHandler;
+namespace Fight\AccessControl\Application\AccessControl\PasswordResetGrant\CommandHandler;
 
 use DateInterval;
 use DateTimeImmutable;
@@ -10,17 +10,17 @@ use Fight\AccessControl\Application\AccessControl\CredentialDelivery\Service\Cre
 use Fight\AccessControl\Application\AccessControl\CredentialDelivery\Service\CredentialDeliveryInvocation;
 use Fight\AccessControl\Application\AccessControl\CredentialDelivery\Service\CredentialDeliveryOutcome;
 use Fight\AccessControl\Application\AccessControl\CredentialDelivery\Service\CredentialDeliveryProvider;
-use Fight\AccessControl\Application\AccessControl\EmailChangeGrant\Service\EmailChangeDeliveryCipher;
+use Fight\AccessControl\Application\AccessControl\PasswordResetGrant\Service\PasswordResetDeliveryCipher;
 use Fight\AccessControl\Application\AccessControl\Timing\Service\Clock;
 use Fight\AccessControl\Domain\AccessControl\Audit\AuditEvidence;
 use Fight\AccessControl\Domain\AccessControl\Audit\AuditEvidenceRepository;
 use Fight\AccessControl\Domain\AccessControl\CredentialDelivery\CredentialDeliveryClaimToken;
 use Fight\AccessControl\Domain\AccessControl\CredentialDelivery\CredentialDeliveryFailure;
-use Fight\AccessControl\Domain\AccessControl\EmailChangeGrant\Command\DeliverEmailChange;
-use Fight\AccessControl\Domain\AccessControl\EmailChangeGrant\EmailChangeGrant;
-use Fight\AccessControl\Domain\AccessControl\EmailChangeGrant\EmailChangeGrantRepository;
-use Fight\AccessControl\Domain\AccessControl\EmailChangeGrant\Event\EmailChangeDelivered;
-use Fight\AccessControl\Domain\AccessControl\EmailChangeGrant\Exception\EmailChangeDeliveryNotRetryableException;
+use Fight\AccessControl\Domain\AccessControl\PasswordResetGrant\Command\DeliverPasswordReset;
+use Fight\AccessControl\Domain\AccessControl\PasswordResetGrant\Event\PasswordResetDeliveryConfirmed;
+use Fight\AccessControl\Domain\AccessControl\PasswordResetGrant\Exception\PasswordResetDeliveryException;
+use Fight\AccessControl\Domain\AccessControl\PasswordResetGrant\PasswordResetGrant;
+use Fight\AccessControl\Domain\AccessControl\PasswordResetGrant\PasswordResetGrantRepository;
 use Fight\Common\Application\Messaging\Command\CommandHandler;
 use Fight\Common\Application\Messaging\Event\EventDispatcher;
 use Fight\Common\Application\Repository\TransactionalUnitOfWork;
@@ -29,22 +29,22 @@ use Fight\Common\Domain\Messaging\Event\CommandFailedEvent;
 use Throwable;
 
 /**
- * Class DeliverEmailChangeHandler
+ * Class DeliverPasswordResetHandler
  *
- * Claims, invokes, and records one recoverable email-change delivery.
+ * Claims, invokes, and records one recoverable password-reset delivery.
  */
-final readonly class DeliverEmailChangeHandler implements CommandHandler
+final readonly class DeliverPasswordResetHandler implements CommandHandler
 {
     private const string CLAIM_LEASE = 'PT5M';
 
     /**
-     * Constructs DeliverEmailChangeHandler
+     * Constructs DeliverPasswordResetHandler
      */
     public function __construct(
-        private EmailChangeGrantRepository $emailChangeGrantRepository,
+        private PasswordResetGrantRepository $passwordResetGrantRepository,
         private AuditEvidenceRepository $auditEvidenceRepository,
         private TransactionalUnitOfWork $unitOfWork,
-        private EmailChangeDeliveryCipher $emailChangeDeliveryCipher,
+        private PasswordResetDeliveryCipher $passwordResetDeliveryCipher,
         private CredentialDeliveryProvider $credentialDeliveryProvider,
         private Clock $clock,
         private EventDispatcher $eventDispatcher
@@ -56,7 +56,7 @@ final readonly class DeliverEmailChangeHandler implements CommandHandler
      */
     public static function commandRegistration(): string
     {
-        return DeliverEmailChange::class;
+        return DeliverPasswordReset::class;
     }
 
     /**
@@ -64,7 +64,7 @@ final readonly class DeliverEmailChangeHandler implements CommandHandler
      */
     public function handle(CommandMessage $commandMessage): void
     {
-        /** @var DeliverEmailChange $command */
+        /** @var DeliverPasswordReset $command */
         $command = $commandMessage->payload();
 
         try {
@@ -74,7 +74,7 @@ final readonly class DeliverEmailChangeHandler implements CommandHandler
 
             $attemptResult = $this->invoke($claimed, $claimToken);
             $successEvent = $this->recordOutcome($command, $claimed, $claimToken, $attemptResult);
-            if ($successEvent instanceof EmailChangeDelivered) {
+            if ($successEvent instanceof PasswordResetDeliveryConfirmed) {
                 $this->eventDispatcher->trigger($successEvent);
             }
         } catch (Throwable $throwable) {
@@ -86,16 +86,16 @@ final readonly class DeliverEmailChangeHandler implements CommandHandler
     /**
      * Acquires one exact delivery claim before external invocation
      */
-    private function claim(DeliverEmailChange $command): EmailChangeGrant
+    private function claim(DeliverPasswordReset $command): PasswordResetGrant
     {
-        return $this->unitOfWork->commitTransactional(function () use ($command): EmailChangeGrant {
-            $grant = $this->emailChangeGrantRepository->getByDeliveryId(
-                $command->getEmailChangeDeliveryId()
+        return $this->unitOfWork->commitTransactional(function () use ($command): PasswordResetGrant {
+            $grant = $this->passwordResetGrantRepository->getByDeliveryId(
+                $command->getPasswordResetDeliveryId()
             );
-            $latest = $this->emailChangeGrantRepository->getLatestByUserId($command->getUserId());
+            $latest = $this->passwordResetGrantRepository->getLatestByUserId($command->getUserId());
             if (!$this->isCurrent($grant, $latest, $command)) {
-                throw new EmailChangeDeliveryNotRetryableException(
-                    'The email-change delivery work is no longer retryable.'
+                throw new PasswordResetDeliveryException(
+                    'The password-reset delivery work is no longer retryable.'
                 );
             }
 
@@ -105,9 +105,9 @@ final readonly class DeliverEmailChangeHandler implements CommandHandler
                 $claimedAt,
                 $this->leaseUntil($claimedAt, $grant->getExpiresAt())
             );
-            if (!$this->emailChangeGrantRepository->replace($grant, $claimed)) {
-                throw new EmailChangeDeliveryNotRetryableException(
-                    'The email-change delivery generation changed concurrently.'
+            if (!$this->passwordResetGrantRepository->replace($grant, $claimed)) {
+                throw new PasswordResetDeliveryException(
+                    'The password-reset delivery generation changed concurrently.'
                 );
             }
 
@@ -119,14 +119,14 @@ final readonly class DeliverEmailChangeHandler implements CommandHandler
      * Invokes the provider with no transaction open
      */
     private function invoke(
-        EmailChangeGrant $claimed,
+        PasswordResetGrant $claimed,
         CredentialDeliveryClaimToken $claimToken
     ): CredentialDeliveryAttemptResult {
         $delivery = $claimed->getDelivery();
 
         try {
             $material = $delivery->materialForClaim($claimToken, $this->clock->now());
-            $credential = $this->emailChangeDeliveryCipher->decrypt($material);
+            $credential = $this->passwordResetDeliveryCipher->decrypt($material);
             $outcome = $this->credentialDeliveryProvider->deliver(new CredentialDeliveryInvocation(
                 $claimed->purpose(),
                 $delivery->getId()->toString(),
@@ -144,27 +144,27 @@ final readonly class DeliverEmailChangeHandler implements CommandHandler
      * Records one matching expected-state outcome after invocation
      */
     private function recordOutcome(
-        DeliverEmailChange $command,
-        EmailChangeGrant $claimed,
+        DeliverPasswordReset $command,
+        PasswordResetGrant $claimed,
         CredentialDeliveryClaimToken $claimToken,
         CredentialDeliveryAttemptResult $attemptResult
-    ): ?EmailChangeDelivered {
+    ): ?PasswordResetDeliveryConfirmed {
         return $this->unitOfWork->commitTransactional(function () use (
             $command,
             $claimed,
             $claimToken,
             $attemptResult
-        ): ?EmailChangeDelivered {
-            $current = $this->emailChangeGrantRepository->getByDeliveryId(
-                $command->getEmailChangeDeliveryId()
+        ): ?PasswordResetDeliveryConfirmed {
+            $current = $this->passwordResetGrantRepository->getByDeliveryId(
+                $command->getPasswordResetDeliveryId()
             );
-            $latest = $this->emailChangeGrantRepository->getLatestByUserId($command->getUserId());
+            $latest = $this->passwordResetGrantRepository->getLatestByUserId($command->getUserId());
             if (
                 !$this->isCurrent($current, $latest, $command)
                 || $current->getRevision() !== $claimed->getRevision()
             ) {
-                throw new EmailChangeDeliveryNotRetryableException(
-                    'The email-change delivery outcome is stale.'
+                throw new PasswordResetDeliveryException(
+                    'The password-reset delivery outcome is stale.'
                 );
             }
 
@@ -182,19 +182,19 @@ final readonly class DeliverEmailChangeHandler implements CommandHandler
                     $occurredAt
                 )
             };
-            if (!$this->emailChangeGrantRepository->replace($current, $replacement)) {
-                throw new EmailChangeDeliveryNotRetryableException(
-                    'The email-change delivery outcome changed concurrently.'
+            if (!$this->passwordResetGrantRepository->replace($current, $replacement)) {
+                throw new PasswordResetDeliveryException(
+                    'The password-reset delivery outcome changed concurrently.'
                 );
             }
 
-            $action = 'user.email_change_delivery.failed';
+            $action = 'user.password_reset_delivery.failed';
             if ($outcome === CredentialDeliveryOutcome::DELIVERED) {
-                $action = 'user.email_change_delivery.confirmed';
+                $action = 'user.password_reset_delivery.confirmed';
             }
 
             $this->auditEvidenceRepository->add(AuditEvidence::record(
-                $command->getActorId()->toString(),
+                $command->getActorId(),
                 $action,
                 $command->getUserId()
             ));
@@ -203,10 +203,11 @@ final readonly class DeliverEmailChangeHandler implements CommandHandler
                 return null;
             }
 
-            return new EmailChangeDelivered(
+            return new PasswordResetDeliveryConfirmed(
                 $command->getActorId(),
                 $command->getUserId(),
-                $command->getEmailChangeDeliveryId()
+                $command->getPasswordResetDeliveryId(),
+                $occurredAt
             );
         });
     }
@@ -228,12 +229,12 @@ final readonly class DeliverEmailChangeHandler implements CommandHandler
      * Returns whether the exact generation remains authoritative
      */
     private function isCurrent(
-        ?EmailChangeGrant $grant,
-        ?EmailChangeGrant $latest,
-        DeliverEmailChange $command
+        ?PasswordResetGrant $grant,
+        ?PasswordResetGrant $latest,
+        DeliverPasswordReset $command
     ): bool {
-        return $grant instanceof EmailChangeGrant
-            && $latest instanceof EmailChangeGrant
+        return $grant instanceof PasswordResetGrant
+            && $latest instanceof PasswordResetGrant
             && $latest->getId()->equals($grant->getId())
             && $latest->getRevision() === $grant->getRevision()
             && $grant->getUserId()->equals($command->getUserId());
