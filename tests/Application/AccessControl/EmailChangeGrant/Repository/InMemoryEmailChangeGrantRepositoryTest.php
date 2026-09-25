@@ -87,6 +87,24 @@ final class InMemoryEmailChangeGrantRepositoryTest extends TestCase
         self::assertSame([$terminal, $winner], $repository->all());
     }
 
+    public function test_successor_with_delivery_work_beyond_its_grant_expiry_is_rejected(): void
+    {
+        $repository = new InMemoryEmailChangeGrantRepository();
+        $userId = UserId::generate();
+        $issued = $this->grant($userId, 'predecessor', 'first@example.test');
+        self::assertTrue($repository->add($issued));
+        $terminal = $issued->revoke(new DateTimeImmutable('2026-08-22T11:00:00+00:00'));
+        self::assertTrue($repository->replace($issued, $terminal));
+        $successor = FabricatedEmailChangeGrant::withDeliveryExpiry(
+            $this->grant($userId, 'successor', 'successor@example.test'),
+            new DateTimeImmutable('2026-08-22T14:00:00+00:00')
+        );
+
+        self::assertFalse($repository->appendAfterTerminal($terminal, $successor));
+        self::assertSame([$terminal], $repository->all());
+        self::assertSame([], $repository->findDue(new DateTimeImmutable('2026-08-22T13:30:00+00:00'), 10));
+    }
+
     public function test_fabricated_terminal_state_and_historical_digest_reuse_are_rejected(): void
     {
         $repository = new InMemoryEmailChangeGrantRepository();

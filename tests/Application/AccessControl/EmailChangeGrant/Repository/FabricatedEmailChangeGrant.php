@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Fight\Test\AccessControl\Application\AccessControl\EmailChangeGrant\Repository;
 
+use DateTimeImmutable;
 use Fight\AccessControl\Domain\AccessControl\EmailChangeGrant\EmailChangeDelivery;
 use Fight\AccessControl\Domain\AccessControl\EmailChangeGrant\EmailChangeDeliveryId;
 use Fight\AccessControl\Domain\AccessControl\EmailChangeGrant\EmailChangeGrant;
@@ -23,6 +24,28 @@ final class FabricatedEmailChangeGrant extends EmailChangeGrant
             $grant->getRevokedAt(),
             $grant->getExpiredAt(),
             $grant->getRevision()
+        );
+    }
+
+    public static function withDeliveryExpiry(EmailChangeGrant $grant, DateTimeImmutable $expiresAt): self
+    {
+        $delivery = $grant->getDelivery();
+        $material = $delivery->getEncryptedMaterial();
+        assert($material !== null);
+
+        return new self(
+            $grant->getId(),
+            $grant->getUserId(),
+            $grant->getCredentialHash(),
+            $grant->getExpiresAt(),
+            EmailChangeDelivery::create(
+                $delivery->getId(),
+                $grant->getUserId(),
+                $delivery->getEmail(),
+                $material->reveal(),
+                $expiresAt,
+                $delivery->getDueAt()
+            )
         );
     }
 

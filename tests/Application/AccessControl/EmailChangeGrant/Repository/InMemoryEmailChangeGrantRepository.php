@@ -217,12 +217,8 @@ final class InMemoryEmailChangeGrantRepository implements EmailChangeGrantReposi
 
     private function validSuccessor(EmailChangeGrant $predecessor, EmailChangeGrant $successor): bool
     {
-        return $successor->getUserId()->equals($predecessor->getUserId())
-            && $successor->getRevision() === 0
-            && $successor->isIssued()
-            && $successor->getDelivery()->getStatus() === CredentialDeliveryStatus::PENDING
-            && $successor->getDelivery()->isRecoverable()
-            && $successor->getDelivery()->getUserId()->equals($successor->getUserId())
+        return $this->isPristine($successor)
+            && $successor->getUserId()->equals($predecessor->getUserId())
             && !array_any(
                 $this->emailChangeGrants,
                 static fn(EmailChangeGrant $stored): bool =>
