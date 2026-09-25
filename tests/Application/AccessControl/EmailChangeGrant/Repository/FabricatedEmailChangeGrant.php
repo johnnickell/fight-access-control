@@ -12,6 +12,20 @@ use Fight\AccessControl\Domain\AccessControl\EmailChangeGrant\EmailChangeGrantId
 
 final class FabricatedEmailChangeGrant extends EmailChangeGrant
 {
+    public static function withDeliveryState(
+        EmailChangeGrant $grant,
+        DateTimeImmutable $dueAt,
+        bool $withMetadata
+    ): self {
+        return new self(
+            $grant->getId(),
+            $grant->getUserId(),
+            $grant->getCredentialHash(),
+            $grant->getExpiresAt(),
+            FabricatedEmailChangeDelivery::malformedPending($grant->getDelivery(), $dueAt, $withMetadata)
+        );
+    }
+
     public static function fromGrant(EmailChangeGrant $grant): self
     {
         return new self(

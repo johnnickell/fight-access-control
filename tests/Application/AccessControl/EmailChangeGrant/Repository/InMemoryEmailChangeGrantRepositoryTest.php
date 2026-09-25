@@ -39,6 +39,45 @@ final class InMemoryEmailChangeGrantRepositoryTest extends TestCase
         self::assertCount(1, $repository->findDue(new DateTimeImmutable('2026-08-22T12:05:00+00:00'), 10));
     }
 
+    public function test_initial_and_successor_writes_reject_non_pristine_delivery_state_without_mutation(): void
+    {
+        $template = $this->grant(UserId::generate(), 'malformed', 'malformed@example.test');
+        $candidates = [
+            FabricatedEmailChangeGrant::withDeliveryState(
+                $template,
+                $template->getDelivery()->getDueAt(),
+                true
+            ),
+            FabricatedEmailChangeGrant::withDeliveryState(
+                $template,
+                $template->getExpiresAt(),
+                false
+            ),
+            FabricatedEmailChangeGrant::withDeliveryState(
+                $template,
+                $template->getExpiresAt()->modify('+1 second'),
+                false
+            )
+        ];
+
+        foreach ($candidates as $candidate) {
+            $repository = new InMemoryEmailChangeGrantRepository();
+            self::assertFalse($repository->add($candidate));
+            self::assertSame([], $repository->all());
+
+            $predecessor = $this->grant(
+                $candidate->getUserId(),
+                'predecessor',
+                'predecessor@example.test'
+            );
+            self::assertTrue($repository->add($predecessor));
+            $terminal = $predecessor->revoke(new DateTimeImmutable('2026-08-22T11:00:00+00:00'));
+            self::assertTrue($repository->replace($predecessor, $terminal));
+            self::assertFalse($repository->appendAfterTerminal($terminal, $candidate));
+            self::assertSame([$terminal], $repository->all());
+        }
+    }
+
     public function test_initial_add_rejects_duplicate_grant_and_delivery_identifiers_without_mutation(): void
     {
         $repository = new InMemoryEmailChangeGrantRepository();

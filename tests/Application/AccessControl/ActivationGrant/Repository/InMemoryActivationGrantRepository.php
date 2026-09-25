@@ -351,8 +351,7 @@ final class InMemoryActivationGrantRepository implements ActivationGrantReposito
 
         return $activationGrant->getRevision() === 0
             && $activationGrant->isIssued()
-            && $delivery->getStatus() === CredentialDeliveryStatus::PENDING
-            && $delivery->hasRecoverableMaterial()
+            && $delivery->isPristine()
             && $delivery->getUserId()->equals($activationGrant->getUserId())
             && $delivery->getExpiresAt() == $activationGrant->getExpiresAt();
     }

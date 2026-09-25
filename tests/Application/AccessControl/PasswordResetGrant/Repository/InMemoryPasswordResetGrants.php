@@ -346,8 +346,7 @@ final class InMemoryPasswordResetGrants implements PasswordResetGrantRepository
 
         return $passwordResetGrant->getRevision() === 0
             && $passwordResetGrant->isIssued()
-            && $delivery->getStatus() === CredentialDeliveryStatus::PENDING
-            && $delivery->hasRecoverableMaterial()
+            && $delivery->isPristine()
             && $delivery->getUserId()->equals($passwordResetGrant->getUserId())
             && $delivery->getExpiresAt() == $passwordResetGrant->getExpiresAt();
     }

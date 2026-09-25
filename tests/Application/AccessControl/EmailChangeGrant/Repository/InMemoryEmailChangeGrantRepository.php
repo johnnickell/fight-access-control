@@ -308,8 +308,7 @@ final class InMemoryEmailChangeGrantRepository implements EmailChangeGrantReposi
 
         return $emailChangeGrant->getRevision() === 0
             && $emailChangeGrant->isIssued()
-            && $delivery->getStatus() === CredentialDeliveryStatus::PENDING
-            && $delivery->isRecoverable()
+            && $delivery->isPristine()
             && $delivery->getUserId()->equals($emailChangeGrant->getUserId())
             && $delivery->getExpiresAt() == $emailChangeGrant->getExpiresAt();
     }

@@ -2,21 +2,18 @@
 
 declare(strict_types=1);
 
-namespace Fight\Test\AccessControl\Domain\AccessControl\ActivationGrant;
+namespace Fight\Test\AccessControl\Application\AccessControl\EmailChangeGrant\Repository;
 
 use DateTimeImmutable;
-use Fight\AccessControl\Domain\AccessControl\ActivationGrant\ActivationDelivery;
-use Fight\AccessControl\Domain\AccessControl\ActivationGrant\ActivationDeliveryId;
 use Fight\AccessControl\Domain\AccessControl\CredentialDelivery\CredentialDeliveryClaimToken;
 use Fight\AccessControl\Domain\AccessControl\CredentialDelivery\CredentialDeliveryFailure;
 use Fight\AccessControl\Domain\AccessControl\CredentialDelivery\CredentialDeliveryStatus;
-use Fight\AccessControl\Domain\AccessControl\User\UserId;
-use Fight\Common\Domain\Value\Internet\EmailAddress;
+use Fight\AccessControl\Domain\AccessControl\EmailChangeGrant\EmailChangeDelivery;
 
-final class ExtensibleActivationDelivery extends ActivationDelivery
+final class FabricatedEmailChangeDelivery extends EmailChangeDelivery
 {
     public static function malformedPending(
-        ActivationDelivery $delivery,
+        EmailChangeDelivery $delivery,
         DateTimeImmutable $dueAt,
         bool $withMetadata
     ): self {
@@ -43,27 +40,6 @@ final class ExtensibleActivationDelivery extends ActivationDelivery
             $lastAttemptAt,
             $lastOutcomeAt,
             $lastFailure
-        );
-    }
-
-    public static function claimedWithoutMaterial(
-        CredentialDeliveryClaimToken $claimToken,
-        DateTimeImmutable $claimedAt,
-        DateTimeImmutable $leaseUntil
-    ): self {
-        return new self(
-            ActivationDeliveryId::generate(),
-            UserId::generate(),
-            EmailAddress::fromString('malformed@example.test'),
-            null,
-            $leaseUntil->modify('+1 hour'),
-            $claimedAt,
-            CredentialDeliveryStatus::CLAIMED,
-            $claimToken,
-            $claimedAt,
-            $leaseUntil,
-            1,
-            $claimedAt
         );
     }
 }

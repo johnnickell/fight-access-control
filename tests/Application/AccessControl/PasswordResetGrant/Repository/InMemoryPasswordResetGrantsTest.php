@@ -7,6 +7,7 @@ namespace Fight\Test\AccessControl\Application\AccessControl\PasswordResetGrant\
 use DateTimeImmutable;
 use Fight\AccessControl\Domain\AccessControl\CredentialDelivery\CredentialDeliveryClaimToken;
 use Fight\AccessControl\Domain\AccessControl\PasswordResetGrant\PasswordResetCredential;
+use Fight\AccessControl\Domain\AccessControl\PasswordResetGrant\PasswordResetDelivery;
 use Fight\AccessControl\Domain\AccessControl\PasswordResetGrant\PasswordResetDeliveryId;
 use Fight\AccessControl\Domain\AccessControl\PasswordResetGrant\PasswordResetGrant;
 use Fight\AccessControl\Domain\AccessControl\PasswordResetGrant\PasswordResetGrantId;
@@ -203,6 +204,53 @@ final class InMemoryPasswordResetGrantsTest extends TestCase
         self::assertSame($consumed, $repository->getLatestByUserId($userId));
     }
 
+    public function test_initial_and_successor_writes_reject_non_pristine_delivery_state_without_mutation(): void
+    {
+        $template = $this->grant(UserId::generate(), 'malformed', '2026-08-20T13:00:00+00:00');
+        $candidates = [
+            $this->withDelivery(
+                $template,
+                ExtensiblePasswordResetDelivery::malformedPending(
+                    $template->getDelivery(),
+                    $template->getDelivery()->getDueAt(),
+                    true
+                )
+            ),
+            $this->withDelivery(
+                $template,
+                ExtensiblePasswordResetDelivery::malformedPending(
+                    $template->getDelivery(),
+                    $template->getExpiresAt(),
+                    false
+                )
+            ),
+            $this->withDelivery(
+                $template,
+                ExtensiblePasswordResetDelivery::malformedPending(
+                    $template->getDelivery(),
+                    $template->getExpiresAt()->modify('+1 second'),
+                    false
+                )
+            )
+        ];
+
+        foreach ($candidates as $candidate) {
+            $repository = new InMemoryPasswordResetGrants();
+            self::assertFalse($repository->add($candidate));
+            self::assertSame([], $repository->all());
+
+            $predecessor = $this->grant(
+                $candidate->getUserId(),
+                'predecessor',
+                '2026-08-20T13:00:00+00:00'
+            );
+            self::assertTrue($repository->add($predecessor));
+            $terminal = $predecessor->revoke(new DateTimeImmutable('2026-08-20T12:15:00+00:00'));
+            self::assertFalse($repository->replaceWithSuccessor($predecessor, $terminal, $candidate));
+            self::assertSame([$predecessor], $repository->all());
+        }
+    }
+
     public function test_that_add_rejects_every_non_pristine_or_misowned_initial_generation(): void
     {
         $grant = $this->grant(UserId::generate(), 'reset-once', '2026-08-20T13:00:00+00:00');
@@ -364,6 +412,19 @@ final class InMemoryPasswordResetGrantsTest extends TestCase
             self::assertFalse($repository->appendAfterTerminal($terminal, $candidate));
             self::assertSame([$terminal], $repository->all());
         }
+    }
+
+    private function withDelivery(
+        PasswordResetGrant $grant,
+        PasswordResetDelivery $delivery
+    ): PasswordResetGrant {
+        return ExtensiblePasswordResetGrant::reconstitute(
+            $grant->getId(),
+            $grant->getUserId(),
+            $grant->getCredentialHash(),
+            $grant->getExpiresAt(),
+            $delivery
+        );
     }
 
     private function grant(UserId $userId, string $credential, string $expiresAt): PasswordResetGrant

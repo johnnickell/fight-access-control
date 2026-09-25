@@ -181,6 +181,23 @@ abstract class CredentialDelivery
     }
 
     /**
+     * Returns whether every field represents canonical initial delivery state
+     */
+    public function isPristine(): bool
+    {
+        return $this->status === CredentialDeliveryStatus::PENDING
+            && $this->hasRecoverableMaterial()
+            && $this->dueAt < $this->expiresAt
+            && $this->claimToken === null
+            && $this->claimedAt === null
+            && $this->leaseUntil === null
+            && $this->attemptCount === 0
+            && $this->lastAttemptAt === null
+            && $this->lastOutcomeAt === null
+            && $this->lastFailure === null;
+    }
+
+    /**
      * Returns whether work is eligible for a new claim at the supplied time
      */
     public function isDueAt(DateTimeImmutable $at): bool

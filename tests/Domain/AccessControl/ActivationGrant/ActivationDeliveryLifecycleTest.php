@@ -49,11 +49,33 @@ final class ActivationDeliveryLifecycleTest extends TestCase
         self::assertNull($delivery->getLastOutcomeAt());
         self::assertNull($delivery->getLastFailure());
         self::assertTrue($delivery->hasRecoverableMaterial());
+        self::assertTrue($delivery->isPristine());
         self::assertTrue($delivery->isRetryable());
         self::assertFalse($delivery->isDueAt($this->at('11:59:59')));
         self::assertTrue($delivery->isDueAt($this->at('12:00:00')));
         self::assertTrue($delivery->sameStateAs($delivery));
         self::assertFalse($delivery->sameStateAs($delivery->invalidate()));
+    }
+
+    public function test_pristine_state_rejects_metadata_and_due_time_at_or_after_expiry(): void
+    {
+        $delivery = $this->delivery();
+
+        self::assertFalse(ExtensibleActivationDelivery::malformedPending(
+            $delivery,
+            $delivery->getDueAt(),
+            true
+        )->isPristine());
+        self::assertFalse(ExtensibleActivationDelivery::malformedPending(
+            $delivery,
+            $delivery->getExpiresAt(),
+            false
+        )->isPristine());
+        self::assertFalse(ExtensibleActivationDelivery::malformedPending(
+            $delivery,
+            $delivery->getExpiresAt()->modify('+1 second'),
+            false
+        )->isPristine());
     }
 
     public function test_a_malformed_live_claim_cannot_expose_absent_material(): void

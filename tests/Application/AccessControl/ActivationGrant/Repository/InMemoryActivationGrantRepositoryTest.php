@@ -6,6 +6,7 @@ namespace Fight\Test\AccessControl\Application\AccessControl\ActivationGrant\Rep
 
 use DateTimeImmutable;
 use Fight\AccessControl\Domain\AccessControl\ActivationGrant\ActivationCredential;
+use Fight\AccessControl\Domain\AccessControl\ActivationGrant\ActivationDelivery;
 use Fight\AccessControl\Domain\AccessControl\ActivationGrant\ActivationGrant;
 use Fight\AccessControl\Domain\AccessControl\CredentialDelivery\CredentialDeliveryClaimToken;
 use Fight\AccessControl\Domain\AccessControl\CredentialDelivery\CredentialDeliveryFailure;
@@ -13,6 +14,8 @@ use Fight\AccessControl\Domain\AccessControl\CredentialDelivery\CredentialDelive
 use Fight\AccessControl\Domain\AccessControl\User\UserId;
 use Fight\Common\Domain\Value\Internet\EmailAddress;
 use Fight\Test\AccessControl\Application\AccessControl\User\InMemoryUnitOfWork;
+use Fight\Test\AccessControl\Domain\AccessControl\ActivationGrant\ExtensibleActivationDelivery;
+use Fight\Test\AccessControl\Domain\AccessControl\ActivationGrant\ExtensibleActivationGrant;
 use PHPUnit\Framework\Attributes\CoversNothing;
 use PHPUnit\Framework\TestCase;
 use RuntimeException;
@@ -102,6 +105,49 @@ final class InMemoryActivationGrantRepositoryTest extends TestCase
         self::assertSame($grant, $repository->getLatestByUserId($grant->getUserId()));
     }
 
+    public function test_initial_and_successor_writes_reject_non_pristine_delivery_state_without_mutation(): void
+    {
+        $template = $this->grant(UserId::generate(), 'malformed');
+        $candidates = [
+            $this->withDelivery(
+                $template,
+                ExtensibleActivationDelivery::malformedPending(
+                    $template->getDelivery(),
+                    $template->getDelivery()->getDueAt(),
+                    true
+                )
+            ),
+            $this->withDelivery(
+                $template,
+                ExtensibleActivationDelivery::malformedPending(
+                    $template->getDelivery(),
+                    $template->getExpiresAt(),
+                    false
+                )
+            ),
+            $this->withDelivery(
+                $template,
+                ExtensibleActivationDelivery::malformedPending(
+                    $template->getDelivery(),
+                    $template->getExpiresAt()->modify('+1 second'),
+                    false
+                )
+            )
+        ];
+
+        foreach ($candidates as $candidate) {
+            $repository = new InMemoryActivationGrantRepository();
+            self::assertFalse($repository->add($candidate));
+            self::assertSame([], $repository->all());
+
+            $predecessor = $this->grant($candidate->getUserId(), 'predecessor');
+            self::assertTrue($repository->add($predecessor));
+            $terminal = $predecessor->revoke($this->at('12:10:00'));
+            self::assertFalse($repository->replaceWithSuccessor($predecessor, $terminal, $candidate));
+            self::assertSame([$predecessor], $repository->all());
+        }
+    }
+
     public function test_successor_replacement_is_atomic_and_fences_historical_or_duplicate_authority(): void
     {
         $userId = UserId::generate();
@@ -119,6 +165,19 @@ final class InMemoryActivationGrantRepositoryTest extends TestCase
         self::assertTrue($repository->replaceWithSuccessor($predecessor, $terminal, $successor));
         self::assertSame([$terminal, $successor], $repository->all());
         self::assertFalse($repository->addSuccessor($this->grant($userId, 'third')));
+    }
+
+    private function withDelivery(
+        ActivationGrant $grant,
+        ActivationDelivery $delivery
+    ): ActivationGrant {
+        return ExtensibleActivationGrant::reconstitute(
+            $grant->getId(),
+            $grant->getUserId(),
+            $grant->getCredentialHash(),
+            $grant->getExpiresAt(),
+            $delivery
+        );
     }
 
     private function at(string $time): DateTimeImmutable
