@@ -3,7 +3,7 @@
 **Label:** `wayfinder:map`
 **Status:** Closed
 
-> This map is an **index, not a store**. Each material decision lives in exactly one linked ticket under
+> This map is an **index, not a store**. Each material decision lives in exactly one linked decision ticket under
 > `tickets/`; this map only summarizes the linked resolutions and shows the next decision frontier.
 
 ## Destination
@@ -14,7 +14,7 @@ payloads, including authentication input and output payloads, and optional JSend
 will define the work required for a verified `v0.2.0` release candidate.
 
 **Done** = every linked decision ticket is closed, the remaining fog is resolved or excluded, and the map links
-to its resulting epic, PRDs, and/or implementation tickets.
+to its resulting EPIC, TICKET, and/or implementation TASKs.
 
 ## Notes
 
@@ -46,13 +46,13 @@ to its resulting epic, PRDs, and/or implementation tickets.
    recurring build. A focused guide ships with the implementation, while a broader documentation-quality pass may
    follow without blocking `v0.2.0`.
 
-## Tickets
+## Decisions
 
-| Ticket | Type | Mode | Status | Gate | Depends On |
+| Decision ID | Title | Type | Mode | Status | Depends on |
 |---|---|---|---|---|---|
-| [Choose OpenAPI metadata ownership and component discovery](tickets/WF-005-openapi-metadata-ownership.md) | Grilling / Domain Modeling | HITL | **Closed** | — | — |
-| [Define authentication payload and JSend response catalog](tickets/WF-006-authentication-payload-jsend-catalog.md) | Grilling / Domain Modeling | HITL | **Closed** | — | WF-005 |
-| [Set lightweight composition proof and v0.2.0 handoff](tickets/WF-007-openapi-composition-proof-release-handoff.md) | Grilling | HITL | **Closed** | — | WF-006 |
+| WF-005 | [Choose OpenAPI metadata ownership and component discovery](tickets/WF-005-openapi-metadata-ownership.md) | Grilling / Domain Modeling | HITL | **Closed** | — |
+| WF-006 | [Define authentication payload and JSend response catalog](tickets/WF-006-authentication-payload-jsend-catalog.md) | Grilling / Domain Modeling | HITL | **Closed** | WF-005 |
+| WF-007 | [Set lightweight composition proof and v0.2.0 handoff](tickets/WF-007-openapi-composition-proof-release-handoff.md) | Grilling | HITL | **Closed** | WF-006 |
 
 ## Blocking relationships
 
@@ -69,7 +69,7 @@ No Wayfinder decision remains. The implementation handoff is recorded in the
 
 Published schema keys and fields are public `0.x` contracts. An intended source-level attribute change that removes,
 renames, narrows, or makes a field required is release-blocking until it is released under the compatible minor-version
-policy and recorded in the changelog. T-00033 verifies this initial catalog through the documented local composition
+policy and recorded in the changelog. TASK-00033 verifies this initial catalog through the documented local composition
 proof; a separate schema-diff tool is not required for this release.
 
 ## Out of scope
@@ -81,6 +81,6 @@ proof; a separate schema-diff tool is not required for this release.
 
 ## Resolution
 
-[EPIC-00004](../epics/00004-EPIC.md), [PRD-00005](../specs/00005-PRD.md), and
-[T-00033](../tickets/00033-TICKET.md) implement this map. The focused consumer guide is release work; a later
+[EPIC-00004](../epics/00004-EPIC.md), [TICKET-00005](../tickets/00005-TICKET.md), and
+[TASK-00033](../tasks/00033-TASK.md) implement this map. The focused consumer guide is release work; a later
 broader documentation-quality pass is a non-blocking follow-on decision.

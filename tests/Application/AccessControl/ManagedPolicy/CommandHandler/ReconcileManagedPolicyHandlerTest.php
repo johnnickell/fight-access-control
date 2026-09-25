@@ -458,11 +458,11 @@ final class ReconcileManagedPolicyHandlerTest extends TestCase
                 'tier' => $permission['tier']
             ]], 'roles'    => []],
             ['permissions' => [[...$permission, 'unexpected' => true]], 'roles' => []],
-            ['permissions' => [[...$permission, 'id' => 'invalid']], 'roles' => []],
-            ['permissions' => [[...$permission, 'name' => 'invalid']], 'roles' => []],
-            ['permissions' => [[...$permission, 'tier' => 'INVALID']], 'roles' => []],
-            ['permissions' => [[...$permission, 'action' => 'INVALID']], 'roles' => []],
-            ['permissions' => [[...$permission, 'action' => 1]], 'roles' => []],
+            ['permissions' => [array_replace($permission, ['id' => 'invalid'])], 'roles' => []],
+            ['permissions' => [array_replace($permission, ['name' => 'invalid'])], 'roles' => []],
+            ['permissions' => [array_replace($permission, ['tier' => 'INVALID'])], 'roles' => []],
+            ['permissions' => [array_replace($permission, ['action' => 'INVALID'])], 'roles' => []],
+            ['permissions' => [array_replace($permission, ['action' => 1])], 'roles' => []],
             ['permissions' => [], 'roles' => ['invalid']],
             ['permissions' => [], 'roles' => [[
                 'id'             => $role['id'],
@@ -470,13 +470,16 @@ final class ReconcileManagedPolicyHandlerTest extends TestCase
                 'permission_ids' => $role['permission_ids']
             ]]],
             ['permissions' => [], 'roles' => [[...$role, 'unexpected' => true]]],
-            ['permissions' => [], 'roles' => [[...$role, 'id' => 'invalid']]],
-            ['permissions' => [], 'roles' => [[...$role, 'name' => 'invalid']]],
-            ['permissions' => [], 'roles' => [[...$role, 'permission_ids' => ['id' => $permission['id']]]]],
-            ['permissions' => [], 'roles' => [[...$role, 'permission_ids' => [1]]]],
-            ['permissions' => [], 'roles' => [[...$role, 'permission_ids' => ['invalid']]]],
-            ['permissions' => [], 'roles' => [[...$role, 'action' => 'INVALID']]],
-            ['permissions' => [], 'roles' => [[...$role, 'action' => 1]]]
+            ['permissions' => [], 'roles' => [array_replace($role, ['id' => 'invalid'])]],
+            ['permissions' => [], 'roles' => [array_replace($role, ['name' => 'invalid'])]],
+            ['permissions' => [], 'roles' => [array_replace(
+                $role,
+                ['permission_ids' => ['id' => $permission['id']]]
+            )]],
+            ['permissions' => [], 'roles' => [array_replace($role, ['permission_ids' => [1]])]],
+            ['permissions' => [], 'roles' => [array_replace($role, ['permission_ids' => ['invalid']])]],
+            ['permissions' => [], 'roles' => [array_replace($role, ['action' => 'INVALID'])]],
+            ['permissions' => [], 'roles' => [array_replace($role, ['action' => 1])]]
         ];
         $rejections = 0;
 

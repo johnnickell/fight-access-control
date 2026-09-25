@@ -7,7 +7,7 @@ provided under the repository's [MIT License](LICENSE).
 ## Before changing code
 
 Read [CLAUDE.md](CLAUDE.md), [CONTEXT.md](CONTEXT.md), and the repository-local planning authority under
-[planning/](planning/README.md). Work only from a ready local ticket. Detailed capability tickets are not part
+[planning/](planning/README.md). Work only from a ready local TASK. Detailed capability tasks are not part
 of the bootstrap itself.
 
 Use Git Flow:
@@ -33,11 +33,9 @@ Use the repository-owned `./bin/*` wrappers. Run focused tests while iterating, 
 `./bin/build` is the canonical local completion gate. Hosted CI resolves latest-compatible Composer
 dependencies and then calls the same `./bin/quality` gate; it does not maintain a second checklist.
 
-Coding style currently comes from the repository's lean PHPCS ruleset built only from published PSR-12 and
-Slevomat rules. It covers strict types, layout, naming, spacing, arrays, and documentation presence without
-claiming parity with Fight Common's unexported semantic documentation checks. When a compatible Fight Common
-release exports its consumer standard, adopt that package-owned standard and remove overlapping local rules;
-never copy its custom sniffs into this repository.
+Coding style composes Fight Common's published PHPCS ruleset through [phpcs.xml](phpcs.xml), with the
+repository's documented exclusions and extensions. It covers the package's required strict types, layout,
+naming, spacing, arrays, and documentation checks; do not copy Fight Common sniffs into this repository.
 
 The repository includes an opt-in pre-commit hook that delegates to the same default build:
 
@@ -45,13 +43,13 @@ The repository includes an opt-in pre-commit hook that delegates to the same def
 git config core.hooksPath .githooks
 ```
 
-This changes only the current clone. When an exceptional commit must be created without the local gate, Git's
-explicit bypass remains `git commit --no-verify`; record why the already-required build evidence was obtained
-another way. There is deliberately no pre-push hook.
+This changes only the current clone. Once enabled, the default build gate is non-bypassable: never use
+`git commit --no-verify`. Diagnose and repair every failure, then let the hook complete successfully before
+creating the commit. There is deliberately no pre-push hook.
 
 Keep production code framework-neutral with dependency direction `Domain <- Application`. Do not add a
 production Adapter layer, framework integration, persistence implementation, or capability outside the active
-ticket. Report security concerns using [SECURITY.md](SECURITY.md), never through a public issue.
+TASK. Report security concerns using [SECURITY.md](SECURITY.md), never through a public issue.
 
 Code changes, commits, pushes, pull requests, private or public visibility changes, version tags, Packagist
 publication, and releases are separate effects. Obtain and record the required approval for each one.

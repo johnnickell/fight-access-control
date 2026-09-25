@@ -51,7 +51,7 @@ final class RetryInvitationDeliveryHandlerTest extends TestCase
         self::assertSame(1, $unitOfWork->transactions);
         $retryRequested = $repository->getLatestByUserId($activationGrant->getUserId());
         self::assertTrue($retryRequested?->getDelivery()->isRetryable());
-        self::assertSame('ciphertext', $retryRequested->getDelivery()->getCiphertext());
+        self::assertSame('ciphertext', $retryRequested->getDelivery()->getEncryptedMaterial()?->reveal());
         self::assertSame('user.invitation_delivery.retry_requested', $auditEvidenceRepository->all()[0]->action());
         self::assertInstanceOf(InvitationDeliveryRetryRequested::class, $events->events()[0]);
     }

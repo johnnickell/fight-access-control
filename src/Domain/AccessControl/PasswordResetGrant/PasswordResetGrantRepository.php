@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 namespace Fight\AccessControl\Domain\AccessControl\PasswordResetGrant;
 
+use DateTimeImmutable;
 use Exception;
+use Fight\AccessControl\Domain\AccessControl\CredentialDelivery\DueCredentialDelivery;
 use Fight\AccessControl\Domain\AccessControl\User\UserId;
 
 /**
@@ -19,12 +21,25 @@ use Fight\AccessControl\Domain\AccessControl\User\UserId;
  * credential digest, expiry, user, and owned delivery generation. Credential digests remain unique across the user's
  * complete generation history.
  *
- * Implementations participate in the caller's UnitOfWork: writes are staged until commit and are fully rolled back with
- * the surrounding transaction. Successor operations atomically preserve or terminalize the predecessor as specified
- * and insert the successor. Stale delivery callbacks must not mutate or invalidate newer delivery generations.
+ * Implementations participate in the caller's transactional unit of work: writes are staged until commit and are
+ * fully rolled back with the surrounding transaction. Successor operations atomically preserve or terminalize the
+ * predecessor as specified and insert the successor. Stale delivery callbacks must not mutate or invalidate newer
+ * delivery generations.
  */
 interface PasswordResetGrantRepository
 {
+    /**
+     * Returns deterministic secret-free due work ordered by eligibility time then delivery identifier
+     *
+     * Pending and due-retry work is eligible at its due time. Claimed work is eligible at lease expiry. Only the
+     * authoritative latest generation for each User participates. The positive limit is applied after ordering.
+     *
+     * @return list<DueCredentialDelivery>
+     *
+     * @throws Exception When an error occurs.
+     */
+    public function findDue(DateTimeImmutable $at, int $limit): array;
+
     /**
      * Returns a generation by stable identifier, including historical generations
      *

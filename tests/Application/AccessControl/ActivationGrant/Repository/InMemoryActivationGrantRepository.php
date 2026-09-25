@@ -7,13 +7,15 @@ namespace Fight\Test\AccessControl\Application\AccessControl\ActivationGrant\Rep
 use Closure;
 use DateTimeImmutable;
 use Fight\AccessControl\Domain\AccessControl\ActivationGrant\ActivationDeliveryId;
-use Fight\AccessControl\Domain\AccessControl\ActivationGrant\ActivationDeliveryStatus;
 use Fight\AccessControl\Domain\AccessControl\ActivationGrant\ActivationGrant;
 use Fight\AccessControl\Domain\AccessControl\ActivationGrant\ActivationGrantId;
 use Fight\AccessControl\Domain\AccessControl\ActivationGrant\ActivationGrantRepository;
 use Fight\AccessControl\Domain\AccessControl\ActivationGrant\Exception\ActivationGrantException;
+use Fight\AccessControl\Domain\AccessControl\CredentialDelivery\CredentialDeliveryStatus;
+use Fight\AccessControl\Domain\AccessControl\CredentialDelivery\DueCredentialDelivery;
 use Fight\AccessControl\Domain\AccessControl\User\UserId;
 use Fight\Test\AccessControl\Application\AccessControl\User\InMemoryUnitOfWork;
+use Throwable;
 
 final class InMemoryActivationGrantRepository implements ActivationGrantRepository
 {
@@ -34,6 +36,39 @@ final class InMemoryActivationGrantRepository implements ActivationGrantReposito
         private readonly int $beforeReplaceOnCall = 1,
         private readonly bool $addSuccessorSucceeds = true
     ) {
+    }
+
+    public function findDue(DateTimeImmutable $at, int $limit): array
+    {
+        if ($limit < 1) {
+            return [];
+        }
+
+        $due = [];
+        foreach ($this->activationGrants as $activationGrant) {
+            $latest = $this->getLatestByUserId($activationGrant->getUserId());
+            $delivery = $activationGrant->getDelivery();
+            if (
+                !$latest instanceof ActivationGrant
+                || !$latest->getId()->equals($activationGrant->getId())
+                || !$delivery->isDueAt($at)
+            ) {
+                continue;
+            }
+
+            $due[] = new DueCredentialDelivery(
+                $activationGrant->purpose(),
+                $delivery->getId(),
+                $activationGrant->getUserId(),
+                $delivery->getNextAttemptAt(),
+                $activationGrant->getRevision(),
+                $delivery->getStatus()
+            );
+        }
+
+        usort($due, $this->compareDue(...));
+
+        return array_slice($due, 0, $limit);
     }
 
     public function add(ActivationGrant $activationGrant): bool
@@ -204,6 +239,14 @@ final class InMemoryActivationGrantRepository implements ActivationGrantReposito
         );
     }
 
+    private function compareDue(DueCredentialDelivery $left, DueCredentialDelivery $right): int
+    {
+        return [$left->getDueAt()->format('U.u'), $left->getDeliveryId()->toString()] <=> [
+            $right->getDueAt()->format('U.u'),
+            $right->getDeliveryId()->toString()
+        ];
+    }
+
     private function isAllowedReplacement(ActivationGrant $predecessor, ActivationGrant $replacement): bool
     {
         $predecessorDelivery = $predecessor->getDelivery();
@@ -251,25 +294,56 @@ final class InMemoryActivationGrantRepository implements ActivationGrantReposito
         $before = $predecessor->getDelivery();
         $after = $replacement->getDelivery();
 
-        if ($after->getStatus() === ActivationDeliveryStatus::EXPIRED) {
-            return $before->getCiphertext() !== null && $after->getCiphertext() === null;
+        try {
+            $expected = match ($after->getStatus()) {
+                CredentialDeliveryStatus::CLAIMED => $predecessor->claimDelivery(
+                    $after->getClaimToken(),
+                    $after->getClaimedAt(),
+                    $after->getLeaseUntil()
+                ),
+                CredentialDeliveryStatus::RETRY_PENDING => $predecessor->failDelivery(
+                    $before->getClaimToken(),
+                    $after->getLastOutcomeAt(),
+                    $after->getLastFailure()
+                ),
+                CredentialDeliveryStatus::PENDING => $predecessor->requestDeliveryRetry(),
+                CredentialDeliveryStatus::DELIVERED => $predecessor->confirmDelivery(
+                    $before->getClaimToken(),
+                    $after->getLastOutcomeAt()
+                ),
+                CredentialDeliveryStatus::PERMANENT_FAILURE => $predecessor->failDeliveryPermanently(
+                    $before->getClaimToken(),
+                    $after->getLastOutcomeAt()
+                ),
+                CredentialDeliveryStatus::EXPIRED => $this->expiredTransition($predecessor, $replacement),
+                CredentialDeliveryStatus::INVALIDATED => null,
+            };
+        } catch (Throwable) {
+            return false;
         }
 
-        return match ($before->getStatus()) {
-            ActivationDeliveryStatus::PENDING =>
-                $after->getStatus() === ActivationDeliveryStatus::CLAIMED
-                && $after->getCiphertext() === $before->getCiphertext(),
-            ActivationDeliveryStatus::CLAIMED =>
-                ($after->getStatus() === ActivationDeliveryStatus::FAILED
-                    && $after->getCiphertext() === $before->getCiphertext())
-                || ($after->getStatus() === ActivationDeliveryStatus::CONFIRMED
-                    && $after->getCiphertext() === null),
-            ActivationDeliveryStatus::FAILED =>
-                $after->getStatus() === ActivationDeliveryStatus::PENDING
-                && $after->getCiphertext() === $before->getCiphertext(),
-            ActivationDeliveryStatus::CONFIRMED,
-            ActivationDeliveryStatus::EXPIRED => false,
-        };
+        return $expected instanceof ActivationGrant && $this->sameState($expected, $replacement);
+    }
+
+    private function expiredTransition(
+        ActivationGrant $predecessor,
+        ActivationGrant $replacement
+    ): ActivationGrant {
+        $before = $predecessor->getDelivery();
+        $after = $replacement->getDelivery();
+        if (
+            $before->getStatus() === CredentialDeliveryStatus::CLAIMED
+            && $after->getLastOutcomeAt() instanceof DateTimeImmutable
+            && $after->getLastFailure() !== null
+        ) {
+            return $predecessor->failDelivery(
+                $before->getClaimToken(),
+                $after->getLastOutcomeAt(),
+                $after->getLastFailure()
+            );
+        }
+
+        return $predecessor->expireDeliveryAt($after->getExpiresAt());
     }
 
     private function isPristine(ActivationGrant $activationGrant): bool
@@ -278,9 +352,7 @@ final class InMemoryActivationGrantRepository implements ActivationGrantReposito
 
         return $activationGrant->getRevision() === 0
             && $activationGrant->isIssued()
-            && $delivery->getStatus() === ActivationDeliveryStatus::PENDING
-            && $delivery->getCiphertext() !== null
-            && $delivery->getCiphertext() !== ''
+            && $delivery->isPristine()
             && $delivery->getUserId()->equals($activationGrant->getUserId())
             && $delivery->getExpiresAt() == $activationGrant->getExpiresAt();
     }
@@ -339,10 +411,7 @@ final class InMemoryActivationGrantRepository implements ActivationGrantReposito
             && $current->getRevokedAt() == $predecessor->getRevokedAt()
             && $currentDelivery->getId()->equals($predecessorDelivery->getId())
             && $currentDelivery->getUserId()->equals($predecessorDelivery->getUserId())
-            && $currentDelivery->getEmail()->canonical() === $predecessorDelivery->getEmail()->canonical()
-            && $currentDelivery->getCiphertext() === $predecessorDelivery->getCiphertext()
-            && $currentDelivery->getExpiresAt() == $predecessorDelivery->getExpiresAt()
-            && $currentDelivery->getStatus() === $predecessorDelivery->getStatus();
+            && $currentDelivery->sameStateAs($predecessorDelivery);
     }
 
     private function validSuccessor(ActivationGrant $predecessor, ActivationGrant $successor): bool

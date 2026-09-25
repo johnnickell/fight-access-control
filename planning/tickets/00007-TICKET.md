@@ -1,51 +1,94 @@
 ---
-id: T-00007
-prd: PRD-00001
-title: Recover a forgotten password
+id: TICKET-00007
+epic: EPIC-00006
+title: Deliver Credentials Recoverably Outside Transactions
 status: done
-blocked_by: T-00004
 ---
 
-# Recover a forgotten password
+# Deliver Credentials Recoverably Outside Transactions
 
-## Outcome
+## Problem and Outcome
 
-A person can request password recovery without account enumeration, then redeem a one-time expiring reset grant
-that changes the credential and revokes all sessions.
+`v0.2.0` commits invitation, reset, and email-change grant delivery material atomically, but only invitation and
+email change invoke providers—and do so inside the transaction. Password reset has no package-owned recoverable
+provider path. A crash after an originating commit can lose immediate scheduling, and a crash after provider
+acceptance but before outcome commit can repeat a delivery without a declared idempotency contract.
 
-## Acceptance Criteria
+Provide one package-owned, provider-neutral lifecycle for all three credential families. Consumer applications supply
+one transactional connection/Unit of Work, persistence adapters, encryption keys, provider adapters, and worker
+scheduling. AccessControl owns due-work discovery, claims, leases, retry/terminal transitions, stale-claim fencing,
+outcome/audit semantics, and direct handler registration.
 
-- [x] Reset requests return generic outcomes and create delivery work only when appropriate.
-- [x] Reset grants are purpose-bound, hashed, expiring, single-use, and unrelated to activation grants.
-- [x] Successful reset changes the credential and revokes every active session atomically.
-- [x] Tests prove generic response, grant replay and expiry rejection, session revocation, and durable audit behavior.
+## Use Cases
 
-## Scope
+| Actor and trigger | Commands | Queries | Events | Expected side effects and outcome |
+| --- | --- | --- | --- | --- |
+| An invitation, pending-user restoration/correction, or resend creates a new activation generation | Existing originating commands | Due-work discovery | Existing post-commit invitation events | User, grant, encrypted material, and required audit evidence commit together; the new delivery generation becomes discoverable even if immediate dispatch is lost. |
+| An active user requests password reset | `RequestPasswordReset` | Due-work discovery | `PasswordResetRequested` | Eligible identity receives a fresh encrypted delivery generation atomically; unknown/ineligible identity remains generic and creates no work. |
+| An active user requests email change | `RequestEmailChange` | Due-work discovery | `EmailChangeRequested` | Reservation, grant, encrypted delivery, and required audit evidence commit together; cancellation, expiry, and replacement fence stale work. |
+| A consumer worker sees due work | Exact package delivery command | Secret-free due-work query | Optional delivery outcome events | Handler claims one exact generation in a short transaction. A competing worker loses safely; expired leases become due again. |
+| A claimed provider invocation returns | Same package handler | Safe status query | Success/retry/terminal events as accepted | Provider call occurs with no transaction open. Matching expected-state outcome commits separately; delivered and permanent outcomes destroy ciphertext, retryable outcomes retain it until expiry. |
 
-### Out of Scope
+## Contract and Failure Rules
 
-No email transport, password-hash implementation, reset page, or persistence adapter.
+- Discovery returns a deterministic, bounded, secret-free order across invitation, password reset, and email change.
+  It includes pending work, retry work whose due time has arrived, and abandoned claims whose lease has expired.
+- A persisted claim has a unique opaque token, aggregate revision, claimed-at, lease-until, attempt information, and
+  delivery generation. Outcome persistence accepts only that exact unexpired expected state.
+- The immutable delivery-generation ID is supplied to the provider as its idempotency identity for every attempt;
+  retry retains it and replacement creates another. This provides at-least-once semantics only.
+- Consumer adapters translate provider behavior into typed delivered, retryable, or permanent results. Unknown
+  throwables are secret-free retryable failures; arbitrary exception messages are neither parsed nor persisted.
+- Credential material is encrypted before the originating commit. The package materializes it only after a committed
+  claim and only for the provider invocation lifetime. No raw credential, hash, token, ciphertext, credential URL,
+  provider secret, or arbitrary provider error appears in serialized Commands, Events, Queries, safe views, audit
+  evidence, or ordinary diagnostics.
+- Existing post-commit events/subscribers may dispatch direct handlers immediately, but scheduled discovery is the
+  recovery authority. Consumers do not implement aliases or copied grant-transition policy.
+- The implementation must route every newly issued activation delivery consistently: initial invitation, restored
+  pending User, corrected pending invitation, resend, and retry. The corrected-invitation event is not currently
+  subscribed and is covered by durable discovery even if no immediate route is added.
 
-## Verification
+## Compatibility and Release
 
-- `./bin/phpunit`
-- `./bin/planning-check`
-- `./bin/build`
+- Replace ciphertext-exposing delivery invoker inputs with provider-neutral sensitive invocation/outcome contracts.
+  This requires consumer adapter migration and is a breaking pre-1.0 minor release: `v0.3.0`.
+- Consumers migrate repository adapters to the revised delivery persistence/CAS/discovery contract on their shared
+  connection, register the revised package handlers and provider capability, schedule discovery, and honor the
+  idempotency identity. They remove any vendor patch or copied delivery lifecycle.
+- Fight Agent OS may upgrade invitation/reset composition independently and defer only its email-change provider
+  wiring. Package release and consumer upgrade remain separately authorized.
 
-## Completion Notes
+## Acceptance Evidence
 
-- Generic request handling performs identity lookup, active-user eligibility, reset-grant creation, encrypted
-  delivery-work creation, and secret-free audit persistence in one Unit of Work. Unknown and ineligible identities
-  follow the same public no-work outcome.
-- Reset authority is hashed, purpose-bound, one-hour expiring, single-use, historically unique per user, and
-  protected by explicit compare-and-set semantics for initial issuance, reissue, terminal append, and consumption.
-- Delivery work has immutable generation identity. Confirmation and terminal expiry destroy recoverable ciphertext;
-  stale callbacks cannot affect newer work, and delivery is not authoritative during redemption.
-- Synchronous redemption changes the password, advances authentication authority, consumes the grant, revokes all
-  active sessions, and records durable audit evidence atomically. A monotonic User authority revision, atomic
-  authority-plus-session insertion, and a transaction-duration per-user fence close login/reset races.
-- Generic and redacted failures cover malformed, wrong, expired, consumed, revoked, missing, replayed, and
-  concurrency-lost credentials without exposing secrets or account existence.
-- Final `./bin/planning-check` passed. Final `./bin/build` passed 221 tests with 1613 assertions and exact statement
-  coverage at 1262/1262; PHPCS, PHPStan, architecture, package boundaries, Rector, documentation, and production
-  autoload checks passed. Independent Standards and Spec reviews reported no remaining findings.
+- [x] Originating mutations roll back user/grant/delivery/audit atomically and commit discoverable work before any
+      provider call.
+- [x] No provider call occurs with an originating, claim, or outcome transaction active.
+- [x] Restart discovery schedules pending, due-retry, and expired-lease work deterministically; competing claims and
+      stale outcomes cannot mutate the authoritative generation.
+- [x] A crash after provider acceptance and before outcome commit may retry with the same idempotency identity and is
+      documented as at-least-once.
+- [x] Invitation initial/restore/correction/resend/retry, reset request/replacement/confirmation/expiry, and email
+      request/delivery/cancellation/expiry all obey one compatible lifecycle.
+- [x] Typed retryable/permanent outcomes, ciphertext destruction, safe audit/status, and secret-free messages are
+      proven for every delivery family.
+- [x] Direct package handler registration and consumer-owned shared Unit of Work composition are documented and
+      covered by conformance seams.
+- [x] Migration guide, changelog entry, SemVer classification, release qualification, `./bin/planning-check`, and
+      `./bin/build` pass before a separately authorized tag/release.
+
+TASK-00037 through TASK-00039 completed these acceptance checks and the local package qualification. The signed
+`v0.3.0` tag, hosted release, and consumer migrations remain separate follow-up work.
+
+## Exclusions
+
+- Production Adapter code, ORM mappings, schema/migration, queue/job framework, event sourcing, provider-specific
+  APIs, mail/HTTP templates, consumer framework composition, Agent OS implementation, and exactly-once guarantees.
+
+## Child Tasks
+
+| Order | TASK ID | Title | Status |
+| --- | --- | --- | --- |
+| 37 | [TASK-00037](../tasks/00037-TASK.md) | Model recoverable credential-delivery state and repository contracts | done |
+| 38 | [TASK-00038](../tasks/00038-TASK.md) | Orchestrate provider-neutral credential delivery outside transactions | done |
+| 39 | [TASK-00039](../tasks/00039-TASK.md) | Qualify the v0.3.0 credential-delivery contract and migration | done |

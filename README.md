@@ -3,6 +3,10 @@
 Framework-neutral identity, credential, session, authorization, and account-lifecycle contracts for Fight
 applications.
 
+The `v0.3.0` contract introduces recoverable, provider-neutral credential delivery for invitation, password
+reset, and email change. Consumers upgrading from `v0.2.x` must follow the
+[credential-delivery migration guide](docs/credential-delivery-v0.3-migration.md).
+
 The `0.2.0` release adds an opt-in, non-autoloaded OpenAPI component catalog
 for consumer-owned documents. See [OpenAPI composition](docs/openapi-composition.md).
 
@@ -23,8 +27,44 @@ Production code follows `Domain <- Application`:
   configuration, mail, queues, realtime, hosting, and composition-root adapters. This package has no PHP
   production Adapter layer.
 
-See [CONTEXT.md](CONTEXT.md) for the accepted vocabulary and [planning/specs/00001-PRD.md](planning/specs/00001-PRD.md)
+See [CONTEXT.md](CONTEXT.md) for the accepted vocabulary and [TICKET-00001](planning/tickets/00001-TICKET.md)
 for the repository-local behavioral and security authority.
+
+### Transaction composition
+
+Transaction-aware Application handlers and security services require Fight Common's supported
+`TransactionalUnitOfWork` contract. Consumer composition roots must supply an implementation whose
+`commitTransactional()` callback encloses the complete package-owned atomic operation and whose `isClosed()` reports
+whether that transaction capability remains available. The deprecated `UnitOfWork` contract and its standalone
+`commit()` method are not supported by AccessControl constructors.
+
+This constructor type change is intentionally breaking while AccessControl remains pre-`1.0.0`: consumers upgrading
+from `0.2.x` must replace `UnitOfWork` bindings with `TransactionalUnitOfWork` bindings. No compatibility adapter is
+supplied.
+
+### Recoverable credential delivery composition
+
+See the [v0.3.0 credential-delivery migration guide](docs/credential-delivery-v0.3-migration.md) for replaced public
+contracts, persistence migration, worker composition, and executable qualification evidence.
+
+Invitation, password-reset, and email-change credentials use package-owned recoverable delivery state. Consumers
+supply the three purpose-specific cipher capabilities, one provider-neutral `CredentialDeliveryProvider`, the Domain
+repositories on the shared transactional connection, and worker scheduling. The package supplies direct
+`DeliverUserInvitationHandler`, `DeliverPasswordResetHandler`, and `DeliverEmailChangeHandler` registrations plus
+`FindDueCredentialDeliveriesHandler` and `FindCredentialDeliveryStatusHandler` query registrations.
+
+An originating handler atomically commits its grant and encrypted delivery generation before publishing its existing
+success event. A delivery handler then commits an exact claim, decrypts and invokes the provider only after that
+transaction closes, and records the typed delivered, retryable, or permanent outcome in a separate expected-state
+transaction. Provider adapters receive a short-lived `CredentialDeliveryInvocation`; its immutable delivery ID is the
+idempotency identity. They must return `CredentialDeliveryOutcome` and must not embed vendor diagnostics in package
+state. Unexpected provider throwables become the package's secret-free retryable classification.
+
+Consumers may use post-commit event subscribers for immediate dispatch, but must schedule
+`FindDueCredentialDeliveries` for restart recovery and dispatch the matching direct command using the returned
+purpose, User ID, and delivery ID. Pending work, due retries, and expired leases are returned in deterministic order.
+A crash after provider acceptance and before outcome commit can repeat the provider call with the same identity, so
+this contract is at-least-once and does not claim exactly-once delivery.
 
 ### Current principal composition
 

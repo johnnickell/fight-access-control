@@ -4,7 +4,7 @@
 
 | Epic | Target | Current outcome |
 | --- | --- | --- |
-No epics are currently in progress.
+| [EPIC-00006](epics/00006-EPIC.md) | `v0.3.0` | Credential-delivery contract and migration qualified; release integration and publication remain. |
 
 ## Route to 1.0.0
 
@@ -21,6 +21,7 @@ No epics are currently in progress.
 
 | Epic | Target | Outcome |
 | --- | --- | --- |
+| [EPIC-00007](epics/00007-EPIC.md) | pre-1.0 | Replaced deprecated Fight Common transaction dependencies with the supported `TransactionalUnitOfWork` contract while preserving established behavior. |
 | [EPIC-00004](epics/00004-EPIC.md) | `v0.2.0` | Delivered the local consumer-composable OpenAPI schema review candidate; tag, release, and publication remain separate effects. |
 | [EPIC-00003](epics/00003-EPIC.md) | 0.x | Delivered the final unified User/Agent `SecurityContext` and retry-safe Agent Permission, User Role, and custom-Role Permission changes. |
 | [EPIC-00001](epics/00001-EPIC.md) | 0.x public-source incubation | Delivered the shared identity, credential, session, authorization, and account-lifecycle package slices; a separate stability decision remains required before release. |
@@ -30,4 +31,19 @@ No epics are currently in progress.
 
 | Version | Date | Outcome |
 | --- | --- | --- |
+| `v0.2.0` | 2026-09-13 | Published consumer-composable OpenAPI schema components. |
 | `v0.1.0` | 2026-09-10 | First public package milestone: framework-neutral User and Agent identity, authentication, session, Role, Permission, managed-policy, and current-authority behavior with exact coverage. |
+
+## Record Status Projection
+
+<!-- generated:epic-status:start -->
+| EPIC | Target | Status | Tickets | Tasks |
+| --- | --- | --- | --- | --- |
+| [EPIC-00001](epics/00001-EPIC.md) | 0.x public-source incubation | done | 1 | 18 |
+| [EPIC-00002](epics/00002-EPIC.md) | 0.x | done | 1 | 7 |
+| [EPIC-00003](epics/00003-EPIC.md) | 0.x | done | 2 | 6 |
+| [EPIC-00004](epics/00004-EPIC.md) | v0.2.0 | done | 1 | 1 |
+| [EPIC-00005](epics/00005-EPIC.md) | 0.x | needs-info | 1 | 1 |
+| [EPIC-00006](epics/00006-EPIC.md) | v0.3.0 | in-progress | 1 | 3 |
+| [EPIC-00007](epics/00007-EPIC.md) | pre-1.0 | done | 1 | 1 |
+<!-- generated:epic-status:end -->

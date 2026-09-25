@@ -19,7 +19,7 @@ use Fight\AccessControl\Domain\AccessControl\Permission\Permission;
 use Fight\AccessControl\Domain\AccessControl\Permission\PermissionId;
 use Fight\AccessControl\Domain\AccessControl\Permission\PermissionRepository;
 use Fight\AccessControl\Domain\AccessControl\User\UserId;
-use Fight\Common\Application\Repository\UnitOfWork;
+use Fight\Common\Application\Repository\TransactionalUnitOfWork;
 
 /**
  * Class AgentPermissionAssignmentCoordinator
@@ -40,7 +40,7 @@ final readonly class AgentPermissionAssignmentCoordinator
         private PermissionRepository $permissionRepository,
         private AgentPermissionAdministrationAuthorization $agentPermissionAdministrationAuthorization,
         private Clock $clock,
-        private UnitOfWork $unitOfWork
+        private TransactionalUnitOfWork $unitOfWork
     ) {
     }
 

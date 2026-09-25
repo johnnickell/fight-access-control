@@ -1,151 +1,96 @@
 # Planning Conventions
 
-This document defines the canonical planning structure for Fight project repositories.
-Use these conventions consistently across all projects.
+This repository's durable planning model is **EPIC → TICKET → TASK**. It is the local authority for planning
+structure, lifecycle, generated views, Wayfinder continuity, and the explicit archive operation.
 
 ## Directory Structure
 
-```
-planning/
-  adr/              Architecture Decision Records
-  agents/           Domain-specific agent instructions
-  epics/            High-level work destinations
-  specs/            Product Requirements Documents (PRDs)
-  tickets/          Executable work items
-  wayfinder/        Pre-implementation investigation maps and decision tickets
-  ROADMAP.md        Strategic progress record
-  README.md         Directory guide
-```
+    planning/
+      adr/              Architecture Decision Records
+      agents/           Focused project guidance
+      epics/            Business destinations
+      tickets/          Related use cases and requirements
+      tasks/            Executable vertical slices and generated Board/index
+      wayfinder/        Pre-implementation maps, decision tickets, and research
+      ROADMAP.md        Strategy plus generated EPIC status projection
+      MIGRATION.md      Historic PRD/Ticket identity map
 
-## File Naming
+## Records and naming
 
-| Artifact | Prefix | Example |
-|----------|--------|---------|
-| Epic | `NNNNN-EPIC.md` | `00001-EPIC.md` |
-| PRD | `NNNNN-PRD.md` | `00003-PRD.md` |
-| Ticket | `NNNNN-TICKET.md` | `00034-TICKET.md` |
-| ADR | `NNNN-short-description.md` | `0005-layer-dependency-matrix.md` |
-| Wayfinder Map | `descriptive-name-map.md` | `fight-common-release-coordination-map.md` |
-| Wayfinder Ticket | `WF-NNN-short-description.md` | `WF-001-release-destination-and-boundaries.md` |
-| Wayfinder Research | `WF-NNN-description-research.md` | `WF-014-contract-audit-research.md` |
+| Level | Identifier | File | Parent |
+| --- | --- | --- | --- |
+| EPIC | EPIC-NNNNN | planning/epics/NNNNN-EPIC.md | — |
+| TICKET | TICKET-NNNNN | planning/tickets/NNNNN-TICKET.md | epic: EPIC-NNNNN |
+| TASK | TASK-NNNNN | planning/tasks/NNNNN-TASK.md | ticket: TICKET-NNNNN, or standalone bug/chore |
+| Wayfinder decision | WF-NNN | planning/wayfinder/tickets/WF-NNN-*.md | its map |
 
-Identifiers are independent five-digit sequences. Ticket identifiers are displayed as `T-NNNNN`.
+Each level owns an independent five-digit sequence. Preserve numbers, gaps, terminal records, and legacy_id
+metadata. Historic PRD-NNNNN and T-NNNNN names are provenance only; see [MIGRATION.md](MIGRATION.md).
 
-Every planning directory keeps its copy-ready template beside its live artifacts. Templates begin with `_`, are
-not planning records, and are never assigned an identifier. Copy a template before authoring a new artifact; do
-not alter a template to record a live decision.
+Every record directory keeps a copy-ready template beginning with _. Templates are not records and never receive
+an identifier.
 
-## Ticket Frontmatter
+## TASK frontmatter and lifecycle
 
-Every ticket file begins with YAML frontmatter:
+    ---
+    id: TASK-00034
+    ticket: TICKET-00011
+    order: 34
+    title: Brief executable slice
+    status: ready-for-agent
+    blocked_by: TASK-00033
+    ---
 
-```yaml
----
-id: T-00034
-prd: PRD-00011
-title: Brief description of the work
-status: ready-for-agent
-blocked_by: T-00033
----
-```
+Valid statuses are needs-triage, needs-info, ready-for-agent, ready-for-human, in-progress, done, and wontfix.
+Blocking is derived from unfinished blocked_by TASK edges, not stored as a status.
 
-## Ticket Status Lifecycle
+TASKs normally declare a live or archived `ticket: TICKET-NNNNN` parent. A standalone repair that does not belong
+to an existing Ticket leaves `ticket` empty and declares `kind: bug` or `kind: chore`; it retains the normal TASK
+order, lifecycle, acceptance, verification, blocker, and optional PR metadata. Do not invent a Ticket or EPIC
+parent for this exception.
 
-| Status | Meaning |
-|--------|---------|
-| `needs-triage` | Not yet classified |
-| `needs-info` | Blocked on a decision or missing evidence |
-| `ready-for-agent` | Decision-complete and executable when dependencies are done |
-| `ready-for-human` | Requires human judgment or an external action |
-| `in-progress` | Actively being changed |
-| `done` | Acceptance criteria and verification are complete |
-| `wontfix` | Intentionally closed without implementation |
+## Generated planning views
 
-Do not store `blocked` as a status; derive it from unfinished `blocked_by` edges.
+Task frontmatter is canonical. planning/tasks/README.md, planning/tasks/BOARD.md, EPIC/TICKET child lists, and the
+Roadmap record-status projection are deterministic views. After a planning-record edit, run:
 
-## BOARD.md
+    ./bin/planning-check --write
+    ./bin/planning-check
 
-`planning/tickets/BOARD.md` is the canonical execution frontier. It must be structured as:
+The write form regenerates views; the read-only form validates IDs, parents, dependencies and cycles, local links,
+ignored run space, and view freshness. Do not hand-edit generated rows.
 
-- **"What's Next?" Contract** — defines what `/ask-matt` or an unqualified "What's next?" returns
-- **Now** — the current human decision requiring judgment
-- **Ready Frontier** — rank-ordered tickets with no unfinished blockers
-- **Waiting** — `ready-for-agent` tickets with unfinished `blocked_by` edges
-- **Needs Info** — tickets waiting on decision authority
-- **Recently Closed / Done** — terminal tickets with outcomes
+The Board has the contract used by /ask-matt: surface a current human decision first and the active TASK when one
+exists; otherwise surface the active TASK, first executable ready TASK, first needs-info TASK, first needs-triage
+TASK, then the empty-portfolio fallback. Needs-info and needs-triage TASKs are not executable. It separates In
+Progress, Ready Frontier, Waiting, Needs Info, Human Action, Triage, and Recently Done records.
 
-## ROADMAP.md
+## Wayfinder
 
-`planning/ROADMAP.md` records strategic progress with three sections:
+Wayfinder maps document uncertainty before implementation. They link decision tickets under
+planning/wayfinder/tickets/, contain one authored frontier, and produce an EPIC/TICKET/TASK handoff when closed.
+Wayfinder decision tickets are planning records, not executable TASKs.
 
-- **In progress** — a table of active epics with target version, status, and current outcome
-- **Route to `<version>`** — numbered narrative steps describing the path to the next release
-- **Completed / Released** — terminal epics and released versions
+## Archive operation — explicit command only
 
-## Wayfinder Convention
+Archiving is deliberate maintenance, never a completion side effect. Only archive on an explicit request. First
+review the dry run, then use --apply only after the proposed moves are correct:
 
-Wayfinder maps are planning-only investigation documents for efforts whose implementation route
-is not clear enough for an epic or PRD yet. Each map:
+| Request | Command | Destination |
+| --- | --- | --- |
+| TASKs | ./bin/archive-planning tasks TASK-00001 … [--apply] | planning/tasks/archive/ |
+| TICKETs | ./bin/archive-planning tickets TICKET-00001 … [--apply] | planning/tickets/archive/ |
+| EPICs | ./bin/archive-planning epics EPIC-00001 … [--apply] | planning/epics/archive/ |
+| Wayfinder map | ./bin/archive-planning wayfinder map-name [--apply] | planning/wayfinder/**/archive/ |
 
-- Has a `Label: wayfinder:map` header
-- Defines a clear destination
-- Links to decision tickets (WF-NNN) that produce design decisions
-- Has a `Frontier` section showing the next takeable ticket
-- Produces an implementation handoff (epic, PRDs, and T- tickets) when complete
+The tool fails closed unless selected records are terminal: a TICKET also requires terminal child TASKs, an EPIC also
+requires terminal child TICKETs and TASKs, and a Wayfinder map requires closed decisions, an empty frontier, and an
+implementation handoff. It repairs local Markdown links when applying. After an applied archive, regenerate and
+validate planning views before committing the move.
 
-Wayfinder tickets (WF-NNN) document design decisions. Research files capture investigation output.
-Wayfinder files are never executable implementation tickets.
+## Delivery hygiene
 
-### Archive Operation — Explicit Command Only
-
-Archiving is a deliberate repository-maintenance operation, never a completion side effect. Run it only when
-explicitly asked to archive tickets, specs, epics, a named Wayfinder map, or a named set of those artifacts.
-Use `./bin/archive-planning` with a dry run first and `--apply` only after its proposed moves are correct.
-The command moves records and rewrites local Markdown links throughout live planning and archive directories;
-never move files by hand.
-
-| Request | Command shape | Destination |
-|---------|---------------|-------------|
-| archive tickets | `./bin/archive-planning tickets T-00001 … [--apply]` | `planning/tickets/archive/` |
-| archive specs | `./bin/archive-planning specs PRD-00001 … [--apply]` | `planning/specs/archive/` |
-| archive epics | `./bin/archive-planning epics EPIC-00001 … [--apply]` | `planning/epics/archive/` |
-| archive a Wayfinder map | `./bin/archive-planning wayfinder map-name [--apply]` | map, tickets, and research under `planning/wayfinder/**/archive/` |
-
-The operation fails closed unless every requested artifact is eligible:
-
-- a ticket is terminal (`done` or `wontfix`);
-- a PRD is terminal and all of its tickets are terminal;
-- an epic is terminal and all of its PRDs are terminal; and
-- a Wayfinder map is `Closed`, all of its linked decision tickets are `Closed`, its frontier is empty, and its
-  resolution links to the resulting epic, PRD, or implementation ticket handoff.
-
-After an applied archive, run `./bin/planning-check`, inspect the rewritten links, refresh the relevant README
-index and Board/ROADMAP projections, and commit the move plus reference repair together. Archives remain
-addressable planning records; never renumber, flatten, or replace them with prose summaries.
-
-## Epic Convention
-
-Each epic file has YAML frontmatter with `id`, `title`, `status`, and `target`; lists constituent PRDs; and has
-a `Progress` section summarizing completed work.
-
-## PRD Convention
-
-PRDs describe coherent product requirements. A PRD README tracks all PRDs with their status.
-
-## Branch and Workflow Convention
-
-- Branches follow `feature/<description>` from `develop`
-- Never commit directly to `develop` or `main`
-- Coordinate-build scratch lives in gitignored `.runs/`, never in `planning/`
-- An approved disposable linked worktree lives at `.runs/<YYYY-MM-DD>-<slug>/worktree/`; cleanup remains a
-  separate authorization
-
-## Pre-PR Synchronization Checklist
-
-Before creating a pull request for any feature or bug fix:
-
-1. Update ticket status and verified acceptance criteria.
-2. Update `BOARD.md` and recalculate the frontier.
-3. Update the parent PRD, epic progress, and `ROADMAP.md` when affected.
-4. Run `./bin/planning-check` and verify `blocked_by` edges.
-5. Refresh Wayfinder continuity when a map frontier or handoff changed.
+- Branch feature work from develop; never commit directly to develop or main.
+- Keep run coordination in ignored .runs/; preserve it until separate cleanup authorization.
+- Before a feature PR, update the owning TASK, generated views, parent TICKET/EPIC progress, Roadmap if strategic
+  progress changed, and verify no downstream blocked_by edge remains unfinished.

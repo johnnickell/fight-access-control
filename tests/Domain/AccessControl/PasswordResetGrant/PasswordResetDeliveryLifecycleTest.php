@@ -27,12 +27,11 @@ final class PasswordResetDeliveryLifecycleTest extends TestCase
         self::assertSame('alice@example.test', $delivery->getEmail()->canonical());
         self::assertSame('2026-08-20T13:00:00+00:00', $delivery->getExpiresAt()->format(DATE_ATOM));
 
-        $confirmed = $delivery->confirm();
+        $confirmed = $delivery->claim()->confirm();
 
         self::assertFalse($confirmed->isRecoverable());
-        self::assertNull($confirmed->getCiphertext());
+        self::assertNull($confirmed->getEncryptedMaterial());
         self::assertSame($delivery->getId(), $confirmed->getId());
-        self::assertSame($confirmed, $confirmed->confirm());
     }
 
     public function test_that_terminal_expiry_destroys_ciphertext_only_at_or_after_expiry(): void
@@ -48,7 +47,7 @@ final class PasswordResetDeliveryLifecycleTest extends TestCase
         $expired = $delivery->expireAt(new DateTimeImmutable('2026-08-20T13:00:00+00:00'));
 
         self::assertFalse($expired->isRecoverable());
-        self::assertNull($expired->getCiphertext());
+        self::assertNull($expired->getEncryptedMaterial());
         self::assertSame(
             $expired,
             $expired->expireAt(new DateTimeImmutable('2026-08-20T13:00:01+00:00'))
@@ -76,16 +75,9 @@ final class PasswordResetDeliveryLifecycleTest extends TestCase
         $email = EmailAddress::fromString('alice@example.test');
         $expiresAt = new DateTimeImmutable('2026-08-20T13:00:00+00:00');
         $created = ExtensiblePasswordResetDelivery::create($id, $userId, $email, 'ciphertext', $expiresAt);
-        $reconstituted = ExtensiblePasswordResetDelivery::reconstitute(
-            $id,
-            $userId,
-            $email,
-            'ciphertext',
-            $expiresAt
-        );
 
         self::assertInstanceOf(ExtensiblePasswordResetDelivery::class, $created);
-        self::assertInstanceOf(ExtensiblePasswordResetDelivery::class, $reconstituted->confirm());
+        self::assertInstanceOf(ExtensiblePasswordResetDelivery::class, $created->claim()->confirm());
         self::assertInstanceOf(ExtensiblePasswordResetDelivery::class, $created->invalidate());
         self::assertInstanceOf(
             ExtensiblePasswordResetDelivery::class,

@@ -19,7 +19,7 @@ use Fight\AccessControl\Domain\AccessControl\Agent\Event\AgentProvisioningFailed
 use Fight\AccessControl\Domain\AccessControl\Agent\Exception\AgentNameException;
 use Fight\AccessControl\Domain\AccessControl\Audit\AuditEvidence;
 use Fight\AccessControl\Domain\AccessControl\User\UserId;
-use Fight\Common\Application\Repository\UnitOfWork;
+use Fight\Common\Application\Repository\TransactionalUnitOfWork;
 use Fight\Common\Domain\Exception\DomainException;
 use Fight\Common\Domain\Repository\Pagination;
 use Fight\Common\Domain\Repository\ResultSet;
@@ -241,12 +241,8 @@ final class AgentProvisioningServiceTest extends TestCase
             new FixedHmacSharedSecretGenerator('shared-secret'),
             new FixedHmacSharedSecretCipher('encrypted:'),
             new FixedClock(new DateTimeImmutable('2026-08-25T12:00:00+00:00')),
-            new readonly class ($failure) implements UnitOfWork {
+            new readonly class ($failure) implements TransactionalUnitOfWork {
                 public function __construct(private RuntimeException $failure)
-                {
-                }
-
-                public function commit(): void
                 {
                 }
 

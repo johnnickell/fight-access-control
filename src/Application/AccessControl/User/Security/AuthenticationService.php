@@ -45,7 +45,7 @@ use Fight\Common\Application\Auth\Security\PasswordHasher;
 use Fight\Common\Application\Auth\Security\PasswordValidator;
 use Fight\Common\Application\Auth\Security\TokenEncoder;
 use Fight\Common\Application\Messaging\Event\EventDispatcher;
-use Fight\Common\Application\Repository\UnitOfWork;
+use Fight\Common\Application\Repository\TransactionalUnitOfWork;
 use Fight\Common\Domain\Value\Internet\EmailAddress;
 use LogicException;
 use SensitiveParameter;
@@ -68,7 +68,7 @@ final readonly class AuthenticationService
         private ActivationGrantRepository $activationGrantRepository,
         private RefreshSessionRepository $refreshSessionRepository,
         private SessionRevocationService $sessionRevocationService,
-        private UnitOfWork $unitOfWork,
+        private TransactionalUnitOfWork $unitOfWork,
         private Clock $clock,
         private LoginThrottle $loginThrottle,
         private RefreshCredentialGenerator $refreshCredentialGenerator,

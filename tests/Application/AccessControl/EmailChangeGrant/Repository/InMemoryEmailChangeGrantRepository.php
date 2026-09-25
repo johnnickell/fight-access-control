@@ -5,13 +5,16 @@ declare(strict_types=1);
 namespace Fight\Test\AccessControl\Application\AccessControl\EmailChangeGrant\Repository;
 
 use DateTimeImmutable;
+use Fight\AccessControl\Domain\AccessControl\CredentialDelivery\CredentialDeliveryStatus;
+use Fight\AccessControl\Domain\AccessControl\CredentialDelivery\DueCredentialDelivery;
 use Fight\AccessControl\Domain\AccessControl\EmailChangeGrant\EmailChangeDeliveryId;
-use Fight\AccessControl\Domain\AccessControl\EmailChangeGrant\EmailChangeDeliveryStatus;
 use Fight\AccessControl\Domain\AccessControl\EmailChangeGrant\EmailChangeGrant;
+use Fight\AccessControl\Domain\AccessControl\EmailChangeGrant\EmailChangeGrantId;
 use Fight\AccessControl\Domain\AccessControl\EmailChangeGrant\EmailChangeGrantRepository;
 use Fight\AccessControl\Domain\AccessControl\EmailChangeGrant\Exception\EmailChangeGrantException;
 use Fight\AccessControl\Domain\AccessControl\User\UserId;
 use Fight\Test\AccessControl\Application\AccessControl\User\InMemoryUnitOfWork;
+use Throwable;
 
 final class InMemoryEmailChangeGrantRepository implements EmailChangeGrantRepository
 {
@@ -29,16 +32,47 @@ final class InMemoryEmailChangeGrantRepository implements EmailChangeGrantReposi
     ) {
     }
 
+    public function findDue(DateTimeImmutable $at, int $limit): array
+    {
+        if ($limit < 1) {
+            return [];
+        }
+
+        $due = [];
+        foreach ($this->emailChangeGrants as $emailChangeGrant) {
+            $latest = $this->getLatestByUserId($emailChangeGrant->getUserId());
+            $delivery = $emailChangeGrant->getDelivery();
+            if (
+                !$latest instanceof EmailChangeGrant
+                || !$latest->getId()->equals($emailChangeGrant->getId())
+                || !$delivery->isDueAt($at)
+            ) {
+                continue;
+            }
+
+            $due[] = new DueCredentialDelivery(
+                $emailChangeGrant->purpose(),
+                $delivery->getId(),
+                $emailChangeGrant->getUserId(),
+                $delivery->getNextAttemptAt(),
+                $emailChangeGrant->getRevision(),
+                $delivery->getStatus()
+            );
+        }
+
+        usort($due, $this->compareDue(...));
+
+        return array_slice($due, 0, $limit);
+    }
+
     public function add(EmailChangeGrant $emailChangeGrant): bool
     {
         if (
             !$this->addSucceeds
             || $this->getLatestByUserId($emailChangeGrant->getUserId()) instanceof EmailChangeGrant
-            || $emailChangeGrant->getRevision() !== 0
-            || !$emailChangeGrant->isIssued()
-            || $emailChangeGrant->getDelivery()->getStatus() !== EmailChangeDeliveryStatus::PENDING
-            || !$emailChangeGrant->getDelivery()->isRecoverable()
-            || !$emailChangeGrant->getDelivery()->getUserId()->equals($emailChangeGrant->getUserId())
+            || !$this->isPristine($emailChangeGrant)
+            || $this->hasGrantId($emailChangeGrant->getId())
+            || $this->hasDeliveryId($emailChangeGrant->getDelivery()->getId())
             || array_any(
                 $this->emailChangeGrants,
                 static fn(EmailChangeGrant $stored): bool =>
@@ -174,14 +208,18 @@ final class InMemoryEmailChangeGrantRepository implements EmailChangeGrantReposi
             && $left->getDelivery()->getId()->equals($right->getDelivery()->getId());
     }
 
+    private function compareDue(DueCredentialDelivery $left, DueCredentialDelivery $right): int
+    {
+        return [$left->getDueAt()->format('U.u'), $left->getDeliveryId()->toString()] <=> [
+            $right->getDueAt()->format('U.u'),
+            $right->getDeliveryId()->toString()
+        ];
+    }
+
     private function validSuccessor(EmailChangeGrant $predecessor, EmailChangeGrant $successor): bool
     {
-        return $successor->getUserId()->equals($predecessor->getUserId())
-            && $successor->getRevision() === 0
-            && $successor->isIssued()
-            && $successor->getDelivery()->getStatus() === EmailChangeDeliveryStatus::PENDING
-            && $successor->getDelivery()->isRecoverable()
-            && $successor->getDelivery()->getUserId()->equals($successor->getUserId())
+        return $this->isPristine($successor)
+            && $successor->getUserId()->equals($predecessor->getUserId())
             && !array_any(
                 $this->emailChangeGrants,
                 static fn(EmailChangeGrant $stored): bool =>
@@ -196,20 +234,84 @@ final class InMemoryEmailChangeGrantRepository implements EmailChangeGrantReposi
         $before = $predecessor->getDelivery();
         $after = $replacement->getDelivery();
 
-        return match ($before->getStatus()) {
-            EmailChangeDeliveryStatus::PENDING =>
-                $after->getStatus() === EmailChangeDeliveryStatus::CLAIMED
-                && $after->getCiphertext() === $before->getCiphertext(),
-            EmailChangeDeliveryStatus::CLAIMED =>
-                ($after->getStatus() === EmailChangeDeliveryStatus::FAILED
-                    && $after->getCiphertext() === $before->getCiphertext())
-                || ($after->getStatus() === EmailChangeDeliveryStatus::CONFIRMED
-                    && $after->getCiphertext() === null),
-            EmailChangeDeliveryStatus::FAILED =>
-                $after->getStatus() === EmailChangeDeliveryStatus::CLAIMED
-                && $after->getCiphertext() === $before->getCiphertext(),
-            EmailChangeDeliveryStatus::CONFIRMED => false,
-        };
+        try {
+            $expected = match ($after->getStatus()) {
+                CredentialDeliveryStatus::CLAIMED => $predecessor->claimDelivery(
+                    $after->getClaimToken(),
+                    $after->getClaimedAt(),
+                    $after->getLeaseUntil()
+                ),
+                CredentialDeliveryStatus::RETRY_PENDING => $predecessor->failDelivery(
+                    $before->getClaimToken(),
+                    $after->getLastOutcomeAt(),
+                    $after->getLastFailure()
+                ),
+                CredentialDeliveryStatus::PENDING => $predecessor->requestDeliveryRetry(),
+                CredentialDeliveryStatus::DELIVERED => $predecessor->confirmDelivery(
+                    $before->getClaimToken(),
+                    $after->getLastOutcomeAt()
+                ),
+                CredentialDeliveryStatus::PERMANENT_FAILURE => $predecessor->failDeliveryPermanently(
+                    $before->getClaimToken(),
+                    $after->getLastOutcomeAt()
+                ),
+                CredentialDeliveryStatus::EXPIRED => $this->expiredTransition($predecessor, $replacement),
+                CredentialDeliveryStatus::INVALIDATED => null,
+            };
+        } catch (Throwable) {
+            return false;
+        }
+
+        return $expected instanceof EmailChangeGrant && $this->sameState($expected, $replacement);
+    }
+
+    private function expiredTransition(
+        EmailChangeGrant $predecessor,
+        EmailChangeGrant $replacement
+    ): EmailChangeGrant {
+        $before = $predecessor->getDelivery();
+        $after = $replacement->getDelivery();
+        if (
+            $before->getStatus() === CredentialDeliveryStatus::CLAIMED
+            && $after->getLastOutcomeAt() instanceof DateTimeImmutable
+            && $after->getLastFailure() !== null
+        ) {
+            return $predecessor->failDelivery(
+                $before->getClaimToken(),
+                $after->getLastOutcomeAt(),
+                $after->getLastFailure()
+            );
+        }
+
+        return $predecessor->expireDeliveryAt($after->getExpiresAt());
+    }
+
+    private function hasDeliveryId(EmailChangeDeliveryId $emailChangeDeliveryId): bool
+    {
+        return array_any(
+            $this->emailChangeGrants,
+            fn(EmailChangeGrant $emailChangeGrant): bool =>
+                $emailChangeGrant->getDelivery()->getId()->equals($emailChangeDeliveryId)
+        );
+    }
+
+    private function hasGrantId(EmailChangeGrantId $emailChangeGrantId): bool
+    {
+        return array_any(
+            $this->emailChangeGrants,
+            fn(EmailChangeGrant $emailChangeGrant): bool => $emailChangeGrant->getId()->equals($emailChangeGrantId)
+        );
+    }
+
+    private function isPristine(EmailChangeGrant $emailChangeGrant): bool
+    {
+        $delivery = $emailChangeGrant->getDelivery();
+
+        return $emailChangeGrant->getRevision() === 0
+            && $emailChangeGrant->isIssued()
+            && $delivery->isPristine()
+            && $delivery->getUserId()->equals($emailChangeGrant->getUserId())
+            && $delivery->getExpiresAt() == $emailChangeGrant->getExpiresAt();
     }
 
     private function replaceCurrent(EmailChangeGrant $current, EmailChangeGrant $replacement): bool
@@ -240,9 +342,6 @@ final class InMemoryEmailChangeGrantRepository implements EmailChangeGrantReposi
             && $left->getRevokedAt() == $right->getRevokedAt()
             && $left->getExpiredAt() == $right->getExpiredAt()
             && $leftDelivery->getUserId()->equals($rightDelivery->getUserId())
-            && $leftDelivery->getEmail()->canonical() === $rightDelivery->getEmail()->canonical()
-            && $leftDelivery->getCiphertext() === $rightDelivery->getCiphertext()
-            && $leftDelivery->getExpiresAt() == $rightDelivery->getExpiresAt()
-            && $leftDelivery->getStatus() === $rightDelivery->getStatus();
+            && $leftDelivery->sameStateAs($rightDelivery);
     }
 }

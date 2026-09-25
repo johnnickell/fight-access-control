@@ -4,7 +4,7 @@
 
 Fight AccessControl owns framework-neutral identity, credential, session, authorization, and account-lifecycle
 behavior shared by Fight applications. The repository-local behavioral and security authority is
-[PRD-00001](planning/specs/00001-PRD.md).
+[TICKET-00001](planning/tickets/00001-TICKET.md).
 
 ## Vocabulary
 
@@ -12,6 +12,10 @@ behavior shared by Fight applications. The repository-local behavioral and secur
   deleted states.
 - **Grant**: a purpose-bound, hashed, expiring, single-use credential for activation, password reset, or email
   change. Reissue revokes its predecessor.
+- **Recoverable credential delivery**: package-owned activation, password-reset, or email-change work whose encrypted
+  material commits with its grant. Workers discover secret-free due state, commit an exact leased claim, invoke a
+  provider outside every transaction with the stable delivery-generation ID, then commit one typed expected-state
+  outcome. Expired leases may repeat invocation, so the guarantee is at-least-once rather than exactly-once.
 - **Refresh session**: authoritative server-side session state owning credential rotation, revocation, activity,
   lifetime, authentication version, and coarse device information.
 - **Authenticated principal**: an immutable framework-neutral identity and authorization snapshot revalidated
@@ -36,6 +40,10 @@ behavior shared by Fight applications. The repository-local behavioral and secur
 - **Current Agent principal provider**: a consumer-composed, request-scoped module that authenticates one signed
   Agent request and returns its cached immutable Authenticated Agent principal for that request. Authentication,
   authority revalidation, Permission snapshot resolution, safe diagnostics, and request caching form one flow.
+- **Agent-aware MCP tool availability**: an AccessControl-owned, request-scoped decision that maps a Fight Common
+  canonical tool name to static required-Permission metadata and checks it against one current Authenticated Agent
+  principal snapshot. Common receives only available or unavailable; later MCP requests resolve current authority
+  again, and unavailable and unknown tools remain publicly indistinguishable.
 - **Security context**: one request-specific, consumer-selected Authenticated User or Authenticated Agent authority.
   It is constructed with exactly that one authority and provides the common Permission and Role checks used by
   consuming code. Consumers select the authentication path through their framework adapters; the package does not
@@ -86,10 +94,13 @@ when their own invariants are violated. AccessControl keeps narrow Application a
 decision is part of the package-owned use case and cannot be decided correctly by an outer adapter alone.
 Package-owned workflow coordinators are final implementation details marked `@internal`; consumers depend on the
 public commands, services, authenticated principals, and Security context rather than implementing those coordinators.
+Credential-delivery providers receive only one short-lived sensitive invocation after a committed claim and return a
+typed outcome. Consumer schedulers use the package's secret-free due-work/status queries and direct delivery commands;
+they do not copy claim, retry, terminalization, or stale-generation policy.
 
 ## Planning and Completion
 
-Local ticket files under `planning/tickets/` are canonical for implementation scope, status, dependencies,
-acceptance, and evidence. The board ranks ready work. A ticket is executable only under the rules in
+Local TASK files under `planning/tasks/` are canonical for implementation scope, status, dependencies,
+acceptance, and evidence. The Board ranks ready work. A TASK is executable only under the rules in
 `planning/agents/issue-tracker.md`. Run `./bin/planning-check` for planning integrity and `./bin/build` for the
 complete package gate.

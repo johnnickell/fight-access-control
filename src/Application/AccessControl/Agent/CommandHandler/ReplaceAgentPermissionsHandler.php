@@ -12,7 +12,7 @@ use Fight\AccessControl\Domain\AccessControl\Agent\Event\AgentPermissionsReplace
 use Fight\AccessControl\Domain\AccessControl\Permission\PermissionRepository;
 use Fight\Common\Application\Messaging\Command\CommandHandler;
 use Fight\Common\Application\Messaging\Event\EventDispatcher;
-use Fight\Common\Application\Repository\UnitOfWork;
+use Fight\Common\Application\Repository\TransactionalUnitOfWork;
 use Fight\Common\Domain\Messaging\Command\CommandMessage;
 use Fight\Common\Domain\Messaging\Event\CommandFailedEvent;
 use Throwable;
@@ -34,7 +34,7 @@ final readonly class ReplaceAgentPermissionsHandler implements CommandHandler
         private PermissionRepository $permissionRepository,
         private AgentPermissionAdministrationAuthorization $agentPermissionAdministrationAuthorization,
         private Clock $clock,
-        private UnitOfWork $unitOfWork,
+        private TransactionalUnitOfWork $unitOfWork,
         private EventDispatcher $eventDispatcher
     ) {
     }

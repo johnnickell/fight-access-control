@@ -165,7 +165,7 @@ final class RequestEmailChangeHandlerTest extends TestCase
         self::assertSame('email_change', $grants->all()[0]->purpose());
         self::assertSame('2026-08-22T13:00:00+00:00', $grants->all()[0]->getExpiresAt()->format(DATE_ATOM));
         self::assertSame('new@example.test', $grants->all()[0]->getDelivery()->getEmail()->canonical());
-        self::assertSame('ciphertext:change-once', $grants->all()[0]->getDelivery()->getCiphertext());
+        self::assertSame('ciphertext:change-once', $grants->all()[0]->getDelivery()->getEncryptedMaterial()?->reveal());
         self::assertCount(1, $events->events());
         self::assertInstanceOf(EmailChangeRequested::class, $events->events()[0]);
         self::assertSame(0, $authorization->calls());

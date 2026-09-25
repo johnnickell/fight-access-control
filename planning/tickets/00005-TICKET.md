@@ -1,55 +1,83 @@
 ---
-id: T-00005
-prd: PRD-00001
-title: Secure refresh-session rotation
+id: TICKET-00005
+legacy_id: PRD-00005
+epic: EPIC-00004
+title: Composable OpenAPI Schema Components
 status: done
-blocked_by: T-00004
 ---
 
-# Secure refresh-session rotation
+# Composable OpenAPI Schema Components
 
-## Outcome
+## Problem Statement
 
-A caller receives rotation outcomes from an authoritative server-side refresh session: one winner, a bounded
-benign conflict outcome, and family revocation for credential reuse outside that window.
+Fight AccessControl defines portable Domain and Application values, but a consuming project cannot presently merge
+their shapes into its own OpenAPI generation process. Recreating those shapes in every project invites drift and
+does not show a consumer the expected authentication, administrative, collection, creation, or optional JSend
+outputs. Putting documentation attributes in the core layers would violate the framework-neutral package boundary.
+The repository also needs to adopt the released Fight Common PHPCS baseline and complete its public PHPDoc migration
+without letting documentation-only work silently escape the implementation TASK that owns the dependency upgrade.
 
-## Acceptance Criteria
+## Solution
 
-- [x] Refresh sessions own rotation, revocation, activity, idle and absolute lifetime, and authentication version.
-- [x] A successful rotation emits exactly one new credential result; a bounded concurrent conflict emits no credential.
-- [x] Reuse outside the accepted conflict window fails closed by revoking the session family.
-- [x] Remember-me changes only refresh-session persistence and lifetime, never access-token authority or lifetime.
-- [x] Tests cover rotation, race conflict, replay compromise, timeout, and post-revocation behavior.
+Ship non-autoloaded `swagger-php` schema anchors and a bootstrap in the package root `openapi/` directory. Consumers
+install the suggested generator and scan that directory with their own models. Publish stable
+`Fight.AccessControl.*` components for every public Command and Query input, safe Query result, authentication-service
+input and result, typed collection, shared creation result, optional JSend success envelope, and empty success.
 
-## Scope
+The browser authentication response excludes the refresh credential; the portable token-set response includes it
+for explicit body-token or non-browser profiles. Request-only credentials and passwords are `writeOnly` with no
+examples. Consumers retain ownership of routes, parameter placement, status codes, headers, cookies, failures,
+error mapping, security schemes, document roots, and documentation UI.
 
-### Out of Scope
+## Implementation Decisions
 
-No database locking implementation, cookie construction, signing-key adapter, cache adapter, or client refresh
-coordination.
+- Add `zircote/swagger-php ^6.5` under `require-dev` and Composer `suggest`, with no production dependency or
+  production autoload namespace.
+- Keep all OpenAPI imports outside `src/`, in non-autoloaded schema anchors loaded by `openapi/bootstrap.php`.
+- Use canonical `toArray()` field names and snake case; context IDs are UUID strings, timestamps are `date-time`,
+  and enums expose serialized values.
+- Cover all catalogued inputs and safe outputs from WF-006, including exact Fight Common pagination collections.
+- Provide optional typed JSend success envelopes only. A body-bearing empty success has `data: null`; HTTP 204 has
+  no body.
+- Provide `CreatedResource` with `id` for a consumer that returns one created resource identity. A mutation may
+  return an applicable safe resource; deletion uses empty success.
+- Add concise consumer composition guidance and payload examples. This focused guide may inform a later broader
+  documentation-quality push, which does not block `v0.2.0`.
+- Adopt the Fight Common PHPCS baseline and repair the migration's public PHPDoc prose without changing behavior or
+  signatures.
+- Keep ResultSet reconstruction in each query handler as bounded-context view translation. Agent and session
+  mappings add context-specific behavior; a shared abstraction would increase coupling without reducing a material
+  contract risk.
 
-## Verification
+## Testing Decisions
 
-- `./bin/phpunit`
-- `./bin/planning-check`
-- `./bin/build`
+- Add focused tests for the schema-anchor source and bootstrap only where they exercise package behavior; do not
+  create meta-tests that inspect tooling configuration.
+- Run one documented explicit local command that scans package metadata with a disposable consumer fixture and
+  inspect generated JSON for representative package and consumer component keys and required fields.
+- Keep composition generation outside the recurring `./bin/build` gate unless a later review establishes a fast,
+  material contract check.
+- Completion requires `./bin/planning-check` and `./bin/build`, with exact coverage maintained for all `src/`
+  production statements.
 
-## Completion Notes
+## Out of Scope
 
-- `AuthenticationService::refresh()` returns an explicit immutable `ROTATED` or `CONFLICT` result. Only a
-  rotation winner receives a new opaque refresh credential and access JWT; bounded conflicts contain no token
-  material and do not publish failure events.
-- `RefreshSession` owns immutable revision, credential-digest history, monotonic activity, idle and absolute
-  lifetime, authentication version, and revocation. Rotation advances idle activity without extending the
-  absolute deadline, and remember-me never changes access-token claims or its 15-minute lifetime.
-- Revision-based repository compare-and-replace permits one rotation winner and prevents stale rotation from
-  resurrecting concurrent revocation. Revocation retries are bounded and fail closed under persistent
-  contention.
-- Only the immediately preceding credential inside the explicitly configured conflict interval is benign.
-  Older or late used credentials resolve the authoritative family, commit revocation, then raise the same
-  generic terminal failure with redacted context.
-- Tests cover sequential and interleaved rotation races, `C0 → C1 → C2` replay, timeout, authentication-version
-  mismatch, concurrent revocation, retry exhaustion, and post-compromise behavior.
-- Final `./bin/planning-check` passed. Final `./bin/build` passed 124 tests with 765 assertions and exact statement
-  coverage at 724/724; PHPCS, PHPStan, architecture, package-boundary, Rector, documentation, and production
-  autoload checks passed. Independent Standards and Spec reviews both passed.
+- A production OpenAPI dependency, OpenAPI imports in Domain or Application, or a production Adapter layer.
+- Package-owned routes, controllers, middleware, HTTP responses, cookies, security schemes, root OpenAPI document,
+  Swagger UI, hosted documentation site, generated client, or consumer integration suite.
+- Generic JSend fail or error contracts.
+- A broader documentation redesign beyond the focused consumer composition guide.
+
+## Further Notes
+
+This Ticket implements [ADR 0007](../adr/0007-openapi-schema-metadata-distribution.md),
+[ADR 0008](../adr/0008-openapi-payload-contract.md), and the
+[OpenAPI Wayfinder map](../wayfinder/openapi-schema-components-v0-2-0-map.md).
+
+Tasks: TASK-00033. Completed 2026-09-13 as a local review candidate; tagging, release, and publication remain separate effects.
+
+## Child Tasks
+
+| Order | TASK ID | Title | Status |
+| --- | --- | --- | --- |
+| 33 | [TASK-00033](../tasks/00033-TASK.md) | Publish composable OpenAPI schema components for v0.2.0 | done |

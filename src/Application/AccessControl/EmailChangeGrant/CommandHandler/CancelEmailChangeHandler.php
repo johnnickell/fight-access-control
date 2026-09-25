@@ -17,7 +17,7 @@ use Fight\AccessControl\Domain\AccessControl\User\User;
 use Fight\AccessControl\Domain\AccessControl\User\UserRepository;
 use Fight\Common\Application\Messaging\Command\CommandHandler;
 use Fight\Common\Application\Messaging\Event\EventDispatcher;
-use Fight\Common\Application\Repository\UnitOfWork;
+use Fight\Common\Application\Repository\TransactionalUnitOfWork;
 use Fight\Common\Domain\Messaging\Command\CommandMessage;
 use Fight\Common\Domain\Messaging\Event\CommandFailedEvent;
 use Fight\Common\Domain\Value\Internet\EmailAddress;
@@ -41,7 +41,7 @@ final readonly class CancelEmailChangeHandler implements CommandHandler
         private EmailChangeGrantRepository $emailChangeGrantRepository,
         private EmailChangeAdministrationAuthorization $emailChangeAdministrationAuthorization,
         private AuditEvidenceRepository $auditEvidenceRepository,
-        private UnitOfWork $unitOfWork,
+        private TransactionalUnitOfWork $unitOfWork,
         private Clock $clock,
         private EventDispatcher $eventDispatcher
     ) {

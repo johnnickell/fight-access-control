@@ -70,7 +70,7 @@ final class RequestPasswordResetHandlerTest extends TestCase
         self::assertSame($grant, $repository->getById($grant->getId()));
         self::assertSame($grant, $repository->getByDeliveryId($grant->getDelivery()->getId()));
         self::assertSame($user->getId(), $grant->getUserId());
-        self::assertSame('ciphertext:reset-once', $grant->getDelivery()->getCiphertext());
+        self::assertSame('ciphertext:reset-once', $grant->getDelivery()->getEncryptedMaterial()?->reveal());
         self::assertSame('alice@example.test', $grant->getDelivery()->getEmail()->canonical());
         self::assertSame($grant->getExpiresAt(), $grant->getDelivery()->getExpiresAt());
         self::assertSame('user.password_reset_requested', $audit->all()[0]->action());
@@ -105,7 +105,10 @@ final class RequestPasswordResetHandlerTest extends TestCase
         self::assertTrue($repository->all()[0]->isRevoked());
         self::assertFalse($repository->all()[0]->getDelivery()->isRecoverable());
         self::assertTrue($repository->all()[1]->isIssued());
-        self::assertSame('ciphertext:reset-new', $repository->all()[1]->getDelivery()->getCiphertext());
+        self::assertSame(
+            'ciphertext:reset-new',
+            $repository->all()[1]->getDelivery()->getEncryptedMaterial()?->reveal()
+        );
         self::assertFalse($repository->all()[1]->getId()->equals($predecessor->getId()));
         self::assertCount(2, $audit->all());
         self::assertCount(2, $events->events());

@@ -1,22 +1,14 @@
-# Tickets
+# TICKETs
 
-Ticket files are canonical for status, dependencies, acceptance, and verification. `BOARD.md` ranks executable
-work. Terminal ticket sets may move to `archive/` only after their parent PRD closes.
+This generated index is a projection; individual records remain canonical.
 
-## Active Tickets
-
-| Ticket | Parent | Outcome |
+| ID | Title | Status |
 | --- | --- | --- |
-| — | — | No active tickets. |
-
-## Recently Done
-
-| Ticket | Parent | Outcome |
-| --- | --- | --- |
-| [T-00033](00033-TICKET.md) | [PRD-00005](../specs/00005-PRD.md) | Delivered consumer-composable OpenAPI schema metadata, composition proof, and the local `v0.2.0` review candidate. |
-| [T-00032](00032-TICKET.md) | [PRD-00001](../specs/00001-PRD.md) | Prepared the reviewed `v0.1.0` release candidate and reconciled release-facing documentation. |
-| [T-00031](00031-TICKET.md) | [PRD-00004](../specs/00004-PRD.md) | Delivered retry-safe custom-Role Permission mutation with final Permission-reference fencing. |
-| [T-00030](00030-TICKET.md) | [PRD-00004](../specs/00004-PRD.md) | Delivered retry-safe User Role mutation with final Role-reference fencing. |
-| [T-00029](00029-TICKET.md) | [PRD-00004](../specs/00004-PRD.md) | Delivered retry-safe direct Agent Permission mutation. |
-| [T-00028](00028-TICKET.md) | [PRD-00003](../specs/00003-PRD.md) | Published the final `SecurityContext` public boundary. |
-| [T-00027](00027-TICKET.md) | [PRD-00003](../specs/00003-PRD.md) | Resolved complete Agent authority from a signed request. |
+| [TICKET-00001](00001-TICKET.md) | Fight AccessControl Identity and Authentication Lifecycle | done |
+| [TICKET-00002](00002-TICKET.md) | Agent HMAC Authentication and Direct Authority | done |
+| [TICKET-00003](00003-TICKET.md) | Unified Authenticated Authority | done |
+| [TICKET-00004](00004-TICKET.md) | Consistent Authorization Modification | done |
+| [TICKET-00005](00005-TICKET.md) | Composable OpenAPI Schema Components | done |
+| [TICKET-00006](00006-TICKET.md) | Authorize Agent-Protected MCP Tools | needs-info |
+| [TICKET-00007](00007-TICKET.md) | Deliver Credentials Recoverably Outside Transactions | done |
+| [TICKET-00008](00008-TICKET.md) | Use Supported Transactional Unit of Work Contracts | done |
