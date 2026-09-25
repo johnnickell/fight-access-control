@@ -18,7 +18,7 @@ use Fight\AccessControl\Domain\AccessControl\EmailChangeGrant\Exception\EmailCha
 use Fight\AccessControl\Domain\AccessControl\User\User;
 use Fight\AccessControl\Domain\AccessControl\User\UserId;
 use Fight\AccessControl\Domain\AccessControl\User\UserState;
-use Fight\Common\Application\Repository\UnitOfWork;
+use Fight\Common\Application\Repository\TransactionalUnitOfWork;
 use Fight\Common\Domain\Exception\DomainException;
 use Fight\Common\Domain\Messaging\Command\CommandMessage;
 use Fight\Common\Domain\Messaging\Event\CommandFailedEvent;
@@ -273,11 +273,7 @@ final class DeliverEmailChangeHandlerTest extends TestCase
         $repository = new InMemoryEmailChangeGrantRepository();
         self::assertTrue($repository->add($grant));
         $events = new InMemoryEventDispatcher();
-        $unitOfWork = new class implements UnitOfWork {
-            public function commit(): void
-            {
-            }
-
+        $unitOfWork = new class implements TransactionalUnitOfWork {
             public function commitTransactional(callable $operation): mixed
             {
                 $operation();

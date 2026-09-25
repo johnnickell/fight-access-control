@@ -19,7 +19,7 @@ use Fight\AccessControl\Domain\AccessControl\Agent\Event\AgentCredentialRevoked;
 use Fight\AccessControl\Domain\AccessControl\Agent\Event\AgentCredentialRotated;
 use Fight\AccessControl\Domain\AccessControl\Agent\Exception\AgentCredentialException;
 use Fight\AccessControl\Domain\AccessControl\Audit\AuditEvidence;
-use Fight\Common\Application\Repository\UnitOfWork;
+use Fight\Common\Application\Repository\TransactionalUnitOfWork;
 use Fight\Common\Domain\Exception\DomainException;
 use Fight\Common\Domain\Repository\Pagination;
 use Fight\Common\Domain\Repository\ResultSet;
@@ -362,12 +362,8 @@ final class AgentCredentialLifecycleServiceTest extends TestCase
         $commitService = $this->service(
             $commitAgentRepository,
             new InMemoryAuditEvidenceRepository(),
-            new readonly class ($commitFailure) implements UnitOfWork {
+            new readonly class ($commitFailure) implements TransactionalUnitOfWork {
                 public function __construct(private RuntimeException $commitFailure)
-                {
-                }
-
-                public function commit(): void
                 {
                 }
 
@@ -664,7 +660,7 @@ final class AgentCredentialLifecycleServiceTest extends TestCase
     private function service(
         AgentRepository $agentRepository,
         InMemoryAuditEvidenceRepository $auditEvidenceRepository,
-        UnitOfWork $unitOfWork,
+        TransactionalUnitOfWork $unitOfWork,
         InMemoryEventDispatcher $events
     ): AgentCredentialLifecycleService {
         return new AgentCredentialLifecycleService(

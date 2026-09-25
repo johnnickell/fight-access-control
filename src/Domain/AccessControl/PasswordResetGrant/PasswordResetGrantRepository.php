@@ -21,9 +21,10 @@ use Fight\AccessControl\Domain\AccessControl\User\UserId;
  * credential digest, expiry, user, and owned delivery generation. Credential digests remain unique across the user's
  * complete generation history.
  *
- * Implementations participate in the caller's UnitOfWork: writes are staged until commit and are fully rolled back with
- * the surrounding transaction. Successor operations atomically preserve or terminalize the predecessor as specified
- * and insert the successor. Stale delivery callbacks must not mutate or invalidate newer delivery generations.
+ * Implementations participate in the caller's transactional unit of work: writes are staged until commit and are
+ * fully rolled back with the surrounding transaction. Successor operations atomically preserve or terminalize the
+ * predecessor as specified and insert the successor. Stale delivery callbacks must not mutate or invalidate newer
+ * delivery generations.
  */
 interface PasswordResetGrantRepository
 {

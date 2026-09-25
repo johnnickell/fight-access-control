@@ -14,7 +14,7 @@ use Fight\AccessControl\Domain\AccessControl\EmailChangeGrant\Event\EmailChangeD
 use Fight\AccessControl\Domain\AccessControl\EmailChangeGrant\Exception\EmailChangeDeliveryNotRetryableException;
 use Fight\Common\Application\Messaging\Command\CommandHandler;
 use Fight\Common\Application\Messaging\Event\EventDispatcher;
-use Fight\Common\Application\Repository\UnitOfWork;
+use Fight\Common\Application\Repository\TransactionalUnitOfWork;
 use Fight\Common\Domain\Messaging\Command\CommandMessage;
 use Fight\Common\Domain\Messaging\Event\CommandFailedEvent;
 use Throwable;
@@ -34,7 +34,7 @@ final readonly class DeliverEmailChangeHandler implements CommandHandler
     public function __construct(
         private EmailChangeGrantRepository $emailChangeGrantRepository,
         private AuditEvidenceRepository $auditEvidenceRepository,
-        private UnitOfWork $unitOfWork,
+        private TransactionalUnitOfWork $unitOfWork,
         private EmailChangeDeliveryInvoker $emailChangeDeliveryInvoker,
         private EventDispatcher $eventDispatcher
     ) {

@@ -21,10 +21,11 @@ use Fight\AccessControl\Domain\AccessControl\User\UserId;
  * credential digest, expiry, user, and owned delivery generation. Credential digests remain unique across the user's
  * complete generation history.
  *
- * Implementations participate in the caller's UnitOfWork: writes are staged until commit and are fully rolled back with
- * the surrounding transaction. Replacing a predecessor with a successor atomically terminalizes the predecessor and
- * inserts the successor. Stale delivery callbacks and claims must not mutate, invalidate, or invoke ciphertext from a
- * newer generation. The contract fences current work; it does not promise exactly-once transport delivery.
+ * Implementations participate in the caller's transactional unit of work: writes are staged until commit and are
+ * fully rolled back with the surrounding transaction. Replacing a predecessor with a successor atomically terminalizes
+ * the predecessor and inserts the successor. Stale delivery callbacks and claims must not mutate, invalidate, or
+ * invoke ciphertext from a newer generation. The contract fences current work; it does not promise exactly-once
+ * transport delivery.
  */
 interface ActivationGrantRepository
 {

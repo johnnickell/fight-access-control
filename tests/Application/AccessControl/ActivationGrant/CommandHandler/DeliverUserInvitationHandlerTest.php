@@ -14,7 +14,7 @@ use Fight\AccessControl\Domain\AccessControl\ActivationGrant\Event\UserInvitatio
 use Fight\AccessControl\Domain\AccessControl\ActivationGrant\Exception\ActivationDeliveryNotRetryableException;
 use Fight\AccessControl\Domain\AccessControl\CredentialDelivery\CredentialDeliveryStatus;
 use Fight\AccessControl\Domain\AccessControl\User\UserId;
-use Fight\Common\Application\Repository\UnitOfWork;
+use Fight\Common\Application\Repository\TransactionalUnitOfWork;
 use Fight\Common\Domain\Exception\DomainException;
 use Fight\Common\Domain\Messaging\Command\CommandMessage;
 use Fight\Common\Domain\Messaging\Event\CommandFailedEvent;
@@ -149,11 +149,7 @@ final class DeliverUserInvitationHandlerTest extends TestCase
         $repository = new InMemoryActivationGrantRepository();
         self::assertTrue($repository->add($activationGrant));
         $events = new InMemoryEventDispatcher();
-        $unitOfWork = new class implements UnitOfWork {
-            public function commit(): void
-            {
-            }
-
+        $unitOfWork = new class implements TransactionalUnitOfWork {
             public function commitTransactional(callable $operation): mixed
             {
                 $operation();

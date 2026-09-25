@@ -5,7 +5,7 @@ dependencies, acceptance, and verification.
 
 ## What's Next?
 
-First ready Task: [TASK-00040](00040-TASK.md) — Remove deprecated Fight Common contract dependencies.
+First ready Task: [TASK-00038](00038-TASK.md) — Orchestrate provider-neutral credential delivery outside transactions.
 
 ## In Progress
 
@@ -15,13 +15,12 @@ No Tasks are currently in this state.
 
 | Order | TASK ID | Title | Parent TICKET | Status | Blocked by | PR |
 | --- | --- | --- | --- | --- | --- | --- |
-| 40 | [TASK-00040](00040-TASK.md) | Remove deprecated Fight Common contract dependencies | [TICKET-00008](../tickets/00008-TICKET.md) — Use Supported Transactional Unit of Work Contracts | ready-for-agent | — | — |
+| 38 | [TASK-00038](00038-TASK.md) | Orchestrate provider-neutral credential delivery outside transactions | [TICKET-00007](../tickets/00007-TICKET.md) — Deliver Credentials Recoverably Outside Transactions | ready-for-agent | [TASK-00037](00037-TASK.md), [TASK-00040](00040-TASK.md) | — |
 
 ## Waiting
 
 | Order | TASK ID | Title | Parent TICKET | Status | Blocked by | PR |
 | --- | --- | --- | --- | --- | --- | --- |
-| 38 | [TASK-00038](00038-TASK.md) | Orchestrate provider-neutral credential delivery outside transactions | [TICKET-00007](../tickets/00007-TICKET.md) — Deliver Credentials Recoverably Outside Transactions | ready-for-agent | [TASK-00037](00037-TASK.md), [TASK-00040](00040-TASK.md) | — |
 | 39 | [TASK-00039](00039-TASK.md) | Qualify the v0.3.0 credential-delivery contract and migration | [TICKET-00007](../tickets/00007-TICKET.md) — Deliver Credentials Recoverably Outside Transactions | ready-for-agent | [TASK-00038](00038-TASK.md) | — |
 
 ## Needs Info
@@ -77,3 +76,4 @@ No Tasks are currently in this state.
 | 34 | [TASK-00034](00034-TASK.md) | Repair PR #55 planning terminology and standalone-chore support | — (standalone chore) | done | — | https://github.com/johnnickell/fight-access-control/pull/55 |
 | 36 | [TASK-00036](00036-TASK.md) | Keep Board next-action guidance truthful for blocked planning work | — (standalone bug) | done | — | https://github.com/johnnickell/fight-access-control/pull/56 |
 | 37 | [TASK-00037](00037-TASK.md) | Model recoverable credential-delivery state and repository contracts | [TICKET-00007](../tickets/00007-TICKET.md) — Deliver Credentials Recoverably Outside Transactions | done | — | https://github.com/johnnickell/fight-access-control/pull/59 |
+| 40 | [TASK-00040](00040-TASK.md) | Remove deprecated Fight Common contract dependencies | [TICKET-00008](../tickets/00008-TICKET.md) — Use Supported Transactional Unit of Work Contracts | done | — | https://github.com/johnnickell/fight-access-control/pull/61 |

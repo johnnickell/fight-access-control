@@ -19,7 +19,7 @@ use Fight\AccessControl\Domain\AccessControl\User\UserRepository;
 use Fight\AccessControl\Domain\AccessControl\User\UserState;
 use Fight\Common\Application\Messaging\Command\CommandHandler;
 use Fight\Common\Application\Messaging\Event\EventDispatcher;
-use Fight\Common\Application\Repository\UnitOfWork;
+use Fight\Common\Application\Repository\TransactionalUnitOfWork;
 use Fight\Common\Domain\Messaging\Command\CommandMessage;
 use Fight\Common\Domain\Messaging\Event\CommandFailedEvent;
 use LogicException;
@@ -43,7 +43,7 @@ final readonly class RequestPasswordResetHandler implements CommandHandler
         private UserRepository $userRepository,
         private PasswordResetGrantRepository $passwordResetGrantRepository,
         private AuditEvidenceRepository $auditEvidenceRepository,
-        private UnitOfWork $unitOfWork,
+        private TransactionalUnitOfWork $unitOfWork,
         private PasswordResetCredentialGenerator $passwordResetCredentialGenerator,
         private PasswordResetDeliveryCipher $passwordResetDeliveryCipher,
         private Clock $clock,

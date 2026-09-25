@@ -17,7 +17,7 @@ use Fight\AccessControl\Domain\AccessControl\Agent\Event\AgentCredentialRotated;
 use Fight\AccessControl\Domain\AccessControl\Audit\AuditEvidence;
 use Fight\AccessControl\Domain\AccessControl\Audit\AuditEvidenceRepository;
 use Fight\Common\Application\Messaging\Event\EventDispatcher;
-use Fight\Common\Application\Repository\UnitOfWork;
+use Fight\Common\Application\Repository\TransactionalUnitOfWork;
 use LogicException;
 use Throwable;
 
@@ -41,7 +41,7 @@ final readonly class AgentCredentialLifecycleService
         private HmacSharedSecretGenerator $hmacSharedSecretGenerator,
         private HmacSharedSecretCipher $hmacSharedSecretCipher,
         private Clock $clock,
-        private UnitOfWork $unitOfWork,
+        private TransactionalUnitOfWork $unitOfWork,
         private EventDispatcher $eventDispatcher
     ) {
     }

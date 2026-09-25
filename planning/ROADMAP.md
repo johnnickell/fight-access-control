@@ -21,6 +21,7 @@ No epics are currently in progress.
 
 | Epic | Target | Outcome |
 | --- | --- | --- |
+| [EPIC-00007](epics/00007-EPIC.md) | pre-1.0 | Replaced deprecated Fight Common transaction dependencies with the supported `TransactionalUnitOfWork` contract while preserving established behavior. |
 | [EPIC-00004](epics/00004-EPIC.md) | `v0.2.0` | Delivered the local consumer-composable OpenAPI schema review candidate; tag, release, and publication remain separate effects. |
 | [EPIC-00003](epics/00003-EPIC.md) | 0.x | Delivered the final unified User/Agent `SecurityContext` and retry-safe Agent Permission, User Role, and custom-Role Permission changes. |
 | [EPIC-00001](epics/00001-EPIC.md) | 0.x public-source incubation | Delivered the shared identity, credential, session, authorization, and account-lifecycle package slices; a separate stability decision remains required before release. |
@@ -43,5 +44,5 @@ No epics are currently in progress.
 | [EPIC-00004](epics/00004-EPIC.md) | v0.2.0 | done | 1 | 1 |
 | [EPIC-00005](epics/00005-EPIC.md) | 0.x | needs-info | 1 | 1 |
 | [EPIC-00006](epics/00006-EPIC.md) | v0.3.0 | ready-for-agent | 1 | 3 |
-| [EPIC-00007](epics/00007-EPIC.md) | pre-1.0 | ready-for-agent | 1 | 1 |
+| [EPIC-00007](epics/00007-EPIC.md) | pre-1.0 | done | 1 | 1 |
 <!-- generated:epic-status:end -->

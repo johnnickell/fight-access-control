@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- **Breaking (pre-1.0):** Transaction-aware public constructors now require Fight Common's supported
+  `TransactionalUnitOfWork` contract instead of the deprecated `UnitOfWork` contract. Consumers must update their
+  composition bindings; AccessControl does not provide a compatibility bridge or require the legacy standalone
+  `commit()` method. This unreleased entry does not claim release certification, tagging, publication, consumer
+  upgrade, or deployment.
+
 ## [0.2.0] - 2026-09-13
 
 ### Added
