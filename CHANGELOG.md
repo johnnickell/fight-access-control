@@ -25,9 +25,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   composition bindings; AccessControl does not provide a compatibility bridge or require the legacy standalone
   `commit()` method.
 
-This section classifies the `v0.3.0` release candidate. It does not claim release certification, tag creation or
-signing, publication, a consumer upgrade, or deployment.
-
 ## [0.2.0] - 2026-09-13
 
 ### Added
