@@ -43,4 +43,5 @@ No epics are currently in progress.
 | [EPIC-00004](epics/00004-EPIC.md) | v0.2.0 | done | 1 | 1 |
 | [EPIC-00005](epics/00005-EPIC.md) | 0.x | needs-info | 1 | 1 |
 | [EPIC-00006](epics/00006-EPIC.md) | v0.3.0 | ready-for-agent | 1 | 3 |
+| [EPIC-00007](epics/00007-EPIC.md) | pre-1.0 | ready-for-agent | 1 | 1 |
 <!-- generated:epic-status:end -->
