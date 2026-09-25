@@ -114,7 +114,10 @@ final class DeliverEmailChangeHandlerTest extends TestCase
             self::assertSame($expectedStatus, $delivery?->getStatus());
             self::assertSame('user.email_change_delivery.failed', $audit->all()[0]->action());
             self::assertSame([], $events->events());
-            self::assertStringNotContainsString('vendor secret', serialize($delivery));
+            self::assertStringNotContainsString(
+                'vendor secret',
+                print_r($delivery, true).var_export($delivery, true)
+            );
             if ($providerResult instanceof RuntimeException) {
                 self::assertSame(CredentialDeliveryFailure::UNEXPECTED_PROVIDER, $delivery->getLastFailure());
             }

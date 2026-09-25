@@ -112,7 +112,10 @@ final class DeliverPasswordResetHandlerTest extends TestCase
             self::assertSame($expectedStatus, $delivery?->getStatus());
             self::assertSame('user.password_reset_delivery.failed', $audit->all()[0]->action());
             self::assertSame([], $events->events());
-            self::assertStringNotContainsString('private provider detail', serialize($delivery));
+            self::assertStringNotContainsString(
+                'private provider detail',
+                print_r($delivery, true).var_export($delivery, true)
+            );
             if ($providerResult instanceof RuntimeException) {
                 self::assertSame(CredentialDeliveryFailure::UNEXPECTED_PROVIDER, $delivery->getLastFailure());
             }
