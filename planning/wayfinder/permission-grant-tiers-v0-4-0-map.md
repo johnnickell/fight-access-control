@@ -1,7 +1,7 @@
 # Wayfinder Map: Enforce permission grant tiers for v0.4.0
 
 **Label:** `wayfinder:map`
-**Status:** Active
+**Status:** Closed
 
 > This map indexes decisions. Each accepted decision belongs to its linked ticket; the map summarizes the outcome.
 
@@ -13,7 +13,8 @@ reclassification, and states the consumer authorization obligations. The handoff
 the package's current direct Agent Permission path as well as Role and User-role paths.
 
 **Done** = every linked decision is closed, remaining fog is resolved or excluded, and the map links to the resulting
-EPIC, TICKET, and/or implementation TASKs. No implementation or release is authorized by this map.
+EPIC, TICKET, and/or implementation TASKs. The handoff is [Enforce Permission Grant Tiers](../epics/00008-EPIC.md).
+No implementation or release is authorized by this map.
 
 ## Notes
 
@@ -64,7 +65,8 @@ Protected membership ──→ Custom Permission classification ──→ Eligib
 
 ## Frontier
 
-None. All authored decisions are closed. The separate EPIC/TICKET/TASK handoff remains to be planned.
+None. All authored decisions are closed; [Enforce Permission Grant Tiers](../epics/00008-EPIC.md) owns the
+subsequent TICKET/TASK decomposition.
 
 ## Out of scope
 
