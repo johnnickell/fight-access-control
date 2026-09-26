@@ -75,4 +75,4 @@ implementation, package tag, or release is part of this Ticket.
 
 | Order | TASK ID | Title | Status |
 | --- | --- | --- | --- |
-| 45 | [TASK-00045](../tasks/00045-TASK.md) | Reconcile protected managed policy without forbidden membership | in-progress |
+| 45 | [TASK-00045](../tasks/00045-TASK.md) | Reconcile protected managed policy without forbidden membership | done |
