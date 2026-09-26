@@ -18,7 +18,8 @@ all supported command entry points?
   paths; what guarantees the package contracts require from each adapter.
 - Safe failure and audit outcomes: no partial write or success event on denial, redacted failure evidence, and no
   credential/internal-state disclosure through HTTP.
-- Package behavior/conformance matrix plus consumer PostgreSQL, authorization, HTTP, and cross-adapter tests;
+- Package behavior/conformance matrix for custom-Role and direct Agent changes plus consumer PostgreSQL,
+  authorization, HTTP, and cross-adapter tests;
   distinguish package gate from the later tagged release and consumer `./bin/build` adoption gate.
 - Public API/version compatibility and explicit migration requirements before a `v0.4.0` implementation handoff.
 

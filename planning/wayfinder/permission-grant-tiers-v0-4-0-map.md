@@ -37,14 +37,15 @@ EPIC, TICKET, and/or implementation TASKs. No implementation or release is autho
 ## Decisions so far
 
 1. **[Define protected Permission membership and designated Role identity](tickets/WF-011-protected-permission-membership.md) is settled.** A managed `SUPER_ADMIN_ONLY` Permission belongs only to the exact-name managed `ROLE_SUPER_ADMIN` and reaches only a human `User` through that Role. The consumer declares managed Permission names and tiers; the package enforces declared tiers and never grants protected authority to an Agent, custom Role, other managed Role, or direct User assignment.
+2. **[Classify custom Permissions for delegation](tickets/WF-012-custom-permission-delegation.md) is settled.** Every Permission has a non-null tier; a custom Permission starts `ADMIN_SAFE` and cannot become protected. `ADMIN_SAFE` allows controlled Role and direct Agent delegation only after package-invoked consumer authorization. Fight Agent OS has no stored Permissions to migrate, though its schema and adapter require changes.
 
 ## Decisions
 
 | Decision ID | Title | Type | Mode | Status | Depends on |
 |---|---|---|---|---|---|
 | WF-011 | [Define protected Permission membership and designated Role identity](tickets/WF-011-protected-permission-membership.md) | Grilling | HITL | **Closed** | — |
-| WF-012 | [Classify custom Permissions for delegation](tickets/WF-012-custom-permission-delegation.md) | Grilling | HITL | **Open** | WF-011 |
-| WF-013 | [Authorize custom-role Permission changes by target and scope](tickets/WF-013-target-aware-role-administration.md) | Grilling | HITL | **Open** | WF-011, WF-012 |
+| WF-012 | [Classify custom Permissions for delegation](tickets/WF-012-custom-permission-delegation.md) | Grilling | HITL | **Closed** | WF-011 |
+| WF-013 | [Authorize Permission changes by target and scope](tickets/WF-013-target-aware-role-administration.md) | Grilling | HITL | **Open** | WF-011, WF-012 |
 | WF-014 | [Set Super Admin assignment and removal guarantees](tickets/WF-014-super-admin-role-elevation.md) | Grilling | HITL | **Open** | WF-011 |
 | WF-015 | [Detect and remedy historical forbidden authority](tickets/WF-015-forbidden-authority-remediation.md) | Grilling | HITL | **Open** | WF-011 |
 | WF-016 | [Set atomic enforcement and integration proof](tickets/WF-016-atomic-enforcement-and-proof.md) | Grilling | HITL | **Open** | WF-013, WF-014, WF-015 |
@@ -52,17 +53,17 @@ EPIC, TICKET, and/or implementation TASKs. No implementation or release is autho
 ## Blocking relationships
 
 ```text
-Protected membership ──→ Custom Permission classification ──→ Target-aware Role administration ──┐
+Protected membership ──→ Custom Permission classification ──→ Target-aware Permission administration ──┐
          ├──────────────→ Super Admin assignment and removal ──────────────────────────────────────┼─→ Atomic enforcement and proof ──→ Handoff
          └──────────────→ Historical authority remediation ────────────────────────────────────────┘
 ```
 
 ## Frontier
 
-[Classify custom Permissions for delegation](tickets/WF-012-custom-permission-delegation.md) is the next authored
-frontier. [Set Super Admin assignment and removal guarantees](tickets/WF-014-super-admin-role-elevation.md) and
-[Detect and remedy historical forbidden authority](tickets/WF-015-forbidden-authority-remediation.md) are also
-unblocked after WF-011; they remain separate sessions.
+[Authorize Permission changes by target and scope](tickets/WF-013-target-aware-role-administration.md)
+is the next authored frontier. [Set Super Admin assignment and removal guarantees](tickets/WF-014-super-admin-role-elevation.md)
+and [Detect and remedy historical forbidden authority](tickets/WF-015-forbidden-authority-remediation.md) are also
+unblocked; they remain separate sessions.
 
 ## Not yet specified (fog)
 

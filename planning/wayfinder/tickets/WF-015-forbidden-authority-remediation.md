@@ -12,6 +12,10 @@
 How should managed reconciliation and a guarded migration detect, prevent, and remedy protected Permission
 memberships already stored outside the designated Role?
 
+Fight Agent OS is the first implementing consumer and, per John on 2026-09-25, has no stored Permissions yet. This
+ticket still decides how the package detects and handles forbidden or malformed authority in future consumers,
+reclassification, and dirty fixtures; it must not assume a live Agent OS grant inventory.
+
 ## Must decide
 
 - Reject malformed managed definitions before any authority changes, including protected membership in an ordinary

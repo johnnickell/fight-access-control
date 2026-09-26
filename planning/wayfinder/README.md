@@ -6,7 +6,7 @@ none is available, `/ask-matt` should offer `/wayfinder` to chart a new feature.
 
 | Map | Status | Frontier | Handoff |
 |---|---|---|---|
-| [Enforce permission grant tiers for v0.4.0](permission-grant-tiers-v0-4-0-map.md) | Active | [Custom Permission delegation](tickets/WF-012-custom-permission-delegation.md) | — |
+| [Enforce permission grant tiers for v0.4.0](permission-grant-tiers-v0-4-0-map.md) | Active | [Target-aware Permission administration](tickets/WF-013-target-aware-role-administration.md) | — |
 | [Agent-aware MCP authorization and self-service profile tools](agent-aware-mcp-authorization-map.md) | Active | Self-service profile contract (not yet opened) | [EPIC-00005](../epics/00005-EPIC.md) |
 | [Recoverable credential delivery](recoverable-credential-delivery-map.md) | Closed | — | [TASK-00037](../tasks/00037-TASK.md) |
 | [OpenAPI schema components for v0.2.0](openapi-schema-components-v0-2-0-map.md) | Closed | — | [TASK-00033](../tasks/00033-TASK.md) |

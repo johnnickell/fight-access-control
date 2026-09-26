@@ -1,4 +1,4 @@
-# Authorize custom-role Permission changes by target and scope
+# Authorize Permission changes by target and scope
 
 **Labels:** `wayfinder:grilling`
 **Mode:** HITL
@@ -9,29 +9,32 @@
 
 ## Question
 
-What target-aware authority must a caller prove before granting or revoking an eligible Permission on a custom Role,
+What target-aware authority must a caller prove before changing an eligible Permission on a custom Role or Agent,
 and what must fail closed until scoped administration exists?
 
 ## Must decide
 
 - Grant and revoke policy for actor, target Role, target Permission, action, and eventual scope; distinguish
   `ADMIN_SAFE` eligibility from authority to administer a specific target.
+- Direct Agent grant, revoke, and complete-set replacement policy for actor, target Agent, every target Permission,
+  action, and eventual scope. A replacement set must not smuggle a forbidden Permission or bypass per-target checks.
 - Whether removal of an existing forbidden membership is allowed as a guarded remediation action even though adding
   it is forbidden, and how ordinary revocation avoids an actor-only universal boolean.
 - How to prevent self-elevation, indirect grant of `MANAGE_ROLE_PERMISSIONS`, managed-Role mutation, and bypass by
-  direct command-bus or alternate adapter use.
+  direct command-bus or alternate adapter use across both Role and Agent commands.
 - What installation-wide behavior is permitted now and what scoped Workspace/Repository behavior waits for an
   explicit authoritative scope model.
 
 ## Required evidence
 
-- Inspect custom-Role handlers, authorization ports, actor identity/source, role/permission repositories, and
-  consumer authorization adapters. Define success, denial, no-op, missing authority, and invalid-scope examples.
+- Inspect custom-Role and direct Agent handlers, authorization ports, actor identity/source, Role/Agent/Permission
+  repositories, and consumer authorization adapters. Define success, denial, no-op, missing authority, and
+  invalid-scope examples for single changes and complete-set replacement.
 
 ## Resolution boundary
 
-Set package and consumer authorization responsibilities for custom-Role Permission changes. User-role elevation is
-WF-014; transaction mechanics and proof are WF-016.
+Set package and consumer authorization responsibilities for custom-Role and direct Agent Permission changes.
+User-role elevation is WF-014; transaction mechanics and proof are WF-016.
 
 ## Resolution
 
