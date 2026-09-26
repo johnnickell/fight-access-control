@@ -5,7 +5,9 @@ declare(strict_types=1);
 namespace Fight\Test\AccessControl\Application\AccessControl\User\Repository;
 
 use Fight\AccessControl\Domain\AccessControl\Agent\Agent;
+use Fight\AccessControl\Domain\AccessControl\Permission\Permission;
 use Fight\AccessControl\Domain\AccessControl\Permission\PermissionId;
+use Fight\AccessControl\Domain\AccessControl\Permission\PermissionTier;
 use Fight\AccessControl\Domain\AccessControl\Role\Role;
 use Fight\AccessControl\Domain\AccessControl\Role\RoleId;
 use Fight\AccessControl\Domain\AccessControl\User\User;
@@ -16,7 +18,7 @@ use Fight\Test\AccessControl\Application\AccessControl\User\InMemoryUnitOfWork;
  */
 final class InMemoryAuthorizationReferenceState
 {
-    /** @var array<string, true> */
+    /** @var array<string, Permission> */
     private array $permissions = [];
 
     /** @var array<string, Agent> */
@@ -34,9 +36,9 @@ final class InMemoryAuthorizationReferenceState
     {
     }
 
-    public function addPermission(PermissionId $id): void
+    public function addPermission(Permission $permission): void
     {
-        $this->permissions[$id->toString()] = true;
+        $this->permissions[$permission->getId()->toString()] = $permission;
     }
 
     public function removePermission(PermissionId $id): void
@@ -48,6 +50,19 @@ final class InMemoryAuthorizationReferenceState
     public function permissionsAreAuthoritative(array $ids): bool
     {
         return array_all($ids, fn(PermissionId $id): bool => isset($this->permissions[$id->toString()]));
+    }
+
+    public function permissionIsEligible(Permission $expected): bool
+    {
+        $current = $this->permissions[$expected->getId()->toString()] ?? null;
+
+        return $current === $expected && $current->getTier() === PermissionTier::ADMIN_SAFE;
+    }
+
+    /** @param list<PermissionId> $ids */
+    public function permissionsAreEligible(array $ids): bool
+    {
+        return array_all($ids, $this->permissionIsAdminSafe(...));
     }
 
     public function addRole(Role $role): void
@@ -112,5 +127,10 @@ final class InMemoryAuthorizationReferenceState
     public function isReferenceFenceHeld(): bool
     {
         return $this->referenceFenceHeld;
+    }
+
+    private function permissionIsAdminSafe(PermissionId $id): bool
+    {
+        return ($this->permissions[$id->toString()] ?? null)?->getTier() === PermissionTier::ADMIN_SAFE;
     }
 }

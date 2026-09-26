@@ -9,6 +9,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- **Breaking (pre-1.0):** Custom-Role grant/revoke handlers no longer accept the actor-only
+  `RoleAdministrationAuthorization` port. Granting requires an authoritative `ADMIN_SAFE` Permission even on a
+  no-op; Role repository adapters must fence Permission tier authority through custom-Role writes. See the
+  [v0.4.0 migration guide](docs/permission-tier-v0.4-migration.md).
 - **Breaking (pre-1.0):** Custom-Role create/rename/remove and User Role assign/remove handlers no longer accept
   actor-only authorization ports. The application builder must protect every entry point, including no-ops; command
   actor IDs remain provenance, not credentials. `ROLE_SUPER_ADMIN` is reserved for a uniquely authoritative managed

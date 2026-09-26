@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Fight\AccessControl\Domain\AccessControl\Role;
 
 use Exception;
+use Fight\AccessControl\Domain\AccessControl\Permission\Permission;
 use Fight\AccessControl\Domain\AccessControl\Permission\PermissionId;
 use Fight\Common\Domain\Repository\Pagination;
 use Fight\Common\Domain\Repository\ResultSet;
@@ -20,8 +21,8 @@ interface RoleRepository
      * Adds a role
      *
      * Implementations atomically reject duplicate Role IDs and canonical names as well as membership whose
-     * Permission is no longer authoritative. Validation and mutation occur under adapter-owned fences held through
-     * the enclosing Unit of Work.
+     * Permission is no longer authoritative. Custom Role membership must reference only current ADMIN_SAFE
+     * Permissions. Validation and mutation occur under adapter-owned fences held through the enclosing Unit of Work.
      *
      * @throws Exception When an error occurs
      */
@@ -91,10 +92,23 @@ interface RoleRepository
     public function validatePermissionReference(PermissionId $permissionId): bool;
 
     /**
+     * Validates an authoritative ADMIN_SAFE Permission for a custom-Role grant
+     *
+     * Returns false if the definition changed or is not eligible. The adapter must fence the authoritative
+     * Permission tier and identity through transaction completion, including no-op grants, sharing that fence with
+     * managed Permission tier changes. The supplied Permission is an expected snapshot, not the source of authority.
+     *
+     * @throws Exception When an error occurs
+     */
+    public function validateCustomPermissionGrant(Permission $expected): bool;
+
+    /**
      * Replaces the expected role when it remains current and all replacement Permissions remain authoritative
      *
-     * Validation and mutation occur under adapter-owned permission-reference and unique-name fences held through
-     * the enclosing Unit of Work and shared with PermissionRepository::remove().
+     * Validation and mutation occur under adapter-owned permission-reference, tier and unique-name fences held
+     * through the enclosing Unit of Work and shared with PermissionRepository::remove() and managed tier changes.
+     * For custom Roles, every replacement membership must remain an authoritative ADMIN_SAFE Permission; managed
+     * Roles may retain protected membership.
      */
     public function replace(Role $expected, Role $replacement): bool;
 

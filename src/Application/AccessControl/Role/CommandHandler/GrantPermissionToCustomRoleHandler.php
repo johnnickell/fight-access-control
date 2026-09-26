@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace Fight\AccessControl\Application\AccessControl\Role\CommandHandler;
 
-use Fight\AccessControl\Application\AccessControl\Role\Service\RoleAdministrationAuthorization;
 use Fight\AccessControl\Application\AccessControl\Timing\Service\Clock;
 use Fight\AccessControl\Domain\AccessControl\Permission\Permission;
 use Fight\AccessControl\Domain\AccessControl\Permission\PermissionRepository;
+use Fight\AccessControl\Domain\AccessControl\Permission\PermissionTier;
 use Fight\AccessControl\Domain\AccessControl\Role\Command\GrantPermissionToCustomRole;
 use Fight\AccessControl\Domain\AccessControl\Role\Event\CustomRolePermissionGranted;
 use Fight\AccessControl\Domain\AccessControl\Role\Exception\CustomRoleException;
@@ -23,7 +23,7 @@ use Throwable;
 /**
  * Class GrantPermissionToCustomRoleHandler
  *
- * Atomically grants an existing permission to an authorized custom role.
+ * Atomically grants an eligible permission to a custom role.
  */
 final readonly class GrantPermissionToCustomRoleHandler implements CommandHandler
 {
@@ -35,7 +35,6 @@ final readonly class GrantPermissionToCustomRoleHandler implements CommandHandle
     public function __construct(
         private RoleRepository $roleRepository,
         private PermissionRepository $permissionRepository,
-        private RoleAdministrationAuthorization $roleAdministrationAuthorization,
         private Clock $clock,
         private TransactionalUnitOfWork $unitOfWork,
         private EventDispatcher $eventDispatcher
@@ -57,23 +56,29 @@ final readonly class GrantPermissionToCustomRoleHandler implements CommandHandle
         try {
             $event = $this->unitOfWork->commitTransactional(
                 function () use ($command): ?CustomRolePermissionGranted {
-                    $this->roleAdministrationAuthorization->assertCanManageRoles($command->getActorId());
-
                     $role = $this->roleRepository->getById($command->getRoleId());
-                    if (!$role instanceof Role) {
+                    if (!$role instanceof Role || !$role->getId()->equals($command->getRoleId())) {
                         throw new CustomRoleException('The custom role does not exist.');
                     }
 
-                    if (!$this->permissionRepository->getById($command->getPermissionId()) instanceof Permission) {
+                    $role->assertCustom();
+                    $permission = $this->permissionRepository->getById($command->getPermissionId());
+                    if (
+                        !$permission instanceof Permission
+                        || !$permission->getId()->equals($command->getPermissionId())
+                    ) {
                         throw new CustomRoleException('The permission does not exist.');
                     }
 
-                    $role->assertCustom();
-                    if ($role->hasPermission($command->getPermissionId())) {
-                        if (!$this->roleRepository->validatePermissionReference($command->getPermissionId())) {
-                            throw new CustomRoleException('The authoritative permission changed concurrently.');
-                        }
+                    if ($permission->getTier() !== PermissionTier::ADMIN_SAFE) {
+                        throw new CustomRoleException('The permission is not eligible for a custom role.');
+                    }
 
+                    if (!$this->roleRepository->validateCustomPermissionGrant($permission)) {
+                        throw new CustomRoleException('The authoritative permission changed concurrently.');
+                    }
+
+                    if ($role->hasPermission($command->getPermissionId())) {
                         return null;
                     }
 

@@ -6,7 +6,9 @@ namespace Fight\Test\AccessControl\Application\AccessControl\Role\QueryHandler;
 
 use DateTimeImmutable;
 use Fight\AccessControl\Application\AccessControl\Role\QueryHandler\ListRolesHandler;
+use Fight\AccessControl\Domain\AccessControl\Permission\Permission;
 use Fight\AccessControl\Domain\AccessControl\Permission\PermissionId;
+use Fight\AccessControl\Domain\AccessControl\Permission\PermissionName;
 use Fight\AccessControl\Domain\AccessControl\Role\Query\ListRoles;
 use Fight\AccessControl\Domain\AccessControl\Role\Query\RoleView;
 use Fight\AccessControl\Domain\AccessControl\Role\Role;
@@ -33,7 +35,11 @@ final class ListRolesHandlerTest extends TestCase
     {
         $permissionId = PermissionId::fromString('018f0000-0000-7000-8000-000000000001');
         $authorizationReferences = new InMemoryAuthorizationReferenceState();
-        $authorizationReferences->addPermission($permissionId);
+        $authorizationReferences->addPermission(Permission::define(
+            $permissionId,
+            PermissionName::fromString('READ_CASES'),
+            new DateTimeImmutable('2026-01-01T00:00:00+00:00')
+        ));
 
         $roles = new InMemoryRoleRepository(authorizationReferences: $authorizationReferences);
         $custom = Role::define(

@@ -9,7 +9,9 @@ use Fight\AccessControl\Domain\AccessControl\Agent\Agent;
 use Fight\AccessControl\Domain\AccessControl\Agent\AgentCredentialId;
 use Fight\AccessControl\Domain\AccessControl\Agent\AgentId;
 use Fight\AccessControl\Domain\AccessControl\Agent\AgentName;
+use Fight\AccessControl\Domain\AccessControl\Permission\Permission;
 use Fight\AccessControl\Domain\AccessControl\Permission\PermissionId;
+use Fight\AccessControl\Domain\AccessControl\Permission\PermissionName;
 use Fight\Common\Domain\Repository\Pagination;
 use Fight\Test\AccessControl\Application\AccessControl\User\Repository\InMemoryAuthorizationReferenceState;
 use PHPUnit\Framework\Attributes\CoversNothing;
@@ -91,7 +93,11 @@ final class InMemoryAgentRepositoryTest extends TestCase
         );
         $replacement = RehydratedAgentFixture::fromAgent($expected, [$permissionId], 3);
         $authorizationReferences = new InMemoryAuthorizationReferenceState();
-        $authorizationReferences->addPermission($permissionId);
+        $authorizationReferences->addPermission(Permission::define(
+            $permissionId,
+            PermissionName::fromString('READ_CASES'),
+            new DateTimeImmutable('2026-01-01T00:00:00+00:00')
+        ));
 
         $repository = new InMemoryAgentRepository(authorizationReferences: $authorizationReferences);
         $repository->add($expected);

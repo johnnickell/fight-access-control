@@ -5,7 +5,7 @@ dependencies, acceptance, and verification.
 
 ## What's Next?
 
-First ready Task: [TASK-00043](00043-TASK.md) — Enforce tier eligibility on custom Role grants.
+First ready Task: [TASK-00044](00044-TASK.md) — Enforce tier eligibility on direct Agent assignments.
 
 ## In Progress
 
@@ -15,7 +15,6 @@ No Tasks are currently in this state.
 
 | Order | TASK ID | Title | Parent TICKET | Status | Blocked by | PR |
 | --- | --- | --- | --- | --- | --- | --- |
-| 43 | [TASK-00043](00043-TASK.md) | Enforce tier eligibility on custom Role grants | [TICKET-00009](../tickets/00009-TICKET.md) — Delegate Eligible Permissions to Custom Roles and Agents | ready-for-agent | [TASK-00041](00041-TASK.md), [TASK-00042](00042-TASK.md) | — |
 | 44 | [TASK-00044](00044-TASK.md) | Enforce tier eligibility on direct Agent assignments | [TICKET-00009](../tickets/00009-TICKET.md) — Delegate Eligible Permissions to Custom Roles and Agents | ready-for-agent | [TASK-00041](00041-TASK.md) | — |
 
 ## Waiting
@@ -82,3 +81,4 @@ No Tasks are currently in this state.
 | 40 | [TASK-00040](00040-TASK.md) | Remove deprecated Fight Common contract dependencies | [TICKET-00008](../tickets/00008-TICKET.md) — Use Supported Transactional Unit of Work Contracts | done | — | https://github.com/johnnickell/fight-access-control/pull/61 |
 | 41 | [TASK-00041](00041-TASK.md) | Classify every Permission with a non-null tier | [TICKET-00009](../tickets/00009-TICKET.md) — Delegate Eligible Permissions to Custom Roles and Agents | done | — | https://github.com/johnnickell/fight-access-control/pull/68 |
 | 42 | [TASK-00042](00042-TASK.md) | Reserve Super Admin Role identity and preserve User Role changes | [TICKET-00011](../tickets/00011-TICKET.md) — Reserve Super Admin Role Across User Role Administration | done | — | https://github.com/johnnickell/fight-access-control/pull/70 |
+| 43 | [TASK-00043](00043-TASK.md) | Enforce tier eligibility on custom Role grants | [TICKET-00009](../tickets/00009-TICKET.md) — Delegate Eligible Permissions to Custom Roles and Agents | done | [TASK-00041](00041-TASK.md), [TASK-00042](00042-TASK.md) | https://github.com/johnnickell/fight-access-control/pull/71 |
