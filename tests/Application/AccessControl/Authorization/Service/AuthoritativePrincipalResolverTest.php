@@ -29,6 +29,7 @@ use Fight\Test\AccessControl\Application\AccessControl\Role\Repository\InMemoryR
 use Fight\Test\AccessControl\Application\AccessControl\Timing\Service\FixedClock;
 use Fight\Test\AccessControl\Application\AccessControl\User\Repository\InMemoryAuthorizationReferenceState;
 use Fight\Test\AccessControl\Application\AccessControl\User\Repository\InMemoryUserRepository;
+use Fight\Test\AccessControl\Domain\AccessControl\Role\ImpersonatingRole;
 use Fight\Test\AccessControl\Domain\AccessControl\User\UserFixture;
 use InvalidArgumentException;
 use PHPUnit\Framework\Attributes\CoversClass;
@@ -90,6 +91,90 @@ final class AuthoritativePrincipalResolverTest extends TestCase
         self::assertTrue($principal->hasPermission(PermissionName::fromString('PUBLISH_ARTICLE')));
         self::assertSame($editor->getId(), $principal->getRoles()[0]->getId());
         self::assertSame($permission->getId(), $principal->getPermissions()[0]->getPermissionId());
+    }
+
+    public function test_only_the_authoritative_managed_super_admin_role_reaches_an_active_principal(): void
+    {
+        $now = new DateTimeImmutable('2026-08-21T12:00:00+00:00');
+        $user = $this->activeUser(7);
+        $role = Role::defineManaged(
+            RoleId::generate(),
+            RoleName::fromString(Role::SUPER_ADMIN_NAME),
+            [],
+            $now
+        );
+        $user->replaceRoleAssignments([$role->getId()], $now);
+        $session = $this->session($user->getId(), 7, $now);
+
+        $principal = $this->resolver($now, $user, $session, [$role])->resolve(
+            new AuthenticationContext($user->getId(), $session->getId(), 7)
+        );
+
+        self::assertTrue($principal->hasRole(RoleName::fromString(Role::SUPER_ADMIN_NAME)));
+        self::assertSame($role->getId(), $principal->getRoles()[0]->getId());
+    }
+
+    public function test_inconsistent_stored_super_admin_identity_fails_closed_before_principal_construction(): void
+    {
+        $now = new DateTimeImmutable('2026-08-21T12:00:00+00:00');
+        $designated = Role::defineManaged(
+            RoleId::generate(),
+            RoleName::fromString(Role::SUPER_ADMIN_NAME),
+            [],
+            $now
+        );
+        $cases = [
+            [Role::defineManaged($designated->getId(), RoleName::fromString('ROLE_OTHER'), [], $now), $designated],
+            [$designated, null],
+            [
+                $designated,
+                Role::defineManaged(RoleId::generate(), RoleName::fromString(Role::SUPER_ADMIN_NAME), [], $now)
+            ]
+        ];
+        foreach ($cases as [$assignedRole, $resolvedName]) {
+            $user = $this->activeUser(7);
+            $user->replaceRoleAssignments([$assignedRole->getId()], $now);
+            $session = $this->session($user->getId(), 7, $now);
+            $roles = $this->createStub(RoleRepository::class);
+            $roles->method('getByIds')->willReturn([$assignedRole]);
+            $roles->method('getByName')->willReturn($resolvedName);
+
+            $this->expectPrincipalDenied(
+                $this->resolver($now, $user, $session, roleRepository: $roles),
+                $user,
+                $session
+            );
+        }
+    }
+
+    public function test_adapter_supplied_custom_role_subtype_cannot_impersonate_super_admin(): void
+    {
+        $now = new DateTimeImmutable('2026-08-21T12:00:00+00:00');
+        $user = $this->activeUser(7);
+        $role = ImpersonatingRole::define(RoleId::generate(), RoleName::fromString('ROLE_EDITOR'), [], $now);
+        $user->replaceRoleAssignments([$role->getId()], $now);
+        $session = $this->session($user->getId(), 7, $now);
+        $roles = $this->createStub(RoleRepository::class);
+        $roles->method('getByIds')->willReturn([$role]);
+        $roles->method('getByName')->willReturn($role);
+
+        $this->expectPrincipalDenied($this->resolver($now, $user, $session, roleRepository: $roles), $user, $session);
+    }
+
+    private function expectPrincipalDenied(
+        AuthoritativePrincipalResolver $resolver,
+        User $user,
+        RefreshSession $session
+    ): void {
+        try {
+            $resolver->resolve(new AuthenticationContext($user->getId(), $session->getId(), 7));
+            self::fail('Inconsistent Role identity reached the authenticated principal.');
+        } catch (PrincipalResolutionException $principalResolutionException) {
+            self::assertSame(
+                'The current principal authority is not valid.',
+                $principalResolutionException->getMessage()
+            );
+        }
     }
 
     public function test_context_contains_only_authentication_authority_and_requires_a_positive_version(): void

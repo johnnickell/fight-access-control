@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Fight\AccessControl\Application\AccessControl\Role\CommandHandler;
 
-use Fight\AccessControl\Application\AccessControl\Role\Service\RoleAdministrationAuthorization;
 use Fight\AccessControl\Application\AccessControl\Timing\Service\Clock;
 use Fight\AccessControl\Domain\AccessControl\Role\Command\RenameCustomRole;
 use Fight\AccessControl\Domain\AccessControl\Role\Event\CustomRoleRenamed;
@@ -21,7 +20,7 @@ use Throwable;
 /**
  * Class RenameCustomRoleHandler
  *
- * Atomically renames an authorized runtime-owned custom role.
+ * Atomically renames a runtime-owned custom role.
  */
 final readonly class RenameCustomRoleHandler implements CommandHandler
 {
@@ -32,7 +31,6 @@ final readonly class RenameCustomRoleHandler implements CommandHandler
      */
     public function __construct(
         private RoleRepository $roleRepository,
-        private RoleAdministrationAuthorization $roleAdministrationAuthorization,
         private Clock $clock,
         private TransactionalUnitOfWork $unitOfWork,
         private EventDispatcher $eventDispatcher
@@ -53,8 +51,6 @@ final readonly class RenameCustomRoleHandler implements CommandHandler
 
         try {
             $event = $this->unitOfWork->commitTransactional(function () use ($command): CustomRoleRenamed {
-                $this->roleAdministrationAuthorization->assertCanManageRoles($command->getActorId());
-
                 $role = $this->roleRepository->getById($command->getRoleId());
                 if (!$role instanceof Role) {
                     throw new CustomRoleException('The custom role does not exist.');

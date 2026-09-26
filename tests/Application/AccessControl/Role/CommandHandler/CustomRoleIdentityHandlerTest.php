@@ -15,7 +15,6 @@ use Fight\AccessControl\Domain\AccessControl\Role\Command\RenameCustomRole;
 use Fight\AccessControl\Domain\AccessControl\Role\Event\CustomRoleCreated;
 use Fight\AccessControl\Domain\AccessControl\Role\Event\CustomRoleRenamed;
 use Fight\AccessControl\Domain\AccessControl\Role\Exception\CustomRoleException;
-use Fight\AccessControl\Domain\AccessControl\Role\Exception\RoleAdministrationAuthorizationException;
 use Fight\AccessControl\Domain\AccessControl\Role\Role;
 use Fight\AccessControl\Domain\AccessControl\Role\RoleId;
 use Fight\AccessControl\Domain\AccessControl\Role\RoleName;
@@ -29,7 +28,6 @@ use Fight\Test\AccessControl\Application\AccessControl\Event\InMemoryEventDispat
 use Fight\Test\AccessControl\Application\AccessControl\Permission\Repository\InMemoryPermissionRepository;
 use Fight\Test\AccessControl\Application\AccessControl\Role\Repository\ControllableRoleRepository;
 use Fight\Test\AccessControl\Application\AccessControl\Role\Repository\InMemoryRoleRepository;
-use Fight\Test\AccessControl\Application\AccessControl\Role\Service\FixedRoleAdministrationAuthorization;
 use Fight\Test\AccessControl\Application\AccessControl\Timing\Service\FixedClock;
 use Fight\Test\AccessControl\Application\AccessControl\User\InMemoryUnitOfWork;
 use PHPUnit\Framework\Attributes\CoversClass;
@@ -53,14 +51,12 @@ final class CustomRoleIdentityHandlerTest extends TestCase
         $createdAt = new DateTimeImmutable('2026-08-23T12:00:00+00:00');
         $unitOfWork = new InMemoryUnitOfWork();
         $repository = new InMemoryRoleRepository($unitOfWork);
-        $authorization = new FixedRoleAdministrationAuthorization(true);
         $events = new InMemoryEventDispatcher(function () use ($repository, $roleId, $unitOfWork): void {
             self::assertInstanceOf(Role::class, $repository->getById($roleId));
             self::assertTrue($unitOfWork->transactionCompleted);
         });
         $handler = new CreateCustomRoleHandler(
             $repository,
-            $authorization,
             new FixedClock($createdAt),
             $unitOfWork,
             $events
@@ -70,8 +66,6 @@ final class CustomRoleIdentityHandlerTest extends TestCase
 
         self::assertSame(CreateCustomRole::class, CreateCustomRoleHandler::commandRegistration());
         self::assertSame(1, $unitOfWork->transactions);
-        self::assertSame(1, $authorization->calls());
-        self::assertSame($actorId, $authorization->lastActorId());
         $role = $repository->getById($roleId);
         self::assertInstanceOf(Role::class, $role);
         self::assertSame($name, $role->getName());
@@ -117,7 +111,6 @@ final class CustomRoleIdentityHandlerTest extends TestCase
             $repository,
             $unitOfWork,
             $events,
-            new FixedRoleAdministrationAuthorization(true),
             $renamedAt
         );
 
@@ -145,53 +138,35 @@ final class CustomRoleIdentityHandlerTest extends TestCase
         self::assertSame($renamedAt, $event->getRenamedAt());
     }
 
-    public function test_creation_authorization_denial_causes_no_mutation(): void
+    public function test_creation_and_rename_reject_the_reserved_name_without_success_events(): void
     {
-        $unitOfWork = new InMemoryUnitOfWork();
-        $repository = new InMemoryRoleRepository($unitOfWork);
-        $events = new InMemoryEventDispatcher();
-        $command = new CreateCustomRole(
-            $this->actorId(),
-            RoleId::fromString('018f0000-0000-7000-8000-000000000002'),
-            RoleName::fromString('ROLE_SUPPORT')
-        );
-        $handler = new CreateCustomRoleHandler(
-            $repository,
-            new FixedRoleAdministrationAuthorization(false),
-            new FixedClock('2026-08-23T12:00:00+00:00'),
-            $unitOfWork,
-            $events
-        );
-
-        $failure = $this->captureFailure($handler->handle(...), $command);
-
-        self::assertInstanceOf(RoleAdministrationAuthorizationException::class, $failure);
-        self::assertNull($repository->getById($command->getRoleId()));
-        $this->assertCommandFailure($events, $command, $failure);
-    }
-
-    public function test_rename_authorization_denial_preserves_the_role(): void
-    {
+        $repository = new InMemoryRoleRepository();
         $role = $this->customRole();
-        $repository = new ControllableRoleRepository($role);
-        $events = new InMemoryEventDispatcher();
-        $command = new RenameCustomRole(
-            $this->actorId(),
-            $role->getId(),
-            RoleName::fromString('ROLE_RENAMED')
-        );
-        $handler = $this->renameHandler(
-            $repository,
-            new InMemoryUnitOfWork(),
-            $events,
-            new FixedRoleAdministrationAuthorization(false)
-        );
+        $repository->add($role);
+        $reserved = RoleName::fromString(Role::SUPER_ADMIN_NAME);
+        $commands = [
+            new CreateCustomRole($this->actorId(), RoleId::generate(), $reserved),
+            new RenameCustomRole($this->actorId(), $role->getId(), $reserved)
+        ];
+        foreach ($commands as $command) {
+            $events = new InMemoryEventDispatcher();
+            $unitOfWork = new InMemoryUnitOfWork();
+            $handler = $this->renameHandler($repository, $unitOfWork, $events);
+            if ($command instanceof CreateCustomRole) {
+                $handler = new CreateCustomRoleHandler(
+                    $repository,
+                    new FixedClock('2026-08-23T12:00:00+00:00'),
+                    $unitOfWork,
+                    $events
+                );
+            }
 
-        $failure = $this->captureFailure($handler->handle(...), $command);
+            $failure = $this->captureFailure($handler->handle(...), $command);
 
-        self::assertInstanceOf(RoleAdministrationAuthorizationException::class, $failure);
-        self::assertSame($role, $repository->getById($role->getId()));
-        $this->assertCommandFailure($events, $command, $failure);
+            self::assertInstanceOf(CustomRoleException::class, $failure);
+            self::assertSame($role, $repository->getById($role->getId()));
+            $this->assertCommandFailure($events, $command, $failure);
+        }
     }
 
     public function test_creation_rejects_persisted_identifier_and_name_collisions(): void
@@ -216,7 +191,6 @@ final class CustomRoleIdentityHandlerTest extends TestCase
             $events = new InMemoryEventDispatcher();
             $handler = new CreateCustomRoleHandler(
                 $repository,
-                new FixedRoleAdministrationAuthorization(true),
                 new FixedClock('2026-08-23T12:00:00+00:00'),
                 new InMemoryUnitOfWork(),
                 $events
@@ -287,7 +261,6 @@ final class CustomRoleIdentityHandlerTest extends TestCase
         );
         $handler = new CreateCustomRoleHandler(
             $repository,
-            new FixedRoleAdministrationAuthorization(true),
             new FixedClock('2026-08-23T12:00:00+00:00'),
             new InMemoryUnitOfWork(),
             $events
@@ -354,12 +327,10 @@ final class CustomRoleIdentityHandlerTest extends TestCase
         RoleRepository $repository,
         InMemoryUnitOfWork $unitOfWork,
         InMemoryEventDispatcher $events,
-        ?FixedRoleAdministrationAuthorization $authorization = null,
         ?DateTimeImmutable $now = null
     ): RenameCustomRoleHandler {
         return new RenameCustomRoleHandler(
             $repository,
-            $authorization ?? new FixedRoleAdministrationAuthorization(true),
             new FixedClock($now ?? '2026-08-23T12:00:00+00:00'),
             $unitOfWork,
             $events

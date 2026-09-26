@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Fight\AccessControl\Application\AccessControl\Role\CommandHandler;
 
-use Fight\AccessControl\Application\AccessControl\Role\Service\RoleAdministrationAuthorization;
 use Fight\AccessControl\Application\AccessControl\Timing\Service\Clock;
 use Fight\AccessControl\Domain\AccessControl\Role\Command\RemoveCustomRole;
 use Fight\AccessControl\Domain\AccessControl\Role\Event\CustomRoleRemoved;
@@ -22,7 +21,7 @@ use Throwable;
 /**
  * Class RemoveCustomRoleHandler
  *
- * Atomically removes an authorized, unreferenced custom role.
+ * Atomically removes an unreferenced custom role.
  */
 final readonly class RemoveCustomRoleHandler implements CommandHandler
 {
@@ -34,7 +33,6 @@ final readonly class RemoveCustomRoleHandler implements CommandHandler
     public function __construct(
         private RoleRepository $roleRepository,
         private UserRepository $userRepository,
-        private RoleAdministrationAuthorization $roleAdministrationAuthorization,
         private Clock $clock,
         private TransactionalUnitOfWork $unitOfWork,
         private EventDispatcher $eventDispatcher
@@ -55,8 +53,6 @@ final readonly class RemoveCustomRoleHandler implements CommandHandler
 
         try {
             $event = $this->unitOfWork->commitTransactional(function () use ($command): CustomRoleRemoved {
-                $this->roleAdministrationAuthorization->assertCanManageRoles($command->getActorId());
-
                 $role = $this->roleRepository->getById($command->getRoleId());
                 if (!$role instanceof Role) {
                     throw new CustomRoleException('The custom role does not exist.');

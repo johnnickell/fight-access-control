@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- **Breaking (pre-1.0):** Custom-Role create/rename/remove and User Role assign/remove handlers no longer accept
+  actor-only authorization ports. The application builder must protect every entry point, including no-ops; command
+  actor IDs remain provenance, not credentials. `ROLE_SUPER_ADMIN` is reserved for a uniquely authoritative managed
+  Role; pending Users may receive it for bootstrap under ordinary assignment rules. See the
+  [v0.4.0 migration guide](docs/permission-tier-v0.4-migration.md).
+
 ## [0.3.0] - 2026-09-25
 
 ### Added
