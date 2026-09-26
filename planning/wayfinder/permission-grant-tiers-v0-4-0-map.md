@@ -39,6 +39,7 @@ EPIC, TICKET, and/or implementation TASKs. No implementation or release is autho
 1. **[Define protected Permission membership and designated Role identity](tickets/WF-011-protected-permission-membership.md) is settled.** A managed `SUPER_ADMIN_ONLY` Permission belongs only to the exact-name managed `ROLE_SUPER_ADMIN` and reaches only a human `User` through that Role. The consumer declares managed Permission names and tiers; the package enforces declared tiers and never grants protected authority to an Agent, custom Role, other managed Role, or direct User assignment.
 2. **[Classify custom Permissions for delegation](tickets/WF-012-custom-permission-delegation.md) is settled.** Every Permission has a non-null tier; a custom Permission starts `ADMIN_SAFE` and cannot become protected. `ADMIN_SAFE` allows controlled Role and direct Agent delegation; caller authorization belongs to the consumer. Fight Agent OS has no stored Permissions to migrate, though its schema and adapter require changes.
 3. **[Separate Permission eligibility from caller authorization](tickets/WF-013-target-aware-role-administration.md) is settled.** AccessControl enforces tier and managed-Role invariants in Role and Agent Permission commands. Application builders protect every command entry point using suitable controls; v0.4.0 removes actor-only checks from Role administration, Agent Permission, and User Role-assignment handlers without adding a target-aware port. Target-specific checks for sessions, email changes, and invitation correction remain. Direct command-bus access requires consumer-owned protection.
+4. **[Set Super Admin assignment and removal guarantees](tickets/WF-014-super-admin-role-elevation.md) is settled.** Only the managed Role may use the exact `ROLE_SUPER_ADMIN` name; custom-role creation, rename, and inconsistent reconstruction must not impersonate it. Package User Role commands otherwise use ordinary assignment/removal semantics, including pending User assignment for bootstrap. The application builder owns caller authority, confirmation, audit, removal policy, last-admin protection, and recovery.
 
 ## Decisions
 
@@ -47,7 +48,7 @@ EPIC, TICKET, and/or implementation TASKs. No implementation or release is autho
 | WF-011 | [Define protected Permission membership and designated Role identity](tickets/WF-011-protected-permission-membership.md) | Grilling | HITL | **Closed** | — |
 | WF-012 | [Classify custom Permissions for delegation](tickets/WF-012-custom-permission-delegation.md) | Grilling | HITL | **Closed** | WF-011 |
 | WF-013 | [Separate Permission eligibility from caller authorization](tickets/WF-013-target-aware-role-administration.md) | Grilling | HITL | **Closed** | WF-011, WF-012 |
-| WF-014 | [Set Super Admin assignment and removal guarantees](tickets/WF-014-super-admin-role-elevation.md) | Grilling | HITL | **Open** | WF-011 |
+| WF-014 | [Set Super Admin assignment and removal guarantees](tickets/WF-014-super-admin-role-elevation.md) | Grilling | HITL | **Closed** | WF-011 |
 | WF-015 | [Detect and remedy historical forbidden authority](tickets/WF-015-forbidden-authority-remediation.md) | Grilling | HITL | **Open** | WF-011 |
 | WF-016 | [Set atomic enforcement and integration proof](tickets/WF-016-atomic-enforcement-and-proof.md) | Grilling | HITL | **Open** | WF-013, WF-014, WF-015 |
 
@@ -61,14 +62,12 @@ Protected membership ──→ Custom Permission classification ──→ Eligib
 
 ## Frontier
 
-[Set Super Admin assignment and removal guarantees](tickets/WF-014-super-admin-role-elevation.md)
-is the next authored frontier. [Detect and remedy historical forbidden authority](tickets/WF-015-forbidden-authority-remediation.md)
-is also unblocked; it remains a separate session.
+[Detect and remedy historical forbidden authority](tickets/WF-015-forbidden-authority-remediation.md)
+is the next authored frontier. [Set atomic enforcement and integration proof](tickets/WF-016-atomic-enforcement-and-proof.md)
+waits for that decision.
 
 ## Not yet specified (fog)
 
-- Exact consumer confirmation and audit protocol shape, pending the elevation/removal decision and current Agent OS
-  integration evidence.
 - Exact adapter-level locking mechanism and migration sequence, pending the authority/remediation decisions.
 
 ## Out of scope
@@ -77,3 +76,5 @@ is also unblocked; it remains a separate session.
   and deployment during Wayfinder.
 - Creating a scoped Workspace/Repository authority model in this package; application builders own any scope
   authorization at their command entry points.
+- Exact consumer confirmation, audit, removal, and last-admin recovery protocols, including any Agent OS
+  implementation planning outside this map.

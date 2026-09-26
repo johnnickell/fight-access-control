@@ -64,6 +64,8 @@ behavior shared by Fight applications. The repository-local behavioral and secur
   consumer applications map transport data into and out of this representation.
 - **Managed Permission and Managed Role**: stable version-controlled authorization definitions reconciled
   exactly and atomically.
+- **Super Admin Role**: the managed Role named exactly `ROLE_SUPER_ADMIN`; its name is reserved and cannot be used
+  by a custom Role. Only this Role may hold protected Permissions.
 - **Permission tier**: the non-null classification of a Permission. `ADMIN_SAFE` makes it eligible for delegation
   through consumer-protected command entry points; `SUPER_ADMIN_ONLY` reserves its authority for the designated managed
   Role and human Users.
