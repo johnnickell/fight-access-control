@@ -19,17 +19,16 @@ use Fight\AccessControl\Domain\AccessControl\Agent\Command\RevokePermissionFromA
 use Fight\AccessControl\Domain\AccessControl\Agent\Event\AgentPermissionsReplaced;
 use Fight\AccessControl\Domain\AccessControl\Agent\Event\PermissionGrantedToAgent;
 use Fight\AccessControl\Domain\AccessControl\Agent\Event\PermissionRevokedFromAgent;
-use Fight\AccessControl\Domain\AccessControl\Agent\Exception\AgentPermissionAssignmentAuthorizationException;
 use Fight\AccessControl\Domain\AccessControl\Agent\Exception\AgentPermissionAssignmentException;
 use Fight\AccessControl\Domain\AccessControl\Permission\Permission;
 use Fight\AccessControl\Domain\AccessControl\Permission\PermissionId;
 use Fight\AccessControl\Domain\AccessControl\Permission\PermissionName;
+use Fight\AccessControl\Domain\AccessControl\Permission\PermissionTier;
 use Fight\AccessControl\Domain\AccessControl\User\UserId;
 use Fight\Common\Domain\Exception\DomainException;
 use Fight\Common\Domain\Messaging\Command\CommandMessage;
 use Fight\Common\Domain\Messaging\Event\CommandFailedEvent;
 use Fight\Test\AccessControl\Application\AccessControl\Agent\Repository\InMemoryAgentRepository;
-use Fight\Test\AccessControl\Application\AccessControl\Agent\Service\FixedAgentPermissionAdministrationAuthorization;
 use Fight\Test\AccessControl\Application\AccessControl\Event\InMemoryEventDispatcher;
 use Fight\Test\AccessControl\Application\AccessControl\Permission\Repository\InMemoryPermissionRepository;
 use Fight\Test\AccessControl\Application\AccessControl\Timing\Service\FixedClock;
@@ -49,7 +48,6 @@ use RuntimeException;
 #[CoversClass(PermissionRevokedFromAgent::class)]
 #[CoversClass(AgentPermissionsReplaced::class)]
 #[CoversClass(Agent::class)]
-#[CoversClass(AgentPermissionAssignmentAuthorizationException::class)]
 #[CoversClass(AgentPermissionAssignmentException::class)]
 final class AgentPermissionAssignmentHandlerTest extends TestCase
 {
@@ -75,7 +73,6 @@ final class AgentPermissionAssignmentHandlerTest extends TestCase
         );
         $permissions->add($permission);
         $actorId = UserId::generate();
-        $authorization = new FixedAgentPermissionAdministrationAuthorization(true);
         $events = new InMemoryEventDispatcher(
             static function ($event) use ($agent, $agents, $permission, $unitOfWork): void {
                 self::assertInstanceOf(PermissionGrantedToAgent::class, $event);
@@ -86,7 +83,6 @@ final class AgentPermissionAssignmentHandlerTest extends TestCase
         $handler = new GrantPermissionToAgentHandler(
             $agents,
             $permissions,
-            $authorization,
             new FixedClock(self::NOW),
             $unitOfWork,
             $events
@@ -109,8 +105,6 @@ final class AgentPermissionAssignmentHandlerTest extends TestCase
             $stored->getEncryptedHmacSharedSecretEnvelope()
         );
         self::assertSame(1, $unitOfWork->transactions);
-        self::assertSame(1, $authorization->calls());
-        self::assertTrue($authorization->lastActorId()?->equals($actorId));
         self::assertCount(1, $events->events());
         $event = $events->events()[0];
         self::assertInstanceOf(PermissionGrantedToAgent::class, $event);
@@ -134,7 +128,6 @@ final class AgentPermissionAssignmentHandlerTest extends TestCase
         $permissions->add($permission);
 
         $actorId = UserId::generate();
-        $authorization = new FixedAgentPermissionAdministrationAuthorization(true);
         $events = new InMemoryEventDispatcher(
             static function ($event) use ($agent, $agents, $permission, $unitOfWork): void {
                 self::assertInstanceOf(PermissionRevokedFromAgent::class, $event);
@@ -145,7 +138,6 @@ final class AgentPermissionAssignmentHandlerTest extends TestCase
         $handler = new RevokePermissionFromAgentHandler(
             $agents,
             $permissions,
-            $authorization,
             new FixedClock(self::NOW),
             $unitOfWork,
             $events
@@ -168,7 +160,6 @@ final class AgentPermissionAssignmentHandlerTest extends TestCase
             $stored->getEncryptedHmacSharedSecretEnvelope()
         );
         self::assertSame(1, $unitOfWork->transactions);
-        self::assertSame(1, $authorization->calls());
         self::assertCount(1, $events->events());
         $event = $events->events()[0];
         self::assertInstanceOf(PermissionRevokedFromAgent::class, $event);
@@ -208,7 +199,6 @@ final class AgentPermissionAssignmentHandlerTest extends TestCase
         $handler = new ReplaceAgentPermissionsHandler(
             $agents,
             $permissions,
-            new FixedAgentPermissionAdministrationAuthorization(true),
             new FixedClock(self::NOW),
             $unitOfWork,
             $events
@@ -269,7 +259,6 @@ final class AgentPermissionAssignmentHandlerTest extends TestCase
             $handler = new ReplaceAgentPermissionsHandler(
                 $agents,
                 $permissions,
-                new FixedAgentPermissionAdministrationAuthorization(true),
                 new FixedClock(self::NOW),
                 $unitOfWork,
                 $events
@@ -310,7 +299,7 @@ final class AgentPermissionAssignmentHandlerTest extends TestCase
     public function test_invalid_complete_set_requests_fail_without_partial_change(): void
     {
         foreach (
-            ['authorization', 'missing-agent', 'stale-revision', 'unknown-permission', 'cas-loss'] as $case
+            ['missing-agent', 'stale-revision', 'unknown-permission', 'cas-loss'] as $case
         ) {
             $unitOfWork = new InMemoryUnitOfWork();
             $existingPermission = $this->permission();
@@ -338,7 +327,6 @@ final class AgentPermissionAssignmentHandlerTest extends TestCase
             $handler = new ReplaceAgentPermissionsHandler(
                 $agents,
                 $permissions,
-                new FixedAgentPermissionAdministrationAuthorization($case !== 'authorization'),
                 new FixedClock(self::NOW),
                 $unitOfWork,
                 $events
@@ -393,7 +381,6 @@ final class AgentPermissionAssignmentHandlerTest extends TestCase
             $handler = new ReplaceAgentPermissionsHandler(
                 $agents,
                 $permissions,
-                new FixedAgentPermissionAdministrationAuthorization(true),
                 new FixedClock(self::NOW),
                 $unitOfWork,
                 $events
@@ -434,7 +421,6 @@ final class AgentPermissionAssignmentHandlerTest extends TestCase
         $handler = new ReplaceAgentPermissionsHandler(
             $agents,
             $permissions,
-            new FixedAgentPermissionAdministrationAuthorization(true),
             new FixedClock(self::NOW),
             $unitOfWork,
             $events
@@ -548,85 +534,6 @@ final class AgentPermissionAssignmentHandlerTest extends TestCase
         }
     }
 
-    public function test_authorization_denial_is_reported_and_leaves_assignments_unchanged(): void
-    {
-        $unitOfWork = new InMemoryUnitOfWork();
-        $agents = new InMemoryAgentRepository($unitOfWork);
-        $agent = $this->agent();
-        $agents->add($agent);
-        $permissions = new InMemoryPermissionRepository($unitOfWork);
-        $permission = $this->permission();
-        $permissions->add($permission);
-        $events = new InMemoryEventDispatcher();
-        $handler = new GrantPermissionToAgentHandler(
-            $agents,
-            $permissions,
-            new FixedAgentPermissionAdministrationAuthorization(false),
-            new FixedClock(self::NOW),
-            $unitOfWork,
-            $events
-        );
-
-        try {
-            $handler->handle(
-                CommandMessage::create(
-                    new GrantPermissionToAgent(UserId::generate(), $agent->getId(), $permission->getId())
-                )
-            );
-            self::fail('Unauthorized Agent Permission administration was accepted.');
-        } catch (AgentPermissionAssignmentAuthorizationException $agentPermissionAssignmentAuthorizationException) {
-            self::assertSame(
-                'Agent Permission-assignment administration is not authorized.',
-                $agentPermissionAssignmentAuthorizationException->getMessage()
-            );
-            $stored = $agents->getById($agent->getId());
-            self::assertInstanceOf(Agent::class, $stored);
-            self::assertSame([], $stored->getPermissionIds());
-            self::assertSame(1, $stored->getPermissionAssignmentRevision());
-            self::assertInstanceOf(CommandFailedEvent::class, $events->events()[0]);
-        }
-    }
-
-    public function test_revoke_authorization_denial_is_reported_and_leaves_assignments_unchanged(): void
-    {
-        $unitOfWork = new InMemoryUnitOfWork();
-        $permission = $this->permission();
-        $agent = $this->agent()->grantPermission(
-            $permission->getId(),
-            new DateTimeImmutable('2026-08-25T13:00:00+00:00')
-        );
-        $agents = new InMemoryAgentRepository($unitOfWork);
-        $agents->add($agent);
-
-        $permissions = new InMemoryPermissionRepository($unitOfWork);
-        $permissions->add($permission);
-
-        $events = new InMemoryEventDispatcher();
-        $handler = new RevokePermissionFromAgentHandler(
-            $agents,
-            $permissions,
-            new FixedAgentPermissionAdministrationAuthorization(false),
-            new FixedClock(self::NOW),
-            $unitOfWork,
-            $events
-        );
-
-        try {
-            $handler->handle(
-                CommandMessage::create(
-                    new RevokePermissionFromAgent(UserId::generate(), $agent->getId(), $permission->getId())
-                )
-            );
-            self::fail('Unauthorized Agent Permission revocation was accepted.');
-        } catch (AgentPermissionAssignmentAuthorizationException) {
-            $stored = $agents->getById($agent->getId());
-            self::assertInstanceOf(Agent::class, $stored);
-            self::assertTrue($stored->hasPermission($permission->getId()));
-            self::assertSame(2, $stored->getPermissionAssignmentRevision());
-            self::assertInstanceOf(CommandFailedEvent::class, $events->events()[0]);
-        }
-    }
-
     public function test_invalid_or_concurrent_grants_fail_without_partial_change(): void
     {
         foreach (['missing-agent', 'unknown-permission', 'cas-loss'] as $case) {
@@ -650,7 +557,6 @@ final class AgentPermissionAssignmentHandlerTest extends TestCase
             $handler = new GrantPermissionToAgentHandler(
                 $agents,
                 $permissions,
-                new FixedAgentPermissionAdministrationAuthorization(true),
                 new FixedClock(self::NOW),
                 $unitOfWork,
                 $events
@@ -707,7 +613,6 @@ final class AgentPermissionAssignmentHandlerTest extends TestCase
             $handler = new RevokePermissionFromAgentHandler(
                 $agents,
                 $permissions,
-                new FixedAgentPermissionAdministrationAuthorization(true),
                 new FixedClock(self::NOW),
                 $unitOfWork,
                 $events
@@ -756,7 +661,6 @@ final class AgentPermissionAssignmentHandlerTest extends TestCase
             $permissions = new InMemoryPermissionRepository($unitOfWork);
             $permissions->add($firstPermission);
             $permissions->add($secondPermission);
-            $authorization = new FixedAgentPermissionAdministrationAuthorization(true);
             $events = new InMemoryEventDispatcher();
             $beforeUpdatedAt = $agent->getUpdatedAt();
 
@@ -764,7 +668,6 @@ final class AgentPermissionAssignmentHandlerTest extends TestCase
                 'grant' => new GrantPermissionToAgentHandler(
                     $agents,
                     $permissions,
-                    $authorization,
                     new FixedClock(self::NOW),
                     $unitOfWork,
                     $events
@@ -774,7 +677,6 @@ final class AgentPermissionAssignmentHandlerTest extends TestCase
                 'revoke' => new RevokePermissionFromAgentHandler(
                     $agents,
                     $permissions,
-                    $authorization,
                     new FixedClock(self::NOW),
                     $unitOfWork,
                     $events
@@ -784,7 +686,6 @@ final class AgentPermissionAssignmentHandlerTest extends TestCase
                 'replace' => new ReplaceAgentPermissionsHandler(
                     $agents,
                     $permissions,
-                    $authorization,
                     new FixedClock(self::NOW),
                     $unitOfWork,
                     $events
@@ -801,7 +702,6 @@ final class AgentPermissionAssignmentHandlerTest extends TestCase
             self::assertSame($beforeUpdatedAt, $stored->getUpdatedAt());
             self::assertSame(0, $agents->permissionAssignmentReplacementCalls());
             self::assertSame(1, $unitOfWork->transactions);
-            self::assertSame(1, $authorization->calls());
             self::assertCount(0, $events->events());
         }
     }
@@ -826,7 +726,6 @@ final class AgentPermissionAssignmentHandlerTest extends TestCase
         $handler = new GrantPermissionToAgentHandler(
             $agents,
             $permissions,
-            new FixedAgentPermissionAdministrationAuthorization(true),
             new FixedClock(self::NOW),
             $unitOfWork,
             $events
@@ -850,9 +749,12 @@ final class AgentPermissionAssignmentHandlerTest extends TestCase
 
     public function test_dependency_failure_is_rethrown_by_identity_and_reported(): void
     {
-        $expectedFailure = new RuntimeException('authorization failed');
+        $expectedFailure = new RuntimeException('Agent repository failed.');
         $unitOfWork = new InMemoryUnitOfWork();
-        $agents = new InMemoryAgentRepository($unitOfWork);
+        $agents = new InMemoryAgentRepository(
+            $unitOfWork,
+            replacePermissionAssignmentsFailure: $expectedFailure
+        );
         $agent = $this->agent();
         $agents->add($agent);
         $permission = $this->permission();
@@ -863,7 +765,6 @@ final class AgentPermissionAssignmentHandlerTest extends TestCase
         $handler = new GrantPermissionToAgentHandler(
             $agents,
             $permissions,
-            new FixedAgentPermissionAdministrationAuthorization(true, $expectedFailure),
             new FixedClock(self::NOW),
             $unitOfWork,
             $events
@@ -905,7 +806,6 @@ final class AgentPermissionAssignmentHandlerTest extends TestCase
         $handler = new RevokePermissionFromAgentHandler(
             $agents,
             $permissions,
-            new FixedAgentPermissionAdministrationAuthorization(true),
             new FixedClock(self::NOW),
             $unitOfWork,
             $events
@@ -925,6 +825,344 @@ final class AgentPermissionAssignmentHandlerTest extends TestCase
             self::assertTrue($stored->hasPermission($permission->getId()));
             self::assertSame(2, $stored->getPermissionAssignmentRevision());
             self::assertInstanceOf(CommandFailedEvent::class, $events->events()[0]);
+        }
+    }
+
+    public function test_revoking_an_existing_protected_permission_remains_permitted(): void
+    {
+        $unitOfWork = new InMemoryUnitOfWork();
+        $permission = Permission::defineManaged(
+            PermissionId::generate(),
+            PermissionName::fromString('SYSTEM_CONTROL'),
+            PermissionTier::SUPER_ADMIN_ONLY,
+            new DateTimeImmutable('2026-01-01T00:00:00+00:00')
+        );
+        $agent = $this->agent()->grantPermission($permission->getId(), new DateTimeImmutable(self::NOW));
+        $agents = new InMemoryAgentRepository($unitOfWork);
+        $agents->add($agent);
+
+        $permissions = new InMemoryPermissionRepository($unitOfWork);
+        $permissions->add($permission);
+
+        $events = new InMemoryEventDispatcher();
+        $handler = new RevokePermissionFromAgentHandler(
+            $agents,
+            $permissions,
+            new FixedClock(self::NOW),
+            $unitOfWork,
+            $events
+        );
+
+        $handler->handle(CommandMessage::create(new RevokePermissionFromAgent(
+            UserId::generate(),
+            $agent->getId(),
+            $permission->getId()
+        )));
+
+        $stored = $agents->getById($agent->getId());
+        self::assertInstanceOf(Agent::class, $stored);
+        self::assertSame([], $stored->getPermissionIds());
+        self::assertSame(3, $stored->getPermissionAssignmentRevision());
+        self::assertCount(1, $events->events());
+        self::assertInstanceOf(PermissionRevokedFromAgent::class, $events->events()[0]);
+    }
+
+    public function test_commit_failure_rolls_back_eligible_assignments_without_a_success_event(): void
+    {
+        foreach (['grant', 'replace'] as $case) {
+            $unitOfWork = new InMemoryUnitOfWork(failOnTransaction: 1);
+            $permission = $this->permission();
+            $agent = $this->agent();
+            $agents = new InMemoryAgentRepository($unitOfWork);
+            $agents->add($agent);
+            $permissions = new InMemoryPermissionRepository($unitOfWork);
+            $permissions->add($permission);
+            $events = new InMemoryEventDispatcher();
+            if ($case === 'grant') {
+                $handler = new GrantPermissionToAgentHandler(
+                    $agents,
+                    $permissions,
+                    new FixedClock(self::NOW),
+                    $unitOfWork,
+                    $events
+                );
+                $command = new GrantPermissionToAgent(UserId::generate(), $agent->getId(), $permission->getId());
+            } else {
+                $handler = new ReplaceAgentPermissionsHandler(
+                    $agents,
+                    $permissions,
+                    new FixedClock(self::NOW),
+                    $unitOfWork,
+                    $events
+                );
+                $command = new ReplaceAgentPermissions(
+                    UserId::generate(),
+                    $agent->getId(),
+                    1,
+                    [$permission->getId()]
+                );
+            }
+
+            try {
+                $handler->handle(CommandMessage::create($command));
+                self::fail('An uncommitted assignment was accepted.');
+            } catch (RuntimeException $runtimeException) {
+                self::assertSame('Injected transaction failure.', $runtimeException->getMessage());
+                self::assertSame($agent, $agents->getById($agent->getId()));
+                self::assertSame(1, $agents->permissionAssignmentReplacementCalls());
+                self::assertCount(1, $events->events());
+                self::assertInstanceOf(CommandFailedEvent::class, $events->events()[0]);
+                self::assertFalse($unitOfWork->authorizationReferenceState()->isReferenceFenceHeld());
+            }
+        }
+    }
+
+    public function test_protected_grants_and_complete_sets_fail_even_for_admin_provenance_and_no_ops(): void
+    {
+        foreach (['grant', 'grant-no-op', 'replace', 'replace-no-op'] as $case) {
+            $unitOfWork = new InMemoryUnitOfWork();
+            $protected = Permission::defineManaged(
+                PermissionId::generate(),
+                PermissionName::fromString('SYSTEM_CONTROL'),
+                PermissionTier::SUPER_ADMIN_ONLY,
+                new DateTimeImmutable('2026-01-01T00:00:00+00:00')
+            );
+            $eligible = $this->permission();
+            $agent = $this->agent();
+            if ($case === 'grant-no-op' || $case === 'replace-no-op') {
+                $agent = $agent->grantPermission($protected->getId(), new DateTimeImmutable(self::NOW));
+            }
+
+            $agents = new InMemoryAgentRepository($unitOfWork);
+            $agents->add($agent);
+            $permissions = new InMemoryPermissionRepository($unitOfWork);
+            $permissions->add($eligible);
+            $permissions->add($protected);
+            $events = new InMemoryEventDispatcher();
+            $actorId = UserId::generate(); // Caller identity cannot override the tier rule.
+            if (str_starts_with($case, 'grant')) {
+                $command = new GrantPermissionToAgent($actorId, $agent->getId(), $protected->getId());
+                $handler = new GrantPermissionToAgentHandler(
+                    $agents,
+                    $permissions,
+                    new FixedClock(self::NOW),
+                    $unitOfWork,
+                    $events
+                );
+            } else {
+                $requested = [$protected->getId()];
+                if ($case === 'replace') {
+                    $requested = [$eligible->getId(), $protected->getId()];
+                }
+
+                $command = new ReplaceAgentPermissions(
+                    $actorId,
+                    $agent->getId(),
+                    $agent->getPermissionAssignmentRevision(),
+                    $requested
+                );
+                $handler = new ReplaceAgentPermissionsHandler(
+                    $agents,
+                    $permissions,
+                    new FixedClock(self::NOW),
+                    $unitOfWork,
+                    $events
+                );
+            }
+
+            try {
+                $handler->handle(CommandMessage::create($command));
+                self::fail(sprintf('Protected Agent assignment %s was accepted.', $case));
+            } catch (AgentPermissionAssignmentException) {
+                self::assertSame($agent, $agents->getById($agent->getId()));
+                self::assertSame(0, $agents->permissionAssignmentReplacementCalls());
+                self::assertCount(1, $events->events());
+                self::assertInstanceOf(CommandFailedEvent::class, $events->events()[0]);
+            }
+        }
+    }
+
+    public function test_stale_definition_rejects_grant_and_complete_set_before_mutation(): void
+    {
+        foreach (['grant', 'replace'] as $case) {
+            $unitOfWork = new InMemoryUnitOfWork();
+            $permission = Permission::defineManaged(
+                PermissionId::generate(),
+                PermissionName::fromString('CONTENT_PUBLISH'),
+                PermissionTier::ADMIN_SAFE,
+                new DateTimeImmutable('2026-01-01T00:00:00+00:00')
+            );
+            $agent = $this->agent();
+            $agents = new InMemoryAgentRepository($unitOfWork);
+            $agents->add($agent);
+            $permissions = new InMemoryPermissionRepository($unitOfWork);
+            $permissions->add($permission);
+            $unitOfWork->authorizationReferenceState()->addPermission($permission->reconcileManaged(
+                PermissionName::fromString('CONTENT_REVIEW'),
+                PermissionTier::SUPER_ADMIN_ONLY,
+                new DateTimeImmutable(self::NOW)
+            ));
+            $events = new InMemoryEventDispatcher();
+            if ($case === 'grant') {
+                $handler = new GrantPermissionToAgentHandler(
+                    $agents,
+                    $permissions,
+                    new FixedClock(self::NOW),
+                    $unitOfWork,
+                    $events
+                );
+            } else {
+                $handler = new ReplaceAgentPermissionsHandler(
+                    $agents,
+                    $permissions,
+                    new FixedClock(self::NOW),
+                    $unitOfWork,
+                    $events
+                );
+            }
+
+            $actorId = UserId::generate();
+            if ($case === 'grant') {
+                $command = new GrantPermissionToAgent($actorId, $agent->getId(), $permission->getId());
+            } else {
+                $command = new ReplaceAgentPermissions($actorId, $agent->getId(), 1, [$permission->getId()]);
+            }
+
+            try {
+                $handler->handle(CommandMessage::create($command));
+                self::fail('A stale Permission definition was accepted.');
+            } catch (AgentPermissionAssignmentException) {
+                self::assertSame($agent, $agents->getById($agent->getId()));
+                self::assertSame(0, $agents->permissionAssignmentReplacementCalls());
+                self::assertCount(1, $events->events());
+                self::assertInstanceOf(CommandFailedEvent::class, $events->events()[0]);
+            }
+        }
+    }
+
+    public function test_no_op_assignments_reject_tier_change_at_the_authoritative_fence(): void
+    {
+        foreach (['grant', 'replace'] as $case) {
+            $unitOfWork = new InMemoryUnitOfWork();
+            $permission = Permission::defineManaged(
+                PermissionId::generate(),
+                PermissionName::fromString('CONTENT_PUBLISH'),
+                PermissionTier::ADMIN_SAFE,
+                new DateTimeImmutable('2026-01-01T00:00:00+00:00')
+            );
+            $agent = $this->agent()->grantPermission($permission->getId(), new DateTimeImmutable(self::NOW));
+            $agents = new InMemoryAgentRepository(
+                $unitOfWork,
+                beforeValidatePermissionAssignments: static function () use ($permission, $unitOfWork): void {
+                    self::assertTrue($unitOfWork->authorizationReferenceState()->isReferenceFenceHeld());
+                    $unitOfWork->authorizationReferenceState()->addPermission($permission->reconcileManaged(
+                        $permission->getName(),
+                        PermissionTier::SUPER_ADMIN_ONLY,
+                        new DateTimeImmutable(self::NOW)
+                    ));
+                }
+            );
+            $agents->add($agent);
+            $permissions = new InMemoryPermissionRepository($unitOfWork);
+            $permissions->add($permission);
+            $events = new InMemoryEventDispatcher();
+            if ($case === 'grant') {
+                $handler = new GrantPermissionToAgentHandler(
+                    $agents,
+                    $permissions,
+                    new FixedClock(self::NOW),
+                    $unitOfWork,
+                    $events
+                );
+            } else {
+                $handler = new ReplaceAgentPermissionsHandler(
+                    $agents,
+                    $permissions,
+                    new FixedClock(self::NOW),
+                    $unitOfWork,
+                    $events
+                );
+            }
+
+            $actorId = UserId::generate();
+            if ($case === 'grant') {
+                $command = new GrantPermissionToAgent($actorId, $agent->getId(), $permission->getId());
+            } else {
+                $command = new ReplaceAgentPermissions($actorId, $agent->getId(), 2, [$permission->getId()]);
+            }
+
+            try {
+                $handler->handle(CommandMessage::create($command));
+                self::fail('An idempotent assignment bypassed the tier fence.');
+            } catch (AgentPermissionAssignmentException) {
+                self::assertSame($agent, $agents->getById($agent->getId()));
+                self::assertSame(0, $agents->permissionAssignmentReplacementCalls());
+                self::assertCount(1, $events->events());
+                self::assertInstanceOf(CommandFailedEvent::class, $events->events()[0]);
+            }
+        }
+    }
+
+    public function test_tier_promotion_at_assignment_write_rejects_the_entire_transaction(): void
+    {
+        foreach (['grant', 'replace'] as $case) {
+            $unitOfWork = new InMemoryUnitOfWork();
+            $permission = Permission::defineManaged(
+                PermissionId::generate(),
+                PermissionName::fromString('CONTENT_PUBLISH'),
+                PermissionTier::ADMIN_SAFE,
+                new DateTimeImmutable('2026-01-01T00:00:00+00:00')
+            );
+            $agent = $this->agent();
+            $agents = new InMemoryAgentRepository(
+                $unitOfWork,
+                beforeReplacePermissionAssignments: static function () use ($permission, $unitOfWork): void {
+                    self::assertTrue($unitOfWork->authorizationReferenceState()->isReferenceFenceHeld());
+                    $unitOfWork->authorizationReferenceState()->addPermission($permission->reconcileManaged(
+                        $permission->getName(),
+                        PermissionTier::SUPER_ADMIN_ONLY,
+                        new DateTimeImmutable(self::NOW)
+                    ));
+                }
+            );
+            $agents->add($agent);
+            $permissions = new InMemoryPermissionRepository($unitOfWork);
+            $permissions->add($permission);
+            $events = new InMemoryEventDispatcher();
+            if ($case === 'grant') {
+                $handler = new GrantPermissionToAgentHandler(
+                    $agents,
+                    $permissions,
+                    new FixedClock(self::NOW),
+                    $unitOfWork,
+                    $events
+                );
+            } else {
+                $handler = new ReplaceAgentPermissionsHandler(
+                    $agents,
+                    $permissions,
+                    new FixedClock(self::NOW),
+                    $unitOfWork,
+                    $events
+                );
+            }
+
+            $actorId = UserId::generate();
+            if ($case === 'grant') {
+                $command = new GrantPermissionToAgent($actorId, $agent->getId(), $permission->getId());
+            } else {
+                $command = new ReplaceAgentPermissions($actorId, $agent->getId(), 1, [$permission->getId()]);
+            }
+
+            try {
+                $handler->handle(CommandMessage::create($command));
+                self::fail('Concurrent tier promotion was accepted.');
+            } catch (AgentPermissionAssignmentException) {
+                self::assertSame($agent, $agents->getById($agent->getId()));
+                self::assertSame(1, $agents->permissionAssignmentReplacementCalls());
+                self::assertCount(1, $events->events());
+                self::assertInstanceOf(CommandFailedEvent::class, $events->events()[0]);
+            }
         }
     }
 

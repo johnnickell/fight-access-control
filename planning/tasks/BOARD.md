@@ -5,7 +5,7 @@ dependencies, acceptance, and verification.
 
 ## What's Next?
 
-First ready Task: [TASK-00044](00044-TASK.md) — Enforce tier eligibility on direct Agent assignments.
+First ready Task: [TASK-00045](00045-TASK.md) — Reconcile protected managed policy without forbidden membership.
 
 ## In Progress
 
@@ -15,13 +15,11 @@ No Tasks are currently in this state.
 
 | Order | TASK ID | Title | Parent TICKET | Status | Blocked by | PR |
 | --- | --- | --- | --- | --- | --- | --- |
-| 44 | [TASK-00044](00044-TASK.md) | Enforce tier eligibility on direct Agent assignments | [TICKET-00009](../tickets/00009-TICKET.md) — Delegate Eligible Permissions to Custom Roles and Agents | ready-for-agent | [TASK-00041](00041-TASK.md) | — |
+| 45 | [TASK-00045](00045-TASK.md) | Reconcile protected managed policy without forbidden membership | [TICKET-00010](../tickets/00010-TICKET.md) — Reconcile Protected Managed Policy Safely | ready-for-agent | [TASK-00042](00042-TASK.md), [TASK-00043](00043-TASK.md), [TASK-00044](00044-TASK.md) | — |
 
 ## Waiting
 
-| Order | TASK ID | Title | Parent TICKET | Status | Blocked by | PR |
-| --- | --- | --- | --- | --- | --- | --- |
-| 45 | [TASK-00045](00045-TASK.md) | Reconcile protected managed policy without forbidden membership | [TICKET-00010](../tickets/00010-TICKET.md) — Reconcile Protected Managed Policy Safely | ready-for-agent | [TASK-00042](00042-TASK.md), [TASK-00043](00043-TASK.md), [TASK-00044](00044-TASK.md) | — |
+No Tasks are currently in this state.
 
 ## Needs Info
 
@@ -82,3 +80,4 @@ No Tasks are currently in this state.
 | 41 | [TASK-00041](00041-TASK.md) | Classify every Permission with a non-null tier | [TICKET-00009](../tickets/00009-TICKET.md) — Delegate Eligible Permissions to Custom Roles and Agents | done | — | https://github.com/johnnickell/fight-access-control/pull/68 |
 | 42 | [TASK-00042](00042-TASK.md) | Reserve Super Admin Role identity and preserve User Role changes | [TICKET-00011](../tickets/00011-TICKET.md) — Reserve Super Admin Role Across User Role Administration | done | — | https://github.com/johnnickell/fight-access-control/pull/70 |
 | 43 | [TASK-00043](00043-TASK.md) | Enforce tier eligibility on custom Role grants | [TICKET-00009](../tickets/00009-TICKET.md) — Delegate Eligible Permissions to Custom Roles and Agents | done | [TASK-00041](00041-TASK.md), [TASK-00042](00042-TASK.md) | https://github.com/johnnickell/fight-access-control/pull/71 |
+| 44 | [TASK-00044](00044-TASK.md) | Enforce tier eligibility on direct Agent assignments | [TICKET-00009](../tickets/00009-TICKET.md) — Delegate Eligible Permissions to Custom Roles and Agents | done | [TASK-00041](00041-TASK.md) | https://github.com/johnnickell/fight-access-control/pull/72 |

@@ -6,7 +6,7 @@ This is a consumer adoption note for the unreleased pre-1.0 Permission contract 
 
 Before consuming this contract, update persistence mappings, hydrators and read projections to store and restore a non-null tier, including for custom Permissions. Audit any code that interpreted a null tier as custom or treated it as eligible: use `isManaged()` for ownership and `getTier()` for classification. Reject or quarantine missing, invalid, or null legacy tier data instead of silently defaulting it to `ADMIN_SAFE`; resolve any stored data under the consumer's migration policy before deploying the new code. Update safe-array clients that expected `tier: null` for custom Permissions.
 
-Tier classification alone does not authorize a caller. Custom-Role grants now enforce tier eligibility; direct Agent assignment eligibility remains separate work. Consumers own their database and adapter migrations and entry-point authorization. Fight Agent OS has no stored Permissions to migrate, but its schema and adapter adoption are not part of this package change. No tag or release is implied by this note.
+Tier classification alone does not authorize a caller. Custom-Role grants and direct Agent assignments enforce tier eligibility; the consumer remains responsible for caller and target authorization. Consumers own their database and adapter migrations and entry-point authorization. Fight Agent OS has no stored Permissions to migrate, but its schema and adapter adoption are not part of this package change. No tag or release is implied by this note.
 
 ## Super Admin Role and User Role commands (TASK-00042)
 
@@ -41,6 +41,23 @@ missing or protected Permissions under the same tier/reference fence; managed-Ro
 this custom-Role rule. The adapter chooses locking; a preflight read alone is not a concurrency guarantee. Consumer
 persistence and builder wiring must be upgraded together. Managed-policy promotion and end-to-end promotion/grant
 integration are separate TASK-00045 work. No consumer adoption or release is claimed.
+
+## Direct Agent Permission assignments (TASK-00044)
+
+Remove the `AgentPermissionAdministrationAuthorization` binding from `GrantPermissionToAgentHandler`,
+`RevokePermissionFromAgentHandler`, and `ReplaceAgentPermissionsHandler` constructors. The port, its failure
+exception, and the package test double have been retired. Actor IDs remain provenance, not authority; the
+consumer builder must protect **all** entry points, including direct bus invocations and no-ops. Grant and
+complete-set replacement accept only authoritative `ADMIN_SAFE` definitions, regardless of caller identity;
+revocation retains ordinary desired-state semantics. Rejected commands emit safe failure evidence after rollback.
+
+Agent repository adapters must implement `validatePermissionAssignments(array $expectedPermissions)` using the
+current definition **identity** and tier under a transaction-duration reference/tier fence, including no-op
+grants and replacements. `replacePermissionAssignments()` must reject any replacement containing missing or
+protected Permissions and hold the same fence through commit. Share this fence with managed tier promotion. The
+adapter chooses locking; a preflight lookup alone is insufficient. Consumer persistence and builder wiring must
+be upgraded together. Managed-policy promotion and end-to-end interleaving proof belong to TASK-00045. No
+consumer adoption or release is claimed.
 
 The managed Super Admin Role may be assigned to a pending User for bootstrap. Assignment/removal otherwise retain
 ordinary expected revisions, authoritative reference checks, no-op behavior, and post-commit events; only active

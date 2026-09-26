@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Fight\AccessControl\Application\AccessControl\Agent\CommandHandler;
 
-use Fight\AccessControl\Application\AccessControl\Agent\Service\AgentPermissionAdministrationAuthorization;
 use Fight\AccessControl\Application\AccessControl\Timing\Service\Clock;
 use Fight\AccessControl\Domain\AccessControl\Agent\AgentRepository;
 use Fight\AccessControl\Domain\AccessControl\Agent\Command\RevokePermissionFromAgent;
@@ -20,7 +19,7 @@ use Throwable;
 /**
  * Class RevokePermissionFromAgentHandler
  *
- * Atomically revokes an authoritative Permission directly from an authorized Agent.
+ * Atomically revokes an authoritative Permission directly from an Agent.
  */
 final readonly class RevokePermissionFromAgentHandler implements CommandHandler
 {
@@ -32,7 +31,6 @@ final readonly class RevokePermissionFromAgentHandler implements CommandHandler
     public function __construct(
         private AgentRepository $agentRepository,
         private PermissionRepository $permissionRepository,
-        private AgentPermissionAdministrationAuthorization $agentPermissionAdministrationAuthorization,
         private Clock $clock,
         private TransactionalUnitOfWork $unitOfWork,
         private EventDispatcher $eventDispatcher
@@ -55,7 +53,6 @@ final readonly class RevokePermissionFromAgentHandler implements CommandHandler
             $event = new AgentPermissionAssignmentCoordinator(
                 $this->agentRepository,
                 $this->permissionRepository,
-                $this->agentPermissionAdministrationAuthorization,
                 $this->clock,
                 $this->unitOfWork
             )->revoke($command->getActorId(), $command->getAgentId(), $command->getPermissionId());

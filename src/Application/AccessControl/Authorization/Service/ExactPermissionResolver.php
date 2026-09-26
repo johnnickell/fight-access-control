@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Fight\AccessControl\Application\AccessControl\Authorization\Service;
 
 use Fight\AccessControl\Domain\AccessControl\Authorization\PrincipalPermission;
+use Fight\AccessControl\Domain\AccessControl\Permission\Permission;
 use Fight\AccessControl\Domain\AccessControl\Permission\PermissionId;
 use Fight\AccessControl\Domain\AccessControl\Permission\PermissionRepository;
 
@@ -37,6 +38,26 @@ final readonly class ExactPermissionResolver
      */
     public function resolve(array $requestedIds): array
     {
+        $permissions = $this->resolveDefinitions($requestedIds);
+        $snapshots = [];
+        foreach ($permissions as $permission) {
+            $snapshots[] = new PrincipalPermission($permission->getId(), $permission->getName());
+        }
+
+        return $snapshots;
+    }
+
+    /**
+     * Returns exact authoritative Permission definitions in requested order
+     *
+     * @phpstan-param list<PermissionId> $requestedIds
+     *
+     * @return list<Permission>
+     *
+     * @throws ExactPermissionResolutionException When the definitions are incomplete or mismatched
+     */
+    public function resolveDefinitions(array $requestedIds): array
+    {
         $permissions = $this->permissionRepository->getByIds($requestedIds);
         if (count($requestedIds) !== count($permissions)) {
             $this->reject();
@@ -52,17 +73,17 @@ final readonly class ExactPermissionResolver
             $permissionsById[$permissionKey] = $permission;
         }
 
-        $snapshots = [];
+        $definitions = [];
         foreach ($requestedIds as $requestedId) {
             $permissionKey = $requestedId->toString();
             if (!isset($permissionsById[$permissionKey])) {
                 $this->reject();
             }
 
-            $snapshots[] = new PrincipalPermission($requestedId, $permissionsById[$permissionKey]->getName());
+            $definitions[] = $permissionsById[$permissionKey];
         }
 
-        return $snapshots;
+        return $definitions;
     }
 
     /**

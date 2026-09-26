@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Fight\AccessControl\Application\AccessControl\Agent\CommandHandler;
 
-use Fight\AccessControl\Application\AccessControl\Agent\Service\AgentPermissionAdministrationAuthorization;
 use Fight\AccessControl\Application\AccessControl\Authorization\Service\ExactPermissionResolutionException;
 use Fight\AccessControl\Application\AccessControl\Authorization\Service\ExactPermissionResolver;
 use Fight\AccessControl\Application\AccessControl\Timing\Service\Clock;
@@ -18,6 +17,7 @@ use Fight\AccessControl\Domain\AccessControl\Agent\Exception\AgentPermissionAssi
 use Fight\AccessControl\Domain\AccessControl\Permission\Permission;
 use Fight\AccessControl\Domain\AccessControl\Permission\PermissionId;
 use Fight\AccessControl\Domain\AccessControl\Permission\PermissionRepository;
+use Fight\AccessControl\Domain\AccessControl\Permission\PermissionTier;
 use Fight\AccessControl\Domain\AccessControl\User\UserId;
 use Fight\Common\Application\Repository\TransactionalUnitOfWork;
 
@@ -38,7 +38,6 @@ final readonly class AgentPermissionAssignmentCoordinator
     public function __construct(
         private AgentRepository $agentRepository,
         private PermissionRepository $permissionRepository,
-        private AgentPermissionAdministrationAuthorization $agentPermissionAdministrationAuthorization,
         private Clock $clock,
         private TransactionalUnitOfWork $unitOfWork
     ) {
@@ -51,8 +50,20 @@ final readonly class AgentPermissionAssignmentCoordinator
     {
         return $this->unitOfWork->commitTransactional(
             function () use ($actorId, $agentId, $permissionId): ?PermissionGrantedToAgent {
-                $agent = $this->authorizedAgent($actorId, $agentId);
-                $this->assertPermissionExists($permissionId);
+                $agent = $this->getAgent($agentId);
+                $permission = $this->permissionRepository->getById($permissionId);
+                if (!$permission instanceof Permission || !$permission->getId()->equals($permissionId)) {
+                    throw new AgentPermissionAssignmentException('The Permission does not exist.');
+                }
+
+                if ($permission->getTier() !== PermissionTier::ADMIN_SAFE) {
+                    throw new AgentPermissionAssignmentException('The Permission is not eligible for an Agent.');
+                }
+
+                if (!$this->agentRepository->validatePermissionAssignments([$permission])) {
+                    throw new AgentPermissionAssignmentException('The authoritative Permission changed concurrently.');
+                }
+
                 if ($agent->hasPermission($permissionId)) {
                     return null;
                 }
@@ -73,7 +84,7 @@ final readonly class AgentPermissionAssignmentCoordinator
     {
         return $this->unitOfWork->commitTransactional(
             function () use ($actorId, $agentId, $permissionId): ?PermissionRevokedFromAgent {
-                $agent = $this->authorizedAgent($actorId, $agentId);
+                $agent = $this->getAgent($agentId);
                 $this->assertPermissionExists($permissionId);
                 if (!$agent->hasPermission($permissionId)) {
                     return null;
@@ -106,9 +117,9 @@ final readonly class AgentPermissionAssignmentCoordinator
                 $expectedPermissionAssignmentRevision,
                 $permissionIds
             ): ?AgentPermissionsReplaced {
-                $agent = $this->authorizedAgent($actorId, $agentId);
+                $agent = $this->getAgent($agentId);
                 $normalizedPermissionIds = $this->normalizePermissionIds($permissionIds);
-                $this->assertPermissionsResolveExactly($normalizedPermissionIds);
+                $this->assertPermissionsAreEligible($normalizedPermissionIds);
                 $replacedAt = $this->clock->now();
                 $replacement = $agent->replacePermissions(
                     $normalizedPermissionIds,
@@ -133,11 +144,10 @@ final readonly class AgentPermissionAssignmentCoordinator
     }
 
     /**
-     * Returns the authorized target Agent
+     * Returns the target Agent
      */
-    private function authorizedAgent(UserId $actorId, AgentId $agentId): Agent
+    private function getAgent(AgentId $agentId): Agent
     {
-        $this->agentPermissionAdministrationAuthorization->assertCanManageAgentPermissions($actorId);
         $agent = $this->agentRepository->getById($agentId);
         if (!$agent instanceof Agent) {
             throw new AgentPermissionAssignmentException('The Agent does not exist.');
@@ -151,7 +161,8 @@ final readonly class AgentPermissionAssignmentCoordinator
      */
     private function assertPermissionExists(PermissionId $permissionId): void
     {
-        if (!$this->permissionRepository->getById($permissionId) instanceof Permission) {
+        $permission = $this->permissionRepository->getById($permissionId);
+        if (!$permission instanceof Permission || !$permission->getId()->equals($permissionId)) {
             throw new AgentPermissionAssignmentException('The Permission does not exist.');
         }
     }
@@ -161,14 +172,24 @@ final readonly class AgentPermissionAssignmentCoordinator
      *
      * @phpstan-param list<PermissionId> $permissionIds
      */
-    private function assertPermissionsResolveExactly(array $permissionIds): void
+    private function assertPermissionsAreEligible(array $permissionIds): void
     {
         try {
-            new ExactPermissionResolver($this->permissionRepository)->resolve($permissionIds);
+            $permissions = new ExactPermissionResolver($this->permissionRepository)->resolveDefinitions($permissionIds);
         } catch (ExactPermissionResolutionException) {
             throw new AgentPermissionAssignmentException(
                 'The complete Agent Permission assignment set is not authoritative.'
             );
+        }
+
+        foreach ($permissions as $permission) {
+            if ($permission->getTier() !== PermissionTier::ADMIN_SAFE) {
+                throw new AgentPermissionAssignmentException('The Permission is not eligible for an Agent.');
+            }
+        }
+
+        if (!$this->agentRepository->validatePermissionAssignments($permissions)) {
+            throw new AgentPermissionAssignmentException('The authoritative Permissions changed concurrently.');
         }
     }
 
