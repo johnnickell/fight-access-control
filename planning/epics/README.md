@@ -11,4 +11,4 @@ This generated index is a projection; individual records remain canonical.
 | [EPIC-00005](00005-EPIC.md) | Agent-Aware MCP Tool Authorization | needs-info |
 | [EPIC-00006](00006-EPIC.md) | Recoverable Credential Delivery | done |
 | [EPIC-00007](00007-EPIC.md) | Adopt Current Fight Common Contracts | done |
-| [EPIC-00008](00008-EPIC.md) | Enforce Permission Grant Tiers | needs-triage |
+| [EPIC-00008](00008-EPIC.md) | Enforce Permission Grant Tiers | ready-for-agent |
