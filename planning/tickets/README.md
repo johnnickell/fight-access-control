@@ -14,4 +14,4 @@ This generated index is a projection; individual records remain canonical.
 | [TICKET-00008](00008-TICKET.md) | Use Supported Transactional Unit of Work Contracts | done |
 | [TICKET-00009](00009-TICKET.md) | Delegate Eligible Permissions to Custom Roles and Agents | ready-for-agent |
 | [TICKET-00010](00010-TICKET.md) | Reconcile Protected Managed Policy Safely | ready-for-agent |
-| [TICKET-00011](00011-TICKET.md) | Reserve Super Admin Role Across User Role Administration | ready-for-agent |
+| [TICKET-00011](00011-TICKET.md) | Reserve Super Admin Role Across User Role Administration | done |

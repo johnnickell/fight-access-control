@@ -2,7 +2,7 @@
 id: TICKET-00011
 epic: EPIC-00008
 title: Reserve Super Admin Role Across User Role Administration
-status: ready-for-agent
+status: done
 ---
 
 # Reserve Super Admin Role Across User Role Administration
@@ -52,15 +52,15 @@ without mutation or success Event; ordinary eligible assignments and removals ke
 
 ## Acceptance Evidence
 
-- [ ] Custom creation, rename, and inconsistent reconstruction cannot use the exact `ROLE_SUPER_ADMIN` name;
+- [x] Custom creation, rename, and inconsistent reconstruction cannot use the exact `ROLE_SUPER_ADMIN` name;
       neither an arbitrary Role ID nor adapter data can impersonate the managed Role in User assignment or principal
       resolution.
-- [ ] Ordinary User Role assignment/removal, including pending-User bootstrap assignment, retain revisions,
+- [x] Ordinary User Role assignment/removal, including pending-User bootstrap assignment, retain revisions,
       reference integrity, no-op behavior, rollback, and event ordering; active-only principal authentication
       remains unchanged.
-- [ ] The specified actor-only custom-Role lifecycle and User Role-assignment ports are removed from package
+- [x] The specified actor-only custom-Role lifecycle and User Role-assignment ports are removed from package
       handlers. Ownership-sensitive cross-user session, email-change, and invitation checks remain.
-- [ ] Focused package tests prove accepted and rejected Role identity paths and ordinary User Role behavior; the
+- [x] Focused package tests prove accepted and rejected Role identity paths and ordinary User Role behavior; the
       canonical `./bin/build` passes during implementation.
 
 ## Decision Links and Boundaries
@@ -74,8 +74,12 @@ Implements [WF-011](../wayfinder/tickets/WF-011-protected-permission-membership.
 No consumer-specific assignment confirmation, audit protocol, last-admin algorithm, Agent OS implementation,
 package tag, or release is part of this Ticket.
 
+TASK-00042 completed the package boundary and was independently accepted at
+`faef68d7ef9cf0cfaba814f5bb7a227b37835847`. Its focused tests and exact-coverage package gate passed;
+consumer persistence and command-entry adoption remain outside this Ticket.
+
 ## Child Tasks
 
 | Order | TASK ID | Title | Status |
 | --- | --- | --- | --- |
-| 42 | [TASK-00042](../tasks/00042-TASK.md) | Reserve Super Admin Role identity and preserve User Role changes | in-progress |
+| 42 | [TASK-00042](../tasks/00042-TASK.md) | Reserve Super Admin Role identity and preserve User Role changes | done |
