@@ -22,7 +22,8 @@ interface RoleRepository
      *
      * Implementations atomically reject duplicate Role IDs and canonical names as well as membership whose
      * Permission is no longer authoritative. Custom Role membership must reference only current ADMIN_SAFE
-     * Permissions. Validation and mutation occur under adapter-owned fences held through the enclosing Unit of Work.
+     * Permissions. Protected managed membership is allowed only for the authoritative managed ROLE_SUPER_ADMIN.
+     * Validation and mutation occur under adapter-owned fences held through the enclosing Unit of Work.
      *
      * @throws Exception When an error occurs
      */
@@ -108,7 +109,7 @@ interface RoleRepository
      * Validation and mutation occur under adapter-owned permission-reference, tier and unique-name fences held
      * through the enclosing Unit of Work and shared with PermissionRepository::remove() and managed tier changes.
      * For custom Roles, every replacement membership must remain an authoritative ADMIN_SAFE Permission; managed
-     * Roles may retain protected membership.
+     * Roles may retain protected membership only on the authoritative managed ROLE_SUPER_ADMIN.
      */
     public function replace(Role $expected, Role $replacement): bool;
 

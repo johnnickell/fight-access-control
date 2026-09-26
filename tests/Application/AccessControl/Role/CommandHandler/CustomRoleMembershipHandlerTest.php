@@ -351,8 +351,15 @@ final class CustomRoleMembershipHandlerTest extends TestCase
                 PermissionTier::SUPER_ADMIN_ONLY,
                 new DateTimeImmutable('2026-08-23T00:00:00+00:00')
             );
-            $promote = static function () use ($permissions, $permission, $protected, $unitOfWork): void {
+            $promote = static function () use ($permissions, $permission, $protected, $unitOfWork, $noOp): void {
                 self::assertTrue($unitOfWork->authorizationReferenceState()->isReferenceFenceHeld());
+                if ($noOp) {
+                    // Model a stale authoritative tier snapshot: promotion itself now rejects live membership.
+                    $unitOfWork->authorizationReferenceState()->addPermission($protected);
+
+                    return;
+                }
+
                 self::assertTrue($permissions->replace($permission, $protected));
             };
             $roles = new InMemoryRoleRepository(
@@ -435,7 +442,7 @@ final class CustomRoleMembershipHandlerTest extends TestCase
         $this->assertCommandFailure($events, $command, $failure);
     }
 
-    public function test_protected_grants_fail_for_any_actor_even_when_membership_is_already_present(): void
+    public function test_protected_grants_fail_for_any_actor_without_forbidden_existing_membership(): void
     {
         $superAdminRole = Role::defineManaged(
             RoleId::generate(),
@@ -446,13 +453,12 @@ final class CustomRoleMembershipHandlerTest extends TestCase
         $superAdmin = UserFixture::withRoleAssignments([$superAdminRole->getId()], 1);
         self::assertTrue($superAdmin->hasRole($superAdminRole->getId()));
 
-        foreach ([false, true] as $alreadyPresent) {
-            foreach ([$this->actorId(), $superAdmin->getId()] as $actorId) {
+        foreach ([$this->actorId(), $superAdmin->getId()] as $actorId) {
                 $unitOfWork = new InMemoryUnitOfWork();
                 $permission = $this->managedPermission();
                 $permissions = new InMemoryPermissionRepository($unitOfWork);
                 $permissions->add($permission);
-                $role = $this->role($alreadyPresent ? [$permission->getId()] : []);
+                $role = $this->role();
                 $roles = new InMemoryRoleRepository(
                     $unitOfWork,
                     beforeReplace: static function (): void {
@@ -465,7 +471,6 @@ final class CustomRoleMembershipHandlerTest extends TestCase
                     PermissionTier::SUPER_ADMIN_ONLY,
                     $permission->getUpdatedAt()
                 );
-                // A managed definition can be promoted after an earlier eligible membership was stored.
                 self::assertTrue($permissions->replace($permission, $protected));
                 $events = new InMemoryEventDispatcher();
                 $command = new GrantPermissionToCustomRole($actorId, $role->getId(), $permission->getId());
@@ -478,7 +483,6 @@ final class CustomRoleMembershipHandlerTest extends TestCase
                 self::assertSame($role, $roles->getById($role->getId()));
                 self::assertFalse($unitOfWork->transactionCompleted);
                 $this->assertCommandFailure($events, $command, $failure);
-            }
         }
     }
 

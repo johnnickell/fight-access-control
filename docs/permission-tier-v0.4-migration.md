@@ -59,6 +59,26 @@ adapter chooses locking; a preflight lookup alone is insufficient. Consumer pers
 be upgraded together. Managed-policy promotion and end-to-end interleaving proof belong to TASK-00045. No
 consumer adoption or release is claimed.
 
+## Protected managed reconciliation (TASK-00045)
+
+A managed policy now rejects protected Permission membership anywhere except the authoritative managed Role
+named exactly `ROLE_SUPER_ADMIN`. Managed-policy preview rejects invalid definitions and reports existing forbidden
+membership on promotion; apply rechecks inside its transaction. To promote an existing managed Permission, first
+remove any custom-Role or Agent assignments and reconcile ordinary managed-Role membership away while the Permission
+is still `ADMIN_SAFE`. Do not expect the promotion to strip membership or to remove it in the same reconciliation.
+A failed promotion rolls back the complete policy change and emits only the existing failure evidence.
+
+Consumer adapters must implement `AgentRepository::hasPermissionAssignment()` using authoritative direct membership.
+`PermissionRepository::replace()` must compare the expected Permission, and, on promotion to `SUPER_ADMIN_ONLY`,
+atomically reject any custom-Role, ordinary managed-Role or Agent membership. Hold the same transaction-duration
+reference/tier fence as `RoleRepository::validateCustomPermissionGrant()`, `RoleRepository::add()`/`replace()`,
+`AgentRepository::validatePermissionAssignments()` and `replacePermissionAssignments()`, including idempotent
+no-op grant paths. Managed Role writes must admit protected membership only for the authoritative managed
+`ROLE_SUPER_ADMIN`. A preview read alone cannot fence concurrent grants; the concrete locking strategy and
+PostgreSQL/consumer proof remain consumer-owned. Inject the Agent repository into `ManagedPolicyPlanner` for
+promotion; an older composition lacking it rejects promotion closed. These changes are pre-1.0 public contract
+changes, not a released tag, consumer adoption, or historical data migration.
+
 The managed Super Admin Role may be assigned to a pending User for bootstrap. Assignment/removal otherwise retain
 ordinary expected revisions, authoritative reference checks, no-op behavior, and post-commit events; only active
 Users obtain authenticated principals. This note does not certify any consumer adoption or package release.

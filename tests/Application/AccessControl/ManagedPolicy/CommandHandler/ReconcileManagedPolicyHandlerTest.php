@@ -149,7 +149,7 @@ final class ReconcileManagedPolicyHandlerTest extends TestCase
         ));
         $command = $this->command();
         $preview = new PreviewManagedPolicyHandler(
-            new ManagedPolicyPlanner($permissions, $roles, $users)
+            new ManagedPolicyPlanner($permissions, $roles, $users, new InMemoryAgentRepository($unitOfWork))
         )->handle(QueryMessage::create(
             new PreviewManagedPolicy($command->getPolicy())
         ));
@@ -161,9 +161,9 @@ final class ReconcileManagedPolicyHandlerTest extends TestCase
                 $this->permissionPlan(101, 'VIEW_USERS', 'ADMIN_SAFE', 'UNCHANGED')
             ],
             'roles'       => [
-                $this->rolePlan(203, 'ROLE_ADMIN', [102, 103], 'CREATE'),
-                $this->rolePlan(202, 'ROLE_EDITOR', [102, 103], 'RECONCILE'),
+                $this->rolePlan(202, 'ROLE_EDITOR', [103], 'RECONCILE'),
                 $this->rolePlan(204, 'ROLE_OBSOLETE', [104], 'REMOVE'),
+                $this->rolePlan(203, 'ROLE_SUPER_ADMIN', [102, 103], 'CREATE'),
                 $this->rolePlan(201, 'ROLE_VIEWER', [101], 'UNCHANGED')
             ]
         ];
@@ -175,7 +175,7 @@ final class ReconcileManagedPolicyHandlerTest extends TestCase
         $handler = new ReconcileManagedPolicyHandler(
             $permissions,
             $roles,
-            new ManagedPolicyPlanner($permissions, $roles, $users),
+            new ManagedPolicyPlanner($permissions, $roles, $users, new InMemoryAgentRepository($unitOfWork)),
             $unitOfWork,
             $events,
             new FixedClock(new DateTimeImmutable('2026-08-23T12:00:00+00:00'))
@@ -212,7 +212,7 @@ final class ReconcileManagedPolicyHandlerTest extends TestCase
             $roles->getById($this->roleId(290))?->getName()->toString()
         );
         self::assertSame(
-            [$this->permissionId(102)->toString(), $this->permissionId(103)->toString()],
+            [$this->permissionId(103)->toString()],
             array_map(
                 static fn(PermissionId $id): string => $id->toString(),
                 $roles->getById($this->roleId(202))?->getPermissionIds() ?? []
@@ -776,7 +776,8 @@ final class ReconcileManagedPolicyHandlerTest extends TestCase
             new ManagedPolicyPlanner(
                 $permissions,
                 $roles,
-                new InMemoryUserRepository($unitOfWork)
+                new InMemoryUserRepository($unitOfWork),
+                $agents
             ),
             $unitOfWork,
             $events,
@@ -831,8 +832,8 @@ final class ReconcileManagedPolicyHandlerTest extends TestCase
                 $this->permission(101, 'VIEW_USERS', PermissionTier::ADMIN_SAFE)
             ],
             [
-                $this->role(203, 'ROLE_ADMIN', [102, 103]),
-                $this->role(202, 'ROLE_EDITOR', [102, 103]),
+                $this->role(203, 'ROLE_SUPER_ADMIN', [102, 103]),
+                $this->role(202, 'ROLE_EDITOR', [103]),
                 $this->role(201, 'ROLE_VIEWER', [101])
             ],
             [$this->permissionId(101)]

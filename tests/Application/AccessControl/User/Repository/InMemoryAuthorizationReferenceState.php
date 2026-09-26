@@ -65,6 +65,44 @@ final class InMemoryAuthorizationReferenceState
         return array_all($ids, $this->permissionIsAdminSafe(...));
     }
 
+    public function protectedPromotionIsAllowed(PermissionId $id): bool
+    {
+        if ($this->agentContainsPermission($id)) {
+            return false;
+        }
+
+        foreach ($this->roles as $role) {
+            if (!$role->hasPermission($id)) {
+                continue;
+            }
+
+            if (!$role->isManaged() || $role->getName()->toString() !== Role::SUPER_ADMIN_NAME) {
+                return false;
+            }
+
+            $role->assertConsistentWithSuperAdmin($role);
+        }
+
+        return true;
+    }
+
+    public function managedMembershipIsEligible(Role $role): bool
+    {
+        foreach ($role->getPermissionIds() as $id) {
+            if (($this->permissions[$id->toString()] ?? null)?->getTier() !== PermissionTier::SUPER_ADMIN_ONLY) {
+                continue;
+            }
+
+            if (!$role->isManaged() || $role->getName()->toString() !== Role::SUPER_ADMIN_NAME) {
+                return false;
+            }
+
+            $role->assertConsistentWithSuperAdmin($role);
+        }
+
+        return true;
+    }
+
     public function addRole(Role $role): void
     {
         $this->roles[$role->getId()->toString()] = $role;

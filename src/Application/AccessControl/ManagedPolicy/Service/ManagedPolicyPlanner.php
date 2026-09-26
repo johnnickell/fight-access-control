@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Fight\AccessControl\Application\AccessControl\ManagedPolicy\Service;
 
+use Fight\AccessControl\Domain\AccessControl\Agent\AgentRepository;
 use Fight\AccessControl\Domain\AccessControl\ManagedPolicy\Exception\ManagedPolicyDefinitionException;
 use Fight\AccessControl\Domain\AccessControl\ManagedPolicy\ManagedPermissionDefinition;
 use Fight\AccessControl\Domain\AccessControl\ManagedPolicy\ManagedPermissionPlanItem;
@@ -15,7 +16,9 @@ use Fight\AccessControl\Domain\AccessControl\ManagedPolicy\ManagedRolePlanItem;
 use Fight\AccessControl\Domain\AccessControl\Permission\Permission;
 use Fight\AccessControl\Domain\AccessControl\Permission\PermissionId;
 use Fight\AccessControl\Domain\AccessControl\Permission\PermissionRepository;
+use Fight\AccessControl\Domain\AccessControl\Permission\PermissionTier;
 use Fight\AccessControl\Domain\AccessControl\Role\Role;
+use Fight\AccessControl\Domain\AccessControl\Role\RoleName;
 use Fight\AccessControl\Domain\AccessControl\Role\RoleRepository;
 use Fight\AccessControl\Domain\AccessControl\User\UserRepository;
 
@@ -34,7 +37,8 @@ final readonly class ManagedPolicyPlanner
     public function __construct(
         private PermissionRepository $permissionRepository,
         private RoleRepository $roleRepository,
-        private UserRepository $userRepository
+        private UserRepository $userRepository,
+        private ?AgentRepository $agentRepository = null
     ) {
     }
 
@@ -149,6 +153,25 @@ final readonly class ManagedPolicyPlanner
             throw new ManagedPolicyDefinitionException('A custom permission cannot be claimed by managed policy.');
         }
 
+        if (
+            $byId instanceof Permission
+            && $byId->getTier() !== PermissionTier::SUPER_ADMIN_ONLY
+            && $definition->getTier() === PermissionTier::SUPER_ADMIN_ONLY
+        ) {
+            foreach ($this->roleRepository->getContainingPermission($definition->getId()) as $role) {
+                if (!$role->isManaged() || $role->getName()->toString() !== Role::SUPER_ADMIN_NAME) {
+                    throw new ManagedPolicyDefinitionException('Protected promotion conflicts with Role membership.');
+                }
+            }
+
+            if (
+                !$this->agentRepository instanceof AgentRepository
+                || $this->agentRepository->hasPermissionAssignment($definition->getId())
+            ) {
+                throw new ManagedPolicyDefinitionException('Protected promotion conflicts with Agent membership.');
+            }
+        }
+
         $action = match (true) {
             !$byId instanceof Permission => ManagedPolicyChangeAction::CREATE,
             !$byId->getName()->equals($definition->getName()),
@@ -166,6 +189,9 @@ final readonly class ManagedPolicyPlanner
     {
         $byId = $this->roleRepository->getById($definition->getId());
         $byName = $this->roleRepository->getByName($definition->getName());
+        $designated = $this->roleRepository->getByName(RoleName::fromString(Role::SUPER_ADMIN_NAME));
+        $byId?->assertConsistentWithSuperAdmin($designated);
+        $byName?->assertConsistentWithSuperAdmin($designated);
         if ($byName instanceof Role && !$byName->getId()->equals($definition->getId())) {
             throw new ManagedPolicyDefinitionException(sprintf(
                 'Role name "%s" belongs to persisted identifier "%s".',

@@ -10,6 +10,7 @@ use Fight\AccessControl\Domain\AccessControl\Agent\AgentCredentialId;
 use Fight\AccessControl\Domain\AccessControl\Agent\AgentId;
 use Fight\AccessControl\Domain\AccessControl\Agent\AgentRepository;
 use Fight\AccessControl\Domain\AccessControl\Permission\Permission;
+use Fight\AccessControl\Domain\AccessControl\Permission\PermissionId;
 use Fight\Common\Domain\Collection\ArrayList;
 use Fight\Common\Domain\Repository\Pagination;
 use Fight\Common\Domain\Repository\ResultSet;
@@ -92,6 +93,11 @@ final class InMemoryAgentRepository implements AgentRepository
             count($this->agents),
             $records
         );
+    }
+
+    public function hasPermissionAssignment(PermissionId $permissionId): bool
+    {
+        return $this->authorizationReferences->agentContainsPermission($permissionId);
     }
 
     public function replace(Agent $expected, Agent $replacement): bool

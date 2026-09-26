@@ -9,6 +9,7 @@ use Fight\AccessControl\Domain\AccessControl\Permission\Permission;
 use Fight\AccessControl\Domain\AccessControl\Permission\PermissionId;
 use Fight\AccessControl\Domain\AccessControl\Permission\PermissionName;
 use Fight\AccessControl\Domain\AccessControl\Permission\PermissionRepository;
+use Fight\AccessControl\Domain\AccessControl\Permission\PermissionTier;
 use Fight\Common\Domain\Collection\ArrayList;
 use Fight\Common\Domain\Repository\Pagination;
 use Fight\Common\Domain\Repository\ResultSet;
@@ -27,7 +28,8 @@ final class InMemoryPermissionRepository implements PermissionRepository
         private readonly ?Closure $beforeRemove = null,
         private readonly bool $removeSucceeds = true,
         ?InMemoryAuthorizationReferenceState $authorizationReferences = null,
-        private readonly ?Closure $getByIdsResult = null
+        private readonly ?Closure $getByIdsResult = null,
+        private readonly ?Closure $beforeReplace = null
     ) {
         $resolvedAuthorizationReferences = $authorizationReferences ?? new InMemoryAuthorizationReferenceState();
         if (
@@ -128,6 +130,19 @@ final class InMemoryPermissionRepository implements PermissionRepository
 
     public function replace(Permission $expected, Permission $replacement): bool
     {
+        $this->authorizationReferences->holdThroughCompletion();
+        $this->beforeReplace?->__invoke();
+        if (
+            !$replacement->getId()->equals($expected->getId())
+            || (
+                $expected->getTier() !== PermissionTier::SUPER_ADMIN_ONLY
+                && $replacement->getTier() === PermissionTier::SUPER_ADMIN_ONLY
+                && !$this->authorizationReferences->protectedPromotionIsAllowed($expected->getId())
+            )
+        ) {
+            return false;
+        }
+
         foreach ($this->permissions as $index => $permission) {
             if ($permission !== $expected) {
                 continue;

@@ -147,7 +147,7 @@ final class InMemoryRoleRepositoryTest extends TestCase
 
         $managed = Role::defineManaged(
             RoleId::generate(),
-            RoleName::fromString('ROLE_MANAGED'),
+            RoleName::fromString('ROLE_SUPER_ADMIN'),
             [$permission->getId()],
             new DateTimeImmutable('2026-01-01T00:00:00+00:00')
         );
