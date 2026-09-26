@@ -64,8 +64,9 @@ behavior shared by Fight applications. The repository-local behavioral and secur
   consumer applications map transport data into and out of this representation.
 - **Managed Permission and Managed Role**: stable version-controlled authorization definitions reconciled
   exactly and atomically.
-- **Permission tier**: the non-null classification of a Permission. `ADMIN_SAFE` makes it eligible for controlled
-  delegation; `SUPER_ADMIN_ONLY` reserves its authority for the designated managed Role and human Users.
+- **Permission tier**: the non-null classification of a Permission. `ADMIN_SAFE` makes it eligible for delegation
+  through consumer-protected command entry points; `SUPER_ADMIN_ONLY` reserves its authority for the designated managed
+  Role and human Users.
 - **Custom Permission**: a runtime-owned Permission classified `ADMIN_SAFE` from creation. It cannot carry the
   protected tier; delegation still requires authority over the actor and target.
 - **Protected managed Permission**: a managed Permission the consuming project classifies `SUPER_ADMIN_ONLY`. The
@@ -95,10 +96,14 @@ ports, immutable token/read results, and transaction orchestration. This package
 framework dependency. Consumers own clients, persistence, HTTP and cookie adapters, cryptographic keys, mail,
 queues, realtime delivery, hosting, and runtime composition.
 
-Consumer outer layers normally authenticate, validate, authorize, choose synchronous or asynchronous invocation,
-and translate failures. Application and Domain code may therefore assume those outer checks succeeded and fail hard
-when their own invariants are violated. AccessControl keeps narrow Application authorization ports when a security
-decision is part of the package-owned use case and cannot be decided correctly by an outer adapter alone.
+Application builders protect every command entry point using controls suited to HTTP, CLI, workers, or other
+adapters. Consumer outer layers normally authenticate, validate, authorize, choose synchronous or asynchronous
+invocation, and translate failures. Application and Domain code may therefore assume those outer checks succeeded
+and fail hard when their own invariants are violated. For v0.4.0 planning, AccessControl retains its narrow
+Application authorization ports for cross-user session access, email-change administration, and pending-invitation
+correction, which concern ownership of a particular User's resource. The actor-only Role administration, Agent
+Permission, and User Role-assignment checks are scheduled for removal under WF-013; consumer-managed administrative
+Permissions and package-owned tier and managed-policy invariants remain distinct.
 Package-owned workflow coordinators are final implementation details marked `@internal`; consumers depend on the
 public commands, services, authenticated principals, and Security context rather than implementing those coordinators.
 Credential-delivery providers receive only one short-lived sensitive invocation after a committed claim and return a

@@ -14,8 +14,10 @@ Super Admin Role?
 
 ## Must decide
 
-- Whether assignment requires both ordinary role-association authority and explicit `ASSIGN_SUPER_ADMIN`, with
-  target Role identity checked inside the package use case on every command path.
+- Which assignment/removal safeguards are package invariants, given [WF-013](WF-013-target-aware-role-administration.md)
+  has settled that the actor-only User Role-assignment port is removed and caller authorization belongs to the
+  application builder. The original proposal asks consumers to require both ordinary role-association authority
+  and explicit `ASSIGN_SUPER_ADMIN`; do not assume package authorization.
 - How the consumer proves confirmation and records an audit without a forged command flag or leaked internal state.
 - Removal authority and confirmation independent of `ASSIGN_SUPER_ADMIN`; self-removal, last-admin, disabled/deleted
   accounts, bootstrap, recovery, idempotent no-op, and concurrent assignment/removal behavior.
@@ -24,7 +26,7 @@ Super Admin Role?
 ## Required evidence
 
 - Inspect current assign/remove handlers, User assignment revisions, repository fences, principal resolution, and
-  the consumer's actual permission IDs and confirmation/audit protocol. Test ordinary and elevated targets.
+  the consumer's actual permission definitions and confirmation/audit protocol. Test ordinary and elevated targets.
 
 ## Resolution boundary
 

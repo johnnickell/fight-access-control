@@ -7,8 +7,9 @@
 
 Every Permission has a non-null tier. A runtime-created custom Permission starts `ADMIN_SAFE` and cannot be
 reclassified as `SUPER_ADMIN_ONLY`; only managed policy may define the protected tier. This keeps one tier vocabulary
-and avoids treating a null tier as implicit authority. `ADMIN_SAFE` makes a Permission eligible for delegation, while
-the package command invokes consumer-supplied actor and target authorization before changing a Role or Agent.
+and avoids treating a null tier as implicit authority. `ADMIN_SAFE` makes a Permission eligible for delegation.
+The application builder protects command entry points and owns caller and target authorization, as clarified by
+WF-013. The package enforces tier eligibility without invoking a consumer authorization port.
 
 The accepted decision and its boundary are recorded in
 [WF-012](../wayfinder/tickets/WF-012-custom-permission-delegation.md). Public Permission/query contracts and consumer

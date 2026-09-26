@@ -11,3 +11,4 @@
 | [0007](0007-openapi-schema-metadata-distribution.md) | OpenAPI schema metadata distribution | accepted |
 | [0008](0008-openapi-payload-contract.md) | OpenAPI payload contract | accepted |
 | [0009](0009-non-null-custom-permission-tier.md) | Non-null Custom Permission tier | accepted for v0.4.0 planning |
+| [0010](0010-permission-eligibility-and-caller-authorization.md) | Permission eligibility and caller authorization | accepted for v0.4.0 planning |

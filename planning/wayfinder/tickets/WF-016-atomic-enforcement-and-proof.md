@@ -14,10 +14,11 @@ all supported command entry points?
 
 ## Must decide
 
-- Which authority reads and policy/role/permission revisions must be fenced through mutation, including no-op
-  paths; what guarantees the package contracts require from each adapter.
-- Safe failure and audit outcomes: no partial write or success event on denial, redacted failure evidence, and no
-  credential/internal-state disclosure through HTTP.
+- Which package-owned tier and policy/role/permission reads must be fenced through mutation, including no-op
+  paths; what guarantees the package contracts require from each adapter. The application builder protects each
+  command entry point under WF-013.
+- Safe failure and audit outcomes: no partial write or success event on a package invariant failure, redacted
+  failure evidence, and no credential/internal-state disclosure through HTTP.
 - Package behavior/conformance matrix for custom-Role and direct Agent changes plus consumer PostgreSQL,
   authorization, HTTP, and cross-adapter tests;
   distinguish package gate from the later tagged release and consumer `./bin/build` adoption gate.

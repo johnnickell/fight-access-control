@@ -8,8 +8,8 @@
 ## Destination
 
 Produce a decision-complete Fight AccessControl handoff for a proposed `v0.4.0` package release that enforces
-protected Permission membership and target-aware administration at package-owned command boundaries, detects and
-addresses existing invalid authority, and states the consumer integration obligations. The handoff must identify
+protected Permission membership at package-owned command boundaries, detects and addresses existing invalid
+authority, and states the consumer authorization obligations. The handoff must identify
 the package's current direct Agent Permission path as well as Role and User-role paths.
 
 **Done** = every linked decision is closed, remaining fog is resolved or excluded, and the map links to the resulting
@@ -37,7 +37,8 @@ EPIC, TICKET, and/or implementation TASKs. No implementation or release is autho
 ## Decisions so far
 
 1. **[Define protected Permission membership and designated Role identity](tickets/WF-011-protected-permission-membership.md) is settled.** A managed `SUPER_ADMIN_ONLY` Permission belongs only to the exact-name managed `ROLE_SUPER_ADMIN` and reaches only a human `User` through that Role. The consumer declares managed Permission names and tiers; the package enforces declared tiers and never grants protected authority to an Agent, custom Role, other managed Role, or direct User assignment.
-2. **[Classify custom Permissions for delegation](tickets/WF-012-custom-permission-delegation.md) is settled.** Every Permission has a non-null tier; a custom Permission starts `ADMIN_SAFE` and cannot become protected. `ADMIN_SAFE` allows controlled Role and direct Agent delegation only after package-invoked consumer authorization. Fight Agent OS has no stored Permissions to migrate, though its schema and adapter require changes.
+2. **[Classify custom Permissions for delegation](tickets/WF-012-custom-permission-delegation.md) is settled.** Every Permission has a non-null tier; a custom Permission starts `ADMIN_SAFE` and cannot become protected. `ADMIN_SAFE` allows controlled Role and direct Agent delegation; caller authorization belongs to the consumer. Fight Agent OS has no stored Permissions to migrate, though its schema and adapter require changes.
+3. **[Separate Permission eligibility from caller authorization](tickets/WF-013-target-aware-role-administration.md) is settled.** AccessControl enforces tier and managed-Role invariants in Role and Agent Permission commands. Application builders protect every command entry point using suitable controls; v0.4.0 removes actor-only checks from Role administration, Agent Permission, and User Role-assignment handlers without adding a target-aware port. Target-specific checks for sessions, email changes, and invitation correction remain. Direct command-bus access requires consumer-owned protection.
 
 ## Decisions
 
@@ -45,7 +46,7 @@ EPIC, TICKET, and/or implementation TASKs. No implementation or release is autho
 |---|---|---|---|---|---|
 | WF-011 | [Define protected Permission membership and designated Role identity](tickets/WF-011-protected-permission-membership.md) | Grilling | HITL | **Closed** | — |
 | WF-012 | [Classify custom Permissions for delegation](tickets/WF-012-custom-permission-delegation.md) | Grilling | HITL | **Closed** | WF-011 |
-| WF-013 | [Authorize Permission changes by target and scope](tickets/WF-013-target-aware-role-administration.md) | Grilling | HITL | **Open** | WF-011, WF-012 |
+| WF-013 | [Separate Permission eligibility from caller authorization](tickets/WF-013-target-aware-role-administration.md) | Grilling | HITL | **Closed** | WF-011, WF-012 |
 | WF-014 | [Set Super Admin assignment and removal guarantees](tickets/WF-014-super-admin-role-elevation.md) | Grilling | HITL | **Open** | WF-011 |
 | WF-015 | [Detect and remedy historical forbidden authority](tickets/WF-015-forbidden-authority-remediation.md) | Grilling | HITL | **Open** | WF-011 |
 | WF-016 | [Set atomic enforcement and integration proof](tickets/WF-016-atomic-enforcement-and-proof.md) | Grilling | HITL | **Open** | WF-013, WF-014, WF-015 |
@@ -53,17 +54,16 @@ EPIC, TICKET, and/or implementation TASKs. No implementation or release is autho
 ## Blocking relationships
 
 ```text
-Protected membership ──→ Custom Permission classification ──→ Target-aware Permission administration ──┐
+Protected membership ──→ Custom Permission classification ──→ Eligibility/authorization boundary ─────┐
          ├──────────────→ Super Admin assignment and removal ──────────────────────────────────────┼─→ Atomic enforcement and proof ──→ Handoff
          └──────────────→ Historical authority remediation ────────────────────────────────────────┘
 ```
 
 ## Frontier
 
-[Authorize Permission changes by target and scope](tickets/WF-013-target-aware-role-administration.md)
-is the next authored frontier. [Set Super Admin assignment and removal guarantees](tickets/WF-014-super-admin-role-elevation.md)
-and [Detect and remedy historical forbidden authority](tickets/WF-015-forbidden-authority-remediation.md) are also
-unblocked; they remain separate sessions.
+[Set Super Admin assignment and removal guarantees](tickets/WF-014-super-admin-role-elevation.md)
+is the next authored frontier. [Detect and remedy historical forbidden authority](tickets/WF-015-forbidden-authority-remediation.md)
+is also unblocked; it remains a separate session.
 
 ## Not yet specified (fog)
 
@@ -75,5 +75,5 @@ unblocked; they remain separate sessions.
 
 - Runtime implementation, vendor patches, a Fight Agent OS dependency change, a package tag/release, publication,
   and deployment during Wayfinder.
-- Creating a scoped Workspace/Repository authority model in `v0.4.0` without a separate decision; this map must
-  state how to fail closed until such a model exists.
+- Creating a scoped Workspace/Repository authority model in this package; application builders own any scope
+  authorization at their command entry points.

@@ -32,10 +32,10 @@ reserved for managed Permissions under [WF-011](WF-011-protected-permission-memb
 custom-Permission tier system and no null-as-`ADMIN_SAFE` fallback for malformed or stale authority.
 
 `ADMIN_SAFE` means eligible for controlled delegation. It does not itself authorize an actor or a target. The
-consuming application decides actor, target, and eventual scope authority, and the package-owned command boundary
-must invoke that decision for every supported entry point. The exact target-aware contract is WF-013. An authorized
-`ADMIN_SAFE` Permission may be assigned to a custom Role or directly to an Agent, including through Agent
-complete-set replacement. `SUPER_ADMIN_ONLY` is never available to an Agent.
+application builder protects its command entry points and decides actor, target, and eventual scope authority. As
+clarified in [WF-013](WF-013-target-aware-role-administration.md), the package does not invoke that consumer
+decision. An eligible `ADMIN_SAFE` Permission may be assigned to a custom Role or directly to an Agent, including
+through Agent complete-set replacement. `SUPER_ADMIN_ONLY` is never available to an Agent.
 
 John confirmed that Fight Agent OS is the **first implementing consumer and has no stored Permissions**. Its current
 nullable custom-Permission database constraint, repository reconstruction, and package fixtures show supported
@@ -45,7 +45,7 @@ consumer or corrupt fixture fails closed pending a guarded data decision in WF-0
 
 ## Resolution boundary
 
-Set classification semantics and fail-closed defaults. Target-aware administrator authority is WF-013.
+Set classification semantics and fail-closed defaults. Caller authorization ownership is WF-013.
 
 ## Resolution
 
