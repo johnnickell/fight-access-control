@@ -18,6 +18,7 @@ use Fight\AccessControl\Domain\AccessControl\Agent\Event\AgentProvisioned;
 use Fight\AccessControl\Domain\AccessControl\Agent\Event\AgentProvisioningFailed;
 use Fight\AccessControl\Domain\AccessControl\Agent\Exception\AgentNameException;
 use Fight\AccessControl\Domain\AccessControl\Audit\AuditEvidence;
+use Fight\AccessControl\Domain\AccessControl\Permission\Permission;
 use Fight\AccessControl\Domain\AccessControl\User\UserId;
 use Fight\Common\Application\Repository\TransactionalUnitOfWork;
 use Fight\Common\Domain\Exception\DomainException;
@@ -188,6 +189,12 @@ final class AgentProvisioningServiceTest extends TestCase
                 }
 
                 public function replace(Agent $expected, Agent $replacement): bool
+                {
+                    return false;
+                }
+
+                /** @phpstan-param list<Permission> $expectedPermissions */
+                public function validatePermissionAssignments(array $expectedPermissions): bool
                 {
                     return false;
                 }

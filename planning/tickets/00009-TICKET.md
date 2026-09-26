@@ -2,7 +2,7 @@
 id: TICKET-00009
 epic: EPIC-00008
 title: Delegate Eligible Permissions to Custom Roles and Agents
-status: ready-for-agent
+status: done
 ---
 
 # Delegate Eligible Permissions to Custom Roles and Agents
@@ -80,10 +80,17 @@ belong to [TICKET-00010](00010-TICKET.md); reserved Role identity and User Role 
 No direct User Permission grant, scoped Workspace/Repository policy, consumer authorization adapter, Agent OS
 change, package tag, or release is part of this Ticket.
 
+## Progress
+
+TASK-00041 supplies non-null tiers, TASK-00043 fences custom-Role grants, and TASK-00044 fences direct Agent
+grants and complete-set replacements. Package behavior and exact-coverage verification for this Ticket are complete;
+TASK-00045 separately owns managed-policy promotion and cross-path reconciliation proof. Consumer adapter/schema
+adoption and release remain separate.
+
 ## Child Tasks
 
 | Order | TASK ID | Title | Status |
 | --- | --- | --- | --- |
 | 41 | [TASK-00041](../tasks/00041-TASK.md) | Classify every Permission with a non-null tier | done |
 | 43 | [TASK-00043](../tasks/00043-TASK.md) | Enforce tier eligibility on custom Role grants | done |
-| 44 | [TASK-00044](../tasks/00044-TASK.md) | Enforce tier eligibility on direct Agent assignments | ready-for-agent |
+| 44 | [TASK-00044](../tasks/00044-TASK.md) | Enforce tier eligibility on direct Agent assignments | done |

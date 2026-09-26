@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Fight\AccessControl\Application\AccessControl\Agent\CommandHandler;
 
-use Fight\AccessControl\Application\AccessControl\Agent\Service\AgentPermissionAdministrationAuthorization;
 use Fight\AccessControl\Application\AccessControl\Timing\Service\Clock;
 use Fight\AccessControl\Domain\AccessControl\Agent\AgentRepository;
 use Fight\AccessControl\Domain\AccessControl\Agent\Command\GrantPermissionToAgent;
@@ -20,7 +19,7 @@ use Throwable;
 /**
  * Class GrantPermissionToAgentHandler
  *
- * Atomically grants an authoritative Permission directly to an authorized Agent.
+ * Atomically grants an eligible Permission directly to an Agent.
  */
 final readonly class GrantPermissionToAgentHandler implements CommandHandler
 {
@@ -32,7 +31,6 @@ final readonly class GrantPermissionToAgentHandler implements CommandHandler
     public function __construct(
         private AgentRepository $agentRepository,
         private PermissionRepository $permissionRepository,
-        private AgentPermissionAdministrationAuthorization $agentPermissionAdministrationAuthorization,
         private Clock $clock,
         private TransactionalUnitOfWork $unitOfWork,
         private EventDispatcher $eventDispatcher
@@ -55,7 +53,6 @@ final readonly class GrantPermissionToAgentHandler implements CommandHandler
             $event = new AgentPermissionAssignmentCoordinator(
                 $this->agentRepository,
                 $this->permissionRepository,
-                $this->agentPermissionAdministrationAuthorization,
                 $this->clock,
                 $this->unitOfWork
             )->grant($command->getActorId(), $command->getAgentId(), $command->getPermissionId());
