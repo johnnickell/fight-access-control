@@ -40,8 +40,8 @@ through Agent complete-set replacement. `SUPER_ADMIN_ONLY` is never available to
 John confirmed that Fight Agent OS is the **first implementing consumer and has no stored Permissions**. Its current
 nullable custom-Permission database constraint, repository reconstruction, and package fixtures show supported
 behavior, not an existing authority inventory. The v0.4.0 handoff must update those contracts for non-null tiers;
-there is no actual Agent OS Permission data to migrate. Any unexpected null-tier definition or membership in another
-consumer or corrupt fixture fails closed pending a guarded data decision in WF-015.
+there is no actual Agent OS Permission data to migrate. An unexpected null-tier definition fails closed; WF-015
+handles promotion of an existing managed Permission to the protected tier.
 
 ## Resolution boundary
 

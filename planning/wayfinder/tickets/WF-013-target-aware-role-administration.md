@@ -41,7 +41,7 @@ consumer Permission name on the package's behalf.
 `ADMIN_SAFE` means eligible to attach, not proof that the caller may do so. The package cannot detect a consumer
 misclassifying a security-administration Permission as `ADMIN_SAFE`; that is a consumer policy and test obligation.
 The package also cannot prevent an unauthorized caller from using a command-bus entry point if the consumer
-exposes it without appropriate protection. Historical forbidden membership cleanup remains WF-015, and transaction
+exposes it without appropriate protection. Managed Permission reclassification is WF-015, and transaction
 and event proof remain WF-016. No current Fight Agent OS Permission data is assumed.
 
 ## Required evidence
@@ -55,7 +55,7 @@ and event proof remain WF-016. No current Fight Agent OS Permission data is assu
 
 Set package eligibility and consumer caller-authorization responsibilities for custom-Role and direct Agent
 Permission changes, and identify the other actor-only checks that must be removed. User-role elevation invariants
-are WF-014; historical remediation is WF-015; transaction mechanics and proof are WF-016.
+are WF-014; managed Permission reclassification is WF-015; transaction mechanics and proof are WF-016.
 
 ## Resolution
 

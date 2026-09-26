@@ -18,7 +18,7 @@ The exact name `ROLE_SUPER_ADMIN` is reserved for the designated managed Role. A
 Role creation or rename to that name and reject inconsistent stored Role data that would make a custom Role appear
 under it during assignment or principal reconstruction. A supplied Role ID or adapter cannot turn a custom Role into
 the managed Super Admin Role. The managed-Role and protected-Permission membership rules remain [WF-011](WF-011-protected-permission-membership.md);
-historical inconsistent data is [WF-015](WF-015-forbidden-authority-remediation.md).
+managed Permission reclassification is [WF-015](WF-015-forbidden-authority-remediation.md).
 
 Apart from that package-owned Role identity invariant, `AssignRoleToUser` and `RemoveRoleFromUser` treat the managed
 `ROLE_SUPER_ADMIN` like other Roles. AccessControl does not authenticate the command caller, require
@@ -55,7 +55,7 @@ WF-016 will specify atomic proof for the new package invariants.
 ## Resolution boundary
 
 Set the package Role identity and User-state rules and the consumer ownership of elevation and de-elevation policy.
-Historical memberships and atomic proof remain downstream.
+Managed Permission reclassification and atomic proof remain downstream.
 
 ## Resolution
 

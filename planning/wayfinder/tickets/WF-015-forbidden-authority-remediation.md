@@ -1,40 +1,45 @@
-# Detect and remedy historical forbidden authority
+# Guard managed Permission reclassification
 
 **Labels:** `wayfinder:grilling`
 **Mode:** HITL
-**Status:** Open
-**Gate:** John's migration/remediation decision after evidence from persisted and in-memory authorities.
+**Status:** Closed
+**Gate:** John confirmed the narrowed reclassification rule and scope on 2026-09-26.
 **Map:** [Enforce permission grant tiers for v0.4.0](../permission-grant-tiers-v0-4-0-map.md)
 **Depends on:** WF-011
 
 ## Question
 
-How should managed reconciliation and a guarded migration detect, prevent, and remedy protected Permission
-memberships already stored outside the designated Role?
+What must AccessControl do when a consumer changes a managed Permission from `ADMIN_SAFE` to `SUPER_ADMIN_ONLY`?
 
-Fight Agent OS is the first implementing consumer and, per John on 2026-09-25, has no stored Permissions yet. This
-ticket still decides how the package detects and handles forbidden or malformed authority in future consumers,
-reclassification, and dirty fixtures; it must not assume a live Agent OS grant inventory.
+Fight Agent OS is the first implementing consumer and has no stored Permissions. This ticket does not posit an Agent
+OS cleanup migration.
 
-## Must decide
+## Accepted decision (2026-09-26)
 
-- Reject malformed managed definitions before any authority changes, including protected membership in an ordinary
-  managed Role and designation/name/ID mismatch.
-- Inventory custom Roles, managed Roles, direct Agents, and derived/in-memory projections; distinguish source of
-  truth from cached effective authority and report counts without leaking sensitive state.
-- Whether to halt reconciliation or authorization when forbidden historical state is found, and who authorizes
-  quarantine/removal, rollback, rescan, and audit. Avoid silently deleting legitimate unrelated authority.
-- How reclassification of an existing managed Permission to `SUPER_ADMIN_ONLY` interacts with current memberships.
+- John chose rejection, with no partial policy change or automatic removal, if a Permission being reclassified to
+  `SUPER_ADMIN_ONLY` is still assigned to a custom Role, an ordinary managed Role, or an Agent. Those memberships
+  must be removed before retrying the policy change.
+- The accepted [WF-011](WF-011-protected-permission-membership.md) membership rule already requires malformed
+  managed definitions to fail before reconciliation changes authority. Only the managed `ROLE_SUPER_ADMIN` may
+  include a protected Permission.
+- Fight Agent OS has no stored Permissions. This decision does not call for a historical inventory, quarantine,
+  automatic cleanup command, or consumer migration. It adds no principal-resolution rule beyond the settled
+  package invariants in WF-011 and WF-014.
 
 ## Required evidence
 
-- Inspect planner, reconciliation transaction, repositories, effective-principal snapshots, and consumer persistence
-  schema/projections. Prove partial failure and repeat-run behavior with dirty fixtures.
+- Inspected managed-policy construction and planner, reconciliation transaction, Role/Agent/Permission repository
+  contracts, in-memory repositories, and the first consumer's Permission persistence schema. Current reconciliation
+  changes tier without checking Role or Agent memberships. This is a source observation, not a claim that Fight
+  Agent OS has invalid stored data.
+- Implementation evidence should prove pre-change rejection of an ineligible reclassification and no partial
+  reconciliation write or success event. Atomic proof remains WF-016.
 
 ## Resolution boundary
 
-Set data-safety and recovery policy, not its final migration implementation. Transaction design is WF-016.
+Set only the package behavior for a managed Permission reclassification. Transaction design is WF-016. No generic
+data migration is planned here.
 
 ## Resolution
 
-Open; no policy accepted.
+Closed. John confirmed the narrower package rule. No implementation is authorized.

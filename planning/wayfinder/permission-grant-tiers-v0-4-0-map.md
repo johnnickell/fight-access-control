@@ -8,8 +8,8 @@
 ## Destination
 
 Produce a decision-complete Fight AccessControl handoff for a proposed `v0.4.0` package release that enforces
-protected Permission membership at package-owned command boundaries, detects and addresses existing invalid
-authority, and states the consumer authorization obligations. The handoff must identify
+protected Permission membership at package-owned command boundaries, rejects unsafe managed Permission
+reclassification, and states the consumer authorization obligations. The handoff must identify
 the package's current direct Agent Permission path as well as Role and User-role paths.
 
 **Done** = every linked decision is closed, remaining fog is resolved or excluded, and the map links to the resulting
@@ -40,6 +40,7 @@ EPIC, TICKET, and/or implementation TASKs. No implementation or release is autho
 2. **[Classify custom Permissions for delegation](tickets/WF-012-custom-permission-delegation.md) is settled.** Every Permission has a non-null tier; a custom Permission starts `ADMIN_SAFE` and cannot become protected. `ADMIN_SAFE` allows controlled Role and direct Agent delegation; caller authorization belongs to the consumer. Fight Agent OS has no stored Permissions to migrate, though its schema and adapter require changes.
 3. **[Separate Permission eligibility from caller authorization](tickets/WF-013-target-aware-role-administration.md) is settled.** AccessControl enforces tier and managed-Role invariants in Role and Agent Permission commands. Application builders protect every command entry point using suitable controls; v0.4.0 removes actor-only checks from Role administration, Agent Permission, and User Role-assignment handlers without adding a target-aware port. Target-specific checks for sessions, email changes, and invitation correction remain. Direct command-bus access requires consumer-owned protection.
 4. **[Set Super Admin assignment and removal guarantees](tickets/WF-014-super-admin-role-elevation.md) is settled.** Only the managed Role may use the exact `ROLE_SUPER_ADMIN` name; custom-role creation, rename, and inconsistent reconstruction must not impersonate it. Package User Role commands otherwise use ordinary assignment/removal semantics, including pending User assignment for bootstrap. The application builder owns caller authority, confirmation, audit, removal policy, last-admin protection, and recovery.
+5. **[Guard managed Permission reclassification](tickets/WF-015-forbidden-authority-remediation.md) is settled.** Reconciliation rejects promotion to `SUPER_ADMIN_ONLY` while a custom Role, ordinary managed Role, or Agent still holds the Permission; it does not change policy partially or strip memberships automatically. Fight Agent OS has no stored Permissions, so this map plans no historical cleanup migration.
 
 ## Decisions
 
@@ -49,7 +50,7 @@ EPIC, TICKET, and/or implementation TASKs. No implementation or release is autho
 | WF-012 | [Classify custom Permissions for delegation](tickets/WF-012-custom-permission-delegation.md) | Grilling | HITL | **Closed** | WF-011 |
 | WF-013 | [Separate Permission eligibility from caller authorization](tickets/WF-013-target-aware-role-administration.md) | Grilling | HITL | **Closed** | WF-011, WF-012 |
 | WF-014 | [Set Super Admin assignment and removal guarantees](tickets/WF-014-super-admin-role-elevation.md) | Grilling | HITL | **Closed** | WF-011 |
-| WF-015 | [Detect and remedy historical forbidden authority](tickets/WF-015-forbidden-authority-remediation.md) | Grilling | HITL | **Open** | WF-011 |
+| WF-015 | [Guard managed Permission reclassification](tickets/WF-015-forbidden-authority-remediation.md) | Grilling | HITL | **Closed** | WF-011 |
 | WF-016 | [Set atomic enforcement and integration proof](tickets/WF-016-atomic-enforcement-and-proof.md) | Grilling | HITL | **Open** | WF-013, WF-014, WF-015 |
 
 ## Blocking relationships
@@ -57,18 +58,17 @@ EPIC, TICKET, and/or implementation TASKs. No implementation or release is autho
 ```text
 Protected membership ──→ Custom Permission classification ──→ Eligibility/authorization boundary ─────┐
          ├──────────────→ Super Admin assignment and removal ──────────────────────────────────────┼─→ Atomic enforcement and proof ──→ Handoff
-         └──────────────→ Historical authority remediation ────────────────────────────────────────┘
+         └──────────────→ Managed Permission reclassification ──────────────────────────────────────┘
 ```
 
 ## Frontier
 
-[Detect and remedy historical forbidden authority](tickets/WF-015-forbidden-authority-remediation.md)
-is the next authored frontier. [Set atomic enforcement and integration proof](tickets/WF-016-atomic-enforcement-and-proof.md)
-waits for that decision.
+[Set atomic enforcement and integration proof](tickets/WF-016-atomic-enforcement-and-proof.md)
+is the next authored frontier.
 
 ## Not yet specified (fog)
 
-- Exact adapter-level locking mechanism and migration sequence, pending the authority/remediation decisions.
+- Exact adapter-level locking mechanism and compatibility sequence, pending WF-016.
 
 ## Out of scope
 
@@ -78,3 +78,4 @@ waits for that decision.
   authorization at their command entry points.
 - Exact consumer confirmation, audit, removal, and last-admin recovery protocols, including any Agent OS
   implementation planning outside this map.
+- Historical data cleanup; the first implementing consumer has no stored Permissions to migrate.

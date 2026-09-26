@@ -22,7 +22,8 @@ all supported command entry points?
 - Package behavior/conformance matrix for custom-Role and direct Agent changes plus consumer PostgreSQL,
   authorization, HTTP, and cross-adapter tests;
   distinguish package gate from the later tagged release and consumer `./bin/build` adoption gate.
-- Public API/version compatibility and explicit migration requirements before a `v0.4.0` implementation handoff.
+- Public API/version and consumer schema/adapter compatibility before a `v0.4.0` implementation handoff; do not
+  invent a stored-Permission data migration for Fight Agent OS.
 
 ## Required evidence
 

@@ -15,7 +15,7 @@ who owns classification of the consumer's security-administration Permission nam
 ## Decision points
 
 - Enforce the protected-membership rule even on an idempotent command encountering invalid existing authority;
-  historical detection and remediation are specified in WF-015.
+  managed Permission reclassification is specified in WF-015.
 - Let the consuming project's version-controlled managed definitions classify Permission names. The package has no
   built-in definitions for names such as `MANAGE_ROLE_PERMISSIONS` or `ASSIGN_SUPER_ADMIN` and does not hard-code a
   protected-name list. The package must enforce the tier declared for each managed Permission.
@@ -49,10 +49,10 @@ package enforces declared `SUPER_ADMIN_ONLY` membership without exceptions.
 ## Resolution boundary
 
 Set the protected membership invariant and policy identity contract. Custom Permission delegation, administrator
-scope, elevation/removal authority, and stored-data remediation remain in their downstream tickets.
+scope, elevation/removal authority, and managed Permission reclassification remain in their downstream tickets.
 
 ## Resolution
 
-Closed. The accepted constraints above govern the v0.4.0 handoff. Exact failure, detection, and remediation of
-historical forbidden memberships belong to [WF-015](WF-015-forbidden-authority-remediation.md); transaction and
+Closed. The accepted constraints above govern the v0.4.0 handoff. Managed Permission reclassification belongs to
+[WF-015](WF-015-forbidden-authority-remediation.md); transaction and
 adapter proof belong to [WF-016](WF-016-atomic-enforcement-and-proof.md). This decision authorizes no implementation.
