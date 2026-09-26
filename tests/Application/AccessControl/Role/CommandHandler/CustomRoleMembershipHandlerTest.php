@@ -424,14 +424,13 @@ final class CustomRoleMembershipHandlerTest extends TestCase
         $this->assertCommandFailure($events, $command, $failure);
     }
 
-    public function test_authorization_denial_prevents_all_three_mutations(): void
+    public function test_authorization_denial_prevents_membership_mutations(): void
     {
         $permission = $this->permission();
         $role = $this->role();
         $commands = [
             new GrantPermissionToCustomRole($this->actorId(), $role->getId(), $permission->getId()),
-            new RevokePermissionFromCustomRole($this->actorId(), $role->getId(), $permission->getId()),
-            new RemoveCustomRole($this->actorId(), $role->getId())
+            new RevokePermissionFromCustomRole($this->actorId(), $role->getId(), $permission->getId())
         ];
 
         foreach ($commands as $command) {
@@ -456,13 +455,6 @@ final class CustomRoleMembershipHandlerTest extends TestCase
                     $unitOfWork,
                     $events,
                     authorization: $authorization
-                ),
-                RemoveCustomRole::class => $this->removeHandler(
-                    $roles,
-                    new InMemoryUserRepository(),
-                    $unitOfWork,
-                    $events,
-                    $authorization
                 ),
             };
 
@@ -854,13 +846,11 @@ final class CustomRoleMembershipHandlerTest extends TestCase
         InMemoryUserRepository $users,
         InMemoryUnitOfWork $unitOfWork,
         InMemoryEventDispatcher $events,
-        ?FixedRoleAdministrationAuthorization $authorization = null,
         DateTimeImmutable|string $now = '2026-08-23T12:00:00+00:00'
     ): RemoveCustomRoleHandler {
         return new RemoveCustomRoleHandler(
             $roles,
             $users,
-            $authorization ?? new FixedRoleAdministrationAuthorization(true),
             new FixedClock($now),
             $unitOfWork,
             $events

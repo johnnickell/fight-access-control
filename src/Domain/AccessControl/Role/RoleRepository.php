@@ -19,8 +19,9 @@ interface RoleRepository
     /**
      * Adds a role
      *
-     * Implementations atomically reject any membership whose Permission is no longer authoritative. Validation and
-     * mutation occur under one adapter-owned fence held through the enclosing Unit of Work.
+     * Implementations atomically reject duplicate Role IDs and canonical names as well as membership whose
+     * Permission is no longer authoritative. Validation and mutation occur under adapter-owned fences held through
+     * the enclosing Unit of Work.
      *
      * @throws Exception When an error occurs
      */
@@ -29,12 +30,16 @@ interface RoleRepository
     /**
      * Retrieves a role by its stable identifier
      *
+     * The returned Role must have the requested ID; conflicting stored identities fail closed.
+     *
      * @throws Exception When an error occurs
      */
     public function getById(RoleId $id): ?Role;
 
     /**
-     * Retrieves a role by its canonical name
+     * Retrieves the unique authoritative role by its canonical name
+     *
+     * Duplicate stored names and mismatched name-index results must fail closed, not select an arbitrary Role.
      *
      * @throws Exception When an error occurs
      */
@@ -42,6 +47,8 @@ interface RoleRepository
 
     /**
      * Retrieves every resolvable role for the requested identifiers without pagination
+     *
+     * Conflicting stored IDs or names must fail closed, not return an arbitrary Role.
      *
      * @phpstan-param list<RoleId> $ids
      *
@@ -86,8 +93,8 @@ interface RoleRepository
     /**
      * Replaces the expected role when it remains current and all replacement Permissions remain authoritative
      *
-     * Validation and mutation occur under one adapter-owned permission-reference fence held through the enclosing
-     * Unit of Work and shared with PermissionRepository::remove().
+     * Validation and mutation occur under adapter-owned permission-reference and unique-name fences held through
+     * the enclosing Unit of Work and shared with PermissionRepository::remove().
      */
     public function replace(Role $expected, Role $replacement): bool;
 
