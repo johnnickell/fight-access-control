@@ -75,7 +75,8 @@ behavior shared by Fight applications. The repository-local behavioral and secur
   protected tier; delegation still requires authority over the actor and target.
 - **Protected managed Permission**: a managed Permission the consuming project classifies `SUPER_ADMIN_ONLY`. The
   accepted v0.4.0 policy reserves its membership for managed `ROLE_SUPER_ADMIN` and its authority for human Users
-  through that Role; enforcement is pending implementation.
+  through that Role; policy definitions and promotion reject forbidden Role and Agent membership. Consumers fence
+  promotion and grants through their persistence adapters.
 - **Conformance suite**: reusable tests of observable Domain and Application outcomes which consumer repositories
   bind to their own adapters.
 - **OpenAPI schema component**: an opt-in reusable description of a package-owned payload that a consumer's OpenAPI

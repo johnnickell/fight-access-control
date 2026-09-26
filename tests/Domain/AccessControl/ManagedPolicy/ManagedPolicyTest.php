@@ -40,7 +40,7 @@ final class ManagedPolicyTest extends TestCase
             [
                 new ManagedRoleDefinition(
                     RoleId::fromString('018f0000-0000-7000-8000-000000000201'),
-                    RoleName::fromString('ROLE_ADMIN'),
+                    RoleName::fromString('ROLE_SUPER_ADMIN'),
                     [$permissionId]
                 )
             ],
@@ -68,7 +68,7 @@ final class ManagedPolicyTest extends TestCase
         );
         $role = new ManagedRoleDefinition(
             RoleId::fromString('018f0000-0000-7000-8000-000000000201'),
-            RoleName::fromString('ROLE_ADMIN'),
+            RoleName::fromString('ROLE_SUPER_ADMIN'),
             [$permissionId]
         );
         $policy = new ManagedPolicy([$permission], [$role], [$permissionId]);
@@ -79,7 +79,7 @@ final class ManagedPolicyTest extends TestCase
         self::assertSame($permissionId, $permission->getId());
         self::assertSame('MANAGE_USERS', $permission->getName()->toString());
         self::assertSame(PermissionTier::SUPER_ADMIN_ONLY, $permission->getTier());
-        self::assertSame('ROLE_ADMIN', $role->getName()->toString());
+        self::assertSame('ROLE_SUPER_ADMIN', $role->getName()->toString());
         self::assertSame([$permissionId], $role->getPermissionIds());
         self::assertEquals($permission, ManagedPermissionDefinition::fromArray($permission->toArray()));
         self::assertEquals($role, ManagedRoleDefinition::fromArray($role->toArray()));

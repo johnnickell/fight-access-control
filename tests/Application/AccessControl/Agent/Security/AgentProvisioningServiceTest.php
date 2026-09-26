@@ -19,6 +19,7 @@ use Fight\AccessControl\Domain\AccessControl\Agent\Event\AgentProvisioningFailed
 use Fight\AccessControl\Domain\AccessControl\Agent\Exception\AgentNameException;
 use Fight\AccessControl\Domain\AccessControl\Audit\AuditEvidence;
 use Fight\AccessControl\Domain\AccessControl\Permission\Permission;
+use Fight\AccessControl\Domain\AccessControl\Permission\PermissionId;
 use Fight\AccessControl\Domain\AccessControl\User\UserId;
 use Fight\Common\Application\Repository\TransactionalUnitOfWork;
 use Fight\Common\Domain\Exception\DomainException;
@@ -164,6 +165,11 @@ final class AgentProvisioningServiceTest extends TestCase
             new readonly class ($failure) implements AgentRepository {
                 public function __construct(private RuntimeException $failure)
                 {
+                }
+
+                public function hasPermissionAssignment(PermissionId $permissionId): bool
+                {
+                    return false;
                 }
 
                 public function add(Agent $agent): void

@@ -48,6 +48,7 @@ final class InMemoryRoleRepository implements RoleRepository
         $this->authorizationReferences->holdThroughCompletion();
         if (
             !$this->authorizationReferences->permissionsAreAuthoritative($role->getPermissionIds())
+            || !$this->authorizationReferences->managedMembershipIsEligible($role)
             || (
                 !$role->isManaged()
                 && !$this->authorizationReferences->permissionsAreEligible($role->getPermissionIds())
@@ -163,6 +164,7 @@ final class InMemoryRoleRepository implements RoleRepository
         $this->beforeReplace?->__invoke();
         if (
             !$this->authorizationReferences->permissionsAreAuthoritative($replacement->getPermissionIds())
+            || !$this->authorizationReferences->managedMembershipIsEligible($replacement)
             || (
                 !$replacement->isManaged()
                 && !$this->authorizationReferences->permissionsAreEligible($replacement->getPermissionIds())

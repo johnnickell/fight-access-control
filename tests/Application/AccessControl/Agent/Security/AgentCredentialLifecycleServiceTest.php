@@ -20,6 +20,7 @@ use Fight\AccessControl\Domain\AccessControl\Agent\Event\AgentCredentialRotated;
 use Fight\AccessControl\Domain\AccessControl\Agent\Exception\AgentCredentialException;
 use Fight\AccessControl\Domain\AccessControl\Audit\AuditEvidence;
 use Fight\AccessControl\Domain\AccessControl\Permission\Permission;
+use Fight\AccessControl\Domain\AccessControl\Permission\PermissionId;
 use Fight\Common\Application\Repository\TransactionalUnitOfWork;
 use Fight\Common\Domain\Exception\DomainException;
 use Fight\Common\Domain\Repository\Pagination;
@@ -274,6 +275,11 @@ final class AgentCredentialLifecycleServiceTest extends TestCase
                 {
                 }
 
+                public function hasPermissionAssignment(PermissionId $permissionId): bool
+                {
+                    return false;
+                }
+
                 public function add(Agent $agent): void
                 {
                 }
@@ -426,6 +432,11 @@ final class AgentCredentialLifecycleServiceTest extends TestCase
             {
             }
 
+            public function hasPermissionAssignment(PermissionId $permissionId): bool
+            {
+                return false;
+            }
+
             public function add(Agent $agent): void
             {
             }
@@ -555,6 +566,11 @@ final class AgentCredentialLifecycleServiceTest extends TestCase
                     private RuntimeException $failure,
                     private AgentId $agentId
                 ) {
+                }
+
+                public function hasPermissionAssignment(PermissionId $permissionId): bool
+                {
+                    return false;
                 }
 
                 public function add(Agent $agent): void

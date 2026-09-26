@@ -6,6 +6,7 @@ namespace Fight\AccessControl\Domain\AccessControl\Agent;
 
 use Exception;
 use Fight\AccessControl\Domain\AccessControl\Permission\Permission;
+use Fight\AccessControl\Domain\AccessControl\Permission\PermissionId;
 use Fight\Common\Domain\Repository\Pagination;
 use Fight\Common\Domain\Repository\ResultSet;
 
@@ -38,6 +39,13 @@ interface AgentRepository
      * @throws Exception When an error occurs
      */
     public function getAll(Pagination $pagination): ResultSet;
+
+    /**
+     * Returns whether an authoritative Agent directly holds the Permission
+     *
+     * This read is advisory for preview; managed promotion must recheck under the shared write fence.
+     */
+    public function hasPermissionAssignment(PermissionId $permissionId): bool;
 
     /**
      * Replaces the current Agent authority atomically with its successor

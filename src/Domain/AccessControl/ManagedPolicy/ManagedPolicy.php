@@ -6,6 +6,8 @@ namespace Fight\AccessControl\Domain\AccessControl\ManagedPolicy;
 
 use Fight\AccessControl\Domain\AccessControl\ManagedPolicy\Exception\ManagedPolicyDefinitionException;
 use Fight\AccessControl\Domain\AccessControl\Permission\PermissionId;
+use Fight\AccessControl\Domain\AccessControl\Permission\PermissionTier;
+use Fight\AccessControl\Domain\AccessControl\Role\Role;
 
 /**
  * Class ManagedPolicy
@@ -32,6 +34,11 @@ final readonly class ManagedPolicy
         $permissionIds = $this->assertUniqueDefinitions($permissions, 'permission');
         $this->assertUniqueDefinitions($roles, 'role');
 
+        $tiers = [];
+        foreach ($permissions as $permission) {
+            $tiers[$permission->getId()->toString()] = $permission->getTier();
+        }
+
         foreach ($roles as $role) {
             foreach ($role->getPermissionIds() as $permissionId) {
                 if (!isset($permissionIds[$permissionId->toString()])) {
@@ -40,6 +47,15 @@ final readonly class ManagedPolicy
                         $role->getName()->toString(),
                         $permissionId->toString()
                     ));
+                }
+
+                if (
+                    $tiers[$permissionId->toString()] === PermissionTier::SUPER_ADMIN_ONLY
+                    && $role->getName()->toString() !== Role::SUPER_ADMIN_NAME
+                ) {
+                    throw new ManagedPolicyDefinitionException(
+                        'Only managed ROLE_SUPER_ADMIN may hold a protected permission.'
+                    );
                 }
             }
         }

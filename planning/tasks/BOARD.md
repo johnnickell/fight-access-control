@@ -5,17 +5,17 @@ dependencies, acceptance, and verification.
 
 ## What's Next?
 
-First ready Task: [TASK-00045](00045-TASK.md) — Reconcile protected managed policy without forbidden membership.
+Active Task: [TASK-00045](00045-TASK.md) — Reconcile protected managed policy without forbidden membership.
 
 ## In Progress
 
-No Tasks are currently in this state.
+| Order | TASK ID | Title | Parent TICKET | Status | Blocked by | PR |
+| --- | --- | --- | --- | --- | --- | --- |
+| 45 | [TASK-00045](00045-TASK.md) | Reconcile protected managed policy without forbidden membership | [TICKET-00010](../tickets/00010-TICKET.md) — Reconcile Protected Managed Policy Safely | in-progress | [TASK-00042](00042-TASK.md), [TASK-00043](00043-TASK.md), [TASK-00044](00044-TASK.md) | — |
 
 ## Ready Frontier
 
-| Order | TASK ID | Title | Parent TICKET | Status | Blocked by | PR |
-| --- | --- | --- | --- | --- | --- | --- |
-| 45 | [TASK-00045](00045-TASK.md) | Reconcile protected managed policy without forbidden membership | [TICKET-00010](../tickets/00010-TICKET.md) — Reconcile Protected Managed Policy Safely | ready-for-agent | [TASK-00042](00042-TASK.md), [TASK-00043](00043-TASK.md), [TASK-00044](00044-TASK.md) | — |
+No Tasks are currently in this state.
 
 ## Waiting
 
