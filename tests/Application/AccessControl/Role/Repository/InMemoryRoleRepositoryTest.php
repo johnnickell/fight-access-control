@@ -5,12 +5,16 @@ declare(strict_types=1);
 namespace Fight\Test\AccessControl\Application\AccessControl\Role\Repository;
 
 use DateTimeImmutable;
+use Fight\AccessControl\Domain\AccessControl\Permission\Permission;
 use Fight\AccessControl\Domain\AccessControl\Permission\PermissionId;
+use Fight\AccessControl\Domain\AccessControl\Permission\PermissionName;
+use Fight\AccessControl\Domain\AccessControl\Permission\PermissionTier;
 use Fight\AccessControl\Domain\AccessControl\Role\Role;
 use Fight\AccessControl\Domain\AccessControl\Role\RoleId;
 use Fight\AccessControl\Domain\AccessControl\Role\RoleName;
 use Fight\Common\Domain\Repository\Pagination;
 use Fight\Test\AccessControl\Application\AccessControl\Permission\Repository\InMemoryPermissionRepository;
+use Fight\Test\AccessControl\Application\AccessControl\User\Repository\InMemoryAuthorizationReferenceState;
 use PHPUnit\Framework\Attributes\CoversNothing;
 use PHPUnit\Framework\TestCase;
 use ReflectionMethod;
@@ -109,6 +113,46 @@ final class InMemoryRoleRepositoryTest extends TestCase
         $repository->add($current);
         self::assertFalse($repository->replace($current, $missingMembership));
         self::assertSame($current, $repository->getById($current->getId()));
+    }
+
+    public function test_custom_membership_writes_reject_protected_authority_but_managed_roles_retain_it(): void
+    {
+        $permission = Permission::defineManaged(
+            PermissionId::generate(),
+            PermissionName::fromString('PROTECTED_ACTION'),
+            PermissionTier::SUPER_ADMIN_ONLY,
+            new DateTimeImmutable('2026-01-01T00:00:00+00:00')
+        );
+        $references = new InMemoryAuthorizationReferenceState();
+        $permissions = new InMemoryPermissionRepository(authorizationReferences: $references);
+        $permissions->add($permission);
+
+        $roles = new InMemoryRoleRepository(authorizationReferences: $references);
+        $current = $this->role('ROLE_EDITOR');
+        $roles->add($current);
+        $customWithProtected = $current->grantPermissionToCustom(
+            $permission->getId(),
+            new DateTimeImmutable('2026-01-02T00:00:00+00:00')
+        );
+
+        self::assertFalse($roles->validateCustomPermissionGrant($permission));
+        self::assertFalse($roles->replace($current, $customWithProtected));
+        self::assertSame($current, $roles->getById($current->getId()));
+        try {
+            $roles->add($customWithProtected);
+            self::fail('Custom membership cannot include a protected Permission.');
+        } catch (RuntimeException $runtimeException) {
+            self::assertSame('Role permission membership is not authoritative.', $runtimeException->getMessage());
+        }
+
+        $managed = Role::defineManaged(
+            RoleId::generate(),
+            RoleName::fromString('ROLE_MANAGED'),
+            [$permission->getId()],
+            new DateTimeImmutable('2026-01-01T00:00:00+00:00')
+        );
+        $roles->add($managed);
+        self::assertSame($managed, $roles->getById($managed->getId()));
     }
 
     private function role(string $name): Role

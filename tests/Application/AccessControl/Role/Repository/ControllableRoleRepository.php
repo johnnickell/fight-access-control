@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Fight\Test\AccessControl\Application\AccessControl\Role\Repository;
 
+use Fight\AccessControl\Domain\AccessControl\Permission\Permission;
 use Fight\AccessControl\Domain\AccessControl\Permission\PermissionId;
 use Fight\AccessControl\Domain\AccessControl\Role\Role;
 use Fight\AccessControl\Domain\AccessControl\Role\RoleId;
@@ -79,6 +80,11 @@ final class ControllableRoleRepository implements RoleRepository
     }
 
     public function validatePermissionReference(PermissionId $permissionId): bool
+    {
+        return $this->permissionRemainsAuthoritative;
+    }
+
+    public function validateCustomPermissionGrant(Permission $expected): bool
     {
         return $this->permissionRemainsAuthoritative;
     }

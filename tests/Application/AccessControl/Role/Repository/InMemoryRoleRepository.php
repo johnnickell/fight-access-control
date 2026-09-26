@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Fight\Test\AccessControl\Application\AccessControl\Role\Repository;
 
 use Closure;
+use Fight\AccessControl\Domain\AccessControl\Permission\Permission;
 use Fight\AccessControl\Domain\AccessControl\Permission\PermissionId;
 use Fight\AccessControl\Domain\AccessControl\Role\Role;
 use Fight\AccessControl\Domain\AccessControl\Role\RoleId;
@@ -45,7 +46,13 @@ final class InMemoryRoleRepository implements RoleRepository
     public function add(Role $role): void
     {
         $this->authorizationReferences->holdThroughCompletion();
-        if (!$this->authorizationReferences->permissionsAreAuthoritative($role->getPermissionIds())) {
+        if (
+            !$this->authorizationReferences->permissionsAreAuthoritative($role->getPermissionIds())
+            || (
+                !$role->isManaged()
+                && !$this->authorizationReferences->permissionsAreEligible($role->getPermissionIds())
+            )
+        ) {
             throw new RuntimeException('Role permission membership is not authoritative.');
         }
 
@@ -142,11 +149,25 @@ final class InMemoryRoleRepository implements RoleRepository
         return $this->authorizationReferences->permissionsAreAuthoritative([$permissionId]);
     }
 
+    public function validateCustomPermissionGrant(Permission $expected): bool
+    {
+        $this->authorizationReferences->holdThroughCompletion();
+        $this->beforeValidatePermissionReference?->__invoke();
+
+        return $this->authorizationReferences->permissionIsEligible($expected);
+    }
+
     public function replace(Role $expected, Role $replacement): bool
     {
         $this->authorizationReferences->holdThroughCompletion();
         $this->beforeReplace?->__invoke();
-        if (!$this->authorizationReferences->permissionsAreAuthoritative($replacement->getPermissionIds())) {
+        if (
+            !$this->authorizationReferences->permissionsAreAuthoritative($replacement->getPermissionIds())
+            || (
+                !$replacement->isManaged()
+                && !$this->authorizationReferences->permissionsAreEligible($replacement->getPermissionIds())
+            )
+        ) {
             return false;
         }
 

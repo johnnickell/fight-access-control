@@ -105,8 +105,9 @@ adapters. Consumer outer layers normally authenticate, validate, authorize, choo
 invocation, and translate failures. Application and Domain code may therefore assume those outer checks succeeded
 and fail hard when their own invariants are violated. For v0.4.0 planning, AccessControl retains its narrow
 Application authorization ports for cross-user session access, email-change administration, and pending-invitation
-correction, which concern ownership of a particular User's resource. The actor-only Role administration, Agent
-Permission, and User Role-assignment checks are scheduled for removal under WF-013; consumer-managed administrative
+correction, which concern ownership of a particular User's resource. The actor-only Role administration and User
+Role-assignment ports have been retired; Agent Permission administration remains pending. Custom-Role grants require
+an authoritative `ADMIN_SAFE` Permission even for no-ops, fenced through the Role write. Consumer-managed caller
 Permissions and package-owned tier and managed-policy invariants remain distinct.
 Package-owned workflow coordinators are final implementation details marked `@internal`; consumers depend on the
 public commands, services, authenticated principals, and Security context rather than implementing those coordinators.

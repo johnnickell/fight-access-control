@@ -5,17 +5,18 @@ dependencies, acceptance, and verification.
 
 ## What's Next?
 
-First ready Task: [TASK-00043](00043-TASK.md) — Enforce tier eligibility on custom Role grants.
+Active Task: [TASK-00043](00043-TASK.md) — Enforce tier eligibility on custom Role grants.
 
 ## In Progress
 
-No Tasks are currently in this state.
+| Order | TASK ID | Title | Parent TICKET | Status | Blocked by | PR |
+| --- | --- | --- | --- | --- | --- | --- |
+| 43 | [TASK-00043](00043-TASK.md) | Enforce tier eligibility on custom Role grants | [TICKET-00009](../tickets/00009-TICKET.md) — Delegate Eligible Permissions to Custom Roles and Agents | in-progress | [TASK-00041](00041-TASK.md), [TASK-00042](00042-TASK.md) | — |
 
 ## Ready Frontier
 
 | Order | TASK ID | Title | Parent TICKET | Status | Blocked by | PR |
 | --- | --- | --- | --- | --- | --- | --- |
-| 43 | [TASK-00043](00043-TASK.md) | Enforce tier eligibility on custom Role grants | [TICKET-00009](../tickets/00009-TICKET.md) — Delegate Eligible Permissions to Custom Roles and Agents | ready-for-agent | [TASK-00041](00041-TASK.md), [TASK-00042](00042-TASK.md) | — |
 | 44 | [TASK-00044](00044-TASK.md) | Enforce tier eligibility on direct Agent assignments | [TICKET-00009](../tickets/00009-TICKET.md) — Delegate Eligible Permissions to Custom Roles and Agents | ready-for-agent | [TASK-00041](00041-TASK.md) | — |
 
 ## Waiting

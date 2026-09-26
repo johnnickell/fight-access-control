@@ -43,7 +43,7 @@ final class InMemoryPermissionRepository implements PermissionRepository
     public function add(Permission $permission): void
     {
         $this->permissions[] = $permission;
-        $this->authorizationReferences->addPermission($permission->getId());
+        $this->authorizationReferences->addPermission($permission);
         $this->unitOfWork?->onRollback(function () use ($permission): void {
             array_pop($this->permissions);
             $this->authorizationReferences->removePermission($permission->getId());
@@ -134,8 +134,10 @@ final class InMemoryPermissionRepository implements PermissionRepository
             }
 
             $this->permissions[$index] = $replacement;
+            $this->authorizationReferences->addPermission($replacement);
             $this->unitOfWork?->onRollback(function () use ($expected, $index): void {
                 $this->permissions[$index] = $expected;
+                $this->authorizationReferences->addPermission($expected);
             });
 
             return true;
@@ -165,7 +167,7 @@ final class InMemoryPermissionRepository implements PermissionRepository
             $this->authorizationReferences->removePermission($permission->getId());
             $this->unitOfWork?->onRollback(function () use ($permission, $index): void {
                 array_splice($this->permissions, $index, 0, [$permission]);
-                $this->authorizationReferences->addPermission($permission->getId());
+                $this->authorizationReferences->addPermission($permission);
             });
 
             return true;

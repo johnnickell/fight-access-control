@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Fight\AccessControl\Application\AccessControl\Role\CommandHandler;
 
-use Fight\AccessControl\Application\AccessControl\Role\Service\RoleAdministrationAuthorization;
 use Fight\AccessControl\Application\AccessControl\Timing\Service\Clock;
 use Fight\AccessControl\Domain\AccessControl\Permission\Permission;
 use Fight\AccessControl\Domain\AccessControl\Permission\PermissionRepository;
@@ -23,7 +22,7 @@ use Throwable;
 /**
  * Class RevokePermissionFromCustomRoleHandler
  *
- * Atomically revokes an existing permission from an authorized custom role.
+ * Atomically revokes an existing permission from a custom role.
  */
 final readonly class RevokePermissionFromCustomRoleHandler implements CommandHandler
 {
@@ -35,7 +34,6 @@ final readonly class RevokePermissionFromCustomRoleHandler implements CommandHan
     public function __construct(
         private RoleRepository $roleRepository,
         private PermissionRepository $permissionRepository,
-        private RoleAdministrationAuthorization $roleAdministrationAuthorization,
         private Clock $clock,
         private TransactionalUnitOfWork $unitOfWork,
         private EventDispatcher $eventDispatcher
@@ -57,8 +55,6 @@ final readonly class RevokePermissionFromCustomRoleHandler implements CommandHan
         try {
             $event = $this->unitOfWork->commitTransactional(
                 function () use ($command): ?CustomRolePermissionRevoked {
-                    $this->roleAdministrationAuthorization->assertCanManageRoles($command->getActorId());
-
                     $role = $this->roleRepository->getById($command->getRoleId());
                     if (!$role instanceof Role) {
                         throw new CustomRoleException('The custom role does not exist.');

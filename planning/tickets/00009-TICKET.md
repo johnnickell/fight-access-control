@@ -85,5 +85,5 @@ change, package tag, or release is part of this Ticket.
 | Order | TASK ID | Title | Status |
 | --- | --- | --- | --- |
 | 41 | [TASK-00041](../tasks/00041-TASK.md) | Classify every Permission with a non-null tier | done |
-| 43 | [TASK-00043](../tasks/00043-TASK.md) | Enforce tier eligibility on custom Role grants | ready-for-agent |
+| 43 | [TASK-00043](../tasks/00043-TASK.md) | Enforce tier eligibility on custom Role grants | in-progress |
 | 44 | [TASK-00044](../tasks/00044-TASK.md) | Enforce tier eligibility on direct Agent assignments | ready-for-agent |
