@@ -24,11 +24,14 @@ class Permission
     protected function __construct(
         private readonly PermissionId $id,
         private readonly PermissionName $name,
-        private readonly ?PermissionTier $tier,
+        private readonly PermissionTier $tier,
         private readonly bool $managed,
         private readonly DateTimeImmutable $createdAt,
         private readonly DateTimeImmutable $updatedAt
     ) {
+        if (!$managed && $tier !== PermissionTier::ADMIN_SAFE) {
+            throw new ManagedPermissionException('A custom permission must have an ADMIN_SAFE tier.');
+        }
     }
 
     /**
@@ -36,7 +39,7 @@ class Permission
      */
     public static function define(PermissionId $id, PermissionName $name, DateTimeImmutable $createdAt): static
     {
-        return new static($id, $name, null, false, $createdAt, $createdAt);
+        return new static($id, $name, PermissionTier::ADMIN_SAFE, false, $createdAt, $createdAt);
     }
 
     /**
@@ -109,9 +112,9 @@ class Permission
     }
 
     /**
-     * Returns the managed permission tier, or null for a custom permission
+     * Returns the permission tier
      */
-    public function getTier(): ?PermissionTier
+    public function getTier(): PermissionTier
     {
         return $this->tier;
     }
@@ -121,7 +124,7 @@ class Permission
      */
     public function getManagedTier(): PermissionTier
     {
-        if (!$this->tier instanceof PermissionTier) {
+        if (!$this->managed) {
             throw new ManagedPermissionException('A custom permission has no managed tier.');
         }
 

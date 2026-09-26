@@ -5,17 +5,18 @@ dependencies, acceptance, and verification.
 
 ## What's Next?
 
-First ready Task: [TASK-00041](00041-TASK.md) — Classify every Permission with a non-null tier.
+Active Task: [TASK-00041](00041-TASK.md) — Classify every Permission with a non-null tier.
 
 ## In Progress
 
-No Tasks are currently in this state.
+| Order | TASK ID | Title | Parent TICKET | Status | Blocked by | PR |
+| --- | --- | --- | --- | --- | --- | --- |
+| 41 | [TASK-00041](00041-TASK.md) | Classify every Permission with a non-null tier | [TICKET-00009](../tickets/00009-TICKET.md) — Delegate Eligible Permissions to Custom Roles and Agents | in-progress | — | — |
 
 ## Ready Frontier
 
 | Order | TASK ID | Title | Parent TICKET | Status | Blocked by | PR |
 | --- | --- | --- | --- | --- | --- | --- |
-| 41 | [TASK-00041](00041-TASK.md) | Classify every Permission with a non-null tier | [TICKET-00009](../tickets/00009-TICKET.md) — Delegate Eligible Permissions to Custom Roles and Agents | ready-for-agent | — | — |
 | 42 | [TASK-00042](00042-TASK.md) | Reserve Super Admin Role identity and preserve User Role changes | [TICKET-00011](../tickets/00011-TICKET.md) — Reserve Super Admin Role Across User Role Administration | ready-for-agent | — | — |
 
 ## Waiting
