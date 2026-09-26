@@ -25,7 +25,7 @@ final readonly class PermissionView implements Arrayable
     public function __construct(
         private PermissionId $permissionId,
         private PermissionName $name,
-        private ?PermissionTier $tier,
+        private PermissionTier $tier,
         private bool $managed
     ) {
     }
@@ -60,9 +60,9 @@ final readonly class PermissionView implements Arrayable
     }
 
     /**
-     * Returns the managed permission tier, or null for a custom permission
+     * Returns the permission tier
      */
-    public function getTier(): ?PermissionTier
+    public function getTier(): PermissionTier
     {
         return $this->tier;
     }
@@ -81,7 +81,7 @@ final readonly class PermissionView implements Arrayable
      * @return array{
      *     permission_id: string,
      *     name: string,
-     *     tier: string|null,
+     *     tier: string,
      *     managed: bool
      * }
      */
@@ -90,7 +90,7 @@ final readonly class PermissionView implements Arrayable
         return [
             'permission_id' => $this->permissionId->toString(),
             'name'          => $this->name->toString(),
-            'tier'          => $this->tier?->value,
+            'tier'          => $this->tier->value,
             'managed'       => $this->managed
         ];
     }
