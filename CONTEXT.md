@@ -8,7 +8,7 @@ behavior shared by Fight applications. The repository-local behavioral and secur
 
 ## Vocabulary
 
-- **User**: the stable identity whose canonical email remains unique across pending, active, disabled, and
+- **User**: the stable human identity whose canonical email remains unique across pending, active, disabled, and
   deleted states.
 - **Grant**: a purpose-bound, hashed, expiring, single-use credential for activation, password reset, or email
   change. Reissue revokes its predecessor.
@@ -64,6 +64,9 @@ behavior shared by Fight applications. The repository-local behavioral and secur
   consumer applications map transport data into and out of this representation.
 - **Managed Permission and Managed Role**: stable version-controlled authorization definitions reconciled
   exactly and atomically.
+- **Protected managed Permission**: a managed Permission the consuming project classifies `SUPER_ADMIN_ONLY`. The
+  accepted v0.4.0 policy reserves its membership for managed `ROLE_SUPER_ADMIN` and its authority for human Users
+  through that Role; enforcement is pending implementation.
 - **Conformance suite**: reusable tests of observable Domain and Application outcomes which consumer repositories
   bind to their own adapters.
 - **OpenAPI schema component**: an opt-in reusable description of a package-owned payload that a consumer's OpenAPI
