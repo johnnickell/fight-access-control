@@ -3,7 +3,7 @@
 **Label:** `wayfinder:map`
 **Status:** Active
 
-> This map indexes decisions. Each decision belongs to its linked ticket; no proposal below is an accepted policy.
+> This map indexes decisions. Each accepted decision belongs to its linked ticket; the map summarizes the outcome.
 
 ## Destination
 
@@ -41,6 +41,7 @@ EPIC, TICKET, and/or implementation TASKs. No implementation or release is autho
 3. **[Separate Permission eligibility from caller authorization](tickets/WF-013-target-aware-role-administration.md) is settled.** AccessControl enforces tier and managed-Role invariants in Role and Agent Permission commands. Application builders protect every command entry point using suitable controls; v0.4.0 removes actor-only checks from Role administration, Agent Permission, and User Role-assignment handlers without adding a target-aware port. Target-specific checks for sessions, email changes, and invitation correction remain. Direct command-bus access requires consumer-owned protection.
 4. **[Set Super Admin assignment and removal guarantees](tickets/WF-014-super-admin-role-elevation.md) is settled.** Only the managed Role may use the exact `ROLE_SUPER_ADMIN` name; custom-role creation, rename, and inconsistent reconstruction must not impersonate it. Package User Role commands otherwise use ordinary assignment/removal semantics, including pending User assignment for bootstrap. The application builder owns caller authority, confirmation, audit, removal policy, last-admin protection, and recovery.
 5. **[Guard managed Permission reclassification](tickets/WF-015-forbidden-authority-remediation.md) is settled.** Reconciliation rejects promotion to `SUPER_ADMIN_ONLY` while a custom Role, ordinary managed Role, or Agent still holds the Permission; it does not change policy partially or strip memberships automatically. Fight Agent OS has no stored Permissions, so this map plans no historical cleanup migration.
+6. **[Set atomic tier enforcement proof](tickets/WF-016-atomic-enforcement-and-proof.md) is settled.** A concurrent grant and protected-tier promotion cannot both succeed; whichever conflicts with committed authority is rejected without a partial write or success event. Repository contracts require tier stability through the command transaction, while adapters choose their locking method. Focused package unit tests and the normal implementation build prove package behavior; consumer adapter and HTTP proof belong to later adoption.
 
 ## Decisions
 
@@ -51,7 +52,7 @@ EPIC, TICKET, and/or implementation TASKs. No implementation or release is autho
 | WF-013 | [Separate Permission eligibility from caller authorization](tickets/WF-013-target-aware-role-administration.md) | Grilling | HITL | **Closed** | WF-011, WF-012 |
 | WF-014 | [Set Super Admin assignment and removal guarantees](tickets/WF-014-super-admin-role-elevation.md) | Grilling | HITL | **Closed** | WF-011 |
 | WF-015 | [Guard managed Permission reclassification](tickets/WF-015-forbidden-authority-remediation.md) | Grilling | HITL | **Closed** | WF-011 |
-| WF-016 | [Set atomic enforcement and integration proof](tickets/WF-016-atomic-enforcement-and-proof.md) | Grilling | HITL | **Open** | WF-013, WF-014, WF-015 |
+| WF-016 | [Set atomic tier enforcement proof](tickets/WF-016-atomic-enforcement-and-proof.md) | Grilling | HITL | **Closed** | WF-013, WF-014, WF-015 |
 
 ## Blocking relationships
 
@@ -63,12 +64,7 @@ Protected membership ──→ Custom Permission classification ──→ Eligib
 
 ## Frontier
 
-[Set atomic enforcement and integration proof](tickets/WF-016-atomic-enforcement-and-proof.md)
-is the next authored frontier.
-
-## Not yet specified (fog)
-
-- Exact adapter-level locking mechanism and compatibility sequence, pending WF-016.
+None. All authored decisions are closed. The separate EPIC/TICKET/TASK handoff remains to be planned.
 
 ## Out of scope
 
@@ -79,3 +75,5 @@ is the next authored frontier.
 - Exact consumer confirmation, audit, removal, and last-admin recovery protocols, including any Agent OS
   implementation planning outside this map.
 - Historical data cleanup; the first implementing consumer has no stored Permissions to migrate.
+- Exact adapter locking method and consumer PostgreSQL, HTTP, and build proof; each consumer handles these when
+  adopting the package release.

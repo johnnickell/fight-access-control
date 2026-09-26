@@ -54,5 +54,5 @@ scope, elevation/removal authority, and managed Permission reclassification rema
 ## Resolution
 
 Closed. The accepted constraints above govern the v0.4.0 handoff. Managed Permission reclassification belongs to
-[WF-015](WF-015-forbidden-authority-remediation.md); transaction and
-adapter proof belong to [WF-016](WF-016-atomic-enforcement-and-proof.md). This decision authorizes no implementation.
+[WF-015](WF-015-forbidden-authority-remediation.md); package transaction and unit-test proof belong to
+[WF-016](WF-016-atomic-enforcement-and-proof.md). This decision authorizes no implementation.
