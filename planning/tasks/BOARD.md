@@ -5,7 +5,7 @@ dependencies, acceptance, and verification.
 
 ## What's Next?
 
-Needs information: [TASK-00035](00035-TASK.md) — Authorize Agent-protected MCP Tools. This Task is not executable until the missing information is resolved.
+First ready Task: [TASK-00041](00041-TASK.md) — Classify every Permission with a non-null tier.
 
 ## In Progress
 
@@ -13,11 +13,18 @@ No Tasks are currently in this state.
 
 ## Ready Frontier
 
-No Tasks are currently in this state.
+| Order | TASK ID | Title | Parent TICKET | Status | Blocked by | PR |
+| --- | --- | --- | --- | --- | --- | --- |
+| 41 | [TASK-00041](00041-TASK.md) | Classify every Permission with a non-null tier | [TICKET-00009](../tickets/00009-TICKET.md) — Delegate Eligible Permissions to Custom Roles and Agents | ready-for-agent | — | — |
+| 42 | [TASK-00042](00042-TASK.md) | Reserve Super Admin Role identity and preserve User Role changes | [TICKET-00011](../tickets/00011-TICKET.md) — Reserve Super Admin Role Across User Role Administration | ready-for-agent | — | — |
 
 ## Waiting
 
-No Tasks are currently in this state.
+| Order | TASK ID | Title | Parent TICKET | Status | Blocked by | PR |
+| --- | --- | --- | --- | --- | --- | --- |
+| 43 | [TASK-00043](00043-TASK.md) | Enforce tier eligibility on custom Role grants | [TICKET-00009](../tickets/00009-TICKET.md) — Delegate Eligible Permissions to Custom Roles and Agents | ready-for-agent | [TASK-00041](00041-TASK.md), [TASK-00042](00042-TASK.md) | — |
+| 44 | [TASK-00044](00044-TASK.md) | Enforce tier eligibility on direct Agent assignments | [TICKET-00009](../tickets/00009-TICKET.md) — Delegate Eligible Permissions to Custom Roles and Agents | ready-for-agent | [TASK-00041](00041-TASK.md) | — |
+| 45 | [TASK-00045](00045-TASK.md) | Reconcile protected managed policy without forbidden membership | [TICKET-00010](../tickets/00010-TICKET.md) — Reconcile Protected Managed Policy Safely | ready-for-agent | [TASK-00042](00042-TASK.md), [TASK-00043](00043-TASK.md), [TASK-00044](00044-TASK.md) | — |
 
 ## Needs Info
 
