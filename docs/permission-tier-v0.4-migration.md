@@ -1,6 +1,8 @@
 # Permission tier contract migration (v0.4.0 planning)
 
-This is a consumer adoption note for the unreleased pre-1.0 Permission contract change in TASK-00041, not a package release or certification of any consumer schema.
+This is a consumer adoption note for the pre-1.0 Permission contract changes published in
+[v0.4.0](https://github.com/johnnickell/fight-access-control/releases/tag/v0.4.0). Package publication does not
+certify a consumer schema or establish consumer adoption.
 
 `Permission::getTier()` and `PermissionView::getTier()` now return `PermissionTier`, never null. `PermissionView::toArray()` always includes a string `tier` (`ADMIN_SAFE` or `SUPER_ADMIN_ONLY`). `Permission::define()` creates a custom Permission with `ADMIN_SAFE`; `defineManaged()` and managed reconciliation retain the tier declared by the consumer. A custom Permission cannot be reconstructed as `SUPER_ADMIN_ONLY` or claimed by managed reconciliation; `getManagedTier()` remains restricted to managed Permissions.
 
