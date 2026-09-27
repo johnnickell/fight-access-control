@@ -2,16 +2,16 @@
 id: TICKET-00010
 epic: EPIC-00008
 title: Reconcile Protected Managed Policy Safely
-status: ready-for-agent
+status: done
 ---
 
 # Reconcile Protected Managed Policy Safely
 
 ## Problem and Outcome
 
-Managed policy currently validates identities and references but can attach a `SUPER_ADMIN_ONLY` Permission to an
-ordinary managed Role or promote a Permission while a custom Role or Agent still has it. Reconciliation must reject
-those policies before changing authority. A concurrent grant and promotion cannot both commit.
+Managed policy must reject a `SUPER_ADMIN_ONLY` Permission on an ordinary managed Role and reject promotion while
+a custom Role, ordinary managed Role, or Agent still holds the Permission. Reconciliation now rejects those policies
+before changing authority. A concurrent grant and promotion cannot both commit.
 
 ## Use Cases
 
@@ -51,13 +51,13 @@ exposing private state to HTTP clients through a package transport contract.
 
 ## Acceptance Evidence
 
-- [ ] A policy that assigns a protected Permission to an ordinary managed Role fails before reconciliation changes
+- [x] A policy that assigns a protected Permission to an ordinary managed Role fails before reconciliation changes
       authority. Only managed `ROLE_SUPER_ADMIN` may hold it.
-- [ ] Promotion fails with no partial write or success Event while any custom Role, ordinary managed Role, or Agent
+- [x] Promotion fails with no partial write or success Event while any custom Role, ordinary managed Role, or Agent
       holds the Permission; removal of those memberships permits a valid retry.
-- [ ] Focused package unit tests exercise both grant-first and promotion-first interleavings or controlled stale
+- [x] Focused package unit tests exercise both grant-first and promotion-first interleavings or controlled stale
       state and prove that both operations cannot succeed, including no-op grant handling.
-- [ ] Existing safe failure publication, transaction rollback, and post-commit success ordering remain proven; the
+- [x] Existing safe failure publication, transaction rollback, and post-commit success ordering remain proven; the
       canonical `./bin/build` passes during implementation.
 
 ## Decision Links and Boundaries
@@ -70,6 +70,15 @@ Implements [WF-011](../wayfinder/tickets/WF-011-protected-permission-membership.
 
 No historical Agent OS data cleanup, automatic remediation command, specific database lock design, Agent OS
 implementation, package tag, or release is part of this Ticket.
+
+## Completion evidence
+
+[TASK-00045](../tasks/00045-TASK.md) completed all four acceptance criteria and received independent acceptance
+without findings. [PR #73](https://github.com/johnnickell/fight-access-control/pull/73) merged into `develop` at
+`60e2ff7aeb77e89a661bb6cc4230b3eb27847dae`. The final saved package gate passed with 603 tests, 4669 assertions,
+and exact 5126/5126 statement coverage; the merge tree matches the tested feature head `4fc13e0`. Controlled
+in-memory tests prove forbidden promotion, grant-first and promotion-first conflicts, stale-state rejection,
+rollback, and event ordering. Consumer PostgreSQL locking and integration remain separate adoption work.
 
 ## Child Tasks
 

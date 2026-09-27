@@ -9,6 +9,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- **Breaking (pre-1.0):** Every Permission now has a non-null tier. Custom Permissions are always `ADMIN_SAFE`,
+  and Permission read results serialize their tier. Consumers must update persistence mappings, hydrators, and
+  projections for the non-null contract. See the [v0.4.0 migration guide](docs/permission-tier-v0.4-migration.md).
 - **Breaking (pre-1.0):** Custom-Role grant/revoke handlers no longer accept the actor-only
   `RoleAdministrationAuthorization` port. Granting requires an authoritative `ADMIN_SAFE` Permission even on a
   no-op; Role repository adapters must fence Permission tier authority through custom-Role writes. See the
@@ -18,6 +21,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   actor IDs remain provenance, not credentials. `ROLE_SUPER_ADMIN` is reserved for a uniquely authoritative managed
   Role; pending Users may receive it for bootstrap under ordinary assignment rules. See the
   [v0.4.0 migration guide](docs/permission-tier-v0.4-migration.md).
+
+- **Breaking (pre-1.0):** Direct Agent grant/revoke/replace handlers no longer accept the actor-only
+  `AgentPermissionAdministrationAuthorization` port. Grants and complete-set replacements require authoritative
+  `ADMIN_SAFE` Permissions even on no-ops; Agent repository adapters must fence tier authority through assignment
+  writes. Consumers protect every entry point. See the [v0.4.0 migration guide](docs/permission-tier-v0.4-migration.md).
+- **Breaking (pre-1.0):** Managed policy permits protected Permissions only on authoritative managed
+  `ROLE_SUPER_ADMIN`. Preview and reconciliation reject promotion while any custom Role, ordinary managed Role, or
+  Agent holds the Permission, without automatically removing membership. Consumer repositories must share atomic
+  grant/promotion fences, provide `AgentRepository::hasPermissionAssignment()`, and inject the Agent repository into
+  `ManagedPolicyPlanner` for promotion. See the [v0.4.0 migration guide](docs/permission-tier-v0.4-migration.md).
 
 ## [0.3.0] - 2026-09-25
 

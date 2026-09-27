@@ -9,9 +9,9 @@ status: done
 
 ## Problem and Outcome
 
-Custom Permissions currently have a null tier, while custom-Role and direct Agent grant commands accept an existing
-Permission without checking its tier. Make every Permission's tier explicit and let package commands attach only
-`ADMIN_SAFE` authority to custom Roles or Agents. The application builder protects each command entry point and
+Every Permission now has an explicit tier, and package commands attach only `ADMIN_SAFE` authority to custom Roles
+or Agents. Custom Permissions start `ADMIN_SAFE`; protected managed Permissions cannot be delegated through these
+commands. The application builder protects each command entry point and
 decides who may change a particular target; AccessControl enforces eligibility independently of caller identity.
 
 ## Use Cases
@@ -56,15 +56,15 @@ Event, and preserves the package's existing safe failure evidence.
 
 ## Acceptance Evidence
 
-- [ ] Custom and managed Permissions expose a non-null tier in aggregate and safe read contracts; custom creation
+- [x] Custom and managed Permissions expose a non-null tier in aggregate and safe read contracts; custom creation
       produces `ADMIN_SAFE`, and unexpected null or malformed definitions fail closed.
-- [ ] Real package handlers accept eligible custom-Role and Agent changes and reject protected grants, protected
+- [x] Real package handlers accept eligible custom-Role and Agent changes and reject protected grants, protected
       Agent complete-set members, missing definitions, and managed-Role targets without partial writes or success
       Events. Idempotent and stale-state paths do not bypass eligibility.
-- [ ] Direct Agent replacement keeps normalized-set and expected-revision behavior for eligible Permissions.
-- [ ] The specified actor-only Role-membership and Agent-Permission handler ports are removed while consumer
+- [x] Direct Agent replacement keeps normalized-set and expected-revision behavior for eligible Permissions.
+- [x] The specified actor-only Role-membership and Agent-Permission handler ports are removed while consumer
       caller-authorization responsibility and remaining ownership-sensitive ports are accurately documented.
-- [ ] Focused package tests prove allowed, rejected, no-op, failure-event, and transaction-conflict outcomes; the
+- [x] Focused package tests prove allowed, rejected, no-op, failure-event, and transaction-conflict outcomes; the
       canonical `./bin/build` passes during implementation.
 
 ## Decision Links and Boundaries
@@ -82,10 +82,11 @@ change, package tag, or release is part of this Ticket.
 
 ## Progress
 
-TASK-00041 supplies non-null tiers, TASK-00043 fences custom-Role grants, and TASK-00044 fences direct Agent
-grants and complete-set replacements. Package behavior and exact-coverage verification for this Ticket are complete;
-TASK-00045 separately owns managed-policy promotion and cross-path reconciliation proof. Consumer adapter/schema
-adoption and release remain separate.
+[TASK-00041](../tasks/00041-TASK.md) supplies non-null tiers, [TASK-00043](../tasks/00043-TASK.md) fences
+custom-Role grants, and [TASK-00044](../tasks/00044-TASK.md) fences direct Agent grants and complete-set replacements.
+Their acceptance criteria and recorded focused/full gates establish the completed behavior above.
+[TASK-00045](../tasks/00045-TASK.md) also completed managed-policy promotion and cross-path reconciliation proof.
+Consumer adapter/schema adoption and release remain separate.
 
 ## Child Tasks
 
