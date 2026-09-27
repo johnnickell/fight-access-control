@@ -9,9 +9,8 @@ status: done
 
 ## Problem and Outcome
 
-The current custom-Role commands can use `ROLE_SUPER_ADMIN` when that name is available, and User Role handlers
-rely on an actor-only authorization port that cannot decide target-specific elevation policy. Reserve the exact
-name for the managed Role and keep ordinary package assignment/removal semantics. The application builder owns
+Custom-Role commands now reserve `ROLE_SUPER_ADMIN` for the managed Role, and User Role handlers retain ordinary
+package assignment/removal semantics without the retired actor-only authorization port. The application builder owns
 caller authority, confirmation, audit, last-admin protection, and recovery at every entry point.
 
 ## Use Cases
