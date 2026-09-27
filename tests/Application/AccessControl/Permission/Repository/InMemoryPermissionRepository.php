@@ -9,6 +9,7 @@ use Fight\AccessControl\Domain\AccessControl\Permission\Permission;
 use Fight\AccessControl\Domain\AccessControl\Permission\PermissionId;
 use Fight\AccessControl\Domain\AccessControl\Permission\PermissionName;
 use Fight\AccessControl\Domain\AccessControl\Permission\PermissionRepository;
+use Fight\AccessControl\Domain\AccessControl\Permission\PermissionTier;
 use Fight\Common\Domain\Collection\ArrayList;
 use Fight\Common\Domain\Repository\Pagination;
 use Fight\Common\Domain\Repository\ResultSet;
@@ -27,7 +28,8 @@ final class InMemoryPermissionRepository implements PermissionRepository
         private readonly ?Closure $beforeRemove = null,
         private readonly bool $removeSucceeds = true,
         ?InMemoryAuthorizationReferenceState $authorizationReferences = null,
-        private readonly ?Closure $getByIdsResult = null
+        private readonly ?Closure $getByIdsResult = null,
+        private readonly ?Closure $beforeReplace = null
     ) {
         $resolvedAuthorizationReferences = $authorizationReferences ?? new InMemoryAuthorizationReferenceState();
         if (
@@ -43,7 +45,7 @@ final class InMemoryPermissionRepository implements PermissionRepository
     public function add(Permission $permission): void
     {
         $this->permissions[] = $permission;
-        $this->authorizationReferences->addPermission($permission->getId());
+        $this->authorizationReferences->addPermission($permission);
         $this->unitOfWork?->onRollback(function () use ($permission): void {
             array_pop($this->permissions);
             $this->authorizationReferences->removePermission($permission->getId());
@@ -128,14 +130,29 @@ final class InMemoryPermissionRepository implements PermissionRepository
 
     public function replace(Permission $expected, Permission $replacement): bool
     {
+        $this->authorizationReferences->holdThroughCompletion();
+        $this->beforeReplace?->__invoke();
+        if (
+            !$replacement->getId()->equals($expected->getId())
+            || (
+                $expected->getTier() !== PermissionTier::SUPER_ADMIN_ONLY
+                && $replacement->getTier() === PermissionTier::SUPER_ADMIN_ONLY
+                && !$this->authorizationReferences->protectedPromotionIsAllowed($expected->getId())
+            )
+        ) {
+            return false;
+        }
+
         foreach ($this->permissions as $index => $permission) {
             if ($permission !== $expected) {
                 continue;
             }
 
             $this->permissions[$index] = $replacement;
+            $this->authorizationReferences->addPermission($replacement);
             $this->unitOfWork?->onRollback(function () use ($expected, $index): void {
                 $this->permissions[$index] = $expected;
+                $this->authorizationReferences->addPermission($expected);
             });
 
             return true;
@@ -165,7 +182,7 @@ final class InMemoryPermissionRepository implements PermissionRepository
             $this->authorizationReferences->removePermission($permission->getId());
             $this->unitOfWork?->onRollback(function () use ($permission, $index): void {
                 array_splice($this->permissions, $index, 0, [$permission]);
-                $this->authorizationReferences->addPermission($permission->getId());
+                $this->authorizationReferences->addPermission($permission);
             });
 
             return true;

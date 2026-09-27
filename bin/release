@@ -99,6 +99,25 @@ $schemas = json_decode(
     512,
     JSON_THROW_ON_ERROR
 )["components"]["schemas"];
+$permission = $schemas["Fight.AccessControl.Permission"];
+$permissionTier = $permission["properties"]["tier"];
+$permissionCollection = $schemas["Fight.AccessControl.PermissionCollection"];
+$permissionSuccess = $schemas["Fight.AccessControl.JSend.Success.Permission"];
+$permissionCollectionSuccess = $schemas["Fight.AccessControl.JSend.Success.PermissionCollection"];
+$validPermission = in_array("tier", $permission["required"], true)
+    && $permissionTier["type"] === "string"
+    && ($permissionTier["nullable"] ?? false) === false
+    && $permissionTier["enum"] === ["ADMIN_SAFE", "SUPER_ADMIN_ONLY"]
+    && in_array("records", $permissionCollection["required"], true)
+    && $permissionCollection["properties"]["records"]["type"] === "array"
+    && $permissionCollection["properties"]["records"]["items"]["\$ref"] === "#/components/schemas/Fight.AccessControl.Permission"
+    && $permissionSuccess["required"] === ["status", "data"]
+    && $permissionSuccess["properties"]["data"]["\$ref"] === "#/components/schemas/Fight.AccessControl.Permission"
+    && $permissionCollectionSuccess["required"] === ["status", "data"]
+    && $permissionCollectionSuccess["properties"]["data"]["\$ref"] === "#/components/schemas/Fight.AccessControl.PermissionCollection";
+if (!$validPermission) {
+    throw new RuntimeException("OpenAPI Permission tier or collection/envelope assertion failed.");
+}
 $paginationOrderings = $schemas["Fight.AccessControl.PaginationRequest"]["properties"]["orderings"];
 $sessionOrderings = $schemas["Fight.AccessControl.ListActiveSessions"]["properties"]["orderings"];
 $emptySuccessData = $schemas["Fight.AccessControl.JSend.Success.Empty"]["properties"]["data"];

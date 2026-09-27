@@ -26,6 +26,7 @@ use Fight\AccessControl\Domain\AccessControl\Role\RoleName;
 use Fight\Common\Domain\Messaging\Query\QueryMessage;
 use Fight\Common\Domain\Repository\Pagination;
 use Fight\Common\Domain\Type\Arrayable;
+use Fight\Test\AccessControl\Application\AccessControl\Agent\Repository\InMemoryAgentRepository;
 use Fight\Test\AccessControl\Application\AccessControl\Permission\Repository\InMemoryPermissionRepository;
 use Fight\Test\AccessControl\Application\AccessControl\Role\Repository\InMemoryRoleRepository;
 use Fight\Test\AccessControl\Application\AccessControl\User\Repository\InMemoryAuthorizationReferenceState;
@@ -90,7 +91,7 @@ final class PreviewManagedPolicyHandlerTest extends TestCase
                 ),
                 $this->role(
                     '018f0000-0000-7000-8000-000000000203',
-                    'ROLE_ADMIN',
+                    'ROLE_SUPER_ADMIN',
                     [
                         '018f0000-0000-7000-8000-000000000102',
                         '018f0000-0000-7000-8000-000000000103'
@@ -101,7 +102,7 @@ final class PreviewManagedPolicyHandlerTest extends TestCase
                     'ROLE_EDITOR',
                     [
                         '018f0000-0000-7000-8000-000000000101',
-                        '018f0000-0000-7000-8000-000000000102'
+                        '018f0000-0000-7000-8000-000000000103'
                     ]
                 )
             ]
@@ -110,7 +111,8 @@ final class PreviewManagedPolicyHandlerTest extends TestCase
             new ManagedPolicyPlanner(
                 $permissionRepository,
                 $roleRepository,
-                new InMemoryUserRepository()
+                new InMemoryUserRepository(),
+                new InMemoryAgentRepository()
             )
         );
 
@@ -133,14 +135,14 @@ final class PreviewManagedPolicyHandlerTest extends TestCase
             )
         );
         self::assertSame(
-            ['ROLE_ADMIN', 'ROLE_EDITOR', 'ROLE_VIEWER'],
+            ['ROLE_EDITOR', 'ROLE_SUPER_ADMIN', 'ROLE_VIEWER'],
             array_map(
                 static fn(ManagedRolePlanItem $item): string => $item->getDefinition()->getName()->toString(),
                 $plan->getRoles()
             )
         );
         self::assertSame(
-            ['CREATE', 'RECONCILE', 'UNCHANGED'],
+            ['RECONCILE', 'CREATE', 'UNCHANGED'],
             array_map(
                 static fn(ManagedRolePlanItem $item): string => $item->getAction()->value,
                 $plan->getRoles()
@@ -282,7 +284,8 @@ final class PreviewManagedPolicyHandlerTest extends TestCase
             new ManagedPolicyPlanner(
                 $permissionRepository,
                 $roleRepository,
-                new InMemoryUserRepository()
+                new InMemoryUserRepository(),
+                new InMemoryAgentRepository()
             )
         );
 

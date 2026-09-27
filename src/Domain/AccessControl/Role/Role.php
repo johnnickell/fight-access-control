@@ -19,6 +19,8 @@ use Fight\Common\Domain\Collection\HashSet;
  */
 class Role
 {
+    public const string SUPER_ADMIN_NAME = 'ROLE_SUPER_ADMIN';
+
     /** @var HashSet<PermissionId> */
     private readonly HashSet $permissionIds;
 
@@ -37,6 +39,10 @@ class Role
         private readonly DateTimeImmutable $createdAt,
         private readonly DateTimeImmutable $updatedAt
     ) {
+        if (!$managed && $name->toString() === self::SUPER_ADMIN_NAME) {
+            throw new CustomRoleException('The Super Admin role name is reserved for managed policy.');
+        }
+
         $this->permissionIds = HashSet::of(PermissionId::class);
 
         foreach ($permissionIds as $permissionId) {
@@ -202,6 +208,39 @@ class Role
     public function isManaged(): bool
     {
         return $this->managed;
+    }
+
+    /**
+     * Rejects a role that conflicts with the authoritative Super Admin identity
+     */
+    final public function assertConsistentWithSuperAdmin(?Role $designated): void
+    {
+        if (
+            !$this->getId()->equals($this->id)
+            || !$this->getName()->equals($this->name)
+            || $this->isManaged() !== $this->managed
+        ) {
+            throw new ManagedRoleException('The Super Admin role identity is inconsistent.');
+        }
+
+        if (
+            $designated instanceof Role
+            && (
+                !$designated->managed
+                || $designated->name->toString() !== self::SUPER_ADMIN_NAME
+                || !$designated->getId()->equals($designated->id)
+                || !$designated->getName()->equals($designated->name)
+                || !$designated->isManaged()
+            )
+        ) {
+            throw new ManagedRoleException('The Super Admin role identity is inconsistent.');
+        }
+
+        $hasReservedName = $this->name->toString() === self::SUPER_ADMIN_NAME;
+        $hasDesignatedId = $designated instanceof Role && $this->id->equals($designated->id);
+        if ($hasReservedName !== $hasDesignatedId || ($hasReservedName && !$this->managed)) {
+            throw new ManagedRoleException('The Super Admin role identity is inconsistent.');
+        }
     }
 
     /**

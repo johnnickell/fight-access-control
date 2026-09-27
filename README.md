@@ -7,6 +7,10 @@ The `v0.3.0` contract introduces recoverable, provider-neutral credential delive
 reset, and email change. Consumers upgrading from `v0.2.x` must follow the
 [credential-delivery migration guide](docs/credential-delivery-v0.3-migration.md).
 
+The unreleased pre-1.0 Permission tier contract requires consumer persistence and projection adoption; see the
+[Permission tier migration note](docs/permission-tier-v0.4-migration.md). It does not certify a consumer schema or
+publish a package release.
+
 The `0.2.0` release adds an opt-in, non-autoloaded OpenAPI component catalog
 for consumer-owned documents. See [OpenAPI composition](docs/openapi-composition.md).
 

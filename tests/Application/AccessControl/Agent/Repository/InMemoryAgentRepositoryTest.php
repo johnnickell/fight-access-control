@@ -9,7 +9,10 @@ use Fight\AccessControl\Domain\AccessControl\Agent\Agent;
 use Fight\AccessControl\Domain\AccessControl\Agent\AgentCredentialId;
 use Fight\AccessControl\Domain\AccessControl\Agent\AgentId;
 use Fight\AccessControl\Domain\AccessControl\Agent\AgentName;
+use Fight\AccessControl\Domain\AccessControl\Permission\Permission;
 use Fight\AccessControl\Domain\AccessControl\Permission\PermissionId;
+use Fight\AccessControl\Domain\AccessControl\Permission\PermissionName;
+use Fight\AccessControl\Domain\AccessControl\Permission\PermissionTier;
 use Fight\Common\Domain\Repository\Pagination;
 use Fight\Test\AccessControl\Application\AccessControl\User\Repository\InMemoryAuthorizationReferenceState;
 use PHPUnit\Framework\Attributes\CoversNothing;
@@ -91,13 +94,48 @@ final class InMemoryAgentRepositoryTest extends TestCase
         );
         $replacement = RehydratedAgentFixture::fromAgent($expected, [$permissionId], 3);
         $authorizationReferences = new InMemoryAuthorizationReferenceState();
-        $authorizationReferences->addPermission($permissionId);
+        $authorizationReferences->addPermission(Permission::define(
+            $permissionId,
+            PermissionName::fromString('READ_CASES'),
+            new DateTimeImmutable('2026-01-01T00:00:00+00:00')
+        ));
 
         $repository = new InMemoryAgentRepository(authorizationReferences: $authorizationReferences);
         $repository->add($expected);
 
         self::assertFalse($repository->replacePermissionAssignments($expected, $replacement));
         self::assertSame($expected, $repository->getById($expected->getId()));
+    }
+
+    public function test_assignment_fence_requires_exact_eligible_definitions_and_rejects_protected_writes(): void
+    {
+        $permissionId = PermissionId::generate();
+        $safe = Permission::defineManaged(
+            $permissionId,
+            PermissionName::fromString('READ_CASES'),
+            PermissionTier::ADMIN_SAFE,
+            new DateTimeImmutable('2026-01-01T00:00:00+00:00')
+        );
+        $protected = $safe->reconcileManaged(
+            $safe->getName(),
+            PermissionTier::SUPER_ADMIN_ONLY,
+            new DateTimeImmutable('2026-08-26T12:00:00+00:00')
+        );
+        $references = new InMemoryAuthorizationReferenceState();
+        $references->addPermission($safe);
+
+        $repository = new InMemoryAgentRepository(authorizationReferences: $references);
+        $agent = $this->agent('Production deployment');
+        $repository->add($agent);
+        $replacement = $agent->grantPermission($permissionId, new DateTimeImmutable('2026-08-26T12:00:00+00:00'));
+
+        self::assertTrue($repository->validatePermissionAssignments([$safe]));
+        self::assertTrue($references->isReferenceFenceHeld());
+        $references->addPermission($protected);
+        self::assertFalse($repository->validatePermissionAssignments([$safe]));
+        self::assertFalse($repository->validatePermissionAssignments([$protected]));
+        self::assertFalse($repository->replacePermissionAssignments($agent, $replacement));
+        self::assertSame($agent, $repository->getById($agent->getId()));
     }
 
     private function agent(string $name): Agent

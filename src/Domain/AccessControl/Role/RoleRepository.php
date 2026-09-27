@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Fight\AccessControl\Domain\AccessControl\Role;
 
 use Exception;
+use Fight\AccessControl\Domain\AccessControl\Permission\Permission;
 use Fight\AccessControl\Domain\AccessControl\Permission\PermissionId;
 use Fight\Common\Domain\Repository\Pagination;
 use Fight\Common\Domain\Repository\ResultSet;
@@ -19,8 +20,10 @@ interface RoleRepository
     /**
      * Adds a role
      *
-     * Implementations atomically reject any membership whose Permission is no longer authoritative. Validation and
-     * mutation occur under one adapter-owned fence held through the enclosing Unit of Work.
+     * Implementations atomically reject duplicate Role IDs and canonical names as well as membership whose
+     * Permission is no longer authoritative. Custom Role membership must reference only current ADMIN_SAFE
+     * Permissions. Protected managed membership is allowed only for the authoritative managed ROLE_SUPER_ADMIN.
+     * Validation and mutation occur under adapter-owned fences held through the enclosing Unit of Work.
      *
      * @throws Exception When an error occurs
      */
@@ -29,12 +32,16 @@ interface RoleRepository
     /**
      * Retrieves a role by its stable identifier
      *
+     * The returned Role must have the requested ID; conflicting stored identities fail closed.
+     *
      * @throws Exception When an error occurs
      */
     public function getById(RoleId $id): ?Role;
 
     /**
-     * Retrieves a role by its canonical name
+     * Retrieves the unique authoritative role by its canonical name
+     *
+     * Duplicate stored names and mismatched name-index results must fail closed, not select an arbitrary Role.
      *
      * @throws Exception When an error occurs
      */
@@ -42,6 +49,8 @@ interface RoleRepository
 
     /**
      * Retrieves every resolvable role for the requested identifiers without pagination
+     *
+     * Conflicting stored IDs or names must fail closed, not return an arbitrary Role.
      *
      * @phpstan-param list<RoleId> $ids
      *
@@ -84,10 +93,23 @@ interface RoleRepository
     public function validatePermissionReference(PermissionId $permissionId): bool;
 
     /**
+     * Validates an authoritative ADMIN_SAFE Permission for a custom-Role grant
+     *
+     * Returns false if the definition changed or is not eligible. The adapter must fence the authoritative
+     * Permission tier and identity through transaction completion, including no-op grants, sharing that fence with
+     * managed Permission tier changes. The supplied Permission is an expected snapshot, not the source of authority.
+     *
+     * @throws Exception When an error occurs
+     */
+    public function validateCustomPermissionGrant(Permission $expected): bool;
+
+    /**
      * Replaces the expected role when it remains current and all replacement Permissions remain authoritative
      *
-     * Validation and mutation occur under one adapter-owned permission-reference fence held through the enclosing
-     * Unit of Work and shared with PermissionRepository::remove().
+     * Validation and mutation occur under adapter-owned permission-reference, tier and unique-name fences held
+     * through the enclosing Unit of Work and shared with PermissionRepository::remove() and managed tier changes.
+     * For custom Roles, every replacement membership must remain an authoritative ADMIN_SAFE Permission; managed
+     * Roles may retain protected membership only on the authoritative managed ROLE_SUPER_ADMIN.
      */
     public function replace(Role $expected, Role $replacement): bool;
 

@@ -12,6 +12,9 @@ use Fight\AccessControl\Domain\AccessControl\Permission\PermissionId;
 use Fight\AccessControl\Domain\AccessControl\Permission\PermissionRepository;
 use Fight\AccessControl\Domain\AccessControl\RefreshSession\RefreshSession;
 use Fight\AccessControl\Domain\AccessControl\RefreshSession\RefreshSessionRepository;
+use Fight\AccessControl\Domain\AccessControl\Role\Exception\ManagedRoleException;
+use Fight\AccessControl\Domain\AccessControl\Role\Role;
+use Fight\AccessControl\Domain\AccessControl\Role\RoleName;
 use Fight\AccessControl\Domain\AccessControl\Role\RoleRepository;
 use Fight\AccessControl\Domain\AccessControl\User\User;
 use Fight\AccessControl\Domain\AccessControl\User\UserRepository;
@@ -73,6 +76,7 @@ final readonly class AuthoritativePrincipalResolver
         }
 
         $roles = $this->roleRepository->getByIds($roleIds);
+        $designated = $this->roleRepository->getByName(RoleName::fromString(Role::SUPER_ADMIN_NAME));
         $principalRoles = [];
         $permissionIds = HashSet::of(PermissionId::class);
         foreach ($roles as $role) {
@@ -82,6 +86,12 @@ final readonly class AuthoritativePrincipalResolver
             }
 
             unset($expectedRoleIds[$roleKey]);
+            try {
+                $role->assertConsistentWithSuperAdmin($designated);
+            } catch (ManagedRoleException) {
+                $this->deny();
+            }
+
             $principalRoles[] = new PrincipalRole($role->getId(), $role->getName());
             foreach ($role->getPermissionIds() as $permissionId) {
                 $permissionIds->add($permissionId);

@@ -78,7 +78,7 @@ outcome/audit semantics, and direct handler registration.
       `./bin/build` pass before a separately authorized tag/release.
 
 TASK-00037 through TASK-00039 completed these acceptance checks and the local package qualification. The signed
-`v0.3.0` tag, hosted release, and consumer migrations remain separate follow-up work.
+`v0.3.0` tag and hosted release were completed on 2026-09-25; consumer migrations remain separate follow-up work.
 
 ## Exclusions
 

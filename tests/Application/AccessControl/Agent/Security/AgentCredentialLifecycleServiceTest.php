@@ -19,6 +19,8 @@ use Fight\AccessControl\Domain\AccessControl\Agent\Event\AgentCredentialRevoked;
 use Fight\AccessControl\Domain\AccessControl\Agent\Event\AgentCredentialRotated;
 use Fight\AccessControl\Domain\AccessControl\Agent\Exception\AgentCredentialException;
 use Fight\AccessControl\Domain\AccessControl\Audit\AuditEvidence;
+use Fight\AccessControl\Domain\AccessControl\Permission\Permission;
+use Fight\AccessControl\Domain\AccessControl\Permission\PermissionId;
 use Fight\Common\Application\Repository\TransactionalUnitOfWork;
 use Fight\Common\Domain\Exception\DomainException;
 use Fight\Common\Domain\Repository\Pagination;
@@ -273,6 +275,11 @@ final class AgentCredentialLifecycleServiceTest extends TestCase
                 {
                 }
 
+                public function hasPermissionAssignment(PermissionId $permissionId): bool
+                {
+                    return false;
+                }
+
                 public function add(Agent $agent): void
                 {
                 }
@@ -307,6 +314,12 @@ final class AgentCredentialLifecycleServiceTest extends TestCase
                 public function replace(Agent $expected, Agent $replacement): bool
                 {
                     throw $this->failure;
+                }
+
+                /** @phpstan-param list<Permission> $expectedPermissions */
+                public function validatePermissionAssignments(array $expectedPermissions): bool
+                {
+                    return false;
                 }
 
                 public function replacePermissionAssignments(Agent $expected, Agent $replacement): bool
@@ -419,6 +432,11 @@ final class AgentCredentialLifecycleServiceTest extends TestCase
             {
             }
 
+            public function hasPermissionAssignment(PermissionId $permissionId): bool
+            {
+                return false;
+            }
+
             public function add(Agent $agent): void
             {
             }
@@ -441,6 +459,12 @@ final class AgentCredentialLifecycleServiceTest extends TestCase
             }
 
             public function replace(Agent $expected, Agent $replacement): bool
+            {
+                return false;
+            }
+
+            /** @phpstan-param list<Permission> $expectedPermissions */
+            public function validatePermissionAssignments(array $expectedPermissions): bool
             {
                 return false;
             }
@@ -544,6 +568,11 @@ final class AgentCredentialLifecycleServiceTest extends TestCase
                 ) {
                 }
 
+                public function hasPermissionAssignment(PermissionId $permissionId): bool
+                {
+                    return false;
+                }
+
                 public function add(Agent $agent): void
                 {
                 }
@@ -578,6 +607,12 @@ final class AgentCredentialLifecycleServiceTest extends TestCase
                 public function replace(Agent $expected, Agent $replacement): bool
                 {
                     throw $this->failure;
+                }
+
+                /** @phpstan-param list<Permission> $expectedPermissions */
+                public function validatePermissionAssignments(array $expectedPermissions): bool
+                {
+                    return false;
                 }
 
                 public function replacePermissionAssignments(Agent $expected, Agent $replacement): bool

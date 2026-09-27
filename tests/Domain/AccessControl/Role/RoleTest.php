@@ -175,6 +175,69 @@ final class RoleTest extends TestCase
         self::assertSame($revokedAt, $revoked->getUpdatedAt());
     }
 
+    public function test_reserved_super_admin_name_requires_managed_role_at_creation_and_rename(): void
+    {
+        $now = new DateTimeImmutable('2026-01-01T00:00:00+00:00');
+        $reserved = RoleName::fromString(Role::SUPER_ADMIN_NAME);
+        $managed = Role::defineManaged(RoleId::generate(), $reserved, [], $now);
+        $managed->assertConsistentWithSuperAdmin($managed);
+
+        foreach (['create', 'rename'] as $operation) {
+            try {
+                if ($operation === 'create') {
+                    Role::define(RoleId::generate(), $reserved, [], $now);
+                } else {
+                    Role::define(RoleId::generate(), RoleName::fromString('ROLE_EDITOR'), [], $now)
+                        ->renameCustom($reserved, $now);
+                }
+
+                self::fail('A custom role claimed the reserved name.');
+            } catch (CustomRoleException) {
+                self::addToAssertionCount(1);
+            }
+        }
+    }
+
+    public function test_super_admin_identity_must_match_the_authoritative_managed_role(): void
+    {
+        $now = new DateTimeImmutable('2026-01-01T00:00:00+00:00');
+        $designated = Role::defineManaged(RoleId::generate(), RoleName::fromString(Role::SUPER_ADMIN_NAME), [], $now);
+        $ordinary = Role::define(RoleId::generate(), RoleName::fromString('ROLE_EDITOR'), [], $now);
+        $ordinary->assertConsistentWithSuperAdmin($designated);
+        $ordinary->assertConsistentWithSuperAdmin(null);
+
+        $inconsistent = [
+            [$designated, null],
+            [Role::defineManaged($designated->getId(), RoleName::fromString('ROLE_OTHER'), [], $now), $designated],
+            [
+                $designated,
+                Role::defineManaged(RoleId::generate(), RoleName::fromString(Role::SUPER_ADMIN_NAME), [], $now)
+            ],
+            [$ordinary, Role::defineManaged(RoleId::generate(), RoleName::fromString('ROLE_OTHER'), [], $now)]
+        ];
+        foreach ($inconsistent as [$role, $authoritative]) {
+            try {
+                $role->assertConsistentWithSuperAdmin($authoritative);
+                self::fail('Inconsistent managed role identity was accepted.');
+            } catch (ManagedRoleException) {
+                self::addToAssertionCount(1);
+            }
+        }
+    }
+
+    public function test_adapter_subtype_cannot_misreport_its_super_admin_identity(): void
+    {
+        $role = ImpersonatingRole::define(
+            RoleId::generate(),
+            RoleName::fromString('ROLE_EDITOR'),
+            [],
+            new DateTimeImmutable('2026-01-01T00:00:00+00:00')
+        );
+
+        $this->expectException(ManagedRoleException::class);
+        $role->assertConsistentWithSuperAdmin(null);
+    }
+
     public function test_managed_role_rejects_the_shared_custom_mutation_guard(): void
     {
         $role = Role::defineManaged(

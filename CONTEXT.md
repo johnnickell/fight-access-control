@@ -8,7 +8,7 @@ behavior shared by Fight applications. The repository-local behavioral and secur
 
 ## Vocabulary
 
-- **User**: the stable identity whose canonical email remains unique across pending, active, disabled, and
+- **User**: the stable human identity whose canonical email remains unique across pending, active, disabled, and
   deleted states.
 - **Grant**: a purpose-bound, hashed, expiring, single-use credential for activation, password reset, or email
   change. Reissue revokes its predecessor.
@@ -64,6 +64,19 @@ behavior shared by Fight applications. The repository-local behavioral and secur
   consumer applications map transport data into and out of this representation.
 - **Managed Permission and Managed Role**: stable version-controlled authorization definitions reconciled
   exactly and atomically.
+- **Super Admin Role**: the uniquely authoritative managed Role named exactly `ROLE_SUPER_ADMIN`; its name is
+  reserved and cannot be used by a custom Role. Only this Role may hold protected Permissions. User Role assignment
+  and removal use ordinary revision and reference semantics, including pending-User bootstrap; application builders
+  authorize all caller entry points and protect last-admin removal.
+- **Permission tier**: the non-null classification of a Permission. `ADMIN_SAFE` makes it eligible for delegation
+  through consumer-protected command entry points; `SUPER_ADMIN_ONLY` reserves its authority for the designated managed
+  Role and human Users.
+- **Custom Permission**: a runtime-owned Permission classified `ADMIN_SAFE` from creation. It cannot carry the
+  protected tier; delegation still requires authority over the actor and target.
+- **Protected managed Permission**: a managed Permission the consuming project classifies `SUPER_ADMIN_ONLY`. The
+  accepted v0.4.0 policy reserves its membership for managed `ROLE_SUPER_ADMIN` and its authority for human Users
+  through that Role; policy definitions and promotion reject forbidden Role and Agent membership. Consumers fence
+  promotion and grants through their persistence adapters.
 - **Conformance suite**: reusable tests of observable Domain and Application outcomes which consumer repositories
   bind to their own adapters.
 - **OpenAPI schema component**: an opt-in reusable description of a package-owned payload that a consumer's OpenAPI
@@ -88,10 +101,16 @@ ports, immutable token/read results, and transaction orchestration. This package
 framework dependency. Consumers own clients, persistence, HTTP and cookie adapters, cryptographic keys, mail,
 queues, realtime delivery, hosting, and runtime composition.
 
-Consumer outer layers normally authenticate, validate, authorize, choose synchronous or asynchronous invocation,
-and translate failures. Application and Domain code may therefore assume those outer checks succeeded and fail hard
-when their own invariants are violated. AccessControl keeps narrow Application authorization ports when a security
-decision is part of the package-owned use case and cannot be decided correctly by an outer adapter alone.
+Application builders protect every command entry point using controls suited to HTTP, CLI, workers, or other
+adapters. Consumer outer layers normally authenticate, validate, authorize, choose synchronous or asynchronous
+invocation, and translate failures. Application and Domain code may therefore assume those outer checks succeeded
+and fail hard when their own invariants are violated. For v0.4.0 planning, AccessControl retains its narrow
+Application authorization ports for cross-user session access, email-change administration, and pending-invitation
+correction, which concern ownership of a particular User's resource. The actor-only Role administration and User
+Role-assignment and actor-only Agent Permission administration ports have been retired. Custom-Role grants and
+direct Agent assignments require authoritative `ADMIN_SAFE` Permissions even for no-ops, fenced through their
+respective repository writes. Consumer-managed caller Permissions and package-owned tier and managed-policy
+invariants remain distinct.
 Package-owned workflow coordinators are final implementation details marked `@internal`; consumers depend on the
 public commands, services, authenticated principals, and Security context rather than implementing those coordinators.
 Credential-delivery providers receive only one short-lived sensitive invocation after a committed claim and return a

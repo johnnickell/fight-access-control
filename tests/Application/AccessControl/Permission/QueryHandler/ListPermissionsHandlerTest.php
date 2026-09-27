@@ -22,6 +22,7 @@ use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
 use ReflectionClass;
 use ReflectionProperty;
+use TypeError;
 
 #[CoversClass(ListPermissionsHandler::class)]
 #[CoversClass(ListPermissions::class)]
@@ -60,13 +61,13 @@ final class ListPermissionsHandlerTest extends TestCase
         self::assertInstanceOf(Arrayable::class, $views->get(0));
         self::assertSame($custom->getId(), $views->get(0)->getPermissionId());
         self::assertSame($custom->getName(), $views->get(0)->getName());
-        self::assertNull($views->get(0)->getTier());
+        self::assertSame(PermissionTier::ADMIN_SAFE, $views->get(0)->getTier());
         self::assertFalse($views->get(0)->isManaged());
         self::assertSame(
             [
                 'permission_id' => '018f0000-0000-7000-8000-000000000001',
                 'name'          => 'EDIT_CONTENT',
-                'tier'          => null,
+                'tier'          => 'ADMIN_SAFE',
                 'managed'       => false
             ],
             $views->get(0)->toArray()
@@ -92,6 +93,17 @@ final class ListPermissionsHandlerTest extends TestCase
         sort($properties);
 
         self::assertSame(['managed', 'name', 'permissionId', 'tier'], $properties);
+    }
+
+    public function test_that_a_view_cannot_reconstruct_a_null_tier(): void
+    {
+        $this->expectException(TypeError::class);
+        new ReflectionClass(PermissionView::class)->newInstanceArgs([
+            PermissionId::generate(),
+            PermissionName::fromString('VIEW_USERS'),
+            null,
+            false
+        ]);
     }
 
     public function test_that_the_query_round_trips_and_rejects_each_missing_required_key(): void

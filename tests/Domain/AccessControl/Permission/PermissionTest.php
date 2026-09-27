@@ -12,6 +12,9 @@ use Fight\AccessControl\Domain\AccessControl\Permission\PermissionName;
 use Fight\AccessControl\Domain\AccessControl\Permission\PermissionTier;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
+use ReflectionClass;
+use ReflectionProperty;
+use TypeError;
 
 #[CoversClass(Permission::class)]
 final class PermissionTest extends TestCase
@@ -25,6 +28,8 @@ final class PermissionTest extends TestCase
 
         self::assertSame($id, $permission->getId());
         self::assertSame($name, $permission->getName());
+        self::assertSame(PermissionTier::ADMIN_SAFE, $permission->getTier());
+        self::assertFalse($permission->isManaged());
 
         self::assertInstanceOf(DateTimeImmutable::class, $permission->getCreatedAt());
         self::assertEquals(new DateTimeImmutable('2026-01-01T00:00:00+00:00'), $permission->getCreatedAt());
@@ -57,6 +62,7 @@ final class PermissionTest extends TestCase
             $updatedAt
         );
 
+        self::assertSame(PermissionTier::ADMIN_SAFE, $managed->getManagedTier());
         self::assertTrue($replacement->isManaged());
         self::assertSame(PermissionTier::SUPER_ADMIN_ONLY, $replacement->getTier());
         self::assertSame('NEW_NAME', $replacement->getName()->toString());
@@ -72,7 +78,7 @@ final class PermissionTest extends TestCase
             $custom->getManagedTier();
             self::fail('A custom permission must not expose a managed tier.');
         } catch (ManagedPermissionException) {
-            self::assertNull($custom->getTier());
+            self::assertSame(PermissionTier::ADMIN_SAFE, $custom->getTier());
         }
 
         $this->expectException(ManagedPermissionException::class);
@@ -81,5 +87,27 @@ final class PermissionTest extends TestCase
             PermissionTier::ADMIN_SAFE,
             $updatedAt
         );
+    }
+
+    public function test_it_rejects_a_null_tier_during_reconstruction(): void
+    {
+        $this->expectException(TypeError::class);
+        $permission = new ReflectionClass(Permission::class)->newInstanceWithoutConstructor();
+        new ReflectionProperty(Permission::class, 'tier')->setValue($permission, null);
+    }
+
+    public function test_it_rejects_a_protected_custom_tier_during_reconstruction(): void
+    {
+        $this->expectException(ManagedPermissionException::class);
+        ExtensiblePermission::reconstruct(PermissionTier::SUPER_ADMIN_ONLY, false);
+    }
+
+    public function test_it_preserves_the_declared_managed_tier_during_reconstruction(): void
+    {
+        $permission = ExtensiblePermission::reconstruct(PermissionTier::SUPER_ADMIN_ONLY, true);
+
+        self::assertTrue($permission->isManaged());
+        self::assertSame(PermissionTier::SUPER_ADMIN_ONLY, $permission->getTier());
+        self::assertSame(PermissionTier::SUPER_ADMIN_ONLY, $permission->getManagedTier());
     }
 }

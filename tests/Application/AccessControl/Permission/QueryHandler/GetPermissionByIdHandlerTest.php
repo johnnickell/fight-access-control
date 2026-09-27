@@ -56,6 +56,31 @@ final class GetPermissionByIdHandlerTest extends TestCase
         );
     }
 
+    public function test_that_it_returns_a_non_null_custom_permission_tier(): void
+    {
+        $permissionId = PermissionId::fromString('018f0000-0000-7000-8000-000000000004');
+        $permissions = new InMemoryPermissionRepository();
+        $permissions->add(Permission::define(
+            $permissionId,
+            PermissionName::fromString('VIEW_USERS'),
+            new DateTimeImmutable('2026-01-01T00:00:00+00:00')
+        ));
+
+        $handler = new GetPermissionByIdHandler($permissions);
+        $view = $handler->handle(QueryMessage::create(new GetPermissionById($permissionId)));
+
+        self::assertSame(PermissionTier::ADMIN_SAFE, $view->getTier());
+        self::assertSame(
+            [
+                'permission_id' => '018f0000-0000-7000-8000-000000000004',
+                'name'          => 'VIEW_USERS',
+                'tier'          => 'ADMIN_SAFE',
+                'managed'       => false
+            ],
+            $view->toArray()
+        );
+    }
+
     public function test_that_the_query_round_trips_and_rejects_missing_permission_id(): void
     {
         $permissionId = PermissionId::fromString('018f0000-0000-7000-8000-000000000002');

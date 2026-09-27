@@ -9,6 +9,8 @@ use Fight\AccessControl\Domain\AccessControl\Agent\Agent;
 use Fight\AccessControl\Domain\AccessControl\Agent\AgentCredentialId;
 use Fight\AccessControl\Domain\AccessControl\Agent\AgentId;
 use Fight\AccessControl\Domain\AccessControl\Agent\AgentRepository;
+use Fight\AccessControl\Domain\AccessControl\Permission\Permission;
+use Fight\AccessControl\Domain\AccessControl\Permission\PermissionId;
 use Fight\Common\Domain\Collection\ArrayList;
 use Fight\Common\Domain\Repository\Pagination;
 use Fight\Common\Domain\Repository\ResultSet;
@@ -30,6 +32,7 @@ final class InMemoryAgentRepository implements AgentRepository
         private readonly bool $replacePermissionAssignmentsSucceeds = true,
         ?InMemoryAuthorizationReferenceState $authorizationReferences = null,
         private readonly ?Closure $beforeReplacePermissionAssignments = null,
+        private readonly ?Closure $beforeValidatePermissionAssignments = null,
         private readonly ?Throwable $replacePermissionAssignmentsFailure = null
     ) {
         $resolvedAuthorizationReferences = $authorizationReferences ?? new InMemoryAuthorizationReferenceState();
@@ -92,6 +95,11 @@ final class InMemoryAgentRepository implements AgentRepository
         );
     }
 
+    public function hasPermissionAssignment(PermissionId $permissionId): bool
+    {
+        return $this->authorizationReferences->agentContainsPermission($permissionId);
+    }
+
     public function replace(Agent $expected, Agent $replacement): bool
     {
         foreach ($this->agents as $index => $agent) {
@@ -119,6 +127,15 @@ final class InMemoryAgentRepository implements AgentRepository
         return false;
     }
 
+    /** @phpstan-param list<Permission> $expectedPermissions */
+    public function validatePermissionAssignments(array $expectedPermissions): bool
+    {
+        $this->authorizationReferences->holdThroughCompletion();
+        $this->beforeValidatePermissionAssignments?->__invoke();
+
+        return array_all($expectedPermissions, $this->authorizationReferences->permissionIsEligible(...));
+    }
+
     public function replacePermissionAssignments(Agent $expected, Agent $replacement): bool
     {
         ++$this->permissionAssignmentReplacementCalls;
@@ -131,7 +148,7 @@ final class InMemoryAgentRepository implements AgentRepository
         $this->beforeReplacePermissionAssignments?->__invoke();
         if (
             !$this->replacePermissionAssignmentsSucceeds
-            || !$this->authorizationReferences->permissionsAreAuthoritative($replacement->getPermissionIds())
+            || !$this->authorizationReferences->permissionsAreEligible($replacement->getPermissionIds())
         ) {
             return false;
         }
