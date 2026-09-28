@@ -6,8 +6,6 @@ namespace Fight\Test\AccessControl\Application\AccessControl\Agent\Security;
 
 use DateTimeImmutable;
 use Fight\AccessControl\Application\AccessControl\Agent\Security\AgentCredentialLifecycleService;
-use Fight\AccessControl\Application\AccessControl\Agent\Service\HmacSharedSecretCipher;
-use Fight\AccessControl\Application\AccessControl\Agent\Service\HmacSharedSecretGenerator;
 use Fight\AccessControl\Domain\AccessControl\Agent\Agent;
 use Fight\AccessControl\Domain\AccessControl\Agent\AgentCredentialId;
 use Fight\AccessControl\Domain\AccessControl\Agent\AgentId;
@@ -579,16 +577,9 @@ final class AgentCredentialRetirementTest extends TestCase
         ProvisioningEnvironment $environment,
         ?InMemoryAuditEvidenceRepository $audit = null
     ): AgentCredentialLifecycleService {
-        $generator = $this->createMock(HmacSharedSecretGenerator::class);
-        $generator->expects(self::never())->method('generate');
-        $cipher = $this->createMock(HmacSharedSecretCipher::class);
-        $cipher->expects(self::never())->method('encrypt');
-
         return new AgentCredentialLifecycleService(
             $environment->agents,
             $audit ?? $environment->audit,
-            $generator,
-            $cipher,
             new FixedClock($this->now()),
             $environment->transaction,
             $environment->events

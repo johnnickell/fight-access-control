@@ -28,6 +28,20 @@ interface AgentOperationAuthorization
     public function authorize(AgentOperationScope $scope, AgentCredentialDestination $destination): string;
 
     /**
+     * Validates current rotation authority over the target before any key lookup and returns a safe audit identity
+     *
+     * Apply authorize's scope, real invoker, explicit delegation, destination and shared-connection requirements,
+     * additionally fencing current authority over the target through commit. Recheck on every original-key retry,
+     * including retired credentials; authorization must not require the original predecessor to remain current.
+     * All target-policy writers share these fences. Do not reveal key existence on denial or trust caller booleans.
+     */
+    public function authorizeRotation(
+        AgentOperationScope $scope,
+        AgentCredentialDestination $destination,
+        AgentId $target
+    ): string;
+
+    /**
      * Validates current read authority without a write transaction or side effects
      *
      * Authenticate the real invoker, then check original scope, explicit current delegation and destination binding

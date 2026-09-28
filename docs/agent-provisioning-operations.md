@@ -6,8 +6,9 @@ material access, capacity admission or side effects; original issuance remains s
 This is an **unreleased partial implementation**, not a supported deployable credential-delivery composition.
 TASK-00050 adds [atomic credential retirement](agent-credential-retirement.md) through service and direct repository
 writes. TASK-00051 adds the [protected delivery attempt](agent-credential-delivery.md), including separately committed
-admission and fenced receipt acknowledgement. TASK-00052/00053 own discovery/restart recovery and maintenance. Rotation replacement,
-cohort qualification and migration remain separately owned. No consumer adapter is supplied or qualified here.
+admission and fenced receipt acknowledgement. TASK-00048 adds [recoverable rotation](agent-rotation-operations.md).
+TASK-00052/00053 own discovery/restart recovery and maintenance; cohort qualification and migration remain downstream.
+No consumer adapter is supplied or qualified here.
 
 ## Public boundary
 
@@ -84,7 +85,8 @@ New recoverably provisioned Agents still reject the legacy raw rotation aggregat
 a terminal successor whose persistence requires atomic original-operation cancellation via
 `AgentRepository::replace()` and `AgentOperationRepository::retireCredential()`. Persist operation state revisions
 and reject stale delivery writes; see the [retirement contract](agent-credential-retirement.md).
-Legacy Agents retain existing behavior. Consumers must persist and hydrate
+The old raw-return rotation service now rejects for every Agent; legacy authentication/revocation remain unchanged.
+TASK-00055 owns migration into recoverable rotation. Consumers must persist and hydrate
 `Agent::hasRecoverableCredentialOperation()` and must never downgrade it during replacement, Permission assignment
 or hydration. The default `false` is for existing legacy state only, not a fallback for newly provisioned Agents.
 Missing cancellation support fails closed rather than exposing an unfenced partial lifecycle; this is not permission

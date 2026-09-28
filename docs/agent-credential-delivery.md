@@ -1,9 +1,10 @@
 # Protected Agent credential delivery (unreleased v0.5.0 work)
 
 [TASK-00051](../planning/tasks/00051-TASK.md) implements one complete protected delivery attempt for an operation
-prepared by [provisioning](agent-provisioning-operations.md). It uses [atomic retirement](agent-credential-retirement.md)
+prepared by [provisioning](agent-provisioning-operations.md) or
+[TASK-00048 rotation](agent-rotation-operations.md). It uses [atomic retirement](agent-credential-retirement.md)
 rather than a parallel lifecycle writer. This is package Domain/Application behavior with behavioral in-memory
-composition proof, **not a supported deployable consumer integration**. Rotation, discovery/restart reconciliation,
+composition proof, **not a supported deployable consumer integration**. Discovery/restart reconciliation,
 maintenance, reusable qualification and compatibility remain downstream. No production adapter is supplied.
 
 ## Public composition

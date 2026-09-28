@@ -41,10 +41,12 @@ implemented and released. John subsequently selected `v0.5.0` as the target rele
 
 TASK-00046 implements the provision/service-retry portion of the amendment. Its
 [public contract](../../docs/agent-provisioning-operations.md) replaces raw-return provision with scoped correlation,
-transactional authorization, prepared protected delivery and safe confirmed/indeterminate results. Existing legacy
-rotation/revocation retain their behavior; newly recoverable Agents reject those unfenced paths until downstream
-lifecycle work exists. Full delivery, rotation replacement and consumer qualification remain outstanding. This
-intermediate implementation is not a supported deployable composition or release approval.
+transactional authorization, prepared protected delivery and safe confirmed/indeterminate results. TASK-00050 now
+implements atomic retirement and TASK-00051 protected delivery. TASK-00048 implements
+[recoverable rotation](../../docs/agent-rotation-operations.md) and explicitly rejects the old raw-return service.
+Revocation retains its publication-failure behavior. Scheduler recovery, maintenance, migration and consumer
+qualification remain outstanding. This intermediate implementation is not a supported deployable composition or
+release approval.
 
 ## Decision
 

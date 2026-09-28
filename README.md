@@ -71,7 +71,7 @@ purpose, User ID, and delivery ID. Pending work, due retries, and expired leases
 A crash after provider acceptance and before outcome commit can repeat the provider call with the same identity, so
 this contract is at-least-once and does not claim exactly-once delivery.
 
-### Agent provisioning operations (unreleased)
+### Agent credential operations (unreleased)
 
 The unreleased provisioning replacement requires a retained scoped operation key, registered destination, and
 same-transaction authorization participation. It prepares encrypted delivery and returns only safe issuance metadata;
@@ -83,9 +83,11 @@ and credential disposition without a transaction, material access or events.
 [Credential retirement](docs/agent-credential-retirement.md) atomically revokes authority and cancels original delivery
 through both service and direct repository writes without key/sink access.
 [Protected delivery](docs/agent-credential-delivery.md) adds committed claim/admission, outside-transaction fixed-sink
-invocation and exact receipt acknowledgement under current authority. This intermediate work is **not deployable**
-until downstream rotation, recovery, maintenance and compatibility TASKs are complete. Existing release contracts
-are unchanged.
+invocation and exact receipt acknowledgement under current authority.
+[Recoverable rotation](docs/agent-rotation-operations.md) commits a correlated successor with atomic predecessor
+cancellation and resolves the original request after response loss. The old raw-return rotation API rejects.
+This intermediate work is **not deployable** until downstream recovery, maintenance and compatibility TASKs are
+complete. Existing released versions are unchanged.
 
 ### Current principal composition
 

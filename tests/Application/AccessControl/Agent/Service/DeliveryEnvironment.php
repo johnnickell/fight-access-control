@@ -77,8 +77,6 @@ final readonly class DeliveryEnvironment
         new AgentCredentialLifecycleService(
             $this->provisioning->agents,
             $this->provisioning->audit,
-            new FixedHmacSharedSecretGenerator('unused'),
-            new FixedHmacSharedSecretCipher('unused'),
             $this->clock,
             $this->provisioning->transaction,
             $this->provisioning->events

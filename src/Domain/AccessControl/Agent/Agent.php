@@ -293,6 +293,54 @@ class Agent
     }
 
     /**
+     * Validates the predecessor for a new recoverable rotation before generating any material
+     *
+     * Legacy Agents require the separately qualified migration path; no implicit adoption occurs here.
+     */
+    public function assertRecoverableRotation(AgentCredentialId $expectedCredentialId, int $expectedRevision): void
+    {
+        if (
+            !$this->recoverableCredentialOperation
+            || $this->state !== AgentState::ACTIVE
+            || !$this->credentialId->equals($expectedCredentialId)
+            || $this->credentialRevision !== $expectedRevision
+            || $expectedRevision === PHP_INT_MAX
+        ) {
+            throw new AgentCredentialException('The expected recoverable Agent credential is no longer active.');
+        }
+    }
+
+    /**
+     * Creates one recoverable successor for atomic persistence with its operation and predecessor cancellation
+     */
+    public function rotateRecoverableCredential(
+        AgentCredentialId $expectedCredentialId,
+        int $expectedRevision,
+        AgentCredentialId $successorCredentialId,
+        #[SensitiveParameter] string $encryptedHmacSharedSecretEnvelope,
+        DateTimeImmutable $rotatedAt
+    ): self {
+        $this->assertRecoverableRotation($expectedCredentialId, $expectedRevision);
+        if ($successorCredentialId->equals($this->credentialId) || $rotatedAt < $this->updatedAt) {
+            throw new AgentCredentialException('The Agent credential successor is invalid.');
+        }
+
+        return new self(
+            $this->id,
+            $this->name,
+            $this->state,
+            $successorCredentialId,
+            $this->credentialRevision + 1,
+            $encryptedHmacSharedSecretEnvelope,
+            $this->permissionIds,
+            $this->permissionAssignmentRevision,
+            $this->createdAt,
+            $rotatedAt,
+            true
+        );
+    }
+
+    /**
      * Returns the terminally revoked Agent authority
      */
     public function revoke(DateTimeImmutable $revokedAt): self
@@ -320,7 +368,7 @@ class Agent
      * Returns whether a proposed persisted successor retires exactly this credential authority
      *
      * Repositories apply this invariant under their authoritative expected-state fence, including direct writes.
-     * Recoverable rotation may be hydrated by its future operation-aware writer; legacy rotateCredential stays closed.
+     * Recoverable rotation uses rotateRecoverableCredential; legacy rotateCredential stays closed for these Agents.
      */
     public function canReplaceCredentialWith(#[SensitiveParameter] self $replacement): bool
     {

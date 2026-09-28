@@ -5,17 +5,18 @@ dependencies, acceptance, and verification.
 
 ## What's Next?
 
-First ready Task: [TASK-00048](00048-TASK.md) — Rotate an Agent through a recoverable operation.
+Active Task: [TASK-00048](00048-TASK.md) — Rotate an Agent through a recoverable operation.
 
 ## In Progress
 
-No Tasks are currently in this state.
+| Order | TASK ID | Title | Parent TICKET | Status | Blocked by | PR |
+| --- | --- | --- | --- | --- | --- | --- |
+| 48 | [TASK-00048](00048-TASK.md) | Rotate an Agent through a recoverable operation | [TICKET-00012](../tickets/00012-TICKET.md) — Issue and resolve Agent credentials recoverably | in-progress | [TASK-00046](00046-TASK.md), [TASK-00050](00050-TASK.md), [TASK-00051](00051-TASK.md) | — |
 
 ## Ready Frontier
 
 | Order | TASK ID | Title | Parent TICKET | Status | Blocked by | PR |
 | --- | --- | --- | --- | --- | --- | --- |
-| 48 | [TASK-00048](00048-TASK.md) | Rotate an Agent through a recoverable operation | [TICKET-00012](../tickets/00012-TICKET.md) — Issue and resolve Agent credentials recoverably | ready-for-agent | [TASK-00046](00046-TASK.md), [TASK-00050](00050-TASK.md), [TASK-00051](00051-TASK.md) | — |
 | 52 | [TASK-00052](00052-TASK.md) | Discover and recover interrupted Agent deliveries | [TICKET-00013](../tickets/00013-TICKET.md) — Deliver and recover Agent credentials through protected sinks | ready-for-agent | [TASK-00051](00051-TASK.md) | — |
 | 53 | [TASK-00053](00053-TASK.md) | Maintain and retire protected delivery material safely | [TICKET-00013](../tickets/00013-TICKET.md) — Deliver and recover Agent credentials through protected sinks | ready-for-agent | [TASK-00051](00051-TASK.md) | — |
 
