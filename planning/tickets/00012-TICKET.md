@@ -193,8 +193,9 @@ or consumer qualification. TASK-00048's prerequisites are now done; John authori
 checkout on `feature/task-00048-rotation`. Its [rotation contract](../../docs/agent-rotation-operations.md) and tests
 cover original-request resolution, atomic supersession, uncertain commits, publication independence and actual
 in-flight delivery/authentication races. Independent review accepted `e667116` with all TASK criteria passing and
-no findings; TASK-00048 is done for implementation/local verification. John requested landing against `develop`;
-publication is pending at this checkpoint, not merge or release. TASK-00049 still waits on its remaining prerequisites.
+no findings; TASK-00048 is done for implementation/local verification. John's landing request published
+[PR #83](https://github.com/johnnickell/fight-access-control/pull/83) against `develop`; it is open at this checkpoint,
+not merged or released. TASK-00049 still waits on its remaining prerequisites.
 All TICKET acceptance boxes remain open: scheduler and reusable conformance are outstanding.
 Consumer qualification and release remain separately required.
 

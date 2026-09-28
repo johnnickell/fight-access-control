@@ -162,8 +162,9 @@ TASK-00048 base `4b6a554`. John authorized TASK-00048 in the main checkout on `f
 Its [recoverable rotation](docs/agent-rotation-operations.md) now commits one correlated successor with atomic
 predecessor cancellation, original-request resolution, current target authority and safe publication/uncertainty
 outcomes. Independent review accepted `e667116` with all TASK criteria passing and no findings; TASK-00048 is
-now done for implementation/local verification. John requested landing against `develop`; publication is pending
-at this checkpoint, with no merge or release authorized.
+now done for implementation/local verification. John's landing request published
+[PR #83](https://github.com/johnnickell/fight-access-control/pull/83) against `develop`; it is open at this checkpoint,
+with no merge or release authorized.
 Other slices retain their remaining dependencies and require separate execution authority.
 Each downstream execution needs authorization. John separately authorized TASK-00046
 execution and PR landing. Planning does not qualify a consumer or authorize migration, release or adoption.
