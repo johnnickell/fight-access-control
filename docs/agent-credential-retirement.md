@@ -140,7 +140,8 @@ makes no real database concurrency, receipt, deadline or activation/use claim.
 | D6 safe retained original identity | Domain tuple checks, all delivery dispositions, same-key resolution and secret-free status/debug/audit assertions; no successor-secret or authentication-envelope fallback. `test_retirement_failure_debug_redacts_agents_with_exception_arguments_enabled` proves redacted replacement trace arguments and safe structured failure debug for missing/ambiguous correlation, cancellation storage failure and unsupported participation, with rollback preserved. |
 | D7 defaults/overrides and cleanup/replay | Default-only retirement and one-slot capacity exhaustion/cleanup tests preserve original resolution and monotonic destination order. |
 
-TASK-00051 must prove actual admission and in-flight sink races, TASK-00048 actual replacement rotation, TASK-00053
-maintenance, and TASK-00054 reusable all-path delivery/lifecycle conformance. Real consumer database, authority-writer,
+[TASK-00051 delivery tests](agent-credential-delivery.md#evidence-and-limits) now exercise actual package admission and
+in-flight sink races with both service and direct revocation. TASK-00048 still owns actual replacement rotation,
+TASK-00053 maintenance, and TASK-00054 reusable all-path delivery/lifecycle conformance. Real consumer database, authority-writer,
 sink, activation/use and migration qualification remain mandatory before adoption. There is no HTTP/UI change;
 executable persisted-state tests are the useful before/after evidence, not screenshots.

@@ -31,6 +31,11 @@ behavior shared by Fight applications. The repository-local behavioral and secur
   recorded delivery and original-credential disposition. An absent record is indeterminate, not proof of rollback.
   Current scope/delegation/destination checks precede lookup and repeat with target checks before disclosure; reads
   neither commit nor access material and grant no delivery, activation or use authority.
+- **Agent protected delivery**: one separately committed claim and current-authority admission, followed by an
+  outside-transaction fixed-sink invocation and exact verified receipt acknowledgement. Original bytes/tuple and
+  delivery ID survive retry/takeover; current credential, destination order, authority epochs and deadlines fence
+  completion. Late admitted bytes remain inert, not enrollment activation or use permission. Current unreleased
+  implementation delivers one exact provisioned operation; discovery, maintenance and rotation remain downstream.
 - **Agent issuance**: original Agent/credential/revision, global delivery ID and registered destination binding/write
   order. Confirmed issuance does not establish credential delivery, enrollment activation or permission to launch.
 - **Agent credential revision**: the monotonically advancing version of an Agent's single credential authority.
@@ -146,8 +151,14 @@ status path is independently accepted and done for implementation/local verifica
 John subsequently requested landing; PR #80 is merged into the current develop base. John authorized TASK-00050
 in the main checkout on `feature/task-00050-retirement`. Independent re-review accepted its R1 failure-trace
 redaction correction and complete retirement slice; TASK-00050 is done for implementation/local verification.
-John authorized PR publication, not merge or release. TASK-00051 is now dependency-ready; other slices retain their
-remaining dependencies. Each downstream execution needs authorization. John separately authorized TASK-00046
+John authorized PR publication; PR #81 is now merged into `develop` at `6d52e8d`. John subsequently authorized
+TASK-00051 in the main checkout on `feature/task-00051-protected-delivery`. Its protected delivery attempt is
+independently accepted and done for implementation/local verification (840 tests / 7276 assertions, exact
+5742/5742 statements). Review accepted `5f3f596` with 216 focused tests / 2232 assertions and verified all 674
+full-gate inputs. John's landing request published
+[PR #82](https://github.com/johnnickell/fight-access-control/pull/82) against `develop`; no merge or release is claimed.
+Other slices retain their remaining dependencies and require separate execution authority.
+Each downstream execution needs authorization. John separately authorized TASK-00046
 execution and PR landing. Planning does not qualify a consumer or authorize migration, release or adoption.
 The replacement requires caller-scoped operation correlation, protected delivery and consumer authorization
 participating in the package-owned transaction under shared authority fences. Consumers still own policy, adapters,
@@ -175,7 +186,15 @@ no old claim/admission snapshot can restore it. Concrete replacement/cancellatio
 Agent arguments as sensitive; transaction implementations must also redact the callback argument, whose captured or
 bound state can expose authentication material. Interface annotations alone are not inherited by implementations.
 All authority and delivery writers must share those fences/epochs.
-This is controlled expected-state package proof, not the downstream delivery worker or real consumer qualification.
+TASK-00050's original evidence is controlled expected-state package proof, not a delivery worker or real consumer
+qualification. TASK-00051 now adds the [protected delivery service](docs/agent-credential-delivery.md) using those
+actual retirement fences: committed claim, separately committed admission with persisted authority/deadline,
+sensitive fixed-slot invocation outside transactions, exact receipt verification and fresh fenced completion. The
+operation stores immutable attempt/policy and receipt or closed failure evidence; completion removes only delivery
+material. Defaults are a 60-second lease, 15-second admission, 30-second retry delay, 86400-second original retention
+and 100 attempts, with validated bounded overrides pinned on first claim. Current scope/target/slot checks and
+exact state revisions reject stale effects. Unconfirmed admission never decrypts; uncertain completion never guesses
+success. Deterministic in-memory sink/authority and lifecycle tests do not qualify consumer databases or activation/use.
 Existing legacy Agents and their lifecycle services retain current behavior. This deliberate
 fail-closed intermediate state is unreleased and not deployable until downstream lifecycle/delivery/cohort work lands.
 

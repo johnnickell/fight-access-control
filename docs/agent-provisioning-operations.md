@@ -5,7 +5,8 @@ TASK-00047 adds [authorized safe operation status](agent-operation-status.md) wi
 material access, capacity admission or side effects; original issuance remains separate from current disposition.
 This is an **unreleased partial implementation**, not a supported deployable credential-delivery composition.
 TASK-00050 adds [atomic credential retirement](agent-credential-retirement.md) through service and direct repository
-writes. TASK-00051–00053 own delivery admission, workers and maintenance. Rotation replacement,
+writes. TASK-00051 adds the [protected delivery attempt](agent-credential-delivery.md), including separately committed
+admission and fenced receipt acknowledgement. TASK-00052/00053 own discovery/restart recovery and maintenance. Rotation replacement,
 cohort qualification and migration remain separately owned. No consumer adapter is supplied or qualified here.
 
 ## Public boundary

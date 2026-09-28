@@ -43,6 +43,14 @@ final class InMemoryAgentOperationRepository implements AgentOperationRepository
 
     public bool $retirementLocked = false;
 
+    public ?InMemoryAgentRepository $agents = null;
+
+    public ?Closure $beforeDeliveryWrite = null;
+
+    public ?Closure $afterDeliveryWrite = null;
+
+    public int $deliveryWrites = 0;
+
     public function __construct(
         private readonly InMemoryUnitOfWork $unitOfWork,
         private readonly InMemoryAgentOperationAuthorization $authorization
@@ -160,6 +168,33 @@ final class InMemoryAgentOperationRepository implements AgentOperationRepository
         } catch (Throwable) {
             throw new AgentOperationRejectedException(AgentOperationFailure::UNAVAILABLE);
         }
+    }
+
+    public function replaceDelivery(
+        AgentCredentialOperation $expected,
+        AgentCredentialOperation $replacement,
+        #[SensitiveParameter] Agent $expectedAgent
+    ): void {
+        $this->assertFenced();
+        $this->beforeDeliveryWrite?->__invoke();
+        $key = $expected->getIssuance()->getKey()->toString();
+        if (
+            ($this->operations[$key] ?? null) !== $expected
+            || $this->agents?->getById($expectedAgent->getId()) !== $expectedAgent
+            || $replacement->getStateRevision() !== $expected->getStateRevision() + 1
+            || $expected->getIssuance()->toArray() !== $replacement->getIssuance()->toArray()
+            || !$expected->hasPendingDeliveryAtRevision($expected->getStateRevision())
+        ) {
+            throw new AgentOperationRejectedException(AgentOperationFailure::CONFLICT);
+        }
+
+        $expected->assertDeliveryCredential($expectedAgent);
+        $this->operations[$key] = $replacement;
+        ++$this->deliveryWrites;
+        $this->unitOfWork->onRollback(function () use ($key, $expected): void {
+            $this->operations[$key] = $expected;
+        });
+        $this->afterDeliveryWrite?->__invoke();
     }
 
     private function assertFenced(): void
