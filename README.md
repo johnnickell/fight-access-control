@@ -79,8 +79,10 @@ retry resolves the same outcome after response loss. See the
 [provisioning contract](docs/agent-provisioning-operations.md) for composition, finite defaults, failure semantics,
 persistence requirements and executable evidence. `GetAgentOperation` provides an
 [authorized safe status query](docs/agent-operation-status.md), separating original issuance from recorded delivery
-and credential disposition without a transaction, material access or events. This intermediate work is **not
-deployable** until downstream lifecycle, delivery and compatibility TASKs are complete. Existing release contracts
+and credential disposition without a transaction, material access or events.
+[Credential retirement](docs/agent-credential-retirement.md) atomically revokes authority and cancels original delivery
+through both service and direct repository writes without key/sink access. This intermediate work is **not
+deployable** until downstream rotation, delivery and compatibility TASKs are complete. Existing release contracts
 are unchanged.
 
 ### Current principal composition

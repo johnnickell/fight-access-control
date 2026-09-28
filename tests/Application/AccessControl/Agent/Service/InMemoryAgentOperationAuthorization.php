@@ -24,6 +24,8 @@ final class InMemoryAgentOperationAuthorization implements AgentOperationAuthori
 
     public bool $locked = false;
 
+    public int $epoch = 1;
+
     public bool $delegationExpired = false;
 
     public string $actor = 'maintainer-42';
@@ -60,10 +62,7 @@ final class InMemoryAgentOperationAuthorization implements AgentOperationAuthori
             throw new AgentOperationRejectedException(AgentOperationFailure::UNAUTHORIZED);
         }
 
-        $this->locked = true;
-        $this->unitOfWork->onCompletion(function (): void {
-            $this->locked = false;
-        });
+        $this->holdFence();
         $this->afterAuthorization?->__invoke();
 
         return $this->actor;
@@ -91,14 +90,26 @@ final class InMemoryAgentOperationAuthorization implements AgentOperationAuthori
         }
     }
 
+    public function holdFence(): void
+    {
+        $this->locked = true;
+        $this->unitOfWork->onCompletion(function (): void {
+            $this->locked = false;
+        });
+    }
+
     public function changeAuthority(Closure $writer): void
     {
+        $advance = function () use ($writer): void {
+            $writer();
+            ++$this->epoch;
+        };
         if ($this->locked) {
-            $this->unitOfWork->onCompletion($writer);
+            $this->unitOfWork->onCompletion($advance);
 
             return;
         }
 
-        $writer();
+        $advance();
     }
 }

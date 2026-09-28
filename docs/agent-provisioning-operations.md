@@ -4,7 +4,8 @@ TASK-00046 replaces `AgentProvisioningService::provision(actorId, name)` with a 
 TASK-00047 adds [authorized safe operation status](agent-operation-status.md) without an issuance transaction,
 material access, capacity admission or side effects; original issuance remains separate from current disposition.
 This is an **unreleased partial implementation**, not a supported deployable credential-delivery composition.
-TASK-00050–00053 supply lifecycle cancellation, delivery admission, workers and maintenance. Rotation replacement,
+TASK-00050 adds [atomic credential retirement](agent-credential-retirement.md) through service and direct repository
+writes. TASK-00051–00053 own delivery admission, workers and maintenance. Rotation replacement,
 cohort qualification and migration remain separately owned. No consumer adapter is supplied or qualified here.
 
 ## Public boundary
@@ -78,12 +79,15 @@ state. Repository replacement for downstream lifecycle/claim work must CAS the c
 sharing Agent lifecycle, authority and destination fences. Retirement must atomically remove the delivery copy with
 credential retirement without cipher/sink access. All adapters and direct writers must honor those fences.
 
-New recoverably provisioned Agents reject the legacy rotation/revocation aggregate paths until the downstream
-recoverable lifecycle paths are implemented. Legacy Agents retain existing behavior. Consumers must persist and hydrate
+New recoverably provisioned Agents still reject the legacy raw rotation aggregate path. Revocation now constructs
+a terminal successor whose persistence requires atomic original-operation cancellation via
+`AgentRepository::replace()` and `AgentOperationRepository::retireCredential()`. Persist operation state revisions
+and reject stale delivery writes; see the [retirement contract](agent-credential-retirement.md).
+Legacy Agents retain existing behavior. Consumers must persist and hydrate
 `Agent::hasRecoverableCredentialOperation()` and must never downgrade it during replacement, Permission assignment
 or hydration. The default `false` is for existing legacy state only, not a fallback for newly provisioned Agents.
-This deliberately fails closed
-rather than exposing an unfenced partial lifecycle; it is not permission to deploy this intermediate composition.
+Missing cancellation support fails closed rather than exposing an unfenced partial lifecycle; this is not permission
+to deploy the intermediate composition.
 
 ## Sensitive material
 

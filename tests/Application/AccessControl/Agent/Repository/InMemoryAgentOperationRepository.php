@@ -5,9 +5,12 @@ declare(strict_types=1);
 namespace Fight\Test\AccessControl\Application\AccessControl\Agent\Repository;
 
 use Closure;
+use Fight\AccessControl\Domain\AccessControl\Agent\Agent;
 use Fight\AccessControl\Domain\AccessControl\Agent\Exception\AgentOperationCollisionException;
+use Fight\AccessControl\Domain\AccessControl\Agent\Exception\AgentOperationRejectedException;
 use Fight\AccessControl\Domain\AccessControl\Agent\Operation\AgentCredentialDestination;
 use Fight\AccessControl\Domain\AccessControl\Agent\Operation\AgentCredentialOperation;
+use Fight\AccessControl\Domain\AccessControl\Agent\Operation\AgentOperationFailure;
 use Fight\AccessControl\Domain\AccessControl\Agent\Operation\AgentOperationKey;
 use Fight\AccessControl\Domain\AccessControl\Agent\Operation\AgentOperationLimits;
 use Fight\AccessControl\Domain\AccessControl\Agent\Operation\AgentOperationRepository;
@@ -15,6 +18,8 @@ use Fight\AccessControl\Domain\AccessControl\Agent\Query\AgentOperationView;
 use Fight\Test\AccessControl\Application\AccessControl\Agent\Service\InMemoryAgentOperationAuthorization;
 use Fight\Test\AccessControl\Application\AccessControl\User\InMemoryUnitOfWork;
 use LogicException;
+use SensitiveParameter;
+use Throwable;
 
 final class InMemoryAgentOperationRepository implements AgentOperationRepository
 {
@@ -33,6 +38,10 @@ final class InMemoryAgentOperationRepository implements AgentOperationRepository
     public ?Closure $afterStatusRead = null;
 
     public int $statusReads = 0;
+
+    public ?Closure $afterRetirement = null;
+
+    public bool $retirementLocked = false;
 
     public function __construct(
         private readonly InMemoryUnitOfWork $unitOfWork,
@@ -107,6 +116,50 @@ final class InMemoryAgentOperationRepository implements AgentOperationRepository
             unset($this->operations[$key->toString()]);
         });
         $this->afterAdd?->__invoke();
+    }
+
+    public function participatesIn(?InMemoryUnitOfWork $unitOfWork): bool
+    {
+        return $unitOfWork === $this->unitOfWork && $this->unitOfWork->transactionActive;
+    }
+
+    public function retireCredential(
+        #[SensitiveParameter] Agent $expected,
+        #[SensitiveParameter] Agent $replacement
+    ): void {
+        if (!$this->unitOfWork->transactionActive) {
+            throw new AgentOperationRejectedException(AgentOperationFailure::UNAVAILABLE);
+        }
+
+        $this->retirementLocked = true;
+        $this->authorization->holdFence();
+        $this->unitOfWork->onCompletion(function (): void {
+            $this->retirementLocked = false;
+        });
+        $matches = array_filter($this->operations, static function (AgentCredentialOperation $operation) use (
+            $expected
+        ): bool {
+            $issuance = $operation->getIssuance();
+
+            return $issuance->getAgentId()->equals($expected->getId())
+                && $issuance->getCredentialId()->equals($expected->getCredentialId())
+                && $issuance->getCredentialRevision() === $expected->getCredentialRevision();
+        });
+        if (count($matches) !== 1) {
+            throw new AgentOperationRejectedException(AgentOperationFailure::CONFLICT);
+        }
+
+        $key = array_key_first($matches);
+        $original = $matches[$key];
+        $this->operations[$key] = $original->retireCredential($expected, $replacement);
+        $this->unitOfWork->onRollback(function () use ($key, $original): void {
+            $this->operations[$key] = $original;
+        });
+        try {
+            $this->afterRetirement?->__invoke();
+        } catch (Throwable) {
+            throw new AgentOperationRejectedException(AgentOperationFailure::UNAVAILABLE);
+        }
     }
 
     private function assertFenced(): void

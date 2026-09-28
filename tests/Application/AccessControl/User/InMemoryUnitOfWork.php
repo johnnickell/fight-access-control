@@ -7,6 +7,7 @@ namespace Fight\Test\AccessControl\Application\AccessControl\User;
 use Fight\Common\Application\Repository\TransactionalUnitOfWork;
 use Fight\Test\AccessControl\Application\AccessControl\User\Repository\InMemoryAuthorizationReferenceState;
 use RuntimeException;
+use SensitiveParameter;
 use Throwable;
 
 final class InMemoryUnitOfWork implements TransactionalUnitOfWork
@@ -16,6 +17,8 @@ final class InMemoryUnitOfWork implements TransactionalUnitOfWork
     public bool $transactionCompleted = false;
 
     public bool $transactionActive = false;
+
+    public bool $failNextCommit = false;
 
     private ?InMemoryAuthorizationReferenceState $authorizationReferenceState = null;
 
@@ -29,8 +32,12 @@ final class InMemoryUnitOfWork implements TransactionalUnitOfWork
     {
     }
 
-    public function commitTransactional(callable $operation): mixed
+    public function commitTransactional(#[SensitiveParameter] callable $operation): mixed
     {
+        if ($this->transactionActive) {
+            throw new RuntimeException('Nested package transactions are unsupported.');
+        }
+
         ++$this->transactions;
         $this->transactionActive = true;
         $rollbackStart = count($this->rollbackActions);
@@ -38,7 +45,9 @@ final class InMemoryUnitOfWork implements TransactionalUnitOfWork
 
         try {
             $result = $operation();
-            if ($this->transactions === $this->failOnTransaction) {
+            if ($this->transactions === $this->failOnTransaction || $this->failNextCommit) {
+                $this->failNextCommit = false;
+
                 throw new RuntimeException('Injected transaction failure.');
             }
 

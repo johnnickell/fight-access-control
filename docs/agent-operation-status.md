@@ -3,7 +3,8 @@
 TASK-00047 adds `GetAgentOperation` and `GetAgentOperationHandler` to the
 [recoverable provisioning contract](agent-provisioning-operations.md). It is a **read-only, secret-free snapshot**,
 not another issuance workflow or a credential-retrieval API. The incomplete replacement remains unreleased and
-not deployable. Rotation, delivery, lifecycle, cohort/migration and consumer qualification remain downstream.
+not deployable. [TASK-00050 retirement](agent-credential-retirement.md) now writes revoked disposition atomically;
+rotation, delivery, cohort/migration and consumer qualification remain downstream.
 
 ## Composition and authority
 
@@ -158,7 +159,9 @@ proves the public read path against controlled repository/consumer-policy fixtur
 
 Provision-to-read and uncertain-provision-to-read cases exercise real package code with in-memory persistence and
 transaction fixtures. All delivered, superseded, revoked, expired, retryable and terminal **disposition fixtures**
-prove read projection only, not their downstream writers or valid lifecycle transitions. TASK-00049 will exercise
+prove read projection only, not their downstream writers or valid lifecycle transitions. Separately,
+[TASK-00050's tests](agent-credential-retirement.md#package-evidence-and-remaining-qualification) exercise actual
+revocation/cancellation and controlled direct supersession. TASK-00049 will exercise
 actual rotation/delivery transitions after those writers exist. No scheduler-only recovery, real database
 concurrency, consumer authorization policy, sink, encryption, migration, activation or launch qualification is claimed.
 This contract has no HTTP endpoint/envelope or UI; executable state/failure evidence is the useful before/after proof.

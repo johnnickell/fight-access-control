@@ -4,8 +4,11 @@ declare(strict_types=1);
 
 namespace Fight\AccessControl\Domain\AccessControl\Agent\Operation;
 
+use Fight\AccessControl\Domain\AccessControl\Agent\Agent;
+use Fight\AccessControl\Domain\AccessControl\Agent\AgentState;
 use Fight\AccessControl\Domain\AccessControl\Agent\Exception\AgentOperationRejectedException;
 use Fight\AccessControl\Domain\AccessControl\Agent\Query\AgentOperationView;
+use SensitiveParameter;
 
 /**
  * Class AgentCredentialOperation
@@ -25,8 +28,12 @@ class AgentCredentialOperation
         private readonly AgentIssuance $issuance,
         private readonly ?AgentDeliveryMaterial $material,
         private readonly AgentDeliveryDisposition $deliveryDisposition = AgentDeliveryDisposition::PENDING,
-        private readonly AgentCredentialDisposition $credentialDisposition = AgentCredentialDisposition::CURRENT
+        private readonly AgentCredentialDisposition $credentialDisposition = AgentCredentialDisposition::CURRENT,
+        private readonly int $stateRevision = 0
     ) {
+        if ($stateRevision < 0) {
+            throw new AgentOperationRejectedException(AgentOperationFailure::INVALID_REQUEST);
+        }
     }
 
     /**
@@ -89,16 +96,54 @@ class AgentCredentialOperation
     }
 
     /**
-     * Returns a permanent correlation tombstone without the delivery copy
-     *
-     * Downstream retirement must persist this with the lifecycle outcome under shared expected-state fences.
-     * Absence of material is not evidence of successful delivery.
+     * Returns the expected-state revision shared by delivery and lifecycle writes
      */
-    public function retireMaterial(): self
+    public function getStateRevision(): int
     {
-        $disposition = $this->deliveryDisposition;
-        if (in_array($disposition, [AgentDeliveryDisposition::PENDING, AgentDeliveryDisposition::RETRYABLE], true)) {
-            $disposition = AgentDeliveryDisposition::RETIRED;
+        return $this->stateRevision;
+    }
+
+    /**
+     * Returns whether this exact delivery snapshot still has unfinished material for its original credential
+     *
+     * This is an expected-state invariant, not caller authorization or permission to materialize. Writers must also
+     * check authoritative Agent/destination state, claim/admission identity, epochs and deadlines under shared fences.
+     */
+    public function hasPendingDeliveryAtRevision(int $expectedRevision): bool
+    {
+        return $this->stateRevision === $expectedRevision
+            && $this->credentialDisposition === AgentCredentialDisposition::CURRENT
+            && $this->material !== null
+            && in_array($this->deliveryDisposition, [
+                AgentDeliveryDisposition::PENDING,
+                AgentDeliveryDisposition::RETRYABLE
+            ], true);
+    }
+
+    /**
+     * Creates a retired original credential snapshot invalidating all outstanding delivery work
+     *
+     * Persist together with the validated Agent successor under shared transaction-duration fences. Never use a
+     * successor's material or destination to rewrite this original operation. Delivered/failed history stays distinct
+     * from current credential authority; removing material cannot recall an already admitted external invocation.
+     */
+    public function retireCredential(
+        #[SensitiveParameter] Agent $expected,
+        #[SensitiveParameter] Agent $replacement
+    ): self {
+        if (
+            !$expected->canReplaceCredentialWith($replacement)
+            || !$this->issuance->getAgentId()->equals($expected->getId())
+            || !$this->issuance->getCredentialId()->equals($expected->getCredentialId())
+            || $this->issuance->getCredentialRevision() !== $expected->getCredentialRevision()
+            || $this->credentialDisposition !== AgentCredentialDisposition::CURRENT
+        ) {
+            throw new AgentOperationRejectedException(AgentOperationFailure::CONFLICT);
+        }
+
+        $credentialDisposition = AgentCredentialDisposition::SUPERSEDED;
+        if ($replacement->getState() === AgentState::REVOKED) {
+            $credentialDisposition = AgentCredentialDisposition::REVOKED;
         }
 
         return new self(
@@ -106,8 +151,43 @@ class AgentCredentialOperation
             $this->canonicalRequest,
             $this->issuance,
             null,
-            $disposition,
-            $this->credentialDisposition
+            $this->retiredDeliveryDisposition(),
+            $credentialDisposition,
+            $this->stateRevision + 1
         );
+    }
+
+    /**
+     * Returns a permanent correlation tombstone without the delivery copy
+     *
+     * Downstream retirement must persist this with the lifecycle outcome under shared expected-state fences.
+     * Absence of material is not evidence of successful delivery.
+     */
+    public function retireMaterial(): self
+    {
+        return new self(
+            $this->canonicalVersion,
+            $this->canonicalRequest,
+            $this->issuance,
+            null,
+            $this->retiredDeliveryDisposition(),
+            $this->credentialDisposition,
+            $this->stateRevision + 1
+        );
+    }
+
+    /**
+     * Returns retirement for unfinished work without overwriting a confirmed terminal delivery outcome
+     */
+    private function retiredDeliveryDisposition(): AgentDeliveryDisposition
+    {
+        if (
+            $this->deliveryDisposition === AgentDeliveryDisposition::PENDING
+            || $this->deliveryDisposition === AgentDeliveryDisposition::RETRYABLE
+        ) {
+            return AgentDeliveryDisposition::RETIRED;
+        }
+
+        return $this->deliveryDisposition;
     }
 }

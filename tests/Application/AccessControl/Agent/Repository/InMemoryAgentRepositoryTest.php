@@ -32,9 +32,8 @@ final class InMemoryAgentRepositoryTest extends TestCase
             'consumer-encrypted-hmac-shared-secret-envelope',
             new DateTimeImmutable('2026-08-25T12:00:00+00:00')
         );
-        $replacement = Agent::provision(
-            $agentId,
-            AgentName::fromString('Production deployment'),
+        $replacement = $agent->rotateCredential(
+            $agent->getCredentialId(),
             AgentCredentialId::generate(),
             'replacement-consumer-encrypted-hmac-shared-secret-envelope',
             new DateTimeImmutable('2026-08-25T13:00:00+00:00')

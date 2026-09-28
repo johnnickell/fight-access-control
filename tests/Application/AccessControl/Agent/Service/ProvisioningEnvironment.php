@@ -51,7 +51,7 @@ final class ProvisioningEnvironment
         $this->transaction = new InMemoryUnitOfWork();
         $this->authorization = new InMemoryAgentOperationAuthorization($this->transaction);
         $this->operations = new InMemoryAgentOperationRepository($this->transaction, $this->authorization);
-        $this->agents = new InMemoryAgentRepository($this->transaction);
+        $this->agents = new InMemoryAgentRepository($this->transaction, operations: $this->operations);
         $this->audit = new InMemoryAuditEvidenceRepository($this->transaction);
         $this->events = new InMemoryEventDispatcher();
         $scope = new AgentOperationScope('consumer-a', 'user', 'maintainer-42');

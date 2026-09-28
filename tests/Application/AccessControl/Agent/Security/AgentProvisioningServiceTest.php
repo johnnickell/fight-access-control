@@ -37,6 +37,7 @@ use Fight\AccessControl\Domain\AccessControl\Permission\PermissionId;
 use Fight\AccessControl\Domain\AccessControl\User\UserId;
 use Fight\Common\Application\Repository\TransactionalUnitOfWork;
 use Fight\Common\Domain\Exception\DomainException;
+use Fight\Test\AccessControl\Application\AccessControl\Agent\Repository\InMemoryAgentRepository;
 use Fight\Test\AccessControl\Application\AccessControl\Agent\Service\BoundAgentDeliveryCipher;
 use Fight\Test\AccessControl\Application\AccessControl\Agent\Service\ProvisioningEnvironment;
 use Fight\Test\AccessControl\Application\AccessControl\Agent\Service\UncertainAgentUnitOfWork;
@@ -590,11 +591,18 @@ final class AgentProvisioningServiceTest extends TestCase
                 self::assertSame(0, $agent->getCredentialRevision());
             }
 
+            $revoked = $agent->revoke($at);
+            self::assertSame(AgentState::REVOKED, $revoked->getState());
+            self::assertTrue($revoked->hasRecoverableCredentialOperation());
+            self::assertSame(AgentState::ACTIVE, $agent->getState());
+            $unsupported = new InMemoryAgentRepository();
+            $unsupported->add($agent);
             try {
-                $agent->revoke($at);
-                self::fail('Legacy revocation must reject recoverable credentials.');
-            } catch (AgentCredentialException) {
-                self::assertSame(AgentState::ACTIVE, $agent->getState());
+                $unsupported->replace($agent, $revoked);
+                self::fail('Unfenced persistence must reject recoverable revocation.');
+            } catch (AgentOperationRejectedException $failure) {
+                self::assertSame(AgentOperationFailure::UNAVAILABLE, $failure->getReason());
+                self::assertSame($agent, $unsupported->getById($agent->getId()));
             }
         }
     }

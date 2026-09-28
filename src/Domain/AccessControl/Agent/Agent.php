@@ -8,6 +8,7 @@ use DateTimeImmutable;
 use Fight\AccessControl\Domain\AccessControl\Agent\Exception\AgentCredentialException;
 use Fight\AccessControl\Domain\AccessControl\Agent\Exception\AgentPermissionAssignmentException;
 use Fight\AccessControl\Domain\AccessControl\Permission\PermissionId;
+use SensitiveParameter;
 
 /**
  * Class Agent
@@ -296,7 +297,6 @@ class Agent
      */
     public function revoke(DateTimeImmutable $revokedAt): self
     {
-        $this->assertLegacyCredentialLifecycle();
         if ($this->state !== AgentState::ACTIVE) {
             throw new AgentCredentialException('The Agent credential is no longer active.');
         }
@@ -311,8 +311,42 @@ class Agent
             $this->permissionIds,
             $this->permissionAssignmentRevision,
             $this->createdAt,
-            $revokedAt
+            $revokedAt,
+            $this->recoverableCredentialOperation
         );
+    }
+
+    /**
+     * Returns whether a proposed persisted successor retires exactly this credential authority
+     *
+     * Repositories apply this invariant under their authoritative expected-state fence, including direct writes.
+     * Recoverable rotation may be hydrated by its future operation-aware writer; legacy rotateCredential stays closed.
+     */
+    public function canReplaceCredentialWith(#[SensitiveParameter] self $replacement): bool
+    {
+        if (
+            $this->state !== AgentState::ACTIVE
+            || !$replacement->id->equals($this->id)
+            || !$replacement->name->equals($this->name)
+            || $replacement->createdAt != $this->createdAt
+            || $replacement->updatedAt < $this->updatedAt
+            || $replacement->permissionAssignmentRevision !== $this->permissionAssignmentRevision
+            || $replacement->recoverableCredentialOperation !== $this->recoverableCredentialOperation
+            || count($replacement->permissionIds) !== count($this->permissionIds)
+            || !array_all($replacement->permissionIds, fn(PermissionId $id): bool => $this->hasPermission($id))
+            || !array_all($this->permissionIds, fn(PermissionId $id): bool => $replacement->hasPermission($id))
+        ) {
+            return false;
+        }
+
+        if ($replacement->state === AgentState::REVOKED) {
+            return $replacement->credentialId->equals($this->credentialId)
+                && $replacement->credentialRevision === $this->credentialRevision
+                && $replacement->encryptedHmacSharedSecretEnvelope === $this->encryptedHmacSharedSecretEnvelope;
+        }
+
+        return !$replacement->credentialId->equals($this->credentialId)
+            && $replacement->credentialRevision === $this->credentialRevision + 1;
     }
 
     /**
