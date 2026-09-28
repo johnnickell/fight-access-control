@@ -4,8 +4,9 @@
 prepared by [provisioning](agent-provisioning-operations.md) or
 [TASK-00048 rotation](agent-rotation-operations.md). It uses [atomic retirement](agent-credential-retirement.md)
 rather than a parallel lifecycle writer. This is package Domain/Application behavior with behavioral in-memory
-composition proof, **not a supported deployable consumer integration**. Discovery/restart reconciliation,
-maintenance, reusable qualification and compatibility remain downstream. No production adapter is supplied.
+composition proof, **not a supported deployable consumer integration**. TASK-00052 now adds
+[discovery and receipt-first restart recovery](agent-delivery-recovery.md); maintenance, reusable qualification and
+compatibility remain downstream. No production adapter is supplied.
 
 ## Public composition
 
@@ -32,7 +33,8 @@ repository behind a caller-selected secret endpoint. Unsupported composition mus
 
 | Result | Meaning |
 | --- | --- |
-| `delivered` | Confirmed persisted acknowledgement, or an already recorded delivered operation; not activation/use authority. |
+| `delivered` | Confirmed persisted acknowledgement, or recorded delivery with its receipt reverified; not activation/use authority. |
+| `reconciliation_required` | Recorded delivery has no verifiable retained sink entry/receipt; no new materialization or automatic rotation. |
 | `retryable` | Confirmed transient outcome retaining bounded original material and a retry time. |
 | `terminal` / `expired` | Confirmed terminal failure or retention expiry; delivery material removed, original correlation retained. |
 | `retired` | Recorded retired material under otherwise current credential/authorization; revoked credentials reject the delivery path. |
@@ -43,8 +45,9 @@ repository behind a caller-selected secret endpoint. Unsupported composition mus
 
 Use the existing [authorized status query](agent-operation-status.md) for a secret-free durable snapshot. A result
 never returns a credential, ciphertext, key version/path, receipt, claim token, exception or decryption handle.
-This slice introduces no Command/Query/Event DTOs and no optional delivery event: confirmed operation state is the
-fact, not event delivery. The issuance/rotation publication-warning exception is not extended.
+The original TASK-00051 slice introduces no DTOs or optional delivery event. TASK-00052 adds the bounded discovery
+Query; confirmed operation state remains the fact, not event delivery. The issuance/rotation publication-warning
+exception is not extended.
 
 ## Three independent transactions
 
@@ -52,13 +55,16 @@ fact, not event delivery. The issuance/rotation publication-warning exception is
    canonical version; read the current original Agent credential; obtain current target/slot authorization. Persist
    a new opaque `AgentDeliveryClaimId`, monotonic attempt fence, bounded lease, pinned policy and state revision.
    An active lease or future retry time defers. A claim reserves work and grants **no materialization authority**.
+   TASK-00052 may instead confirm a current persisted admission for receipt-only reconciliation, never invocation.
 2. **Admission.** Re-read and reauthorize in a new short transaction. Domain validates the exact claim and expected
    operation revision, current credential and unfinished material. Persist authorizing epochs and the earliest of
    claim lease, admission duration, authorization expiry and original delivery retention. Confirming this commit
    linearizes permission to materialize. A callback that completed without confirmed commit never permits decryption,
    even if the underlying admission actually committed.
-3. **Outside every database transaction**, check the admitted deadline after commit, check sink support, recheck
-   before materialization, authenticate/decrypt the bound delivery copy, validate the invocation's original tuple,
+3. **Outside every database transaction**, check the admitted deadline after commit, check sink support, and use
+   optional `AgentCredentialReceiptLookup` before unnecessary decryption. A recovered admission only reconciles a
+   found receipt; absence defers. For fresh admission with no receipt, recheck before materialization,
+   authenticate/decrypt the bound delivery copy, validate the invocation's original tuple,
    and check the deadline again before `stage()`. Destroy the local invocation reference after staging. Verify the
    opaque receipt against the exact original issuance tuple without another secret read.
 4. **Outcome.** In a third transaction, reauthorize scope and target/slot, read current credential, and validate exact
@@ -161,9 +167,11 @@ Lost sink response, failed outcome persistence, expired admission and takeover c
 original identity/bytes. This is **at-least-once**, not exactly-once secret disclosure. An uncertain claim/admission
 returns without external effects; an uncertain outcome returns indeterminate even when delivered was actually
 persisted. A later authorized attempt reads recorded completion without rematerialization, or takes a fresh claim
-once due and verifies the same stable sink receipt. Basic same-ID retry is implemented; discovery, scheduler-only
-restart recovery and receipt-first reconciliation are TASK-00052. After completion, no package path rematerializes
-that delivery copy; persisted receipt/status can support later metadata-only reconciliation. Sink loss after completion
+once due and verifies the same stable sink receipt. TASK-00052 implements
+[bounded scheduler discovery and receipt-first recovery](agent-delivery-recovery.md), including still-current
+admission reconciliation without invocation. After completion, no package path rematerializes that delivery copy;
+receipt verification reports `reconciliation_required` if the recorded receipt or sink material is lost.
+Sink loss after completion
 requires fail-closed reconciliation, not an automatic reissue, rollback to a predecessor or receipt-based activation.
 
 ## Evidence and limits

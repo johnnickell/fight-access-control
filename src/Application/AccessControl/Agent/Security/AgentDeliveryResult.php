@@ -20,4 +20,5 @@ enum AgentDeliveryResult: string
     case REJECTED = 'rejected';
     case UNAVAILABLE = 'unavailable';
     case INDETERMINATE = 'indeterminate';
+    case RECONCILIATION_REQUIRED = 'reconciliation_required';
 }

@@ -401,6 +401,50 @@ final class AgentDeliveryTest extends TestCase
         }
     }
 
+    public function test_due_selection_tracks_lease_retry_and_retention_without_changing_state(): void
+    {
+        $operation = $this->operation();
+        $now = $this->now();
+        $authority = new AgentDeliveryAuthority('worker:epoch1', $now->modify('+1 day'));
+        self::assertEquals($now, $operation->getDeliveryDueAt());
+        self::assertFalse($operation->canReconcileDelivery($authority, $now));
+        $claim = $operation->claimDelivery(AgentDeliveryClaimId::generate(), new AgentDeliveryPolicy(), $now);
+        self::assertEquals($now->modify('+60 seconds'), $claim->getDeliveryDueAt());
+        self::assertFalse($claim->canReconcileDelivery($authority, $now));
+        $admission = $claim->admitDelivery($claim->requireAttempt(), $authority, $now, 1);
+        self::assertTrue($admission->canReconcileDelivery($authority, $now));
+        self::assertFalse($admission->canReconcileDelivery($authority, $now->modify('+15 seconds')));
+        $retry = $admission->finishDelivery(
+            $admission->requireAttempt(),
+            $authority,
+            AgentDeliveryFailure::TEMPORARY,
+            $now,
+            2
+        );
+        self::assertFalse($retry->canReconcileDelivery($authority, $now));
+        self::assertEquals($now->modify('+60 seconds'), $retry->getDeliveryDueAt());
+        $delivered = $admission->finishDelivery(
+            $admission->requireAttempt(),
+            $authority,
+            new AgentDeliveryReceipt('opaque-receipt-123'),
+            $now,
+            2
+        );
+        self::assertNull($delivered->getDeliveryDueAt());
+        self::assertFalse($delivered->canReconcileDelivery($authority, $now));
+        self::assertNull($operation->retireMaterial()->getDeliveryDueAt());
+        $late = $operation->claimDelivery(
+            AgentDeliveryClaimId::generate(),
+            new AgentDeliveryPolicy(),
+            $now->modify('+86399 seconds')
+        );
+        self::assertEquals($now->modify('+86400 seconds'), $late->getDeliveryDueAt());
+        self::assertSame(0, $operation->getStateRevision());
+        self::assertSame(1, $claim->getStateRevision());
+        $this->expectException(AgentOperationRejectedException::class);
+        $admission->canReconcileDelivery(new AgentDeliveryAuthority('worker:epoch2', $authority->getExpiresAt()), $now);
+    }
+
     private function now(): DateTimeImmutable
     {
         return new DateTimeImmutable('2026-09-27T12:00:00+00:00');

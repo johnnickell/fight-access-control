@@ -29,7 +29,7 @@ php vendor/bin/deptrac --fail-on-uncovered --report-uncovered --report-skipped
 php vendor/bin/deptrac debug:unassigned --no-cache
 
 printf '[quality] Rector dry-run\n'
-php vendor/bin/rector process openapi/ src/ tests/Domain/ tests/Application/ scripts/ --dry-run
+php vendor/bin/rector process openapi/ src/ tests/Domain/ tests/Application/ tests/OpenApi/ scripts/ --dry-run
 
 printf '[quality] PHPUnit\n'
 rm -f var/reports/coverage/clover.xml

@@ -33,8 +33,17 @@ and command logs under ignored `.runs/`. Certification does not merge, tag, push
 or publish anything.
 
 The catalog uses canonical snake-case `toArray()` keys. UUID identifiers use
-`uuid`; `*_at` values use `date-time`; list results have `page`, `per_page`,
+`uuid`; `*_at` values use `date-time`; paginated administrative results have `page`, `per_page`,
 `total_pages`, `total_records`, and typed `records`.
+
+The unreleased `ListDueAgentDeliveries` component mirrors the bounded worker Query, including required `limit`
+(1–100, constructor default 50), original scope and registered destination binding. `DueAgentDeliveries` is an
+unpaginated array of confirmed safe `AgentOperationView` payloads, not a ResultSet. Its shared `AgentOperationKey`,
+`AgentIssuance`, and confirmed/indeterminate `AgentOperation` schemas contain no delivery material, claims, receipts
+or decryption handles. `JSend.Success.DueAgentDeliveries` is optional. These worker-facing value contracts introduce
+no endpoint or authorization policy; see [recovery composition](agent-delivery-recovery.md).
+Generated Agent-discovery schema integration tests run in the default PHPUnit/build pipeline without contributing
+incidental Domain/Application execution to statement coverage. Release certification remains a separate operation.
 
 Use `Authentication.BrowserResponse` for browser JSON: it has no refresh token,
 so the consumer may issue that credential only in an `HttpOnly` cookie. Use

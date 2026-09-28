@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Fight\Test\AccessControl\Application\AccessControl\Agent\Repository;
 
 use Closure;
+use DateTimeImmutable;
 use Fight\AccessControl\Domain\AccessControl\Agent\Agent;
 use Fight\AccessControl\Domain\AccessControl\Agent\Exception\AgentOperationCollisionException;
 use Fight\AccessControl\Domain\AccessControl\Agent\Exception\AgentOperationRejectedException;
@@ -14,6 +15,7 @@ use Fight\AccessControl\Domain\AccessControl\Agent\Operation\AgentOperationFailu
 use Fight\AccessControl\Domain\AccessControl\Agent\Operation\AgentOperationKey;
 use Fight\AccessControl\Domain\AccessControl\Agent\Operation\AgentOperationLimits;
 use Fight\AccessControl\Domain\AccessControl\Agent\Operation\AgentOperationRepository;
+use Fight\AccessControl\Domain\AccessControl\Agent\Operation\AgentOperationScope;
 use Fight\AccessControl\Domain\AccessControl\Agent\Query\AgentOperationView;
 use Fight\Test\AccessControl\Application\AccessControl\Agent\Service\InMemoryAgentOperationAuthorization;
 use Fight\Test\AccessControl\Application\AccessControl\User\InMemoryUnitOfWork;
@@ -38,6 +40,10 @@ final class InMemoryAgentOperationRepository implements AgentOperationRepository
     public ?Closure $afterStatusRead = null;
 
     public int $statusReads = 0;
+
+    public int $dueReads = 0;
+
+    public ?Closure $afterDueRead = null;
 
     public ?Closure $afterRetirement = null;
 
@@ -72,6 +78,45 @@ final class InMemoryAgentOperationRepository implements AgentOperationRepository
         $this->afterStatusRead?->__invoke();
 
         return $view;
+    }
+
+    public function listDueDeliveries(
+        AgentOperationScope $scope,
+        AgentCredentialDestination $destination,
+        DateTimeImmutable $now,
+        int $limit
+    ): array {
+        if ($this->unitOfWork->transactionActive) {
+            throw new LogicException('Discovery cannot share a transaction.');
+        }
+
+        ++$this->dueReads;
+        $due = array_filter($this->operations, static function (AgentCredentialOperation $operation) use (
+            $scope,
+            $destination,
+            $now
+        ): bool {
+            $issuance = $operation->getIssuance();
+
+            return $issuance->getKey()->getScope()->toString() === $scope->toString()
+                && $issuance->getDestination()->toArray() === $destination->toArray()
+                && $operation->getDeliveryDueAt() !== null && $operation->getDeliveryDueAt() <= $now;
+        });
+        usort($due, static function (AgentCredentialOperation $left, AgentCredentialOperation $right): int {
+            $dueOrder = $left->getDeliveryDueAt() <=> $right->getDeliveryDueAt();
+
+            return $dueOrder ?: strcmp(
+                $left->getIssuance()->getDeliveryId()->toString(),
+                $right->getIssuance()->getDeliveryId()->toString()
+            );
+        });
+        $views = array_map(
+            static fn (AgentCredentialOperation $operation): AgentOperationView => $operation->getStatus(),
+            array_slice($due, 0, $limit)
+        );
+        $this->afterDueRead?->__invoke();
+
+        return $views;
     }
 
     public function reserveDestinationWrite(AgentCredentialDestination $destination): int
