@@ -36,7 +36,9 @@ behavior shared by Fight applications. The repository-local behavioral and secur
   outside-transaction fixed-sink invocation and exact verified receipt acknowledgement. Original bytes/tuple and
   delivery ID survive retry/takeover; current credential, destination order, authority epochs and deadlines fence
   completion. Late admitted bytes remain inert, not enrollment activation or use permission. Current unreleased
-  implementation delivers one exact provisioned or rotated operation; discovery and maintenance remain downstream.
+  implementation delivers one exact provisioned or rotated operation; TASK-00052 adds bounded delegated discovery,
+  scheduler passes and receipt-first restart recovery. Discovery excludes obsolete destination write reservations
+  before limiting, so rejected predecessors cannot starve the current slot write. Maintenance remains downstream.
 - **Agent issuance**: original Agent/credential/revision, global delivery ID and registered destination binding/write
   order. Confirmed issuance does not establish credential delivery, enrollment activation or permission to launch.
 - **Agent credential revision**: the monotonically advancing version of an Agent's single credential authority.
@@ -165,6 +167,17 @@ outcomes. Independent review accepted `e667116` with all TASK criteria passing a
 now done for implementation/local verification. John's landing request published
 [PR #83](https://github.com/johnnickell/fight-access-control/pull/83) against `develop`; it is open at this checkpoint,
 with no merge or release authorized.
+John authorized TASK-00052 in the main checkout on `feature/task-00052-delivery-recovery`. Its
+[discovery/recovery contract](docs/agent-delivery-recovery.md) adds read-only bounded selection, an event-independent
+scheduler pass, optional receipt lookup before decryption, receipt-only recovery of current admissions and safe
+reconciliation of lost delivered sink material. Independent review requested R1: obsolete slot reservations could
+starve the bounded batch. The revision requires authoritative current-reservation selection before limiting, with
+regression proof through the actual scheduler. Independent re-review accepted `c9e23ab`, with all criteria passing,
+269 focused tests / 2140 assertions and all 696 full-gate inputs verified. TASK-00052 is done for implementation/local
+verification. John requested landing; [PR #85](https://github.com/johnnickell/fight-access-control/pull/85) is open against
+`develop` at its initial publication checkpoint after mechanical integration of the TASK-00060 planning-only base
+update. The fresh landing gate passes 957 tests / 8350 assertions and exact 5971/5971 statements. This is not consumer
+qualification, merge or release.
 Other slices retain their remaining dependencies and require separate execution authority.
 Each downstream execution needs authorization. John separately authorized TASK-00046
 execution and PR landing. Planning does not qualify a consumer or authorize migration, release or adoption.
@@ -212,8 +225,9 @@ fail-closed intermediate state is unreleased and not deployable until downstream
 
 For those two replacement operations only, confirmed issuance commits return safe operation metadata with a typed,
 sanitized publication warning if post-commit publication fails. Pre-commit failure and indeterminate commit are
-distinct outcomes. Same-key resolution survives both publishers failing; authorized scheduler discovery remains a
-required downstream outcome, not implemented by TASK-00046. The complete replacement requires that
+distinct outcomes. Same-key resolution survives both publishers failing; TASK-00052 now supplies authorized scheduler discovery
+through the actual delivery path. TASK-00049 still owns the combined provision/rotation proof with both publishers
+failing and caller termination; TASK-00046 alone did not establish that outcome. The complete replacement requires that
 retry does not repeat issuance or its audit fact. Committed issuance is neither confirmed credential delivery,
 enrollment activation nor permission to launch: each requires its own confirmed outcome and current authorization.
 This exception does not change revocation, AuthenticationService or other CommandHandlers. Failure/restart behavior
@@ -225,8 +239,12 @@ operation/recovery needs neither manual configuration nor an extra human approva
 applies. Capacity exhaustion rejects or defers new work with a clear retryable outcome while preserving safe status
 lookup and recovery of existing operations. Cleanup retains the evidence needed to prevent duplicate issuance and
 stale delivery. Provisioning defaults are 512 raw name bytes, 100 pending operations per scope and 10000 globally,
-with validated bounded overrides; existing resolution precedes new-work admission. Downstream worker/retention values
-remain with their owning TASKs. This is not a wider quota or approval system.
+with validated bounded overrides; existing resolution precedes new-work admission. TASK-00052 adds a default batch of 50 (valid 1–100) and 30-second polling guidance (valid 1–3600 seconds),
+with at most one batch per pass and no capacity check on existing recovery. Selection excludes obsolete reservations
+using the stable slot's committed counter across all scopes/bindings, before ordering or limiting; no manual cleanup
+is needed to reach the current write. Delivery policy remains pinned on
+first claim; pending/retry/expired-claim due selection respects both lease and retry, capped by original retention.
+Downstream maintenance values remain with their owning TASKs. This is not a wider quota or approval system.
 
 ## Planning and Completion
 

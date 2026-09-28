@@ -9,6 +9,7 @@
         <testsuite name="complete">
             <directory>tests/Domain</directory>
             <directory>tests/Application</directory>
+            <directory>tests/OpenApi</directory>
         </testsuite>
     </testsuites>
     <source>

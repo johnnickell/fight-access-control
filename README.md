@@ -86,7 +86,10 @@ through both service and direct repository writes without key/sink access.
 invocation and exact receipt acknowledgement under current authority.
 [Recoverable rotation](docs/agent-rotation-operations.md) commits a correlated successor with atomic predecessor
 cancellation and resolves the original request after response loss. The old raw-return rotation API rejects.
-This intermediate work is **not deployable** until downstream recovery, maintenance and compatibility TASKs are
+[Discovery and restart recovery](docs/agent-delivery-recovery.md) provide a bounded currently delegated scheduler
+pass and receipt-first reconciliation through the actual protected delivery path, without caller retry or events.
+Discovery excludes obsolete slot reservations before limiting so they cannot starve the current authorized write.
+This intermediate work is **not deployable** until downstream maintenance, conformance and compatibility TASKs are
 complete. Existing released versions are unchanged.
 
 ### Current principal composition

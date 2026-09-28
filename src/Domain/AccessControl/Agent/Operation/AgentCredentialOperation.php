@@ -133,6 +133,46 @@ class AgentCredentialOperation
     }
 
     /**
+     * Returns the next discovery time for unfinished work without mutating or granting admission
+     *
+     * Expired retention remains discoverable for authorized terminalization, even before lease or retry expiry.
+     */
+    public function getDeliveryDueAt(): ?DateTimeImmutable
+    {
+        if (!$this->hasPendingDeliveryAtRevision($this->stateRevision)) {
+            return null;
+        }
+
+        $issuedAt = $this->issuance->getIssuedAt();
+        $policy = $this->deliveryPolicy ?? new AgentDeliveryPolicy();
+
+        return min(
+            $policy->retainUntil($issuedAt),
+            max($issuedAt, $this->attempt?->getLeaseUntil() ?? $issuedAt, $this->retryAt ?? $issuedAt)
+        );
+    }
+
+    /**
+     * Returns whether current authority may reconcile an existing admission without rematerializing
+     *
+     * A confirmed read of persisted admission permits receipt lookup only, never another sensitive invocation.
+     */
+    public function canReconcileDelivery(AgentDeliveryAuthority $authority, DateTimeImmutable $now): bool
+    {
+        if (
+            !$this->hasPendingDeliveryAtRevision($this->stateRevision)
+            || $this->deliveryDisposition !== AgentDeliveryDisposition::PENDING
+            || $this->attempt?->getDeadline() === null || $now >= $this->attempt->getDeadline()
+        ) {
+            return false;
+        }
+
+        $this->attempt->assertCurrent($this->attempt, $authority, $now);
+
+        return true;
+    }
+
+    /**
      * Returns the persisted attempt without granting materialization authority
      */
     public function getAttempt(): ?AgentDeliveryAttempt

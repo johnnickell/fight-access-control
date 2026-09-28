@@ -9,11 +9,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Bounded authorized `ListDueAgentDeliveries` queries and `AgentDeliveryRecoveryService` scheduler passes through
+  the actual protected delivery path. Optional `AgentCredentialReceiptLookup` reconciles exact durable receipts
+  before unnecessary materialization. Restart/uncertainty recovery preserves original issuance and secret identity.
+  Due selection excludes obsolete slot reservations before limiting, preventing rejected predecessors from starving
+  the current authorized delivery across scheduler restarts.
+  See the [unreleased recovery contract](docs/agent-delivery-recovery.md).
+- Opt-in OpenAPI discovery Query, shared safe Agent operation/issuance, bounded due-list and optional JSend schemas,
+  with generated-contract integration coverage in the default PHPUnit/build pipeline.
+
 - Authorized secret-free `GetAgentOperation` status queries with canonical array round trips, original issuance
   separated from recorded delivery/credential disposition, retained-key reads and honest indeterminate outcomes.
   See the [unreleased status contract](docs/agent-operation-status.md); status never grants secret access or launch.
 
 ### Changed
+
+- **Unreleased v0.5.0 integration change:** repositories must implement read-only `listDueDeliveries()` and delivery
+  authorization must implement `authorizeDiscovery()` as the real delegated worker. Live recovered admissions allow
+  receipt reconciliation only; another invocation requires fresh confirmed admission. Recorded delivery with a lost
+  sink entry/receipt returns `reconciliation_required` without rematerialization or automatic rotation.
 
 - **Breaking (unreleased v0.5.0):** `AgentCredentialRotationService` requires a retained scoped key, original target
   and predecessor ID/revision, registered destination and transactional `authorizeRotation()` authority. It commits

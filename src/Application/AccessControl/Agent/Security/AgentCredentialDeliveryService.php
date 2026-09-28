@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Fight\AccessControl\Application\AccessControl\Agent\Security;
 
+use Fight\AccessControl\Application\AccessControl\Agent\Service\AgentCredentialReceiptLookup;
 use Fight\AccessControl\Application\AccessControl\Agent\Service\AgentCredentialSink;
 use Fight\AccessControl\Application\AccessControl\Agent\Service\AgentDeliveryAuthorization;
 use Fight\AccessControl\Application\AccessControl\Agent\Service\AgentDeliveryDecipher;
@@ -64,8 +65,11 @@ final readonly class AgentCredentialDeliveryService
             $claimed = $this->transact(function () use ($key, $destination, $deliveryId): AgentCredentialOperation {
                 $original = $this->load($key, $destination, $deliveryId);
                 $agent = $this->currentAgent($original);
-                $this->deliveryAuthorization->authorize($original->getIssuance(), $this->clock->now());
-                if (!$original->hasPendingDeliveryAtRevision($original->getStateRevision())) {
+                $authority = $this->deliveryAuthorization->authorize($original->getIssuance(), $this->clock->now());
+                if (
+                    !$original->hasPendingDeliveryAtRevision($original->getStateRevision())
+                    || $original->canReconcileDelivery($authority, $this->clock->now())
+                ) {
                     return $original;
                 }
 
@@ -79,26 +83,20 @@ final readonly class AgentCredentialDeliveryService
                 return $replacement;
             });
             if (!$claimed->hasPendingDeliveryAtRevision($claimed->getStateRevision())) {
-                return $this->recordedResult($claimed);
+                return $this->reconcileRecordedResult($claimed);
             }
 
-            $admitted = $this->transact(function () use ($key, $destination, $deliveryId, $claimed) {
-                $original = $this->load($key, $destination, $deliveryId);
-                $agent = $this->currentAgent($original);
-                $authority = $this->deliveryAuthorization->authorize($original->getIssuance(), $this->clock->now());
-                $claim = $claimed->requireAttempt();
-                $replacement = $original->admitDelivery(
-                    $claim,
-                    $authority,
-                    $this->clock->now(),
-                    $claimed->getStateRevision()
-                );
-                $this->operations->replaceDelivery($original, $replacement, $agent);
+            $receiptOnly = $claimed->requireAttempt()->getAuthority() !== null;
+            $admitted = $claimed;
+            if (!$receiptOnly) {
+                $admitted = $this->admit($key, $destination, $deliveryId, $claimed);
+            }
 
-                return $replacement;
-            });
+            $outcome = $this->invoke($admitted, $receiptOnly);
+            if ($outcome === null) {
+                return AgentDeliveryResult::DEFERRED;
+            }
 
-            $outcome = $this->invoke($admitted);
             $completed = $this->transact(function () use ($key, $destination, $deliveryId, $admitted, $outcome) {
                 $original = $this->load($key, $destination, $deliveryId);
                 $agent = $this->currentAgent($original);
@@ -138,6 +136,31 @@ final readonly class AgentCredentialDeliveryService
     }
 
     /**
+     * Creates a fresh confirmed admission rather than treating recovered state as permission to invoke
+     */
+    private function admit(
+        AgentOperationKey $key,
+        AgentCredentialDestination $destination,
+        AgentDeliveryId $deliveryId,
+        AgentCredentialOperation $claimed
+    ): AgentCredentialOperation {
+        return $this->transact(function () use ($key, $destination, $deliveryId, $claimed) {
+            $original = $this->load($key, $destination, $deliveryId);
+            $agent = $this->currentAgent($original);
+            $authority = $this->deliveryAuthorization->authorize($original->getIssuance(), $this->clock->now());
+            $replacement = $original->admitDelivery(
+                $claimed->requireAttempt(),
+                $authority,
+                $this->clock->now(),
+                $claimed->getStateRevision()
+            );
+            $this->operations->replaceDelivery($original, $replacement, $agent);
+
+            return $replacement;
+        });
+    }
+
+    /**
      * Retrieves exact retained correlation only after current scope authorization
      */
     private function load(
@@ -174,13 +197,31 @@ final readonly class AgentCredentialDeliveryService
     /**
      * Creates and invokes sensitive material only after confirmed admission and repeated deadline checks
      */
-    private function invoke(AgentCredentialOperation $admitted): AgentDeliveryReceipt|AgentDeliveryFailure
-    {
+    private function invoke(
+        AgentCredentialOperation $admitted,
+        bool $receiptOnly
+    ): AgentDeliveryReceipt|AgentDeliveryFailure|null {
         $attempt = $admitted->requireAttempt();
         $attempt->assertAdmittedAt($this->clock->now());
         try {
             $issuance = $admitted->getIssuance();
             $this->sink->assertSupported($issuance);
+            $attempt->assertAdmittedAt($this->clock->now());
+            if ($this->sink instanceof AgentCredentialReceiptLookup) {
+                $receipt = $this->sink->lookupReceipt($issuance);
+                if ($receipt !== null) {
+                    if (!$this->sink->verify($receipt, $issuance)) {
+                        throw new AgentDeliveryFailedException(AgentDeliveryFailure::INVALID_RECEIPT);
+                    }
+
+                    return $receipt;
+                }
+            }
+
+            if ($receiptOnly) {
+                return null;
+            }
+
             $attempt->assertAdmittedAt($this->clock->now());
             $material = $admitted->getAdmittedMaterial($this->clock->now());
             $invocation = $this->decipher->materialize($material, $issuance);
@@ -236,6 +277,24 @@ final readonly class AgentCredentialDeliveryService
 
             throw $throwable;
         }
+    }
+
+    /**
+     * Reconciles recorded completion without recreating a lost sink entry or rewriting historical delivery
+     */
+    private function reconcileRecordedResult(AgentCredentialOperation $operation): AgentDeliveryResult
+    {
+        $result = $this->recordedResult($operation);
+        if ($result !== AgentDeliveryResult::DELIVERED) {
+            return $result;
+        }
+
+        $receipt = $operation->getReceipt();
+        if ($receipt === null || !$this->sink->verify($receipt, $operation->getIssuance())) {
+            return AgentDeliveryResult::RECONCILIATION_REQUIRED;
+        }
+
+        return $result;
     }
 
     /**

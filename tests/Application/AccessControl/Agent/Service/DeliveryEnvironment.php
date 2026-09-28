@@ -7,6 +7,7 @@ namespace Fight\Test\AccessControl\Application\AccessControl\Agent\Service;
 use Fight\AccessControl\Application\AccessControl\Agent\Security\AgentCredentialDeliveryService;
 use Fight\AccessControl\Application\AccessControl\Agent\Security\AgentCredentialLifecycleService;
 use Fight\AccessControl\Application\AccessControl\Agent\Security\AgentDeliveryResult;
+use Fight\AccessControl\Application\AccessControl\Agent\Service\AgentCredentialSink;
 use Fight\AccessControl\Domain\AccessControl\Agent\Delivery\AgentDeliveryPolicy;
 use Fight\AccessControl\Domain\AccessControl\Agent\Operation\AgentCredentialOperation;
 use Fight\AccessControl\Domain\AccessControl\Agent\Operation\AgentIssuance;
@@ -42,15 +43,17 @@ final readonly class DeliveryEnvironment
         $this->sink = new InMemoryAgentCredentialSink($this->provisioning->transaction);
     }
 
-    public function service(?AgentDeliveryPolicy $policy = null): AgentCredentialDeliveryService
-    {
+    public function service(
+        ?AgentDeliveryPolicy $policy = null,
+        ?AgentCredentialSink $sink = null
+    ): AgentCredentialDeliveryService {
         return new AgentCredentialDeliveryService(
             $this->provisioning->agents,
             $this->provisioning->operations,
             $this->provisioning->authorization,
             $this->authorization,
             $this->decipher,
-            $this->sink,
+            $sink ?? $this->sink,
             $this->clock,
             $this->transaction,
             $policy ?? new AgentDeliveryPolicy()
