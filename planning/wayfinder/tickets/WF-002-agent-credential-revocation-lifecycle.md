@@ -44,8 +44,10 @@ change, decomposition or implementation is authorized by these planning decision
 
 [TASK-00046](../../tasks/00046-TASK.md) implements the amended provisioning and same-key resolution path with safe
 metadata, not raw return. See the [provisioning contract](../../../docs/agent-provisioning-operations.md). The closed
-resolution below remains historical; downstream lifecycle/delivery, replacement rotation and real consumer
-qualification are still required before adoption. No map decision is reopened by this implementation.
+resolution below remains historical. TASK-00050/00051 now implement retirement and protected delivery;
+[TASK-00048 rotation](../../../docs/agent-rotation-operations.md) adds original-key recovery and rejects the old
+raw-return service. Discovery, maintenance, migration and real consumer qualification remain required before adoption.
+No map decision is reopened by this implementation.
 
 ## Question
 

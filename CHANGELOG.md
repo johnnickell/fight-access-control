@@ -15,6 +15,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- **Breaking (unreleased v0.5.0):** `AgentCredentialRotationService` requires a retained scoped key, original target
+  and predecessor ID/revision, registered destination and transactional `authorizeRotation()` authority. It commits
+  one successor, pending protected delivery and audit with atomic predecessor cancellation. Retries resolve the
+  original outcome; uncertain commits remain indeterminate and publication failures return typed safe warnings.
+  `AgentCredentialRotationResult` no longer exposes raw material, and the old lifecycle `rotate()` explicitly rejects.
+  The revocation service drops obsolete generator/cipher constructor arguments but keeps its existing failure behavior.
+  See the [rotation contract](docs/agent-rotation-operations.md). Migration and complete recovery remain downstream.
+
 - **Unreleased v0.5.0 integration change:** operation repository adapters must implement `getStatusByKey()` and
   persist delivery/credential dispositions; authorization implementations must add side-effect-free `authorizeRead()`
   with current invoker/delegation, destination and target checks. No permissive fallback or consumer adapter is supplied.
@@ -23,8 +31,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   key and registered destination, with transactional consumer authorization. It atomically prepares encrypted delivery
   and returns safe issuance metadata, a distinct indeterminate outcome, or a typed publication warning after confirmed
   commit. Same-key retry does not issue again. The old raw-return provision signature is removed. See the
-  [provisioning contract](docs/agent-provisioning-operations.md). Newly recoverable Agents reject legacy lifecycle
-  mutations pending the separately planned cancellation/rotation implementation; do not deploy this partial protocol.
+  [provisioning contract](docs/agent-provisioning-operations.md). Recoverable Agents require operation-aware rotation
+  and atomic retirement; do not deploy this partial protocol before downstream recovery and compatibility qualification.
 
 ## [0.4.0] - 2026-09-27
 

@@ -51,7 +51,7 @@ class AgentCredentialOperation
     /**
      * Resolves the original request using its persisted version before any new-work admission
      */
-    public function resolve(AgentProvisioningRequest $request): AgentIssuance
+    public function resolve(AgentProvisioningRequest|AgentRotationRequest $request): AgentIssuance
     {
         if ($request->canonicalize($this->canonicalVersion) !== $this->canonicalRequest) {
             throw new AgentOperationRejectedException(AgentOperationFailure::CONFLICT);

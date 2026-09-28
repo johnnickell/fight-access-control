@@ -26,7 +26,8 @@ behavior shared by Fight applications. The repository-local behavioral and secur
   consumer-encrypted shared secret; the raw secret exists only when issued or during authentication verification.
 - **Agent credential operation**: a caller-scoped, versioned request binding retaining original issuance metadata
   and a separately encrypted prepared delivery copy. Retrying an authorized retained key resolves that outcome;
-  retiring its material never makes the key reusable. Current unreleased implementation supports provisioning only.
+  retiring its material never makes the key reusable. Current unreleased implementation supports provisioning and
+  rotation of recoverably provisioned Agents; retries retain the original predecessor request.
 - **Agent operation status**: an authorized secret-free read snapshot separating confirmed original issuance from
   recorded delivery and original-credential disposition. An absent record is indeterminate, not proof of rollback.
   Current scope/delegation/destination checks precede lookup and repeat with target checks before disclosure; reads
@@ -35,7 +36,7 @@ behavior shared by Fight applications. The repository-local behavioral and secur
   outside-transaction fixed-sink invocation and exact verified receipt acknowledgement. Original bytes/tuple and
   delivery ID survive retry/takeover; current credential, destination order, authority epochs and deadlines fence
   completion. Late admitted bytes remain inert, not enrollment activation or use permission. Current unreleased
-  implementation delivers one exact provisioned operation; discovery, maintenance and rotation remain downstream.
+  implementation delivers one exact provisioned or rotated operation; discovery and maintenance remain downstream.
 - **Agent issuance**: original Agent/credential/revision, global delivery ID and registered destination binding/write
   order. Confirmed issuance does not establish credential delivery, enrollment activation or permission to launch.
 - **Agent credential revision**: the monotonically advancing version of an Agent's single credential authority.
@@ -156,7 +157,14 @@ TASK-00051 in the main checkout on `feature/task-00051-protected-delivery`. Its 
 independently accepted and done for implementation/local verification (840 tests / 7276 assertions, exact
 5742/5742 statements). Review accepted `5f3f596` with 216 focused tests / 2232 assertions and verified all 674
 full-gate inputs. John's landing request published
-[PR #82](https://github.com/johnnickell/fight-access-control/pull/82) against `develop`; no merge or release is claimed.
+[PR #82](https://github.com/johnnickell/fight-access-control/pull/82) against `develop`; it is now merged at the
+TASK-00048 base `4b6a554`. John authorized TASK-00048 in the main checkout on `feature/task-00048-rotation`.
+Its [recoverable rotation](docs/agent-rotation-operations.md) now commits one correlated successor with atomic
+predecessor cancellation, original-request resolution, current target authority and safe publication/uncertainty
+outcomes. Independent review accepted `e667116` with all TASK criteria passing and no findings; TASK-00048 is
+now done for implementation/local verification. John's landing request published
+[PR #83](https://github.com/johnnickell/fight-access-control/pull/83) against `develop`; it is open at this checkpoint,
+with no merge or release authorized.
 Other slices retain their remaining dependencies and require separate execution authority.
 Each downstream execution needs authorization. John separately authorized TASK-00046
 execution and PR landing. Planning does not qualify a consumer or authorize migration, release or adoption.
@@ -195,8 +203,12 @@ material. Defaults are a 60-second lease, 15-second admission, 30-second retry d
 and 100 attempts, with validated bounded overrides pinned on first claim. Current scope/target/slot checks and
 exact state revisions reject stale effects. Unconfirmed admission never decrypts; uncertain completion never guesses
 success. Deterministic in-memory sink/authority and lifecycle tests do not qualify consumer databases or activation/use.
-Existing legacy Agents and their lifecycle services retain current behavior. This deliberate
-fail-closed intermediate state is unreleased and not deployable until downstream lifecycle/delivery/cohort work lands.
+TASK-00048 adds `AgentCredentialRotationService`, `AgentRotationRequest` and mandatory transactional
+`authorizeRotation()` scope/target/destination authorization. The old lifecycle `rotate()` explicitly rejects;
+its result has no raw-secret getter. `AgentCredentialLifecycleService` drops the unused generator/cipher constructor
+arguments while revocation behavior remains unchanged. Legacy Agents retain authentication/revocation and aggregate
+state compatibility but cannot enter recoverable rotation until TASK-00055's qualified migration path. This deliberate
+fail-closed intermediate state is unreleased and not deployable until downstream recovery/maintenance/cohort work lands.
 
 For those two replacement operations only, confirmed issuance commits return safe operation metadata with a typed,
 sanitized publication warning if post-commit publication fails. Pre-commit failure and indeterminate commit are

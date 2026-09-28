@@ -1,9 +1,10 @@
 # Agent credential retirement (unreleased v0.5.0 work)
 
 [TASK-00050](../planning/tasks/00050-TASK.md) implements revocation and the shared predecessor-retirement contract.
-It does **not** implement recoverable rotation, delivery workers, a protected sink or consumer persistence. This
-intermediate composition remains unreleased and not deployable until the downstream delivery, rotation and
-compatibility slices are accepted. No real database/sink/consumer qualification is claimed.
+It does **not** itself implement recoverable rotation, delivery workers, a protected sink or consumer persistence.
+TASK-00051 now supplies protected delivery and TASK-00048 supplies recoverable rotation using this seam. This
+intermediate composition remains unreleased and not deployable until downstream recovery and compatibility work
+is accepted. No real database/sink/consumer qualification is claimed.
 
 ## Public lifecycle and writer inventory
 
@@ -12,7 +13,7 @@ compatibility slices are accepted. No real database/sink/consumer qualification 
 | `AgentCredentialLifecycleService::revoke(actorId, agentId)` | Load exact current Agent, construct its terminal successor, replace through the repository and write safe audit in one package-owned transaction. Publish `AgentCredentialRevoked` only after commit. |
 | Direct `Agent::revoke()` | Construct an immutable successor, preserving the recoverable-operation marker and authentication envelope. This alone is not a persisted revocation. |
 | Direct `AgentRepository::replace(expected, replacement)` | Compare the entire authoritative predecessor, validate the Domain successor and atomically retire its original delivery before persisting the successor. Never bypass this because the caller is not HTTP or not the lifecycle service. |
-| `AgentCredentialLifecycleService::rotate()` / `Agent::rotateCredential()` | Existing legacy-only behavior remains. Recoverable Agents still reject the raw-return path. TASK-00048 owns its replacement/removal; this TASK supplies the cancellation contract it must use. |
+| `AgentCredentialLifecycleService::rotate()` / `Agent::rotateCredential()` | TASK-00048 makes the old raw-return service reject for all Agents. Legacy aggregate state transitions remain for existing-state compatibility; recoverable Agents reject that aggregate path. Use `AgentCredentialRotationService` and `Agent::rotateRecoverableCredential()` with operation correlation and this cancellation seam. |
 | Rotation-capable direct repository replacement | A valid successor has a different credential ID and exactly the next credential revision. For a recoverable predecessor it uses the same cancellation boundary. This is not a replacement rotation workflow or authorization to invent operation correlation. |
 | `replacePermissionAssignments()` | Must preserve all credential state and the recoverable marker, and share the Agent credential fence. A stale Permission writer cannot undo revocation. |
 | `add()` / consumer hydration | New insertion only, never an upsert over existing authority. Persist and hydrate the marker faithfully. Reconstructing a revoked Agent as active or newly provisioned is not supported. |
@@ -69,7 +70,8 @@ successor's secret or metadata. Already-retired credential transitions reject; s
 
 ## Expected-state transitions and authority fences
 
-Claim and admission details below are requirements for downstream writers, not an implemented worker. They remain
+Claim and admission details below are implemented by TASK-00051's delivery service; scheduler discovery remains
+TASK-00052 work. They remain
 separate from safe `AgentDeliveryDisposition`: pending/claimed/admitted work has not yet confirmed delivery.
 
 | State before retirement | Atomic persisted result | Old worker consequence |
@@ -134,14 +136,14 @@ makes no real database concurrency, receipt, deadline or activation/use claim.
 | --- | --- |
 | D2 / D5 pre-admission and stale completion fences | `test_retirement_fences_controlled_claim_admission_and_completion` covers pending, claimed and admitted snapshots through service and direct repository paths. |
 | D2 consumer epochs / shared fence | `test_consumer_authority_writers_share_retirement_fences_and_aba_invalidates_old_snapshots` demonstrates required consumer-writer participation with controlled caller/destination ABA. |
-| D5 direct rotation-capable write | `test_direct_rotation_capable_write_uses_the_same_cancellation_without_building_rotation` uses a hydrated successor, not TASK-00048's future workflow. |
+| D5 direct rotation-capable write | `test_direct_rotation_capable_write_uses_the_same_cancellation_without_building_rotation` uses a hydrated successor; TASK-00048 separately tests the actual rotation workflow. |
 | D5 / D6 atomicity and no key/sink dependency | Successful revocation plus cancellation/Agent/audit/commit rollback cases assert persisted outcomes; generator and cipher are never called. Missing correlation, wrong connection, absent/nested transaction reject. |
 | D5 publication | Both publishers fail; committed revocation remains and the original publication fault rethrows. |
 | D6 safe retained original identity | Domain tuple checks, all delivery dispositions, same-key resolution and secret-free status/debug/audit assertions; no successor-secret or authentication-envelope fallback. `test_retirement_failure_debug_redacts_agents_with_exception_arguments_enabled` proves redacted replacement trace arguments and safe structured failure debug for missing/ambiguous correlation, cancellation storage failure and unsupported participation, with rollback preserved. |
 | D7 defaults/overrides and cleanup/replay | Default-only retirement and one-slot capacity exhaustion/cleanup tests preserve original resolution and monotonic destination order. |
 
 [TASK-00051 delivery tests](agent-credential-delivery.md#evidence-and-limits) now exercise actual package admission and
-in-flight sink races with both service and direct revocation. TASK-00048 still owns actual replacement rotation,
-TASK-00053 maintenance, and TASK-00054 reusable all-path delivery/lifecycle conformance. Real consumer database, authority-writer,
+in-flight sink races with both service and direct revocation. [TASK-00048](agent-rotation-operations.md) adds actual
+rotation and successor-delivery races; TASK-00053 owns maintenance and TASK-00054 reusable all-path conformance. Real consumer database, authority-writer,
 sink, activation/use and migration qualification remain mandatory before adoption. There is no HTTP/UI change;
 executable persisted-state tests are the useful before/after evidence, not screenshots.

@@ -37,7 +37,8 @@ final class AdmittedAgentDeliveryDecipher implements AgentDeliveryDecipher
             throw new LogicException('Materialization cannot share a transaction.');
         }
 
-        $this->environment->operation()->getAttempt()?->assertAdmittedAt($this->environment->clock->now());
+        $this->environment->provisioning->operations->operations[$issuance->getKey()->toString()]
+            ->getAttempt()?->assertAdmittedAt($this->environment->clock->now());
         ++$this->calls;
         if ($this->failure !== null) {
             throw new AgentDeliveryFailedException($this->failure);

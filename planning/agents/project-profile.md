@@ -34,9 +34,9 @@ Application package boundary.
   Pre-commit failure and indeterminate commit remain distinct; same-key resolution and authorized scheduler discovery
   survive even both publishers failing. This prevents a notification fault disguising committed issuance. Issuance
   confirms neither delivery, enrollment activation nor launch permission; each needs its own confirmed outcome and
-  current authorization. Revocation, AuthenticationService, other handlers and the remaining legacy rotation API
-  retain their publication behavior. TASK-00046 implements the provision exception as unreleased work; rotation and
-  scheduler proof remain downstream. This guidance grants no independent implementation or release authority.
+  current authorization. Revocation, AuthenticationService and other handlers retain their publication behavior.
+  TASK-00046 implements the provision exception and TASK-00048 implements rotation as unreleased work; the old
+  raw-return rotation API now rejects. Scheduler proof remains downstream. This guidance grants no independent implementation or release authority.
 - For that credential-operation replacement, follow ratified [EPIC-00009 D4](../epics/00009-EPIC.md#d4--bounded-operation-and-integration-policy):
   documented finite defaults, optional validated overrides, and no manual-configuration or additional human-approval
   requirement for routine operation/recovery. Capacity exhaustion must give new work a clear retryable rejection or

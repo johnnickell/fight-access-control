@@ -4,59 +4,59 @@ declare(strict_types=1);
 
 namespace Fight\AccessControl\Application\AccessControl\Agent\Security;
 
-use Fight\AccessControl\Domain\AccessControl\Agent\AgentCredentialId;
-use Fight\AccessControl\Domain\AccessControl\Agent\AgentId;
-use LogicException;
-use SensitiveParameter;
+use Fight\AccessControl\Domain\AccessControl\Agent\Operation\AgentIssuance;
 
 /**
  * Class AgentCredentialRotationResult
  *
- * Carries one raw replacement Agent HMAC shared secret after committed rotation.
+ * Reports confirmed original issuance or commit uncertainty without credential material.
  */
 final readonly class AgentCredentialRotationResult
 {
     /**
      * Constructs AgentCredentialRotationResult
-     *
-     * Creates a non-serializable Agent credential rotation result.
      */
-    public function __construct(
-        private AgentId $agentId,
-        private AgentCredentialId $credentialId,
-        #[SensitiveParameter] private string $hmacSharedSecret
-    ) {
+    private function __construct(private ?AgentIssuance $issuance, private ?AgentPublicationWarning $warning)
+    {
     }
 
     /**
-     * Returns the Agent whose credential was rotated
+     * Creates confirmed metadata without asserting delivery, activation or permission to launch
      */
-    public function getAgentId(): AgentId
+    public static function confirmed(AgentIssuance $issuance, ?AgentPublicationWarning $warning = null): self
     {
-        return $this->agentId;
+        return new self($issuance, $warning);
     }
 
     /**
-     * Returns the successor credential identifier
+     * Creates an indeterminate result requiring authoritative same-key resolution
      */
-    public function getCredentialId(): AgentCredentialId
+    public static function indeterminate(): self
     {
-        return $this->credentialId;
+        return new self(null, null);
     }
 
     /**
-     * Returns the raw replacement HMAC shared secret exactly to the rotating caller
+     * Returns whether the original issuance commit is confirmed
      */
-    public function getHmacSharedSecret(): string
+    public function isConfirmed(): bool
     {
-        return $this->hmacSharedSecret;
+        return $this->issuance !== null;
     }
 
     /**
-     * Prevents the raw shared secret from being serialized into a message or durable store
+     * Returns confirmed original metadata without guessing an uncertain outcome
      */
-    public function __serialize(): array
+    public function getIssuance(): ?AgentIssuance
     {
-        throw new LogicException('Agent credential rotation results cannot be serialized.');
+        return $this->issuance;
+    }
+
+    /**
+     * Returns sanitized publication status independently of the committed outcome
+     */
+    public function getWarning(): ?AgentPublicationWarning
+    {
+        return $this->warning;
     }
 }

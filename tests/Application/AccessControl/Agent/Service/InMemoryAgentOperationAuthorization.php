@@ -68,6 +68,22 @@ final class InMemoryAgentOperationAuthorization implements AgentOperationAuthori
         return $this->actor;
     }
 
+    public function authorizeRotation(
+        AgentOperationScope $scope,
+        AgentCredentialDestination $destination,
+        AgentId $target
+    ): string {
+        if (
+            ($this->actor !== $scope->getCallerId()
+                && !($this->readDelegations[$this->actor.':'.$scope->toString()] ?? false))
+            || in_array($target->toString(), $this->deniedTargets, true)
+        ) {
+            throw new AgentOperationRejectedException(AgentOperationFailure::UNAUTHORIZED);
+        }
+
+        return $this->authorize($scope, $destination);
+    }
+
     public function authorizeRead(
         AgentOperationScope $scope,
         AgentCredentialDestination $destination,

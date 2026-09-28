@@ -4,7 +4,9 @@ TASK-00047 adds `GetAgentOperation` and `GetAgentOperationHandler` to the
 [recoverable provisioning contract](agent-provisioning-operations.md). It is a **read-only, secret-free snapshot**,
 not another issuance workflow or a credential-retrieval API. The incomplete replacement remains unreleased and
 not deployable. [TASK-00050 retirement](agent-credential-retirement.md) now writes revoked disposition atomically;
-rotation, delivery, cohort/migration and consumer qualification remain downstream.
+[protected delivery](agent-credential-delivery.md) records receipt outcomes and
+[recoverable rotation](agent-rotation-operations.md) writes supersession. Cohort/migration and consumer qualification
+remain downstream.
 
 ## Composition and authority
 
