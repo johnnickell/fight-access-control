@@ -91,7 +91,10 @@ pass and receipt-first reconciliation through the actual protected delivery path
 Discovery excludes obsolete slot reservations before limiting so they cannot starve the current authorized write.
 [Material maintenance](docs/agent-delivery-maintenance.md) adds authorized rewrapping, global diagnostic key-reference
 counts, retention expiry and replay-safe inert-entry cleanup. A zero reference count never authorizes key destruction;
-current delivered credentials are excluded from cleanup. This intermediate work is **not deployable** until independent
+current delivered credentials are excluded from cleanup.
+[Issuance-recovery conformance](docs/agent-issuance-conformance.md) exposes consumer-bindable tests and exercises both
+issuance paths through scheduler-only restart, status and cleanup using behavioral adapters. It does not qualify a
+real database, sink or consumer activation/use path. This intermediate work is **not deployable** until independent
 acceptance, downstream conformance and compatibility TASKs are complete. Existing released versions are unchanged.
 
 ### Current principal composition

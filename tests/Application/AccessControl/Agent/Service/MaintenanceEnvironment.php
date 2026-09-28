@@ -50,9 +50,9 @@ final class MaintenanceEnvironment implements AgentMaintenanceAuthorization, Age
 
     public ?string $wrongVersion = null;
 
-    public function __construct()
+    public function __construct(?DeliveryEnvironment $delivery = null)
     {
-        $this->delivery = new DeliveryEnvironment();
+        $this->delivery = $delivery ?? new DeliveryEnvironment();
         $this->expiresAt = $this->delivery->clock->now()->modify('+30 days');
     }
 

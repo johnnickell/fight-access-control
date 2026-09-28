@@ -4,7 +4,9 @@
 operation. It consumes [provisioning correlation](agent-provisioning-operations.md),
 [atomic predecessor retirement](agent-credential-retirement.md) and the existing
 [protected delivery attempt](agent-credential-delivery.md). This is not release or consumer qualification:
-discovery/restart recovery, maintenance, reusable conformance and migration/cohort work remain downstream.
+[discovery/restart recovery](agent-delivery-recovery.md), [maintenance](agent-delivery-maintenance.md) and
+[issuance conformance](agent-issuance-conformance.md) now exercise the replacement together. Wider delivery conformance
+and migration/cohort work remain downstream; no consumer qualification is inferred.
 
 ## Public API and composition
 
@@ -92,7 +94,8 @@ Only a confirmed new rotation publishes `AgentCredentialRotated`, identified by 
 Publisher failure returns confirmed metadata plus `AgentPublicationWarning::PUBLICATION_FAILED`; failed publication
 of the fixed, sanitized `AgentCredentialLifecycleFailed` evidence cannot replace that outcome. There is no outbox or
 automatic event retry guarantee. Same-key retries emit no duplicate mutation/audit/fact. Durable operation state,
-not notifications, owns recovery; scheduler-only recovery remains TASK-00049/00052 evidence.
+not notifications, owns recovery; [TASK-00049 conformance](agent-issuance-conformance.md) exercises both-publisher failure
+and scheduler-only restart through TASK-00052's actual path.
 
 Default pending limits are **100 per originating scope and 10000 globally**, with validated overrides of 1–10000 and
 1–1000000 respectively (global at least per-scope). `AgentOperationLimits` retains provisioning's name bound, which
