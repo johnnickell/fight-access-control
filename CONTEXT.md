@@ -136,8 +136,10 @@ maintenance and delivery/lifecycle conformance. TASK-00048/00049 now have concre
 wait on unfinished dependencies rather than missing information. TICKET-00014 now has approved
 [TASK-00055](planning/tasks/00055-TASK.md) through [TASK-00059](planning/tasks/00059-TASK.md): existing-Agent
 compatibility, contract cohorts, canonical upgrades, restoration safety and migration/evidence guidance. All three
-TICKET decompositions are complete; TASK-00046 is in progress and the others wait on dependencies. John separately
-authorized TASK-00046 execution. Planning does not qualify a consumer or authorize migration, release or adoption.
+TICKET decompositions are complete; TASK-00046 is independently accepted and done for implementation/local
+verification, not merge or release. TASK-00047/00050 have no remaining acceptance blocker; other slices still wait
+on dependencies. Each downstream execution needs its own authorization. John separately authorized TASK-00046
+execution and PR landing. Planning does not qualify a consumer or authorize migration, release or adoption.
 The replacement requires caller-scoped operation correlation, protected delivery and consumer authorization
 participating in the package-owned transaction under shared authority fences. Consumers still own policy, adapters,
 keys and the sink; unsupported integrations fail closed.

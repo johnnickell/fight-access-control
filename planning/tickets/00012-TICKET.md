@@ -178,12 +178,13 @@ its own implementation inputs. All unfinished blockers must be terminal before e
 
 ## Progress
 
-TASK-00046 is in progress with the provision/service-retry implementation and focused failure/recovery tests.
-[Its public contract](../../docs/agent-provisioning-operations.md) records concrete interfaces, bounds and I1–I7
-provisioning evidence. Its complete package gate passes: 659 tests, 4973 assertions and 5281/5281 statements covered;
-TASK-00046 records the receipt and limitations. TASK-00047 waits on its independent acceptance; TASK-00048/00049 wait on their recorded
-cross-TICKET prerequisites. All TICKET acceptance boxes remain open: rotation, query status and scheduler/conformance
-proof are not completed by provisioning alone. Consumer qualification and release remain separately required.
+TASK-00046 is independently accepted and done for the provision/service-retry implementation and focused
+failure/recovery tests, not merged or released by that status. [Its public contract](../../docs/agent-provisioning-operations.md)
+records concrete interfaces, bounds and I1–I7 provisioning evidence. Its complete package gate passes: 659 tests,
+4973 assertions and 5281/5281 statements covered; TASK-00046 records the review, receipts and limitations.
+TASK-00047's acceptance dependency is satisfied; TASK-00048/00049 still wait on their recorded cross-TICKET
+prerequisites. All TICKET acceptance boxes remain open: rotation, query status and scheduler/conformance proof are
+not completed by provisioning alone. Consumer qualification and release remain separately required.
 
 The local live/archive inventory was rechecked before allocation at unchanged HEAD
 `92d1de82a7833cc6dafb90eccea0d132f0e3cd77`: existing TASKs ended at 00045 and no matching archived recovery TASK was
@@ -201,7 +202,7 @@ parent EPIC; no runtime test/build or consumer qualification result is claimed.
 
 | Order | TASK ID | Title | Status |
 | --- | --- | --- | --- |
-| 46 | [TASK-00046](../tasks/00046-TASK.md) | Provision an Agent through a recoverable operation | in-progress |
+| 46 | [TASK-00046](../tasks/00046-TASK.md) | Provision an Agent through a recoverable operation | done |
 | 47 | [TASK-00047](../tasks/00047-TASK.md) | Read Agent operation outcomes safely | ready-for-agent |
 | 48 | [TASK-00048](../tasks/00048-TASK.md) | Rotate an Agent through a recoverable operation | ready-for-agent |
 | 49 | [TASK-00049](../tasks/00049-TASK.md) | Publish and exercise issuance-recovery conformance | ready-for-agent |
