@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Fight\Test\AccessControl\Application\AccessControl\Agent\QueryHandler;
 
 use Fight\AccessControl\Application\AccessControl\Agent\QueryHandler\ListDueAgentDeliveriesHandler;
+use Fight\AccessControl\Application\AccessControl\Agent\Security\AgentDeliveryResult;
 use Fight\AccessControl\Domain\AccessControl\Agent\Exception\AgentOperationRejectedException;
 use Fight\AccessControl\Domain\AccessControl\Agent\Operation\AgentCredentialDestination;
 use Fight\AccessControl\Domain\AccessControl\Agent\Operation\AgentCredentialDisposition;
@@ -28,7 +29,7 @@ use RuntimeException;
 #[CoversClass(ListDueAgentDeliveriesHandler::class)]
 final class ListDueAgentDeliveriesHandlerTest extends TestCase
 {
-    public function test_equal_due_times_have_bounded_deterministic_order_and_safe_read_only_views(): void
+    public function test_equal_due_times_select_only_current_reservation_with_safe_read_only_views(): void
     {
         $env = new DeliveryEnvironment();
         for ($index = 0; $index < 3; ++$index) {
@@ -40,27 +41,20 @@ final class ListDueAgentDeliveriesHandlerTest extends TestCase
 
         $before = [$env->provisioning->transaction->transactions, $env->provisioning->audit->all(),
             $env->provisioning->operations->operations, $env->provisioning->generations];
-        $ids = array_map(
-            static fn($operation): string => $operation->getIssuance()->getDeliveryId()->toString(),
-            array_values($env->provisioning->operations->operations)
-        );
-        sort($ids, SORT_STRING);
-        $query = new ListDueAgentDeliveries($env->issuance->getKey()->getScope(), $env->issuance->getDestination(), 2);
+        $latest = array_last($env->provisioning->operations->operations);
+        self::assertNotNull($latest);
+        $query = new ListDueAgentDeliveries($env->issuance->getKey()->getScope(), $env->issuance->getDestination(), 1);
         $handler = $this->handler($env);
         self::assertSame(ListDueAgentDeliveries::class, $handler::queryRegistration());
         $views = $handler->handle(QueryMessage::create($query));
-        self::assertCount(2, $views);
-        self::assertSame(array_slice($ids, 0, 2), array_map(
-            static fn(AgentOperationView $view): string => $view->getIssuance()->getDeliveryId()->toString(),
-            $views
-        ));
+        self::assertEquals([$latest->getStatus()], $views);
         self::assertEquals($views, $this->handler($env)->handle(QueryMessage::create($query)));
         self::assertSame($before, [$env->provisioning->transaction->transactions, $env->provisioning->audit->all(),
             $env->provisioning->operations->operations, $env->provisioning->generations]);
         self::assertSame(0, $env->decipher->calls);
         self::assertSame(0, $env->sink->calls);
         self::assertSame(0, $env->provisioning->operations->deliveryWrites);
-        self::assertSame(array_fill(0, 8, 'delivery-worker'), $env->authorization->discoveryWorkers);
+        self::assertSame(array_fill(0, 6, 'delivery-worker'), $env->authorization->discoveryWorkers);
         foreach ($views as $view) {
             self::assertSame('maintainer-42', $view->getKey()->getScope()->getCallerId());
             self::assertEquals($view, AgentOperationView::fromArray($view->toArray()));
@@ -75,7 +69,7 @@ final class ListDueAgentDeliveriesHandlerTest extends TestCase
         }
     }
 
-    public function test_discovery_excludes_other_bindings_and_orders_pending_before_expired_claims(): void
+    public function test_discovery_excludes_other_bindings_and_waits_for_current_claim_expiry(): void
     {
         $env = new DeliveryEnvironment();
         $env->transaction->uncertainAt = 2;
@@ -84,14 +78,6 @@ final class ListDueAgentDeliveriesHandlerTest extends TestCase
 
         $scope = $env->issuance->getKey()->getScope();
         $destination = $env->issuance->getDestination();
-        $pendingKey = new AgentOperationKey($scope, AgentOperationId::generate());
-        $env->provisioning->service()->provision($pendingKey, $env->provisioning->request);
-        $otherScope = new AgentOperationScope('other-consumer', 'user', 'other-owner');
-        $env->provisioning->authorization->scopes[$otherScope->toString()] = true;
-        $env->provisioning->service()->provision(
-            new AgentOperationKey($otherScope, AgentOperationId::generate()),
-            $env->provisioning->request
-        );
         $otherDestination = new AgentCredentialDestination(AgentDestinationId::generate(), 1);
         $env->provisioning->authorization->destinations[$otherDestination->getId()->toString()] = 1;
         $env->provisioning->service()->provision(
@@ -99,17 +85,95 @@ final class ListDueAgentDeliveriesHandlerTest extends TestCase
             new AgentProvisioningRequest('Other destination', $otherDestination)
         );
         $message = QueryMessage::create(new ListDueAgentDeliveries($scope, $destination));
-        $first = $this->handler($env)->handle($message);
-        self::assertCount(1, $first);
-        self::assertSame($pendingKey, $first[0]->getKey());
+        self::assertSame([], $this->handler($env)->handle($message));
         $env->clock->advance(60);
         $due = $this->handler($env)->handle($message);
-        self::assertSame([$pendingKey, $env->issuance->getKey()], array_map(
+        self::assertSame([$env->issuance->getKey()], array_map(
             static fn(AgentOperationView $view): AgentOperationKey => $view->getKey(),
             $due
         ));
         self::assertSame(0, $env->decipher->calls);
         self::assertSame(1, $env->operation()->getStateRevision());
+    }
+
+    public function test_slot_reservation_exclusion_spans_scopes_bindings_and_completed_work(): void
+    {
+        $env = new DeliveryEnvironment();
+        $scope = $env->issuance->getKey()->getScope();
+        $destination = $env->issuance->getDestination();
+        $otherScope = new AgentOperationScope('other-consumer', 'user', 'other-owner');
+        $env->provisioning->authorization->scopes[$otherScope->toString()] = true;
+        $other = $env->provisioning->service()->provision(
+            new AgentOperationKey($otherScope, AgentOperationId::generate()),
+            $env->provisioning->request
+        )->getIssuance();
+        self::assertNotNull($other);
+        $originalQuery = QueryMessage::create(new ListDueAgentDeliveries($scope, $destination));
+        self::assertSame([], $this->handler($env)->handle($originalQuery));
+        $otherQuery = QueryMessage::create(new ListDueAgentDeliveries($otherScope, $destination));
+        $otherViews = $this->handler($env)->handle($otherQuery);
+        self::assertCount(1, $otherViews);
+        self::assertSame($other, $otherViews[0]->getIssuance());
+
+        $rebound = new AgentCredentialDestination($destination->getId(), 2);
+        $env->provisioning->authorization->destinations[$rebound->getId()->toString()] = 2;
+        $latest = $env->provisioning->service()->provision(
+            new AgentOperationKey($scope, AgentOperationId::generate()),
+            new AgentProvisioningRequest('Rebound destination', $rebound)
+        )->getIssuance();
+        self::assertNotNull($latest);
+        self::assertSame(3, $latest->getDestinationWriteVersion());
+        $reboundQuery = QueryMessage::create(new ListDueAgentDeliveries($scope, $rebound));
+        self::assertSame($latest, $this->handler($env)->handle($reboundQuery)[0]->getIssuance());
+        self::assertSame([], $this->handler($env)->handle(QueryMessage::create(
+            new ListDueAgentDeliveries($otherScope, $rebound)
+        )));
+        self::assertSame(0, $env->provisioning->operations->deliveryWrites);
+        self::assertSame(0, $env->decipher->calls);
+
+        self::assertSame(
+            AgentDeliveryResult::DELIVERED,
+            $env->service()->deliver($latest->getKey(), $rebound, $latest->getDeliveryId())
+        );
+        self::assertSame([], $this->handler($env)->handle($reboundQuery));
+        // Even querying the original binding at the repository boundary cannot select a superseded write.
+        self::assertSame([], $env->provisioning->operations->listDueDeliveries(
+            $scope,
+            $destination,
+            $env->clock->now(),
+            50
+        ));
+        self::assertSame([], $env->provisioning->operations->listDueDeliveries(
+            $otherScope,
+            $destination,
+            $env->clock->now(),
+            50
+        ));
+        self::assertSame(0, $env->operation()->getStateRevision());
+        self::assertSame(1, $env->sink->calls);
+    }
+
+    public function test_rolled_back_reservation_does_not_hide_current_work(): void
+    {
+        $env = new DeliveryEnvironment();
+        $env->provisioning->operations->afterAdd = static function (): void {
+            throw new RuntimeException('Issuance rollback after reservation.');
+        };
+        try {
+            $env->provisioning->service()->provision(
+                new AgentOperationKey($env->issuance->getKey()->getScope(), AgentOperationId::generate()),
+                $env->provisioning->request
+            );
+            self::fail('Issuance must roll back.');
+        } catch (AgentOperationRejectedException $agentOperationRejectedException) {
+            self::assertSame(AgentOperationFailure::UNAVAILABLE, $agentOperationRejectedException->getReason());
+        }
+
+        self::assertEquals([$env->operation()->getStatus()], $this->handler($env)->handle(QueryMessage::create(
+            new ListDueAgentDeliveries($env->issuance->getKey()->getScope(), $env->issuance->getDestination())
+        )));
+        self::assertCount(1, $env->provisioning->operations->operations);
+        self::assertSame(0, $env->decipher->calls);
     }
 
     /** @return iterable<string, array{string}> */

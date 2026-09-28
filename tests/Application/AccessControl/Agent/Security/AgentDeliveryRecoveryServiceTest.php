@@ -341,6 +341,96 @@ final class AgentDeliveryRecoveryServiceTest extends TestCase
         self::assertSame(0, $retired->decipher->calls);
     }
 
+    public function test_restarted_scheduler_reaches_current_write_past_a_full_obsolete_batch(): void
+    {
+        $env = new DeliveryEnvironment();
+        $scope = $env->issuance->getKey()->getScope();
+        $destination = $env->issuance->getDestination();
+        for ($index = 1; $index < 50; ++$index) {
+            $env->provisioning->service()->provision(
+                new AgentOperationKey($scope, AgentOperationId::generate()),
+                $env->provisioning->request
+            );
+        }
+
+        $obsolete = $env->provisioning->operations->operations;
+        $env->clock->advance(1);
+        $latest = $env->provisioning->service(clock: $env->clock)->provision(
+            new AgentOperationKey($scope, AgentOperationId::generate()),
+            $env->provisioning->request
+        )->getIssuance();
+        self::assertNotNull($latest);
+        self::assertSame(51, $latest->getDestinationWriteVersion());
+        $audit = $env->provisioning->audit->all();
+        $agents = $env->provisioning->agents->all();
+        for ($pass = 0; $pass < 3; ++$pass) {
+            self::assertSame(
+                $pass === 0 ? [$latest->getDeliveryId()->toString() => AgentDeliveryResult::DELIVERED] : [],
+                $this->recover($env)
+            );
+            $env->clock->advance(30);
+        }
+
+        foreach ($obsolete as $key => $operation) {
+            $issuance = $operation->getIssuance();
+            self::assertSame(AgentDeliveryResult::REJECTED, $env->service()->deliver(
+                $issuance->getKey(),
+                $destination,
+                $issuance->getDeliveryId()
+            ));
+            self::assertSame($operation, $env->provisioning->operations->operations[$key]);
+            self::assertNull($env->sink->stagedBytes($issuance));
+        }
+
+        $completed = $env->provisioning->operations->operations[$latest->getKey()->toString()];
+        self::assertSame(AgentDeliveryDisposition::DELIVERED, $completed->getStatus()->getDeliveryDisposition());
+        self::assertSame($latest, $completed->getIssuance());
+        self::assertNull($completed->getMaterial());
+        self::assertSame('original-test-secret', $env->sink->stagedBytes($latest));
+        self::assertSame(3, $env->provisioning->operations->dueReads);
+        self::assertSame(3, $env->provisioning->operations->deliveryWrites);
+        self::assertSame(1, $env->sink->calls);
+        self::assertSame(1, $env->decipher->calls);
+        self::assertSame(51, $env->provisioning->generations);
+        self::assertSame($audit, $env->provisioning->audit->all());
+        self::assertSame($agents, $env->provisioning->agents->all());
+    }
+
+    public function test_reservation_changed_after_discovery_rejects_old_work_and_next_pass_delivers_new_work(): void
+    {
+        $env = new DeliveryEnvironment();
+        $env->authorization->afterDiscovery = static function (?AgentIssuance $issuance) use ($env): void {
+            if ($issuance === null) {
+                return;
+            }
+
+            $env->authorization->afterDiscovery = null;
+            $env->provisioning->service()->provision(
+                new AgentOperationKey($issuance->getKey()->getScope(), AgentOperationId::generate()),
+                $env->provisioning->request
+            );
+        };
+        self::assertSame(
+            [$env->issuance->getDeliveryId()->toString() => AgentDeliveryResult::REJECTED],
+            $this->recover($env)
+        );
+        self::assertSame(0, $env->operation()->getStateRevision());
+        self::assertSame(0, $env->decipher->calls);
+        self::assertSame(0, $env->sink->calls);
+        self::assertSame(1, $env->provisioning->operations->dueReads);
+        $latest = array_last($env->provisioning->operations->operations)?->getIssuance();
+        self::assertNotNull($latest);
+        $env->clock->advance(30);
+        self::assertSame(
+            [$latest->getDeliveryId()->toString() => AgentDeliveryResult::DELIVERED],
+            $this->recover($env)
+        );
+        self::assertSame(2, $env->provisioning->operations->dueReads);
+        self::assertSame(1, $env->decipher->calls);
+        self::assertSame('original-test-secret', $env->sink->stagedBytes($latest));
+        self::assertNull($env->sink->stagedBytes($env->issuance));
+    }
+
     public function test_scheduler_does_not_drain_more_than_one_bounded_batch(): void
     {
         $env = new DeliveryEnvironment();
@@ -356,10 +446,38 @@ final class AgentDeliveryRecoveryServiceTest extends TestCase
             $env->issuance->getKey()->getScope(),
             $env->issuance->getDestination()
         );
-        self::assertCount(1, $results);
+        self::assertSame([AgentDeliveryResult::DELIVERED], array_values($results));
         self::assertSame(1, $env->provisioning->operations->dueReads);
-        self::assertLessThanOrEqual(3, $env->transaction->commits - $before);
+        self::assertSame(3, $env->transaction->commits - $before);
         self::assertCount(3, $env->provisioning->operations->operations);
+        self::assertSame([], $this->recover($env));
+    }
+
+    public function test_current_retry_excludes_obsolete_due_work_until_lease_and_retry_expire(): void
+    {
+        $env = new DeliveryEnvironment();
+        $latest = $env->provisioning->service()->provision(
+            new AgentOperationKey($env->issuance->getKey()->getScope(), AgentOperationId::generate()),
+            $env->provisioning->request
+        )->getIssuance();
+        self::assertNotNull($latest);
+        $env->decipher->failure = AgentDeliveryFailure::TEMPORARY;
+        self::assertSame(
+            [$latest->getDeliveryId()->toString() => AgentDeliveryResult::RETRYABLE],
+            $this->recover($env)
+        );
+        $env->decipher->failure = null;
+        $env->clock->advance(30);
+        self::assertSame([], $this->recover($env));
+        $env->clock->advance(30);
+        self::assertSame(
+            [$latest->getDeliveryId()->toString() => AgentDeliveryResult::DELIVERED],
+            $this->recover($env)
+        );
+        self::assertSame(0, $env->operation()->getStateRevision());
+        self::assertSame(1, $env->sink->calls);
+        self::assertNull($env->sink->stagedBytes($env->issuance));
+        self::assertSame('original-test-secret', $env->sink->stagedBytes($latest));
     }
 
     public function test_current_receipt_reconciliation_rejects_revocation_aba_and_expiry_before_acknowledgement(): void

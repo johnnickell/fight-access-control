@@ -37,7 +37,8 @@ behavior shared by Fight applications. The repository-local behavioral and secur
   delivery ID survive retry/takeover; current credential, destination order, authority epochs and deadlines fence
   completion. Late admitted bytes remain inert, not enrollment activation or use permission. Current unreleased
   implementation delivers one exact provisioned or rotated operation; TASK-00052 adds bounded delegated discovery,
-  scheduler passes and receipt-first restart recovery. Maintenance remains downstream.
+  scheduler passes and receipt-first restart recovery. Discovery excludes obsolete destination write reservations
+  before limiting, so rejected predecessors cannot starve the current slot write. Maintenance remains downstream.
 - **Agent issuance**: original Agent/credential/revision, global delivery ID and registered destination binding/write
   order. Confirmed issuance does not establish credential delivery, enrollment activation or permission to launch.
 - **Agent credential revision**: the monotonically advancing version of an Agent's single credential authority.
@@ -169,7 +170,9 @@ with no merge or release authorized.
 John authorized TASK-00052 in the main checkout on `feature/task-00052-delivery-recovery`. Its
 [discovery/recovery contract](docs/agent-delivery-recovery.md) adds read-only bounded selection, an event-independent
 scheduler pass, optional receipt lookup before decryption, receipt-only recovery of current admissions and safe
-reconciliation of lost delivered sink material. Independent acceptance is pending; this is not consumer qualification.
+reconciliation of lost delivered sink material. Independent review requested R1: obsolete slot reservations could
+starve the bounded batch. The revision requires authoritative current-reservation selection before limiting, with
+regression proof through the actual scheduler; independent re-review is pending. This is not consumer qualification.
 Other slices retain their remaining dependencies and require separate execution authority.
 Each downstream execution needs authorization. John separately authorized TASK-00046
 execution and PR landing. Planning does not qualify a consumer or authorize migration, release or adoption.
@@ -232,7 +235,9 @@ applies. Capacity exhaustion rejects or defers new work with a clear retryable o
 lookup and recovery of existing operations. Cleanup retains the evidence needed to prevent duplicate issuance and
 stale delivery. Provisioning defaults are 512 raw name bytes, 100 pending operations per scope and 10000 globally,
 with validated bounded overrides; existing resolution precedes new-work admission. TASK-00052 adds a default batch of 50 (valid 1–100) and 30-second polling guidance (valid 1–3600 seconds),
-with at most one batch per pass and no capacity check on existing recovery. Delivery policy remains pinned on
+with at most one batch per pass and no capacity check on existing recovery. Selection excludes obsolete reservations
+using the stable slot's committed counter across all scopes/bindings, before ordering or limiting; no manual cleanup
+is needed to reach the current write. Delivery policy remains pinned on
 first claim; pending/retry/expired-claim due selection respects both lease and retry, capped by original retention.
 Downstream maintenance values remain with their owning TASKs. This is not a wider quota or approval system.
 

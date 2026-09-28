@@ -12,6 +12,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Bounded authorized `ListDueAgentDeliveries` queries and `AgentDeliveryRecoveryService` scheduler passes through
   the actual protected delivery path. Optional `AgentCredentialReceiptLookup` reconciles exact durable receipts
   before unnecessary materialization. Restart/uncertainty recovery preserves original issuance and secret identity.
+  Due selection excludes obsolete slot reservations before limiting, preventing rejected predecessors from starving
+  the current authorized delivery across scheduler restarts.
   See the [unreleased recovery contract](docs/agent-delivery-recovery.md).
 - Opt-in OpenAPI discovery Query, shared safe Agent operation/issuance, bounded due-list and optional JSend schemas,
   with generated-contract integration coverage in the default PHPUnit/build pipeline.

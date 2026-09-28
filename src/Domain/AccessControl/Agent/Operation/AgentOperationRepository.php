@@ -38,12 +38,19 @@ interface AgentOperationRepository
      * Retrieves a bounded authoritative secret-free due-work projection after discovery authorization
      *
      * Select only this original scope and exact destination binding, with unfinished current-credential delivery
-     * material and getDeliveryDueAt() <= now: pending, due retries and abandoned expired claims. Order ascending by
-     * due time then global delivery ID bytewise, and apply limit (1..100) before returning. Retention-expired work
-     * stays due for terminalization; delivered/retired/terminal work never reenters selection. Include persisted
-     * canonical versions so unsupported versions fail closed rather than appear absent. Use authoritative storage,
-     * never replicas, issuance events, process memory or new-work capacity. Project AgentOperationView only; never
-     * load material, tokens or receipts, take claims, commit or mutate. No query-time lifecycle transitions.
+     * material and getDeliveryDueAt() <= now: pending, due retries and abandoned expired claims. Before ordering
+     * or limiting, require the issuance's reserved write version to equal the authoritative current reservation
+     * for the stable destination ID across ALL scopes, Agents and binding revisions. Use the durable reservation
+     * counter maintained by reserveDestinationWrite(), not the maximum among due/matching operations or sink arrivals.
+     * Obsolete writes cannot occupy a batch even if the newer reservation is not due, completed or in another scope.
+     * Order eligible work ascending by due time then global delivery ID bytewise, and apply limit (1..100).
+     * Retention-expired eligible work stays due for terminalization; delivered/retired/terminal work never reenters
+     * selection. Exclusion does not retire material or change status; maintenance owns obsolete-copy cleanup.
+     * Selection grants no delivery authority: claim/admission/completion must still check current slot reservation.
+     * Include persisted canonical versions so unsupported versions fail closed rather than appear absent. Use
+     * authoritative storage, never replicas, issuance events, process memory or new-work capacity.
+     * Project AgentOperationView only; never load material, tokens or receipts, take claims, commit or mutate.
+     * No query-time lifecycle transitions.
      * The handler rechecks current scope/delegation and each target before any disclosure. Consumer indexes must
      * support bounded selection, not an unbounded in-process scan. Storage failure throws, never returns empty work.
      *

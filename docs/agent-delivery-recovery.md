@@ -44,18 +44,33 @@ due = min(original issuance + pinned retention,
 ```
 
 For never-claimed work the default retention applies and it is due at issuance. First claim pins delivery policy;
-subsequent queries and retries use it, not a worker's new configuration. Order by due time ascending, then global
-delivery UUID bytewise ascending, applying the batch limit in authoritative storage. Equal times are deterministic.
+subsequent queries and retries use it, not a worker's new configuration.
+
+**Exclude obsolete destination write reservations before ordering or applying the limit.** Match the issuance's
+reserved write version against the authoritative durable reservation counter for the stable destination ID,
+maintained by `reserveDestinationWrite()` across all Agents, scopes and binding revisions. Do not compute the
+current reservation from only the matching/due operations or the sink's arrival high-water mark. A newer reservation
+still excludes its predecessors when it is leased, delayed, delivered, terminal or belongs to another scope/binding.
+A rolled-back reservation does not advance the committed counter. This selection rule prevents an unchanged rejected
+prefix from monopolizing every restarted scheduler pass; it needs no cursor, refill loop or manual cleanup.
+
+Order eligible work by due time ascending, then global delivery UUID bytewise ascending, applying the batch limit in
+authoritative storage. Equal times are deterministic. Under the current single-slot reservation contract at most one
+operation is eligible for an exact destination query; the configured batch is an upper bound, not a minimum fill.
 Do not substitute event order, caller order, offset pagination or a stale replica. Consumer indexes/selection must
-bound database work; the package's in-memory scan is a test double, not a recommended production adapter.
+bound database work (resolve the current reservation before selecting work); the package's in-memory scan is a test
+double, not a recommended production adapter. Consumers implement this package-owned selection contract in their
+repository, not a separate scheduler filter applied after fetching a limited batch.
 
 An active lease is not abandoned just because a process disappeared or admission expired. Discovery waits for its
 lease (and any retry delay); explicit exact delivery can reconcile a still-current admitted receipt sooner.
-Retention-expired work stays due for authorized terminalization, not renewed admission. Delivered, retired, terminal
-and expired records do not become due again. Discovery does not physically remove expired material; TASK-00053 owns
-maintenance when no authorized delivery worker runs. Target/slot changes may deny selected work at delivery; do not
-interpret such rejection as absence, success or permission to create another operation. Consumers reconcile denied
-work and provide maintenance rather than bypassing authorization or retrying it in a tight loop.
+Retention-expired eligible work stays due for authorized terminalization, not renewed admission. Delivered, retired,
+terminal and expired records do not become due again. Excluding an obsolete reservation neither changes its recorded
+status nor removes its material; it is not proof of credential retirement. TASK-00053 owns maintenance of obsolete
+copies and expired material when no authorized delivery worker runs. Recovery of the current reservation does not
+wait for that cleanup. Target/slot changes after selection may still deny work at delivery; the next pass selects
+against the then-current reservation. Do not interpret rejection as absence, success or permission to create another
+operation. Fresh claim/admission/completion checks remain mandatory; never bypass authorization or retry in a tight loop.
 
 `AgentDeliveryAuthorization::authorizeDiscovery(scope, destination, issuanceOrNull, now)` is a new mandatory
 read-only capability. It authenticates the **real worker**, current explicit delegation to the original scope,
@@ -67,7 +82,8 @@ read allow never authorizes materialization. Consumers implement visibility poli
 Storage faults or malformed/unsupported snapshots produce sanitized `AgentOperationRejectedException(UNAVAILABLE)`;
 current authorization denials produce `UNAUTHORIZED`. Neither becomes an empty queue. Unknown canonical versions
 fail closed without reinterpreting or reissuing. Query execution does not commit, emit events or consult issuance
-capacity. `getDeliveryDueAt()` owns eligibility in Domain; adapters implement its equivalent bounded selection.
+capacity. `getDeliveryDueAt()` owns operation-local eligibility in Domain; the Domain repository contract additionally
+requires current cross-operation slot reservation. Adapters implement both as equivalent bounded selection.
 
 ## Receipt-first exact recovery
 
@@ -126,18 +142,23 @@ remain unavailable; no scheduling policy promises recovery while authoritative s
 
 ## API and verification boundaries
 
-This is unreleased v0.5.0 integration work. Repository implementations must add `listDueDeliveries`; delivery
+This is unreleased v0.5.0 integration work. Repository implementations must add `listDueDeliveries`, including its
+pre-limit authoritative reservation exclusion (not the earlier scope/binding/due-only selection); delivery
 authorization must add `authorizeDiscovery`. Sink receipt lookup is optional and explicitly capability-detected.
 The existing delivery result enum adds `reconciliation_required`; consumers must handle it without auto-issuance.
 The opt-in OpenAPI catalog includes the new Query, bounded unpaginated due list, shared safe operation/issuance values
 and optional typed JSend envelope. These are value descriptions, not a package endpoint or worker authorization.
 
 - [Discovery tests](../tests/Application/AccessControl/Agent/QueryHandler/ListDueAgentDeliveriesHandlerTest.php)
-  prove safe deterministic bounded reads, real-worker checks, target denial, revocation during selection and faults.
+  prove safe deterministic bounded reads, equal-time current-write selection, cross-scope/binding exclusion,
+  completed-reservation and rollback behavior, real-worker checks, target denial, revocation during selection and faults.
 - [Recovery tests](../tests/Application/AccessControl/Agent/Security/AgentDeliveryRecoveryServiceTest.php) exercise
   real provisioning and actual delivery with fresh Application services, both persisted/rolled-back forms of all
   three uncertain commits, interruption around durable boundaries, receipt-first key-independent recovery,
   takeover, authority/expiry races, original identity/material, capacity isolation, bounds and terminal outcomes.
+  A 51-operation regression proves default-only restarted passes deliver the current write past 50 obsolete writes,
+  leave obsolete delivery denied and unchanged, and never repeat issuance. Additional tests cover reservation changes
+  after discovery and current retry delays without falling back to an older due write.
 - [Domain discovery tests](../tests/Domain/AccessControl/Agent/AgentDeliveryDiscoveryTest.php) and
   [delivery tests](../tests/Domain/AccessControl/Agent/AgentDeliveryTest.php) cover input/override validation,
   canonical Query round trips, due-time and recovered-admission policy.

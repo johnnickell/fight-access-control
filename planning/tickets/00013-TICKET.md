@@ -215,7 +215,12 @@ John subsequently authorized TASK-00052 in the main checkout. Its
 event-independent scheduler passes and receipt-first recovery through the actual delivery path. Focused tests cover
 persisted restart/uncertainty, receipt lookup, current authority, takeover and finite bounds. Its complete local gate
 passes with 952 tests / 8148 assertions and exact 5971/5971 statement coverage; saved evidence and acceptance mapping
-belong to TASK-00052. It is not independently accepted or consumer-qualified yet.
+belong to TASK-00052. Independent review of `1146b7c` requested R1: obsolete slot writes could monopolize every
+bounded batch. The revision requires pre-limit authoritative current-reservation selection across scopes/bindings,
+with a failing-then-passing 51-operation scheduler regression, unchanged delivery authorization and explicit adapter
+obligations. Focused revision verification passes 269 tests / 2140 assertions plus PHPCS/PHPStan; the complete
+revision gate passes 957 tests / 8350 assertions with exact 5971/5971 statements. Logs, initial failures and input
+mapping belong to TASK-00052. Independent re-review and consumer qualification remain outstanding.
 TASK-00053 has completed prerequisites but requires separate execution authorization;
 TASK-00054 retains its remaining blockers. All TICKET acceptance boxes remain
 open until their full owning-slice evidence is independently accepted. See the

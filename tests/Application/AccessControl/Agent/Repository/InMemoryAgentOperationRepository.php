@@ -91,15 +91,18 @@ final class InMemoryAgentOperationRepository implements AgentOperationRepository
         }
 
         ++$this->dueReads;
+        $currentWrite = $this->versions[$destination->getId()->toString()] ?? null;
         $due = array_filter($this->operations, static function (AgentCredentialOperation $operation) use (
             $scope,
             $destination,
-            $now
+            $now,
+            $currentWrite
         ): bool {
             $issuance = $operation->getIssuance();
 
             return $issuance->getKey()->getScope()->toString() === $scope->toString()
                 && $issuance->getDestination()->toArray() === $destination->toArray()
+                && $issuance->getDestinationWriteVersion() === $currentWrite
                 && $operation->getDeliveryDueAt() !== null && $operation->getDeliveryDueAt() <= $now;
         });
         usort($due, static function (AgentCredentialOperation $left, AgentCredentialOperation $right): int {

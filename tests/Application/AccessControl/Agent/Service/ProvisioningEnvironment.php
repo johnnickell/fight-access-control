@@ -9,6 +9,7 @@ use Fight\AccessControl\Application\AccessControl\Agent\Security\AgentProvisioni
 use Fight\AccessControl\Application\AccessControl\Agent\Service\AgentDeliveryCipher;
 use Fight\AccessControl\Application\AccessControl\Agent\Service\HmacSharedSecretCipher;
 use Fight\AccessControl\Application\AccessControl\Agent\Service\HmacSharedSecretGenerator;
+use Fight\AccessControl\Application\AccessControl\Timing\Service\Clock;
 use Fight\AccessControl\Domain\AccessControl\Agent\AgentRepository;
 use Fight\AccessControl\Domain\AccessControl\Agent\Operation\AgentCredentialDestination;
 use Fight\AccessControl\Domain\AccessControl\Agent\Operation\AgentDestinationId;
@@ -70,7 +71,8 @@ final class ProvisioningEnvironment
         ?HmacSharedSecretCipher $cipher = null,
         ?AgentDeliveryCipher $deliveryCipher = null,
         ?AuditEvidenceRepository $audit = null,
-        ?AgentRepository $agents = null
+        ?AgentRepository $agents = null,
+        ?Clock $clock = null
     ): AgentProvisioningService {
         return new AgentProvisioningService(
             $agents ?? $this->agents,
@@ -91,7 +93,7 @@ final class ProvisioningEnvironment
             },
             $cipher ?? new FixedHmacSharedSecretCipher('auth-envelope:'),
             $deliveryCipher ?? new BoundAgentDeliveryCipher(),
-            new FixedClock(new DateTimeImmutable('2026-09-27T12:00:00+00:00')),
+            $clock ?? new FixedClock(new DateTimeImmutable('2026-09-27T12:00:00+00:00')),
             $unitOfWork ?? $this->transaction,
             $this->events,
             $limits ?? new AgentOperationLimits()
