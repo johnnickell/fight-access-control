@@ -89,8 +89,10 @@ cancellation and resolves the original request after response loss. The old raw-
 [Discovery and restart recovery](docs/agent-delivery-recovery.md) provide a bounded currently delegated scheduler
 pass and receipt-first reconciliation through the actual protected delivery path, without caller retry or events.
 Discovery excludes obsolete slot reservations before limiting so they cannot starve the current authorized write.
-This intermediate work is **not deployable** until downstream maintenance, conformance and compatibility TASKs are
-complete. Existing released versions are unchanged.
+[Material maintenance](docs/agent-delivery-maintenance.md) adds authorized rewrapping, global diagnostic key-reference
+counts, retention expiry and replay-safe inert-entry cleanup. A zero reference count never authorizes key destruction;
+current delivered credentials are excluded from cleanup. This intermediate work is **not deployable** until independent
+acceptance, downstream conformance and compatibility TASKs are complete. Existing released versions are unchanged.
 
 ### Current principal composition
 

@@ -9,8 +9,12 @@ use DateTimeImmutable;
 use Fight\AccessControl\Domain\AccessControl\Agent\Agent;
 use Fight\AccessControl\Domain\AccessControl\Agent\Exception\AgentOperationCollisionException;
 use Fight\AccessControl\Domain\AccessControl\Agent\Exception\AgentOperationRejectedException;
+use Fight\AccessControl\Domain\AccessControl\Agent\Maintenance\AgentDeliveryKeyVersion;
+use Fight\AccessControl\Domain\AccessControl\Agent\Maintenance\AgentMaintenancePolicy;
+use Fight\AccessControl\Domain\AccessControl\Agent\Maintenance\AgentMaintenanceWork;
 use Fight\AccessControl\Domain\AccessControl\Agent\Operation\AgentCredentialDestination;
 use Fight\AccessControl\Domain\AccessControl\Agent\Operation\AgentCredentialOperation;
+use Fight\AccessControl\Domain\AccessControl\Agent\Operation\AgentDeliveryId;
 use Fight\AccessControl\Domain\AccessControl\Agent\Operation\AgentOperationFailure;
 use Fight\AccessControl\Domain\AccessControl\Agent\Operation\AgentOperationKey;
 use Fight\AccessControl\Domain\AccessControl\Agent\Operation\AgentOperationLimits;
@@ -56,6 +60,17 @@ final class InMemoryAgentOperationRepository implements AgentOperationRepository
     public ?Closure $afterDeliveryWrite = null;
 
     public int $deliveryWrites = 0;
+
+    public int $maintenanceWrites = 0;
+
+    public ?Closure $beforeMaintenanceWrite = null;
+
+    public ?Closure $afterMaintenanceWrite = null;
+
+    public ?Closure $afterMaintenanceRead = null;
+
+    /** @var array<string, bool> */
+    public array $closedKeyVersions = [];
 
     public function __construct(
         private readonly InMemoryUnitOfWork $unitOfWork,
@@ -122,6 +137,82 @@ final class InMemoryAgentOperationRepository implements AgentOperationRepository
         return $views;
     }
 
+    public function listMaintenance(
+        AgentOperationScope $scope,
+        AgentCredentialDestination $destination,
+        AgentMaintenanceWork $work,
+        DateTimeImmutable $now,
+        AgentMaintenancePolicy $policy,
+        ?AgentDeliveryId $after
+    ): array {
+        $selected = array_filter($this->operations, static function (AgentCredentialOperation $operation) use (
+            $scope,
+            $destination,
+            $work,
+            $now,
+            $policy,
+            $after
+        ): bool {
+            $issuance = $operation->getIssuance();
+            $applicable = $operation->getMaterial() !== null;
+            if ($work === AgentMaintenanceWork::CLEANUP) {
+                $applicable = $operation->canCleanup($now, $policy);
+            }
+
+            return $issuance->getKey()->getScope()->toString() === $scope->toString()
+                && $issuance->getDestination()->toArray() === $destination->toArray()
+                && ($after === null || strcmp($issuance->getDeliveryId()->toString(), $after->toString()) > 0)
+                && $applicable;
+        });
+        usort($selected, static fn (AgentCredentialOperation $left, AgentCredentialOperation $right): int => strcmp(
+            $left->getIssuance()->getDeliveryId()->toString(),
+            $right->getIssuance()->getDeliveryId()->toString()
+        ));
+        $views = array_map(
+            static fn (AgentCredentialOperation $operation): AgentOperationView => $operation->getStatus(),
+            array_slice($selected, 0, $policy->getBatchSize())
+        );
+        $this->afterMaintenanceRead?->__invoke();
+
+        return $views;
+    }
+
+    public function countDeliveryKeyReferences(AgentDeliveryKeyVersion $version): int
+    {
+        $count = count(array_filter($this->operations, static fn (AgentCredentialOperation $operation): bool =>
+            $operation->getMaterial()?->getKeyVersion() === $version->toString()));
+        $this->afterMaintenanceRead?->__invoke();
+
+        return $count;
+    }
+
+    public function replaceMaintenance(
+        #[SensitiveParameter] AgentCredentialOperation $expected,
+        #[SensitiveParameter] AgentCredentialOperation $replacement
+    ): void {
+        $this->assertFenced();
+        $this->beforeMaintenanceWrite?->__invoke();
+        $key = $expected->getIssuance()->getKey()->toString();
+        if (
+            ($this->operations[$key] ?? null) !== $expected
+            || $replacement->getStateRevision() !== $expected->getStateRevision() + 1
+            || $expected->getIssuance()->toArray() !== $replacement->getIssuance()->toArray()
+            || $expected->getCanonicalRequest() !== $replacement->getCanonicalRequest()
+            || $expected->getCanonicalVersion() !== $replacement->getCanonicalVersion()
+            || ($expected->getMaterial() === null && $replacement->getMaterial() !== null)
+        ) {
+            throw new AgentOperationRejectedException(AgentOperationFailure::CONFLICT);
+        }
+
+        $this->assertWritableKey($replacement);
+        $this->operations[$key] = $replacement;
+        ++$this->maintenanceWrites;
+        $this->unitOfWork->onRollback(function () use ($key, $expected): void {
+            $this->operations[$key] = $expected;
+        });
+        $this->afterMaintenanceWrite?->__invoke();
+    }
+
     public function reserveDestinationWrite(AgentCredentialDestination $destination): int
     {
         $this->assertFenced();
@@ -144,6 +235,7 @@ final class InMemoryAgentOperationRepository implements AgentOperationRepository
     {
         $this->assertFenced();
         $this->beforeAdd?->__invoke();
+        $this->assertWritableKey($operation);
         $key = $operation->getIssuance()->getKey();
         if (isset($this->operations[$key->toString()])) {
             throw new AgentOperationCollisionException();
@@ -237,12 +329,21 @@ final class InMemoryAgentOperationRepository implements AgentOperationRepository
         }
 
         $expected->assertDeliveryCredential($expectedAgent);
+        // Existing references may complete/retry while key admission is closed to NEW references.
         $this->operations[$key] = $replacement;
         ++$this->deliveryWrites;
         $this->unitOfWork->onRollback(function () use ($key, $expected): void {
             $this->operations[$key] = $expected;
         });
         $this->afterDeliveryWrite?->__invoke();
+    }
+
+    private function assertWritableKey(#[SensitiveParameter] AgentCredentialOperation $operation): void
+    {
+        $version = $operation->getMaterial()?->getKeyVersion();
+        if ($version !== null && ($this->closedKeyVersions[$version] ?? false)) {
+            throw new AgentOperationRejectedException(AgentOperationFailure::CONFLICT);
+        }
     }
 
     private function assertFenced(): void

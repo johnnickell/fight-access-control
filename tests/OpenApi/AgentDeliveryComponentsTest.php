@@ -5,8 +5,11 @@ declare(strict_types=1);
 namespace Fight\Test\AccessControl\OpenApi;
 
 use DateTimeImmutable;
+use Fight\AccessControl\Application\AccessControl\Agent\Security\AgentMaintenanceResult;
 use Fight\AccessControl\Domain\AccessControl\Agent\AgentCredentialId;
 use Fight\AccessControl\Domain\AccessControl\Agent\AgentId;
+use Fight\AccessControl\Domain\AccessControl\Agent\Maintenance\AgentDeliveryKeyVersion;
+use Fight\AccessControl\Domain\AccessControl\Agent\Maintenance\AgentMaintenanceWork;
 use Fight\AccessControl\Domain\AccessControl\Agent\Operation\AgentCredentialDestination;
 use Fight\AccessControl\Domain\AccessControl\Agent\Operation\AgentCredentialDisposition;
 use Fight\AccessControl\Domain\AccessControl\Agent\Operation\AgentDeliveryDisposition;
@@ -17,6 +20,8 @@ use Fight\AccessControl\Domain\AccessControl\Agent\Operation\AgentOperationId;
 use Fight\AccessControl\Domain\AccessControl\Agent\Operation\AgentOperationKey;
 use Fight\AccessControl\Domain\AccessControl\Agent\Operation\AgentOperationScope;
 use Fight\AccessControl\Domain\AccessControl\Agent\Query\AgentOperationView;
+use Fight\AccessControl\Domain\AccessControl\Agent\Query\CountAgentDeliveryKeyReferences;
+use Fight\AccessControl\Domain\AccessControl\Agent\Query\ListAgentDeliveryMaintenance;
 use Fight\AccessControl\Domain\AccessControl\Agent\Query\ListDueAgentDeliveries;
 use OpenApi\Generator;
 use PHPUnit\Framework\Attributes\CoversNothing;
@@ -40,6 +45,8 @@ final class AgentDeliveryComponentsTest extends TestCase
         $key = new AgentOperationKey(new AgentOperationScope('consumer', 'user', 'owner'), AgentOperationId::generate());
         $destination = new AgentCredentialDestination(AgentDestinationId::generate(), 1);
         $query = new ListDueAgentDeliveries($key->getScope(), $destination);
+        $maintenance = new ListAgentDeliveryMaintenance($key->getScope(), $destination);
+        $accounting = new CountAgentDeliveryKeyReferences(new AgentDeliveryKeyVersion('wrapping-v2'));
         $issuance = new AgentIssuance(
             $key,
             AgentDeliveryId::generate(),
@@ -58,11 +65,13 @@ final class AgentDeliveryComponentsTest extends TestCase
         );
         foreach (
             [
-            'ListDueAgentDeliveries'       => $query->toArray(),
-            'AgentOperationKey'            => $key->toArray(),
-            'AgentIssuance'                => $issuance->toArray(),
-            'AgentOperation.Confirmed'     => $view->toArray(),
-            'AgentOperation.Indeterminate' => AgentOperationView::indeterminate($key)->toArray()
+            'ListAgentDeliveryMaintenance'    => $maintenance->toArray(),
+            'CountAgentDeliveryKeyReferences' => $accounting->toArray(),
+            'ListDueAgentDeliveries'          => $query->toArray(),
+            'AgentOperationKey'               => $key->toArray(),
+            'AgentIssuance'                   => $issuance->toArray(),
+            'AgentOperation.Confirmed'        => $view->toArray(),
+            'AgentOperation.Indeterminate'    => AgentOperationView::indeterminate($key)->toArray()
             ] as $name => $payload
         ) {
             $schema = $schemas['Fight.AccessControl.'.$name];
@@ -70,6 +79,27 @@ final class AgentDeliveryComponentsTest extends TestCase
             self::assertEqualsCanonicalizing(array_keys($payload), array_keys($schema['properties']), $name);
         }
 
+        $maintenanceSchema = $schemas['Fight.AccessControl.ListAgentDeliveryMaintenance']['properties'];
+        self::assertSame(array_column(AgentMaintenanceWork::cases(), 'value'), $maintenanceSchema['work']['enum']);
+        self::assertSame(['string', 'null'], $maintenanceSchema['after']['type']);
+        foreach ($maintenance->getPolicy()->toArray() as $setting => $default) {
+            self::assertSame($default, $maintenanceSchema[$setting]['default']);
+            self::assertSame(1, $maintenanceSchema[$setting]['minimum']);
+        }
+
+        self::assertSame(100, $maintenanceSchema['batch_size']['maximum']);
+        self::assertSame(604800, $maintenanceSchema['cleanup_grace_seconds']['maximum']);
+        self::assertSame(
+            array_column(AgentMaintenanceResult::cases(), 'value'),
+            $schemas['Fight.AccessControl.AgentMaintenanceResult']['enum']
+        );
+        self::assertSame('integer', $schemas['Fight.AccessControl.AgentDeliveryKeyReferences']['type']);
+        self::assertSame(0, $schemas['Fight.AccessControl.AgentDeliveryKeyReferences']['minimum']);
+        self::assertSame(100, $schemas['Fight.AccessControl.AgentDeliveryMaintenance']['maxItems']);
+        self::assertSame(
+            '#/components/schemas/Fight.AccessControl.AgentOperation.Confirmed',
+            $schemas['Fight.AccessControl.AgentDeliveryMaintenance']['items']['$ref']
+        );
         $limit = $schemas['Fight.AccessControl.ListDueAgentDeliveries']['properties']['limit'];
         self::assertSame('integer', $limit['type']);
         self::assertSame(1, $limit['minimum']);

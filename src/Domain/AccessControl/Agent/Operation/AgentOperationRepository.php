@@ -6,6 +6,9 @@ namespace Fight\AccessControl\Domain\AccessControl\Agent\Operation;
 
 use DateTimeImmutable;
 use Fight\AccessControl\Domain\AccessControl\Agent\Agent;
+use Fight\AccessControl\Domain\AccessControl\Agent\Maintenance\AgentDeliveryKeyVersion;
+use Fight\AccessControl\Domain\AccessControl\Agent\Maintenance\AgentMaintenancePolicy;
+use Fight\AccessControl\Domain\AccessControl\Agent\Maintenance\AgentMaintenanceWork;
 use Fight\AccessControl\Domain\AccessControl\Agent\Query\AgentOperationView;
 use SensitiveParameter;
 
@@ -64,6 +67,59 @@ interface AgentOperationRepository
     ): array;
 
     /**
+     * Retrieves one secret-free keyset page of retained material or eligible terminal sink cleanup
+     *
+     * Authoritative original scope and exact historical destination only, including obsolete slot reservations.
+     * MATERIAL includes EVERY retained copy regardless of disposition/version/key;
+     * CLEANUP uses canCleanup(now, policy).
+     * Sort by global delivery ID bytewise ascending, exclusively after the optional cursor, before applying batch size.
+     * Do not load ciphertext or attempts. Return original status views; no mutation, claims, capacity check or commit.
+     * Use indexed bounded selection. Continue with the last ID even when a maintenance attempt defers or is unchanged;
+     * restart at null after the final page to catch concurrent earlier inserts. A page is never a complete key count.
+     * Storage failure throws; do not return an empty page on failure.
+     *
+     * @return list<AgentOperationView>
+     */
+    public function listMaintenance(
+        AgentOperationScope $scope,
+        AgentCredentialDestination $destination,
+        AgentMaintenanceWork $work,
+        DateTimeImmutable $now,
+        AgentMaintenancePolicy $policy,
+        ?AgentDeliveryId $after
+    ): array;
+
+    /**
+     * Returns the authoritative global reference count for one delivery wrapping version without reading material
+     *
+     * Count EVERY retained delivery copy across all scopes, states, versions, pending/claimed/obsolete records and
+     * batches. Storage faults throw; zero is only an observation, never permission to retire a key. No commit/mutation.
+     * Consumer physical retirement must first close this version's write admission under the shared key fence,
+     * recount atomically under that fence, and wait for all leased/in-flight key uses and independent authentication
+     * envelope dependencies. All add/replace/delivery/lifecycle/maintenance writers participate in that fence,
+     * including rollback and restore. Rewrap/add into closed versions rejects. Existing references may still drain;
+     * no new reference is admitted. Counts may not silently omit unsupported records.
+     */
+    public function countDeliveryKeyReferences(AgentDeliveryKeyVersion $version): int;
+
+    /**
+     * Replaces one exact maintenance snapshot without requiring live delivery authority over an obsolete slot
+     *
+     * Require package transaction plus current maintenance authorization on the same connection. Compare original
+     * key, canonical version/request, full issuance, authoritative state revision and every expected persisted field;
+     * replacement advances revision exactly once and retains original correlation. Only validated rewrap, expiry,
+     * permanent source-loss/corruption or cleanup-ack successors are permitted. Share operation, authority, lifecycle,
+     * destination-history and old/new key-reference fences with ALL writers. Reject stale snapshots, missing records,
+     * resurrection and target versions closed to writes. Update key references atomically with the copy; never count
+     * only a work page or discard a tombstone to meet capacity. No sink/key destruction, nested transaction or capacity
+     * check. Sanitize failures and annotate concrete sensitive arguments/callbacks. Unsupported participation rejects.
+     */
+    public function replaceMaintenance(
+        #[SensitiveParameter] AgentCredentialOperation $expected,
+        #[SensitiveParameter] AgentCredentialOperation $replacement
+    ): void;
+
+    /**
      * Creates the next write reservation under the shared destination ownership and reassignment fence
      *
      * Counters span all Agents and scopes for the stable destination ID, never reset on rebinding, and roll back
@@ -120,7 +176,10 @@ interface AgentOperationRepository
      * Enforces scoped-key uniqueness, global delivery-ID uniqueness and limits over authoritative pending counts.
      * Raise AgentOperationCollisionException only for scoped-key collision; all loser writes must roll back before
      * resolution. Never evict retained correlation. Every writer shares admission, authority and slot fences.
-     * Downstream expected-state lifecycle writes must retire material atomically with Agent credential retirement.
+     * Expected-state lifecycle writes retire material atomically with Agent credential retirement. Add and every
+     * material writer hold the shared key-version write/reference fence through commit and reject NEW references
+     * into closed versions. Existing references may drain; physical retirement must not race new references or key use.
+     * Never delete scoped correlation tombstones.
      */
     public function add(AgentCredentialOperation $operation, AgentOperationLimits $limits): void;
 }

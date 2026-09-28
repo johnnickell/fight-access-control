@@ -12,3 +12,4 @@ declare(strict_types=1);
 require_once __DIR__.'/Components.php';
 require_once __DIR__.'/CredentialDeliveryComponents.php';
 require_once __DIR__.'/AgentDeliveryComponents.php';
+require_once __DIR__.'/AgentMaintenanceComponents.php';
