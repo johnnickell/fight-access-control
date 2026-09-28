@@ -174,8 +174,10 @@ reconciliation of lost delivered sink material. Independent review requested R1:
 starve the bounded batch. The revision requires authoritative current-reservation selection before limiting, with
 regression proof through the actual scheduler. Independent re-review accepted `c9e23ab`, with all criteria passing,
 269 focused tests / 2140 assertions and all 696 full-gate inputs verified. TASK-00052 is done for implementation/local
-verification. John requested landing; publication is pending at this checkpoint after mechanical integration of the
-TASK-00060 planning-only base update. This is not consumer qualification, merge or release.
+verification. John requested landing; [PR #85](https://github.com/johnnickell/fight-access-control/pull/85) is open against
+`develop` at its initial publication checkpoint after mechanical integration of the TASK-00060 planning-only base
+update. The fresh landing gate passes 957 tests / 8350 assertions and exact 5971/5971 statements. This is not consumer
+qualification, merge or release.
 Other slices retain their remaining dependencies and require separate execution authority.
 Each downstream execution needs authorization. John separately authorized TASK-00046
 execution and PR landing. Planning does not qualify a consumer or authorize migration, release or adoption.

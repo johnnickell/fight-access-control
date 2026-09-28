@@ -223,8 +223,11 @@ revision gate passes 957 tests / 8350 assertions with exact 5971/5971 statements
 mapping belong to TASK-00052. Independent re-review accepted `c9e23ab` with R1 resolved and all nine TASK criteria
 passing, fresh 269 tests / 2140 assertions, and all 696 gate inputs matched. TASK-00052 is done for implementation/local
 verification, not consumer qualification. John requested landing; the latest develop's TASK-00060 planning-only update
-is integrated without changing the reviewed implementation. At this checkpoint publication remains pending; the TASK's
-ignored landing handoff owns the review bridge and fresh publication evidence. Consumer qualification remains outstanding.
+is integrated without changing the reviewed implementation. At the initial publication checkpoint,
+[PR #85](https://github.com/johnnickell/fight-access-control/pull/85) is open against `develop` at `0a08437`, with the
+fresh full gate passing 957 tests / 8350 assertions and exact 5971/5971 statements. The TASK's ignored landing handoff
+owns the review bridge, final metadata verification and publication evidence. Merge and consumer qualification remain
+outstanding.
 TASK-00053 has completed prerequisites but requires separate execution authorization;
 TASK-00054 retains its remaining blockers. All TICKET acceptance boxes remain
 open until their full owning-slice evidence is independently accepted. See the
