@@ -155,8 +155,9 @@ John authorized PR publication; PR #81 is now merged into `develop` at `6d52e8d`
 TASK-00051 in the main checkout on `feature/task-00051-protected-delivery`. Its protected delivery attempt is
 independently accepted and done for implementation/local verification (840 tests / 7276 assertions, exact
 5742/5742 statements). Review accepted `5f3f596` with 216 focused tests / 2232 assertions and verified all 674
-full-gate inputs. John authorized PR publication; at the completion checkpoint publication remains pending,
-not merge or release. Other slices retain their remaining dependencies and require separate execution authority.
+full-gate inputs. John's landing request published
+[PR #82](https://github.com/johnnickell/fight-access-control/pull/82) against `develop`; no merge or release is claimed.
+Other slices retain their remaining dependencies and require separate execution authority.
 Each downstream execution needs authorization. John separately authorized TASK-00046
 execution and PR landing. Planning does not qualify a consumer or authorize migration, release or adoption.
 The replacement requires caller-scoped operation correlation, protected delivery and consumer authorization

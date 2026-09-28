@@ -208,8 +208,9 @@ John authorized TASK-00051 in the main checkout on `feature/task-00051-protected
 [protected delivery attempt](../../docs/agent-credential-delivery.md) is implemented and locally verified (840 tests /
 7276 assertions, exact 5742/5742 statements). Independent review accepted `5f3f596` with no findings, 216 focused
 tests / 2232 assertions and all 674 saved gate inputs verified. TASK-00051 is done for implementation/local
-verification. John authorized PR publication; at the completion checkpoint publication remains pending, not merge
-or release. TASK-00052/00053 now have completed prerequisites but require separate execution authorization;
+verification. John's landing request published
+[PR #82](https://github.com/johnnickell/fight-access-control/pull/82) against `develop`; no merge or release is claimed.
+TASK-00052/00053 now have completed prerequisites but require separate execution authorization;
 TASK-00054 retains its remaining blockers. All TICKET acceptance boxes remain
 open until their full owning-slice evidence is independently accepted. See the
 [retirement contract](../../docs/agent-credential-retirement.md) for the slice's public write obligations and limits.
