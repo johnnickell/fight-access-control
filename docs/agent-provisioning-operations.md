@@ -1,6 +1,8 @@
 # Recoverable Agent provisioning (unreleased v0.5.0 work)
 
 TASK-00046 replaces `AgentProvisioningService::provision(actorId, name)` with a request and retained scoped key.
+TASK-00047 adds [authorized safe operation status](agent-operation-status.md) without an issuance transaction,
+material access, capacity admission or side effects; original issuance remains separate from current disposition.
 This is an **unreleased partial implementation**, not a supported deployable credential-delivery composition.
 TASK-00050–00053 supply lifecycle cancellation, delivery admission, workers and maintenance. Rotation replacement,
 cohort qualification and migration remain separately owned. No consumer adapter is supplied or qualified here.
@@ -67,8 +69,10 @@ errors must not masquerade as a key winner. A collision rolls back the entire lo
 a fresh transaction. A missing winner is retryable contention, never automatic new issuance. Closed Unit of Work
 instances cannot be reused; the caller recomposes and retries the original key. At most two transactions per call.
 
-Operation records retain the canonical version/request and original issuance forever (or in equivalent secret-free
-permanent tombstones). They own a separately encrypted prepared delivery copy, with consumer key-version identity.
+Operation records retain the canonical version/request, original issuance and recorded delivery/credential
+dispositions forever (or in equivalent secret-free permanent tombstones). TASK-00047's read contract adds
+`AgentOperationRepository::getStatusByKey()` and `AgentOperationAuthorization::authorizeRead()`; consumer
+implementations must provide both, with no permissive compatibility default. They own a separately encrypted prepared delivery copy, with consumer key-version identity.
 Cleanup cannot remove correlation or make a retained key fresh. The original tuple remains distinct from delivery
 state. Repository replacement for downstream lifecycle/claim work must CAS the complete expected operation while
 sharing Agent lifecycle, authority and destination fences. Retirement must atomically remove the delivery copy with

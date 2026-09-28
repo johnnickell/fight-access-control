@@ -5,17 +5,18 @@ dependencies, acceptance, and verification.
 
 ## What's Next?
 
-First ready Task: [TASK-00047](00047-TASK.md) — Read Agent operation outcomes safely.
+Active Task: [TASK-00047](00047-TASK.md) — Read Agent operation outcomes safely.
 
 ## In Progress
 
-No Tasks are currently in this state.
+| Order | TASK ID | Title | Parent TICKET | Status | Blocked by | PR |
+| --- | --- | --- | --- | --- | --- | --- |
+| 47 | [TASK-00047](00047-TASK.md) | Read Agent operation outcomes safely | [TICKET-00012](../tickets/00012-TICKET.md) — Issue and resolve Agent credentials recoverably | in-progress | [TASK-00046](00046-TASK.md) | — |
 
 ## Ready Frontier
 
 | Order | TASK ID | Title | Parent TICKET | Status | Blocked by | PR |
 | --- | --- | --- | --- | --- | --- | --- |
-| 47 | [TASK-00047](00047-TASK.md) | Read Agent operation outcomes safely | [TICKET-00012](../tickets/00012-TICKET.md) — Issue and resolve Agent credentials recoverably | ready-for-agent | [TASK-00046](00046-TASK.md) | — |
 | 50 | [TASK-00050](00050-TASK.md) | Revoke Agent credentials and fence pending delivery | [TICKET-00013](../tickets/00013-TICKET.md) — Deliver and recover Agent credentials through protected sinks | ready-for-agent | [TASK-00046](00046-TASK.md) | — |
 
 ## Waiting

@@ -7,7 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- Authorized secret-free `GetAgentOperation` status queries with canonical array round trips, original issuance
+  separated from recorded delivery/credential disposition, retained-key reads and honest indeterminate outcomes.
+  See the [unreleased status contract](docs/agent-operation-status.md); status never grants secret access or launch.
+
 ### Changed
+
+- **Unreleased v0.5.0 integration change:** operation repository adapters must implement `getStatusByKey()` and
+  persist delivery/credential dispositions; authorization implementations must add side-effect-free `authorizeRead()`
+  with current invoker/delegation, destination and target checks. No permissive fallback or consumer adapter is supplied.
 
 - **Breaking (pre-1.0, incomplete v0.5.0 composition):** Agent provisioning now requires a retained scoped operation
   key and registered destination, with transactional consumer authorization. It atomically prepares encrypted delivery
