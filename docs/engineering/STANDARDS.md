@@ -31,14 +31,16 @@ This adoption does not certify all existing code against the baseline. Its compa
 
 ### AccessControl run layout
 
-- **Rule:** In this repository, use `.runs/<YYYY-MM-DD>-<slug>/worktree` for a TASK-owned linked worktree and retain
-  that run's coordination, notes, and gate receipts beneath the same run directory. Reusable handoffs remain under
-  `.runs/handoffs/<task>/`; archived evidence remains under `.runs/archive/`.
+- **Rule:** Use purpose-named `.runs/` subdirectories as specified by the
+  [project profile](../../planning/agents/project-profile.md#tests-and-delivery), including singular
+  `.runs/worktree/<task-slug>/` for linked worktrees. Do not group unrelated artifact types beneath dated top-level
+  run folders. Retain existing evidence; relocation or cleanup requires proved ownership and authorization.
 - **Scope:** AccessControl TASK worktrees and their evidence only.
-- **Rationale:** This is the repository's established isolated-worktree layout and keeps the worktree with the exact
-  run evidence that explains its ownership and verification.
-- **Approval/reference:** Existing AccessControl `AGENTS.md` run-and-worktree contract, preserved during the
-  2026-09-15 Fight guidance adoption in PR #55.
+- **Rationale:** Clear subdirectories distinguish checkouts, notes, logs, handoffs and reviews while TASK names
+  preserve ownership across those locations.
+- **Approval/reference:** John explicitly corrected TASK-00046's location to `.runs/worktree/*` on 2026-09-27 and
+  requested clear `.runs` subdirectories for future work. This supersedes the dated run layout preserved in PR #55;
+  the shared Delivery standard's plural `.runs/worktrees/` spelling does not apply in this repository.
 
 ## Targeted standards refresh — 2026-09-16
 

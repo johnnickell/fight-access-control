@@ -24,6 +24,11 @@ behavior shared by Fight applications. The repository-local behavioral and secur
   security user, or AI persona.
 - **Agent credential**: one active HMAC authority belonging to an Agent. It has a public credential ID and a
   consumer-encrypted shared secret; the raw secret exists only when issued or during authentication verification.
+- **Agent credential operation**: a caller-scoped, versioned request binding retaining original issuance metadata
+  and a separately encrypted prepared delivery copy. Retrying an authorized retained key resolves that outcome;
+  retiring its material never makes the key reusable. Current unreleased implementation supports provisioning only.
+- **Agent issuance**: original Agent/credential/revision, global delivery ID and registered destination binding/write
+  order. Confirmed issuance does not establish credential delivery, enrollment activation or permission to launch.
 - **Agent credential revision**: the monotonically advancing version of an Agent's single credential authority.
   Rotation replaces the active credential at a new revision; revocation is terminal and removes authentication
   authority.
@@ -117,7 +122,7 @@ Credential-delivery providers receive only one short-lived sensitive invocation 
 typed outcome. Consumer schedulers use the package's secret-free due-work/status queries and direct delivery commands;
 they do not copy claim, retry, terminalization, or stale-generation policy.
 
-## Accepted replacement direction — not current runtime behavior
+## Recoverable Agent operations — partial unreleased implementation
 
 [EPIC-00009](planning/epics/00009-EPIC.md) records the separately planned breaking replacement for recoverable Agent
 provisioning and rotation. John ratified D1–D4 and confirmed the complete destination and boundaries on 2026-09-27.
@@ -131,27 +136,40 @@ maintenance and delivery/lifecycle conformance. TASK-00048/00049 now have concre
 wait on unfinished dependencies rather than missing information. TICKET-00014 now has approved
 [TASK-00055](planning/tasks/00055-TASK.md) through [TASK-00059](planning/tasks/00059-TASK.md): existing-Agent
 compatibility, contract cohorts, canonical upgrades, restoration safety and migration/evidence guidance. All three
-TICKET decompositions are complete; TASK-00046 remains first ready and the others wait on dependencies. Planning
-does not qualify a consumer or authorize implementation, migration, release or adoption.
+TICKET decompositions are complete; TASK-00046 is independently accepted and done for implementation/local
+verification, not merge or release. TASK-00047/00050 have no remaining acceptance blocker; other slices still wait
+on dependencies. Each downstream execution needs its own authorization. John separately authorized TASK-00046
+execution and PR landing. Planning does not qualify a consumer or authorize migration, release or adoption.
 The replacement requires caller-scoped operation correlation, protected delivery and consumer authorization
 participating in the package-owned transaction under shared authority fences. Consumers still own policy, adapters,
-keys and the sink; unsupported integrations fail closed. Existing raw-return APIs remain the current implementation.
+keys and the sink; unsupported integrations fail closed.
+
+TASK-00046 implements provision and same-key service resolution, not the entire replacement. The old provisioning
+signature and raw result are removed; its new safe result distinguishes confirmed issuance, publication warning and
+indeterminate commit. Domain operation storage retains request version, safe issuance and separate protected material;
+Application coordinates current authorization, reservation and atomic writes. See the
+[public provisioning contract](docs/agent-provisioning-operations.md) for concrete defaults and adapter obligations.
+New Agents persist a recoverable-operation marker and reject legacy aggregate rotate/revoke paths, including after
+Permission changes. Existing legacy Agents and their lifecycle services retain current behavior. This deliberate
+fail-closed intermediate state is unreleased and not deployable until downstream lifecycle/delivery/cohort work lands.
 
 For those two replacement operations only, confirmed issuance commits return safe operation metadata with a typed,
 sanitized publication warning if post-commit publication fails. Pre-commit failure and indeterminate commit are
-distinct outcomes. Same-key resolution and authorized scheduler discovery survive even both publishers failing;
+distinct outcomes. Same-key resolution survives both publishers failing; authorized scheduler discovery remains a
+required downstream outcome, not implemented by TASK-00046. The complete replacement requires that
 retry does not repeat issuance or its audit fact. Committed issuance is neither confirmed credential delivery,
 enrollment activation nor permission to launch: each requires its own confirmed outcome and current authorization.
 This exception does not change revocation, AuthenticationService or other CommandHandlers. Failure/restart behavior
-tests and consumer conformance are required before acceptance of the relevant implementation/integration; this
-planning decision is not proof of delivery or runtime readiness.
+tests and consumer conformance are required before acceptance of the relevant implementation/integration. Package
+provisioning tests are not proof of delivery, real database concurrency, consumer qualification or runtime readiness.
 
 Credential-operation limits have documented finite defaults and optional validated consumer overrides; routine
 operation/recovery needs neither manual configuration nor an extra human approval step. Current authorization still
 applies. Capacity exhaustion rejects or defers new work with a clear retryable outcome while preserving safe status
 lookup and recovery of existing operations. Cleanup retains the evidence needed to prevent duplicate issuance and
-stale delivery. Concrete values and implementation choices belong in requirement/design work before implementation
-acceptance, not a wider quota or approval system.
+stale delivery. Provisioning defaults are 512 raw name bytes, 100 pending operations per scope and 10000 globally,
+with validated bounded overrides; existing resolution precedes new-work admission. Downstream worker/retention values
+remain with their owning TASKs. This is not a wider quota or approval system.
 
 ## Planning and Completion
 

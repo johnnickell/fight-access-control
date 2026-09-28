@@ -71,6 +71,15 @@ purpose, User ID, and delivery ID. Pending work, due retries, and expired leases
 A crash after provider acceptance and before outcome commit can repeat the provider call with the same identity, so
 this contract is at-least-once and does not claim exactly-once delivery.
 
+### Agent provisioning operations (unreleased)
+
+The unreleased provisioning replacement requires a retained scoped operation key, registered destination, and
+same-transaction authorization participation. It prepares encrypted delivery and returns only safe issuance metadata;
+retry resolves the same outcome after response loss. See the
+[provisioning contract](docs/agent-provisioning-operations.md) for composition, finite defaults, failure semantics,
+persistence requirements and executable evidence. This intermediate work is **not deployable** until downstream
+lifecycle, delivery and compatibility TASKs are complete. Existing release contracts are unchanged.
+
 ### Current principal composition
 
 Consumers implement `AuthenticationContextProvider` to expose only the authenticated User ID, refresh-session ID,
@@ -109,9 +118,10 @@ For a clean, dated release candidate, `./bin/release certify <version>` records 
 OpenAPI consumer-composition, planning, and package-quality evidence under ignored `.runs/`. It is
 verification-only and does not create a commit, merge, tag, push, or publication.
 
-Coordinate-build scratch work belongs under gitignored `.runs/<YYYY-MM-DD>-<slug>/`. Never stage it. When an
-approved task needs isolation, create its disposable linked worktree under that run directory at `worktree/`; run
-commands from that checkout and remove it only with separate cleanup authorization. See
+Keep scratch in purpose-named, gitignored `.runs/` subdirectories following the
+[project profile](planning/agents/project-profile.md#tests-and-delivery). Linked worktrees use
+`.runs/worktree/<task-slug>/`; notes, logs, handoffs and reviews remain separate. Never stage scratch. Run commands
+from the assigned checkout and remove resources only with separate cleanup authorization. See
 [CONTRIBUTING.md](CONTRIBUTING.md) for Git Flow, isolation, and review expectations.
 
 ## Security

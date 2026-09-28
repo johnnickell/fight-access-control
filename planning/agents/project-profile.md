@@ -29,13 +29,14 @@ Application package boundary.
   a success event is dispatched only after that commit. On failure it dispatches CommandFailedEvent with the original
   command and message, then rethrows the same throwable.
 - Approved replacement exception: [EPIC-00009 D3](../epics/00009-EPIC.md#d3--post-commit-result-behavior), ratified by
-  John on 2026-09-27, applies only to future recoverable Agent provision and rotation. After a confirmed commit,
+  John on 2026-09-27, applies only to replacement recoverable Agent provision and rotation. After a confirmed commit,
   publication failure returns committed metadata with a typed, sanitized warning, not a publication-failure throw.
   Pre-commit failure and indeterminate commit remain distinct; same-key resolution and authorized scheduler discovery
   survive even both publishers failing. This prevents a notification fault disguising committed issuance. Issuance
   confirms neither delivery, enrollment activation nor launch permission; each needs its own confirmed outcome and
-  current authorization. Revocation, AuthenticationService, other handlers and current raw-return APIs are unchanged.
-  This is accepted planning guidance, not implementation or release authority.
+  current authorization. Revocation, AuthenticationService, other handlers and the remaining legacy rotation API
+  retain their publication behavior. TASK-00046 implements the provision exception as unreleased work; rotation and
+  scheduler proof remain downstream. This guidance grants no independent implementation or release authority.
 - For that credential-operation replacement, follow ratified [EPIC-00009 D4](../epics/00009-EPIC.md#d4--bounded-operation-and-integration-policy):
   documented finite defaults, optional validated overrides, and no manual-configuration or additional human-approval
   requirement for routine operation/recovery. Capacity exhaustion must give new work a clear retryable rejection or
@@ -62,7 +63,10 @@ Application package boundary.
 - Every production statement requires executable coverage. The isolated fight-access-control PHP container is the
   package runtime; ./bin/planning-check and ./bin/build are mandatory pre-submit gates, and the build enforces
   PHPCS, PHPStan, architecture, Rector, PHPUnit, and exact statement coverage.
-- Use the ignored `.runs/<YYYY-MM-DD>-<slug>/worktree` linked-worktree layout from develop; retain it through
-  review. Store run-local coordination, notes, and gate receipts below that same run directory; store reusable
-  handoffs under `.runs/handoffs/<task>/`. Branch feature work from develop and never commit directly to develop or
-  main. Release certification, tags, publication, and cleanup remain separately authorized.
+- Keep ignored run artifacts in purpose-named subdirectories: `.runs/worktree/<task-slug>/` for linked worktrees,
+  `.runs/notes/<task>/` for coordination, `.runs/logs/<task>/` for gate logs and receipts, and
+  `.runs/handoffs/<task>/` for reusable handoffs. Canonical reviews remain `.runs/reviews/<TASK-ID>/review.md`.
+  Do not create mixed-purpose dated folders directly under `.runs/`. See the approved
+  [run-layout deviation](../../docs/engineering/STANDARDS.md#accesscontrol-run-layout).
+  Retain worktrees and evidence through review. Branch feature work from develop and never commit directly to
+  develop or main. Release certification, tags, publication, and cleanup remain separately authorized.

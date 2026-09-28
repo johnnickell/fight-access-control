@@ -32,7 +32,8 @@ class Agent
         private readonly array $permissionIds,
         private readonly int $permissionAssignmentRevision,
         private readonly DateTimeImmutable $createdAt,
-        private readonly DateTimeImmutable $updatedAt
+        private readonly DateTimeImmutable $updatedAt,
+        private readonly bool $recoverableCredentialOperation = false
     ) {
     }
 
@@ -44,7 +45,8 @@ class Agent
         AgentName $name,
         AgentCredentialId $credentialId,
         string $encryptedHmacSharedSecretEnvelope,
-        DateTimeImmutable $provisionedAt
+        DateTimeImmutable $provisionedAt,
+        bool $recoverableCredentialOperation = false
     ): self {
         return new self(
             $id,
@@ -56,7 +58,8 @@ class Agent
             [],
             1,
             $provisionedAt,
-            $provisionedAt
+            $provisionedAt,
+            $recoverableCredentialOperation
         );
     }
 
@@ -156,7 +159,8 @@ class Agent
             [...$this->permissionIds, $permissionId],
             $this->permissionAssignmentRevision + 1,
             $this->createdAt,
-            $grantedAt
+            $grantedAt,
+            $this->recoverableCredentialOperation
         );
     }
 
@@ -182,7 +186,8 @@ class Agent
             )),
             $this->permissionAssignmentRevision + 1,
             $this->createdAt,
-            $revokedAt
+            $revokedAt,
+            $this->recoverableCredentialOperation
         );
     }
 
@@ -229,8 +234,17 @@ class Agent
             $replacementIds,
             $this->permissionAssignmentRevision + 1,
             $this->createdAt,
-            $replacedAt
+            $replacedAt,
+            $this->recoverableCredentialOperation
         );
+    }
+
+    /**
+     * Returns whether lifecycle writes require atomic recoverable-operation cancellation
+     */
+    public function hasRecoverableCredentialOperation(): bool
+    {
+        return $this->recoverableCredentialOperation;
     }
 
     /**
@@ -258,6 +272,7 @@ class Agent
         string $encryptedHmacSharedSecretEnvelope,
         DateTimeImmutable $rotatedAt
     ): self {
+        $this->assertLegacyCredentialLifecycle();
         if ($this->state !== AgentState::ACTIVE || !$this->credentialId->equals($expectedCredentialId)) {
             throw new AgentCredentialException('The expected Agent credential is no longer active.');
         }
@@ -281,6 +296,7 @@ class Agent
      */
     public function revoke(DateTimeImmutable $revokedAt): self
     {
+        $this->assertLegacyCredentialLifecycle();
         if ($this->state !== AgentState::ACTIVE) {
             throw new AgentCredentialException('The Agent credential is no longer active.');
         }
@@ -297,5 +313,15 @@ class Agent
             $this->createdAt,
             $revokedAt
         );
+    }
+
+    /**
+     * Rejects unfenced legacy lifecycle mutations of recoverably issued credentials
+     */
+    private function assertLegacyCredentialLifecycle(): void
+    {
+        if ($this->recoverableCredentialOperation) {
+            throw new AgentCredentialException('Recoverable credentials require an operation-aware lifecycle path.');
+        }
     }
 }

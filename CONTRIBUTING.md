@@ -17,9 +17,10 @@ Use Git Flow:
 - `feature/<name>` branches from `develop` and returns through review.
 - Never commit feature work directly to `develop` or `main`.
 
-Keep each effort isolated in its assigned branch and worktree. Coordinate-build notes and spoke reports belong
-under `.runs/<YYYY-MM-DD>-<slug>/`; `.runs/` is scratch space, is gitignored, and must never be staged. Preserve
-unrelated changes and do not copy consumer implementations into this library.
+Keep each effort isolated in its assigned branch and worktree. Use purpose-named `.runs/` subdirectories from the
+[project profile](planning/agents/project-profile.md#tests-and-delivery), including `.runs/worktree/<task-slug>/`
+for checkouts and separate notes, logs, handoffs and reviews. `.runs/` is gitignored and must never be staged.
+Preserve unrelated changes and do not copy consumer implementations into this library.
 
 ## Quality and review
 

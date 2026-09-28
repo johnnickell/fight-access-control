@@ -37,6 +37,15 @@ TASK planning and implementation remain separate operations.
 The historical decision below describes the existing contract until the separately authorized replacement is
 implemented and released. John subsequently selected `v0.5.0` as the target release; release authorization remains separate.
 
+## Unreleased provisioning implementation — TASK-00046
+
+TASK-00046 implements the provision/service-retry portion of the amendment. Its
+[public contract](../../docs/agent-provisioning-operations.md) replaces raw-return provision with scoped correlation,
+transactional authorization, prepared protected delivery and safe confirmed/indeterminate results. Existing legacy
+rotation/revocation retain their behavior; newly recoverable Agents reject those unfenced paths until downstream
+lifecycle work exists. Full delivery, rotation replacement and consumer qualification remain outstanding. This
+intermediate implementation is not a supported deployable composition or release approval.
+
 ## Decision
 
 An Agent has an explicit credential lifecycle: `PROVISIONED` to `ACTIVE` through provision, `ACTIVE` to `ACTIVE`

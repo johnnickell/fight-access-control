@@ -51,8 +51,9 @@ interface AgentRepository
      * Replaces the current Agent authority atomically with its successor
      *
      * Returns false when the expected predecessor has already lost authority, the replacement changes identity, or
-     * its direct Permission membership or Permission-assignment revision differs. Direct Permission authority changes
-     * must use replacePermissionAssignments().
+     * its direct Permission membership, Permission-assignment revision or recoverable-operation marker differs.
+     * Never downgrade the persisted recoverable-operation marker or hydrate new issuance as legacy state.
+     * Direct Permission authority changes must use replacePermissionAssignments().
      *
      * @throws Exception When an error occurs
      */
@@ -76,7 +77,8 @@ interface AgentRepository
      *
      * Implementations compare all Agent state, reject changes outside Permission assignments, require direct
      * Permission membership to change, and require the assignment revision to advance by exactly one. Every
-     * replacement PermissionId must remain an authoritative ADMIN_SAFE Permission through the enclosing Unit of
+     * replacement must preserve the recoverable-operation marker. Every replacement PermissionId must remain an
+     * authoritative ADMIN_SAFE Permission through the enclosing Unit of
      * Work under the shared permission-reference and tier fence. Managed tier promotion must use the same fence.
      *
      * @throws Exception When an error occurs
@@ -84,7 +86,7 @@ interface AgentRepository
     public function replacePermissionAssignments(Agent $expected, Agent $replacement): bool;
 
     /**
-     * Adds one newly provisioned Agent
+     * Adds one newly provisioned Agent including its recoverable-operation marker
      *
      * @throws Exception When an error occurs
      */
