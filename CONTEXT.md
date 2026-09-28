@@ -144,9 +144,10 @@ TICKET decompositions are complete; TASK-00046 is independently accepted and don
 verification, not release; its PR #79 is now merged. John authorized TASK-00047 in the main checkout; its safe
 status path is independently accepted and done for implementation/local verification, not merge or release.
 John subsequently requested landing; PR #80 is merged into the current develop base. John authorized TASK-00050
-in the main checkout on `feature/task-00050-retirement`. Independent review requested R1 failure-trace redaction;
-that correction is locally verified and remains in progress pending independent re-review. Other slices still wait
-on dependencies. Each downstream execution needs authorization. John separately authorized TASK-00046
+in the main checkout on `feature/task-00050-retirement`. Independent re-review accepted its R1 failure-trace
+redaction correction and complete retirement slice; TASK-00050 is done for implementation/local verification.
+John authorized PR publication, not merge or release. TASK-00051 is now dependency-ready; other slices retain their
+remaining dependencies. Each downstream execution needs authorization. John separately authorized TASK-00046
 execution and PR landing. Planning does not qualify a consumer or authorize migration, release or adoption.
 The replacement requires caller-scoped operation correlation, protected delivery and consumer authorization
 participating in the package-owned transaction under shared authority fences. Consumers still own policy, adapters,

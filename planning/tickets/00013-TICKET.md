@@ -201,8 +201,11 @@ TASK-00046's accepted implementation is merged. John authorized TASK-00050 in th
 expected-state race/rollback tests are locally verified. Independent review requested R1 failure/debug redaction;
 the correction annotates replacement arguments and transaction callbacks, with six regression cases and a fresh
 complete gate (713 tests / 6651 assertions, exact 5470/5470 statement coverage).
-It remains in progress pending independent re-review. TASK-00051–00054 still wait on dependencies. All TICKET acceptance
-boxes remain open until their full owning-slice evidence is independently accepted. See the
+Independent re-review accepted clean head `3aad9e6` with R1 resolved and all eight TASK criteria covered; fresh
+focused checks passed (155 tests / 2095 assertions), and the complete gate's 650 tracked inputs matched that head.
+TASK-00050 is done for implementation/local verification; John authorized PR publication, not merge or release.
+TASK-00051 is dependency-ready; TASK-00052–00054 retain their remaining blockers. All TICKET acceptance boxes remain
+open until their full owning-slice evidence is independently accepted. See the
 [retirement contract](../../docs/agent-credential-retirement.md) for the slice's public write obligations and limits.
 Concrete finite values, override validation, public shapes and expected-state details must be documented/tested in
 the owning slices before acceptance; this plan neither silently selects production values nor adds routine approval.
@@ -222,7 +225,7 @@ parent EPIC after regeneration.
 
 | Order | TASK ID | Title | Status |
 | --- | --- | --- | --- |
-| 50 | [TASK-00050](../tasks/00050-TASK.md) | Revoke Agent credentials and fence pending delivery | in-progress |
+| 50 | [TASK-00050](../tasks/00050-TASK.md) | Revoke Agent credentials and fence pending delivery | done |
 | 51 | [TASK-00051](../tasks/00051-TASK.md) | Deliver an Agent credential to its protected destination | ready-for-agent |
 | 52 | [TASK-00052](../tasks/00052-TASK.md) | Discover and recover interrupted Agent deliveries | ready-for-agent |
 | 53 | [TASK-00053](../tasks/00053-TASK.md) | Maintain and retire protected delivery material safely | ready-for-agent |
