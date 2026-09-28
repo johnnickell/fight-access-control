@@ -117,6 +117,42 @@ Credential-delivery providers receive only one short-lived sensitive invocation 
 typed outcome. Consumer schedulers use the package's secret-free due-work/status queries and direct delivery commands;
 they do not copy claim, retry, terminalization, or stale-generation policy.
 
+## Accepted replacement direction — not current runtime behavior
+
+[EPIC-00009](planning/epics/00009-EPIC.md) records the separately planned breaking replacement for recoverable Agent
+provisioning and rotation. John ratified D1–D4 and confirmed the complete destination and boundaries on 2026-09-27.
+The approved TICKET decomposition assigns issuance/resolution to [TICKET-00012](planning/tickets/00012-TICKET.md),
+protected delivery/recovery to [TICKET-00013](planning/tickets/00013-TICKET.md), and migration/compatibility plus
+scenario traceability to [TICKET-00014](planning/tickets/00014-TICKET.md). TICKET-00012 now has approved
+[TASK-00046](planning/tasks/00046-TASK.md) through [TASK-00049](planning/tasks/00049-TASK.md): provision, safe reads,
+rotation and issuance conformance. TICKET-00013 now has approved [TASK-00050](planning/tasks/00050-TASK.md) through
+[TASK-00054](planning/tasks/00054-TASK.md): retirement fences, protected delivery, restart recovery, material
+maintenance and delivery/lifecycle conformance. TASK-00048/00049 now have concrete cross-TICKET prerequisites and
+wait on unfinished dependencies rather than missing information. TICKET-00014 now has approved
+[TASK-00055](planning/tasks/00055-TASK.md) through [TASK-00059](planning/tasks/00059-TASK.md): existing-Agent
+compatibility, contract cohorts, canonical upgrades, restoration safety and migration/evidence guidance. All three
+TICKET decompositions are complete; TASK-00046 remains first ready and the others wait on dependencies. Planning
+does not qualify a consumer or authorize implementation, migration, release or adoption.
+The replacement requires caller-scoped operation correlation, protected delivery and consumer authorization
+participating in the package-owned transaction under shared authority fences. Consumers still own policy, adapters,
+keys and the sink; unsupported integrations fail closed. Existing raw-return APIs remain the current implementation.
+
+For those two replacement operations only, confirmed issuance commits return safe operation metadata with a typed,
+sanitized publication warning if post-commit publication fails. Pre-commit failure and indeterminate commit are
+distinct outcomes. Same-key resolution and authorized scheduler discovery survive even both publishers failing;
+retry does not repeat issuance or its audit fact. Committed issuance is neither confirmed credential delivery,
+enrollment activation nor permission to launch: each requires its own confirmed outcome and current authorization.
+This exception does not change revocation, AuthenticationService or other CommandHandlers. Failure/restart behavior
+tests and consumer conformance are required before acceptance of the relevant implementation/integration; this
+planning decision is not proof of delivery or runtime readiness.
+
+Credential-operation limits have documented finite defaults and optional validated consumer overrides; routine
+operation/recovery needs neither manual configuration nor an extra human approval step. Current authorization still
+applies. Capacity exhaustion rejects or defers new work with a clear retryable outcome while preserving safe status
+lookup and recovery of existing operations. Cleanup retains the evidence needed to prevent duplicate issuance and
+stale delivery. Concrete values and implementation choices belong in requirement/design work before implementation
+acceptance, not a wider quota or approval system.
+
 ## Planning and Completion
 
 Local TASK files under `planning/tasks/` are canonical for implementation scope, status, dependencies,

@@ -6,6 +6,40 @@
 **Map:** [Agent HMAC authentication and direct authority](../agent-hmac-authentication-map.md)
 **Depends on:** [Define framework-neutral HMAC Agent authentication](WF-001-hmac-agent-authentication-boundary.md)
 
+## Planned replacement amendment — 2026-09-27
+
+John ratified [EPIC-00009 decision D1](../../epics/00009-EPIC.md#d1--breaking-replacement-and-adr-0004wf-002-amendment)
+and its [ADR 0004 amendment](../../adr/0004-agent-hmac-credential-lifecycle.md): separately replace raw-return
+provision/rotation with operation-correlated protected delivery and safe results, without a legacy raw-return escape
+path. The pre-1.0 breaking minor classification is accepted. John subsequently selected `v0.5.0` as the target;
+release authorization remains separate.
+
+For that future replacement, this explicitly amends the exclusion of operational recovery and the issuance-only
+raw-return/materialization boundary. One active credential, immediate rotation, terminal revocation and the
+nonce/current-authority fence remain. John also ratified
+[EPIC-00009 decision D2](../../epics/00009-EPIC.md#d2--transactional-authorization-and-protected-sink-integration)
+on 2026-09-27: mandatory same-connection transactional authorization fences and protected-sink ordering,
+deduplication and receipt verification; unsupported integrations fail closed. Already-admitted calls may stage inert
+bytes, not authorize stale activation or use. John ratified
+[EPIC-00009 decision D3](../../epics/00009-EPIC.md#d3--post-commit-result-behavior) on 2026-09-27: only replacement
+recoverable provision and rotation return confirmed committed metadata with a typed, sanitized publication warning
+when post-commit publication fails. This explicitly amends the failure/rethrow rule below for that boundary alone;
+pre-commit failure and indeterminate commit remain distinct, with same-key and authorized scheduler recovery even
+if both publishers fail. Issuance is not delivery, enrollment activation or launch permission; each needs its own
+confirmed outcome and current authorization. D3's failure/restart tests gate implementation acceptance. Revocation
+and other operations are unchanged.
+
+John ratified [EPIC-00009 decision D4](../../epics/00009-EPIC.md#d4--bounded-operation-and-integration-policy) with an
+amendment on 2026-09-27: finite documented defaults and optional validated overrides, not mandatory manual
+configuration or additional human approval for routine operation/recovery. Capacity limits give new work clear
+retryable rejection/deferral while preserving authorized status and existing-operation recovery. Cleanup retains
+anti-duplication and stale-delivery evidence; concrete values and implementation choices move to requirement/design
+work before implementation acceptance. John confirmed the complete EPIC destination and boundaries on 2026-09-27;
+the separately approved requirement decomposition is now TICKET-00012–00014 under that EPIC. TASK planning remains
+separate.
+The historical resolution below and this closed record are preserved; no completed work is reopened and no runtime
+change, decomposition or implementation is authorized by these planning decisions.
+
 ## Question
 
 How does the Agent aggregate own one active HMAC credential and its immediate revocation or replacement while raw

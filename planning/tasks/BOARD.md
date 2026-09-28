@@ -5,7 +5,7 @@ dependencies, acceptance, and verification.
 
 ## What's Next?
 
-Needs information: [TASK-00035](00035-TASK.md) — Authorize Agent-protected MCP Tools. This Task is not executable until the missing information is resolved.
+First ready Task: [TASK-00046](00046-TASK.md) — Provision an Agent through a recoverable operation.
 
 ## In Progress
 
@@ -13,11 +13,27 @@ No Tasks are currently in this state.
 
 ## Ready Frontier
 
-No Tasks are currently in this state.
+| Order | TASK ID | Title | Parent TICKET | Status | Blocked by | PR |
+| --- | --- | --- | --- | --- | --- | --- |
+| 46 | [TASK-00046](00046-TASK.md) | Provision an Agent through a recoverable operation | [TICKET-00012](../tickets/00012-TICKET.md) — Issue and resolve Agent credentials recoverably | ready-for-agent | — | — |
 
 ## Waiting
 
-No Tasks are currently in this state.
+| Order | TASK ID | Title | Parent TICKET | Status | Blocked by | PR |
+| --- | --- | --- | --- | --- | --- | --- |
+| 47 | [TASK-00047](00047-TASK.md) | Read Agent operation outcomes safely | [TICKET-00012](../tickets/00012-TICKET.md) — Issue and resolve Agent credentials recoverably | ready-for-agent | [TASK-00046](00046-TASK.md) | — |
+| 48 | [TASK-00048](00048-TASK.md) | Rotate an Agent through a recoverable operation | [TICKET-00012](../tickets/00012-TICKET.md) — Issue and resolve Agent credentials recoverably | ready-for-agent | [TASK-00046](00046-TASK.md), [TASK-00050](00050-TASK.md), [TASK-00051](00051-TASK.md) | — |
+| 49 | [TASK-00049](00049-TASK.md) | Publish and exercise issuance-recovery conformance | [TICKET-00012](../tickets/00012-TICKET.md) — Issue and resolve Agent credentials recoverably | ready-for-agent | [TASK-00046](00046-TASK.md), [TASK-00047](00047-TASK.md), [TASK-00048](00048-TASK.md), [TASK-00052](00052-TASK.md), [TASK-00053](00053-TASK.md) | — |
+| 50 | [TASK-00050](00050-TASK.md) | Revoke Agent credentials and fence pending delivery | [TICKET-00013](../tickets/00013-TICKET.md) — Deliver and recover Agent credentials through protected sinks | ready-for-agent | [TASK-00046](00046-TASK.md) | — |
+| 51 | [TASK-00051](00051-TASK.md) | Deliver an Agent credential to its protected destination | [TICKET-00013](../tickets/00013-TICKET.md) — Deliver and recover Agent credentials through protected sinks | ready-for-agent | [TASK-00050](00050-TASK.md) | — |
+| 52 | [TASK-00052](00052-TASK.md) | Discover and recover interrupted Agent deliveries | [TICKET-00013](../tickets/00013-TICKET.md) — Deliver and recover Agent credentials through protected sinks | ready-for-agent | [TASK-00051](00051-TASK.md) | — |
+| 53 | [TASK-00053](00053-TASK.md) | Maintain and retire protected delivery material safely | [TICKET-00013](../tickets/00013-TICKET.md) — Deliver and recover Agent credentials through protected sinks | ready-for-agent | [TASK-00051](00051-TASK.md) | — |
+| 54 | [TASK-00054](00054-TASK.md) | Qualify protected-delivery and lifecycle conformance | [TICKET-00013](../tickets/00013-TICKET.md) — Deliver and recover Agent credentials through protected sinks | ready-for-agent | [TASK-00052](00052-TASK.md), [TASK-00053](00053-TASK.md), [TASK-00047](00047-TASK.md), [TASK-00048](00048-TASK.md) | — |
+| 55 | [TASK-00055](00055-TASK.md) | Preserve existing Agent authority through upgrade | [TICKET-00014](../tickets/00014-TICKET.md) — Preserve credential authority across migration and upgrades | ready-for-agent | [TASK-00047](00047-TASK.md), [TASK-00048](00048-TASK.md) | — |
+| 56 | [TASK-00056](00056-TASK.md) | Reject incompatible credential-operation cohorts | [TICKET-00014](../tickets/00014-TICKET.md) — Preserve credential authority across migration and upgrades | ready-for-agent | [TASK-00048](00048-TASK.md), [TASK-00052](00052-TASK.md), [TASK-00053](00053-TASK.md) | — |
+| 57 | [TASK-00057](00057-TASK.md) | Preserve operation-key meaning across canonicalization upgrades | [TICKET-00014](../tickets/00014-TICKET.md) — Preserve credential authority across migration and upgrades | ready-for-agent | [TASK-00056](00056-TASK.md), [TASK-00047](00047-TASK.md) | — |
+| 58 | [TASK-00058](00058-TASK.md) | Fail closed on unreconciled credential-state restoration | [TICKET-00014](../tickets/00014-TICKET.md) — Preserve credential authority across migration and upgrades | ready-for-agent | [TASK-00056](00056-TASK.md), [TASK-00057](00057-TASK.md) | — |
+| 59 | [TASK-00059](00059-TASK.md) | Complete migration guidance and evidence traceability | [TICKET-00014](../tickets/00014-TICKET.md) — Preserve credential authority across migration and upgrades | ready-for-agent | [TASK-00055](00055-TASK.md), [TASK-00056](00056-TASK.md), [TASK-00057](00057-TASK.md), [TASK-00058](00058-TASK.md), [TASK-00049](00049-TASK.md), [TASK-00054](00054-TASK.md) | — |
 
 ## Needs Info
 
