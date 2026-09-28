@@ -142,7 +142,8 @@ wait on unfinished dependencies rather than missing information. TICKET-00014 no
 compatibility, contract cohorts, canonical upgrades, restoration safety and migration/evidence guidance. All three
 TICKET decompositions are complete; TASK-00046 is independently accepted and done for implementation/local
 verification, not release; its PR #79 is now merged. John authorized TASK-00047 in the main checkout; its safe
-status path is implemented and awaiting independent review. TASK-00050 has no remaining acceptance blocker;
+status path is independently accepted and done for implementation/local verification, not merge or release.
+John subsequently requested its PR publication through landing. TASK-00050 has no remaining acceptance blocker;
 other slices still wait on dependencies. Each downstream execution needs its own authorization. John separately authorized TASK-00046
 execution and PR landing. Planning does not qualify a consumer or authorize migration, release or adoption.
 The replacement requires caller-scoped operation correlation, protected delivery and consumer authorization
