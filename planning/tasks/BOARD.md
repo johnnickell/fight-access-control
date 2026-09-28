@@ -5,17 +5,17 @@ dependencies, acceptance, and verification.
 
 ## What's Next?
 
-First ready Task: [TASK-00046](00046-TASK.md) — Provision an Agent through a recoverable operation.
+Active Task: [TASK-00046](00046-TASK.md) — Provision an Agent through a recoverable operation.
 
 ## In Progress
 
-No Tasks are currently in this state.
+| Order | TASK ID | Title | Parent TICKET | Status | Blocked by | PR |
+| --- | --- | --- | --- | --- | --- | --- |
+| 46 | [TASK-00046](00046-TASK.md) | Provision an Agent through a recoverable operation | [TICKET-00012](../tickets/00012-TICKET.md) — Issue and resolve Agent credentials recoverably | in-progress | — | — |
 
 ## Ready Frontier
 
-| Order | TASK ID | Title | Parent TICKET | Status | Blocked by | PR |
-| --- | --- | --- | --- | --- | --- | --- |
-| 46 | [TASK-00046](00046-TASK.md) | Provision an Agent through a recoverable operation | [TICKET-00012](../tickets/00012-TICKET.md) — Issue and resolve Agent credentials recoverably | ready-for-agent | — | — |
+No Tasks are currently in this state.
 
 ## Waiting
 

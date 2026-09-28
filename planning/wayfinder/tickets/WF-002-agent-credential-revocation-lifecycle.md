@@ -40,6 +40,13 @@ separate.
 The historical resolution below and this closed record are preserved; no completed work is reopened and no runtime
 change, decomposition or implementation is authorized by these planning decisions.
 
+## Unreleased implementation checkpoint
+
+[TASK-00046](../../tasks/00046-TASK.md) implements the amended provisioning and same-key resolution path with safe
+metadata, not raw return. See the [provisioning contract](../../../docs/agent-provisioning-operations.md). The closed
+resolution below remains historical; downstream lifecycle/delivery, replacement rotation and real consumer
+qualification are still required before adoption. No map decision is reopened by this implementation.
+
 ## Question
 
 How does the Agent aggregate own one active HMAC credential and its immediate revocation or replacement while raw

@@ -75,5 +75,5 @@ TASK-00138 closure remain separately authorized operations.
 | [EPIC-00006](epics/00006-EPIC.md) | v0.3.0 | done | 1 | 3 |
 | [EPIC-00007](epics/00007-EPIC.md) | pre-1.0 | done | 1 | 1 |
 | [EPIC-00008](epics/00008-EPIC.md) | v0.4.0 | done | 3 | 5 |
-| [EPIC-00009](epics/00009-EPIC.md) | v0.5.0 | ready-for-agent | 3 | 14 |
+| [EPIC-00009](epics/00009-EPIC.md) | v0.5.0 | in-progress | 3 | 14 |
 <!-- generated:epic-status:end -->

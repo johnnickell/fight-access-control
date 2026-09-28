@@ -108,6 +108,7 @@ final class InMemoryAgentRepository implements AgentRepository
                 || !$replacement->getId()->equals($expected->getId())
                 || $replacement->getPermissionAssignmentRevision() !== $expected->getPermissionAssignmentRevision()
                 || !$this->permissionMembershipIsSame($expected, $replacement)
+                || $replacement->hasRecoverableCredentialOperation() !== $expected->hasRecoverableCredentialOperation()
             ) {
                 continue;
             }
@@ -197,6 +198,7 @@ final class InMemoryAgentRepository implements AgentRepository
         return $replacement->getId()->equals($expected->getId())
             && $replacement->getName()->equals($expected->getName())
             && $replacement->getState() === $expected->getState()
+            && $replacement->hasRecoverableCredentialOperation() === $expected->hasRecoverableCredentialOperation()
             && $replacement->getCredentialId()->equals($expected->getCredentialId())
             && $replacement->getCredentialRevision() === $expected->getCredentialRevision()
             && $credentialEnvelopeIsSame

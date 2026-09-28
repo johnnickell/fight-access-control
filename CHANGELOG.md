@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- **Breaking (pre-1.0, incomplete v0.5.0 composition):** Agent provisioning now requires a retained scoped operation
+  key and registered destination, with transactional consumer authorization. It atomically prepares encrypted delivery
+  and returns safe issuance metadata, a distinct indeterminate outcome, or a typed publication warning after confirmed
+  commit. Same-key retry does not issue again. The old raw-return provision signature is removed. See the
+  [provisioning contract](docs/agent-provisioning-operations.md). Newly recoverable Agents reject legacy lifecycle
+  mutations pending the separately planned cancellation/rotation implementation; do not deploy this partial protocol.
+
 ## [0.4.0] - 2026-09-27
 
 ### Changed
