@@ -28,6 +28,20 @@ Application package boundary.
 - A CommandHandler owns one atomic Unit of Work: aggregate mutation and repository persistence precede one commit;
   a success event is dispatched only after that commit. On failure it dispatches CommandFailedEvent with the original
   command and message, then rethrows the same throwable.
+- Approved replacement exception: [EPIC-00009 D3](../epics/00009-EPIC.md#d3--post-commit-result-behavior), ratified by
+  John on 2026-09-27, applies only to future recoverable Agent provision and rotation. After a confirmed commit,
+  publication failure returns committed metadata with a typed, sanitized warning, not a publication-failure throw.
+  Pre-commit failure and indeterminate commit remain distinct; same-key resolution and authorized scheduler discovery
+  survive even both publishers failing. This prevents a notification fault disguising committed issuance. Issuance
+  confirms neither delivery, enrollment activation nor launch permission; each needs its own confirmed outcome and
+  current authorization. Revocation, AuthenticationService, other handlers and current raw-return APIs are unchanged.
+  This is accepted planning guidance, not implementation or release authority.
+- For that credential-operation replacement, follow ratified [EPIC-00009 D4](../epics/00009-EPIC.md#d4--bounded-operation-and-integration-policy):
+  documented finite defaults, optional validated overrides, and no manual-configuration or additional human-approval
+  requirement for routine operation/recovery. Capacity exhaustion must give new work a clear retryable rejection or
+  deferral while preserving authorized status and existing-operation recovery. Cleanup must preserve duplicate-issuance
+  and stale-delivery defenses. Specify concrete values and implementation choices in requirement/design work and prove
+  default/override, capacity/recovery and cleanup/replay behavior before implementation acceptance.
 - QueryHandlers read through Domain repositories only: no aggregate mutation, commit, or domain-event dispatch.
 - AuthenticationService follows the same atomic, post-commit ordering, uses Fight Common password and token ports,
   returns non-serializable token results, and emits RedactedCommandFailed without raw secret input.
@@ -38,7 +52,11 @@ Application package boundary.
 
 - In-memory repositories and service doubles belong in the matching Application test boundary. Production tests use
   CoversClass; tooling tests use CoversNothing. Handler tests prove post-commit event ordering and failure rethrow
-  behavior.
+  behavior outside the scoped EPIC-00009 D3 replacement exception. Acceptance of that replacement requires tests for
+  pre-commit rollback, both uncertain-commit outcomes, post-commit publication failures including both publishers
+  failing, same-key recovery after response loss/restart, and authorized scheduler-only recovery without caller retry.
+  Assert persisted outcomes and typed warning safety, not only call order; issuance cannot imply delivery, activation
+  or launch authority. Real consumer conformance must separately prove current activation/use authorization.
 - Application clocks, credential generators, and ciphers belong under the matching Application aggregate Service
   namespace; their test doubles use the matching test Service namespace.
 - Every production statement requires executable coverage. The isolated fight-access-control PHP container is the

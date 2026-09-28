@@ -6,6 +6,32 @@
 | --- | --- | --- |
 No epics are currently in progress.
 
+## Approved planning and next TASK
+
+[EPIC-00009](epics/00009-EPIC.md) prepares recoverable Agent provisioning and rotation from the accepted-for-planning
+Agent OS proposal. The breaking replacement, ADR 0004/WF-002 amendment, transactional authorization/protected-sink
+participation, scoped post-commit result behavior and amended bounded policy are ratified. Finite defaults and optional
+validated overrides bound credential operations; capacity handling preserves existing-operation recovery. Committed
+issuance does not establish delivery, enrollment activation or launch authority. John confirmed the shared destination
+and boundaries on 2026-09-27, then approved the decomposition into
+[TICKET-00012](tickets/00012-TICKET.md) (issuance/resolution),
+[TICKET-00013](tickets/00013-TICKET.md) (protected delivery/recovery) and
+[TICKET-00014](tickets/00014-TICKET.md) (migration/compatibility and evidence traceability).
+
+TICKET-00012's approved TASK split is now recorded: [TASK-00046](tasks/00046-TASK.md) is the first ready provisioning
+slice; [TASK-00047](tasks/00047-TASK.md) reads status after it. [TASK-00048](tasks/00048-TASK.md) (rotation) and
+[TASK-00049](tasks/00049-TASK.md) (conformance) now have their approved TICKET-00013 dependencies recorded and remain
+waiting, not needs-info. TICKET-00013's [TASK-00050](tasks/00050-TASK.md)–[TASK-00054](tasks/00054-TASK.md) cover
+retirement fences, protected delivery, restart recovery, material maintenance and delivery/lifecycle conformance.
+They begin after TASK-00046 through an acyclic graph; neither conformance TASK blocks its implementation inputs.
+TICKET-00014's [TASK-00055](tasks/00055-TASK.md)–[TASK-00059](tasks/00059-TASK.md) now cover legacy compatibility,
+cohort enforcement, canonical upgrades, restoration safety and final migration/evidence guidance. All three TICKETs
+have approved TASK splits; TASK-00046 remains first ready and TASK-00047–00059 wait on dependencies. Concrete limits
+and compatibility details remain design/proof obligations before implementation acceptance. Planning readiness is
+not execution authorization; intermediate PRs are not a supported partial release or consumer qualification.
+John selected `v0.5.0` as the target release. Implementation, release/publication, consumer upgrade and Agent OS
+TASK-00138 closure remain separately authorized operations.
+
 ## Route to 1.0.0
 
 1. Publish completed framework-neutral capabilities as reviewed pre-`1.0.0` package releases, beginning with
@@ -49,4 +75,5 @@ No epics are currently in progress.
 | [EPIC-00006](epics/00006-EPIC.md) | v0.3.0 | done | 1 | 3 |
 | [EPIC-00007](epics/00007-EPIC.md) | pre-1.0 | done | 1 | 1 |
 | [EPIC-00008](epics/00008-EPIC.md) | v0.4.0 | done | 3 | 5 |
+| [EPIC-00009](epics/00009-EPIC.md) | v0.5.0 | ready-for-agent | 3 | 14 |
 <!-- generated:epic-status:end -->
