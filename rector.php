@@ -11,6 +11,7 @@ return RectorConfig::configure()
         __DIR__.'/src',
         __DIR__.'/tests/Domain',
         __DIR__.'/tests/Application',
+        __DIR__.'/tests/OpenApi',
         __DIR__.'/scripts',
     ])
     ->withPhpSets(php84: true)

@@ -102,6 +102,12 @@ behavior shared by Fight applications. The repository-local behavioral and secur
   class name.
 - **OpenAPI schema contract**: the stable name and validation shape of a published schema component. It is a public
   package API even though consumers choose where and how to reference it.
+- **OpenAPI credential-delivery values**: reusable worker-facing message and safe-result schemas, not endpoints.
+  `CredentialDeliveryStatus` describes the operational PHP View (including required nullable history), while
+  `DueCredentialDeliveries` is an unpaginated array. Invitation and operational statuses share the seven serialized
+  Domain enum values. Generated contract tests run in the default PHPUnit/build pipeline and are reused by release
+  composition qualification. The unreleased invitation enum correction requires a new minor release under ADR 0007;
+  it does not change runtime delivery or authorization. See [composition guidance](docs/openapi-composition.md).
 - **OpenAPI metadata distribution**: the package's non-autoloaded `openapi/` directory, containing schema-anchor
   attributes and a bootstrap file for a consumer-owned OpenAPI generator. It is neither Domain nor Application
   production code and does not define a package-owned document.

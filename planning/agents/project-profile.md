@@ -61,8 +61,9 @@ Application package boundary.
 - Shipped OpenAPI metadata is a public library contract. Its generated-schema integration tests belong in the
   default PHPUnit/build pipeline under the approved
   [OpenAPI testing rule](../../docs/engineering/STANDARDS.md#accesscontrol-openapi-contract-integration-tests),
-  not the release-only tooling category. TASK-00060 owns the initial tests and suite wiring; exact Domain/Application
-  statement coverage remains unchanged.
+  not the release-only tooling category. TASK-00052 established suite wiring and Agent discovery checks;
+  TASK-00060 adds released credential-delivery and shared composition checks. Exact Domain/Application statement
+  coverage remains unchanged.
 - Application clocks, credential generators, and ciphers belong under the matching Application aggregate Service
   namespace; their test doubles use the matching test Service namespace.
 - Every production statement requires executable coverage. The isolated fight-access-control PHP container is the

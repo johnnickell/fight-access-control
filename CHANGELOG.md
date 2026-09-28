@@ -9,6 +9,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Reusable OpenAPI `DeliverPasswordReset`, `FindCredentialDeliveryStatus`, `FindDueCredentialDeliveries`, safe
+  `CredentialDeliveryStatus` and `DueCredentialDelivery` components, plus an unpaginated due-work list and optional
+  typed success envelopes. Generated delivery-contract and composition checks run in default PHPUnit, CI and build;
+  release qualification reuses them. Runtime delivery and consumer authorization are unchanged.
 - Bounded authorized `ListDueAgentDeliveries` queries and `AgentDeliveryRecoveryService` scheduler passes through
   the actual protected delivery path. Optional `AgentCredentialReceiptLookup` reconciles exact durable receipts
   before unnecessary materialization. Restart/uncertainty recovery preserves original issuance and secret identity.
@@ -24,6 +28,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- **Breaking schema correction (unreleased):** `InvitationDeliveryStatus.status` now matches the seven released
+  credential-delivery states, adding `retry_pending`, `delivered`, `permanent_failure`, and `invalidated` while
+  removing obsolete `failed` and `confirmed`. Its existing success-envelope reference is preserved. Enum narrowing
+  requires the next minor `0.x` release under ADR 0007; this does not select a version or replace published v0.4.0.
+  See [composition guidance](docs/openapi-composition.md).
 - **Unreleased v0.5.0 integration change:** repositories must implement read-only `listDueDeliveries()` and delivery
   authorization must implement `authorizeDiscovery()` as the real delegated worker. Live recovered admissions allow
   receipt reconciliation only; another invocation requires fresh confirmed admission. Recorded delivery with a lost

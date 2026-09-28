@@ -44,101 +44,14 @@ run_step() {
     fi
 }
 
-write_consumer_anchor() {
-    local target="$1"
-
-    cat > "${target}" <<'PHP'
-<?php
-
-declare(strict_types=1);
-
-require dirname(__DIR__, 2).'/openapi/bootstrap.php';
-
-use OpenApi\Attributes as OA;
-
-#[OA\OpenApi(info: new OA\Info(version: '0.0.0', title: 'Release certification consumer'))]
-#[OA\Schema(
-    schema: 'Consumer',
-    required: ['id'],
-    properties: [new OA\Property(property: 'id', type: 'string')]
-)]
-final class ReleaseCertificationConsumer
-{
-}
-PHP
-}
-
 verify_openapi_composition() {
-    local evidence_dir="$1"
-    local anchor="${evidence_dir}/consumer.php"
-    local document="${evidence_dir}/openapi.json"
-    local evidence_path="${evidence_dir#"${ROOT_DIR}/"}"
-
-    write_consumer_anchor "${anchor}"
-
+    # Reuse the default-suite contract checks instead of a second, drifting schema assertion set.
     "${DOCKER_BIN}" container run --rm \
         -v "${ROOT_DIR}:/app:delegated" \
         -w /app \
         --user "$("${ID_BIN}" -u):$("${ID_BIN}" -g)" \
         "${PHP_IMAGE}" \
-        php vendor/bin/openapi \
-        --bootstrap "${evidence_path}/consumer.php" \
-        "${evidence_path}/consumer.php" \
-        openapi \
-        -o "${evidence_path}/openapi.json"
-
-    "${DOCKER_BIN}" container run --rm \
-        -v "${ROOT_DIR}:/app:delegated" \
-        -w /app \
-        --user "$("${ID_BIN}" -u):$("${ID_BIN}" -g)" \
-        "${PHP_IMAGE}" \
-        php -r '
-$schemas = json_decode(
-    file_get_contents($argv[1]),
-    true,
-    512,
-    JSON_THROW_ON_ERROR
-)["components"]["schemas"];
-$permission = $schemas["Fight.AccessControl.Permission"];
-$permissionTier = $permission["properties"]["tier"];
-$permissionCollection = $schemas["Fight.AccessControl.PermissionCollection"];
-$permissionSuccess = $schemas["Fight.AccessControl.JSend.Success.Permission"];
-$permissionCollectionSuccess = $schemas["Fight.AccessControl.JSend.Success.PermissionCollection"];
-$validPermission = in_array("tier", $permission["required"], true)
-    && $permissionTier["type"] === "string"
-    && ($permissionTier["nullable"] ?? false) === false
-    && $permissionTier["enum"] === ["ADMIN_SAFE", "SUPER_ADMIN_ONLY"]
-    && in_array("records", $permissionCollection["required"], true)
-    && $permissionCollection["properties"]["records"]["type"] === "array"
-    && $permissionCollection["properties"]["records"]["items"]["\$ref"] === "#/components/schemas/Fight.AccessControl.Permission"
-    && $permissionSuccess["required"] === ["status", "data"]
-    && $permissionSuccess["properties"]["data"]["\$ref"] === "#/components/schemas/Fight.AccessControl.Permission"
-    && $permissionCollectionSuccess["required"] === ["status", "data"]
-    && $permissionCollectionSuccess["properties"]["data"]["\$ref"] === "#/components/schemas/Fight.AccessControl.PermissionCollection";
-if (!$validPermission) {
-    throw new RuntimeException("OpenAPI Permission tier or collection/envelope assertion failed.");
-}
-$paginationOrderings = $schemas["Fight.AccessControl.PaginationRequest"]["properties"]["orderings"];
-$sessionOrderings = $schemas["Fight.AccessControl.ListActiveSessions"]["properties"]["orderings"];
-$emptySuccessData = $schemas["Fight.AccessControl.JSend.Success.Empty"]["properties"]["data"];
-$isOrderingMap = static fn (array $schema): bool => $schema["type"] === "object"
-    && $schema["additionalProperties"]["type"] === "string"
-    && $schema["additionalProperties"]["enum"] === ["ASC", "DESC"];
-$valid = isset($schemas["Consumer"])
-    && $schemas["Fight.AccessControl.Authentication.ActivateRequest"]["required"] === ["user_id", "activation_credential", "plain_password"]
-    && $schemas["Fight.AccessControl.Authentication.ActivateRequest"]["properties"]["remember"]["type"] === "boolean"
-    && $schemas["Fight.AccessControl.Authentication.LoginRequest"]["required"] === ["email", "plain_password"]
-    && $schemas["Fight.AccessControl.Authentication.LoginRequest"]["properties"]["remember"]["type"] === "boolean"
-    && !isset($schemas["Fight.AccessControl.Authentication.LoginRequest"]["properties"]["remembered"])
-    && $schemas["Fight.AccessControl.RestoreUser"]["properties"]["restoration_state"]["enum"] === ["pending_activation", "active", "disabled", "deleted"]
-    && $isOrderingMap($paginationOrderings)
-    && $isOrderingMap($sessionOrderings)
-    && $emptySuccessData["nullable"] === true
-    && !isset($emptySuccessData["type"]);
-if (!$valid) {
-    throw new RuntimeException("OpenAPI component assertion failed.");
-}
-' "${evidence_path}/openapi.json"
+        php vendor/bin/phpunit --no-coverage --fail-on-skipped tests/OpenApi
 }
 
 write_certification_record() {
@@ -205,7 +118,7 @@ mkdir -p "${EVIDENCE_DIR}"
 
 run_step 'planning integrity' "${EVIDENCE_DIR}/planning-check.log" ./bin/planning-check
 run_step 'package quality' "${EVIDENCE_DIR}/build.log" ./bin/build
-run_step 'OpenAPI consumer composition' "${EVIDENCE_DIR}/openapi-composition.log" verify_openapi_composition "${EVIDENCE_DIR}"
+run_step 'OpenAPI consumer composition' "${EVIDENCE_DIR}/openapi-composition.log" verify_openapi_composition
 
 if [[ "$("${GIT_BIN}" rev-parse --verify HEAD)" != "${COMMIT}" ]]; then
     echo 'bin/release: HEAD changed during certification.' >&2
