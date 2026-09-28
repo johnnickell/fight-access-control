@@ -184,7 +184,8 @@ records concrete interfaces, bounds and I1–I7 provisioning evidence. Its compl
 4973 assertions and 5281/5281 statements covered; TASK-00046 records the review, receipts and limitations.
 TASK-00046 is now merged through PR #79. John authorized TASK-00047 in the main checkout on
 `feature/task-00047-operation-status`; its query/status implementation is independently accepted and done for
-implementation/local verification, not merge or release. John subsequently requested PR publication. The
+implementation/local verification, not merge or release. John's landing request published
+[PR #80](https://github.com/johnnickell/fight-access-control/pull/80) against develop. The
 [status contract and I1/I5/I6/I7 evidence map](../../docs/agent-operation-status.md) record safe projection,
 current-authority/concealment, retained-version, capacity/recovery and secret-safety tests. Read-side proof includes
 real provision-to-query recovery and persisted fixtures for downstream dispositions, not rotation/delivery writers
