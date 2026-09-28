@@ -9,6 +9,8 @@ use Fight\AccessControl\Domain\AccessControl\Agent\Agent;
 use Fight\AccessControl\Domain\AccessControl\Agent\AgentCredentialId;
 use Fight\AccessControl\Domain\AccessControl\Agent\AgentId;
 use Fight\AccessControl\Domain\AccessControl\Agent\AgentRepository;
+use Fight\AccessControl\Domain\AccessControl\Agent\Exception\AgentOperationRejectedException;
+use Fight\AccessControl\Domain\AccessControl\Agent\Operation\AgentOperationFailure;
 use Fight\AccessControl\Domain\AccessControl\Permission\Permission;
 use Fight\AccessControl\Domain\AccessControl\Permission\PermissionId;
 use Fight\Common\Domain\Collection\ArrayList;
@@ -20,6 +22,8 @@ use Throwable;
 
 final class InMemoryAgentRepository implements AgentRepository
 {
+    public ?Closure $afterReplace = null;
+
     /** @var list<Agent> */
     private array $agents = [];
 
@@ -33,7 +37,8 @@ final class InMemoryAgentRepository implements AgentRepository
         ?InMemoryAuthorizationReferenceState $authorizationReferences = null,
         private readonly ?Closure $beforeReplacePermissionAssignments = null,
         private readonly ?Closure $beforeValidatePermissionAssignments = null,
-        private readonly ?Throwable $replacePermissionAssignmentsFailure = null
+        private readonly ?Throwable $replacePermissionAssignmentsFailure = null,
+        private readonly ?InMemoryAgentOperationRepository $operations = null
     ) {
         $resolvedAuthorizationReferences = $authorizationReferences ?? new InMemoryAuthorizationReferenceState();
         if (
@@ -105,12 +110,17 @@ final class InMemoryAgentRepository implements AgentRepository
         foreach ($this->agents as $index => $agent) {
             if (
                 $agent !== $expected
-                || !$replacement->getId()->equals($expected->getId())
-                || $replacement->getPermissionAssignmentRevision() !== $expected->getPermissionAssignmentRevision()
-                || !$this->permissionMembershipIsSame($expected, $replacement)
-                || $replacement->hasRecoverableCredentialOperation() !== $expected->hasRecoverableCredentialOperation()
+                || !$expected->canReplaceCredentialWith($replacement)
             ) {
                 continue;
+            }
+
+            if ($expected->hasRecoverableCredentialOperation()) {
+                if ($this->operations === null || !$this->operations->participatesIn($this->unitOfWork)) {
+                    throw new AgentOperationRejectedException(AgentOperationFailure::UNAVAILABLE);
+                }
+
+                $this->operations->retireCredential($expected, $replacement);
             }
 
             $this->agents[$index] = $replacement;
@@ -121,6 +131,8 @@ final class InMemoryAgentRepository implements AgentRepository
                     $this->authorizationReferences->retainAgent($expected);
                 }
             });
+
+            $this->afterReplace?->__invoke();
 
             return true;
         }

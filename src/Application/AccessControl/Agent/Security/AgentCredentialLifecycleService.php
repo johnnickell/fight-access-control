@@ -24,7 +24,7 @@ use Throwable;
 /**
  * Class AgentCredentialLifecycleService
  *
- * Atomically rotates an Agent credential and returns its replacement raw HMAC shared secret.
+ * Revokes authority with repository-owned delivery cancellation and retains legacy-only raw rotation.
  */
 final readonly class AgentCredentialLifecycleService
 {
@@ -105,7 +105,10 @@ final readonly class AgentCredentialLifecycleService
     }
 
     /**
-     * Revokes revokes one authoritative Agent credential
+     * Revokes one authoritative Agent credential and its pending delivery in the package transaction
+     *
+     * Caller policy is consumer-owned. The repository fences the exact loaded predecessor and cancels its original
+     * operation without keys/sinks; audit commits with both changes. Publication faults still rethrow after commit.
      */
     public function revoke(string $actorId, AgentId $agentId): void
     {

@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 namespace Fight\AccessControl\Domain\AccessControl\Agent\Operation;
 
+use Fight\AccessControl\Domain\AccessControl\Agent\Agent;
 use Fight\AccessControl\Domain\AccessControl\Agent\Query\AgentOperationView;
+use SensitiveParameter;
 
 /**
  * Interface AgentOperationRepository
@@ -38,6 +40,30 @@ interface AgentOperationRepository
      * with failed issuance. Authorization already holds the binding fence through transaction completion.
      */
     public function reserveDestinationWrite(AgentCredentialDestination $destination): int;
+
+    /**
+     * Removes the predecessor's delivery copy as part of AgentRepository::replace on the same connection
+     *
+     * Require an active package transaction with the authoritative Agent predecessor held current. Resolve exactly
+     * one original operation by Agent/credential ID/revision, including already delivered or material-free records;
+     * missing, ambiguous or inconsistent correlation fails closed. Lock its immutable original destination binding,
+     * delivery and state revision against claims, admission, acknowledgement, cleanup and all authority writers.
+     * Persist operation->retireCredential(expected, replacement) by exact expected state, including revision, while
+     * invalidating pending, claimed and admitted work. Any failure aborts the enclosing Agent write and audit.
+     *
+     * Claims/admissions store this operation revision and current consumer authority epochs; every completion checks
+     * both plus current credential/destination and deadline. Revoke/regrant must advance epochs, never restore an old
+     * allow. New claims cannot revive retired work. Late external effects may stage inert bytes but cannot acknowledge.
+     * Preserve key/canonical request, original issuance, slot order and deduplication evidence permanently. Remove the
+     * delivery copy immediately, regardless of retention or capacity; do not read keys, decrypt or call sinks.
+     * Consumer policy protects caller entry points; actor strings are audit only. No extra routine human approval.
+     * Throw sanitized AgentOperationRejectedException on unsupported participation, storage faults or conflict;
+     * omit provider diagnostics, material and previous exceptions. Implementations must mark sensitive inputs.
+     */
+    public function retireCredential(
+        #[SensitiveParameter] Agent $expected,
+        #[SensitiveParameter] Agent $replacement
+    ): void;
 
     /**
      * Adds one operation with its separately encrypted delivery copy under atomic uniqueness and capacity fences

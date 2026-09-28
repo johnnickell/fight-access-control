@@ -17,6 +17,8 @@ final class InMemoryUnitOfWork implements TransactionalUnitOfWork
 
     public bool $transactionActive = false;
 
+    public bool $failNextCommit = false;
+
     private ?InMemoryAuthorizationReferenceState $authorizationReferenceState = null;
 
     /** @var list<callable(): void> */
@@ -31,6 +33,10 @@ final class InMemoryUnitOfWork implements TransactionalUnitOfWork
 
     public function commitTransactional(callable $operation): mixed
     {
+        if ($this->transactionActive) {
+            throw new RuntimeException('Nested package transactions are unsupported.');
+        }
+
         ++$this->transactions;
         $this->transactionActive = true;
         $rollbackStart = count($this->rollbackActions);
@@ -38,7 +44,9 @@ final class InMemoryUnitOfWork implements TransactionalUnitOfWork
 
         try {
             $result = $operation();
-            if ($this->transactions === $this->failOnTransaction) {
+            if ($this->transactions === $this->failOnTransaction || $this->failNextCommit) {
+                $this->failNextCommit = false;
+
                 throw new RuntimeException('Injected transaction failure.');
             }
 

@@ -5,8 +5,10 @@ declare(strict_types=1);
 namespace Fight\Test\AccessControl\Domain\AccessControl\Agent;
 
 use DateTimeImmutable;
+use Fight\AccessControl\Domain\AccessControl\Agent\Agent;
 use Fight\AccessControl\Domain\AccessControl\Agent\AgentCredentialId;
 use Fight\AccessControl\Domain\AccessControl\Agent\AgentId;
+use Fight\AccessControl\Domain\AccessControl\Agent\AgentName;
 use Fight\AccessControl\Domain\AccessControl\Agent\Exception\AgentOperationRejectedException;
 use Fight\AccessControl\Domain\AccessControl\Agent\Operation\AgentCredentialDestination;
 use Fight\AccessControl\Domain\AccessControl\Agent\Operation\AgentCredentialOperation;
@@ -219,6 +221,82 @@ final class AgentOperationTest extends TestCase
     {
         $this->expectException(AgentOperationRejectedException::class);
         new AgentDeliveryMaterial(EncryptedCredentialMaterial::fromString('private-ciphertext'), '/unsafe/key/path');
+    }
+
+    public function test_retirement_rejects_unrelated_or_already_retired_credential_authority(): void
+    {
+        $issuance = $this->issuance();
+        $agent = Agent::provision(
+            $issuance->getAgentId(),
+            AgentName::fromString('Agent'),
+            $issuance->getCredentialId(),
+            'authentication-envelope',
+            $issuance->getIssuedAt(),
+            recoverableCredentialOperation: true
+        );
+        $operation = new AgentCredentialOperation(1, 'retained-request', $issuance, null);
+        $revoked = $agent->revoke($issuance->getIssuedAt());
+        $retired = $operation->retireCredential($agent, $revoked);
+        $other = Agent::provision(
+            AgentId::generate(),
+            AgentName::fromString('Other'),
+            AgentCredentialId::generate(),
+            'other-envelope',
+            $issuance->getIssuedAt()
+        );
+        foreach (
+            [[$operation, $other, $other->revoke($issuance->getIssuedAt())],
+            [$operation, $agent, $agent], [$retired, $agent, $revoked]] as [$state, $expected, $replacement]
+        ) {
+            try {
+                $state->retireCredential($expected, $replacement);
+                self::fail('Wrong or stale authority must not retire an operation.');
+            } catch (AgentOperationRejectedException $failure) {
+                self::assertSame(AgentOperationFailure::CONFLICT, $failure->getReason());
+                self::assertNull($failure->getPrevious());
+            }
+        }
+    }
+
+    public function test_retirement_matches_the_exact_original_credential_and_revision(): void
+    {
+        $issuance = $this->issuance();
+        $agent = Agent::provision(
+            $issuance->getAgentId(),
+            AgentName::fromString('Agent'),
+            $issuance->getCredentialId(),
+            'authentication-envelope',
+            $issuance->getIssuedAt(),
+            recoverableCredentialOperation: true
+        );
+        $mismatches = [
+            'credential_id'       => AgentCredentialId::generate()->toString(),
+            'credential_revision' => 1
+        ];
+        foreach ($mismatches as $key => $value) {
+            $data = $issuance->toArray();
+            $data[$key] = $value;
+            $operation = new AgentCredentialOperation(1, 'request', AgentIssuance::fromArray($data), null);
+            try {
+                $operation->retireCredential($agent, $agent->revoke($issuance->getIssuedAt()));
+                self::fail('A different original credential tuple must not retire.');
+            } catch (AgentOperationRejectedException $failure) {
+                self::assertSame(AgentOperationFailure::CONFLICT, $failure->getReason());
+                self::assertSame(0, $operation->getStateRevision());
+            }
+        }
+    }
+
+    public function test_expected_delivery_revision_is_not_authorization_and_negative_revisions_reject(): void
+    {
+        $issuance = $this->issuance();
+        $material = new AgentDeliveryMaterial(EncryptedCredentialMaterial::fromString('ciphertext'), 'v1');
+        $operation = new AgentCredentialOperation(1, 'request', $issuance, $material, stateRevision: 5);
+        self::assertTrue($operation->hasPendingDeliveryAtRevision(5));
+        self::assertFalse($operation->hasPendingDeliveryAtRevision(4));
+        self::assertFalse($operation->retireMaterial()->hasPendingDeliveryAtRevision(6));
+        $this->expectException(AgentOperationRejectedException::class);
+        new AgentCredentialOperation(1, 'request', $issuance, $material, stateRevision: -1);
     }
 
     private function issuance(int $revision = 0, int $order = 1): AgentIssuance

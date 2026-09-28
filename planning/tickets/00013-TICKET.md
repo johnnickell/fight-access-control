@@ -2,7 +2,7 @@
 id: TICKET-00013
 epic: EPIC-00009
 title: Deliver and recover Agent credentials through protected sinks
-status: ready-for-agent
+status: in-progress
 ---
 
 # Deliver and recover Agent credentials through protected sinks
@@ -196,8 +196,12 @@ migration/cohort/restore scope and the complete scenario map.
 
 ## Progress
 
-TASK-00050–00054 are planned with `ready-for-agent` status and unfinished dependencies, not executable yet. The first
-ready unblocked slice across this work remains TASK-00046. No TASK is in progress; all acceptance boxes remain open.
+TASK-00046's accepted implementation is merged. John authorized TASK-00050 in the main checkout on
+`feature/task-00050-retirement`; atomic revocation/cancellation, Domain successor validation and controlled
+expected-state race/rollback tests are locally verified (707 tests, exact 5470/5470 statement coverage).
+It remains in progress pending independent review. TASK-00051–00054 still wait on dependencies. All TICKET acceptance
+boxes remain open until their full owning-slice evidence is independently accepted. See the
+[retirement contract](../../docs/agent-credential-retirement.md) for the slice's public write obligations and limits.
 Concrete finite values, override validation, public shapes and expected-state details must be documented/tested in
 the owning slices before acceptance; this plan neither silently selects production values nor adds routine approval.
 
@@ -216,7 +220,7 @@ parent EPIC after regeneration.
 
 | Order | TASK ID | Title | Status |
 | --- | --- | --- | --- |
-| 50 | [TASK-00050](../tasks/00050-TASK.md) | Revoke Agent credentials and fence pending delivery | ready-for-agent |
+| 50 | [TASK-00050](../tasks/00050-TASK.md) | Revoke Agent credentials and fence pending delivery | in-progress |
 | 51 | [TASK-00051](../tasks/00051-TASK.md) | Deliver an Agent credential to its protected destination | ready-for-agent |
 | 52 | [TASK-00052](../tasks/00052-TASK.md) | Discover and recover interrupted Agent deliveries | ready-for-agent |
 | 53 | [TASK-00053](../tasks/00053-TASK.md) | Maintain and retire protected delivery material safely | ready-for-agent |
