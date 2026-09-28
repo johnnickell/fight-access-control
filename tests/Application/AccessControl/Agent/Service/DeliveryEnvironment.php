@@ -29,10 +29,10 @@ final readonly class DeliveryEnvironment
 
     public AgentIssuance $issuance;
 
-    public function __construct()
+    public function __construct(?ProvisioningEnvironment $provisioning = null, ?AgentIssuance $issuance = null)
     {
-        $this->provisioning = new ProvisioningEnvironment();
-        $this->issuance = $this->provisioning->service()->provision(
+        $this->provisioning = $provisioning ?? new ProvisioningEnvironment();
+        $this->issuance = $issuance ?? $this->provisioning->service()->provision(
             $this->provisioning->key,
             $this->provisioning->request
         )->getIssuance() ?? throw new LogicException('Provisioning fixture failed.');

@@ -133,6 +133,32 @@ both sides' proof; tests stay with their business owner rather than being deferr
 | Rollback/restore after external acceptance | This TICKET M4 with TICKET-00013 D4/D6: no reset/resurrection, receipt/tombstone reconciliation or unavailable state; real restore rehearsal required for adoption. |
 | Safe representations and sensitive-value lifetime | TICKET-00012 I7 plus TICKET-00013 D6: safe serializable/debug/event/audit/failure surfaces, fixed sensitive destination and no secret-read capability. |
 
+### TASK-00049 issuance evidence checkpoint
+
+The [consumer-bindable suite and I1–I7 evidence map](../../docs/agent-issuance-conformance.md#evidence-map) now connect
+these rows to executable public package paths. The latest results and local gate receipt are recorded in
+[TASK-00049](../tasks/00049-TASK.md#implementation-and-verification-checkpoint). Method names below belong to
+`IssuanceRecoveryConformance`, run by `InMemoryIssuanceRecoveryConformanceTest`; predecessor tests remain identified
+in the linked map. This is package behavioral-adapter evidence, awaiting independent acceptance—not real database,
+sink, activation/use, migration or restoration qualification.
+
+| Proposal rows covered in this checkpoint | Executed scenario references |
+| --- | --- |
+| Normal issuance; response loss/restart; both publishers fail and caller never retries | `test_both_publishers_and_caller_can_disappear_before_scheduler_only_recovery` (both operations, pending and abandoned claims); `test_same_key_retry_preserves_fact_identity_and_current_authority` |
+| Indeterminate issuance commit; precommit audit/persistence/authority failure | `test_indeterminate_commit_resolves_original_request_after_restart`; `test_precommit_failure_rolls_back_every_participant_and_reservation`; predecessor encryption-fault tests in the I3 map |
+| Changed request; concurrent identical/conflicting keys; competing rotations | `test_retained_binding_conflicts_and_unknown_versions_never_issue`; both `test_contending_*` key/binding scenarios; `test_competing_rotation_keys_cannot_both_replace_one_predecessor`; reference contention is serialized, earlier suites inject loser rollback/CAS |
+| Wrong caller/namespace, revoked authority, delegated discovery, transactional writers | `test_untrusted_scope_and_destination_cannot_read_or_resolve_an_existing_key`; `test_authority_writer_and_issuance_have_one_fenced_order`; `test_discovery_requires_delegation_and_cannot_cache_admission_authority`; `test_outer_transaction_cannot_wrap_an_issuance_service` |
+| Equal IDs across scopes, slot reassignment/order | `test_equal_ids_in_different_scopes_share_monotonic_slot_order_not_issuance` |
+| Sink acceptance with response loss; original ID/bytes | `test_lost_sink_response_recovers_original_bytes_and_id_not_issuance`; TASK-00052 retains receipt-first and all delivery commit-boundary proof |
+| Revocation/supersession, original status, current authority | `test_actual_delivery_then_revocation_retains_original_status_without_authority`; `test_rotation_and_lifecycle_writer_never_leave_a_recoverable_revoked_credential`; consumer activation/broker checks remain unexecuted |
+| Terminal delivery, retention expiry, tombstone replay | `test_terminal_delivery_retains_key_without_raw_or_envelope_fallback`; `test_expiry_and_cleanup_never_make_original_key_fresh_issuance` uses actual maintenance and rejects delayed sink staging |
+| Safe representations and sensitive-value lifetime | Shared serialization/JSON/debug/failure assertions plus I7 predecessor safety tests; no production logging/cryptography qualification inferred |
+| D3 outcome separation and D4 bounded defaults/overrides/capacity | Combined publication/pending/delivered status assertions; `test_capacity_preserves_status_resolution_and_bounded_recovery`; current-principal revalidation is not enrollment or launch authorization |
+
+TASK-00054 still owns wider delivery/lifecycle conformance. TASK-00055–00059 still own compatibility, cohorts,
+cross-version canonicalization, restoration and final complete traceability. Real adapter races/process termination,
+consumer activation/use and deployment rehearsals remain explicit missing adoption evidence.
+
 Additional upstream-ratified requirements: TICKET-00012 I1/I4 and TICKET-00013 D2/D4 prove the D3 separation of
 issuance/delivery/activation/launch authority. TICKET-00012 I6 and TICKET-00013 D7 prove D4 default/override, capacity/
 existing-recovery and cleanup behavior. M5 verifies these are included in the final traceability/evidence inventory.

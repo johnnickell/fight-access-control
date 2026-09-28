@@ -166,7 +166,7 @@ the standalone bug/chore `kind` exception.
 | A — Provision through a recoverable operation | [TASK-00046](../tasks/00046-TASK.md) | Ready, no unfinished TASK blocker | I1–I7 for the complete provisioning/service-retry path, shared contracts, finite defaults and focused failure/concurrency tests. |
 | B — Read operation outcomes safely | [TASK-00047](../tasks/00047-TASK.md) | Done for accepted implementation/local verification; TASK-00046 dependency completed | I1/I5/I6/I7 read/status and concealment proof; no mutation/commit/event and no inferred delivery/activation/launch authority. |
 | C — Rotate through a recoverable operation | [TASK-00048](../tasks/00048-TASK.md) | Done for accepted implementation/local verification; TASK-00046/00050/00051 done | I1–I7 for rotation and atomic predecessor cancellation; original-request recovery and core failure/race tests stay here. |
-| D — Publish and exercise issuance-recovery conformance | [TASK-00049](../tasks/00049-TASK.md) | Ready status; waits for TASK-00046/00047/00048/00052/00053 | Reusable conformance across I1–I7 and complete I4 scheduler-only recovery without either publisher or caller retry; not a substitute for A–C tests. |
+| D — Publish and exercise issuance-recovery conformance | [TASK-00049](../tasks/00049-TASK.md) | In progress; all five prerequisites done; main checkout authorized | Reusable conformance across I1–I7 and complete I4 scheduler-only recovery without either publisher or caller retry; not a substitute for A–C tests. |
 
 John subsequently approved TICKET-00013's five-TASK split and these dependency updates on 2026-09-27.
 [TASK-00050](../tasks/00050-TASK.md) supplies cancellation/fencing and [TASK-00051](../tasks/00051-TASK.md) supplies
@@ -195,8 +195,14 @@ cover original-request resolution, atomic supersession, uncertain commits, publi
 in-flight delivery/authentication races. Independent review accepted `e667116` with all TASK criteria passing and
 no findings; TASK-00048 is done for implementation/local verification. John's landing request published
 [PR #83](https://github.com/johnnickell/fight-access-control/pull/83) against `develop`; it is open at this checkpoint,
-not merged or released. TASK-00049 still waits on its remaining prerequisites.
-All TICKET acceptance boxes remain open: scheduler and reusable conformance are outstanding.
+not merged or released at that publication checkpoint. All five TASK-00049 prerequisites are now done and present in
+its `develop` base `47ffd42`. John authorized the main checkout on `feature/task-00049-issuance-conformance`.
+Its [issuance-recovery conformance](../../docs/agent-issuance-conformance.md) exposes public-port consumer bindings and
+exercises actual provision/rotation, safe reads, scheduler recovery, maintenance and current-credential authentication.
+I1–I7 evidence is mapped there to integrated and focused predecessor tests. The full local gate passes 1100 tests /
+12626 assertions and exact 6245/6245 statements; the reusable suite passes 53 tests / 3646 assertions.
+Independent review remains outstanding;
+all TICKET acceptance boxes remain open. Package behavioral adapters do not qualify real consumers.
 Consumer qualification and release remain separately required.
 
 The local live/archive inventory was rechecked before allocation at unchanged HEAD
@@ -218,4 +224,4 @@ parent EPIC; no runtime test/build or consumer qualification result is claimed.
 | 46 | [TASK-00046](../tasks/00046-TASK.md) | Provision an Agent through a recoverable operation | done |
 | 47 | [TASK-00047](../tasks/00047-TASK.md) | Read Agent operation outcomes safely | done |
 | 48 | [TASK-00048](../tasks/00048-TASK.md) | Rotate an Agent through a recoverable operation | done |
-| 49 | [TASK-00049](../tasks/00049-TASK.md) | Publish and exercise issuance-recovery conformance | ready-for-agent |
+| 49 | [TASK-00049](../tasks/00049-TASK.md) | Publish and exercise issuance-recovery conformance | in-progress |

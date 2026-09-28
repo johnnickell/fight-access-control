@@ -114,8 +114,8 @@ Only confirmed new issuance publishes `AgentProvisioned`. The Agent ID uniquely 
 service retry does not publish it again. There is no automatic notification retry/outbox guarantee. Publication failure
 returns `PUBLICATION_FAILED`; even failed failure-evidence publication cannot disguise the committed outcome.
 Indeterminate and pre-commit failure publish only sanitized failure evidence, never a success fact. Durable operation
-and prepared state survive absent notifications; scheduler-only discovery is proved in TASK-00049 with TASK-00052,
-not by this slice. Failure evidence contains no request strings or arbitrary provider messages.
+and prepared state survive absent notifications; [TASK-00049 conformance](agent-issuance-conformance.md) exercises
+scheduler-only discovery with TASK-00052's actual path, not merely this slice's prepared-state fixtures. Failure evidence contains no request strings or arbitrary provider messages.
 
 ## Finite bounds
 
@@ -142,8 +142,8 @@ consumer-capability doubles. `ProvisioningEnvironment`, `InMemoryAgentOperationR
 `InMemoryAgentOperationAuthorization`, `BoundAgentDeliveryCipher` and `UncertainAgentUnitOfWork` are reusable test
 fixtures under `tests/Application/AccessControl/Agent/`, not production adapters. The cipher fixture is deliberately
 not cryptography. Consumers must independently qualify authenticated encryption and the actual shared connection,
-locking, unique constraints and concurrent transactions before adoption. Cross-operation public conformance
-publication belongs to TASK-00049, not this fixture set.
+locking, unique constraints and concurrent transactions before adoption. TASK-00049 now exposes the
+[cross-operation consumer-bindable suite](agent-issuance-conformance.md), separately from these focused fixtures.
 
 | Requirement | Focused package evidence |
 | --- | --- |

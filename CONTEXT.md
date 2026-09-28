@@ -200,6 +200,9 @@ inputs verified. TASK-00053 is done for implementation/local verification. John'
 landing handoff owns final PR-metadata verification and remote identity. No consumer qualification, merge or release
 is claimed. Other slices retain their remaining dependencies and require separate
 execution authority.
+John authorized TASK-00049 in the main checkout on `feature/task-00049-issuance-conformance`, from `develop`
+`47ffd42` (including merged PR #87). Its implementation and local verification pass 1100 tests / 12626 assertions
+and exact 6245/6245 statements; independent review is still required, so TASK-00049 remains in progress.
 Each downstream execution needs authorization. John separately authorized TASK-00046
 execution and PR landing. Planning does not qualify a consumer or authorize migration, release or adoption.
 The replacement requires caller-scoped operation correlation, protected delivery and consumer authorization
@@ -248,8 +251,10 @@ downstream conformance/cohort work lands.
 For those two replacement operations only, confirmed issuance commits return safe operation metadata with a typed,
 sanitized publication warning if post-commit publication fails. Pre-commit failure and indeterminate commit are
 distinct outcomes. Same-key resolution survives both publishers failing; TASK-00052 now supplies authorized scheduler discovery
-through the actual delivery path. TASK-00049 still owns the combined provision/rotation proof with both publishers
-failing and caller termination; TASK-00046 alone did not establish that outcome. The complete replacement requires that
+through the actual delivery path. TASK-00049 adds the [consumer-bindable issuance conformance](docs/agent-issuance-conformance.md)
+and combined provision/rotation tests with both publishers failing and modeled caller termination. The actual scheduler
+recovers pending and abandoned-claim work without caller retry. Behavioral-adapter runs are not real process/database,
+consumer activation/use or adoption qualification; TASK-00046 alone did not establish this combined outcome. The complete replacement requires that
 retry does not repeat issuance or its audit fact. Committed issuance is neither confirmed credential delivery,
 enrollment activation nor permission to launch: each requires its own confirmed outcome and current authorization.
 This exception does not change revocation, AuthenticationService or other CommandHandlers. Failure/restart behavior
