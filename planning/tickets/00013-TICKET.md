@@ -220,7 +220,11 @@ bounded batch. The revision requires pre-limit authoritative current-reservation
 with a failing-then-passing 51-operation scheduler regression, unchanged delivery authorization and explicit adapter
 obligations. Focused revision verification passes 269 tests / 2140 assertions plus PHPCS/PHPStan; the complete
 revision gate passes 957 tests / 8350 assertions with exact 5971/5971 statements. Logs, initial failures and input
-mapping belong to TASK-00052. Independent re-review and consumer qualification remain outstanding.
+mapping belong to TASK-00052. Independent re-review accepted `c9e23ab` with R1 resolved and all nine TASK criteria
+passing, fresh 269 tests / 2140 assertions, and all 696 gate inputs matched. TASK-00052 is done for implementation/local
+verification, not consumer qualification. John requested landing; the latest develop's TASK-00060 planning-only update
+is integrated without changing the reviewed implementation. At this checkpoint publication remains pending; the TASK's
+ignored landing handoff owns the review bridge and fresh publication evidence. Consumer qualification remains outstanding.
 TASK-00053 has completed prerequisites but requires separate execution authorization;
 TASK-00054 retains its remaining blockers. All TICKET acceptance boxes remain
 open until their full owning-slice evidence is independently accepted. See the
@@ -245,6 +249,6 @@ parent EPIC after regeneration.
 | --- | --- | --- | --- |
 | 50 | [TASK-00050](../tasks/00050-TASK.md) | Revoke Agent credentials and fence pending delivery | done |
 | 51 | [TASK-00051](../tasks/00051-TASK.md) | Deliver an Agent credential to its protected destination | done |
-| 52 | [TASK-00052](../tasks/00052-TASK.md) | Discover and recover interrupted Agent deliveries | in-progress |
+| 52 | [TASK-00052](../tasks/00052-TASK.md) | Discover and recover interrupted Agent deliveries | done |
 | 53 | [TASK-00053](../tasks/00053-TASK.md) | Maintain and retire protected delivery material safely | ready-for-agent |
 | 54 | [TASK-00054](../tasks/00054-TASK.md) | Qualify protected-delivery and lifecycle conformance | ready-for-agent |

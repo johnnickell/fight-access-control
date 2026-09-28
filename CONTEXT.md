@@ -172,7 +172,10 @@ John authorized TASK-00052 in the main checkout on `feature/task-00052-delivery-
 scheduler pass, optional receipt lookup before decryption, receipt-only recovery of current admissions and safe
 reconciliation of lost delivered sink material. Independent review requested R1: obsolete slot reservations could
 starve the bounded batch. The revision requires authoritative current-reservation selection before limiting, with
-regression proof through the actual scheduler; independent re-review is pending. This is not consumer qualification.
+regression proof through the actual scheduler. Independent re-review accepted `c9e23ab`, with all criteria passing,
+269 focused tests / 2140 assertions and all 696 full-gate inputs verified. TASK-00052 is done for implementation/local
+verification. John requested landing; publication is pending at this checkpoint after mechanical integration of the
+TASK-00060 planning-only base update. This is not consumer qualification, merge or release.
 Other slices retain their remaining dependencies and require separate execution authority.
 Each downstream execution needs authorization. John separately authorized TASK-00046
 execution and PR landing. Planning does not qualify a consumer or authorize migration, release or adoption.

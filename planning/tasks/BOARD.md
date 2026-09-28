@@ -5,13 +5,11 @@ dependencies, acceptance, and verification.
 
 ## What's Next?
 
-Active Task: [TASK-00052](00052-TASK.md) — Discover and recover interrupted Agent deliveries.
+First ready Task: [TASK-00053](00053-TASK.md) — Maintain and retire protected delivery material safely.
 
 ## In Progress
 
-| Order | TASK ID | Title | Parent TICKET | Status | Blocked by | PR |
-| --- | --- | --- | --- | --- | --- | --- |
-| 52 | [TASK-00052](00052-TASK.md) | Discover and recover interrupted Agent deliveries | [TICKET-00013](../tickets/00013-TICKET.md) — Deliver and recover Agent credentials through protected sinks | in-progress | [TASK-00051](00051-TASK.md) | — |
+No Tasks are currently in this state.
 
 ## Ready Frontier
 
@@ -19,6 +17,7 @@ Active Task: [TASK-00052](00052-TASK.md) — Discover and recover interrupted Ag
 | --- | --- | --- | --- | --- | --- | --- |
 | 53 | [TASK-00053](00053-TASK.md) | Maintain and retire protected delivery material safely | [TICKET-00013](../tickets/00013-TICKET.md) — Deliver and recover Agent credentials through protected sinks | ready-for-agent | [TASK-00051](00051-TASK.md) | — |
 | 55 | [TASK-00055](00055-TASK.md) | Preserve existing Agent authority through upgrade | [TICKET-00014](../tickets/00014-TICKET.md) — Preserve credential authority across migration and upgrades | ready-for-agent | [TASK-00047](00047-TASK.md), [TASK-00048](00048-TASK.md) | — |
+| 60 | [TASK-00060](00060-TASK.md) | Align OpenAPI credential-delivery components with released contracts | — (standalone bug) | ready-for-agent | — | https://github.com/johnnickell/fight-access-control/pull/84 |
 
 ## Waiting
 
@@ -97,3 +96,4 @@ No Tasks are currently in this state.
 | 48 | [TASK-00048](00048-TASK.md) | Rotate an Agent through a recoverable operation | [TICKET-00012](../tickets/00012-TICKET.md) — Issue and resolve Agent credentials recoverably | done | [TASK-00046](00046-TASK.md), [TASK-00050](00050-TASK.md), [TASK-00051](00051-TASK.md) | https://github.com/johnnickell/fight-access-control/pull/83 |
 | 50 | [TASK-00050](00050-TASK.md) | Revoke Agent credentials and fence pending delivery | [TICKET-00013](../tickets/00013-TICKET.md) — Deliver and recover Agent credentials through protected sinks | done | [TASK-00046](00046-TASK.md) | https://github.com/johnnickell/fight-access-control/pull/81 |
 | 51 | [TASK-00051](00051-TASK.md) | Deliver an Agent credential to its protected destination | [TICKET-00013](../tickets/00013-TICKET.md) — Deliver and recover Agent credentials through protected sinks | done | [TASK-00050](00050-TASK.md) | https://github.com/johnnickell/fight-access-control/pull/82 |
+| 52 | [TASK-00052](00052-TASK.md) | Discover and recover interrupted Agent deliveries | [TICKET-00013](../tickets/00013-TICKET.md) — Deliver and recover Agent credentials through protected sinks | done | [TASK-00051](00051-TASK.md) | — |
