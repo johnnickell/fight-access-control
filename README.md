@@ -81,8 +81,10 @@ persistence requirements and executable evidence. `GetAgentOperation` provides a
 [authorized safe status query](docs/agent-operation-status.md), separating original issuance from recorded delivery
 and credential disposition without a transaction, material access or events.
 [Credential retirement](docs/agent-credential-retirement.md) atomically revokes authority and cancels original delivery
-through both service and direct repository writes without key/sink access. This intermediate work is **not
-deployable** until downstream rotation, delivery and compatibility TASKs are complete. Existing release contracts
+through both service and direct repository writes without key/sink access.
+[Protected delivery](docs/agent-credential-delivery.md) adds committed claim/admission, outside-transaction fixed-sink
+invocation and exact receipt acknowledgement under current authority. This intermediate work is **not deployable**
+until downstream rotation, recovery, maintenance and compatibility TASKs are complete. Existing release contracts
 are unchanged.
 
 ### Current principal composition

@@ -203,8 +203,11 @@ the correction annotates replacement arguments and transaction callbacks, with s
 complete gate (713 tests / 6651 assertions, exact 5470/5470 statement coverage).
 Independent re-review accepted clean head `3aad9e6` with R1 resolved and all eight TASK criteria covered; fresh
 focused checks passed (155 tests / 2095 assertions), and the complete gate's 650 tracked inputs matched that head.
-TASK-00050 is done for implementation/local verification; John authorized PR publication, not merge or release.
-TASK-00051 is dependency-ready; TASK-00052–00054 retain their remaining blockers. All TICKET acceptance boxes remain
+TASK-00050 is done for implementation/local verification; its PR #81 is now merged into `develop` at `6d52e8d`.
+John authorized TASK-00051 in the main checkout on `feature/task-00051-protected-delivery`. The
+[protected delivery attempt](../../docs/agent-credential-delivery.md) is implemented and locally verified (840 tests /
+7276 assertions, exact 5742/5742 statements). It remains in progress pending independent review; TASK-00052–00054
+retain their remaining blockers. All TICKET acceptance boxes remain
 open until their full owning-slice evidence is independently accepted. See the
 [retirement contract](../../docs/agent-credential-retirement.md) for the slice's public write obligations and limits.
 Concrete finite values, override validation, public shapes and expected-state details must be documented/tested in
@@ -226,7 +229,7 @@ parent EPIC after regeneration.
 | Order | TASK ID | Title | Status |
 | --- | --- | --- | --- |
 | 50 | [TASK-00050](../tasks/00050-TASK.md) | Revoke Agent credentials and fence pending delivery | done |
-| 51 | [TASK-00051](../tasks/00051-TASK.md) | Deliver an Agent credential to its protected destination | ready-for-agent |
+| 51 | [TASK-00051](../tasks/00051-TASK.md) | Deliver an Agent credential to its protected destination | in-progress |
 | 52 | [TASK-00052](../tasks/00052-TASK.md) | Discover and recover interrupted Agent deliveries | ready-for-agent |
 | 53 | [TASK-00053](../tasks/00053-TASK.md) | Maintain and retire protected delivery material safely | ready-for-agent |
 | 54 | [TASK-00054](../tasks/00054-TASK.md) | Qualify protected-delivery and lifecycle conformance | ready-for-agent |

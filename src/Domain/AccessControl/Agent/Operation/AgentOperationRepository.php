@@ -66,6 +66,25 @@ interface AgentOperationRepository
     ): void;
 
     /**
+     * Replaces one exact delivery snapshot under shared Agent, authority, destination and operation fences
+     *
+     * Require the active package transaction and compare authoritative stored operation revision and immutable tuple
+     * with expected, and the current Agent identity/credential/state with expectedAgent. Hold locks through commit,
+     * shared with AgentRepository::replace, all delivery writers, authority mutation, cleanup and slot reassignment.
+     * Require replacement's identical original binding and revision exactly one higher. Writes persist attempt token,
+     * monotonic fence, policy, lease, admission epochs/deadline, retry time, verified receipt, closed failure class
+     * and disposition atomically with material.
+     * Never recreate a missing operation or revive retired authority, even through direct non-HTTP calls. No capacity
+     * check, decryption, sink call or independent transaction. Throw sanitized failures without previous exceptions;
+     * concrete implementations must annotate Agent inputs and Unit of Work callbacks to redact failure traces.
+     */
+    public function replaceDelivery(
+        AgentCredentialOperation $expected,
+        AgentCredentialOperation $replacement,
+        #[SensitiveParameter] Agent $expectedAgent
+    ): void;
+
+    /**
      * Adds one operation with its separately encrypted delivery copy under atomic uniqueness and capacity fences
      *
      * Enforces scoped-key uniqueness, global delivery-ID uniqueness and limits over authoritative pending counts.

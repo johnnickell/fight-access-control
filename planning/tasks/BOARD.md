@@ -5,17 +5,17 @@ dependencies, acceptance, and verification.
 
 ## What's Next?
 
-First ready Task: [TASK-00051](00051-TASK.md) — Deliver an Agent credential to its protected destination.
+Active Task: [TASK-00051](00051-TASK.md) — Deliver an Agent credential to its protected destination.
 
 ## In Progress
 
-No Tasks are currently in this state.
+| Order | TASK ID | Title | Parent TICKET | Status | Blocked by | PR |
+| --- | --- | --- | --- | --- | --- | --- |
+| 51 | [TASK-00051](00051-TASK.md) | Deliver an Agent credential to its protected destination | [TICKET-00013](../tickets/00013-TICKET.md) — Deliver and recover Agent credentials through protected sinks | in-progress | [TASK-00050](00050-TASK.md) | — |
 
 ## Ready Frontier
 
-| Order | TASK ID | Title | Parent TICKET | Status | Blocked by | PR |
-| --- | --- | --- | --- | --- | --- | --- |
-| 51 | [TASK-00051](00051-TASK.md) | Deliver an Agent credential to its protected destination | [TICKET-00013](../tickets/00013-TICKET.md) — Deliver and recover Agent credentials through protected sinks | ready-for-agent | [TASK-00050](00050-TASK.md) | — |
+No Tasks are currently in this state.
 
 ## Waiting
 

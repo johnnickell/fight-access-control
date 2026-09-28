@@ -161,7 +161,8 @@ Provision-to-read and uncertain-provision-to-read cases exercise real package co
 transaction fixtures. All delivered, superseded, revoked, expired, retryable and terminal **disposition fixtures**
 prove read projection only, not their downstream writers or valid lifecycle transitions. Separately,
 [TASK-00050's tests](agent-credential-retirement.md#package-evidence-and-remaining-qualification) exercise actual
-revocation/cancellation and controlled direct supersession. TASK-00049 will exercise
-actual rotation/delivery transitions after those writers exist. No scheduler-only recovery, real database
+revocation/cancellation and controlled direct supersession. [TASK-00051's delivery tests](agent-credential-delivery.md)
+now exercise actual package claim/admission/outcome writers and safe disposition. TASK-00049 will integrate actual
+rotation/delivery transitions after all its prerequisite writers exist. No scheduler-only recovery, real database
 concurrency, consumer authorization policy, sink, encryption, migration, activation or launch qualification is claimed.
 This contract has no HTTP endpoint/envelope or UI; executable state/failure evidence is the useful before/after proof.
