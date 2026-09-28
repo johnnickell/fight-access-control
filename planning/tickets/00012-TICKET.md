@@ -203,9 +203,12 @@ I1–I7 evidence is mapped there to integrated and focused predecessor tests. Th
 12626 assertions and exact 6245/6245 statements; the reusable suite passes 53 tests / 3646 assertions.
 Independent review accepted `3fcf2c5` with all ten TASK criteria passing and no findings, 572 fresh Agent tests /
 8313 assertions and 723/723 final gate inputs verified. TASK-00049 is done for implementation/local verification;
-John subsequently requested landing, with publication pending at this checkpoint. The canonical report and
-administrative landing bridge remain in its ignored review/handoff directories. TICKET acceptance boxes remain
-open pending separate complete requirement/consumer evidence assessment; package behavioral adapters do not qualify
+John subsequently requested landing. [PR #88](https://github.com/johnnickell/fight-access-control/pull/88) is open
+against `develop` at initial publication head `eb91435`; the fresh landing gate retains 1100 tests / 12626 assertions
+and exact 6245/6245 statements. The canonical report and administrative landing bridge remain in its ignored
+review/handoff directories, including final metadata/remote verification. No merge or release is authorized.
+TICKET acceptance boxes remain open pending separate complete requirement/consumer evidence assessment;
+package behavioral adapters do not qualify
 real consumers. Consumer qualification and release remain separately required.
 
 The local live/archive inventory was rechecked before allocation at unchanged HEAD
