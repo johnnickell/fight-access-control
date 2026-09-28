@@ -234,8 +234,11 @@ global diagnostic reference accounting and consumer key-retirement/replay obliga
 1047 tests / 8980 assertions and exact 6245/6245 statements; the owning TASK links logs/receipt and criterion mapping.
 Independent review accepted `9a0a391` with all nine TASK criteria passing and no findings, 526 fresh focused tests /
 5057 assertions, and all 718 saved gate/bridge inputs verified. TASK-00053 is done for implementation/local verification;
-John requested landing, with publication pending at this completion checkpoint. TASK-00054's implementation inputs
-are now done; its reusable integration/conformance work still requires execution authority. All TICKET acceptance
+John's landing request published [PR #87](https://github.com/johnnickell/fight-access-control/pull/87) against `develop`
+at initial head `4b79cee`, with the fresh gate passing 1047 tests / 8980 assertions and exact 6245/6245 statements.
+The TASK's ignored landing handoff owns final metadata/remote verification; no merge or release is claimed.
+TASK-00054's implementation inputs are now done; its reusable integration/conformance work still requires execution
+authority. All TICKET acceptance
 boxes remain open until their full owning-slice evidence, including that conformance, is independently accepted. See the
 [retirement contract](../../docs/agent-credential-retirement.md) for the slice's public write obligations and limits.
 Concrete finite values, override validation, public shapes and expected-state details must be documented/tested in
