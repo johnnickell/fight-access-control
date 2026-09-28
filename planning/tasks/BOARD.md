@@ -18,7 +18,7 @@ No Tasks are currently in this state.
 | 52 | [TASK-00052](00052-TASK.md) | Discover and recover interrupted Agent deliveries | [TICKET-00013](../tickets/00013-TICKET.md) — Deliver and recover Agent credentials through protected sinks | ready-for-agent | [TASK-00051](00051-TASK.md) | — |
 | 53 | [TASK-00053](00053-TASK.md) | Maintain and retire protected delivery material safely | [TICKET-00013](../tickets/00013-TICKET.md) — Deliver and recover Agent credentials through protected sinks | ready-for-agent | [TASK-00051](00051-TASK.md) | — |
 | 55 | [TASK-00055](00055-TASK.md) | Preserve existing Agent authority through upgrade | [TICKET-00014](../tickets/00014-TICKET.md) — Preserve credential authority across migration and upgrades | ready-for-agent | [TASK-00047](00047-TASK.md), [TASK-00048](00048-TASK.md) | — |
-| 60 | [TASK-00060](00060-TASK.md) | Align OpenAPI credential-delivery components with released contracts | — (standalone bug) | ready-for-agent | — |  |
+| 60 | [TASK-00060](00060-TASK.md) | Align OpenAPI credential-delivery components with released contracts | — (standalone bug) | ready-for-agent | — | https://github.com/johnnickell/fight-access-control/pull/84 |
 
 ## Waiting
 
