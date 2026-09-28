@@ -58,6 +58,11 @@ Application package boundary.
   failing, same-key recovery after response loss/restart, and authorized scheduler-only recovery without caller retry.
   Assert persisted outcomes and typed warning safety, not only call order; issuance cannot imply delivery, activation
   or launch authority. Real consumer conformance must separately prove current activation/use authorization.
+- Shipped OpenAPI metadata is a public library contract. Its generated-schema integration tests belong in the
+  default PHPUnit/build pipeline under the approved
+  [OpenAPI testing rule](../../docs/engineering/STANDARDS.md#accesscontrol-openapi-contract-integration-tests),
+  not the release-only tooling category. TASK-00060 owns the initial tests and suite wiring; exact Domain/Application
+  statement coverage remains unchanged.
 - Application clocks, credential generators, and ciphers belong under the matching Application aggregate Service
   namespace; their test doubles use the matching test Service namespace.
 - Every production statement requires executable coverage. The isolated fight-access-control PHP container is the

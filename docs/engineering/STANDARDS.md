@@ -42,6 +42,25 @@ This adoption does not certify all existing code against the baseline. Its compa
   requested clear `.runs` subdirectories for future work. This supersedes the dated run layout preserved in PR #55;
   the shared Delivery standard's plural `.runs/worktrees/` spelling does not apply in this repository.
 
+### AccessControl OpenAPI contract integration tests
+
+- **Rule:** Test the shipped OpenAPI catalog through generated-schema PHPUnit integration tests in the default suite,
+  normal CI test execution, and `./bin/build`. These are public library contract tests, not tooling meta-tests;
+  the shared Testing standard's exclusion of tooling tests from default builds does not apply to them. Compare
+  generated schemas with owning enums and real serialized payloads, and verify intended component coverage and
+  reference resolution rather than inspecting PHP source text or freezing schema counts.
+- **Scope:** Package-owned `openapi/` contract verification only. Release scripts, planning validators, wrappers,
+  and other tooling retain the shared exclusion. Test-only consumer document fixtures do not authorize production
+  endpoints, a package-owned document, or OpenAPI dependencies in Domain/Application.
+- **Coverage:** Preserve the exact `src/` statement-coverage gate. Schema-contract integration tests may use
+  `CoversNothing` to avoid attributing incidental execution to Domain/Application coverage; this does not classify
+  the shipped contract as tooling or exclude its tests from the normal suite.
+- **Rationale:** Consumers use these distributed schemas in production. Contract drift must fail the ordinary
+  library gate, not wait for optional release qualification.
+- **Approval/reference:** John explicitly required main-pipeline PHPUnit integration coverage on 2026-09-28 in
+  [TASK-00060](../../planning/tasks/00060-TASK.md#approved-verification-amendment). That TASK owns implementation;
+  recording the rule does not assert that the tests or suite wiring already exist.
+
 ## Targeted standards refresh — 2026-09-16
 
 Planning now distinguishes unfinished, executable and attention-needed work, with truthful next-action fallbacks. Review now checks omitted states and cross-view contradictions against independent expected behavior. Only these approved clauses were applied; earlier baseline content, project bindings and exceptions remain unchanged. Installed digests above identify the resulting local documents. Source digests for the refreshed rows identify the current authoring documents; a differing installed digest reflects this selective update rather than full replacement.
