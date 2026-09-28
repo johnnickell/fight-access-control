@@ -5,8 +5,8 @@ prepared by [provisioning](agent-provisioning-operations.md) or
 [TASK-00048 rotation](agent-rotation-operations.md). It uses [atomic retirement](agent-credential-retirement.md)
 rather than a parallel lifecycle writer. This is package Domain/Application behavior with behavioral in-memory
 composition proof, **not a supported deployable consumer integration**. TASK-00052 now adds
-[discovery and receipt-first restart recovery](agent-delivery-recovery.md); maintenance, reusable qualification and
-compatibility remain downstream. No production adapter is supplied.
+[discovery and receipt-first restart recovery](agent-delivery-recovery.md); TASK-00053 adds
+[material maintenance](agent-delivery-maintenance.md). Reusable qualification and compatibility remain downstream. No production adapter is supplied.
 
 ## Public composition
 
@@ -156,8 +156,9 @@ retention and authorization; a late-returning admission commit cannot start decr
 for **both** the previous claim lease and retry time. A fresh claim advances its attempt fence and uses a fresh
 opaque token but never changes delivery ID, original bytes, operation key or slot write order. At maximum attempts
 or retention expiry, the next authorized attempt records terminal/expired and removes delivery material. A worker
-cannot materialize past retention even if no cleanup worker has yet removed the stored copy. TASK-00053 owns bounded
-maintenance/cleanup when no delivery attempt runs; this slice does not promise timed physical deletion by itself.
+cannot materialize past retention even if no cleanup worker has yet removed the stored copy. TASK-00053 supplies
+[bounded maintenance/cleanup](agent-delivery-maintenance.md) when no delivery attempt runs; neither path promises
+physical deletion while scheduling, authorization or storage is unavailable.
 
 New-operation capacity (default 100 pending per scope / 10000 globally, with provisioning overrides) is not consulted
 by claim/admission/outcome or status. Recovery uses existing reservations and consumes no new issuance capacity.

@@ -83,8 +83,14 @@ unpaginated array of confirmed safe `AgentOperationView` payloads, not a ResultS
 `AgentIssuance`, and confirmed/indeterminate `AgentOperation` schemas contain no delivery material, claims, receipts
 or decryption handles. `JSend.Success.DueAgentDeliveries` is optional. These worker-facing value contracts introduce
 no endpoint or authorization policy; see [recovery composition](agent-delivery-recovery.md).
-Generated Agent-discovery schema integration tests run in the default PHPUnit/build pipeline without contributing
-incidental Domain/Application execution to statement coverage. Release certification remains a separate operation.
+`ListAgentDeliveryMaintenance` describes original scope/destination, `material` or `cleanup` work, bounded
+`batch_size` (default 50; 1–100), `cleanup_grace_seconds` (default 86400; 1–604800) and required nullable UUID `after`.
+`AgentDeliveryMaintenance` is a bounded array of confirmed safe operation views. `CountAgentDeliveryKeyReferences`
+accepts only an opaque `key_version`; `AgentDeliveryKeyReferences` is a nonnegative global diagnostic integer, never
+key-retirement permission. `AgentMaintenanceResult` mirrors the safe backed result enum. See
+[maintenance composition](agent-delivery-maintenance.md); no key paths, ciphertext, endpoint or raw-secret output is added.
+Generated Agent discovery/maintenance schema integration tests run in the default PHPUnit/build pipeline without
+contributing incidental Domain/Application execution to statement coverage. Release certification remains separate.
 
 Use `Authentication.BrowserResponse` for browser JSON: it has no refresh token,
 so the consumer may issue that credential only in an `HttpOnly` cookie. Use

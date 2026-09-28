@@ -14,6 +14,7 @@ use Fight\AccessControl\Domain\AccessControl\Agent\Delivery\AgentDeliveryFailure
 use Fight\AccessControl\Domain\AccessControl\Agent\Delivery\AgentDeliveryPolicy;
 use Fight\AccessControl\Domain\AccessControl\Agent\Delivery\AgentDeliveryReceipt;
 use Fight\AccessControl\Domain\AccessControl\Agent\Exception\AgentOperationRejectedException;
+use Fight\AccessControl\Domain\AccessControl\Agent\Maintenance\AgentMaintenancePolicy;
 use Fight\AccessControl\Domain\AccessControl\Agent\Query\AgentOperationView;
 use SensitiveParameter;
 
@@ -33,7 +34,7 @@ class AgentCredentialOperation
         private readonly int $canonicalVersion,
         private readonly string $canonicalRequest,
         private readonly AgentIssuance $issuance,
-        private readonly ?AgentDeliveryMaterial $material,
+        #[SensitiveParameter] private readonly ?AgentDeliveryMaterial $material,
         private readonly AgentDeliveryDisposition $deliveryDisposition = AgentDeliveryDisposition::PENDING,
         private readonly AgentCredentialDisposition $credentialDisposition = AgentCredentialDisposition::CURRENT,
         private readonly int $stateRevision = 0,
@@ -41,7 +42,8 @@ class AgentCredentialOperation
         private readonly ?AgentDeliveryPolicy $deliveryPolicy = null,
         private readonly ?DateTimeImmutable $retryAt = null,
         private readonly ?AgentDeliveryReceipt $receipt = null,
-        private readonly ?AgentDeliveryFailure $deliveryFailure = null
+        private readonly ?AgentDeliveryFailure $deliveryFailure = null,
+        private readonly bool $sinkCleaned = false
     ) {
         if ($stateRevision < 0) {
             throw new AgentOperationRejectedException(AgentOperationFailure::INVALID_REQUEST);
@@ -371,6 +373,126 @@ class AgentCredentialOperation
     }
 
     /**
+     * Returns whether original material has reached its pinned retention boundary
+     */
+    public function isMaterialExpired(DateTimeImmutable $now): bool
+    {
+        return $this->material !== null && $now >= $this->retentionEnd();
+    }
+
+    /**
+     * Creates a rewrapped copy without changing original binding, attempt, policy or delivery history
+     */
+    public function rewrapMaterial(#[SensitiveParameter] AgentDeliveryMaterial $material, DateTimeImmutable $now): self
+    {
+        $this->assertPendingDelivery();
+        if ($this->isMaterialExpired($now)) {
+            throw new AgentOperationRejectedException(AgentOperationFailure::CONFLICT);
+        }
+
+        return $this->withDelivery(
+            $material,
+            $this->deliveryDisposition,
+            $this->attempt,
+            $this->deliveryPolicy ?? new AgentDeliveryPolicy(),
+            $this->retryAt,
+            $this->receipt,
+            $this->deliveryFailure
+        );
+    }
+
+    /**
+     * Creates expiry without requiring a current slot reservation, claim or key access
+     */
+    public function expireMaterial(DateTimeImmutable $now): self
+    {
+        if (!$this->isMaterialExpired($now)) {
+            return $this;
+        }
+
+        $this->assertPendingDelivery();
+
+        return $this->withDelivery(
+            null,
+            AgentDeliveryDisposition::EXPIRED,
+            $this->attempt,
+            $this->deliveryPolicy ?? new AgentDeliveryPolicy()
+        );
+    }
+
+    /**
+     * Creates terminal delivery failure without retiring or replacing authentication authority
+     */
+    public function failMaterial(AgentDeliveryFailure $failure): self
+    {
+        $this->assertPendingDelivery();
+        if (!in_array($failure, [AgentDeliveryFailure::KEY_RETIRED, AgentDeliveryFailure::CORRUPT_MATERIAL], true)) {
+            throw new AgentOperationRejectedException(AgentOperationFailure::INVALID_REQUEST);
+        }
+
+        return $this->withDelivery(
+            null,
+            AgentDeliveryDisposition::TERMINAL,
+            $this->attempt,
+            $this->deliveryPolicy ?? new AgentDeliveryPolicy(),
+            null,
+            null,
+            $failure
+        );
+    }
+
+    /**
+     * Returns whether irreversible terminal state permits exact inert-entry cleanup after its recovery window
+     *
+     * A current delivered credential remains protected indefinitely; cleanup cannot remove its active sink entry.
+     */
+    public function canCleanup(DateTimeImmutable $now, AgentMaintenancePolicy $policy): bool
+    {
+        return $this->canonicalVersion === 1 && !$this->sinkCleaned && $this->material === null
+            && !in_array($this->deliveryDisposition, [
+                AgentDeliveryDisposition::PENDING,
+                AgentDeliveryDisposition::RETRYABLE
+            ], true)
+            && ($this->deliveryDisposition !== AgentDeliveryDisposition::DELIVERED
+                || $this->credentialDisposition !== AgentCredentialDisposition::CURRENT)
+            && $now >= $policy->cleanupAfter($this->retentionEnd());
+    }
+
+    /**
+     * Returns confirmed external cleanup separately from material absence and delivery acknowledgement
+     */
+    public function isSinkCleaned(): bool
+    {
+        return $this->sinkCleaned;
+    }
+
+    /**
+     * Creates a cleanup acknowledgement while retaining permanent correlation and lifecycle history
+     */
+    public function confirmCleanup(DateTimeImmutable $now, AgentMaintenancePolicy $policy): self
+    {
+        if (!$this->canCleanup($now, $policy)) {
+            throw new AgentOperationRejectedException(AgentOperationFailure::CONFLICT);
+        }
+
+        return new self(
+            $this->canonicalVersion,
+            $this->canonicalRequest,
+            $this->issuance,
+            null,
+            $this->deliveryDisposition,
+            $this->credentialDisposition,
+            $this->stateRevision + 1,
+            $this->attempt,
+            $this->deliveryPolicy,
+            $this->retryAt,
+            $this->receipt,
+            $this->deliveryFailure,
+            true
+        );
+    }
+
+    /**
      * Creates a retired original credential snapshot invalidating all outstanding delivery work
      *
      * Persist together with the validated Agent successor under shared transaction-duration fences. Never use a
@@ -408,7 +530,8 @@ class AgentCredentialOperation
             $this->deliveryPolicy,
             null,
             $this->receipt,
-            $this->deliveryFailure
+            $this->deliveryFailure,
+            $this->sinkCleaned
         );
     }
 
@@ -432,8 +555,17 @@ class AgentCredentialOperation
             $this->deliveryPolicy,
             null,
             $this->receipt,
-            $this->deliveryFailure
+            $this->deliveryFailure,
+            $this->sinkCleaned
         );
+    }
+
+    /**
+     * Returns original retention without extending it during rewrap, restart or cleanup
+     */
+    private function retentionEnd(): DateTimeImmutable
+    {
+        return ($this->deliveryPolicy ?? new AgentDeliveryPolicy())->retainUntil($this->issuance->getIssuedAt());
     }
 
     /**
@@ -454,7 +586,7 @@ class AgentCredentialOperation
      * Creates the next immutable delivery snapshot for an expected-state repository write
      */
     private function withDelivery(
-        ?AgentDeliveryMaterial $material,
+        #[SensitiveParameter] ?AgentDeliveryMaterial $material,
         AgentDeliveryDisposition $disposition,
         ?AgentDeliveryAttempt $attempt,
         AgentDeliveryPolicy $policy,

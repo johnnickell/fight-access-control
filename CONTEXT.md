@@ -38,7 +38,12 @@ behavior shared by Fight applications. The repository-local behavioral and secur
   completion. Late admitted bytes remain inert, not enrollment activation or use permission. Current unreleased
   implementation delivers one exact provisioned or rotated operation; TASK-00052 adds bounded delegated discovery,
   scheduler passes and receipt-first restart recovery. Discovery excludes obsolete destination write reservations
-  before limiting, so rejected predecessors cannot starve the current slot write. Maintenance remains downstream.
+  before limiting, so rejected predecessors cannot starve the current slot write. TASK-00053 adds maintenance.
+- **Agent delivery maintenance**: authorized ciphertext-only rewrapping, original-retention expiry and separately
+  confirmed inert sink cleanup. Keyset discovery includes obsolete slot copies; global key-reference counts are
+  diagnostic, never permission to destroy keys. All material writers share key-version admission/reference fences.
+  Cleanup excludes current delivered credentials and retains operation correlation, sink tombstones and slot order;
+  physical key management and actual sink erasure remain consumer capabilities.
 - **Agent issuance**: original Agent/credential/revision, global delivery ID and registered destination binding/write
   order. Confirmed issuance does not establish credential delivery, enrollment activation or permission to launch.
 - **Agent credential revision**: the monotonically advancing version of an Agent's single credential authority.
@@ -184,7 +189,12 @@ verification. John requested landing; [PR #85](https://github.com/johnnickell/fi
 `develop` at its initial publication checkpoint after mechanical integration of the TASK-00060 planning-only base
 update. The fresh landing gate passes 957 tests / 8350 assertions and exact 5971/5971 statements. This is not consumer
 qualification, merge or release.
-Other slices retain their remaining dependencies and require separate execution authority.
+John authorized TASK-00053 in the main checkout on `feature/task-00053-delivery-material`. Its
+[maintenance contract](docs/agent-delivery-maintenance.md) adds bounded read-only selection, global key accounting,
+protected rewrapping, retention expiry and outside-transaction sink cleanup with exact-state acknowledgement.
+The full local gate passes 1047 tests / 8980 assertions and exact 6245/6245 statements; TASK-00053 remains in progress
+awaiting independent review. No consumer qualification or release is claimed. Other slices retain their remaining
+dependencies and require separate execution authority.
 Each downstream execution needs authorization. John separately authorized TASK-00046
 execution and PR landing. Planning does not qualify a consumer or authorize migration, release or adoption.
 The replacement requires caller-scoped operation correlation, protected delivery and consumer authorization
@@ -227,7 +237,8 @@ TASK-00048 adds `AgentCredentialRotationService`, `AgentRotationRequest` and man
 its result has no raw-secret getter. `AgentCredentialLifecycleService` drops the unused generator/cipher constructor
 arguments while revocation behavior remains unchanged. Legacy Agents retain authentication/revocation and aggregate
 state compatibility but cannot enter recoverable rotation until TASK-00055's qualified migration path. This deliberate
-fail-closed intermediate state is unreleased and not deployable until downstream recovery/maintenance/cohort work lands.
+fail-closed intermediate state is unreleased and not deployable until all recovery/maintenance work is accepted and
+downstream conformance/cohort work lands.
 
 For those two replacement operations only, confirmed issuance commits return safe operation metadata with a typed,
 sanitized publication warning if post-commit publication fails. Pre-commit failure and indeterminate commit are
@@ -250,7 +261,12 @@ with at most one batch per pass and no capacity check on existing recovery. Sele
 using the stable slot's committed counter across all scopes/bindings, before ordering or limiting; no manual cleanup
 is needed to reach the current write. Delivery policy remains pinned on
 first claim; pending/retry/expired-claim due selection respects both lease and retry, capped by original retention.
-Downstream maintenance values remain with their owning TASKs. This is not a wider quota or approval system.
+TASK-00053 uses maintenance batches of 50 (valid 1–100), exclusive delivery-ID cursors, and a default inert-entry
+cleanup grace of 86400 seconds (valid 1–604800) after original delivery retention. Current delivered authority is never
+cleanup-eligible. Rewrap preserves the pinned delivery policy, or pins the existing default before first claim;
+expiry and cleanup cannot extend original delivery retention. Reference counts include every retained copy across
+scopes/batches/versions; physical retirement also requires closed write admission, fenced recount and independent
+key-use/authentication-envelope accounting. This is not a wider quota, key-vault or approval system.
 
 ## Planning and Completion
 

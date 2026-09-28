@@ -6,6 +6,7 @@ namespace Fight\Test\AccessControl\Application\AccessControl\Agent\Service;
 
 use Closure;
 use Fight\AccessControl\Application\AccessControl\Agent\Security\AgentCredentialInvocation;
+use Fight\AccessControl\Application\AccessControl\Agent\Service\AgentCredentialCleanup;
 use Fight\AccessControl\Application\AccessControl\Agent\Service\AgentCredentialSink;
 use Fight\AccessControl\Domain\AccessControl\Agent\Delivery\AgentDeliveryFailure;
 use Fight\AccessControl\Domain\AccessControl\Agent\Delivery\AgentDeliveryReceipt;
@@ -15,11 +16,15 @@ use Fight\Test\AccessControl\Application\AccessControl\User\InMemoryUnitOfWork;
 use LogicException;
 use SensitiveParameter;
 
-final class InMemoryAgentCredentialSink implements AgentCredentialSink
+final class InMemoryAgentCredentialSink implements AgentCredentialSink, AgentCredentialCleanup
 {
     public int $calls = 0;
 
     public int $verifications = 0;
+
+    public int $cleanups = 0;
+
+    public ?Closure $afterCleanup = null;
 
     public bool $supported = true;
 
@@ -35,6 +40,9 @@ final class InMemoryAgentCredentialSink implements AgentCredentialSink
 
     /** @var array<string, int> */
     public array $highWater = [];
+
+    /** @var array<string, AgentIssuance> */
+    private array $cleanedBindings = [];
 
     /** @var array<string, array{AgentCredentialInvocation, AgentDeliveryReceipt}> */
     private array $entries = [];
@@ -115,6 +123,23 @@ final class InMemoryAgentCredentialSink implements AgentCredentialSink
         $entry = $this->entries[$issuance->getDeliveryId()->toString()] ?? null;
 
         return $entry === null ? null : $entry[0]->revealSecret();
+    }
+
+    public function remove(AgentIssuance $issuance): void
+    {
+        $this->assertSupported($issuance);
+        $id = $issuance->getDeliveryId()->toString();
+        $binding = $this->cleanedBindings[$id] ?? ($this->entries[$id][0] ?? null)?->getIssuance();
+        if ($binding !== null && $binding->toArray() !== $issuance->toArray()) {
+            throw new AgentDeliveryFailedException(AgentDeliveryFailure::INVALID_RECEIPT);
+        }
+
+        ++$this->cleanups;
+        $this->cleanedBindings[$id] = $issuance;
+        $this->forgetMaterial($issuance);
+        $slot = $issuance->getDestination()->getId()->toString();
+        $this->highWater[$slot] = max($this->highWater[$slot] ?? 0, $issuance->getDestinationWriteVersion());
+        $this->afterCleanup?->__invoke();
     }
 
     public function forgetMaterial(AgentIssuance $issuance): void

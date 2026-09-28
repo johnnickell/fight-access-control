@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Fight\AccessControl\Domain\AccessControl\Agent\Operation;
 
-use Fight\AccessControl\Domain\AccessControl\Agent\Exception\AgentOperationRejectedException;
+use Fight\AccessControl\Domain\AccessControl\Agent\Maintenance\AgentDeliveryKeyVersion;
 use Fight\AccessControl\Domain\AccessControl\CredentialDelivery\EncryptedCredentialMaterial;
 use LogicException;
 use SensitiveParameter;
@@ -21,11 +21,9 @@ final readonly class AgentDeliveryMaterial
      */
     public function __construct(
         #[SensitiveParameter] private EncryptedCredentialMaterial $ciphertext,
-        private string $keyVersion
+        #[SensitiveParameter] private string $keyVersion
     ) {
-        if (preg_match('/\A[A-Za-z0-9_.-]{1,64}\z/D', $keyVersion) !== 1) {
-            throw new AgentOperationRejectedException(AgentOperationFailure::INVALID_REQUEST);
-        }
+        new AgentDeliveryKeyVersion($keyVersion);
     }
 
     /**

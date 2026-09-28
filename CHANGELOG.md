@@ -9,6 +9,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Authorized Agent delivery material rewrapping, retention expiry and replay-safe inert sink cleanup through
+  `AgentDeliveryMaintenanceService`. Bounded `ListAgentDeliveryMaintenance` and global diagnostic
+  `CountAgentDeliveryKeyReferences` queries are read-only; zero references never authorize physical key retirement.
+  Opt-in schemas mirror the safe queries/results. See the [unreleased maintenance contract](docs/agent-delivery-maintenance.md).
 - Reusable OpenAPI `DeliverPasswordReset`, `FindCredentialDeliveryStatus`, `FindDueCredentialDeliveries`, safe
   `CredentialDeliveryStatus` and `DueCredentialDelivery` components, plus an unpaginated due-work list and optional
   typed success envelopes. Generated delivery-contract and composition checks run in default PHPUnit, CI and build;
@@ -28,6 +32,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- **Unreleased v0.5.0 integration change:** operation adapters add `listMaintenance()`,
+  `countDeliveryKeyReferences()` and exact-state `replaceMaintenance()`, persist `sinkCleaned`, and share key-version
+  write/reference fences across all writers. Consumers implement maintenance authorization, bound ciphertext
+  rewrapping and exact-tuple cleanup retaining permanent deduplication/order evidence. No production adapter or
+  physical key-destruction capability is supplied; downstream consumer qualification remains required.
 - **Breaking schema correction (unreleased):** `InvitationDeliveryStatus.status` now matches the seven released
   credential-delivery states, adding `retry_pending`, `delivered`, `permanent_failure`, and `invalidated` while
   removing obsolete `failed` and `confirmed`. Its existing success-envelope reference is preserved. Enum narrowing
