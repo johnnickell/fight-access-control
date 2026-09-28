@@ -9,6 +9,7 @@ use Fight\AccessControl\Domain\AccessControl\Permission\Permission;
 use Fight\AccessControl\Domain\AccessControl\Permission\PermissionId;
 use Fight\Common\Domain\Repository\Pagination;
 use Fight\Common\Domain\Repository\ResultSet;
+use SensitiveParameter;
 
 /**
  * Interface AgentRepository
@@ -64,10 +65,15 @@ interface AgentRepository
      * Cancellation failure, Agent write failure and subsequent audit failure roll back both states together.
      * Consumer authority/reassignment writers and delivery claims/admission/outcomes use the same fences and epochs.
      * Legacy predecessors without operation correlation retain their existing transactional lifecycle contract.
+     * Mark both Agent parameters sensitive in every implementation and forwarding method: interface attributes
+     * are not inherited. Cancellation failures must not expose authentication envelopes through outer trace frames.
      *
      * @throws Exception When an error occurs
      */
-    public function replace(Agent $expected, Agent $replacement): bool;
+    public function replace(
+        #[SensitiveParameter] Agent $expected,
+        #[SensitiveParameter] Agent $replacement
+    ): bool;
 
     /**
      * Validates exact ADMIN_SAFE Permission definitions under the transaction-duration reference and tier fence

@@ -198,8 +198,10 @@ migration/cohort/restore scope and the complete scenario map.
 
 TASK-00046's accepted implementation is merged. John authorized TASK-00050 in the main checkout on
 `feature/task-00050-retirement`; atomic revocation/cancellation, Domain successor validation and controlled
-expected-state race/rollback tests are locally verified (707 tests, exact 5470/5470 statement coverage).
-It remains in progress pending independent review. TASK-00051–00054 still wait on dependencies. All TICKET acceptance
+expected-state race/rollback tests are locally verified. Independent review requested R1 failure/debug redaction;
+the correction annotates replacement arguments and transaction callbacks, with six regression cases and a fresh
+complete gate (713 tests / 6651 assertions, exact 5470/5470 statement coverage).
+It remains in progress pending independent re-review. TASK-00051–00054 still wait on dependencies. All TICKET acceptance
 boxes remain open until their full owning-slice evidence is independently accepted. See the
 [retirement contract](../../docs/agent-credential-retirement.md) for the slice's public write obligations and limits.
 Concrete finite values, override validation, public shapes and expected-state details must be documented/tested in

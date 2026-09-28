@@ -18,6 +18,7 @@ use Fight\Common\Domain\Repository\Pagination;
 use Fight\Common\Domain\Repository\ResultSet;
 use Fight\Test\AccessControl\Application\AccessControl\User\InMemoryUnitOfWork;
 use Fight\Test\AccessControl\Application\AccessControl\User\Repository\InMemoryAuthorizationReferenceState;
+use SensitiveParameter;
 use Throwable;
 
 final class InMemoryAgentRepository implements AgentRepository
@@ -105,8 +106,10 @@ final class InMemoryAgentRepository implements AgentRepository
         return $this->authorizationReferences->agentContainsPermission($permissionId);
     }
 
-    public function replace(Agent $expected, Agent $replacement): bool
-    {
+    public function replace(
+        #[SensitiveParameter] Agent $expected,
+        #[SensitiveParameter] Agent $replacement
+    ): bool {
         foreach ($this->agents as $index => $agent) {
             if (
                 $agent !== $expected

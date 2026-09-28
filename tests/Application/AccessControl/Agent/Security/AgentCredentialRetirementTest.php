@@ -39,6 +39,7 @@ use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 use RuntimeException;
+use SensitiveParameterValue;
 
 #[CoversClass(Agent::class)]
 #[CoversClass(AgentCredentialOperation::class)]
@@ -360,6 +361,114 @@ final class AgentCredentialRetirementTest extends TestCase
                 self::assertCount(1, $environment->audit->all());
             }
         }
+    }
+
+    /** @return iterable<string, array{string}> */
+    public static function sensitiveFailures(): iterable
+    {
+        yield 'missing' => ['missing'];
+        yield 'ambiguous' => ['ambiguous'];
+        yield 'cancellation' => ['cancellation'];
+        yield 'no operations' => ['no operations'];
+        yield 'wrong connection' => ['wrong connection'];
+        yield 'no transaction' => ['no transaction'];
+    }
+
+    #[DataProvider('sensitiveFailures')]
+    public function test_retirement_failure_debug_redacts_agents_with_exception_arguments_enabled(string $case): void
+    {
+        $environment = $this->issued();
+        $agent = $environment->agents->all()[0];
+        $original = $this->operation($environment);
+        $repository = $environment->agents;
+        if ($case === 'missing') {
+            $environment->operations->operations = [];
+        } elseif ($case === 'ambiguous') {
+            $environment->operations->operations['duplicate'] = $original;
+        } elseif ($case === 'cancellation') {
+            $environment->operations->afterRetirement = static function (): void {
+                throw new RuntimeException('unsafe-provider-detail original-test-secret');
+            };
+        } elseif ($case === 'no operations') {
+            $repository = new InMemoryAgentRepository($environment->transaction);
+            $repository->add($agent);
+        } elseif ($case === 'wrong connection') {
+            $repository = new InMemoryAgentRepository(new InMemoryUnitOfWork(), operations: $environment->operations);
+            $repository->add($agent);
+        }
+
+        $before = $environment->operations->operations;
+        $versions = $environment->operations->versions;
+        $previous = ini_set('zend.exception_ignore_args', '0');
+        try {
+            self::assertSame('0', ini_get('zend.exception_ignore_args'));
+            try {
+                if ($case === 'no transaction') {
+                    $repository->replace($agent, $agent->revoke($this->now()));
+                } elseif ($repository !== $environment->agents) {
+                    $environment->transaction->commitTransactional(function () use ($repository, $agent): void {
+                        $repository->replace($agent, $agent->revoke($this->now()));
+                    });
+                } else {
+                    $this->service($environment)->revoke('maintainer-42', $agent->getId());
+                }
+
+                self::fail('Expected sanitized cancellation rejection.');
+            } catch (AgentOperationRejectedException $failure) {
+                $expectedReason = AgentOperationFailure::UNAVAILABLE;
+                if (in_array($case, ['missing', 'ambiguous'], true)) {
+                    $expectedReason = AgentOperationFailure::CONFLICT;
+                }
+
+                self::assertSame($expectedReason, $failure->getReason());
+                self::assertNull($failure->getPrevious());
+                $replacementFrames = 0;
+                $trace = [];
+                foreach ($failure->getTrace() as $frame) {
+                    // Keep the whole failing call chain, but not PHPUnit's test-runner object graph.
+                    if ($frame['function'] === __FUNCTION__) {
+                        break;
+                    }
+
+                    $trace[] = $frame;
+                    if (
+                        ($frame['class'] ?? null) !== InMemoryAgentRepository::class
+                        || $frame['function'] !== 'replace'
+                    ) {
+                        continue;
+                    }
+
+                    ++$replacementFrames;
+                    self::assertCount(2, $frame['args']);
+                    foreach ($frame['args'] as $argument) {
+                        self::assertTrue(
+                            $argument instanceof SensitiveParameterValue,
+                            'Agent argument must be redacted.'
+                        );
+                    }
+                }
+
+                self::assertSame(1, $replacementFrames);
+                $details = ['message' => $failure->getMessage(), 'trace' => $trace];
+                ob_start();
+                var_dump($details);
+                $debug = ob_get_clean().print_r($details, true);
+                $secrets = ['original-test-secret', 'auth-envelope:', 'ciphertext', 'unsafe-provider-detail'];
+                foreach ($secrets as $secret) {
+                    self::assertFalse(str_contains($debug, $secret), 'Failure debug must not expose sensitive data.');
+                }
+            }
+        } finally {
+            ini_set('zend.exception_ignore_args', $previous);
+        }
+
+        self::assertSame($agent, $repository->getById($agent->getId()));
+        self::assertSame($before, $environment->operations->operations);
+        self::assertSame($versions, $environment->operations->versions);
+        self::assertCount(1, $environment->audit->all());
+        self::assertFalse($environment->transaction->transactionActive);
+        self::assertFalse($environment->operations->retirementLocked);
+        self::assertFalse($environment->authorization->locked);
     }
 
     public function test_consumer_authority_writers_share_retirement_fences_and_aba_invalidates_old_snapshots(): void

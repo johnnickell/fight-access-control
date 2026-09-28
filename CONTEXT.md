@@ -144,8 +144,9 @@ TICKET decompositions are complete; TASK-00046 is independently accepted and don
 verification, not release; its PR #79 is now merged. John authorized TASK-00047 in the main checkout; its safe
 status path is independently accepted and done for implementation/local verification, not merge or release.
 John subsequently requested landing; PR #80 is merged into the current develop base. John authorized TASK-00050
-in the main checkout on `feature/task-00050-retirement`. Its atomic retirement implementation is locally verified,
-with status in progress pending independent review; other slices still wait on dependencies. Each downstream execution needs authorization. John separately authorized TASK-00046
+in the main checkout on `feature/task-00050-retirement`. Independent review requested R1 failure-trace redaction;
+that correction is locally verified and remains in progress pending independent re-review. Other slices still wait
+on dependencies. Each downstream execution needs authorization. John separately authorized TASK-00046
 execution and PR landing. Planning does not qualify a consumer or authorize migration, release or adoption.
 The replacement requires caller-scoped operation correlation, protected delivery and consumer authorization
 participating in the package-owned transaction under shared authority fences. Consumers still own policy, adapters,
@@ -169,7 +170,10 @@ Permission changes. [TASK-00050 retirement](docs/agent-credential-retirement.md)
 preserving that marker. `AgentRepository::replace()` validates exact lifecycle successors and atomically cancels the
 original credential operation through same-connection `AgentOperationRepository::retireCredential()`. Retirement
 removes delivery material, advances the operation state revision and preserves original correlation/delivery history;
-no old claim/admission snapshot can restore it. All authority and delivery writers must share those fences/epochs.
+no old claim/admission snapshot can restore it. Concrete replacement/cancellation implementations must annotate both
+Agent arguments as sensitive; transaction implementations must also redact the callback argument, whose captured or
+bound state can expose authentication material. Interface annotations alone are not inherited by implementations.
+All authority and delivery writers must share those fences/epochs.
 This is controlled expected-state package proof, not the downstream delivery worker or real consumer qualification.
 Existing legacy Agents and their lifecycle services retain current behavior. This deliberate
 fail-closed intermediate state is unreleased and not deployable until downstream lifecycle/delivery/cohort work lands.

@@ -50,8 +50,15 @@ The repository write performs the following indivisible operation:
 No outer/nested transaction, subscriber, asynchronous cancellation, key lookup, decryption or sink invocation can
 substitute for these steps. Repositories reject unsupported participation with sanitized
 `AgentOperationRejectedException`; adapter exceptions must omit provider details, material, chained exceptions and
-sensitive trace arguments. Consumer adapters mark sensitive parameters as the interface does. A nonconforming
-adapter cannot be made safe by this document: qualify its actual transaction and write fences before adoption.
+sensitive trace arguments. Mark **both Agent arguments** `#[SensitiveParameter]` on every concrete `replace()` and
+`retireCredential()` implementation and any forwarding method. Interface parameter attributes are **not inherited**;
+redacting only the inner cancellation method leaves the outer replacement frame's authentication envelopes exposed.
+Also mark the concrete `TransactionalUnitOfWork::commitTransactional()` callback parameter `#[SensitiveParameter]`:
+a closure's bound service or captured state can otherwise expose the same material in the outer transaction frame.
+This is a required consumer composition obligation even though the upstream Common interface does not annotate it.
+Qualify exception traces and structured debug output with argument capture enabled (`zend.exception_ignore_args=0`),
+not just exception strings. A nonconforming adapter cannot be made safe by this document: qualify its actual
+transaction and write fences before adoption.
 TASK-00056 owns complete cohort/version compatibility and exclusion of old binaries.
 
 The operation's Domain transition preserves its original key, canonical version/request, globally unique delivery ID,
@@ -130,7 +137,7 @@ makes no real database concurrency, receipt, deadline or activation/use claim.
 | D5 direct rotation-capable write | `test_direct_rotation_capable_write_uses_the_same_cancellation_without_building_rotation` uses a hydrated successor, not TASK-00048's future workflow. |
 | D5 / D6 atomicity and no key/sink dependency | Successful revocation plus cancellation/Agent/audit/commit rollback cases assert persisted outcomes; generator and cipher are never called. Missing correlation, wrong connection, absent/nested transaction reject. |
 | D5 publication | Both publishers fail; committed revocation remains and the original publication fault rethrows. |
-| D6 safe retained original identity | Domain tuple checks, all delivery dispositions, same-key resolution and secret-free status/debug/audit assertions; no successor-secret or authentication-envelope fallback. |
+| D6 safe retained original identity | Domain tuple checks, all delivery dispositions, same-key resolution and secret-free status/debug/audit assertions; no successor-secret or authentication-envelope fallback. `test_retirement_failure_debug_redacts_agents_with_exception_arguments_enabled` proves redacted replacement trace arguments and safe structured failure debug for missing/ambiguous correlation, cancellation storage failure and unsupported participation, with rollback preserved. |
 | D7 defaults/overrides and cleanup/replay | Default-only retirement and one-slot capacity exhaustion/cleanup tests preserve original resolution and monotonic destination order. |
 
 TASK-00051 must prove actual admission and in-flight sink races, TASK-00048 actual replacement rotation, TASK-00053

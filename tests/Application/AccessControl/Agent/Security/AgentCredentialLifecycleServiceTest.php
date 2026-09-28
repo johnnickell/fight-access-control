@@ -36,6 +36,7 @@ use LogicException;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
 use RuntimeException;
+use SensitiveParameter;
 
 #[CoversClass(AgentCredentialLifecycleService::class)]
 #[CoversClass(AgentCredentialRotationResult::class)]
@@ -311,8 +312,10 @@ final class AgentCredentialLifecycleServiceTest extends TestCase
                     throw new LogicException('Not used by this test double.');
                 }
 
-                public function replace(Agent $expected, Agent $replacement): bool
-                {
+                public function replace(
+                    #[SensitiveParameter] Agent $expected,
+                    #[SensitiveParameter] Agent $replacement
+                ): bool {
                     throw $this->failure;
                 }
 
@@ -458,8 +461,10 @@ final class AgentCredentialLifecycleServiceTest extends TestCase
                 throw new LogicException('Not used by this test double.');
             }
 
-            public function replace(Agent $expected, Agent $replacement): bool
-            {
+            public function replace(
+                #[SensitiveParameter] Agent $expected,
+                #[SensitiveParameter] Agent $replacement
+            ): bool {
                 return false;
             }
 
@@ -604,8 +609,10 @@ final class AgentCredentialLifecycleServiceTest extends TestCase
                     throw new LogicException('Not used by this test double.');
                 }
 
-                public function replace(Agent $expected, Agent $replacement): bool
-                {
+                public function replace(
+                    #[SensitiveParameter] Agent $expected,
+                    #[SensitiveParameter] Agent $replacement
+                ): bool {
                     throw $this->failure;
                 }
 
