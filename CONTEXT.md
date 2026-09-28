@@ -27,6 +27,10 @@ behavior shared by Fight applications. The repository-local behavioral and secur
 - **Agent credential operation**: a caller-scoped, versioned request binding retaining original issuance metadata
   and a separately encrypted prepared delivery copy. Retrying an authorized retained key resolves that outcome;
   retiring its material never makes the key reusable. Current unreleased implementation supports provisioning only.
+- **Agent operation status**: an authorized secret-free read snapshot separating confirmed original issuance from
+  recorded delivery and original-credential disposition. An absent record is indeterminate, not proof of rollback.
+  Current scope/delegation/destination checks precede lookup and repeat with target checks before disclosure; reads
+  neither commit nor access material and grant no delivery, activation or use authority.
 - **Agent issuance**: original Agent/credential/revision, global delivery ID and registered destination binding/write
   order. Confirmed issuance does not establish credential delivery, enrollment activation or permission to launch.
 - **Agent credential revision**: the monotonically advancing version of an Agent's single credential authority.
@@ -137,12 +141,22 @@ wait on unfinished dependencies rather than missing information. TICKET-00014 no
 [TASK-00055](planning/tasks/00055-TASK.md) through [TASK-00059](planning/tasks/00059-TASK.md): existing-Agent
 compatibility, contract cohorts, canonical upgrades, restoration safety and migration/evidence guidance. All three
 TICKET decompositions are complete; TASK-00046 is independently accepted and done for implementation/local
-verification, not merge or release. TASK-00047/00050 have no remaining acceptance blocker; other slices still wait
-on dependencies. Each downstream execution needs its own authorization. John separately authorized TASK-00046
+verification, not release; its PR #79 is now merged. John authorized TASK-00047 in the main checkout; its safe
+status path is independently accepted and done for implementation/local verification, not merge or release.
+John subsequently requested landing, which published its PR #80 against develop. TASK-00050 has no remaining acceptance blocker;
+other slices still wait on dependencies. Each downstream execution needs its own authorization. John separately authorized TASK-00046
 execution and PR landing. Planning does not qualify a consumer or authorize migration, release or adoption.
 The replacement requires caller-scoped operation correlation, protected delivery and consumer authorization
 participating in the package-owned transaction under shared authority fences. Consumers still own policy, adapters,
 keys and the sink; unsupported integrations fail closed.
+
+TASK-00047 adds [safe operation queries](docs/agent-operation-status.md) using the original key and destination,
+`AgentOperationRepository::getStatusByKey()` and `AgentOperationAuthorization::authorizeRead()`. Consumers implement
+current read authority independently of transaction-only issuance authorization; the second check includes the
+original Agent target. Safe views retain persisted version and separate delivery/credential dispositions, including
+tombstones. Unknown versions deny without reinterpreting requests. Storage failures are sanitized unavailable;
+authoritative absence is indeterminate. Tests exercise real provision-to-read recovery and controlled persisted
+fixtures for later dispositions, not actual downstream lifecycle/delivery writers or consumer database proof.
 
 TASK-00046 implements provision and same-key service resolution, not the entire replacement. The old provisioning
 signature and raw result are removed; its new safe result distinguishes confirmed issuance, publication warning and

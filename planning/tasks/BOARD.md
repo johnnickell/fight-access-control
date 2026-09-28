@@ -5,7 +5,7 @@ dependencies, acceptance, and verification.
 
 ## What's Next?
 
-First ready Task: [TASK-00047](00047-TASK.md) — Read Agent operation outcomes safely.
+First ready Task: [TASK-00050](00050-TASK.md) — Revoke Agent credentials and fence pending delivery.
 
 ## In Progress
 
@@ -15,7 +15,6 @@ No Tasks are currently in this state.
 
 | Order | TASK ID | Title | Parent TICKET | Status | Blocked by | PR |
 | --- | --- | --- | --- | --- | --- | --- |
-| 47 | [TASK-00047](00047-TASK.md) | Read Agent operation outcomes safely | [TICKET-00012](../tickets/00012-TICKET.md) — Issue and resolve Agent credentials recoverably | ready-for-agent | [TASK-00046](00046-TASK.md) | — |
 | 50 | [TASK-00050](00050-TASK.md) | Revoke Agent credentials and fence pending delivery | [TICKET-00013](../tickets/00013-TICKET.md) — Deliver and recover Agent credentials through protected sinks | ready-for-agent | [TASK-00046](00046-TASK.md) | — |
 
 ## Waiting
@@ -96,3 +95,4 @@ No Tasks are currently in this state.
 | 44 | [TASK-00044](00044-TASK.md) | Enforce tier eligibility on direct Agent assignments | [TICKET-00009](../tickets/00009-TICKET.md) — Delegate Eligible Permissions to Custom Roles and Agents | done | [TASK-00041](00041-TASK.md) | https://github.com/johnnickell/fight-access-control/pull/72 |
 | 45 | [TASK-00045](00045-TASK.md) | Reconcile protected managed policy without forbidden membership | [TICKET-00010](../tickets/00010-TICKET.md) — Reconcile Protected Managed Policy Safely | done | [TASK-00042](00042-TASK.md), [TASK-00043](00043-TASK.md), [TASK-00044](00044-TASK.md) | https://github.com/johnnickell/fight-access-control/pull/73 |
 | 46 | [TASK-00046](00046-TASK.md) | Provision an Agent through a recoverable operation | [TICKET-00012](../tickets/00012-TICKET.md) — Issue and resolve Agent credentials recoverably | done | — | https://github.com/johnnickell/fight-access-control/pull/79 |
+| 47 | [TASK-00047](00047-TASK.md) | Read Agent operation outcomes safely | [TICKET-00012](../tickets/00012-TICKET.md) — Issue and resolve Agent credentials recoverably | done | [TASK-00046](00046-TASK.md) | https://github.com/johnnickell/fight-access-control/pull/80 |

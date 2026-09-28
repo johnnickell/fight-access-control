@@ -11,6 +11,7 @@ use Fight\AccessControl\Domain\AccessControl\Agent\Operation\AgentCredentialOper
 use Fight\AccessControl\Domain\AccessControl\Agent\Operation\AgentOperationKey;
 use Fight\AccessControl\Domain\AccessControl\Agent\Operation\AgentOperationLimits;
 use Fight\AccessControl\Domain\AccessControl\Agent\Operation\AgentOperationRepository;
+use Fight\AccessControl\Domain\AccessControl\Agent\Query\AgentOperationView;
 use Fight\Test\AccessControl\Application\AccessControl\Agent\Service\InMemoryAgentOperationAuthorization;
 use Fight\Test\AccessControl\Application\AccessControl\User\InMemoryUnitOfWork;
 use LogicException;
@@ -29,6 +30,10 @@ final class InMemoryAgentOperationRepository implements AgentOperationRepository
 
     public ?Closure $afterAdd = null;
 
+    public ?Closure $afterStatusRead = null;
+
+    public int $statusReads = 0;
+
     public function __construct(
         private readonly InMemoryUnitOfWork $unitOfWork,
         private readonly InMemoryAgentOperationAuthorization $authorization
@@ -41,6 +46,15 @@ final class InMemoryAgentOperationRepository implements AgentOperationRepository
         ++$this->reads;
 
         return $this->operations[$key->toString()] ?? null;
+    }
+
+    public function getStatusByKey(AgentOperationKey $key): ?AgentOperationView
+    {
+        ++$this->statusReads;
+        $view = ($this->operations[$key->toString()] ?? null)?->getStatus();
+        $this->afterStatusRead?->__invoke();
+
+        return $view;
     }
 
     public function reserveDestinationWrite(AgentCredentialDestination $destination): int

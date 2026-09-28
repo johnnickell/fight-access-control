@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Fight\AccessControl\Domain\AccessControl\Agent\Operation;
 
 use Fight\AccessControl\Domain\AccessControl\Agent\Exception\AgentOperationRejectedException;
+use Fight\AccessControl\Domain\AccessControl\Agent\Query\AgentOperationView;
 
 /**
  * Class AgentCredentialOperation
@@ -22,7 +23,9 @@ class AgentCredentialOperation
         private readonly int $canonicalVersion,
         private readonly string $canonicalRequest,
         private readonly AgentIssuance $issuance,
-        private readonly ?AgentDeliveryMaterial $material
+        private readonly ?AgentDeliveryMaterial $material,
+        private readonly AgentDeliveryDisposition $deliveryDisposition = AgentDeliveryDisposition::PENDING,
+        private readonly AgentCredentialDisposition $credentialDisposition = AgentCredentialDisposition::CURRENT
     ) {
     }
 
@@ -63,6 +66,21 @@ class AgentCredentialOperation
     }
 
     /**
+     * Returns recorded safe state without deriving delivery success from issuance or material absence
+     *
+     * Adapters persist both dispositions with their owning lifecycle writes; queries never advance them.
+     */
+    public function getStatus(): AgentOperationView
+    {
+        return AgentOperationView::confirmed(
+            $this->canonicalVersion,
+            $this->issuance,
+            $this->deliveryDisposition,
+            $this->credentialDisposition
+        );
+    }
+
+    /**
      * Returns the prepared copy only for authorized persistence and internal delivery coordination
      */
     public function getMaterial(): ?AgentDeliveryMaterial
@@ -78,6 +96,18 @@ class AgentCredentialOperation
      */
     public function retireMaterial(): self
     {
-        return new self($this->canonicalVersion, $this->canonicalRequest, $this->issuance, null);
+        $disposition = $this->deliveryDisposition;
+        if (in_array($disposition, [AgentDeliveryDisposition::PENDING, AgentDeliveryDisposition::RETRYABLE], true)) {
+            $disposition = AgentDeliveryDisposition::RETIRED;
+        }
+
+        return new self(
+            $this->canonicalVersion,
+            $this->canonicalRequest,
+            $this->issuance,
+            null,
+            $disposition,
+            $this->credentialDisposition
+        );
     }
 }

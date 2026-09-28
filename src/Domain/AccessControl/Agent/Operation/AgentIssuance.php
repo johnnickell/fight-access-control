@@ -8,13 +8,16 @@ use DateTimeImmutable;
 use Fight\AccessControl\Domain\AccessControl\Agent\AgentCredentialId;
 use Fight\AccessControl\Domain\AccessControl\Agent\AgentId;
 use Fight\AccessControl\Domain\AccessControl\Agent\Exception\AgentOperationRejectedException;
+use Fight\Common\Domain\Type\Arrayable;
+use SensitiveParameter;
+use Throwable;
 
 /**
  * Class AgentIssuance
  *
  * Describes original issuance without asserting delivery, activation or current use authority.
  */
-final readonly class AgentIssuance
+final readonly class AgentIssuance implements Arrayable
 {
     /**
      * Constructs AgentIssuance
@@ -30,6 +33,46 @@ final readonly class AgentIssuance
         private DateTimeImmutable $issuedAt
     ) {
         if ($credentialRevision < 0 || $destinationWriteVersion < 1) {
+            throw new AgentOperationRejectedException(AgentOperationFailure::INVALID_REQUEST);
+        }
+    }
+
+    /**
+     * Creates original metadata from its canonical safe representation
+     *
+     * @param array<string, mixed> $data
+     */
+    public static function fromArray(#[SensitiveParameter] array $data): self
+    {
+        try {
+            foreach (['delivery_id', 'agent_id', 'credential_id', 'issued_at'] as $field) {
+                if (!isset($data[$field]) || !is_string($data[$field])) {
+                    throw new AgentOperationRejectedException(AgentOperationFailure::INVALID_REQUEST);
+                }
+            }
+
+            foreach (['credential_revision', 'destination_write_version'] as $field) {
+                if (!isset($data[$field]) || !is_int($data[$field])) {
+                    throw new AgentOperationRejectedException(AgentOperationFailure::INVALID_REQUEST);
+                }
+            }
+
+            $issuedAt = DateTimeImmutable::createFromFormat('!Y-m-d\TH:i:s.uP', $data['issued_at']);
+            if ($issuedAt === false || $issuedAt->format('Y-m-d\TH:i:s.uP') !== $data['issued_at']) {
+                throw new AgentOperationRejectedException(AgentOperationFailure::INVALID_REQUEST);
+            }
+
+            return new self(
+                AgentOperationKey::fromArray($data),
+                AgentDeliveryId::fromString($data['delivery_id']),
+                AgentId::fromString($data['agent_id']),
+                AgentCredentialId::fromString($data['credential_id']),
+                $data['credential_revision'],
+                AgentCredentialDestination::fromArray($data),
+                $data['destination_write_version'],
+                $issuedAt
+            );
+        } catch (Throwable) {
             throw new AgentOperationRejectedException(AgentOperationFailure::INVALID_REQUEST);
         }
     }

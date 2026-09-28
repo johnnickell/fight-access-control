@@ -6,6 +6,7 @@ namespace Fight\Test\AccessControl\Application\AccessControl\Agent\Service;
 
 use Closure;
 use Fight\AccessControl\Application\AccessControl\Agent\Service\AgentOperationAuthorization;
+use Fight\AccessControl\Domain\AccessControl\Agent\AgentId;
 use Fight\AccessControl\Domain\AccessControl\Agent\Exception\AgentOperationRejectedException;
 use Fight\AccessControl\Domain\AccessControl\Agent\Operation\AgentCredentialDestination;
 use Fight\AccessControl\Domain\AccessControl\Agent\Operation\AgentOperationFailure;
@@ -30,6 +31,15 @@ final class InMemoryAgentOperationAuthorization implements AgentOperationAuthori
     public int $calls = 0;
 
     public ?Closure $afterAuthorization = null;
+
+    /** @var array<string, bool> */
+    public array $readDelegations = [];
+
+    /** @var list<string> */
+    public array $deniedTargets = [];
+
+    /** @var list<array{string, string, ?string}> */
+    public array $readChecks = [];
 
     public function __construct(private readonly InMemoryUnitOfWork $unitOfWork)
     {
@@ -57,6 +67,28 @@ final class InMemoryAgentOperationAuthorization implements AgentOperationAuthori
         $this->afterAuthorization?->__invoke();
 
         return $this->actor;
+    }
+
+    public function authorizeRead(
+        AgentOperationScope $scope,
+        AgentCredentialDestination $destination,
+        ?AgentId $target
+    ): void {
+        if ($this->unitOfWork->transactionActive) {
+            throw new LogicException('Status reads must not open an issuance transaction.');
+        }
+
+        $this->readChecks[] = [$this->actor, $scope->toString(), $target?->toString()];
+        if (
+            !($this->scopes[$scope->toString()] ?? false)
+            || ($this->actor !== $scope->getCallerId()
+                && !($this->readDelegations[$this->actor.':'.$scope->toString()] ?? false))
+            || ($this->destinations[$destination->getId()->toString()] ?? null) !== $destination->getRevision()
+            || $this->delegationExpired
+            || ($target !== null && in_array($target->toString(), $this->deniedTargets, true))
+        ) {
+            throw new AgentOperationRejectedException(AgentOperationFailure::UNAUTHORIZED);
+        }
     }
 
     public function changeAuthority(Closure $writer): void
