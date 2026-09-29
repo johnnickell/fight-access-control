@@ -32,6 +32,31 @@ not execution authorization; intermediate PRs are not a supported partial releas
 John selected `v0.5.0` as the target release. Implementation, release/publication, consumer upgrade and Agent OS
 TASK-00138 closure remain separately authorized operations.
 
+## Approved Feature planning
+
+[EPIC-00010 — Permission-Based Feature Flags](epics/00010-EPIC.md) has an approved three-TICKET decomposition from
+its closed [Wayfinder map](wayfinder/permission-based-feature-flags-map.md):
+[TICKET-00015](tickets/00015-TICKET.md) establishes registration/provisioning,
+[TICKET-00016](tickets/00016-TICKET.md) defines fresh Permission-based availability for Users and Agents, and
+[TICKET-00017](tickets/00017-TICKET.md) defines management and guarded retirement. The latter two build on the first's
+shared contracts; each includes its evidence and consumer integration obligations. Consumers separately own
+persistence, scanning, enforcement, UI, and deployment; actual CMS adoption is not included.
+
+TICKET-00015's approved chain is [TASK-00061](tasks/00061-TASK.md) (declarations/inventory) →
+[TASK-00062](tasks/00062-TASK.md) (atomic provisioning) → [TASK-00063](tasks/00063-TASK.md) (preparation validation and
+reusable contract scenarios). John approved method-only/nonrepeatable Attributes and one transaction per provisioning
+pass, with fresh-state retries and no promise of reliable event delivery. TICKET-00016's approved
+[TASK-00064](tasks/00064-TASK.md) depends only on TASK-00062 and delivers the complete fresh, ID-safe evaluator with
+existing User/Agent snapshots or null, boolean availability, and distinguishable errors. No shared authority-interface
+change is needed. TICKET-00017 now has approved [TASK-00065](tasks/00065-TASK.md) (Permission reference protection,
+after 00062), [TASK-00066](tasks/00066-TASK.md) (management, after 00065/00064), and
+[TASK-00067](tasks/00067-TASK.md) (guarded retirement and final lifecycle evidence, after 00066/00063).
+John approved shared revision-1 creation, increments only on real status/Permission changes, expected revisions for
+updates/deletion, and explicit broken-binding reads using existing pagination. Consumer confirmation and authorization
+remain separate. All three TICKETs and seven TASKs are planned; behavioral acceptance and reference/lifecycle evidence
+remain outstanding. No implementation, release target, or execution worktree is authorized by this planning handoff.
+Existing TASK execution priorities remain unchanged; these records are ordered after the existing portfolio.
+
 ## Route to 1.0.0
 
 1. Publish completed framework-neutral capabilities as reviewed pre-`1.0.0` package releases, beginning with
@@ -76,4 +101,5 @@ TASK-00138 closure remain separately authorized operations.
 | [EPIC-00007](epics/00007-EPIC.md) | pre-1.0 | done | 1 | 1 |
 | [EPIC-00008](epics/00008-EPIC.md) | v0.4.0 | done | 3 | 5 |
 | [EPIC-00009](epics/00009-EPIC.md) | v0.5.0 | in-progress | 3 | 14 |
+| [EPIC-00010](epics/00010-EPIC.md) | unassigned | ready-for-agent | 3 | 7 |
 <!-- generated:epic-status:end -->

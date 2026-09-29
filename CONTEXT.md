@@ -315,6 +315,37 @@ expiry and cleanup cannot extend original delivery retention. Reference counts i
 scopes/batches/versions; physical retirement also requires closed write admission, fenced recount and independent
 key-use/authentication-envelope accounting. This is not a wider quota, key-vault or approval system.
 
+## Permission-based feature flags — approved planning only
+
+[EPIC-00010](planning/epics/00010-EPIC.md) owns the approved package-only destination from the closed
+[Wayfinder map](planning/wayfinder/permission-based-feature-flags-map.md). A planned Feature has a unique immutable
+lowercase hyphenated name, a required existing testing Permission by ID, and OFF/PREVIEW/ON status. Preview checks
+existing User/Agent Permission authority; availability never replaces business authorization. Automatic registry
+provisioning creates missing Features OFF using the configured default Permission and preserves existing choices.
+Current references guard deletion; checks read fresh Feature state without shared caching or in-flight cancellation.
+Consumers own adapters, scanning, enforcement, UI, authorization, and deployment integration; actual CMS migration
+is separate. These are accepted design decisions, not implemented capabilities. John approved the split into
+[TICKET-00015](planning/tickets/00015-TICKET.md) (registration/provisioning),
+[TICKET-00016](planning/tickets/00016-TICKET.md) (availability evaluation), and
+[TICKET-00017](planning/tickets/00017-TICKET.md) (management/retirement). The latter two build on TICKET-00015's shared
+contracts; each owns its evidence and consumer integration obligations. TICKET-00015 now has an approved chain:
+[TASK-00061](planning/tasks/00061-TASK.md) declares/registers references,
+[TASK-00062](planning/tasks/00062-TASK.md) provisions atomically, and
+[TASK-00063](planning/tasks/00063-TASK.md) validates preparation before activation. John approved a method-only,
+nonrepeatable Attribute and one atomic database transaction per provisioning pass; retries reread stored state,
+including after post-commit publication failure, without resetting choices or promising event delivery.
+TICKET-00016's approved [TASK-00064](planning/tasks/00064-TASK.md) depends only on TASK-00062 and supplies the complete
+evaluator: existing User/Agent snapshot or null, Permission-ID matching without changing the shared authority
+interface, and boolean ordinary availability with distinguishable unknown-Feature/broken-binding errors and separate
+operational failures. TICKET-00017's approved [TASK-00065](planning/tasks/00065-TASK.md) protects referenced Permissions,
+[TASK-00066](planning/tasks/00066-TASK.md) supplies creation/read/update management, and
+[TASK-00067](planning/tasks/00067-TASK.md) supplies guarded retirement and final cross-TICKET lifecycle evidence.
+One Feature revision starts at 1 and advances only on real status/Permission changes; updates/deletion require the
+expected revision. Valid no-ops do not write/increment/publish success; stale attempts reject. Management reads retain
+broken Permission IDs with an explicit missing marker and reuse existing pagination. The graph is 61 → 62;
+62 → 63/64/65; 65+64 → 66; 66+63 → 67. All three TICKETs now have approved TASK plans. Implementation and behavioral
+evidence remain outstanding; no release version or execution worktree is selected.
+
 ## Planning and Completion
 
 Local TASK files under `planning/tasks/` are canonical for implementation scope, status, dependencies,

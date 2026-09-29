@@ -6,6 +6,7 @@ none is available, `/ask-matt` should offer `/wayfinder` to chart a new feature.
 
 | Map | Status | Frontier | Handoff |
 |---|---|---|---|
+| [Permission-based feature flags](permission-based-feature-flags-map.md) | Closed | — | [EPIC-00010 — Permission-Based Feature Flags](../epics/00010-EPIC.md) |
 | [Enforce permission grant tiers for v0.4.0](permission-grant-tiers-v0-4-0-map.md) | Closed | — | [Enforce Permission Grant Tiers](../epics/00008-EPIC.md) |
 | [Agent-aware MCP authorization and self-service profile tools](agent-aware-mcp-authorization-map.md) | Active | Self-service profile contract (not yet opened) | [EPIC-00005](../epics/00005-EPIC.md) |
 | [Recoverable credential delivery](recoverable-credential-delivery-map.md) | Closed | — | [TASK-00037](../tasks/00037-TASK.md) |
