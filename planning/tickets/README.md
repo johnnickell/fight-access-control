@@ -18,3 +18,6 @@ This generated index is a projection; individual records remain canonical.
 | [TICKET-00012](00012-TICKET.md) | Issue and resolve Agent credentials recoverably | in-progress |
 | [TICKET-00013](00013-TICKET.md) | Deliver and recover Agent credentials through protected sinks | in-progress |
 | [TICKET-00014](00014-TICKET.md) | Preserve credential authority across migration and upgrades | in-progress |
+| [TICKET-00015](00015-TICKET.md) | Register and provision Features safely | ready-for-agent |
+| [TICKET-00016](00016-TICKET.md) | Evaluate Feature availability for Users and Agents | ready-for-agent |
+| [TICKET-00017](00017-TICKET.md) | Manage and retire Features safely | ready-for-agent |
