@@ -97,6 +97,9 @@ issuance paths through scheduler-only restart, status and cleanup using behavior
 real database, sink or consumer activation/use path.
 [Protected-delivery conformance](docs/agent-delivery-conformance.md) adds consumer-bindable authority/lifecycle,
 transaction, key and sink qualification scenarios, running both receipt-lookup and repeated-invocation profiles.
+[Existing-Agent compatibility](docs/agent-existing-data-v0.5-migration.md) preserves reconstituted legacy authority,
+exposes explicit recovery correlation in safe Agent reads and permits recovery only through an authorized new rotation.
+It does not manufacture historical issuance or execute a consumer migration.
 These modeled interleavings do not qualify real consumer adapters or activation/use. This intermediate work is
 **not deployable** until independent acceptance and downstream compatibility TASKs are complete. Existing released
 versions are unchanged.

@@ -118,12 +118,14 @@ final class InMemoryAgentRepository implements AgentRepository
                 continue;
             }
 
-            if ($expected->hasRecoverableCredentialOperation()) {
+            if ($expected->hasRecoverableCredentialOperation() || $replacement->hasRecoverableCredentialOperation()) {
                 if ($this->operations === null || !$this->operations->participatesIn($this->unitOfWork)) {
                     throw new AgentOperationRejectedException(AgentOperationFailure::UNAVAILABLE);
                 }
 
-                $this->operations->retireCredential($expected, $replacement);
+                if ($expected->hasRecoverableCredentialOperation()) {
+                    $this->operations->retireCredential($expected, $replacement);
+                }
             }
 
             $this->agents[$index] = $replacement;

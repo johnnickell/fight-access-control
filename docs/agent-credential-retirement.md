@@ -20,8 +20,10 @@ is accepted. No real database/sink/consumer qualification is claimed.
 | Authentication nonce consumption | Continue checking exact active credential ID/revision under the existing current-authority fence. Retired credentials cannot authenticate after that fence observes retirement. |
 
 `Agent::canReplaceCredentialWith()` owns successor validity: stable Agent ID, name, creation time, Permission set and
-assignment revision, nondecreasing update time, and unchanged recoverable marker. The predecessor must be active.
-Revocation retains exact credential ID/revision/envelope; rotation advances revision exactly once with another ID.
+assignment revision and nondecreasing update time. The predecessor must be active. Revocation retains exact credential
+ID/revision/envelope and the marker; rotation advances revision exactly once with another ID. TASK-00055 additionally
+permits a known legacy predecessor's marker to become true only with that new credential through the existing authorized
+rotation transaction; see the [existing-data contract](agent-existing-data-v0.5-migration.md).
 No-op replacements, resurrection, revision jumps, marker downgrades and unrelated edits reject. A stale/invalid
 `replace()` returns false without cancellation or any write. Consumers may not substitute a fresh aggregate built
 with `provision()` to reset lifecycle authority.
@@ -31,9 +33,11 @@ with `provision()` to reset lifecycle authority.
 Application owns the `TransactionalUnitOfWork`, audit and publication. Consumer repository implementations own
 persistence on its **same connection**, not another workflow or transaction. Composition must bind both Agent and
 operation repositories to that connection. A recoverable `replace()` requires working operation persistence; no
-nullable/no-op compatibility fallback is allowed.
+nullable/no-op compatibility fallback is allowed. The same requirement applies when explicit rotation promotes a known
+legacy predecessor to a recoverable successor. That transition commits only the new operation/delivery/audit and
+skips historical cancellation because no predecessor operation exists; it must never fabricate one.
 
-The repository write performs the following indivisible operation:
+For an already-recoverable predecessor, the repository write performs the following indivisible operation:
 
 1. Require the package-owned transaction and hold the exact authoritative Agent/credential fence. Compare all
    predecessor state, including Permission authority and the recoverable marker. Validate the Domain successor.

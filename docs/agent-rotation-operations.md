@@ -63,15 +63,17 @@ Inside one package-owned transaction:
 2. Read the retained key, including tombstones. If present, resolve the original request; do not load/check a current
    predecessor, generate material, reserve another slot order, mutate authority, audit or publish another success fact.
 3. For an unseen key, load the target. `Agent::assertRecoverableRotation()` checks the exact active expected
-   credential ID/revision and recoverable marker before generation. Legacy unmarked Agents fail closed pending
-   TASK-00055's explicit migration contract; no implicit adoption or raw-return escape is added.
+   credential ID/revision before generation. TASK-00055's [existing-data contract](agent-existing-data-v0.5-migration.md)
+   allows a known active legacy predecessor through this explicit new rotation, never through upgrade alone.
 4. Reserve the next global destination write version. Generate a credential and separately encrypt authentication
    and integrity-bound delivery material. `Agent::rotateRecoverableCredential()` preserves identity, name, creation
    time and Permission assignment while advancing only credential revision. Equal credential IDs/backdated successors
    reject. One active credential and terminal revocation remain invariant.
 5. `AgentRepository::replace(expected, successor)` uses the existing same-connection cancellation seam. It retires the
-   predecessor's exact original operation, removes its material, advances its state revision and records supersession.
-   Its original correlation and delivered/terminal history survive. No key, decrypt or sink access is needed to cancel.
+   recoverable predecessor's exact original operation, removes its material, advances its state revision and records
+   supersession. Its original correlation and delivered/terminal history survive. A known legacy predecessor instead
+   gains the true marker with its new successor; no historical operation is fabricated or cancelled. Both transitions
+   require compatible operation persistence in the package transaction. No key, decrypt or sink access is needed to cancel.
 6. Add the new pending operation/delivery and safe rotation audit; commit all state once. Capacity, cancellation,
    encryption, audit, authorization or persistence failure rolls back every write, including slot reservation and
    predecessor retirement. All adapters and authority writers must hold the shared fences until completion.
