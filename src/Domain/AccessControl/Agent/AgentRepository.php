@@ -64,7 +64,12 @@ interface AgentRepository
      * Do not begin/commit a nested transaction, use keys/sinks/events, or apply new-work capacity limits.
      * Cancellation failure, Agent write failure and subsequent audit failure roll back both states together.
      * Consumer authority/reassignment writers and delivery claims/admission/outcomes use the same fences and epochs.
-     * Legacy predecessors without operation correlation retain their existing transactional lifecycle contract.
+     * A known legacy predecessor may become recoverable only with a new credential/revision through explicit
+     * authorized rotation. Require compatible same-connection operation persistence and the package transaction;
+     * persist its new operation, separate delivery material and audit atomically with that successor. Do not retire
+     * or fabricate an operation for the legacy predecessor. Legacy revocation preserves the false marker.
+     * Reconstitution preserves all persisted authority through Agent::reconstitute() or equivalent validated adapter
+     * hydration. Reject unknown markers and inconsistent correlation; never infer false from a missing operation.
      * Mark both Agent parameters sensitive in every implementation and forwarding method: interface attributes
      * are not inherited. Cancellation failures must not expose authentication envelopes through outer trace frames.
      *

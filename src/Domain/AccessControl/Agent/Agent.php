@@ -65,6 +65,54 @@ class Agent
     }
 
     /**
+     * Reconstitutes persisted authority without issuing credentials or inferring historical correlation
+     *
+     * Consumers supply an explicit marker and verify correlated records when true. False identifies known legacy
+     * data only; missing or inconsistent new-contract storage cannot be downgraded to legacy state.
+     *
+     * @phpstan-param array<array-key, PermissionId> $permissionIds
+     */
+    public static function reconstitute(
+        AgentId $id,
+        AgentName $name,
+        AgentState $state,
+        AgentCredentialId $credentialId,
+        int $credentialRevision,
+        #[SensitiveParameter] string $encryptedHmacSharedSecretEnvelope,
+        array $permissionIds,
+        int $permissionAssignmentRevision,
+        DateTimeImmutable $createdAt,
+        DateTimeImmutable $updatedAt,
+        bool $recoverableCredentialOperation
+    ): self {
+        $permissionKeys = array_map(static fn(PermissionId $id): string => $id->toString(), $permissionIds);
+        if (
+            $credentialRevision < 0
+            || $permissionAssignmentRevision < 1
+            || $encryptedHmacSharedSecretEnvelope === ''
+            || $updatedAt < $createdAt
+            || !array_is_list($permissionIds)
+            || count($permissionKeys) !== count(array_unique($permissionKeys))
+        ) {
+            throw new AgentCredentialException('The persisted Agent authority is invalid.');
+        }
+
+        return new self(
+            $id,
+            $name,
+            $state,
+            $credentialId,
+            $credentialRevision,
+            $encryptedHmacSharedSecretEnvelope,
+            $permissionIds,
+            $permissionAssignmentRevision,
+            $createdAt,
+            $updatedAt,
+            $recoverableCredentialOperation
+        );
+    }
+
+    /**
      * Returns the stable Agent identifier
      */
     public function getId(): AgentId
@@ -295,18 +343,17 @@ class Agent
     /**
      * Validates the predecessor for a new recoverable rotation before generating any material
      *
-     * Legacy Agents require the separately qualified migration path; no implicit adoption occurs here.
+     * Known legacy authority may enter recovery only through this explicit new rotation, never by upgrade alone.
      */
     public function assertRecoverableRotation(AgentCredentialId $expectedCredentialId, int $expectedRevision): void
     {
         if (
-            !$this->recoverableCredentialOperation
-            || $this->state !== AgentState::ACTIVE
+            $this->state !== AgentState::ACTIVE
             || !$this->credentialId->equals($expectedCredentialId)
             || $this->credentialRevision !== $expectedRevision
             || $expectedRevision === PHP_INT_MAX
         ) {
-            throw new AgentCredentialException('The expected recoverable Agent credential is no longer active.');
+            throw new AgentCredentialException('The expected Agent credential is no longer active.');
         }
     }
 
@@ -379,7 +426,6 @@ class Agent
             || $replacement->createdAt != $this->createdAt
             || $replacement->updatedAt < $this->updatedAt
             || $replacement->permissionAssignmentRevision !== $this->permissionAssignmentRevision
-            || $replacement->recoverableCredentialOperation !== $this->recoverableCredentialOperation
             || count($replacement->permissionIds) !== count($this->permissionIds)
             || !array_all($replacement->permissionIds, fn(PermissionId $id): bool => $this->hasPermission($id))
             || !array_all($this->permissionIds, fn(PermissionId $id): bool => $replacement->hasPermission($id))
@@ -388,12 +434,15 @@ class Agent
         }
 
         if ($replacement->state === AgentState::REVOKED) {
-            return $replacement->credentialId->equals($this->credentialId)
+            return $replacement->recoverableCredentialOperation === $this->recoverableCredentialOperation
+                && $replacement->credentialId->equals($this->credentialId)
                 && $replacement->credentialRevision === $this->credentialRevision
                 && $replacement->encryptedHmacSharedSecretEnvelope === $this->encryptedHmacSharedSecretEnvelope;
         }
 
-        return !$replacement->credentialId->equals($this->credentialId)
+        return $replacement->state === AgentState::ACTIVE
+            && (!$this->recoverableCredentialOperation || $replacement->recoverableCredentialOperation)
+            && !$replacement->credentialId->equals($this->credentialId)
             && $replacement->credentialRevision === $this->credentialRevision + 1;
     }
 

@@ -17,4 +17,4 @@ This generated index is a projection; individual records remain canonical.
 | [TICKET-00011](00011-TICKET.md) | Reserve Super Admin Role Across User Role Administration | done |
 | [TICKET-00012](00012-TICKET.md) | Issue and resolve Agent credentials recoverably | in-progress |
 | [TICKET-00013](00013-TICKET.md) | Deliver and recover Agent credentials through protected sinks | in-progress |
-| [TICKET-00014](00014-TICKET.md) | Preserve credential authority across migration and upgrades | ready-for-agent |
+| [TICKET-00014](00014-TICKET.md) | Preserve credential authority across migration and upgrades | in-progress |

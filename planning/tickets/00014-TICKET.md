@@ -2,7 +2,7 @@
 id: TICKET-00014
 epic: EPIC-00009
 title: Preserve credential authority across migration and upgrades
-status: ready-for-agent
+status: in-progress
 ---
 
 # Preserve credential authority across migration and upgrades
@@ -194,7 +194,7 @@ existing-recovery and cleanup behavior. M5 verifies these are included in the fi
 
 ## Acceptance Evidence
 
-- [ ] **M1 — Existing-Agent/API compatibility:** package behavior tests preserve active authentication and terminal
+- [x] **M1 — Existing-Agent/API compatibility:** package behavior tests preserve active authentication and terminal
       revocation across upgrade without manufactured operation/delivery state. Explicit new authorized rotation is
       the recovery path for a known legacy Agent; ambiguous provision cannot auto-create another Agent. Public API
       migration guidance matches the replaced signatures and preserved authentication envelope.
@@ -268,10 +268,17 @@ proof and rollout/restore rehearsals stay separate adoption obligations, not per
 
 ## Progress
 
-TASK-00055–00059 are recorded as `ready-for-agent` with unfinished blockers. They are planned, not executable yet;
-TASK-00046 remains first ready across this work. All acceptance boxes stay open and no TASK is in progress. Concrete
-public representations, compatibility guards and reconciliation semantics must be designed/proved within their
-owning slices before acceptance, without weakening accepted requirements.
+John authorized TASK-00055 in the main checkout from `develop` `ea1e316`, after TASK-00047/00048 completed. It is now
+done for independently accepted implementation/local verification on `feature/task-00055-legacy-compatibility`. The
+[existing-data/API contract](../../docs/agent-existing-data-v0.5-migration.md) and executable M1 scenarios cover explicit
+legacy reconstitution, preserved authentication, safe marker reads and new authorized rotation through the existing
+transaction. No historical operation/delivery is manufactured. Its local gate passes 1318 tests / 18169 assertions and
+exact 6270/6270 statements; focused Agent/OpenAPI checks pass 797 tests / 14246 assertions with exception arguments
+captured. Independent review accepted `ebc396c` with all seven criteria passing, no findings and all 736 gate/bridge
+inputs verified; M1 is accepted for package behavior. John subsequently requested PR landing; the TASK's ignored
+handoff owns publication/remote verification and the administrative-only provenance bridge. Consumer schema migration,
+real adapter/concurrency proof and adoption are not claimed. M2–M5 retain their separate downstream owners.
+The Board owns current executable order; the following inventory evidence describes the original planning checkpoint.
 
 Before allocation, refreshed local live/archive inventory at unchanged HEAD
 `92d1de82a7833cc6dafb90eccea0d132f0e3cd77`: live TASK IDs ended at 00054, archive held only its README and no duplicate
@@ -289,7 +296,7 @@ migration/restore execution, commit, publication, dependency upgrade or Agent OS
 
 | Order | TASK ID | Title | Status |
 | --- | --- | --- | --- |
-| 55 | [TASK-00055](../tasks/00055-TASK.md) | Preserve existing Agent authority through upgrade | ready-for-agent |
+| 55 | [TASK-00055](../tasks/00055-TASK.md) | Preserve existing Agent authority through upgrade | done |
 | 56 | [TASK-00056](../tasks/00056-TASK.md) | Reject incompatible credential-operation cohorts | ready-for-agent |
 | 57 | [TASK-00057](../tasks/00057-TASK.md) | Preserve operation-key meaning across canonicalization upgrades | ready-for-agent |
 | 58 | [TASK-00058](../tasks/00058-TASK.md) | Fail closed on unreconciled credential-state restoration | ready-for-agent |

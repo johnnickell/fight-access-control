@@ -43,6 +43,11 @@ Application package boundary.
   deferral while preserving authorized status and existing-operation recovery. Cleanup must preserve duplicate-issuance
   and stale-delivery defenses. Specify concrete values and implementation choices in requirement/design work and prove
   default/override, capacity/recovery and cleanup/replay behavior before implementation acceptance.
+- Existing Agent upgrades preserve persisted authentication authority through explicit validated reconstitution.
+  The false recovery marker denotes known legacy history, never inferred rollback or permission to fabricate an
+  operation. Only explicit authorized new rotation promotes it with the successor's operation/delivery/audit in the
+  same transaction. Consumers own actual schema conversion and cross-record checks; safe reads disclose only the
+  marker, not material or use authority. See the [existing-data contract](../../docs/agent-existing-data-v0.5-migration.md).
 - QueryHandlers read through Domain repositories only: no aggregate mutation, commit, or domain-event dispatch.
 - AuthenticationService follows the same atomic, post-commit ordering, uses Fight Common password and token ports,
   returns non-serializable token results, and emits RedactedCommandFailed without raw secret input.

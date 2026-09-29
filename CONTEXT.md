@@ -27,7 +27,7 @@ behavior shared by Fight applications. The repository-local behavioral and secur
 - **Agent credential operation**: a caller-scoped, versioned request binding retaining original issuance metadata
   and a separately encrypted prepared delivery copy. Retrying an authorized retained key resolves that outcome;
   retiring its material never makes the key reusable. Current unreleased implementation supports provisioning and
-  rotation of recoverably provisioned Agents; retries retain the original predecessor request.
+  rotation of recoverably provisioned or known active legacy Agents; retries retain the original predecessor request.
 - **Agent operation status**: an authorized secret-free read snapshot separating confirmed original issuance from
   recorded delivery and original-credential disposition. An absent record is indeterminate, not proof of rollback.
   Current scope/delegation/destination checks precede lookup and repeat with target checks before disclosure; reads
@@ -54,9 +54,14 @@ behavior shared by Fight applications. The repository-local behavioral and secur
   any Agent has it assigned.
 - **Agent Permission-assignment revision**: the monotonically advancing version of an Agent's direct Permission
   assignment. It advances only when that set changes and is independent of the Agent credential revision.
+- **Legacy Agent credential**: known existing authority without historical operation correlation. Explicit validated
+  reconstitution preserves its identity, revisions, authentication envelope, Permissions and terminal state. The
+  persisted false recovery marker is not proof of issuance/delivery; only an explicitly authorized new rotation
+  creates recovery for its successor. Unknown or inconsistent persisted markers require reconciliation, not fallback.
 - **Agent read result**: an immutable, secret-free record of an Agent's ID, lifecycle state, credential ID and
-  revision, assigned Permissions by ID and canonical name, and Permission-assignment revision. It does not decide
-  whether an action is allowed.
+  revision, assigned Permissions by ID and canonical name, Permission-assignment revision and explicit
+  `recoverable_credential_operation` boolean. False describes legacy/non-recoverable current history; true describes
+  correlation, not delivery, activation or use authority. It does not decide whether an action is allowed.
 - **Authenticated Agent principal**: an immutable authoritative Agent identity and direct-Permission snapshot,
   resolved as one authentication flow rather than from an `AgentView` or a follow-up query.
 - **Current Agent principal provider**: a consumer-composed, request-scoped module that authenticates one signed
@@ -222,6 +227,18 @@ implementation/local verification. John's landing request published
 `255d0c7`; the fresh landing gate passes 1286 tests / 17687 assertions and exact 6245/6245 statements. Its ignored
 handoff owns final metadata/remote verification and the metadata-only review bridge. No consumer qualification,
 merge or release is authorized.
+John authorized TASK-00055 in the main checkout from `develop` `ea1e316` (including merged PR #89), on
+`feature/task-00055-legacy-compatibility`. Its [existing-data/API contract](docs/agent-existing-data-v0.5-migration.md)
+adds validated explicit reconstitution, safe recovery-marker reads and legacy adoption through the existing authorized
+rotation transaction. Behavioral tests preserve active/revoked historical authentication, original-key semantics,
+rollback, uncertainty, safe publication warnings and nonce/current-authority fencing. The full local gate passes
+1318 tests / 18169 assertions and exact 6270/6270 statements. Independent review accepted `ebc396c` with all seven
+criteria passing, no findings, 797 fresh focused tests / 14246 assertions and all 736 gate/bridge inputs verified.
+TASK-00055 is done for accepted implementation/local verification. John's landing request published
+[PR #90](https://github.com/johnnickell/fight-access-control/pull/90) against unchanged `develop` at initial head
+`46658f1`; the fresh landing gate retains 1318 tests / 18169 assertions and exact 6270/6270 statements. Its ignored
+handoff owns final metadata/remote verification and the administrative-only review bridge. Consumer migration
+qualification, merge and release are not claimed.
 Each downstream execution needs authorization. John separately authorized TASK-00046
 execution and PR landing. Planning does not qualify a consumer or authorize migration, release or adoption.
 The replacement requires caller-scoped operation correlation, protected delivery and consumer authorization
@@ -263,9 +280,10 @@ TASK-00048 adds `AgentCredentialRotationService`, `AgentRotationRequest` and man
 `authorizeRotation()` scope/target/destination authorization. The old lifecycle `rotate()` explicitly rejects;
 its result has no raw-secret getter. `AgentCredentialLifecycleService` drops the unused generator/cipher constructor
 arguments while revocation behavior remains unchanged. Legacy Agents retain authentication/revocation and aggregate
-state compatibility but cannot enter recoverable rotation until TASK-00055's qualified migration path. This deliberate
-fail-closed intermediate state is unreleased and not deployable until all recovery/maintenance work is accepted and
-downstream conformance/cohort work lands.
+state compatibility. TASK-00055 now permits a known active legacy Agent to enter recovery only through explicit new
+rotation in that same service; upgrade and safe reads create no recovery binding. Only the successor gets a new
+operation, never an invented historical provision/delivery. This intermediate work remains unreleased and not deployable
+until independent acceptance and remaining cohort/canonicalization/restoration work and consumer qualification.
 
 For those two replacement operations only, confirmed issuance commits return safe operation metadata with a typed,
 sanitized publication warning if post-commit publication fails. Pre-commit failure and indeterminate commit are

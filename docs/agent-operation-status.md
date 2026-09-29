@@ -101,6 +101,11 @@ credential is substituted. Publication warnings are transient service-result met
 status does not reconstruct warnings from events. Even both publishers failing leaves authoritative issuance readable.
 Neither a confirmed result nor a `delivered` value supplies enrollment activation, launch permission or secret access.
 
+Known legacy Agents have no historical operation to resolve. TASK-00055 adds the explicit
+`recoverable_credential_operation` marker to administrative `AgentView` reads; false means legacy/non-recoverable,
+not confirmed issuance or rollback. It does not change this original-key query: absence remains indeterminate, with
+no automatic provision, guessed correlation or material access. See the [existing-data migration contract](agent-existing-data-v0.5-migration.md).
+
 ## Storage, uncertainty and bounded recovery
 
 `AgentOperationRepository::getStatusByKey()` must project one coherent authoritative snapshot of original issuance,

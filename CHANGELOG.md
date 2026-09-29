@@ -9,6 +9,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Explicit validated `Agent::reconstitute()` for persisted authority, without credential generation or fabricated
+  historical correlation. Existing active authentication and terminal revocation are preserved. See the
+  [unreleased existing-data/API migration contract](docs/agent-existing-data-v0.5-migration.md).
 - Authorized Agent delivery material rewrapping, retention expiry and replay-safe inert sink cleanup through
   `AgentDeliveryMaintenanceService`. Bounded `ListAgentDeliveryMaintenance` and global diagnostic
   `CountAgentDeliveryKeyReferences` queries are read-only; zero references never authorize physical key retirement.
@@ -32,6 +35,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- **Breaking (unreleased v0.5.0):** `AgentView` and the shipped Agent OpenAPI component require the safe
+  `recoverable_credential_operation` boolean; direct View constructors require the final marker argument. Known active
+  legacy Agents may enter recovery through the existing explicitly authorized rotation service. Repositories must
+  atomically persist that marker transition with only the new successor's operation/delivery/audit, never invent
+  predecessor history or downgrade correlated credentials. Upgrade alone performs no rotation or redelivery.
 - **Unreleased v0.5.0 integration change:** operation adapters add `listMaintenance()`,
   `countDeliveryKeyReferences()` and exact-state `replaceMaintenance()`, persist `sinkCleaned`, and share key-version
   write/reference fences across all writers. Consumers implement maintenance authorization, bound ciphertext

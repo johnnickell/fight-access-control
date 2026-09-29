@@ -59,7 +59,7 @@ final class AgentRecoverableRotationTest extends TestCase
     /** @return iterable<string, array{string}> */
     public static function invalidSuccessors(): iterable
     {
-        foreach (['legacy', 'revoked', 'credential', 'revision', 'same successor', 'backdated'] as $case) {
+        foreach (['revoked', 'credential', 'revision', 'same successor', 'backdated'] as $case) {
             yield $case => [$case];
         }
     }
@@ -74,7 +74,7 @@ final class AgentRecoverableRotationTest extends TestCase
             AgentCredentialId::generate(),
             'original-envelope',
             $at,
-            $case !== 'legacy'
+            true
         );
         if ($case === 'revoked') {
             $agent = $agent->revoke($at);
