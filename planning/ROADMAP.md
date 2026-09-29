@@ -35,8 +35,9 @@ TASK-00138 closure remain separately authorized operations.
 
 Current package checkpoint: [TASK-00056](tasks/00056-TASK.md) is independently accepted at `ff5c035` with no findings,
 completing TICKET-00014 M2 at the package boundary. Existing-Agent compatibility (M1) is also accepted; canonical
-upgrades (M3), restoration (M4), final guidance (M5) and real consumer qualification remain outstanding. John requested
-TASK-00056 PR publication, not merge or release. The [Board](tasks/BOARD.md) owns current executable ordering;
+upgrades (M3), restoration (M4), final guidance (M5) and real consumer qualification remain outstanding. John's landing
+request published [TASK-00056 PR #92](https://github.com/johnnickell/fight-access-control/pull/92), not a merge or
+release. The [Board](tasks/BOARD.md) owns current executable ordering;
 [TASK-00057](tasks/00057-TASK.md) is the next credential-operation slice, subject to separate execution authority.
 
 ## Approved Feature planning

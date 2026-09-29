@@ -202,8 +202,10 @@ writer tests cover version/capability rejection, legacy/no-op bypasses, mismatch
 The local gate passes **1442 tests / 21365 assertions**, exact **6307/6307 statements**; focused cohort/contract checks
 pass **124 tests / 3196 assertions**. Independent review accepted `ff5c035` with all eight TASK criteria passing,
 no findings, **913 fresh Agent tests / 17039 assertions** and all **764 final gate inputs** verified. TASK-00056 is
-done for accepted package implementation/local verification; M2 below is accepted at that boundary. John requested
-landing against unchanged `develop`; its ignored handoff owns publication/gate identity and the metadata-only bridge.
+done for accepted package implementation/local verification; M2 below is accepted at that boundary. John's landing
+request published [PR #92](https://github.com/johnnickell/fight-access-control/pull/92) against unchanged `develop`
+at initial head `a0897e6`, retaining the full-gate counts above. Its ignored handoff owns final metadata/remote
+verification and the metadata-only bridge.
 Real old-binary exclusion, participant substitution, all authority-writer races and consumer activation/use remain
 mandatory unexecuted adoption evidence. No schema/migration, merge or release is authorized.
 
