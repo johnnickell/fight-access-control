@@ -94,8 +94,12 @@ counts, retention expiry and replay-safe inert-entry cleanup. A zero reference c
 current delivered credentials are excluded from cleanup.
 [Issuance-recovery conformance](docs/agent-issuance-conformance.md) exposes consumer-bindable tests and exercises both
 issuance paths through scheduler-only restart, status and cleanup using behavioral adapters. It does not qualify a
-real database, sink or consumer activation/use path. This intermediate work is **not deployable** until independent
-acceptance, downstream conformance and compatibility TASKs are complete. Existing released versions are unchanged.
+real database, sink or consumer activation/use path.
+[Protected-delivery conformance](docs/agent-delivery-conformance.md) adds consumer-bindable authority/lifecycle,
+transaction, key and sink qualification scenarios, running both receipt-lookup and repeated-invocation profiles.
+These modeled interleavings do not qualify real consumer adapters or activation/use. This intermediate work is
+**not deployable** until independent acceptance and downstream compatibility TASKs are complete. Existing released
+versions are unchanged.
 
 ### Current principal composition
 

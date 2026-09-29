@@ -5,17 +5,18 @@ dependencies, acceptance, and verification.
 
 ## What's Next?
 
-First ready Task: [TASK-00054](00054-TASK.md) — Qualify protected-delivery and lifecycle conformance.
+Active Task: [TASK-00054](00054-TASK.md) — Qualify protected-delivery and lifecycle conformance.
 
 ## In Progress
 
-No Tasks are currently in this state.
+| Order | TASK ID | Title | Parent TICKET | Status | Blocked by | PR |
+| --- | --- | --- | --- | --- | --- | --- |
+| 54 | [TASK-00054](00054-TASK.md) | Qualify protected-delivery and lifecycle conformance | [TICKET-00013](../tickets/00013-TICKET.md) — Deliver and recover Agent credentials through protected sinks | in-progress | [TASK-00052](00052-TASK.md), [TASK-00053](00053-TASK.md), [TASK-00047](00047-TASK.md), [TASK-00048](00048-TASK.md) | — |
 
 ## Ready Frontier
 
 | Order | TASK ID | Title | Parent TICKET | Status | Blocked by | PR |
 | --- | --- | --- | --- | --- | --- | --- |
-| 54 | [TASK-00054](00054-TASK.md) | Qualify protected-delivery and lifecycle conformance | [TICKET-00013](../tickets/00013-TICKET.md) — Deliver and recover Agent credentials through protected sinks | ready-for-agent | [TASK-00052](00052-TASK.md), [TASK-00053](00053-TASK.md), [TASK-00047](00047-TASK.md), [TASK-00048](00048-TASK.md) | — |
 | 55 | [TASK-00055](00055-TASK.md) | Preserve existing Agent authority through upgrade | [TICKET-00014](../tickets/00014-TICKET.md) — Preserve credential authority across migration and upgrades | ready-for-agent | [TASK-00047](00047-TASK.md), [TASK-00048](00048-TASK.md) | — |
 | 56 | [TASK-00056](00056-TASK.md) | Reject incompatible credential-operation cohorts | [TICKET-00014](../tickets/00014-TICKET.md) — Preserve credential authority across migration and upgrades | ready-for-agent | [TASK-00048](00048-TASK.md), [TASK-00052](00052-TASK.md), [TASK-00053](00053-TASK.md) | — |
 

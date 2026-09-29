@@ -156,9 +156,35 @@ migration or restoration qualification.
 | Safe representations and sensitive-value lifetime | Shared serialization/JSON/debug/failure assertions plus I7 predecessor safety tests; no production logging/cryptography qualification inferred |
 | D3 outcome separation and D4 bounded defaults/overrides/capacity | Combined publication/pending/delivered status assertions; `test_capacity_preserves_status_resolution_and_bounded_recovery`; current-principal revalidation is not enrollment or launch authorization |
 
-TASK-00054 still owns wider delivery/lifecycle conformance. TASK-00055–00059 still own compatibility, cohorts,
-cross-version canonicalization, restoration and final complete traceability. Real adapter races/process termination,
-consumer activation/use and deployment rehearsals remain explicit missing adoption evidence.
+TASK-00054 adds wider delivery/lifecycle conformance at the checkpoint below. TASK-00055–00059 still own
+compatibility, cohorts, cross-version canonicalization, restoration and final complete traceability. Real adapter
+races/process termination, consumer activation/use and deployment rehearsals remain explicit missing adoption evidence.
+
+### TASK-00054 delivery and lifecycle evidence checkpoint
+
+The [consumer-bindable suites and complete D1–D7 evidence map](../../docs/agent-delivery-conformance.md#evidence-map-d1d7)
+now connect the delivery rows to actual package operations, original status and independent persisted observations.
+At the implementation checkpoint the new reference runners pass **186 tests / 5061 assertions**, covering receipt
+lookup and non-lookup recovery profiles. Full-gate results and retained logs/receipt belong to
+[TASK-00054](../tasks/00054-TASK.md#implementation-and-verification-checkpoint); independent review is pending.
+This is package-controlled modeled-interleaving evidence, not a real database, sink, cryptography or consumer pass.
+
+| Proposal rows covered by TASK-00054 | Executed references in the reusable suites |
+| --- | --- |
+| Normal separate delivery; scheduler restart; bounds/current reservation | `DeliveryLifecycleConformance::test_default_restart_skips_an_entire_obsolete_batch_without_manual_cleanup`; TASK-00049 retains combined both-publishers/caller-termination ownership |
+| Indeterminate admission/outcome; persistence failure | `test_restart_resolves_each_uncertain_delivery_commit_without_reissuing` (both issuance kinds, three stages, both commit outcomes); `test_each_failed_persistence_stage_rolls_back_and_scheduler_recovers` |
+| Current caller/Permission/delegation/destination changes; shared writers; expiry/ABA | `test_authority_changes_deny_early_or_leave_only_inert_late_bytes`; `test_fenced_authority_writer_and_aba_require_a_new_admission`; `test_earliest_authority_deadline_guards_materialization_invocation_and_completion` |
+| Lost sink response; concurrent retries and lease takeover; delivered-secret loss | `test_lost_response_takeover_and_delivered_secret_loss_never_trigger_secret_reread`; receipt-aware recovery avoids key access, non-lookup repeats only with fresh admission |
+| Every retained lifecycle path; retired original status; authentication fencing | `test_every_retained_lifecycle_writer_fences_real_delivery_and_original_status` (four service/direct paths × five boundaries); `test_revocation_publication_failure_remains_a_throw_after_durable_retirement` |
+| Equal IDs across scopes; out-of-order/cross-slot rotation/reassignment | `ProtectedSinkConformance::test_actual_rotation_orders_late_predecessors_across_slots_without_selecting_old_authority`; `test_equal_operation_ids_and_reassigned_slots_keep_global_order_and_exact_receipts` |
+| Receipt/idempotency mismatch and repeated bytes | `test_every_immutable_receipt_or_idempotency_field_and_bytes_reject_mismatch` (12 tuple fields plus bytes); missing/swapped receipts also tested |
+| Key restoration/loss/corruption/swaps; rewrap; retention and cleanup replay | `test_rewrap_key_failure_and_restart_preserve_original_binding_without_envelope_fallback`; `test_rewrap_during_delivery_fences_stale_completion_and_retains_retry_history`; `test_retention_cleanup_and_replay_preserve_correlation_and_slot_order` |
+| Safe serialization/debug/audit/events/failures; bounded recovery at capacity/outage | Shared safe-surface assertions with exception arguments enabled; `test_invalid_overrides_reject_without_work`; `test_valid_overrides_pin_retry_retention_and_cleanup_without_manual_approval`; `test_capacity_policy_and_storage_outage_do_not_disguise_existing_recovery` |
+
+The guide maps every D1–D7 detail to these suites and retained predecessor focused tests. Real consumer binding must
+run independent transactions/processes, actual sink/key adapters and all authority writers, then separately prove
+fresh transactional activation and each broker use; those runs are not present. Migration/cohort/canonicalization/
+restoration and consumer adoption remain with TASK-00055–00059 and the owning consumer, not this reference pass.
 
 Additional upstream-ratified requirements: TICKET-00012 I1/I4 and TICKET-00013 D2/D4 prove the D3 separation of
 issuance/delivery/activation/launch authority. TICKET-00012 I6 and TICKET-00013 D7 prove D4 default/override, capacity/
