@@ -5,25 +5,23 @@ dependencies, acceptance, and verification.
 
 ## What's Next?
 
-Active Task: [TASK-00056](00056-TASK.md) — Reject incompatible credential-operation cohorts.
+First ready Task: [TASK-00057](00057-TASK.md) — Preserve operation-key meaning across canonicalization upgrades.
 
 ## In Progress
 
-| Order | TASK ID | Title | Parent TICKET | Status | Blocked by | PR |
-| --- | --- | --- | --- | --- | --- | --- |
-| 56 | [TASK-00056](00056-TASK.md) | Reject incompatible credential-operation cohorts | [TICKET-00014](../tickets/00014-TICKET.md) — Preserve credential authority across migration and upgrades | in-progress | [TASK-00048](00048-TASK.md), [TASK-00052](00052-TASK.md), [TASK-00053](00053-TASK.md) | — |
+No Tasks are currently in this state.
 
 ## Ready Frontier
 
 | Order | TASK ID | Title | Parent TICKET | Status | Blocked by | PR |
 | --- | --- | --- | --- | --- | --- | --- |
+| 57 | [TASK-00057](00057-TASK.md) | Preserve operation-key meaning across canonicalization upgrades | [TICKET-00014](../tickets/00014-TICKET.md) — Preserve credential authority across migration and upgrades | ready-for-agent | [TASK-00056](00056-TASK.md), [TASK-00047](00047-TASK.md) | — |
 | 61 | [TASK-00061](00061-TASK.md) | Declare and register Feature references | [TICKET-00015](../tickets/00015-TICKET.md) — Register and provision Features safely | ready-for-agent | — | — |
 
 ## Waiting
 
 | Order | TASK ID | Title | Parent TICKET | Status | Blocked by | PR |
 | --- | --- | --- | --- | --- | --- | --- |
-| 57 | [TASK-00057](00057-TASK.md) | Preserve operation-key meaning across canonicalization upgrades | [TICKET-00014](../tickets/00014-TICKET.md) — Preserve credential authority across migration and upgrades | ready-for-agent | [TASK-00056](00056-TASK.md), [TASK-00047](00047-TASK.md) | — |
 | 58 | [TASK-00058](00058-TASK.md) | Fail closed on unreconciled credential-state restoration | [TICKET-00014](../tickets/00014-TICKET.md) — Preserve credential authority across migration and upgrades | ready-for-agent | [TASK-00056](00056-TASK.md), [TASK-00057](00057-TASK.md) | — |
 | 59 | [TASK-00059](00059-TASK.md) | Complete migration guidance and evidence traceability | [TICKET-00014](../tickets/00014-TICKET.md) — Preserve credential authority across migration and upgrades | ready-for-agent | [TASK-00055](00055-TASK.md), [TASK-00056](00056-TASK.md), [TASK-00057](00057-TASK.md), [TASK-00058](00058-TASK.md), [TASK-00049](00049-TASK.md), [TASK-00054](00054-TASK.md) | — |
 | 62 | [TASK-00062](00062-TASK.md) | Provision registered Features without resetting choices | [TICKET-00015](../tickets/00015-TICKET.md) — Register and provision Features safely | ready-for-agent | [TASK-00061](00061-TASK.md) | — |
@@ -104,4 +102,5 @@ No Tasks are currently in this state.
 | 53 | [TASK-00053](00053-TASK.md) | Maintain and retire protected delivery material safely | [TICKET-00013](../tickets/00013-TICKET.md) — Deliver and recover Agent credentials through protected sinks | done | [TASK-00051](00051-TASK.md) | https://github.com/johnnickell/fight-access-control/pull/87 |
 | 54 | [TASK-00054](00054-TASK.md) | Qualify protected-delivery and lifecycle conformance | [TICKET-00013](../tickets/00013-TICKET.md) — Deliver and recover Agent credentials through protected sinks | done | [TASK-00052](00052-TASK.md), [TASK-00053](00053-TASK.md), [TASK-00047](00047-TASK.md), [TASK-00048](00048-TASK.md) | https://github.com/johnnickell/fight-access-control/pull/89 |
 | 55 | [TASK-00055](00055-TASK.md) | Preserve existing Agent authority through upgrade | [TICKET-00014](../tickets/00014-TICKET.md) — Preserve credential authority across migration and upgrades | done | [TASK-00047](00047-TASK.md), [TASK-00048](00048-TASK.md) | https://github.com/johnnickell/fight-access-control/pull/90 |
+| 56 | [TASK-00056](00056-TASK.md) | Reject incompatible credential-operation cohorts | [TICKET-00014](../tickets/00014-TICKET.md) — Preserve credential authority across migration and upgrades | done | [TASK-00048](00048-TASK.md), [TASK-00052](00052-TASK.md), [TASK-00053](00053-TASK.md) | — |
 | 60 | [TASK-00060](00060-TASK.md) | Align OpenAPI credential-delivery components with released contracts | — (standalone bug) | done | — | https://github.com/johnnickell/fight-access-control/pull/86 |

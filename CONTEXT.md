@@ -248,8 +248,12 @@ John authorized TASK-00056 in the main checkout from `develop` `eb20472`, on
 `feature/task-00056-contract-cohorts`. Its [cohort contract](docs/agent-operation-cohorts.md) adds mandatory persisted
 compatibility snapshots on both repository contracts, guarded actual writer paths and cohort-bound delivery/cleanup
 authority. Consumer-bindable M2 scenarios and controlled reference interleavings cover denial and restart. The full
-local gate passes 1442 tests / 21365 assertions and exact 6307/6307 statements; independent review is pending at this
-implementation checkpoint. Real consumer old-binary exclusion, writer races and deployment remain unqualified. TASK-00057/00058 retain canonical upgrade and restoration ownership.
+local gate passes 1442 tests / 21365 assertions and exact 6307/6307 statements. Independent review accepted `ff5c035`
+with all eight criteria passing, no findings, 913 fresh Agent tests / 17039 assertions and all 764 final gate inputs
+verified. TASK-00056 is done for accepted package implementation/local verification. John's landing request targets
+unchanged `develop`; the ignored TASK handoff owns publication/gate identity and the administrative-only review bridge.
+Real consumer old-binary exclusion, writer races and deployment remain unqualified; no merge or release is authorized.
+TASK-00057/00058 retain canonical upgrade and restoration ownership.
 Each downstream execution needs authorization. John separately authorized TASK-00046
 execution and PR landing. Planning does not qualify a consumer or authorize migration, release or adoption.
 The replacement requires caller-scoped operation correlation, protected delivery and consumer authorization
