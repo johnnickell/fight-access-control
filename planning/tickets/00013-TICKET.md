@@ -237,9 +237,16 @@ Independent review accepted `9a0a391` with all nine TASK criteria passing and no
 John's landing request published [PR #87](https://github.com/johnnickell/fight-access-control/pull/87) against `develop`
 at initial head `4b79cee`, with the fresh gate passing 1047 tests / 8980 assertions and exact 6245/6245 statements.
 The TASK's ignored landing handoff owns final metadata/remote verification; no merge or release is claimed.
-TASK-00054's implementation inputs are now done; its reusable integration/conformance work still requires execution
-authority. All TICKET acceptance
-boxes remain open until their full owning-slice evidence, including that conformance, is independently accepted. See the
+John authorized TASK-00054 in the main checkout from `develop` `f4d43e5` on
+`feature/task-00054-delivery-conformance`. Its [consumer binding and D1–D7 evidence map](../../docs/agent-delivery-conformance.md)
+connect actual delivery/lifecycle/maintenance/status and sink-order tests to all acceptance groups. New reusable
+suites exercise modeled persisted interleavings with and without optional receipt lookup; their reference runs do
+not qualify real database, key, sink, activation/use or restoration behavior. Independent review accepted `7b58fbe`
+with all ten TASK criteria passing, no findings, fresh 624 Application Agent tests / 12608 assertions and
+134 Domain Agent tests / 766 assertions, and all 734 gate inputs verified. TASK-00054 is done for accepted package
+implementation/local verification. John requested landing; its ignored handoff owns final PR/gate identity and the
+metadata-only review bridge. TICKET acceptance boxes remain open for the complete real-consumer evidence; this
+package acceptance does not qualify a consumer, merge or release. See the
 [retirement contract](../../docs/agent-credential-retirement.md) for the slice's public write obligations and limits.
 Concrete finite values, override validation, public shapes and expected-state details must be documented/tested in
 the owning slices before acceptance; this plan neither silently selects production values nor adds routine approval.
@@ -263,4 +270,4 @@ parent EPIC after regeneration.
 | 51 | [TASK-00051](../tasks/00051-TASK.md) | Deliver an Agent credential to its protected destination | done |
 | 52 | [TASK-00052](../tasks/00052-TASK.md) | Discover and recover interrupted Agent deliveries | done |
 | 53 | [TASK-00053](../tasks/00053-TASK.md) | Maintain and retire protected delivery material safely | done |
-| 54 | [TASK-00054](../tasks/00054-TASK.md) | Qualify protected-delivery and lifecycle conformance | ready-for-agent |
+| 54 | [TASK-00054](../tasks/00054-TASK.md) | Qualify protected-delivery and lifecycle conformance | done |
