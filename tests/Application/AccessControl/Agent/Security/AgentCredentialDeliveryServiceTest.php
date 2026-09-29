@@ -60,7 +60,10 @@ final class AgentCredentialDeliveryServiceTest extends TestCase
                 self::assertSame(0, $env->decipher->calls);
                 self::assertSame(0, $env->sink->calls);
             } elseif ($stage === 2) {
-                self::assertSame('delivery-worker:1', $env->operation()->requireAttempt()->getAuthority()?->getEpoch());
+                self::assertSame(
+                    hash('sha256', '1:delivery-worker:1'),
+                    $env->operation()->requireAttempt()->getAuthority()?->getEpoch()
+                );
                 self::assertSame(0, $env->decipher->calls);
             } else {
                 self::assertNull($env->operation()->getMaterial());
@@ -437,6 +440,7 @@ final class AgentCredentialDeliveryServiceTest extends TestCase
             );
         } elseif ($case === 'agent') {
             $agents = $this->createStub(AgentRepository::class);
+            $agents->method('getOperationContract')->willReturn($env->provisioning->agents->getOperationContract());
             $agents->method('getById')->willReturn(null);
             $service = new AgentCredentialDeliveryService(
                 $agents,

@@ -219,6 +219,7 @@ final class AgentProvisioningServiceTest extends TestCase
             $delivery->expects(self::once())->method('encrypt')->willThrowException($failure);
         } elseif ($stage === 'agent') {
             $agents = $this->createMock(AgentRepository::class);
+            $agents->method('getOperationContract')->willReturn($environment->agents->getOperationContract());
             $agents->expects(self::once())->method('add')->willReturnCallback(function (Agent $agent) use (
                 $environment,
                 $failure

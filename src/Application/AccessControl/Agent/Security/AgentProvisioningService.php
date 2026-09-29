@@ -80,6 +80,9 @@ final readonly class AgentProvisioningService
                     &$callbackCompleted,
                     &$created
                 ): AgentIssuance {
+                    $this->operationRepository->getOperationContract()->assertSameCohort(
+                        $this->agentRepository->getOperationContract()
+                    );
                     $actor = $this->authorization->authorize($key->getScope(), $request->getDestination());
                     if (preg_match('/\A[A-Za-z0-9_.:-]{1,128}\z/D', $actor) !== 1) {
                         throw new AgentOperationRejectedException(AgentOperationFailure::UNAVAILABLE);
@@ -143,7 +146,8 @@ final readonly class AgentProvisioningService
         string $actor
     ): AgentIssuance {
         $this->limits->validateNewRequest($request);
-        $canonicalRequest = $request->canonicalize(1);
+        $version = $this->operationRepository->getOperationContract()->getCreationVersion();
+        $canonicalRequest = $request->canonicalize($version);
         $issuedAt = $this->clock->now();
         $agentId = AgentId::generate();
         $credentialId = AgentCredentialId::generate();
@@ -169,7 +173,7 @@ final readonly class AgentProvisioningService
         $material = $this->deliveryCipher->encrypt($secret, $issuance);
         $this->agentRepository->add($agent);
         $this->operationRepository->add(
-            new AgentCredentialOperation(1, $canonicalRequest, $issuance, $material),
+            new AgentCredentialOperation($version, $canonicalRequest, $issuance, $material),
             $this->limits
         );
         $this->auditEvidenceRepository->add(AuditEvidence::agentProvisioned($actor, $agentId));

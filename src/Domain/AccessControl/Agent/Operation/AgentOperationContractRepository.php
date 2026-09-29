@@ -1,0 +1,34 @@
+<?php
+
+declare(strict_types=1);
+
+namespace Fight\AccessControl\Domain\AccessControl\Agent\Operation;
+
+/**
+ * Interface AgentOperationContractRepository
+ *
+ * Shares one authoritative cohort fence across Agent and operation persistence and every consumer authority writer.
+ */
+interface AgentOperationContractRepository
+{
+    /**
+     * Retrieves current persisted cohort settings qualified against this worker's actual composition
+     *
+     * During a package transaction, acquire the shared cohort fence on the SAME connection and hold it through
+     * commit/rollback, before acquiring subordinate authority, Agent, slot or key fences. Every writer, including
+     * direct repository calls, must independently enforce this contract before effects. A cohort switch takes the
+     * conflicting fence and advances a durable positive generation even on switch-back; never reset/reuse it.
+     * Outside a transaction, read authoritative storage without mutation or commit; this grants no future admission.
+     * Never cache startup readiness. Missing/unavailable storage, inconsistent settings, an unsupported local
+     * participant or missing shared-connection participation throws sanitized UNAVAILABLE without a previous error.
+     * No version defaults, bootstrap writes, keys, secrets, claims, events or provider diagnostics belong here.
+     *
+     * The snapshot's capabilities are the intersection of persisted qualification and the locally installed
+     * repository/UoW/authorization/cipher/sink/maintenance contracts. Verify actual participants, not merely interface
+     * names or an operator-supplied boolean. Runtime capability methods and current authorization still apply.
+     * AgentRepository and AgentOperationRepository must observe the identical cohort and shared transaction.
+     * Consumer policy, Permission/tier, destination, key-admission and trusted-boundary writers participate too.
+     * New-code checks cannot stop an unchecked old binary: revoke its storage/trusted-boundary access externally.
+     */
+    public function getOperationContract(): AgentOperationContract;
+}

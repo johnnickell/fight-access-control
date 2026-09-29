@@ -137,6 +137,7 @@ final readonly class AgentDeliveryMaintenanceService
                 return AgentMaintenanceResult::UNCHANGED;
             }
 
+            $this->operations->getOperationContract()->assertCompatible();
             $this->assertAuthority($authority);
             $this->cleanup->remove($original->getIssuance());
 
@@ -184,13 +185,13 @@ final readonly class AgentDeliveryMaintenanceService
         }
 
         $original->getStatus()->assertReadable($key, $destination);
-        $authority = $this->authorization->authorize(
+        $authority = $this->operations->getOperationContract()->bindAuthority($this->authorization->authorize(
             $key->getScope(),
             $destination,
             $original->getIssuance(),
             $target,
             $this->clock->now()
-        );
+        ));
         $this->assertAuthority($authority);
 
         return [$original, $authority];
@@ -237,7 +238,8 @@ final readonly class AgentDeliveryMaintenanceService
 
         $completed = false;
         try {
-            return $this->unitOfWork->commitTransactional(static function () use ($operation, &$completed): mixed {
+            return $this->unitOfWork->commitTransactional(function () use ($operation, &$completed): mixed {
+                $this->operations->getOperationContract()->assertCompatible();
                 $result = $operation();
                 $completed = true;
 

@@ -265,6 +265,7 @@ final class ListDueAgentDeliveriesHandlerTest extends TestCase
     {
         $env = new DeliveryEnvironment();
         $repository = $this->createStub(AgentOperationRepository::class);
+        $repository->method('getOperationContract')->willReturn($env->provisioning->operations->getOperationContract());
         $view = $env->operation()->getStatus();
         $queryScope = $env->issuance->getKey()->getScope();
         $queryDestination = $env->issuance->getDestination();

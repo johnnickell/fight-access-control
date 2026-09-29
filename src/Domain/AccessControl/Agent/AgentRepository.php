@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Fight\AccessControl\Domain\AccessControl\Agent;
 
 use Exception;
+use Fight\AccessControl\Domain\AccessControl\Agent\Operation\AgentOperationContractRepository;
 use Fight\AccessControl\Domain\AccessControl\Permission\Permission;
 use Fight\AccessControl\Domain\AccessControl\Permission\PermissionId;
 use Fight\Common\Domain\Repository\Pagination;
@@ -15,8 +16,11 @@ use SensitiveParameter;
  * Interface AgentRepository
  *
  * Persists Agent authority aggregates.
+ * Every add, lifecycle and Permission write, including direct calls and legacy revocation, acquires and validates
+ * getOperationContract() before effects and holds the shared cohort fence through transaction completion.
+ * Missing/incompatible composition rejects with sanitized UNAVAILABLE; never bypass through a legacy marker.
  */
-interface AgentRepository
+interface AgentRepository extends AgentOperationContractRepository
 {
     /**
      * Retrieves an Agent by its stable identifier

@@ -43,6 +43,11 @@ Application package boundary.
   deferral while preserving authorized status and existing-operation recovery. Cleanup must preserve duplicate-issuance
   and stale-delivery defenses. Specify concrete values and implementation choices in requirement/design work and prove
   default/override, capacity/recovery and cleanup/replay behavior before implementation acceptance.
+- Agent/operation repositories implement mandatory `getOperationContract()` against a shared persisted cohort and
+  qualified actual composition. Every writer holds its cohort fence through the package transaction; direct paths and
+  legacy markers cannot bypass it. Delivery/cleanup epochs bind its monotonic generation. Startup checks are not
+  admission; consumers separately fence old binaries and qualify real writer races. See the
+  [cohort contract](../../docs/agent-operation-cohorts.md). This is unreleased TASK-00056 work, not consumer qualification.
 - Existing Agent upgrades preserve persisted authentication authority through explicit validated reconstitution.
   The false recovery marker denotes known legacy history, never inferred rollback or permission to fabricate an
   operation. Only explicit authorized new rotation promotes it with the successor's operation/delivery/audit in the

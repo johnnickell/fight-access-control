@@ -54,6 +54,7 @@ final readonly class ListAgentDeliveryMaintenanceHandler implements QueryHandler
                 null,
                 $this->clock->now()
             );
+            $this->operations->getOperationContract()->assertCompatible();
             $views = $this->operations->listMaintenance(
                 $query->getScope(),
                 $query->getDestination(),

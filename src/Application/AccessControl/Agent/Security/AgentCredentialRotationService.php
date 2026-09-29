@@ -79,6 +79,9 @@ final readonly class AgentCredentialRotationService
                     &$callbackCompleted,
                     &$created
                 ): AgentIssuance {
+                    $this->operationRepository->getOperationContract()->assertSameCohort(
+                        $this->agentRepository->getOperationContract()
+                    );
                     $actor = $this->authorization->authorizeRotation(
                         $key->getScope(),
                         $request->getDestination(),
@@ -148,7 +151,8 @@ final readonly class AgentCredentialRotationService
      */
     private function issue(AgentOperationKey $key, AgentRotationRequest $request, string $actor): AgentIssuance
     {
-        $canonicalRequest = $request->canonicalize(1);
+        $version = $this->operationRepository->getOperationContract()->getCreationVersion();
+        $canonicalRequest = $request->canonicalize($version);
         $agent = $this->agentRepository->getById($request->getAgentId());
         if ($agent === null) {
             throw new AgentOperationRejectedException(AgentOperationFailure::CONFLICT);
@@ -184,7 +188,7 @@ final readonly class AgentCredentialRotationService
         }
 
         $this->operationRepository->add(
-            new AgentCredentialOperation(1, $canonicalRequest, $issuance, $material),
+            new AgentCredentialOperation($version, $canonicalRequest, $issuance, $material),
             $this->limits
         );
         $this->auditEvidenceRepository->add(AuditEvidence::agentCredentialRotated($actor, $request->getAgentId()));

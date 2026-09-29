@@ -5,17 +5,18 @@ dependencies, acceptance, and verification.
 
 ## What's Next?
 
-First ready Task: [TASK-00056](00056-TASK.md) — Reject incompatible credential-operation cohorts.
+Active Task: [TASK-00056](00056-TASK.md) — Reject incompatible credential-operation cohorts.
 
 ## In Progress
 
-No Tasks are currently in this state.
+| Order | TASK ID | Title | Parent TICKET | Status | Blocked by | PR |
+| --- | --- | --- | --- | --- | --- | --- |
+| 56 | [TASK-00056](00056-TASK.md) | Reject incompatible credential-operation cohorts | [TICKET-00014](../tickets/00014-TICKET.md) — Preserve credential authority across migration and upgrades | in-progress | [TASK-00048](00048-TASK.md), [TASK-00052](00052-TASK.md), [TASK-00053](00053-TASK.md) | — |
 
 ## Ready Frontier
 
 | Order | TASK ID | Title | Parent TICKET | Status | Blocked by | PR |
 | --- | --- | --- | --- | --- | --- | --- |
-| 56 | [TASK-00056](00056-TASK.md) | Reject incompatible credential-operation cohorts | [TICKET-00014](../tickets/00014-TICKET.md) — Preserve credential authority across migration and upgrades | ready-for-agent | [TASK-00048](00048-TASK.md), [TASK-00052](00052-TASK.md), [TASK-00053](00053-TASK.md) | — |
 | 61 | [TASK-00061](00061-TASK.md) | Declare and register Feature references | [TICKET-00015](../tickets/00015-TICKET.md) — Register and provision Features safely | ready-for-agent | — | — |
 
 ## Waiting

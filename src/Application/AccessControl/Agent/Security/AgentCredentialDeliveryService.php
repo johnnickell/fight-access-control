@@ -12,6 +12,7 @@ use Fight\AccessControl\Application\AccessControl\Agent\Service\AgentOperationAu
 use Fight\AccessControl\Application\AccessControl\Timing\Service\Clock;
 use Fight\AccessControl\Domain\AccessControl\Agent\Agent;
 use Fight\AccessControl\Domain\AccessControl\Agent\AgentRepository;
+use Fight\AccessControl\Domain\AccessControl\Agent\Delivery\AgentDeliveryAuthority;
 use Fight\AccessControl\Domain\AccessControl\Agent\Delivery\AgentDeliveryClaimId;
 use Fight\AccessControl\Domain\AccessControl\Agent\Delivery\AgentDeliveryFailure;
 use Fight\AccessControl\Domain\AccessControl\Agent\Delivery\AgentDeliveryPolicy;
@@ -65,7 +66,7 @@ final readonly class AgentCredentialDeliveryService
             $claimed = $this->transact(function () use ($key, $destination, $deliveryId): AgentCredentialOperation {
                 $original = $this->load($key, $destination, $deliveryId);
                 $agent = $this->currentAgent($original);
-                $authority = $this->deliveryAuthorization->authorize($original->getIssuance(), $this->clock->now());
+                $authority = $this->authorize($original);
                 if (
                     !$original->hasPendingDeliveryAtRevision($original->getStateRevision())
                     || $original->canReconcileDelivery($authority, $this->clock->now())
@@ -100,7 +101,7 @@ final readonly class AgentCredentialDeliveryService
             $completed = $this->transact(function () use ($key, $destination, $deliveryId, $admitted, $outcome) {
                 $original = $this->load($key, $destination, $deliveryId);
                 $agent = $this->currentAgent($original);
-                $authority = $this->deliveryAuthorization->authorize($original->getIssuance(), $this->clock->now());
+                $authority = $this->authorize($original);
                 $attempt = $admitted->requireAttempt();
                 $replacement = $original->finishDelivery(
                     $attempt,
@@ -147,7 +148,7 @@ final readonly class AgentCredentialDeliveryService
         return $this->transact(function () use ($key, $destination, $deliveryId, $claimed) {
             $original = $this->load($key, $destination, $deliveryId);
             $agent = $this->currentAgent($original);
-            $authority = $this->deliveryAuthorization->authorize($original->getIssuance(), $this->clock->now());
+            $authority = $this->authorize($original);
             $replacement = $original->admitDelivery(
                 $claimed->requireAttempt(),
                 $authority,
@@ -158,6 +159,16 @@ final readonly class AgentCredentialDeliveryService
 
             return $replacement;
         });
+    }
+
+    /**
+     * Creates current authority bound to the cohort held through this transaction
+     */
+    private function authorize(AgentCredentialOperation $operation): AgentDeliveryAuthority
+    {
+        return $this->operations->getOperationContract()->bindAuthority(
+            $this->deliveryAuthorization->authorize($operation->getIssuance(), $this->clock->now())
+        );
     }
 
     /**
@@ -201,6 +212,7 @@ final readonly class AgentCredentialDeliveryService
         AgentCredentialOperation $admitted,
         bool $receiptOnly
     ): AgentDeliveryReceipt|AgentDeliveryFailure|null {
+        $this->operations->getOperationContract()->assertCompatible();
         $attempt = $admitted->requireAttempt();
         $attempt->assertAdmittedAt($this->clock->now());
         try {
@@ -261,7 +273,8 @@ final readonly class AgentCredentialDeliveryService
         try {
             /** @var AgentCredentialOperation $result */
             $result = $this->unitOfWork->commitTransactional(
-                static function () use ($operation, &$callbackCompleted): AgentCredentialOperation {
+                function () use ($operation, &$callbackCompleted): AgentCredentialOperation {
+                    $this->operations->getOperationContract()->assertSameCohort($this->agents->getOperationContract());
                     $result = $operation();
                     $callbackCompleted = true;
 

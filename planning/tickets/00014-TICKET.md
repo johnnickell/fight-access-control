@@ -192,6 +192,18 @@ Additional upstream-ratified requirements: TICKET-00012 I1/I4 and TICKET-00013 D
 issuance/delivery/activation/launch authority. TICKET-00012 I6 and TICKET-00013 D7 prove D4 default/override, capacity/
 existing-recovery and cleanup behavior. M5 verifies these are included in the final traceability/evidence inventory.
 
+### TASK-00056 cohort evidence checkpoint
+
+The [cohort contract and M2 evidence map](../../docs/agent-operation-cohorts.md) now connect compatibility checks to
+actual provision/rotation, revocation, discovery/delivery, maintenance and direct repository/Agent Permission paths.
+`AgentCohortConformance` is consumer-bindable; the reference runner models persisted state and controlled switches,
+including restart and generation-bound rejection of stale delivery/cleanup acknowledgements. Domain and focused
+writer tests cover version/capability rejection, legacy/no-op bypasses, mismatched repositories and no key/sink effects.
+The local gate passes **1442 tests / 21365 assertions**, exact **6307/6307 statements**; focused cohort/contract checks
+pass **124 tests / 3196 assertions**. TASK-00056 remains in progress awaiting independent review, so M2 below is not
+marked independently accepted. Real old-binary exclusion, participant substitution, all authority-writer races and
+consumer activation/use remain mandatory unexecuted adoption evidence. No schema/migration/release is authorized.
+
 ## Acceptance Evidence
 
 - [x] **M1 — Existing-Agent/API compatibility:** package behavior tests preserve active authentication and terminal
@@ -297,7 +309,7 @@ migration/restore execution, commit, publication, dependency upgrade or Agent OS
 | Order | TASK ID | Title | Status |
 | --- | --- | --- | --- |
 | 55 | [TASK-00055](../tasks/00055-TASK.md) | Preserve existing Agent authority through upgrade | done |
-| 56 | [TASK-00056](../tasks/00056-TASK.md) | Reject incompatible credential-operation cohorts | ready-for-agent |
+| 56 | [TASK-00056](../tasks/00056-TASK.md) | Reject incompatible credential-operation cohorts | in-progress |
 | 57 | [TASK-00057](../tasks/00057-TASK.md) | Preserve operation-key meaning across canonicalization upgrades | ready-for-agent |
 | 58 | [TASK-00058](../tasks/00058-TASK.md) | Fail closed on unreconciled credential-state restoration | ready-for-agent |
 | 59 | [TASK-00059](../tasks/00059-TASK.md) | Complete migration guidance and evidence traceability | ready-for-agent |

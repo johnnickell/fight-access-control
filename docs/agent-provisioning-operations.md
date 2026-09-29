@@ -7,7 +7,9 @@ This is an **unreleased partial implementation**, not a supported deployable cre
 TASK-00050 adds [atomic credential retirement](agent-credential-retirement.md) through service and direct repository
 writes. TASK-00051 adds the [protected delivery attempt](agent-credential-delivery.md), including separately committed
 admission and fenced receipt acknowledgement. TASK-00048 adds [recoverable rotation](agent-rotation-operations.md).
-TASK-00052/00053 own discovery/restart recovery and maintenance; cohort qualification and migration remain downstream.
+TASK-00052/00053 own discovery/restart recovery and maintenance. TASK-00056 adds mandatory
+[persisted cohort and capability guards](agent-operation-cohorts.md) before issuance/resolution; real consumer
+qualification and the remaining migration work are separate.
 No consumer adapter is supplied or qualified here.
 
 ## Public boundary

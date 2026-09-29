@@ -599,6 +599,7 @@ final class AgentCredentialRotationServiceTest extends TestCase
             };
         } else {
             $agents = $this->createMock(AgentRepository::class);
+            $agents->method('getOperationContract')->willReturn($env->agents->getOperationContract());
             $agents->expects(self::once())->method('getById')->willReturnCallback(static function () use (
                 $case,
                 $publishWinner,

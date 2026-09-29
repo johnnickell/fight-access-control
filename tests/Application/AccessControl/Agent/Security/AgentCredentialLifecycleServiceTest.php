@@ -112,6 +112,7 @@ final class AgentCredentialLifecycleServiceTest extends TestCase
         $repository = $agents;
         if (in_array($case, ['absent', 'stale', 'repository'], true)) {
             $repository = $this->createStub(AgentRepository::class);
+            $repository->method('getOperationContract')->willReturn($agents->getOperationContract());
             $repository->method('getById')->willReturn($case === 'absent' ? null : $agent);
             if ($case === 'repository') {
                 $repository->method('replace')->willThrowException($fault);

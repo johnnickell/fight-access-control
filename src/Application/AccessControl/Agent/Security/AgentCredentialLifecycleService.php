@@ -68,6 +68,7 @@ final readonly class AgentCredentialLifecycleService
             /** @var AgentCredentialRevoked $event */
             $event = $this->unitOfWork->commitTransactional(
                 function () use ($actorId, $agentId): AgentCredentialRevoked {
+                    $this->agentRepository->getOperationContract()->assertCompatible();
                     $agent = $this->agentRepository->getById($agentId);
 
                     if (!$agent instanceof Agent) {
