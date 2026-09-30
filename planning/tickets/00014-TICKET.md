@@ -276,6 +276,27 @@ Reference fixtures model persisted state/restart, not an actual consumer schema 
 database/process restart or rollout qualification. TASK-00058/00059 retain restoration and final evidence ownership;
 no merge or release is authorized.
 
+### TASK-00058 restoration evidence checkpoint — awaiting independent review
+
+John authorized the main checkout from `develop` `80e9add` on `feature/task-00058-restoration-safety`.
+[Restoration safety](../../docs/agent-restoration-safety.md) now requires independently reconciled-generation evidence
+through the existing cohort boundary, for the exact active storage incarnation under the shared writer fence.
+Missing/mismatched evidence denies unsafe effects; restored local flags do not prove readiness. Re-admission advances
+generation, preventing stale delivery/cleanup acknowledgement. No restore Command or migration engine is introduced.
+
+`AgentRestorationConformance` exercises actual public paths with and without receipt lookup: snapshots before issuance,
+sink outcome, supersession/revocation and cleanup; missing/exact-binding/order/tombstone evidence; forward repair,
+retained-key replay and current authority; late admitted bytes and restoration contention. Separate writer tests
+cover same-state-revision stale delivery/cleanup acknowledgements and rewrap rollback. Reference fixtures model an
+independent recovery journal and retain external sink state across actual modeled package replacement, not a real
+consumer restoration algorithm, physical restore, external authority or activation/use qualification.
+
+The full local gate passes **1675 tests / 34503 assertions**, exact **6218/6218 owned statements**; focused checks pass
+**302 tests / 11891 assertions**. No final warnings/skips or dependency drift. TASK-00058 owns logs, input manifest,
+receipt and failure chronology. M4 remains unchecked pending independent review; the guide specifies mandatory
+unexecuted real-consumer rehearsal and abort/resume evidence. M5/TASK-00059 final integration remains outstanding.
+No publication, merge, release, actual restore, consumer adoption or Agent OS TASK-00138 closure is claimed.
+
 ## Acceptance Evidence
 
 - [ ] **M1 — Remove previous-iteration support:** TASK-00068 removes legacy-Agent mode/adoption, marker/read/schema
@@ -389,5 +410,5 @@ migration/restore execution, commit, publication, dependency upgrade or Agent OS
 | 55 | [TASK-00055](../tasks/00055-TASK.md) | Preserve existing Agent authority through upgrade | done |
 | 56 | [TASK-00056](../tasks/00056-TASK.md) | Reject incompatible credential-operation cohorts | done |
 | 57 | [TASK-00057](../tasks/00057-TASK.md) | Simplify Agent operations to one canonical contract | done |
-| 58 | [TASK-00058](../tasks/00058-TASK.md) | Fail closed on unreconciled credential-state restoration | ready-for-agent |
+| 58 | [TASK-00058](../tasks/00058-TASK.md) | Fail closed on unreconciled credential-state restoration | in-progress |
 | 59 | [TASK-00059](../tasks/00059-TASK.md) | Complete current-contract guidance and evidence traceability | ready-for-agent |

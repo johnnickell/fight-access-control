@@ -28,6 +28,9 @@ final readonly class AgentOperationContract
      * Versions and generation come from authoritative storage. Capabilities are the intersection of persisted
      * qualification and the actual local composition, not request input or an unconditional ready boolean.
      * Preserve unknown versions for rejection; never default absent storage to this package's current versions.
+     * Reconciled generation comes from the trusted admission boundary outside the restorable dataset. It attests
+     * this exact storage incarnation and reconciled history under the cohort fence, not merely a stored ready flag.
+     * Missing, unverified or unavailable evidence is null; a restore invalidates it before any writer can resume.
      *
      * @phpstan-param list<string> $capabilities
      */
@@ -36,7 +39,8 @@ final readonly class AgentOperationContract
         private int $canonicalVersion,
         private int $destinationVersion,
         private int $generation,
-        private array $capabilities
+        private array $capabilities,
+        private ?int $reconciledGeneration
     ) {
     }
 
@@ -47,6 +51,7 @@ final readonly class AgentOperationContract
     {
         if (
             $this->storageVersion !== 1 || $this->destinationVersion !== 1 || $this->generation < 1
+            || $this->reconciledGeneration !== $this->generation
             || $this->canonicalVersion !== AgentOperationCanonicalization::VERSION
             || array_diff(self::REQUIRED_CAPABILITIES, $this->capabilities) !== []
         ) {

@@ -18,6 +18,12 @@ final class InMemoryAgentOperationContract
 
     public bool $locked = false;
 
+    /** Models trusted evidence OUTSIDE the package snapshot; null closes admission */
+    public ?int $reconciledGeneration = 1;
+
+    /** Models the restorable cohort generation independently of the trusted boundary */
+    public int $generation = 1;
+
     public function __construct(private readonly ?InMemoryUnitOfWork $transaction = null)
     {
         $this->current = self::compatible();
@@ -25,7 +31,14 @@ final class InMemoryAgentOperationContract
 
     public static function compatible(int $generation = 1): AgentOperationContract
     {
-        return new AgentOperationContract(1, 2, 1, $generation, AgentOperationContract::REQUIRED_CAPABILITIES);
+        return new AgentOperationContract(
+            1,
+            2,
+            1,
+            $generation,
+            AgentOperationContract::REQUIRED_CAPABILITIES,
+            $generation
+        );
     }
 
     public function read(): AgentOperationContract
@@ -39,6 +52,17 @@ final class InMemoryAgentOperationContract
             $this->transaction->onCompletion(function (): void {
                 $this->locked = false;
             });
+        }
+
+        if ($this->reconciledGeneration !== $this->generation) {
+            return new AgentOperationContract(
+                1,
+                2,
+                1,
+                $this->generation,
+                AgentOperationContract::REQUIRED_CAPABILITIES,
+                $this->reconciledGeneration
+            );
         }
 
         return $this->current;

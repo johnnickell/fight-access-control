@@ -105,9 +105,13 @@ The [canonical operation contract](docs/agent-canonical-upgrades.md) uses one Un
 and persisted marker `2`, preserving original keys through restart, delivery, retirement and cleanup. There is no
 historical reader, runtime version selection or migration of nonexistent earlier-version operations. Unsupported
 markers reject without fallback; current authorization, transaction and ordering fences remain mandatory.
-These modeled interleavings do not qualify real consumer adapters or activation/use. This intermediate work is
-**not deployable** until independent acceptance, downstream restoration work and consumer qualification are complete. Existing released
-versions are unchanged.
+[Restoration safety](docs/agent-restoration-safety.md) requires independent reconciled-generation evidence at the
+existing cohort boundary. Stale restored state remains unavailable until original operation/receipt/tombstone/order
+history is reconciled for the exact active storage incarnation at a newer generation. Consumer-bindable scenarios
+model restore and forward repair; no backup tool, migration engine or automatic rollback detector is supplied.
+These modeled interleavings do not qualify real consumer adapters, restore procedures or activation/use. This
+intermediate work is **not deployable** until independent acceptance, final integration and consumer qualification
+are complete. Existing released versions are unchanged.
 
 ### Current principal composition
 

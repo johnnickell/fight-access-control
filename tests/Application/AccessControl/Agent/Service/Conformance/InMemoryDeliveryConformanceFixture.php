@@ -40,11 +40,14 @@ use Throwable;
 /** Models persisted state and deterministic interleavings, not a database, process crash or real key service */
 final class InMemoryDeliveryConformanceFixture extends DeliveryConformanceFixture implements
     AgentCanonicalFixture,
-    AgentCohortFixture
+    AgentCohortFixture,
+    AgentRestorationFixture
 {
     private readonly DeliveryEnvironment $delivery;
 
     private readonly MaintenanceEnvironment $maintenance;
+
+    private readonly InMemoryAgentRestoration $restoration;
 
     /** @var list<string> */
     private array $ciphertexts = [];
@@ -58,6 +61,7 @@ final class InMemoryDeliveryConformanceFixture extends DeliveryConformanceFixtur
     {
         $this->delivery = new DeliveryEnvironment();
         $this->maintenance = new MaintenanceEnvironment($this->delivery);
+        $this->restoration = new InMemoryAgentRestoration($this->delivery);
         $this->delivery->authorization->expiresAt = $this->delivery->clock->now()->modify('+30 days');
     }
 
@@ -85,7 +89,12 @@ final class InMemoryDeliveryConformanceFixture extends DeliveryConformanceFixtur
             },
             $failure === 'destination version' ? 2 : 1,
             2,
-            array_values(array_diff(AgentOperationContract::REQUIRED_CAPABILITIES, [$failure]))
+            array_values(array_diff(AgentOperationContract::REQUIRED_CAPABILITIES, [$failure])),
+            match ($failure) {
+                'missing reconciliation' => null,
+                'restored generation' => 3,
+                default => 2
+            }
         ));
     }
 
@@ -96,8 +105,37 @@ final class InMemoryDeliveryConformanceFixture extends DeliveryConformanceFixtur
             2,
             1,
             $generation,
-            AgentOperationContract::REQUIRED_CAPABILITIES
+            AgentOperationContract::REQUIRED_CAPABILITIES,
+            $generation
         ));
+        $state = $this->delivery->provisioning->operations->contract;
+        $state->generation = $generation;
+        $state->reconciledGeneration = $generation;
+    }
+
+    public function savePackageState(string $checkpoint): void
+    {
+        $this->restoration->savePackageState($checkpoint);
+    }
+
+    public function restorePackageState(string $checkpoint): void
+    {
+        $this->restoration->restorePackageState($checkpoint);
+    }
+
+    public function reconcilePackageState(string $checkpoint): bool
+    {
+        return $this->restoration->reconcilePackageState($checkpoint);
+    }
+
+    public function packageStateFingerprint(): string
+    {
+        return $this->restoration->packageStateFingerprint();
+    }
+
+    public function breakRestorationEvidence(string $failure): void
+    {
+        $this->restoration->breakRestorationEvidence($failure);
     }
 
     public function expireOperationDelegation(): void

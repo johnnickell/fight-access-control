@@ -42,6 +42,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- **Breaking (unreleased v0.5.0):** `AgentOperationContract` requires explicit nullable `reconciledGeneration` from
+  an independently trusted admission boundary for the exact active storage incarnation. Missing or mismatched evidence
+  denies unsafe operations through existing cohort guards; a reconciled restore advances the generation so old delivery
+  and cleanup acknowledgements remain invalid. Consumer-bindable restored-state scenarios retain independent sink
+  receipts/tombstones/order. See [restoration safety](docs/agent-restoration-safety.md); no real consumer backup/restore,
+  migration engine, automatic rollback detection or activation/use qualification is supplied.
 - **Breaking (unreleased v0.5.0):** Agent and operation repositories now require `getOperationContract()` with
   persisted versions, monotonic cohort generation, qualified local capabilities and a shared transaction-duration
   fence. Issuance, lifecycle, direct Agent Permission changes, discovery, delivery and maintenance reject incompatible

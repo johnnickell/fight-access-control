@@ -48,19 +48,20 @@ use PHPUnit\Framework\TestCase;
 #[CoversClass(AgentProvisioningService::class)]
 final class AgentCohortWriterTest extends TestCase
 {
-    /** @return iterable<string, array{string}> */
+    /** @return iterable<string, array{string, bool}> */
     public static function directWriters(): iterable
     {
         $paths = [
             'reservation', 'operation', 'delivery', 'maintenance', 'retirement', 'agent', 'lifecycle', 'permission'
         ];
         foreach ($paths as $path) {
-            yield $path => [$path];
+            yield $path.' missing cohort' => [$path, false];
+            yield $path.' unreconciled restore' => [$path, true];
         }
     }
 
     #[DataProvider('directWriters')]
-    public function test_direct_repository_paths_cannot_bypass_cohort_rejection(string $path): void
+    public function test_direct_repository_paths_cannot_bypass_cohort_rejection(string $path, bool $restored): void
     {
         $env = new DeliveryEnvironment();
         $ports = $env->provisioning;
@@ -73,7 +74,12 @@ final class AgentCohortWriterTest extends TestCase
             $env->clock->now()
         );
         $versions = $ports->operations->versions;
-        $ports->operations->contract->current = null;
+        if ($restored) {
+            $ports->operations->contract->reconciledGeneration = null;
+        } else {
+            $ports->operations->contract->current = null;
+        }
+
         try {
             $ports->transaction->commitTransactional(static function () use (
                 $path,

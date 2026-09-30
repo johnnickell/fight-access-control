@@ -32,6 +32,17 @@ interface AgentOperationContractRepository
      * Retained keys and permanent tombstones keep their original request/issuance; safe status is not writer admission.
      * Consumer policy, Permission/tier, destination, key-admission and trusted-boundary writers participate too.
      * New-code checks cannot stop an unchecked old binary: revoke its storage/trusted-boundary access externally.
+     *
+     * Restoration also closes admission at a trusted boundary OUTSIDE the restored dataset before replacement.
+     * Its reconciled generation must attest the exact active storage incarnation and complete current-contract
+     * history: scoped keys/canonical requests, Agent authority, audit, receipts, tombstones, destination high-water
+     * and key/authority fences. Missing, mismatched or unverifiable evidence supplies null, never the local generation.
+     * Read this evidence freshly under the same transaction-duration fence; restoration/reconciliation and every
+     * writer contend on it. Advance the non-restorable generation before re-admission, even for identical data.
+     * Reconciliation preserves exact bindings and nondecreasing external history; no missing local receipt/event
+     * proves absence of an external effect. A stale snapshot, deadline or epoch cannot reopen admission itself.
+     * Consumers own quiesce, forward repair and actual storage/sink/activation fencing; this is no restore API or
+     * automatic rollback detector. Safe reads/authentication do not prove reconciled state or activation/use authority.
      */
     public function getOperationContract(): AgentOperationContract;
 }

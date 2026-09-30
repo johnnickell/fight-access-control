@@ -6,6 +6,24 @@ Fight AccessControl owns framework-neutral identity, credential, session, author
 behavior shared by Fight applications. The repository-local behavioral and security authority is
 [TICKET-00001](planning/tickets/00001-TICKET.md).
 
+## Restoration safety — TASK-00058 awaiting independent review
+
+John authorized TASK-00058 in the main checkout from `develop` `80e9add` on
+`feature/task-00058-restoration-safety`. The existing `AgentOperationContract` now requires explicit nullable
+`reconciledGeneration` from the trusted admission boundary outside the restored dataset. It must attest the exact
+active storage incarnation and complete reconciled history under the cohort fence; missing/mismatched evidence
+makes unsafe paths unavailable. Controlled restore invalidates readiness before replacement, and successful
+reconciliation advances generation so old delivery/cleanup acknowledgements cannot complete. No production restore
+workflow, historical migration or automatic rollback detector is introduced.
+
+The [restoration guide](docs/agent-restoration-safety.md) defines evidence provenance, quiesce/forward-repair/resume
+conditions and mandatory consumer rehearsals. Consumer-bindable tests restore modeled package state while retaining
+external sink receipts/tombstones/high-water and a separate recovery journal. They prove guarded public outcomes,
+not real database/tooling restore, actual writer exclusion or activation/use authority. The complete local gate passes
+**1675 tests / 34503 assertions**, exact **6218/6218 owned statements**; focused Domain/cohort/restoration checks pass
+**302 tests / 11891 assertions**. No final warnings/skips or dependency drift. The TASK owns the receipt, input manifest
+and failure chronology. Independent review is pending; no consumer adoption, publication, merge or release is claimed.
+
 ## Current contract — TASK-00068 implementation
 
 John's package-wide 2026-09-30 decision in [ADR 0011](planning/adr/0011-pre-v1-current-contract-only.md) supersedes
