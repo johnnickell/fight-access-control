@@ -1,10 +1,12 @@
 # Feature declarations and discovery (unreleased)
 
 [TASK-00061](../planning/tasks/00061-TASK.md) supplies portable name-only metadata and inventory contracts. It does
-not implement Feature storage, provisioning, availability checks, management or runtime enforcement. Those remain
-[TASK-00062](../planning/tasks/00062-TASK.md) through [TASK-00067](../planning/tasks/00067-TASK.md).
-This is an additive public PHP API, not a release, supported partial feature-flag system or consumer qualification.
-No persisted format, existing signature or OpenAPI schema changes. No HTTP endpoint is implied.
+not itself implement Feature storage, provisioning, availability checks, management or runtime enforcement.
+[TASK-00062's atomic provisioning](feature-provisioning.md) now consumes this contract; preparation validation,
+evaluation, management and integrity guards remain TASK-00063 through TASK-00067.
+The declarations are an additive public PHP API, not a release, supported partial feature-flag system or consumer
+qualification. Declaration/discovery alone changes no persisted format, existing signature or OpenAPI schema;
+provisioning has its own storage/schema assessment. No HTTP endpoint is implied.
 
 ## Name and declaration
 
@@ -97,7 +99,7 @@ function candidateReferences(FeatureReferenceDiscovery $discovery): array
 ```
 
 `getReferences($requiredScope)` throws Domain `Feature\Exception\FeatureDiscoveryException` for unavailable
-results or scope mismatch. Future preparation uses `CANDIDATE`; future reference-safe deletion must require `CURRENT`.
+results or scope mismatch. Provisioning/preparation uses `CANDIDATE`; future reference-safe deletion must require `CURRENT`.
 The two scopes are not interchangeable: candidate code can remove a reference while currently running code still
 uses it. Never relabel a result or reconstruct it under another scope to bypass that check. A fresh discovery of the
 correct code is required. Consumers own code identity, scan coverage, explicit registry completeness and freshness;
@@ -109,8 +111,9 @@ scanner, cache, environment access, database, framework integration or deploymen
 Declaration, registration, merging and reading discovery results are pure metadata operations. They perform no
 Permission lookup/grant, persistence, transaction, event dispatch or access decision. A `FeatureFlag` declaration
 cannot authorize a caller, enforce business Permissions, provision a Feature or prevent a method being called.
-Consumers own scanning, composition, runtime enforcement, persistence and deployment wiring. TASK-00062/00063 will
-consume candidate discovery; TASK-00067 owns current-reference deletion. This TASK does not discharge those guards.
+Consumers own scanning, composition, runtime enforcement, persistence and deployment wiring. TASK-00062 consumes
+candidate discovery for provisioning; TASK-00063 adds preparation validation. TASK-00067 owns current-reference
+deletion. Declaration/provisioning does not discharge those remaining guards.
 
 ## Executable package evidence
 

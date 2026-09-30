@@ -448,7 +448,7 @@ expiry and cleanup cannot extend original delivery retention. Reference counts i
 scopes/batches/versions; physical retirement also requires closed write admission, fenced recount and independent
 key-use/authentication-envelope accounting. This is not a wider quota, key-vault or approval system.
 
-## Permission-based feature flags — declarations implemented, remaining behavior planned
+## Permission-based feature flags — declarations and provisioning implemented
 
 [EPIC-00010](planning/epics/00010-EPIC.md) owns the approved package-only destination from the closed
 [Wayfinder map](planning/wayfinder/permission-based-feature-flags-map.md). A planned Feature has a unique immutable
@@ -457,7 +457,8 @@ existing User/Agent Permission authority; availability never replaces business a
 provisioning creates missing Features OFF using the configured default Permission and preserves existing choices.
 Current references guard deletion; checks read fresh Feature state without shared caching or in-flight cancellation.
 Consumers own adapters, scanning, enforcement, UI, authorization, and deployment integration; actual CMS migration
-is separate. Stored Feature behavior remains planned, not implemented. TASK-00061 now implements the
+is separate. TASK-00062 now supplies stored Feature creation/provisioning; evaluation and management remain planned.
+TASK-00061 implements the
 [declaration and discovery contract](docs/feature-references.md): Domain `FeatureName` validates without normalization;
 Application `FeatureFlag` is method-only/nonrepeatable and `FeatureReferences` merges name-only references.
 `FeatureDiscoveryResult` exposes only complete references in the explicitly requested `CANDIDATE` or `CURRENT`
@@ -502,8 +503,26 @@ malformed declarations after partial discovery. Focused/full gates retain **62 t
 **1737 tests / 34624 assertions**, exact **6242/6242 statements**. TASK-00061 is done for this accepted implementation
 and required local evidence. John authorized updating existing PR #99; publication remains pending at this closeout
 checkpoint. The ignored `.runs/handoffs/TASK-00061/feature-flag-landing.md` owns final gates, the administrative-only
-bridge and remote/evidence verification. Earlier acceptance/publication above is historical. TASK-00062–00067 remain
+bridge and remote/evidence verification. Earlier acceptance/publication above is historical. TASK-00063–00067 remain
 unimplemented and need separate execution authority. No Feature release version is selected.
+
+John authorized TASK-00062 in the main checkout on `feature/task-00062-feature-provisioning` from clean `develop`
+`02ef72a`, including merged PR #99. The [provisioning guide](docs/feature-provisioning.md) describes the new Feature
+model (immutable identity/name, stored Permission/status, positive revision), Domain repository creation-side
+uniqueness/reference fences and `ProvisionFeatures` handler. Complete CANDIDATE discovery precedes one atomic
+creation pass; only missing names become OFF with the lazily resolved default Permission. Existing settings survive
+retries/default changes. Post-commit `FeatureCreated` publication is best effort: failure/uncertain commit throws
+and a fresh pass rereads storage without duplicate creation or event replay. Completion is not activation readiness.
+The command has an additive opt-in OpenAPI schema; no existing API or schema is narrowed. Builder verification passes
+**112 focused tests / 435 assertions**, **1787 full tests / 34938 assertions**, exact **6305/6305 owned statements**,
+with no final warnings/skips or dependency drift. The TASK owns the local receipt and failure chronology. Independent
+review and behavioral QA were outstanding at that builder checkpoint. Independent technical review subsequently
+accepted implementation `ff93b60` against `develop` `02ef72a` (C1–C10, no findings), and independent behavioral
+QA passed eight scenarios / 337 checks and a clean final 120-test / 840-assertion focused run. TASK-00062 is done
+for accepted package implementation/local verification; John requested PR landing separately. Controlled
+repository/interleaving probes are not consumer database, discovery, removal-guard or deployment qualification.
+TASK-00063–00067 retain their validation/evaluation/integrity/management/retirement scope; this is not a
+supported partial release.
 
 ## Planning and Completion
 

@@ -5,7 +5,7 @@ dependencies, acceptance, and verification.
 
 ## What's Next?
 
-First ready Task: [TASK-00062](00062-TASK.md) — Provision registered Features without resetting choices.
+First ready Task: [TASK-00063](00063-TASK.md) — Validate Feature preparation before activation.
 
 ## In Progress
 
@@ -15,15 +15,14 @@ No Tasks are currently in this state.
 
 | Order | TASK ID | Title | Parent TICKET | Status | Blocked by | PR |
 | --- | --- | --- | --- | --- | --- | --- |
-| 62 | [TASK-00062](00062-TASK.md) | Provision registered Features without resetting choices | [TICKET-00015](../tickets/00015-TICKET.md) — Register and provision Features safely | ready-for-agent | [TASK-00061](00061-TASK.md) | — |
+| 63 | [TASK-00063](00063-TASK.md) | Validate Feature preparation before activation | [TICKET-00015](../tickets/00015-TICKET.md) — Register and provision Features safely | ready-for-agent | [TASK-00062](00062-TASK.md) | — |
+| 64 | [TASK-00064](00064-TASK.md) | Evaluate Feature availability with fresh, identity-safe checks | [TICKET-00016](../tickets/00016-TICKET.md) — Evaluate Feature availability for Users and Agents | ready-for-agent | [TASK-00062](00062-TASK.md) | — |
+| 65 | [TASK-00065](00065-TASK.md) | Protect Permissions referenced by Features | [TICKET-00017](../tickets/00017-TICKET.md) — Manage and retire Features safely | ready-for-agent | [TASK-00062](00062-TASK.md) | — |
 
 ## Waiting
 
 | Order | TASK ID | Title | Parent TICKET | Status | Blocked by | PR |
 | --- | --- | --- | --- | --- | --- | --- |
-| 63 | [TASK-00063](00063-TASK.md) | Validate Feature preparation before activation | [TICKET-00015](../tickets/00015-TICKET.md) — Register and provision Features safely | ready-for-agent | [TASK-00062](00062-TASK.md) | — |
-| 64 | [TASK-00064](00064-TASK.md) | Evaluate Feature availability with fresh, identity-safe checks | [TICKET-00016](../tickets/00016-TICKET.md) — Evaluate Feature availability for Users and Agents | ready-for-agent | [TASK-00062](00062-TASK.md) | — |
-| 65 | [TASK-00065](00065-TASK.md) | Protect Permissions referenced by Features | [TICKET-00017](../tickets/00017-TICKET.md) — Manage and retire Features safely | ready-for-agent | [TASK-00062](00062-TASK.md) | — |
 | 66 | [TASK-00066](00066-TASK.md) | Create, inspect, and update Feature settings safely | [TICKET-00017](../tickets/00017-TICKET.md) — Manage and retire Features safely | ready-for-agent | [TASK-00065](00065-TASK.md), [TASK-00064](00064-TASK.md) | — |
 | 67 | [TASK-00067](00067-TASK.md) | Retire Features through current-reference guards | [TICKET-00017](../tickets/00017-TICKET.md) — Manage and retire Features safely | ready-for-agent | [TASK-00066](00066-TASK.md), [TASK-00063](00063-TASK.md) | — |
 
@@ -105,3 +104,4 @@ No Tasks are currently in this state.
 | 59 | [TASK-00059](00059-TASK.md) | Complete current-contract guidance and evidence traceability | [TICKET-00014](../tickets/00014-TICKET.md) — Preserve current credential-contract safety and evidence | done | [TASK-00055](00055-TASK.md), [TASK-00056](00056-TASK.md), [TASK-00057](00057-TASK.md), [TASK-00058](00058-TASK.md), [TASK-00049](00049-TASK.md), [TASK-00054](00054-TASK.md), [TASK-00068](00068-TASK.md) | https://github.com/johnnickell/fight-access-control/pull/98 |
 | 60 | [TASK-00060](00060-TASK.md) | Align OpenAPI credential-delivery components with released contracts | — (standalone bug) | done | — | https://github.com/johnnickell/fight-access-control/pull/86 |
 | 61 | [TASK-00061](00061-TASK.md) | Declare and register Feature references | [TICKET-00015](../tickets/00015-TICKET.md) — Register and provision Features safely | done | — | https://github.com/johnnickell/fight-access-control/pull/99 |
+| 62 | [TASK-00062](00062-TASK.md) | Provision registered Features without resetting choices | [TICKET-00015](../tickets/00015-TICKET.md) — Register and provision Features safely | done | [TASK-00061](00061-TASK.md) | https://github.com/johnnickell/fight-access-control/pull/100 |

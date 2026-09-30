@@ -40,6 +40,15 @@ The catalog uses canonical snake-case `toArray()` keys. UUID identifiers use
 `uuid`; `*_at` values use `date-time`; paginated administrative results have `page`, `per_page`,
 `total_pages`, `total_records`, and typed `records`.
 
+### Feature provisioning (unreleased)
+
+`Fight.AccessControl.ProvisionFeatures` describes the required nullable `default_permission_name` string. This is
+raw consumer configuration: a missing Feature requires a canonical resolvable Permission name, but a no-creation
+pass ignores unused configuration. The schema therefore adds no name-pattern constraint. Candidate references come
+from consumer-composed discovery, not an HTTP payload or serialized scanner. See [atomic provisioning](feature-provisioning.md).
+This additive component introduces no endpoint or activation-readiness result. Generated-schema tests compare it
+with actual command serialization in the default suite; no Feature release version is selected.
+
 ### Credential-delivery values
 
 Worker-facing Commands, Queries and safe results are part of the catalog even when a consumer never exposes them

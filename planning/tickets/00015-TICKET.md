@@ -154,10 +154,24 @@ bridge and publication verification. Earlier acceptance and PR evidence describe
 declaration blocker is fulfilled, but downstream implementation still requires separate authorization; the TICKET's
 composed acceptance remains open.
 
+### TASK-00062 implementation checkpoint
+
+John authorized the main checkout from clean `develop` `02ef72a` on `feature/task-00062-feature-provisioning`.
+The [atomic provisioning implementation](../../docs/feature-provisioning.md) now supplies the Feature model,
+creation-side repository constraints, complete-candidate discovery consumption, one atomic missing-name pass and
+post-commit creation facts. Failure/retry tests inspect persisted outcomes, including concurrent winners, rollback,
+uncertain commits and failed publication. Existing choices and unused configuration are preserved. The local gate
+passes 1787 tests / 34938 assertions, exact 6305/6305 owned statements; focused checks pass 112 tests / 435 assertions.
+The TASK retains logs/receipt and failure chronology. This was the builder checkpoint; subsequently independent
+review accepted the clean implementation `ff93b60` (C1–C10, no findings), and independent behavioral QA passed
+8 scenarios / 337 checks, including a clean final 120-test/840-assertion focused run. TASK-00062 is done for
+accepted package implementation/local verification; John's landing request owns PR publication separately.
+TASK-00063 and downstream composed acceptance are not discharged. No consumer qualification or release is claimed.
+
 ## Child Tasks
 
 | Order | TASK ID | Title | Status |
 | --- | --- | --- | --- |
 | 61 | [TASK-00061](../tasks/00061-TASK.md) | Declare and register Feature references | done |
-| 62 | [TASK-00062](../tasks/00062-TASK.md) | Provision registered Features without resetting choices | ready-for-agent |
+| 62 | [TASK-00062](../tasks/00062-TASK.md) | Provision registered Features without resetting choices | done |
 | 63 | [TASK-00063](../tasks/00063-TASK.md) | Validate Feature preparation before activation | ready-for-agent |
