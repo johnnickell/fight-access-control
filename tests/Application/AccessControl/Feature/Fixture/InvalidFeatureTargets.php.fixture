@@ -1,0 +1,21 @@
+<?php
+
+declare(strict_types=1);
+
+use Fight\AccessControl\Application\AccessControl\Feature\Attribute\FeatureFlag;
+
+// Deliberately invalid native metadata. Loaded by PHPUnit, not statically treated as valid consumer code.
+return new #[FeatureFlag('dashboard')] class {
+    #[FeatureFlag('dashboard')]
+    public string $value = '';
+
+    #[FeatureFlag('dashboard')]
+    public const string NAME = 'fixture';
+
+    #[FeatureFlag('dashboard')]
+    #[FeatureFlag('new-checkout')]
+    public function repeated(#[FeatureFlag('dashboard')] string $argument): string
+    {
+        return $argument;
+    }
+};

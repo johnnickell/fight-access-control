@@ -448,7 +448,7 @@ expiry and cleanup cannot extend original delivery retention. Reference counts i
 scopes/batches/versions; physical retirement also requires closed write admission, fenced recount and independent
 key-use/authentication-envelope accounting. This is not a wider quota, key-vault or approval system.
 
-## Permission-based feature flags — approved planning only
+## Permission-based feature flags — declarations implemented, remaining behavior planned
 
 [EPIC-00010](planning/epics/00010-EPIC.md) owns the approved package-only destination from the closed
 [Wayfinder map](planning/wayfinder/permission-based-feature-flags-map.md). A planned Feature has a unique immutable
@@ -457,7 +457,23 @@ existing User/Agent Permission authority; availability never replaces business a
 provisioning creates missing Features OFF using the configured default Permission and preserves existing choices.
 Current references guard deletion; checks read fresh Feature state without shared caching or in-flight cancellation.
 Consumers own adapters, scanning, enforcement, UI, authorization, and deployment integration; actual CMS migration
-is separate. These are accepted design decisions, not implemented capabilities. John approved the split into
+is separate. Stored Feature behavior remains planned, not implemented. TASK-00061 now implements the
+[declaration and discovery contract](docs/feature-references.md): Domain `FeatureName` validates without normalization;
+Application `FeatureFlag` is method-only/nonrepeatable and `FeatureReferences` merges name-only references.
+`FeatureDiscoveryResult` exposes only complete references in the explicitly requested `CANDIDATE` or `CURRENT`
+scope; failed/incomplete discovery and scope mismatch reject instead of becoming empty results. Consumers own
+scanning, code identity and completeness; this is not enforcement or preparation/retirement implementation.
+The local gate passes **1737 tests / 34624 assertions**, exact **6242/6242 statements**; focused Feature tests
+pass **62 tests / 121 assertions**. Independent review accepted `0408f72` against unchanged `develop` `e8244b0`,
+with all C1–C7 passing and no findings. Independent behavioral QA passed six scenarios and **202 checks**, including
+native target failures, incomplete discovery, scope misuse and isolated hook cleanup. TASK-00061 is done for accepted
+implementation/local verification. John's landing request published
+[PR #99](https://github.com/johnnickell/fight-access-control/pull/99) against unchanged `develop` at initial head
+`ff10dbb`; it is open at this publication checkpoint. Fresh landing gates retain the counts above, without dependency
+drift or warnings/skips; sanitized nonvisual QA results are in the PR body. The ignored TASK landing handoff owns final
+metadata verification, the administrative-only provenance bridge and final remote identity. No consumer scanner,
+provisioning, retirement, merge, release or deployment is qualified.
+John approved the split into
 [TICKET-00015](planning/tickets/00015-TICKET.md) (registration/provisioning),
 [TICKET-00016](planning/tickets/00016-TICKET.md) (availability evaluation), and
 [TICKET-00017](planning/tickets/00017-TICKET.md) (management/retirement). The latter two build on TICKET-00015's shared
@@ -476,8 +492,18 @@ operational failures. TICKET-00017's approved [TASK-00065](planning/tasks/00065-
 One Feature revision starts at 1 and advances only on real status/Permission changes; updates/deletion require the
 expected revision. Valid no-ops do not write/increment/publish success; stale attempts reject. Management reads retain
 broken Permission IDs with an explicit missing marker and reuse existing pagination. The graph is 61 → 62;
-62 → 63/64/65; 65+64 → 66; 66+63 → 67. All three TICKETs now have approved TASK plans. Implementation and behavioral
-evidence remain outstanding; no release version or execution worktree is selected.
+62 → 63/64/65; 65+64 → 66; 66+63 → 67. All three TICKETs now have approved TASK plans. TASK-00061 implementation is on
+`feature/task-00061-feature-references` in the main checkout, with independent review and QA accepted at `0408f72`.
+John subsequently requested renaming the Attribute to `FeatureFlag`, reopening TASK-00061 on the same branch/main
+checkout: no compatibility alias and no change to validation, native targets or discovery semantics. Independent
+review now accepts renamed implementation `a8bdf75` against unchanged `develop` `e8244b0`, all C1–C7 passing with no
+findings. Independent post-review QA passes six scenarios and **208 checks**, including old-alias absence and native
+malformed declarations after partial discovery. Focused/full gates retain **62 tests / 121 assertions** and
+**1737 tests / 34624 assertions**, exact **6242/6242 statements**. TASK-00061 is done for this accepted implementation
+and required local evidence. John authorized updating existing PR #99; publication remains pending at this closeout
+checkpoint. The ignored `.runs/handoffs/TASK-00061/feature-flag-landing.md` owns final gates, the administrative-only
+bridge and remote/evidence verification. Earlier acceptance/publication above is historical. TASK-00062–00067 remain
+unimplemented and need separate execution authority. No Feature release version is selected.
 
 ## Planning and Completion
 

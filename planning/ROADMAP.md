@@ -117,5 +117,5 @@ Existing TASK execution priorities remain unchanged; these records are ordered a
 | [EPIC-00007](epics/00007-EPIC.md) | pre-1.0 | done | 1 | 1 |
 | [EPIC-00008](epics/00008-EPIC.md) | v0.4.0 | done | 3 | 5 |
 | [EPIC-00009](epics/00009-EPIC.md) | v0.5.0 | in-progress | 3 | 14 |
-| [EPIC-00010](epics/00010-EPIC.md) | unassigned | ready-for-agent | 3 | 7 |
+| [EPIC-00010](epics/00010-EPIC.md) | unassigned | in-progress | 3 | 7 |
 <!-- generated:epic-status:end -->

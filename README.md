@@ -70,6 +70,13 @@ purpose, User ID, and delivery ID. Pending work, due retries, and expired leases
 A crash after provider acceptance and before outcome commit can repeat the provider call with the same identity, so
 this contract is at-least-once and does not claim exactly-once delivery.
 
+### Feature declarations (unreleased)
+
+The [Feature reference guide](docs/feature-references.md) describes strict `FeatureName` validation, method-only
+`FeatureFlag` metadata, explicit registration and scoped complete/unavailable discovery. These are portable
+metadata contracts only: storage, provisioning, evaluation, management and consumer runtime enforcement remain
+unimplemented. A declaration is not an access decision or a supported partial feature-flag release.
+
 ### Agent credential operations (unreleased)
 
 Start with the [current Agent integration guide](docs/agent-integration.md) for composition, readiness, bounded

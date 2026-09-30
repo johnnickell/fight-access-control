@@ -2,7 +2,7 @@
 id: TICKET-00015
 epic: EPIC-00010
 title: Register and provision Features safely
-status: ready-for-agent
+status: in-progress
 ---
 
 # Register and provision Features safely
@@ -134,15 +134,30 @@ Implements [WF-018](../wayfinder/tickets/WF-018-feature-preview-permission-bindi
 [WF-022](../wayfinder/tickets/WF-022-feature-package-integration-scope.md), within
 [ADR 0001](../adr/0001-domain-application-package-boundary.md).
 John approved TASK-00061–00063 and the method-only/nonrepeatable Attribute plus atomic-pass design. TASK-00061 has
-no blocker; TASK-00062 waits on 00061 and TASK-00063 waits on 00062. No implementation or executed behavioral evidence
-exists yet. TICKET-00016 has [TASK-00064](../tasks/00064-TASK.md), blocked by TASK-00062; TICKET-00017 now has approved
-TASK-00065–00067 and the concrete cross-TICKET evidence ownership above. EPIC TASK planning is complete. Execution
-and worktree selection remain separately authorized. Existing portfolio priorities are unchanged.
+no blocker; TASK-00062 waits on 00061 and TASK-00063 waits on 00062. TASK-00061 now implements the
+[declaration/discovery contract](../../docs/feature-references.md) in the main checkout on
+`feature/task-00061-feature-references`. Independent review accepted `0408f72` with all criteria passing and no findings;
+independent QA passed six scenarios and 202 checks. TASK-00061 is done for accepted implementation/local verification.
+John requested landing; [PR #99](https://github.com/johnnickell/fight-access-control/pull/99) is open against unchanged
+`develop` at the initial publication checkpoint. Provisioning and preparation validation remain unimplemented;
+the TICKET's composed acceptance is open, with no merge, release or consumer qualification claimed.
+TICKET-00016 has [TASK-00064](../tasks/00064-TASK.md), blocked by TASK-00062; TICKET-00017 now has approved
+TASK-00065–00067 and the concrete cross-TICKET evidence ownership above. EPIC TASK planning is complete. John
+authorized TASK-00061 execution in the main checkout; downstream execution and worktree selection still require
+authorization. Existing portfolio priorities are unchanged.
+
+After publication, John requested renaming the Attribute to `FeatureFlag`. Independent review now accepts this
+bounded unreleased rename at `a8bdf75`, all TASK criteria passing with no findings; independent post-review QA passes
+six scenarios and 208 checks. TASK-00061 is done for accepted implementation/local verification. John authorized
+updating existing PR #99; the TASK's ignored rename-landing handoff owns final gates, the administrative-only evidence
+bridge and publication verification. Earlier acceptance and PR evidence describe the preceding subject. TASK-00062's
+declaration blocker is fulfilled, but downstream implementation still requires separate authorization; the TICKET's
+composed acceptance remains open.
 
 ## Child Tasks
 
 | Order | TASK ID | Title | Status |
 | --- | --- | --- | --- |
-| 61 | [TASK-00061](../tasks/00061-TASK.md) | Declare and register Feature references | ready-for-agent |
+| 61 | [TASK-00061](../tasks/00061-TASK.md) | Declare and register Feature references | done |
 | 62 | [TASK-00062](../tasks/00062-TASK.md) | Provision registered Features without resetting choices | ready-for-agent |
 | 63 | [TASK-00063](../tasks/00063-TASK.md) | Validate Feature preparation before activation | ready-for-agent |
