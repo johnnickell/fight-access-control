@@ -5,17 +5,17 @@ dependencies, acceptance, and verification.
 
 ## What's Next?
 
-First ready Task: [TASK-00062](00062-TASK.md) — Provision registered Features without resetting choices.
+Active Task: [TASK-00062](00062-TASK.md) — Provision registered Features without resetting choices.
 
 ## In Progress
 
-No Tasks are currently in this state.
+| Order | TASK ID | Title | Parent TICKET | Status | Blocked by | PR |
+| --- | --- | --- | --- | --- | --- | --- |
+| 62 | [TASK-00062](00062-TASK.md) | Provision registered Features without resetting choices | [TICKET-00015](../tickets/00015-TICKET.md) — Register and provision Features safely | in-progress | [TASK-00061](00061-TASK.md) | — |
 
 ## Ready Frontier
 
-| Order | TASK ID | Title | Parent TICKET | Status | Blocked by | PR |
-| --- | --- | --- | --- | --- | --- | --- |
-| 62 | [TASK-00062](00062-TASK.md) | Provision registered Features without resetting choices | [TICKET-00015](../tickets/00015-TICKET.md) — Register and provision Features safely | ready-for-agent | [TASK-00061](00061-TASK.md) | — |
+No Tasks are currently in this state.
 
 ## Waiting
 

@@ -9,6 +9,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- [Atomic Feature provisioning](docs/feature-provisioning.md): additive Feature identity/status/model and repository
+  contracts, `ProvisionFeatures`/handler and post-commit `FeatureCreated` facts. Complete candidate discovery creates
+  only missing names OFF in one transaction with an existing default Permission; rollback, uniqueness conflicts,
+  uncertain commits and publication failure preserve storage-based retry and existing choices. Additive opt-in
+  `Fight.AccessControl.ProvisionFeatures` schema and generated-contract tests. No activation-readiness claim,
+  evaluation, management, consumer adapter, reliable event delivery or selected release version.
 - Portable [Feature declarations and discovery](docs/feature-references.md): strict non-normalizing `FeatureName`,
   method-only nonrepeatable `FeatureFlag`, immutable name references and fail-closed candidate/current discovery
   results. Additive PHP metadata contracts only; no storage, provisioning, evaluation, scanner or runtime enforcement.
