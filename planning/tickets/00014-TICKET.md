@@ -19,7 +19,7 @@ and final guidance consume the one current contract; no old canonical reader or 
 Other completed slices are not reopened by this bounded amendment. At the planning checkpoint implementation and
 fresh review were outstanding; John's subsequent work invocation authorizes implementation/local commit only.
 
-### Revised M3 implementation checkpoint — awaiting independent review
+### Revised M3 implementation checkpoint — before independent review
 
 TASK-00057 now uses one Unicode-aware canonical rule/marker `2`, no-argument request canonicalization and a single
 cohort canonical marker instead of creation/reader settings. The v1 reader and cross-version matrices are removed;
@@ -29,6 +29,19 @@ The full local gate passes **1469 tests / 26053 assertions**, exact **6315/6315 
 checks pass **941 tests / 21822 assertions**. No final warnings/skips or dependency drift. The TASK owns logs/receipts
 and failure chronology. M3 remains unchecked pending new independent review; original acceptance below is historical.
 No push, PR editing, merge, release or consumer qualification is claimed.
+
+### Revised M3 independent acceptance and landing intake — 2026-09-30
+
+Independent review accepted revised TASK-00057 at `2de41046dfe49a96340645a0f1c08c3ea2e2ac30` against unchanged
+`develop` `f0d872c`, with C1–C8 and all applicable Spec/Standards IDs passing and no findings. Fresh reviewer checks
+pass **941 tests / 21822 assertions**; all **771/771** saved final gate inputs match. The full local gate passes
+**1469 tests / 26053 assertions**, exact **6315/6315 statements**, with no final warnings/skips. M3 is accepted at
+the package boundary, superseding the original cross-version acceptance rather than reusing it.
+
+John requested landing of this revision through existing PR #93. At the completion checkpoint final publication is
+pending; the TASK's ignored simplification landing handoff owns fresh gates, final metadata/remote identity and the
+administrative-only bridge. Hosted CI is optional/unchecked; no interactive QA is required. M4/M5 and real consumer
+qualification remain outstanding, and no merge, release or adoption is claimed.
 
 ## Problem and Outcome
 
@@ -258,7 +271,7 @@ no merge or release is authorized.
       mutation/admission without fallback. Document all lifecycle and authorization writers plus the necessary
       storage/trusted-boundary fencing of old binaries. Published conformance obligations include real writer races;
       do not claim a new-code version check fences an old binary by itself.
-- [ ] **M3 — One canonical contract:** keep the best Unicode-aware normalization as the sole supported rule and
+- [x] **M3 — One canonical contract:** keep the best Unicode-aware normalization as the sole supported rule and
       marker; remove old readers, multi-version creation/reader selection and compatibility-only APIs/tests/guidance.
       Actual services preserve same-contract retry/restart and retained/tombstoned outcomes, reject changed bindings
       and unsupported/corrupt state without fallback, and retain current authority, atomicity and destination/order
@@ -336,8 +349,8 @@ captured. Independent review accepted `ebc396c` with all seven criteria passing,
 inputs verified; M1 is accepted for package behavior. John subsequently requested PR landing; the TASK's ignored
 handoff owns publication/remote verification and the administrative-only provenance bridge. Consumer schema migration,
 real adapter/concurrency proof and adoption are not claimed. TASK-00056's accepted M2 checkpoint is recorded above;
-TASK-00057's original accepted M3 checkpoint is historical above; the 2026-09-30 amendment reopens M3 for
-simplification and fresh acceptance. M4–M5 retain their separate downstream owners and wait on revised TASK-00057.
+TASK-00057's original accepted M3 checkpoint is historical above; the 2026-09-30 amendment was independently
+accepted at `2de4104` after simplification. M4–M5 retain their separate downstream owners and unfinished dependencies.
 The Board owns current executable order; the following inventory evidence describes the original planning checkpoint.
 
 Before allocation, refreshed local live/archive inventory at unchanged HEAD
@@ -358,6 +371,6 @@ migration/restore execution, commit, publication, dependency upgrade or Agent OS
 | --- | --- | --- | --- |
 | 55 | [TASK-00055](../tasks/00055-TASK.md) | Preserve existing Agent authority through upgrade | done |
 | 56 | [TASK-00056](../tasks/00056-TASK.md) | Reject incompatible credential-operation cohorts | done |
-| 57 | [TASK-00057](../tasks/00057-TASK.md) | Simplify Agent operations to one canonical contract | in-progress |
+| 57 | [TASK-00057](../tasks/00057-TASK.md) | Simplify Agent operations to one canonical contract | done |
 | 58 | [TASK-00058](../tasks/00058-TASK.md) | Fail closed on unreconciled credential-state restoration | ready-for-agent |
 | 59 | [TASK-00059](../tasks/00059-TASK.md) | Complete migration guidance and evidence traceability | ready-for-agent |

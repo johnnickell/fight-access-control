@@ -9,13 +9,17 @@ behavior shared by Fight applications. The repository-local behavioral and secur
 ## Current canonical-contract simplification — TASK-00057
 
 On 2026-09-30 John confirmed no consumers or persisted Agent operations require historical/backward compatibility.
-[TASK-00057](planning/tasks/00057-TASK.md) is in progress on the existing feature branch. The revised code keeps
+[TASK-00057](planning/tasks/00057-TASK.md) is independently accepted on the existing feature branch. The revised code keeps
 Unicode-aware normalization as the sole canonical contract and marker `2`, removes historical readers/version
 selection and uses no-argument request canonicalization. Cohorts validate one canonical marker, not creation/reader
 sets. Same-contract idempotency, retained keys/tombstones, authorization, atomicity and failure/order fences remain.
-Fresh independent review is required: prior acceptance at `04a2adf` and PR #93 publication prove only the superseded
-scope and do not authorize merge. The full local gate passes 1469 tests / 26053 assertions and exact 6315/6315 statements. The TASK owns detailed
-verification evidence; no push or hosted PR change is part of this work invocation. TASK-00058/00059 wait on revised acceptance and retain restoration/final-guidance ownership.
+Fresh independent review accepted `2de4104` against unchanged `develop` `f0d872c`, with all revised C1–C8 passing,
+no findings, 941 fresh tests / 21822 assertions and all 771 full-gate inputs verified. Prior acceptance at `04a2adf`
+and the old PR #93 publication prove only superseded scope. The full local gate passes 1469 tests / 26053 assertions
+and exact 6315/6315 statements. John requested landing of the revision through existing PR #93; final publication is
+pending at this closeout checkpoint. The TASK's ignored simplification landing handoff owns fresh gates and final
+commit/remote metadata. TASK-00058/00059 retain restoration/final-guidance ownership and their own execution authority;
+no merge, release or consumer qualification is claimed.
 
 ## Vocabulary
 
@@ -286,7 +290,10 @@ The TASK's ignored handoff owns final metadata/remote verification and the metad
 This was not a real consumer upgrade, merge or release. John's 2026-09-30 amendment and subsequent work invocation
 reopen TASK-00057: current code removes that speculative compatibility, retains one Unicode-aware contract and
 replaces cross-version fixtures with same-contract restart/lifecycle/fail-closed proof. Earlier counts/acceptance
-are historical, not current evidence. TASK-00058 retains restoration ownership.
+are historical, not current evidence. Fresh independent review now accepts revised `2de4104` with all criteria passing,
+no findings, 941 fresh tests / 21822 assertions and 771 verified gate inputs; TASK-00057 is done for accepted package
+implementation/local verification. John requested updating PR #93; the ignored simplification landing handoff owns
+final delivery evidence and its metadata-only review bridge. TASK-00058 retains restoration ownership.
 Each downstream execution needs authorization. John separately authorized TASK-00046
 execution and PR landing. Planning does not qualify a consumer or authorize migration, release or adoption.
 The replacement requires caller-scoped operation correlation, protected delivery and consumer authorization
