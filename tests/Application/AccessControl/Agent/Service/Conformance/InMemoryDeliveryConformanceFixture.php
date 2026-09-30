@@ -38,7 +38,9 @@ use SensitiveParameter;
 use Throwable;
 
 /** Models persisted state and deterministic interleavings, not a database, process crash or real key service */
-final class InMemoryDeliveryConformanceFixture extends DeliveryConformanceFixture implements AgentCohortFixture
+final class InMemoryDeliveryConformanceFixture extends DeliveryConformanceFixture implements
+    AgentCanonicalFixture,
+    AgentCohortFixture
 {
     private readonly DeliveryEnvironment $delivery;
 
@@ -76,8 +78,11 @@ final class InMemoryDeliveryConformanceFixture extends DeliveryConformanceFixtur
 
         $state->switchTo(new AgentOperationContract(
             $failure === 'storage version' ? 2 : 1,
-            $failure === 'creation version' ? 2 : 1,
-            $failure === 'retained reader' ? [1, 2] : [1],
+            match ($failure) {
+                'obsolete canonical marker' => 1,
+                'unknown canonical marker' => 99,
+                default => 2
+            },
             $failure === 'destination version' ? 2 : 1,
             2,
             array_values(array_diff(AgentOperationContract::REQUIRED_CAPABILITIES, [$failure]))
@@ -88,12 +93,40 @@ final class InMemoryDeliveryConformanceFixture extends DeliveryConformanceFixtur
     {
         $this->delivery->provisioning->operations->contract->switchTo(new AgentOperationContract(
             1,
-            1,
-            [1],
+            2,
             1,
             $generation,
             AgentOperationContract::REQUIRED_CAPABILITIES
         ));
+    }
+
+    public function expireOperationDelegation(): void
+    {
+        $authorization = $this->delivery->provisioning->authorization;
+        $authorization->changeAuthority(static function () use ($authorization): void {
+            $authorization->delegationExpired = true;
+        });
+    }
+
+    public function corruptBinding(AgentIssuance $issuance, int $version, ?string $binding = null): void
+    {
+        $stored = $this->stored($issuance);
+        $operations = $this->delivery->provisioning->operations;
+        $operations->operations[$issuance->getKey()->toString()] = new AgentCredentialOperation(
+            $version,
+            $binding ?? $stored->getCanonicalRequest(),
+            $issuance,
+            $stored->getMaterial(),
+            $stored->getStatus()->getDeliveryDisposition(),
+            $stored->getStatus()->getCredentialDisposition(),
+            $stored->getStateRevision(),
+            $stored->getAttempt(),
+            $stored->getDeliveryPolicy(),
+            $stored->getRetryAt(),
+            $stored->getReceipt(),
+            $stored->getDeliveryFailure(),
+            $stored->isSinkCleaned()
+        );
     }
 
     public function original(): AgentIssuance

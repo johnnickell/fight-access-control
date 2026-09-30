@@ -81,7 +81,7 @@ accept supplied strings/booleans as its production authorization decision.
   Without lookup, repeat invocation must retain the original bytes, ID and exact tuple. `invalidateReceipt()` causes
   terminal rejection, never false delivered success. Cleanup must retain sink tombstones and reject delayed replay.
 - `setCanonicalVersion()` is a storage fixture for an unsupported version, preserving the binding. It is not an
-  upgrade tool. TASK-00057 owns actual cross-version equality/cohort proof.
+  upgrade tool. TASK-00057 owns single-contract normalization, restart and retained-key safety proof.
 - `forbiddenValues()` lists nonempty fixture secrets, ciphertext, key paths and provider diagnostics. `safeEvidence()`
   includes actual event/audit/diagnostic representations. Assertions inspect serialization, JSON, debug and failures;
   consumer logging, tracing and provider error adapters require their own captures too.

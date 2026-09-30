@@ -6,6 +6,21 @@ Fight AccessControl owns framework-neutral identity, credential, session, author
 behavior shared by Fight applications. The repository-local behavioral and security authority is
 [TICKET-00001](planning/tickets/00001-TICKET.md).
 
+## Current canonical-contract simplification — TASK-00057
+
+On 2026-09-30 John confirmed no consumers or persisted Agent operations require historical/backward compatibility.
+[TASK-00057](planning/tasks/00057-TASK.md) is independently accepted on the existing feature branch. The revised code keeps
+Unicode-aware normalization as the sole canonical contract and marker `2`, removes historical readers/version
+selection and uses no-argument request canonicalization. Cohorts validate one canonical marker, not creation/reader
+sets. Same-contract idempotency, retained keys/tombstones, authorization, atomicity and failure/order fences remain.
+Fresh independent review accepted `2de4104` against unchanged `develop` `f0d872c`, with all revised C1–C8 passing,
+no findings, 941 fresh tests / 21822 assertions and all 771 full-gate inputs verified. Prior acceptance at `04a2adf`
+and the old PR #93 publication prove only superseded scope. The full local gate passes 1469 tests / 26053 assertions
+and exact 6315/6315 statements. John requested landing of the revision through existing PR #93; final publication is
+pending at this closeout checkpoint. The TASK's ignored simplification landing handoff owns fresh gates and final
+commit/remote metadata. TASK-00058/00059 retain restoration/final-guidance ownership and their own execution authority;
+no merge, release or consumer qualification is claimed.
+
 ## Vocabulary
 
 - **User**: the stable human identity whose canonical email remains unique across pending, active, disabled, and
@@ -28,11 +43,17 @@ behavior shared by Fight applications. The repository-local behavioral and secur
   and a separately encrypted prepared delivery copy. Retrying an authorized retained key resolves that outcome;
   retiring its material never makes the key reusable. Current unreleased implementation supports provisioning and
   rotation of recoverably provisioned or known active legacy Agents; retries retain the original predecessor request.
-- **Agent operation cohort**: one compatible writer set sharing persisted storage/creation/destination versions,
-  retained-reader obligations and a monotonic generation. Qualified local capabilities and the transaction-duration
+- **Agent operation cohort**: one compatible writer set validating the single persisted storage/canonical/destination
+  contract and sharing a monotonic generation. Qualified local capabilities and the transaction-duration
   cohort fence are mandatory across Agent and operation repositories. Delivery/cleanup authority binds the generation;
   a switch invalidates old acknowledgements, not already disclosed bytes. Consumers separately exclude unchecked old
   binaries and qualify actual shared-connection writer races. No startup-ready boolean grants admission.
+- **Agent canonical request version**: marker `2` identifies the sole supported operation-request representation.
+  Provisioning trims fixed Unicode edge whitespace and preserves case/internal whitespace without NFC conversion;
+  rotation binds its original target/predecessor/destination tuple. Retained keys keep original request/issuance.
+  No historical reader, selectable version or old-data migration is required before first adoption. Marker `1` and
+  unknown markers reject without fallback. See the [canonical contract](docs/agent-canonical-upgrades.md);
+  actual persistence/sink/authority qualification and restoration safety remain separate.
 - **Agent operation status**: an authorized secret-free read snapshot separating confirmed original issuance from
   recorded delivery and original-credential disposition. An absent record is indeterminate, not proof of rollback.
   Current scope/delegation/destination checks precede lookup and repeat with target checks before disclosure; reads
@@ -168,7 +189,7 @@ rotation and issuance conformance. TICKET-00013 now has approved [TASK-00050](pl
 maintenance and delivery/lifecycle conformance. TASK-00048/00049 now have concrete cross-TICKET prerequisites and
 wait on unfinished dependencies rather than missing information. TICKET-00014 now has approved
 [TASK-00055](planning/tasks/00055-TASK.md) through [TASK-00059](planning/tasks/00059-TASK.md): existing-Agent
-compatibility, contract cohorts, canonical upgrades, restoration safety and migration/evidence guidance. All three
+compatibility, contract cohorts, a single canonical contract, restoration safety and migration/evidence guidance. All three
 TICKET decompositions are complete; TASK-00046 is independently accepted and done for implementation/local
 verification, not release; its PR #79 is now merged. John authorized TASK-00047 in the main checkout; its safe
 status path is independently accepted and done for implementation/local verification, not merge or release.
@@ -255,7 +276,24 @@ verified. TASK-00056 is done for accepted package implementation/local verificat
 `a0897e6`; the fresh landing gate retains 1442 tests / 21365 assertions and exact 6307/6307 statements. The ignored
 TASK handoff owns final metadata/remote verification and the administrative-only review bridge.
 Real consumer old-binary exclusion, writer races and deployment remain unqualified; no merge or release is authorized.
-TASK-00057/00058 retain canonical upgrade and restoration ownership.
+John authorized TASK-00057 in the main checkout from `develop` `f0d872c`, on
+`feature/task-00057-canonical-upgrades`, including the pending WF-023 planning decision in its next commit.
+At the original, now-superseded checkpoint, its canonical upgrade implementation froze historical readers and
+integrated v2 with existing issuance/status/
+delivery/maintenance paths. Consumer-bindable scenarios exercise both versions through restart and retained states;
+the full local gate passes 1501 tests / 32816 assertions and exact 6317/6317 statements. Independent review accepted
+`04a2adf` with all eight criteria passing, no findings, 973 fresh tests / 28585 assertions and all 771 final gate
+inputs verified. That original scope was marked done for accepted package implementation/local verification. John's landing request
+published [PR #93](https://github.com/johnnickell/fight-access-control/pull/93) against unchanged `develop` at initial
+head `53debe0`; the fresh landing gate retains 1501 tests / 32816 assertions and exact 6317/6317 statements.
+The TASK's ignored handoff owns final metadata/remote verification and the metadata-only acceptance bridge.
+This was not a real consumer upgrade, merge or release. John's 2026-09-30 amendment and subsequent work invocation
+reopen TASK-00057: current code removes that speculative compatibility, retains one Unicode-aware contract and
+replaces cross-version fixtures with same-contract restart/lifecycle/fail-closed proof. Earlier counts/acceptance
+are historical, not current evidence. Fresh independent review now accepts revised `2de4104` with all criteria passing,
+no findings, 941 fresh tests / 21822 assertions and 771 verified gate inputs; TASK-00057 is done for accepted package
+implementation/local verification. John requested updating PR #93; the ignored simplification landing handoff owns
+final delivery evidence and its metadata-only review bridge. TASK-00058 retains restoration ownership.
 Each downstream execution needs authorization. John separately authorized TASK-00046
 execution and PR landing. Planning does not qualify a consumer or authorize migration, release or adoption.
 The replacement requires caller-scoped operation correlation, protected delivery and consumer authorization

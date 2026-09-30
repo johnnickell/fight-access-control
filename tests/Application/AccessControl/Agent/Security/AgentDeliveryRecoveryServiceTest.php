@@ -523,7 +523,7 @@ final class AgentDeliveryRecoveryServiceTest extends TestCase
         $env->sink->beforeVerify = null;
         $original = $env->operation();
         $env->provisioning->operations->operations[$env->issuance->getKey()->toString()] = new AgentCredentialOperation(
-            1,
+            $original->getCanonicalVersion(),
             $original->getCanonicalRequest(),
             $env->issuance,
             null,

@@ -27,6 +27,9 @@ interface AgentOperationContractRepository
      * repository/UoW/authorization/cipher/sink/maintenance contracts. Verify actual participants, not merely interface
      * names or an operator-supplied boolean. Runtime capability methods and current authorization still apply.
      * AgentRepository and AgentOperationRepository must observe the identical cohort and shared transaction.
+     * Both repositories validate the single supported storage/canonical/destination contract and agree on its
+     * generation. Unknown contract markers deny admission, never select a reader or migrate stored operations.
+     * Retained keys and permanent tombstones keep their original request/issuance; safe status is not writer admission.
      * Consumer policy, Permission/tier, destination, key-admission and trusted-boundary writers participate too.
      * New-code checks cannot stop an unchecked old binary: revoke its storage/trusted-boundary access externally.
      */

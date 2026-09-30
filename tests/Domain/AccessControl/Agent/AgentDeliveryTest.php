@@ -237,7 +237,7 @@ final class AgentDeliveryTest extends TestCase
                 $now,
                 2
             )->claimDelivery(AgentDeliveryClaimId::generate(), $policy, $now->modify('+6 seconds')),
-            'unknown version' => $this->operation(2)->claimDelivery(AgentDeliveryClaimId::generate(), $policy, $now),
+            'unknown version' => $this->operation(99)->claimDelivery(AgentDeliveryClaimId::generate(), $policy, $now),
             'terminal claim' => $operation->retireMaterial()->claimDelivery(
                 AgentDeliveryClaimId::generate(),
                 $policy,
@@ -450,7 +450,7 @@ final class AgentDeliveryTest extends TestCase
         return new DateTimeImmutable('2026-09-27T12:00:00+00:00');
     }
 
-    private function operation(int $version = 1): AgentCredentialOperation
+    private function operation(int $version = 2): AgentCredentialOperation
     {
         return new AgentCredentialOperation(
             $version,

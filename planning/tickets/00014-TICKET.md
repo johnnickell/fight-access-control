@@ -7,6 +7,42 @@ status: in-progress
 
 # Preserve credential authority across migration and upgrades
 
+## Current M3 Amendment — 2026-09-30
+
+John confirmed there are no consumers or persisted Agent operations requiring historical/backward compatibility.
+[TASK-00057](../tasks/00057-TASK.md#current-decision--supersedes-the-cross-version-requirements) is reopened to retain
+the best Unicode-aware canonical behavior as one supported contract and remove historical readers/version switching.
+This replaces M3's cross-version acceptance obligation and the corresponding proposal-matrix row; preserving current
+keys, runtime authorization, atomicity, cleanup/order and unknown-state rejection remains required. Old M3 acceptance
+at `04a2adf` and PR #93 publication are historical evidence only, not acceptance of the revised scope. Restoration
+and final guidance consume the one current contract; no old canonical reader or compatibility shim is required.
+Other completed slices are not reopened by this bounded amendment. At the planning checkpoint implementation and
+fresh review were outstanding; John's subsequent work invocation authorizes implementation/local commit only.
+
+### Revised M3 implementation checkpoint — before independent review
+
+TASK-00057 now uses one Unicode-aware canonical rule/marker `2`, no-argument request canonicalization and a single
+cohort canonical marker instead of creation/reader settings. The v1 reader and cross-version matrices are removed;
+retained-key/restart/lifecycle and current authorization/admission safety remain. Updated public guidance and the
+`AgentCanonicalConformance` evidence map describe initial adoption, not migration of nonexistent history.
+The full local gate passes **1469 tests / 26053 assertions**, exact **6315/6315 statements**; focused Agent/OpenAPI
+checks pass **941 tests / 21822 assertions**. No final warnings/skips or dependency drift. The TASK owns logs/receipts
+and failure chronology. M3 remains unchecked pending new independent review; original acceptance below is historical.
+No push, PR editing, merge, release or consumer qualification is claimed.
+
+### Revised M3 independent acceptance and landing intake — 2026-09-30
+
+Independent review accepted revised TASK-00057 at `2de41046dfe49a96340645a0f1c08c3ea2e2ac30` against unchanged
+`develop` `f0d872c`, with C1–C8 and all applicable Spec/Standards IDs passing and no findings. Fresh reviewer checks
+pass **941 tests / 21822 assertions**; all **771/771** saved final gate inputs match. The full local gate passes
+**1469 tests / 26053 assertions**, exact **6315/6315 statements**, with no final warnings/skips. M3 is accepted at
+the package boundary, superseding the original cross-version acceptance rather than reusing it.
+
+John requested landing of this revision through existing PR #93. At the completion checkpoint final publication is
+pending; the TASK's ignored simplification landing handoff owns fresh gates, final metadata/remote identity and the
+administrative-only bridge. Hosted CI is optional/unchecked; no interactive QA is required. M4/M5 and real consumer
+qualification remain outstanding, and no merge, release or adoption is claimed.
+
 ## Problem and Outcome
 
 The replacement recoverable Agent contract changes APIs and persisted invariants. Fabricated historical correlation,
@@ -26,7 +62,7 @@ by [TICKET-00012](00012-TICKET.md) and [TICKET-00013](00013-TICKET.md).
 | Consumer maintainer upgrades existing Agent storage/composition | Consumer-owned migration tools; no package migration Command | Safe Agent/operation reads identify legacy/non-recoverable state | No manufactured issuance/delivery facts or automatic rotation/redelivery. Existing active credentials still authenticate; revoked Agents stay terminal. |
 | Authorized maintainer needs recovery for a known legacy Agent | TICKET-00012's explicitly authorized new rotation against current credential | Original legacy status, then new operation status | Only that new operation creates recovery binding/work. Ambiguous historical provisioning requires reconciliation, not automatic provision or name/audit inference. |
 | Consumer rolls out a new compatible cohort | Consumer-owned deployment/admission controls | Capability/contract-version readiness and safe status | Missing capabilities and incompatible/restarted old writers cannot mutate new authority. No new business Event is introduced by deployment. |
-| Caller retries an old or tombstoned operation after upgrade | Original request/key through replacement service | Authorized operation lookup/resolution | Recorded canonical version retains equality/conflict semantics; unknown versions deny without new issuance or secret access. |
+| Caller retries a retained or tombstoned current-contract operation after restart | Original request/key through replacement service | Authorized operation lookup/resolution | The single supported canonical contract preserves equality/conflict and original issuance; unsupported markers deny without fallback or secret access. |
 | Consumer restores/rolls back after external sink acceptance | Consumer-owned quiesce, restore and reconcile tools | Authoritative operation/receipt/order evidence | Preserve deduplication and ordering; incompatible restoration remains unavailable rather than duplicate issuance or revive retired state. |
 | Integrator qualifies persistence, authorization and sink adapters | Run public consumer-bindable behavior suites and deployment rehearsals | Evidence inventory and gaps, not a new product Query | Distinguish package proof from real adapter proof and consumer activation/use authority. No publication/upgrade follows merely from a passing package suite. |
 
@@ -66,14 +102,14 @@ Domain/Application depend on an Adapter layer.
    access at storage or a trusted admission boundary: new-code-only checks cannot stop an old binary. Compatible
    canonicalizer versions must agree on new-key creation rules. Enable scheduled discovery and only enable sensitive
    admission after migration, conformance, sink fencing and key readiness. No zero-downtime guarantee is made.
-4. **Preserve historical request semantics:** look up the authorized scoped key before choosing a canonicalizer,
-   including retained tombstones. Persist version plus sufficient safe canonical request, keep old readers for the
-   retained key lifetime, and never rewrite bindings under new normalization. Equivalent/conflicting old requests
-   stay equivalent/conflicting; unknown versions deny without mutation/disclosure/new-key fallback. A package upgrade
-   cannot silently change destination meaning or make expired/completed keys reusable.
+4. **Preserve current-contract request meaning:** look up the authorized scoped key, including retained tombstones,
+   before new-work admission. Use one Unicode-aware canonical contract with its persisted marker and safe request.
+   Equivalent retries resolve and changed bindings conflict; unsupported/corrupt markers deny without disclosure,
+   migration or new-key fallback. Retention/cleanup cannot reinterpret destinations or make issued keys reusable.
+   Historical readers and multi-version creation/switch-back support are removed under the 2026-09-30 M3 amendment.
 5. **Prefer forward repair after new effects:** never roll back to legacy writers or drop operation/fence evidence
-   after a new-contract mutation. A compatible rollback preserves the exact persisted contract, historical readers
-   and fences with writers quiesced. Restoring an older database alone is unsafe after sink acceptance. Reconcile
+   after a new-contract mutation. A supported restoration preserves the exact current persisted contract, bindings
+   and fences with writers quiesced; it does not require support for older canonical versions. Restoring an older database alone is unsafe after sink acceptance. Reconcile
    receipts, deduplication tombstones and high-water evidence before admission; otherwise remain unavailable for
    reconciliation. Before any new-contract state/effects, a fenced legacy cohort may resume only after proving none
    exist. Backup restoration must not reset destination order or resurrect retired keys.
@@ -129,7 +165,7 @@ both sides' proof; tests stay with their business owner rather than being deferr
 | Decryption/key access fails after issuance | TICKET-00013 D6: temporary recovery, permanent failure, corrupt/swapped material and rewrapping preserve the original binding without envelope fallback. |
 | Every retained lifecycle entry point races delivery | TICKET-00013 D5 plus TICKET-00012 I7: atomic cancellation through all paths; old signatures reject instead of inventing bindings. |
 | Existing-Agent upgrade and incompatible consumers | This TICKET M1/M2: preserved authentication, explicit legacy state, no manufactured recovery, incompatible/restarted writers fenced. |
-| Canonical-request versions across upgrade/restart | This TICKET M3 with TICKET-00012 I6: old equivalence/conflict persists, unknown versions deny, compatible creation cohort enforced. |
+| Canonical-request versions across upgrade/restart (superseded scope) | 2026-09-30 amendment: M3 now proves one best current contract across retry/restart/cleanup, rejects unsupported markers and removes historical-reader/version-switch machinery; no cross-version upgrade proof required. TICKET-00012 I6 retains runtime correlation ownership. |
 | Rollback/restore after external acceptance | This TICKET M4 with TICKET-00013 D4/D6: no reset/resurrection, receipt/tombstone reconciliation or unavailable state; real restore rehearsal required for adoption. |
 | Safe representations and sensitive-value lifetime | TICKET-00012 I7 plus TICKET-00013 D6: safe serializable/debug/event/audit/failure surfaces, fixed sensitive destination and no secret-read capability. |
 
@@ -209,6 +245,22 @@ verification and the metadata-only bridge.
 Real old-binary exclusion, participant substitution, all authority-writer races and consumer activation/use remain
 mandatory unexecuted adoption evidence. No schema/migration, merge or release is authorized.
 
+### TASK-00057 canonical upgrade evidence checkpoint — historical, superseded by M3 amendment
+
+The [canonical upgrade contract and M3 evidence map](../../docs/agent-canonical-upgrades.md) now connect permanent
+historical-reader retention to actual provision/rotation/status and delivery/retirement/cleanup paths. V1 retains
+frozen ASCII-edge name rules; v2 adds a fixed Unicode edge-whitespace set for newly issued provisioning requests.
+Both versions preserve original equality/conflict after creation switches and fresh service composition. Cohort
+participants must agree on creation/reader settings and generation; historical reads do not authorize a creator.
+The full local gate passes **1501 tests / 32816 assertions**, exact **6317/6317 statements**; focused Agent checks
+pass **972 tests / 28487 assertions**. Independent review accepted `04a2adf` with all eight TASK criteria passing,
+no findings, **973 fresh tests / 28585 assertions** and all **771 final gate inputs** verified. TASK-00057 is done
+for accepted package implementation/local verification; M3 is accepted at that boundary. John subsequently requested
+PR landing; the TASK's ignored handoff owns publication identity and the administrative-only acceptance bridge.
+Reference fixtures model persisted state/restart, not an actual consumer schema migration, old-binary exclusion,
+database/process restart or rollout qualification. TASK-00058/00059 retain restoration and final evidence ownership;
+no merge or release is authorized.
+
 ## Acceptance Evidence
 
 - [x] **M1 — Existing-Agent/API compatibility:** package behavior tests preserve active authentication and terminal
@@ -219,9 +271,11 @@ mandatory unexecuted adoption evidence. No schema/migration, merge or release is
       mutation/admission without fallback. Document all lifecycle and authorization writers plus the necessary
       storage/trusted-boundary fencing of old binaries. Published conformance obligations include real writer races;
       do not claim a new-code version check fences an old binary by itself.
-- [ ] **M3 — Canonical upgrades:** package tests retry stored and tombstoned keys after normalization/version changes:
-      old equivalent/conflicting requests retain their meaning, unknown versions deny and compatible new-key creation
-      versions agree. Neither destination reinterpretation nor cleanup makes an old key reusable.
+- [x] **M3 — One canonical contract:** keep the best Unicode-aware normalization as the sole supported rule and
+      marker; remove old readers, multi-version creation/reader selection and compatibility-only APIs/tests/guidance.
+      Actual services preserve same-contract retry/restart and retained/tombstoned outcomes, reject changed bindings
+      and unsupported/corrupt state without fallback, and retain current authority, atomicity and destination/order
+      fences. No backwards compatibility or migration of nonexistent old data is required. TASK-00057 C1–C8 own proof.
 - [ ] **M4 — Restoration safety:** observable package/conformance tests demonstrate that stale restored state cannot
       silently authorize duplicate issuance, reset order or resurrect retired keys after external acceptance. Document
       compatible reconciliation prerequisites, forward repair and unavailable outcomes. Actual schema, mixed-version
@@ -269,7 +323,7 @@ features/guidance records do not use the standalone bug/chore `kind` exception.
 | --- | --- | --- | --- |
 | A — Existing-Agent compatibility | [TASK-00055](../tasks/00055-TASK.md) | TASK-00047, TASK-00048 | M1: preserved authentication, explicit legacy state and authorized new rotation without invented history. |
 | B — Contract cohorts | [TASK-00056](../tasks/00056-TASK.md) | TASK-00048, TASK-00052, TASK-00053 | M2: persisted compatibility/capability guards across actual writers, plus explicit external old-binary fencing obligations. |
-| C — Canonicalization upgrades | [TASK-00057](../tasks/00057-TASK.md) | TASK-00056, TASK-00047 | M3: recorded historical semantics through provision/rotation/status and compatible new-key creation cohorts. |
+| C — One canonical contract (amended) | [TASK-00057](../tasks/00057-TASK.md) | TASK-00056, TASK-00047 | M3: best current normalization without historical compatibility; retained-key/restart safety through actual public services. |
 | D — Restoration safety | [TASK-00058](../tasks/00058-TASK.md) | TASK-00056, TASK-00057 | M4: observable guards/conformance for reconciled versus unreconciled restored state, not automatic rollback detection. |
 | E — Migration guidance and traceability | [TASK-00059](../tasks/00059-TASK.md) | TASK-00055, TASK-00056, TASK-00057, TASK-00058, TASK-00049, TASK-00054 | M5: implementation-aligned migration route and all 25 proposal scenarios plus D3/D4 additions with real result references and explicit gaps. |
 
@@ -295,7 +349,8 @@ captured. Independent review accepted `ebc396c` with all seven criteria passing,
 inputs verified; M1 is accepted for package behavior. John subsequently requested PR landing; the TASK's ignored
 handoff owns publication/remote verification and the administrative-only provenance bridge. Consumer schema migration,
 real adapter/concurrency proof and adoption are not claimed. TASK-00056's accepted M2 checkpoint is recorded above;
-M3–M5 retain their separate downstream owners.
+TASK-00057's original accepted M3 checkpoint is historical above; the 2026-09-30 amendment was independently
+accepted at `2de4104` after simplification. M4–M5 retain their separate downstream owners and unfinished dependencies.
 The Board owns current executable order; the following inventory evidence describes the original planning checkpoint.
 
 Before allocation, refreshed local live/archive inventory at unchanged HEAD
@@ -316,6 +371,6 @@ migration/restore execution, commit, publication, dependency upgrade or Agent OS
 | --- | --- | --- | --- |
 | 55 | [TASK-00055](../tasks/00055-TASK.md) | Preserve existing Agent authority through upgrade | done |
 | 56 | [TASK-00056](../tasks/00056-TASK.md) | Reject incompatible credential-operation cohorts | done |
-| 57 | [TASK-00057](../tasks/00057-TASK.md) | Preserve operation-key meaning across canonicalization upgrades | ready-for-agent |
+| 57 | [TASK-00057](../tasks/00057-TASK.md) | Simplify Agent operations to one canonical contract | done |
 | 58 | [TASK-00058](../tasks/00058-TASK.md) | Fail closed on unreconciled credential-state restoration | ready-for-agent |
 | 59 | [TASK-00059](../tasks/00059-TASK.md) | Complete migration guidance and evidence traceability | ready-for-agent |

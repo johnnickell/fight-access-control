@@ -48,6 +48,13 @@ Application package boundary.
   legacy markers cannot bypass it. Delivery/cleanup epochs bind its monotonic generation. Startup checks are not
   admission; consumers separately fence old binaries and qualify real writer races. See the
   [cohort contract](../../docs/agent-operation-cohorts.md). This is unreleased TASK-00056 work, not consumer qualification.
+- Operation requests use one fixed Unicode-edge name rule and persisted canonical marker `2`. John's 2026-09-30
+  pre-adoption amendment removes historical readers, creation/reader-set selection and backward-compatibility shims.
+  Request `canonicalize()` methods take no version argument. Retained keys/tombstones keep original request/issuance
+  through cleanup; unsupported markers fail closed without migration or fallback. Storage/destination versions stay 1;
+  repositories validate the one supported contract and share its generation/transaction fence. Safe reads do not
+  grant writer admission. See the [canonical contract](../../docs/agent-canonical-upgrades.md). Actual persistence,
+  authority/sink fencing and restoration qualification remain separate from package proof.
 - Existing Agent upgrades preserve persisted authentication authority through explicit validated reconstitution.
   The false recovery marker denotes known legacy history, never inferred rollback or permission to fabricate an
   operation. Only explicit authorized new rotation promotes it with the successor's operation/delivery/audit in the

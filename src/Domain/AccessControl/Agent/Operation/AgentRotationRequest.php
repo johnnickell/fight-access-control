@@ -62,14 +62,10 @@ final readonly class AgentRotationRequest
     }
 
     /**
-     * Returns the package-owned request binding under its persisted canonical version
+     * Returns the package-owned canonical request binding
      */
-    public function canonicalize(int $version): string
+    public function canonicalize(): string
     {
-        if ($version !== 1) {
-            throw new AgentOperationRejectedException(AgentOperationFailure::UNSUPPORTED_VERSION);
-        }
-
         return json_encode([
             'rotate',
             $this->agentId->toString(),

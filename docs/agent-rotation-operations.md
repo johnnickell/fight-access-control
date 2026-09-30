@@ -51,12 +51,13 @@ failure rethrow, is unchanged. These are intentional breaking changes, not a com
 
 ## Request binding and transaction
 
-Canonical version 1 is the ordered JSON tuple `rotate`, target UUID, expected credential UUID, expected revision,
-destination UUID, destination binding revision. Expected revision is an integer from 0 through `PHP_INT_MAX - 1`;
-destination revisions remain positive. UUID value objects normalize equivalent representations. Existing keys select
-their stored canonical version before comparison; unknown versions reject and permanent tombstones never become
-new work. A changed kind, target, predecessor identity/revision or destination binding conflicts without issuance.
-No outcome-affecting per-request options exist in this slice.
+The single supported canonical contract (marker `2`) uses the ordered JSON tuple `rotate`, target UUID, expected
+credential UUID, expected revision, destination UUID, destination binding revision. Expected revision is an integer
+from 0 through `PHP_INT_MAX - 1`; destination revisions remain positive. UUID value objects normalize equivalent
+representations. Existing keys validate their marker before comparison; unsupported markers reject and permanent
+tombstones never become new work. Changed kind, target, predecessor identity/revision or destination binding conflicts
+without issuance. No outcome-affecting per-request options exist. The [canonical contract](agent-canonical-upgrades.md)
+has no historical reader or selectable creation version; `canonicalize()` takes no argument.
 
 Inside one package-owned transaction:
 

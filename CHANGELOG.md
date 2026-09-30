@@ -9,6 +9,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- One unreleased [Agent operation canonical contract](docs/agent-canonical-upgrades.md) with fixed Unicode
+  edge-whitespace normalization and marker `2`. Before first adoption, removed the speculative v1 reader,
+  creation-version/reader-set selection and cross-version fixtures; request `canonicalize()` methods take no version
+  argument. `AgentOperationContract` validates one `canonicalVersion` instead of creation/reader settings. Retry,
+  status, lifecycle and cleanup retain original keys and issuance; unsupported markers fail closed. Consumer-bindable
+  restart/safety scenarios accompany the behavior. The confirmed-operation OpenAPI schema permits only marker `2`.
+  No backward-compatible shim, historical migration or runtime version choice is supplied.
 - Explicit validated `Agent::reconstitute()` for persisted authority, without credential generation or fabricated
   historical correlation. Existing active authentication and terminal revocation are preserved. See the
   [unreleased existing-data/API migration contract](docs/agent-existing-data-v0.5-migration.md).

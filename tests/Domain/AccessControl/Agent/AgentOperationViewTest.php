@@ -42,17 +42,17 @@ final class AgentOperationViewTest extends TestCase
         self::assertEquals($issuance, AgentIssuance::fromArray($issuance->toArray()));
         foreach (AgentDeliveryDisposition::cases() as $delivery) {
             foreach (AgentCredentialDisposition::cases() as $credential) {
-                $view = AgentOperationView::confirmed(1, $issuance, $delivery, $credential);
+                $view = AgentOperationView::confirmed(2, $issuance, $delivery, $credential);
                 self::assertTrue($view->isConfirmed());
                 self::assertSame($issuance, $view->getIssuance());
                 self::assertSame($issuance->getKey(), $view->getKey());
-                self::assertSame(1, $view->getCanonicalVersion());
+                self::assertSame(2, $view->getCanonicalVersion());
                 self::assertSame($delivery, $view->getDeliveryDisposition());
                 self::assertSame($credential, $view->getCredentialDisposition());
                 self::assertSame([
                     'key'                    => $issuance->getKey()->toArray(),
                     'issuance_outcome'       => 'confirmed',
-                    'canonical_version'      => 1,
+                    'canonical_version'      => 2,
                     'issuance'               => $issuance->toArray(),
                     'delivery_disposition'   => $delivery->value,
                     'credential_disposition' => $credential->value
@@ -76,7 +76,7 @@ final class AgentOperationViewTest extends TestCase
     {
         $issuance = $this->issuance();
         $view = AgentOperationView::confirmed(
-            1,
+            2,
             $issuance,
             AgentDeliveryDisposition::PENDING,
             AgentCredentialDisposition::CURRENT
@@ -151,7 +151,7 @@ final class AgentOperationViewTest extends TestCase
         }
 
         $view = AgentOperationView::confirmed(
-            1,
+            2,
             $issuance,
             AgentDeliveryDisposition::PENDING,
             AgentCredentialDisposition::CURRENT
@@ -216,7 +216,7 @@ final class AgentOperationViewTest extends TestCase
         $issuance = $this->issuance();
         foreach (AgentDeliveryDisposition::cases() as $delivery) {
             $operation = new AgentCredentialOperation(
-                1,
+                2,
                 'retained-original-request',
                 $issuance,
                 null,

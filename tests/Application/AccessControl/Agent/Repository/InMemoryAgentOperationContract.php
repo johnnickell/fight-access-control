@@ -25,7 +25,7 @@ final class InMemoryAgentOperationContract
 
     public static function compatible(int $generation = 1): AgentOperationContract
     {
-        return new AgentOperationContract(1, 1, [1], 1, $generation, AgentOperationContract::REQUIRED_CAPABILITIES);
+        return new AgentOperationContract(1, 2, 1, $generation, AgentOperationContract::REQUIRED_CAPABILITIES);
     }
 
     public function read(): AgentOperationContract
