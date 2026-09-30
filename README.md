@@ -73,7 +73,7 @@ this contract is at-least-once and does not claim exactly-once delivery.
 ### Feature declarations (unreleased)
 
 The [Feature reference guide](docs/feature-references.md) describes strict `FeatureName` validation, method-only
-`RequiresFeature` metadata, explicit registration and scoped complete/unavailable discovery. These are portable
+`FeatureFlag` metadata, explicit registration and scoped complete/unavailable discovery. These are portable
 metadata contracts only: storage, provisioning, evaluation, management and consumer runtime enforcement remain
 unimplemented. A declaration is not an access decision or a supported partial feature-flag release.
 

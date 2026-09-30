@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Fight\Test\AccessControl\Application\AccessControl\Feature\Service;
 
 use Closure;
-use Fight\AccessControl\Application\AccessControl\Feature\Attribute\RequiresFeature;
+use Fight\AccessControl\Application\AccessControl\Feature\Attribute\FeatureFlag;
 use Fight\AccessControl\Application\AccessControl\Feature\FeatureDiscoveryResult;
 use Fight\AccessControl\Application\AccessControl\Feature\FeatureReferences;
 use Fight\AccessControl\Application\AccessControl\Feature\FeatureReferenceScope;
@@ -34,7 +34,7 @@ final readonly class FixtureFeatureDiscovery implements FeatureReferenceDiscover
         try {
             $names = [];
             foreach (new ReflectionClass($this->code)->getMethods() as $method) {
-                foreach ($method->getAttributes(RequiresFeature::class) as $attribute) {
+                foreach ($method->getAttributes(FeatureFlag::class) as $attribute) {
                     $names[] = $attribute->newInstance()->getName();
                 }
             }

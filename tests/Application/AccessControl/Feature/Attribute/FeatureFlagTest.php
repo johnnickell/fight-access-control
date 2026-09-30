@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Fight\Test\AccessControl\Application\AccessControl\Feature\Attribute;
 
 use Error;
-use Fight\AccessControl\Application\AccessControl\Feature\Attribute\RequiresFeature;
+use Fight\AccessControl\Application\AccessControl\Feature\Attribute\FeatureFlag;
 use Fight\AccessControl\Domain\AccessControl\Feature\Exception\FeatureNameException;
 use Fight\AccessControl\Domain\AccessControl\Feature\FeatureName;
 use PHPUnit\Framework\Attributes\CoversClass;
@@ -16,10 +16,10 @@ use ReflectionMethod;
 use ReflectionParameter;
 use ReflectionProperty;
 
-#[CoversClass(RequiresFeature::class)]
+#[CoversClass(FeatureFlag::class)]
 #[CoversClass(FeatureName::class)]
 #[CoversClass(FeatureNameException::class)]
-final class RequiresFeatureTest extends TestCase
+final class FeatureFlagTest extends TestCase
 {
     /** @return iterable<string, array{string}> */
     public static function invalidTargets(): iterable
@@ -32,13 +32,13 @@ final class RequiresFeatureTest extends TestCase
     public function test_native_method_metadata_exposes_only_a_name_and_does_not_enforce_access(): void
     {
         $fixture = new class {
-            #[RequiresFeature('new-checkout')]
+            #[FeatureFlag('new-checkout')]
             public function checkout(): string
             {
                 return 'invoked without an availability check';
             }
         };
-        $attributes = new ReflectionMethod($fixture, 'checkout')->getAttributes(RequiresFeature::class);
+        $attributes = new ReflectionMethod($fixture, 'checkout')->getAttributes(FeatureFlag::class);
         self::assertCount(1, $attributes);
         $declaration = $attributes[0]->newInstance();
         self::assertSame('new-checkout', $declaration->getName()->toString());
@@ -52,12 +52,12 @@ final class RequiresFeatureTest extends TestCase
     public function test_native_instantiation_rejects_an_invalid_name(): void
     {
         $fixture = new class {
-            #[RequiresFeature('New-checkout')]
+            #[FeatureFlag('New-checkout')]
             public function checkout(): void
             {
             }
         };
-        $attribute = new ReflectionMethod($fixture, 'checkout')->getAttributes(RequiresFeature::class)[0];
+        $attribute = new ReflectionMethod($fixture, 'checkout')->getAttributes(FeatureFlag::class)[0];
         $this->expectException(FeatureNameException::class);
 
         $attribute->newInstance();
@@ -76,14 +76,14 @@ final class RequiresFeatureTest extends TestCase
             default     => $class->getMethod('repeated')
         };
         self::assertNotFalse($reflection);
-        $attributes = $reflection->getAttributes(RequiresFeature::class);
+        $attributes = $reflection->getAttributes(FeatureFlag::class);
         $index = 0;
         if ($target === 'repeated-second') {
             $index = 1;
         }
 
         $this->expectException(Error::class);
-        $this->expectExceptionMessage('Attribute "'.RequiresFeature::class.'"');
+        $this->expectExceptionMessage('Attribute "'.FeatureFlag::class.'"');
 
         $attributes[$index]->newInstance();
     }

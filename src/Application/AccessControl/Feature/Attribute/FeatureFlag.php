@@ -8,17 +8,17 @@ use Attribute;
 use Fight\AccessControl\Domain\AccessControl\Feature\FeatureName;
 
 /**
- * Class RequiresFeature
+ * Class FeatureFlag
  *
  * Declares one method reference, not runtime enforcement or authorization.
  */
 #[Attribute(Attribute::TARGET_METHOD)]
-final readonly class RequiresFeature
+final readonly class FeatureFlag
 {
     private FeatureName $name;
 
     /**
-     * Constructs RequiresFeature
+     * Constructs FeatureFlag
      */
     public function __construct(string $name)
     {

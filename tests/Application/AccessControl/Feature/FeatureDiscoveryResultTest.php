@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Fight\Test\AccessControl\Application\AccessControl\Feature;
 
-use Fight\AccessControl\Application\AccessControl\Feature\Attribute\RequiresFeature;
+use Fight\AccessControl\Application\AccessControl\Feature\Attribute\FeatureFlag;
 use Fight\AccessControl\Application\AccessControl\Feature\FeatureDiscoveryResult;
 use Fight\AccessControl\Application\AccessControl\Feature\FeatureReferences;
 use Fight\AccessControl\Application\AccessControl\Feature\FeatureReferenceScope;
@@ -20,7 +20,7 @@ use stdClass;
 
 #[CoversClass(FeatureDiscoveryResult::class)]
 #[CoversClass(FeatureReferences::class)]
-#[CoversClass(RequiresFeature::class)]
+#[CoversClass(FeatureFlag::class)]
 #[CoversClass(FeatureName::class)]
 #[CoversClass(FeatureNameException::class)]
 #[CoversClass(FeatureDiscoveryException::class)]
@@ -57,12 +57,12 @@ final class FeatureDiscoveryResultTest extends TestCase
     public function test_discovery_combines_native_declarations_and_registration(FeatureReferenceScope $scope): void
     {
         $code = new class {
-            #[RequiresFeature('dashboard')]
+            #[FeatureFlag('dashboard')]
             public function dashboard(): void
             {
             }
 
-            #[RequiresFeature('dashboard')]
+            #[FeatureFlag('dashboard')]
             public function dashboardExport(): void
             {
             }

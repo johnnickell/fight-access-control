@@ -10,7 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - Portable [Feature declarations and discovery](docs/feature-references.md): strict non-normalizing `FeatureName`,
-  method-only nonrepeatable `RequiresFeature`, immutable name references and fail-closed candidate/current discovery
+  method-only nonrepeatable `FeatureFlag`, immutable name references and fail-closed candidate/current discovery
   results. Additive PHP metadata contracts only; no storage, provisioning, evaluation, scanner or runtime enforcement.
 
 - [Current Agent integration guidance](docs/agent-integration.md) and the

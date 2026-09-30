@@ -14,14 +14,14 @@ lowercase letters/digits separated by single hyphens, starting with a letter. Ex
 leading digits, whitespace (including trailing newlines), non-ASCII characters, underscores, repeated/trailing
 hyphens and normalization lookalikes throw `Feature\Exception\FeatureNameException`. Nothing is trimmed or converted.
 
-Use `Fight\AccessControl\Application\AccessControl\Feature\Attribute\RequiresFeature` on a method:
+Use `Fight\AccessControl\Application\AccessControl\Feature\Attribute\FeatureFlag` on a method:
 
 ```php
-use Fight\AccessControl\Application\AccessControl\Feature\Attribute\RequiresFeature;
+use Fight\AccessControl\Application\AccessControl\Feature\Attribute\FeatureFlag;
 
 final class Checkout
 {
-    #[RequiresFeature('new-checkout')]
+    #[FeatureFlag('new-checkout')]
     public function submit(): void
     {
         // Consumer-owned operation; this Attribute does not intercept calls.
@@ -42,13 +42,13 @@ first-reference order for inspection, and offers no Feature settings or authorit
 count, determines which Features are referenced. An ordinary collection alone claims no discovery completeness.
 
 ```php
-use Fight\AccessControl\Application\AccessControl\Feature\Attribute\RequiresFeature;
+use Fight\AccessControl\Application\AccessControl\Feature\Attribute\FeatureFlag;
 use Fight\AccessControl\Application\AccessControl\Feature\FeatureReferences;
 
 // Illustrates reflection on one already-selected method, not a complete production scanner.
 $method = new ReflectionMethod(Checkout::class, 'submit');
 $names = [];
-foreach ($method->getAttributes(RequiresFeature::class) as $attribute) {
+foreach ($method->getAttributes(FeatureFlag::class) as $attribute) {
     $names[] = $attribute->newInstance()->getName();
 }
 $discovered = new FeatureReferences(...$names);
@@ -107,7 +107,7 @@ scanner, cache, environment access, database, framework integration or deploymen
 ## Effects and follow-on boundaries
 
 Declaration, registration, merging and reading discovery results are pure metadata operations. They perform no
-Permission lookup/grant, persistence, transaction, event dispatch or access decision. A `RequiresFeature` declaration
+Permission lookup/grant, persistence, transaction, event dispatch or access decision. A `FeatureFlag` declaration
 cannot authorize a caller, enforce business Permissions, provision a Feature or prevent a method being called.
 Consumers own scanning, composition, runtime enforcement, persistence and deployment wiring. TASK-00062/00063 will
 consume candidate discovery; TASK-00067 owns current-reference deletion. This TASK does not discharge those guards.
@@ -115,7 +115,7 @@ consume candidate discovery; TASK-00067 owns current-reference deletion. This TA
 ## Executable package evidence
 
 - `tests/Domain/AccessControl/Feature/FeatureNameTest.php`: exact name boundaries and rejection without normalization.
-- `tests/Application/AccessControl/Feature/Attribute/RequiresFeatureTest.php`: actual PHP reflection instantiation,
+- `tests/Application/AccessControl/Feature/Attribute/FeatureFlagTest.php`: actual PHP reflection instantiation,
   invalid name/targets/repetition and direct method invocation without implied enforcement. The deliberately invalid
   `Fixture/InvalidFeatureTargets.php.fixture` is loaded by PHP during those tests; it is not valid consumer source
   for static analysis. Runtime execution, not source matching, proves rejection.

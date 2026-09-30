@@ -459,7 +459,7 @@ Current references guard deletion; checks read fresh Feature state without share
 Consumers own adapters, scanning, enforcement, UI, authorization, and deployment integration; actual CMS migration
 is separate. Stored Feature behavior remains planned, not implemented. TASK-00061 now implements the
 [declaration and discovery contract](docs/feature-references.md): Domain `FeatureName` validates without normalization;
-Application `RequiresFeature` is method-only/nonrepeatable and `FeatureReferences` merges name-only references.
+Application `FeatureFlag` is method-only/nonrepeatable and `FeatureReferences` merges name-only references.
 `FeatureDiscoveryResult` exposes only complete references in the explicitly requested `CANDIDATE` or `CURRENT`
 scope; failed/incomplete discovery and scope mismatch reject instead of becoming empty results. Consumers own
 scanning, code identity and completeness; this is not enforcement or preparation/retirement implementation.
@@ -494,7 +494,11 @@ expected revision. Valid no-ops do not write/increment/publish success; stale at
 broken Permission IDs with an explicit missing marker and reuse existing pagination. The graph is 61 → 62;
 62 → 63/64/65; 65+64 → 66; 66+63 → 67. All three TICKETs now have approved TASK plans. TASK-00061 implementation is on
 `feature/task-00061-feature-references` in the main checkout, with independent review and QA accepted at `0408f72`.
-TASK-00062–00067 remain unimplemented. No Feature release version is selected.
+John subsequently requested renaming the Attribute to `FeatureFlag`. TASK-00061 is reopened for that bounded API
+rename on the same branch/main checkout: no compatibility alias and no change to validation, native targets or
+discovery semantics. Earlier acceptance/publication above describes the previous subject, not this revision;
+fresh independent review and affected QA remain pending. TASK-00062–00067 remain unimplemented. No Feature release
+version is selected.
 
 ## Planning and Completion
 
