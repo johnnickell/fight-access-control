@@ -66,8 +66,9 @@ transaction implementation, deployment hooks, runtime checks, UI and entry-point
 model a complete scan and transactional writes but qualify **no real scanner, database race, framework, application
 or deployment**. A Feature reference cannot safely outlive removal of its bound Permission: all supported removal
 paths and their real race proof remain [TASK-00065](../planning/tasks/00065-TASK.md); actual rebinding/management
-remains TASK-00066 and guarded deletion/reintroduction TASK-00067. Runtime evaluation is TASK-00064. There is **no
-supported partial Feature release** before those evaluation and management/integrity capabilities are complete.
+remains TASK-00066 and guarded deletion/reintroduction TASK-00067. [Runtime evaluation](feature-availability.md)
+is implemented in TASK-00064, pending independent review. There is **no supported partial Feature release** before
+management/integrity capabilities and complete Feature acceptance.
 
 ## Reusable scenario and compatibility inventory
 

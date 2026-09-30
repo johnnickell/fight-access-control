@@ -25,6 +25,10 @@ interface PermissionRepository
     /**
      * Retrieves a permission by its stable identifier
      *
+     * For Feature availability, each explicit lookup must observe authoritative current state rather than a stale
+     * identity-map result. Return null only for authoritative absence; malformed persisted definitions and outages
+     * must throw, never become a missing Permission or an availability result.
+     *
      * @throws Exception When an error occurs
      */
     public function getById(PermissionId $id): ?Permission;

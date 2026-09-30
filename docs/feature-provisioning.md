@@ -3,9 +3,10 @@
 [TASK-00062](../planning/tasks/00062-TASK.md) adds the stored Feature model and create-if-absent provisioning.
 It consumes [complete candidate discovery](feature-references.md), creates only missing names OFF, and preserves
 existing identities/settings. It does **not** establish activation readiness or a supported partial Feature release:
-[preparation validation](feature-preparation.md) is supplied by TASK-00063; evaluation (TASK-00064),
-Permission-removal guards (TASK-00065), management (TASK-00066), and guarded retirement/final lifecycle evidence
-(TASK-00067) remain separate.
+[preparation validation](feature-preparation.md) is supplied by TASK-00063;
+[availability evaluation](feature-availability.md) is implemented separately by TASK-00064. Permission-removal
+guards (TASK-00065), management (TASK-00066), and guarded retirement/final lifecycle evidence (TASK-00067)
+remain outstanding.
 
 ## Composition and invocation
 

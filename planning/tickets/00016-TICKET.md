@@ -138,8 +138,13 @@ remain as described in [CONTEXT](../../CONTEXT.md) and
 John approved TASK-00064 as one complete evaluator slice, with existing User/Agent snapshots or null as input,
 ID-based preview checks, and boolean availability plus distinguishable configuration/operational errors. It waits
 on TASK-00062; implementation, full verification, and independent review have not started. TICKET-00017 now has
-approved TASK-00065–00067, completing EPIC decomposition. Execution and branch/worktree selection remain separately
-authorized.
+approved TASK-00065–00067, completing EPIC decomposition. John subsequently authorized TASK-00064 in the clean main checkout on
+`feature/task-00064-feature-evaluation` from `develop` `b2fc4ce`. Its read-only evaluator and
+[consumer guide](../../docs/feature-availability.md) now implement the approved boolean/missing/broken/operational
+contract and consumer-bindable fresh-read scenarios. Builder focused and complete gates pass 74 tests / 415
+assertions and 1812 tests / 35068 assertions, exact 6369/6369 owned statements. Independent review and behavioral
+QA remain outstanding; this does not qualify actual ORM freshness, framework enforcement, consumer authorization,
+management composition, a partial release or deployment. TASK-00065–00067 retain their separate scope.
 
 ## Child Tasks
 

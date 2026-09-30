@@ -546,6 +546,17 @@ integrity/management slices. John's landing request published
 publication checkpoint; approval, merge and release remain separate. The ignored TASK landing handoff owns
 final metadata/remote verification.
 
+## Feature availability — TASK-00064 implementation checkpoint
+
+The unreleased [Feature availability guide](docs/feature-availability.md) describes a read-only evaluator of current
+Feature settings against existing User/Agent Permission-ID snapshots or anonymous input. OFF denies, PREVIEW checks
+captured IDs, and ON removes only the Feature restriction; every status first validates the stored Permission binding.
+Unknown Features, broken bindings, malformed definitions and operational failures remain distinct, never implicit
+availability. Each explicit check requires authoritative fresh repository reads; existing principal lifetimes and
+already-admitted work are unchanged. Consumer enforcement and action authorization remain separate. Controlled
+package and consumer-bindable tests do not qualify a real database, framework or worker runtime. TASK-00065–00067,
+independent review, QA, complete Feature acceptance, consumer adoption and release remain outstanding.
+
 ## Planning and Completion
 
 Local TASK files under `planning/tasks/` are canonical for implementation scope, status, dependencies,
