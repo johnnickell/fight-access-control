@@ -44,7 +44,7 @@ unreleased contract; there is no permissive compatibility default.
 3. Immediately before disclosure, `authorizeRead()` rechecks the scope/delegation/destination and, when present,
    the original Agent target. It also repeats the check when storage returned no record. Do not cache the earlier
    allow. Terminal or retired work does not bypass current target/destination policy.
-4. The Domain view verifies the exact scoped key/destination binding and supported historical request version.
+4. The Domain view verifies the exact scoped key/destination binding and single supported request marker (`2`).
    A binding mismatch denies without exposing a conflicting operation. Unsupported versions reject only after
    current target authorization, without selecting a current canonicalizer or changing retained request evidence.
 
@@ -77,7 +77,7 @@ no permissive casts from numeric strings, booleans or floats. `AgentOperationKey
 | --- | --- | --- |
 | `key` | Original namespace/caller type/caller ID/operation ID | Same retained key |
 | `issuance_outcome` | `confirmed` | `indeterminate` |
-| `canonical_version` | Persisted original request version (supported: `1` and `2`; see [reader retention](agent-canonical-upgrades.md)) | `null` |
+| `canonical_version` | Persisted request marker `2` only (see the [canonical contract](agent-canonical-upgrades.md)) | `null` |
 | `issuance` | Original `AgentIssuance::toArray()` | `null` |
 | `delivery_disposition` | Recorded delivery enum below | `null` |
 | `credential_disposition` | Recorded credential enum below | `null` |

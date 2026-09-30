@@ -421,7 +421,7 @@ final class AgentProvisioningServiceTest extends TestCase
             }
 
             $environment->operations->operations[$environment->key->toString()] = new AgentCredentialOperation(
-                $case === 'version' ? 99 : 1,
+                $case === 'version' ? 99 : $stored->getCanonicalVersion(),
                 $canonical,
                 $stored->getIssuance(),
                 $stored->getMaterial()

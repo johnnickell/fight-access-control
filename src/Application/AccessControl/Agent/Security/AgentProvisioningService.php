@@ -144,8 +144,7 @@ final readonly class AgentProvisioningService
         string $actor
     ): AgentIssuance {
         $this->limits->validateNewRequest($request);
-        $version = $this->operationRepository->getOperationContract()->getCreationVersion();
-        $canonicalRequest = $request->canonicalize($version);
+        $canonicalRequest = $request->canonicalize();
         $issuedAt = $this->clock->now();
         $agentId = AgentId::generate();
         $credentialId = AgentCredentialId::generate();
@@ -162,7 +161,7 @@ final readonly class AgentProvisioningService
         $secret = $this->hmacSharedSecretGenerator->generate();
         $agent = Agent::provision(
             $agentId,
-            AgentName::fromString(AgentOperationCanonicalization::name($request->getName(), $version)),
+            AgentName::fromString(AgentOperationCanonicalization::name($request->getName())),
             $credentialId,
             $this->hmacSharedSecretCipher->encrypt($secret),
             $issuedAt,
@@ -171,7 +170,12 @@ final readonly class AgentProvisioningService
         $material = $this->deliveryCipher->encrypt($secret, $issuance);
         $this->agentRepository->add($agent);
         $this->operationRepository->add(
-            new AgentCredentialOperation($version, $canonicalRequest, $issuance, $material),
+            new AgentCredentialOperation(
+                AgentOperationCanonicalization::VERSION,
+                $canonicalRequest,
+                $issuance,
+                $material
+            ),
             $this->limits
         );
         $this->auditEvidenceRepository->add(AuditEvidence::agentProvisioned($actor, $agentId));

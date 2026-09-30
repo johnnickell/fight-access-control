@@ -19,6 +19,7 @@ use Fight\AccessControl\Domain\AccessControl\Agent\Exception\AgentOperationRejec
 use Fight\AccessControl\Domain\AccessControl\Agent\Operation\AgentCredentialOperation;
 use Fight\AccessControl\Domain\AccessControl\Agent\Operation\AgentDeliveryId;
 use Fight\AccessControl\Domain\AccessControl\Agent\Operation\AgentIssuance;
+use Fight\AccessControl\Domain\AccessControl\Agent\Operation\AgentOperationCanonicalization;
 use Fight\AccessControl\Domain\AccessControl\Agent\Operation\AgentOperationFailure;
 use Fight\AccessControl\Domain\AccessControl\Agent\Operation\AgentOperationKey;
 use Fight\AccessControl\Domain\AccessControl\Agent\Operation\AgentOperationLimits;
@@ -151,8 +152,7 @@ final readonly class AgentCredentialRotationService
      */
     private function issue(AgentOperationKey $key, AgentRotationRequest $request, string $actor): AgentIssuance
     {
-        $version = $this->operationRepository->getOperationContract()->getCreationVersion();
-        $canonicalRequest = $request->canonicalize($version);
+        $canonicalRequest = $request->canonicalize();
         $agent = $this->agentRepository->getById($request->getAgentId());
         if ($agent === null) {
             throw new AgentOperationRejectedException(AgentOperationFailure::CONFLICT);
@@ -188,7 +188,12 @@ final readonly class AgentCredentialRotationService
         }
 
         $this->operationRepository->add(
-            new AgentCredentialOperation($version, $canonicalRequest, $issuance, $material),
+            new AgentCredentialOperation(
+                AgentOperationCanonicalization::VERSION,
+                $canonicalRequest,
+                $issuance,
+                $material
+            ),
             $this->limits
         );
         $this->auditEvidenceRepository->add(AuditEvidence::agentCredentialRotated($actor, $request->getAgentId()));

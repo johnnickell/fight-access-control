@@ -154,6 +154,6 @@ profiles does not promise exactly-once materialization/disclosure. Consumer runs
 their actual composition without substituting these doubles.
 
 [TICKET-00014's scenario map](../planning/tickets/00014-TICKET.md#scenario-ownership-and-evidence-traceability)
-retains real-consumer proof and TASK-00055–00059 ownership for legacy compatibility, cohorts, canonical upgrades,
+retains real-consumer proof and TASK-00055–00059 ownership for existing-Agent state, cohorts, the single canonical contract,
 restoration and final migration evidence. No rollback/restore rehearsal, migration, dependency upgrade, tag, release,
 consumer support or Agent OS TASK-00138 closure is claimed by these suites.

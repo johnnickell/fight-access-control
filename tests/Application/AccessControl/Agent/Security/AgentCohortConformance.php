@@ -27,8 +27,8 @@ abstract class AgentCohortConformance extends DeliveryConformance
             'missing storage',
             'storage outage',
             'storage version',
-            'creation version',
-            'retained reader',
+            'obsolete canonical marker',
+            'unknown canonical marker',
             'destination version',
             ...AgentOperationContract::REQUIRED_CAPABILITIES
         ];
@@ -143,7 +143,7 @@ abstract class AgentCohortConformance extends DeliveryConformance
 
         $original = $fixture->original();
         $successor = $this->rotate($fixture, $original);
-        self::assertSame(1, $fixture->stored($successor)->getCanonicalVersion());
+        self::assertSame(2, $fixture->stored($successor)->getCanonicalVersion());
         self::assertSame(
             AgentMaintenanceResult::REWRAPPED,
             $this->maintenance($fixture)->rewrap(
@@ -215,7 +215,7 @@ abstract class AgentCohortConformance extends DeliveryConformance
         self::assertSame(AgentDeliveryResult::DELIVERED, $this->deliver($fixture, $fixture->original()));
         self::assertTrue($attempted);
         $fixture->switchCohort(2);
-        $fixture->breakCohort('creation version');
+        $fixture->breakCohort('obsolete canonical marker');
         self::assertSame(AgentDeliveryResult::UNAVAILABLE, $this->deliver($fixture, $fixture->original()));
     }
 

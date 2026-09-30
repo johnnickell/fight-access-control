@@ -58,7 +58,7 @@ final class AgentDeliveryComponentsTest extends TestCase
             new DateTimeImmutable('2026-09-27T12:00:00Z')
         );
         $view = AgentOperationView::confirmed(
-            1,
+            2,
             $issuance,
             AgentDeliveryDisposition::PENDING,
             AgentCredentialDisposition::CURRENT
@@ -108,18 +108,16 @@ final class AgentDeliveryComponentsTest extends TestCase
         $confirmed = $schemas['Fight.AccessControl.AgentOperation.Confirmed']['properties'];
         self::assertSame(array_column(AgentDeliveryDisposition::cases(), 'value'), $confirmed['delivery_disposition']['enum']);
         self::assertSame(array_column(AgentCredentialDisposition::cases(), 'value'), $confirmed['credential_disposition']['enum']);
-        self::assertSame([1, 2], $confirmed['canonical_version']['enum']);
-        foreach ([1, 2] as $version) {
-            $historical = AgentOperationView::confirmed(
-                $version,
-                $issuance,
-                AgentDeliveryDisposition::RETIRED,
-                AgentCredentialDisposition::REVOKED
-            );
-            $historical->assertReadable($key, $destination);
-            self::assertContains($historical->toArray()['canonical_version'], $confirmed['canonical_version']['enum']);
-        }
-
+        self::assertSame([2], $confirmed['canonical_version']['enum']);
+        $retained = AgentOperationView::confirmed(
+            2,
+            $issuance,
+            AgentDeliveryDisposition::RETIRED,
+            AgentCredentialDisposition::REVOKED
+        );
+        $retained->assertReadable($key, $destination);
+        self::assertContains($retained->toArray()['canonical_version'], $confirmed['canonical_version']['enum']);
+        self::assertNotContains(1, $confirmed['canonical_version']['enum']);
         self::assertNotContains(99, $confirmed['canonical_version']['enum']);
         self::assertSame(['confirmed'], $confirmed['issuance_outcome']['enum']);
         $indeterminate = $schemas['Fight.AccessControl.AgentOperation.Indeterminate']['properties'];

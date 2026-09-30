@@ -1,118 +1,100 @@
-# Agent operation canonical upgrades (unreleased v0.5.0)
+# Agent operation canonical contract (unreleased v0.5.0)
 
-[TASK-00057](../planning/tasks/00057-TASK.md) preserves original key meaning through a canonical normalization
-upgrade. It extends the existing provision/rotation request values and [cohort contract](agent-operation-cohorts.md),
-not a pluggable canonicalizer registry or a migration framework. This is package behavior, not release, migration,
-real database qualification, enrollment activation or credential-use authority.
+[TASK-00057](../planning/tasks/00057-TASK.md) establishes **one** canonical operation contract for initial adoption.
+There are no deployed consumers or retained earlier-version operations to migrate. The previous unreleased
+cross-version design is superseded: no v1 reader, version-selection API, reader set, switch-back or compatibility
+shim remains. This is package behavior, not release, consumer qualification, enrollment activation or use authority.
 
-## Supported representations
+## Supported representation
 
-`AgentOperationCanonicalization` owns frozen readers for versions **1 and 2**. Do not delegate historical equality
-to today's mutable `AgentName` policy. Both versions use UTF-8 input and a nonempty normalized name of at most 120
-Unicode code points. Request construction still bounds original UTF-8 input to 4096 bytes; new-work admission retains
-its existing default 512-byte limit and optional validated override. A retained retry bypasses new-work capacity and
-raw-name admission limits, not authentication or the original version's name validity.
+`AgentOperationCanonicalization::VERSION` is **2**, the sole supported persisted marker. It is a contract identifier,
+not an Agent type or a selectable runtime mode. Marker `1` is unsupported, as is any unknown marker. Storage and
+destination contract markers remain `1`; they describe different contracts.
 
-| Version | Provision name semantics | Creation admission |
-| --- | --- | --- |
-| `1` | Trim exactly ASCII space, tab, LF, CR, NUL and vertical tab at the edges. Preserve case, internal whitespace, form feed and Unicode whitespace. | Existing persisted v1 cohorts continue unchanged. |
-| `2` | Trim the v1 edge bytes plus the fixed Unicode White_Space set: U+0009–000D, U+0020, U+0085, U+00A0, U+1680, U+2000–200A, U+2028, U+2029, U+202F, U+205F and U+3000. Preserve case and internal whitespace; do not trim U+200B/U+FEFF. | Only a qualified persisted cohort explicitly selecting `creationVersion: 2` creates new v2 keys. |
+The Domain owner `AgentOperationCanonicalization::name()` trims a fixed set at the edges: NUL, U+0009–000D,
+U+0020, U+0085, U+00A0, U+1680, U+2000–200A, U+2028, U+2029, U+202F, U+205F and U+3000. This supports names pasted
+with Unicode whitespace without depending on a changing Unicode property database. The normalized name must be
+nonempty UTF-8 and at most 120 Unicode code points. Case and internal whitespace are preserved; U+200B/U+FEFF are
+not trimmed and no NFC conversion is performed. New provisioning binds and stores the same normalized Agent name.
 
-Version two supports operator names pasted with Unicode edge whitespace. Its exact set is frozen, not a dependency
-on a changing Unicode property database. It performs no case folding, internal-whitespace collapse or Unicode NFC
-conversion. A v2 provision stores the same normalized name on the new Agent; existing Agents are not renamed.
-The opt-in `Fight.AccessControl.AgentOperation.Confirmed` OpenAPI component accepts canonical versions `1` and `2`,
-matching readable safe Views; unknown versions remain excluded. This expands the unreleased v0.5.0 schema without
-changing its fields, reference names or consumer-owned transport.
-No runtime call switches a cohort or rewrites a historical binding automatically. There is no extra routine approval
-or configuration step: the normal deployment cohort selection owns the upgrade.
+Request construction bounds raw UTF-8 input to 4096 bytes. New-work admission retains its 512-byte default and
+optional validated override. A retained retry bypasses new-work capacity/raw-name admission limits, not current
+authority or canonical validity. NBSP + `Runner` + ideographic space and ` Runner ` both bind `Runner`.
 
-Persist the version **and the exact canonical JSON string**, not just a digest:
+`AgentProvisioningRequest::canonicalize()` and `AgentRotationRequest::canonicalize()` take **no version argument**.
+Persist marker `2` and the exact canonical JSON string, not just a digest:
 
 - Provision: `["provision", normalizedName, destinationId, destinationRevision]`.
 - Rotation: `["rotate", agentId, originalExpectedCredentialId, originalExpectedRevision, destinationId, destinationRevision]`.
 - Encoding is PHP `json_encode(..., JSON_THROW_ON_ERROR)` with no other flags; preserve element order, integer types
-  and escaped bytes. Identity strings use the existing value objects' canonical representations.
-- Rotation's representation is identical across v1/v2: version two changes only provisioning-name normalization.
-  Keep the original predecessor forever; retries never substitute the current successor or reapply the predecessor
-  mutation precondition. Kind, target, predecessor and destination remain bound in both versions.
-- There are currently no additional outcome-affecting request options. Operational limits and delivery/maintenance
-  policies are not additional issuance inputs. A future outcome-affecting option requires an explicit version design,
-  not silent omission or reinterpretation of retained keys.
+  and escaped bytes. Identity strings use their value objects' canonical representations.
+- Rotation retains the original predecessor. A retry does not substitute the successor or reapply the now-stale
+  predecessor mutation precondition. Kind, target, predecessor and destination are always bound.
+- Neither request currently has additional outcome-affecting options. Operational limits and delivery/maintenance
+  policies are not additional issuance inputs.
 
-For example, a v1 key created with NBSP + `Runner` + ideographic space is **not** equal to `Runner`, even after a
-v2 creation switch. A v2 key treats those names as equal even after switching creation back to v1 with v2 readers
-retained. ASCII-edge equivalence remains unchanged for either version.
+The opt-in `Fight.AccessControl.AgentOperation.Confirmed` OpenAPI component permits only canonical marker `2`,
+matching readable safe Views. Its field and reference names are unchanged; consumers still own transport.
 
 ## Lookup, authority and retained lifetime
 
-Both issuance services first hold the compatible cohort fence and obtain current trusted scope/destination (and
-rotation target) authorization. Then they look up the original scoped key, including permanent tombstones. Only
-an authoritative absent result selects `getCreationVersion()` and new-work admission. Existing records use their
-own version through `AgentCredentialOperation::resolve()`, without touching `AgentName`, generating secrets,
-rewriting bindings, repeating audit facts or publishing another issuance event. The service transaction still runs;
-resolution is not a promise of zero transaction activity.
+Both issuance services hold the compatible cohort fence and obtain current trusted scope/destination (and rotation
+target) authorization before lookup. Existing keys, including permanent tombstones, resolve through
+`AgentCredentialOperation::resolve()`: validate the marker, compare the canonical request, return original issuance.
+No generation, Agent mutation, binding rewrite, repeated audit or issuance event occurs. The resolution transaction
+still runs. Only authoritative absence reaches new-work admission, using the fixed package marker and rules.
 
-[Status reads](agent-operation-status.md) authorize before lookup and again with the original target before checking
-recorded version/binding. They neither open a transaction nor select creation rules. Installed historical readers
-remain usable for safe reads even when the writer cohort is incompatible; a readable history never authorizes
-new-key creation, delivery, activation or use. Consumer current-authority checks apply to originators and delegated
-workers alike; scope/caller mismatch, revoked authority or expired delegation must deny before disclosure.
+[Status reads](agent-operation-status.md) authorize before lookup and again with the original target before
+validating the recorded marker and scope/destination binding. They neither open a transaction nor access material.
+Readable retained state does not admit an incompatible writer or grant delivery, activation or use permission.
+Wrong scope/caller, revoked authority or expired delegation denies before disclosure.
 
-Unknown/corrupt version numbers or absent package reader support return sanitized `UNSUPPORTED_VERSION`, without
-fallback to a current reader, key reuse or new issuance. A malformed or nonmatching retained binding conflicts.
-Storage failure remains unavailable/indeterminate, never absence. No raw secret, ciphertext, provider error, key
-path or secret-read capability belongs in results or failures. Confirmed issuance stays distinct from delivery,
-enrollment activation and launch/use permission.
+Unsupported markers, including `1`, reject with sanitized `UNSUPPORTED_VERSION` without migration, reinterpretation,
+key reuse or fallback issuance. A malformed/nonmatching canonical request conflicts on retry. Storage failure remains
+unavailable/indeterminate, never absence. Results and failures contain no raw secret, ciphertext, provider detail,
+key path or secret-read capability. Confirmed issuance is distinct from delivery, activation and launch/use permission.
 
-Completed, expired, revoked, superseded and cleaned operations preserve the exact key, version, canonical request,
-original issuance and lifecycle history. Cleanup removes only eligible material/inert external copies; it does not
-delete correlation. **Reader lifetime follows permanent key/tombstone retention, not ciphertext retention.** This
-release removes neither reader. A later package that cannot interpret any retained version is incompatible; it must
-not rewrite old bindings under another normalizer or manufacture replacement keys.
+Completed, expired, revoked, superseded and cleaned operations retain their exact key, marker, request, original
+issuance and lifecycle evidence. Cleanup removes only eligible material/inert sink copies; correlation and ordering
+survive permanently. Removing speculative backward compatibility does **not** permit forgetting issued keys.
 
-## Cohort and deployment obligations
+## Composition and initial adoption
 
-- Storage/destination contract versions remain `1`. Destination registration identity/revision, ownership fences,
-  cross-scope reservation order, sink tuple, global delivery ID and high-water meaning do not change.
-- `readerVersions` describes all retained-reader obligations, not a feature toggle that disables an installed reader.
-  It must include `1`, the selected creation version and every persisted version, including tombstones. This binary
-  implements only `1` and `2`; unknown requirements or omission of the creation reader deny writer admission.
-- Both repositories must agree on creation version, reader-obligation set and generation. Array ordering/duplicate
-  entries do not alter that set. Equal generations with different creation/reader settings reject.
-- The consumer must inventory retained versions and qualify the actual installed readers. After v2 issuance,
-  switching creation back to v1 still requires `[1, 2]` and a new generation. The snapshot cannot discover omitted
-  storage records or stop an unchecked old binary: consumers must retain obligations and fence old binaries at
-  storage/trusted admission. Old code which cannot satisfy the v2 obligation must not restart as a writer.
-- Follow the existing exclusive cohort switch procedure, preserving pending admissions, original leases, receipts,
-  authority epochs and ordering evidence. A switch invalidates old generation-bound acknowledgements, not disclosed
-  bytes. Compatible recovery uses the original delivery copy; there is no authentication-envelope fallback.
-- Do not convert a consumer database, rewrite historical bindings or roll back external effects through these APIs.
-  Restoration/reconciliation remains [TASK-00058](../planning/tasks/00058-TASK.md); actual rollout and restore rehearsals
-  remain mandatory consumer evidence.
+The [cohort contract](agent-operation-cohorts.md) validates one persisted storage/canonical/destination profile,
+monotonic generation and qualified actual capabilities. It has no `creationVersion`, `readerVersions` or creation
+version getter. Both repositories must be compatible and agree on generation, sharing the transaction-duration
+fence with authority writers. Missing or unsupported state rejects; no runtime default invents a missing cohort.
+
+Current destination identity/revision, ownership, reservation order, sink tuple and global delivery ID are unchanged.
+Cohort generation still fences stale delivery/cleanup acknowledgements; it cannot recall already disclosed bytes.
+Routine operation/recovery needs no version choice or additional human approval. There is no historical canonical
+inventory, migration/backfill, old-reader retention or cross-version rollout rehearsal required for initial adoption.
+Do not use these APIs to convert stored operations or roll back external effects.
+
+Actual persistence atomicity, writer fencing, key/sink behavior and current activation/use authorization still need
+consumer qualification. After first deployment, stale restoration can conflict with external effects independently
+of version upgrades; [TASK-00058](../planning/tasks/00058-TASK.md) retains restoration/reconciliation ownership.
 
 ## M3 executable evidence
 
-The consumer-bindable [AgentCanonicalUpgradeConformance](../tests/Application/AccessControl/Agent/Security/AgentCanonicalUpgradeConformance.php)
-uses `DeliveryConformanceFixture & AgentCanonicalUpgradeFixture` and real public package services. Bind the fixture's
-ports to actual adapters; change real persisted cohort settings under the conflicting fence, expire delegation
-through its authority writer, and inject corrupt versions without rewriting other state. Restart must discard process
-composition while retaining durable storage/sink/authority. Independently load original records, counters, audits,
-Agent state and sink order; do not return canned service outcomes.
+The consumer-bindable [AgentCanonicalConformance](../tests/Application/AccessControl/Agent/Security/AgentCanonicalConformance.php)
+uses `DeliveryConformanceFixture & AgentCanonicalFixture` with actual public services. Bind ports to real adapters,
+expire delegation through its authority writer, and inject unsupported markers/corrupt requests without changing
+other state. Restart must discard process composition while preserving durable operation/sink/authority state.
+Independently observe records, Agent state, audits, counters and sink order; do not return canned service outcomes.
 
 | Requirement | Executable scenario |
 | --- | --- |
-| Persisted provision/rotation, changed creation rules and fresh service composition | `test_restart_and_creation_switch_preserve_original_keys_in_every_retained_state`: both versions and six states (pending, delivered, revoked, superseded, expired, cleaned); original identities/requests/Agent state retained, no new generation/audit/fact/material/sink work |
-| Historical conflict/equivalence across changed normalization | Same retained-state test plus `test_historical_conflicts_cannot_become_equal_under_new_normalization`: name, kind, target, predecessor identity/revision, destination identity/revision |
-| Genuinely unseen key, version-specific Agent name, unchanged destination order | `test_only_unseen_keys_use_new_creation_rules_and_normalized_agent_name` |
-| Unknown/corrupt/unsupported version and malformed binding | `test_corrupt_or_missing_historical_versions_never_fall_back_or_disclose` |
-| Historical readers versus incompatible creators/restarts | `test_reader_support_does_not_admit_an_incompatible_restarted_creator`; `AgentOperationContractTest` also rejects disagreeing repository creation/reader settings |
-| Current authority, unavailable state, wrong scope/caller and expired delegation | `test_current_authority_and_unavailable_status_remain_distinct_from_new_key_admission`; `test_wrong_scope_caller_and_expired_delegation_deny_cross_upgrade_lookup` |
-| Frozen v1 JSON bytes, v2 edge code points and unchanged internal/case semantics | `AgentOperationCanonicalizationTest`; existing rotation request, status, issuance and delivery suites remain in the default gate |
+| Both issuance kinds, six retained states and fresh service composition | `test_restart_preserves_original_keys_in_every_retained_state`: pending, delivered, revoked, superseded, expired and cleaned; original identities/requests/Agent state, no duplicate generation/audit/fact/material/sink work |
+| Changed name/kind/target/predecessor/destination conflicts | `test_changed_bindings_conflict_after_restart` |
+| Normalized Agent name and independent new-key issuance/order | `test_new_keys_share_one_normalized_name_contract_but_not_issuance_or_slot_order` |
+| Unsupported markers (including 1), corrupt request and no fallback | `test_unsupported_markers_and_corrupt_bindings_never_fall_back_or_disclose` |
+| Current authority, unavailable state, wrong scope/caller and expired delegation | `test_current_authority_and_unavailable_status_remain_distinct_from_new_key_admission`; `test_wrong_scope_caller_and_expired_delegation_deny_lookup` |
+| Fixed literal JSON, Unicode edges/length/encoding, case/internal/NFC preservation | `AgentOperationCanonicalizationTest`; existing rotation request tests |
+| Invalid cohort markers/capabilities, same-generation checks, stale acknowledgement rejection | `AgentOperationContractTest`, `AgentCohortConformance`, `AgentCohortWriterTest` |
+| Safe marker schema | Default generated-schema `AgentDeliveryComponentsTest` |
 
-The reference runner is `InMemoryAgentCanonicalUpgradeConformanceTest`. Its v1 fixtures are created by the current
-package's frozen v1 writer, with independently asserted literal v1 bytes in Domain tests; this is not a run of an old
-binary. Restart reconstructs service composition over modeled persisted adapters, not a database/process restart.
-The scenarios execute actual package delivery, revocation, expiry and cleanup rather than hand-authoring terminal
-states. They do not qualify real consumer locking, schema conversion, key retention, old-binary exclusion, external
-sink cryptography or activation/use authorization. Run those separately before adopting the upgrade.
+The reference runner is `InMemoryAgentCanonicalConformanceTest`. It executes actual delivery, revocation, expiry
+and cleanup, then reconstructs services over modeled persisted adapters. It is not a real database/process restart
+or qualification of consumer concurrency, sink cryptography or activation/use. Existing issuance and delivery suites
+retain publication warnings, uncertainty, capacity and recovery proof. No cross-version fixture matrix is needed.

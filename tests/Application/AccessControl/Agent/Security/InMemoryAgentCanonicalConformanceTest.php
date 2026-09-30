@@ -25,7 +25,7 @@ use PHPUnit\Framework\Attributes\CoversClass;
 #[CoversClass(AgentProvisioningService::class)]
 #[CoversClass(AgentCredentialRotationService::class)]
 #[CoversClass(GetAgentOperationHandler::class)]
-final class InMemoryAgentCanonicalUpgradeConformanceTest extends AgentCanonicalUpgradeConformance
+final class InMemoryAgentCanonicalConformanceTest extends AgentCanonicalConformance
 {
     protected function newFixture(): InMemoryDeliveryConformanceFixture
     {

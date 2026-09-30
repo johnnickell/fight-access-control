@@ -121,7 +121,7 @@ final class AgentDeliveryMaintenanceServiceTest extends TestCase
         $original = $env->delivery->operation();
         $repository = $env->delivery->provisioning->operations;
         $repository->operations[$env->delivery->issuance->getKey()->toString()] = new AgentCredentialOperation(
-            1,
+            $original->getCanonicalVersion(),
             $original->getCanonicalRequest(),
             $original->getIssuance(),
             new AgentDeliveryMaterial(
@@ -499,7 +499,7 @@ final class AgentDeliveryMaintenanceServiceTest extends TestCase
         $original = $env->delivery->operation();
         $repository = $env->delivery->provisioning->operations;
         $repository->operations[$original->getIssuance()->getKey()->toString()] = new AgentCredentialOperation(
-            1,
+            $original->getCanonicalVersion(),
             $original->getCanonicalRequest(),
             $original->getIssuance(),
             $other->delivery->operation()->getMaterial()

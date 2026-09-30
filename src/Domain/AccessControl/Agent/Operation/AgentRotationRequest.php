@@ -62,12 +62,10 @@ final readonly class AgentRotationRequest
     }
 
     /**
-     * Returns the package-owned request binding under its persisted canonical version
+     * Returns the package-owned canonical request binding
      */
-    public function canonicalize(int $version): string
+    public function canonicalize(): string
     {
-        AgentOperationCanonicalization::assertSupported($version);
-
         return json_encode([
             'rotate',
             $this->agentId->toString(),

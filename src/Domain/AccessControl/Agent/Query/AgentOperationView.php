@@ -120,7 +120,7 @@ final readonly class AgentOperationView implements Arrayable
     }
 
     /**
-     * Validates correlation and historical interpretation only after current authorization
+     * Validates correlation and the supported persisted marker only after current authorization
      */
     public function assertReadable(AgentOperationKey $key, AgentCredentialDestination $destination): void
     {
@@ -153,7 +153,7 @@ final readonly class AgentOperationView implements Arrayable
     }
 
     /**
-     * Returns the retained request version without selecting a new canonicalizer
+     * Returns the retained request contract marker
      */
     public function getCanonicalVersion(): ?int
     {

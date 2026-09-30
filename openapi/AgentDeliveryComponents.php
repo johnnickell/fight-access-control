@@ -57,7 +57,7 @@ use OpenApi\Attributes as OA;
     properties: [
         new OA\Property(property: 'key', ref: '#/components/schemas/Fight.AccessControl.AgentOperationKey'),
         new OA\Property(property: 'issuance_outcome', type: 'string', enum: ['confirmed']),
-        new OA\Property(property: 'canonical_version', type: 'integer', enum: [1, 2]),
+        new OA\Property(property: 'canonical_version', type: 'integer', enum: [2]),
         new OA\Property(property: 'issuance', ref: '#/components/schemas/Fight.AccessControl.AgentIssuance'),
         new OA\Property(property: 'delivery_disposition', type: 'string', enum: ['pending', 'delivered', 'retired', 'expired', 'retryable', 'terminal']),
         new OA\Property(property: 'credential_disposition', type: 'string', enum: ['current', 'superseded', 'revoked'])

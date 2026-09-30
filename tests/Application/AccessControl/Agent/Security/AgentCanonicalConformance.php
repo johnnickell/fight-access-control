@@ -25,43 +25,34 @@ use Fight\AccessControl\Domain\AccessControl\Agent\Operation\AgentRotationReques
 use Fight\AccessControl\Domain\AccessControl\Agent\Query\AgentOperationView;
 use Fight\AccessControl\Domain\AccessControl\Agent\Query\GetAgentOperation;
 use Fight\Common\Domain\Messaging\Query\QueryMessage;
-use Fight\Test\AccessControl\Application\AccessControl\Agent\Service\Conformance\AgentCanonicalUpgradeFixture;
+use Fight\Test\AccessControl\Application\AccessControl\Agent\Service\Conformance\AgentCanonicalFixture;
 use Fight\Test\AccessControl\Application\AccessControl\Agent\Service\Conformance\DeliveryConformanceFixture;
 use PHPUnit\Framework\Attributes\DataProvider;
 
-/** Consumer-bindable M3 proof through public services with separately observed persisted state */
-abstract class AgentCanonicalUpgradeConformance extends DeliveryConformance
+/** Consumer-bindable M3 proof of one canonical contract through public services and persisted outcomes */
+abstract class AgentCanonicalConformance extends DeliveryConformance
 {
-    /** @return iterable<string, array{bool, int, string}> */
+    /** @return iterable<string, array{bool, string}> */
     public static function retainedStates(): iterable
     {
         foreach ([false, true] as $rotation) {
-            foreach ([1, 2] as $version) {
-                foreach (['pending', 'delivered', 'revoked', 'superseded', 'expired', 'cleaned'] as $state) {
-                    $label = ($rotation ? 'rotation' : 'provision').' v'.$version.' '.$state;
-                    yield $label => [$rotation, $version, $state];
-                }
+            foreach (['pending', 'delivered', 'revoked', 'superseded', 'expired', 'cleaned'] as $state) {
+                yield ($rotation ? 'rotation' : 'provision').' '.$state => [$rotation, $state];
             }
         }
     }
 
-    /** @return iterable<string, array{bool, int}> */
-    public static function versions(): iterable
+    /** @return iterable<string, array{bool}> */
+    public static function operations(): iterable
     {
-        foreach ([false, true] as $rotation) {
-            foreach ([1, 2] as $version) {
-                yield ($rotation ? 'rotation' : 'provision').' v'.$version => [$rotation, $version];
-            }
-        }
+        yield 'provision' => [false];
+        yield 'rotation' => [true];
     }
 
     #[DataProvider('retainedStates')]
-    public function test_restart_and_creation_switch_preserve_original_keys_in_every_retained_state(
-        bool $rotation,
-        int $version,
-        string $state
-    ): void {
-        [$fixture, $key, $request, $issuance] = $this->scenario($rotation, $version);
+    public function test_restart_preserves_original_keys_in_every_retained_state(bool $rotation, string $state): void
+    {
+        [$fixture, $key, $request, $issuance] = $this->scenario($rotation);
         if ($state === 'delivered' || $state === 'cleaned') {
             self::assertSame(AgentDeliveryResult::DELIVERED, $this->deliver($fixture, $issuance));
         }
@@ -95,40 +86,30 @@ abstract class AgentCanonicalUpgradeConformance extends DeliveryConformance
             self::assertNull($stored->getMaterial());
         }
 
-        $fixture->useCanonicalCohort($version === 1 ? 2 : 1, [1, 2], 3);
         $fixture->restart();
-
         $before = $fixture->counts();
         $agent = $fixture->ports()->agents->getById($issuance->getAgentId());
         $order = $fixture->highWater($issuance->getDestination());
         $retry = $request;
         if ($request instanceof AgentProvisioningRequest) {
-            // v1 keeps its Unicode edges; v2 must retain their equivalence even under a v1 creation cohort.
-            $name = $version === 1 ? " \t\u{00A0}Runner\u{3000}\r\n" : ' Runner ';
-            $retry = new AgentProvisioningRequest($name, $request->getDestination());
+            $retry = new AgentProvisioningRequest(' Runner ', $request->getDestination());
         }
 
         self::assertEquals($issuance, $this->issue($fixture, $key, $retry));
         self::assertEquals($issuance, $this->issue($fixture, $key, $request));
-        self::assertSame($version, $this->readOperation($fixture, $issuance)->getCanonicalVersion());
+        self::assertSame(2, $this->readOperation($fixture, $issuance)->getCanonicalVersion());
         self::assertEquals($stored, $fixture->stored($issuance));
         self::assertEquals($agent, $fixture->ports()->agents->getById($issuance->getAgentId()));
         self::assertSame($order, $fixture->highWater($issuance->getDestination()));
         $this->assertNoIssuanceEffects($fixture, $before, true);
     }
 
-    #[DataProvider('versions')]
-    public function test_historical_conflicts_cannot_become_equal_under_new_normalization(
-        bool $rotation,
-        int $version
-    ): void {
-        [$fixture, $key, $request, $issuance] = $this->scenario($rotation, $version);
-        $fixture->useCanonicalCohort($version === 1 ? 2 : 1, [1, 2], 3);
+    #[DataProvider('operations')]
+    public function test_changed_bindings_conflict_after_restart(bool $rotation): void
+    {
+        [$fixture, $key, $request, $issuance] = $this->scenario($rotation);
         $fixture->restart();
-
         $destination = $request->getDestination();
-        $other = new AgentCredentialDestination(AgentDestinationId::generate(), 1);
-        $changed = [];
         if ($request instanceof AgentRotationRequest) {
             $changed = [
                 new AgentRotationRequest(AgentId::generate(), $request->getExpectedCredentialId(), 0, $destination),
@@ -137,18 +118,15 @@ abstract class AgentCanonicalUpgradeConformance extends DeliveryConformance
                 new AgentProvisioningRequest('Runner', $destination)
             ];
         } else {
-            foreach (['runner', 'Run ner', $version === 1 ? 'Runner' : 'Other'] as $name) {
-                $changed[] = new AgentProvisioningRequest($name, $destination);
-            }
-
-            $changed[] = new AgentRotationRequest(
-                $issuance->getAgentId(),
-                $issuance->getCredentialId(),
-                0,
-                $destination
-            );
+            $changed = [
+                new AgentProvisioningRequest('runner', $destination),
+                new AgentProvisioningRequest('Run ner', $destination),
+                new AgentProvisioningRequest('Other', $destination),
+                new AgentRotationRequest($issuance->getAgentId(), $issuance->getCredentialId(), 0, $destination)
+            ];
         }
 
+        $other = new AgentCredentialDestination(AgentDestinationId::generate(), 1);
         foreach ([$other, new AgentCredentialDestination($destination->getId(), 2)] as $binding) {
             if ($request instanceof AgentRotationRequest) {
                 $changed[] = new AgentRotationRequest(
@@ -173,45 +151,34 @@ abstract class AgentCanonicalUpgradeConformance extends DeliveryConformance
         $this->assertNoIssuanceEffects($fixture, $before);
     }
 
-    public function test_only_unseen_keys_use_new_creation_rules_and_normalized_agent_name(): void
+    public function test_new_keys_share_one_normalized_name_contract_but_not_issuance_or_slot_order(): void
     {
-        [$fixture, $oldKey, $request, $old] = $this->scenario(false, 1);
-        $fixture->useCanonicalCohort(2, [1, 2], 3);
+        [$fixture, $key, $request, $original] = $this->scenario(false);
         $fixture->restart();
+        $newKey = new AgentOperationKey($key->getScope(), AgentOperationId::generate());
+        $next = $this->issue($fixture, $newKey, $request);
+        foreach ([$original, $next] as $issuance) {
+            self::assertSame(2, $fixture->stored($issuance)->getCanonicalVersion());
+            self::assertSame(
+                'Runner',
+                $fixture->ports()->agents->getById($issuance->getAgentId())->getName()->toString()
+            );
+        }
 
-        $newKey = new AgentOperationKey($oldKey->getScope(), AgentOperationId::generate());
-        $new = $this->issue($fixture, $newKey, $request);
-        self::assertSame(2, $fixture->stored($new)->getCanonicalVersion());
-        self::assertSame('Runner', $fixture->ports()->agents->getById($new->getAgentId())->getName()->toString());
-        self::assertSame(
-            "\u{00A0}Runner\u{3000}",
-            $fixture->ports()->agents->getById($old->getAgentId())->getName()->toString()
-        );
-        self::assertSame($old->getDestinationWriteVersion() + 1, $new->getDestinationWriteVersion());
-        self::assertNotEquals($old->getCredentialId(), $new->getCredentialId());
-        self::assertSame(2, $this->readOperation($fixture, $new)->getCanonicalVersion());
+        self::assertSame($original->getDestinationWriteVersion() + 1, $next->getDestinationWriteVersion());
+        self::assertNotEquals($original->getCredentialId(), $next->getCredentialId());
         $before = $fixture->counts();
-        self::assertEquals($new, $this->issue(
-            $fixture,
-            $newKey,
-            new AgentProvisioningRequest('Runner', $request->getDestination())
-        ));
-        $this->assertDenial($fixture, fn(): AgentIssuance => $this->issue(
-            $fixture,
-            $oldKey,
-            new AgentProvisioningRequest('Runner', $request->getDestination())
-        ), AgentOperationFailure::CONFLICT);
-        $this->assertNoIssuanceEffects($fixture, $before);
+        $equivalent = new AgentProvisioningRequest('Runner', $request->getDestination());
+        self::assertEquals($original, $this->issue($fixture, $key, $equivalent));
+        self::assertEquals($next, $this->issue($fixture, $newKey, $equivalent));
+        $this->assertNoIssuanceEffects($fixture, $before, true);
     }
 
-    #[DataProvider('versions')]
-    public function test_corrupt_or_missing_historical_versions_never_fall_back_or_disclose(
-        bool $rotation,
-        int $version
-    ): void {
-        [$fixture, $key, $request, $issuance] = $this->scenario($rotation, $version);
-        $fixture->useCanonicalCohort(2, [1, 2], 3);
-        foreach ([0, -1, 99] as $unknown) {
+    #[DataProvider('operations')]
+    public function test_unsupported_markers_and_corrupt_bindings_never_fall_back_or_disclose(bool $rotation): void
+    {
+        [$fixture, $key, $request, $issuance] = $this->scenario($rotation);
+        foreach ([1, 0, -1, 99] as $unknown) {
             $fixture->corruptBinding($issuance, $unknown);
             $fixture->restart();
             $before = $fixture->counts();
@@ -222,38 +189,20 @@ abstract class AgentCanonicalUpgradeConformance extends DeliveryConformance
             $this->assertNoIssuanceEffects($fixture, $before);
         }
 
-        $fixture->corruptBinding($issuance, $version, 'malformed retained binding');
+        $fixture->corruptBinding($issuance, 2, 'malformed retained binding');
+        $before = $fixture->counts();
+        $stored = $fixture->stored($issuance);
         $this->assertRequestDenied($fixture, $key, $request, AgentOperationFailure::CONFLICT);
+        self::assertEquals($stored, $fixture->stored($issuance));
+        $this->assertNoIssuanceEffects($fixture, $before);
     }
 
-    #[DataProvider('versions')]
-    public function test_reader_support_does_not_admit_an_incompatible_restarted_creator(
-        bool $rotation,
-        int $version
-    ): void {
-        [$fixture, $key, $request, $issuance] = $this->scenario($rotation, $version);
-        foreach ([[99, [1, 2]], [2, [1]], [2, [2]], [1, [1, 99]]] as [$creator, $readers]) {
-            $fixture->useCanonicalCohort($creator, $readers, 3);
-            $fixture->restart();
-            $before = $fixture->counts();
-            self::assertSame($version, $this->readOperation($fixture, $issuance)->getCanonicalVersion());
-            foreach ([$key, new AgentOperationKey($key->getScope(), AgentOperationId::generate())] as $attempt) {
-                $this->assertRequestDenied($fixture, $attempt, $request, AgentOperationFailure::UNAVAILABLE);
-            }
-
-            $this->assertNoIssuanceEffects($fixture, $before);
-        }
-    }
-
-    #[DataProvider('versions')]
+    #[DataProvider('operations')]
     public function test_current_authority_and_unavailable_status_remain_distinct_from_new_key_admission(
-        bool $rotation,
-        int $version
+        bool $rotation
     ): void {
-        [$fixture, $key, $request, $issuance] = $this->scenario($rotation, $version);
-        $fixture->useCanonicalCohort(2, [1, 2], 3);
+        [$fixture, $key, $request, $issuance] = $this->scenario($rotation);
         $fixture->restart();
-
         $before = $fixture->counts();
         $fixture->storageUnavailable();
         $this->assertReadDenied($fixture, $issuance, AgentOperationFailure::UNAVAILABLE);
@@ -264,15 +213,11 @@ abstract class AgentCanonicalUpgradeConformance extends DeliveryConformance
         $this->assertNoIssuanceEffects($fixture, $before);
     }
 
-    #[DataProvider('versions')]
-    public function test_wrong_scope_caller_and_expired_delegation_deny_cross_upgrade_lookup(
-        bool $rotation,
-        int $version
-    ): void {
-        [$fixture, $key, $request, $issuance] = $this->scenario($rotation, $version);
-        $fixture->useCanonicalCohort(2, [1, 2], 3);
+    #[DataProvider('operations')]
+    public function test_wrong_scope_caller_and_expired_delegation_deny_lookup(bool $rotation): void
+    {
+        [$fixture, $key, $request, $issuance] = $this->scenario($rotation);
         $fixture->restart();
-
         $before = $fixture->counts();
         foreach (
             [
@@ -295,14 +240,13 @@ abstract class AgentCanonicalUpgradeConformance extends DeliveryConformance
         $this->assertNoIssuanceEffects($fixture, $before);
     }
 
-    abstract protected function newFixture(): DeliveryConformanceFixture&AgentCanonicalUpgradeFixture;
+    abstract protected function newFixture(): DeliveryConformanceFixture&AgentCanonicalFixture;
 
-    /** @return array{DeliveryConformanceFixture&AgentCanonicalUpgradeFixture, AgentOperationKey, AgentProvisioningRequest|AgentRotationRequest, AgentIssuance} */
-    private function scenario(bool $rotation, int $version): array
+    /** @return array{DeliveryConformanceFixture&AgentCanonicalFixture, AgentOperationKey, AgentProvisioningRequest|AgentRotationRequest, AgentIssuance} */
+    private function scenario(bool $rotation): array
     {
         $fixture = $this->newFixture();
         $original = $fixture->original();
-        $fixture->useCanonicalCohort($version, $version === 1 ? [1] : [1, 2], 2);
         $key = new AgentOperationKey($original->getKey()->getScope(), AgentOperationId::generate());
         $request = new AgentProvisioningRequest("\u{00A0}Runner\u{3000}", $original->getDestination());
         if ($rotation) {
@@ -315,7 +259,7 @@ abstract class AgentCanonicalUpgradeConformance extends DeliveryConformance
         }
 
         $issuance = $this->issue($fixture, $key, $request);
-        self::assertSame($version, $fixture->stored($issuance)->getCanonicalVersion());
+        self::assertSame(2, $fixture->stored($issuance)->getCanonicalVersion());
 
         return [$fixture, $key, $request, $issuance];
     }
@@ -383,7 +327,7 @@ abstract class AgentCanonicalUpgradeConformance extends DeliveryConformance
     ): void {
         try {
             $attempt();
-            self::fail('Historical request must reject without fallback issuance or disclosure.');
+            self::fail('Invalid request must reject without fallback issuance or disclosure.');
         } catch (AgentOperationRejectedException $agentOperationRejectedException) {
             self::assertSame($reason, $agentOperationRejectedException->getReason());
             self::assertNull($agentOperationRejectedException->getPrevious());

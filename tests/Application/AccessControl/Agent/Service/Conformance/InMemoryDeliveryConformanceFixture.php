@@ -39,7 +39,7 @@ use Throwable;
 
 /** Models persisted state and deterministic interleavings, not a database, process crash or real key service */
 final class InMemoryDeliveryConformanceFixture extends DeliveryConformanceFixture implements
-    AgentCanonicalUpgradeFixture,
+    AgentCanonicalFixture,
     AgentCohortFixture
 {
     private readonly DeliveryEnvironment $delivery;
@@ -78,8 +78,11 @@ final class InMemoryDeliveryConformanceFixture extends DeliveryConformanceFixtur
 
         $state->switchTo(new AgentOperationContract(
             $failure === 'storage version' ? 2 : 1,
-            $failure === 'creation version' ? 2 : 1,
-            $failure === 'retained reader' ? [1, 99] : [1],
+            match ($failure) {
+                'obsolete canonical marker' => 1,
+                'unknown canonical marker' => 99,
+                default => 2
+            },
             $failure === 'destination version' ? 2 : 1,
             2,
             array_values(array_diff(AgentOperationContract::REQUIRED_CAPABILITIES, [$failure]))
@@ -90,20 +93,7 @@ final class InMemoryDeliveryConformanceFixture extends DeliveryConformanceFixtur
     {
         $this->delivery->provisioning->operations->contract->switchTo(new AgentOperationContract(
             1,
-            1,
-            [1],
-            1,
-            $generation,
-            AgentOperationContract::REQUIRED_CAPABILITIES
-        ));
-    }
-
-    public function useCanonicalCohort(int $creationVersion, array $readers, int $generation): void
-    {
-        $this->delivery->provisioning->operations->contract->switchTo(new AgentOperationContract(
-            1,
-            $creationVersion,
-            $readers,
+            2,
             1,
             $generation,
             AgentOperationContract::REQUIRED_CAPABILITIES

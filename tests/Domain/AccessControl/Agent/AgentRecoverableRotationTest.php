@@ -90,7 +90,7 @@ final class AgentRecoverableRotationTest extends TestCase
         );
     }
 
-    public function test_request_binds_original_target_predecessor_and_destination_under_version_one(): void
+    public function test_request_binds_original_target_predecessor_and_destination(): void
     {
         $agent = AgentId::generate();
         $credential = AgentCredentialId::generate();
@@ -102,19 +102,13 @@ final class AgentRecoverableRotationTest extends TestCase
         self::assertSame($destination, $request->getDestination());
         self::assertSame([
             'rotate', $agent->toString(), $credential->toString(), 4, $destination->getId()->toString(), 2
-        ], json_decode($request->canonicalize(1), true, flags: JSON_THROW_ON_ERROR));
-        self::assertSame($request->canonicalize(1), new AgentRotationRequest(
+        ], json_decode($request->canonicalize(), true, flags: JSON_THROW_ON_ERROR));
+        self::assertSame($request->canonicalize(), new AgentRotationRequest(
             AgentId::fromString($agent->toString()),
             AgentCredentialId::fromString($credential->toString()),
             4,
             $destination
-        )->canonicalize(1));
-        try {
-            $request->canonicalize(99);
-            self::fail('Unknown persisted versions cannot fall through to a fresh request.');
-        } catch (AgentOperationRejectedException $agentOperationRejectedException) {
-            self::assertSame(AgentOperationFailure::UNSUPPORTED_VERSION, $agentOperationRejectedException->getReason());
-        }
+        )->canonicalize());
 
         foreach ([-1, PHP_INT_MAX] as $revision) {
             try {

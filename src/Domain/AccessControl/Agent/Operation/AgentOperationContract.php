@@ -29,13 +29,11 @@ final readonly class AgentOperationContract
      * qualification and the actual local composition, not request input or an unconditional ready boolean.
      * Preserve unknown versions for rejection; never default absent storage to this package's current versions.
      *
-     * @phpstan-param list<int> $readerVersions
      * @phpstan-param list<string> $capabilities
      */
     public function __construct(
         private int $storageVersion,
-        private int $creationVersion,
-        private array $readerVersions,
+        private int $canonicalVersion,
         private int $destinationVersion,
         private int $generation,
         private array $capabilities
@@ -49,10 +47,7 @@ final readonly class AgentOperationContract
     {
         if (
             $this->storageVersion !== 1 || $this->destinationVersion !== 1 || $this->generation < 1
-            || !in_array($this->creationVersion, AgentOperationCanonicalization::VERSIONS, true)
-            || !in_array(1, $this->readerVersions, true)
-            || !in_array($this->creationVersion, $this->readerVersions, true)
-            || array_diff($this->readerVersions, AgentOperationCanonicalization::VERSIONS) !== []
+            || $this->canonicalVersion !== AgentOperationCanonicalization::VERSION
             || array_diff(self::REQUIRED_CAPABILITIES, $this->capabilities) !== []
         ) {
             throw new AgentOperationRejectedException(AgentOperationFailure::UNAVAILABLE);
@@ -66,23 +61,9 @@ final readonly class AgentOperationContract
     {
         $this->assertCompatible();
         $other->assertCompatible();
-        if (
-            $this->generation !== $other->generation || $this->creationVersion !== $other->creationVersion
-            || array_diff($this->readerVersions, $other->readerVersions) !== []
-            || array_diff($other->readerVersions, $this->readerVersions) !== []
-        ) {
+        if ($this->generation !== $other->generation) {
             throw new AgentOperationRejectedException(AgentOperationFailure::UNAVAILABLE);
         }
-    }
-
-    /**
-     * Returns the agreed new-key version without reinterpreting retained historical requests
-     */
-    public function getCreationVersion(): int
-    {
-        $this->assertCompatible();
-
-        return $this->creationVersion;
     }
 
     /**

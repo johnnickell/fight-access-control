@@ -7,16 +7,12 @@ namespace Fight\Test\AccessControl\Application\AccessControl\Agent\Service\Confo
 use Fight\AccessControl\Domain\AccessControl\Agent\Operation\AgentIssuance;
 
 /**
- * Consumer-owned canonical upgrade controls, separate from production normalization and lifecycle policy
+ * Consumer-owned persisted-state controls, separate from production normalization and lifecycle policy
  *
- * Switch real persisted cohort settings with writers fenced; restart must retain only durable state.
- * Old-binary exclusion and actual process/database qualification remain additional consumer obligations.
+ * Restart must retain durable state; actual process/database qualification remains a consumer obligation.
  */
-interface AgentCanonicalUpgradeFixture
+interface AgentCanonicalFixture
 {
-    /** @param list<int> $readers Retained historical-reader obligations of the qualified cohort */
-    public function useCanonicalCohort(int $creationVersion, array $readers, int $generation): void;
-
     /** Expires operation retry/read delegation through the current authority writer */
     public function expireOperationDelegation(): void;
 

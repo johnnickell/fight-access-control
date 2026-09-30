@@ -51,11 +51,12 @@ class AgentCredentialOperation
     }
 
     /**
-     * Resolves the original request using its persisted version before any new-work admission
+     * Resolves the original request after validating its persisted contract before any new-work admission
      */
     public function resolve(AgentProvisioningRequest|AgentRotationRequest $request): AgentIssuance
     {
-        if ($request->canonicalize($this->canonicalVersion) !== $this->canonicalRequest) {
+        AgentOperationCanonicalization::assertSupported($this->canonicalVersion);
+        if ($request->canonicalize() !== $this->canonicalRequest) {
             throw new AgentOperationRejectedException(AgentOperationFailure::CONFLICT);
         }
 
@@ -448,7 +449,7 @@ class AgentCredentialOperation
      */
     public function canCleanup(DateTimeImmutable $now, AgentMaintenancePolicy $policy): bool
     {
-        return in_array($this->canonicalVersion, AgentOperationCanonicalization::VERSIONS, true)
+        return $this->canonicalVersion === AgentOperationCanonicalization::VERSION
             && !$this->sinkCleaned && $this->material === null
             && !in_array($this->deliveryDisposition, [
                 AgentDeliveryDisposition::PENDING,

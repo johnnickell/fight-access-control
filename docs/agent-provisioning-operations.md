@@ -62,10 +62,10 @@ canonical requests need correction, not guessed issuance. Legacy callers passing
 One Common `TransactionalUnitOfWork` owns authorization, operation resolution or new issuance, Agent persistence,
 separate delivery encryption, destination write reservation and safe audit. All capabilities must share its connection.
 The operation repository reads authoritative state, never an eventually consistent replica. Scope authorization occurs
-before key lookup, including retry and collision resolution. Existing keys select their persisted canonical version
-before comparison; unknown versions reject. Unseen keys use the cohort's agreed version (`1` or `2`). Existing v1
-cohorts remain unchanged; v2 adds frozen Unicode edge-whitespace normalization only for new provisioning names.
-Retained bindings are never rewritten. See [canonical upgrade and reader-retention rules](agent-canonical-upgrades.md).
+before key lookup, including retry and collision resolution. Existing keys validate the sole supported marker `2`
+before comparing the request; unsupported markers reject without fallback. Unseen keys use that same fixed
+Unicode-aware normalization, for both binding and Agent name. Retained bindings are never rewritten; there is no
+historical reader or runtime version choice. See the [canonical contract](agent-canonical-upgrades.md).
 
 `AgentOperationRepository` owns operation persistence and destination write reservations. Reserve monotonically
 increasing versions under the destination ownership fence shared with reassignment; the counter belongs to the stable

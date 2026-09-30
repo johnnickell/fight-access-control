@@ -335,7 +335,7 @@ final class AgentCredentialDeliveryServiceTest extends TestCase
 
                 $key = $env->provisioning->key->toString();
                 $env->provisioning->operations->operations[$key] = new AgentCredentialOperation(
-                    1,
+                    $original->getCanonicalVersion(),
                     $original->getCanonicalRequest(),
                     $original->getIssuance(),
                     $material
@@ -482,7 +482,7 @@ final class AgentCredentialDeliveryServiceTest extends TestCase
             $original = $env->operation();
             $key = $env->provisioning->key->toString();
             $env->provisioning->operations->operations[$key] = new AgentCredentialOperation(
-                1,
+                $original->getCanonicalVersion(),
                 $original->getCanonicalRequest(),
                 $env->issuance,
                 null,

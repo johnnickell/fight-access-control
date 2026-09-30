@@ -5,7 +5,8 @@
 known active legacy Agent to enter recoverable issuance through an **explicit new authorized rotation**. It is not a
 migration runner, consumer qualification, release or permission to deploy the incomplete replacement.
 [TASK-00056's cohort contract](agent-operation-cohorts.md) now adds mandatory repository compatibility and writer
-fences. [Canonical upgrades](agent-canonical-upgrades.md) preserve v1/v2 retained request semantics through restart;
+fences. The [canonical contract](agent-canonical-upgrades.md) now supports only marker `2`, with same-contract
+restart safety and no historical canonical reader or migration obligation;
 restoration and final migration guidance remain TASK-00058/00059 work.
 
 ## Preserve existing authority; do not invent history

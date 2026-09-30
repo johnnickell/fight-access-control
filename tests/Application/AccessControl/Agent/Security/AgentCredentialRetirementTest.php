@@ -266,7 +266,7 @@ final class AgentCredentialRetirementTest extends TestCase
         $environment = $this->issued();
         $original = $this->operation($environment);
         $operation = new AgentCredentialOperation(
-            1,
+            $original->getCanonicalVersion(),
             $original->getCanonicalRequest(),
             $original->getIssuance(),
             $original->getMaterial(),

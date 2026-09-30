@@ -9,7 +9,7 @@ use Fight\AccessControl\Domain\AccessControl\Agent\Exception\AgentOperationRejec
 /**
  * Class AgentProvisioningRequest
  *
- * Retains input until authorized storage selects the canonical request version.
+ * Retains bounded input for canonical binding and new-work admission.
  */
 final readonly class AgentProvisioningRequest
 {
@@ -40,13 +40,13 @@ final readonly class AgentProvisioningRequest
     }
 
     /**
-     * Returns the package-owned canonical request for a supported persisted version
+     * Returns the package-owned canonical request
      */
-    public function canonicalize(int $version): string
+    public function canonicalize(): string
     {
         return json_encode([
             'provision',
-            AgentOperationCanonicalization::name($this->name, $version),
+            AgentOperationCanonicalization::name($this->name),
             $this->destination->getId()->toString(),
             $this->destination->getRevision()
         ], JSON_THROW_ON_ERROR);

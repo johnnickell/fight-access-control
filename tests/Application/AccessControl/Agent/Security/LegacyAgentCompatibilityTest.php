@@ -162,7 +162,7 @@ final class LegacyAgentCompatibilityTest extends TestCase
         self::assertSame('auth-envelope:successor-test-secret', $successor->getEncryptedHmacSharedSecretEnvelope());
         self::assertFalse($legacy->hasRecoverableCredentialOperation());
         $stored = $env->operations->operations[$env->key->toString()];
-        self::assertSame($request->canonicalize(1), $stored->getCanonicalRequest());
+        self::assertSame($request->canonicalize(), $stored->getCanonicalRequest());
         $material = $stored->getMaterial();
         self::assertNotNull($material);
         self::assertSame('successor-test-secret', new BoundAgentDeliveryCipher()->inspect($material, $issuance));

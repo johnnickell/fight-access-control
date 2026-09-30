@@ -3,7 +3,7 @@
 [TASK-00056](../planning/tasks/00056-TASK.md) adds persisted compatibility enforcement to the replacement Agent
 protocol. This is an unreleased breaking repository contract, not a migration tool, deployment command, release,
 old-binary fence or consumer qualification. [Existing-Agent preservation](agent-existing-data-v0.5-migration.md)
-still applies. [Canonical upgrade behavior](agent-canonical-upgrades.md) is supplied by TASK-00057;
+still applies within its separate scope. The [single canonical contract](agent-canonical-upgrades.md) is supplied by TASK-00057;
 restoration reconciliation remains TASK-00058.
 
 ## Composition and persisted meaning
@@ -18,17 +18,16 @@ The immutable snapshot takes these explicit constructor arguments (no production
 | Field | Current supported meaning |
 | --- | --- |
 | `storageVersion` | `1`: complete operation, Agent marker, slot reservation, delivery/receipt/claim, maintenance and authority-fence persistence contract |
-| `creationVersion` | `1` or `2`: agreed canonical rules for **new** provision/rotation keys; no automatic switch |
-| `readerVersions` | Retained-reader obligation containing `1`, the creation version and every retained version; this binary supports `1` and `2`, including permanent tombstones |
+| `canonicalVersion` | `2`: the sole supported operation-request contract marker, not a selectable creation mode or reader set |
 | `destinationVersion` | `1`: immutable registered destination ID/binding revision and cross-scope monotonic write-order meaning |
 | `generation` | Durable positive, monotonically advancing cohort generation; increment on every switch, including switch-back |
 | `capabilities` | Intersection of persisted qualification and this worker's locally installed supported participants; every capability below is required |
 
 Unknown persisted versions must survive hydration so the package can reject them. `assertCompatible()` rejects
-unknown storage, creation or destination versions, missing/unknown retained readers, nonpositive generations and
-missing capabilities with sanitized `AgentOperationFailure::UNAVAILABLE`. Two participating repository snapshots
-must also pass `assertSameCohort()`: incompatible state or differing generations, creation versions or reader sets
-cannot form an issuance/delivery transaction. Equal generations alone do **not** prove same-database/shared-connection composition.
+unsupported storage, canonical or destination markers, nonpositive generations and missing capabilities with
+sanitized `AgentOperationFailure::UNAVAILABLE`. Two participating repository snapshots must also pass
+`assertSameCohort()`: both must validate the sole supported contract and agree on generation before forming an
+issuance/delivery transaction. Equal generations alone do **not** prove same-database/shared-connection composition.
 
 `getOperationContract()` must throw sanitized UNAVAILABLE, without an infrastructure message or previous throwable,
 for missing/unavailable storage, inconsistent settings or an unsupported local participant. A transient outage is
@@ -64,7 +63,7 @@ is not a future authorization grant. Use a consistent global lock order; never s
 
 | Boundary / actual package path | Guard and required participation |
 | --- | --- |
-| `AgentProvisioningService::provision`, `AgentCredentialRotationService::rotate` | Check both repositories before current authorization, lookup or generation in every transaction/retry. Retained-key resolution still precedes new-work capacity; only an absent key selects the cohort's creation version. |
+| `AgentProvisioningService::provision`, `AgentCredentialRotationService::rotate` | Check both repositories before current authorization, lookup or generation in every transaction/retry. Retained-key resolution still precedes new-work capacity; only an absent key reaches new-work admission using the fixed canonical contract. |
 | `AgentRepository::add`, `replace`, `replacePermissionAssignments` | Enforce the cohort on direct writes too, including known legacy authority and no raw-return fallback. Agent/operation/audit state remains one transaction. |
 | `AgentCredentialLifecycleService::revoke` | Guard before loading/mutating authority; original cancellation/audit and post-commit publication/rethrow behavior are unchanged. Legacy false markers are not a bypass. |
 | Grant/revoke/replace Agent Permission handlers and their coordinator | Guard before target lookup/transition, including desired-state no-ops. Current ADMIN_SAFE checks, expected revisions and consumer caller policy still apply. |
@@ -73,7 +72,7 @@ is not a future authorization grant. Use a consistent global lock order; never s
 | `ListDueAgentDeliveriesHandler`, `AgentDeliveryRecoveryService` | Discovery checks compatibility after initial current discovery authorization. Each subsequent delivery performs its own fenced checks; selection is not admission. |
 | `AgentDeliveryMaintenanceService`, `replaceMaintenance` | Guard each rewrap/expiry/cleanup-admission/cleanup-ack transaction. Rewrap and key references stay fenced; check compatibility again before outside-transaction cleanup. |
 | `ListAgentDeliveryMaintenanceHandler`, `CountAgentDeliveryKeyReferencesHandler` | Check before authoritative read selection/count. No mutation, commit, decryption or permission to destroy keys. |
-| `GetAgentOperation`, ordinary Agent safe reads and authentication | Preserve existing current authorization and recorded-version validation. No new write-cohort admission is granted by a successful historical read/authentication. |
+| `GetAgentOperation`, ordinary Agent safe reads and authentication | Preserve existing current authorization and recorded-version validation. No new write-cohort admission is granted by a successful retained-operation read/authentication. |
 | Consumer authority writers | Caller/target/delegation revocation and regrant, Permission/Role/User policy changes, managed tier replacement/removal, destination binding/ownership, key write-admission and cohort control must share the fence. Inventory actual non-HTTP, worker and administrative paths too. |
 
 Package Permission tier and reference contracts still govern `PermissionRepository::replace/remove`, managed-policy
@@ -96,12 +95,17 @@ No deployment can recall disclosed bytes. Fresh authorized recovery uses origina
 existing receipt-first path, not new issuance. Cleanup may similarly finish an already admitted inert erasure, but its
 stale acknowledgement rejects and must be reconciled through a fresh authorized attempt.
 
-Pre-cohort persisted admissions have unbound epochs. During migration, quiesce/drain or fence them; they cannot be
-accepted as new cohort-bound completion evidence. Keep existing lease, receipt, tombstone and retention evidence.
-Recovery may take a fresh claim/admission after the existing lease rules allow it. Do not rewrite an old epoch to
-manufacture admission or reset a lease. Exact rollout/schema representation is consumer-owned.
+Do not accept unknown or unbound persisted epochs as current admission evidence. Keep lease, receipt, tombstone
+and retention evidence; fresh recovery still obeys existing lease rules. Initial adoption does not require migration
+of nonexistent pre-cohort admissions. Exact persisted representation and runtime fencing remain consumer-owned.
 
-## Controlled cohort switch procedure
+## Initial adoption and runtime cohort changes
+
+There are no deployed consumers requiring canonical-version upgrades. Initial composition qualifies the single
+supported contract; do not create an old/new canonical rollout or reader-retention process. The procedure below
+applies to real runtime cohort replacement and existing authority, not a requirement to manufacture legacy history.
+
+### Controlled cohort switch procedure
 
 1. Inventory every writer above, pending/admitted operations, legacy Agents, authority epochs, envelope keys,
    destination reservations, sink receipts/high-water marks and permanent operation/sink tombstones. Rehearse with
@@ -114,7 +118,7 @@ manufacture admission or reset a lease. Exact rollout/schema representation is c
    and same-connection capabilities. Persist the explicitly qualified settings and next generation under the exclusive
    cohort fence. Never manufacture legacy issuance/correlation or silently choose defaults when a record is missing.
 5. Qualify actual composed repositories/UoW/authorization/ciphers/sinks and all authority writers with real races.
-   Ensure live keys and sink ordering/readiness, retained historical readers and common creation rules are supported.
+   Ensure live keys, sink ordering/readiness and the single supported canonical contract are valid.
 6. Enable bounded discovery, then sensitive admission only for the qualified cohort. Current caller authorization and
    finite defaults remain automatic; routine recovery needs no additional human approval or manual configuration.
 7. Prefer forward repair after new-contract effects. A compatible rollback must preserve versions, generation,
@@ -137,13 +141,13 @@ conflict, but the competing switch must not commit through the held transaction.
 
 | M2 scenario | Package evidence |
 | --- | --- |
-| Missing storage/outage, unknown versions/readers, every absent capability across eight public paths | `test_incompatible_restarted_workers_do_not_mutate_or_materialize` asserts unchanged Agent/operation/material/order/audit/generation and no sink/decryption; status remains confirmed rather than absent |
+| Missing storage/outage, unsupported contract markers, every absent capability across eight public paths | `test_incompatible_restarted_workers_do_not_mutate_or_materialize` asserts unchanged Agent/operation/material/order/audit/generation and no sink/decryption; status remains confirmed rather than absent |
 | Compatible creation/rotation, scheduler delivery, rewrap and revocation | `test_compatible_cohort_retains_real_rotation_delivery_maintenance_and_revocation` |
 | Switch at claim/admission/materialization/sink acceptance; compatible and incompatible restart | `test_cohort_switch_never_acknowledges_stale_admission_and_restart_recovers` |
 | Transaction versus switch, no startup cache | `test_cohort_switch_contends_with_live_transaction_not_just_startup_check` |
 | Direct repository writers; legacy revocation; Permission changes and no-ops; mismatched repository cohorts | `AgentCohortWriterTest` |
 | Cleanup switch-back and maintenance contention/rollback | `AgentCohortWriterTest` |
-| Supported version, retained-reader and generation-bound authority rules | `AgentOperationContractTest` |
+| Single supported contract and generation-bound authority rules | `AgentOperationContractTest` |
 
 The reference runner is `InMemoryAgentCohortConformanceTest`. It models persisted state and deterministic
 interleavings. Its capabilities are explicit **test fixture composition**, not real database/cryptographic/sink
@@ -153,7 +157,8 @@ publication and key/sink failure coverage. Product tests exercise public behavio
 
 Before a consumer can claim M2 qualification, additionally retain these **mandatory unexecuted external scenarios**:
 
-- Attempt every old issuance, rotation/revocation, Permission/policy, delivery and maintenance writer with its old
+- For an actual runtime replacement (not first adoption), attempt every excluded issuance, rotation/revocation,
+  Permission/policy, delivery and maintenance writer with its old
   binary and credentials after exclusion, including restart and direct storage/non-HTTP entry. Observe denied access
   and independently unchanged authority, operation, audit, slot and key-reference state. Installing new code alone fails.
 - Race the cohort switch with each real authority, lifecycle, destination and key writer on independent connections
