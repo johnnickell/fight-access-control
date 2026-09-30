@@ -448,7 +448,8 @@ class AgentCredentialOperation
      */
     public function canCleanup(DateTimeImmutable $now, AgentMaintenancePolicy $policy): bool
     {
-        return $this->canonicalVersion === 1 && !$this->sinkCleaned && $this->material === null
+        return in_array($this->canonicalVersion, AgentOperationCanonicalization::VERSIONS, true)
+            && !$this->sinkCleaned && $this->material === null
             && !in_array($this->deliveryDisposition, [
                 AgentDeliveryDisposition::PENDING,
                 AgentDeliveryDisposition::RETRYABLE
@@ -573,9 +574,7 @@ class AgentCredentialOperation
      */
     private function assertPendingDelivery(): void
     {
-        if ($this->canonicalVersion !== 1) {
-            throw new AgentOperationRejectedException(AgentOperationFailure::UNSUPPORTED_VERSION);
-        }
+        AgentOperationCanonicalization::assertSupported($this->canonicalVersion);
 
         if (!$this->hasPendingDeliveryAtRevision($this->stateRevision)) {
             throw new AgentOperationRejectedException(AgentOperationFailure::CONFLICT);

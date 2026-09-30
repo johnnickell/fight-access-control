@@ -48,9 +48,11 @@ final readonly class AgentOperationContract
     public function assertCompatible(): void
     {
         if (
-            $this->storageVersion !== 1 || $this->creationVersion !== 1 || $this->destinationVersion !== 1
-            || $this->generation < 1 || !in_array(1, $this->readerVersions, true)
-            || array_diff($this->readerVersions, [1]) !== []
+            $this->storageVersion !== 1 || $this->destinationVersion !== 1 || $this->generation < 1
+            || !in_array($this->creationVersion, AgentOperationCanonicalization::VERSIONS, true)
+            || !in_array(1, $this->readerVersions, true)
+            || !in_array($this->creationVersion, $this->readerVersions, true)
+            || array_diff($this->readerVersions, AgentOperationCanonicalization::VERSIONS) !== []
             || array_diff(self::REQUIRED_CAPABILITIES, $this->capabilities) !== []
         ) {
             throw new AgentOperationRejectedException(AgentOperationFailure::UNAVAILABLE);
@@ -64,7 +66,11 @@ final readonly class AgentOperationContract
     {
         $this->assertCompatible();
         $other->assertCompatible();
-        if ($this->generation !== $other->generation) {
+        if (
+            $this->generation !== $other->generation || $this->creationVersion !== $other->creationVersion
+            || array_diff($this->readerVersions, $other->readerVersions) !== []
+            || array_diff($other->readerVersions, $this->readerVersions) !== []
+        ) {
             throw new AgentOperationRejectedException(AgentOperationFailure::UNAVAILABLE);
         }
     }

@@ -9,6 +9,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Unreleased Agent operation canonical v2 support with fixed Unicode edge-whitespace normalization for new
+  provisioning names, selected only by a compatible persisted cohort. Frozen v1/v2 readers preserve historical
+  equality/conflict and original issuance through retry, safe status, retirement and cleanup. Repository cohorts
+  must agree on creation/reader settings as well as generation. Consumer-bindable upgrade/restart scenarios and
+  [historical-reader retention guidance](docs/agent-canonical-upgrades.md) accompany the behavior; no migration or
+  automatic cohort switch is performed. The unreleased confirmed-operation OpenAPI schema now accepts versions
+  `1` and `2`, matching safe status results.
 - Explicit validated `Agent::reconstitute()` for persisted authority, without credential generation or fabricated
   historical correlation. Existing active authentication and terminal revocation are preserved. See the
   [unreleased existing-data/API migration contract](docs/agent-existing-data-v0.5-migration.md).

@@ -103,6 +103,9 @@ It does not manufacture historical issuance or execute a consumer migration.
 [Operation cohorts](docs/agent-operation-cohorts.md) require persisted version/capability qualification and a shared
 transaction-duration cohort fence across every writer. Cohort generations fence delivery/cleanup acknowledgements;
 consumers must separately exclude old binaries at storage or a trusted boundary and qualify real writer races.
+[Canonical upgrades](docs/agent-canonical-upgrades.md) retain frozen v1/v2 request readers, select new-key rules
+through the agreed cohort, and preserve original keys through delivery, retirement and cleanup. V2 trims fixed
+Unicode edge whitespace in new provisioning names without reinterpreting historical v1 requests.
 These modeled interleavings do not qualify real consumer adapters or activation/use. This intermediate work is
 **not deployable** until independent acceptance and downstream compatibility TASKs are complete. Existing released
 versions are unchanged.

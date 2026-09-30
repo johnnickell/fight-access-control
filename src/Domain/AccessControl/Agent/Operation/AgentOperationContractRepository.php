@@ -27,6 +27,10 @@ interface AgentOperationContractRepository
      * repository/UoW/authorization/cipher/sink/maintenance contracts. Verify actual participants, not merely interface
      * names or an operator-supplied boolean. Runtime capability methods and current authorization still apply.
      * AgentRepository and AgentOperationRepository must observe the identical cohort and shared transaction.
+     * Reader obligations include every persisted canonical version, including permanent tombstones, and cannot
+     * shrink when creation switches back. Inventory storage and qualify actual installed readers; never omit an
+     * unsupported retained version to make the snapshot compatible. Both repositories agree on the creation rules,
+     * reader set and generation. A historical status reader does not admit a writer from an incompatible cohort.
      * Consumer policy, Permission/tier, destination, key-admission and trusted-boundary writers participate too.
      * New-code checks cannot stop an unchecked old binary: revoke its storage/trusted-boundary access externally.
      */

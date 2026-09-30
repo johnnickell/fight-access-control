@@ -3,7 +3,8 @@
 [TASK-00056](../planning/tasks/00056-TASK.md) adds persisted compatibility enforcement to the replacement Agent
 protocol. This is an unreleased breaking repository contract, not a migration tool, deployment command, release,
 old-binary fence or consumer qualification. [Existing-Agent preservation](agent-existing-data-v0.5-migration.md)
-still applies. Canonical upgrade scenarios and restoration reconciliation remain TASK-00057/00058.
+still applies. [Canonical upgrade behavior](agent-canonical-upgrades.md) is supplied by TASK-00057;
+restoration reconciliation remains TASK-00058.
 
 ## Composition and persisted meaning
 
@@ -17,8 +18,8 @@ The immutable snapshot takes these explicit constructor arguments (no production
 | Field | Current supported meaning |
 | --- | --- |
 | `storageVersion` | `1`: complete operation, Agent marker, slot reservation, delivery/receipt/claim, maintenance and authority-fence persistence contract |
-| `creationVersion` | `1`: agreed canonical rules for **new** provision/rotation keys |
-| `readerVersions` | Nonempty retained-reader obligation containing only `1` in this binary; all retained versions must remain readable |
+| `creationVersion` | `1` or `2`: agreed canonical rules for **new** provision/rotation keys; no automatic switch |
+| `readerVersions` | Retained-reader obligation containing `1`, the creation version and every retained version; this binary supports `1` and `2`, including permanent tombstones |
 | `destinationVersion` | `1`: immutable registered destination ID/binding revision and cross-scope monotonic write-order meaning |
 | `generation` | Durable positive, monotonically advancing cohort generation; increment on every switch, including switch-back |
 | `capabilities` | Intersection of persisted qualification and this worker's locally installed supported participants; every capability below is required |
@@ -26,8 +27,8 @@ The immutable snapshot takes these explicit constructor arguments (no production
 Unknown persisted versions must survive hydration so the package can reject them. `assertCompatible()` rejects
 unknown storage, creation or destination versions, missing/unknown retained readers, nonpositive generations and
 missing capabilities with sanitized `AgentOperationFailure::UNAVAILABLE`. Two participating repository snapshots
-must also pass `assertSameCohort()`: incompatible state or differing generations cannot form an issuance/delivery
-transaction. Equal generations alone do **not** prove same-database/shared-connection composition.
+must also pass `assertSameCohort()`: incompatible state or differing generations, creation versions or reader sets
+cannot form an issuance/delivery transaction. Equal generations alone do **not** prove same-database/shared-connection composition.
 
 `getOperationContract()` must throw sanitized UNAVAILABLE, without an infrastructure message or previous throwable,
 for missing/unavailable storage, inconsistent settings or an unsupported local participant. A transient outage is

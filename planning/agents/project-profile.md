@@ -48,6 +48,12 @@ Application package boundary.
   legacy markers cannot bypass it. Delivery/cleanup epochs bind its monotonic generation. Startup checks are not
   admission; consumers separately fence old binaries and qualify real writer races. See the
   [cohort contract](../../docs/agent-operation-cohorts.md). This is unreleased TASK-00056 work, not consumer qualification.
+- Operation request readers freeze v1 ASCII-edge and v2 fixed Unicode-edge name normalization independently of
+  current AgentName policy. Only unseen keys use the cohort's agreed creation version; retained keys and permanent
+  tombstones keep their original version/request/issuance through cleanup. Storage and destination versions stay 1;
+  creation/reader sets and generation must agree across repository participants. Safe historical reads do not grant
+  writer admission. See the [canonical upgrade contract](../../docs/agent-canonical-upgrades.md); real consumer
+  retained-version inventory, old-binary exclusion and rollout/restoration qualification remain separate.
 - Existing Agent upgrades preserve persisted authentication authority through explicit validated reconstitution.
   The false recovery marker denotes known legacy history, never inferred rollback or permission to fabricate an
   operation. Only explicit authorized new rotation promotes it with the successor's operation/delivery/audit in the

@@ -51,14 +51,51 @@ final class AgentOperationContractTest extends TestCase
         $first->assertSameCohort($next);
     }
 
+    public function test_supported_upgrade_requires_agreed_creation_and_retained_reader_obligations(): void
+    {
+        $capabilities = AgentOperationContract::REQUIRED_CAPABILITIES;
+        $upgraded = new AgentOperationContract(1, 2, [1, 2], 1, 2, $capabilities);
+        self::assertSame(2, $upgraded->getCreationVersion());
+        $upgraded->assertSameCohort(new AgentOperationContract(1, 2, [2, 1], 1, 2, $capabilities));
+        foreach (
+            [
+            new AgentOperationContract(1, 1, [1, 2], 1, 2, $capabilities),
+            new AgentOperationContract(1, 1, [1], 1, 2, $capabilities)
+            ] as $oldCreator
+        ) {
+            try {
+                $upgraded->assertSameCohort($oldCreator);
+                self::fail('Matching generation does not excuse contradictory cohort settings.');
+            } catch (AgentOperationRejectedException $exception) {
+                self::assertSame(AgentOperationFailure::UNAVAILABLE, $exception->getReason());
+            }
+        }
+
+        $retained = new AgentOperationContract(1, 1, [1, 2], 1, 3, $capabilities);
+        foreach ([[1], [1, 2, 2]] as $readers) {
+            $other = new AgentOperationContract(1, 1, $readers, 1, 3, $capabilities);
+            if ($readers === [1]) {
+                try {
+                    $other->assertSameCohort($retained);
+                    self::fail('Missing retained reader obligations must reject.');
+                } catch (AgentOperationRejectedException $exception) {
+                    self::assertSame(AgentOperationFailure::UNAVAILABLE, $exception->getReason());
+                }
+            } else {
+                $retained->assertSameCohort($other);
+            }
+        }
+    }
+
     /** @return iterable<string, array{AgentOperationContract}> */
     public static function incompatible(): iterable
     {
         $capabilities = AgentOperationContract::REQUIRED_CAPABILITIES;
         yield 'storage' => [new AgentOperationContract(2, 1, [1], 1, 1, $capabilities)];
-        yield 'creation' => [new AgentOperationContract(1, 2, [1], 1, 1, $capabilities)];
+        yield 'missing creation reader' => [new AgentOperationContract(1, 2, [1], 1, 1, $capabilities)];
+        yield 'unknown creation' => [new AgentOperationContract(1, 99, [1], 1, 1, $capabilities)];
         yield 'missing reader' => [new AgentOperationContract(1, 1, [], 1, 1, $capabilities)];
-        yield 'unknown retained reader' => [new AgentOperationContract(1, 1, [1, 2], 1, 1, $capabilities)];
+        yield 'unknown retained reader' => [new AgentOperationContract(1, 1, [1, 99], 1, 1, $capabilities)];
         yield 'destination' => [new AgentOperationContract(1, 1, [1], 2, 1, $capabilities)];
         yield 'generation' => [new AgentOperationContract(1, 1, [1], 1, 0, $capabilities)];
         foreach ($capabilities as $missing) {

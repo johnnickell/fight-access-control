@@ -433,7 +433,7 @@ final class AgentCredentialDeliveryServiceTest extends TestCase
             unset($env->provisioning->operations->operations[$key]);
         } elseif ($case === 'version') {
             $env->provisioning->operations->operations[$key] = new AgentCredentialOperation(
-                2,
+                99,
                 $original->getCanonicalRequest(),
                 $env->issuance,
                 $original->getMaterial()

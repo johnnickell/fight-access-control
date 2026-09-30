@@ -209,6 +209,19 @@ verification and the metadata-only bridge.
 Real old-binary exclusion, participant substitution, all authority-writer races and consumer activation/use remain
 mandatory unexecuted adoption evidence. No schema/migration, merge or release is authorized.
 
+### TASK-00057 canonical upgrade evidence checkpoint
+
+The [canonical upgrade contract and M3 evidence map](../../docs/agent-canonical-upgrades.md) now connect permanent
+historical-reader retention to actual provision/rotation/status and delivery/retirement/cleanup paths. V1 retains
+frozen ASCII-edge name rules; v2 adds a fixed Unicode edge-whitespace set for newly issued provisioning requests.
+Both versions preserve original equality/conflict after creation switches and fresh service composition. Cohort
+participants must agree on creation/reader settings and generation; historical reads do not authorize a creator.
+The full local gate passes **1501 tests / 32816 assertions**, exact **6317/6317 statements**; focused Agent checks
+pass **972 tests / 28487 assertions**. TASK-00057 remains `in-progress` pending independent review; M3 is not yet
+independently accepted. Reference fixtures model persisted state/restart, not an actual consumer schema migration,
+old-binary exclusion, database/process restart or rollout qualification. TASK-00058/00059 retain restoration and final
+evidence ownership, with no publication/release authorized.
+
 ## Acceptance Evidence
 
 - [x] **M1 — Existing-Agent/API compatibility:** package behavior tests preserve active authentication and terminal
@@ -316,6 +329,6 @@ migration/restore execution, commit, publication, dependency upgrade or Agent OS
 | --- | --- | --- | --- |
 | 55 | [TASK-00055](../tasks/00055-TASK.md) | Preserve existing Agent authority through upgrade | done |
 | 56 | [TASK-00056](../tasks/00056-TASK.md) | Reject incompatible credential-operation cohorts | done |
-| 57 | [TASK-00057](../tasks/00057-TASK.md) | Preserve operation-key meaning across canonicalization upgrades | ready-for-agent |
+| 57 | [TASK-00057](../tasks/00057-TASK.md) | Preserve operation-key meaning across canonicalization upgrades | in-progress |
 | 58 | [TASK-00058](../tasks/00058-TASK.md) | Fail closed on unreconciled credential-state restoration | ready-for-agent |
 | 59 | [TASK-00059](../tasks/00059-TASK.md) | Complete migration guidance and evidence traceability | ready-for-agent |

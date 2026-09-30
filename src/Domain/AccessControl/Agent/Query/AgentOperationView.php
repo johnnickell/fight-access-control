@@ -9,6 +9,7 @@ use Fight\AccessControl\Domain\AccessControl\Agent\Operation\AgentCredentialDest
 use Fight\AccessControl\Domain\AccessControl\Agent\Operation\AgentCredentialDisposition;
 use Fight\AccessControl\Domain\AccessControl\Agent\Operation\AgentDeliveryDisposition;
 use Fight\AccessControl\Domain\AccessControl\Agent\Operation\AgentIssuance;
+use Fight\AccessControl\Domain\AccessControl\Agent\Operation\AgentOperationCanonicalization;
 use Fight\AccessControl\Domain\AccessControl\Agent\Operation\AgentOperationFailure;
 use Fight\AccessControl\Domain\AccessControl\Agent\Operation\AgentOperationKey;
 use Fight\Common\Domain\Type\Arrayable;
@@ -130,8 +131,8 @@ final readonly class AgentOperationView implements Arrayable
             throw new AgentOperationRejectedException(AgentOperationFailure::UNAUTHORIZED);
         }
 
-        if ($this->issuance !== null && $this->canonicalVersion !== 1) {
-            throw new AgentOperationRejectedException(AgentOperationFailure::UNSUPPORTED_VERSION);
+        if ($this->issuance !== null) {
+            AgentOperationCanonicalization::assertSupported($this->canonicalVersion ?? 0);
         }
     }
 

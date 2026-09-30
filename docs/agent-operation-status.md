@@ -77,7 +77,7 @@ no permissive casts from numeric strings, booleans or floats. `AgentOperationKey
 | --- | --- | --- |
 | `key` | Original namespace/caller type/caller ID/operation ID | Same retained key |
 | `issuance_outcome` | `confirmed` | `indeterminate` |
-| `canonical_version` | Persisted original request version (currently supported: `1`) | `null` |
+| `canonical_version` | Persisted original request version (supported: `1` and `2`; see [reader retention](agent-canonical-upgrades.md)) | `null` |
 | `issuance` | Original `AgentIssuance::toArray()` | `null` |
 | `delivery_disposition` | Recorded delivery enum below | `null` |
 | `credential_disposition` | Recorded credential enum below | `null` |

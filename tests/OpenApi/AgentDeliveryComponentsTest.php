@@ -108,7 +108,19 @@ final class AgentDeliveryComponentsTest extends TestCase
         $confirmed = $schemas['Fight.AccessControl.AgentOperation.Confirmed']['properties'];
         self::assertSame(array_column(AgentDeliveryDisposition::cases(), 'value'), $confirmed['delivery_disposition']['enum']);
         self::assertSame(array_column(AgentCredentialDisposition::cases(), 'value'), $confirmed['credential_disposition']['enum']);
-        self::assertSame([1], $confirmed['canonical_version']['enum']);
+        self::assertSame([1, 2], $confirmed['canonical_version']['enum']);
+        foreach ([1, 2] as $version) {
+            $historical = AgentOperationView::confirmed(
+                $version,
+                $issuance,
+                AgentDeliveryDisposition::RETIRED,
+                AgentCredentialDisposition::REVOKED
+            );
+            $historical->assertReadable($key, $destination);
+            self::assertContains($historical->toArray()['canonical_version'], $confirmed['canonical_version']['enum']);
+        }
+
+        self::assertNotContains(99, $confirmed['canonical_version']['enum']);
         self::assertSame(['confirmed'], $confirmed['issuance_outcome']['enum']);
         $indeterminate = $schemas['Fight.AccessControl.AgentOperation.Indeterminate']['properties'];
         foreach (['canonical_version', 'issuance', 'delivery_disposition', 'credential_disposition'] as $field) {

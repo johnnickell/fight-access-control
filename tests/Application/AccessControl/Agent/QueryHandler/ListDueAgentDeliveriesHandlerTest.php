@@ -273,7 +273,7 @@ final class ListDueAgentDeliveriesHandlerTest extends TestCase
             $view = AgentOperationView::indeterminate($env->issuance->getKey());
         } elseif ($case === 'version') {
             $view = AgentOperationView::confirmed(
-                2,
+                99,
                 $env->issuance,
                 AgentDeliveryDisposition::PENDING,
                 AgentCredentialDisposition::CURRENT

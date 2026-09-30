@@ -5,17 +5,18 @@ dependencies, acceptance, and verification.
 
 ## What's Next?
 
-First ready Task: [TASK-00057](00057-TASK.md) — Preserve operation-key meaning across canonicalization upgrades.
+Active Task: [TASK-00057](00057-TASK.md) — Preserve operation-key meaning across canonicalization upgrades.
 
 ## In Progress
 
-No Tasks are currently in this state.
+| Order | TASK ID | Title | Parent TICKET | Status | Blocked by | PR |
+| --- | --- | --- | --- | --- | --- | --- |
+| 57 | [TASK-00057](00057-TASK.md) | Preserve operation-key meaning across canonicalization upgrades | [TICKET-00014](../tickets/00014-TICKET.md) — Preserve credential authority across migration and upgrades | in-progress | [TASK-00056](00056-TASK.md), [TASK-00047](00047-TASK.md) | — |
 
 ## Ready Frontier
 
 | Order | TASK ID | Title | Parent TICKET | Status | Blocked by | PR |
 | --- | --- | --- | --- | --- | --- | --- |
-| 57 | [TASK-00057](00057-TASK.md) | Preserve operation-key meaning across canonicalization upgrades | [TICKET-00014](../tickets/00014-TICKET.md) — Preserve credential authority across migration and upgrades | ready-for-agent | [TASK-00056](00056-TASK.md), [TASK-00047](00047-TASK.md) | — |
 | 61 | [TASK-00061](00061-TASK.md) | Declare and register Feature references | [TICKET-00015](../tickets/00015-TICKET.md) — Register and provision Features safely | ready-for-agent | — | — |
 
 ## Waiting

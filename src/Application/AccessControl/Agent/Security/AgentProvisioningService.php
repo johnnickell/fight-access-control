@@ -16,12 +16,12 @@ use Fight\AccessControl\Domain\AccessControl\Agent\AgentName;
 use Fight\AccessControl\Domain\AccessControl\Agent\AgentRepository;
 use Fight\AccessControl\Domain\AccessControl\Agent\Event\AgentProvisioned;
 use Fight\AccessControl\Domain\AccessControl\Agent\Event\AgentProvisioningFailed;
-use Fight\AccessControl\Domain\AccessControl\Agent\Exception\AgentNameException;
 use Fight\AccessControl\Domain\AccessControl\Agent\Exception\AgentOperationCollisionException;
 use Fight\AccessControl\Domain\AccessControl\Agent\Exception\AgentOperationRejectedException;
 use Fight\AccessControl\Domain\AccessControl\Agent\Operation\AgentCredentialOperation;
 use Fight\AccessControl\Domain\AccessControl\Agent\Operation\AgentDeliveryId;
 use Fight\AccessControl\Domain\AccessControl\Agent\Operation\AgentIssuance;
+use Fight\AccessControl\Domain\AccessControl\Agent\Operation\AgentOperationCanonicalization;
 use Fight\AccessControl\Domain\AccessControl\Agent\Operation\AgentOperationFailure;
 use Fight\AccessControl\Domain\AccessControl\Agent\Operation\AgentOperationKey;
 use Fight\AccessControl\Domain\AccessControl\Agent\Operation\AgentOperationLimits;
@@ -121,8 +121,6 @@ final readonly class AgentProvisioningService
                 $reason = AgentOperationFailure::UNAVAILABLE;
                 if ($failure instanceof AgentOperationRejectedException) {
                     $reason = $failure->getReason();
-                } elseif ($failure instanceof AgentNameException) {
-                    $reason = AgentOperationFailure::INVALID_REQUEST;
                 }
 
                 // Do not chain arbitrary exceptions or expose their provider messages or trace arguments.
@@ -164,7 +162,7 @@ final readonly class AgentProvisioningService
         $secret = $this->hmacSharedSecretGenerator->generate();
         $agent = Agent::provision(
             $agentId,
-            AgentName::fromString($request->getName()),
+            AgentName::fromString(AgentOperationCanonicalization::name($request->getName(), $version)),
             $credentialId,
             $this->hmacSharedSecretCipher->encrypt($secret),
             $issuedAt,

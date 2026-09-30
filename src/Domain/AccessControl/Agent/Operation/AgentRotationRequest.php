@@ -66,9 +66,7 @@ final readonly class AgentRotationRequest
      */
     public function canonicalize(int $version): string
     {
-        if ($version !== 1) {
-            throw new AgentOperationRejectedException(AgentOperationFailure::UNSUPPORTED_VERSION);
-        }
+        AgentOperationCanonicalization::assertSupported($version);
 
         return json_encode([
             'rotate',

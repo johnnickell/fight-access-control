@@ -24,9 +24,9 @@ to its resulting EPIC, TICKET, and/or implementation TASKs.
 - The next grill retains, but has not accepted, candidate managed `ADMIN_SAFE` Permissions named
   `AGENT_PROFILE_READ` and `AGENT_PROFILE_UPDATE`. Managed reconciliation would not assign them automatically;
   stable identities remain undecided.
-- The next grill must test the provisional safety hypothesis that MCP self-service tools derive their target Agent ID
-  exclusively from the authenticated principal and accept no target Agent ID, while a non-MCP administrator API may
-  use a generic target-Agent update command.
+- [WF-023](tickets/WF-023-self-service-agent-target.md) settles self-service target selection: both profile tools
+  derive their target Agent ID exclusively from the authenticated principal and accept no caller-supplied target
+  Agent ID. A separate non-MCP administrator API remains outside this decision.
 - The existing secret-free `AgentView`, a generic Agent rename use case, aggregate-owned transition, atomic
   persistence, post-commit event, and acknowledgement without a compensating read are candidate building blocks for
   the later profile handoff. They are evidence and proposals, not decisions made by WF-008.
@@ -43,24 +43,30 @@ to its resulting EPIC, TICKET, and/or implementation TASKs.
    receiving Agent policy objects. Missing metadata rejects protected composition; unavailable and unknown tools are
    publicly equivalent before validation or dispatch. [WF-008](tickets/WF-008-agent-aware-mcp-authorization-contract.md)
    records the full decision and [EPIC-00005](../epics/00005-EPIC.md) is its implementation-planning handoff.
+2. **Self-service target selection is settled.** Both profile tools target only the authenticated Agent, with no
+   caller-supplied target Agent ID. John confirmed this boundary; [WF-023](tickets/WF-023-self-service-agent-target.md)
+   owns the decision. Remaining profile contract work must preserve it.
 
 ## Decisions
 
 | Decision ID | Title | Type | Mode | Status | Depends on |
 |---|---|---|---|---|---|
 | WF-008 | [Define the Agent-aware MCP authorization contract](tickets/WF-008-agent-aware-mcp-authorization-contract.md) | Grilling | HITL | **Closed** | — |
+| WF-023 | [Bind self-service profile tools to the authenticated Agent](tickets/WF-023-self-service-agent-target.md) | Grilling | HITL | **Closed** | WF-008 |
 
 ## Blocking relationships
 
 ```text
-Agent-aware MCP authorization contract ──→ MCP self-service profile implementation handoff
+Agent-aware MCP authorization contract ──→ Self-service target selection ──→ Remaining profile contract ──→ Profile implementation handoff
 ```
 
 ## Frontier
 
 The authorization frontier is closed and handed off through [EPIC-00005](../epics/00005-EPIC.md). The map remains
-active because the self-service profile tools still need a separately opened decision record covering their behavior,
-schemas, Permission identities, and update semantics before they can receive an implementation handoff.
+active because the self-service profile tools still need a separately opened decision record covering their remaining
+behavior, schemas, Permission identities, and update semantics before they can receive an implementation handoff.
+Target selection is already settled by [WF-023](tickets/WF-023-self-service-agent-target.md) and is not part of that
+remaining frontier.
 
 ## Not yet specified (fog)
 

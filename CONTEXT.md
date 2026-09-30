@@ -33,6 +33,12 @@ behavior shared by Fight applications. The repository-local behavioral and secur
   cohort fence are mandatory across Agent and operation repositories. Delivery/cleanup authority binds the generation;
   a switch invalidates old acknowledgements, not already disclosed bytes. Consumers separately exclude unchecked old
   binaries and qualify actual shared-connection writer races. No startup-ready boolean grants admission.
+- **Agent canonical request version**: immutable historical equality rules retained with every operation/tombstone.
+  V1 freezes ASCII-edge name trimming; v2 adds a fixed Unicode edge-whitespace set for new provisioning names.
+  Rotation's target/predecessor/destination tuple is unchanged. Only unseen keys use the cohort's creation version;
+  retained retries/status use the recorded version. Both readers remain required for any retained v2 history even
+  after switching creation back to v1. Unknown versions deny without fallback. See the
+  [canonical upgrade contract](docs/agent-canonical-upgrades.md); consumer rollout/restoration proof remains separate.
 - **Agent operation status**: an authorized secret-free read snapshot separating confirmed original issuance from
   recorded delivery and original-credential disposition. An absent record is indeterminate, not proof of rollback.
   Current scope/delegation/destination checks precede lookup and repeat with target checks before disclosure; reads
@@ -255,7 +261,12 @@ verified. TASK-00056 is done for accepted package implementation/local verificat
 `a0897e6`; the fresh landing gate retains 1442 tests / 21365 assertions and exact 6307/6307 statements. The ignored
 TASK handoff owns final metadata/remote verification and the administrative-only review bridge.
 Real consumer old-binary exclusion, writer races and deployment remain unqualified; no merge or release is authorized.
-TASK-00057/00058 retain canonical upgrade and restoration ownership.
+John authorized TASK-00057 in the main checkout from `develop` `f0d872c`, on
+`feature/task-00057-canonical-upgrades`, including the pending WF-023 planning decision in its next commit.
+Its canonical upgrade implementation freezes historical readers and integrates v2 with existing issuance/status/
+delivery/maintenance paths. Consumer-bindable scenarios exercise both versions through restart and retained states;
+the full local gate passes 1501 tests / 32816 assertions and exact 6317/6317 statements. Independent review remains
+pending; this is not a real consumer upgrade or release. TASK-00058 retains restoration ownership.
 Each downstream execution needs authorization. John separately authorized TASK-00046
 execution and PR landing. Planning does not qualify a consumer or authorize migration, release or adoption.
 The replacement requires caller-scoped operation correlation, protected delivery and consumer authorization
