@@ -24,10 +24,12 @@ not real database/tooling restore, actual writer exclusion or activation/use aut
 **302 tests / 11891 assertions**. No final warnings/skips or dependency drift. The TASK owns the receipt, input manifest
 and failure chronology. Independent review accepted `eeb6f5f` against unchanged `develop` `80e9add`, with all C1–C8
 passing, no findings, **1095 fresh tests / 30016 assertions** and all **782/782** final build inputs verified.
-TASK-00058 is done for accepted package implementation/local verification. John requested landing; final publication
-is pending at this intake checkpoint, with fresh gates and the administrative-only provenance bridge owned by the
-ignored TASK landing handoff. Hosted CI is optional/unchecked; interactive QA is N/A. No consumer adoption, merge
-or release is claimed; TASK-00059 final integration and real consumer qualification remain separate.
+TASK-00058 is done for accepted package implementation/local verification. John's landing request published
+[PR #96](https://github.com/johnnickell/fight-access-control/pull/96) against unchanged `develop` at initial head
+`65f12b3`; it is open at this publication checkpoint. Fresh landing focused/full gates retain the counts above and
+exact coverage; the ignored TASK landing handoff owns the administrative-only bridge and final metadata/remote
+identity. Hosted CI is optional/unchecked; interactive QA is N/A. No consumer adoption, merge or release is claimed;
+TASK-00059 final integration and real consumer qualification remain separate.
 
 ## Current contract — TASK-00068 implementation
 
