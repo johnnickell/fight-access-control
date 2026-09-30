@@ -5,7 +5,7 @@ dependencies, acceptance, and verification.
 
 ## What's Next?
 
-First ready Task: [TASK-00058](00058-TASK.md) — Fail closed on unreconciled credential-state restoration.
+First ready Task: [TASK-00059](00059-TASK.md) — Complete current-contract guidance and evidence traceability.
 
 ## In Progress
 
@@ -15,14 +15,13 @@ No Tasks are currently in this state.
 
 | Order | TASK ID | Title | Parent TICKET | Status | Blocked by | PR |
 | --- | --- | --- | --- | --- | --- | --- |
-| 58 | [TASK-00058](00058-TASK.md) | Fail closed on unreconciled credential-state restoration | [TICKET-00014](../tickets/00014-TICKET.md) — Preserve current credential-contract safety and evidence | ready-for-agent | [TASK-00056](00056-TASK.md), [TASK-00057](00057-TASK.md), [TASK-00068](00068-TASK.md) | — |
+| 59 | [TASK-00059](00059-TASK.md) | Complete current-contract guidance and evidence traceability | [TICKET-00014](../tickets/00014-TICKET.md) — Preserve current credential-contract safety and evidence | ready-for-agent | [TASK-00055](00055-TASK.md), [TASK-00056](00056-TASK.md), [TASK-00057](00057-TASK.md), [TASK-00058](00058-TASK.md), [TASK-00049](00049-TASK.md), [TASK-00054](00054-TASK.md), [TASK-00068](00068-TASK.md) | — |
 | 61 | [TASK-00061](00061-TASK.md) | Declare and register Feature references | [TICKET-00015](../tickets/00015-TICKET.md) — Register and provision Features safely | ready-for-agent | — | — |
 
 ## Waiting
 
 | Order | TASK ID | Title | Parent TICKET | Status | Blocked by | PR |
 | --- | --- | --- | --- | --- | --- | --- |
-| 59 | [TASK-00059](00059-TASK.md) | Complete current-contract guidance and evidence traceability | [TICKET-00014](../tickets/00014-TICKET.md) — Preserve current credential-contract safety and evidence | ready-for-agent | [TASK-00055](00055-TASK.md), [TASK-00056](00056-TASK.md), [TASK-00057](00057-TASK.md), [TASK-00058](00058-TASK.md), [TASK-00049](00049-TASK.md), [TASK-00054](00054-TASK.md), [TASK-00068](00068-TASK.md) | — |
 | 62 | [TASK-00062](00062-TASK.md) | Provision registered Features without resetting choices | [TICKET-00015](../tickets/00015-TICKET.md) — Register and provision Features safely | ready-for-agent | [TASK-00061](00061-TASK.md) | — |
 | 63 | [TASK-00063](00063-TASK.md) | Validate Feature preparation before activation | [TICKET-00015](../tickets/00015-TICKET.md) — Register and provision Features safely | ready-for-agent | [TASK-00062](00062-TASK.md) | — |
 | 64 | [TASK-00064](00064-TASK.md) | Evaluate Feature availability with fresh, identity-safe checks | [TICKET-00016](../tickets/00016-TICKET.md) — Evaluate Feature availability for Users and Agents | ready-for-agent | [TASK-00062](00062-TASK.md) | — |
@@ -103,5 +102,6 @@ No Tasks are currently in this state.
 | 55 | [TASK-00055](00055-TASK.md) | Preserve existing Agent authority through upgrade | [TICKET-00014](../tickets/00014-TICKET.md) — Preserve current credential-contract safety and evidence | done | [TASK-00047](00047-TASK.md), [TASK-00048](00048-TASK.md) | https://github.com/johnnickell/fight-access-control/pull/90 |
 | 56 | [TASK-00056](00056-TASK.md) | Reject incompatible credential-operation cohorts | [TICKET-00014](../tickets/00014-TICKET.md) — Preserve current credential-contract safety and evidence | done | [TASK-00048](00048-TASK.md), [TASK-00052](00052-TASK.md), [TASK-00053](00053-TASK.md) | https://github.com/johnnickell/fight-access-control/pull/92 |
 | 57 | [TASK-00057](00057-TASK.md) | Simplify Agent operations to one canonical contract | [TICKET-00014](../tickets/00014-TICKET.md) — Preserve current credential-contract safety and evidence | done | [TASK-00056](00056-TASK.md), [TASK-00047](00047-TASK.md) | https://github.com/johnnickell/fight-access-control/pull/93 |
+| 58 | [TASK-00058](00058-TASK.md) | Fail closed on unreconciled credential-state restoration | [TICKET-00014](../tickets/00014-TICKET.md) — Preserve current credential-contract safety and evidence | done | [TASK-00056](00056-TASK.md), [TASK-00057](00057-TASK.md), [TASK-00068](00068-TASK.md) | https://github.com/johnnickell/fight-access-control/pull/96 |
 | 58 | [TASK-00068](00068-TASK.md) | Remove support for previous package iterations | — (standalone chore) | done | — | https://github.com/johnnickell/fight-access-control/pull/95 |
 | 60 | [TASK-00060](00060-TASK.md) | Align OpenAPI credential-delivery components with released contracts | — (standalone bug) | done | — | https://github.com/johnnickell/fight-access-control/pull/86 |

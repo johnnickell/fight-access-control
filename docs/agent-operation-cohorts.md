@@ -4,7 +4,7 @@
 protocol. This is an unreleased breaking repository contract, not a migration tool, deployment command, release,
 old-binary fence or consumer qualification. Only the [current Agent model](agent-current-contract.md) applies;
 there is no legacy mode or adoption transition. The [single canonical contract](agent-canonical-upgrades.md) is supplied by TASK-00057;
-restoration reconciliation remains TASK-00058.
+[restoration reconciliation](agent-restoration-safety.md) is supplied by TASK-00058 at the package boundary.
 
 ## Composition and persisted meaning
 
@@ -22,10 +22,11 @@ The immutable snapshot takes these explicit constructor arguments (no production
 | `destinationVersion` | `1`: immutable registered destination ID/binding revision and cross-scope monotonic write-order meaning |
 | `generation` | Durable positive, monotonically advancing cohort generation; increment on every switch, including switch-back |
 | `capabilities` | Intersection of persisted qualification and this worker's locally installed supported participants; every capability below is required |
+| `reconciledGeneration` | Required nullable projection of independently verified admission evidence for the exact active storage incarnation; must equal the positive persisted generation |
 
 Unknown persisted versions must survive hydration so the package can reject them. `assertCompatible()` rejects
-unsupported storage, canonical or destination markers, nonpositive generations and missing capabilities with
-sanitized `AgentOperationFailure::UNAVAILABLE`. Two participating repository snapshots must also pass
+unsupported storage, canonical or destination markers, nonpositive generations, missing capabilities and absent or
+mismatched reconciled generations with sanitized `AgentOperationFailure::UNAVAILABLE`. Two participating repository snapshots must also pass
 `assertSameCohort()`: both must validate the sole supported contract and agree on generation before forming an
 issuance/delivery transaction. Equal generations alone do **not** prove same-database/shared-connection composition.
 
@@ -33,6 +34,14 @@ issuance/delivery transaction. Equal generations alone do **not** prove same-dat
 for missing/unavailable storage, inconsistent settings or an unsupported local participant. A transient outage is
 not evidence of compatibility, absence or rollback. No runtime call bootstraps a cohort record or adds manual approval.
 The snapshot is not a public HTTP View, Command, Query, Event, credential or consumer policy decision.
+
+TASK-00058 requires the reconciled-generation witness to come from a trusted admission boundary outside the restorable
+dataset, freshly verified for the exact live storage incarnation under the same cohort fence. Never copy the stored
+generation or infer readiness from a restored flag. Controlled restoration invalidates the witness before replacement;
+unknown/unverified evidence projects null. Re-admission requires complete current-contract reconciliation and a newer
+monotonic generation, preserving exact bindings, tombstones and order. See the
+[restoration procedure and evidence boundary](agent-restoration-safety.md); the package does not detect arbitrary
+physical rollback or qualify consumer storage tools.
 
 ### Capability ownership
 
@@ -123,7 +132,8 @@ applies to real runtime cohort replacement and existing authority, not a require
    finite defaults remain automatic; routine recovery needs no additional human approval or manual configuration.
 7. Prefer forward repair after new-contract effects. A compatible rollback must preserve versions, generation,
    correlation, receipts, order and tombstones with writers fenced. Do not restore an old database and reset generation.
-   TASK-00058 owns reconciled restoration behavior; this check does not detect arbitrary rollback on its own.
+   Follow [TASK-00058's restoration procedure](agent-restoration-safety.md): invalidate independent admission before
+   replacement and attest the exact reconciled incarnation at a newer generation. No check detects arbitrary rollback.
 
 Previous-contract writers, historical migrations and automatic compatibility bridges are unsupported. Unsupported
 cohorts remain unavailable rather than falling back to raw issuance, unknown canonical rules or secret disclosure.

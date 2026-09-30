@@ -42,6 +42,12 @@ final class InMemoryAuditEvidenceRepository implements AuditEvidenceRepository
         return $this->evidence;
     }
 
+    /** @param list<AuditEvidence> $evidence Modeled restore, not a new audit write */
+    public function restoreSnapshot(array $evidence): void
+    {
+        $this->evidence = $evidence;
+    }
+
     public function failure(): ?RuntimeException
     {
         return $this->failure;

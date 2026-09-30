@@ -205,6 +205,23 @@ final class InMemoryAgentRepository implements AgentRepository
         return $this->agents;
     }
 
+    /**
+     * Replaces only modeled persisted state for restoration conformance, never an Application writer
+     *
+     * @param list<Agent> $agents
+     */
+    public function restoreSnapshot(#[SensitiveParameter] array $agents): void
+    {
+        foreach ($this->agents as $agent) {
+            $this->authorizationReferences->removeAgent($agent);
+        }
+
+        $this->agents = $agents;
+        foreach ($agents as $agent) {
+            $this->authorizationReferences->retainAgent($agent);
+        }
+    }
+
     public function permissionAssignmentReplacementCalls(): int
     {
         return $this->permissionAssignmentReplacementCalls;

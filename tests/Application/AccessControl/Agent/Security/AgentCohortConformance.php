@@ -30,6 +30,8 @@ abstract class AgentCohortConformance extends DeliveryConformance
             'obsolete canonical marker',
             'unknown canonical marker',
             'destination version',
+            'missing reconciliation',
+            'restored generation',
             ...AgentOperationContract::REQUIRED_CAPABILITIES
         ];
         foreach ($failures as $failure) {

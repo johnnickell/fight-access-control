@@ -64,6 +64,12 @@ previous-iteration support; completed TASKs and earlier guidance cannot require 
   repositories validate the one supported contract and share its generation/transaction fence. Safe reads do not
   grant writer admission. See the [canonical contract](../../docs/agent-canonical-upgrades.md). Actual persistence,
   authority/sink fencing and restoration qualification remain separate from package proof.
+- TASK-00058 adds required nullable `reconciledGeneration` to the existing cohort snapshot. Trusted admission outside
+  the restored dataset must verify the exact active storage incarnation and retained operation/receipt/tombstone/order
+  history under the same fence; missing/mismatched evidence denies unsafe effects. Controlled restore invalidates
+  readiness before replacement, and reconciliation advances generation before resuming. See
+  [restoration safety](../../docs/agent-restoration-safety.md). No automatic rollback detector, restore Command or
+  prior-contract migration is supplied; modeled package tests do not qualify actual consumer restore/activation/use.
 - TASK-00068 removes TASK-00055's superseded legacy-Agent model, recovery marker and old-API stubs. Follow the
   [current Agent contract](../../docs/agent-current-contract.md): validated hydration and unconditional lifecycle
   correlation/cancellation with audit atomicity. User delivery requires explicit claim identity/time and due time;

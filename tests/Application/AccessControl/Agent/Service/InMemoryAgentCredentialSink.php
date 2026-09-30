@@ -148,6 +148,34 @@ final class InMemoryAgentCredentialSink implements AgentCredentialSink, AgentCre
         unset($this->entries[$issuance->getDeliveryId()->toString()]);
     }
 
+    /**
+     * Returns independent secret-free sink history for modeled restoration reconciliation
+     *
+     * @return array{
+     *     entries: array<string, array{array<string, int|string>, string}>,
+     *     cleaned: array<string, array<string, int|string>>,
+     *     removed: array<string, true>,
+     *     order: array<string, int>
+     * }
+     */
+    public function restorationEvidence(): array
+    {
+        $entries = [];
+        foreach ($this->entries as $id => [$invocation, $receipt]) {
+            $entries[$id] = [$invocation->getIssuance()->toArray(), $receipt->toString()];
+        }
+
+        return [
+            'entries' => $entries,
+            'cleaned' => array_map(
+                static fn (AgentIssuance $issuance): array => $issuance->toArray(),
+                $this->cleanedBindings
+            ),
+            'removed' => $this->removed,
+            'order'   => $this->highWater
+        ];
+    }
+
     private function outsideTransaction(): void
     {
         if ($this->transaction->transactionActive) {
