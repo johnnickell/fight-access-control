@@ -305,7 +305,7 @@ and local verification. John requested landing; the ignored TASK landing handoff
 final local/remote identities. This intake precedes publication. Hosted CI remains optional/unchecked; interactive
 QA is N/A. Actual consumer rehearsal, final integration, merge, release and adoption are not established.
 
-## Current integration/evidence checkpoint — TASK-00059, awaiting review
+## Current integration/evidence checkpoint — TASK-00059 accepted
 
 The [integration guide](../../docs/agent-integration.md) now connects the implemented current composition and
 [complete evidence inventory](../../docs/agent-operation-evidence.md) preserves all 25 rows above plus ratified D3/D4.
@@ -315,9 +315,13 @@ checks pass **1103 tests / 30421 assertions**; TASK-00059 owns final gate eviden
 
 TASK-00068's independently accepted `90c22b5` supplies revised M1, not TASK-00055's historical legacy acceptance.
 M2/M3/M4 remain accepted at the package boundary; the checkpoint histories above are not claims that old test versions
-prove the present contract. M5 documentation is implemented but remains unchecked pending independent TASK-00059
-review. Actual adapter/sink/authority-writer, activation/use and controlled-restore evidence remains missing and blocks
-consumer support/adoption claims, not this honest inventory. No release, deployment or Agent OS TASK-00138 closure.
+prove the present contract. Independent review accepted TASK-00059 at `ed516f9` with all C1–C10 passing and no
+findings; independent QA passed the same candidate (eight scenarios, 282 distinct probe checks and 239 conformance
+tests / 8707 assertions). M5 is complete for accepted package guidance and traceability. John authorized landing;
+publication is pending at this checkpoint and the TASK's ignored landing handoff owns final evidence/remote identity.
+Actual adapter/sink/authority-writer, activation/use and controlled-restore evidence remains missing and blocks
+consumer support/adoption claims, not this honest inventory. The final consumer-evidence item below stays open;
+this TICKET remains in progress rather than implying those runs occurred. No release, deployment or Agent OS TASK-00138 closure.
 
 ## Acceptance Evidence
 
@@ -337,7 +341,7 @@ consumer support/adoption claims, not this honest inventory. No release, deploym
       silently authorize duplicate issuance, reset order or resurrect retired keys after external acceptance. Document
       current-contract reconciliation prerequisites, forward repair and unavailable outcomes. Real current-composition
       and same-contract backup/restore rehearsals are consumer evidence; no cross-version rollout/migration is required.
-- [ ] **M5 — Complete evidence and guidance:** maintain the matrix above with actual test/receipt references as work
+- [x] **M5 — Complete evidence and guidance:** maintain the matrix above with actual test/receipt references as work
       completes; every scenario has an owner, result and explicit gap where proof is missing. TICKET-00012/00013
       retain their own behavior tests and public consumer-bindable suites. Guidance covers D1–D4, current integration/deployment
       order, secret-safe outcomes, bounded defaults and supported consumer obligations without claiming implementation,
@@ -399,8 +403,9 @@ proof and rollout/restore rehearsals stay separate adoption obligations, not per
 
 ## Progress
 
-Current state: M1–M4 have independently accepted owning implementations; TASK-00059 is in progress for M5 guidance
-and evidence, awaiting independent review. The following TASK-00055/planning chronology is historical and does not
+Current state: M1–M5 have independently accepted package implementations/guidance; TASK-00059 is done for accepted
+implementation/local verification and QA, with separately authorized PR publication pending at this checkpoint.
+Mandatory real-consumer evidence remains open. The following TASK-00055/planning chronology is historical and does not
 restore legacy obligations or reopen completed dependencies. The current integration checkpoint above governs the
 handoff; consumer qualification remains separate.
 
@@ -438,4 +443,4 @@ migration/restore execution, commit, publication, dependency upgrade or Agent OS
 | 56 | [TASK-00056](../tasks/00056-TASK.md) | Reject incompatible credential-operation cohorts | done |
 | 57 | [TASK-00057](../tasks/00057-TASK.md) | Simplify Agent operations to one canonical contract | done |
 | 58 | [TASK-00058](../tasks/00058-TASK.md) | Fail closed on unreconciled credential-state restoration | done |
-| 59 | [TASK-00059](../tasks/00059-TASK.md) | Complete current-contract guidance and evidence traceability | in-progress |
+| 59 | [TASK-00059](../tasks/00059-TASK.md) | Complete current-contract guidance and evidence traceability | done |

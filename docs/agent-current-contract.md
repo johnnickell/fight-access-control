@@ -47,8 +47,8 @@ they are not selectable previous package contracts.
 
 [Restoration safety](agent-restoration-safety.md) is implemented and independently accepted at the package boundary.
 Use the [integration guide](agent-integration.md) and [final evidence inventory](agent-operation-evidence.md) for
-current composition and qualification gaps; TASK-00059's guidance awaits independent review. There is no historical
-data migration/backfill or cross-version rollback obligation, and no permission to reset consumer data. Actual
+current composition and qualification gaps; TASK-00059's guidance has independent acceptance and behavioral QA.
+There is no historical data migration/backfill or cross-version rollback obligation, and no permission to reset consumer data. Actual
 database, key, sink, authority-writer and activation/use qualification is separate from package tests.
 
 ## Package evidence

@@ -6,7 +6,7 @@ Fight AccessControl owns framework-neutral identity, credential, session, author
 behavior shared by Fight applications. The repository-local behavioral and security authority is
 [TICKET-00001](planning/tickets/00001-TICKET.md).
 
-## Current integration and evidence — TASK-00059 implementation
+## Current integration and evidence — TASK-00059 accepted
 
 The [integration guide](docs/agent-integration.md) now connects the complete current public composition, finite
 defaults, outcome handling, writer/admitted-call fences and restoration prerequisites. The
@@ -16,9 +16,15 @@ requirements are superseded under ADR 0011, not missing tests or claimed migrati
 removal supplies revised M1; TASK-00058's accepted package restoration supplies M4.
 
 John selected the main checkout from `develop` `37a98f3` on `feature/task-00059-current-contract-evidence`.
-This documentation-only implementation awaits independent review; no runtime/API/test/dependency change or
-consumer run is introduced. Focused current Agent/OpenAPI verification passes **1103 tests / 30421 assertions**;
-the TASK owns final gate/receipt provenance and the initial optional JUnit reporter failure. Package tests and
+Independent review accepted this documentation-only implementation at `ed516f9` against unchanged `develop`
+`37a98f3`, with C1–C10 passing and no findings. Independent QA passed eight scenarios, **282 distinct probe checks**
+and **239 conformance tests / 8707 assertions**, including executable package probes and labeled instruction
+walkthroughs. TASK-00059 is done for accepted implementation/local verification; M5 package guidance is complete.
+No runtime/API/test/dependency change or consumer run is introduced. Focused Agent/OpenAPI checks pass
+**1103 tests / 30421 assertions**; the accepted candidate's complete gate passes **1675 tests / 34503 assertions**,
+exact **6218/6218 owned statements**. The TASK retains the initial optional JUnit reporter failure. John authorized
+landing; publication is pending at this checkpoint. Its ignored landing handoff owns fresh gates, administrative-only
+review/QA provenance and final PR/remote identity. Package tests and
 consumer-bindable suite availability do not establish actual database concurrency, key/sink durability, trusted
 restore, enrollment activation or broker-use authority. The v0.5.0 target remains unreleased; no Agent OS
 TASK-00138 closure, dependency adoption, publication or deployment is claimed. Earlier checkpoints below are history.

@@ -114,8 +114,8 @@ markers reject without fallback; current authorization, transaction and ordering
 existing cohort boundary. Stale restored state remains unavailable until original operation/receipt/tombstone/order
 history is reconciled for the exact active storage incarnation at a newer generation. Consumer-bindable scenarios
 model restore and forward repair; no backup tool, migration engine or automatic rollback detector is supplied.
-Package restoration is independently accepted; TASK-00059 supplies final integration guidance and traceability,
-awaiting its own independent review. These modeled interleavings do not qualify real consumer adapters, restore
+Package restoration and TASK-00059's final integration guidance/traceability are independently accepted;
+the guidance also passed behavioral QA. These modeled interleavings do not qualify real consumer adapters, restore
 procedures or activation/use. The unreleased composition is **not a qualified consumer deployment**; release,
 consumer adoption and deployment remain separate gates. Existing released versions are unchanged.
 

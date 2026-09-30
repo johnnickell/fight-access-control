@@ -80,8 +80,9 @@ previous-iteration support; completed TASKs and earlier guidance cannot require 
 - Use the [current Agent integration guide](../../docs/agent-integration.md) and
   [complete scenario/evidence inventory](../../docs/agent-operation-evidence.md) for final composition and evidence
   handoff. They distinguish current package assertions, superseded requirements and mandatory unexecuted real-consumer
-  qualification. TASK-00059's documentation awaits independent acceptance; neither guides nor package passes authorize
-  release, activation/use, consumer adoption, deployment or Agent OS TASK-00138 closure.
+  qualification. TASK-00059's documentation has independent technical acceptance and behavioral QA at `ed516f9`;
+  neither guides nor package passes authorize release, activation/use, consumer adoption, deployment or
+  Agent OS TASK-00138 closure.
 - QueryHandlers read through Domain repositories only: no aggregate mutation, commit, or domain-event dispatch.
 - AuthenticationService follows the same atomic, post-commit ordering, uses Fight Common password and token ports,
   returns non-serializable token results, and emits RedactedCommandFailed without raw secret input.
