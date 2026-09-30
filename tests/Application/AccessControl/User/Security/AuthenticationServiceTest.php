@@ -265,7 +265,7 @@ final class AuthenticationServiceTest extends TestCase
         self::assertSame(2, $storedUser->getAuthenticationVersion());
         self::assertSame(1, $storedUser->getAuthenticationAuthorityRevision());
         self::assertTrue($grants->all()[0]->isConsumed());
-        self::assertFalse($grants->all()[0]->getDelivery()->isRecoverable());
+        self::assertFalse($grants->all()[0]->getDelivery()->hasRecoverableMaterial());
         self::assertCount(2, $sessions->all());
         self::assertTrue($sessions->all()[0]->isRevoked());
         self::assertTrue($sessions->all()[1]->isRevoked());
@@ -1652,7 +1652,7 @@ final class AuthenticationServiceTest extends TestCase
         ): void {
             self::assertTrue($unitOfWork->transactionCompleted);
             self::assertTrue($passwordResetGrants->all()[0]->isConsumed());
-            self::assertFalse($passwordResetGrants->all()[0]->getDelivery()->isRecoverable());
+            self::assertFalse($passwordResetGrants->all()[0]->getDelivery()->hasRecoverableMaterial());
             self::assertTrue(array_all(
                 $sessions->all(),
                 static fn(RefreshSession $refreshSession): bool => $refreshSession->isRevoked()
@@ -1690,7 +1690,7 @@ final class AuthenticationServiceTest extends TestCase
             '2026-08-19T12:00:00+00:00',
             $passwordResetGrants->all()[0]->getConsumedAt()?->format(DATE_ATOM)
         );
-        self::assertFalse($passwordResetGrants->all()[0]->getDelivery()->isRecoverable());
+        self::assertFalse($passwordResetGrants->all()[0]->getDelivery()->hasRecoverableMaterial());
         self::assertTrue(array_all(
             $sessions->all(),
             static fn(RefreshSession $refreshSession): bool => $refreshSession->isRevoked()
@@ -1901,7 +1901,7 @@ final class AuthenticationServiceTest extends TestCase
         self::assertSame(1, $authoritativeUser->getAuthenticationAuthorityRevision());
         self::assertTrue($passwordResetGrants->all()[0]->isConsumed());
         self::assertTrue($sessions->all()[0]->isRevoked());
-        self::assertFalse($passwordResetGrants->all()[0]->getDelivery()->isRecoverable());
+        self::assertFalse($passwordResetGrants->all()[0]->getDelivery()->hasRecoverableMaterial());
 
         self::assertSame('user.password_reset_completed', $auditEvidence->all()[0]->action());
         self::assertCount(1, $events->events());
@@ -2076,7 +2076,7 @@ final class AuthenticationServiceTest extends TestCase
         self::assertFalse($userState->isAuthenticationAuthorityFenceHeld($user->getId()));
         self::assertSame([$passwordResetGrant], $passwordResetGrants->all());
         self::assertFalse($passwordResetGrants->all()[0]->isConsumed());
-        self::assertTrue($passwordResetGrants->all()[0]->getDelivery()->isRecoverable());
+        self::assertTrue($passwordResetGrants->all()[0]->getDelivery()->hasRecoverableMaterial());
         self::assertSame([$firstSession, $secondSession], $sessions->all());
         self::assertFalse($firstSession->isRevoked());
         self::assertFalse($secondSession->isRevoked());

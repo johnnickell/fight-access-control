@@ -6,7 +6,7 @@ prepared by [provisioning](agent-provisioning-operations.md) or
 rather than a parallel lifecycle writer. This is package Domain/Application behavior with behavioral in-memory
 composition proof, **not a supported deployable consumer integration**. TASK-00052 now adds
 [discovery and receipt-first restart recovery](agent-delivery-recovery.md); TASK-00053 adds
-[material maintenance](agent-delivery-maintenance.md). Reusable qualification and compatibility remain downstream. No production adapter is supplied.
+[material maintenance](agent-delivery-maintenance.md). Real consumer qualification and restoration remain downstream. No production adapter is supplied.
 
 ## Public composition
 

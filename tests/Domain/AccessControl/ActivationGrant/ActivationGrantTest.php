@@ -10,6 +10,8 @@ use Fight\AccessControl\Domain\AccessControl\ActivationGrant\ActivationDeliveryI
 use Fight\AccessControl\Domain\AccessControl\ActivationGrant\ActivationGrant;
 use Fight\AccessControl\Domain\AccessControl\ActivationGrant\ActivationGrantId;
 use Fight\AccessControl\Domain\AccessControl\ActivationGrant\Exception\ActivationGrantException;
+use Fight\AccessControl\Domain\AccessControl\CredentialDelivery\CredentialDeliveryClaimToken;
+use Fight\AccessControl\Domain\AccessControl\CredentialDelivery\CredentialDeliveryFailure;
 use Fight\AccessControl\Domain\AccessControl\CredentialDelivery\CredentialDeliveryStatus;
 use Fight\AccessControl\Domain\AccessControl\User\User;
 use Fight\AccessControl\Domain\AccessControl\User\UserId;
@@ -36,8 +38,10 @@ final class ActivationGrantTest extends TestCase
             'ciphertext'
         );
 
-        $claimed = $grant->claimDelivery();
-        $failed = $claimed->failDelivery();
+        $token = CredentialDeliveryClaimToken::generate();
+        $at = new DateTimeImmutable('2026-08-18T12:00:00+00:00');
+        $claimed = $grant->claimDelivery($token, $at, $at->modify('+5 minutes'));
+        $failed = $claimed->failDelivery($token, $at, CredentialDeliveryFailure::UNEXPECTED_PROVIDER);
         self::assertSame($grant->getId(), $failed->getId());
         self::assertSame(
             CredentialDeliveryStatus::PERMANENT_FAILURE,
@@ -57,7 +61,7 @@ final class ActivationGrantTest extends TestCase
         );
         self::assertSame(
             CredentialDeliveryStatus::DELIVERED,
-            $grant->claimDelivery()->confirmDelivery()->getDelivery()->getStatus()
+            $claimed->confirmDelivery($token, $at)->getDelivery()->getStatus()
         );
     }
 
@@ -212,17 +216,22 @@ final class ActivationGrantTest extends TestCase
                 $userId,
                 EmailAddress::fromString('alice@example.test'),
                 'ciphertext',
-                $expiresAt
+                $expiresAt,
+                $issuedAt
             )
         );
 
         self::assertInstanceOf(ExtensibleActivationGrant::class, $grant);
         self::assertInstanceOf(ExtensibleActivationGrant::class, $reconstituted);
-        $failed = $grant->claimDelivery()->failDelivery();
+        $token = CredentialDeliveryClaimToken::generate();
+        $leaseUntil = $issuedAt->modify('+5 minutes');
+        $failed = $grant->claimDelivery($token, $issuedAt, $leaseUntil)
+            ->failDelivery($token, $issuedAt, CredentialDeliveryFailure::UNEXPECTED_PROVIDER);
         self::assertInstanceOf(ExtensibleActivationGrant::class, $failed);
         self::assertInstanceOf(
             ExtensibleActivationGrant::class,
-            $failed->requestDeliveryRetry()->claimDelivery()->confirmDelivery()
+            $failed->requestDeliveryRetry()->claimDelivery($token, $issuedAt, $leaseUntil)
+                ->confirmDelivery($token, $issuedAt)
         );
         self::assertInstanceOf(
             ExtensibleActivationGrant::class,

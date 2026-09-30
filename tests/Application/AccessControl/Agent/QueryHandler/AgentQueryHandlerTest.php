@@ -73,14 +73,13 @@ final class AgentQueryHandlerTest extends TestCase
         self::assertInstanceOf(Arrayable::class, $view);
         self::assertSame(
             [
-                'agent_id'                         => '018f0000-0000-7000-8000-000000000002',
-                'name'                             => 'Production deployment',
-                'state'                            => 'active',
-                'credential_id'                    => '018f0000-0000-7000-8000-000000000003',
-                'credential_revision'              => 0,
-                'recoverable_credential_operation' => false,
-                'permission_assignment_revision'   => 2,
-                'permissions'                      => [[
+                'agent_id'                       => '018f0000-0000-7000-8000-000000000002',
+                'name'                           => 'Production deployment',
+                'state'                          => 'active',
+                'credential_id'                  => '018f0000-0000-7000-8000-000000000003',
+                'credential_revision'            => 0,
+                'permission_assignment_revision' => 2,
+                'permissions'                    => [[
                     'permission_id' => '018f0000-0000-7000-8000-000000000001',
                     'name'          => 'CONTENT_PUBLISH'
                 ]]
@@ -337,7 +336,6 @@ final class AgentQueryHandlerTest extends TestCase
                 'name',
                 'permissionAssignmentRevision',
                 'permissions',
-                'recoverableCredentialOperation',
                 'state'
             ],
             $agentProperties

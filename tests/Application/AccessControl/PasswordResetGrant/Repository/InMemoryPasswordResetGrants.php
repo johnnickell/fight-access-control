@@ -99,7 +99,7 @@ final class InMemoryPasswordResetGrants implements PasswordResetGrantRepository
             || !$current instanceof PasswordResetGrant
             || !$this->sameState($current, $terminalPredecessor)
             || $current->isIssued()
-            || $current->getDelivery()->isRecoverable()
+            || $current->getDelivery()->hasRecoverableMaterial()
             || !$this->validSuccessor($current, $successor)
         ) {
             return false;
@@ -178,7 +178,7 @@ final class InMemoryPasswordResetGrants implements PasswordResetGrantRepository
             || !$current instanceof PasswordResetGrant
             || !$this->sameState($current, $predecessor)
             || $terminalPredecessor->isIssued()
-            || $terminalPredecessor->getDelivery()->isRecoverable()
+            || $terminalPredecessor->getDelivery()->hasRecoverableMaterial()
             || !$this->sameGeneration($current, $terminalPredecessor)
             || $terminalPredecessor->getRevision() !== $current->getRevision() + 1
             || !$this->isAllowedReplacement($current, $terminalPredecessor)

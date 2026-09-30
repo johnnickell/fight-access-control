@@ -19,22 +19,20 @@ use PHPUnit\Framework\TestCase;
 #[CoversClass(Agent::class)]
 final class AgentReconstitutionTest extends TestCase
 {
-    /** @return iterable<string, array{AgentState, bool}> */
+    /** @return iterable<string, array{AgentState}> */
     public static function states(): iterable
     {
         foreach (AgentState::cases() as $state) {
-            foreach ([false, true] as $recoverable) {
-                yield $state->value.'-'.(int) $recoverable => [$state, $recoverable];
-            }
+            yield $state->value => [$state];
         }
     }
 
     #[DataProvider('states')]
-    public function test_reconstitution_preserves_all_persisted_authority(AgentState $state, bool $recoverable): void
+    public function test_reconstitution_preserves_all_persisted_authority(AgentState $state): void
     {
         $id = AgentId::generate();
         $credential = AgentCredentialId::generate();
-        $name = AgentName::fromString('Existing deployment');
+        $name = AgentName::fromString('Deployment');
         $permissions = [PermissionId::generate(), PermissionId::generate()];
         $created = new DateTimeImmutable('2026-01-01T00:00:00Z');
         $updated = $created->modify('+1 day');
@@ -48,8 +46,7 @@ final class AgentReconstitutionTest extends TestCase
             $permissions,
             12,
             $created,
-            $updated,
-            $recoverable
+            $updated
         );
         self::assertSame($id, $agent->getId());
         self::assertSame($name, $agent->getName());
@@ -61,7 +58,6 @@ final class AgentReconstitutionTest extends TestCase
         self::assertSame(12, $agent->getPermissionAssignmentRevision());
         self::assertSame($created, $agent->getCreatedAt());
         self::assertSame($updated, $agent->getUpdatedAt());
-        self::assertSame($recoverable, $agent->hasRecoverableCredentialOperation());
     }
 
     /** @return iterable<string, array{string}> */
@@ -73,7 +69,7 @@ final class AgentReconstitutionTest extends TestCase
     }
 
     #[DataProvider('invalidState')]
-    public function test_invalid_history_is_rejected_not_repaired_or_normalized(string $case): void
+    public function test_invalid_authority_is_rejected_not_repaired_or_normalized(string $case): void
     {
         $at = new DateTimeImmutable('2026-01-01T00:00:00Z');
         $permission = PermissionId::generate();
@@ -89,7 +85,7 @@ final class AgentReconstitutionTest extends TestCase
         try {
             Agent::reconstitute(
                 AgentId::generate(),
-                AgentName::fromString('Existing deployment'),
+                AgentName::fromString('Deployment'),
                 AgentState::ACTIVE,
                 AgentCredentialId::generate(),
                 $case === 'credential revision' ? -1 : 7,
@@ -97,10 +93,9 @@ final class AgentReconstitutionTest extends TestCase
                 $permissions,
                 $case === 'permission revision' ? 0 : 12,
                 $at,
-                $case === 'time' ? $at->modify('-1 second') : $at,
-                false
+                $case === 'time' ? $at->modify('-1 second') : $at
             );
-            self::fail('Invalid historical authority must not be silently reconstructed.');
+            self::fail('Invalid authority must not be silently reconstructed.');
         } catch (AgentCredentialException $agentCredentialException) {
             self::assertSame('The persisted Agent authority is invalid.', $agentCredentialException->getMessage());
             self::assertNull($agentCredentialException->getPrevious());
@@ -111,69 +106,36 @@ final class AgentReconstitutionTest extends TestCase
         }
     }
 
-    public function test_only_a_new_credential_can_change_the_legacy_marker_and_it_cannot_be_downgraded(): void
+    public function test_hydrated_authority_rotates_and_revokes_without_resetting_revisions(): void
     {
         $at = new DateTimeImmutable('2026-01-01T00:00:00Z');
-        $legacy = Agent::reconstitute(
+        $agent = Agent::reconstitute(
             AgentId::generate(),
-            AgentName::fromString('Existing deployment'),
+            AgentName::fromString('Deployment'),
             AgentState::ACTIVE,
             AgentCredentialId::generate(),
             7,
-            'legacy-envelope',
+            'persisted-envelope',
             [],
             12,
             $at,
-            $at,
-            false
+            $at
         );
-        $successor = $legacy->rotateRecoverableCredential(
-            $legacy->getCredentialId(),
+        $successor = $agent->rotateRecoverableCredential(
+            $agent->getCredentialId(),
             7,
             AgentCredentialId::generate(),
             'new-envelope',
             $at
         );
-        self::assertTrue($legacy->canReplaceCredentialWith($successor));
-        self::assertTrue($successor->hasRecoverableCredentialOperation());
-        self::assertFalse($legacy->hasRecoverableCredentialOperation());
+        self::assertTrue($agent->canReplaceCredentialWith($successor));
         self::assertSame(8, $successor->getCredentialRevision());
-        self::assertTrue($legacy->canReplaceCredentialWith($legacy->revoke($at)));
+        self::assertSame(12, $successor->getPermissionAssignmentRevision());
+        self::assertTrue($agent->canReplaceCredentialWith($agent->revoke($at)));
         self::assertTrue($successor->canReplaceCredentialWith($successor->revoke($at)));
-        foreach ([AgentState::ACTIVE, AgentState::REVOKED] as $state) {
-            $markerOnly = Agent::reconstitute(
-                $legacy->getId(),
-                $legacy->getName(),
-                $state,
-                $legacy->getCredentialId(),
-                7,
-                'legacy-envelope',
-                [],
-                12,
-                $at,
-                $at,
-                true
-            );
-            self::assertFalse($legacy->canReplaceCredentialWith($markerOnly));
-            $downgrade = Agent::reconstitute(
-                $successor->getId(),
-                $successor->getName(),
-                $state,
-                $state === AgentState::ACTIVE ? AgentCredentialId::generate() : $successor->getCredentialId(),
-                $state === AgentState::ACTIVE ? 9 : 8,
-                'new-envelope',
-                [],
-                12,
-                $at,
-                $at,
-                false
-            );
-            self::assertFalse($successor->canReplaceCredentialWith($downgrade));
-        }
-
-        $inactivePromotion = Agent::reconstitute(
-            $legacy->getId(),
-            $legacy->getName(),
+        $inactive = Agent::reconstitute(
+            $agent->getId(),
+            $agent->getName(),
             AgentState::PROVISIONED,
             AgentCredentialId::generate(),
             8,
@@ -181,23 +143,20 @@ final class AgentReconstitutionTest extends TestCase
             [],
             12,
             $at,
-            $at,
-            true
+            $at
         );
-        self::assertFalse($legacy->canReplaceCredentialWith($inactivePromotion));
-
+        self::assertFalse($agent->canReplaceCredentialWith($inactive));
         $exhausted = Agent::reconstitute(
-            $legacy->getId(),
-            $legacy->getName(),
+            $agent->getId(),
+            $agent->getName(),
             AgentState::ACTIVE,
-            $legacy->getCredentialId(),
+            $agent->getCredentialId(),
             PHP_INT_MAX,
-            'legacy-envelope',
+            'persisted-envelope',
             [],
             12,
             $at,
-            $at,
-            false
+            $at
         );
         $this->expectException(AgentCredentialException::class);
         $exhausted->assertRecoverableRotation($exhausted->getCredentialId(), PHP_INT_MAX);

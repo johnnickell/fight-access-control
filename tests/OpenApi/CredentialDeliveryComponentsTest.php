@@ -6,6 +6,7 @@ namespace Fight\Test\AccessControl\OpenApi;
 
 use DateTimeImmutable;
 use Fight\AccessControl\Domain\AccessControl\ActivationGrant\Query\InvitationDeliveryStatusView;
+use Fight\AccessControl\Domain\AccessControl\CredentialDelivery\CredentialDeliveryClaimToken;
 use Fight\AccessControl\Domain\AccessControl\CredentialDelivery\CredentialDeliveryFailure;
 use Fight\AccessControl\Domain\AccessControl\CredentialDelivery\CredentialDeliveryStatus;
 use Fight\AccessControl\Domain\AccessControl\CredentialDelivery\DueCredentialDelivery;
@@ -241,15 +242,14 @@ final class CredentialDeliveryComponentsTest extends TestCase
             $expiresAt,
             $at
         );
-        $claimed = $pending->claim();
-        $token = $claimed->getClaimToken();
-        self::assertNotNull($token);
+        $token = CredentialDeliveryClaimToken::generate();
+        $claimed = $pending->claim($token, $at, $at->modify('+5 minutes'));
 
         return [
             'pending'           => $pending,
             'claimed'           => $claimed,
-            'retry_pending'     => $claimed->fail(),
-            'delivered'         => $claimed->confirm(),
+            'retry_pending'     => $claimed->fail($token, $at, CredentialDeliveryFailure::UNEXPECTED_PROVIDER),
+            'delivered'         => $claimed->confirm($token, $at),
             'permanent_failure' => $claimed->failPermanently($token, $at),
             'expired'           => $pending->expireAt($expiresAt),
             'invalidated'       => $pending->invalidate()

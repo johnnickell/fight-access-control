@@ -43,13 +43,13 @@ final class PasswordResetGrantSubtypeTest extends TestCase
                 $userId,
                 $email,
                 'ciphertext',
-                $expiresAt
+                $expiresAt,
+                $issuedAt
             )
         );
 
         self::assertInstanceOf(ExtensiblePasswordResetGrant::class, $grant);
         self::assertInstanceOf(ExtensiblePasswordResetGrant::class, $reconstituted);
-        self::assertInstanceOf(ExtensiblePasswordResetGrant::class, $grant->confirmDelivery());
         $token = CredentialDeliveryClaimToken::generate();
         $claimed = $grant->claimDelivery(
             $token,

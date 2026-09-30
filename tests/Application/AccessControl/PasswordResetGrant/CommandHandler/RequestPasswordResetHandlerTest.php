@@ -103,7 +103,7 @@ final class RequestPasswordResetHandlerTest extends TestCase
 
         self::assertCount(2, $repository->all());
         self::assertTrue($repository->all()[0]->isRevoked());
-        self::assertFalse($repository->all()[0]->getDelivery()->isRecoverable());
+        self::assertFalse($repository->all()[0]->getDelivery()->hasRecoverableMaterial());
         self::assertTrue($repository->all()[1]->isIssued());
         self::assertSame(
             'ciphertext:reset-new',
@@ -165,7 +165,7 @@ final class RequestPasswordResetHandlerTest extends TestCase
         )->handle(CommandMessage::create(new RequestPasswordReset(EmailAddress::fromString('alice@example.test'))));
 
         self::assertTrue($repository->all()[0]->isConsumed());
-        self::assertFalse($repository->all()[0]->getDelivery()->isRecoverable());
+        self::assertFalse($repository->all()[0]->getDelivery()->hasRecoverableMaterial());
     }
 
     #[DataProvider('genericOutcomeStates')]

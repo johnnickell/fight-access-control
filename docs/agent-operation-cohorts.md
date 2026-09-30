@@ -2,8 +2,8 @@
 
 [TASK-00056](../planning/tasks/00056-TASK.md) adds persisted compatibility enforcement to the replacement Agent
 protocol. This is an unreleased breaking repository contract, not a migration tool, deployment command, release,
-old-binary fence or consumer qualification. [Existing-Agent preservation](agent-existing-data-v0.5-migration.md)
-still applies within its separate scope. The [single canonical contract](agent-canonical-upgrades.md) is supplied by TASK-00057;
+old-binary fence or consumer qualification. Only the [current Agent model](agent-current-contract.md) applies;
+there is no legacy mode or adoption transition. The [single canonical contract](agent-canonical-upgrades.md) is supplied by TASK-00057;
 restoration reconciliation remains TASK-00058.
 
 ## Composition and persisted meaning
@@ -64,8 +64,8 @@ is not a future authorization grant. Use a consistent global lock order; never s
 | Boundary / actual package path | Guard and required participation |
 | --- | --- |
 | `AgentProvisioningService::provision`, `AgentCredentialRotationService::rotate` | Check both repositories before current authorization, lookup or generation in every transaction/retry. Retained-key resolution still precedes new-work capacity; only an absent key reaches new-work admission using the fixed canonical contract. |
-| `AgentRepository::add`, `replace`, `replacePermissionAssignments` | Enforce the cohort on direct writes too, including known legacy authority and no raw-return fallback. Agent/operation/audit state remains one transaction. |
-| `AgentCredentialLifecycleService::revoke` | Guard before loading/mutating authority; original cancellation/audit and post-commit publication/rethrow behavior are unchanged. Legacy false markers are not a bypass. |
+| `AgentRepository::add`, `replace`, `replacePermissionAssignments` | Enforce the cohort on direct writes too, with unconditional correlation/cancellation and no raw-return fallback. Agent/operation/audit state remains one transaction. |
+| `AgentCredentialLifecycleService::revoke` | Guard before loading/mutating authority; original cancellation/audit and post-commit publication/rethrow behavior are unchanged. There is no alternate authority mode. |
 | Grant/revoke/replace Agent Permission handlers and their coordinator | Guard before target lookup/transition, including desired-state no-ops. Current ADMIN_SAFE checks, expected revisions and consumer caller policy still apply. |
 | `AgentOperationRepository::reserveDestinationWrite`, `add`, `retireCredential` | Enforce the cohort before reservations, correlation/material creation and lifecycle cancellation. No external direct caller may omit it. |
 | `AgentCredentialDeliveryService` and `replaceDelivery` | Fresh compatible same-cohort transaction for claim, admission and outcome, including material-free/recorded outcomes. Recheck compatibility before outside-transaction receipt lookup/materialization. |
@@ -107,7 +107,7 @@ applies to real runtime cohort replacement and existing authority, not a require
 
 ### Controlled cohort switch procedure
 
-1. Inventory every writer above, pending/admitted operations, legacy Agents, authority epochs, envelope keys,
+1. Inventory every writer above, pending/admitted operations, current Agents, authority epochs, envelope keys,
    destination reservations, sink receipts/high-water marks and permanent operation/sink tombstones. Rehearse with
    the actual consumer's tools before adopting; package fixtures cannot certify this inventory.
 2. Quiesce issuance, lifecycle, Permission/policy, delivery, maintenance and background/admin writers. Drain or fence
@@ -116,7 +116,7 @@ applies to real runtime cohort replacement and existing authority, not a require
    credentials/pools, restarted workers and non-HTTP jobs. A new-code version check cannot stop code that never runs it.
 4. Preserve Agent authentication envelopes and terminal state. Install complete operation/authority/key persistence
    and same-connection capabilities. Persist the explicitly qualified settings and next generation under the exclusive
-   cohort fence. Never manufacture legacy issuance/correlation or silently choose defaults when a record is missing.
+   cohort fence. Never manufacture issuance/correlation or silently choose defaults when a record is missing.
 5. Qualify actual composed repositories/UoW/authorization/ciphers/sinks and all authority writers with real races.
    Ensure live keys, sink ordering/readiness and the single supported canonical contract are valid.
 6. Enable bounded discovery, then sensitive admission only for the qualified cohort. Current caller authorization and
@@ -125,7 +125,7 @@ applies to real runtime cohort replacement and existing authority, not a require
    correlation, receipts, order and tombstones with writers fenced. Do not restore an old database and reset generation.
    TASK-00058 owns reconciled restoration behavior; this check does not detect arbitrary rollback on its own.
 
-Mixed legacy/new writers, zero-downtime migration and automatic compatibility bridges are unsupported. Unsupported
+Previous-contract writers, historical migrations and automatic compatibility bridges are unsupported. Unsupported
 cohorts remain unavailable rather than falling back to raw issuance, unknown canonical rules or secret disclosure.
 Original publication-warning scope (provision/rotation only), finite bounds, capacity-preserved authorized recovery,
 separate delivery/activation/use outcomes and current policy are unchanged.
@@ -145,7 +145,7 @@ conflict, but the competing switch must not commit through the held transaction.
 | Compatible creation/rotation, scheduler delivery, rewrap and revocation | `test_compatible_cohort_retains_real_rotation_delivery_maintenance_and_revocation` |
 | Switch at claim/admission/materialization/sink acceptance; compatible and incompatible restart | `test_cohort_switch_never_acknowledges_stale_admission_and_restart_recovers` |
 | Transaction versus switch, no startup cache | `test_cohort_switch_contends_with_live_transaction_not_just_startup_check` |
-| Direct repository writers; legacy revocation; Permission changes and no-ops; mismatched repository cohorts | `AgentCohortWriterTest` |
+| Direct repository writers; current revocation; Permission changes and no-ops; mismatched repository cohorts | `AgentCohortWriterTest` |
 | Cleanup switch-back and maintenance contention/rollback | `AgentCohortWriterTest` |
 | Single supported contract and generation-bound authority rules | `AgentOperationContractTest` |
 

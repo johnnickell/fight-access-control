@@ -14,6 +14,7 @@ use Fight\AccessControl\Domain\AccessControl\Permission\PermissionId;
 use Fight\AccessControl\Domain\AccessControl\Permission\PermissionName;
 use Fight\AccessControl\Domain\AccessControl\Permission\PermissionTier;
 use Fight\Common\Domain\Repository\Pagination;
+use Fight\Test\AccessControl\Application\AccessControl\Agent\Service\RotationEnvironment;
 use Fight\Test\AccessControl\Application\AccessControl\User\Repository\InMemoryAuthorizationReferenceState;
 use PHPUnit\Framework\Attributes\CoversNothing;
 use PHPUnit\Framework\TestCase;
@@ -23,25 +24,12 @@ final class InMemoryAgentRepositoryTest extends TestCase
 {
     public function test_it_retrieves_the_current_agent_authority_by_stable_identity(): void
     {
-        $repository = new InMemoryAgentRepository();
-        $agentId = AgentId::generate();
-        $agent = Agent::provision(
-            $agentId,
-            AgentName::fromString('Production deployment'),
-            AgentCredentialId::generate(),
-            'consumer-encrypted-hmac-shared-secret-envelope',
-            new DateTimeImmutable('2026-08-25T12:00:00+00:00')
-        );
-        $replacement = $agent->rotateCredential(
-            $agent->getCredentialId(),
-            AgentCredentialId::generate(),
-            'replacement-consumer-encrypted-hmac-shared-secret-envelope',
-            new DateTimeImmutable('2026-08-25T13:00:00+00:00')
-        );
-        $repository->add($agent);
-
+        $rotation = new RotationEnvironment();
+        $repository = $rotation->provisioning->agents;
+        $agent = $repository->all()[0];
         self::assertSame($agent, $repository->getById($agent->getId()));
-        self::assertTrue($repository->replace($agent, $replacement));
+        self::assertTrue($rotation->service()->rotate($rotation->key, $rotation->request)->isConfirmed());
+        $replacement = $repository->all()[0];
         self::assertSame($replacement, $repository->getById($agent->getId()));
         self::assertFalse($repository->replace($agent, $replacement));
         self::assertNull($repository->getById(AgentId::generate()));

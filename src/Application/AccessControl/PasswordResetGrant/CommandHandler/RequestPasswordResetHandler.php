@@ -92,7 +92,7 @@ final readonly class RequestPasswordResetHandler implements CommandHandler
 
                 if (
                     $predecessorGrant instanceof PasswordResetGrant
-                    && ($predecessorGrant->isIssued() || $predecessorGrant->getDelivery()->isRecoverable())
+                    && ($predecessorGrant->isIssued() || $predecessorGrant->getDelivery()->hasRecoverableMaterial())
                 ) {
                     $terminalPredecessor = $predecessorGrant->invalidateDelivery();
                     if ($predecessorGrant->isIssued()) {

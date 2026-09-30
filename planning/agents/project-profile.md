@@ -9,8 +9,8 @@ Follow [ADR 0011](../adr/0011-pre-v1-current-contract-only.md): implement only t
 Do not add or retain code solely to support previous iterations, including aliases, rejection-only retired methods,
 legacy modes, historical readers, compatibility defaults or migration/backfill paths. Update callers/tests directly.
 Keep current-contract authorization, atomicity, retry/restart, hydration, ordering and restoration safety. Release
-classification/changelog rules remain; they do not require compatibility code. TASK-00068 owns removal still pending
-in existing source; completed TASKs and earlier guidance cannot require that code to remain.
+classification/changelog rules remain; they do not require compatibility code. TASK-00068 removes the remaining
+previous-iteration support; completed TASKs and earlier guidance cannot require that code to remain.
 
 ## Package boundary and contracts
 
@@ -45,7 +45,7 @@ in existing source; completed TASKs and earlier guidance cannot require that cod
   confirms neither delivery, enrollment activation nor launch permission; each needs its own confirmed outcome and
   current authorization. Revocation, AuthenticationService and other handlers retain their publication behavior.
   TASK-00046 implements the provision exception and TASK-00048 implements rotation as unreleased work; the old
-  raw-return rotation API now rejects. Scheduler proof remains downstream. This guidance grants no independent implementation or release authority.
+  raw-return rotation API is removed. Scheduler proof remains downstream. This guidance grants no independent implementation or release authority.
 - For that credential-operation replacement, follow ratified [EPIC-00009 D4](../epics/00009-EPIC.md#d4--bounded-operation-and-integration-policy):
   documented finite defaults, optional validated overrides, and no manual-configuration or additional human-approval
   requirement for routine operation/recovery. Capacity exhaustion must give new work a clear retryable rejection or
@@ -53,8 +53,8 @@ in existing source; completed TASKs and earlier guidance cannot require that cod
   and stale-delivery defenses. Specify concrete values and implementation choices in requirement/design work and prove
   default/override, capacity/recovery and cleanup/replay behavior before implementation acceptance.
 - Agent/operation repositories implement mandatory `getOperationContract()` against a shared persisted cohort and
-  qualified actual composition. Every writer holds its cohort fence through the package transaction; direct paths and
-  legacy markers cannot bypass it. Delivery/cleanup epochs bind its monotonic generation. Startup checks are not
+  qualified actual composition. Every writer holds its cohort fence through the package transaction; direct paths
+  cannot bypass it. Delivery/cleanup epochs bind its monotonic generation. Startup checks are not
   admission; consumers separately fence old binaries and qualify real writer races. See the
   [cohort contract](../../docs/agent-operation-cohorts.md). This is unreleased TASK-00056 work, not consumer qualification.
 - Operation requests use one fixed Unicode-edge name rule and persisted canonical marker `2`. John's 2026-09-30
@@ -64,10 +64,12 @@ in existing source; completed TASKs and earlier guidance cannot require that cod
   repositories validate the one supported contract and share its generation/transaction fence. Safe reads do not
   grant writer admission. See the [canonical contract](../../docs/agent-canonical-upgrades.md). Actual persistence,
   authority/sink fencing and restoration qualification remain separate from package proof.
-- TASK-00055's legacy-Agent mode and upgrade contract are superseded by ADR 0011; TASK-00068 removes them, their
-  recovery marker and old-API stubs. Current-contract hydration still validates persisted authority, and every current
-  lifecycle write must retain operation correlation/cancellation and audit atomicity. No prior-data conversion,
-  legacy adoption or schema migration is a package obligation.
+- TASK-00068 removes TASK-00055's superseded legacy-Agent model, recovery marker and old-API stubs. Follow the
+  [current Agent contract](../../docs/agent-current-contract.md): validated hydration and unconditional lifecycle
+  correlation/cancellation with audit atomicity. User delivery requires explicit claim identity/time and due time;
+  use [current worker composition](../../docs/credential-delivery.md), not the removed transport-confirmation Command.
+  `ManagedPolicyPlanner` requires all four repositories, including Agent; it has no older optional composition.
+  No prior-data conversion, legacy adoption or schema migration is a package obligation.
 - QueryHandlers read through Domain repositories only: no aggregate mutation, commit, or domain-event dispatch.
 - AuthenticationService follows the same atomic, post-commit ordering, uses Fight Common password and token ports,
   returns non-serializable token results, and emits RedactedCommandFailed without raw secret input.

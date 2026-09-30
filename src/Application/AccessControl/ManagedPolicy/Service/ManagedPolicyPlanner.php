@@ -38,7 +38,7 @@ final readonly class ManagedPolicyPlanner
         private PermissionRepository $permissionRepository,
         private RoleRepository $roleRepository,
         private UserRepository $userRepository,
-        private ?AgentRepository $agentRepository = null
+        private AgentRepository $agentRepository
     ) {
     }
 
@@ -164,10 +164,7 @@ final readonly class ManagedPolicyPlanner
                 }
             }
 
-            if (
-                !$this->agentRepository instanceof AgentRepository
-                || $this->agentRepository->hasPermissionAssignment($definition->getId())
-            ) {
+            if ($this->agentRepository->hasPermissionAssignment($definition->getId())) {
                 throw new ManagedPolicyDefinitionException('Protected promotion conflicts with Agent membership.');
             }
         }

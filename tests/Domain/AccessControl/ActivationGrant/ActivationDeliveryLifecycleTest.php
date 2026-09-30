@@ -147,7 +147,11 @@ final class ActivationDeliveryLifecycleTest extends TestCase
         $actions = [
             fn(): EncryptedCredentialMaterial => $claimed->materialForClaim($token, $beforeClaim),
             fn(): ActivationDelivery => $claimed->confirm($token, $beforeClaim),
-            fn(): ActivationDelivery => $claimed->fail($token, $beforeClaim),
+            fn(): ActivationDelivery => $claimed->fail(
+                $token,
+                $beforeClaim,
+                CredentialDeliveryFailure::UNEXPECTED_PROVIDER
+            ),
             fn(): ActivationDelivery => $claimed->failPermanently($token, $beforeClaim)
         ];
         $rejectedActions = 0;
@@ -183,7 +187,10 @@ final class ActivationDeliveryLifecycleTest extends TestCase
             }
         }
 
-        self::assertSame(CredentialDeliveryStatus::CLAIMED, $delivery->claim()->getStatus());
+        self::assertSame(
+            CredentialDeliveryStatus::CLAIMED,
+            $delivery->claim($token, $this->at('12:00:00'), $this->at('12:05:00'))->getStatus()
+        );
     }
 
     public function test_it_records_delivered_retryable_and_permanent_expected_claim_outcomes(): void
@@ -269,7 +276,17 @@ final class ActivationDeliveryLifecycleTest extends TestCase
     {
         $delivery = $this->delivery();
 
-        foreach ([$delivery->confirm(...), $delivery->fail(...)] as $transition) {
+        $unclaimed = CredentialDeliveryClaimToken::generate();
+        foreach (
+            [
+                fn(): ActivationDelivery => $delivery->confirm($unclaimed, $this->at('12:00:00')),
+                fn(): ActivationDelivery => $delivery->fail(
+                    $unclaimed,
+                    $this->at('12:00:00'),
+                    CredentialDeliveryFailure::UNEXPECTED_PROVIDER
+                )
+            ] as $transition
+        ) {
             try {
                 $transition();
                 self::fail('An outcome without a claim was accepted.');
@@ -319,7 +336,11 @@ final class ActivationDeliveryLifecycleTest extends TestCase
             $this->at('13:00:00'),
             $this->at('12:00:00')
         );
-        self::assertInstanceOf(ExtensibleActivationDelivery::class, $delivery->claim());
+        self::assertInstanceOf(ExtensibleActivationDelivery::class, $delivery->claim(
+            CredentialDeliveryClaimToken::generate(),
+            $this->at('12:00:00'),
+            $this->at('12:05:00')
+        ));
         self::assertInstanceOf(ExtensibleActivationDelivery::class, $delivery->invalidate());
     }
 

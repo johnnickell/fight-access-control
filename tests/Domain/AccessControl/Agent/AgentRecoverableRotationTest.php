@@ -33,8 +33,7 @@ final class AgentRecoverableRotationTest extends TestCase
             AgentName::fromString('Agent'),
             AgentCredentialId::generate(),
             'original-envelope',
-            $at,
-            true
+            $at
         )->grantPermission($permission, $at);
         $credential = AgentCredentialId::generate();
         $next = $agent->rotateRecoverableCredential(
@@ -51,9 +50,6 @@ final class AgentRecoverableRotationTest extends TestCase
         self::assertSame(2, $next->getPermissionAssignmentRevision());
         self::assertSame($credential, $next->getCredentialId());
         self::assertSame(1, $next->getCredentialRevision());
-        self::assertTrue($next->hasRecoverableCredentialOperation());
-        $this->expectException(AgentCredentialException::class);
-        $next->rotateCredential($credential, AgentCredentialId::generate(), 'unfenced', $at);
     }
 
     /** @return iterable<string, array{string}> */
@@ -73,8 +69,7 @@ final class AgentRecoverableRotationTest extends TestCase
             AgentName::fromString('Agent'),
             AgentCredentialId::generate(),
             'original-envelope',
-            $at,
-            true
+            $at
         );
         if ($case === 'revoked') {
             $agent = $agent->revoke($at);

@@ -115,7 +115,10 @@ final class CurrentAgentPrincipalProviderTest extends TestCase
             $agents,
             $unitOfWork,
             afterConsume: function () use ($agents, $agent): void {
-                $agents->replace($agent, $agent->revoke($this->now()));
+                self::assertTrue($agents->replacePermissionAssignments(
+                    $agent,
+                    $agent->revokePermission($this->permissionId(), $this->now())
+                ));
             }
         );
         [$provider, $request] = $this->provider($agents, null, $unitOfWork, $nonceConsumer);

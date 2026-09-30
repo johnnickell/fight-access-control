@@ -92,13 +92,6 @@ final class AuthenticatedPrincipalTest extends TestCase
         new AuthenticatedUserPrincipal(UserId::generate(), RefreshSessionId::generate(), 1, [], ['VIEW_ARTICLE']);
     }
 
-    public function test_the_legacy_authenticated_principal_snapshot_type_is_not_available(): void
-    {
-        self::assertFalse(class_exists(
-            'Fight\\AccessControl\\Domain\\AccessControl\\Authorization\\AuthenticatedPrincipal'
-        ));
-    }
-
     public function test_the_principal_type_values_are_stable(): void
     {
         self::assertSame('user', AuthenticatedPrincipalType::USER->value);

@@ -7,7 +7,6 @@ namespace Fight\AccessControl\Domain\AccessControl\PasswordResetGrant;
 use DateTimeImmutable;
 use Fight\AccessControl\Domain\AccessControl\CredentialDelivery\CredentialDeliveryClaimToken;
 use Fight\AccessControl\Domain\AccessControl\CredentialDelivery\CredentialDeliveryFailure;
-use Fight\AccessControl\Domain\AccessControl\CredentialDelivery\CredentialDeliveryStatus;
 use Fight\AccessControl\Domain\AccessControl\PasswordResetGrant\Exception\PasswordResetGrantException;
 use Fight\AccessControl\Domain\AccessControl\User\UserId;
 use Fight\Common\Domain\Value\Internet\EmailAddress;
@@ -232,19 +231,9 @@ class PasswordResetGrant
      * Completes the owned delivery
      */
     public function confirmDelivery(
-        ?CredentialDeliveryClaimToken $claimToken = null,
-        ?DateTimeImmutable $occurredAt = null
+        CredentialDeliveryClaimToken $claimToken,
+        DateTimeImmutable $occurredAt
     ): self {
-        if ($claimToken === null) {
-            if (!$this->delivery->hasRecoverableMaterial()) {
-                return $this;
-            }
-
-            if ($this->delivery->getStatus() === CredentialDeliveryStatus::PENDING) {
-                return $this->withDelivery($this->delivery->claim()->confirm());
-            }
-        }
-
         return $this->withDelivery($this->delivery->confirm($claimToken, $occurredAt));
     }
 

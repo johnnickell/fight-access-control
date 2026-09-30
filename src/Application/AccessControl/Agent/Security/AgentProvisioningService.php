@@ -164,8 +164,7 @@ final readonly class AgentProvisioningService
             AgentName::fromString(AgentOperationCanonicalization::name($request->getName())),
             $credentialId,
             $this->hmacSharedSecretCipher->encrypt($secret),
-            $issuedAt,
-            recoverableCredentialOperation: true
+            $issuedAt
         );
         $material = $this->deliveryCipher->encrypt($secret, $issuance);
         $this->agentRepository->add($agent);

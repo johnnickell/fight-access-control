@@ -84,7 +84,6 @@ final class AgentCredentialRotationServiceTest extends TestCase
             'auth-envelope:successor-test-secret',
             $successor->getEncryptedHmacSharedSecretEnvelope()
         );
-        self::assertTrue($successor->hasRecoverableCredentialOperation());
         self::assertSame($predecessor->getName(), $successor->getName());
         self::assertSame(
             $predecessor->getPermissionAssignmentRevision(),

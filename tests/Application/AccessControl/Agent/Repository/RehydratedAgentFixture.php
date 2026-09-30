@@ -16,7 +16,6 @@ final class RehydratedAgentFixture extends Agent
         AgentCredentialId $credentialId,
         int $revision,
         AgentState $state = AgentState::ACTIVE,
-        ?bool $recoverable = null,
         ?string $envelope = null
     ): self {
         return new self(
@@ -29,8 +28,7 @@ final class RehydratedAgentFixture extends Agent
             $agent->getPermissionIds(),
             $agent->getPermissionAssignmentRevision(),
             $agent->getCreatedAt(),
-            $agent->getUpdatedAt(),
-            $recoverable ?? $agent->hasRecoverableCredentialOperation()
+            $agent->getUpdatedAt()
         );
     }
 
@@ -54,8 +52,7 @@ final class RehydratedAgentFixture extends Agent
             $permissionIds,
             $permissionAssignmentRevision,
             $agent->getCreatedAt(),
-            $agent->getUpdatedAt(),
-            $agent->hasRecoverableCredentialOperation()
+            $agent->getUpdatedAt()
         );
     }
 }

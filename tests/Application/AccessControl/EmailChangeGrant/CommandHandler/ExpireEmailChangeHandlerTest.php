@@ -75,7 +75,7 @@ final class ExpireEmailChangeHandlerTest extends TestCase
         self::assertSame(2, $storedUser->getEmailChangeReservationRevision());
         self::assertTrue($grants->all()[0]->isExpired());
         self::assertSame('2026-08-22T13:00:00+00:00', $grants->all()[0]->getExpiredAt()?->format(DATE_ATOM));
-        self::assertFalse($grants->all()[0]->getDelivery()->isRecoverable());
+        self::assertFalse($grants->all()[0]->getDelivery()->hasRecoverableMaterial());
         self::assertCount(1, $events->events());
         self::assertInstanceOf(EmailChangeExpired::class, $events->events()[0]);
     }

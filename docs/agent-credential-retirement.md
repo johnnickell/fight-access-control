@@ -3,7 +3,7 @@
 [TASK-00050](../planning/tasks/00050-TASK.md) implements revocation and the shared predecessor-retirement contract.
 It does **not** itself implement recoverable rotation, delivery workers, a protected sink or consumer persistence.
 TASK-00051 now supplies protected delivery and TASK-00048 supplies recoverable rotation using this seam. This
-intermediate composition remains unreleased and not deployable until downstream recovery and compatibility work
+intermediate composition remains unreleased and not deployable until downstream restoration and consumer qualification work
 is accepted. No real database/sink/consumer qualification is claimed.
 
 ## Public lifecycle and writer inventory
@@ -11,20 +11,19 @@ is accepted. No real database/sink/consumer qualification is claimed.
 | Entry point | Supported behavior / mandatory boundary |
 | --- | --- |
 | `AgentCredentialLifecycleService::revoke(actorId, agentId)` | Load exact current Agent, construct its terminal successor, replace through the repository and write safe audit in one package-owned transaction. Publish `AgentCredentialRevoked` only after commit. |
-| Direct `Agent::revoke()` | Construct an immutable successor, preserving the recoverable-operation marker and authentication envelope. This alone is not a persisted revocation. |
+| Direct `Agent::revoke()` | Construct an immutable successor, preserving the authentication envelope and credential tuple. This alone is not a persisted revocation. |
 | Direct `AgentRepository::replace(expected, replacement)` | Compare the entire authoritative predecessor, validate the Domain successor and atomically retire its original delivery before persisting the successor. Never bypass this because the caller is not HTTP or not the lifecycle service. |
-| `AgentCredentialLifecycleService::rotate()` / `Agent::rotateCredential()` | TASK-00048 makes the old raw-return service reject for all Agents. Legacy aggregate state transitions remain for existing-state compatibility; recoverable Agents reject that aggregate path. Use `AgentCredentialRotationService` and `Agent::rotateRecoverableCredential()` with operation correlation and this cancellation seam. |
-| Rotation-capable direct repository replacement | A valid successor has a different credential ID and exactly the next credential revision. For a recoverable predecessor it uses the same cancellation boundary. This is not a replacement rotation workflow or authorization to invent operation correlation. |
-| `replacePermissionAssignments()` | Must preserve all credential state and the recoverable marker, and share the Agent credential fence. A stale Permission writer cannot undo revocation. |
-| `add()` / consumer hydration | New insertion only, never an upsert over existing authority. Persist and hydrate the marker faithfully. Reconstructing a revoked Agent as active or newly provisioned is not supported. |
+| `AgentCredentialRotationService::rotate()` / `Agent::rotateRecoverableCredential()` | Supported rotation with operation correlation and this cancellation seam. The old raw-return service and aggregate APIs are removed. |
+| Rotation-capable direct repository replacement | A valid successor has a different credential ID and exactly the next credential revision. Every predecessor uses the same cancellation boundary. This is not a replacement rotation workflow or authorization to invent operation correlation. |
+| `replacePermissionAssignments()` | Must preserve all credential state and operation correlation, and share the Agent credential fence. A stale Permission writer cannot undo revocation. |
+| `add()` / consumer hydration | New insertion only, never an upsert over existing authority. Validate persisted authority and current-operation correlation. Reconstructing a revoked Agent as active or newly provisioned is not supported. |
 | Authentication nonce consumption | Continue checking exact active credential ID/revision under the existing current-authority fence. Retired credentials cannot authenticate after that fence observes retirement. |
 
 `Agent::canReplaceCredentialWith()` owns successor validity: stable Agent ID, name, creation time, Permission set and
 assignment revision and nondecreasing update time. The predecessor must be active. Revocation retains exact credential
-ID/revision/envelope and the marker; rotation advances revision exactly once with another ID. TASK-00055 additionally
-permits a known legacy predecessor's marker to become true only with that new credential through the existing authorized
-rotation transaction; see the [existing-data contract](agent-existing-data-v0.5-migration.md).
-No-op replacements, resurrection, revision jumps, marker downgrades and unrelated edits reject. A stale/invalid
+ID/revision/envelope; rotation advances revision exactly once with another ID. There is no marker or legacy mode;
+see the [current Agent contract](agent-current-contract.md).
+No-op replacements, resurrection, revision jumps and unrelated edits reject. A stale/invalid
 `replace()` returns false without cancellation or any write. Consumers may not substitute a fresh aggregate built
 with `provision()` to reset lifecycle authority.
 
@@ -32,15 +31,12 @@ with `provision()` to reset lifecycle authority.
 
 Application owns the `TransactionalUnitOfWork`, audit and publication. Consumer repository implementations own
 persistence on its **same connection**, not another workflow or transaction. Composition must bind both Agent and
-operation repositories to that connection. A recoverable `replace()` requires working operation persistence; no
-nullable/no-op compatibility fallback is allowed. The same requirement applies when explicit rotation promotes a known
-legacy predecessor to a recoverable successor. That transition commits only the new operation/delivery/audit and
-skips historical cancellation because no predecessor operation exists; it must never fabricate one.
-
-For an already-recoverable predecessor, the repository write performs the following indivisible operation:
+operation repositories to that connection. Every `replace()` requires working operation persistence; no
+nullable/no-op fallback is allowed. Missing or inconsistent correlation rejects, never skips cancellation or
+fabricates an operation. Every predecessor uses the following indivisible operation:
 
 1. Require the package-owned transaction and hold the exact authoritative Agent/credential fence. Compare all
-   predecessor state, including Permission authority and the recoverable marker. Validate the Domain successor.
+   predecessor state, including Permission authority. Validate the Domain successor.
 2. Call `AgentOperationRepository::retireCredential(expected, replacement)` on that connection. Resolve exactly one
    original operation by Agent ID, credential ID and credential revision, including delivered/material-free records.
    Missing, ambiguous or mismatched correlation rejects; never manufacture an operation from an envelope or audit.
@@ -149,5 +145,5 @@ makes no real database concurrency, receipt, deadline or activation/use claim.
 [TASK-00051 delivery tests](agent-credential-delivery.md#evidence-and-limits) now exercise actual package admission and
 in-flight sink races with both service and direct revocation. [TASK-00048](agent-rotation-operations.md) adds actual
 rotation and successor-delivery races; TASK-00053 owns maintenance and TASK-00054 reusable all-path conformance. Real consumer database, authority-writer,
-sink, activation/use and migration qualification remain mandatory before adoption. There is no HTTP/UI change;
+sink, activation/use and restoration qualification remain mandatory before adoption. There is no HTTP/UI change;
 executable persisted-state tests are the useful before/after evidence, not screenshots.

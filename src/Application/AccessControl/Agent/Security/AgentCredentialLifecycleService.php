@@ -6,13 +6,10 @@ namespace Fight\AccessControl\Application\AccessControl\Agent\Security;
 
 use Fight\AccessControl\Application\AccessControl\Timing\Service\Clock;
 use Fight\AccessControl\Domain\AccessControl\Agent\Agent;
-use Fight\AccessControl\Domain\AccessControl\Agent\AgentCredentialId;
 use Fight\AccessControl\Domain\AccessControl\Agent\AgentId;
 use Fight\AccessControl\Domain\AccessControl\Agent\AgentRepository;
 use Fight\AccessControl\Domain\AccessControl\Agent\Event\AgentCredentialLifecycleFailed;
 use Fight\AccessControl\Domain\AccessControl\Agent\Event\AgentCredentialRevoked;
-use Fight\AccessControl\Domain\AccessControl\Agent\Exception\AgentOperationRejectedException;
-use Fight\AccessControl\Domain\AccessControl\Agent\Operation\AgentOperationFailure;
 use Fight\AccessControl\Domain\AccessControl\Audit\AuditEvidence;
 use Fight\AccessControl\Domain\AccessControl\Audit\AuditEvidenceRepository;
 use Fight\Common\Application\Messaging\Event\EventDispatcher;
@@ -23,7 +20,7 @@ use Throwable;
 /**
  * Class AgentCredentialLifecycleService
  *
- * Revokes authority with repository-owned cancellation and explicitly rejects the retired raw rotation API.
+ * Revokes authority with repository-owned cancellation.
  */
 final readonly class AgentCredentialLifecycleService
 {
@@ -41,19 +38,6 @@ final readonly class AgentCredentialLifecycleService
         private TransactionalUnitOfWork $unitOfWork,
         private EventDispatcher $eventDispatcher
     ) {
-    }
-
-    /**
-     * Rejects the retired raw-return signature without inventing correlation, destination or authority
-     *
-     * Use AgentCredentialRotationService with a retained key and original AgentRotationRequest instead.
-     */
-    public function rotate(
-        string $actorId,
-        AgentId $agentId,
-        AgentCredentialId $expectedCredentialId
-    ): never {
-        throw new AgentOperationRejectedException(AgentOperationFailure::INVALID_REQUEST);
     }
 
     /**

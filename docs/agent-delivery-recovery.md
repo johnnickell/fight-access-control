@@ -2,7 +2,7 @@
 
 [TASK-00052](../planning/tasks/00052-TASK.md) adds authorized bounded discovery and receipt-first recovery to the
 [protected delivery path](agent-credential-delivery.md). It does not issue credentials, rotate, activate enrollment,
-launch an Agent or provide secret retrieval. Maintenance/rewrapping, reusable consumer conformance and compatibility
+launch an Agent or provide secret retrieval. Maintenance/rewrapping, reusable consumer conformance and restoration
 remain separate slices. This intermediate package is **not a supported deployable consumer integration**.
 
 ## Public scheduler composition
