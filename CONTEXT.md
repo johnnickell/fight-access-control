@@ -265,8 +265,11 @@ John authorized TASK-00057 in the main checkout from `develop` `f0d872c`, on
 `feature/task-00057-canonical-upgrades`, including the pending WF-023 planning decision in its next commit.
 Its canonical upgrade implementation freezes historical readers and integrates v2 with existing issuance/status/
 delivery/maintenance paths. Consumer-bindable scenarios exercise both versions through restart and retained states;
-the full local gate passes 1501 tests / 32816 assertions and exact 6317/6317 statements. Independent review remains
-pending; this is not a real consumer upgrade or release. TASK-00058 retains restoration ownership.
+the full local gate passes 1501 tests / 32816 assertions and exact 6317/6317 statements. Independent review accepted
+`04a2adf` with all eight criteria passing, no findings, 973 fresh tests / 28585 assertions and all 771 final gate
+inputs verified. TASK-00057 is done for accepted package implementation/local verification. John subsequently
+requested PR landing; the TASK's ignored handoff owns publication/remote identity and the metadata-only acceptance
+bridge. This is not a real consumer upgrade, merge or release. TASK-00058 retains restoration ownership.
 Each downstream execution needs authorization. John separately authorized TASK-00046
 execution and PR landing. Planning does not qualify a consumer or authorize migration, release or adoption.
 The replacement requires caller-scoped operation correlation, protected delivery and consumer authorization

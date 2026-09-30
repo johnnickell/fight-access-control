@@ -217,10 +217,13 @@ frozen ASCII-edge name rules; v2 adds a fixed Unicode edge-whitespace set for ne
 Both versions preserve original equality/conflict after creation switches and fresh service composition. Cohort
 participants must agree on creation/reader settings and generation; historical reads do not authorize a creator.
 The full local gate passes **1501 tests / 32816 assertions**, exact **6317/6317 statements**; focused Agent checks
-pass **972 tests / 28487 assertions**. TASK-00057 remains `in-progress` pending independent review; M3 is not yet
-independently accepted. Reference fixtures model persisted state/restart, not an actual consumer schema migration,
-old-binary exclusion, database/process restart or rollout qualification. TASK-00058/00059 retain restoration and final
-evidence ownership, with no publication/release authorized.
+pass **972 tests / 28487 assertions**. Independent review accepted `04a2adf` with all eight TASK criteria passing,
+no findings, **973 fresh tests / 28585 assertions** and all **771 final gate inputs** verified. TASK-00057 is done
+for accepted package implementation/local verification; M3 is accepted at that boundary. John subsequently requested
+PR landing; the TASK's ignored handoff owns publication identity and the administrative-only acceptance bridge.
+Reference fixtures model persisted state/restart, not an actual consumer schema migration, old-binary exclusion,
+database/process restart or rollout qualification. TASK-00058/00059 retain restoration and final evidence ownership;
+no merge or release is authorized.
 
 ## Acceptance Evidence
 
@@ -232,7 +235,7 @@ evidence ownership, with no publication/release authorized.
       mutation/admission without fallback. Document all lifecycle and authorization writers plus the necessary
       storage/trusted-boundary fencing of old binaries. Published conformance obligations include real writer races;
       do not claim a new-code version check fences an old binary by itself.
-- [ ] **M3 — Canonical upgrades:** package tests retry stored and tombstoned keys after normalization/version changes:
+- [x] **M3 — Canonical upgrades:** package tests retry stored and tombstoned keys after normalization/version changes:
       old equivalent/conflicting requests retain their meaning, unknown versions deny and compatible new-key creation
       versions agree. Neither destination reinterpretation nor cleanup makes an old key reusable.
 - [ ] **M4 — Restoration safety:** observable package/conformance tests demonstrate that stale restored state cannot
@@ -308,7 +311,7 @@ captured. Independent review accepted `ebc396c` with all seven criteria passing,
 inputs verified; M1 is accepted for package behavior. John subsequently requested PR landing; the TASK's ignored
 handoff owns publication/remote verification and the administrative-only provenance bridge. Consumer schema migration,
 real adapter/concurrency proof and adoption are not claimed. TASK-00056's accepted M2 checkpoint is recorded above;
-M3–M5 retain their separate downstream owners.
+TASK-00057's accepted M3 checkpoint is also recorded above; M4–M5 retain their separate downstream owners.
 The Board owns current executable order; the following inventory evidence describes the original planning checkpoint.
 
 Before allocation, refreshed local live/archive inventory at unchanged HEAD
@@ -329,6 +332,6 @@ migration/restore execution, commit, publication, dependency upgrade or Agent OS
 | --- | --- | --- | --- |
 | 55 | [TASK-00055](../tasks/00055-TASK.md) | Preserve existing Agent authority through upgrade | done |
 | 56 | [TASK-00056](../tasks/00056-TASK.md) | Reject incompatible credential-operation cohorts | done |
-| 57 | [TASK-00057](../tasks/00057-TASK.md) | Preserve operation-key meaning across canonicalization upgrades | in-progress |
+| 57 | [TASK-00057](../tasks/00057-TASK.md) | Preserve operation-key meaning across canonicalization upgrades | done |
 | 58 | [TASK-00058](../tasks/00058-TASK.md) | Fail closed on unreconciled credential-state restoration | ready-for-agent |
 | 59 | [TASK-00059](../tasks/00059-TASK.md) | Complete migration guidance and evidence traceability | ready-for-agent |
