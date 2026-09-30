@@ -138,8 +138,9 @@ no blocker; TASK-00062 waits on 00061 and TASK-00063 waits on 00062. TASK-00061 
 [declaration/discovery contract](../../docs/feature-references.md) in the main checkout on
 `feature/task-00061-feature-references`. Independent review accepted `0408f72` with all criteria passing and no findings;
 independent QA passed six scenarios and 202 checks. TASK-00061 is done for accepted implementation/local verification.
-John requested landing; publication is pending at this acceptance-closeout checkpoint. Provisioning and preparation
-validation remain unimplemented; the TICKET's composed acceptance is open.
+John requested landing; [PR #99](https://github.com/johnnickell/fight-access-control/pull/99) is open against unchanged
+`develop` at the initial publication checkpoint. Provisioning and preparation validation remain unimplemented;
+the TICKET's composed acceptance is open, with no merge, release or consumer qualification claimed.
 TICKET-00016 has [TASK-00064](../tasks/00064-TASK.md), blocked by TASK-00062; TICKET-00017 now has approved
 TASK-00065–00067 and the concrete cross-TICKET evidence ownership above. EPIC TASK planning is complete. John
 authorized TASK-00061 execution in the main checkout; downstream execution and worktree selection still require

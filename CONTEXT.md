@@ -467,9 +467,12 @@ The local gate passes **1737 tests / 34624 assertions**, exact **6242/6242 state
 pass **62 tests / 121 assertions**. Independent review accepted `0408f72` against unchanged `develop` `e8244b0`,
 with all C1–C7 passing and no findings. Independent behavioral QA passed six scenarios and **202 checks**, including
 native target failures, incomplete discovery, scope misuse and isolated hook cleanup. TASK-00061 is done for accepted
-implementation/local verification. John requested landing; publication is pending at this acceptance-closeout
-checkpoint, and the ignored TASK landing handoff owns fresh gates, the administrative-only provenance bridge and
-final remote identity. No consumer scanner, provisioning, retirement, release or deployment is qualified.
+implementation/local verification. John's landing request published
+[PR #99](https://github.com/johnnickell/fight-access-control/pull/99) against unchanged `develop` at initial head
+`ff10dbb`; it is open at this publication checkpoint. Fresh landing gates retain the counts above, without dependency
+drift or warnings/skips; sanitized nonvisual QA results are in the PR body. The ignored TASK landing handoff owns final
+metadata verification, the administrative-only provenance bridge and final remote identity. No consumer scanner,
+provisioning, retirement, merge, release or deployment is qualified.
 John approved the split into
 [TICKET-00015](planning/tickets/00015-TICKET.md) (registration/provisioning),
 [TICKET-00016](planning/tickets/00016-TICKET.md) (availability evaluation), and
