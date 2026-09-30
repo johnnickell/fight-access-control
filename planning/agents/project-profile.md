@@ -3,6 +3,15 @@
 This package binds the [Fight Engineering Standards](../../docs/engineering/STANDARDS.md) to its Domain and
 Application package boundary.
 
+## Pre-v1 compatibility policy
+
+Follow [ADR 0011](../adr/0011-pre-v1-current-contract-only.md): implement only the current API and persisted contract.
+Do not add or retain code solely to support previous iterations, including aliases, rejection-only retired methods,
+legacy modes, historical readers, compatibility defaults or migration/backfill paths. Update callers/tests directly.
+Keep current-contract authorization, atomicity, retry/restart, hydration, ordering and restoration safety. Release
+classification/changelog rules remain; they do not require compatibility code. TASK-00068 owns removal still pending
+in existing source; completed TASKs and earlier guidance cannot require that code to remain.
+
 ## Package boundary and contracts
 
 - Production code is limited to src/Domain/AccessControl and src/Application/AccessControl, mirrored by tests.
@@ -55,11 +64,10 @@ Application package boundary.
   repositories validate the one supported contract and share its generation/transaction fence. Safe reads do not
   grant writer admission. See the [canonical contract](../../docs/agent-canonical-upgrades.md). Actual persistence,
   authority/sink fencing and restoration qualification remain separate from package proof.
-- Existing Agent upgrades preserve persisted authentication authority through explicit validated reconstitution.
-  The false recovery marker denotes known legacy history, never inferred rollback or permission to fabricate an
-  operation. Only explicit authorized new rotation promotes it with the successor's operation/delivery/audit in the
-  same transaction. Consumers own actual schema conversion and cross-record checks; safe reads disclose only the
-  marker, not material or use authority. See the [existing-data contract](../../docs/agent-existing-data-v0.5-migration.md).
+- TASK-00055's legacy-Agent mode and upgrade contract are superseded by ADR 0011; TASK-00068 removes them, their
+  recovery marker and old-API stubs. Current-contract hydration still validates persisted authority, and every current
+  lifecycle write must retain operation correlation/cancellation and audit atomicity. No prior-data conversion,
+  legacy adoption or schema migration is a package obligation.
 - QueryHandlers read through Domain repositories only: no aggregate mutation, commit, or domain-event dispatch.
 - AuthenticationService follows the same atomic, post-commit ordering, uses Fight Common password and token ports,
   returns non-serializable token results, and emits RedactedCommandFailed without raw secret input.

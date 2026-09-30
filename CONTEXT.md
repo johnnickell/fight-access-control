@@ -6,7 +6,22 @@ Fight AccessControl owns framework-neutral identity, credential, session, author
 behavior shared by Fight applications. The repository-local behavioral and security authority is
 [TICKET-00001](planning/tickets/00001-TICKET.md).
 
-## Current canonical-contract simplification — TASK-00057
+## Current decision — no previous-iteration support
+
+John's package-wide 2026-09-30 decision in [ADR 0011](planning/adr/0011-pre-v1-current-contract-only.md) supersedes
+all earlier requirements to support old APIs, formats, legacy Agents or upgrades/migrations while pre-v1. Only the
+best current contract is supported. [TASK-00068](planning/tasks/00068-TASK.md) removes the remaining legacy model,
+retired rotation stub and credential-delivery compatibility defaults, including affected tests/schemas/guidance.
+This cleanup is planned, not implemented; descriptions of legacy behavior below report existing code/history, not
+requirements to preserve it. TASK-00057 already removed historical canonical readers but explicitly excluded this
+broader cleanup. TASK-00058 now waits for TASK-00068 and covers only current-contract stale-state restoration;
+TASK-00059 documents current integration and evidence, not a migration route.
+
+Current authentication/authorization, hydration, transactional integrity, retry/restart, retained-key/order/tombstone
+and restoration safety remain. No automatic data reset, release, consumer upgrade or deployment follows from this
+decision. Earlier acceptance receipts remain historical; removal requires fresh implementation verification/review.
+
+## Prior canonical-contract simplification — TASK-00057
 
 On 2026-09-30 John confirmed no consumers or persisted Agent operations require historical/backward compatibility.
 [TASK-00057](planning/tasks/00057-TASK.md) is independently accepted on the existing feature branch. The revised code keeps

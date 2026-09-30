@@ -1,4 +1,9 @@
-# Existing Agent data and API compatibility (unreleased v0.5.0)
+# Existing Agent data and API compatibility (superseded)
+
+**Superseded by [ADR 0011](../planning/adr/0011-pre-v1-current-contract-only.md), 2026-09-30.** The following describes
+TASK-00055's existing implementation and former migration obligation, not a supported adoption route or a requirement
+to retain legacy code. [TASK-00068](../planning/tasks/00068-TASK.md) removes that code and retires this guidance;
+TASK-00059 documents only the resulting current contract. Removal is not yet implemented.
 
 [TASK-00055](../planning/tasks/00055-TASK.md) implements the M1 existing-data/API slice of
 [TICKET-00014](../planning/tickets/00014-TICKET.md). It preserves existing authentication authority and permits a

@@ -1,13 +1,28 @@
 ---
 id: TICKET-00014
 epic: EPIC-00009
-title: Preserve credential authority across migration and upgrades
+title: Preserve current credential-contract safety and evidence
 status: in-progress
 ---
 
-# Preserve credential authority across migration and upgrades
+# Preserve current credential-contract safety and evidence
 
-## Current M3 Amendment — 2026-09-30
+## Current Package-wide Amendment — 2026-09-30
+
+John rejects all extra code supporting previous package iterations, not just historical canonical readers.
+[ADR 0011](../adr/0011-pre-v1-current-contract-only.md) supersedes this TICKET's earlier existing-Agent, upgrade and
+migration requirements and the corresponding pinned-proposal requirements. No prior API/data format or binary must
+remain supported. [TASK-00068](../tasks/00068-TASK.md) removes the remaining compatibility code across the package;
+TASK-00058 waits for that cleanup and proves current-contract restoration only. TASK-00059 supplies current integration
+guidance and evidence, not a migration route. Completed slices and checkpoint receipts stay historical; they do not
+require retaining obsolete code. M1 below now tracks removal rather than preservation of legacy behavior.
+
+M2/M3 retain only current validation, writer fences and retry/restart safety. M4 retains stale current-state restore
+safety after external effects. Mark superseded scenarios as superseded, not failed or passed; no migration rehearsal,
+legacy adoption or mixed-version rollout is an acceptance obligation. Real current adapter/sink/authority and restore
+qualification remain separate from package proof. No consumer data reset or release is authorized.
+
+## Earlier M3 Amendment — 2026-09-30
 
 John confirmed there are no consumers or persisted Agent operations requiring historical/backward compatibility.
 [TASK-00057](../tasks/00057-TASK.md#current-decision--supersedes-the-cross-version-requirements) is reopened to retain
@@ -45,22 +60,20 @@ qualification remain outstanding, and no merge, release or adoption is claimed.
 
 ## Problem and Outcome
 
-The replacement recoverable Agent contract changes APIs and persisted invariants. Fabricated historical correlation,
-mixed legacy/new writers, changed request normalization or a database restore behind external sink effects could
-reissue credentials or revive stale authority. Consumers need an explicit compatibility contract and migration route
-that preserves existing authentication and makes unsupported deployments fail closed.
+The current recoverable Agent contract must prevent duplicate issuance and stale authority after retry, restart or
+restoration behind external sink effects. It needs one supported API/data model, current writer/admission guards and
+traceable evidence, not support for earlier package iterations.
 
 This is the third approved requirement area under [EPIC-00009](../epics/00009-EPIC.md), targeting `v0.5.0`. It owns
-package compatibility behavior, migration/public guidance and complete evidence traceability. It does not execute
-consumer migrations, qualify an untested consumer, release the package or take over the issuance/delivery tests owned
+current-contract safety, integration guidance and evidence traceability. It does not execute consumer migrations,
+qualify an untested consumer, release the package or take over the issuance/delivery tests owned
 by [TICKET-00012](00012-TICKET.md) and [TICKET-00013](00013-TICKET.md).
 
 ## Use Cases
 
 | Actor and trigger | Commands/service intent | Queries | Events and expected effects |
 | --- | --- | --- | --- |
-| Consumer maintainer upgrades existing Agent storage/composition | Consumer-owned migration tools; no package migration Command | Safe Agent/operation reads identify legacy/non-recoverable state | No manufactured issuance/delivery facts or automatic rotation/redelivery. Existing active credentials still authenticate; revoked Agents stay terminal. |
-| Authorized maintainer needs recovery for a known legacy Agent | TICKET-00012's explicitly authorized new rotation against current credential | Original legacy status, then new operation status | Only that new operation creates recovery binding/work. Ambiguous historical provisioning requires reconciliation, not automatic provision or name/audit inference. |
+| Consumer composes the current Agent contract | Current repositories and validated hydration | Safe Agent/operation reads | No legacy mode or adoption path. Current records retain exact authority/correlation; unknown or inconsistent state rejects without manufactured issuance. |
 | Consumer rolls out a new compatible cohort | Consumer-owned deployment/admission controls | Capability/contract-version readiness and safe status | Missing capabilities and incompatible/restarted old writers cannot mutate new authority. No new business Event is introduced by deployment. |
 | Caller retries a retained or tombstoned current-contract operation after restart | Original request/key through replacement service | Authorized operation lookup/resolution | The single supported canonical contract preserves equality/conflict and original issuance; unsupported markers deny without fallback or secret access. |
 | Consumer restores/rolls back after external sink acceptance | Consumer-owned quiesce, restore and reconcile tools | Authoritative operation/receipt/order evidence | Preserve deduplication and ordering; incompatible restoration remains unavailable rather than duplicate issuance or revive retired state. |
@@ -70,23 +83,25 @@ There is no new package migration, release, activation or launch Command, Query 
 status and safe facts are owned by TICKET-00012/00013. Deployment tools are a consumer concern, not a reason to make
 Domain/Application depend on an Adapter layer.
 
-## Existing Data and Breaking API Contract
+## Current Data and Breaking API Contract
 
-- Replace raw-return provision/rotation signatures without an additive non-recoverable bypass. Remove or explicitly
-  reject old calls; never infer keys, destinations or authority. Every retained lifecycle entry point obeys the new
-  fences/cancellation contract. TICKET-00012/00013 own runtime enforcement and their focused proof.
-- Preserve existing Agent IDs, active credentials and authentication envelopes. Upgrade alone neither rotates nor
-  redelivers. Explicitly mark absent historical correlation as legacy/non-recoverable; safe schema/version markers
-  do not claim an issuance outcome. Revoked Agents remain terminal.
-- Never backfill operation/request/delivery/receipt bindings from display names or audit rows, and never copy an
-  authentication envelope into delivery storage. Known active Agents require separately authorized rotation for new
-  recovery state; ambiguous old provision requires human reconciliation. This exception is not routine recovery approval.
+- Remove retired signatures, including rejection-only stubs, and the legacy/non-recoverable Agent mode under
+  TASK-00068. No old data/API preservation or adoption transition is required. Update current callers directly.
+- Every current lifecycle entry point obeys operation correlation, fences and cancellation. Validated hydration
+  preserves current authority without issuing anything; missing/corrupt state is not a legacy fallback.
+- Never invent keys, destinations, operation/delivery/receipt bindings or copy an authentication envelope into
+  delivery storage. These are current safety requirements, not reasons to retain a migration path.
 - Preserve the single-active-credential, immediate replacement, terminal revocation and authentication nonce/current-
   authority invariants in [ADR 0004](../adr/0004-agent-hmac-credential-lifecycle.md) and
   [WF-002](../wayfinder/tickets/WF-002-agent-credential-revocation-lifecycle.md). Permission-tier administration and
   the separate MCP integration are not changed.
 
-## Deployment, Cohort and Restoration Requirements
+## Superseded Deployment and Migration Requirements
+
+The following numbered rollout plan is retained as historical scope only under ADR 0011. It is not an executable
+migration or acceptance requirement. Current requirements are the M2–M4 criteria below and TASK-00058: validate one
+contract/composition, fence current writers and reconcile stale same-contract state against external effects. No
+old-writer resumption, mixed-version rollout, data conversion or prior-envelope preservation is required.
 
 1. **Inventory and rehearse:** inventory active/legacy Agents, pending delivery, keys, lifecycle/authorization writers
    and existing external sink effects. Rehearse backup/restore using the consumer's actual migration/deployment tools.
@@ -116,7 +131,7 @@ Domain/Application depend on an Adapter layer.
 
 ## Permissions, Validation and Public Guidance
 
-Migration/deployment authority is consumer-owned; no package Permission names or runtime human-approval framework
+Current composition/deployment authority is consumer-owned; no package Permission names or runtime human-approval framework
 are added. Every runtime status, retry, discovery, admission, acknowledgement and activation/use decision retains
 current authorization. Tooling/maintenance permission is not permission to disclose or activate a credential.
 
@@ -125,20 +140,20 @@ observable outcomes. Unsafe or unknown state rejects without fabricated history 
 conformance must prove authority-writer participation under concurrency, including non-HTTP paths; external cached
 allow decisions and partial writer upgrades cannot pass by documentation alone.
 
-Public documentation must identify `v0.5.0` as the planned breaking replacement, describe removed/rejected APIs and
+Public documentation must identify `v0.5.0` as the planned breaking replacement, describe the current APIs and
 new persistence/authorization/sink obligations, and distinguish confirmed issuance, publication warning, credential
 delivery, activation and launch/use authority. Describe finite defaults and optional validated overrides supplied by
 TICKET-00012/00013, clear retryable new-work capacity outcomes and preservation of existing recovery. Do not require
 manual configuration or extra approval for routine operation; do not generalize the D3 exception to revocation or
 other handlers. Concrete values and implementation choices must be documented and tested before implementation
-acceptance. Reconcile README, CONTEXT, project guidance, migration documentation and changelog against the implemented
+acceptance. Reconcile README, CONTEXT, project guidance, current integration documentation and changelog against the implemented
 public contract without rewriting historical completed records or claiming release/adoption.
 
 ## Scenario Ownership and Evidence Traceability
 
 This maps **every row** in the [proposal's required behavior matrix at `ecd849e`][proposal] to a behavior owner.
-It does not reduce that row's detailed requirements. Labels I1–I7 and D1–D7 refer to acceptance items in
-TICKET-00012 and TICKET-00013, not new planning IDs. M1–M5 are the acceptance items below. A shared row requires
+ADR 0011 explicitly supersedes previous-iteration requirements; all other detailed requirements remain. Labels
+I1–I7 and D1–D7 refer to acceptance items in TICKET-00012 and TICKET-00013, not new planning IDs. M1–M5 are the acceptance items below. A shared row requires
 both sides' proof; tests stay with their business owner rather than being deferred to this TICKET.
 
 | Proposal scenario | Owning acceptance and required evidence |
@@ -163,8 +178,8 @@ both sides' proof; tests stay with their business owner rather than being deferr
 | Revocation/supersession before and during invocation | TICKET-00013 D2/D5: retired credentials deny admission/completion and original status never resolves to a newer secret. |
 | Delivered-secret loss, retention expiry and replay after tombstoning | TICKET-00013 D6 plus TICKET-00012 I6: no re-read/revival/duplicate issuance; retained sink and operation evidence withstand delayed replay. |
 | Decryption/key access fails after issuance | TICKET-00013 D6: temporary recovery, permanent failure, corrupt/swapped material and rewrapping preserve the original binding without envelope fallback. |
-| Every retained lifecycle entry point races delivery | TICKET-00013 D5 plus TICKET-00012 I7: atomic cancellation through all paths; old signatures reject instead of inventing bindings. |
-| Existing-Agent upgrade and incompatible consumers | This TICKET M1/M2: preserved authentication, explicit legacy state, no manufactured recovery, incompatible/restarted writers fenced. |
+| Every retained lifecycle entry point races delivery | TICKET-00013 D5 plus TICKET-00012 I7: atomic cancellation through every current path. ADR 0011/TASK-00068 removes old signatures rather than retaining rejection stubs; no invented bindings. |
+| Existing-Agent upgrade and incompatible consumers (partly superseded) | ADR 0011 removes legacy preservation/adoption; M1/TASK-00068 proves removal. M2 retains current composition validation and stale/unsupported writer rejection, not old-version support. |
 | Canonical-request versions across upgrade/restart (superseded scope) | 2026-09-30 amendment: M3 now proves one best current contract across retry/restart/cleanup, rejects unsupported markers and removes historical-reader/version-switch machinery; no cross-version upgrade proof required. TICKET-00012 I6 retains runtime correlation ownership. |
 | Rollback/restore after external acceptance | This TICKET M4 with TICKET-00013 D4/D6: no reset/resurrection, receipt/tombstone reconciliation or unavailable state; real restore rehearsal required for adoption. |
 | Safe representations and sensitive-value lifetime | TICKET-00012 I7 plus TICKET-00013 D6: safe serializable/debug/event/audit/failure surfaces, fixed sensitive destination and no secret-read capability. |
@@ -263,10 +278,9 @@ no merge or release is authorized.
 
 ## Acceptance Evidence
 
-- [x] **M1 — Existing-Agent/API compatibility:** package behavior tests preserve active authentication and terminal
-      revocation across upgrade without manufactured operation/delivery state. Explicit new authorized rotation is
-      the recovery path for a known legacy Agent; ambiguous provision cannot auto-create another Agent. Public API
-      migration guidance matches the replaced signatures and preserved authentication envelope.
+- [ ] **M1 — Remove previous-iteration support:** TASK-00068 removes legacy-Agent mode/adoption, marker/read/schema
+      fields, retired API stubs and compatibility-only paths/tests/guidance. Current lifecycle and hydration safety
+      pass without a legacy distinction. TASK-00055's old M1 acceptance is historical, not acceptance of this removal.
 - [x] **M2 — Contract cohorts:** test missing capability/contract storage and incompatible/restarted consumers deny
       mutation/admission without fallback. Document all lifecycle and authorization writers plus the necessary
       storage/trusted-boundary fencing of old binaries. Published conformance obligations include real writer races;
@@ -278,23 +292,24 @@ no merge or release is authorized.
       fences. No backwards compatibility or migration of nonexistent old data is required. TASK-00057 C1–C8 own proof.
 - [ ] **M4 — Restoration safety:** observable package/conformance tests demonstrate that stale restored state cannot
       silently authorize duplicate issuance, reset order or resurrect retired keys after external acceptance. Document
-      compatible reconciliation prerequisites, forward repair and unavailable outcomes. Actual schema, mixed-version
-      rollout and backup/restore rehearsals are mandatory consumer adoption evidence, not product tests of migration files.
+      current-contract reconciliation prerequisites, forward repair and unavailable outcomes. Real current-composition
+      and same-contract backup/restore rehearsals are consumer evidence; no cross-version rollout/migration is required.
 - [ ] **M5 — Complete evidence and guidance:** maintain the matrix above with actual test/receipt references as work
       completes; every scenario has an owner, result and explicit gap where proof is missing. TICKET-00012/00013
-      retain their own behavior tests and public consumer-bindable suites. Guidance covers D1–D4, migration/deployment
+      retain their own behavior tests and public consumer-bindable suites. Guidance covers D1–D4, current integration/deployment
       order, secret-safe outcomes, bounded defaults and supported consumer obligations without claiming implementation,
       publication or adoption from planning. No real-adapter qualification is inferred from a mock or in-memory fake.
-- [ ] Compatibility tests assert outcomes, not file/configuration text. Consumer-owned migration/deployment tools
-      provide direct rollout/restore proof before consumer qualification. The full package `./bin/build`, including
-      exact statement coverage, and `./bin/planning-check` pass for implementation; current documentation links pass.
+- [ ] Current-contract tests assert outcomes, not file/configuration text. Consumer-owned deployment/restore tools
+      provide direct current-runtime proof before consumer qualification; no prior-version migration proof is required.
+      The full package `./bin/build`, including exact statement coverage, and `./bin/planning-check` pass for
+      implementation; current documentation links pass.
       Preserve warnings, failures and incomplete evidence rather than changing the acceptance scope.
 
 ## Evidence Boundaries and Sequencing
 
 TICKET-00012 owns issuance/resolution tests and persistence/authorization conformance; TICKET-00013 owns delivery,
-sink and lifecycle/admission tests/conformance. This TICKET depends on both public contracts for final compatibility
-and migration guidance; draft those requirements alongside their design so migration cannot be an afterthought.
+sink and lifecycle/admission tests/conformance. This TICKET depends on both public contracts for current safety
+and current integration guidance; draft those requirements alongside their design. Prior-version support is excluded.
 There is no permissible unsafe intermediate release of one part of the protocol.
 
 Package acceptance needs executable owned behavior tests and reusable consumer-bindable conformance contracts with
@@ -317,15 +332,17 @@ are N/A: this TICKET specifies compatibility and consumer qualification, not a n
 
 John approved this TICKET's five-TASK split on 2026-09-27. Each slice normally owns one independently reviewable PR;
 compatibility behavior tests stay with their owner rather than moving into final documentation. These parented
-features/guidance records do not use the standalone bug/chore `kind` exception.
+features/guidance records do not use the standalone bug/chore `kind` exception. The later package-wide TASK-00068
+is a standalone chore spanning more than this TICKET; it supplies revised M1 and is explicitly linked below.
 
 | Slice | TASK | Blockers | Acceptance ownership |
 | --- | --- | --- | --- |
-| A — Existing-Agent compatibility | [TASK-00055](../tasks/00055-TASK.md) | TASK-00047, TASK-00048 | M1: preserved authentication, explicit legacy state and authorized new rotation without invented history. |
+| A — Existing-Agent compatibility (superseded) | [TASK-00055](../tasks/00055-TASK.md) | TASK-00047, TASK-00048 | Historical acceptance only; ADR 0011 replaces this obligation with TASK-00068 removal. |
+| Package cleanup | [TASK-00068](../tasks/00068-TASK.md) | — | Revised M1: remove previous-iteration support, including legacy mode/API/schema/test paths. |
 | B — Contract cohorts | [TASK-00056](../tasks/00056-TASK.md) | TASK-00048, TASK-00052, TASK-00053 | M2: persisted compatibility/capability guards across actual writers, plus explicit external old-binary fencing obligations. |
 | C — One canonical contract (amended) | [TASK-00057](../tasks/00057-TASK.md) | TASK-00056, TASK-00047 | M3: best current normalization without historical compatibility; retained-key/restart safety through actual public services. |
-| D — Restoration safety | [TASK-00058](../tasks/00058-TASK.md) | TASK-00056, TASK-00057 | M4: observable guards/conformance for reconciled versus unreconciled restored state, not automatic rollback detection. |
-| E — Migration guidance and traceability | [TASK-00059](../tasks/00059-TASK.md) | TASK-00055, TASK-00056, TASK-00057, TASK-00058, TASK-00049, TASK-00054 | M5: implementation-aligned migration route and all 25 proposal scenarios plus D3/D4 additions with real result references and explicit gaps. |
+| D — Restoration safety | [TASK-00058](../tasks/00058-TASK.md) | TASK-00056, TASK-00057, TASK-00068 | M4: current-contract restored-state guards/conformance, not historical-format support or automatic rollback detection. |
+| E — Current guidance and traceability | [TASK-00059](../tasks/00059-TASK.md) | TASK-00055, TASK-00056, TASK-00057, TASK-00058, TASK-00049, TASK-00054, TASK-00068 | M5: current integration guide; all 25 proposal scenarios and D3/D4 additions accounted for, with superseded requirements labeled and real results/gaps. |
 
 These are downstream dependencies on real issuance/delivery and compatibility paths; no predecessor is made dependent
 on this TICKET's final evidence aggregation. TASK-00049/00054 retain issuance/delivery conformance ownership. The
@@ -373,4 +390,4 @@ migration/restore execution, commit, publication, dependency upgrade or Agent OS
 | 56 | [TASK-00056](../tasks/00056-TASK.md) | Reject incompatible credential-operation cohorts | done |
 | 57 | [TASK-00057](../tasks/00057-TASK.md) | Simplify Agent operations to one canonical contract | done |
 | 58 | [TASK-00058](../tasks/00058-TASK.md) | Fail closed on unreconciled credential-state restoration | ready-for-agent |
-| 59 | [TASK-00059](../tasks/00059-TASK.md) | Complete migration guidance and evidence traceability | ready-for-agent |
+| 59 | [TASK-00059](../tasks/00059-TASK.md) | Complete current-contract guidance and evidence traceability | ready-for-agent |
