@@ -23,11 +23,13 @@ walkthroughs. TASK-00059 is done for accepted implementation/local verification;
 No runtime/API/test/dependency change or consumer run is introduced. Focused Agent/OpenAPI checks pass
 **1103 tests / 30421 assertions**; the accepted candidate's complete gate passes **1675 tests / 34503 assertions**,
 exact **6218/6218 owned statements**. The TASK retains the initial optional JUnit reporter failure. John authorized
-landing; publication is pending at this checkpoint. Its ignored landing handoff owns fresh gates, administrative-only
-review/QA provenance and final PR/remote identity. Package tests and
+landing and published [PR #98](https://github.com/johnnickell/fight-access-control/pull/98) against unchanged `develop`
+at initial head `6939d4a`; it is open, not merged. Fresh landing focused/full gates retain the counts above. Its ignored
+landing handoff owns the administrative-only review/QA bridge and final metadata/remote identity; sanitized nonvisual
+QA evidence is in the PR body. Package tests and
 consumer-bindable suite availability do not establish actual database concurrency, key/sink durability, trusted
 restore, enrollment activation or broker-use authority. The v0.5.0 target remains unreleased; no Agent OS
-TASK-00138 closure, dependency adoption, publication or deployment is claimed. Earlier checkpoints below are history.
+TASK-00138 closure, dependency adoption, package publication or deployment is claimed. Earlier checkpoints below are history.
 
 ## Restoration safety — TASK-00058 independently accepted
 
