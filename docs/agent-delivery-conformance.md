@@ -53,7 +53,7 @@ Consumer binding steps:
    map as well, with real adapters for the boundaries they own. Save candidate and adapter versions, complete logs,
    exit results, persistent before/after observations and the injected schedule. A test name or mock pass is not
    evidence that a consumer integration ran.
-5. Independently qualify the consumer activation/use boundary below and the separate migration/cohort/restore
+5. Independently qualify the consumer activation/use boundary below and the separate cohort/restore
    work before claiming support. This checkout does not authorize those executions, adoption or release.
 
 ## Fixture semantics and real fault injection
@@ -103,7 +103,7 @@ Names below locate assertions, not independent acceptance. `Lifecycle` means `De
 | **D2 admission authority** | Lifecycle `test_authority_changes_deny_early_or_leave_only_inert_late_bytes` (four changes × five boundaries), `test_fenced_authority_writer_and_aba_require_a_new_admission`, `test_earliest_authority_deadline_guards_materialization_invocation_and_completion`; retirement cases add credential changes at the same boundaries | `AgentCredentialDeliveryServiceTest::test_current_authority_rejects_early_and_late_unauthorized_work`, `test_deadline_guards_sensitive_effects_and_acknowledgement`, `test_outer_transactions_and_missing_worker_delegation_or_target_authority_fail_closed`; recovery `test_current_receipt_reconciliation_rejects_revocation_aba_and_expiry_before_acknowledgement`; real activation/use remains separate |
 | **D3 uncertainty/takeover** | Lifecycle `test_restart_resolves_each_uncertain_delivery_commit_without_reissuing` (three stages × both outcomes × both issuance kinds), `test_each_failed_persistence_stage_rolls_back_and_scheduler_recovers`, `test_lost_response_takeover_and_delivered_secret_loss_never_trigger_secret_reread`; lookup and non-lookup profiles | `AgentDeliveryRecoveryServiceTest` uncertain-commit, crash-boundary, receipt-only and takeover cases; `AgentCredentialDeliveryServiceTest::test_competing_claim_and_takeover_cannot_acknowledge_an_old_admission` |
 | **D4 sink identity/order** | Sink `test_every_immutable_receipt_or_idempotency_field_and_bytes_reject_mismatch` (all 12 tuple fields plus bytes), `test_actual_rotation_orders_late_predecessors_across_slots_without_selecting_old_authority` (same/cross slot × both arrival orders), `test_equal_operation_ids_and_reassigned_slots_keep_global_order_and_exact_receipts`; Lifecycle cleanup/replay | `AgentProtectedSinkContractTest` equal-order collision, missing/swapped receipts and cleanup; `AgentCredentialRotationServiceTest::test_successor_delivery_wins_over_an_older_in_flight_invocation`; consumer exact activation/use selection still required |
-| **D5 all-path retirement** | Lifecycle `test_every_retained_lifecycle_writer_fences_real_delivery_and_original_status` (service/direct rotation/revocation × five boundaries), real fresh principal rejection and original safe status; `test_revocation_publication_failure_remains_a_throw_after_durable_retirement` | `AgentCredentialRetirementTest` atomic rollback, all-path successor validation and failure redaction; `AgentCredentialRotationServiceTest::test_rotation_fences_real_delivery_and_late_staged_bytes_never_acknowledge`; `AgentRotationAuthenticationTest` nonce/revision fencing; rejected legacy rotation signatures in Domain/lifecycle tests |
+| **D5 all-path retirement** | Lifecycle `test_every_retained_lifecycle_writer_fences_real_delivery_and_original_status` (service/direct rotation/revocation × five boundaries), real fresh principal rejection and original safe status; `test_revocation_publication_failure_remains_a_throw_after_durable_retirement` | `AgentCredentialRetirementTest` atomic rollback, all-path successor validation and failure redaction; `AgentCredentialRotationServiceTest::test_rotation_fences_real_delivery_and_late_staged_bytes_never_acknowledge`; `AgentRotationAuthenticationTest` nonce/revision fencing; current Domain/lifecycle invariants |
 | **D6 secrets/keys/terminal recovery** | Lifecycle `test_rewrap_key_failure_and_restart_preserve_original_binding_without_envelope_fallback` (temporary, permanently missing, corrupt, swapped), `test_rewrap_during_delivery_fences_stale_completion_and_retains_retry_history`, `test_retention_cleanup_and_replay_preserve_correlation_and_slot_order`, lost delivered material test; shared safe serialization/JSON/debug/trace assertions | `AgentDeliveryMaintenanceServiceTest` uncertain maintenance commits, key references/closure, stale rewrap versus retirement, lost cleanup responses and rebound-successor cleanup; `AgentCredentialDeliveryServiceTest::test_invocation_and_results_do_not_serialize_or_debug_secret_material`; Domain invocation/material safety |
 | **D7 finite bounds/capacity** | Lifecycle `test_invalid_overrides_reject_without_work` (16 cases), default 51-operation pre-limit selection, `test_valid_overrides_pin_retry_retention_and_cleanup_without_manual_approval`, `test_capacity_policy_and_storage_outage_do_not_disguise_existing_recovery` | `AgentDeliveryTest`, `AgentDeliveryDiscoveryTest`, `AgentMaintenanceTest`; recovery scheduler one-batch and retry bounds; `AgentMaintenanceQueryTest` keyset pages and global reference counts; TASK-00049 capacity/same-key recovery |
 
@@ -111,7 +111,7 @@ Direct repository rotation here tests the retained cancellation contract, not a 
 full service test supplies the atomic successor operation/audit. The no-key/sink assertion concerns predecessor
 cancellation; normal successor issuance still uses its own generator/ciphers. A revoked credential may remain
 addressable by repository identity, but the actual current-principal flow rejects it. Raw legacy aggregate/service
-rotation rejects rather than creating an unfenced alternate issuance path.
+rotation APIs are removed rather than retained as an alternate issuance path.
 
 The finite defaults/ranges remain those in [delivery](agent-credential-delivery.md),
 [recovery](agent-delivery-recovery.md#finite-defaults-and-overrides) and
@@ -154,6 +154,7 @@ profiles does not promise exactly-once materialization/disclosure. Consumer runs
 their actual composition without substituting these doubles.
 
 [TICKET-00014's scenario map](../planning/tickets/00014-TICKET.md#scenario-ownership-and-evidence-traceability)
-retains real-consumer proof and TASK-00055–00059 ownership for existing-Agent state, cohorts, the single canonical contract,
-restoration and final migration evidence. No rollback/restore rehearsal, migration, dependency upgrade, tag, release,
+retains real-consumer proof for cohorts, the single canonical contract, restoration and final integration evidence.
+TASK-00068 removes superseded existing-Agent compatibility; TASK-00058/00059 own remaining restoration and traceability.
+No rollback/restore rehearsal, migration, dependency upgrade, tag, release,
 consumer support or Agent OS TASK-00138 closure is claimed by these suites.

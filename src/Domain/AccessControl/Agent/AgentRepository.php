@@ -16,9 +16,9 @@ use SensitiveParameter;
  * Interface AgentRepository
  *
  * Persists Agent authority aggregates.
- * Every add, lifecycle and Permission write, including direct calls and legacy revocation, acquires and validates
- * getOperationContract() before effects and holds the shared cohort fence through transaction completion.
- * Missing/incompatible composition rejects with sanitized UNAVAILABLE; never bypass through a legacy marker.
+ * Every add, lifecycle and Permission write, including direct calls, acquires and validates getOperationContract()
+ * before effects and holds the shared cohort fence through transaction completion.
+ * Missing/incompatible composition rejects with sanitized UNAVAILABLE.
  */
 interface AgentRepository extends AgentOperationContractRepository
 {
@@ -57,10 +57,10 @@ interface AgentRepository extends AgentOperationContractRepository
      *
      * Compare the complete authoritative predecessor and require expected->canReplaceCredentialWith(replacement).
      * Return false for stale or invalid successors without any write. Never revive revoked authority, change
-     * unrelated state, reuse a credential ID, or downgrade the recoverable-operation marker. Permission authority
+     * unrelated state or reuse a credential ID. Permission authority
      * changes use replacePermissionAssignments(), which must share the credential fence.
      *
-     * For a recoverable predecessor, require the package-owned transaction and same-connection operation persistence.
+     * Require the package-owned transaction and same-connection operation persistence for every predecessor.
      * Invoke AgentOperationRepository::retireCredential(expected, replacement) before persisting the successor,
      * under the shared Agent/credential, original operation/delivery and destination/authority fences. Hold all fences
      * through commit; no direct caller or repository replacement may bypass cancellation. Missing correlation or
@@ -68,12 +68,9 @@ interface AgentRepository extends AgentOperationContractRepository
      * Do not begin/commit a nested transaction, use keys/sinks/events, or apply new-work capacity limits.
      * Cancellation failure, Agent write failure and subsequent audit failure roll back both states together.
      * Consumer authority/reassignment writers and delivery claims/admission/outcomes use the same fences and epochs.
-     * A known legacy predecessor may become recoverable only with a new credential/revision through explicit
-     * authorized rotation. Require compatible same-connection operation persistence and the package transaction;
-     * persist its new operation, separate delivery material and audit atomically with that successor. Do not retire
-     * or fabricate an operation for the legacy predecessor. Legacy revocation preserves the false marker.
+     * Rotation persists its new operation, separate delivery material and audit atomically with the successor.
      * Reconstitution preserves all persisted authority through Agent::reconstitute() or equivalent validated adapter
-     * hydration. Reject unknown markers and inconsistent correlation; never infer false from a missing operation.
+     * hydration. Reject missing or inconsistent current-operation correlation; never fabricate issuance.
      * Mark both Agent parameters sensitive in every implementation and forwarding method: interface attributes
      * are not inherited. Cancellation failures must not expose authentication envelopes through outer trace frames.
      *
@@ -102,7 +99,7 @@ interface AgentRepository extends AgentOperationContractRepository
      *
      * Implementations compare all Agent state, reject changes outside Permission assignments, require direct
      * Permission membership to change, and require the assignment revision to advance by exactly one. Every
-     * replacement must preserve the recoverable-operation marker. Every replacement PermissionId must remain an
+     * replacement must preserve current-operation correlation. Every replacement PermissionId must remain an
      * authoritative ADMIN_SAFE Permission through the enclosing Unit of
      * Work under the shared permission-reference and tier fence. Managed tier promotion must use the same fence.
      * Share the Agent credential fence with lifecycle retirement: a stale Permission write cannot restore authority.
@@ -112,9 +109,10 @@ interface AgentRepository extends AgentOperationContractRepository
     public function replacePermissionAssignments(Agent $expected, Agent $replacement): bool;
 
     /**
-     * Adds one newly provisioned Agent including its recoverable-operation marker
+     * Adds one newly provisioned Agent atomically with its credential operation
      *
      * Require a new stable identity; never upsert over existing/retired authority to bypass replace() and cancellation.
+     * The enclosing transaction must persist matching issuance, delivery material and audit before commit.
      *
      * @throws Exception When an error occurs
      */

@@ -9,7 +9,7 @@ writes. TASK-00051 adds the [protected delivery attempt](agent-credential-delive
 admission and fenced receipt acknowledgement. TASK-00048 adds [recoverable rotation](agent-rotation-operations.md).
 TASK-00052/00053 own discovery/restart recovery and maintenance. TASK-00056 adds mandatory
 [persisted cohort and capability guards](agent-operation-cohorts.md) before issuance/resolution; real consumer
-qualification and the remaining migration work are separate.
+qualification and remaining restoration work are separate.
 No consumer adapter is supplied or qualified here.
 
 ## Public boundary
@@ -18,8 +18,8 @@ No consumer adapter is supplied or qualified here.
   originating caller type and stable caller ID. These strings identify scope, not authority. The consumer must derive
   them from trusted application context, not accept an arbitrary caller-selected authority scope.
 - `AgentProvisioningRequest` contains only a name and registered `AgentCredentialDestination` (UUID and binding
-  revision). No URL, path, caller digest, secret or unspecified options are accepted. Version 1 uses `AgentName`
-  trimming and case-sensitive name equality; request kind is always `provision`.
+  revision). No URL, path, caller digest, secret or unspecified options are accepted. Marker `2` uses fixed Unicode
+  edge trimming and case-sensitive name equality; request kind is always `provision`.
 - Inject request-scoped `AgentOperationAuthorization`. It authenticates the real invoker, authorizes the originating
   scope (including explicit current delegation) and destination, and holds same-connection authority and ownership
   fences until transaction completion. It returns the authenticated audit actor ID. It neither starts nor commits
@@ -54,8 +54,7 @@ if (!$result->isConfirmed()) {
 
 `AgentOperationRejectedException::getReason()` returns a sanitized enum. `isRetryable()` identifies capacity,
 contention and unavailable capability/storage rejections. A retry always uses the retained key. Conflicting or unknown
-canonical requests need correction, not guessed issuance. Legacy callers passing actor/name strings receive a PHP
-`TypeError`; no operation ID or destination is manufactured for them.
+canonical requests need correction, not guessed issuance. No implicit operation ID or destination is manufactured.
 
 ## Transaction, persistence and concurrency
 
@@ -85,16 +84,12 @@ state. Repository replacement for downstream lifecycle/claim work must CAS the c
 sharing Agent lifecycle, authority and destination fences. Retirement must atomically remove the delivery copy with
 credential retirement without cipher/sink access. All adapters and direct writers must honor those fences.
 
-New recoverably provisioned Agents still reject the legacy raw rotation aggregate path. Revocation now constructs
-a terminal successor whose persistence requires atomic original-operation cancellation via
+Every Agent uses the [current correlated model](agent-current-contract.md), with no legacy mode or recovery marker.
+Revocation constructs a terminal successor whose persistence requires atomic original-operation cancellation via
 `AgentRepository::replace()` and `AgentOperationRepository::retireCredential()`. Persist operation state revisions
-and reject stale delivery writes; see the [retirement contract](agent-credential-retirement.md).
-The old raw-return rotation service now rejects for every Agent; legacy authentication/revocation remain unchanged.
-TASK-00055 owns migration into recoverable rotation. Consumers must persist and hydrate
-`Agent::hasRecoverableCredentialOperation()` and must never downgrade it during replacement, Permission assignment
-or hydration. The default `false` is for existing legacy state only, not a fallback for newly provisioned Agents.
-Missing cancellation support fails closed rather than exposing an unfenced partial lifecycle; this is not permission
-to deploy the intermediate composition.
+and reject stale delivery writes; see the [retirement contract](agent-credential-retirement.md). Retired aggregate and
+raw-return lifecycle rotation APIs are removed. Validated hydration and Permission assignments preserve authority and
+correlation; missing cancellation support fails closed. This is not permission to deploy the intermediate composition.
 
 ## Sensitive material
 
@@ -163,9 +158,9 @@ locking, unique constraints and concurrent transactions before adoption. TASK-00
 | I5 authority capability rollback | `test_authorization_participant_failure_rolls_back_its_own_writes` |
 | I5 cross-scope delivery identity and reassigned-slot order | `test_cross_scope_ids_and_reassignment_preserve_delivery_identity_and_slot_order` |
 | I6 default/override bounds, capacity isolation and retained keys | `AgentOperationTest` and `test_capacity_rejects_new_work_but_preserves_resolution_under_lowered_limits_and_tombstones` |
-| I7 removed raw API and closed legacy lifecycle escape | `test_legacy_raw_return_signature_is_rejected_without_any_effect`, `test_recoverable_agent_rejects_unfenced_lifecycle_even_after_permission_changes` |
+| I7 mandatory cancellation after Permission changes | `test_recoverable_agent_rejects_unfenced_lifecycle_even_after_permission_changes`, `AgentCredentialRetirementTest` |
 
 Interleavings model a winner becoming visible after loser rollback and an authority writer waiting for the shared
 fence. They are not parallel database sessions or PostgreSQL proof. No no-caller scheduler, sink, activation/use,
-real encryption adapter, migration, release or consumer-adoption result is claimed here. Existing Agent authentication,
-Permission and legacy lifecycle tests remain part of the complete package gate.
+real encryption adapter, release or consumer-adoption result is claimed here. Current Agent authentication,
+Permission, hydration and lifecycle tests remain part of the complete package gate.

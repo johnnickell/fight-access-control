@@ -302,7 +302,11 @@ final class InMemoryPasswordResetGrantsTest extends TestCase
         $fabricatedCiphertext = $this->reconstitute($issued, ciphertext: 'fabricated-ciphertext');
         $attempts = [
             [$fabricatedDigest, $fabricatedDigest->consume(new DateTimeImmutable('2026-08-20T12:15:00+00:00'))],
-            [$fabricatedDeliveryId, $fabricatedDeliveryId->confirmDelivery()],
+            [$fabricatedDeliveryId, $fabricatedDeliveryId->claimDelivery(
+                CredentialDeliveryClaimToken::generate(),
+                new DateTimeImmutable('2026-08-20T12:15:00+00:00'),
+                new DateTimeImmutable('2026-08-20T12:20:00+00:00')
+            )],
             [$fabricatedExpiry, $fabricatedExpiry->expireDeliveryAt($differentExpiry)],
             [$fabricatedEmail, $fabricatedEmail->invalidateDelivery()],
             [$fabricatedCiphertext, $fabricatedCiphertext->consume(

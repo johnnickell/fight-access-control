@@ -3,13 +3,14 @@
 Framework-neutral identity, credential, session, authorization, and account-lifecycle contracts for Fight
 applications.
 
-The `v0.3.0` contract introduces recoverable, provider-neutral credential delivery for invitation, password
-reset, and email change. Consumers upgrading from `v0.2.x` must follow the
-[credential-delivery migration guide](docs/credential-delivery-v0.3-migration.md).
+Only the current pre-v1 API and persisted contract are supported; see
+[ADR 0011](planning/adr/0011-pre-v1-current-contract-only.md). There are no historical readers, legacy modes or
+migration/backfill routes. [Credential delivery](docs/credential-delivery.md) is recoverable and provider-neutral
+for invitation, password reset and email change.
 
 The [v0.4.0 release](https://github.com/johnnickell/fight-access-control/releases/tag/v0.4.0) introduces the
 pre-1.0 Permission tier contract and requires consumer persistence and projection adoption; see the
-[Permission tier migration note](docs/permission-tier-v0.4-migration.md). Package publication does not certify a
+[current Permission tier contract](docs/permission-tiers.md). Package publication does not certify a
 consumer schema or establish consumer adoption.
 
 The `0.2.0` release adds an opt-in, non-autoloaded OpenAPI component catalog
@@ -43,14 +44,12 @@ Transaction-aware Application handlers and security services require Fight Commo
 whether that transaction capability remains available. The deprecated `UnitOfWork` contract and its standalone
 `commit()` method are not supported by AccessControl constructors.
 
-This constructor type change is intentionally breaking while AccessControl remains pre-`1.0.0`: consumers upgrading
-from `0.2.x` must replace `UnitOfWork` bindings with `TransactionalUnitOfWork` bindings. No compatibility adapter is
-supplied.
+Only the current transactional contract is supplied; no compatibility adapter is included.
 
 ### Recoverable credential delivery composition
 
-See the [v0.3.0 credential-delivery migration guide](docs/credential-delivery-v0.3-migration.md) for replaced public
-contracts, persistence migration, worker composition, and executable qualification evidence.
+See the [current credential-delivery guide](docs/credential-delivery.md) for persistence, explicit claim/outcome
+contracts, worker composition and executable qualification evidence.
 
 Invitation, password-reset, and email-change credentials use package-owned recoverable delivery state. Consumers
 supply the three purpose-specific cipher capabilities, one provider-neutral `CredentialDeliveryProvider`, the Domain
@@ -85,7 +84,7 @@ through both service and direct repository writes without key/sink access.
 [Protected delivery](docs/agent-credential-delivery.md) adds committed claim/admission, outside-transaction fixed-sink
 invocation and exact receipt acknowledgement under current authority.
 [Recoverable rotation](docs/agent-rotation-operations.md) commits a correlated successor with atomic predecessor
-cancellation and resolves the original request after response loss. The old raw-return rotation API rejects.
+cancellation and resolves the original request after response loss. Retired raw-return rotation APIs are removed.
 [Discovery and restart recovery](docs/agent-delivery-recovery.md) provide a bounded currently delegated scheduler
 pass and receipt-first reconciliation through the actual protected delivery path, without caller retry or events.
 Discovery excludes obsolete slot reservations before limiting so they cannot starve the current authorized write.
@@ -97,9 +96,8 @@ issuance paths through scheduler-only restart, status and cleanup using behavior
 real database, sink or consumer activation/use path.
 [Protected-delivery conformance](docs/agent-delivery-conformance.md) adds consumer-bindable authority/lifecycle,
 transaction, key and sink qualification scenarios, running both receipt-lookup and repeated-invocation profiles.
-[Existing-Agent compatibility](docs/agent-existing-data-v0.5-migration.md) preserves reconstituted legacy authority,
-exposes explicit recovery correlation in safe Agent reads and permits recovery only through an authorized new rotation.
-It does not manufacture historical issuance or execute a consumer migration.
+The [current Agent model](docs/agent-current-contract.md) has no legacy mode or recovery marker. Validated hydration
+preserves authority; every lifecycle write requires operation correlation and atomic cancellation.
 [Operation cohorts](docs/agent-operation-cohorts.md) require persisted version/capability qualification and a shared
 transaction-duration cohort fence across every writer. Cohort generations fence delivery/cleanup acknowledgements;
 consumers must separately exclude old binaries at storage or a trusted boundary and qualify real writer races.
@@ -108,7 +106,7 @@ and persisted marker `2`, preserving original keys through restart, delivery, re
 historical reader, runtime version selection or migration of nonexistent earlier-version operations. Unsupported
 markers reject without fallback; current authorization, transaction and ordering fences remain mandatory.
 These modeled interleavings do not qualify real consumer adapters or activation/use. This intermediate work is
-**not deployable** until independent acceptance and downstream compatibility TASKs are complete. Existing released
+**not deployable** until independent acceptance, downstream restoration work and consumer qualification are complete. Existing released
 versions are unchanged.
 
 ### Current principal composition

@@ -33,8 +33,7 @@ final readonly class AgentView implements Arrayable
         private AgentCredentialId $credentialId,
         private int $credentialRevision,
         private int $permissionAssignmentRevision,
-        private array $permissions,
-        private bool $recoverableCredentialOperation
+        private array $permissions
     ) {
     }
 
@@ -52,8 +51,7 @@ final readonly class AgentView implements Arrayable
             $agent->getCredentialId(),
             $agent->getCredentialRevision(),
             $agent->getPermissionAssignmentRevision(),
-            $permissions,
-            $agent->hasRecoverableCredentialOperation()
+            $permissions
         );
     }
 
@@ -116,16 +114,6 @@ final readonly class AgentView implements Arrayable
     }
 
     /**
-     * Returns whether the current credential has recoverable-operation correlation rather than legacy history
-     *
-     * This marker establishes neither delivery, enrollment activation nor permission to use the credential.
-     */
-    public function hasRecoverableCredentialOperation(): bool
-    {
-        return $this->recoverableCredentialOperation;
-    }
-
-    /**
      * Returns the exact secret-free array representation
      *
      * @return array{
@@ -134,7 +122,6 @@ final readonly class AgentView implements Arrayable
      *     state: string,
      *     credential_id: string,
      *     credential_revision: int,
-     *     recoverable_credential_operation: bool,
      *     permission_assignment_revision: int,
      *     permissions: list<array{permission_id: string, name: string}>
      * }
@@ -142,14 +129,13 @@ final readonly class AgentView implements Arrayable
     public function toArray(): array
     {
         return [
-            'agent_id'                         => $this->agentId->toString(),
-            'name'                             => $this->name->toString(),
-            'state'                            => $this->state->value,
-            'credential_id'                    => $this->credentialId->toString(),
-            'credential_revision'              => $this->credentialRevision,
-            'recoverable_credential_operation' => $this->recoverableCredentialOperation,
-            'permission_assignment_revision'   => $this->permissionAssignmentRevision,
-            'permissions'                      => array_map(
+            'agent_id'                       => $this->agentId->toString(),
+            'name'                           => $this->name->toString(),
+            'state'                          => $this->state->value,
+            'credential_id'                  => $this->credentialId->toString(),
+            'credential_revision'            => $this->credentialRevision,
+            'permission_assignment_revision' => $this->permissionAssignmentRevision,
+            'permissions'                    => array_map(
                 static fn(PrincipalPermission $permission): array => $permission->toArray(),
                 $this->permissions
             )

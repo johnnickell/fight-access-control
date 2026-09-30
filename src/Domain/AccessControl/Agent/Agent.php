@@ -33,8 +33,7 @@ class Agent
         private readonly array $permissionIds,
         private readonly int $permissionAssignmentRevision,
         private readonly DateTimeImmutable $createdAt,
-        private readonly DateTimeImmutable $updatedAt,
-        private readonly bool $recoverableCredentialOperation = false
+        private readonly DateTimeImmutable $updatedAt
     ) {
     }
 
@@ -46,8 +45,7 @@ class Agent
         AgentName $name,
         AgentCredentialId $credentialId,
         string $encryptedHmacSharedSecretEnvelope,
-        DateTimeImmutable $provisionedAt,
-        bool $recoverableCredentialOperation = false
+        DateTimeImmutable $provisionedAt
     ): self {
         return new self(
             $id,
@@ -59,16 +57,14 @@ class Agent
             [],
             1,
             $provisionedAt,
-            $provisionedAt,
-            $recoverableCredentialOperation
+            $provisionedAt
         );
     }
 
     /**
-     * Reconstitutes persisted authority without issuing credentials or inferring historical correlation
+     * Reconstitutes persisted authority without issuing credentials
      *
-     * Consumers supply an explicit marker and verify correlated records when true. False identifies known legacy
-     * data only; missing or inconsistent new-contract storage cannot be downgraded to legacy state.
+     * Repositories validate current operation correlation under the shared credential fence.
      *
      * @phpstan-param array<array-key, PermissionId> $permissionIds
      */
@@ -82,8 +78,7 @@ class Agent
         array $permissionIds,
         int $permissionAssignmentRevision,
         DateTimeImmutable $createdAt,
-        DateTimeImmutable $updatedAt,
-        bool $recoverableCredentialOperation
+        DateTimeImmutable $updatedAt
     ): self {
         $permissionKeys = array_map(static fn(PermissionId $id): string => $id->toString(), $permissionIds);
         if (
@@ -107,8 +102,7 @@ class Agent
             $permissionIds,
             $permissionAssignmentRevision,
             $createdAt,
-            $updatedAt,
-            $recoverableCredentialOperation
+            $updatedAt
         );
     }
 
@@ -208,8 +202,7 @@ class Agent
             [...$this->permissionIds, $permissionId],
             $this->permissionAssignmentRevision + 1,
             $this->createdAt,
-            $grantedAt,
-            $this->recoverableCredentialOperation
+            $grantedAt
         );
     }
 
@@ -235,8 +228,7 @@ class Agent
             )),
             $this->permissionAssignmentRevision + 1,
             $this->createdAt,
-            $revokedAt,
-            $this->recoverableCredentialOperation
+            $revokedAt
         );
     }
 
@@ -283,17 +275,8 @@ class Agent
             $replacementIds,
             $this->permissionAssignmentRevision + 1,
             $this->createdAt,
-            $replacedAt,
-            $this->recoverableCredentialOperation
+            $replacedAt
         );
-    }
-
-    /**
-     * Returns whether lifecycle writes require atomic recoverable-operation cancellation
-     */
-    public function hasRecoverableCredentialOperation(): bool
-    {
-        return $this->recoverableCredentialOperation;
     }
 
     /**
@@ -313,37 +296,7 @@ class Agent
     }
 
     /**
-     * Returns the immutable successor with one immediately active credential
-     */
-    public function rotateCredential(
-        AgentCredentialId $expectedCredentialId,
-        AgentCredentialId $successorCredentialId,
-        string $encryptedHmacSharedSecretEnvelope,
-        DateTimeImmutable $rotatedAt
-    ): self {
-        $this->assertLegacyCredentialLifecycle();
-        if ($this->state !== AgentState::ACTIVE || !$this->credentialId->equals($expectedCredentialId)) {
-            throw new AgentCredentialException('The expected Agent credential is no longer active.');
-        }
-
-        return new self(
-            $this->id,
-            $this->name,
-            $this->state,
-            $successorCredentialId,
-            $this->credentialRevision + 1,
-            $encryptedHmacSharedSecretEnvelope,
-            $this->permissionIds,
-            $this->permissionAssignmentRevision,
-            $this->createdAt,
-            $rotatedAt
-        );
-    }
-
-    /**
      * Validates the predecessor for a new recoverable rotation before generating any material
-     *
-     * Known legacy authority may enter recovery only through this explicit new rotation, never by upgrade alone.
      */
     public function assertRecoverableRotation(AgentCredentialId $expectedCredentialId, int $expectedRevision): void
     {
@@ -382,8 +335,7 @@ class Agent
             $this->permissionIds,
             $this->permissionAssignmentRevision,
             $this->createdAt,
-            $rotatedAt,
-            true
+            $rotatedAt
         );
     }
 
@@ -406,8 +358,7 @@ class Agent
             $this->permissionIds,
             $this->permissionAssignmentRevision,
             $this->createdAt,
-            $revokedAt,
-            $this->recoverableCredentialOperation
+            $revokedAt
         );
     }
 
@@ -415,7 +366,7 @@ class Agent
      * Returns whether a proposed persisted successor retires exactly this credential authority
      *
      * Repositories apply this invariant under their authoritative expected-state fence, including direct writes.
-     * Recoverable rotation uses rotateRecoverableCredential; legacy rotateCredential stays closed for these Agents.
+     * Every rotation and revocation requires atomic operation correlation and predecessor cancellation.
      */
     public function canReplaceCredentialWith(#[SensitiveParameter] self $replacement): bool
     {
@@ -434,25 +385,13 @@ class Agent
         }
 
         if ($replacement->state === AgentState::REVOKED) {
-            return $replacement->recoverableCredentialOperation === $this->recoverableCredentialOperation
-                && $replacement->credentialId->equals($this->credentialId)
+            return $replacement->credentialId->equals($this->credentialId)
                 && $replacement->credentialRevision === $this->credentialRevision
                 && $replacement->encryptedHmacSharedSecretEnvelope === $this->encryptedHmacSharedSecretEnvelope;
         }
 
         return $replacement->state === AgentState::ACTIVE
-            && (!$this->recoverableCredentialOperation || $replacement->recoverableCredentialOperation)
             && !$replacement->credentialId->equals($this->credentialId)
             && $replacement->credentialRevision === $this->credentialRevision + 1;
-    }
-
-    /**
-     * Rejects unfenced legacy lifecycle mutations of recoverably issued credentials
-     */
-    private function assertLegacyCredentialLifecycle(): void
-    {
-        if ($this->recoverableCredentialOperation) {
-            throw new AgentCredentialException('Recoverable credentials require an operation-aware lifecycle path.');
-        }
     }
 }

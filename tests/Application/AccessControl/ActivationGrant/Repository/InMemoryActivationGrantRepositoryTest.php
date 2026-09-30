@@ -71,7 +71,10 @@ final class InMemoryActivationGrantRepositoryTest extends TestCase
             CredentialDeliveryFailure::RETRYABLE_PROVIDER
         );
         self::assertTrue($repository->replace(clone $claimA, $outcome));
-        self::assertFalse($repository->replace($claimA, $claimA->confirmDelivery()));
+        self::assertFalse($repository->replace($claimA, $claimA->confirmDelivery(
+            $claimA->getDelivery()->getClaimToken(),
+            $this->at('12:01:00')
+        )));
         self::assertSame($outcome, $repository->getById($grant->getId()));
         self::assertSame($outcome, $repository->getByDeliveryId($grant->getDelivery()->getId()));
     }
@@ -93,7 +96,11 @@ final class InMemoryActivationGrantRepositoryTest extends TestCase
         self::assertSame([], $repository->all());
 
         self::assertTrue($repository->add($grant));
-        $claimed = $grant->claimDelivery();
+        $claimed = $grant->claimDelivery(
+            CredentialDeliveryClaimToken::generate(),
+            $this->at('12:00:00'),
+            $this->at('12:05:00')
+        );
         try {
             $unitOfWork->commitTransactional(function () use ($repository, $grant, $claimed): void {
                 self::assertTrue($repository->replace($grant, $claimed));

@@ -233,14 +233,10 @@ abstract class CredentialDelivery
      * Acquires due work under one opaque lease
      */
     public function claim(
-        ?CredentialDeliveryClaimToken $claimToken = null,
-        ?DateTimeImmutable $claimedAt = null,
-        ?DateTimeImmutable $leaseUntil = null
+        CredentialDeliveryClaimToken $claimToken,
+        DateTimeImmutable $claimedAt,
+        DateTimeImmutable $leaseUntil
     ): static {
-        $claimToken ??= CredentialDeliveryClaimToken::generate();
-        $claimedAt ??= $this->getNextAttemptAt();
-        $leaseUntil ??= $claimedAt->add(new DateInterval('PT5M'));
-
         if (!$this->isDueAt($claimedAt)) {
             throw new CredentialDeliveryTransitionException('The credential delivery is not due for a claim.');
         }
@@ -281,10 +277,9 @@ abstract class CredentialDelivery
      * Records delivered outcome and destroys recoverable material
      */
     public function confirm(
-        ?CredentialDeliveryClaimToken $claimToken = null,
-        ?DateTimeImmutable $occurredAt = null
+        CredentialDeliveryClaimToken $claimToken,
+        DateTimeImmutable $occurredAt
     ): static {
-        [$claimToken, $occurredAt] = $this->resolveOutcomeState($claimToken, $occurredAt);
         $this->assertLiveClaim($claimToken, $occurredAt);
 
         return $this->copy(
@@ -302,15 +297,14 @@ abstract class CredentialDelivery
      * Records a retryable outcome under package-owned bounded backoff
      */
     public function fail(
-        ?CredentialDeliveryClaimToken $claimToken = null,
-        ?DateTimeImmutable $occurredAt = null,
-        CredentialDeliveryFailure $failure = CredentialDeliveryFailure::UNEXPECTED_PROVIDER
+        CredentialDeliveryClaimToken $claimToken,
+        DateTimeImmutable $occurredAt,
+        CredentialDeliveryFailure $failure
     ): static {
         if ($failure === CredentialDeliveryFailure::PERMANENT_PROVIDER) {
             throw new CredentialDeliveryTransitionException('A permanent failure cannot be recorded as retryable.');
         }
 
-        [$claimToken, $occurredAt] = $this->resolveOutcomeState($claimToken, $occurredAt);
         $this->assertLiveClaim($claimToken, $occurredAt);
         $nextDueAt = $occurredAt->add(new DateInterval('PT'.$this->retryDelaySeconds().'S'));
         if ($nextDueAt >= $this->expiresAt) {
@@ -506,25 +500,6 @@ abstract class CredentialDelivery
         ) {
             throw new CredentialDeliveryTransitionException('The credential delivery claim is stale or invalid.');
         }
-    }
-
-    /**
-     * Resolves compatibility defaults from the persisted claim itself
-     *
-     * @return array{CredentialDeliveryClaimToken, DateTimeImmutable}
-     */
-    private function resolveOutcomeState(
-        ?CredentialDeliveryClaimToken $claimToken,
-        ?DateTimeImmutable $occurredAt
-    ): array {
-        if (
-            !$this->claimToken instanceof CredentialDeliveryClaimToken
-            || !$this->claimedAt instanceof DateTimeImmutable
-        ) {
-            throw new CredentialDeliveryTransitionException('The credential delivery has no active claim.');
-        }
-
-        return [$claimToken ?? $this->claimToken, $occurredAt ?? $this->claimedAt];
     }
 
     /**

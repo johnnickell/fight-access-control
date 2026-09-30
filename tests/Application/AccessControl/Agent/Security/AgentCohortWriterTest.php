@@ -12,10 +12,6 @@ use Fight\AccessControl\Application\AccessControl\Agent\Security\AgentDeliveryMa
 use Fight\AccessControl\Application\AccessControl\Agent\Security\AgentDeliveryResult;
 use Fight\AccessControl\Application\AccessControl\Agent\Security\AgentMaintenanceResult;
 use Fight\AccessControl\Application\AccessControl\Agent\Security\AgentProvisioningService;
-use Fight\AccessControl\Domain\AccessControl\Agent\Agent;
-use Fight\AccessControl\Domain\AccessControl\Agent\AgentCredentialId;
-use Fight\AccessControl\Domain\AccessControl\Agent\AgentId;
-use Fight\AccessControl\Domain\AccessControl\Agent\AgentName;
 use Fight\AccessControl\Domain\AccessControl\Agent\Delivery\AgentDeliveryClaimId;
 use Fight\AccessControl\Domain\AccessControl\Agent\Delivery\AgentDeliveryPolicy;
 use Fight\AccessControl\Domain\AccessControl\Agent\Exception\AgentOperationRejectedException;
@@ -120,19 +116,12 @@ final class AgentCohortWriterTest extends TestCase
         self::assertSame(0, $env->sink->calls);
     }
 
-    public function test_incompatible_cohort_does_not_allow_legacy_revocation_or_permission_changes_even_no_ops(): void
+    public function test_incompatible_cohort_does_not_allow_revocation_or_permission_changes_even_no_ops(): void
     {
         foreach (['revoke credential', 'grant', 'revoke', 'replace'] as $path) {
             $env = new DeliveryEnvironment();
             $ports = $env->provisioning;
-            $legacy = Agent::provision(
-                AgentId::generate(),
-                AgentName::fromString('Legacy'),
-                AgentCredentialId::generate(),
-                'legacy-authentication-envelope',
-                $env->clock->now()
-            );
-            $ports->agents->add($legacy);
+            $agent = $ports->agents->all()[0];
             $permissions = new InMemoryPermissionRepository($ports->transaction);
             $permission = Permission::define(
                 PermissionId::generate(),
@@ -150,12 +139,12 @@ final class AgentCohortWriterTest extends TestCase
             $actor = UserId::generate();
             try {
                 match ($path) {
-                    'grant' => $coordinator->grant($actor, $legacy->getId(), $permission->getId()),
-                    'revoke' => $coordinator->revoke($actor, $legacy->getId(), $permission->getId()),
+                    'grant' => $coordinator->grant($actor, $agent->getId(), $permission->getId()),
+                    'revoke' => $coordinator->revoke($actor, $agent->getId(), $permission->getId()),
                     'replace' => $coordinator->replace(
                         $actor,
-                        $legacy->getId(),
-                        $legacy->getPermissionAssignmentRevision(),
+                        $agent->getId(),
+                        $agent->getPermissionAssignmentRevision(),
                         []
                     ),
                     'revoke credential' => new AgentCredentialLifecycleService(
@@ -164,14 +153,14 @@ final class AgentCohortWriterTest extends TestCase
                         $env->clock,
                         $ports->transaction,
                         $ports->events
-                    )->revoke('operator', $legacy->getId())
+                    )->revoke('operator', $agent->getId())
                 };
-                self::fail('Legacy authority is not a compatibility bypass.');
+                self::fail('Every writer requires a qualified current cohort.');
             } catch (AgentOperationRejectedException $failure) {
                 self::assertSame(AgentOperationFailure::UNAVAILABLE, $failure->getReason());
             }
 
-            self::assertSame($legacy, $ports->agents->getById($legacy->getId()));
+            self::assertSame($agent, $ports->agents->getById($agent->getId()));
             self::assertSame(0, $ports->agents->permissionAssignmentReplacementCalls());
             self::assertCount(1, $ports->audit->all());
         }

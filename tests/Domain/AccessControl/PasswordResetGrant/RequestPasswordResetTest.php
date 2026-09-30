@@ -148,7 +148,7 @@ final class RequestPasswordResetTest extends TestCase
         $consumed = $grant->consume(new DateTimeImmutable('2026-08-20T12:15:00+00:00'));
 
         self::assertNull($consumed->getDelivery()->getEncryptedMaterial());
-        self::assertFalse($consumed->getDelivery()->isRecoverable());
+        self::assertFalse($consumed->getDelivery()->hasRecoverableMaterial());
     }
 
     public function test_that_the_password_reset_requested_event_round_trips_without_secret_material(): void

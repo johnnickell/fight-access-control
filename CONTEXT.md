@@ -6,20 +6,27 @@ Fight AccessControl owns framework-neutral identity, credential, session, author
 behavior shared by Fight applications. The repository-local behavioral and security authority is
 [TICKET-00001](planning/tickets/00001-TICKET.md).
 
-## Current decision — no previous-iteration support
+## Current contract — TASK-00068 implementation
 
 John's package-wide 2026-09-30 decision in [ADR 0011](planning/adr/0011-pre-v1-current-contract-only.md) supersedes
-all earlier requirements to support old APIs, formats, legacy Agents or upgrades/migrations while pre-v1. Only the
-best current contract is supported. [TASK-00068](planning/tasks/00068-TASK.md) removes the remaining legacy model,
-retired rotation stub and credential-delivery compatibility defaults, including affected tests/schemas/guidance.
-This cleanup is planned, not implemented; descriptions of legacy behavior below report existing code/history, not
-requirements to preserve it. TASK-00057 already removed historical canonical readers but explicitly excluded this
-broader cleanup. TASK-00058 now waits for TASK-00068 and covers only current-contract stale-state restoration;
-TASK-00059 documents current integration and evidence, not a migration route.
+all earlier requirements to support old APIs, formats, legacy Agents or upgrades/migrations while pre-v1.
+[TASK-00068](planning/tasks/00068-TASK.md) now removes the legacy Agent model, recovery marker/View/schema field,
+adoption transition, raw aggregate rotation and retired lifecycle rotation stub. Every current lifecycle replacement
+requires original-operation cancellation; validated hydration preserves authority without inventing issuance.
+See the [current Agent contract](docs/agent-current-contract.md).
 
-Current authentication/authorization, hydration, transactional integrity, retry/restart, retained-key/order/tombstone
-and restoration safety remain. No automatic data reset, release, consumer upgrade or deployment follows from this
-decision. Earlier acceptance receipts remain historical; removal requires fresh implementation verification/review.
+[User credential delivery](docs/credential-delivery.md) requires explicit due time, claim token, claim/lease and outcome
+times, and retry failure classification. Historical inference, purpose-specific material predicate aliases and the
+obsolete transport `ConfirmPasswordResetDelivery` command/handler/schema are removed. Delivery workers still emit
+`PasswordResetDeliveryConfirmed` after a live-claim outcome commits. `ManagedPolicyPlanner` now requires its Agent
+repository; no older constructor composition remains. Current protected-tier checks are unchanged.
+
+Authentication/authorization, hydration, atomicity, retry/restart, retained-key/order/receipt/tombstone and restoration
+safety remain. TASK-00058 covers current-contract stale-state restoration; TASK-00059 supplies final integration
+and evidence, not a migration route. No data reset, release, consumer qualification or deployment follows.
+Implementation is awaiting independent review. The local `./bin/build` passed **1496 tests / 25805 assertions** with
+exact **6217/6217** owned statements; TASK-00068 records the receipt and package-wide removal/retention accounting.
+Earlier acceptance receipts and delivery checkpoints below are historical, not acceptance of TASK-00068.
 
 ## Prior canonical-contract simplification — TASK-00057
 
@@ -57,7 +64,7 @@ no merge, release or consumer qualification is claimed.
 - **Agent credential operation**: a caller-scoped, versioned request binding retaining original issuance metadata
   and a separately encrypted prepared delivery copy. Retrying an authorized retained key resolves that outcome;
   retiring its material never makes the key reusable. Current unreleased implementation supports provisioning and
-  rotation of recoverably provisioned or known active legacy Agents; retries retain the original predecessor request.
+  rotation of current correlated Agents; retries retain the original predecessor request.
 - **Agent operation cohort**: one compatible writer set validating the single persisted storage/canonical/destination
   contract and sharing a monotonic generation. Qualified local capabilities and the transaction-duration
   cohort fence are mandatory across Agent and operation repositories. Delivery/cleanup authority binds the generation;
@@ -95,14 +102,11 @@ no merge, release or consumer qualification is claimed.
   any Agent has it assigned.
 - **Agent Permission-assignment revision**: the monotonically advancing version of an Agent's direct Permission
   assignment. It advances only when that set changes and is independent of the Agent credential revision.
-- **Legacy Agent credential**: known existing authority without historical operation correlation. Explicit validated
-  reconstitution preserves its identity, revisions, authentication envelope, Permissions and terminal state. The
-  persisted false recovery marker is not proof of issuance/delivery; only an explicitly authorized new rotation
-  creates recovery for its successor. Unknown or inconsistent persisted markers require reconciliation, not fallback.
+- **Agent hydration**: validated reconstruction of complete current authority without generation or revision reset.
+  Repositories also validate exact operation correlation. Unknown or inconsistent state rejects, never creates issuance.
 - **Agent read result**: an immutable, secret-free record of an Agent's ID, lifecycle state, credential ID and
-  revision, assigned Permissions by ID and canonical name, Permission-assignment revision and explicit
-  `recoverable_credential_operation` boolean. False describes legacy/non-recoverable current history; true describes
-  correlation, not delivery, activation or use authority. It does not decide whether an action is allowed.
+  revision, assigned Permissions by ID and canonical name and Permission-assignment revision. There is no legacy or
+  recovery marker. Administrative reads decide neither action permission nor delivery, activation or use authority.
 - **Authenticated Agent principal**: an immutable authoritative Agent identity and direct-Permission snapshot,
   resolved as one authentication flow rather than from an `AgentView` or a follow-up query.
 - **Current Agent principal provider**: a consumer-composed, request-scoped module that authenticates one signed
@@ -191,7 +195,11 @@ Credential-delivery providers receive only one short-lived sensitive invocation 
 typed outcome. Consumer schedulers use the package's secret-free due-work/status queries and direct delivery commands;
 they do not copy claim, retry, terminalization, or stale-generation policy.
 
-## Recoverable Agent operations — partial unreleased implementation
+## Recoverable Agent operations — historical delivery checkpoints
+
+The following chronology preserves prior implementation/review evidence. TASK-00055's legacy model and TASK-00057's
+original cross-version scope are superseded by the current contract above; old counts and verdicts do not accept
+TASK-00068. Current integration guides, rather than these historical checkpoints, own present API instructions.
 
 [EPIC-00009](planning/epics/00009-EPIC.md) records the separately planned breaking replacement for recoverable Agent
 provisioning and rotation. John ratified D1–D4 and confirmed the complete destination and boundaries on 2026-09-27.
@@ -328,9 +336,9 @@ signature and raw result are removed; its new safe result distinguishes confirme
 indeterminate commit. Domain operation storage retains request version, safe issuance and separate protected material;
 Application coordinates current authorization, reservation and atomic writes. See the
 [public provisioning contract](docs/agent-provisioning-operations.md) for concrete defaults and adapter obligations.
-New Agents persist a recoverable-operation marker and reject legacy aggregate raw rotation, including after
-Permission changes. [TASK-00050 retirement](docs/agent-credential-retirement.md) allows terminal revocation while
-preserving that marker. `AgentRepository::replace()` validates exact lifecycle successors and atomically cancels the
+Every Agent requires current operation correlation, including after Permission changes; there is no legacy marker
+or raw rotation path. [TASK-00050 retirement](docs/agent-credential-retirement.md) allows terminal revocation while
+preserving original correlation. `AgentRepository::replace()` validates exact lifecycle successors and atomically cancels the
 original credential operation through same-connection `AgentOperationRepository::retireCredential()`. Retirement
 removes delivery material, advances the operation state revision and preserves original correlation/delivery history;
 no old claim/admission snapshot can restore it. Concrete replacement/cancellation implementations must annotate both
@@ -347,13 +355,11 @@ and 100 attempts, with validated bounded overrides pinned on first claim. Curren
 exact state revisions reject stale effects. Unconfirmed admission never decrypts; uncertain completion never guesses
 success. Deterministic in-memory sink/authority and lifecycle tests do not qualify consumer databases or activation/use.
 TASK-00048 adds `AgentCredentialRotationService`, `AgentRotationRequest` and mandatory transactional
-`authorizeRotation()` scope/target/destination authorization. The old lifecycle `rotate()` explicitly rejects;
-its result has no raw-secret getter. `AgentCredentialLifecycleService` drops the unused generator/cipher constructor
-arguments while revocation behavior remains unchanged. Legacy Agents retain authentication/revocation and aggregate
-state compatibility. TASK-00055 now permits a known active legacy Agent to enter recovery only through explicit new
-rotation in that same service; upgrade and safe reads create no recovery binding. Only the successor gets a new
-operation, never an invented historical provision/delivery. This intermediate work remains unreleased and not deployable
-until independent acceptance and remaining cohort/canonicalization/restoration work and consumer qualification.
+`authorizeRotation()` scope/target/destination authorization. Results have no raw-secret getter. TASK-00068 removes
+the old lifecycle `rotate()` and legacy aggregate path; the revocation service retains its failure semantics.
+Every predecessor requires atomic cancellation and every successor its own new operation/delivery/audit. Current
+hydration and safe reads create no issuance. This intermediate work remains unreleased and not deployable until
+independent acceptance, remaining restoration work and real consumer qualification.
 
 For those two replacement operations only, confirmed issuance commits return safe operation metadata with a typed,
 sanitized publication warning if post-commit publication fails. Pre-commit failure and indeterminate commit are

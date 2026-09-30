@@ -129,15 +129,11 @@ final class InMemoryAgentRepository implements AgentRepository
                 continue;
             }
 
-            if ($expected->hasRecoverableCredentialOperation() || $replacement->hasRecoverableCredentialOperation()) {
-                if ($this->operations === null || !$this->operations->participatesIn($this->unitOfWork)) {
-                    throw new AgentOperationRejectedException(AgentOperationFailure::UNAVAILABLE);
-                }
-
-                if ($expected->hasRecoverableCredentialOperation()) {
-                    $this->operations->retireCredential($expected, $replacement);
-                }
+            if ($this->operations === null || !$this->operations->participatesIn($this->unitOfWork)) {
+                throw new AgentOperationRejectedException(AgentOperationFailure::UNAVAILABLE);
             }
+
+            $this->operations->retireCredential($expected, $replacement);
 
             $this->agents[$index] = $replacement;
             $this->authorizationReferences->retainAgent($replacement);
@@ -227,7 +223,6 @@ final class InMemoryAgentRepository implements AgentRepository
         return $replacement->getId()->equals($expected->getId())
             && $replacement->getName()->equals($expected->getName())
             && $replacement->getState() === $expected->getState()
-            && $replacement->hasRecoverableCredentialOperation() === $expected->hasRecoverableCredentialOperation()
             && $replacement->getCredentialId()->equals($expected->getCredentialId())
             && $replacement->getCredentialRevision() === $expected->getCredentialRevision()
             && $credentialEnvelopeIsSame

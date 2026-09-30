@@ -111,7 +111,7 @@ final class InMemoryEmailChangeGrantRepository implements EmailChangeGrantReposi
             || !$current instanceof EmailChangeGrant
             || !$this->sameState($current, $terminalPredecessor)
             || $current->isIssued()
-            || $current->getDelivery()->isRecoverable()
+            || $current->getDelivery()->hasRecoverableMaterial()
             || !$this->validSuccessor($current, $successor)
         ) {
             return false;

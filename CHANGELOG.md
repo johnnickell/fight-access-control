@@ -17,8 +17,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   restart/safety scenarios accompany the behavior. The confirmed-operation OpenAPI schema permits only marker `2`.
   No backward-compatible shim, historical migration or runtime version choice is supplied.
 - Explicit validated `Agent::reconstitute()` for persisted authority, without credential generation or fabricated
-  historical correlation. Existing active authentication and terminal revocation are preserved. See the
-  [unreleased existing-data/API migration contract](docs/agent-existing-data-v0.5-migration.md).
+  correlation. Current active authentication and terminal revocation are preserved. See the
+  [current Agent contract](docs/agent-current-contract.md).
 - Authorized Agent delivery material rewrapping, retention expiry and replay-safe inert sink cleanup through
   `AgentDeliveryMaintenanceService`. Bounded `ListAgentDeliveryMaintenance` and global diagnostic
   `CountAgentDeliveryKeyReferences` queries are read-only; zero references never authorize physical key retirement.
@@ -48,11 +48,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   composition. Delivery and cleanup authority epochs are cohort-bound; old admissions cannot acknowledge across a
   switch. Consumers must fence old binaries externally and qualify actual writers; no deployment proof is inferred.
   See the [cohort contract and switch guide](docs/agent-operation-cohorts.md).
-- **Breaking (unreleased v0.5.0):** `AgentView` and the shipped Agent OpenAPI component require the safe
-  `recoverable_credential_operation` boolean; direct View constructors require the final marker argument. Known active
-  legacy Agents may enter recovery through the existing explicitly authorized rotation service. Repositories must
-  atomically persist that marker transition with only the new successor's operation/delivery/audit, never invent
-  predecessor history or downgrade correlated credentials. Upgrade alone performs no rotation or redelivery.
+- **Breaking (unreleased):** Only the current pre-v1 contract is supported. Remove the legacy Agent mode, recovery
+  marker/getter/View/schema field, adoption transition, raw aggregate rotation and lifecycle rejection-only `rotate()`.
+  All lifecycle writes require current operation correlation and atomic cancellation. Hydration, authentication,
+  authority fences, uncertain-commit/restart resolution and retained-key/order/receipt safety remain.
+- **Breaking (unreleased):** User delivery factories require explicit due time; claim and outcome methods require
+  explicit token, occurrence/lease times and retry failure classification. Remove inferred transitions, purpose-specific
+  `isRecoverable()` aliases and the obsolete `ConfirmPasswordResetDelivery` command/handler/OpenAPI component.
+  Workers retain `PasswordResetDeliveryConfirmed` after a live-claim outcome commits. Historical migration guidance is
+  retired; no old-data conversion or data reset is supplied.
+- **Breaking (unreleased):** `ManagedPolicyPlanner` requires an `AgentRepository`; remove the optional older
+  constructor wiring and null-repository promotion branch. Authoritative protected-promotion membership checks remain.
 - **Unreleased v0.5.0 integration change:** operation adapters add `listMaintenance()`,
   `countDeliveryKeyReferences()` and exact-state `replaceMaintenance()`, persist `sinkCleaned`, and share key-version
   write/reference fences across all writers. Consumers implement maintenance authorization, bound ciphertext
@@ -72,9 +78,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   and predecessor ID/revision, registered destination and transactional `authorizeRotation()` authority. It commits
   one successor, pending protected delivery and audit with atomic predecessor cancellation. Retries resolve the
   original outcome; uncertain commits remain indeterminate and publication failures return typed safe warnings.
-  `AgentCredentialRotationResult` no longer exposes raw material, and the old lifecycle `rotate()` explicitly rejects.
+  `AgentCredentialRotationResult` exposes only safe metadata; the old lifecycle `rotate()` is removed.
   The revocation service drops obsolete generator/cipher constructor arguments but keeps its existing failure behavior.
-  See the [rotation contract](docs/agent-rotation-operations.md). Migration and complete recovery remain downstream.
+  See the [rotation contract](docs/agent-rotation-operations.md). Restoration and final consumer qualification remain downstream.
 
 - **Unreleased v0.5.0 integration change:** operation repository adapters must implement `getStatusByKey()` and
   persist delivery/credential dispositions; authorization implementations must add side-effect-free `authorizeRead()`
@@ -85,7 +91,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   and returns safe issuance metadata, a distinct indeterminate outcome, or a typed publication warning after confirmed
   commit. Same-key retry does not issue again. The old raw-return provision signature is removed. See the
   [provisioning contract](docs/agent-provisioning-operations.md). Recoverable Agents require operation-aware rotation
-  and atomic retirement; do not deploy this partial protocol before downstream recovery and compatibility qualification.
+  and atomic retirement; do not deploy this partial protocol before restoration and consumer qualification.
 
 ## [0.4.0] - 2026-09-27
 

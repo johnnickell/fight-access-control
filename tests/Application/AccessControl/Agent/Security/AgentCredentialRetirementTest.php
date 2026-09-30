@@ -86,7 +86,6 @@ final class AgentCredentialRetirementTest extends TestCase
         ));
         self::assertNull($nonces->expiresAt());
         self::assertSame('agent.credential_revoked', $environment->audit->all()[1]->action());
-        self::assertTrue($environment->agents->all()[0]->hasRecoverableCredentialOperation());
         self::assertSame(
             $agent->getEncryptedHmacSharedSecretEnvelope(),
             $environment->agents->all()[0]->getEncryptedHmacSharedSecretEnvelope()
@@ -518,7 +517,6 @@ final class AgentCredentialRetirementTest extends TestCase
             $agent->grantPermission(PermissionId::generate(), $this->now()),
             RehydratedAgentFixture::withCredential($agent, AgentCredentialId::generate(), 0),
             RehydratedAgentFixture::withCredential($agent, $agent->getCredentialId(), 1),
-            RehydratedAgentFixture::withCredential($agent, $agent->getCredentialId(), 0, AgentState::REVOKED, false),
             RehydratedAgentFixture::withCredential(
                 $agent,
                 $agent->getCredentialId(),

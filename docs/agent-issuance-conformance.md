@@ -130,7 +130,7 @@ is recorded in TASK-00049, with full logs/receipt in its ignored run directory. 
 | I4 publication independence, no caller | `test_both_publishers_and_caller_can_disappear_before_scheduler_only_recovery` (both kinds × pending/abandoned); `test_same_key_retry_preserves_fact_identity_and_current_authority` | Both issuance service suites' publisher-failure tests; `AgentDeliveryRecoveryServiceTest` crash boundaries and receipt-first recovery |
 | I5 fresh authority, delegation, reservation, writers | `test_authority_writer_and_issuance_have_one_fenced_order`; `test_discovery_requires_delegation_and_cannot_cache_admission_authority`; `test_untrusted_scope_and_destination_cannot_read_or_resolve_an_existing_key`; `test_equal_ids_in_different_scopes_share_monotonic_slot_order_not_issuance`; `test_rotation_and_lifecycle_writer_never_leave_a_recoverable_revoked_credential` | Issuance authorization-participant rollback and target/delegation tests; `ListDueAgentDeliveriesHandlerTest`; `GetAgentOperationHandlerTest`; `AgentRotationAuthenticationTest` before/after nonce-boundary races |
 | I6 defaults, overrides, capacity, retained keys | `test_capacity_preserves_status_resolution_and_bounded_recovery`; `test_expiry_and_cleanup_never_make_original_key_fresh_issuance`; unsupported-version cases above | `AgentOperationTest`, `AgentDeliveryTest`, `AgentDeliveryDiscoveryTest`, `AgentMaintenanceTest`; recovery-service bounded batches and maintenance key/cleanup tests |
-| I7 safety, no fallback | Reusable safe-representation assertions; `test_lost_sink_response_recovers_original_bytes_and_id_not_issuance`; `test_terminal_delivery_retains_key_without_raw_or_envelope_fallback`; current-authority test above | Domain safe material/invocation tests, both issuance service suites' old-signature rejection and failure safety, `AgentCredentialRetirementTest`, `AgentProtectedSinkContractTest` |
+| I7 safety, no fallback | Reusable safe-representation assertions; `test_lost_sink_response_recovers_original_bytes_and_id_not_issuance`; `test_terminal_delivery_retains_key_without_raw_or_envelope_fallback`; current-authority test above | Domain safe material/invocation tests, both issuance service suites' current-contract failure safety, `AgentCredentialRetirementTest`, `AgentProtectedSinkContractTest` |
 
 The package does **not** implement an outbox or notification retry. Same-key retries emit no second success fact;
 provision fact identity remains its original Agent ID, rotation its original Agent/credential/revision tuple. If a
@@ -146,7 +146,7 @@ Neither proves PostgreSQL locking, isolation, uniqueness, deadlock handling, tru
 cryptography. It uses deterministic test secrets, a noncryptographic bound cipher and a controlled sink, never real
 credentials. These are production-behavior assertions, not tests of the fixture implementation.
 
-Real adapter, sink, authority-writer, activation/use, migration/cohort and restoration runs are outstanding. No release,
-consumer qualification, dependency upgrade or deployment follows from package tests. TASK-00055–00059 retain upgrade,
-cohort, canonicalization, restoration and final traceability ownership. The complete intermediate protocol remains
+Real adapter, sink, authority-writer, activation/use, cohort and restoration runs are outstanding. No release,
+consumer qualification, dependency upgrade or deployment follows from package tests. TASK-00068 removes superseded
+legacy support; TASK-00058/00059 retain restoration and final traceability ownership. The complete intermediate protocol remains
 unreleased and unsupported for deployment.

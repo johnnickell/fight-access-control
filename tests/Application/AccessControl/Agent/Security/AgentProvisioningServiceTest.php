@@ -18,7 +18,6 @@ use Fight\AccessControl\Domain\AccessControl\Agent\AgentRepository;
 use Fight\AccessControl\Domain\AccessControl\Agent\AgentState;
 use Fight\AccessControl\Domain\AccessControl\Agent\Event\AgentProvisioned;
 use Fight\AccessControl\Domain\AccessControl\Agent\Event\AgentProvisioningFailed;
-use Fight\AccessControl\Domain\AccessControl\Agent\Exception\AgentCredentialException;
 use Fight\AccessControl\Domain\AccessControl\Agent\Exception\AgentNameException;
 use Fight\AccessControl\Domain\AccessControl\Agent\Exception\AgentOperationCollisionException;
 use Fight\AccessControl\Domain\AccessControl\Agent\Exception\AgentOperationRejectedException;
@@ -46,9 +45,7 @@ use Fight\Test\AccessControl\Application\AccessControl\Event\InMemoryEventDispat
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
-use ReflectionMethod;
 use RuntimeException;
-use TypeError;
 
 #[CoversClass(AgentProvisioningService::class)]
 #[CoversClass(AgentProvisioningResult::class)]
@@ -81,7 +78,6 @@ final class AgentProvisioningServiceTest extends TestCase
         $agent = $environment->agents->all()[0];
         self::assertSame('Production deployment', $agent->getName()->toString());
         self::assertSame(AgentState::ACTIVE, $agent->getState());
-        self::assertTrue($agent->hasRecoverableCredentialOperation());
         self::assertSame($agent->getId(), $issuance->getAgentId());
         self::assertSame($agent->getCredentialId(), $issuance->getCredentialId());
         self::assertSame(0, $issuance->getCredentialRevision());
@@ -559,20 +555,6 @@ final class AgentProvisioningServiceTest extends TestCase
         self::assertSame(0, $environment->generations);
     }
 
-    public function test_legacy_raw_return_signature_is_rejected_without_any_effect(): void
-    {
-        $environment = new ProvisioningEnvironment();
-        $service = $environment->service();
-        try {
-            // Exercise the removed signature as an actual untyped external caller would.
-            new ReflectionMethod($service, 'provision')->invoke($service, 'maintainer-42', 'Agent');
-            self::fail('Legacy signature must reject.');
-        } catch (TypeError) {
-            self::assertSame(0, $environment->generations);
-            self::assertSame([], $environment->agents->all());
-        }
-    }
-
     public function test_recoverable_agent_rejects_unfenced_lifecycle_even_after_permission_changes(): void
     {
         $environment = new ProvisioningEnvironment();
@@ -584,17 +566,8 @@ final class AgentProvisioningServiceTest extends TestCase
         $removed = $assigned->revokePermission($permission, $at);
         $replaced = $original->replacePermissions([$permission], 1, $at);
         foreach ([$original, $assigned, $removed, $replaced] as $agent) {
-            self::assertTrue($agent->hasRecoverableCredentialOperation());
-            try {
-                $agent->rotateCredential($agent->getCredentialId(), AgentCredentialId::generate(), 'envelope', $at);
-                self::fail('Legacy rotation must reject recoverable credentials.');
-            } catch (AgentCredentialException) {
-                self::assertSame(0, $agent->getCredentialRevision());
-            }
-
             $revoked = $agent->revoke($at);
             self::assertSame(AgentState::REVOKED, $revoked->getState());
-            self::assertTrue($revoked->hasRecoverableCredentialOperation());
             self::assertSame(AgentState::ACTIVE, $agent->getState());
             $unsupported = new InMemoryAgentRepository();
             $unsupported->add($agent);
@@ -608,7 +581,7 @@ final class AgentProvisioningServiceTest extends TestCase
         }
     }
 
-    public function test_events_round_trip_and_reject_missing_data_and_audit_retains_user_compatibility(): void
+    public function test_events_round_trip_and_reject_missing_data_and_audit_supports_user_and_agent_subjects(): void
     {
         $event = new AgentProvisioned(
             AgentId::generate(),

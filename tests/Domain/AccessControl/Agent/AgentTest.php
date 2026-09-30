@@ -234,8 +234,9 @@ final class AgentTest extends TestCase
             $provisionedAt
         );
 
-        $successor = $agent->rotateCredential(
+        $successor = $agent->rotateRecoverableCredential(
             $credentialId,
+            0,
             $rotatedCredentialId,
             'encrypted:rotated-secret',
             $rotatedAt
@@ -271,8 +272,9 @@ final class AgentTest extends TestCase
         self::assertSame($revokedAt, $revoked->getUpdatedAt());
 
         try {
-            $revoked->rotateCredential(
+            $revoked->rotateRecoverableCredential(
                 $credentialId,
+                0,
                 AgentCredentialId::generate(),
                 'encrypted:replacement-secret',
                 new DateTimeImmutable('2026-08-25T12:10:00+00:00')

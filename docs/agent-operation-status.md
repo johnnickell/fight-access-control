@@ -5,7 +5,7 @@ TASK-00047 adds `GetAgentOperation` and `GetAgentOperationHandler` to the
 not another issuance workflow or a credential-retrieval API. The incomplete replacement remains unreleased and
 not deployable. [TASK-00050 retirement](agent-credential-retirement.md) now writes revoked disposition atomically;
 [protected delivery](agent-credential-delivery.md) records receipt outcomes and
-[recoverable rotation](agent-rotation-operations.md) writes supersession. Cohort/migration and consumer qualification
+[recoverable rotation](agent-rotation-operations.md) writes supersession. Restoration and consumer qualification
 remain downstream.
 
 ## Composition and authority
@@ -101,10 +101,9 @@ credential is substituted. Publication warnings are transient service-result met
 status does not reconstruct warnings from events. Even both publishers failing leaves authoritative issuance readable.
 Neither a confirmed result nor a `delivered` value supplies enrollment activation, launch permission or secret access.
 
-Known legacy Agents have no historical operation to resolve. TASK-00055 adds the explicit
-`recoverable_credential_operation` marker to administrative `AgentView` reads; false means legacy/non-recoverable,
-not confirmed issuance or rollback. It does not change this original-key query: absence remains indeterminate, with
-no automatic provision, guessed correlation or material access. See the [existing-data migration contract](agent-existing-data-v0.5-migration.md).
+Every Agent uses the [current correlated model](agent-current-contract.md). Administrative `AgentView` has no legacy
+or recovery marker. Original-key query absence remains indeterminate, never automatic provision, guessed correlation
+or material access. A missing current operation cannot justify skipping lifecycle cancellation.
 
 ## Storage, uncertainty and bounded recovery
 
@@ -171,5 +170,5 @@ prove read projection only, not their downstream writers or valid lifecycle tran
 revocation/cancellation and controlled direct supersession. [TASK-00051's delivery tests](agent-credential-delivery.md)
 now exercise actual package claim/admission/outcome writers and safe disposition. TASK-00049 will integrate actual
 rotation/delivery transitions after all its prerequisite writers exist. No scheduler-only recovery, real database
-concurrency, consumer authorization policy, sink, encryption, migration, activation or launch qualification is claimed.
+concurrency, consumer authorization policy, sink, encryption, activation or launch qualification is claimed.
 This contract has no HTTP endpoint/envelope or UI; executable state/failure evidence is the useful before/after proof.

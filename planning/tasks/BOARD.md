@@ -5,17 +5,18 @@ dependencies, acceptance, and verification.
 
 ## What's Next?
 
-First ready Task: [TASK-00068](00068-TASK.md) — Remove support for previous package iterations.
+Active Task: [TASK-00068](00068-TASK.md) — Remove support for previous package iterations.
 
 ## In Progress
 
-No Tasks are currently in this state.
+| Order | TASK ID | Title | Parent TICKET | Status | Blocked by | PR |
+| --- | --- | --- | --- | --- | --- | --- |
+| 58 | [TASK-00068](00068-TASK.md) | Remove support for previous package iterations | — (standalone chore) | in-progress | — | — |
 
 ## Ready Frontier
 
 | Order | TASK ID | Title | Parent TICKET | Status | Blocked by | PR |
 | --- | --- | --- | --- | --- | --- | --- |
-| 58 | [TASK-00068](00068-TASK.md) | Remove support for previous package iterations | — (standalone chore) | ready-for-agent | — | — |
 | 61 | [TASK-00061](00061-TASK.md) | Declare and register Feature references | [TICKET-00015](../tickets/00015-TICKET.md) — Register and provision Features safely | ready-for-agent | — | — |
 
 ## Waiting

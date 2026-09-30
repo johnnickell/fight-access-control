@@ -30,7 +30,7 @@ class ActivationDelivery extends CredentialDelivery
         EmailAddress $email,
         string $ciphertext,
         DateTimeImmutable $expiresAt,
-        ?DateTimeImmutable $dueAt = null
+        DateTimeImmutable $dueAt
     ): static {
         try {
             $encryptedMaterial = EncryptedCredentialMaterial::fromString($ciphertext);
@@ -41,7 +41,7 @@ class ActivationDelivery extends CredentialDelivery
             );
         }
 
-        return new static($id, $userId, $email, $encryptedMaterial, $expiresAt, $dueAt ?? new DateTimeImmutable('@0'));
+        return new static($id, $userId, $email, $encryptedMaterial, $expiresAt, $dueAt);
     }
 
     /**

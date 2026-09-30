@@ -103,7 +103,7 @@ final class RequestEmailChangeHandlerTest extends TestCase
             self::assertFalse($grants->all()[0]->isUsableAt(
                 new DateTimeImmutable('2026-08-22T12:00:00+00:00')
             ));
-            self::assertFalse($grants->all()[0]->getDelivery()->isRecoverable());
+            self::assertFalse($grants->all()[0]->getDelivery()->hasRecoverableMaterial());
             self::assertTrue($grants->all()[1]->isIssued());
             self::assertNotSame($grants->all()[0]->getId()->toString(), $grants->all()[1]->getId()->toString());
             self::assertNotSame(
@@ -416,7 +416,7 @@ final class RequestEmailChangeHandlerTest extends TestCase
             $users->getById($target->getId())->getPendingEmailChange()?->canonical()
         );
         self::assertTrue($grants->all()[0]->isIssued());
-        self::assertTrue($grants->all()[0]->getDelivery()->isRecoverable());
+        self::assertTrue($grants->all()[0]->getDelivery()->hasRecoverableMaterial());
         self::assertSame(1, $authorization->calls());
         self::assertSame($actorId, $authorization->lastActorId());
         self::assertSame($target->getId(), $authorization->lastUserId());

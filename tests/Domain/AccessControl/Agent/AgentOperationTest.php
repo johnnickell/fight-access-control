@@ -233,8 +233,7 @@ final class AgentOperationTest extends TestCase
             AgentName::fromString('Agent'),
             $issuance->getCredentialId(),
             'authentication-envelope',
-            $issuance->getIssuedAt(),
-            recoverableCredentialOperation: true
+            $issuance->getIssuedAt()
         );
         $operation = new AgentCredentialOperation(2, 'retained-request', $issuance, null);
         $revoked = $agent->revoke($issuance->getIssuedAt());
@@ -268,8 +267,7 @@ final class AgentOperationTest extends TestCase
             AgentName::fromString('Agent'),
             $issuance->getCredentialId(),
             'authentication-envelope',
-            $issuance->getIssuedAt(),
-            recoverableCredentialOperation: true
+            $issuance->getIssuedAt()
         );
         $mismatches = [
             'credential_id'       => AgentCredentialId::generate()->toString(),
