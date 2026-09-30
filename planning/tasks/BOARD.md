@@ -5,13 +5,11 @@ dependencies, acceptance, and verification.
 
 ## What's Next?
 
-Active Task: [TASK-00063](00063-TASK.md) — Validate Feature preparation before activation.
+First ready Task: [TASK-00064](00064-TASK.md) — Evaluate Feature availability with fresh, identity-safe checks.
 
 ## In Progress
 
-| Order | TASK ID | Title | Parent TICKET | Status | Blocked by | PR |
-| --- | --- | --- | --- | --- | --- | --- |
-| 63 | [TASK-00063](00063-TASK.md) | Validate Feature preparation before activation | [TICKET-00015](../tickets/00015-TICKET.md) — Register and provision Features safely | in-progress | [TASK-00062](00062-TASK.md) | — |
+No Tasks are currently in this state.
 
 ## Ready Frontier
 
@@ -106,3 +104,4 @@ No Tasks are currently in this state.
 | 60 | [TASK-00060](00060-TASK.md) | Align OpenAPI credential-delivery components with released contracts | — (standalone bug) | done | — | https://github.com/johnnickell/fight-access-control/pull/86 |
 | 61 | [TASK-00061](00061-TASK.md) | Declare and register Feature references | [TICKET-00015](../tickets/00015-TICKET.md) — Register and provision Features safely | done | — | https://github.com/johnnickell/fight-access-control/pull/99 |
 | 62 | [TASK-00062](00062-TASK.md) | Provision registered Features without resetting choices | [TICKET-00015](../tickets/00015-TICKET.md) — Register and provision Features safely | done | [TASK-00061](00061-TASK.md) | https://github.com/johnnickell/fight-access-control/pull/100 |
+| 63 | [TASK-00063](00063-TASK.md) | Validate Feature preparation before activation | [TICKET-00015](../tickets/00015-TICKET.md) — Register and provision Features safely | done | [TASK-00062](00062-TASK.md) | — |

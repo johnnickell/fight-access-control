@@ -535,9 +535,13 @@ invalid configuration from incomplete discovery and operational failure. Consume
 compose declaration, provisioning and validation, including rollback/retry and post-commit publication loss. The
 builder's full gate passes **1802 tests / 35027 assertions**, exact **6348/6348 owned statements**. Independent
 technical review requested a documentation-only correction at `9f60836`: the declarations guide incorrectly
-listed preparation as outstanding. The revision corrects that statement without changing executable gate inputs;
-independent re-review and behavioral QA are pending. This is not a partial Feature release, actual scanner/database
-qualification, permission to activate, consumer adoption or completion of the downstream integrity/management slices.
+listed preparation as outstanding. The revision corrects that statement without changing executable gate inputs.
+Independent re-review accepted `5cb1a376` against unchanged `develop`, C1–C9 passing with no findings; independent
+post-review QA passed five
+scenarios / 26 real-library probe checks plus 14 focused tests / 75 assertions. TASK-00063 is done for accepted
+package implementation and required local/behavioral verification. This is not a partial Feature release, actual
+scanner/database qualification, permission to activate, consumer adoption or completion of the downstream
+integrity/management slices; publication, approval and merge remain separate.
 
 ## Planning and Completion
 
