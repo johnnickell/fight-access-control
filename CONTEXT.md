@@ -267,9 +267,11 @@ Its canonical upgrade implementation freezes historical readers and integrates v
 delivery/maintenance paths. Consumer-bindable scenarios exercise both versions through restart and retained states;
 the full local gate passes 1501 tests / 32816 assertions and exact 6317/6317 statements. Independent review accepted
 `04a2adf` with all eight criteria passing, no findings, 973 fresh tests / 28585 assertions and all 771 final gate
-inputs verified. TASK-00057 is done for accepted package implementation/local verification. John subsequently
-requested PR landing; the TASK's ignored handoff owns publication/remote identity and the metadata-only acceptance
-bridge. This is not a real consumer upgrade, merge or release. TASK-00058 retains restoration ownership.
+inputs verified. TASK-00057 is done for accepted package implementation/local verification. John's landing request
+published [PR #93](https://github.com/johnnickell/fight-access-control/pull/93) against unchanged `develop` at initial
+head `53debe0`; the fresh landing gate retains 1501 tests / 32816 assertions and exact 6317/6317 statements.
+The TASK's ignored handoff owns final metadata/remote verification and the metadata-only acceptance bridge.
+This is not a real consumer upgrade, merge or release. TASK-00058 retains restoration ownership.
 Each downstream execution needs authorization. John separately authorized TASK-00046
 execution and PR landing. Planning does not qualify a consumer or authorize migration, release or adoption.
 The replacement requires caller-scoped operation correlation, protected delivery and consumer authorization
