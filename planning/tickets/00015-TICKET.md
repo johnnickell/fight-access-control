@@ -168,10 +168,22 @@ review accepted the clean implementation `ff93b60` (C1–C10, no findings), and 
 accepted package implementation/local verification; John's landing request owns PR publication separately.
 TASK-00063 and downstream composed acceptance are not discharged. No consumer qualification or release is claimed.
 
+### TASK-00063 builder checkpoint
+
+John authorized the clean main checkout at `develop` `1a1e81e` for
+`feature/task-00063-feature-preparation`. The read-only candidate validation path, safe configuration diagnostics,
+consumer-bindable composed scenarios and [preparation guide](../../docs/feature-preparation.md) are implemented.
+Builder local `./bin/build` passes 1802 tests / 35027 assertions and exact 6348/6348 statements. Independent
+re-review accepted `5cb1a376` against unchanged `develop` with no findings; independent behavioral QA passed
+5 scenarios / 26 probe checks and 14 focused tests / 75 assertions. TASK-00063 is done for accepted package
+implementation/local and behavioral verification. This evidence does not complete the TICKET's downstream
+all-path Permission-removal proof or actual guarded-deletion/reintroduction composition under TICKET-00017,
+and does not qualify consumer activation.
+
 ## Child Tasks
 
 | Order | TASK ID | Title | Status |
 | --- | --- | --- | --- |
 | 61 | [TASK-00061](../tasks/00061-TASK.md) | Declare and register Feature references | done |
 | 62 | [TASK-00062](../tasks/00062-TASK.md) | Provision registered Features without resetting choices | done |
-| 63 | [TASK-00063](../tasks/00063-TASK.md) | Validate Feature preparation before activation | ready-for-agent |
+| 63 | [TASK-00063](../tasks/00063-TASK.md) | Validate Feature preparation before activation | done |

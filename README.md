@@ -70,14 +70,16 @@ purpose, User ID, and delivery ID. Pending work, due retries, and expired leases
 A crash after provider acceptance and before outcome commit can repeat the provider call with the same identity, so
 this contract is at-least-once and does not claim exactly-once delivery.
 
-### Feature declarations and provisioning (unreleased)
+### Feature declarations and preparation (unreleased)
 
 The [Feature reference guide](docs/feature-references.md) describes strict `FeatureName` validation, method-only
 `FeatureFlag` metadata, explicit registration and scoped complete/unavailable discovery.
 [Atomic provisioning](docs/feature-provisioning.md) creates only missing candidate references OFF with an existing
 Permission, preserving stored choices and retrying from authoritative state. Completion is not activation readiness.
-Preparation validation, evaluation, management, removal guards and consumer adapters/runtime enforcement remain
-unimplemented. Neither a declaration nor provisioning is an access decision or a supported partial Feature release.
+[Preparation validation](docs/feature-preparation.md) rereads all complete candidate references and their stored
+Permission identities without mutation. Evaluation, management, removal guards and consumer adapters/runtime
+enforcement remain unimplemented. Neither preparation nor provisioning is an access decision, deployment permission
+or a supported partial Feature release.
 
 ### Agent credential operations (unreleased)
 

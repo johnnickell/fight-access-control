@@ -2,11 +2,14 @@
 
 [TASK-00061](../planning/tasks/00061-TASK.md) supplies portable name-only metadata and inventory contracts. It does
 not itself implement Feature storage, provisioning, availability checks, management or runtime enforcement.
-[TASK-00062's atomic provisioning](feature-provisioning.md) now consumes this contract; preparation validation,
-evaluation, management and integrity guards remain TASK-00063 through TASK-00067.
+[TASK-00062's atomic provisioning](feature-provisioning.md) consumes this contract, and
+[TASK-00063's preparation validation](feature-preparation.md) checks complete candidate references against stored
+Features and bound Permissions. Runtime evaluation, management and integrity guards remain TASK-00064 through
+TASK-00067.
 The declarations are an additive public PHP API, not a release, supported partial feature-flag system or consumer
 qualification. Declaration/discovery alone changes no persisted format, existing signature or OpenAPI schema;
-provisioning has its own storage/schema assessment. No HTTP endpoint is implied.
+provisioning has its own storage/schema assessment. [Preparation validation](feature-preparation.md) adds a
+separate candidate query. No HTTP endpoint is implied.
 
 ## Name and declaration
 
@@ -112,7 +115,7 @@ Declaration, registration, merging and reading discovery results are pure metada
 Permission lookup/grant, persistence, transaction, event dispatch or access decision. A `FeatureFlag` declaration
 cannot authorize a caller, enforce business Permissions, provision a Feature or prevent a method being called.
 Consumers own scanning, composition, runtime enforcement, persistence and deployment wiring. TASK-00062 consumes
-candidate discovery for provisioning; TASK-00063 adds preparation validation. TASK-00067 owns current-reference
+candidate discovery for provisioning; TASK-00063 adds [preparation validation](feature-preparation.md). TASK-00067 owns current-reference
 deletion. Declaration/provisioning does not discharge those remaining guards.
 
 ## Executable package evidence
