@@ -448,7 +448,7 @@ expiry and cleanup cannot extend original delivery retention. Reference counts i
 scopes/batches/versions; physical retirement also requires closed write admission, fenced recount and independent
 key-use/authentication-envelope accounting. This is not a wider quota, key-vault or approval system.
 
-## Permission-based feature flags — approved planning only
+## Permission-based feature flags — declarations implemented, remaining behavior planned
 
 [EPIC-00010](planning/epics/00010-EPIC.md) owns the approved package-only destination from the closed
 [Wayfinder map](planning/wayfinder/permission-based-feature-flags-map.md). A planned Feature has a unique immutable
@@ -457,7 +457,14 @@ existing User/Agent Permission authority; availability never replaces business a
 provisioning creates missing Features OFF using the configured default Permission and preserves existing choices.
 Current references guard deletion; checks read fresh Feature state without shared caching or in-flight cancellation.
 Consumers own adapters, scanning, enforcement, UI, authorization, and deployment integration; actual CMS migration
-is separate. These are accepted design decisions, not implemented capabilities. John approved the split into
+is separate. Stored Feature behavior remains planned, not implemented. TASK-00061 now implements the
+[declaration and discovery contract](docs/feature-references.md): Domain `FeatureName` validates without normalization;
+Application `RequiresFeature` is method-only/nonrepeatable and `FeatureReferences` merges name-only references.
+`FeatureDiscoveryResult` exposes only complete references in the explicitly requested `CANDIDATE` or `CURRENT`
+scope; failed/incomplete discovery and scope mismatch reject instead of becoming empty results. Consumers own
+scanning, code identity and completeness; this is not enforcement or preparation/retirement implementation.
+The local gate passes **1737 tests / 34624 assertions**, exact **6242/6242 statements**; focused Feature tests
+pass **62 tests / 121 assertions**. Independent acceptance and behavioral QA remain pending. John approved the split into
 [TICKET-00015](planning/tickets/00015-TICKET.md) (registration/provisioning),
 [TICKET-00016](planning/tickets/00016-TICKET.md) (availability evaluation), and
 [TICKET-00017](planning/tickets/00017-TICKET.md) (management/retirement). The latter two build on TICKET-00015's shared
@@ -476,8 +483,9 @@ operational failures. TICKET-00017's approved [TASK-00065](planning/tasks/00065-
 One Feature revision starts at 1 and advances only on real status/Permission changes; updates/deletion require the
 expected revision. Valid no-ops do not write/increment/publish success; stale attempts reject. Management reads retain
 broken Permission IDs with an explicit missing marker and reuse existing pagination. The graph is 61 → 62;
-62 → 63/64/65; 65+64 → 66; 66+63 → 67. All three TICKETs now have approved TASK plans. Implementation and behavioral
-evidence remain outstanding; no release version or execution worktree is selected.
+62 → 63/64/65; 65+64 → 66; 66+63 → 67. All three TICKETs now have approved TASK plans. TASK-00061 implementation is on
+`feature/task-00061-feature-references` in the main checkout; independent review and QA remain outstanding.
+TASK-00062–00067 remain unimplemented. No Feature release version is selected.
 
 ## Planning and Completion
 

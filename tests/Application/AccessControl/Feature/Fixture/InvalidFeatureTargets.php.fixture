@@ -1,0 +1,21 @@
+<?php
+
+declare(strict_types=1);
+
+use Fight\AccessControl\Application\AccessControl\Feature\Attribute\RequiresFeature;
+
+// Deliberately invalid native metadata. Loaded by PHPUnit, not statically treated as valid consumer code.
+return new #[RequiresFeature('dashboard')] class {
+    #[RequiresFeature('dashboard')]
+    public string $value = '';
+
+    #[RequiresFeature('dashboard')]
+    public const string NAME = 'fixture';
+
+    #[RequiresFeature('dashboard')]
+    #[RequiresFeature('new-checkout')]
+    public function repeated(#[RequiresFeature('dashboard')] string $argument): string
+    {
+        return $argument;
+    }
+};

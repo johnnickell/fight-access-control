@@ -5,17 +5,17 @@ dependencies, acceptance, and verification.
 
 ## What's Next?
 
-First ready Task: [TASK-00061](00061-TASK.md) — Declare and register Feature references.
+Active Task: [TASK-00061](00061-TASK.md) — Declare and register Feature references.
 
 ## In Progress
 
-No Tasks are currently in this state.
+| Order | TASK ID | Title | Parent TICKET | Status | Blocked by | PR |
+| --- | --- | --- | --- | --- | --- | --- |
+| 61 | [TASK-00061](00061-TASK.md) | Declare and register Feature references | [TICKET-00015](../tickets/00015-TICKET.md) — Register and provision Features safely | in-progress | — | — |
 
 ## Ready Frontier
 
-| Order | TASK ID | Title | Parent TICKET | Status | Blocked by | PR |
-| --- | --- | --- | --- | --- | --- | --- |
-| 61 | [TASK-00061](00061-TASK.md) | Declare and register Feature references | [TICKET-00015](../tickets/00015-TICKET.md) — Register and provision Features safely | ready-for-agent | — | — |
+No Tasks are currently in this state.
 
 ## Waiting
 
