@@ -5,7 +5,7 @@ dependencies, acceptance, and verification.
 
 ## What's Next?
 
-First ready Task: [TASK-00059](00059-TASK.md) — Complete current-contract guidance and evidence traceability.
+First ready Task: [TASK-00061](00061-TASK.md) — Declare and register Feature references.
 
 ## In Progress
 
@@ -15,7 +15,6 @@ No Tasks are currently in this state.
 
 | Order | TASK ID | Title | Parent TICKET | Status | Blocked by | PR |
 | --- | --- | --- | --- | --- | --- | --- |
-| 59 | [TASK-00059](00059-TASK.md) | Complete current-contract guidance and evidence traceability | [TICKET-00014](../tickets/00014-TICKET.md) — Preserve current credential-contract safety and evidence | ready-for-agent | [TASK-00055](00055-TASK.md), [TASK-00056](00056-TASK.md), [TASK-00057](00057-TASK.md), [TASK-00058](00058-TASK.md), [TASK-00049](00049-TASK.md), [TASK-00054](00054-TASK.md), [TASK-00068](00068-TASK.md) | — |
 | 61 | [TASK-00061](00061-TASK.md) | Declare and register Feature references | [TICKET-00015](../tickets/00015-TICKET.md) — Register and provision Features safely | ready-for-agent | — | — |
 
 ## Waiting
@@ -104,4 +103,5 @@ No Tasks are currently in this state.
 | 57 | [TASK-00057](00057-TASK.md) | Simplify Agent operations to one canonical contract | [TICKET-00014](../tickets/00014-TICKET.md) — Preserve current credential-contract safety and evidence | done | [TASK-00056](00056-TASK.md), [TASK-00047](00047-TASK.md) | https://github.com/johnnickell/fight-access-control/pull/93 |
 | 58 | [TASK-00058](00058-TASK.md) | Fail closed on unreconciled credential-state restoration | [TICKET-00014](../tickets/00014-TICKET.md) — Preserve current credential-contract safety and evidence | done | [TASK-00056](00056-TASK.md), [TASK-00057](00057-TASK.md), [TASK-00068](00068-TASK.md) | https://github.com/johnnickell/fight-access-control/pull/96 |
 | 58 | [TASK-00068](00068-TASK.md) | Remove support for previous package iterations | — (standalone chore) | done | — | https://github.com/johnnickell/fight-access-control/pull/95 |
+| 59 | [TASK-00059](00059-TASK.md) | Complete current-contract guidance and evidence traceability | [TICKET-00014](../tickets/00014-TICKET.md) — Preserve current credential-contract safety and evidence | done | [TASK-00055](00055-TASK.md), [TASK-00056](00056-TASK.md), [TASK-00057](00057-TASK.md), [TASK-00058](00058-TASK.md), [TASK-00049](00049-TASK.md), [TASK-00054](00054-TASK.md), [TASK-00068](00068-TASK.md) | https://github.com/johnnickell/fight-access-control/pull/98 |
 | 60 | [TASK-00060](00060-TASK.md) | Align OpenAPI credential-delivery components with released contracts | — (standalone bug) | done | — | https://github.com/johnnickell/fight-access-control/pull/86 |

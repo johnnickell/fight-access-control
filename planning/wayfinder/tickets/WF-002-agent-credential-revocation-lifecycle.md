@@ -45,9 +45,12 @@ change, decomposition or implementation is authorized by these planning decision
 [TASK-00046](../../tasks/00046-TASK.md) implements the amended provisioning and same-key resolution path with safe
 metadata, not raw return. See the [provisioning contract](../../../docs/agent-provisioning-operations.md). The closed
 resolution below remains historical. TASK-00050/00051 now implement retirement and protected delivery;
-[TASK-00048 rotation](../../../docs/agent-rotation-operations.md) adds original-key recovery and rejects the old
-raw-return service. Discovery, maintenance, migration and real consumer qualification remain required before adoption.
-No map decision is reopened by this implementation.
+[TASK-00048 rotation](../../../docs/agent-rotation-operations.md) adds original-key recovery. TASK-00052/00053
+implement discovery/recovery and maintenance; TASK-00056–00058 supply current cohort/canonical/restoration safety.
+[ADR 0011](../../adr/0011-pre-v1-current-contract-only.md) supersedes legacy/upgrade requirements and TASK-00068
+removes old raw-return APIs rather than retaining rejection stubs. No historical migration route is required.
+TASK-00059's [integration/evidence handoff](../../../docs/agent-integration.md) links the current implementation;
+real consumer qualification and release remain separate. No map decision is reopened by this update.
 
 ## Question
 

@@ -155,6 +155,7 @@ their actual composition without substituting these doubles.
 
 [TICKET-00014's scenario map](../planning/tickets/00014-TICKET.md#scenario-ownership-and-evidence-traceability)
 retains real-consumer proof for cohorts, the single canonical contract, restoration and final integration evidence.
-TASK-00068 removes superseded existing-Agent compatibility; TASK-00058/00059 own remaining restoration and traceability.
+TASK-00068 removes superseded existing-Agent compatibility; TASK-00058 implements package restoration guards and
+TASK-00059's [complete evidence inventory](agent-operation-evidence.md) connects current tests to remaining consumer gaps.
 No rollback/restore rehearsal, migration, dependency upgrade, tag, release,
 consumer support or Agent OS TASK-00138 closure is claimed by these suites.

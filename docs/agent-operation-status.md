@@ -2,11 +2,12 @@
 
 TASK-00047 adds `GetAgentOperation` and `GetAgentOperationHandler` to the
 [recoverable provisioning contract](agent-provisioning-operations.md). It is a **read-only, secret-free snapshot**,
-not another issuance workflow or a credential-retrieval API. The incomplete replacement remains unreleased and
-not deployable. [TASK-00050 retirement](agent-credential-retirement.md) now writes revoked disposition atomically;
+not another issuance workflow or a credential-retrieval API. The replacement remains unreleased and is not a
+qualified consumer deployment; see the [current integration guide](agent-integration.md).
+[TASK-00050 retirement](agent-credential-retirement.md) now writes revoked disposition atomically;
 [protected delivery](agent-credential-delivery.md) records receipt outcomes and
-[recoverable rotation](agent-rotation-operations.md) writes supersession. Restoration and consumer qualification
-remain downstream.
+[recoverable rotation](agent-rotation-operations.md) writes supersession. Package
+[restoration guards](agent-restoration-safety.md) are implemented; actual consumer qualification remains separate.
 
 ## Composition and authority
 
@@ -168,7 +169,8 @@ transaction fixtures. All delivered, superseded, revoked, expired, retryable and
 prove read projection only, not their downstream writers or valid lifecycle transitions. Separately,
 [TASK-00050's tests](agent-credential-retirement.md#package-evidence-and-remaining-qualification) exercise actual
 revocation/cancellation and controlled direct supersession. [TASK-00051's delivery tests](agent-credential-delivery.md)
-now exercise actual package claim/admission/outcome writers and safe disposition. TASK-00049 will integrate actual
-rotation/delivery transitions after all its prerequisite writers exist. No scheduler-only recovery, real database
-concurrency, consumer authorization policy, sink, encryption, activation or launch qualification is claimed.
+now exercise actual package claim/admission/outcome writers and safe disposition. TASK-00049/00054 integrate actual
+rotation/delivery transitions; the [complete evidence inventory](agent-operation-evidence.md) maps both owning sides.
+The status tests alone do not prove scheduler recovery, real database concurrency, consumer authorization policy,
+sink, encryption, activation or launch qualification.
 This contract has no HTTP endpoint/envelope or UI; executable state/failure evidence is the useful before/after proof.

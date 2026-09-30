@@ -9,6 +9,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- [Current Agent integration guidance](docs/agent-integration.md) and the
+  [complete scenario/evidence inventory](docs/agent-operation-evidence.md): all 25 proposal scenarios plus ratified
+  outcome/bounds additions, current package test provenance, superseded legacy/upgrade obligations and explicit
+  real-adapter/sink/authority/restore/activation gaps. Documentation only; no consumer qualification or release receipt.
 - One unreleased [Agent operation canonical contract](docs/agent-canonical-upgrades.md) with fixed Unicode
   edge-whitespace normalization and marker `2`. Before first adoption, removed the speculative v1 reader,
   creation-version/reader-set selection and cross-version fixtures; request `canonicalize()` methods take no version
@@ -86,18 +90,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   original outcome; uncertain commits remain indeterminate and publication failures return typed safe warnings.
   `AgentCredentialRotationResult` exposes only safe metadata; the old lifecycle `rotate()` is removed.
   The revocation service drops obsolete generator/cipher constructor arguments but keeps its existing failure behavior.
-  See the [rotation contract](docs/agent-rotation-operations.md). Restoration and final consumer qualification remain downstream.
+  See the [rotation contract](docs/agent-rotation-operations.md). Package restoration is implemented;
+  real consumer qualification remains separate.
 
 - **Unreleased v0.5.0 integration change:** operation repository adapters must implement `getStatusByKey()` and
   persist delivery/credential dispositions; authorization implementations must add side-effect-free `authorizeRead()`
   with current invoker/delegation, destination and target checks. No permissive fallback or consumer adapter is supplied.
 
-- **Breaking (pre-1.0, incomplete v0.5.0 composition):** Agent provisioning now requires a retained scoped operation
+- **Breaking (pre-1.0, unreleased v0.5.0):** Agent provisioning now requires a retained scoped operation
   key and registered destination, with transactional consumer authorization. It atomically prepares encrypted delivery
   and returns safe issuance metadata, a distinct indeterminate outcome, or a typed publication warning after confirmed
   commit. Same-key retry does not issue again. The old raw-return provision signature is removed. See the
   [provisioning contract](docs/agent-provisioning-operations.md). Recoverable Agents require operation-aware rotation
-  and atomic retirement; do not deploy this partial protocol before restoration and consumer qualification.
+  and atomic retirement. The current protocol includes package restoration guards, but does not establish release
+  or real consumer qualification; see the integration/evidence guides above.
 
 ## [0.4.0] - 2026-09-27
 

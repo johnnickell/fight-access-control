@@ -45,10 +45,11 @@ mandatory. Cleanup cannot make an old operation key reusable. Unsupported canoni
 readers or fallback. Cipher/key identities, protocol versions and monotonic generations have current security purposes;
 they are not selectable previous package contracts.
 
-[Restoration safety](../planning/tasks/00058-TASK.md) and [final integration evidence](../planning/tasks/00059-TASK.md)
-remain downstream work. There is no historical data migration/backfill or cross-version rollback obligation, and no
-permission to reset consumer data. Actual database, key, sink, authority-writer and activation/use qualification is
-separate from package tests.
+[Restoration safety](agent-restoration-safety.md) is implemented and independently accepted at the package boundary.
+Use the [integration guide](agent-integration.md) and [final evidence inventory](agent-operation-evidence.md) for
+current composition and qualification gaps; TASK-00059's guidance has independent acceptance and behavioral QA.
+There is no historical data migration/backfill or cross-version rollback obligation, and no permission to reset consumer data. Actual
+database, key, sink, authority-writer and activation/use qualification is separate from package tests.
 
 ## Package evidence
 

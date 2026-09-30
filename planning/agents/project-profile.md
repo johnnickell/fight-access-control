@@ -45,7 +45,8 @@ previous-iteration support; completed TASKs and earlier guidance cannot require 
   confirms neither delivery, enrollment activation nor launch permission; each needs its own confirmed outcome and
   current authorization. Revocation, AuthenticationService and other handlers retain their publication behavior.
   TASK-00046 implements the provision exception and TASK-00048 implements rotation as unreleased work; the old
-  raw-return rotation API is removed. Scheduler proof remains downstream. This guidance grants no independent implementation or release authority.
+  raw-return rotation API is removed. TASK-00049/00052 prove package scheduler-only recovery; actual consumer
+  qualification remains separate. This guidance grants no independent implementation or release authority.
 - For that credential-operation replacement, follow ratified [EPIC-00009 D4](../epics/00009-EPIC.md#d4--bounded-operation-and-integration-policy):
   documented finite defaults, optional validated overrides, and no manual-configuration or additional human-approval
   requirement for routine operation/recovery. Capacity exhaustion must give new work a clear retryable rejection or
@@ -76,6 +77,12 @@ previous-iteration support; completed TASKs and earlier guidance cannot require 
   use [current worker composition](../../docs/credential-delivery.md), not the removed transport-confirmation Command.
   `ManagedPolicyPlanner` requires all four repositories, including Agent; it has no older optional composition.
   No prior-data conversion, legacy adoption or schema migration is a package obligation.
+- Use the [current Agent integration guide](../../docs/agent-integration.md) and
+  [complete scenario/evidence inventory](../../docs/agent-operation-evidence.md) for final composition and evidence
+  handoff. They distinguish current package assertions, superseded requirements and mandatory unexecuted real-consumer
+  qualification. TASK-00059's documentation has independent technical acceptance and behavioral QA at `ed516f9`;
+  neither guides nor package passes authorize release, activation/use, consumer adoption, deployment or
+  Agent OS TASK-00138 closure.
 - QueryHandlers read through Domain repositories only: no aggregate mutation, commit, or domain-event dispatch.
 - AuthenticationService follows the same atomic, post-commit ordering, uses Fight Common password and token ports,
   returns non-serializable token results, and emits RedactedCommandFailed without raw secret input.

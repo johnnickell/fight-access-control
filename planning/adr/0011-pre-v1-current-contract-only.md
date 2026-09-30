@@ -36,4 +36,9 @@ TASK-00055's legacy-Agent acceptance remains historical, not a continuing requir
 by removal, M2/M3 retain only current-contract safety, TASK-00058 covers same-contract restoration only, and
 TASK-00059 supplies current integration guidance and evidence rather than a migration guide.
 
-This records policy and pending cleanup, not completed code removal or a fresh implementation acceptance.
+At the policy checkpoint this did not establish code removal or fresh implementation acceptance. TASK-00068 has
+since been independently accepted for removal/current-contract safety, and TASK-00058 for package restoration guards.
+TASK-00059's [integration guide](../../docs/agent-integration.md) and
+[evidence inventory](../../docs/agent-operation-evidence.md) document the resulting contract and explicit consumer
+gaps, with independent technical acceptance and behavioral QA at `ed516f9`. Historical decisions and receipts remain
+unchanged; no consumer qualification, release or deployment follows from these package checkpoints.

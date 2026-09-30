@@ -4,15 +4,16 @@
 
 | Epic | Target | Current outcome |
 | --- | --- | --- |
-| [EPIC-00009](epics/00009-EPIC.md) | `v0.5.0` | Current cohort/canonical contracts are accepted. TASK-00068 removes remaining previous-iteration support before current-contract restoration and final integration evidence. No partial deployment or release is authorized. |
+| [EPIC-00009](epics/00009-EPIC.md) | `v0.5.0` | Package current-contract cleanup, cohort/canonical/restoration safety and final guidance are independently accepted; TASK-00059 QA passes. Real consumer qualification and separately authorized release/adoption/deployment remain open. |
 
-## Approved planning and next TASK
+## Current package acceptance and next TASK
 
 John's 2026-09-30 package-wide decision in [ADR 0011](adr/0011-pre-v1-current-contract-only.md) removes all obligations
-to support previous APIs/data iterations while pre-v1. [TASK-00068](tasks/00068-TASK.md) is the next cleanup:
-remove legacy-Agent mode/API stubs and credential-delivery compatibility defaults. It precedes TASK-00058's
-current-contract restoration proof. TASK-00059 supplies current integration guidance, not migration guidance.
-The Board owns executable ordering; this amendment does not claim code removal or authorize release/deployment.
+to support previous APIs/data iterations while pre-v1. [TASK-00068](tasks/00068-TASK.md) has accepted removal of
+legacy-Agent mode/API stubs and credential-delivery compatibility defaults. TASK-00058's current-contract restoration
+and TASK-00059's final integration guidance/evidence are independently accepted; TASK-00059 behavioral QA also passes.
+John authorized TASK-00059 landing, with publication pending at this tracked checkpoint. Real consumer evidence remains
+open; no migration, release or deployment is claimed. The [Board](tasks/BOARD.md) owns next executable work.
 
 ### Original decomposition context
 
@@ -42,9 +43,10 @@ John selected `v0.5.0` as the target release. Implementation, release/publicatio
 TASK-00138 closure remain separately authorized operations.
 
 Current package checkpoint: TASK-00056's cohort safety and revised TASK-00057's single canonical contract are
-independently accepted. TASK-00055's legacy preservation is superseded, not a continuing obligation. Revised M1
-requires TASK-00068 removal; current restoration (M4), final guidance (M5) and real consumer qualification remain
-outstanding. The [Board](tasks/BOARD.md) owns current executable ordering.
+independently accepted, as are TASK-00068 removal (revised M1), TASK-00058 restoration (M4) and TASK-00059 guidance
+(M5). TASK-00055's legacy preservation is superseded, not a continuing obligation. Real consumer qualification remains
+outstanding; package acceptance does not close the parent consumer obligations. The [Board](tasks/BOARD.md) owns
+current executable ordering.
 
 ## Approved Feature planning
 
