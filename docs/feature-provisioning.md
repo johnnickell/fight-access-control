@@ -3,8 +3,9 @@
 [TASK-00062](../planning/tasks/00062-TASK.md) adds the stored Feature model and create-if-absent provisioning.
 It consumes [complete candidate discovery](feature-references.md), creates only missing names OFF, and preserves
 existing identities/settings. It does **not** establish activation readiness or a supported partial Feature release:
-preparation validation (TASK-00063), evaluation (TASK-00064), Permission-removal guards (TASK-00065), management
-(TASK-00066), and guarded retirement/final lifecycle evidence (TASK-00067) remain separate.
+[preparation validation](feature-preparation.md) is supplied by TASK-00063; evaluation (TASK-00064),
+Permission-removal guards (TASK-00065), management (TASK-00066), and guarded retirement/final lifecycle evidence
+(TASK-00067) remain separate.
 
 ## Composition and invocation
 
@@ -44,7 +45,8 @@ an already-completed inventory through its discovery implementation, but must re
 The handler returns `void`. A normal return means this creation pass completed and its attempted event dispatches
 returned; it says nothing about subscriber completion, existing definitions' integrity, deployment activation or
 runtime access. The consumer must perform preparation validation before activating referencing code. That package
-validation path is not supplied by this TASK; do not infer readiness from a normal provisioning return meanwhile.
+[validation path](feature-preparation.md) is a separate fresh read; do not infer readiness from a normal provisioning
+return.
 
 ## Model and persistence contract
 
@@ -150,7 +152,7 @@ separate; production Domain/Application code has no OpenAPI dependency.
 - `tests/OpenApi/FeatureComponentsTest.php`: generated public schema against real serialized command values.
 
 The in-memory transaction and reference-fence model is **not** actual database concurrency, scanner completeness,
-consumer authorization or deployment qualification. Consumer-bindable preparation scenarios follow in TASK-00063;
+consumer authorization or deployment qualification. Consumer-bindable [preparation scenarios](feature-preparation.md) are supplied by TASK-00063;
 all-path Permission-removal races in TASK-00065; manual-create/provision and rebinding conflicts in TASK-00066; real
 retirement/reintroduction and complete lifecycle traceability in TASK-00067. No UI exists here: executable library
 behavior and generated-contract tests are the useful nonvisual evidence. Independent review and behavioral QA remain

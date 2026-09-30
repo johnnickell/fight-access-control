@@ -5,17 +5,18 @@ dependencies, acceptance, and verification.
 
 ## What's Next?
 
-First ready Task: [TASK-00063](00063-TASK.md) — Validate Feature preparation before activation.
+Active Task: [TASK-00063](00063-TASK.md) — Validate Feature preparation before activation.
 
 ## In Progress
 
-No Tasks are currently in this state.
+| Order | TASK ID | Title | Parent TICKET | Status | Blocked by | PR |
+| --- | --- | --- | --- | --- | --- | --- |
+| 63 | [TASK-00063](00063-TASK.md) | Validate Feature preparation before activation | [TICKET-00015](../tickets/00015-TICKET.md) — Register and provision Features safely | in-progress | [TASK-00062](00062-TASK.md) | — |
 
 ## Ready Frontier
 
 | Order | TASK ID | Title | Parent TICKET | Status | Blocked by | PR |
 | --- | --- | --- | --- | --- | --- | --- |
-| 63 | [TASK-00063](00063-TASK.md) | Validate Feature preparation before activation | [TICKET-00015](../tickets/00015-TICKET.md) — Register and provision Features safely | ready-for-agent | [TASK-00062](00062-TASK.md) | — |
 | 64 | [TASK-00064](00064-TASK.md) | Evaluate Feature availability with fresh, identity-safe checks | [TICKET-00016](../tickets/00016-TICKET.md) — Evaluate Feature availability for Users and Agents | ready-for-agent | [TASK-00062](00062-TASK.md) | — |
 | 65 | [TASK-00065](00065-TASK.md) | Protect Permissions referenced by Features | [TICKET-00017](../tickets/00017-TICKET.md) — Manage and retire Features safely | ready-for-agent | [TASK-00062](00062-TASK.md) | — |
 

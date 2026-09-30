@@ -457,7 +457,9 @@ existing User/Agent Permission authority; availability never replaces business a
 provisioning creates missing Features OFF using the configured default Permission and preserves existing choices.
 Current references guard deletion; checks read fresh Feature state without shared caching or in-flight cancellation.
 Consumers own adapters, scanning, enforcement, UI, authorization, and deployment integration; actual CMS migration
-is separate. TASK-00062 now supplies stored Feature creation/provisioning; evaluation and management remain planned.
+is separate. TASK-00062 supplies stored Feature creation/provisioning. TASK-00063 adds read-only complete-candidate
+preparation validation against authoritative Feature and bound Permission IDs; a valid OFF Feature passes preparation,
+not runtime availability or deployment authorization. Evaluation and management remain planned.
 TASK-00061 implements the
 [declaration and discovery contract](docs/feature-references.md): Domain `FeatureName` validates without normalization;
 Application `FeatureFlag` is method-only/nonrepeatable and `FeatureReferences` merges name-only references.
@@ -523,6 +525,17 @@ for accepted package implementation/local verification; John requested PR landin
 repository/interleaving probes are not consumer database, discovery, removal-guard or deployment qualification.
 TASK-00063–00067 retain their validation/evaluation/integrity/management/retirement scope; this is not a
 supported partial release.
+
+## Feature preparation builder checkpoint — TASK-00063
+
+John authorized the clean main checkout from `develop` `1a1e81e` on
+`feature/task-00063-feature-preparation`. The [preparation query and integration guide](docs/feature-preparation.md)
+now check a complete candidate inventory against fresh stored Feature and exact Permission identities, distinguishing
+invalid configuration from incomplete discovery and operational failure. Consumer-bindable package-port scenarios
+compose declaration, provisioning and validation, including rollback/retry and post-commit publication loss. The
+builder's full gate passes **1802 tests / 35027 assertions**, exact **6348/6348 owned statements**; independent
+technical review and behavioral QA are pending. This is not a partial Feature release, actual scanner/database
+qualification, permission to activate, consumer adoption or completion of the downstream integrity/management slices.
 
 ## Planning and Completion
 

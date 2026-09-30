@@ -38,6 +38,8 @@ interface FeatureRepository
      *
      * A fresh provisioning pass must consult authoritative state, not a previous pass's negative lookup cache.
      * Preserve stored settings and broken reference identities; lookup does not certify readiness or availability.
+     * Hydrate invalid persisted definitions as FeatureStateException (including invalid typed fields); do not return
+     * null for malformed rows or infrastructure failures. A preparation query must distinguish those from absence.
      */
     public function getByName(FeatureName $name): ?Feature;
 }

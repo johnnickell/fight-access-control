@@ -47,7 +47,10 @@ raw consumer configuration: a missing Feature requires a canonical resolvable Pe
 pass ignores unused configuration. The schema therefore adds no name-pattern constraint. Candidate references come
 from consumer-composed discovery, not an HTTP payload or serialized scanner. See [atomic provisioning](feature-provisioning.md).
 This additive component introduces no endpoint or activation-readiness result. Generated-schema tests compare it
-with actual command serialization in the default suite; no Feature release version is selected.
+with actual command serialization in the default suite. The additive
+`Fight.AccessControl.ValidateFeaturePreparation` empty query and `FeaturePreparationResult`/`FeaturePreparationIssue`
+components describe the read-only configuration result from [preparation validation](feature-preparation.md).
+They do not declare an endpoint, activation receipt or runtime authorization; no Feature release version is selected.
 
 ### Credential-delivery values
 
