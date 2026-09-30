@@ -6,7 +6,7 @@ Fight AccessControl owns framework-neutral identity, credential, session, author
 behavior shared by Fight applications. The repository-local behavioral and security authority is
 [TICKET-00001](planning/tickets/00001-TICKET.md).
 
-## Restoration safety — TASK-00058 awaiting independent review
+## Restoration safety — TASK-00058 independently accepted
 
 John authorized TASK-00058 in the main checkout from `develop` `80e9add` on
 `feature/task-00058-restoration-safety`. The existing `AgentOperationContract` now requires explicit nullable
@@ -22,7 +22,12 @@ external sink receipts/tombstones/high-water and a separate recovery journal. Th
 not real database/tooling restore, actual writer exclusion or activation/use authority. The complete local gate passes
 **1675 tests / 34503 assertions**, exact **6218/6218 owned statements**; focused Domain/cohort/restoration checks pass
 **302 tests / 11891 assertions**. No final warnings/skips or dependency drift. The TASK owns the receipt, input manifest
-and failure chronology. Independent review is pending; no consumer adoption, publication, merge or release is claimed.
+and failure chronology. Independent review accepted `eeb6f5f` against unchanged `develop` `80e9add`, with all C1–C8
+passing, no findings, **1095 fresh tests / 30016 assertions** and all **782/782** final build inputs verified.
+TASK-00058 is done for accepted package implementation/local verification. John requested landing; final publication
+is pending at this intake checkpoint, with fresh gates and the administrative-only provenance bridge owned by the
+ignored TASK landing handoff. Hosted CI is optional/unchecked; interactive QA is N/A. No consumer adoption, merge
+or release is claimed; TASK-00059 final integration and real consumer qualification remain separate.
 
 ## Current contract — TASK-00068 implementation
 

@@ -276,7 +276,7 @@ Reference fixtures model persisted state/restart, not an actual consumer schema 
 database/process restart or rollout qualification. TASK-00058/00059 retain restoration and final evidence ownership;
 no merge or release is authorized.
 
-### TASK-00058 restoration evidence checkpoint — awaiting independent review
+### TASK-00058 restoration evidence checkpoint — before independent review
 
 John authorized the main checkout from `develop` `80e9add` on `feature/task-00058-restoration-safety`.
 [Restoration safety](../../docs/agent-restoration-safety.md) now requires independently reconciled-generation evidence
@@ -293,9 +293,17 @@ consumer restoration algorithm, physical restore, external authority or activati
 
 The full local gate passes **1675 tests / 34503 assertions**, exact **6218/6218 owned statements**; focused checks pass
 **302 tests / 11891 assertions**. No final warnings/skips or dependency drift. TASK-00058 owns logs, input manifest,
-receipt and failure chronology. M4 remains unchecked pending independent review; the guide specifies mandatory
-unexecuted real-consumer rehearsal and abort/resume evidence. M5/TASK-00059 final integration remains outstanding.
-No publication, merge, release, actual restore, consumer adoption or Agent OS TASK-00138 closure is claimed.
+receipt and failure chronology. At this implementation checkpoint M4 remained unchecked pending independent review;
+the guide specifies mandatory unexecuted real-consumer rehearsal and abort/resume evidence. M5/TASK-00059 final
+integration remains outstanding. No publication, merge, release, actual restore, consumer adoption or Agent OS
+TASK-00138 closure was claimed at that checkpoint.
+
+Independent review subsequently accepted TASK-00058 at `eeb6f5f` against unchanged `develop` `80e9add`, with C1–C8
+and all applicable Spec/Standards IDs passing, no findings, **1095 fresh tests / 30016 assertions**, and all
+**782/782** final build inputs verified. M4 is accepted at the package boundary; TASK-00058 is done for implementation
+and local verification. John requested landing; the ignored TASK landing handoff owns fresh publication gates and
+final local/remote identities. This intake precedes publication. Hosted CI remains optional/unchecked; interactive
+QA is N/A. Actual consumer rehearsal, final integration, merge, release and adoption are not established.
 
 ## Acceptance Evidence
 
@@ -311,7 +319,7 @@ No publication, merge, release, actual restore, consumer adoption or Agent OS TA
       Actual services preserve same-contract retry/restart and retained/tombstoned outcomes, reject changed bindings
       and unsupported/corrupt state without fallback, and retain current authority, atomicity and destination/order
       fences. No backwards compatibility or migration of nonexistent old data is required. TASK-00057 C1–C8 own proof.
-- [ ] **M4 — Restoration safety:** observable package/conformance tests demonstrate that stale restored state cannot
+- [x] **M4 — Restoration safety:** observable package/conformance tests demonstrate that stale restored state cannot
       silently authorize duplicate issuance, reset order or resurrect retired keys after external acceptance. Document
       current-contract reconciliation prerequisites, forward repair and unavailable outcomes. Real current-composition
       and same-contract backup/restore rehearsals are consumer evidence; no cross-version rollout/migration is required.
@@ -410,5 +418,5 @@ migration/restore execution, commit, publication, dependency upgrade or Agent OS
 | 55 | [TASK-00055](../tasks/00055-TASK.md) | Preserve existing Agent authority through upgrade | done |
 | 56 | [TASK-00056](../tasks/00056-TASK.md) | Reject incompatible credential-operation cohorts | done |
 | 57 | [TASK-00057](../tasks/00057-TASK.md) | Simplify Agent operations to one canonical contract | done |
-| 58 | [TASK-00058](../tasks/00058-TASK.md) | Fail closed on unreconciled credential-state restoration | in-progress |
+| 58 | [TASK-00058](../tasks/00058-TASK.md) | Fail closed on unreconciled credential-state restoration | done |
 | 59 | [TASK-00059](../tasks/00059-TASK.md) | Complete current-contract guidance and evidence traceability | ready-for-agent |
