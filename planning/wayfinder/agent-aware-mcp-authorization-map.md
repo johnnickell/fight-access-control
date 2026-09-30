@@ -53,6 +53,7 @@ to its resulting EPIC, TICKET, and/or implementation TASKs.
 |---|---|---|---|---|---|
 | WF-008 | [Define the Agent-aware MCP authorization contract](tickets/WF-008-agent-aware-mcp-authorization-contract.md) | Grilling | HITL | **Closed** | — |
 | WF-023 | [Bind self-service profile tools to the authenticated Agent](tickets/WF-023-self-service-agent-target.md) | Grilling | HITL | **Closed** | WF-008 |
+| WF-024 | [Define the self-service Agent profile contract](tickets/WF-024-self-service-agent-profile-contract.md) | Grilling | HITL | **Open** | WF-008, WF-023 |
 
 ## Blocking relationships
 
@@ -62,11 +63,13 @@ Agent-aware MCP authorization contract ──→ Self-service target selection �
 
 ## Frontier
 
-The authorization frontier is closed and handed off through [EPIC-00005](../epics/00005-EPIC.md). The map remains
-active because the self-service profile tools still need a separately opened decision record covering their remaining
-behavior, schemas, Permission identities, and update semantics before they can receive an implementation handoff.
-Target selection is already settled by [WF-023](tickets/WF-023-self-service-agent-target.md) and is not part of that
-remaining frontier.
+[WF-024 — Define the self-service Agent profile contract](tickets/WF-024-self-service-agent-profile-contract.md)
+is the open frontier for the two profile tools' remaining behavior, safe schemas, Permission identities and update
+semantics. Its dependencies, WF-008 and WF-023, are closed. Opening the decision accepts no candidate contract and
+creates no implementation handoff.
+
+The authorization contract is already handed off through [EPIC-00005](../epics/00005-EPIC.md). Target selection is
+settled by [WF-023](tickets/WF-023-self-service-agent-target.md); neither boundary is reopened by WF-024.
 
 ## Not yet specified (fog)
 
