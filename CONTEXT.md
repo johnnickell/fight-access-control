@@ -24,8 +24,12 @@ repository; no older constructor composition remains. Current protected-tier che
 Authentication/authorization, hydration, atomicity, retry/restart, retained-key/order/receipt/tombstone and restoration
 safety remain. TASK-00058 covers current-contract stale-state restoration; TASK-00059 supplies final integration
 and evidence, not a migration route. No data reset, release, consumer qualification or deployment follows.
-Implementation is awaiting independent review. The local `./bin/build` passed **1496 tests / 25805 assertions** with
-exact **6217/6217** owned statements; TASK-00068 records the receipt and package-wide removal/retention accounting.
+Independent review accepted `90c22b5` against unchanged `develop` `668ef52`, with all C1–C7 passing, no findings,
+**1227 fresh tests / 24149 assertions** and all 778 final-manifest entries verified. TASK-00068 is done for accepted
+implementation/local verification. The local `./bin/build` passed **1496 tests / 25805 assertions** with exact
+**6217/6217** owned statements; TASK-00068 records the receipt and package-wide removal/retention accounting.
+John requested landing; publication is pending at this closeout checkpoint. The ignored TASK landing handoff owns
+fresh gates, the metadata-only provenance bridge and final remote identity. No approval, merge or release is claimed.
 Earlier acceptance receipts and delivery checkpoints below are historical, not acceptance of TASK-00068.
 
 ## Prior canonical-contract simplification — TASK-00057
