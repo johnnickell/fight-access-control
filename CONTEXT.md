@@ -28,8 +28,10 @@ Independent review accepted `90c22b5` against unchanged `develop` `668ef52`, wit
 **1227 fresh tests / 24149 assertions** and all 778 final-manifest entries verified. TASK-00068 is done for accepted
 implementation/local verification. The local `./bin/build` passed **1496 tests / 25805 assertions** with exact
 **6217/6217** owned statements; TASK-00068 records the receipt and package-wide removal/retention accounting.
-John requested landing; publication is pending at this closeout checkpoint. The ignored TASK landing handoff owns
-fresh gates, the metadata-only provenance bridge and final remote identity. No approval, merge or release is claimed.
+John's landing request published [PR #95](https://github.com/johnnickell/fight-access-control/pull/95) against
+unchanged `develop`; it is open at the initial publication checkpoint. Fresh landing gates retain the same complete
+test/coverage counts. The ignored TASK landing handoff owns the metadata-only provenance bridge and final remote
+identity. No approval, merge or release is claimed.
 Earlier acceptance receipts and delivery checkpoints below are historical, not acceptance of TASK-00068.
 
 ## Prior canonical-contract simplification — TASK-00057
