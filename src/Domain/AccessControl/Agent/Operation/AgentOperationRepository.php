@@ -16,8 +16,11 @@ use SensitiveParameter;
  * Interface AgentOperationRepository
  *
  * Persists operations, prepared delivery and slot order on the package Unit of Work's shared connection.
+ * Every writer, including direct calls, acquires and validates getOperationContract() before effects, holding
+ * the cohort fence through commit alongside subordinate authority/Agent/slot/key fences. Unsupported or missing
+ * composition rejects sanitized UNAVAILABLE, including reservation, retirement and material-free outcomes.
  */
-interface AgentOperationRepository
+interface AgentOperationRepository extends AgentOperationContractRepository
 {
     /**
      * Retrieves authoritative retained correlation only after current scope and destination authorization

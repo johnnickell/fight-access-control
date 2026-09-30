@@ -4,7 +4,7 @@
 
 | Epic | Target | Current outcome |
 | --- | --- | --- |
-No epics are currently in progress.
+| [EPIC-00009](epics/00009-EPIC.md) | `v0.5.0` | Package cohort enforcement is independently accepted through TASK-00056; canonical upgrades, restoration and final migration evidence remain outstanding. No partial deployment or release is authorized. |
 
 ## Approved planning and next TASK
 
@@ -18,19 +18,27 @@ and boundaries on 2026-09-27, then approved the decomposition into
 [TICKET-00013](tickets/00013-TICKET.md) (protected delivery/recovery) and
 [TICKET-00014](tickets/00014-TICKET.md) (migration/compatibility and evidence traceability).
 
-TICKET-00012's approved TASK split is now recorded: [TASK-00046](tasks/00046-TASK.md) is the first ready provisioning
-slice; [TASK-00047](tasks/00047-TASK.md) reads status after it. [TASK-00048](tasks/00048-TASK.md) (rotation) and
+At the approved decomposition checkpoint, TICKET-00012's TASK split was recorded:
+[TASK-00046](tasks/00046-TASK.md) was the first ready provisioning slice;
+[TASK-00047](tasks/00047-TASK.md) reads status after it. [TASK-00048](tasks/00048-TASK.md) (rotation) and
 [TASK-00049](tasks/00049-TASK.md) (conformance) now have their approved TICKET-00013 dependencies recorded and remain
 waiting, not needs-info. TICKET-00013's [TASK-00050](tasks/00050-TASK.md)–[TASK-00054](tasks/00054-TASK.md) cover
 retirement fences, protected delivery, restart recovery, material maintenance and delivery/lifecycle conformance.
 They begin after TASK-00046 through an acyclic graph; neither conformance TASK blocks its implementation inputs.
 TICKET-00014's [TASK-00055](tasks/00055-TASK.md)–[TASK-00059](tasks/00059-TASK.md) now cover legacy compatibility,
 cohort enforcement, canonical upgrades, restoration safety and final migration/evidence guidance. All three TICKETs
-have approved TASK splits; TASK-00046 remains first ready and TASK-00047–00059 wait on dependencies. Concrete limits
-and compatibility details remain design/proof obligations before implementation acceptance. Planning readiness is
+have approved TASK splits; at that checkpoint TASK-00046 was first ready and TASK-00047–00059 waited on dependencies.
+Concrete limits and compatibility details remain design/proof obligations before implementation acceptance. Planning readiness is
 not execution authorization; intermediate PRs are not a supported partial release or consumer qualification.
 John selected `v0.5.0` as the target release. Implementation, release/publication, consumer upgrade and Agent OS
 TASK-00138 closure remain separately authorized operations.
+
+Current package checkpoint: [TASK-00056](tasks/00056-TASK.md) is independently accepted at `ff5c035` with no findings,
+completing TICKET-00014 M2 at the package boundary. Existing-Agent compatibility (M1) is also accepted; canonical
+upgrades (M3), restoration (M4), final guidance (M5) and real consumer qualification remain outstanding. John's landing
+request published [TASK-00056 PR #92](https://github.com/johnnickell/fight-access-control/pull/92), not a merge or
+release. The [Board](tasks/BOARD.md) owns current executable ordering;
+[TASK-00057](tasks/00057-TASK.md) is the next credential-operation slice, subject to separate execution authority.
 
 ## Approved Feature planning
 

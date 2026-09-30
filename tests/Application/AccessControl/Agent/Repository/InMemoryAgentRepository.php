@@ -10,6 +10,7 @@ use Fight\AccessControl\Domain\AccessControl\Agent\AgentCredentialId;
 use Fight\AccessControl\Domain\AccessControl\Agent\AgentId;
 use Fight\AccessControl\Domain\AccessControl\Agent\AgentRepository;
 use Fight\AccessControl\Domain\AccessControl\Agent\Exception\AgentOperationRejectedException;
+use Fight\AccessControl\Domain\AccessControl\Agent\Operation\AgentOperationContract;
 use Fight\AccessControl\Domain\AccessControl\Agent\Operation\AgentOperationFailure;
 use Fight\AccessControl\Domain\AccessControl\Permission\Permission;
 use Fight\AccessControl\Domain\AccessControl\Permission\PermissionId;
@@ -23,6 +24,8 @@ use Throwable;
 
 final class InMemoryAgentRepository implements AgentRepository
 {
+    public readonly InMemoryAgentOperationContract $contract;
+
     public ?Closure $afterReplace = null;
 
     /** @var list<Agent> */
@@ -50,10 +53,17 @@ final class InMemoryAgentRepository implements AgentRepository
         }
 
         $this->authorizationReferences = $resolvedAuthorizationReferences;
+        $this->contract = $operations->contract ?? new InMemoryAgentOperationContract($unitOfWork);
+    }
+
+    public function getOperationContract(): AgentOperationContract
+    {
+        return $this->contract->read();
     }
 
     public function add(Agent $agent): void
     {
+        $this->getOperationContract()->assertCompatible();
         $this->agents[] = $agent;
         $this->authorizationReferences->retainAgent($agent);
         $this->unitOfWork?->onRollback(function () use ($agent): void {
@@ -110,6 +120,7 @@ final class InMemoryAgentRepository implements AgentRepository
         #[SensitiveParameter] Agent $expected,
         #[SensitiveParameter] Agent $replacement
     ): bool {
+        $this->getOperationContract()->assertCompatible();
         foreach ($this->agents as $index => $agent) {
             if (
                 $agent !== $expected
@@ -156,6 +167,7 @@ final class InMemoryAgentRepository implements AgentRepository
 
     public function replacePermissionAssignments(Agent $expected, Agent $replacement): bool
     {
+        $this->getOperationContract()->assertCompatible();
         ++$this->permissionAssignmentReplacementCalls;
 
         if ($this->replacePermissionAssignmentsFailure instanceof Throwable) {

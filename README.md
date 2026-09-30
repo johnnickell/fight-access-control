@@ -100,6 +100,9 @@ transaction, key and sink qualification scenarios, running both receipt-lookup a
 [Existing-Agent compatibility](docs/agent-existing-data-v0.5-migration.md) preserves reconstituted legacy authority,
 exposes explicit recovery correlation in safe Agent reads and permits recovery only through an authorized new rotation.
 It does not manufacture historical issuance or execute a consumer migration.
+[Operation cohorts](docs/agent-operation-cohorts.md) require persisted version/capability qualification and a shared
+transaction-duration cohort fence across every writer. Cohort generations fence delivery/cleanup acknowledgements;
+consumers must separately exclude old binaries at storage or a trusted boundary and qualify real writer races.
 These modeled interleavings do not qualify real consumer adapters or activation/use. This intermediate work is
 **not deployable** until independent acceptance and downstream compatibility TASKs are complete. Existing released
 versions are unchanged.

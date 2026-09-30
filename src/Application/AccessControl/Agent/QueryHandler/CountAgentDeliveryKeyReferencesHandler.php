@@ -46,6 +46,7 @@ final readonly class CountAgentDeliveryKeyReferencesHandler implements QueryHand
         $query = $queryMessage->payload();
         try {
             $this->authorization->authorizeKeyAccounting($query->getVersion(), $this->clock->now());
+            $this->operations->getOperationContract()->assertCompatible();
             $count = $this->operations->countDeliveryKeyReferences($query->getVersion());
             $this->authorization->authorizeKeyAccounting($query->getVersion(), $this->clock->now());
             if ($count < 0) {

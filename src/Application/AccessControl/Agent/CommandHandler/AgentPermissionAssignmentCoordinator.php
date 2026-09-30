@@ -148,6 +148,7 @@ final readonly class AgentPermissionAssignmentCoordinator
      */
     private function getAgent(AgentId $agentId): Agent
     {
+        $this->agentRepository->getOperationContract()->assertCompatible();
         $agent = $this->agentRepository->getById($agentId);
         if (!$agent instanceof Agent) {
             throw new AgentPermissionAssignmentException('The Agent does not exist.');

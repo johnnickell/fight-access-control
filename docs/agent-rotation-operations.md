@@ -5,8 +5,9 @@ operation. It consumes [provisioning correlation](agent-provisioning-operations.
 [atomic predecessor retirement](agent-credential-retirement.md) and the existing
 [protected delivery attempt](agent-credential-delivery.md). This is not release or consumer qualification:
 [discovery/restart recovery](agent-delivery-recovery.md), [maintenance](agent-delivery-maintenance.md) and
-[issuance conformance](agent-issuance-conformance.md) now exercise the replacement together. Wider delivery conformance
-and migration/cohort work remain downstream; no consumer qualification is inferred.
+[issuance conformance](agent-issuance-conformance.md) now exercise the replacement together.
+[Delivery conformance](agent-delivery-conformance.md) and mandatory [cohort guards](agent-operation-cohorts.md) also
+cover the actual paths. Remaining migration work and real consumer qualification are separate.
 
 ## Public API and composition
 

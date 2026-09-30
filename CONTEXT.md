@@ -28,6 +28,11 @@ behavior shared by Fight applications. The repository-local behavioral and secur
   and a separately encrypted prepared delivery copy. Retrying an authorized retained key resolves that outcome;
   retiring its material never makes the key reusable. Current unreleased implementation supports provisioning and
   rotation of recoverably provisioned or known active legacy Agents; retries retain the original predecessor request.
+- **Agent operation cohort**: one compatible writer set sharing persisted storage/creation/destination versions,
+  retained-reader obligations and a monotonic generation. Qualified local capabilities and the transaction-duration
+  cohort fence are mandatory across Agent and operation repositories. Delivery/cleanup authority binds the generation;
+  a switch invalidates old acknowledgements, not already disclosed bytes. Consumers separately exclude unchecked old
+  binaries and qualify actual shared-connection writer races. No startup-ready boolean grants admission.
 - **Agent operation status**: an authorized secret-free read snapshot separating confirmed original issuance from
   recorded delivery and original-credential disposition. An absent record is indeterminate, not proof of rollback.
   Current scope/delegation/destination checks precede lookup and repeat with target checks before disclosure; reads
@@ -239,6 +244,18 @@ TASK-00055 is done for accepted implementation/local verification. John's landin
 `46658f1`; the fresh landing gate retains 1318 tests / 18169 assertions and exact 6270/6270 statements. Its ignored
 handoff owns final metadata/remote verification and the administrative-only review bridge. Consumer migration
 qualification, merge and release are not claimed.
+John authorized TASK-00056 in the main checkout from `develop` `eb20472`, on
+`feature/task-00056-contract-cohorts`. Its [cohort contract](docs/agent-operation-cohorts.md) adds mandatory persisted
+compatibility snapshots on both repository contracts, guarded actual writer paths and cohort-bound delivery/cleanup
+authority. Consumer-bindable M2 scenarios and controlled reference interleavings cover denial and restart. The full
+local gate passes 1442 tests / 21365 assertions and exact 6307/6307 statements. Independent review accepted `ff5c035`
+with all eight criteria passing, no findings, 913 fresh Agent tests / 17039 assertions and all 764 final gate inputs
+verified. TASK-00056 is done for accepted package implementation/local verification. John's landing request published
+[PR #92](https://github.com/johnnickell/fight-access-control/pull/92) against unchanged `develop` at initial head
+`a0897e6`; the fresh landing gate retains 1442 tests / 21365 assertions and exact 6307/6307 statements. The ignored
+TASK handoff owns final metadata/remote verification and the administrative-only review bridge.
+Real consumer old-binary exclusion, writer races and deployment remain unqualified; no merge or release is authorized.
+TASK-00057/00058 retain canonical upgrade and restoration ownership.
 Each downstream execution needs authorization. John separately authorized TASK-00046
 execution and PR landing. Planning does not qualify a consumer or authorize migration, release or adoption.
 The replacement requires caller-scoped operation correlation, protected delivery and consumer authorization

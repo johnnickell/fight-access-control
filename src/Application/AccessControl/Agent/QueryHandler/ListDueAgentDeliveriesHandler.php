@@ -56,6 +56,7 @@ final readonly class ListDueAgentDeliveriesHandler implements QueryHandler
                 null,
                 $this->clock->now()
             );
+            $this->operations->getOperationContract()->assertCompatible();
             $views = $this->operations->listDueDeliveries(
                 $query->getScope(),
                 $query->getDestination(),

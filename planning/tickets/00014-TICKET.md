@@ -192,13 +192,30 @@ Additional upstream-ratified requirements: TICKET-00012 I1/I4 and TICKET-00013 D
 issuance/delivery/activation/launch authority. TICKET-00012 I6 and TICKET-00013 D7 prove D4 default/override, capacity/
 existing-recovery and cleanup behavior. M5 verifies these are included in the final traceability/evidence inventory.
 
+### TASK-00056 cohort evidence checkpoint
+
+The [cohort contract and M2 evidence map](../../docs/agent-operation-cohorts.md) now connect compatibility checks to
+actual provision/rotation, revocation, discovery/delivery, maintenance and direct repository/Agent Permission paths.
+`AgentCohortConformance` is consumer-bindable; the reference runner models persisted state and controlled switches,
+including restart and generation-bound rejection of stale delivery/cleanup acknowledgements. Domain and focused
+writer tests cover version/capability rejection, legacy/no-op bypasses, mismatched repositories and no key/sink effects.
+The local gate passes **1442 tests / 21365 assertions**, exact **6307/6307 statements**; focused cohort/contract checks
+pass **124 tests / 3196 assertions**. Independent review accepted `ff5c035` with all eight TASK criteria passing,
+no findings, **913 fresh Agent tests / 17039 assertions** and all **764 final gate inputs** verified. TASK-00056 is
+done for accepted package implementation/local verification; M2 below is accepted at that boundary. John's landing
+request published [PR #92](https://github.com/johnnickell/fight-access-control/pull/92) against unchanged `develop`
+at initial head `a0897e6`, retaining the full-gate counts above. Its ignored handoff owns final metadata/remote
+verification and the metadata-only bridge.
+Real old-binary exclusion, participant substitution, all authority-writer races and consumer activation/use remain
+mandatory unexecuted adoption evidence. No schema/migration, merge or release is authorized.
+
 ## Acceptance Evidence
 
 - [x] **M1 — Existing-Agent/API compatibility:** package behavior tests preserve active authentication and terminal
       revocation across upgrade without manufactured operation/delivery state. Explicit new authorized rotation is
       the recovery path for a known legacy Agent; ambiguous provision cannot auto-create another Agent. Public API
       migration guidance matches the replaced signatures and preserved authentication envelope.
-- [ ] **M2 — Contract cohorts:** test missing capability/contract storage and incompatible/restarted consumers deny
+- [x] **M2 — Contract cohorts:** test missing capability/contract storage and incompatible/restarted consumers deny
       mutation/admission without fallback. Document all lifecycle and authorization writers plus the necessary
       storage/trusted-boundary fencing of old binaries. Published conformance obligations include real writer races;
       do not claim a new-code version check fences an old binary by itself.
@@ -277,7 +294,8 @@ exact 6270/6270 statements; focused Agent/OpenAPI checks pass 797 tests / 14246 
 captured. Independent review accepted `ebc396c` with all seven criteria passing, no findings and all 736 gate/bridge
 inputs verified; M1 is accepted for package behavior. John subsequently requested PR landing; the TASK's ignored
 handoff owns publication/remote verification and the administrative-only provenance bridge. Consumer schema migration,
-real adapter/concurrency proof and adoption are not claimed. M2–M5 retain their separate downstream owners.
+real adapter/concurrency proof and adoption are not claimed. TASK-00056's accepted M2 checkpoint is recorded above;
+M3–M5 retain their separate downstream owners.
 The Board owns current executable order; the following inventory evidence describes the original planning checkpoint.
 
 Before allocation, refreshed local live/archive inventory at unchanged HEAD
@@ -297,7 +315,7 @@ migration/restore execution, commit, publication, dependency upgrade or Agent OS
 | Order | TASK ID | Title | Status |
 | --- | --- | --- | --- |
 | 55 | [TASK-00055](../tasks/00055-TASK.md) | Preserve existing Agent authority through upgrade | done |
-| 56 | [TASK-00056](../tasks/00056-TASK.md) | Reject incompatible credential-operation cohorts | ready-for-agent |
+| 56 | [TASK-00056](../tasks/00056-TASK.md) | Reject incompatible credential-operation cohorts | done |
 | 57 | [TASK-00057](../tasks/00057-TASK.md) | Preserve operation-key meaning across canonicalization upgrades | ready-for-agent |
 | 58 | [TASK-00058](../tasks/00058-TASK.md) | Fail closed on unreconciled credential-state restoration | ready-for-agent |
 | 59 | [TASK-00059](../tasks/00059-TASK.md) | Complete migration guidance and evidence traceability | ready-for-agent |

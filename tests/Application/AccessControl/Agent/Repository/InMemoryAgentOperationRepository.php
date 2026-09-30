@@ -15,6 +15,7 @@ use Fight\AccessControl\Domain\AccessControl\Agent\Maintenance\AgentMaintenanceW
 use Fight\AccessControl\Domain\AccessControl\Agent\Operation\AgentCredentialDestination;
 use Fight\AccessControl\Domain\AccessControl\Agent\Operation\AgentCredentialOperation;
 use Fight\AccessControl\Domain\AccessControl\Agent\Operation\AgentDeliveryId;
+use Fight\AccessControl\Domain\AccessControl\Agent\Operation\AgentOperationContract;
 use Fight\AccessControl\Domain\AccessControl\Agent\Operation\AgentOperationFailure;
 use Fight\AccessControl\Domain\AccessControl\Agent\Operation\AgentOperationKey;
 use Fight\AccessControl\Domain\AccessControl\Agent\Operation\AgentOperationLimits;
@@ -29,6 +30,8 @@ use Throwable;
 
 final class InMemoryAgentOperationRepository implements AgentOperationRepository
 {
+    public readonly InMemoryAgentOperationContract $contract;
+
     /** @var array<string, AgentCredentialOperation> */
     public array $operations = [];
 
@@ -76,6 +79,12 @@ final class InMemoryAgentOperationRepository implements AgentOperationRepository
         private readonly InMemoryUnitOfWork $unitOfWork,
         private readonly InMemoryAgentOperationAuthorization $authorization
     ) {
+        $this->contract = new InMemoryAgentOperationContract($unitOfWork);
+    }
+
+    public function getOperationContract(): AgentOperationContract
+    {
+        return $this->contract->read();
     }
 
     public function getByKey(AgentOperationKey $key): ?AgentCredentialOperation
@@ -275,6 +284,7 @@ final class InMemoryAgentOperationRepository implements AgentOperationRepository
         #[SensitiveParameter] Agent $expected,
         #[SensitiveParameter] Agent $replacement
     ): void {
+        $this->getOperationContract()->assertCompatible();
         if (!$this->unitOfWork->transactionActive) {
             throw new AgentOperationRejectedException(AgentOperationFailure::UNAVAILABLE);
         }
@@ -348,6 +358,7 @@ final class InMemoryAgentOperationRepository implements AgentOperationRepository
 
     private function assertFenced(): void
     {
+        $this->getOperationContract()->assertCompatible();
         if (!$this->unitOfWork->transactionActive || !$this->authorization->locked) {
             throw new LogicException('Operation persistence must share authority fences and the package transaction.');
         }

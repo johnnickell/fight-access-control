@@ -18,6 +18,7 @@ use Fight\AccessControl\Domain\AccessControl\Agent\Operation\AgentCredentialDest
 use Fight\AccessControl\Domain\AccessControl\Agent\Operation\AgentCredentialOperation;
 use Fight\AccessControl\Domain\AccessControl\Agent\Operation\AgentDeliveryMaterial;
 use Fight\AccessControl\Domain\AccessControl\Agent\Operation\AgentIssuance;
+use Fight\AccessControl\Domain\AccessControl\Agent\Operation\AgentOperationContract;
 use Fight\AccessControl\Domain\AccessControl\Agent\Operation\AgentOperationScope;
 use Fight\AccessControl\Domain\AccessControl\CredentialDelivery\EncryptedCredentialMaterial;
 use Fight\Common\Domain\Messaging\Event\Event;
@@ -37,7 +38,7 @@ use SensitiveParameter;
 use Throwable;
 
 /** Models persisted state and deterministic interleavings, not a database, process crash or real key service */
-final class InMemoryDeliveryConformanceFixture extends DeliveryConformanceFixture
+final class InMemoryDeliveryConformanceFixture extends DeliveryConformanceFixture implements AgentCohortFixture
 {
     private readonly DeliveryEnvironment $delivery;
 
@@ -56,6 +57,43 @@ final class InMemoryDeliveryConformanceFixture extends DeliveryConformanceFixtur
         $this->delivery = new DeliveryEnvironment();
         $this->maintenance = new MaintenanceEnvironment($this->delivery);
         $this->delivery->authorization->expiresAt = $this->delivery->clock->now()->modify('+30 days');
+    }
+
+    public function breakCohort(string $failure): void
+    {
+        $state = $this->delivery->provisioning->operations->contract;
+        if ($failure === 'missing storage') {
+            $state->current = null;
+
+            return;
+        }
+
+        if ($failure === 'storage outage') {
+            $state->unavailable = true;
+
+            return;
+        }
+
+        $state->switchTo(new AgentOperationContract(
+            $failure === 'storage version' ? 2 : 1,
+            $failure === 'creation version' ? 2 : 1,
+            $failure === 'retained reader' ? [1, 2] : [1],
+            $failure === 'destination version' ? 2 : 1,
+            2,
+            array_values(array_diff(AgentOperationContract::REQUIRED_CAPABILITIES, [$failure]))
+        ));
+    }
+
+    public function switchCohort(int $generation): void
+    {
+        $this->delivery->provisioning->operations->contract->switchTo(new AgentOperationContract(
+            1,
+            1,
+            [1],
+            1,
+            $generation,
+            AgentOperationContract::REQUIRED_CAPABILITIES
+        ));
     }
 
     public function original(): AgentIssuance

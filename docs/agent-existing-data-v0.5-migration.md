@@ -3,8 +3,9 @@
 [TASK-00055](../planning/tasks/00055-TASK.md) implements the M1 existing-data/API slice of
 [TICKET-00014](../planning/tickets/00014-TICKET.md). It preserves existing authentication authority and permits a
 known active legacy Agent to enter recoverable issuance through an **explicit new authorized rotation**. It is not a
-migration runner, consumer qualification, release or permission to deploy the incomplete replacement. Cohort/version,
-canonicalization, restoration and final migration guidance remain TASK-00056–00059 work.
+migration runner, consumer qualification, release or permission to deploy the incomplete replacement.
+[TASK-00056's cohort contract](agent-operation-cohorts.md) now adds mandatory repository compatibility and writer
+fences; canonicalization, restoration and final migration guidance remain TASK-00057–00059 work.
 
 ## Preserve existing authority; do not invent history
 

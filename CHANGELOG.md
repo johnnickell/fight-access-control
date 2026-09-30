@@ -35,6 +35,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- **Breaking (unreleased v0.5.0):** Agent and operation repositories now require `getOperationContract()` with
+  persisted versions, monotonic cohort generation, qualified local capabilities and a shared transaction-duration
+  fence. Issuance, lifecycle, direct Agent Permission changes, discovery, delivery and maintenance reject incompatible
+  composition. Delivery and cleanup authority epochs are cohort-bound; old admissions cannot acknowledge across a
+  switch. Consumers must fence old binaries externally and qualify actual writers; no deployment proof is inferred.
+  See the [cohort contract and switch guide](docs/agent-operation-cohorts.md).
 - **Breaking (unreleased v0.5.0):** `AgentView` and the shipped Agent OpenAPI component require the safe
   `recoverable_credential_operation` boolean; direct View constructors require the final marker argument. Known active
   legacy Agents may enter recovery through the existing explicitly authorized rotation service. Repositories must

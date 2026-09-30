@@ -5,7 +5,9 @@
 [recovery](agent-delivery-recovery.md) paths. The package owns maintenance transitions, expected-state obligations,
 read contracts and coordination. Consumers own authorization, actual encryption, keys, database indexes/fences and
 protected sinks. This is not a key vault, plaintext retrieval API, physical key-destruction command or supported
-partial deployment. Consumer qualification, migration/cohort compatibility and release remain separate.
+partial deployment. Mandatory [cohort guards](agent-operation-cohorts.md) fence maintenance transactions and bind
+cleanup authority to the persisted generation. Real consumer qualification, remaining migration work and release
+remain separate.
 
 ## Public composition
 

@@ -227,6 +227,8 @@ final class AgentMaintenanceQueryTest extends TestCase
         }
 
         $repo = $this->createStub(AgentOperationRepository::class);
+        $repo->method('getOperationContract')
+            ->willReturn($env->delivery->provisioning->operations->getOperationContract());
         $repo->method('listMaintenance')->willReturn($views);
         $authorization = $env;
         if ($case === 'wrong scope') {
@@ -259,6 +261,8 @@ final class AgentMaintenanceQueryTest extends TestCase
             };
         } elseif ($case === 'negative count') {
             $repo = $this->createStub(AgentOperationRepository::class);
+            $repo->method('getOperationContract')
+                ->willReturn($env->delivery->provisioning->operations->getOperationContract());
             $repo->method('countDeliveryKeyReferences')->willReturn(-1);
         } else {
             $repo->afterMaintenanceRead = static function (): void {
