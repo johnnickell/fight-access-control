@@ -4,9 +4,17 @@
 
 | Epic | Target | Current outcome |
 | --- | --- | --- |
-| [EPIC-00009](epics/00009-EPIC.md) | `v0.5.0` | Package cohort enforcement is independently accepted through TASK-00056; canonical upgrades, restoration and final migration evidence remain outstanding. No partial deployment or release is authorized. |
+| [EPIC-00009](epics/00009-EPIC.md) | `v0.5.0` | Current cohort/canonical contracts are accepted. TASK-00068 removes remaining previous-iteration support before current-contract restoration and final integration evidence. No partial deployment or release is authorized. |
 
 ## Approved planning and next TASK
+
+John's 2026-09-30 package-wide decision in [ADR 0011](adr/0011-pre-v1-current-contract-only.md) removes all obligations
+to support previous APIs/data iterations while pre-v1. [TASK-00068](tasks/00068-TASK.md) is the next cleanup:
+remove legacy-Agent mode/API stubs and credential-delivery compatibility defaults. It precedes TASK-00058's
+current-contract restoration proof. TASK-00059 supplies current integration guidance, not migration guidance.
+The Board owns executable ordering; this amendment does not claim code removal or authorize release/deployment.
+
+### Original decomposition context
 
 [EPIC-00009](epics/00009-EPIC.md) prepares recoverable Agent provisioning and rotation from the accepted-for-planning
 Agent OS proposal. The breaking replacement, ADR 0004/WF-002 amendment, transactional authorization/protected-sink
@@ -33,12 +41,10 @@ not execution authorization; intermediate PRs are not a supported partial releas
 John selected `v0.5.0` as the target release. Implementation, release/publication, consumer upgrade and Agent OS
 TASK-00138 closure remain separately authorized operations.
 
-Current package checkpoint: [TASK-00056](tasks/00056-TASK.md) is independently accepted at `ff5c035` with no findings,
-completing TICKET-00014 M2 at the package boundary. Existing-Agent compatibility (M1) is also accepted; canonical
-upgrades (M3), restoration (M4), final guidance (M5) and real consumer qualification remain outstanding. John's landing
-request published [TASK-00056 PR #92](https://github.com/johnnickell/fight-access-control/pull/92), not a merge or
-release. The [Board](tasks/BOARD.md) owns current executable ordering;
-[TASK-00057](tasks/00057-TASK.md) is the next credential-operation slice, subject to separate execution authority.
+Current package checkpoint: TASK-00056's cohort safety and revised TASK-00057's single canonical contract are
+independently accepted. TASK-00055's legacy preservation is superseded, not a continuing obligation. Revised M1
+requires TASK-00068 removal; current restoration (M4), final guidance (M5) and real consumer qualification remain
+outstanding. The [Board](tasks/BOARD.md) owns current executable ordering.
 
 ## Approved Feature planning
 

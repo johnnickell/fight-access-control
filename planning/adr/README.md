@@ -12,3 +12,4 @@
 | [0008](0008-openapi-payload-contract.md) | OpenAPI payload contract | accepted |
 | [0009](0009-non-null-custom-permission-tier.md) | Non-null Custom Permission tier | accepted; implemented for unreleased v0.4.0 |
 | [0010](0010-permission-eligibility-and-caller-authorization.md) | Permission eligibility and caller authorization | accepted; implemented for unreleased v0.4.0 |
+| [0011](0011-pre-v1-current-contract-only.md) | Pre-v1 current contract only; no previous-iteration support | accepted; remaining removal pending TASK-00068 |
