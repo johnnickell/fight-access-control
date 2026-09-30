@@ -533,8 +533,10 @@ John authorized the clean main checkout from `develop` `1a1e81e` on
 now check a complete candidate inventory against fresh stored Feature and exact Permission identities, distinguishing
 invalid configuration from incomplete discovery and operational failure. Consumer-bindable package-port scenarios
 compose declaration, provisioning and validation, including rollback/retry and post-commit publication loss. The
-builder's full gate passes **1802 tests / 35027 assertions**, exact **6348/6348 owned statements**; independent
-technical review and behavioral QA are pending. This is not a partial Feature release, actual scanner/database
+builder's full gate passes **1802 tests / 35027 assertions**, exact **6348/6348 owned statements**. Independent
+technical review requested a documentation-only correction at `9f60836`: the declarations guide incorrectly
+listed preparation as outstanding. The revision corrects that statement without changing executable gate inputs;
+independent re-review and behavioral QA are pending. This is not a partial Feature release, actual scanner/database
 qualification, permission to activate, consumer adoption or completion of the downstream integrity/management slices.
 
 ## Planning and Completion
