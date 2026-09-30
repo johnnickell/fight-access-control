@@ -7,7 +7,8 @@ operation. It consumes [provisioning correlation](agent-provisioning-operations.
 [discovery/restart recovery](agent-delivery-recovery.md), [maintenance](agent-delivery-maintenance.md) and
 [issuance conformance](agent-issuance-conformance.md) now exercise the replacement together.
 [Delivery conformance](agent-delivery-conformance.md) and mandatory [cohort guards](agent-operation-cohorts.md) also
-cover the actual paths. Remaining restoration work and real consumer qualification are separate.
+cover the actual paths. [Restoration guards](agent-restoration-safety.md) are implemented at the package boundary;
+[current integration and evidence](agent-integration.md) distinguish this from unexecuted real consumer qualification.
 
 ## Public API and composition
 

@@ -305,9 +305,23 @@ and local verification. John requested landing; the ignored TASK landing handoff
 final local/remote identities. This intake precedes publication. Hosted CI remains optional/unchecked; interactive
 QA is N/A. Actual consumer rehearsal, final integration, merge, release and adoption are not established.
 
+## Current integration/evidence checkpoint — TASK-00059, awaiting review
+
+The [integration guide](../../docs/agent-integration.md) now connects the implemented current composition and
+[complete evidence inventory](../../docs/agent-operation-evidence.md) preserves all 25 rows above plus ratified D3/D4.
+It supplies current test references, observed results, tested-content/receipt provenance, superseded dispositions and
+mandatory unexecuted consumer gaps. This adds no runtime behavior or deferred behavior tests. Fresh Agent/OpenAPI
+checks pass **1103 tests / 30421 assertions**; TASK-00059 owns final gate evidence and the optional reporter limitation.
+
+TASK-00068's independently accepted `90c22b5` supplies revised M1, not TASK-00055's historical legacy acceptance.
+M2/M3/M4 remain accepted at the package boundary; the checkpoint histories above are not claims that old test versions
+prove the present contract. M5 documentation is implemented but remains unchecked pending independent TASK-00059
+review. Actual adapter/sink/authority-writer, activation/use and controlled-restore evidence remains missing and blocks
+consumer support/adoption claims, not this honest inventory. No release, deployment or Agent OS TASK-00138 closure.
+
 ## Acceptance Evidence
 
-- [ ] **M1 — Remove previous-iteration support:** TASK-00068 removes legacy-Agent mode/adoption, marker/read/schema
+- [x] **M1 — Remove previous-iteration support:** TASK-00068 removes legacy-Agent mode/adoption, marker/read/schema
       fields, retired API stubs and compatibility-only paths/tests/guidance. Current lifecycle and hydration safety
       pass without a legacy distinction. TASK-00055's old M1 acceptance is historical, not acceptance of this removal.
 - [x] **M2 — Contract cohorts:** test missing capability/contract storage and incompatible/restarted consumers deny
@@ -385,6 +399,11 @@ proof and rollout/restore rehearsals stay separate adoption obligations, not per
 
 ## Progress
 
+Current state: M1–M4 have independently accepted owning implementations; TASK-00059 is in progress for M5 guidance
+and evidence, awaiting independent review. The following TASK-00055/planning chronology is historical and does not
+restore legacy obligations or reopen completed dependencies. The current integration checkpoint above governs the
+handoff; consumer qualification remains separate.
+
 John authorized TASK-00055 in the main checkout from `develop` `ea1e316`, after TASK-00047/00048 completed. It is now
 done for independently accepted implementation/local verification on `feature/task-00055-legacy-compatibility`. The
 [existing-data/API contract](../../docs/agent-existing-data-v0.5-migration.md) and executable M1 scenarios cover explicit
@@ -419,4 +438,4 @@ migration/restore execution, commit, publication, dependency upgrade or Agent OS
 | 56 | [TASK-00056](../tasks/00056-TASK.md) | Reject incompatible credential-operation cohorts | done |
 | 57 | [TASK-00057](../tasks/00057-TASK.md) | Simplify Agent operations to one canonical contract | done |
 | 58 | [TASK-00058](../tasks/00058-TASK.md) | Fail closed on unreconciled credential-state restoration | done |
-| 59 | [TASK-00059](../tasks/00059-TASK.md) | Complete current-contract guidance and evidence traceability | ready-for-agent |
+| 59 | [TASK-00059](../tasks/00059-TASK.md) | Complete current-contract guidance and evidence traceability | in-progress |

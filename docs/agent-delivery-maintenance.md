@@ -6,8 +6,8 @@
 read contracts and coordination. Consumers own authorization, actual encryption, keys, database indexes/fences and
 protected sinks. This is not a key vault, plaintext retrieval API, physical key-destruction command or supported
 partial deployment. Mandatory [cohort guards](agent-operation-cohorts.md) fence maintenance transactions and bind
-cleanup authority to the persisted generation. Real consumer qualification, remaining restoration work and release
-remain separate.
+cleanup authority to the persisted generation. [Package restoration](agent-restoration-safety.md) is implemented;
+[real consumer qualification](agent-operation-evidence.md#consumer-gap-register) and release remain separate.
 
 ## Public composition
 
@@ -189,8 +189,8 @@ current package/destination and consumer authority for enrollment and every use.
 ## Adapter obligations and acceptance evidence
 
 The unreleased repository contract adds `listMaintenance()`, `countDeliveryKeyReferences()` and
-`replaceMaintenance()`. Hydrators persist the appended `sinkCleaned` boolean (default false for existing records),
-state revision and all existing delivery policy/history. Expected-state writes compare the complete authoritative
+`replaceMaintenance()`. Hydrators persist the recorded `sinkCleaned` boolean (false on new operations, never inferred
+for old records), state revision and all existing delivery policy/history. Expected-state writes compare the complete authoritative
 snapshot, original canonical request/version and issuance; only maintenance successors may be written, with revision
 exactly one higher. All writers share lifecycle/authority/key-reference fences. A stale write may not recreate a
 missing operation/material, change a canonical key's meaning or reset cleanup/order evidence. No production SQL,

@@ -5,17 +5,18 @@ dependencies, acceptance, and verification.
 
 ## What's Next?
 
-First ready Task: [TASK-00059](00059-TASK.md) — Complete current-contract guidance and evidence traceability.
+Active Task: [TASK-00059](00059-TASK.md) — Complete current-contract guidance and evidence traceability.
 
 ## In Progress
 
-No Tasks are currently in this state.
+| Order | TASK ID | Title | Parent TICKET | Status | Blocked by | PR |
+| --- | --- | --- | --- | --- | --- | --- |
+| 59 | [TASK-00059](00059-TASK.md) | Complete current-contract guidance and evidence traceability | [TICKET-00014](../tickets/00014-TICKET.md) — Preserve current credential-contract safety and evidence | in-progress | [TASK-00055](00055-TASK.md), [TASK-00056](00056-TASK.md), [TASK-00057](00057-TASK.md), [TASK-00058](00058-TASK.md), [TASK-00049](00049-TASK.md), [TASK-00054](00054-TASK.md), [TASK-00068](00068-TASK.md) | — |
 
 ## Ready Frontier
 
 | Order | TASK ID | Title | Parent TICKET | Status | Blocked by | PR |
 | --- | --- | --- | --- | --- | --- | --- |
-| 59 | [TASK-00059](00059-TASK.md) | Complete current-contract guidance and evidence traceability | [TICKET-00014](../tickets/00014-TICKET.md) — Preserve current credential-contract safety and evidence | ready-for-agent | [TASK-00055](00055-TASK.md), [TASK-00056](00056-TASK.md), [TASK-00057](00057-TASK.md), [TASK-00058](00058-TASK.md), [TASK-00049](00049-TASK.md), [TASK-00054](00054-TASK.md), [TASK-00068](00068-TASK.md) | — |
 | 61 | [TASK-00061](00061-TASK.md) | Declare and register Feature references | [TICKET-00015](../tickets/00015-TICKET.md) — Register and provision Features safely | ready-for-agent | — | — |
 
 ## Waiting

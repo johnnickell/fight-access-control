@@ -17,7 +17,7 @@ The immutable snapshot takes these explicit constructor arguments (no production
 
 | Field | Current supported meaning |
 | --- | --- |
-| `storageVersion` | `1`: complete operation, Agent marker, slot reservation, delivery/receipt/claim, maintenance and authority-fence persistence contract |
+| `storageVersion` | `1`: complete operation/Agent correlation, slot reservation, delivery/receipt/claim, maintenance and authority-fence persistence contract |
 | `canonicalVersion` | `2`: the sole supported operation-request contract marker, not a selectable creation mode or reader set |
 | `destinationVersion` | `1`: immutable registered destination ID/binding revision and cross-scope monotonic write-order meaning |
 | `generation` | Durable positive, monotonically advancing cohort generation; increment on every switch, including switch-back |
@@ -123,9 +123,9 @@ applies to real runtime cohort replacement and existing authority, not a require
    admitted calls at the trusted sink boundary, preserving inert-effect constraints and current activation/use checks.
 3. **Revoke old binary access** at storage or a trusted boundary it cannot bypass. Check direct connections,
    credentials/pools, restarted workers and non-HTTP jobs. A new-code version check cannot stop code that never runs it.
-4. Preserve Agent authentication envelopes and terminal state. Install complete operation/authority/key persistence
-   and same-connection capabilities. Persist the explicitly qualified settings and next generation under the exclusive
-   cohort fence. Never manufacture issuance/correlation or silently choose defaults when a record is missing.
+4. Preserve current-contract Agent authority, authentication envelopes, terminal state and complete
+   operation/authority/key persistence with same-connection capabilities. Persist the explicitly qualified settings
+   and next generation under the exclusive cohort fence. Never manufacture issuance/correlation or silently choose defaults when a record is missing.
 5. Qualify actual composed repositories/UoW/authorization/ciphers/sinks and all authority writers with real races.
    Ensure live keys, sink ordering/readiness and the single supported canonical contract are valid.
 6. Enable bounded discovery, then sensitive admission only for the qualified cohort. Current caller authorization and

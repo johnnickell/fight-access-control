@@ -72,6 +72,11 @@ this contract is at-least-once and does not claim exactly-once delivery.
 
 ### Agent credential operations (unreleased)
 
+Start with the [current Agent integration guide](docs/agent-integration.md) for composition, readiness, bounded
+recovery and restoration. The [complete scenario/evidence inventory](docs/agent-operation-evidence.md) maps all
+25 proposal scenarios and ratified outcome/bounds additions to current package tests and explicit consumer gaps.
+The target is v0.5.0; this checkout is not a release receipt or consumer qualification.
+
 The unreleased provisioning replacement requires a retained scoped operation key, registered destination, and
 same-transaction authorization participation. It prepares encrypted delivery and returns only safe issuance metadata;
 retry resolves the same outcome after response loss. See the
@@ -109,9 +114,10 @@ markers reject without fallback; current authorization, transaction and ordering
 existing cohort boundary. Stale restored state remains unavailable until original operation/receipt/tombstone/order
 history is reconciled for the exact active storage incarnation at a newer generation. Consumer-bindable scenarios
 model restore and forward repair; no backup tool, migration engine or automatic rollback detector is supplied.
-These modeled interleavings do not qualify real consumer adapters, restore procedures or activation/use. This
-intermediate work is **not deployable** until independent acceptance, final integration and consumer qualification
-are complete. Existing released versions are unchanged.
+Package restoration is independently accepted; TASK-00059 supplies final integration guidance and traceability,
+awaiting its own independent review. These modeled interleavings do not qualify real consumer adapters, restore
+procedures or activation/use. The unreleased composition is **not a qualified consumer deployment**; release,
+consumer adoption and deployment remain separate gates. Existing released versions are unchanged.
 
 ### Current principal composition
 

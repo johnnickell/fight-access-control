@@ -148,5 +148,6 @@ credentials. These are production-behavior assertions, not tests of the fixture 
 
 Real adapter, sink, authority-writer, activation/use, cohort and restoration runs are outstanding. No release,
 consumer qualification, dependency upgrade or deployment follows from package tests. TASK-00068 removes superseded
-legacy support; TASK-00058/00059 retain restoration and final traceability ownership. The complete intermediate protocol remains
-unreleased and unsupported for deployment.
+legacy support; TASK-00058 implements package restoration guards. TASK-00059's
+[complete evidence inventory](agent-operation-evidence.md) links current results and remaining consumer gaps.
+The protocol remains unreleased and does not establish a qualified consumer deployment.

@@ -34,19 +34,23 @@ Cleanup retains evidence preventing duplicate issuance or stale delivery. Concre
 belong in requirement/design work before implementation acceptance. John confirmed the complete EPIC destination
 and boundaries on 2026-09-27, then separately approved its TICKET-00012–00014 requirement decomposition.
 TASK planning and implementation remain separate operations.
-The historical decision below describes the existing contract until the separately authorized replacement is
-implemented and released. John subsequently selected `v0.5.0` as the target release; release authorization remains separate.
+The historical decision below describes the prior released contract, not the current unreleased source.
+John subsequently selected `v0.5.0` as the target release; release authorization remains separate.
 
-## Unreleased provisioning implementation — TASK-00046
+## Current unreleased replacement — TASK-00059 guidance checkpoint
 
-TASK-00046 implements the provision/service-retry portion of the amendment. Its
-[public contract](../../docs/agent-provisioning-operations.md) replaces raw-return provision with scoped correlation,
-transactional authorization, prepared protected delivery and safe confirmed/indeterminate results. TASK-00050 now
-implements atomic retirement and TASK-00051 protected delivery. TASK-00048 implements
-[recoverable rotation](../../docs/agent-rotation-operations.md) and explicitly rejects the old raw-return service.
-Revocation retains its publication-failure behavior. Scheduler recovery, maintenance, migration and consumer
-qualification remain outstanding. This intermediate implementation is not a supported deployable composition or
-release approval.
+TASK-00046/00048 implement recoverable provision/rotation with scoped correlation, transactional authorization,
+protected prepared delivery and safe confirmed/indeterminate results. TASK-00050–00054 supply atomic retirement,
+protected delivery, scheduler recovery, maintenance and consumer-bindable conformance. TASK-00056/00057/00058
+supply current cohort validation, the sole canonical contract and controlled-restoration guards.
+[ADR 0011](0011-pre-v1-current-contract-only.md) supersedes previous-iteration support; TASK-00068 removes the
+legacy model and old raw-return APIs, including rejection-only stubs. No migration route is required or supplied.
+Revocation retains its publication-failure rethrow; D3 remains scoped to provision/rotation.
+
+Use the [current integration guide](../../docs/agent-integration.md) and
+[evidence inventory](../../docs/agent-operation-evidence.md) rather than the historical raw-return decision below.
+Package behavior is implemented; TASK-00059's documentation awaits independent review. Actual consumer composition,
+writer/sink/key/activation/use and restore qualification remain unexecuted. No release or deployment is authorized.
 
 ## Decision
 

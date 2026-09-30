@@ -6,6 +6,23 @@ Fight AccessControl owns framework-neutral identity, credential, session, author
 behavior shared by Fight applications. The repository-local behavioral and security authority is
 [TICKET-00001](planning/tickets/00001-TICKET.md).
 
+## Current integration and evidence — TASK-00059 implementation
+
+The [integration guide](docs/agent-integration.md) now connects the complete current public composition, finite
+defaults, outcome handling, writer/admitted-call fences and restoration prerequisites. The
+[scenario inventory](docs/agent-operation-evidence.md) retains all 25 pinned scenarios plus ratified D3/D4, with
+current assertion references, tested-content provenance and explicit real-consumer gaps. Prior legacy/upgrade
+requirements are superseded under ADR 0011, not missing tests or claimed migration passes. TASK-00068's accepted
+removal supplies revised M1; TASK-00058's accepted package restoration supplies M4.
+
+John selected the main checkout from `develop` `37a98f3` on `feature/task-00059-current-contract-evidence`.
+This documentation-only implementation awaits independent review; no runtime/API/test/dependency change or
+consumer run is introduced. Focused current Agent/OpenAPI verification passes **1103 tests / 30421 assertions**;
+the TASK owns final gate/receipt provenance and the initial optional JUnit reporter failure. Package tests and
+consumer-bindable suite availability do not establish actual database concurrency, key/sink durability, trusted
+restore, enrollment activation or broker-use authority. The v0.5.0 target remains unreleased; no Agent OS
+TASK-00138 closure, dependency adoption, publication or deployment is claimed. Earlier checkpoints below are history.
+
 ## Restoration safety — TASK-00058 independently accepted
 
 John authorized TASK-00058 in the main checkout from `develop` `80e9add` on
@@ -389,8 +406,9 @@ TASK-00048 adds `AgentCredentialRotationService`, `AgentRotationRequest` and man
 `authorizeRotation()` scope/target/destination authorization. Results have no raw-secret getter. TASK-00068 removes
 the old lifecycle `rotate()` and legacy aggregate path; the revocation service retains its failure semantics.
 Every predecessor requires atomic cancellation and every successor its own new operation/delivery/audit. Current
-hydration and safe reads create no issuance. This intermediate work remains unreleased and not deployable until
-independent acceptance, remaining restoration work and real consumer qualification.
+hydration and safe reads create no issuance. This work remains unreleased and does not qualify a consumer deployment.
+TASK-00058's restoration behavior is accepted at the package boundary; final guidance review, release and real
+consumer qualification remain separate.
 
 For those two replacement operations only, confirmed issuance commits return safe operation metadata with a typed,
 sanitized publication warning if post-commit publication fails. Pre-commit failure and indeterminate commit are

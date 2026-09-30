@@ -3,13 +3,14 @@
 TASK-00046 replaces `AgentProvisioningService::provision(actorId, name)` with a request and retained scoped key.
 TASK-00047 adds [authorized safe operation status](agent-operation-status.md) without an issuance transaction,
 material access, capacity admission or side effects; original issuance remains separate from current disposition.
-This is an **unreleased partial implementation**, not a supported deployable credential-delivery composition.
+This is **unreleased package behavior**, not a qualified consumer deployment. The
+[current integration guide](agent-integration.md) connects the complete implemented composition and evidence gaps.
 TASK-00050 adds [atomic credential retirement](agent-credential-retirement.md) through service and direct repository
 writes. TASK-00051 adds the [protected delivery attempt](agent-credential-delivery.md), including separately committed
 admission and fenced receipt acknowledgement. TASK-00048 adds [recoverable rotation](agent-rotation-operations.md).
 TASK-00052/00053 own discovery/restart recovery and maintenance. TASK-00056 adds mandatory
 [persisted cohort and capability guards](agent-operation-cohorts.md) before issuance/resolution; real consumer
-qualification and remaining restoration work are separate.
+qualification is separate; [package restoration guards](agent-restoration-safety.md) are implemented.
 No consumer adapter is supplied or qualified here.
 
 ## Public boundary
@@ -98,8 +99,9 @@ operation scope/key, delivery UUID, Agent/credential UUID and revision, destinat
 and issuance time. Store that binding, key version and ciphertext together. Swaps must fail authenticated decryption
 in the later delivery path. Authentication encryption is independent and never a delivery fallback. Cipher adapters
 must not publish provider details. Prepared material is non-serializable and redacted in debug output; repository
-adapters explicitly persist it. No sink call occurs during provisioning. The worker's sensitive invocation and
-admission contract are downstream, not inferred from having prepared material.
+adapters explicitly persist it. No sink call occurs during provisioning. The worker's
+[sensitive invocation and admission contract](agent-credential-delivery.md) is implemented separately; prepared
+material alone does not establish delivery.
 
 ## Failure and publication
 
@@ -125,8 +127,9 @@ scheduler-only discovery with TASK-00052's actual path, not merely this slice's 
 | Pending operations across the repository | 10000 | 1–1000000; at least the per-scope bound |
 
 Names retain `AgentName`'s non-empty, 120-character normalized limit. Absolute request ingress bound is 4096 bytes;
-namespace is 1–64 ASCII identifier characters, caller type 1–32, stable caller ID 1–128. IDs are UUIDs; revisions
-and slot write versions are positive integers. Limits are optional validated values, not routine approval gates.
+namespace is 1–64 ASCII identifier characters, caller type 1–32, stable caller ID 1–128. IDs are UUIDs; destination
+revisions and slot write versions are positive integers; credential revisions start at zero. Limits are optional
+validated values, not routine approval gates.
 Adapters serialize admission across all writers using one cohort's configured limits. Capacity failure is retryable
 and rolls back all issuance state; it does not evict tombstones. Existing-key resolution precedes new-key limits,
 so lowering capacity or the new-name limit cannot block resolution of a retained valid request. Pending work counts

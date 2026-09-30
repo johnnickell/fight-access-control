@@ -3,8 +3,8 @@
 [TASK-00050](../planning/tasks/00050-TASK.md) implements revocation and the shared predecessor-retirement contract.
 It does **not** itself implement recoverable rotation, delivery workers, a protected sink or consumer persistence.
 TASK-00051 now supplies protected delivery and TASK-00048 supplies recoverable rotation using this seam. This
-intermediate composition remains unreleased and not deployable until downstream restoration and consumer qualification work
-is accepted. No real database/sink/consumer qualification is claimed.
+composition remains unreleased. Package restoration is implemented; the [integration guide](agent-integration.md)
+identifies remaining release and real consumer qualification gates. No real database/sink/consumer pass is claimed.
 
 ## Public lifecycle and writer inventory
 
@@ -70,8 +70,8 @@ successor's secret or metadata. Already-retired credential transitions reject; s
 
 ## Expected-state transitions and authority fences
 
-Claim and admission details below are implemented by TASK-00051's delivery service; scheduler discovery remains
-TASK-00052 work. They remain
+Claim and admission details below are implemented by TASK-00051's delivery service; TASK-00052 implements
+scheduler discovery. They remain
 separate from safe `AgentDeliveryDisposition`: pending/claimed/admitted work has not yet confirmed delivery.
 
 | State before retirement | Atomic persisted result | Old worker consequence |

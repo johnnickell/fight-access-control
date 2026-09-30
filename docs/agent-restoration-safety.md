@@ -170,5 +170,6 @@ raw credentials, ciphertext or key paths as proof.
   revocation. Package issuance/delivery success alone proves none of those consumer outcomes.
 
 Passing PHP tests, inspecting migration text, saving a backup, or testing a mock fence does not satisfy these external
-requirements. TASK-00059 owns final cross-TICKET integration/evidence; consumer adoption, release and deployment
-remain separately authorized.
+requirements. TASK-00059's [integration guide](agent-integration.md) and
+[complete evidence inventory](agent-operation-evidence.md) connect the cross-TICKET results and remaining gaps;
+consumer adoption, release and deployment remain separately authorized.
