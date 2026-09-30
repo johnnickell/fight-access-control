@@ -464,7 +464,13 @@ Application `RequiresFeature` is method-only/nonrepeatable and `FeatureReference
 scope; failed/incomplete discovery and scope mismatch reject instead of becoming empty results. Consumers own
 scanning, code identity and completeness; this is not enforcement or preparation/retirement implementation.
 The local gate passes **1737 tests / 34624 assertions**, exact **6242/6242 statements**; focused Feature tests
-pass **62 tests / 121 assertions**. Independent acceptance and behavioral QA remain pending. John approved the split into
+pass **62 tests / 121 assertions**. Independent review accepted `0408f72` against unchanged `develop` `e8244b0`,
+with all C1–C7 passing and no findings. Independent behavioral QA passed six scenarios and **202 checks**, including
+native target failures, incomplete discovery, scope misuse and isolated hook cleanup. TASK-00061 is done for accepted
+implementation/local verification. John requested landing; publication is pending at this acceptance-closeout
+checkpoint, and the ignored TASK landing handoff owns fresh gates, the administrative-only provenance bridge and
+final remote identity. No consumer scanner, provisioning, retirement, release or deployment is qualified.
+John approved the split into
 [TICKET-00015](planning/tickets/00015-TICKET.md) (registration/provisioning),
 [TICKET-00016](planning/tickets/00016-TICKET.md) (availability evaluation), and
 [TICKET-00017](planning/tickets/00017-TICKET.md) (management/retirement). The latter two build on TICKET-00015's shared
@@ -484,7 +490,7 @@ One Feature revision starts at 1 and advances only on real status/Permission cha
 expected revision. Valid no-ops do not write/increment/publish success; stale attempts reject. Management reads retain
 broken Permission IDs with an explicit missing marker and reuse existing pagination. The graph is 61 → 62;
 62 → 63/64/65; 65+64 → 66; 66+63 → 67. All three TICKETs now have approved TASK plans. TASK-00061 implementation is on
-`feature/task-00061-feature-references` in the main checkout; independent review and QA remain outstanding.
+`feature/task-00061-feature-references` in the main checkout, with independent review and QA accepted at `0408f72`.
 TASK-00062–00067 remain unimplemented. No Feature release version is selected.
 
 ## Planning and Completion
