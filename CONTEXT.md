@@ -541,7 +541,10 @@ post-review QA passed five
 scenarios / 26 real-library probe checks plus 14 focused tests / 75 assertions. TASK-00063 is done for accepted
 package implementation and required local/behavioral verification. This is not a partial Feature release, actual
 scanner/database qualification, permission to activate, consumer adoption or completion of the downstream
-integrity/management slices; publication, approval and merge remain separate.
+integrity/management slices. John's landing request published
+[PR #101](https://github.com/johnnickell/fight-access-control/pull/101) against `develop` at the initial
+publication checkpoint; approval, merge and release remain separate. The ignored TASK landing handoff owns
+final metadata/remote verification.
 
 ## Planning and Completion
 
