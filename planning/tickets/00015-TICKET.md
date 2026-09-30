@@ -146,14 +146,18 @@ TASK-00065–00067 and the concrete cross-TICKET evidence ownership above. EPIC 
 authorized TASK-00061 execution in the main checkout; downstream execution and worktree selection still require
 authorization. Existing portfolio priorities are unchanged.
 
-After publication, John requested renaming the Attribute to `FeatureFlag`. TASK-00061 is reopened for that bounded
-unreleased API rename. Its fresh local gate passes; independent review/affected QA are pending. Earlier acceptance and PR
-evidence describe the preceding subject; downstream TASKs remain blocked by the reopened declaration slice.
+After publication, John requested renaming the Attribute to `FeatureFlag`. Independent review now accepts this
+bounded unreleased rename at `a8bdf75`, all TASK criteria passing with no findings; independent post-review QA passes
+six scenarios and 208 checks. TASK-00061 is done for accepted implementation/local verification. John authorized
+updating existing PR #99; the TASK's ignored rename-landing handoff owns final gates, the administrative-only evidence
+bridge and publication verification. Earlier acceptance and PR evidence describe the preceding subject. TASK-00062's
+declaration blocker is fulfilled, but downstream implementation still requires separate authorization; the TICKET's
+composed acceptance remains open.
 
 ## Child Tasks
 
 | Order | TASK ID | Title | Status |
 | --- | --- | --- | --- |
-| 61 | [TASK-00061](../tasks/00061-TASK.md) | Declare and register Feature references | in-progress |
+| 61 | [TASK-00061](../tasks/00061-TASK.md) | Declare and register Feature references | done |
 | 62 | [TASK-00062](../tasks/00062-TASK.md) | Provision registered Features without resetting choices | ready-for-agent |
 | 63 | [TASK-00063](../tasks/00063-TASK.md) | Validate Feature preparation before activation | ready-for-agent |

@@ -494,11 +494,16 @@ expected revision. Valid no-ops do not write/increment/publish success; stale at
 broken Permission IDs with an explicit missing marker and reuse existing pagination. The graph is 61 → 62;
 62 → 63/64/65; 65+64 → 66; 66+63 → 67. All three TICKETs now have approved TASK plans. TASK-00061 implementation is on
 `feature/task-00061-feature-references` in the main checkout, with independent review and QA accepted at `0408f72`.
-John subsequently requested renaming the Attribute to `FeatureFlag`. TASK-00061 is reopened for that bounded API
-rename on the same branch/main checkout: no compatibility alias and no change to validation, native targets or
-discovery semantics. Earlier acceptance/publication above describes the previous subject, not this revision;
-fresh independent review and affected QA remain pending. TASK-00062–00067 remain unimplemented. No Feature release
-version is selected.
+John subsequently requested renaming the Attribute to `FeatureFlag`, reopening TASK-00061 on the same branch/main
+checkout: no compatibility alias and no change to validation, native targets or discovery semantics. Independent
+review now accepts renamed implementation `a8bdf75` against unchanged `develop` `e8244b0`, all C1–C7 passing with no
+findings. Independent post-review QA passes six scenarios and **208 checks**, including old-alias absence and native
+malformed declarations after partial discovery. Focused/full gates retain **62 tests / 121 assertions** and
+**1737 tests / 34624 assertions**, exact **6242/6242 statements**. TASK-00061 is done for this accepted implementation
+and required local evidence. John authorized updating existing PR #99; publication remains pending at this closeout
+checkpoint. The ignored `.runs/handoffs/TASK-00061/feature-flag-landing.md` owns final gates, the administrative-only
+bridge and remote/evidence verification. Earlier acceptance/publication above is historical. TASK-00062–00067 remain
+unimplemented and need separate execution authority. No Feature release version is selected.
 
 ## Planning and Completion
 
