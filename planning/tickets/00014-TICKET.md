@@ -2,7 +2,7 @@
 id: TICKET-00014
 epic: EPIC-00009
 title: Preserve current credential-contract safety and evidence
-status: in-progress
+status: done
 ---
 
 # Preserve current credential-contract safety and evidence

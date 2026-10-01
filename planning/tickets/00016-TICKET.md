@@ -2,7 +2,7 @@
 id: TICKET-00016
 epic: EPIC-00010
 title: Evaluate Feature availability for Users and Agents
-status: ready-for-agent
+status: done
 ---
 
 # Evaluate Feature availability for Users and Agents
