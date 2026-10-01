@@ -557,7 +557,11 @@ already-admitted work are unchanged. Consumer enforcement and action authorizati
 package and consumer-bindable tests do not qualify a real database, framework or worker runtime. The first independent
 review requested corrections to entry-point/parent guidance and direct admitted-work completion proof; the revision
 addresses both with a fresh complete local gate (1812 tests / 35070 assertions, exact 6369/6369 statements).
-Independent re-review and QA, TASK-00065–00067, complete Feature acceptance, consumer adoption and release remain
+Independent re-review accepted `fc1cc89` against unchanged `develop` `b2fc4ce`, C1–C10 with no findings after
+F1/F2 corrections. Independent behavioral QA passed six scenarios / 30 public-port probe checks and a clean
+74-test / 416-assertion focused run. TASK-00064 is done for accepted package implementation and required
+local/behavioral verification; hosted CI is optional/not checked. Final PR publication and merge remain separate.
+TASK-00065–00067, complete Feature acceptance, actual consumer qualification, adoption and release remain
 outstanding.
 
 ## Planning and Completion
