@@ -560,9 +560,11 @@ addresses both with a fresh complete local gate (1812 tests / 35070 assertions, 
 Independent re-review accepted `fc1cc89` against unchanged `develop` `b2fc4ce`, C1–C10 with no findings after
 F1/F2 corrections. Independent behavioral QA passed six scenarios / 30 public-port probe checks and a clean
 74-test / 416-assertion focused run. TASK-00064 is done for accepted package implementation and required
-local/behavioral verification; hosted CI is optional/not checked. Final PR publication and merge remain separate.
-TASK-00065–00067, complete Feature acceptance, actual consumer qualification, adoption and release remain
-outstanding.
+local/behavioral verification; hosted CI is optional/not checked. John's landing request opened
+[PR #102](https://github.com/johnnickell/fight-access-control/pull/102) against unchanged `develop` at initial
+publication head `a0aae5a`. Its ignored landing receipt owns the administrative-only bridge and final publication
+verification. Approval and merge remain separate. TASK-00065–00067, complete Feature acceptance, actual consumer
+qualification, adoption and release remain outstanding.
 
 ## Planning and Completion
 
