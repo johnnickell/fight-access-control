@@ -19,7 +19,7 @@ use PHPUnit\Framework\TestCase;
 #[CoversNothing]
 abstract class PermissionFeatureReferenceConformance extends TestCase
 {
-    public function test_all_stored_statuses_block_removal_by_identity_including_references_beyond_a_list_page(): void
+    public function test_all_stored_statuses_and_multiple_references_block_removal_by_identity(): void
     {
         foreach (FeatureStatus::cases() as $status) {
             $environment = $this->environment();
@@ -38,6 +38,38 @@ abstract class PermissionFeatureReferenceConformance extends TestCase
             self::assertFalse($environment->removePermission($permission));
             self::assertSame($permission, $environment->permission($permission));
         }
+    }
+
+    public function test_only_reference_after_an_ordinary_list_page_still_blocks_removal(): void
+    {
+        $environment = $this->environment();
+        $permission = $this->permission();
+        $unrelated = $this->permission();
+        $environment->storePermission($permission);
+        $environment->storePermission($unrelated);
+
+        // A bounded first-page search sees only unrelated bindings.
+        $first = Feature::define(FeatureId::generate(), FeatureName::fromString('a-unrelated-0'), $unrelated->getId());
+        $environment->storeFeature($first);
+        for ($index = 1; $index < 25; ++$index) {
+            $environment->storeFeature(Feature::define(
+                FeatureId::generate(),
+                FeatureName::fromString('a-unrelated-'.$index),
+                $unrelated->getId()
+            ));
+        }
+
+        $tail = Feature::define(
+            FeatureId::generate(),
+            FeatureName::fromString('z-target-at-tail'),
+            $permission->getId()
+        );
+        $environment->storeFeature($tail);
+
+        self::assertFalse($environment->removePermission($permission));
+        self::assertSame($permission, $environment->permission($permission));
+        self::assertSame($tail, $environment->feature($tail));
+        self::assertSame($first, $environment->feature($first));
     }
 
     public function test_committed_reference_wins_and_unreferenced_permission_can_be_removed(): void
