@@ -15,8 +15,9 @@ Unknown Features and invalid Permission references must not accidentally expose 
 
 John approved this requirement area in the three-TICKET decomposition of
 [EPIC-00010](../epics/00010-EPIC.md), then approved a single implementation slice,
-[TASK-00064](../tasks/00064-TASK.md), and the interface direction below. This records planned scope, not implementation
-or deployment authorization; the TASK remains dependency-blocked.
+[TASK-00064](../tasks/00064-TASK.md), and the interface direction below. This records the approved scope, not
+deployment authorization. TASK-00062 is complete and the evaluator is implemented but awaiting independent
+acceptance; no partial Feature release is qualified.
 
 ## Use Cases
 
@@ -92,8 +93,8 @@ representation is needed. TASK-00064 owns concrete evaluator/error names, fresh-
 consumer-bindable scenarios, and any affected public compatibility/schema contract. Genuine product ambiguities
 still return for approval rather than silently changing the existing principal lifecycle.
 
-TASK-00064 is blocked only by [TASK-00062](../tasks/00062-TASK.md)'s Feature model/repository, transitively using
-[TASK-00061](../tasks/00061-TASK.md)'s name/declaration contract. It does not wait for
+TASK-00064 depends only on completed [TASK-00062](../tasks/00062-TASK.md)'s Feature model/repository, transitively
+using [TASK-00061](../tasks/00061-TASK.md)'s name/declaration contract. It does not wait for
 [TASK-00063](../tasks/00063-TASK.md)'s preparation validation or TICKET-00017 management: controlled repositories
 support evaluator proof now. Actual management-to-evaluation composition belongs to
 [TASK-00066](../tasks/00066-TASK.md); retirement/reintroduction/validation/evaluation composition and final lifecycle
@@ -136,14 +137,17 @@ Implements [WF-017](../wayfinder/tickets/WF-017-feature-availability-and-preview
 remain as described in [CONTEXT](../../CONTEXT.md) and
 [ADR 0010](../adr/0010-permission-eligibility-and-caller-authorization.md).
 John approved TASK-00064 as one complete evaluator slice, with existing User/Agent snapshots or null as input,
-ID-based preview checks, and boolean availability plus distinguishable configuration/operational errors. It waits
-on TASK-00062; implementation, full verification, and independent review have not started. TICKET-00017 now has
-approved TASK-00065–00067, completing EPIC decomposition. John subsequently authorized TASK-00064 in the clean main checkout on
+ID-based preview checks, and boolean availability plus distinguishable configuration/operational errors. At the
+planning checkpoint it awaited TASK-00062; implementation and local verification have since completed, while
+independent acceptance remains pending. TICKET-00017 now has approved TASK-00065–00067, completing EPIC
+decomposition. John subsequently authorized TASK-00064 in the clean main checkout on
 `feature/task-00064-feature-evaluation` from `develop` `b2fc4ce`. Its read-only evaluator and
 [consumer guide](../../docs/feature-availability.md) now implement the approved boolean/missing/broken/operational
-contract and consumer-bindable fresh-read scenarios. Builder focused and complete gates pass 74 tests / 415
-assertions and 1812 tests / 35068 assertions, exact 6369/6369 owned statements. Independent review and behavioral
-QA remain outstanding; this does not qualify actual ORM freshness, framework enforcement, consumer authorization,
+contract and consumer-bindable fresh-read scenarios. At the initial builder checkpoint, focused and complete gates
+passed 74 tests / 415 assertions and 1812 tests / 35068 assertions, exact 6369/6369 owned statements. The first
+independent review requested documentation and in-flight completion proof corrections; the revised full gate passes
+1812 tests / 35070 assertions, exact 6369/6369 statements. Independent re-review and behavioral QA remain
+outstanding; this does not qualify actual ORM freshness, framework enforcement, consumer authorization,
 management composition, a partial release or deployment. TASK-00065–00067 retain their separate scope.
 
 ## Child Tasks

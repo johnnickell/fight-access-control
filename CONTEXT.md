@@ -554,8 +554,11 @@ captured IDs, and ON removes only the Feature restriction; every status first va
 Unknown Features, broken bindings, malformed definitions and operational failures remain distinct, never implicit
 availability. Each explicit check requires authoritative fresh repository reads; existing principal lifetimes and
 already-admitted work are unchanged. Consumer enforcement and action authorization remain separate. Controlled
-package and consumer-bindable tests do not qualify a real database, framework or worker runtime. TASK-00065–00067,
-independent review, QA, complete Feature acceptance, consumer adoption and release remain outstanding.
+package and consumer-bindable tests do not qualify a real database, framework or worker runtime. The first independent
+review requested corrections to entry-point/parent guidance and direct admitted-work completion proof; the revision
+addresses both with a fresh complete local gate (1812 tests / 35070 assertions, exact 6369/6369 statements).
+Independent re-review and QA, TASK-00065–00067, complete Feature acceptance, consumer adoption and release remain
+outstanding.
 
 ## Planning and Completion
 

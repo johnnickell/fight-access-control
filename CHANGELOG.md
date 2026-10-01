@@ -9,6 +9,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- [Feature availability](docs/feature-availability.md): additive read-only evaluator for fresh stored status and
+  bound Permission identity against existing User/Agent snapshots or anonymous input. OFF/PREVIEW/ON return ordinary
+  booleans; unknown Features, broken bindings and operational failures remain distinct. No action authorization,
+  consumer adapter/enforcement, management or partial Feature release is supplied.
 - [Atomic Feature provisioning](docs/feature-provisioning.md): additive Feature identity/status/model and repository
   contracts, `ProvisionFeatures`/handler and post-commit `FeatureCreated` facts. Complete candidate discovery creates
   only missing names OFF in one transaction with an existing default Permission; rollback, uniqueness conflicts,

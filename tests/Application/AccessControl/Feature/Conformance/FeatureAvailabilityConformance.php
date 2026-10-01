@@ -60,12 +60,25 @@ abstract class FeatureAvailabilityConformance extends TestCase
         $environment->setFeature('job', FeatureStatus::ON, $permission);
         $evaluator = $environment->evaluator();
         $jobAdmitted = $evaluator->isAvailable($name, null);
-        self::assertTrue($jobAdmitted);
 
-        // No further check: a previously admitted job finishes; a later job checks the same service again.
         $environment->setFeature('job', FeatureStatus::OFF, $permission);
-        // An admitted job does not invoke the evaluator again; the subsequent job must do so.
-        self::assertFalse($evaluator->isAvailable($name, null));
+        $completedJobs = [];
+        if ($jobAdmitted) {
+            // The admitted job finishes without another availability check after OFF becomes visible.
+            $completedJobs[] = 'admitted';
+        }
+
+        self::assertTrue($jobAdmitted);
+        self::assertSame(['admitted'], $completedJobs);
+
+        // A later job explicitly checks the same evaluator and must not begin work after OFF.
+        $nextJobAdmitted = $evaluator->isAvailable($name, null);
+        if ($nextJobAdmitted) {
+            $completedJobs[] = 'next';
+        }
+
+        self::assertFalse($nextJobAdmitted);
+        self::assertSame(['admitted'], $completedJobs);
     }
 
     public function test_unknown_or_broken_references_never_use_another_permission_with_the_same_name(): void
