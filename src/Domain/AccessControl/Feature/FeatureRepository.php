@@ -37,6 +37,8 @@ interface FeatureRepository
      * Returns the stored Feature by exact name or null when authoritatively absent
      *
      * A fresh provisioning pass must consult authoritative state, not a previous pass's negative lookup cache.
+     * Each explicit availability check, including another check in the same request or the next worker job, must
+     * observe current committed settings and binding. Adapters must bypass stale ORM identity-map and result caches.
      * Preserve stored settings and broken reference identities; lookup does not certify readiness or availability.
      * Hydrate invalid persisted definitions as FeatureStateException (including invalid typed fields); do not return
      * null for malformed rows or infrastructure failures. A preparation query must distinguish those from absence.

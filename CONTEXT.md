@@ -546,6 +546,26 @@ integrity/management slices. John's landing request published
 publication checkpoint; approval, merge and release remain separate. The ignored TASK landing handoff owns
 final metadata/remote verification.
 
+## Feature availability — TASK-00064 implementation checkpoint
+
+The unreleased [Feature availability guide](docs/feature-availability.md) describes a read-only evaluator of current
+Feature settings against existing User/Agent Permission-ID snapshots or anonymous input. OFF denies, PREVIEW checks
+captured IDs, and ON removes only the Feature restriction; every status first validates the stored Permission binding.
+Unknown Features, broken bindings, malformed definitions and operational failures remain distinct, never implicit
+availability. Each explicit check requires authoritative fresh repository reads; existing principal lifetimes and
+already-admitted work are unchanged. Consumer enforcement and action authorization remain separate. Controlled
+package and consumer-bindable tests do not qualify a real database, framework or worker runtime. The first independent
+review requested corrections to entry-point/parent guidance and direct admitted-work completion proof; the revision
+addresses both with a fresh complete local gate (1812 tests / 35070 assertions, exact 6369/6369 statements).
+Independent re-review accepted `fc1cc89` against unchanged `develop` `b2fc4ce`, C1–C10 with no findings after
+F1/F2 corrections. Independent behavioral QA passed six scenarios / 30 public-port probe checks and a clean
+74-test / 416-assertion focused run. TASK-00064 is done for accepted package implementation and required
+local/behavioral verification; hosted CI is optional/not checked. John's landing request opened
+[PR #102](https://github.com/johnnickell/fight-access-control/pull/102) against unchanged `develop` at initial
+publication head `a0aae5a`. Its ignored landing receipt owns the administrative-only bridge and final publication
+verification. Approval and merge remain separate. TASK-00065–00067, complete Feature acceptance, actual consumer
+qualification, adoption and release remain outstanding.
+
 ## Planning and Completion
 
 Local TASK files under `planning/tasks/` are canonical for implementation scope, status, dependencies,

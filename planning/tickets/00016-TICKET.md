@@ -15,8 +15,9 @@ Unknown Features and invalid Permission references must not accidentally expose 
 
 John approved this requirement area in the three-TICKET decomposition of
 [EPIC-00010](../epics/00010-EPIC.md), then approved a single implementation slice,
-[TASK-00064](../tasks/00064-TASK.md), and the interface direction below. This records planned scope, not implementation
-or deployment authorization; the TASK remains dependency-blocked.
+[TASK-00064](../tasks/00064-TASK.md), and the interface direction below. This records the approved scope, not
+deployment authorization. TASK-00062 is complete; TASK-00064's package evaluator is independently accepted with behavioral QA.
+No partial Feature release or consumer deployment is qualified.
 
 ## Use Cases
 
@@ -92,8 +93,8 @@ representation is needed. TASK-00064 owns concrete evaluator/error names, fresh-
 consumer-bindable scenarios, and any affected public compatibility/schema contract. Genuine product ambiguities
 still return for approval rather than silently changing the existing principal lifecycle.
 
-TASK-00064 is blocked only by [TASK-00062](../tasks/00062-TASK.md)'s Feature model/repository, transitively using
-[TASK-00061](../tasks/00061-TASK.md)'s name/declaration contract. It does not wait for
+TASK-00064 depends only on completed [TASK-00062](../tasks/00062-TASK.md)'s Feature model/repository, transitively
+using [TASK-00061](../tasks/00061-TASK.md)'s name/declaration contract. It does not wait for
 [TASK-00063](../tasks/00063-TASK.md)'s preparation validation or TICKET-00017 management: controlled repositories
 support evaluator proof now. Actual management-to-evaluation composition belongs to
 [TASK-00066](../tasks/00066-TASK.md); retirement/reintroduction/validation/evaluation composition and final lifecycle
@@ -108,22 +109,22 @@ release/publication. Actual action authorization remains outside Feature availab
 
 ## Acceptance Evidence
 
-- [ ] Package tests prove the status/principal matrix, Role-derived User and direct Agent authority, shared/different
+- [x] Package tests prove the status/principal matrix, Role-derived User and direct Agent authority, shared/different
       preview cohorts, protected human-only preview, and absence of privileged Role/name bypasses.
-- [ ] Unknown names, invalid names, missing Permission references at every status, equal-name/different-ID Permission
+- [x] Unknown names, invalid names, missing Permission references at every status, equal-name/different-ID Permission
       histories, and operational read failures never grant availability or provision/repair records. Ordinary boolean
       results, unknown-Feature errors, broken-binding errors, and infrastructure failures remain distinguishable.
-- [ ] The evaluator accepts existing User/Agent snapshots or null, matching stored Permission IDs without modifying
+- [x] The evaluator accepts existing User/Agent snapshots or null, matching stored Permission IDs without modifying
       AuthenticatedAuthority, existing name-based helper behavior, or principal serialization.
-- [ ] Repeated checks observe status and Permission changes within one request and across worker jobs; unchanged
+- [x] Repeated checks observe status and Permission changes within one request and across worker jobs; unchanged
       principal snapshots retain their documented grant/revocation lifetime without additional authentication calls.
-- [ ] Controlled scenarios distinguish an admitted job finishing without another check from a later explicit check
+- [x] Controlled scenarios distinguish an admitted job finishing without another check from a later explicit check
       denying after OFF; tests do not claim automatic interruption or transactional action admission.
-- [ ] Evaluation has no writes, commits, command events, grants, or default-Permission fallback. Consumer guidance
+- [x] Evaluation has no writes, commits, command events, grants, or default-Permission fallback. Consumer guidance
       preserves separate action authorization and explains diagnostic/transport distinctions.
-- [ ] Consumer-bindable freshness and authority scenarios identify real adapter/runtime proof still required; package
+- [x] Consumer-bindable freshness and authority scenarios identify real adapter/runtime proof still required; package
       doubles do not establish actual ORM freshness, framework enforcement, or consumer authorization correctness.
-- [ ] Implementation passes `./bin/planning-check` and the full `./bin/build`, including exact production statement
+- [x] Implementation passes `./bin/planning-check` and the full `./bin/build`, including exact production statement
       coverage. Planning validation is not evidence that the runtime capability exists.
 
 ## Decision Links and Progress
@@ -136,13 +137,23 @@ Implements [WF-017](../wayfinder/tickets/WF-017-feature-availability-and-preview
 remain as described in [CONTEXT](../../CONTEXT.md) and
 [ADR 0010](../adr/0010-permission-eligibility-and-caller-authorization.md).
 John approved TASK-00064 as one complete evaluator slice, with existing User/Agent snapshots or null as input,
-ID-based preview checks, and boolean availability plus distinguishable configuration/operational errors. It waits
-on TASK-00062; implementation, full verification, and independent review have not started. TICKET-00017 now has
-approved TASK-00065–00067, completing EPIC decomposition. Execution and branch/worktree selection remain separately
-authorized.
+ID-based preview checks, and boolean availability plus distinguishable configuration/operational errors. At the
+planning checkpoint it awaited TASK-00062; implementation, local verification and independent acceptance have
+since completed. TICKET-00017 now has approved TASK-00065–00067, completing EPIC
+decomposition. John subsequently authorized TASK-00064 in the clean main checkout on
+`feature/task-00064-feature-evaluation` from `develop` `b2fc4ce`. Its read-only evaluator and
+[consumer guide](../../docs/feature-availability.md) now implement the approved boolean/missing/broken/operational
+contract and consumer-bindable fresh-read scenarios. At the initial builder checkpoint, focused and complete gates
+passed 74 tests / 415 assertions and 1812 tests / 35068 assertions, exact 6369/6369 owned statements. The first
+independent review requested documentation and in-flight completion proof corrections; the revised full gate passes
+1812 tests / 35070 assertions, exact 6369/6369 statements. Independent re-review accepted `fc1cc89` against unchanged `develop` `b2fc4ce` (C1–C10, no findings after
+F1/F2 corrections); independent behavioral QA passed 6 scenarios and 30 public-port probe checks, with a clean
+74-test / 416-assertion focused run. TASK-00064 is done for accepted package behavior/local verification.
+This does not qualify actual ORM freshness, framework enforcement, consumer authorization, management
+composition, a partial release or deployment. TASK-00065–00067 retain their separate scope.
 
 ## Child Tasks
 
 | Order | TASK ID | Title | Status |
 | --- | --- | --- | --- |
-| 64 | [TASK-00064](../tasks/00064-TASK.md) | Evaluate Feature availability with fresh, identity-safe checks | ready-for-agent |
+| 64 | [TASK-00064](../tasks/00064-TASK.md) | Evaluate Feature availability with fresh, identity-safe checks | done |

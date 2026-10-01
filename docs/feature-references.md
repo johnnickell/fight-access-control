@@ -4,8 +4,8 @@
 not itself implement Feature storage, provisioning, availability checks, management or runtime enforcement.
 [TASK-00062's atomic provisioning](feature-provisioning.md) consumes this contract, and
 [TASK-00063's preparation validation](feature-preparation.md) checks complete candidate references against stored
-Features and bound Permissions. Runtime evaluation, management and integrity guards remain TASK-00064 through
-TASK-00067.
+Features and bound Permissions. [Runtime evaluation](feature-availability.md) is now implemented by TASK-00064;
+management and integrity guards remain TASK-00065 through TASK-00067.
 The declarations are an additive public PHP API, not a release, supported partial feature-flag system or consumer
 qualification. Declaration/discovery alone changes no persisted format, existing signature or OpenAPI schema;
 provisioning has its own storage/schema assessment. [Preparation validation](feature-preparation.md) adds a
