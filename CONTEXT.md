@@ -566,6 +566,18 @@ publication head `a0aae5a`. Its ignored landing receipt owns the administrative-
 verification. Approval and merge remain separate. TASK-00065–00067, complete Feature acceptance, actual consumer
 qualification, adoption and release remain outstanding.
 
+## Feature Permission references — TASK-00065 builder checkpoint
+
+The [reference integrity guide](docs/feature-permission-references.md) records the supported removal inventory:
+`PermissionRepository::remove()` is the final shared-fence boundary, also used by managed-policy reconciliation.
+Preview queries all stored Feature references by Permission ID; no status or list-page filter applies. The final
+remove check covers Feature, Role and Agent references, including references introduced after planning. Feature
+creation validates the same identity and fence; controlled package conformance exercises both winner orders and
+rollback, not real database concurrency. Feature binding is not a grant or promotion blocker. Future rebinding must
+join the same fence; TASK-00066 owns its implementation and proof. Consumer persistence/schema/authorization,
+retirement (TASK-00067), adoption and release remain outstanding. TASK-00065 implementation is awaiting independent
+review and QA; the builder's gate evidence is in the TASK record and ignored logs.
+
 ## Planning and Completion
 
 Local TASK files under `planning/tasks/` are canonical for implementation scope, status, dependencies,

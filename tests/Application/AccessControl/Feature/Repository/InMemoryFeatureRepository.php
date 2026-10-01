@@ -41,6 +41,7 @@ final class InMemoryFeatureRepository implements FeatureRepository
     public function seed(Feature $feature): void
     {
         $this->records[$feature->getId()->toString()] = $feature;
+        $this->unitOfWork->authorizationReferenceState()->retainFeature($feature);
     }
 
     public function add(Feature $feature): void
@@ -64,9 +65,11 @@ final class InMemoryFeatureRepository implements FeatureRepository
 
         $key = $feature->getId()->toString();
         $this->records[$key] = $feature;
+        $references->retainFeature($feature);
         ++$this->writes;
-        $this->unitOfWork->onRollback(function () use ($key): void {
+        $this->unitOfWork->onRollback(function () use ($key, $feature, $references): void {
             unset($this->records[$key]);
+            $references->removeFeature($feature->getId());
         });
         $this->afterAdd?->__invoke($feature);
     }

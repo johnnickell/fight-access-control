@@ -19,7 +19,9 @@ interface FeatureRepository
      *
      * Enforce unique identity and name atomically, not only through prior lookup. Validate the referenced Permission
      * under the same transaction-duration reference fence used by all Permission removals and Feature reference
-     * writers. Hold that protection through commit: a concurrent removal and referencing creation cannot both win.
+     * writers, including future rebinding and validated no-op updates. Hold that protection through commit: a
+     * concurrent removal and referencing creation cannot both win. A losing write rejects a missing ID rather than
+     * resolving a replacement Permission by name.
      * Any existing Permission tier is eligible; a Feature reference is not an authority grant or promotion guard.
      * Rollback removes only this transaction's writes, never a concurrent winner. Reject rather than upsert/reset.
      *

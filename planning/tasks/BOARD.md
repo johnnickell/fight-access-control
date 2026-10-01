@@ -5,17 +5,17 @@ dependencies, acceptance, and verification.
 
 ## What's Next?
 
-First ready Task: [TASK-00065](00065-TASK.md) — Protect Permissions referenced by Features.
+Active Task: [TASK-00065](00065-TASK.md) — Protect Permissions referenced by Features.
 
 ## In Progress
 
-No Tasks are currently in this state.
+| Order | TASK ID | Title | Parent TICKET | Status | Blocked by | PR |
+| --- | --- | --- | --- | --- | --- | --- |
+| 65 | [TASK-00065](00065-TASK.md) | Protect Permissions referenced by Features | [TICKET-00017](../tickets/00017-TICKET.md) — Manage and retire Features safely | in-progress | [TASK-00062](00062-TASK.md) | — |
 
 ## Ready Frontier
 
-| Order | TASK ID | Title | Parent TICKET | Status | Blocked by | PR |
-| --- | --- | --- | --- | --- | --- | --- |
-| 65 | [TASK-00065](00065-TASK.md) | Protect Permissions referenced by Features | [TICKET-00017](../tickets/00017-TICKET.md) — Manage and retire Features safely | ready-for-agent | [TASK-00062](00062-TASK.md) | — |
+No Tasks are currently in this state.
 
 ## Waiting
 

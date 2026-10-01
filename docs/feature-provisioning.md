@@ -5,8 +5,8 @@ It consumes [complete candidate discovery](feature-references.md), creates only 
 existing identities/settings. It does **not** establish activation readiness or a supported partial Feature release:
 [preparation validation](feature-preparation.md) is supplied by TASK-00063;
 [availability evaluation](feature-availability.md) is implemented separately by TASK-00064. Permission-removal
-guards (TASK-00065), management (TASK-00066), and guarded retirement/final lifecycle evidence (TASK-00067)
-remain outstanding.
+guards ([TASK-00065](feature-permission-references.md)), management (TASK-00066), and guarded retirement/final
+lifecycle evidence (TASK-00067) remain distinct; package reference proof does not qualify consumer adapters.
 
 ## Composition and invocation
 
@@ -82,8 +82,9 @@ never masquerade as absence. Existing records, including broken Permission refer
 4. All inserts in one pass commit together. Rollback removes only this pass's writes, not other writers' committed
    records. Invalidate transaction-local state after rollback/uncertainty as necessary; use fresh authoritative state
    on retry. Adapters choose concrete unique constraints, reference locks and isolation, then qualify the actual races.
-5. Coordinate the creation-side contract above with TASK-00065's **not-yet-implemented** all-path Permission-removal
-   guards, and later management/rebinding/retirement. Neither this interface nor the package tests qualify a complete
+5. Coordinate the creation-side contract above with TASK-00065's [all-path Permission-removal
+   guard](feature-permission-references.md), and later management/rebinding/retirement. Neither this interface nor
+   the package tests qualify a complete
    consumer composition or authorize deploying a Feature capability without those integrity protections.
 
 Consumers own the new Feature storage mapping, constraints and adapter. This TASK adds no production database
@@ -154,7 +155,8 @@ separate; production Domain/Application code has no OpenAPI dependency.
 
 The in-memory transaction and reference-fence model is **not** actual database concurrency, scanner completeness,
 consumer authorization or deployment qualification. Consumer-bindable [preparation scenarios](feature-preparation.md) are supplied by TASK-00063;
-all-path Permission-removal races in TASK-00065; manual-create/provision and rebinding conflicts in TASK-00066; real
+package-modeled [all-path Permission-removal conflicts](feature-permission-references.md) in TASK-00065;
+manual-create/provision and rebinding conflicts in TASK-00066; real
 retirement/reintroduction and complete lifecycle traceability in TASK-00067. No UI exists here: executable library
 behavior and generated-contract tests are the useful nonvisual evidence. Independent review and behavioral QA remain
 separate from builder tests, and no build result authorizes consumer adoption, publication or release.
