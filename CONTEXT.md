@@ -575,8 +575,11 @@ remove check covers Feature, Role and Agent references, including references int
 creation validates the same identity and fence; controlled package conformance exercises both winner orders and
 rollback, not real database concurrency. Feature binding is not a grant or promotion blocker. Future rebinding must
 join the same fence; TASK-00066 owns its implementation and proof. Consumer persistence/schema/authorization,
-retirement (TASK-00067), adoption and release remain outstanding. TASK-00065 implementation is awaiting independent
-review and QA; the builder's gate evidence is in the TASK record and ignored logs.
+retirement (TASK-00067), adoption and release remain outstanding. TASK-00065's second F1 correction places the
+sole target binding after 101 unrelated bindings in insertion, ID and name order, beyond the ordinary 100-record
+page; the fresh gate passes 1821 tests / 35123 assertions and
+exact 6374/6374 statements. Independent re-review and QA remain outstanding; the builder's gate evidence is in
+the TASK record and ignored logs.
 
 ## Planning and Completion
 

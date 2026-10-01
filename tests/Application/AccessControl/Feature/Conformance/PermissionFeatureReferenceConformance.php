@@ -48,19 +48,23 @@ abstract class PermissionFeatureReferenceConformance extends TestCase
         $environment->storePermission($permission);
         $environment->storePermission($unrelated);
 
-        // A bounded first-page search sees only unrelated bindings.
-        $first = Feature::define(FeatureId::generate(), FeatureName::fromString('a-unrelated-0'), $unrelated->getId());
+        // The sole target is beyond the common 100-record page in insertion, ID and name order.
+        $first = Feature::define(
+            FeatureId::fromString('00000000-0000-4000-8000-000000000000'),
+            FeatureName::fromString('a-unrelated-0'),
+            $unrelated->getId()
+        );
         $environment->storeFeature($first);
-        for ($index = 1; $index < 25; ++$index) {
+        for ($index = 1; $index <= 100; ++$index) {
             $environment->storeFeature(Feature::define(
-                FeatureId::generate(),
+                FeatureId::fromString(sprintf('00000000-0000-4000-8000-%012x', $index)),
                 FeatureName::fromString('a-unrelated-'.$index),
                 $unrelated->getId()
             ));
         }
 
         $tail = Feature::define(
-            FeatureId::generate(),
+            FeatureId::fromString('ffffffff-ffff-4fff-8fff-ffffffffffff'),
             FeatureName::fromString('z-target-at-tail'),
             $permission->getId()
         );
