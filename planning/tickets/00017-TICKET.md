@@ -161,10 +161,10 @@ Implements [WF-018](../wayfinder/tickets/WF-018-feature-preview-permission-bindi
 John approved TASK-00065–00067 and the shared revision/read/consumer-workflow details. This completes TASK planning
 for all three EPIC-00010 TICKETs: seven TASKs total, 00061–00067, with an acyclic dependency graph. The three TASKs
 now progress independently against their recorded blockers, not an unrecorded product decision. TASK-00065 has
-independently accepted package implementation and behavioral QA; its landing closeout is pending publication at
-this checkpoint. TASK-00066–00067 remain unfinished and own rebinding/retirement evidence; neither this TICKET nor
-EPIC-00010 is complete.
-Consumer qualification, adoption and publication remain separate.
+independently accepted package implementation and behavioral QA. John requested landing and published
+[PR #104](https://github.com/johnnickell/fight-access-control/pull/104); approval and merge remain separate.
+TASK-00066–00067 remain unfinished and own rebinding/retirement evidence; neither this TICKET nor EPIC-00010 is
+complete. Consumer qualification, adoption and package release remain separate.
 
 ## Child Tasks
 

@@ -583,7 +583,10 @@ C1–C8 with F1 resolved and no findings. Independent behavioral QA passed six s
 plus 50 focused tests / 405 assertions. The branch's non-rewriting merge of later planning-only `develop` `c691b57`
 preserves the reviewed effective PHP/tests/guide diff; the ignored landing handoff owns reconciliation and fresh
 checks. TASK-00065 is done for accepted package implementation and local QA, not actual consumer database fencing,
-rebinding, retirement, PR publication, merge or release. TASK-00066/00067 and consumer qualification remain separate.
+rebinding, retirement, merge or release. John's landing request opened
+[PR #104](https://github.com/johnnickell/fight-access-control/pull/104) against `develop` at initial head `ddd2c3e`;
+its ignored landing receipt owns final metadata/remote verification. TASK-00066/00067 and consumer qualification
+remain separate.
 
 ## Planning and Completion
 
