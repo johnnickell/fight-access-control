@@ -32,3 +32,6 @@ Roadmap strategy remains authored; its live EPIC status table is generated. EPIC
 Use the project generator after record changes, then its read-only check. Fight Common's adopted commands are `./bin/planning-check --write` followed by `./bin/planning-check`; inspect other project commands rather than assuming they exist. Validate parents, links, IDs, dependency cycles, archive state, and stale views. The product gate checks but does not rewrite generated views.
 
 Archive planning only on an explicit request using the owning tool, a reviewed dry run, then apply. Require selected records/children terminal as appropriate. Preserve history and repair local links; immutable receipts retain their original identity with a migration map. Run-artifact archival is separate from durable planning archival.
+
+Follow [Automatic parent completion](../../../planning/CONVENTIONS.md#automatic-parent-completion) when completing
+TASKs. Close eligible ancestors in that same operation without a separate assessment, review, QA or confirmation.

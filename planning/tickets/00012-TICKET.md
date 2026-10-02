@@ -2,7 +2,7 @@
 id: TICKET-00012
 epic: EPIC-00009
 title: Issue and resolve Agent credentials recoverably
-status: in-progress
+status: done
 ---
 
 # Issue and resolve Agent credentials recoverably

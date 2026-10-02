@@ -15,6 +15,22 @@ structure, lifecycle, generated views, Wayfinder continuity, and the explicit ar
       ROADMAP.md        Strategy plus generated EPIC status projection
       MIGRATION.md      Historic PRD/Ticket identity map
 
+## Automatic parent completion
+
+When a TASK becomes `done` or `wontfix`, complete eligible parent TICKETs and then EPICs in the same operation.
+Count live and archived children. A live, non-terminal parent with at least one child closes when every child
+is terminal: use `wontfix` if every child is `wontfix`, otherwise `done`. Parents without children or with an
+unfinished child remain open. Preserve already-terminal and archived parents.
+
+Child acceptance and intentional `wontfix` decisions remain with the child records. Parent completion requires
+no separate assessment, independent review, QA, confirmation, or skill invocation. Record any remaining work as
+an unfinished child rather than a separate parent-closeout gate. Parent status does not assert review, merge,
+release, deployment or publication, and completion never archives records automatically.
+
+Run `./bin/planning-check --write` during completion; it closes eligible parents and refreshes views.
+Then run the read-only `./bin/planning-check`. Read-only validation never writes completion metadata.
+
+
 ## Records and naming
 
 | Level | Identifier | File | Parent |
@@ -57,7 +73,7 @@ Roadmap record-status projection are deterministic views. After a planning-recor
     ./bin/planning-check --write
     ./bin/planning-check
 
-The write form regenerates views; the read-only form validates IDs, parents, dependencies and cycles, local links,
+The write form closes eligible parents and regenerates views; the read-only form validates IDs, parents, dependencies and cycles, local links,
 ignored run space, and view freshness. Do not hand-edit generated rows.
 
 The Board has the contract used by /ask-matt: surface a current human decision first and the active TASK when one

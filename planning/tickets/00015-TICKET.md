@@ -2,7 +2,7 @@
 id: TICKET-00015
 epic: EPIC-00010
 title: Register and provision Features safely
-status: in-progress
+status: done
 ---
 
 # Register and provision Features safely

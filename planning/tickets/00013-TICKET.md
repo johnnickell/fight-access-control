@@ -2,7 +2,7 @@
 id: TICKET-00013
 epic: EPIC-00009
 title: Deliver and recover Agent credentials through protected sinks
-status: in-progress
+status: done
 ---
 
 # Deliver and recover Agent credentials through protected sinks
