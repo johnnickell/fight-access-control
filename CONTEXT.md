@@ -459,7 +459,8 @@ Current references guard deletion; checks read fresh Feature state without share
 Consumers own adapters, scanning, enforcement, UI, authorization, and deployment integration; actual CMS migration
 is separate. TASK-00062 supplies stored Feature creation/provisioning. TASK-00063 adds read-only complete-candidate
 preparation validation against authoritative Feature and bound Permission IDs; a valid OFF Feature passes preparation,
-not runtime availability or deployment authorization. Evaluation is accepted; TASK-00066 management is under implementation, not independently accepted.
+not runtime availability or deployment authorization. Evaluation and TASK-00066 management are independently
+accepted at their respective package checkpoints; guarded retirement remains TASK-00067.
 TASK-00061 implements the
 [declaration and discovery contract](docs/feature-references.md): Domain `FeatureName` validates without normalization;
 Application `FeatureFlag` is method-only/nonrepeatable and `FeatureReferences` merges name-only references.
@@ -603,8 +604,12 @@ and fail-closed evaluation after broken-binding repair, without identifying a pr
 adds public-handler/consumer-bindable reference-conflict scenarios and same-principal evaluation across a broken
 binding, management read and authorized repair. The fresh revision gate passes **1834 tests / 35275 assertions**,
 exact **6586/6586 statements**; its ignored receipt records the content snapshot and failed-attempt chronology.
-Independent re-review and behavioral QA remain pending; this is not actual consumer database, UI or security
-qualification and is not accepted or released. TASK-00067 retains guarded retirement and final lifecycle evidence.
+At the builder checkpoint independent re-review and QA were pending. Independent re-review subsequently **accepted**
+clean `0eec869` against unchanged `develop` `91102bb`, with C1–C9 passing, no blockers and F1/F2 evidence gaps
+resolved. Independent post-review behavioral QA **passed** eight scenarios including 45 executable checks plus a
+consumer instruction walkthrough. TASK-00066 is done for accepted package implementation and local verification;
+publication/merge remain separate. This is not actual consumer database, UI or entry-point security qualification
+and is not a release. TASK-00067 retains guarded retirement and final lifecycle evidence.
 
 ## Planning and Completion
 
