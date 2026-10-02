@@ -160,13 +160,16 @@ Implements [WF-018](../wayfinder/tickets/WF-018-feature-preview-permission-bindi
 [ADR 0010](../adr/0010-permission-eligibility-and-caller-authorization.md)'s caller-authorization boundary.
 John approved TASK-00065–00067 and the shared revision/read/consumer-workflow details. This completes TASK planning
 for all three EPIC-00010 TICKETs: seven TASKs total, 00061–00067, with an acyclic dependency graph. The three TASKs
-here are waiting on their recorded blockers, not on an unrecorded product decision. No implementation or behavioral
-verification has started. Execution, branch/worktree selection, consumer adoption, and publication remain separate.
+now progress independently against their recorded blockers, not an unrecorded product decision. TASK-00065 has
+independently accepted package implementation and behavioral QA. John requested landing and published
+[PR #104](https://github.com/johnnickell/fight-access-control/pull/104); approval and merge remain separate.
+TASK-00066–00067 remain unfinished and own rebinding/retirement evidence; neither this TICKET nor EPIC-00010 is
+complete. Consumer qualification, adoption and package release remain separate.
 
 ## Child Tasks
 
 | Order | TASK ID | Title | Status |
 | --- | --- | --- | --- |
-| 65 | [TASK-00065](../tasks/00065-TASK.md) | Protect Permissions referenced by Features | ready-for-agent |
+| 65 | [TASK-00065](../tasks/00065-TASK.md) | Protect Permissions referenced by Features | done |
 | 66 | [TASK-00066](../tasks/00066-TASK.md) | Create, inspect, and update Feature settings safely | ready-for-agent |
 | 67 | [TASK-00067](../tasks/00067-TASK.md) | Retire Features through current-reference guards | ready-for-agent |

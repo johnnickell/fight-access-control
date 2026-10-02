@@ -68,6 +68,14 @@ interface PermissionRepository
     public function getManaged(): array;
 
     /**
+     * Reports whether any stored Feature references the Permission ID, regardless of Feature status or list page
+     *
+     * Used for managed-policy diagnostics. This read is not a removal lock; remove() rechecks under the common fence.
+     * Storage errors must propagate rather than be treated as absence.
+     */
+    public function hasFeatureReference(PermissionId $id): bool;
+
+    /**
      * Replaces the expected permission when it remains current
      *
      * A tier promotion to SUPER_ADMIN_ONLY must atomically reject any custom Role, ordinary managed Role, or
@@ -81,8 +89,10 @@ interface PermissionRepository
      * Removes the expected Permission atomically only when it remains current and unreferenced
      *
      * Validation and mutation occur under one adapter-owned permission-reference fence held through the enclosing
-     * Unit of Work and shared with RoleRepository and AgentRepository reference-changing writes. Returns false when
-     * changed or referenced.
+     * Unit of Work and shared with RoleRepository, AgentRepository and FeatureRepository reference-changing writes.
+     * Check all Feature references by ID irrespective of status, alongside Role/Agent references. Feature creation
+     * and future rebinding (including validated no-ops) must check an authoritative ID under this same fence; a
+     * conflicting removal and new reference cannot both commit. Returns false when changed or referenced.
      */
     public function remove(Permission $permission): bool;
 }

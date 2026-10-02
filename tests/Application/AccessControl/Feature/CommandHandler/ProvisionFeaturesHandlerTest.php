@@ -297,6 +297,25 @@ final class ProvisionFeaturesHandlerTest extends TestCase
         }
     }
 
+    public function test_permission_removal_cannot_win_after_first_insert_of_atomic_provisioning_pass(): void
+    {
+        $this->features->beforeAdd = function (Feature $feature): void {
+            if ($feature->getName()->toString() !== 'dashboard') {
+                return;
+            }
+
+            self::assertTrue($this->unitOfWork->authorizationReferenceState()->isReferenceFenceHeld());
+            self::assertFalse($this->permissions->remove($this->default));
+            self::assertSame($this->default, $this->permissions->getById($this->default->getId()));
+        };
+
+        $this->handler()->handle($this->message());
+
+        self::assertCount(2, $this->features->records);
+        self::assertSame($this->default, $this->permissions->getById($this->default->getId()));
+        self::assertCount(2, $this->events->events());
+    }
+
     public function test_reference_loss_after_default_resolution_rejects_the_entire_pass(): void
     {
         $this->features->beforeAdd = function (Feature $feature): void {

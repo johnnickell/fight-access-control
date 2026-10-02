@@ -563,8 +563,30 @@ F1/F2 corrections. Independent behavioral QA passed six scenarios / 30 public-po
 local/behavioral verification; hosted CI is optional/not checked. John's landing request opened
 [PR #102](https://github.com/johnnickell/fight-access-control/pull/102) against unchanged `develop` at initial
 publication head `a0aae5a`. Its ignored landing receipt owns the administrative-only bridge and final publication
-verification. Approval and merge remain separate. TASK-00065–00067, complete Feature acceptance, actual consumer
-qualification, adoption and release remain outstanding.
+verification. Approval and merge remain separate. TASK-00065's accepted package proof does not close TASK-00066–00067;
+complete Feature acceptance, actual consumer qualification, adoption and release remain outstanding.
+
+## Feature Permission references — TASK-00065 builder checkpoint
+
+The [reference integrity guide](docs/feature-permission-references.md) records the supported removal inventory:
+`PermissionRepository::remove()` is the final shared-fence boundary, also used by managed-policy reconciliation.
+Preview queries all stored Feature references by Permission ID; no status or list-page filter applies. The final
+remove check covers Feature, Role and Agent references, including references introduced after planning. Feature
+creation validates the same identity and fence; controlled package conformance exercises both winner orders and
+rollback, not real database concurrency. Feature binding is not a grant or promotion blocker. Future rebinding must
+join the same fence; TASK-00066 owns its implementation and proof. Consumer persistence/schema/authorization,
+retirement (TASK-00067), adoption and release remain outstanding. TASK-00065's second F1 correction places the
+sole target binding after 101 unrelated bindings in insertion, ID and name order, beyond the ordinary 100-record
+page; the fresh gate passes 1821 tests / 35123 assertions and
+exact 6374/6374 statements. Independent re-review accepted `f6438ae` against `develop` `5ab3d38`,
+C1–C8 with F1 resolved and no findings. Independent behavioral QA passed six scenarios / 30 public-port checks
+plus 50 focused tests / 405 assertions. The branch's non-rewriting merge of later planning-only `develop` `c691b57`
+preserves the reviewed effective PHP/tests/guide diff; the ignored landing handoff owns reconciliation and fresh
+checks. TASK-00065 is done for accepted package implementation and local QA, not actual consumer database fencing,
+rebinding, retirement, merge or release. John's landing request opened
+[PR #104](https://github.com/johnnickell/fight-access-control/pull/104) against `develop` at initial head `ddd2c3e`;
+its ignored landing receipt owns final metadata/remote verification. TASK-00066/00067 and consumer qualification
+remain separate.
 
 ## Planning and Completion
 
