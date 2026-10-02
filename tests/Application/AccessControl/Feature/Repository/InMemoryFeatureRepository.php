@@ -31,6 +31,9 @@ final class InMemoryFeatureRepository implements FeatureRepository
     /** @var null|Closure(Feature, Feature): void */
     public ?Closure $beforeReplace = null;
 
+    /** @var null|Closure(Feature): void */
+    public ?Closure $afterReplace = null;
+
     /** @var list<string> */
     public array $lookups = [];
 
@@ -138,6 +141,7 @@ final class InMemoryFeatureRepository implements FeatureRepository
             $this->records[$key] = $stored;
             $references->retainFeature($stored);
         });
+        $this->afterReplace?->__invoke($replacement);
 
         return true;
     }

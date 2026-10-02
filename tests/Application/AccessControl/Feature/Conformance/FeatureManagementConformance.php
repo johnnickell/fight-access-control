@@ -13,6 +13,7 @@ use Fight\AccessControl\Application\AccessControl\Feature\QueryHandler\ListFeatu
 use Fight\AccessControl\Domain\AccessControl\Feature\Command\CreateFeature;
 use Fight\AccessControl\Domain\AccessControl\Feature\Command\SetFeaturePermission;
 use Fight\AccessControl\Domain\AccessControl\Feature\Command\SetFeatureStatus;
+use Fight\AccessControl\Domain\AccessControl\Feature\Exception\FeatureReferenceException;
 use Fight\AccessControl\Domain\AccessControl\Feature\Exception\FeatureRevisionException;
 use Fight\AccessControl\Domain\AccessControl\Feature\Feature;
 use Fight\AccessControl\Domain\AccessControl\Feature\FeatureName;
@@ -74,7 +75,48 @@ abstract class FeatureManagementConformance extends TestCase
         self::assertSame(1, $page->totalRecords());
         self::assertSame(2, $page->records()->first()->getRevision());
         self::assertFalse($environment->removePermission($second));
+        self::assertTrue($environment->removePermission($first));
+        self::assertNull($permissions->getById($first->getId()));
         self::assertSame($stored->getId(), $features->getByName($name)?->getId());
+        self::assertSame($second->getId(), $features->getById($stored->getId())?->getPermissionId());
+    }
+
+    public function test_removed_target_cannot_become_a_binding_through_management(): void
+    {
+        $environment = $this->environment();
+        $first = $this->permission('FIRST');
+        $second = $this->permission('SECOND');
+        $environment->storePermission($first);
+        $environment->storePermission($second);
+
+        $features = $environment->features();
+        $name = FeatureName::fromString('dashboard');
+        $create = new CreateFeatureHandler(
+            $features,
+            $environment->permissions(),
+            $environment->unitOfWork(),
+            $environment->events()
+        );
+        $create->handle(CommandMessage::create(new CreateFeature($name, $first->getId())));
+
+        $stored = $features->getByName($name);
+        self::assertInstanceOf(Feature::class, $stored);
+        self::assertTrue($environment->removePermission($second));
+
+        try {
+            new SetFeaturePermissionHandler(
+                $features,
+                $environment->permissions(),
+                $environment->unitOfWork(),
+                $environment->events()
+            )->handle(CommandMessage::create(new SetFeaturePermission($stored->getId(), $second->getId(), 1)));
+            self::fail('Removal of the target must prevent rebinding.');
+        } catch (FeatureReferenceException) {
+            self::assertSame($first->getId(), $features->getById($stored->getId())?->getPermissionId());
+            self::assertSame(1, $features->getById($stored->getId())->getRevision());
+            self::assertFalse($environment->removePermission($first));
+            self::assertNull($environment->permissions()->getById($second->getId()));
+        }
     }
 
     abstract protected function environment(): FeatureManagementEnvironment;

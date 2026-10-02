@@ -598,9 +598,13 @@ The package handlers commit real edits before publishing facts; no-ops perform n
 still validate revisions/Permission references at the final repository boundary. The consumer must implement actual
 transaction-duration reference fences and qualify schema/ORM concurrency plus UI confirmation and entry-point
 security. The complete local gate passes **1833 tests / 35243 assertions** with exact **6586/6586 statements**;
-its ignored TASK receipt and log retain provenance. This work awaits independent technical review and behavioral
-QA; it is not accepted or released.
-TASK-00067 retains guarded retirement and final lifecycle evidence.
+its ignored TASK receipt and log retain provenance. The first independent technical review of `2f45dca` requested F1/F2 evidence for rebinding/removal winner orders
+and fail-closed evaluation after broken-binding repair, without identifying a production defect. A builder revision
+adds public-handler/consumer-bindable reference-conflict scenarios and same-principal evaluation across a broken
+binding, management read and authorized repair. The fresh revision gate passes **1834 tests / 35275 assertions**,
+exact **6586/6586 statements**; its ignored receipt records the content snapshot and failed-attempt chronology.
+Independent re-review and behavioral QA remain pending; this is not actual consumer database, UI or security
+qualification and is not accepted or released. TASK-00067 retains guarded retirement and final lifecycle evidence.
 
 ## Planning and Completion
 

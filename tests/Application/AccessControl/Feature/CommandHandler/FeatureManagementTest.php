@@ -23,6 +23,7 @@ use Fight\AccessControl\Domain\AccessControl\Feature\Command\SetFeatureStatus;
 use Fight\AccessControl\Domain\AccessControl\Feature\Event\FeatureCreated;
 use Fight\AccessControl\Domain\AccessControl\Feature\Event\FeaturePermissionChanged;
 use Fight\AccessControl\Domain\AccessControl\Feature\Event\FeatureStatusChanged;
+use Fight\AccessControl\Domain\AccessControl\Feature\Exception\FeatureBindingException;
 use Fight\AccessControl\Domain\AccessControl\Feature\Exception\FeatureNotFoundException;
 use Fight\AccessControl\Domain\AccessControl\Feature\Exception\FeatureReferenceException;
 use Fight\AccessControl\Domain\AccessControl\Feature\Exception\FeatureRevisionException;
@@ -201,20 +202,37 @@ final class FeatureManagementTest extends TestCase
 
     public function test_broken_binding_can_only_be_repaired_with_an_existing_identity(): void
     {
+        $missingId = PermissionId::generate();
         $feature = Feature::reconstitute(
             FeatureId::generate(),
             FeatureName::fromString('broken'),
-            PermissionId::generate(),
+            $missingId,
             FeatureStatus::PREVIEW,
             3
         );
         $this->features->seed($feature);
+        $principal = new AuthenticatedAgentPrincipal(AgentId::generate(), AgentCredentialId::generate(), 1, 1, [
+            new PrincipalPermission($this->first->getId(), $this->first->getName())
+        ]);
+        $availability = new FeatureAvailability($this->features, $this->permissions);
+        self::assertInstanceOf(FeatureBindingException::class, $this->fails(
+            fn(): bool => $availability->isAvailable($feature->getName(), $principal)
+        ));
+        $view = new GetFeatureByIdHandler($this->features, $this->permissions)
+            ->handle(QueryMessage::create(new GetFeatureById($feature->getId())));
+        self::assertTrue($view->isBindingMissing());
+        self::assertSame($missingId, $view->getPermissionId());
+        self::assertNull($view->getPermissionName());
+        self::assertSame(3, $view->getRevision());
         self::assertInstanceOf(FeatureReferenceException::class, $this->fails(
             fn() => $this->changeStatus($feature, FeatureStatus::ON, 3)
         ));
+        self::assertSame($missingId, $this->features->getById($feature->getId())?->getPermissionId());
         $this->binding($feature, $this->first->getId(), 3);
         self::assertSame(4, $this->features->getById($feature->getId())->getRevision());
         self::assertSame($this->first->getId(), $this->features->getById($feature->getId())?->getPermissionId());
+        self::assertTrue($availability->isAvailable($feature->getName(), $principal));
+        self::assertFalse($availability->isAvailable($feature->getName(), null));
     }
 
     public function test_reference_fence_rejects_conflicting_removal_and_validates_noop(): void
@@ -225,12 +243,46 @@ final class FeatureManagementTest extends TestCase
         };
         $this->binding($feature, $this->first->getId(), 1);
         $this->features->beforeReplace = null;
-        self::assertTrue($this->permissions->remove($this->second));
+        self::assertSame(1, $this->features->writes);
+
+        // Rebinding has retained the new target inside its transaction-duration reference fence.
+        $this->features->afterReplace = function (Feature $replacement): void {
+            self::assertSame($this->second->getId(), $replacement->getPermissionId());
+            self::assertTrue($this->uow->authorizationReferenceState()->isReferenceFenceHeld());
+            self::assertFalse($this->permissions->remove($this->second));
+            self::assertTrue($this->permissions->hasFeatureReference($this->second->getId()));
+        };
+        $this->binding($feature, $this->second->getId(), 1);
+        $this->features->afterReplace = null;
+        self::assertTrue($this->permissions->remove($this->first));
+        self::assertNull($this->permissions->getById($this->first->getId()));
+        self::assertFalse($this->permissions->hasFeatureReference($this->first->getId()));
+        self::assertFalse($this->permissions->remove($this->second));
+        self::assertSame(2, $this->features->getById($feature->getId())?->getRevision());
+        self::assertSame($this->second->getId(), $this->features->getById($feature->getId())->getPermissionId());
+
+        // In the opposite order the target disappears before the handler can retain its binding.
+        $third = Permission::define(
+            PermissionId::generate(),
+            PermissionName::fromString('THIRD'),
+            new DateTimeImmutable('2026-01-01T00:00:00+00:00')
+        );
+        $this->permissions->add($third);
+        $this->features->beforeReplace = function () use ($third): void {
+            self::assertTrue($this->permissions->remove($third));
+        };
+        $eventCount = count($this->events->events());
+        $writes = $this->features->writes;
         self::assertInstanceOf(FeatureReferenceException::class, $this->fails(
-            fn() => $this->binding($feature, $this->second->getId(), 1)
+            fn() => $this->binding($feature, $third->getId(), 2)
         ));
-        self::assertSame($this->first->getId(), $this->features->getById($feature->getId())?->getPermissionId());
-        self::assertTrue($this->permissions->hasFeatureReference($this->first->getId()));
+        $this->features->beforeReplace = null;
+        self::assertSame($third, $this->permissions->getById($third->getId()));
+        self::assertSame($writes, $this->features->writes);
+        self::assertSame($this->second->getId(), $this->features->getById($feature->getId())?->getPermissionId());
+        self::assertSame(2, $this->features->getById($feature->getId())->getRevision());
+        self::assertCount($eventCount + 1, $this->events->events());
+        self::assertInstanceOf(CommandFailedEvent::class, $this->events->events()[$eventCount]);
     }
 
     public function test_failed_transaction_and_publication_keep_correct_state(): void
