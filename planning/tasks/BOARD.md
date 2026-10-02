@@ -5,17 +5,17 @@ dependencies, acceptance, and verification.
 
 ## What's Next?
 
-First ready Task: [TASK-00066](00066-TASK.md) — Create, inspect, and update Feature settings safely.
+Active Task: [TASK-00066](00066-TASK.md) — Create, inspect, and update Feature settings safely.
 
 ## In Progress
 
-No Tasks are currently in this state.
+| Order | TASK ID | Title | Parent TICKET | Status | Blocked by | PR |
+| --- | --- | --- | --- | --- | --- | --- |
+| 66 | [TASK-00066](00066-TASK.md) | Create, inspect, and update Feature settings safely | [TICKET-00017](../tickets/00017-TICKET.md) — Manage and retire Features safely | in-progress | [TASK-00065](00065-TASK.md), [TASK-00064](00064-TASK.md) | — |
 
 ## Ready Frontier
 
-| Order | TASK ID | Title | Parent TICKET | Status | Blocked by | PR |
-| --- | --- | --- | --- | --- | --- | --- |
-| 66 | [TASK-00066](00066-TASK.md) | Create, inspect, and update Feature settings safely | [TICKET-00017](../tickets/00017-TICKET.md) — Manage and retire Features safely | ready-for-agent | [TASK-00065](00065-TASK.md), [TASK-00064](00064-TASK.md) | — |
+No Tasks are currently in this state.
 
 ## Waiting
 

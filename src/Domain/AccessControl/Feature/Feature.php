@@ -58,6 +58,30 @@ class Feature
     }
 
     /**
+     * Creates a new availability setting without changing the name or binding
+     */
+    public function withStatus(FeatureStatus $status): static
+    {
+        if ($status === $this->status) {
+            return $this;
+        }
+
+        return new static($this->id, $this->name, $this->permissionId, $status, $this->revision + 1);
+    }
+
+    /**
+     * Creates a new testing Permission without changing the name or status
+     */
+    public function withPermission(PermissionId $permissionId): static
+    {
+        if ($permissionId->equals($this->permissionId)) {
+            return $this;
+        }
+
+        return new static($this->id, $this->name, $permissionId, $this->status, $this->revision + 1);
+    }
+
+    /**
      * Returns the stable Feature identity
      */
     public function getId(): FeatureId

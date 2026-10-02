@@ -448,7 +448,7 @@ expiry and cleanup cannot extend original delivery retention. Reference counts i
 scopes/batches/versions; physical retirement also requires closed write admission, fenced recount and independent
 key-use/authentication-envelope accounting. This is not a wider quota, key-vault or approval system.
 
-## Permission-based feature flags — declarations and provisioning implemented
+## Permission-based feature flags — management implementation in progress
 
 [EPIC-00010](planning/epics/00010-EPIC.md) owns the approved package-only destination from the closed
 [Wayfinder map](planning/wayfinder/permission-based-feature-flags-map.md). A planned Feature has a unique immutable
@@ -459,7 +459,7 @@ Current references guard deletion; checks read fresh Feature state without share
 Consumers own adapters, scanning, enforcement, UI, authorization, and deployment integration; actual CMS migration
 is separate. TASK-00062 supplies stored Feature creation/provisioning. TASK-00063 adds read-only complete-candidate
 preparation validation against authoritative Feature and bound Permission IDs; a valid OFF Feature passes preparation,
-not runtime availability or deployment authorization. Evaluation and management remain planned.
+not runtime availability or deployment authorization. Evaluation is accepted; TASK-00066 management is under implementation, not independently accepted.
 TASK-00061 implements the
 [declaration and discovery contract](docs/feature-references.md): Domain `FeatureName` validates without normalization;
 Application `FeatureFlag` is method-only/nonrepeatable and `FeatureReferences` merges name-only references.
@@ -573,8 +573,9 @@ The [reference integrity guide](docs/feature-permission-references.md) records t
 Preview queries all stored Feature references by Permission ID; no status or list-page filter applies. The final
 remove check covers Feature, Role and Agent references, including references introduced after planning. Feature
 creation validates the same identity and fence; controlled package conformance exercises both winner orders and
-rollback, not real database concurrency. Feature binding is not a grant or promotion blocker. Future rebinding must
-join the same fence; TASK-00066 owns its implementation and proof. Consumer persistence/schema/authorization,
+rollback, not real database concurrency. Feature binding is not a grant or promotion blocker. TASK-00066's
+unreviewed management implementation adds rebinding under that same fence; its acceptance and actual consumer proof
+remain pending. Consumer persistence/schema/authorization,
 retirement (TASK-00067), adoption and release remain outstanding. TASK-00065's second F1 correction places the
 sole target binding after 101 unrelated bindings in insertion, ID and name order, beyond the ordinary 100-record
 page; the fresh gate passes 1821 tests / 35123 assertions and
@@ -587,6 +588,19 @@ rebinding, retirement, merge or release. John's landing request opened
 [PR #104](https://github.com/johnnickell/fight-access-control/pull/104) against `develop` at initial head `ddd2c3e`;
 its ignored landing receipt owns final metadata/remote verification. TASK-00066/00067 and consumer qualification
 remain separate.
+
+## Feature management — TASK-00066 builder checkpoint
+
+John selected the clean main checkout from `develop` `91102bb` for TASK-00066 on
+`feature/task-00066-feature-management`. The unreleased [management guide](docs/feature-management.md) describes
+manual OFF creation, safe paginated reads with missing-binding markers and shared optimistic revision transitions.
+The package handlers commit real edits before publishing facts; no-ops perform no writes or success publication and
+still validate revisions/Permission references at the final repository boundary. The consumer must implement actual
+transaction-duration reference fences and qualify schema/ORM concurrency plus UI confirmation and entry-point
+security. The complete local gate passes **1833 tests / 35243 assertions** with exact **6586/6586 statements**;
+its ignored TASK receipt and log retain provenance. This work awaits independent technical review and behavioral
+QA; it is not accepted or released.
+TASK-00067 retains guarded retirement and final lifecycle evidence.
 
 ## Planning and Completion
 

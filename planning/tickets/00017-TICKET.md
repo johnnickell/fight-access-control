@@ -171,5 +171,5 @@ complete. Consumer qualification, adoption and package release remain separate.
 | Order | TASK ID | Title | Status |
 | --- | --- | --- | --- |
 | 65 | [TASK-00065](../tasks/00065-TASK.md) | Protect Permissions referenced by Features | done |
-| 66 | [TASK-00066](../tasks/00066-TASK.md) | Create, inspect, and update Feature settings safely | ready-for-agent |
+| 66 | [TASK-00066](../tasks/00066-TASK.md) | Create, inspect, and update Feature settings safely | in-progress |
 | 67 | [TASK-00067](../tasks/00067-TASK.md) | Retire Features through current-reference guards | ready-for-agent |

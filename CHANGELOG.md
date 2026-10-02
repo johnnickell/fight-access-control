@@ -9,16 +9,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- [Feature management](docs/feature-management.md): additive manual OFF creation, safe read/list views, atomic
+  revision-checked status and testing-Permission edits, and post-commit facts. The Feature repository now requires
+  paginated reads and a reference-fenced compare-and-replace operation; consumers must update persistence adapters
+  and schema before adoption. No UI, transport API, consumer migration, guarded deletion or partial release.
 - [Feature availability](docs/feature-availability.md): additive read-only evaluator for fresh stored status and
   bound Permission identity against existing User/Agent snapshots or anonymous input. OFF/PREVIEW/ON return ordinary
   booleans; unknown Features, broken bindings and operational failures remain distinct. No action authorization,
-  consumer adapter/enforcement, management or partial Feature release is supplied.
+  consumer adapter/enforcement or partial Feature release is supplied; management is described separately above.
 - [Atomic Feature provisioning](docs/feature-provisioning.md): additive Feature identity/status/model and repository
   contracts, `ProvisionFeatures`/handler and post-commit `FeatureCreated` facts. Complete candidate discovery creates
   only missing names OFF in one transaction with an existing default Permission; rollback, uniqueness conflicts,
   uncertain commits and publication failure preserve storage-based retry and existing choices. Additive opt-in
   `Fight.AccessControl.ProvisionFeatures` schema and generated-contract tests. No activation-readiness claim,
-  evaluation, management, consumer adapter, reliable event delivery or selected release version.
+  consumer adapter, reliable event delivery or selected release version; evaluation and management are separate slices.
 - Portable [Feature declarations and discovery](docs/feature-references.md): strict non-normalizing `FeatureName`,
   method-only nonrepeatable `FeatureFlag`, immutable name references and fail-closed candidate/current discovery
   results. Additive PHP metadata contracts only; no storage, provisioning, evaluation, scanner or runtime enforcement.

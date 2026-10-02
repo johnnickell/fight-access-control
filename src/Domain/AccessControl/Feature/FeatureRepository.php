@@ -6,6 +6,8 @@ namespace Fight\AccessControl\Domain\AccessControl\Feature;
 
 use Fight\AccessControl\Domain\AccessControl\Feature\Exception\FeatureConflictException;
 use Fight\AccessControl\Domain\AccessControl\Feature\Exception\FeatureReferenceException;
+use Fight\Common\Domain\Repository\Pagination;
+use Fight\Common\Domain\Repository\ResultSet;
 
 /**
  * Interface FeatureRepository
@@ -46,4 +48,25 @@ interface FeatureRepository
      * null for malformed rows or infrastructure failures. A preparation query must distinguish those from absence.
      */
     public function getByName(FeatureName $name): ?Feature;
+
+    /**
+     * Returns an authoritative page of Features with its total count
+     *
+     * @return ResultSet<Feature>
+     */
+    public function getAll(Pagination $pagination): ResultSet;
+
+    /**
+     * Replaces exactly the expected Feature state under the enclosing transaction
+     *
+     * Compare identity, name, binding, status and revision at the final write boundary, including a no-op.
+     * Return false for missing or stale state. Require a same-identity successor with immutable name and a revision
+     * increment of exactly one for a real change; an unchanged successor performs no write. Under the shared
+     * Permission-reference fence held through commit, validate the selected Permission ID on every attempt,
+     * including a valid no-op; reject missing IDs rather than repairing broken bindings implicitly. This fence
+     * also protects against concurrent Permission removal. A failed transaction must roll back the replacement.
+     *
+     * @throws FeatureReferenceException When the selected Permission is not authoritative
+     */
+    public function replace(Feature $expected, Feature $replacement): bool;
 }
