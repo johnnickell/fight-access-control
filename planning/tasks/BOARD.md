@@ -16,6 +16,8 @@ No Tasks are currently in this state.
 | Order | TASK ID | Title | Parent TICKET | Status | Blocked by | PR |
 | --- | --- | --- | --- | --- | --- | --- |
 | 67 | [TASK-00067](00067-TASK.md) | Retire Features through current-reference guards | [TICKET-00017](../tickets/00017-TICKET.md) — Manage and retire Features safely | ready-for-agent | [TASK-00066](00066-TASK.md), [TASK-00063](00063-TASK.md) | — |
+| 69 | [TASK-00069](00069-TASK.md) | Rename an Agent atomically with typed provenance | [TICKET-00018](../tickets/00018-TICKET.md) — Rename an Agent without changing its authority | ready-for-agent | — | — |
+| 70 | [TASK-00070](00070-TASK.md) | Provide minimal Agent profile reads and managed Permission definitions | [TICKET-00019](../tickets/00019-TICKET.md) — Read and update the authenticated Agent profile through MCP tools | ready-for-agent | — | — |
 
 ## Waiting
 
@@ -26,6 +28,7 @@ No Tasks are currently in this state.
 | Order | TASK ID | Title | Parent TICKET | Status | Blocked by | PR |
 | --- | --- | --- | --- | --- | --- | --- |
 | 35 | [TASK-00035](00035-TASK.md) | Authorize Agent-protected MCP Tools | [TICKET-00006](../tickets/00006-TICKET.md) — Authorize Agent-Protected MCP Tools | needs-info | — | — |
+| 71 | [TASK-00071](00071-TASK.md) | Bind protected self-service Agent profile tools | [TICKET-00019](../tickets/00019-TICKET.md) — Read and update the authenticated Agent profile through MCP tools | needs-info | [TASK-00070](00070-TASK.md), [TASK-00069](00069-TASK.md), [TASK-00035](00035-TASK.md) | — |
 
 ## Human Action
 
