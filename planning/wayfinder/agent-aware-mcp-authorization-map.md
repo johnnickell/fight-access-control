@@ -1,7 +1,7 @@
 # Wayfinder Map: Agent-aware MCP authorization and self-service profile tools
 
 **Label:** `wayfinder:map`
-**Status:** Active
+**Status:** Closed
 
 > This map is an **index, not a store**. Each material decision lives in exactly one linked decision ticket under
 > `tickets/`; this map only summarizes the linked resolutions and shows the next decision frontier.
@@ -13,23 +13,30 @@ with two initial self-service tools: a safe read of the authenticated Agent prof
 own name. Fight Common supplies protocol and CQRS infrastructure plus tool metadata only; it does not receive an
 Agent, principal, Permission, or authorization decision.
 
-**Done** = every linked decision ticket is closed, the remaining fog is resolved or excluded, and the map links
-to its resulting EPIC, TICKET, and/or implementation TASKs.
+**Done** = all three decision tickets are closed. [EPIC-00005](../epics/00005-EPIC.md) owns the existing
+authorization handoff, and [EPIC-00011](../epics/00011-EPIC.md) owns the distinct approved profile destination.
+[TICKET-00018](../tickets/00018-TICKET.md) and [TICKET-00019](../tickets/00019-TICKET.md) now record its
+approved requirement decomposition. [TASK-00069](../tasks/00069-TASK.md) owns generic rename, while
+[TASK-00070](../tasks/00070-TASK.md) and [TASK-00071](../tasks/00071-TASK.md) own minimal profile reads and
+externally gated Tool binding. Their TASK decomposition is complete; neither reopens this map.
 
 ## Notes
 
 - AccessControl owns Agent identity, current authority, and reusable Agent-aware MCP availability and invocation
   integration. Consumers own routes, authentication selection, API policy, wiring, TLS, limits, origins, and
   exposed-tool selection.
-- The next grill retains, but has not accepted, candidate managed `ADMIN_SAFE` Permissions named
-  `AGENT_PROFILE_READ` and `AGENT_PROFILE_UPDATE`. Managed reconciliation would not assign them automatically;
-  stable identities remain undecided.
+- [WF-024](tickets/WF-024-self-service-agent-profile-contract.md) settles the minimal fresh self-profile read,
+  separate managed `ADMIN_SAFE` read/update Permissions with one-time consumer-owned `Uuid::comb()` IDs, and a generic
+  name-only `UpdateAgent` command with typed User/Agent initiator. Rename uses `AgentName`, is last-write-wins,
+  preserves other Agent authority and publishes a fact only after a real committed change. No-op retries, safe
+  acknowledgements and failure classifications are specified in WF-024. The self-service tools derive their target
+  only from the authenticated principal; consumers own authorization for generic command entry points.
 - [WF-023](tickets/WF-023-self-service-agent-target.md) settles self-service target selection: both profile tools
   derive their target Agent ID exclusively from the authenticated principal and accept no caller-supplied target
   Agent ID. A separate non-MCP administrator API remains outside this decision.
-- The existing secret-free `AgentView`, a generic Agent rename use case, aggregate-owned transition, atomic
-  persistence, post-commit event, and acknowledgement without a compensating read are candidate building blocks for
-  the later profile handoff. They are evidence and proposals, not decisions made by WF-008.
+- The existing administrative `AgentView` is broader than the approved self-profile output. `Agent` currently has
+  no rename transition, and `AgentRepository` has no name-only writer; the future EPIC must design them without
+  treating credential or Permission replacement as a rename path.
 - Existing Permission-mutation commands require a `UserId` administrator, and credential lifecycle services may
   return raw secrets. Neither is eligible for self-service MCP.
 - The prior [Agent HMAC map](agent-hmac-authentication-map.md) established the request-scoped authenticated Agent
@@ -45,7 +52,10 @@ to its resulting EPIC, TICKET, and/or implementation TASKs.
    records the full decision and [EPIC-00005](../epics/00005-EPIC.md) is its implementation-planning handoff.
 2. **Self-service target selection is settled.** Both profile tools target only the authenticated Agent, with no
    caller-supplied target Agent ID. John confirmed this boundary; [WF-023](tickets/WF-023-self-service-agent-target.md)
-   owns the decision. Remaining profile contract work must preserve it.
+   owns the decision. Profile implementation must preserve it.
+3. **The profile contract is settled.** [WF-024](tickets/WF-024-self-service-agent-profile-contract.md) records John's
+   read/update, Permission, last-write-wins, provenance, failure and lean evidence decisions. Its distinct approved
+   destination is [EPIC-00011](../epics/00011-EPIC.md); no profile implementation is authorized by map closure.
 
 ## Decisions
 
@@ -53,7 +63,7 @@ to its resulting EPIC, TICKET, and/or implementation TASKs.
 |---|---|---|---|---|---|
 | WF-008 | [Define the Agent-aware MCP authorization contract](tickets/WF-008-agent-aware-mcp-authorization-contract.md) | Grilling | HITL | **Closed** | — |
 | WF-023 | [Bind self-service profile tools to the authenticated Agent](tickets/WF-023-self-service-agent-target.md) | Grilling | HITL | **Closed** | WF-008 |
-| WF-024 | [Define the self-service Agent profile contract](tickets/WF-024-self-service-agent-profile-contract.md) | Grilling | HITL | **Open** | WF-008, WF-023 |
+| WF-024 | [Define the self-service Agent profile contract](tickets/WF-024-self-service-agent-profile-contract.md) | Grilling | HITL | **Closed** | WF-008, WF-023 |
 
 ## Blocking relationships
 
@@ -63,24 +73,18 @@ Agent-aware MCP authorization contract ──→ Self-service target selection �
 
 ## Frontier
 
-[WF-024 — Define the self-service Agent profile contract](tickets/WF-024-self-service-agent-profile-contract.md)
-is the open frontier for the two profile tools' remaining behavior, safe schemas, Permission identities and update
-semantics. Its dependencies, WF-008 and WF-023, are closed. Opening the decision accepts no candidate contract and
-creates no implementation handoff.
-
-The authorization contract is already handed off through [EPIC-00005](../epics/00005-EPIC.md). Target selection is
-settled by [WF-023](tickets/WF-023-self-service-agent-target.md); neither boundary is reopened by WF-024.
+None. WF-008, WF-023 and WF-024 are closed. The authorization contract is handed off through
+[EPIC-00005](../epics/00005-EPIC.md), and the profile contract through [EPIC-00011](../epics/00011-EPIC.md).
+The profile EPIC's TICKET-00018/00019 requirement split and TASK plans (TASK-00069/00070/00071) are approved.
+TASK-00071 still needs a compatible published and installed Common Tool API and its three TASK dependencies;
+planning completion does not make it executable. No decision is reopened by that planning work.
 
 ## Not yet specified (fog)
 
-- Whether an unchanged `UpdateAgent` name is idempotent and whether it emits an event.
-- The exact safe MCP output schemas and text presentations.
-- How consumer OAuth claims establish an authoritative Agent. Fight Common may validate or return claims, but OAuth
-  scopes are not Agent Permissions by default.
-- Fight Common planning now names the intended `McpTool`, method-level `McpToolInfo`, and request-scoped neutral
-  availability concepts, but no compatible published release is installed here. Exact public signatures and the
-  supported attribute target remain an external implementation dependency; they do not reopen the settled
-  authorization behavior or justify guessing before Common publishes that surface.
+None requiring another Wayfinder decision. WF-024 owns the safe output and bounded package evidence. Consumer
+OAuth-to-Agent mapping is outside this package; scopes are not Agent Permissions. Fight Common v1.2.0 is not a
+compatible published Tool surface. The exact Tool signatures, supported attribute target and wire-error mechanics
+must be inspected against a future installable release before implementation, not guessed in this map.
 
 ## Out of scope
 
@@ -93,7 +97,14 @@ settled by [WF-023](tickets/WF-023-self-service-agent-target.md); neither bounda
 
 ## Resolution
 
-[EPIC-00005](../epics/00005-EPIC.md) captures the closed WF-008 authorization contract, and
-[TICKET-00006](../tickets/00006-TICKET.md) owns its cohesive requirements while awaiting Fight Common's published
-Tool surface. The broader map remains active for the two self-service profile tools; no TASK or implementation
-change has been created.
+[EPIC-00005](../epics/00005-EPIC.md) and [TICKET-00006](../tickets/00006-TICKET.md) retain the WF-008
+integration boundary and external Common gate. John approved the distinct
+[Agent Profile Tools and Name Management](../epics/00011-EPIC.md) destination in
+[WF-024](tickets/WF-024-self-service-agent-profile-contract.md), including focused unit coverage of owned classes
+and only useful targeted package integration/composition checks; no exhaustive duplicate suite. John confirmed the
+EPIC boundary and approved [TICKET-00018](../tickets/00018-TICKET.md) for generic rename and
+[TICKET-00019](../tickets/00019-TICKET.md) for self-service tools. TICKET-00018 has an approved single
+[TASK-00069](../tasks/00069-TASK.md); TICKET-00019 has independently executable read/definition
+[TASK-00070](../tasks/00070-TASK.md) and externally gated Tool [TASK-00071](../tasks/00071-TASK.md). Both TICKET
+plans are complete. No implementation, consumer migration, publication or deployment follows from these planning
+decisions.

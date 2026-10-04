@@ -8,7 +8,7 @@ none is available, `/ask-matt` should offer `/wayfinder` to chart a new feature.
 |---|---|---|---|
 | [Permission-based feature flags](permission-based-feature-flags-map.md) | Closed | — | [EPIC-00010 — Permission-Based Feature Flags](../epics/00010-EPIC.md) |
 | [Enforce permission grant tiers for v0.4.0](permission-grant-tiers-v0-4-0-map.md) | Closed | — | [Enforce Permission Grant Tiers](../epics/00008-EPIC.md) |
-| [Agent-aware MCP authorization and self-service profile tools](agent-aware-mcp-authorization-map.md) | Active | [WF-024 — Define the self-service Agent profile contract](tickets/WF-024-self-service-agent-profile-contract.md) | [EPIC-00005](../epics/00005-EPIC.md) |
+| [Agent-aware MCP authorization and self-service profile tools](agent-aware-mcp-authorization-map.md) | Closed | — | [EPIC-00005](../epics/00005-EPIC.md); [EPIC-00011 — Agent Profile Tools and Name Management](../epics/00011-EPIC.md) |
 | [Recoverable credential delivery](recoverable-credential-delivery-map.md) | Closed | — | [TASK-00037](../tasks/00037-TASK.md) |
 | [OpenAPI schema components for v0.2.0](openapi-schema-components-v0-2-0-map.md) | Closed | — | [TASK-00033](../tasks/00033-TASK.md) |
 | [Agent HMAC authentication and direct authority](agent-hmac-authentication-map.md) | Closed | — | [TICKET-00002](../tickets/00002-TICKET.md) |

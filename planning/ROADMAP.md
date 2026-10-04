@@ -118,4 +118,5 @@ Existing TASK execution priorities remain unchanged; these records are ordered a
 | [EPIC-00008](epics/00008-EPIC.md) | v0.4.0 | done | 3 | 5 |
 | [EPIC-00009](epics/00009-EPIC.md) | v0.5.0 | done | 3 | 14 |
 | [EPIC-00010](epics/00010-EPIC.md) | unassigned | in-progress | 3 | 7 |
+| [EPIC-00011](epics/00011-EPIC.md) | unassigned | needs-info | 2 | 3 |
 <!-- generated:epic-status:end -->
