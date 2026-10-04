@@ -168,10 +168,16 @@ for package management after independent technical review and behavioral QA (C1â
 still owns guarded retirement and final lifecycle evidence; neither this TICKET nor EPIC-00010 is complete.
 Consumer qualification, adoption and package release remain separate.
 
+John subsequently selected the main checkout for TASK-00067 from clean `develop` `09abe1f`, on
+`feature/task-00067-feature-retirement`. Guarded retirement, full-state final deletion/reference release and the
+real deletion/reintroduction lifecycle composition are in progress; the [complete evidence map](../../docs/feature-evidence.md)
+retains previous acceptance subjects and consumer gaps. The TASK owns current local gate and pending independent
+review/QA evidence. No parent acceptance, consumer adoption or release follows from the implementation prose.
+
 ## Child Tasks
 
 | Order | TASK ID | Title | Status |
 | --- | --- | --- | --- |
 | 65 | [TASK-00065](../tasks/00065-TASK.md) | Protect Permissions referenced by Features | done |
 | 66 | [TASK-00066](../tasks/00066-TASK.md) | Create, inspect, and update Feature settings safely | done |
-| 67 | [TASK-00067](../tasks/00067-TASK.md) | Retire Features through current-reference guards | ready-for-agent |
+| 67 | [TASK-00067](../tasks/00067-TASK.md) | Retire Features through current-reference guards | in-progress |

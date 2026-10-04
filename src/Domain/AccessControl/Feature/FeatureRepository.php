@@ -69,4 +69,16 @@ interface FeatureRepository
      * @throws FeatureReferenceException When the selected Permission is not authoritative
      */
     public function replace(Feature $expected, Feature $replacement): bool;
+
+    /**
+     * Removes only the expected Feature identity and full current state under the enclosing transaction
+     *
+     * Compare identity, immutable name, status, Permission ID and revision at the final write boundary. Return
+     * false for missing/stale state, including a deleted and reintroduced name with a different identity. The
+     * successful removal and release of its Permission reference commit together; rollback restores both. Use
+     * the shared Permission-reference fence held through commit/rollback so another removal cannot commit against
+     * a reference released by an uncommitted deletion. A broken binding need not be repaired before retirement.
+     * This does not fence other deployments or remove code references, Permissions or principal grants.
+     */
+    public function remove(Feature $expected): bool;
 }

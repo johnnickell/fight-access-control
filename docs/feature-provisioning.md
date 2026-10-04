@@ -6,7 +6,8 @@ existing identities/settings. It does **not** establish activation readiness or 
 [preparation validation](feature-preparation.md) is supplied by TASK-00063;
 [availability evaluation](feature-availability.md) is implemented separately by TASK-00064. Permission-removal
 guards ([TASK-00065](feature-permission-references.md)), [management](feature-management.md) (TASK-00066), and guarded retirement/final
-lifecycle evidence (TASK-00067) remain distinct; package reference proof does not qualify consumer adapters.
+lifecycle evidence ([TASK-00067](feature-retirement.md)) remain distinct; package reference proof does not qualify
+consumer adapters. See the [complete scenario inventory](feature-evidence.md) for acceptance subjects and remaining qualification.
 
 ## Composition and invocation
 
@@ -83,7 +84,8 @@ never masquerade as absence. Existing records, including broken Permission refer
    records. Invalidate transaction-local state after rollback/uncertainty as necessary; use fresh authoritative state
    on retry. Adapters choose concrete unique constraints, reference locks and isolation, then qualify the actual races.
 5. Coordinate the creation-side contract above with TASK-00065's [all-path Permission-removal
-   guard](feature-permission-references.md), and later management/rebinding/retirement. Neither this interface nor
+   guard](feature-permission-references.md), [management/rebinding](feature-management.md) and
+   [retirement](feature-retirement.md). Neither this interface nor
    the package tests qualify a complete
    consumer composition or authorize deploying a Feature capability without those integrity protections.
 
@@ -126,7 +128,8 @@ notifications cannot substitute for catalog reads and preparation validation.
 
 After actual guarded deletion, later reintroduction may create a fresh identity OFF with the then-current default.
 Here only a seeded absent-record fixture proves that creation behavior. The real reference-removal/deletion/
-reintroduction sequence remains TASK-00067's composed evidence obligation, not a delivered deletion capability.
+reintroduction sequence is supplied separately by [TASK-00067](feature-retirement.md), with its own pending
+independent review/QA. TASK-00062's seeded-absence proof is not relabeled as that real guarded sequence.
 
 ## Compatibility and schema assessment
 
