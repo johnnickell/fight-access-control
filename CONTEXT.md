@@ -635,9 +635,12 @@ Independent post-review QA **passed** seven scenarios / **260 executable checks*
 walkthrough, with clean **174 tests / 977 assertions**. TASK-00067 is done for accepted package implementation and
 required local/behavioral verification. Automatic completion closes TICKET-00017 and EPIC-00010 in this same
 administrative operation; TICKET-00015/00016 are already done. This completes package acceptance, not actual
-consumer qualification. John authorized landing; PR publication is pending at this tracked checkpoint. The ignored
-TASK landing handoff owns fresh gates, the administrative-only acceptance/QA bridge and final remote/evidence
-verification. Consumer scanning/database/UI/security/runtime qualification, release and deployment remain separate.
+consumer qualification. John's landing request opened
+[PR #107](https://github.com/johnnickell/fight-access-control/pull/107) against unchanged `develop`, draft at initial
+head `e83bd9935ec9981b0dbdf291fe70137f3cc42814`, with sanitized nonvisual QA scenarios/state/events published and
+read back. Final metadata delivery verification/ready state remain pending at this tracked checkpoint. The ignored
+TASK landing handoff owns fresh gates, the administrative-only acceptance/QA and resolved-runtime bridge, and final
+remote/evidence verification. Original independent reports are preserved; no approval or merge is claimed. Consumer scanning/database/UI/security/runtime qualification, release and deployment remain separate.
 
 ## Planning and Completion
 
