@@ -20,8 +20,8 @@ not block planning of independent profile behavior or TICKET-00018's generic com
 
 | Actor and trigger | Commands | Queries | Events | Observable outcome and side effects |
 | --- | --- | --- | --- | --- |
-| An authenticated Agent with `AGENT_PROFILE_READ` requests its own profile | N/A | Fresh minimal profile lookup of the Agent ID from the current authenticated principal | N/A | Return only structured `{agent_id, name}` and safe text such as `Agent: {name} ({id})`; no write, transaction commit or event. Do not expose the broader `AgentView`. |
-| An authenticated Agent with `AGENT_PROFILE_UPDATE` supplies a new name | Dispatch generic `UpdateAgent` with the principal's Agent as both target and typed initiator | N/A; no compensating lookup | The command's name-changed fact on a real committed rename only | Return `{agent_id, name, changed}` from the committed normalized result. Text distinguishes `Agent name updated to {name} ({id})` from `Agent name already {name} ({id})`. No-op writes nothing and emits no success fact. |
+| An authenticated Agent with `AGENT_PROFILE_READ` requests its own profile | N/A | Fresh minimal profile lookup of the Agent ID from the current authenticated principal | N/A | Return only structured `{agent_id, name}` through Common's standard output with matching derived JSON text, not a separately authored sentence; no write, transaction commit or event. Do not expose the broader `AgentView`. |
+| An authenticated Agent with `AGENT_PROFILE_UPDATE` supplies a new name | Dispatch generic `UpdateAgent` with the principal's Agent as both target and typed initiator | N/A; no compensating lookup | The command's name-changed fact on a real committed rename only | After successful synchronous void dispatch, return exactly `{agent_id, name}` from the target and normalized command input, with Common's matching JSON text. No changed/no-op distinction or compensating read. No-op writes nothing and emits no success fact. |
 | An unresolved or under-permissioned Agent lists or invokes a protected tool | N/A; never dispatch before authorization | N/A | N/A | Apply TICKET-00006's request-local, conjunctive metadata checks and unknown/unavailable equivalence before tool input validation, read or command dispatch. Another MCP request observes changed authority. |
 | A valid caller encounters missing/revoked current target, bad name or operation failure | No write for invalid input or unavailable target; the generic update owns its transaction | Fresh read when requested, no compensating post-update read | No success fact on rejection; publication failure after commit is possible | Missing/revoked current target is generically unavailable; invalid name is validation failure. Sanitize tool errors and never assert rollback after post-commit publication failure. Wire-level representations follow published Common signatures. |
 
@@ -37,7 +37,9 @@ not block planning of independent profile behavior or TICKET-00018's generic com
   Agent or Permission objects to Fight Common or make OAuth scopes into Agent Permissions.
 - The read returns exactly ID and name from an authoritative fresh lookup, not an administrative projection with
   credential/Permission state. It has no Domain mutation, Command or success Event; the updater reuses TICKET-00018's
-  command/fact rather than publishing a tool-specific name-change fact. An update error must not include secrets,
+  command/fact rather than publishing a tool-specific name-change fact. Its acknowledgement uses only validated
+  command input after successful void dispatch, not a handler/bus result or latest-state lookup. A thrown dispatch
+  failure produces no success acknowledgement. An update error must not include secrets,
   internal storage diagnostics or a false rollback claim.
 - Unknown/unavailable Tool concealment occurs before validation or protected work. The generic command's typed
   initiator and target never grant caller authority: the protected MCP composition checks its managed Permission,
@@ -47,7 +49,7 @@ not block planning of independent profile behavior or TICKET-00018's generic com
 ## Acceptance Evidence
 
 - [ ] Focused unit coverage of each new class proves minimal fresh read, principal-only target and initiator,
-      independent read/update Permission requirements, safe text/structured outputs and invalid/missing/no-op/real
+      independent read/update Permission requirements, minimal structured outputs with Common's matching JSON text and invalid/missing/no-op/real
       rename outcomes. No caller-supplied target ID is accepted.
 - [ ] Only useful targeted package composition checks bind these tools to TICKET-00006's authorization boundary
       and the shared TICKET-00018 rename transition, including denial before work, safe failure presentation and
@@ -82,6 +84,11 @@ Adapter layer, release or deployment is created.
 | 70 | [TASK-00070](../tasks/00070-TASK.md) | Provide minimal Agent profile reads and managed Permission definitions | ready-for-agent |
 | 71 | [TASK-00071](../tasks/00071-TASK.md) | Bind protected self-service Agent profile tools | needs-info |
 ## Progress
+
+John subsequently simplified the update acknowledgement to `{agent_id, name}`, derived from normalized command
+input after successful void dispatch. Common's derived JSON text replaces the update's changed/no-op sentences.
+John then removed the read tool's separately authored sentence too; fresh lookup, Permission enforcement and
+minimal safe fields remain unchanged.
 
 John approved this as the second EPIC-00011 requirement area and subsequently approved two implementation slices:
 [TASK-00070](../tasks/00070-TASK.md) delivers the independently executable minimal read/managed definitions;

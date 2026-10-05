@@ -28,9 +28,10 @@ externally gated Tool binding. Their TASK decomposition is complete; neither reo
 - [WF-024](tickets/WF-024-self-service-agent-profile-contract.md) settles the minimal fresh self-profile read,
   separate managed `ADMIN_SAFE` read/update Permissions with one-time consumer-owned `Uuid::comb()` IDs, and a generic
   name-only `UpdateAgent` command with typed User/Agent initiator. Rename uses `AgentName`, is last-write-wins,
-  preserves other Agent authority and publishes a fact only after a real committed change. No-op retries, safe
-  acknowledgements and failure classifications are specified in WF-024. The self-service tools derive their target
-  only from the authenticated principal; consumers own authorization for generic command entry points.
+  preserves other Agent authority and publishes a fact only after a real committed change. WF-024's amended update
+  acknowledgement is exactly `{agent_id, name}` from normalized command input after successful void dispatch,
+  with matching JSON text and no changed/no-op distinction. No-op effects and failure classifications are unchanged.
+  The self-service tools derive their target only from the authenticated principal; consumers own authorization for generic command entry points.
 - [WF-023](tickets/WF-023-self-service-agent-target.md) settles self-service target selection: both profile tools
   derive their target Agent ID exclusively from the authenticated principal and accept no caller-supplied target
   Agent ID. A separate non-MCP administrator API remains outside this decision.

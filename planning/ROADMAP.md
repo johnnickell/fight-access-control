@@ -6,6 +6,21 @@
 | --- | --- | --- |
 | [EPIC-00009](epics/00009-EPIC.md) | `v0.5.0` | Package current-contract cleanup, cohort/canonical/restoration safety and final guidance are independently accepted; TASK-00059 QA passes. Real consumer qualification and separately authorized release/adoption/deployment remain open. |
 
+## Human delivery expiry readiness prerequisite
+
+`v0.5.0` is not ready to tag until the newly requested
+[human credential-delivery expiry capability](wayfinder/human-credential-delivery-expiry-map.md) has approved upstream
+work records, complete implementation/local verification and independent acceptance with applicable behavioral QA.
+[WF-025](wayfinder/tickets/WF-025-human-delivery-expiry-contract.md) is resolved: invitation/reset delivery expiry plus
+full email-change authority/reservation expiry, including already-terminal delivery and changed User account states.
+The approved bounded EPIC destination remains unwritten; no implementation is yet claimed. Current due discovery
+cannot clean recoverable invitation/reset work after downtime through grant expiry. Email reservations must not remain
+stranded because delivery finished or the account became inactive; no consumer product/provider wiring is enabled.
+This follow-up does not reopen completed EPIC-00009 or its original delivery predecessors, and its local work IDs will be allocated through
+normal approved planning. Agent OS `TASK-00024` is the external blocked consumer work, not an AccessControl dependency
+edge. Package proof must be distinguished from actual PostgreSQL consumer qualification/adoption. Tagging, signing,
+pushing and publication remain separately authorized; the Board still owns execution priority.
+
 ## Current package acceptance and next TASK
 
 John's 2026-09-30 package-wide decision in [ADR 0011](adr/0011-pre-v1-current-contract-only.md) removes all obligations
