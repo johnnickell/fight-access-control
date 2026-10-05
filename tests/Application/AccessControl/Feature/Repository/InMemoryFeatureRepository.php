@@ -34,6 +34,12 @@ final class InMemoryFeatureRepository implements FeatureRepository
     /** @var null|Closure(Feature): void */
     public ?Closure $afterReplace = null;
 
+    /** @var null|Closure(Feature): void */
+    public ?Closure $beforeRemove = null;
+
+    /** @var null|Closure(Feature): void */
+    public ?Closure $afterRemove = null;
+
     /** @var list<string> */
     public array $lookups = [];
 
@@ -142,6 +148,33 @@ final class InMemoryFeatureRepository implements FeatureRepository
             $references->retainFeature($stored);
         });
         $this->afterReplace?->__invoke($replacement);
+
+        return true;
+    }
+
+    public function remove(Feature $expected): bool
+    {
+        if (!$this->unitOfWork->transactionActive) {
+            throw new LogicException('Feature writes require the shared transaction.');
+        }
+
+        $this->beforeRemove?->__invoke($expected);
+        $key = $expected->getId()->toString();
+        $stored = $this->records[$key] ?? null;
+        if (!$stored instanceof Feature || !$this->sameState($stored, $expected)) {
+            return false;
+        }
+
+        $references = $this->unitOfWork->authorizationReferenceState();
+        $references->holdThroughCompletion();
+        unset($this->records[$key]);
+        $references->removeFeature($expected->getId());
+        ++$this->writes;
+        $this->unitOfWork->onRollback(function () use ($key, $stored, $references): void {
+            $this->records[$key] = $stored;
+            $references->retainFeature($stored);
+        });
+        $this->afterRemove?->__invoke($expected);
 
         return true;
     }

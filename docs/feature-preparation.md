@@ -64,11 +64,12 @@ retries only after fixing the failure and rereads the target catalog.
 The consumer owns scanning/code identity, configuration, persistence/schema/uniqueness and reference fences,
 transaction implementation, deployment hooks, runtime checks, UI and entry-point authorization. Package fixtures
 model a complete scan and transactional writes but qualify **no real scanner, database race, framework, application
-or deployment**. A Feature reference cannot safely outlive removal of its bound Permission: all supported removal
-paths and their real race proof remain [TASK-00065](../planning/tasks/00065-TASK.md); actual rebinding/management
-remains TASK-00066 and guarded deletion/reintroduction TASK-00067. [Runtime evaluation](feature-availability.md)
-is implemented in TASK-00064, pending independent review. There is **no supported partial Feature release** before
-management/integrity capabilities and complete Feature acceptance.
+or deployment**. [Permission guards](feature-permission-references.md), [management/rebinding](feature-management.md)
+and [guarded retirement/reintroduction](feature-retirement.md) now have package implementations, as does
+[runtime evaluation](feature-availability.md). The [complete evidence inventory](feature-evidence.md) identifies
+accepted preceding slices, TASK-00067's pending independent review/QA and unexecuted actual consumer race/scanner
+qualification. There is **no supported partial Feature release**, and preparation does not establish complete
+Feature acceptance.
 
 ## Reusable scenario and compatibility inventory
 
@@ -86,8 +87,9 @@ and completeness/scope (`FeatureNameTest`, `FeatureFlagTest`, `FeatureReferences
 publication behavior (`FeatureTest`, `FeatureMessagesTest`, `ProvisionFeaturesHandlerTest`,
 `FeatureComponentsTest`). This TASK adds `ValidateFeaturePreparationHandlerTest` for every fresh read and rejection,
 plus the executable composed conformance above and generated schema checks. It does **not** retroactively prove
-those preceding slices or close the TICKET's downstream Permission-removal and actual deletion/reintroduction
-acceptance under TICKET-00017. No consumer integration proof is claimed.
+those preceding slices or establish downstream Permission-removal and actual deletion/reintroduction
+acceptance under TICKET-00017. The [complete evidence map](feature-evidence.md) links those distinct TASK receipts
+and TASK-00067's new composition rather than inferring evidence from parent status. No consumer integration proof is claimed.
 
 The new PHP query/result/issue types and opt-in `Fight.AccessControl.ValidateFeaturePreparation`,
 `Fight.AccessControl.FeaturePreparationResult` and `Fight.AccessControl.FeaturePreparationIssue` OpenAPI components

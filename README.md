@@ -79,8 +79,12 @@ Permission, preserving stored choices and retrying from authoritative state. Com
 [Preparation validation](docs/feature-preparation.md) rereads all complete candidate references and their stored
 Permission identities without mutation. [Feature availability](docs/feature-availability.md) checks current stored
 status and Permission ID against an existing User/Agent snapshot or anonymous input on each explicit call; availability
-never authorizes the underlying action. Management, removal guards and consumer adapters/runtime enforcement remain
-unimplemented. Neither preparation, provisioning nor this evaluator grants deployment permission or constitutes a
+never authorizes the underlying action. [Management](docs/feature-management.md),
+[Permission reference guards](docs/feature-permission-references.md) and
+[current-reference retirement](docs/feature-retirement.md) supply the package lifecycle; the
+[scenario/evidence inventory](docs/feature-evidence.md) distinguishes preceding acceptance from TASK-00067's
+pending independent review/QA. Consumer adapters, scanning, UI and runtime enforcement remain consumer-owned and
+unqualified. Neither a package pass, preparation nor provisioning grants deployment permission or constitutes a
 supported partial Feature release.
 
 ### Agent credential operations (unreleased)

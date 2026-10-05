@@ -9,10 +9,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- [Guarded Feature retirement](docs/feature-retirement.md): `RemoveFeature` and post-commit `FeatureRemoved`,
+  complete CURRENT-scope discovery of native and explicit references, and mandatory full-expected-state
+  `FeatureRepository::remove()` under the shared transaction/reference fence. Later provisioning allocates a new
+  identity OFF/1 with the current default; old requests cannot retarget it. Consumer-bindable retirement scenarios
+  and a [complete Feature evidence inventory](docs/feature-evidence.md) distinguish package proof from real
+  scanner/database/UI/runtime qualification. No deployment fencing, name tombstone, transport API or release.
 - [Feature management](docs/feature-management.md): additive manual OFF creation, safe read/list views, atomic
   revision-checked status and testing-Permission edits, and post-commit facts. The Feature repository now requires
   paginated reads and a reference-fenced compare-and-replace operation; consumers must update persistence adapters
-  and schema before adoption. No UI, transport API, consumer migration, guarded deletion or partial release.
+  and schema before adoption. No UI, transport API, consumer migration or partial release; guarded retirement
+  is described separately above.
 - [Feature availability](docs/feature-availability.md): additive read-only evaluator for fresh stored status and
   bound Permission identity against existing User/Agent snapshots or anonymous input. OFF/PREVIEW/ON return ordinary
   booleans; unknown Features, broken bindings and operational failures remain distinct. No action authorization,

@@ -2,7 +2,7 @@
 id: TICKET-00017
 epic: EPIC-00010
 title: Manage and retire Features safely
-status: ready-for-agent
+status: done
 ---
 
 # Manage and retire Features safely
@@ -164,9 +164,25 @@ now progress independently against their recorded blockers, not an unrecorded pr
 independently accepted package implementation and behavioral QA. John requested landing and published
 [PR #104](https://github.com/johnnickell/fight-access-control/pull/104); approval and merge remain separate.
 At the TASK-00065 checkpoint TASK-00066–00067 remained unfinished. TASK-00066 is subsequently accepted and done
-for package management after independent technical review and behavioral QA (C1–C9 pass, no findings). TASK-00067
-still owns guarded retirement and final lifecycle evidence; neither this TICKET nor EPIC-00010 is complete.
+for package management after independent technical review and behavioral QA (C1–C9 pass, no findings). At that
+checkpoint TASK-00067 still owned outstanding retirement/lifecycle evidence; its subsequent acceptance follows.
 Consumer qualification, adoption and package release remain separate.
+
+John subsequently selected the main checkout for TASK-00067 from clean `develop` `09abe1f`, on
+`feature/task-00067-feature-retirement`. Guarded retirement, full-state final deletion/reference release and the
+real deletion/reintroduction lifecycle composition were implemented at that builder checkpoint; the
+[complete evidence map](../../docs/feature-evidence.md) retains previous acceptance subjects and consumer gaps.
+Independent technical review subsequently **accepts** clean TASK-00067 candidate
+`8e33f0847d41aff562e6258b1a360d70d152dfe1` against `09abe1f` (C1–C10 pass, no findings). Independent post-review
+QA **PASS** covers seven scenarios / 260 executable checks plus a ten-case instruction walkthrough; focused
+verification passes 174 tests / 977 assertions. The accepted full gate passes 1849 tests / 35482 assertions,
+exact 6627/6627 statements. The TASK owns canonical reports and retained evidence, including historical
+TASK-00061–00066 subjects and fresh actual retirement/reintroduction/reconciliation proof.
+
+TASK-00065–00067 are now terminal; automatic parent completion marks this TICKET and EPIC-00010 done in the same
+closeout. This status follows accepted children, not an inference from prose or a separate parent gate. John
+subsequently authorized landing; publication is pending at this checkpoint. Actual consumer scanner/database,
+UI/authorization/runtime qualification, consumer adoption, release and deployment remain separate.
 
 ## Child Tasks
 
@@ -174,4 +190,4 @@ Consumer qualification, adoption and package release remain separate.
 | --- | --- | --- | --- |
 | 65 | [TASK-00065](../tasks/00065-TASK.md) | Protect Permissions referenced by Features | done |
 | 66 | [TASK-00066](../tasks/00066-TASK.md) | Create, inspect, and update Feature settings safely | done |
-| 67 | [TASK-00067](../tasks/00067-TASK.md) | Retire Features through current-reference guards | ready-for-agent |
+| 67 | [TASK-00067](../tasks/00067-TASK.md) | Retire Features through current-reference guards | done |

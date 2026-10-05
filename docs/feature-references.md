@@ -5,7 +5,9 @@ not itself implement Feature storage, provisioning, availability checks, managem
 [TASK-00062's atomic provisioning](feature-provisioning.md) consumes this contract, and
 [TASK-00063's preparation validation](feature-preparation.md) checks complete candidate references against stored
 Features and bound Permissions. [Runtime evaluation](feature-availability.md) is now implemented by TASK-00064;
-management and integrity guards remain TASK-00065 through TASK-00067.
+[Permission reference guards](feature-permission-references.md), [management](feature-management.md) and
+[current-reference retirement](feature-retirement.md) supply the remaining package operations. Their
+[scenario/evidence inventory](feature-evidence.md) separates accepted preceding slices from pending TASK-00067 review/QA.
 The declarations are an additive public PHP API, not a release, supported partial feature-flag system or consumer
 qualification. Declaration/discovery alone changes no persisted format, existing signature or OpenAPI schema;
 provisioning has its own storage/schema assessment. [Preparation validation](feature-preparation.md) adds a
@@ -102,7 +104,7 @@ function candidateReferences(FeatureReferenceDiscovery $discovery): array
 ```
 
 `getReferences($requiredScope)` throws Domain `Feature\Exception\FeatureDiscoveryException` for unavailable
-results or scope mismatch. Provisioning/preparation uses `CANDIDATE`; future reference-safe deletion must require `CURRENT`.
+results or scope mismatch. Provisioning/preparation uses `CANDIDATE`; reference-safe deletion requires `CURRENT`.
 The two scopes are not interchangeable: candidate code can remove a reference while currently running code still
 uses it. Never relabel a result or reconstruct it under another scope to bypass that check. A fresh discovery of the
 correct code is required. Consumers own code identity, scan coverage, explicit registry completeness and freshness;
@@ -116,7 +118,7 @@ Permission lookup/grant, persistence, transaction, event dispatch or access deci
 cannot authorize a caller, enforce business Permissions, provision a Feature or prevent a method being called.
 Consumers own scanning, composition, runtime enforcement, persistence and deployment wiring. TASK-00062 consumes
 candidate discovery for provisioning; TASK-00063 adds [preparation validation](feature-preparation.md). TASK-00067 owns current-reference
-deletion. Declaration/provisioning does not discharge those remaining guards.
+[deletion](feature-retirement.md). Declaration/provisioning alone does not discharge its guards or certify a consumer.
 
 ## Executable package evidence
 

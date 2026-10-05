@@ -448,7 +448,7 @@ expiry and cleanup cannot extend original delivery retention. Reference counts i
 scopes/batches/versions; physical retirement also requires closed write admission, fenced recount and independent
 key-use/authentication-envelope accounting. This is not a wider quota, key-vault or approval system.
 
-## Permission-based feature flags — management implementation in progress
+## Permission-based feature flags — package acceptance complete
 
 [EPIC-00010](planning/epics/00010-EPIC.md) owns the approved package-only destination from the closed
 [Wayfinder map](planning/wayfinder/permission-based-feature-flags-map.md). A planned Feature has a unique immutable
@@ -504,10 +504,11 @@ review now accepts renamed implementation `a8bdf75` against unchanged `develop` 
 findings. Independent post-review QA passes six scenarios and **208 checks**, including old-alias absence and native
 malformed declarations after partial discovery. Focused/full gates retain **62 tests / 121 assertions** and
 **1737 tests / 34624 assertions**, exact **6242/6242 statements**. TASK-00061 is done for this accepted implementation
-and required local evidence. John authorized updating existing PR #99; publication remains pending at this closeout
+and required local evidence. John authorized updating existing PR #99; publication remained pending at that closeout
 checkpoint. The ignored `.runs/handoffs/TASK-00061/feature-flag-landing.md` owns final gates, the administrative-only
-bridge and remote/evidence verification. Earlier acceptance/publication above is historical. TASK-00063–00067 remain
-unimplemented and need separate execution authority. No Feature release version is selected.
+bridge and remote/evidence verification. Earlier acceptance/publication above is historical. At that checkpoint,
+TASK-00063–00067 remained unimplemented and needed separate execution authority; their later checkpoints follow.
+No Feature release version is selected.
 
 John authorized TASK-00062 in the main checkout on `feature/task-00062-feature-provisioning` from clean `develop`
 `02ef72a`, including merged PR #99. The [provisioning guide](docs/feature-provisioning.md) describes the new Feature
@@ -610,6 +611,36 @@ resolved. Independent post-review behavioral QA **passed** eight scenarios inclu
 consumer instruction walkthrough. TASK-00066 is done for accepted package implementation and local verification;
 publication/merge remain separate. This is not actual consumer database, UI or entry-point security qualification
 and is not a release. TASK-00067 retains guarded retirement and final lifecycle evidence.
+
+## Feature retirement — TASK-00067 implementation checkpoint
+
+John selected the clean main checkout from `develop` `09abe1f` for TASK-00067 on
+`feature/task-00067-feature-retirement`. The [retirement guide](docs/feature-retirement.md) describes `RemoveFeature`
+with stable ID and positive expected revision, complete CURRENT discovery of native and explicit references, and
+mandatory full-expected-state `FeatureRepository::remove()` under the shared transaction/reference fence. Current
+references in any status, incomplete/wrong-scope discovery and stale writes reject. Removal/reference release roll
+back together; `FeatureRemoved` publishes only after commit and publication faults rethrow without restoring state.
+No Permission/grant mutation, name reservation, deployment fence, scanner or production adapter is introduced.
+Later ordinary provisioning allocates a new identity OFF/1 with the then-current default; old delete/update IDs
+cannot retarget it. Real composed package tests exercise deletion, unknown lookup, failed then valid reprovision,
+preparation and OFF evaluation. Public-handler reconciliation after retirement still respects other Feature/Role/Agent
+references. Consumer-bindable retirement/final-state scenarios and the [complete evidence map](docs/feature-evidence.md)
+retain previous TASK subjects and actual consumer gaps; previous independent acceptance does not accept this slice.
+Builder verification passes **174 focused tests / 977 assertions**, **1849 full tests / 35482 assertions**,
+exact **6627/6627 owned statements**. No final warnings/skips; the resolver's two ignored PHPUnit dev-dependency
+patch updates and early corrected invocation/static/fixture failures are retained in the TASK evidence. At that
+builder checkpoint independent technical review and behavioral QA remained pending. Independent technical review subsequently **accepted** clean
+`8e33f0847d41aff562e6258b1a360d70d152dfe1` against unchanged `develop` `09abe1f` (C1–C10 pass, no findings).
+Independent post-review QA **passed** seven scenarios / **260 executable checks** plus a ten-case instruction
+walkthrough, with clean **174 tests / 977 assertions**. TASK-00067 is done for accepted package implementation and
+required local/behavioral verification. Automatic completion closes TICKET-00017 and EPIC-00010 in this same
+administrative operation; TICKET-00015/00016 are already done. This completes package acceptance, not actual
+consumer qualification. John's landing request opened
+[PR #107](https://github.com/johnnickell/fight-access-control/pull/107) against unchanged `develop`, draft at initial
+head `e83bd9935ec9981b0dbdf291fe70137f3cc42814`, with sanitized nonvisual QA scenarios/state/events published and
+read back. Final metadata delivery verification/ready state remain pending at this tracked checkpoint. The ignored
+TASK landing handoff owns fresh gates, the administrative-only acceptance/QA and resolved-runtime bridge, and final
+remote/evidence verification. Original independent reports are preserved; no approval or merge is claimed. Consumer scanning/database/UI/security/runtime qualification, release and deployment remain separate.
 
 ## Planning and Completion
 

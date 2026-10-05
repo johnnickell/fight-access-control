@@ -48,7 +48,7 @@ independently accepted, as are TASK-00068 removal (revised M1), TASK-00058 resto
 outstanding; package acceptance does not close the parent consumer obligations. The [Board](tasks/BOARD.md) owns
 current executable ordering.
 
-## Approved Feature planning
+## Feature package acceptance
 
 [EPIC-00010 — Permission-Based Feature Flags](epics/00010-EPIC.md) has an approved three-TICKET decomposition from
 its closed [Wayfinder map](wayfinder/permission-based-feature-flags-map.md):
@@ -69,9 +69,17 @@ after 00062), [TASK-00066](tasks/00066-TASK.md) (management, after 00065/00064),
 [TASK-00067](tasks/00067-TASK.md) (guarded retirement and final lifecycle evidence, after 00066/00063).
 John approved shared revision-1 creation, increments only on real status/Permission changes, expected revisions for
 updates/deletion, and explicit broken-binding reads using existing pagination. Consumer confirmation and authorization
-remain separate. All three TICKETs and seven TASKs are planned; behavioral acceptance and reference/lifecycle evidence
-remain outstanding. No implementation, release target, or execution worktree is authorized by this planning handoff.
-Existing TASK execution priorities remain unchanged; these records are ordered after the existing portfolio.
+remain separate. At the decomposition checkpoint all three TICKETs and seven TASKs were planned; that planning
+handoff alone authorized no implementation, release target or execution worktree.
+
+All seven TASKs subsequently obtained independent technical acceptance and behavioral QA. TASK-00067's clean
+accepted candidate `8e33f0847d41aff562e6258b1a360d70d152dfe1` supplies actual guarded retirement/reintroduction
+and final traceability; QA passes seven scenarios / 260 executable checks plus an instruction walkthrough.
+Its accepted full gate passes 1849 tests / 35482 assertions, exact 6627/6627 statements. Automatic parent
+completion closes TICKET-00017 and EPIC-00010 in the same TASK closeout; TICKET-00015/00016 are already done.
+Package acceptance is complete, not actual consumer scanner/database/UI/security/runtime qualification. John
+authorized TASK-00067 landing; publication remains pending at this tracked checkpoint. No Feature release target,
+adoption, release or deployment is claimed; the Board still owns separately authorized next executable work.
 
 ## Route to 1.0.0
 
@@ -88,6 +96,7 @@ Existing TASK execution priorities remain unchanged; these records are ordered a
 
 | Epic | Target | Outcome |
 | --- | --- | --- |
+| [EPIC-00010](epics/00010-EPIC.md) | unassigned | All seven Feature package TASKs independently accepted with behavioral QA; guarded retirement/reintroduction and cross-TICKET evidence complete. Actual consumer qualification, version selection, adoption, release and deployment remain separate. |
 | [EPIC-00006](epics/00006-EPIC.md) | `v0.3.0` | Published the recoverable credential-delivery contract and migration after exact-commit certification and signing. Consumer upgrades remain separately qualified. |
 | [EPIC-00007](epics/00007-EPIC.md) | pre-1.0 | Replaced deprecated Fight Common transaction dependencies with the supported `TransactionalUnitOfWork` contract while preserving established behavior. |
 | [EPIC-00004](epics/00004-EPIC.md) | `v0.2.0` | Delivered the local consumer-composable OpenAPI schema review candidate; tag, release, and publication remain separate effects. |
@@ -117,6 +126,6 @@ Existing TASK execution priorities remain unchanged; these records are ordered a
 | [EPIC-00007](epics/00007-EPIC.md) | pre-1.0 | done | 1 | 1 |
 | [EPIC-00008](epics/00008-EPIC.md) | v0.4.0 | done | 3 | 5 |
 | [EPIC-00009](epics/00009-EPIC.md) | v0.5.0 | done | 3 | 14 |
-| [EPIC-00010](epics/00010-EPIC.md) | unassigned | in-progress | 3 | 7 |
+| [EPIC-00010](epics/00010-EPIC.md) | unassigned | done | 3 | 7 |
 | [EPIC-00011](epics/00011-EPIC.md) | unassigned | needs-info | 2 | 3 |
 <!-- generated:epic-status:end -->
