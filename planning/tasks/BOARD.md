@@ -5,13 +5,11 @@ dependencies, acceptance, and verification.
 
 ## What's Next?
 
-Active Task: [TASK-00067](00067-TASK.md) — Retire Features through current-reference guards.
+First ready Task: [TASK-00069](00069-TASK.md) — Rename an Agent atomically with typed provenance.
 
 ## In Progress
 
-| Order | TASK ID | Title | Parent TICKET | Status | Blocked by | PR |
-| --- | --- | --- | --- | --- | --- | --- |
-| 67 | [TASK-00067](00067-TASK.md) | Retire Features through current-reference guards | [TICKET-00017](../tickets/00017-TICKET.md) — Manage and retire Features safely | in-progress | [TASK-00066](00066-TASK.md), [TASK-00063](00063-TASK.md) | — |
+No Tasks are currently in this state.
 
 ## Ready Frontier
 
@@ -108,3 +106,4 @@ No Tasks are currently in this state.
 | 64 | [TASK-00064](00064-TASK.md) | Evaluate Feature availability with fresh, identity-safe checks | [TICKET-00016](../tickets/00016-TICKET.md) — Evaluate Feature availability for Users and Agents | done | [TASK-00062](00062-TASK.md) | https://github.com/johnnickell/fight-access-control/pull/102 |
 | 65 | [TASK-00065](00065-TASK.md) | Protect Permissions referenced by Features | [TICKET-00017](../tickets/00017-TICKET.md) — Manage and retire Features safely | done | [TASK-00062](00062-TASK.md) | https://github.com/johnnickell/fight-access-control/pull/104 |
 | 66 | [TASK-00066](00066-TASK.md) | Create, inspect, and update Feature settings safely | [TICKET-00017](../tickets/00017-TICKET.md) — Manage and retire Features safely | done | [TASK-00065](00065-TASK.md), [TASK-00064](00064-TASK.md) | https://github.com/johnnickell/fight-access-control/pull/105 |
+| 67 | [TASK-00067](00067-TASK.md) | Retire Features through current-reference guards | [TICKET-00017](../tickets/00017-TICKET.md) — Manage and retire Features safely | done | [TASK-00066](00066-TASK.md), [TASK-00063](00063-TASK.md) | — |

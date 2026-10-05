@@ -13,5 +13,5 @@ This generated index is a projection; individual records remain canonical.
 | [EPIC-00007](00007-EPIC.md) | Adopt Current Fight Common Contracts | done |
 | [EPIC-00008](00008-EPIC.md) | Enforce Permission Grant Tiers | done |
 | [EPIC-00009](00009-EPIC.md) | Recoverable Agent Credential Operations | done |
-| [EPIC-00010](00010-EPIC.md) | Permission-Based Feature Flags | in-progress |
+| [EPIC-00010](00010-EPIC.md) | Permission-Based Feature Flags | done |
 | [EPIC-00011](00011-EPIC.md) | Agent Profile Tools and Name Management | needs-info |

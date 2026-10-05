@@ -448,7 +448,7 @@ expiry and cleanup cannot extend original delivery retention. Reference counts i
 scopes/batches/versions; physical retirement also requires closed write admission, fenced recount and independent
 key-use/authentication-envelope accounting. This is not a wider quota, key-vault or approval system.
 
-## Permission-based feature flags — retirement pending independent acceptance
+## Permission-based feature flags — package acceptance complete
 
 [EPIC-00010](planning/epics/00010-EPIC.md) owns the approved package-only destination from the closed
 [Wayfinder map](planning/wayfinder/permission-based-feature-flags-map.md). A planned Feature has a unique immutable
@@ -628,9 +628,16 @@ references. Consumer-bindable retirement/final-state scenarios and the [complete
 retain previous TASK subjects and actual consumer gaps; previous independent acceptance does not accept this slice.
 Builder verification passes **174 focused tests / 977 assertions**, **1849 full tests / 35482 assertions**,
 exact **6627/6627 owned statements**. No final warnings/skips; the resolver's two ignored PHPUnit dev-dependency
-patch updates and early corrected invocation/static/fixture failures are retained in the TASK evidence. Independent
-technical review and behavioral QA remain pending; the builder has not completed TASK/TICKET/EPIC acceptance.
-Consumer scanning/database/UI/security/runtime qualification, release and deployment remain separate.
+patch updates and early corrected invocation/static/fixture failures are retained in the TASK evidence. At that
+builder checkpoint independent technical review and behavioral QA remained pending. Independent technical review subsequently **accepted** clean
+`8e33f0847d41aff562e6258b1a360d70d152dfe1` against unchanged `develop` `09abe1f` (C1–C10 pass, no findings).
+Independent post-review QA **passed** seven scenarios / **260 executable checks** plus a ten-case instruction
+walkthrough, with clean **174 tests / 977 assertions**. TASK-00067 is done for accepted package implementation and
+required local/behavioral verification. Automatic completion closes TICKET-00017 and EPIC-00010 in this same
+administrative operation; TICKET-00015/00016 are already done. This completes package acceptance, not actual
+consumer qualification. John authorized landing; PR publication is pending at this tracked checkpoint. The ignored
+TASK landing handoff owns fresh gates, the administrative-only acceptance/QA bridge and final remote/evidence
+verification. Consumer scanning/database/UI/security/runtime qualification, release and deployment remain separate.
 
 ## Planning and Completion
 
