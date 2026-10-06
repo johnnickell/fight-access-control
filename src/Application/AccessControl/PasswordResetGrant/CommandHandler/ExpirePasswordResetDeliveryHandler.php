@@ -13,6 +13,7 @@ use Fight\Common\Application\Messaging\Event\EventDispatcher;
 use Fight\Common\Application\Repository\TransactionalUnitOfWork;
 use Fight\Common\Domain\Messaging\Command\CommandMessage;
 use Fight\Common\Domain\Messaging\Event\CommandFailedEvent;
+use LogicException;
 use Throwable;
 
 /**
@@ -60,6 +61,24 @@ final readonly class ExpirePasswordResetDeliveryHandler implements CommandHandle
                     return null;
                 }
 
+                $latest = $this->passwordResetGrantRepository->getLatestByUserId($command->getUserId());
+                if (
+                    !$latest instanceof PasswordResetGrant
+                    || !$latest->getId()->equals($passwordResetGrant->getId())
+                    || !$passwordResetGrant->isIssued()
+                ) {
+                    return null;
+                }
+
+                if (
+                    !$passwordResetGrant->ownsDelivery(
+                        $command->getPasswordResetDeliveryId(),
+                        $command->getUserId()
+                    )
+                ) {
+                    throw new LogicException('The expired password-reset delivery ownership is inconsistent.');
+                }
+
                 $expiredGrant = $passwordResetGrant->expireDeliveryAt($command->getOccurredAt());
                 if ($expiredGrant === $passwordResetGrant) {
                     return null;
@@ -81,7 +100,12 @@ final readonly class ExpirePasswordResetDeliveryHandler implements CommandHandle
                 $this->eventDispatcher->trigger($successEvent);
             }
         } catch (Throwable $throwable) {
-            $this->eventDispatcher->trigger(new CommandFailedEvent($command, $throwable->getMessage()));
+            try {
+                $this->eventDispatcher->trigger(new CommandFailedEvent($command, 'Credential expiry failed.'));
+            } catch (Throwable) {
+                // Failure notification must not conceal the original persistence or publication failure.
+            }
+
             throw $throwable;
         }
     }

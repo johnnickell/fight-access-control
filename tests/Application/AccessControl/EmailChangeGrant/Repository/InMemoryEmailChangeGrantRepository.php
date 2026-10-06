@@ -7,12 +7,14 @@ namespace Fight\Test\AccessControl\Application\AccessControl\EmailChangeGrant\Re
 use DateTimeImmutable;
 use Fight\AccessControl\Domain\AccessControl\CredentialDelivery\CredentialDeliveryStatus;
 use Fight\AccessControl\Domain\AccessControl\CredentialDelivery\DueCredentialDelivery;
+use Fight\AccessControl\Domain\AccessControl\CredentialDelivery\ExpiredCredentialDelivery;
 use Fight\AccessControl\Domain\AccessControl\EmailChangeGrant\EmailChangeDeliveryId;
 use Fight\AccessControl\Domain\AccessControl\EmailChangeGrant\EmailChangeGrant;
 use Fight\AccessControl\Domain\AccessControl\EmailChangeGrant\EmailChangeGrantId;
 use Fight\AccessControl\Domain\AccessControl\EmailChangeGrant\EmailChangeGrantRepository;
 use Fight\AccessControl\Domain\AccessControl\EmailChangeGrant\Exception\EmailChangeGrantException;
 use Fight\AccessControl\Domain\AccessControl\User\UserId;
+use Fight\Common\Domain\Exception\DomainException;
 use Fight\Test\AccessControl\Application\AccessControl\User\InMemoryUnitOfWork;
 use Throwable;
 
@@ -65,6 +67,49 @@ final class InMemoryEmailChangeGrantRepository implements EmailChangeGrantReposi
         return array_slice($due, 0, $limit);
     }
 
+    public function findExpired(DateTimeImmutable $at, int $limit): array
+    {
+        if ($limit < 1 || $limit > 100) {
+            throw new DomainException('The expired credential-work limit must be between 1 and 100.');
+        }
+
+        $expired = [];
+        foreach ($this->emailChangeGrants as $grant) {
+            $latest = $this->getLatestByUserId($grant->getUserId());
+            if (
+                !$latest instanceof EmailChangeGrant
+                || !$latest->getId()->equals($grant->getId())
+                || !$grant->isIssued()
+                || $grant->getExpiresAt() > $at
+            ) {
+                continue;
+            }
+
+            $expired[] = new ExpiredCredentialDelivery(
+                $grant->purpose(),
+                $grant->getDelivery()->getId(),
+                $grant->getUserId(),
+                $grant->getId(),
+                $grant->getExpiresAt(),
+                $grant->getRevision(),
+                $grant->getDelivery()->getStatus()
+            );
+        }
+
+        usort($expired, static fn(ExpiredCredentialDelivery $left, ExpiredCredentialDelivery $right): int =>
+            [
+                $left->getExpiresAt(),
+                $left->getDeliveryId()->toString(),
+                $left->getPurpose()
+            ] <=> [
+                $right->getExpiresAt(),
+                $right->getDeliveryId()->toString(),
+                $right->getPurpose()
+            ]);
+
+        return array_slice($expired, 0, $limit);
+    }
+
     public function add(EmailChangeGrant $emailChangeGrant): bool
     {
         if (
@@ -111,7 +156,7 @@ final class InMemoryEmailChangeGrantRepository implements EmailChangeGrantReposi
             || !$current instanceof EmailChangeGrant
             || !$this->sameState($current, $terminalPredecessor)
             || $current->isIssued()
-            || $current->getDelivery()->isRecoverable()
+            || $current->getDelivery()->hasRecoverableMaterial()
             || !$this->validSuccessor($current, $successor)
         ) {
             return false;
@@ -205,6 +250,7 @@ final class InMemoryEmailChangeGrantRepository implements EmailChangeGrantReposi
             && $left->getUserId()->equals($right->getUserId())
             && $left->getCredentialHash() === $right->getCredentialHash()
             && $left->getExpiresAt() == $right->getExpiresAt()
+            && $left->getEmailChangeReservationRevision() === $right->getEmailChangeReservationRevision()
             && $left->getDelivery()->getId()->equals($right->getDelivery()->getId());
     }
 
@@ -271,6 +317,11 @@ final class InMemoryEmailChangeGrantRepository implements EmailChangeGrantReposi
     ): EmailChangeGrant {
         $before = $predecessor->getDelivery();
         $after = $replacement->getDelivery();
+        $expired = $predecessor->expireDeliveryAt($after->getExpiresAt());
+        if ($this->sameState($expired, $replacement)) {
+            return $expired;
+        }
+
         if (
             $before->getStatus() === CredentialDeliveryStatus::CLAIMED
             && $after->getLastOutcomeAt() instanceof DateTimeImmutable
@@ -283,7 +334,7 @@ final class InMemoryEmailChangeGrantRepository implements EmailChangeGrantReposi
             );
         }
 
-        return $predecessor->expireDeliveryAt($after->getExpiresAt());
+        return $expired;
     }
 
     private function hasDeliveryId(EmailChangeDeliveryId $emailChangeDeliveryId): bool
@@ -309,6 +360,7 @@ final class InMemoryEmailChangeGrantRepository implements EmailChangeGrantReposi
 
         return $emailChangeGrant->getRevision() === 0
             && $emailChangeGrant->isIssued()
+            && $emailChangeGrant->getEmailChangeReservationRevision() > 0
             && $delivery->isPristine()
             && $delivery->getUserId()->equals($emailChangeGrant->getUserId())
             && $delivery->getExpiresAt() == $emailChangeGrant->getExpiresAt();

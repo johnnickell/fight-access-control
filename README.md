@@ -3,13 +3,21 @@
 Framework-neutral identity, credential, session, authorization, and account-lifecycle contracts for Fight
 applications.
 
-The `v0.3.0` contract introduces recoverable, provider-neutral credential delivery for invitation, password
-reset, and email change. Consumers upgrading from `v0.2.x` must follow the
-[credential-delivery migration guide](docs/credential-delivery-v0.3-migration.md).
+Only the current pre-v1 API and persisted contract are supported; see
+[ADR 0011](planning/adr/0011-pre-v1-current-contract-only.md). There are no historical readers, legacy modes or
+migration/backfill routes. [Credential delivery](docs/credential-delivery.md) is recoverable and provider-neutral
+for invitation, password reset and email change.
 
-The unreleased pre-1.0 Permission tier contract requires consumer persistence and projection adoption; see the
-[Permission tier migration note](docs/permission-tier-v0.4-migration.md). It does not certify a consumer schema or
-publish a package release.
+The [v0.5.0 contract overview](docs/release-0.5.0.md) covers recoverable Agent credentials, human credential expiry,
+Permission-based Features and Agent-protected MCP profile Tools. It requires PHP **8.5+** and Fight Common **^1.3**.
+This is a breaking pre-v1 contract with mandatory adapter changes, not a compatibility/migration layer. At the
+2026-10-06 preparation checkpoint, signing/publication are outstanding; these docs are not a release receipt or
+qualified consumer deployment.
+
+The [v0.4.0 release](https://github.com/johnnickell/fight-access-control/releases/tag/v0.4.0) introduces the
+pre-1.0 Permission tier contract and requires consumer persistence and projection adoption; see the
+[current Permission tier contract](docs/permission-tiers.md). Package publication does not certify a
+consumer schema or establish consumer adoption.
 
 The `0.2.0` release adds an opt-in, non-autoloaded OpenAPI component catalog
 for consumer-owned documents. See [OpenAPI composition](docs/openapi-composition.md).
@@ -42,14 +50,12 @@ Transaction-aware Application handlers and security services require Fight Commo
 whether that transaction capability remains available. The deprecated `UnitOfWork` contract and its standalone
 `commit()` method are not supported by AccessControl constructors.
 
-This constructor type change is intentionally breaking while AccessControl remains pre-`1.0.0`: consumers upgrading
-from `0.2.x` must replace `UnitOfWork` bindings with `TransactionalUnitOfWork` bindings. No compatibility adapter is
-supplied.
+Only the current transactional contract is supplied; no compatibility adapter is included.
 
 ### Recoverable credential delivery composition
 
-See the [v0.3.0 credential-delivery migration guide](docs/credential-delivery-v0.3-migration.md) for replaced public
-contracts, persistence migration, worker composition, and executable qualification evidence.
+See the [current credential-delivery guide](docs/credential-delivery.md) for persistence, explicit claim/outcome
+contracts, worker composition and executable qualification evidence.
 
 Invitation, password-reset, and email-change credentials use package-owned recoverable delivery state. Consumers
 supply the three purpose-specific cipher capabilities, one provider-neutral `CredentialDeliveryProvider`, the Domain
@@ -69,6 +75,118 @@ Consumers may use post-commit event subscribers for immediate dispatch, but must
 purpose, User ID, and delivery ID. Pending work, due retries, and expired leases are returned in deterministic order.
 A crash after provider acceptance and before outcome commit can repeat the provider call with the same identity, so
 this contract is at-least-once and does not claim exactly-once delivery.
+
+For downtime through expiry, the v0.5.0 [human credential expiry guide](docs/credential-expiry.md) adds
+`FindExpiredCredentialDeliveriesHandler` and `ExpireInvitationDeliveryHandler`, alongside existing reset/email expiry.
+Run bounded expired cleanup before unchanged due work. Email cleanup expires authority plus its exact reservation even
+with terminal delivery or changed account state. All three repositories require `findExpired()`; email grants bind the
+explicit User reservation revision. Cleanup requires no keys/providers; consumers protect every query/dispatch entry
+point and separately qualify PostgreSQL atomicity/CAS/destruction. Actor provenance is not authorization.
+
+### Feature declarations, preparation and availability (v0.5.0)
+
+The [Feature reference guide](docs/feature-references.md) describes strict `FeatureName` validation, method-only
+`FeatureFlag` metadata, explicit registration and scoped complete/unavailable discovery.
+[Atomic provisioning](docs/feature-provisioning.md) creates only missing candidate references OFF with an existing
+Permission, preserving stored choices and retrying from authoritative state. Completion is not activation readiness.
+[Preparation validation](docs/feature-preparation.md) rereads all complete candidate references and their stored
+Permission identities without mutation. [Feature availability](docs/feature-availability.md) checks current stored
+status and Permission ID against an existing User/Agent snapshot or anonymous input on each explicit call; availability
+never authorizes the underlying action. [Management](docs/feature-management.md),
+[Permission reference guards](docs/feature-permission-references.md) and
+[current-reference retirement](docs/feature-retirement.md) supply the package lifecycle; the
+[scenario/evidence inventory](docs/feature-evidence.md) records all seven TASKs' independent technical acceptance
+and behavioral QA, including TASK-00067's final lifecycle evidence. Consumer adapters, scanning, UI and runtime
+enforcement remain consumer-owned and unqualified. Neither a package pass, preparation nor provisioning grants deployment permission or constitutes a
+supported partial Feature release.
+
+### Agent name updates (v0.5.0)
+
+The [name update guide](docs/agent-name-updates.md) describes generic `UpdateAgent` with typed User/Agent provenance,
+void `UpdateAgentHandler` and post-commit `AgentNameChanged`. Every Agent repository must implement the name-only
+`rename(id, name, now)` capability under current ACTIVE, correlation and cohort fences, including no-ops. Its clock
+callback is sampled after writer admission; it returns exact persisted time or null for a validated no-op. Names are
+last-committed-wins without an expected old name or revision; credentials and Permissions are never replaced.
+Consumers protect every dispatch entry point and separately qualify persistence. Successful synchronous dispatch
+permits the same input-derived `{agent_id, name}` acknowledgement for changes/no-ops. The self-service Tools below
+reuse it; no administrator endpoint, consumer adapter or deployment is supplied.
+
+### Minimal Agent profiles (v0.5.0)
+
+The [profile guide](docs/agent-profile.md) describes `GetAgentProfile` / `GetAgentProfileHandler`, returning only
+`{agent_id, name}` from a fresh authoritative ACTIVE Agent lookup. Missing and revoked targets both return null;
+reads perform no writes, transactions, Permission resolution or events. Consumers authorize the explicit internal
+target; the self-service Tool derives it solely from the current authenticated principal.
+`AgentProfilePermissions::definitions()` supplies managed `AGENT_PROFILE_READ` and `AGENT_PROFILE_UPDATE`, both
+`ADMIN_SAFE`, using two distinct consumer-owned IDs generated once with `Uuid::comb()` and fixed in its seed/migration.
+No automatic grants, startup ID generation, consumer migration or runtime integration is supplied.
+
+### Agent-protected MCP Tools (v0.5.0)
+
+The [MCP authorization guide](docs/agent-mcp-authorization.md) describes repeatable method-level
+`RequiresAgentPermission`, a complete Common-registry-derived `AgentToolPermissionCatalog`, and request-scoped
+`AgentToolAvailability`. Every requirement must match the current Agent's direct Permissions. Use the same neutral
+availability in Common discovery, invocation and protected retries, with fresh providers on every later request and
+private zero-TTL discovery. Unknown/unavailable Tools remain publicly equivalent before protected work.
+Common `^1.3` is required; this authorization module supplies no Tool, endpoint, OAuth mapping or consumer adapter.
+The separate minimal profile query above does not itself enforce MCP permissions or choose a principal.
+
+The [self-service profile Tool guide](docs/agent-profile-tools.md) composes `GetAgentProfileTool`
+(`agent.profile.read`) and `UpdateAgentProfileTool` (`agent.profile.update`) with that authorization module. Both derive
+the target from the same request's principal and return exactly `{agent_id, name}` with Common's matching JSON text.
+The updater requires `SynchronousCommandBus` and acknowledges normalized input only after successful void dispatch;
+no compensating read or extra fact is emitted. Extra caller fields reject; read/update Permissions are independent.
+`AgentProfileToolFailures` supplies constant expected-failure bindings; Common's responder sanitizes unknown faults
+without claiming rollback after publication failure. Consumers own fresh request wiring and protect all alternate paths.
+
+### Agent credential operations (v0.5.0)
+
+Start with the [current Agent integration guide](docs/agent-integration.md) for composition, readiness, bounded
+recovery and restoration. The [complete scenario/evidence inventory](docs/agent-operation-evidence.md) maps all
+25 proposal scenarios and ratified outcome/bounds additions to current package tests and explicit consumer gaps.
+This v0.5.0 contract is not a release receipt or consumer qualification.
+
+The provisioning replacement requires a retained scoped operation key, registered destination, and
+same-transaction authorization participation. It prepares encrypted delivery and returns only safe issuance metadata;
+retry resolves the same outcome after response loss. See the
+[provisioning contract](docs/agent-provisioning-operations.md) for composition, finite defaults, failure semantics,
+persistence requirements and executable evidence. `GetAgentOperation` provides an
+[authorized safe status query](docs/agent-operation-status.md), separating original issuance from recorded delivery
+and credential disposition without a transaction, material access or events.
+[Credential retirement](docs/agent-credential-retirement.md) atomically revokes authority and cancels original delivery
+through both service and direct repository writes without key/sink access.
+[Protected delivery](docs/agent-credential-delivery.md) adds committed claim/admission, outside-transaction fixed-sink
+invocation and exact receipt acknowledgement under current authority.
+[Recoverable rotation](docs/agent-rotation-operations.md) commits a correlated successor with atomic predecessor
+cancellation and resolves the original request after response loss. Retired raw-return rotation APIs are removed.
+[Discovery and restart recovery](docs/agent-delivery-recovery.md) provide a bounded currently delegated scheduler
+pass and receipt-first reconciliation through the actual protected delivery path, without caller retry or events.
+Discovery excludes obsolete slot reservations before limiting so they cannot starve the current authorized write.
+[Material maintenance](docs/agent-delivery-maintenance.md) adds authorized rewrapping, global diagnostic key-reference
+counts, retention expiry and replay-safe inert-entry cleanup. A zero reference count never authorizes key destruction;
+current delivered credentials are excluded from cleanup.
+[Issuance-recovery conformance](docs/agent-issuance-conformance.md) exposes consumer-bindable tests and exercises both
+issuance paths through scheduler-only restart, status and cleanup using behavioral adapters. It does not qualify a
+real database, sink or consumer activation/use path.
+[Protected-delivery conformance](docs/agent-delivery-conformance.md) adds consumer-bindable authority/lifecycle,
+transaction, key and sink qualification scenarios, running both receipt-lookup and repeated-invocation profiles.
+The [current Agent model](docs/agent-current-contract.md) has no legacy mode or recovery marker. Validated hydration
+preserves authority; every lifecycle write requires operation correlation and atomic cancellation.
+[Operation cohorts](docs/agent-operation-cohorts.md) require persisted version/capability qualification and a shared
+transaction-duration cohort fence across every writer. Cohort generations fence delivery/cleanup acknowledgements;
+consumers must separately exclude old binaries at storage or a trusted boundary and qualify real writer races.
+The [canonical operation contract](docs/agent-canonical-upgrades.md) uses one Unicode-aware normalization rule
+and persisted marker `2`, preserving original keys through restart, delivery, retirement and cleanup. There is no
+historical reader, runtime version selection or migration of nonexistent earlier-version operations. Unsupported
+markers reject without fallback; current authorization, transaction and ordering fences remain mandatory.
+[Restoration safety](docs/agent-restoration-safety.md) requires independent reconciled-generation evidence at the
+existing cohort boundary. Stale restored state remains unavailable until original operation/receipt/tombstone/order
+history is reconciled for the exact active storage incarnation at a newer generation. Consumer-bindable scenarios
+model restore and forward repair; no backup tool, migration engine or automatic rollback detector is supplied.
+Package restoration and TASK-00059's final integration guidance/traceability are independently accepted;
+the guidance also passed behavioral QA. These modeled interleavings do not qualify real consumer adapters, restore
+procedures or activation/use. The package composition is **not a qualified consumer deployment**; release,
+consumer adoption and deployment remain separate gates. Existing released versions are unchanged.
 
 ### Current principal composition
 
@@ -99,18 +217,19 @@ PHP 8.5 and Docker are required. Tooling follows the Fight Common conventions an
 ./bin/planning-check
 ```
 
-`./bin/build` is the canonical completion command. It installs the tracked Composer resolution and runs the
-single ordered `./bin/quality` gate. `./bin/build --latest` checks the latest dependency versions compatible
-with `composer.json`; hosted CI performs that same latest-compatible resolution before invoking
+`./bin/build` is the canonical completion command. It runs `composer update` to resolve the latest compatible
+dependencies into the ignored lockfile, then runs the single ordered `./bin/quality` gate. `./bin/build --latest`
+currently uses the same resolution; hosted CI also resolves latest-compatible dependencies before invoking
 `./bin/quality` directly.
 
 For a clean, dated release candidate, `./bin/release certify <version>` records its exact `HEAD` and the
 OpenAPI consumer-composition, planning, and package-quality evidence under ignored `.runs/`. It is
 verification-only and does not create a commit, merge, tag, push, or publication.
 
-Coordinate-build scratch work belongs under gitignored `.runs/<YYYY-MM-DD>-<slug>/`. Never stage it. When an
-approved task needs isolation, create its disposable linked worktree under that run directory at `worktree/`; run
-commands from that checkout and remove it only with separate cleanup authorization. See
+Keep scratch in purpose-named, gitignored `.runs/` subdirectories following the
+[project profile](planning/agents/project-profile.md#tests-and-delivery). Linked worktrees use
+`.runs/worktree/<task-slug>/`; notes, logs, handoffs and reviews remain separate. Never stage scratch. Run commands
+from the assigned checkout and remove resources only with separate cleanup authorization. See
 [CONTRIBUTING.md](CONTRIBUTING.md) for Git Flow, isolation, and review expectations.
 
 ## Security

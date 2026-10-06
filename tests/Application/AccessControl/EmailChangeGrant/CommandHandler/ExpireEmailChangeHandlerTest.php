@@ -53,7 +53,8 @@ final class ExpireEmailChangeHandlerTest extends TestCase
             new DateTimeImmutable('2026-08-22T12:00:00+00:00'),
             new DateTimeImmutable('2026-08-22T13:00:00+00:00'),
             EmailAddress::fromString('new@example.test'),
-            'ciphertext:change-once'
+            'ciphertext:change-once',
+            $reserved->getEmailChangeReservationRevision()
         );
         self::assertTrue($grants->add($grant));
         $events = new InMemoryEventDispatcher(static function () use ($unitOfWork): void {
@@ -75,7 +76,7 @@ final class ExpireEmailChangeHandlerTest extends TestCase
         self::assertSame(2, $storedUser->getEmailChangeReservationRevision());
         self::assertTrue($grants->all()[0]->isExpired());
         self::assertSame('2026-08-22T13:00:00+00:00', $grants->all()[0]->getExpiredAt()?->format(DATE_ATOM));
-        self::assertFalse($grants->all()[0]->getDelivery()->isRecoverable());
+        self::assertFalse($grants->all()[0]->getDelivery()->hasRecoverableMaterial());
         self::assertCount(1, $events->events());
         self::assertInstanceOf(EmailChangeExpired::class, $events->events()[0]);
     }
@@ -134,10 +135,8 @@ final class ExpireEmailChangeHandlerTest extends TestCase
 
     public function test_early_stale_unknown_and_mismatched_expiry_are_mutation_free(): void
     {
-        foreach (['early', 'stale grant', 'unknown user', 'mismatched reservation'] as $case) {
-            [$handler, $users, $grants, $events, $userId, $grant] = $this->fixture(
-                grantEmail: $case === 'mismatched reservation' ? 'other@example.test' : 'new@example.test'
-            );
+        foreach (['early', 'stale grant', 'unknown user'] as $case) {
+            [$handler, $users, $grants, $events, $userId, $grant] = $this->fixture();
             $commandUserId = $case === 'unknown user' ? UserId::generate() : $userId;
             $grantId = $case === 'stale grant' ? EmailChangeGrantId::generate() : $grant->getId();
             $occurredAt = new DateTimeImmutable('2026-08-22T13:00:00+00:00');
@@ -231,7 +230,8 @@ final class ExpireEmailChangeHandlerTest extends TestCase
             new DateTimeImmutable('2026-08-22T12:00:00+00:00'),
             new DateTimeImmutable('2026-08-22T13:00:00+00:00'),
             EmailAddress::fromString($grantEmail),
-            'ciphertext:change-once'
+            'ciphertext:change-once',
+            $reserved->getEmailChangeReservationRevision()
         );
         self::assertTrue($grants->add($grant));
         $events = new InMemoryEventDispatcher();

@@ -17,9 +17,10 @@ Use Git Flow:
 - `feature/<name>` branches from `develop` and returns through review.
 - Never commit feature work directly to `develop` or `main`.
 
-Keep each effort isolated in its assigned branch and worktree. Coordinate-build notes and spoke reports belong
-under `.runs/<YYYY-MM-DD>-<slug>/`; `.runs/` is scratch space, is gitignored, and must never be staged. Preserve
-unrelated changes and do not copy consumer implementations into this library.
+Keep each effort isolated in its assigned branch and worktree. Use purpose-named `.runs/` subdirectories from the
+[project profile](planning/agents/project-profile.md#tests-and-delivery), including `.runs/worktree/<task-slug>/`
+for checkouts and separate notes, logs, handoffs and reviews. `.runs/` is gitignored and must never be staged.
+Preserve unrelated changes and do not copy consumer implementations into this library.
 
 ## Quality and review
 
@@ -37,15 +38,13 @@ Coding style composes Fight Common's published PHPCS ruleset through [phpcs.xml]
 repository's documented exclusions and extensions. It covers the package's required strict types, layout,
 naming, spacing, arrays, and documentation checks; do not copy Fight Common sniffs into this repository.
 
-The repository includes an opt-in pre-commit hook that delegates to the same default build:
+The repository has no pre-commit or pre-push build hook. Run and retain the required local gate evidence through
+implementation and review; committing does not run the build again or establish verification by itself. A failing
+required gate still blocks a completed handoff.
 
-```bash
-git config core.hooksPath .githooks
-```
-
-This changes only the current clone. Once enabled, the default build gate is non-bypassable: never use
-`git commit --no-verify`. Diagnose and repair every failure, then let the hook complete successfully before
-creating the commit. There is deliberately no pre-push hook.
+If an existing clone has the former repository hook path configured, check `git config --local --get core.hooksPath`.
+When it is exactly `.githooks`, remove that obsolete setting with `git config --local --unset core.hooksPath`.
+Preserve any differently configured or independently managed hooks.
 
 Keep production code framework-neutral with dependency direction `Domain <- Application`. Do not add a
 production Adapter layer, framework integration, persistence implementation, or capability outside the active

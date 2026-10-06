@@ -100,8 +100,9 @@ final class CurrentAgentPrincipalProviderBehavioralConformanceTest extends TestC
     {
         [$revokedProvider, $revokedRequest] = $this->provider(agent: $this->agent()->revoke($this->now()));
         [$staleCredentialProvider, $staleCredentialRequest] = $this->provider(
-            agent: $this->agent()->rotateCredential(
+            agent: $this->agent()->rotateRecoverableCredential(
                 $this->credentialId(),
+                0,
                 AgentCredentialId::fromString('018f0000-0000-7000-8000-000000000104'),
                 'encrypted:successor-secret',
                 $this->now()

@@ -5,10 +5,18 @@ declare(strict_types=1);
 namespace Fight\Test\AccessControl\Application\AccessControl\Agent\Repository;
 
 use Closure;
+use DateTimeImmutable;
 use Fight\AccessControl\Domain\AccessControl\Agent\Agent;
 use Fight\AccessControl\Domain\AccessControl\Agent\AgentCredentialId;
 use Fight\AccessControl\Domain\AccessControl\Agent\AgentId;
+use Fight\AccessControl\Domain\AccessControl\Agent\AgentName;
 use Fight\AccessControl\Domain\AccessControl\Agent\AgentRepository;
+use Fight\AccessControl\Domain\AccessControl\Agent\AgentState;
+use Fight\AccessControl\Domain\AccessControl\Agent\Exception\AgentOperationRejectedException;
+use Fight\AccessControl\Domain\AccessControl\Agent\Exception\AgentUpdateException;
+use Fight\AccessControl\Domain\AccessControl\Agent\Operation\AgentCredentialOperation;
+use Fight\AccessControl\Domain\AccessControl\Agent\Operation\AgentOperationContract;
+use Fight\AccessControl\Domain\AccessControl\Agent\Operation\AgentOperationFailure;
 use Fight\AccessControl\Domain\AccessControl\Permission\Permission;
 use Fight\AccessControl\Domain\AccessControl\Permission\PermissionId;
 use Fight\Common\Domain\Collection\ArrayList;
@@ -16,10 +24,21 @@ use Fight\Common\Domain\Repository\Pagination;
 use Fight\Common\Domain\Repository\ResultSet;
 use Fight\Test\AccessControl\Application\AccessControl\User\InMemoryUnitOfWork;
 use Fight\Test\AccessControl\Application\AccessControl\User\Repository\InMemoryAuthorizationReferenceState;
+use SensitiveParameter;
 use Throwable;
 
 final class InMemoryAgentRepository implements AgentRepository
 {
+    public readonly InMemoryAgentOperationContract $contract;
+
+    public ?Closure $afterReplace = null;
+
+    public ?Closure $beforeNameWrite = null;
+
+    public ?Closure $afterNameWrite = null;
+
+    public int $nameWrites = 0;
+
     /** @var list<Agent> */
     private array $agents = [];
 
@@ -33,7 +52,8 @@ final class InMemoryAgentRepository implements AgentRepository
         ?InMemoryAuthorizationReferenceState $authorizationReferences = null,
         private readonly ?Closure $beforeReplacePermissionAssignments = null,
         private readonly ?Closure $beforeValidatePermissionAssignments = null,
-        private readonly ?Throwable $replacePermissionAssignmentsFailure = null
+        private readonly ?Throwable $replacePermissionAssignmentsFailure = null,
+        private readonly ?InMemoryAgentOperationRepository $operations = null
     ) {
         $resolvedAuthorizationReferences = $authorizationReferences ?? new InMemoryAuthorizationReferenceState();
         if (
@@ -44,10 +64,17 @@ final class InMemoryAgentRepository implements AgentRepository
         }
 
         $this->authorizationReferences = $resolvedAuthorizationReferences;
+        $this->contract = $operations->contract ?? new InMemoryAgentOperationContract($unitOfWork);
+    }
+
+    public function getOperationContract(): AgentOperationContract
+    {
+        return $this->contract->read();
     }
 
     public function add(Agent $agent): void
     {
+        $this->getOperationContract()->assertCompatible();
         $this->agents[] = $agent;
         $this->authorizationReferences->retainAgent($agent);
         $this->unitOfWork?->onRollback(function () use ($agent): void {
@@ -100,17 +127,70 @@ final class InMemoryAgentRepository implements AgentRepository
         return $this->authorizationReferences->agentContainsPermission($permissionId);
     }
 
-    public function replace(Agent $expected, Agent $replacement): bool
+    public function rename(AgentId $id, AgentName $name, Closure $now): ?DateTimeImmutable
     {
+        $this->beforeNameWrite?->__invoke();
+        $this->getOperationContract()->assertCompatible();
+        if ($this->operations === null || !$this->operations->participatesIn($this->unitOfWork)) {
+            throw new AgentOperationRejectedException(AgentOperationFailure::UNAVAILABLE);
+        }
+
+        $current = $this->getById($id);
+        if ($current === null || $current->getState() !== AgentState::ACTIVE) {
+            throw new AgentUpdateException('The Agent is unavailable for a name update.');
+        }
+
+        $matches = array_filter(
+            $this->operations->operations,
+            static function (AgentCredentialOperation $operation) use ($current): bool {
+                $issuance = $operation->getIssuance();
+
+                return $issuance->getAgentId()->equals($current->getId())
+                    && $issuance->getCredentialId()->equals($current->getCredentialId())
+                    && $issuance->getCredentialRevision() === $current->getCredentialRevision();
+            }
+        );
+        if (count($matches) !== 1) {
+            throw new AgentOperationRejectedException(AgentOperationFailure::CONFLICT);
+        }
+
+        array_first($matches)->assertDeliveryCredential($current);
+        $replacement = $current->rename($name, $now());
+        if ($replacement === $current) {
+            return null;
+        }
+
+        $index = array_search($current, $this->agents, true);
+        $this->agents[$index] = $replacement;
+        ++$this->nameWrites;
+        $this->authorizationReferences->retainAgent($replacement);
+        $this->unitOfWork->onRollback(function () use ($current, $index): void {
+            $this->agents[$index] = $current;
+            $this->authorizationReferences->retainAgent($current);
+        });
+        $this->afterNameWrite?->__invoke();
+
+        return $replacement->getUpdatedAt();
+    }
+
+    public function replace(
+        #[SensitiveParameter] Agent $expected,
+        #[SensitiveParameter] Agent $replacement
+    ): bool {
+        $this->getOperationContract()->assertCompatible();
         foreach ($this->agents as $index => $agent) {
             if (
                 $agent !== $expected
-                || !$replacement->getId()->equals($expected->getId())
-                || $replacement->getPermissionAssignmentRevision() !== $expected->getPermissionAssignmentRevision()
-                || !$this->permissionMembershipIsSame($expected, $replacement)
+                || !$expected->canReplaceCredentialWith($replacement)
             ) {
                 continue;
             }
+
+            if ($this->operations === null || !$this->operations->participatesIn($this->unitOfWork)) {
+                throw new AgentOperationRejectedException(AgentOperationFailure::UNAVAILABLE);
+            }
+
+            $this->operations->retireCredential($expected, $replacement);
 
             $this->agents[$index] = $replacement;
             $this->authorizationReferences->retainAgent($replacement);
@@ -120,6 +200,8 @@ final class InMemoryAgentRepository implements AgentRepository
                     $this->authorizationReferences->retainAgent($expected);
                 }
             });
+
+            $this->afterReplace?->__invoke();
 
             return true;
         }
@@ -138,6 +220,7 @@ final class InMemoryAgentRepository implements AgentRepository
 
     public function replacePermissionAssignments(Agent $expected, Agent $replacement): bool
     {
+        $this->getOperationContract()->assertCompatible();
         ++$this->permissionAssignmentReplacementCalls;
 
         if ($this->replacePermissionAssignmentsFailure instanceof Throwable) {
@@ -177,6 +260,23 @@ final class InMemoryAgentRepository implements AgentRepository
     public function all(): array
     {
         return $this->agents;
+    }
+
+    /**
+     * Replaces only modeled persisted state for restoration conformance, never an Application writer
+     *
+     * @param list<Agent> $agents
+     */
+    public function restoreSnapshot(#[SensitiveParameter] array $agents): void
+    {
+        foreach ($this->agents as $agent) {
+            $this->authorizationReferences->removeAgent($agent);
+        }
+
+        $this->agents = $agents;
+        foreach ($agents as $agent) {
+            $this->authorizationReferences->retainAgent($agent);
+        }
     }
 
     public function permissionAssignmentReplacementCalls(): int

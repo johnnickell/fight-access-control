@@ -48,8 +48,11 @@ final class AuthenticatedPrincipalTest extends TestCase
 
         $roles = $principal->getRoles();
         $permissions = $principal->getPermissions();
-        $roles[] = new PrincipalRole(RoleId::generate(), RoleName::fromString('ROLE_OTHER'));
-        $permissions = [];
+        $otherRole = new PrincipalRole(RoleId::generate(), RoleName::fromString('ROLE_OTHER'));
+        $roles[] = $otherRole;
+        unset($permissions[0]);
+        self::assertSame([$role, $otherRole], $roles);
+        self::assertSame([], $permissions);
 
         self::assertSame($userId, $principal->getUserId());
         self::assertSame($refreshSessionId, $principal->getRefreshSessionId());
@@ -90,13 +93,6 @@ final class AuthenticatedPrincipalTest extends TestCase
         $this->expectException(AuthenticatedPrincipalException::class);
 
         new AuthenticatedUserPrincipal(UserId::generate(), RefreshSessionId::generate(), 1, [], ['VIEW_ARTICLE']);
-    }
-
-    public function test_the_legacy_authenticated_principal_snapshot_type_is_not_available(): void
-    {
-        self::assertFalse(class_exists(
-            'Fight\\AccessControl\\Domain\\AccessControl\\Authorization\\AuthenticatedPrincipal'
-        ));
     }
 
     public function test_the_principal_type_values_are_stable(): void

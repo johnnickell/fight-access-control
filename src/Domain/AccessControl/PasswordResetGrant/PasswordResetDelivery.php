@@ -30,7 +30,7 @@ class PasswordResetDelivery extends CredentialDelivery
         EmailAddress $email,
         string $ciphertext,
         DateTimeImmutable $expiresAt,
-        ?DateTimeImmutable $dueAt = null
+        DateTimeImmutable $dueAt
     ): static {
         try {
             $encryptedMaterial = EncryptedCredentialMaterial::fromString($ciphertext);
@@ -41,7 +41,7 @@ class PasswordResetDelivery extends CredentialDelivery
             );
         }
 
-        return new static($id, $userId, $email, $encryptedMaterial, $expiresAt, $dueAt ?? new DateTimeImmutable('@0'));
+        return new static($id, $userId, $email, $encryptedMaterial, $expiresAt, $dueAt);
     }
 
     /**
@@ -53,13 +53,5 @@ class PasswordResetDelivery extends CredentialDelivery
         assert($id instanceof PasswordResetDeliveryId);
 
         return $id;
-    }
-
-    /**
-     * Returns whether encrypted credential material remains recoverable
-     */
-    public function isRecoverable(): bool
-    {
-        return $this->hasRecoverableMaterial();
     }
 }

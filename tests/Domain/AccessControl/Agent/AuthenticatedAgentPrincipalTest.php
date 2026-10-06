@@ -48,7 +48,8 @@ final class AuthenticatedAgentPrincipalTest extends TestCase
         );
 
         $permissions = $principal->getPermissions();
-        $permissions = [];
+        unset($permissions[0]);
+        self::assertSame([1 => $readPermission], $permissions);
 
         self::assertSame('018f0000-0000-7000-8000-000000000021', $principal->getAgentId()->toString());
         self::assertSame('018f0000-0000-7000-8000-000000000022', $principal->getCredentialId()->toString());

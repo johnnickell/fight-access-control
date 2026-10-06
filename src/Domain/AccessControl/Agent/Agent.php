@@ -7,7 +7,9 @@ namespace Fight\AccessControl\Domain\AccessControl\Agent;
 use DateTimeImmutable;
 use Fight\AccessControl\Domain\AccessControl\Agent\Exception\AgentCredentialException;
 use Fight\AccessControl\Domain\AccessControl\Agent\Exception\AgentPermissionAssignmentException;
+use Fight\AccessControl\Domain\AccessControl\Agent\Exception\AgentUpdateException;
 use Fight\AccessControl\Domain\AccessControl\Permission\PermissionId;
+use SensitiveParameter;
 
 /**
  * Class Agent
@@ -57,6 +59,51 @@ class Agent
             1,
             $provisionedAt,
             $provisionedAt
+        );
+    }
+
+    /**
+     * Reconstitutes persisted authority without issuing credentials
+     *
+     * Repositories validate current operation correlation under the shared credential fence.
+     *
+     * @phpstan-param array<array-key, PermissionId> $permissionIds
+     */
+    public static function reconstitute(
+        AgentId $id,
+        AgentName $name,
+        AgentState $state,
+        AgentCredentialId $credentialId,
+        int $credentialRevision,
+        #[SensitiveParameter] string $encryptedHmacSharedSecretEnvelope,
+        array $permissionIds,
+        int $permissionAssignmentRevision,
+        DateTimeImmutable $createdAt,
+        DateTimeImmutable $updatedAt
+    ): self {
+        $permissionKeys = array_map(static fn(PermissionId $id): string => $id->toString(), $permissionIds);
+        if (
+            $credentialRevision < 0
+            || $permissionAssignmentRevision < 1
+            || $encryptedHmacSharedSecretEnvelope === ''
+            || $updatedAt < $createdAt
+            || !array_is_list($permissionIds)
+            || count($permissionKeys) !== count(array_unique($permissionKeys))
+        ) {
+            throw new AgentCredentialException('The persisted Agent authority is invalid.');
+        }
+
+        return new self(
+            $id,
+            $name,
+            $state,
+            $credentialId,
+            $credentialRevision,
+            $encryptedHmacSharedSecretEnvelope,
+            $permissionIds,
+            $permissionAssignmentRevision,
+            $createdAt,
+            $updatedAt
         );
     }
 
@@ -134,6 +181,37 @@ class Agent
         return array_any(
             $this->permissionIds,
             static fn(PermissionId $assigned): bool => $assigned->equals($permissionId)
+        );
+    }
+
+    /**
+     * Renames an active Agent without changing its authority
+     */
+    public function rename(AgentName $name, DateTimeImmutable $renamedAt): self
+    {
+        if ($this->state !== AgentState::ACTIVE) {
+            throw new AgentUpdateException('The Agent is unavailable for a name update.');
+        }
+
+        if ($this->name->equals($name)) {
+            return $this;
+        }
+
+        if ($renamedAt < $this->updatedAt) {
+            throw new AgentUpdateException('The Agent name update time is stale.');
+        }
+
+        return new self(
+            $this->id,
+            $name,
+            $this->state,
+            $this->credentialId,
+            $this->credentialRevision,
+            $this->encryptedHmacSharedSecretEnvelope,
+            $this->permissionIds,
+            $this->permissionAssignmentRevision,
+            $this->createdAt,
+            $renamedAt
         );
     }
 
@@ -250,16 +328,33 @@ class Agent
     }
 
     /**
-     * Returns the immutable successor with one immediately active credential
+     * Validates the predecessor for a new recoverable rotation before generating any material
      */
-    public function rotateCredential(
+    public function assertRecoverableRotation(AgentCredentialId $expectedCredentialId, int $expectedRevision): void
+    {
+        if (
+            $this->state !== AgentState::ACTIVE
+            || !$this->credentialId->equals($expectedCredentialId)
+            || $this->credentialRevision !== $expectedRevision
+            || $expectedRevision === PHP_INT_MAX
+        ) {
+            throw new AgentCredentialException('The expected Agent credential is no longer active.');
+        }
+    }
+
+    /**
+     * Creates one recoverable successor for atomic persistence with its operation and predecessor cancellation
+     */
+    public function rotateRecoverableCredential(
         AgentCredentialId $expectedCredentialId,
+        int $expectedRevision,
         AgentCredentialId $successorCredentialId,
-        string $encryptedHmacSharedSecretEnvelope,
+        #[SensitiveParameter] string $encryptedHmacSharedSecretEnvelope,
         DateTimeImmutable $rotatedAt
     ): self {
-        if ($this->state !== AgentState::ACTIVE || !$this->credentialId->equals($expectedCredentialId)) {
-            throw new AgentCredentialException('The expected Agent credential is no longer active.');
+        $this->assertRecoverableRotation($expectedCredentialId, $expectedRevision);
+        if ($successorCredentialId->equals($this->credentialId) || $rotatedAt < $this->updatedAt) {
+            throw new AgentCredentialException('The Agent credential successor is invalid.');
         }
 
         return new self(
@@ -297,5 +392,38 @@ class Agent
             $this->createdAt,
             $revokedAt
         );
+    }
+
+    /**
+     * Returns whether a proposed persisted successor retires exactly this credential authority
+     *
+     * Repositories apply this invariant under their authoritative expected-state fence, including direct writes.
+     * Every rotation and revocation requires atomic operation correlation and predecessor cancellation.
+     */
+    public function canReplaceCredentialWith(#[SensitiveParameter] self $replacement): bool
+    {
+        if (
+            $this->state !== AgentState::ACTIVE
+            || !$replacement->id->equals($this->id)
+            || !$replacement->name->equals($this->name)
+            || $replacement->createdAt != $this->createdAt
+            || $replacement->updatedAt < $this->updatedAt
+            || $replacement->permissionAssignmentRevision !== $this->permissionAssignmentRevision
+            || count($replacement->permissionIds) !== count($this->permissionIds)
+            || !array_all($replacement->permissionIds, fn(PermissionId $id): bool => $this->hasPermission($id))
+            || !array_all($this->permissionIds, fn(PermissionId $id): bool => $replacement->hasPermission($id))
+        ) {
+            return false;
+        }
+
+        if ($replacement->state === AgentState::REVOKED) {
+            return $replacement->credentialId->equals($this->credentialId)
+                && $replacement->credentialRevision === $this->credentialRevision
+                && $replacement->encryptedHmacSharedSecretEnvelope === $this->encryptedHmacSharedSecretEnvelope;
+        }
+
+        return $replacement->state === AgentState::ACTIVE
+            && !$replacement->credentialId->equals($this->credentialId)
+            && $replacement->credentialRevision === $this->credentialRevision + 1;
     }
 }

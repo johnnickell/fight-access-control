@@ -7,6 +7,7 @@ namespace Fight\AccessControl\Domain\AccessControl\ActivationGrant;
 use DateTimeImmutable;
 use Exception;
 use Fight\AccessControl\Domain\AccessControl\CredentialDelivery\DueCredentialDelivery;
+use Fight\AccessControl\Domain\AccessControl\CredentialDelivery\ExpiredCredentialDelivery;
 use Fight\AccessControl\Domain\AccessControl\User\UserId;
 
 /**
@@ -40,6 +41,20 @@ interface ActivationGrantRepository
      * @throws Exception When an error occurs.
      */
     public function findDue(DateTimeImmutable $at, int $limit): array;
+
+    /**
+     * Returns bounded secret-free expired work from latest issued authority
+     *
+     * Select recoverable pending, retry-pending or claimed delivery at expiry <= at, regardless of due time or lease.
+     * Filter before ordering by expiry instant, delivery ID and purpose, then apply the limit (1–100).
+     * Exclude terminal authority, obsolete generations and material-free delivery. Reads never mutate or publish.
+     * Commands revalidate advisory identities and complete stored state inside their transaction.
+     *
+     * @return list<ExpiredCredentialDelivery>
+     *
+     * @throws Exception When an error occurs.
+     */
+    public function findExpired(DateTimeImmutable $at, int $limit): array;
 
     /**
      * Returns a generation by stable identifier, including historical generations

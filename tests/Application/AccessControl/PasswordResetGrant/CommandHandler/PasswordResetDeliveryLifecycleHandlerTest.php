@@ -5,16 +5,13 @@ declare(strict_types=1);
 namespace Fight\Test\AccessControl\Application\AccessControl\PasswordResetGrant\CommandHandler;
 
 use DateTimeImmutable;
-use Fight\AccessControl\Application\AccessControl\PasswordResetGrant\CommandHandler\ConfirmPasswordResetDeliveryHandler;
 use Fight\AccessControl\Application\AccessControl\PasswordResetGrant\CommandHandler\ExpirePasswordResetDeliveryHandler;
-use Fight\AccessControl\Domain\AccessControl\PasswordResetGrant\Command\ConfirmPasswordResetDelivery;
 use Fight\AccessControl\Domain\AccessControl\PasswordResetGrant\Command\ExpirePasswordResetDelivery;
 use Fight\AccessControl\Domain\AccessControl\PasswordResetGrant\Event\PasswordResetDeliveryConfirmed;
 use Fight\AccessControl\Domain\AccessControl\PasswordResetGrant\Event\PasswordResetDeliveryExpired;
 use Fight\AccessControl\Domain\AccessControl\PasswordResetGrant\PasswordResetCredential;
 use Fight\AccessControl\Domain\AccessControl\PasswordResetGrant\PasswordResetDeliveryId;
 use Fight\AccessControl\Domain\AccessControl\PasswordResetGrant\PasswordResetGrant;
-use Fight\AccessControl\Domain\AccessControl\PasswordResetGrant\PasswordResetGrantId;
 use Fight\AccessControl\Domain\AccessControl\PasswordResetGrant\PasswordResetGrantRepository;
 use Fight\AccessControl\Domain\AccessControl\User\UserId;
 use Fight\Common\Domain\Exception\DomainException;
@@ -28,113 +25,73 @@ use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
 use RuntimeException;
 
-#[CoversClass(ConfirmPasswordResetDeliveryHandler::class)]
 #[CoversClass(ExpirePasswordResetDeliveryHandler::class)]
-#[CoversClass(ConfirmPasswordResetDelivery::class)]
 #[CoversClass(ExpirePasswordResetDelivery::class)]
 #[CoversClass(PasswordResetDeliveryConfirmed::class)]
 #[CoversClass(PasswordResetDeliveryExpired::class)]
 #[CoversClass(PasswordResetGrant::class)]
 final class PasswordResetDeliveryLifecycleHandlerTest extends TestCase
 {
-    public function test_confirmation_atomically_destroys_ciphertext_before_success(): void
+    public function test_expiry_only_terminalizes_at_the_boundary_and_publishes_after_commit(): void
     {
         $unitOfWork = new InMemoryUnitOfWork();
         $repository = new InMemoryPasswordResetGrants($unitOfWork);
         $grant = $this->grant();
         $repository->add($grant);
-        $events = new InMemoryEventDispatcher(static function () use ($unitOfWork): void {
+        $events = new InMemoryEventDispatcher(static function () use ($unitOfWork, $repository, $grant): void {
             self::assertTrue($unitOfWork->transactionCompleted);
+            self::assertFalse($repository->getById($grant->getId())->getDelivery()->hasRecoverableMaterial());
         });
-        $handler = new ConfirmPasswordResetDeliveryHandler($repository, $unitOfWork, $events);
-
-        $handler->handle(CommandMessage::create(new ConfirmPasswordResetDelivery(
-            'password-reset-transport',
-            $grant->getUserId(),
-            $grant->getDelivery()->getId(),
-            new DateTimeImmutable('2026-08-20T12:10:00+00:00')
-        )));
-
-        self::assertSame(ConfirmPasswordResetDelivery::class, $handler::commandRegistration());
-        self::assertFalse($repository->getById($grant->getId())->getDelivery()->isRecoverable());
-        self::assertInstanceOf(PasswordResetDeliveryConfirmed::class, $events->events()[0]);
-    }
-
-    public function test_expiry_only_terminalizes_at_the_boundary(): void
-    {
-        $unitOfWork = new InMemoryUnitOfWork();
-        $repository = new InMemoryPasswordResetGrants($unitOfWork);
-        $grant = $this->grant();
-        $repository->add($grant);
-        $events = new InMemoryEventDispatcher();
         $handler = new ExpirePasswordResetDeliveryHandler($repository, $unitOfWork, $events);
-
         $handler->handle(CommandMessage::create(new ExpirePasswordResetDelivery(
-            'password-reset-expiry',
+            'expiry',
             $grant->getUserId(),
             $grant->getDelivery()->getId(),
             new DateTimeImmutable('2026-08-20T12:59:59+00:00')
         )));
-        self::assertTrue($repository->getById($grant->getId())?->getDelivery()->isRecoverable());
-
-        $handler->handle(CommandMessage::create(new ExpirePasswordResetDelivery(
-            'password-reset-expiry',
+        self::assertSame($grant, $repository->getById($grant->getId()));
+        self::assertCount(0, $events->events());
+        $command = new ExpirePasswordResetDelivery(
+            'expiry',
             $grant->getUserId(),
             $grant->getDelivery()->getId(),
-            new DateTimeImmutable('2026-08-20T13:00:00+00:00')
-        )));
-
+            $grant->getExpiresAt()
+        );
+        $handler->handle(CommandMessage::create($command));
+        $handler->handle(CommandMessage::create($command));
         self::assertSame(ExpirePasswordResetDelivery::class, $handler::commandRegistration());
-        self::assertFalse($repository->getById($grant->getId())->getDelivery()->isRecoverable());
+        self::assertCount(1, $events->events());
         self::assertInstanceOf(PasswordResetDeliveryExpired::class, $events->events()[0]);
     }
 
-    public function test_missing_mismatched_terminal_and_lost_cas_callbacks_are_no_ops(): void
+    public function test_missing_mismatched_and_lost_cas_attempts_are_no_ops(): void
     {
         $unitOfWork = new InMemoryUnitOfWork();
         $repository = new InMemoryPasswordResetGrants($unitOfWork, replaceSucceeds: false);
         $grant = $this->grant();
         $repository->add($grant);
         $events = new InMemoryEventDispatcher();
-        $handler = new ConfirmPasswordResetDeliveryHandler($repository, $unitOfWork, $events);
-
-        $handler->handle(CommandMessage::create(new ConfirmPasswordResetDelivery(
-            'transport',
-            $grant->getUserId(),
-            $grant->getDelivery()->getId(),
-            new DateTimeImmutable()
-        )));
-        $handler->handle(CommandMessage::create(new ConfirmPasswordResetDelivery(
-            'transport',
-            UserId::generate(),
-            $grant->getDelivery()->getId(),
-            new DateTimeImmutable()
-        )));
-        $handler->handle(CommandMessage::create(new ConfirmPasswordResetDelivery(
-            'transport',
-            $grant->getUserId(),
-            PasswordResetDeliveryId::generate(),
-            new DateTimeImmutable()
-        )));
-        $expiryHandler = new ExpirePasswordResetDeliveryHandler($repository, $unitOfWork, $events);
-        $expiryHandler->handle(CommandMessage::create(new ExpirePasswordResetDelivery(
-            'expiry',
-            UserId::generate(),
-            $grant->getDelivery()->getId(),
-            new DateTimeImmutable('2026-08-20T13:00:00+00:00')
-        )));
-        $expiryHandler->handle(CommandMessage::create(new ExpirePasswordResetDelivery(
-            'expiry',
-            $grant->getUserId(),
-            $grant->getDelivery()->getId(),
-            new DateTimeImmutable('2026-08-20T13:00:00+00:00')
-        )));
+        $handler = new ExpirePasswordResetDeliveryHandler($repository, $unitOfWork, $events);
+        foreach (
+            [
+            [$grant->getUserId(), $grant->getDelivery()->getId()],
+            [UserId::generate(), $grant->getDelivery()->getId()],
+            [$grant->getUserId(), PasswordResetDeliveryId::generate()]
+            ] as [$user, $delivery]
+        ) {
+            $handler->handle(CommandMessage::create(new ExpirePasswordResetDelivery(
+                'expiry',
+                $user,
+                $delivery,
+                $grant->getExpiresAt()
+            )));
+        }
 
         self::assertSame($grant, $repository->getById($grant->getId()));
         self::assertSame([], $events->events());
     }
 
-    public function test_stale_callbacks_cannot_mutate_a_newer_generation(): void
+    public function test_stale_expiry_cannot_mutate_a_newer_generation(): void
     {
         $unitOfWork = new InMemoryUnitOfWork();
         $repository = new InMemoryPasswordResetGrants($unitOfWork);
@@ -147,33 +104,26 @@ final class PasswordResetDeliveryLifecycleHandlerTest extends TestCase
             $new
         ));
         $events = new InMemoryEventDispatcher();
-
-        new ConfirmPasswordResetDeliveryHandler($repository, $unitOfWork, $events)->handle(
-            CommandMessage::create(new ConfirmPasswordResetDelivery(
-                'transport',
+        new ExpirePasswordResetDeliveryHandler($repository, $unitOfWork, $events)->handle(
+            CommandMessage::create(new ExpirePasswordResetDelivery(
+                'expiry',
                 $old->getUserId(),
                 $old->getDelivery()->getId(),
-                new DateTimeImmutable('2026-08-20T12:20:00+00:00')
+                $old->getExpiresAt()
             ))
         );
-
-        self::assertSame(
-            'ciphertext:new',
-            $repository->getById($new->getId())?->getDelivery()->getEncryptedMaterial()?->reveal()
-        );
+        self::assertSame($new, $repository->getById($new->getId()));
+        self::assertSame('ciphertext:new', $new->getDelivery()->getEncryptedMaterial()?->reveal());
         self::assertSame([], $events->events());
     }
 
     public function test_failures_rethrow_and_publish_command_failure(): void
     {
         $events = new InMemoryEventDispatcher();
-        $handler = new ExpirePasswordResetDeliveryHandler(
-            $this->failingRepository(),
-            new InMemoryUnitOfWork(),
-            $events
-        );
-
-        $this->expectException(RuntimeException::class);
+        $repository = $this->createStub(PasswordResetGrantRepository::class);
+        $fault = new RuntimeException('Password-reset persistence failed.');
+        $repository->method('getByDeliveryId')->willThrowException($fault);
+        $handler = new ExpirePasswordResetDeliveryHandler($repository, new InMemoryUnitOfWork(), $events);
         try {
             $handler->handle(CommandMessage::create(new ExpirePasswordResetDelivery(
                 'expiry',
@@ -181,29 +131,9 @@ final class PasswordResetDeliveryLifecycleHandlerTest extends TestCase
                 PasswordResetDeliveryId::generate(),
                 new DateTimeImmutable()
             )));
-        } finally {
-            self::assertInstanceOf(CommandFailedEvent::class, $events->events()[0]);
-        }
-    }
-
-    public function test_confirmation_failures_rethrow_and_publish_command_failure(): void
-    {
-        $events = new InMemoryEventDispatcher();
-        $handler = new ConfirmPasswordResetDeliveryHandler(
-            $this->failingRepository(),
-            new InMemoryUnitOfWork(),
-            $events
-        );
-
-        $this->expectException(RuntimeException::class);
-        try {
-            $handler->handle(CommandMessage::create(new ConfirmPasswordResetDelivery(
-                'transport',
-                UserId::generate(),
-                PasswordResetDeliveryId::generate(),
-                new DateTimeImmutable()
-            )));
-        } finally {
+            self::fail('Storage failure must rethrow.');
+        } catch (RuntimeException $runtimeException) {
+            self::assertSame($fault, $runtimeException);
             self::assertInstanceOf(CommandFailedEvent::class, $events->events()[0]);
         }
     }
@@ -211,14 +141,12 @@ final class PasswordResetDeliveryLifecycleHandlerTest extends TestCase
     public function test_messages_round_trip_and_reject_missing_data(): void
     {
         $grant = $this->grant();
-        $at = new DateTimeImmutable('2026-08-20T13:00:00+00:00');
+        $at = $grant->getExpiresAt();
         $messages = [
-            new ConfirmPasswordResetDelivery('transport', $grant->getUserId(), $grant->getDelivery()->getId(), $at),
             new ExpirePasswordResetDelivery('expiry', $grant->getUserId(), $grant->getDelivery()->getId(), $at),
             new PasswordResetDeliveryConfirmed('transport', $grant->getUserId(), $grant->getDelivery()->getId(), $at),
             new PasswordResetDeliveryExpired('expiry', $grant->getUserId(), $grant->getDelivery()->getId(), $at)
         ];
-
         foreach ($messages as $message) {
             self::assertEquals($message, $message::fromArray($message->toArray()));
             try {
@@ -227,16 +155,14 @@ final class PasswordResetDeliveryLifecycleHandlerTest extends TestCase
             } catch (DomainException) {
                 self::addToAssertionCount(1);
             }
+
+            self::assertSame($grant->getUserId(), $message->getUserId());
+            self::assertSame($grant->getDelivery()->getId(), $message->getPasswordResetDeliveryId());
+            self::assertSame($at, $message->getOccurredAt());
         }
 
-        self::assertSame('transport', $messages[2]->getActorId());
-        self::assertSame($grant->getUserId(), $messages[2]->getUserId());
-        self::assertSame($grant->getDelivery()->getId(), $messages[2]->getPasswordResetDeliveryId());
-        self::assertSame($at, $messages[2]->getOccurredAt());
-        self::assertSame('expiry', $messages[3]->getActorId());
-        self::assertSame($grant->getUserId(), $messages[3]->getUserId());
-        self::assertSame($grant->getDelivery()->getId(), $messages[3]->getPasswordResetDeliveryId());
-        self::assertSame($at, $messages[3]->getOccurredAt());
+        self::assertSame('transport', $messages[1]->getActorId());
+        self::assertSame('expiry', $messages[2]->getActorId());
     }
 
     private function grant(string $credential = 'once'): PasswordResetGrant
@@ -249,55 +175,5 @@ final class PasswordResetDeliveryLifecycleHandlerTest extends TestCase
             EmailAddress::fromString('alice@example.test'),
             'ciphertext:'.$credential
         );
-    }
-
-    private function failingRepository(): PasswordResetGrantRepository
-    {
-        return new class implements PasswordResetGrantRepository {
-            public function findDue(DateTimeImmutable $at, int $limit): array
-            {
-                throw new RuntimeException('Password-reset persistence failed.');
-            }
-
-            public function getById(PasswordResetGrantId $passwordResetGrantId): ?PasswordResetGrant
-            {
-                throw new RuntimeException('Password-reset persistence failed.');
-            }
-
-            public function getByDeliveryId(PasswordResetDeliveryId $passwordResetDeliveryId): ?PasswordResetGrant
-            {
-                throw new RuntimeException('Password-reset persistence failed.');
-            }
-
-            public function getLatestByUserId(UserId $userId): ?PasswordResetGrant
-            {
-                throw new RuntimeException('Password-reset persistence failed.');
-            }
-
-            public function add(PasswordResetGrant $passwordResetGrant): bool
-            {
-                return false;
-            }
-
-            public function appendAfterTerminal(
-                PasswordResetGrant $terminalPredecessor,
-                PasswordResetGrant $successor
-            ): bool {
-                return false;
-            }
-
-            public function replace(PasswordResetGrant $predecessor, PasswordResetGrant $replacement): bool
-            {
-                return false;
-            }
-
-            public function replaceWithSuccessor(
-                PasswordResetGrant $predecessor,
-                PasswordResetGrant $terminalPredecessor,
-                PasswordResetGrant $successor
-            ): bool {
-                return false;
-            }
-        };
     }
 }

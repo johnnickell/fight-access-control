@@ -1,0 +1,18 @@
+<?php
+
+declare(strict_types=1);
+
+use Fight\AccessControl\Application\AccessControl\Agent\Attribute\RequiresAgentPermission;
+use Fight\Common\Application\Mcp\McpProgressReporter;
+use Fight\Common\Application\Mcp\Tool\McpTool;
+use Fight\Common\Application\Mcp\Tool\McpToolInfo;
+use Fight\Common\Application\Validation\Data\ApplicationData;
+
+return new class implements McpTool {
+    #[McpToolInfo('malformed', 'Malformed requirement fixture', ['type' => 'object'], [])]
+    #[RequiresAgentPermission(['VIEW_AGENTS'])]
+    public function handle(ApplicationData $input, McpProgressReporter $progress): never
+    {
+        throw new RuntimeException('Malformed Tool must never execute.');
+    }
+};

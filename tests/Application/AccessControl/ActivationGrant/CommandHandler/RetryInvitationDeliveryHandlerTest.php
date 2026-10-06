@@ -12,6 +12,8 @@ use Fight\AccessControl\Domain\AccessControl\ActivationGrant\ActivationGrant;
 use Fight\AccessControl\Domain\AccessControl\ActivationGrant\Command\RetryInvitationDelivery;
 use Fight\AccessControl\Domain\AccessControl\ActivationGrant\Event\InvitationDeliveryRetryRequested;
 use Fight\AccessControl\Domain\AccessControl\ActivationGrant\Exception\ActivationDeliveryNotRetryableException;
+use Fight\AccessControl\Domain\AccessControl\CredentialDelivery\CredentialDeliveryClaimToken;
+use Fight\AccessControl\Domain\AccessControl\CredentialDelivery\CredentialDeliveryFailure;
 use Fight\AccessControl\Domain\AccessControl\User\UserId;
 use Fight\Common\Domain\Exception\DomainException;
 use Fight\Common\Domain\Messaging\Command\CommandMessage;
@@ -61,9 +63,11 @@ final class RetryInvitationDeliveryHandlerTest extends TestCase
         $repository = new InMemoryActivationGrantRepository();
         $activationGrant = $this->grant();
         self::assertTrue($repository->add($activationGrant));
-        $claimed = $activationGrant->claimDelivery();
+        $token = CredentialDeliveryClaimToken::generate();
+        $at = new DateTimeImmutable('2026-08-18T12:00:00+00:00');
+        $claimed = $activationGrant->claimDelivery($token, $at, $at->modify('+5 minutes'));
         self::assertTrue($repository->replace($activationGrant, $claimed));
-        $activationGrant = $claimed->confirmDelivery();
+        $activationGrant = $claimed->confirmDelivery($token, $at);
         self::assertTrue($repository->replace($claimed, $activationGrant));
         $events = new InMemoryEventDispatcher();
         $handler = new RetryInvitationDeliveryHandler(
@@ -222,9 +226,11 @@ final class RetryInvitationDeliveryHandlerTest extends TestCase
             'ciphertext'
         );
         self::assertTrue($repository->add($activationGrant));
-        $claimed = $activationGrant->claimDelivery();
+        $token = CredentialDeliveryClaimToken::generate();
+        $at = new DateTimeImmutable('2026-08-18T12:00:00+00:00');
+        $claimed = $activationGrant->claimDelivery($token, $at, $at->modify('+5 minutes'));
         self::assertTrue($repository->replace($activationGrant, $claimed));
-        $failed = $claimed->failDelivery();
+        $failed = $claimed->failDelivery($token, $at, CredentialDeliveryFailure::UNEXPECTED_PROVIDER);
         self::assertTrue($repository->replace($claimed, $failed));
 
         return $failed;

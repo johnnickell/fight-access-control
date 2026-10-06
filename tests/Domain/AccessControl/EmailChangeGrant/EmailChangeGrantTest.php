@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace Fight\Test\AccessControl\Domain\AccessControl\EmailChangeGrant;
 
 use DateTimeImmutable;
+use Fight\AccessControl\Domain\AccessControl\CredentialDelivery\CredentialDeliveryClaimToken;
+use Fight\AccessControl\Domain\AccessControl\CredentialDelivery\CredentialDeliveryFailure;
 use Fight\AccessControl\Domain\AccessControl\CredentialDelivery\CredentialDeliveryStatus;
 use Fight\AccessControl\Domain\AccessControl\CredentialDelivery\Exception\CredentialDeliveryTransitionException;
 use Fight\AccessControl\Domain\AccessControl\EmailChangeGrant\EmailChangeCredential;
@@ -27,14 +29,7 @@ final class EmailChangeGrantTest extends TestCase
 {
     public function test_confirmation_authority_is_hashed_expiring_and_single_use(): void
     {
-        $grant = EmailChangeGrant::issue(
-            UserId::generate(),
-            EmailChangeCredential::fromString('change-once'),
-            new DateTimeImmutable('2026-08-22T12:00:00+00:00'),
-            new DateTimeImmutable('2026-08-22T13:00:00+00:00'),
-            EmailAddress::fromString('new@example.test'),
-            'ciphertext:change-once'
-        );
+        $grant = $this->grant();
 
         self::assertTrue($grant->matchesCredential(EmailChangeCredential::fromString('change-once')));
         self::assertFalse($grant->matchesCredential(EmailChangeCredential::fromString('unrelated')));
@@ -46,7 +41,7 @@ final class EmailChangeGrantTest extends TestCase
         self::assertTrue($consumed->isConsumed());
         self::assertSame('2026-08-22T12:30:00+00:00', $consumed->getConsumedAt()?->format(DATE_ATOM));
         self::assertFalse($consumed->isUsableAt(new DateTimeImmutable('2026-08-22T12:31:00+00:00')));
-        self::assertFalse($consumed->getDelivery()->isRecoverable());
+        self::assertFalse($consumed->getDelivery()->hasRecoverableMaterial());
 
         $this->expectException(EmailChangeGrantException::class);
         $consumed->consume(new DateTimeImmutable('2026-08-22T12:31:00+00:00'));
@@ -61,7 +56,8 @@ final class EmailChangeGrantTest extends TestCase
             new DateTimeImmutable('2026-08-22T12:00:00+00:00'),
             new DateTimeImmutable('2026-08-22T13:00:00+00:00'),
             EmailAddress::fromString('new@example.test'),
-            'ciphertext:change-once'
+            'ciphertext:change-once',
+            1
         );
 
         self::assertSame($userId, $grant->getUserId());
@@ -87,7 +83,8 @@ final class EmailChangeGrantTest extends TestCase
             new DateTimeImmutable('2026-08-22T12:00:00+00:00'),
             new DateTimeImmutable('2026-08-22T12:00:00+00:00'),
             EmailAddress::fromString('new@example.test'),
-            'ciphertext:change-once'
+            'ciphertext:change-once',
+            1
         );
     }
 
@@ -105,27 +102,23 @@ final class EmailChangeGrantTest extends TestCase
             UserId::generate(),
             EmailAddress::fromString('new@example.test'),
             '',
-            new DateTimeImmutable('2026-08-22T13:00:00+00:00')
+            new DateTimeImmutable('2026-08-22T13:00:00+00:00'),
+            new DateTimeImmutable('2026-08-22T12:00:00+00:00')
         );
     }
 
     public function test_delivery_work_has_fenced_retryable_status_transitions(): void
     {
-        $grant = EmailChangeGrant::issue(
-            UserId::generate(),
-            EmailChangeCredential::fromString('change-once'),
-            new DateTimeImmutable('2026-08-22T12:00:00+00:00'),
-            new DateTimeImmutable('2026-08-22T13:00:00+00:00'),
-            EmailAddress::fromString('new@example.test'),
-            'ciphertext:change-once'
-        );
+        $grant = $this->grant();
 
         self::assertSame(CredentialDeliveryStatus::PENDING, $grant->getDelivery()->getStatus());
         self::assertTrue($grant->getDelivery()->isRetryable());
-        $claimed = $grant->claimDelivery();
+        $token = CredentialDeliveryClaimToken::generate();
+        $at = new DateTimeImmutable('2026-08-22T12:00:00+00:00');
+        $claimed = $grant->claimDelivery($token, $at, $at->modify('+5 minutes'));
         self::assertSame(CredentialDeliveryStatus::CLAIMED, $claimed->getDelivery()->getStatus());
         self::assertFalse($claimed->getDelivery()->isRetryable());
-        $failed = $claimed->failDelivery();
+        $failed = $claimed->failDelivery($token, $at, CredentialDeliveryFailure::UNEXPECTED_PROVIDER);
         self::assertSame(CredentialDeliveryStatus::RETRY_PENDING, $failed->getDelivery()->getStatus());
         self::assertTrue($failed->getDelivery()->isRetryable());
         self::assertSame(
@@ -139,11 +132,13 @@ final class EmailChangeGrantTest extends TestCase
                 $claimed->getDelivery()->getClaimedAt()
             )->getDelivery()->getStatus()
         );
-        $reclaimed = $failed->claimDelivery();
+        $nextToken = CredentialDeliveryClaimToken::generate();
+        $nextAt = $at->modify('+1 minute');
+        $reclaimed = $failed->claimDelivery($nextToken, $nextAt, $nextAt->modify('+5 minutes'));
         self::assertSame(CredentialDeliveryStatus::CLAIMED, $reclaimed->getDelivery()->getStatus());
-        $confirmed = $reclaimed->confirmDelivery();
+        $confirmed = $reclaimed->confirmDelivery($nextToken, $nextAt);
         self::assertSame(CredentialDeliveryStatus::DELIVERED, $confirmed->getDelivery()->getStatus());
-        self::assertFalse($confirmed->getDelivery()->isRecoverable());
+        self::assertFalse($confirmed->getDelivery()->hasRecoverableMaterial());
         self::assertFalse($confirmed->getDelivery()->isRetryable());
         $expired = $grant->expireDeliveryAt($grant->getExpiresAt());
         self::assertSame(CredentialDeliveryStatus::EXPIRED, $expired->getDelivery()->getStatus());
@@ -151,10 +146,20 @@ final class EmailChangeGrantTest extends TestCase
 
         self::assertSame(
             CredentialDeliveryStatus::CLAIMED,
-            $claimed->claimDelivery()->getDelivery()->getStatus()
+            $claimed->claimDelivery($nextToken, $at->modify('+5 minutes'), $at->modify('+10 minutes'))
+                ->getDelivery()->getStatus()
         );
 
-        foreach ([$grant->confirmDelivery(...), $grant->failDelivery(...)] as $invalidTransition) {
+        foreach (
+            [
+                fn(): EmailChangeGrant => $grant->confirmDelivery($token, $at),
+                fn(): EmailChangeGrant => $grant->failDelivery(
+                    $token,
+                    $at,
+                    CredentialDeliveryFailure::UNEXPECTED_PROVIDER
+                )
+            ] as $invalidTransition
+        ) {
             try {
                 $invalidTransition();
                 self::fail('An invalid delivery status transition was accepted.');
@@ -166,14 +171,7 @@ final class EmailChangeGrantTest extends TestCase
 
     public function test_issued_authority_can_be_revoked_once_and_destroys_delivery_material(): void
     {
-        $grant = EmailChangeGrant::issue(
-            UserId::generate(),
-            EmailChangeCredential::fromString('change-once'),
-            new DateTimeImmutable('2026-08-22T12:00:00+00:00'),
-            new DateTimeImmutable('2026-08-22T13:00:00+00:00'),
-            EmailAddress::fromString('new@example.test'),
-            'ciphertext:change-once'
-        );
+        $grant = $this->grant();
 
         self::assertTrue($grant->isIssued());
         $revoked = $grant->revoke(new DateTimeImmutable('2026-08-22T12:30:00+00:00'));
@@ -182,7 +180,7 @@ final class EmailChangeGrantTest extends TestCase
         self::assertTrue($revoked->isRevoked());
         self::assertSame('2026-08-22T12:30:00+00:00', $revoked->getRevokedAt()?->format(DATE_ATOM));
         self::assertSame(1, $revoked->getRevision());
-        self::assertFalse($revoked->getDelivery()->isRecoverable());
+        self::assertFalse($revoked->getDelivery()->hasRecoverableMaterial());
         self::assertFalse($revoked->isUsableAt(new DateTimeImmutable('2026-08-22T12:31:00+00:00')));
 
         $this->expectException(EmailChangeGrantException::class);
@@ -191,14 +189,7 @@ final class EmailChangeGrantTest extends TestCase
 
     public function test_expiry_is_early_safe_terminal_and_repeat_safe(): void
     {
-        $grant = EmailChangeGrant::issue(
-            UserId::generate(),
-            EmailChangeCredential::fromString('change-once'),
-            new DateTimeImmutable('2026-08-22T12:00:00+00:00'),
-            new DateTimeImmutable('2026-08-22T13:00:00+00:00'),
-            EmailAddress::fromString('new@example.test'),
-            'ciphertext:change-once'
-        );
+        $grant = $this->grant();
 
         self::assertSame($grant, $grant->expireAt(new DateTimeImmutable('2026-08-22T12:59:59+00:00')));
         $expired = $grant->expireAt(new DateTimeImmutable('2026-08-22T13:00:00+00:00'));
@@ -207,7 +198,36 @@ final class EmailChangeGrantTest extends TestCase
         self::assertFalse($expired->isIssued());
         self::assertSame('2026-08-22T13:00:00+00:00', $expired->getExpiredAt()?->format(DATE_ATOM));
         self::assertSame(1, $expired->getRevision());
-        self::assertFalse($expired->getDelivery()->isRecoverable());
+        self::assertFalse($expired->getDelivery()->hasRecoverableMaterial());
         self::assertSame($expired, $expired->expireAt(new DateTimeImmutable('2026-08-22T13:01:00+00:00')));
+    }
+
+    public function test_reservation_binding_is_required_and_survives_every_revision(): void
+    {
+        $grant = $this->grant(7);
+        self::assertSame(7, $grant->getEmailChangeReservationRevision());
+        foreach (
+            [$grant->consume(new DateTimeImmutable('2026-08-22T12:01:00Z')),
+            $grant->revoke(new DateTimeImmutable('2026-08-22T12:01:00Z')),
+            $grant->expireAt($grant->getExpiresAt()), $grant->expireDeliveryAt($grant->getExpiresAt())] as $next
+        ) {
+            self::assertSame(7, $next->getEmailChangeReservationRevision());
+        }
+
+        $this->expectException(EmailChangeGrantException::class);
+        $this->grant(0);
+    }
+
+    private function grant(int $reservationRevision = 1): EmailChangeGrant
+    {
+        return EmailChangeGrant::issue(
+            UserId::generate(),
+            EmailChangeCredential::fromString('change-once'),
+            new DateTimeImmutable('2026-08-22T12:00:00Z'),
+            new DateTimeImmutable('2026-08-22T13:00:00Z'),
+            EmailAddress::fromString('new@example.test'),
+            'ciphertext:change-once',
+            $reservationRevision
+        );
     }
 }

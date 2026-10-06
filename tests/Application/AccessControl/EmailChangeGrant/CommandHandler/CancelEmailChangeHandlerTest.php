@@ -58,7 +58,8 @@ final class CancelEmailChangeHandlerTest extends TestCase
             new DateTimeImmutable('2026-08-22T12:00:00+00:00'),
             new DateTimeImmutable('2026-08-22T13:00:00+00:00'),
             EmailAddress::fromString('new@example.test'),
-            'ciphertext:change-once'
+            'ciphertext:change-once',
+            $reserved->getEmailChangeReservationRevision()
         )));
         $authorization = new EmailChangeService\FixedEmailChangeAdministrationAuthorization(true);
         $audit = new InMemoryAuditEvidenceRepository($unitOfWork);
@@ -87,7 +88,7 @@ final class CancelEmailChangeHandlerTest extends TestCase
         self::assertSame(2, $storedUser->getEmailChangeReservationRevision());
         self::assertTrue($grants->all()[0]->isRevoked());
         self::assertSame('2026-08-22T12:30:00+00:00', $grants->all()[0]->getRevokedAt()?->format(DATE_ATOM));
-        self::assertFalse($grants->all()[0]->getDelivery()->isRecoverable());
+        self::assertFalse($grants->all()[0]->getDelivery()->hasRecoverableMaterial());
         self::assertCount(1, $events->events());
         self::assertInstanceOf(EmailChangeCancelled::class, $events->events()[0]);
         self::assertSame(0, $authorization->calls());
@@ -395,7 +396,7 @@ final class CancelEmailChangeHandlerTest extends TestCase
                 $users->getById($target->getId())?->getPendingEmailChange()?->canonical()
             );
             self::assertTrue($grants->all()[0]->isIssued());
-            self::assertTrue($grants->all()[0]->getDelivery()->isRecoverable());
+            self::assertTrue($grants->all()[0]->getDelivery()->hasRecoverableMaterial());
             self::assertSame([], $audit->all());
             self::assertInstanceOf(CommandFailedEvent::class, $events->events()[0]);
         }
@@ -441,7 +442,8 @@ final class CancelEmailChangeHandlerTest extends TestCase
             new DateTimeImmutable('2026-08-22T12:00:00+00:00'),
             new DateTimeImmutable('2026-08-22T13:00:00+00:00'),
             EmailAddress::fromString($email),
-            'ciphertext:change-once'
+            'ciphertext:change-once',
+            1
         );
     }
 

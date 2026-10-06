@@ -129,6 +129,17 @@ class ActivationGrant
     }
 
     /**
+     * Returns whether this generation owns an exact delivery identity
+     */
+    public function ownsDelivery(ActivationDeliveryId $deliveryId, UserId $userId): bool
+    {
+        return $this->userId->equals($userId)
+            && $this->delivery->getUserId()->equals($userId)
+            && $this->delivery->getId()->equals($deliveryId)
+            && $this->delivery->getExpiresAt() == $this->expiresAt;
+    }
+
+    /**
      * Returns whether authority remains issued
      */
     public function isIssued(): bool
@@ -222,9 +233,9 @@ class ActivationGrant
      * Acquires the owned delivery before invoking its transport
      */
     public function claimDelivery(
-        ?CredentialDeliveryClaimToken $claimToken = null,
-        ?DateTimeImmutable $claimedAt = null,
-        ?DateTimeImmutable $leaseUntil = null
+        CredentialDeliveryClaimToken $claimToken,
+        DateTimeImmutable $claimedAt,
+        DateTimeImmutable $leaseUntil
     ): self {
         return $this->withDelivery($this->delivery->claim($claimToken, $claimedAt, $leaseUntil));
     }
@@ -233,8 +244,8 @@ class ActivationGrant
      * Completes the owned delivery
      */
     public function confirmDelivery(
-        ?CredentialDeliveryClaimToken $claimToken = null,
-        ?DateTimeImmutable $occurredAt = null
+        CredentialDeliveryClaimToken $claimToken,
+        DateTimeImmutable $occurredAt
     ): self {
         return $this->withDelivery($this->delivery->confirm($claimToken, $occurredAt));
     }
@@ -243,9 +254,9 @@ class ActivationGrant
      * Records a retryable owned-delivery outcome
      */
     public function failDelivery(
-        ?CredentialDeliveryClaimToken $claimToken = null,
-        ?DateTimeImmutable $occurredAt = null,
-        CredentialDeliveryFailure $failure = CredentialDeliveryFailure::UNEXPECTED_PROVIDER
+        CredentialDeliveryClaimToken $claimToken,
+        DateTimeImmutable $occurredAt,
+        CredentialDeliveryFailure $failure
     ): self {
         return $this->withDelivery($this->delivery->fail($claimToken, $occurredAt, $failure));
     }

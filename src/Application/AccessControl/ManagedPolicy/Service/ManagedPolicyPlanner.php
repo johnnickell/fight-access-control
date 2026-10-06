@@ -38,7 +38,7 @@ final readonly class ManagedPolicyPlanner
         private PermissionRepository $permissionRepository,
         private RoleRepository $roleRepository,
         private UserRepository $userRepository,
-        private ?AgentRepository $agentRepository = null
+        private AgentRepository $agentRepository
     ) {
     }
 
@@ -93,6 +93,13 @@ final readonly class ManagedPolicyPlanner
             if (isset($codeReferences[$key])) {
                 throw new ManagedPolicyDefinitionException(sprintf(
                     'Managed permission "%s" cannot be removed because consumer code references it.',
+                    $permission->getName()->toString()
+                ));
+            }
+
+            if ($this->permissionRepository->hasFeatureReference($permission->getId())) {
+                throw new ManagedPolicyDefinitionException(sprintf(
+                    'Managed permission "%s" cannot be removed because a Feature references it.',
                     $permission->getName()->toString()
                 ));
             }
@@ -164,10 +171,7 @@ final readonly class ManagedPolicyPlanner
                 }
             }
 
-            if (
-                !$this->agentRepository instanceof AgentRepository
-                || $this->agentRepository->hasPermissionAssignment($definition->getId())
-            ) {
+            if ($this->agentRepository->hasPermissionAssignment($definition->getId())) {
                 throw new ManagedPolicyDefinitionException('Protected promotion conflicts with Agent membership.');
             }
         }

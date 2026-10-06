@@ -468,6 +468,7 @@ final class InMemoryUserRepository implements UserRepository
         $reservationTransitionIsValid = (
             !$expectedPendingEmailChange instanceof EmailAddress
             && $replacementPendingEmailChange instanceof EmailAddress
+            && $expected->getState() === UserState::ACTIVE
         ) || (
             $expectedPendingEmailChange instanceof EmailAddress
             && !$replacementPendingEmailChange instanceof EmailAddress
@@ -497,9 +498,9 @@ final class InMemoryUserRepository implements UserRepository
                 && $replacement->getCanonicalEmailRevision() === $expected->getCanonicalEmailRevision()
                 && $user->getPendingEmailChange()?->canonical() === $expectedPendingEmailChange?->canonical()
                 && $reservationTransitionIsValid
-                && $user->getCreatedAt()->getTimestamp() === $expected->getCreatedAt()->getTimestamp()
-                && $user->getUpdatedAt()->getTimestamp() === $expected->getUpdatedAt()->getTimestamp()
-                && $replacement->getCreatedAt()->getTimestamp() === $expected->getCreatedAt()->getTimestamp()
+                && $user->getCreatedAt() == $expected->getCreatedAt()
+                && $user->getUpdatedAt() == $expected->getUpdatedAt()
+                && $replacement->getCreatedAt() == $expected->getCreatedAt()
             ) {
                 return $index;
             }

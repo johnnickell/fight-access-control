@@ -4,16 +4,12 @@ declare(strict_types=1);
 
 namespace Fight\AccessControl\Application\AccessControl\Agent\Security;
 
-use Fight\AccessControl\Application\AccessControl\Agent\Service\HmacSharedSecretCipher;
-use Fight\AccessControl\Application\AccessControl\Agent\Service\HmacSharedSecretGenerator;
 use Fight\AccessControl\Application\AccessControl\Timing\Service\Clock;
 use Fight\AccessControl\Domain\AccessControl\Agent\Agent;
-use Fight\AccessControl\Domain\AccessControl\Agent\AgentCredentialId;
 use Fight\AccessControl\Domain\AccessControl\Agent\AgentId;
 use Fight\AccessControl\Domain\AccessControl\Agent\AgentRepository;
 use Fight\AccessControl\Domain\AccessControl\Agent\Event\AgentCredentialLifecycleFailed;
 use Fight\AccessControl\Domain\AccessControl\Agent\Event\AgentCredentialRevoked;
-use Fight\AccessControl\Domain\AccessControl\Agent\Event\AgentCredentialRotated;
 use Fight\AccessControl\Domain\AccessControl\Audit\AuditEvidence;
 use Fight\AccessControl\Domain\AccessControl\Audit\AuditEvidenceRepository;
 use Fight\Common\Application\Messaging\Event\EventDispatcher;
@@ -24,7 +20,7 @@ use Throwable;
 /**
  * Class AgentCredentialLifecycleService
  *
- * Atomically rotates an Agent credential and returns its replacement raw HMAC shared secret.
+ * Revokes authority with repository-owned cancellation.
  */
 final readonly class AgentCredentialLifecycleService
 {
@@ -33,13 +29,11 @@ final readonly class AgentCredentialLifecycleService
     /**
      * Constructs AgentCredentialLifecycleService
      *
-     * Creates the synchronous Agent credential lifecycle service.
+     * Creates the synchronous revocation service without credential generation or encryption capabilities.
      */
     public function __construct(
         private AgentRepository $agentRepository,
         private AuditEvidenceRepository $auditEvidenceRepository,
-        private HmacSharedSecretGenerator $hmacSharedSecretGenerator,
-        private HmacSharedSecretCipher $hmacSharedSecretCipher,
         private Clock $clock,
         private TransactionalUnitOfWork $unitOfWork,
         private EventDispatcher $eventDispatcher
@@ -47,65 +41,10 @@ final readonly class AgentCredentialLifecycleService
     }
 
     /**
-     * Updates one authoritative Agent credential only when the expected current identifier still matches
-     */
-    public function rotate(
-        string $actorId,
-        AgentId $agentId,
-        AgentCredentialId $expectedCredentialId
-    ): AgentCredentialRotationResult {
-        try {
-            /** @var array{AgentCredentialRotationResult, AgentCredentialRotated} $outcome */
-            $outcome = $this->unitOfWork->commitTransactional(function () use (
-                $actorId,
-                $agentId,
-                $expectedCredentialId
-            ): array {
-                $agent = $this->agentRepository->getById($agentId);
-
-                if (!$agent instanceof Agent) {
-                    throw new LogicException('The Agent does not exist.');
-                }
-
-                $rotatedAt = $this->clock->now();
-                $successorCredentialId = AgentCredentialId::generate();
-                $hmacSharedSecret = $this->hmacSharedSecretGenerator->generate();
-                $successor = $agent->rotateCredential(
-                    $expectedCredentialId,
-                    $successorCredentialId,
-                    $this->hmacSharedSecretCipher->encrypt($hmacSharedSecret),
-                    $rotatedAt
-                );
-
-                if (!$this->agentRepository->replace($agent, $successor)) {
-                    throw new LogicException('The expected Agent credential is no longer authoritative.');
-                }
-
-                $this->auditEvidenceRepository->add(AuditEvidence::agentCredentialRotated($actorId, $agentId));
-
-                return [
-                    new AgentCredentialRotationResult($agentId, $successorCredentialId, $hmacSharedSecret),
-                    new AgentCredentialRotated(
-                        $agentId,
-                        $successorCredentialId,
-                        $successor->getCredentialRevision(),
-                        $rotatedAt
-                    )
-                ];
-            });
-
-            $this->eventDispatcher->trigger($outcome[1]);
-
-            return $outcome[0];
-        } catch (Throwable $throwable) {
-            $this->publishFailure($actorId);
-
-            throw $throwable;
-        }
-    }
-
-    /**
-     * Revokes revokes one authoritative Agent credential
+     * Revokes one authoritative Agent credential and its pending delivery in the package transaction
+     *
+     * Caller policy is consumer-owned. The repository fences the exact loaded predecessor and cancels its original
+     * operation without keys/sinks; audit commits with both changes. Publication faults still rethrow after commit.
      */
     public function revoke(string $actorId, AgentId $agentId): void
     {
@@ -113,6 +52,7 @@ final readonly class AgentCredentialLifecycleService
             /** @var AgentCredentialRevoked $event */
             $event = $this->unitOfWork->commitTransactional(
                 function () use ($actorId, $agentId): AgentCredentialRevoked {
+                    $this->agentRepository->getOperationContract()->assertCompatible();
                     $agent = $this->agentRepository->getById($agentId);
 
                     if (!$agent instanceof Agent) {

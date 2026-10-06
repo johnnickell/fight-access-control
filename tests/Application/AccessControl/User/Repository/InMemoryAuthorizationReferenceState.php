@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace Fight\Test\AccessControl\Application\AccessControl\User\Repository;
 
 use Fight\AccessControl\Domain\AccessControl\Agent\Agent;
+use Fight\AccessControl\Domain\AccessControl\Feature\Feature;
+use Fight\AccessControl\Domain\AccessControl\Feature\FeatureId;
 use Fight\AccessControl\Domain\AccessControl\Permission\Permission;
 use Fight\AccessControl\Domain\AccessControl\Permission\PermissionId;
 use Fight\AccessControl\Domain\AccessControl\Permission\PermissionTier;
@@ -20,6 +22,9 @@ final class InMemoryAuthorizationReferenceState
 {
     /** @var array<string, Permission> */
     private array $permissions = [];
+
+    /** @var array<string, Feature> */
+    private array $features = [];
 
     /** @var array<string, Agent> */
     private array $agents = [];
@@ -50,6 +55,24 @@ final class InMemoryAuthorizationReferenceState
     public function permissionsAreAuthoritative(array $ids): bool
     {
         return array_all($ids, fn(PermissionId $id): bool => isset($this->permissions[$id->toString()]));
+    }
+
+    public function retainFeature(Feature $feature): void
+    {
+        $this->features[$feature->getId()->toString()] = $feature;
+    }
+
+    public function removeFeature(FeatureId $id): void
+    {
+        unset($this->features[$id->toString()]);
+    }
+
+    public function featureContainsPermission(PermissionId $id): bool
+    {
+        return array_any(
+            $this->features,
+            static fn(Feature $feature): bool => $feature->getPermissionId()->equals($id)
+        );
     }
 
     public function permissionIsEligible(Permission $expected): bool

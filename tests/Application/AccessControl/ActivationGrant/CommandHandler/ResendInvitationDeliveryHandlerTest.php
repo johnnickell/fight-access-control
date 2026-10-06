@@ -12,6 +12,7 @@ use Fight\AccessControl\Domain\AccessControl\ActivationGrant\ActivationGrant;
 use Fight\AccessControl\Domain\AccessControl\ActivationGrant\Command\ResendInvitationDelivery;
 use Fight\AccessControl\Domain\AccessControl\ActivationGrant\Event\InvitationDeliveryResent;
 use Fight\AccessControl\Domain\AccessControl\ActivationGrant\Exception\ActivationDeliveryNotResendableException;
+use Fight\AccessControl\Domain\AccessControl\CredentialDelivery\CredentialDeliveryClaimToken;
 use Fight\AccessControl\Domain\AccessControl\User\UserId;
 use Fight\Common\Domain\Exception\DomainException;
 use Fight\Common\Domain\Messaging\Command\CommandMessage;
@@ -95,8 +96,10 @@ final class ResendInvitationDeliveryHandlerTest extends TestCase
             EmailAddress::fromString('alice@example.test'),
             'ciphertext:activate-old'
         );
-        $claimed = $issued->claimDelivery();
-        $confirmed = $claimed->confirmDelivery();
+        $token = CredentialDeliveryClaimToken::generate();
+        $at = new DateTimeImmutable('2026-08-18T12:00:00+00:00');
+        $claimed = $issued->claimDelivery($token, $at, $at->modify('+5 minutes'));
+        $confirmed = $claimed->confirmDelivery($token, $at);
         $activationGrantRepository = new InMemoryActivationGrantRepository();
         self::assertTrue($activationGrantRepository->add($issued));
         self::assertTrue($activationGrantRepository->replace($issued, $claimed));

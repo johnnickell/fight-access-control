@@ -373,6 +373,26 @@ def validate_links(errors: list[str]) -> None:
                     errors.append(f"{path.relative_to(ROOT)}: broken link {value}")
 
 
+def complete_parents(records: dict) -> dict[Path, str]:
+    """Plan bottom-up parent closure from all live and archived child records."""
+    pending = {}
+    for kind, parent_key in (("TICKET-", "ticket"), ("EPIC-", "epic")):
+        for identifier, record in sorted(records.items()):
+            path, data = record.path, record.fields
+            if not identifier.startswith(kind) or "archive" in path.parts or data["status"] in TERMINAL:
+                continue
+            children = [child.fields for child in records.values() if child.fields.get(parent_key) == identifier]
+            if not children or any(child["status"] not in TERMINAL for child in children):
+                continue
+            status = "wontfix" if all(child["status"] == "wontfix" for child in children) else "done"
+            text = path.read_text()
+            header, body = text[4:].split("\n---\n", 1)
+            header = re.sub(r"^status:[^\n]*$", f"status: {status}", header, count=1, flags=re.MULTILINE)
+            pending[path] = f"---\n{header}\n---\n{body}"
+            data["status"] = status
+    return pending
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--write", action="store_true", help="rewrite deterministic planning projections")
@@ -398,7 +418,15 @@ def main() -> int:
         print("\n".join(f"- {error}" for error in errors))
         return 1
 
+    closures = complete_parents(records | archived_records)
     views = generated_views(records, records | archived_records)
+    for path, text in closures.items():
+        if path in views:
+            header = text[4:].split("\n---\n", 1)[0]
+            body = views[path][4:].split("\n---\n", 1)[1]
+            views[path] = f"---\n{header}\n---\n{body}"
+        else:
+            views[path] = text
     stale = [path.relative_to(ROOT) for path, rendered in views.items() if path.read_text(encoding="utf-8") != rendered]
     if args.write:
         for path, rendered in views.items():

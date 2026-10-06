@@ -17,24 +17,116 @@ and one consumer schema, require the bootstrap above, and scan both files:
 vendor/bin/openapi --bootstrap consumer.php consumer.php vendor/johnnickell/fight-access-control/openapi -o openapi.json
 ```
 
-For this disposable proof, name the consumer schema `Consumer`. Then inspect the
-generated document, including that consumer component and the following
-representative package shapes:
+In a development checkout of this package, run the generated-contract checks with:
 
 ```bash
-php -r '$schemas = json_decode(file_get_contents("openapi.json"), true, 512, JSON_THROW_ON_ERROR)["components"]["schemas"]; $paginationOrderings = $schemas["Fight.AccessControl.PaginationRequest"]["properties"]["orderings"]; $sessionOrderings = $schemas["Fight.AccessControl.ListActiveSessions"]["properties"]["orderings"]; $emptySuccessData = $schemas["Fight.AccessControl.JSend.Success.Empty"]["properties"]["data"]; $isOrderingMap = static fn (array $schema): bool => $schema["type"] === "object" && $schema["additionalProperties"]["type"] === "string" && $schema["additionalProperties"]["enum"] === ["ASC", "DESC"]; $acceptsEmptySuccessData = static fn (mixed $value): bool => $emptySuccessData["type"] === ["null"] && $value === null; $valid = isset($schemas["Consumer"]) && $schemas["Fight.AccessControl.Authentication.ActivateRequest"]["required"] === ["user_id", "activation_credential", "plain_password"] && $schemas["Fight.AccessControl.Authentication.ActivateRequest"]["properties"]["remember"]["type"] === "boolean" && $schemas["Fight.AccessControl.Authentication.LoginRequest"]["required"] === ["email", "plain_password"] && $schemas["Fight.AccessControl.Authentication.LoginRequest"]["properties"]["remember"]["type"] === "boolean" && !isset($schemas["Fight.AccessControl.Authentication.LoginRequest"]["properties"]["remembered"]) && $schemas["Fight.AccessControl.RestoreUser"]["properties"]["restoration_state"]["enum"] === ["pending_activation", "active", "disabled", "deleted"] && $isOrderingMap($paginationOrderings) && $isOrderingMap($sessionOrderings) && $acceptsEmptySuccessData(null) && !$acceptsEmptySuccessData("not null") && !$acceptsEmptySuccessData(1) && !$acceptsEmptySuccessData(["value"]) && !$acceptsEmptySuccessData([]); if (!$valid) { throw new RuntimeException("OpenAPI component assertion failed."); }'
+./bin/phpunit --no-coverage tests/OpenApi
 ```
 
-For a release candidate, `./bin/release certify <version>` runs this disposable
-composition proof with its own consumer anchor, plus planning integrity and the
-complete package gate. It requires a clean checkout and a matching dated
+The default PHPUnit suite, normal CI, and `./bin/build` run these same integration tests. They compose the catalog
+with test-only consumer roots, compare delivery schemas with owning enums and real serialized values, and check
+required/nullable fields, formats, constraints and references. The retained authentication, Permission and collection
+composition assertions also run here rather than only during release. No source-text or schema-count assertions are
+used. The fixtures use OpenAPI 3.1; generation skips complete-document validation because these component-only
+consumers deliberately define no paths. This is not qualification of a consumer's endpoints or generated clients.
+
+For a release candidate, `./bin/release certify <version>` reuses `tests/OpenApi` for its separate composition log,
+plus planning integrity and the complete package gate. It requires a clean checkout and a matching dated
 `## [<version>] - YYYY-MM-DD` changelog heading, then records the exact `HEAD`
 and command logs under ignored `.runs/`. Certification does not merge, tag, push,
 or publish anything.
 
 The catalog uses canonical snake-case `toArray()` keys. UUID identifiers use
-`uuid`; `*_at` values use `date-time`; list results have `page`, `per_page`,
+`uuid`; `*_at` values use `date-time`; paginated administrative results have `page`, `per_page`,
 `total_pages`, `total_records`, and typed `records`.
+
+### Agent name updates (v0.5.0)
+
+`Fight.AccessControl.UpdateAgent` describes required `initiator`, UUID `agent_id` and raw `name`.
+`Fight.AccessControl.AgentUpdateInitiator` describes required `type` (`user` or `agent`) and UUID `id`; provenance
+is not authorization. The handler validates trim-normalized name length, so the raw-string schema introduces no
+conflicting `maxLength`. Generated default-suite tests compare both schemas with actual messages and the owning
+principal-type enum. See [name update composition](agent-name-updates.md) for mandatory persistence fences, void
+synchronous dispatch and post-commit facts. These additive components create no Tool, endpoint or handler result.
+
+### Feature provisioning (v0.5.0)
+
+`Fight.AccessControl.ProvisionFeatures` describes the required nullable `default_permission_name` string. This is
+raw consumer configuration: a missing Feature requires a canonical resolvable Permission name, but a no-creation
+pass ignores unused configuration. The schema therefore adds no name-pattern constraint. Candidate references come
+from consumer-composed discovery, not an HTTP payload or serialized scanner. See [atomic provisioning](feature-provisioning.md).
+This additive component introduces no endpoint or activation-readiness result. Generated-schema tests compare it
+with actual command serialization in the default suite. The additive
+`Fight.AccessControl.ValidateFeaturePreparation` empty query and `FeaturePreparationResult`/`FeaturePreparationIssue`
+components describe the read-only configuration result from [preparation validation](feature-preparation.md).
+They do not declare an endpoint, activation receipt or runtime authorization. The complete Feature capability
+is included in [v0.5.0 preparation](release-0.5.0.md).
+
+### Credential-delivery values
+
+Worker-facing Commands, Queries and safe results are part of the catalog even when a consumer never exposes them
+over HTTP. All names below have the `Fight.AccessControl.` prefix:
+
+| Component | Canonical value |
+| --- | --- |
+| `DeliverPasswordReset` | `actor_id` (an arbitrary string, including worker provenance), UUID `user_id` and `password_reset_delivery_id` |
+| `FindCredentialDeliveryStatus` | `purpose` (`activation`, `password_reset`, `email_change`) and nonempty UUID `delivery_id` |
+| `FindDueCredentialDeliveries` | `at` (`date-time`, including fractional seconds) and positive integer `limit`; no default or upper bound is imposed |
+| `CredentialDeliveryStatus` | `CredentialDeliveryStatusView`: purpose, delivery/User IDs, revision, status, due/expiry times, attempt count and nullable attempt/outcome/failure history |
+| `DueCredentialDelivery` | Purpose, delivery/User IDs, due time, revision and status |
+| `DueCredentialDeliveries` | An unpaginated array of `DueCredentialDelivery`; an empty array is valid |
+| `FindExpiredCredentialDeliveries` | Explicit fractional `at` and required integer `limit` 1–100; runner guidance 50, no constructor default |
+| `ExpiredCredentialDelivery` | Purpose, exact delivery/User IDs, required nullable `email_change_grant_id`, fractional expiry instant, nonnegative revision and safe delivery status |
+| `ExpiredCredentialDeliveries` | Unpaginated array of exact expired work, maximum 100 items; empty is valid |
+| `ExpireInvitationDelivery` / `InvitationDeliveryExpired` | String actor provenance, User/activation delivery UUIDs and fractional occurrence time |
+| `ExpirePasswordResetDelivery` / `PasswordResetDeliveryExpired` | String actor provenance, User/password-reset delivery UUIDs and fractional occurrence time |
+| `ExpireEmailChange` / `EmailChangeExpired` | String actor provenance, User/email grant UUIDs and fractional occurrence time |
+
+All canonical fields are required, including `last_attempt_at`, `last_outcome_at` and `last_failure`, whose values
+may be null. Non-null `last_failure` is only `retryable_provider`, `unexpected_provider` or `permanent_provider`;
+arbitrary provider details are not exposed. Attempt counts start at zero. Revisions retain the integer value
+supplied by the owning snapshot without adding a schema-only bound. The generic status Query checks a nonempty
+string; its handler resolves a purpose-specific UUID, consistent with the catalog's identifier convention.
+
+`InvitationDeliveryStatus`, `CredentialDeliveryStatus` and `DueCredentialDelivery` use exactly `pending`, `claimed`,
+`retry_pending`, `delivered`, `permanent_failure`, `expired` and `invalidated`. The obsolete `failed` and `confirmed`
+values are no longer admitted. These safe results describe no credential, ciphertext, destination email, or claim
+token. The status View component intentionally omits the PHP `View` suffix, like the existing invitation component.
+
+`JSend.Success.InvitationDeliveryStatus` keeps its existing reference. Optional
+`JSend.Success.CredentialDeliveryStatus` describes a found status result and `JSend.Success.DueCredentialDeliveries`
+wraps the array directly, without ResultSet pagination. The status handler may return null for an absent generation;
+consumers own absence mapping rather than receiving a package-defined HTTP response. Schemas grant no access:
+consumer entry-point authorization, routes, HTTP status codes and delivery invocation remain unchanged.
+
+The v0.5.0 `JSend.Success.ExpiredCredentialDeliveries` likewise wraps its array directly. Expiry facts reference
+exact command-shaped payload components; this adds no endpoint or event-replay guarantee. The email grant identity
+is non-null exactly for email work, where cleanup expires full authority/reservation even when delivery is terminal;
+it is null for invitation/reset. All expiry fields are required and secret-free. See
+[expiry composition](credential-expiry.md) for mandatory repository/binding changes, protected dispatch and restart.
+These additions/integration changes belong to v0.5.0, not a patch to an older release.
+
+The invitation status enum correction is breaking under
+[ADR 0007](../planning/adr/0007-openapi-schema-metadata-distribution.md) and belongs in this minor `0.x` release;
+published v0.4.0 is not replaced. Recompose consumer documents and regenerate clients as appropriate when adopting
+v0.5.0. Version selection, certification and publication remain distinct.
+
+### Agent delivery values
+
+The v0.5.0 `ListDueAgentDeliveries` component mirrors the bounded worker Query, including required `limit`
+(1–100, constructor default 50), original scope and registered destination binding. `DueAgentDeliveries` is an
+unpaginated array of confirmed safe `AgentOperationView` payloads, not a ResultSet. Its shared `AgentOperationKey`,
+`AgentIssuance`, and confirmed/indeterminate `AgentOperation` schemas contain no delivery material, claims, receipts
+or decryption handles. `JSend.Success.DueAgentDeliveries` is optional. These worker-facing value contracts introduce
+no endpoint or authorization policy; see [recovery composition](agent-delivery-recovery.md).
+`ListAgentDeliveryMaintenance` describes original scope/destination, `material` or `cleanup` work, bounded
+`batch_size` (default 50; 1–100), `cleanup_grace_seconds` (default 86400; 1–604800) and required nullable UUID `after`.
+`AgentDeliveryMaintenance` is a bounded array of confirmed safe operation views. `CountAgentDeliveryKeyReferences`
+accepts only an opaque `key_version`; `AgentDeliveryKeyReferences` is a nonnegative global diagnostic integer, never
+key-retirement permission. `AgentMaintenanceResult` mirrors the safe backed result enum. See
+[maintenance composition](agent-delivery-maintenance.md); no key paths, ciphertext, endpoint or raw-secret output is added.
+Generated Agent discovery/maintenance schema integration tests run in the default PHPUnit/build pipeline without
+contributing incidental Domain/Application execution to statement coverage. Release certification remains separate.
 
 Use `Authentication.BrowserResponse` for browser JSON: it has no refresh token,
 so the consumer may issue that credential only in an `HttpOnly` cookie. Use

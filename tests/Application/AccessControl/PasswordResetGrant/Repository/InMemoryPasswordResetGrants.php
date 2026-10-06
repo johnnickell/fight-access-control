@@ -7,12 +7,14 @@ namespace Fight\Test\AccessControl\Application\AccessControl\PasswordResetGrant\
 use DateTimeImmutable;
 use Fight\AccessControl\Domain\AccessControl\CredentialDelivery\CredentialDeliveryStatus;
 use Fight\AccessControl\Domain\AccessControl\CredentialDelivery\DueCredentialDelivery;
+use Fight\AccessControl\Domain\AccessControl\CredentialDelivery\ExpiredCredentialDelivery;
 use Fight\AccessControl\Domain\AccessControl\PasswordResetGrant\Exception\PasswordResetGrantException;
 use Fight\AccessControl\Domain\AccessControl\PasswordResetGrant\PasswordResetDeliveryId;
 use Fight\AccessControl\Domain\AccessControl\PasswordResetGrant\PasswordResetGrant;
 use Fight\AccessControl\Domain\AccessControl\PasswordResetGrant\PasswordResetGrantId;
 use Fight\AccessControl\Domain\AccessControl\PasswordResetGrant\PasswordResetGrantRepository;
 use Fight\AccessControl\Domain\AccessControl\User\UserId;
+use Fight\Common\Domain\Exception\DomainException;
 use Fight\Test\AccessControl\Application\AccessControl\User\InMemoryUnitOfWork;
 use Throwable;
 
@@ -67,6 +69,49 @@ final class InMemoryPasswordResetGrants implements PasswordResetGrantRepository
         return array_slice($due, 0, $limit);
     }
 
+    public function findExpired(DateTimeImmutable $at, int $limit): array
+    {
+        if ($limit < 1 || $limit > 100) {
+            throw new DomainException('The expired credential-work limit must be between 1 and 100.');
+        }
+
+        $expired = [];
+        foreach ($this->passwordResetGrants as $grant) {
+            $latest = $this->getLatestByUserId($grant->getUserId());
+            if (
+                !$latest instanceof PasswordResetGrant
+                || !$latest->getId()->equals($grant->getId())
+                || !$grant->isIssued()
+                || !$grant->getDelivery()->isExpirableAt($at)
+            ) {
+                continue;
+            }
+
+            $expired[] = new ExpiredCredentialDelivery(
+                $grant->purpose(),
+                $grant->getDelivery()->getId(),
+                $grant->getUserId(),
+                null,
+                $grant->getExpiresAt(),
+                $grant->getRevision(),
+                $grant->getDelivery()->getStatus()
+            );
+        }
+
+        usort($expired, static fn(ExpiredCredentialDelivery $left, ExpiredCredentialDelivery $right): int =>
+            [
+                $left->getExpiresAt(),
+                $left->getDeliveryId()->toString(),
+                $left->getPurpose()
+            ] <=> [
+                $right->getExpiresAt(),
+                $right->getDeliveryId()->toString(),
+                $right->getPurpose()
+            ]);
+
+        return array_slice($expired, 0, $limit);
+    }
+
     public function add(PasswordResetGrant $passwordResetGrant): bool
     {
         if (
@@ -99,7 +144,7 @@ final class InMemoryPasswordResetGrants implements PasswordResetGrantRepository
             || !$current instanceof PasswordResetGrant
             || !$this->sameState($current, $terminalPredecessor)
             || $current->isIssued()
-            || $current->getDelivery()->isRecoverable()
+            || $current->getDelivery()->hasRecoverableMaterial()
             || !$this->validSuccessor($current, $successor)
         ) {
             return false;
@@ -178,7 +223,7 @@ final class InMemoryPasswordResetGrants implements PasswordResetGrantRepository
             || !$current instanceof PasswordResetGrant
             || !$this->sameState($current, $predecessor)
             || $terminalPredecessor->isIssued()
-            || $terminalPredecessor->getDelivery()->isRecoverable()
+            || $terminalPredecessor->getDelivery()->hasRecoverableMaterial()
             || !$this->sameGeneration($current, $terminalPredecessor)
             || $terminalPredecessor->getRevision() !== $current->getRevision() + 1
             || !$this->isAllowedReplacement($current, $terminalPredecessor)
@@ -331,6 +376,11 @@ final class InMemoryPasswordResetGrants implements PasswordResetGrantRepository
     ): PasswordResetGrant {
         $before = $predecessor->getDelivery();
         $after = $replacement->getDelivery();
+        $expired = $predecessor->expireDeliveryAt($after->getExpiresAt());
+        if ($this->sameState($expired, $replacement)) {
+            return $expired;
+        }
+
         if (
             $before->getStatus() === CredentialDeliveryStatus::CLAIMED
             && $after->getLastOutcomeAt() instanceof DateTimeImmutable
@@ -343,7 +393,7 @@ final class InMemoryPasswordResetGrants implements PasswordResetGrantRepository
             );
         }
 
-        return $predecessor->expireDeliveryAt($after->getExpiresAt());
+        return $expired;
     }
 
     private function isPristine(PasswordResetGrant $passwordResetGrant): bool

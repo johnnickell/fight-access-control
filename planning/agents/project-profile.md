@@ -3,6 +3,15 @@
 This package binds the [Fight Engineering Standards](../../docs/engineering/STANDARDS.md) to its Domain and
 Application package boundary.
 
+## Pre-v1 compatibility policy
+
+Follow [ADR 0011](../adr/0011-pre-v1-current-contract-only.md): implement only the current API and persisted contract.
+Do not add or retain code solely to support previous iterations, including aliases, rejection-only retired methods,
+legacy modes, historical readers, compatibility defaults or migration/backfill paths. Update callers/tests directly.
+Keep current-contract authorization, atomicity, retry/restart, hydration, ordering and restoration safety. Release
+classification/changelog rules remain; they do not require compatibility code. TASK-00068 removes the remaining
+previous-iteration support; completed TASKs and earlier guidance cannot require that code to remain.
+
 ## Package boundary and contracts
 
 - Production code is limited to src/Domain/AccessControl and src/Application/AccessControl, mirrored by tests.
@@ -28,6 +37,58 @@ Application package boundary.
 - A CommandHandler owns one atomic Unit of Work: aggregate mutation and repository persistence precede one commit;
   a success event is dispatched only after that commit. On failure it dispatches CommandFailedEvent with the original
   command and message, then rethrows the same throwable.
+- Human expiry cleanup under [TASK-00072 C9](../tasks/00072-TASK.md#acceptance-criteria) retains the original safe
+  Command in `CommandFailedEvent` but uses constant `Credential expiry failed.` text, never arbitrary storage diagnostics
+  that may contain row material. The original throwable still rethrows, even if failure notification also fails.
+  This secret-free message rule is scoped to invitation/reset/email cleanup; transaction/rollback and post-commit
+  semantics are unchanged. Consumers sanitize rethrown errors at their response/log boundary. See
+  [expiry composition](../../docs/credential-expiry.md); this is not the issuance-warning return exception below.
+- Approved replacement exception: [EPIC-00009 D3](../epics/00009-EPIC.md#d3--post-commit-result-behavior), ratified by
+  John on 2026-09-27, applies only to replacement recoverable Agent provision and rotation. After a confirmed commit,
+  publication failure returns committed metadata with a typed, sanitized warning, not a publication-failure throw.
+  Pre-commit failure and indeterminate commit remain distinct; same-key resolution and authorized scheduler discovery
+  survive even both publishers failing. This prevents a notification fault disguising committed issuance. Issuance
+  confirms neither delivery, enrollment activation nor launch permission; each needs its own confirmed outcome and
+  current authorization. Revocation, AuthenticationService and other handlers retain their publication behavior.
+  TASK-00046 implements the provision exception and TASK-00048 implements rotation as unreleased work; the old
+  raw-return rotation API is removed. TASK-00049/00052 prove package scheduler-only recovery; actual consumer
+  qualification remains separate. This guidance grants no independent implementation or release authority.
+- For that credential-operation replacement, follow ratified [EPIC-00009 D4](../epics/00009-EPIC.md#d4--bounded-operation-and-integration-policy):
+  documented finite defaults, optional validated overrides, and no manual-configuration or additional human-approval
+  requirement for routine operation/recovery. Capacity exhaustion must give new work a clear retryable rejection or
+  deferral while preserving authorized status and existing-operation recovery. Cleanup must preserve duplicate-issuance
+  and stale-delivery defenses. Specify concrete values and implementation choices in requirement/design work and prove
+  default/override, capacity/recovery and cleanup/replay behavior before implementation acceptance.
+- Agent/operation repositories implement mandatory `getOperationContract()` against a shared persisted cohort and
+  qualified actual composition. Every writer holds its cohort fence through the package transaction; direct paths
+  cannot bypass it. Delivery/cleanup epochs bind its monotonic generation. Startup checks are not
+  admission; consumers separately fence old binaries and qualify real writer races. See the
+  [cohort contract](../../docs/agent-operation-cohorts.md). This is unreleased TASK-00056 work, not consumer qualification.
+- Operation requests use one fixed Unicode-edge name rule and persisted canonical marker `2`. John's 2026-09-30
+  pre-adoption amendment removes historical readers, creation/reader-set selection and backward-compatibility shims.
+  Request `canonicalize()` methods take no version argument. Retained keys/tombstones keep original request/issuance
+  through cleanup; unsupported markers fail closed without migration or fallback. Storage/destination versions stay 1;
+  repositories validate the one supported contract and share its generation/transaction fence. Safe reads do not
+  grant writer admission. See the [canonical contract](../../docs/agent-canonical-upgrades.md). Actual persistence,
+  authority/sink fencing and restoration qualification remain separate from package proof.
+- TASK-00058 adds required nullable `reconciledGeneration` to the existing cohort snapshot. Trusted admission outside
+  the restored dataset must verify the exact active storage incarnation and retained operation/receipt/tombstone/order
+  history under the same fence; missing/mismatched evidence denies unsafe effects. Controlled restore invalidates
+  readiness before replacement, and reconciliation advances generation before resuming. See
+  [restoration safety](../../docs/agent-restoration-safety.md). No automatic rollback detector, restore Command or
+  prior-contract migration is supplied; modeled package tests do not qualify actual consumer restore/activation/use.
+- TASK-00068 removes TASK-00055's superseded legacy-Agent model, recovery marker and old-API stubs. Follow the
+  [current Agent contract](../../docs/agent-current-contract.md): validated hydration and unconditional lifecycle
+  correlation/cancellation with audit atomicity. User delivery requires explicit claim identity/time and due time;
+  use [current worker composition](../../docs/credential-delivery.md), not the removed transport-confirmation Command.
+  `ManagedPolicyPlanner` requires all four repositories, including Agent; it has no older optional composition.
+  No prior-data conversion, legacy adoption or schema migration is a package obligation.
+- Use the [current Agent integration guide](../../docs/agent-integration.md) and
+  [complete scenario/evidence inventory](../../docs/agent-operation-evidence.md) for final composition and evidence
+  handoff. They distinguish current package assertions, superseded requirements and mandatory unexecuted real-consumer
+  qualification. TASK-00059's documentation has independent technical acceptance and behavioral QA at `ed516f9`;
+  neither guides nor package passes authorize release, activation/use, consumer adoption, deployment or
+  Agent OS TASK-00138 closure.
 - QueryHandlers read through Domain repositories only: no aggregate mutation, commit, or domain-event dispatch.
 - AuthenticationService follows the same atomic, post-commit ordering, uses Fight Common password and token ports,
   returns non-serializable token results, and emits RedactedCommandFailed without raw secret input.
@@ -38,13 +99,26 @@ Application package boundary.
 
 - In-memory repositories and service doubles belong in the matching Application test boundary. Production tests use
   CoversClass; tooling tests use CoversNothing. Handler tests prove post-commit event ordering and failure rethrow
-  behavior.
+  behavior outside the scoped EPIC-00009 D3 replacement exception. Acceptance of that replacement requires tests for
+  pre-commit rollback, both uncertain-commit outcomes, post-commit publication failures including both publishers
+  failing, same-key recovery after response loss/restart, and authorized scheduler-only recovery without caller retry.
+  Assert persisted outcomes and typed warning safety, not only call order; issuance cannot imply delivery, activation
+  or launch authority. Real consumer conformance must separately prove current activation/use authorization.
+- Shipped OpenAPI metadata is a public library contract. Its generated-schema integration tests belong in the
+  default PHPUnit/build pipeline under the approved
+  [OpenAPI testing rule](../../docs/engineering/STANDARDS.md#accesscontrol-openapi-contract-integration-tests),
+  not the release-only tooling category. TASK-00052 established suite wiring and Agent discovery checks;
+  TASK-00060 adds released credential-delivery and shared composition checks. Exact Domain/Application statement
+  coverage remains unchanged.
 - Application clocks, credential generators, and ciphers belong under the matching Application aggregate Service
   namespace; their test doubles use the matching test Service namespace.
 - Every production statement requires executable coverage. The isolated fight-access-control PHP container is the
   package runtime; ./bin/planning-check and ./bin/build are mandatory pre-submit gates, and the build enforces
   PHPCS, PHPStan, architecture, Rector, PHPUnit, and exact statement coverage.
-- Use the ignored `.runs/<YYYY-MM-DD>-<slug>/worktree` linked-worktree layout from develop; retain it through
-  review. Store run-local coordination, notes, and gate receipts below that same run directory; store reusable
-  handoffs under `.runs/handoffs/<task>/`. Branch feature work from develop and never commit directly to develop or
-  main. Release certification, tags, publication, and cleanup remain separately authorized.
+- Keep ignored run artifacts in purpose-named subdirectories: `.runs/worktree/<task-slug>/` for linked worktrees,
+  `.runs/notes/<task>/` for coordination, `.runs/logs/<task>/` for gate logs and receipts, and
+  `.runs/handoffs/<task>/` for reusable handoffs. Canonical reviews remain `.runs/reviews/<TASK-ID>/review.md`.
+  Do not create mixed-purpose dated folders directly under `.runs/`. See the approved
+  [run-layout deviation](../../docs/engineering/STANDARDS.md#accesscontrol-run-layout).
+  Retain worktrees and evidence through review. Branch feature work from develop and never commit directly to
+  develop or main. Release certification, tags, publication, and cleanup remain separately authorized.

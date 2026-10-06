@@ -19,8 +19,19 @@ and remove overlapping local configuration rather than maintain a parallel imple
 dependency resolution, then delegates once to `./bin/quality`. Hosted CI may prepare a latest-compatible
 resolution, but it delegates to the same quality script instead of maintaining a second checklist.
 
-The opt-in `.githooks/pre-commit` resolves the repository root, disconnects stdin, and delegates exactly once
-to the default `./bin/build`, propagating its status. There is no pre-push gate.
+The original opt-in `.githooks/pre-commit` delegated once to `./bin/build`; the amendment below removes that
+invocation. There is no pre-push gate.
+
+### Amendment — remove redundant commit-time builds
+
+John explicitly requested removal of the repository pre-commit hook while TASK-00061 was in progress. The
+implementation and review workflows already require build evidence, so committing must not rerun the build solely
+because a commit is being created. Remove `.githooks/pre-commit` and the obsolete clone-local `core.hooksPath`
+setting when it points exactly to `.githooks`; preserve independently managed hooks.
+
+`./bin/build` remains the mandatory local completion gate, and `./bin/quality` remains its single ordered
+implementation. This changes invocation timing, not verification requirements, failure handling, independent review,
+or publication authority. Historical hook-run receipts remain valid evidence of their recorded executions.
 
 ## Consequences
 

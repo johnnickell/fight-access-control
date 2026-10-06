@@ -128,6 +128,11 @@ final class InMemoryPermissionRepository implements PermissionRepository
         ));
     }
 
+    public function hasFeatureReference(PermissionId $id): bool
+    {
+        return $this->authorizationReferences->featureContainsPermission($id);
+    }
+
     public function replace(Permission $expected, Permission $replacement): bool
     {
         $this->authorizationReferences->holdThroughCompletion();
@@ -169,6 +174,7 @@ final class InMemoryPermissionRepository implements PermissionRepository
             !$this->removeSucceeds
             || $this->authorizationReferences->roleContainsPermission($permission->getId())
             || $this->authorizationReferences->agentContainsPermission($permission->getId())
+            || $this->hasFeatureReference($permission->getId())
         ) {
             return false;
         }

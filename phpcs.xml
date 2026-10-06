@@ -5,6 +5,7 @@
     <file>src</file>
     <file>tests/Domain</file>
     <file>tests/Application</file>
+    <file>tests/OpenApi</file>
     <file>scripts</file>
     <arg name="cache" value="var/cache/phpcs.cache" />
     <rule ref="vendor/johnnickell/fight-common/src/Standards/Phpcs/ruleset.xml">
