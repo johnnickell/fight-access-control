@@ -5,17 +5,17 @@ dependencies, acceptance, and verification.
 
 ## What's Next?
 
-First ready Task: [TASK-00070](00070-TASK.md) — Provide minimal Agent profile reads and managed Permission definitions.
+Active Task: [TASK-00070](00070-TASK.md) — Provide minimal Agent profile reads and managed Permission definitions.
 
 ## In Progress
 
-No Tasks are currently in this state.
+| Order | TASK ID | Title | Parent TICKET | Status | Blocked by | PR |
+| --- | --- | --- | --- | --- | --- | --- |
+| 70 | [TASK-00070](00070-TASK.md) | Provide minimal Agent profile reads and managed Permission definitions | [TICKET-00019](../tickets/00019-TICKET.md) — Read and update the authenticated Agent profile through MCP tools | in-progress | — | — |
 
 ## Ready Frontier
 
-| Order | TASK ID | Title | Parent TICKET | Status | Blocked by | PR |
-| --- | --- | --- | --- | --- | --- | --- |
-| 70 | [TASK-00070](00070-TASK.md) | Provide minimal Agent profile reads and managed Permission definitions | [TICKET-00019](../tickets/00019-TICKET.md) — Read and update the authenticated Agent profile through MCP tools | ready-for-agent | — | — |
+No Tasks are currently in this state.
 
 ## Waiting
 

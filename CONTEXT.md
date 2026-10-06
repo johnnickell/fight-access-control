@@ -6,6 +6,28 @@ Fight AccessControl owns framework-neutral identity, credential, session, author
 behavior shared by Fight applications. The repository-local behavioral and security authority is
 [TICKET-00001](planning/tickets/00001-TICKET.md).
 
+## Minimal Agent profiles — TASK-00070 implementation
+
+John selected the clean main checkout from `develop` `2ee2597` on `feature/task-00070-agent-profile`.
+The unreleased [profile guide](docs/agent-profile.md) defines `GetAgentProfile` and its read-only handler, returning
+immutable `AgentProfileView` with exactly `{agent_id, name}` from each fresh authoritative ACTIVE Agent lookup.
+Missing and revoked targets both return null; operational failures propagate for consumer boundary sanitization.
+No administrative projection, Permission resolution, name cache, mutation, transaction or event is used. Explicit
+query target identity grants no authority: consumers protect every entry point, and TASK-00071 must derive the
+self-service target solely from the current authenticated Agent, enforce its Permission and reject caller targets.
+
+`AgentProfilePermissions::definitions()` supplies reusable `AGENT_PROFILE_READ` and `AGENT_PROFILE_UPDATE` managed
+`ADMIN_SAFE` definitions from distinct consumer-owned stable IDs, without persistence or grants. Consumers generate
+two `Uuid::comb()` values once, fix them in their seed/migration, and include definitions/code references in their
+complete managed policy; neither startup nor reconciliation regenerates identities. Package fixtures do not qualify
+actual persistence, seeding, entry-point security or runtime composition. Focused checks pass **32 tests / 213
+assertions**; the complete local gate passes **2080 tests / 40412 assertions**, exact **7000/7000** owned statements
+and **34/34** new statements, without final warnings/skips. The TASK records the initial TTY failure, corrected
+style/type issues, interrupted first build and normal ignored dev-only Rector **2.6.7 → 2.7.0** update; the successful
+rerun has no further dependency drift. Final evidence prose retains equivalent executable inputs with targeted
+planning/documentation checks. Independent review and behavioral QA remain pending; no MCP Tool, administrator
+endpoint, consumer migration, publication, release or deployment is claimed.
+
 ## Agent-protected MCP authorization — TASK-00035 accepted
 
 John selected the main checkout for TASK-00035 from clean `develop` `4b6d083`, on
@@ -261,6 +283,8 @@ no merge, release or consumer qualification is claimed.
   assignment. It advances only when that set changes and is independent of the Agent credential revision.
 - **Agent hydration**: validated reconstruction of complete current authority without generation or revision reset.
   Repositories also validate exact operation correlation. Unknown or inconsistent state rejects, never creates issuance.
+- **Agent profile**: the minimal immutable `{agent_id, name}` read of current ACTIVE state, separate from the
+  administrative Agent result. Missing/revoked profiles are equally unavailable; target identity is not authority.
 - **Agent read result**: an immutable, secret-free record of an Agent's ID, lifecycle state, credential ID and
   revision, assigned Permissions by ID and canonical name and Permission-assignment revision. There is no legacy or
   recovery marker. Administrative reads decide neither action permission nor delivery, activation or use authority.
