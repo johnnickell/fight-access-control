@@ -9,6 +9,7 @@ use Fight\AccessControl\Application\AccessControl\Agent\Security\AgentCredential
 use Fight\AccessControl\Application\AccessControl\Agent\Service\AgentDeliveryCipher;
 use Fight\AccessControl\Application\AccessControl\Agent\Service\HmacSharedSecretCipher;
 use Fight\AccessControl\Application\AccessControl\Agent\Service\HmacSharedSecretGenerator;
+use Fight\AccessControl\Application\AccessControl\Timing\Service\Clock;
 use Fight\AccessControl\Domain\AccessControl\Agent\AgentRepository;
 use Fight\AccessControl\Domain\AccessControl\Agent\Operation\AgentIssuance;
 use Fight\AccessControl\Domain\AccessControl\Agent\Operation\AgentOperationId;
@@ -54,7 +55,8 @@ final readonly class RotationEnvironment
         ?AgentDeliveryCipher $deliveryCipher = null,
         ?AuditEvidenceRepository $audit = null,
         ?AgentRepository $agents = null,
-        ?ProvisioningEnvironment $environment = null
+        ?ProvisioningEnvironment $environment = null,
+        ?Clock $clock = null
     ): AgentCredentialRotationService {
         $environment ??= $this->provisioning;
 
@@ -77,7 +79,7 @@ final readonly class RotationEnvironment
             },
             $cipher ?? new FixedHmacSharedSecretCipher('auth-envelope:'),
             $deliveryCipher ?? new BoundAgentDeliveryCipher(),
-            new FixedClock(new DateTimeImmutable('2026-09-27T12:00:00+00:00')),
+            $clock ?? new FixedClock(new DateTimeImmutable('2026-09-27T12:00:00+00:00')),
             $unitOfWork ?? $environment->transaction,
             $environment->events,
             $limits ?? new AgentOperationLimits()

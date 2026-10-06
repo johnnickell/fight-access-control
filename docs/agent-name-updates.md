@@ -46,7 +46,8 @@ IDs/assignment revision. Constructing a successor alone neither persists nor aut
 Every consumer Agent repository now implements:
 
 ```php
-public function rename(AgentId $id, AgentName $name, DateTimeImmutable $renamedAt): bool;
+/** @phpstan-param Closure(): DateTimeImmutable $now */
+public function rename(AgentId $id, AgentName $name, Closure $now): ?DateTimeImmutable;
 ```
 
 This is a mandatory name-intent capability, not a generic whole-Agent update. In the enclosing package transaction:
@@ -56,13 +57,17 @@ This is a mandatory name-intent capability, not a generic whole-Agent update. In
 2. Hold the current Agent/credential fence shared with lifecycle and Permission writers. Validate exactly one current
    persisted operation correlation; missing, ambiguous or inconsistent correlation fails closed. Do not load keys,
    invoke a sink, create issuance, retire a credential or apply new-operation capacity limits.
-3. Load authoritative current Agent state **under that fence** and apply its `rename()` transition. Missing/inactive
-   targets throw `AgentUpdateException`; missing correlation or unsupported participation throws sanitized
-   `AgentOperationRejectedException`. False means only an unchanged normalized name on a still ACTIVE, admitted
-   target, never absent/revoked/conflicting/unavailable work. Storage faults throw.
-4. Persist only the real changed name and update time; return true for that change. Preserve credentials,
-   Permissions, revisions, creation time and all operation/delivery state. No-op performs no write or timestamp
-   change. Rollback restores the original name. No nested/independent commit or publication belongs in a repository.
+3. Load authoritative current Agent state **under that fence**. Missing/inactive targets throw `AgentUpdateException`;
+   missing correlation or unsupported participation throws sanitized `AgentOperationRejectedException`. After current
+   state/correlation validation, invoke `$now()` exactly once and apply `Agent::rename($name, $now())` with that sample.
+   The callback supplies only trusted current time; the handler passes `$clock->now(...)`, not a captured timestamp.
+   Never sample before waiting for writer admission, retain the callback or invoke it outside this transaction.
+4. Persist only the real changed name and update time; return that exact `DateTimeImmutable` for the handler's
+   post-commit fact, not a separately sampled time. Preserve credentials, Permissions, revisions, creation time and
+   all operation/delivery state. Return `null` only for an unchanged normalized name on a still ACTIVE, admitted
+   target, never absent/revoked/conflicting/unavailable work. No-op performs no write or timestamp change. Storage or
+   clock faults throw; rollback restores the original name. No nested/independent commit or publication belongs in
+   a repository. This persistence result does not change the void handler/bus or input-derived acknowledgement.
 
 No expected old name or name revision is accepted: the last committed name wins. The method cannot accept a stale
 aggregate or unsafe credential/Permission successor at all. A previously read aggregate does not control the write;
@@ -70,8 +75,12 @@ current state must win. Revocation before the write rejects even identical names
 before it are retained without replacement, issuance or cancellation by the rename. Other whole-Agent write paths
 must compare the complete current predecessor, so a stale lifecycle/Permission successor cannot undo a committed
 rename. Consumers retry conflicting authorized intents from current state rather than silently upserting snapshots.
-Use trusted, non-backdating clocks; a real request with time before the current update rejects instead of regressing
-metadata. Concurrent requests with the same timestamp may both rename; timestamps are not a name revision.
+Use trusted, non-backdating clocks, **sampled after acquiring the writer fence**. If another rename, Permission write
+or rotation commits while this request waits, the later admitted request samples fresh time and renames current
+state without losing that authority. Sampling before the fence would turn ordinary advancing-clock contention into
+a false stale-time failure. A genuinely backdating clock still rejects a real update instead of regressing metadata;
+no clamping, synthetic time or caller name-revision token is introduced. Concurrent requests with the same timestamp
+may both rename; timestamps are not a name revision.
 
 ## Commit and publication outcomes
 
@@ -95,9 +104,11 @@ won from a missing event.
   User/Agent message round trips, fractional event time and missing/unknown provenance rejection.
 - `UpdateAgentHandlerTest`: void handler orchestration and post-commit publication, real/no-op effects, invalid and
   missing/revoked targets, write/commit rollback and original throwable preservation when either publisher fails.
-  Controlled pre-write Fiber schedules prove a competing rename, Permission assignment or real rotation wins before
-  the pending rename; revocation defeats real and no-op attempts. Stale whole-Agent writes reject after rename.
-  Direct modeled writes deny missing/ambiguous correlation, missing transaction and restoration admission.
+  Controlled pre-write Fiber schedules advance one shared clock while a competing rename, Permission assignment or
+  real rotation commits before the pending rename. The resumed rename wins with fresh time, preserves current authority
+  and publishes the exact persisted fractional timestamp. Revocation defeats real and no-op attempts. Stale whole-Agent
+  writes reject after rename. Later no-ops leave the timestamp intact; direct writes reject a genuinely backdating clock.
+  Direct modeled writes deny missing/ambiguous correlation, missing transaction and restoration admission before sampling.
 - `AgentNameComponentsTest`: generated additive `Fight.AccessControl.UpdateAgent` and `AgentUpdateInitiator` schemas
   match actual serialized values and the owning principal-type enum, without a schema-only raw-name length limit.
 

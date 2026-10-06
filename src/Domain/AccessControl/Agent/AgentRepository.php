@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Fight\AccessControl\Domain\AccessControl\Agent;
 
+use Closure;
 use DateTimeImmutable;
 use Exception;
 use Fight\AccessControl\Domain\AccessControl\Agent\Operation\AgentOperationContractRepository;
@@ -58,10 +59,12 @@ interface AgentRepository extends AgentOperationContractRepository
      *
      * Require the package transaction on the shared connection, compatible cohort admission and exact current
      * operation correlation, including no-ops and direct calls. Hold the same Agent fence as lifecycle and Permission
-     * writers through completion. Read the current aggregate under that fence and apply Agent::rename(name, renamedAt).
-     * Return true only for a real persisted name change; return false only for an unchanged normalized name on a
-     * still ACTIVE target. Missing/inactive targets throw AgentUpdateException; missing/inconsistent correlation or
-     * unsupported transaction participation throws sanitized AgentOperationRejectedException. Never return false
+     * writers through completion. Read the current aggregate and validate correlation under that fence, then invoke
+     * now exactly once and apply Agent::rename(name, now()). The callback supplies trusted current time only; do not
+     * invoke it before admission or reuse a timestamp sampled before waiting for the fence. Return the exact persisted
+     * updatedAt for a real change, or null only for an unchanged normalized name on a still ACTIVE target.
+     * Missing/inactive targets throw AgentUpdateException; missing/inconsistent correlation or unsupported transaction
+     * participation throws sanitized AgentOperationRejectedException. Never return null
      * for missing, inactive or unavailable authority. Storage failures throw and abort the enclosing transaction.
      *
      * Accept only name intent, never a caller's whole-Agent successor or expected old name. Last committed name wins;
@@ -72,9 +75,11 @@ interface AgentRepository extends AgentOperationContractRepository
      * Other whole-Agent writers must compare complete predecessors so stale lifecycle/Permission writes cannot undo
      * a rename; consumers retry conflicting authorized intents from current state. Provenance grants no authority.
      *
+     * @phpstan-param Closure(): DateTimeImmutable $now
+     *
      * @throws Exception When an error occurs
      */
-    public function rename(AgentId $id, AgentName $name, DateTimeImmutable $renamedAt): bool;
+    public function rename(AgentId $id, AgentName $name, Closure $now): ?DateTimeImmutable;
 
     /**
      * Replaces the current Agent authority atomically with its successor

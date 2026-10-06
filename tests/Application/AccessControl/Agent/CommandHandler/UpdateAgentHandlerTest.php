@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Fight\Test\AccessControl\Application\AccessControl\Agent\CommandHandler;
 
+use Closure;
 use DateTimeImmutable;
 use Fiber;
 use Fight\AccessControl\Application\AccessControl\Agent\CommandHandler\UpdateAgentHandler;
@@ -36,6 +37,7 @@ use Fight\Test\AccessControl\Application\AccessControl\Event\InMemoryEventDispat
 use Fight\Test\AccessControl\Application\AccessControl\Timing\Service\FixedClock;
 use Fight\Test\AccessControl\Application\AccessControl\User\InMemoryUnitOfWork;
 use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 use RuntimeException;
 use Throwable;
@@ -47,6 +49,14 @@ use Throwable;
 final class UpdateAgentHandlerTest extends TestCase
 {
     private const string NOW = '2026-09-27T12:00:00+00:00';
+
+    /** @return iterable<string, array{string}> */
+    public static function competingWriters(): iterable
+    {
+        foreach (['name', 'permission', 'rotation'] as $winner) {
+            yield $winner => [$winner];
+        }
+    }
 
     public function test_handler_uses_name_only_intent_and_publishes_after_transaction_for_both_actor_types(): void
     {
@@ -60,11 +70,19 @@ final class UpdateAgentHandlerTest extends TestCase
             $agents->expects(self::once())->method('rename')->with(
                 $command->getAgentId(),
                 self::callback(static fn(AgentName $name): bool => $name->toString() === 'Renamed'),
-                new DateTimeImmutable(self::NOW)
-            )->willReturnCallback(static function () use ($uow): bool {
+                self::isInstanceOf(Closure::class)
+            )->willReturnCallback(static function (
+                AgentId $id,
+                AgentName $name,
+                Closure $now
+            ) use (
+                $uow,
+                $clock
+            ): DateTimeImmutable {
                 self::assertTrue($uow->transactionActive);
+                self::assertSame(0, $clock->calls());
 
-                return true;
+                return $now();
             });
             $events = new InMemoryEventDispatcher(static function (Event $event) use (
                 $uow,
@@ -110,7 +128,10 @@ final class UpdateAgentHandlerTest extends TestCase
         $env = $this->environment();
         $before = $env->agents->all()[0];
         $operation = $env->operations->operations[$env->key->toString()];
-        $this->handler($env)->handle($this->message($before->getId(), '  Renamed  '));
+        $clock = new FixedClock('2026-09-27T12:00:01+00:00', '2026-09-27T13:00:00+00:00');
+        $handler = $this->handler($env, $clock);
+        $handler->handle($this->message($before->getId(), '  Renamed  '));
+
         $after = $env->agents->getById($before->getId());
         self::assertSame('Renamed', $after->getName()->toString());
         self::assertSame(1, $env->agents->nameWrites);
@@ -121,7 +142,8 @@ final class UpdateAgentHandlerTest extends TestCase
         );
         self::assertSame($before->getPermissionIds(), $after->getPermissionIds());
         self::assertSame($operation, $env->operations->operations[$env->key->toString()]);
-        $this->handler($env)->handle($this->message($before->getId(), 'Renamed'));
+        $handler->handle($this->message($before->getId(), 'Renamed'));
+        self::assertSame(2, $clock->calls());
         self::assertSame($after, $env->agents->getById($before->getId()));
         self::assertSame(1, $env->agents->nameWrites);
         self::assertCount(1, $env->events->events());
@@ -212,58 +234,72 @@ final class UpdateAgentHandlerTest extends TestCase
         }
     }
 
-    public function test_paused_rename_observes_competing_rename_permission_and_rotation_winners(): void
+    #[DataProvider('competingWriters')]
+    public function test_paused_rename_observes_competing_rename_permission_and_rotation_winners(string $winner): void
     {
-        foreach (['name', 'permission', 'rotation'] as $winner) {
-            $rotation = new RotationEnvironment();
-            $env = $rotation->provisioning;
-            $env->events = new InMemoryEventDispatcher();
-            $before = $env->agents->all()[0];
-            $env->agents->beforeNameWrite = function () use ($env): void {
-                $env->agents->beforeNameWrite = null;
-                $env->transaction->suspendBeforeFirstWrite();
-            };
-            $pending = new Fiber(fn() => $this->handler($env)->handle($this->message($before->getId(), 'Last rename')));
-            $pending->start();
-            self::assertTrue($pending->isSuspended());
-            if ($winner === 'name') {
-                $this->handler($env)->handle($this->message($before->getId(), 'First rename'));
-            } elseif ($winner === 'permission') {
-                $permission = Permission::define(
-                    PermissionId::generate(),
-                    PermissionName::fromString('PROFILE'),
-                    new DateTimeImmutable(self::NOW)
-                );
-                $env->transaction->authorizationReferenceState()->addPermission($permission);
-                $env->transaction->commitTransactional(function () use ($env, $before, $permission): void {
-                    self::assertTrue($env->agents->replacePermissionAssignments(
-                        $before,
-                        $before->grantPermission($permission->getId(), new DateTimeImmutable(self::NOW))
-                    ));
-                });
-            } else {
-                self::assertTrue($rotation->service()->rotate($rotation->key, $rotation->request)->isConfirmed());
-            }
+        $rotation = new RotationEnvironment();
+        $env = $rotation->provisioning;
+        $env->events = new InMemoryEventDispatcher();
 
-            $winnerState = $env->agents->getById($before->getId());
-            $operations = $env->operations->operations;
-            $pending->resume();
-            self::assertTrue($pending->isTerminated());
-            $after = $env->agents->getById($before->getId());
-            self::assertSame('Last rename', $after->getName()->toString());
-            self::assertSame($winnerState->getCredentialId(), $after->getCredentialId());
-            self::assertSame($winnerState->getCredentialRevision(), $after->getCredentialRevision());
-            self::assertSame(
-                $winnerState->getEncryptedHmacSharedSecretEnvelope(),
-                $after->getEncryptedHmacSharedSecretEnvelope()
+        $before = $env->agents->all()[0];
+        $now = new DateTimeImmutable('2026-09-27T12:00:01+00:00');
+        $clock = $this->createStub(Clock::class);
+        $clock->method('now')->willReturnCallback(static function () use (&$now): DateTimeImmutable {
+            return $now;
+        });
+        $env->agents->beforeNameWrite = function () use ($env): void {
+            $env->agents->beforeNameWrite = null;
+            $env->transaction->suspendBeforeFirstWrite();
+        };
+        $pending = new Fiber(fn() => $this->handler($env, $clock)
+            ->handle($this->message($before->getId(), 'Last rename')));
+        $pending->start();
+        self::assertTrue($pending->isSuspended());
+        $now = new DateTimeImmutable('2026-09-27T12:00:02+00:00');
+        if ($winner === 'name') {
+            $this->handler($env, $clock)->handle($this->message($before->getId(), 'First rename'));
+        } elseif ($winner === 'permission') {
+            $permission = Permission::define(
+                PermissionId::generate(),
+                PermissionName::fromString('PROFILE'),
+                new DateTimeImmutable(self::NOW)
             );
-            self::assertSame($winnerState->getPermissionIds(), $after->getPermissionIds());
-            self::assertSame(
-                $winnerState->getPermissionAssignmentRevision(),
-                $after->getPermissionAssignmentRevision()
-            );
-            self::assertSame($operations, $env->operations->operations);
+            $env->transaction->authorizationReferenceState()->addPermission($permission);
+            $env->transaction->commitTransactional(function () use ($env, $before, $permission, $now): void {
+                self::assertTrue($env->agents->replacePermissionAssignments(
+                    $before,
+                    $before->grantPermission($permission->getId(), $now)
+                ));
+            });
+        } else {
+            self::assertTrue($rotation->service(clock: $clock)->rotate($rotation->key, $rotation->request)
+                ->isConfirmed());
         }
+
+        $winnerState = $env->agents->getById($before->getId());
+        self::assertEquals($now, $winnerState->getUpdatedAt());
+        $operations = $env->operations->operations;
+        $now = new DateTimeImmutable('2026-09-27T12:00:03.123456+00:00');
+        $pending->resume();
+        self::assertTrue($pending->isTerminated());
+        $after = $env->agents->getById($before->getId());
+        self::assertSame('Last rename', $after->getName()->toString());
+        self::assertSame($winnerState->getCredentialId(), $after->getCredentialId());
+        self::assertSame($winnerState->getCredentialRevision(), $after->getCredentialRevision());
+        self::assertSame(
+            $winnerState->getEncryptedHmacSharedSecretEnvelope(),
+            $after->getEncryptedHmacSharedSecretEnvelope()
+        );
+        self::assertSame($winnerState->getPermissionIds(), $after->getPermissionIds());
+        self::assertSame(
+            $winnerState->getPermissionAssignmentRevision(),
+            $after->getPermissionAssignmentRevision()
+        );
+        self::assertSame($operations, $env->operations->operations);
+        self::assertEquals($now, $after->getUpdatedAt());
+        $event = array_last($env->events->events());
+        self::assertInstanceOf(AgentNameChanged::class, $event);
+        self::assertEquals($after->getUpdatedAt(), $event->getChangedAt());
     }
 
     public function test_revocation_wins_against_paused_real_and_noop_rename(): void
@@ -341,10 +377,12 @@ final class UpdateAgentHandlerTest extends TestCase
                 $env->agents->contract->reconciledGeneration = null;
             }
 
-            $attempt = fn(): bool => $env->agents->rename(
+            $clock = $this->createMock(Clock::class);
+            $clock->expects(self::never())->method('now');
+            $attempt = fn(): ?DateTimeImmutable => $env->agents->rename(
                 $before->getId(),
                 $before->getName(),
-                new DateTimeImmutable(self::NOW)
+                $clock->now(...)
             );
             $failure = $this->failure(
                 $case === 'transaction' ? $attempt : fn(): mixed => $env->transaction->commitTransactional($attempt)
@@ -360,6 +398,26 @@ final class UpdateAgentHandlerTest extends TestCase
             self::assertSame(0, $env->agents->nameWrites);
             self::assertSame([], $env->events->events());
         }
+    }
+
+    public function test_direct_name_write_rejects_a_backdating_clock_without_partial_effects(): void
+    {
+        $env = $this->environment();
+        $before = $env->agents->all()[0];
+        $operation = $env->operations->operations[$env->key->toString()];
+        $failure = $this->failure(fn(): mixed => $env->transaction->commitTransactional(
+            fn(): ?DateTimeImmutable => $env->agents->rename(
+                $before->getId(),
+                AgentName::fromString('Renamed'),
+                static fn(): DateTimeImmutable => new DateTimeImmutable('2026-09-27T11:59:59+00:00')
+            )
+        ));
+        self::assertInstanceOf(AgentUpdateException::class, $failure);
+        self::assertSame('The Agent name update time is stale.', $failure->getMessage());
+        self::assertSame($before, $env->agents->getById($before->getId()));
+        self::assertSame($operation, $env->operations->operations[$env->key->toString()]);
+        self::assertSame(0, $env->agents->nameWrites);
+        self::assertSame([], $env->events->events());
     }
 
     public function test_void_bus_allows_identical_input_acknowledgements_only_after_success(): void
@@ -405,9 +463,14 @@ final class UpdateAgentHandlerTest extends TestCase
         return $env;
     }
 
-    private function handler(ProvisioningEnvironment $env): UpdateAgentHandler
+    private function handler(ProvisioningEnvironment $env, ?Clock $clock = null): UpdateAgentHandler
     {
-        return new UpdateAgentHandler($env->agents, new FixedClock(self::NOW), $env->transaction, $env->events);
+        return new UpdateAgentHandler(
+            $env->agents,
+            $clock ?? new FixedClock(self::NOW),
+            $env->transaction,
+            $env->events
+        );
     }
 
     private function message(AgentId $id, string $name): CommandMessage

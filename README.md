@@ -98,7 +98,8 @@ supported partial Feature release.
 
 The [name update guide](docs/agent-name-updates.md) describes generic `UpdateAgent` with typed User/Agent provenance,
 void `UpdateAgentHandler` and post-commit `AgentNameChanged`. Every Agent repository must implement the name-only
-`rename(id, name, time)` capability under current ACTIVE, correlation and cohort fences, including no-ops. Names are
+`rename(id, name, now)` capability under current ACTIVE, correlation and cohort fences, including no-ops. Its clock
+callback is sampled after writer admission; it returns exact persisted time or null for a validated no-op. Names are
 last-committed-wins without an expected old name or revision; credentials and Permissions are never replaced.
 Consumers protect every dispatch entry point and separately qualify persistence. Successful synchronous dispatch
 permits the same input-derived `{agent_id, name}` acknowledgement for changes/no-ops. No MCP Tool, administrator

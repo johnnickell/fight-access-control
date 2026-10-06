@@ -34,8 +34,9 @@ original correlation and records retirement with audit. Permission changes prese
 New `add()` is insertion only, never an upsert over existing or revoked authority.
 
 [Name updates](agent-name-updates.md) use `UpdateAgent` with typed User/Agent provenance and a mandatory
-`AgentRepository::rename(id, name, time)` name-only capability. The repository applies `Agent::rename()` to fenced
-current ACTIVE state, including no-ops, preserving all authority and exact operation correlation. Last committed
+`AgentRepository::rename(id, name, now)` name-only capability. The repository samples the supplied clock callback
+only after current writer admission, applies `Agent::rename()` to fenced ACTIVE state, and returns the exact persisted
+time or null for a validated no-op. All authority and exact operation correlation are preserved. Last committed
 name wins without an expected old name or name revision; stale whole-Agent writers cannot undo it. No-op changes
 neither timestamp nor persistence and publishes no fact. A real change publishes `AgentNameChanged` after commit;
 publication failure rethrows without undoing the rename. Consumers protect every entry point; provenance grants no

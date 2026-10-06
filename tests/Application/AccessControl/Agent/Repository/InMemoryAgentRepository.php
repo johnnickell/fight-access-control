@@ -11,6 +11,7 @@ use Fight\AccessControl\Domain\AccessControl\Agent\AgentCredentialId;
 use Fight\AccessControl\Domain\AccessControl\Agent\AgentId;
 use Fight\AccessControl\Domain\AccessControl\Agent\AgentName;
 use Fight\AccessControl\Domain\AccessControl\Agent\AgentRepository;
+use Fight\AccessControl\Domain\AccessControl\Agent\AgentState;
 use Fight\AccessControl\Domain\AccessControl\Agent\Exception\AgentOperationRejectedException;
 use Fight\AccessControl\Domain\AccessControl\Agent\Exception\AgentUpdateException;
 use Fight\AccessControl\Domain\AccessControl\Agent\Operation\AgentCredentialOperation;
@@ -126,7 +127,7 @@ final class InMemoryAgentRepository implements AgentRepository
         return $this->authorizationReferences->agentContainsPermission($permissionId);
     }
 
-    public function rename(AgentId $id, AgentName $name, DateTimeImmutable $renamedAt): bool
+    public function rename(AgentId $id, AgentName $name, Closure $now): ?DateTimeImmutable
     {
         $this->beforeNameWrite?->__invoke();
         $this->getOperationContract()->assertCompatible();
@@ -135,11 +136,10 @@ final class InMemoryAgentRepository implements AgentRepository
         }
 
         $current = $this->getById($id);
-        if ($current === null) {
+        if ($current === null || $current->getState() !== AgentState::ACTIVE) {
             throw new AgentUpdateException('The Agent is unavailable for a name update.');
         }
 
-        $replacement = $current->rename($name, $renamedAt);
         $matches = array_filter(
             $this->operations->operations,
             static function (AgentCredentialOperation $operation) use ($current): bool {
@@ -155,8 +155,9 @@ final class InMemoryAgentRepository implements AgentRepository
         }
 
         array_first($matches)->assertDeliveryCredential($current);
+        $replacement = $current->rename($name, $now());
         if ($replacement === $current) {
-            return false;
+            return null;
         }
 
         $index = array_search($current, $this->agents, true);
@@ -169,7 +170,7 @@ final class InMemoryAgentRepository implements AgentRepository
         });
         $this->afterNameWrite?->__invoke();
 
-        return true;
+        return $replacement->getUpdatedAt();
     }
 
     public function replace(

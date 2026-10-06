@@ -52,8 +52,8 @@ final readonly class UpdateAgentHandler implements CommandHandler
         try {
             $name = AgentName::fromString($command->getName());
             $event = $this->unitOfWork->commitTransactional(function () use ($command, $name): ?AgentNameChanged {
-                $changedAt = $this->clock->now();
-                if (!$this->agents->rename($command->getAgentId(), $name, $changedAt)) {
+                $changedAt = $this->agents->rename($command->getAgentId(), $name, $this->clock->now(...));
+                if ($changedAt === null) {
                     return null;
                 }
 
