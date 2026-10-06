@@ -197,5 +197,11 @@ and requested inclusion of pending planning changes in the implementation commit
 TASK-00072 implements the complete recovery boundary; focused checks pass 206 tests / 2957 assertions and `./bin/build`
 passes 1993 tests / 37644 assertions with exact 6841/6841 product statements (971/971 changed-production statements).
 The TASK owns every M/E/C mapping, saved failure chronology, input manifest and actual commit handoff. Independent
-review and post-review behavioral QA remain pending, so acceptance evidence and TASK/parent completion remain open.
+review initially requested F1–F3 at `8a96e2b`: controlled-interleaving and distinguishing ordering evidence plus six
+new docblocks, without a demonstrated sampled runtime defect. TASK-00072's revision adds actual handler/CAS competing
+schedules and real mixed-family bounded ordered pages, corrects overclaimed mappings and fixes the six blocks.
+Revision focused/full checks pass 357 tests / 5780 assertions and 2019 tests / 39818 assertions, exact 6841/6841
+owned statements, with no final warnings/skips or dependency drift. The TASK owns fresh provenance and retained failed
+iterations. Independent re-review and post-review behavioral QA remain pending, so acceptance evidence and TASK/parent
+completion remain open.
 PostgreSQL qualification, consumer adoption and publication remain separate; no independent acceptance is claimed.

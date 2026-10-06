@@ -31,7 +31,9 @@ final readonly class ExpireInvitationDelivery implements Command
     ) {
     }
 
-    /** @inheritDoc */
+    /**
+     * @inheritDoc
+     */
     public static function fromArray(array $data): static
     {
         foreach (['actor_id', 'user_id', 'activation_delivery_id', 'occurred_at'] as $key) {
@@ -48,7 +50,9 @@ final readonly class ExpireInvitationDelivery implements Command
         );
     }
 
-    /** @inheritDoc */
+    /**
+     * @inheritDoc
+     */
     public function toArray(): array
     {
         return [

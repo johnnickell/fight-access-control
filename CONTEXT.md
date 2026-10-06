@@ -29,7 +29,14 @@ full email expiry in every reachable User state and a mandatory grant-bound rese
 and now pass. At the pre-publication checkpoint, focused checks pass 206 tests / 2957 assertions; `./bin/build` passes
 1993 tests / 37644 assertions, exact 6841/6841 product statements and 971/971 changed-production statements, with no
 final warnings/skips. The TASK owns source-input/commit evidence and every matrix mapping. Independent technical
-review and subsequent nonvisual behavioral QA remain pending; the TASK and eligible parents are not yet complete. Agent OS `TASK-00024` is an external
+review of `8a96e2b` requested F1–F3: missing interleaved replacement/coupled-email/two-worker and distinguishing discovery
+order evidence, plus six new docblocks; it demonstrated no sampled runtime defect. The revision adds deterministic
+public-handler/reference-CAS schedules and real mixed-family ordered page/drain tests, corrects the initial handoff's
+race overclaims and fixes only those docblocks. Revision focused checks pass 357 tests / 5780 assertions; fresh
+`./bin/build` passes 2019 tests / 39818 assertions and exact 6841/6841 owned statements (971/971 across TASK-changed
+production). No final warnings/skips or dependency drift; the TASK owns failed-attempt chronology and fresh provenance.
+Independent re-review and subsequent nonvisual behavioral QA remain pending; the TASK and eligible parents are not yet
+complete. Agent OS `TASK-00024` is an external
 consumer context ID, not an upstream TASK or local dependency. Explicit checkout/worktree
 placement, implementation gates and independent review/behavioral QA precede the consumer handoff. Real PostgreSQL
 qualification, adoption, tagging/signing/publication and deployment remain separate. Preserve concurrent Agent-profile planning changes.

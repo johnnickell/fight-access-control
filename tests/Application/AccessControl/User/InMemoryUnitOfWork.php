@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Fight\Test\AccessControl\Application\AccessControl\User;
 
+use Fiber;
 use Fight\Common\Application\Repository\TransactionalUnitOfWork;
 use Fight\Test\AccessControl\Application\AccessControl\User\Repository\InMemoryAuthorizationReferenceState;
 use RuntimeException;
@@ -21,6 +22,8 @@ final class InMemoryUnitOfWork implements TransactionalUnitOfWork
     public bool $failNextCommit = false;
 
     private ?InMemoryAuthorizationReferenceState $authorizationReferenceState = null;
+
+    private int $rollbackStart = 0;
 
     /** @var list<callable(): void> */
     private array $rollbackActions = [];
@@ -41,6 +44,8 @@ final class InMemoryUnitOfWork implements TransactionalUnitOfWork
         ++$this->transactions;
         $this->transactionActive = true;
         $rollbackStart = count($this->rollbackActions);
+        $this->rollbackStart = $rollbackStart;
+
         $completionStart = count($this->completionActions);
 
         try {
@@ -68,6 +73,30 @@ final class InMemoryUnitOfWork implements TransactionalUnitOfWork
             $this->transactionActive = false;
             array_splice($this->rollbackActions, $rollbackStart);
             array_splice($this->completionActions, $completionStart);
+        }
+    }
+
+    /**
+     * Suspends a read-only transaction so another modeled connection can commit
+     *
+     * Only pre-write interleavings are supported: a paused transaction must not expose
+     * uncommitted state or register rollback actions that could undo another winner.
+     */
+    public function suspendBeforeFirstWrite(): void
+    {
+        if (!$this->transactionActive || count($this->rollbackActions) !== $this->rollbackStart) {
+            throw new RuntimeException('Only a transaction without writes can be suspended.');
+        }
+
+        $rollbackStart = $this->rollbackStart;
+        $completed = $this->transactionCompleted;
+        $this->transactionActive = false;
+        try {
+            Fiber::suspend();
+        } finally {
+            $this->transactionActive = true;
+            $this->transactionCompleted = $completed;
+            $this->rollbackStart = $rollbackStart;
         }
     }
 

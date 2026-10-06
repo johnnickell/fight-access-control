@@ -35,13 +35,17 @@ final readonly class ExpireInvitationDeliveryHandler implements CommandHandler
     ) {
     }
 
-    /** @inheritDoc */
+    /**
+     * @inheritDoc
+     */
     public static function commandRegistration(): string
     {
         return ExpireInvitationDelivery::class;
     }
 
-    /** @inheritDoc */
+    /**
+     * @inheritDoc
+     */
     public function handle(CommandMessage $commandMessage): void
     {
         /** @var ExpireInvitationDelivery $command */
