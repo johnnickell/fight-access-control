@@ -6,7 +6,7 @@ Fight AccessControl owns framework-neutral identity, credential, session, author
 behavior shared by Fight applications. The repository-local behavioral and security authority is
 [TICKET-00001](planning/tickets/00001-TICKET.md).
 
-## Self-service Agent profile Tools — TASK-00071 implementation
+## Self-service Agent profile Tools — TASK-00071 accepted
 
 John selected the clean main checkout from `develop` `40168bc` on `feature/task-00071-agent-profile-tools`.
 The unreleased [profile Tool guide](docs/agent-profile-tools.md) defines Application `Agent\\Tool\\GetAgentProfileTool`
@@ -24,8 +24,19 @@ MCP runtime/database/seed qualification. Focused checks pass **90 tests / 843 as
 passes **2109 tests / 40671 assertions**, exact **7019/7019** owned and **19/19** new statements. No final warnings/skips
 or dependency package changes; ignored Composer metadata regenerated and the rebuilt image retains identical runnable
 Config/RootFS. The TASK owns the receipt and corrected early fixture/style failures. Final evidence prose retains
-equivalent executable inputs plus targeted checks. TASK-00071 remains in progress awaiting independent technical review
-and behavioral QA; parent completion is not yet eligible. Publication, merge, release and deployment remain separate.
+equivalent executable inputs plus targeted checks. Independent technical review subsequently **accepts** clean
+`a160c95` against unchanged `develop` `40168bc`, with C1–C5 passing and no findings. Independent behavioral **QA PASS**
+covers six groups, **36 executable cases / 437 checks**, **10 instruction walkthroughs** and fresh **90 tests / 843
+assertions**. QA-only initial envelope-assertion and deprecated-option issues were corrected in its disposable harness;
+final runs have no warnings/skips/deprecations, and no product defect was identified.
+
+TASK-00071 is done for accepted package implementation and required local/behavioral verification. Automatic parent
+completion closes TICKET-00019 and EPIC-00011 in the same operation; TASK-00070 and TICKET-00018 were already done.
+John authorized landing against unchanged `develop`; publication is pending at this tracked pre-publication checkpoint.
+The ignored `.runs/logs/TASK-00071/landing/` receipt owns fresh gates, final delivery and the administrative-only
+acceptance/QA/runtime bridge. Canonical reports remain unchanged; sanitized nonvisual QA results are prepared for
+publication. Hosted CI is optional/not checked. The main checkout and useful evidence are retained; no isolated TASK
+worktree or persistent service exists. Human approval/merge, consumer qualification, release and deployment remain separate.
 
 ## Minimal Agent profiles — TASK-00070 accepted
 

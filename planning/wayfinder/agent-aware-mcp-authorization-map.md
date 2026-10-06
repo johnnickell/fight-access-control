@@ -77,8 +77,9 @@ None. WF-008, WF-023 and WF-024 are closed. The authorization contract is handed
 [EPIC-00005](../epics/00005-EPIC.md), and the profile contract through [EPIC-00011](../epics/00011-EPIC.md).
 The profile EPIC's TICKET-00018/00019 requirement split and TASK plans (TASK-00069/00070/00071) are approved.
 The installed v1.3.0 API inspection clears the Common external hold. TASK-00070, TASK-00035 and TASK-00069 are now
-done; TASK-00071 is in progress with all recorded dependencies satisfied. The Board owns execution selection.
-No decision is reopened by implementation work.
+done; TASK-00071 now has independent technical acceptance and behavioral QA PASS and is also done. Automatic
+parent completion closes TICKET-00019 and EPIC-00011. The TASK owns authorized PR delivery; consumer qualification,
+merge and release remain separate. The Board owns execution selection. No decision is reopened by completion.
 
 ## Not yet specified (fog)
 
