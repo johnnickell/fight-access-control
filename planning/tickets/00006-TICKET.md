@@ -2,7 +2,7 @@
 id: TICKET-00006
 epic: EPIC-00005
 title: Authorize Agent-Protected MCP Tools
-status: in-progress
+status: done
 ---
 
 # Authorize Agent-Protected MCP Tools
@@ -24,8 +24,8 @@ This TICKET owns the complete Agent-aware authorization integration. The externa
 installed Fight Common v1.3.0. [TASK-00035](../tasks/00035-TASK.md#verified-fight-common-v130-contracts) records
 its exact revision and inspected public signatures: method-level `McpToolInfo`, canonical registry metadata,
 boolean `McpToolAvailability`, discovery/invocation and protected-retry enforcement. The external gate made the TICKET
-and TASK executable. TASK-00035 is now in progress on its authorized feature branch; its builder implementation is not
-independent conformance acceptance.
+and TASK executable. TASK-00035 now has independent technical acceptance and behavioral QA PASS at `38ca186`; this
+TICKET is complete for the accepted package contract, not actual consumer qualification or release.
 
 ## Use Cases
 
@@ -89,27 +89,28 @@ existing use case through Common's Tool contract; that Tool behavior is not owne
 
 ## Acceptance Evidence
 
-The remaining checkboxes await independent acceptance; TASK-00035's C1–C8 table records current builder evidence
-and its passing local gate without closing this requirement.
+Independent review accepts TASK-00035 C1–C8 at `38ca186`, with no findings, and independent behavioral QA passes
+six scenario groups (17 executable cases / 282 assertions and eight instruction walkthroughs). Its completion
+checkpoint owns exact subjects, local-gate provenance, canonical reports and remaining consumer limitations.
 
 - [x] Published Fight Common contracts and a compatible installed release identify the exact Tool declaration target,
   canonical metadata/name source, availability signature, and retry enforcement seam without AccessControl copying
   Common naming or protocol logic.
-- [ ] Composition tests prove one requirement, repeated conjunctive requirements, missing metadata, malformed
+- [x] Composition tests prove one requirement, repeated conjunctive requirements, missing metadata, malformed
   metadata, duplicate/drifting canonical identity, and separation of protected and public Tool compositions.
-- [ ] Discovery conformance proves permitted Tools remain visible, unresolved or under-permissioned Agents conceal
+- [x] Discovery conformance proves permitted Tools remain visible, unresolved or under-permissioned Agents conceal
   Tools before ordering and pagination, only static metadata crosses requests, and authorization-sensitive cache
   metadata remains private with a zero TTL.
-- [ ] Invocation conformance proves unknown and unavailable Tools have the same public Common outcome and that denial
+- [x] Invocation conformance proves unknown and unavailable Tools have the same public Common outcome and that denial
   occurs before Tool validation, `handle()`, command/query dispatch, progress, or protected diagnostics.
-- [ ] Interaction conformance proves a later request resolves fresh authority and denies before restored-state
+- [x] Interaction conformance proves a later request resolves fresh authority and denies before restored-state
   disclosure, input-response validation, `resume()`, command/query dispatch, or progress.
-- [ ] Request-lifecycle tests prove one provider resolves and reuses one immutable principal snapshot within a request,
+- [x] Request-lifecycle tests prove one provider resolves and reuses one immutable principal snapshot within a request,
   while Agent revocation, credential revision, or Permission-assignment revision changes are observed by the next
   request. Revocation after resolution does not cancel work already authorized in that request.
-- [ ] Boundary tests prove Common receives only its neutral availability value and AccessControl receives Common's
+- [x] Boundary tests prove Common receives only its neutral availability value and AccessControl receives Common's
   resolved canonical metadata rather than a separately derived Tool name.
-- [ ] Focused behavior checks, `./bin/planning-check`, and the canonical `./bin/build` pass with exact coverage when
+- [x] Focused behavior checks, `./bin/planning-check`, and the canonical `./bin/build` pass with exact coverage when
   the later implementation TASK is complete.
 
 ## Exclusions
@@ -127,17 +128,19 @@ and its passing local gate without closing this requirement.
 
 | Order | TASK ID | Title | Status |
 | --- | --- | --- | --- |
-| 35 | [TASK-00035](../tasks/00035-TASK.md) | Authorize Agent-protected MCP Tools | in-progress |
+| 35 | [TASK-00035](../tasks/00035-TASK.md) | Authorize Agent-protected MCP Tools | done |
 ## Decisions and Progress
 
 All EPIC-00005 requirements have one cohesive owner here: static repeatable metadata, canonical-name catalog,
 conjunctive Permission evaluation, request-local principal freshness, shared discovery/invocation/retry enforcement,
 concealment, cache posture, snapshot semantics, compatibility, and conformance evidence. No separate layer-based
 TICKET is required. [TASK-00035](../tasks/00035-TASK.md) is the one cohesive implementation owner and is now
-in progress after the installed v1.3.0 API inspection and John's work invocation. Its
-dependency-ordered metadata/catalog, availability-integration, and conformance/enforcement assignments remain
-SUBTASKs under that one TASK, not separate durable TASKs.
+done for independently accepted implementation and package QA. Its dependency-ordered metadata/catalog,
+availability-integration and conformance/enforcement assignments were SUBTASKs under that one TASK, not separate
+durable TASKs.
 
 The [current composition guide](../../docs/agent-mcp-authorization.md) describes the three additive public contracts
-and narrowed Common `^1.3` minimum. TASK-00035 owns executable Common-boundary evidence, full-gate results and remaining
-independent review/behavioral QA. Builder implementation does not close this requirement or qualify a consumer.
+and narrowed Common `^1.3` minimum. TASK-00035 owns executable Common-boundary evidence, full-gate results and independent
+review/behavioral QA. Automatic parent completion closes this TICKET and EPIC-00005 in the same landing operation.
+John authorized PR publication separately; publication, human approval, merge, release and consumer qualification
+are not implied by parent completion.

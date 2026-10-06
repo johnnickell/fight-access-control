@@ -9,7 +9,7 @@ This generated index is a projection; individual records remain canonical.
 | [TICKET-00003](00003-TICKET.md) | Unified Authenticated Authority | done |
 | [TICKET-00004](00004-TICKET.md) | Consistent Authorization Modification | done |
 | [TICKET-00005](00005-TICKET.md) | Composable OpenAPI Schema Components | done |
-| [TICKET-00006](00006-TICKET.md) | Authorize Agent-Protected MCP Tools | in-progress |
+| [TICKET-00006](00006-TICKET.md) | Authorize Agent-Protected MCP Tools | done |
 | [TICKET-00007](00007-TICKET.md) | Deliver Credentials Recoverably Outside Transactions | done |
 | [TICKET-00008](00008-TICKET.md) | Use Supported Transactional Unit of Work Contracts | done |
 | [TICKET-00009](00009-TICKET.md) | Delegate Eligible Permissions to Custom Roles and Agents | done |

@@ -6,7 +6,7 @@ Fight AccessControl owns framework-neutral identity, credential, session, author
 behavior shared by Fight applications. The repository-local behavioral and security authority is
 [TICKET-00001](planning/tickets/00001-TICKET.md).
 
-## Agent-protected MCP authorization — TASK-00035 builder checkpoint
+## Agent-protected MCP authorization — TASK-00035 accepted
 
 John selected the main checkout for TASK-00035 from clean `develop` `4b6d083`, on
 `feature/task-00035-agent-mcp-authorization`. The [MCP authorization guide](docs/agent-mcp-authorization.md) records
@@ -27,8 +27,21 @@ controlled fixtures, not real consumer qualification. Final focused checks pass 
 canonical full gate passes **2069 tests / 40356 assertions**, exact **6966/6966 owned statements** and **36/36 new
 statements**, with no final warnings/skips or resolved package drift. The TASK owns the complete receipt and early
 fixture/style failure chronology. Final evidence prose retains the full gate through unchanged executable-input hashes
-and targeted planning/documentation checks. Independent review and behavioral QA remain pending. TASK-00035 stays in
-progress, and TASK-00071 still waits on it and TASK-00070.
+and targeted planning/documentation checks. Independent technical review subsequently **accepts** clean `38ca186`
+against unchanged `develop` `4b6d083`, all C1–C8 passing with no findings. Independent behavioral **QA PASS** covers
+six groups, **17 executable cases / 282 assertions**, eight labeled instruction walkthroughs and fresh **64 tests /
+626 assertions**. Probes include exact-registry mismatch, stale discovery cursors, same-request/fresh-request authority,
+unknown/denied public equality and protected retry/replay. No product defect or final warnings/skips were found;
+controlled ports remain package evidence, not actual consumer qualification.
+
+TASK-00035 is done for accepted package implementation and required local/behavioral verification. Automatic parent
+completion closes TICKET-00006 and EPIC-00005 in the same operation. TASK-00071 retains its satisfied dependency
+edges and still waits on TASK-00070. Fresh pre-publication landing checks pass **64 tests / 626 assertions** and
+**2069 tests / 40356 assertions**, exact **6966/6966 statements**, with no warnings/skips or dependency package changes.
+John's land invocation authorizes non-force PR publication; final delivery is pending at this pre-publication checkpoint.
+The ignored TASK landing receipt owns fresh gates, the administrative-only
+review/QA bridge and publication/evidence verification; canonical reports remain unchanged. Hosted CI is optional/not
+checked. Human approval, merge, signed package release, consumer adoption and deployment remain separate.
 
 ## MCP planning readiness — Fight Common v1.3.0 (prior checkpoint)
 
