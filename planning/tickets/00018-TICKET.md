@@ -107,5 +107,8 @@ production or dependency-policy changes. Independent review subsequently accepts
 passing with no findings, and validates the behavior-preserving bridge to the original independent QA PASS. Fresh
 reviewer checks pass 285 tests / 5528 assertions plus PHPStan and four contention probes. TASK-00069 owns the exact
 report, full-gate/QA provenance and resumed landing receipt. This TICKET remains done for its accepted sole child;
-EPIC-00011 remains needs-info for its other unfinished child. PR publication and final delivery are pending at this
-resumed landing checkpoint; no merge or release is claimed.
+EPIC-00011 remains needs-info for its other unfinished child. Resumed landing published
+[PR #109](https://github.com/johnnickell/fight-access-control/pull/109) against unchanged `develop`, with sanitized
+QA evidence publicly read back. Fresh landing gates retain the complete counts above. Final metadata verification
+and ready transition remain pending at this tracked checkpoint; TASK-00069's ignored receipt owns final delivery.
+No merge or release is claimed.

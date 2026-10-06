@@ -735,8 +735,13 @@ full-gate inputs and preserves the prior independent QA PASS through unchanged b
 reviewed test changes and an explicit resolved-dependency/runnable-image bridge. This is not a new QA verdict.
 The old review is retained in review history; canonical QA is unchanged. John resumed land; remote develop is
 unchanged and no feature publication or PR exists at intake. TASK/TICKET remain done; EPIC-00011 remains needs-info.
-Fresh landing gates and publication are pending at this resumed checkpoint; the TASK's ignored
-`landing/resumed-accept/` receipt owns final delivery and evidence read-back. No approval, merge or release is claimed.
+Fresh landing focused checks pass **285 tests / 5528 assertions** and the complete gate passes **2040 tests /
+40091 assertions**, exact **6930/6930 statements**, with no final warnings/skips or package drift. John authorized
+[PR #109](https://github.com/johnnickell/fight-access-control/pull/109), open against unchanged `develop` at initial
+head `6fb04b0f770c0a5619402fa8047d28e369aab78b`. Sanitized nonvisual QA evidence is published and publicly read back.
+At this PR-metadata checkpoint it remains draft pending final verification/push and ready transition; the TASK's
+ignored `landing/resumed-accept/` receipt owns final delivery and the administrative-only provenance bridge.
+No approval, merge or release is claimed.
 Hosted CI is optional/not checked.
 Controlled in-memory writer schedules are not actual consumer database,
 security wiring or runtime qualification. TASK-00070/00071/00035 retain profile reads/Permissions/MCP Tool integration;
