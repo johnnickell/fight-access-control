@@ -25,7 +25,11 @@ assertions**; the complete local gate passes **2080 tests / 40412 assertions**, 
 and **34/34** new statements, without final warnings/skips. The TASK records the initial TTY failure, corrected
 style/type issues, interrupted first build and normal ignored dev-only Rector **2.6.7 → 2.7.0** update; the successful
 rerun has no further dependency drift. Final evidence prose retains equivalent executable inputs with targeted
-planning/documentation checks. Independent review and behavioral QA remain pending; no MCP Tool, administrator
+planning/documentation checks. Independent review of `d75db98` requested F1, removal of constructor/private-property
+layout assertions. The bounded test-only revision preserves all behavioral assertions and passes fresh focused
+**31 tests / 210 assertions** and full **2079 tests / 40409 assertions**, still exact **7000/7000** owned and **34/34**
+new statements, without warnings/skips or dependency package changes. The TASK owns the fresh receipt and Composer
+metadata regeneration note. Independent re-review and behavioral QA remain pending; no MCP Tool, administrator
 endpoint, consumer migration, publication, release or deployment is claimed.
 
 ## Agent-protected MCP authorization — TASK-00035 accepted

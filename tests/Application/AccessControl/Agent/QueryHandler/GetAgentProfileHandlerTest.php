@@ -19,7 +19,6 @@ use Fight\Common\Domain\Messaging\Query\QueryMessage;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
-use ReflectionClass;
 use RuntimeException;
 
 #[CoversClass(GetAgentProfileHandler::class)]
@@ -99,16 +98,6 @@ final class GetAgentProfileHandlerTest extends TestCase
         } catch (RuntimeException $runtimeException) {
             self::assertSame($failure, $runtimeException);
         }
-    }
-
-    public function test_handler_has_no_permission_transaction_or_event_collaborator(): void
-    {
-        $constructor = new ReflectionClass(GetAgentProfileHandler::class)->getConstructor();
-        self::assertNotNull($constructor);
-        self::assertSame(
-            [AgentRepository::class],
-            array_map(static fn($parameter): string => (string) $parameter->getType(), $constructor->getParameters())
-        );
     }
 
     private function readOnlyRepository(): AgentRepository&MockObject

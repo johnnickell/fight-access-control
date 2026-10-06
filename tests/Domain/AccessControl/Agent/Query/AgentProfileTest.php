@@ -15,7 +15,6 @@ use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 use ReflectionClass;
-use ReflectionProperty;
 
 #[CoversClass(GetAgentProfile::class)]
 #[CoversClass(AgentProfileView::class)]
@@ -64,12 +63,5 @@ final class AgentProfileTest extends TestCase
         );
         $reflection = new ReflectionClass($view);
         self::assertTrue($reflection->isReadOnly());
-        self::assertSame(
-            ['agentId', 'name'],
-            array_map(
-                static fn(ReflectionProperty $property): string => $property->getName(),
-                $reflection->getProperties()
-            )
-        );
     }
 }

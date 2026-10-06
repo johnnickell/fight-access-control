@@ -106,3 +106,9 @@ review and behavioral QA. Builder checks pass 32 focused tests / 213 assertions 
 2080 tests / 40412 assertions, exact 7000/7000 owned statements with no final warnings/skips. The TASK retains
 resolved-tool drift and interrupted-attempt chronology. TASK-00071 still owns actual self-service Tool binding;
 this checkpoint does not complete the TICKET or qualify consumer persistence, seeding or runtime.
+
+Independent review of `d75db98` requested F1's bounded test-quality correction, not a production behavior repair.
+The revision removes constructor/private-property layout assertions while retaining behavior and forbidden-effect
+checks. Fresh focused/full gates pass 31 tests / 210 assertions and 2079 tests / 40409 assertions, exact 7000/7000
+owned statements without warnings/skips. TASK-00070 remains in-progress for independent re-review and behavioral QA;
+TASK-00071 and real consumer qualification remain separate.
