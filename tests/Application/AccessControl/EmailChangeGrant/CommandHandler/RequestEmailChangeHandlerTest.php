@@ -60,7 +60,8 @@ final class RequestEmailChangeHandlerTest extends TestCase
                 new DateTimeImmutable('2026-08-22T10:00:00+00:00'),
                 new DateTimeImmutable('2026-08-22T11:00:00+00:00'),
                 EmailAddress::fromString('first@example.test'),
-                'ciphertext:predecessor-'.$outcome
+                'ciphertext:predecessor-'.$outcome,
+                $reservedUser->getEmailChangeReservationRevision()
             );
             self::assertTrue($grants->add($predecessor));
             if ($outcome === 'confirmed') {
@@ -188,7 +189,8 @@ final class RequestEmailChangeHandlerTest extends TestCase
             new DateTimeImmutable('2026-08-22T10:00:00+00:00'),
             new DateTimeImmutable('2026-08-22T11:00:00+00:00'),
             EmailAddress::fromString('previous@example.test'),
-            'ciphertext:predecessor'
+            'ciphertext:predecessor',
+            1
         );
         self::assertTrue($grants->add($issued));
         $terminal = $issued->revoke(new DateTimeImmutable('2026-08-22T10:30:00+00:00'));

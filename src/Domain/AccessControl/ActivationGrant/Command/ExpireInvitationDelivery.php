@@ -2,39 +2,41 @@
 
 declare(strict_types=1);
 
-namespace Fight\AccessControl\Domain\AccessControl\PasswordResetGrant\Event;
+namespace Fight\AccessControl\Domain\AccessControl\ActivationGrant\Command;
 
 use DateTimeImmutable;
+use Fight\AccessControl\Domain\AccessControl\ActivationGrant\ActivationDeliveryId;
 use Fight\AccessControl\Domain\AccessControl\CredentialDelivery\CredentialDeliveryTimestamp;
-use Fight\AccessControl\Domain\AccessControl\PasswordResetGrant\PasswordResetDeliveryId;
 use Fight\AccessControl\Domain\AccessControl\User\UserId;
 use Fight\Common\Domain\Exception\DomainException;
-use Fight\Common\Domain\Messaging\Event\Event;
+use Fight\Common\Domain\Messaging\Command\Command;
 
 /**
- * Class PasswordResetDeliveryExpired
+ * Class ExpireInvitationDelivery
  *
- * Records terminal destruction of expired password-reset delivery ciphertext.
+ * Processes terminal expiry for invitation delivery work.
  */
-final readonly class PasswordResetDeliveryExpired implements Event
+final readonly class ExpireInvitationDelivery implements Command
 {
     /**
-     * Constructs PasswordResetDeliveryExpired
+     * Constructs ExpireInvitationDelivery
      *
-     * Creates the secret-free terminal-expiry event.
+     * Creates the terminal-expiry command.
      */
     public function __construct(
         private string $actorId,
         private UserId $userId,
-        private PasswordResetDeliveryId $passwordResetDeliveryId,
+        private ActivationDeliveryId $activationDeliveryId,
         private DateTimeImmutable $occurredAt
     ) {
     }
 
-    /** @inheritDoc */
+    /**
+     * @inheritDoc
+     */
     public static function fromArray(array $data): static
     {
-        foreach (['actor_id', 'user_id', 'password_reset_delivery_id', 'occurred_at'] as $key) {
+        foreach (['actor_id', 'user_id', 'activation_delivery_id', 'occurred_at'] as $key) {
             if (!array_key_exists($key, $data)) {
                 throw new DomainException(sprintf('Missing required key "%s" in data array', $key));
             }
@@ -43,19 +45,21 @@ final readonly class PasswordResetDeliveryExpired implements Event
         return new static(
             (string) $data['actor_id'],
             UserId::fromString((string) $data['user_id']),
-            PasswordResetDeliveryId::fromString((string) $data['password_reset_delivery_id']),
+            ActivationDeliveryId::fromString((string) $data['activation_delivery_id']),
             CredentialDeliveryTimestamp::fromString((string) $data['occurred_at'])->toDateTimeImmutable()
         );
     }
 
-    /** @inheritDoc */
+    /**
+     * @inheritDoc
+     */
     public function toArray(): array
     {
         return [
-            'actor_id'                   => $this->actorId,
-            'user_id'                    => $this->userId->toString(),
-            'password_reset_delivery_id' => $this->passwordResetDeliveryId->toString(),
-            'occurred_at'                => $this->occurredAt->format('Y-m-d\TH:i:s.uP')
+            'actor_id'               => $this->actorId,
+            'user_id'                => $this->userId->toString(),
+            'activation_delivery_id' => $this->activationDeliveryId->toString(),
+            'occurred_at'            => $this->occurredAt->format('Y-m-d\TH:i:s.uP')
         ];
     }
 
@@ -76,11 +80,11 @@ final readonly class PasswordResetDeliveryExpired implements Event
     }
 
     /**
-     * Returns the expired delivery-generation identifier
+     * Returns the exact delivery-generation identifier
      */
-    public function getPasswordResetDeliveryId(): PasswordResetDeliveryId
+    public function getActivationDeliveryId(): ActivationDeliveryId
     {
-        return $this->passwordResetDeliveryId;
+        return $this->activationDeliveryId;
     }
 
     /**

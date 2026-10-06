@@ -20,8 +20,8 @@ MCP tools and their permission binding.
 
 | Actor and trigger | Command | Queries | Events | Observable outcome and side effects |
 | --- | --- | --- | --- | --- |
-| A consumer-authorized User or Agent requests a new name for a chosen Agent | Generic `UpdateAgent`, carrying target, new name and typed initiating User-or-Agent identity | N/A; the handler may load current Agent state but issues no public read query or compensating acknowledgement lookup | A name-changed fact on a real committed change only | Normalize with `AgentName::fromString()`; if current target is `ACTIVE`, commit only the new name and `updatedAt` and return the committed normalized name with `changed: true`. The event carries target and typed initiator provenance and is published after commit. |
-| The same caller repeats the normalized current name | `UpdateAgent` | N/A | No success event | Succeed with `changed: false` and the current normalized name, without any write or `updatedAt` change. |
+| A consumer-authorized User or Agent requests a new name for a chosen Agent | Generic `UpdateAgent`, carrying target, new name and typed initiating User-or-Agent identity | N/A; the handler may load current Agent state but issues no public read query or compensating acknowledgement lookup | A name-changed fact on a real committed change only | Normalize with `AgentName::fromString()`; if current target is `ACTIVE`, commit only the new name and `updatedAt`. After successful void dispatch, callers may acknowledge `{agent_id, name}` from the target and normalized command input. The event carries target and typed initiator provenance and is published after commit. |
+| The same caller repeats the normalized current name | `UpdateAgent` | N/A | No success event | Succeed without any write or `updatedAt` change; callers may acknowledge the same `{agent_id, name}` shape from normalized command input, without a changed/no-op distinction. |
 | The name, target, or persistence state is invalid | `UpdateAgent` | N/A | No success event; preserve ordinary safe command-failure event/rethrow semantics | Invalid trimmed-empty or over-120-character name, missing or non-`ACTIVE` target, and pre-commit storage failure cause no name write. Pre-commit failure rolls back; post-commit publication failure reports failure without claiming rollback or guaranteed event delivery. |
 | Two callers rename the same Agent while credential, Permission, or lifecycle state changes | `UpdateAgent` | N/A | A fact for each real committed rename, subject to post-commit publication failure | Last committed name wins without expected old name or name revision, but no stale aggregate replacement may overwrite credential/Permission updates or restore revoked authority. A target no longer `ACTIVE` at the write must reject. |
 
@@ -32,10 +32,13 @@ MCP tools and their permission binding.
 - At the actual write, verify the current target remains `ACTIVE`. Persist only name and its real-change timestamp
   within one transaction and enforce the current authority fence; do not rewrite credential or Permission state.
   Repository/aggregate design may choose the safe name-only mechanism, not a generic stale whole-Agent replacement.
-- On real change, the command's acknowledgement contains the target Agent ID, committed normalized name and changed
-  indicator without a compensating read. On no-op the same safe fields report `changed: false`. No credential or
-  Permission details are returned. A post-commit publication error can cause a failure response even if the rename
-  already committed; a later read or retry can resolve current state but event delivery is not promised.
+- Keep Common's void CommandBus/CommandHandler contracts. After successful synchronous dispatch, callers may
+  acknowledge exactly `{agent_id, name}` from the command's target and `AgentName::fromString()`-normalized input.
+  Real changes and no-ops share that acknowledgement; no `changed` field, result-bearing rename API or compensating
+  read is required. It describes the successful request, not a fresh latest-state read after competing writes.
+  No credential or Permission details are returned. A post-commit publication error causes a failure response,
+  not a success acknowledgement, even if the rename already committed; a later read or retry can resolve current
+  state but event delivery is not promised.
 - The typed User/Agent initiator on the command and fact is **provenance only**. Package validation of Agent state
   does not authenticate or authorize callers. Consumers must protect all dispatch paths (including direct bus,
   workers and admin/self-service entry points) against unauthorized actor, target and scope combinations.
@@ -45,7 +48,8 @@ MCP tools and their permission binding.
 ## Acceptance Evidence
 
 - [ ] Focused unit coverage of new/changed production classes proves validation, real and unchanged updates,
-      active-state rejection, typed initiator provenance, committed acknowledgement and event ordering/failure.
+      active-state rejection, typed initiator provenance, input-derived acknowledgement after successful void dispatch
+      and event ordering/failure.
 - [ ] A few controlled package transaction/interleaving checks prove last-write-wins for names without lost
       credential/Permission changes or revoked-Agent resurrection, rollback before commit and accurate behavior
       after event-publication failure. Do not claim this qualifies an actual consumer database race.
@@ -76,6 +80,9 @@ introduced.
 | --- | --- | --- | --- |
 | 69 | [TASK-00069](../tasks/00069-TASK.md) | Rename an Agent atomically with typed provenance | ready-for-agent |
 ## Progress
+
+John subsequently simplified successful acknowledgement to `{agent_id, name}` from normalized command input;
+real/no-op effects remain distinct internally, without a `changed` field or result-bearing command invocation.
 
 John approved this as the first of two cohesive EPIC-00011 requirement areas and subsequently approved one complete
 implementation slice, [TASK-00069](../tasks/00069-TASK.md). TASK planning for TICKET-00018 is complete; separate

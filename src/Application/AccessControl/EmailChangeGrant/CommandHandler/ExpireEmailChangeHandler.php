@@ -52,23 +52,30 @@ final readonly class ExpireEmailChangeHandler implements CommandHandler
 
         try {
             $event = $this->unitOfWork->commitTransactional(function () use ($command): ?EmailChangeExpired {
-                $user = $this->userRepository->getById($command->getUserId());
                 $emailChangeGrant = $this->emailChangeGrantRepository->getLatestByUserId($command->getUserId());
-                $pendingEmailChange = $user?->getPendingEmailChange()?->canonical();
                 if (
-                    !$user instanceof User
-                    || !$emailChangeGrant instanceof EmailChangeGrant
+                    !$emailChangeGrant instanceof EmailChangeGrant
                     || !$emailChangeGrant->getId()->equals($command->getEmailChangeGrantId())
-                    || !$emailChangeGrant->getUserId()->equals($command->getUserId())
-                    || $pendingEmailChange !== $emailChangeGrant->getDelivery()->getEmail()->canonical()
+                    || !$emailChangeGrant->isIssued()
+                    || $command->getOccurredAt() < $emailChangeGrant->getExpiresAt()
                 ) {
                     return null;
                 }
 
-                $expiredGrant = $emailChangeGrant->expireAt($command->getOccurredAt());
-                if ($expiredGrant === $emailChangeGrant) {
-                    return null;
+                $user = $this->userRepository->getById($command->getUserId());
+                if (
+                    !$user instanceof User
+                    || !$user->getId()->equals($command->getUserId())
+                    || !$emailChangeGrant->matchesReservation(
+                        $user->getId(),
+                        $user->getPendingEmailChange(),
+                        $user->getEmailChangeReservationRevision()
+                    )
+                ) {
+                    throw new LogicException('The expired email-change authority has no matching reservation.');
                 }
+
+                $expiredGrant = $emailChangeGrant->expireAt($command->getOccurredAt());
 
                 $expiredUser = clone $user;
                 $expiredUser->expireEmailChange($command->getOccurredAt());
@@ -92,7 +99,12 @@ final readonly class ExpireEmailChangeHandler implements CommandHandler
                 $this->eventDispatcher->trigger($event);
             }
         } catch (Throwable $throwable) {
-            $this->eventDispatcher->trigger(new CommandFailedEvent($command, $throwable->getMessage()));
+            try {
+                $this->eventDispatcher->trigger(new CommandFailedEvent($command, 'Credential expiry failed.'));
+            } catch (Throwable) {
+                // Failure notification must not conceal the original persistence or publication failure.
+            }
+
             throw $throwable;
         }
     }

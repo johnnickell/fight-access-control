@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Fight\AccessControl\Domain\AccessControl\EmailChangeGrant\Command;
 
 use DateTimeImmutable;
+use Fight\AccessControl\Domain\AccessControl\CredentialDelivery\CredentialDeliveryTimestamp;
 use Fight\AccessControl\Domain\AccessControl\EmailChangeGrant\EmailChangeGrantId;
 use Fight\AccessControl\Domain\AccessControl\User\UserId;
 use Fight\Common\Domain\Exception\DomainException;
@@ -43,7 +44,7 @@ final readonly class ExpireEmailChange implements Command
             (string) $data['actor_id'],
             UserId::fromString((string) $data['user_id']),
             EmailChangeGrantId::fromString((string) $data['email_change_grant_id']),
-            new DateTimeImmutable((string) $data['occurred_at'])
+            CredentialDeliveryTimestamp::fromString((string) $data['occurred_at'])->toDateTimeImmutable()
         );
     }
 
@@ -54,7 +55,7 @@ final readonly class ExpireEmailChange implements Command
             'actor_id'              => $this->actorId,
             'user_id'               => $this->userId->toString(),
             'email_change_grant_id' => $this->emailChangeGrantId->toString(),
-            'occurred_at'           => $this->occurredAt->format(DATE_ATOM)
+            'occurred_at'           => $this->occurredAt->format('Y-m-d\TH:i:s.uP')
         ];
     }
 

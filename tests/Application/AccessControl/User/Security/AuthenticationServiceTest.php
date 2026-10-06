@@ -228,7 +228,8 @@ final class AuthenticationServiceTest extends TestCase
             new DateTimeImmutable('2026-08-19T11:00:00+00:00'),
             new DateTimeImmutable('2026-08-19T13:00:00+00:00'),
             EmailAddress::fromString('new@example.test'),
-            'ciphertext:confirm-email-once'
+            'ciphertext:confirm-email-once',
+            $reservedUser->getEmailChangeReservationRevision()
         )));
         $sessions = new InMemoryRefreshSessionRepository($unitOfWork);
         $sessions->add($this->session($reservedUser, $this->refreshCredential(), false));
@@ -341,7 +342,8 @@ final class AuthenticationServiceTest extends TestCase
                 EmailAddress::fromString(
                     $condition === 'mismatched' ? 'mismatched@example.test' : 'new@example.test'
                 ),
-                'ciphertext:confirm-email-once'
+                'ciphertext:confirm-email-once',
+                $reservedUser->getEmailChangeReservationRevision()
             );
             self::assertTrue($grants->add($grant));
             if ($condition === 'consumed') {
@@ -3239,7 +3241,8 @@ final class AuthenticationServiceTest extends TestCase
             new DateTimeImmutable('2026-08-19T11:00:00+00:00'),
             new DateTimeImmutable('2026-08-19T13:00:00+00:00'),
             EmailAddress::fromString('new@example.test'),
-            'ciphertext:confirm-email-once'
+            'ciphertext:confirm-email-once',
+            1
         );
     }
 

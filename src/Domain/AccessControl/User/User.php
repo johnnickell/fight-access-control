@@ -200,13 +200,13 @@ class User
     }
 
     /**
-     * Clears the active identity's expired email-change reservation
+     * Clears an expired email-change reservation without changing account state
      *
      * @throws EmailChangeExpirationException When no reservation can expire.
      */
     public function expireEmailChange(DateTimeImmutable $now): void
     {
-        if ($this->state !== UserState::ACTIVE || !$this->pendingEmailChange instanceof EmailAddress) {
+        if (!$this->pendingEmailChange instanceof EmailAddress) {
             throw new EmailChangeExpirationException('The user has no expirable email change.');
         }
 

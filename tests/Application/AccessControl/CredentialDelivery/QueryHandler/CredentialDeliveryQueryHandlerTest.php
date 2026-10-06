@@ -191,7 +191,8 @@ final class CredentialDeliveryQueryHandlerTest extends TestCase
                 $issuedAt,
                 $expiresAt,
                 $email,
-                'ciphertext:change'
+                'ciphertext:change',
+                1
             )
         ];
     }

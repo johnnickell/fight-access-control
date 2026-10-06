@@ -58,7 +58,8 @@ final class CancelEmailChangeHandlerTest extends TestCase
             new DateTimeImmutable('2026-08-22T12:00:00+00:00'),
             new DateTimeImmutable('2026-08-22T13:00:00+00:00'),
             EmailAddress::fromString('new@example.test'),
-            'ciphertext:change-once'
+            'ciphertext:change-once',
+            $reserved->getEmailChangeReservationRevision()
         )));
         $authorization = new EmailChangeService\FixedEmailChangeAdministrationAuthorization(true);
         $audit = new InMemoryAuditEvidenceRepository($unitOfWork);
@@ -441,7 +442,8 @@ final class CancelEmailChangeHandlerTest extends TestCase
             new DateTimeImmutable('2026-08-22T12:00:00+00:00'),
             new DateTimeImmutable('2026-08-22T13:00:00+00:00'),
             EmailAddress::fromString($email),
-            'ciphertext:change-once'
+            'ciphertext:change-once',
+            1
         );
     }
 

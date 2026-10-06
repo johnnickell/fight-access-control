@@ -6,6 +6,36 @@
 | --- | --- | --- |
 | [EPIC-00009](epics/00009-EPIC.md) | `v0.5.0` | Package current-contract cleanup, cohort/canonical/restoration safety and final guidance are independently accepted; TASK-00059 QA passes. Real consumer qualification and separately authorized release/adoption/deployment remain open. |
 
+## Human delivery expiry readiness prerequisite
+
+`v0.5.0` is not ready to tag until the newly requested
+[human credential-delivery expiry capability](wayfinder/human-credential-delivery-expiry-map.md) has approved upstream
+work records, complete implementation/local verification and independent acceptance with applicable behavioral QA.
+[WF-025](wayfinder/tickets/WF-025-human-delivery-expiry-contract.md) is resolved: invitation/reset delivery expiry plus
+full email-change authority/reservation expiry, including already-terminal delivery and changed User account states.
+John confirmed [EPIC-00012 — Package-Owned Human Credential Expiry Cleanup for v0.5.0](epics/00012-EPIC.md); its only
+Wayfinder destination is written and the map is Closed. John approved its single cohesive requirement area, now
+[TICKET-00020](tickets/00020-TICKET.md), retaining the entire WF-025 matrix, then approved its sole implementation slice,
+[TASK-00072](tasks/00072-TASK.md). Full EPIC/TICKET/TASK decomposition is accepted and complete; Board execution selection,
+implementation authority and placement were separately resolved for TASK-00072: John selected main and requested
+inclusion of pending planning changes in its commit. At the pre-publication checkpoint, the implementation passes
+206 focused tests / 2957 assertions and the complete gate (1993 tests / 37644 assertions), exact 6841/6841 product
+statements and 971/971 changed-production statements. Subsequent revised candidate
+`9bdf3822eb5f97505cca8bc76f2f1a14dc5d28d0` has independent technical acceptance (F1–F3 resolved, no findings) and
+post-review nonvisual QA PASS: six scenario groups, 86 driver cases / 795 checks and 357 conformance tests / 5780 assertions.
+Its accepted complete gate passes 2019 tests / 39818 assertions, exact 6841/6841 owned statements, no final warnings/skips.
+TASK-00072 is done for accepted package implementation/local verification; automatic parent completion closes TICKET-00020
+and EPIC-00012 in the same closeout. This package readiness prerequisite is satisfied, not release certification or actual
+consumer qualification. John authorized landing; final PR publication verification is pending at this tracked checkpoint.
+The TASK's ignored landing receipt owns fresh checks, administrative-only provenance and actual PR/remote identity.
+Before this implementation, due discovery could not clean recoverable invitation/reset
+work after downtime through grant expiry; the unchanged due path now has separate expired discovery/direct cleanup. Email reservations must not remain stranded because delivery finished or the account
+became inactive; no consumer product/provider wiring is enabled. This follow-up does not reopen completed EPIC-00009
+or its original delivery predecessors. Agent OS `TASK-00024` is the external blocked consumer work, not an AccessControl
+dependency edge. Package proof must be distinguished from actual PostgreSQL consumer qualification/adoption. Tagging,
+signing, pushing and publication remain separately authorized; the Board still owns execution priority, unchanged by
+this approved decomposition.
+
 ## Current package acceptance and next TASK
 
 John's 2026-09-30 package-wide decision in [ADR 0011](adr/0011-pre-v1-current-contract-only.md) removes all obligations
@@ -96,6 +126,7 @@ adoption, release or deployment is claimed; the Board still owns separately auth
 
 | Epic | Target | Outcome |
 | --- | --- | --- |
+| [EPIC-00012](epics/00012-EPIC.md) | `v0.5.0` | Human expiry discovery/direct cleanup independently accepted with post-review behavioral QA; TASK-00072 and TICKET-00020 complete. Actual PostgreSQL/consumer qualification, adoption, merge, release and deployment remain separate. |
 | [EPIC-00010](epics/00010-EPIC.md) | unassigned | All seven Feature package TASKs independently accepted with behavioral QA; guarded retirement/reintroduction and cross-TICKET evidence complete. Actual consumer qualification, version selection, adoption, release and deployment remain separate. |
 | [EPIC-00006](epics/00006-EPIC.md) | `v0.3.0` | Published the recoverable credential-delivery contract and migration after exact-commit certification and signing. Consumer upgrades remain separately qualified. |
 | [EPIC-00007](epics/00007-EPIC.md) | pre-1.0 | Replaced deprecated Fight Common transaction dependencies with the supported `TransactionalUnitOfWork` contract while preserving established behavior. |
@@ -128,4 +159,5 @@ adoption, release or deployment is claimed; the Board still owns separately auth
 | [EPIC-00009](epics/00009-EPIC.md) | v0.5.0 | done | 3 | 14 |
 | [EPIC-00010](epics/00010-EPIC.md) | unassigned | done | 3 | 7 |
 | [EPIC-00011](epics/00011-EPIC.md) | unassigned | needs-info | 2 | 3 |
+| [EPIC-00012](epics/00012-EPIC.md) | v0.5.0 | done | 1 | 1 |
 <!-- generated:epic-status:end -->

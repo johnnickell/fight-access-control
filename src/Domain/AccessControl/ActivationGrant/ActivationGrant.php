@@ -129,6 +129,17 @@ class ActivationGrant
     }
 
     /**
+     * Returns whether this generation owns an exact delivery identity
+     */
+    public function ownsDelivery(ActivationDeliveryId $deliveryId, UserId $userId): bool
+    {
+        return $this->userId->equals($userId)
+            && $this->delivery->getUserId()->equals($userId)
+            && $this->delivery->getId()->equals($deliveryId)
+            && $this->delivery->getExpiresAt() == $this->expiresAt;
+    }
+
+    /**
      * Returns whether authority remains issued
      */
     public function isIssued(): bool

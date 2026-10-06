@@ -6,6 +6,51 @@ Fight AccessControl owns framework-neutral identity, credential, session, author
 behavior shared by Fight applications. The repository-local behavioral and security authority is
 [TICKET-00001](planning/tickets/00001-TICKET.md).
 
+## Human delivery expiry — v0.5.0 readiness prerequisite
+
+John requires package-owned expired-work discovery and direct expiry cleanup before `v0.5.0` readiness; see the
+[bounded Wayfinder map](planning/wayfinder/human-credential-delivery-expiry-map.md) and
+[WF-025 approved contract decision](planning/wayfinder/tickets/WF-025-human-delivery-expiry-contract.md). Before TASK-00072,
+source tracing confirmed due discovery excludes exact/post-expiry work, reset had a direct expiry handler, and invitation
+lacked one. John approved invitation/reset delivery expiry and full email-change authority/reservation expiry, including
+already-delivered/permanent-failure/material-free delivery and changed User account states. Disable/delete preserve
+reservations while pre-TASK-00072 User expiry required active state; the bounded implementation closes that omission
+without reactivation or unrelated authority changes. New expiry discovery is read-only/secret-free with limit 1–100
+and runner guidance 50; complete state/race/restart evidence is required. John confirmed the single destination,
+now written as [EPIC-00012](planning/epics/00012-EPIC.md), and the Wayfinder map is Closed. John approved its sole
+requirement area, now [TICKET-00020](planning/tickets/00020-TICKET.md); TICKET decomposition is complete with every
+WF-025 case retained. John approved the sole implementation slice, now
+[TASK-00072](planning/tasks/00072-TASK.md); all planning phases are accepted and complete. The Board owns execution
+selection; existing priority is unchanged. John explicitly selected TASK-00072, chose the main checkout and requested
+inclusion of pending planning changes in its commit. Implementation proceeded on `feature/task-00072-credential-expiry`,
+preserving checkpoint `59f2378` and unrelated Agent-profile records. New bounded expired discovery/direct invitation expiry,
+full email expiry in every reachable User state and a mandatory grant-bound reservation revision are described in
+[the current expiry guide](docs/credential-expiry.md). Reclaimed-history and inactive-reservation regressions reproduced
+and now pass. At the pre-publication checkpoint, focused checks pass 206 tests / 2957 assertions; `./bin/build` passes
+1993 tests / 37644 assertions, exact 6841/6841 product statements and 971/971 changed-production statements, with no
+final warnings/skips. The TASK owns source-input/commit evidence and every matrix mapping. Independent technical
+review of `8a96e2b` requested F1–F3: missing interleaved replacement/coupled-email/two-worker and distinguishing discovery
+order evidence, plus six new docblocks; it demonstrated no sampled runtime defect. The revision adds deterministic
+public-handler/reference-CAS schedules and real mixed-family ordered page/drain tests, corrects the initial handoff's
+race overclaims and fixes only those docblocks. Revision focused checks pass 357 tests / 5780 assertions; fresh
+`./bin/build` passes 2019 tests / 39818 assertions and exact 6841/6841 owned statements (971/971 across TASK-changed
+production). No final warnings/skips or dependency drift; the TASK owns failed-attempt chronology and fresh provenance.
+Independent re-review subsequently **accepted** clean implementation
+`9bdf3822eb5f97505cca8bc76f2f1a14dc5d28d0` against unchanged `develop` `7ca8eec`, with F1–F3 resolved and no
+remaining findings. Independent post-review behavioral **QA PASS** covers six scenario groups, **86 independent driver
+cases / 795 checks** and fresh **357 conformance tests / 5780 assertions**, with no final warnings/skips or product defect.
+TASK-00072 is done for accepted package implementation and required local/behavioral verification; automatic parent
+completion closes TICKET-00020 and EPIC-00012 in the same administrative operation. John's land invocation authorizes
+non-force PR publication and opened [PR #108](https://github.com/johnnickell/fight-access-control/pull/108) against
+unchanged `develop`, draft at initial head `51a194100bca6fb62032e6d0589ef917d50a7f72`. Sanitized nonvisual QA evidence
+is published/read back in the body; final PR-metadata verification and ready state remain pending at this tracked checkpoint.
+The ignored TASK landing receipt owns fresh gates, the administrative-only review/QA bridge and final commit/remote
+identity; original canonical reports remain preserved. Hosted CI is optional/not checked. The package expiry prerequisite
+is satisfied, not release certification, approval, merge or actual consumer qualification. Agent OS `TASK-00024` is an external
+consumer context ID, not an upstream TASK or local dependency. Explicit checkout/worktree
+placement, implementation gates and independent review/behavioral QA precede the consumer handoff. Real PostgreSQL
+qualification, adoption, tagging/signing/publication and deployment remain separate. Preserve concurrent Agent-profile planning changes.
+
 ## Current integration and evidence — TASK-00059 accepted
 
 The [integration guide](docs/agent-integration.md) now connects the complete current public composition, finite
@@ -641,6 +686,21 @@ head `e83bd9935ec9981b0dbdf291fe70137f3cc42814`, with sanitized nonvisual QA sce
 read back. Final metadata delivery verification/ready state remain pending at this tracked checkpoint. The ignored
 TASK landing handoff owns fresh gates, the administrative-only acceptance/QA and resolved-runtime bridge, and final
 remote/evidence verification. Original independent reports are preserved; no approval or merge is claimed. Consumer scanning/database/UI/security/runtime qualification, release and deployment remain separate.
+
+## Agent profile output — planning amendments
+
+John simplified the [WF-024](planning/wayfinder/tickets/WF-024-self-service-agent-profile-contract.md) update
+acknowledgement to exactly `{agent_id, name}` from the target and `AgentName::fromString()`-normalized command input
+only after successful synchronous void CommandBus dispatch. Real rename and no-op responses share that shape and
+Common's matching derived JSON text; no `changed` field, separate changed/no-op sentence, result-bearing rename
+boundary or compensating read is required. This acknowledges the successful request, not a fresh read of the latest
+name after competing writes. No-op write/timestamp/event guarantees and active-state/authority fences remain;
+post-commit publication failure still reports failure without a success acknowledgement or rollback claim.
+EPIC-00011, TICKET-00018/00019 and TASK-00069/00071 reflect this planning-only amendment. John then removed the
+profile read's custom sentence too: both tools use Common's standard structured output with matching derived JSON
+text. The read still performs a fresh lookup, enforces its own Permission and returns only `{agent_id, name}`;
+privacy and authorization guarantees are not response sentences and remain unchanged. No implementation, dependency
+change, readiness change, publication or release is authorized by these decisions.
 
 ## Planning and Completion
 
