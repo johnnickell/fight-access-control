@@ -728,9 +728,16 @@ focused repaired-file checks pass **264 tests / 5261 assertions** and fresh cano
 **2040 tests / 40091 assertions**, exact **6930/6930 statements**, with no final warnings/skips or further dependency
 drift. Test assertions preserve or strengthen prior contracts; production code, dependency policy and analyzer
 configuration are unchanged. The accepted-product completion/parent rollup remains the prior checkpoint, not
-independent approval of this test-only follow-up. New test content requires independent review and QA freshness
-assessment before resumed landing; original review/QA reports remain unchanged. The TASK owns the repair receipt,
-input equivalence and commit handoff. No push/PR, merge or release follows from this work. Hosted CI is optional/not checked.
+independent approval of this test-only follow-up at that builder checkpoint. Independent review subsequently
+**accepts** clean repaired `aa5ea1466dc555863f30b7b6cee775f872d318bc`, all C1–C6 passing with no findings; fresh
+checks pass **285 tests / 5528 assertions**, PHPStan and **4/4** contention cases. The canonical review verifies the
+full-gate inputs and preserves the prior independent QA PASS through unchanged behavior/QA fixtures/public guides,
+reviewed test changes and an explicit resolved-dependency/runnable-image bridge. This is not a new QA verdict.
+The old review is retained in review history; canonical QA is unchanged. John resumed land; remote develop is
+unchanged and no feature publication or PR exists at intake. TASK/TICKET remain done; EPIC-00011 remains needs-info.
+Fresh landing gates and publication are pending at this resumed checkpoint; the TASK's ignored
+`landing/resumed-accept/` receipt owns final delivery and evidence read-back. No approval, merge or release is claimed.
+Hosted CI is optional/not checked.
 Controlled in-memory writer schedules are not actual consumer database,
 security wiring or runtime qualification. TASK-00070/00071/00035 retain profile reads/Permissions/MCP Tool integration;
 no Tool, administrator endpoint, consumer adapter, merge, package release or deployment is delivered here.
