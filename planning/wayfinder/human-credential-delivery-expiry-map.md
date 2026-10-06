@@ -1,7 +1,7 @@
 # Wayfinder Map: Human credential-delivery expiry cleanup
 
 **Label:** `wayfinder:map`
-**Status:** Active
+**Status:** Closed
 
 > This map is an **index, not a store**. The bounded contract decision lives in its linked decision ticket.
 
@@ -49,14 +49,18 @@ WF-025 resolved → bounded EPIC → accepted TICKET → accepted TASK
 
 ## Frontier
 
-No Wayfinder decision remains. The next planning operation is the single [approved EPIC handoff](#approved-epic-handoff).
-The map remains Active only until that approved destination is written and linked; this is not an implementation gate.
+No Wayfinder decision remains. The only approved destination is written as [EPIC-00012](../epics/00012-EPIC.md);
+this map's decision/EPIC phase is complete. John approved its sole requirement area, now written as
+[TICKET-00020](../tickets/00020-TICKET.md), followed by its approved single implementation slice,
+[TASK-00072](../tasks/00072-TASK.md). All EPIC/TICKET/TASK planning phases are accepted and complete. Consult the Board
+for execution selection; implementation authority and placement remain separate. Map closure claims neither
+implementation acceptance nor consumer qualification.
 
 ## Not yet specified (fog)
 
 No additional product-policy uncertainty is currently known. Exact PHP names, serialization and schema shapes are
-proposals constrained by WF-025; freeze them in approved requirement/TASK records. New ambiguity found during design
-must return for a decision rather than silently broaden this scope.
+constrained by WF-025 and owned by TASK-00072's bounded design; record its concrete current contracts in that TASK.
+New ambiguity found during design must return for a decision rather than silently broaden this scope.
 
 ## Out of scope
 
@@ -72,12 +76,17 @@ must return for a decision rather than silently broaden this scope.
 
 **Destination title:** Package-Owned Human Credential Expiry Cleanup for v0.5.0
 
-**Status:** Approved destination; EPIC record unwritten. No other EPIC destination belongs to this map.
+**Status:** Written and approved — [EPIC-00012 — Package-Owned Human Credential Expiry Cleanup for v0.5.0](../epics/00012-EPIC.md).
+No other EPIC destination belongs to this map.
 
-Write this bounded EPIC through the normal grill handoff, reusing settled WF-025 behavior without asking John to
-reapprove family policy. Seek acceptance of its TICKET requirements and then TASK decomposition; the expected
-implementation shape is one complete, independently reviewable PR, not layer-only TASKs. Do not assign speculative
-upstream IDs or reuse the consumer's TASK number. Close the map when the resulting EPIC record is linked.
+John confirmed the final EPIC boundary after WF-025 settled the family policy. The normal grill handoff wrote this
+single EPIC and closed the map. John subsequently approved one cohesive requirement area for the complete recovery
+journey, now written as [TICKET-00020 — Clean up expired human credential work after downtime](../tickets/00020-TICKET.md).
+John then approved one complete implementation slice, now
+[TASK-00072 — Discover and clean expired human credential work](../tasks/00072-TASK.md), carrying the entire WF-025
+matrix and TICKET evidence. This is the map's full accepted TICKET/TASK decomposition; all planning phases are complete.
+Consult the Board for execution selection, without reprioritizing unrelated work. The implementation shape remains one
+complete, independently reviewable PR, not layer-only TASKs. Do not reuse the consumer's TASK number.
 
 ### Implementation and independent acceptance
 

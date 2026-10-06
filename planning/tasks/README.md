@@ -78,4 +78,5 @@ The [Task Board](BOARD.md) is the operational projection.
 | 69 | [TASK-00069](00069-TASK.md) | Rename an Agent atomically with typed provenance | [TICKET-00018](../tickets/00018-TICKET.md) — Rename an Agent without changing its authority | ready-for-agent | — | — |
 | 70 | [TASK-00070](00070-TASK.md) | Provide minimal Agent profile reads and managed Permission definitions | [TICKET-00019](../tickets/00019-TICKET.md) — Read and update the authenticated Agent profile through MCP tools | ready-for-agent | — | — |
 | 71 | [TASK-00071](00071-TASK.md) | Bind protected self-service Agent profile tools | [TICKET-00019](../tickets/00019-TICKET.md) — Read and update the authenticated Agent profile through MCP tools | needs-info | [TASK-00070](00070-TASK.md), [TASK-00069](00069-TASK.md), [TASK-00035](00035-TASK.md) | — |
+| 72 | [TASK-00072](00072-TASK.md) | Discover and clean expired human credential work | [TICKET-00020](../tickets/00020-TICKET.md) — Clean up expired human credential work after downtime | in-progress | — | — |
 <!-- generated:task-index:end -->

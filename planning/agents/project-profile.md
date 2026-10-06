@@ -37,6 +37,12 @@ previous-iteration support; completed TASKs and earlier guidance cannot require 
 - A CommandHandler owns one atomic Unit of Work: aggregate mutation and repository persistence precede one commit;
   a success event is dispatched only after that commit. On failure it dispatches CommandFailedEvent with the original
   command and message, then rethrows the same throwable.
+- Human expiry cleanup under [TASK-00072 C9](../tasks/00072-TASK.md#acceptance-criteria) retains the original safe
+  Command in `CommandFailedEvent` but uses constant `Credential expiry failed.` text, never arbitrary storage diagnostics
+  that may contain row material. The original throwable still rethrows, even if failure notification also fails.
+  This secret-free message rule is scoped to invitation/reset/email cleanup; transaction/rollback and post-commit
+  semantics are unchanged. Consumers sanitize rethrown errors at their response/log boundary. See
+  [expiry composition](../../docs/credential-expiry.md); this is not the issuance-warning return exception below.
 - Approved replacement exception: [EPIC-00009 D3](../epics/00009-EPIC.md#d3--post-commit-result-behavior), ratified by
   John on 2026-09-27, applies only to replacement recoverable Agent provision and rotation. After a confirmed commit,
   publication failure returns committed metadata with a typed, sanitized warning, not a publication-failure throw.

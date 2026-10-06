@@ -218,6 +218,24 @@ abstract class CredentialDelivery
     }
 
     /**
+     * Returns whether recoverable delivery needs direct expiry cleanup
+     */
+    public function isExpirableAt(DateTimeImmutable $at): bool
+    {
+        return $at >= $this->expiresAt
+            && $this->hasRecoverableMaterial()
+            && in_array(
+                $this->status,
+                [
+                    CredentialDeliveryStatus::PENDING,
+                    CredentialDeliveryStatus::RETRY_PENDING,
+                    CredentialDeliveryStatus::CLAIMED
+                ],
+                true
+            );
+    }
+
+    /**
      * Returns whether delivery remains eligible now or after its due time
      */
     public function isRetryable(): bool
@@ -373,7 +391,7 @@ abstract class CredentialDelivery
      */
     public function expireAt(DateTimeImmutable $occurredAt): static
     {
-        if (!$this->hasRecoverableMaterial() || $occurredAt < $this->expiresAt) {
+        if (!$this->isExpirableAt($occurredAt)) {
             return $this;
         }
 

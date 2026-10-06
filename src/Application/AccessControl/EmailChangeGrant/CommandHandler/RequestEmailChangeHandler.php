@@ -99,7 +99,8 @@ final readonly class RequestEmailChangeHandler implements CommandHandler
                     $issuedAt,
                     $issuedAt->add(new DateInterval(self::GRANT_LIFETIME)),
                     $command->getEmail(),
-                    $this->emailChangeDeliveryCipher->encrypt($credential->toString())
+                    $this->emailChangeDeliveryCipher->encrypt($credential->toString()),
+                    $replacement->getEmailChangeReservationRevision()
                 );
                 if ($predecessor instanceof EmailChangeGrant) {
                     if (!$this->emailChangeGrantRepository->appendAfterTerminal($predecessor, $grant)) {

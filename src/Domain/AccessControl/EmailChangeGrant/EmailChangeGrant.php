@@ -31,6 +31,7 @@ class EmailChangeGrant
         private readonly string $credentialHash,
         private readonly DateTimeImmutable $expiresAt,
         private readonly EmailChangeDelivery $delivery,
+        private readonly int $emailChangeReservationRevision,
         private readonly ?DateTimeImmutable $consumedAt = null,
         private readonly ?DateTimeImmutable $revokedAt = null,
         private readonly ?DateTimeImmutable $expiredAt = null,
@@ -47,10 +48,15 @@ class EmailChangeGrant
         DateTimeImmutable $issuedAt,
         DateTimeImmutable $expiresAt,
         EmailAddress $email,
-        string $ciphertext
+        string $ciphertext,
+        int $emailChangeReservationRevision
     ): static {
         if ($expiresAt <= $issuedAt) {
             throw new EmailChangeGrantException('The email-change grant expiry must follow issuance.');
+        }
+
+        if ($emailChangeReservationRevision < 1) {
+            throw new EmailChangeGrantException('The email-change reservation revision must be positive.');
         }
 
         return new static(
@@ -65,7 +71,8 @@ class EmailChangeGrant
                 $ciphertext,
                 $expiresAt,
                 $issuedAt
-            )
+            ),
+            $emailChangeReservationRevision
         );
     }
 
@@ -83,6 +90,26 @@ class EmailChangeGrant
     public function getUserId(): UserId
     {
         return $this->userId;
+    }
+
+    /**
+     * Returns the exact destination-reservation generation bound at issuance
+     */
+    public function getEmailChangeReservationRevision(): int
+    {
+        return $this->emailChangeReservationRevision;
+    }
+
+    /**
+     * Returns whether an exact User reservation belongs to this authority
+     */
+    public function matchesReservation(UserId $userId, ?EmailAddress $destination, int $revision): bool
+    {
+        return $this->userId->equals($userId)
+            && $this->delivery->getUserId()->equals($userId)
+            && $this->delivery->getExpiresAt() == $this->expiresAt
+            && $this->delivery->getEmail()->canonical() === $destination?->canonical()
+            && $this->emailChangeReservationRevision === $revision;
     }
 
     /**
@@ -132,6 +159,7 @@ class EmailChangeGrant
             $this->credentialHash,
             $this->expiresAt,
             $this->delivery->invalidate(),
+            $this->emailChangeReservationRevision,
             $at,
             $this->revokedAt,
             $this->expiredAt,
@@ -154,6 +182,7 @@ class EmailChangeGrant
             $this->credentialHash,
             $this->expiresAt,
             $this->delivery->invalidate(),
+            $this->emailChangeReservationRevision,
             $this->consumedAt,
             $at,
             $this->expiredAt,
@@ -176,6 +205,7 @@ class EmailChangeGrant
             $this->credentialHash,
             $this->expiresAt,
             $this->delivery->invalidate(),
+            $this->emailChangeReservationRevision,
             $this->consumedAt,
             $this->revokedAt,
             $at,
@@ -338,6 +368,7 @@ class EmailChangeGrant
             $this->credentialHash,
             $this->expiresAt,
             $delivery,
+            $this->emailChangeReservationRevision,
             $this->consumedAt,
             $this->revokedAt,
             $this->expiredAt,

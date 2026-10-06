@@ -123,7 +123,8 @@ final class CredentialDeliveryTransitionTest extends TestCase
                 $at,
                 $expiry,
                 $email,
-                'encrypted-material'
+                'encrypted-material',
+                1
             ),
             default => throw new LogicException('Unknown grant purpose.')
         };

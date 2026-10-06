@@ -9,6 +9,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- [Human credential expiry cleanup](docs/credential-expiry.md): bounded secret-free
+  `FindExpiredCredentialDeliveries`/`ExpiredCredentialDelivery`, direct `ExpireInvitationDelivery` and post-commit
+  `InvitationDeliveryExpired`. Existing reset delivery expiry and full email authority/reservation expiry now cover
+  downtime, reclaimed failure history, terminal email delivery and every reachable User state. Default-suite public-port
+  recovery/race and generated-schema tests accompany the contracts; consumer PostgreSQL/adoption remains unqualified.
+- **Unreleased v0.5.0 integration change:** all three human grant repositories must implement `findExpired(at, limit)`
+  (1–100, eligibility before ordering/limiting). Email `replace()` covers exact next delivery or authority state and
+  preserves the mandatory immutable User reservation-revision binding. `EmailChangeGrant::issue()` requires that
+  positive binding as its seventh argument; persist/hydrate it and include it in complete-state CAS. Expiry serialization
+  preserves fractional seconds and rejects inferred/relative or normalized-invalid timestamp payloads. Cleanup failure
+  facts use safe constant text rather than arbitrary storage diagnostics while rethrowing the original fault.
+  Additive query/result/command/fact schemas and these current-contract changes belong
+  in the next minor pre-v1 release, not a patch/backport or a compatibility/migration bridge. Release remains separate.
 - [Guarded Feature retirement](docs/feature-retirement.md): `RemoveFeature` and post-commit `FeatureRemoved`,
   complete CURRENT-scope discovery of native and explicit references, and mandatory full-expected-state
   `FeatureRepository::remove()` under the shared transaction/reference fence. Later provisioning allocates a new

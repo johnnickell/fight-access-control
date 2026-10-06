@@ -53,6 +53,10 @@ not persisted vendor diagnostics.
 | `DeliverPasswordReset` | `DeliverPasswordResetHandler` |
 | `DeliverEmailChange` | `DeliverEmailChangeHandler` |
 | `FindDueCredentialDeliveries` | `FindDueCredentialDeliveriesHandler` |
+| `FindExpiredCredentialDeliveries` | `FindExpiredCredentialDeliveriesHandler` |
+| `ExpireInvitationDelivery` | `ExpireInvitationDeliveryHandler` |
+| `ExpirePasswordResetDelivery` | `ExpirePasswordResetDeliveryHandler` |
+| `ExpireEmailChange` | `ExpireEmailChangeHandler` |
 | `FindCredentialDeliveryStatus` | `FindCredentialDeliveryStatusHandler` |
 
 Optional invitation/password-reset/email-change subscribers provide immediate post-commit dispatch, not guaranteed
@@ -70,6 +74,15 @@ A provider acceptance followed by lost outcome commit may repeat invocation with
 at-least-once invocation, not exactly-once effect. The provider adapter must make repeated identities converge and
 return `DELIVERED`, `RETRYABLE_FAILURE` or `PERMANENT_FAILURE`. Replacement generations have fresh identities.
 Secret-free status queries do not expose claim tokens, credentials, hashes, ciphertext or provider errors.
+
+## Offline expiry cleanup (unreleased)
+
+Due discovery deliberately excludes exact/post-expiry work. Schedule the separate
+[expired-work query and direct cleanup commands](credential-expiry.md) before the unchanged due-work path.
+Invitation/reset expire recoverable delivery; email expires issued authority and its exact bound User reservation,
+including finished delivery and inactive/restored accounts. Expiry needs no keys, decryption or providers. The three
+repositories require bounded `findExpired()` and email grants persist the explicit reservation-revision binding supplied
+by `RequestEmailChangeHandler`. Read the guide for atomicity, no-progress scheduling, restart and real-consumer obligations.
 
 ## Verification and limits
 

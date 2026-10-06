@@ -274,7 +274,8 @@ final class DeliverEmailChangeHandlerTest extends TestCase
             new DateTimeImmutable('2026-08-23T11:00:00+00:00'),
             new DateTimeImmutable($expiresAt),
             EmailAddress::fromString('new@example.test'),
-            'ciphertext:confirm-once'
+            'ciphertext:confirm-once',
+            1
         );
     }
 

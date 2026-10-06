@@ -7,6 +7,7 @@ namespace Fight\AccessControl\Domain\AccessControl\EmailChangeGrant;
 use DateTimeImmutable;
 use Exception;
 use Fight\AccessControl\Domain\AccessControl\CredentialDelivery\DueCredentialDelivery;
+use Fight\AccessControl\Domain\AccessControl\CredentialDelivery\ExpiredCredentialDelivery;
 use Fight\AccessControl\Domain\AccessControl\User\UserId;
 
 /**
@@ -27,6 +28,21 @@ interface EmailChangeGrantRepository
      * @throws Exception When an error occurs.
      */
     public function findDue(DateTimeImmutable $at, int $limit): array;
+
+    /**
+     * Returns bounded secret-free expired work from latest issued authority
+     *
+     * Select authority at expiry <= at regardless of delivery status or material, including delivered,
+     * permanent-failure and delivery-expired work. Exclude consumed, revoked, fully expired or obsolete authority.
+     * Filter before ordering by expiry instant, delivery ID and purpose, then apply the limit (1–100).
+     * Reads never mutate or publish. Results include the exact grant ID needed by full authority expiry.
+     * Commands revalidate advisory identities and the bound reservation inside their transaction.
+     *
+     * @return list<ExpiredCredentialDelivery>
+     *
+     * @throws Exception When an error occurs.
+     */
+    public function findExpired(DateTimeImmutable $at, int $limit): array;
 
     /**
      * Returns the generation owning an exact delivery identifier, including terminal history
@@ -65,11 +81,14 @@ interface EmailChangeGrantRepository
     ): bool;
 
     /**
-     * Stores one valid same-generation terminal next revision
+     * Stores one valid same-generation next revision
      *
-     * Implementations compare the predecessor's complete security-relevant state and return false without mutation
-     * for a stale predecessor, skipped revision, changed generation identity, or invalid consumed, revoked, or expired
-     * transition.
+     * Compare complete expected authority/delivery state against the latest stored generation, not object identity
+     * or identifier/revision alone. Preserve grant/User/delivery identity, digest, expiry and the immutable bound User
+     * reservation revision. Accept only the aggregate's exact next delivery or consumed/revoked/expired authority
+     * transition. Direct delivery expiry preserves attempt/outcome/failure evidence, distinct from a new retry failure.
+     * Returns false without mutation for stale/fabricated predecessors, skipped revisions or invalid transitions.
+     * Writes share the caller's transaction; either grant or matching reservation CAS loss rolls back both.
      *
      * @throws Exception When an error occurs.
      */

@@ -143,7 +143,8 @@ Exact new PHP names and serialized shapes remain requirement/TASK design, not a 
   Unreleased changelog as applicable; do not manufacture endpoints or compatibility examples.
 - Focused suites and complete `./bin/build` plus planning/documentation checks in the package runtime. Record actual
   test/assertion counts, exact owned statement coverage, warnings/skips, command/environment, tested content, process
-  exit and implementation commit mapping in the TASK receipt/log/handoff. No fresh implementation gate has run yet.
+  exit and implementation commit mapping in the TASK receipt/log/handoff. TASK-00072 now owns the fresh local gate
+  and matrix mapping; independent acceptance and actual consumer qualification remain separate.
 - Independent review of the complete committed TASK against approved criteria and the saved full gate; post-review
   nonvisual behavioral QA for the API/recovery/race behavior. This session cannot independently accept its own work.
 - Consumer-bindable or equivalent public-port package proof plus explicit real PostgreSQL qualification gaps: shared
@@ -198,4 +199,21 @@ existing narrow expiry transitions/contracts; no broader account lifecycle/produ
 
 Approved bounded EPIC destination: **Package-Owned Human Credential Expiry Cleanup for v0.5.0**. The
 [map handoff](../human-credential-delivery-expiry-map.md#approved-epic-handoff) owns EPIC creation and subsequent accepted
-TICKET/TASK decomposition. No implementation, full-gate result or independent acceptance exists at this checkpoint.
+TICKET/TASK decomposition. No implementation, full-gate result or independent acceptance existed at that planning checkpoint.
+
+John subsequently confirmed the final EPIC summary. The handoff is now written as
+[EPIC-00012](../../epics/00012-EPIC.md), and the map is Closed. That completes the decision/EPIC phase only;
+accepted TICKET and TASK decomposition remained next at that checkpoint, with the entire case matrix retained.
+
+John then approved the single cohesive TICKET proposal, now written as
+[TICKET-00020](../../tickets/00020-TICKET.md). The map's full TICKET decomposition is accepted and complete;
+TASK decomposition remained next at that checkpoint. The TICKET maps every matrix row to mandatory unchecked
+acceptance evidence; no implementation or verification result was claimed at that planning checkpoint.
+
+John subsequently approved one complete implementation TASK, now [TASK-00072](../../tasks/00072-TASK.md), retaining
+all matrix and evidence requirements. The map's full EPIC/TICKET/TASK decomposition is accepted and complete.
+Execution/placement remained separately required at that planning checkpoint. John subsequently selected TASK-00072
+in the main checkout and requested pending planning inclusion in its commit. Its pre-publication local gate now passes
+1993 tests / 37644 assertions, exact 6841/6841 product statements and 971/971 changed-production statements; the TASK
+and ignored handoff own full M/E/C evidence and actual commit mapping. Independent review and subsequent nonvisual QA
+remain pending; no PostgreSQL qualification, adoption, independent acceptance or publication is claimed.

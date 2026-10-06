@@ -171,7 +171,8 @@ final class InMemoryEmailChangeGrantRepositoryTest extends TestCase
             new DateTimeImmutable('2026-08-22T12:00:00+00:00'),
             new DateTimeImmutable('2026-08-22T13:00:00+00:00'),
             EmailAddress::fromString($email),
-            'ciphertext:'.$credential
+            'ciphertext:'.$credential,
+            1
         );
     }
 }

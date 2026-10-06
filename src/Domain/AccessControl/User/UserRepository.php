@@ -97,7 +97,11 @@ interface UserRepository
      *
      * Implementations compare the complete expected User state and permit only one valid reservation transition with
      * exactly one revision advancement. A new destination must not be claimed by any canonical email or live
-     * reservation. Returns false without mutation when the predecessor changed or the transition is invalid.
+     * reservation. Request/cancellation retain their active-state policy; expiry may release an existing reservation
+     * in every reachable account state without changing lifecycle, canonical email, authentication/authorization,
+     * password or unrelated fields. Only reservation revision and normal update metadata advance. Full email expiry
+     * couples the exact grant-bound reservation revision and grant CAS in the same transaction.
+     * Returns false without mutation when the predecessor changed or the transition is invalid.
      *
      * @throws Exception When an error occurs
      */

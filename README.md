@@ -70,6 +70,13 @@ purpose, User ID, and delivery ID. Pending work, due retries, and expired leases
 A crash after provider acceptance and before outcome commit can repeat the provider call with the same identity, so
 this contract is at-least-once and does not claim exactly-once delivery.
 
+For downtime through expiry, the unreleased [human credential expiry guide](docs/credential-expiry.md) adds
+`FindExpiredCredentialDeliveriesHandler` and `ExpireInvitationDeliveryHandler`, alongside existing reset/email expiry.
+Run bounded expired cleanup before unchanged due work. Email cleanup expires authority plus its exact reservation even
+with terminal delivery or changed account state. All three repositories require `findExpired()`; email grants bind the
+explicit User reservation revision. Cleanup requires no keys/providers; consumers protect every query/dispatch entry
+point and separately qualify PostgreSQL atomicity/CAS/destruction. Actor provenance is not authorization.
+
 ### Feature declarations, preparation and availability (unreleased)
 
 The [Feature reference guide](docs/feature-references.md) describes strict `FeatureName` validation, method-only

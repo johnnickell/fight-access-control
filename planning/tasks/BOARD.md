@@ -5,11 +5,13 @@ dependencies, acceptance, and verification.
 
 ## What's Next?
 
-First ready Task: [TASK-00069](00069-TASK.md) — Rename an Agent atomically with typed provenance.
+Active Task: [TASK-00072](00072-TASK.md) — Discover and clean expired human credential work.
 
 ## In Progress
 
-No Tasks are currently in this state.
+| Order | TASK ID | Title | Parent TICKET | Status | Blocked by | PR |
+| --- | --- | --- | --- | --- | --- | --- |
+| 72 | [TASK-00072](00072-TASK.md) | Discover and clean expired human credential work | [TICKET-00020](../tickets/00020-TICKET.md) — Clean up expired human credential work after downtime | in-progress | — | — |
 
 ## Ready Frontier
 

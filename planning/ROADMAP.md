@@ -13,13 +13,21 @@
 work records, complete implementation/local verification and independent acceptance with applicable behavioral QA.
 [WF-025](wayfinder/tickets/WF-025-human-delivery-expiry-contract.md) is resolved: invitation/reset delivery expiry plus
 full email-change authority/reservation expiry, including already-terminal delivery and changed User account states.
-The approved bounded EPIC destination remains unwritten; no implementation is yet claimed. Current due discovery
-cannot clean recoverable invitation/reset work after downtime through grant expiry. Email reservations must not remain
-stranded because delivery finished or the account became inactive; no consumer product/provider wiring is enabled.
-This follow-up does not reopen completed EPIC-00009 or its original delivery predecessors, and its local work IDs will be allocated through
-normal approved planning. Agent OS `TASK-00024` is the external blocked consumer work, not an AccessControl dependency
-edge. Package proof must be distinguished from actual PostgreSQL consumer qualification/adoption. Tagging, signing,
-pushing and publication remain separately authorized; the Board still owns execution priority.
+John confirmed [EPIC-00012 — Package-Owned Human Credential Expiry Cleanup for v0.5.0](epics/00012-EPIC.md); its only
+Wayfinder destination is written and the map is Closed. John approved its single cohesive requirement area, now
+[TICKET-00020](tickets/00020-TICKET.md), retaining the entire WF-025 matrix, then approved its sole implementation slice,
+[TASK-00072](tasks/00072-TASK.md). Full EPIC/TICKET/TASK decomposition is accepted and complete; Board execution selection,
+implementation authority and placement were separately resolved for TASK-00072: John selected main and requested
+inclusion of pending planning changes in its commit. At the pre-publication checkpoint, the implementation passes
+206 focused tests / 2957 assertions and the complete gate (1993 tests / 37644 assertions), exact 6841/6841 product
+statements and 971/971 changed-production statements. Independent review and post-review nonvisual QA remain pending;
+TASK/parents are in progress. Before this implementation, due discovery could not clean recoverable invitation/reset
+work after downtime through grant expiry; the unchanged due path now has separate expired discovery/direct cleanup. Email reservations must not remain stranded because delivery finished or the account
+became inactive; no consumer product/provider wiring is enabled. This follow-up does not reopen completed EPIC-00009
+or its original delivery predecessors. Agent OS `TASK-00024` is the external blocked consumer work, not an AccessControl
+dependency edge. Package proof must be distinguished from actual PostgreSQL consumer qualification/adoption. Tagging,
+signing, pushing and publication remain separately authorized; the Board still owns execution priority, unchanged by
+this approved decomposition.
 
 ## Current package acceptance and next TASK
 
@@ -143,4 +151,5 @@ adoption, release or deployment is claimed; the Board still owns separately auth
 | [EPIC-00009](epics/00009-EPIC.md) | v0.5.0 | done | 3 | 14 |
 | [EPIC-00010](epics/00010-EPIC.md) | unassigned | done | 3 | 7 |
 | [EPIC-00011](epics/00011-EPIC.md) | unassigned | needs-info | 2 | 3 |
+| [EPIC-00012](epics/00012-EPIC.md) | v0.5.0 | in-progress | 1 | 1 |
 <!-- generated:epic-status:end -->

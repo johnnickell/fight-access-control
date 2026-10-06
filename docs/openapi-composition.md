@@ -65,6 +65,12 @@ over HTTP. All names below have the `Fight.AccessControl.` prefix:
 | `CredentialDeliveryStatus` | `CredentialDeliveryStatusView`: purpose, delivery/User IDs, revision, status, due/expiry times, attempt count and nullable attempt/outcome/failure history |
 | `DueCredentialDelivery` | Purpose, delivery/User IDs, due time, revision and status |
 | `DueCredentialDeliveries` | An unpaginated array of `DueCredentialDelivery`; an empty array is valid |
+| `FindExpiredCredentialDeliveries` | Explicit fractional `at` and required integer `limit` 1–100; runner guidance 50, no constructor default |
+| `ExpiredCredentialDelivery` | Purpose, exact delivery/User IDs, required nullable `email_change_grant_id`, fractional expiry instant, nonnegative revision and safe delivery status |
+| `ExpiredCredentialDeliveries` | Unpaginated array of exact expired work, maximum 100 items; empty is valid |
+| `ExpireInvitationDelivery` / `InvitationDeliveryExpired` | String actor provenance, User/activation delivery UUIDs and fractional occurrence time |
+| `ExpirePasswordResetDelivery` / `PasswordResetDeliveryExpired` | String actor provenance, User/password-reset delivery UUIDs and fractional occurrence time |
+| `ExpireEmailChange` / `EmailChangeExpired` | String actor provenance, User/email grant UUIDs and fractional occurrence time |
 
 All canonical fields are required, including `last_attempt_at`, `last_outcome_at` and `last_failure`, whose values
 may be null. Non-null `last_failure` is only `retryable_provider`, `unexpected_provider` or `permanent_provider`;
@@ -82,6 +88,13 @@ token. The status View component intentionally omits the PHP `View` suffix, like
 wraps the array directly, without ResultSet pagination. The status handler may return null for an absent generation;
 consumers own absence mapping rather than receiving a package-defined HTTP response. Schemas grant no access:
 consumer entry-point authorization, routes, HTTP status codes and delivery invocation remain unchanged.
+
+The unreleased `JSend.Success.ExpiredCredentialDeliveries` likewise wraps its array directly. Expiry facts reference
+exact command-shaped payload components; this adds no endpoint or event-replay guarantee. The email grant identity
+is non-null exactly for email work, where cleanup expires full authority/reservation even when delivery is terminal;
+it is null for invitation/reset. All expiry fields are required and secret-free. See
+[expiry composition](credential-expiry.md) for mandatory repository/binding changes, protected dispatch and restart.
+These additions/integration changes are next-minor pre-v1 work, not authorization to patch old releases or publish.
 
 This unreleased correction narrows the invitation status enum. Under [ADR 0007](../planning/adr/0007-openapi-schema-metadata-distribution.md),
 it needs the next minor `0.x` release, not an assumed patch or replacement of v0.4.0. Recompose consumer documents and

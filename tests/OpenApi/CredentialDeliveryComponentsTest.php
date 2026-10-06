@@ -13,11 +13,15 @@ use Fight\AccessControl\Domain\AccessControl\CredentialDelivery\DueCredentialDel
 use Fight\AccessControl\Domain\AccessControl\CredentialDelivery\Query\CredentialDeliveryStatusView;
 use Fight\AccessControl\Domain\AccessControl\CredentialDelivery\Query\FindCredentialDeliveryStatus;
 use Fight\AccessControl\Domain\AccessControl\CredentialDelivery\Query\FindDueCredentialDeliveries;
+use Fight\AccessControl\Domain\AccessControl\CredentialDelivery\Query\FindExpiredCredentialDeliveries;
 use Fight\AccessControl\Domain\AccessControl\PasswordResetGrant\Command\DeliverPasswordReset;
 use Fight\AccessControl\Domain\AccessControl\PasswordResetGrant\PasswordResetDelivery;
 use Fight\AccessControl\Domain\AccessControl\PasswordResetGrant\PasswordResetDeliveryId;
 use Fight\AccessControl\Domain\AccessControl\User\UserId;
+use Fight\Common\Domain\Messaging\Command\CommandMessage;
+use Fight\Common\Domain\Messaging\Query\QueryMessage;
 use Fight\Common\Domain\Value\Internet\EmailAddress;
+use Fight\Test\AccessControl\Application\AccessControl\CredentialDelivery\QueryHandler\ExpiredCredentialFixture;
 use OpenApi\Generator;
 use PHPUnit\Framework\Attributes\CoversNothing;
 use PHPUnit\Framework\TestCase;
@@ -25,6 +29,46 @@ use PHPUnit\Framework\TestCase;
 #[CoversNothing]
 final class CredentialDeliveryComponentsTest extends TestCase
 {
+    public function test_expired_work_and_exact_dispatch_contracts_match_generated_components(): void
+    {
+        $schemas = $this->schemas();
+        foreach (
+            [
+            ['activation', 'ExpireInvitationDelivery', 'InvitationDeliveryExpired'],
+            ['password_reset', 'ExpirePasswordResetDelivery', 'PasswordResetDeliveryExpired'],
+            ['email_change', 'ExpireEmailChange', 'EmailChangeExpired']
+            ] as [$purpose, $commandName, $eventName]
+        ) {
+            $fixture = new ExpiredCredentialFixture($purpose);
+            $query = new FindExpiredCredentialDeliveries($fixture->expiresAt, 50);
+            $this->assertCanonicalFields($schemas['Fight.AccessControl.FindExpiredCredentialDeliveries'], $query->toArray());
+            $work = $fixture->discovery()->handle(QueryMessage::create($query))[0];
+            $workSchema = $schemas['Fight.AccessControl.ExpiredCredentialDelivery'];
+            $this->assertCanonicalFields($workSchema, $work->toArray());
+            self::assertContains($work->getPurpose(), $workSchema['properties']['purpose']['enum']);
+            self::assertContains($work->getStatus()->value, $workSchema['properties']['status']['enum']);
+            self::assertSame('2030-01-01T01:00:00.123456+00:00', $work->toArray()['expires_at']);
+            self::assertSame(['string', 'null'], $workSchema['properties']['email_change_grant_id']['type']);
+            $command = $fixture->command();
+            $this->assertCanonicalFields($schemas['Fight.AccessControl.'.$commandName], $command->toArray());
+            $fixture->handler()->handle(CommandMessage::create($command));
+            $event = $fixture->events->events()[0];
+            self::assertSame('#/components/schemas/Fight.AccessControl.'.$commandName, $schemas['Fight.AccessControl.'.$eventName]['$ref']);
+            $this->assertCanonicalFields($schemas['Fight.AccessControl.'.$commandName], $event->toArray());
+            self::assertSame($command->toArray()['occurred_at'], $event->toArray()['occurred_at']);
+        }
+
+        self::assertSame([
+            'at'    => ['type' => 'string', 'format' => 'date-time'],
+            'limit' => ['type' => 'integer', 'maximum' => 100, 'minimum' => 1]
+        ], $schemas['Fight.AccessControl.FindExpiredCredentialDeliveries']['properties']);
+        self::assertSame(0, $schemas['Fight.AccessControl.ExpiredCredentialDelivery']['properties']['revision']['minimum']);
+        self::assertSame('array', $schemas['Fight.AccessControl.ExpiredCredentialDeliveries']['type']);
+        self::assertSame(100, $schemas['Fight.AccessControl.ExpiredCredentialDeliveries']['maxItems']);
+        self::assertSame('#/components/schemas/Fight.AccessControl.ExpiredCredentialDelivery', $schemas['Fight.AccessControl.ExpiredCredentialDeliveries']['items']['$ref']);
+        self::assertSame('#/components/schemas/Fight.AccessControl.ExpiredCredentialDeliveries', $schemas['Fight.AccessControl.JSend.Success.ExpiredCredentialDeliveries']['properties']['data']['$ref']);
+    }
+
     public function test_generated_invitation_status_matches_the_delivery_enum(): void
     {
         $schemas = $this->schemas();

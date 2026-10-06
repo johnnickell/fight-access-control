@@ -10,17 +10,29 @@ behavior shared by Fight applications. The repository-local behavioral and secur
 
 John requires package-owned expired-work discovery and direct expiry cleanup before `v0.5.0` readiness; see the
 [bounded Wayfinder map](planning/wayfinder/human-credential-delivery-expiry-map.md) and
-[WF-025 approved contract decision](planning/wayfinder/tickets/WF-025-human-delivery-expiry-contract.md). Current source
-tracing confirms due discovery excludes exact/post-expiry work, reset has a direct expiry handler, and invitation lacks
-one. John approved invitation/reset delivery expiry and full email-change authority/reservation expiry, including
+[WF-025 approved contract decision](planning/wayfinder/tickets/WF-025-human-delivery-expiry-contract.md). Before TASK-00072,
+source tracing confirmed due discovery excludes exact/post-expiry work, reset had a direct expiry handler, and invitation
+lacked one. John approved invitation/reset delivery expiry and full email-change authority/reservation expiry, including
 already-delivered/permanent-failure/material-free delivery and changed User account states. Disable/delete preserve
-reservations while current User expiry requires active state; the bounded implementation must close that omission
+reservations while pre-TASK-00072 User expiry required active state; the bounded implementation closes that omission
 without reactivation or unrelated authority changes. New expiry discovery is read-only/secret-free with limit 1–100
-and runner guidance 50; complete state/race/restart evidence is required. The single approved EPIC destination is
-unwritten; no implementation or fresh full-gate evidence is claimed. Agent OS `TASK-00024` is an external consumer
-context ID, not an upstream TASK or local dependency. Normal approved EPIC/TICKET/TASK planning, explicit checkout/worktree placement, implementation
-gates and independent review/behavioral QA precede the consumer handoff. Real PostgreSQL qualification, adoption,
-tagging/signing/publication and deployment remain separate. Preserve concurrent Agent-profile planning changes.
+and runner guidance 50; complete state/race/restart evidence is required. John confirmed the single destination,
+now written as [EPIC-00012](planning/epics/00012-EPIC.md), and the Wayfinder map is Closed. John approved its sole
+requirement area, now [TICKET-00020](planning/tickets/00020-TICKET.md); TICKET decomposition is complete with every
+WF-025 case retained. John approved the sole implementation slice, now
+[TASK-00072](planning/tasks/00072-TASK.md); all planning phases are accepted and complete. The Board owns execution
+selection; existing priority is unchanged. John explicitly selected TASK-00072, chose the main checkout and requested
+inclusion of pending planning changes in its commit. Implementation is underway on `feature/task-00072-credential-expiry`,
+preserving checkpoint `59f2378` and unrelated Agent-profile records. New bounded expired discovery/direct invitation expiry,
+full email expiry in every reachable User state and a mandatory grant-bound reservation revision are described in
+[the current expiry guide](docs/credential-expiry.md). Reclaimed-history and inactive-reservation regressions reproduced
+and now pass. At the pre-publication checkpoint, focused checks pass 206 tests / 2957 assertions; `./bin/build` passes
+1993 tests / 37644 assertions, exact 6841/6841 product statements and 971/971 changed-production statements, with no
+final warnings/skips. The TASK owns source-input/commit evidence and every matrix mapping. Independent technical
+review and subsequent nonvisual behavioral QA remain pending; the TASK and eligible parents are not yet complete. Agent OS `TASK-00024` is an external
+consumer context ID, not an upstream TASK or local dependency. Explicit checkout/worktree
+placement, implementation gates and independent review/behavioral QA precede the consumer handoff. Real PostgreSQL
+qualification, adoption, tagging/signing/publication and deployment remain separate. Preserve concurrent Agent-profile planning changes.
 
 ## Current integration and evidence — TASK-00059 accepted
 
