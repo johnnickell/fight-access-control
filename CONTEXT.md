@@ -36,10 +36,13 @@ The initial QA-only retired PHPUnit-option deprecation was corrected in its invo
 
 TASK-00070 is done for accepted package implementation and required local/behavioral verification. Automatic parent
 completion leaves TICKET-00019 and EPIC-00011 `ready-for-agent` for unfinished TASK-00071; its dependencies are now
-satisfied without removing their edges. John authorized landing; final local gates and PR publication remain pending
-at this tracked pre-publication checkpoint. The ignored `.runs/logs/TASK-00070/landing/` receipt owns final delivery
-and the administrative-only acceptance/QA/runtime bridge. Canonical reports remain unchanged. Hosted CI is optional/
-not checked. Main checkout and useful evidence are retained; no isolated TASK worktree or persistent service exists.
+satisfied without removing their edges. Fresh landing focused/full gates pass **31 tests / 210 assertions** and
+**2079 tests / 40409 assertions**, exact **7000/7000** owned statements, without final warnings/skips or package drift.
+John authorized [PR #112](https://github.com/johnnickell/fight-access-control/pull/112), open/draft against unchanged
+`develop` at initial closeout head `229638a`. Sanitized nonvisual QA evidence is published/read back in the body;
+final metadata gates/push and ready transition remain pending at this tracked checkpoint. The ignored
+`.runs/logs/TASK-00070/landing/` receipt owns final delivery and the administrative-only acceptance/QA/runtime bridge.
+Canonical reports remain unchanged. Hosted CI is optional/not checked. Main checkout and useful evidence are retained; no isolated TASK worktree or persistent service exists.
 No MCP Tool, administrator endpoint, consumer migration, human approval/merge, release or deployment is claimed.
 
 ## Agent-protected MCP authorization — TASK-00035 accepted
