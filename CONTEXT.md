@@ -32,10 +32,13 @@ final runs have no warnings/skips/deprecations, and no product defect was identi
 
 TASK-00071 is done for accepted package implementation and required local/behavioral verification. Automatic parent
 completion closes TICKET-00019 and EPIC-00011 in the same operation; TASK-00070 and TICKET-00018 were already done.
-John authorized landing against unchanged `develop`; publication is pending at this tracked pre-publication checkpoint.
-The ignored `.runs/logs/TASK-00071/landing/` receipt owns fresh gates, final delivery and the administrative-only
-acceptance/QA/runtime bridge. Canonical reports remain unchanged; sanitized nonvisual QA results are prepared for
-publication. Hosted CI is optional/not checked. The main checkout and useful evidence are retained; no isolated TASK
+Fresh landing focused/full gates pass **90 tests / 843 assertions** and **2109 tests / 40671 assertions**, exact
+**7019/7019** statements, without final warnings/skips or dependency package drift. John authorized
+[PR #113](https://github.com/johnnickell/fight-access-control/pull/113), open/draft against unchanged `develop` at initial
+closeout head `d94b607`. Sanitized nonvisual QA evidence is published/read back and publicly accessible; final metadata
+gates/push and ready transition remain pending at this tracked checkpoint. The ignored
+`.runs/logs/TASK-00071/landing/` receipt owns final delivery and the administrative-only acceptance/QA/runtime bridge.
+Canonical reports remain unchanged. Hosted CI is optional/not checked. The main checkout and useful evidence are retained; no isolated TASK
 worktree or persistent service exists. Human approval/merge, consumer qualification, release and deployment remain separate.
 
 ## Minimal Agent profiles — TASK-00070 accepted
