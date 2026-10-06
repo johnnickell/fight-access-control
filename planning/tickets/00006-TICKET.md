@@ -2,7 +2,7 @@
 id: TICKET-00006
 epic: EPIC-00005
 title: Authorize Agent-Protected MCP Tools
-status: ready-for-agent
+status: in-progress
 ---
 
 # Authorize Agent-Protected MCP Tools
@@ -23,8 +23,9 @@ direct invocation, and interaction retry can perform protected work.
 This TICKET owns the complete Agent-aware authorization integration. The external dependency hold is satisfied by
 installed Fight Common v1.3.0. [TASK-00035](../tasks/00035-TASK.md#verified-fight-common-v130-contracts) records
 its exact revision and inspected public signatures: method-level `McpToolInfo`, canonical registry metadata,
-boolean `McpToolAvailability`, discovery/invocation and protected-retry enforcement. The TICKET and TASK are
-`ready-for-agent`; no implementation or conformance acceptance is implied.
+boolean `McpToolAvailability`, discovery/invocation and protected-retry enforcement. The external gate made the TICKET
+and TASK executable. TASK-00035 is now in progress on its authorized feature branch; its builder implementation is not
+independent conformance acceptance.
 
 ## Use Cases
 
@@ -88,6 +89,9 @@ existing use case through Common's Tool contract; that Tool behavior is not owne
 
 ## Acceptance Evidence
 
+The remaining checkboxes await independent acceptance; TASK-00035's C1–C8 table records current builder evidence
+and its passing local gate without closing this requirement.
+
 - [x] Published Fight Common contracts and a compatible installed release identify the exact Tool declaration target,
   canonical metadata/name source, availability signature, and retry enforcement seam without AccessControl copying
   Common naming or protocol logic.
@@ -123,13 +127,17 @@ existing use case through Common's Tool contract; that Tool behavior is not owne
 
 | Order | TASK ID | Title | Status |
 | --- | --- | --- | --- |
-| 35 | [TASK-00035](../tasks/00035-TASK.md) | Authorize Agent-protected MCP Tools | ready-for-agent |
+| 35 | [TASK-00035](../tasks/00035-TASK.md) | Authorize Agent-protected MCP Tools | in-progress |
 ## Decisions and Progress
 
 All EPIC-00005 requirements have one cohesive owner here: static repeatable metadata, canonical-name catalog,
 conjunctive Permission evaluation, request-local principal freshness, shared discovery/invocation/retry enforcement,
 concealment, cache posture, snapshot semantics, compatibility, and conformance evidence. No separate layer-based
 TICKET is required. [TASK-00035](../tasks/00035-TASK.md) is the one cohesive implementation owner and is now
-`ready-for-agent` after the installed v1.3.0 API inspection. Its
+in progress after the installed v1.3.0 API inspection and John's work invocation. Its
 dependency-ordered metadata/catalog, availability-integration, and conformance/enforcement assignments remain
 SUBTASKs under that one TASK, not separate durable TASKs.
+
+The [current composition guide](../../docs/agent-mcp-authorization.md) describes the three additive public contracts
+and narrowed Common `^1.3` minimum. TASK-00035 owns executable Common-boundary evidence, full-gate results and remaining
+independent review/behavioral QA. Builder implementation does not close this requirement or qualify a consumer.

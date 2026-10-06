@@ -9,6 +9,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- [Agent-protected MCP authorization](docs/agent-mcp-authorization.md): additive repeatable method-level
+  `RequiresAgentPermission`, immutable registry-derived `AgentToolPermissionCatalog` and request-scoped
+  `AgentToolAvailability`. Conjunctive direct-Permission decisions share one current Agent snapshot across Common
+  discovery/invocation and re-resolve for later protected retries. Missing/malformed composition rejects; unknown or
+  foreign definitions and unresolved/insufficient authority deny without protected work. Real Common-boundary tests
+  cover private zero-TTL pages, concealment and retry ordering. No Tool, endpoint or consumer qualification is supplied.
 - [Agent name updates](docs/agent-name-updates.md): typed User/Agent `AgentUpdateInitiator`, generic `UpdateAgent`,
   void synchronous handler and post-commit `AgentNameChanged`. The new mandatory `AgentRepository::rename(id, name, now)`
   samples its clock callback after current ACTIVE/operation/cohort admission and returns exact persisted time or null
@@ -92,6 +98,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- **Dependency compatibility (unreleased):** raise `johnnickell/fight-common` from `^1.2` to `^1.3` for the released
+  MCP Tool metadata, registry, neutral availability and protected-interaction contracts. This narrowed minimum belongs
+  in the next pre-v1 minor release, not a patch/backport. Existing non-MCP AccessControl APIs remain unchanged.
 - **Breaking (unreleased v0.5.0):** `AgentOperationContract` requires explicit nullable `reconciledGeneration` from
   an independently trusted admission boundary for the exact active storage incarnation. Missing or mismatched evidence
   denies unsafe operations through existing cohort guards; a reconciled restore advances the generation so old delivery

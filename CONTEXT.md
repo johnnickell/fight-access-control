@@ -6,7 +6,31 @@ Fight AccessControl owns framework-neutral identity, credential, session, author
 behavior shared by Fight applications. The repository-local behavioral and security authority is
 [TICKET-00001](planning/tickets/00001-TICKET.md).
 
-## MCP planning readiness — Fight Common v1.3.0
+## Agent-protected MCP authorization — TASK-00035 builder checkpoint
+
+John selected the main checkout for TASK-00035 from clean `develop` `4b6d083`, on
+`feature/task-00035-agent-mcp-authorization`. The [MCP authorization guide](docs/agent-mcp-authorization.md) records
+three additive public Application contracts: repeatable `RequiresAgentPermission` on Tool `handle()`, immutable
+`AgentToolPermissionCatalog` built directly from one Common registry, and request-scoped `AgentToolAvailability`.
+The catalog enumerates complete Common-resolved metadata without a second Tool list/naming algorithm; exact immutable
+definition identity rejects foreign mappings. Missing/malformed requirements reject construction. One lazy provider
+resolution, successful or rejected, stays request-local; only static metadata crosses requests. Common sees only bool
+and retains filtering, selection, concealment and protected retry mechanics. Later requests get fresh authority;
+same-request admitted work retains its snapshot. Consumers retain transport mapping, diagnostics at their authentication
+boundary, fresh object lifetimes, persistence, cryptography and runtime protections. No self-profile Tool is supplied.
+
+Composer now requires Common `^1.3`; installed v1.3.0 still matches the recorded revision. The public additions and
+narrowed dependency minimum are unreleased; no compatibility shim or consumer migration is added. Real Common-boundary
+package tests cover filtering/pagination, deny-before-validation/buses/progress/diagnostics and protected confirmation
+retry after modeled revocation/rotation/Permission changes. HMAC/database/state-protector/confirmation ports remain
+controlled fixtures, not real consumer qualification. Final focused checks pass **44 tests / 374 assertions**; the
+canonical full gate passes **2069 tests / 40356 assertions**, exact **6966/6966 owned statements** and **36/36 new
+statements**, with no final warnings/skips or resolved package drift. The TASK owns the complete receipt and early
+fixture/style failure chronology. Final evidence prose retains the full gate through unchanged executable-input hashes
+and targeted planning/documentation checks. Independent review and behavioral QA remain pending. TASK-00035 stays in
+progress, and TASK-00071 still waits on it and TASK-00070.
+
+## MCP planning readiness — Fight Common v1.3.0 (prior checkpoint)
 
 John requested a planning refresh after Common v1.3.0 publication. The local ignored lockfile and installed package
 metadata already resolve `v1.3.0` at `7de6cad6e8a9752973ad9f8e27e285b0c1510582`; no dependency change was needed.
@@ -230,10 +254,11 @@ no merge, release or consumer qualification is claimed.
 - **Current Agent principal provider**: a consumer-composed, request-scoped module that authenticates one signed
   Agent request and returns its cached immutable Authenticated Agent principal for that request. Authentication,
   authority revalidation, Permission snapshot resolution, safe diagnostics, and request caching form one flow.
-- **Agent-aware MCP tool availability**: an AccessControl-owned, request-scoped decision that maps a Fight Common
-  canonical tool name to static required-Permission metadata and checks it against one current Authenticated Agent
-  principal snapshot. Common receives only available or unavailable; later MCP requests resolve current authority
-  again, and unavailable and unknown tools remain publicly indistinguishable.
+- **Agent-aware MCP tool availability**: an AccessControl-owned, request-scoped `AgentToolAvailability` decision
+  using `AgentToolPermissionCatalog` built from the actual Common registry and repeatable method-level
+  `RequiresAgentPermission`. Exact Common definitions bind static conjunctive Permission requirements to one current
+  Authenticated Agent principal snapshot. Common receives only available or unavailable; later MCP requests resolve
+  current authority again, and unavailable and unknown tools remain publicly indistinguishable.
 - **Security context**: one request-specific, consumer-selected Authenticated User or Authenticated Agent authority.
   It is constructed with exactly that one authority and provides the common Permission and Role checks used by
   consuming code. Consumers select the authentication path through their framework adapters; the package does not

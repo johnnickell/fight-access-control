@@ -5,17 +5,18 @@ dependencies, acceptance, and verification.
 
 ## What's Next?
 
-First ready Task: [TASK-00035](00035-TASK.md) — Authorize Agent-protected MCP Tools.
+Active Task: [TASK-00035](00035-TASK.md) — Authorize Agent-protected MCP Tools.
 
 ## In Progress
 
-No Tasks are currently in this state.
+| Order | TASK ID | Title | Parent TICKET | Status | Blocked by | PR |
+| --- | --- | --- | --- | --- | --- | --- |
+| 35 | [TASK-00035](00035-TASK.md) | Authorize Agent-protected MCP Tools | [TICKET-00006](../tickets/00006-TICKET.md) — Authorize Agent-Protected MCP Tools | in-progress | — | — |
 
 ## Ready Frontier
 
 | Order | TASK ID | Title | Parent TICKET | Status | Blocked by | PR |
 | --- | --- | --- | --- | --- | --- | --- |
-| 35 | [TASK-00035](00035-TASK.md) | Authorize Agent-protected MCP Tools | [TICKET-00006](../tickets/00006-TICKET.md) — Authorize Agent-Protected MCP Tools | ready-for-agent | — | — |
 | 70 | [TASK-00070](00070-TASK.md) | Provide minimal Agent profile reads and managed Permission definitions | [TICKET-00019](../tickets/00019-TICKET.md) — Read and update the authenticated Agent profile through MCP tools | ready-for-agent | — | — |
 
 ## Waiting
