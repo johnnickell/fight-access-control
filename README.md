@@ -105,6 +105,16 @@ Consumers protect every dispatch entry point and separately qualify persistence.
 permits the same input-derived `{agent_id, name}` acknowledgement for changes/no-ops. No MCP Tool, administrator
 endpoint, consumer adapter, release or deployment is supplied.
 
+### Minimal Agent profiles (unreleased)
+
+The [profile guide](docs/agent-profile.md) describes `GetAgentProfile` / `GetAgentProfileHandler`, returning only
+`{agent_id, name}` from a fresh authoritative ACTIVE Agent lookup. Missing and revoked targets both return null;
+reads perform no writes, transactions, Permission resolution or events. Consumers authorize the explicit internal
+target; the later self-service Tool must derive it solely from the current authenticated principal.
+`AgentProfilePermissions::definitions()` supplies managed `AGENT_PROFILE_READ` and `AGENT_PROFILE_UPDATE`, both
+`ADMIN_SAFE`, using two distinct consumer-owned IDs generated once with `Uuid::comb()` and fixed in its seed/migration.
+No automatic grants, startup ID generation, MCP Tool, consumer migration or runtime integration is supplied.
+
 ### Agent-protected MCP Tools (unreleased)
 
 The [MCP authorization guide](docs/agent-mcp-authorization.md) describes repeatable method-level
@@ -112,7 +122,8 @@ The [MCP authorization guide](docs/agent-mcp-authorization.md) describes repeata
 `AgentToolAvailability`. Every requirement must match the current Agent's direct Permissions. Use the same neutral
 availability in Common discovery, invocation and protected retries, with fresh providers on every later request and
 private zero-TTL discovery. Unknown/unavailable Tools remain publicly equivalent before protected work.
-Common `^1.3` is required; no Tool, profile operation, endpoint, OAuth mapping or consumer adapter is supplied.
+Common `^1.3` is required; this authorization module supplies no Tool, endpoint, OAuth mapping or consumer adapter.
+The separate minimal profile query above does not itself enforce MCP permissions or choose a principal.
 
 ### Agent credential operations (unreleased)
 

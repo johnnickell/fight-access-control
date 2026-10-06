@@ -13,8 +13,8 @@ An authenticated Agent needs a safe way to see its own name and to rename itself
 administrative Agent view or allowing a caller to select another Agent. Supply two protected, package-owned MCP tools
 bound to the Agent-aware authorization contract in [TICKET-00006](00006-TICKET.md). Reuse the generic name-only
 update from [TICKET-00018](00018-TICKET.md); do not implement a second rename path. Installed Fight Common v1.3.0
-now satisfies the external Tool API gate; this TICKET is `ready-for-agent`. TASK-00070 remains independently
-executable, while TASK-00071 waits on unfinished TASK-00070 and TASK-00035.
+now satisfies the external Tool API gate; this TICKET is `ready-for-agent`. TASK-00070 and TASK-00035 are done;
+TASK-00071 is executable with all recorded dependency edges satisfied.
 
 ## Use Cases
 
@@ -84,7 +84,7 @@ Adapter layer, release or deployment is created.
 
 | Order | TASK ID | Title | Status |
 | --- | --- | --- | --- |
-| 70 | [TASK-00070](../tasks/00070-TASK.md) | Provide minimal Agent profile reads and managed Permission definitions | ready-for-agent |
+| 70 | [TASK-00070](../tasks/00070-TASK.md) | Provide minimal Agent profile reads and managed Permission definitions | done |
 | 71 | [TASK-00071](../tasks/00071-TASK.md) | Bind protected self-service Agent profile tools | ready-for-agent |
 ## Progress
 
@@ -97,5 +97,23 @@ John approved this as the second EPIC-00011 requirement area and subsequently ap
 [TASK-00070](../tasks/00070-TASK.md) delivers the independently executable minimal read/managed definitions;
 [TASK-00071](../tasks/00071-TASK.md) binds the tools after TASK-00070, TASK-00069 and TASK-00035. TASK decomposition
 is complete. The subsequent v1.3.0 source inspection clears the external hold; TASK-00071 is ready but waiting on
-TASK-00070 and TASK-00035, while TASK-00069 is done. Consumer adoption and implementation still require separate
-authorization and checkout selection.
+TASK-00070, while TASK-00069 and TASK-00035 are done. Consumer adoption and further implementation still require
+separate authorization and checkout selection.
+
+John invoked work for TASK-00070 in the main checkout. Its minimal fresh profile query and managed Permission
+factory are implemented with [consumer composition guidance](../../docs/agent-profile.md), pending independent
+review and behavioral QA. Builder checks pass 32 focused tests / 213 assertions and the complete local gate passes
+2080 tests / 40412 assertions, exact 7000/7000 owned statements with no final warnings/skips. The TASK retains
+resolved-tool drift and interrupted-attempt chronology. TASK-00071 still owns actual self-service Tool binding;
+this checkpoint does not complete the TICKET or qualify consumer persistence, seeding or runtime.
+
+Independent review of `d75db98` requested F1's bounded test-quality correction, not a production behavior repair.
+The revision removes constructor/private-property layout assertions while retaining behavior and forbidden-effect
+checks. Fresh focused/full gates pass 31 tests / 210 assertions and 2079 tests / 40409 assertions, exact 7000/7000
+owned statements without warnings/skips. At that builder checkpoint independent re-review and behavioral QA were
+pending. Independent re-review subsequently accepts `915323b` against unchanged `develop` `2ee2597`, all C1–C4
+passing, F1 resolved and no remaining findings. Independent QA passes six groups, 27 executable cases / 116 checks,
+eight instruction walkthroughs and 31 focused tests / 210 assertions. TASK-00070 is now done for accepted package
+implementation/local verification; John authorized landing and its TASK owns final publication evidence. Automatic
+parent completion leaves this TICKET and EPIC-00011 ready-for-agent for unfinished TASK-00071, now executable.
+Actual Tool binding and consumer qualification remain separate; no parent completion, merge or release is claimed.
