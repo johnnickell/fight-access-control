@@ -74,6 +74,7 @@ is not a future authorization grant. Use a consistent global lock order; never s
 | --- | --- |
 | `AgentProvisioningService::provision`, `AgentCredentialRotationService::rotate` | Check both repositories before current authorization, lookup or generation in every transaction/retry. Retained-key resolution still precedes new-work capacity; only an absent key reaches new-work admission using the fixed canonical contract. |
 | `AgentRepository::add`, `replace`, `replacePermissionAssignments` | Enforce the cohort on direct writes too, with unconditional correlation/cancellation and no raw-return fallback. Agent/operation/audit state remains one transaction. |
+| `AgentRepository::rename`, `UpdateAgentHandler` | Apply [name-only intent](agent-name-updates.md) to current ACTIVE state under the shared cohort/Agent fence, including no-ops and direct calls. Preserve exact operation correlation and all unrelated authority; no retirement, issuance, keys/sinks or capacity admission. |
 | `AgentCredentialLifecycleService::revoke` | Guard before loading/mutating authority; original cancellation/audit and post-commit publication/rethrow behavior are unchanged. There is no alternate authority mode. |
 | Grant/revoke/replace Agent Permission handlers and their coordinator | Guard before target lookup/transition, including desired-state no-ops. Current ADMIN_SAFE checks, expected revisions and consumer caller policy still apply. |
 | `AgentOperationRepository::reserveDestinationWrite`, `add`, `retireCredential` | Enforce the cohort before reservations, correlation/material creation and lifecycle cancellation. No external direct caller may omit it. |
@@ -119,7 +120,7 @@ applies to real runtime cohort replacement and existing authority, not a require
 1. Inventory every writer above, pending/admitted operations, current Agents, authority epochs, envelope keys,
    destination reservations, sink receipts/high-water marks and permanent operation/sink tombstones. Rehearse with
    the actual consumer's tools before adopting; package fixtures cannot certify this inventory.
-2. Quiesce issuance, lifecycle, Permission/policy, delivery, maintenance and background/admin writers. Drain or fence
+2. Quiesce issuance, name, lifecycle, Permission/policy, delivery, maintenance and background/admin writers. Drain or fence
    admitted calls at the trusted sink boundary, preserving inert-effect constraints and current activation/use checks.
 3. **Revoke old binary access** at storage or a trusted boundary it cannot bypass. Check direct connections,
    credentials/pools, restarted workers and non-HTTP jobs. A new-code version check cannot stop code that never runs it.

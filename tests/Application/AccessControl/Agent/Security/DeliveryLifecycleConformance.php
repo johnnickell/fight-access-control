@@ -117,10 +117,10 @@ abstract class DeliveryLifecycleConformance extends DeliveryConformance
             self::fail('Invalid policy must reject before execution.');
         } catch (AgentOperationRejectedException $agentOperationRejectedException) {
             self::assertSame(AgentOperationFailure::INVALID_REQUEST, $agentOperationRejectedException->getReason());
+        } finally {
+            self::assertSame($before, $fixture->counts());
+            self::assertSame(0, $fixture->stored($fixture->original())->getStateRevision());
         }
-
-        self::assertSame($before, $fixture->counts());
-        self::assertSame(0, $fixture->stored($fixture->original())->getStateRevision());
     }
 
     #[DataProvider('authorityRaces')]

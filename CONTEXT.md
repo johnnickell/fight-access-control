@@ -687,6 +687,66 @@ read back. Final metadata delivery verification/ready state remain pending at th
 TASK landing handoff owns fresh gates, the administrative-only acceptance/QA and resolved-runtime bridge, and final
 remote/evidence verification. Original independent reports are preserved; no approval or merge is claimed. Consumer scanning/database/UI/security/runtime qualification, release and deployment remain separate.
 
+## Agent name updates — TASK-00069 accepted
+
+John selected the clean main checkout from `develop` `913f373` for TASK-00069 on
+`feature/task-00069-agent-rename`. The [name update guide](docs/agent-name-updates.md) describes generic `UpdateAgent`
+with typed User/Agent `AgentUpdateInitiator`, void synchronous `UpdateAgentHandler` and post-commit `AgentNameChanged`.
+The mandatory Domain repository `rename(id, name, now)` capability invokes a lazy clock callback after current writer
+admission and applies `Agent::rename()` to fenced ACTIVE state, including no-ops. It returns exact persisted time or
+null for a validated no-op, preserving all credential/Permission authority and exact operation correlation. Last committed
+name wins with no expected old name or revision; no-op changes no timestamp, persistence or success fact. Real changes
+commit before publication; post-commit publication failure rethrows without rollback or success acknowledgement.
+All consumer dispatch paths require caller/target authorization; initiator identity is provenance only. Successful
+synchronous void dispatch permits the same input-derived `{agent_id, name}` acknowledgement for changes and no-ops,
+not a fresh read of a later concurrent name. New opt-in command/provenance schemas preserve that public contract.
+At the initial pre-review checkpoint `614c34b`, focused checks pass **1124 tests / 30771 assertions**; the complete
+`./bin/build` passes **2037 tests / 40062 assertions**, exact **6930/6930** owned statements (243/243 across TASK-changed
+production files). No final warnings/notices/skips; the canonical resolver upgraded ignored dev-only swagger-php
+6.11.0 to 6.12.0 before the full gate. Final verification prose retains equivalent executable inputs plus targeted
+planning/documentation checks. Independent review of `614c34b` requested F1: pre-fence clock sampling falsely rejects
+a waiting rename after another writer advances time. Three regression cases reproduced this for competing rename,
+Permission and real rotation before repair. The corrected contract samples under writer admission and returns the
+exact persisted event time; genuine-backdating rejection and no-op/authority safety remain. Revision focused checks
+pass **1127 tests / 30796 assertions**; fresh canonical `./bin/build` passes **2040 tests / 40087 assertions**, exact
+**6930/6930 owned statements** (243/243 across TASK-changed whole production files). No final warnings/skips or dependency
+drift; all 905 gate inputs stayed byte-identical. The unchanged review probe also passes all four builder-rerun cases.
+Final evidence prose retains equivalent executable inputs with targeted planning/documentation checks. Independent
+re-review subsequently **accepted** `fb12b0592f45bb97758ef54457ccd34a53702c91` against unchanged `develop`, with
+C1–C6 passing, F1 resolved and no findings. Independent post-review behavioral **QA PASS** covers five groups,
+**40 executable cases / 375 checks**, **8 instruction walkthroughs** and clean **21 tests / 267 assertions**.
+TASK-00069 is done for accepted package implementation and required local/behavioral evidence. Automatic parent
+completion closes TICKET-00018 in the same landing operation; EPIC-00011 remains needs-info for unfinished
+TICKET-00019/TASK-00070/00071. John's land invocation authorizes non-force PR publication; final delivery remains
+pending at this tracked closeout checkpoint. The TASK's ignored landing receipt owns fresh gates, final commit/PR
+identity and the administrative-only acceptance/QA bridge; canonical independent reports remain unchanged.
+The landing gate subsequently failed after its normal resolver upgraded PHPStan 2.2.17 to 2.3.0: 12 static-analysis
+errors in eight existing test files outside this TASK's diff. Focused 1127 tests / 30796 assertions and planning
+passed, but that attempt produced no fresh complete gate, commit, push or PR. Closeout edits were preserved.
+John then authorized a bounded eight-test repair through work on the same branch. PHPStan 2.3.0 now passes;
+focused repaired-file checks pass **264 tests / 5261 assertions** and fresh canonical `./bin/build` passes
+**2040 tests / 40091 assertions**, exact **6930/6930 statements**, with no final warnings/skips or further dependency
+drift. Test assertions preserve or strengthen prior contracts; production code, dependency policy and analyzer
+configuration are unchanged. The accepted-product completion/parent rollup remains the prior checkpoint, not
+independent approval of this test-only follow-up at that builder checkpoint. Independent review subsequently
+**accepts** clean repaired `aa5ea1466dc555863f30b7b6cee775f872d318bc`, all C1–C6 passing with no findings; fresh
+checks pass **285 tests / 5528 assertions**, PHPStan and **4/4** contention cases. The canonical review verifies the
+full-gate inputs and preserves the prior independent QA PASS through unchanged behavior/QA fixtures/public guides,
+reviewed test changes and an explicit resolved-dependency/runnable-image bridge. This is not a new QA verdict.
+The old review is retained in review history; canonical QA is unchanged. John resumed land; remote develop is
+unchanged and no feature publication or PR exists at intake. TASK/TICKET remain done; EPIC-00011 remains needs-info.
+Fresh landing focused checks pass **285 tests / 5528 assertions** and the complete gate passes **2040 tests /
+40091 assertions**, exact **6930/6930 statements**, with no final warnings/skips or package drift. John authorized
+[PR #109](https://github.com/johnnickell/fight-access-control/pull/109), open against unchanged `develop` at initial
+head `6fb04b0f770c0a5619402fa8047d28e369aab78b`. Sanitized nonvisual QA evidence is published and publicly read back.
+At this PR-metadata checkpoint it remains draft pending final verification/push and ready transition; the TASK's
+ignored `landing/resumed-accept/` receipt owns final delivery and the administrative-only provenance bridge.
+No approval, merge or release is claimed.
+Hosted CI is optional/not checked.
+Controlled in-memory writer schedules are not actual consumer database,
+security wiring or runtime qualification. TASK-00070/00071/00035 retain profile reads/Permissions/MCP Tool integration;
+no Tool, administrator endpoint, consumer adapter, merge, package release or deployment is delivered here.
+
 ## Agent profile output — planning amendments
 
 John simplified the [WF-024](planning/wayfinder/tickets/WF-024-self-service-agent-profile-contract.md) update

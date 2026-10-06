@@ -11,7 +11,7 @@ Every Agent credential is correlated with its original retained credential opera
 removed, not callable rejection stubs. The supported aggregate transition is `rotateRecoverableCredential()`;
 constructing an immutable successor alone does not persist or authorize issuance.
 
-There is no recoverable/non-recoverable flag, default, getter or View/schema field. Provisioning, Permission changes,
+There is no recoverable/non-recoverable flag, default, getter or View/schema field. Provisioning, name and Permission changes,
 rotation, revocation and hydration all use the same model. Administrative `AgentView` contains Agent ID, name, state,
 credential ID/revision, Permission-assignment revision and resolved Permissions. It grants no authority and exposes
 no authentication envelope or delivery material. Original issuance, delivery and credential disposition remain
@@ -32,6 +32,16 @@ atomically cancels the predecessor operation under the shared credential/deliver
 Rotation commits the new operation, separate delivery material and audit in that transaction. Revocation retains the
 original correlation and records retirement with audit. Permission changes preserve the credential tuple/correlation.
 New `add()` is insertion only, never an upsert over existing or revoked authority.
+
+[Name updates](agent-name-updates.md) use `UpdateAgent` with typed User/Agent provenance and a mandatory
+`AgentRepository::rename(id, name, now)` name-only capability. The repository samples the supplied clock callback
+only after current writer admission, applies `Agent::rename()` to fenced ACTIVE state, and returns the exact persisted
+time or null for a validated no-op. All authority and exact operation correlation are preserved. Last committed
+name wins without an expected old name or name revision; stale whole-Agent writers cannot undo it. No-op changes
+neither timestamp nor persistence and publishes no fact. A real change publishes `AgentNameChanged` after commit;
+publication failure rethrows without undoing the rename. Consumers protect every entry point; provenance grants no
+authority. Successful void dispatch permits only an input-derived `{agent_id, name}` acknowledgement, not a fresh
+read claim. MCP profile Tool binding remains separate.
 
 All writers validate the [cohort contract](agent-operation-cohorts.md) and hold its fence through commit. Repository
 implementations redact sensitive Agent parameters and transaction callbacks as required by the
@@ -57,6 +67,8 @@ database, key, sink, authority-writer and activation/use qualification is separa
 - `AgentHydrationTest`: actual provision/revocation followed by reconstitution, secret-free queries and active/revoked
   authentication without new issuance or mutation.
 - `AgentComponentsTest`: generated public schema matches current safe payloads and collection/envelope references.
+- `AgentRenameTest`, `UpdateAgentHandlerTest`, `AgentNameComponentsTest`: name-only transitions, typed provenance,
+  fenced no-ops/concurrent writers, rollback/publication failures and generated command/provenance schemas.
 - `AgentCredentialRetirementTest`: every direct/service cancellation path, missing correlation, unavailable
   composition, rollback, redacted failures and stale successors.
 - `AgentCredentialRotationServiceTest`, `AgentRotationAuthenticationTest`, issuance/delivery/cohort/canonical

@@ -9,6 +9,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- [Agent name updates](docs/agent-name-updates.md): typed User/Agent `AgentUpdateInitiator`, generic `UpdateAgent`,
+  void synchronous handler and post-commit `AgentNameChanged`. The new mandatory `AgentRepository::rename(id, name, now)`
+  samples its clock callback after current ACTIVE/operation/cohort admission and returns exact persisted time or null
+  for a validated no-op, avoiding false stale-time rejection after waiting for another writer. Last committed name
+  wins without replacing credentials or Permissions; no-op has no write/timestamp/fact. Generated additive command
+  schemas and focused package race/rollback/publication evidence accompany the contract. Consumers must update and
+  qualify adapters and protect all entry points; no MCP Tool, administrator endpoint, legacy bridge or release.
+  The required repository-interface addition belongs in the next pre-v1 minor release, not a patch/backport.
 - [Human credential expiry cleanup](docs/credential-expiry.md): bounded secret-free
   `FindExpiredCredentialDeliveries`/`ExpiredCredentialDelivery`, direct `ExpireInvitationDelivery` and post-commit
   `InvitationDeliveryExpired`. Existing reset delivery expiry and full email authority/reservation expiry now cover

@@ -68,6 +68,7 @@ round trips. Serializable Queries use their handlers' Common registrations; secr
 | --- | --- |
 | [Provision](agent-provisioning-operations.md): `AgentProvisioningService::provision(AgentOperationKey, AgentProvisioningRequest)` | Agent/operation/audit repositories, `AgentOperationAuthorization`, `HmacSharedSecretGenerator`, `HmacSharedSecretCipher`, `AgentDeliveryCipher`, Clock, UoW, EventDispatcher, optional `AgentOperationLimits`. Safe `AgentProvisioningResult`. |
 | [Rotate](agent-rotation-operations.md): `AgentCredentialRotationService::rotate(AgentOperationKey, AgentRotationRequest)` | Same capabilities; mandatory `authorizeRotation()` fences current scope, original target and destination. Safe `AgentCredentialRotationResult`; predecessor cancellation, successor operation and audit commit together. |
+| [Rename](agent-name-updates.md): `UpdateAgentHandler` / `UpdateAgent` | Agent repository with mandatory name-only `rename(id, name, now)`, Clock, UoW, EventDispatcher. The clock callback is sampled after writer admission; the repository returns exact persisted time or null for a validated no-op. Typed User/Agent initiator is provenance, not authorization. Current ACTIVE/operation/cohort fences include no-ops; no issuance/cancellation. Void synchronous dispatch; input-derived `{agent_id, name}` acknowledgement only on success. |
 | [Revoke](agent-credential-retirement.md): `AgentCredentialLifecycleService::revoke(actorId, agentId)` | Agent repository, audit, Clock, UoW, EventDispatcher. Consumers protect every entry point; actor ID is audit provenance only. Repository replacement atomically retires original delivery without key/sink access. |
 | [Status](agent-operation-status.md): `GetAgentOperationHandler` | Operation repository and `AgentOperationAuthorization::authorizeRead()`, before lookup and again with original target before disclosure. No UoW, material access, audit, event or new-work capacity. Safe `AgentOperationView`. |
 | [Deliver](agent-credential-delivery.md): `AgentCredentialDeliveryService::deliver(key, destination, deliveryId)` | Agent/operation repositories, scope and `AgentDeliveryAuthorization`, `AgentDeliveryDecipher`, `AgentCredentialSink`, Clock, UoW, optional `AgentDeliveryPolicy`. Safe `AgentDeliveryResult`; claim, admission and outcome are separate transactions. Optional `AgentCredentialReceiptLookup` avoids unnecessary materialization. |
@@ -82,6 +83,12 @@ global delivery IDs are unique. Agent credential revision starts at **0**; desti
 Permission-assignment revisions are positive. [Validated Agent hydration](agent-current-contract.md) never generates
 issuance. Every lifecycle replacement validates the exact successor and original-operation correlation, including
 non-HTTP/direct writes. No current path may bypass cancellation because an old recovery marker is absent.
+
+The [name-only writer](agent-name-updates.md#name-only-persistence-and-concurrency) shares these Agent/cohort fences
+with lifecycle and Permission writes. It loads current ACTIVE state rather than accepting a stale whole-Agent
+successor, preserves exact operation correlation, and rejects missing/inactive authority even for no-ops. Protect
+all generic `UpdateAgent` dispatch paths, including direct bus calls; the initiator is trusted provenance only.
+No MCP tool or administrator route is provided by that handler.
 
 Concrete sensitive parameters and UoW callbacks must be redacted; interface attributes are not inherited. Qualify
 actual logging/exception adapters with argument capture enabled, following the

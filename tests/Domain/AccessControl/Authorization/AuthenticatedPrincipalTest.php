@@ -48,8 +48,11 @@ final class AuthenticatedPrincipalTest extends TestCase
 
         $roles = $principal->getRoles();
         $permissions = $principal->getPermissions();
-        $roles[] = new PrincipalRole(RoleId::generate(), RoleName::fromString('ROLE_OTHER'));
-        $permissions = [];
+        $otherRole = new PrincipalRole(RoleId::generate(), RoleName::fromString('ROLE_OTHER'));
+        $roles[] = $otherRole;
+        unset($permissions[0]);
+        self::assertSame([$role, $otherRole], $roles);
+        self::assertSame([], $permissions);
 
         self::assertSame($userId, $principal->getUserId());
         self::assertSame($refreshSessionId, $principal->getRefreshSessionId());
