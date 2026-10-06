@@ -14,7 +14,7 @@ administrative Agent view or allowing a caller to select another Agent. Supply t
 bound to the Agent-aware authorization contract in [TICKET-00006](00006-TICKET.md). Reuse the generic name-only
 update from [TICKET-00018](00018-TICKET.md); do not implement a second rename path. Installed Fight Common v1.3.0
 now satisfies the external Tool API gate; this TICKET is `ready-for-agent`. TASK-00070 and TASK-00035 are done;
-TASK-00071 is executable with all recorded dependency edges satisfied.
+TASK-00071 is in progress with all recorded dependency edges satisfied.
 
 ## Use Cases
 
@@ -85,8 +85,16 @@ Adapter layer, release or deployment is created.
 | Order | TASK ID | Title | Status |
 | --- | --- | --- | --- |
 | 70 | [TASK-00070](../tasks/00070-TASK.md) | Provide minimal Agent profile reads and managed Permission definitions | done |
-| 71 | [TASK-00071](../tasks/00071-TASK.md) | Bind protected self-service Agent profile tools | ready-for-agent |
+| 71 | [TASK-00071](../tasks/00071-TASK.md) | Bind protected self-service Agent profile tools | in-progress |
 ## Progress
+
+John authorized TASK-00071 in the main checkout from `develop` `40168bc` on
+`feature/task-00071-agent-profile-tools`. The [Tool composition guide](../../docs/agent-profile-tools.md) describes
+both declarations, principal-only targeting, synchronous input-derived acknowledgement and safe failure composition.
+Builder implementation/local verification pass **90 focused tests / 843 assertions**, **2109 full tests / 40671
+assertions**, exact **7019/7019** owned statements with no final warnings/skips or dependency package changes.
+TASK-00071 remains in progress pending independent technical review and behavioral QA; neither this TICKET nor its
+EPIC is eligible for automatic completion yet. No consumer runtime qualification, publication or release is claimed.
 
 John subsequently simplified the update acknowledgement to `{agent_id, name}`, derived from normalized command
 input after successful void dispatch. Common's derived JSON text replaces the update's changed/no-op sentences.
