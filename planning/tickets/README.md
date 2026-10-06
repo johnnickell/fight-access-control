@@ -23,4 +23,4 @@ This generated index is a projection; individual records remain canonical.
 | [TICKET-00017](00017-TICKET.md) | Manage and retire Features safely | done |
 | [TICKET-00018](00018-TICKET.md) | Rename an Agent without changing its authority | ready-for-agent |
 | [TICKET-00019](00019-TICKET.md) | Read and update the authenticated Agent profile through MCP tools | needs-info |
-| [TICKET-00020](00020-TICKET.md) | Clean up expired human credential work after downtime | in-progress |
+| [TICKET-00020](00020-TICKET.md) | Clean up expired human credential work after downtime | done |

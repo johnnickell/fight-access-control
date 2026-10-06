@@ -22,7 +22,7 @@ requirement area, now [TICKET-00020](planning/tickets/00020-TICKET.md); TICKET d
 WF-025 case retained. John approved the sole implementation slice, now
 [TASK-00072](planning/tasks/00072-TASK.md); all planning phases are accepted and complete. The Board owns execution
 selection; existing priority is unchanged. John explicitly selected TASK-00072, chose the main checkout and requested
-inclusion of pending planning changes in its commit. Implementation is underway on `feature/task-00072-credential-expiry`,
+inclusion of pending planning changes in its commit. Implementation proceeded on `feature/task-00072-credential-expiry`,
 preserving checkpoint `59f2378` and unrelated Agent-profile records. New bounded expired discovery/direct invitation expiry,
 full email expiry in every reachable User state and a mandatory grant-bound reservation revision are described in
 [the current expiry guide](docs/credential-expiry.md). Reclaimed-history and inactive-reservation regressions reproduced
@@ -35,8 +35,16 @@ public-handler/reference-CAS schedules and real mixed-family ordered page/drain 
 race overclaims and fixes only those docblocks. Revision focused checks pass 357 tests / 5780 assertions; fresh
 `./bin/build` passes 2019 tests / 39818 assertions and exact 6841/6841 owned statements (971/971 across TASK-changed
 production). No final warnings/skips or dependency drift; the TASK owns failed-attempt chronology and fresh provenance.
-Independent re-review and subsequent nonvisual behavioral QA remain pending; the TASK and eligible parents are not yet
-complete. Agent OS `TASK-00024` is an external
+Independent re-review subsequently **accepted** clean implementation
+`9bdf3822eb5f97505cca8bc76f2f1a14dc5d28d0` against unchanged `develop` `7ca8eec`, with F1–F3 resolved and no
+remaining findings. Independent post-review behavioral **QA PASS** covers six scenario groups, **86 independent driver
+cases / 795 checks** and fresh **357 conformance tests / 5780 assertions**, with no final warnings/skips or product defect.
+TASK-00072 is done for accepted package implementation and required local/behavioral verification; automatic parent
+completion closes TICKET-00020 and EPIC-00012 in the same administrative operation. John's land invocation authorizes
+non-force PR publication; publication/final delivery verification remain pending at this tracked closeout checkpoint.
+The ignored TASK landing receipt owns fresh gates, the administrative-only review/QA bridge and final commit/remote
+identity; original canonical reports remain preserved. Hosted CI is optional/not checked. The package expiry prerequisite
+is satisfied, not release certification, approval, merge or actual consumer qualification. Agent OS `TASK-00024` is an external
 consumer context ID, not an upstream TASK or local dependency. Explicit checkout/worktree
 placement, implementation gates and independent review/behavioral QA precede the consumer handoff. Real PostgreSQL
 qualification, adoption, tagging/signing/publication and deployment remain separate. Preserve concurrent Agent-profile planning changes.

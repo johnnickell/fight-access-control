@@ -2,7 +2,7 @@
 id: TICKET-00020
 epic: EPIC-00012
 title: Clean up expired human credential work after downtime
-status: in-progress
+status: done
 ---
 
 # Clean up expired human credential work after downtime
@@ -132,29 +132,29 @@ before/exact/after expiry and modeled downtime for supported states. Preserve th
 
 ## Acceptance Evidence
 
-- [ ] E1: Secret-free/read-only discovery proves invalid limits, eligible filtering before limiting, per-family/global
+- [x] E1: Secret-free/read-only discovery proves invalid limits, eligible filtering before limiting, per-family/global
       ordering and tie-breaks, mixed pages, eligible work behind excluded history, unchanged rediscovery and multi-pass
       drain. Due discovery still excludes expired work and retains existing retry/lease behavior.
-- [ ] E2: M01–M03 prove before/exact/after expiry, material/claim destruction, unchanged immutable identity/attempt/history,
+- [x] E2: M01–M03 prove before/exact/after expiry, material/claim destruction, unchanged immutable identity/attempt/history,
       no key/provider collaborator, and a reproduced regression before any reclaimed-history validation repair.
-- [ ] E3: M04–M07 prove the difference between terminal delivery and issued/terminal authority; email reservations are
+- [x] E3: M04–M07 prove the difference between terminal delivery and issued/terminal authority; email reservations are
       not stranded by finished delivery. Repeats do not write or publish facts and terminal history is preserved.
-- [ ] E4: M08–M10 prove exact ownership/generation/reservation safety, every reachable User state, fresh requests after
+- [x] E4: M08–M10 prove exact ownership/generation/reservation safety, every reachable User state, fresh requests after
       release, no same-email ABA and safe stale/inconsistent-state distinctions without account/security changes.
-- [ ] E5: M11 uses deterministic clocks and controlled interleavings, no sleeps/providers: two cleanup workers,
+- [x] E5: M11 uses deterministic clocks and controlled interleavings, no sleeps/providers: two cleanup workers,
       replacement before/during cleanup, consume/cancel/revoke, delayed success/retry/permanent outcomes, delivery-only
       expiry versus full email expiry, and disable/delete/restore versus cleanup, with both winner orders and safe
       retry after CAS loss. Complete-state validation rejects stale/fabricated predecessors; no successor or bytes revive.
-- [ ] E6: M12 proves failed writes/commit rollback, restart rediscovery, both uncertain-commit outcomes, committed
+- [x] E6: M12 proves failed writes/commit rollback, restart rediscovery, both uncertain-commit outcomes, committed
       response loss and post-commit publication failure. Assert persisted outcomes, not merely invocation order;
       preserve original identity, no partial email expiry and no repeated terminalization fact.
-- [ ] E7: Public message/View round trips, handler registration and generated OpenAPI integration run in the default
+- [x] E7: Public message/View round trips, handler registration and generated OpenAPI integration run in the default
       suite. Affected documentation, changelog and schema inventory match current accepted APIs/repository obligations.
-- [ ] E8: Focused checks, planning/documentation checks and complete `./bin/build` pass in the package runtime with exact
+- [x] E8: Focused checks, planning/documentation checks and complete `./bin/build` pass in the package runtime with exact
       owned statement coverage. Record actual test/assertion counts, coverage, warnings/skips, command/environment,
       tested content, process exit and implementation commit mapping. Independent technical review and post-review
       nonvisual behavioral QA challenge the complete committed capability.
-- [ ] E9: Consumer-bindable or equivalent public-port package proof and the handoff supply upstream EPIC/TICKET/TASK IDs,
+- [x] E9: Consumer-bindable or equivalent public-port package proof and the handoff supply upstream EPIC/TICKET/TASK IDs,
       implementation commit, verification, API/repository changes and the Agent OS composition recipe. Explicitly name
       unexecuted real PostgreSQL qualification: shared connection transactions, persistence/CAS fidelity, race winner
       orders, rollback/restart, scheduling bounds and durable destruction. Modeled package proof is not adoption proof.
@@ -186,7 +186,7 @@ commit/push/PR/merge, signing/tagging, release/publication or deployment authori
 
 | Order | TASK ID | Title | Status |
 | --- | --- | --- | --- |
-| 72 | [TASK-00072](../tasks/00072-TASK.md) | Discover and clean expired human credential work | in-progress |
+| 72 | [TASK-00072](../tasks/00072-TASK.md) | Discover and clean expired human credential work | done |
 ## Progress
 
 John approved the single-TICKET proposal after EPIC-00012's final scope confirmation. This record retains the complete
@@ -202,6 +202,21 @@ new docblocks, without a demonstrated sampled runtime defect. TASK-00072's revis
 schedules and real mixed-family bounded ordered pages, corrects overclaimed mappings and fixes the six blocks.
 Revision focused/full checks pass 357 tests / 5780 assertions and 2019 tests / 39818 assertions, exact 6841/6841
 owned statements, with no final warnings/skips or dependency drift. The TASK owns fresh provenance and retained failed
-iterations. Independent re-review and post-review behavioral QA remain pending, so acceptance evidence and TASK/parent
-completion remain open.
-PostgreSQL qualification, consumer adoption and publication remain separate; no independent acceptance is claimed.
+iterations. At that revision checkpoint, independent re-review and post-review behavioral QA remained pending, so acceptance evidence
+and TASK/parent completion remained open. PostgreSQL qualification, consumer adoption and publication remained separate.
+
+## Accepted Completion
+
+TASK-00072 now has independent technical **accept** and post-review behavioral **QA PASS** at
+`9bdf3822eb5f97505cca8bc76f2f1a14dc5d28d0` against unchanged `develop` `7ca8eec`. F1–F3 are resolved with no
+remaining findings; its canonical reports and completion notes map every M01–M12/E1–E9/C1–C12 requirement.
+QA passes six scenario groups, 86 independent driver cases / 795 checks and 357 conformance tests / 5780 assertions.
+Accepted full-gate evidence passes 2019 tests / 39818 assertions and exact 6841/6841 owned statements; no final
+warnings/skips. Current acceptance evidence is checked above; earlier pending statements describe historical checkpoints.
+
+Automatic parent completion closes this sole-child TICKET and EPIC-00012 in the same TASK administrative closeout.
+This is accepted package implementation/local verification, not publication, human approval, merge or release.
+John separately authorized landing; final publication verification is pending at this tracked closeout checkpoint.
+The TASK's ignored landing receipt owns fresh gates, the administrative-only review/QA bridge and actual PR/remote identity.
+Actual PostgreSQL qualification, protected consumer composition, durable physical destruction, adoption/deployment and
+external Agent OS TASK-00024 completion remain separate and unexecuted.

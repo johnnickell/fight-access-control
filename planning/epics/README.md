@@ -15,4 +15,4 @@ This generated index is a projection; individual records remain canonical.
 | [EPIC-00009](00009-EPIC.md) | Recoverable Agent Credential Operations | done |
 | [EPIC-00010](00010-EPIC.md) | Permission-Based Feature Flags | done |
 | [EPIC-00011](00011-EPIC.md) | Agent Profile Tools and Name Management | needs-info |
-| [EPIC-00012](00012-EPIC.md) | Package-Owned Human Credential Expiry Cleanup for v0.5.0 | in-progress |
+| [EPIC-00012](00012-EPIC.md) | Package-Owned Human Credential Expiry Cleanup for v0.5.0 | done |

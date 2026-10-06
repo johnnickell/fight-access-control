@@ -5,13 +5,11 @@ dependencies, acceptance, and verification.
 
 ## What's Next?
 
-Active Task: [TASK-00072](00072-TASK.md) — Discover and clean expired human credential work.
+First ready Task: [TASK-00069](00069-TASK.md) — Rename an Agent atomically with typed provenance.
 
 ## In Progress
 
-| Order | TASK ID | Title | Parent TICKET | Status | Blocked by | PR |
-| --- | --- | --- | --- | --- | --- | --- |
-| 72 | [TASK-00072](00072-TASK.md) | Discover and clean expired human credential work | [TICKET-00020](../tickets/00020-TICKET.md) — Clean up expired human credential work after downtime | in-progress | — | — |
+No Tasks are currently in this state.
 
 ## Ready Frontier
 
@@ -109,3 +107,4 @@ No Tasks are currently in this state.
 | 65 | [TASK-00065](00065-TASK.md) | Protect Permissions referenced by Features | [TICKET-00017](../tickets/00017-TICKET.md) — Manage and retire Features safely | done | [TASK-00062](00062-TASK.md) | https://github.com/johnnickell/fight-access-control/pull/104 |
 | 66 | [TASK-00066](00066-TASK.md) | Create, inspect, and update Feature settings safely | [TICKET-00017](../tickets/00017-TICKET.md) — Manage and retire Features safely | done | [TASK-00065](00065-TASK.md), [TASK-00064](00064-TASK.md) | https://github.com/johnnickell/fight-access-control/pull/105 |
 | 67 | [TASK-00067](00067-TASK.md) | Retire Features through current-reference guards | [TICKET-00017](../tickets/00017-TICKET.md) — Manage and retire Features safely | done | [TASK-00066](00066-TASK.md), [TASK-00063](00063-TASK.md) | https://github.com/johnnickell/fight-access-control/pull/107 |
+| 72 | [TASK-00072](00072-TASK.md) | Discover and clean expired human credential work | [TICKET-00020](../tickets/00020-TICKET.md) — Clean up expired human credential work after downtime | done | — | — |
