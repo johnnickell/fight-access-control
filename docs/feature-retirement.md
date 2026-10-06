@@ -1,4 +1,4 @@
-# Feature retirement (unreleased TASK-00067)
+# Feature retirement (v0.5.0)
 
 Use `RemoveFeature` to retire an unreferenced Feature by **stable ID and positive expected revision**, obtained
 from the [management read](feature-management.md). Consumers authorize every entry point, including direct bus
@@ -100,11 +100,11 @@ while denying runtime availability. Preparation never grants activation or actio
   retirement followed by real managed-policy reconciliation: no remaining references permits Permission removal;
   another Feature, custom Role or Agent reference still rejects it. No fixture-only Permission deletion substitutes
   for that composition.
-- [Complete scenario/evidence inventory](feature-evidence.md) retains all Feature EPIC/TICKET requirements, the
-  preceding TASK acceptance subjects and scoped evidence, and remaining independent/consumer qualification.
+- [Complete scenario/evidence inventory](feature-evidence.md) retains all Feature EPIC/TICKET requirements,
+  each TASK's independent acceptance/QA subject and scoped evidence, and remaining consumer qualification.
 
 Before adoption, qualify actual scanner/code identity and completeness (both reference sources and invalid/partial
 scans), real final-state races/reference-release rollback, UI retirement/confirmation where exposed, every caller
 entry point and deployment cleanup/reintroduction. Package tests, technical review, QA, release and consumer
-qualification remain distinct. TASK-00067 requires its own independent review and behavioral QA; a builder pass
-alone does not complete Feature acceptance or authorize a partial release, adoption or deployment.
+qualification remain distinct. TASK-00067 has its own independent technical acceptance and behavioral QA recorded
+in the inventory; those package results do not authorize consumer adoption or deployment.

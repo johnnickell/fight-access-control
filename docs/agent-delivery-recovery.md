@@ -1,4 +1,4 @@
-# Agent delivery discovery and restart recovery (unreleased v0.5.0)
+# Agent delivery discovery and restart recovery (v0.5.0)
 
 [TASK-00052](../planning/tasks/00052-TASK.md) adds authorized bounded discovery and receipt-first recovery to the
 [protected delivery path](agent-credential-delivery.md). It does not issue credentials, rotate, activate enrollment,
@@ -143,7 +143,7 @@ remain unavailable; no scheduling policy promises recovery while authoritative s
 
 ## API and verification boundaries
 
-This is unreleased v0.5.0 integration work. Repository implementations must add `listDueDeliveries`, including its
+This is the v0.5.0 integration contract. Repository implementations must add `listDueDeliveries`, including its
 pre-limit authoritative reservation exclusion (not the earlier scope/binding/due-only selection); delivery
 authorization must add `authorizeDiscovery`. Sink receipt lookup is optional and explicitly capability-detected.
 The existing delivery result enum adds `reconciliation_required`; consumers must handle it without auto-issuance.

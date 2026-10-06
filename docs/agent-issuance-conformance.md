@@ -1,4 +1,4 @@
-# Agent issuance-recovery conformance (unreleased v0.5.0 work)
+# Agent issuance-recovery conformance (v0.5.0)
 
 [TASK-00049](../planning/tasks/00049-TASK.md) exposes a consumer-bindable **test** contract and runs it against
 package-controlled behavioral adapters. It composes the actual provision, rotation, status, discovery, delivery,
@@ -25,8 +25,8 @@ without a TTY should use this direct container invocation rather than weakening 
 
 A consumer:
 
-1. Installs the **exact candidate's production code** and retains that same source checkout's `tests/` tree. This
-   contract is unreleased; do not pair it with an older installed package and infer compatibility.
+1. Installs the **exact qualified revision's production code** and retains that same source revision's `tests/`
+   tree. Do not pair current tests with an older installed package and infer compatibility.
 2. Adds the development-only PSR-4 mapping `Fight\\Test\\AccessControl\\` to that checkout's `tests/` directory in
    its test bootstrap/autoload-dev. Dependency autoload-dev mappings are not automatically inherited. Do not add the
    test namespace to production autoload or copy lifecycle policy into a consumer wrapper.
@@ -150,4 +150,4 @@ Real adapter, sink, authority-writer, activation/use, cohort and restoration run
 consumer qualification, dependency upgrade or deployment follows from package tests. TASK-00068 removes superseded
 legacy support; TASK-00058 implements package restoration guards. TASK-00059's
 [complete evidence inventory](agent-operation-evidence.md) links current results and remaining consumer gaps.
-The protocol remains unreleased and does not establish a qualified consumer deployment.
+The complete v0.5.0 package contract does not establish a qualified consumer deployment.

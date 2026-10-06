@@ -1,4 +1,4 @@
-# Minimal Agent profiles and managed Permissions (unreleased)
+# Minimal Agent profiles and managed Permissions (v0.5.0)
 
 [TASK-00070](../planning/tasks/00070-TASK.md) supplies a framework-neutral read and reusable Permission definitions.
 The read/definition module supplies no transport, administrator endpoint, consumer seed/migration, grants or runtime

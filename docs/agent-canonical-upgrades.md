@@ -1,8 +1,8 @@
-# Agent operation canonical contract (unreleased v0.5.0)
+# Agent operation canonical contract (v0.5.0)
 
 [TASK-00057](../planning/tasks/00057-TASK.md) establishes **one** canonical operation contract for initial adoption.
-There are no deployed consumers or retained earlier-version operations to migrate. The previous unreleased
-cross-version design is superseded: no v1 reader, version-selection API, reader set, switch-back or compatibility
+At the 2026-09-30 decision, John confirmed no deployed consumers or retained earlier-version operations needed
+migration. The previous unreleased cross-version design is superseded: no v1 reader, version-selection API, reader set, switch-back or compatibility
 shim remains. This is package behavior, not release, consumer qualification, enrollment activation or use authority.
 
 ## Supported representation

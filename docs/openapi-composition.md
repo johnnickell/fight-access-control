@@ -40,7 +40,7 @@ The catalog uses canonical snake-case `toArray()` keys. UUID identifiers use
 `uuid`; `*_at` values use `date-time`; paginated administrative results have `page`, `per_page`,
 `total_pages`, `total_records`, and typed `records`.
 
-### Agent name updates (unreleased)
+### Agent name updates (v0.5.0)
 
 `Fight.AccessControl.UpdateAgent` describes required `initiator`, UUID `agent_id` and raw `name`.
 `Fight.AccessControl.AgentUpdateInitiator` describes required `type` (`user` or `agent`) and UUID `id`; provenance
@@ -49,7 +49,7 @@ conflicting `maxLength`. Generated default-suite tests compare both schemas with
 principal-type enum. See [name update composition](agent-name-updates.md) for mandatory persistence fences, void
 synchronous dispatch and post-commit facts. These additive components create no Tool, endpoint or handler result.
 
-### Feature provisioning (unreleased)
+### Feature provisioning (v0.5.0)
 
 `Fight.AccessControl.ProvisionFeatures` describes the required nullable `default_permission_name` string. This is
 raw consumer configuration: a missing Feature requires a canonical resolvable Permission name, but a no-creation
@@ -59,7 +59,8 @@ This additive component introduces no endpoint or activation-readiness result. G
 with actual command serialization in the default suite. The additive
 `Fight.AccessControl.ValidateFeaturePreparation` empty query and `FeaturePreparationResult`/`FeaturePreparationIssue`
 components describe the read-only configuration result from [preparation validation](feature-preparation.md).
-They do not declare an endpoint, activation receipt or runtime authorization; no Feature release version is selected.
+They do not declare an endpoint, activation receipt or runtime authorization. The complete Feature capability
+is included in [v0.5.0 preparation](release-0.5.0.md).
 
 ### Credential-delivery values
 
@@ -98,20 +99,21 @@ wraps the array directly, without ResultSet pagination. The status handler may r
 consumers own absence mapping rather than receiving a package-defined HTTP response. Schemas grant no access:
 consumer entry-point authorization, routes, HTTP status codes and delivery invocation remain unchanged.
 
-The unreleased `JSend.Success.ExpiredCredentialDeliveries` likewise wraps its array directly. Expiry facts reference
+The v0.5.0 `JSend.Success.ExpiredCredentialDeliveries` likewise wraps its array directly. Expiry facts reference
 exact command-shaped payload components; this adds no endpoint or event-replay guarantee. The email grant identity
 is non-null exactly for email work, where cleanup expires full authority/reservation even when delivery is terminal;
 it is null for invitation/reset. All expiry fields are required and secret-free. See
 [expiry composition](credential-expiry.md) for mandatory repository/binding changes, protected dispatch and restart.
-These additions/integration changes are next-minor pre-v1 work, not authorization to patch old releases or publish.
+These additions/integration changes belong to v0.5.0, not a patch to an older release.
 
-This unreleased correction narrows the invitation status enum. Under [ADR 0007](../planning/adr/0007-openapi-schema-metadata-distribution.md),
-it needs the next minor `0.x` release, not an assumed patch or replacement of v0.4.0. Recompose consumer documents and
-regenerate clients as appropriate when adopting that future release. Version approval and publication are separate.
+The invitation status enum correction is breaking under
+[ADR 0007](../planning/adr/0007-openapi-schema-metadata-distribution.md) and belongs in this minor `0.x` release;
+published v0.4.0 is not replaced. Recompose consumer documents and regenerate clients as appropriate when adopting
+v0.5.0. Version selection, certification and publication remain distinct.
 
 ### Agent delivery values
 
-The unreleased `ListDueAgentDeliveries` component mirrors the bounded worker Query, including required `limit`
+The v0.5.0 `ListDueAgentDeliveries` component mirrors the bounded worker Query, including required `limit`
 (1–100, constructor default 50), original scope and registered destination binding. `DueAgentDeliveries` is an
 unpaginated array of confirmed safe `AgentOperationView` payloads, not a ResultSet. Its shared `AgentOperationKey`,
 `AgentIssuance`, and confirmed/indeterminate `AgentOperation` schemas contain no delivery material, claims, receipts

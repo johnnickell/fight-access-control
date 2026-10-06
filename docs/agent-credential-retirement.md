@@ -1,10 +1,11 @@
-# Agent credential retirement (unreleased v0.5.0 work)
+# Agent credential retirement (v0.5.0)
 
 [TASK-00050](../planning/tasks/00050-TASK.md) implements revocation and the shared predecessor-retirement contract.
 It does **not** itself implement recoverable rotation, delivery workers, a protected sink or consumer persistence.
 TASK-00051 now supplies protected delivery and TASK-00048 supplies recoverable rotation using this seam. This
-composition remains unreleased. Package restoration is implemented; the [integration guide](agent-integration.md)
-identifies remaining release and real consumer qualification gates. No real database/sink/consumer pass is claimed.
+composition belongs to v0.5.0. Package restoration is implemented; the [integration guide](agent-integration.md)
+identifies real consumer qualification gates and distinguishes them from release certification/publication.
+No real database/sink/consumer pass is claimed.
 
 ## Public lifecycle and writer inventory
 

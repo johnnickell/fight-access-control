@@ -1,9 +1,9 @@
-# Agent name updates (unreleased)
+# Agent name updates (v0.5.0)
 
 `UpdateAgent` and `UpdateAgentHandler` provide one generic name-only command for consumer-authorized User or Agent
 entry points. This is TASK-00069's package capability, reused by the separate
 [self-service MCP profile Tools](agent-profile-tools.md), not an administrator endpoint, production persistence adapter
-or release. See the [current Agent contract](agent-current-contract.md) and
+or deployment. See the [current Agent contract](agent-current-contract.md) and
 [integration guide](agent-integration.md) for the surrounding authority and operation model.
 
 ## Intent, provenance and acknowledgement

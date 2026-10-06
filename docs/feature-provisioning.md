@@ -1,4 +1,4 @@
-# Atomic Feature provisioning (unreleased)
+# Atomic Feature provisioning (v0.5.0)
 
 [TASK-00062](../planning/tasks/00062-TASK.md) adds the stored Feature model and create-if-absent provisioning.
 It consumes [complete candidate discovery](feature-references.md), creates only missing names OFF, and preserves
@@ -128,14 +128,15 @@ notifications cannot substitute for catalog reads and preparation validation.
 
 After actual guarded deletion, later reintroduction may create a fresh identity OFF with the then-current default.
 Here only a seeded absent-record fixture proves that creation behavior. The real reference-removal/deletion/
-reintroduction sequence is supplied separately by [TASK-00067](feature-retirement.md), with its own pending
-independent review/QA. TASK-00062's seeded-absence proof is not relabeled as that real guarded sequence.
+reintroduction sequence is supplied separately by [TASK-00067](feature-retirement.md), with its own independent
+technical acceptance and behavioral QA. TASK-00062's seeded-absence proof is not relabeled as that real guarded sequence.
 
 ## Compatibility and schema assessment
 
 The new PHP types and repository contract are additive. Existing APIs, persisted formats, credential operations and
 Permission tier rules are unchanged. Consumers opting into Features need a new storage/adapter composition; this is
-not a migration/backfill promise for previous package iterations. No Feature release version is selected.
+not a migration/backfill promise for previous package iterations. The complete Feature capability is included in
+[v0.5.0 preparation](release-0.5.0.md); package acceptance does not establish publication or consumer adoption.
 
 The opt-in OpenAPI component `Fight.AccessControl.ProvisionFeatures` describes the required nullable raw
 `default_permission_name`. It deliberately has no name-pattern constraint because unused strings are accepted.

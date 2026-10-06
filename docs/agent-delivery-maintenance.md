@@ -1,4 +1,4 @@
-# Agent delivery material maintenance (unreleased v0.5.0 work)
+# Agent delivery material maintenance (v0.5.0)
 
 [TASK-00053](../planning/tasks/00053-TASK.md) adds maintenance to the existing
 [protected delivery](agent-credential-delivery.md), [retirement](agent-credential-retirement.md) and
@@ -188,7 +188,7 @@ current package/destination and consumer authority for enrollment and every use.
 
 ## Adapter obligations and acceptance evidence
 
-The unreleased repository contract adds `listMaintenance()`, `countDeliveryKeyReferences()` and
+The v0.5.0 repository contract adds `listMaintenance()`, `countDeliveryKeyReferences()` and
 `replaceMaintenance()`. Hydrators persist the recorded `sinkCleaned` boolean (false on new operations, never inferred
 for old records), state revision and all existing delivery policy/history. Expected-state writes compare the complete authoritative
 snapshot, original canonical request/version and issuance; only maintenance successors may be written, with revision

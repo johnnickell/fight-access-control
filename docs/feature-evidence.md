@@ -1,4 +1,4 @@
-# Feature scenario and evidence inventory (unreleased)
+# Feature scenario and evidence inventory (v0.5.0)
 
 This inventory connects [EPIC-00010](../planning/epics/00010-EPIC.md) and its three TICKETs to executable package
 contracts and retained acceptance checkpoints. **It is not a release or consumer qualification receipt.**
@@ -72,6 +72,7 @@ current product suites, not the preceding independent QA.
 - **Actual consumer use:** authentication snapshot lifecycle, independent action/management/setup authorization
   for every entry path, transport-safe diagnostics, ON-leaving confirmation/cancellation/stale refresh, retirement
   UI and registered runtime checks/worker reuse. Instruction walkthroughs are not executed consumer UI proof.
-- **Delivery:** no selected Feature release version, certification/publication, consumer adoption or deployment is
-  established. Complete package acceptance remains distinct from any consumer's qualified composition. Do not
-  treat an intermediate slice, a normal command return, event or prepared OFF record as rollout permission.
+- **Delivery:** the complete capability is selected for [v0.5.0 preparation](release-0.5.0.md); certification,
+  publication, consumer adoption and deployment are not established by this inventory. Complete package acceptance
+  remains distinct from any consumer's qualified composition. Do not treat an intermediate slice, a normal command
+  return, event or prepared OFF record as rollout permission.

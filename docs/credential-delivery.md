@@ -75,7 +75,7 @@ at-least-once invocation, not exactly-once effect. The provider adapter must mak
 return `DELIVERED`, `RETRYABLE_FAILURE` or `PERMANENT_FAILURE`. Replacement generations have fresh identities.
 Secret-free status queries do not expose claim tokens, credentials, hashes, ciphertext or provider errors.
 
-## Offline expiry cleanup (unreleased)
+## Offline expiry cleanup (v0.5.0)
 
 Due discovery deliberately excludes exact/post-expiry work. Schedule the separate
 [expired-work query and direct cleanup commands](credential-expiry.md) before the unchanged due-work path.

@@ -1,10 +1,11 @@
-# Agent protected-delivery and lifecycle conformance (unreleased v0.5.0)
+# Agent protected-delivery and lifecycle conformance (v0.5.0)
 
 [TASK-00054](../planning/tasks/00054-TASK.md) adds reusable **product test contracts**, not production adapters,
 endpoints, new Commands/Queries/Events or an alternate worker. The suites compose real provision, rotation,
 revocation, delivery, discovery, maintenance and original-operation status. Package-controlled bindings demonstrate
 persisted outcomes under deterministic interleavings. They do **not** qualify a real database, key service, sink,
-enrollment activation or broker use. The intermediate protocol remains unreleased and unsupported for deployment.
+enrollment activation or broker use. Only the complete current contract is supported; package conformance alone
+cannot qualify a deployment.
 
 ## Run and bind
 

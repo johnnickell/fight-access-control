@@ -1,4 +1,4 @@
-# Recoverable Agent rotation (unreleased v0.5.0 work)
+# Recoverable Agent rotation (v0.5.0)
 
 [TASK-00048](../planning/tasks/00048-TASK.md) replaces raw-return rotation with an authorized, retained-key
 operation. It consumes [provisioning correlation](agent-provisioning-operations.md),

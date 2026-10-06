@@ -1,4 +1,4 @@
-# Agent credential-state restoration safety (unreleased v0.5.0)
+# Agent credential-state restoration safety (v0.5.0)
 
 [TASK-00058](../planning/tasks/00058-TASK.md) adds restoration readiness to the existing
 [cohort contract](agent-operation-cohorts.md), plus consumer-bindable M4 scenarios. This is the single

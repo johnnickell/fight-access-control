@@ -1,4 +1,4 @@
-# Current Agent contract (unreleased)
+# Current Agent contract (v0.5.0)
 
 [ADR 0011](../planning/adr/0011-pre-v1-current-contract-only.md) selects one current pre-v1 API and persisted model.
 TASK-00068 removes previous-iteration support; this is not a migration, release or consumer qualification.

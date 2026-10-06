@@ -1,16 +1,21 @@
 # Roadmap
 
-## In progress
+## Release preparation
 
-| Epic | Target | Current outcome |
-| --- | --- | --- |
-| [EPIC-00009](epics/00009-EPIC.md) | `v0.5.0` | Package current-contract cleanup, cohort/canonical/restoration safety and final guidance are independently accepted; TASK-00059 QA passes. Real consumer qualification and separately authorized release/adoption/deployment remain open. |
+John selected **v0.5.0** and the main checkout on 2026-10-06. Integrated `develop` `4163e58` contains the accepted
+Agent-operation, human-expiry, Feature and Agent-profile/MCP work; no implementation TASK remains open. The
+[release overview](../docs/release-0.5.0.md) owns the combined contract and consumer obligations. Dated release notes
+are preparation, not a release receipt: independent release-content review, integration into `main`, exact-merge
+certification, human signing and separately authorized publication remain outstanding at this checkpoint.
+
+Earlier implementation/landing checkpoints below retain their historical meaning. Actual consumer qualification,
+dependency adoption and deployment remain separate from package acceptance and release.
 
 ## Human delivery expiry readiness prerequisite
 
-`v0.5.0` is not ready to tag until the newly requested
-[human credential-delivery expiry capability](wayfinder/human-credential-delivery-expiry-map.md) has approved upstream
-work records, complete implementation/local verification and independent acceptance with applicable behavioral QA.
+The required [human credential-delivery expiry capability](wayfinder/human-credential-delivery-expiry-map.md) now
+has approved upstream records, complete implementation/local verification, independent acceptance and applicable
+behavioral QA. This package prerequisite for v0.5.0 is satisfied; final release certification is still required.
 [WF-025](wayfinder/tickets/WF-025-human-delivery-expiry-contract.md) is resolved: invitation/reset delivery expiry plus
 full email-change authority/reservation expiry, including already-terminal delivery and changed User account states.
 John confirmed [EPIC-00012 — Package-Owned Human Credential Expiry Cleanup for v0.5.0](epics/00012-EPIC.md); its only
@@ -78,15 +83,14 @@ independently accepted, as are TASK-00068 removal (revised M1), TASK-00058 resto
 outstanding; package acceptance does not close the parent consumer obligations. The [Board](tasks/BOARD.md) owns
 current executable ordering.
 
-## MCP planning readiness
+## MCP package acceptance
 
-Installed Fight Common v1.3.0 now satisfies the external Tool API gate; the exact revision/signatures and source
-inspection limits are recorded in [TASK-00035](tasks/00035-TASK.md#verified-fight-common-v130-contracts).
-EPIC-00005/TICKET-00006 and EPIC-00011/TICKET-00019 are `ready-for-agent`, not complete. TASK-00035 is executable;
-TASK-00071 is ready but waits on unfinished TASK-00070 and TASK-00035 (TASK-00069 is done). Existing order values
-are unchanged, so the generated [Board](tasks/BOARD.md) now places TASK-00035 first, ahead of TASK-00070.
-The related Wayfinder map remains Closed; no planning phase is reopened. This refresh neither implements nor
-qualifies MCP integration, changes dependencies, or authorizes a release/consumer adoption.
+Fight Common ^1.3 supplies the released Tool API; inspected v1.3.0 revision/signatures and limits are recorded in
+[TASK-00035](tasks/00035-TASK.md#verified-fight-common-v130-contracts). TASK-00035 and TASK-00069–00071 now have
+independent technical acceptance and behavioral QA and are integrated through PR #113. EPIC-00005/00011 and their
+TICKETs are done. Both destinations are included in v0.5.0 preparation; no TASK is waiting on the former Common gate.
+The related Wayfinder map remains Closed. Actual consumer MCP runtime, security, seed/grant and persistence
+qualification remain separate; package acceptance is not publication or adoption.
 
 ## Feature package acceptance
 
@@ -118,8 +122,9 @@ and final traceability; QA passes seven scenarios / 260 executable checks plus a
 Its accepted full gate passes 1849 tests / 35482 assertions, exact 6627/6627 statements. Automatic parent
 completion closes TICKET-00017 and EPIC-00010 in the same TASK closeout; TICKET-00015/00016 are already done.
 Package acceptance is complete, not actual consumer scanner/database/UI/security/runtime qualification. John
-authorized TASK-00067 landing; publication remains pending at this tracked checkpoint. No Feature release target,
-adoption, release or deployment is claimed; the Board still owns separately authorized next executable work.
+authorized TASK-00067 landing; publication remained pending at that tracked checkpoint. Its PR #107 is now merged
+into the selected release baseline. The complete Feature capability is included in v0.5.0 preparation; certification,
+publication, actual consumer adoption and deployment remain separate.
 
 ## Route to 1.0.0
 
@@ -136,8 +141,11 @@ adoption, release or deployment is claimed; the Board still owns separately auth
 
 | Epic | Target | Outcome |
 | --- | --- | --- |
-| [EPIC-00012](epics/00012-EPIC.md) | `v0.5.0` | Human expiry discovery/direct cleanup independently accepted with post-review behavioral QA; TASK-00072 and TICKET-00020 complete. Actual PostgreSQL/consumer qualification, adoption, merge, release and deployment remain separate. |
-| [EPIC-00010](epics/00010-EPIC.md) | unassigned | All seven Feature package TASKs independently accepted with behavioral QA; guarded retirement/reintroduction and cross-TICKET evidence complete. Actual consumer qualification, version selection, adoption, release and deployment remain separate. |
+| [EPIC-00012](epics/00012-EPIC.md) | `v0.5.0` | Human expiry accepted with behavioral QA and integrated through PR #108; the package release prerequisite is satisfied. Actual PostgreSQL/consumer qualification, adoption, certification/publication and deployment remain separate. |
+| [EPIC-00011](epics/00011-EPIC.md) | `v0.5.0` | Agent rename, minimal profiles and protected self-service Tools accepted with behavioral QA and integrated through PR #113; consumer qualification remains separate. |
+| [EPIC-00010](epics/00010-EPIC.md) | `v0.5.0` | All seven Feature TASKs accepted with behavioral QA; final lifecycle evidence integrated through PR #107. Consumer qualification and publication remain separate. |
+| [EPIC-00009](epics/00009-EPIC.md) | `v0.5.0` | Agent operations, current-contract cleanup and cohort/canonical/restoration safety accepted; final guidance has independent acceptance and QA. Real consumer qualification and release remain separate. |
+| [EPIC-00005](epics/00005-EPIC.md) | `v0.5.0` | Agent-protected MCP authorization accepted with behavioral QA and integrated through PR #111; consumer runtime qualification remains separate. |
 | [EPIC-00006](epics/00006-EPIC.md) | `v0.3.0` | Published the recoverable credential-delivery contract and migration after exact-commit certification and signing. Consumer upgrades remain separately qualified. |
 | [EPIC-00007](epics/00007-EPIC.md) | pre-1.0 | Replaced deprecated Fight Common transaction dependencies with the supported `TransactionalUnitOfWork` contract while preserving established behavior. |
 | [EPIC-00004](epics/00004-EPIC.md) | `v0.2.0` | Delivered the local consumer-composable OpenAPI schema review candidate; tag, release, and publication remain separate effects. |
@@ -149,6 +157,7 @@ adoption, release or deployment is claimed; the Board still owns separately auth
 
 | Version | Date | Outcome |
 | --- | --- | --- |
+| `v0.4.0` | 2026-09-27 | Published protected Permission tiers, reserved Super Admin identity and atomic eligible delegation/reconciliation; consumer integration remains separately qualified. |
 | `v0.3.0` | 2026-09-25 | Published recoverable, provider-neutral credential delivery for invitations, password resets, and email changes, with pre-1.0 breaking migration guidance. |
 | `v0.2.0` | 2026-09-13 | Published consumer-composable OpenAPI schema components. |
 | `v0.1.0` | 2026-09-10 | First public package milestone: framework-neutral User and Agent identity, authentication, session, Role, Permission, managed-policy, and current-authority behavior with exact coverage. |
@@ -162,12 +171,12 @@ adoption, release or deployment is claimed; the Board still owns separately auth
 | [EPIC-00002](epics/00002-EPIC.md) | 0.x | done | 1 | 7 |
 | [EPIC-00003](epics/00003-EPIC.md) | 0.x | done | 2 | 6 |
 | [EPIC-00004](epics/00004-EPIC.md) | v0.2.0 | done | 1 | 1 |
-| [EPIC-00005](epics/00005-EPIC.md) | 0.x | done | 1 | 1 |
+| [EPIC-00005](epics/00005-EPIC.md) | v0.5.0 | done | 1 | 1 |
 | [EPIC-00006](epics/00006-EPIC.md) | v0.3.0 | done | 1 | 3 |
 | [EPIC-00007](epics/00007-EPIC.md) | pre-1.0 | done | 1 | 1 |
 | [EPIC-00008](epics/00008-EPIC.md) | v0.4.0 | done | 3 | 5 |
 | [EPIC-00009](epics/00009-EPIC.md) | v0.5.0 | done | 3 | 14 |
-| [EPIC-00010](epics/00010-EPIC.md) | unassigned | done | 3 | 7 |
-| [EPIC-00011](epics/00011-EPIC.md) | unassigned | done | 2 | 3 |
+| [EPIC-00010](epics/00010-EPIC.md) | v0.5.0 | done | 3 | 7 |
+| [EPIC-00011](epics/00011-EPIC.md) | v0.5.0 | done | 2 | 3 |
 | [EPIC-00012](epics/00012-EPIC.md) | v0.5.0 | done | 1 | 1 |
 <!-- generated:epic-status:end -->

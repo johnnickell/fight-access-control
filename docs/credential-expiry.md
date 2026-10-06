@@ -1,4 +1,4 @@
-# Human credential expiry cleanup (unreleased)
+# Human credential expiry cleanup (v0.5.0)
 
 This current pre-v1 contract belongs to EPIC-00012 / TICKET-00020 / TASK-00072 and the planned `v0.5.0` integration.
 It adds no scheduler, transport, production repository or authorization policy. Follow
@@ -138,5 +138,5 @@ durable live-row destruction (including retained historical generations). Packag
 SQL adapters, physical erasure of backups/logs, key destruction, provider delivery or adoption. No Agent OS source/lock,
 consumer product/email wiring, migration/backfill, old-release backport, tag, signing or deployment is part of this work.
 
-The new repository obligations, mandatory reservation binding and public payload additions belong in the next minor
-pre-v1 release (`v0.5.0`), not an old-release patch. Release selection/publication remain separately authorized.
+The new repository obligations, mandatory reservation binding and public payload additions belong in the selected
+pre-v1 minor `v0.5.0`, not an old-release patch. Certification and publication remain separate from version selection.

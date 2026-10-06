@@ -6,6 +6,24 @@ Fight AccessControl owns framework-neutral identity, credential, session, author
 behavior shared by Fight applications. The repository-local behavioral and security authority is
 [TICKET-00001](planning/tickets/00001-TICKET.md).
 
+## v0.5.0 release preparation — 2026-10-06
+
+John selected v0.5.0 and the main checkout for release preparation from clean `develop` `4163e58`, which includes
+merged PR #113 and all preceding package implementation. The [release overview](docs/release-0.5.0.md) brings
+recoverable Agent operations, current-contract cleanup, human expiry, Features and Agent-protected profile Tools
+into one breaking pre-v1 minor. PHP 8.5+ and Common ^1.3 are required. No production, test or dependency policy
+change is part of this preparation; public guidance and release notes are aligned with accepted implementation.
+The preparation `./bin/build` passes **2109 tests / 40671 assertions**, exact **7019/7019 statements**, with no final
+warnings/skips or resolved dependency changes. Planning validates **103 records / 0 active** and documentation links
+pass. Subsequent prose-only cleanup retains the full gate with verified input equivalence and targeted checks.
+This is not final-main release certification or independent acceptance of the release documentation.
+
+At this preparation checkpoint there is no v0.5.0 release PR, final-main certification, signed tag or publication.
+Independent release-content acceptance and separately authorized delivery remain required. The ignored
+`.runs/handoffs/release-0.5.0/ledger.md` owns resumable live delivery facts; earlier TASK publication/pending notes
+below retain their historical checkpoint meaning. Current Board records are all terminal. Actual consumer
+qualification, dependency adoption, data operations and deployment are not established by package acceptance.
+
 ## Self-service Agent profile Tools — TASK-00071 accepted
 
 John selected the clean main checkout from `develop` `40168bc` on `feature/task-00071-agent-profile-tools`.

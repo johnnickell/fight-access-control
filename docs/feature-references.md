@@ -1,4 +1,4 @@
-# Feature declarations and discovery (unreleased)
+# Feature declarations and discovery (v0.5.0)
 
 [TASK-00061](../planning/tasks/00061-TASK.md) supplies portable name-only metadata and inventory contracts. It does
 not itself implement Feature storage, provisioning, availability checks, management or runtime enforcement.
@@ -7,7 +7,8 @@ not itself implement Feature storage, provisioning, availability checks, managem
 Features and bound Permissions. [Runtime evaluation](feature-availability.md) is now implemented by TASK-00064;
 [Permission reference guards](feature-permission-references.md), [management](feature-management.md) and
 [current-reference retirement](feature-retirement.md) supply the remaining package operations. Their
-[scenario/evidence inventory](feature-evidence.md) separates accepted preceding slices from pending TASK-00067 review/QA.
+[scenario/evidence inventory](feature-evidence.md) records each slice's independent technical acceptance and
+behavioral QA, including TASK-00067's final lifecycle evidence.
 The declarations are an additive public PHP API, not a release, supported partial feature-flag system or consumer
 qualification. Declaration/discovery alone changes no persisted format, existing signature or OpenAPI schema;
 provisioning has its own storage/schema assessment. [Preparation validation](feature-preparation.md) adds a

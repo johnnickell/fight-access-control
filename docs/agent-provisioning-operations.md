@@ -1,9 +1,9 @@
-# Recoverable Agent provisioning (unreleased v0.5.0 work)
+# Recoverable Agent provisioning (v0.5.0)
 
 TASK-00046 replaces `AgentProvisioningService::provision(actorId, name)` with a request and retained scoped key.
 TASK-00047 adds [authorized safe operation status](agent-operation-status.md) without an issuance transaction,
 material access, capacity admission or side effects; original issuance remains separate from current disposition.
-This is **unreleased package behavior**, not a qualified consumer deployment. The
+This is **v0.5.0 package behavior**, not a qualified consumer deployment. The
 [current integration guide](agent-integration.md) connects the complete implemented composition and evidence gaps.
 TASK-00050 adds [atomic credential retirement](agent-credential-retirement.md) through service and direct repository
 writes. TASK-00051 adds the [protected delivery attempt](agent-credential-delivery.md), including separately committed
