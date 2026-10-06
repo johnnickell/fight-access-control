@@ -5,7 +5,7 @@ dependencies, acceptance, and verification.
 
 ## What's Next?
 
-First ready Task: [TASK-00070](00070-TASK.md) — Provide minimal Agent profile reads and managed Permission definitions.
+First ready Task: [TASK-00035](00035-TASK.md) — Authorize Agent-protected MCP Tools.
 
 ## In Progress
 
@@ -15,18 +15,18 @@ No Tasks are currently in this state.
 
 | Order | TASK ID | Title | Parent TICKET | Status | Blocked by | PR |
 | --- | --- | --- | --- | --- | --- | --- |
+| 35 | [TASK-00035](00035-TASK.md) | Authorize Agent-protected MCP Tools | [TICKET-00006](../tickets/00006-TICKET.md) — Authorize Agent-Protected MCP Tools | ready-for-agent | — | — |
 | 70 | [TASK-00070](00070-TASK.md) | Provide minimal Agent profile reads and managed Permission definitions | [TICKET-00019](../tickets/00019-TICKET.md) — Read and update the authenticated Agent profile through MCP tools | ready-for-agent | — | — |
 
 ## Waiting
 
-No Tasks are currently in this state.
+| Order | TASK ID | Title | Parent TICKET | Status | Blocked by | PR |
+| --- | --- | --- | --- | --- | --- | --- |
+| 71 | [TASK-00071](00071-TASK.md) | Bind protected self-service Agent profile tools | [TICKET-00019](../tickets/00019-TICKET.md) — Read and update the authenticated Agent profile through MCP tools | ready-for-agent | [TASK-00070](00070-TASK.md), [TASK-00069](00069-TASK.md), [TASK-00035](00035-TASK.md) | — |
 
 ## Needs Info
 
-| Order | TASK ID | Title | Parent TICKET | Status | Blocked by | PR |
-| --- | --- | --- | --- | --- | --- | --- |
-| 35 | [TASK-00035](00035-TASK.md) | Authorize Agent-protected MCP Tools | [TICKET-00006](../tickets/00006-TICKET.md) — Authorize Agent-Protected MCP Tools | needs-info | — | — |
-| 71 | [TASK-00071](00071-TASK.md) | Bind protected self-service Agent profile tools | [TICKET-00019](../tickets/00019-TICKET.md) — Read and update the authenticated Agent profile through MCP tools | needs-info | [TASK-00070](00070-TASK.md), [TASK-00069](00069-TASK.md), [TASK-00035](00035-TASK.md) | — |
+No Tasks are currently in this state.
 
 ## Human Action
 

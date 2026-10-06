@@ -26,6 +26,12 @@ an unauthenticated or unauthorized Agent?
 
 ## Evidence and implementation gates
 
+**Current gate outcome:** [TASK-00035](../../tasks/00035-TASK.md#verified-fight-common-v130-contracts) records
+installed v1.3.0 at `7de6cad6e8a9752973ad9f8e27e285b0c1510582` and its inspected Tool contracts. The external
+release/API gate is satisfied; the declaration target is `handle()`, beside method-level `McpToolInfo`.
+Implementation/conformance remains outstanding. This is an evidence update, not a reopened decision. The following
+PR-era evidence and resolution preserve the original planning chronology.
+
 - Fight Common PR #157 confirms the policy-free protocol capability boundary, but explicitly defers tools and
   availability filtering. Common's later public tool metadata and neutral availability contracts are therefore an
   external implementation gate, not evidence already satisfied by WF-008.

@@ -65,7 +65,7 @@ MCP tools and their permission binding.
 [ADR 0005](../adr/0005-agent-direct-permission-assignment-revision.md),
 [ADR 0010](../adr/0010-permission-eligibility-and-caller-authorization.md), and
 [ADR 0011](../adr/0011-pre-v1-current-contract-only.md) retain current safety and consumer ownership. The generic
-Domain/Application command can be planned independently of Fight Common's unpublished Tool API. Its result is used
+Domain/Application command is independent of Fight Common's Tool API. Its result is used
 by TICKET-00019, whose MCP tool behavior additionally depends on [TICKET-00006](00006-TICKET.md) and Common's
 published Tool surface.
 
@@ -107,7 +107,7 @@ production or dependency-policy changes. Independent review subsequently accepts
 passing with no findings, and validates the behavior-preserving bridge to the original independent QA PASS. Fresh
 reviewer checks pass 285 tests / 5528 assertions plus PHPStan and four contention probes. TASK-00069 owns the exact
 report, full-gate/QA provenance and resumed landing receipt. This TICKET remains done for its accepted sole child;
-EPIC-00011 remains needs-info for its other unfinished child. Resumed landing published
+EPIC-00011 remained needs-info at that checkpoint for its other child's unresolved Common gate. Resumed landing published
 [PR #109](https://github.com/johnnickell/fight-access-control/pull/109) against unchanged `develop`, with sanitized
 QA evidence publicly read back. Fresh landing gates retain the complete counts above. Final metadata verification
 and ready transition remain pending at this tracked checkpoint; TASK-00069's ignored receipt owns final delivery.

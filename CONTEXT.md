@@ -6,6 +6,23 @@ Fight AccessControl owns framework-neutral identity, credential, session, author
 behavior shared by Fight applications. The repository-local behavioral and security authority is
 [TICKET-00001](planning/tickets/00001-TICKET.md).
 
+## MCP planning readiness — Fight Common v1.3.0
+
+John requested a planning refresh after Common v1.3.0 publication. The local ignored lockfile and installed package
+metadata already resolve `v1.3.0` at `7de6cad6e8a9752973ad9f8e27e285b0c1510582`; no dependency change was needed.
+[TASK-00035](planning/tasks/00035-TASK.md#verified-fight-common-v130-contracts) owns the inspected method-level
+`McpToolInfo`, canonical `McpToolRegistry`, boolean availability, discovery/invocation/protected-retry and safe
+output/failure signatures. This satisfies the former external Common gate, not AccessControl implementation or
+consumer qualification. TASK-00035 and TASK-00071 are now `ready-for-agent`; TASK-00071 waits on unfinished
+TASK-00070 and TASK-00035, retaining its satisfied TASK-00069 edge. TICKET-00006/00019 and EPIC-00005/00011 are
+ready for agent work, not complete. Their earlier `needs-info` checkpoints below are historical.
+
+No priority was changed: order 35 now puts TASK-00035 before TASK-00070 in the generated Ready Frontier. The Board
+owns execution selection; all Wayfinder decisions remain Closed and decomposition remains complete. Implementation
+must recheck dependency drift, declare a sufficient Composer minimum for new v1.3 API use, prove behavior and pass
+the full local gate plus independent review/applicable QA. John's branch/commit/push/PR request covers this
+planning-only refresh, not implementation, merge, release or deployment.
+
 ## Human delivery expiry — v0.5.0 readiness prerequisite
 
 John requires package-owned expired-work discovery and direct expiry cleanup before `v0.5.0` readiness; see the

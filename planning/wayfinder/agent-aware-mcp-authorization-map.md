@@ -18,7 +18,7 @@ authorization handoff, and [EPIC-00011](../epics/00011-EPIC.md) owns the distinc
 [TICKET-00018](../tickets/00018-TICKET.md) and [TICKET-00019](../tickets/00019-TICKET.md) now record its
 approved requirement decomposition. [TASK-00069](../tasks/00069-TASK.md) owns generic rename, while
 [TASK-00070](../tasks/00070-TASK.md) and [TASK-00071](../tasks/00071-TASK.md) own minimal profile reads and
-externally gated Tool binding. Their TASK decomposition is complete; neither reopens this map.
+dependency-ordered Tool binding. Their TASK decomposition is complete; neither reopens this map.
 
 ## Notes
 
@@ -77,15 +77,17 @@ Agent-aware MCP authorization contract ──→ Self-service target selection �
 None. WF-008, WF-023 and WF-024 are closed. The authorization contract is handed off through
 [EPIC-00005](../epics/00005-EPIC.md), and the profile contract through [EPIC-00011](../epics/00011-EPIC.md).
 The profile EPIC's TICKET-00018/00019 requirement split and TASK plans (TASK-00069/00070/00071) are approved.
-TASK-00071 still needs a compatible published and installed Common Tool API and its three TASK dependencies;
-planning completion does not make it executable. No decision is reopened by that planning work.
+The installed v1.3.0 API inspection in TASK-00035 clears the Common external hold. TASK-00071 still waits on
+unfinished TASK-00070 and TASK-00035; TASK-00069 is done. Planning completion does not make blocked work executable.
+No decision is reopened by that planning work.
 
 ## Not yet specified (fog)
 
 None requiring another Wayfinder decision. WF-024 owns the safe output and bounded package evidence. Consumer
-OAuth-to-Agent mapping is outside this package; scopes are not Agent Permissions. Fight Common v1.2.0 is not a
-compatible published Tool surface. The exact Tool signatures, supported attribute target and wire-error mechanics
-must be inspected against a future installable release before implementation, not guessed in this map.
+OAuth-to-Agent mapping is outside this package; scopes are not Agent Permissions.
+[TASK-00035's verified v1.3.0 contracts](../tasks/00035-TASK.md#verified-fight-common-v130-contracts) now record
+the installed release, exact signatures, method-level declaration and error/retry mechanics. That source inspection
+satisfies the earlier external gate without reopening any decision or claiming implemented integration.
 
 ## Out of scope
 
@@ -99,13 +101,13 @@ must be inspected against a future installable release before implementation, no
 ## Resolution
 
 [EPIC-00005](../epics/00005-EPIC.md) and [TICKET-00006](../tickets/00006-TICKET.md) retain the WF-008
-integration boundary and external Common gate. John approved the distinct
+integration boundary; TASK-00035 now records satisfaction of the external Common gate. John approved the distinct
 [Agent Profile Tools and Name Management](../epics/00011-EPIC.md) destination in
 [WF-024](tickets/WF-024-self-service-agent-profile-contract.md), including focused unit coverage of owned classes
 and only useful targeted package integration/composition checks; no exhaustive duplicate suite. John confirmed the
 EPIC boundary and approved [TICKET-00018](../tickets/00018-TICKET.md) for generic rename and
 [TICKET-00019](../tickets/00019-TICKET.md) for self-service tools. TICKET-00018 has an approved single
 [TASK-00069](../tasks/00069-TASK.md); TICKET-00019 has independently executable read/definition
-[TASK-00070](../tasks/00070-TASK.md) and externally gated Tool [TASK-00071](../tasks/00071-TASK.md). Both TICKET
+[TASK-00070](../tasks/00070-TASK.md) and dependency-blocked Tool [TASK-00071](../tasks/00071-TASK.md). Both TICKET
 plans are complete. No implementation, consumer migration, publication or deployment follows from these planning
 decisions.
