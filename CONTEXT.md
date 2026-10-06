@@ -6,7 +6,7 @@ Fight AccessControl owns framework-neutral identity, credential, session, author
 behavior shared by Fight applications. The repository-local behavioral and security authority is
 [TICKET-00001](planning/tickets/00001-TICKET.md).
 
-## Minimal Agent profiles — TASK-00070 implementation
+## Minimal Agent profiles — TASK-00070 accepted
 
 John selected the clean main checkout from `develop` `2ee2597` on `feature/task-00070-agent-profile`.
 The unreleased [profile guide](docs/agent-profile.md) defines `GetAgentProfile` and its read-only handler, returning
@@ -29,8 +29,18 @@ planning/documentation checks. Independent review of `d75db98` requested F1, rem
 layout assertions. The bounded test-only revision preserves all behavioral assertions and passes fresh focused
 **31 tests / 210 assertions** and full **2079 tests / 40409 assertions**, still exact **7000/7000** owned and **34/34**
 new statements, without warnings/skips or dependency package changes. The TASK owns the fresh receipt and Composer
-metadata regeneration note. Independent re-review and behavioral QA remain pending; no MCP Tool, administrator
-endpoint, consumer migration, publication, release or deployment is claimed.
+metadata regeneration note. Independent re-review subsequently **accepts** clean `915323b` against unchanged
+`develop` `2ee2597`, C1–C4 passing, F1 resolved and no remaining findings. Independent behavioral **QA PASS** covers
+six groups, **27 executable cases / 116 checks**, **8 instruction walkthroughs** and fresh **31 tests / 210 assertions**.
+The initial QA-only retired PHPUnit-option deprecation was corrected in its invocation; final runs have no issues.
+
+TASK-00070 is done for accepted package implementation and required local/behavioral verification. Automatic parent
+completion leaves TICKET-00019 and EPIC-00011 `ready-for-agent` for unfinished TASK-00071; its dependencies are now
+satisfied without removing their edges. John authorized landing; final local gates and PR publication remain pending
+at this tracked pre-publication checkpoint. The ignored `.runs/logs/TASK-00070/landing/` receipt owns final delivery
+and the administrative-only acceptance/QA/runtime bridge. Canonical reports remain unchanged. Hosted CI is optional/
+not checked. Main checkout and useful evidence are retained; no isolated TASK worktree or persistent service exists.
+No MCP Tool, administrator endpoint, consumer migration, human approval/merge, release or deployment is claimed.
 
 ## Agent-protected MCP authorization — TASK-00035 accepted
 
