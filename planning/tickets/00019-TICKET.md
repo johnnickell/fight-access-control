@@ -2,7 +2,7 @@
 id: TICKET-00019
 epic: EPIC-00011
 title: Read and update the authenticated Agent profile through MCP tools
-status: needs-info
+status: ready-for-agent
 ---
 
 # Read and update the authenticated Agent profile through MCP tools
@@ -12,9 +12,9 @@ status: needs-info
 An authenticated Agent needs a safe way to see its own name and to rename itself, without disclosing the broader
 administrative Agent view or allowing a caller to select another Agent. Supply two protected, package-owned MCP tools
 bound to the Agent-aware authorization contract in [TICKET-00006](00006-TICKET.md). Reuse the generic name-only
-update from [TICKET-00018](00018-TICKET.md); do not implement a second rename path. This TICKET is `needs-info`
-for Tool integration until a compatible published and installed Fight Common Tool surface is inspected. This does
-not block planning of independent profile behavior or TICKET-00018's generic command.
+update from [TICKET-00018](00018-TICKET.md); do not implement a second rename path. Installed Fight Common v1.3.0
+now satisfies the external Tool API gate; this TICKET is `ready-for-agent`. TASK-00070 remains independently
+executable, while TASK-00071 waits on unfinished TASK-00070 and TASK-00035.
 
 ## Use Cases
 
@@ -68,9 +68,12 @@ not block planning of independent profile behavior or TICKET-00018's generic com
 [WF-024](../wayfinder/tickets/WF-024-self-service-agent-profile-contract.md) own targeting and safe profile
 behavior. [WF-008](../wayfinder/tickets/WF-008-agent-aware-mcp-authorization-contract.md) and
 [TICKET-00006](00006-TICKET.md) own reusable authorization, concealment and request lifecycle;
-[TICKET-00018](00018-TICKET.md) owns generic rename and its fact. The installed Fight Common v1.2.0 lacks the
-compatible Tool surface. As in [TASK-00035](../tasks/00035-TASK.md), wait for a published/installable version and
-inspect its actual signatures before Tool integration; no PHP attribute target or wire error is guessed here.
+[TICKET-00018](00018-TICKET.md) owns generic rename and its fact.
+[TASK-00035's verified v1.3.0 contracts](../tasks/00035-TASK.md#verified-fight-common-v130-contracts) supply the
+installed-version evidence, method-level declaration, canonical registry, boolean availability and Common error
+mechanics. [TASK-00071](../tasks/00071-TASK.md#verified-compatibility-and-dependencies) records the profile binding
+to `McpToolOutput::structured()` and safe failure mapping. Source compatibility does not satisfy the still-required
+AccessControl implementation/composition evidence; recheck actual resolved and accepted contracts at intake.
 
 Consumer routes, authentication selection, OAuth claims, TLS, limits, policy and grants, persistence adapters,
 actual writer-race qualification, scanning, MCP runtime composition and exposed-tool selection are outside this
@@ -82,7 +85,7 @@ Adapter layer, release or deployment is created.
 | Order | TASK ID | Title | Status |
 | --- | --- | --- | --- |
 | 70 | [TASK-00070](../tasks/00070-TASK.md) | Provide minimal Agent profile reads and managed Permission definitions | ready-for-agent |
-| 71 | [TASK-00071](../tasks/00071-TASK.md) | Bind protected self-service Agent profile tools | needs-info |
+| 71 | [TASK-00071](../tasks/00071-TASK.md) | Bind protected self-service Agent profile tools | ready-for-agent |
 ## Progress
 
 John subsequently simplified the update acknowledgement to `{agent_id, name}`, derived from normalized command
@@ -92,6 +95,7 @@ minimal safe fields remain unchanged.
 
 John approved this as the second EPIC-00011 requirement area and subsequently approved two implementation slices:
 [TASK-00070](../tasks/00070-TASK.md) delivers the independently executable minimal read/managed definitions;
-[TASK-00071](../tasks/00071-TASK.md) binds the tools after TASK-00070, TASK-00069, TASK-00035 and a compatible
-published/installed Common Tool API. TASK decomposition is complete; Tool integration remains `needs-info`.
-Consumer adoption and implementation require separate authorization and checkout selection.
+[TASK-00071](../tasks/00071-TASK.md) binds the tools after TASK-00070, TASK-00069 and TASK-00035. TASK decomposition
+is complete. The subsequent v1.3.0 source inspection clears the external hold; TASK-00071 is ready but waiting on
+TASK-00070 and TASK-00035, while TASK-00069 is done. Consumer adoption and implementation still require separate
+authorization and checkout selection.

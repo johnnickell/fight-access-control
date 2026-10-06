@@ -97,7 +97,10 @@ this decision itself creates none of them.
   cannot be reported as consumer qualification. Do not add an exhaustive cross-product suite or tests of planning
   prose merely to restate the same contract.
 
-The installed Fight Common v1.2.0 does not provide the compatible published Tool API. Like
-[TASK-00035](../../tasks/00035-TASK.md), tool integration must wait for an installable release and inspection of its
-actual signatures; this does not reopen the settled profile behavior. Consumer OAuth claim mapping, transport and
-wire-error details remain outside this package decision.
+At decision time installed Fight Common v1.2.0 lacked the required Tool API. The subsequent
+[TASK-00035 v1.3.0 inspection](../../tasks/00035-TASK.md#verified-fight-common-v130-contracts) now satisfies
+that external release/signature gate. TASK-00071 records profile-specific output/failure bindings and still waits
+on its unfinished TASK dependencies. This updates evidence, not the settled profile behavior or Closed status.
+The earlier gate references above retain the decision-time requirements, now satisfied by source inspection;
+AccessControl integration/behavioral acceptance and actual consumer qualification remain outstanding. Consumer
+OAuth claim mapping, transport and wire-error policy remain outside this package decision.

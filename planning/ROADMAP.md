@@ -78,6 +78,16 @@ independently accepted, as are TASK-00068 removal (revised M1), TASK-00058 resto
 outstanding; package acceptance does not close the parent consumer obligations. The [Board](tasks/BOARD.md) owns
 current executable ordering.
 
+## MCP planning readiness
+
+Installed Fight Common v1.3.0 now satisfies the external Tool API gate; the exact revision/signatures and source
+inspection limits are recorded in [TASK-00035](tasks/00035-TASK.md#verified-fight-common-v130-contracts).
+EPIC-00005/TICKET-00006 and EPIC-00011/TICKET-00019 are `ready-for-agent`, not complete. TASK-00035 is executable;
+TASK-00071 is ready but waits on unfinished TASK-00070 and TASK-00035 (TASK-00069 is done). Existing order values
+are unchanged, so the generated [Board](tasks/BOARD.md) now places TASK-00035 first, ahead of TASK-00070.
+The related Wayfinder map remains Closed; no planning phase is reopened. This refresh neither implements nor
+qualifies MCP integration, changes dependencies, or authorizes a release/consumer adoption.
+
 ## Feature package acceptance
 
 [EPIC-00010 — Permission-Based Feature Flags](epics/00010-EPIC.md) has an approved three-TICKET decomposition from
@@ -152,12 +162,12 @@ adoption, release or deployment is claimed; the Board still owns separately auth
 | [EPIC-00002](epics/00002-EPIC.md) | 0.x | done | 1 | 7 |
 | [EPIC-00003](epics/00003-EPIC.md) | 0.x | done | 2 | 6 |
 | [EPIC-00004](epics/00004-EPIC.md) | v0.2.0 | done | 1 | 1 |
-| [EPIC-00005](epics/00005-EPIC.md) | 0.x | needs-info | 1 | 1 |
+| [EPIC-00005](epics/00005-EPIC.md) | 0.x | ready-for-agent | 1 | 1 |
 | [EPIC-00006](epics/00006-EPIC.md) | v0.3.0 | done | 1 | 3 |
 | [EPIC-00007](epics/00007-EPIC.md) | pre-1.0 | done | 1 | 1 |
 | [EPIC-00008](epics/00008-EPIC.md) | v0.4.0 | done | 3 | 5 |
 | [EPIC-00009](epics/00009-EPIC.md) | v0.5.0 | done | 3 | 14 |
 | [EPIC-00010](epics/00010-EPIC.md) | unassigned | done | 3 | 7 |
-| [EPIC-00011](epics/00011-EPIC.md) | unassigned | needs-info | 2 | 3 |
+| [EPIC-00011](epics/00011-EPIC.md) | unassigned | ready-for-agent | 2 | 3 |
 | [EPIC-00012](epics/00012-EPIC.md) | v0.5.0 | done | 1 | 1 |
 <!-- generated:epic-status:end -->
