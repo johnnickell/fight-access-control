@@ -687,7 +687,7 @@ read back. Final metadata delivery verification/ready state remain pending at th
 TASK landing handoff owns fresh gates, the administrative-only acceptance/QA and resolved-runtime bridge, and final
 remote/evidence verification. Original independent reports are preserved; no approval or merge is claimed. Consumer scanning/database/UI/security/runtime qualification, release and deployment remain separate.
 
-## Agent name updates — TASK-00069 builder checkpoint
+## Agent name updates — TASK-00069 accepted
 
 John selected the clean main checkout from `develop` `913f373` for TASK-00069 on
 `feature/task-00069-agent-rename`. The [name update guide](docs/agent-name-updates.md) describes generic `UpdateAgent`
@@ -712,9 +712,28 @@ pass **1127 tests / 30796 assertions**; fresh canonical `./bin/build` passes **2
 **6930/6930 owned statements** (243/243 across TASK-changed whole production files). No final warnings/skips or dependency
 drift; all 905 gate inputs stayed byte-identical. The unchanged review probe also passes all four builder-rerun cases.
 Final evidence prose retains equivalent executable inputs with targeted planning/documentation checks. Independent
-re-review and behavioral QA remain pending; the TASK owns fresh receipts and commit mapping. Controlled in-memory writer schedules are not actual consumer database,
+re-review subsequently **accepted** `fb12b0592f45bb97758ef54457ccd34a53702c91` against unchanged `develop`, with
+C1–C6 passing, F1 resolved and no findings. Independent post-review behavioral **QA PASS** covers five groups,
+**40 executable cases / 375 checks**, **8 instruction walkthroughs** and clean **21 tests / 267 assertions**.
+TASK-00069 is done for accepted package implementation and required local/behavioral evidence. Automatic parent
+completion closes TICKET-00018 in the same landing operation; EPIC-00011 remains needs-info for unfinished
+TICKET-00019/TASK-00070/00071. John's land invocation authorizes non-force PR publication; final delivery remains
+pending at this tracked closeout checkpoint. The TASK's ignored landing receipt owns fresh gates, final commit/PR
+identity and the administrative-only acceptance/QA bridge; canonical independent reports remain unchanged.
+The landing gate subsequently failed after its normal resolver upgraded PHPStan 2.2.17 to 2.3.0: 12 static-analysis
+errors in eight existing test files outside this TASK's diff. Focused 1127 tests / 30796 assertions and planning
+passed, but that attempt produced no fresh complete gate, commit, push or PR. Closeout edits were preserved.
+John then authorized a bounded eight-test repair through work on the same branch. PHPStan 2.3.0 now passes;
+focused repaired-file checks pass **264 tests / 5261 assertions** and fresh canonical `./bin/build` passes
+**2040 tests / 40091 assertions**, exact **6930/6930 statements**, with no final warnings/skips or further dependency
+drift. Test assertions preserve or strengthen prior contracts; production code, dependency policy and analyzer
+configuration are unchanged. The accepted-product completion/parent rollup remains the prior checkpoint, not
+independent approval of this test-only follow-up. New test content requires independent review and QA freshness
+assessment before resumed landing; original review/QA reports remain unchanged. The TASK owns the repair receipt,
+input equivalence and commit handoff. No push/PR, merge or release follows from this work. Hosted CI is optional/not checked.
+Controlled in-memory writer schedules are not actual consumer database,
 security wiring or runtime qualification. TASK-00070/00071/00035 retain profile reads/Permissions/MCP Tool integration;
-no Tool, administrator endpoint, consumer adapter, package release or deployment is delivered here.
+no Tool, administrator endpoint, consumer adapter, merge, package release or deployment is delivered here.
 
 ## Agent profile output — planning amendments
 

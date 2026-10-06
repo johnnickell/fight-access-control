@@ -16,16 +16,14 @@ final class CredentialDeliveryInvocationTest extends TestCase
     public function test_it_cannot_be_serialized_with_raw_credential_material(): void
     {
         $invocation = $this->invocation();
-        $serialized = null;
 
         try {
-            $serialized = serialize($invocation);
+            serialize($invocation);
             self::fail('Expected credential-delivery invocations to reject serialization.');
         } catch (LogicException $logicException) {
             self::assertSame('Credential-delivery invocations cannot be serialized.', $logicException->getMessage());
+            self::assertStringNotContainsString('RAW-SECRET', (string) $logicException);
         }
-
-        self::assertStringNotContainsString('RAW-SECRET', (string) $serialized);
     }
 
     public function test_it_redacts_diagnostics_while_remaining_available_to_the_provider(): void

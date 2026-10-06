@@ -369,10 +369,12 @@ final class RemoveFeatureHandlerTest extends TestCase
                 CommandMessage::create(new SetFeatureStatus($old->getId(), FeatureStatus::ON, 2))
             )
         ));
-        self::assertSame($new->getId()->toString(), $this->features->getById($new->getId())?->getId()->toString());
-        self::assertSame(FeatureStatus::OFF, $this->features->getById($new->getId())?->getStatus());
-        self::assertSame(1, $this->features->getById($new->getId())?->getRevision());
-        self::assertTrue($other->getId()->equals($this->features->getById($new->getId())?->getPermissionId()));
+        $retained = $this->features->getById($new->getId());
+        self::assertInstanceOf(Feature::class, $retained);
+        self::assertSame($new->getId()->toString(), $retained->getId()->toString());
+        self::assertSame(FeatureStatus::OFF, $retained->getStatus());
+        self::assertSame(1, $retained->getRevision());
+        self::assertTrue($other->getId()->equals($retained->getPermissionId()));
     }
 
     public function test_commit_failure_and_publication_failure_preserve_correct_state_and_order(): void

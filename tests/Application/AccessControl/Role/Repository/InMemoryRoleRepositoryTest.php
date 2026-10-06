@@ -93,7 +93,6 @@ final class InMemoryRoleRepositoryTest extends TestCase
     public function test_add_and_replace_reject_non_authoritative_permission_membership(): void
     {
         $permissionId = PermissionId::generate();
-        $permissions = new InMemoryPermissionRepository();
         $repository = new InMemoryRoleRepository();
         $missingMembership = Role::define(
             RoleId::generate(),

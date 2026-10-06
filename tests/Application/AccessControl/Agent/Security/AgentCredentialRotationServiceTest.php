@@ -724,7 +724,6 @@ final class AgentCredentialRotationServiceTest extends TestCase
 
     private function assertSafe(mixed $value): void
     {
-        $representation = '';
         if ($value instanceof AgentOperationRejectedException) {
             $representation = (string) $value;
             $trace = [];

@@ -677,7 +677,6 @@ final class ReconcileManagedPolicyHandlerTest extends TestCase
         $permissions->add($permission);
 
         $events = new InMemoryEventDispatcher();
-        $failure = null;
         $handler = new ReconcileManagedPolicyHandler(
             $permissions,
             $roles,

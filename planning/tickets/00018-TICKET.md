@@ -2,7 +2,7 @@
 id: TICKET-00018
 epic: EPIC-00011
 title: Rename an Agent without changing its authority
-status: in-progress
+status: done
 ---
 
 # Rename an Agent without changing its authority
@@ -47,15 +47,15 @@ MCP tools and their permission binding.
 
 ## Acceptance Evidence
 
-- [ ] Focused unit coverage of new/changed production classes proves validation, real and unchanged updates,
+- [x] Focused unit coverage of new/changed production classes proves validation, real and unchanged updates,
       active-state rejection, typed initiator provenance, input-derived acknowledgement after successful void dispatch
       and event ordering/failure.
-- [ ] A few controlled package transaction/interleaving checks prove last-write-wins for names without lost
+- [x] A few controlled package transaction/interleaving checks prove last-write-wins for names without lost
       credential/Permission changes or revoked-Agent resurrection, rollback before commit and accurate behavior
       after event-publication failure. Do not claim this qualifies an actual consumer database race.
-- [ ] No-op has no write, timestamp change or success fact; invalid, missing and revoked targets produce no partial
+- [x] No-op has no write, timestamp change or success fact; invalid, missing and revoked targets produce no partial
       write. Command failures preserve ordinary safe failure evidence without leaking internal data through tools.
-- [ ] Focused checks, `./bin/planning-check` and the canonical `./bin/build` pass with exact statement coverage
+- [x] Focused checks, `./bin/planning-check` and the canonical `./bin/build` pass with exact statement coverage
       when implementation is complete. Do not add a redundant conformance suite just to restate these cases.
 
 ## Dependencies and Exclusions
@@ -78,7 +78,7 @@ introduced.
 
 | Order | TASK ID | Title | Status |
 | --- | --- | --- | --- |
-| 69 | [TASK-00069](../tasks/00069-TASK.md) | Rename an Agent atomically with typed provenance | in-progress |
+| 69 | [TASK-00069](../tasks/00069-TASK.md) | Rename an Agent atomically with typed provenance | done |
 ## Progress
 
 John subsequently simplified successful acknowledgement to `{agent_id, name}` from normalized command input;
@@ -92,6 +92,16 @@ execution authorization and checkout selection were required at the planning che
 its generic command, typed provenance, void handler, mandatory repository intent write and post-commit fact.
 TASK-00069 owns verification/commit evidence. Independent review of `614c34b` requested F1, the pre-fence timestamp
 contention defect; the repair defers clock sampling until writer admission and returns exact persisted event time.
-Independent re-review and applicable behavioral QA remain pending.
-TICKET-00019's approved decomposition is complete; its implementation, consumer qualification, publication and
-release remain separate operations.
+Independent re-review subsequently accepted `fb12b0592f45bb97758ef54457ccd34a53702c91` against unchanged
+`develop` `913f373`, with C1–C6 passing, F1 resolved and no findings. Independent behavioral QA passes five scenario
+groups, 40 executable cases / 375 checks, eight instruction walkthroughs and 21 tests / 267 assertions. The complete
+local gate passes 2040 tests / 40087 assertions and exact 6930/6930 owned statements. TASK-00069 owns full receipts,
+limitations and the administrative-only landing bridge. Its accepted completion automatically closes TICKET-00018
+in the same operation; every acceptance bullet above maps to that accepted child evidence. Publication is pending
+at this closeout checkpoint, not approval or merge. EPIC-00011 remains needs-info for unfinished TICKET-00019;
+its approved decomposition, implementation, real consumer qualification and release remain separate.
+
+The subsequent landing gate exposed 12 existing-test errors after resolving PHPStan 2.3.0. John authorized a bounded
+eight-test repair, now locally verified at 2040 tests / 40091 assertions and exact 6930/6930 statements, with no
+production or dependency-policy changes. The accepted-product completion above is retained; the test-only follow-up
+still requires independent review and QA freshness assessment before publication. TASK-00069 owns the new evidence.
