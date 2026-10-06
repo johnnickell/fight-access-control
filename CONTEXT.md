@@ -6,6 +6,41 @@ Fight AccessControl owns framework-neutral identity, credential, session, author
 behavior shared by Fight applications. The repository-local behavioral and security authority is
 [TICKET-00001](planning/tickets/00001-TICKET.md).
 
+## Self-service Agent profile Tools — TASK-00071 accepted
+
+John selected the clean main checkout from `develop` `40168bc` on `feature/task-00071-agent-profile-tools`.
+The unreleased [profile Tool guide](docs/agent-profile-tools.md) defines Application `Agent\\Tool\\GetAgentProfileTool`
+(`agent.profile.read`) and `UpdateAgentProfileTool` (`agent.profile.update`), sharing the same request-scoped provider,
+signed request and correlation as TASK-00035 availability. Distinct read/update Permissions precede protected work;
+no caller target/authority fields are accepted. Read uses TASK-00070's fresh query. Update derives target and typed
+initiator solely from the principal, normalizes through `AgentName` and requires Common `SynchronousCommandBus` for
+TASK-00069's void command. Both outputs are exactly `{agent_id, name}` with derived JSON text. The update acknowledgement
+is successful input, not latest state; no compensating read or second fact. Expected failures bind to constants through
+`AgentProfileToolFailures`; unknown faults use Common's safe responder boundary. Post-commit publication failure has no
+success acknowledgement or rollback claim. Consumers sanitize diagnostic/event logs and protect all alternate paths.
+Common remains installed v1.3.0 at the recorded revision; no dependency policy or persisted contract change is needed.
+Builder tests cover Tool behavior and bounded real Common/package composition over controlled ports, not a consumer
+MCP runtime/database/seed qualification. Focused checks pass **90 tests / 843 assertions**; the canonical full gate
+passes **2109 tests / 40671 assertions**, exact **7019/7019** owned and **19/19** new statements. No final warnings/skips
+or dependency package changes; ignored Composer metadata regenerated and the rebuilt image retains identical runnable
+Config/RootFS. The TASK owns the receipt and corrected early fixture/style failures. Final evidence prose retains
+equivalent executable inputs plus targeted checks. Independent technical review subsequently **accepts** clean
+`a160c95` against unchanged `develop` `40168bc`, with C1–C5 passing and no findings. Independent behavioral **QA PASS**
+covers six groups, **36 executable cases / 437 checks**, **10 instruction walkthroughs** and fresh **90 tests / 843
+assertions**. QA-only initial envelope-assertion and deprecated-option issues were corrected in its disposable harness;
+final runs have no warnings/skips/deprecations, and no product defect was identified.
+
+TASK-00071 is done for accepted package implementation and required local/behavioral verification. Automatic parent
+completion closes TICKET-00019 and EPIC-00011 in the same operation; TASK-00070 and TICKET-00018 were already done.
+Fresh landing focused/full gates pass **90 tests / 843 assertions** and **2109 tests / 40671 assertions**, exact
+**7019/7019** statements, without final warnings/skips or dependency package drift. John authorized
+[PR #113](https://github.com/johnnickell/fight-access-control/pull/113), open/draft against unchanged `develop` at initial
+closeout head `d94b607`. Sanitized nonvisual QA evidence is published/read back and publicly accessible; final metadata
+gates/push and ready transition remain pending at this tracked checkpoint. The ignored
+`.runs/logs/TASK-00071/landing/` receipt owns final delivery and the administrative-only acceptance/QA/runtime bridge.
+Canonical reports remain unchanged. Hosted CI is optional/not checked. The main checkout and useful evidence are retained; no isolated TASK
+worktree or persistent service exists. Human approval/merge, consumer qualification, release and deployment remain separate.
+
 ## Minimal Agent profiles — TASK-00070 accepted
 
 John selected the clean main checkout from `develop` `2ee2597` on `feature/task-00070-agent-profile`.

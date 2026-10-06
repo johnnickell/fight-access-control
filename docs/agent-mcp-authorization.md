@@ -2,8 +2,10 @@
 
 This unreleased additive API implements [TASK-00035](../planning/tasks/00035-TASK.md). It requires Fight Common
 `^1.3` (first verified against v1.3.0, `7de6cad6e8a9752973ad9f8e27e285b0c1510582`). It supplies authorization
-metadata and availability, **not** a Tool, endpoint, self-profile implementation, OAuth mapping or consumer adapter.
-Independent review/behavioral QA and actual consumer qualification remain separate from builder tests.
+metadata and availability, **not** protocol policy, an endpoint, OAuth mapping or a consumer adapter.
+[Self-service profile Tools](agent-profile-tools.md) are a separate consumer of this boundary. Their request-bound
+instances require the same fresh provider/request as availability. Independent review/behavioral QA and actual
+consumer qualification remain separate from builder tests.
 
 ## Public contracts
 

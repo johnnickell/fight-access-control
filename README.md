@@ -102,18 +102,18 @@ void `UpdateAgentHandler` and post-commit `AgentNameChanged`. Every Agent reposi
 callback is sampled after writer admission; it returns exact persisted time or null for a validated no-op. Names are
 last-committed-wins without an expected old name or revision; credentials and Permissions are never replaced.
 Consumers protect every dispatch entry point and separately qualify persistence. Successful synchronous dispatch
-permits the same input-derived `{agent_id, name}` acknowledgement for changes/no-ops. No MCP Tool, administrator
-endpoint, consumer adapter, release or deployment is supplied.
+permits the same input-derived `{agent_id, name}` acknowledgement for changes/no-ops. The self-service Tools below
+reuse it; no administrator endpoint, consumer adapter, release or deployment is supplied.
 
 ### Minimal Agent profiles (unreleased)
 
 The [profile guide](docs/agent-profile.md) describes `GetAgentProfile` / `GetAgentProfileHandler`, returning only
 `{agent_id, name}` from a fresh authoritative ACTIVE Agent lookup. Missing and revoked targets both return null;
 reads perform no writes, transactions, Permission resolution or events. Consumers authorize the explicit internal
-target; the later self-service Tool must derive it solely from the current authenticated principal.
+target; the self-service Tool derives it solely from the current authenticated principal.
 `AgentProfilePermissions::definitions()` supplies managed `AGENT_PROFILE_READ` and `AGENT_PROFILE_UPDATE`, both
 `ADMIN_SAFE`, using two distinct consumer-owned IDs generated once with `Uuid::comb()` and fixed in its seed/migration.
-No automatic grants, startup ID generation, MCP Tool, consumer migration or runtime integration is supplied.
+No automatic grants, startup ID generation, consumer migration or runtime integration is supplied.
 
 ### Agent-protected MCP Tools (unreleased)
 
@@ -124,6 +124,14 @@ availability in Common discovery, invocation and protected retries, with fresh p
 private zero-TTL discovery. Unknown/unavailable Tools remain publicly equivalent before protected work.
 Common `^1.3` is required; this authorization module supplies no Tool, endpoint, OAuth mapping or consumer adapter.
 The separate minimal profile query above does not itself enforce MCP permissions or choose a principal.
+
+The [self-service profile Tool guide](docs/agent-profile-tools.md) composes `GetAgentProfileTool`
+(`agent.profile.read`) and `UpdateAgentProfileTool` (`agent.profile.update`) with that authorization module. Both derive
+the target from the same request's principal and return exactly `{agent_id, name}` with Common's matching JSON text.
+The updater requires `SynchronousCommandBus` and acknowledges normalized input only after successful void dispatch;
+no compensating read or extra fact is emitted. Extra caller fields reject; read/update Permissions are independent.
+`AgentProfileToolFailures` supplies constant expected-failure bindings; Common's responder sanitizes unknown faults
+without claiming rollback after publication failure. Consumers own fresh request wiring and protect all alternate paths.
 
 ### Agent credential operations (unreleased)
 

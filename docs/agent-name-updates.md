@@ -1,8 +1,9 @@
 # Agent name updates (unreleased)
 
 `UpdateAgent` and `UpdateAgentHandler` provide one generic name-only command for consumer-authorized User or Agent
-entry points. This is TASK-00069's package capability, not the MCP profile tools, an administrator endpoint, a
-production persistence adapter or a release. See the [current Agent contract](agent-current-contract.md) and
+entry points. This is TASK-00069's package capability, reused by the separate
+[self-service MCP profile Tools](agent-profile-tools.md), not an administrator endpoint, production persistence adapter
+or release. See the [current Agent contract](agent-current-contract.md) and
 [integration guide](agent-integration.md) for the surrounding authority and operation model.
 
 ## Intent, provenance and acknowledgement
@@ -16,9 +17,9 @@ nonempty, at most 120 characters after trimming). Names are neither unique nor r
 
 **Provenance is not authorization.** Protect every dispatch entry point: HTTP, CLI, workers, direct bus calls and
 any direct repository access. Derive the initiator from trusted authenticated context, then apply consumer caller,
-target and scope policy. Supplying a User or Agent ID does not prove authentication or grant any authority. Future
-self-service tools must derive both target and initiating Agent solely from the authenticated principal; those
-Tool bindings and their distinct read/update Permissions remain TASK-00070/00071/00035 work.
+target and scope policy. Supplying a User or Agent ID does not prove authentication or grant any authority.
+[Self-service profile Tools](agent-profile-tools.md) derive both target and initiating Agent solely from the
+authenticated principal, with distinct read/update Permissions through the reusable MCP availability boundary.
 
 Register `UpdateAgentHandler::commandRegistration()` with a **synchronous** Common CommandBus. Inject the Agent
 repository, Application Timing `Clock`, Common `TransactionalUnitOfWork` and `EventDispatcher`. The handler and bus
@@ -33,8 +34,8 @@ $acknowledgement = ['agent_id' => $command->getAgentId()->toString(), 'name' => 
 Real changes and normalized no-ops use exactly the same `{agent_id, name}` value. No `changed` field, separate
 changed/no-op sentence, result-bearing handler or compensating read is required. The acknowledgement describes the
 successful request, **not a fresh read of the latest name** after competing commits. Any thrown failure, including
-post-commit publication failure, prevents success acknowledgement. Future MCP binding uses Common's derived JSON
-text for that same structured value; this TASK supplies no Tool or wire error representation.
+post-commit publication failure, prevents success acknowledgement. The separate MCP profile binding uses Common's
+derived JSON text for that same structured value; its guide owns the Tool and safe wire error composition.
 
 ## Name-only persistence and concurrency
 

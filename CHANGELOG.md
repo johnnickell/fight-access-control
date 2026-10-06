@@ -9,6 +9,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- [Self-service Agent profile Tools](docs/agent-profile-tools.md): additive `GetAgentProfileTool` and
+  `UpdateAgentProfileTool`, with distinct managed read/update Permission requirements and principal-only target and
+  initiator. Exact `{agent_id, name}` output uses Common's derived JSON text; the updater requires synchronous void
+  dispatch and acknowledges normalized input for real changes/no-ops without a compensating read. Safe expected-failure
+  bindings and targeted Common/package composition tests preserve concealment and post-commit uncertainty. No endpoint,
+  consumer qualification, persistence/API replacement or release is supplied.
 - [Agent-protected MCP authorization](docs/agent-mcp-authorization.md): additive repeatable method-level
   `RequiresAgentPermission`, immutable registry-derived `AgentToolPermissionCatalog` and request-scoped
   `AgentToolAvailability`. Conjunctive direct-Permission decisions share one current Agent snapshot across Common

@@ -168,6 +168,6 @@ adoption, release or deployment is claimed; the Board still owns separately auth
 | [EPIC-00008](epics/00008-EPIC.md) | v0.4.0 | done | 3 | 5 |
 | [EPIC-00009](epics/00009-EPIC.md) | v0.5.0 | done | 3 | 14 |
 | [EPIC-00010](epics/00010-EPIC.md) | unassigned | done | 3 | 7 |
-| [EPIC-00011](epics/00011-EPIC.md) | unassigned | ready-for-agent | 2 | 3 |
+| [EPIC-00011](epics/00011-EPIC.md) | unassigned | done | 2 | 3 |
 | [EPIC-00012](epics/00012-EPIC.md) | v0.5.0 | done | 1 | 1 |
 <!-- generated:epic-status:end -->

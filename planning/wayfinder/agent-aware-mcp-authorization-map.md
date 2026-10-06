@@ -35,11 +35,10 @@ dependency-ordered Tool binding. Their TASK decomposition is complete; neither r
 - [WF-023](tickets/WF-023-self-service-agent-target.md) settles self-service target selection: both profile tools
   derive their target Agent ID exclusively from the authenticated principal and accept no caller-supplied target
   Agent ID. A separate non-MCP administrator API remains outside this decision.
-- The existing administrative `AgentView` is broader than the approved self-profile output. `Agent` currently has
-  no rename transition, and `AgentRepository` has no name-only writer; the future EPIC must design them without
-  treating credential or Permission replacement as a rename path.
-- Existing Permission-mutation commands require a `UserId` administrator, and credential lifecycle services may
-  return raw secrets. Neither is eligible for self-service MCP.
+- The administrative `AgentView` is broader than the approved self-profile output. TASK-00069 now supplies the
+  accepted name-only transition/writer and TASK-00070 the minimal profile query. TASK-00071 reuses them rather than
+  treating credential or Permission replacement as rename. Credential/Permission operations remain outside these
+  self-service Tools; their current APIs, not this map's original source baseline, govern other use cases.
 - The prior [Agent HMAC map](agent-hmac-authentication-map.md) established the request-scoped authenticated Agent
   principal. This map extends that seam without revising its consumer-owned transport and authorization boundary.
 
@@ -77,9 +76,10 @@ Agent-aware MCP authorization contract ──→ Self-service target selection �
 None. WF-008, WF-023 and WF-024 are closed. The authorization contract is handed off through
 [EPIC-00005](../epics/00005-EPIC.md), and the profile contract through [EPIC-00011](../epics/00011-EPIC.md).
 The profile EPIC's TICKET-00018/00019 requirement split and TASK plans (TASK-00069/00070/00071) are approved.
-The installed v1.3.0 API inspection in TASK-00035 clears the Common external hold. TASK-00071 still waits on
-unfinished TASK-00070 and TASK-00035; TASK-00069 is done. Planning completion does not make blocked work executable.
-No decision is reopened by that planning work.
+The installed v1.3.0 API inspection clears the Common external hold. TASK-00070, TASK-00035 and TASK-00069 are now
+done; TASK-00071 now has independent technical acceptance and behavioral QA PASS and is also done. Automatic
+parent completion closes TICKET-00019 and EPIC-00011. The TASK owns authorized PR delivery; consumer qualification,
+merge and release remain separate. The Board owns execution selection. No decision is reopened by completion.
 
 ## Not yet specified (fog)
 

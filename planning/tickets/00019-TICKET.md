@@ -2,7 +2,7 @@
 id: TICKET-00019
 epic: EPIC-00011
 title: Read and update the authenticated Agent profile through MCP tools
-status: ready-for-agent
+status: done
 ---
 
 # Read and update the authenticated Agent profile through MCP tools
@@ -13,8 +13,8 @@ An authenticated Agent needs a safe way to see its own name and to rename itself
 administrative Agent view or allowing a caller to select another Agent. Supply two protected, package-owned MCP tools
 bound to the Agent-aware authorization contract in [TICKET-00006](00006-TICKET.md). Reuse the generic name-only
 update from [TICKET-00018](00018-TICKET.md); do not implement a second rename path. Installed Fight Common v1.3.0
-now satisfies the external Tool API gate; this TICKET is `ready-for-agent`. TASK-00070 and TASK-00035 are done;
-TASK-00071 is executable with all recorded dependency edges satisfied.
+now satisfies the external Tool API gate. TASK-00070 and TASK-00071 have independent technical acceptance and
+behavioral QA; automatic parent completion closes this TICKET and EPIC-00011. Consumer qualification remains separate.
 
 ## Use Cases
 
@@ -48,17 +48,17 @@ TASK-00071 is executable with all recorded dependency edges satisfied.
 
 ## Acceptance Evidence
 
-- [ ] Focused unit coverage of each new class proves minimal fresh read, principal-only target and initiator,
+- [x] Focused unit coverage of each new class proves minimal fresh read, principal-only target and initiator,
       independent read/update Permission requirements, minimal structured outputs with Common's matching JSON text and invalid/missing/no-op/real
       rename outcomes. No caller-supplied target ID is accepted.
-- [ ] Only useful targeted package composition checks bind these tools to TICKET-00006's authorization boundary
+- [x] Only useful targeted package composition checks bind these tools to TICKET-00006's authorization boundary
       and the shared TICKET-00018 rename transition, including denial before work, safe failure presentation and
       post-commit publication uncertainty. Reuse TICKET-00006's discovery/invocation/retry conformance rather than
       copying its full scenario matrix; do not add an exhaustive suite.
-- [ ] Confirm actual installed Fight Common canonical names, declaration target, Tool/availability signatures and
+- [x] Confirm actual installed Fight Common canonical names, declaration target, Tool/availability signatures and
       error mechanics before implementing the MCP declarations. Document consumer-managed stable-ID seeding and
       entry-point authorization obligations without claiming to run a consumer migration or real MCP process.
-- [ ] Focused checks, `./bin/planning-check` and canonical `./bin/build` pass with exact production-statement
+- [x] Focused checks, `./bin/planning-check` and canonical `./bin/build` pass with exact production-statement
       coverage when implementation is complete. Package-controlled tests are not consumer database, scanner,
       transport or runtime qualification.
 
@@ -85,8 +85,20 @@ Adapter layer, release or deployment is created.
 | Order | TASK ID | Title | Status |
 | --- | --- | --- | --- |
 | 70 | [TASK-00070](../tasks/00070-TASK.md) | Provide minimal Agent profile reads and managed Permission definitions | done |
-| 71 | [TASK-00071](../tasks/00071-TASK.md) | Bind protected self-service Agent profile tools | ready-for-agent |
+| 71 | [TASK-00071](../tasks/00071-TASK.md) | Bind protected self-service Agent profile tools | done |
 ## Progress
+
+John authorized TASK-00071 in the main checkout from `develop` `40168bc` on
+`feature/task-00071-agent-profile-tools`. The [Tool composition guide](../../docs/agent-profile-tools.md) describes
+both declarations, principal-only targeting, synchronous input-derived acknowledgement and safe failure composition.
+Builder implementation/local verification pass **90 focused tests / 843 assertions**, **2109 full tests / 40671
+assertions**, exact **7019/7019** owned statements with no final warnings/skips or dependency package changes.
+Independent review subsequently accepts TASK-00071 at `a160c95` against unchanged `develop` `40168bc`, C1–C5 passing
+with no findings. Independent QA passes six groups, **36 executable cases / 437 checks**, **10 instruction walkthroughs**
+and **90 tests / 843 assertions**. TASK-00071 is done; automatic parent completion closes this TICKET and EPIC-00011
+in the same administrative operation. John authorized landing; the TASK owns final gates/publication evidence.
+This accepts the package Tool binding, not consumer runtime qualification, human approval/merge or release.
+The following paragraphs preserve earlier planning and TASK-00070 checkpoints.
 
 John subsequently simplified the update acknowledgement to `{agent_id, name}`, derived from normalized command
 input after successful void dispatch. Common's derived JSON text replaces the update's changed/no-op sentences.

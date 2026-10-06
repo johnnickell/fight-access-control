@@ -1,8 +1,9 @@
 # Minimal Agent profiles and managed Permissions (unreleased)
 
 [TASK-00070](../planning/tasks/00070-TASK.md) supplies a framework-neutral read and reusable Permission definitions.
-It does not supply an MCP Tool, transport, administrator endpoint, consumer seed/migration, grants or runtime wiring.
-[Name updates](agent-name-updates.md) remain the separate generic `UpdateAgent` operation.
+The read/definition module supplies no transport, administrator endpoint, consumer seed/migration, grants or runtime
+wiring. [Self-service profile Tools](agent-profile-tools.md) now bind this read and the separate generic
+[UpdateAgent name operation](agent-name-updates.md) through protected MCP composition.
 
 ## Read contract
 
@@ -34,17 +35,17 @@ these cases publicly. Repository failures propagate, rather than becoming absenc
 The consumer response/log boundary must sanitize operational errors and traces. This query writes nothing, opens no
 transaction, commits nothing and emits no events, including failure events. It does not acquire writer admission.
 
-### Authorization and the later Tool boundary
+### Authorization and the Tool boundary
 
 `GetAgentProfile` accepts an explicit internal target `AgentId` for reuse; that ID grants no authority. Protect every
 exposed query entry point, including direct bus dispatch. The query does not enforce `AGENT_PROFILE_READ` or select
 a principal. `ADMIN_SAFE` describes delegation eligibility, not automatic caller authorization.
 
-[TASK-00071](../planning/tasks/00071-TASK.md) must bind the read target **solely** to the current authenticated Agent
+[TASK-00071's profile Tools](agent-profile-tools.md) bind the read target **solely** to the current authenticated Agent
 principal's ID, accept no caller-supplied target, and enforce the separate read/update requirements through
-[TASK-00035's MCP authorization](agent-mcp-authorization.md) before protected work. Its read output uses only this
-minimal result and Common's matching derived JSON text. Tool declarations, error mapping and principal-only target
-selection are not implemented by this read. No alternate administrator endpoint or authorization bypass is implied.
+[TASK-00035's MCP authorization](agent-mcp-authorization.md) before protected work. The read Tool uses only this
+minimal result and Common's matching derived JSON text. Tool declarations, error mapping and principal-only selection
+belong to that composition, not this query handler. No administrator endpoint or authorization bypass is implied.
 
 ## Stable consumer-owned Permission identities
 
