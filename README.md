@@ -105,6 +105,15 @@ Consumers protect every dispatch entry point and separately qualify persistence.
 permits the same input-derived `{agent_id, name}` acknowledgement for changes/no-ops. No MCP Tool, administrator
 endpoint, consumer adapter, release or deployment is supplied.
 
+### Agent-protected MCP Tools (unreleased)
+
+The [MCP authorization guide](docs/agent-mcp-authorization.md) describes repeatable method-level
+`RequiresAgentPermission`, a complete Common-registry-derived `AgentToolPermissionCatalog`, and request-scoped
+`AgentToolAvailability`. Every requirement must match the current Agent's direct Permissions. Use the same neutral
+availability in Common discovery, invocation and protected retries, with fresh providers on every later request and
+private zero-TTL discovery. Unknown/unavailable Tools remain publicly equivalent before protected work.
+Common `^1.3` is required; no Tool, profile operation, endpoint, OAuth mapping or consumer adapter is supplied.
+
 ### Agent credential operations (unreleased)
 
 Start with the [current Agent integration guide](docs/agent-integration.md) for composition, readiness, bounded

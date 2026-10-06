@@ -1,0 +1,7 @@
+<?php
+
+declare(strict_types=1);
+
+use Fight\AccessControl\Application\AccessControl\Agent\Attribute\RequiresAgentPermission;
+
+return new #[RequiresAgentPermission('VIEW_AGENTS')] class {};
