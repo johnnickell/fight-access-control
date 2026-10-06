@@ -7,6 +7,7 @@ namespace Fight\AccessControl\Domain\AccessControl\Agent;
 use DateTimeImmutable;
 use Fight\AccessControl\Domain\AccessControl\Agent\Exception\AgentCredentialException;
 use Fight\AccessControl\Domain\AccessControl\Agent\Exception\AgentPermissionAssignmentException;
+use Fight\AccessControl\Domain\AccessControl\Agent\Exception\AgentUpdateException;
 use Fight\AccessControl\Domain\AccessControl\Permission\PermissionId;
 use SensitiveParameter;
 
@@ -180,6 +181,37 @@ class Agent
         return array_any(
             $this->permissionIds,
             static fn(PermissionId $assigned): bool => $assigned->equals($permissionId)
+        );
+    }
+
+    /**
+     * Renames an active Agent without changing its authority
+     */
+    public function rename(AgentName $name, DateTimeImmutable $renamedAt): self
+    {
+        if ($this->state !== AgentState::ACTIVE) {
+            throw new AgentUpdateException('The Agent is unavailable for a name update.');
+        }
+
+        if ($this->name->equals($name)) {
+            return $this;
+        }
+
+        if ($renamedAt < $this->updatedAt) {
+            throw new AgentUpdateException('The Agent name update time is stale.');
+        }
+
+        return new self(
+            $this->id,
+            $name,
+            $this->state,
+            $this->credentialId,
+            $this->credentialRevision,
+            $this->encryptedHmacSharedSecretEnvelope,
+            $this->permissionIds,
+            $this->permissionAssignmentRevision,
+            $this->createdAt,
+            $renamedAt
         );
     }
 

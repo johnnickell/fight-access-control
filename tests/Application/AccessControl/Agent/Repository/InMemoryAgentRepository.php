@@ -5,11 +5,15 @@ declare(strict_types=1);
 namespace Fight\Test\AccessControl\Application\AccessControl\Agent\Repository;
 
 use Closure;
+use DateTimeImmutable;
 use Fight\AccessControl\Domain\AccessControl\Agent\Agent;
 use Fight\AccessControl\Domain\AccessControl\Agent\AgentCredentialId;
 use Fight\AccessControl\Domain\AccessControl\Agent\AgentId;
+use Fight\AccessControl\Domain\AccessControl\Agent\AgentName;
 use Fight\AccessControl\Domain\AccessControl\Agent\AgentRepository;
 use Fight\AccessControl\Domain\AccessControl\Agent\Exception\AgentOperationRejectedException;
+use Fight\AccessControl\Domain\AccessControl\Agent\Exception\AgentUpdateException;
+use Fight\AccessControl\Domain\AccessControl\Agent\Operation\AgentCredentialOperation;
 use Fight\AccessControl\Domain\AccessControl\Agent\Operation\AgentOperationContract;
 use Fight\AccessControl\Domain\AccessControl\Agent\Operation\AgentOperationFailure;
 use Fight\AccessControl\Domain\AccessControl\Permission\Permission;
@@ -27,6 +31,12 @@ final class InMemoryAgentRepository implements AgentRepository
     public readonly InMemoryAgentOperationContract $contract;
 
     public ?Closure $afterReplace = null;
+
+    public ?Closure $beforeNameWrite = null;
+
+    public ?Closure $afterNameWrite = null;
+
+    public int $nameWrites = 0;
 
     /** @var list<Agent> */
     private array $agents = [];
@@ -114,6 +124,52 @@ final class InMemoryAgentRepository implements AgentRepository
     public function hasPermissionAssignment(PermissionId $permissionId): bool
     {
         return $this->authorizationReferences->agentContainsPermission($permissionId);
+    }
+
+    public function rename(AgentId $id, AgentName $name, DateTimeImmutable $renamedAt): bool
+    {
+        $this->beforeNameWrite?->__invoke();
+        $this->getOperationContract()->assertCompatible();
+        if ($this->operations === null || !$this->operations->participatesIn($this->unitOfWork)) {
+            throw new AgentOperationRejectedException(AgentOperationFailure::UNAVAILABLE);
+        }
+
+        $current = $this->getById($id);
+        if ($current === null) {
+            throw new AgentUpdateException('The Agent is unavailable for a name update.');
+        }
+
+        $replacement = $current->rename($name, $renamedAt);
+        $matches = array_filter(
+            $this->operations->operations,
+            static function (AgentCredentialOperation $operation) use ($current): bool {
+                $issuance = $operation->getIssuance();
+
+                return $issuance->getAgentId()->equals($current->getId())
+                    && $issuance->getCredentialId()->equals($current->getCredentialId())
+                    && $issuance->getCredentialRevision() === $current->getCredentialRevision();
+            }
+        );
+        if (count($matches) !== 1) {
+            throw new AgentOperationRejectedException(AgentOperationFailure::CONFLICT);
+        }
+
+        array_first($matches)->assertDeliveryCredential($current);
+        if ($replacement === $current) {
+            return false;
+        }
+
+        $index = array_search($current, $this->agents, true);
+        $this->agents[$index] = $replacement;
+        ++$this->nameWrites;
+        $this->authorizationReferences->retainAgent($replacement);
+        $this->unitOfWork->onRollback(function () use ($current, $index): void {
+            $this->agents[$index] = $current;
+            $this->authorizationReferences->retainAgent($current);
+        });
+        $this->afterNameWrite?->__invoke();
+
+        return true;
     }
 
     public function replace(

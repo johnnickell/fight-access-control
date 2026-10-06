@@ -2,7 +2,7 @@
 id: TICKET-00018
 epic: EPIC-00011
 title: Rename an Agent without changing its authority
-status: ready-for-agent
+status: in-progress
 ---
 
 # Rename an Agent without changing its authority
@@ -78,7 +78,7 @@ introduced.
 
 | Order | TASK ID | Title | Status |
 | --- | --- | --- | --- |
-| 69 | [TASK-00069](../tasks/00069-TASK.md) | Rename an Agent atomically with typed provenance | ready-for-agent |
+| 69 | [TASK-00069](../tasks/00069-TASK.md) | Rename an Agent atomically with typed provenance | in-progress |
 ## Progress
 
 John subsequently simplified successful acknowledgement to `{agent_id, name}` from normalized command input;
@@ -86,5 +86,10 @@ real/no-op effects remain distinct internally, without a `changed` field or resu
 
 John approved this as the first of two cohesive EPIC-00011 requirement areas and subsequently approved one complete
 implementation slice, [TASK-00069](../tasks/00069-TASK.md). TASK planning for TICKET-00018 is complete; separate
-execution authorization and checkout selection are still required. TICKET-00019 decomposition, consumer
-qualification, publication and release remain separate operations.
+execution authorization and checkout selection were required at the planning checkpoint. John subsequently invoked
+`work TASK-00069` and selected the clean main checkout from `develop` `913f373`, on
+`feature/task-00069-agent-rename`. The [name-only implementation guide](../../docs/agent-name-updates.md) now records
+its generic command, typed provenance, void handler, mandatory repository intent write and post-commit fact.
+TASK-00069 owns verification/commit evidence; independent review and applicable behavioral QA remain pending.
+TICKET-00019's approved decomposition is complete; its implementation, consumer qualification, publication and
+release remain separate operations.

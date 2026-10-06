@@ -40,6 +40,15 @@ The catalog uses canonical snake-case `toArray()` keys. UUID identifiers use
 `uuid`; `*_at` values use `date-time`; paginated administrative results have `page`, `per_page`,
 `total_pages`, `total_records`, and typed `records`.
 
+### Agent name updates (unreleased)
+
+`Fight.AccessControl.UpdateAgent` describes required `initiator`, UUID `agent_id` and raw `name`.
+`Fight.AccessControl.AgentUpdateInitiator` describes required `type` (`user` or `agent`) and UUID `id`; provenance
+is not authorization. The handler validates trim-normalized name length, so the raw-string schema introduces no
+conflicting `maxLength`. Generated default-suite tests compare both schemas with actual messages and the owning
+principal-type enum. See [name update composition](agent-name-updates.md) for mandatory persistence fences, void
+synchronous dispatch and post-commit facts. These additive components create no Tool, endpoint or handler result.
+
 ### Feature provisioning (unreleased)
 
 `Fight.AccessControl.ProvisionFeatures` describes the required nullable `default_permission_name` string. This is

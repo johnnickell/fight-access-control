@@ -687,6 +687,27 @@ read back. Final metadata delivery verification/ready state remain pending at th
 TASK landing handoff owns fresh gates, the administrative-only acceptance/QA and resolved-runtime bridge, and final
 remote/evidence verification. Original independent reports are preserved; no approval or merge is claimed. Consumer scanning/database/UI/security/runtime qualification, release and deployment remain separate.
 
+## Agent name updates — TASK-00069 builder checkpoint
+
+John selected the clean main checkout from `develop` `913f373` for TASK-00069 on
+`feature/task-00069-agent-rename`. The [name update guide](docs/agent-name-updates.md) describes generic `UpdateAgent`
+with typed User/Agent `AgentUpdateInitiator`, void synchronous `UpdateAgentHandler` and post-commit `AgentNameChanged`.
+The mandatory Domain repository `rename(id, name, time)` capability applies `Agent::rename()` to current fenced ACTIVE
+state, including no-ops, preserving all credential/Permission authority and exact operation correlation. Last committed
+name wins with no expected old name or revision; no-op changes no timestamp, persistence or success fact. Real changes
+commit before publication; post-commit publication failure rethrows without rollback or success acknowledgement.
+All consumer dispatch paths require caller/target authorization; initiator identity is provenance only. Successful
+synchronous void dispatch permits the same input-derived `{agent_id, name}` acknowledgement for changes and no-ops,
+not a fresh read of a later concurrent name. New opt-in command/provenance schemas preserve that public contract.
+At this pre-review implementation checkpoint focused checks pass **1124 tests / 30771 assertions**; the complete
+`./bin/build` passes **2037 tests / 40062 assertions**, exact **6930/6930** owned statements (243/243 across TASK-changed
+production files). No final warnings/notices/skips; the canonical resolver upgraded ignored dev-only swagger-php
+6.11.0 to 6.12.0 before the full gate. Final verification prose retains equivalent executable inputs plus targeted
+planning/documentation checks. Independent technical review and applicable post-review behavioral QA are pending;
+the TASK owns actual verification receipts and commit mapping. Controlled in-memory writer schedules are not actual consumer database,
+security wiring or runtime qualification. TASK-00070/00071/00035 retain profile reads/Permissions/MCP Tool integration;
+no Tool, administrator endpoint, consumer adapter, package release or deployment is delivered here.
+
 ## Agent profile output — planning amendments
 
 John simplified the [WF-024](planning/wayfinder/tickets/WF-024-self-service-agent-profile-contract.md) update

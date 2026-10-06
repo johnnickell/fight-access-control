@@ -94,6 +94,16 @@ pending independent review/QA. Consumer adapters, scanning, UI and runtime enfor
 unqualified. Neither a package pass, preparation nor provisioning grants deployment permission or constitutes a
 supported partial Feature release.
 
+### Agent name updates (unreleased)
+
+The [name update guide](docs/agent-name-updates.md) describes generic `UpdateAgent` with typed User/Agent provenance,
+void `UpdateAgentHandler` and post-commit `AgentNameChanged`. Every Agent repository must implement the name-only
+`rename(id, name, time)` capability under current ACTIVE, correlation and cohort fences, including no-ops. Names are
+last-committed-wins without an expected old name or revision; credentials and Permissions are never replaced.
+Consumers protect every dispatch entry point and separately qualify persistence. Successful synchronous dispatch
+permits the same input-derived `{agent_id, name}` acknowledgement for changes/no-ops. No MCP Tool, administrator
+endpoint, consumer adapter, release or deployment is supplied.
+
 ### Agent credential operations (unreleased)
 
 Start with the [current Agent integration guide](docs/agent-integration.md) for composition, readiness, bounded
