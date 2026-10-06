@@ -41,7 +41,9 @@ remaining findings. Independent post-review behavioral **QA PASS** covers six sc
 cases / 795 checks** and fresh **357 conformance tests / 5780 assertions**, with no final warnings/skips or product defect.
 TASK-00072 is done for accepted package implementation and required local/behavioral verification; automatic parent
 completion closes TICKET-00020 and EPIC-00012 in the same administrative operation. John's land invocation authorizes
-non-force PR publication; publication/final delivery verification remain pending at this tracked closeout checkpoint.
+non-force PR publication and opened [PR #108](https://github.com/johnnickell/fight-access-control/pull/108) against
+unchanged `develop`, draft at initial head `51a194100bca6fb62032e6d0589ef917d50a7f72`. Sanitized nonvisual QA evidence
+is published/read back in the body; final PR-metadata verification and ready state remain pending at this tracked checkpoint.
 The ignored TASK landing receipt owns fresh gates, the administrative-only review/QA bridge and final commit/remote
 identity; original canonical reports remain preserved. Hosted CI is optional/not checked. The package expiry prerequisite
 is satisfied, not release certification, approval, merge or actual consumer qualification. Agent OS `TASK-00024` is an external
