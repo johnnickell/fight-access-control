@@ -38,10 +38,12 @@ TASK-00035 is done for accepted package implementation and required local/behavi
 completion closes TICKET-00006 and EPIC-00005 in the same operation. TASK-00071 retains its satisfied dependency
 edges and still waits on TASK-00070. Fresh pre-publication landing checks pass **64 tests / 626 assertions** and
 **2069 tests / 40356 assertions**, exact **6966/6966 statements**, with no warnings/skips or dependency package changes.
-John's land invocation authorizes non-force PR publication; final delivery is pending at this pre-publication checkpoint.
-The ignored TASK landing receipt owns fresh gates, the administrative-only
-review/QA bridge and publication/evidence verification; canonical reports remain unchanged. Hosted CI is optional/not
-checked. Human approval, merge, signed package release, consumer adoption and deployment remain separate.
+John's land invocation published [PR #111](https://github.com/johnnickell/fight-access-control/pull/111) against unchanged
+`develop`, open/draft at initial head `b81e73f30e5f4b6143e765effc689816036f376a`. Sanitized nonvisual QA scenarios,
+responses and state/effect evidence are published in the body and read back. Final PR-metadata gates/push and ready
+transition remain pending at this tracked checkpoint. The ignored TASK landing receipt owns final delivery and the
+administrative-only review/QA/runtime bridge; canonical reports remain unchanged. Hosted CI is optional/not checked.
+Human approval, merge, signed package release, consumer adoption and deployment remain separate.
 
 ## MCP planning readiness — Fight Common v1.3.0 (prior checkpoint)
 
