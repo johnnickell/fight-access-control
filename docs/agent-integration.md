@@ -1,7 +1,8 @@
 # Integrating the current Agent credential contract
 
-This is the **unreleased v0.5.0 target**, not a release receipt, consumer qualification or deployment permission.
-Use the exact candidate's public contracts together; released versions are unchanged. The
+This describes the **v0.5.0 contract**, not a release receipt, consumer qualification or deployment permission.
+Use its public contracts together; previously released versions are unchanged. See the
+[release overview](release-0.5.0.md) for scope and delivery gates. The
 [scenario/evidence inventory](agent-operation-evidence.md) separates package results, superseded requirements and
 missing consumer proof. [ADR 0011](../planning/adr/0011-pre-v1-current-contract-only.md) permits only the current
 API and persisted model: no legacy Agent adoption, historical reader, conversion/backfill or old-signature stub.

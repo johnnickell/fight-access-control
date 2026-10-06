@@ -1,7 +1,7 @@
-# Agent credential-operation cohorts (unreleased v0.5.0)
+# Agent credential-operation cohorts (v0.5.0)
 
 [TASK-00056](../planning/tasks/00056-TASK.md) adds persisted compatibility enforcement to the replacement Agent
-protocol. This is an unreleased breaking repository contract, not a migration tool, deployment command, release,
+protocol. This is a breaking v0.5.0 repository contract, not a migration tool, deployment command, release receipt,
 old-binary fence or consumer qualification. Only the [current Agent model](agent-current-contract.md) applies;
 there is no legacy mode or adoption transition. The [single canonical contract](agent-canonical-upgrades.md) is supplied by TASK-00057;
 [restoration reconciliation](agent-restoration-safety.md) is supplied by TASK-00058 at the package boundary.

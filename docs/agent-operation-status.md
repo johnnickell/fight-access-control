@@ -1,8 +1,8 @@
-# Safe Agent operation status (unreleased v0.5.0 work)
+# Safe Agent operation status (v0.5.0)
 
 TASK-00047 adds `GetAgentOperation` and `GetAgentOperationHandler` to the
 [recoverable provisioning contract](agent-provisioning-operations.md). It is a **read-only, secret-free snapshot**,
-not another issuance workflow or a credential-retrieval API. The replacement remains unreleased and is not a
+not another issuance workflow or a credential-retrieval API. The v0.5.0 replacement is not a
 qualified consumer deployment; see the [current integration guide](agent-integration.md).
 [TASK-00050 retirement](agent-credential-retirement.md) now writes revoked disposition atomically;
 [protected delivery](agent-credential-delivery.md) records receipt outcomes and
@@ -36,7 +36,7 @@ Do not deserialize an untrusted actor string and treat it as proof of identity.
 `AgentOperationAuthorization::authorizeRead(scope, destination, target)` is a separate read operation on the same
 consumer policy capability used for issuance. It must not call the transaction-only `authorize()` method, start or
 commit a transaction, write an audit fact or mutate authority. Implementers must add this method when adopting the
-unreleased contract; there is no permissive compatibility default.
+v0.5.0 contract; there is no permissive compatibility default.
 
 1. Before repository lookup, `authorizeRead(..., null)` checks current scope/caller or explicit delegation and
    destination binding. Wrong namespace/caller, revoked authority, expired delegation and denied destinations reject

@@ -1,4 +1,4 @@
-# Self-service Agent profile Tools (unreleased)
+# Self-service Agent profile Tools (v0.5.0)
 
 [TASK-00071](../planning/tasks/00071-TASK.md) adds two noninteractive Application `Agent\Tool` classes using
 Fight Common `^1.3`. They reuse the [minimal profile query](agent-profile.md), [generic rename](agent-name-updates.md)
@@ -12,7 +12,7 @@ and [Agent-aware authorization](agent-mcp-authorization.md); they do not impleme
 Both declarations reject additional properties. There is no caller-selected Agent ID, initiator, credential,
 Permission or lifecycle field. Each successful output contains exactly `{agent_id, name}`, plus Common's matching
 derived JSON text, not an authored success sentence. These are additive PHP/Tool contracts, with no existing API,
-persisted contract or OpenAPI component change. They remain unreleased; no endpoint or consumer adapter is supplied.
+persisted contract or OpenAPI component change. No endpoint or consumer adapter is supplied.
 
 ## Compose one protected request
 

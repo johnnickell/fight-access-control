@@ -1,4 +1,4 @@
-# Feature preparation validation (unreleased)
+# Feature preparation validation (v0.5.0)
 
 [TASK-00063](../planning/tasks/00063-TASK.md) adds a read-only candidate preparation query and reusable package-port
 scenarios. A successful check establishes that *every discovered name* currently resolves to a valid stored Feature
@@ -67,7 +67,7 @@ model a complete scan and transactional writes but qualify **no real scanner, da
 or deployment**. [Permission guards](feature-permission-references.md), [management/rebinding](feature-management.md)
 and [guarded retirement/reintroduction](feature-retirement.md) now have package implementations, as does
 [runtime evaluation](feature-availability.md). The [complete evidence inventory](feature-evidence.md) identifies
-accepted preceding slices, TASK-00067's pending independent review/QA and unexecuted actual consumer race/scanner
+each slice's independent acceptance/QA, including TASK-00067, and unexecuted actual consumer race/scanner
 qualification. There is **no supported partial Feature release**, and preparation does not establish complete
 Feature acceptance.
 
@@ -94,5 +94,6 @@ and TASK-00067's new composition rather than inferring evidence from parent stat
 The new PHP query/result/issue types and opt-in `Fight.AccessControl.ValidateFeaturePreparation`,
 `Fight.AccessControl.FeaturePreparationResult` and `Fight.AccessControl.FeaturePreparationIssue` OpenAPI components
 are additive public contracts. They create no endpoint, HTTP response, management CLI, production adapter or
-release-version decision. Consumers adopting Features must implement authoritative reads and map query failures to
+deployment permission. The complete capability is included in [v0.5.0 preparation](release-0.5.0.md).
+Consumers adopting Features must implement authoritative reads and map query failures to
 safe operator-facing diagnostics; the package makes no migration/backfill promise for previous iterations.

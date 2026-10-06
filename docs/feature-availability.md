@@ -1,4 +1,4 @@
-# Feature availability (unreleased)
+# Feature availability (v0.5.0)
 
 [TASK-00064](../planning/tasks/00064-TASK.md) adds a framework-neutral, read-only `FeatureAvailability` service. It accepts a validated `FeatureName` and an existing `AuthenticatedUserPrincipal`, `AuthenticatedAgentPrincipal`, or `null` for anonymous access. Consumers resolve authentication first, enforce the decision at each supported registered check, and separately authorize the underlying action. A true result is **not** action authorization or permission to activate a candidate deployment. No authentication provider or command bus is involved.
 

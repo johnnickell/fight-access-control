@@ -1,4 +1,4 @@
-# Protected Agent credential delivery (unreleased v0.5.0 work)
+# Protected Agent credential delivery (v0.5.0)
 
 [TASK-00051](../planning/tasks/00051-TASK.md) implements one complete protected delivery attempt for an operation
 prepared by [provisioning](agent-provisioning-operations.md) or

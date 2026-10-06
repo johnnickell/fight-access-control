@@ -1,4 +1,4 @@
-# Feature references and Permission removal (unreleased)
+# Feature references and Permission removal (v0.5.0)
 
 [TASK-00065](../planning/tasks/00065-TASK.md) extends the existing removal boundary. `PermissionRepository::remove($expected)` is the only supported Permission removal write exposed by this package; `ReconcileManagedPolicyHandler` calls it for omitted managed definitions. There is no separate Permission deletion command or API. A direct repository caller must use the same transactional Unit of Work and authorize its own entry point. Neither a planner preview nor `hasFeatureReference($id)` grants removal authority.
 
