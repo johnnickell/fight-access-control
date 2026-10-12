@@ -6,6 +6,7 @@ none is available, `/ask-matt` should offer `/wayfinder` to chart a new feature.
 
 | Map | Status | Frontier | Handoff |
 |---|---|---|---|
+| [Optional user self-registration for v1.0.0](self-registration-v1-map.md) | Closed | — | [EPIC-00013](../epics/00013-EPIC.md) → [TICKET-00021](../tickets/00021-TICKET.md), [TICKET-00022](../tickets/00022-TICKET.md), [TICKET-00023](../tickets/00023-TICKET.md); [TASK-00073](../tasks/00073-TASK.md) → [TASK-00074](../tasks/00074-TASK.md) → [TASK-00075](../tasks/00075-TASK.md); all planning phases accepted; Board selection next |
 | [Human credential-delivery expiry cleanup](human-credential-delivery-expiry-map.md) | Closed | — | [EPIC-00012](../epics/00012-EPIC.md) → [TICKET-00020](../tickets/00020-TICKET.md) → [TASK-00072 — Discover and clean expired human credential work](../tasks/00072-TASK.md); full decomposition accepted, Board selection next |
 | [Permission-based feature flags](permission-based-feature-flags-map.md) | Closed | — | [EPIC-00010 — Permission-Based Feature Flags](../epics/00010-EPIC.md) |
 | [Enforce permission grant tiers for v0.4.0](permission-grant-tiers-v0-4-0-map.md) | Closed | — | [Enforce Permission Grant Tiers](../epics/00008-EPIC.md) |

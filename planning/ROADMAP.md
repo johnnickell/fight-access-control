@@ -126,6 +126,21 @@ authorized TASK-00067 landing; publication remained pending at that tracked chec
 into the selected release baseline. The complete Feature capability is included in v0.5.0 preparation; certification,
 publication, actual consumer adoption and deployment remain separate.
 
+## Optional self-registration planning before v1.0.0
+
+[EPIC-00013 — Optional User Self-Registration and Registration-Origin Delivery for v1.0.0](epics/00013-EPIC.md)
+records John's approved opt-in package destination after the
+[Wayfinder map](wayfinder/self-registration-v1-map.md) closed WF-026–028. Consumers own enablement, public protections
+and email templates; package registration must keep atomic uniqueness/default Roles and persist registration versus
+private-invitation delivery origin through recovery. No v0.5.0 scope or default Agent OS/starter features change.
+John approved the three-area requirement decomposition: [TICKET-00021](tickets/00021-TICKET.md) (delivery origin) →
+[TICKET-00022](tickets/00022-TICKET.md) (registration) → [TICKET-00023](tickets/00023-TICKET.md) (administrator
+recovery). John approved one TASK per requirement area:
+[TASK-00073](tasks/00073-TASK.md) (origin/provider) → [TASK-00074](tasks/00074-TASK.md) (atomic registration) →
+[TASK-00075](tasks/00075-TASK.md) (authorized correction and expired reissue). EPIC/TICKET/TASK planning is
+complete; consult the Board for execution selection. Package delivery, consumer integration and release are
+not claimed.
+
 ## Route to 1.0.0
 
 1. Publish completed framework-neutral capabilities as reviewed pre-`1.0.0` package releases, beginning with
@@ -179,4 +194,5 @@ publication, actual consumer adoption and deployment remain separate.
 | [EPIC-00010](epics/00010-EPIC.md) | v0.5.0 | done | 3 | 7 |
 | [EPIC-00011](epics/00011-EPIC.md) | v0.5.0 | done | 2 | 3 |
 | [EPIC-00012](epics/00012-EPIC.md) | v0.5.0 | done | 1 | 1 |
+| [EPIC-00013](epics/00013-EPIC.md) | v1.0.0 | ready-for-agent | 3 | 3 |
 <!-- generated:epic-status:end -->
