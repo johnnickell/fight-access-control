@@ -6,6 +6,36 @@ Fight AccessControl owns framework-neutral identity, credential, session, author
 behavior shared by Fight applications. The repository-local behavioral and security authority is
 [TICKET-00001](planning/tickets/00001-TICKET.md).
 
+## Optional self-registration planning for v1.0.0
+
+John requested a separate opt-in User self-registration track before v1.0.0, without enabling it by default in
+fight-agent-os or starters or changing the v0.5.0 feature set. The closed
+[Wayfinder map](planning/wayfinder/self-registration-v1-map.md) records John's decision that consumer projects own
+registration exposure/enablement; AccessControl supplies use-case operations without an installation-enable gate.
+John chose consumer-configured RoleName strings at registration handler construction, resolved by name for automatic
+assignment. The list must be nonempty; missing Roles or `ROLE_SUPER_ADMIN` reject the whole registration without
+leaving a pending User or delivery. [WF-026](planning/wayfinder/tickets/WF-026-registration-admission-and-default-authority.md)
+is Closed: pending User, default Roles, activation grant/delivery and audit commit atomically with canonical-email
+and Role-reference safety; email invocation follows commit. Closed
+[WF-027](planning/wayfinder/tickets/WF-027-registration-delivery-origin.md) reuses activation with durable
+registration/private-invitation origin exposed to the consumer provider across recovery and resend. Distinct
+administrator registration recovery retains the pending User and Roles for wrong-address correction or fresh
+activation after expiry at the same email; restoring a deleted User to pending is a new private invitation.
+Consumer projects own the templates for both messages. Closed
+[WF-028](planning/wayfinder/tickets/WF-028-public-registration-safety-boundary.md) retains existing duplicate-email
+rejection without package generic success; consumers own public throttling, challenges, logging and response mapping.
+All three decisions are Closed. John approved the single destination now written as
+[EPIC-00013 — Optional User Self-Registration and Registration-Origin Delivery for v1.0.0](planning/epics/00013-EPIC.md).
+The map is Closed; John approved three requirement areas, written as
+[TICKET-00021](planning/tickets/00021-TICKET.md) (durable activation-delivery origin),
+[TICKET-00022](planning/tickets/00022-TICKET.md) (atomic default-Role registration) and
+[TICKET-00023](planning/tickets/00023-TICKET.md) (administrator pending-registration recovery). John then
+approved one TASK per TICKET: [TASK-00073](planning/tasks/00073-TASK.md) for durable origin/provider recovery →
+[TASK-00074](planning/tasks/00074-TASK.md) for atomic default-Role registration →
+[TASK-00075](planning/tasks/00075-TASK.md) for authorized administrator recovery. All planning phases are
+complete; consult the Board for execution selection. No implementation, release or consumer integration is
+authorized by this handoff.
+
 ## v0.5.0 release preparation — 2026-10-06
 
 John selected v0.5.0 and the main checkout for release preparation from clean `develop` `4163e58`, which includes

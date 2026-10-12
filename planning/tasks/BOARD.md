@@ -5,7 +5,7 @@ dependencies, acceptance, and verification.
 
 ## What's Next?
 
-No non-terminal Task exists. Any future release decision requires separate human authorization.
+First ready Task: [TASK-00073](00073-TASK.md) — Carry activation-delivery origin through provider recovery.
 
 ## In Progress
 
@@ -13,11 +13,16 @@ No Tasks are currently in this state.
 
 ## Ready Frontier
 
-No Tasks are currently in this state.
+| Order | TASK ID | Title | Parent TICKET | Status | Blocked by | PR |
+| --- | --- | --- | --- | --- | --- | --- |
+| 73 | [TASK-00073](00073-TASK.md) | Carry activation-delivery origin through provider recovery | [TICKET-00021](../tickets/00021-TICKET.md) — Preserve registration and private-invitation delivery origin | ready-for-agent | — | — |
 
 ## Waiting
 
-No Tasks are currently in this state.
+| Order | TASK ID | Title | Parent TICKET | Status | Blocked by | PR |
+| --- | --- | --- | --- | --- | --- | --- |
+| 74 | [TASK-00074](00074-TASK.md) | Register a pending User atomically with default Roles | [TICKET-00022](../tickets/00022-TICKET.md) — Register a pending User with configured default Roles | ready-for-agent | [TASK-00073](00073-TASK.md) | — |
+| 75 | [TASK-00075](00075-TASK.md) | Recover pending registrations with authorized correction and reissue | [TICKET-00023](../tickets/00023-TICKET.md) — Recover a pending registration administratively | ready-for-agent | [TASK-00074](00074-TASK.md) | — |
 
 ## Needs Info
 
