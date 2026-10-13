@@ -1,5 +1,42 @@
 # Planning Conventions
 
+## Lightweight work routing
+
+For “What's next?”, `next`, or an unqualified `/ask-matt`, use the routing entry in root AGENTS.md.
+This read-only path precedes general orientation; full implementation, review, QA and delivery requirements
+still apply when the selected workflow is invoked.
+
+1. Run the documented read-only planning validator once when available. Failure stops selection with the
+   actual error and planning-owner handoff; do not refresh views. Without a validator, disclose that limitation
+   and check selected record metadata against the authored Board; do not claim generated freshness.
+2. Read only the Board's current human decision, active work, and (if no active work) first ready entry.
+   Use local section names and authoritative order. Return all active TASKs, not a new winner. Inspect selected
+   TASK metadata and its current handoff, plus blocker metadata only as needed. An unresolved contradiction
+   is a named input gap, not permission to audit every record or infer acceptance from `done`.
+3. Read the Wayfinder index's map-status/frontier inventory. Closed or decision-complete maps need no historical
+   reread. For active/open maps, read only current frontier and decision/dependency status or explicit external
+   prerequisite evidence needed for availability. Unknown state or an absent frontier needs its owner's input.
+   Multiple available maps remain independent choices; no global priority is implied.
+4. Use the Board/Roadmap's current planning handoff for unfinished decomposition, including closed maps.
+   Verify the named phase in the owning record's current progress/approval section. Map closure, parent status
+   and child counts do not prove complete decomposition. If the handoff is missing or contradictory, report
+   the missing phase/owner; do not reconstruct it by reading every closed map and descendant.
+5. Read canonical review/QA identity and disposition only when they change the selected route. Unresolved
+   identity is an evidence handoff, never acceptance. Confirm a suggested skill from supplied capability
+   metadata/bindings; load its full instructions and references when invoked, not merely to recommend it.
+
+Prefer heading searches and bounded section reads. Aim to retrieve no more than about 24,000 characters
+of routing evidence; stop with a precise unresolved input before exceeding that scope unless the user requests
+a deeper audit. Do not read append-only task histories, other worktrees' entire tasks, general architecture,
+or all receiving skills to produce a recommendation. Return TASK, WAYFINDER, and relevant PLANNING/HUMAN INPUT;
+stop without invoking a workflow or changing files. Missing indexes are reported, not fabricated.
+
+During authorized planning updates, keep current Board/Roadmap handoffs source-linked and concise: target,
+phase, pending decision/owner. Keep Wayfinder inventory/frontier pointers current. These are navigation aids,
+not another backlog or proof of delivery. Preserve generated sections and all historical decisions.
+
+Routing sources: [TASK Board](tasks/BOARD.md), [Wayfinder inventory](wayfinder/README.md), [Roadmap](ROADMAP.md).
+
 This repository's durable planning model is **EPIC → TICKET → TASK**. It is the local authority for planning
 structure, lifecycle, generated views, Wayfinder continuity, and the explicit archive operation.
 
