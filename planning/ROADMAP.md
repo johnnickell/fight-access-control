@@ -2,6 +2,20 @@
 
 ## Release preparation
 
+John selected **v0.6.0** and the main checkout on 2026-10-19. Integrated `develop` `cc364511` includes merged
+[PR #118](https://github.com/johnnickell/fight-access-control/pull/118) and accepted
+[TASK-00076](tasks/00076-TASK.md). The [release overview](../docs/release-0.6.0.md) documents expiry-aware invitation
+retry and the breaking required Clock constructor argument. No runtime/test/dependency change is part of release
+preparation. Independent release-content acceptance, main integration, exact-merge certification, human signing and
+separately authorized publication remain required. Optional self-registration TASK-00073–00075 remains planned
+v1.0.0 work; the Board owns its execution selection and it does not block this bounded release.
+
+The v0.5.0 release was published on 2026-10-06 and merged back through PR #115. The sections below preserve prior
+implementation/release-readiness checkpoints, not current publication or portfolio state. Package release does not
+establish actual consumer qualification, dependency adoption or deployment.
+
+### Historical v0.5.0 preparation checkpoint
+
 John selected **v0.5.0** and the main checkout on 2026-10-06. Integrated `develop` `4163e58` contains the accepted
 Agent-operation, human-expiry, Feature and Agent-profile/MCP work; no implementation TASK remains open. The
 [release overview](../docs/release-0.5.0.md) owns the combined contract and consumer obligations. Dated release notes
