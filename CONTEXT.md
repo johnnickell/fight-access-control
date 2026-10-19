@@ -30,7 +30,12 @@ behavioral **QA PASS** cover candidate `0cd2afab1728f12d332bd2f70bd15b2d1baa5e8f
 scenarios; visual evidence is N/A. TASK-00076 is done for accepted implementation/verification, not publication,
 merge or release; this standalone bug has no parent to close. Land retains the earlier full gate only with verified
 unchanged executable/build/runtime/dependency inputs and current targeted checks under the Testing standard.
-The ignored Land receipt owns the administrative provenance bridge and final delivery facts. Earlier harness
+Authorized Land created [PR #118](https://github.com/johnnickell/fight-access-control/pull/118) against unchanged
+`develop`, initially open/draft at administrative head `6e43f7c`; sanitized inline Before/After/QA evidence is published
+and read back. Final metadata gates/push and ready transition remain pending at this tracked checkpoint. Hosted CI
+is not checked. The ignored Land receipt owns final delivery facts and the administrative-only provenance bridge;
+canonical Review/QA remain unchanged. Main checkout, branch, shared image and useful evidence are retained.
+Earlier harness
 write denials left the reusable Work handoff and summary receipt in permitted
 `.runs/tasks/TASK-00076/runs/` alongside the complete log/result/snapshot bundle in `.runs/logs/TASK-00076/`. This is
 inconsistent recovery state, not expired-credential activation. Controlled package tests do not qualify the consumer's
