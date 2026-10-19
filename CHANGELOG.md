@@ -7,6 +7,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- **Breaking pre-v1 contract:** activation grant issuance and hydration now require explicit immutable
+  `ActivationOrigin` (`private_invitation` or `registration`). Consumer persistence and complete-state CAS must
+  retain/compare it for the owned delivery generation; no legacy origin default or migration is supplied.
+- `CredentialDeliveryInvocation` requires a fifth `?ActivationOrigin` argument, with the stored origin for activation
+  and explicit null for reset/email change. Consumer providers select their own templates through
+  `getActivationOrigin()`; purpose and delivery-ID idempotency remain unchanged through retry/restart/resend.
+  Private correction rejects registration-origin work; deleted-to-pending restoration starts a new private invitation.
+  This slice supplies no public registration or administrator registration-recovery command.
+
+### Added
+
+- Opt-in `Fight.AccessControl.ActivationOrigin` OpenAPI enum component, default-suite generated contract checks,
+  consumer-bindable origin CAS/restart scenarios and controlled provider/failure recovery evidence. Actual consumer
+  SQL, templates, workers and registration use-case qualification remain separate.
+
 ## [0.6.0] - 2026-10-19
 
 Pre-v1 breaking composition change. See the [release and integration overview](docs/release-0.6.0.md).

@@ -17,6 +17,7 @@ use Fight\AccessControl\Domain\AccessControl\ActivationGrant\ActivationCredentia
 use Fight\AccessControl\Domain\AccessControl\ActivationGrant\ActivationDeliveryId;
 use Fight\AccessControl\Domain\AccessControl\ActivationGrant\ActivationGrant;
 use Fight\AccessControl\Domain\AccessControl\ActivationGrant\ActivationGrantRepository;
+use Fight\AccessControl\Domain\AccessControl\ActivationGrant\ActivationOrigin;
 use Fight\AccessControl\Domain\AccessControl\ActivationGrant\Command\DeliverUserInvitation;
 use Fight\AccessControl\Domain\AccessControl\ActivationGrant\Command\ResendInvitationDelivery;
 use Fight\AccessControl\Domain\AccessControl\ActivationGrant\Command\RetryInvitationDelivery;
@@ -204,6 +205,7 @@ final class RetryInvitationDeliveryHandlerTest extends TestCase
     public function test_that_a_concurrent_replacement_before_retry_cas_has_no_audit_or_success_event(): void
     {
         $successor = ActivationGrant::issue(
+            ActivationOrigin::PRIVATE_INVITATION,
             $userId = UserId::generate(),
             ActivationCredential::fromString('activate-new'),
             new DateTimeImmutable('2026-08-19T12:00:00+00:00'),
@@ -640,6 +642,7 @@ final class RetryInvitationDeliveryHandlerTest extends TestCase
                     $at = new DateTimeImmutable('2026-08-19T12:00:00Z');
                     if ($winner === 'resend') {
                         $successor = ActivationGrant::issue(
+                            ActivationOrigin::PRIVATE_INVITATION,
                             $grant->getUserId(),
                             ActivationCredential::fromString('new-authority'),
                             $at,
@@ -703,6 +706,7 @@ final class RetryInvitationDeliveryHandlerTest extends TestCase
             $at = new DateTimeImmutable('2026-08-19T12:00:00Z');
             if ($next === 'resend') {
                 $successor = ActivationGrant::issue(
+                    ActivationOrigin::PRIVATE_INVITATION,
                     $grant->getUserId(),
                     ActivationCredential::fromString('new-authority'),
                     $at,
@@ -841,6 +845,7 @@ final class RetryInvitationDeliveryHandlerTest extends TestCase
     private function grant(): ActivationGrant
     {
         return ActivationGrant::issue(
+            ActivationOrigin::PRIVATE_INVITATION,
             UserId::generate(),
             ActivationCredential::fromString('activate-once'),
             new DateTimeImmutable('2026-08-18T12:00:00+00:00'),
@@ -856,6 +861,7 @@ final class RetryInvitationDeliveryHandlerTest extends TestCase
         ?DateTimeImmutable $expiresAt = null
     ): ActivationGrant {
         $activationGrant = ActivationGrant::issue(
+            ActivationOrigin::PRIVATE_INVITATION,
             $userId ?? UserId::generate(),
             ActivationCredential::fromString('activate-once'),
             new DateTimeImmutable('2026-08-18T12:00:00+00:00'),

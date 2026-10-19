@@ -133,7 +133,8 @@ final readonly class DeliverUserInvitationHandler implements CommandHandler
                 $claimed->purpose(),
                 $delivery->getId()->toString(),
                 $delivery->getEmail(),
-                $credential
+                $credential,
+                $claimed->getOrigin()
             ));
 
             return CredentialDeliveryAttemptResult::fromOutcome($outcome);

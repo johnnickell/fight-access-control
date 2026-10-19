@@ -8,6 +8,7 @@ use DateTimeImmutable;
 use Fight\AccessControl\Application\AccessControl\ActivationGrant\QueryHandler\FindInvitationDeliveryStatusHandler;
 use Fight\AccessControl\Domain\AccessControl\ActivationGrant\ActivationCredential;
 use Fight\AccessControl\Domain\AccessControl\ActivationGrant\ActivationGrant;
+use Fight\AccessControl\Domain\AccessControl\ActivationGrant\ActivationOrigin;
 use Fight\AccessControl\Domain\AccessControl\ActivationGrant\Query\FindInvitationDeliveryStatus;
 use Fight\AccessControl\Domain\AccessControl\ActivationGrant\Query\InvitationDeliveryStatusView;
 use Fight\AccessControl\Domain\AccessControl\CredentialDelivery\CredentialDeliveryStatus;
@@ -30,6 +31,7 @@ final class FindInvitationDeliveryStatusHandlerTest extends TestCase
         $userId = UserId::fromString('018f0000-0000-7000-8000-000000000001');
         $repository = new InMemoryActivationGrantRepository();
         $repository->add(ActivationGrant::issue(
+            ActivationOrigin::PRIVATE_INVITATION,
             $userId,
             ActivationCredential::fromString('activate-once'),
             new DateTimeImmutable('2026-08-18T12:00:00+00:00'),

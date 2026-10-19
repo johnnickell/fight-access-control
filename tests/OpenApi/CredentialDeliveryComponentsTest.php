@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Fight\Test\AccessControl\OpenApi;
 
 use DateTimeImmutable;
+use Fight\AccessControl\Domain\AccessControl\ActivationGrant\ActivationOrigin;
 use Fight\AccessControl\Domain\AccessControl\ActivationGrant\Query\InvitationDeliveryStatusView;
 use Fight\AccessControl\Domain\AccessControl\CredentialDelivery\CredentialDeliveryClaimToken;
 use Fight\AccessControl\Domain\AccessControl\CredentialDelivery\CredentialDeliveryFailure;
@@ -67,6 +68,22 @@ final class CredentialDeliveryComponentsTest extends TestCase
         self::assertSame(100, $schemas['Fight.AccessControl.ExpiredCredentialDeliveries']['maxItems']);
         self::assertSame('#/components/schemas/Fight.AccessControl.ExpiredCredentialDelivery', $schemas['Fight.AccessControl.ExpiredCredentialDeliveries']['items']['$ref']);
         self::assertSame('#/components/schemas/Fight.AccessControl.ExpiredCredentialDeliveries', $schemas['Fight.AccessControl.JSend.Success.ExpiredCredentialDeliveries']['properties']['data']['$ref']);
+    }
+
+    public function test_generated_activation_origin_matches_the_current_serialized_value_contract(): void
+    {
+        $schema = $this->schemas()['Fight.AccessControl.ActivationOrigin'];
+        self::assertSame('string', $schema['type']);
+        self::assertSame(array_column(ActivationOrigin::cases(), 'value'), $schema['enum']);
+        foreach (ActivationOrigin::cases() as $origin) {
+            $serialized = json_decode(json_encode($origin, JSON_THROW_ON_ERROR), true, flags: JSON_THROW_ON_ERROR);
+            self::assertContains($serialized, $schema['enum']);
+            self::assertSame($origin, ActivationOrigin::from($serialized));
+        }
+
+        foreach (['activation', '', 'invitation', null] as $invalid) {
+            self::assertNotContains($invalid, $schema['enum']);
+        }
     }
 
     public function test_generated_invitation_status_matches_the_delivery_enum(): void

@@ -12,6 +12,7 @@ use Fight\AccessControl\Application\AccessControl\CredentialDelivery\Service\Cre
 use Fight\AccessControl\Domain\AccessControl\ActivationGrant\ActivationCredential;
 use Fight\AccessControl\Domain\AccessControl\ActivationGrant\ActivationDeliveryId;
 use Fight\AccessControl\Domain\AccessControl\ActivationGrant\ActivationGrant;
+use Fight\AccessControl\Domain\AccessControl\ActivationGrant\ActivationOrigin;
 use Fight\AccessControl\Domain\AccessControl\ActivationGrant\Command\DeliverUserInvitation;
 use Fight\AccessControl\Domain\AccessControl\ActivationGrant\Event\UserInvitationDelivered;
 use Fight\AccessControl\Domain\AccessControl\ActivationGrant\Exception\ActivationDeliveryNotRetryableException;
@@ -339,6 +340,7 @@ final class DeliverUserInvitationHandlerTest extends TestCase
     private function grant(string $expiresAt = '2026-08-23T12:00:00+00:00'): ActivationGrant
     {
         return ActivationGrant::issue(
+            ActivationOrigin::PRIVATE_INVITATION,
             UserId::generate(),
             ActivationCredential::fromString('activate-once'),
             new DateTimeImmutable('2026-08-23T11:00:00+00:00'),

@@ -15,6 +15,7 @@ use Fight\AccessControl\Application\AccessControl\PasswordResetGrant\CommandHand
 use Fight\AccessControl\Domain\AccessControl\ActivationGrant\ActivationCredential;
 use Fight\AccessControl\Domain\AccessControl\ActivationGrant\ActivationDeliveryId;
 use Fight\AccessControl\Domain\AccessControl\ActivationGrant\ActivationGrant;
+use Fight\AccessControl\Domain\AccessControl\ActivationGrant\ActivationOrigin;
 use Fight\AccessControl\Domain\AccessControl\ActivationGrant\ActivationGrantRepository;
 use Fight\AccessControl\Domain\AccessControl\ActivationGrant\Command\ExpireInvitationDelivery;
 use Fight\AccessControl\Domain\AccessControl\ActivationGrant\Event\InvitationDeliveryExpired;
@@ -706,6 +707,7 @@ final class ExpiredCredentialRecoveryTest extends TestCase
         $fixture = new ExpiredCredentialFixture('activation');
         $old = $fixture->activation->all()[0];
         $successor = ActivationGrant::issue(
+            ActivationOrigin::PRIVATE_INVITATION,
             $old->getUserId(),
             ActivationCredential::fromString('successor'),
             $fixture->expiresAt,
@@ -940,6 +942,7 @@ final class ExpiredCredentialRecoveryTest extends TestCase
         $fixture = new ExpiredCredentialFixture('activation');
         for ($index = 0; $index < 61; ++$index) {
             $grant = ActivationGrant::issue(
+                ActivationOrigin::PRIVATE_INVITATION,
                 UserId::generate(),
                 ActivationCredential::fromString('excluded-'.$index),
                 $fixture->issuedAt,
@@ -952,6 +955,7 @@ final class ExpiredCredentialRecoveryTest extends TestCase
         }
 
         $later = ActivationGrant::issue(
+            ActivationOrigin::PRIVATE_INVITATION,
             UserId::generate(),
             ActivationCredential::fromString('later'),
             $fixture->issuedAt,

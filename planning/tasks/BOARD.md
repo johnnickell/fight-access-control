@@ -5,17 +5,17 @@ dependencies, acceptance, and verification.
 
 ## What's Next?
 
-First ready Task: [TASK-00073](00073-TASK.md) — Carry activation-delivery origin through provider recovery.
+Active Task: [TASK-00073](00073-TASK.md) — Carry activation-delivery origin through provider recovery.
 
 ## In Progress
 
-No Tasks are currently in this state.
+| Order | TASK ID | Title | Parent TICKET | Status | Blocked by | PR |
+| --- | --- | --- | --- | --- | --- | --- |
+| 73 | [TASK-00073](00073-TASK.md) | Carry activation-delivery origin through provider recovery | [TICKET-00021](../tickets/00021-TICKET.md) — Preserve registration and private-invitation delivery origin | in-progress | — | — |
 
 ## Ready Frontier
 
-| Order | TASK ID | Title | Parent TICKET | Status | Blocked by | PR |
-| --- | --- | --- | --- | --- | --- | --- |
-| 73 | [TASK-00073](00073-TASK.md) | Carry activation-delivery origin through provider recovery | [TICKET-00021](../tickets/00021-TICKET.md) — Preserve registration and private-invitation delivery origin | ready-for-agent | — | — |
+No Tasks are currently in this state.
 
 ## Waiting
 

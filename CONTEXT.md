@@ -6,6 +6,33 @@ Fight AccessControl owns framework-neutral identity, credential, session, author
 behavior shared by Fight applications. The repository-local behavioral and security authority is
 [TICKET-00001](planning/tickets/00001-TICKET.md).
 
+## Activation origin — TASK-00073 implementation checkpoint
+
+The Unreleased [activation-origin contract](docs/credential-delivery.md#activation-origin-unreleased) stores required
+immutable `ActivationOrigin` on each `ActivationGrant`, shared by its owned delivery generation. Current values are
+`private_invitation` and `registration`; creation/hydration has no default or historical reader. Complete-state
+repository CAS compares origin in both operands and terminal predecessors. Issuance/hydration requires the typed
+origin first; `CredentialDeliveryInvocation` requires it as the fifth argument (explicit null for reset/email change).
+The worker passes the claimed stored origin outside transactions with unchanged activation purpose and delivery ID.
+Consumers choose their own templates, never transient events/routes or User history.
+
+Private issuance/correction remain private; correction rejects registration before mutation. Resend preserves the
+current origin. Deleted-to-pending restoration starts a fresh private invitation even after registration. Controlled
+package tests cover both origins through immediate invocation, modeled persistence restart/discovery, retry/lease
+reclaim, successor/stale-worker fences, rollback, uncertain commits and post-commit publication/provider faults.
+The repository conformance suite is consumer-bindable; the OpenAPI inventory adds a standalone origin enum, not a
+serializable sensitive invocation or new public input/query. Reset/email-change purpose and safety remain unchanged.
+
+TASK-00073's focused checks pass **465 tests / 7419 assertions**; canonical `./bin/build` passes **2139 tests /
+41423 assertions**, exact **7038/7038 statements**, without final warnings/skips. The normal resolver updated only
+ignored dev-only swagger-php **6.17.0 → 6.17.1**; PHP 8.5.7 and Common v1.4.0 satisfy unchanged package requirements.
+The TASK and ignored Work handoff retain failed-attempt chronology, full log/exit and tested-content mapping.
+Earlier full gate is retained for final verification-prose updates with input equivalence and targeted checks.
+Implementation awaits independent technical review and behavioral QA; it is not independently accepted or done. This contract slice does not implement TASK-00074 registration/default Roles or TASK-00075
+administrator registration recovery. No actual consumer SQL, mail-template composition, worker process, public
+protection, adoption, release or deployment qualification is claimed. Earlier self-registration planning checkpoints
+below are historical; execution was subsequently authorized for TASK-00073 only.
+
 ## v0.6.0 release preparation — 2026-10-19
 
 John selected v0.6.0 and the main checkout for `release/0.6.0` from clean `develop` `cc364511`, the merge of
