@@ -34,6 +34,7 @@ use Fight\Common\Domain\Messaging\Command\CommandMessage;
 use Fight\Common\Domain\Messaging\Event\CommandFailedEvent;
 use Fight\Common\Domain\Messaging\Event\EventMessage;
 use Fight\Common\Domain\Messaging\Query\QueryMessage;
+use Fight\Test\AccessControl\Application\AccessControl\ActivationGrant\Repository\InMemoryActivationGrantRepository;
 use Fight\Test\AccessControl\Application\AccessControl\ActivationGrant\Service\PrefixInvitationDeliveryCipher;
 use Fight\Test\AccessControl\Application\AccessControl\ActivationGrant\Service\UncertainActivationUnitOfWork;
 use Fight\Test\AccessControl\Application\AccessControl\CredentialDelivery\Service\RecordingCredentialDeliveryProvider;
@@ -52,6 +53,7 @@ use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
 use RuntimeException;
 
+#[CoversClass(DeliverUserInvitationHandler::class)]
 #[CoversClass(RegisterUserHandler::class)]
 #[CoversClass(InvitationDeliverySubscriber::class)]
 final class RegistrationJourneyTest extends TestCase
@@ -195,6 +197,16 @@ final class RegistrationJourneyTest extends TestCase
         $this->recover($fixture);
     }
 
+    public function test_subscriber_worker_storage_failure_keeps_evidence_safe_and_registration_recoverable(): void
+    {
+        $this->assertWorkerStorageFailure(false);
+    }
+
+    public function test_subscriber_worker_notification_failure_preserves_the_original_storage_throwable(): void
+    {
+        $this->assertWorkerStorageFailure(true);
+    }
+
     public function test_lost_response_does_not_make_duplicate_registration_a_retry_or_replay_fact(): void
     {
         $fixture = new RegistrationFixture();
@@ -247,6 +259,88 @@ final class RegistrationJourneyTest extends TestCase
         self::assertSame(CredentialDeliveryStatus::DELIVERED, $fixture->grants->all()[0]->getDelivery()->getStatus());
     }
 
+    private function assertWorkerStorageFailure(bool $failWorkerNotification): void
+    {
+        $rowMarker = 'SYNTHETIC-ROW-MATERIAL-NOT-FOR-EVENTS';
+        $original = new RuntimeException('row credential: '.$rowMarker);
+        $notificationFault = new RuntimeException('secondary worker notification diagnostic');
+        $subscriber = null;
+        $fixture = new RegistrationFixture(events: new InMemoryEventDispatcher(
+            static function ($event) use (&$subscriber): void {
+                if ($event instanceof UserRegistered) {
+                    self::assertInstanceOf(InvitationDeliverySubscriber::class, $subscriber);
+                    $subscriber->onUserRegistered(EventMessage::create($event));
+                }
+            }
+        ));
+        $fixture->grants = new InMemoryActivationGrantRepository(
+            $fixture->unitOfWork,
+            beforeReplace: static fn() => throw $original
+        );
+        $workerAttempts = [];
+        $workerEvents = new InMemoryEventDispatcher(static function ($event) use (
+            &$workerAttempts,
+            $failWorkerNotification,
+            $notificationFault
+        ): void {
+            $workerAttempts[] = $event;
+            if ($failWorkerNotification) {
+                throw $notificationFault;
+            }
+        });
+        $provider = new RecordingCredentialDeliveryProvider();
+        $router = $this->createStub(CommandRouter::class);
+        $router->method('match')->willReturn($this->worker($fixture, $provider, events: $workerEvents));
+        $subscriber = new InvitationDeliverySubscriber(new RoutingCommandBus($router));
+        $command = $fixture->command();
+        try {
+            $fixture->handler()->handle(CommandMessage::create($command));
+            self::fail('The worker storage failure disappeared.');
+        } catch (RuntimeException $runtimeException) {
+            self::assertSame($original, $runtimeException);
+        }
+
+        self::assertCount(1, $workerAttempts);
+        self::assertCount((int) !$failWorkerNotification, $workerEvents->events());
+        self::assertCount(1, $fixture->events->events());
+        $outerFailure = $fixture->events->events()[0];
+        self::assertInstanceOf(CommandFailedEvent::class, $outerFailure);
+        self::assertSame($command, $outerFailure->getCommand());
+        self::assertSame('User registration failed.', $outerFailure->getErrorMessage());
+        self::assertInstanceOf(CommandFailedEvent::class, $workerAttempts[0]);
+        $workerCommand = $workerAttempts[0]->getCommand();
+        self::assertInstanceOf(DeliverUserInvitation::class, $workerCommand);
+        self::assertSame('registration', $workerCommand->getActorId());
+        self::assertSame($command->getUserId(), $workerCommand->getUserId());
+        self::assertSame('User invitation delivery failed.', $workerAttempts[0]->getErrorMessage());
+        foreach ([$outerFailure, ...$workerAttempts] as $failure) {
+            $payload = serialize($failure->toArray());
+            self::assertStringNotContainsString($rowMarker, $payload);
+            self::assertStringNotContainsString('registration-fixture-credential', $payload);
+            self::assertStringNotContainsString($notificationFault->getMessage(), $payload);
+        }
+
+        self::assertFalse($fixture->unitOfWork->transactionActive);
+        self::assertCount(0, $provider->invocations());
+        self::assertCount(1, $fixture->users->all());
+        self::assertSame($command->getUserId(), $fixture->users->all()[0]->getId());
+        self::assertEqualsCanonicalizing(
+            [$fixture->member->getId(), $fixture->reader->getId()],
+            $fixture->users->all()[0]->getRoleIds()
+        );
+        self::assertCount(1, $fixture->audit->all());
+        self::assertSame('user.registered', $fixture->audit->all()[0]->action());
+        self::assertCount(1, $fixture->grants->all());
+        $deliveryId = $fixture->grants->all()[0]->getDelivery()->getId();
+        self::assertEquals($deliveryId, $workerCommand->getActivationDeliveryId());
+        self::assertSame(CredentialDeliveryStatus::PENDING, $fixture->grants->all()[0]->getDelivery()->getStatus());
+        $fixture->grants = $fixture->grants->restart();
+        self::assertEquals($deliveryId, $this->discover($fixture)[0]->getDeliveryId());
+        $this->recover($fixture);
+        self::assertCount(1, $fixture->users->all());
+        self::assertCount(2, $fixture->users->all()[0]->getRoleIds());
+    }
+
     private function recover(RegistrationFixture $fixture): void
     {
         $due = $this->discover($fixture);
@@ -278,7 +372,8 @@ final class RegistrationJourneyTest extends TestCase
     private function worker(
         RegistrationFixture $fixture,
         RecordingCredentialDeliveryProvider $provider,
-        string $at = '2030-01-01T00:00:00Z'
+        string $at = '2030-01-01T00:00:00Z',
+        ?InMemoryEventDispatcher $events = null
     ): DeliverUserInvitationHandler {
         return new DeliverUserInvitationHandler(
             $fixture->grants,
@@ -287,7 +382,7 @@ final class RegistrationJourneyTest extends TestCase
             new PrefixInvitationDeliveryCipher(),
             $provider,
             new FixedClock($at),
-            new InMemoryEventDispatcher()
+            $events ?? new InMemoryEventDispatcher()
         );
     }
 

@@ -94,12 +94,16 @@ John's later Build invocation authorized TASK-00074 execution, not consumer enab
 
 John approved the complete decomposition and subsequently invoked Build for this TICKET's sole
 [TASK-00074](../tasks/00074-TASK.md), after TASK-00073's independent acceptance and integration through PR #121.
-Engineer implementation/local verification is complete on the selected main checkout's feature branch:
-focused **694 tests / 9468 assertions**, full `./bin/build` **2197 tests / 41896 assertions**, exact **7130/7130**
-owned statements, with final planning/documentation/diff checks and no final warnings/skips. The TASK owns full
-failed-attempt, runtime/dependency and content-equivalence evidence; no tracked dependency policy/gate was weakened.
+Initial implementation passed local gates, but independent Review returned REVISE at `8b19ff7` for F1/F2 in the
+composed delivery worker: unsafe diagnostic publication and original-throwable replacement by notification failure.
+Engineer repair cycle 1 reproduced both with failing regressions, then bounded the worker's failure text and made
+failure notification best effort. Fresh focused **696 tests / 9546 assertions** and full `./bin/build`
+**2199 tests / 41974 assertions**, exact **7131/7131** owned statements, pass without final warnings/skips.
+The TASK owns complete red/green, runtime/dependency, gate and content-equivalence evidence under
+`.runs/logs/TASK-00074/repair-1/`; no dependency package drift or gate weakening occurred.
 The [registration guide](../../docs/user-registration.md) records the current package composition and evidence map.
 Parent acceptance-evidence checkboxes remain pending independent acceptance, not missing Engineer implementation.
-Independent technical Review and behavioral QA remain outstanding, so neither this TICKET nor TASK-00074 is done.
+Fresh independent technical re-review and behavioral QA remain outstanding; the canonical REVISE report is unchanged,
+so neither this TICKET nor TASK-00074 is done.
 TASK-00075 retains administrator recovery; all actual consumer database/mail/public-security qualification and
 consumer enablement remain unexecuted.

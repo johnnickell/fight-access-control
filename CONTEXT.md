@@ -6,7 +6,7 @@ Fight AccessControl owns framework-neutral identity, credential, session, author
 behavior shared by Fight applications. The repository-local behavioral and security authority is
 [TICKET-00001](planning/tickets/00001-TICKET.md).
 
-## Optional User registration — TASK-00074 Engineer checkpoint
+## Optional User registration — TASK-00074 Engineer repair checkpoint
 
 John invoked Build for TASK-00074 in the main checkout. Engineer implementation is on
 `feature/task-00074-registration` from clean `develop` `5e5f436d` (TASK-00073 integrated through PR #121).
@@ -23,13 +23,20 @@ or not at all. Optional subscriber dispatch follows commit; due-work restart doe
 Provider acceptance leaves the User pending; existing single-use activation activates that same User with its Roles.
 Private invitations and other credential purposes retain their existing behavior.
 
-Final focused checks pass **694 tests / 9468 assertions**; canonical `./bin/build` passes **2197 tests / 41896
-assertions**, exact **7130/7130** owned statements (**126/126** across changed production files, **92/92** new).
-Final checks have no warnings/skips. The TASK and ignored Work handoff retain failed-attempt chronology, complete
-logs/direct exits and the tested-content mapping. The resolver updated only ignored dev dependency swagger-php
-**6.17.0 → 6.17.1**; Common remains v1.4.0, and rebuilt runnable image Config/RootFS remain identical. Final
-verification-prose changes retain the gate with **726/726** identical inputs and fresh targeted checks.
-Independent Review and behavioral QA remain outstanding: TASK-00074, TICKET-00022 and EPIC-00013 are not complete. TASK-00075 administrator recovery is unimplemented. No consumer SQL,
+Independent Review of initial `8b19ff7` requested F1/F2: the composed delivery worker copied storage diagnostics into
+failure evidence and could replace the original throwable when failure notification threw. Two regression-first
+subscriber/Common-bus/worker cases reproduced both defects. The bounded worker catch now uses constant
+`User invitation delivery failed.` text and best-effort notification, preserving its original throwable. This applies
+to registration and private invitation; transaction/provider behavior is unchanged. Tests assert safe attempted payloads,
+throwable identity, committed pending User/all Roles/grant/audit and due-work recovery with the same delivery ID/origin.
+
+Repair focused checks pass **696 tests / 9546 assertions**; fresh canonical `./bin/build` passes **2199 tests / 41974
+assertions**, exact **7131/7131** owned statements (**106/106** in the repaired worker, **232/232** across all TASK-changed
+production files). Final checks have no warnings/skips. Complete logs/direct exits, failed-attempt history and snapshots
+are under `.runs/logs/TASK-00074/repair-1/`; the ignored Work handoff owns the committed mapping. No repair dependency
+package drift occurred; Common remains v1.4.0 and swagger-php 6.17.1. Rebuilt runnable image Config/RootFS are identical.
+Fresh independent re-review and behavioral QA remain outstanding; the canonical REVISE report is unchanged.
+TASK-00074, TICKET-00022 and EPIC-00013 remain in progress. TASK-00075 administrator recovery is unimplemented. No consumer SQL,
 mail/templates, physical worker restart or public-security qualification, enablement, publication, merge, release,
 adoption or deployment is claimed. Historical planning checkpoints below do not override this execution authority.
 

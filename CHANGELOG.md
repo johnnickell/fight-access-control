@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- Invitation delivery worker failure events retain safe command context with constant text instead of arbitrary
+  storage/subscriber diagnostics. A failing failure notification cannot replace the original operation throwable,
+  including on the registration subscriber path. Committed work remains recoverable; private invitation and
+  at-least-once provider semantics are unchanged.
+
 ### Changed
 
 - **Breaking pre-v1 contract:** activation grant issuance and hydration now require explicit immutable

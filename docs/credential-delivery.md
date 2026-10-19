@@ -143,6 +143,13 @@ at-least-once invocation, not exactly-once effect. The provider adapter must mak
 return `DELIVERED`, `RETRYABLE_FAILURE` or `PERMANENT_FAILURE`. Replacement generations have fresh identities.
 Secret-free status queries do not expose claim tokens, credentials, hashes, ciphertext or provider errors.
 
+For registration and private invitation alike, `DeliverUserInvitationHandler` attempts `CommandFailedEvent` with the
+original safe delivery command and constant `User invitation delivery failed.` text, not arbitrary storage/subscriber
+diagnostics. Failure notification is best effort: even if it throws, the same original operation throwable reaches the
+caller. Confirmed registration/claim/outcome commits are not undone by later publication failure. Consumers must still
+sanitize rethrown faults and secure event/log access. This Unreleased worker correction does not change the separate
+manual-retry handler's diagnostic behavior described below.
+
 ## Manual invitation retry admission (v0.6.0)
 
 `RetryInvitationDelivery(actorId, userId)` targets the latest invitation generation at execution, not an old delivery

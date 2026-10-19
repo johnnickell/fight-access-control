@@ -78,7 +78,13 @@ final readonly class DeliverUserInvitationHandler implements CommandHandler
                 $this->eventDispatcher->trigger($successEvent);
             }
         } catch (Throwable $throwable) {
-            $this->eventDispatcher->trigger(new CommandFailedEvent($command, $throwable->getMessage()));
+            try {
+                // Storage and subscriber diagnostics can contain credential material.
+                $this->eventDispatcher->trigger(new CommandFailedEvent($command, 'User invitation delivery failed.'));
+            } catch (Throwable) {
+                // Notification failure must not replace the original operation failure.
+            }
+
             throw $throwable;
         }
     }

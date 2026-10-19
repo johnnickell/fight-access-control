@@ -99,8 +99,11 @@ The guarantee remains at-least-once, not exactly-once email or reliable event pu
 
 Every registration operation failure attempts `CommandFailedEvent` publication with the original safe `RegisterUser` and constant
 `User registration failed.` text, then rethrows the **same original throwable**, even if failure publication also fails.
-Arbitrary storage/subscriber diagnostics can contain row or credential material and are not copied into failure events.
-Consumers must still sanitize the rethrown throwable and protect event/audit access (messages contain email/identity).
+The composed `DeliverUserInvitationHandler` likewise retains its safe delivery command with constant
+`User invitation delivery failed.` text and preserves its original throwable if failure notification throws. This applies
+to registration and private-invitation delivery alike. Arbitrary storage/subscriber diagnostics can contain row or
+credential material and are not copied into these failure events. Consumers must still sanitize the rethrown throwable
+and protect event/audit access (messages contain email/identity).
 
 - A pre-commit write/reference/commit failure rolls back every registration effect.
 - A post-commit publication or subscriber fault does **not** roll back the complete registration. Both success and
@@ -142,7 +145,7 @@ Package passes do not close any of these obligations or authorize release, activ
 | C2 | Handler configuration, all-defaults/deduplication, missing/conflicting names/IDs, fresh resolution on the same handler, earlier-User retention tests |
 | C3 | `RegistrationCreationContractTest`; `RegistrationReferenceRaceTest` removal/rename/replacement/same-name recreation winner and held-fence rollback/commit schedules; insert/grant/audit/commit rollback tests |
 | C4 | Every lifecycle state plus live destination reservation; competing canonical registration with exactly one complete winner |
-| C5 | `RegistrationJourneyTest` uncertain rolled-back/committed creation, both publishers failing, lost response, provider fault/restart and exact delivery ID/origin recovery |
+| C5 | `RegistrationJourneyTest` uncertain rolled-back/committed creation, both outer publishers failing, nested worker storage/failure-notification faults, lost response, provider fault/restart and exact delivery ID/origin recovery |
 | C6 | Real registration → subscriber/Common routing bus → package worker/provider → same-User single-use activation; protected User/status reads; existing invitation/reset/email tests |
 | C7 | `RegistrationComponentsTest` generates the opt-in catalog with a consumer root and compares actual payloads, fields/formats and forbidden authority/secret inputs |
 | C8 | TASK-owned focused/full gate logs, direct exits, coverage and content receipt; independent Review and nonvisual QA remain separate |
