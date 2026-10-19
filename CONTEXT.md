@@ -6,7 +6,7 @@ Fight AccessControl owns framework-neutral identity, credential, session, author
 behavior shared by Fight applications. The repository-local behavioral and security authority is
 [TICKET-00001](planning/tickets/00001-TICKET.md).
 
-## Expiry-aware invitation retry — TASK-00076 in progress
+## Expiry-aware invitation retry — TASK-00076 accepted
 
 [Standalone bug TASK-00076](planning/tasks/00076-TASK.md) repairs the invitation-recovery blocker reported by
 Agent OS TASK-00042 against v0.5.0 (`46ffcf75f1e14dbc5b58a5049e05a600ce5cf8a0`). John approved the three decisions
@@ -24,8 +24,14 @@ TTL extension. [Delivery composition](docs/credential-delivery.md) documents req
 Regression-first package evidence and gate receipts belong to the TASK: focused **299 tests / 5185 assertions** and
 canonical full gate **2122 tests / 41004 assertions**, exact **7021/7021 statements**, pass. The canonical resolver
 updated ignored local Common to **v1.4.0** within unchanged `^1.3`; no new API/minimum is used. Initial test-formatting
-and setup failures are retained, with no final test warnings/skips. Independent review/QA remain pending. The harness
-blocks writes to the requested canonical handoff path; the reusable handoff and summary receipt are in permitted
+and setup failures are retained, with no final test warnings/skips. Independent technical review **ACCEPT** and
+behavioral **QA PASS** cover candidate `0cd2afab1728f12d332bd2f70bd15b2d1baa5e8f` against unchanged `develop`
+`e7a9e32ca91858c90b5be024ddf7955e96751a14`, with no outstanding findings. QA passed nine independent package
+scenarios; visual evidence is N/A. TASK-00076 is done for accepted implementation/verification, not publication,
+merge or release; this standalone bug has no parent to close. Land retains the earlier full gate only with verified
+unchanged executable/build/runtime/dependency inputs and current targeted checks under the Testing standard.
+The ignored Land receipt owns the administrative provenance bridge and final delivery facts. Earlier harness
+write denials left the reusable Work handoff and summary receipt in permitted
 `.runs/tasks/TASK-00076/runs/` alongside the complete log/result/snapshot bundle in `.runs/logs/TASK-00076/`. This is
 inconsistent recovery state, not expired-credential activation. Controlled package tests do not qualify the consumer's
 actual PostgreSQL/shared connection, physical clock or provider deduplication. Tagged-release qualification and deliberate
