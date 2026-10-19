@@ -1,6 +1,7 @@
 # Human credential expiry cleanup (v0.5.0)
 
-This current pre-v1 contract belongs to EPIC-00012 / TICKET-00020 / TASK-00072 and the planned `v0.5.0` integration.
+This current pre-v1 cleanup contract belongs to EPIC-00012 / TICKET-00020 / TASK-00072 and shipped in `v0.5.0`.
+The separate manual invitation retry repair below is selected for `v0.6.0`.
 It adds no scheduler, transport, production repository or authorization policy. Follow
 [current delivery composition](credential-delivery.md) and [ADR 0011](../planning/adr/0011-pre-v1-current-contract-only.md).
 Package verification is not PostgreSQL qualification, consumer adoption or permission to publish a release.
@@ -105,7 +106,7 @@ Consumers must sanitize the original rethrown throwable at response/log boundari
 rollback, throw/rethrow or post-commit semantics, and is not the issuance-warning exception. No transactional
 outbox/reliable-publication infrastructure or exactly-once event guarantee is added.
 
-## Invitation recovery after expiry (unreleased retry repair)
+## Invitation recovery after expiry (v0.6.0 retry repair)
 
 Manual `RetryInvitationDelivery` now samples a required injected Clock after latest-grant retrieval inside its existing
 transaction. At `now >= expiresAt` it throws `ActivationDeliveryNotRetryableException` with constant safe text
@@ -114,9 +115,10 @@ fact. Failure notification cannot replace that rejection. This does not run clea
 authority. `ExpireInvitationDelivery` remains the explicit cleanup path; an authorized `ResendInvitationDelivery`
 creates fresh authority and delivery identity for an expired still-issued grant. Worker backoff expiry is separate.
 
-Read [manual retry composition](credential-delivery.md#manual-invitation-retry-admission-unreleased) for required Clock
-constructor wiring and the breaking pre-v1 minor classification (no tag selected). The fresh admission sample is not a
-commit/completion deadline: expiry after admission may reject the subscriber claim after retry state/audit committed.
+Read [manual retry composition](credential-delivery.md#manual-invitation-retry-admission-v060) for required Clock
+constructor wiring and the breaking pre-v1 minor selected for [v0.6.0](release-0.6.0.md), not yet publication proof.
+The fresh admission sample is not a commit/completion deadline: expiry after admission may reject the subscriber claim
+after retry state/audit committed.
 The worker and complete-state CAS remain authoritative; no notification failure undoes a confirmed commit.
 
 Package tests model those boundaries and competing commits, not actual SQL isolation/shared-connection behavior.
@@ -158,5 +160,6 @@ durable live-row destruction (including retained historical generations). Packag
 SQL adapters, physical erasure of backups/logs, key destruction, provider delivery or adoption. No Agent OS source/lock,
 consumer product/email wiring, migration/backfill, old-release backport, tag, signing or deployment is part of this work.
 
-The new repository obligations, mandatory reservation binding and public payload additions belong in the selected
-pre-v1 minor `v0.5.0`, not an old-release patch. Certification and publication remain separate from version selection.
+The cleanup repository obligations, mandatory reservation binding and public payload additions shipped in the
+pre-v1 minor `v0.5.0`. The `v0.6.0` retry repair adds no repository, persisted-state or payload change; its required
+Clock is a separate breaking constructor change. Certification and publication remain separate from version selection.

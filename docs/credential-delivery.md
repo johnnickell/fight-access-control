@@ -75,7 +75,7 @@ at-least-once invocation, not exactly-once effect. The provider adapter must mak
 return `DELIVERED`, `RETRYABLE_FAILURE` or `PERMANENT_FAILURE`. Replacement generations have fresh identities.
 Secret-free status queries do not expose claim tokens, credentials, hashes, ciphertext or provider errors.
 
-## Manual invitation retry admission (unreleased)
+## Manual invitation retry admission (v0.6.0)
 
 `RetryInvitationDelivery(actorId, userId)` targets the latest invitation generation at execution, not an old delivery
 reference. Protect the entry point with consumer authorization; actor provenance does not grant permission.
@@ -88,7 +88,8 @@ reference. Protect the entry point with consumer authorization; actor provenance
 5. Common `EventDispatcher`
 
 Update consumer DI/factories directly. There is no optional/system-clock fallback or historical constructor. This is
-a **breaking pre-v1 minor** composition change, not a drop-in v0.5.x patch; no exact release is selected.
+a **breaking pre-v1 minor** composition change selected for [v0.6.0](release-0.6.0.md), not a drop-in v0.5.x patch.
+Version selection and this guide do not establish publication.
 Command/event payloads, repository signatures, persisted state and provider idempotency formats are unchanged.
 
 Inside the shared transaction, the handler reads the latest grant, then takes one fresh clock sample before mutation,

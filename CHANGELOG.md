@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.6.0] - 2026-10-19
+
+Pre-v1 breaking composition change. See the [release and integration overview](docs/release-0.6.0.md).
+This dated section prepares release notes; it is not evidence of signing, publication or consumer qualification.
+
 ### Fixed
 
 - Invitation delivery retry rejects unusable activation authority at a fresh post-read transactional clock sample,
@@ -18,8 +23,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 - **Breaking pre-v1 minor:** `RetryInvitationDeliveryHandler` now requires Clock as its fourth constructor argument,
-  before EventDispatcher. Update consumer DI/factories; no compatibility default or fallback is supplied. No exact
-  release is selected; payloads, repository contracts, schema and idempotency formats are unchanged. Package verification
+  before EventDispatcher. Update consumer DI/factories; no compatibility default or fallback is supplied.
+  Payloads, repository contracts, schema and idempotency formats are unchanged. Package verification
   is not real-consumer PostgreSQL/provider qualification, release publication or dependency adoption.
 
 ## [0.5.0] - 2026-10-06
@@ -260,7 +265,8 @@ This dated section prepares release notes; it is not evidence of signing, public
   tooling, and exact production-statement coverage.
 - Repository-local product, security, architecture, contribution, and Git Flow authority under the MIT License.
 
-[Unreleased]: https://github.com/johnnickell/fight-access-control/compare/v0.5.0...HEAD
+[Unreleased]: https://github.com/johnnickell/fight-access-control/compare/v0.6.0...HEAD
+[0.6.0]: https://github.com/johnnickell/fight-access-control/compare/v0.5.0...v0.6.0
 [0.5.0]: https://github.com/johnnickell/fight-access-control/compare/v0.4.0...v0.5.0
 [0.4.0]: https://github.com/johnnickell/fight-access-control/compare/v0.3.0...v0.4.0
 [0.3.0]: https://github.com/johnnickell/fight-access-control/compare/v0.2.0...v0.3.0

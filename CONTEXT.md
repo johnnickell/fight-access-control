@@ -6,13 +6,35 @@ Fight AccessControl owns framework-neutral identity, credential, session, author
 behavior shared by Fight applications. The repository-local behavioral and security authority is
 [TICKET-00001](planning/tickets/00001-TICKET.md).
 
+## v0.6.0 release preparation — 2026-10-19
+
+John selected v0.6.0 and the main checkout for `release/0.6.0` from clean `develop` `cc364511`, the merge of
+[PR #118](https://github.com/johnnickell/fight-access-control/pull/118). The
+[release overview](docs/release-0.6.0.md) covers TASK-00076's independently accepted expiry-aware invitation retry
+and required fourth-argument Clock. This is a breaking pre-v1 minor; PHP 8.5+ and Common ^1.3 remain unchanged.
+No production/test/dependency change is part of this release preparation. Optional self-registration remains
+separate planned v1.0.0 work, not included behavior or a v0.6.0 readiness prerequisite.
+
+The preparation `./bin/build` passes **2122 tests / 41004 assertions**, exact **7021/7021 statements**, with no
+final test warnings/skips. Its normal resolver updates only ignored dev dependency swagger-php **6.16.0 → 6.17.0**;
+Common remains v1.4.0 within unchanged ^1.3. Planning validates **111 records / 7 active** and documentation links
+pass. This evidence-only checkpoint update retains that full gate with unchanged executable inputs and targeted
+checks. The ignored release handoff records the tested snapshot, direct exit, runtime and dependency identities.
+
+At this preparation checkpoint, release-content acceptance, release PR/integration, exact-main certification,
+human signing and publication remain outstanding. The ignored `.runs/handoffs/release-0.6.0/ledger.md` owns
+live preparation/delivery evidence. Package verification does not qualify actual PostgreSQL/provider/clock behavior
+or authorize consumer source/lock adoption or deployment. Earlier no-version-selected and publication-pending
+checkpoints below are historical; v0.5.0 was published on 2026-10-06 and merged back through PR #115.
+
 ## Expiry-aware invitation retry — TASK-00076 accepted
 
 [Standalone bug TASK-00076](planning/tasks/00076-TASK.md) repairs the invitation-recovery blocker reported by
 Agent OS TASK-00042 against v0.5.0 (`46ffcf75f1e14dbc5b58a5049e05a600ce5cf8a0`). John approved the three decisions
 and main checkout before implementation: existing coarse safe typed failure remains primary through notification
 failure; one fresh post-read transactional admission sample, not a commit/completion deadline; required Clock with
-breaking pre-v1 minor classification and no fallback. No exact release is selected.
+breaking pre-v1 minor classification and no fallback. No exact release was selected at that implementation checkpoint;
+the subsequent v0.6.0 preparation is recorded above.
 
 The retry handler now consults the grant's existing usability predicate before transition/CAS/audit. Exact/post-expiry
 rejection preserves persisted state, audit and delivery identity; the safe not-retryable exception remains caller-mappable.
