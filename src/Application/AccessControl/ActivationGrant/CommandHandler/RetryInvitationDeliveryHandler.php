@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Fight\AccessControl\Application\AccessControl\ActivationGrant\CommandHandler;
 
+use Fight\AccessControl\Application\AccessControl\Timing\Service\Clock;
 use Fight\AccessControl\Domain\AccessControl\ActivationGrant\ActivationDeliveryId;
 use Fight\AccessControl\Domain\AccessControl\ActivationGrant\ActivationGrant;
 use Fight\AccessControl\Domain\AccessControl\ActivationGrant\ActivationGrantRepository;
@@ -35,6 +36,7 @@ final readonly class RetryInvitationDeliveryHandler implements CommandHandler
         private ActivationGrantRepository $activationGrantRepository,
         private AuditEvidenceRepository $auditEvidenceRepository,
         private TransactionalUnitOfWork $unitOfWork,
+        private Clock $clock,
         private EventDispatcher $eventDispatcher
     ) {
     }
@@ -60,7 +62,10 @@ final readonly class RetryInvitationDeliveryHandler implements CommandHandler
                 $command
             ): ActivationDeliveryId {
                 $activationGrant = $this->activationGrantRepository->getLatestByUserId($command->getUserId());
-                if (!$activationGrant instanceof ActivationGrant) {
+                if (
+                    !$activationGrant instanceof ActivationGrant
+                    || !$activationGrant->isUsableAt($this->clock->now())
+                ) {
                     throw new ActivationDeliveryNotRetryableException(
                         'The activation delivery work is no longer retryable.'
                     );
@@ -88,7 +93,12 @@ final readonly class RetryInvitationDeliveryHandler implements CommandHandler
                 $activationDeliveryId
             ));
         } catch (Throwable $throwable) {
-            $this->eventDispatcher->trigger(new CommandFailedEvent($command, $throwable->getMessage()));
+            try {
+                $this->eventDispatcher->trigger(new CommandFailedEvent($command, $throwable->getMessage()));
+            } catch (Throwable) {
+                // Failure notification must not conceal the original rejection or failure.
+            }
+
             throw $throwable;
         }
     }
