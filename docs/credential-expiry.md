@@ -105,6 +105,26 @@ Consumers must sanitize the original rethrown throwable at response/log boundari
 rollback, throw/rethrow or post-commit semantics, and is not the issuance-warning exception. No transactional
 outbox/reliable-publication infrastructure or exactly-once event guarantee is added.
 
+## Invitation recovery after expiry (unreleased retry repair)
+
+Manual `RetryInvitationDelivery` now samples a required injected Clock after latest-grant retrieval inside its existing
+transaction. At `now >= expiresAt` it throws `ActivationDeliveryNotRetryableException` with constant safe text
+`The activation delivery work is no longer retryable.`, without changing retry state/audit or publishing a retry-request
+fact. Failure notification cannot replace that rejection. This does not run cleanup, destroy material or issue new
+authority. `ExpireInvitationDelivery` remains the explicit cleanup path; an authorized `ResendInvitationDelivery`
+creates fresh authority and delivery identity for an expired still-issued grant. Worker backoff expiry is separate.
+
+Read [manual retry composition](credential-delivery.md#manual-invitation-retry-admission-unreleased) for required Clock
+constructor wiring and the breaking pre-v1 minor classification (no tag selected). The fresh admission sample is not a
+commit/completion deadline: expiry after admission may reject the subscriber claim after retry state/audit committed.
+The worker and complete-state CAS remain authoritative; no notification failure undoes a confirmed commit.
+
+Package tests model those boundaries and competing commits, not actual SQL isolation/shared-connection behavior.
+After a separately authorized published release, consumers must deliberately adopt its actual tag/resolved source and
+qualify before/exact/after expiry with subscriber off/on, unchanged row/revision/audit on rejection, same-ID retry,
+fresh-ID resend, actual rollback/writer fencing and provider deduplication. Neither this guide nor package acceptance
+closes the downstream consumer blocker or authorizes a lock update.
+
 ## Matrix and evidence boundary
 
 [WF-025](../planning/wayfinder/tickets/WF-025-human-delivery-expiry-contract.md) and

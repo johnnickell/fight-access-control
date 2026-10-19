@@ -5,11 +5,13 @@ dependencies, acceptance, and verification.
 
 ## What's Next?
 
-First ready Task: [TASK-00073](00073-TASK.md) — Carry activation-delivery origin through provider recovery.
+Active Task: [TASK-00076](00076-TASK.md) — Reject expired invitation delivery retries before mutation.
 
 ## In Progress
 
-No Tasks are currently in this state.
+| Order | TASK ID | Title | Parent TICKET | Status | Blocked by | PR |
+| --- | --- | --- | --- | --- | --- | --- |
+| 72 | [TASK-00076](00076-TASK.md) | Reject expired invitation delivery retries before mutation | — (standalone bug) | in-progress | — | — |
 
 ## Ready Frontier
 

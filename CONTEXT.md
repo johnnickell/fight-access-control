@@ -6,6 +6,31 @@ Fight AccessControl owns framework-neutral identity, credential, session, author
 behavior shared by Fight applications. The repository-local behavioral and security authority is
 [TICKET-00001](planning/tickets/00001-TICKET.md).
 
+## Expiry-aware invitation retry — TASK-00076 in progress
+
+[Standalone bug TASK-00076](planning/tasks/00076-TASK.md) repairs the invitation-recovery blocker reported by
+Agent OS TASK-00042 against v0.5.0 (`46ffcf75f1e14dbc5b58a5049e05a600ce5cf8a0`). John approved the three decisions
+and main checkout before implementation: existing coarse safe typed failure remains primary through notification
+failure; one fresh post-read transactional admission sample, not a commit/completion deadline; required Clock with
+breaking pre-v1 minor classification and no fallback. No exact release is selected.
+
+The retry handler now consults the grant's existing usability predicate before transition/CAS/audit. Exact/post-expiry
+rejection preserves persisted state, audit and delivery identity; the safe not-retryable exception remains caller-mappable.
+Valid retry preserves authority and history. Existing worker expiry, complete-state CAS, rollback, post-commit delivery
+and at-least-once semantics remain. Expiry after admission can still fail the subscriber after the retry commit;
+no rollback of that commit is implied. Expired invitations need explicit fresh-grant resend, not implicit cleanup or
+TTL extension. [Delivery composition](docs/credential-delivery.md) documents required constructor wiring and timing.
+
+Regression-first package evidence and gate receipts belong to the TASK: focused **299 tests / 5185 assertions** and
+canonical full gate **2122 tests / 41004 assertions**, exact **7021/7021 statements**, pass. The canonical resolver
+updated ignored local Common to **v1.4.0** within unchanged `^1.3`; no new API/minimum is used. Initial test-formatting
+and setup failures are retained, with no final test warnings/skips. Independent review/QA remain pending. The harness
+blocks writes to the requested canonical handoff path; the reusable handoff and summary receipt are in permitted
+`.runs/tasks/TASK-00076/runs/` alongside the complete log/result/snapshot bundle in `.runs/logs/TASK-00076/`. This is
+inconsistent recovery state, not expired-credential activation. Controlled package tests do not qualify the consumer's
+actual PostgreSQL/shared connection, physical clock or provider deduplication. Tagged-release qualification and deliberate
+consumer adoption remain separate; no Agent OS source/lock update, release or deployment is authorized.
+
 ## Optional self-registration planning for v1.0.0
 
 John requested a separate opt-in User self-registration track before v1.0.0, without enabling it by default in
