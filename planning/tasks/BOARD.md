@@ -5,23 +5,22 @@ dependencies, acceptance, and verification.
 
 ## What's Next?
 
-Active Task: [TASK-00073](00073-TASK.md) — Carry activation-delivery origin through provider recovery.
+First ready Task: [TASK-00074](00074-TASK.md) — Register a pending User atomically with default Roles.
 
 ## In Progress
 
-| Order | TASK ID | Title | Parent TICKET | Status | Blocked by | PR |
-| --- | --- | --- | --- | --- | --- | --- |
-| 73 | [TASK-00073](00073-TASK.md) | Carry activation-delivery origin through provider recovery | [TICKET-00021](../tickets/00021-TICKET.md) — Preserve registration and private-invitation delivery origin | in-progress | — | — |
+No Tasks are currently in this state.
 
 ## Ready Frontier
 
-No Tasks are currently in this state.
+| Order | TASK ID | Title | Parent TICKET | Status | Blocked by | PR |
+| --- | --- | --- | --- | --- | --- | --- |
+| 74 | [TASK-00074](00074-TASK.md) | Register a pending User atomically with default Roles | [TICKET-00022](../tickets/00022-TICKET.md) — Register a pending User with configured default Roles | ready-for-agent | [TASK-00073](00073-TASK.md) | — |
 
 ## Waiting
 
 | Order | TASK ID | Title | Parent TICKET | Status | Blocked by | PR |
 | --- | --- | --- | --- | --- | --- | --- |
-| 74 | [TASK-00074](00074-TASK.md) | Register a pending User atomically with default Roles | [TICKET-00022](../tickets/00022-TICKET.md) — Register a pending User with configured default Roles | ready-for-agent | [TASK-00073](00073-TASK.md) | — |
 | 75 | [TASK-00075](00075-TASK.md) | Recover pending registrations with authorized correction and reissue | [TICKET-00023](../tickets/00023-TICKET.md) — Recover a pending registration administratively | ready-for-agent | [TASK-00074](00074-TASK.md) | — |
 
 ## Needs Info
@@ -112,3 +111,4 @@ No Tasks are currently in this state.
 | 71 | [TASK-00071](00071-TASK.md) | Bind protected self-service Agent profile tools | [TICKET-00019](../tickets/00019-TICKET.md) — Read and update the authenticated Agent profile through MCP tools | done | [TASK-00070](00070-TASK.md), [TASK-00069](00069-TASK.md), [TASK-00035](00035-TASK.md) | https://github.com/johnnickell/fight-access-control/pull/113 |
 | 72 | [TASK-00072](00072-TASK.md) | Discover and clean expired human credential work | [TICKET-00020](../tickets/00020-TICKET.md) — Clean up expired human credential work after downtime | done | — | https://github.com/johnnickell/fight-access-control/pull/108 |
 | 72 | [TASK-00076](00076-TASK.md) | Reject expired invitation delivery retries before mutation | — (standalone bug) | done | — | https://github.com/johnnickell/fight-access-control/pull/118 |
+| 73 | [TASK-00073](00073-TASK.md) | Carry activation-delivery origin through provider recovery | [TICKET-00021](../tickets/00021-TICKET.md) — Preserve registration and private-invitation delivery origin | done | — | — |
