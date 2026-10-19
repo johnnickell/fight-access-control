@@ -73,8 +73,10 @@ origin for old contracts is authorized; follow [ADR 0011](../adr/0011-pre-v1-cur
 
 John approved one complete implementation slice, now [TASK-00073](../tasks/00073-TASK.md), with no unfinished
 TASK blocker. It covers the full origin/provider path and contract-level proof; the actual registration command
-belongs to TICKET-00022. This is TASK planning, not implementation/PR authorization. Finish TICKET-00022 and
-TICKET-00023 TASK decompositions before selecting execution from the Board.
+belongs to TICKET-00022. The subsequent [TASK-00074](../tasks/00074-TASK.md) and
+[TASK-00075](../tasks/00075-TASK.md) plans complete TICKET-00022/00023 decomposition. All planning phases are
+accepted under [EPIC-00013](../epics/00013-EPIC.md#progress); consult the [Board](../tasks/BOARD.md) for execution
+selection. This is planned v1.0.0 work, not a v0.6.0 release prerequisite or implementation/PR authorization.
 
 ## Child Tasks
 
@@ -83,6 +85,7 @@ TICKET-00023 TASK decompositions before selecting execution from the Board.
 | 73 | [TASK-00073](../tasks/00073-TASK.md) | Carry activation-delivery origin through provider recovery | ready-for-agent |
 ## Progress
 
-John approved the three-area TICKET split for EPIC-00013, then the single cohesive TASK-00073 plan for this
-TICKET. Its implementation, acceptance and real consumer qualification remain unstarted; TICKET-00022/00023
-TASK decompositions are still pending.
+John approved the three-area TICKET split for EPIC-00013, then one cohesive TASK per area in dependency order
+[TASK-00073](../tasks/00073-TASK.md) → [TASK-00074](../tasks/00074-TASK.md) →
+[TASK-00075](../tasks/00075-TASK.md). Decomposition is complete; the [Board](../tasks/BOARD.md) owns execution
+selection. This TICKET's implementation, acceptance and actual consumer qualification remain unstarted.

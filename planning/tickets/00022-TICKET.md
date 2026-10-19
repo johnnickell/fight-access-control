@@ -79,8 +79,11 @@ code and enabling registration in Agent OS/starters. Follow
 John approved one complete registration slice, now [TASK-00074](../tasks/00074-TASK.md), blocked by
 [TASK-00073](../tasks/00073-TASK.md)'s durable origin/provider contract. It covers the whole package registration
 journey, including creation-time Role-reference fencing and activation/delivery proof; no separate layer-only
-TASK is needed. TICKET-00023 still needs TASK decomposition before Board-based execution selection. Planning
-approval alone does not authorize implementation or consumer enablement.
+TASK is needed. The subsequent [TASK-00075](../tasks/00075-TASK.md) plan completes TICKET-00023 decomposition;
+all planning phases are accepted under [EPIC-00013](../epics/00013-EPIC.md#progress). Consult the
+[Board](../tasks/BOARD.md) for execution selection with TASK-00074 still dependent on unfinished TASK-00073.
+This remains planned v1.0.0 work, not a v0.6.0 release prerequisite. Planning approval alone does not authorize
+implementation or consumer enablement.
 
 ## Child Tasks
 
@@ -89,5 +92,7 @@ approval alone does not authorize implementation or consumer enablement.
 | 74 | [TASK-00074](../tasks/00074-TASK.md) | Register a pending User atomically with default Roles | ready-for-agent |
 ## Progress
 
-John approved the three-area TICKET split for EPIC-00013 and this TICKET's sole TASK-00074 plan, blocked by
-TASK-00073. TICKET-00023 still needs its TASK plan; no implementation or consumer enablement has occurred.
+John approved the three-area TICKET split for EPIC-00013 and one TASK per area, including this TICKET's sole
+[TASK-00074](../tasks/00074-TASK.md), blocked by [TASK-00073](../tasks/00073-TASK.md), and TICKET-00023's
+[TASK-00075](../tasks/00075-TASK.md). Decomposition is complete; consult the [Board](../tasks/BOARD.md) for execution
+selection. No implementation or consumer enablement has occurred.
