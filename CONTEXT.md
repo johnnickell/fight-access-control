@@ -46,7 +46,8 @@ nonvisual PHP library/worker change. Canonical Review and QA SHA-256 values are 
 
 TASK-00074 is complete for accepted package implementation and local/behavioral verification; automatic parent
 completion closes sole-child TICKET-00022 in the same Land administrative operation. EPIC-00013 remains in progress
-because TASK-00075/TICKET-00023 remain unfinished. Land PR publication is pending at this checkpoint; no hosted
+because TASK-00075/TICKET-00023 remain unfinished. Land published
+[TASK-00074 PR #122](https://github.com/johnnickell/fight-access-control/pull/122) for human review; no hosted
 acceptance requirement is declared and hosted CI is not checked. No consumer SQL, mail/templates, physical worker
 restart or public-security qualification, enablement, approval, merge, release, adoption or deployment is claimed.
 Historical planning checkpoints below do not override this execution authority.

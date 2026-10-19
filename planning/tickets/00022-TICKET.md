@@ -100,6 +100,6 @@ without final warnings/skips or dependency drift. Canonical reports and full log
 locations; the registration guide records the package composition and consumer limits.
 
 This TICKET's sole child is done, so automatic parent completion closes the TICKET with the same administrative
-operation. PR publication remains a separate pending Land delivery step; closure does not imply approval, merge,
-release, consumer enablement, or actual consumer database/mail/public-security qualification. TASK-00075 retains
-administrator recovery under TICKET-00023.
+operation. Land published [PR #122](https://github.com/johnnickell/fight-access-control/pull/122) for human review;
+closure does not imply approval, merge, release, consumer enablement, or actual consumer database/mail/public-security
+qualification. TASK-00075 retains administrator recovery under TICKET-00023.
