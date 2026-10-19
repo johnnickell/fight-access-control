@@ -29,6 +29,7 @@ use Fight\Test\AccessControl\Application\AccessControl\Role\Repository\InMemoryR
 use Fight\Test\AccessControl\Application\AccessControl\Timing\Service\FixedClock;
 use Fight\Test\AccessControl\Application\AccessControl\User\Repository\InMemoryAuthorizationReferenceState;
 use Fight\Test\AccessControl\Application\AccessControl\User\Repository\InMemoryUserRepository;
+use Fight\Test\AccessControl\Application\AccessControl\User\Repository\InMemoryUserRepositoryState;
 use Fight\Test\AccessControl\Domain\AccessControl\Role\ImpersonatingRole;
 use Fight\Test\AccessControl\Domain\AccessControl\User\UserFixture;
 use InvalidArgumentException;
@@ -405,13 +406,17 @@ final class AuthoritativePrincipalResolverTest extends TestCase
         ?PermissionRepository $permissionRepository = null
     ): AuthoritativePrincipalResolver {
         $authorizationReferences = new InMemoryAuthorizationReferenceState();
-        $userRepository = new InMemoryUserRepository(authorizationReferences: $authorizationReferences);
+        // Hydrate existing authority, including deliberate broken-reference fixtures; this is not a creation write.
+        $state = new InMemoryUserRepositoryState();
+        $state->users = [$user];
+
+        $authorizationReferences->retainUser($user);
+        $userRepository = new InMemoryUserRepository(state: $state, authorizationReferences: $authorizationReferences);
         $sessionRepository = new InMemoryRefreshSessionRepository();
         $inMemoryRoleRepository = new InMemoryRoleRepository(authorizationReferences: $authorizationReferences);
         $inMemoryPermissionRepository = new InMemoryPermissionRepository(
             authorizationReferences: $authorizationReferences
         );
-        $userRepository->add($user);
         $sessionRepository->add($session);
         foreach ($permissions as $permission) {
             $inMemoryPermissionRepository->add($permission);

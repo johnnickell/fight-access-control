@@ -37,6 +37,8 @@ final class InMemoryAuthorizationReferenceState
 
     private bool $referenceFenceHeld = false;
 
+    private ?object $roleCreationFenceOwner = null;
+
     public function __construct(private readonly ?InMemoryUnitOfWork $unitOfWork = null)
     {
     }
@@ -140,6 +142,48 @@ final class InMemoryAuthorizationReferenceState
     public function rolesAreAuthoritative(array $ids): bool
     {
         return array_all($ids, fn(RoleId $id): bool => isset($this->roles[$id->toString()]));
+    }
+
+    /** @param list<Role> $expectedRoles */
+    public function roleSnapshotsAreAuthoritative(array $expectedRoles): bool
+    {
+        $seen = [];
+        foreach ($expectedRoles as $expected) {
+            $id = $expected->getId()->toString();
+            $current = $this->roles[$id] ?? null;
+            if (isset($seen[$id]) || !$current instanceof Role || $current != $expected) {
+                return false;
+            }
+
+            $expected->assertConsistentWithSuperAdmin(null);
+            $matches = array_filter(
+                $this->roles,
+                static fn(Role $role): bool => $role->getName()->equals($expected->getName())
+            );
+            if (count($matches) !== 1) {
+                return false;
+            }
+
+            $seen[$id] = true;
+        }
+
+        return $seen !== [];
+    }
+
+    public function holdRoleCreationFence(object $owner, ?InMemoryUnitOfWork $unitOfWork): bool
+    {
+        if ($this->roleCreationFenceOwner !== null && $this->roleCreationFenceOwner !== $owner) {
+            return false;
+        }
+
+        if ($unitOfWork?->transactionActive === true && $this->roleCreationFenceOwner === null) {
+            $this->roleCreationFenceOwner = $owner;
+            $unitOfWork->onCompletion(function (): void {
+                $this->roleCreationFenceOwner = null;
+            });
+        }
+
+        return true;
     }
 
     public function roleContainsPermission(PermissionId $id): bool

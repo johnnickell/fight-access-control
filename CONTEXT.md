@@ -6,6 +6,33 @@ Fight AccessControl owns framework-neutral identity, credential, session, author
 behavior shared by Fight applications. The repository-local behavioral and security authority is
 [TICKET-00001](planning/tickets/00001-TICKET.md).
 
+## Optional User registration — TASK-00074 Engineer checkpoint
+
+John invoked Build for TASK-00074 in the main checkout. Engineer implementation is on
+`feature/task-00074-registration` from clean `develop` `5e5f436d` (TASK-00073 integrated through PR #121).
+The Unreleased [registration guide](docs/user-registration.md) describes distinct `RegisterUser` / `RegisterUserHandler`,
+required nonempty consumer RoleName defaults resolved on every command, and post-commit `UserRegistered`.
+The command carries only new User ID/email, never authenticated actor claims, Roles, passwords or credentials.
+Audit/worker source `registration` is fixed provenance, not authority. Failure evidence retains the safe command with
+constant text and rethrows the original throwable even if notification fails.
+
+Mandatory `UserRepository::addWithRoleAssignments()` validates the complete expected Role snapshots and initial
+assignment set under a transaction-duration reference/name fence shared by all Role writers. Pending User/all Roles,
+canonical-email claims/reservations, activation grant, encrypted registration-origin delivery and audit commit together
+or not at all. Optional subscriber dispatch follows commit; due-work restart does not require registration replay.
+Provider acceptance leaves the User pending; existing single-use activation activates that same User with its Roles.
+Private invitations and other credential purposes retain their existing behavior.
+
+Final focused checks pass **694 tests / 9468 assertions**; canonical `./bin/build` passes **2197 tests / 41896
+assertions**, exact **7130/7130** owned statements (**126/126** across changed production files, **92/92** new).
+Final checks have no warnings/skips. The TASK and ignored Work handoff retain failed-attempt chronology, complete
+logs/direct exits and the tested-content mapping. The resolver updated only ignored dev dependency swagger-php
+**6.17.0 → 6.17.1**; Common remains v1.4.0, and rebuilt runnable image Config/RootFS remain identical. Final
+verification-prose changes retain the gate with **726/726** identical inputs and fresh targeted checks.
+Independent Review and behavioral QA remain outstanding: TASK-00074, TICKET-00022 and EPIC-00013 are not complete. TASK-00075 administrator recovery is unimplemented. No consumer SQL,
+mail/templates, physical worker restart or public-security qualification, enablement, publication, merge, release,
+adoption or deployment is claimed. Historical planning checkpoints below do not override this execution authority.
+
 ## Activation origin — TASK-00073 implementation checkpoint
 
 The Unreleased [activation-origin contract](docs/credential-delivery.md#activation-origin-unreleased) stores required
@@ -35,7 +62,7 @@ PR publication remain separate from human approval/merge. This contract slice do
 registration/default Roles or TASK-00075 administrator registration recovery. No actual consumer SQL,
 mail-template composition, worker process, public protection, adoption, release or deployment qualification is
 claimed. Earlier self-registration planning checkpoints
-below are historical; execution was subsequently authorized for TASK-00073 only.
+below are historical; TASK-00074's later execution authority and current checkpoint are recorded above.
 
 ## v0.6.0 release preparation — 2026-10-19
 

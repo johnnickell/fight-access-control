@@ -18,20 +18,21 @@ use Fight\Test\AccessControl\Application\AccessControl\User\InMemoryUnitOfWork;
 use Fight\Test\AccessControl\Application\AccessControl\User\Repository\InMemoryAuthorizationReferenceState;
 use RuntimeException;
 
-final class InMemoryRoleRepository implements RoleRepository
+final readonly class InMemoryRoleRepository implements RoleRepository
 {
-    /** @var list<Role> */
-    private array $roles = [];
+    private InMemoryRoleRepositoryState $state;
 
-    private readonly InMemoryAuthorizationReferenceState $authorizationReferences;
+    private InMemoryAuthorizationReferenceState $authorizationReferences;
 
     public function __construct(
-        private readonly ?InMemoryUnitOfWork $unitOfWork = null,
-        private readonly ?Closure $beforeReplace = null,
-        private readonly ?Closure $beforeRemove = null,
+        private ?InMemoryUnitOfWork $unitOfWork = null,
+        private ?Closure $beforeReplace = null,
+        private ?Closure $beforeRemove = null,
         ?InMemoryAuthorizationReferenceState $authorizationReferences = null,
-        private readonly ?Closure $beforeValidatePermissionReference = null
+        private ?Closure $beforeValidatePermissionReference = null,
+        ?InMemoryRoleRepositoryState $state = null
     ) {
+        $this->state = $state ?? new InMemoryRoleRepositoryState();
         $resolvedAuthorizationReferences = $authorizationReferences ?? new InMemoryAuthorizationReferenceState();
         if (
             $unitOfWork instanceof InMemoryUnitOfWork
@@ -45,6 +46,10 @@ final class InMemoryRoleRepository implements RoleRepository
 
     public function add(Role $role): void
     {
+        if (!$this->authorizationReferences->holdRoleCreationFence($this->unitOfWork ?? $this, $this->unitOfWork)) {
+            throw new RuntimeException('The Role creation-reference fence is held by another transaction.');
+        }
+
         $this->authorizationReferences->holdThroughCompletion();
         if (
             !$this->authorizationReferences->permissionsAreAuthoritative($role->getPermissionIds())
@@ -57,17 +62,17 @@ final class InMemoryRoleRepository implements RoleRepository
             throw new RuntimeException('Role permission membership is not authoritative.');
         }
 
-        $this->roles[] = $role;
+        $this->state->roles[] = $role;
         $this->authorizationReferences->addRole($role);
         $this->unitOfWork?->onRollback(function () use ($role): void {
-            array_pop($this->roles);
+            array_pop($this->state->roles);
             $this->authorizationReferences->removeRole($role->getId());
         });
     }
 
     public function getById(RoleId $id): ?Role
     {
-        foreach ($this->roles as $role) {
+        foreach ($this->state->roles as $role) {
             if ($role->getId()->equals($id)) {
                 return $role;
             }
@@ -78,13 +83,20 @@ final class InMemoryRoleRepository implements RoleRepository
 
     public function getByName(RoleName $name): ?Role
     {
-        foreach ($this->roles as $role) {
-            if ($role->getName()->equals($name)) {
-                return $role;
-            }
+        $matches = array_values(array_filter(
+            $this->state->roles,
+            static fn(Role $role): bool => $role->getName()->equals($name)
+        ));
+        if (count($matches) > 1) {
+            throw new RuntimeException('Stored Role names conflict.');
         }
 
-        return null;
+        $role = $matches[0] ?? null;
+        if ($role instanceof Role && $this->getById($role->getId()) !== $role) {
+            throw new RuntimeException('Stored Role identities conflict.');
+        }
+
+        return $role;
     }
 
     /** @phpstan-param list<RoleId> $ids */
@@ -113,7 +125,7 @@ final class InMemoryRoleRepository implements RoleRepository
     public function getAll(Pagination $pagination): ResultSet
     {
         $records = ArrayList::of(Role::class)->replace(array_slice(
-            $this->roles,
+            $this->state->roles,
             $pagination->offset(),
             $pagination->limit()
         ));
@@ -121,7 +133,7 @@ final class InMemoryRoleRepository implements RoleRepository
         return new ResultSet(
             $pagination->page(),
             $pagination->perPage(),
-            count($this->roles),
+            count($this->state->roles),
             $records
         );
     }
@@ -129,7 +141,7 @@ final class InMemoryRoleRepository implements RoleRepository
     public function getManaged(): array
     {
         return array_values(array_filter(
-            $this->roles,
+            $this->state->roles,
             static fn(Role $role): bool => $role->isManaged()
         ));
     }
@@ -137,7 +149,7 @@ final class InMemoryRoleRepository implements RoleRepository
     public function getContainingPermission(PermissionId $id): array
     {
         return array_values(array_filter(
-            $this->roles,
+            $this->state->roles,
             static fn(Role $role): bool => $role->hasPermission($id)
         ));
     }
@@ -160,6 +172,10 @@ final class InMemoryRoleRepository implements RoleRepository
 
     public function replace(Role $expected, Role $replacement): bool
     {
+        if (!$this->authorizationReferences->holdRoleCreationFence($this->unitOfWork ?? $this, $this->unitOfWork)) {
+            return false;
+        }
+
         $this->authorizationReferences->holdThroughCompletion();
         $this->beforeReplace?->__invoke();
         if (
@@ -173,15 +189,15 @@ final class InMemoryRoleRepository implements RoleRepository
             return false;
         }
 
-        foreach ($this->roles as $index => $role) {
+        foreach ($this->state->roles as $index => $role) {
             if ($role !== $expected) {
                 continue;
             }
 
-            $this->roles[$index] = $replacement;
+            $this->state->roles[$index] = $replacement;
             $this->authorizationReferences->addRole($replacement);
             $this->unitOfWork?->onRollback(function () use ($expected, $index): void {
-                $this->roles[$index] = $expected;
+                $this->state->roles[$index] = $expected;
                 $this->authorizationReferences->addRole($expected);
             });
 
@@ -193,21 +209,25 @@ final class InMemoryRoleRepository implements RoleRepository
 
     public function remove(Role $role): bool
     {
+        if (!$this->authorizationReferences->holdRoleCreationFence($this->unitOfWork ?? $this, $this->unitOfWork)) {
+            return false;
+        }
+
         $this->authorizationReferences->holdThroughCompletion();
         $this->beforeRemove?->__invoke();
         if ($this->authorizationReferences->hasUserRole($role->getId())) {
             return false;
         }
 
-        foreach ($this->roles as $index => $candidate) {
+        foreach ($this->state->roles as $index => $candidate) {
             if ($candidate !== $role) {
                 continue;
             }
 
-            array_splice($this->roles, $index, 1);
+            array_splice($this->state->roles, $index, 1);
             $this->authorizationReferences->removeRole($role->getId());
             $this->unitOfWork?->onRollback(function () use ($role, $index): void {
-                array_splice($this->roles, $index, 0, [$role]);
+                array_splice($this->state->roles, $index, 0, [$role]);
                 $this->authorizationReferences->addRole($role);
             });
 

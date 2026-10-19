@@ -9,6 +9,7 @@ use Fight\AccessControl\Domain\AccessControl\ActivationGrant\Command\DeliverUser
 use Fight\AccessControl\Domain\AccessControl\ActivationGrant\Event\InvitationDeliveryResent;
 use Fight\AccessControl\Domain\AccessControl\ActivationGrant\Event\InvitationDeliveryRetryRequested;
 use Fight\AccessControl\Domain\AccessControl\User\Event\UserInvited;
+use Fight\AccessControl\Domain\AccessControl\User\Event\UserRegistered;
 use Fight\AccessControl\Domain\AccessControl\User\Event\UserRestored;
 use Fight\Common\Application\Messaging\Command\CommandBus;
 use Fight\Common\Application\Messaging\Event\EventSubscriber;
@@ -39,6 +40,7 @@ final readonly class InvitationDeliverySubscriber implements EventSubscriber
             InvitationDeliveryResent::class         => 'onInvitationDeliveryResent',
             InvitationDeliveryRetryRequested::class => 'onInvitationDeliveryRetryRequested',
             UserInvited::class                      => 'onUserInvited',
+            UserRegistered::class                   => 'onUserRegistered',
             UserRestored::class                     => 'onUserRestored'
         ];
     }
@@ -80,6 +82,20 @@ final readonly class InvitationDeliverySubscriber implements EventSubscriber
         $event = $eventMessage->payload();
         $this->commandBus->execute(new DeliverUserInvitation(
             $event->getActorId(),
+            $event->getUserId(),
+            $event->getActivationDeliveryId()
+        ));
+    }
+
+    /**
+     * Dispatches registration delivery without attributing an authenticated actor
+     */
+    public function onUserRegistered(EventMessage $eventMessage): void
+    {
+        /** @var UserRegistered $event */
+        $event = $eventMessage->payload();
+        $this->commandBus->execute(new DeliverUserInvitation(
+            'registration',
             $event->getUserId(),
             $event->getActivationDeliveryId()
         ));

@@ -2,7 +2,7 @@
 id: TICKET-00022
 epic: EPIC-00013
 title: Register a pending User with configured default Roles
-status: ready-for-agent
+status: in-progress
 ---
 
 # Register a pending User with configured default Roles
@@ -81,18 +81,25 @@ John approved one complete registration slice, now [TASK-00074](../tasks/00074-T
 journey, including creation-time Role-reference fencing and activation/delivery proof; no separate layer-only
 TASK is needed. The subsequent [TASK-00075](../tasks/00075-TASK.md) plan completes TICKET-00023 decomposition;
 all planning phases are accepted under [EPIC-00013](../epics/00013-EPIC.md#progress). Consult the
-[Board](../tasks/BOARD.md) for execution selection with TASK-00074 still dependent on unfinished TASK-00073.
-This remains planned v1.0.0 work, not a v0.6.0 release prerequisite. Planning approval alone does not authorize
-implementation or consumer enablement.
+[Board](../tasks/BOARD.md) for execution selection, preserving TASK-00074's now-satisfied TASK-00073 dependency.
+This remains v1.0.0-track work, not a v0.6.0 release prerequisite. Planning alone did not authorize implementation;
+John's later Build invocation authorized TASK-00074 execution, not consumer enablement.
 
 ## Child Tasks
 
 | Order | TASK ID | Title | Status |
 | --- | --- | --- | --- |
-| 74 | [TASK-00074](../tasks/00074-TASK.md) | Register a pending User atomically with default Roles | ready-for-agent |
+| 74 | [TASK-00074](../tasks/00074-TASK.md) | Register a pending User atomically with default Roles | in-progress |
 ## Progress
 
-John approved the three-area TICKET split for EPIC-00013 and one TASK per area, including this TICKET's sole
-[TASK-00074](../tasks/00074-TASK.md), blocked by [TASK-00073](../tasks/00073-TASK.md), and TICKET-00023's
-[TASK-00075](../tasks/00075-TASK.md). Decomposition is complete; consult the [Board](../tasks/BOARD.md) for execution
-selection. No implementation or consumer enablement has occurred.
+John approved the complete decomposition and subsequently invoked Build for this TICKET's sole
+[TASK-00074](../tasks/00074-TASK.md), after TASK-00073's independent acceptance and integration through PR #121.
+Engineer implementation/local verification is complete on the selected main checkout's feature branch:
+focused **694 tests / 9468 assertions**, full `./bin/build` **2197 tests / 41896 assertions**, exact **7130/7130**
+owned statements, with final planning/documentation/diff checks and no final warnings/skips. The TASK owns full
+failed-attempt, runtime/dependency and content-equivalence evidence; no tracked dependency policy/gate was weakened.
+The [registration guide](../../docs/user-registration.md) records the current package composition and evidence map.
+Parent acceptance-evidence checkboxes remain pending independent acceptance, not missing Engineer implementation.
+Independent technical Review and behavioral QA remain outstanding, so neither this TICKET nor TASK-00074 is done.
+TASK-00075 retains administrator recovery; all actual consumer database/mail/public-security qualification and
+consumer enablement remain unexecuted.

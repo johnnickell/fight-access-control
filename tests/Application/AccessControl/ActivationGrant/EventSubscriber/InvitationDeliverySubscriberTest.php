@@ -11,6 +11,7 @@ use Fight\AccessControl\Domain\AccessControl\ActivationGrant\Command\DeliverUser
 use Fight\AccessControl\Domain\AccessControl\ActivationGrant\Event\InvitationDeliveryResent;
 use Fight\AccessControl\Domain\AccessControl\ActivationGrant\Event\InvitationDeliveryRetryRequested;
 use Fight\AccessControl\Domain\AccessControl\User\Event\UserInvited;
+use Fight\AccessControl\Domain\AccessControl\User\Event\UserRegistered;
 use Fight\AccessControl\Domain\AccessControl\User\Event\UserRestored;
 use Fight\AccessControl\Domain\AccessControl\User\UserId;
 use Fight\AccessControl\Domain\AccessControl\User\UserState;
@@ -38,6 +39,7 @@ final class InvitationDeliverySubscriberTest extends TestCase
                 InvitationDeliveryResent::class         => 'onInvitationDeliveryResent',
                 InvitationDeliveryRetryRequested::class => 'onInvitationDeliveryRetryRequested',
                 UserInvited::class                      => 'onUserInvited',
+                UserRegistered::class                   => 'onUserRegistered',
                 UserRestored::class                     => 'onUserRestored'
             ],
             InvitationDeliverySubscriber::eventRegistration()
@@ -82,6 +84,24 @@ final class InvitationDeliverySubscriberTest extends TestCase
         self::assertInstanceOf(DeliverUserInvitation::class, $commandBus->executedCommands()[0]);
         self::assertSame('Admin-42', $commandBus->executedCommands()[0]->getActorId());
         self::assertSame($userId, $commandBus->executedCommands()[0]->getUserId());
+    }
+
+    public function test_registration_dispatch_does_not_invent_an_authenticated_actor(): void
+    {
+        $bus = new InMemoryCommandBus();
+        $event = new UserRegistered(
+            UserId::generate(),
+            ActivationDeliveryId::generate(),
+            EmailAddress::fromString('registration@example.test'),
+            new DateTimeImmutable('2030-01-01T00:00:00Z')
+        );
+        new InvitationDeliverySubscriber($bus)->onUserRegistered(EventMessage::create($event));
+        self::assertCount(1, $bus->executedCommands());
+        $command = $bus->executedCommands()[0];
+        self::assertInstanceOf(DeliverUserInvitation::class, $command);
+        self::assertSame('registration', $command->getActorId());
+        self::assertSame($event->getUserId(), $command->getUserId());
+        self::assertSame($event->getActivationDeliveryId(), $command->getActivationDeliveryId());
     }
 
     public function test_that_it_dispatches_delivery_for_a_pending_activation_restoration(): void

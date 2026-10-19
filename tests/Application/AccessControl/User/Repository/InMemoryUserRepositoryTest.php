@@ -324,9 +324,16 @@ final class InMemoryUserRepositoryTest extends TestCase
 
     public function test_that_authentication_replacement_preserves_role_assignments(): void
     {
-        $repository = new InMemoryUserRepository();
+        $unitOfWork = new InMemoryUnitOfWork();
+        $repository = new InMemoryUserRepository($unitOfWork);
         $current = $this->activeUser();
         $roleId = RoleId::generate();
+        new InMemoryRoleRepository($unitOfWork)->add(Role::define(
+            $roleId,
+            RoleName::fromString('ROLE_FIXTURE'),
+            [],
+            $current->getCreatedAt()
+        ));
         $current->replaceRoleAssignments([$roleId], new DateTimeImmutable('2026-01-01T00:00:00+00:00'));
         $repository->add($current);
         $replacement = clone $current;

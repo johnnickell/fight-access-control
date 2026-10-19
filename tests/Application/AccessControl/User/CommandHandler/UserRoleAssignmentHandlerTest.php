@@ -149,9 +149,9 @@ final class UserRoleAssignmentHandlerTest extends TestCase
             $role = $this->role();
             $users = new InMemoryUserRepository($unitOfWork);
             $user = UserFixture::withRoleAssignments($assigning ? [$role->getId()] : [], 7);
-            $users->add($user);
             $roles = new InMemoryRoleRepository($unitOfWork);
             $roles->add($role);
+            $users->add($user);
             $events = new InMemoryEventDispatcher();
             [$handler, $command] = $this->operation($assigning, $users, $roles, $unitOfWork, $events, $user, $role);
 
@@ -201,7 +201,10 @@ final class UserRoleAssignmentHandlerTest extends TestCase
                 [$handler, $command] = $this->operation($assigning, $users, $roles, $unitOfWork, $events, $user, $role);
                 $failure = $this->captureFailure($handler, $command);
 
-                self::assertInstanceOf(UserRoleAssignmentException::class, $failure);
+                self::assertInstanceOf(
+                    $invalid === 'identity' ? RuntimeException::class : UserRoleAssignmentException::class,
+                    $failure
+                );
                 self::assertSame(3, $user->getAuthorizationAssignmentRevision());
                 $this->assertFailure($events, $command, $failure);
             }
@@ -271,9 +274,9 @@ final class UserRoleAssignmentHandlerTest extends TestCase
                     beforeReplaceRoleAssignments: $case === 'change' ? $invalidate : null,
                     beforeValidateRoleAssignmentReference: $case === 'no-op' ? $invalidate : null
                 );
-                $users->add($user);
                 $roles = new InMemoryRoleRepository($unitOfWork);
                 $roles->add($role);
+                $users->add($user);
                 $events = new InMemoryEventDispatcher();
                 [$handler, $command] = $this->operation($assigning, $users, $roles, $unitOfWork, $events, $user, $role);
                 $failure = $this->captureFailure($handler, $command);

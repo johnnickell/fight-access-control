@@ -5,17 +5,17 @@ dependencies, acceptance, and verification.
 
 ## What's Next?
 
-First ready Task: [TASK-00074](00074-TASK.md) — Register a pending User atomically with default Roles.
+Active Task: [TASK-00074](00074-TASK.md) — Register a pending User atomically with default Roles.
 
 ## In Progress
 
-No Tasks are currently in this state.
+| Order | TASK ID | Title | Parent TICKET | Status | Blocked by | PR |
+| --- | --- | --- | --- | --- | --- | --- |
+| 74 | [TASK-00074](00074-TASK.md) | Register a pending User atomically with default Roles | [TICKET-00022](../tickets/00022-TICKET.md) — Register a pending User with configured default Roles | in-progress | [TASK-00073](00073-TASK.md) | — |
 
 ## Ready Frontier
 
-| Order | TASK ID | Title | Parent TICKET | Status | Blocked by | PR |
-| --- | --- | --- | --- | --- | --- | --- |
-| 74 | [TASK-00074](00074-TASK.md) | Register a pending User atomically with default Roles | [TICKET-00022](../tickets/00022-TICKET.md) — Register a pending User with configured default Roles | ready-for-agent | [TASK-00073](00073-TASK.md) | — |
+No Tasks are currently in this state.
 
 ## Waiting
 

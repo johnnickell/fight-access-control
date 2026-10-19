@@ -16,13 +16,27 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   and explicit null for reset/email change. Consumer providers select their own templates through
   `getActivationOrigin()`; purpose and delivery-ID idempotency remain unchanged through retry/restart/resend.
   Private correction rejects registration-origin work; deleted-to-pending restoration starts a new private invitation.
-  This slice supplies no public registration or administrator registration-recovery command.
+  Administrator registration recovery remains separate TASK-00075 work.
 
 ### Added
 
+- Optional consumer-admitted `RegisterUser` / `RegisterUserHandler` and post-commit `UserRegistered`, distinct from
+  private invitation. Required nonempty configured RoleNames resolve on every registration; all default Roles, pending
+  User, registration-origin activation/encrypted delivery and audit commit atomically with email/reservation uniqueness.
+  Safe failure events use constant text and preserve the original throwable even if notification fails. Scheduler
+  recovery survives uncertain/lost responses and publication/provider faults; existing single-use activation retains
+  the same User and Roles. Consumer exposure, public security/response, templates and actual persistence/mail
+  qualification remain unexecuted. No anonymous recovery or enablement switch is added. See
+  [registration composition and evidence](docs/user-registration.md).
+- **Breaking pre-v1 repository integration:** mandatory `UserRepository::addWithRoleAssignments()` validates exact
+  initial assignments and complete current Role snapshots under the transaction-duration creation-reference/name
+  fence shared with every Role add/replace/remove path. Implement the current contract directly; no compatibility
+  default, production Adapter or migration is supplied.
+- Opt-in registration command/fact OpenAPI components and default-suite generated-schema, creation/reference-race,
+  canonical-email lifecycle/reservation, rollback, restart, provider and same-User activation tests.
 - Opt-in `Fight.AccessControl.ActivationOrigin` OpenAPI enum component, default-suite generated contract checks,
   consumer-bindable origin CAS/restart scenarios and controlled provider/failure recovery evidence. Actual consumer
-  SQL, templates, workers and registration use-case qualification remain separate.
+  SQL, templates, workers and public-security qualification remain separate.
 
 ## [0.6.0] - 2026-10-19
 

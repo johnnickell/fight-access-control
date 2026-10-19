@@ -23,7 +23,9 @@ interface RoleRepository
      * Implementations atomically reject duplicate Role IDs and canonical names as well as membership whose
      * Permission is no longer authoritative. Custom Role membership must reference only current ADMIN_SAFE
      * Permissions. Protected managed membership is allowed only for the authoritative managed ROLE_SUPER_ADMIN.
-     * Validation and mutation occur under adapter-owned fences held through the enclosing Unit of Work.
+     * Validation and mutation occur under adapter-owned fences held through the enclosing Unit of Work. Role
+     * identity/name writers share the creation-reference fence with UserRepository::add() and
+     * addWithRoleAssignments().
      *
      * @throws Exception When an error occurs
      */
@@ -109,7 +111,10 @@ interface RoleRepository
      * Validation and mutation occur under adapter-owned permission-reference, tier and unique-name fences held
      * through the enclosing Unit of Work and shared with PermissionRepository::remove() and managed tier changes.
      * For custom Roles, every replacement membership must remain an authoritative ADMIN_SAFE Permission; managed
-     * Roles may retain protected membership only on the authoritative managed ROLE_SUPER_ADMIN.
+     * Roles may retain protected membership only on the authoritative managed ROLE_SUPER_ADMIN. Every replacement
+     * shares the transaction-duration creation-reference/name fence with UserRepository::add() and
+     * addWithRoleAssignments();
+     * registration cannot commit a previously resolved definition while a replacement commits ahead of it.
      */
     public function replace(Role $expected, Role $replacement): bool;
 
@@ -117,7 +122,8 @@ interface RoleRepository
      * Removes the expected Role atomically only when it remains current and unassigned
      *
      * Validation and mutation occur under one adapter-owned role-reference fence held through the enclosing Unit of
-     * Work and shared with UserRepository::replaceRoleAssignments(). Returns false when changed or assigned.
+     * Work and shared with UserRepository::replaceRoleAssignments(), add() and addWithRoleAssignments(). Returns false
+     * when changed or assigned. Creation-time references participate before the pending User transaction commits.
      */
     public function remove(Role $role): bool;
 }

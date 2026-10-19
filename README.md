@@ -96,8 +96,25 @@ The Unreleased [activation-origin contract](docs/credential-delivery.md#activati
 `ActivationOrigin` on activation issuance/hydration and complete-state persistence/CAS. The provider invocation's
 required fifth argument carries the stored `private_invitation` or `registration` origin (explicit null for reset/email
 change), so consumers select their own distinct templates across retry, restart and resend. Private correction
-rejects registration; deleted-to-pending restore starts private. This breaking pre-v1 contract slice does not supply
-a public registration use case, default Roles or administrator registration recovery, or qualify consumer SQL/templates.
+rejects registration; deleted-to-pending restore starts private. Consumer SQL/templates remain unqualified.
+
+### Optional User registration (Unreleased)
+
+The [registration composition guide](docs/user-registration.md) describes distinct `RegisterUser` / `RegisterUserHandler`
+and post-commit `UserRegistered`. A required nonempty constructor list of consumer `RoleName` strings is resolved anew
+inside each registration transaction; public input supplies only the new User ID and email, never actor authority,
+Roles, passwords or credentials. Empty/invalid defaults, missing/conflicting Roles and `ROLE_SUPER_ADMIN` reject.
+
+Mandatory `UserRepository::addWithRoleAssignments()` validates complete current Role snapshots and all initial
+assignments under the transaction-duration Role-reference/name fence shared by every Role writer. Canonical-email
+claims/reservations, pending User, all Roles, activation grant, encrypted registration-origin delivery and audit commit
+together. Provider invocation follows commit; normal single-use activation activates that same User with its Roles.
+
+Publication failures rethrow without undoing committed state; constant safe registration failure events preserve the
+original command/throwable. Scheduler discovery recovers delivery after restart or lost response, not by resubmitting
+registration. Consumers own exposure/enablement, public response/enumeration and abuse controls, database/mail adapters,
+templates and real qualification. No endpoint, package generic acknowledgement or anonymous recovery is supplied;
+TASK-00075 administrator registration recovery remains separate. This is v1.0.0-track work, not a v0.6.0 release prerequisite.
 
 ### Feature declarations, preparation and availability (v0.5.0)
 
