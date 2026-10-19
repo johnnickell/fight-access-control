@@ -19,8 +19,10 @@ use Fight\AccessControl\Domain\AccessControl\User\UserId;
  * state with that stored generation, never PHP object identity or identifier and revision alone, and validate the next
  * transition from stored state. Every write returns false without mutation when its latest-generation precondition or
  * state comparison loses. Same-generation replacement is allowed only for a valid next revision of the same grant,
- * credential digest, expiry, user, and owned delivery generation. Credential digests remain unique across the user's
- * complete generation history.
+ * credential digest, expiry, user, immutable activation origin, and owned delivery generation. Origin is required on
+ * hydration via ActivationOrigin::from() (unsupported values reject); never infer it from events or User history.
+ * Persist it on the grant as part of its owned delivery generation, including after material destruction.
+ * Credential digests remain unique across the user's complete generation history.
  *
  * Implementations participate in the caller's transactional unit of work: writes are staged until commit and are
  * fully rolled back with the surrounding transaction. Replacing a predecessor with a successor atomically terminalizes

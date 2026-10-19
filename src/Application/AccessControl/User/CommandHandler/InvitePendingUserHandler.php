@@ -11,6 +11,7 @@ use Fight\AccessControl\Application\AccessControl\Timing\Service\Clock;
 use Fight\AccessControl\Domain\AccessControl\ActivationGrant\ActivationDeliveryId;
 use Fight\AccessControl\Domain\AccessControl\ActivationGrant\ActivationGrant;
 use Fight\AccessControl\Domain\AccessControl\ActivationGrant\ActivationGrantRepository;
+use Fight\AccessControl\Domain\AccessControl\ActivationGrant\ActivationOrigin;
 use Fight\AccessControl\Domain\AccessControl\Audit\AuditEvidence;
 use Fight\AccessControl\Domain\AccessControl\Audit\AuditEvidenceRepository;
 use Fight\AccessControl\Domain\AccessControl\User\Command\InvitePendingUser;
@@ -76,6 +77,7 @@ final readonly class InvitePendingUserHandler implements CommandHandler
 
                 $credential = $this->credentials->generate();
                 $grant = ActivationGrant::issue(
+                    ActivationOrigin::PRIVATE_INVITATION,
                     $user->getId(),
                     $credential,
                     $issuedAt,

@@ -11,6 +11,7 @@ use Fight\AccessControl\Application\AccessControl\ActivationGrant\Service\Invita
 use Fight\AccessControl\Application\AccessControl\Timing\Service\Clock;
 use Fight\AccessControl\Domain\AccessControl\ActivationGrant\ActivationGrant;
 use Fight\AccessControl\Domain\AccessControl\ActivationGrant\ActivationGrantRepository;
+use Fight\AccessControl\Domain\AccessControl\ActivationGrant\ActivationOrigin;
 use Fight\AccessControl\Domain\AccessControl\Audit\AuditEvidence;
 use Fight\AccessControl\Domain\AccessControl\Audit\AuditEvidenceRepository;
 use Fight\AccessControl\Domain\AccessControl\User\Command\CorrectPendingInvitation;
@@ -80,6 +81,7 @@ final readonly class CorrectPendingInvitationHandler implements CommandHandler
                     !$user instanceof User
                     || !$predecessor instanceof ActivationGrant
                     || !$predecessor->isIssued()
+                    || $predecessor->getOrigin() !== ActivationOrigin::PRIVATE_INVITATION
                     || $predecessor->getDelivery()->getEmail()->canonical() !== $user->getEmail()->canonical()
                 ) {
                     throw new PendingInvitationCorrectionException(
@@ -97,6 +99,7 @@ final readonly class CorrectPendingInvitationHandler implements CommandHandler
                 $credential = $this->activationCredentialGenerator->generate();
                 $revokedPredecessor = $predecessor->revoke($issuedAt);
                 $successor = ActivationGrant::issue(
+                    ActivationOrigin::PRIVATE_INVITATION,
                     $command->getUserId(),
                     $credential,
                     $issuedAt,

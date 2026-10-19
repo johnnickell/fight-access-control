@@ -5,7 +5,9 @@ declare(strict_types=1);
 namespace Fight\Test\AccessControl\Application\AccessControl\CredentialDelivery\Service;
 
 use Fight\AccessControl\Application\AccessControl\CredentialDelivery\Service\CredentialDeliveryInvocation;
+use Fight\AccessControl\Domain\AccessControl\ActivationGrant\ActivationOrigin;
 use Fight\Common\Domain\Value\Internet\EmailAddress;
+use InvalidArgumentException;
 use LogicException;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
@@ -41,13 +43,45 @@ final class CredentialDeliveryInvocationTest extends TestCase
         self::assertSame('RAW-SECRET', $invocation->getCredential());
     }
 
+    public function test_activation_requires_an_origin_and_other_purposes_reject_one(): void
+    {
+        foreach (['activation', 'password_reset', 'email_change'] as $purpose) {
+            $origin = $purpose === 'activation' ? null : ActivationOrigin::REGISTRATION;
+            try {
+                new CredentialDeliveryInvocation(
+                    $purpose,
+                    'delivery-id',
+                    EmailAddress::fromString('alice@example.test'),
+                    'RAW-SECRET',
+                    $origin
+                );
+                self::fail('A mismatched activation origin was accepted.');
+            } catch (InvalidArgumentException $exception) {
+                self::assertStringNotContainsString('RAW-SECRET', (string) $exception);
+            }
+        }
+
+        foreach (['password_reset', 'email_change'] as $purpose) {
+            $invocation = new CredentialDeliveryInvocation(
+                $purpose,
+                'delivery-id',
+                EmailAddress::fromString('alice@example.test'),
+                'RAW-SECRET',
+                null
+            );
+            self::assertNull($invocation->getActivationOrigin());
+            self::assertSame($purpose, $invocation->getPurpose());
+        }
+    }
+
     private function invocation(): CredentialDeliveryInvocation
     {
         return new CredentialDeliveryInvocation(
             'activation',
             'delivery-generation-42',
             EmailAddress::fromString('alice@example.test'),
-            'RAW-SECRET'
+            'RAW-SECRET',
+            ActivationOrigin::PRIVATE_INVITATION
         );
     }
 }

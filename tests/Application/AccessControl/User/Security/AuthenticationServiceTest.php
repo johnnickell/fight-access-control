@@ -20,6 +20,7 @@ use Fight\AccessControl\Application\AccessControl\User\Service\LoginThrottle;
 use Fight\AccessControl\Domain\AccessControl\ActivationGrant\ActivationCredential;
 use Fight\AccessControl\Domain\AccessControl\ActivationGrant\ActivationGrant;
 use Fight\AccessControl\Domain\AccessControl\ActivationGrant\ActivationGrantRepository;
+use Fight\AccessControl\Domain\AccessControl\ActivationGrant\ActivationOrigin;
 use Fight\AccessControl\Domain\AccessControl\Audit\AuditEvidence;
 use Fight\AccessControl\Domain\AccessControl\Audit\AuditEvidenceRepository;
 use Fight\AccessControl\Domain\AccessControl\EmailChangeGrant\EmailChangeCredential;
@@ -3249,6 +3250,7 @@ final class AuthenticationServiceTest extends TestCase
     private function grant(UserId $userId): ActivationGrant
     {
         return ActivationGrant::issue(
+            ActivationOrigin::PRIVATE_INVITATION,
             $userId,
             ActivationCredential::fromString(self::ACTIVATION_CREDENTIAL),
             new DateTimeImmutable('2026-08-18T12:00:00+00:00'),

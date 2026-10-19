@@ -8,6 +8,7 @@ use DateTimeImmutable;
 use Fight\AccessControl\Application\AccessControl\User\CommandHandler\CorrectPendingInvitationHandler;
 use Fight\AccessControl\Domain\AccessControl\ActivationGrant\ActivationCredential;
 use Fight\AccessControl\Domain\AccessControl\ActivationGrant\ActivationGrant;
+use Fight\AccessControl\Domain\AccessControl\ActivationGrant\ActivationOrigin;
 use Fight\AccessControl\Domain\AccessControl\ActivationGrant\Exception\InvitationAdministrationAuthorizationException;
 use Fight\AccessControl\Domain\AccessControl\Audit\AuditEvidence;
 use Fight\AccessControl\Domain\AccessControl\User\Command\CorrectPendingInvitation;
@@ -55,6 +56,7 @@ final class CorrectPendingInvitationHandlerTest extends TestCase
         $users->add($user);
         $activationGrants = new InMemoryActivationGrantRepository($unitOfWork);
         $predecessor = ActivationGrant::issue(
+            ActivationOrigin::PRIVATE_INVITATION,
             $user->getId(),
             ActivationCredential::fromString('activate-old'),
             new DateTimeImmutable('2026-08-22T12:00:00+00:00'),
@@ -103,6 +105,7 @@ final class CorrectPendingInvitationHandlerTest extends TestCase
         ));
         self::assertFalse($activationGrants->all()[0]->getDelivery()->isRetryable());
         self::assertTrue($activationGrants->all()[1]->isIssued());
+        self::assertSame(ActivationOrigin::PRIVATE_INVITATION, $activationGrants->all()[1]->getOrigin());
         self::assertTrue($activationGrants->all()[1]->matchesCredential(
             ActivationCredential::fromString('activate-new')
         ));
@@ -476,6 +479,7 @@ final class CorrectPendingInvitationHandlerTest extends TestCase
     private function grant(User $user, string $email = 'old@example.test'): ActivationGrant
     {
         return ActivationGrant::issue(
+            ActivationOrigin::PRIVATE_INVITATION,
             $user->getId(),
             ActivationCredential::fromString('activate-old'),
             new DateTimeImmutable('2026-08-22T12:00:00+00:00'),

@@ -92,6 +92,13 @@ with terminal delivery or changed account state. All three repositories require 
 explicit User reservation revision. Cleanup requires no keys/providers; consumers protect every query/dispatch entry
 point and separately qualify PostgreSQL atomicity/CAS/destruction. Actor provenance is not authorization.
 
+The Unreleased [activation-origin contract](docs/credential-delivery.md#activation-origin-unreleased) requires
+`ActivationOrigin` on activation issuance/hydration and complete-state persistence/CAS. The provider invocation's
+required fifth argument carries the stored `private_invitation` or `registration` origin (explicit null for reset/email
+change), so consumers select their own distinct templates across retry, restart and resend. Private correction
+rejects registration; deleted-to-pending restore starts private. This breaking pre-v1 contract slice does not supply
+a public registration use case, default Roles or administrator registration recovery, or qualify consumer SQL/templates.
+
 ### Feature declarations, preparation and availability (v0.5.0)
 
 The [Feature reference guide](docs/feature-references.md) describes strict `FeatureName` validation, method-only

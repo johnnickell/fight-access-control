@@ -83,6 +83,7 @@ final readonly class ResendInvitationDeliveryHandler implements CommandHandler
                 $credential = $this->activationCredentialGenerator->generate();
                 $revokedPredecessor = $predecessor->revoke($issuedAt);
                 $replacement = ActivationGrant::issue(
+                    $predecessor->getOrigin(),
                     $command->getUserId(),
                     $credential,
                     $issuedAt,

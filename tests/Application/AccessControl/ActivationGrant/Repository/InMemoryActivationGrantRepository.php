@@ -10,6 +10,7 @@ use Fight\AccessControl\Domain\AccessControl\ActivationGrant\ActivationDeliveryI
 use Fight\AccessControl\Domain\AccessControl\ActivationGrant\ActivationGrant;
 use Fight\AccessControl\Domain\AccessControl\ActivationGrant\ActivationGrantId;
 use Fight\AccessControl\Domain\AccessControl\ActivationGrant\ActivationGrantRepository;
+use Fight\AccessControl\Domain\AccessControl\ActivationGrant\ActivationOrigin;
 use Fight\AccessControl\Domain\AccessControl\ActivationGrant\Exception\ActivationGrantException;
 use Fight\AccessControl\Domain\AccessControl\CredentialDelivery\CredentialDeliveryStatus;
 use Fight\AccessControl\Domain\AccessControl\CredentialDelivery\DueCredentialDelivery;
@@ -17,6 +18,7 @@ use Fight\AccessControl\Domain\AccessControl\CredentialDelivery\ExpiredCredentia
 use Fight\AccessControl\Domain\AccessControl\User\UserId;
 use Fight\Common\Domain\Exception\DomainException;
 use Fight\Test\AccessControl\Application\AccessControl\User\InMemoryUnitOfWork;
+use Fight\Test\AccessControl\Domain\AccessControl\ActivationGrant\ExtensibleActivationGrant;
 use Throwable;
 
 final class InMemoryActivationGrantRepository implements ActivationGrantRepository
@@ -251,6 +253,26 @@ final class InMemoryActivationGrantRepository implements ActivationGrantReposito
         return true;
     }
 
+    public function restart(): self
+    {
+        $restarted = new self($this->unitOfWork);
+        foreach ($this->activationGrants as $grant) {
+            $restarted->activationGrants[] = ExtensibleActivationGrant::reconstitute(
+                ActivationOrigin::from($grant->getOrigin()->value),
+                $grant->getId(),
+                $grant->getUserId(),
+                $grant->getCredentialHash(),
+                $grant->getExpiresAt(),
+                clone $grant->getDelivery(),
+                $grant->getConsumedAt(),
+                $grant->getRevokedAt(),
+                $grant->getRevision()
+            );
+        }
+
+        return $restarted;
+    }
+
     /** @return list<ActivationGrant> */
     public function all(): array
     {
@@ -435,6 +457,7 @@ final class InMemoryActivationGrantRepository implements ActivationGrantReposito
     {
         return $replacement->getId()->equals($predecessor->getId())
             && $replacement->getUserId()->equals($predecessor->getUserId())
+            && $replacement->getOrigin() === $predecessor->getOrigin()
             && $replacement->getCredentialHash() === $predecessor->getCredentialHash()
             && $replacement->getExpiresAt() == $predecessor->getExpiresAt()
             && $replacement->getDelivery()->getId()->equals($predecessor->getDelivery()->getId())
@@ -455,6 +478,7 @@ final class InMemoryActivationGrantRepository implements ActivationGrantReposito
 
         return $this->sameRevision($current, $predecessor)
             && $current->getUserId()->equals($predecessor->getUserId())
+            && $current->getOrigin() === $predecessor->getOrigin()
             && $current->getCredentialHash() === $predecessor->getCredentialHash()
             && $current->getExpiresAt() == $predecessor->getExpiresAt()
             && $current->getConsumedAt() == $predecessor->getConsumedAt()

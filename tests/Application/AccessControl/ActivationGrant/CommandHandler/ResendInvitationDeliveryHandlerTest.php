@@ -9,6 +9,7 @@ use Fight\AccessControl\Application\AccessControl\ActivationGrant\CommandHandler
 use Fight\AccessControl\Domain\AccessControl\ActivationGrant\ActivationCredential;
 use Fight\AccessControl\Domain\AccessControl\ActivationGrant\ActivationDeliveryId;
 use Fight\AccessControl\Domain\AccessControl\ActivationGrant\ActivationGrant;
+use Fight\AccessControl\Domain\AccessControl\ActivationGrant\ActivationOrigin;
 use Fight\AccessControl\Domain\AccessControl\ActivationGrant\Command\ResendInvitationDelivery;
 use Fight\AccessControl\Domain\AccessControl\ActivationGrant\Event\InvitationDeliveryResent;
 use Fight\AccessControl\Domain\AccessControl\ActivationGrant\Exception\ActivationDeliveryNotResendableException;
@@ -41,6 +42,7 @@ final class ResendInvitationDeliveryHandlerTest extends TestCase
     {
         $userId = UserId::generate();
         $predecessor = ActivationGrant::issue(
+            ActivationOrigin::PRIVATE_INVITATION,
             $userId,
             ActivationCredential::fromString('activate-old'),
             new DateTimeImmutable('2026-08-18T12:00:00+00:00'),
@@ -89,6 +91,7 @@ final class ResendInvitationDeliveryHandlerTest extends TestCase
     {
         $userId = UserId::generate();
         $issued = ActivationGrant::issue(
+            ActivationOrigin::PRIVATE_INVITATION,
             $userId,
             ActivationCredential::fromString('activate-old'),
             new DateTimeImmutable('2026-08-18T12:00:00+00:00'),
@@ -131,6 +134,7 @@ final class ResendInvitationDeliveryHandlerTest extends TestCase
     {
         $userId = UserId::generate();
         $predecessor = ActivationGrant::issue(
+            ActivationOrigin::PRIVATE_INVITATION,
             $userId,
             ActivationCredential::fromString('activate-old'),
             new DateTimeImmutable('2026-08-18T12:00:00+00:00'),
@@ -172,6 +176,7 @@ final class ResendInvitationDeliveryHandlerTest extends TestCase
         $unitOfWork = new InMemoryUnitOfWork();
         $activationGrantRepository = new InMemoryActivationGrantRepository($unitOfWork);
         self::assertTrue($activationGrantRepository->add(ActivationGrant::issue(
+            ActivationOrigin::PRIVATE_INVITATION,
             $userId,
             ActivationCredential::fromString('activate-old'),
             new DateTimeImmutable('2026-08-18T12:00:00+00:00'),
@@ -204,6 +209,7 @@ final class ResendInvitationDeliveryHandlerTest extends TestCase
         $userId = UserId::generate();
         $activationGrantRepository = new InMemoryActivationGrantRepository();
         $issued = ActivationGrant::issue(
+            ActivationOrigin::PRIVATE_INVITATION,
             $userId,
             ActivationCredential::fromString('activate-old'),
             new DateTimeImmutable('2026-08-18T12:00:00+00:00'),

@@ -28,6 +28,7 @@ class ActivationGrant
      * Creates one immutable activation aggregate generation.
      */
     protected function __construct(
+        private readonly ActivationOrigin $origin,
         private readonly ActivationGrantId $id,
         private readonly UserId $userId,
         private readonly string $credentialHash,
@@ -43,6 +44,7 @@ class ActivationGrant
      * Issues activation authority and its owned delivery work
      */
     public static function issue(
+        ActivationOrigin $origin,
         UserId $userId,
         ActivationCredential $credential,
         DateTimeImmutable $issuedAt,
@@ -57,6 +59,7 @@ class ActivationGrant
         }
 
         return new static(
+            $origin,
             ActivationGrantId::generate(),
             $userId,
             hash('sha256', $credential->toString()),
@@ -70,6 +73,14 @@ class ActivationGrant
                 $issuedAt
             )
         );
+    }
+
+    /**
+     * Returns the immutable activation journey for this grant and delivery generation
+     */
+    public function getOrigin(): ActivationOrigin
+    {
+        return $this->origin;
     }
 
     /**
@@ -197,6 +208,7 @@ class ActivationGrant
         }
 
         return new static(
+            $this->origin,
             $this->id,
             $this->userId,
             $this->credentialHash,
@@ -218,6 +230,7 @@ class ActivationGrant
         }
 
         return new static(
+            $this->origin,
             $this->id,
             $this->userId,
             $this->credentialHash,
@@ -316,6 +329,7 @@ class ActivationGrant
         }
 
         return new static(
+            $this->origin,
             $this->id,
             $this->userId,
             $this->credentialHash,

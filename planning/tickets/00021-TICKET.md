@@ -2,7 +2,7 @@
 id: TICKET-00021
 epic: EPIC-00013
 title: Preserve registration and private-invitation delivery origin
-status: ready-for-agent
+status: done
 ---
 
 # Preserve registration and private-invitation delivery origin
@@ -82,10 +82,14 @@ selection. This is planned v1.0.0 work, not a v0.6.0 release prerequisite or imp
 
 | Order | TASK ID | Title | Status |
 | --- | --- | --- | --- |
-| 73 | [TASK-00073](../tasks/00073-TASK.md) | Carry activation-delivery origin through provider recovery | ready-for-agent |
+| 73 | [TASK-00073](../tasks/00073-TASK.md) | Carry activation-delivery origin through provider recovery | done |
 ## Progress
 
 John approved the three-area TICKET split for EPIC-00013, then one cohesive TASK per area in dependency order
 [TASK-00073](../tasks/00073-TASK.md) → [TASK-00074](../tasks/00074-TASK.md) →
 [TASK-00075](../tasks/00075-TASK.md). Decomposition is complete; the [Board](../tasks/BOARD.md) owns execution
-selection. This TICKET's implementation, acceptance and actual consumer qualification remain unstarted.
+selection. TASK-00073 is done for independently accepted package implementation and required behavioral QA: Review ACCEPT and
+QA PASS cover candidate `899dcbd9abdb22df1ca359afaa173789190fc780` against unchanged base `2edbd347`. Its
+administrative Landing closeout records that accepted candidate; publication/merge remain separate. Actual consumer
+SQL, template and runtime qualification remains unexecuted. The TASK owns criterion-to-test evidence and the ignored
+Work/Land handoffs own execution and delivery receipts; this TICKET closes automatically with its sole terminal child.

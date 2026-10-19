@@ -8,11 +8,13 @@ use DateTimeImmutable;
 use Fight\AccessControl\Domain\AccessControl\ActivationGrant\ActivationDelivery;
 use Fight\AccessControl\Domain\AccessControl\ActivationGrant\ActivationGrant;
 use Fight\AccessControl\Domain\AccessControl\ActivationGrant\ActivationGrantId;
+use Fight\AccessControl\Domain\AccessControl\ActivationGrant\ActivationOrigin;
 use Fight\AccessControl\Domain\AccessControl\User\UserId;
 
 final class ExtensibleActivationGrant extends ActivationGrant
 {
     public static function reconstitute(
+        ActivationOrigin $origin,
         ActivationGrantId $id,
         UserId $userId,
         string $credentialHash,
@@ -23,6 +25,7 @@ final class ExtensibleActivationGrant extends ActivationGrant
         int $revision = 0
     ): self {
         return new self(
+            $origin,
             $id,
             $userId,
             $credentialHash,

@@ -6,9 +6,12 @@ namespace Fight\Test\AccessControl\Application\AccessControl\User\CommandHandler
 
 use DateInterval;
 use DateTimeImmutable;
+use Fight\AccessControl\Application\AccessControl\ActivationGrant\CommandHandler\DeliverUserInvitationHandler;
 use Fight\AccessControl\Application\AccessControl\User\CommandHandler\RestoreUserHandler;
 use Fight\AccessControl\Domain\AccessControl\ActivationGrant\ActivationCredential;
 use Fight\AccessControl\Domain\AccessControl\ActivationGrant\ActivationGrant;
+use Fight\AccessControl\Domain\AccessControl\ActivationGrant\ActivationOrigin;
+use Fight\AccessControl\Domain\AccessControl\ActivationGrant\Command\DeliverUserInvitation;
 use Fight\AccessControl\Domain\AccessControl\Audit\AuditEvidence;
 use Fight\AccessControl\Domain\AccessControl\User\Command\RestoreUser;
 use Fight\AccessControl\Domain\AccessControl\User\Event\UserRestored;
@@ -24,6 +27,7 @@ use Fight\Test\AccessControl\Application\AccessControl\ActivationGrant\Repositor
 use Fight\Test\AccessControl\Application\AccessControl\ActivationGrant\Service\FixedCredentialGenerator;
 use Fight\Test\AccessControl\Application\AccessControl\ActivationGrant\Service\PrefixInvitationDeliveryCipher;
 use Fight\Test\AccessControl\Application\AccessControl\Audit\Repository\InMemoryAuditEvidenceRepository;
+use Fight\Test\AccessControl\Application\AccessControl\CredentialDelivery\Service\RecordingCredentialDeliveryProvider;
 use Fight\Test\AccessControl\Application\AccessControl\Event\InMemoryEventDispatcher;
 use Fight\Test\AccessControl\Application\AccessControl\Timing\Service\FixedClock;
 use Fight\Test\AccessControl\Application\AccessControl\User\InMemoryUnitOfWork;
@@ -100,12 +104,31 @@ final class RestoreUserHandlerTest extends TestCase
         self::assertCount(2, $grants->all());
         $successor = $grants->all()[1];
         self::assertTrue($successor->isIssued());
+        self::assertSame(ActivationOrigin::REGISTRATION, $grants->all()[0]->getOrigin());
+        self::assertSame(ActivationOrigin::PRIVATE_INVITATION, $successor->getOrigin());
+        self::assertFalse($successor->getDelivery()->getId()->equals($grants->all()[0]->getDelivery()->getId()));
         self::assertSame('ciphertext:restore-credential', $successor->getDelivery()->getEncryptedMaterial()?->reveal());
         self::assertSame('user.restored', $audit->all()[0]->action());
         self::assertCount(1, $events->events());
         self::assertInstanceOf(UserRestored::class, $events->events()[0]);
         self::assertSame(UserState::PENDING_ACTIVATION, $events->events()[0]->getRestorationState());
         self::assertSame($successor->getDelivery()->getId(), $events->events()[0]->getActivationDeliveryId());
+        $provider = new RecordingCredentialDeliveryProvider();
+        new DeliverUserInvitationHandler(
+            $grants->restart(),
+            $audit,
+            $unitOfWork,
+            new PrefixInvitationDeliveryCipher(),
+            $provider,
+            new FixedClock('2026-08-22T13:00:00+00:00'),
+            new InMemoryEventDispatcher()
+        )->handle(CommandMessage::create(new DeliverUserInvitation(
+            'worker',
+            $user->getId(),
+            $successor->getDelivery()->getId()
+        )));
+        self::assertSame(ActivationOrigin::PRIVATE_INVITATION, $provider->invocations()[0]->getActivationOrigin());
+        self::assertSame('restore-credential', $provider->invocations()[0]->getCredential());
     }
 
     public function test_that_the_command_and_event_round_trip(): void
@@ -311,6 +334,7 @@ final class RestoreUserHandlerTest extends TestCase
     ): void {
         $issuedAt = new DateTimeImmutable('2026-08-19T10:00:00+00:00');
         $grant = ActivationGrant::issue(
+            ActivationOrigin::REGISTRATION,
             $userId,
             ActivationCredential::fromString('original-credential'),
             $issuedAt,

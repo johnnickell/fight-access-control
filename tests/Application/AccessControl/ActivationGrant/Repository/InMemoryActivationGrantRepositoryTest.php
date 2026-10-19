@@ -8,6 +8,7 @@ use DateTimeImmutable;
 use Fight\AccessControl\Domain\AccessControl\ActivationGrant\ActivationCredential;
 use Fight\AccessControl\Domain\AccessControl\ActivationGrant\ActivationDelivery;
 use Fight\AccessControl\Domain\AccessControl\ActivationGrant\ActivationGrant;
+use Fight\AccessControl\Domain\AccessControl\ActivationGrant\ActivationOrigin;
 use Fight\AccessControl\Domain\AccessControl\CredentialDelivery\CredentialDeliveryClaimToken;
 use Fight\AccessControl\Domain\AccessControl\CredentialDelivery\CredentialDeliveryFailure;
 use Fight\AccessControl\Domain\AccessControl\CredentialDelivery\CredentialDeliveryStatus;
@@ -179,6 +180,7 @@ final class InMemoryActivationGrantRepositoryTest extends TestCase
         ActivationDelivery $delivery
     ): ActivationGrant {
         return ExtensibleActivationGrant::reconstitute(
+            $grant->getOrigin(),
             $grant->getId(),
             $grant->getUserId(),
             $grant->getCredentialHash(),
@@ -195,6 +197,7 @@ final class InMemoryActivationGrantRepositoryTest extends TestCase
     private function grant(UserId $userId, string $credential, string $issuedAt = '12:00:00'): ActivationGrant
     {
         return ActivationGrant::issue(
+            ActivationOrigin::PRIVATE_INVITATION,
             $userId,
             ActivationCredential::fromString($credential),
             $this->at($issuedAt),

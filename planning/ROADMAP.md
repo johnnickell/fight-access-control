@@ -208,5 +208,5 @@ not claimed.
 | [EPIC-00010](epics/00010-EPIC.md) | v0.5.0 | done | 3 | 7 |
 | [EPIC-00011](epics/00011-EPIC.md) | v0.5.0 | done | 2 | 3 |
 | [EPIC-00012](epics/00012-EPIC.md) | v0.5.0 | done | 1 | 1 |
-| [EPIC-00013](epics/00013-EPIC.md) | v1.0.0 | ready-for-agent | 3 | 3 |
+| [EPIC-00013](epics/00013-EPIC.md) | v1.0.0 | in-progress | 3 | 3 |
 <!-- generated:epic-status:end -->

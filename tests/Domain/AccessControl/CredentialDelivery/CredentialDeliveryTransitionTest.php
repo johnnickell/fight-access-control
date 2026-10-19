@@ -7,6 +7,7 @@ namespace Fight\Test\AccessControl\Domain\AccessControl\CredentialDelivery;
 use DateTimeImmutable;
 use Fight\AccessControl\Domain\AccessControl\ActivationGrant\ActivationCredential;
 use Fight\AccessControl\Domain\AccessControl\ActivationGrant\ActivationGrant;
+use Fight\AccessControl\Domain\AccessControl\ActivationGrant\ActivationOrigin;
 use Fight\AccessControl\Domain\AccessControl\CredentialDelivery\CredentialDelivery;
 use Fight\AccessControl\Domain\AccessControl\CredentialDelivery\CredentialDeliveryClaimToken;
 use Fight\AccessControl\Domain\AccessControl\CredentialDelivery\CredentialDeliveryFailure;
@@ -102,6 +103,7 @@ final class CredentialDeliveryTransitionTest extends TestCase
 
         return match ($purpose) {
             'activation' => ActivationGrant::issue(
+                ActivationOrigin::PRIVATE_INVITATION,
                 $user,
                 ActivationCredential::fromString('test-credential'),
                 $at,
