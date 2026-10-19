@@ -6,6 +6,94 @@ Fight AccessControl owns framework-neutral identity, credential, session, author
 behavior shared by Fight applications. The repository-local behavioral and security authority is
 [TICKET-00001](planning/tickets/00001-TICKET.md).
 
+## v0.6.0 release preparation — 2026-10-19
+
+John selected v0.6.0 and the main checkout for `release/0.6.0` from clean `develop` `cc364511`, the merge of
+[PR #118](https://github.com/johnnickell/fight-access-control/pull/118). The
+[release overview](docs/release-0.6.0.md) covers TASK-00076's independently accepted expiry-aware invitation retry
+and required fourth-argument Clock. This is a breaking pre-v1 minor; PHP 8.5+ and Common ^1.3 remain unchanged.
+No production/test/dependency change is part of this release preparation. Optional self-registration remains
+separate planned v1.0.0 work, not included behavior or a v0.6.0 readiness prerequisite.
+
+The preparation `./bin/build` passes **2122 tests / 41004 assertions**, exact **7021/7021 statements**, with no
+final test warnings/skips. Its normal resolver updates only ignored dev dependency swagger-php **6.16.0 → 6.17.0**;
+Common remains v1.4.0 within unchanged ^1.3. Planning validates **111 records / 7 active** and documentation links
+pass. This evidence-only checkpoint update retains that full gate with unchanged executable inputs and targeted
+checks. The ignored release handoff records the tested snapshot, direct exit, runtime and dependency identities.
+
+At this preparation checkpoint, release-content acceptance, release PR/integration, exact-main certification,
+human signing and publication remain outstanding. The ignored `.runs/handoffs/release-0.6.0/ledger.md` owns
+live preparation/delivery evidence. Package verification does not qualify actual PostgreSQL/provider/clock behavior
+or authorize consumer source/lock adoption or deployment. Earlier no-version-selected and publication-pending
+checkpoints below are historical; v0.5.0 was published on 2026-10-06 and merged back through PR #115.
+
+## Expiry-aware invitation retry — TASK-00076 accepted
+
+[Standalone bug TASK-00076](planning/tasks/00076-TASK.md) repairs the invitation-recovery blocker reported by
+Agent OS TASK-00042 against v0.5.0 (`46ffcf75f1e14dbc5b58a5049e05a600ce5cf8a0`). John approved the three decisions
+and main checkout before implementation: existing coarse safe typed failure remains primary through notification
+failure; one fresh post-read transactional admission sample, not a commit/completion deadline; required Clock with
+breaking pre-v1 minor classification and no fallback. No exact release was selected at that implementation checkpoint;
+the subsequent v0.6.0 preparation is recorded above.
+
+The retry handler now consults the grant's existing usability predicate before transition/CAS/audit. Exact/post-expiry
+rejection preserves persisted state, audit and delivery identity; the safe not-retryable exception remains caller-mappable.
+Valid retry preserves authority and history. Existing worker expiry, complete-state CAS, rollback, post-commit delivery
+and at-least-once semantics remain. Expiry after admission can still fail the subscriber after the retry commit;
+no rollback of that commit is implied. Expired invitations need explicit fresh-grant resend, not implicit cleanup or
+TTL extension. [Delivery composition](docs/credential-delivery.md) documents required constructor wiring and timing.
+
+Regression-first package evidence and gate receipts belong to the TASK: focused **299 tests / 5185 assertions** and
+canonical full gate **2122 tests / 41004 assertions**, exact **7021/7021 statements**, pass. The canonical resolver
+updated ignored local Common to **v1.4.0** within unchanged `^1.3`; no new API/minimum is used. Initial test-formatting
+and setup failures are retained, with no final test warnings/skips. Independent technical review **ACCEPT** and
+behavioral **QA PASS** cover candidate `0cd2afab1728f12d332bd2f70bd15b2d1baa5e8f` against unchanged `develop`
+`e7a9e32ca91858c90b5be024ddf7955e96751a14`, with no outstanding findings. QA passed nine independent package
+scenarios; visual evidence is N/A. TASK-00076 is done for accepted implementation/verification, not publication,
+merge or release; this standalone bug has no parent to close. Land retains the earlier full gate only with verified
+unchanged executable/build/runtime/dependency inputs and current targeted checks under the Testing standard.
+Authorized Land created [PR #118](https://github.com/johnnickell/fight-access-control/pull/118) against unchanged
+`develop`, initially open/draft at administrative head `6e43f7c`; sanitized inline Before/After/QA evidence is published
+and read back. Final metadata gates/push and ready transition remain pending at this tracked checkpoint. Hosted CI
+is not checked. The ignored Land receipt owns final delivery facts and the administrative-only provenance bridge;
+canonical Review/QA remain unchanged. Main checkout, branch, shared image and useful evidence are retained.
+Earlier harness
+write denials left the reusable Work handoff and summary receipt in permitted
+`.runs/tasks/TASK-00076/runs/` alongside the complete log/result/snapshot bundle in `.runs/logs/TASK-00076/`. This is
+inconsistent recovery state, not expired-credential activation. Controlled package tests do not qualify the consumer's
+actual PostgreSQL/shared connection, physical clock or provider deduplication. Tagged-release qualification and deliberate
+consumer adoption remain separate; no Agent OS source/lock update, release or deployment is authorized.
+
+## Optional self-registration planning for v1.0.0
+
+John requested a separate opt-in User self-registration track before v1.0.0, without enabling it by default in
+fight-agent-os or starters or changing the v0.5.0 feature set. The closed
+[Wayfinder map](planning/wayfinder/self-registration-v1-map.md) records John's decision that consumer projects own
+registration exposure/enablement; AccessControl supplies use-case operations without an installation-enable gate.
+John chose consumer-configured RoleName strings at registration handler construction, resolved by name for automatic
+assignment. The list must be nonempty; missing Roles or `ROLE_SUPER_ADMIN` reject the whole registration without
+leaving a pending User or delivery. [WF-026](planning/wayfinder/tickets/WF-026-registration-admission-and-default-authority.md)
+is Closed: pending User, default Roles, activation grant/delivery and audit commit atomically with canonical-email
+and Role-reference safety; email invocation follows commit. Closed
+[WF-027](planning/wayfinder/tickets/WF-027-registration-delivery-origin.md) reuses activation with durable
+registration/private-invitation origin exposed to the consumer provider across recovery and resend. Distinct
+administrator registration recovery retains the pending User and Roles for wrong-address correction or fresh
+activation after expiry at the same email; restoring a deleted User to pending is a new private invitation.
+Consumer projects own the templates for both messages. Closed
+[WF-028](planning/wayfinder/tickets/WF-028-public-registration-safety-boundary.md) retains existing duplicate-email
+rejection without package generic success; consumers own public throttling, challenges, logging and response mapping.
+All three decisions are Closed. John approved the single destination now written as
+[EPIC-00013 — Optional User Self-Registration and Registration-Origin Delivery for v1.0.0](planning/epics/00013-EPIC.md).
+The map is Closed; John approved three requirement areas, written as
+[TICKET-00021](planning/tickets/00021-TICKET.md) (durable activation-delivery origin),
+[TICKET-00022](planning/tickets/00022-TICKET.md) (atomic default-Role registration) and
+[TICKET-00023](planning/tickets/00023-TICKET.md) (administrator pending-registration recovery). John then
+approved one TASK per TICKET: [TASK-00073](planning/tasks/00073-TASK.md) for durable origin/provider recovery →
+[TASK-00074](planning/tasks/00074-TASK.md) for atomic default-Role registration →
+[TASK-00075](planning/tasks/00075-TASK.md) for authorized administrator recovery. All planning phases are
+complete; consult the Board for execution selection. No implementation, release or consumer integration is
+authorized by this handoff.
+
 ## v0.5.0 release preparation — 2026-10-06
 
 John selected v0.5.0 and the main checkout for release preparation from clean `develop` `4163e58`, which includes

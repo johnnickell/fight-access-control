@@ -24,3 +24,6 @@ This generated index is a projection; individual records remain canonical.
 | [TICKET-00018](00018-TICKET.md) | Rename an Agent without changing its authority | done |
 | [TICKET-00019](00019-TICKET.md) | Read and update the authenticated Agent profile through MCP tools | done |
 | [TICKET-00020](00020-TICKET.md) | Clean up expired human credential work after downtime | done |
+| [TICKET-00021](00021-TICKET.md) | Preserve registration and private-invitation delivery origin | ready-for-agent |
+| [TICKET-00022](00022-TICKET.md) | Register a pending User with configured default Roles | ready-for-agent |
+| [TICKET-00023](00023-TICKET.md) | Recover a pending registration administratively | ready-for-agent |

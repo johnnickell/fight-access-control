@@ -7,6 +7,26 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.6.0] - 2026-10-19
+
+Pre-v1 breaking composition change. See the [release and integration overview](docs/release-0.6.0.md).
+This dated section prepares release notes; it is not evidence of signing, publication or consumer qualification.
+
+### Fixed
+
+- Invitation delivery retry rejects unusable activation authority at a fresh post-read transactional clock sample,
+  including exact expiry, without changing retry state/audit or publishing retry-request facts. The existing safe
+  `ActivationDeliveryNotRetryableException` remains caller-mappable even if failure notification throws. Current CAS,
+  same-generation identity, rollback and post-commit/at-least-once delivery semantics remain unchanged. Expired work
+  requires explicit fresh-grant resend, not retry; [composition and timing limits](docs/credential-delivery.md) apply.
+
+### Changed
+
+- **Breaking pre-v1 minor:** `RetryInvitationDeliveryHandler` now requires Clock as its fourth constructor argument,
+  before EventDispatcher. Update consumer DI/factories; no compatibility default or fallback is supplied.
+  Payloads, repository contracts, schema and idempotency formats are unchanged. Package verification
+  is not real-consumer PostgreSQL/provider qualification, release publication or dependency adoption.
+
 ## [0.5.0] - 2026-10-06
 
 Pre-v1 breaking contract release. See the [release and integration overview](docs/release-0.5.0.md).
@@ -245,7 +265,8 @@ This dated section prepares release notes; it is not evidence of signing, public
   tooling, and exact production-statement coverage.
 - Repository-local product, security, architecture, contribution, and Git Flow authority under the MIT License.
 
-[Unreleased]: https://github.com/johnnickell/fight-access-control/compare/v0.5.0...HEAD
+[Unreleased]: https://github.com/johnnickell/fight-access-control/compare/v0.6.0...HEAD
+[0.6.0]: https://github.com/johnnickell/fight-access-control/compare/v0.5.0...v0.6.0
 [0.5.0]: https://github.com/johnnickell/fight-access-control/compare/v0.4.0...v0.5.0
 [0.4.0]: https://github.com/johnnickell/fight-access-control/compare/v0.3.0...v0.4.0
 [0.3.0]: https://github.com/johnnickell/fight-access-control/compare/v0.2.0...v0.3.0

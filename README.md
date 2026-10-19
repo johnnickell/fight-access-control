@@ -8,11 +8,15 @@ Only the current pre-v1 API and persisted contract are supported; see
 migration/backfill routes. [Credential delivery](docs/credential-delivery.md) is recoverable and provider-neutral
 for invitation, password reset and email change.
 
-The [v0.5.0 contract overview](docs/release-0.5.0.md) covers recoverable Agent credentials, human credential expiry,
-Permission-based Features and Agent-protected MCP profile Tools. It requires PHP **8.5+** and Fight Common **^1.3**.
-This is a breaking pre-v1 contract with mandatory adapter changes, not a compatibility/migration layer. At the
-2026-10-06 preparation checkpoint, signing/publication are outstanding; these docs are not a release receipt or
-qualified consumer deployment.
+The [v0.6.0 release preparation](docs/release-0.6.0.md) adds expiry-aware manual invitation retry. Its required
+`Clock` constructor argument is a breaking pre-v1 composition change, not a drop-in v0.5.x patch. PHP **8.5+** and
+Fight Common **^1.3** requirements are unchanged. At the 2026-10-19 preparation checkpoint, final-main certification,
+signing and publication remain outstanding; these docs are not a release receipt or qualified consumer deployment.
+
+The [v0.5.0 release](https://github.com/johnnickell/fight-access-control/releases/tag/v0.5.0) and
+[contract overview](docs/release-0.5.0.md) cover recoverable Agent credentials, human credential expiry,
+Permission-based Features and Agent-protected MCP profile Tools. Its breaking adapter contracts remain current;
+no compatibility/migration layer is supplied.
 
 The [v0.4.0 release](https://github.com/johnnickell/fight-access-control/releases/tag/v0.4.0) introduces the
 pre-1.0 Permission tier contract and requires consumer persistence and projection adoption; see the
@@ -75,6 +79,11 @@ Consumers may use post-commit event subscribers for immediate dispatch, but must
 purpose, User ID, and delivery ID. Pending work, due retries, and expired leases are returned in deterministic order.
 A crash after provider acceptance and before outcome commit can repeat the provider call with the same identity, so
 this contract is at-least-once and does not claim exactly-once delivery.
+
+For manual invitation retry, the v0.6.0
+[admission contract](docs/credential-delivery.md#manual-invitation-retry-admission-v060) requires a fresh
+post-read transactional clock sample. Exact/post-expiry rejection preserves retry state/audit; expired invitations
+need explicit fresh-grant resend, not retry. Admission before expiry does not promise completion before expiry.
 
 For downtime through expiry, the v0.5.0 [human credential expiry guide](docs/credential-expiry.md) adds
 `FindExpiredCredentialDeliveriesHandler` and `ExpireInvitationDeliveryHandler`, alongside existing reset/email expiry.
