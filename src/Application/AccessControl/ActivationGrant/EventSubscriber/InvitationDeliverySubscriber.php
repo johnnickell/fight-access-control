@@ -8,6 +8,7 @@ use Fight\AccessControl\Domain\AccessControl\ActivationGrant\ActivationDeliveryI
 use Fight\AccessControl\Domain\AccessControl\ActivationGrant\Command\DeliverUserInvitation;
 use Fight\AccessControl\Domain\AccessControl\ActivationGrant\Event\InvitationDeliveryResent;
 use Fight\AccessControl\Domain\AccessControl\ActivationGrant\Event\InvitationDeliveryRetryRequested;
+use Fight\AccessControl\Domain\AccessControl\User\Event\PendingRegistrationRecovered;
 use Fight\AccessControl\Domain\AccessControl\User\Event\UserInvited;
 use Fight\AccessControl\Domain\AccessControl\User\Event\UserRegistered;
 use Fight\AccessControl\Domain\AccessControl\User\Event\UserRestored;
@@ -39,6 +40,7 @@ final readonly class InvitationDeliverySubscriber implements EventSubscriber
         return [
             InvitationDeliveryResent::class         => 'onInvitationDeliveryResent',
             InvitationDeliveryRetryRequested::class => 'onInvitationDeliveryRetryRequested',
+            PendingRegistrationRecovered::class     => 'onPendingRegistrationRecovered',
             UserInvited::class                      => 'onUserInvited',
             UserRegistered::class                   => 'onUserRegistered',
             UserRestored::class                     => 'onUserRestored'
@@ -68,6 +70,20 @@ final readonly class InvitationDeliverySubscriber implements EventSubscriber
         $event = $eventMessage->payload();
         $this->commandBus->execute(new DeliverUserInvitation(
             $event->getActorId(),
+            $event->getUserId(),
+            $event->getActivationDeliveryId()
+        ));
+    }
+
+    /**
+     * Dispatches registration delivery after confirmed administrator recovery
+     */
+    public function onPendingRegistrationRecovered(EventMessage $eventMessage): void
+    {
+        /** @var PendingRegistrationRecovered $event */
+        $event = $eventMessage->payload();
+        $this->commandBus->execute(new DeliverUserInvitation(
+            $event->getActorId()->toString(),
             $event->getUserId(),
             $event->getActivationDeliveryId()
         ));

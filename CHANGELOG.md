@@ -23,10 +23,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   and explicit null for reset/email change. Consumer providers select their own templates through
   `getActivationOrigin()`; purpose and delivery-ID idempotency remain unchanged through retry/restart/resend.
   Private correction rejects registration-origin work; deleted-to-pending restoration starts a new private invitation.
-  Administrator registration recovery remains separate TASK-00075 work.
+  Administrator registration recovery uses the distinct operation below.
+
+- **Breaking pre-v1 recovery composition:** mandatory `UserRepository::replacePendingRegistration()` validates/fences
+  complete pending User state through transaction completion, including unchanged-email reissue. Every User and
+  activation-generation writer shares its transaction-duration fence. Protected `InvitationDeliveryStatusView` now
+  requires/exposes `activation_delivery_id` for exact generation expectations; its schema is aligned. No old-contract
+  fallback or migration is supplied.
 
 ### Added
 
+- Administrator-only `RecoverPendingRegistration` / handler and post-commit `PendingRegistrationRecovered`. Exact
+  actor/target authority is checked through mandatory `RegistrationRecoveryAuthorization` inside the transaction.
+  Wrong-address correction and same-email activation reissue at/after expiry retain the existing pending User/Role set,
+  revoke predecessor authority and atomically commit fresh registration-origin encrypted delivery plus audit.
+  The existing subscriber routes recovery to the outside-transaction worker. Safe failure evidence, original-throwable
+  rethrow, response-loss/uncertain-commit resolution, both-winner modeled races and generated schemas are covered.
+  No anonymous recovery or real consumer qualification is claimed; see [recovery composition](docs/registration-recovery.md).
 - Optional consumer-admitted `RegisterUser` / `RegisterUserHandler` and post-commit `UserRegistered`, distinct from
   private invitation. Required nonempty configured RoleNames resolve on every registration; all default Roles, pending
   User, registration-origin activation/encrypted delivery and audit commit atomically with email/reservation uniqueness.

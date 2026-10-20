@@ -115,10 +115,14 @@ and protect event/audit access (messages contain email/identity).
   unavailable/non-authoritative storage is not proof of rollback. No new public existence query is supplied.
 - Lost caller response is not an idempotent registration protocol. Repeating a claimed email still rejects; it does not
   replay the fact, reissue activation or silently reuse another User. The scheduler recovers existing delivery. Authorized
-  administrator registration correction/fresh activation remains separate TASK-00075 work, not anonymous recovery.
+  administrator [registration correction/fresh activation](registration-recovery.md) is a distinct trusted operation,
+  never anonymous recovery or a duplicate-registration retry.
 
 Private invitations retain `PRIVATE_INVITATION`, private correction rejects registration, and deleted-to-pending restore
-starts a fresh private invitation. Password-reset and email-change purpose/origin/claim behavior are unchanged.
+starts a fresh private invitation. Administrator `RecoverPendingRegistration` retains the pending User and exact Roles,
+using its expected delivery ID and transaction-scoped target authorization; it never resolves new default Roles.
+The existing protected invitation status now exposes `activation_delivery_id` for generation inspection. See the
+[recovery composition and evidence](registration-recovery.md). Password-reset and email-change behavior is unchanged.
 
 ## Consumer-owned security and unexecuted qualification
 

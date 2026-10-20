@@ -30,6 +30,9 @@ final class InMemoryActivationGrantRepository implements ActivationGrantReposito
 
     private int $replaceCalls = 0;
 
+    /** @var array<string, InMemoryUnitOfWork> */
+    private array $writers = [];
+
     public function __construct(
         private readonly ?InMemoryUnitOfWork $unitOfWork = null,
         private readonly bool $addSucceeds = true,
@@ -38,8 +41,14 @@ final class InMemoryActivationGrantRepository implements ActivationGrantReposito
         private readonly ?Closure $beforeReplace = null,
         private readonly ?int $replaceFailureOnCall = null,
         private readonly int $beforeReplaceOnCall = 1,
-        private readonly bool $addSuccessorSucceeds = true
+        private readonly bool $addSuccessorSucceeds = true,
+        ?self $state = null,
+        private readonly ?Closure $beforeSuccessor = null
     ) {
+        if ($state instanceof self) {
+            $this->activationGrants =& $state->activationGrants;
+            $this->writers =& $state->writers;
+        }
     }
 
     public function findDue(DateTimeImmutable $at, int $limit): array
@@ -122,6 +131,7 @@ final class InMemoryActivationGrantRepository implements ActivationGrantReposito
     {
         if (
             !$this->addSucceeds
+            || !$this->holdWriteFence($activationGrant->getUserId())
             || $this->getLatestByUserId($activationGrant->getUserId()) instanceof ActivationGrant
             || !$this->isPristine($activationGrant)
             || $this->hasGrantId($activationGrant->getId())
@@ -185,6 +195,7 @@ final class InMemoryActivationGrantRepository implements ActivationGrantReposito
         $current = $this->getLatestByUserId($predecessor->getUserId());
         if (
             !$this->replaceSucceeds
+            || !$this->holdWriteFence($predecessor->getUserId())
             || $this->replaceFailureOnCall === $this->replaceCalls
             || !$current instanceof ActivationGrant
             || !$this->sameState($current, $predecessor)
@@ -203,9 +214,11 @@ final class InMemoryActivationGrantRepository implements ActivationGrantReposito
         ActivationGrant $terminalPredecessor,
         ActivationGrant $successor
     ): bool {
+        $this->beforeSuccessor?->__invoke();
         $current = $this->getLatestByUserId($predecessor->getUserId());
         if (
-            !$this->replaceWithSuccessorSucceeds
+            !$this->holdWriteFence($predecessor->getUserId())
+            || !$this->replaceWithSuccessorSucceeds
             || !$current instanceof ActivationGrant
             || !$this->sameState($current, $predecessor)
             || $terminalPredecessor->isIssued()
@@ -239,6 +252,7 @@ final class InMemoryActivationGrantRepository implements ActivationGrantReposito
         $current = $this->getLatestByUserId($successor->getUserId());
         if (
             !$this->addSuccessorSucceeds
+            || !$this->holdWriteFence($successor->getUserId())
             || !$current instanceof ActivationGrant
             || $current->isIssued()
             || $current->getDelivery()->isRetryable()
@@ -277,6 +291,27 @@ final class InMemoryActivationGrantRepository implements ActivationGrantReposito
     public function all(): array
     {
         return $this->activationGrants;
+    }
+
+    private function holdWriteFence(UserId $userId): bool
+    {
+        $key = $userId->toString();
+        if (!$this->unitOfWork instanceof InMemoryUnitOfWork || !$this->unitOfWork->transactionActive) {
+            return !isset($this->writers[$key]);
+        }
+
+        if (isset($this->writers[$key]) && $this->writers[$key] !== $this->unitOfWork) {
+            return false;
+        }
+
+        if (!isset($this->writers[$key])) {
+            $this->writers[$key] = $this->unitOfWork;
+            $this->unitOfWork->onCompletion(function () use ($key): void {
+                unset($this->writers[$key]);
+            });
+        }
+
+        return true;
     }
 
     private function hasCredentialHash(UserId $userId, string $credentialHash): bool

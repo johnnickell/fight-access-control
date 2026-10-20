@@ -2,7 +2,7 @@
 id: TICKET-00023
 epic: EPIC-00013
 title: Recover a pending registration administratively
-status: ready-for-agent
+status: in-progress
 ---
 
 # Recover a pending registration administratively
@@ -84,9 +84,13 @@ now have complete approved TASK plans; Board-based execution selection and autho
 
 | Order | TASK ID | Title | Status |
 | --- | --- | --- | --- |
-| 75 | [TASK-00075](../tasks/00075-TASK.md) | Recover pending registrations with authorized correction and reissue | ready-for-agent |
+| 75 | [TASK-00075](../tasks/00075-TASK.md) | Recover pending registrations with authorized correction and reissue | in-progress |
 ## Progress
 
-John approved the three-area TICKET split for EPIC-00013 and this TICKET's single TASK-00075 plan, blocked by
-TASK-00074. The map's TASK decomposition is complete; implementation and actual consumer qualification remain
-unstarted.
+John approved the three-area TICKET split for EPIC-00013 and this TICKET's single TASK-00075 plan. TASK-00074
+is integrated via PR #122; John's later explicit Build invocation authorizes TASK-00075 in the main checkout.
+Engineer implementation is in progress on `feature/task-00075-registration-recovery` from `8119bd84`.
+The [recovery contract](../../docs/registration-recovery.md) describes both variants, exact-target authorization,
+complete-state transaction-duration fencing, failure/uncertainty resolution and controlled package evidence.
+Independent Review and applicable nonvisual QA remain pending; this TICKET is not done. Actual consumer database,
+authorization, templates, physical restart and public-security qualification remain unexecuted.

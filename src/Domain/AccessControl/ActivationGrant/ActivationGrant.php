@@ -10,6 +10,7 @@ use Fight\AccessControl\Domain\AccessControl\ActivationGrant\Exception\Activatio
 use Fight\AccessControl\Domain\AccessControl\CredentialDelivery\CredentialDeliveryClaimToken;
 use Fight\AccessControl\Domain\AccessControl\CredentialDelivery\CredentialDeliveryFailure;
 use Fight\AccessControl\Domain\AccessControl\CredentialDelivery\Exception\CredentialDeliveryTransitionException;
+use Fight\AccessControl\Domain\AccessControl\User\Exception\RegistrationRecoveryException;
 use Fight\AccessControl\Domain\AccessControl\User\UserId;
 use Fight\Common\Domain\Value\Internet\EmailAddress;
 
@@ -196,6 +197,30 @@ class ActivationGrant
     public function isUsableAt(DateTimeImmutable $at): bool
     {
         return $this->isIssued() && $at < $this->expiresAt;
+    }
+
+    /**
+     * Validates current registration authority and the requested recovery variant
+     *
+     * Delivery terminality does not imply activation. Expired issued authority may be replaced,
+     * but same-address reissue before exact expiry cannot silently become a resend.
+     */
+    public function assertRegistrationRecovery(
+        UserId $userId,
+        ActivationDeliveryId $expectedDeliveryId,
+        EmailAddress $currentEmail,
+        EmailAddress $requestedEmail,
+        DateTimeImmutable $at
+    ): void {
+        if (
+            $this->origin !== ActivationOrigin::REGISTRATION
+            || !$this->isIssued()
+            || !$this->ownsDelivery($expectedDeliveryId, $userId)
+            || $this->delivery->getEmail()->canonical() !== $currentEmail->canonical()
+            || ($currentEmail->canonical() === $requestedEmail->canonical() && $at < $this->expiresAt)
+        ) {
+            throw new RegistrationRecoveryException('The pending registration cannot be recovered.');
+        }
     }
 
     /**

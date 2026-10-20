@@ -29,6 +29,33 @@ use OpenApi\Attributes as OA;
     ],
     type: 'object'
 )]
+#[OA\Schema(
+    schema: 'Fight.AccessControl.RecoverPendingRegistration',
+    description: 'Administrator-only pending registration correction or same-email reissue at/after expiry. Actor identity is not authority; exact target authorization is mandatory inside the transaction. Expected delivery ID fences the generation.',
+    required: ['actor_id', 'user_id', 'expected_activation_delivery_id', 'email'],
+    properties: [
+        new OA\Property(property: 'actor_id', type: 'string', format: 'uuid'),
+        new OA\Property(property: 'user_id', type: 'string', format: 'uuid'),
+        new OA\Property(property: 'expected_activation_delivery_id', type: 'string', format: 'uuid'),
+        new OA\Property(property: 'email', type: 'string', format: 'email')
+    ],
+    type: 'object',
+    additionalProperties: false
+)]
+#[OA\Schema(
+    schema: 'Fight.AccessControl.PendingRegistrationRecovered',
+    description: 'Confirmed atomic pending-User recovery and registration-origin successor delivery, not mail arrival or activation. No credential material.',
+    required: ['actor_id', 'user_id', 'previous_activation_delivery_id', 'activation_delivery_id', 'email'],
+    properties: [
+        new OA\Property(property: 'actor_id', type: 'string', format: 'uuid'),
+        new OA\Property(property: 'user_id', type: 'string', format: 'uuid'),
+        new OA\Property(property: 'previous_activation_delivery_id', type: 'string', format: 'uuid'),
+        new OA\Property(property: 'activation_delivery_id', type: 'string', format: 'uuid'),
+        new OA\Property(property: 'email', type: 'string', format: 'email')
+    ],
+    type: 'object',
+    additionalProperties: false
+)]
 final class RegistrationComponents
 {
 }

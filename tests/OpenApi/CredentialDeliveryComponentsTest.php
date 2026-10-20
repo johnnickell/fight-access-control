@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Fight\Test\AccessControl\OpenApi;
 
 use DateTimeImmutable;
+use Fight\AccessControl\Domain\AccessControl\ActivationGrant\ActivationDeliveryId;
 use Fight\AccessControl\Domain\AccessControl\ActivationGrant\ActivationOrigin;
 use Fight\AccessControl\Domain\AccessControl\ActivationGrant\Query\InvitationDeliveryStatusView;
 use Fight\AccessControl\Domain\AccessControl\CredentialDelivery\CredentialDeliveryClaimToken;
@@ -115,7 +116,10 @@ final class CredentialDeliveryComponentsTest extends TestCase
             $invitation = new InvitationDeliveryStatusView(
                 $delivery->getUserId(),
                 $delivery->getStatus(),
-                $delivery->getExpiresAt()
+                $delivery->getExpiresAt(),
+                ActivationDeliveryId::fromString(
+                    $delivery->getId()->toString()
+                )
             );
             $view = CredentialDeliveryStatusView::fromDelivery('password_reset', $delivery, 0);
             $due = new DueCredentialDelivery(
@@ -213,9 +217,10 @@ final class CredentialDeliveryComponentsTest extends TestCase
             'status'      => $status
         ], $schemas['Fight.AccessControl.DueCredentialDelivery']['properties']);
         self::assertSame([
-            'user_id'    => $uuid,
-            'status'     => $status,
-            'expires_at' => $date
+            'user_id'                => $uuid,
+            'status'                 => $status,
+            'expires_at'             => $date,
+            'activation_delivery_id' => $uuid
         ], $schemas['Fight.AccessControl.InvitationDeliveryStatus']['properties']);
 
         $deliveries = $this->deliveries();

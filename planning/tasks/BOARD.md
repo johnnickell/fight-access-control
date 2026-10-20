@@ -5,17 +5,17 @@ dependencies, acceptance, and verification.
 
 ## What's Next?
 
-First ready Task: [TASK-00075](00075-TASK.md) — Recover pending registrations with authorized correction and reissue.
+Active Task: [TASK-00075](00075-TASK.md) — Recover pending registrations with authorized correction and reissue.
 
 ## In Progress
 
-No Tasks are currently in this state.
+| Order | TASK ID | Title | Parent TICKET | Status | Blocked by | PR |
+| --- | --- | --- | --- | --- | --- | --- |
+| 75 | [TASK-00075](00075-TASK.md) | Recover pending registrations with authorized correction and reissue | [TICKET-00023](../tickets/00023-TICKET.md) — Recover a pending registration administratively | in-progress | [TASK-00074](00074-TASK.md) | — |
 
 ## Ready Frontier
 
-| Order | TASK ID | Title | Parent TICKET | Status | Blocked by | PR |
-| --- | --- | --- | --- | --- | --- | --- |
-| 75 | [TASK-00075](00075-TASK.md) | Recover pending registrations with authorized correction and reissue | [TICKET-00023](../tickets/00023-TICKET.md) — Recover a pending registration administratively | ready-for-agent | [TASK-00074](00074-TASK.md) | — |
+No Tasks are currently in this state.
 
 ## Waiting
 
