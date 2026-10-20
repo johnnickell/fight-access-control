@@ -92,7 +92,15 @@ final readonly class RevokePermissionFromCustomRoleHandler implements CommandHan
                 $this->eventDispatcher->trigger($event);
             }
         } catch (Throwable $throwable) {
-            $this->eventDispatcher->trigger(new CommandFailedEvent($command, $throwable->getMessage()));
+            try {
+                $this->eventDispatcher->trigger(new CommandFailedEvent(
+                    $command,
+                    'Custom role permission revocation failed.'
+                ));
+            } catch (Throwable) {
+                // Notification failure must not replace the original operation failure.
+            }
+
             throw $throwable;
         }
     }

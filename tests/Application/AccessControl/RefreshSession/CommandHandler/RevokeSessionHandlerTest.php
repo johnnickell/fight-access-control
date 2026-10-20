@@ -420,7 +420,8 @@ final class RevokeSessionHandlerTest extends TestCase
         self::assertCount(1, $events->events());
         self::assertInstanceOf(CommandFailedEvent::class, $events->events()[0]);
         self::assertSame($command, $events->events()[0]->getCommand());
-        self::assertSame($failure->getMessage(), $events->events()[0]->getErrorMessage());
+        self::assertSame('Session revocation failed.', $events->events()[0]->getErrorMessage());
+        self::assertNotSame($failure->getMessage(), $events->events()[0]->getErrorMessage());
     }
 
     private function captureFailure(RevokeSessionHandler $handler, RevokeSession $command): Throwable

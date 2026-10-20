@@ -149,7 +149,11 @@ final readonly class AuthenticationService
 
             $this->eventDispatcher->trigger(new EmailChangeConfirmed($userId, $confirmedAt));
         } catch (Throwable $throwable) {
-            $this->publishFailure('confirmEmail', ['user_id' => $userId->toString()], $throwable);
+            $this->publishFailure(
+                'confirmEmail',
+                ['user_id' => $userId->toString()],
+                'Email change confirmation failed.'
+            );
             throw $throwable;
         }
     }
@@ -214,7 +218,7 @@ final readonly class AuthenticationService
             $this->publishFailure(
                 'changePassword',
                 ['user_id' => $authenticatedUserId->toString()],
-                $throwable
+                'Password change failed.'
             );
             throw $throwable;
         }
@@ -287,7 +291,7 @@ final readonly class AuthenticationService
 
             $this->eventDispatcher->trigger(new PasswordResetCompleted($userId, $completedAt));
         } catch (Throwable $throwable) {
-            $this->publishFailure('resetPassword', ['user_id' => $userId->toString()], $throwable);
+            $this->publishFailure('resetPassword', ['user_id' => $userId->toString()], 'Password reset failed.');
             throw $throwable;
         }
     }
@@ -370,7 +374,7 @@ final readonly class AuthenticationService
 
             return $activation[0];
         } catch (Throwable $throwable) {
-            $this->publishFailure('activate', ['user_id' => $userId->toString()], $throwable);
+            $this->publishFailure('activate', ['user_id' => $userId->toString()], 'Account activation failed.');
             throw $throwable;
         }
     }
@@ -456,7 +460,7 @@ final readonly class AuthenticationService
 
             return $login[0];
         } catch (Throwable $throwable) {
-            $this->publishFailure('login', [], $throwable);
+            $this->publishFailure('login', [], 'Login failed.');
             throw $throwable;
         }
     }
@@ -513,7 +517,7 @@ final readonly class AuthenticationService
 
             return $refreshResult;
         } catch (Throwable $throwable) {
-            $this->publishFailure('refresh', [], $throwable);
+            $this->publishFailure('refresh', [], 'Session refresh failed.');
             throw $throwable;
         }
     }
@@ -540,7 +544,7 @@ final readonly class AuthenticationService
 
             $this->eventDispatcher->trigger(new CurrentSessionLoggedOut($refreshSessionId));
         } catch (Throwable $throwable) {
-            $this->publishFailure('logout', [], $throwable);
+            $this->publishFailure('logout', [], 'Session logout failed.');
             throw $throwable;
         }
     }
@@ -653,14 +657,18 @@ final readonly class AuthenticationService
      *
      * @param string               $operation
      * @param array<string, mixed> $safeData
-     * @param Throwable            $throwable
+     * @param string               $failureMessage
      */
-    private function publishFailure(string $operation, array $safeData, Throwable $throwable): void
+    private function publishFailure(string $operation, array $safeData, string $failureMessage): void
     {
-        $this->eventDispatcher->trigger(new RedactedCommandFailed(
-            self::class.'::'.$operation,
-            $safeData,
-            $throwable->getMessage()
-        ));
+        try {
+            $this->eventDispatcher->trigger(new RedactedCommandFailed(
+                self::class.'::'.$operation,
+                $safeData,
+                $failureMessage
+            ));
+        } catch (Throwable) {
+            // Notification failure must not replace the original operation failure.
+        }
     }
 }

@@ -84,7 +84,7 @@ final readonly class RedactedCommandFailed implements Event
     }
 
     /**
-     * Returns the original failure message
+     * Returns the safe operation failure message
      */
     public function getErrorMessage(): string
     {

@@ -131,7 +131,9 @@ previous-iteration support; completed TASKs and earlier guidance cannot require 
   [operation-outcome amendment](../tickets/00001-TICKET.md#approved-correction-batch-amendment) governs the correction
   batch, superseding conflicting older guidance within its scope. Before implementing or reviewing that batch,
   obtain its full approved maintainer brief through the established private channel; this public planning summary
-  does not replace detailed acceptance or establish implementation. Preserve documented exceptions below.
+  does not replace detailed acceptance or establish implementation. Current consumer composition follows
+  [operation outcomes](../../docs/operation-outcomes.md): coarse constant notification text and safe context do not
+  sanitize rethrown faults; notification failure cannot replace the primary throwable. Preserve documented exceptions below.
 - Human expiry cleanup retains [TASK-00072 C9](../tasks/00072-TASK.md#acceptance-criteria)'s accepted contract;
   see [expiry composition](../../docs/credential-expiry.md). Keep internal provider classification distinct from
   operation-outcome policy.

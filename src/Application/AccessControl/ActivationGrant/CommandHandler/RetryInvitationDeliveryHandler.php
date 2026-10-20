@@ -94,7 +94,7 @@ final readonly class RetryInvitationDeliveryHandler implements CommandHandler
             ));
         } catch (Throwable $throwable) {
             try {
-                $this->eventDispatcher->trigger(new CommandFailedEvent($command, $throwable->getMessage()));
+                $this->eventDispatcher->trigger(new CommandFailedEvent($command, 'Invitation delivery retry failed.'));
             } catch (Throwable) {
                 // Failure notification must not conceal the original rejection or failure.
             }

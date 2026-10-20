@@ -37,6 +37,7 @@ use Fight\Test\AccessControl\Application\AccessControl\Timing\Service\FixedClock
 use Fight\Test\AccessControl\Application\AccessControl\User\InMemoryUnitOfWork;
 use Fight\Test\AccessControl\Application\AccessControl\User\Repository\InMemoryUserRepository;
 use Fight\Test\AccessControl\Domain\AccessControl\User\UserFixture;
+use LogicException;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
 use RuntimeException;
@@ -934,6 +935,13 @@ final class CustomRoleMembershipHandlerTest extends TestCase
         self::assertCount(1, $events->events());
         self::assertInstanceOf(CommandFailedEvent::class, $events->events()[0]);
         self::assertSame($command, $events->events()[0]->getCommand());
-        self::assertSame($throwable->getMessage(), $events->events()[0]->getErrorMessage());
+        $message = match ($command::class) {
+            GrantPermissionToCustomRole::class => 'Custom role permission grant failed.',
+            RevokePermissionFromCustomRole::class => 'Custom role permission revocation failed.',
+            RemoveCustomRole::class => 'Custom role removal failed.',
+            default => throw new LogicException('Unsupported custom role command.')
+        };
+        self::assertSame($message, $events->events()[0]->getErrorMessage());
+        self::assertNotSame($throwable->getMessage(), $events->events()[0]->getErrorMessage());
     }
 }

@@ -5,7 +5,7 @@ dependencies, acceptance, and verification.
 
 ## What's Next?
 
-First ready Task: [TASK-00077](00077-TASK.md) — Align package operation outcome contracts.
+First ready Task: [TASK-00078](00078-TASK.md) — Align recovery lifecycle contracts.
 
 ## In Progress
 
@@ -15,14 +15,13 @@ No Tasks are currently in this state.
 
 | Order | TASK ID | Title | Parent TICKET | Status | Blocked by | PR |
 | --- | --- | --- | --- | --- | --- | --- |
-| 77 | [TASK-00077](00077-TASK.md) | Align package operation outcome contracts | [TICKET-00001](../tickets/00001-TICKET.md) — Fight AccessControl Identity and Authentication Lifecycle | ready-for-agent | — | — |
+| 78 | [TASK-00078](00078-TASK.md) | Align recovery lifecycle contracts | [TICKET-00001](../tickets/00001-TICKET.md) — Fight AccessControl Identity and Authentication Lifecycle | ready-for-agent | [TASK-00077](00077-TASK.md) | — |
+| 79 | [TASK-00079](00079-TASK.md) | Align managed-policy preview and apply contracts | [TICKET-00001](../tickets/00001-TICKET.md) — Fight AccessControl Identity and Authentication Lifecycle | ready-for-agent | [TASK-00077](00077-TASK.md) | — |
 
 ## Waiting
 
 | Order | TASK ID | Title | Parent TICKET | Status | Blocked by | PR |
 | --- | --- | --- | --- | --- | --- | --- |
-| 78 | [TASK-00078](00078-TASK.md) | Align recovery lifecycle contracts | [TICKET-00001](../tickets/00001-TICKET.md) — Fight AccessControl Identity and Authentication Lifecycle | ready-for-agent | [TASK-00077](00077-TASK.md) | — |
-| 79 | [TASK-00079](00079-TASK.md) | Align managed-policy preview and apply contracts | [TICKET-00001](../tickets/00001-TICKET.md) — Fight AccessControl Identity and Authentication Lifecycle | ready-for-agent | [TASK-00077](00077-TASK.md) | — |
 | 80 | [TASK-00080](00080-TASK.md) | Fence custom Role rename and removal with caller revisions | [TICKET-00024](../tickets/00024-TICKET.md) — Fence custom Role rename and removal with caller revisions | ready-for-agent | [TASK-00077](00077-TASK.md), [TASK-00079](00079-TASK.md) | — |
 
 ## Needs Info
@@ -116,4 +115,5 @@ No Tasks are currently in this state.
 | 73 | [TASK-00073](00073-TASK.md) | Carry activation-delivery origin through provider recovery | [TICKET-00021](../tickets/00021-TICKET.md) — Preserve registration and private-invitation delivery origin | done | — | — |
 | 74 | [TASK-00074](00074-TASK.md) | Register a pending User atomically with default Roles | [TICKET-00022](../tickets/00022-TICKET.md) — Register a pending User with configured default Roles | done | [TASK-00073](00073-TASK.md) | https://github.com/johnnickell/fight-access-control/pull/122 |
 | 75 | [TASK-00075](00075-TASK.md) | Recover pending registrations with authorized correction and reissue | [TICKET-00023](../tickets/00023-TICKET.md) — Recover a pending registration administratively | done | [TASK-00074](00074-TASK.md) | https://github.com/johnnickell/fight-access-control/pull/123 |
+| 77 | [TASK-00077](00077-TASK.md) | Align package operation outcome contracts | [TICKET-00001](../tickets/00001-TICKET.md) — Fight AccessControl Identity and Authentication Lifecycle | done | — | https://github.com/johnnickell/fight-access-control/pull/129 |
 | 81 | [TASK-00081](00081-TASK.md) | Align contributor workflows with Fight Agent OS | — (standalone chore) | done | — | https://github.com/johnnickell/fight-access-control/pull/128 |

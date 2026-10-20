@@ -78,7 +78,12 @@ final readonly class DeliverEmailChangeHandler implements CommandHandler
                 $this->eventDispatcher->trigger($successEvent);
             }
         } catch (Throwable $throwable) {
-            $this->eventDispatcher->trigger(new CommandFailedEvent($command, $throwable->getMessage()));
+            try {
+                $this->eventDispatcher->trigger(new CommandFailedEvent($command, 'Email change delivery failed.'));
+            } catch (Throwable) {
+                // Notification failure must not replace the original operation failure.
+            }
+
             throw $throwable;
         }
     }

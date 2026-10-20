@@ -358,6 +358,12 @@ final class CustomRoleIdentityHandlerTest extends TestCase
         self::assertCount(1, $events->events());
         self::assertInstanceOf(CommandFailedEvent::class, $events->events()[0]);
         self::assertSame($command, $events->events()[0]->getCommand());
-        self::assertSame($throwable->getMessage(), $events->events()[0]->getErrorMessage());
+        $message = 'Custom role rename failed.';
+        if ($command instanceof CreateCustomRole) {
+            $message = 'Custom role creation failed.';
+        }
+
+        self::assertSame($message, $events->events()[0]->getErrorMessage());
+        self::assertNotSame($throwable->getMessage(), $events->events()[0]->getErrorMessage());
     }
 }

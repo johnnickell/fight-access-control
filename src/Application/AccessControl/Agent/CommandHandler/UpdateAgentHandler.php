@@ -64,7 +64,7 @@ final readonly class UpdateAgentHandler implements CommandHandler
             }
         } catch (Throwable $throwable) {
             try {
-                $this->events->trigger(new CommandFailedEvent($command, $throwable->getMessage()));
+                $this->events->trigger(new CommandFailedEvent($command, 'Agent update failed.'));
             } finally {
                 throw $throwable;
             }
