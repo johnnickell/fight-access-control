@@ -5,11 +5,13 @@ dependencies, acceptance, and verification.
 
 ## What's Next?
 
-First ready Task: [TASK-00077](00077-TASK.md) — Align package operation outcome contracts.
+Active Task: [TASK-00081](00081-TASK.md) — Align contributor workflows with Fight Agent OS.
 
 ## In Progress
 
-No Tasks are currently in this state.
+| Order | TASK ID | Title | Parent TICKET | Status | Blocked by | PR |
+| --- | --- | --- | --- | --- | --- | --- |
+| 81 | [TASK-00081](00081-TASK.md) | Align contributor workflows with Fight Agent OS | — (standalone chore) | in-progress | — | — |
 
 ## Ready Frontier
 

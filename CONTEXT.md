@@ -6,6 +6,20 @@ Fight AccessControl owns framework-neutral identity, credential, session, author
 behavior shared by Fight applications. The repository-local behavioral and security authority is
 [TICKET-00001](planning/tickets/00001-TICKET.md).
 
+## Contributor workflow alignment — TASK-00081 implementation checkpoint
+
+The approved standalone [TASK-00081](planning/tasks/00081-TASK.md) aligns contributor routing with optional
+Fight Agent OS/Pi workflows. [AGENTS](AGENTS.md) and [planning continuations](planning/CONVENTIONS.md#workflow-continuations)
+recommend Build for approved implementation/confirmed repair and stop; explicit invocation delegates its
+work, independent Review, QA and open-PR sequence. The [project binding](planning/agents/project-profile.md#agent-os-workflow-binding)
+keeps provider resources separate from local planning, Docker runtime, gates, security and evidence rules.
+The package remains self-contained for contributors without those tools.
+
+At this implementation checkpoint, independent acceptance, behavioral QA and publication remain pending.
+No correction-batch implementation, private brief disclosure, package/dependency/runtime change, end-to-end Build
+qualification, merge, release or deployment is claimed. TASK-00077 remains the separate correction-batch entrypoint;
+this general guidance chore does not require its restricted brief.
+
 ## Consolidated correction planning
 
 The approved [correction-batch map](planning/wayfinder/access-control-correction-batch-map.md) is Closed for

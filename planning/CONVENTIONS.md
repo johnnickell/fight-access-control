@@ -2,7 +2,8 @@
 
 ## Lightweight work routing
 
-For “What's next?”, `next`, or an unqualified `/ask-matt`, use the routing entry in root AGENTS.md.
+For “What's next?”, `next`, `/skill:next`, or an unqualified `/ask-matt`, use the routing entry in root AGENTS.md.
+Honor an explicit narrower user selection; otherwise preserve Board priority.
 This read-only path precedes general orientation; full implementation, review, QA and delivery requirements
 still apply when the selected workflow is invoked.
 
@@ -36,6 +37,37 @@ phase, pending decision/owner. Keep Wayfinder inventory/frontier pointers curren
 not another backlog or proof of delivery. Preserve generated sections and all historical decisions.
 
 Routing sources: [TASK Board](tasks/BOARD.md), [Wayfinder inventory](wayfinder/README.md), [Roadmap](ROADMAP.md).
+
+## Workflow continuations
+
+Use the actual selected ID in every copyable `Next:` command; `TASK-NNNNN` below denotes that substitution, not
+an executable target. A recommendation neither invokes the command nor grants authority. Confirm capability from
+supplied provider resources or the [workflow binding](agents/project-profile.md#agent-os-workflow-binding), including
+explicit-only skills; load the owning instructions when invoked.
+
+| Established state | Recommend and stop |
+| --- | --- |
+| Unimplemented approved work, ongoing implementation or confirmed implementation/QA defects | `/skill:build TASK-NNNNN`; preserve the selected checkout, ledger and consumed revision allowance |
+| Explicit implementation-only request | `/skill:work TASK-NNNNN` |
+| Committed implementation with required verification, awaiting independent acceptance | `/skill:review TASK-NNNNN` in a fresh independent session |
+| Current acceptance, but QA or its applicability unresolved | `/skill:qa TASK-NNNNN` in a fresh independent session, including non-UI instructions |
+| Current acceptance and applicable QA satisfied, including justified N/A | `/skill:land TASK-NNNNN` within publication authority |
+| QA INCOMPLETE or a genuinely missing brief/runtime/tool/decision | Name the concrete missing input and owner; resume the affected stage after recovery |
+| Stale/wrong-subject/contradictory Review or QA evidence, or uncertain findings | Evidence owner reconciles the subject or obtains independent reassessment; do not guess acceptance or manufacture edits |
+| Initial acceptance lacks only explicitly required hosted proof | Authorized land draft-evidence path, then independent review of the proof; otherwise name missing publication authority |
+| Accepted candidate plus permitted administrative closeout, final delivery proof pending | Land verifies delivery and the provenance bridge; no recursive status commit or new review solely for delivery |
+| Verified open PR delivered | Human review/merge of the actual PR URL; no automatic merge or next TASK |
+
+Stage handoffs remain narrower than default navigation: Work hands committed changes to independent Review;
+Review implementation blockers and QA-confirmed defects hand canonical findings to Work, then fresh Review and
+affected QA. An active Build coordinator continues those delegated stages instead of stopping to ask for approvals
+already included in invocation. QA INCOMPLETE is evidence recovery, not speculative repair; QA FAIL does not reset
+the shared revision allowance. Preserve canonical reports and previous attempts on resume.
+
+Finish each stage with outcome, subject, verification/limitations, durable evidence pointer and an explicit `Next:`
+command or concrete prerequisite. Do not replace a known continuation with generic `/skill:next`. Planning handoffs
+name the accepted phase and actual EPIC/TICKET/map target; unresolved approval stays human input. The workflow
+binding owns invocation authority, target substitutions and evidence locations.
 
 This repository's durable planning model is **EPIC → TICKET → TASK**. It is the local authority for planning
 structure, lifecycle, generated views, Wayfinder continuity, and the explicit archive operation.

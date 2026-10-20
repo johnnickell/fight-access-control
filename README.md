@@ -258,6 +258,15 @@ root creates one `SecurityContext` from exactly one `AuthenticatedUserPrincipal`
 checks. Agents retain only their direct Permissions and have no package-level Roles; framework wrappers, endpoint
 policy, and response handling remain consumer-owned.
 
+## Contributing workflow
+
+Start with [CONTRIBUTING](CONTRIBUTING.md) and [AGENTS](AGENTS.md). Optional Fight Agent OS/Pi users can
+recommend work with `/skill:next`, then explicitly invoke `/skill:build TASK-NNNNN` for the selected approved TASK.
+Navigation never starts execution. Build delegates work, independent review, QA and open-PR delivery, not merge,
+release or deployment; implementation-only requests may use `/skill:work TASK-NNNNN`. See the
+[local workflow binding](planning/agents/project-profile.md#agent-os-workflow-binding) for capability resolution,
+target rules and authority. Contributors without that tooling follow the same local guidance directly.
+
 ## Local development
 
 PHP 8.5 and Docker are required. Tooling follows the Fight Common conventions and runs in the isolated
@@ -294,11 +303,13 @@ process in [SECURITY.md](SECURITY.md).
 
 ## Visibility and release effects
 
-These are independent operational effects. Approval for one is not approval for another; each requires a
-separate approval:
+These are distinct operational effects; authority must cover each effect. A single explicit workflow invocation
+may delegate several effects, as described in the [workflow binding](planning/agents/project-profile.md#agent-os-workflow-binding).
+Do not repeat approval for effects already delegated. Ordinary edits or planning approval alone grant no
+publication authority; Build's open-PR scope excludes visibility changes, merge, tags and package publication:
 
 - **Public repository visibility** exposes the source and history under the repository license.
-- **Commit creation** records reviewed work in Git history.
+- **Commit creation** records work in Git history; it does not establish independent acceptance.
 - **Version tag creation** gives a selected commit a version identifier.
 - **Packagist publication** makes package metadata discoverable and installable through Packagist.
 - **Release publication** creates a hosted release and its release notes or artifacts.

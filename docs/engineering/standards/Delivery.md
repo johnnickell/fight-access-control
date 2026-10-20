@@ -2,6 +2,16 @@
 
 Read the current project profile, Git state, runbooks, and owning commands. Treat recorded environments and command examples as leads to verify. Existing project deviations remain explicit until deliberately migrated.
 
+## Workflow authority
+
+Implementation, independent assessment, publication, merge, release and deployment are distinct effects, but a
+single explicit invocation may delegate multiple effects. Apply the target's
+[workflow binding](../../../planning/agents/project-profile.md#agent-os-workflow-binding): explicit Build includes
+owned commits, non-force push and open-PR delivery through its delegated roles, without renewed approval for those
+effects. A recommendation, planning approval or ordinary edit does not. Missing prerequisites hold the affected
+action; merge, PR approval, force push, release, deployment, unrelated work and restricted disclosure remain outside
+Build. Individual stages keep their narrower responsibilities. Signed-release controls below are unchanged.
+
 ## Worktree and resource ownership
 
 Before implementation, ask John to choose the main checkout or an isolated worktree with extra runtime resources; reuse a choice already made for this TASK. Main checkout still uses the appropriate feature/patch branch. Do not overwrite unrelated dirty work. If the selected checkout cannot safely host the work, explain the conflict and resolve the affected choice.
@@ -10,7 +20,9 @@ Use ignored `.runs/worktrees/<slug>/`, `.runs/notes/<date>-<task>/`, `.runs/hand
 
 Record TASK, repo, branch/base/PR, checkout path, owned containers/volumes/routes, URLs, creation evidence, cleanup commands, and retention requests before allocating resources. Libraries may need no persistent HTTP runtime. Do not provision one just to satisfy a checklist.
 
-Use the shared LocalDevelopment project's documented enrollment and worktree procedures. Integration wiring, DNS, routes, certificates and shared services belong to that project. The consuming project profile points to the operator contract; skills do not invent NGINX or `/etc/hosts` management. Verify enrollment and actual worktree support. If unavailable, record the gap and continue independent work; obtain the missing runtime decision before claiming UI/API proof. Never treat another project's successful enrollment as evidence for this one.
+Where the target actually needs shared application infrastructure, use the shared LocalDevelopment project's
+documented enrollment and worktree procedures. AccessControl's isolated package Docker wrappers require no
+application enrollment, webserver or database; do not import provider runtime prerequisites. Integration wiring, DNS, routes, certificates and shared services belong to that project. The consuming project profile points to the operator contract; skills do not invent NGINX or `/etc/hosts` management. Verify enrollment and actual worktree support. If unavailable, record the gap and continue independent work; obtain the missing runtime decision before claiming UI/API proof. Never treat another project's successful enrollment as evidence for this one.
 
 Keep TASK environments alive through review unless John requests otherwise. After verified landing and local synchronization, clean only proven TASK-owned resources through their owning tooling. Preserve shared services and other branches/worktrees. Ambiguous ownership blocks only that cleanup; report retained resources.
 
