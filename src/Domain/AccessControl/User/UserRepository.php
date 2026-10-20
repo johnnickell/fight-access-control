@@ -6,6 +6,7 @@ namespace Fight\AccessControl\Domain\AccessControl\User;
 
 use Exception;
 use Fight\AccessControl\Domain\AccessControl\RefreshSession\RefreshSession;
+use Fight\AccessControl\Domain\AccessControl\Role\Role;
 use Fight\AccessControl\Domain\AccessControl\Role\RoleId;
 use Fight\Common\Domain\Repository\Pagination;
 use Fight\Common\Domain\Repository\ResultSet;
@@ -156,9 +157,29 @@ interface UserRepository
     /**
      * Adds a User
      *
-     * Implementations must reject a canonical email claimed by another canonical email or live reservation atomically.
+     * Implementations atomically reject duplicate User IDs or a canonical email claimed by another canonical email
+     * or live reservation. Every initial Role ID must remain authoritative under the shared Role-reference fence
+     * through transaction completion, including Role removal/replacement. Name-resolved creation additionally uses
+     * addWithRoleAssignments() to bind the complete expected definitions; add() alone cannot substitute for it.
      *
      * @throws Exception When an error occurs
      */
     public function add(User $user): void;
+
+    /**
+     * Adds a pending User with its complete name-resolved initial Role assignments atomically
+     *
+     * Applies add() identity/email/reservation uniqueness under the same transaction. The nonempty expected Roles
+     * must match exactly the User's initial assignment set. Validate each complete current Role snapshot (identity,
+     * unique canonical name, ownership, membership and timestamps), rejecting conflicting IDs/names or a changed,
+     * removed or replaced definition. Supplied snapshots are expectations, never authority. Hold the shared
+     * Role-reference/name fence through transaction completion, including every RoleRepository add/replace/remove
+     * path. No insertion or reference may survive rollback. Returns false without insertion on a reference mismatch;
+     * duplicate identity/email or storage failures throw. Consumers must qualify this on the actual shared connection.
+     *
+     * @phpstan-param list<Role> $expectedRoles
+     *
+     * @throws Exception When an error occurs
+     */
+    public function addWithRoleAssignments(User $user, array $expectedRoles): bool;
 }

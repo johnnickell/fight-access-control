@@ -15,3 +15,4 @@ require_once __DIR__.'/AgentDeliveryComponents.php';
 require_once __DIR__.'/AgentMaintenanceComponents.php';
 require_once __DIR__.'/AgentNameComponents.php';
 require_once __DIR__.'/FeatureComponents.php';
+require_once __DIR__.'/RegistrationComponents.php';

@@ -693,7 +693,9 @@ final class CustomRoleMembershipHandlerTest extends TestCase
     public function test_removal_rejects_missing_and_live_user_referenced_roles(): void
     {
         $role = $this->role();
-        $userRepository = new InMemoryUserRepository();
+        $unitOfWork = new InMemoryUnitOfWork();
+        $unitOfWork->authorizationReferenceState()->addRole($role);
+        $userRepository = new InMemoryUserRepository($unitOfWork);
         $userRepository->add(UserFixture::withRoleAssignments([$role->getId()], 1));
         foreach ([new InMemoryRoleRepository(), $this->rolesContaining($role)] as $roles) {
             $events = new InMemoryEventDispatcher();

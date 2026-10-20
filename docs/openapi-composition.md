@@ -40,6 +40,17 @@ The catalog uses canonical snake-case `toArray()` keys. UUID identifiers use
 `uuid`; `*_at` values use `date-time`; paginated administrative results have `page`, `per_page`,
 `total_pages`, `total_records`, and typed `records`.
 
+### Optional User registration (Unreleased)
+
+`Fight.AccessControl.RegisterUser` describes exactly required UUID `user_id` and email `email`, with extra fields
+rejected. It has no actor, Roles, password, credential or origin input. `Fight.AccessControl.UserRegistered` describes
+required UUID `user_id` and `activation_delivery_id`, email `email` and fractional RFC3339 `issued_at`; it confirms pending
+registration commit, not delivery or activation. Neither component creates an HTTP endpoint, response envelope, public
+existence query or enablement gate. Consumers own admission, disclosure/abuse controls and response mapping. See
+[registration composition](user-registration.md) for required Role-name configuration, repository fences and recovery.
+`RegistrationComponentsTest` compares generated fields/formats with actual canonical message round trips in the default
+suite. Existing activation/password-setting schemas remain unchanged; credentials never enter these registration DTOs.
+
 ### Agent name updates (v0.5.0)
 
 `Fight.AccessControl.UpdateAgent` describes required `initiator`, UUID `agent_id` and raw `name`.

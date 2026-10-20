@@ -6,6 +6,52 @@ Fight AccessControl owns framework-neutral identity, credential, session, author
 behavior shared by Fight applications. The repository-local behavioral and security authority is
 [TICKET-00001](planning/tickets/00001-TICKET.md).
 
+## Optional User registration — TASK-00074 Engineer repair checkpoint
+
+John invoked Build for TASK-00074 in the main checkout. Engineer implementation is on
+`feature/task-00074-registration` from clean `develop` `5e5f436d` (TASK-00073 integrated through PR #121).
+The Unreleased [registration guide](docs/user-registration.md) describes distinct `RegisterUser` / `RegisterUserHandler`,
+required nonempty consumer RoleName defaults resolved on every command, and post-commit `UserRegistered`.
+The command carries only new User ID/email, never authenticated actor claims, Roles, passwords or credentials.
+Audit/worker source `registration` is fixed provenance, not authority. Failure evidence retains the safe command with
+constant text and rethrows the original throwable even if notification fails.
+
+Mandatory `UserRepository::addWithRoleAssignments()` validates the complete expected Role snapshots and initial
+assignment set under a transaction-duration reference/name fence shared by all Role writers. Pending User/all Roles,
+canonical-email claims/reservations, activation grant, encrypted registration-origin delivery and audit commit together
+or not at all. Optional subscriber dispatch follows commit; due-work restart does not require registration replay.
+Provider acceptance leaves the User pending; existing single-use activation activates that same User with its Roles.
+Private invitations and other credential purposes retain their existing behavior.
+
+Independent Review of initial `8b19ff7` requested F1/F2: the composed delivery worker copied storage diagnostics into
+failure evidence and could replace the original throwable when failure notification threw. Two regression-first
+subscriber/Common-bus/worker cases reproduced both defects. The bounded worker catch now uses constant
+`User invitation delivery failed.` text and best-effort notification, preserving its original throwable. This applies
+to registration and private invitation; transaction/provider behavior is unchanged. Tests assert safe attempted payloads,
+throwable identity, committed pending User/all Roles/grant/audit and due-work recovery with the same delivery ID/origin.
+
+Repair focused checks pass **696 tests / 9546 assertions**; fresh canonical `./bin/build` passes **2199 tests / 41974
+assertions**, exact **7131/7131** owned statements (**106/106** in the repaired worker, **232/232** across all TASK-changed
+production files). Final checks have no warnings/skips. Complete logs/direct exits, failed-attempt history and snapshots
+are under `.runs/logs/TASK-00074/repair-1/`; the ignored Work handoff owns the committed mapping. No repair dependency
+package drift occurred; Common remains v1.4.0 and swagger-php 6.17.1. Rebuilt runnable image Config/RootFS are identical.
+Fresh independent technical re-review **ACCEPTS** exact candidate
+`17e7237e0196ef7da8990f62c0ccdd7c0458aeb8` against unchanged `develop` `5e5f436d5d8ed4e37bb57bb58d7b3d1f09e6df29`;
+canonical review v3 passes C1–C8, resolves F1/F2 and has no current findings. Independent nonvisual behavioral QA
+**PASS** on the same candidate covers 10 selected scenarios (nine real-contract driver scenarios / 56 checks plus
+29 delivery-regression tests / 198 assertions), with no findings or incomplete scenarios; visual QA is N/A for this
+nonvisual PHP library/worker change. Canonical Review and QA SHA-256 values are respectively
+`18a3bb179b03a924e35ba9ef5ba2197941742c3b81b1b78a97d8bf19859c98c0` and
+`fcfe4adb543d1954adff8d81a1928511487af4115a9166356babfde611f70db2`.
+
+TASK-00074 is complete for accepted package implementation and local/behavioral verification; automatic parent
+completion closes sole-child TICKET-00022 in the same Land administrative operation. EPIC-00013 remains in progress
+because TASK-00075/TICKET-00023 remain unfinished. Land published
+[TASK-00074 PR #122](https://github.com/johnnickell/fight-access-control/pull/122) for human review; no hosted
+acceptance requirement is declared and hosted CI is not checked. No consumer SQL, mail/templates, physical worker
+restart or public-security qualification, enablement, approval, merge, release, adoption or deployment is claimed.
+Historical planning checkpoints below do not override this execution authority.
+
 ## Activation origin — TASK-00073 implementation checkpoint
 
 The Unreleased [activation-origin contract](docs/credential-delivery.md#activation-origin-unreleased) stores required
@@ -35,7 +81,7 @@ PR publication remain separate from human approval/merge. This contract slice do
 registration/default Roles or TASK-00075 administrator registration recovery. No actual consumer SQL,
 mail-template composition, worker process, public protection, adoption, release or deployment qualification is
 claimed. Earlier self-registration planning checkpoints
-below are historical; execution was subsequently authorized for TASK-00073 only.
+below are historical; TASK-00074's later execution authority and current checkpoint are recorded above.
 
 ## v0.6.0 release preparation — 2026-10-19
 

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Fight\Test\AccessControl\Application\AccessControl\User;
 
+use Closure;
 use Fiber;
 use Fight\Common\Application\Repository\TransactionalUnitOfWork;
 use Fight\Test\AccessControl\Application\AccessControl\User\Repository\InMemoryAuthorizationReferenceState;
@@ -20,6 +21,8 @@ final class InMemoryUnitOfWork implements TransactionalUnitOfWork
     public bool $transactionActive = false;
 
     public bool $failNextCommit = false;
+
+    public ?Closure $beforeCommit = null;
 
     private ?InMemoryAuthorizationReferenceState $authorizationReferenceState = null;
 
@@ -50,6 +53,7 @@ final class InMemoryUnitOfWork implements TransactionalUnitOfWork
 
         try {
             $result = $operation();
+            $this->beforeCommit?->__invoke();
             if ($this->transactions === $this->failOnTransaction || $this->failNextCommit) {
                 $this->failNextCommit = false;
 

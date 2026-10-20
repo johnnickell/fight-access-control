@@ -6,7 +6,9 @@ namespace Fight\Test\AccessControl\Application\AccessControl\User\QueryHandler;
 
 use DateTimeImmutable;
 use Fight\AccessControl\Application\AccessControl\User\QueryHandler\ListUsersHandler;
+use Fight\AccessControl\Domain\AccessControl\Role\Role;
 use Fight\AccessControl\Domain\AccessControl\Role\RoleId;
+use Fight\AccessControl\Domain\AccessControl\Role\RoleName;
 use Fight\AccessControl\Domain\AccessControl\User\Query\ListUsers;
 use Fight\AccessControl\Domain\AccessControl\User\Query\UserView;
 use Fight\AccessControl\Domain\AccessControl\User\UserId;
@@ -16,6 +18,7 @@ use Fight\Common\Domain\Messaging\Query\QueryMessage;
 use Fight\Common\Domain\Repository\Pagination;
 use Fight\Common\Domain\Repository\ResultSet;
 use Fight\Common\Domain\Type\Arrayable;
+use Fight\Test\AccessControl\Application\AccessControl\User\Repository\InMemoryAuthorizationReferenceState;
 use Fight\Test\AccessControl\Application\AccessControl\User\Repository\InMemoryUserRepository;
 use Fight\Test\AccessControl\Domain\AccessControl\User\UserFixture;
 use PHPUnit\Framework\Attributes\CoversClass;
@@ -30,8 +33,15 @@ final class ListUsersHandlerTest extends TestCase
 {
     public function test_that_it_returns_a_typed_page_of_safe_user_views(): void
     {
-        $users = new InMemoryUserRepository();
+        $references = new InMemoryAuthorizationReferenceState();
         $roleId = RoleId::fromString('018f0000-0000-7000-8000-000000000002');
+        $references->addRole(Role::define(
+            $roleId,
+            RoleName::fromString('ROLE_FIXTURE'),
+            [],
+            new DateTimeImmutable('2026-01-01T00:00:00+00:00')
+        ));
+        $users = new InMemoryUserRepository(authorizationReferences: $references);
         $active = UserFixture::withIdAndAuthenticationVersion(
             UserId::fromString('018f0000-0000-7000-8000-000000000001'),
             'active@example.test',

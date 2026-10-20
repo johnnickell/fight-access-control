@@ -33,8 +33,8 @@ Current consumer composition must change directly:
 
 - `ActivationGrant::issue()` and its protected hydration constructor require `ActivationOrigin` as the **first**
   argument. Trusted issuance code chooses it; no delivery, retry, resend or correction Command accepts origin.
-  `InvitePendingUserHandler` explicitly issues `PRIVATE_INVITATION`. Registration-origin issuance through this
-  Domain contract is available; the registration use case/default Roles are separate TASK-00074 work.
+  `InvitePendingUserHandler` explicitly issues `PRIVATE_INVITATION`; `RegisterUserHandler` explicitly issues
+  `REGISTRATION` in its atomic pending-User/default-Role creation. See [registration composition](user-registration.md).
 - Persist the grant's origin with authority, encrypted delivery and audit on the shared transaction connection.
   Hydrate with `ActivationOrigin::from($storedOrigin)` before constructing the grant. Missing/null/unknown values
   reject; do not use `tryFrom() ?? PRIVATE_INVITATION`, historical readers, row conversion or event-based inference.
@@ -80,7 +80,8 @@ This is a **breaking pre-v1 minor** current API/persistence change, not a v0.6.x
 The opt-in `Fight.AccessControl.ActivationOrigin` OpenAPI value component describes the enum, not a serializable
 provider invocation or a new caller-selected field. Consumers separately qualify real SQL CAS/atomicity, provider
 idempotency, keys, actual private/registration template configuration, scheduler restart, public protections and
-transport. Package tests do not qualify the registration command, consumer adoption, release or deployment.
+transport. The [registration journey tests](user-registration.md#package-evidence-map) separately exercise its command,
+all default Roles and same-User activation at package ports; neither slice qualifies consumer adoption, release or deployment.
 
 ## Explicit claim and outcome transitions
 
@@ -106,6 +107,13 @@ contains no recoverable material. Unknown provider exceptions become the safe `u
 not persisted vendor diagnostics.
 
 ## Registration and recovery
+
+For optional **User self-registration**, use distinct `RegisterUserHandler` with trusted nonempty RoleName defaults and
+mandatory creation-time Role fencing, as described in the [registration guide](user-registration.md). Its `UserRegistered`
+fact is routed by `InvitationDeliverySubscriber` using fixed `registration` source provenance, not an authenticated actor.
+The worker uses stored origin and the normal activation purpose. Registration/default Roles/grant/delivery/audit commit
+before any invocation. Pending User and Roles survive publication/provider faults; delivery does not activate the User.
+Administrator registration recovery is separate TASK-00075 work. The table below lists delivery-worker registrations.
 
 | Message | Handler |
 | --- | --- |
@@ -134,6 +142,13 @@ A provider acceptance followed by lost outcome commit may repeat invocation with
 at-least-once invocation, not exactly-once effect. The provider adapter must make repeated identities converge and
 return `DELIVERED`, `RETRYABLE_FAILURE` or `PERMANENT_FAILURE`. Replacement generations have fresh identities.
 Secret-free status queries do not expose claim tokens, credentials, hashes, ciphertext or provider errors.
+
+For registration and private invitation alike, `DeliverUserInvitationHandler` attempts `CommandFailedEvent` with the
+original safe delivery command and constant `User invitation delivery failed.` text, not arbitrary storage/subscriber
+diagnostics. Failure notification is best effort: even if it throws, the same original operation throwable reaches the
+caller. Confirmed registration/claim/outcome commits are not undone by later publication failure. Consumers must still
+sanitize rethrown faults and secure event/log access. This Unreleased worker correction does not change the separate
+manual-retry handler's diagnostic behavior described below.
 
 ## Manual invitation retry admission (v0.6.0)
 

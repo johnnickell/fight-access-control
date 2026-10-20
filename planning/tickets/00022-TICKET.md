@@ -2,7 +2,7 @@
 id: TICKET-00022
 epic: EPIC-00013
 title: Register a pending User with configured default Roles
-status: ready-for-agent
+status: done
 ---
 
 # Register a pending User with configured default Roles
@@ -55,15 +55,15 @@ that User. Reuse the activation lifecycle and the durable origin contract of
 
 ## Acceptance Evidence
 
-- [ ] Verify required/nonempty configured Roles, missing/forbidden/invalid names, multiple default Roles,
+- [x] Verify required/nonempty configured Roles, missing/forbidden/invalid names, multiple default Roles,
       no caller-selected Roles, and pending User authorization state before versus after one-time activation.
-- [ ] Verify atomic uniqueness for claimed canonical emails across all User states and live reservations;
+- [x] Verify atomic uniqueness for claimed canonical emails across all User states and live reservations;
       duplicate failure emits no new activation/delivery/success fact. Prove concurrent Role change/removal and
       all-or-nothing identity/Role/grant/delivery/audit outcomes under both winner orders using controlled races.
-- [ ] Verify write/commit failure, uncertain-commit/response loss, post-commit notification/provider faults,
+- [x] Verify write/commit failure, uncertain-commit/response loss, post-commit notification/provider faults,
       recoverable scheduler dispatch and no secret-bearing public evidence. Test current message round trips,
       handler registration, audit and post-commit fact ordering.
-- [ ] Update public usage/composition guidance and affected schemas/README/CONTEXT/changelog. Run focused
+- [x] Update public usage/composition guidance and affected schemas/README/CONTEXT/changelog. Run focused
       checks and the full package implementation gate when work is authorized. Separate modeled package proof
       from unexecuted real consumer transaction/uniqueness/Role-reference, mail, runtime and public abuse evidence.
 
@@ -81,18 +81,25 @@ John approved one complete registration slice, now [TASK-00074](../tasks/00074-T
 journey, including creation-time Role-reference fencing and activation/delivery proof; no separate layer-only
 TASK is needed. The subsequent [TASK-00075](../tasks/00075-TASK.md) plan completes TICKET-00023 decomposition;
 all planning phases are accepted under [EPIC-00013](../epics/00013-EPIC.md#progress). Consult the
-[Board](../tasks/BOARD.md) for execution selection with TASK-00074 still dependent on unfinished TASK-00073.
-This remains planned v1.0.0 work, not a v0.6.0 release prerequisite. Planning approval alone does not authorize
-implementation or consumer enablement.
+[Board](../tasks/BOARD.md) for execution selection, preserving TASK-00074's now-satisfied TASK-00073 dependency.
+This remains v1.0.0-track work, not a v0.6.0 release prerequisite. Planning alone did not authorize implementation;
+John's later Build invocation authorized TASK-00074 execution, not consumer enablement.
 
 ## Child Tasks
 
 | Order | TASK ID | Title | Status |
 | --- | --- | --- | --- |
-| 74 | [TASK-00074](../tasks/00074-TASK.md) | Register a pending User atomically with default Roles | ready-for-agent |
+| 74 | [TASK-00074](../tasks/00074-TASK.md) | Register a pending User atomically with default Roles | done |
 ## Progress
 
-John approved the three-area TICKET split for EPIC-00013 and one TASK per area, including this TICKET's sole
-[TASK-00074](../tasks/00074-TASK.md), blocked by [TASK-00073](../tasks/00073-TASK.md), and TICKET-00023's
-[TASK-00075](../tasks/00075-TASK.md). Decomposition is complete; consult the [Board](../tasks/BOARD.md) for execution
-selection. No implementation or consumer enablement has occurred.
+TASK-00074's repair candidate `17e7237e0196ef7da8990f62c0ccdd7c0458aeb8` is independently accepted against
+unchanged `develop` `5e5f436d5d8ed4e37bb57bb58d7b3d1f09e6df29`. The canonical Review **ACCEPT** passes C1–C8,
+resolves F1/F2 and has no current findings; independent nonvisual QA **PASS** covers 10 selected scenarios with no
+incomplete result. Its repaired full gate is **2199 tests / 41974 assertions**, exact **7131/7131** owned statements,
+without final warnings/skips or dependency drift. Canonical reports and full logs remain in their TASK-owned ignored
+locations; the registration guide records the package composition and consumer limits.
+
+This TICKET's sole child is done, so automatic parent completion closes the TICKET with the same administrative
+operation. Land published [PR #122](https://github.com/johnnickell/fight-access-control/pull/122) for human review;
+closure does not imply approval, merge, release, consumer enablement, or actual consumer database/mail/public-security
+qualification. TASK-00075 retains administrator recovery under TICKET-00023.

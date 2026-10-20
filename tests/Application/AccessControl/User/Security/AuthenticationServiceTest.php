@@ -37,6 +37,7 @@ use Fight\AccessControl\Domain\AccessControl\RefreshSession\RefreshCredential;
 use Fight\AccessControl\Domain\AccessControl\RefreshSession\RefreshSession;
 use Fight\AccessControl\Domain\AccessControl\RefreshSession\RefreshSessionId;
 use Fight\AccessControl\Domain\AccessControl\RefreshSession\RefreshSessionRepository;
+use Fight\AccessControl\Domain\AccessControl\Role\Role;
 use Fight\AccessControl\Domain\AccessControl\Role\RoleId;
 use Fight\AccessControl\Domain\AccessControl\User\Event\EmailChangeConfirmed;
 use Fight\AccessControl\Domain\AccessControl\User\Event\PasswordChanged;
@@ -1568,6 +1569,12 @@ final class AuthenticationServiceTest extends TestCase
             public function add(User $user): void
             {
                 $this->users->add($user);
+            }
+
+            /** @param list<Role> $expectedRoles */
+            public function addWithRoleAssignments(User $user, array $expectedRoles): bool
+            {
+                return $this->users->addWithRoleAssignments($user, $expectedRoles);
             }
         };
         $loginEvents = new InMemoryEventDispatcher();
