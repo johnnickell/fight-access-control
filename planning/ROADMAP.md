@@ -1,5 +1,21 @@
 # Roadmap
 
+## Current planning handoff — consolidated correction batch
+
+The [correction map](wayfinder/access-control-correction-batch-map.md)'s decisions and decomposition are complete.
+[EPIC-00001](epics/00001-EPIC.md) retains existing requirement ownership through
+[TICKET-00001](tickets/00001-TICKET.md#approved-correction-batch-amendment), plus new
+[TICKET-00024](tickets/00024-TICKET.md) for Role caller revisions.
+
+The accepted TASKs are [TASK-00077](tasks/00077-TASK.md) for operation outcomes,
+[TASK-00078](tasks/00078-TASK.md) for recovery lifecycle, [TASK-00079](tasks/00079-TASK.md) for policy consistency
+and [TASK-00080](tasks/00080-TASK.md) for Role caller revisions. TASK-00078/00079 depend on TASK-00077;
+TASK-00080 depends on TASK-00077/00079. TASK-00078 precedes TASK-00079 by priority only.
+
+The map is Closed for planning; the TASKs remain unfinished. Public summaries do not replace the approved maintainer
+briefs or authorize restricted disclosure. Next: `/skill:next` for Board-based selection. Implementation, consumer
+qualification, version selection, release and deployment remain separate.
+
 ## Published v0.7.0
 
 [v0.7.0](https://github.com/johnnickell/fight-access-control/releases/tag/v0.7.0) was published on 2026-10-20
@@ -227,7 +243,7 @@ The EPIC's historical pre-v1.0.0 target is not an authorization to release v1.0.
 <!-- generated:epic-status:start -->
 | EPIC | Target | Status | Tickets | Tasks |
 | --- | --- | --- | --- | --- |
-| [EPIC-00001](epics/00001-EPIC.md) | 0.x public-source incubation | done | 1 | 18 |
+| [EPIC-00001](epics/00001-EPIC.md) | 0.x public-source incubation | done | 2 | 22 |
 | [EPIC-00002](epics/00002-EPIC.md) | 0.x | done | 1 | 7 |
 | [EPIC-00003](epics/00003-EPIC.md) | 0.x | done | 2 | 6 |
 | [EPIC-00004](epics/00004-EPIC.md) | v0.2.0 | done | 1 | 1 |

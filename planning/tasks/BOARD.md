@@ -5,7 +5,7 @@ dependencies, acceptance, and verification.
 
 ## What's Next?
 
-No non-terminal Task exists. Any future release decision requires separate human authorization.
+First ready Task: [TASK-00077](00077-TASK.md) — Align package operation outcome contracts.
 
 ## In Progress
 
@@ -13,11 +13,17 @@ No Tasks are currently in this state.
 
 ## Ready Frontier
 
-No Tasks are currently in this state.
+| Order | TASK ID | Title | Parent TICKET | Status | Blocked by | PR |
+| --- | --- | --- | --- | --- | --- | --- |
+| 77 | [TASK-00077](00077-TASK.md) | Align package operation outcome contracts | [TICKET-00001](../tickets/00001-TICKET.md) — Fight AccessControl Identity and Authentication Lifecycle | ready-for-agent | — | — |
 
 ## Waiting
 
-No Tasks are currently in this state.
+| Order | TASK ID | Title | Parent TICKET | Status | Blocked by | PR |
+| --- | --- | --- | --- | --- | --- | --- |
+| 78 | [TASK-00078](00078-TASK.md) | Align recovery lifecycle contracts | [TICKET-00001](../tickets/00001-TICKET.md) — Fight AccessControl Identity and Authentication Lifecycle | ready-for-agent | [TASK-00077](00077-TASK.md) | — |
+| 79 | [TASK-00079](00079-TASK.md) | Align managed-policy preview and apply contracts | [TICKET-00001](../tickets/00001-TICKET.md) — Fight AccessControl Identity and Authentication Lifecycle | ready-for-agent | [TASK-00077](00077-TASK.md) | — |
+| 80 | [TASK-00080](00080-TASK.md) | Fence custom Role rename and removal with caller revisions | [TICKET-00024](../tickets/00024-TICKET.md) — Fence custom Role rename and removal with caller revisions | ready-for-agent | [TASK-00077](00077-TASK.md), [TASK-00079](00079-TASK.md) | — |
 
 ## Needs Info
 
