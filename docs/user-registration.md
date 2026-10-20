@@ -1,9 +1,10 @@
-# Optional User registration (Unreleased)
+# Optional User registration (v0.7.0)
 
 `RegisterUser` and `RegisterUserHandler` supply the consumer-admitted registration journey approved in
 [TASK-00074](../planning/tasks/00074-TASK.md). They are distinct from `InvitePendingUser`: do not expose the private
 invitation command as anonymous registration. Registration is optional consumer composition, not enabled by package
-installation. This is planned v1.0.0-track, Unreleased behavior, not part of the v0.6.0 release preparation.
+installation. The accepted capability is released in [v0.7.0](release-0.7.0.md), after v0.6.0 and before
+the separate v1.0.0 stability decision. Package publication does not establish consumer qualification.
 
 ## Messages, admission and configuration
 
