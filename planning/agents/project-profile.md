@@ -3,6 +3,98 @@
 This package binds the [Fight Engineering Standards](../../docs/engineering/STANDARDS.md) to its Domain and
 Application package boundary.
 
+## Agent OS workflow binding
+
+Fight Agent OS skills and its custom Pi harness are optional contributor tooling. This checkout remains
+self-contained: without them, follow [AGENTS](../../AGENTS.md), [planning conventions](../CONVENTIONS.md) and the
+local standards directly, retaining the same implementation, independent review, behavioral QA and delivery boundaries.
+
+### Entry and authority
+
+Use `/skill:next` for read-only navigation and `/skill:build TASK-NNNNN` for approved implementation or confirmed
+repair. Substitute the actual selected TASK ID. An explicit implementation-only request uses `/skill:work TASK-NNNNN`;
+other continuations follow [the stage table](../CONVENTIONS.md#workflow-continuations).
+
+A recommendation or planning acceptance does not invoke Build. Explicit invocation delegates the provider-defined
+Engineer → independent Review → independent QA → land sequence, including TASK-owned commits, non-force push,
+PR creation/update and suitable sanitized evidence publication. Do not request approval again for already delegated
+effects. Each child performs only its assigned stage; the coordinator continues within the original scope.
+Build never authorizes PR approval/merge, force push, signed release, deployment, another TASK, unrelated changes
+or restricted disclosure. Ordinary edits do not imply publication authority. A real missing decision, prerequisite,
+ambiguous ownership or host restriction holds the affected action with its exact recovery input, not a generic
+approval loop. Keep [signed release controls](../../docs/engineering/standards/Delivery.md#signed-library-releases).
+
+Reuse the operator's existing TASK checkout choice. Otherwise resolve main checkout versus isolated worktree
+before implementation. Verify Git root, remote, common directory, registered worktrees, branch/base and status;
+use `feature/task-NNNNN-<slug>` from `develop`, preserving an authorized existing TASK branch and unrelated work.
+Correction-batch implementation/review still requires its full approved maintainer brief through the established
+private channel. Absence from public records proves neither availability nor unavailability: verify the authorized
+private handoff, and name the missing input if actually unavailable. General workflow maintenance does not require
+that brief. Never copy restricted criteria into tracked docs, logs intended for publication or PR prose.
+
+### Provider resolution and target substitutions
+
+Resolve the owning skill from the resource supplied by the harness/operator, then resolve its nested references
+relative to that provider. Shared resources such as `docs/engineering/PROJECT_CONTEXT.md`, `EXECUTION.md`,
+`HANDOFFS.md`, `QA.md` and `LANDING.md` remain provider-owned; their paths are provider-relative, not files this
+package must copy or recreate. Do not guess an installation path, copy the skill catalog, modify the provider,
+install/enroll tooling or change global settings as routine intake.
+
+Build and Next are explicit-only entrypoints (`disable-model-invocation: true` in the inspected provider).
+Pi omits such skills from automatic model-selection listings; omission is not proof of missing capability.
+Confirm the supplied skill resource and explicit command support. If a required resource, authentication, trust
+or tool is genuinely missing, record that setup prerequisite separately and obtain only the needed decision.
+Inspection, enrollment or an available command is not end-to-end Build qualification. Native file/shell tools
+remain ordinary Pi tools, not OS isolation or universal Jev enforcement. Optional discovery does not grant authority.
+
+Pi loads context from its working directory and ancestors, not every descendant instruction file when reading
+source. Explicitly read this profile, applicable CONTEXT sections and linked standards; do not assume they were
+automatically loaded. Before every delegated stage, the coordinator supplies a private reusable project-context
+path plus owning skill, target checkout, TASK/base/head, permitted effects and evidence paths. The child verifies
+Git identity and reads that context and target instructions before the skill; apply these substitutions through
+all nested references:
+
+| Concern | AccessControl authority |
+| --- | --- |
+| Instructions and accepted scope | Root `AGENTS.md`, this profile, `CONTEXT.md`, selected `planning/tasks/NNNNN-TASK.md` and applicable accepted parents |
+| Planning/navigation | `planning/CONVENTIONS.md`, `planning/tasks/BOARD.md`, `planning/wayfinder/README.md`, authored `planning/ROADMAP.md` handoff; generated views remain generator-owned |
+| Engineering rules | Local `docs/engineering/STANDARDS.md` and its selected standards; preserve package exceptions below |
+| Runtime and commands | Isolated package PHP Docker runtime through `./bin/*`; no application webserver, database, HTTP Adapter or UI provisioning required for package-only work |
+| Gates | `./bin/planning-check --write` after record changes, then `./bin/planning-check`, `./bin/documentation-check`, `git diff --check`; canonical `./bin/build` under local Testing |
+| Full-gate evidence reuse | Only [Testing's documentation-only rule](../../docs/engineering/standards/Testing.md#reusing-a-full-gate-result-after-documentation-only-follow-ups), with complete earlier log/exit and proven input equivalence; never call retained evidence a fresh pass |
+| Hosted checks | Existing [Testing policy](../../docs/engineering/standards/Testing.md#gate-boundaries): local proof is mandatory; builders/internal reviewers do not monitor hosted CI unless explicitly required/authorized. Public visibility or workflow files alone create no new gate. Land resolves actual declared requirements and host enforcement; unchecked is not passed |
+| Completion | `done` requires independent acceptance and required verification, including applicable QA; it means neither publication, merge nor release. Apply automatic parent completion and regenerate views in the same authorized closeout |
+
+Provider application planning, runtime, infrastructure, receipts and release examples are not AccessControl facts.
+Preserve Domain/Application-only ownership, exact statement coverage, OpenAPI integration coverage, pre-v1 current
+contracts and the security rules below. Unresolved conflicts hold only the affected action with its owner named.
+
+### Evidence and resume
+
+Resolve the canonical base checkout through Git common-directory and registered-worktree metadata, rather than
+assuming the current directory owns canonical evidence. Use these ignored target locations:
+
+- `<base>/.runs/build/<TASK-ID>/` — coordinator context, ledger, locks and per-stage attempts.
+- `<base>/.runs/reviews/<TASK-ID>/review.md` — canonical independent technical report under local Review.
+- `<base>/.runs/qa/<TASK-ID>/qa.md` — canonical independent behavioral report under the provider QA contract.
+- `.runs/tasks/<TASK-ID>/runs/` — owned execution scratch; `.runs/logs/<TASK-ID>/` and
+  `.runs/handoffs/<TASK-ID>/` — complete gate logs/receipts and reusable handoffs.
+- `.runs/worktree/<task-slug>/` — optional linked checkout; retain useful evidence and owned runtime through review.
+
+Match repository, TASK/requirements, branch, full base/head and working-tree snapshot before advancing. Review and
+QA must be independent of implementation and its submitted acceptance evidence; green commands or child exit zero
+are not verdicts. Use local Review's current v3 report or identity-compatible v2; QA records scenarios, disposition,
+limitations and subject under its owning contract. Executable routing/instructions need behavioral QA even without
+UI; screenshots may be unhelpful, but overall QA is not automatically N/A.
+
+Preserve canonical report history, stage attempts, model pins and the original Build ledger on resume. Default
+Build has five shared repair cycles across Review and QA (an explicit provider-supported allowance may differ);
+initial implementation is not a repair, QA FAIL never resets usage and exhaustion requires human continuation.
+INCOMPLETE evidence needs prerequisite recovery, not speculative source edits. Stale or contradictory subjects
+need reconciliation/reassessment, not selection of an older PASS. Administrative-only changes may bridge accepted
+content only under the provider landing contract with proven equivalence; material changes need fresh applicable
+independent evidence. Publish only sanitized evidence and never treat a local path as published PR proof.
+
 ## Pre-v1 compatibility policy
 
 Follow [ADR 0011](../adr/0011-pre-v1-current-contract-only.md): implement only the current API and persisted contract.

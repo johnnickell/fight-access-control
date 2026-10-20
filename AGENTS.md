@@ -2,11 +2,15 @@
 
 ## Work routing
 
-For “What's next?”, `next`, or an unqualified `/ask-matt`, go straight to the [Board](planning/tasks/BOARD.md)
-before general project orientation. Read its current human decision and active work; otherwise select the first
-executable ready TASK in Board order. Use the [Wayfinder index](planning/wayfinder/README.md) for map status and current frontier pointers.
-Follow [lightweight work routing](planning/CONVENTIONS.md#lightweight-work-routing) for validation,
-bounded evidence reads and planning handoffs. Recommend and stop; load execution guidance when work is invoked.
+For “What's next?”, `next`, `/skill:next`, or an unqualified `/ask-matt`, go straight to the [Board](planning/tasks/BOARD.md)
+before general project orientation. Honor an explicit narrower user selection. Read its current human decision and
+active work; otherwise select the first executable ready TASK in Board order. Use the
+[Wayfinder index](planning/wayfinder/README.md) for map status and current frontier pointers. Follow
+[lightweight work routing](planning/CONVENTIONS.md#lightweight-work-routing) for validation, bounded evidence reads
+and planning handoffs. Recommend and stop; never launch a workflow from navigation. Default unimplemented
+approved work and confirmed implementation defects to `/skill:build TASK-NNNNN`; use `/skill:work TASK-NNNNN` for an explicit implementation-only
+request. Follow the [stage routes](planning/CONVENTIONS.md#workflow-continuations) for review, QA, delivery and evidence gaps.
+Load execution guidance when work is invoked.
 This routing path does not require reading README, architecture, full project context, task history or receiving skills.
 
 ## Project guidance
@@ -14,7 +18,9 @@ This routing path does not require reading README, architecture, full project co
 For execution or substantive planning changes, load the applicable guidance below. The read-only routing
 path above takes precedence over broad orientation reads; it does not waive engineering or delivery rules.
 
-**Scope:** these are shared engineering conventions. Read the local [AccessControl project profile](planning/agents/project-profile.md), [CONTEXT.md](CONTEXT.md), and the selected work record alongside them. All referenced guidance is available in this checkout; no private skill installation is required.
+**Scope:** these are shared engineering conventions. Read the local [AccessControl project profile](planning/agents/project-profile.md), [CONTEXT.md](CONTEXT.md), and the selected work record alongside them. All required project guidance is available in this checkout; no private skill installation is required.
+Optional Fight Agent OS workflows use the [local workflow binding](planning/agents/project-profile.md#agent-os-workflow-binding),
+not copied skills or provider-application assumptions.
 
 **Orient:** read the project's AGENTS.md, `planning/agents/project-profile.md` when present, CONTEXT.md, and the selected work record. Inspect current source, Git state, and project-owned commands before relying on recorded examples. Preserve unrelated work.
 
@@ -36,7 +42,11 @@ path above takes precedence over broad orientation reads; it does not waive engi
 
 **Verify:** use focused checks while iterating, then the complete project gate for implementation/build-input changes. Documentation-only follow-ups may retain prior full-gate evidence with verified input equivalence and targeted checks under the Testing standard. Cover production behavior; keep release/tooling tests separate from default builds and CI. Private repositories use a local build receipt as proof; a hosted CI pass is not required. Surface warnings and incomplete evidence. Keep CONTEXT.md and affected documentation aligned with the code.
 
-**Authorize:** follow the current request's delivery scope. Implementation, publication, independent review, landing, signed library release, and production deployment are distinct operations. A workflow may explicitly include commit/push/PR; ordinary code edits do not imply merge, release, or deployment permission.
+**Authorize:** follow the current request's delivery scope. Implementation, publication, independent review, landing,
+signed library release and production deployment remain distinct effects. An explicit Build invocation delegates its
+work/review/QA/land sequence, including owned commits, non-force push and open-PR publication, without renewed approval
+for those effects. A recommendation or planning approval does not. Missing prerequisites hold the affected action;
+merge, release, deployment, unrelated work and restricted disclosure remain outside Build's authority.
 
 **Persist:** records own durable decisions and acceptance. Ignored `.runs` subfolders own coordination, review handoffs, logs, and screenshots. Preserve useful evidence through landing and remove only resources demonstrably owned by the work.
 

@@ -87,4 +87,5 @@ The [Task Board](BOARD.md) is the operational projection.
 | 78 | [TASK-00078](00078-TASK.md) | Align recovery lifecycle contracts | [TICKET-00001](../tickets/00001-TICKET.md) — Fight AccessControl Identity and Authentication Lifecycle | ready-for-agent | [TASK-00077](00077-TASK.md) | — |
 | 79 | [TASK-00079](00079-TASK.md) | Align managed-policy preview and apply contracts | [TICKET-00001](../tickets/00001-TICKET.md) — Fight AccessControl Identity and Authentication Lifecycle | ready-for-agent | [TASK-00077](00077-TASK.md) | — |
 | 80 | [TASK-00080](00080-TASK.md) | Fence custom Role rename and removal with caller revisions | [TICKET-00024](../tickets/00024-TICKET.md) — Fence custom Role rename and removal with caller revisions | ready-for-agent | [TASK-00077](00077-TASK.md), [TASK-00079](00079-TASK.md) | — |
+| 81 | [TASK-00081](00081-TASK.md) | Align contributor workflows with Fight Agent OS | — (standalone chore) | done | — | https://github.com/johnnickell/fight-access-control/pull/128 |
 <!-- generated:task-index:end -->
