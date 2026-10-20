@@ -26,4 +26,4 @@ This generated index is a projection; individual records remain canonical.
 | [TICKET-00020](00020-TICKET.md) | Clean up expired human credential work after downtime | done |
 | [TICKET-00021](00021-TICKET.md) | Preserve registration and private-invitation delivery origin | done |
 | [TICKET-00022](00022-TICKET.md) | Register a pending User with configured default Roles | done |
-| [TICKET-00023](00023-TICKET.md) | Recover a pending registration administratively | in-progress |
+| [TICKET-00023](00023-TICKET.md) | Recover a pending registration administratively | done |

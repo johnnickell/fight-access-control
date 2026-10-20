@@ -151,9 +151,10 @@ John approved the three-area requirement decomposition: [TICKET-00021](tickets/0
 [TICKET-00022](tickets/00022-TICKET.md) (registration) → [TICKET-00023](tickets/00023-TICKET.md) (administrator
 recovery). John approved one TASK per requirement area:
 [TASK-00073](tasks/00073-TASK.md) (origin/provider) → [TASK-00074](tasks/00074-TASK.md) (atomic registration) →
-[TASK-00075](tasks/00075-TASK.md) (authorized correction and expired reissue). EPIC/TICKET/TASK planning is
-complete; consult the Board for execution selection. Package delivery, consumer integration and release are
-not claimed.
+[TASK-00075](tasks/00075-TASK.md) (authorized correction and expired reissue). All three tasks are accepted with
+applicable nonvisual QA; TASK-00075 is published for human review in
+[PR #123](https://github.com/johnnickell/fight-access-control/pull/123), and automatic parent completion closes
+TICKET-00023 and EPIC-00013. Package delivery, consumer integration and release are not claimed.
 
 ## Route to 1.0.0
 
@@ -208,5 +209,5 @@ not claimed.
 | [EPIC-00010](epics/00010-EPIC.md) | v0.5.0 | done | 3 | 7 |
 | [EPIC-00011](epics/00011-EPIC.md) | v0.5.0 | done | 2 | 3 |
 | [EPIC-00012](epics/00012-EPIC.md) | v0.5.0 | done | 1 | 1 |
-| [EPIC-00013](epics/00013-EPIC.md) | v1.0.0 | in-progress | 3 | 3 |
+| [EPIC-00013](epics/00013-EPIC.md) | v1.0.0 | done | 3 | 3 |
 <!-- generated:epic-status:end -->

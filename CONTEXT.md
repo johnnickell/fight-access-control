@@ -6,7 +6,7 @@ Fight AccessControl owns framework-neutral identity, credential, session, author
 behavior shared by Fight applications. The repository-local behavioral and security authority is
 [TICKET-00001](planning/tickets/00001-TICKET.md).
 
-## Administrator registration recovery — TASK-00075 Engineer checkpoint
+## Administrator registration recovery — TASK-00075 landing checkpoint
 
 John invoked Build for TASK-00075 in the selected main checkout after TASK-00074 integrated via PR #122.
 Engineer work is on `feature/task-00075-registration-recovery` from verified clean `develop`
@@ -29,19 +29,26 @@ not inferred rollback or stale-command replay. Existing protected invitation sta
 Controlled package tests cover both variants through delivery and single-use same-User activation, both uncertain
 commit outcomes, response loss, both outer publishers failing, provider retry/restart/resend, both-winner pre-write
 schedules, delayed provider outcomes and held-fence rollback/commit. Pending deletion remains unsupported; legal
-activation/delete/restore produces a new private invitation and defeats stale recovery. Independent re-review and QA
-remain pending. Focused checks pass **295 tests / 4035 assertions**; the canonical gate passes **2225 tests / 42779
-assertions**, exact **7264/7264** statements (**393/393** in changed statement-owning classes), without final
-warnings/skips. The TASK retains early setup/style failures and the first interrupted canonical attempt; the passing
-rerun has a direct exit-zero receipt. No package/lockfile drift occurred; regenerated Composer metadata and rebuilt
-image metadata are recorded with equivalent runnable Config/RootFS. Final verification prose retains that full gate
-with unchanged executable inputs and targeted checks. Repair cycle 1 corrects Review F1's changed-class subtotal
-only; raw gate artifacts and failed-attempt history remain unchanged. This prose correction retains the earlier full
-gate, not a fresh full-build claim. TASK and parents remain in progress awaiting independent acceptance.
+activation/delete/restore produces a new private invitation and defeats stale recovery. Focused checks pass **295
+tests / 4035 assertions**; the canonical gate passes **2225 tests / 42779 assertions**, exact **7264/7264**
+statements (**393/393** in changed statement-owning classes), without final warnings/skips. The TASK retains early
+setup/style failures and the first interrupted canonical attempt; the passing rerun has a direct exit-zero receipt.
+No package/lockfile drift occurred; regenerated Composer metadata and rebuilt image metadata are recorded with
+equivalent runnable Config/RootFS. Repair cycle 1 corrects Review F1's changed-class subtotal only; raw gate
+artifacts and failed-attempt history remain unchanged. This prose correction retains the earlier full gate, not a
+fresh full-build claim.
 
-No real consumer DB/authorization/template/restart/public-security qualification, enablement, publication,
-merge, release or deployment is claimed by this Engineer checkpoint. Current logs/receipt and exact commit mapping
-belong to `.runs/logs/TASK-00075/` and `.runs/handoffs/TASK-00075/work.md`.
+Independent technical Review **ACCEPTED** exact candidate `e3304547de6aa2cef82173481413b205dcc7d7f4` against
+`develop` `8119bd841d66d5c797db0c83667dd7fe27e7da2f` with no current findings. Independent nonvisual QA **PASSED**
+8/8 bounded real-contract scenarios with no failures or incompletes; visual evidence is N/A for this nonvisual
+library. Land published [PR #123](https://github.com/johnnickell/fight-access-control/pull/123) against `develop`.
+TASK-00075 is done for accepted package implementation and required local/behavioral verification; automatic parent
+completion closes its sole-child TICKET-00023 and EPIC-00013. No hosted acceptance gate is declared and hosted CI
+was not checked.
+
+No real consumer DB/authorization/template/restart/public-security qualification, enablement, PR approval, merge,
+release or deployment is claimed. Current logs/receipt and exact candidate mapping belong to
+`.runs/logs/TASK-00075/` and `.runs/handoffs/TASK-00075/`.
 
 ## Optional User registration — TASK-00074 Engineer repair checkpoint
 

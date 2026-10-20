@@ -5,13 +5,11 @@ dependencies, acceptance, and verification.
 
 ## What's Next?
 
-Active Task: [TASK-00075](00075-TASK.md) — Recover pending registrations with authorized correction and reissue.
+No non-terminal Task exists. Any future release decision requires separate human authorization.
 
 ## In Progress
 
-| Order | TASK ID | Title | Parent TICKET | Status | Blocked by | PR |
-| --- | --- | --- | --- | --- | --- | --- |
-| 75 | [TASK-00075](00075-TASK.md) | Recover pending registrations with authorized correction and reissue | [TICKET-00023](../tickets/00023-TICKET.md) — Recover a pending registration administratively | in-progress | [TASK-00074](00074-TASK.md) | — |
+No Tasks are currently in this state.
 
 ## Ready Frontier
 
@@ -111,3 +109,4 @@ No Tasks are currently in this state.
 | 72 | [TASK-00076](00076-TASK.md) | Reject expired invitation delivery retries before mutation | — (standalone bug) | done | — | https://github.com/johnnickell/fight-access-control/pull/118 |
 | 73 | [TASK-00073](00073-TASK.md) | Carry activation-delivery origin through provider recovery | [TICKET-00021](../tickets/00021-TICKET.md) — Preserve registration and private-invitation delivery origin | done | — | — |
 | 74 | [TASK-00074](00074-TASK.md) | Register a pending User atomically with default Roles | [TICKET-00022](../tickets/00022-TICKET.md) — Register a pending User with configured default Roles | done | [TASK-00073](00073-TASK.md) | https://github.com/johnnickell/fight-access-control/pull/122 |
+| 75 | [TASK-00075](00075-TASK.md) | Recover pending registrations with authorized correction and reissue | [TICKET-00023](../tickets/00023-TICKET.md) — Recover a pending registration administratively | done | [TASK-00074](00074-TASK.md) | https://github.com/johnnickell/fight-access-control/pull/123 |
