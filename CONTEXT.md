@@ -20,7 +20,7 @@ No correction-batch implementation, private brief disclosure, package/dependency
 qualification, merge, release or deployment is claimed. TASK-00077 remains the separate correction-batch entrypoint;
 this general guidance chore does not require its restricted brief.
 
-## Operation outcomes — TASK-00077 Engineer checkpoint
+## Operation outcomes — TASK-00077 landing checkpoint
 
 John invoked Build for [TASK-00077](planning/tasks/00077-TASK.md) in the main checkout, on
 `feature/task-00077-operation-outcomes` from verified clean `develop` `8da8b3e`. The current
@@ -32,9 +32,13 @@ Focused Application checks pass **1634 tests / 36950 assertions**; canonical `./
 44043 assertions**, exact **7311/7311 statements**, without final warnings/skips. Ignored dev-only swagger-php
 updates **6.17.1 → 6.18.0** through the normal resolver; dependency constraints and installed Common v1.4.0 are unchanged.
 This prose-only verification follow-up retains that full gate with proven executable-input equivalence and current
-targeted checks. At this Engineer checkpoint, independent Review and nonvisual QA remain pending. TASK-00077 remains
-in progress; no independent acceptance, consumer qualification, publication, release or deployment is claimed. Detailed approved criteria, inventory and execution receipts remain in the
-private maintainer handoff, not public tracking. TASK-00078–00080 remain separate unfinished work.
+targeted checks. Independent technical Review **ACCEPTED** and independent nonvisual QA **PASSED** the exact
+candidate; their private canonical reports retain detailed evidence. Land published
+[PR #129](https://github.com/johnnickell/fight-access-control/pull/129) against `develop`, and TASK-00077 is done
+for accepted package implementation and required local/behavioral verification. No hosted acceptance gate is
+declared and hosted CI was not checked. No PR approval, merge, consumer qualification, release or deployment is
+claimed. Detailed approved criteria, inventory and execution receipts remain in the private maintainer handoff, not
+public tracking. TASK-00078–00080 remain separate unfinished work.
 
 ## Consolidated correction planning
 
