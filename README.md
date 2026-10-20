@@ -8,10 +8,15 @@ Only the current pre-v1 API and persisted contract are supported; see
 migration/backfill routes. [Credential delivery](docs/credential-delivery.md) is recoverable and provider-neutral
 for invitation, password reset and email change.
 
-The [v0.6.0 release preparation](docs/release-0.6.0.md) adds expiry-aware manual invitation retry. Its required
-`Clock` constructor argument is a breaking pre-v1 composition change, not a drop-in v0.5.x patch. PHP **8.5+** and
-Fight Common **^1.3** requirements are unchanged. At the 2026-10-19 preparation checkpoint, final-main certification,
-signing and publication remain outstanding; these docs are not a release receipt or qualified consumer deployment.
+The [v0.7.0 release preparation](docs/release-0.7.0.md) adds optional User registration with atomic default Roles,
+durable registration/private-invitation delivery origin, and authorized administrator recovery. Required repository,
+hydration, provider and status-view changes make this a breaking pre-v1 minor, not a drop-in v0.6.x patch. PHP **8.5+**
+and Fight Common **^1.3** requirements are unchanged. Release-content acceptance, main integration, exact-commit
+certification, signing and publication remain outstanding; preparation does not enable registration in consumers.
+
+The [published v0.6.0 release](https://github.com/johnnickell/fight-access-control/releases/tag/v0.6.0) and
+[contract overview](docs/release-0.6.0.md) cover expiry-aware manual invitation retry. Its required fourth-argument
+`Clock` remains part of current composition.
 
 The [v0.5.0 release](https://github.com/johnnickell/fight-access-control/releases/tag/v0.5.0) and
 [contract overview](docs/release-0.5.0.md) cover recoverable Agent credentials, human credential expiry,
@@ -92,13 +97,13 @@ with terminal delivery or changed account state. All three repositories require 
 explicit User reservation revision. Cleanup requires no keys/providers; consumers protect every query/dispatch entry
 point and separately qualify PostgreSQL atomicity/CAS/destruction. Actor provenance is not authorization.
 
-The Unreleased [activation-origin contract](docs/credential-delivery.md#activation-origin-unreleased) requires
+The v0.7.0 [activation-origin contract](docs/credential-delivery.md#activation-origin-v070) requires
 `ActivationOrigin` on activation issuance/hydration and complete-state persistence/CAS. The provider invocation's
 required fifth argument carries the stored `private_invitation` or `registration` origin (explicit null for reset/email
 change), so consumers select their own distinct templates across retry, restart and resend. Private correction
 rejects registration; deleted-to-pending restore starts private. Consumer SQL/templates remain unqualified.
 
-### Optional User registration (Unreleased)
+### Optional User registration (v0.7.0)
 
 The [registration composition guide](docs/user-registration.md) describes distinct `RegisterUser` / `RegisterUserHandler`
 and post-commit `UserRegistered`. A required nonempty constructor list of consumer `RoleName` strings is resolved anew
@@ -114,9 +119,10 @@ Publication failures rethrow without undoing committed state; constant safe regi
 original command/throwable. Scheduler discovery recovers delivery after restart or lost response, not by resubmitting
 registration. Consumers own exposure/enablement, public response/enumeration and abuse controls, database/mail adapters,
 templates and real qualification. No endpoint, package generic acknowledgement or anonymous recovery is supplied;
-distinct authorized administrator recovery is described below. This is v1.0.0-track work, not a v0.6.0 prerequisite.
+distinct authorized administrator recovery is described below. The complete capability is selected for v0.7.0;
+a separate stability review remains required before v1.0.0.
 
-### Administrator registration recovery (Unreleased)
+### Administrator registration recovery (v0.7.0)
 
 `RecoverPendingRegistration` / `RecoverPendingRegistrationHandler` correct a pending registration's wrong address or
 issue fresh same-email activation at/after expiry, retaining the User and exact Roles. The command binds the expected

@@ -40,7 +40,7 @@ The catalog uses canonical snake-case `toArray()` keys. UUID identifiers use
 `uuid`; `*_at` values use `date-time`; paginated administrative results have `page`, `per_page`,
 `total_pages`, `total_records`, and typed `records`.
 
-### Optional User registration (Unreleased)
+### Optional User registration (v0.7.0)
 
 `Fight.AccessControl.RegisterUser` describes exactly required UUID `user_id` and email `email`, with extra fields
 rejected. It has no actor, Roles, password, credential or origin input. `Fight.AccessControl.UserRegistered` describes
@@ -80,7 +80,7 @@ over HTTP. All names below have the `Fight.AccessControl.` prefix:
 
 | Component | Canonical value |
 | --- | --- |
-| `ActivationOrigin` (Unreleased) | String enum `private_invitation` or `registration`; stored activation journey for consumer template selection, not caller authority |
+| `ActivationOrigin` (v0.7.0) | String enum `private_invitation` or `registration`; stored activation journey for consumer template selection, not caller authority |
 | `DeliverPasswordReset` | `actor_id` (an arbitrary string, including worker provenance), UUID `user_id` and `password_reset_delivery_id` |
 | `FindCredentialDeliveryStatus` | `purpose` (`activation`, `password_reset`, `email_change`) and nonempty UUID `delivery_id` |
 | `FindDueCredentialDeliveries` | `at` (`date-time`, including fractional seconds) and positive integer `limit`; no default or upper bound is imposed |
@@ -94,10 +94,10 @@ over HTTP. All names below have the `Fight.AccessControl.` prefix:
 | `ExpirePasswordResetDelivery` / `PasswordResetDeliveryExpired` | String actor provenance, User/password-reset delivery UUIDs and fractional occurrence time |
 | `ExpireEmailChange` / `EmailChangeExpired` | String actor provenance, User/email grant UUIDs and fractional occurrence time |
 
-The Unreleased `ActivationOrigin` component is a standalone scalar contract. It does not add an origin input to
+The v0.7.0 `ActivationOrigin` component is a standalone scalar contract. It does not add an origin input to
 Commands or fields to due/status Views. `CredentialDeliveryInvocation` remains sensitive and non-serializable, with
 no OpenAPI payload schema; consumers use its required typed origin in provider code. See the
-[current activation-origin composition](credential-delivery.md#activation-origin-unreleased) for required grant
+[current activation-origin composition](credential-delivery.md#activation-origin-v070) for required grant
 persistence/CAS and provider changes. Generated default-suite tests compare the component with the owning enum's
 serialized round trips; this does not qualify consumer template composition.
 

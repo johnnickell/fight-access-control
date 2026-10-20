@@ -22,7 +22,7 @@ field. Stale or fabricated predecessors lose without mutation. `add()` and succe
 state and fresh generation IDs/digests. Revocation, consumption and other terminal transitions destroy recoverable
 material without erasing state needed to reject stale generations.
 
-## Activation origin (Unreleased)
+## Activation origin (v0.7.0)
 
 `ActivationOrigin` is a required, non-sensitive business fact on `ActivationGrant`, shared by its exact owned
 activation delivery generation. Its only serialized values are `private_invitation` and `registration`.
@@ -53,7 +53,8 @@ Current consumer composition must change directly:
 
 Claims, typed outcomes, manual retry, scheduler discovery and lease takeover preserve the generation's stored origin.
 A fresh worker reconstructs it from authoritative storage, not the secret-free due/status DTOs. The protected
-latest invitation status additionally exposes `activation_delivery_id` for administrator recovery expectations; Immediate direct dispatch and event-triggered dispatch use that same worker. Both origins are delivered
+latest invitation status additionally exposes `activation_delivery_id` for administrator recovery expectations.
+Immediate direct dispatch and event-triggered dispatch use that same worker. Both origins are delivered
 outside transactions; provider success still does not activate the pending User.
 
 `ResendInvitationDelivery` preserves the latest issued generation's origin in its fresh successor, including after
@@ -77,7 +78,8 @@ reissuing grants. Arrange the adapter's real transaction/commit boundary around 
 The in-memory binding reconstructs grants from current enum values and cloned delivery snapshots; it models restart,
 not a real database or process. Bind and extend the failure schedules against the actual shared connection.
 
-This is a **breaking pre-v1 minor** current API/persistence change, not a v0.6.x patch or an old-data migration route.
+Selected for [v0.7.0](release-0.7.0.md), this is a **breaking pre-v1 minor** current API/persistence change, not a
+v0.6.x patch or an old-data migration route.
 The opt-in `Fight.AccessControl.ActivationOrigin` OpenAPI value component describes the enum, not a serializable
 provider invocation or a new caller-selected field. Consumers separately qualify real SQL CAS/atomicity, provider
 idempotency, keys, actual private/registration template configuration, scheduler restart, public protections and
@@ -152,7 +154,7 @@ For registration and private invitation alike, `DeliverUserInvitationHandler` at
 original safe delivery command and constant `User invitation delivery failed.` text, not arbitrary storage/subscriber
 diagnostics. Failure notification is best effort: even if it throws, the same original operation throwable reaches the
 caller. Confirmed registration/claim/outcome commits are not undone by later publication failure. Consumers must still
-sanitize rethrown faults and secure event/log access. This Unreleased worker correction does not change the separate
+sanitize rethrown faults and secure event/log access. This v0.7.0 worker correction does not change the separate
 manual-retry handler's diagnostic behavior described below.
 
 ## Manual invitation retry admission (v0.6.0)
@@ -171,7 +173,7 @@ Update consumer DI/factories directly. There is no optional/system-clock fallbac
 a **breaking pre-v1 minor** composition change selected for [v0.6.0](release-0.6.0.md), not a drop-in v0.5.x patch.
 Version selection and this guide do not establish publication.
 For that v0.6.0 retry repair, Command/event payloads, repository signatures, persisted state and provider idempotency
-formats were unchanged. The Unreleased activation-origin contract above separately changes issuance/hydration and
+formats were unchanged. The v0.7.0 activation-origin contract above separately changes issuance/hydration and
 provider composition plus required persisted state.
 
 Inside the shared transaction, the handler reads the latest grant, then takes one fresh clock sample before mutation,

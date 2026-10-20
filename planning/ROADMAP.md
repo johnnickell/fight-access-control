@@ -2,6 +2,21 @@
 
 ## Release preparation
 
+John selected **v0.7.0** and the main checkout on 2026-10-20. Refreshed `develop` `4ffc31b` contains the complete
+independently accepted registration capability integrated through PRs #121–#123. The
+[release overview](../docs/release-0.7.0.md) covers durable activation origin, atomic default-Role registration,
+authorized administrator recovery and the required breaking consumer contracts. PHP 8.5+ and Common ^1.3 remain
+unchanged; release preparation changes documentation only. Independent release-content acceptance, release PR/main
+integration, exact-merge certification, human signing and separately authorized publication remain required.
+No implementation TASK is unfinished. The EPIC's pre-v1.0.0 planning destination does not select v1.0.0 or waive
+its separate stability review; consumer qualification, enablement and deployment remain separate.
+
+The v0.6.0 release was published on 2026-10-19 and merged back through
+[PR #120](https://github.com/johnnickell/fight-access-control/pull/120). Earlier preparation and implementation
+checkpoints below retain their historical meaning; the Board owns current implementation status.
+
+### Historical v0.6.0 preparation checkpoint
+
 John selected **v0.6.0** and the main checkout on 2026-10-19. Integrated `develop` `cc364511` includes merged
 [PR #118](https://github.com/johnnickell/fight-access-control/pull/118) and accepted
 [TASK-00076](tasks/00076-TASK.md). The [release overview](../docs/release-0.6.0.md) documents expiry-aware invitation
@@ -140,7 +155,7 @@ authorized TASK-00067 landing; publication remained pending at that tracked chec
 into the selected release baseline. The complete Feature capability is included in v0.5.0 preparation; certification,
 publication, actual consumer adoption and deployment remain separate.
 
-## Optional self-registration planning before v1.0.0
+## Optional self-registration accepted for v0.7.0
 
 [EPIC-00013 — Optional User Self-Registration and Registration-Origin Delivery for v1.0.0](epics/00013-EPIC.md)
 records John's approved opt-in package destination after the
@@ -152,9 +167,11 @@ John approved the three-area requirement decomposition: [TICKET-00021](tickets/0
 recovery). John approved one TASK per requirement area:
 [TASK-00073](tasks/00073-TASK.md) (origin/provider) → [TASK-00074](tasks/00074-TASK.md) (atomic registration) →
 [TASK-00075](tasks/00075-TASK.md) (authorized correction and expired reissue). All three tasks are accepted with
-applicable nonvisual QA; TASK-00075 is published for human review in
-[PR #123](https://github.com/johnnickell/fight-access-control/pull/123), and automatic parent completion closes
-TICKET-00023 and EPIC-00013. Package delivery, consumer integration and release are not claimed.
+applicable nonvisual QA and integrated through PRs #121–#123; final
+[PR #123](https://github.com/johnnickell/fight-access-control/pull/123) is merged into `develop` `4ffc31b`.
+Automatic parent completion closed TICKET-00023 and EPIC-00013. John selected the complete capability for
+[v0.7.0 preparation](../docs/release-0.7.0.md); release publication, consumer integration/enablement and deployment
+remain separate. The EPIC's historical pre-v1.0.0 target is not an authorization to release v1.0.0.
 
 ## Route to 1.0.0
 
@@ -187,6 +204,8 @@ TICKET-00023 and EPIC-00013. Package delivery, consumer integration and release 
 
 | Version | Date | Outcome |
 | --- | --- | --- |
+| `v0.6.0` | 2026-10-19 | Published expiry-aware invitation retry and the required Clock composition change; merged back through PR #120. |
+| `v0.5.0` | 2026-10-06 | Published recoverable Agent operations, human expiry, Features and Agent-protected profile Tools; consumer qualification remains separate. |
 | `v0.4.0` | 2026-09-27 | Published protected Permission tiers, reserved Super Admin identity and atomic eligible delegation/reconciliation; consumer integration remains separately qualified. |
 | `v0.3.0` | 2026-09-25 | Published recoverable, provider-neutral credential delivery for invitations, password resets, and email changes, with pre-1.0 breaking migration guidance. |
 | `v0.2.0` | 2026-09-13 | Published consumer-composable OpenAPI schema components. |

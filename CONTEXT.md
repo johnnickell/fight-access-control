@@ -6,6 +6,31 @@ Fight AccessControl owns framework-neutral identity, credential, session, author
 behavior shared by Fight applications. The repository-local behavioral and security authority is
 [TICKET-00001](planning/tickets/00001-TICKET.md).
 
+## v0.7.0 release preparation — 2026-10-20
+
+John selected v0.7.0 and the main checkout for `release/0.7.0` from clean, refreshed `develop`
+`4ffc31b1d36272a2e7df9f2234fbccfce31371b6`, the merge of
+[PR #123](https://github.com/johnnickell/fight-access-control/pull/123). The
+[release overview](docs/release-0.7.0.md) covers the complete independently accepted registration capability:
+TASK-00073 activation origin, TASK-00074 atomic default-Role registration and TASK-00075 administrator recovery.
+EPIC-00013 and all children are done. This is a breaking pre-v1 minor with required persistence/repository,
+provider-invocation and status-view changes; PHP 8.5+ and Common ^1.3 remain unchanged. No production, test,
+schema, dependency-constraint or release-tooling change is part of this documentation preparation. The EPIC's
+v1.0.0 target remains its historical pre-stability planning destination, not a selected stable release.
+
+The preparation `./bin/build` passes **2225 tests / 42779 assertions**, exact **7264/7264 statements**, without
+final warnings/skips. Planning validates **111 records / 0 active** and documentation links pass. No resolved
+package or lockfile drift occurred; Composer regenerated ignored installed metadata and the rebuilt image retains
+identical runnable Config/RootFS. This verification-summary follow-up retains that full gate with unchanged
+executable inputs and targeted planning/documentation checks; it is not a second full build or final certification.
+
+At this preparation checkpoint, independent release-content acceptance, release PR/integration, exact-main
+certification, human signing and publication remain outstanding. The ignored
+`.runs/handoffs/release-0.7.0/ledger.md` owns resumable evidence and effect-specific authority. The published v0.6.0
+release and its merge-back through PR #120 were verified; earlier preparation checkpoints below are historical.
+Package acceptance/publication does not qualify actual consumer DB, authorization, mail/templates, restart or
+public-security behavior, enable registration, authorize dependency adoption or grant deployment permission.
+
 ## Administrator registration recovery — TASK-00075 landing checkpoint
 
 John invoked Build for TASK-00075 in the selected main checkout after TASK-00074 integrated via PR #122.
@@ -98,7 +123,7 @@ Historical planning checkpoints below do not override this execution authority.
 
 ## Activation origin — TASK-00073 implementation checkpoint
 
-The Unreleased [activation-origin contract](docs/credential-delivery.md#activation-origin-unreleased) stores required
+The Unreleased [activation-origin contract](docs/credential-delivery.md#activation-origin-v070) stores required
 immutable `ActivationOrigin` on each `ActivationGrant`, shared by its owned delivery generation. Current values are
 `private_invitation` and `registration`; creation/hydration has no default or historical reader. Complete-state
 repository CAS compares origin in both operands and terminal predecessors. Issuance/hydration requires the typed

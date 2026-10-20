@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.7.0] - 2026-10-20
+
+Pre-v1 breaking registration and delivery contract release. See the [release and integration overview](docs/release-0.7.0.md).
+This dated section prepares release notes; it is not evidence of signing, publication or consumer qualification.
+
 ### Fixed
 
 - Invitation delivery worker failure events retain safe command context with constant text instead of arbitrary
@@ -316,7 +321,8 @@ This dated section prepares release notes; it is not evidence of signing, public
   tooling, and exact production-statement coverage.
 - Repository-local product, security, architecture, contribution, and Git Flow authority under the MIT License.
 
-[Unreleased]: https://github.com/johnnickell/fight-access-control/compare/v0.6.0...HEAD
+[Unreleased]: https://github.com/johnnickell/fight-access-control/compare/v0.7.0...HEAD
+[0.7.0]: https://github.com/johnnickell/fight-access-control/compare/v0.6.0...v0.7.0
 [0.6.0]: https://github.com/johnnickell/fight-access-control/compare/v0.5.0...v0.6.0
 [0.5.0]: https://github.com/johnnickell/fight-access-control/compare/v0.4.0...v0.5.0
 [0.4.0]: https://github.com/johnnickell/fight-access-control/compare/v0.3.0...v0.4.0
