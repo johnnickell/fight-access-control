@@ -6,6 +6,20 @@ Fight AccessControl owns framework-neutral identity, credential, session, author
 behavior shared by Fight applications. The repository-local behavioral and security authority is
 [TICKET-00001](planning/tickets/00001-TICKET.md).
 
+## Consolidated correction planning
+
+The approved [correction-batch map](planning/wayfinder/access-control-correction-batch-map.md) is Closed for
+planning. TICKET-00001 owns [TASK-00077](planning/tasks/00077-TASK.md) for operation outcomes,
+[TASK-00078](planning/tasks/00078-TASK.md) for recovery lifecycle and [TASK-00079](planning/tasks/00079-TASK.md)
+for policy consistency. TICKET-00024 owns [TASK-00080](planning/tasks/00080-TASK.md) for Role caller revisions.
+TASK-00078/00079 depend on TASK-00077; TASK-00080 depends on TASK-00077/00079. The relative order of
+TASK-00078 and TASK-00079 is priority only. All four TASKs remain unfinished.
+
+Public records summarize approved scope, ownership and sequencing. Full maintainer briefs and restricted evidence
+remain private under SECURITY.md and must be obtained before implementation or independent review. No new behavioral
+verification or consumer qualification is claimed. Next: `/skill:next` for Board-based selection; planning publication
+does not authorize implementation, restricted disclosure, release or deployment.
+
 ## v0.7.0 publication — 2026-10-20
 
 [v0.7.0](https://github.com/johnnickell/fight-access-control/releases/tag/v0.7.0) is published from the exact

@@ -80,6 +80,13 @@ outcome/audit semantics, and direct handler registration.
 TASK-00037 through TASK-00039 completed these acceptance checks and the local package qualification. The signed
 `v0.3.0` tag and hosted release were completed on 2026-09-25; consumer migrations remain separate follow-up work.
 
+## Approved correction follow-up
+
+[TICKET-00001's correction amendment](00001-TICKET.md#approved-correction-batch-amendment) owns the approved
+operation-outcome and lifecycle follow-ups. Preserve this Ticket's established delivery and consumer-composition
+contracts. Detailed acceptance remains in the maintainer brief; no historical closeout is reopened or new
+implementation proof claimed here.
+
 ## Exclusions
 
 - Production Adapter code, ORM mappings, schema/migration, queue/job framework, event sourcing, provider-specific

@@ -205,6 +205,11 @@ Permission-reference fence and exact coverage. All TICKET-00004 tasks are termin
 
 ## Further Notes
 
+- [TICKET-00001's approved amendment](00001-TICKET.md#approved-correction-batch-amendment) governs the correction
+  batch's operation-outcome policy and supersedes conflicting older wording within that scope. Use its maintainer
+  brief for detailed acceptance. Existing desired-state retry and transaction semantics remain.
+  [TICKET-00024](00024-TICKET.md) adds Role revision participation without changing membership command inputs or
+  valid no-op behavior. These planned changes do not reopen historical completion or establish implementation.
 - This Ticket applies the desired-state rule consistently to Agent Permission, User Role, and custom-Role Permission
   modification after the approved pre-`1.0.0` architecture review and decision grill.
 - ADR 0005 governs Agent Permission-assignment revision and complete-set stale-write fencing. Existing User and Role

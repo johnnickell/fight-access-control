@@ -35,14 +35,14 @@ previous-iteration support; completed TASKs and earlier guidance cannot require 
 - Command and Query handlers implement the corresponding public Fight Common handler interface, declare their
   registration method, and extract the typed payload from the received message.
 - A CommandHandler owns one atomic Unit of Work: aggregate mutation and repository persistence precede one commit;
-  a success event is dispatched only after that commit. On failure it dispatches CommandFailedEvent with the original
-  command and message, then rethrows the same throwable.
-- Human expiry cleanup under [TASK-00072 C9](../tasks/00072-TASK.md#acceptance-criteria) retains the original safe
-  Command in `CommandFailedEvent` but uses constant `Credential expiry failed.` text, never arbitrary storage diagnostics
-  that may contain row material. The original throwable still rethrows, even if failure notification also fails.
-  This secret-free message rule is scoped to invitation/reset/email cleanup; transaction/rollback and post-commit
-  semantics are unchanged. Consumers sanitize rethrown errors at their response/log boundary. See
-  [expiry composition](../../docs/credential-expiry.md); this is not the issuance-warning return exception below.
+  a success event is dispatched only after that commit. The approved
+  [operation-outcome amendment](../tickets/00001-TICKET.md#approved-correction-batch-amendment) governs the correction
+  batch, superseding conflicting older guidance within its scope. Before implementing or reviewing that batch,
+  obtain its full approved maintainer brief through the established private channel; this public planning summary
+  does not replace detailed acceptance or establish implementation. Preserve documented exceptions below.
+- Human expiry cleanup retains [TASK-00072 C9](../tasks/00072-TASK.md#acceptance-criteria)'s accepted contract;
+  see [expiry composition](../../docs/credential-expiry.md). Keep internal provider classification distinct from
+  operation-outcome policy.
 - Approved replacement exception: [EPIC-00009 D3](../epics/00009-EPIC.md#d3--post-commit-result-behavior), ratified by
   John on 2026-09-27, applies only to replacement recoverable Agent provision and rotation. After a confirmed commit,
   publication failure returns committed metadata with a typed, sanitized warning, not a publication-failure throw.
