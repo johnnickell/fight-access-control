@@ -6,6 +6,52 @@ Fight AccessControl owns framework-neutral identity, credential, session, author
 behavior shared by Fight applications. The repository-local behavioral and security authority is
 [TICKET-00001](planning/tickets/00001-TICKET.md).
 
+## v0.7.0 publication — 2026-10-20
+
+[v0.7.0](https://github.com/johnnickell/fight-access-control/releases/tag/v0.7.0) is published from the exact
+`main` release merge `cf55a25ade9c36f99c9211f12e467446a5bb0c9d` through
+[PR #124](https://github.com/johnnickell/fight-access-control/pull/124). Independent release-content review accepted
+prepared candidate `911b5f6`; the merge preserved its tree. Fresh exact-main `./bin/release certify 0.7.0` passed
+**2225 tests / 42779 assertions**, exact **7264/7264 statements**, with no final warnings/skips; separate OpenAPI
+composition passed **15 tests / 614 assertions**. Human-signed annotated tag object
+`79de80627128ace44c38fe7a80e063e7115335f0` and its remote peeled commit were independently verified.
+
+GitHub publication at **2026-10-20T15:21:22Z** is latest, non-prerelease and immutable with zero uploaded assets;
+the provider release attestation verifies the tag object. Packagist normalized version `0.7.0.0` has matching source
+and dist references. This is registry projection, not installed-consumer qualification, adoption or deployment.
+The [release overview](docs/release-0.7.0.md) retains the breaking contracts and unexecuted consumer obligations.
+
+At this post-publication reconciliation checkpoint, reviewed merge-back into `develop` and owned branch cleanup
+are authorized but not yet completed. Their actual outcomes belong in the ignored release ledger, not a prediction
+of this document's eventual commit. No package behavior, dependency, test or gate input changes in this follow-up;
+retain the exact-main full gate through verified input equivalence and fresh documentation/planning checks.
+EPIC-00013 and its children are already done; the separate v1.0.0 stability decision remains unchanged.
+
+## Historical v0.7.0 release preparation — 2026-10-20
+
+John selected v0.7.0 and the main checkout for `release/0.7.0` from clean, refreshed `develop`
+`4ffc31b1d36272a2e7df9f2234fbccfce31371b6`, the merge of
+[PR #123](https://github.com/johnnickell/fight-access-control/pull/123). The
+[release overview](docs/release-0.7.0.md) covers the complete independently accepted registration capability:
+TASK-00073 activation origin, TASK-00074 atomic default-Role registration and TASK-00075 administrator recovery.
+EPIC-00013 and all children are done. This is a breaking pre-v1 minor with required persistence/repository,
+provider-invocation and status-view changes; PHP 8.5+ and Common ^1.3 remain unchanged. No production, test,
+schema, dependency-constraint or release-tooling change is part of this documentation preparation. The EPIC's
+v1.0.0 target remains its historical pre-stability planning destination, not a selected stable release.
+
+The preparation `./bin/build` passes **2225 tests / 42779 assertions**, exact **7264/7264 statements**, without
+final warnings/skips. Planning validates **111 records / 0 active** and documentation links pass. No resolved
+package or lockfile drift occurred; Composer regenerated ignored installed metadata and the rebuilt image retains
+identical runnable Config/RootFS. This verification-summary follow-up retains that full gate with unchanged
+executable inputs and targeted planning/documentation checks; it is not a second full build or final certification.
+
+At this preparation checkpoint, independent release-content acceptance, release PR/integration, exact-main
+certification, human signing and publication remain outstanding. The ignored
+`.runs/handoffs/release-0.7.0/ledger.md` owns resumable evidence and effect-specific authority. The published v0.6.0
+release and its merge-back through PR #120 were verified; earlier preparation checkpoints below are historical.
+Package acceptance/publication does not qualify actual consumer DB, authorization, mail/templates, restart or
+public-security behavior, enable registration, authorize dependency adoption or grant deployment permission.
+
 ## Administrator registration recovery — TASK-00075 landing checkpoint
 
 John invoked Build for TASK-00075 in the selected main checkout after TASK-00074 integrated via PR #122.
@@ -98,7 +144,7 @@ Historical planning checkpoints below do not override this execution authority.
 
 ## Activation origin — TASK-00073 implementation checkpoint
 
-The Unreleased [activation-origin contract](docs/credential-delivery.md#activation-origin-unreleased) stores required
+The Unreleased [activation-origin contract](docs/credential-delivery.md#activation-origin-v070) stores required
 immutable `ActivationOrigin` on each `ActivationGrant`, shared by its owned delivery generation. Current values are
 `private_invitation` and `registration`; creation/hydration has no default or historical reader. Complete-state
 repository CAS compares origin in both operands and terminal predecessors. Issuance/hydration requires the typed
