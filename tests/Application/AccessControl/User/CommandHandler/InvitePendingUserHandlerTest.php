@@ -6,6 +6,7 @@ namespace Fight\Test\AccessControl\Application\AccessControl\User\CommandHandler
 
 use Fight\AccessControl\Application\AccessControl\User\CommandHandler\InvitePendingUserHandler;
 use Fight\AccessControl\Domain\AccessControl\ActivationGrant\ActivationGrant;
+use Fight\AccessControl\Domain\AccessControl\ActivationGrant\ActivationOrigin;
 use Fight\AccessControl\Domain\AccessControl\Audit\AuditEvidence;
 use Fight\AccessControl\Domain\AccessControl\User\Command\InvitePendingUser;
 use Fight\AccessControl\Domain\AccessControl\User\Event\UserInvited;
@@ -82,6 +83,7 @@ final class InvitePendingUserHandlerTest extends TestCase
         self::assertSame('alice@example.test', $userRepository->all()[0]->getEmail()->canonical());
         self::assertSame(UserState::PENDING_ACTIVATION, $userRepository->all()[0]->getState());
         self::assertSame($userId, $activationGrantRepository->all()[0]->getUserId());
+        self::assertSame(ActivationOrigin::PRIVATE_INVITATION, $activationGrantRepository->all()[0]->getOrigin());
         self::assertSame($userId, $activationGrantRepository->all()[0]->getDelivery()->getUserId());
         self::assertSame($userId, $auditEvidenceRepository->all()[0]->subjectId());
         self::assertInstanceOf(UserInvited::class, $events->events()[0]);

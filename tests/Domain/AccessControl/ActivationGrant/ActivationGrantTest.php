@@ -9,6 +9,7 @@ use Fight\AccessControl\Domain\AccessControl\ActivationGrant\ActivationCredentia
 use Fight\AccessControl\Domain\AccessControl\ActivationGrant\ActivationDeliveryId;
 use Fight\AccessControl\Domain\AccessControl\ActivationGrant\ActivationGrant;
 use Fight\AccessControl\Domain\AccessControl\ActivationGrant\ActivationGrantId;
+use Fight\AccessControl\Domain\AccessControl\ActivationGrant\ActivationOrigin;
 use Fight\AccessControl\Domain\AccessControl\ActivationGrant\Exception\ActivationGrantException;
 use Fight\AccessControl\Domain\AccessControl\CredentialDelivery\CredentialDeliveryClaimToken;
 use Fight\AccessControl\Domain\AccessControl\CredentialDelivery\CredentialDeliveryFailure;
@@ -30,6 +31,7 @@ final class ActivationGrantTest extends TestCase
     public function test_that_owned_delivery_transitions_preserve_the_aggregate_generation(): void
     {
         $grant = ActivationGrant::issue(
+            ActivationOrigin::PRIVATE_INVITATION,
             UserId::generate(),
             ActivationCredential::fromString('activate-once'),
             new DateTimeImmutable('2026-08-18T12:00:00+00:00'),
@@ -82,6 +84,7 @@ final class ActivationGrantTest extends TestCase
     public function test_an_activation_grant_retains_only_a_hash_of_its_raw_credential(): void
     {
         $grant = ActivationGrant::issue(
+            ActivationOrigin::PRIVATE_INVITATION,
             UserId::generate(),
             ActivationCredential::fromString('activate-once'),
             new DateTimeImmutable('2026-08-18T12:00:00+00:00'),
@@ -100,6 +103,7 @@ final class ActivationGrantTest extends TestCase
     public function test_an_issued_activation_grant_can_be_consumed_only_once_before_expiry(): void
     {
         $grant = ActivationGrant::issue(
+            ActivationOrigin::PRIVATE_INVITATION,
             UserId::generate(),
             ActivationCredential::fromString('activate-once'),
             new DateTimeImmutable('2026-08-18T12:00:00+00:00'),
@@ -124,6 +128,7 @@ final class ActivationGrantTest extends TestCase
     public function test_an_activation_grant_cannot_be_consumed_after_expiry_or_revocation(): void
     {
         $grant = ActivationGrant::issue(
+            ActivationOrigin::PRIVATE_INVITATION,
             UserId::generate(),
             ActivationCredential::fromString('activate-once'),
             new DateTimeImmutable('2026-08-18T12:00:00+00:00'),
@@ -145,6 +150,7 @@ final class ActivationGrantTest extends TestCase
     public function test_a_consumed_activation_grant_cannot_be_revoked_again(): void
     {
         $grant = ActivationGrant::issue(
+            ActivationOrigin::PRIVATE_INVITATION,
             UserId::generate(),
             ActivationCredential::fromString('activate-once'),
             new DateTimeImmutable('2026-08-18T12:00:00+00:00'),
@@ -162,6 +168,7 @@ final class ActivationGrantTest extends TestCase
     public function test_an_expired_activation_grant_is_not_usable_or_consumable(): void
     {
         $grant = ActivationGrant::issue(
+            ActivationOrigin::PRIVATE_INVITATION,
             UserId::generate(),
             ActivationCredential::fromString('activate-once'),
             new DateTimeImmutable('2026-08-18T12:00:00+00:00'),
@@ -184,6 +191,7 @@ final class ActivationGrantTest extends TestCase
         $this->expectException(ActivationGrantException::class);
 
         ActivationGrant::issue(
+            ActivationOrigin::PRIVATE_INVITATION,
             UserId::generate(),
             ActivationCredential::fromString('activate-once'),
             $issuedAt,
@@ -199,6 +207,7 @@ final class ActivationGrantTest extends TestCase
         $issuedAt = new DateTimeImmutable('2026-08-18T12:00:00+00:00');
         $expiresAt = new DateTimeImmutable('2026-08-25T12:00:00+00:00');
         $grant = ExtensibleActivationGrant::issue(
+            ActivationOrigin::PRIVATE_INVITATION,
             $userId,
             ActivationCredential::fromString('activate-once'),
             $issuedAt,
@@ -207,6 +216,7 @@ final class ActivationGrantTest extends TestCase
             'ciphertext'
         );
         $reconstituted = ExtensibleActivationGrant::reconstitute(
+            ActivationOrigin::PRIVATE_INVITATION,
             ActivationGrantId::generate(),
             $userId,
             hash('sha256', 'activate-reconstituted'),

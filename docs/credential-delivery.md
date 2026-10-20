@@ -22,6 +22,70 @@ field. Stale or fabricated predecessors lose without mutation. `add()` and succe
 state and fresh generation IDs/digests. Revocation, consumption and other terminal transitions destroy recoverable
 material without erasing state needed to reject stale generations.
 
+## Activation origin (v0.7.0)
+
+`ActivationOrigin` is a required, non-sensitive business fact on `ActivationGrant`, shared by its exact owned
+activation delivery generation. Its only serialized values are `private_invitation` and `registration`.
+`activation` remains the credential purpose for both; origin is not authorization, template content, historical
+User classification or evidence of activation. Reset and email-change work have no activation origin.
+
+Current consumer composition must change directly:
+
+- `ActivationGrant::issue()` and its protected hydration constructor require `ActivationOrigin` as the **first**
+  argument. Trusted issuance code chooses it; no delivery, retry, resend or correction Command accepts origin.
+  `InvitePendingUserHandler` explicitly issues `PRIVATE_INVITATION`; `RegisterUserHandler` explicitly issues
+  `REGISTRATION` in its atomic pending-User/default-Role creation. See [registration composition](user-registration.md).
+- Persist the grant's origin with authority, encrypted delivery and audit on the shared transaction connection.
+  Hydrate with `ActivationOrigin::from($storedOrigin)` before constructing the grant. Missing/null/unknown values
+  reject; do not use `tryFrom() ?? PRIVATE_INVITATION`, historical readers, row conversion or event-based inference.
+  The standalone `ActivationDelivery` entity is not an independent issuance record: persist/hydrate its owning
+  grant and required origin together, even after delivery material is destroyed.
+- Complete-state repository comparisons include origin in **both** the expected predecessor and same-generation
+  replacement, including terminal predecessors in `replaceWithSuccessor()`. Same ID/revision with a different
+  origin is fabricated state, not a valid transition. Atomic successor creation may establish a new journey only
+  through the authorized use case. Keep all existing ownership, digest, revision, claim and latest-generation fences.
+- `CredentialDeliveryInvocation` requires a fifth argument, `?ActivationOrigin`: the claimed grant's stored origin
+  for activation and explicit `null` for password reset/email change. The constructor rejects a missing activation
+  origin or an origin on another purpose. Providers read `getActivationOrigin()` and exhaustively choose their own
+  private-invitation versus registration template; they must not select from an event, caller route or `activation`
+  purpose alone. No package template, template service or installation-enable switch is supplied. The invocation
+  remains short-lived, redacted and non-serializable; delivery ID, not origin, remains the idempotency identity.
+
+Claims, typed outcomes, manual retry, scheduler discovery and lease takeover preserve the generation's stored origin.
+A fresh worker reconstructs it from authoritative storage, not the secret-free due/status DTOs. The protected
+latest invitation status additionally exposes `activation_delivery_id` for administrator recovery expectations.
+Immediate direct dispatch and event-triggered dispatch use that same worker. Both origins are delivered
+outside transactions; provider success still does not activate the pending User.
+
+`ResendInvitationDelivery` preserves the latest issued generation's origin in its fresh successor, including after
+expiry; it cannot reclassify one origin as the other. `CorrectPendingInvitation` rejects registration-origin grants
+before User mutation; valid private correction creates another private invitation. Administrator restore of a
+**deleted** User to pending creates a new private invitation regardless of earlier registration origin. It does not
+recover a pending registration; use distinct authorized
+[administrator registration recovery](registration-recovery.md) for that pending identity.
+
+Failed writes/commit roll back the coupled changes. A confirmed or uncertain committed claim/outcome is resolved
+from persisted state after restart; unacknowledged provider acceptance can still repeat with the same delivery ID.
+Post-commit publication failure rethrows without undoing committed work; scheduler recovery does not require that
+publication. An already admitted old call can finish externally after replacement, but its stale outcome cannot
+mutate the successor, and an obsolete unclaimed command cannot invoke as current work. No exactly-once mail or
+reliable-event publication guarantee is introduced. Continue sanitizing storage exceptions at consumer boundaries.
+
+`ActivationOriginTest`, `ActivationOriginRecoveryTest` and the updated issuer/correction/restore tests cover these
+package-port outcomes. `ActivationOriginConformance` is a consumer-bindable repository suite: subclass it, supply an
+isolated `repository()` and a `restart(repository)` that closes/reopens persistence and hydrates every field without
+reissuing grants. Arrange the adapter's real transaction/commit boundary around writes as required by its composition.
+The in-memory binding reconstructs grants from current enum values and cloned delivery snapshots; it models restart,
+not a real database or process. Bind and extend the failure schedules against the actual shared connection.
+
+Selected for [v0.7.0](release-0.7.0.md), this is a **breaking pre-v1 minor** current API/persistence change, not a
+v0.6.x patch or an old-data migration route.
+The opt-in `Fight.AccessControl.ActivationOrigin` OpenAPI value component describes the enum, not a serializable
+provider invocation or a new caller-selected field. Consumers separately qualify real SQL CAS/atomicity, provider
+idempotency, keys, actual private/registration template configuration, scheduler restart, public protections and
+transport. The [registration journey tests](user-registration.md#package-evidence-map) separately exercise its command,
+all default Roles and same-User activation at package ports; neither slice qualifies consumer adoption, release or deployment.
+
 ## Explicit claim and outcome transitions
 
 The aggregate `claimDelivery(token, claimedAt, leaseUntil)` and delivery `claim()` require all three arguments.
@@ -46,6 +110,17 @@ contains no recoverable material. Unknown provider exceptions become the safe `u
 not persisted vendor diagnostics.
 
 ## Registration and recovery
+
+For optional **User self-registration**, use distinct `RegisterUserHandler` with trusted nonempty RoleName defaults and
+mandatory creation-time Role fencing, as described in the [registration guide](user-registration.md). Its `UserRegistered`
+fact is routed by `InvitationDeliverySubscriber` using fixed `registration` source provenance, not an authenticated actor.
+The worker uses stored origin and the normal activation purpose. Registration/default Roles/grant/delivery/audit commit
+before any invocation. Pending User and Roles survive publication/provider faults; delivery does not activate the User.
+For administrator correction or expired-same-email fresh activation, register `RecoverPendingRegistrationHandler`
+and its exact-target `RegistrationRecoveryAuthorization` port. Its `PendingRegistrationRecovered` fact is also routed
+by `InvitationDeliverySubscriber` after commit, retaining stored registration origin. Follow the
+[recovery guide](registration-recovery.md) for mandatory User no-op/correction fencing, expected-generation validation,
+rollback and uncertain-commit resolution. The table below lists delivery-worker registrations.
 
 | Message | Handler |
 | --- | --- |
@@ -75,6 +150,13 @@ at-least-once invocation, not exactly-once effect. The provider adapter must mak
 return `DELIVERED`, `RETRYABLE_FAILURE` or `PERMANENT_FAILURE`. Replacement generations have fresh identities.
 Secret-free status queries do not expose claim tokens, credentials, hashes, ciphertext or provider errors.
 
+For registration and private invitation alike, `DeliverUserInvitationHandler` attempts `CommandFailedEvent` with the
+original safe delivery command and constant `User invitation delivery failed.` text, not arbitrary storage/subscriber
+diagnostics. Failure notification is best effort: even if it throws, the same original operation throwable reaches the
+caller. Confirmed registration/claim/outcome commits are not undone by later publication failure. Consumers must still
+sanitize rethrown faults and secure event/log access. This v0.7.0 worker correction does not change the separate
+manual-retry handler's diagnostic behavior described below.
+
 ## Manual invitation retry admission (v0.6.0)
 
 `RetryInvitationDelivery(actorId, userId)` targets the latest invitation generation at execution, not an old delivery
@@ -90,7 +172,9 @@ reference. Protect the entry point with consumer authorization; actor provenance
 Update consumer DI/factories directly. There is no optional/system-clock fallback or historical constructor. This is
 a **breaking pre-v1 minor** composition change selected for [v0.6.0](release-0.6.0.md), not a drop-in v0.5.x patch.
 Version selection and this guide do not establish publication.
-Command/event payloads, repository signatures, persisted state and provider idempotency formats are unchanged.
+For that v0.6.0 retry repair, Command/event payloads, repository signatures, persisted state and provider idempotency
+formats were unchanged. The v0.7.0 activation-origin contract above separately changes issuance/hydration and
+provider composition plus required persisted state.
 
 Inside the shared transaction, the handler reads the latest grant, then takes one fresh clock sample before mutation,
 complete-state CAS and audit. Only still-issued authority with `now < expiresAt` and material-bearing `RETRY_PENDING`

@@ -11,6 +11,7 @@ use Fight\AccessControl\Domain\AccessControl\User\Exception\EmailChangeConfirmat
 use Fight\AccessControl\Domain\AccessControl\User\Exception\EmailChangeExpirationException;
 use Fight\AccessControl\Domain\AccessControl\User\Exception\EmailChangeRequestException;
 use Fight\AccessControl\Domain\AccessControl\User\Exception\PendingInvitationCorrectionException;
+use Fight\AccessControl\Domain\AccessControl\User\Exception\RegistrationRecoveryException;
 use Fight\AccessControl\Domain\AccessControl\User\Exception\UserLifecycleException;
 use Fight\AccessControl\Domain\AccessControl\User\Exception\UserNotActiveException;
 use Fight\AccessControl\Domain\AccessControl\User\Exception\UserNotPendingActivationException;
@@ -149,6 +150,30 @@ class User
 
         if ($this->email->canonical() === $email->canonical()) {
             throw new PendingInvitationCorrectionException('The corrected email must differ from the current email.');
+        }
+
+        $this->email = $email;
+        ++$this->canonicalEmailRevision;
+        $this->updatedAt = $now;
+    }
+
+    /**
+     * Updates a pending registration destination without changing identity or assigned authority
+     *
+     * Same-canonical-email reissue deliberately leaves all User state unchanged.
+     */
+    public function recoverPendingRegistrationEmail(EmailAddress $email, DateTimeImmutable $now): void
+    {
+        if (
+            $this->state !== UserState::PENDING_ACTIVATION
+            || $this->passwordHash instanceof PasswordHash
+            || $this->pendingEmailChange instanceof EmailAddress
+        ) {
+            throw new RegistrationRecoveryException('The pending registration cannot be recovered.');
+        }
+
+        if ($this->email->canonical() === $email->canonical()) {
+            return;
         }
 
         $this->email = $email;

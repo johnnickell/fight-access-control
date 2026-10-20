@@ -7,6 +7,7 @@ namespace Fight\Test\AccessControl\Application\AccessControl\CredentialDelivery\
 use DateTimeImmutable;
 use Fight\AccessControl\Domain\AccessControl\ActivationGrant\ActivationCredential;
 use Fight\AccessControl\Domain\AccessControl\ActivationGrant\ActivationGrant;
+use Fight\AccessControl\Domain\AccessControl\ActivationGrant\ActivationOrigin;
 use Fight\AccessControl\Domain\AccessControl\CredentialDelivery\CredentialDeliveryClaimToken;
 use Fight\AccessControl\Domain\AccessControl\CredentialDelivery\CredentialDeliveryFailure;
 use Fight\AccessControl\Domain\AccessControl\EmailChangeGrant\EmailChangeCredential;
@@ -42,6 +43,7 @@ final class OfflineCredentialExpiryRegressionTest extends TestCase
         $email = EmailAddress::fromString('expiry@example.test');
         [$grant, $repository] = match ($family) {
             'activation' => [ActivationGrant::issue(
+                ActivationOrigin::PRIVATE_INVITATION,
                 $userId,
                 ActivationCredential::fromString('fixture'), $issuedAt, $expiresAt, $email, 'fixture:encrypted'
             ), new InMemoryActivationGrantRepository()],

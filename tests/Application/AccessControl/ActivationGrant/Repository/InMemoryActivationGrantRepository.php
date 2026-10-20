@@ -10,6 +10,7 @@ use Fight\AccessControl\Domain\AccessControl\ActivationGrant\ActivationDeliveryI
 use Fight\AccessControl\Domain\AccessControl\ActivationGrant\ActivationGrant;
 use Fight\AccessControl\Domain\AccessControl\ActivationGrant\ActivationGrantId;
 use Fight\AccessControl\Domain\AccessControl\ActivationGrant\ActivationGrantRepository;
+use Fight\AccessControl\Domain\AccessControl\ActivationGrant\ActivationOrigin;
 use Fight\AccessControl\Domain\AccessControl\ActivationGrant\Exception\ActivationGrantException;
 use Fight\AccessControl\Domain\AccessControl\CredentialDelivery\CredentialDeliveryStatus;
 use Fight\AccessControl\Domain\AccessControl\CredentialDelivery\DueCredentialDelivery;
@@ -17,6 +18,7 @@ use Fight\AccessControl\Domain\AccessControl\CredentialDelivery\ExpiredCredentia
 use Fight\AccessControl\Domain\AccessControl\User\UserId;
 use Fight\Common\Domain\Exception\DomainException;
 use Fight\Test\AccessControl\Application\AccessControl\User\InMemoryUnitOfWork;
+use Fight\Test\AccessControl\Domain\AccessControl\ActivationGrant\ExtensibleActivationGrant;
 use Throwable;
 
 final class InMemoryActivationGrantRepository implements ActivationGrantRepository
@@ -28,6 +30,9 @@ final class InMemoryActivationGrantRepository implements ActivationGrantReposito
 
     private int $replaceCalls = 0;
 
+    /** @var array<string, InMemoryUnitOfWork> */
+    private array $writers = [];
+
     public function __construct(
         private readonly ?InMemoryUnitOfWork $unitOfWork = null,
         private readonly bool $addSucceeds = true,
@@ -36,8 +41,14 @@ final class InMemoryActivationGrantRepository implements ActivationGrantReposito
         private readonly ?Closure $beforeReplace = null,
         private readonly ?int $replaceFailureOnCall = null,
         private readonly int $beforeReplaceOnCall = 1,
-        private readonly bool $addSuccessorSucceeds = true
+        private readonly bool $addSuccessorSucceeds = true,
+        ?self $state = null,
+        private readonly ?Closure $beforeSuccessor = null
     ) {
+        if ($state instanceof self) {
+            $this->activationGrants =& $state->activationGrants;
+            $this->writers =& $state->writers;
+        }
     }
 
     public function findDue(DateTimeImmutable $at, int $limit): array
@@ -120,6 +131,7 @@ final class InMemoryActivationGrantRepository implements ActivationGrantReposito
     {
         if (
             !$this->addSucceeds
+            || !$this->holdWriteFence($activationGrant->getUserId())
             || $this->getLatestByUserId($activationGrant->getUserId()) instanceof ActivationGrant
             || !$this->isPristine($activationGrant)
             || $this->hasGrantId($activationGrant->getId())
@@ -183,6 +195,7 @@ final class InMemoryActivationGrantRepository implements ActivationGrantReposito
         $current = $this->getLatestByUserId($predecessor->getUserId());
         if (
             !$this->replaceSucceeds
+            || !$this->holdWriteFence($predecessor->getUserId())
             || $this->replaceFailureOnCall === $this->replaceCalls
             || !$current instanceof ActivationGrant
             || !$this->sameState($current, $predecessor)
@@ -201,9 +214,11 @@ final class InMemoryActivationGrantRepository implements ActivationGrantReposito
         ActivationGrant $terminalPredecessor,
         ActivationGrant $successor
     ): bool {
+        $this->beforeSuccessor?->__invoke();
         $current = $this->getLatestByUserId($predecessor->getUserId());
         if (
-            !$this->replaceWithSuccessorSucceeds
+            !$this->holdWriteFence($predecessor->getUserId())
+            || !$this->replaceWithSuccessorSucceeds
             || !$current instanceof ActivationGrant
             || !$this->sameState($current, $predecessor)
             || $terminalPredecessor->isIssued()
@@ -237,6 +252,7 @@ final class InMemoryActivationGrantRepository implements ActivationGrantReposito
         $current = $this->getLatestByUserId($successor->getUserId());
         if (
             !$this->addSuccessorSucceeds
+            || !$this->holdWriteFence($successor->getUserId())
             || !$current instanceof ActivationGrant
             || $current->isIssued()
             || $current->getDelivery()->isRetryable()
@@ -251,10 +267,51 @@ final class InMemoryActivationGrantRepository implements ActivationGrantReposito
         return true;
     }
 
+    public function restart(): self
+    {
+        $restarted = new self($this->unitOfWork);
+        foreach ($this->activationGrants as $grant) {
+            $restarted->activationGrants[] = ExtensibleActivationGrant::reconstitute(
+                ActivationOrigin::from($grant->getOrigin()->value),
+                $grant->getId(),
+                $grant->getUserId(),
+                $grant->getCredentialHash(),
+                $grant->getExpiresAt(),
+                clone $grant->getDelivery(),
+                $grant->getConsumedAt(),
+                $grant->getRevokedAt(),
+                $grant->getRevision()
+            );
+        }
+
+        return $restarted;
+    }
+
     /** @return list<ActivationGrant> */
     public function all(): array
     {
         return $this->activationGrants;
+    }
+
+    private function holdWriteFence(UserId $userId): bool
+    {
+        $key = $userId->toString();
+        if (!$this->unitOfWork instanceof InMemoryUnitOfWork || !$this->unitOfWork->transactionActive) {
+            return !isset($this->writers[$key]);
+        }
+
+        if (isset($this->writers[$key]) && $this->writers[$key] !== $this->unitOfWork) {
+            return false;
+        }
+
+        if (!isset($this->writers[$key])) {
+            $this->writers[$key] = $this->unitOfWork;
+            $this->unitOfWork->onCompletion(function () use ($key): void {
+                unset($this->writers[$key]);
+            });
+        }
+
+        return true;
     }
 
     private function hasCredentialHash(UserId $userId, string $credentialHash): bool
@@ -435,6 +492,7 @@ final class InMemoryActivationGrantRepository implements ActivationGrantReposito
     {
         return $replacement->getId()->equals($predecessor->getId())
             && $replacement->getUserId()->equals($predecessor->getUserId())
+            && $replacement->getOrigin() === $predecessor->getOrigin()
             && $replacement->getCredentialHash() === $predecessor->getCredentialHash()
             && $replacement->getExpiresAt() == $predecessor->getExpiresAt()
             && $replacement->getDelivery()->getId()->equals($predecessor->getDelivery()->getId())
@@ -455,6 +513,7 @@ final class InMemoryActivationGrantRepository implements ActivationGrantReposito
 
         return $this->sameRevision($current, $predecessor)
             && $current->getUserId()->equals($predecessor->getUserId())
+            && $current->getOrigin() === $predecessor->getOrigin()
             && $current->getCredentialHash() === $predecessor->getCredentialHash()
             && $current->getExpiresAt() == $predecessor->getExpiresAt()
             && $current->getConsumedAt() == $predecessor->getConsumedAt()

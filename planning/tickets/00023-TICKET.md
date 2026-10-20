@@ -2,7 +2,7 @@
 id: TICKET-00023
 epic: EPIC-00013
 title: Recover a pending registration administratively
-status: ready-for-agent
+status: done
 ---
 
 # Recover a pending registration administratively
@@ -84,9 +84,17 @@ now have complete approved TASK plans; Board-based execution selection and autho
 
 | Order | TASK ID | Title | Status |
 | --- | --- | --- | --- |
-| 75 | [TASK-00075](../tasks/00075-TASK.md) | Recover pending registrations with authorized correction and reissue | ready-for-agent |
+| 75 | [TASK-00075](../tasks/00075-TASK.md) | Recover pending registrations with authorized correction and reissue | done |
 ## Progress
 
-John approved the three-area TICKET split for EPIC-00013 and this TICKET's single TASK-00075 plan, blocked by
-TASK-00074. The map's TASK decomposition is complete; implementation and actual consumer qualification remain
-unstarted.
+John approved the three-area TICKET split for EPIC-00013 and this TICKET's single TASK-00075 plan. TASK-00074
+is integrated via PR #122. TASK-00075 is independently accepted at
+`e3304547de6aa2cef82173481413b205dcc7d7f4` against `develop` `8119bd841d66d5c797db0c83667dd7fe27e7da2f`:
+technical Review **ACCEPT** has no current findings and independent nonvisual QA **PASS** covers eight bounded
+real-contract scenarios with no failures or incompletes. The [recovery contract](../../docs/registration-recovery.md)
+describes both variants, exact-target authorization, complete-state transaction-duration fencing,
+failure/uncertainty resolution and controlled package evidence. Land published
+[PR #123](https://github.com/johnnickell/fight-access-control/pull/123) against `develop`; automatic parent
+completion closes this TICKET with its sole terminal child. Actual consumer database, authorization, templates,
+physical restart and public-security qualification remain unexecuted. This status does not claim approval, merge,
+release, deployment, consumer adoption, or hosted CI success.

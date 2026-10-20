@@ -6,6 +6,7 @@ namespace Fight\AccessControl\Domain\AccessControl\ActivationGrant\Query;
 
 use DateTimeImmutable;
 use Fight\AccessControl\Domain\AccessControl\ActivationGrant\ActivationDelivery;
+use Fight\AccessControl\Domain\AccessControl\ActivationGrant\ActivationDeliveryId;
 use Fight\AccessControl\Domain\AccessControl\CredentialDelivery\CredentialDeliveryStatus;
 use Fight\AccessControl\Domain\AccessControl\User\UserId;
 use Fight\Common\Domain\Type\Arrayable;
@@ -25,7 +26,8 @@ final readonly class InvitationDeliveryStatusView implements Arrayable
     public function __construct(
         private UserId $userId,
         private CredentialDeliveryStatus $status,
-        private DateTimeImmutable $expiresAt
+        private DateTimeImmutable $expiresAt,
+        private ActivationDeliveryId $activationDeliveryId
     ) {
     }
 
@@ -34,7 +36,7 @@ final readonly class InvitationDeliveryStatusView implements Arrayable
      */
     public static function fromWork(ActivationDelivery $work): self
     {
-        return new self($work->getUserId(), $work->getStatus(), $work->getExpiresAt());
+        return new self($work->getUserId(), $work->getStatus(), $work->getExpiresAt(), $work->getId());
     }
 
     /**
@@ -43,6 +45,14 @@ final readonly class InvitationDeliveryStatusView implements Arrayable
     public function getUserId(): UserId
     {
         return $this->userId;
+    }
+
+    /**
+     * Returns the current generation identity for protected administrator inspection
+     */
+    public function getActivationDeliveryId(): ActivationDeliveryId
+    {
+        return $this->activationDeliveryId;
     }
 
     /**
@@ -64,14 +74,15 @@ final readonly class InvitationDeliveryStatusView implements Arrayable
     /**
      * Returns the canonical safe array representation
      *
-     * @return array{user_id: string, status: string, expires_at: string}
+     * @return array{user_id: string, status: string, expires_at: string, activation_delivery_id: string}
      */
     public function toArray(): array
     {
         return [
-            'user_id'    => $this->userId->toString(),
-            'status'     => $this->status->value,
-            'expires_at' => $this->expiresAt->format(DATE_ATOM)
+            'user_id'                => $this->userId->toString(),
+            'status'                 => $this->status->value,
+            'expires_at'             => $this->expiresAt->format(DATE_ATOM),
+            'activation_delivery_id' => $this->activationDeliveryId->toString()
         ];
     }
 }

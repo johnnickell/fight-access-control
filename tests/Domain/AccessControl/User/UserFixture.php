@@ -6,6 +6,7 @@ namespace Fight\Test\AccessControl\Domain\AccessControl\User;
 
 use DateTimeImmutable;
 use Fight\AccessControl\Domain\AccessControl\Role\RoleId;
+use Fight\AccessControl\Domain\AccessControl\User\PasswordHash;
 use Fight\AccessControl\Domain\AccessControl\User\User;
 use Fight\AccessControl\Domain\AccessControl\User\UserId;
 use Fight\AccessControl\Domain\AccessControl\User\UserState;
@@ -24,6 +25,26 @@ final class UserFixture extends User
         $now = new DateTimeImmutable('2026-01-01T00:00:00+00:00');
 
         return new self(UserId::generate(), EmailAddress::fromString($email), $state, createdAt: $now, updatedAt: $now);
+    }
+
+    /**
+     * Reconstitutes inconsistent pending registration state for fail-closed boundary tests
+     */
+    public static function pendingRegistrationState(
+        User $user,
+        ?PasswordHash $passwordHash,
+        ?EmailAddress $pendingEmailChange
+    ): User {
+        return new self(
+            $user->getId(),
+            $user->getEmail(),
+            UserState::PENDING_ACTIVATION,
+            $user->getCreatedAt(),
+            $user->getUpdatedAt(),
+            $passwordHash,
+            roleIds: $user->getRoleIds(),
+            pendingEmailChange: $pendingEmailChange
+        );
     }
 
     /**

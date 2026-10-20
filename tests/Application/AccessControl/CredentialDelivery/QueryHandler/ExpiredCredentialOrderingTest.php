@@ -15,6 +15,7 @@ use Fight\AccessControl\Domain\AccessControl\ActivationGrant\ActivationCredentia
 use Fight\AccessControl\Domain\AccessControl\ActivationGrant\ActivationDelivery;
 use Fight\AccessControl\Domain\AccessControl\ActivationGrant\ActivationDeliveryId;
 use Fight\AccessControl\Domain\AccessControl\ActivationGrant\ActivationGrant;
+use Fight\AccessControl\Domain\AccessControl\ActivationGrant\ActivationOrigin;
 use Fight\AccessControl\Domain\AccessControl\ActivationGrant\ActivationGrantId;
 use Fight\AccessControl\Domain\AccessControl\ActivationGrant\Command\ExpireInvitationDelivery;
 use Fight\AccessControl\Domain\AccessControl\CredentialDelivery\ExpiredCredentialDelivery;
@@ -284,6 +285,7 @@ final class ExpiredCredentialOrderingTest extends TestCase
         if ($purpose === 'activation') {
             if ($id !== null) {
                 return ExtensibleActivationGrant::reconstitute(
+                    ActivationOrigin::PRIVATE_INVITATION,
                     ActivationGrantId::generate(),
                     $user->getId(),
                     hash('sha256', $label),
@@ -300,6 +302,7 @@ final class ExpiredCredentialOrderingTest extends TestCase
             }
 
             return ActivationGrant::issue(
+                ActivationOrigin::PRIVATE_INVITATION,
                 $user->getId(),
                 ActivationCredential::fromString($label),
                 $fixture->issuedAt,

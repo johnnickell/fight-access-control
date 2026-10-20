@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 namespace Fight\AccessControl\Application\AccessControl\CredentialDelivery\Service;
 
+use Fight\AccessControl\Domain\AccessControl\ActivationGrant\ActivationOrigin;
 use Fight\Common\Domain\Value\Internet\EmailAddress;
+use InvalidArgumentException;
 use LogicException;
 use SensitiveParameter;
 use SensitiveParameterValue;
@@ -25,8 +27,13 @@ final readonly class CredentialDeliveryInvocation
         private string $purpose,
         private string $idempotencyId,
         private EmailAddress $email,
-        #[SensitiveParameter] string $credential
+        #[SensitiveParameter] string $credential,
+        private ?ActivationOrigin $activationOrigin
     ) {
+        if (($purpose === 'activation') !== ($activationOrigin instanceof ActivationOrigin)) {
+            throw new InvalidArgumentException('Only activation delivery requires an activation origin.');
+        }
+
         $this->credential = new SensitiveParameterValue($credential);
     }
 
@@ -36,6 +43,14 @@ final readonly class CredentialDeliveryInvocation
     public function getPurpose(): string
     {
         return $this->purpose;
+    }
+
+    /**
+     * Returns the stored activation journey or null for other credential purposes
+     */
+    public function getActivationOrigin(): ?ActivationOrigin
+    {
+        return $this->activationOrigin;
     }
 
     /**
@@ -67,6 +82,7 @@ final readonly class CredentialDeliveryInvocation
      *
      * @return array{
      *     purpose: string,
+     *     activationOrigin: ?ActivationOrigin,
      *     idempotencyId: string,
      *     email: EmailAddress,
      *     credential: string
@@ -75,10 +91,11 @@ final readonly class CredentialDeliveryInvocation
     public function __debugInfo(): array
     {
         return [
-            'purpose'       => $this->purpose,
-            'idempotencyId' => $this->idempotencyId,
-            'email'         => $this->email,
-            'credential'    => '[REDACTED]'
+            'purpose'          => $this->purpose,
+            'activationOrigin' => $this->activationOrigin,
+            'idempotencyId'    => $this->idempotencyId,
+            'email'            => $this->email,
+            'credential'       => '[REDACTED]'
         ];
     }
 

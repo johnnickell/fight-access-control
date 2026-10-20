@@ -6,6 +6,152 @@ Fight AccessControl owns framework-neutral identity, credential, session, author
 behavior shared by Fight applications. The repository-local behavioral and security authority is
 [TICKET-00001](planning/tickets/00001-TICKET.md).
 
+## v0.7.0 release preparation — 2026-10-20
+
+John selected v0.7.0 and the main checkout for `release/0.7.0` from clean, refreshed `develop`
+`4ffc31b1d36272a2e7df9f2234fbccfce31371b6`, the merge of
+[PR #123](https://github.com/johnnickell/fight-access-control/pull/123). The
+[release overview](docs/release-0.7.0.md) covers the complete independently accepted registration capability:
+TASK-00073 activation origin, TASK-00074 atomic default-Role registration and TASK-00075 administrator recovery.
+EPIC-00013 and all children are done. This is a breaking pre-v1 minor with required persistence/repository,
+provider-invocation and status-view changes; PHP 8.5+ and Common ^1.3 remain unchanged. No production, test,
+schema, dependency-constraint or release-tooling change is part of this documentation preparation. The EPIC's
+v1.0.0 target remains its historical pre-stability planning destination, not a selected stable release.
+
+The preparation `./bin/build` passes **2225 tests / 42779 assertions**, exact **7264/7264 statements**, without
+final warnings/skips. Planning validates **111 records / 0 active** and documentation links pass. No resolved
+package or lockfile drift occurred; Composer regenerated ignored installed metadata and the rebuilt image retains
+identical runnable Config/RootFS. This verification-summary follow-up retains that full gate with unchanged
+executable inputs and targeted planning/documentation checks; it is not a second full build or final certification.
+
+At this preparation checkpoint, independent release-content acceptance, release PR/integration, exact-main
+certification, human signing and publication remain outstanding. The ignored
+`.runs/handoffs/release-0.7.0/ledger.md` owns resumable evidence and effect-specific authority. The published v0.6.0
+release and its merge-back through PR #120 were verified; earlier preparation checkpoints below are historical.
+Package acceptance/publication does not qualify actual consumer DB, authorization, mail/templates, restart or
+public-security behavior, enable registration, authorize dependency adoption or grant deployment permission.
+
+## Administrator registration recovery — TASK-00075 landing checkpoint
+
+John invoked Build for TASK-00075 in the selected main checkout after TASK-00074 integrated via PR #122.
+Engineer work is on `feature/task-00075-registration-recovery` from verified clean `develop`
+`8119bd841d66d5c797db0c83667dd7fe27e7da2f`. The Unreleased
+[recovery guide](docs/registration-recovery.md) owns current command, authorization, persistence and evidence details.
+`RecoverPendingRegistration` binds claimed actor, exact User, expected activation delivery ID and destination.
+Mandatory `RegistrationRecoveryAuthorization` authenticates/adopts administrator authority for that exact target
+inside the trusted transaction, valid through completion; consumers also protect every dispatch/query entry point.
+
+Wrong-address correction and exact/post-expiry same-email reissue retain the pending User and exact Roles. Defaults
+are not reread. `UserRepository::replacePendingRegistration()` compares complete expected User state and holds the
+shared identity/claim fence through completion, even for same-email no-op validation. All User and activation
+writers share transaction-duration fences. Predecessor revocation, fresh registration-origin activation/encrypted
+delivery and audit commit atomically. Post-commit `PendingRegistrationRecovered` uses the existing subscriber/worker;
+provider invocation remains outside transactions and does not activate the User. Original throwables survive safe
+constant failure evidence and notification faults. Lost/uncertain responses resolve from persisted current state,
+not inferred rollback or stale-command replay. Existing protected invitation status now exposes the required
+`activation_delivery_id`; no new query, public existence probe or historical reader is added.
+
+Controlled package tests cover both variants through delivery and single-use same-User activation, both uncertain
+commit outcomes, response loss, both outer publishers failing, provider retry/restart/resend, both-winner pre-write
+schedules, delayed provider outcomes and held-fence rollback/commit. Pending deletion remains unsupported; legal
+activation/delete/restore produces a new private invitation and defeats stale recovery. Focused checks pass **295
+tests / 4035 assertions**; the canonical gate passes **2225 tests / 42779 assertions**, exact **7264/7264**
+statements (**393/393** in changed statement-owning classes), without final warnings/skips. The TASK retains early
+setup/style failures and the first interrupted canonical attempt; the passing rerun has a direct exit-zero receipt.
+No package/lockfile drift occurred; regenerated Composer metadata and rebuilt image metadata are recorded with
+equivalent runnable Config/RootFS. Repair cycle 1 corrects Review F1's changed-class subtotal only; raw gate
+artifacts and failed-attempt history remain unchanged. This prose correction retains the earlier full gate, not a
+fresh full-build claim.
+
+Independent technical Review **ACCEPTED** exact candidate `e3304547de6aa2cef82173481413b205dcc7d7f4` against
+`develop` `8119bd841d66d5c797db0c83667dd7fe27e7da2f` with no current findings. Independent nonvisual QA **PASSED**
+8/8 bounded real-contract scenarios with no failures or incompletes; visual evidence is N/A for this nonvisual
+library. Land published [PR #123](https://github.com/johnnickell/fight-access-control/pull/123) against `develop`.
+TASK-00075 is done for accepted package implementation and required local/behavioral verification; automatic parent
+completion closes its sole-child TICKET-00023 and EPIC-00013. No hosted acceptance gate is declared and hosted CI
+was not checked.
+
+No real consumer DB/authorization/template/restart/public-security qualification, enablement, PR approval, merge,
+release or deployment is claimed. Current logs/receipt and exact candidate mapping belong to
+`.runs/logs/TASK-00075/` and `.runs/handoffs/TASK-00075/`.
+
+## Optional User registration — TASK-00074 Engineer repair checkpoint
+
+John invoked Build for TASK-00074 in the main checkout. Engineer implementation is on
+`feature/task-00074-registration` from clean `develop` `5e5f436d` (TASK-00073 integrated through PR #121).
+The Unreleased [registration guide](docs/user-registration.md) describes distinct `RegisterUser` / `RegisterUserHandler`,
+required nonempty consumer RoleName defaults resolved on every command, and post-commit `UserRegistered`.
+The command carries only new User ID/email, never authenticated actor claims, Roles, passwords or credentials.
+Audit/worker source `registration` is fixed provenance, not authority. Failure evidence retains the safe command with
+constant text and rethrows the original throwable even if notification fails.
+
+Mandatory `UserRepository::addWithRoleAssignments()` validates the complete expected Role snapshots and initial
+assignment set under a transaction-duration reference/name fence shared by all Role writers. Pending User/all Roles,
+canonical-email claims/reservations, activation grant, encrypted registration-origin delivery and audit commit together
+or not at all. Optional subscriber dispatch follows commit; due-work restart does not require registration replay.
+Provider acceptance leaves the User pending; existing single-use activation activates that same User with its Roles.
+Private invitations and other credential purposes retain their existing behavior.
+
+Independent Review of initial `8b19ff7` requested F1/F2: the composed delivery worker copied storage diagnostics into
+failure evidence and could replace the original throwable when failure notification threw. Two regression-first
+subscriber/Common-bus/worker cases reproduced both defects. The bounded worker catch now uses constant
+`User invitation delivery failed.` text and best-effort notification, preserving its original throwable. This applies
+to registration and private invitation; transaction/provider behavior is unchanged. Tests assert safe attempted payloads,
+throwable identity, committed pending User/all Roles/grant/audit and due-work recovery with the same delivery ID/origin.
+
+Repair focused checks pass **696 tests / 9546 assertions**; fresh canonical `./bin/build` passes **2199 tests / 41974
+assertions**, exact **7131/7131** owned statements (**106/106** in the repaired worker, **232/232** across all TASK-changed
+production files). Final checks have no warnings/skips. Complete logs/direct exits, failed-attempt history and snapshots
+are under `.runs/logs/TASK-00074/repair-1/`; the ignored Work handoff owns the committed mapping. No repair dependency
+package drift occurred; Common remains v1.4.0 and swagger-php 6.17.1. Rebuilt runnable image Config/RootFS are identical.
+Fresh independent technical re-review **ACCEPTS** exact candidate
+`17e7237e0196ef7da8990f62c0ccdd7c0458aeb8` against unchanged `develop` `5e5f436d5d8ed4e37bb57bb58d7b3d1f09e6df29`;
+canonical review v3 passes C1–C8, resolves F1/F2 and has no current findings. Independent nonvisual behavioral QA
+**PASS** on the same candidate covers 10 selected scenarios (nine real-contract driver scenarios / 56 checks plus
+29 delivery-regression tests / 198 assertions), with no findings or incomplete scenarios; visual QA is N/A for this
+nonvisual PHP library/worker change. Canonical Review and QA SHA-256 values are respectively
+`18a3bb179b03a924e35ba9ef5ba2197941742c3b81b1b78a97d8bf19859c98c0` and
+`fcfe4adb543d1954adff8d81a1928511487af4115a9166356babfde611f70db2`.
+
+TASK-00074 is complete for accepted package implementation and local/behavioral verification; automatic parent
+completion closes sole-child TICKET-00022 in the same Land administrative operation. EPIC-00013 remains in progress
+because TASK-00075/TICKET-00023 remain unfinished. Land published
+[TASK-00074 PR #122](https://github.com/johnnickell/fight-access-control/pull/122) for human review; no hosted
+acceptance requirement is declared and hosted CI is not checked. No consumer SQL, mail/templates, physical worker
+restart or public-security qualification, enablement, approval, merge, release, adoption or deployment is claimed.
+Historical planning checkpoints below do not override this execution authority.
+
+## Activation origin — TASK-00073 implementation checkpoint
+
+The Unreleased [activation-origin contract](docs/credential-delivery.md#activation-origin-v070) stores required
+immutable `ActivationOrigin` on each `ActivationGrant`, shared by its owned delivery generation. Current values are
+`private_invitation` and `registration`; creation/hydration has no default or historical reader. Complete-state
+repository CAS compares origin in both operands and terminal predecessors. Issuance/hydration requires the typed
+origin first; `CredentialDeliveryInvocation` requires it as the fifth argument (explicit null for reset/email change).
+The worker passes the claimed stored origin outside transactions with unchanged activation purpose and delivery ID.
+Consumers choose their own templates, never transient events/routes or User history.
+
+Private issuance/correction remain private; correction rejects registration before mutation. Resend preserves the
+current origin. Deleted-to-pending restoration starts a fresh private invitation even after registration. Controlled
+package tests cover both origins through immediate invocation, modeled persistence restart/discovery, retry/lease
+reclaim, successor/stale-worker fences, rollback, uncertain commits and post-commit publication/provider faults.
+The repository conformance suite is consumer-bindable; the OpenAPI inventory adds a standalone origin enum, not a
+serializable sensitive invocation or new public input/query. Reset/email-change purpose and safety remain unchanged.
+
+TASK-00073's focused checks pass **465 tests / 7419 assertions**; canonical `./bin/build` passes **2139 tests /
+41423 assertions**, exact **7038/7038 statements**, without final warnings/skips. The normal resolver updated only
+ignored dev-only swagger-php **6.17.0 → 6.17.1**; PHP 8.5.7 and Common v1.4.0 satisfy unchanged package requirements.
+The TASK and ignored Work handoff retain failed-attempt chronology, full log/exit and tested-content mapping.
+Earlier full gate is retained for final verification-prose updates with input equivalence and targeted checks.
+Independent technical Review **ACCEPT** and behavioral QA **PASS** now accept candidate
+`899dcbd9abdb22df1ca359afaa173789190fc780` against unchanged `develop` `2edbd347`; TASK-00073 is done for
+accepted package implementation and required local/behavioral verification. Its administrative Landing closeout and
+PR publication remain separate from human approval/merge. This contract slice does not implement TASK-00074
+registration/default Roles or TASK-00075 administrator registration recovery. No actual consumer SQL,
+mail-template composition, worker process, public protection, adoption, release or deployment qualification is
+claimed. Earlier self-registration planning checkpoints
+below are historical; TASK-00074's later execution authority and current checkpoint are recorded above.
+
 ## v0.6.0 release preparation — 2026-10-19
 
 John selected v0.6.0 and the main checkout for `release/0.6.0` from clean `develop` `cc364511`, the merge of

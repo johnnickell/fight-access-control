@@ -9,6 +9,7 @@ use Fight\AccessControl\Application\AccessControl\CredentialDelivery\QueryHandle
 use Fight\AccessControl\Application\AccessControl\CredentialDelivery\QueryHandler\FindDueCredentialDeliveriesHandler;
 use Fight\AccessControl\Domain\AccessControl\ActivationGrant\ActivationCredential;
 use Fight\AccessControl\Domain\AccessControl\ActivationGrant\ActivationGrant;
+use Fight\AccessControl\Domain\AccessControl\ActivationGrant\ActivationOrigin;
 use Fight\AccessControl\Domain\AccessControl\CredentialDelivery\CredentialDeliveryStatus;
 use Fight\AccessControl\Domain\AccessControl\CredentialDelivery\Query\CredentialDeliveryStatusView;
 use Fight\AccessControl\Domain\AccessControl\CredentialDelivery\Query\FindCredentialDeliveryStatus;
@@ -170,6 +171,7 @@ final class CredentialDeliveryQueryHandlerTest extends TestCase
 
         return [
             ActivationGrant::issue(
+                ActivationOrigin::PRIVATE_INVITATION,
                 UserId::generate(),
                 ActivationCredential::fromString('activate'),
                 $issuedAt,

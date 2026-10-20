@@ -14,6 +14,7 @@ use Fight\AccessControl\Application\AccessControl\PasswordResetGrant\CommandHand
 use Fight\AccessControl\Domain\AccessControl\ActivationGrant\ActivationCredential;
 use Fight\AccessControl\Domain\AccessControl\ActivationGrant\ActivationDeliveryId;
 use Fight\AccessControl\Domain\AccessControl\ActivationGrant\ActivationGrant;
+use Fight\AccessControl\Domain\AccessControl\ActivationGrant\ActivationOrigin;
 use Fight\AccessControl\Domain\AccessControl\ActivationGrant\Command\ExpireInvitationDelivery;
 use Fight\AccessControl\Domain\AccessControl\CredentialDelivery\CredentialDeliveryClaimToken;
 use Fight\AccessControl\Domain\AccessControl\CredentialDelivery\CredentialDeliveryFailure;
@@ -24,7 +25,9 @@ use Fight\AccessControl\Domain\AccessControl\PasswordResetGrant\Command\ExpirePa
 use Fight\AccessControl\Domain\AccessControl\PasswordResetGrant\PasswordResetCredential;
 use Fight\AccessControl\Domain\AccessControl\PasswordResetGrant\PasswordResetDeliveryId;
 use Fight\AccessControl\Domain\AccessControl\PasswordResetGrant\PasswordResetGrant;
+use Fight\AccessControl\Domain\AccessControl\Role\Role;
 use Fight\AccessControl\Domain\AccessControl\Role\RoleId;
+use Fight\AccessControl\Domain\AccessControl\Role\RoleName;
 use Fight\AccessControl\Domain\AccessControl\User\PasswordHash;
 use Fight\AccessControl\Domain\AccessControl\User\User;
 use Fight\AccessControl\Domain\AccessControl\User\UserId;
@@ -87,7 +90,10 @@ final readonly class ExpiredCredentialFixture
             $this->issuedAt
         );
         $this->user->advanceAuthenticationAuthorityRevision();
-        $this->user->assignRole(RoleId::generate(), $this->issuedAt);
+
+        $role = Role::define(RoleId::generate(), RoleName::fromString('ROLE_FIXTURE'), [], $this->issuedAt);
+        $this->unitOfWork->authorizationReferenceState()->addRole($role);
+        $this->user->assignRole($role->getId(), $this->issuedAt);
         if ($purpose === 'email_change') {
             $this->user->requestEmailChange(EmailAddress::fromString('next@example.test'), $this->issuedAt);
         }
@@ -101,6 +107,7 @@ final readonly class ExpiredCredentialFixture
         ];
         $this->initial = match ($purpose) {
             'activation' => ActivationGrant::issue(
+                ActivationOrigin::PRIVATE_INVITATION,
                 $arguments[0],
                 ActivationCredential::fromString('fixture'),
                 $arguments[1],

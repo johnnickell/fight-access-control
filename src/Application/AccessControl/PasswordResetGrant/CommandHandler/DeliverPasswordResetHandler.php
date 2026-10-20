@@ -131,7 +131,8 @@ final readonly class DeliverPasswordResetHandler implements CommandHandler
                 $claimed->purpose(),
                 $delivery->getId()->toString(),
                 $delivery->getEmail(),
-                $credential
+                $credential,
+                null
             ));
 
             return CredentialDeliveryAttemptResult::fromOutcome($outcome);

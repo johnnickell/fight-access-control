@@ -6,6 +6,7 @@ namespace Fight\Test\AccessControl\Application\AccessControl\User\Repository;
 
 use Closure;
 use Fight\AccessControl\Domain\AccessControl\RefreshSession\RefreshSession;
+use Fight\AccessControl\Domain\AccessControl\Role\Role;
 use Fight\AccessControl\Domain\AccessControl\Role\RoleId;
 use Fight\AccessControl\Domain\AccessControl\User\Exception\DuplicateEmailException;
 use Fight\AccessControl\Domain\AccessControl\User\PasswordHash;
@@ -19,6 +20,7 @@ use Fight\Common\Domain\Repository\ResultSet;
 use Fight\Common\Domain\Value\Internet\EmailAddress;
 use Fight\Test\AccessControl\Application\AccessControl\RefreshSession\Repository\InMemoryRefreshSessionRepository;
 use Fight\Test\AccessControl\Application\AccessControl\User\InMemoryUnitOfWork;
+use RuntimeException;
 use stdClass;
 use Throwable;
 
@@ -50,7 +52,10 @@ final class InMemoryUserRepository implements UserRepository
         private readonly ?Closure $beforeHasRoleAssignment = null,
         ?InMemoryAuthorizationReferenceState $authorizationReferences = null,
         private readonly ?Closure $beforeReplaceRoleAssignments = null,
-        private readonly ?Closure $beforeValidateRoleAssignmentReference = null
+        private readonly ?Closure $beforeValidateRoleAssignmentReference = null,
+        private readonly ?Closure $beforeAddWithRoleAssignments = null,
+        private readonly ?Closure $afterAddWithRoleAssignments = null,
+        private readonly ?Closure $beforeReplacePendingRegistration = null
     ) {
         $this->state = $state ?? new InMemoryUserRepositoryState();
         $this->authenticationAuthorityFenceOwner = new stdClass();
@@ -67,6 +72,16 @@ final class InMemoryUserRepository implements UserRepository
 
     public function add(User $user): void
     {
+        if (
+            $user->getRoleIds() !== []
+            && (
+                !$this->authorizationReferences->holdRoleCreationFence($this->unitOfWork ?? $this, $this->unitOfWork)
+                || !$this->authorizationReferences->rolesAreAuthoritative($user->getRoleIds())
+            )
+        ) {
+            throw new RuntimeException('Initial User Role references are not authoritative.');
+        }
+
         $canonical = $user->getEmail()->canonical();
         if (
             array_any(
@@ -79,12 +94,47 @@ final class InMemoryUserRepository implements UserRepository
             throw new DuplicateEmailException('The email address is already reserved.');
         }
 
+        if (
+            array_any(
+                $this->state->users,
+                static fn(User $current): bool => $current->getId()->equals($user->getId())
+            )
+        ) {
+            throw new RuntimeException('The User identity is already claimed.');
+        }
+
         $this->state->users[] = $user;
         $this->authorizationReferences->retainUser($user);
         $this->unitOfWork?->onRollback(function () use ($user): void {
             array_pop($this->state->users);
             $this->authorizationReferences->removeUser($user);
         });
+    }
+
+    /** @param list<Role> $expectedRoles */
+    public function addWithRoleAssignments(User $user, array $expectedRoles): bool
+    {
+        $this->beforeAddWithRoleAssignments?->__invoke();
+        if (
+            !$this->authorizationReferences->holdRoleCreationFence($this->unitOfWork ?? $this, $this->unitOfWork)
+            || !$this->authorizationReferences->roleSnapshotsAreAuthoritative($expectedRoles)
+            || $user->getState() !== UserState::PENDING_ACTIVATION
+        ) {
+            return false;
+        }
+
+        $assigned = array_map(static fn(RoleId $id): string => $id->toString(), $user->getRoleIds());
+        $expected = array_map(static fn(Role $role): string => $role->getId()->toString(), $expectedRoles);
+        sort($assigned);
+        sort($expected);
+        if ($assigned !== $expected) {
+            return false;
+        }
+
+        $this->add($user);
+        $this->afterAddWithRoleAssignments?->__invoke();
+
+        return true;
     }
 
     public function hasRoleAssignment(RoleId $roleId): bool
@@ -207,6 +257,10 @@ final class InMemoryUserRepository implements UserRepository
 
     public function replaceRoleAssignments(User $expected, User $replacement): bool
     {
+        if (!$this->authorizationReferences->holdRoleCreationFence($this->unitOfWork ?? $this, $this->unitOfWork)) {
+            return false;
+        }
+
         $this->authorizationReferences->holdThroughCompletion();
         $this->beforeReplaceRoleAssignments?->__invoke();
         if (!$this->replaceRoleAssignmentsSucceeds) {
@@ -227,7 +281,10 @@ final class InMemoryUserRepository implements UserRepository
             return false;
         }
 
-        $this->replaceAt($index, $replacement);
+        if (!$this->replaceAt($index, $replacement)) {
+            return false;
+        }
+
         $this->authorizationReferences->retainUser($replacement);
         $this->unitOfWork?->onRollback(function () use ($expected): void {
             $this->authorizationReferences->retainUser($expected);
@@ -238,6 +295,10 @@ final class InMemoryUserRepository implements UserRepository
 
     public function validateRoleAssignmentReference(RoleId $roleId): bool
     {
+        if (!$this->authorizationReferences->holdRoleCreationFence($this->unitOfWork ?? $this, $this->unitOfWork)) {
+            return false;
+        }
+
         $this->authorizationReferences->holdThroughCompletion();
         $this->beforeValidateRoleAssignmentReference?->__invoke();
 
@@ -271,9 +332,7 @@ final class InMemoryUserRepository implements UserRepository
             }
         }
 
-        $this->replaceAt($index, $replacement);
-
-        return true;
+        return $this->replaceAt($index, $replacement);
     }
 
     public function replacePendingInvitationEmail(User $expected, User $replacement): bool
@@ -301,9 +360,30 @@ final class InMemoryUserRepository implements UserRepository
             }
         }
 
-        $this->replaceAt($index, $replacement);
+        return $this->replaceAt($index, $replacement);
+    }
 
-        return true;
+    public function replacePendingRegistration(User $expected, User $replacement): bool
+    {
+        $this->beforeReplacePendingRegistration?->__invoke();
+        $valid = clone $expected;
+        try {
+            $valid->recoverPendingRegistrationEmail($replacement->getEmail(), $replacement->getUpdatedAt());
+        } catch (Throwable) {
+            return false;
+        }
+
+        foreach ($this->state->users as $index => $stored) {
+            if (
+                $this->sameUserState($stored, $expected)
+                && $this->sameUserState($valid, $replacement)
+                && !$this->emailIsClaimedByAnotherUser($expected, $replacement->getEmail())
+            ) {
+                return $this->replaceAt($index, $replacement);
+            }
+        }
+
+        return false;
     }
 
     public function replaceEmailChangeConfirmation(User $expected, User $replacement): bool
@@ -345,9 +425,7 @@ final class InMemoryUserRepository implements UserRepository
             return false;
         }
 
-        $this->replaceAt($index, $replacement);
-
-        return true;
+        return $this->replaceAt($index, $replacement);
     }
 
     public function bindRefreshSessionRepository(InMemoryRefreshSessionRepository $refreshSessionRepository): void
@@ -359,6 +437,21 @@ final class InMemoryUserRepository implements UserRepository
     public function all(): array
     {
         return $this->state->users;
+    }
+
+    private function sameUserState(User $left, User $right): bool
+    {
+        return $left->getId()->equals($right->getId())
+            && $left->getEmail()->toString() === $right->getEmail()->toString()
+            && $this->emailStateMatches($left, $right)
+            && $left->getState() === $right->getState()
+            && $this->passwordHashesMatch($left->getPasswordHash(), $right->getPasswordHash())
+            && $left->getAuthenticationVersion() === $right->getAuthenticationVersion()
+            && $left->getAuthenticationAuthorityRevision() === $right->getAuthenticationAuthorityRevision()
+            && $left->getAuthorizationAssignmentRevision() === $right->getAuthorizationAssignmentRevision()
+            && $this->roleAssignmentsMatch($left, $right)
+            && $left->getCreatedAt() == $right->getCreatedAt()
+            && $left->getUpdatedAt() == $right->getUpdatedAt();
     }
 
     private function passwordHashesMatch(?PasswordHash $left, ?PasswordHash $right): bool
@@ -713,8 +806,13 @@ final class InMemoryUserRepository implements UserRepository
         );
     }
 
-    private function replaceAt(int $index, User $replacement): void
+    private function replaceAt(int $index, User $replacement): bool
     {
+        if (!$this->acquireAuthenticationAuthorityFence($replacement)) {
+            return false;
+        }
+
+        $releaseAfterOperation = $this->holdAuthenticationAuthorityFenceThroughCompletion($replacement->getId());
         $user = $this->state->users[$index];
         $this->state->users[$index] = $replacement;
         $this->unitOfWork?->onRollback(function () use ($index, $replacement, $user): void {
@@ -722,6 +820,11 @@ final class InMemoryUserRepository implements UserRepository
                 $this->state->users[$index] = $user;
             }
         });
+        if ($releaseAfterOperation) {
+            $this->releaseAuthenticationAuthorityFence($replacement->getId());
+        }
+
+        return true;
     }
 
     private function acquireAuthenticationAuthorityFence(User $expected): bool

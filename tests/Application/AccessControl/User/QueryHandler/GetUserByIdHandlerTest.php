@@ -6,7 +6,9 @@ namespace Fight\Test\AccessControl\Application\AccessControl\User\QueryHandler;
 
 use DateTimeImmutable;
 use Fight\AccessControl\Application\AccessControl\User\QueryHandler\GetUserByIdHandler;
+use Fight\AccessControl\Domain\AccessControl\Role\Role;
 use Fight\AccessControl\Domain\AccessControl\Role\RoleId;
+use Fight\AccessControl\Domain\AccessControl\Role\RoleName;
 use Fight\AccessControl\Domain\AccessControl\User\Query\GetUserById;
 use Fight\AccessControl\Domain\AccessControl\User\Query\UserView;
 use Fight\AccessControl\Domain\AccessControl\User\UserId;
@@ -14,6 +16,7 @@ use Fight\AccessControl\Domain\AccessControl\User\UserState;
 use Fight\Common\Domain\Exception\DomainException;
 use Fight\Common\Domain\Messaging\Query\QueryMessage;
 use Fight\Common\Domain\Type\Arrayable;
+use Fight\Test\AccessControl\Application\AccessControl\User\Repository\InMemoryAuthorizationReferenceState;
 use Fight\Test\AccessControl\Application\AccessControl\User\Repository\InMemoryUserRepository;
 use Fight\Test\AccessControl\Domain\AccessControl\User\UserFixture;
 use PHPUnit\Framework\Attributes\CoversClass;
@@ -35,7 +38,10 @@ final class GetUserByIdHandlerTest extends TestCase
         );
         $user->assignRole($roleId, new DateTimeImmutable('2026-01-01T00:00:00+00:00'));
 
-        $users = new InMemoryUserRepository();
+        $references = new InMemoryAuthorizationReferenceState();
+        $references->addRole(Role::define($roleId, RoleName::fromString('ROLE_FIXTURE'), [], $user->getCreatedAt()));
+
+        $users = new InMemoryUserRepository(authorizationReferences: $references);
         $users->add($user);
 
         $handler = new GetUserByIdHandler($users);

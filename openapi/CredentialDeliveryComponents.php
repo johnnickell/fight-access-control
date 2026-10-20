@@ -8,6 +8,12 @@ use OpenApi\Attributes as OA;
 
 // Non-autoloaded credential-delivery value contracts, including worker-facing payloads.
 #[OA\Schema(
+    schema: 'Fight.AccessControl.ActivationOrigin',
+    description: 'Immutable activation journey for consumer template selection; not dispatch authority or credential purpose',
+    type: 'string',
+    enum: ['private_invitation', 'registration']
+)]
+#[OA\Schema(
     schema: 'Fight.AccessControl.DeliverPasswordReset',
     required: ['actor_id', 'user_id', 'password_reset_delivery_id'],
     properties: [

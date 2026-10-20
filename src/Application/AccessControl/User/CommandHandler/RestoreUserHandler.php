@@ -10,6 +10,7 @@ use Fight\AccessControl\Application\AccessControl\ActivationGrant\Service\Invita
 use Fight\AccessControl\Application\AccessControl\Timing\Service\Clock;
 use Fight\AccessControl\Domain\AccessControl\ActivationGrant\ActivationGrant;
 use Fight\AccessControl\Domain\AccessControl\ActivationGrant\ActivationGrantRepository;
+use Fight\AccessControl\Domain\AccessControl\ActivationGrant\ActivationOrigin;
 use Fight\AccessControl\Domain\AccessControl\Audit\AuditEvidence;
 use Fight\AccessControl\Domain\AccessControl\Audit\AuditEvidenceRepository;
 use Fight\AccessControl\Domain\AccessControl\User\Command\RestoreUser;
@@ -85,6 +86,7 @@ final readonly class RestoreUserHandler implements CommandHandler
                     $issuedAt = $this->clock->now();
                     $credential = $this->activationCredentialGenerator->generate();
                     $successor = ActivationGrant::issue(
+                        ActivationOrigin::PRIVATE_INVITATION,
                         $command->getUserId(),
                         $credential,
                         $issuedAt,

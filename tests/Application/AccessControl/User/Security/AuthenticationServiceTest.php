@@ -20,6 +20,7 @@ use Fight\AccessControl\Application\AccessControl\User\Service\LoginThrottle;
 use Fight\AccessControl\Domain\AccessControl\ActivationGrant\ActivationCredential;
 use Fight\AccessControl\Domain\AccessControl\ActivationGrant\ActivationGrant;
 use Fight\AccessControl\Domain\AccessControl\ActivationGrant\ActivationGrantRepository;
+use Fight\AccessControl\Domain\AccessControl\ActivationGrant\ActivationOrigin;
 use Fight\AccessControl\Domain\AccessControl\Audit\AuditEvidence;
 use Fight\AccessControl\Domain\AccessControl\Audit\AuditEvidenceRepository;
 use Fight\AccessControl\Domain\AccessControl\EmailChangeGrant\EmailChangeCredential;
@@ -36,6 +37,7 @@ use Fight\AccessControl\Domain\AccessControl\RefreshSession\RefreshCredential;
 use Fight\AccessControl\Domain\AccessControl\RefreshSession\RefreshSession;
 use Fight\AccessControl\Domain\AccessControl\RefreshSession\RefreshSessionId;
 use Fight\AccessControl\Domain\AccessControl\RefreshSession\RefreshSessionRepository;
+use Fight\AccessControl\Domain\AccessControl\Role\Role;
 use Fight\AccessControl\Domain\AccessControl\Role\RoleId;
 use Fight\AccessControl\Domain\AccessControl\User\Event\EmailChangeConfirmed;
 use Fight\AccessControl\Domain\AccessControl\User\Event\PasswordChanged;
@@ -1553,6 +1555,11 @@ final class AuthenticationServiceTest extends TestCase
                 return $this->users->replacePendingInvitationEmail($expected, $replacement);
             }
 
+            public function replacePendingRegistration(User $expected, User $replacement): bool
+            {
+                return $this->users->replacePendingRegistration($expected, $replacement);
+            }
+
             public function replaceLifecycleState(User $expected, User $replacement): bool
             {
                 return $this->users->replaceLifecycleState($expected, $replacement);
@@ -1567,6 +1574,12 @@ final class AuthenticationServiceTest extends TestCase
             public function add(User $user): void
             {
                 $this->users->add($user);
+            }
+
+            /** @param list<Role> $expectedRoles */
+            public function addWithRoleAssignments(User $user, array $expectedRoles): bool
+            {
+                return $this->users->addWithRoleAssignments($user, $expectedRoles);
             }
         };
         $loginEvents = new InMemoryEventDispatcher();
@@ -3249,6 +3262,7 @@ final class AuthenticationServiceTest extends TestCase
     private function grant(UserId $userId): ActivationGrant
     {
         return ActivationGrant::issue(
+            ActivationOrigin::PRIVATE_INVITATION,
             $userId,
             ActivationCredential::fromString(self::ACTIVATION_CREDENTIAL),
             new DateTimeImmutable('2026-08-18T12:00:00+00:00'),

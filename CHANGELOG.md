@@ -7,6 +7,62 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.7.0] - 2026-10-20
+
+Pre-v1 breaking registration and delivery contract release. See the [release and integration overview](docs/release-0.7.0.md).
+This dated section prepares release notes; it is not evidence of signing, publication or consumer qualification.
+
+### Fixed
+
+- Invitation delivery worker failure events retain safe command context with constant text instead of arbitrary
+  storage/subscriber diagnostics. A failing failure notification cannot replace the original operation throwable,
+  including on the registration subscriber path. Committed work remains recoverable; private invitation and
+  at-least-once provider semantics are unchanged.
+
+### Changed
+
+- **Breaking pre-v1 contract:** activation grant issuance and hydration now require explicit immutable
+  `ActivationOrigin` (`private_invitation` or `registration`). Consumer persistence and complete-state CAS must
+  retain/compare it for the owned delivery generation; no legacy origin default or migration is supplied.
+- `CredentialDeliveryInvocation` requires a fifth `?ActivationOrigin` argument, with the stored origin for activation
+  and explicit null for reset/email change. Consumer providers select their own templates through
+  `getActivationOrigin()`; purpose and delivery-ID idempotency remain unchanged through retry/restart/resend.
+  Private correction rejects registration-origin work; deleted-to-pending restoration starts a new private invitation.
+  Administrator registration recovery uses the distinct operation below.
+
+- **Breaking pre-v1 recovery composition:** mandatory `UserRepository::replacePendingRegistration()` validates/fences
+  complete pending User state through transaction completion, including unchanged-email reissue. Every User and
+  activation-generation writer shares its transaction-duration fence. Protected `InvitationDeliveryStatusView` now
+  requires/exposes `activation_delivery_id` for exact generation expectations; its schema is aligned. No old-contract
+  fallback or migration is supplied.
+
+### Added
+
+- Administrator-only `RecoverPendingRegistration` / handler and post-commit `PendingRegistrationRecovered`. Exact
+  actor/target authority is checked through mandatory `RegistrationRecoveryAuthorization` inside the transaction.
+  Wrong-address correction and same-email activation reissue at/after expiry retain the existing pending User/Role set,
+  revoke predecessor authority and atomically commit fresh registration-origin encrypted delivery plus audit.
+  The existing subscriber routes recovery to the outside-transaction worker. Safe failure evidence, original-throwable
+  rethrow, response-loss/uncertain-commit resolution, both-winner modeled races and generated schemas are covered.
+  No anonymous recovery or real consumer qualification is claimed; see [recovery composition](docs/registration-recovery.md).
+- Optional consumer-admitted `RegisterUser` / `RegisterUserHandler` and post-commit `UserRegistered`, distinct from
+  private invitation. Required nonempty configured RoleNames resolve on every registration; all default Roles, pending
+  User, registration-origin activation/encrypted delivery and audit commit atomically with email/reservation uniqueness.
+  Safe failure events use constant text and preserve the original throwable even if notification fails. Scheduler
+  recovery survives uncertain/lost responses and publication/provider faults; existing single-use activation retains
+  the same User and Roles. Consumer exposure, public security/response, templates and actual persistence/mail
+  qualification remain unexecuted. No anonymous recovery or enablement switch is added. See
+  [registration composition and evidence](docs/user-registration.md).
+- **Breaking pre-v1 repository integration:** mandatory `UserRepository::addWithRoleAssignments()` validates exact
+  initial assignments and complete current Role snapshots under the transaction-duration creation-reference/name
+  fence shared with every Role add/replace/remove path. Implement the current contract directly; no compatibility
+  default, production Adapter or migration is supplied.
+- Opt-in registration command/fact OpenAPI components and default-suite generated-schema, creation/reference-race,
+  canonical-email lifecycle/reservation, rollback, restart, provider and same-User activation tests.
+- Opt-in `Fight.AccessControl.ActivationOrigin` OpenAPI enum component, default-suite generated contract checks,
+  consumer-bindable origin CAS/restart scenarios and controlled provider/failure recovery evidence. Actual consumer
+  SQL, templates, workers and public-security qualification remain separate.
+
 ## [0.6.0] - 2026-10-19
 
 Pre-v1 breaking composition change. See the [release and integration overview](docs/release-0.6.0.md).
@@ -265,7 +321,8 @@ This dated section prepares release notes; it is not evidence of signing, public
   tooling, and exact production-statement coverage.
 - Repository-local product, security, architecture, contribution, and Git Flow authority under the MIT License.
 
-[Unreleased]: https://github.com/johnnickell/fight-access-control/compare/v0.6.0...HEAD
+[Unreleased]: https://github.com/johnnickell/fight-access-control/compare/v0.7.0...HEAD
+[0.7.0]: https://github.com/johnnickell/fight-access-control/compare/v0.6.0...v0.7.0
 [0.6.0]: https://github.com/johnnickell/fight-access-control/compare/v0.5.0...v0.6.0
 [0.5.0]: https://github.com/johnnickell/fight-access-control/compare/v0.4.0...v0.5.0
 [0.4.0]: https://github.com/johnnickell/fight-access-control/compare/v0.3.0...v0.4.0

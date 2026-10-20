@@ -40,6 +40,17 @@ The catalog uses canonical snake-case `toArray()` keys. UUID identifiers use
 `uuid`; `*_at` values use `date-time`; paginated administrative results have `page`, `per_page`,
 `total_pages`, `total_records`, and typed `records`.
 
+### Optional User registration (v0.7.0)
+
+`Fight.AccessControl.RegisterUser` describes exactly required UUID `user_id` and email `email`, with extra fields
+rejected. It has no actor, Roles, password, credential or origin input. `Fight.AccessControl.UserRegistered` describes
+required UUID `user_id` and `activation_delivery_id`, email `email` and fractional RFC3339 `issued_at`; it confirms pending
+registration commit, not delivery or activation. Neither component creates an HTTP endpoint, response envelope, public
+existence query or enablement gate. Consumers own admission, disclosure/abuse controls and response mapping. See
+[registration composition](user-registration.md) for required Role-name configuration, repository fences and recovery.
+`RegistrationComponentsTest` compares generated fields/formats with actual canonical message round trips in the default
+suite. Existing activation/password-setting schemas remain unchanged; credentials never enter these registration DTOs.
+
 ### Agent name updates (v0.5.0)
 
 `Fight.AccessControl.UpdateAgent` describes required `initiator`, UUID `agent_id` and raw `name`.
@@ -69,6 +80,7 @@ over HTTP. All names below have the `Fight.AccessControl.` prefix:
 
 | Component | Canonical value |
 | --- | --- |
+| `ActivationOrigin` (v0.7.0) | String enum `private_invitation` or `registration`; stored activation journey for consumer template selection, not caller authority |
 | `DeliverPasswordReset` | `actor_id` (an arbitrary string, including worker provenance), UUID `user_id` and `password_reset_delivery_id` |
 | `FindCredentialDeliveryStatus` | `purpose` (`activation`, `password_reset`, `email_change`) and nonempty UUID `delivery_id` |
 | `FindDueCredentialDeliveries` | `at` (`date-time`, including fractional seconds) and positive integer `limit`; no default or upper bound is imposed |
@@ -81,6 +93,13 @@ over HTTP. All names below have the `Fight.AccessControl.` prefix:
 | `ExpireInvitationDelivery` / `InvitationDeliveryExpired` | String actor provenance, User/activation delivery UUIDs and fractional occurrence time |
 | `ExpirePasswordResetDelivery` / `PasswordResetDeliveryExpired` | String actor provenance, User/password-reset delivery UUIDs and fractional occurrence time |
 | `ExpireEmailChange` / `EmailChangeExpired` | String actor provenance, User/email grant UUIDs and fractional occurrence time |
+
+The v0.7.0 `ActivationOrigin` component is a standalone scalar contract. It does not add an origin input to
+Commands or fields to due/status Views. `CredentialDeliveryInvocation` remains sensitive and non-serializable, with
+no OpenAPI payload schema; consumers use its required typed origin in provider code. See the
+[current activation-origin composition](credential-delivery.md#activation-origin-v070) for required grant
+persistence/CAS and provider changes. Generated default-suite tests compare the component with the owning enum's
+serialized round trips; this does not qualify consumer template composition.
 
 All canonical fields are required, including `last_attempt_at`, `last_outcome_at` and `last_failure`, whose values
 may be null. Non-null `last_failure` is only `retryable_provider`, `unexpected_provider` or `permanent_provider`;

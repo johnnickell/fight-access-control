@@ -6,6 +6,7 @@ namespace Fight\AccessControl\Domain\AccessControl\User;
 
 use Exception;
 use Fight\AccessControl\Domain\AccessControl\RefreshSession\RefreshSession;
+use Fight\AccessControl\Domain\AccessControl\Role\Role;
 use Fight\AccessControl\Domain\AccessControl\Role\RoleId;
 use Fight\Common\Domain\Repository\Pagination;
 use Fight\Common\Domain\Repository\ResultSet;
@@ -13,6 +14,11 @@ use Fight\Common\Domain\Value\Internet\EmailAddress;
 
 /**
  * Interface UserRepository
+ *
+ * All User writers share a per-identity complete-state fence and canonical-email/reservation
+ * claim fences held through transaction completion, including activation, lifecycle, Role and
+ * address writers. Recovery validation cannot be overtaken after a successful expected write.
+ * Claim release/replacement and rollback must never clear another transaction's reservation.
  */
 interface UserRepository
 {
@@ -132,6 +138,22 @@ interface UserRepository
     public function replacePendingInvitationEmail(User $expected, User $replacement): bool;
 
     /**
+     * Replaces or validates a pending registration identity under the transaction-duration fence
+     *
+     * Compare the complete expected User state with authoritative storage. Permit only the exact
+     * recoverPendingRegistrationEmail() result: unchanged state for same canonical email, or one
+     * canonical-email revision/update advancing for a correction. Preserve ID, lifecycle, Roles,
+     * password, authentication/authorization and reservation state. Reject inconsistent pending
+     * state, claimed canonical destination or live reservation. Even the no-op case must acquire
+     * the shared identity/claim fence through completion, not merely read an earlier snapshot.
+     * Returns false without mutation on stale/invalid state or a destination conflict. Recovery
+     * couples this operation to complete-state activation successor CAS and audit in one transaction.
+     *
+     * @throws Exception When an error occurs
+     */
+    public function replacePendingRegistration(User $expected, User $replacement): bool;
+
+    /**
      * Replaces the lifecycle state atomically while the expected identity remains current
      *
      * Implementations compare the complete expected User state and permit only one valid lifecycle transition:
@@ -156,9 +178,29 @@ interface UserRepository
     /**
      * Adds a User
      *
-     * Implementations must reject a canonical email claimed by another canonical email or live reservation atomically.
+     * Implementations atomically reject duplicate User IDs or a canonical email claimed by another canonical email
+     * or live reservation. Every initial Role ID must remain authoritative under the shared Role-reference fence
+     * through transaction completion, including Role removal/replacement. Name-resolved creation additionally uses
+     * addWithRoleAssignments() to bind the complete expected definitions; add() alone cannot substitute for it.
      *
      * @throws Exception When an error occurs
      */
     public function add(User $user): void;
+
+    /**
+     * Adds a pending User with its complete name-resolved initial Role assignments atomically
+     *
+     * Applies add() identity/email/reservation uniqueness under the same transaction. The nonempty expected Roles
+     * must match exactly the User's initial assignment set. Validate each complete current Role snapshot (identity,
+     * unique canonical name, ownership, membership and timestamps), rejecting conflicting IDs/names or a changed,
+     * removed or replaced definition. Supplied snapshots are expectations, never authority. Hold the shared
+     * Role-reference/name fence through transaction completion, including every RoleRepository add/replace/remove
+     * path. No insertion or reference may survive rollback. Returns false without insertion on a reference mismatch;
+     * duplicate identity/email or storage failures throw. Consumers must qualify this on the actual shared connection.
+     *
+     * @phpstan-param list<Role> $expectedRoles
+     *
+     * @throws Exception When an error occurs
+     */
+    public function addWithRoleAssignments(User $user, array $expectedRoles): bool;
 }
