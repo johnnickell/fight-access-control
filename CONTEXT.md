@@ -29,13 +29,15 @@ not inferred rollback or stale-command replay. Existing protected invitation sta
 Controlled package tests cover both variants through delivery and single-use same-User activation, both uncertain
 commit outcomes, response loss, both outer publishers failing, provider retry/restart/resend, both-winner pre-write
 schedules, delayed provider outcomes and held-fence rollback/commit. Pending deletion remains unsupported; legal
-activation/delete/restore produces a new private invitation and defeats stale recovery. Independent Review/QA remain
-pending. Focused checks pass **295 tests / 4035 assertions**; the canonical gate passes **2225 tests / 42779
-assertions**, exact **7264/7264** statements (**493/493** in changed statement-owning classes), without final
+activation/delete/restore produces a new private invitation and defeats stale recovery. Independent re-review and QA
+remain pending. Focused checks pass **295 tests / 4035 assertions**; the canonical gate passes **2225 tests / 42779
+assertions**, exact **7264/7264** statements (**393/393** in changed statement-owning classes), without final
 warnings/skips. The TASK retains early setup/style failures and the first interrupted canonical attempt; the passing
 rerun has a direct exit-zero receipt. No package/lockfile drift occurred; regenerated Composer metadata and rebuilt
 image metadata are recorded with equivalent runnable Config/RootFS. Final verification prose retains that full gate
-with unchanged executable inputs and targeted checks.
+with unchanged executable inputs and targeted checks. Repair cycle 1 corrects Review F1's changed-class subtotal
+only; raw gate artifacts and failed-attempt history remain unchanged. This prose correction retains the earlier full
+gate, not a fresh full-build claim. TASK and parents remain in progress awaiting independent acceptance.
 
 No real consumer DB/authorization/template/restart/public-security qualification, enablement, publication,
 merge, release or deployment is claimed by this Engineer checkpoint. Current logs/receipt and exact commit mapping
