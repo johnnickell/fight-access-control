@@ -565,7 +565,7 @@ final class RetryInvitationDeliveryHandlerTest extends TestCase
             );
             self::assertInstanceOf(CommandFailedEvent::class, $notified);
             self::assertSame($command, $notified->getCommand());
-            self::assertSame($activationDeliveryNotRetryableException->getMessage(), $notified->getErrorMessage());
+            self::assertSame('Invitation delivery retry failed.', $notified->getErrorMessage());
             self::assertEquals($grant, $repository->getLatestByUserId($grant->getUserId()));
             self::assertSame([], $audit->all());
         }

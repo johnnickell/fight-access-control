@@ -5,17 +5,17 @@ dependencies, acceptance, and verification.
 
 ## What's Next?
 
-First ready Task: [TASK-00077](00077-TASK.md) — Align package operation outcome contracts.
+Active Task: [TASK-00077](00077-TASK.md) — Align package operation outcome contracts.
 
 ## In Progress
 
-No Tasks are currently in this state.
+| Order | TASK ID | Title | Parent TICKET | Status | Blocked by | PR |
+| --- | --- | --- | --- | --- | --- | --- |
+| 77 | [TASK-00077](00077-TASK.md) | Align package operation outcome contracts | [TICKET-00001](../tickets/00001-TICKET.md) — Fight AccessControl Identity and Authentication Lifecycle | in-progress | — | — |
 
 ## Ready Frontier
 
-| Order | TASK ID | Title | Parent TICKET | Status | Blocked by | PR |
-| --- | --- | --- | --- | --- | --- | --- |
-| 77 | [TASK-00077](00077-TASK.md) | Align package operation outcome contracts | [TICKET-00001](../tickets/00001-TICKET.md) — Fight AccessControl Identity and Authentication Lifecycle | ready-for-agent | — | — |
+No Tasks are currently in this state.
 
 ## Waiting
 

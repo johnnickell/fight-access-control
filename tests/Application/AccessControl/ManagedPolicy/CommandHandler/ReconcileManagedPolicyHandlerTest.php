@@ -709,7 +709,7 @@ final class ReconcileManagedPolicyHandlerTest extends TestCase
         self::assertFalse($unitOfWork->transactionCompleted);
         self::assertCount(1, $events->events());
         self::assertInstanceOf(CommandFailedEvent::class, $events->events()[0]);
-        self::assertSame($failure->getMessage(), $events->events()[0]->getErrorMessage());
+        self::assertSame('Managed policy reconciliation failed.', $events->events()[0]->getErrorMessage());
     }
 
     public function test_agent_reference_at_final_removal_rolls_back_every_prior_policy_mutation(): void

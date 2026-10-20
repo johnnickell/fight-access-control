@@ -609,7 +609,7 @@ final class AuthenticationServiceTest extends TestCase
                 ['user_id' => $authenticatedUserId->toString()],
                 $events->events()[0]->getRedactedCommandData()
             );
-            self::assertSame('Password change rejected.', $events->events()[0]->getErrorMessage());
+            self::assertSame('Password change failed.', $events->events()[0]->getErrorMessage());
             self::assertStringNotContainsString(
                 $currentPassword,
                 serialize($events->events()[0]->toArray())
@@ -1794,7 +1794,7 @@ final class AuthenticationServiceTest extends TestCase
         self::assertSame([], $auditEvidence->all());
         self::assertCount(1, $events->events());
         self::assertInstanceOf(RedactedCommandFailed::class, $events->events()[0]);
-        self::assertSame('Password reset rejected.', $events->events()[0]->getErrorMessage());
+        self::assertSame('Password reset failed.', $events->events()[0]->getErrorMessage());
     }
 
     public function test_that_password_reset_rejects_concurrent_authentication_authority_change(): void
@@ -2017,7 +2017,7 @@ final class AuthenticationServiceTest extends TestCase
             ['user_id' => $user->getId()->toString()],
             $events->events()[0]->getRedactedCommandData()
         );
-        self::assertSame('Password reset rejected.', $events->events()[0]->getErrorMessage());
+        self::assertSame('Password reset failed.', $events->events()[0]->getErrorMessage());
         if ($presentedCredential !== '') {
             self::assertStringNotContainsString(
                 $presentedCredential,
@@ -2106,7 +2106,7 @@ final class AuthenticationServiceTest extends TestCase
             ['user_id' => $user->getId()->toString()],
             $events->events()[0]->getRedactedCommandData()
         );
-        self::assertSame('The audit persistence write failed.', $events->events()[0]->getErrorMessage());
+        self::assertSame('Password reset failed.', $events->events()[0]->getErrorMessage());
         self::assertStringNotContainsString(self::RESET_CREDENTIAL, serialize($events->events()[0]->toArray()));
         self::assertStringNotContainsString(
             'a sufficiently long rolled back password',
@@ -3184,6 +3184,82 @@ final class AuthenticationServiceTest extends TestCase
         );
     }
 
+    public function test_notification_failure_keeps_password_change_rollback_and_committed_authority_distinct(): void
+    {
+        foreach (['audit', 'commit', 'publication'] as $phase) {
+            $unitOfWork = new InMemoryUnitOfWork();
+            $users = new InMemoryUserRepository($unitOfWork);
+            $sessions = new InMemoryRefreshSessionRepository($unitOfWork);
+            $audit = new InMemoryAuditEvidenceRepository($unitOfWork, failAfterSave: $phase === 'audit');
+            $user = $this->activeUserFor('person@example.test');
+            $users->add($user);
+            $session = $this->session($user, $this->refreshCredential(), false);
+            $sessions->add($session);
+            $primary = new RuntimeException('Synthetic operation detail. correct-secret ciphertext:synthetic');
+            if ($phase === 'commit') {
+                $unitOfWork->beforeCommit = static fn() => throw $primary;
+            }
+
+            $attempts = [];
+            $events = new InMemoryEventDispatcher(static function ($event) use (&$attempts, $primary): void {
+                $attempts[] = $event;
+                if ($event instanceof PasswordChanged) {
+                    throw $primary;
+                }
+
+                throw new RuntimeException('Synthetic notification failure.');
+            });
+            $service = $this->service(
+                $users,
+                new InMemoryActivationGrantRepository($unitOfWork),
+                $sessions,
+                $unitOfWork,
+                $events,
+                auditEvidenceRepository: $audit
+            );
+            $caught = null;
+            try {
+                $service->changePassword($user->getId(), 'correct-secret', 'a sufficiently long new password');
+            } catch (RuntimeException $exception) {
+                $caught = $exception;
+            }
+
+            $expected = $primary;
+            if ($phase === 'audit') {
+                $expected = $audit->failure();
+            }
+
+            self::assertSame($expected, $caught);
+            $committed = $phase === 'publication';
+            self::assertSame($committed, $unitOfWork->transactionCompleted);
+            self::assertFalse($unitOfWork->transactionActive);
+            $stored = $users->getById($user->getId());
+            self::assertNotNull($stored);
+            self::assertSame(1 + (int) $committed, $stored->getAuthenticationVersion());
+            self::assertSame((int) $committed, $stored->getAuthenticationAuthorityRevision());
+            self::assertSame($committed, $sessions->all()[0]->isRevoked());
+            self::assertCount((int) $committed, $audit->all());
+            if (!$committed) {
+                self::assertSame($user->getPasswordHash(), $stored->getPasswordHash());
+            } else {
+                self::assertTrue(password_verify(
+                    'a sufficiently long new password',
+                    $stored->getPasswordHash()->toString()
+                ));
+                self::assertSame('user.password_changed', $audit->all()[0]->action());
+            }
+
+            self::assertCount(1 + (int) $committed, $attempts);
+            $failure = $attempts[array_key_last($attempts)];
+            self::assertInstanceOf(RedactedCommandFailed::class, $failure);
+            self::assertSame('Password change failed.', $failure->getErrorMessage());
+            self::assertSame(['user_id' => $user->getId()->toString()], $failure->getRedactedCommandData());
+            foreach (['correct-secret', 'ciphertext:synthetic', 'a sufficiently long new password'] as $secret) {
+                self::assertStringNotContainsString($secret, serialize($failure->toArray()));
+            }
+        }
+    }
+
     private function activeUserFor(string $email, ?UserId $userId = null): User
     {
         $user = User::invite(
@@ -3216,7 +3292,8 @@ final class AuthenticationServiceTest extends TestCase
             ['user_id' => $userId->toString()],
             $events->events()[0]->getRedactedCommandData()
         );
-        self::assertSame($errorMessage, $events->events()[0]->getErrorMessage());
+        self::assertSame('Password change failed.', $events->events()[0]->getErrorMessage());
+        self::assertNotSame($errorMessage, $events->events()[0]->getErrorMessage());
         self::assertStringNotContainsString($currentPassword, serialize($events->events()[0]->toArray()));
         self::assertStringNotContainsString($newPassword, serialize($events->events()[0]->toArray()));
     }
@@ -3236,7 +3313,7 @@ final class AuthenticationServiceTest extends TestCase
             ['user_id' => $userId->toString()],
             $events->events()[0]->getRedactedCommandData()
         );
-        self::assertSame('Email change confirmation rejected.', $events->events()[0]->getErrorMessage());
+        self::assertSame('Email change confirmation failed.', $events->events()[0]->getErrorMessage());
         $serializedFailure = serialize($events->events()[0]->toArray());
         if ($credential !== '') {
             self::assertStringNotContainsString($credential, $serializedFailure);

@@ -202,6 +202,66 @@ final class InvitePendingUserHandlerTest extends TestCase
         }
     }
 
+    public function test_notification_failure_preserves_atomic_and_committed_invitation_outcomes(): void
+    {
+        foreach (['audit', 'commit', 'publication'] as $phase) {
+            $unitOfWork = new InMemoryUnitOfWork();
+            $users = new InMemoryUserRepository($unitOfWork);
+            $grants = new InMemoryActivationGrantRepository($unitOfWork);
+            $audit = new InMemoryAuditEvidenceRepository($unitOfWork, failAfterSave: $phase === 'audit');
+            $primary = new RuntimeException('Synthetic operation detail. activate-once ciphertext:activate-once');
+            if ($phase === 'commit') {
+                $unitOfWork->beforeCommit = static fn() => throw $primary;
+            }
+
+            $attempts = [];
+            $events = new InMemoryEventDispatcher(static function ($event) use (&$attempts, $primary): void {
+                $attempts[] = $event;
+                if ($event instanceof UserInvited) {
+                    throw $primary;
+                }
+
+                throw new RuntimeException('Synthetic notification failure.');
+            });
+            $command = new InvitePendingUser(
+                'test-actor',
+                UserId::generate(),
+                EmailAddress::fromString('person@example.test')
+            );
+            $caught = null;
+            try {
+                $this->handler($users, $grants, $audit, $unitOfWork, $events)->handle(CommandMessage::create($command));
+            } catch (RuntimeException $exception) {
+                $caught = $exception;
+            }
+
+            $expected = $primary;
+            if ($phase === 'audit') {
+                $expected = $audit->failure();
+            }
+
+            self::assertSame($expected, $caught);
+            $committed = $phase === 'publication';
+            self::assertCount((int) $committed, $users->all());
+            self::assertCount((int) $committed, $grants->all());
+            self::assertCount((int) $committed, $audit->all());
+            self::assertSame($committed, $unitOfWork->transactionCompleted);
+            self::assertFalse($unitOfWork->transactionActive);
+            self::assertCount(1 + (int) $committed, $attempts);
+            $failure = $attempts[array_key_last($attempts)];
+            self::assertInstanceOf(CommandFailedEvent::class, $failure);
+            self::assertSame($command, $failure->getCommand());
+            self::assertSame('User invitation failed.', $failure->getErrorMessage());
+            self::assertStringNotContainsString('activate-once', serialize($failure->toArray()));
+            if ($committed) {
+                self::assertSame(UserState::PENDING_ACTIVATION, $users->all()[0]->getState());
+                self::assertTrue($grants->all()[0]->isIssued());
+                self::assertTrue($grants->all()[0]->getDelivery()->hasRecoverableMaterial());
+                self::assertSame('user.invited', $audit->all()[0]->action());
+            }
+        }
+    }
+
     private function handler(
         InMemoryUserRepository $userRepository,
         InMemoryActivationGrantRepository $activationGrantRepository,

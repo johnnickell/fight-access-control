@@ -570,6 +570,7 @@ final class ProvisionFeaturesHandlerTest extends TestCase
         $event = $this->events->events()[0];
         self::assertInstanceOf(CommandFailedEvent::class, $event);
         self::assertSame($command, $event->getCommand());
-        self::assertSame($failure->getMessage(), $event->getErrorMessage());
+        self::assertSame('Feature provisioning failed.', $event->getErrorMessage());
+        self::assertNotSame($failure->getMessage(), $event->getErrorMessage());
     }
 }

@@ -116,7 +116,12 @@ final readonly class ResendInvitationDeliveryHandler implements CommandHandler
                 $activationDeliveryId
             ));
         } catch (Throwable $throwable) {
-            $this->eventDispatcher->trigger(new CommandFailedEvent($command, $throwable->getMessage()));
+            try {
+                $this->eventDispatcher->trigger(new CommandFailedEvent($command, 'Invitation resend failed.'));
+            } catch (Throwable) {
+                // Notification failure must not replace the original operation failure.
+            }
+
             throw $throwable;
         }
     }

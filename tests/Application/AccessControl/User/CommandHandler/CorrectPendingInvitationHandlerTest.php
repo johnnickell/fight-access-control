@@ -449,7 +449,7 @@ final class CorrectPendingInvitationHandlerTest extends TestCase
             self::assertSame([], $audit->all());
             self::assertInstanceOf(CommandFailedEvent::class, $events->events()[0]);
             self::assertSame(
-                'The audit persistence write failed.',
+                'Pending invitation correction failed.',
                 $events->events()[0]->getErrorMessage()
             );
         }

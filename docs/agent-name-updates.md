@@ -91,7 +91,8 @@ required `initiator`, `agent_id`, `name`, and fractional `changed_at`, with the 
 No-op commits validation without writes or a success fact. Invalid names reject before entering the transaction.
 
 Pre-commit persistence or commit failure rolls back. Ordinary `CommandFailedEvent` retains the original safe command
-and error message; the original throwable rethrows even if failure notification also throws. Consumers sanitize
+and constant `Agent update failed.` text under the [operation-outcome contract](operation-outcomes.md);
+the original throwable rethrows even if failure notification also throws. Consumers sanitize
 storage errors at their response/log boundary. Post-commit event failure reports failure but leaves the rename
 committed; do not claim rollback, event delivery or a success acknowledgement. Retrying rereads current state: if
 already unchanged it produces no duplicate name fact. There is no outbox/reliable event replay. The scoped issuance

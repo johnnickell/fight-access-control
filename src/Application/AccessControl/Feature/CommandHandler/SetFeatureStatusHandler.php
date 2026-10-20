@@ -76,7 +76,7 @@ final readonly class SetFeatureStatusHandler implements CommandHandler
             }
         } catch (Throwable $throwable) {
             try {
-                $this->events->trigger(new CommandFailedEvent($command, $throwable->getMessage()));
+                $this->events->trigger(new CommandFailedEvent($command, 'Feature status update failed.'));
             } finally {
                 throw $throwable;
             }

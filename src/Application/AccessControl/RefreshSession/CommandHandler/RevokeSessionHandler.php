@@ -118,7 +118,12 @@ final readonly class RevokeSessionHandler implements CommandHandler
 
             $this->eventDispatcher->trigger(new RefreshSessionRevoked(...$outcome));
         } catch (Throwable $throwable) {
-            $this->eventDispatcher->trigger(new CommandFailedEvent($command, $throwable->getMessage()));
+            try {
+                $this->eventDispatcher->trigger(new CommandFailedEvent($command, 'Session revocation failed.'));
+            } catch (Throwable) {
+                // Notification failure must not replace the original operation failure.
+            }
+
             throw $throwable;
         }
     }

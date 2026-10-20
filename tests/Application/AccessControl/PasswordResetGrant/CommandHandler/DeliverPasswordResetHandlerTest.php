@@ -250,6 +250,90 @@ final class DeliverPasswordResetHandlerTest extends TestCase
         self::addToAssertionCount(3);
     }
 
+    public function test_outer_failure_preserves_delivery_phase_and_fresh_worker_recovery(): void
+    {
+        foreach (['claim', 'audit', 'outcome', 'publication'] as $phase) {
+            $unitOfWork = new InMemoryUnitOfWork();
+            $grant = $this->grant();
+            $repository = new InMemoryPasswordResetGrants($unitOfWork);
+            self::assertTrue($repository->add($grant));
+            $audit = new InMemoryAuditEvidenceRepository($unitOfWork, failAfterSave: $phase === 'audit');
+            $primary = new RuntimeException('Synthetic operation detail. reset-once ciphertext:reset-once');
+            $unitOfWork->beforeCommit = static function () use ($phase, $unitOfWork, $primary): void {
+                if (
+                    ($phase === 'claim' && $unitOfWork->transactions === 1)
+                    || ($phase === 'outcome' && $unitOfWork->transactions === 2)
+                ) {
+                    throw $primary;
+                }
+            };
+            $attempts = [];
+            $events = new InMemoryEventDispatcher(static function ($event) use (&$attempts, $primary): void {
+                $attempts[] = $event;
+                if ($event instanceof PasswordResetDeliveryConfirmed) {
+                    throw $primary;
+                }
+
+                throw new RuntimeException('Synthetic notification failure.');
+            });
+            $provider = new RecordingCredentialDeliveryProvider();
+            $caught = null;
+            try {
+                $this->handler($repository, $audit, $unitOfWork, $provider, $events)->handle(
+                    CommandMessage::create($this->command($grant))
+                );
+            } catch (RuntimeException $exception) {
+                $caught = $exception;
+            }
+
+            $expected = $primary;
+            if ($phase === 'audit') {
+                $expected = $audit->failure();
+            }
+
+            self::assertSame($expected, $caught);
+            $published = $phase === 'publication';
+            $stored = $repository->getLatestByUserId($grant->getUserId());
+            $status = CredentialDeliveryStatus::CLAIMED;
+            if ($phase === 'claim') {
+                $status = CredentialDeliveryStatus::PENDING;
+            } elseif ($published) {
+                $status = CredentialDeliveryStatus::DELIVERED;
+            }
+
+            self::assertSame($status, $stored->getDelivery()->getStatus());
+            self::assertSame(!$published, $stored->getDelivery()->hasRecoverableMaterial());
+            self::assertSame($grant->getDelivery()->getId(), $stored->getDelivery()->getId());
+            self::assertCount((int) $published, $audit->all());
+            self::assertCount((int) ($phase !== 'claim'), $provider->invocations());
+            self::assertCount(1 + (int) $published, $attempts);
+            $failure = $attempts[array_key_last($attempts)];
+            self::assertInstanceOf(CommandFailedEvent::class, $failure);
+            self::assertSame('Password reset delivery failed.', $failure->getErrorMessage());
+            self::assertStringNotContainsString('reset-once', serialize($failure->toArray()));
+            self::assertFalse($unitOfWork->transactionActive);
+            $unitOfWork->beforeCommit = null;
+            $due = $repository->findDue(new DateTimeImmutable('2026-08-23T11:06:00+00:00'), 10);
+            self::assertCount((int) !$published, $due);
+            if (!$published) {
+                self::assertSame($grant->getDelivery()->getId(), $due[0]->getDeliveryId());
+                new DeliverPasswordResetHandler(
+                    $repository,
+                    new InMemoryAuditEvidenceRepository($unitOfWork),
+                    $unitOfWork,
+                    new PrefixPasswordResetDeliveryCipher(),
+                    $provider,
+                    new FixedClock('2026-08-23T11:06:00+00:00'),
+                    new InMemoryEventDispatcher()
+                )->handle(CommandMessage::create($this->command($grant)));
+                self::assertSame(
+                    CredentialDeliveryStatus::DELIVERED,
+                    $repository->getLatestByUserId($grant->getUserId())->getDelivery()->getStatus()
+                );
+            }
+        }
+    }
+
     private function grant(string $expiresAt = '2026-08-23T12:00:00+00:00'): PasswordResetGrant
     {
         return PasswordResetGrant::issue(

@@ -81,7 +81,7 @@ final readonly class RemoveFeatureHandler implements CommandHandler
             $this->events->trigger($event);
         } catch (Throwable $throwable) {
             try {
-                $this->events->trigger(new CommandFailedEvent($command, $throwable->getMessage()));
+                $this->events->trigger(new CommandFailedEvent($command, 'Feature removal failed.'));
             } finally {
                 throw $throwable;
             }
