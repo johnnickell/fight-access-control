@@ -10,6 +10,7 @@ use Fight\AccessControl\Domain\AccessControl\ActivationGrant\ActivationDeliveryI
 use Fight\AccessControl\Domain\AccessControl\ActivationGrant\Command\DeliverUserInvitation;
 use Fight\AccessControl\Domain\AccessControl\ActivationGrant\Event\InvitationDeliveryResent;
 use Fight\AccessControl\Domain\AccessControl\ActivationGrant\Event\InvitationDeliveryRetryRequested;
+use Fight\AccessControl\Domain\AccessControl\User\Event\PendingRegistrationRecovered;
 use Fight\AccessControl\Domain\AccessControl\User\Event\UserInvited;
 use Fight\AccessControl\Domain\AccessControl\User\Event\UserRegistered;
 use Fight\AccessControl\Domain\AccessControl\User\Event\UserRestored;
@@ -38,6 +39,7 @@ final class InvitationDeliverySubscriberTest extends TestCase
             [
                 InvitationDeliveryResent::class         => 'onInvitationDeliveryResent',
                 InvitationDeliveryRetryRequested::class => 'onInvitationDeliveryRetryRequested',
+                PendingRegistrationRecovered::class     => 'onPendingRegistrationRecovered',
                 UserInvited::class                      => 'onUserInvited',
                 UserRegistered::class                   => 'onUserRegistered',
                 UserRestored::class                     => 'onUserRestored'

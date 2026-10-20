@@ -46,15 +46,17 @@ final class FindInvitationDeliveryStatusHandlerTest extends TestCase
 
         self::assertInstanceOf(InvitationDeliveryStatusView::class, $view);
         self::assertSame($userId, $view->getUserId());
+        self::assertEquals($repository->all()[0]->getDelivery()->getId(), $view->getActivationDeliveryId());
         self::assertSame(CredentialDeliveryStatus::PENDING, $view->getStatus());
         self::assertSame('2026-08-25T12:00:00+00:00', $view->getExpiresAt()->format(DATE_ATOM));
         self::assertArrayNotHasKey('ciphertext', get_object_vars($view));
         self::assertInstanceOf(Arrayable::class, $view);
         self::assertSame(
             [
-                'user_id'    => '018f0000-0000-7000-8000-000000000001',
-                'status'     => 'pending',
-                'expires_at' => '2026-08-25T12:00:00+00:00'
+                'user_id'                => '018f0000-0000-7000-8000-000000000001',
+                'status'                 => 'pending',
+                'expires_at'             => '2026-08-25T12:00:00+00:00',
+                'activation_delivery_id' => $repository->all()[0]->getDelivery()->getId()->toString()
             ],
             $view->toArray()
         );

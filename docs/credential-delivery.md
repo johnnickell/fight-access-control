@@ -52,15 +52,16 @@ Current consumer composition must change directly:
   remains short-lived, redacted and non-serializable; delivery ID, not origin, remains the idempotency identity.
 
 Claims, typed outcomes, manual retry, scheduler discovery and lease takeover preserve the generation's stored origin.
-A fresh worker reconstructs it from authoritative storage, not the secret-free due/status DTOs (whose fields remain
-unchanged). Immediate direct dispatch and event-triggered dispatch use that same worker. Both origins are delivered
+A fresh worker reconstructs it from authoritative storage, not the secret-free due/status DTOs. The protected
+latest invitation status additionally exposes `activation_delivery_id` for administrator recovery expectations; Immediate direct dispatch and event-triggered dispatch use that same worker. Both origins are delivered
 outside transactions; provider success still does not activate the pending User.
 
 `ResendInvitationDelivery` preserves the latest issued generation's origin in its fresh successor, including after
 expiry; it cannot reclassify one origin as the other. `CorrectPendingInvitation` rejects registration-origin grants
 before User mutation; valid private correction creates another private invitation. Administrator restore of a
 **deleted** User to pending creates a new private invitation regardless of earlier registration origin. It does not
-recover a pending registration; distinct administrator registration recovery belongs to TASK-00075.
+recover a pending registration; use distinct authorized
+[administrator registration recovery](registration-recovery.md) for that pending identity.
 
 Failed writes/commit roll back the coupled changes. A confirmed or uncertain committed claim/outcome is resolved
 from persisted state after restart; unacknowledged provider acceptance can still repeat with the same delivery ID.
@@ -113,7 +114,11 @@ mandatory creation-time Role fencing, as described in the [registration guide](u
 fact is routed by `InvitationDeliverySubscriber` using fixed `registration` source provenance, not an authenticated actor.
 The worker uses stored origin and the normal activation purpose. Registration/default Roles/grant/delivery/audit commit
 before any invocation. Pending User and Roles survive publication/provider faults; delivery does not activate the User.
-Administrator registration recovery is separate TASK-00075 work. The table below lists delivery-worker registrations.
+For administrator correction or expired-same-email fresh activation, register `RecoverPendingRegistrationHandler`
+and its exact-target `RegistrationRecoveryAuthorization` port. Its `PendingRegistrationRecovered` fact is also routed
+by `InvitationDeliverySubscriber` after commit, retaining stored registration origin. Follow the
+[recovery guide](registration-recovery.md) for mandatory User no-op/correction fencing, expected-generation validation,
+rollback and uncertain-commit resolution. The table below lists delivery-worker registrations.
 
 | Message | Handler |
 | --- | --- |

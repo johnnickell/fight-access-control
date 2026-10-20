@@ -114,7 +114,22 @@ Publication failures rethrow without undoing committed state; constant safe regi
 original command/throwable. Scheduler discovery recovers delivery after restart or lost response, not by resubmitting
 registration. Consumers own exposure/enablement, public response/enumeration and abuse controls, database/mail adapters,
 templates and real qualification. No endpoint, package generic acknowledgement or anonymous recovery is supplied;
-TASK-00075 administrator registration recovery remains separate. This is v1.0.0-track work, not a v0.6.0 release prerequisite.
+distinct authorized administrator recovery is described below. This is v1.0.0-track work, not a v0.6.0 prerequisite.
+
+### Administrator registration recovery (Unreleased)
+
+`RecoverPendingRegistration` / `RecoverPendingRegistrationHandler` correct a pending registration's wrong address or
+issue fresh same-email activation at/after expiry, retaining the User and exact Roles. The command binds the expected
+activation delivery ID, available from the existing protected invitation status. Mandatory
+`RegistrationRecoveryAuthorization` checks trusted administrator identity and the exact target inside the transaction;
+consumer-protected dispatch alone is insufficient. `UserRepository::replacePendingRegistration()` fences the complete
+User even for no-op same-email reissue through transaction completion with all competing writers. Predecessor
+revocation, fresh registration-origin encrypted delivery and audit commit atomically. `PendingRegistrationRecovered`
+publishes afterward and the existing subscriber/worker invokes the provider outside transactions. Failures retain
+constant redacted evidence and the original throwable; uncertain/lost responses resolve from persisted current state,
+not implicit rollback/reissue. See the [recovery contract and evidence](docs/registration-recovery.md). Private correction
+and deleted-to-pending private restoration remain separate. Actual consumer authorization/DB/mail/restart/public-security
+qualification is unexecuted; no adoption, release or deployment is claimed.
 
 ### Feature declarations, preparation and availability (v0.5.0)
 

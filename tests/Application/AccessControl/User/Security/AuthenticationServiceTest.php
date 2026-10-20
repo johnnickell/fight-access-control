@@ -1555,6 +1555,11 @@ final class AuthenticationServiceTest extends TestCase
                 return $this->users->replacePendingInvitationEmail($expected, $replacement);
             }
 
+            public function replacePendingRegistration(User $expected, User $replacement): bool
+            {
+                return $this->users->replacePendingRegistration($expected, $replacement);
+            }
+
             public function replaceLifecycleState(User $expected, User $replacement): bool
             {
                 return $this->users->replaceLifecycleState($expected, $replacement);

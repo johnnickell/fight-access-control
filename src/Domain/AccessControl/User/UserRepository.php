@@ -14,6 +14,11 @@ use Fight\Common\Domain\Value\Internet\EmailAddress;
 
 /**
  * Interface UserRepository
+ *
+ * All User writers share a per-identity complete-state fence and canonical-email/reservation
+ * claim fences held through transaction completion, including activation, lifecycle, Role and
+ * address writers. Recovery validation cannot be overtaken after a successful expected write.
+ * Claim release/replacement and rollback must never clear another transaction's reservation.
  */
 interface UserRepository
 {
@@ -131,6 +136,22 @@ interface UserRepository
      * @throws Exception When an error occurs
      */
     public function replacePendingInvitationEmail(User $expected, User $replacement): bool;
+
+    /**
+     * Replaces or validates a pending registration identity under the transaction-duration fence
+     *
+     * Compare the complete expected User state with authoritative storage. Permit only the exact
+     * recoverPendingRegistrationEmail() result: unchanged state for same canonical email, or one
+     * canonical-email revision/update advancing for a correction. Preserve ID, lifecycle, Roles,
+     * password, authentication/authorization and reservation state. Reject inconsistent pending
+     * state, claimed canonical destination or live reservation. Even the no-op case must acquire
+     * the shared identity/claim fence through completion, not merely read an earlier snapshot.
+     * Returns false without mutation on stale/invalid state or a destination conflict. Recovery
+     * couples this operation to complete-state activation successor CAS and audit in one transaction.
+     *
+     * @throws Exception When an error occurs
+     */
+    public function replacePendingRegistration(User $expected, User $replacement): bool;
 
     /**
      * Replaces the lifecycle state atomically while the expected identity remains current

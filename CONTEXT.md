@@ -6,6 +6,50 @@ Fight AccessControl owns framework-neutral identity, credential, session, author
 behavior shared by Fight applications. The repository-local behavioral and security authority is
 [TICKET-00001](planning/tickets/00001-TICKET.md).
 
+## Administrator registration recovery — TASK-00075 landing checkpoint
+
+John invoked Build for TASK-00075 in the selected main checkout after TASK-00074 integrated via PR #122.
+Engineer work is on `feature/task-00075-registration-recovery` from verified clean `develop`
+`8119bd841d66d5c797db0c83667dd7fe27e7da2f`. The Unreleased
+[recovery guide](docs/registration-recovery.md) owns current command, authorization, persistence and evidence details.
+`RecoverPendingRegistration` binds claimed actor, exact User, expected activation delivery ID and destination.
+Mandatory `RegistrationRecoveryAuthorization` authenticates/adopts administrator authority for that exact target
+inside the trusted transaction, valid through completion; consumers also protect every dispatch/query entry point.
+
+Wrong-address correction and exact/post-expiry same-email reissue retain the pending User and exact Roles. Defaults
+are not reread. `UserRepository::replacePendingRegistration()` compares complete expected User state and holds the
+shared identity/claim fence through completion, even for same-email no-op validation. All User and activation
+writers share transaction-duration fences. Predecessor revocation, fresh registration-origin activation/encrypted
+delivery and audit commit atomically. Post-commit `PendingRegistrationRecovered` uses the existing subscriber/worker;
+provider invocation remains outside transactions and does not activate the User. Original throwables survive safe
+constant failure evidence and notification faults. Lost/uncertain responses resolve from persisted current state,
+not inferred rollback or stale-command replay. Existing protected invitation status now exposes the required
+`activation_delivery_id`; no new query, public existence probe or historical reader is added.
+
+Controlled package tests cover both variants through delivery and single-use same-User activation, both uncertain
+commit outcomes, response loss, both outer publishers failing, provider retry/restart/resend, both-winner pre-write
+schedules, delayed provider outcomes and held-fence rollback/commit. Pending deletion remains unsupported; legal
+activation/delete/restore produces a new private invitation and defeats stale recovery. Focused checks pass **295
+tests / 4035 assertions**; the canonical gate passes **2225 tests / 42779 assertions**, exact **7264/7264**
+statements (**393/393** in changed statement-owning classes), without final warnings/skips. The TASK retains early
+setup/style failures and the first interrupted canonical attempt; the passing rerun has a direct exit-zero receipt.
+No package/lockfile drift occurred; regenerated Composer metadata and rebuilt image metadata are recorded with
+equivalent runnable Config/RootFS. Repair cycle 1 corrects Review F1's changed-class subtotal only; raw gate
+artifacts and failed-attempt history remain unchanged. This prose correction retains the earlier full gate, not a
+fresh full-build claim.
+
+Independent technical Review **ACCEPTED** exact candidate `e3304547de6aa2cef82173481413b205dcc7d7f4` against
+`develop` `8119bd841d66d5c797db0c83667dd7fe27e7da2f` with no current findings. Independent nonvisual QA **PASSED**
+8/8 bounded real-contract scenarios with no failures or incompletes; visual evidence is N/A for this nonvisual
+library. Land published [PR #123](https://github.com/johnnickell/fight-access-control/pull/123) against `develop`.
+TASK-00075 is done for accepted package implementation and required local/behavioral verification; automatic parent
+completion closes its sole-child TICKET-00023 and EPIC-00013. No hosted acceptance gate is declared and hosted CI
+was not checked.
+
+No real consumer DB/authorization/template/restart/public-security qualification, enablement, PR approval, merge,
+release or deployment is claimed. Current logs/receipt and exact candidate mapping belong to
+`.runs/logs/TASK-00075/` and `.runs/handoffs/TASK-00075/`.
+
 ## Optional User registration — TASK-00074 Engineer repair checkpoint
 
 John invoked Build for TASK-00074 in the main checkout. Engineer implementation is on
