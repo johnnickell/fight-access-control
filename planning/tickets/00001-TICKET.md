@@ -294,5 +294,5 @@ qualification, release or deployment. The Build coordinator owns independent sta
 | 18 | [TASK-00018](../tasks/00018-TASK.md) | Publish successful security-email delivery events | done |
 | 32 | [TASK-00032](../tasks/00032-TASK.md) | Prepare the v0.1.0 Release Candidate | done |
 | 77 | [TASK-00077](../tasks/00077-TASK.md) | Align package operation outcome contracts | done |
-| 78 | [TASK-00078](../tasks/00078-TASK.md) | Align recovery lifecycle contracts | in-progress |
+| 78 | [TASK-00078](../tasks/00078-TASK.md) | Align recovery lifecycle contracts | done |
 | 79 | [TASK-00079](../tasks/00079-TASK.md) | Align managed-policy preview and apply contracts | ready-for-agent |

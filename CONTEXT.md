@@ -6,7 +6,7 @@ Fight AccessControl owns framework-neutral identity, credential, session, author
 behavior shared by Fight applications. The repository-local behavioral and security authority is
 [TICKET-00001](planning/tickets/00001-TICKET.md).
 
-## Recovery lifecycle — TASK-00078 Engineer checkpoint
+## Recovery lifecycle — TASK-00078 landing closeout checkpoint
 
 John invoked Build for [TASK-00078](planning/tasks/00078-TASK.md) in the main checkout after TASK-00077 integrated.
 Engineer work is on `feature/task-00078-recovery-lifecycle` from verified clean `develop` `a3b6eee`. Current
@@ -15,17 +15,18 @@ mandatory shared persistence fences, worker wiring and consumer qualification ob
 and execution evidence remain in the private maintainer handoff; no affected-release assessment is published here.
 
 The current conformance binding supplies persisted User setup, shared transactional writes and reopened authority
-state. Original persistence assertions are retained, with admission and rollback checks added. Fresh canonical
+state. Original persistence assertions are retained, with admission and rollback checks added. The saved canonical
 `./bin/build` passes **2353 tests / 44831 assertions**, exact **7372/7372 statements**, without final warnings/skips;
 focused recovery checks pass **28 tests / 790 assertions**. Failed attempts, including the repair's initial Rector
 normalization failure, remain in ignored evidence. No package/lockfile drift occurred; PHP 8.5.7 and Common v1.4.0
 satisfy unchanged requirements. The passing build preserves dependency bytes and runtime Config/RootFS. This
-prose-only checkpoint retains that full gate through proven input equivalence and targeted checks.
+prose-only closeout retains that full gate through proven input equivalence and current targeted checks.
 
-Independent technical re-review and adversarial behavioral QA remain pending. TASK-00078 stays in progress;
-historical terminal parents remain unchanged. The Build coordinator continues independent Review/QA/Land within the
-original stage authority. No push/PR, consumer adoption or qualification, merge, release or deployment is claimed by
-this Engineer checkpoint.
+Independent technical Review **ACCEPTED** and independent adversarial nonvisual QA **PASSED** the exact candidate;
+their canonical private reports retain detailed evidence. TASK-00078 is done for accepted package implementation and
+required local/behavioral verification; historical terminal parents remain unchanged. PR publication metadata will be
+recorded only after a verified PR exists. No consumer adoption or qualification, PR approval, merge, release,
+deployment, restricted disclosure, or hosted CI success is claimed.
 
 ## Contributor workflow alignment — TASK-00081 implementation checkpoint
 
