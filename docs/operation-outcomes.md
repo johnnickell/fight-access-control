@@ -102,7 +102,35 @@ restart copies persisted User snapshots and rehydrates grants into fresh modeled
 interrupted-completion scenarios. Controlled in-memory connections and restart models are not SQL isolation,
 actual User row-mapping qualification or physical-process proof.
 
-This is the current B1/B2 consumer handoff; other approved slices remain separate work. Consumers must independently
+## Managed-policy composition
+
+`PreviewManagedPolicyHandler` and `ReconcileManagedPolicyHandler` use the same required `ManagedPolicyPlanner`
+composition: Permission, Role, User and Agent repositories. Supply authoritative, unpaginated reference reads on the
+same persisted dataset. Omitted managed Permissions are eligible only when consumer code, retained Role membership,
+Agent assignments and stored Features do not reference them. Managed Roles being removed or reconciled may release
+their memberships within the complete policy; custom Role and Agent assignments are not implicitly stripped.
+Repository outages propagate, never become reference absence. Preview writes, commits and publishes nothing.
+
+For example, preview the complete desired `ManagedPolicy` through `PreviewManagedPolicy`, then dispatch
+`ReconcileManagedPolicy` with that same value. Preview is a snapshot, **not a reservation or authorization**. Apply
+replans inside its Unit of Work and still calls `PermissionRepository::remove(expectedPermission)` for every removal.
+Every Role, Agent and Feature reference-changing writer, including direct writes and validated no-ops, shares that
+transaction-duration reference fence and actual connection with removal. A prior read or ORM snapshot cannot replace
+final expected-state and reference validation. A reference winner rejects removal; a removal winner rejects a later
+reference to the absent identity. See [Permission reference composition](feature-permission-references.md).
+
+Earlier policy creates, updates and removals roll back together on a pre-commit conflict or persistence failure.
+`ManagedPolicyReconciled` publishes only after commit. Publication failure still throws with committed state retained;
+best-effort constant failure notification cannot replace the primary throwable. No successful-warning return is
+introduced. Preserve deterministic plan order, exact managed membership, tiers and reserved Super Admin identity.
+Consumers protect both operation entry points; supplying an actor or a policy never grants administrative authority.
+
+The package's public-handler and controlled reference-writer scenarios exercise unchanged-state eligibility, both
+ordered outcomes, late final-boundary conflicts, rollback, eligible retry and publication faults. They do not qualify
+SQL isolation, real adapter locks or independent processes. Qualify those against the actual shared transaction,
+including both concurrent winner orders, expected-state conflicts, rollback and indeterminate commit outcomes.
+
+This is the current B1/B2/B3 consumer handoff; Role caller revisions remain separate work. Consumers must independently
 qualify real shared-connection races in both winner orders, rollback/uncertain commits, response loss, persistence
 hydration, worker restarts, provider idempotency/delayed outcomes, permissions and response/log handling. Keep keys,
 raw credentials, hashes and ciphertext out of public evidence. No consumer adoption, release or deployment is

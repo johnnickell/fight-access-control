@@ -50,7 +50,9 @@ interface AgentRepository extends AgentOperationContractRepository
     /**
      * Returns whether an authoritative Agent directly holds the Permission
      *
-     * This read is advisory for preview; managed promotion must recheck under the shared write fence.
+     * This read is advisory for preview. Permission removal and managed promotion recheck under the shared
+     * transaction-duration reference fence. Inspect all stored assignments without pagination; storage errors
+     * propagate rather than report absence.
      */
     public function hasPermissionAssignment(PermissionId $permissionId): bool;
 

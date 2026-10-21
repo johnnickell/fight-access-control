@@ -104,6 +104,13 @@ final readonly class ManagedPolicyPlanner
                 ));
             }
 
+            if ($this->agentRepository->hasPermissionAssignment($permission->getId())) {
+                throw new ManagedPolicyDefinitionException(sprintf(
+                    'Managed permission "%s" cannot be removed because an Agent references it.',
+                    $permission->getName()->toString()
+                ));
+            }
+
             foreach ($this->roleRepository->getContainingPermission($permission->getId()) as $role) {
                 if (
                     !$role->isManaged()

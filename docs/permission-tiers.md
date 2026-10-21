@@ -37,7 +37,11 @@ compares the expected state and atomically rejects promotion while forbidden ref
 admit protected membership only for the authoritative managed Super Admin Role. A failed apply rolls back all policy
 writes and publishes only failure evidence.
 
-`ManagedPolicyPlanner` requires the Agent repository for authoritative direct membership checks. Consumer repositories
-must qualify these fences with real independent writer races; modeled package tests are not PostgreSQL qualification.
+`ManagedPolicyPlanner` requires the Agent repository for authoritative direct membership checks during promotion
+and omission/removal planning. Preview and apply use the same eligibility rules on unchanged state; preview is only
+a read-only snapshot, never a reservation. Final removal retains expected-state and Role/Agent/Feature reference
+validation through the shared transaction. See [managed-policy composition](operation-outcomes.md#managed-policy-composition)
+for current wiring, rollback and outcome handling. Consumer repositories must qualify these fences with real
+independent writer races; modeled package tests are not PostgreSQL qualification.
 The managed Super Admin Role can be assigned to a pending User for bootstrap; only active Users authenticate.
 Assignments/removals preserve expected revisions, reference checks, desired-state no-ops and post-commit events.

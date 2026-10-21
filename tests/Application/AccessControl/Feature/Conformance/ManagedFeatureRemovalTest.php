@@ -213,11 +213,9 @@ final class ManagedFeatureRemovalTest extends TestCase
                 self::assertNull($permissions->getById($permission->getId()));
             } catch (ManagedPolicyDefinitionException | LogicException $failure) {
                 self::assertNotSame('none', $remaining);
+                self::assertInstanceOf(ManagedPolicyDefinitionException::class, $failure);
                 if ($remaining === 'agent') {
-                    self::assertInstanceOf(LogicException::class, $failure);
                     self::assertTrue($agents->hasPermissionAssignment($permission->getId()));
-                } else {
-                    self::assertInstanceOf(ManagedPolicyDefinitionException::class, $failure);
                 }
 
                 self::assertSame($permission, $permissions->getById($permission->getId()));
