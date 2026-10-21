@@ -2,8 +2,8 @@
 
 The current package contract separates business persistence, required audit, notification and consumer presentation.
 Commands and synchronous authentication methods retain their established authorization and transaction boundaries.
-Queries remain read-only. This composition is included in the [v0.8.0 release preparation](release-0.8.0.md), not
-published v0.7.0; the overview separates package acceptance from publication and consumer qualification.
+Queries remain read-only. This composition is published in [v0.8.0](release-0.8.0.md), not part of v0.7.0;
+the overview separates verified package publication from unexecuted consumer qualification.
 
 ## Notifications and callers
 

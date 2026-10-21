@@ -16,7 +16,7 @@ Agent credentials, sessions, Roles, Permissions and account lifecycles without t
 <!-- release:start -->
 **Release: [v0.8.0](https://github.com/johnnickell/fight-access-control/releases/tag/v0.8.0)**
 
-**Status: prepared (not yet published).**
+**Status: published.**
 
 Requires **PHP 8.5+** and **Fight Common ^1.3** (resolved by Composer).
 
@@ -28,9 +28,9 @@ composer require johnnickell/fight-access-control:"~0.8.0"
 [Tagged documentation](https://github.com/johnnickell/fight-access-control/tree/v0.8.0/docs)
 <!-- release:end -->
 
-The command and candidate tag links above await publication. **v0.7.0 remains the latest published release**;
-use its [release overview](docs/release-0.7.0.md) and
-[tagged documentation](https://github.com/johnnickell/fight-access-control/tree/v0.7.0/docs) for that version.
+GitHub publication and Packagist source/dist references are verified for **v0.8.0**. The immutable tagged
+README retains its original preparation status; the release overview here records the verified publication.
+Registry availability is not proof of installation or qualification in your application.
 
 The constraint stays on this minor line. Pre-v1 minors can break API and persistence contracts: read the
 [Changelog](CHANGELOG.md) and the target release overview before upgrading. Only the current contract is supported;
@@ -83,9 +83,9 @@ there is no production Adapter layer in this library.
 Feature availability is not authorization for the underlying action. Registration exposure and enablement are
 consumer choices. MCP support supplies neutral authorization and profile Tools, not a hosted server or endpoint.
 
-### Prepared for v0.8.0
+### Released in v0.8.0
 
-This candidate includes breaking Role caller revisions and recovery composition requirements, plus operation-outcome
+This release includes breaking Role caller revisions and recovery composition requirements, plus operation-outcome
 and managed-policy consistency changes. Custom Role rename/remove bind the displayed `expected_revision`; stale
 intent requires a fresh read and reconfirmation, not automatic token substitution. See
 [Role composition](docs/role-revisions.md), [operation outcomes](docs/operation-outcomes.md) and the

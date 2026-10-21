@@ -1,9 +1,15 @@
 # v0.8.0 release and integration overview
 
-**Prepared, not yet published.** John selected v0.8.0 on 2026-10-21. The release branch starts from `develop`
+**Published 2026-10-21.** [v0.8.0](https://github.com/johnnickell/fight-access-control/releases/tag/v0.8.0)
+identifies certified `main` release merge **`319738255e682d587642b67856039f882b9588d6`** through
+[PR #134](https://github.com/johnnickell/fight-access-control/pull/134). GitHub publication and matching Packagist
+source/dist references are verified. The immutable tagged documentation retains its truthful pre-publication
+snapshot; this follow-up records observed publication without moving the signed tag.
+
+John selected v0.8.0 and the main checkout on 2026-10-21. Preparation started from `develop`
 `6ea05dc3270f1bd314fce9878940a07be528791e`, including merged
-[PR #133](https://github.com/johnnickell/fight-access-control/pull/133). v0.7.0 remains the latest verified published
-release. A dated Changelog, versioned README or passing local gate is not evidence of signing or publication.
+[PR #133](https://github.com/johnnickell/fight-access-control/pull/133). At that historical preparation checkpoint,
+v0.7.0 was the latest published release. A dated Changelog or passing local gate alone is not publication proof.
 
 ## Scope and compatibility
 
@@ -72,15 +78,23 @@ rendering. No dependency/lockfile drift occurred; rebuilt image metadata retains
 This verification-prose follow-up retains that full gate through unchanged executable inputs and fresh targeted
 checks, not a second build. Saved receipts identify tested content, direct exit and runtime/dependency state.
 
-Independent release-content acceptance and authorized integration remain required. After integration,
-run fresh `./bin/release certify 0.8.0` on the **exact clean main release merge commit**, not a tree-equivalent earlier
-candidate. Certification separately records version consistency, planning, full package quality and OpenAPI composition.
+Independent release-content review subsequently **accepted** prepared head `fb328af`; independent documentation QA
+**passed 8 scenario groups / 14 walkthroughs** with no findings. Main integration through PR #134 preserves that exact
+tree. Fresh `./bin/release certify 0.8.0` on the **exact clean main release merge commit** passed at
+2026-10-21T18:04:30Z: **2399 tests / 45422 assertions**, exact **7452/7452 statements**, plus separate OpenAPI
+composition **16 tests / 659 assertions**. There were no final warnings/skips or resolved dependency/lockfile changes.
 
-At this preparation checkpoint there is no final-main certification, signed v0.8.0 tag, remote tag, GitHub release
-or Packagist projection. Each must be verified independently against the certified commit; registry availability is
-not installed-consumer proof. Follow the [release runbook](releasing.md), then reconcile publication metadata through
-normal delivery, complete authorized main-to-develop merge-back and clean only proven-owned resources. Never retag
-merely to change documentation's preparation status.
+Human-signed annotated tag **v0.8.0**, object **`6d696c0ae5bb843366b601633fed3af3311b7a48`**, and its remote peeled
+commit match the certified merge. GitHub release **419900711** was published at **2026-10-21T18:19:50Z** as latest,
+non-prerelease and immutable, with zero uploaded assets. The provider's verified release attestation binds the exact
+tag object and release identity. Packagist normalized version **0.8.0.0** has source and dist references matching
+**`319738255e682d587642b67856039f882b9588d6`**. Registry projection is not installed-consumer qualification.
+
+This documentation-only reconciliation retains the exact-main full gate through verified executable-input equivalence
+and fresh release-metadata, documentation and planning checks; it is not a new full build or recertification.
+Main-to-develop merge-back and owned cleanup remain pending at this reconciliation checkpoint. Follow the
+[release runbook](releasing.md) through the reviewed merge-back PR and separately authorized merge/cleanup; preserve
+all release evidence and never retag merely to change documentation's preparation status.
 
 ## Unexecuted consumer qualification
 
@@ -92,4 +106,4 @@ permissions, current worker/provider composition, idempotency and delayed outcom
 sanitation. Package in-memory models do not establish these facts.
 
 No consumer schema, adapter, transport/UI, source/lock update, installation, enablement or deployment is performed or
-authorized by this release preparation. Restricted evidence remains private under [SECURITY.md](../SECURITY.md).
+authorized by this package publication. Restricted evidence remains private under [SECURITY.md](../SECURITY.md).

@@ -20,4 +20,4 @@ approval-gated effects.
 Fight AccessControl is a pre-v1 public-source package with published releases recorded in the
 [Changelog](CHANGELOG.md). Security review applies to the current integration line. Publication does not itself
 establish a supported maintenance line or a support window; the existence of a tag alone does not establish support.
-This release preparation does not adopt a new maintenance/support policy.
+Publication of v0.8.0 does not adopt a new maintenance/support policy.

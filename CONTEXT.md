@@ -6,7 +6,32 @@ Fight AccessControl owns framework-neutral identity, credential, session, author
 behavior shared by Fight applications. The repository-local behavioral and security authority is
 [TICKET-00001](planning/tickets/00001-TICKET.md).
 
-## v0.8.0 release preparation — 2026-10-21
+## v0.8.0 publication — 2026-10-21
+
+[v0.8.0](https://github.com/johnnickell/fight-access-control/releases/tag/v0.8.0) is published from certified
+`main` release merge **`319738255e682d587642b67856039f882b9588d6`** through
+[PR #134](https://github.com/johnnickell/fight-access-control/pull/134). Independent release-content review accepted
+prepared head `fb328af`; independent documentation QA passed **8 scenario groups / 14 walkthroughs** with no findings.
+The main merge preserves that exact tree. Fresh exact-main `./bin/release certify 0.8.0` passed **2399 tests /
+45422 assertions**, exact **7452/7452 statements**, plus separate OpenAPI **16 tests / 659 assertions**, without
+final warnings/skips or resolved dependency/lockfile changes.
+
+Human-signed annotated tag object **`6d696c0ae5bb843366b601633fed3af3311b7a48`** and the remote peeled commit
+match the certified merge. GitHub publication at **2026-10-21T18:19:50Z** is latest, non-prerelease and immutable,
+with zero uploaded assets; the provider release attestation verifies that tag object and release identity.
+Packagist normalized version **0.8.0.0** source/dist references match the certified commit. The
+[release overview](docs/release-0.8.0.md) retains the breaking Role/recovery contracts and unexecuted consumer obligations.
+Registry projection is not consumer installation, qualification, adoption, enablement or deployment.
+
+John authorized documentation reconciliation and a main-to-develop merge-back PR in the selected main checkout on
+`release/0.8.0-merge-back`. Merge-back and cleanup remain pending at this checkpoint and require separate authority.
+No production/test/dependency/tooling change is part of this follow-up; retain the exact-main full gate through
+verified input equivalence and fresh documentation/planning/release-metadata checks. The immutable tagged source
+retains its preparation wording; no tag rewrite or recertification is needed for this prose-only follow-up.
+The ignored `.runs/handoffs/release-0.8.0/ledger.md` owns actual delivery identities and remaining authority.
+All implementation TASKs/parents are already terminal; the separate v1.0.0 stability decision is unchanged.
+
+## Historical v0.8.0 release preparation — 2026-10-21
 
 John selected v0.8.0 and the main checkout for `release/0.8.0` from clean, refreshed `develop`
 `6ea05dc3270f1bd314fce9878940a07be528791e`, the merge of
@@ -22,9 +47,9 @@ and local README previews cover light/dark desktop and narrow layouts. No depend
 rebuilt image metadata changed with identical runnable Config/RootFS. This verification-prose follow-up retains that
 full gate with unchanged executable inputs and fresh targeted checks; it is not a second build or final certification.
 
-v0.7.0 remains the latest verified published release. Independent release-content acceptance, main integration,
-fresh exact-main certification, human signing, publication, merge-back and owned cleanup remain outstanding at this
-preparation checkpoint. The ignored `.runs/handoffs/release-0.8.0/ledger.md` owns resumable state and effect authority.
+At this historical preparation checkpoint, v0.7.0 remained the latest verified published release. Independent
+release-content acceptance, main integration, fresh exact-main certification, human signing, publication, merge-back
+and owned cleanup were outstanding; verified subsequent publication is recorded above. The ignored `.runs/handoffs/release-0.8.0/ledger.md` owns resumable state and effect authority.
 No actual consumer qualification, dependency adoption, data operation, enablement, restricted disclosure or deployment
 is claimed. The separate v1.0.0 stability decision remains unchanged.
 
@@ -171,7 +196,7 @@ prepared candidate `911b5f6`; the merge preserved its tree. Fresh exact-main `./
 composition passed **15 tests / 614 assertions**. Human-signed annotated tag object
 `79de80627128ace44c38fe7a80e063e7115335f0` and its remote peeled commit were independently verified.
 
-GitHub publication at **2026-10-20T15:21:22Z** is latest, non-prerelease and immutable with zero uploaded assets;
+At its publication checkpoint, GitHub publication at **2026-10-20T15:21:22Z** was latest, non-prerelease and immutable with zero uploaded assets;
 the provider release attestation verifies the tag object. Packagist normalized version `0.7.0.0` has matching source
 and dist references. This is registry projection, not installed-consumer qualification, adoption or deployment.
 The [release overview](docs/release-0.7.0.md) retains the breaking contracts and unexecuted consumer obligations.

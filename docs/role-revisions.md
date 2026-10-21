@@ -1,6 +1,6 @@
 # Role caller revisions
 
-Current-contract capability included in [v0.8.0 release preparation](release-0.8.0.md), not published v0.7.0.
+Current-contract capability published in [v0.8.0](release-0.8.0.md), not part of v0.7.0.
 Role revisions identify state, not authority. Consumers continue to protect
 all HTTP, CLI, worker and direct command-bus entry points, including no-ops, and own actor provenance, target/tenant
 scope, last-admin policy, destructive confirmation, response mapping and safe logs under
