@@ -23,10 +23,11 @@ satisfy unchanged requirements. The passing build preserves dependency bytes and
 prose-only closeout retains that full gate through proven input equivalence and current targeted checks.
 
 Independent technical Review **ACCEPTED** and independent adversarial nonvisual QA **PASSED** the exact candidate;
-their canonical private reports retain detailed evidence. TASK-00078 is done for accepted package implementation and
-required local/behavioral verification; historical terminal parents remain unchanged. PR publication metadata will be
-recorded only after a verified PR exists. No consumer adoption or qualification, PR approval, merge, release,
-deployment, restricted disclosure, or hosted CI success is claimed.
+their canonical private reports retain detailed evidence. Land published
+[PR #130](https://github.com/johnnickell/fight-access-control/pull/130) against `develop`; TASK-00078 is done for
+accepted package implementation and required local/behavioral verification, and historical terminal parents remain
+unchanged. No consumer adoption or qualification, PR approval, merge, release, deployment, restricted disclosure, or
+hosted CI success is claimed.
 
 ## Contributor workflow alignment — TASK-00081 implementation checkpoint
 
