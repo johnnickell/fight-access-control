@@ -1,8 +1,12 @@
 # v0.7.0 release and integration overview
 
-Selected for preparation on 2026-10-20. This overview and the dated changelog are not proof of a signed tag,
-published release or consumer qualification. Independent release-content acceptance, main integration, fresh
-exact-main certification, human signing and separately authorized publication remain required.
+[v0.7.0 was published](https://github.com/johnnickell/fight-access-control/releases/tag/v0.7.0) on 2026-10-20
+from the exact certified main release merge `cf55a25ade9c36f99c9211f12e467446a5bb0c9d`, integrated through
+[PR #124](https://github.com/johnnickell/fight-access-control/pull/124). Its human-signed annotated tag object is
+`79de80627128ace44c38fe7a80e063e7115335f0`; local signature and remote object/peeled commit were independently
+verified. GitHub release 418551512 is latest, non-prerelease and immutable with zero uploaded assets, and its
+provider attestation verifies the tag object. Packagist source and dist references match the certified commit.
+These publication facts do not establish installed-consumer qualification, enablement or deployment.
 
 ## Scope and compatibility
 
@@ -36,7 +40,7 @@ through PRs [#121](https://github.com/johnnickell/fight-access-control/pull/121)
 
 ## Observable behavior
 
-| Scenario | Before (v0.6.0) | v0.7.0 candidate |
+| Scenario | Before (v0.6.0) | Released v0.7.0 |
 | --- | --- | --- |
 | Consumer-admitted self-registration | No distinct package registration/default-Role journey | `RegisterUser` accepts only new User ID/email; trusted nonempty RoleName defaults resolve on every command. Pending User, all Roles, activation/encrypted delivery and audit commit together. |
 | Invalid defaults or duplicate email | Private invitation is not a registration substitute | Empty/invalid/missing/conflicting defaults or `ROLE_SUPER_ADMIN` reject; canonical-email claims in every User state and live reservations prevent a second identity or delivery. No package generic success/takeover is introduced. |
@@ -61,13 +65,17 @@ Canonical TASK records own implementation evidence and exact accepted candidates
 gate passes **2225 tests / 42779 assertions**, exact **7264/7264 statements**, with no final warnings/skips. Independent
 technical Review accepts its candidate; independent nonvisual QA passes all eight selected recovery scenarios without
 findings or incompletes. Earlier origin and registration slices also have their own technical acceptance and behavioral
-QA. These are controlled package-port proofs, not actual consumer integration or independent acceptance of this new
-release document. The release preparation and final-main certification require their own evidence.
+QA. These are controlled package-port proofs, not actual consumer integration.
 
-After an independently accepted release PR is integrated into `main`, run repository-owned
-`./bin/release certify 0.7.0` on that **exact clean release merge commit** before preparing the human signing handoff.
-A previous feature/preparation gate or an identical tree does not certify that distinct merge commit. Signed local tag,
-remote tag, hosted release, Packagist source/dist projection and installed-consumer verification are separate states.
+Independent release-content review accepted prepared candidate `911b5f6`; PR #124 preserved its tree in the actual
+main merge. Fresh repository-owned `./bin/release certify 0.7.0` ran on that **exact clean release merge commit**,
+passing **2225 tests / 42779 assertions**, exact **7264/7264 statements**, with no final warnings/skips. Planning
+validated **111 records / 0 active**; separate OpenAPI consumer composition passed **15 tests / 614 assertions**.
+This was a fresh final-commit run, not certification inferred from a previous gate or an identical tree.
+
+The signed local tag, remote tag, GitHub publication and Packagist source/dist projection have each been verified.
+Installed-consumer verification remains unexecuted. Later documentation reconciliation does not move the published
+tag or recertify a different commit; preserved receipts own each observed outcome.
 
 ## Unexecuted consumer qualification
 

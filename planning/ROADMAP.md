@@ -1,6 +1,55 @@
 # Roadmap
 
-## Release preparation
+## Current release handoff — v0.8.0 preparation
+
+John selected **v0.8.0** and the main checkout on 2026-10-21. Release preparation uses `release/0.8.0` from
+refreshed `develop` `6ea05dc`, including merged [PR #133](https://github.com/johnnickell/fight-access-control/pull/133).
+The [release overview](../docs/release-0.8.0.md) owns scope, breaking Role/recovery composition and unexecuted consumer
+qualification. v0.7.0 remains the latest verified published release; v0.8.0 is prepared, not published.
+
+Independent release-content acceptance, authorized main integration, fresh certification of the exact main release
+merge, human signing and separately authorized publication remain required. Merge-back and owned cleanup follow
+verified publication. No implementation TASK remains unfinished; v1.0.0 stability, consumer adoption and deployment
+remain separate decisions.
+
+## Correction batch integrated
+
+The [correction map](wayfinder/access-control-correction-batch-map.md)'s decisions and decomposition are complete.
+[EPIC-00001](epics/00001-EPIC.md) retains existing requirement ownership through
+[TICKET-00001](tickets/00001-TICKET.md#approved-correction-batch-amendment), plus new
+[TICKET-00024](tickets/00024-TICKET.md) for Role caller revisions.
+
+The accepted TASKs are [TASK-00077](tasks/00077-TASK.md) for operation outcomes,
+[TASK-00078](tasks/00078-TASK.md) for recovery lifecycle, [TASK-00079](tasks/00079-TASK.md) for policy consistency
+and [TASK-00080](tasks/00080-TASK.md) for Role caller revisions. TASK-00078/00079 depend on TASK-00077;
+TASK-00080 depends on TASK-00077/00079. TASK-00078 precedes TASK-00079 by priority only.
+
+The map is Closed for planning. TASK-00077–00079 are complete and integrated. TASK-00080 has independent technical
+acceptance and nonvisual behavioral QA on its exact implementation candidate; its sole-child TICKET-00024 is done through
+automatic parent completion while EPIC-00001 retains its historical terminal status. Its [current Role composition](../docs/role-revisions.md)
+and saved local gates are package evidence, not consumer qualification. Public summaries do not replace approved maintainer
+briefs or authorize restricted disclosure. [TASK-00080 PR #132](https://github.com/johnnickell/fight-access-control/pull/132)
+merged into `develop` on 2026-10-21 at `d1ed655`; the correction batch has no remaining decomposition,
+implementation or PR-merge handoff. Consumer qualification, version selection, release and deployment remain separate.
+
+[TASK-00082](tasks/00082-TASK.md) completed the README, identity assets, release-version consistency and planning
+reconciliation; PR #133 merged into `develop` on 2026-10-21. Its earlier v0.8.0 recommendation is now superseded by
+John's version selection above. The breaking pre-v1 Role and recovery contracts require a new minor, not a v0.7.x
+patch. The [Board](tasks/BOARD.md) retains the terminal implementation portfolio.
+
+## Published v0.7.0
+
+[v0.7.0](https://github.com/johnnickell/fight-access-control/releases/tag/v0.7.0) was published on 2026-10-20
+from certified main merge `cf55a25` through [PR #124](https://github.com/johnnickell/fight-access-control/pull/124).
+Independent release-content acceptance, exact-main certification, human signed tag, immutable latest/non-prerelease
+GitHub publication and matching Packagist source/dist projection are verified. The
+[release overview](../docs/release-0.7.0.md) owns the breaking contracts and consumer obligations. Merge-back into
+`develop` completed through [PR #125](https://github.com/johnnickell/fight-access-control/pull/125) on 2026-10-20.
+The ignored release ledger retains cleanup evidence; branch cleanup is not inferred from merge state.
+The [Board](tasks/BOARD.md) owns current implementation status. Consumer qualification, enablement/adoption and
+deployment, and the v1.0.0 stability decision, remain separate.
+
+### Historical v0.7.0 preparation checkpoint
 
 John selected **v0.7.0** and the main checkout on 2026-10-20. Refreshed `develop` `4ffc31b` contains the complete
 independently accepted registration capability integrated through PRs #121–#123. The
@@ -70,7 +119,7 @@ dependency edge. Package proof must be distinguished from actual PostgreSQL cons
 signing, pushing and publication remain separately authorized; the Board still owns execution priority, unchanged by
 this approved decomposition.
 
-## Current package acceptance and next TASK
+## Historical Agent package acceptance checkpoint
 
 John's 2026-09-30 package-wide decision in [ADR 0011](adr/0011-pre-v1-current-contract-only.md) removes all obligations
 to support previous APIs/data iterations while pre-v1. [TASK-00068](tasks/00068-TASK.md) has accepted removal of
@@ -169,9 +218,9 @@ recovery). John approved one TASK per requirement area:
 [TASK-00075](tasks/00075-TASK.md) (authorized correction and expired reissue). All three tasks are accepted with
 applicable nonvisual QA and integrated through PRs #121–#123; final
 [PR #123](https://github.com/johnnickell/fight-access-control/pull/123) is merged into `develop` `4ffc31b`.
-Automatic parent completion closed TICKET-00023 and EPIC-00013. John selected the complete capability for
-[v0.7.0 preparation](../docs/release-0.7.0.md); release publication, consumer integration/enablement and deployment
-remain separate. The EPIC's historical pre-v1.0.0 target is not an authorization to release v1.0.0.
+Automatic parent completion closed TICKET-00023 and EPIC-00013. The complete capability is now published in
+[v0.7.0](../docs/release-0.7.0.md); consumer integration/enablement and deployment remain separate.
+The EPIC's historical pre-v1.0.0 target is not an authorization to release v1.0.0.
 
 ## Route to 1.0.0
 
@@ -204,6 +253,7 @@ remain separate. The EPIC's historical pre-v1.0.0 target is not an authorization
 
 | Version | Date | Outcome |
 | --- | --- | --- |
+| `v0.7.0` | 2026-10-20 | Published optional User registration, activation origin and administrator recovery; merged back through PR #125. Consumer enablement and qualification remain separate. |
 | `v0.6.0` | 2026-10-19 | Published expiry-aware invitation retry and the required Clock composition change; merged back through PR #120. |
 | `v0.5.0` | 2026-10-06 | Published recoverable Agent operations, human expiry, Features and Agent-protected profile Tools; consumer qualification remains separate. |
 | `v0.4.0` | 2026-09-27 | Published protected Permission tiers, reserved Super Admin identity and atomic eligible delegation/reconciliation; consumer integration remains separately qualified. |
@@ -216,7 +266,7 @@ remain separate. The EPIC's historical pre-v1.0.0 target is not an authorization
 <!-- generated:epic-status:start -->
 | EPIC | Target | Status | Tickets | Tasks |
 | --- | --- | --- | --- | --- |
-| [EPIC-00001](epics/00001-EPIC.md) | 0.x public-source incubation | done | 1 | 18 |
+| [EPIC-00001](epics/00001-EPIC.md) | 0.x public-source incubation | done | 2 | 22 |
 | [EPIC-00002](epics/00002-EPIC.md) | 0.x | done | 1 | 7 |
 | [EPIC-00003](epics/00003-EPIC.md) | 0.x | done | 2 | 6 |
 | [EPIC-00004](epics/00004-EPIC.md) | v0.2.0 | done | 1 | 1 |

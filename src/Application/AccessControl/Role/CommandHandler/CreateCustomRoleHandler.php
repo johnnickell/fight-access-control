@@ -72,7 +72,12 @@ final readonly class CreateCustomRoleHandler implements CommandHandler
 
             $this->eventDispatcher->trigger($event);
         } catch (Throwable $throwable) {
-            $this->eventDispatcher->trigger(new CommandFailedEvent($command, $throwable->getMessage()));
+            try {
+                $this->eventDispatcher->trigger(new CommandFailedEvent($command, 'Custom role creation failed.'));
+            } catch (Throwable) {
+                // Notification failure must not replace the original operation failure.
+            }
+
             throw $throwable;
         }
     }

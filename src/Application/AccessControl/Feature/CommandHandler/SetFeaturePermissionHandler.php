@@ -88,7 +88,7 @@ final readonly class SetFeaturePermissionHandler implements CommandHandler
             }
         } catch (Throwable $throwable) {
             try {
-                $this->events->trigger(new CommandFailedEvent($command, $throwable->getMessage()));
+                $this->events->trigger(new CommandFailedEvent($command, 'Feature permission update failed.'));
             } finally {
                 throw $throwable;
             }

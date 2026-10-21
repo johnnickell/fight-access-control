@@ -6,7 +6,184 @@ Fight AccessControl owns framework-neutral identity, credential, session, author
 behavior shared by Fight applications. The repository-local behavioral and security authority is
 [TICKET-00001](planning/tickets/00001-TICKET.md).
 
-## v0.7.0 release preparation — 2026-10-20
+## v0.8.0 release preparation — 2026-10-21
+
+John selected v0.8.0 and the main checkout for `release/0.8.0` from clean, refreshed `develop`
+`6ea05dc3270f1bd314fce9878940a07be528791e`, the merge of
+[PR #133](https://github.com/johnnickell/fight-access-control/pull/133). The
+[release overview](docs/release-0.8.0.md) covers the integrated operation-outcome, recovery, managed-policy and Role
+revision contracts plus contributor/release-documentation tooling. The implementation TASKs have independent technical
+acceptance and behavioral QA; no implementation TASK remains unfinished. PHP 8.5+ and Common ^1.3 remain unchanged.
+This release preparation changes documentation only, not production code, tests, schemas, dependencies or tooling.
+
+The preparation `./bin/build` passes **2399 tests / 45422 assertions**, exact **7452/7452 statements**, without
+warnings/skips. Planning validates **118 records / 0 active**, documentation links and v0.8.0 metadata checks pass,
+and local README previews cover light/dark desktop and narrow layouts. No dependency/lockfile drift occurred;
+rebuilt image metadata changed with identical runnable Config/RootFS. This verification-prose follow-up retains that
+full gate with unchanged executable inputs and fresh targeted checks; it is not a second build or final certification.
+
+v0.7.0 remains the latest verified published release. Independent release-content acceptance, main integration,
+fresh exact-main certification, human signing, publication, merge-back and owned cleanup remain outstanding at this
+preparation checkpoint. The ignored `.runs/handoffs/release-0.8.0/ledger.md` owns resumable state and effect authority.
+No actual consumer qualification, dependency adoption, data operation, enablement, restricted disclosure or deployment
+is claimed. The separate v1.0.0 stability decision remains unchanged.
+
+## Historical package entrypoint and release consistency — TASK-00082
+
+John requested [TASK-00082](planning/tasks/00082-TASK.md) in the main checkout to reconcile merged planning
+handoffs, shorten and brand the README, and add a version-consistency preflight to release certification.
+The [release runbook](docs/releasing.md) owns the current-version inventory and publication distinction.
+At that implementation checkpoint, v0.7.0 remained the latest verified published release and v0.8.0 was recommended
+for the integrated breaking Role and recovery contracts, not yet selected. John's later selection is recorded above.
+No package behavior or consumer qualification changes.
+Independent technical Review **ACCEPT** and post-review behavioral **QA PASS** cover exact candidate
+`3163026d07e82f1db6520b311aea8c72a0045f8e` against unchanged `develop` `d1ed655`: eight scenario groups,
+29 CLI/guard cases, three browser state pairs and eight instruction walkthroughs pass with no findings.
+TASK-00082 is done for accepted implementation and required verification; it is standalone with no parents to close.
+The saved full gate passes **2399 tests / 45422 assertions**, exact **7452/7452 statements**, without final warnings/skips.
+Local README previews do not prove hosted rendering, and isolated certification wiring is not a real release.
+Land opened [PR #133](https://github.com/johnnickell/fight-access-control/pull/133) against unchanged `develop`,
+with six publicly accessible QA Before/After captures verified against their digests. Final metadata push and
+ready transition remain pending at this tracked checkpoint; the ignored TASK Land receipt owns final delivery facts. No merge, version selection, signed release, consumer qualification or deployment is claimed.
+
+## Role caller revisions — TASK-00080 delivery checkpoint
+
+[TASK-00080](planning/tasks/00080-TASK.md) completed its accepted Role caller-revision capability on
+`feature/task-00080-role-revisions` from `develop` `f10ed5a`. The [Role composition](docs/role-revisions.md) supplies
+authoritative View revisions, required rename/remove expectations, validated persisted incarnation/revision, all-writer
+participation and final fences; existing membership, managed/reserved identity, tiers, registration integrity and outcome
+policy remain intact. The [consolidated guide](docs/operation-outcomes.md) connects the correction slices.
+
+Independent technical Review accepted and independent nonvisual QA passed the exact implementation candidate
+`35eea6329b8f74e253521870734b11ece45d1988` with 7 scenarios / 48 checks and visual N/A for the nonvisual library.
+Focused checks pass **565 tests / 11182 assertions**; the saved canonical `./bin/build` passes **2399 tests / 45422 assertions**,
+exact **7452/7452 statements**, without final warnings/skips. No resolved package/lockfile drift occurred. This
+administrative tracking closeout retains the earlier full gate through verified input equivalence and targeted checks,
+not as a second full build.
+
+TASK-00080 and its sole-child parent TICKET-00024 are done for accepted package implementation and required local/
+behavioral verification; EPIC-00001 remains historically terminal. Package proof is not consumer SQL/transport/
+permission qualification. Publication, PR approval, merge, release, deployment and restricted disclosure remain separate.
+
+## Managed-policy consistency — TASK-00079 implementation checkpoint
+
+John invoked Build for [TASK-00079](planning/tasks/00079-TASK.md) in the selected main checkout after TASK-00077
+and TASK-00078 integrated. Engineer work is on `feature/task-00079-managed-policy` from clean `develop` `8ade1cd`.
+The current [managed-policy composition](docs/operation-outcomes.md#managed-policy-composition) documents shared
+planner wiring, read-only snapshots, final reference fences and transaction/publication outcomes. Existing policy
+constraints, exact membership and consumer-owned authorization remain unchanged. No new API or persisted shape,
+optional composition, Role caller revision, compatibility support or production adapter is introduced.
+
+Focused policy/reference/outcome checks pass **215 tests / 2220 assertions**; canonical `./bin/build` passes
+**2365 tests / 44985 assertions**, exact **7377/7377 statements**, without final warnings/skips. The normal resolver
+updates ignored dev-only `sebastian/git-state` **1.0.0 → 1.1.0**; constraints and Common v1.4.0 remain unchanged.
+Detailed approved criteria, regression chronology, early test/style/static-analysis/normalization failures and
+interrupted attempts remain private. This prose-only summary retains that full gate through verified input
+equivalence and current targeted checks.
+
+Independent technical Review **ACCEPTED** and independent adversarial nonvisual QA **PASSED** the exact candidate;
+their canonical private reports retain detailed evidence. Land opened
+[PR #131](https://github.com/johnnickell/fight-access-control/pull/131) against `develop`; TASK-00079 is done for
+accepted package implementation and required local/behavioral verification. Package modeling is not real consumer
+SQL/adapter qualification; no consumer change, restricted disclosure, PR approval, merge, release or deployment is
+claimed.
+
+## Recovery lifecycle — TASK-00078 landing closeout checkpoint
+
+John invoked Build for [TASK-00078](planning/tasks/00078-TASK.md) in the main checkout after TASK-00077 integrated.
+Engineer work is on `feature/task-00078-recovery-lifecycle` from verified clean `develop` `a3b6eee`. Current
+[recovery composition](docs/operation-outcomes.md#recovery-composition) documents the Domain/Application contract,
+mandatory shared persistence fences, worker wiring and consumer qualification obligations. Detailed approved criteria
+and execution evidence remain in the private maintainer handoff; no affected-release assessment is published here.
+
+The current conformance binding supplies persisted User setup, shared transactional writes and reopened authority
+state. Original persistence assertions are retained, with admission and rollback checks added. The saved canonical
+`./bin/build` passes **2353 tests / 44831 assertions**, exact **7372/7372 statements**, without final warnings/skips;
+focused recovery checks pass **28 tests / 790 assertions**. Failed attempts, including the repair's initial Rector
+normalization failure, remain in ignored evidence. No package/lockfile drift occurred; PHP 8.5.7 and Common v1.4.0
+satisfy unchanged requirements. The passing build preserves dependency bytes and runtime Config/RootFS. This
+prose-only closeout retains that full gate through proven input equivalence and current targeted checks.
+
+Independent technical Review **ACCEPTED** and independent adversarial nonvisual QA **PASSED** the exact candidate;
+their canonical private reports retain detailed evidence. Land published
+[PR #130](https://github.com/johnnickell/fight-access-control/pull/130) against `develop`; TASK-00078 is done for
+accepted package implementation and required local/behavioral verification, and historical terminal parents remain
+unchanged. No consumer adoption or qualification, PR approval, merge, release, deployment, restricted disclosure, or
+hosted CI success is claimed.
+
+## Contributor workflow alignment — TASK-00081 implementation checkpoint
+
+The approved standalone [TASK-00081](planning/tasks/00081-TASK.md) aligns contributor routing with optional
+Fight Agent OS/Pi workflows. [AGENTS](AGENTS.md) and [planning continuations](planning/CONVENTIONS.md#workflow-continuations)
+recommend Build for approved implementation/confirmed repair and stop; explicit invocation delegates its
+work, independent Review, QA and open-PR sequence. The [project binding](planning/agents/project-profile.md#agent-os-workflow-binding)
+keeps provider resources separate from local planning, Docker runtime, gates, security and evidence rules.
+The package remains self-contained for contributors without those tools.
+
+At this implementation checkpoint, independent acceptance, behavioral QA and publication remain pending.
+No correction-batch implementation, private brief disclosure, package/dependency/runtime change, end-to-end Build
+qualification, merge, release or deployment is claimed. TASK-00077 remains the separate correction-batch entrypoint;
+this general guidance chore does not require its restricted brief.
+
+## Operation outcomes — TASK-00077 landing checkpoint
+
+John invoked Build for [TASK-00077](planning/tasks/00077-TASK.md) in the main checkout, on
+`feature/task-00077-operation-outcomes` from verified clean `develop` `8da8b3e`. The current
+[operation-outcome guide](docs/operation-outcomes.md) describes notification, transaction and consumer composition.
+Existing success/no-op, authorization, audit and Agent issuance-warning boundaries remain in scope for preservation.
+No consumer code, Common dependency policy, transport API or persisted schema is changed.
+
+Focused Application checks pass **1634 tests / 36950 assertions**; canonical `./bin/build` passes **2325 tests /
+44043 assertions**, exact **7311/7311 statements**, without final warnings/skips. Ignored dev-only swagger-php
+updates **6.17.1 → 6.18.0** through the normal resolver; dependency constraints and installed Common v1.4.0 are unchanged.
+This prose-only verification follow-up retains that full gate with proven executable-input equivalence and current
+targeted checks. Independent technical Review **ACCEPTED** and independent nonvisual QA **PASSED** the exact
+candidate; their private canonical reports retain detailed evidence. Land published
+[PR #129](https://github.com/johnnickell/fight-access-control/pull/129) against `develop`, and TASK-00077 is done
+for accepted package implementation and required local/behavioral verification. No hosted acceptance gate is
+declared and hosted CI was not checked. No PR approval, merge, consumer qualification, release or deployment is
+claimed. Detailed approved criteria, inventory and execution receipts remain in the private maintainer handoff, not
+public tracking. TASK-00078–00080 remain separate unfinished work.
+
+## Consolidated correction planning
+
+The approved [correction-batch map](planning/wayfinder/access-control-correction-batch-map.md) is Closed for
+planning. TICKET-00001 owns [TASK-00077](planning/tasks/00077-TASK.md) for operation outcomes,
+[TASK-00078](planning/tasks/00078-TASK.md) for recovery lifecycle and [TASK-00079](planning/tasks/00079-TASK.md)
+for policy consistency. TICKET-00024 owns [TASK-00080](planning/tasks/00080-TASK.md) for Role caller revisions.
+TASK-00078/00079 depend on TASK-00077; TASK-00080 depends on TASK-00077/00079. The relative order of
+TASK-00078 and TASK-00079 is priority only. TASK-00077, TASK-00078 and TASK-00079 are complete and integrated;
+TASK-00080 also completed independent acceptance and behavioral QA, and its PR #132 merged into `develop`
+at `d1ed655` on 2026-10-21. The correction batch has no remaining implementation or merge handoff.
+
+Public records summarize approved scope, ownership and sequencing. Full maintainer briefs and restricted evidence
+remain private under SECURITY.md and must be obtained before implementation or independent review. No new behavioral
+verification or consumer qualification is claimed. Next: `/skill:next` for Board-based selection; planning publication
+does not authorize implementation, restricted disclosure, release or deployment.
+
+## v0.7.0 publication — 2026-10-20
+
+[v0.7.0](https://github.com/johnnickell/fight-access-control/releases/tag/v0.7.0) is published from the exact
+`main` release merge `cf55a25ade9c36f99c9211f12e467446a5bb0c9d` through
+[PR #124](https://github.com/johnnickell/fight-access-control/pull/124). Independent release-content review accepted
+prepared candidate `911b5f6`; the merge preserved its tree. Fresh exact-main `./bin/release certify 0.7.0` passed
+**2225 tests / 42779 assertions**, exact **7264/7264 statements**, with no final warnings/skips; separate OpenAPI
+composition passed **15 tests / 614 assertions**. Human-signed annotated tag object
+`79de80627128ace44c38fe7a80e063e7115335f0` and its remote peeled commit were independently verified.
+
+GitHub publication at **2026-10-20T15:21:22Z** is latest, non-prerelease and immutable with zero uploaded assets;
+the provider release attestation verifies the tag object. Packagist normalized version `0.7.0.0` has matching source
+and dist references. This is registry projection, not installed-consumer qualification, adoption or deployment.
+The [release overview](docs/release-0.7.0.md) retains the breaking contracts and unexecuted consumer obligations.
+
+Reviewed merge-back into `develop` subsequently completed through
+[PR #125](https://github.com/johnnickell/fight-access-control/pull/125) on 2026-10-20. Owned branch cleanup outcomes
+remain in the ignored release ledger and are not inferred from the merge. At the original publication-reconciliation
+checkpoint there were no package behavior, dependency, test or gate input changes;
+retain the exact-main full gate through verified input equivalence and fresh documentation/planning checks.
+EPIC-00013 and its children are already done; the separate v1.0.0 stability decision remains unchanged.
+
+## Historical v0.7.0 release preparation — 2026-10-20
 
 John selected v0.7.0 and the main checkout for `release/0.7.0` from clean, refreshed `develop`
 `4ffc31b1d36272a2e7df9f2234fbccfce31371b6`, the merge of

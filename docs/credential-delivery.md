@@ -22,6 +22,10 @@ field. Stale or fabricated predecessors lose without mutation. `add()` and succe
 state and fresh generation IDs/digests. Revocation, consumption and other terminal transitions destroy recoverable
 material without erasing state needed to reject stale generations.
 
+For the current password-reset persisted authority, mandatory shared User fence, lifecycle cancellation and worker
+constructor wiring, follow [recovery composition](operation-outcomes.md#recovery-composition). Delivery remains
+separate from redemption authority; consumers qualify their actual all-writer transaction and restart behavior.
+
 ## Activation origin (v0.7.0)
 
 `ActivationOrigin` is a required, non-sensitive business fact on `ActivationGrant`, shared by its exact owned
@@ -78,7 +82,7 @@ reissuing grants. Arrange the adapter's real transaction/commit boundary around 
 The in-memory binding reconstructs grants from current enum values and cloned delivery snapshots; it models restart,
 not a real database or process. Bind and extend the failure schedules against the actual shared connection.
 
-Selected for [v0.7.0](release-0.7.0.md), this is a **breaking pre-v1 minor** current API/persistence change, not a
+Released in [v0.7.0](release-0.7.0.md), this is a **breaking pre-v1 minor** current API/persistence change, not a
 v0.6.x patch or an old-data migration route.
 The opt-in `Fight.AccessControl.ActivationOrigin` OpenAPI value component describes the enum, not a serializable
 provider invocation or a new caller-selected field. Consumers separately qualify real SQL CAS/atomicity, provider
@@ -154,8 +158,8 @@ For registration and private invitation alike, `DeliverUserInvitationHandler` at
 original safe delivery command and constant `User invitation delivery failed.` text, not arbitrary storage/subscriber
 diagnostics. Failure notification is best effort: even if it throws, the same original operation throwable reaches the
 caller. Confirmed registration/claim/outcome commits are not undone by later publication failure. Consumers must still
-sanitize rethrown faults and secure event/log access. This v0.7.0 worker correction does not change the separate
-manual-retry handler's diagnostic behavior described below.
+sanitize rethrown faults and secure event/log access. The current [operation-outcome contract](operation-outcomes.md)
+also applies to reset/email-change workers, their request handlers and manual invitation retry.
 
 ## Manual invitation retry admission (v0.6.0)
 
@@ -181,9 +185,10 @@ complete-state CAS and audit. Only still-issued authority with `now < expiresAt`
 delivery may retry. Exact expiry, including fractional/timezone-equivalent equality, rejects. Missing, consumed,
 revoked or ineligible delivery also rejects with public `ActivationDeliveryNotRetryableException` and constant text
 `The activation delivery work is no longer retryable.` A lost CAS retains the same class and constant concurrent-change
-message. Map the exception class, not parsed text. Normal `CommandFailedEvent` evidence may publish the safe command
-and rejection text; notification failure cannot mask the original throwable. Arbitrary infrastructure diagnostics are
-not newly redacted by this repair: sanitize rethrown faults and event/log boundaries in the consumer.
+message. Map the exception class, not parsed text. Current `CommandFailedEvent` evidence retains the safe command
+with constant `Invitation delivery retry failed.` text; notification failure cannot mask the original throwable.
+This notification policy supersedes the historical v0.6.0 diagnostic policy, not its retry admission behavior.
+Sanitize rethrown faults and event/log boundaries separately in the consumer.
 
 Rejected expiry performs no retry transition, replace, revision/due/history/material change, retry audit, retry-request
 fact, decryption or provider invocation. It does **not** clean up the old row or implicitly resend. A successful retry

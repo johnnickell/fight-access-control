@@ -24,6 +24,8 @@ final class InMemoryUnitOfWork implements TransactionalUnitOfWork
 
     public ?Closure $beforeCommit = null;
 
+    public ?Closure $afterCommit = null;
+
     private ?InMemoryAuthorizationReferenceState $authorizationReferenceState = null;
 
     private int $rollbackStart = 0;
@@ -50,6 +52,7 @@ final class InMemoryUnitOfWork implements TransactionalUnitOfWork
         $this->rollbackStart = $rollbackStart;
 
         $completionStart = count($this->completionActions);
+        $committed = false;
 
         try {
             $result = $operation();
@@ -61,6 +64,7 @@ final class InMemoryUnitOfWork implements TransactionalUnitOfWork
             }
 
             $this->transactionCompleted = true;
+            $committed = true;
 
             return $result;
         } catch (Throwable $throwable) {
@@ -77,6 +81,9 @@ final class InMemoryUnitOfWork implements TransactionalUnitOfWork
             $this->transactionActive = false;
             array_splice($this->rollbackActions, $rollbackStart);
             array_splice($this->completionActions, $completionStart);
+            if ($committed) {
+                $this->afterCommit?->__invoke();
+            }
         }
     }
 

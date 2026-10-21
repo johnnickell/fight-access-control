@@ -82,7 +82,7 @@ final readonly class ProvisionFeaturesHandler implements CommandHandler
             }
         } catch (Throwable $throwable) {
             try {
-                $this->eventDispatcher->trigger(new CommandFailedEvent($command, $throwable->getMessage()));
+                $this->eventDispatcher->trigger(new CommandFailedEvent($command, 'Feature provisioning failed.'));
             } finally {
                 // A failure publisher must not replace the original operation/publication failure.
                 throw $throwable;

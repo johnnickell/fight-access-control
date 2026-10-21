@@ -8,6 +8,7 @@ use Fight\AccessControl\Application\AccessControl\Timing\Service\Clock;
 use Fight\AccessControl\Domain\AccessControl\Role\Command\RenameCustomRole;
 use Fight\AccessControl\Domain\AccessControl\Role\Event\CustomRoleRenamed;
 use Fight\AccessControl\Domain\AccessControl\Role\Exception\CustomRoleException;
+use Fight\AccessControl\Domain\AccessControl\Role\Exception\RoleConflictException;
 use Fight\AccessControl\Domain\AccessControl\Role\Role;
 use Fight\AccessControl\Domain\AccessControl\Role\RoleRepository;
 use Fight\Common\Application\Messaging\Command\CommandHandler;
@@ -50,10 +51,20 @@ final readonly class RenameCustomRoleHandler implements CommandHandler
         $command = $commandMessage->payload();
 
         try {
-            $event = $this->unitOfWork->commitTransactional(function () use ($command): CustomRoleRenamed {
+            $event = $this->unitOfWork->commitTransactional(function () use ($command): ?CustomRoleRenamed {
                 $role = $this->roleRepository->getById($command->getRoleId());
                 if (!$role instanceof Role) {
                     throw new CustomRoleException('The custom role does not exist.');
+                }
+
+                $role->assertRevision($command->getExpectedRevision());
+                $role->assertCustom();
+                if ($role->getName()->equals($command->getName())) {
+                    if (!$this->roleRepository->validateCurrent($role)) {
+                        throw new RoleConflictException();
+                    }
+
+                    return null;
                 }
 
                 $nameOwner = $this->roleRepository->getByName($command->getName());
@@ -64,7 +75,7 @@ final readonly class RenameCustomRoleHandler implements CommandHandler
                 $renamedAt = $this->clock->now();
                 $replacement = $role->renameCustom($command->getName(), $renamedAt);
                 if (!$this->roleRepository->replace($role, $replacement)) {
-                    throw new CustomRoleException('The custom role changed concurrently.');
+                    throw new RoleConflictException();
                 }
 
                 return new CustomRoleRenamed(
@@ -75,9 +86,16 @@ final readonly class RenameCustomRoleHandler implements CommandHandler
                 );
             });
 
-            $this->eventDispatcher->trigger($event);
+            if ($event instanceof CustomRoleRenamed) {
+                $this->eventDispatcher->trigger($event);
+            }
         } catch (Throwable $throwable) {
-            $this->eventDispatcher->trigger(new CommandFailedEvent($command, $throwable->getMessage()));
+            try {
+                $this->eventDispatcher->trigger(new CommandFailedEvent($command, 'Custom role rename failed.'));
+            } catch (Throwable) {
+                // Notification failure must not replace the original operation failure.
+            }
+
             throw $throwable;
         }
     }

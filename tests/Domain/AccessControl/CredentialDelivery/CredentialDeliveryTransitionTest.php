@@ -17,6 +17,7 @@ use Fight\AccessControl\Domain\AccessControl\EmailChangeGrant\EmailChangeCredent
 use Fight\AccessControl\Domain\AccessControl\EmailChangeGrant\EmailChangeGrant;
 use Fight\AccessControl\Domain\AccessControl\PasswordResetGrant\PasswordResetCredential;
 use Fight\AccessControl\Domain\AccessControl\PasswordResetGrant\PasswordResetGrant;
+use Fight\AccessControl\Domain\AccessControl\User\RecoveryAuthority;
 use Fight\AccessControl\Domain\AccessControl\User\UserId;
 use Fight\Common\Domain\Value\Internet\EmailAddress;
 use LogicException;
@@ -117,7 +118,8 @@ final class CredentialDeliveryTransitionTest extends TestCase
                 $at,
                 $expiry,
                 $email,
-                'encrypted-material'
+                'encrypted-material',
+                new RecoveryAuthority(1, 0)
             ),
             'email_change' => EmailChangeGrant::issue(
                 $user,

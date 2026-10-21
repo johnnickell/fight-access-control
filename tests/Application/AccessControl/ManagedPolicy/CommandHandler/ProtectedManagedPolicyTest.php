@@ -122,9 +122,9 @@ final class ProtectedManagedPolicyTest extends TestCase
         try {
             $handler->handle(CommandMessage::create(new ReconcileManagedPolicy($policy)));
             self::fail('A spoofed designated Role must not change authority.');
-        } catch (ManagedRoleException $managedRoleException) {
+        } catch (ManagedRoleException) {
             self::assertInstanceOf(CommandFailedEvent::class, $events->events()[0]);
-            self::assertSame($managedRoleException->getMessage(), $events->events()[0]->getErrorMessage());
+            self::assertSame('Managed policy reconciliation failed.', $events->events()[0]->getErrorMessage());
         }
 
         self::assertNull($permissions->getById($this->definition(PermissionTier::SUPER_ADMIN_ONLY)->getId()));

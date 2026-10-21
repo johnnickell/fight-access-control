@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Fight\AccessControl\Application\AccessControl\User\Security;
 
 use DateTimeImmutable;
+use Fight\AccessControl\Application\AccessControl\PasswordResetGrant\Service\PasswordResetRevocationService;
 use Fight\AccessControl\Application\AccessControl\RefreshSession\Service\RefreshCredentialGenerator;
 use Fight\AccessControl\Application\AccessControl\RefreshSession\Service\SessionRevocationService;
 use Fight\AccessControl\Application\AccessControl\Timing\Service\Clock;
@@ -99,13 +100,16 @@ final readonly class AuthenticationService
                 try {
                     $confirmedAt = $this->clock->now();
                     $user = $this->userRepository->getById($userId);
+                    if (!$user instanceof User || !$this->userRepository->validateRecoveryAuthority($user)) {
+                        throw new EmailChangeConfirmationRejectedException('Email change confirmation rejected.');
+                    }
+
                     $grant = $this->emailChangeGrantRepository->getLatestByUserId($userId);
                     $credential = EmailChangeCredential::fromString($emailChangeCredential);
-                    $pendingEmail = $user?->getPendingEmailChange();
+                    $pendingEmail = $user->getPendingEmailChange();
 
                     if (
-                        !$user instanceof User
-                        || !$user->getId()->equals($userId)
+                        !$user->getId()->equals($userId)
                         || $user->getState() !== UserState::ACTIVE
                         || !$pendingEmail instanceof EmailAddress
                         || !$grant instanceof EmailChangeGrant
@@ -129,6 +133,10 @@ final readonly class AuthenticationService
                         throw new EmailChangeConfirmationRejectedException('Email change confirmation rejected.');
                     }
 
+                    new PasswordResetRevocationService($this->passwordResetGrantRepository)->revokeFor(
+                        $userId,
+                        $confirmedAt
+                    );
                     $this->sessionRevocationService->revokeAllActiveFor($userId, $confirmedAt);
 
                     $this->auditEvidenceRepository->add(AuditEvidence::record(
@@ -149,7 +157,11 @@ final readonly class AuthenticationService
 
             $this->eventDispatcher->trigger(new EmailChangeConfirmed($userId, $confirmedAt));
         } catch (Throwable $throwable) {
-            $this->publishFailure('confirmEmail', ['user_id' => $userId->toString()], $throwable);
+            $this->publishFailure(
+                'confirmEmail',
+                ['user_id' => $userId->toString()],
+                'Email change confirmation failed.'
+            );
             throw $throwable;
         }
     }
@@ -198,6 +210,10 @@ final readonly class AuthenticationService
                     throw new PasswordChangeRejectedException('Password change rejected.');
                 }
 
+                new PasswordResetRevocationService($this->passwordResetGrantRepository)->revokeFor(
+                    $authenticatedUserId,
+                    $changedAt
+                );
                 $this->sessionRevocationService->revokeAllActiveFor($authenticatedUserId, $changedAt);
 
                 $this->auditEvidenceRepository->add(AuditEvidence::record(
@@ -214,7 +230,7 @@ final readonly class AuthenticationService
             $this->publishFailure(
                 'changePassword',
                 ['user_id' => $authenticatedUserId->toString()],
-                $throwable
+                'Password change failed.'
             );
             throw $throwable;
         }
@@ -236,6 +252,10 @@ final readonly class AuthenticationService
             ): DateTimeImmutable {
                 $completedAt = $this->clock->now();
                 $user = $this->userRepository->getById($userId);
+                if (!$user instanceof User || !$this->userRepository->validateRecoveryAuthority($user)) {
+                    throw new PasswordResetRejectedException('Password reset rejected.');
+                }
+
                 $passwordResetGrant = $this->passwordResetGrantRepository->getLatestByUserId($userId);
                 try {
                     $credential = PasswordResetCredential::fromString($resetCredential);
@@ -244,13 +264,13 @@ final readonly class AuthenticationService
                 }
 
                 if (
-                    !$user instanceof User
-                    || !$user->getId()->equals($userId)
+                    !$user->getId()->equals($userId)
                     || $user->getState() !== UserState::ACTIVE
                     || !$user->getPasswordHash() instanceof PasswordHash
                     || !$passwordResetGrant instanceof PasswordResetGrant
                     || !$passwordResetGrant->getUserId()->equals($userId)
                     || $passwordResetGrant->purpose() !== 'password_reset'
+                    || !$passwordResetGrant->isAuthorizedBy($user)
                     || !$passwordResetGrant->isUsableAt($completedAt)
                     || !$passwordResetGrant->matchesCredential($credential)
                 ) {
@@ -287,7 +307,7 @@ final readonly class AuthenticationService
 
             $this->eventDispatcher->trigger(new PasswordResetCompleted($userId, $completedAt));
         } catch (Throwable $throwable) {
-            $this->publishFailure('resetPassword', ['user_id' => $userId->toString()], $throwable);
+            $this->publishFailure('resetPassword', ['user_id' => $userId->toString()], 'Password reset failed.');
             throw $throwable;
         }
     }
@@ -370,7 +390,7 @@ final readonly class AuthenticationService
 
             return $activation[0];
         } catch (Throwable $throwable) {
-            $this->publishFailure('activate', ['user_id' => $userId->toString()], $throwable);
+            $this->publishFailure('activate', ['user_id' => $userId->toString()], 'Account activation failed.');
             throw $throwable;
         }
     }
@@ -456,7 +476,7 @@ final readonly class AuthenticationService
 
             return $login[0];
         } catch (Throwable $throwable) {
-            $this->publishFailure('login', [], $throwable);
+            $this->publishFailure('login', [], 'Login failed.');
             throw $throwable;
         }
     }
@@ -513,7 +533,7 @@ final readonly class AuthenticationService
 
             return $refreshResult;
         } catch (Throwable $throwable) {
-            $this->publishFailure('refresh', [], $throwable);
+            $this->publishFailure('refresh', [], 'Session refresh failed.');
             throw $throwable;
         }
     }
@@ -540,7 +560,7 @@ final readonly class AuthenticationService
 
             $this->eventDispatcher->trigger(new CurrentSessionLoggedOut($refreshSessionId));
         } catch (Throwable $throwable) {
-            $this->publishFailure('logout', [], $throwable);
+            $this->publishFailure('logout', [], 'Session logout failed.');
             throw $throwable;
         }
     }
@@ -653,14 +673,18 @@ final readonly class AuthenticationService
      *
      * @param string               $operation
      * @param array<string, mixed> $safeData
-     * @param Throwable            $throwable
+     * @param string               $failureMessage
      */
-    private function publishFailure(string $operation, array $safeData, Throwable $throwable): void
+    private function publishFailure(string $operation, array $safeData, string $failureMessage): void
     {
-        $this->eventDispatcher->trigger(new RedactedCommandFailed(
-            self::class.'::'.$operation,
-            $safeData,
-            $throwable->getMessage()
-        ));
+        try {
+            $this->eventDispatcher->trigger(new RedactedCommandFailed(
+                self::class.'::'.$operation,
+                $safeData,
+                $failureMessage
+            ));
+        } catch (Throwable) {
+            // Notification failure must not replace the original operation failure.
+        }
     }
 }

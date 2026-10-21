@@ -76,6 +76,10 @@ final readonly class RequestPasswordResetHandler implements CommandHandler
                     return null;
                 }
 
+                if (!$this->userRepository->validateRecoveryAuthority($user)) {
+                    throw new LogicException('Password-reset authority changed concurrently.');
+                }
+
                 $issuedAt = $this->clock->now();
                 $predecessorGrant = $this->passwordResetGrantRepository->getLatestByUserId($user->getId());
                 $credential = $this->passwordResetCredentialGenerator->generate();
@@ -86,7 +90,8 @@ final readonly class RequestPasswordResetHandler implements CommandHandler
                     $issuedAt,
                     $expiresAt,
                     $user->getEmail(),
-                    $this->passwordResetDeliveryCipher->encrypt($credential->toString())
+                    $this->passwordResetDeliveryCipher->encrypt($credential->toString()),
+                    $user->getRecoveryAuthority()
                 );
                 $passwordResetDelivery = $passwordResetGrant->getDelivery();
 
@@ -140,7 +145,12 @@ final readonly class RequestPasswordResetHandler implements CommandHandler
                 $this->eventDispatcher->trigger($successEvent);
             }
         } catch (Throwable $throwable) {
-            $this->eventDispatcher->trigger(new CommandFailedEvent($command, $throwable->getMessage()));
+            try {
+                $this->eventDispatcher->trigger(new CommandFailedEvent($command, 'Password reset request failed.'));
+            } catch (Throwable) {
+                // Notification failure must not replace the original operation failure.
+            }
+
             throw $throwable;
         }
     }

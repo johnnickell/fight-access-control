@@ -66,7 +66,7 @@ final readonly class CreateFeatureHandler implements CommandHandler
             $this->events->trigger($event);
         } catch (Throwable $throwable) {
             try {
-                $this->events->trigger(new CommandFailedEvent($command, $throwable->getMessage()));
+                $this->events->trigger(new CommandFailedEvent($command, 'Feature creation failed.'));
             } finally {
                 throw $throwable;
             }

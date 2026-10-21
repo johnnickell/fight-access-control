@@ -222,6 +222,42 @@ published immutable release.
 - Public repository visibility, Packagist publication, template enablement, create-project distribution, or
   release tagging as an effect of this specification.
 
+## Approved correction-batch amendment
+
+John approved the [correction map](../wayfinder/access-control-correction-batch-map.md)'s consolidated requirement
+and TASK handoffs. This public summary records ownership and sequencing, not a released-version assessment.
+The complete approved contract, transition matrices and restricted evidence remain in the maintainer brief under
+[SECURITY.md](../../SECURITY.md). Obtain that brief before authorized implementation or independent review;
+if access is unavailable, request it privately rather than infer or weaken acceptance.
+
+| Area | Approved outcome | TASK | Blockers |
+| --- | --- | --- | --- |
+| C1 — Operation outcomes | Consistent package outcome policy with established transaction, audit and exception boundaries | [TASK-00077](../tasks/00077-TASK.md) | None |
+| C2 — Recovery lifecycle | Complete approved lifecycle contract with supported journeys and delivery semantics preserved | [TASK-00078](../tasks/00078-TASK.md) | TASK-00077 |
+| C3 — Policy consistency | Deterministic preview/apply eligibility and final reference integrity | [TASK-00079](../tasks/00079-TASK.md) | TASK-00077 |
+
+These are three behavior-level corrections under the existing owner, not per-handler or layer work. Each requires
+meaningful failing behavioral regressions before repair, complete accepted coverage, the full implementation gate,
+independent Review and nonvisual adversarial QA. Detailed execution scenarios stay private; completion summaries must
+be suitable for public disclosure. No new behavioral verification or consumer qualification is claimed here.
+
+TICKET-00007's delivery boundary remains binding. The new Role caller-concurrency capability is separately owned by
+[TICKET-00024](00024-TICKET.md) and [TASK-00080](../tasks/00080-TASK.md), following TASK-00077 and TASK-00079.
+TASK-00078 precedes TASK-00079 by priority only. All planning phases are accepted and the map is Closed; the new
+TASKs remain unfinished without reopening this Ticket's historical closeout.
+
+Follow [ADR 0011](../adr/0011-pre-v1-current-contract-only.md): current contracts only, no historical compatibility
+framework or production adapters. One consumer handoff covers current contracts and real integration qualification.
+No consumer edits, release, deployment or restricted disclosure follows from planning approval.
+TASK-00077's package implementation has independent technical acceptance and behavioral QA and was published in
+[PR #129](https://github.com/johnnickell/fight-access-control/pull/129); it is integrated. TASK-00078 is also done
+and integrated through [PR #130](https://github.com/johnnickell/fight-access-control/pull/130). TASK-00079 has
+independent technical acceptance and behavioral QA and is published in
+[PR #131](https://github.com/johnnickell/fight-access-control/pull/131). Current
+[operation-outcome, recovery and policy composition](../../docs/operation-outcomes.md) keeps detailed approved evidence
+private. This does not reopen the parent's historical terminal status or claim batch completion, consumer
+qualification, approval, merge, release or deployment.
+
 ## Further Notes
 
 - This adopted copy is the repository-local behavioral and security authority. Its source identity is immutable,
@@ -259,3 +295,6 @@ published immutable release.
 | 17 | [TASK-00017](../tasks/00017-TASK.md) | Complete administrative identity and authorization reads | done |
 | 18 | [TASK-00018](../tasks/00018-TASK.md) | Publish successful security-email delivery events | done |
 | 32 | [TASK-00032](../tasks/00032-TASK.md) | Prepare the v0.1.0 Release Candidate | done |
+| 77 | [TASK-00077](../tasks/00077-TASK.md) | Align package operation outcome contracts | done |
+| 78 | [TASK-00078](../tasks/00078-TASK.md) | Align recovery lifecycle contracts | done |
+| 79 | [TASK-00079](../tasks/00079-TASK.md) | Align managed-policy preview and apply contracts | done |

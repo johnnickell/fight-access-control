@@ -8,6 +8,7 @@ use DateTimeImmutable;
 use Fight\AccessControl\Domain\AccessControl\PasswordResetGrant\PasswordResetDelivery;
 use Fight\AccessControl\Domain\AccessControl\PasswordResetGrant\PasswordResetGrant;
 use Fight\AccessControl\Domain\AccessControl\PasswordResetGrant\PasswordResetGrantId;
+use Fight\AccessControl\Domain\AccessControl\User\RecoveryAuthority;
 use Fight\AccessControl\Domain\AccessControl\User\UserId;
 
 final class ExtensiblePasswordResetGrant extends PasswordResetGrant
@@ -18,6 +19,7 @@ final class ExtensiblePasswordResetGrant extends PasswordResetGrant
         string $credentialHash,
         DateTimeImmutable $expiresAt,
         PasswordResetDelivery $delivery,
+        RecoveryAuthority $authority,
         ?DateTimeImmutable $consumedAt = null,
         ?DateTimeImmutable $revokedAt = null,
         int $revision = 0
@@ -28,6 +30,7 @@ final class ExtensiblePasswordResetGrant extends PasswordResetGrant
             $credentialHash,
             $expiresAt,
             $delivery,
+            $authority,
             $consumedAt,
             $revokedAt,
             $revision

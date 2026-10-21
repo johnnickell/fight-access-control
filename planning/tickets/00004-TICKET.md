@@ -125,8 +125,10 @@ custom-Role Permission changes without requiring the three aggregates to use ide
 - Keep the distinct success events for Agent Permission grant, revoke, and replacement; User Role assignment and
   removal; and custom-Role Permission grant and revoke. Do not add one generic authorization-change event or a
   synthetic no-op event.
-- Every public handler retains an outer `try`/`catch (Throwable)`, dispatches `CommandFailedEvent` with the original
-  command and failure message, and rethrows the same `Throwable` instance unchanged.
+- Every public handler retains an outer `try`/`catch (Throwable)`, attempts `CommandFailedEvent` with the original
+  safe command and constant operation failure text, and rethrows the same `Throwable` instance unchanged even if
+  notification fails. The [approved operation-outcome amendment](00001-TICKET.md#approved-correction-batch-amendment)
+  supersedes the historical original-message notification policy; no-op and transaction contracts remain unchanged.
 - Consolidate repeated Application execution behavior in small final `@internal` concrete coordinators. Do not add
   public coordinator interfaces, a generic aggregate mutation framework, or compatibility promises for internal
   constructors and methods.
@@ -205,6 +207,11 @@ Permission-reference fence and exact coverage. All TICKET-00004 tasks are termin
 
 ## Further Notes
 
+- [TICKET-00001's approved amendment](00001-TICKET.md#approved-correction-batch-amendment) governs the correction
+  batch's operation-outcome policy and supersedes conflicting older wording within that scope. Use its maintainer
+  brief for detailed acceptance. Existing desired-state retry and transaction semantics remain.
+  [TICKET-00024](00024-TICKET.md) adds Role revision participation without changing membership command inputs or
+  valid no-op behavior. These planned changes do not reopen historical completion or establish implementation.
 - This Ticket applies the desired-state rule consistently to Agent Permission, User Role, and custom-Role Permission
   modification after the approved pre-`1.0.0` architecture review and decision grill.
 - ADR 0005 governs Agent Permission-assignment revision and complete-set stale-write fencing. Existing User and Role

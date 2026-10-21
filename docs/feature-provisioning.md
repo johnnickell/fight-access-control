@@ -113,8 +113,8 @@ Unregistered stored records are untouched; absence from the inventory never dele
 | Creation publisher throws after commit | All records remain committed; some/none of the facts may have published. Retry leaves them unchanged and does not recreate or replay their facts. |
 
 On any discovery, transaction or success-publication failure the handler attempts Common `CommandFailedEvent` with
-the **original command and error message**, then rethrows the **same original throwable**, even if failure publication
-also throws. This is the ordinary package failure contract, not the credential-operation warning exception.
+the **original safe command and constant `Feature provisioning failed.` text**, then rethrows the **same original
+throwable**, even if failure publication also throws. See the [operation-outcome contract](operation-outcomes.md). This is the ordinary package failure contract, not the credential-operation warning exception.
 Failure events are not rollback receipts. Arbitrary collaborator errors may contain infrastructure details: consumers
 protect internal diagnostics and map failures to their own safe public presentation. Do not expose these messages or
 serialize arbitrary throwables to an untrusted caller.

@@ -435,6 +435,12 @@ final class UserRoleAssignmentHandlerTest extends TestCase
         $event = $events->events()[0];
         self::assertInstanceOf(CommandFailedEvent::class, $event);
         self::assertSame($command, $event->getCommand());
-        self::assertSame($failure->getMessage(), $event->getErrorMessage());
+        $message = 'User role removal failed.';
+        if ($command instanceof AssignRoleToUser) {
+            $message = 'User role assignment failed.';
+        }
+
+        self::assertSame($message, $event->getErrorMessage());
+        self::assertNotSame($failure->getMessage(), $event->getErrorMessage());
     }
 }

@@ -6,6 +6,7 @@ namespace Fight\AccessControl\Domain\AccessControl\Role\Command;
 
 use Fight\AccessControl\Domain\AccessControl\Role\RoleId;
 use Fight\AccessControl\Domain\AccessControl\Role\RoleName;
+use Fight\AccessControl\Domain\AccessControl\Role\RoleRevision;
 use Fight\AccessControl\Domain\AccessControl\User\UserId;
 use Fight\Common\Domain\Exception\DomainException;
 use Fight\Common\Domain\Messaging\Command\Command;
@@ -25,14 +26,15 @@ final readonly class RenameCustomRole implements Command
     public function __construct(
         private UserId $actorId,
         private RoleId $roleId,
-        private RoleName $name
+        private RoleName $name,
+        private RoleRevision $expectedRevision
     ) {
     }
 
     /** @inheritDoc */
     public static function fromArray(array $data): static
     {
-        foreach (['actor_id', 'role_id', 'name'] as $key) {
+        foreach (['actor_id', 'role_id', 'name', 'expected_revision'] as $key) {
             if (!array_key_exists($key, $data)) {
                 throw new DomainException(sprintf('Missing required key "%s" in data array', $key));
             }
@@ -41,7 +43,8 @@ final readonly class RenameCustomRole implements Command
         return new static(
             UserId::fromString((string) $data['actor_id']),
             RoleId::fromString((string) $data['role_id']),
-            RoleName::fromString((string) $data['name'])
+            RoleName::fromString((string) $data['name']),
+            RoleRevision::fromString($data['expected_revision'])
         );
     }
 
@@ -49,10 +52,19 @@ final readonly class RenameCustomRole implements Command
     public function toArray(): array
     {
         return [
-            'actor_id' => $this->actorId->toString(),
-            'role_id'  => $this->roleId->toString(),
-            'name'     => $this->name->toString()
+            'actor_id'          => $this->actorId->toString(),
+            'role_id'           => $this->roleId->toString(),
+            'name'              => $this->name->toString(),
+            'expected_revision' => $this->expectedRevision->toString()
         ];
+    }
+
+    /**
+     * Returns the revision of the Role displayed to the caller
+     */
+    public function getExpectedRevision(): RoleRevision
+    {
+        return $this->expectedRevision;
     }
 
     /**

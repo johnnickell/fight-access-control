@@ -1,10 +1,10 @@
 # Administrator pending-registration recovery (v0.7.0)
 
 [TASK-00075](../planning/tasks/00075-TASK.md) adds distinct `RecoverPendingRegistration` /
-`RecoverPendingRegistrationHandler` and post-commit `PendingRegistrationRecovered`, selected for
-[v0.7.0 preparation](release-0.7.0.md). This is not anonymous registration, private-invitation correction,
+`RecoverPendingRegistrationHandler` and post-commit `PendingRegistrationRecovered`, released in
+[v0.7.0](release-0.7.0.md). This is not anonymous registration, private-invitation correction,
 an expired-token retry or consumer enablement. It keeps the existing pending User and **exact assigned Role set**.
-Changed registration defaults are never consulted. This guide is not proof of release publication or consumer qualification.
+Changed registration defaults are never consulted. Package publication does not establish consumer qualification.
 
 ## Admission and inspection
 

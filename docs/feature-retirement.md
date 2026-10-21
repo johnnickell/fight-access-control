@@ -68,8 +68,9 @@ with typed getters and canonical `fromArray()`/`toArray()` round trips. It recor
 historical name reservation. Discovery, validation and pre-commit write/commit failures publish no removal success;
 confirmed pre-commit failures roll back the stored removal and reference release.
 
-Any failure attempts `CommandFailedEvent` with the original command and error message, then rethrows the **same
-original throwable**, even when the failure publisher also throws. Post-commit publication failure cannot restore
+Any failure attempts `CommandFailedEvent` with the original safe command and constant `Feature removal failed.`
+text under the [operation-outcome contract](operation-outcomes.md), then rethrows the **same original throwable**,
+even when the failure publisher also throws. Post-commit publication failure cannot restore
 the record or establish rollback; lost commit acknowledgement likewise cannot prove rollback. There is no outbox,
 notification replay or guaranteed eventual delivery. A retry of an already removed ID reports unknown rather than
 silently deleting another identity. Protect arbitrary scanner/storage diagnostics internally and map safe consumer

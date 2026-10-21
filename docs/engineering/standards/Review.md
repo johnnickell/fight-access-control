@@ -47,4 +47,13 @@ verdict: accept
 
 Older version-2 reports remain valid handoffs; read their canonical file and verify its declared branch, base/head, status, verdict, and any recorded snapshot against the target. Keep existing immutable history untouched. Only the canonical `review.md` supplies the latest verdict; never pick an older numbered file to override it.
 
+## Continuation
+
+Finish with an explicit `Next:` using the actual TASK ID under the
+[local stage routes](../../../planning/CONVENTIONS.md#workflow-continuations). Implementation blockers route to
+Work with canonical finding IDs; missing evidence routes to its owner, not fabricated edits. Acceptance with
+unresolved QA/applicability routes to independent QA, including executable instructions without UI. Current
+acceptance plus satisfied applicable QA routes to land within publication authority. A Build coordinator continues
+these already delegated stages; the reviewer does not execute them or independently mark QA passed.
+
 A reviewer does not modify implementation or tracked planning records, regenerate tracked views, post external comments, commit, push, approve, or merge. Review verification may run focused checks within the read-only scope; it does not include repairs. Repair instructions in the report are for a future builder, not authorization for the reviewer to execute them. Stop after publishing and reading back the report.

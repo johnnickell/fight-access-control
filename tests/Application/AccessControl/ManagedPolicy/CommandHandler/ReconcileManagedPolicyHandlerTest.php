@@ -169,6 +169,12 @@ final class ReconcileManagedPolicyHandlerTest extends TestCase
             ]
         ];
         self::assertSame($expectedPlan, $preview->toArray());
+        $unchangedRole = $roles->getById($this->roleId(201));
+        $changingRole = $roles->getById($this->roleId(202));
+        $customRole = $roles->getById($this->roleId(290));
+        self::assertInstanceOf(Role::class, $unchangedRole);
+        self::assertInstanceOf(Role::class, $changingRole);
+        self::assertInstanceOf(Role::class, $customRole);
         $events = new InMemoryEventDispatcher(static function () use ($unitOfWork): void {
             self::assertTrue($unitOfWork->transactionCompleted);
             self::assertFalse($unitOfWork->transactionActive);
@@ -221,6 +227,19 @@ final class ReconcileManagedPolicyHandlerTest extends TestCase
         );
         self::assertSame(4, $permissions->getAll(new Pagination())->totalRecords());
         self::assertSame(4, $roles->getAll(new Pagination())->totalRecords());
+        self::assertSame($unchangedRole, $roles->getById($this->roleId(201)));
+        self::assertSame($customRole, $roles->getById($this->roleId(290)));
+        $changedRole = $roles->getById($this->roleId(202));
+        self::assertInstanceOf(Role::class, $changedRole);
+        self::assertTrue($changingRole->getRevision()->next()->equals($changedRole->getRevision()));
+        $newRole = $roles->getById($this->roleId(203));
+        self::assertInstanceOf(Role::class, $newRole);
+        self::assertStringEndsWith(':1', $newRole->getRevision()->toString());
+        // Reapplying the exact desired policy leaves every managed Role revision untouched.
+        $handler->handle(CommandMessage::create($command));
+        self::assertSame($changedRole, $roles->getById($this->roleId(202)));
+        self::assertSame($unchangedRole, $roles->getById($this->roleId(201)));
+        self::assertSame($newRole, $roles->getById($this->roleId(203)));
     }
 
     public function test_it_rejects_code_and_live_role_references_without_persisting_changes(): void
@@ -337,6 +356,101 @@ final class ReconcileManagedPolicyHandlerTest extends TestCase
         self::assertCount(1, $events->events());
         self::assertInstanceOf(CommandFailedEvent::class, $events->events()[0]);
         self::assertSame($command, $events->events()[0]->getCommand());
+    }
+
+    public function test_preview_and_apply_reject_an_agent_assignment_on_the_same_persisted_snapshot(): void
+    {
+        $unitOfWork = new InMemoryUnitOfWork();
+        $permissions = new InMemoryPermissionRepository($unitOfWork);
+        $roles = new InMemoryRoleRepository($unitOfWork);
+        $users = new InMemoryUserRepository($unitOfWork);
+        $agents = new InMemoryAgentRepository($unitOfWork);
+        $createdAt = new DateTimeImmutable('2026-08-01T00:00:00+00:00');
+        $permission = Permission::defineManaged(
+            $this->permissionId(104),
+            PermissionName::fromString('OBSOLETE'),
+            PermissionTier::ADMIN_SAFE,
+            $createdAt
+        );
+        $permissions->add($permission);
+        $agent = Agent::provision(
+            AgentId::generate(),
+            AgentName::fromString('Policy fixture'),
+            AgentCredentialId::generate(),
+            'fixture-encrypted-envelope',
+            $createdAt
+        )->grantPermission($permission->getId(), $createdAt);
+        $agents->add($agent);
+        $planner = new ManagedPolicyPlanner($permissions, $roles, $users, $agents);
+        $policy = $this->command()->getPolicy();
+        $events = new InMemoryEventDispatcher();
+
+        try {
+            new PreviewManagedPolicyHandler($planner)->handle(QueryMessage::create(new PreviewManagedPolicy($policy)));
+            self::fail('Preview must reject a currently assigned Permission.');
+        } catch (ManagedPolicyDefinitionException $managedPolicyDefinitionException) {
+            self::assertSame(
+                'Managed permission "OBSOLETE" cannot be removed because an Agent references it.',
+                $managedPolicyDefinitionException->getMessage()
+            );
+        }
+
+        self::assertSame(0, $unitOfWork->transactions);
+        self::assertSame([$permission], $permissions->getManaged());
+        self::assertSame([], $roles->getManaged());
+        self::assertSame($agent, $agents->getById($agent->getId()));
+        $command = new ReconcileManagedPolicy($policy);
+        try {
+            new ReconcileManagedPolicyHandler(
+                $permissions,
+                $roles,
+                $planner,
+                $unitOfWork,
+                $events,
+                new FixedClock($createdAt)
+            )->handle(CommandMessage::create($command));
+            self::fail('Apply must reject the same snapshot during planning.');
+        } catch (ManagedPolicyDefinitionException $managedPolicyDefinitionException) {
+            self::assertSame(
+                'Managed permission "OBSOLETE" cannot be removed because an Agent references it.',
+                $managedPolicyDefinitionException->getMessage()
+            );
+        }
+
+        self::assertSame([$permission], $permissions->getManaged());
+        self::assertSame([], $roles->getManaged());
+        self::assertSame($agent, $agents->getById($agent->getId()));
+        self::assertSame(1, $unitOfWork->transactions);
+        self::assertFalse($unitOfWork->transactionCompleted);
+        self::assertCount(1, $events->events());
+        self::assertInstanceOf(CommandFailedEvent::class, $events->events()[0]);
+        self::assertSame($command, $events->events()[0]->getCommand());
+        self::assertSame('Managed policy reconciliation failed.', $events->events()[0]->getErrorMessage());
+
+        self::assertTrue($unitOfWork->commitTransactional(
+            static fn(): bool => $agents->replacePermissionAssignments(
+                $agent,
+                $agent->revokePermission($permission->getId(), $createdAt)
+            )
+        ));
+        $plan = new PreviewManagedPolicyHandler($planner)->handle(
+            QueryMessage::create(new PreviewManagedPolicy($policy))
+        );
+        $successEvents = new InMemoryEventDispatcher();
+        new ReconcileManagedPolicyHandler(
+            $permissions,
+            $roles,
+            $planner,
+            $unitOfWork,
+            $successEvents,
+            new FixedClock($createdAt)
+        )->handle(CommandMessage::create($command));
+
+        self::assertNull($permissions->getById($permission->getId()));
+        self::assertFalse($agents->hasPermissionAssignment($permission->getId()));
+        self::assertCount(1, $successEvents->events());
+        self::assertInstanceOf(ManagedPolicyReconciled::class, $successEvents->events()[0]);
+        self::assertSame($plan->toArray(), $successEvents->events()[0]->getPlan());
     }
 
     public function test_it_rolls_back_prior_writes_and_rethrows_the_same_later_failure(): void
@@ -709,7 +823,7 @@ final class ReconcileManagedPolicyHandlerTest extends TestCase
         self::assertFalse($unitOfWork->transactionCompleted);
         self::assertCount(1, $events->events());
         self::assertInstanceOf(CommandFailedEvent::class, $events->events()[0]);
-        self::assertSame($failure->getMessage(), $events->events()[0]->getErrorMessage());
+        self::assertSame('Managed policy reconciliation failed.', $events->events()[0]->getErrorMessage());
     }
 
     public function test_agent_reference_at_final_removal_rolls_back_every_prior_policy_mutation(): void
@@ -777,16 +891,22 @@ final class ReconcileManagedPolicyHandlerTest extends TestCase
             [$this->permissionId(104)],
             $createdAt
         ));
+        $planner = new ManagedPolicyPlanner(
+            $permissions,
+            $roles,
+            new InMemoryUserRepository($unitOfWork),
+            $agents
+        );
+        $preview = new PreviewManagedPolicyHandler($planner)->handle(
+            QueryMessage::create(new PreviewManagedPolicy($this->command()->getPolicy()))
+        );
+        self::assertSame('REMOVE', $preview->toArray()['permissions'][2]['action']);
+        self::assertFalse($agents->hasPermissionAssignment($obsoletePermission->getId()));
         $events = new InMemoryEventDispatcher();
         $handler = new ReconcileManagedPolicyHandler(
             $permissions,
             $roles,
-            new ManagedPolicyPlanner(
-                $permissions,
-                $roles,
-                new InMemoryUserRepository($unitOfWork),
-                $agents
-            ),
+            $planner,
             $unitOfWork,
             $events,
             new FixedClock(new DateTimeImmutable('2026-08-23T12:00:00+00:00'))

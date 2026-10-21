@@ -7,6 +7,39 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.8.0] - 2026-10-21
+
+Pre-v1 breaking Role and recovery contract release. See the [release and integration overview](docs/release-0.8.0.md).
+This dated section prepares release notes; it is not evidence of signing, publication or consumer qualification.
+
+### Changed
+
+- Refreshed the package README with light/dark FIGHT Access Control identity, a versioned install command and
+  focused integration/capability routes. Release preparation now checks README, Changelog, comparison links,
+  Composer metadata and the versioned overview together through `./bin/release check-docs`; certification records
+  the same preflight. See the [release runbook](docs/releasing.md). No package contract changes are introduced by
+  this documentation/tooling update.
+- **Breaking pre-v1 Role contracts:** detail/list Views require authoritative `revision`; custom rename/remove
+  Commands require `expected_revision`. Persist validated incarnation/revision across every Role writer and hydration,
+  include it in registration's complete Role comparisons, and implement non-writing transaction-duration
+  `RoleRepository::validateCurrent()`. Stale intent raises typed `RoleConflictException`; fresh same-name no-ops
+  do not write or publish success. Membership command inputs are unchanged. See
+  [current Role composition](docs/role-revisions.md); no compatibility defaults or migrations are supplied.
+- **Breaking pre-v1 composition:** password-reset generations require explicit persisted `RecoveryAuthority`;
+  User repositories implement transaction-duration recovery validation. Reset workers require the shared User
+  repository, and disable/delete handlers require the shared reset-grant repository. Current consumer wiring,
+  complete-state persistence and qualification obligations are in
+  [operation outcomes and recovery composition](docs/operation-outcomes.md).
+- Operation notifications use coarse constant text and safe command/context evidence; best-effort failure notification
+  preserves the primary throwable. Pre-commit rollback, post-commit publication and indeterminate-outcome boundaries
+  remain explicit; consumers separately sanitize rethrown faults and protect every entry point. The recoverable Agent
+  provision/rotation warning-result exception remains scoped to those operations.
+- Managed-policy preview and apply share current reference eligibility. Preview remains a read-only snapshot, not a
+  reservation or authorization; apply replans within the transaction and retains final expected-state/reference fences,
+  complete rollback and post-commit publication semantics. No new caller payload or compatibility mode is added.
+- Contributor routing documents optional Fight Agent OS workflows while keeping local instructions, independent
+  assessment, package gates and effect-specific delivery authority self-contained.
+
 ## [0.7.0] - 2026-10-20
 
 Pre-v1 breaking registration and delivery contract release. See the [release and integration overview](docs/release-0.7.0.md).
@@ -321,7 +354,8 @@ This dated section prepares release notes; it is not evidence of signing, public
   tooling, and exact production-statement coverage.
 - Repository-local product, security, architecture, contribution, and Git Flow authority under the MIT License.
 
-[Unreleased]: https://github.com/johnnickell/fight-access-control/compare/v0.7.0...HEAD
+[Unreleased]: https://github.com/johnnickell/fight-access-control/compare/v0.8.0...HEAD
+[0.8.0]: https://github.com/johnnickell/fight-access-control/compare/v0.7.0...v0.8.0
 [0.7.0]: https://github.com/johnnickell/fight-access-control/compare/v0.6.0...v0.7.0
 [0.6.0]: https://github.com/johnnickell/fight-access-control/compare/v0.5.0...v0.6.0
 [0.5.0]: https://github.com/johnnickell/fight-access-control/compare/v0.4.0...v0.5.0

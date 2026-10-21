@@ -23,6 +23,7 @@ use Fight\Common\Domain\Messaging\Event\CommandFailedEvent;
 use Fight\Common\Domain\Value\Internet\EmailAddress;
 use Fight\Test\AccessControl\Application\AccessControl\Audit\Repository\InMemoryAuditEvidenceRepository;
 use Fight\Test\AccessControl\Application\AccessControl\Event\InMemoryEventDispatcher;
+use Fight\Test\AccessControl\Application\AccessControl\PasswordResetGrant\Repository\InMemoryPasswordResetGrants;
 use Fight\Test\AccessControl\Application\AccessControl\RefreshSession\Repository\InMemoryRefreshSessionRepository;
 use Fight\Test\AccessControl\Application\AccessControl\Timing\Service\FixedClock;
 use Fight\Test\AccessControl\Application\AccessControl\User\InMemoryUnitOfWork;
@@ -215,7 +216,8 @@ final class DeleteUserHandlerTest extends TestCase
             new FixedClock(new DateTimeImmutable('2026-08-20T12:00:00+00:00')),
             $audit,
             $unitOfWork,
-            $events
+            $events,
+            new InMemoryPasswordResetGrants($unitOfWork)
         );
     }
 

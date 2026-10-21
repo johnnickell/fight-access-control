@@ -55,10 +55,11 @@ final class InMemoryUserRepository implements UserRepository
         private readonly ?Closure $beforeValidateRoleAssignmentReference = null,
         private readonly ?Closure $beforeAddWithRoleAssignments = null,
         private readonly ?Closure $afterAddWithRoleAssignments = null,
-        private readonly ?Closure $beforeReplacePendingRegistration = null
+        private readonly ?Closure $beforeReplacePendingRegistration = null,
+        private readonly ?Closure $beforeValidateRecoveryAuthority = null
     ) {
         $this->state = $state ?? new InMemoryUserRepositoryState();
-        $this->authenticationAuthorityFenceOwner = new stdClass();
+        $this->authenticationAuthorityFenceOwner = $unitOfWork ?? new stdClass();
         $resolvedAuthorizationReferences = $authorizationReferences ?? new InMemoryAuthorizationReferenceState();
         if (
             $unitOfWork instanceof InMemoryUnitOfWork
@@ -193,6 +194,25 @@ final class InMemoryUserRepository implements UserRepository
             count($this->state->users),
             $records
         );
+    }
+
+    public function validateRecoveryAuthority(User $expected): bool
+    {
+        $this->beforeValidateRecoveryAuthority?->__invoke();
+        if ($expected->getState() !== UserState::ACTIVE || !$this->acquireAuthenticationAuthorityFence($expected)) {
+            return false;
+        }
+
+        $releaseAfterOperation = $this->holdAuthenticationAuthorityFenceThroughCompletion($expected->getId());
+        try {
+            $current = $this->getById($expected->getId());
+
+            return $current instanceof User && $this->sameUserState($current, $expected);
+        } finally {
+            if ($releaseAfterOperation) {
+                $this->releaseAuthenticationAuthorityFence($expected->getId());
+            }
+        }
     }
 
     public function replaceAuthenticationAuthority(User $expected, User $replacement): bool
@@ -707,6 +727,7 @@ final class InMemoryUserRepository implements UserRepository
         $authorizationAssignmentRevision = $expected->getAuthorizationAssignmentRevision();
         $emailChangeReservationRevision = $expected->getEmailChangeReservationRevision();
         $canonicalEmailRevision = $expected->getCanonicalEmailRevision();
+        $versionAdvance = (int) in_array($replacement->getState(), [UserState::DISABLED, UserState::DELETED], true);
         $pendingEmailChange = $expected->getPendingEmailChange()?->canonical();
 
         foreach ($this->state->users as $index => $user) {
@@ -718,7 +739,7 @@ final class InMemoryUserRepository implements UserRepository
                 && $user->getState() === $expected->getState()
                 && $this->passwordHashesMatch($user->getPasswordHash(), $expected->getPasswordHash())
                 && $user->getAuthenticationVersion() === $expected->getAuthenticationVersion()
-                && $replacement->getAuthenticationVersion() === $expected->getAuthenticationVersion()
+                && $replacement->getAuthenticationVersion() === $expected->getAuthenticationVersion() + $versionAdvance
                 && $user->getAuthenticationAuthorityRevision() === $authenticationAuthorityRevision
                 && $replacement->getAuthenticationAuthorityRevision() === $authenticationAuthorityRevision
                 && $user->getAuthorizationAssignmentRevision() === $authorizationAssignmentRevision
