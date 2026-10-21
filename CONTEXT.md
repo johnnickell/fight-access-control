@@ -20,9 +20,14 @@ Focused policy/reference/outcome checks pass **215 tests / 2220 assertions**; ca
 updates ignored dev-only `sebastian/git-state` **1.0.0 → 1.1.0**; constraints and Common v1.4.0 remain unchanged.
 Detailed approved criteria, regression chronology, early test/style/static-analysis/normalization failures and
 interrupted attempts remain private. This prose-only summary retains that full gate through verified input
-equivalence and current targeted checks. Independent Review/QA and publication remain pending. Package modeling
-is not real consumer SQL/adapter qualification; no consumer change, restricted disclosure, merge, release or
-deployment is claimed.
+equivalence and current targeted checks.
+
+Independent technical Review **ACCEPTED** and independent adversarial nonvisual QA **PASSED** the exact candidate;
+their canonical private reports retain detailed evidence. Land opened
+[PR #131](https://github.com/johnnickell/fight-access-control/pull/131) against `develop`; TASK-00079 is done for
+accepted package implementation and required local/behavioral verification. Package modeling is not real consumer
+SQL/adapter qualification; no consumer change, restricted disclosure, PR approval, merge, release or deployment is
+claimed.
 
 ## Recovery lifecycle — TASK-00078 landing closeout checkpoint
 

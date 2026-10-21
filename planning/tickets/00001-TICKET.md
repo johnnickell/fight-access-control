@@ -251,11 +251,12 @@ framework or production adapters. One consumer handoff covers current contracts 
 No consumer edits, release, deployment or restricted disclosure follows from planning approval.
 TASK-00077's package implementation has independent technical acceptance and behavioral QA and was published in
 [PR #129](https://github.com/johnnickell/fight-access-control/pull/129); it is integrated. TASK-00078 is also done
-and integrated through [PR #130](https://github.com/johnnickell/fight-access-control/pull/130). TASK-00079 is in progress
-under the separately invoked Build, awaiting independent acceptance and behavioral QA. Current
+and integrated through [PR #130](https://github.com/johnnickell/fight-access-control/pull/130). TASK-00079 has
+independent technical acceptance and behavioral QA and is published in
+[PR #131](https://github.com/johnnickell/fight-access-control/pull/131). Current
 [operation-outcome, recovery and policy composition](../../docs/operation-outcomes.md) keeps detailed approved evidence
 private. This does not reopen the parent's historical terminal status or claim batch completion, consumer
-qualification, release or deployment. The Build coordinator owns independent stage continuation.
+qualification, approval, merge, release or deployment.
 
 ## Further Notes
 
@@ -296,4 +297,4 @@ qualification, release or deployment. The Build coordinator owns independent sta
 | 32 | [TASK-00032](../tasks/00032-TASK.md) | Prepare the v0.1.0 Release Candidate | done |
 | 77 | [TASK-00077](../tasks/00077-TASK.md) | Align package operation outcome contracts | done |
 | 78 | [TASK-00078](../tasks/00078-TASK.md) | Align recovery lifecycle contracts | done |
-| 79 | [TASK-00079](../tasks/00079-TASK.md) | Align managed-policy preview and apply contracts | in-progress |
+| 79 | [TASK-00079](../tasks/00079-TASK.md) | Align managed-policy preview and apply contracts | done |

@@ -5,23 +5,21 @@ dependencies, acceptance, and verification.
 
 ## What's Next?
 
-Active Task: [TASK-00079](00079-TASK.md) — Align managed-policy preview and apply contracts.
+First ready Task: [TASK-00080](00080-TASK.md) — Fence custom Role rename and removal with caller revisions.
 
 ## In Progress
 
-| Order | TASK ID | Title | Parent TICKET | Status | Blocked by | PR |
-| --- | --- | --- | --- | --- | --- | --- |
-| 79 | [TASK-00079](00079-TASK.md) | Align managed-policy preview and apply contracts | [TICKET-00001](../tickets/00001-TICKET.md) — Fight AccessControl Identity and Authentication Lifecycle | in-progress | [TASK-00077](00077-TASK.md) | — |
-
-## Ready Frontier
-
 No Tasks are currently in this state.
 
-## Waiting
+## Ready Frontier
 
 | Order | TASK ID | Title | Parent TICKET | Status | Blocked by | PR |
 | --- | --- | --- | --- | --- | --- | --- |
 | 80 | [TASK-00080](00080-TASK.md) | Fence custom Role rename and removal with caller revisions | [TICKET-00024](../tickets/00024-TICKET.md) — Fence custom Role rename and removal with caller revisions | ready-for-agent | [TASK-00077](00077-TASK.md), [TASK-00079](00079-TASK.md) | — |
+
+## Waiting
+
+No Tasks are currently in this state.
 
 ## Needs Info
 
@@ -116,4 +114,5 @@ No Tasks are currently in this state.
 | 75 | [TASK-00075](00075-TASK.md) | Recover pending registrations with authorized correction and reissue | [TICKET-00023](../tickets/00023-TICKET.md) — Recover a pending registration administratively | done | [TASK-00074](00074-TASK.md) | https://github.com/johnnickell/fight-access-control/pull/123 |
 | 77 | [TASK-00077](00077-TASK.md) | Align package operation outcome contracts | [TICKET-00001](../tickets/00001-TICKET.md) — Fight AccessControl Identity and Authentication Lifecycle | done | — | https://github.com/johnnickell/fight-access-control/pull/129 |
 | 78 | [TASK-00078](00078-TASK.md) | Align recovery lifecycle contracts | [TICKET-00001](../tickets/00001-TICKET.md) — Fight AccessControl Identity and Authentication Lifecycle | done | [TASK-00077](00077-TASK.md) | https://github.com/johnnickell/fight-access-control/pull/130 |
+| 79 | [TASK-00079](00079-TASK.md) | Align managed-policy preview and apply contracts | [TICKET-00001](../tickets/00001-TICKET.md) — Fight AccessControl Identity and Authentication Lifecycle | done | [TASK-00077](00077-TASK.md) | https://github.com/johnnickell/fight-access-control/pull/131 |
 | 81 | [TASK-00081](00081-TASK.md) | Align contributor workflows with Fight Agent OS | — (standalone chore) | done | — | https://github.com/johnnickell/fight-access-control/pull/128 |
