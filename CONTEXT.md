@@ -6,6 +6,24 @@ Fight AccessControl owns framework-neutral identity, credential, session, author
 behavior shared by Fight applications. The repository-local behavioral and security authority is
 [TICKET-00001](planning/tickets/00001-TICKET.md).
 
+## Managed-policy consistency — TASK-00079 implementation checkpoint
+
+John invoked Build for [TASK-00079](planning/tasks/00079-TASK.md) in the selected main checkout after TASK-00077
+and TASK-00078 integrated. Engineer work is on `feature/task-00079-managed-policy` from clean `develop` `8ade1cd`.
+The current [managed-policy composition](docs/operation-outcomes.md#managed-policy-composition) documents shared
+planner wiring, read-only snapshots, final reference fences and transaction/publication outcomes. Existing policy
+constraints, exact membership and consumer-owned authorization remain unchanged. No new API or persisted shape,
+optional composition, Role caller revision, compatibility support or production adapter is introduced.
+
+Focused policy/reference/outcome checks pass **215 tests / 2220 assertions**; canonical `./bin/build` passes
+**2365 tests / 44985 assertions**, exact **7377/7377 statements**, without final warnings/skips. The normal resolver
+updates ignored dev-only `sebastian/git-state` **1.0.0 → 1.1.0**; constraints and Common v1.4.0 remain unchanged.
+Detailed approved criteria, regression chronology, early test/style/static-analysis/normalization failures and
+interrupted attempts remain private. This prose-only summary retains that full gate through verified input
+equivalence and current targeted checks. Independent Review/QA and publication remain pending. Package modeling
+is not real consumer SQL/adapter qualification; no consumer change, restricted disclosure, merge, release or
+deployment is claimed.
+
 ## Recovery lifecycle — TASK-00078 landing closeout checkpoint
 
 John invoked Build for [TASK-00078](planning/tasks/00078-TASK.md) in the main checkout after TASK-00077 integrated.
@@ -70,8 +88,8 @@ planning. TICKET-00001 owns [TASK-00077](planning/tasks/00077-TASK.md) for opera
 [TASK-00078](planning/tasks/00078-TASK.md) for recovery lifecycle and [TASK-00079](planning/tasks/00079-TASK.md)
 for policy consistency. TICKET-00024 owns [TASK-00080](planning/tasks/00080-TASK.md) for Role caller revisions.
 TASK-00078/00079 depend on TASK-00077; TASK-00080 depends on TASK-00077/00079. The relative order of
-TASK-00078 and TASK-00079 is priority only. TASK-00077 is complete and integrated; TASK-00078 is in progress,
-with TASK-00079/00080 still unfinished.
+TASK-00078 and TASK-00079 is priority only. TASK-00077 and TASK-00078 are complete and integrated;
+TASK-00079 is in progress, with TASK-00080 still unfinished.
 
 Public records summarize approved scope, ownership and sequencing. Full maintainer briefs and restricted evidence
 remain private under SECURITY.md and must be obtained before implementation or independent review. No new behavioral
