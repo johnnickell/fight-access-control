@@ -8,6 +8,7 @@ use Fight\AccessControl\Domain\AccessControl\Permission\PermissionId;
 use Fight\AccessControl\Domain\AccessControl\Role\Role;
 use Fight\AccessControl\Domain\AccessControl\Role\RoleId;
 use Fight\AccessControl\Domain\AccessControl\Role\RoleName;
+use Fight\AccessControl\Domain\AccessControl\Role\RoleRevision;
 use Fight\Common\Domain\Type\Arrayable;
 
 /**
@@ -29,7 +30,8 @@ final readonly class RoleView implements Arrayable
         private RoleName $name,
         private bool $managed,
         /** @var list<PermissionId> */
-        private array $permissionIds
+        private array $permissionIds,
+        private RoleRevision $revision
     ) {
     }
 
@@ -42,8 +44,17 @@ final readonly class RoleView implements Arrayable
             $role->getId(),
             $role->getName(),
             $role->isManaged(),
-            $role->getPermissionIds()
+            $role->getPermissionIds(),
+            $role->getRevision()
         );
+    }
+
+    /**
+     * Returns the authoritative revision for caller intent
+     */
+    public function getRevision(): RoleRevision
+    {
+        return $this->revision;
     }
 
     /**
@@ -84,6 +95,7 @@ final readonly class RoleView implements Arrayable
      * Returns the canonical safe array representation
      *
      * @return array{
+     *     revision: string,
      *     role_id: string,
      *     name: string,
      *     managed: bool,
@@ -93,6 +105,7 @@ final readonly class RoleView implements Arrayable
     public function toArray(): array
     {
         return [
+            'revision'       => $this->revision->toString(),
             'role_id'        => $this->roleId->toString(),
             'name'           => $this->name->toString(),
             'managed'        => $this->managed,

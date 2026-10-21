@@ -8,6 +8,7 @@ use Fight\AccessControl\Application\AccessControl\Timing\Service\Clock;
 use Fight\AccessControl\Domain\AccessControl\Role\Command\RemoveCustomRole;
 use Fight\AccessControl\Domain\AccessControl\Role\Event\CustomRoleRemoved;
 use Fight\AccessControl\Domain\AccessControl\Role\Exception\CustomRoleException;
+use Fight\AccessControl\Domain\AccessControl\Role\Exception\RoleConflictException;
 use Fight\AccessControl\Domain\AccessControl\Role\Role;
 use Fight\AccessControl\Domain\AccessControl\Role\RoleRepository;
 use Fight\AccessControl\Domain\AccessControl\User\UserRepository;
@@ -58,6 +59,7 @@ final readonly class RemoveCustomRoleHandler implements CommandHandler
                     throw new CustomRoleException('The custom role does not exist.');
                 }
 
+                $role->assertRevision($command->getExpectedRevision());
                 $role->assertCustom();
                 if ($this->userRepository->hasRoleAssignment($command->getRoleId())) {
                     throw new CustomRoleException('The custom role remains assigned to a user.');
@@ -65,7 +67,7 @@ final readonly class RemoveCustomRoleHandler implements CommandHandler
 
                 $removedAt = $this->clock->now();
                 if (!$this->roleRepository->remove($role)) {
-                    throw new CustomRoleException('The custom role changed or became assigned concurrently.');
+                    throw new RoleConflictException();
                 }
 
                 return new CustomRoleRemoved($command->getActorId(), $command->getRoleId(), $removedAt);

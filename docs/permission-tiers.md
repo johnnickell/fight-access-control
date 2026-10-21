@@ -21,6 +21,8 @@ point, including CLI, workers, direct bus and no-ops. Actor IDs are provenance, 
 caller/target policy and recovery belong to that builder; the retired actor-only authorization ports are not supplied.
 Ownership-sensitive package authorization for sessions, email changes and invitation correction remains distinct.
 A Super Admin caller cannot bypass the package's `ADMIN_SAFE` restriction for custom-Role grants or direct Agents.
+Custom Role rename/remove additionally require the revision of the displayed state; see
+[Role caller revisions](role-revisions.md). A fresh token bypasses neither these guards nor consumer authorization.
 
 ## Repository fences
 

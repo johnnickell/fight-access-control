@@ -130,7 +130,18 @@ ordered outcomes, late final-boundary conflicts, rollback, eligible retry and pu
 SQL isolation, real adapter locks or independent processes. Qualify those against the actual shared transaction,
 including both concurrent winner orders, expected-state conflicts, rollback and indeterminate commit outcomes.
 
-This is the current B1/B2/B3 consumer handoff; Role caller revisions remain separate work. Consumers must independently
+## Role revision composition
+
+Custom Role detail/list Views expose required `revision`; rename/remove require the displayed state's
+`expected_revision`. All Role writers and registration snapshot comparisons share persisted incarnation/revision
+and final transaction-duration fences. Fresh same-name requests write/publish nothing; stale intent raises a safe
+typed conflict and requires refresh/reconfirmation, not silent token substitution. See the
+[Role revision contract and consumer-bindable scenarios](role-revisions.md) for exact current payload, hydration,
+all-writer and adapter obligations. Existing membership inputs and policy-level facts remain unchanged.
+
+This is the consolidated current B1–B4 consumer composition guide, not a release or qualification receipt. Actual
+slice identities, local verification and independent-stage disposition are retained by the maintainer handoff;
+TASK-00080 still requires independent Review and QA. Consumers must independently
 qualify real shared-connection races in both winner orders, rollback/uncertain commits, response loss, persistence
 hydration, worker restarts, provider idempotency/delayed outcomes, permissions and response/log handling. Keep keys,
 raw credentials, hashes and ciphertext out of public evidence. No consumer adoption, release or deployment is

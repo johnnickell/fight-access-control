@@ -9,6 +9,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- **Breaking pre-v1 Role contracts:** detail/list Views require authoritative `revision`; custom rename/remove
+  Commands require `expected_revision`. Persist validated incarnation/revision across every Role writer and hydration,
+  include it in registration's complete Role comparisons, and implement non-writing transaction-duration
+  `RoleRepository::validateCurrent()`. Stale intent raises typed `RoleConflictException`; fresh same-name no-ops
+  do not write or publish success. Membership command inputs are unchanged. See
+  [current Role composition](docs/role-revisions.md); no compatibility defaults or migrations are supplied.
 - **Breaking pre-v1 composition:** password-reset generations require explicit persisted `RecoveryAuthority`;
   User repositories implement transaction-duration recovery validation. Reset workers require the shared User
   repository, and disable/delete handlers require the shared reset-grant repository. Current consumer wiring,

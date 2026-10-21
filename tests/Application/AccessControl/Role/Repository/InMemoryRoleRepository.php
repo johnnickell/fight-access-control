@@ -30,7 +30,8 @@ final readonly class InMemoryRoleRepository implements RoleRepository
         private ?Closure $beforeRemove = null,
         ?InMemoryAuthorizationReferenceState $authorizationReferences = null,
         private ?Closure $beforeValidatePermissionReference = null,
-        ?InMemoryRoleRepositoryState $state = null
+        ?InMemoryRoleRepositoryState $state = null,
+        private ?Closure $beforeValidateCurrent = null
     ) {
         $this->state = $state ?? new InMemoryRoleRepositoryState();
         $resolvedAuthorizationReferences = $authorizationReferences ?? new InMemoryAuthorizationReferenceState();
@@ -170,6 +171,18 @@ final readonly class InMemoryRoleRepository implements RoleRepository
         return $this->authorizationReferences->permissionIsEligible($expected);
     }
 
+    public function validateCurrent(Role $expected): bool
+    {
+        if (!$this->authorizationReferences->holdRoleCreationFence($this->unitOfWork ?? $this, $this->unitOfWork)) {
+            return false;
+        }
+
+        $this->authorizationReferences->holdThroughCompletion();
+        $this->beforeValidateCurrent?->__invoke();
+
+        return $this->getById($expected->getId())?->hasSameState($expected) === true;
+    }
+
     public function replace(Role $expected, Role $replacement): bool
     {
         if (!$this->authorizationReferences->holdRoleCreationFence($this->unitOfWork ?? $this, $this->unitOfWork)) {
@@ -190,7 +203,7 @@ final readonly class InMemoryRoleRepository implements RoleRepository
         }
 
         foreach ($this->state->roles as $index => $role) {
-            if ($role !== $expected) {
+            if (!$role->hasSameState($expected)) {
                 continue;
             }
 
@@ -220,7 +233,7 @@ final readonly class InMemoryRoleRepository implements RoleRepository
         }
 
         foreach ($this->state->roles as $index => $candidate) {
-            if ($candidate !== $role) {
+            if (!$candidate->hasSameState($role)) {
                 continue;
             }
 

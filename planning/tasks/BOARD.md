@@ -5,7 +5,7 @@ dependencies, acceptance, and verification.
 
 ## What's Next?
 
-First ready Task: [TASK-00080](00080-TASK.md) — Fence custom Role rename and removal with caller revisions.
+No non-terminal Task exists. Any future release decision requires separate human authorization.
 
 ## In Progress
 
@@ -13,9 +13,7 @@ No Tasks are currently in this state.
 
 ## Ready Frontier
 
-| Order | TASK ID | Title | Parent TICKET | Status | Blocked by | PR |
-| --- | --- | --- | --- | --- | --- | --- |
-| 80 | [TASK-00080](00080-TASK.md) | Fence custom Role rename and removal with caller revisions | [TICKET-00024](../tickets/00024-TICKET.md) — Fence custom Role rename and removal with caller revisions | ready-for-agent | [TASK-00077](00077-TASK.md), [TASK-00079](00079-TASK.md) | — |
+No Tasks are currently in this state.
 
 ## Waiting
 
@@ -115,4 +113,5 @@ No Tasks are currently in this state.
 | 77 | [TASK-00077](00077-TASK.md) | Align package operation outcome contracts | [TICKET-00001](../tickets/00001-TICKET.md) — Fight AccessControl Identity and Authentication Lifecycle | done | — | https://github.com/johnnickell/fight-access-control/pull/129 |
 | 78 | [TASK-00078](00078-TASK.md) | Align recovery lifecycle contracts | [TICKET-00001](../tickets/00001-TICKET.md) — Fight AccessControl Identity and Authentication Lifecycle | done | [TASK-00077](00077-TASK.md) | https://github.com/johnnickell/fight-access-control/pull/130 |
 | 79 | [TASK-00079](00079-TASK.md) | Align managed-policy preview and apply contracts | [TICKET-00001](../tickets/00001-TICKET.md) — Fight AccessControl Identity and Authentication Lifecycle | done | [TASK-00077](00077-TASK.md) | https://github.com/johnnickell/fight-access-control/pull/131 |
+| 80 | [TASK-00080](00080-TASK.md) | Fence custom Role rename and removal with caller revisions | [TICKET-00024](../tickets/00024-TICKET.md) — Fence custom Role rename and removal with caller revisions | done | [TASK-00077](00077-TASK.md), [TASK-00079](00079-TASK.md) | https://github.com/johnnickell/fight-access-control/pull/132 |
 | 81 | [TASK-00081](00081-TASK.md) | Align contributor workflows with Fight Agent OS | — (standalone chore) | done | — | https://github.com/johnnickell/fight-access-control/pull/128 |

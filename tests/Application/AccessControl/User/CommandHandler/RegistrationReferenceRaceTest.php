@@ -29,7 +29,7 @@ final class RegistrationReferenceRaceTest extends TestCase
 {
     public function test_role_removal_or_replacement_committed_after_resolution_wins_and_aborts_all_registration(): void
     {
-        foreach (['remove', 'rename', 'replace', 'recreate'] as $change) {
+        foreach (['remove', 'rename', 'revision', 'recreate'] as $change) {
             $fixture = null;
             $winner = new InMemoryUnitOfWork();
             $fixture = new RegistrationFixture(beforeInsert: static function () use (
@@ -44,17 +44,31 @@ final class RegistrationReferenceRaceTest extends TestCase
                         self::assertTrue($roles->remove($fixture->member));
                         if ($change === 'recreate') {
                             $roles->add(Role::define(
-                                RoleId::generate(),
+                                $fixture->member->getId(),
                                 $fixture->member->getName(),
                                 [],
                                 new DateTimeImmutable('2030-01-01T00:00:01Z')
                             ));
                         }
                     } else {
-                        self::assertTrue($roles->replace($fixture->member, $fixture->member->renameCustom(
-                            RoleName::fromString($change === 'rename' ? 'ROLE_CHANGED' : 'ROLE_MEMBER'),
-                            new DateTimeImmutable('2030-01-01T00:00:01Z')
-                        )));
+                        $replacement = $fixture->member->renameCustom(
+                            RoleName::fromString('ROLE_CHANGED'),
+                            $fixture->member->getUpdatedAt()
+                        );
+                        if ($change === 'revision') {
+                            self::assertTrue($roles->replace($fixture->member, $replacement));
+                            $current = $replacement;
+                            $replacement = $current->renameCustom(
+                                $fixture->member->getName(),
+                                $current->getUpdatedAt()
+                            );
+                            self::assertTrue($roles->replace($current, $replacement));
+                            self::assertEquals($fixture->member->getName(), $replacement->getName());
+                            self::assertEquals($fixture->member->getUpdatedAt(), $replacement->getUpdatedAt());
+                            self::assertFalse($fixture->member->getRevision()->equals($replacement->getRevision()));
+                        } else {
+                            self::assertTrue($roles->replace($fixture->member, $replacement));
+                        }
                     }
                 });
             });

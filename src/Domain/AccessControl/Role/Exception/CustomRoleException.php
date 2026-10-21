@@ -11,6 +11,6 @@ use Fight\Common\Domain\Exception\DomainException;
  *
  * Reports a rejected custom-role operation.
  */
-final class CustomRoleException extends DomainException
+class CustomRoleException extends DomainException
 {
 }

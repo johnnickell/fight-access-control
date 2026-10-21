@@ -14,6 +14,13 @@ use Fight\Common\Domain\Repository\ResultSet;
  * Interface RoleRepository
  *
  * Provides authoritative role persistence.
+ *
+ * Persist and hydrate the complete required RoleRevision, never generate it on reads. Every writer shares the
+ * transaction-duration identity/name, Permission-tier and Role-reference fences. Compare complete state including
+ * revision, membership, ownership and timestamps, not object identity or updatedAt alone. Add requires a new random
+ * incarnation at sequence one. Replacement preserves incarnation and advances sequence exactly once for a real
+ * name/membership change; no-op replacement is not a write. Removal compares the current incarnation/revision too.
+ * No writer may reset a sequence, reuse an incarnation on recreation or bypass these rules.
  */
 interface RoleRepository
 {
@@ -104,6 +111,17 @@ interface RoleRepository
      * @throws Exception When an error occurs
      */
     public function validateCustomPermissionGrant(Permission $expected): bool;
+
+    /**
+     * Validates complete expected Role state without writing or advancing revision
+     *
+     * Returns false on any mismatch, including a revision-only change. Hold the shared identity/name/reference
+     * fence through the enclosing transaction completion, including same-name rename admission. This is a final
+     * atomic comparison, not a preliminary read; concurrent writers cannot overtake successful validation.
+     *
+     * @throws Exception When an error occurs
+     */
+    public function validateCurrent(Role $expected): bool;
 
     /**
      * Replaces the expected role when it remains current and all replacement Permissions remain authoritative

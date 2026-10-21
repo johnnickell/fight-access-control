@@ -12,9 +12,13 @@ The accepted TASKs are [TASK-00077](tasks/00077-TASK.md) for operation outcomes,
 and [TASK-00080](tasks/00080-TASK.md) for Role caller revisions. TASK-00078/00079 depend on TASK-00077;
 TASK-00080 depends on TASK-00077/00079. TASK-00078 precedes TASK-00079 by priority only.
 
-The map is Closed for planning; the TASKs remain unfinished. Public summaries do not replace the approved maintainer
-briefs or authorize restricted disclosure. Next: `/skill:next` for Board-based selection. Implementation, consumer
-qualification, version selection, release and deployment remain separate.
+The map is Closed for planning. TASK-00077–00079 are complete and integrated. TASK-00080 has independent technical
+acceptance and nonvisual behavioral QA on its exact implementation candidate; its sole-child TICKET-00024 is done through
+automatic parent completion while EPIC-00001 retains its historical terminal status. Its [current Role composition](../docs/role-revisions.md)
+and saved local gates are package evidence, not consumer qualification. Public summaries do not replace approved maintainer
+briefs or authorize restricted disclosure. [TASK-00080 PR #132](https://github.com/johnnickell/fight-access-control/pull/132)
+is open and ready for human review. Next: human review/merge of that PR. Consumer qualification, version selection,
+release and deployment remain separate.
 
 ## Published v0.7.0
 

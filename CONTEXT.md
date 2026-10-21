@@ -6,6 +6,25 @@ Fight AccessControl owns framework-neutral identity, credential, session, author
 behavior shared by Fight applications. The repository-local behavioral and security authority is
 [TICKET-00001](planning/tickets/00001-TICKET.md).
 
+## Role caller revisions — TASK-00080 delivery checkpoint
+
+[TASK-00080](planning/tasks/00080-TASK.md) completed its accepted Role caller-revision capability on
+`feature/task-00080-role-revisions` from `develop` `f10ed5a`. The [Role composition](docs/role-revisions.md) supplies
+authoritative View revisions, required rename/remove expectations, validated persisted incarnation/revision, all-writer
+participation and final fences; existing membership, managed/reserved identity, tiers, registration integrity and outcome
+policy remain intact. The [consolidated guide](docs/operation-outcomes.md) connects the correction slices.
+
+Independent technical Review accepted and independent nonvisual QA passed the exact implementation candidate
+`35eea6329b8f74e253521870734b11ece45d1988` with 7 scenarios / 48 checks and visual N/A for the nonvisual library.
+Focused checks pass **565 tests / 11182 assertions**; the saved canonical `./bin/build` passes **2399 tests / 45422 assertions**,
+exact **7452/7452 statements**, without final warnings/skips. No resolved package/lockfile drift occurred. This
+administrative tracking closeout retains the earlier full gate through verified input equivalence and targeted checks,
+not as a second full build.
+
+TASK-00080 and its sole-child parent TICKET-00024 are done for accepted package implementation and required local/
+behavioral verification; EPIC-00001 remains historically terminal. Package proof is not consumer SQL/transport/
+permission qualification. Publication, PR approval, merge, release, deployment and restricted disclosure remain separate.
+
 ## Managed-policy consistency — TASK-00079 implementation checkpoint
 
 John invoked Build for [TASK-00079](planning/tasks/00079-TASK.md) in the selected main checkout after TASK-00077
@@ -93,8 +112,8 @@ planning. TICKET-00001 owns [TASK-00077](planning/tasks/00077-TASK.md) for opera
 [TASK-00078](planning/tasks/00078-TASK.md) for recovery lifecycle and [TASK-00079](planning/tasks/00079-TASK.md)
 for policy consistency. TICKET-00024 owns [TASK-00080](planning/tasks/00080-TASK.md) for Role caller revisions.
 TASK-00078/00079 depend on TASK-00077; TASK-00080 depends on TASK-00077/00079. The relative order of
-TASK-00078 and TASK-00079 is priority only. TASK-00077 and TASK-00078 are complete and integrated;
-TASK-00079 is in progress, with TASK-00080 still unfinished.
+TASK-00078 and TASK-00079 is priority only. TASK-00077, TASK-00078 and TASK-00079 are complete and integrated;
+TASK-00080 is in progress, awaiting its independent acceptance and required QA.
 
 Public records summarize approved scope, ownership and sequencing. Full maintainer briefs and restricted evidence
 remain private under SECURITY.md and must be obtained before implementation or independent review. No new behavioral

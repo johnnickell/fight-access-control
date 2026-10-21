@@ -169,6 +169,12 @@ final class ReconcileManagedPolicyHandlerTest extends TestCase
             ]
         ];
         self::assertSame($expectedPlan, $preview->toArray());
+        $unchangedRole = $roles->getById($this->roleId(201));
+        $changingRole = $roles->getById($this->roleId(202));
+        $customRole = $roles->getById($this->roleId(290));
+        self::assertInstanceOf(Role::class, $unchangedRole);
+        self::assertInstanceOf(Role::class, $changingRole);
+        self::assertInstanceOf(Role::class, $customRole);
         $events = new InMemoryEventDispatcher(static function () use ($unitOfWork): void {
             self::assertTrue($unitOfWork->transactionCompleted);
             self::assertFalse($unitOfWork->transactionActive);
@@ -221,6 +227,19 @@ final class ReconcileManagedPolicyHandlerTest extends TestCase
         );
         self::assertSame(4, $permissions->getAll(new Pagination())->totalRecords());
         self::assertSame(4, $roles->getAll(new Pagination())->totalRecords());
+        self::assertSame($unchangedRole, $roles->getById($this->roleId(201)));
+        self::assertSame($customRole, $roles->getById($this->roleId(290)));
+        $changedRole = $roles->getById($this->roleId(202));
+        self::assertInstanceOf(Role::class, $changedRole);
+        self::assertTrue($changingRole->getRevision()->next()->equals($changedRole->getRevision()));
+        $newRole = $roles->getById($this->roleId(203));
+        self::assertInstanceOf(Role::class, $newRole);
+        self::assertStringEndsWith(':1', $newRole->getRevision()->toString());
+        // Reapplying the exact desired policy leaves every managed Role revision untouched.
+        $handler->handle(CommandMessage::create($command));
+        self::assertSame($changedRole, $roles->getById($this->roleId(202)));
+        self::assertSame($unchangedRole, $roles->getById($this->roleId(201)));
+        self::assertSame($newRole, $roles->getById($this->roleId(203)));
     }
 
     public function test_it_rejects_code_and_live_role_references_without_persisting_changes(): void

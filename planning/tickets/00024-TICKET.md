@@ -2,7 +2,7 @@
 id: TICKET-00024
 epic: EPIC-00001
 title: Fence custom Role rename and removal with caller revisions
-status: ready-for-agent
+status: done
 ---
 
 # Fence custom Role rename and removal with caller revisions
@@ -65,11 +65,14 @@ generic revision subsystem, production adapters or consumer edits. Consumers qua
 transport/UI, permissions and runtime independently.
 
 All batch planning phases are accepted; the [map](../wayfinder/access-control-correction-batch-map.md) is Closed
-for planning only. This TICKET remains unfinished. Next: `/skill:next` for Board-based selection. Implementation,
-publication of restricted material, release and deployment require their own authority.
+for planning. TASK-00080 completed the current [Role guide](../../docs/role-revisions.md) composition after independent
+technical acceptance and nonvisual behavioral QA of the exact candidate. Its saved focused/full local evidence remains
+package proof, not consumer qualification. This sole-child TICKET is done through automatic parent completion; preserve
+EPIC-00001's historical completion. Publication, PR approval, merge, restricted disclosure, release and deployment
+remain separate.
 
 ## Child Tasks
 
 | Order | TASK ID | Title | Status |
 | --- | --- | --- | --- |
-| 80 | [TASK-00080](../tasks/00080-TASK.md) | Fence custom Role rename and removal with caller revisions | ready-for-agent |
+| 80 | [TASK-00080](../tasks/00080-TASK.md) | Fence custom Role rename and removal with caller revisions | done |
