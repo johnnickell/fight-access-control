@@ -16,8 +16,9 @@ The map is Closed for planning. TASK-00077–00079 are complete and integrated. 
 acceptance and nonvisual behavioral QA on its exact implementation candidate; its sole-child TICKET-00024 is done through
 automatic parent completion while EPIC-00001 retains its historical terminal status. Its [current Role composition](../docs/role-revisions.md)
 and saved local gates are package evidence, not consumer qualification. Public summaries do not replace approved maintainer
-briefs or authorize restricted disclosure. Next: Land delivery, then human review/merge of the TASK-00080 PR. Consumer
-qualification, version selection, release and deployment remain separate.
+briefs or authorize restricted disclosure. [TASK-00080 PR #132](https://github.com/johnnickell/fight-access-control/pull/132)
+is open and ready for human review. Next: human review/merge of that PR. Consumer qualification, version selection,
+release and deployment remain separate.
 
 ## Published v0.7.0
 
