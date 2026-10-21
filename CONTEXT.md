@@ -14,14 +14,15 @@ Engineer work is on `feature/task-00078-recovery-lifecycle` from verified clean 
 mandatory shared persistence fences, worker wiring and consumer qualification obligations. Detailed approved criteria
 and execution evidence remain in the private maintainer handoff; no affected-release assessment is published here.
 
-The final canonical `./bin/build` passes **2351 tests / 44794 assertions**, exact **7372/7372 statements**, without
-final warnings/skips. Earlier focused checks pass **79 tests / 1110 assertions**; final full verification includes the
-last added contract case. Failed setup/style/static-analysis attempts and the first canonical Rector failure remain
-in ignored evidence. No package/lockfile drift occurred; PHP 8.5.7 and Common v1.4.0 satisfy unchanged requirements.
-The first build regenerates ignored autoload metadata; the successful build preserves dependency bytes and runtime
-Config/RootFS. This prose-only checkpoint retains that full gate through proven input equivalence and targeted checks.
+The current conformance binding supplies persisted User setup, shared transactional writes and reopened authority
+state. Original persistence assertions are retained, with admission and rollback checks added. Fresh canonical
+`./bin/build` passes **2353 tests / 44831 assertions**, exact **7372/7372 statements**, without final warnings/skips;
+focused recovery checks pass **28 tests / 790 assertions**. Failed attempts, including the repair's initial Rector
+normalization failure, remain in ignored evidence. No package/lockfile drift occurred; PHP 8.5.7 and Common v1.4.0
+satisfy unchanged requirements. The passing build preserves dependency bytes and runtime Config/RootFS. This
+prose-only checkpoint retains that full gate through proven input equivalence and targeted checks.
 
-Independent technical acceptance and adversarial behavioral QA remain pending. TASK-00078 stays in progress;
+Independent technical re-review and adversarial behavioral QA remain pending. TASK-00078 stays in progress;
 historical terminal parents remain unchanged. The Build coordinator continues independent Review/QA/Land within the
 original stage authority. No push/PR, consumer adoption or qualification, merge, release or deployment is claimed by
 this Engineer checkpoint.

@@ -83,12 +83,24 @@ actor provenance, status views and advisory discovery results confer no permissi
 
 ### Qualification boundary
 
-`RecoveryAuthorityConformance` is consumer-bindable: provide isolated `repository()` and `restart(repository)` hooks,
-reopening actual persistence and hydrating all fields without issuing replacements. Bind writes to the actual
-transaction boundary. It checks persisted authority through claims/outcomes/restart and complete-state predecessor,
-replacement and terminal-successor comparisons. `RecoveryLifecycleTest`, `RecoveryConcurrencyTest` and
-`RecoveryOutcomeTest` supply package-port lifecycle, all-writer fence and interrupted-completion scenarios. Their
-controlled in-memory connections and restart models are not SQL isolation or physical-process proof.
+Bind `RecoveryAuthorityConformance` through three protected hooks:
+
+- `repository(User $user)`: create isolated persistence, commit the supplied eligible User with its exact identity,
+  canonical email and security values through the shared connection/Unit of Work, then return its bound grant
+  repository. Do not fabricate User state inside grant writes or bypass required authority admission.
+- `transaction(callable $operation): void`: execute each supplied operation through that composition's actual Unit of
+  Work, committing on success or rolling back and rethrowing on failure.
+- `restart(PasswordResetGrantRepository $repository)`: reopen both authoritative User and grant persistence, hydrating
+  all stored fields without creating Users, issuing replacements or inferring authority from the latest User. Rebind
+  subsequent `transaction()` calls to the reopened connection/Unit of Work.
+
+The suite checks persisted authority through claims/outcomes/restart, complete-state predecessor, replacement and
+terminal-successor comparisons, rejection of missing/mismatched User authority before and after reopening, and
+transaction rollback. The package binding uses shared User state and a transactional Unit of Work throughout; its
+restart copies persisted User snapshots and rehydrates grants into fresh modeled state. `RecoveryLifecycleTest`,
+`RecoveryConcurrencyTest` and `RecoveryOutcomeTest` supply package-port lifecycle, all-writer fence and
+interrupted-completion scenarios. Controlled in-memory connections and restart models are not SQL isolation,
+actual User row-mapping qualification or physical-process proof.
 
 This is the current B1/B2 consumer handoff; other approved slices remain separate work. Consumers must independently
 qualify real shared-connection races in both winner orders, rollback/uncertain commits, response loss, persistence
