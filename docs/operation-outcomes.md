@@ -2,7 +2,8 @@
 
 The current package contract separates business persistence, required audit, notification and consumer presentation.
 Commands and synchronous authentication methods retain their established authorization and transaction boundaries.
-Queries remain read-only.
+Queries remain read-only. This composition is published in [v0.8.0](release-0.8.0.md), not part of v0.7.0;
+the overview separates verified package publication from unexecuted consumer qualification.
 
 ## Notifications and callers
 
@@ -140,9 +141,10 @@ typed conflict and requires refresh/reconfirmation, not silent token substitutio
 all-writer and adapter obligations. Existing membership inputs and policy-level facts remain unchanged.
 
 This is the consolidated current B1–B4 consumer composition guide, not a release or qualification receipt. Actual
-slice identities, local verification and independent-stage disposition are retained by the maintainer handoff;
-TASK-00080 still requires independent Review and QA. Consumers must independently
-qualify real shared-connection races in both winner orders, rollback/uncertain commits, response loss, persistence
+slice identities, local verification and independent-stage disposition are retained by the maintainer handoff.
+TASK-00077–00080 have independent technical acceptance and behavioral QA and are integrated into the release base.
+That acceptance does not replace independent release-content review or final-commit certification. Consumers must
+independently qualify real shared-connection races in both winner orders, rollback/uncertain commits, response loss, persistence
 hydration, worker restarts, provider idempotency/delayed outcomes, permissions and response/log handling. Keep keys,
 raw credentials, hashes and ciphertext out of public evidence. No consumer adoption, release or deployment is
 authorized by this guide.

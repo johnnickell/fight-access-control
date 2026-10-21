@@ -14,28 +14,32 @@ Agent credentials, sessions, Roles, Permissions and account lifecycles without t
 ## Release and installation
 
 <!-- release:start -->
-**Release: [v0.7.0](https://github.com/johnnickell/fight-access-control/releases/tag/v0.7.0)**
+**Release: [v0.8.0](https://github.com/johnnickell/fight-access-control/releases/tag/v0.8.0)**
 
 **Status: published.**
 
 Requires **PHP 8.5+** and **Fight Common ^1.3** (resolved by Composer).
 
 ```bash
-composer require johnnickell/fight-access-control:"~0.7.0"
+composer require johnnickell/fight-access-control:"~0.8.0"
 ```
 
-[Release overview](docs/release-0.7.0.md) ·
-[Tagged documentation](https://github.com/johnnickell/fight-access-control/tree/v0.7.0/docs)
+[Release overview](docs/release-0.8.0.md) ·
+[Tagged documentation](https://github.com/johnnickell/fight-access-control/tree/v0.8.0/docs)
 <!-- release:end -->
+
+GitHub publication and Packagist source/dist references are verified for **v0.8.0**. The immutable tagged
+README retains its original preparation status; the release overview here records the verified publication.
+Registry availability is not proof of installation or qualification in your application.
 
 The constraint stays on this minor line. Pre-v1 minors can break API and persistence contracts: read the
 [Changelog](CHANGELOG.md) and the target release overview before upgrading. Only the current contract is supported;
 there are no compatibility defaults, historical readers or package migration/backfill routes
 ([policy](planning/adr/0011-pre-v1-current-contract-only.md)).
 
-**Using `develop`?** Relative guides describe the checked-out code, including unreleased changes. Use the tagged
-documentation above for the published package. Installing this library does not supply endpoints, a database schema,
-a login UI, framework bindings or production configuration.
+**Using `develop` or a release branch?** Relative guides describe the checked-out code, including prepared changes.
+Use the matching published tag's documentation for an installed package. Installing this library does not supply
+endpoints, a database schema, a login UI, framework bindings or production configuration.
 
 ## Integrate with your application
 
@@ -79,13 +83,13 @@ there is no production Adapter layer in this library.
 Feature availability is not authorization for the underlying action. Registration exposure and enablement are
 consumer choices. MCP support supplies neutral authorization and profile Tools, not a hosted server or endpoint.
 
-### Unreleased on develop
+### Released in v0.8.0
 
-The integrated correction batch adds breaking Role caller revisions and recovery composition requirements, plus
-operation-outcome and managed-policy consistency changes. Custom Role rename/remove bind the displayed
-`expected_revision`; stale intent requires a fresh read and reconfirmation, not automatic token substitution.
-See [Role composition](docs/role-revisions.md), [operation outcomes](docs/operation-outcomes.md) and
-[Unreleased changes](CHANGELOG.md#unreleased). These changes are **not part of the published version above**.
+This release includes breaking Role caller revisions and recovery composition requirements, plus operation-outcome
+and managed-policy consistency changes. Custom Role rename/remove bind the displayed `expected_revision`; stale
+intent requires a fresh read and reconfirmation, not automatic token substitution. See
+[Role composition](docs/role-revisions.md), [operation outcomes](docs/operation-outcomes.md) and the
+[v0.8.0 integration overview](docs/release-0.8.0.md). These changes are **not part of published v0.7.0**.
 
 ## Development and contributions
 

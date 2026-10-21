@@ -1,6 +1,29 @@
 # Roadmap
 
-## Current planning handoff — correction batch integrated
+## Current release handoff — v0.8.0 published
+
+[v0.8.0](https://github.com/johnnickell/fight-access-control/releases/tag/v0.8.0) is published on 2026-10-21 from
+certified main merge `319738255e682d587642b67856039f882b9588d6` through
+[PR #134](https://github.com/johnnickell/fight-access-control/pull/134). Independent release-content acceptance,
+documentation QA, fresh exact-main certification, human-signed local/remote tag, immutable latest/non-prerelease
+GitHub publication and matching Packagist source/dist projection are verified. The
+[release overview](../docs/release-0.8.0.md) owns identities, breaking Role/recovery composition and unexecuted consumer
+qualification. PHP 8.5+ and Common ^1.3 remain unchanged.
+
+John authorized publication-documentation reconciliation and a main-to-develop merge-back PR on
+`release/0.8.0-merge-back` in the selected main checkout. **Merge-back and owned cleanup remain pending** at this
+checkpoint; PR merge and cleanup are not included in that approval. Preserve the signed release commit and evidence.
+No implementation TASK remains unfinished; v1.0.0 stability, consumer adoption and deployment remain separate decisions.
+
+### Historical v0.8.0 preparation checkpoint
+
+John selected v0.8.0 and the main checkout on 2026-10-21. Preparation used `release/0.8.0` from refreshed `develop`
+`6ea05dc`, including merged [PR #133](https://github.com/johnnickell/fight-access-control/pull/133). At that checkpoint,
+v0.7.0 was the latest published release; independent release-content acceptance, main integration, exact-main
+certification, human signing and publication were still required. The current handoff above supersedes those pending
+steps without erasing their historical checkpoint meaning.
+
+## Correction batch integrated
 
 The [correction map](wayfinder/access-control-correction-batch-map.md)'s decisions and decomposition are complete.
 [EPIC-00001](epics/00001-EPIC.md) retains existing requirement ownership through
@@ -20,17 +43,17 @@ briefs or authorize restricted disclosure. [TASK-00080 PR #132](https://github.c
 merged into `develop` on 2026-10-21 at `d1ed655`; the correction batch has no remaining decomposition,
 implementation or PR-merge handoff. Consumer qualification, version selection, release and deployment remain separate.
 
-John requested [TASK-00082](tasks/00082-TASK.md) for the README, identity assets, release-version consistency and
-this planning reconciliation. The [Board](tasks/BOARD.md) owns its current stage. After that chore, the next human
-decision is release scope/version or new work. **v0.8.0 is recommended, not authorized**, because the integrated Role
-and recovery contracts are breaking pre-v1 changes. v0.7.0 remains the latest verified published release.
+[TASK-00082](tasks/00082-TASK.md) completed the README, identity assets, release-version consistency and planning
+reconciliation; PR #133 merged into `develop` on 2026-10-21. Its earlier v0.8.0 recommendation is now superseded by
+John's version selection above. The breaking pre-v1 Role and recovery contracts require a new minor, not a v0.7.x
+patch. The [Board](tasks/BOARD.md) retains the terminal implementation portfolio.
 
 ## Published v0.7.0
 
 [v0.7.0](https://github.com/johnnickell/fight-access-control/releases/tag/v0.7.0) was published on 2026-10-20
 from certified main merge `cf55a25` through [PR #124](https://github.com/johnnickell/fight-access-control/pull/124).
-Independent release-content acceptance, exact-main certification, human signed tag, immutable latest/non-prerelease
-GitHub publication and matching Packagist source/dist projection are verified. The
+Independent release-content acceptance, exact-main certification, human signed tag, immutable non-prerelease
+GitHub publication (latest at its publication checkpoint) and matching Packagist source/dist projection are verified. The
 [release overview](../docs/release-0.7.0.md) owns the breaking contracts and consumer obligations. Merge-back into
 `develop` completed through [PR #125](https://github.com/johnnickell/fight-access-control/pull/125) on 2026-10-20.
 The ignored release ledger retains cleanup evidence; branch cleanup is not inferred from merge state.
@@ -241,6 +264,7 @@ The EPIC's historical pre-v1.0.0 target is not an authorization to release v1.0.
 
 | Version | Date | Outcome |
 | --- | --- | --- |
+| `v0.8.0` | 2026-10-21 | Published breaking Role caller revisions and recovery composition, operation-outcome and managed-policy consistency, plus contributor/release-documentation improvements. Main-to-develop merge-back and owned cleanup are pending; consumer qualification remains separate. |
 | `v0.7.0` | 2026-10-20 | Published optional User registration, activation origin and administrator recovery; merged back through PR #125. Consumer enablement and qualification remain separate. |
 | `v0.6.0` | 2026-10-19 | Published expiry-aware invitation retry and the required Clock composition change; merged back through PR #120. |
 | `v0.5.0` | 2026-10-06 | Published recoverable Agent operations, human expiry, Features and Agent-protected profile Tools; consumer qualification remains separate. |

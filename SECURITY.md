@@ -17,6 +17,7 @@ approval-gated effects.
 
 ## Supported versions
 
-Fight AccessControl is in public-source incubation and has no released or supported version. Security review
-applies to the current integration line. A future support policy will accompany an approved release; the
-existence of a tag alone will not establish support.
+Fight AccessControl is a pre-v1 public-source package with published releases recorded in the
+[Changelog](CHANGELOG.md). Security review applies to the current integration line. Publication does not itself
+establish a supported maintenance line or a support window; the existence of a tag alone does not establish support.
+Publication of v0.8.0 does not adopt a new maintenance/support policy.
