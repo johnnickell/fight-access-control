@@ -89,6 +89,11 @@ final class ControllableRoleRepository implements RoleRepository
         return $this->permissionRemainsAuthoritative;
     }
 
+    public function validateCurrent(Role $expected): bool
+    {
+        return $this->roleRemainsAuthoritative && $this->role?->hasSameState($expected) === true;
+    }
+
     public function replace(Role $expected, Role $replacement): bool
     {
         if (!$this->replaceSucceeds || $this->role !== $expected) {

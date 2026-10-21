@@ -230,6 +230,10 @@ final class HandlerFailureContractTest extends TestCase
             ]));
         }
 
+        if (in_array($handlerClass, [Role\RenameCustomRoleHandler::class, Role\RemoveCustomRoleHandler::class], true)) {
+            $data['expected_revision'] = $id.':1';
+        }
+
         if ($handlerClass === Feature\CreateFeatureHandler::class) {
             $data['name'] = 'example-feature';
         }

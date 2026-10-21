@@ -19,6 +19,7 @@ use Fight\AccessControl\Domain\AccessControl\Role\Role;
 use Fight\AccessControl\Domain\AccessControl\Role\RoleId;
 use Fight\AccessControl\Domain\AccessControl\Role\RoleName;
 use Fight\AccessControl\Domain\AccessControl\Role\RoleRepository;
+use Fight\AccessControl\Domain\AccessControl\Role\RoleRevision;
 use Fight\AccessControl\Domain\AccessControl\User\UserId;
 use Fight\Common\Domain\Exception\DomainException;
 use Fight\Common\Domain\Messaging\Command\Command;
@@ -117,7 +118,8 @@ final class CustomRoleIdentityHandlerTest extends TestCase
         $handler->handle(CommandMessage::create(new RenameCustomRole(
             $actorId,
             $roleId,
-            RoleName::fromString('ROLE_HELP_DESK')
+            RoleName::fromString('ROLE_HELP_DESK'),
+            $repository->getById($roleId)->getRevision()
         )));
 
         self::assertSame(RenameCustomRole::class, RenameCustomRoleHandler::commandRegistration());
@@ -146,7 +148,7 @@ final class CustomRoleIdentityHandlerTest extends TestCase
         $reserved = RoleName::fromString(Role::SUPER_ADMIN_NAME);
         $commands = [
             new CreateCustomRole($this->actorId(), RoleId::generate(), $reserved),
-            new RenameCustomRole($this->actorId(), $role->getId(), $reserved)
+            new RenameCustomRole($this->actorId(), $role->getId(), $reserved, $role->getRevision())
         ];
         foreach ($commands as $command) {
             $events = new InMemoryEventDispatcher();
@@ -226,16 +228,15 @@ final class CustomRoleIdentityHandlerTest extends TestCase
             )),
             new ControllableRoleRepository($this->customRole(), replaceSucceeds: false)
         ];
-        $commands = [
-            new RenameCustomRole($this->actorId(), $roleId, RoleName::fromString('ROLE_RENAMED')),
-            new RenameCustomRole(
+        $commands = [];
+        foreach ($cases as $index => $repository) {
+            $commands[] = new RenameCustomRole(
                 $this->actorId(),
                 $roleId,
-                RoleName::fromString('ROLE_TAKEN')
-            ),
-            new RenameCustomRole($this->actorId(), $roleId, RoleName::fromString('ROLE_RENAMED')),
-            new RenameCustomRole($this->actorId(), $roleId, RoleName::fromString('ROLE_RENAMED'))
-        ];
+                RoleName::fromString($index === 1 ? 'ROLE_TAKEN' : 'ROLE_RENAMED'),
+                $repository->getById($roleId)?->getRevision() ?? RoleRevision::initial()
+            );
+        }
 
         foreach ($cases as $index => $repository) {
             $events = new InMemoryEventDispatcher();
@@ -280,7 +281,7 @@ final class CustomRoleIdentityHandlerTest extends TestCase
         $now = new DateTimeImmutable('2026-08-23T12:00:00+00:00');
         $messages = [
             new CreateCustomRole($actorId, $roleId, $name),
-            new RenameCustomRole($actorId, $roleId, $name),
+            new RenameCustomRole($actorId, $roleId, $name, RoleRevision::initial()),
             new CustomRoleCreated($actorId, $roleId, $name, $now),
             new CustomRoleRenamed($actorId, $roleId, $name, $now)
         ];

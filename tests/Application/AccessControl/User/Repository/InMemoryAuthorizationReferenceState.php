@@ -151,7 +151,7 @@ final class InMemoryAuthorizationReferenceState
         foreach ($expectedRoles as $expected) {
             $id = $expected->getId()->toString();
             $current = $this->roles[$id] ?? null;
-            if (isset($seen[$id]) || !$current instanceof Role || $current != $expected) {
+            if (isset($seen[$id]) || !$current instanceof Role || !$current->hasSameState($expected)) {
                 return false;
             }
 

@@ -8,6 +8,7 @@ use DateTimeImmutable;
 use Fight\AccessControl\Domain\AccessControl\Permission\PermissionId;
 use Fight\AccessControl\Domain\AccessControl\Role\Exception\CustomRoleException;
 use Fight\AccessControl\Domain\AccessControl\Role\Exception\ManagedRoleException;
+use Fight\AccessControl\Domain\AccessControl\Role\Exception\RoleConflictException;
 use Fight\Common\Domain\Collection\HashSet;
 
 /**
@@ -37,7 +38,8 @@ class Role
         array $permissionIds,
         private readonly bool $managed,
         private readonly DateTimeImmutable $createdAt,
-        private readonly DateTimeImmutable $updatedAt
+        private readonly DateTimeImmutable $updatedAt,
+        private readonly RoleRevision $revision
     ) {
         if (!$managed && $name->toString() === self::SUPER_ADMIN_NAME) {
             throw new CustomRoleException('The Super Admin role name is reserved for managed policy.');
@@ -61,7 +63,7 @@ class Role
         array $permissionIds,
         DateTimeImmutable $createdAt
     ): static {
-        return new static($id, $name, $permissionIds, false, $createdAt, $createdAt);
+        return new static($id, $name, $permissionIds, false, $createdAt, $createdAt, RoleRevision::initial());
     }
 
     /**
@@ -75,7 +77,57 @@ class Role
         array $permissionIds,
         DateTimeImmutable $createdAt
     ): static {
-        return new static($id, $name, $permissionIds, true, $createdAt, $createdAt);
+        return new static($id, $name, $permissionIds, true, $createdAt, $createdAt, RoleRevision::initial());
+    }
+
+    /**
+     * Reconstitutes the complete current persisted Role without generating concurrency state
+     *
+     * @phpstan-param list<PermissionId> $permissionIds
+     */
+    public static function reconstitute(
+        RoleId $id,
+        RoleName $name,
+        array $permissionIds,
+        bool $managed,
+        DateTimeImmutable $createdAt,
+        DateTimeImmutable $updatedAt,
+        RoleRevision $revision
+    ): static {
+        return new static($id, $name, $permissionIds, $managed, $createdAt, $updatedAt, $revision);
+    }
+
+    /**
+     * Returns the authoritative incarnation and state revision
+     */
+    final public function getRevision(): RoleRevision
+    {
+        return $this->revision;
+    }
+
+    /**
+     * Rejects caller intent for any other incarnation or state
+     */
+    final public function assertRevision(RoleRevision $expected): void
+    {
+        if (!$this->revision->equals($expected)) {
+            throw new RoleConflictException();
+        }
+    }
+
+    /**
+     * Determines whether both snapshots contain exactly the same persisted business state
+     */
+    final public function hasSameState(Role $other): bool
+    {
+        return $this->id->equals($other->id)
+            && $this->name->equals($other->name)
+            && $this->managed === $other->managed
+            && $this->createdAt == $other->createdAt
+            && $this->updatedAt == $other->updatedAt
+            && $this->revision->equals($other->revision)
+            && $this->permissionIds->count() === $other->permissionIds->count()
+            && array_all($this->permissionIds->toArray(), $other->permissionIds->contains(...));
     }
 
     /**
@@ -94,7 +146,28 @@ class Role
             );
         }
 
-        return new static($this->id, $name, $permissionIds, true, $this->createdAt, $updatedAt);
+        $membership = HashSet::of(PermissionId::class);
+        foreach ($permissionIds as $permissionId) {
+            $membership->add($permissionId);
+        }
+
+        if (
+            $this->name->equals($name)
+            && $this->permissionIds->count() === $membership->count()
+            && array_all($permissionIds, $this->permissionIds->contains(...))
+        ) {
+            return $this;
+        }
+
+        return new static(
+            $this->id,
+            $name,
+            $permissionIds,
+            true,
+            $this->createdAt,
+            $updatedAt,
+            $this->revision->next()
+        );
     }
 
     /**
@@ -106,13 +179,18 @@ class Role
             throw new CustomRoleException('A managed role cannot be renamed at runtime.');
         }
 
+        if ($this->name->equals($name)) {
+            return $this;
+        }
+
         return new static(
             $this->id,
             $name,
             $this->permissionIds->toArray(),
             false,
             $this->createdAt,
-            $updatedAt
+            $updatedAt,
+            $this->revision->next()
         );
     }
 
@@ -130,7 +208,15 @@ class Role
         $permissionIds = $this->permissionIds->toArray();
         $permissionIds[] = $permissionId;
 
-        return new static($this->id, $this->name, $permissionIds, false, $this->createdAt, $updatedAt);
+        return new static(
+            $this->id,
+            $this->name,
+            $permissionIds,
+            false,
+            $this->createdAt,
+            $updatedAt,
+            $this->revision->next()
+        );
     }
 
     /**
@@ -149,7 +235,15 @@ class Role
             static fn(PermissionId $candidate): bool => !$candidate->equals($permissionId)
         ));
 
-        return new static($this->id, $this->name, $permissionIds, false, $this->createdAt, $updatedAt);
+        return new static(
+            $this->id,
+            $this->name,
+            $permissionIds,
+            false,
+            $this->createdAt,
+            $updatedAt,
+            $this->revision->next()
+        );
     }
 
     /**

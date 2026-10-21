@@ -27,4 +27,4 @@ This generated index is a projection; individual records remain canonical.
 | [TICKET-00021](00021-TICKET.md) | Preserve registration and private-invitation delivery origin | done |
 | [TICKET-00022](00022-TICKET.md) | Register a pending User with configured default Roles | done |
 | [TICKET-00023](00023-TICKET.md) | Recover a pending registration administratively | done |
-| [TICKET-00024](00024-TICKET.md) | Fence custom Role rename and removal with caller revisions | ready-for-agent |
+| [TICKET-00024](00024-TICKET.md) | Fence custom Role rename and removal with caller revisions | in-progress |

@@ -5,17 +5,17 @@ dependencies, acceptance, and verification.
 
 ## What's Next?
 
-First ready Task: [TASK-00080](00080-TASK.md) — Fence custom Role rename and removal with caller revisions.
+Active Task: [TASK-00080](00080-TASK.md) — Fence custom Role rename and removal with caller revisions.
 
 ## In Progress
 
-No Tasks are currently in this state.
+| Order | TASK ID | Title | Parent TICKET | Status | Blocked by | PR |
+| --- | --- | --- | --- | --- | --- | --- |
+| 80 | [TASK-00080](00080-TASK.md) | Fence custom Role rename and removal with caller revisions | [TICKET-00024](../tickets/00024-TICKET.md) — Fence custom Role rename and removal with caller revisions | in-progress | [TASK-00077](00077-TASK.md), [TASK-00079](00079-TASK.md) | — |
 
 ## Ready Frontier
 
-| Order | TASK ID | Title | Parent TICKET | Status | Blocked by | PR |
-| --- | --- | --- | --- | --- | --- | --- |
-| 80 | [TASK-00080](00080-TASK.md) | Fence custom Role rename and removal with caller revisions | [TICKET-00024](../tickets/00024-TICKET.md) — Fence custom Role rename and removal with caller revisions | ready-for-agent | [TASK-00077](00077-TASK.md), [TASK-00079](00079-TASK.md) | — |
+No Tasks are currently in this state.
 
 ## Waiting
 

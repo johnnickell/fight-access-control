@@ -229,7 +229,16 @@ final class ManagedPolicyRemovalOutcomeTest extends TestCase
         self::assertTrue($unit->transactionCompleted);
         self::assertNull($permissions->getById($old->getId()));
         self::assertSame('NEW_POLICY', $permissions->getById($new->getId())?->getName()->toString());
-        self::assertEquals($newRole, $roles->getById($newRole->getId()));
+        $createdRole = $roles->getById($newRole->getId());
+        self::assertInstanceOf(Role::class, $createdRole);
+        self::assertEquals($newRole->getId(), $createdRole->getId());
+        self::assertEquals($newRole->getName(), $createdRole->getName());
+        self::assertEquals($newRole->getPermissionIds(), $createdRole->getPermissionIds());
+        self::assertTrue($createdRole->isManaged());
+        self::assertEquals($this->now(), $createdRole->getCreatedAt());
+        self::assertEquals($this->now(), $createdRole->getUpdatedAt());
+        self::assertStringEndsWith(':1', $createdRole->getRevision()->toString());
+        self::assertFalse($newRole->getRevision()->equals($createdRole->getRevision()));
         self::assertCount(2, $attempts);
         self::assertInstanceOf(ManagedPolicyReconciled::class, $attempts[0]);
         self::assertSame($plan->toArray(), $attempts[0]->getPlan());

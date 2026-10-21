@@ -23,8 +23,6 @@ use Fight\Test\AccessControl\Application\AccessControl\Role\Repository\InMemoryR
 use Fight\Test\AccessControl\Application\AccessControl\User\Repository\InMemoryAuthorizationReferenceState;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
-use ReflectionClass;
-use ReflectionProperty;
 
 #[CoversClass(ListRolesHandler::class)]
 #[CoversClass(ListRoles::class)]
@@ -76,6 +74,7 @@ final class ListRolesHandlerTest extends TestCase
         self::assertInstanceOf(Arrayable::class, $views->get(0));
         self::assertSame(
             [
+                'revision'       => $custom->getRevision()->toString(),
                 'role_id'        => '018f0000-0000-7000-8000-000000000002',
                 'name'           => 'ROLE_EDITOR',
                 'managed'        => false,
@@ -89,6 +88,7 @@ final class ListRolesHandlerTest extends TestCase
         self::assertSame([$permissionId], $views->get(1)->getPermissionIds());
         self::assertSame(
             [
+                'revision'       => $managed->getRevision()->toString(),
                 'role_id'        => '018f0000-0000-7000-8000-000000000003',
                 'name'           => 'ROLE_ADMINISTRATOR',
                 'managed'        => true,
@@ -97,13 +97,8 @@ final class ListRolesHandlerTest extends TestCase
             $views->get(1)->toArray()
         );
 
-        $properties = array_map(
-            static fn(ReflectionProperty $property): string => $property->getName(),
-            new ReflectionClass(RoleView::class)->getProperties()
-        );
-        sort($properties);
-
-        self::assertSame(['managed', 'name', 'permissionIds', 'roleId'], $properties);
+        self::assertTrue($custom->getRevision()->equals($views->get(0)->getRevision()));
+        self::assertTrue($managed->getRevision()->equals($views->get(1)->getRevision()));
     }
 
     public function test_that_the_query_round_trips_and_rejects_each_missing_required_key(): void

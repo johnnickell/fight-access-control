@@ -53,6 +53,7 @@ final class GetRoleByIdHandlerTest extends TestCase
         self::assertInstanceOf(Arrayable::class, $view);
         self::assertSame(
             [
+                'revision'       => $roles->getById($roleId)->getRevision()->toString(),
                 'role_id'        => '018f0000-0000-7000-8000-000000000002',
                 'name'           => 'ROLE_ADMINISTRATOR',
                 'managed'        => true,

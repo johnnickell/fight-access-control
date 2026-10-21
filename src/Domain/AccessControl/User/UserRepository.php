@@ -209,7 +209,8 @@ interface UserRepository
      *
      * Applies add() identity/email/reservation uniqueness under the same transaction. The nonempty expected Roles
      * must match exactly the User's initial assignment set. Validate each complete current Role snapshot (identity,
-     * unique canonical name, ownership, membership and timestamps), rejecting conflicting IDs/names or a changed,
+     * unique canonical name, ownership, membership, timestamps and required incarnation/revision), rejecting
+     * conflicting IDs/names or a changed,
      * removed or replaced definition. Supplied snapshots are expectations, never authority. Hold the shared
      * Role-reference/name fence through transaction completion, including every RoleRepository add/replace/remove
      * path. No insertion or reference may survive rollback. Returns false without insertion on a reference mismatch;

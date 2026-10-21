@@ -12,8 +12,10 @@ The accepted TASKs are [TASK-00077](tasks/00077-TASK.md) for operation outcomes,
 and [TASK-00080](tasks/00080-TASK.md) for Role caller revisions. TASK-00078/00079 depend on TASK-00077;
 TASK-00080 depends on TASK-00077/00079. TASK-00078 precedes TASK-00079 by priority only.
 
-The map is Closed for planning; the TASKs remain unfinished. Public summaries do not replace the approved maintainer
-briefs or authorize restricted disclosure. Next: `/skill:next` for Board-based selection. Implementation, consumer
+The map is Closed for planning. TASK-00077–00079 are complete and integrated. John invoked Build for TASK-00080
+in the selected main checkout; its [current Role composition](../docs/role-revisions.md) is implemented with independent
+Review and required QA pending; its TASK owns passing local gates. Public summaries do not replace the full approved maintainer
+briefs or authorize restricted disclosure. Next: complete the active delegated stages for TASK-00080. Consumer
 qualification, version selection, release and deployment remain separate.
 
 ## Published v0.7.0

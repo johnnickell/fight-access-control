@@ -267,6 +267,15 @@ release or deployment; implementation-only requests may use `/skill:work TASK-NN
 [local workflow binding](planning/agents/project-profile.md#agent-os-workflow-binding) for capability resolution,
 target rules and authority. Contributors without that tooling follow the same local guidance directly.
 
+## Role caller revisions (Unreleased)
+
+Role detail/list Views expose authoritative `revision`; custom rename/remove require the displayed state's
+`expected_revision`. Every Role state writer and registration snapshot comparison participates in persisted
+incarnation/revision and final transaction fences. Stale intent rejects with a safe typed conflict; consumers refresh
+and reconfirm rather than substituting a newer token. See [current Role composition](docs/role-revisions.md) and the
+[consolidated operation-outcome guide](docs/operation-outcomes.md) for breaking persistence/repository/payload contracts,
+consumer-bindable proof and unexecuted consumer obligations. Revisions grant no authorization.
+
 ## Local development
 
 PHP 8.5 and Docker are required. Tooling follows the Fight Common conventions and runs in the isolated
