@@ -70,3 +70,5 @@ several. Planning approval or a recommendation grants no publication authority. 
 owned commits, non-force push and open-PR publication, not PR approval/merge, force push, release, deployment,
 unrelated work or restricted disclosure. Resolve genuinely missing prerequisites without repeating existing grants.
 Signed library releases retain their [separate controls](docs/engineering/standards/Delivery.md#signed-library-releases).
+Follow the [release runbook](docs/releasing.md) for the complete version inventory, README/Changelog preflight,
+exact-commit certification and publication reconciliation; never globally replace historical version references.

@@ -9,6 +9,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- Refreshed the package README with light/dark FIGHT Access Control identity, a versioned install command and
+  focused integration/capability routes. Release preparation now checks README, Changelog, comparison links,
+  Composer metadata and the versioned overview together through `./bin/release check-docs`; certification records
+  the same preflight. See the [release runbook](docs/releasing.md). No package contract changes are introduced by
+  this documentation/tooling update.
 - **Breaking pre-v1 Role contracts:** detail/list Views require authoritative `revision`; custom rename/remove
   Commands require `expected_revision`. Persist validated incarnation/revision across every Role writer and hydration,
   include it in registration's complete Role comparisons, and implement non-writing transaction-duration

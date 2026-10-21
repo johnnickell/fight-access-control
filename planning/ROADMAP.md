@@ -1,6 +1,6 @@
 # Roadmap
 
-## Current planning handoff — consolidated correction batch
+## Current planning handoff — correction batch integrated
 
 The [correction map](wayfinder/access-control-correction-batch-map.md)'s decisions and decomposition are complete.
 [EPIC-00001](epics/00001-EPIC.md) retains existing requirement ownership through
@@ -17,8 +17,13 @@ acceptance and nonvisual behavioral QA on its exact implementation candidate; it
 automatic parent completion while EPIC-00001 retains its historical terminal status. Its [current Role composition](../docs/role-revisions.md)
 and saved local gates are package evidence, not consumer qualification. Public summaries do not replace approved maintainer
 briefs or authorize restricted disclosure. [TASK-00080 PR #132](https://github.com/johnnickell/fight-access-control/pull/132)
-is open and ready for human review. Next: human review/merge of that PR. Consumer qualification, version selection,
-release and deployment remain separate.
+merged into `develop` on 2026-10-21 at `d1ed655`; the correction batch has no remaining decomposition,
+implementation or PR-merge handoff. Consumer qualification, version selection, release and deployment remain separate.
+
+John requested [TASK-00082](tasks/00082-TASK.md) for the README, identity assets, release-version consistency and
+this planning reconciliation. The [Board](tasks/BOARD.md) owns its current stage. After that chore, the next human
+decision is release scope/version or new work. **v0.8.0 is recommended, not authorized**, because the integrated Role
+and recovery contracts are breaking pre-v1 changes. v0.7.0 remains the latest verified published release.
 
 ## Published v0.7.0
 
@@ -26,10 +31,11 @@ release and deployment remain separate.
 from certified main merge `cf55a25` through [PR #124](https://github.com/johnnickell/fight-access-control/pull/124).
 Independent release-content acceptance, exact-main certification, human signed tag, immutable latest/non-prerelease
 GitHub publication and matching Packagist source/dist projection are verified. The
-[release overview](../docs/release-0.7.0.md) owns the breaking contracts and consumer obligations. At this
-post-publication checkpoint, merge-back and owned cleanup are authorized and pending; actual delivery outcomes
-are retained in the ignored release ledger. No implementation TASK remains unfinished. Consumer qualification,
-enablement/adoption and deployment, and the v1.0.0 stability decision, remain separate.
+[release overview](../docs/release-0.7.0.md) owns the breaking contracts and consumer obligations. Merge-back into
+`develop` completed through [PR #125](https://github.com/johnnickell/fight-access-control/pull/125) on 2026-10-20.
+The ignored release ledger retains cleanup evidence; branch cleanup is not inferred from merge state.
+The [Board](tasks/BOARD.md) owns current implementation status. Consumer qualification, enablement/adoption and
+deployment, and the v1.0.0 stability decision, remain separate.
 
 ### Historical v0.7.0 preparation checkpoint
 
@@ -101,7 +107,7 @@ dependency edge. Package proof must be distinguished from actual PostgreSQL cons
 signing, pushing and publication remain separately authorized; the Board still owns execution priority, unchanged by
 this approved decomposition.
 
-## Current package acceptance and next TASK
+## Historical Agent package acceptance checkpoint
 
 John's 2026-09-30 package-wide decision in [ADR 0011](adr/0011-pre-v1-current-contract-only.md) removes all obligations
 to support previous APIs/data iterations while pre-v1. [TASK-00068](tasks/00068-TASK.md) has accepted removal of
@@ -235,6 +241,7 @@ The EPIC's historical pre-v1.0.0 target is not an authorization to release v1.0.
 
 | Version | Date | Outcome |
 | --- | --- | --- |
+| `v0.7.0` | 2026-10-20 | Published optional User registration, activation origin and administrator recovery; merged back through PR #125. Consumer enablement and qualification remain separate. |
 | `v0.6.0` | 2026-10-19 | Published expiry-aware invitation retry and the required Clock composition change; merged back through PR #120. |
 | `v0.5.0` | 2026-10-06 | Published recoverable Agent operations, human expiry, Features and Agent-protected profile Tools; consumer qualification remains separate. |
 | `v0.4.0` | 2026-09-27 | Published protected Permission tiers, reserved Super Admin identity and atomic eligible delegation/reconciliation; consumer integration remains separately qualified. |
