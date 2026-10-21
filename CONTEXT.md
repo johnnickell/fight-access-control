@@ -6,13 +6,36 @@ Fight AccessControl owns framework-neutral identity, credential, session, author
 behavior shared by Fight applications. The repository-local behavioral and security authority is
 [TICKET-00001](planning/tickets/00001-TICKET.md).
 
-## Package entrypoint and release consistency — TASK-00082
+## v0.8.0 release preparation — 2026-10-21
+
+John selected v0.8.0 and the main checkout for `release/0.8.0` from clean, refreshed `develop`
+`6ea05dc3270f1bd314fce9878940a07be528791e`, the merge of
+[PR #133](https://github.com/johnnickell/fight-access-control/pull/133). The
+[release overview](docs/release-0.8.0.md) covers the integrated operation-outcome, recovery, managed-policy and Role
+revision contracts plus contributor/release-documentation tooling. The implementation TASKs have independent technical
+acceptance and behavioral QA; no implementation TASK remains unfinished. PHP 8.5+ and Common ^1.3 remain unchanged.
+This release preparation changes documentation only, not production code, tests, schemas, dependencies or tooling.
+
+The preparation `./bin/build` passes **2399 tests / 45422 assertions**, exact **7452/7452 statements**, without
+warnings/skips. Planning validates **118 records / 0 active**, documentation links and v0.8.0 metadata checks pass,
+and local README previews cover light/dark desktop and narrow layouts. No dependency/lockfile drift occurred;
+rebuilt image metadata changed with identical runnable Config/RootFS. This verification-prose follow-up retains that
+full gate with unchanged executable inputs and fresh targeted checks; it is not a second build or final certification.
+
+v0.7.0 remains the latest verified published release. Independent release-content acceptance, main integration,
+fresh exact-main certification, human signing, publication, merge-back and owned cleanup remain outstanding at this
+preparation checkpoint. The ignored `.runs/handoffs/release-0.8.0/ledger.md` owns resumable state and effect authority.
+No actual consumer qualification, dependency adoption, data operation, enablement, restricted disclosure or deployment
+is claimed. The separate v1.0.0 stability decision remains unchanged.
+
+## Historical package entrypoint and release consistency — TASK-00082
 
 John requested [TASK-00082](planning/tasks/00082-TASK.md) in the main checkout to reconcile merged planning
 handoffs, shorten and brand the README, and add a version-consistency preflight to release certification.
 The [release runbook](docs/releasing.md) owns the current-version inventory and publication distinction.
-v0.7.0 remains the latest verified published release. v0.8.0 is recommended for the integrated breaking Role and
-recovery contracts, not selected or authorized for release. No package behavior or consumer qualification changes.
+At that implementation checkpoint, v0.7.0 remained the latest verified published release and v0.8.0 was recommended
+for the integrated breaking Role and recovery contracts, not yet selected. John's later selection is recorded above.
+No package behavior or consumer qualification changes.
 Independent technical Review **ACCEPT** and post-review behavioral **QA PASS** cover exact candidate
 `3163026d07e82f1db6520b311aea8c72a0045f8e` against unchanged `develop` `d1ed655`: eight scenario groups,
 29 CLI/guard cases, three browser state pairs and eight instruction walkthroughs pass with no findings.
