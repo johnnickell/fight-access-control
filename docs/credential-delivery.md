@@ -22,6 +22,10 @@ field. Stale or fabricated predecessors lose without mutation. `add()` and succe
 state and fresh generation IDs/digests. Revocation, consumption and other terminal transitions destroy recoverable
 material without erasing state needed to reject stale generations.
 
+For the current password-reset persisted authority, mandatory shared User fence, lifecycle cancellation and worker
+constructor wiring, follow [recovery composition](operation-outcomes.md#recovery-composition). Delivery remains
+separate from redemption authority; consumers qualify their actual all-writer transaction and restart behavior.
+
 ## Activation origin (v0.7.0)
 
 `ActivationOrigin` is a required, non-sensitive business fact on `ActivationGrant`, shared by its exact owned

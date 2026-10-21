@@ -325,7 +325,8 @@ final class ExpiredCredentialOrderingTest extends TestCase
                     'fixture:encrypted',
                     $expiresAt,
                     $fixture->issuedAt
-                )
+                ),
+                $user->getRecoveryAuthority()
             );
         }
 
@@ -335,7 +336,8 @@ final class ExpiredCredentialOrderingTest extends TestCase
             $fixture->issuedAt,
             $expiresAt,
             $email,
-            'fixture:encrypted'
+            'fixture:encrypted',
+            $user->getRecoveryAuthority()
         );
     }
 }

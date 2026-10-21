@@ -13,6 +13,7 @@ use Fight\AccessControl\Domain\AccessControl\PasswordResetGrant\PasswordResetCre
 use Fight\AccessControl\Domain\AccessControl\PasswordResetGrant\PasswordResetDeliveryId;
 use Fight\AccessControl\Domain\AccessControl\PasswordResetGrant\PasswordResetGrant;
 use Fight\AccessControl\Domain\AccessControl\PasswordResetGrant\PasswordResetGrantRepository;
+use Fight\AccessControl\Domain\AccessControl\User\RecoveryAuthority;
 use Fight\AccessControl\Domain\AccessControl\User\UserId;
 use Fight\Common\Domain\Exception\DomainException;
 use Fight\Common\Domain\Messaging\Command\CommandMessage;
@@ -173,7 +174,8 @@ final class PasswordResetDeliveryLifecycleHandlerTest extends TestCase
             new DateTimeImmutable('2026-08-20T12:00:00+00:00'),
             new DateTimeImmutable('2026-08-20T13:00:00+00:00'),
             EmailAddress::fromString('alice@example.test'),
-            'ciphertext:'.$credential
+            'ciphertext:'.$credential,
+            new RecoveryAuthority(1, 0)
         );
     }
 }

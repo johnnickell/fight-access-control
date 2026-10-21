@@ -121,7 +121,8 @@ final readonly class ExpiredCredentialFixture
                 $arguments[1],
                 $arguments[2],
                 $arguments[3],
-                'fixture:encrypted'
+                'fixture:encrypted',
+                $this->user->getRecoveryAuthority()
             ),
             'email_change' => EmailChangeGrant::issue(
                 $arguments[0],

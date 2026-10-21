@@ -18,7 +18,9 @@ use Fight\AccessControl\Domain\AccessControl\PasswordResetGrant\Exception\Passwo
 use Fight\AccessControl\Domain\AccessControl\PasswordResetGrant\PasswordResetCredential;
 use Fight\AccessControl\Domain\AccessControl\PasswordResetGrant\PasswordResetDeliveryId;
 use Fight\AccessControl\Domain\AccessControl\PasswordResetGrant\PasswordResetGrant;
+use Fight\AccessControl\Domain\AccessControl\User\RecoveryAuthority;
 use Fight\AccessControl\Domain\AccessControl\User\UserId;
+use Fight\AccessControl\Domain\AccessControl\User\UserState;
 use Fight\Common\Domain\Exception\DomainException;
 use Fight\Common\Domain\Messaging\Command\CommandMessage;
 use Fight\Common\Domain\Messaging\Event\CommandFailedEvent;
@@ -32,6 +34,8 @@ use Fight\Test\AccessControl\Application\AccessControl\PasswordResetGrant\Servic
 use Fight\Test\AccessControl\Application\AccessControl\Timing\Service\FixedClock;
 use Fight\Test\AccessControl\Application\AccessControl\User\InMemoryCommandBus;
 use Fight\Test\AccessControl\Application\AccessControl\User\InMemoryUnitOfWork;
+use Fight\Test\AccessControl\Application\AccessControl\User\Repository\InMemoryUserRepository;
+use Fight\Test\AccessControl\Domain\AccessControl\User\UserFixture;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
 use RuntimeException;
@@ -324,7 +328,8 @@ final class DeliverPasswordResetHandlerTest extends TestCase
                     new PrefixPasswordResetDeliveryCipher(),
                     $provider,
                     new FixedClock('2026-08-23T11:06:00+00:00'),
-                    new InMemoryEventDispatcher()
+                    new InMemoryEventDispatcher(),
+                    $this->users($repository, $unitOfWork)
                 )->handle(CommandMessage::create($this->command($grant)));
                 self::assertSame(
                     CredentialDeliveryStatus::DELIVERED,
@@ -342,8 +347,28 @@ final class DeliverPasswordResetHandlerTest extends TestCase
             new DateTimeImmutable('2026-08-23T11:00:00+00:00'),
             new DateTimeImmutable($expiresAt),
             EmailAddress::fromString('alice@example.test'),
-            'ciphertext:reset-once'
+            'ciphertext:reset-once',
+            new RecoveryAuthority(1, 0)
         );
+    }
+
+    private function users(
+        InMemoryPasswordResetGrants $repository,
+        InMemoryUnitOfWork $unitOfWork
+    ): InMemoryUserRepository {
+        $users = new InMemoryUserRepository($unitOfWork);
+        foreach ($repository->all() as $grant) {
+            if ($users->getById($grant->getUserId()) === null) {
+                $users->add(UserFixture::withIdAndAuthenticationVersion(
+                    $grant->getUserId(),
+                    $grant->getDelivery()->getEmail()->toString(),
+                    UserState::ACTIVE,
+                    $grant->getAuthority()->getAuthenticationVersion()
+                ));
+            }
+        }
+
+        return $users;
     }
 
     private function command(PasswordResetGrant $grant): DeliverPasswordReset
@@ -369,7 +394,8 @@ final class DeliverPasswordResetHandlerTest extends TestCase
             new PrefixPasswordResetDeliveryCipher(),
             $provider ?? new RecordingCredentialDeliveryProvider(),
             new FixedClock('2026-08-23T11:00:00+00:00'),
-            $events ?? new InMemoryEventDispatcher()
+            $events ?? new InMemoryEventDispatcher(),
+            $this->users($repository, $unitOfWork)
         );
     }
 }

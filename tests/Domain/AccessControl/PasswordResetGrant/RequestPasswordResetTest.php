@@ -12,6 +12,7 @@ use Fight\AccessControl\Domain\AccessControl\PasswordResetGrant\PasswordResetCre
 use Fight\AccessControl\Domain\AccessControl\PasswordResetGrant\PasswordResetDeliveryId;
 use Fight\AccessControl\Domain\AccessControl\PasswordResetGrant\PasswordResetGrant;
 use Fight\AccessControl\Domain\AccessControl\PasswordResetGrant\PasswordResetGrantId;
+use Fight\AccessControl\Domain\AccessControl\User\RecoveryAuthority;
 use Fight\AccessControl\Domain\AccessControl\User\UserId;
 use Fight\Common\Domain\Exception\DomainException;
 use Fight\Common\Domain\Value\Internet\EmailAddress;
@@ -54,7 +55,8 @@ final class RequestPasswordResetTest extends TestCase
             new DateTimeImmutable('2026-08-20T12:00:00+00:00'),
             new DateTimeImmutable('2026-08-20T13:00:00+00:00'),
             EmailAddress::fromString('alice@example.test'),
-            'ciphertext'
+            'ciphertext',
+            new RecoveryAuthority(1, 0)
         );
 
         self::assertSame('reset-once', $credential->toString());
@@ -88,7 +90,8 @@ final class RequestPasswordResetTest extends TestCase
             new DateTimeImmutable('2026-08-20T12:00:00+00:00'),
             new DateTimeImmutable('2026-08-20T12:00:00+00:00'),
             EmailAddress::fromString('alice@example.test'),
-            'ciphertext'
+            'ciphertext',
+            new RecoveryAuthority(1, 0)
         );
     }
 
@@ -100,7 +103,8 @@ final class RequestPasswordResetTest extends TestCase
             new DateTimeImmutable('2026-08-20T12:00:00+00:00'),
             new DateTimeImmutable('2026-08-20T13:00:00+00:00'),
             EmailAddress::fromString('alice@example.test'),
-            'ciphertext'
+            'ciphertext',
+            new RecoveryAuthority(1, 0)
         );
         $revoked = $grant->revoke(new DateTimeImmutable('2026-08-20T12:15:00+00:00'));
 
@@ -125,7 +129,8 @@ final class RequestPasswordResetTest extends TestCase
             new DateTimeImmutable('2026-08-20T12:00:00+00:00'),
             new DateTimeImmutable('2026-08-20T13:00:00+00:00'),
             EmailAddress::fromString('alice@example.test'),
-            'ciphertext'
+            'ciphertext',
+            new RecoveryAuthority(1, 0)
         );
 
         $this->expectException(PasswordResetGrantException::class);
@@ -142,7 +147,8 @@ final class RequestPasswordResetTest extends TestCase
             new DateTimeImmutable('2026-08-20T12:00:00+00:00'),
             new DateTimeImmutable('2026-08-20T13:00:00+00:00'),
             EmailAddress::fromString('alice@example.test'),
-            'ciphertext'
+            'ciphertext',
+            new RecoveryAuthority(1, 0)
         );
 
         $consumed = $grant->consume(new DateTimeImmutable('2026-08-20T12:15:00+00:00'));

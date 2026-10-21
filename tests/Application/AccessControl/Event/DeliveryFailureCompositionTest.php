@@ -153,7 +153,8 @@ final class DeliveryFailureCompositionTest extends TestCase
                 new PrefixPasswordResetDeliveryCipher(),
                 $provider,
                 $clock,
-                $events
+                $events,
+                $users
             );
             $request = new RequestPasswordResetHandler(
                 $users,

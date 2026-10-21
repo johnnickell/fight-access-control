@@ -4,10 +4,12 @@ declare(strict_types=1);
 
 namespace Fight\AccessControl\Application\AccessControl\User\CommandHandler;
 
+use Fight\AccessControl\Application\AccessControl\PasswordResetGrant\Service\PasswordResetRevocationService;
 use Fight\AccessControl\Application\AccessControl\RefreshSession\Service\SessionRevocationService;
 use Fight\AccessControl\Application\AccessControl\Timing\Service\Clock;
 use Fight\AccessControl\Domain\AccessControl\Audit\AuditEvidence;
 use Fight\AccessControl\Domain\AccessControl\Audit\AuditEvidenceRepository;
+use Fight\AccessControl\Domain\AccessControl\PasswordResetGrant\PasswordResetGrantRepository;
 use Fight\AccessControl\Domain\AccessControl\User\Command\DeleteUser;
 use Fight\AccessControl\Domain\AccessControl\User\Event\UserDeleted;
 use Fight\AccessControl\Domain\AccessControl\User\Exception\UserLifecycleException;
@@ -39,7 +41,8 @@ final readonly class DeleteUserHandler implements CommandHandler
         private Clock $clock,
         private AuditEvidenceRepository $auditEvidenceRepository,
         private TransactionalUnitOfWork $unitOfWork,
-        private EventDispatcher $eventDispatcher
+        private EventDispatcher $eventDispatcher,
+        private PasswordResetGrantRepository $passwordResetGrantRepository
     ) {
     }
 
@@ -73,6 +76,10 @@ final readonly class DeleteUserHandler implements CommandHandler
                     throw new LogicException('The user lifecycle state changed concurrently.');
                 }
 
+                new PasswordResetRevocationService($this->passwordResetGrantRepository)->revokeFor(
+                    $command->getUserId(),
+                    $now
+                );
                 $this->sessionRevocationService->revokeAllActiveFor(
                     $command->getUserId(),
                     $now

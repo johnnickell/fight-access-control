@@ -76,6 +76,10 @@ final readonly class RequestPasswordResetHandler implements CommandHandler
                     return null;
                 }
 
+                if (!$this->userRepository->validateRecoveryAuthority($user)) {
+                    throw new LogicException('Password-reset authority changed concurrently.');
+                }
+
                 $issuedAt = $this->clock->now();
                 $predecessorGrant = $this->passwordResetGrantRepository->getLatestByUserId($user->getId());
                 $credential = $this->passwordResetCredentialGenerator->generate();
@@ -86,7 +90,8 @@ final readonly class RequestPasswordResetHandler implements CommandHandler
                     $issuedAt,
                     $expiresAt,
                     $user->getEmail(),
-                    $this->passwordResetDeliveryCipher->encrypt($credential->toString())
+                    $this->passwordResetDeliveryCipher->encrypt($credential->toString()),
+                    $user->getRecoveryAuthority()
                 );
                 $passwordResetDelivery = $passwordResetGrant->getDelivery();
 

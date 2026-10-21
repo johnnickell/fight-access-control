@@ -14,6 +14,7 @@ use Fight\AccessControl\Domain\AccessControl\EmailChangeGrant\EmailChangeCredent
 use Fight\AccessControl\Domain\AccessControl\EmailChangeGrant\EmailChangeGrant;
 use Fight\AccessControl\Domain\AccessControl\PasswordResetGrant\PasswordResetCredential;
 use Fight\AccessControl\Domain\AccessControl\PasswordResetGrant\PasswordResetGrant;
+use Fight\AccessControl\Domain\AccessControl\User\RecoveryAuthority;
 use Fight\AccessControl\Domain\AccessControl\User\User;
 use Fight\AccessControl\Domain\AccessControl\User\UserId;
 use Fight\AccessControl\Domain\AccessControl\User\UserState;
@@ -49,7 +50,8 @@ final class OfflineCredentialExpiryRegressionTest extends TestCase
             ), new InMemoryActivationGrantRepository()],
             'password_reset' => [PasswordResetGrant::issue(
                 $userId,
-                PasswordResetCredential::fromString('fixture'), $issuedAt, $expiresAt, $email, 'fixture:encrypted'
+                PasswordResetCredential::fromString('fixture'), $issuedAt, $expiresAt, $email, 'fixture:encrypted',
+                new RecoveryAuthority(1, 0)
             ), new InMemoryPasswordResetGrants()],
             'email_change' => [EmailChangeGrant::issue(
                 $userId,

@@ -19,13 +19,21 @@ use Fight\AccessControl\Domain\AccessControl\User\UserId;
  * state with that stored generation, never PHP object identity or identifier and revision alone, and validate the next
  * transition from stored state. Every write returns false without mutation when its latest-generation precondition or
  * state comparison loses. Same-generation replacement is allowed only for a valid next revision of the same grant,
- * credential digest, expiry, user, and owned delivery generation. Credential digests remain unique across the user's
+ * credential digest, expiry, user, immutable RecoveryAuthority (authenticationVersion and canonicalEmailRevision),
+ * and owned delivery generation. Current hydration requires both validated security values with no defaults.
+ * Credential digests remain unique across the user's
  * complete generation history.
  *
  * Implementations participate in the caller's transactional unit of work: writes are staged until commit and are
  * fully rolled back with the surrounding transaction. Successor operations atomically preserve or terminalize the
  * predecessor as specified and insert the successor. Stale delivery callbacks must not mutate or invalidate newer
- * delivery generations.
+ * delivery generations. Every writer, including direct expiry/retry/revocation paths, shares the per-User fence
+ * with UserRepository through transaction completion on one connection. Acquire User before grant locks. Issuance
+ * validates the current eligible User identity, canonical destination and issuing RecoveryAuthority under that fence;
+ * claim and outcome writes also validate that authority. Cancellation/cleanup can terminalize inactive authority.
+ * Authority-changing User writers cancel outstanding grant and ciphertext in the same transaction, with required
+ * audit. Direct repository paths cannot bypass admission or these fences. Compare both authority values in every
+ * complete-state operand and preserve them through every same-generation transition.
  */
 interface PasswordResetGrantRepository
 {
@@ -33,7 +41,8 @@ interface PasswordResetGrantRepository
      * Returns deterministic secret-free due work ordered by eligibility time then delivery identifier
      *
      * Pending and due-retry work is eligible at its due time. Claimed work is eligible at lease expiry. Only the
-     * authoritative latest generation for each User participates. The positive limit is applied after ordering.
+     * authoritative latest issued generation for each eligible matching User authority participates.
+     * The positive limit is applied after ordering.
      *
      * @return list<DueCredentialDelivery>
      *

@@ -47,6 +47,31 @@ final class ExtensiblePasswordResetDelivery extends PasswordResetDelivery
         );
     }
 
+    public static function fromStoredState(PasswordResetDelivery $delivery): self
+    {
+        $material = $delivery->getEncryptedMaterial();
+        if ($material !== null) {
+            $material = EncryptedCredentialMaterial::fromString($material->reveal());
+        }
+
+        return new self(
+            $delivery->getId(),
+            $delivery->getUserId(),
+            $delivery->getEmail(),
+            $material,
+            $delivery->getExpiresAt(),
+            $delivery->getDueAt(),
+            $delivery->getStatus(),
+            $delivery->getClaimToken(),
+            $delivery->getClaimedAt(),
+            $delivery->getLeaseUntil(),
+            $delivery->getAttemptCount(),
+            $delivery->getLastAttemptAt(),
+            $delivery->getLastOutcomeAt(),
+            $delivery->getLastFailure()
+        );
+    }
+
     public static function reconstitute(
         PasswordResetDeliveryId $id,
         UserId $userId,

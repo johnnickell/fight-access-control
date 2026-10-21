@@ -44,10 +44,24 @@ interface UserRepository
     public function getById(UserId $id): ?User;
 
     /**
+     * Validates an eligible recovery identity under the shared transaction-duration User fence
+     *
+     * Compare complete expected User state against authoritative storage, including canonical email and recovery
+     * authority. Return false without mutation on stale or inactive state. Hold the same per-User fence as every
+     * User and password-reset grant writer through the enclosing transaction completion, even without a User write.
+     * Issuance, redemption and delivery couple this validation with their grant CAS and required audit. Consumers
+     * use a consistent User-before-grant lock order on one actual connection; reads alone do not grant admission.
+     *
+     * @throws Exception When an error occurs
+     */
+    public function validateRecoveryAuthority(User $expected): bool;
+
+    /**
      * Replaces authentication authority atomically while the expected predecessor remains current
      *
      * Implementations compare the stable identity, lifecycle state, password hash, authentication version, and
      * authentication-authority revision. The replacement must advance the authority revision by exactly one.
+     * An authentication-version change couples outstanding password-reset cancellation in the same transaction.
      * A successful operation participates in the same per-user authentication-authority fence as
      * replaceAuthenticationAuthorityAndAddRefreshSession(), held through the enclosing Unit of Work completion.
      * Returns false when the expected predecessor has lost authority or the replacement is invalid.
@@ -119,7 +133,8 @@ interface UserRepository
      * Implementations compare complete expected User state and permit only promotion of the live destination to the
      * canonical email, reservation clearing, exact authentication-version, authentication-authority,
      * reservation-revision, and canonical-email-revision advancement. The operation participates in the same
-     * transaction-duration authentication-authority fence as other authority replacements. Returns false without
+     * transaction-duration authentication-authority fence as other authority replacements and couples outstanding
+     * password-reset cancellation in the same transaction. Returns false without
      * mutation when the predecessor changed or the transition is invalid.
      *
      * @throws Exception When an error occurs
@@ -159,7 +174,9 @@ interface UserRepository
      * Implementations compare the complete expected User state and permit only one valid lifecycle transition:
      * active to disabled, disabled to active, active or disabled to deleted, or deleted to active or pending
      * activation. A restoration to pending activation clears the password hash; every other transition preserves it.
-     * No other field may change. Returns false without mutation when the predecessor changed or the transition is
+     * Disable and delete advance authenticationVersion exactly once; enable and restore preserve it. Outstanding
+     * password-reset authority and recoverable material are cancelled in the same transaction. No other field may
+     * change. Returns false without mutation when the predecessor changed or the transition is
      * invalid.
      *
      * @throws Exception When an error occurs

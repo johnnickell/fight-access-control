@@ -28,6 +28,7 @@ use Fight\Test\AccessControl\Application\AccessControl\ActivationGrant\Service\F
 use Fight\Test\AccessControl\Application\AccessControl\ActivationGrant\Service\PrefixInvitationDeliveryCipher;
 use Fight\Test\AccessControl\Application\AccessControl\CredentialDelivery\Service\RecordingCredentialDeliveryProvider;
 use Fight\Test\AccessControl\Application\AccessControl\Event\InMemoryEventDispatcher;
+use Fight\Test\AccessControl\Application\AccessControl\PasswordResetGrant\Repository\InMemoryPasswordResetGrants;
 use Fight\Test\AccessControl\Application\AccessControl\RefreshSession\Repository\InMemoryRefreshSessionRepository;
 use Fight\Test\AccessControl\Application\AccessControl\Timing\Service\FixedClock;
 use Fight\Test\AccessControl\Domain\AccessControl\User\UserFixture;
@@ -354,7 +355,8 @@ final class RegistrationRecoveryRaceTest extends TestCase
                 new FixedClock('2030-01-02T00:00:00Z'),
                 $fixture->audit,
                 $fixture->unitOfWork,
-                new InMemoryEventDispatcher()
+                new InMemoryEventDispatcher(),
+                new InMemoryPasswordResetGrants($fixture->unitOfWork)
             );
             if ($recoveryFirst) {
                 $fixture->handler()->handle(CommandMessage::create($fixture->command()));

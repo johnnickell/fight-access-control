@@ -1091,7 +1091,8 @@ final class AuthenticationServiceTest extends TestCase
             new DateTimeImmutable('2026-08-19T11:00:00+00:00'),
             new DateTimeImmutable('2026-08-19T13:00:00+00:00'),
             $user->getEmail(),
-            'ciphertext:reset-once'
+            'ciphertext:reset-once',
+            $user->getRecoveryAuthority()
         ));
         $resetService = $this->service(
             $resetUsers,
@@ -1200,7 +1201,8 @@ final class AuthenticationServiceTest extends TestCase
             new DateTimeImmutable('2026-08-19T11:00:00+00:00'),
             new DateTimeImmutable('2026-08-19T13:00:00+00:00'),
             $user->getEmail(),
-            'ciphertext:reset-once'
+            'ciphertext:reset-once',
+            $user->getRecoveryAuthority()
         ));
         $resetService = $this->service(
             $resetUsers,
@@ -1298,7 +1300,6 @@ final class AuthenticationServiceTest extends TestCase
             $loginEvents
         );
         $resetUnitOfWork = new InMemoryUnitOfWork();
-        $resetUsers = new InMemoryUserRepository($resetUnitOfWork, state: $userState);
         $resetSessions = new InMemoryRefreshSessionRepository($resetUnitOfWork, state: $sessionState);
         $passwordResetGrants = new InMemoryPasswordResetGrants($resetUnitOfWork);
         $auditEvidence = new InMemoryAuditEvidenceRepository($resetUnitOfWork);
@@ -1309,27 +1310,22 @@ final class AuthenticationServiceTest extends TestCase
             new DateTimeImmutable('2026-08-19T11:00:00+00:00'),
             new DateTimeImmutable('2026-08-19T13:00:00+00:00'),
             $user->getEmail(),
-            'ciphertext:reset-once'
+            'ciphertext:reset-once',
+            $user->getRecoveryAuthority()
         ));
-        $interleavingHasher = new readonly class ($loginService) implements PasswordHasher {
-            public function __construct(private AuthenticationService $loginService)
-            {
+        $resetUsers = new InMemoryUserRepository(
+            $resetUnitOfWork,
+            state: $userState,
+            beforeValidateRecoveryAuthority: static function () use ($loginService): void {
+                $loginService->login('atomic-login-first@example.test', 'correct-secret');
             }
-
-            public function hash(string $password): string
-            {
-                $this->loginService->login('atomic-login-first@example.test', 'correct-secret');
-
-                return password_hash($password, PASSWORD_DEFAULT);
-            }
-        };
+        );
         $resetService = $this->service(
             $resetUsers,
             new InMemoryActivationGrantRepository($resetUnitOfWork),
             $resetSessions,
             $resetUnitOfWork,
             $resetEvents,
-            passwordHasher: $interleavingHasher,
             passwordResetGrantRepository: $passwordResetGrants,
             auditEvidenceRepository: $auditEvidence
         );
@@ -1408,7 +1404,8 @@ final class AuthenticationServiceTest extends TestCase
             new DateTimeImmutable('2026-08-19T11:00:00+00:00'),
             new DateTimeImmutable('2026-08-19T13:00:00+00:00'),
             $user->getEmail(),
-            'ciphertext:reset-once'
+            'ciphertext:reset-once',
+            $user->getRecoveryAuthority()
         ));
         $resetService = $this->service(
             $resetUsers,
@@ -1480,7 +1477,8 @@ final class AuthenticationServiceTest extends TestCase
             new DateTimeImmutable('2026-08-19T11:00:00+00:00'),
             new DateTimeImmutable('2026-08-19T13:00:00+00:00'),
             $user->getEmail(),
-            'ciphertext:reset-once'
+            'ciphertext:reset-once',
+            $user->getRecoveryAuthority()
         ));
         $loginUnitOfWork = new InMemoryUnitOfWork();
         $loginUsers = new InMemoryUserRepository($loginUnitOfWork, state: $userState);
@@ -1511,6 +1509,11 @@ final class AuthenticationServiceTest extends TestCase
             public function getById(UserId $id): ?User
             {
                 return $this->users->getById($id);
+            }
+
+            public function validateRecoveryAuthority(User $expected): bool
+            {
+                return $this->users->validateRecoveryAuthority($expected);
             }
 
             public function replaceAuthenticationAuthority(User $expected, User $replacement): bool
@@ -1649,7 +1652,8 @@ final class AuthenticationServiceTest extends TestCase
             $issuedAt,
             $expiresAt,
             $user->getEmail(),
-            'ciphertext:reset-once'
+            'ciphertext:reset-once',
+            $user->getRecoveryAuthority()
         ));
         $sessions->add($this->session($user, $this->refreshCredential(), false));
         $sessions->add($this->session(
@@ -1758,7 +1762,8 @@ final class AuthenticationServiceTest extends TestCase
             new DateTimeImmutable('2026-08-19T11:00:00+00:00'),
             new DateTimeImmutable('2026-08-19T13:00:00+00:00'),
             $user->getEmail(),
-            'ciphertext:reset-once'
+            'ciphertext:reset-once',
+            $user->getRecoveryAuthority()
         );
         $passwordResetGrants->add($passwordResetGrant);
         $refreshSession = $this->session($user, $this->refreshCredential(), false);
@@ -1817,7 +1822,8 @@ final class AuthenticationServiceTest extends TestCase
             new DateTimeImmutable('2026-08-19T11:00:00+00:00'),
             new DateTimeImmutable('2026-08-19T13:00:00+00:00'),
             $user->getEmail(),
-            'ciphertext:reset-once'
+            'ciphertext:reset-once',
+            $user->getRecoveryAuthority()
         );
         $passwordResetGrants->add($passwordResetGrant);
         $refreshSession = $this->session($user, $this->refreshCredential(), false);
@@ -1875,7 +1881,8 @@ final class AuthenticationServiceTest extends TestCase
             new DateTimeImmutable('2026-08-19T11:00:00+00:00'),
             new DateTimeImmutable('2026-08-19T13:00:00+00:00'),
             $user->getEmail(),
-            'ciphertext:reset-once'
+            'ciphertext:reset-once',
+            $user->getRecoveryAuthority()
         );
         $passwordResetGrant = $issuedPasswordResetGrant;
         if ($hasInvalidatedDelivery) {
@@ -1950,7 +1957,8 @@ final class AuthenticationServiceTest extends TestCase
             new DateTimeImmutable('2026-08-19T11:00:00+00:00'),
             $expiresAt,
             $user->getEmail(),
-            'ciphertext:reset-once'
+            'ciphertext:reset-once',
+            $user->getRecoveryAuthority()
         );
         $passwordResetGrant = $issuedPasswordResetGrant;
         if ($scenario === 'consumed grant replay') {
@@ -2049,7 +2057,8 @@ final class AuthenticationServiceTest extends TestCase
             new DateTimeImmutable('2026-08-19T11:00:00+00:00'),
             $expiresAt,
             $user->getEmail(),
-            'ciphertext:reset-once'
+            'ciphertext:reset-once',
+            $user->getRecoveryAuthority()
         );
         $firstSession = $this->session($user, $this->refreshCredential(), false);
         $secondSession = $this->session(

@@ -11,6 +11,7 @@ use Fight\AccessControl\Domain\AccessControl\PasswordResetGrant\PasswordResetCre
 use Fight\AccessControl\Domain\AccessControl\PasswordResetGrant\PasswordResetDeliveryId;
 use Fight\AccessControl\Domain\AccessControl\PasswordResetGrant\PasswordResetGrant;
 use Fight\AccessControl\Domain\AccessControl\PasswordResetGrant\PasswordResetGrantId;
+use Fight\AccessControl\Domain\AccessControl\User\RecoveryAuthority;
 use Fight\AccessControl\Domain\AccessControl\User\UserId;
 use Fight\Common\Domain\Value\Internet\EmailAddress;
 use PHPUnit\Framework\Attributes\CoversClass;
@@ -31,7 +32,8 @@ final class PasswordResetGrantSubtypeTest extends TestCase
             $issuedAt,
             $expiresAt,
             $email,
-            'ciphertext'
+            'ciphertext',
+            new RecoveryAuthority(1, 0)
         );
         $reconstituted = ExtensiblePasswordResetGrant::reconstitute(
             PasswordResetGrantId::generate(),
@@ -45,7 +47,8 @@ final class PasswordResetGrantSubtypeTest extends TestCase
                 'ciphertext',
                 $expiresAt,
                 $issuedAt
-            )
+            ),
+            new RecoveryAuthority(1, 0)
         );
 
         self::assertInstanceOf(ExtensiblePasswordResetGrant::class, $grant);
