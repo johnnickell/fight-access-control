@@ -6,6 +6,15 @@ Fight AccessControl owns framework-neutral identity, credential, session, author
 behavior shared by Fight applications. The repository-local behavioral and security authority is
 [TICKET-00001](planning/tickets/00001-TICKET.md).
 
+## Package entrypoint and release consistency — TASK-00082
+
+John requested [TASK-00082](planning/tasks/00082-TASK.md) in the main checkout to reconcile merged planning
+handoffs, shorten and brand the README, and add a version-consistency preflight to release certification.
+The [release runbook](docs/releasing.md) owns the current-version inventory and publication distinction.
+v0.7.0 remains the latest verified published release. v0.8.0 is recommended for the integrated breaking Role and
+recovery contracts, not selected or authorized for release. No package behavior or consumer qualification changes.
+Independent acceptance and behavioral QA of this documentation/tooling chore remain pending.
+
 ## Role caller revisions — TASK-00080 delivery checkpoint
 
 [TASK-00080](planning/tasks/00080-TASK.md) completed its accepted Role caller-revision capability on
@@ -113,7 +122,8 @@ planning. TICKET-00001 owns [TASK-00077](planning/tasks/00077-TASK.md) for opera
 for policy consistency. TICKET-00024 owns [TASK-00080](planning/tasks/00080-TASK.md) for Role caller revisions.
 TASK-00078/00079 depend on TASK-00077; TASK-00080 depends on TASK-00077/00079. The relative order of
 TASK-00078 and TASK-00079 is priority only. TASK-00077, TASK-00078 and TASK-00079 are complete and integrated;
-TASK-00080 is in progress, awaiting its independent acceptance and required QA.
+TASK-00080 also completed independent acceptance and behavioral QA, and its PR #132 merged into `develop`
+at `d1ed655` on 2026-10-21. The correction batch has no remaining implementation or merge handoff.
 
 Public records summarize approved scope, ownership and sequencing. Full maintainer briefs and restricted evidence
 remain private under SECURITY.md and must be obtained before implementation or independent review. No new behavioral
@@ -135,9 +145,10 @@ the provider release attestation verifies the tag object. Packagist normalized v
 and dist references. This is registry projection, not installed-consumer qualification, adoption or deployment.
 The [release overview](docs/release-0.7.0.md) retains the breaking contracts and unexecuted consumer obligations.
 
-At this post-publication reconciliation checkpoint, reviewed merge-back into `develop` and owned branch cleanup
-are authorized but not yet completed. Their actual outcomes belong in the ignored release ledger, not a prediction
-of this document's eventual commit. No package behavior, dependency, test or gate input changes in this follow-up;
+Reviewed merge-back into `develop` subsequently completed through
+[PR #125](https://github.com/johnnickell/fight-access-control/pull/125) on 2026-10-20. Owned branch cleanup outcomes
+remain in the ignored release ledger and are not inferred from the merge. At the original publication-reconciliation
+checkpoint there were no package behavior, dependency, test or gate input changes;
 retain the exact-main full gate through verified input equivalence and fresh documentation/planning checks.
 EPIC-00013 and its children are already done; the separate v1.0.0 stability decision remains unchanged.
 

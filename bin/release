@@ -9,19 +9,8 @@ ID_BIN="${ID_BIN:-id}"
 PHP_IMAGE="${FIGHT_ACCESS_CONTROL_PHP_IMAGE:-fight-access-control}"
 
 usage() {
-    echo 'Usage: ./bin/release certify <version>' >&2
+    echo 'Usage: ./bin/release {check-docs|certify} <version>' >&2
     exit 2
-}
-
-validate_changelog_version() {
-    local version="$1"
-    local escaped_version="${version//./\\.}"
-
-    CHANGELOG_HEADING="$(grep -E "^## \\[${escaped_version}\\] - [0-9]{4}-[0-9]{2}-[0-9]{2}$" "${ROOT_DIR}/CHANGELOG.md" || true)"
-    if [[ -z "${CHANGELOG_HEADING}" ]]; then
-        echo "bin/release: CHANGELOG.md must contain a dated [${version}] release heading." >&2
-        exit 3
-    fi
 }
 
 run_step() {
@@ -73,6 +62,7 @@ $record = [
     "changelog_heading" => $argv[4],
     "clean_checkout" => true,
     "checks" => [
+        "release_documentation" => "release-docs.log",
         "openapi_consumer_composition" => "openapi-composition.log",
         "planning_integrity" => "planning-check.log",
         "package_quality" => "build.log",
@@ -85,7 +75,7 @@ file_put_contents(
 ' "${certification_path}" "${version}" "${commit}" "${changelog_heading}"
 }
 
-if (( $# != 2 )) || [[ "$1" != 'certify' ]]; then
+if (( $# != 2 )) || [[ "$1" != 'certify' && "$1" != 'check-docs' ]]; then
     usage
 fi
 
@@ -95,12 +85,14 @@ if [[ ! "${VERSION}" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
 fi
 
 cd "${ROOT_DIR}"
+if [[ "$1" == 'check-docs' ]]; then
+    exec python3 scripts/check_release_docs.py "${VERSION}"
+fi
+
 if [[ -n "$("${GIT_BIN}" status --porcelain --untracked-files=all)" ]]; then
     echo 'bin/release: certification requires a clean checkout.' >&2
     exit 3
 fi
-
-validate_changelog_version "${VERSION}"
 
 COMMIT="$("${GIT_BIN}" rev-parse --verify HEAD)"
 if [[ ! "${COMMIT}" =~ ^[a-f0-9]{40}$ ]]; then
@@ -116,6 +108,9 @@ fi
 
 mkdir -p "${EVIDENCE_DIR}"
 
+run_step 'release documentation' "${EVIDENCE_DIR}/release-docs.log" python3 scripts/check_release_docs.py "${VERSION}"
+ESCAPED_VERSION="${VERSION//./\\.}"
+CHANGELOG_HEADING="$(grep -E "^## \\[${ESCAPED_VERSION}\\] - [0-9]{4}-[0-9]{2}-[0-9]{2}$" CHANGELOG.md)"
 run_step 'planning integrity' "${EVIDENCE_DIR}/planning-check.log" ./bin/planning-check
 run_step 'package quality' "${EVIDENCE_DIR}/build.log" ./bin/build
 run_step 'OpenAPI consumer composition' "${EVIDENCE_DIR}/openapi-composition.log" verify_openapi_composition
