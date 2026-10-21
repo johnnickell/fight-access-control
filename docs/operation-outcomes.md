@@ -34,7 +34,64 @@ worker fault may therefore propagate through the original request even though is
 [delivery status and due work](credential-delivery.md), retain exact generation identities, and keep provider retry
 classification distinct from outer operation failure notification. No outbox or guaranteed event replay is supplied.
 
-This is B1's contribution to the correction-batch integration handoff. Other approved slices remain separate work.
-Package tests do not qualify real consumer transaction connections, rollback/uncertain commits, worker restarts,
-provider idempotency, entry-point authorization or response/log handling. Those require consumer-owned evidence;
-no consumer adoption, release or deployment is authorized by this guide.
+## Recovery composition
+
+Password-reset generations carry immutable `User\\RecoveryAuthority`: the issuing `authenticationVersion` and
+`canonicalEmailRevision`. `PasswordResetGrant::issue()` requires it as the final argument; the protected hydration
+constructor requires it immediately after the delivery. Persist both integers with every generation, including
+terminal history. Construct `RecoveryAuthority` from those stored values (positive authentication version,
+nonnegative canonical-email revision), never from the latest User during hydration. There is no missing-value
+default, historical reader or package migration. These are internal persisted values, not new caller input or
+OpenAPI fields. Compare them in both operands of complete-state CAS and preserve them in every same-generation
+transition. Existing identity, digest-history, delivery-generation, revision, claim and lease comparisons still apply.
+
+`User::getRecoveryAuthority()` supplies the current values. Confirmed canonical-email and password changes advance
+security authority. Disable/delete also advance authentication version and atomically revoke outstanding reset
+authority and destroy its delivery material. Enable/restore does not issue or restore recovery. Ordinary login,
+rehash, refresh/logout, Role changes and unconfirmed email request/cancellation/expiry do not independently advance
+recovery authority. Redemption remains single-use, expiry-bound and restricted to the current eligible owning User;
+it does not require delivery success. A delivery result never proves redemption eligibility.
+
+### Shared connection and all writers
+
+Implement mandatory `UserRepository::validateRecoveryAuthority(expectedUser)` against complete authoritative User
+state. Successful validation holds the same per-User fence as every User and password-reset grant writer through
+transaction completion, even without a User mutation. Issuance validates the requested canonical identity under
+that fence before persisting a pristine matching generation. Redemption couples validation, consumption, User
+replacement, session revocation and required audit. Authority-changing operations couple cancellation and User
+mutation with their existing audit; failure rolls back both. No cancellation is deferred until after commit.
+
+Use one real connection/Unit of Work and a consistent **User-before-grant** lock order. All authentication, lifecycle,
+email, Role, direct repository, issuance, replacement, revocation, cleanup and worker writers participate. A prior
+read, an ORM identity-map object, autocommit validation or a startup check cannot substitute for transaction-duration
+admission. Both integers must remain monotonic and must fail closed on invalid/out-of-range persistence or overflow.
+Direct grant issuance and claim/outcome persistence cannot bypass current eligible User authority validation.
+
+Current constructor composition requires:
+
+- `DeliverPasswordResetHandler`: append the shared `UserRepository` after the dispatcher.
+- `DisableUserHandler` and `DeleteUserHandler`: append the shared `PasswordResetGrantRepository` after the dispatcher.
+- `AuthenticationService` and `RequestPasswordResetHandler`: retain their existing shared User/grant/audit composition.
+
+The reset worker validates current User authority in its claim and outcome transactions. Decryption and the provider
+call remain outside transactions. An admitted invocation can arrive late externally; its outcome cannot restore
+cancelled authority or acknowledge a successor. No withdrawal of sent mail, distributed provider transaction or
+exactly-once effect is promised. Due discovery returns only current eligible matching authority. A lost provider or
+commit acknowledgement is reconciled from persisted generation/claim state; lease recovery retains the delivery ID.
+Unknown/ineligible requests retain their generic no-work result. Protect every query and alternate entry point;
+actor provenance, status views and advisory discovery results confer no permission.
+
+### Qualification boundary
+
+`RecoveryAuthorityConformance` is consumer-bindable: provide isolated `repository()` and `restart(repository)` hooks,
+reopening actual persistence and hydrating all fields without issuing replacements. Bind writes to the actual
+transaction boundary. It checks persisted authority through claims/outcomes/restart and complete-state predecessor,
+replacement and terminal-successor comparisons. `RecoveryLifecycleTest`, `RecoveryConcurrencyTest` and
+`RecoveryOutcomeTest` supply package-port lifecycle, all-writer fence and interrupted-completion scenarios. Their
+controlled in-memory connections and restart models are not SQL isolation or physical-process proof.
+
+This is the current B1/B2 consumer handoff; other approved slices remain separate work. Consumers must independently
+qualify real shared-connection races in both winner orders, rollback/uncertain commits, response loss, persistence
+hydration, worker restarts, provider idempotency/delayed outcomes, permissions and response/log handling. Keep keys,
+raw credentials, hashes and ciphertext out of public evidence. No consumer adoption, release or deployment is
+authorized by this guide.

@@ -16,6 +16,7 @@ use Fight\AccessControl\Domain\AccessControl\PasswordResetGrant\PasswordResetGra
 use Fight\AccessControl\Domain\AccessControl\User\UserId;
 use Fight\Common\Domain\Exception\DomainException;
 use Fight\Test\AccessControl\Application\AccessControl\User\InMemoryUnitOfWork;
+use Fight\Test\AccessControl\Application\AccessControl\User\Repository\InMemoryUserRepositoryState;
 use Throwable;
 
 final class InMemoryPasswordResetGrants implements PasswordResetGrantRepository
@@ -25,6 +26,10 @@ final class InMemoryPasswordResetGrants implements PasswordResetGrantRepository
 
     private int $replaceCalls = 0;
 
+    private readonly InMemoryUserRepositoryState $authorityState;
+
+    private readonly ?InMemoryUserRepositoryState $userState;
+
     public function __construct(
         private readonly ?InMemoryUnitOfWork $unitOfWork = null,
         private readonly bool $replaceSucceeds = true,
@@ -32,8 +37,14 @@ final class InMemoryPasswordResetGrants implements PasswordResetGrantRepository
         private readonly bool $replaceWithSuccessorSucceeds = true,
         private readonly bool $appendAfterTerminalSucceeds = true,
         private readonly bool $addSucceeds = true,
-        private readonly ?int $replaceFailureOnCall = null
+        private readonly ?int $replaceFailureOnCall = null,
+        ?InMemoryPasswordResetGrantState $state = null,
+        ?InMemoryUserRepositoryState $authorityState = null
     ) {
+        $state ??= new InMemoryPasswordResetGrantState();
+        $this->passwordResetGrants =& $state->grants;
+        $this->authorityState = $authorityState ?? new InMemoryUserRepositoryState();
+        $this->userState = $authorityState;
     }
 
     public function findDue(DateTimeImmutable $at, int $limit): array
@@ -49,6 +60,8 @@ final class InMemoryPasswordResetGrants implements PasswordResetGrantRepository
             if (
                 !$latest instanceof PasswordResetGrant
                 || !$latest->getId()->equals($passwordResetGrant->getId())
+                || !$passwordResetGrant->isIssued()
+                || !$this->matchesCurrentAuthority($passwordResetGrant)
                 || !$delivery->isDueAt($at)
             ) {
                 continue;
@@ -115,9 +128,11 @@ final class InMemoryPasswordResetGrants implements PasswordResetGrantRepository
     public function add(PasswordResetGrant $passwordResetGrant): bool
     {
         if (
-            !$this->addSucceeds
+            !$this->holdAuthorityFence($passwordResetGrant->getUserId())
+            || !$this->addSucceeds
             || $this->getLatestByUserId($passwordResetGrant->getUserId()) instanceof PasswordResetGrant
             || !$this->isPristine($passwordResetGrant)
+            || !$this->matchesCurrentAuthority($passwordResetGrant)
             || $this->hasGrantId($passwordResetGrant->getId())
             || $this->hasDeliveryId($passwordResetGrant->getDelivery()->getId())
             || $this->hasCredentialHash(
@@ -140,7 +155,8 @@ final class InMemoryPasswordResetGrants implements PasswordResetGrantRepository
     ): bool {
         $current = $this->getLatestByUserId($terminalPredecessor->getUserId());
         if (
-            !$this->appendAfterTerminalSucceeds
+            !$this->holdAuthorityFence($terminalPredecessor->getUserId())
+            || !$this->appendAfterTerminalSucceeds
             || !$current instanceof PasswordResetGrant
             || !$this->sameState($current, $terminalPredecessor)
             || $current->isIssued()
@@ -197,7 +213,8 @@ final class InMemoryPasswordResetGrants implements PasswordResetGrantRepository
         ++$this->replaceCalls;
         $current = $this->getLatestByUserId($predecessor->getUserId());
         if (
-            !$this->replaceSucceeds
+            !$this->holdAuthorityFence($predecessor->getUserId())
+            || !$this->replaceSucceeds
             || $this->replaceFailureOnCall === $this->replaceCalls
             || ($replacement->isConsumed() && !$this->replaceConsumedSucceeds)
             || !$current instanceof PasswordResetGrant
@@ -205,6 +222,12 @@ final class InMemoryPasswordResetGrants implements PasswordResetGrantRepository
             || !$this->sameGeneration($current, $replacement)
             || $replacement->getRevision() !== $current->getRevision() + 1
             || !$this->isAllowedReplacement($current, $replacement)
+            || (
+                $replacement->isIssued()
+                && $replacement->getDelivery()->getStatus() !== CredentialDeliveryStatus::INVALIDATED
+                && $replacement->getDelivery()->getStatus() !== CredentialDeliveryStatus::EXPIRED
+                && !$this->matchesCurrentAuthority($replacement)
+            )
         ) {
             return false;
         }
@@ -219,7 +242,8 @@ final class InMemoryPasswordResetGrants implements PasswordResetGrantRepository
     ): bool {
         $current = $this->getLatestByUserId($predecessor->getUserId());
         if (
-            !$this->replaceWithSuccessorSucceeds
+            !$this->holdAuthorityFence($predecessor->getUserId())
+            || !$this->replaceWithSuccessorSucceeds
             || !$current instanceof PasswordResetGrant
             || !$this->sameState($current, $predecessor)
             || $terminalPredecessor->isIssued()
@@ -252,6 +276,32 @@ final class InMemoryPasswordResetGrants implements PasswordResetGrantRepository
     public function all(): array
     {
         return $this->passwordResetGrants;
+    }
+
+    private function matchesCurrentAuthority(PasswordResetGrant $grant): bool
+    {
+        if ($this->userState === null) {
+            return true;
+        }
+
+        return array_any($this->userState->users, $grant->isAuthorizedBy(...));
+    }
+
+    private function holdAuthorityFence(UserId $userId): bool
+    {
+        if (!$this->unitOfWork instanceof InMemoryUnitOfWork || !$this->unitOfWork->transactionActive) {
+            return true;
+        }
+
+        if (!$this->authorityState->acquireAuthenticationAuthorityFence($userId, $this->unitOfWork)) {
+            return false;
+        }
+
+        $this->unitOfWork->onCompletion(function () use ($userId): void {
+            $this->authorityState->releaseAuthenticationAuthorityFence($userId, $this->unitOfWork);
+        });
+
+        return true;
     }
 
     private function hasCredentialHash(UserId $userId, string $credentialHash): bool
@@ -435,6 +485,7 @@ final class InMemoryPasswordResetGrants implements PasswordResetGrantRepository
     {
         return $replacement->getId()->equals($predecessor->getId())
             && $replacement->getUserId()->equals($predecessor->getUserId())
+            && $replacement->getAuthority()->equals($predecessor->getAuthority())
             && $replacement->getCredentialHash() === $predecessor->getCredentialHash()
             && $replacement->getExpiresAt() == $predecessor->getExpiresAt()
             && $replacement->getDelivery()->getId()->equals($predecessor->getDelivery()->getId())
@@ -455,6 +506,7 @@ final class InMemoryPasswordResetGrants implements PasswordResetGrantRepository
 
         return $this->sameRevision($current, $predecessor)
             && $current->getUserId()->equals($predecessor->getUserId())
+            && $current->getAuthority()->equals($predecessor->getAuthority())
             && $current->getCredentialHash() === $predecessor->getCredentialHash()
             && $current->getExpiresAt() == $predecessor->getExpiresAt()
             && $current->getConsumedAt() == $predecessor->getConsumedAt()
@@ -467,6 +519,7 @@ final class InMemoryPasswordResetGrants implements PasswordResetGrantRepository
     private function validSuccessor(PasswordResetGrant $predecessor, PasswordResetGrant $successor): bool
     {
         return $this->isPristine($successor)
+            && $this->matchesCurrentAuthority($successor)
             && $successor->getUserId()->equals($predecessor->getUserId())
             && !$successor->getId()->equals($predecessor->getId())
             && !$successor->getDelivery()->getId()->equals($predecessor->getDelivery()->getId())

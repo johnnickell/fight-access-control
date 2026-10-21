@@ -21,6 +21,8 @@ use Fight\AccessControl\Domain\AccessControl\PasswordResetGrant\Event\PasswordRe
 use Fight\AccessControl\Domain\AccessControl\PasswordResetGrant\Exception\PasswordResetDeliveryException;
 use Fight\AccessControl\Domain\AccessControl\PasswordResetGrant\PasswordResetGrant;
 use Fight\AccessControl\Domain\AccessControl\PasswordResetGrant\PasswordResetGrantRepository;
+use Fight\AccessControl\Domain\AccessControl\User\User;
+use Fight\AccessControl\Domain\AccessControl\User\UserRepository;
 use Fight\Common\Application\Messaging\Command\CommandHandler;
 use Fight\Common\Application\Messaging\Event\EventDispatcher;
 use Fight\Common\Application\Repository\TransactionalUnitOfWork;
@@ -47,7 +49,8 @@ final readonly class DeliverPasswordResetHandler implements CommandHandler
         private PasswordResetDeliveryCipher $passwordResetDeliveryCipher,
         private CredentialDeliveryProvider $credentialDeliveryProvider,
         private Clock $clock,
-        private EventDispatcher $eventDispatcher
+        private EventDispatcher $eventDispatcher,
+        private UserRepository $userRepository
     ) {
     }
 
@@ -94,11 +97,16 @@ final readonly class DeliverPasswordResetHandler implements CommandHandler
     private function claim(DeliverPasswordReset $command): PasswordResetGrant
     {
         return $this->unitOfWork->commitTransactional(function () use ($command): PasswordResetGrant {
+            $user = $this->userRepository->getById($command->getUserId());
+            if (!$user instanceof User || !$this->userRepository->validateRecoveryAuthority($user)) {
+                throw new PasswordResetDeliveryException('The password-reset delivery work is no longer retryable.');
+            }
+
             $grant = $this->passwordResetGrantRepository->getByDeliveryId(
                 $command->getPasswordResetDeliveryId()
             );
             $latest = $this->passwordResetGrantRepository->getLatestByUserId($command->getUserId());
-            if (!$this->isCurrent($grant, $latest, $command)) {
+            if (!$this->isCurrent($grant, $latest, $command) || !$grant->isAuthorizedBy($user)) {
                 throw new PasswordResetDeliveryException(
                     'The password-reset delivery work is no longer retryable.'
                 );
@@ -161,12 +169,18 @@ final readonly class DeliverPasswordResetHandler implements CommandHandler
             $claimToken,
             $attemptResult
         ): ?PasswordResetDeliveryConfirmed {
+            $user = $this->userRepository->getById($command->getUserId());
+            if (!$user instanceof User || !$this->userRepository->validateRecoveryAuthority($user)) {
+                throw new PasswordResetDeliveryException('The password-reset delivery outcome is stale.');
+            }
+
             $current = $this->passwordResetGrantRepository->getByDeliveryId(
                 $command->getPasswordResetDeliveryId()
             );
             $latest = $this->passwordResetGrantRepository->getLatestByUserId($command->getUserId());
             if (
                 !$this->isCurrent($current, $latest, $command)
+                || !$current->isAuthorizedBy($user)
                 || $current->getRevision() !== $claimed->getRevision()
             ) {
                 throw new PasswordResetDeliveryException(
@@ -243,6 +257,7 @@ final readonly class DeliverPasswordResetHandler implements CommandHandler
             && $latest instanceof PasswordResetGrant
             && $latest->getId()->equals($grant->getId())
             && $latest->getRevision() === $grant->getRevision()
-            && $grant->getUserId()->equals($command->getUserId());
+            && $grant->getUserId()->equals($command->getUserId())
+            && $grant->isIssued();
     }
 }

@@ -341,7 +341,8 @@ final class HandlerFailureContractTest extends TestCase
             ),
             Reset\DeliverPasswordResetHandler::class => new Reset\DeliverPasswordResetHandler(
                 $reset,
-                $audit, $unitOfWork, $this->createStub(PasswordResetDeliveryCipher::class), $provider, $clock, $events
+                $audit, $unitOfWork, $this->createStub(PasswordResetDeliveryCipher::class), $provider, $clock, $events,
+                $users
             ),
             Reset\ExpirePasswordResetDeliveryHandler::class => new Reset\ExpirePasswordResetDeliveryHandler(
                 $reset,
@@ -395,11 +396,11 @@ final class HandlerFailureContractTest extends TestCase
             ),
             User\DeleteUserHandler::class => new User\DeleteUserHandler(
                 $users,
-                new SessionRevocationService($sessions), $clock, $audit, $unitOfWork, $events
+                new SessionRevocationService($sessions), $clock, $audit, $unitOfWork, $events, $reset
             ),
             User\DisableUserHandler::class => new User\DisableUserHandler(
                 $users,
-                new SessionRevocationService($sessions), $clock, $audit, $unitOfWork, $events
+                new SessionRevocationService($sessions), $clock, $audit, $unitOfWork, $events, $reset
             ),
             User\EnableUserHandler::class => new User\EnableUserHandler($users, $audit, $unitOfWork, $events, $clock),
             User\InvitePendingUserHandler::class => new User\InvitePendingUserHandler(

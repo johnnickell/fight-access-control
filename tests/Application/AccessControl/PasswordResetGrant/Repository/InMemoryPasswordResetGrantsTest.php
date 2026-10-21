@@ -11,6 +11,7 @@ use Fight\AccessControl\Domain\AccessControl\PasswordResetGrant\PasswordResetDel
 use Fight\AccessControl\Domain\AccessControl\PasswordResetGrant\PasswordResetDeliveryId;
 use Fight\AccessControl\Domain\AccessControl\PasswordResetGrant\PasswordResetGrant;
 use Fight\AccessControl\Domain\AccessControl\PasswordResetGrant\PasswordResetGrantId;
+use Fight\AccessControl\Domain\AccessControl\User\RecoveryAuthority;
 use Fight\AccessControl\Domain\AccessControl\User\UserId;
 use Fight\Common\Domain\Value\Internet\EmailAddress;
 use Fight\Test\AccessControl\Domain\AccessControl\PasswordResetGrant\ExtensiblePasswordResetDelivery;
@@ -260,8 +261,7 @@ final class InMemoryPasswordResetGrantsTest extends TestCase
             $this->reconstitute($grant, ciphertext: null),
             $this->reconstitute($grant, ciphertext: ''),
             $this->reconstitute($grant, consumedAt: $at, revision: 1, ciphertext: null),
-            $this->reconstitute($grant, revokedAt: $at, revision: 1, ciphertext: null),
-            $this->reconstitute($grant, deliveryUserId: UserId::generate())
+            $this->reconstitute($grant, revokedAt: $at, revision: 1, ciphertext: null)
         ];
 
         foreach ($candidates as $candidate) {
@@ -292,7 +292,7 @@ final class InMemoryPasswordResetGrantsTest extends TestCase
     {
         $issued = $this->grant(UserId::generate(), 'reset-old', '2026-08-20T13:00:00+00:00');
         $differentExpiry = new DateTimeImmutable('2026-08-20T14:00:00+00:00');
-        $fabricatedDigest = $this->reconstitute($issued, credentialHash: 'fabricated-digest');
+        $fabricatedDigest = $this->reconstitute($issued, credentialHash: hash('sha256', 'another-current-digest'));
         $fabricatedDeliveryId = $this->reconstitute($issued, deliveryId: PasswordResetDeliveryId::generate());
         $fabricatedExpiry = $this->reconstitute($issued, expiresAt: $differentExpiry);
         $fabricatedEmail = $this->reconstitute(
@@ -427,7 +427,8 @@ final class InMemoryPasswordResetGrantsTest extends TestCase
             $grant->getUserId(),
             $grant->getCredentialHash(),
             $grant->getExpiresAt(),
-            $delivery
+            $delivery,
+            $grant->getAuthority()
         );
     }
 
@@ -439,7 +440,8 @@ final class InMemoryPasswordResetGrantsTest extends TestCase
             new DateTimeImmutable('2026-08-20T12:00:00+00:00'),
             new DateTimeImmutable($expiresAt),
             EmailAddress::fromString('alice@example.test'),
-            'ciphertext'
+            'ciphertext',
+            new RecoveryAuthority(1, 0)
         );
     }
 
@@ -470,6 +472,7 @@ final class InMemoryPasswordResetGrantsTest extends TestCase
                 $ciphertext,
                 $resolvedExpiresAt
             ),
+            $grant->getAuthority(),
             $consumedAt,
             $revokedAt,
             $revision

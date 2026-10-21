@@ -8,7 +8,10 @@ use DateTimeImmutable;
 use Fight\AccessControl\Domain\AccessControl\CredentialDelivery\CredentialDeliveryClaimToken;
 use Fight\AccessControl\Domain\AccessControl\CredentialDelivery\CredentialDeliveryFailure;
 use Fight\AccessControl\Domain\AccessControl\PasswordResetGrant\Exception\PasswordResetGrantException;
+use Fight\AccessControl\Domain\AccessControl\User\RecoveryAuthority;
+use Fight\AccessControl\Domain\AccessControl\User\User;
 use Fight\AccessControl\Domain\AccessControl\User\UserId;
+use Fight\AccessControl\Domain\AccessControl\User\UserState;
 use Fight\Common\Domain\Value\Internet\EmailAddress;
 
 /**
@@ -31,10 +34,21 @@ class PasswordResetGrant
         private readonly string $credentialHash,
         private readonly DateTimeImmutable $expiresAt,
         private readonly PasswordResetDelivery $delivery,
+        private readonly RecoveryAuthority $authority,
         private readonly ?DateTimeImmutable $consumedAt = null,
         private readonly ?DateTimeImmutable $revokedAt = null,
         private readonly int $revision = 0
     ) {
+        if (
+            $revision < 0
+            || !preg_match('/^[a-f0-9]{64}$/D', $credentialHash)
+            || !$delivery->getUserId()->equals($userId)
+            || $delivery->getExpiresAt() != $expiresAt
+            || ($consumedAt !== null && $revokedAt !== null)
+            || (($consumedAt !== null || $revokedAt !== null) && $delivery->hasRecoverableMaterial())
+        ) {
+            throw new PasswordResetGrantException('The password-reset grant state is invalid.');
+        }
     }
 
     /**
@@ -46,7 +60,8 @@ class PasswordResetGrant
         DateTimeImmutable $issuedAt,
         DateTimeImmutable $expiresAt,
         EmailAddress $email,
-        string $ciphertext
+        string $ciphertext,
+        RecoveryAuthority $authority
     ): static {
         if ($expiresAt <= $issuedAt) {
             throw new PasswordResetGrantException(
@@ -66,7 +81,8 @@ class PasswordResetGrant
                 $ciphertext,
                 $expiresAt,
                 $issuedAt
-            )
+            ),
+            $authority
         );
     }
 
@@ -84,6 +100,25 @@ class PasswordResetGrant
     public function getUserId(): UserId
     {
         return $this->userId;
+    }
+
+    /**
+     * Returns the immutable issuing recovery authority
+     */
+    public function getAuthority(): RecoveryAuthority
+    {
+        return $this->authority;
+    }
+
+    /**
+     * Returns whether the current eligible identity authorizes this generation
+     */
+    public function isAuthorizedBy(User $user): bool
+    {
+        return $this->userId->equals($user->getId())
+            && $user->getState() === UserState::ACTIVE
+            && $this->delivery->getEmail()->canonical() === $user->getEmail()->canonical()
+            && $this->authority->equals($user->getRecoveryAuthority());
     }
 
     /**
@@ -200,6 +235,7 @@ class PasswordResetGrant
             $this->credentialHash,
             $this->expiresAt,
             $this->delivery->invalidate(),
+            $this->authority,
             $at,
             $this->revokedAt,
             $this->revision + 1
@@ -221,6 +257,7 @@ class PasswordResetGrant
             $this->credentialHash,
             $this->expiresAt,
             $this->delivery->invalidate(),
+            $this->authority,
             $this->consumedAt,
             $at,
             $this->revision + 1
@@ -316,6 +353,7 @@ class PasswordResetGrant
             $this->credentialHash,
             $this->expiresAt,
             $delivery,
+            $this->authority,
             $this->consumedAt,
             $this->revokedAt,
             $this->revision + 1

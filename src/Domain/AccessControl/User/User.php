@@ -50,6 +50,7 @@ class User
         private int $emailChangeReservationRevision = 0,
         private int $canonicalEmailRevision = 0
     ) {
+        new RecoveryAuthority($authenticationVersion, $canonicalEmailRevision);
         $this->roleIds = HashSet::of(RoleId::class);
 
         foreach ($roleIds as $roleId) {
@@ -259,6 +260,7 @@ class User
             throw new UserLifecycleException('Only an active user can be disabled.');
         }
 
+        ++$this->authenticationVersion;
         $this->state = UserState::DISABLED;
         $this->updatedAt = $now;
     }
@@ -289,6 +291,7 @@ class User
             throw new UserLifecycleException('Only an active or disabled user can be deleted.');
         }
 
+        ++$this->authenticationVersion;
         $this->state = UserState::DELETED;
         $this->updatedAt = $now;
     }
@@ -473,6 +476,14 @@ class User
     public function getAuthenticationVersion(): int
     {
         return $this->authenticationVersion;
+    }
+
+    /**
+     * Returns the current security authority for recovery
+     */
+    public function getRecoveryAuthority(): RecoveryAuthority
+    {
+        return new RecoveryAuthority($this->authenticationVersion, $this->canonicalEmailRevision);
     }
 
     /**

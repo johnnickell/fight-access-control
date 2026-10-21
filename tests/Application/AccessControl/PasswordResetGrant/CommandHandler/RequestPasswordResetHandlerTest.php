@@ -11,6 +11,7 @@ use Fight\AccessControl\Domain\AccessControl\PasswordResetGrant\Command\RequestP
 use Fight\AccessControl\Domain\AccessControl\PasswordResetGrant\Event\PasswordResetRequested;
 use Fight\AccessControl\Domain\AccessControl\PasswordResetGrant\PasswordResetCredential;
 use Fight\AccessControl\Domain\AccessControl\PasswordResetGrant\PasswordResetGrant;
+use Fight\AccessControl\Domain\AccessControl\User\RecoveryAuthority;
 use Fight\AccessControl\Domain\AccessControl\User\UserId;
 use Fight\AccessControl\Domain\AccessControl\User\UserState;
 use Fight\Common\Domain\Messaging\Command\CommandMessage;
@@ -288,7 +289,8 @@ final class RequestPasswordResetHandlerTest extends TestCase
             new DateTimeImmutable('2026-08-20T12:00:00+00:00'),
             new DateTimeImmutable('2026-08-20T13:00:00+00:00'),
             EmailAddress::fromString('alice@example.test'),
-            'ciphertext:'.$credential
+            'ciphertext:'.$credential,
+            new RecoveryAuthority(1, 0)
         );
     }
 

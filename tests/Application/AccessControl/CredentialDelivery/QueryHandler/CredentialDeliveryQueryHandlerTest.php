@@ -18,6 +18,7 @@ use Fight\AccessControl\Domain\AccessControl\EmailChangeGrant\EmailChangeCredent
 use Fight\AccessControl\Domain\AccessControl\EmailChangeGrant\EmailChangeGrant;
 use Fight\AccessControl\Domain\AccessControl\PasswordResetGrant\PasswordResetCredential;
 use Fight\AccessControl\Domain\AccessControl\PasswordResetGrant\PasswordResetGrant;
+use Fight\AccessControl\Domain\AccessControl\User\RecoveryAuthority;
 use Fight\AccessControl\Domain\AccessControl\User\UserId;
 use Fight\Common\Domain\Exception\DomainException;
 use Fight\Common\Domain\Messaging\Query\QueryMessage;
@@ -185,7 +186,8 @@ final class CredentialDeliveryQueryHandlerTest extends TestCase
                 $issuedAt,
                 $expiresAt,
                 $email,
-                'ciphertext:reset'
+                'ciphertext:reset',
+                new RecoveryAuthority(1, 0)
             ),
             EmailChangeGrant::issue(
                 UserId::generate(),

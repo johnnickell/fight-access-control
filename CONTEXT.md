@@ -6,6 +6,26 @@ Fight AccessControl owns framework-neutral identity, credential, session, author
 behavior shared by Fight applications. The repository-local behavioral and security authority is
 [TICKET-00001](planning/tickets/00001-TICKET.md).
 
+## Recovery lifecycle — TASK-00078 Engineer checkpoint
+
+John invoked Build for [TASK-00078](planning/tasks/00078-TASK.md) in the main checkout after TASK-00077 integrated.
+Engineer work is on `feature/task-00078-recovery-lifecycle` from verified clean `develop` `a3b6eee`. Current
+[recovery composition](docs/operation-outcomes.md#recovery-composition) documents the Domain/Application contract,
+mandatory shared persistence fences, worker wiring and consumer qualification obligations. Detailed approved criteria
+and execution evidence remain in the private maintainer handoff; no affected-release assessment is published here.
+
+The final canonical `./bin/build` passes **2351 tests / 44794 assertions**, exact **7372/7372 statements**, without
+final warnings/skips. Earlier focused checks pass **79 tests / 1110 assertions**; final full verification includes the
+last added contract case. Failed setup/style/static-analysis attempts and the first canonical Rector failure remain
+in ignored evidence. No package/lockfile drift occurred; PHP 8.5.7 and Common v1.4.0 satisfy unchanged requirements.
+The first build regenerates ignored autoload metadata; the successful build preserves dependency bytes and runtime
+Config/RootFS. This prose-only checkpoint retains that full gate through proven input equivalence and targeted checks.
+
+Independent technical acceptance and adversarial behavioral QA remain pending. TASK-00078 stays in progress;
+historical terminal parents remain unchanged. The Build coordinator continues independent Review/QA/Land within the
+original stage authority. No push/PR, consumer adoption or qualification, merge, release or deployment is claimed by
+this Engineer checkpoint.
+
 ## Contributor workflow alignment — TASK-00081 implementation checkpoint
 
 The approved standalone [TASK-00081](planning/tasks/00081-TASK.md) aligns contributor routing with optional
@@ -47,7 +67,8 @@ planning. TICKET-00001 owns [TASK-00077](planning/tasks/00077-TASK.md) for opera
 [TASK-00078](planning/tasks/00078-TASK.md) for recovery lifecycle and [TASK-00079](planning/tasks/00079-TASK.md)
 for policy consistency. TICKET-00024 owns [TASK-00080](planning/tasks/00080-TASK.md) for Role caller revisions.
 TASK-00078/00079 depend on TASK-00077; TASK-00080 depends on TASK-00077/00079. The relative order of
-TASK-00078 and TASK-00079 is priority only. All four TASKs remain unfinished.
+TASK-00078 and TASK-00079 is priority only. TASK-00077 is complete and integrated; TASK-00078 is in progress,
+with TASK-00079/00080 still unfinished.
 
 Public records summarize approved scope, ownership and sequencing. Full maintainer briefs and restricted evidence
 remain private under SECURITY.md and must be obtained before implementation or independent review. No new behavioral

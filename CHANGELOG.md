@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- **Breaking pre-v1 composition:** password-reset generations require explicit persisted `RecoveryAuthority`;
+  User repositories implement transaction-duration recovery validation. Reset workers require the shared User
+  repository, and disable/delete handlers require the shared reset-grant repository. Current consumer wiring,
+  complete-state persistence and qualification obligations are in
+  [operation outcomes and recovery composition](docs/operation-outcomes.md).
+
 ## [0.7.0] - 2026-10-20
 
 Pre-v1 breaking registration and delivery contract release. See the [release and integration overview](docs/release-0.7.0.md).

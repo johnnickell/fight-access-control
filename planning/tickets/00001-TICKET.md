@@ -249,11 +249,12 @@ TASKs remain unfinished without reopening this Ticket's historical closeout.
 Follow [ADR 0011](../adr/0011-pre-v1-current-contract-only.md): current contracts only, no historical compatibility
 framework or production adapters. One consumer handoff covers current contracts and real integration qualification.
 No consumer edits, release, deployment or restricted disclosure follows from planning approval.
-TASK-00077 now has a local Engineer implementation and verification checkpoint, with current
-[operation-outcome guidance](../../docs/operation-outcomes.md) and private detailed evidence. Independent acceptance
-and behavioral QA remain pending; TASK-00078/00079 remain unfinished. This does not reopen the parent's historical
-terminal status or claim batch completion, consumer qualification or delivery.
-Next: independent `/skill:review TASK-00077` after the committed Work handoff; the Build coordinator owns continuation.
+TASK-00077's package implementation has independent technical acceptance and behavioral QA and was published in
+[PR #129](https://github.com/johnnickell/fight-access-control/pull/129); it is integrated. TASK-00078 is in progress
+under the separately invoked Build; TASK-00079 remains unfinished. Current
+[operation-outcome and recovery composition](../../docs/operation-outcomes.md) keeps detailed approved evidence
+private. This does not reopen the parent's historical terminal status or claim batch completion, consumer
+qualification, release or deployment. The Build coordinator owns independent stage continuation.
 
 ## Further Notes
 
@@ -293,5 +294,5 @@ Next: independent `/skill:review TASK-00077` after the committed Work handoff; t
 | 18 | [TASK-00018](../tasks/00018-TASK.md) | Publish successful security-email delivery events | done |
 | 32 | [TASK-00032](../tasks/00032-TASK.md) | Prepare the v0.1.0 Release Candidate | done |
 | 77 | [TASK-00077](../tasks/00077-TASK.md) | Align package operation outcome contracts | done |
-| 78 | [TASK-00078](../tasks/00078-TASK.md) | Align recovery lifecycle contracts | ready-for-agent |
+| 78 | [TASK-00078](../tasks/00078-TASK.md) | Align recovery lifecycle contracts | in-progress |
 | 79 | [TASK-00079](../tasks/00079-TASK.md) | Align managed-policy preview and apply contracts | ready-for-agent |
