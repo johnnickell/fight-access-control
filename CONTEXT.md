@@ -13,7 +13,14 @@ handoffs, shorten and brand the README, and add a version-consistency preflight 
 The [release runbook](docs/releasing.md) owns the current-version inventory and publication distinction.
 v0.7.0 remains the latest verified published release. v0.8.0 is recommended for the integrated breaking Role and
 recovery contracts, not selected or authorized for release. No package behavior or consumer qualification changes.
-Independent acceptance and behavioral QA of this documentation/tooling chore remain pending.
+Independent technical Review **ACCEPT** and post-review behavioral **QA PASS** cover exact candidate
+`3163026d07e82f1db6520b311aea8c72a0045f8e` against unchanged `develop` `d1ed655`: eight scenario groups,
+29 CLI/guard cases, three browser state pairs and eight instruction walkthroughs pass with no findings.
+TASK-00082 is done for accepted implementation and required verification; it is standalone with no parents to close.
+The saved full gate passes **2399 tests / 45422 assertions**, exact **7452/7452 statements**, without final warnings/skips.
+Local README previews do not prove hosted rendering, and isolated certification wiring is not a real release.
+At this administrative closeout checkpoint, PR/evidence publication remains pending; the ignored TASK Land receipt
+owns final delivery facts. No merge, version selection, signed release, consumer qualification or deployment is claimed.
 
 ## Role caller revisions — TASK-00080 delivery checkpoint
 
