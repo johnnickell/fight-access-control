@@ -6,25 +6,24 @@ Fight AccessControl owns framework-neutral identity, credential, session, author
 behavior shared by Fight applications. The repository-local behavioral and security authority is
 [TICKET-00001](planning/tickets/00001-TICKET.md).
 
-## Role caller revisions — TASK-00080 Engineer checkpoint
+## Role caller revisions — TASK-00080 delivery checkpoint
 
-John invoked Build for [TASK-00080](planning/tasks/00080-TASK.md) in the selected main checkout after its blockers
-integrated. Engineer work is on `feature/task-00080-role-revisions` from clean `develop` `f10ed5a`. The Unreleased
-[Role composition](docs/role-revisions.md) defines authoritative View revisions, required rename/remove expectations,
-validated persisted incarnation/revision, all-writer participation and non-writing same-name admission with final
-fences. Membership command inputs, managed/reserved identity, tiers, registration integrity and outcome policy remain
-intact. The [consolidated guide](docs/operation-outcomes.md) connects all four correction slices; private maintainer
-records retain detailed criteria, delivered identities and execution evidence.
+[TASK-00080](planning/tasks/00080-TASK.md) completed its accepted Role caller-revision capability on
+`feature/task-00080-role-revisions` from `develop` `f10ed5a`. The [Role composition](docs/role-revisions.md) supplies
+authoritative View revisions, required rename/remove expectations, validated persisted incarnation/revision, all-writer
+participation and final fences; existing membership, managed/reserved identity, tiers, registration integrity and outcome
+policy remain intact. The [consolidated guide](docs/operation-outcomes.md) connects the correction slices.
 
-Focused checks pass **565 tests / 11182 assertions**; canonical `./bin/build` passes **2399 tests / 45422 assertions**,
-exact **7452/7452 statements**, without final warnings/skips. No resolved package or lockfile drift occurred; Composer
-regenerated ignored installed metadata, with equivalent runnable image Config/RootFS. This prose-only verification
-summary retains that complete gate through proven input equivalence and targeted checks, not a second full build.
-Failed/partial attempts and detailed receipts remain private.
+Independent technical Review accepted and independent nonvisual QA passed the exact implementation candidate
+`35eea6329b8f74e253521870734b11ece45d1988` with 7 scenarios / 48 checks and visual N/A for the nonvisual library.
+Focused checks pass **565 tests / 11182 assertions**; the saved canonical `./bin/build` passes **2399 tests / 45422 assertions**,
+exact **7452/7452 statements**, without final warnings/skips. No resolved package/lockfile drift occurred. This
+administrative tracking closeout retains the earlier full gate through verified input equivalence and targeted checks,
+not as a second full build.
 
-Independent Review and nonvisual adversarial QA remain pending. TASK-00080/TICKET-00024 stay unfinished and historical
-terminal parents remain unchanged. Package proof is not consumer SQL/transport/permission qualification; no push/PR,
-restricted disclosure, merge, release or deployment is claimed.
+TASK-00080 and its sole-child parent TICKET-00024 are done for accepted package implementation and required local/
+behavioral verification; EPIC-00001 remains historically terminal. Package proof is not consumer SQL/transport/
+permission qualification. Publication, PR approval, merge, release, deployment and restricted disclosure remain separate.
 
 ## Managed-policy consistency — TASK-00079 implementation checkpoint
 

@@ -12,10 +12,11 @@ The accepted TASKs are [TASK-00077](tasks/00077-TASK.md) for operation outcomes,
 and [TASK-00080](tasks/00080-TASK.md) for Role caller revisions. TASK-00078/00079 depend on TASK-00077;
 TASK-00080 depends on TASK-00077/00079. TASK-00078 precedes TASK-00079 by priority only.
 
-The map is Closed for planning. TASK-00077–00079 are complete and integrated. John invoked Build for TASK-00080
-in the selected main checkout; its [current Role composition](../docs/role-revisions.md) is implemented with independent
-Review and required QA pending; its TASK owns passing local gates. Public summaries do not replace the full approved maintainer
-briefs or authorize restricted disclosure. Next: complete the active delegated stages for TASK-00080. Consumer
+The map is Closed for planning. TASK-00077–00079 are complete and integrated. TASK-00080 has independent technical
+acceptance and nonvisual behavioral QA on its exact implementation candidate; its sole-child TICKET-00024 is done through
+automatic parent completion while EPIC-00001 retains its historical terminal status. Its [current Role composition](../docs/role-revisions.md)
+and saved local gates are package evidence, not consumer qualification. Public summaries do not replace approved maintainer
+briefs or authorize restricted disclosure. Next: Land delivery, then human review/merge of the TASK-00080 PR. Consumer
 qualification, version selection, release and deployment remain separate.
 
 ## Published v0.7.0
