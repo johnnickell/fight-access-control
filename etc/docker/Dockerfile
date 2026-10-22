@@ -1,3 +1,4 @@
+# Wrappers pull this supported line and verify actual PHP >= 8.5.12 before package work.
 FROM php:8.5-cli
 
 COPY --from=composer:2.8.12 /usr/bin/composer /usr/local/bin/composer

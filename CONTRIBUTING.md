@@ -32,6 +32,34 @@ made; otherwise resolve main checkout versus isolated worktree before implementa
 for checkouts and separate notes, logs, handoffs and reviews. `.runs/` is gitignored and must never be staged.
 Preserve unrelated changes and do not copy consumer implementations into this library.
 
+## Package PHP runtime
+
+`./bin/build` and the focused Docker wrappers (through `bin/.container-run`) always build with `--pull`,
+then inspect the actual selected image's PHP version before running Composer, the quality gate or your command.
+The supported build line is stable **PHP 8.5**, with a security floor of **8.5.12**. Later 8.5 patches are admitted;
+prereleases, malformed/missing results and other lines fail closed until their support/security floors are assessed.
+The floating `php:8.5-cli` base retrieves current patches; a Docker tag or Composer's simulated platform version
+is not runtime verification. This does not change consumer Composer requirements.
+
+Docker/registry access is required even with a cached image. Refresh or inspection failure exits nonzero without
+running package work; there is no silent offline fallback. Restore Docker/network/registry access or availability
+of a patched upstream image, then retry. `FIGHT_ACCESS_CONTROL_PHP_IMAGE` still selects the package image name,
+but overrides receive the same refresh and runtime checks. `DOCKER_BIN` still selects the Docker executable.
+
+When changing these wrappers, run the explicit isolated qualification separately:
+
+```bash
+python3 scripts/qualify_php_runtime.py
+```
+
+It exercises real wrappers with a Docker double (no daemon or registry needed), including failure paths and
+linked-worktree build mounts. It is not part of product PHPUnit coverage, ordinary CI or the default build;
+qualification does not replace verification of the real refreshed image and the complete `./bin/build` gate.
+
+This check covers only the package's local CLI build runtime. Consumers must independently assess and patch their
+web-serving PHP-FPM/Apache/other runtimes and perform required service restarts through their own procedures.
+A local CLI pass is neither consumer remediation nor proof of exploitability or compromise.
+
 ## Quality and review
 
 Use the repository-owned `./bin/*` wrappers. Run focused tests while iterating, then run both:

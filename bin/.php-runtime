@@ -1,0 +1,33 @@
+#!/usr/bin/env bash
+
+# Shared admission for package Docker wrappers. Call before any mounted package work.
+refresh_php_runtime() {
+    local version patch
+
+    if ! "${DOCKER_BIN}" build --pull -t "${PHP_IMAGE}" ./etc/docker/; then
+        echo '[runtime] Image refresh failed; check Docker/registry access. Cached fallback is disabled.' >&2
+        return 1
+    fi
+
+    if ! version="$("${DOCKER_BIN}" container run --rm \
+        --network none --read-only --cap-drop ALL \
+        --security-opt no-new-privileges --entrypoint php \
+        "${PHP_IMAGE}" -r 'echo PHP_VERSION;')"; then
+        echo '[runtime] Cannot inspect actual PHP version; check that the selected image runs PHP CLI.' >&2
+        return 1
+    fi
+
+    # Only the assessed stable 8.5 line is supported by this package build image.
+    # Reject prereleases, other lines and malformed output rather than guessing their security floor.
+    if [[ "${version}" =~ ^8\.5\.([1-9][0-9]*)$ ]]; then
+        patch="${BASH_REMATCH[1]}"
+        if (( ${#patch} > 2 )) || (( 10#${patch} >= 12 )); then
+            printf '[runtime] %s: PHP %s admitted (supported build line 8.5, minimum 8.5.12).\n' "${PHP_IMAGE}" "${version}"
+            return 0
+        fi
+    fi
+
+    echo '[runtime] Rejected PHP version: require stable PHP 8.5.12 or newer on the supported 8.5 build line.' >&2
+    echo '[runtime] Refresh the package image and check image overrides; missing/malformed output and other lines are not admitted.' >&2
+    return 1
+}
