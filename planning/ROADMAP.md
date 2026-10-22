@@ -10,9 +10,11 @@ GitHub publication and matching Packagist source/dist projection are verified. T
 [release overview](../docs/release-0.8.0.md) owns identities, breaking Role/recovery composition and unexecuted consumer
 qualification. PHP 8.5+ and Common ^1.3 remain unchanged.
 
-John authorized publication-documentation reconciliation and a main-to-develop merge-back PR on
-`release/0.8.0-merge-back` in the selected main checkout. **Merge-back and owned cleanup remain pending** at this
-checkpoint; PR merge and cleanup are not included in that approval. Preserve the signed release commit and evidence.
+Main-to-develop merge-back completed through [PR #135](https://github.com/johnnickell/fight-access-control/pull/135)
+on 2026-10-21 at `d955d2f88cf58a5696814adeebb609a64fff8ee9`. Release-owned cleanup is satisfied: both
+`release/0.8.0` and `release/0.8.0-merge-back` are absent locally and on origin, with no isolated release worktree.
+The release ledger retains the verified closeout and evidence; no release-owned action remains. Preserve the signed
+release commit and evidence.
 No implementation TASK remains unfinished; v1.0.0 stability, consumer adoption and deployment remain separate decisions.
 
 ### Historical v0.8.0 preparation checkpoint
@@ -264,7 +266,7 @@ The EPIC's historical pre-v1.0.0 target is not an authorization to release v1.0.
 
 | Version | Date | Outcome |
 | --- | --- | --- |
-| `v0.8.0` | 2026-10-21 | Published breaking Role caller revisions and recovery composition, operation-outcome and managed-policy consistency, plus contributor/release-documentation improvements. Main-to-develop merge-back and owned cleanup are pending; consumer qualification remains separate. |
+| `v0.8.0` | 2026-10-21 | Published breaking Role caller revisions and recovery composition, operation-outcome and managed-policy consistency, plus contributor/release-documentation improvements. Main-to-develop merge-back completed through PR #135; release-owned cleanup is satisfied. Consumer qualification remains separate. |
 | `v0.7.0` | 2026-10-20 | Published optional User registration, activation origin and administrator recovery; merged back through PR #125. Consumer enablement and qualification remain separate. |
 | `v0.6.0` | 2026-10-19 | Published expiry-aware invitation retry and the required Clock composition change; merged back through PR #120. |
 | `v0.5.0` | 2026-10-06 | Published recoverable Agent operations, human expiry, Features and Agent-protected profile Tools; consumer qualification remains separate. |
