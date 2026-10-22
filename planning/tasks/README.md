@@ -9,6 +9,7 @@ The [Task Board](BOARD.md) is the operational projection.
 | Order | TASK ID | Title | Parent TICKET | Status | Blocked by | PR |
 | --- | --- | --- | --- | --- | --- | --- |
 | 1 | [TASK-00001](00001-TASK.md) | Invite a pending user | [TICKET-00001](../tickets/00001-TICKET.md) — Fight AccessControl Identity and Authentication Lifecycle | done | — | — |
+| 1 | [TASK-00083](00083-TASK.md) | Prevent package builds from silently using an unpatched PHP runtime | — (standalone bug) | in-progress | — |  |
 | 2 | [TASK-00002](00002-TASK.md) | Recover and resend activation delivery | [TICKET-00001](../tickets/00001-TICKET.md) — Fight AccessControl Identity and Authentication Lifecycle | done | [TASK-00001](00001-TASK.md) | — |
 | 3 | [TASK-00003](00003-TASK.md) | Activate an invited account | [TICKET-00001](../tickets/00001-TICKET.md) — Fight AccessControl Identity and Authentication Lifecycle | done | [TASK-00001](00001-TASK.md) | — |
 | 4 | [TASK-00004](00004-TASK.md) | Login, cold restore, and current-session logout | [TICKET-00001](../tickets/00001-TICKET.md) — Fight AccessControl Identity and Authentication Lifecycle | done | [TASK-00003](00003-TASK.md) | — |

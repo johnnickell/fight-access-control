@@ -29,7 +29,8 @@ fi
 
 cd "${ROOT_DIR}"
 
-"${DOCKER_BIN}" build -t "${PHP_IMAGE}" ./etc/docker/
+source "${ROOT_DIR}/bin/.php-runtime"
+refresh_php_runtime
 "${DOCKER_BIN}" container run \
     --rm \
     -v "${ROOT_DIR}:/app:delegated" \

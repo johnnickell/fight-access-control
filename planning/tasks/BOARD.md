@@ -5,11 +5,13 @@ dependencies, acceptance, and verification.
 
 ## What's Next?
 
-No non-terminal Task exists. Any future release decision requires separate human authorization.
+Active Task: [TASK-00083](00083-TASK.md) — Prevent package builds from silently using an unpatched PHP runtime.
 
 ## In Progress
 
-No Tasks are currently in this state.
+| Order | TASK ID | Title | Parent TICKET | Status | Blocked by | PR |
+| --- | --- | --- | --- | --- | --- | --- |
+| 1 | [TASK-00083](00083-TASK.md) | Prevent package builds from silently using an unpatched PHP runtime | — (standalone bug) | in-progress | — |  |
 
 ## Ready Frontier
 

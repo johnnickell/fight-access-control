@@ -6,6 +6,23 @@ Fight AccessControl owns framework-neutral identity, credential, session, author
 behavior shared by Fight applications. The repository-local behavioral and security authority is
 [TICKET-00001](planning/tickets/00001-TICKET.md).
 
+## PHP runtime security maintenance — approved 2026-10-22
+
+John invoked Build for standalone [TASK-00083](planning/tasks/00083-TASK.md) in the main checkout on
+`feature/task-00083-php-runtime` from `develop` `d955d2f`. Both Docker wrappers now share explicit base refresh
+and actual-runtime admission before package work. The supported stable 8.5 build line requires PHP 8.5.12 or
+later patches for CVE-2026-109618 / CVE-2026-109619; other lines and prereleases fail closed pending assessment.
+The isolated behavioral regression reproduced cached PHP 8.5.7 execution before repair and passes afterward.
+Registry availability and the real refreshed PHP 8.5.12 CLI image are verified. Explicit tooling qualification
+is separate from product coverage/default build/CI; contributor guidance explains failure and offline behavior.
+Canonical `./bin/build` passes **2399 tests / 45422 assertions**, exact **7452/7452 statements**, without final
+warnings/skips; explicit tooling qualification passes **8 tests**. Composer packages/lockfile/installed metadata
+are unchanged. Complete logs/direct exits and runtime identities are under `.runs/logs/TASK-00083/`.
+This verification-prose follow-up retains the full gate through unchanged executable inputs and targeted checks.
+Independent Review and behavioral QA remain pending; TASK-00083 stays in-progress.
+No consumer Composer minimum, product behavior or consumer runtime changes are included. Local CLI verification
+is not a demonstrated exploit, compromise, consumer web-runtime remediation/restart, publication or deployment.
+
 ## v0.8.0 publication — 2026-10-21
 
 [v0.8.0](https://github.com/johnnickell/fight-access-control/releases/tag/v0.8.0) is published from certified
