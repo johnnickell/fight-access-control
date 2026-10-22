@@ -46,12 +46,13 @@ Packagist normalized version **0.8.0.0** source/dist references match the certif
 [release overview](docs/release-0.8.0.md) retains the breaking Role/recovery contracts and unexecuted consumer obligations.
 Registry projection is not consumer installation, qualification, adoption, enablement or deployment.
 
-John authorized documentation reconciliation and a main-to-develop merge-back PR in the selected main checkout on
-`release/0.8.0-merge-back`. Merge-back and cleanup remain pending at this checkpoint and require separate authority.
-No production/test/dependency/tooling change is part of this follow-up; retain the exact-main full gate through
-verified input equivalence and fresh documentation/planning/release-metadata checks. The immutable tagged source
-retains its preparation wording; no tag rewrite or recertification is needed for this prose-only follow-up.
-The ignored `.runs/handoffs/release-0.8.0/ledger.md` owns actual delivery identities and remaining authority.
+Main-to-develop merge-back completed through [PR #135](https://github.com/johnnickell/fight-access-control/pull/135)
+on 2026-10-21 at **`d955d2f88cf58a5696814adeebb609a64fff8ee9`**. Following John's cleanup request, verification
+found both `release/0.8.0` and `release/0.8.0-merge-back` already absent locally and on origin, with no isolated
+release worktree; no deletion actor or time is inferred. Release closeout is complete, with no release-owned action
+remaining. The ignored `.runs/handoffs/release-0.8.0/ledger.md` retains actual integration/cleanup observations and
+release evidence. The immutable tagged source retains its preparation wording; no tag rewrite or recertification
+is needed for this prose-only reconciliation.
 All implementation TASKs/parents are already terminal; the separate v1.0.0 stability decision is unchanged.
 
 ## Historical v0.8.0 release preparation — 2026-10-21

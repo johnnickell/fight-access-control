@@ -92,9 +92,12 @@ tag object and release identity. Packagist normalized version **0.8.0.0** has so
 
 This documentation-only reconciliation retains the exact-main full gate through verified executable-input equivalence
 and fresh release-metadata, documentation and planning checks; it is not a new full build or recertification.
-Main-to-develop merge-back and owned cleanup remain pending at this reconciliation checkpoint. Follow the
-[release runbook](releasing.md) through the reviewed merge-back PR and separately authorized merge/cleanup; preserve
-all release evidence and never retag merely to change documentation's preparation status.
+Main-to-develop merge-back completed through [PR #135](https://github.com/johnnickell/fight-access-control/pull/135)
+on 2026-10-21 at **`d955d2f88cf58a5696814adeebb609a64fff8ee9`**. Release-owned cleanup is satisfied: both
+`release/0.8.0` and `release/0.8.0-merge-back` are absent locally and on origin, with no isolated release worktree.
+The release ledger retains verified closeout evidence; no release-owned action remains under the
+[release runbook](releasing.md). Preserve all release evidence and never retag merely to change documentation's
+preparation status.
 
 ## Unexecuted consumer qualification
 
