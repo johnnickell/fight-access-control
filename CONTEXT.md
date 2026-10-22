@@ -19,9 +19,15 @@ Canonical `./bin/build` passes **2399 tests / 45422 assertions**, exact **7452/7
 warnings/skips; explicit tooling qualification passes **8 tests**. Composer packages/lockfile/installed metadata
 are unchanged. Complete logs/direct exits and runtime identities are under `.runs/logs/TASK-00083/`.
 This verification-prose follow-up retains the full gate through unchanged executable inputs and targeted checks.
-Independent Review and behavioral QA remain pending; TASK-00083 stays in-progress.
+Independent technical Review v3 **ACCEPT** and independent behavioral QA **PASS** (10/10 nonvisual scenarios)
+cover exact candidate `e41550853361f57895922f6fddc15cc912b66ba4` against `d955d2f`; both have no findings.
+TASK-00083 is done for accepted implementation and required local/behavioral verification, with no parent to close.
+Land published [PR #136](https://github.com/johnnickell/fight-access-control/pull/136) against `develop`; its
+administrative closeout retains the earlier full gate through verified input equivalence and current
+planning/documentation/diff checks. Hosted CI is not an accepted TASK gate and no hosted conclusion is claimed.
 No consumer Composer minimum, product behavior or consumer runtime changes are included. Local CLI verification
-is not a demonstrated exploit, compromise, consumer web-runtime remediation/restart, publication or deployment.
+is not a demonstrated exploit, compromise, consumer web-runtime remediation/restart, PR approval/merge, release or
+deployment.
 
 ## v0.8.0 publication — 2026-10-21
 
