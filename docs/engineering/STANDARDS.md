@@ -25,7 +25,7 @@ The baseline AGENTS links were rewritten from `Standards/<name>.md` to `docs/eng
 
 ## Adoption gaps
 
-This adoption does not certify all existing code against the baseline. Its compatibility scan and deferred cleanup are preserved in the ignored adoption handoff. The package’s Domain/Application boundary, container runtime, exact-coverage gate, and release-certification procedure remain project-specific bindings.
+This adoption does not certify all existing code against the baseline. Its compatibility scan and deferred cleanup are preserved in the ignored adoption handoff. The package boundary, container runtime, exact-coverage gate, and release-certification procedure remain project-specific bindings.
 
 ## Project deviations
 
@@ -60,6 +60,20 @@ This adoption does not certify all existing code against the baseline. Its compa
 - **Approval/reference:** John explicitly required main-pipeline PHPUnit integration coverage on 2026-09-28 in
   [TASK-00060](../../planning/tasks/00060-TASK.md#approved-verification-amendment). That TASK owns implementation;
   recording the rule does not assert that the tests or suite wiring already exist.
+
+## Optional capability-first Adapter boundary — WF-035
+
+- **Rule:** The [project profile](../../planning/agents/project-profile.md#package-boundary-and-contracts) is the
+  authority for the approved optional `src/Adapter` integration boundary and Common-style capability-first layout.
+  Domain/Application retain their DDD organization and inward dependency rules.
+- **Scope:** Reusable permission/framework integration only; no blanket infrastructure/persistence or all-framework
+  support approval. Existing exact coverage, applicable lifecycle evidence and independent acceptance remain required.
+- **Rationale:** Share reusable transport/framework glue without duplicating permission policy across consumers or
+  forcing a framework-specific structure into Domain/Application.
+- **Approval/reference:** John explicitly selected `src/Adapter` inside AccessControl and Common-style capability-first
+  directories in [WF-035](../../planning/wayfinder/tickets/WF-035-framework-permission-adapter-ownership.md).
+  This supersedes the earlier Domain/Application-only production restriction within that narrow scope, not the
+  historical adoption records below. No adapters, Composer mapping or gate changes are implemented by this amendment.
 
 ## Targeted standards refresh — 2026-09-16
 

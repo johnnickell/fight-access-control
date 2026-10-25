@@ -43,8 +43,10 @@ endpoints, a database schema, a login UI, framework bindings or production confi
 
 ## Integrate with your application
 
-Dependencies point inward: **Application → Domain**. Consumers supply infrastructure through package interfaces;
-there is no production Adapter layer in this library.
+Core dependencies point inward: **Application → Domain**. Consumers supply infrastructure through package interfaces.
+Future optional permission/framework integrations are approved under capability-first `src/Adapter`, pointing inward
+through Application; they are [planned, not implemented](planning/wayfinder/tickets/WF-035-framework-permission-adapter-ownership.md).
+Domain/Application retain their DDD structure; no framework bindings or production configuration are installed today.
 
 | This package owns | Your application owns |
 | --- | --- |
