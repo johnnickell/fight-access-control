@@ -17,3 +17,4 @@ This generated index is a projection; individual records remain canonical.
 | [EPIC-00011](00011-EPIC.md) | Agent Profile Tools and Name Management | done |
 | [EPIC-00012](00012-EPIC.md) | Package-Owned Human Credential Expiry Cleanup for v0.5.0 | done |
 | [EPIC-00013](00013-EPIC.md) | Optional User Self-Registration and Registration-Origin Delivery for v1.0.0 | done |
+| [EPIC-00014](00014-EPIC.md) | Permission-Aware MCP Integration and Framework Adapters | ready-for-agent |

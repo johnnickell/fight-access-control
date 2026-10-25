@@ -1,7 +1,7 @@
 # Fight AccessControl Project Profile
 
-This package binds the [Fight Engineering Standards](../../docs/engineering/STANDARDS.md) to its Domain and
-Application package boundary.
+This package binds the [Fight Engineering Standards](../../docs/engineering/STANDARDS.md) to its Domain/Application
+core and the approved optional, capability-first Adapter integration boundary below.
 
 ## Agent OS workflow binding
 
@@ -66,8 +66,8 @@ all nested references:
 | Completion | `done` requires independent acceptance and required verification, including applicable QA; it means neither publication, merge nor release. Apply automatic parent completion and regenerate views in the same authorized closeout |
 
 Provider application planning, runtime, infrastructure, receipts and release examples are not AccessControl facts.
-Preserve Domain/Application-only ownership, exact statement coverage, OpenAPI integration coverage, pre-v1 current
-contracts and the security rules below. Unresolved conflicts hold only the affected action with its owner named.
+Preserve Domain/Application core ownership and the approved optional Adapter boundary, exact statement coverage,
+OpenAPI integration coverage, pre-v1 current contracts and the security rules below. Unresolved conflicts hold only the affected action with its owner named.
 
 ### Evidence and resume
 
@@ -106,9 +106,22 @@ previous-iteration support; completed TASKs and earlier guidance cannot require 
 
 ## Package boundary and contracts
 
-- Production code is limited to src/Domain/AccessControl and src/Application/AccessControl, mirrored by tests.
-- Consumers own production persistence adapters, transport, framework composition, keys, queues, and runtime. Do not
-  add a production Adapter layer, contracts directory, or Composer production namespace without explicit approval.
+- Domain/Application production behavior remains under `src/Domain/AccessControl` and
+  `src/Application/AccessControl`, with the existing DDD organization and mirrored tests.
+- John approved optional reusable permission/framework integrations under `src/Adapter` in
+  [WF-035](../wayfinder/tickets/WF-035-framework-permission-adapter-ownership.md), organized capability-first like
+  Common: `Adapter/<Capability>/<Framework-or-Provider-or-Standard>/...`; service-container extension points use
+  `Adapter/ServiceContainer/<Framework>/...`. Do not introduce framework-first or DDD aggregate buckets at this
+  layer. Reference Common's current canonical destinations, not its deprecated aliases.
+- Dependency direction remains `Adapter → Application → Domain`. Keep framework dependencies optional/isolated and
+  adapters explicitly enabled; reuse PSR-15 where the actual contract fits. Compose Common's safe-error approach
+  without competing reporting/rendering or leaking private exceptions; preserve MCP/OAuth protocol boundaries.
+- Consumers still own production persistence adapters, application policy/grants/target scope, transport routes,
+  framework bootstrap, keys, queues and runtime. The narrow Adapter approval does not authorize persistence or
+  unrelated infrastructure, blanket framework support, a contracts directory or arbitrary production namespaces.
+- This is an approved future integration boundary, not existing adapter code. Later approved TASKs own Composer
+  autoloading, architecture rules, mirrored `tests/Adapter` suites and exact owned-statement coverage before adapter
+  acceptance. Do not change those executable inputs, add dependencies or implement adapters through planning edits.
 - Reuse public Fight Common values and identities: context IDs extend UniqueId, email is the common EmailAddress,
   messages use the public Command, Query, Event, and handler contracts, and package exceptions stay under their
   aggregate Exception namespace.

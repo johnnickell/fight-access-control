@@ -1,5 +1,59 @@
 # Roadmap
 
+## Future MCP permission integration — planning only
+
+[EPIC-00014 — Permission-Aware MCP Integration and Framework Adapters](epics/00014-EPIC.md) now owns the single
+approved destination from the [closed Wayfinder map](wayfinder/mcp-capability-permission-integration-map.md).
+All four decisions and the map's EPIC phase are complete. The accepted combined release includes Tool/execution,
+Resource/Skill/Prompt, Subscriptions and durable Task permission integration, Common-compatible safe errors and all
+five framework families (Slim, Yii 3, Symfony, Laravel, CodeIgniter 4), with optional capability-first `src/Adapter`
+integrations and consumer-owned policy/scope. The release number remains unassigned.
+
+John approved the full eight-TICKET split, now written as [TICKET-00025](tickets/00025-TICKET.md) through
+[TICKET-00032](tickets/00032-TICKET.md). All map EPIC/TICKET phases are complete. John subsequently selected
+TICKET-00025 for To Tasks and approved its single-TASK plan, now written as [TASK-00084](tasks/00084-TASK.md).
+It is `needs-info` for actual qualified/tagged Common execution contracts and minimum-version evidence, with no
+unfinished local TASK blockers. John subsequently approved TICKET-00026's complete two-TASK plan, written as
+[TASK-00085](tasks/00085-TASK.md) for Resources and [TASK-00086](tasks/00086-TASK.md) for whole Skills/member reads.
+TASK-00085 has no local blocker; TASK-00086 depends only on TASK-00085, not TASK-00084. Qualifying their actual
+supported Common minimum/behavior remains an implementation obligation, not a missing execution-Tool API hold.
+John then approved TICKET-00027's complete single-TASK plan, written as [TASK-00087](tasks/00087-TASK.md), needs-info
+for qualified/tagged Common Prompt contracts and supported minimum evidence, with no unfinished local TASK blockers.
+John then approved TICKET-00028's single-TASK plan, written as [TASK-00088](tasks/00088-TASK.md), ready-for-agent
+with no local TASK blocker or new Common runtime API prerequisite. It owns trusted binding/current checks and
+synchronized protected admission, with actual consumer lifetime/scope/fence qualification separate.
+John then approved TICKET-00029's full plan, written as [TASK-00089](tasks/00089-TASK.md) for scoped timeline reads
+and [TASK-00090](tasks/00090-TASK.md) for independent protected metadata/body reads. Both consume TASK-00084 and are
+needs-info for qualified/tagged Common scoped-read contracts/minimum evidence; neither depends on the other or on
+TASK-00088 for ordinary requests. Consumer scope/persistence/race qualification remains separate.
+John then approved TICKET-00030's six complete journeys, written as [TASK-00091](tasks/00091-TASK.md) recording/removal,
+[TASK-00092](tasks/00092-TASK.md) retained inspection/recovery, [TASK-00093](tasks/00093-TASK.md) live Tool/Resource/Skill
+disclosure, [TASK-00094](tasks/00094-TASK.md) Prompt signals, [TASK-00095](tasks/00095-TASK.md) subscriber inspection and
+[TASK-00096](tasks/00096-TASK.md) optional publication. All six are needs-info for qualified/tagged Common contracts/
+minimum evidence, separately from approved local supplier edges. Publication is independent of live/Prompt/inspection,
+Prompt absence does not block ordinary live families, and polling needs no live runtime.
+John then approved TICKET-00031's six complete features, written as [TASK-00097](tasks/00097-TASK.md) creation/producer/
+protected reads, [TASK-00098](tasks/00098-TASK.md) removal, [TASK-00099](tasks/00099-TASK.md) input/continuation,
+[TASK-00100](tasks/00100-TASK.md) cancellation/intent, [TASK-00101](tasks/00101-TASK.md) complete MCP start/reconnect and
+[TASK-00102](tasks/00102-TASK.md) optional full-state notifications. All six retain needs-info qualified/tagged Common
+contract/minimum holds plus approved supplier edges. Ordinary polling/input/cancel need no live runtime, removal does
+not block complete activation, and full-state live has no extra Prompt/inspection/Mercure blocker.
+John then approved TICKET-00032's full four-feature plan, written as [TASK-00103](tasks/00103-TASK.md) shared PSR-15
+with separate Slim/Yii 3 qualification, [TASK-00104](tasks/00104-TASK.md) Symfony,
+[TASK-00105](tasks/00105-TASK.md) Laravel and [TASK-00106](tasks/00106-TASK.md) CodeIgniter 4. All are ready-for-agent:
+TASK-00103 has no local blocker; B–D consume only its inward shared contract/first Adapter wiring, not Slim/Yii runtime,
+and share equal order 104 without relative native framework priority. No inherited MCP/TASK-00088 prerequisite;
+actual sufficient tagged minima/native qualification remain acceptance work. All map decisions/EPIC/TICKET/full TASK
+plans are accepted/written (TASK-00084–00106, 23 features). Next: `/skill:next` for Board-based selection, not automatic
+execution or release. No implementation exists for this EPIC yet. Required Common
+implementations, independent acceptance/qualification, tagged APIs and actual minimum-version/framework evidence
+gate affected adoption/release, not this planning handoff. The
+[research](wayfinder/research/fight-common-mcp-permission-integration.md) preserves initial source snapshots;
+the EPIC records current local maturity observations without consumer qualification.
+John subsequently authorized commit, push and a planning-only PR to develop. No grants, dependency changes,
+implementation, merge, release or consumer adoption are authorized by that request. The published v0.8.0 handoff
+below is unchanged.
+
 ## Current release handoff — v0.8.0 published
 
 [v0.8.0](https://github.com/johnnickell/fight-access-control/releases/tag/v0.8.0) is published on 2026-10-21 from
@@ -15,7 +69,8 @@ on 2026-10-21 at `d955d2f88cf58a5696814adeebb609a64fff8ee9`. Release-owned clean
 `release/0.8.0` and `release/0.8.0-merge-back` are absent locally and on origin, with no isolated release worktree.
 The release ledger retains the verified closeout and evidence; no release-owned action remains. Preserve the signed
 release commit and evidence.
-No implementation TASK remains unfinished; v1.0.0 stability, consumer adoption and deployment remain separate decisions.
+At v0.8.0 release closeout no implementation TASK remained unfinished; the new future-integration TASK-00084–00106 records are
+tracked above. v1.0.0 stability, consumer adoption and deployment remain separate decisions.
 
 ### Historical v0.8.0 preparation checkpoint
 
@@ -48,7 +103,7 @@ implementation or PR-merge handoff. Consumer qualification, version selection, r
 [TASK-00082](tasks/00082-TASK.md) completed the README, identity assets, release-version consistency and planning
 reconciliation; PR #133 merged into `develop` on 2026-10-21. Its earlier v0.8.0 recommendation is now superseded by
 John's version selection above. The breaking pre-v1 Role and recovery contracts require a new minor, not a v0.7.x
-patch. The [Board](tasks/BOARD.md) retains the terminal implementation portfolio.
+patch. The [Board](tasks/BOARD.md) owns the current TASK portfolio.
 
 ## Published v0.7.0
 
@@ -293,4 +348,5 @@ The EPIC's historical pre-v1.0.0 target is not an authorization to release v1.0.
 | [EPIC-00011](epics/00011-EPIC.md) | v0.5.0 | done | 2 | 3 |
 | [EPIC-00012](epics/00012-EPIC.md) | v0.5.0 | done | 1 | 1 |
 | [EPIC-00013](epics/00013-EPIC.md) | v1.0.0 | done | 3 | 3 |
+| [EPIC-00014](epics/00014-EPIC.md) | unassigned | ready-for-agent | 8 | 23 |
 <!-- generated:epic-status:end -->

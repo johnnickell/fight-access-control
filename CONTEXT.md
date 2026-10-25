@@ -6,6 +6,85 @@ Fight AccessControl owns framework-neutral identity, credential, session, author
 behavior shared by Fight applications. The repository-local behavioral and security authority is
 [TICKET-00001](planning/tickets/00001-TICKET.md).
 
+## Future Common MCP permission integration — investigation 2026-10-25
+
+John requested investigation/planning for a future AccessControl release. The
+[closed map](planning/wayfinder/mcp-capability-permission-integration-map.md) and
+[WF-032 evidence](planning/wayfinder/research/fight-common-mcp-permission-integration.md) preserve the initial Common
+maturity investigation, including the then-uncommitted Prompt source. EPIC-00014 records later local observations
+without treating Common planning, local completion or tags as actual consumer qualification. Common has neutral enforcement seams; all seven execution Tools fail closed in the current
+attribute-only AccessControl catalog (research probe: 7/7 rejections, no Query calls). Resource/Skill/Prompt bindings,
+consumer scope composition and live authority revalidation remain unimplemented integration work, not evidence of
+a bypass. The existing request-local principal snapshot is not a live permission lease.
+
+[WF-033](planning/wayfinder/tickets/WF-033-common-owned-mcp-permission-bindings.md) is Closed: John accepted explicit
+Tool mappings alongside attributes, permission-check tooling with consumer-owned policy/scope, request-local admission
+and separate current live/continuation checks. His follow-up asks about framework-native adapters and requires
+compatibility with Common's safe-error approach. [WF-035](planning/wayfinder/tickets/WF-035-framework-permission-adapter-ownership.md)
+is Closed: John selected optional integrations in this package's `src/Adapter`, using Common-style capability-first
+layout while retaining DDD in Domain/Application. The profile records the narrow approved boundary; no adapters exist
+yet. WF-034 is also Closed: John approved one combined release covering the selected MCP families including
+Subscriptions/Tasks and all five frameworks (Slim, Yii 3, Symfony, Laravel, CodeIgniter 4). Grill wrote the single
+approved destination as [EPIC-00014 — Permission-Aware MCP Integration and Framework Adapters](planning/epics/00014-EPIC.md).
+The map is Closed for completed decisions and EPIC handoff. John approved the complete requirement split, now
+written as [TICKET-00025](planning/tickets/00025-TICKET.md) through [TICKET-00032](planning/tickets/00032-TICKET.md):
+Tool binding; Resource/Skill; Prompt; current continuation authority; scoped execution/detail; notices/Subscriptions;
+durable Tasks; all-five native HTTP integration. All map TICKET planning is complete. John then selected
+TICKET-00025 for To Tasks and approved its complete single-TASK plan, now written as
+[TASK-00084 — Protect mixed Common-owned and attributed MCP Tools](planning/tasks/00084-TASK.md). It is
+`needs-info` pending actual qualified/tagged Common execution APIs and minimum-version evidence, with no unfinished
+local TASK blockers. John subsequently approved TICKET-00026's full two-TASK plan, written as
+[TASK-00085 — Authorize exact Resource discovery and reads](planning/tasks/00085-TASK.md) and
+[TASK-00086 — Authorize complete Skills and protected member reads](planning/tasks/00086-TASK.md).
+TASK-00085 is ready with no local blocker; TASK-00086 depends only on TASK-00085. Their actual Common minimum/
+behavior qualification belongs to implementation; neither inherits the Tool execution-API hold. John then approved
+TICKET-00027's full single-TASK plan, written as
+[TASK-00087 — Authorize Agent-protected Prompt discovery and retrieval](planning/tasks/00087-TASK.md), needs-info
+for qualified/tagged Common Prompt contracts and supported-minimum evidence, with no unfinished local TASK blockers.
+John then approved TICKET-00028's full single-TASK plan, written as
+[TASK-00088 — Revalidate bound Agent authority before protected continuation](planning/tasks/00088-TASK.md),
+ready-for-agent with no local TASK blocker or new Common runtime API prerequisite. Trusted binding/current checks
+and check-to-admission synchronization stay together; actual consumer handoff/lifetime/scope/fence qualification
+remains separate. John then approved TICKET-00029's full plan, written as
+[TASK-00089 — Compose scoped execution and timeline reads](planning/tasks/00089-TASK.md) and
+[TASK-00090 — Compose independent protected-detail metadata and body reads](planning/tasks/00090-TASK.md).
+Both consume TASK-00084 and are needs-info for qualified/tagged Common scoped-read contracts/minimum evidence;
+neither depends on the other or on TASK-00088 for ordinary requests. John then approved TICKET-00030's full plan,
+written as [TASK-00091](planning/tasks/00091-TASK.md) recording/removal,
+[TASK-00092](planning/tasks/00092-TASK.md) retained inspection/recovery,
+[TASK-00093](planning/tasks/00093-TASK.md) live Tool/Resource/Skill disclosure,
+[TASK-00094](planning/tasks/00094-TASK.md) Prompt signals,
+[TASK-00095](planning/tasks/00095-TASK.md) subscriber inspection and
+[TASK-00096](planning/tasks/00096-TASK.md) optional publication. All six retain needs-info Common qualified/tagged
+contract/minimum holds and their approved local supplier edges. Prompt absence does not block ordinary live families;
+publication needs no live/Prompt/inspection integration, and ordinary polling needs no live runtime. John then approved
+TICKET-00031's full plan, written as [TASK-00097](planning/tasks/00097-TASK.md) creation/producer/protected reads,
+[TASK-00098](planning/tasks/00098-TASK.md) removal, [TASK-00099](planning/tasks/00099-TASK.md) input/continuation,
+[TASK-00100](planning/tasks/00100-TASK.md) cancellation/intent,
+[TASK-00101](planning/tasks/00101-TASK.md) complete MCP start/reconnect and
+[TASK-00102](planning/tasks/00102-TASK.md) optional full-state notifications. All six retain needs-info qualified/tagged
+Common contract/minimum holds plus approved supplier edges. Ordinary polling/input/cancel need no live runtime;
+removal does not block complete protocol activation, and full-state live has no extra Prompt/inspection/Mercure
+blocker. John then approved TICKET-00032's full plan, written as
+[TASK-00103](planning/tasks/00103-TASK.md) shared PSR-15 with separately qualified Slim/Yii 3 journeys,
+[TASK-00104](planning/tasks/00104-TASK.md) Symfony, [TASK-00105](planning/tasks/00105-TASK.md) Laravel and
+[TASK-00106](planning/tasks/00106-TASK.md) CodeIgniter 4. All are ready-for-agent: TASK-00103 has no local blocker;
+native peers depend only on its shared inward contracts/initial Adapter wiring, not Slim/Yii runtime. Native peers
+share order 104 without relative product priority. No inherited MCP/TASK-00088 hold; actual sufficient tagged
+minima/native qualification remain acceptance work. All map decisions, single EPIC, eight TICKETs and full TASK
+plans are accepted/written as TASK-00084–00106 (23 features), not implemented/done. Next: `/skill:next` for Board-based
+selection, not automatic execution.
+No implementation exists for this EPIC yet. AccessControl's release number stays
+unassigned; actual qualified/tagged Common contracts, dependency minima and framework evidence remain external
+prerequisites, not guessed versions or proof of capability readiness.
+
+Agent OS's request-local middleware pattern fits, but its custom failure mapping is not a drop-in Common safe-handler
+migration. The inspected safe-error baseline already ships in Common v1.4.0. John subsequently authorized committing,
+pushing and opening a PR to develop for these planning changes only. Implementation, Permission grants, dependency
+changes, merge, release and consumer adoption remain outside that publication request. v0.8.0 remains the current published
+AccessControl release. Existing product suites were inspected, not rerun; the bounded host-PHP probe is not a
+canonical Docker build or consumer qualification.
+
 ## PHP runtime security maintenance — approved 2026-10-22
 
 John invoked Build for standalone [TASK-00083](planning/tasks/00083-TASK.md) in the main checkout on
@@ -885,11 +964,15 @@ no merge, release or consumer qualification is claimed.
 
 ## Package Boundary
 
-Production dependencies flow `Domain <- Application`. Domain owns invariants and lifecycle state. Application
-owns a synchronous secret-bearing authentication service, explicit non-sensitive commands and queries, portable
-ports, immutable token/read results, and transaction orchestration. This package has no production Adapter layer and no
-framework dependency. Consumers own clients, persistence, HTTP and cookie adapters, cryptographic keys, mail,
-queues, realtime delivery, hosting, and runtime composition.
+Dependencies flow `Adapter → Application → Domain`. Domain owns invariants and lifecycle state. Application owns
+a synchronous secret-bearing authentication service, explicit non-sensitive commands and queries, portable ports,
+immutable token/read results, and transaction orchestration. The current implementation still contains no production
+Adapter layer or framework dependency. John approved future optional permission/framework integration under
+capability-first `src/Adapter` in [WF-035](planning/wayfinder/tickets/WF-035-framework-permission-adapter-ownership.md);
+Domain/Application retain their DDD structure. The [profile](planning/agents/project-profile.md#package-boundary-and-contracts)
+owns that narrow boundary, dependency isolation and later verification obligations. Consumers retain application
+policy/grants/scope, persistence, client/route/bootstrap composition, cryptographic keys, mail, queues, realtime
+operations, hosting and runtime. This approval does not supply adapters, optional dependencies or framework support.
 
 Application builders protect every command entry point using controls suited to HTTP, CLI, workers, or other
 adapters. Consumer outer layers normally authenticate, validate, authorize, choose synchronous or asynchronous
