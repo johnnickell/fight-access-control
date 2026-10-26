@@ -13,8 +13,9 @@ John requested investigation/planning for a future AccessControl release. The
 [WF-032 evidence](planning/wayfinder/research/fight-common-mcp-permission-integration.md) preserve the initial Common
 maturity investigation, including the then-uncommitted Prompt source. EPIC-00014 records later local observations
 without treating Common planning, local completion or tags as actual consumer qualification. Common has neutral enforcement seams; all seven execution Tools fail closed in the current
-attribute-only AccessControl catalog (research probe: 7/7 rejections, no Query calls). Resource/Skill/Prompt bindings,
-consumer scope composition and live authority revalidation remain unimplemented integration work, not evidence of
+attribute-only AccessControl catalog (research probe: 7/7 rejections, no Query calls). Resource bindings now have the
+TASK-00085 implementation checkpoint below; Skill/Prompt bindings, consumer scope composition and live authority
+revalidation remain unimplemented integration work, not evidence of
 a bypass. The existing request-local principal snapshot is not a live permission lease.
 
 [WF-033](planning/wayfinder/tickets/WF-033-common-owned-mcp-permission-bindings.md) is Closed: John accepted explicit
@@ -74,8 +75,10 @@ share order 104 without relative product priority. No inherited MCP/TASK-00088 h
 minima/native qualification remain acceptance work. All map decisions, single EPIC, eight TICKETs and full TASK
 plans are accepted/written as TASK-00084–00106 (23 features), not implemented/done. Next: `/skill:next` for Board-based
 selection, not automatic execution.
-No implementation exists for this EPIC yet. AccessControl's release number stays
-unassigned; actual qualified/tagged Common contracts, dependency minima and framework evidence remain external
+TASK-00085 is the first accepted implementation checkpoint for this EPIC: canonical Review ACCEPT and nonvisual QA PASS
+cover exact candidate `e2b7594b0005867880601f8d244cca3671a3d746`; [PR #139](https://github.com/johnnickell/fight-access-control/pull/139)
+is open against `develop`. AccessControl's release number stays unassigned; actual qualified/tagged Common contracts,
+dependency minima and framework evidence remain external
 prerequisites, not guessed versions or proof of capability readiness.
 
 Agent OS's request-local middleware pattern fits, but its custom failure mapping is not a drop-in Common safe-handler
@@ -84,6 +87,37 @@ pushing and opening a PR to develop for these planning changes only. Implementat
 changes, merge, release and consumer adoption remain outside that publication request. v0.8.0 remains the current published
 AccessControl release. Existing product suites were inspected, not rerun; the bounded host-PHP probe is not a
 canonical Docker build or consumer qualification.
+
+## Resource Permission composition — TASK-00085 implementation checkpoint
+
+TASK-00085 adds `AgentResourcePermissionBinding`, `AgentResourcePermissionCatalog` and request-scoped
+`Security\\AgentResourceAvailability` in the existing Application Agent boundary. The
+[Resource guide](docs/agent-resource-authorization.md) owns exact provider/URI composition, dynamic fresh metadata,
+conjunctive direct Permissions, trusted request-provider reuse and independent consumer containment/scope obligations.
+Static binding checks use metadata-only exact lookup, not content opening or a discovered/frozen registry. Unknown
+runtime metadata denies. Common retains collision/descriptor validation, exact lookup, finite bounds and stream cleanup.
+Authentication/Permission denial conceals; operational resolution, invalid Permission snapshots and provider/policy
+faults propagate to Common's safe error boundary, not fabricated empty/partial success. Requests/pages/reads use fresh
+authority with private zero-TTL results; a short already-resolved request retains its immutable snapshot.
+
+The existing Common `^1.3` minimum is sufficient: tagged v1.3.0 (`7de6cad6e8a9752973ad9f8e27e285b0c1510582`) passes
+actual Resource/principal composition tests in isolated dependency scratch; the ordinary installed lane is v1.4.0
+(`87b9580c072f3149d574e09865daa79620c92118`). At the initial checkpoint both focused lanes passed **62 tests / 412
+assertions**. That canonical full gate passed **2453 tests / 45796 assertions**, exact **7507/7507 statements** including **55/55** new Resource
+statements. A regression-first Domain correction also rejects terminal-newline Permission names. TASK evidence owns
+exact locks, inputs, tooling-update/warning chronology and the prose-only retained-gate bridge.
+Independent Review identified F1: PHP loose descriptor comparison admitted unequal numeric strings and nested scalar
+types, including stale metadata links through real discovery. The regression-first repair compares public descriptor
+values without coercion: scalar types, JSON object/list distinctions and list positions are preserved; object property
+order and fresh object identity do not affect equivalence. Both dependency lanes pass **79 tests / 488 assertions**,
+including real discovery concealment and equivalent controls. A fresh repair full gate passes **2470 tests / 45872
+assertions**, exact **7519/7519 statements**. Repair-specific logs/receipt and exact candidate mapping live in the
+TASK Work handoff; the initial gate above is historical, not proof for the changed executable inputs.
+
+This checkpoint has independent technical acceptance and nonvisual behavioral QA, but does not claim deployed
+content/cryptographic/database qualification, Skill admission (TASK-00086), consumer adoption, publication or release.
+TASK-00085 is done for required package verification; the approved combined EPIC release and unassigned version remain
+unchanged.
 
 ## PHP runtime security maintenance — approved 2026-10-22
 

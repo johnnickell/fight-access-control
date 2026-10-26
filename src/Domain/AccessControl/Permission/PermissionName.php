@@ -28,7 +28,7 @@ final readonly class PermissionName extends ValueObject
      */
     public static function fromString(string $value): self
     {
-        if (preg_match('/^[A-Z]+(?:_[A-Z]+)*$/', $value) !== 1) {
+        if (preg_match('/\A[A-Z]+(?:_[A-Z]+)*\z/D', $value) !== 1) {
             throw new PermissionNameException(
                 'A permission name must contain uppercase words separated by underscores.'
             );

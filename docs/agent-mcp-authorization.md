@@ -7,6 +7,9 @@ metadata and availability, **not** protocol policy, an endpoint, OAuth mapping o
 instances require the same fresh provider/request as availability. Independent review/behavioral QA and actual
 consumer qualification remain separate from builder tests.
 
+[Resource authorization](agent-resource-authorization.md) is independently composed through Common's Resource hook.
+Its operational-failure behavior intentionally differs from this Tool-only neutral-denial policy.
+
 ## Public contracts
 
 All three types live under `Fight\AccessControl\Application\AccessControl\Agent`:

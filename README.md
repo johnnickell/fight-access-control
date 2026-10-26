@@ -82,7 +82,7 @@ Domain/Application retain their DDD structure; no framework bindings or producti
 | Login, refresh, logout, passwords and current authority | [Behavioral contract](planning/tickets/00001-TICKET.md) · [Vocabulary and boundaries](CONTEXT.md#vocabulary) |
 | Roles, Permission tiers and managed policy | [Permission tiers](docs/permission-tiers.md) · [Operation outcomes](docs/operation-outcomes.md) |
 | Recoverable Agent provisioning, rotation and delivery | [Agent integration](docs/agent-integration.md) · [Conformance and evidence](docs/agent-operation-evidence.md) |
-| Agent profiles and protected MCP Tools | [Profile Tools](docs/agent-profile-tools.md) · [MCP authorization](docs/agent-mcp-authorization.md) |
+| Agent profiles and protected MCP capabilities | [Profile Tools](docs/agent-profile-tools.md) · [Tool authorization](docs/agent-mcp-authorization.md) · [Resource authorization](docs/agent-resource-authorization.md) |
 | Permission-based Feature flags | [Declarations](docs/feature-references.md) · [Provisioning](docs/feature-provisioning.md) · [Preparation](docs/feature-preparation.md) · [Availability](docs/feature-availability.md) · [Management](docs/feature-management.md) · [Retirement](docs/feature-retirement.md) |
 | Consumer-owned OpenAPI documents | [Opt-in schema components](docs/openapi-composition.md) |
 
