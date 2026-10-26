@@ -76,8 +76,9 @@ minima/native qualification remain acceptance work. All map decisions, single EP
 plans are accepted/written as TASK-00084–00106 (23 features), not implemented/done. Next: `/skill:next` for Board-based
 selection, not automatic execution.
 TASK-00085 is the first accepted implementation checkpoint for this EPIC: canonical Review ACCEPT and nonvisual QA PASS
-cover exact candidate `e2b7594b0005867880601f8d244cca3671a3d746`; Land publication is pending. AccessControl's release number stays
-unassigned; actual qualified/tagged Common contracts, dependency minima and framework evidence remain external
+cover exact candidate `e2b7594b0005867880601f8d244cca3671a3d746`; [PR #139](https://github.com/johnnickell/fight-access-control/pull/139)
+is open against `develop`. AccessControl's release number stays unassigned; actual qualified/tagged Common contracts,
+dependency minima and framework evidence remain external
 prerequisites, not guessed versions or proof of capability readiness.
 
 Agent OS's request-local middleware pattern fits, but its custom failure mapping is not a drop-in Common safe-handler

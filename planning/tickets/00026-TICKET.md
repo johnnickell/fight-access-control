@@ -111,7 +111,8 @@ TASK-00085 implements the Resource slice on `feature/task-00085-resource-authori
 [Resource guide](../../docs/agent-resource-authorization.md) records the public composition. Actual list/read and
 principal-provider tests qualify tagged Common v1.3.0 as the existing sufficient minimum. Canonical Review ACCEPT and
 nonvisual QA PASS accept exact candidate `e2b7594b0005867880601f8d244cca3671a3d746`; TASK-00085 is done for required
-package verification, with Land publication pending. TASK-00086 remains unfinished, so this TICKET stays open. Earlier
+package verification; [PR #139](https://github.com/johnnickell/fight-access-control/pull/139) is open against `develop`.
+TASK-00086 remains unfinished, so this TICKET stays open. Earlier
 planning-only statements above describe their original authorization checkpoint.
 
 Next: `/skill:next` for Board-based selection after the delivery handoff is complete.

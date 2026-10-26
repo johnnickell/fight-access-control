@@ -15,9 +15,9 @@ TICKET-00025 for To Tasks and approved its single-TASK plan, now written as [TAS
 It is `needs-info` for actual qualified/tagged Common execution contracts and minimum-version evidence, with no
 unfinished local TASK blockers. John subsequently approved TICKET-00026's complete two-TASK plan, written as
 [TASK-00085](tasks/00085-TASK.md) for Resources and [TASK-00086](tasks/00086-TASK.md) for whole Skills/member reads.
-TASK-00085 has completed its accepted Resource implementation and required package verification; Land publication is
-pending. TASK-00086 depends only on TASK-00085, not TASK-00084. Qualifying its actual supported Common minimum/behavior
-remains an implementation obligation, not a missing execution-Tool API hold.
+TASK-00085 has completed its accepted Resource implementation and required package verification; [PR #139](https://github.com/johnnickell/fight-access-control/pull/139)
+is open against `develop`. TASK-00086 depends only on TASK-00085, not TASK-00084. Qualifying its actual supported
+Common minimum/behavior remains an implementation obligation, not a missing execution-Tool API hold.
 John then approved TICKET-00027's complete single-TASK plan, written as [TASK-00087](tasks/00087-TASK.md), needs-info
 for qualified/tagged Common Prompt contracts and supported minimum evidence, with no unfinished local TASK blockers.
 John then approved TICKET-00028's single-TASK plan, written as [TASK-00088](tasks/00088-TASK.md), ready-for-agent
