@@ -10,6 +10,7 @@ use Fight\Common\Application\Mcp\Resource\McpReadableResourceProvider;
 use Fight\Common\Application\Mcp\Resource\McpResourceContent;
 use Fight\Common\Application\Mcp\Resource\McpResourceInfo;
 use Fight\Common\Domain\Exception\DomainException;
+use Fight\Common\Domain\Value\Basic\StrictJson;
 use Fight\Test\AccessControl\Application\AccessControl\Agent\Fixture\ResourceProvider;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\DataProvider;
@@ -85,6 +86,67 @@ final class AgentResourcePermissionCatalogTest extends TestCase
             'uri' => 'docs:other', 'name' => 'One'
         ]);
         self::assertNull($catalog->requirementsFor($first));
+    }
+
+    /** @return iterable<string, array{array<string, mixed>, array<string, mixed>, bool}> */
+    public static function descriptorValues(): iterable
+    {
+        yield 'numeric title' => [['title' => '1'], ['title' => '01'], false];
+        yield 'numeric name' => [['name' => '1'], ['name' => '01'], false];
+        $nestedDifferences = [
+            'boolean and link'         => [true, 'https://example.org/stale-link'],
+            'boolean and empty string' => [false, ''],
+            'integer and string'       => [1, '1'],
+            'integer and float'        => [1, 1.0],
+            'null and empty string'    => [null, ''],
+            'object and list'          => [StrictJson::fromObject([]), []],
+            'list order'               => [[1, 2], [2, 1]]
+        ];
+        foreach ($nestedDifferences as $case => [$current, $presented]) {
+            yield $case => [
+                ['_meta' => ['example.org/data' => ['nested' => [$current]]]],
+                ['_meta' => ['example.org/data' => ['nested' => [$presented]]]],
+                false
+            ];
+        }
+
+        yield 'absent versus explicit null' => [
+            ['_meta' => ['example.org/data' => ['value' => null]]],
+            ['_meta' => ['example.org/data' => ['other' => null]]],
+            false
+        ];
+        yield 'missing optional field' => [['title' => 'One'], [], false];
+        yield 'fresh equivalent nested values' => [
+            ['title' => '01', '_meta' => ['example.org/data' => ['nested' => [true, '1', 1, 1.0, null, []]]]],
+            ['title' => '01', '_meta' => ['example.org/data' => ['nested' => [true, '1', 1, 1.0, null, []]]]],
+            true
+        ];
+        yield 'equivalent reordered object properties' => [
+            ['title' => 'One', '_meta' => ['example.org/data' => ['first' => true, 'second' => [1, 2]]]],
+            ['_meta' => ['example.org/data' => ['second' => [1, 2], 'first' => true]], 'title' => 'One'],
+            true
+        ];
+    }
+
+    /**
+     * @param array<string, mixed> $current
+     * @param array<string, mixed> $presented
+     */
+    #[DataProvider('descriptorValues')]
+    public function test_current_descriptor_equivalence_preserves_values_and_types(
+        array $current,
+        array $presented,
+        bool $equivalent
+    ): void {
+        $provider = $this->provider();
+        $provider->metadata['docs:one'] = [...['uri' => 'docs:one', 'name' => 'One'], ...$current];
+        $binding = new AgentResourcePermissionBinding($provider, 'docs:one', ['READ_DOCUMENTS']);
+        $catalog = new AgentResourcePermissionCatalog([$binding]);
+        $descriptor = McpResourceInfo::fromArray([...['uri' => 'docs:one', 'name' => 'One'], ...$presented]);
+        self::assertNotSame($provider->find('docs:one'), $descriptor);
+        self::assertSame($equivalent ? $binding->permissions() : null, $catalog->requirementsFor($descriptor));
+        self::assertSame(0, $provider->enumerations);
+        self::assertSame([], $provider->opened);
     }
 
     /** @return iterable<string, array{string}> */

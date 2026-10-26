@@ -119,6 +119,51 @@ final class AgentResourceAvailabilityTest extends TestCase
         self::assertStringNotContainsString('a-hidden', json_encode($page, JSON_THROW_ON_ERROR));
     }
 
+    /** @return iterable<string, array{array<string, mixed>, array<string, mixed>, bool}> */
+    public static function discoveryDescriptorValues(): iterable
+    {
+        yield 'numeric title' => [['title' => '1'], ['title' => '01'], false];
+        yield 'numeric name' => [['name' => '1'], ['name' => '01'], false];
+        yield 'typed nested link' => [
+            ['_meta' => ['example.org/data' => ['link' => true]]],
+            ['_meta' => ['example.org/data' => ['link' => 'https://example.org/stale-link']]],
+            false
+        ];
+        yield 'fresh equivalent nested link' => [
+            ['_meta' => ['example.org/data' => ['link' => 'https://example.org/current', 'public' => false]]],
+            ['_meta' => ['example.org/data' => ['public' => false, 'link' => 'https://example.org/current']]],
+            true
+        ];
+    }
+
+    /**
+     * @param array<string, mixed> $current
+     * @param array<string, mixed> $listed
+     */
+    #[DataProvider('discoveryDescriptorValues')]
+    public function test_real_discovery_discloses_only_equivalent_current_descriptor_values(
+        array $current,
+        array $listed,
+        bool $equivalent
+    ): void {
+        $provider = $this->resourceProvider(['docs:one' => 'Protected']);
+        $provider->metadata['docs:one'] = [...$provider->metadata['docs:one'], ...$listed];
+        $owned = [...$provider->metadata['docs:one'], ...$current];
+        $provider->lookup = static fn(): McpResourceInfo => McpResourceInfo::fromArray($owned);
+        $catalog = $this->catalog($provider, ['docs:one']);
+        $discovery = $this->discovery($catalog, $this->availability($catalog));
+        $page = $this->response($discovery, 'resources/list')['result'];
+        $expected = $equivalent ? [McpResourceInfo::fromArray($provider->metadata['docs:one'])->toArray()] : [];
+        self::assertSame(
+            json_encode($expected, JSON_THROW_ON_ERROR),
+            json_encode($page['resources'], JSON_THROW_ON_ERROR)
+        );
+        self::assertArrayNotHasKey('nextCursor', $page);
+        self::assertSame([], $provider->opened);
+        self::assertSame(0, $this->closed);
+        self::assertSame($equivalent ? 1 : 0, $this->nonces->consumptionCalls());
+    }
+
     #[DataProvider('missingAuthority')]
     public function test_missing_requirements_or_unresolved_authority_conceal_metadata_and_never_open(
         string $missing

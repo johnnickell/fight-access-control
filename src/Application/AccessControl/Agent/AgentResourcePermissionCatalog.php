@@ -8,6 +8,7 @@ use Fight\AccessControl\Domain\AccessControl\Permission\PermissionName;
 use Fight\Common\Application\Mcp\Resource\McpReadableResourceProvider;
 use Fight\Common\Application\Mcp\Resource\McpResourceInfo;
 use Fight\Common\Domain\Exception\DomainException;
+use Fight\Common\Domain\Value\Basic\StrictJson;
 
 /**
  * Class AgentResourcePermissionCatalog
@@ -81,10 +82,39 @@ final readonly class AgentResourcePermissionCatalog
         }
 
         $owned = $binding->provider()->find($resource->uri());
-        if ($owned === null || $owned->uri() !== $resource->uri() || $owned != $resource) {
+        if (
+            $owned === null || $owned->uri() !== $resource->uri()
+            || !$this->sameMetadataValues($owned->toArray(), $resource->toArray())
+        ) {
             return null;
         }
 
         return $binding->permissions();
+    }
+
+    /**
+     * Returns whether public descriptor values match without coercion or object identity
+     *
+     * Common bounds the JSON tree. Object property order is irrelevant; list positions and scalar types are not.
+     */
+    private function sameMetadataValues(mixed $current, mixed $presented): bool
+    {
+        if ($current instanceof StrictJson && $presented instanceof StrictJson) {
+            return $this->sameMetadataValues($current->properties(), $presented->properties());
+        }
+
+        if (is_array($current) && is_array($presented)) {
+            if (count($current) !== count($presented)) {
+                return false;
+            }
+
+            return array_all(
+                $current,
+                fn($value, $key): bool => array_key_exists($key, $presented)
+                    && $this->sameMetadataValues($value, $presented[$key])
+            );
+        }
+
+        return $current === $presented;
     }
 }

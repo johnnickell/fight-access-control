@@ -50,6 +50,8 @@ content. It does not freeze dynamic discovery. Unknown future entries are concea
 URI need not be listed to be bound/read. Runtime decisions repeat metadata-only lookup through the **bound provider**
 and require the exact URI and equivalent current descriptor values. Fresh `McpResourceInfo` instances, including fresh
 nested JSON objects, work; neither Tool-definition object identity nor a historical descriptor snapshot is required.
+Equivalence preserves scalar types and exact string values (`"01"` is not `"1"`, and a Boolean is not a link string),
+JSON object/list distinctions and list positions. JSON object property order is irrelevant. No value is normalized.
 A disappeared/reassigned identity or forged/stale non-equivalent metadata denies. No prefix, normalization, decoding,
 filesystem/network resolution or caller-supplied ownership assertion is supported. These are trusted composition hooks,
 not authentication of arbitrary caller-supplied descriptors.
@@ -110,7 +112,9 @@ not that qualification; exact lock hashes, commands, complete logs/exits and can
 handoff. The ignored lockfile remains an execution artifact, not a new tracked dependency contract.
 
 `AgentResourcePermissionCatalogTest` covers static validation, empty/unknown/foreign mappings, dynamic fresh metadata,
-disappearance, non-exact owner lookup and conflicting association. `AgentResourceAvailabilityTest` composes the actual
+disappearance, non-exact owner lookup, conflicting association and type-preserving nested descriptor equivalence.
+`AgentResourceAvailabilityTest` also verifies real discovery conceals unequal numeric strings and typed nested links
+while admitting fresh equivalent JSON. It composes the actual
 Common responder/list/read with actual AccessControl principal resolution: all missing requirements, unlisted direct
 reads, private pagination/cursors, request isolation, nonce counts, revocation/rotation/removal/regrant, concealed
 collisions, normalization attempts, provider/policy/authority faults, inert exact bytes, bounds and stream closure.

@@ -100,10 +100,18 @@ authority with private zero-TTL results; a short already-resolved request retain
 
 The existing Common `^1.3` minimum is sufficient: tagged v1.3.0 (`7de6cad6e8a9752973ad9f8e27e285b0c1510582`) passes
 actual Resource/principal composition tests in isolated dependency scratch; the ordinary installed lane is v1.4.0
-(`87b9580c072f3149d574e09865daa79620c92118`). Both focused lanes pass **62 tests / 412 assertions**. The canonical
-full gate passes **2453 tests / 45796 assertions**, exact **7507/7507 statements** including **55/55** new Resource
+(`87b9580c072f3149d574e09865daa79620c92118`). At the initial checkpoint both focused lanes passed **62 tests / 412
+assertions**. That canonical full gate passed **2453 tests / 45796 assertions**, exact **7507/7507 statements** including **55/55** new Resource
 statements. A regression-first Domain correction also rejects terminal-newline Permission names. TASK evidence owns
 exact locks, inputs, tooling-update/warning chronology and the prose-only retained-gate bridge.
+Independent Review identified F1: PHP loose descriptor comparison admitted unequal numeric strings and nested scalar
+types, including stale metadata links through real discovery. The regression-first repair compares public descriptor
+values without coercion: scalar types, JSON object/list distinctions and list positions are preserved; object property
+order and fresh object identity do not affect equivalence. Both dependency lanes pass **79 tests / 488 assertions**,
+including real discovery concealment and equivalent controls. A fresh repair full gate passes **2470 tests / 45872
+assertions**, exact **7519/7519 statements**. Repair-specific logs/receipt and exact candidate mapping live in the
+TASK Work handoff; the initial gate above is historical, not proof for the changed executable inputs.
+
 This checkpoint does not claim independent acceptance, QA, deployed content/cryptographic/database qualification,
 Skill admission (TASK-00086), consumer adoption, publication or release. TASK-00085 remains nonterminal; the approved
 combined EPIC release and unassigned version remain unchanged.
