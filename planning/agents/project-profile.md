@@ -69,6 +69,31 @@ Provider application planning, runtime, infrastructure, receipts and release exa
 Preserve Domain/Application core ownership and the approved optional Adapter boundary, exact statement coverage,
 OpenAPI integration coverage, pre-v1 current contracts and the security rules below. Unresolved conflicts hold only the affected action with its owner named.
 
+### Integrated delivery and resource retirement
+
+At authorized Work/Land/substantive planning intake run `./bin/planning-check --reconcile-delivery` before record
+edits under [current delivery handoffs](../CONVENTIONS.md#current-delivery-handoffs). Inspect affected authored
+Board/Roadmap/README/context claims separately; preserve historical checkpoints and independent reports.
+Routing uses read-only `--check-delivery`; verified MERGED/integrated `done` resolves without routine cleanup
+requests. Review/QA/routing never write. Exceptional/uncertain states retain their exact owner/input hold.
+
+For TASK publication, resolve the live GitHub default against AccessControl's `develop` policy and existing
+subject PR before reconciliation, pre-publication and final handoff. Use the resolved provider's
+`.pi/skills/land/scripts/bind-target.py` with target `--root`, `--policy develop`, and existing `--pr`/`--head`.
+Retain its observation and use the bound base throughout. Stale `origin/HEAD` is not authority; default/policy/PR
+conflicts require explicit owner disposition, not silent retargeting.
+
+Consume the provider's `docs/engineering/LANDING.md` cleanup-only, inventory/preservation, live-consumer,
+Git/Docker and postcondition/resume contract (TASK-00534 plus qualified TASK-00537), alongside local gates.
+Publication, document synchronization and eligible local retirement are separate required obligations; a hold
+means incomplete cleanup. Verified-merge cleanup-only needs no correction PR or repeated acceptance gate.
+Discover orphan stacks independently of worktrees, corroborating paths/source/topology/data rather than names.
+After worker exit continue from a safe checkout with original model/ledger/authority, preserving active sessions.
+Qualify Docker VM read-only sharing positively using all containers (including stopped), parent mounts, host
+cwd/writers and stable preservation manifests; arbitrary/unknown readers hold, never shut down a shared VM.
+Preserve active/dirty/shared resources, independent reports, credentials and durable data. Reobserve consumers,
+resume only missing effects and verify exact postconditions with finite recovery actions.
+
 ### Evidence and resume
 
 Resolve the canonical base checkout through Git common-directory and registered-worktree metadata, rather than
