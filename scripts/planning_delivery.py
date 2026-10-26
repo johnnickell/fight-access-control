@@ -68,7 +68,7 @@ def verify_delivery(root: Path, records: dict, subjects: list[str]) -> tuple[lis
         repository, number = url.removeprefix("https://github.com/").split("/pull/")
         try:
             result = subprocess.run(
-                ["gh", "pr", "view", number, "--repo", repository, "--json",
+                ["gh", "pr", "view", number, "--repo", "github.com/" + repository, "--json",
                  "number,url,title,state,isDraft,mergedAt,mergeCommit,baseRefName,headRefName,headRefOid"],
                 cwd=root, capture_output=True, text=True, timeout=15, check=True,
                 env={**os.environ, "GH_PROMPT_DISABLED": "1"},
