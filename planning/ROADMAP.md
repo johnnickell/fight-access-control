@@ -350,3 +350,8 @@ The EPIC's historical pre-v1.0.0 target is not an authorization to release v1.0.
 | [EPIC-00013](epics/00013-EPIC.md) | v1.0.0 | done | 3 | 3 |
 | [EPIC-00014](epics/00014-EPIC.md) | unassigned | ready-for-agent | 8 | 23 |
 <!-- generated:epic-status:end -->
+## Current delivery handoffs
+
+| Subject | Recorded delivery | Exact PR |
+|---|---|---|
+| None | — | — |

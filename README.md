@@ -11,6 +11,10 @@ Agent credentials, sessions, Roles, Permissions and account lifecycles without t
 [Install](#release-and-installation) · [Integration](#integrate-with-your-application) ·
 [Capabilities](#choose-a-capability) · [Contributing](CONTRIBUTING.md) · [Changelog](CHANGELOG.md)
 
+Current TASK delivery actions use the [Board's explicit handoffs](planning/tasks/BOARD.md#current-delivery-handoffs),
+not historical PR/acceptance checkpoints. [Delivery conventions](planning/CONVENTIONS.md#current-delivery-handoffs)
+keep ordinary checks offline and bound live checking/authorized intake retirement separately; releases stay separate.
+
 ## Release and installation
 
 <!-- release:start -->

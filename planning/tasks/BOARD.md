@@ -143,3 +143,9 @@ No Tasks are currently in this state.
 | 80 | [TASK-00080](00080-TASK.md) | Fence custom Role rename and removal with caller revisions | [TICKET-00024](../tickets/00024-TICKET.md) — Fence custom Role rename and removal with caller revisions | done | [TASK-00077](00077-TASK.md), [TASK-00079](00079-TASK.md) | https://github.com/johnnickell/fight-access-control/pull/132 |
 | 81 | [TASK-00081](00081-TASK.md) | Align contributor workflows with Fight Agent OS | — (standalone chore) | done | — | https://github.com/johnnickell/fight-access-control/pull/128 |
 | 82 | [TASK-00082](00082-TASK.md) | Refresh package entrypoint and enforce release version consistency | — (standalone chore) | done | — | https://github.com/johnnickell/fight-access-control/pull/133 |
+
+## Current delivery handoffs
+
+| Subject | Recorded delivery | Exact PR |
+|---|---|---|
+| None | — | — |
