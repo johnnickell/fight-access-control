@@ -143,3 +143,9 @@ No Tasks are currently in this state.
 | 81 | [TASK-00081](00081-TASK.md) | Align contributor workflows with Fight Agent OS | — (standalone chore) | done | — | https://github.com/johnnickell/fight-access-control/pull/128 |
 | 82 | [TASK-00082](00082-TASK.md) | Refresh package entrypoint and enforce release version consistency | — (standalone chore) | done | — | https://github.com/johnnickell/fight-access-control/pull/133 |
 | 85 | [TASK-00085](00085-TASK.md) | Authorize exact Resource discovery and reads | [TICKET-00026](../tickets/00026-TICKET.md) — Authorize Resource and whole-Skill discovery and reads | done | — | https://github.com/johnnickell/fight-access-control/pull/139 |
+
+## Current delivery handoffs
+
+| Subject | Recorded delivery | Exact PR |
+|---|---|---|
+| None | — | — |
