@@ -75,7 +75,8 @@ share order 104 without relative product priority. No inherited MCP/TASK-00088 h
 minima/native qualification remain acceptance work. All map decisions, single EPIC, eight TICKETs and full TASK
 plans are accepted/written as TASK-00084–00106 (23 features), not implemented/done. Next: `/skill:next` for Board-based
 selection, not automatic execution.
-TASK-00085 is the first implementation checkpoint for this EPIC, awaiting independent Review/QA. AccessControl's release number stays
+TASK-00085 is the first accepted implementation checkpoint for this EPIC: canonical Review ACCEPT and nonvisual QA PASS
+cover exact candidate `e2b7594b0005867880601f8d244cca3671a3d746`; Land publication is pending. AccessControl's release number stays
 unassigned; actual qualified/tagged Common contracts, dependency minima and framework evidence remain external
 prerequisites, not guessed versions or proof of capability readiness.
 
@@ -112,9 +113,10 @@ including real discovery concealment and equivalent controls. A fresh repair ful
 assertions**, exact **7519/7519 statements**. Repair-specific logs/receipt and exact candidate mapping live in the
 TASK Work handoff; the initial gate above is historical, not proof for the changed executable inputs.
 
-This checkpoint does not claim independent acceptance, QA, deployed content/cryptographic/database qualification,
-Skill admission (TASK-00086), consumer adoption, publication or release. TASK-00085 remains nonterminal; the approved
-combined EPIC release and unassigned version remain unchanged.
+This checkpoint has independent technical acceptance and nonvisual behavioral QA, but does not claim deployed
+content/cryptographic/database qualification, Skill admission (TASK-00086), consumer adoption, publication or release.
+TASK-00085 is done for required package verification; the approved combined EPIC release and unassigned version remain
+unchanged.
 
 ## PHP runtime security maintenance — approved 2026-10-22
 

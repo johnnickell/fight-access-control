@@ -15,8 +15,9 @@ TICKET-00025 for To Tasks and approved its single-TASK plan, now written as [TAS
 It is `needs-info` for actual qualified/tagged Common execution contracts and minimum-version evidence, with no
 unfinished local TASK blockers. John subsequently approved TICKET-00026's complete two-TASK plan, written as
 [TASK-00085](tasks/00085-TASK.md) for Resources and [TASK-00086](tasks/00086-TASK.md) for whole Skills/member reads.
-TASK-00085 has no local blocker; TASK-00086 depends only on TASK-00085, not TASK-00084. Qualifying their actual
-supported Common minimum/behavior remains an implementation obligation, not a missing execution-Tool API hold.
+TASK-00085 has completed its accepted Resource implementation and required package verification; Land publication is
+pending. TASK-00086 depends only on TASK-00085, not TASK-00084. Qualifying its actual supported Common minimum/behavior
+remains an implementation obligation, not a missing execution-Tool API hold.
 John then approved TICKET-00027's complete single-TASK plan, written as [TASK-00087](tasks/00087-TASK.md), needs-info
 for qualified/tagged Common Prompt contracts and supported minimum evidence, with no unfinished local TASK blockers.
 John then approved TICKET-00028's single-TASK plan, written as [TASK-00088](tasks/00088-TASK.md), ready-for-agent
@@ -45,9 +46,9 @@ TASK-00103 has no local blocker; B–D consume only its inward shared contract/f
 and share equal order 104 without relative native framework priority. No inherited MCP/TASK-00088 prerequisite;
 actual sufficient tagged minima/native qualification remain acceptance work. All map decisions/EPIC/TICKET/full TASK
 plans are accepted/written (TASK-00084–00106, 23 features). Next: `/skill:next` for Board-based selection, not automatic
-execution or release. No implementation exists for this EPIC yet. Required Common
-implementations, independent acceptance/qualification, tagged APIs and actual minimum-version/framework evidence
-gate affected adoption/release, not this planning handoff. The
+execution or release. Only TASK-00085's accepted Resource slice is implemented; the remaining EPIC scope is not.
+Required Common implementations, independent acceptance/qualification, tagged APIs and actual minimum-version/framework
+evidence gate affected adoption/release, not this planning handoff. The
 [research](wayfinder/research/fight-common-mcp-permission-integration.md) preserves initial source snapshots;
 the EPIC records current local maturity observations without consumer qualification.
 John subsequently authorized commit, push and a planning-only PR to develop. No grants, dependency changes,

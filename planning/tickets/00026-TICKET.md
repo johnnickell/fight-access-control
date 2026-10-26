@@ -81,7 +81,7 @@ application scope policy, Tool/Prompt admission, automatic grants, consumer runt
 
 | Order | TASK ID | Title | Status |
 | --- | --- | --- | --- |
-| 85 | [TASK-00085](../tasks/00085-TASK.md) | Authorize exact Resource discovery and reads | in-progress |
+| 85 | [TASK-00085](../tasks/00085-TASK.md) | Authorize exact Resource discovery and reads | done |
 | 86 | [TASK-00086](../tasks/00086-TASK.md) | Authorize complete Skills and protected member reads | ready-for-agent |
 ## Decisions and Progress
 
@@ -107,10 +107,11 @@ requirements. Keep the map Closed and continue planning before Board-based imple
 
 ### Current implementation checkpoint
 
-TASK-00085 now implements the Resource slice on `feature/task-00085-resource-authorization`; the
+TASK-00085 implements the Resource slice on `feature/task-00085-resource-authorization`; the
 [Resource guide](../../docs/agent-resource-authorization.md) records the public composition. Actual list/read and
-principal-provider tests qualify tagged Common v1.3.0 as the existing sufficient minimum. Its Work handoff owns full
-verification and candidate identity. Independent Review/QA are still pending; neither this TICKET nor whole-Skill
-TASK-00086 is complete. Earlier planning-only statements above describe their original authorization checkpoint.
+principal-provider tests qualify tagged Common v1.3.0 as the existing sufficient minimum. Canonical Review ACCEPT and
+nonvisual QA PASS accept exact candidate `e2b7594b0005867880601f8d244cca3671a3d746`; TASK-00085 is done for required
+package verification, with Land publication pending. TASK-00086 remains unfinished, so this TICKET stays open. Earlier
+planning-only statements above describe their original authorization checkpoint.
 
-Next for the committed, verified Resource candidate: independent `/skill:review TASK-00085`.
+Next: `/skill:next` for Board-based selection after the delivery handoff is complete.
