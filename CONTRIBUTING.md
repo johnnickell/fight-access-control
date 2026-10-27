@@ -69,7 +69,9 @@ Use the repository-owned `./bin/*` wrappers. Run focused tests while iterating, 
 ./bin/build
 ```
 
-`./bin/build` is the canonical local completion gate. Documentation-only follow-ups may retain a prior full pass
+`./bin/build` is the canonical local completion gate. Its default PHPUnit/native/OpenAPI workload uses a bounded
+512 MiB PHP memory limit, like PHPStan; all suites, fail-on-skipped and exact statement coverage remain mandatory.
+Documentation-only follow-ups may retain a prior full pass
 only under [Testing's verified evidence-reuse rule](docs/engineering/standards/Testing.md#reusing-a-full-gate-result-after-documentation-only-follow-ups),
 with current targeted checks and a complete log/exit/content mapping. Hosted CI resolves latest-compatible Composer
 dependencies and calls the same `./bin/quality` gate; it does not maintain a second checklist. Follow
@@ -88,9 +90,11 @@ If an existing clone has the former repository hook path configured, check `git 
 When it is exactly `.githooks`, remove that obsolete setting with `git config --local --unset core.hooksPath`.
 Preserve any differently configured or independently managed hooks.
 
-Keep production code framework-neutral with dependency direction `Domain <- Application`. Do not add a
-production Adapter layer, framework integration, persistence implementation, or capability outside the active
-TASK. Report security concerns using [SECURITY.md](SECURITY.md), never through a public issue.
+Keep Domain/Application framework-neutral with dependency direction `Adapter → Application → Domain`.
+The approved capability-first optional Adapter boundary has [PSR-15 Permission admission](docs/http-permission-admission.md)
+with Slim/Yii 3 qualification. Include adapters in normal style/static-analysis/architecture tests and exact coverage;
+keep native dependencies optional and registration explicit. Do not add framework integration, persistence or other
+capabilities outside the active TASK. Report security concerns using [SECURITY.md](SECURITY.md), never through a public issue.
 
 Code changes, commits, pushes, pull requests, visibility changes, merge, version tags, Packagist publication,
 releases and deployment remain distinct effects. Record authority for each; one explicit invocation may delegate

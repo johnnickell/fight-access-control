@@ -5,17 +5,17 @@ dependencies, acceptance, and verification.
 
 ## What's Next?
 
-First ready Task: [TASK-00103](00103-TASK.md) — Protect Slim and Yii 3 requests through shared PSR-15 admission.
+Active Task: [TASK-00103](00103-TASK.md) — Protect Slim and Yii 3 requests through shared PSR-15 admission.
 
 ## In Progress
 
-No Tasks are currently in this state.
+| Order | TASK ID | Title | Parent TICKET | Status | Blocked by | PR |
+| --- | --- | --- | --- | --- | --- | --- |
+| 103 | [TASK-00103](00103-TASK.md) | Protect Slim and Yii 3 requests through shared PSR-15 admission | [TICKET-00032](../tickets/00032-TICKET.md) — Protect native HTTP entry points across all five frameworks | in-progress | — | — |
 
 ## Ready Frontier
 
-| Order | TASK ID | Title | Parent TICKET | Status | Blocked by | PR |
-| --- | --- | --- | --- | --- | --- | --- |
-| 103 | [TASK-00103](00103-TASK.md) | Protect Slim and Yii 3 requests through shared PSR-15 admission | [TICKET-00032](../tickets/00032-TICKET.md) — Protect native HTTP entry points across all five frameworks | ready-for-agent | — | — |
+No Tasks are currently in this state.
 
 ## Waiting
 
@@ -148,4 +148,4 @@ No Tasks are currently in this state.
 
 | Subject | Recorded delivery | Exact PR |
 |---|---|---|
-| [TASK-00088](00088-TASK.md) | awaiting-merge; verify live state | [https://github.com/johnnickell/fight-access-control/pull/142](https://github.com/johnnickell/fight-access-control/pull/142) |
+| None | — | — |

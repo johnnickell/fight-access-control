@@ -29,14 +29,14 @@ php vendor/bin/deptrac --fail-on-uncovered --report-uncovered --report-skipped
 php vendor/bin/deptrac debug:unassigned --no-cache
 
 printf '[quality] Rector dry-run\n'
-php vendor/bin/rector process openapi/ src/ tests/Domain/ tests/Application/ tests/OpenApi/ scripts/ --dry-run
+php vendor/bin/rector process openapi/ src/ tests/Domain/ tests/Application/ tests/Adapter/ tests/OpenApi/ scripts/ --dry-run
 
 printf '[quality] PHPUnit\n'
 rm -f var/reports/coverage/clover.xml
 if find src -type f -name '*.php' -print -quit | grep -q .; then
-    XDEBUG_MODE=coverage php vendor/bin/phpunit --fail-on-skipped
+    XDEBUG_MODE=coverage php -d memory_limit=512M vendor/bin/phpunit --fail-on-skipped
 else
-    php vendor/bin/phpunit --fail-on-skipped --no-coverage
+    php -d memory_limit=512M vendor/bin/phpunit --fail-on-skipped --no-coverage
 fi
 
 printf '[quality] Exact coverage\n'

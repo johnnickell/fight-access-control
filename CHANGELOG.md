@@ -9,10 +9,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Optional route-bound PSR-15 Permission admission with shared inward declarations and trusted User/Agent authority
+  selection, separately qualified Slim/Yii 3 composition, request isolation and Common-owned safe HTTP errors.
+  No routes, credentials, grants or framework bootstrap are installed. See [HTTP admission](docs/http-permission-admission.md).
 - Explicit trusted Agent continuation bindings and synchronized bounded-action admission, with original credential,
   current direct Permission and consumer-scope revalidation. Request snapshots and nonce behavior are unchanged;
   worker handoff and composite fences require qualified consumer implementations. See
   [continuation composition](docs/agent-continuation-authorization.md). No live/Task runtime or release is supplied.
+
+### Changed
+
+- Narrowed the Common minimum from `^1.3` to `^1.4` for tagged safe-error contracts. Native Slim/Yii dependencies
+  remain optional production integrations and isolated dev fixtures. The combined integration release is unfinished;
+  no new version or consumer adoption is selected.
 
 ## [0.8.0] - 2026-10-21
 

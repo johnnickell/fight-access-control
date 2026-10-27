@@ -35,4 +35,4 @@ This generated index is a projection; individual records remain canonical.
 | [TICKET-00029](00029-TICKET.md) | Compose scoped execution and protected-detail access | ready-for-agent |
 | [TICKET-00030](00030-TICKET.md) | Authorize retained notices and live Subscriptions | ready-for-agent |
 | [TICKET-00031](00031-TICKET.md) | Authorize durable Task operations and state disclosure | ready-for-agent |
-| [TICKET-00032](00032-TICKET.md) | Protect native HTTP entry points across all five frameworks | ready-for-agent |
+| [TICKET-00032](00032-TICKET.md) | Protect native HTTP entry points across all five frameworks | in-progress |

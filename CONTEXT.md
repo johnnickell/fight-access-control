@@ -24,8 +24,8 @@ Tool mappings alongside attributes, permission-check tooling with consumer-owned
 and separate current live/continuation checks. His follow-up asks about framework-native adapters and requires
 compatibility with Common's safe-error approach. [WF-035](planning/wayfinder/tickets/WF-035-framework-permission-adapter-ownership.md)
 is Closed: John selected optional integrations in this package's `src/Adapter`, using Common-style capability-first
-layout while retaining DDD in Domain/Application. The profile records the narrow approved boundary; no adapters exist
-yet. WF-034 is also Closed: John approved one combined release covering the selected MCP families including
+layout while retaining DDD in Domain/Application. The profile records the narrow approved boundary; TASK-00103 now implements the first optional PSR-15 adapter
+with Slim/Yii 3 composition under the Work checkpoint below. Other native integrations remain unimplemented. WF-034 is also Closed: John approved one combined release covering the selected MCP families including
 Subscriptions/Tasks and all five frameworks (Slim, Yii 3, Symfony, Laravel, CodeIgniter 4). Grill wrote the single
 approved destination as [EPIC-00014 — Permission-Aware MCP Integration and Framework Adapters](planning/epics/00014-EPIC.md).
 The map is Closed for completed decisions and EPIC handoff. John approved the complete requirement split, now
@@ -89,7 +89,37 @@ changes, merge, release and consumer adoption remain outside that publication re
 AccessControl release. Existing product suites were inspected, not rerun; the bounded host-PHP probe is not a
 canonical Docker build or consumer qualification.
 
+## HTTP Permission admission — TASK-00103 Work checkpoint
+
+TASK-00103 Work implementation is verified, awaiting independent Review and behavioral QA. The
+[HTTP admission guide](docs/http-permission-admission.md) owns the shared `PermissionDeclaration`/`AdmissionMode`,
+`RequestAuthority`, `PermissionAdmission` and optional `Adapter\\Middleware\\Psr15\\PermissionMiddleware` contracts.
+Declarations bind directly to native route middleware, not request metadata/callback reflection. Actual User role-derived
+and Agent direct-Permission providers resolve one trusted request authority; incomplete/opaque Agent resolution remains
+operational failure, not fabricated 401/403. Public/authenticated/protected modes, conjunctive requirements, fresh factory
+lifetimes and nested-context isolation retain existing snapshot/nonce semantics. Consumers protect target scope and
+alternate use-case entry points independently. Common alone reports/presents selected ordinary HTTP failures; MCP/OAuth
+remain outside JSend wrapping. Native peers consume inward contracts without depending on Slim/Yii runtime.
+
+The selected Common minimum is now `^1.4` (tag v1.4.0); Slim `^4.15.3`, Yii Router `^4.0.2`, FastRoute `^4.0.3`,
+Middleware Dispatcher `^5.4`, DI `^1.4.1`, Injector `^1.2.2` and Slim PSR-7 `^1.8` are optional native/dev-fixture
+ranges. All selected lower bounds are installed tagged versions with source/archive equivalence; patched PHP 8.5.12
+is the qualified runtime. Composer/autoload, Deptrac, style/static-analysis/Rector/default Adapter suite and exact
+coverage wiring include the new layer without weakening inward rules. Controlled native fixtures are not actual
+consumer bootstrap, cryptography/persistence/scope, redacted production sinks, proxy/security qualification or adoption.
+The final gate passes **2597 tests / 48142 assertions**, exact **7703/7703 statements** (**45/45** new), with
+actual wrapper and Docker workload exits **0** and no final warnings/skips. The first full attempt exhausted the
+default 128 MiB during OpenAPI generation; the expanded default workload now has a bounded 512 MiB PHPUnit budget
+without weakening suites or coverage. Final peak memory is 128.50 MiB. Final packages/lock/vendor bytes are stable;
+full chronology, frozen-input snapshots and prose-only retained-gate/commit mapping are in the TASK and Work handoff. No independent
+acceptance, publication, release or deployment is claimed; all-five combined EPIC release/version remains unfinished.
+
 ## Current continuation authority — TASK-00088 acceptance checkpoint
+
+TASK-00103 intake verified PR #142 merged into `develop` at `14eae522213d03c936cd03b34c1f8ef54ed81487`
+on 2026-10-27T22:18:27Z and integrated in the selected base. Published head
+`8d24b2b177208a8218a2258cf39fa2e87dac15d0` is its ancestor. The marker is retired; no TASK-00088
+review/publication/merge action remains. The following checkpoints preserve their original evidence and timing.
 
 Independent Review ACCEPT and nonvisual QA PASS cover candidate `b9db457d68e46cddbdde738d7e241fbc2b9bd891`.
 TASK-00088 and TICKET-00028 are done for accepted package behavior; EPIC-00014 remains open. Publication and final
@@ -1084,13 +1114,14 @@ no merge, release or consumer qualification is claimed.
 
 Dependencies flow `Adapter → Application → Domain`. Domain owns invariants and lifecycle state. Application owns
 a synchronous secret-bearing authentication service, explicit non-sensitive commands and queries, portable ports,
-immutable token/read results, and transaction orchestration. The current implementation still contains no production
-Adapter layer or framework dependency. John approved future optional permission/framework integration under
-capability-first `src/Adapter` in [WF-035](planning/wayfinder/tickets/WF-035-framework-permission-adapter-ownership.md);
-Domain/Application retain their DDD structure. The [profile](planning/agents/project-profile.md#package-boundary-and-contracts)
+immutable token/read results, and transaction orchestration. TASK-00103 adds the first optional PSR-15 Permission
+adapter with separately qualified Slim/Yii 3 composition under capability-first `src/Adapter`, approved in
+[WF-035](planning/wayfinder/tickets/WF-035-framework-permission-adapter-ownership.md). Domain/Application retain their
+DDD structure; native frameworks remain optional. The [profile](planning/agents/project-profile.md#package-boundary-and-contracts)
 owns that narrow boundary, dependency isolation and later verification obligations. Consumers retain application
 policy/grants/scope, persistence, client/route/bootstrap composition, cryptographic keys, mail, queues, realtime
-operations, hosting and runtime. This approval does not supply adapters, optional dependencies or framework support.
+operations, hosting and runtime. The HTTP guide limits actual qualified native composition; approval alone supplies
+neither another adapter nor blanket framework support.
 
 Application builders protect every command entry point using controls suited to HTTP, CLI, workers, or other
 adapters. Consumer outer layers normally authenticate, validate, authorize, choose synchronous or asynchronous
