@@ -82,7 +82,7 @@ application scope policy, Tool/Prompt admission, automatic grants, consumer runt
 | Order | TASK ID | Title | Status |
 | --- | --- | --- | --- |
 | 85 | [TASK-00085](../tasks/00085-TASK.md) | Authorize exact Resource discovery and reads | done |
-| 86 | [TASK-00086](../tasks/00086-TASK.md) | Authorize complete Skills and protected member reads | ready-for-agent |
+| 86 | [TASK-00086](../tasks/00086-TASK.md) | Authorize complete Skills and protected member reads | in-progress |
 ## Decisions and Progress
 
 John approved item 2 of the complete eight-TICKET split, then explicitly invoked To Tasks for this TICKET and
@@ -115,4 +115,13 @@ package verification; [PR #139](https://github.com/johnnickell/fight-access-cont
 TASK-00086 remains unfinished, so this TICKET stays open. Earlier
 planning-only statements above describe their original authorization checkpoint.
 
-Next: `/skill:next` for Board-based selection after the delivery handoff is complete.
+### Current Skill implementation checkpoint
+
+John invoked Build TASK-00086 after TASK-00085 integrated in `develop`. Work now implements validated whole-Skill
+requirements and complete list/get/independent member reads through actual Common composition; the
+[Skill guide](../../docs/agent-skill-authorization.md) owns the public contract. TASK-00086 remains in progress:
+its committed Work evidence must precede independent technical Review and behavioral QA. This parent stays open;
+no combined release, consumer adoption or framework implementation is claimed. Earlier planning-only/waiting
+statements and Resource publication prose describe historical checkpoints.
+
+Next: independent `/skill:review TASK-00086` after the verified committed Work handoff.
