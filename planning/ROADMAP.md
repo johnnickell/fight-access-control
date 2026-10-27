@@ -12,8 +12,7 @@ owns composition; actual consumer scope/handoff/fence qualification stays separa
 TASK-00103 intake verified PR #142 merged/integrated in `develop` at `14eae522213d03c936cd03b34c1f8ef54ed81487`
 on 2026-10-27T22:18:27Z, from published head `8d24b2b177208a8218a2258cf39fa2e87dac15d0`. Its marker is retired;
 no TASK-00088 review/publication/merge action remains. The pending-at-checkpoint wording above is historical.
-TASK-00103 now implements shared PSR-15 admission and separately qualified Slim/Yii 3 journeys; independent acceptance
-and QA remain pending. See [HTTP composition](../docs/http-permission-admission.md).
+TASK-00103's shared PSR-15 admission and separately qualified Slim/Yii 3 journeys have independent Review ACCEPT and QA PASS on candidate `2807785e332187a36299c08ce3826e9fed585729`. Publication and final delivery were pending at closeout; current results are in `.runs/handoffs/TASK-00103/land.md`. See [HTTP composition](../docs/http-permission-admission.md).
 The remaining EPIC scope and combined release remain unfinished. The planning history below retains its original checkpoint.
 
 ### Planning history

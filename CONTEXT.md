@@ -89,7 +89,11 @@ changes, merge, release and consumer adoption remain outside that publication re
 AccessControl release. Existing product suites were inspected, not rerun; the bounded host-PHP probe is not a
 canonical Docker build or consumer qualification.
 
-## HTTP Permission admission — TASK-00103 Work checkpoint
+## HTTP Permission admission — TASK-00103 acceptance checkpoint
+
+Independent Review ACCEPT and nonvisual QA PASS cover candidate `2807785e332187a36299c08ce3826e9fed585729` with no findings. TASK-00103 is done for accepted package behavior; TICKET-00032 and EPIC-00014 remain open. Publication and final delivery were pending at closeout; current results are in `.runs/handoffs/TASK-00103/land.md`. The Work checkpoint below is historical, not current acceptance status.
+
+### Historical Work checkpoint
 
 TASK-00103 Work implementation is verified, awaiting independent Review and behavioral QA. The
 [HTTP admission guide](docs/http-permission-admission.md) owns the shared `PermissionDeclaration`/`AdmissionMode`,

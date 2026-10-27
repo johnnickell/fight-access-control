@@ -117,7 +117,7 @@ new protocol endpoints, duplicate error handling, actual Agent OS/starter source
 
 | Order | TASK ID | Title | Status |
 | --- | --- | --- | --- |
-| 103 | [TASK-00103](../tasks/00103-TASK.md) | Protect Slim and Yii 3 requests through shared PSR-15 admission | in-progress |
+| 103 | [TASK-00103](../tasks/00103-TASK.md) | Protect Slim and Yii 3 requests through shared PSR-15 admission | done |
 | 104 | [TASK-00104](../tasks/00104-TASK.md) | Protect Symfony requests through native admission | ready-for-agent |
 | 104 | [TASK-00105](../tasks/00105-TASK.md) | Protect Laravel requests through native middleware | ready-for-agent |
 | 104 | [TASK-00106](../tasks/00106-TASK.md) | Protect CodeIgniter 4 requests through native before filters | ready-for-agent |
@@ -153,6 +153,8 @@ execution selection. Keep map Closed, combined release/all five frameworks, opt-
 external qualification/tag/minimum gates and unassigned version. No source/dependency/config/grant change,
 implementation, commit, publication, adoption or release is authorized; choose checkout before separate execution.
 Actual consumer bootstrap/authentication/persistence/crypto/scope/sinks/runtime qualification remains separate.
+
+Current acceptance: TASK-00103 has independent Review ACCEPT and nonvisual QA PASS on candidate `2807785e332187a36299c08ce3826e9fed585729`; publication and final delivery were pending at closeout, with current results in `.runs/handoffs/TASK-00103/land.md`. TASK-00104–00106 remain unfinished, so this TICKET stays open. The following Work checkpoint is historical.
 
 The planning handoff above is historical. TASK-00103 now implements shared inward declaration/authority/admission
 contracts and the optional PSR-15 adapter with separately qualified native Slim/Yii 3 journeys. See the
