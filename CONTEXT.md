@@ -14,9 +14,10 @@ John requested investigation/planning for a future AccessControl release. The
 maturity investigation, including the then-uncommitted Prompt source. EPIC-00014 records later local observations
 without treating Common planning, local completion or tags as actual consumer qualification. Common has neutral enforcement seams; all seven execution Tools fail closed in the current
 attribute-only AccessControl catalog (research probe: 7/7 rejections, no Query calls). Resource bindings now have the
-TASK-00085 implementation checkpoint below; TASK-00086 adds the whole-Skill checkpoint below. Prompt bindings,
-consumer scope composition and live authority revalidation remain unimplemented integration work, not evidence of
-a bypass. The existing request-local principal snapshot is not a live permission lease.
+TASK-00085 implementation checkpoint below; TASK-00086 adds the whole-Skill checkpoint below. TASK-00088 now supplies
+explicit current continuation admission under the checkpoint below. Prompt bindings and actual Common live/Task
+runtime integration remain unimplemented work, not evidence of a bypass. Consumers still own scope/fence composition;
+the existing request-local principal snapshot is not a live permission lease.
 
 [WF-033](planning/wayfinder/tickets/WF-033-common-owned-mcp-permission-bindings.md) is Closed: John accepted explicit
 Tool mappings alongside attributes, permission-check tooling with consumer-owned policy/scope, request-local admission
@@ -88,6 +89,41 @@ changes, merge, release and consumer adoption remain outside that publication re
 AccessControl release. Existing product suites were inspected, not rerun; the bounded host-PHP probe is not a
 canonical Docker build or consumer qualification.
 
+## Current continuation authority — TASK-00088 acceptance checkpoint
+
+Independent Review ACCEPT and nonvisual QA PASS cover candidate `b9db457d68e46cddbdde738d7e241fbc2b9bd891`.
+TASK-00088 and TICKET-00028 are done for accepted package behavior; EPIC-00014 remains open. Publication and final
+verification were pending at this checkpoint; current delivery results are in `.runs/handoffs/TASK-00088/land.md`.
+The Work checkpoint below remains historical; actual consumer qualification and the combined release remain separate.
+
+### Historical Work checkpoint
+
+John selected the main checkout for TASK-00088 from `develop` `7fc6c313c39df96f7e261144025433d2b5c46e31` on
+`feature/task-00088-continuation-authority`. The [continuation guide](docs/agent-continuation-authorization.md) owns the
+new `AgentContinuationBinding`, original claim context, trusted worker-handoff port and `AgentContinuationGuard` API.
+The binding roots in complete admitted authentication, retains the original Agent/credential identity/revision and
+five-minute provenance window, and rejects serialization/hydration. Copied principals/Permission lists are not proof.
+Worker reconstruction requires separately trusted provenance/recipient verification, never refreshed original time.
+
+Each bounded queued disclosure, background step or retained-input consumption checks current cohort/restoration
+readiness, ACTIVE original credential, exact fresh direct ADMIN_SAFE Permission definitions and conjunctive canonical
+requirements, current consumer scope and final provenance validity under required `AgentContinuationFence` protection.
+The actual action runs synchronously while that qualified composite fence remains held; no detached Boolean or cached
+allow authorizes later work. All Agent/Permission/scope writers must coordinate. Before-acquisition changes affect
+admission; conflicting writes wait/reject through the action, and after-release changes affect the next action.
+Ordinary short-request snapshots/nonce transactions remain unchanged. Rechecks replay neither HMAC nor nonce.
+
+Neutral pre-admission rejection contains no private cause; action/fence failures after invocation remain owned by the
+consumer's safe error boundary, not fictitious denial/rollback. No grants, business events/commits, issuer, executor,
+stream manager, Common live/Task API, persisted business schema or new Common dependency prerequisite is introduced.
+Controlled package scenarios do not qualify real persistence/cryptography, worker handoff/lifetimes, scope authorities,
+clocks or races. Independent technical Review and behavioral QA remain pending; TASK-00088/TICKET-00028 are not done.
+Both latest and tagged Common v1.3.0 focused lanes pass **26 tests / 601 assertions**. The single canonical full gate
+passes **2568 tests / 47703 assertions**, exact **7658/7658 statements**, with actual wrapper exit **0** and no final
+warnings/skips. Packages/lock and runnable runtime Config/RootFS remain unchanged; only installed metadata regenerates.
+Full verification results and exact tested-content/commit mapping belong to the TASK and ignored Work handoff.
+The combined EPIC release/all five frameworks/unassigned version remain unchanged; no publication or adoption is claimed.
+
 ## Resource Permission composition — TASK-00085 implementation checkpoint
 
 TASK-00085 adds `AgentResourcePermissionBinding`, `AgentResourcePermissionCatalog` and request-scoped
@@ -120,6 +156,11 @@ TASK-00085 is done for required package verification; the approved combined EPIC
 unchanged.
 
 ## Whole-Skill Permission composition — TASK-00086 acceptance checkpoint
+
+Current delivery reconciliation at TASK-00088 intake verified [PR #141](https://github.com/johnnickell/fight-access-control/pull/141)
+merged into `develop` at `7fc6c313c39df96f7e261144025433d2b5c46e31` on 2026-10-27 and integrated in the selected base.
+Its marker is retired; no TASK-00086 merge/review action remains. The acceptance and historical Work checkpoints below
+retain their original evidence and pending-at-checkpoint wording; neither implies consumer qualification or release.
 
 Independent Review ACCEPT and nonvisual QA PASS cover candidate `c1cf1a412209254087bd93eda497679725495420`.
 TASK-00086 and TICKET-00026 are done for package acceptance; EPIC-00014 remains open. Publication and final delivery
@@ -973,6 +1014,12 @@ no merge, release or consumer qualification is claimed.
 - **Current Agent principal provider**: a consumer-composed, request-scoped module that authenticates one signed
   Agent request and returns its cached immutable Authenticated Agent principal for that request. Authentication,
   authority revalidation, Permission snapshot resolution, safe diagnostics, and request caching form one flow.
+- **Agent continuation binding**: opaque local provenance rooted in admitted authentication or independently verified
+  trusted worker handoff, bound to the original Agent/credential/revision and fixed original five-minute window. It
+  carries no continuing Permission/scope grant and is not serializable as a bearer credential.
+- **Agent continuation admission**: fresh current cohort/Agent/original-credential/direct-Permission/scope checks and
+  final time sample, followed immediately by one bounded protected action inside a qualified composite writer fence.
+  Consumers own actual synchronization, effects, lifetimes and every later invocation; no detached allow survives it.
 - **Agent-aware MCP tool availability**: an AccessControl-owned, request-scoped `AgentToolAvailability` decision
   using `AgentToolPermissionCatalog` built from the actual Common registry and repeatable method-level
   `RequiresAgentPermission`. Exact Common definitions bind static conjunctive Permission requirements to one current

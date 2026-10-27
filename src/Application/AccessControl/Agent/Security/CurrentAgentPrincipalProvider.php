@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace Fight\AccessControl\Application\AccessControl\Agent\Security;
 
 use DateInterval;
+use DateTimeImmutable;
+use Fight\AccessControl\Application\AccessControl\Agent\Exception\AgentContinuationRejectedException;
 use Fight\AccessControl\Application\AccessControl\Agent\Service\AgentRequestNonceConsumer;
 use Fight\AccessControl\Application\AccessControl\Agent\Service\HmacSharedSecretDecipher;
 use Fight\AccessControl\Application\AccessControl\Agent\Service\HmacSignedAgentRequestVerifier;
@@ -33,6 +35,8 @@ final class CurrentAgentPrincipalProvider
     private const string HMAC_SHA256 = 'HMAC-SHA256';
 
     private ?AuthenticatedAgentPrincipal $principal = null;
+
+    private ?DateTimeImmutable $authenticatedAt = null;
 
     /**
      * Constructs CurrentAgentPrincipalProvider
@@ -82,6 +86,26 @@ final class CurrentAgentPrincipalProvider
         } catch (Throwable) {
             $this->deny(AgentAuthenticationDiagnosticClassification::RESOLUTION_FAILED, $correlationId);
         }
+    }
+
+    /**
+     * Returns original continuation claims only after this provider admitted a complete authenticated request
+     *
+     * The original time is never refreshed by cached resolution or binding creation. These claims alone are not
+     * binding provenance; only trusted request composition or a verified worker handoff may establish that proof.
+     */
+    public function continuationContext(): AgentContinuationContext
+    {
+        if ($this->principal === null || $this->authenticatedAt === null) {
+            throw new AgentContinuationRejectedException();
+        }
+
+        return new AgentContinuationContext(
+            $this->principal->getAgentId(),
+            $this->principal->getCredentialId(),
+            $this->principal->getCredentialRevision(),
+            $this->authenticatedAt
+        );
     }
 
     /**
@@ -150,6 +174,8 @@ final class CurrentAgentPrincipalProvider
         ) {
             $this->deny(AgentAuthenticationDiagnosticClassification::AGENT_AUTHORITY_NOT_CURRENT, $correlationId);
         }
+
+        $this->authenticatedAt = $now;
 
         return $currentAgent;
     }

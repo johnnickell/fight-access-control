@@ -12,6 +12,10 @@ use Fight\Common\Domain\Repository\ResultSet;
  * Interface PermissionRepository
  *
  * Provides authoritative permission persistence.
+ * For protected Agent continuation, definition/reference writers, including direct calls and restoration, must
+ * coordinate with the consumer's qualified composite admission fence. Read definitions authoritatively after its
+ * acquisition and hold protection through the bounded action with Agent and consumer-scope authorities. An advisory
+ * getByIds() result or a separate reader-only lock is not synchronized admission.
  */
 interface PermissionRepository
 {

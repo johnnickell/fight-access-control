@@ -31,7 +31,7 @@ This generated index is a projection; individual records remain canonical.
 | [TICKET-00025](00025-TICKET.md) | Bind Common-owned and attributed Tools to Agent Permissions | ready-for-agent |
 | [TICKET-00026](00026-TICKET.md) | Authorize Resource and whole-Skill discovery and reads | done |
 | [TICKET-00027](00027-TICKET.md) | Authorize Prompt discovery and retrieval | ready-for-agent |
-| [TICKET-00028](00028-TICKET.md) | Revalidate Agent authority for protected continuation | ready-for-agent |
+| [TICKET-00028](00028-TICKET.md) | Revalidate Agent authority for protected continuation | done |
 | [TICKET-00029](00029-TICKET.md) | Compose scoped execution and protected-detail access | ready-for-agent |
 | [TICKET-00030](00030-TICKET.md) | Authorize retained notices and live Subscriptions | ready-for-agent |
 | [TICKET-00031](00031-TICKET.md) | Authorize durable Task operations and state disclosure | ready-for-agent |

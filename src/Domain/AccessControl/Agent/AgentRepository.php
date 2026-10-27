@@ -21,6 +21,10 @@ use SensitiveParameter;
  * Every add, name, lifecycle and Permission write, including direct calls, validates getOperationContract()
  * before effects and holds its shared cohort fence through transaction completion.
  * Missing/incompatible composition rejects with sanitized UNAVAILABLE.
+ * Continuation admission additionally coordinates these writer fences with current Permission definitions and
+ * consumer scope through a qualified composite fence held through the bounded protected action. Reads within that
+ * fence must observe authoritative post-acquisition state, not a cached principal, identity map or stale replica.
+ * Direct writers, deletion and restoration must participate; separate sequential reads alone are not admission.
  */
 interface AgentRepository extends AgentOperationContractRepository
 {

@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- Explicit trusted Agent continuation bindings and synchronized bounded-action admission, with original credential,
+  current direct Permission and consumer-scope revalidation. Request snapshots and nonce behavior are unchanged;
+  worker handoff and composite fences require qualified consumer implementations. See
+  [continuation composition](docs/agent-continuation-authorization.md). No live/Task runtime or release is supplied.
+
 ## [0.8.0] - 2026-10-21
 
 Pre-v1 breaking Role and recovery contract release. See the [release and integration overview](docs/release-0.8.0.md).
