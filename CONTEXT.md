@@ -14,8 +14,8 @@ John requested investigation/planning for a future AccessControl release. The
 maturity investigation, including the then-uncommitted Prompt source. EPIC-00014 records later local observations
 without treating Common planning, local completion or tags as actual consumer qualification. Common has neutral enforcement seams; all seven execution Tools fail closed in the current
 attribute-only AccessControl catalog (research probe: 7/7 rejections, no Query calls). Resource bindings now have the
-TASK-00085 implementation checkpoint below; Skill/Prompt bindings, consumer scope composition and live authority
-revalidation remain unimplemented integration work, not evidence of
+TASK-00085 implementation checkpoint below; TASK-00086 adds the whole-Skill checkpoint below. Prompt bindings,
+consumer scope composition and live authority revalidation remain unimplemented integration work, not evidence of
 a bypass. The existing request-local principal snapshot is not a live permission lease.
 
 [WF-033](planning/wayfinder/tickets/WF-033-common-owned-mcp-permission-bindings.md) is Closed: John accepted explicit
@@ -118,6 +118,43 @@ This checkpoint has independent technical acceptance and nonvisual behavioral QA
 content/cryptographic/database qualification, Skill admission (TASK-00086), consumer adoption, publication or release.
 TASK-00085 is done for required package verification; the approved combined EPIC release and unassigned version remain
 unchanged.
+
+## Whole-Skill Permission composition — TASK-00086 acceptance checkpoint
+
+Independent Review ACCEPT and nonvisual QA PASS cover candidate `c1cf1a412209254087bd93eda497679725495420`.
+TASK-00086 and TICKET-00026 are done for package acceptance; EPIC-00014 remains open. Publication and final delivery
+were pending at closeout; `.runs/handoffs/TASK-00086/land.md` owns the current delivery result.
+The following implementation and verification description preserves its original Work checkpoint.
+
+TASK-00086 adds `AgentSkillPermissionBinding`, `AgentSkillPermissionCatalog` and request-scoped
+`Security\\AgentSkillAvailability` in the existing Application Agent boundary. The
+[Skill guide](docs/agent-skill-authorization.md) owns trusted composition with actual Common Skill availability,
+immutable revisions, protected Skill Resources and the exact shared read-enabled Resource capability. Requirements
+bind actual validated revisions and exact complete immutable exports, not Tool object identity or URI prefixes.
+Canonical nonempty conjunctive direct Permissions, conflicting ownership rejection and fail-closed unknown/inexact
+entries supplement Common's integrity/catalog protections without another parser, provider or runtime.
+
+Whole-Skill and every member's Resource admission protect complete list/get results; a denied member conceals the
+entire entry. Individual direct reads apply whole-Skill and the selected Resource requirement only, before stream
+allocation, without prior discovery or an invented other-members grant. Both decisions share one trusted ordinary
+request provider/nonce transaction. Later requests/pages/historical reads reevaluate current authority; already
+resolved short requests retain snapshot semantics. Private zero-TTL hints and visible-catalog cursors confer no
+authority. Operational faults propagate to Common's safe boundary, never fabricated empty/partial success.
+Common owns exact bytes, digests, manifests, bounds, ownership and stream cleanup. Consumers retain containment,
+parser/storage/crypto/database/client qualification, relationship scope and untrusted-content handling.
+
+The existing Common `^1.3` minimum is qualified against actual tagged v1.3.0 composition, not inferred from a
+label: latest and isolated minimum lanes each pass **156 tests / 1833 assertions**. All 735 source/test/config
+inputs match the isolated lane and all 619 installed Common source/Composer blobs match the v1.3.0 tag.
+The single canonical full-gate workload passes **2549 tests / 47179 assertions**, exact **7574/7574 statements**
+including **55/55** new statements, without final warnings/skips. Its calling tool timed out while the final container
+continued; complete output/direct container-process exit **0** were recovered from the same run, not a repeated gate
+or an observed successful outer-wrapper completion. Five ignored dev packages update through the normal resolver;
+Common/constraints are unchanged. TASK evidence owns exact locks, snapshots, complete logs, timeout/recovery and
+the prose-only retained-gate bridge. At this Work checkpoint independent technical Review and behavioral QA
+remain pending, so TASK-00086/TICKET-00026 are not done.
+No grants, activation, other capability/framework implementation, consumer adoption, version selection or release
+is claimed. The one combined EPIC release/all five frameworks/unassigned version remain unchanged.
 
 ## PHP runtime security maintenance — approved 2026-10-22
 

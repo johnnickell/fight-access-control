@@ -3,7 +3,8 @@
 [TASK-00085](../planning/tasks/00085-TASK.md) adds Resource Permission composition under
 `Fight\AccessControl\Application\AccessControl\Agent`. This is unreleased package behavior, not an endpoint,
 content provider, consumer qualification or acceptance of the combined [EPIC-00014](../planning/epics/00014-EPIC.md).
-Whole Skills remain separate TASK-00086 work. [Tool authorization](agent-mcp-authorization.md) is independent.
+[Whole-Skill authorization](agent-skill-authorization.md) composes this independent Resource decision in TASK-00086.
+[Tool authorization](agent-mcp-authorization.md) is independent.
 
 ## Exact associations, not a discovered registry
 

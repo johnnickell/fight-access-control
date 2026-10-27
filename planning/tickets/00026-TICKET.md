@@ -2,7 +2,7 @@
 id: TICKET-00026
 epic: EPIC-00014
 title: Authorize Resource and whole-Skill discovery and reads
-status: ready-for-agent
+status: done
 ---
 
 # Authorize Resource and whole-Skill discovery and reads
@@ -82,7 +82,7 @@ application scope policy, Tool/Prompt admission, automatic grants, consumer runt
 | Order | TASK ID | Title | Status |
 | --- | --- | --- | --- |
 | 85 | [TASK-00085](../tasks/00085-TASK.md) | Authorize exact Resource discovery and reads | done |
-| 86 | [TASK-00086](../tasks/00086-TASK.md) | Authorize complete Skills and protected member reads | ready-for-agent |
+| 86 | [TASK-00086](../tasks/00086-TASK.md) | Authorize complete Skills and protected member reads | done |
 ## Decisions and Progress
 
 John approved item 2 of the complete eight-TICKET split, then explicitly invoked To Tasks for this TICKET and
@@ -115,4 +115,20 @@ package verification; [PR #139](https://github.com/johnnickell/fight-access-cont
 TASK-00086 remains unfinished, so this TICKET stays open. Earlier
 planning-only statements above describe their original authorization checkpoint.
 
-Next: `/skill:next` for Board-based selection after the delivery handoff is complete.
+### Accepted Resource and Skill checkpoint
+
+Both child TASKs are done for independently accepted package implementation and required QA. TASK-00086
+candidate `c1cf1a412209254087bd93eda497679725495420` has Review ACCEPT and nonvisual QA PASS. Its publication
+and final delivery were pending at closeout; `.runs/handoffs/TASK-00086/land.md` owns the current result.
+This completion does not establish merge, release or consumer qualification.
+
+### Historical Skill implementation checkpoint
+
+John invoked Build TASK-00086 after TASK-00085 integrated in `develop`. Work now implements validated whole-Skill
+requirements and complete list/get/independent member reads through actual Common composition; the
+[Skill guide](../../docs/agent-skill-authorization.md) owns the public contract. TASK-00086 remains in progress:
+its committed Work evidence must precede independent technical Review and behavioral QA. This parent stays open;
+no combined release, consumer adoption or framework implementation is claimed. Earlier planning-only/waiting
+statements and Resource publication prose describe historical checkpoints.
+
+Next: independent `/skill:review TASK-00086` after the verified committed Work handoff.

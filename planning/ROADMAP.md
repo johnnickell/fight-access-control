@@ -1,6 +1,12 @@
 # Roadmap
 
-## Future MCP permission integration — planning only
+## Future MCP permission integration — current acceptance
+
+TASK-00085 and TASK-00086 are independently accepted with required nonvisual QA; TICKET-00026 is done.
+TASK-00086 publication and final delivery were pending at closeout; its ignored Land receipt owns the current result.
+The remaining EPIC scope and combined release remain unfinished. The planning history below retains its original checkpoint.
+
+### Planning history
 
 [EPIC-00014 — Permission-Aware MCP Integration and Framework Adapters](epics/00014-EPIC.md) now owns the single
 approved destination from the [closed Wayfinder map](wayfinder/mcp-capability-permission-integration-map.md).
@@ -355,4 +361,4 @@ The EPIC's historical pre-v1.0.0 target is not an authorization to release v1.0.
 
 | Subject | Recorded delivery | Exact PR |
 |---|---|---|
-| None | — | — |
+| [TASK-00086](tasks/00086-TASK.md) | awaiting-merge; verify live state | [https://github.com/johnnickell/fight-access-control/pull/141](https://github.com/johnnickell/fight-access-control/pull/141) |
