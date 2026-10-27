@@ -107,11 +107,15 @@ ranges. All selected lower bounds are installed tagged versions with source/arch
 is the qualified runtime. Composer/autoload, Deptrac, style/static-analysis/Rector/default Adapter suite and exact
 coverage wiring include the new layer without weakening inward rules. Controlled native fixtures are not actual
 consumer bootstrap, cryptography/persistence/scope, redacted production sinks, proxy/security qualification or adoption.
-The final gate passes **2597 tests / 48142 assertions**, exact **7703/7703 statements** (**45/45** new), with
+The final native-bound gate passes **2597 tests / 48148 assertions**, exact **7703/7703 statements** (**45/45** new), with
 actual wrapper and Docker workload exits **0** and no final warnings/skips. The first full attempt exhausted the
 default 128 MiB during OpenAPI generation; the expanded default workload now has a bounded 512 MiB PHPUnit budget
-without weakening suites or coverage. Final peak memory is 128.50 MiB. Final packages/lock/vendor bytes are stable;
-full chronology, frozen-input snapshots and prose-only retained-gate/commit mapping are in the TASK and Work handoff. No independent
+without weakening suites or coverage. Final peak memory is 128.50 MiB. Final packages/lock/vendor source are stable;
+only generated installed root-reference metadata refreshes, with exact before-hash reconstruction proof. Full chronology
+and frozen-input snapshots are in the TASK and Work handoff. Final handoff inspection corrected a test-only native
+Agent request-binding gap regression-first: signed context now matches the actual native method/authority/path rather
+than reusing the MCP helper target. Production contracts are unchanged; updated focused evidence passes 29 tests /
+445 assertions, followed by that fresh complete final gate and a prose-only content-to-commit bridge. No independent
 acceptance, publication, release or deployment is claimed; all-five combined EPIC release/version remains unfinished.
 
 ## Current continuation authority — TASK-00088 acceptance checkpoint

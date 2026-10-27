@@ -40,8 +40,10 @@ Otherwise choose exactly one of:
   remain distinct from User Roles. There is no administrator/role-label bypass or OAuth-scope conversion.
 
 Neither factory accepts a publicly constructed principal or Permission list. The request/context, authentication
-selection, crypto ports, repositories, claims verification and scheme remain the consumer's responsibility. Never
-infer authority from an incoming `SecurityContext` attribute. No default credentials or fallback to a different
+selection, crypto ports, repositories, claims verification and scheme remain the consumer's responsibility. Bind an
+Agent's signed context to the actual incoming method, authority, path, canonical query and body; a valid signed request
+for another target is not authentication of this native request. Consumers own canonicalization/proxy handling; the
+controlled native fixtures derive those fields from the current request, not a reused MCP request. Never infer authority from an incoming `SecurityContext` attribute. No default credentials or fallback to a different
 identity are provided. Operational factory/provider exceptions are not anonymous access.
 
 `PermissionAdmission::admit($declaration, $authority)` is the reusable inward check for later native adapters. It

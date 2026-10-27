@@ -6,7 +6,6 @@ namespace Fight\Test\AccessControl\Adapter\Middleware\Psr15;
 
 use Fight\AccessControl\Adapter\Middleware\Psr15\PermissionMiddleware;
 use Fight\AccessControl\Application\AccessControl\Agent\QueryHandler\GetAgentProfileHandler;
-use Fight\AccessControl\Application\AccessControl\Agent\Security\CurrentAgentPrincipalProvider;
 use Fight\AccessControl\Application\AccessControl\Authorization\AdmissionMode;
 use Fight\AccessControl\Application\AccessControl\Authorization\PermissionDeclaration;
 use Fight\AccessControl\Application\AccessControl\Authorization\Service\PermissionAdmission;
@@ -22,12 +21,8 @@ use Fight\Common\Adapter\Http\Psr17\JSendResponseFactory;
 use Fight\Common\Adapter\Messaging\Query\Routing\InMemoryQueryRouter;
 use Fight\Common\Adapter\Messaging\Query\RoutingQueryBus;
 use Fight\Common\Application\Messaging\Query\QueryBus;
-use Fight\Test\AccessControl\Application\AccessControl\Agent\Service\FixedHmacSharedSecretDecipher;
-use Fight\Test\AccessControl\Application\AccessControl\Agent\Service\FixedHmacSignedAgentRequestVerifier;
 use Fight\Test\AccessControl\Application\AccessControl\Agent\Service\ProfileToolEnvironment;
 use Fight\Test\AccessControl\Application\AccessControl\Authorization\Service\AdmissionEnvironment;
-use Fight\Test\AccessControl\Application\AccessControl\Permission\Repository\InMemoryPermissionRepository;
-use Fight\Test\AccessControl\Application\AccessControl\Timing\Service\FixedClock;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
@@ -122,30 +117,15 @@ final class PermissionMiddlewareTest extends TestCase
         $state = new class {
             public bool $brokenSnapshot = false;
         };
-        $permission = new PermissionMiddleware($this->protected(), function () use (
-            $environment,
+        $nativeAuthority = new NativeAgentAuthority($environment);
+        $permission = new PermissionMiddleware($this->protected(), function (ServerRequestInterface $request) use (
+            $nativeAuthority,
             &$providerCalls,
             $state
         ): RequestAuthority {
             ++$providerCalls;
-            $environment->nextRequest();
-            $provider = $environment->provider;
-            if ($state->brokenSnapshot) {
-                $provider = new CurrentAgentPrincipalProvider(
-                    $environment->storage->agents,
-                    new InMemoryPermissionRepository(),
-                    new FixedHmacSharedSecretDecipher('auth-envelope:'),
-                    new FixedHmacSignedAgentRequestVerifier(
-                        $environment->request,
-                        'original-test-secret'
-                    ),
-                    new FixedClock($environment->now()),
-                    $environment->nonces,
-                    $environment->storage->transaction
-                );
-            }
 
-            return RequestAuthority::agent($provider, $environment->request, $environment->correlationId);
+            return $nativeAuthority->create($request, $state->brokenSnapshot);
         });
         $native = new NativePipeline($framework, $permission);
         $router = new InMemoryQueryRouter();
@@ -167,6 +147,9 @@ final class PermissionMiddlewareTest extends TestCase
             );
         };
         self::assertSame(204, $native->request($this->request())->getStatusCode());
+        self::assertSame('GET', $environment->request->getMethod());
+        self::assertSame('/protected/123', $environment->request->getPath());
+        self::assertSame('example.test', $environment->request->getAuthority());
         self::assertSame(1, $environment->nonces->consumptionCalls());
         // A cooperating handler's snapshot access does not authenticate/replay the signed request.
         self::assertNotNull($native->contexts[0]);

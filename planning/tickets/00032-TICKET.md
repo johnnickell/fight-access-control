@@ -157,9 +157,10 @@ Actual consumer bootstrap/authentication/persistence/crypto/scope/sinks/runtime 
 The planning handoff above is historical. TASK-00103 now implements shared inward declaration/authority/admission
 contracts and the optional PSR-15 adapter with separately qualified native Slim/Yii 3 journeys. See the
 [HTTP composition guide](../../docs/http-permission-admission.md) for supported route forms, provider/request lifetimes,
-Common-owned safe failure presentation and actual tagged minimums. TASK-00103 Work's final full gate passes
-2597 tests / 48142 assertions and exact 7703/7703 statements; independent Review/QA remain pending and this TICKET
-is not done. Native peer TASKs still wait on TASK-00103's accepted inward contracts/wiring, not
+Common-owned safe failure presentation and actual tagged minimums. TASK-00103's final native-bound gate passes
+2597 tests / 48148 assertions and exact 7703/7703 statements. The regression-first native Agent fixture-binding
+correction has focused 29-test / 445-assertion proof and that fresh full-gate/content bridge; production contracts
+are unchanged. Independent Review/QA remain pending and this TICKET is not done. Native peer TASKs still wait on TASK-00103's accepted inward contracts/wiring, not
 Slim/Yii runtime. The combined release/all five frameworks/unassigned version are unchanged.
 
 Next for TASK-00103: independent `/skill:review TASK-00103` using the committed Work handoff.
