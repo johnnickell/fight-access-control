@@ -2,7 +2,7 @@
 id: TICKET-00028
 epic: EPIC-00014
 title: Revalidate Agent authority for protected continuation
-status: in-progress
+status: done
 ---
 
 # Revalidate Agent authority for protected continuation
@@ -91,7 +91,7 @@ relationship policy, a project/Task authority store, per-frame authentication re
 
 | Order | TASK ID | Title | Status |
 | --- | --- | --- | --- |
-| 88 | [TASK-00088](../tasks/00088-TASK.md) | Revalidate bound Agent authority before protected continuation | in-progress |
+| 88 | [TASK-00088](../tasks/00088-TASK.md) | Revalidate bound Agent authority before protected continuation | done |
 ## Decisions and Progress
 
 John approved item 4 of the complete eight-TICKET split, explicitly invoked To Tasks for this TICKET, then approved
@@ -112,7 +112,14 @@ planning approval. Preserve the combined release and Closed map; continue planni
 
 The planning handoff at creation was `/skill:next` for Board-based selection, not automatic execution.
 
-## Current implementation checkpoint
+## Current acceptance checkpoint
+
+Independent Review ACCEPT and nonvisual QA PASS cover TASK-00088 candidate
+`b9db457d68e46cddbdde738d7e241fbc2b9bd891`; its package implementation and required verification are complete.
+Publication and final delivery were pending at this checkpoint; `.runs/handoffs/TASK-00088/land.md` owns current
+results. Real consumer and downstream Common runtime qualification remain separate. EPIC-00014 remains open.
+
+## Historical implementation checkpoint
 
 John selected the main checkout and invoked Build TASK-00088. Its Work stage now implements request-rooted original
 Agent/credential bindings, verified worker handoff and explicit fresh continuation checks with synchronized bounded
@@ -125,4 +132,4 @@ Independent Review and required behavioral QA remain pending; this TICKET and it
 Common live/Task runtime, consumer adoption, release or publication is claimed. Historical planning statements above
 retain their original checkpoint; the combined EPIC release/all five frameworks/unassigned version remain unchanged.
 
-Next: independent `/skill:review TASK-00088` after the verified committed Work handoff.
+At the Work checkpoint the next action was independent Review; the acceptance checkpoint above supersedes it.

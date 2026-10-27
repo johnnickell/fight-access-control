@@ -5,9 +5,10 @@
 TASK-00085 and TASK-00086 are independently accepted with required nonvisual QA; TICKET-00026 is done.
 Qualified TASK-00088 intake verified TASK-00086 PR #141 merged/integrated in `develop` at `7fc6c313c39df96f7e261144025433d2b5c46e31`;
 its delivery marker is retired. Historical acceptance/Work checkpoints remain intact.
-TASK-00088 is in progress with explicit trusted original binding and synchronized current continuation admission;
-[its guide](../docs/agent-continuation-authorization.md) and Work handoff own implementation verification. Independent
-Review and behavioral QA remain pending; actual consumer scope/handoff/fence qualification stays separate.
+TASK-00088 and TICKET-00028 are done for accepted package implementation and nonvisual QA. Independent Review ACCEPT
+and QA PASS cover candidate `b9db457d68e46cddbdde738d7e241fbc2b9bd891`; publication and final delivery were pending
+at this checkpoint, with current results in `.runs/handoffs/TASK-00088/land.md`. [Its guide](../docs/agent-continuation-authorization.md)
+owns composition; actual consumer scope/handoff/fence qualification stays separate.
 The remaining EPIC scope and combined release remain unfinished. The planning history below retains its original checkpoint.
 
 ### Planning history

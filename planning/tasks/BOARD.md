@@ -5,13 +5,11 @@ dependencies, acceptance, and verification.
 
 ## What's Next?
 
-Active Task: [TASK-00088](00088-TASK.md) — Revalidate bound Agent authority before protected continuation.
+First ready Task: [TASK-00103](00103-TASK.md) — Protect Slim and Yii 3 requests through shared PSR-15 admission.
 
 ## In Progress
 
-| Order | TASK ID | Title | Parent TICKET | Status | Blocked by | PR |
-| --- | --- | --- | --- | --- | --- | --- |
-| 88 | [TASK-00088](00088-TASK.md) | Revalidate bound Agent authority before protected continuation | [TICKET-00028](../tickets/00028-TICKET.md) — Revalidate Agent authority for protected continuation | in-progress | — | — |
+No Tasks are currently in this state.
 
 ## Ready Frontier
 
@@ -144,6 +142,7 @@ No Tasks are currently in this state.
 | 82 | [TASK-00082](00082-TASK.md) | Refresh package entrypoint and enforce release version consistency | — (standalone chore) | done | — | https://github.com/johnnickell/fight-access-control/pull/133 |
 | 85 | [TASK-00085](00085-TASK.md) | Authorize exact Resource discovery and reads | [TICKET-00026](../tickets/00026-TICKET.md) — Authorize Resource and whole-Skill discovery and reads | done | — | https://github.com/johnnickell/fight-access-control/pull/139 |
 | 86 | [TASK-00086](00086-TASK.md) | Authorize complete Skills and protected member reads | [TICKET-00026](../tickets/00026-TICKET.md) — Authorize Resource and whole-Skill discovery and reads | done | [TASK-00085](00085-TASK.md) | https://github.com/johnnickell/fight-access-control/pull/141 |
+| 88 | [TASK-00088](00088-TASK.md) | Revalidate bound Agent authority before protected continuation | [TICKET-00028](../tickets/00028-TICKET.md) — Revalidate Agent authority for protected continuation | done | — | — |
 
 ## Current delivery handoffs
 

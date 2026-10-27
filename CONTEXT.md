@@ -89,7 +89,14 @@ changes, merge, release and consumer adoption remain outside that publication re
 AccessControl release. Existing product suites were inspected, not rerun; the bounded host-PHP probe is not a
 canonical Docker build or consumer qualification.
 
-## Current continuation authority — TASK-00088 Work checkpoint
+## Current continuation authority — TASK-00088 acceptance checkpoint
+
+Independent Review ACCEPT and nonvisual QA PASS cover candidate `b9db457d68e46cddbdde738d7e241fbc2b9bd891`.
+TASK-00088 and TICKET-00028 are done for accepted package behavior; EPIC-00014 remains open. Publication and final
+verification were pending at this checkpoint; current delivery results are in `.runs/handoffs/TASK-00088/land.md`.
+The Work checkpoint below remains historical; actual consumer qualification and the combined release remain separate.
+
+### Historical Work checkpoint
 
 John selected the main checkout for TASK-00088 from `develop` `7fc6c313c39df96f7e261144025433d2b5c46e31` on
 `feature/task-00088-continuation-authority`. The [continuation guide](docs/agent-continuation-authorization.md) owns the
