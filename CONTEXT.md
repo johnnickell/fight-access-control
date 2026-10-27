@@ -119,7 +119,12 @@ content/cryptographic/database qualification, Skill admission (TASK-00086), cons
 TASK-00085 is done for required package verification; the approved combined EPIC release and unassigned version remain
 unchanged.
 
-## Whole-Skill Permission composition — TASK-00086 implementation checkpoint
+## Whole-Skill Permission composition — TASK-00086 acceptance checkpoint
+
+Independent Review ACCEPT and nonvisual QA PASS cover candidate `c1cf1a412209254087bd93eda497679725495420`.
+TASK-00086 and TICKET-00026 are done for package acceptance; EPIC-00014 remains open. Publication and final delivery
+were pending at closeout; `.runs/handoffs/TASK-00086/land.md` owns the current delivery result.
+The following implementation and verification description preserves its original Work checkpoint.
 
 TASK-00086 adds `AgentSkillPermissionBinding`, `AgentSkillPermissionCatalog` and request-scoped
 `Security\\AgentSkillAvailability` in the existing Application Agent boundary. The

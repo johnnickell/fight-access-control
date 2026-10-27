@@ -5,13 +5,11 @@ dependencies, acceptance, and verification.
 
 ## What's Next?
 
-Active Task: [TASK-00086](00086-TASK.md) — Authorize complete Skills and protected member reads.
+First ready Task: [TASK-00088](00088-TASK.md) — Revalidate bound Agent authority before protected continuation.
 
 ## In Progress
 
-| Order | TASK ID | Title | Parent TICKET | Status | Blocked by | PR |
-| --- | --- | --- | --- | --- | --- | --- |
-| 86 | [TASK-00086](00086-TASK.md) | Authorize complete Skills and protected member reads | [TICKET-00026](../tickets/00026-TICKET.md) — Authorize Resource and whole-Skill discovery and reads | in-progress | [TASK-00085](00085-TASK.md) | — |
+No Tasks are currently in this state.
 
 ## Ready Frontier
 
@@ -144,6 +142,7 @@ No Tasks are currently in this state.
 | 81 | [TASK-00081](00081-TASK.md) | Align contributor workflows with Fight Agent OS | — (standalone chore) | done | — | https://github.com/johnnickell/fight-access-control/pull/128 |
 | 82 | [TASK-00082](00082-TASK.md) | Refresh package entrypoint and enforce release version consistency | — (standalone chore) | done | — | https://github.com/johnnickell/fight-access-control/pull/133 |
 | 85 | [TASK-00085](00085-TASK.md) | Authorize exact Resource discovery and reads | [TICKET-00026](../tickets/00026-TICKET.md) — Authorize Resource and whole-Skill discovery and reads | done | — | https://github.com/johnnickell/fight-access-control/pull/139 |
+| 86 | [TASK-00086](00086-TASK.md) | Authorize complete Skills and protected member reads | [TICKET-00026](../tickets/00026-TICKET.md) — Authorize Resource and whole-Skill discovery and reads | done | [TASK-00085](00085-TASK.md) | — |
 
 ## Current delivery handoffs
 
