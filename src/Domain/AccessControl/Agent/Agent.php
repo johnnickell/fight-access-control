@@ -148,6 +148,16 @@ class Agent
     }
 
     /**
+     * Determines whether the original credential still identifies this active authority
+     */
+    public function hasActiveCredential(AgentCredentialId $credentialId, int $credentialRevision): bool
+    {
+        return $this->state === AgentState::ACTIVE
+            && $this->credentialId->equals($credentialId)
+            && $this->credentialRevision === $credentialRevision;
+    }
+
+    /**
      * Returns the consumer-encrypted current HMAC shared-secret envelope
      */
     public function getEncryptedHmacSharedSecretEnvelope(): string

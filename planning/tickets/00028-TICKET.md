@@ -2,7 +2,7 @@
 id: TICKET-00028
 epic: EPIC-00014
 title: Revalidate Agent authority for protected continuation
-status: ready-for-agent
+status: in-progress
 ---
 
 # Revalidate Agent authority for protected continuation
@@ -91,7 +91,7 @@ relationship policy, a project/Task authority store, per-frame authentication re
 
 | Order | TASK ID | Title | Status |
 | --- | --- | --- | --- |
-| 88 | [TASK-00088](../tasks/00088-TASK.md) | Revalidate bound Agent authority before protected continuation | ready-for-agent |
+| 88 | [TASK-00088](../tasks/00088-TASK.md) | Revalidate bound Agent authority before protected continuation | in-progress |
 ## Decisions and Progress
 
 John approved item 4 of the complete eight-TICKET split, explicitly invoked To Tasks for this TICKET, then approved
@@ -110,4 +110,19 @@ All EPIC-00014 map planning phases/full TASK plans are accepted/complete; consul
 No source/dependency/config change, grant, implementation, publication, release or deployment is authorized by
 planning approval. Preserve the combined release and Closed map; continue planning before Board-based execution selection.
 
-Next: `/skill:next` for Board-based selection; recommendation does not launch execution.
+The planning handoff at creation was `/skill:next` for Board-based selection, not automatic execution.
+
+## Current implementation checkpoint
+
+John selected the main checkout and invoked Build TASK-00088. Its Work stage now implements request-rooted original
+Agent/credential bindings, verified worker handoff and explicit fresh continuation checks with synchronized bounded
+action admission. The [continuation guide](../../docs/agent-continuation-authorization.md) owns chosen API/lifetime,
+composite authority/Permission/scope fence participation, safe failures and actual-consumer qualification gaps.
+Focused latest and tagged Common v1.3.0 lanes each pass 26 tests / 601 assertions. Canonical gate evidence, exact
+candidate mapping and limitations belong to the child TASK and ignored Work handoff.
+
+Independent Review and required behavioral QA remain pending; this TICKET and its child are not done. No actual
+Common live/Task runtime, consumer adoption, release or publication is claimed. Historical planning statements above
+retain their original checkpoint; the combined EPIC release/all five frameworks/unassigned version remain unchanged.
+
+Next: independent `/skill:review TASK-00088` after the verified committed Work handoff.

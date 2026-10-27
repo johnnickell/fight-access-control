@@ -5,17 +5,18 @@ dependencies, acceptance, and verification.
 
 ## What's Next?
 
-First ready Task: [TASK-00088](00088-TASK.md) — Revalidate bound Agent authority before protected continuation.
+Active Task: [TASK-00088](00088-TASK.md) — Revalidate bound Agent authority before protected continuation.
 
 ## In Progress
 
-No Tasks are currently in this state.
+| Order | TASK ID | Title | Parent TICKET | Status | Blocked by | PR |
+| --- | --- | --- | --- | --- | --- | --- |
+| 88 | [TASK-00088](00088-TASK.md) | Revalidate bound Agent authority before protected continuation | [TICKET-00028](../tickets/00028-TICKET.md) — Revalidate Agent authority for protected continuation | in-progress | — | — |
 
 ## Ready Frontier
 
 | Order | TASK ID | Title | Parent TICKET | Status | Blocked by | PR |
 | --- | --- | --- | --- | --- | --- | --- |
-| 88 | [TASK-00088](00088-TASK.md) | Revalidate bound Agent authority before protected continuation | [TICKET-00028](../tickets/00028-TICKET.md) — Revalidate Agent authority for protected continuation | ready-for-agent | — | — |
 | 103 | [TASK-00103](00103-TASK.md) | Protect Slim and Yii 3 requests through shared PSR-15 admission | [TICKET-00032](../tickets/00032-TICKET.md) — Protect native HTTP entry points across all five frameworks | ready-for-agent | — | — |
 
 ## Waiting
@@ -148,4 +149,4 @@ No Tasks are currently in this state.
 
 | Subject | Recorded delivery | Exact PR |
 |---|---|---|
-| [TASK-00086](00086-TASK.md) | awaiting-merge; verify live state | [https://github.com/johnnickell/fight-access-control/pull/141](https://github.com/johnnickell/fight-access-control/pull/141) |
+| None | — | — |

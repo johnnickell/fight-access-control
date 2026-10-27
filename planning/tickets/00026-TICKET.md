@@ -115,6 +115,13 @@ package verification; [PR #139](https://github.com/johnnickell/fight-access-cont
 TASK-00086 remains unfinished, so this TICKET stays open. Earlier
 planning-only statements above describe their original authorization checkpoint.
 
+### Current integrated delivery
+
+Qualified TASK-00088 intake verified TASK-00086 PR #141 merged into `develop` at
+`7fc6c313c39df96f7e261144025433d2b5c46e31` on 2026-10-27 and integrated in the selected base. The ended marker
+is retired; no TASK-00086 review/merge action remains. Historical checkpoints below retain their original evidence.
+No combined release or consumer qualification follows from this integration.
+
 ### Accepted Resource and Skill checkpoint
 
 Both child TASKs are done for independently accepted package implementation and required QA. TASK-00086

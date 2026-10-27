@@ -9,6 +9,9 @@ consumer qualification remain separate from builder tests.
 
 [Resource authorization](agent-resource-authorization.md) is independently composed through Common's Resource hook.
 Its operational-failure behavior intentionally differs from this Tool-only neutral-denial policy.
+[Current continuation admission](agent-continuation-authorization.md) separately protects each new queued disclosure,
+background step and retained-input consumption. Ordinary request availability is not that synchronized action fence;
+actual Common Subscription/Task integration remains downstream work.
 
 ## Public contracts
 

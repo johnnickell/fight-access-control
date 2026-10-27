@@ -3,7 +3,11 @@
 ## Future MCP permission integration — current acceptance
 
 TASK-00085 and TASK-00086 are independently accepted with required nonvisual QA; TICKET-00026 is done.
-TASK-00086 publication and final delivery were pending at closeout; its ignored Land receipt owns the current result.
+Qualified TASK-00088 intake verified TASK-00086 PR #141 merged/integrated in `develop` at `7fc6c313c39df96f7e261144025433d2b5c46e31`;
+its delivery marker is retired. Historical acceptance/Work checkpoints remain intact.
+TASK-00088 is in progress with explicit trusted original binding and synchronized current continuation admission;
+[its guide](../docs/agent-continuation-authorization.md) and Work handoff own implementation verification. Independent
+Review and behavioral QA remain pending; actual consumer scope/handoff/fence qualification stays separate.
 The remaining EPIC scope and combined release remain unfinished. The planning history below retains its original checkpoint.
 
 ### Planning history
@@ -361,4 +365,4 @@ The EPIC's historical pre-v1.0.0 target is not an authorization to release v1.0.
 
 | Subject | Recorded delivery | Exact PR |
 |---|---|---|
-| [TASK-00086](tasks/00086-TASK.md) | awaiting-merge; verify live state | [https://github.com/johnnickell/fight-access-control/pull/141](https://github.com/johnnickell/fight-access-control/pull/141) |
+| None | — | — |
