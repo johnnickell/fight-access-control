@@ -11,9 +11,10 @@ Agent credentials, sessions, Roles, Permissions and account lifecycles without t
 [Install](#release-and-installation) · [Integration](#integrate-with-your-application) ·
 [Capabilities](#choose-a-capability) · [Contributing](CONTRIBUTING.md) · [Changelog](CHANGELOG.md)
 
-Current TASK delivery actions use the [Board's explicit handoffs](planning/tasks/BOARD.md#current-delivery-handoffs),
-not historical PR/acceptance checkpoints. [Delivery conventions](planning/CONVENTIONS.md#current-delivery-handoffs)
-keep ordinary checks offline and bound live checking/authorized intake retirement separately; releases stay separate.
+[Delivery closeout](planning/CONVENTIONS.md#publication-closeout) belongs to Land: accepted TASK/current-doc
+closeout, exact live PR validation and eligible owned local Git/Docker/storage retirement. Human merge remains
+separate, without a tracked pending-merge queue or recurring post-merge planning chore. Historical acceptance/
+publication checkpoints remain evidence; planning stays offline and releases stay separate.
 
 ## Release and installation
 

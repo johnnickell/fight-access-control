@@ -10,8 +10,8 @@ active work; otherwise select the first executable ready TASK in Board order. Us
 and planning handoffs. Recommend and stop; never launch a workflow from navigation. Default unimplemented
 approved work and confirmed implementation defects to `/skill:build TASK-NNNNN`; use `/skill:work TASK-NNNNN` for an explicit implementation-only
 request. Follow the [stage routes](planning/CONVENTIONS.md#workflow-continuations) for review, QA, delivery and evidence gaps.
-Before repeating delivery actions run `./bin/planning-check --check-delivery` for the relevant marked TASKs;
-verified merged/integrated `done` resolves read-only without routine cleanup requests. Load execution guidance when work is invoked.
+Historical publication checkpoints do not create current merge actions. Land verifies the exact live subject
+when publishing or explicitly resumed; no persistent delivery queue or post-merge planning chore. Load execution guidance when work is invoked.
 This routing path does not require reading README, architecture, full project context, task history or receiving skills.
 
 ## Project guidance
@@ -53,9 +53,11 @@ merge, release, deployment, unrelated work and restricted disclosure remain outs
 
 **Resolve:** explicit user decisions govern the work. Apply documented project exceptions within their stated scope; otherwise use these standards. If configuration conflicts with an approved preference, explain and reconcile the conflict rather than weakening the gate or silently inventing an exception.
 
-At authorized Work/Land/substantive planning intake run `./bin/planning-check --reconcile-delivery` before record
-edits under [current delivery handoffs](planning/CONVENTIONS.md#current-delivery-handoffs); inspect affected authored
-claims separately. Review/QA/routing never write. Ordinary checks and view refresh stay offline.
+Land closes independently accepted TASKs and applicable current documentation during delivery, validates its
+exact live PR/default/base/head/remote, and retires eligible owned local Git/Docker/storage resources under the
+[project binding](planning/agents/project-profile.md#integrated-delivery-and-resource-retirement). Human merge
+and open-PR remote-head preservation remain separate. Planning checks and view refresh stay offline; retain
+historical acceptance/publication and independent reports without recurring post-merge bookkeeping.
 
 When completing a TASK, apply [Automatic parent completion](planning/CONVENTIONS.md#automatic-parent-completion)
 in the same operation; do not leave a separate parent assessment or closeout action for the user.

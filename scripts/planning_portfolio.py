@@ -11,8 +11,6 @@ import sys
 from dataclasses import dataclass
 from pathlib import Path
 
-from planning_delivery import delivery_identity, verify_delivery, reconcile_delivery, delivery_table
-
 ROOT = Path(__file__).resolve().parents[1]
 PLANNING = ROOT / "planning"
 STATUS = {"needs-triage", "needs-info", "ready-for-agent", "ready-for-human", "in-progress", "done", "wontfix"}
@@ -362,9 +360,6 @@ def generated_views(records: dict[str, Record], all_records: dict[str, Record]) 
         PLANNING / "ROADMAP.md": render_roadmap(records),
     }
     views.update(render_child_views(records))
-    delivery_records = {key: (record.path, record.fields) for key, record in all_records.items()}
-    for path in (PLANNING / "tasks/BOARD.md", PLANNING / "ROADMAP.md"):
-        views[path] = replace_section(views[path], "## Current delivery handoffs", delivery_table(ROOT, delivery_records, path))
     return views
 
 
@@ -403,10 +398,8 @@ def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     mode = parser.add_mutually_exclusive_group()
     mode.add_argument("--write", action="store_true", help="offline projection refresh")
-    mode.add_argument("--check-delivery", nargs="*", metavar="TASK-ID", help="bounded read-only live verification")
-    mode.add_argument("--reconcile-delivery", nargs="*", metavar="TASK-ID", help="authorized evidence-preserving retirement and view refresh")
     args = parser.parse_args()
-    writing = args.write or args.reconcile_delivery is not None
+    writing = args.write
     errors: list[str] = []
     records = load_records(errors)
     archived_records = load_archived_records(errors)
@@ -415,8 +408,6 @@ def main() -> int:
         errors.append("record is both live and archived: " + ", ".join(overlap))
     validate_records(records | archived_records, errors)
     validate_links(errors)
-    delivery_records = {key: (record.path, record.fields) for key, record in (records | archived_records).items()}
-    errors.extend(delivery_identity(ROOT, delivery_records))
     ignored = subprocess.run(
         ["git", "-c", f"safe.directory={ROOT.resolve()}", "check-ignore", "-q", ".runs/planning-check"],
         cwd=ROOT,
@@ -431,15 +422,7 @@ def main() -> int:
         return 1
 
     closures = complete_parents(records | archived_records)
-    retirements = {}
-    if args.reconcile_delivery is not None:
-        resolved, delivery_errors = verify_delivery(ROOT, delivery_records, args.reconcile_delivery)
-        if delivery_errors:
-            print("\n".join(delivery_errors))
-            return 1
-        retirements = reconcile_delivery(delivery_records, resolved)
     views = generated_views(records, records | archived_records)
-    views.update(retirements)
     for path, text in closures.items():
         if path in views:
             header = text[4:].split("\n---\n", 1)[0]
@@ -464,10 +447,6 @@ def main() -> int:
     active = sum(record.fields["status"] not in TERMINAL for record in records.values())
     action = "Updated" if writing else "Validated"
     print(f"Planning {action.lower()}: {len(records)} records, {active} active")
-    if args.check_delivery is not None:
-        _, errors = verify_delivery(ROOT, delivery_records, args.check_delivery)
-        print("\n".join(errors))
-        return 1 if errors else 0
     return 0
 
 
