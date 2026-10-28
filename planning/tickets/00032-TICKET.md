@@ -2,7 +2,7 @@
 id: TICKET-00032
 epic: EPIC-00014
 title: Protect native HTTP entry points across all five frameworks
-status: ready-for-agent
+status: in-progress
 ---
 
 # Protect native HTTP entry points across all five frameworks
@@ -117,7 +117,7 @@ new protocol endpoints, duplicate error handling, actual Agent OS/starter source
 
 | Order | TASK ID | Title | Status |
 | --- | --- | --- | --- |
-| 103 | [TASK-00103](../tasks/00103-TASK.md) | Protect Slim and Yii 3 requests through shared PSR-15 admission | ready-for-agent |
+| 103 | [TASK-00103](../tasks/00103-TASK.md) | Protect Slim and Yii 3 requests through shared PSR-15 admission | done |
 | 104 | [TASK-00104](../tasks/00104-TASK.md) | Protect Symfony requests through native admission | ready-for-agent |
 | 104 | [TASK-00105](../tasks/00105-TASK.md) | Protect Laravel requests through native middleware | ready-for-agent |
 | 104 | [TASK-00106](../tasks/00106-TASK.md) | Protect CodeIgniter 4 requests through native before filters | ready-for-agent |
@@ -154,4 +154,15 @@ external qualification/tag/minimum gates and unassigned version. No source/depen
 implementation, commit, publication, adoption or release is authorized; choose checkout before separate execution.
 Actual consumer bootstrap/authentication/persistence/crypto/scope/sinks/runtime qualification remains separate.
 
-Next: `/skill:next` for Board-based selection; recommendation does not launch execution.
+Current acceptance: TASK-00103 has independent Review ACCEPT and nonvisual QA PASS on candidate `2807785e332187a36299c08ce3826e9fed585729`; publication and final delivery were pending at closeout, with current results in `.runs/handoffs/TASK-00103/land.md`. TASK-00104–00106 remain unfinished, so this TICKET stays open. The following Work checkpoint is historical.
+
+The planning handoff above is historical. TASK-00103 now implements shared inward declaration/authority/admission
+contracts and the optional PSR-15 adapter with separately qualified native Slim/Yii 3 journeys. See the
+[HTTP composition guide](../../docs/http-permission-admission.md) for supported route forms, provider/request lifetimes,
+Common-owned safe failure presentation and actual tagged minimums. TASK-00103's final native-bound gate passes
+2597 tests / 48148 assertions and exact 7703/7703 statements. The regression-first native Agent fixture-binding
+correction has focused 29-test / 445-assertion proof and that fresh full-gate/content bridge; production contracts
+are unchanged. Independent Review/QA remain pending and this TICKET is not done. Native peer TASKs still wait on TASK-00103's accepted inward contracts/wiring, not
+Slim/Yii runtime. The combined release/all five frameworks/unassigned version are unchanged.
+
+Next for TASK-00103: independent `/skill:review TASK-00103` using the committed Work handoff.

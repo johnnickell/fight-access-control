@@ -144,9 +144,10 @@ previous-iteration support; completed TASKs and earlier guidance cannot require 
 - Consumers still own production persistence adapters, application policy/grants/target scope, transport routes,
   framework bootstrap, keys, queues and runtime. The narrow Adapter approval does not authorize persistence or
   unrelated infrastructure, blanket framework support, a contracts directory or arbitrary production namespaces.
-- This is an approved future integration boundary, not existing adapter code. Later approved TASKs own Composer
-  autoloading, architecture rules, mirrored `tests/Adapter` suites and exact owned-statement coverage before adapter
-  acceptance. Do not change those executable inputs, add dependencies or implement adapters through planning edits.
+- TASK-00103 establishes the first PSR-15 permission adapter and its Composer/autoload, architecture, mirrored
+  `tests/Adapter`, style/static-analysis/default-suite and exact owned-statement coverage wiring. Follow the
+  [HTTP admission guide](../../docs/http-permission-admission.md) for qualified Slim/Yii 3 composition and limits;
+  other native adapters remain separate TASKs. Do not implement adapters or change executable inputs through planning edits.
 - Reuse public Fight Common values and identities: context IDs extend UniqueId, email is the common EmailAddress,
   messages use the public Command, Query, Event, and handler contracts, and package exceptions stay under their
   aggregate Exception namespace.

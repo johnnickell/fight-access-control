@@ -9,6 +9,10 @@ TASK-00088 and TICKET-00028 are done for accepted package implementation and non
 and QA PASS cover candidate `b9db457d68e46cddbdde738d7e241fbc2b9bd891`; publication and final delivery were pending
 at this checkpoint, with current results in `.runs/handoffs/TASK-00088/land.md`. [Its guide](../docs/agent-continuation-authorization.md)
 owns composition; actual consumer scope/handoff/fence qualification stays separate.
+TASK-00103 intake verified PR #142 merged/integrated in `develop` at `14eae522213d03c936cd03b34c1f8ef54ed81487`
+on 2026-10-27T22:18:27Z, from published head `8d24b2b177208a8218a2258cf39fa2e87dac15d0`. Its marker is retired;
+no TASK-00088 review/publication/merge action remains. The pending-at-checkpoint wording above is historical.
+TASK-00103's shared PSR-15 admission and separately qualified Slim/Yii 3 journeys have independent Review ACCEPT and QA PASS on candidate `2807785e332187a36299c08ce3826e9fed585729`. Publication and final delivery were pending at closeout; current results are in `.runs/handoffs/TASK-00103/land.md`. See [HTTP composition](../docs/http-permission-admission.md).
 The remaining EPIC scope and combined release remain unfinished. The planning history below retains its original checkpoint.
 
 ### Planning history
@@ -366,4 +370,4 @@ The EPIC's historical pre-v1.0.0 target is not an authorization to release v1.0.
 
 | Subject | Recorded delivery | Exact PR |
 |---|---|---|
-| [TASK-00088](tasks/00088-TASK.md) | awaiting-merge; verify live state | [https://github.com/johnnickell/fight-access-control/pull/142](https://github.com/johnnickell/fight-access-control/pull/142) |
+| [TASK-00103](tasks/00103-TASK.md) | awaiting-merge; verify live state | [https://github.com/johnnickell/fight-access-control/pull/143](https://github.com/johnnickell/fight-access-control/pull/143) |
