@@ -17,9 +17,10 @@ TASK-00104 intake verified TASK-00103 PR #143 MERGED into `develop` at
 `d4fda9b41fff0dde922c7dae569ee71805d0e358` on 2026-10-28T12:10:37Z, published head
 `87e3d640aaf882c58dddfe2effbefa5c6fe05cf5` integrated in that selected base. Its marker is retired;
 no TASK-00103 review/publication/merge action remains. The pending-at-closeout wording above is historical.
-TASK-00104 Work implements optional native Symfony admission with reused inward policy, qualified native ordering,
-lifetimes and Common safe exceptions under the [Symfony guide](../docs/symfony-permission-admission.md).
-Independent Review/behavioral QA remain pending after the verified committed Work handoff.
+TASK-00104 has independent Review ACCEPT and behavioral QA PASS on candidate
+`fb25934087f931527325c3d66aa49e2b83a944eb`. Optional native Symfony admission and its limits are described in the
+[Symfony guide](../docs/symfony-permission-admission.md). Publication and final delivery were pending at closeout;
+current result: `.runs/handoffs/TASK-00104/land.md`. Actual consumer qualification remains separate.
 The remaining EPIC scope and combined release remain unfinished. The planning history below retains its original checkpoint.
 
 ### Planning history

@@ -49,8 +49,8 @@ endpoints, a database schema, a login UI, framework bindings or production confi
 
 Core dependencies point inward: **Application → Domain**. Consumers supply infrastructure through package interfaces.
 Optional [HTTP Permission admission](docs/http-permission-admission.md) now uses capability-first `src/Adapter`,
-pointing inward through Application, with separately qualified Slim/Yii 3 route composition. Other native adapters
-remain planned. Domain/Application retain their DDD structure; no consumer bindings or configuration are installed.
+pointing inward through Application, with separately qualified Slim/Yii 3 route composition and optional native
+Symfony admission. Laravel and CodeIgniter 4 adapters remain planned. Domain/Application retain their DDD structure; no consumer bindings or configuration are installed.
 
 | This package owns | Your application owns |
 | --- | --- |

@@ -92,6 +92,10 @@ canonical Docker build or consumer qualification.
 
 ## Native Symfony Permission admission — TASK-00104 Work checkpoint
 
+Independent Review ACCEPT and behavioral QA PASS cover candidate `fb25934087f931527325c3d66aa49e2b83a944eb`.
+Publication and final delivery were pending at closeout; current result: `.runs/handoffs/TASK-00104/land.md`.
+The Work checkpoint and its pending-stage wording below are historical. Consumer qualification remains separate.
+
 TASK-00104 Work adds explicit `Adapter\\Http\\Symfony\\EventSubscriber\\PermissionSubscriber` at post-routing
 kernel.request priority 16, before controller resolution/construction, Common Fight validation, arguments and native
 IsGranted. It independently rematches the same trusted immutable PHP RouteCollection/UrlMatcher and checks native
