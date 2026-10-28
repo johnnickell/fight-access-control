@@ -71,11 +71,11 @@ OpenAPI integration coverage, pre-v1 current contracts and the security rules be
 
 ### Integrated delivery and resource retirement
 
-At authorized Work/Land/substantive planning intake run `./bin/planning-check --reconcile-delivery` before record
-edits under [current delivery handoffs](../CONVENTIONS.md#current-delivery-handoffs). Inspect affected authored
-Board/Roadmap/README/context claims separately; preserve historical checkpoints and independent reports.
-Routing uses read-only `--check-delivery`; verified MERGED/integrated `done` resolves without routine cleanup
-requests. Review/QA/routing never write. Exceptional/uncertain states retain their exact owner/input hold.
+Land closes independently accepted TASKs, eligible parents and applicable current Board/Roadmap/README/context
+claims during delivery. Keep historical acceptance/publication checkpoints and independent reports; no tracked
+delivery marker/table, persistent pending-merge queue or recurring post-merge planning maintenance. Planning
+checks and view refresh stay offline. Live subject evidence belongs in the durable ignored receipt and actual
+PR. Missing/contradictory identity holds the affected effect; never infer merge or acceptance.
 
 For TASK publication, resolve the live GitHub default against AccessControl's `develop` policy and existing
 subject PR before reconciliation, pre-publication and final handoff. Use the resolved provider's
@@ -91,8 +91,13 @@ Discover orphan stacks independently of worktrees, corroborating paths/source/to
 After worker exit continue from a safe checkout with original model/ledger/authority, preserving active sessions.
 Qualify Docker VM read-only sharing positively using all containers (including stopped), parent mounts, host
 cwd/writers and stable preservation manifests; arbitrary/unknown readers hold, never shut down a shared VM.
-Preserve active/dirty/shared resources, independent reports, credentials and durable data. Reobserve consumers,
-resume only missing effects and verify exact postconditions with finite recovery actions.
+Preserve active/dirty/shared resources, independent reports, credentials and durable data. Capture exact
+creating-container mounts and named/image-anonymous volume creation provenance before creator removal. Distinguish task-created disposable effects from merely used/shared/durable resources across containers,
+networks, volumes, images and caches; record size, authority, dependencies and remove/retain/hold reasons.
+Reobserve identity and all consumers, including stopped containers, before each normal exact effect; unknown,
+shared, excluded, durable or denied inspection holds without force/prune or suppressed cleanup errors. Resume
+only missing authorized effects and verify absence/preservation postconditions with finite recovery actions.
+Human merge remains separate; preserve the remote head of an open PR.
 
 ### Evidence and resume
 
