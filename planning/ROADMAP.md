@@ -378,4 +378,4 @@ The EPIC's historical pre-v1.0.0 target is not an authorization to release v1.0.
 
 | Subject | Recorded delivery | Exact PR |
 |---|---|---|
-| None | — | — |
+| [TASK-00104](tasks/00104-TASK.md) | awaiting-merge; verify live state | [https://github.com/johnnickell/fight-access-control/pull/144](https://github.com/johnnickell/fight-access-control/pull/144) |

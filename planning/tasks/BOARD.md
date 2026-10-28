@@ -141,10 +141,10 @@ No Tasks are currently in this state.
 | 86 | [TASK-00086](00086-TASK.md) | Authorize complete Skills and protected member reads | [TICKET-00026](../tickets/00026-TICKET.md) — Authorize Resource and whole-Skill discovery and reads | done | [TASK-00085](00085-TASK.md) | https://github.com/johnnickell/fight-access-control/pull/141 |
 | 88 | [TASK-00088](00088-TASK.md) | Revalidate bound Agent authority before protected continuation | [TICKET-00028](../tickets/00028-TICKET.md) — Revalidate Agent authority for protected continuation | done | — | https://github.com/johnnickell/fight-access-control/pull/142 |
 | 103 | [TASK-00103](00103-TASK.md) | Protect Slim and Yii 3 requests through shared PSR-15 admission | [TICKET-00032](../tickets/00032-TICKET.md) — Protect native HTTP entry points across all five frameworks | done | — | https://github.com/johnnickell/fight-access-control/pull/143 |
-| 104 | [TASK-00104](00104-TASK.md) | Protect Symfony requests through native admission | [TICKET-00032](../tickets/00032-TICKET.md) — Protect native HTTP entry points across all five frameworks | done | [TASK-00103](00103-TASK.md) | — |
+| 104 | [TASK-00104](00104-TASK.md) | Protect Symfony requests through native admission | [TICKET-00032](../tickets/00032-TICKET.md) — Protect native HTTP entry points across all five frameworks | done | [TASK-00103](00103-TASK.md) | https://github.com/johnnickell/fight-access-control/pull/144 |
 
 ## Current delivery handoffs
 
 | Subject | Recorded delivery | Exact PR |
 |---|---|---|
-| None | — | — |
+| [TASK-00104](00104-TASK.md) | awaiting-merge; verify live state | [https://github.com/johnnickell/fight-access-control/pull/144](https://github.com/johnnickell/fight-access-control/pull/144) |
