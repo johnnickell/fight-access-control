@@ -91,8 +91,8 @@ Discover orphan stacks independently of worktrees, corroborating paths/source/to
 After worker exit continue from a safe checkout with original model/ledger/authority, preserving active sessions.
 Qualify Docker VM read-only sharing positively using all containers (including stopped), parent mounts, host
 cwd/writers and stable preservation manifests; arbitrary/unknown readers hold, never shut down a shared VM.
-Preserve active/dirty/shared resources, independent reports, credentials and durable data. Capture exact creating-container mounts and named/image-anonymous volume creation provenance before creator
-removal. Distinguish task-created disposable effects from merely used/shared/durable resources across containers,
+Preserve active/dirty/shared resources, independent reports, credentials and durable data. Capture exact
+creating-container mounts and named/image-anonymous volume creation provenance before creator removal. Distinguish task-created disposable effects from merely used/shared/durable resources across containers,
 networks, volumes, images and caches; record size, authority, dependencies and remove/retain/hold reasons.
 Reobserve identity and all consumers, including stopped containers, before each normal exact effect; unknown,
 shared, excluded, durable or denied inspection holds without force/prune or suppressed cleanup errors. Resume

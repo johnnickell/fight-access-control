@@ -18,7 +18,12 @@
         "slim/psr7": "^1.8",
         "slim/slim": "^4.15.3",
         "squizlabs/php_codesniffer": "^4.0",
+        "symfony/event-dispatcher": "^8.1.5",
+        "symfony/http-foundation": "^8.1.9",
+        "symfony/http-kernel": "^8.1.9",
         "symfony/process": "^7.0",
+        "symfony/routing": "^8.1.9",
+        "symfony/security-http": "^8.1.9",
         "yiisoft/di": "^1.4.1",
         "yiisoft/injector": "^1.2.2",
         "yiisoft/middleware-dispatcher": "^5.4",
@@ -53,6 +58,11 @@
     "minimum-stability": "stable",
     "suggest": {
         "slim/slim": "Enable the optional Slim permission target integration (^4.15.3).",
+        "symfony/event-dispatcher": "Enable explicit native Symfony permission admission (^8.1.5).",
+        "symfony/http-foundation": "Enable native Symfony requests and safe JSON responses (^8.1.9).",
+        "symfony/http-kernel": "Enable native Symfony post-routing permission admission (^8.1.9).",
+        "symfony/routing": "Enable trusted native Symfony permission target matching (^8.1.9).",
+        "symfony/security-http": "Optionally compose native IsGranted attributes after permission admission (^8.1.9).",
         "yiisoft/router": "Enable the optional Yii 3 permission target integration (^4.0.2).",
         "zircote/swagger-php": "Generate a consumer-owned OpenAPI document from the opt-in openapi/ component catalog."
     }
