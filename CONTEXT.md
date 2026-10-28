@@ -25,7 +25,8 @@ and separate current live/continuation checks. His follow-up asks about framewor
 compatibility with Common's safe-error approach. [WF-035](planning/wayfinder/tickets/WF-035-framework-permission-adapter-ownership.md)
 is Closed: John selected optional integrations in this package's `src/Adapter`, using Common-style capability-first
 layout while retaining DDD in Domain/Application. The profile records the narrow approved boundary; TASK-00103 now implements the first optional PSR-15 adapter
-with Slim/Yii 3 composition under the Work checkpoint below. Other native integrations remain unimplemented. WF-034 is also Closed: John approved one combined release covering the selected MCP families including
+with Slim/Yii 3 composition under the checkpoint below. TASK-00104 now implements the optional native Symfony
+subscriber under its Work checkpoint below; Laravel/CodeIgniter integrations remain unimplemented. WF-034 is also Closed: John approved one combined release covering the selected MCP families including
 Subscriptions/Tasks and all five frameworks (Slim, Yii 3, Symfony, Laravel, CodeIgniter 4). Grill wrote the single
 approved destination as [EPIC-00014 — Permission-Aware MCP Integration and Framework Adapters](planning/epics/00014-EPIC.md).
 The map is Closed for completed decisions and EPIC handoff. John approved the complete requirement split, now
@@ -89,7 +90,43 @@ changes, merge, release and consumer adoption remain outside that publication re
 AccessControl release. Existing product suites were inspected, not rerun; the bounded host-PHP probe is not a
 canonical Docker build or consumer qualification.
 
+## Native Symfony Permission admission — TASK-00104 Work checkpoint
+
+TASK-00104 Work adds explicit `Adapter\\Http\\Symfony\\EventSubscriber\\PermissionSubscriber` at post-routing
+kernel.request priority 16, before controller resolution/construction, Common Fight validation, arguments and native
+IsGranted. It independently rematches the same trusted immutable PHP RouteCollection/UrlMatcher and checks native
+route/controller association; copied request defaults/context cannot select requirements or grants. It reuses the
+shared inward policy, actual request-owned User/Agent providers and explicit public/authenticated/protected modes.
+Sequential requests and distinct nested subrequests get independent trusted selection; there is no parent-identity
+handoff, cached singleton provider or per-listener Agent nonce replay. Consumer direct/alternate use-case protection
+and later current-authority continuation remain independently owned.
+
+The [Symfony guide](docs/symfony-permission-admission.md) owns six supported controller forms, construction limits,
+IsGranted/Common Validation ordering and selected Common native safe error composition. Common's native listener at
+exception priority 64 reports once before the actual default ErrorListener logger at 0, with validated headers,
+finite public projection and safe sink/projector/encoder fallback. JSON/XHR uses canonical negotiation; delegated
+HTML/missing-Accept logging/rendering is not claimed redacted/safe. No competing renderer, firewall/token issuer,
+grants, consumer bootstrap or automatic registration is supplied. MCP/OAuth stay outside this ordinary HTTP path.
+
+Selected sufficient native minima are Event Dispatcher 8.1.5 and HttpFoundation/HttpKernel/Routing/optional Security
+HTTP 8.1.9; Common remains tagged v1.4.0 (`^1.4`). All seven installed Common/native package file sets (including
+transitive Security Core 8.1.9) match tagged archives. Exact-minimum fixtures pass with Slim/Yii application runtimes
+absent, including a core-only lane without Security HTTP. The executed patched runtime is PHP 8.5.12. Native components
+remain optional suggestions/dev fixtures; production requirements are unchanged. Mirrored Adapter/default/gate wiring
+and exact coverage remain mandatory. The canonical full gate passes **2641 tests / 48524 assertions**, exact
+**7721/7721 statements** (**18/18** new), wrapper/workload exits **0**, with no final warnings/skips. Focused native
+proof passes **44 tests / 376 assertions**. Source, lock and all installed vendor bytes remain stable across the gate;
+only image rebuild attestation changes, with runnable Config/RootFS equivalence verified. TASK evidence and Work
+handoff own full logs, chronology and the prose-only content-to-commit bridge; independent Review and behavioral QA
+are pending. Controlled native fixtures are not consumer persistence/crypto/scope/bootstrap/
+sink/firewall/proxy/deployment qualification. Other native peers and the combined release/version remain unfinished.
+
 ## HTTP Permission admission — TASK-00103 acceptance checkpoint
+
+TASK-00104 intake verified PR #143 MERGED into `develop` at `d4fda9b41fff0dde922c7dae569ee71805d0e358`
+on 2026-10-28T12:10:37Z, with published head `87e3d640aaf882c58dddfe2effbefa5c6fe05cf5` integrated at the selected base.
+Its marker is retired; no TASK-00103 review/publication/merge action remains. The following pending-at-closeout
+wording and Work evidence are historical checkpoints.
 
 Independent Review ACCEPT and nonvisual QA PASS cover candidate `2807785e332187a36299c08ce3826e9fed585729` with no findings. TASK-00103 is done for accepted package behavior; TICKET-00032 and EPIC-00014 remain open. Publication and final delivery were pending at closeout; current results are in `.runs/handoffs/TASK-00103/land.md`. The Work checkpoint below is historical, not current acceptance status.
 

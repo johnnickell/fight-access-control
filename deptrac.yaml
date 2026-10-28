@@ -19,6 +19,10 @@ deptrac:
           collectors:
               - type: classLike
                 value: ^Psr\\Http\\.*
+        - name: SymfonyHttp
+          collectors:
+              - type: classLike
+                value: ^Symfony\\Component\\(EventDispatcher|HttpFoundation|HttpKernel|Routing)\\.*
         - name: CommonDomain
           collectors:
               - type: classLike
@@ -49,8 +53,10 @@ deptrac:
             - CommonDomain
             - CommonApplication
             - PsrHttp
+            - SymfonyHttp
             - PhpInternal
         PsrHttp: []
+        SymfonyHttp: []
         CommonDomain:
             - PhpInternal
         CommonApplication:

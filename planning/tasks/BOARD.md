@@ -5,17 +5,18 @@ dependencies, acceptance, and verification.
 
 ## What's Next?
 
-First ready Task: [TASK-00104](00104-TASK.md) — Protect Symfony requests through native admission.
+Active Task: [TASK-00104](00104-TASK.md) — Protect Symfony requests through native admission.
 
 ## In Progress
 
-No Tasks are currently in this state.
+| Order | TASK ID | Title | Parent TICKET | Status | Blocked by | PR |
+| --- | --- | --- | --- | --- | --- | --- |
+| 104 | [TASK-00104](00104-TASK.md) | Protect Symfony requests through native admission | [TICKET-00032](../tickets/00032-TICKET.md) — Protect native HTTP entry points across all five frameworks | in-progress | [TASK-00103](00103-TASK.md) | — |
 
 ## Ready Frontier
 
 | Order | TASK ID | Title | Parent TICKET | Status | Blocked by | PR |
 | --- | --- | --- | --- | --- | --- | --- |
-| 104 | [TASK-00104](00104-TASK.md) | Protect Symfony requests through native admission | [TICKET-00032](../tickets/00032-TICKET.md) — Protect native HTTP entry points across all five frameworks | ready-for-agent | [TASK-00103](00103-TASK.md) | — |
 | 104 | [TASK-00105](00105-TASK.md) | Protect Laravel requests through native middleware | [TICKET-00032](../tickets/00032-TICKET.md) — Protect native HTTP entry points across all five frameworks | ready-for-agent | [TASK-00103](00103-TASK.md) | — |
 | 104 | [TASK-00106](00106-TASK.md) | Protect CodeIgniter 4 requests through native before filters | [TICKET-00032](../tickets/00032-TICKET.md) — Protect native HTTP entry points across all five frameworks | ready-for-agent | [TASK-00103](00103-TASK.md) | — |
 
@@ -147,4 +148,4 @@ No Tasks are currently in this state.
 
 | Subject | Recorded delivery | Exact PR |
 |---|---|---|
-| [TASK-00103](00103-TASK.md) | awaiting-merge; verify live state | [https://github.com/johnnickell/fight-access-control/pull/143](https://github.com/johnnickell/fight-access-control/pull/143) |
+| None | — | — |

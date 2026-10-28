@@ -118,7 +118,7 @@ new protocol endpoints, duplicate error handling, actual Agent OS/starter source
 | Order | TASK ID | Title | Status |
 | --- | --- | --- | --- |
 | 103 | [TASK-00103](../tasks/00103-TASK.md) | Protect Slim and Yii 3 requests through shared PSR-15 admission | done |
-| 104 | [TASK-00104](../tasks/00104-TASK.md) | Protect Symfony requests through native admission | ready-for-agent |
+| 104 | [TASK-00104](../tasks/00104-TASK.md) | Protect Symfony requests through native admission | in-progress |
 | 104 | [TASK-00105](../tasks/00105-TASK.md) | Protect Laravel requests through native middleware | ready-for-agent |
 | 104 | [TASK-00106](../tasks/00106-TASK.md) | Protect CodeIgniter 4 requests through native before filters | ready-for-agent |
 ## Decisions and Progress
@@ -154,7 +154,19 @@ external qualification/tag/minimum gates and unassigned version. No source/depen
 implementation, commit, publication, adoption or release is authorized; choose checkout before separate execution.
 Actual consumer bootstrap/authentication/persistence/crypto/scope/sinks/runtime qualification remains separate.
 
-Current acceptance: TASK-00103 has independent Review ACCEPT and nonvisual QA PASS on candidate `2807785e332187a36299c08ce3826e9fed585729`; publication and final delivery were pending at closeout, with current results in `.runs/handoffs/TASK-00103/land.md`. TASK-00104–00106 remain unfinished, so this TICKET stays open. The following Work checkpoint is historical.
+Current delivery: TASK-00104 intake verified TASK-00103 PR #143 MERGED into `develop` at
+`d4fda9b41fff0dde922c7dae569ee71805d0e358` on 2026-10-28T12:10:37Z. Published head
+`87e3d640aaf882c58dddfe2effbefa5c6fe05cf5` is integrated at that selected base; its marker is retired.
+No TASK-00103 review/publication/merge action remains. Its acceptance and pending-at-closeout wording below are historical.
+
+Current Work: TASK-00104 implements the optional native Symfony subscriber using the accepted inward contracts,
+without Slim/Yii runtime dependence or duplicated policy. See [Symfony composition](../../docs/symfony-permission-admission.md)
+for trusted route metadata, request/subrequest lifetimes, six controller forms, native IsGranted/Fight Validation order,
+Common-only safe exception/reporting/fallback/negotiation and tagged minima. Controlled native/minimum/core-only fixtures
+are not consumer bootstrap/firewall/persistence/crypto/scope/sink/deployment qualification. Final package-gate evidence
+belongs to the TASK and Work handoff; independent Review/QA are pending. Native peers/this TICKET remain unfinished.
+
+Historical acceptance: TASK-00103 has independent Review ACCEPT and nonvisual QA PASS on candidate `2807785e332187a36299c08ce3826e9fed585729`; publication and final delivery were pending at closeout, with current results in `.runs/handoffs/TASK-00103/land.md`. TASK-00104–00106 remain unfinished, so this TICKET stays open. The following Work checkpoint is historical.
 
 The planning handoff above is historical. TASK-00103 now implements shared inward declaration/authority/admission
 contracts and the optional PSR-15 adapter with separately qualified native Slim/Yii 3 journeys. See the
@@ -165,4 +177,5 @@ correction has focused 29-test / 445-assertion proof and that fresh full-gate/co
 are unchanged. Independent Review/QA remain pending and this TICKET is not done. Native peer TASKs still wait on TASK-00103's accepted inward contracts/wiring, not
 Slim/Yii runtime. The combined release/all five frameworks/unassigned version are unchanged.
 
-Next for TASK-00103: independent `/skill:review TASK-00103` using the committed Work handoff.
+The preceding TASK-00103 review-next wording is superseded by its accepted/integrated checkpoint above.
+Next for active TASK-00104: independent `/skill:review TASK-00104` after its verified committed Work handoff.
