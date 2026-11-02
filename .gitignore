@@ -17,3 +17,8 @@ phpunit.xml
 /nbproject
 /*.sublime-project
 /*.sublime-workspace
+
+# Local gate cache and native worktree configuration
+/var/build.json
+/var/build.lock
+/var/worktrees/

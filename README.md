@@ -141,3 +141,5 @@ still required before v1.0.0.
 
 Report suspected vulnerabilities privately through [SECURITY.md](SECURITY.md), not public issues or pull requests.
 Fight AccessControl is available under the [MIT License](LICENSE).
+
+See [local Docker, worktree and build-cache operations](docs/engineering/LOCAL_TOOLING.md) for explicit main/worktree selection, guarded teardown and fresh versus reused gate evidence.

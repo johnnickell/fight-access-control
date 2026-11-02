@@ -1,0 +1,4 @@
+#!/usr/bin/env sh
+set -eu
+./bin/runtime up --worktree "$PWD"
+./bin/runtime docker compose exec -T php composer update --no-interaction --no-progress --prefer-dist

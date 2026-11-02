@@ -1,16 +1,5 @@
-#!/usr/bin/env bash
-
-set -euo pipefail
-
-ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-DOCKER_BIN="${DOCKER_BIN:-docker}"
-PHP_IMAGE="${FIGHT_ACCESS_CONTROL_PHP_IMAGE:-fight-access-control}"
-
-cd "${ROOT_DIR}"
-source "${ROOT_DIR}/bin/.php-runtime"
-refresh_php_runtime
-exec "${DOCKER_BIN}" container run --rm -it \
-    -v "${ROOT_DIR}:/app:delegated" \
-    -w /app \
-    --user "$(id -u):$(id -g)" \
-    "${PHP_IMAGE}" "$@"
+#!/usr/bin/env sh
+set -eu
+cd "$(dirname "$0")/.."
+./bin/runtime up --worktree "$PWD"
+exec ./bin/runtime docker compose exec -T php "$@"

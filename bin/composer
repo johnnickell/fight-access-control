@@ -1,10 +1,5 @@
-#!/usr/bin/env bash
-
-set -euo pipefail
-
-ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-exec docker container run --rm -it \
-    -v "${ROOT_DIR}:/app:delegated" \
-    -w /app \
-    --user "$(id -u):$(id -g)" \
-    composer:2.8.12 "$@"
+#!/usr/bin/env sh
+set -eu
+cd "$(dirname "$0")/.."
+./bin/runtime up --worktree "$PWD" --build-only
+exec ./bin/runtime docker compose run --rm --no-deps -T php composer "$@"
