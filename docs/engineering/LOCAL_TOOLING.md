@@ -106,6 +106,6 @@ Validate these tools directly with native Compose/Worktrunk and normal gates, ou
 
 AccessControl retains its stable PHP 8.5 security floor (minimum 8.5.12). Image refresh and native admission run without a source mount before package work; an unavailable refresh or unsupported PHP stops the command. Ordinary gate preparation retains `composer update`; `--latest` remains accepted. The library owns a CLI tooling service and requires no HTTP stack or application database.
 
-Local development builds use native `--provenance=false` so cached executable layers retain a stable immutable image identity instead of a timestamped attestation index. Release/publication commands retain their own policy. Layers and actual image IDs remain verified; this does not permit publishing local images.
+Local development builds set native `BUILDX_NO_DEFAULT_ATTESTATIONS=1` for the build command so cached executable layers retain a stable immutable image identity instead of a timestamped attestation index. Release/publication commands retain their own policy. Layers and actual image IDs remain verified; this does not permit publishing local images.
 
 Use `./bin/runtime docker ps` to list all selected-checkout containers and their published ports, including plain-run tool previews. `docker compose ps` lists Compose services only.

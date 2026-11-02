@@ -242,7 +242,8 @@ def main(root):
             run(prepare, checkout, env=env)
         # Local gate evidence binds the immutable image ID. Avoid timestamped
         # attestation indexes replacing that ID when all executable layers match.
-        run([*command, 'build', '--pull', '--provenance=false'], checkout, env=env)
+        run([*command, 'build', '--pull'], checkout,
+            env={**env, 'BUILDX_NO_DEFAULT_ATTESTATIONS': '1'})
         setup = configuration(root).get('setup', [])
         if setup:
             run(setup, checkout, env=env)
