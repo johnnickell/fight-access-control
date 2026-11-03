@@ -268,7 +268,7 @@ final class AgentProfileToolsTest extends TestCase
                 $queries = $this->createMock(QueryBus::class);
                 $queries->expects(self::once())->method('fetch')->willThrowException($failure);
             } elseif ($stage === 'write') {
-                $env->storage->agents->afterNameWrite = static fn() => throw $failure;
+                $env->storage->agents->afterNameWrite = static fn(): never => throw $failure;
             } else {
                 $env->storage->events = new InMemoryEventDispatcher(
                     static function (Event $event) use ($env, $failure): void {

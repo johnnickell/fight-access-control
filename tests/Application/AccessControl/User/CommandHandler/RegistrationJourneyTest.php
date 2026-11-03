@@ -275,7 +275,7 @@ final class RegistrationJourneyTest extends TestCase
         ));
         $fixture->grants = new InMemoryActivationGrantRepository(
             $fixture->unitOfWork,
-            beforeReplace: static fn() => throw $original
+            beforeReplace: static fn(): never => throw $original
         );
         $workerAttempts = [];
         $workerEvents = new InMemoryEventDispatcher(static function ($event) use (
