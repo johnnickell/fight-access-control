@@ -109,7 +109,7 @@ assuming the current directory owns canonical evidence. Use these ignored target
 - `<base>/.runs/qa/<TASK-ID>/qa.md` — canonical independent behavioral report under the provider QA contract.
 - `.runs/tasks/<TASK-ID>/runs/` — owned execution scratch; `.runs/logs/<TASK-ID>/` and
   `.runs/handoffs/<TASK-ID>/` — complete gate logs/receipts and reusable handoffs.
-- `.runs/worktree/<task-slug>/` — optional linked checkout; retain useful evidence and owned runtime through review.
+- `../.worktrees/<task-slug>/` — optional linked checkout outside ignored run scratch; retain useful evidence and owned runtime through review.
 
 Match repository, TASK/requirements, branch, full base/head and working-tree snapshot before advancing. Review and
 QA must be independent of implementation and its submitted acceptance evidence; green commands or child exit zero
@@ -253,7 +253,7 @@ previous-iteration support; completed TASKs and earlier guidance cannot require 
 - Every production statement requires executable coverage. The isolated fight-access-control PHP container is the
   package runtime; ./bin/planning-check and ./bin/build are mandatory pre-submit gates, and the build enforces
   PHPCS, PHPStan, architecture, Rector, PHPUnit, and exact statement coverage.
-- Keep ignored run artifacts in purpose-named subdirectories: `.runs/worktree/<task-slug>/` for linked worktrees,
+- Keep ignored run artifacts in purpose-named subdirectories: `.runs/worktree/<task-slug>/` for worktree coordination scratch (source checkouts stay outside `.runs/`),
   `.runs/notes/<task>/` for coordination, `.runs/logs/<task>/` for gate logs and receipts, and
   `.runs/handoffs/<task>/` for reusable handoffs. Canonical reviews remain `.runs/reviews/<TASK-ID>/review.md`.
   Do not create mixed-purpose dated folders directly under `.runs/`. See the approved

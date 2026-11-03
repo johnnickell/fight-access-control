@@ -1,13 +1,8 @@
 #!/usr/bin/env bash
 
 # Shared admission for package Docker wrappers. Call before any mounted package work.
-refresh_php_runtime() {
+admit_php_runtime() {
     local version patch
-
-    if ! "${DOCKER_BIN}" build --pull -t "${PHP_IMAGE}" ./etc/docker/; then
-        echo '[runtime] Image refresh failed; check Docker/registry access. Cached fallback is disabled.' >&2
-        return 1
-    fi
 
     if ! version="$("${DOCKER_BIN}" container run --rm \
         --network none --read-only --cap-drop ALL \

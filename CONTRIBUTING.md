@@ -28,8 +28,7 @@ Use Git Flow:
 
 Keep each effort isolated in its assigned branch and selected checkout. Reuse a TASK checkout choice already
 made; otherwise resolve main checkout versus isolated worktree before implementation. Use purpose-named `.runs/` subdirectories from the
-[project profile](planning/agents/project-profile.md#tests-and-delivery), including `.runs/worktree/<task-slug>/`
-for checkouts and separate notes, logs, handoffs and reviews. `.runs/` is gitignored and must never be staged.
+[project profile](planning/agents/project-profile.md#tests-and-delivery), with isolated checkouts outside `.runs/` and separate ignored notes, logs, handoffs and reviews. `.runs/` is gitignored and must never be staged.
 Preserve unrelated changes and do not copy consumer implementations into this library.
 
 ## Package PHP runtime
@@ -43,18 +42,15 @@ is not runtime verification. This does not change consumer Composer requirements
 
 Docker/registry access is required even with a cached image. Refresh or inspection failure exits nonzero without
 running package work; there is no silent offline fallback. Restore Docker/network/registry access or availability
-of a patched upstream image, then retry. `FIGHT_ACCESS_CONTROL_PHP_IMAGE` still selects the package image name,
-but overrides receive the same refresh and runtime checks. `DOCKER_BIN` still selects the Docker executable.
+of a patched upstream image, then retry. The selected checkout owns its project-scoped PHP image;
+ambient legacy image/executable overrides do not select the package runtime. Release-only image overrides
+remain explicit inputs to release certification.
 
-When changing these wrappers, run the explicit isolated qualification separately:
-
-```bash
-python3 scripts/qualify_php_runtime.py
-```
-
-It exercises real wrappers with a Docker double (no daemon or registry needed), including failure paths and
-linked-worktree build mounts. It is not part of product PHPUnit coverage, ordinary CI or the default build;
-qualification does not replace verification of the real refreshed image and the complete `./bin/build` gate.
+When changing these wrappers, qualify them directly with the native commands in
+[local tooling](docs/engineering/LOCAL_TOOLING.md): prepare the explicit isolated checkout, inspect the actual
+image admission, exercise the focused command, then run the complete `./bin/build` gate. Verify rejection
+before mounted package work when refresh or admission fails. The obsolete Docker-double harness has been
+removed because it modeled the superseded container-run interface.
 
 This check covers only the package's local CLI build runtime. Consumers must independently assess and patch their
 web-serving PHP-FPM/Apache/other runtimes and perform required service restarts through their own procedures.

@@ -19,6 +19,10 @@ This routing path does not require reading README, architecture, full project co
 For execution or substantive planning changes, load the applicable guidance below. The read-only routing
 path above takes precedence over broad orientation reads; it does not waive engineering or delivery rules.
 
+For Docker preparation/teardown, isolated worktrees, guarded source removal and build-cache evidence, follow
+[local tooling](docs/engineering/LOCAL_TOOLING.md). Use normal `./bin/build` for fresh planning and qualified
+application reuse; use `--force` for deliberate fresh application execution.
+
 **Scope:** these are shared engineering conventions. Read the local [AccessControl project profile](planning/agents/project-profile.md), [CONTEXT.md](CONTEXT.md), and the selected work record alongside them. All required project guidance is available in this checkout; no private skill installation is required.
 Optional Fight Agent OS workflows use the [local workflow binding](planning/agents/project-profile.md#agent-os-workflow-binding),
 not copied skills or provider-application assumptions.
