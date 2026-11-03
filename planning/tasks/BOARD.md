@@ -5,7 +5,7 @@ dependencies, acceptance, and verification.
 
 ## What's Next?
 
-First ready Task: [TASK-00105](00105-TASK.md) — Protect Laravel requests through native middleware.
+First ready Task: [TASK-00107](00107-TASK.md) — Codify aggregate-first architecture and descriptive dependency naming.
 
 ## In Progress
 
@@ -15,28 +15,37 @@ No Tasks are currently in this state.
 
 | Order | TASK ID | Title | Parent TICKET | Status | Blocked by | PR |
 | --- | --- | --- | --- | --- | --- | --- |
+| 10 | [TASK-00107](00107-TASK.md) | Codify aggregate-first architecture and descriptive dependency naming | [TICKET-00033](../tickets/00033-TICKET.md) — Clarify architecture and capability ownership before extending integrations | ready-for-agent | — | — |
 | 104 | [TASK-00105](00105-TASK.md) | Protect Laravel requests through native middleware | [TICKET-00032](../tickets/00032-TICKET.md) — Protect native HTTP entry points across all five frameworks | ready-for-agent | [TASK-00103](00103-TASK.md) | — |
 | 104 | [TASK-00106](00106-TASK.md) | Protect CodeIgniter 4 requests through native before filters | [TICKET-00032](../tickets/00032-TICKET.md) — Protect native HTTP entry points across all five frameworks | ready-for-agent | [TASK-00103](00103-TASK.md) | — |
+| 201 | [TASK-00111](00111-TASK.md) | Make User transitions own authentication-authority revisions | [TICKET-00035](../tickets/00035-TICKET.md) — Encapsulate User authentication transitions and synchronous use cases | ready-for-agent | — | — |
+| 203 | [TASK-00113](00113-TASK.md) | Make AgentName own provisioning and rename semantics | [TICKET-00036](../tickets/00036-TICKET.md) — Clarify Agent name and credential-operation domain ownership | ready-for-agent | — | — |
+| 204 | [TASK-00114](00114-TASK.md) | Establish credential-operation aggregate and narrow read repositories | [TICKET-00036](../tickets/00036-TICKET.md) — Clarify Agent name and credential-operation domain ownership | ready-for-agent | — | — |
 
 ## Waiting
 
-No Tasks are currently in this state.
+| Order | TASK ID | Title | Parent TICKET | Status | Blocked by | PR |
+| --- | --- | --- | --- | --- | --- | --- |
+| 11 | [TASK-00108](00108-TASK.md) | Move Agent MCP presentation and family bindings into adapters | [TICKET-00033](../tickets/00033-TICKET.md) — Clarify architecture and capability ownership before extending integrations | ready-for-agent | [TASK-00107](00107-TASK.md) | — |
+| 12 | [TASK-00109](00109-TASK.md) | Organize Application capabilities and descriptive collaborator names | [TICKET-00033](../tickets/00033-TICKET.md) — Clarify architecture and capability ownership before extending integrations | ready-for-agent | [TASK-00107](00107-TASK.md) | — |
+| 202 | [TASK-00112](00112-TASK.md) | Separate cohesive synchronous authentication capabilities | [TICKET-00035](../tickets/00035-TICKET.md) — Encapsulate User authentication transitions and synchronous use cases | ready-for-agent | [TASK-00111](00111-TASK.md) | — |
 
 ## Needs Info
 
 | Order | TASK ID | Title | Parent TICKET | Status | Blocked by | PR |
 | --- | --- | --- | --- | --- | --- | --- |
-| 84 | [TASK-00084](00084-TASK.md) | Protect mixed Common-owned and attributed MCP Tools | [TICKET-00025](../tickets/00025-TICKET.md) — Bind Common-owned and attributed Tools to Agent Permissions | needs-info | — | — |
-| 87 | [TASK-00087](00087-TASK.md) | Authorize Agent-protected Prompt discovery and retrieval | [TICKET-00027](../tickets/00027-TICKET.md) — Authorize Prompt discovery and retrieval | needs-info | — | — |
+| 13 | [TASK-00110](00110-TASK.md) | Adopt qualified canonical Fight Common contracts | [TICKET-00034](../tickets/00034-TICKET.md) — Consume supported canonical Fight Common contracts | needs-info | — | — |
+| 84 | [TASK-00084](00084-TASK.md) | Protect mixed Common-owned and attributed MCP Tools | [TICKET-00025](../tickets/00025-TICKET.md) — Bind Common-owned and attributed Tools to Agent Permissions | needs-info | [TASK-00108](00108-TASK.md), [TASK-00110](00110-TASK.md) | — |
+| 87 | [TASK-00087](00087-TASK.md) | Authorize Agent-protected Prompt discovery and retrieval | [TICKET-00027](../tickets/00027-TICKET.md) — Authorize Prompt discovery and retrieval | needs-info | [TASK-00108](00108-TASK.md), [TASK-00110](00110-TASK.md) | — |
 | 89 | [TASK-00089](00089-TASK.md) | Compose scoped execution and timeline reads | [TICKET-00029](../tickets/00029-TICKET.md) — Compose scoped execution and protected-detail access | needs-info | [TASK-00084](00084-TASK.md) | — |
 | 90 | [TASK-00090](00090-TASK.md) | Compose independent protected-detail metadata and body reads | [TICKET-00029](../tickets/00029-TICKET.md) — Compose scoped execution and protected-detail access | needs-info | [TASK-00084](00084-TASK.md) | — |
-| 91 | [TASK-00091](00091-TASK.md) | Authorize notice recording and bounded removal | [TICKET-00030](../tickets/00030-TICKET.md) — Authorize retained notices and live Subscriptions | needs-info | [TASK-00088](00088-TASK.md) | — |
+| 91 | [TASK-00091](00091-TASK.md) | Authorize notice recording and bounded removal | [TICKET-00030](../tickets/00030-TICKET.md) — Authorize retained notices and live Subscriptions | needs-info | [TASK-00088](00088-TASK.md), [TASK-00108](00108-TASK.md), [TASK-00110](00110-TASK.md) | — |
 | 92 | [TASK-00092](00092-TASK.md) | Authorize retained inspection and polling recovery | [TICKET-00030](../tickets/00030-TICKET.md) — Authorize retained notices and live Subscriptions | needs-info | [TASK-00084](00084-TASK.md) | — |
 | 93 | [TASK-00093](00093-TASK.md) | Authorize live Tool, Resource and whole-Skill change disclosure | [TICKET-00030](../tickets/00030-TICKET.md) — Authorize retained notices and live Subscriptions | needs-info | [TASK-00086](00086-TASK.md), [TASK-00088](00088-TASK.md), [TASK-00092](00092-TASK.md) | — |
 | 94 | [TASK-00094](00094-TASK.md) | Authorize Prompt catalog-change disclosure | [TICKET-00030](../tickets/00030-TICKET.md) — Authorize retained notices and live Subscriptions | needs-info | [TASK-00087](00087-TASK.md), [TASK-00093](00093-TASK.md) | — |
 | 95 | [TASK-00095](00095-TASK.md) | Authorize current-subscriber inspection | [TICKET-00030](../tickets/00030-TICKET.md) — Authorize retained notices and live Subscriptions | needs-info | [TASK-00093](00093-TASK.md) | — |
 | 96 | [TASK-00096](00096-TASK.md) | Authorize optional notice publication | [TICKET-00030](../tickets/00030-TICKET.md) — Authorize retained notices and live Subscriptions | needs-info | [TASK-00088](00088-TASK.md), [TASK-00092](00092-TASK.md) | — |
-| 97 | [TASK-00097](00097-TASK.md) | Authorize Task creation, producer updates and protected reads | [TICKET-00031](../tickets/00031-TICKET.md) — Authorize durable Task operations and state disclosure | needs-info | [TASK-00088](00088-TASK.md) | — |
+| 97 | [TASK-00097](00097-TASK.md) | Authorize Task creation, producer updates and protected reads | [TICKET-00031](../tickets/00031-TICKET.md) — Authorize durable Task operations and state disclosure | needs-info | [TASK-00088](00088-TASK.md), [TASK-00108](00108-TASK.md), [TASK-00110](00110-TASK.md) | — |
 | 98 | [TASK-00098](00098-TASK.md) | Authorize bounded retained Task removal | [TICKET-00031](../tickets/00031-TICKET.md) — Authorize durable Task operations and state disclosure | needs-info | [TASK-00097](00097-TASK.md) | — |
 | 99 | [TASK-00099](00099-TASK.md) | Authorize durable input and protected continuation | [TICKET-00031](../tickets/00031-TICKET.md) — Authorize durable Task operations and state disclosure | needs-info | [TASK-00097](00097-TASK.md) | — |
 | 100 | [TASK-00100](00100-TASK.md) | Authorize cancellation requests and intent observation | [TICKET-00031](../tickets/00031-TICKET.md) — Authorize durable Task operations and state disclosure | needs-info | [TASK-00097](00097-TASK.md), [TASK-00099](00099-TASK.md) | — |

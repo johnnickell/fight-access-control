@@ -7,6 +7,14 @@ status: ready-for-agent
 
 # Authorize retained notices and live Subscriptions
 
+## Approved Refactoring Amendment
+
+[EPIC-00015](../epics/00015-EPIC.md) adds [TASK-00108](../tasks/00108-TASK.md) and
+[TASK-00110](../tasks/00110-TASK.md) directly to TASK-00091; the other slices inherit that canonical adapter/
+consumed-Common baseline through TASK-00084/00087 and existing suppliers. Use actual Common Commands/Queries,
+coherent recovery readers and neutral runtime/admission ports, not combined NoticeStore/UoW or lifecycle facades.
+This supersedes earlier namespace/supplier assumptions, not distinct operation grants or each tagged/minimum hold.
+
 ## Problem and Outcome
 
 An initial listen/read grant cannot authorize every future notice, catalog signal, subscriber record or broadcast.
@@ -104,7 +112,7 @@ six complete capability journeys. The full accepted decomposition is written:
 
 | Approved slice | TASK | Direct local blockers |
 | --- | --- | --- |
-| A — Recording and bounded removal | [TASK-00091](../tasks/00091-TASK.md) | TASK-00088 for included background producer/cleanup admission |
+| A — Recording and bounded removal | [TASK-00091](../tasks/00091-TASK.md) | TASK-00088 for background admission; TASK-00108 and TASK-00110 for canonical adapter/Common baseline |
 | B — Retained inspection and polling recovery | [TASK-00092](../tasks/00092-TASK.md) | TASK-00084 for the complete polling Tool journey |
 | C — Live Tool/Resource/whole-Skill change disclosure | [TASK-00093](../tasks/00093-TASK.md) | TASK-00086, TASK-00088, TASK-00092; Resource/Tool suppliers transitively |
 | D — Prompt catalog-change disclosure | [TASK-00094](../tasks/00094-TASK.md) | TASK-00087, TASK-00093 |

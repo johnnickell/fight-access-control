@@ -1,5 +1,38 @@
 # Roadmap
 
+## First priority — pre-v1 architecture enablers
+
+John approved [EPIC-00015 — Pre-v1 Architecture and Supported Common Integration](epics/00015-EPIC.md), its
+four TICKETs ([00033](tickets/00033-TICKET.md)–[00036](tickets/00036-TICKET.md)) and all eight implementation TASKs.
+The [Board](tasks/BOARD.md) derives execution priority and blockers from those records; this section is strategy,
+not a separate queue or authority to execute.
+
+| Priority | Accepted work | Purpose and dependency |
+| --- | --- | --- |
+| 10 | [TASK-00107](tasks/00107-TASK.md) — Architecture and naming rules | First executable enabler; reconcile old layout/single-service guidance with the approved target. |
+| 11 | [TASK-00108](tasks/00108-TASK.md) — MCP presentation/bindings in Adapter | After 107; provide the canonical boundary before extending MCP features. |
+| 12 | [TASK-00109](tasks/00109-TASK.md) — Application capabilities and descriptive names | After 107; follows 108 by priority only, not a dependency. |
+| 13 | [TASK-00110](tasks/00110-TASK.md) — Supported canonical Common contracts | needs-info for actual affected tagged/accepted APIs and sufficient minimum; independent ready work proceeds. |
+| 201–202 | [TASK-00111](tasks/00111-TASK.md) → [TASK-00112](tasks/00112-TASK.md) — User revisions and synchronous capabilities | Follow existing features; 112 consumes complete transitions from 111. |
+| 203–204 | [TASK-00113](tasks/00113-TASK.md) / [TASK-00114](tasks/00114-TASK.md) — AgentName and operation/read boundaries | Follow existing features; relative priority only, no mutual blocker. |
+
+Unfinished MCP roots TASK-00084/00087/00091/00097 now consume 108/110; existing descendants inherit those technical
+suppliers. Their new Common family/operation tagged-contract holds remain separate. Laravel TASK-00105 and
+CodeIgniter TASK-00106 keep order 104 and their existing prerequisites: no MCP, User-decomposition or Agent-operation
+blocker is added. The broader redesign is not a blanket prerequisite or release gate for unrelated capabilities.
+
+Common's inspected local `9e46565633a2ee44fefacf27fc97b6a711467190` has concurrent changes and approved refactors
+through TASK-00192: canonical MCP foundation names, separate repository/UoW/read contracts, handler-owned use cases,
+typed identities/values and Tool adapters. Those plans are orientation, not actual released/qualified API evidence.
+TASK-00110 adopts only affected consumed canonical APIs when genuinely available; individual features qualify their
+additional APIs and minima. No guessed version, stable claim from a dev snapshot, AccessControl compatibility alias,
+Common/consumer mutation or dependency adoption is authorized through these planning edits.
+
+All new planning phases are accepted/written, not implemented. EPIC-00014 keeps one combined future release/all five
+frameworks, opt-in capabilities, independent polling and an unassigned version. Existing acceptance/publication
+checkpoints below remain historical; EPIC-00015's current amendments govern conflicting future placement/supplier prose.
+Next: `/skill:next` for Board-based selection; no implementation or publication starts automatically.
+
 ## Future MCP permission integration — current acceptance
 
 TASK-00085 and TASK-00086 are independently accepted with required nonvisual QA; TICKET-00026 is done.
@@ -373,4 +406,5 @@ The EPIC's historical pre-v1.0.0 target is not an authorization to release v1.0.
 | [EPIC-00012](epics/00012-EPIC.md) | v0.5.0 | done | 1 | 1 |
 | [EPIC-00013](epics/00013-EPIC.md) | v1.0.0 | done | 3 | 3 |
 | [EPIC-00014](epics/00014-EPIC.md) | unassigned | ready-for-agent | 8 | 23 |
+| [EPIC-00015](epics/00015-EPIC.md) | unassigned | ready-for-agent | 4 | 8 |
 <!-- generated:epic-status:end -->
