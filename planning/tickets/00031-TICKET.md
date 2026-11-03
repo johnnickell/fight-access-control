@@ -7,6 +7,14 @@ status: ready-for-agent
 
 # Authorize durable Task operations and state disclosure
 
+## Approved Refactoring Amendment
+
+[EPIC-00015](../epics/00015-EPIC.md) adds [TASK-00108](../tasks/00108-TASK.md) and
+[TASK-00110](../tasks/00110-TASK.md) directly to TASK-00097; later Task slices inherit the baseline through existing
+suppliers. Use actual supported typed Task identities, admission ports and Commands/Queries through configured
+buses, not TaskStore/UoW or broad TaskLifecycle/InputLifecycle/CancellationLifecycle forwarding APIs. Keep policy
+inward and protocol glue in canonical adapters. Each Task-operation tagged/minimum hold and independent grant remains.
+
 ## Problem and Outcome
 
 Starting an asynchronous operation or knowing its Task handle does not authorize every read, input answer,
@@ -105,7 +113,7 @@ six complete capability journeys. Its full accepted decomposition is now written
 
 | Approved slice | TASK | Direct local blockers |
 | --- | --- | --- |
-| A — Creation, producer updates and protected reads | [TASK-00097](../tasks/00097-TASK.md) | TASK-00088 for included background/continuation admission |
+| A — Creation, producer updates and protected reads | [TASK-00097](../tasks/00097-TASK.md) | TASK-00088 for continuation; TASK-00108 and TASK-00110 for canonical adapter/Common baseline |
 | B — Bounded retained Task removal | [TASK-00098](../tasks/00098-TASK.md) | TASK-00097 |
 | C — Durable input and protected continuation | [TASK-00099](../tasks/00099-TASK.md) | TASK-00097; TASK-00088 transitively |
 | D — Cancellation requests and intent observation | [TASK-00100](../tasks/00100-TASK.md) | TASK-00097, TASK-00099 for real input/intent races |

@@ -7,6 +7,13 @@ status: ready-for-agent
 
 # Compose scoped execution and protected-detail access
 
+## Approved Refactoring Amendment
+
+[EPIC-00015](../epics/00015-EPIC.md)'s canonical adapter/consumed-Common baseline reaches TASK-00089/00090 through
+TASK-00084, which now consumes [TASK-00108](../tasks/00108-TASK.md) and [TASK-00110](../tasks/00110-TASK.md).
+Use actual Common Query/admission contracts through configured buses and canonical MCP adapters, not copied readers
+or retired lifecycle/Store facades. Each scoped/protected-read tagged/minimum hold and independent grant remains.
+
 ## Problem and Outcome
 
 An Agent allowed to invoke `execution.list` or `execution.detail` is not thereby allowed every project, session,

@@ -7,6 +7,14 @@ status: ready-for-agent
 
 # Bind Common-owned and attributed Tools to Agent Permissions
 
+## Approved Refactoring Amendment
+
+[EPIC-00015](../epics/00015-EPIC.md) adds canonical adapter composition from
+[TASK-00108](../tasks/00108-TASK.md) and the qualified consumed-Common baseline from
+[TASK-00110](../tasks/00110-TASK.md) as direct prerequisites of TASK-00084. This supersedes earlier Application
+placement/no-local-blocker wording, not the complete mixed-Tool journey or its separate execution-API/minimum hold.
+Use actual Common buses/use cases and canonical Adapter bindings, without copied Tools or lifecycle/Store facades.
+
 ## Problem and Outcome
 
 The existing Agent Tool catalog requires `RequiresAgentPermission` attributes on every protected Tool. Common's
@@ -95,7 +103,7 @@ change and complete discovery/invocation/retry, dependency-minimum, test and doc
 there is no separate prefactor or testing-only TASK.
 
 TASK-00084 is `needs-info` pending actual qualified/tagged Common execution APIs and minimum-version evidence,
-with no unfinished local TASK blockers. Requirement/TASK-plan acceptance is not implementation acceptance or
+with TASK-00108 and TASK-00110 now added as the approved canonical adapter/consumed-Common prerequisites. Requirement/TASK-plan acceptance is not implementation acceptance or
 execution authority. No source, dependency adoption, grant or publication is authorized or performed.
 
 This TICKET's TASK planning is complete. TICKET-00026's subsequently approved TASK-00085/00086 plan is also

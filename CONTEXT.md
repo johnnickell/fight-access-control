@@ -6,6 +6,30 @@ Fight AccessControl owns framework-neutral identity, credential, session, author
 behavior shared by Fight applications. The repository-local behavioral and security authority is
 [TICKET-00001](planning/tickets/00001-TICKET.md).
 
+## Approved pre-v1 architecture and Common integration plan
+
+John approved [EPIC-00015](planning/epics/00015-EPIC.md), [TICKET-00033](planning/tickets/00033-TICKET.md)–
+[TICKET-00036](planning/tickets/00036-TICKET.md), and the full [TASK-00107](planning/tasks/00107-TASK.md)–
+[TASK-00114](planning/tasks/00114-TASK.md) split. The accepted target clarifies aggregate-first ownership, moves
+MCP presentation/registry bindings outward, groups Application capabilities, requires descriptive collaborators,
+encapsulates User revision transitions, replaces the broad synchronous authentication graph, unifies AgentName
+and makes credential-operation/read ownership explicit. TASK-00107 owns guidance reconciliation; these are
+approved target changes, not implemented source or verification claims.
+
+The [Roadmap](planning/ROADMAP.md#first-priority--pre-v1-architecture-enablers) puts the three local enablers first.
+Canonical consumed-Common adoption TASK-00110 remains needs-info for actual tagged/accepted/qualified APIs and
+sufficient minimum evidence; Common's concurrent local refactoring plans do not supply that proof. Pending MCP
+roots TASK-00084/00087/00091/00097 consume TASK-00108/00110, with descendants inheriting those suppliers. Each
+feature retains its own additional Common family/operation qualification. Native TASK-00105/00106 remain independent
+of MCP and the later User/Agent redesigns; those redesigns follow existing features rather than blocking them all.
+
+EPIC-00015 visibly amends conflicting earlier layout/single-service/future-supplier guidance while retaining
+inward dependencies, Common ownership, synchronous sensitive non-serializable inputs, independent consumer policy,
+atomicity, recovery/redaction/outcome behavior and current-contract safety. Apply ADR 0011 directly: no AccessControl
+aliases/legacy modes. Existing code, completed TASKs and release checkpoints below remain historical baseline;
+no source/dependency/configuration/grant change, Common/consumer mutation, execution, commit/publication or release
+is claimed. EPIC-00014's combined release/all-five-framework scope and unassigned version remain unchanged.
+
 ## Future Common MCP permission integration — investigation 2026-10-25
 
 John requested investigation/planning for a future AccessControl release. The

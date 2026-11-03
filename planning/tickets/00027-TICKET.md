@@ -7,6 +7,14 @@ status: ready-for-agent
 
 # Authorize Prompt discovery and retrieval
 
+## Approved Refactoring Amendment
+
+[EPIC-00015](../epics/00015-EPIC.md) adds canonical adapter composition from
+[TASK-00108](../tasks/00108-TASK.md) and the qualified consumed-Common baseline from
+[TASK-00110](../tasks/00110-TASK.md) as direct prerequisites of TASK-00087. This supersedes earlier placement/
+no-local-blocker wording, not Prompt independence from Tool/live features or the separate Prompt tagged/minimum hold.
+Keep Common-facing Prompt glue in Adapter/Mcp/Prompt/Agent and genuine policy inward; use actual Common ports/buses.
+
 ## Problem and Outcome
 
 An Agent permitted to use a Tool or read a Resource is not automatically permitted to discover or retrieve every
@@ -91,8 +99,8 @@ static/Query-backed providers, independently protected links, safe bounded error
 qualification and independent Review/QA. No separate prefactor or verification-only TASK is planned.
 
 TASK-00087 is `needs-info` for implemented/independently accepted/qualified, tagged Common Prompt APIs and supported
-minimum evidence, not blocked by a local unfinished TASK. Prompt serving does not depend on TASK-00084, Resource/
-Skill TASK-00085/00086 or live Subscriptions/durable Tasks. Linked targets retain independent later admission.
+minimum evidence, with TASK-00108 and TASK-00110 now added as canonical adapter/consumed-Common prerequisites.
+Prompt serving still does not depend on TASK-00084, Resource/Skill TASK-00085/00086 or live Subscriptions/durable Tasks. Linked targets retain independent later admission.
 
 This TICKET's TASK planning is complete. TICKET-00028's approved TASK-00088 plan is now written;
 TICKET-00029's approved TASK-00089/00090 plan is now written; TICKET-00030's approved TASK-00091–00096 plan is now written; TICKET-00031's TASK-00097–00102 and TICKET-00032's approved TASK-00103–00106 plans are written.
