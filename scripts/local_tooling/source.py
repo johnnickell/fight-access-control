@@ -15,7 +15,9 @@ def parent_mount_unused(container, mount, checkout, source, safe):
     require(container['State']['Running'], 'Parent source mount requires live consumer qualification')
     configured = json.dumps({key: container['Config'].get(key) for key in ('WorkingDir', 'Entrypoint', 'Cmd')})
     require(target not in configured, 'Container configuration consumes candidate source')
-    # Inspect every live container process as root for complete /proc visibility.
+    # Use the configured container identity: root without ptrace capabilities
+    # can have less /proc visibility than the application user. Check every
+    # process and retain source if any inspection remains unavailable.
     # Return status only: no process arguments, descriptors or private data escape.
     script = r'''
 for process in /proc/[0-9]*; do
@@ -33,10 +35,12 @@ for process in /proc/[0-9]*; do
     done
 done
 '''
-    result = subprocess.run(['docker', 'exec', '--user', '0', container['Id'],
+    result = subprocess.run(['docker', 'exec', container['Id'],
                              'sh', '-c', script, 'source-consumer-check', target],
                             cwd=safe, capture_output=True, text=True, timeout=60)
-    require(result.returncode == 0, 'Parent source consumer present or visibility unavailable')
+    require(result.returncode != 3, 'Parent-mounted container consumes candidate source: ' + container['Id'][:12])
+    require(result.returncode == 0,
+            'Parent-mounted container process visibility unavailable with configured identity: ' + container['Id'][:12])
 
 
 def readonly_docker_handles(output, safe):
