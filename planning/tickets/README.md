@@ -39,7 +39,7 @@ This generated index is a projection; individual records remain canonical.
 | [TICKET-00033](00033-TICKET.md) | Clarify architecture and capability ownership before extending integrations | done |
 | [TICKET-00034](00034-TICKET.md) | Consume supported canonical Fight Common contracts | ready-for-agent |
 | [TICKET-00035](00035-TICKET.md) | Encapsulate User authentication transitions and synchronous use cases | done |
-| [TICKET-00036](00036-TICKET.md) | Clarify Agent name and credential-operation domain ownership | ready-for-agent |
+| [TICKET-00036](00036-TICKET.md) | Clarify Agent name and credential-operation domain ownership | done |
 | [TICKET-00037](00037-TICKET.md) | Make Domain and repository contracts precise | ready-for-agent |
 | [TICKET-00038](00038-TICKET.md) | Preserve message and result types through dispatch | ready-for-agent |
 | [TICKET-00039](00039-TICKET.md) | Guarantee exact query results and explicit absence | ready-for-agent |

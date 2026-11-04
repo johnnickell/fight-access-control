@@ -7,7 +7,7 @@ namespace Fight\AccessControl\Domain\AccessControl\Agent;
 use Closure;
 use DateTimeImmutable;
 use Exception;
-use Fight\AccessControl\Domain\AccessControl\Agent\Operation\AgentOperationContractRepository;
+use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\AgentOperationContractRepository;
 use Fight\AccessControl\Domain\AccessControl\Permission\Permission;
 use Fight\AccessControl\Domain\AccessControl\Permission\PermissionId;
 use Fight\Common\Domain\Repository\Pagination;
@@ -96,7 +96,8 @@ interface AgentRepository extends AgentOperationContractRepository
      * changes use replacePermissionAssignments(), which must share the credential fence.
      *
      * Require the package-owned transaction and same-connection operation persistence for every predecessor.
-     * Invoke AgentOperationRepository::retireCredential(expected, replacement) before persisting the successor,
+     * Invoke AgentCredentialOperationRepository::retireCredential(expected, replacement) before persisting
+     * the successor,
      * under the shared Agent/credential, original operation/delivery and destination/authority fences. Hold all fences
      * through commit; no direct caller or repository replacement may bypass cancellation. Missing correlation or
      * unsupported participation throws a sanitized AgentOperationRejectedException and aborts the entire transaction.

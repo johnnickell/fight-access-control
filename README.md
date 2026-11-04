@@ -63,6 +63,14 @@ homes, alongside Feature Discovery and authorization Admission; see the
 [current composition map](docs/agent-integration.md#public-composition-map). User secret-bearing operations now use
 [direct synchronous authentication, session, password and email-confirmation owners](docs/user-authentication.md),
 without the retired broad service. Neither refactor supplies blanket persistence/framework support.
+The independently persisted `AgentCredentialOperation` now has its own Domain/Application aggregate home.
+Status, scheduler and maintenance readers inject `AgentCredentialOperationReadRepository`; material-bearing writers
+use the separate `AgentCredentialOperationRepository` with their existing UoW. Update imports/named arguments
+directly; wire shapes and atomic Agent/operation cancellation, cohort/restoration and recovery behavior are unchanged.
+See the [operation ownership map](docs/agent-integration.md#operation-ownership-and-readwrite-composition-unreleased).
+TASK-00114's integrated candidate with TASK-00112's advanced authentication base has independent Review ACCEPT
+and nonvisual QA PASS. Current delivery results are in its canonical Land handoff and PR #158. Neither scope
+supplies consumer qualification or the separate Agent Command conversion.
 
 | This package owns | Your application owns |
 | --- | --- |

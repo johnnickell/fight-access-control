@@ -14,10 +14,10 @@ use Fight\AccessControl\Domain\AccessControl\Agent\AgentUpdateInitiator;
 use Fight\AccessControl\Domain\AccessControl\Agent\Command\UpdateAgent;
 use Fight\AccessControl\Domain\AccessControl\Agent\Event\AgentNameChanged;
 use Fight\AccessControl\Domain\AccessControl\Agent\Exception\AgentNameException;
-use Fight\AccessControl\Domain\AccessControl\Agent\Exception\AgentOperationRejectedException;
 use Fight\AccessControl\Domain\AccessControl\Agent\Exception\AgentUpdateException;
-use Fight\AccessControl\Domain\AccessControl\Agent\Operation\AgentOperationFailure;
 use Fight\AccessControl\Domain\AccessControl\Agent\Query\AgentProfileView;
+use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\AgentOperationFailure;
+use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\Exception\AgentOperationRejectedException;
 use Fight\AccessControl\Domain\AccessControl\Permission\PermissionName;
 use Fight\Common\Application\Mcp\McpCapabilityRegistry;
 use Fight\Common\Application\Mcp\McpProgressReporter;
@@ -77,7 +77,7 @@ final class AgentProfileToolsTest extends TestCase
         $invoker = $env->invoker();
         $env->provider->resolve($env->request, $env->correlationId);
         $transactions = $env->storage->transaction->transactions;
-        $operations = $env->storage->agentOperationRepository->operations;
+        $operations = $env->storage->operationRepository->operations;
         $before = $this->wireResult($invoker->invoke('agent.profile.read', (object) []));
         $this->assertProfile($before, $env, 'Production deployment');
         self::assertSame($transactions, $env->storage->transaction->transactions);
@@ -102,7 +102,7 @@ final class AgentProfileToolsTest extends TestCase
         self::assertSame($after, $env->storage->agentRepository->getById($env->original->getId()));
         self::assertSame(1, $env->storage->agentRepository->nameWrites);
         self::assertCount(1, $env->storage->eventDispatcher->events());
-        self::assertSame($operations, $env->storage->agentOperationRepository->operations);
+        self::assertSame($operations, $env->storage->operationRepository->operations);
         self::assertSame($env->original->getCredentialId(), $after->getCredentialId());
         self::assertSame($env->original->getPermissionIds(), $after->getPermissionIds());
         $this->assertProfile(

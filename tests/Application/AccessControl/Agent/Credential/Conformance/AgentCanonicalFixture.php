@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Fight\Test\AccessControl\Application\AccessControl\Agent\Credential\Conformance;
 
-use Fight\AccessControl\Domain\AccessControl\Agent\Operation\AgentIssuance;
+use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\AgentIssuance;
 
 /**
  * Consumer-owned persisted-state controls, separate from production normalization and lifecycle policy

@@ -8,6 +8,13 @@ implementation is selected. Real consumer restoration remains unqualified by the
 
 ## Admission evidence and ownership
 
+Current PHP ownership is `Domain\AccessControl\AgentCredentialOperation` for the root, write/read repositories
+and cohort evidence. Operation readers now inject `AgentCredentialOperationReadRepository`; writers retain
+`AgentCredentialOperationRepository` and their separate UoW. This split changes neither the outcomes below nor
+all-writer connection/incarnation/generation fences. Operational qualification and trusted witness verification
+remain with actual consumer composition, not business-entity flags. See the
+[ownership/composition map](agent-integration.md#operation-ownership-and-readwrite-composition-unreleased).
+
 `AgentOperationContract` now requires a sixth constructor argument, `?int $reconciledGeneration`, with **no default**.
 The first five arguments retain their meaning. The value comes from the consumer's trusted cohort-admission boundary
 **outside the dataset being restored**; it must equal the positive stored cohort generation. Null (missing, unverified,

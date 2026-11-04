@@ -4,17 +4,19 @@ declare(strict_types=1);
 
 namespace Fight\Test\AccessControl\Application\AccessControl\Agent\Credential;
 
-use Fight\AccessControl\Application\AccessControl\Agent\Delivery\AgentDeliveryResult;
-use Fight\AccessControl\Application\AccessControl\Agent\Maintenance\AgentMaintenanceResult;
-use Fight\AccessControl\Domain\AccessControl\Agent\Exception\AgentOperationRejectedException;
-use Fight\AccessControl\Domain\AccessControl\Agent\Maintenance\AgentDeliveryKeyVersion;
-use Fight\AccessControl\Domain\AccessControl\Agent\Operation\AgentOperationContract;
-use Fight\AccessControl\Domain\AccessControl\Agent\Operation\AgentOperationFailure;
-use Fight\AccessControl\Domain\AccessControl\Agent\Operation\AgentOperationId;
-use Fight\AccessControl\Domain\AccessControl\Agent\Operation\AgentOperationKey;
+use Fight\Test\AccessControl\Application\AccessControl\AgentCredentialOperation\Delivery\Conformance\{
+    DeliveryConformanceFixture
+};
+use Fight\AccessControl\Application\AccessControl\AgentCredentialOperation\Delivery\AgentDeliveryResult;
+use Fight\AccessControl\Application\AccessControl\AgentCredentialOperation\Maintenance\AgentMaintenanceResult;
+use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\AgentOperationContract;
+use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\AgentOperationFailure;
+use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\AgentOperationId;
+use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\AgentOperationKey;
+use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\Exception\AgentOperationRejectedException;
+use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\Maintenance\AgentDeliveryKeyVersion;
 use Fight\Test\AccessControl\Application\AccessControl\Agent\Credential\Conformance\AgentCohortFixture;
-use Fight\Test\AccessControl\Application\AccessControl\Agent\Delivery\Conformance\DeliveryConformanceFixture;
-use Fight\Test\AccessControl\Application\AccessControl\Agent\Delivery\DeliveryConformance;
+use Fight\Test\AccessControl\Application\AccessControl\AgentCredentialOperation\Delivery\DeliveryConformance;
 use LogicException;
 use PHPUnit\Framework\Attributes\DataProvider;
 

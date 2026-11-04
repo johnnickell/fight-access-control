@@ -4,25 +4,27 @@ declare(strict_types=1);
 
 namespace Fight\Test\AccessControl\Application\AccessControl\Agent\Credential;
 
+use Fight\Test\AccessControl\Application\AccessControl\AgentCredentialOperation\Repository\{
+    InMemoryAgentCredentialOperationRepository
+};
 use DateTimeImmutable;
 use Fight\AccessControl\Application\AccessControl\Agent\Credential\AgentProvisioningService;
 use Fight\AccessControl\Application\AccessControl\Agent\Credential\HmacSharedSecretCipher;
 use Fight\AccessControl\Application\AccessControl\Agent\Credential\HmacSharedSecretGenerator;
-use Fight\AccessControl\Application\AccessControl\Agent\Delivery\AgentDeliveryCipher;
+use Fight\AccessControl\Application\AccessControl\AgentCredentialOperation\Delivery\AgentDeliveryCipher;
 use Fight\AccessControl\Application\AccessControl\Timing\Service\Clock;
 use Fight\AccessControl\Domain\AccessControl\Agent\AgentRepository;
-use Fight\AccessControl\Domain\AccessControl\Agent\Operation\AgentCredentialDestination;
-use Fight\AccessControl\Domain\AccessControl\Agent\Operation\AgentDestinationId;
-use Fight\AccessControl\Domain\AccessControl\Agent\Operation\AgentOperationId;
-use Fight\AccessControl\Domain\AccessControl\Agent\Operation\AgentOperationKey;
-use Fight\AccessControl\Domain\AccessControl\Agent\Operation\AgentOperationLimits;
-use Fight\AccessControl\Domain\AccessControl\Agent\Operation\AgentOperationScope;
-use Fight\AccessControl\Domain\AccessControl\Agent\Operation\AgentProvisioningRequest;
+use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\AgentCredentialDestination;
+use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\AgentDestinationId;
+use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\AgentOperationId;
+use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\AgentOperationKey;
+use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\AgentOperationLimits;
+use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\AgentOperationScope;
+use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\AgentProvisioningRequest;
 use Fight\AccessControl\Domain\AccessControl\Audit\AuditEvidenceRepository;
 use Fight\Common\Application\Repository\TransactionalUnitOfWork;
-use Fight\Test\AccessControl\Application\AccessControl\Agent\Delivery\BoundAgentDeliveryCipher;
-use Fight\Test\AccessControl\Application\AccessControl\Agent\Repository\InMemoryAgentOperationRepository;
 use Fight\Test\AccessControl\Application\AccessControl\Agent\Repository\InMemoryAgentRepository;
+use Fight\Test\AccessControl\Application\AccessControl\AgentCredentialOperation\Delivery\BoundAgentDeliveryCipher;
 use Fight\Test\AccessControl\Application\AccessControl\Audit\Repository\InMemoryAuditEvidenceRepository;
 use Fight\Test\AccessControl\Application\AccessControl\Event\InMemoryEventDispatcher;
 use Fight\Test\AccessControl\Application\AccessControl\Timing\Service\FixedClock;
@@ -34,7 +36,7 @@ final class ProvisioningEnvironment
 
     public readonly InMemoryAgentOperationAuthorization $operationAuthorization;
 
-    public readonly InMemoryAgentOperationRepository $agentOperationRepository;
+    public readonly InMemoryAgentCredentialOperationRepository $operationRepository;
 
     public readonly InMemoryAgentRepository $agentRepository;
 
@@ -52,15 +54,15 @@ final class ProvisioningEnvironment
     {
         $this->transaction = new InMemoryUnitOfWork();
         $this->operationAuthorization = new InMemoryAgentOperationAuthorization($this->transaction);
-        $this->agentOperationRepository = new InMemoryAgentOperationRepository(
+        $this->operationRepository = new InMemoryAgentCredentialOperationRepository(
             $this->transaction,
             $this->operationAuthorization
         );
         $this->agentRepository = new InMemoryAgentRepository(
             $this->transaction,
-            agentOperationRepository: $this->agentOperationRepository
+            operationRepository: $this->operationRepository
         );
-        $this->agentOperationRepository->agentRepository = $this->agentRepository;
+        $this->operationRepository->agentRepository = $this->agentRepository;
         $this->auditEvidenceRepository = new InMemoryAuditEvidenceRepository($this->transaction);
         $this->eventDispatcher = new InMemoryEventDispatcher();
         $scope = new AgentOperationScope('consumer-a', 'user', 'maintainer-42');
@@ -83,7 +85,7 @@ final class ProvisioningEnvironment
     ): AgentProvisioningService {
         return new AgentProvisioningService(
             $agentRepository ?? $this->agentRepository,
-            $this->agentOperationRepository,
+            $this->operationRepository,
             $auditEvidenceRepository ?? $this->auditEvidenceRepository,
             $this->operationAuthorization,
             $generator ?? new readonly class ($this) implements HmacSharedSecretGenerator {

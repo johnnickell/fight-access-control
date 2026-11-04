@@ -4,7 +4,8 @@ declare(strict_types=1);
 
 namespace Fight\AccessControl\Application\AccessControl\Agent\Credential;
 
-use Fight\AccessControl\Application\AccessControl\Agent\Delivery\AgentDeliveryCipher;
+use Fight\AccessControl\Application\AccessControl\AgentCredentialOperation\AgentOperationAuthorization;
+use Fight\AccessControl\Application\AccessControl\AgentCredentialOperation\Delivery\AgentDeliveryCipher;
 use Fight\AccessControl\Application\AccessControl\Timing\Service\Clock;
 use Fight\AccessControl\Domain\AccessControl\Agent\Agent;
 use Fight\AccessControl\Domain\AccessControl\Agent\AgentCredentialId;
@@ -13,17 +14,17 @@ use Fight\AccessControl\Domain\AccessControl\Agent\AgentName;
 use Fight\AccessControl\Domain\AccessControl\Agent\AgentRepository;
 use Fight\AccessControl\Domain\AccessControl\Agent\Event\AgentProvisioned;
 use Fight\AccessControl\Domain\AccessControl\Agent\Event\AgentProvisioningFailed;
-use Fight\AccessControl\Domain\AccessControl\Agent\Exception\AgentOperationCollisionException;
-use Fight\AccessControl\Domain\AccessControl\Agent\Exception\AgentOperationRejectedException;
-use Fight\AccessControl\Domain\AccessControl\Agent\Operation\AgentCredentialOperation;
-use Fight\AccessControl\Domain\AccessControl\Agent\Operation\AgentDeliveryId;
-use Fight\AccessControl\Domain\AccessControl\Agent\Operation\AgentIssuance;
-use Fight\AccessControl\Domain\AccessControl\Agent\Operation\AgentOperationCanonicalization;
-use Fight\AccessControl\Domain\AccessControl\Agent\Operation\AgentOperationFailure;
-use Fight\AccessControl\Domain\AccessControl\Agent\Operation\AgentOperationKey;
-use Fight\AccessControl\Domain\AccessControl\Agent\Operation\AgentOperationLimits;
-use Fight\AccessControl\Domain\AccessControl\Agent\Operation\AgentOperationRepository;
-use Fight\AccessControl\Domain\AccessControl\Agent\Operation\AgentProvisioningRequest;
+use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\AgentCredentialOperation;
+use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\AgentCredentialOperationRepository;
+use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\AgentDeliveryId;
+use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\AgentIssuance;
+use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\AgentOperationCanonicalization;
+use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\AgentOperationFailure;
+use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\AgentOperationKey;
+use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\AgentOperationLimits;
+use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\AgentProvisioningRequest;
+use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\Exception\AgentOperationCollisionException;
+use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\Exception\AgentOperationRejectedException;
 use Fight\AccessControl\Domain\AccessControl\Audit\AuditEvidence;
 use Fight\AccessControl\Domain\AccessControl\Audit\AuditEvidenceRepository;
 use Fight\Common\Application\Messaging\Event\EventDispatcher;
@@ -42,7 +43,7 @@ final readonly class AgentProvisioningService
      */
     public function __construct(
         private AgentRepository $agentRepository,
-        private AgentOperationRepository $agentOperationRepository,
+        private AgentCredentialOperationRepository $operationRepository,
         private AuditEvidenceRepository $auditEvidenceRepository,
         private AgentOperationAuthorization $operationAuthorization,
         private HmacSharedSecretGenerator $hmacSharedSecretGenerator,
@@ -77,7 +78,7 @@ final readonly class AgentProvisioningService
                     &$callbackCompleted,
                     &$created
                 ): AgentIssuance {
-                    $this->agentOperationRepository->getOperationContract()->assertSameCohort(
+                    $this->operationRepository->getOperationContract()->assertSameCohort(
                         $this->agentRepository->getOperationContract()
                     );
                     $actor = $this->operationAuthorization->authorize($key->getScope(), $request->getDestination());
@@ -85,7 +86,7 @@ final readonly class AgentProvisioningService
                         throw new AgentOperationRejectedException(AgentOperationFailure::UNAVAILABLE);
                     }
 
-                    $operation = $this->agentOperationRepository->getByKey($key);
+                    $operation = $this->operationRepository->getByKey($key);
                     if ($operation !== null) {
                         $issuance = $operation->resolve($request);
                     } else {
@@ -152,7 +153,7 @@ final readonly class AgentProvisioningService
             $credentialId,
             0,
             $request->getDestination(),
-            $this->agentOperationRepository->reserveDestinationWrite($request->getDestination()),
+            $this->operationRepository->reserveDestinationWrite($request->getDestination()),
             $issuedAt
         );
         $secret = $this->hmacSharedSecretGenerator->generate();
@@ -165,7 +166,7 @@ final readonly class AgentProvisioningService
         );
         $material = $this->deliveryCipher->encrypt($secret, $issuance);
         $this->agentRepository->add($agent);
-        $this->agentOperationRepository->add(
+        $this->operationRepository->add(
             new AgentCredentialOperation(
                 AgentOperationCanonicalization::VERSION,
                 $canonicalRequest,

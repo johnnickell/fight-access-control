@@ -10,7 +10,7 @@ use Fight\AccessControl\Application\AccessControl\Agent\Credential\AgentProvisio
 use Fight\AccessControl\Application\AccessControl\Agent\Credential\AgentPublicationWarning;
 use Fight\AccessControl\Application\AccessControl\Agent\Credential\HmacSharedSecretCipher;
 use Fight\AccessControl\Application\AccessControl\Agent\Credential\HmacSharedSecretGenerator;
-use Fight\AccessControl\Application\AccessControl\Agent\Delivery\AgentDeliveryCipher;
+use Fight\AccessControl\Application\AccessControl\AgentCredentialOperation\Delivery\AgentDeliveryCipher;
 use Fight\AccessControl\Domain\AccessControl\Agent\Agent;
 use Fight\AccessControl\Domain\AccessControl\Agent\AgentCredentialId;
 use Fight\AccessControl\Domain\AccessControl\Agent\AgentId;
@@ -19,25 +19,25 @@ use Fight\AccessControl\Domain\AccessControl\Agent\AgentState;
 use Fight\AccessControl\Domain\AccessControl\Agent\Event\AgentProvisioned;
 use Fight\AccessControl\Domain\AccessControl\Agent\Event\AgentProvisioningFailed;
 use Fight\AccessControl\Domain\AccessControl\Agent\Exception\AgentNameException;
-use Fight\AccessControl\Domain\AccessControl\Agent\Exception\AgentOperationCollisionException;
-use Fight\AccessControl\Domain\AccessControl\Agent\Exception\AgentOperationRejectedException;
-use Fight\AccessControl\Domain\AccessControl\Agent\Operation\AgentCredentialDestination;
-use Fight\AccessControl\Domain\AccessControl\Agent\Operation\AgentCredentialOperation;
-use Fight\AccessControl\Domain\AccessControl\Agent\Operation\AgentDestinationId;
-use Fight\AccessControl\Domain\AccessControl\Agent\Operation\AgentIssuance;
-use Fight\AccessControl\Domain\AccessControl\Agent\Operation\AgentOperationFailure;
-use Fight\AccessControl\Domain\AccessControl\Agent\Operation\AgentOperationId;
-use Fight\AccessControl\Domain\AccessControl\Agent\Operation\AgentOperationKey;
-use Fight\AccessControl\Domain\AccessControl\Agent\Operation\AgentOperationLimits;
-use Fight\AccessControl\Domain\AccessControl\Agent\Operation\AgentOperationScope;
-use Fight\AccessControl\Domain\AccessControl\Agent\Operation\AgentProvisioningRequest;
+use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\AgentCredentialDestination;
+use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\AgentCredentialOperation;
+use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\AgentDestinationId;
+use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\AgentIssuance;
+use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\AgentOperationFailure;
+use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\AgentOperationId;
+use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\AgentOperationKey;
+use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\AgentOperationLimits;
+use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\AgentOperationScope;
+use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\AgentProvisioningRequest;
+use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\Exception\AgentOperationCollisionException;
+use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\Exception\AgentOperationRejectedException;
 use Fight\AccessControl\Domain\AccessControl\Audit\AuditEvidence;
 use Fight\AccessControl\Domain\AccessControl\Permission\PermissionId;
 use Fight\AccessControl\Domain\AccessControl\User\UserId;
 use Fight\Common\Application\Repository\TransactionalUnitOfWork;
 use Fight\Common\Domain\Exception\DomainException;
-use Fight\Test\AccessControl\Application\AccessControl\Agent\Delivery\BoundAgentDeliveryCipher;
 use Fight\Test\AccessControl\Application\AccessControl\Agent\Repository\InMemoryAgentRepository;
+use Fight\Test\AccessControl\Application\AccessControl\AgentCredentialOperation\Delivery\BoundAgentDeliveryCipher;
 use Fight\Test\AccessControl\Application\AccessControl\Audit\Repository\InMemoryAuditEvidenceRepository;
 use Fight\Test\AccessControl\Application\AccessControl\Event\InMemoryEventDispatcher;
 use PHPUnit\Framework\Attributes\CoversClass;
@@ -90,11 +90,11 @@ final class AgentProvisioningServiceTest extends TestCase
         $result = $env->service()->provision($env->key, $request);
         self::assertTrue($result->isConfirmed());
         self::assertSame($expected, $env->agentRepository->all()[0]->getName()->toString());
-        $stored = $env->agentOperationRepository->operations[$env->key->toString()];
+        $stored = $env->operationRepository->operations[$env->key->toString()];
         self::assertSame(2, $stored->getCanonicalVersion());
         $retry = new AgentProvisioningRequest($expected, $request->getDestination());
         self::assertSame($result->getIssuance(), $env->service()->provision($env->key, $retry)->getIssuance());
-        self::assertSame($stored, $env->agentOperationRepository->operations[$env->key->toString()]);
+        self::assertSame($stored, $env->operationRepository->operations[$env->key->toString()]);
         self::assertSame(1, $env->generations);
         self::assertCount(1, $env->auditEvidenceRepository->all());
         self::assertCount(1, $env->eventDispatcher->events());
@@ -114,7 +114,7 @@ final class AgentProvisioningServiceTest extends TestCase
         self::assertNull($failure->getPrevious());
         self::assertSame(0, $env->generations);
         self::assertSame([], $env->agentRepository->all());
-        self::assertSame([], $env->agentOperationRepository->operations);
+        self::assertSame([], $env->operationRepository->operations);
         self::assertSame([], $env->auditEvidenceRepository->all());
     }
 
@@ -126,7 +126,7 @@ final class AgentProvisioningServiceTest extends TestCase
             self::assertFalse($environment->transaction->transactionActive);
             self::assertFalse($environment->operationAuthorization->locked);
             self::assertCount(1, $environment->agentRepository->all());
-            self::assertCount(1, $environment->agentOperationRepository->operations);
+            self::assertCount(1, $environment->operationRepository->operations);
             self::assertCount(1, $environment->auditEvidenceRepository->all());
         });
         $result = $environment->service()->provision($environment->key, $environment->request);
@@ -142,7 +142,7 @@ final class AgentProvisioningServiceTest extends TestCase
         self::assertSame(0, $issuance->getCredentialRevision());
         self::assertSame(1, $issuance->getDestinationWriteVersion());
         self::assertSame('auth-envelope:original-test-secret', $agent->getEncryptedHmacSharedSecretEnvelope());
-        $operation = $environment->agentOperationRepository->operations[$environment->key->toString()];
+        $operation = $environment->operationRepository->operations[$environment->key->toString()];
         self::assertSame('original-test-secret', new BoundAgentDeliveryCipher()->inspect(
             $operation->getMaterial(),
             $issuance
@@ -171,7 +171,7 @@ final class AgentProvisioningServiceTest extends TestCase
     {
         $environment = new ProvisioningEnvironment();
         $environment->service()->provision($environment->key, $environment->request);
-        $stored = $environment->agentOperationRepository->operations[$environment->key->toString()];
+        $stored = $environment->operationRepository->operations[$environment->key->toString()];
         $retried = $environment->service()->provision($environment->key, new AgentProvisioningRequest(
             'Production deployment',
             $environment->request->getDestination()
@@ -200,14 +200,14 @@ final class AgentProvisioningServiceTest extends TestCase
         self::assertFalse($result->isConfirmed());
         self::assertNull($result->getIssuance());
         self::assertNull($result->getWarning());
-        self::assertCount((int) $committed, $environment->agentOperationRepository->operations);
+        self::assertCount((int) $committed, $environment->operationRepository->operations);
         self::assertCount((int) $committed, $environment->agentRepository->all());
         self::assertCount((int) $committed, $environment->auditEvidenceRepository->all());
         self::assertInstanceOf(AgentProvisioningFailed::class, $environment->eventDispatcher->events()[0]);
-        $original = $environment->agentOperationRepository->operations[$environment->key->toString()] ?? null;
+        $original = $environment->operationRepository->operations[$environment->key->toString()] ?? null;
         $resolved = $environment->service()->provision($environment->key, $environment->request);
         self::assertTrue($resolved->isConfirmed());
-        self::assertCount(1, $environment->agentOperationRepository->operations);
+        self::assertCount(1, $environment->operationRepository->operations);
         self::assertCount(1, $environment->agentRepository->all());
         self::assertCount(1, $environment->auditEvidenceRepository->all());
         self::assertSame($committed ? 1 : 2, $environment->generations);
@@ -237,7 +237,7 @@ final class AgentProvisioningServiceTest extends TestCase
         self::assertSame(AgentPublicationWarning::PUBLICATION_FAILED, $result->getWarning());
         self::assertStringNotContainsString('Unsafe', serialize($result));
         self::assertStringNotContainsString('original-test-secret', serialize($environment->eventDispatcher->events()));
-        self::assertCount(1, $environment->agentOperationRepository->operations);
+        self::assertCount(1, $environment->operationRepository->operations);
         self::assertCount(1, $environment->auditEvidenceRepository->all());
         $retry = $environment->service()->provision($environment->key, $environment->request);
         self::assertSame($result->getIssuance(), $retry->getIssuance());
@@ -285,7 +285,7 @@ final class AgentProvisioningServiceTest extends TestCase
                 throw $failure;
             });
         } elseif ($stage === 'operation') {
-            $environment->agentOperationRepository->afterAdd = static function () use ($failure): void {
+            $environment->operationRepository->afterAdd = static function () use ($failure): void {
                 throw $failure;
             };
         } else {
@@ -310,8 +310,8 @@ final class AgentProvisioningServiceTest extends TestCase
         self::assertStringNotContainsString('original-test-secret', (string) $exception);
         self::assertStringNotContainsString('key/path', (string) $exception);
         self::assertSame([], $environment->agentRepository->all());
-        self::assertSame([], $environment->agentOperationRepository->operations);
-        self::assertSame([], $environment->agentOperationRepository->versions);
+        self::assertSame([], $environment->operationRepository->operations);
+        self::assertSame([], $environment->operationRepository->versions);
         self::assertSame([], ($auditEvidenceRepository ?? $environment->auditEvidenceRepository)->all());
         $this->assertSafeFailure($environment);
     }
@@ -330,7 +330,7 @@ final class AgentProvisioningServiceTest extends TestCase
             AgentOperationFailure::INVALID_REQUEST
         );
         self::assertSame(0, $environment->generations);
-        self::assertSame([], $environment->agentOperationRepository->versions);
+        self::assertSame([], $environment->operationRepository->versions);
         self::assertSame([], $environment->eventDispatcher->events());
     }
 
@@ -374,7 +374,7 @@ final class AgentProvisioningServiceTest extends TestCase
             fn(): AgentProvisioningResult => $environment->service()->provision($key, $environment->request),
             $case === 'audit identity' ? AgentOperationFailure::UNAVAILABLE : AgentOperationFailure::UNAUTHORIZED
         );
-        self::assertSame((int) $retry, $environment->agentOperationRepository->reads);
+        self::assertSame((int) $retry, $environment->operationRepository->reads);
         self::assertSame((int) $retry, $environment->generations);
         self::assertCount((int) $retry, $environment->agentRepository->all());
         self::assertCount((int) $retry, $environment->auditEvidenceRepository->all());
@@ -427,10 +427,10 @@ final class AgentProvisioningServiceTest extends TestCase
         );
         self::assertSame([], $participantWrites);
         self::assertSame([], $environment->agentRepository->all());
-        self::assertSame([], $environment->agentOperationRepository->operations);
-        self::assertSame([], $environment->agentOperationRepository->versions);
+        self::assertSame([], $environment->operationRepository->operations);
+        self::assertSame([], $environment->operationRepository->versions);
         self::assertFalse($environment->operationAuthorization->locked);
-        self::assertSame(0, $environment->agentOperationRepository->reads);
+        self::assertSame(0, $environment->operationRepository->reads);
     }
 
     public function test_cross_scope_ids_and_reassignment_preserve_delivery_identity_and_slot_order(): void
@@ -449,7 +449,7 @@ final class AgentProvisioningServiceTest extends TestCase
         self::assertFalse($first->getAgentId()->equals($second->getAgentId()));
         self::assertSame(2, $second->getDestinationWriteVersion());
         self::assertSame(2, $second->getDestination()->getRevision());
-        self::assertCount(2, $environment->agentOperationRepository->operations);
+        self::assertCount(2, $environment->operationRepository->operations);
     }
 
     /** @return iterable<string, array{string}> */
@@ -467,7 +467,7 @@ final class AgentProvisioningServiceTest extends TestCase
         $environment->service()->provision($environment->key, $environment->request);
         $request = $environment->request;
         $destination = $request->getDestination();
-        $stored = $environment->agentOperationRepository->operations[$environment->key->toString()];
+        $stored = $environment->operationRepository->operations[$environment->key->toString()];
         if ($case === 'name') {
             $request = new AgentProvisioningRequest('Other name', $destination);
         } elseif ($case === 'destination' || $case === 'revision') {
@@ -483,7 +483,7 @@ final class AgentProvisioningServiceTest extends TestCase
                 $canonical = str_replace('provision', 'rotate', $canonical);
             }
 
-            $environment->agentOperationRepository->operations[
+            $environment->operationRepository->operations[
                 $environment->key->toString()
             ] = new AgentCredentialOperation(
                 $case === 'version' ? 99 : $stored->getCanonicalVersion(),
@@ -521,13 +521,13 @@ final class AgentProvisioningServiceTest extends TestCase
         );
         self::assertCount(1, $environment->agentRepository->all());
         self::assertCount(1, $environment->auditEvidenceRepository->all());
-        self::assertSame([1], array_values($environment->agentOperationRepository->versions));
+        self::assertSame([1], array_values($environment->operationRepository->versions));
         $key = $environment->key->toString();
-        $environment->agentOperationRepository->operations[
+        $environment->operationRepository->operations[
             $key
-        ] = $environment->agentOperationRepository->operations[$key]->retireMaterial();
+        ] = $environment->operationRepository->operations[$key]->retireMaterial();
         self::assertSame($first->getIssuance(), $service->provision($environment->key, $longRequest)->getIssuance());
-        self::assertNull($environment->agentOperationRepository->operations[$key]->getMaterial());
+        self::assertNull($environment->operationRepository->operations[$key]->getMaterial());
         self::assertCount(1, array_filter(
             $environment->eventDispatcher->events(),
             static fn(object $event): bool => $event instanceof AgentProvisioned
@@ -553,8 +553,8 @@ final class AgentProvisioningServiceTest extends TestCase
             $environment->request->getDestination()
         );
         $winner->service()->provision($environment->key, $winnerRequest);
-        $winningOperation = $winner->agentOperationRepository->operations[$environment->key->toString()];
-        $environment->agentOperationRepository->beforeAdd = function () use (
+        $winningOperation = $winner->operationRepository->operations[$environment->key->toString()];
+        $environment->operationRepository->beforeAdd = function () use (
             $environment,
             $winner,
             $winningOperation
@@ -562,9 +562,9 @@ final class AgentProvisioningServiceTest extends TestCase
             $environment->transaction->onCompletion(function () use ($environment, $winner, $winningOperation): void {
                 // The independent winner becomes visible only after the loser's transaction has rolled back.
                 self::assertSame([], $environment->agentRepository->all());
-                self::assertSame([], $environment->agentOperationRepository->versions);
-                $environment->agentOperationRepository->operations[$environment->key->toString()] = $winningOperation;
-                $environment->agentOperationRepository->versions = $winner->agentOperationRepository->versions;
+                self::assertSame([], $environment->operationRepository->versions);
+                $environment->operationRepository->operations[$environment->key->toString()] = $winningOperation;
+                $environment->operationRepository->versions = $winner->operationRepository->versions;
                 $environment->agentRepository->add($winner->agentRepository->all()[0]);
                 $environment->auditEvidenceRepository->add($winner->auditEvidenceRepository->all()[0]);
             });
@@ -588,14 +588,14 @@ final class AgentProvisioningServiceTest extends TestCase
         self::assertSame(2, $environment->operationAuthorization->calls);
         self::assertCount(1, $environment->agentRepository->all());
         self::assertCount(1, $environment->auditEvidenceRepository->all());
-        self::assertCount(1, $environment->agentOperationRepository->operations);
-        self::assertSame([1], array_values($environment->agentOperationRepository->versions));
+        self::assertCount(1, $environment->operationRepository->operations);
+        self::assertSame([1], array_values($environment->operationRepository->versions));
     }
 
     public function test_missing_collision_winner_is_bounded_retryable_contention_not_automatic_reissuance(): void
     {
         $environment = new ProvisioningEnvironment();
-        $environment->agentOperationRepository->beforeAdd = static function (): void {
+        $environment->operationRepository->beforeAdd = static function (): void {
             throw new AgentOperationCollisionException();
         };
         $exception = $this->assertRejected(
@@ -609,8 +609,8 @@ final class AgentProvisioningServiceTest extends TestCase
         self::assertSame(2, $environment->transaction->transactions);
         self::assertSame(1, $environment->generations);
         self::assertSame([], $environment->agentRepository->all());
-        self::assertSame([], $environment->agentOperationRepository->operations);
-        self::assertSame([], $environment->agentOperationRepository->versions);
+        self::assertSame([], $environment->operationRepository->operations);
+        self::assertSame([], $environment->operationRepository->versions);
     }
 
     public function test_closed_transaction_capability_fails_before_lookup_or_generation(): void
@@ -626,7 +626,7 @@ final class AgentProvisioningServiceTest extends TestCase
             ),
             AgentOperationFailure::UNAVAILABLE
         );
-        self::assertSame(0, $environment->agentOperationRepository->reads);
+        self::assertSame(0, $environment->operationRepository->reads);
         self::assertSame(0, $environment->generations);
     }
 

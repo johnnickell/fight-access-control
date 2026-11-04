@@ -4,19 +4,22 @@ declare(strict_types=1);
 
 namespace Fight\Test\AccessControl\Application\AccessControl\Agent\Credential\Conformance;
 
+use Fight\Test\AccessControl\Application\AccessControl\AgentCredentialOperation\Delivery\{
+    InMemoryAgentDeliveryAuthorization
+};
 use Fight\AccessControl\Application\AccessControl\Agent\Authentication\CurrentAgentPrincipalProvider;
 use Fight\AccessControl\Application\AccessControl\Agent\Authentication\SignedAgentRequest;
 use Fight\AccessControl\Application\AccessControl\Agent\Credential\HmacSharedSecretGenerator;
-use Fight\AccessControl\Application\AccessControl\Agent\Delivery\AgentCredentialInvocation;
-use Fight\AccessControl\Application\AccessControl\Agent\Delivery\AgentDeliveryDecipher;
-use Fight\AccessControl\Application\AccessControl\Agent\Maintenance\AgentDeliveryMaintenanceService;
+use Fight\AccessControl\Application\AccessControl\AgentCredentialOperation\Delivery\AgentCredentialInvocation;
+use Fight\AccessControl\Application\AccessControl\AgentCredentialOperation\Delivery\AgentDeliveryDecipher;
+use Fight\AccessControl\Application\AccessControl\AgentCredentialOperation\Maintenance\AgentDeliveryMaintenanceService;
 use Fight\AccessControl\Domain\AccessControl\Agent\AuthenticatedAgentPrincipal;
-use Fight\AccessControl\Domain\AccessControl\Agent\Operation\AgentCredentialDestination;
-use Fight\AccessControl\Domain\AccessControl\Agent\Operation\AgentCredentialOperation;
-use Fight\AccessControl\Domain\AccessControl\Agent\Operation\AgentDeliveryMaterial;
-use Fight\AccessControl\Domain\AccessControl\Agent\Operation\AgentIssuance;
-use Fight\AccessControl\Domain\AccessControl\Agent\Operation\AgentOperationKey;
-use Fight\AccessControl\Domain\AccessControl\Agent\Operation\AgentOperationScope;
+use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\AgentCredentialDestination;
+use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\AgentCredentialOperation;
+use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\AgentDeliveryMaterial;
+use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\AgentIssuance;
+use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\AgentOperationKey;
+use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\AgentOperationScope;
 use Fight\AccessControl\Domain\AccessControl\Audit\AuditEvidence;
 use Fight\AccessControl\Domain\AccessControl\Audit\AuditEvidenceRepository;
 use Fight\Common\Domain\Messaging\Event\Event;
@@ -25,13 +28,12 @@ use Fight\Test\AccessControl\Application\AccessControl\Agent\Authentication\Fixe
 use Fight\Test\AccessControl\Application\AccessControl\Agent\Authentication\InMemoryAgentRequestNonceConsumer;
 use Fight\Test\AccessControl\Application\AccessControl\Agent\Credential\FixedHmacSharedSecretCipher;
 use Fight\Test\AccessControl\Application\AccessControl\Agent\Credential\ProvisioningEnvironment;
-use Fight\Test\AccessControl\Application\AccessControl\Agent\Delivery\BoundAgentDeliveryCipher;
-use Fight\Test\AccessControl\Application\AccessControl\Agent\Delivery\DeliveryClock;
-use Fight\Test\AccessControl\Application\AccessControl\Agent\Delivery\DeliveryEnvironment;
-use Fight\Test\AccessControl\Application\AccessControl\Agent\Delivery\DeliveryUnitOfWork;
-use Fight\Test\AccessControl\Application\AccessControl\Agent\Delivery\InMemoryAgentCredentialSink;
-use Fight\Test\AccessControl\Application\AccessControl\Agent\Delivery\InMemoryAgentDeliveryAuthorization;
-use Fight\Test\AccessControl\Application\AccessControl\Agent\Maintenance\MaintenanceEnvironment;
+use Fight\Test\AccessControl\Application\AccessControl\AgentCredentialOperation\Delivery\BoundAgentDeliveryCipher;
+use Fight\Test\AccessControl\Application\AccessControl\AgentCredentialOperation\Delivery\DeliveryClock;
+use Fight\Test\AccessControl\Application\AccessControl\AgentCredentialOperation\Delivery\DeliveryEnvironment;
+use Fight\Test\AccessControl\Application\AccessControl\AgentCredentialOperation\Delivery\DeliveryUnitOfWork;
+use Fight\Test\AccessControl\Application\AccessControl\AgentCredentialOperation\Delivery\InMemoryAgentCredentialSink;
+use Fight\Test\AccessControl\Application\AccessControl\AgentCredentialOperation\Maintenance\MaintenanceEnvironment;
 use Fight\Test\AccessControl\Application\AccessControl\Event\InMemoryEventDispatcher;
 use Fight\Test\AccessControl\Application\AccessControl\Permission\Repository\InMemoryPermissionRepository;
 use LogicException;
@@ -95,7 +97,8 @@ final class InMemoryIssuanceRecoveryFixture extends IssuanceRecoveryFixture impl
 
         return new IssuanceRecoveryPorts(
             $env->agentRepository,
-            $env->agentOperationRepository,
+            $env->operationRepository,
+            $env->operationRepository,
             $auditEvidenceRepository,
             $env->operationAuthorization,
             $this,
@@ -135,7 +138,7 @@ final class InMemoryIssuanceRecoveryFixture extends IssuanceRecoveryFixture impl
         $this->deliveryAuthorization->expiresAt = $this->clock->now()->modify('+30 days');
 
         $this->environment->operationAuthorization->afterAuthorization = null;
-        $this->environment->agentOperationRepository->afterAdd = null;
+        $this->environment->operationRepository->afterAdd = null;
 
         $this->attempted = [];
         $this->sink->afterStage = null;
@@ -179,7 +182,7 @@ final class InMemoryIssuanceRecoveryFixture extends IssuanceRecoveryFixture impl
         if ($stage === 'authorization') {
             $this->environment->operationAuthorization->afterAuthorization = $fail;
         } elseif ($stage === 'persistence') {
-            $this->environment->agentOperationRepository->afterAdd = $fail;
+            $this->environment->operationRepository->afterAdd = $fail;
         }
     }
 
@@ -216,7 +219,7 @@ final class InMemoryIssuanceRecoveryFixture extends IssuanceRecoveryFixture impl
     public function setCanonicalVersion(AgentOperationKey $key, int $version): void
     {
         $operation = $this->stored($key) ?? throw new LogicException('Missing operation fixture.');
-        $this->environment->agentOperationRepository->operations[$key->toString()] = new AgentCredentialOperation(
+        $this->environment->operationRepository->operations[$key->toString()] = new AgentCredentialOperation(
             $version,
             $operation->getCanonicalRequest(),
             $operation->getIssuance(),
@@ -226,7 +229,7 @@ final class InMemoryIssuanceRecoveryFixture extends IssuanceRecoveryFixture impl
 
     public function stored(AgentOperationKey $key): ?AgentCredentialOperation
     {
-        return $this->environment->agentOperationRepository->operations[$key->toString()] ?? null;
+        return $this->environment->operationRepository->operations[$key->toString()] ?? null;
     }
 
     public function state(): array
@@ -238,10 +241,10 @@ final class InMemoryIssuanceRecoveryFixture extends IssuanceRecoveryFixture impl
 
         return [
             'agents'         => count($this->environment->agentRepository->all()),
-            'operations'     => count($this->environment->agentOperationRepository->operations),
+            'operations'     => count($this->environment->operationRepository->operations),
             'audit'          => count($this->environment->auditEvidenceRepository->all()),
             'participant'    => $this->participant,
-            'reservations'   => $this->environment->agentOperationRepository->versions,
+            'reservations'   => $this->environment->operationRepository->versions,
             'credentials'    => $credentials,
             'audit_facts'    => array_map(
                 static fn (AuditEvidence $fact): string => hash('sha256', serialize($fact)),
@@ -252,9 +255,9 @@ final class InMemoryIssuanceRecoveryFixture extends IssuanceRecoveryFixture impl
                     $operation->getCanonicalVersion(),
                     $operation->getCanonicalRequest(),
                     $operation->getIssuance()->toArray(),
-                    $operation->getStatus()->getCredentialDisposition()
+                    $operation->getCredentialDisposition()
                 ])),
-                $this->environment->agentOperationRepository->operations
+                $this->environment->operationRepository->operations
             )
         ];
     }
@@ -334,7 +337,7 @@ final class InMemoryIssuanceRecoveryFixture extends IssuanceRecoveryFixture impl
             $values[] = 'conformance-secret-'.$number;
         }
 
-        foreach ($this->environment->agentOperationRepository->operations as $operation) {
+        foreach ($this->environment->operationRepository->operations as $operation) {
             if ($operation->getMaterial() !== null) {
                 $values[] = $operation->getMaterial()->getCiphertext()->reveal();
             }
@@ -350,7 +353,7 @@ final class InMemoryIssuanceRecoveryFixture extends IssuanceRecoveryFixture impl
 
     public function maintenance(): AgentDeliveryMaintenanceService
     {
-        $operation = array_first($this->environment->agentOperationRepository->operations);
+        $operation = array_first($this->environment->operationRepository->operations);
         $issuance = $operation?->getIssuance() ?? throw new LogicException('Missing maintenance fixture.');
         $delivery = new DeliveryEnvironment($this->environment, $issuance);
         $delivery->clock->time = $this->clock->now();
@@ -358,7 +361,7 @@ final class InMemoryIssuanceRecoveryFixture extends IssuanceRecoveryFixture impl
         $maintenance = new MaintenanceEnvironment($delivery);
 
         return new AgentDeliveryMaintenanceService(
-            $this->environment->agentOperationRepository,
+            $this->environment->operationRepository,
             $maintenance,
             $maintenance,
             $this->sink,

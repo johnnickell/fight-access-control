@@ -10,8 +10,8 @@ use Fight\AccessControl\Application\AccessControl\Agent\Credential\AgentCredenti
 use Fight\AccessControl\Application\AccessControl\Agent\Credential\AgentPublicationWarning;
 use Fight\AccessControl\Application\AccessControl\Agent\Credential\HmacSharedSecretCipher;
 use Fight\AccessControl\Application\AccessControl\Agent\Credential\HmacSharedSecretGenerator;
-use Fight\AccessControl\Application\AccessControl\Agent\Delivery\AgentDeliveryCipher;
-use Fight\AccessControl\Application\AccessControl\Agent\Delivery\AgentDeliveryResult;
+use Fight\AccessControl\Application\AccessControl\AgentCredentialOperation\Delivery\AgentDeliveryCipher;
+use Fight\AccessControl\Application\AccessControl\AgentCredentialOperation\Delivery\AgentDeliveryResult;
 use Fight\AccessControl\Domain\AccessControl\Agent\Agent;
 use Fight\AccessControl\Domain\AccessControl\Agent\AgentCredentialId;
 use Fight\AccessControl\Domain\AccessControl\Agent\AgentId;
@@ -19,22 +19,22 @@ use Fight\AccessControl\Domain\AccessControl\Agent\AgentRepository;
 use Fight\AccessControl\Domain\AccessControl\Agent\Event\AgentCredentialLifecycleFailed;
 use Fight\AccessControl\Domain\AccessControl\Agent\Event\AgentCredentialRotated;
 use Fight\AccessControl\Domain\AccessControl\Agent\Exception\AgentCredentialException;
-use Fight\AccessControl\Domain\AccessControl\Agent\Exception\AgentOperationCollisionException;
-use Fight\AccessControl\Domain\AccessControl\Agent\Exception\AgentOperationRejectedException;
-use Fight\AccessControl\Domain\AccessControl\Agent\Operation\AgentCredentialDestination;
-use Fight\AccessControl\Domain\AccessControl\Agent\Operation\AgentCredentialDisposition;
-use Fight\AccessControl\Domain\AccessControl\Agent\Operation\AgentCredentialOperation;
-use Fight\AccessControl\Domain\AccessControl\Agent\Operation\AgentDeliveryDisposition;
-use Fight\AccessControl\Domain\AccessControl\Agent\Operation\AgentDestinationId;
-use Fight\AccessControl\Domain\AccessControl\Agent\Operation\AgentOperationFailure;
-use Fight\AccessControl\Domain\AccessControl\Agent\Operation\AgentOperationId;
-use Fight\AccessControl\Domain\AccessControl\Agent\Operation\AgentOperationKey;
-use Fight\AccessControl\Domain\AccessControl\Agent\Operation\AgentOperationLimits;
-use Fight\AccessControl\Domain\AccessControl\Agent\Operation\AgentOperationScope;
-use Fight\AccessControl\Domain\AccessControl\Agent\Operation\AgentRotationRequest;
+use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\AgentCredentialDestination;
+use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\AgentCredentialDisposition;
+use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\AgentCredentialOperation;
+use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\AgentDeliveryDisposition;
+use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\AgentDestinationId;
+use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\AgentOperationFailure;
+use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\AgentOperationId;
+use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\AgentOperationKey;
+use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\AgentOperationLimits;
+use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\AgentOperationScope;
+use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\AgentRotationRequest;
+use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\Exception\AgentOperationCollisionException;
+use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\Exception\AgentOperationRejectedException;
 use Fight\AccessControl\Domain\AccessControl\Audit\AuditEvidence;
 use Fight\Common\Application\Repository\TransactionalUnitOfWork;
-use Fight\Test\AccessControl\Application\AccessControl\Agent\Delivery\DeliveryEnvironment;
+use Fight\Test\AccessControl\Application\AccessControl\AgentCredentialOperation\Delivery\DeliveryEnvironment;
 use Fight\Test\AccessControl\Application\AccessControl\Audit\Repository\InMemoryAuditEvidenceRepository;
 use Fight\Test\AccessControl\Application\AccessControl\Event\InMemoryEventDispatcher;
 use PHPUnit\Framework\Attributes\CoversClass;
@@ -61,10 +61,10 @@ final class AgentCredentialRotationServiceTest extends TestCase
         $predecessor = $env->agentRepository->all()[0];
         $env->eventDispatcher = new InMemoryEventDispatcher(static function () use ($env, $predecessor): void {
             self::assertFalse($env->transaction->transactionActive);
-            self::assertCount(2, $env->agentOperationRepository->operations);
+            self::assertCount(2, $env->operationRepository->operations);
             self::assertCount(2, $env->auditEvidenceRepository->all());
             self::assertNull($env->agentRepository->getByCredentialId($predecessor->getCredentialId()));
-            self::assertNull($env->agentOperationRepository->operations[$env->key->toString()]->getMaterial());
+            self::assertNull($env->operationRepository->operations[$env->key->toString()]->getMaterial());
         });
         $result = $rotation->service()->rotate($rotation->key, $rotation->request);
         self::assertTrue($result->isConfirmed());
@@ -87,12 +87,12 @@ final class AgentCredentialRotationServiceTest extends TestCase
             $successor->getPermissionAssignmentRevision()
         );
         self::assertSame('agent.credential_rotated', $env->auditEvidenceRepository->all()[1]->action());
-        $original = $env->agentOperationRepository->operations[$env->key->toString()];
-        self::assertSame(AgentCredentialDisposition::SUPERSEDED, $original->getStatus()->getCredentialDisposition());
-        self::assertSame(AgentDeliveryDisposition::RETIRED, $original->getStatus()->getDeliveryDisposition());
+        $original = $env->operationRepository->operations[$env->key->toString()];
+        self::assertSame(AgentCredentialDisposition::SUPERSEDED, $original->getCredentialDisposition());
+        self::assertSame(AgentDeliveryDisposition::RETIRED, $original->getDeliveryDisposition());
         self::assertSame(1, $original->getStateRevision());
-        $stored = $env->agentOperationRepository->operations[$rotation->key->toString()];
-        self::assertSame(AgentDeliveryDisposition::PENDING, $stored->getStatus()->getDeliveryDisposition());
+        $stored = $env->operationRepository->operations[$rotation->key->toString()];
+        self::assertSame(AgentDeliveryDisposition::PENDING, $stored->getDeliveryDisposition());
         self::assertNotNull($stored->getMaterial());
         self::assertCount(1, $env->eventDispatcher->events());
         self::assertInstanceOf(AgentCredentialRotated::class, $env->eventDispatcher->events()[0]);
@@ -131,15 +131,15 @@ final class AgentCredentialRotationServiceTest extends TestCase
         self::assertFalse($result->isConfirmed());
         self::assertNull($result->getIssuance());
         self::assertNull($result->getWarning());
-        self::assertCount($persist ? 2 : 1, $env->agentOperationRepository->operations);
+        self::assertCount($persist ? 2 : 1, $env->operationRepository->operations);
         self::assertCount($persist ? 2 : 1, $env->auditEvidenceRepository->all());
         self::assertSame((int) $persist, $env->agentRepository->all()[0]->getCredentialRevision());
-        $original = $env->agentOperationRepository->operations[$env->key->toString()];
+        $original = $env->operationRepository->operations[$env->key->toString()];
         self::assertSame($persist, $original->getMaterial() === null);
-        $committed = $env->agentOperationRepository->operations[$rotation->key->toString()] ?? null;
+        $committed = $env->operationRepository->operations[$rotation->key->toString()] ?? null;
         $resolved = $rotation->service()->rotate($rotation->key, $rotation->request);
         self::assertTrue($resolved->isConfirmed());
-        self::assertCount(2, $env->agentOperationRepository->operations);
+        self::assertCount(2, $env->operationRepository->operations);
         self::assertCount(2, $env->auditEvidenceRepository->all());
         self::assertSame($persist ? 2 : 3, $env->generations);
         if ($committed !== null) {
@@ -162,9 +162,9 @@ final class AgentCredentialRotationServiceTest extends TestCase
         $result = $rotation->service()->rotate($rotation->key, $rotation->request);
         self::assertTrue($result->isConfirmed());
         self::assertSame(AgentPublicationWarning::PUBLICATION_FAILED, $result->getWarning());
-        self::assertCount(2, $env->agentOperationRepository->operations);
+        self::assertCount(2, $env->operationRepository->operations);
         self::assertCount(2, $env->auditEvidenceRepository->all());
-        self::assertNull($env->agentOperationRepository->operations[$env->key->toString()]->getMaterial());
+        self::assertNull($env->operationRepository->operations[$env->key->toString()]->getMaterial());
         $retry = $rotation->service()->rotate($rotation->key, $rotation->request);
         self::assertSame($result->getIssuance(), $retry->getIssuance());
         self::assertNull($retry->getWarning());
@@ -187,7 +187,7 @@ final class AgentCredentialRotationServiceTest extends TestCase
         $rotation = new RotationEnvironment();
         $env = $rotation->provisioning;
         $before = $env->agentRepository->all()[0];
-        $original = $env->agentOperationRepository->operations[$env->key->toString()];
+        $original = $env->operationRepository->operations[$env->key->toString()];
         $fault = new RuntimeException('Unsafe successor-test-secret key/path');
         $generator = null;
         $cipher = null;
@@ -216,7 +216,7 @@ final class AgentCredentialRotationServiceTest extends TestCase
             $delivery = $this->createMock(AgentDeliveryCipher::class);
             $delivery->expects(self::once())->method('encrypt')->willThrowException($fault);
         } elseif ($case === 'retirement') {
-            $env->agentOperationRepository->afterRetirement = static function () use ($fault): void {
+            $env->operationRepository->afterRetirement = static function () use ($fault): void {
                 throw $fault;
             };
         } elseif ($case === 'replacement') {
@@ -224,7 +224,7 @@ final class AgentCredentialRotationServiceTest extends TestCase
                 throw $fault;
             };
         } elseif ($case === 'operation') {
-            $env->agentOperationRepository->afterAdd = static function () use ($fault): void {
+            $env->operationRepository->afterAdd = static function () use ($fault): void {
                 throw $fault;
             };
         } else {
@@ -250,8 +250,8 @@ final class AgentCredentialRotationServiceTest extends TestCase
 
         self::assertSame([], $participant);
         self::assertSame([$before], $env->agentRepository->all());
-        self::assertSame([$env->key->toString() => $original], $env->agentOperationRepository->operations);
-        self::assertSame([1], array_values($env->agentOperationRepository->versions));
+        self::assertSame([$env->key->toString() => $original], $env->operationRepository->operations);
+        self::assertSame([1], array_values($env->operationRepository->versions));
         self::assertCount(1, $env->auditEvidenceRepository->all());
         if ($auditEvidenceRepository !== null) {
             self::assertSame([], $auditEvidenceRepository->all());
@@ -281,7 +281,7 @@ final class AgentCredentialRotationServiceTest extends TestCase
             $rotation->service()->rotate($rotation->key, $rotation->request);
         }
 
-        $reads = $env->agentOperationRepository->reads;
+        $reads = $env->operationRepository->reads;
         $generations = $env->generations;
         $key = $rotation->key;
         $scope = $key->getScope();
@@ -310,7 +310,7 @@ final class AgentCredentialRotationServiceTest extends TestCase
             fn(): AgentCredentialRotationResult => $rotation->service()->rotate($key, $rotation->request),
             $case === 'audit' ? AgentOperationFailure::UNAVAILABLE : AgentOperationFailure::UNAUTHORIZED
         );
-        self::assertSame($reads, $env->agentOperationRepository->reads);
+        self::assertSame($reads, $env->operationRepository->reads);
         self::assertSame($generations, $env->generations);
         self::assertCount($retry ? 2 : 1, $env->auditEvidenceRepository->all());
     }
@@ -346,8 +346,8 @@ final class AgentCredentialRotationServiceTest extends TestCase
             $destination
         );
         if ($case === 'version') {
-            $stored = $env->agentOperationRepository->operations[$rotation->key->toString()];
-            $env->agentOperationRepository->operations[$rotation->key->toString()] = new AgentCredentialOperation(
+            $stored = $env->operationRepository->operations[$rotation->key->toString()];
+            $env->operationRepository->operations[$rotation->key->toString()] = new AgentCredentialOperation(
                 99,
                 $stored->getCanonicalRequest(),
                 $stored->getIssuance(),
@@ -379,19 +379,19 @@ final class AgentCredentialRotationServiceTest extends TestCase
         );
         self::assertTrue($failure->isRetryable());
         self::assertSame(0, $env->agentRepository->all()[0]->getCredentialRevision());
-        self::assertNotNull($env->agentOperationRepository->operations[$env->key->toString()]->getMaterial());
-        self::assertSame([2], array_values($env->agentOperationRepository->versions));
+        self::assertNotNull($env->operationRepository->operations[$env->key->toString()]->getMaterial());
+        self::assertSame([2], array_values($env->operationRepository->versions));
         self::assertCount(2, $env->auditEvidenceRepository->all());
         $result = $rotation->service(limits: new AgentOperationLimits(128, 2, 2))
             ->rotate($rotation->key, $rotation->request);
         $key = $rotation->key->toString();
-        $env->agentOperationRepository->operations[
+        $env->operationRepository->operations[
             $key
-        ] = $env->agentOperationRepository->operations[$key]->retireMaterial();
+        ] = $env->operationRepository->operations[$key]->retireMaterial();
         $count = $env->generations;
         self::assertSame($result->getIssuance(), $service->rotate($rotation->key, $rotation->request)->getIssuance());
         self::assertSame($count, $env->generations);
-        self::assertNull($env->agentOperationRepository->operations[$key]->getMaterial());
+        self::assertNull($env->operationRepository->operations[$key]->getMaterial());
         self::assertSame(3, $result->getIssuance()->getDestinationWriteVersion());
     }
 
@@ -450,14 +450,14 @@ final class AgentCredentialRotationServiceTest extends TestCase
 
         self::assertSame(AgentDeliveryResult::REJECTED, $delivery->deliver());
         $old = $delivery->operation();
-        self::assertSame(AgentCredentialDisposition::SUPERSEDED, $old->getStatus()->getCredentialDisposition());
+        self::assertSame(AgentCredentialDisposition::SUPERSEDED, $old->getCredentialDisposition());
         self::assertNull($old->getMaterial());
         if ($stage === 'delivered') {
             self::assertNotNull($old->getReceipt());
-            self::assertSame(AgentDeliveryDisposition::DELIVERED, $old->getStatus()->getDeliveryDisposition());
+            self::assertSame(AgentDeliveryDisposition::DELIVERED, $old->getDeliveryDisposition());
         } else {
             self::assertNull($old->getReceipt());
-            self::assertSame(AgentDeliveryDisposition::RETIRED, $old->getStatus()->getDeliveryDisposition());
+            self::assertSame(AgentDeliveryDisposition::RETIRED, $old->getDeliveryDisposition());
         }
 
         $calls = in_array($stage, ['admitted', 'in flight', 'delivered'], true) ? 1 : 0;
@@ -495,8 +495,8 @@ final class AgentCredentialRotationServiceTest extends TestCase
         self::assertNull($delivery->sink->stagedBytes($delivery->issuance));
         self::assertNull($delivery->operation()->getReceipt());
         self::assertNull($delivery->operation()->getMaterial());
-        $successor = $rotation->provisioning->agentOperationRepository->operations[$rotation->key->toString()];
-        self::assertSame(AgentDeliveryDisposition::DELIVERED, $successor->getStatus()->getDeliveryDisposition());
+        $successor = $rotation->provisioning->operationRepository->operations[$rotation->key->toString()];
+        self::assertSame(AgentDeliveryDisposition::DELIVERED, $successor->getDeliveryDisposition());
         self::assertNotNull($successor->getReceipt());
         self::assertNull($successor->getMaterial());
         self::assertSame(2, $rotation->provisioning->generations);
@@ -539,8 +539,8 @@ final class AgentCredentialRotationServiceTest extends TestCase
         $rotation = new RotationEnvironment();
         $env = $rotation->provisioning;
         $before = $env->agentRepository->all()[0];
-        $original = $env->agentOperationRepository->operations[$env->key->toString()];
-        $env->agentOperationRepository->beforeAdd = static function (): void {
+        $original = $env->operationRepository->operations[$env->key->toString()];
+        $env->operationRepository->beforeAdd = static function (): void {
             throw new AgentOperationCollisionException();
         };
         $this->reject(
@@ -550,8 +550,8 @@ final class AgentCredentialRotationServiceTest extends TestCase
         self::assertSame(3, $env->transaction->transactions);
         self::assertSame(2, $env->generations);
         self::assertSame([$before], $env->agentRepository->all());
-        self::assertSame([$env->key->toString() => $original], $env->agentOperationRepository->operations);
-        self::assertSame([1], array_values($env->agentOperationRepository->versions));
+        self::assertSame([$env->key->toString() => $original], $env->operationRepository->operations);
+        self::assertSame([1], array_values($env->operationRepository->versions));
     }
 
     /** @return iterable<string, array{string}> */
@@ -570,8 +570,8 @@ final class AgentCredentialRotationServiceTest extends TestCase
         $original = $env->agentRepository->all()[0];
         $winner = new ProvisioningEnvironment();
         $winner->agentRepository->add($original);
-        $winner->agentOperationRepository->operations = $env->agentOperationRepository->operations;
-        $winner->agentOperationRepository->versions = $env->agentOperationRepository->versions;
+        $winner->operationRepository->operations = $env->operationRepository->operations;
+        $winner->operationRepository->versions = $env->operationRepository->versions;
         $winner->operationAuthorization->scopes = $env->operationAuthorization->scopes;
         $winner->operationAuthorization->destinations = $env->operationAuthorization->destinations;
 
@@ -589,18 +589,18 @@ final class AgentCredentialRotationServiceTest extends TestCase
             $env->transaction->onCompletion(static function () use ($env, $original, $winningAgent, $winner): void {
                 // Observe complete rollback before making an independent committed winner visible.
                 self::assertSame([$original], $env->agentRepository->all());
-                self::assertCount(1, $env->agentOperationRepository->operations);
-                self::assertNotNull($env->agentOperationRepository->operations[$env->key->toString()]->getMaterial());
-                self::assertSame([1], array_values($env->agentOperationRepository->versions));
+                self::assertCount(1, $env->operationRepository->operations);
+                self::assertNotNull($env->operationRepository->operations[$env->key->toString()]->getMaterial());
+                self::assertSame([1], array_values($env->operationRepository->versions));
                 self::assertTrue($env->agentRepository->replace($original, $winningAgent));
-                $env->agentOperationRepository->operations = $winner->agentOperationRepository->operations;
-                $env->agentOperationRepository->versions = $winner->agentOperationRepository->versions;
+                $env->operationRepository->operations = $winner->operationRepository->operations;
+                $env->operationRepository->versions = $winner->operationRepository->versions;
                 $env->auditEvidenceRepository->add($winner->auditEvidenceRepository->all()[0]);
             });
         };
         $agentRepository = null;
         if (str_starts_with($case, 'unique')) {
-            $env->agentOperationRepository->beforeAdd = static function () use ($publishWinner): void {
+            $env->operationRepository->beforeAdd = static function () use ($publishWinner): void {
                 $publishWinner();
                 throw new AgentOperationCollisionException();
             };
@@ -646,7 +646,7 @@ final class AgentCredentialRotationServiceTest extends TestCase
         }
 
         self::assertSame([$winningAgent], $env->agentRepository->all());
-        self::assertCount(2, $env->agentOperationRepository->operations);
+        self::assertCount(2, $env->operationRepository->operations);
         self::assertCount(2, $env->auditEvidenceRepository->all());
         self::assertSame(3, $env->transaction->transactions);
         self::assertCount(0, array_filter(
@@ -708,7 +708,7 @@ final class AgentCredentialRotationServiceTest extends TestCase
         self::assertSame(2, $result->getIssuance()->getDestination()->getRevision());
         self::assertFalse($rotation->original->getDeliveryId()->equals($result->getIssuance()->getDeliveryId()));
         self::assertSame($scope, $result->getIssuance()->getKey()->getScope());
-        self::assertNull($env->agentOperationRepository->operations[$env->key->toString()]->getMaterial());
+        self::assertNull($env->operationRepository->operations[$env->key->toString()]->getMaterial());
     }
 
     private function newKey(RotationEnvironment $rotation): AgentOperationKey

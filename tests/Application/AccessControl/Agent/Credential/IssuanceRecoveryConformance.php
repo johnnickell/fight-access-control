@@ -11,34 +11,34 @@ use Fight\AccessControl\Application\AccessControl\Agent\Credential\AgentCredenti
 use Fight\AccessControl\Application\AccessControl\Agent\Credential\AgentProvisioningResult;
 use Fight\AccessControl\Application\AccessControl\Agent\Credential\AgentProvisioningService;
 use Fight\AccessControl\Application\AccessControl\Agent\Credential\AgentPublicationWarning;
-use Fight\AccessControl\Application\AccessControl\Agent\Delivery\AgentCredentialDeliveryService;
-use Fight\AccessControl\Application\AccessControl\Agent\Delivery\AgentCredentialInvocation;
-use Fight\AccessControl\Application\AccessControl\Agent\Delivery\AgentDeliveryRecoveryService;
-use Fight\AccessControl\Application\AccessControl\Agent\Delivery\AgentDeliveryResult;
-use Fight\AccessControl\Application\AccessControl\Agent\Maintenance\AgentMaintenanceResult;
-use Fight\AccessControl\Application\AccessControl\Agent\QueryHandler\GetAgentOperationHandler;
-use Fight\AccessControl\Application\AccessControl\Agent\QueryHandler\ListDueAgentDeliveriesHandler;
+use Fight\AccessControl\Application\AccessControl\AgentCredentialOperation\Delivery\AgentCredentialDeliveryService;
+use Fight\AccessControl\Application\AccessControl\AgentCredentialOperation\Delivery\AgentCredentialInvocation;
+use Fight\AccessControl\Application\AccessControl\AgentCredentialOperation\Delivery\AgentDeliveryRecoveryService;
+use Fight\AccessControl\Application\AccessControl\AgentCredentialOperation\Delivery\AgentDeliveryResult;
+use Fight\AccessControl\Application\AccessControl\AgentCredentialOperation\Maintenance\AgentMaintenanceResult;
+use Fight\AccessControl\Application\AccessControl\AgentCredentialOperation\QueryHandler\GetAgentOperationHandler;
+use Fight\AccessControl\Application\AccessControl\AgentCredentialOperation\QueryHandler\ListDueAgentDeliveriesHandler;
 use Fight\AccessControl\Domain\AccessControl\Agent\AgentCredentialId;
 use Fight\AccessControl\Domain\AccessControl\Agent\AgentId;
-use Fight\AccessControl\Domain\AccessControl\Agent\Delivery\AgentDeliveryPolicy;
-use Fight\AccessControl\Domain\AccessControl\Agent\Delivery\AgentDeliverySchedule;
-use Fight\AccessControl\Domain\AccessControl\Agent\Exception\AgentDeliveryFailedException;
-use Fight\AccessControl\Domain\AccessControl\Agent\Exception\AgentOperationRejectedException;
 use Fight\AccessControl\Domain\AccessControl\Agent\Exception\CurrentAgentPrincipalResolutionRejectedException;
-use Fight\AccessControl\Domain\AccessControl\Agent\Operation\AgentCredentialDestination;
-use Fight\AccessControl\Domain\AccessControl\Agent\Operation\AgentCredentialDisposition;
-use Fight\AccessControl\Domain\AccessControl\Agent\Operation\AgentDeliveryDisposition;
-use Fight\AccessControl\Domain\AccessControl\Agent\Operation\AgentDestinationId;
-use Fight\AccessControl\Domain\AccessControl\Agent\Operation\AgentIssuance;
-use Fight\AccessControl\Domain\AccessControl\Agent\Operation\AgentOperationFailure;
-use Fight\AccessControl\Domain\AccessControl\Agent\Operation\AgentOperationId;
-use Fight\AccessControl\Domain\AccessControl\Agent\Operation\AgentOperationKey;
-use Fight\AccessControl\Domain\AccessControl\Agent\Operation\AgentOperationLimits;
-use Fight\AccessControl\Domain\AccessControl\Agent\Operation\AgentOperationScope;
-use Fight\AccessControl\Domain\AccessControl\Agent\Operation\AgentProvisioningRequest;
-use Fight\AccessControl\Domain\AccessControl\Agent\Operation\AgentRotationRequest;
-use Fight\AccessControl\Domain\AccessControl\Agent\Query\AgentOperationView;
-use Fight\AccessControl\Domain\AccessControl\Agent\Query\GetAgentOperation;
+use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\AgentCredentialDestination;
+use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\AgentCredentialDisposition;
+use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\AgentDeliveryDisposition;
+use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\AgentDestinationId;
+use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\AgentIssuance;
+use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\AgentOperationFailure;
+use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\AgentOperationId;
+use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\AgentOperationKey;
+use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\AgentOperationLimits;
+use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\AgentOperationScope;
+use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\AgentProvisioningRequest;
+use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\AgentRotationRequest;
+use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\Delivery\AgentDeliveryPolicy;
+use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\Delivery\AgentDeliverySchedule;
+use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\Exception\AgentDeliveryFailedException;
+use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\Exception\AgentOperationRejectedException;
+use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\Query\AgentOperationView;
+use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\Query\GetAgentOperation;
 use Fight\Common\Domain\Messaging\Query\QueryMessage;
 use Fight\Test\AccessControl\Application\AccessControl\Agent\Credential\Conformance\IssuanceRecoveryFixture;
 use PHPUnit\Framework\Attributes\DataProvider;
@@ -149,13 +149,13 @@ abstract class IssuanceRecoveryConformance extends TestCase
         self::assertEquals($issuance, $stored->getIssuance());
         self::assertNotNull($stored->getReceipt());
         self::assertNull($stored->getMaterial());
-        self::assertSame(AgentDeliveryDisposition::DELIVERED, $stored->getStatus()->getDeliveryDisposition());
+        self::assertSame(AgentDeliveryDisposition::DELIVERED, $stored->getDeliveryDisposition());
         self::assertSame($committed, $fixture->state());
         self::assertSame($generations, $fixture->generations());
         self::assertSame(1, $fixture->sinkCalls());
         self::assertSame($expectedBytes, $fixture->stagedBytes($issuance));
         self::assertSame([], $fixture->publications());
-        $this->assertSafe($fixture, [$stored->getStatus()->toArray()]);
+        $this->assertSafe($fixture, [AgentOperationView::fromOperation($stored)->toArray()]);
     }
 
     #[DataProvider('uncertainCases')]
@@ -702,7 +702,7 @@ abstract class IssuanceRecoveryConformance extends TestCase
         $operation = $fixture->stored($key);
         if ($operation !== null) {
             self::assertNull($operation->getMaterial());
-            self::assertSame(AgentCredentialDisposition::REVOKED, $operation->getStatus()->getCredentialDisposition());
+            self::assertSame(AgentCredentialDisposition::REVOKED, $operation->getCredentialDisposition());
         }
 
         self::assertSame([], $this->recover($fixture, $key->getScope(), $request->getDestination()));
@@ -759,7 +759,7 @@ abstract class IssuanceRecoveryConformance extends TestCase
         $ports = $fixture->ports();
         $arguments = [
             $ports->agentRepository,
-            $ports->agentOperationRepository,
+            $ports->operationRepository,
             $ports->auditEvidenceRepository,
             $ports->operationAuthorization,
             $ports->generator,
@@ -789,7 +789,7 @@ abstract class IssuanceRecoveryConformance extends TestCase
         $before = $fixture->state();
         $events = $fixture->publications();
         $transactions = $fixture->transactions();
-        $view = new GetAgentOperationHandler($ports->agentOperationRepository, $ports->operationAuthorization)->handle(
+        $view = new GetAgentOperationHandler($ports->operationReadRepository, $ports->operationAuthorization)->handle(
             QueryMessage::create(new GetAgentOperation($key, $request->getDestination()))
         );
         self::assertSame($before, $fixture->state());
@@ -809,7 +809,7 @@ abstract class IssuanceRecoveryConformance extends TestCase
         $ports = $fixture->ports();
         $delivery = new AgentCredentialDeliveryService(
             $ports->agentRepository,
-            $ports->agentOperationRepository,
+            $ports->operationRepository,
             $ports->operationAuthorization,
             $ports->deliveryAuthorization,
             $ports->decipher,
@@ -820,7 +820,7 @@ abstract class IssuanceRecoveryConformance extends TestCase
         );
         $scheduler = new AgentDeliveryRecoveryService(
             new ListDueAgentDeliveriesHandler(
-                $ports->agentOperationRepository,
+                $ports->operationReadRepository,
                 $ports->deliveryAuthorization,
                 $ports->clock
             ),

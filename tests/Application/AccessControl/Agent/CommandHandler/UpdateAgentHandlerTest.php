@@ -19,9 +19,9 @@ use Fight\AccessControl\Domain\AccessControl\Agent\AgentUpdateInitiator;
 use Fight\AccessControl\Domain\AccessControl\Agent\Command\UpdateAgent;
 use Fight\AccessControl\Domain\AccessControl\Agent\Event\AgentNameChanged;
 use Fight\AccessControl\Domain\AccessControl\Agent\Exception\AgentNameException;
-use Fight\AccessControl\Domain\AccessControl\Agent\Exception\AgentOperationRejectedException;
 use Fight\AccessControl\Domain\AccessControl\Agent\Exception\AgentUpdateException;
-use Fight\AccessControl\Domain\AccessControl\Agent\Operation\AgentOperationFailure;
+use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\AgentOperationFailure;
+use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\Exception\AgentOperationRejectedException;
 use Fight\AccessControl\Domain\AccessControl\Permission\Permission;
 use Fight\AccessControl\Domain\AccessControl\Permission\PermissionId;
 use Fight\AccessControl\Domain\AccessControl\Permission\PermissionName;
@@ -77,7 +77,7 @@ final class UpdateAgentHandlerTest extends TestCase
     ): void {
         $env = $this->environment();
         $before = $env->agentRepository->all()[0];
-        $operation = $env->agentOperationRepository->operations[$env->key->toString()];
+        $operation = $env->operationRepository->operations[$env->key->toString()];
         $handler = $this->handler($env);
         $handler->handle($this->message($before->getId(), $input));
 
@@ -90,7 +90,7 @@ final class UpdateAgentHandlerTest extends TestCase
         self::assertSame($after, $env->agentRepository->getById($before->getId()));
         self::assertSame(1, $env->agentRepository->nameWrites);
         self::assertCount(1, $env->eventDispatcher->events());
-        self::assertSame($operation, $env->agentOperationRepository->operations[$env->key->toString()]);
+        self::assertSame($operation, $env->operationRepository->operations[$env->key->toString()]);
         self::assertSame($before->getCredentialId(), $after->getCredentialId());
         self::assertSame($before->getPermissionIds(), $after->getPermissionIds());
         self::assertSame(
@@ -173,7 +173,7 @@ final class UpdateAgentHandlerTest extends TestCase
     {
         $env = $this->environment();
         $before = $env->agentRepository->all()[0];
-        $operation = $env->agentOperationRepository->operations[$env->key->toString()];
+        $operation = $env->operationRepository->operations[$env->key->toString()];
         $clock = new FixedClock('2026-09-27T12:00:01+00:00', '2026-09-27T13:00:00+00:00');
         $handler = $this->handler($env, $clock);
         $handler->handle($this->message($before->getId(), '  Renamed  '));
@@ -187,7 +187,7 @@ final class UpdateAgentHandlerTest extends TestCase
             $after->getEncryptedHmacSharedSecretEnvelope()
         );
         self::assertSame($before->getPermissionIds(), $after->getPermissionIds());
-        self::assertSame($operation, $env->agentOperationRepository->operations[$env->key->toString()]);
+        self::assertSame($operation, $env->operationRepository->operations[$env->key->toString()]);
         $handler->handle($this->message($before->getId(), 'Renamed'));
         self::assertSame(2, $clock->calls());
         self::assertSame($after, $env->agentRepository->getById($before->getId()));
@@ -223,7 +223,7 @@ final class UpdateAgentHandlerTest extends TestCase
         foreach (['write', 'commit'] as $stage) {
             $env = $this->environment();
             $before = $env->agentRepository->all()[0];
-            $operation = $env->agentOperationRepository->operations[$env->key->toString()];
+            $operation = $env->operationRepository->operations[$env->key->toString()];
             $failure = new RuntimeException('Injected name persistence fault.');
             if ($stage === 'write') {
                 $env->agentRepository->afterNameWrite = static fn(): never => throw $failure;
@@ -239,7 +239,7 @@ final class UpdateAgentHandlerTest extends TestCase
             }
 
             self::assertSame($before, $env->agentRepository->getById($before->getId()));
-            self::assertSame($operation, $env->agentOperationRepository->operations[$env->key->toString()]);
+            self::assertSame($operation, $env->operationRepository->operations[$env->key->toString()]);
             self::assertInstanceOf(CommandFailedEvent::class, $env->eventDispatcher->events()[0]);
             $env->agentRepository->afterNameWrite = null;
             $this->handler($env)->handle($this->message($before->getId(), 'Renamed'));
@@ -324,7 +324,7 @@ final class UpdateAgentHandlerTest extends TestCase
 
         $winnerState = $env->agentRepository->getById($before->getId());
         self::assertEquals($now, $winnerState->getUpdatedAt());
-        $operations = $env->agentOperationRepository->operations;
+        $operations = $env->operationRepository->operations;
         $now = new DateTimeImmutable('2026-09-27T12:00:03.123456+00:00');
         $pending->resume();
         self::assertTrue($pending->isTerminated());
@@ -341,7 +341,7 @@ final class UpdateAgentHandlerTest extends TestCase
             $winnerState->getPermissionAssignmentRevision(),
             $after->getPermissionAssignmentRevision()
         );
-        self::assertSame($operations, $env->agentOperationRepository->operations);
+        self::assertSame($operations, $env->operationRepository->operations);
         self::assertEquals($now, $after->getUpdatedAt());
         $event = array_last($env->eventDispatcher->events());
         self::assertInstanceOf(AgentNameChanged::class, $event);
@@ -418,9 +418,9 @@ final class UpdateAgentHandlerTest extends TestCase
             $env = $this->environment();
             $before = $env->agentRepository->all()[0];
             if ($case === 'correlation') {
-                $env->agentOperationRepository->operations = [];
+                $env->operationRepository->operations = [];
             } elseif ($case === 'duplicate') {
-                $env->agentOperationRepository->operations['duplicate'] = $env->agentOperationRepository->operations[
+                $env->operationRepository->operations['duplicate'] = $env->operationRepository->operations[
                     $env->key->toString()
                 ];
             } elseif ($case === 'restore') {
@@ -454,7 +454,7 @@ final class UpdateAgentHandlerTest extends TestCase
     {
         $env = $this->environment();
         $before = $env->agentRepository->all()[0];
-        $operation = $env->agentOperationRepository->operations[$env->key->toString()];
+        $operation = $env->operationRepository->operations[$env->key->toString()];
         $failure = $this->failure(fn(): mixed => $env->transaction->commitTransactional(
             fn(): ?DateTimeImmutable => $env->agentRepository->rename(
                 $before->getId(),
@@ -465,7 +465,7 @@ final class UpdateAgentHandlerTest extends TestCase
         self::assertInstanceOf(AgentUpdateException::class, $failure);
         self::assertSame('The Agent name update time is stale.', $failure->getMessage());
         self::assertSame($before, $env->agentRepository->getById($before->getId()));
-        self::assertSame($operation, $env->agentOperationRepository->operations[$env->key->toString()]);
+        self::assertSame($operation, $env->operationRepository->operations[$env->key->toString()]);
         self::assertSame(0, $env->agentRepository->nameWrites);
         self::assertSame([], $env->eventDispatcher->events());
     }

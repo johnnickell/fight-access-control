@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace Fight\AccessControl\Adapter\Mcp\Tool\Agent;
 
 use Fight\AccessControl\Domain\AccessControl\Agent\Exception\AgentNameException;
-use Fight\AccessControl\Domain\AccessControl\Agent\Exception\AgentOperationRejectedException;
 use Fight\AccessControl\Domain\AccessControl\Agent\Exception\AgentUpdateException;
+use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\Exception\AgentOperationRejectedException;
 use Fight\Common\Application\Mcp\Tool\McpToolFailureMap;
 use Fight\Common\Domain\Exception\LookupException;
 

@@ -332,6 +332,40 @@ AuthenticationService remained the synchronous use-case owner; TASK-00112 now su
 belong in the canonical TASK handoff. Independent Review/nonvisual QA remain required; no consumer database/crypto
 qualification, release or deployment is claimed at this checkpoint.
 
+## TASK-00114 operation aggregate/read ownership — accepted checkpoint
+
+Current integrated candidate `f3794cc96872ee92eb23f67dc9773bf33e2c32ec` has independent Review ACCEPT and nonvisual QA PASS against `766442fe501a9c86f64b9eb1d1a825cf5b537b62`. Publication and final delivery verification are pending at this checkpoint; current results are in canonical `.runs/handoffs/TASK-00114/land.md` and PR #158. Consumer qualification remains separate. The original and Work checkpoints below are historical.
+
+Independent Review ACCEPT and nonvisual QA PASS cover original candidate `2cca7db1c19c31bd022a9075e30931d0cc967e18`
+against `4d677c1ee0d24543dc9909dbba907dd3298f8797`. Its unpublished administrative closeout is preserved. Develop
+then advanced through TASK-00112's direct synchronous User capabilities. Current integration retains both scopes
+and requires fresh independent Review/QA; the original verdicts do not qualify that combined subject. Exact Work
+verification and subject mapping are in canonical `.runs/handoffs/TASK-00114/work.md`; delivery history is in
+`land.md` and PR #158. No integrated acceptance, merge, release, consumer qualification or deployment is claimed.
+The Work checkpoint below records the original stage, not a new verdict or current runtime instruction.
+
+### Work checkpoint
+
+`AgentCredentialOperation` now has a distinct aggregate home inside AccessControl, with aggregate-named write
+`AgentCredentialOperationRepository` and independent `AgentCredentialOperationReadRepository`. The four read handlers
+receive only safe status, bounded due/maintenance selection, global key-reference inventory and cohort observation;
+no root/material lookup, reservation, write or UoW capability is exposed. One consumer persistence adapter may
+implement both contracts on the existing shared connection. The [current ownership/composition map](docs/agent-integration.md#operation-ownership-and-readwrite-composition-unreleased)
+classifies the moved Domain values/messages/evidence and Application authorization/worker/port/result responsibilities.
+
+Operation Delivery/Maintenance/query owners and mirrored tests now follow that aggregate. Agent identity/name,
+authentication and issuance/lifecycle owners remain Agent responsibilities. `AgentOperationView::fromOperation()`
+owns projection of already loaded snapshots; the root exposes recorded dispositions, not `getStatus()` construction.
+Real read adapters project metadata directly without loading secrets. PHP imports/registrations/named arguments
+change directly without aliases; safe wire/OpenAPI shapes and canonical marker 2 remain unchanged.
+
+Original-key/restart/uncertain outcomes, scope/target/destination checks, atomic Agent retirement/operation cancellation
+and audit, current cohort/restoration/key/order/claim/receipt fences and scoped publication outcomes are preserved.
+Actual participant qualification and trusted witness verification remain consumer responsibilities, not entity flags
+or optional preflights. TASK-00182's Command conversion is not implemented here. Canonical Work handoff/receipts own
+verification and exact subject mapping; independent Review and nonvisual QA are still required. This checkpoint
+claims no acceptance, consumer persistence/crypto/restore qualification, publication, release or deployment.
+
 ## TASK-00113 AgentName ownership — accepted checkpoint
 
 Independent Review ACCEPT and nonvisual QA PASS cover the implemented candidate; current delivery results are in

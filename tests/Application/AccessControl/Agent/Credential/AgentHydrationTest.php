@@ -8,14 +8,14 @@ use Fight\AccessControl\Application\AccessControl\Agent\Authentication\CurrentAg
 use Fight\AccessControl\Application\AccessControl\Agent\Authentication\SignedAgentRequest;
 use Fight\AccessControl\Application\AccessControl\Agent\Credential\AgentCredentialLifecycleService;
 use Fight\AccessControl\Application\AccessControl\Agent\QueryHandler\GetAgentByIdHandler;
-use Fight\AccessControl\Application\AccessControl\Agent\QueryHandler\GetAgentOperationHandler;
 use Fight\AccessControl\Application\AccessControl\Agent\QueryHandler\ListAgentsHandler;
+use Fight\AccessControl\Application\AccessControl\AgentCredentialOperation\QueryHandler\GetAgentOperationHandler;
 use Fight\AccessControl\Domain\AccessControl\Agent\Agent;
 use Fight\AccessControl\Domain\AccessControl\Agent\Exception\CurrentAgentPrincipalResolutionRejectedException;
 use Fight\AccessControl\Domain\AccessControl\Agent\Query\AgentView;
 use Fight\AccessControl\Domain\AccessControl\Agent\Query\GetAgentById;
-use Fight\AccessControl\Domain\AccessControl\Agent\Query\GetAgentOperation;
 use Fight\AccessControl\Domain\AccessControl\Agent\Query\ListAgents;
+use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\Query\GetAgentOperation;
 use Fight\Common\Domain\Messaging\Query\QueryMessage;
 use Fight\Common\Domain\Repository\Pagination;
 use Fight\Test\AccessControl\Application\AccessControl\Agent\Authentication\FixedHmacSharedSecretDecipher;
@@ -78,12 +78,12 @@ final class AgentHydrationTest extends TestCase
         self::assertEquals($stored, $hydrated);
         $agentRepository = new InMemoryAgentRepository(
             $env->transaction,
-            agentOperationRepository: $env->agentOperationRepository
+            operationRepository: $env->operationRepository
         );
         $agentRepository->add($hydrated);
 
-        $env->agentOperationRepository->agentRepository = $agentRepository;
-        $operations = $env->agentOperationRepository->operations;
+        $env->operationRepository->agentRepository = $agentRepository;
+        $operations = $env->operationRepository->operations;
         $audit = $env->auditEvidenceRepository->all();
         $events = $env->eventDispatcher->events();
         $transactions = $env->transaction->transactions;
@@ -96,7 +96,7 @@ final class AgentHydrationTest extends TestCase
             QueryMessage::create(new ListAgents(new Pagination()))
         );
         self::assertSame($view->toArray(), $list->records()->get(0)->toArray());
-        $status = new GetAgentOperationHandler($env->agentOperationRepository, $env->operationAuthorization)->handle(
+        $status = new GetAgentOperationHandler($env->operationRepository, $env->operationAuthorization)->handle(
             QueryMessage::create(new GetAgentOperation($env->key, $env->request->getDestination()))
         );
         self::assertTrue($status->isConfirmed());
@@ -136,7 +136,7 @@ final class AgentHydrationTest extends TestCase
 
         self::assertSame($revoked ? 0 : 1, $nonces->consumptionCalls());
         self::assertSame([$hydrated], $agentRepository->all());
-        self::assertSame($operations, $env->agentOperationRepository->operations);
+        self::assertSame($operations, $env->operationRepository->operations);
         self::assertSame($audit, $env->auditEvidenceRepository->all());
         self::assertSame($events, $env->eventDispatcher->events());
         self::assertSame($transactions, $env->transaction->transactions);

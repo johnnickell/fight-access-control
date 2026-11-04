@@ -4,19 +4,21 @@ declare(strict_types=1);
 
 namespace Fight\Test\AccessControl\Application\AccessControl\Agent\Credential;
 
-use Fight\AccessControl\Application\AccessControl\Agent\Delivery\AgentCredentialInvocation;
-use Fight\AccessControl\Application\AccessControl\Agent\Delivery\AgentDeliveryResult;
-use Fight\AccessControl\Application\AccessControl\Agent\Maintenance\AgentMaintenanceResult;
-use Fight\AccessControl\Domain\AccessControl\Agent\Exception\AgentDeliveryFailedException;
-use Fight\AccessControl\Domain\AccessControl\Agent\Exception\AgentOperationRejectedException;
-use Fight\AccessControl\Domain\AccessControl\Agent\Maintenance\AgentDeliveryKeyVersion;
-use Fight\AccessControl\Domain\AccessControl\Agent\Operation\AgentIssuance;
-use Fight\AccessControl\Domain\AccessControl\Agent\Operation\AgentOperationFailure;
-use Fight\AccessControl\Domain\AccessControl\Agent\Operation\AgentOperationId;
-use Fight\AccessControl\Domain\AccessControl\Agent\Operation\AgentOperationKey;
+use Fight\Test\AccessControl\Application\AccessControl\AgentCredentialOperation\Delivery\Conformance\{
+    DeliveryConformanceFixture
+};
+use Fight\AccessControl\Application\AccessControl\AgentCredentialOperation\Delivery\AgentCredentialInvocation;
+use Fight\AccessControl\Application\AccessControl\AgentCredentialOperation\Delivery\AgentDeliveryResult;
+use Fight\AccessControl\Application\AccessControl\AgentCredentialOperation\Maintenance\AgentMaintenanceResult;
+use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\AgentIssuance;
+use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\AgentOperationFailure;
+use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\AgentOperationId;
+use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\AgentOperationKey;
+use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\Exception\AgentDeliveryFailedException;
+use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\Exception\AgentOperationRejectedException;
+use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\Maintenance\AgentDeliveryKeyVersion;
 use Fight\Test\AccessControl\Application\AccessControl\Agent\Credential\Conformance\AgentRestorationFixture;
-use Fight\Test\AccessControl\Application\AccessControl\Agent\Delivery\Conformance\DeliveryConformanceFixture;
-use Fight\Test\AccessControl\Application\AccessControl\Agent\Delivery\DeliveryConformance;
+use Fight\Test\AccessControl\Application\AccessControl\AgentCredentialOperation\Delivery\DeliveryConformance;
 use LogicException;
 use PHPUnit\Framework\Attributes\DataProvider;
 
@@ -76,14 +78,14 @@ abstract class AgentRestorationConformance extends DeliveryConformance
         $fixture->restorePackageState('old');
         $fixture->restart();
 
-        $status = $fixture->ports()->agentOperationRepository->getStatusByKey($target->getKey());
+        $status = $fixture->ports()->operationReadRepository->getStatusByKey($target->getKey());
         $agent = $fixture->ports()->agentRepository->getById($target->getAgentId());
         $before = $fixture->counts();
         $fingerprint = $fixture->packageStateFingerprint();
         $this->assertUnavailable($fixture, $target, $path);
         self::assertSame($fingerprint, $fixture->packageStateFingerprint());
         self::assertTrue($agent == $fixture->ports()->agentRepository->getById($target->getAgentId()));
-        self::assertEquals($status, $fixture->ports()->agentOperationRepository->getStatusByKey($target->getKey()));
+        self::assertEquals($status, $fixture->ports()->operationReadRepository->getStatusByKey($target->getKey()));
         self::assertEquals($receipt, $fixture->receipt($target));
         self::assertSame($water, $fixture->highWater($target->getDestination()));
         $this->assertNoSensitiveEffects($fixture, $before);
@@ -293,8 +295,11 @@ abstract class AgentRestorationConformance extends DeliveryConformance
         return $target;
     }
 
-    private function assertUnavailable(DeliveryConformanceFixture $fixture, AgentIssuance $target, string $path): void
-    {
+    private function assertUnavailable(
+        DeliveryConformanceFixture $fixture,
+        AgentIssuance $target,
+        string $path
+    ): void {
         try {
             if ($path === 'provision' || $path === 'retry') {
                 $key = $target->getKey();
