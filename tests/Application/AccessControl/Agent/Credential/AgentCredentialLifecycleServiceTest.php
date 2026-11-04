@@ -10,6 +10,7 @@ use Fight\AccessControl\Domain\AccessControl\Agent\AgentCredentialId;
 use Fight\AccessControl\Domain\AccessControl\Agent\AgentId;
 use Fight\AccessControl\Domain\AccessControl\Agent\AgentRepository;
 use Fight\AccessControl\Domain\AccessControl\Agent\AgentState;
+use Fight\AccessControl\Domain\AccessControl\Agent\Command\ProvisionAgent;
 use Fight\AccessControl\Domain\AccessControl\Agent\Event\AgentCredentialLifecycleFailed;
 use Fight\AccessControl\Domain\AccessControl\Agent\Event\AgentCredentialRevoked;
 use Fight\AccessControl\Domain\AccessControl\Agent\Event\AgentCredentialRotated;
@@ -43,7 +44,7 @@ final class AgentCredentialLifecycleServiceTest extends TestCase
     public function test_revocation_preserves_failure_and_publication_semantics(string $case): void
     {
         $env = new ProvisioningEnvironment();
-        $env->service()->provision($env->key, $env->request);
+        $env->bus()->commandBus->execute(new ProvisionAgent($env->key, $env->request));
         $agent = $env->agentRepository->all()[0];
         $original = $env->operationRepository->operations[$env->key->toString()];
         $auditEvidenceRepository = new InMemoryAuditEvidenceRepository(

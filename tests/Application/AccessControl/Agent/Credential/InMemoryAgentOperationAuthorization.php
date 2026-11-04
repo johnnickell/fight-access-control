@@ -56,6 +56,8 @@ final class InMemoryAgentOperationAuthorization implements AgentOperationAuthori
 
         if (
             !($this->scopes[$scope->toString()] ?? false)
+            || ($this->actor !== $scope->getCallerId()
+                && !($this->readDelegations[$this->actor.':'.$scope->toString()] ?? false))
             || ($this->destinations[$destination->getId()->toString()] ?? null) !== $destination->getRevision()
             || $this->delegationExpired
         ) {

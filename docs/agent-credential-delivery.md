@@ -48,8 +48,8 @@ repository behind a caller-selected secret endpoint. Unsupported composition mus
 Use the existing [authorized status query](agent-operation-status.md) for a secret-free durable snapshot. A result
 never returns a credential, ciphertext, key version/path, receipt, claim token, exception or decryption handle.
 The original TASK-00051 slice introduces no DTOs or optional delivery event. TASK-00052 adds the bounded discovery
-Query; confirmed operation state remains the fact, not event delivery. The issuance/rotation publication-warning
-exception is not extended.
+Query; confirmed operation state remains the fact, not event delivery. TASK-00182's issuance/rotation confirmed-commit publication-containment
+exception is not extended; those Commands return void and expose no publication warnings.
 
 ## Three independent transactions
 

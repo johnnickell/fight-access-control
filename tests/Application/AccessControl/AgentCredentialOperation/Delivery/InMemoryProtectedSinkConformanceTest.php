@@ -10,7 +10,7 @@ use Fight\Test\AccessControl\Application\AccessControl\AgentCredentialOperation\
 use Fight\Test\AccessControl\Application\AccessControl\AgentCredentialOperation\Delivery\Conformance\{
     InMemoryDeliveryConformanceFixture
 };
-use Fight\AccessControl\Application\AccessControl\Agent\Credential\AgentCredentialRotationService;
+use Fight\AccessControl\Application\AccessControl\Agent\CommandHandler\RotateAgentCredentialHandler;
 use Fight\AccessControl\Application\AccessControl\AgentCredentialOperation\Delivery\AgentCredentialDeliveryService;
 use Fight\AccessControl\Application\AccessControl\AgentCredentialOperation\Delivery\AgentCredentialInvocation;
 use Fight\AccessControl\Application\AccessControl\AgentCredentialOperation\Delivery\AgentDeliveryRecoveryService;
@@ -19,7 +19,7 @@ use PHPUnit\Framework\Attributes\CoversClass;
 
 #[CoversClass(AgentCredentialDeliveryService::class)]
 #[CoversClass(AgentCredentialInvocation::class)]
-#[CoversClass(AgentCredentialRotationService::class)]
+#[CoversClass(RotateAgentCredentialHandler::class)]
 #[CoversClass(AgentDeliveryRecoveryService::class)]
 #[CoversClass(AgentDeliveryReceipt::class)]
 final class InMemoryProtectedSinkConformanceTest extends ProtectedSinkConformance

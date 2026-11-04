@@ -6,7 +6,9 @@ TASK-00068 removes previous-iteration support; this is not a migration, release 
 ## One authority model
 
 Every Agent credential is correlated with its original retained credential operation. Provision through
-`AgentProvisioningService`; rotate through `AgentCredentialRotationService`; revoke through
+registered void `ProvisionAgent` / `ProvisionAgentHandler`; rotate through `RotateAgentCredential` /
+`RotateAgentCredentialHandler`; obtain original outcomes via authorized `GetAgentOperation` Query dispatch.
+TASK-00182's unreleased conversion removes the former direct services/results/warnings. Revoke through
 `AgentCredentialLifecycleService::revoke()`. The old lifecycle `rotate()` and aggregate `rotateCredential()` are
 removed, not callable rejection stubs. The supported aggregate transition is `rotateRecoverableCredential()`;
 constructing an immutable successor alone does not persist or authorize issuance.
@@ -74,7 +76,7 @@ database, key, sink, authority-writer and activation/use qualification is separa
   fenced no-ops/concurrent writers, rollback/publication failures and generated command/provenance schemas.
 - `AgentCredentialRetirementTest`: every direct/service cancellation path, missing correlation, unavailable
   composition, rollback, redacted failures and stale successors.
-- `AgentCredentialRotationServiceTest`, `AgentRotationAuthenticationTest`, issuance/delivery/cohort/canonical
+- `RotateAgentCredentialHandlerTest`, `AgentRotationAuthenticationTest`, issuance/delivery/cohort/canonical
   conformance: retained-key restart, uncertain commits, authorization, nonce races, ordering and cleanup defenses.
 
 These use controlled transaction-aware adapters, not a production database or cryptographic sink certification.

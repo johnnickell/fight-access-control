@@ -11,6 +11,7 @@ use Fight\AccessControl\Domain\AccessControl\Agent\AgentCredentialId;
 use Fight\AccessControl\Domain\AccessControl\Agent\AgentId;
 use Fight\AccessControl\Domain\AccessControl\Agent\AgentName;
 use Fight\AccessControl\Domain\AccessControl\Agent\AgentState;
+use Fight\AccessControl\Domain\AccessControl\Agent\Command\ProvisionAgent;
 use Fight\AccessControl\Domain\AccessControl\Agent\Event\AgentCredentialLifecycleFailed;
 use Fight\AccessControl\Domain\AccessControl\Agent\Event\AgentCredentialRevoked;
 use Fight\AccessControl\Domain\AccessControl\Agent\Exception\AgentCredentialException;
@@ -91,7 +92,7 @@ final class AgentCredentialRetirementTest extends TestCase
             $environment->agentRepository->all()[0]->getEncryptedHmacSharedSecretEnvelope()
         );
         $environment->eventDispatcher = new InMemoryEventDispatcher();
-        $resolved = $environment->service()->provision($environment->key, $environment->request);
+        $resolved = $environment->bus()->dispatchAndRead(new ProvisionAgent($environment->key, $environment->request));
         self::assertSame($original->getIssuance(), $resolved->getIssuance());
         self::assertSame(1, $environment->generations);
         self::assertCount(2, $environment->auditEvidenceRepository->all());
@@ -306,10 +307,12 @@ final class AgentCredentialRetirementTest extends TestCase
     {
         $environment = new ProvisioningEnvironment();
         $limits = new AgentOperationLimits(128, 1, 1);
-        $environment->service(limits: $limits)->provision($environment->key, $environment->request);
+        $environment->bus(limits: $limits)->commandBus->execute(
+            new ProvisionAgent($environment->key, $environment->request)
+        );
         $newKey = new AgentOperationKey($environment->key->getScope(), AgentOperationId::generate());
         try {
-            $environment->service(limits: $limits)->provision($newKey, $environment->request);
+            $environment->bus(limits: $limits)->commandBus->execute(new ProvisionAgent($newKey, $environment->request));
             self::fail('The one-slot override is full.');
         } catch (AgentOperationRejectedException $agentOperationRejectedException) {
             self::assertSame(AgentOperationFailure::CAPACITY, $agentOperationRejectedException->getReason());
@@ -318,11 +321,15 @@ final class AgentCredentialRetirementTest extends TestCase
         $original = $this->operation($environment);
         $environment->operationRepository->operations[$environment->key->toString()] = $original->retireMaterial();
         $this->service($environment)->revoke('maintainer-42', $environment->agentRepository->all()[0]->getId());
-        self::assertSame($original->getIssuance(), $environment->service(limits: $limits)->provision(
+        self::assertSame($original->getIssuance(), $environment->bus(
+            limits: $limits
+        )->dispatchAndRead(new ProvisionAgent(
             $environment->key,
             $environment->request
-        )->getIssuance());
-        $next = $environment->service(limits: $limits)->provision($newKey, $environment->request)->getIssuance();
+        ))->getIssuance());
+        $next = $environment->bus(limits: $limits)->dispatchAndRead(
+            new ProvisionAgent($newKey, $environment->request)
+        )->getIssuance();
         self::assertNotNull($next);
         self::assertSame(2, $next->getDestinationWriteVersion());
         self::assertNotSame($original->getIssuance()->getDeliveryId(), $next->getDeliveryId());
@@ -575,7 +582,7 @@ final class AgentCredentialRetirementTest extends TestCase
     private function issued(): ProvisioningEnvironment
     {
         $environment = new ProvisioningEnvironment();
-        $environment->service()->provision($environment->key, $environment->request);
+        $environment->bus()->commandBus->execute(new ProvisionAgent($environment->key, $environment->request));
         $environment->eventDispatcher = new InMemoryEventDispatcher();
 
         return $environment;

@@ -2,12 +2,10 @@
 
 declare(strict_types=1);
 
-namespace Fight\Test\AccessControl\Application\AccessControl\Agent\Credential;
+namespace Fight\Test\AccessControl\Application\AccessControl\Agent\CommandHandler;
 
 use Closure;
-use Fight\AccessControl\Application\AccessControl\Agent\Credential\AgentCredentialRotationResult;
-use Fight\AccessControl\Application\AccessControl\Agent\Credential\AgentCredentialRotationService;
-use Fight\AccessControl\Application\AccessControl\Agent\Credential\AgentPublicationWarning;
+use Fight\AccessControl\Application\AccessControl\Agent\CommandHandler\RotateAgentCredentialHandler;
 use Fight\AccessControl\Application\AccessControl\Agent\Credential\HmacSharedSecretCipher;
 use Fight\AccessControl\Application\AccessControl\Agent\Credential\HmacSharedSecretGenerator;
 use Fight\AccessControl\Application\AccessControl\AgentCredentialOperation\Delivery\AgentDeliveryCipher;
@@ -16,6 +14,8 @@ use Fight\AccessControl\Domain\AccessControl\Agent\Agent;
 use Fight\AccessControl\Domain\AccessControl\Agent\AgentCredentialId;
 use Fight\AccessControl\Domain\AccessControl\Agent\AgentId;
 use Fight\AccessControl\Domain\AccessControl\Agent\AgentRepository;
+use Fight\AccessControl\Domain\AccessControl\Agent\Command\ProvisionAgent;
+use Fight\AccessControl\Domain\AccessControl\Agent\Command\RotateAgentCredential;
 use Fight\AccessControl\Domain\AccessControl\Agent\Event\AgentCredentialLifecycleFailed;
 use Fight\AccessControl\Domain\AccessControl\Agent\Event\AgentCredentialRotated;
 use Fight\AccessControl\Domain\AccessControl\Agent\Exception\AgentCredentialException;
@@ -32,8 +32,13 @@ use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\AgentOpera
 use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\AgentRotationRequest;
 use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\Exception\AgentOperationCollisionException;
 use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\Exception\AgentOperationRejectedException;
+use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\Exception\AgentOperationUncertainException;
+use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\Query\AgentOperationView;
 use Fight\AccessControl\Domain\AccessControl\Audit\AuditEvidence;
 use Fight\Common\Application\Repository\TransactionalUnitOfWork;
+use Fight\Test\AccessControl\Application\AccessControl\Agent\Credential\ProvisioningEnvironment;
+use Fight\Test\AccessControl\Application\AccessControl\Agent\Credential\RotationEnvironment;
+use Fight\Test\AccessControl\Application\AccessControl\Agent\Credential\UncertainAgentUnitOfWork;
 use Fight\Test\AccessControl\Application\AccessControl\AgentCredentialOperation\Delivery\DeliveryEnvironment;
 use Fight\Test\AccessControl\Application\AccessControl\Audit\Repository\InMemoryAuditEvidenceRepository;
 use Fight\Test\AccessControl\Application\AccessControl\Event\InMemoryEventDispatcher;
@@ -43,8 +48,7 @@ use PHPUnit\Framework\TestCase;
 use RuntimeException;
 use SensitiveParameter;
 
-#[CoversClass(AgentCredentialRotationService::class)]
-#[CoversClass(AgentCredentialRotationResult::class)]
+#[CoversClass(RotateAgentCredentialHandler::class)]
 #[CoversClass(AgentRotationRequest::class)]
 #[CoversClass(Agent::class)]
 #[CoversClass(AgentCredentialOperation::class)]
@@ -52,7 +56,7 @@ use SensitiveParameter;
 #[CoversClass(AgentOperationRejectedException::class)]
 #[CoversClass(AgentCredentialRotated::class)]
 #[CoversClass(AuditEvidence::class)]
-final class AgentCredentialRotationServiceTest extends TestCase
+final class RotateAgentCredentialHandlerTest extends TestCase
 {
     public function test_rotation_commits_before_publication_and_recovers_after_restart(): void
     {
@@ -66,9 +70,9 @@ final class AgentCredentialRotationServiceTest extends TestCase
             self::assertNull($env->agentRepository->getByCredentialId($predecessor->getCredentialId()));
             self::assertNull($env->operationRepository->operations[$env->key->toString()]->getMaterial());
         });
-        $result = $rotation->service()->rotate($rotation->key, $rotation->request);
+        $result = $rotation->bus()->dispatchAndRead(new RotateAgentCredential($rotation->key, $rotation->request));
         self::assertTrue($result->isConfirmed());
-        self::assertNull($result->getWarning());
+        self::assertArrayNotHasKey('warning', $result->toArray());
         $issuance = $result->getIssuance();
         self::assertNotNull($issuance);
         self::assertSame($predecessor->getId(), $issuance->getAgentId());
@@ -97,18 +101,21 @@ final class AgentCredentialRotationServiceTest extends TestCase
         self::assertCount(1, $env->eventDispatcher->events());
         self::assertInstanceOf(AgentCredentialRotated::class, $env->eventDispatcher->events()[0]);
         self::assertSame($issuance->getCredentialId(), $env->eventDispatcher->events()[0]->getCredentialId());
-        $retried = $rotation->service()->rotate($rotation->key, $rotation->request);
+        $retried = $rotation->bus()->dispatchAndRead(new RotateAgentCredential($rotation->key, $rotation->request));
         self::assertSame($issuance, $retried->getIssuance());
         self::assertSame(2, $env->generations);
         self::assertCount(2, $env->auditEvidenceRepository->all());
         self::assertCount(1, $env->eventDispatcher->events());
-        self::assertSame($rotation->original, $env->service()->provision($env->key, $env->request)->getIssuance());
+        self::assertSame(
+            $rotation->original,
+            $env->bus()->dispatchAndRead(new ProvisionAgent($env->key, $env->request))->getIssuance()
+        );
         $this->assertSafe([$result, $retried, $env->eventDispatcher->events(), $env->auditEvidenceRepository->all()]);
         $this->reject(
-            fn(): AgentCredentialRotationResult => $rotation->service()->rotate(
+            fn(): AgentOperationView => $rotation->bus()->dispatchAndRead(new RotateAgentCredential(
                 $this->newKey($rotation),
                 $rotation->request
-            ),
+            )),
             AgentOperationFailure::CONFLICT
         );
         self::assertSame(2, $env->generations);
@@ -126,18 +133,21 @@ final class AgentCredentialRotationServiceTest extends TestCase
     {
         $rotation = new RotationEnvironment();
         $env = $rotation->provisioning;
-        $result = $rotation->service(new UncertainAgentUnitOfWork($env->transaction, $persist))
-            ->rotate($rotation->key, $rotation->request);
-        self::assertFalse($result->isConfirmed());
-        self::assertNull($result->getIssuance());
-        self::assertNull($result->getWarning());
+        try {
+            $rotation->bus(new UncertainAgentUnitOfWork($env->transaction, $persist))
+                ->commandBus->execute(new RotateAgentCredential($rotation->key, $rotation->request));
+            self::fail('Lost acknowledgement must surface execution uncertainty.');
+        } catch (AgentOperationUncertainException $agentOperationUncertainException) {
+            self::assertNull($agentOperationUncertainException->getPrevious());
+        }
+
         self::assertCount($persist ? 2 : 1, $env->operationRepository->operations);
         self::assertCount($persist ? 2 : 1, $env->auditEvidenceRepository->all());
         self::assertSame((int) $persist, $env->agentRepository->all()[0]->getCredentialRevision());
         $original = $env->operationRepository->operations[$env->key->toString()];
         self::assertSame($persist, $original->getMaterial() === null);
         $committed = $env->operationRepository->operations[$rotation->key->toString()] ?? null;
-        $resolved = $rotation->service()->rotate($rotation->key, $rotation->request);
+        $resolved = $rotation->bus()->dispatchAndRead(new RotateAgentCredential($rotation->key, $rotation->request));
         self::assertTrue($resolved->isConfirmed());
         self::assertCount(2, $env->operationRepository->operations);
         self::assertCount(2, $env->auditEvidenceRepository->all());
@@ -159,15 +169,15 @@ final class AgentCredentialRotationServiceTest extends TestCase
                 throw new RuntimeException('Unsafe successor-test-secret key/path');
             }
         });
-        $result = $rotation->service()->rotate($rotation->key, $rotation->request);
+        $result = $rotation->bus()->dispatchAndRead(new RotateAgentCredential($rotation->key, $rotation->request));
         self::assertTrue($result->isConfirmed());
-        self::assertSame(AgentPublicationWarning::PUBLICATION_FAILED, $result->getWarning());
+        self::assertArrayNotHasKey('warning', $result->toArray());
         self::assertCount(2, $env->operationRepository->operations);
         self::assertCount(2, $env->auditEvidenceRepository->all());
         self::assertNull($env->operationRepository->operations[$env->key->toString()]->getMaterial());
-        $retry = $rotation->service()->rotate($rotation->key, $rotation->request);
+        $retry = $rotation->bus()->dispatchAndRead(new RotateAgentCredential($rotation->key, $rotation->request));
         self::assertSame($result->getIssuance(), $retry->getIssuance());
-        self::assertNull($retry->getWarning());
+        self::assertArrayNotHasKey('warning', $retry->toArray());
         self::assertSame(2, $env->generations);
         $this->assertSafe([$result, $env->eventDispatcher->events()]);
     }
@@ -231,7 +241,7 @@ final class AgentCredentialRotationServiceTest extends TestCase
             $auditEvidenceRepository = new InMemoryAuditEvidenceRepository($env->transaction, failAfterSave: true);
         }
 
-        $service = $rotation->service(
+        $service = $rotation->bus(
             generator: $generator,
             cipher: $cipher,
             deliveryCipher: $delivery,
@@ -240,7 +250,9 @@ final class AgentCredentialRotationServiceTest extends TestCase
         $prior = ini_set('zend.exception_ignore_args', '0');
         try {
             $failure = $this->reject(
-                fn(): AgentCredentialRotationResult => $service->rotate($rotation->key, $rotation->request)
+                fn(): AgentOperationView => $service->dispatchAndRead(
+                    new RotateAgentCredential($rotation->key, $rotation->request)
+                )
             );
             self::assertNull($failure->getPrevious());
             $this->assertSafe($failure);
@@ -278,7 +290,7 @@ final class AgentCredentialRotationServiceTest extends TestCase
         $rotation = new RotationEnvironment();
         $env = $rotation->provisioning;
         if ($retry) {
-            $rotation->service()->rotate($rotation->key, $rotation->request);
+            $rotation->bus()->commandBus->execute(new RotateAgentCredential($rotation->key, $rotation->request));
         }
 
         $reads = $env->operationRepository->reads;
@@ -307,7 +319,9 @@ final class AgentCredentialRotationServiceTest extends TestCase
         }
 
         $this->reject(
-            fn(): AgentCredentialRotationResult => $rotation->service()->rotate($key, $rotation->request),
+            fn(): AgentOperationView => $rotation->bus()->dispatchAndRead(
+                new RotateAgentCredential($key, $rotation->request)
+            ),
             $case === 'audit' ? AgentOperationFailure::UNAVAILABLE : AgentOperationFailure::UNAUTHORIZED
         );
         self::assertSame($reads, $env->operationRepository->reads);
@@ -328,7 +342,7 @@ final class AgentCredentialRotationServiceTest extends TestCase
     {
         $rotation = new RotationEnvironment();
         $env = $rotation->provisioning;
-        $rotation->service()->rotate($rotation->key, $rotation->request);
+        $rotation->bus()->commandBus->execute(new RotateAgentCredential($rotation->key, $rotation->request));
         $original = $rotation->request;
         $destination = $original->getDestination();
         if (in_array($case, ['destination', 'binding'], true)) {
@@ -356,10 +370,10 @@ final class AgentCredentialRotationServiceTest extends TestCase
         }
 
         $this->reject(
-            fn(): AgentCredentialRotationResult => $rotation->service()->rotate(
+            fn(): AgentOperationView => $rotation->bus()->dispatchAndRead(new RotateAgentCredential(
                 $case === 'kind' ? $env->key : $rotation->key,
                 $request
-            ),
+            )),
             $case === 'version' ? AgentOperationFailure::UNSUPPORTED_VERSION : AgentOperationFailure::CONFLICT
         );
         self::assertSame(2, $env->generations);
@@ -371,10 +385,12 @@ final class AgentCredentialRotationServiceTest extends TestCase
         $rotation = new RotationEnvironment();
         $env = $rotation->provisioning;
         // Another Agent occupies the only remaining slot even after predecessor material is cancelled.
-        $env->service()->provision($this->newKey($rotation), $env->request);
-        $service = $rotation->service(limits: new AgentOperationLimits(128, 1, 1));
+        $env->bus()->commandBus->execute(new ProvisionAgent($this->newKey($rotation), $env->request));
+        $service = $rotation->bus(limits: new AgentOperationLimits(128, 1, 1));
         $failure = $this->reject(
-            fn(): AgentCredentialRotationResult => $service->rotate($rotation->key, $rotation->request),
+            fn(): AgentOperationView => $service->dispatchAndRead(
+                new RotateAgentCredential($rotation->key, $rotation->request)
+            ),
             AgentOperationFailure::CAPACITY
         );
         self::assertTrue($failure->isRetryable());
@@ -382,14 +398,17 @@ final class AgentCredentialRotationServiceTest extends TestCase
         self::assertNotNull($env->operationRepository->operations[$env->key->toString()]->getMaterial());
         self::assertSame([2], array_values($env->operationRepository->versions));
         self::assertCount(2, $env->auditEvidenceRepository->all());
-        $result = $rotation->service(limits: new AgentOperationLimits(128, 2, 2))
-            ->rotate($rotation->key, $rotation->request);
+        $result = $rotation->bus(limits: new AgentOperationLimits(128, 2, 2))
+            ->dispatchAndRead(new RotateAgentCredential($rotation->key, $rotation->request));
         $key = $rotation->key->toString();
         $env->operationRepository->operations[
             $key
         ] = $env->operationRepository->operations[$key]->retireMaterial();
         $count = $env->generations;
-        self::assertSame($result->getIssuance(), $service->rotate($rotation->key, $rotation->request)->getIssuance());
+        self::assertSame(
+            $result->getIssuance(),
+            $service->dispatchAndRead(new RotateAgentCredential($rotation->key, $rotation->request))->getIssuance()
+        );
         self::assertSame($count, $env->generations);
         self::assertNull($env->operationRepository->operations[$key]->getMaterial());
         self::assertSame(3, $result->getIssuance()->getDestinationWriteVersion());
@@ -407,12 +426,16 @@ final class AgentCredentialRotationServiceTest extends TestCase
             });
             self::assertSame([], $env->operationAuthorization->deniedTargets);
         };
-        $result = $rotation->service()->rotate($rotation->key, $rotation->request);
-        self::assertTrue($result->isConfirmed());
-        self::assertSame($rotation->key, $result->getIssuance()->getKey());
+        $rotation->bus()->commandBus->execute(new RotateAgentCredential($rotation->key, $rotation->request));
+        self::assertSame(
+            $rotation->key,
+            $env->operationRepository->operations[$rotation->key->toString()]->getIssuance()->getKey()
+        );
         self::assertSame('delegate', $env->auditEvidenceRepository->all()[1]->actorId());
         $this->reject(
-            fn(): AgentCredentialRotationResult => $rotation->service()->rotate($rotation->key, $rotation->request),
+            fn(): AgentOperationView => $rotation->bus()->dispatchAndRead(
+                new RotateAgentCredential($rotation->key, $rotation->request)
+            ),
             AgentOperationFailure::UNAUTHORIZED
         );
     }
@@ -431,7 +454,11 @@ final class AgentCredentialRotationServiceTest extends TestCase
         $delivery = new DeliveryEnvironment();
         $rotation = new RotationEnvironment($delivery);
         $rotate = static function () use ($rotation): void {
-            self::assertTrue($rotation->service()->rotate($rotation->key, $rotation->request)->isConfirmed());
+            self::assertTrue(
+                $rotation->bus()->dispatchAndRead(
+                    new RotateAgentCredential($rotation->key, $rotation->request)
+                )->isConfirmed()
+            );
         };
         if ($stage === 'pending') {
             $rotate();
@@ -478,7 +505,9 @@ final class AgentCredentialRotationServiceTest extends TestCase
         $rotation = new RotationEnvironment($delivery);
         $delivery->sink->beforeStage = static function () use ($delivery, $rotation): void {
             $delivery->sink->beforeStage = null;
-            $successor = $rotation->service()->rotate($rotation->key, $rotation->request)->getIssuance();
+            $successor = $rotation->bus()->dispatchAndRead(
+                new RotateAgentCredential($rotation->key, $rotation->request)
+            )->getIssuance();
             self::assertNotNull($successor);
             self::assertSame(AgentDeliveryResult::DELIVERED, $delivery->service()->deliver(
                 $rotation->key,
@@ -488,7 +517,9 @@ final class AgentCredentialRotationServiceTest extends TestCase
             self::assertSame('successor-test-secret', $delivery->sink->stagedBytes($successor));
             self::assertSame(
                 $successor,
-                $rotation->service()->rotate($rotation->key, $rotation->request)->getIssuance()
+                $rotation->bus()->dispatchAndRead(
+                    new RotateAgentCredential($rotation->key, $rotation->request)
+                )->getIssuance()
             );
         };
         self::assertSame(AgentDeliveryResult::REJECTED, $delivery->deliver());
@@ -510,14 +541,16 @@ final class AgentCredentialRotationServiceTest extends TestCase
         $closed->method('isClosed')->willReturn(true);
         $closed->expects(self::never())->method('commitTransactional');
         $this->reject(
-            fn(): AgentCredentialRotationResult => $rotation->service($closed)->rotate(
+            fn(): AgentOperationView => $rotation->bus($closed)->dispatchAndRead(new RotateAgentCredential(
                 $rotation->key,
                 $rotation->request
-            )
+            ))
         );
         $env->transaction->commitTransactional(function () use ($rotation): void {
             $this->reject(
-                fn(): AgentCredentialRotationResult => $rotation->service()->rotate($rotation->key, $rotation->request)
+                fn(): AgentOperationView => $rotation->bus()->dispatchAndRead(
+                    new RotateAgentCredential($rotation->key, $rotation->request)
+                )
             );
         });
         $request = new AgentRotationRequest(
@@ -527,7 +560,9 @@ final class AgentCredentialRotationServiceTest extends TestCase
             $rotation->request->getDestination()
         );
         $this->reject(
-            fn(): AgentCredentialRotationResult => $rotation->service()->rotate($rotation->key, $request),
+            fn(): AgentOperationView => $rotation->bus()->dispatchAndRead(
+                new RotateAgentCredential($rotation->key, $request)
+            ),
             AgentOperationFailure::CONFLICT
         );
         self::assertSame(1, $env->generations);
@@ -544,7 +579,9 @@ final class AgentCredentialRotationServiceTest extends TestCase
             throw new AgentOperationCollisionException();
         };
         $this->reject(
-            fn(): AgentCredentialRotationResult => $rotation->service()->rotate($rotation->key, $rotation->request),
+            fn(): AgentOperationView => $rotation->bus()->dispatchAndRead(
+                new RotateAgentCredential($rotation->key, $rotation->request)
+            ),
             AgentOperationFailure::CONTENTION
         );
         self::assertSame(3, $env->transaction->transactions);
@@ -583,7 +620,9 @@ final class AgentCredentialRotationServiceTest extends TestCase
         }
 
         $winningKey = $case === 'cas different' ? $this->newKey($rotation) : $rotation->key;
-        $result = $rotation->service(environment: $winner)->rotate($winningKey, $request);
+        $result = $rotation->bus(environment: $winner)->dispatchAndRead(
+            new RotateAgentCredential($winningKey, $request)
+        );
         $winningAgent = $winner->agentRepository->all()[0];
         $publishWinner = static function () use ($env, $original, $winningAgent, $winner): void {
             $env->transaction->onCompletion(static function () use ($env, $original, $winningAgent, $winner): void {
@@ -632,16 +671,18 @@ final class AgentCredentialRotationServiceTest extends TestCase
             }
         }
 
-        $service = $rotation->service(agentRepository: $agentRepository);
+        $service = $rotation->bus(agentRepository: $agentRepository);
         if (in_array($case, ['unique conflicting', 'cas different'], true)) {
             $this->reject(
-                fn(): AgentCredentialRotationResult => $service->rotate($rotation->key, $rotation->request),
+                fn(): AgentOperationView => $service->dispatchAndRead(
+                    new RotateAgentCredential($rotation->key, $rotation->request)
+                ),
                 AgentOperationFailure::CONFLICT
             );
         } else {
             self::assertSame(
                 $result->getIssuance(),
-                $service->rotate($rotation->key, $rotation->request)->getIssuance()
+                $service->dispatchAndRead(new RotateAgentCredential($rotation->key, $rotation->request))->getIssuance()
             );
         }
 
@@ -660,17 +701,26 @@ final class AgentCredentialRotationServiceTest extends TestCase
     {
         $delivery = new DeliveryEnvironment();
         $rotation = new RotationEnvironment($delivery);
-        $first = $rotation->service()->rotate($rotation->key, $rotation->request)->getIssuance();
+        $first = $rotation->bus()->dispatchAndRead(
+            new RotateAgentCredential($rotation->key, $rotation->request)
+        )->getIssuance();
         self::assertNotNull($first);
-        $second = $rotation->service()->rotate($this->newKey($rotation), new AgentRotationRequest(
+        $second = $rotation->bus()->dispatchAndRead(new RotateAgentCredential($this->newKey(
+            $rotation
+        ), new AgentRotationRequest(
             $first->getAgentId(),
             $first->getCredentialId(),
             $first->getCredentialRevision(),
             $first->getDestination()
-        ));
+        )));
         self::assertSame(2, $second->getIssuance()->getCredentialRevision());
         $delivery->revoke();
-        self::assertSame($first, $rotation->service()->rotate($rotation->key, $rotation->request)->getIssuance());
+        self::assertSame(
+            $first,
+            $rotation->bus()->dispatchAndRead(
+                new RotateAgentCredential($rotation->key, $rotation->request)
+            )->getIssuance()
+        );
         $current = $rotation->provisioning->agentRepository->all()[0];
         $request = new AgentRotationRequest(
             $current->getId(),
@@ -679,7 +729,9 @@ final class AgentCredentialRotationServiceTest extends TestCase
             $first->getDestination()
         );
         $this->reject(
-            fn(): AgentCredentialRotationResult => $rotation->service()->rotate($this->newKey($rotation), $request),
+            fn(): AgentOperationView => $rotation->bus()->dispatchAndRead(
+                new RotateAgentCredential($this->newKey($rotation), $request)
+            ),
             AgentOperationFailure::CONFLICT
         );
         self::assertSame(3, $rotation->provisioning->generations);
@@ -694,7 +746,7 @@ final class AgentCredentialRotationServiceTest extends TestCase
         $env->operationAuthorization->scopes[$scope->toString()] = true;
         $destination = new AgentCredentialDestination($rotation->request->getDestination()->getId(), 2);
         $env->operationAuthorization->destinations[$destination->getId()->toString()] = 2;
-        $result = $rotation->service()->rotate(
+        $result = $rotation->bus()->dispatchAndRead(new RotateAgentCredential(
             new AgentOperationKey($scope, $env->key->getId()),
             new AgentRotationRequest(
                 $rotation->request->getAgentId(),
@@ -702,7 +754,7 @@ final class AgentCredentialRotationServiceTest extends TestCase
                 0,
                 $destination
             )
-        );
+        ));
         self::assertTrue($result->isConfirmed());
         self::assertSame(2, $result->getIssuance()->getDestinationWriteVersion());
         self::assertSame(2, $result->getIssuance()->getDestination()->getRevision());

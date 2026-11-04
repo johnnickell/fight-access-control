@@ -8,6 +8,7 @@ use DateTimeImmutable;
 use Fight\AccessControl\Application\AccessControl\Agent\Authentication\CurrentAgentPrincipalProvider;
 use Fight\AccessControl\Application\AccessControl\Agent\Authentication\SignedAgentRequest;
 use Fight\AccessControl\Domain\AccessControl\Agent\AgentCredentialId;
+use Fight\AccessControl\Domain\AccessControl\Agent\Command\RotateAgentCredential;
 use Fight\AccessControl\Domain\AccessControl\Agent\Exception\CurrentAgentPrincipalResolutionRejectedException;
 use Fight\Test\AccessControl\Application\AccessControl\Agent\Credential\RotationEnvironment;
 use Fight\Test\AccessControl\Application\AccessControl\Permission\Repository\InMemoryPermissionRepository;
@@ -36,7 +37,11 @@ final class AgentRotationAuthenticationTest extends TestCase
         // Two controlled transactions model a credential writer interleaved with the nonce boundary.
         $authenticationTransaction = new InMemoryUnitOfWork();
         $rotate = static function () use ($rotation): void {
-            self::assertTrue($rotation->service()->rotate($rotation->key, $rotation->request)->isConfirmed());
+            self::assertTrue(
+                $rotation->bus()->dispatchAndRead(
+                    new RotateAgentCredential($rotation->key, $rotation->request)
+                )->isConfirmed()
+            );
         };
         $nonce = new InMemoryAgentRequestNonceConsumer(
             $env->agentRepository,

@@ -8,7 +8,7 @@ use Fight\Test\AccessControl\Application\AccessControl\AgentCredentialOperation\
     InMemoryAgentCredentialOperationRepository
 };
 use DateTimeImmutable;
-use Fight\AccessControl\Application\AccessControl\Agent\Credential\AgentProvisioningService;
+use Fight\AccessControl\Application\AccessControl\Agent\CommandHandler\ProvisionAgentHandler;
 use Fight\AccessControl\Application\AccessControl\Agent\Credential\HmacSharedSecretCipher;
 use Fight\AccessControl\Application\AccessControl\Agent\Credential\HmacSharedSecretGenerator;
 use Fight\AccessControl\Application\AccessControl\AgentCredentialOperation\Delivery\AgentDeliveryCipher;
@@ -73,7 +73,7 @@ final class ProvisioningEnvironment
         $this->operationAuthorization->destinations[$destination->getId()->toString()] = 1;
     }
 
-    public function service(
+    public function bus(
         ?TransactionalUnitOfWork $unitOfWork = null,
         ?AgentOperationLimits $limits = null,
         ?HmacSharedSecretGenerator $generator = null,
@@ -82,8 +82,8 @@ final class ProvisioningEnvironment
         ?AuditEvidenceRepository $auditEvidenceRepository = null,
         ?AgentRepository $agentRepository = null,
         ?Clock $clock = null
-    ): AgentProvisioningService {
-        return new AgentProvisioningService(
+    ): IssuanceBusFixture {
+        return new IssuanceBusFixture(new ProvisionAgentHandler(
             $agentRepository ?? $this->agentRepository,
             $this->operationRepository,
             $auditEvidenceRepository ?? $this->auditEvidenceRepository,
@@ -106,6 +106,6 @@ final class ProvisioningEnvironment
             $unitOfWork ?? $this->transaction,
             $this->eventDispatcher,
             $limits ?? new AgentOperationLimits()
-        );
+        ), $this->operationRepository, $this->operationAuthorization);
     }
 }

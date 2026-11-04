@@ -23,8 +23,11 @@ notification policy**: consumers must separately sanitize responses and logs and
   throws; it does not undo the committed state or acknowledge success to the caller.
 - Lost commit acknowledgement is not proof of rollback. Reconcile using authoritative current state under current
   authorization rather than inferring outcomes from events or blindly replaying a command.
-- The sole committed-result publication-warning exception remains recoverable Agent provision and rotation. Their
-  typed warning does not apply to revocation, authentication or other handlers; see
+- The confirmed-commit publication-containment exception remains recoverable Agent provision and rotation.
+  TASK-00182's unreleased void Commands complete even if both publishers fail; independent authorized Queries expose
+  original issuance/dispositions, with no returned or reconstructed warning. Lost acknowledgement throws safe
+  execution uncertainty, not success or rollback. This exception does not apply to revocation, authentication or
+  other handlers; see
   [issuance](agent-provisioning-operations.md) and [rotation](agent-rotation-operations.md).
 
 ## Consumer composition
