@@ -299,6 +299,25 @@ Common generic/canonical qualification remains with its owners. At the earlier p
 first; it has since been independently accepted and the current Board owns execution selection.
 No source/dependency/sibling/consumer mutation, product build, new checkout, commit/publication or release follows.
 
+## TASK-00112 direct synchronous User capabilities — accepted checkpoint
+
+Independent Review ACCEPT and nonvisual QA PASS cover the implemented candidate. Publication and final delivery verification are pending at this checkpoint; current results belong to the canonical TASK-00112 Land handoff and actual PR. The Work checkpoint below is historical; consumer qualification remains separate.
+
+### Work checkpoint
+
+Secret-bearing User operations now have direct Application owners: `User\\Authentication\\UserAuthentication`
+for activation/login, `RefreshSession\\SessionLifecycle` for refresh/logout, `User\\PasswordManagement` for change/reset
+and `EmailChangeGrant\\EmailChangeConfirmation` for confirmation. `User\\Authentication\\TokenIssuer` shares token and
+session lifetime creation without persistence, transaction or authorization ownership. The retired broad
+AuthenticationService is removed without a facade or alias. Current constructors, before/after callers and failure
+contracts are in [synchronous composition](docs/user-authentication.md).
+
+The redesign preserves TASK-00111's complete User transitions, existing secret safety, Common ports, repository
+CAS/coupled insertion, recovery/session/audit fences and pre-/uncertain-/post-commit outcomes. It does not implement
+future optional audit, Common adoption, new grants or consumer infrastructure. Canonical Work handoff/logs own the
+verification and tested-content mapping. Independent Review and nonvisual behavioral QA remain required; Work does
+not self-close TASK-00112 or claim consumer database/crypto qualification, publication, release or deployment.
+
 ## User authentication transitions — TASK-00111 Work checkpoint
 
 User activation, password change/reset and email confirmation now construct complete successors with one owned
@@ -308,8 +327,8 @@ existing password-update metadata. Standalone revision increment/rehash APIs are
 Current [composition](docs/operation-outcomes.md#user-authentication-transitions-unreleased) retains repository CAS,
 coupled session insertion, recovery/grant/session/audit transaction fences and existing publication outcomes.
 
-This is TASK-00111's approved design change, not evidence of a previous persistence bypass. AuthenticationService
-remains the synchronous use-case owner; TASK-00112 decomposition is separate. Work verification and subject mapping
+This is TASK-00111's approved design change, not evidence of a previous persistence bypass. At that Work checkpoint,
+AuthenticationService remained the synchronous use-case owner; TASK-00112 now supplies the direct owners above. Work verification and subject mapping
 belong in the canonical TASK handoff. Independent Review/nonvisual QA remain required; no consumer database/crypto
 qualification, release or deployment is claimed at this checkpoint.
 
@@ -1648,9 +1667,9 @@ no merge, release or consumer qualification is claimed.
 
 Dependencies flow `Adapter → Application → Domain`. Domain owns invariants and lifecycle state. Application owns
 synchronous secret-bearing use cases, explicit non-sensitive commands and queries, portable ports, immutable
-token/read results and transaction orchestration. Current source uses AuthenticationService; the approved cohesive
-replacement follows the [Architecture rule](docs/engineering/standards/Architecture.md#application-mirrored-ownership-and-cohesive-capabilities)
-and remains TASK-00112 work. TASK-00103 adds the first optional PSR-15 Permission
+token/read results and transaction orchestration. Current secret-bearing operations use TASK-00112's
+[direct synchronous owners](docs/user-authentication.md) under the
+[Architecture rule](docs/engineering/standards/Architecture.md#application-mirrored-ownership-and-cohesive-capabilities). TASK-00103 adds the first optional PSR-15 Permission
 adapter with separately qualified Slim/Yii 3 composition under capability-first `src/Adapter`, approved in
 [WF-035](planning/wayfinder/tickets/WF-035-framework-permission-adapter-ownership.md). Domain/Application retain their
 DDD structure; native frameworks remain optional. The [profile](planning/agents/project-profile.md#package-boundary-and-contracts)
@@ -1852,7 +1871,7 @@ recovers pending and abandoned-claim work without caller retry. Behavioral-adapt
 consumer activation/use or adoption qualification; TASK-00046 alone did not establish this combined outcome. The complete replacement requires that
 retry does not repeat issuance or its audit fact. Committed issuance is neither confirmed credential delivery,
 enrollment activation nor permission to launch: each requires its own confirmed outcome and current authorization.
-This exception does not change revocation, AuthenticationService or other CommandHandlers. Failure/restart behavior
+This exception does not change revocation, synchronous User capabilities or other CommandHandlers. Failure/restart behavior
 tests and consumer conformance are required before acceptance of the relevant implementation/integration. Package
 provisioning tests are not proof of delivery, real database concurrency, consumer qualification or runtime readiness.
 
