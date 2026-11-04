@@ -57,6 +57,67 @@ use RuntimeException;
 #[CoversClass(AuditEvidence::class)]
 final class AgentProvisioningServiceTest extends TestCase
 {
+    /** @return iterable<string, array{string, string}> */
+    public static function normalizedNames(): iterable
+    {
+        yield 'mixed edges' => ["\0\t\u{00A0}Deploy / é\u{3000}\r\n", 'Deploy / é'];
+        yield 'internal whitespace and case' => [" De\tploy\u{00A0}A  B ", "De\tploy\u{00A0}A  B"];
+        yield 'internal nul' => [" A\0B ", "A\0B"];
+        yield '120 code points' => ["\u{3000}".str_repeat('é', 120)."\u{00A0}", str_repeat('é', 120)];
+        yield 'zero width and bom are names' => [" \u{200B}\u{FEFF} ", "\u{200B}\u{FEFF}"];
+        yield 'decomposed remains decomposed' => [" e\u{0301} ", "e\u{0301}"];
+        yield 'composed remains composed' => [' é ', 'é'];
+    }
+
+    /** @return iterable<string, array{string}> */
+    public static function invalidNames(): iterable
+    {
+        yield 'empty' => [''];
+        yield 'ascii empty' => [" \t\n\0"];
+        yield 'unicode empty' => ["\u{00A0}\u{3000}"];
+        yield '121 code points' => [str_repeat('é', 121)];
+        yield 'invalid byte' => ["\xFF"];
+        yield 'invalid suffix' => ["Valid\xC3"];
+    }
+
+    #[DataProvider('normalizedNames')]
+    public function test_provisioning_stores_the_fixed_name_and_equivalent_retry_resolves_original_issuance(
+        string $input,
+        string $expected
+    ): void {
+        $env = new ProvisioningEnvironment();
+        $request = new AgentProvisioningRequest($input, $env->request->getDestination());
+        $result = $env->service()->provision($env->key, $request);
+        self::assertTrue($result->isConfirmed());
+        self::assertSame($expected, $env->agentRepository->all()[0]->getName()->toString());
+        $stored = $env->agentOperationRepository->operations[$env->key->toString()];
+        self::assertSame(2, $stored->getCanonicalVersion());
+        $retry = new AgentProvisioningRequest($expected, $request->getDestination());
+        self::assertSame($result->getIssuance(), $env->service()->provision($env->key, $retry)->getIssuance());
+        self::assertSame($stored, $env->agentOperationRepository->operations[$env->key->toString()]);
+        self::assertSame(1, $env->generations);
+        self::assertCount(1, $env->auditEvidenceRepository->all());
+        self::assertCount(1, $env->eventDispatcher->events());
+    }
+
+    #[DataProvider('invalidNames')]
+    public function test_invalid_names_preserve_safe_operation_failure_without_any_issuance(string $input): void
+    {
+        $env = new ProvisioningEnvironment();
+        $failure = $this->assertRejected(
+            fn(): AgentProvisioningResult => $env->service()->provision(
+                $env->key,
+                new AgentProvisioningRequest($input, $env->request->getDestination())
+            ),
+            AgentOperationFailure::INVALID_REQUEST
+        );
+        self::assertNull($failure->getPrevious());
+        self::assertSame(0, $env->generations);
+        self::assertSame([], $env->agentRepository->all());
+        self::assertSame([], $env->agentOperationRepository->operations);
+        self::assertSame([], $env->auditEvidenceRepository->all());
+    }
+
     public function test_it_commits_one_complete_issuance_before_publication_and_returns_no_secret(): void
     {
         $environment = new ProvisioningEnvironment();

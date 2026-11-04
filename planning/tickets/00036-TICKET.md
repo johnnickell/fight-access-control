@@ -72,7 +72,7 @@ compatibility aliases, split transactions, outbox/exactly-once delivery, physica
 
 | Order | TASK ID | Title | Status |
 | --- | --- | --- | --- |
-| 203 | [TASK-00113](../tasks/00113-TASK.md) | Make AgentName own provisioning and rename semantics | ready-for-agent |
+| 203 | [TASK-00113](../tasks/00113-TASK.md) | Make AgentName own provisioning and rename semantics | done |
 | 204 | [TASK-00114](../tasks/00114-TASK.md) | Establish credential-operation aggregate and narrow read repositories | ready-for-agent |
 ## Decisions and Progress
 

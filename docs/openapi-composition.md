@@ -55,9 +55,9 @@ suite. Existing activation/password-setting schemas remain unchanged; credential
 
 `Fight.AccessControl.UpdateAgent` describes required `initiator`, UUID `agent_id` and raw `name`.
 `Fight.AccessControl.AgentUpdateInitiator` describes required `type` (`user` or `agent`) and UUID `id`; provenance
-is not authorization. The handler validates trim-normalized name length, so the raw-string schema introduces no
-conflicting `maxLength`. Generated default-suite tests compare both schemas with actual messages and the owning
-principal-type enum. See [name update composition](agent-name-updates.md) for mandatory persistence fences, void
+is not authorization. `AgentName` owns the same fixed Unicode-edge-plus-NUL trim and nonempty UTF-8/120-code-point
+rule for provisioning and rename, so the raw-string schema introduces no conflicting `maxLength`. Generated
+default-suite tests compare both schemas with actual messages and the owning principal-type enum. See [name update composition](agent-name-updates.md) for mandatory persistence fences, void
 synchronous dispatch and post-commit facts. These additive components create no Tool, endpoint or handler result.
 
 ### Feature provisioning (v0.5.0)

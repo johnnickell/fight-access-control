@@ -34,7 +34,10 @@ original correlation and records retirement with audit. Permission changes prese
 New `add()` is insertion only, never an upsert over existing or revoked authority.
 
 [Name updates](agent-name-updates.md) use `UpdateAgent` with typed User/Agent provenance and a mandatory
-`AgentRepository::rename(id, name, now)` name-only capability. The repository samples the supplied clock callback
+`AgentRepository::rename(id, name, now)` name-only capability. Provisioning and rename share `AgentName`'s
+[fixed Unicode-edge rule](agent-canonical-upgrades.md#supported-representation); rename's replacement of PHP `trim`
+is an intentional pre-v1 behavior change, not a provisioning canonical-byte or marker change.
+The repository samples the supplied clock callback
 only after current writer admission, applies `Agent::rename()` to fenced ACTIVE state, and returns the exact persisted
 time or null for a validated no-op. All authority and exact operation correlation are preserved. Last committed
 name wins without an expected old name or name revision; stale whole-Agent writers cannot undo it. No-op changes

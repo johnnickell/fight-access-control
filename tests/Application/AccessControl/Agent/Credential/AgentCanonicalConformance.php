@@ -93,7 +93,7 @@ abstract class AgentCanonicalConformance extends DeliveryConformance
         $order = $fixture->highWater($issuance->getDestination());
         $retry = $request;
         if ($request instanceof AgentProvisioningRequest) {
-            $retry = new AgentProvisioningRequest(' Runner ', $request->getDestination());
+            $retry = new AgentProvisioningRequest("\0\u{3000}Runner\u{00A0}\t", $request->getDestination());
         }
 
         self::assertEquals($issuance, $this->issue($fixture, $key, $retry));

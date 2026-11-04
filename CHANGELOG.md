@@ -25,6 +25,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   authority. Standalone revision increment and password-rehash APIs are removed; update callers directly. Repository
   CAS, coupled session insertion, grant/session/audit atomicity and publication outcomes remain unchanged. See
   [User transition composition](docs/operation-outcomes.md#user-authentication-transitions-unreleased).
+- **Breaking pre-v1 Agent rename semantics:** `AgentName::fromString()` now owns the existing provisioning name
+  rule for both provisioning and rename: fixed Unicode White_Space edge trimming plus NUL, nonempty UTF-8 and at
+  most 120 code points, case/internal whitespace preserved, no NFC conversion, U+200B/U+FEFF untrimmed. Rename
+  intentionally replaces PHP `trim`; Unicode-space-only names now reject. The duplicate
+  `AgentOperationCanonicalization::name()` API is removed without an alias or mode. Provisioning canonical marker
+  **2**, valid request bytes, retained issuance/recovery and rename's authority/no-op/commit/publication fences
+  remain unchanged. See [name updates](docs/agent-name-updates.md); no consumer migration or deployment is supplied.
 - **Breaking pre-v1 PHP organization:** Agent Application collaborators now live in cohesive `Authentication`,
   `Credential`, `Delivery`, `Maintenance`, `Continuation` and `PermissionAssignment` homes; Feature discovery and
   authorization admission have matching capability homes. Repository/bus/dispatcher parameter and property names

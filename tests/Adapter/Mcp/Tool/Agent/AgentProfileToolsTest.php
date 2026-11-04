@@ -64,7 +64,8 @@ final class AgentProfileToolsTest extends TestCase
         yield 'non-string name' => ['agent.profile.update', ['name' => 42]];
         yield 'empty name' => ['agent.profile.update', ['name' => '']];
         yield 'blank name' => ['agent.profile.update', ['name' => " \t\n"]];
-        yield 'long name' => ['agent.profile.update', ['name' => str_repeat('a', 121)]];
+        yield 'unicode blank name' => ['agent.profile.update', ['name' => "\u{00A0}\u{3000}"]];
+        yield 'long name' => ['agent.profile.update', ['name' => str_repeat('é', 121)]];
         foreach (['agent_id', 'initiator', 'credential_id', 'permissions', 'state'] as $field) {
             yield $field => ['agent.profile.update', ['name' => 'Valid', $field => 'forbidden']];
         }
@@ -81,7 +82,9 @@ final class AgentProfileToolsTest extends TestCase
         $this->assertProfile($before, $env, 'Production deployment');
         self::assertSame($transactions, $env->storage->transaction->transactions);
         self::assertSame([], $env->storage->eventDispatcher->events());
-        $changed = $this->wireResult($invoker->invoke('agent.profile.update', ['name' => '  New worker  ']));
+        $changed = $this->wireResult($invoker->invoke('agent.profile.update', [
+            'name' => "\0\u{00A0}New worker\u{3000}"
+        ]));
         $this->assertProfile($changed, $env, 'New worker');
         $after = $env->storage->agentRepository->getById($env->original->getId());
         self::assertNotNull($after);
@@ -92,7 +95,9 @@ final class AgentProfileToolsTest extends TestCase
         self::assertInstanceOf(AgentNameChanged::class, $event);
         self::assertSame('agent:'.$env->original->getId()->toString(), $event->getInitiator()->toString());
         self::assertTrue($env->original->getId()->equals($event->getAgentId()));
-        $unchanged = $this->wireResult($invoker->invoke('agent.profile.update', ['name' => 'New worker']));
+        $unchanged = $this->wireResult($invoker->invoke('agent.profile.update', [
+            'name' => "\u{3000}New worker\u{00A0}\0"
+        ]));
         self::assertSame($changed, $unchanged);
         self::assertSame($after, $env->storage->agentRepository->getById($env->original->getId()));
         self::assertSame(1, $env->storage->agentRepository->nameWrites);

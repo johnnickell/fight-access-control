@@ -18,31 +18,17 @@ use PHPUnit\Framework\TestCase;
 #[CoversClass(AgentProvisioningRequest::class)]
 final class AgentOperationCanonicalizationTest extends TestCase
 {
-    public function test_fixed_unicode_edges_preserve_case_internal_whitespace_and_normalization_forms(): void
+    /** @return iterable<string, array{string, string}> */
+    public static function canonicalNames(): iterable
     {
-        $id = AgentDestinationId::fromString('00000000-0000-4000-8000-000000000057');
-        $destination = new AgentCredentialDestination($id, 7);
-        $request = new AgentProvisioningRequest("\0\t\u{00A0}Deploy / é\u{3000}\r\n", $destination);
-        self::assertSame(
-            '["provision","Deploy \\/ \\u00e9","00000000-0000-4000-8000-000000000057",7]',
-            $request->canonicalize()
-        );
-        self::assertSame('Deploy  A', AgentOperationCanonicalization::name("\u{00A0}Deploy  A\u{3000}"));
-        self::assertSame("De\tploy\u{00A0}A", AgentOperationCanonicalization::name(" De\tploy\u{00A0}A "));
-        self::assertSame(str_repeat('é', 120), AgentOperationCanonicalization::name(str_repeat('é', 120)));
-        $edges = [0, 9, 10, 11, 12, 13, 32, 133, 160, 5760, ...range(8192, 8202), 8232, 8233, 8239, 8287, 12288];
-        foreach ($edges as $point) {
-            $edge = mb_chr($point, 'UTF-8');
-            self::assertSame('X', AgentOperationCanonicalization::name($edge.'X'.$edge));
-        }
-
-        self::assertSame("\u{200B}X\u{FEFF}", AgentOperationCanonicalization::name("\u{200B}X\u{FEFF}"));
-        self::assertSame("e\u{0301}", AgentOperationCanonicalization::name("e\u{0301}"));
-        self::assertNotSame(
-            AgentOperationCanonicalization::name('é'),
-            AgentOperationCanonicalization::name("e\u{0301}")
-        );
-        AgentOperationCanonicalization::assertSupported(2);
+        // Expected JSON bytes are fixed independently of AgentName and json_encode.
+        yield 'mixed edges' => ["\0\t\u{00A0}Deploy / é\u{3000}\r\n", 'Deploy \\/ \\u00e9'];
+        yield 'internal whitespace and case' => [" De\tploy\u{00A0}A  B ", 'De\\tploy\\u00a0A  B'];
+        yield 'internal nul' => [" A\0B ", 'A\\u0000B'];
+        yield '120 code points' => ["\u{3000}".str_repeat('é', 120)."\u{00A0}", str_repeat('\\u00e9', 120)];
+        yield 'zero width and bom are names' => [" \u{200B}\u{FEFF} ", '\\u200b\\ufeff'];
+        yield 'decomposed remains decomposed' => [" e\u{0301} ", 'e\\u0301'];
+        yield 'composed remains composed' => [' é ', '\\u00e9'];
     }
 
     /** @return iterable<string, array{string}> */
@@ -50,20 +36,40 @@ final class AgentOperationCanonicalizationTest extends TestCase
     {
         yield 'empty' => [''];
         yield 'ascii empty' => [" \t\n\0"];
-        yield 'oversized' => [str_repeat('é', 121)];
-        yield 'invalid encoding' => ["\xFF"];
         yield 'unicode empty' => ["\u{00A0}\u{3000}"];
+        yield '121 code points' => [str_repeat('é', 121)];
+        yield 'invalid byte' => ["\xFF"];
+        yield 'invalid suffix' => ["Valid\xC3"];
+    }
+
+    #[DataProvider('canonicalNames')]
+    public function test_current_marker_and_exact_provisioning_bytes_are_unchanged(string $name, string $jsonName): void
+    {
+        $destination = new AgentCredentialDestination(
+            AgentDestinationId::fromString('00000000-0000-4000-8000-000000000057'),
+            7
+        );
+        $request = new AgentProvisioningRequest($name, $destination);
+        self::assertSame($name, $request->getName());
+        self::assertSame(
+            '["provision","'.$jsonName.'","00000000-0000-4000-8000-000000000057",7]',
+            $request->canonicalize()
+        );
+        self::assertSame(2, AgentOperationCanonicalization::VERSION);
+        AgentOperationCanonicalization::assertSupported(2);
     }
 
     #[DataProvider('invalidNames')]
-    public function test_invalid_name_never_falls_back(string $name): void
+    public function test_invalid_name_never_falls_back_or_exposes_domain_diagnostics(string $name): void
     {
+        $destination = new AgentCredentialDestination(AgentDestinationId::generate(), 1);
         try {
-            AgentOperationCanonicalization::name($name);
+            new AgentProvisioningRequest($name, $destination)->canonicalize();
             self::fail('Invalid input must reject.');
         } catch (AgentOperationRejectedException $agentOperationRejectedException) {
             self::assertSame(AgentOperationFailure::INVALID_REQUEST, $agentOperationRejectedException->getReason());
             self::assertNull($agentOperationRejectedException->getPrevious());
+            self::assertStringNotContainsString('120 characters', $agentOperationRejectedException->getMessage());
         }
     }
 

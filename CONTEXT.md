@@ -313,6 +313,26 @@ remains the synchronous use-case owner; TASK-00112 decomposition is separate. Wo
 belong in the canonical TASK handoff. Independent Review/nonvisual QA remain required; no consumer database/crypto
 qualification, release or deployment is claimed at this checkpoint.
 
+## TASK-00113 AgentName ownership — accepted checkpoint
+
+Independent Review ACCEPT and nonvisual QA PASS cover the implemented candidate; current delivery results are in
+`.runs/handoffs/TASK-00113/land.md`. Acceptance does not imply merge, release, consumer qualification or deployment.
+The Work checkpoint below records its earlier stage, not a current Review/QA instruction.
+
+`AgentName::fromString()` now owns the single fixed Unicode White_Space edge set plus NUL, nonempty UTF-8 and
+120-code-point rule for provisioning and rename. It preserves case/internal whitespace, performs no NFC conversion
+and leaves U+200B/U+FEFF untrimmed. Canonical request construction consumes the value, with safe operation-failure
+translation; the duplicate canonicalization name helper is removed directly without an alias or mode.
+Rename intentionally changes from PHP `trim`: NBSP/ideographic padding trims and Unicode-whitespace-only input
+rejects. This is an approved breaking pre-v1 behavior change, not behavior-preserving cleanup.
+
+Provisioning marker **2** and exact existing valid request bytes remain unchanged. Retained original issuance,
+keys/tombstones/restart, current authority and no-op/transaction/publication fences remain independent of name
+construction. TASK-00114's operation/read redesign and TASK-00182's Command conversion remain separate work.
+Fixed expected value/canonical/rename/profile fixtures and existing recovery conformance own package verification;
+canonical evidence is in `.runs/handoffs/TASK-00113/work.md`. Independent Review and nonvisual QA are still required;
+this Work checkpoint claims no acceptance, consumer migration, publication, release or deployment.
+
 ## Current combined MCP and capability organization
 
 TASK-00108's outward MCP presentation/bindings/availability and TASK-00109's inward capability homes and descriptive
@@ -1515,8 +1535,8 @@ no merge, release or consumer qualification is claimed.
   a switch invalidates old acknowledgements, not already disclosed bytes. Consumers separately exclude unchecked old
   binaries and qualify actual shared-connection writer races. No startup-ready boolean grants admission.
 - **Agent canonical request version**: marker `2` identifies the sole supported operation-request representation.
-  Provisioning trims fixed Unicode edge whitespace and preserves case/internal whitespace without NFC conversion;
-  rotation binds its original target/predecessor/destination tuple. Retained keys keep original request/issuance.
+  Provisioning consumes AgentName's fixed Unicode-edge rule, shared with rename, preserving case/internal whitespace
+  without NFC conversion; rotation binds its original target/predecessor/destination tuple. Retained keys keep original request/issuance.
   No historical reader, selectable version or old-data migration is required before first adoption. Marker `1` and
   unknown markers reject without fallback. See the [canonical contract](docs/agent-canonical-upgrades.md);
   actual persistence/sink/authority qualification and restoration safety remain separate.
