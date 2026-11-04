@@ -23,8 +23,10 @@ final readonly class GetFeatureByIdHandler implements QueryHandler
     /**
      * Constructs GetFeatureByIdHandler
      */
-    public function __construct(private FeatureRepository $features, private PermissionRepository $permissions)
-    {
+    public function __construct(
+        private FeatureRepository $featureRepository,
+        private PermissionRepository $permissionRepository
+    ) {
     }
 
     /**
@@ -42,11 +44,11 @@ final readonly class GetFeatureByIdHandler implements QueryHandler
     {
         /** @var GetFeatureById $query */
         $query = $queryMessage->payload();
-        $feature = $this->features->getById($query->getFeatureId());
+        $feature = $this->featureRepository->getById($query->getFeatureId());
         if (!$feature instanceof Feature) {
             throw new FeatureNotFoundException('The Feature does not exist.');
         }
 
-        return FeatureView::fromFeature($feature, $this->permissions->getById($feature->getPermissionId()));
+        return FeatureView::fromFeature($feature, $this->permissionRepository->getById($feature->getPermissionId()));
     }
 }

@@ -33,10 +33,10 @@ use Fight\Common\Application\Mcp\Tool\McpToolInvocation;
 use Fight\Common\Application\Mcp\Tool\McpToolInvoker;
 use Fight\Common\Application\Mcp\Tool\McpToolRegistry;
 
-// Request-scoped dependencies; $commands implements Common SynchronousCommandBus.
+// Request-scoped dependencies; $synchronousCommandBus implements Common SynchronousCommandBus.
 $tools = [
-    new GetAgentProfileTool($provider, $signedRequest, $correlationId, $queries),
-    new UpdateAgentProfileTool($provider, $signedRequest, $correlationId, $commands)
+    new GetAgentProfileTool($provider, $signedRequest, $correlationId, $queryBus),
+    new UpdateAgentProfileTool($provider, $signedRequest, $correlationId, $synchronousCommandBus)
 ];
 $registry = new McpToolRegistry($tools);
 $catalog = new AgentToolPermissionCatalog($registry);
@@ -46,7 +46,7 @@ $invoker = new McpToolInvoker($registry, $availability, failures: AgentProfileTo
 $invocation = new McpToolInvocation($invoker);
 ```
 
-Here `$queries` is Common `QueryBus`, registering `GetAgentProfile` with `GetAgentProfileHandler`; `$commands`
+Here `$queryBus` is Common `QueryBus`, registering `GetAgentProfile` with `GetAgentProfileHandler`; `$synchronousCommandBus`
 registers `UpdateAgent` with `UpdateAgentHandler`. The latter is explicitly `SynchronousCommandBus`, not an async
 queue or a result-bearing bus. Handlers use consumer implementations of the existing Domain repositories and
 transaction/clock/event contracts. The cursor key is consumer-managed, at least 32 bytes, not an Agent credential.

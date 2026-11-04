@@ -49,38 +49,52 @@ final class UserRoleAssignmentHandlerTest extends TestCase
     public function test_managed_super_admin_can_be_assigned_to_pending_user_and_removed_after_commit(): void
     {
         $unitOfWork = new InMemoryUnitOfWork();
-        $users = new InMemoryUserRepository($unitOfWork);
+        $userRepository = new InMemoryUserRepository($unitOfWork);
         $user = UserFixture::withState('pending@example.test', UserState::PENDING_ACTIVATION);
-        $users->add($user);
-        $roles = new InMemoryRoleRepository($unitOfWork);
+        $userRepository->add($user);
+        $roleRepository = new InMemoryRoleRepository($unitOfWork);
         $role = $this->role(Role::SUPER_ADMIN_NAME, managed: true);
-        $roles->add($role);
+        $roleRepository->add($role);
         $actorId = UserId::generate();
-        $events = new InMemoryEventDispatcher(static function ($event) use ($unitOfWork, $users, $user): void {
-            self::assertTrue($unitOfWork->transactionCompleted);
-            self::assertNotNull($users->getById($user->getId()));
-        });
-        $assignment = new AssignRoleToUserHandler($users, $roles, new FixedClock(self::NOW), $unitOfWork, $events);
-        $removal = new RemoveRoleFromUserHandler($users, $roles, new FixedClock(self::NOW), $unitOfWork, $events);
+        $eventDispatcher = new InMemoryEventDispatcher(
+            static function ($event) use ($unitOfWork, $userRepository, $user): void {
+                self::assertTrue($unitOfWork->transactionCompleted);
+                self::assertNotNull($userRepository->getById($user->getId()));
+            }
+        );
+        $assignment = new AssignRoleToUserHandler(
+            $userRepository,
+            $roleRepository,
+            new FixedClock(self::NOW),
+            $unitOfWork,
+            $eventDispatcher
+        );
+        $removal = new RemoveRoleFromUserHandler(
+            $userRepository,
+            $roleRepository,
+            new FixedClock(self::NOW),
+            $unitOfWork,
+            $eventDispatcher
+        );
         $beforeVersion = $user->getAuthenticationVersion();
 
         $assignment->handle(CommandMessage::create(new AssignRoleToUser($actorId, $user->getId(), $role->getId())));
-        $assigned = $users->getById($user->getId());
+        $assigned = $userRepository->getById($user->getId());
         self::assertInstanceOf(User::class, $assigned);
         self::assertTrue($assigned->hasRole($role->getId()));
         self::assertSame(UserState::PENDING_ACTIVATION, $assigned->getState());
         self::assertSame($beforeVersion, $assigned->getAuthenticationVersion());
         self::assertSame(1, $assigned->getAuthorizationAssignmentRevision());
-        self::assertInstanceOf(RoleAssignedToUser::class, $events->events()[0]);
-        self::assertSame($actorId, $events->events()[0]->getActorId());
+        self::assertInstanceOf(RoleAssignedToUser::class, $eventDispatcher->events()[0]);
+        self::assertSame($actorId, $eventDispatcher->events()[0]->getActorId());
 
         $removal->handle(CommandMessage::create(new RemoveRoleFromUser($actorId, $user->getId(), $role->getId())));
-        $removed = $users->getById($user->getId());
+        $removed = $userRepository->getById($user->getId());
         self::assertInstanceOf(User::class, $removed);
         self::assertFalse($removed->hasRole($role->getId()));
         self::assertSame(2, $removed->getAuthorizationAssignmentRevision());
         self::assertSame(2, $unitOfWork->transactions);
-        self::assertInstanceOf(RoleRemovedFromUser::class, $events->events()[1]);
+        self::assertInstanceOf(RoleRemovedFromUser::class, $eventDispatcher->events()[1]);
     }
 
     public function test_disabled_and_deleted_users_retain_ordinary_role_storage_semantics(): void
@@ -88,50 +102,68 @@ final class UserRoleAssignmentHandlerTest extends TestCase
         foreach ([UserState::DISABLED, UserState::DELETED] as $state) {
             $unitOfWork = new InMemoryUnitOfWork();
             $user = UserFixture::withState($state->value.'@example.test', $state);
-            $users = new InMemoryUserRepository($unitOfWork);
-            $users->add($user);
-            $roles = new InMemoryRoleRepository($unitOfWork);
+            $userRepository = new InMemoryUserRepository($unitOfWork);
+            $userRepository->add($user);
+            $roleRepository = new InMemoryRoleRepository($unitOfWork);
             $role = $this->role(Role::SUPER_ADMIN_NAME, managed: true);
-            $roles->add($role);
-            $events = new InMemoryEventDispatcher();
+            $roleRepository->add($role);
+            $eventDispatcher = new InMemoryEventDispatcher();
             $actor = UserId::generate();
 
-            new AssignRoleToUserHandler($users, $roles, new FixedClock(self::NOW), $unitOfWork, $events)
+            new AssignRoleToUserHandler(
+                $userRepository,
+                $roleRepository,
+                new FixedClock(self::NOW),
+                $unitOfWork,
+                $eventDispatcher
+            )
                 ->handle(CommandMessage::create(new AssignRoleToUser($actor, $user->getId(), $role->getId())));
-            $assigned = $users->getById($user->getId());
+            $assigned = $userRepository->getById($user->getId());
             self::assertInstanceOf(User::class, $assigned);
             self::assertSame($state, $assigned->getState());
             self::assertTrue($assigned->hasRole($role->getId()));
 
-            new RemoveRoleFromUserHandler($users, $roles, new FixedClock(self::NOW), $unitOfWork, $events)
+            new RemoveRoleFromUserHandler(
+                $userRepository,
+                $roleRepository,
+                new FixedClock(self::NOW),
+                $unitOfWork,
+                $eventDispatcher
+            )
                 ->handle(CommandMessage::create(new RemoveRoleFromUser($actor, $user->getId(), $role->getId())));
-            $removed = $users->getById($user->getId());
+            $removed = $userRepository->getById($user->getId());
             self::assertInstanceOf(User::class, $removed);
             self::assertSame($state, $removed->getState());
             self::assertFalse($removed->hasRole($role->getId()));
             self::assertSame(2, $removed->getAuthorizationAssignmentRevision());
-            self::assertCount(2, $events->events());
+            self::assertCount(2, $eventDispatcher->events());
         }
     }
 
     public function test_ordinary_roles_retain_other_assignments_and_do_not_change_authentication_state(): void
     {
         $unitOfWork = new InMemoryUnitOfWork();
-        $users = new InMemoryUserRepository($unitOfWork);
+        $userRepository = new InMemoryUserRepository($unitOfWork);
         $role = $this->role();
         $existing = $this->role('ROLE_EXISTING');
-        $roles = new InMemoryRoleRepository($unitOfWork);
-        $roles->add($existing);
-        $roles->add($role);
+        $roleRepository = new InMemoryRoleRepository($unitOfWork);
+        $roleRepository->add($existing);
+        $roleRepository->add($role);
 
         $user = UserFixture::withRoleAssignments([$existing->getId()], 5);
-        $users->add($user);
-        $events = new InMemoryEventDispatcher();
+        $userRepository->add($user);
+        $eventDispatcher = new InMemoryEventDispatcher();
 
-        new AssignRoleToUserHandler($users, $roles, new FixedClock(self::NOW), $unitOfWork, $events)
+        new AssignRoleToUserHandler(
+            $userRepository,
+            $roleRepository,
+            new FixedClock(self::NOW),
+            $unitOfWork,
+            $eventDispatcher
+        )
             ->handle(CommandMessage::create(new AssignRoleToUser(UserId::generate(), $user->getId(), $role->getId())));
 
-        $stored = $users->getById($user->getId());
+        $stored = $userRepository->getById($user->getId());
         self::assertInstanceOf(User::class, $stored);
         self::assertTrue($stored->hasRole($existing->getId()));
         self::assertTrue($stored->hasRole($role->getId()));
@@ -139,7 +171,7 @@ final class UserRoleAssignmentHandlerTest extends TestCase
         self::assertSame($user->getAuthenticationVersion(), $stored->getAuthenticationVersion());
         self::assertSame($user->getAuthenticationAuthorityRevision(), $stored->getAuthenticationAuthorityRevision());
         self::assertSame(self::NOW, $stored->getUpdatedAt()->format(DATE_ATOM));
-        self::assertCount(1, $events->events());
+        self::assertCount(1, $eventDispatcher->events());
     }
 
     public function test_no_op_retries_validate_references_without_writing_or_emitting_events(): void
@@ -147,19 +179,27 @@ final class UserRoleAssignmentHandlerTest extends TestCase
         foreach ([true, false] as $assigning) {
             $unitOfWork = new InMemoryUnitOfWork();
             $role = $this->role();
-            $users = new InMemoryUserRepository($unitOfWork);
+            $userRepository = new InMemoryUserRepository($unitOfWork);
             $user = UserFixture::withRoleAssignments($assigning ? [$role->getId()] : [], 7);
-            $roles = new InMemoryRoleRepository($unitOfWork);
-            $roles->add($role);
-            $users->add($user);
-            $events = new InMemoryEventDispatcher();
-            [$handler, $command] = $this->operation($assigning, $users, $roles, $unitOfWork, $events, $user, $role);
+            $roleRepository = new InMemoryRoleRepository($unitOfWork);
+            $roleRepository->add($role);
+            $userRepository->add($user);
+            $eventDispatcher = new InMemoryEventDispatcher();
+            [$handler, $command] = $this->operation(
+                $assigning,
+                $userRepository,
+                $roleRepository,
+                $unitOfWork,
+                $eventDispatcher,
+                $user,
+                $role
+            );
 
             $handler->handle(CommandMessage::create($command));
 
-            self::assertSame($user, $users->getById($user->getId()));
+            self::assertSame($user, $userRepository->getById($user->getId()));
             self::assertSame(7, $user->getAuthorizationAssignmentRevision());
-            self::assertCount(0, $events->events());
+            self::assertCount(0, $eventDispatcher->events());
             self::assertSame(1, $unitOfWork->transactions);
         }
     }
@@ -172,12 +212,12 @@ final class UserRoleAssignmentHandlerTest extends TestCase
             $designated = $this->role(Role::SUPER_ADMIN_NAME, managed: true);
             foreach (['user', 'role', 'identity'] as $invalid) {
                 $unitOfWork = new InMemoryUnitOfWork();
-                $users = new InMemoryUserRepository($unitOfWork);
+                $userRepository = new InMemoryUserRepository($unitOfWork);
                 if ($invalid !== 'user') {
-                    $users->add($user);
+                    $userRepository->add($user);
                 }
 
-                $roles = new InMemoryRoleRepository($unitOfWork);
+                $roleRepository = new InMemoryRoleRepository($unitOfWork);
                 if ($invalid !== 'role') {
                     $storedRole = $role;
                     if ($invalid === 'identity') {
@@ -189,16 +229,24 @@ final class UserRoleAssignmentHandlerTest extends TestCase
                         );
                     }
 
-                    $roles->add($storedRole);
+                    $roleRepository->add($storedRole);
                 }
 
                 if ($invalid === 'identity') {
-                    $roles->add($designated);
+                    $roleRepository->add($designated);
                     $role = $designated;
                 }
 
-                $events = new InMemoryEventDispatcher();
-                [$handler, $command] = $this->operation($assigning, $users, $roles, $unitOfWork, $events, $user, $role);
+                $eventDispatcher = new InMemoryEventDispatcher();
+                [$handler, $command] = $this->operation(
+                    $assigning,
+                    $userRepository,
+                    $roleRepository,
+                    $unitOfWork,
+                    $eventDispatcher,
+                    $user,
+                    $role
+                );
                 $failure = $this->captureFailure($handler, $command);
 
                 self::assertInstanceOf(
@@ -206,7 +254,7 @@ final class UserRoleAssignmentHandlerTest extends TestCase
                     $failure
                 );
                 self::assertSame(3, $user->getAuthorizationAssignmentRevision());
-                $this->assertFailure($events, $command, $failure);
+                $this->assertFailure($eventDispatcher, $command, $failure);
             }
         }
     }
@@ -217,38 +265,38 @@ final class UserRoleAssignmentHandlerTest extends TestCase
             foreach (['wrong id', 'duplicate name'] as $case) {
                 $unitOfWork = new InMemoryUnitOfWork();
                 $user = UserFixture::withRoleAssignments([], 3);
-                $users = new InMemoryUserRepository($unitOfWork);
-                $users->add($user);
+                $userRepository = new InMemoryUserRepository($unitOfWork);
+                $userRepository->add($user);
                 $requested = $this->role(Role::SUPER_ADMIN_NAME, managed: true);
                 $other = $this->role(Role::SUPER_ADMIN_NAME, managed: true);
-                $roles = $this->createStub(RoleRepository::class);
-                $roles->method('getById')->willReturn($case === 'wrong id' ? $other : $requested);
-                $roles->method('getByName')->willReturn($other);
-                $events = new InMemoryEventDispatcher();
+                $roleRepository = $this->createStub(RoleRepository::class);
+                $roleRepository->method('getById')->willReturn($case === 'wrong id' ? $other : $requested);
+                $roleRepository->method('getByName')->willReturn($other);
+                $eventDispatcher = new InMemoryEventDispatcher();
                 $command = new RemoveRoleFromUser(UserId::generate(), $user->getId(), $requested->getId());
                 $handler = new RemoveRoleFromUserHandler(
-                    $users,
-                    $roles,
+                    $userRepository,
+                    $roleRepository,
                     new FixedClock(self::NOW),
                     $unitOfWork,
-                    $events
+                    $eventDispatcher
                 );
                 if ($assigning) {
                     $command = new AssignRoleToUser(UserId::generate(), $user->getId(), $requested->getId());
                     $handler = new AssignRoleToUserHandler(
-                        $users,
-                        $roles,
+                        $userRepository,
+                        $roleRepository,
                         new FixedClock(self::NOW),
                         $unitOfWork,
-                        $events
+                        $eventDispatcher
                     );
                 }
 
                 $failure = $this->captureFailure($handler, $command);
 
                 self::assertInstanceOf(UserRoleAssignmentException::class, $failure);
-                self::assertSame($user, $users->getById($user->getId()));
-                $this->assertFailure($events, $command, $failure);
+                self::assertSame($user, $userRepository->getById($user->getId()));
+                $this->assertFailure($eventDispatcher, $command, $failure);
             }
         }
     }
@@ -268,23 +316,31 @@ final class UserRoleAssignmentHandlerTest extends TestCase
                 $invalidate = static function () use ($unitOfWork, $role): void {
                     $unitOfWork->authorizationReferenceState()->removeRole($role->getId());
                 };
-                $users = new InMemoryUserRepository(
+                $userRepository = new InMemoryUserRepository(
                     $unitOfWork,
                     replaceRoleAssignmentsSucceeds: $case !== 'compare',
                     beforeReplaceRoleAssignments: $case === 'change' ? $invalidate : null,
                     beforeValidateRoleAssignmentReference: $case === 'no-op' ? $invalidate : null
                 );
-                $roles = new InMemoryRoleRepository($unitOfWork);
-                $roles->add($role);
-                $users->add($user);
-                $events = new InMemoryEventDispatcher();
-                [$handler, $command] = $this->operation($assigning, $users, $roles, $unitOfWork, $events, $user, $role);
+                $roleRepository = new InMemoryRoleRepository($unitOfWork);
+                $roleRepository->add($role);
+                $userRepository->add($user);
+                $eventDispatcher = new InMemoryEventDispatcher();
+                [$handler, $command] = $this->operation(
+                    $assigning,
+                    $userRepository,
+                    $roleRepository,
+                    $unitOfWork,
+                    $eventDispatcher,
+                    $user,
+                    $role
+                );
                 $failure = $this->captureFailure($handler, $command);
 
                 self::assertInstanceOf(UserRoleAssignmentException::class, $failure);
-                self::assertSame($user, $users->getById($user->getId()));
+                self::assertSame($user, $userRepository->getById($user->getId()));
                 self::assertSame(7, $user->getAuthorizationAssignmentRevision());
-                $this->assertFailure($events, $command, $failure);
+                $this->assertFailure($eventDispatcher, $command, $failure);
             }
         }
     }
@@ -296,13 +352,13 @@ final class UserRoleAssignmentHandlerTest extends TestCase
                 $failure = new RuntimeException('Dependency failed.');
                 $unitOfWork = new InMemoryUnitOfWork();
                 $user = UserFixture::withRoleAssignments([], 0);
-                $users = new InMemoryUserRepository(
+                $userRepository = new InMemoryUserRepository(
                     $unitOfWork,
                     getByIdFailure: $dependency === 'user' ? $failure : null
                 );
-                $users->add($user);
+                $userRepository->add($user);
                 $role = $this->role();
-                $roles = new ControllableRoleRepository(
+                $roleRepository = new ControllableRoleRepository(
                     $role,
                     getFailure: $dependency === 'role' ? $failure : null
                 );
@@ -316,16 +372,28 @@ final class UserRoleAssignmentHandlerTest extends TestCase
                         throw $this->failure;
                     }
                 } : new FixedClock(self::NOW);
-                $events = new InMemoryEventDispatcher();
+                $eventDispatcher = new InMemoryEventDispatcher();
                 $command = new RemoveRoleFromUser(UserId::generate(), $user->getId(), $role->getId());
-                $handler = new RemoveRoleFromUserHandler($users, $roles, $clock, $unitOfWork, $events);
+                $handler = new RemoveRoleFromUserHandler(
+                    $userRepository,
+                    $roleRepository,
+                    $clock,
+                    $unitOfWork,
+                    $eventDispatcher
+                );
                 if ($assigning) {
                     $command = new AssignRoleToUser(UserId::generate(), $user->getId(), $role->getId());
-                    $handler = new AssignRoleToUserHandler($users, $roles, $clock, $unitOfWork, $events);
+                    $handler = new AssignRoleToUserHandler(
+                        $userRepository,
+                        $roleRepository,
+                        $clock,
+                        $unitOfWork,
+                        $eventDispatcher
+                    );
                 }
 
                 self::assertSame($failure, $this->captureFailure($handler, $command));
-                $this->assertFailure($events, $command, $failure);
+                $this->assertFailure($eventDispatcher, $command, $failure);
             }
         }
     }
@@ -394,22 +462,34 @@ final class UserRoleAssignmentHandlerTest extends TestCase
      */
     private function operation(
         bool $assigning,
-        InMemoryUserRepository $users,
-        InMemoryRoleRepository $roles,
+        InMemoryUserRepository $userRepository,
+        InMemoryRoleRepository $roleRepository,
         InMemoryUnitOfWork $unitOfWork,
-        InMemoryEventDispatcher $events,
+        InMemoryEventDispatcher $eventDispatcher,
         User $user,
         Role $role
     ): array {
         if ($assigning) {
             return [
-                new AssignRoleToUserHandler($users, $roles, new FixedClock(self::NOW), $unitOfWork, $events),
+                new AssignRoleToUserHandler(
+                    $userRepository,
+                    $roleRepository,
+                    new FixedClock(self::NOW),
+                    $unitOfWork,
+                    $eventDispatcher
+                ),
                 new AssignRoleToUser(UserId::generate(), $user->getId(), $role->getId())
             ];
         }
 
         return [
-            new RemoveRoleFromUserHandler($users, $roles, new FixedClock(self::NOW), $unitOfWork, $events),
+            new RemoveRoleFromUserHandler(
+                $userRepository,
+                $roleRepository,
+                new FixedClock(self::NOW),
+                $unitOfWork,
+                $eventDispatcher
+            ),
             new RemoveRoleFromUser(UserId::generate(), $user->getId(), $role->getId())
         ];
     }
@@ -427,12 +507,12 @@ final class UserRoleAssignmentHandlerTest extends TestCase
     }
 
     private function assertFailure(
-        InMemoryEventDispatcher $events,
+        InMemoryEventDispatcher $eventDispatcher,
         AssignRoleToUser|RemoveRoleFromUser $command,
         Throwable $failure
     ): void {
-        self::assertCount(1, $events->events());
-        $event = $events->events()[0];
+        self::assertCount(1, $eventDispatcher->events());
+        $event = $eventDispatcher->events()[0];
         self::assertInstanceOf(CommandFailedEvent::class, $event);
         self::assertSame($command, $event->getCommand());
         $message = 'User role removal failed.';

@@ -299,6 +299,25 @@ Common generic/canonical qualification remains with its owners. At the earlier p
 first; it has since been independently accepted and the current Board owns execution selection.
 No source/dependency/sibling/consumer mutation, product build, new checkout, commit/publication or release follows.
 
+## TASK-00109 capability organization — Work checkpoint
+
+The selected implementation groups Agent collaborators and mirrored tests under `Authentication`, `Credential`,
+`Delivery`, `Maintenance` and `Continuation`, retaining actual inward ports and distinct failure/authority/outcome
+contracts. The internal assignment coordinator is in `PermissionAssignment`, while message handlers keep their
+registrations and post-commit publication. Feature reference/discovery contracts share `Feature/Discovery`;
+Permission declarations, admission and trusted request authority share `Authorization/Admission`. MCP profile
+Tools/catalogs/family availability remain at their current Application homes for separate TASK-00108.
+
+The naming inspection covers all owned PHP source, tests/fixtures, shipped OpenAPI helpers and maintained runnable
+examples. Repositories, buses and dispatchers now use responsibility names, including named callers and native
+composition. Actual lists/maps/results retain plurals: Agent/Permission/Role collections, repository backing arrays,
+FeatureCreated event batches, captured event lists and the User repository-state fixture are not collaborators.
+Different fixture participants keep qualifiers (for example login/reset repositories and role/Agent dispatchers).
+The current [composition map](docs/agent-integration.md#public-composition-map) describes canonical homes; no aliases,
+new forwarding graph, new dependency or behavior redesign is introduced. User authentication decomposition and Agent
+name/operation redesign remain separate work. Canonical TASK-00109 handoff/logs own verification and exact subject;
+independent Review and behavioral QA remain required. This Work checkpoint is not acceptance, release or adoption.
+
 ## TASK-00107 guidance checkpoint — independently accepted
 
 Independent Review and nonvisual QA accepted candidate `cc022c4f664841e21a7401a6d356b411167a90c0`.
@@ -312,7 +331,7 @@ framework-only Adapter and single-AuthenticationService requirements. WF-035's c
 The [source-linked Common notes](planning/agents/domain.md#consumed-common-contracts) identify current consumption
 without guessing canonical APIs/minima or clearing TASK-00110's hold.
 
-This is guidance implementation only, not source-conformance certification. Current source still keeps Agent MCP
+This was guidance implementation only, not source-conformance certification. At that candidate, source kept Agent MCP
 Tools/catalogs/family availability in Application, broad Agent Security/Service homes, one AuthenticationService,
 and operation types under Agent. TASK-00108 owns MCP presentation moves, TASK-00109 cohesion/naming, TASK-00111/00112
 User transitions/synchronous decomposition, TASK-00113 AgentName and TASK-00114 operation/read ownership.

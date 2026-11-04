@@ -41,7 +41,7 @@ final class RecoveryOutcomeTest extends TestCase
                 }
 
                 $beforeUser = clone $fixture->user();
-                $beforeGrants = $fixture->grants->all();
+                $beforeGrants = $fixture->passwordResetGrantRepository->all();
                 $primary = new RuntimeException('Synthetic interrupted completion.');
                 $hook = static function () use ($fixture, $operation, $primary): void {
                     if ($operation !== 'outcome' || $fixture->unitOfWork->transactions === 3) {
@@ -73,10 +73,10 @@ final class RecoveryOutcomeTest extends TestCase
                             $restarted->grant()->getDelivery()->getStatus()
                         );
                     } else {
-                        self::assertEquals($beforeGrants, $restarted->grants->all());
+                        self::assertEquals($beforeGrants, $restarted->passwordResetGrantRepository->all());
                     }
                 } elseif ($operation === 'request') {
-                    self::assertCount(1, $restarted->grants->all());
+                    self::assertCount(1, $restarted->passwordResetGrantRepository->all());
                     self::assertTrue($restarted->grant()->isAuthorizedBy($restarted->user()));
                 } elseif ($operation === 'claim') {
                     self::assertSame(
@@ -121,14 +121,16 @@ final class RecoveryOutcomeTest extends TestCase
 
             $primary = new RuntimeException('Synthetic detail. recovery-fixture fixture:encrypted');
             $attempts = [];
-            $fixture->events = new InMemoryEventDispatcher(static function ($event) use (&$attempts, $primary): void {
-                $attempts[] = $event;
-                if ($event instanceof CommandFailedEvent || $event instanceof RedactedCommandFailed) {
-                    throw new RuntimeException('Synthetic secondary failure.');
-                }
+            $fixture->eventDispatcher = new InMemoryEventDispatcher(
+                static function ($event) use (&$attempts, $primary): void {
+                    $attempts[] = $event;
+                    if ($event instanceof CommandFailedEvent || $event instanceof RedactedCommandFailed) {
+                        throw new RuntimeException('Synthetic secondary failure.');
+                    }
 
-                throw $primary;
-            });
+                    throw $primary;
+                }
+            );
             $caught = null;
             try {
                 $this->operate($fixture, $operation);
@@ -146,11 +148,11 @@ final class RecoveryOutcomeTest extends TestCase
             self::assertStringNotContainsString('Synthetic detail', $serialized);
             if ($operation === 'request') {
                 self::assertTrue($fixture->grant()->isIssued());
-                self::assertCount(1, $fixture->audit->all());
+                self::assertCount(1, $fixture->auditEvidenceRepository->all());
             } else {
                 self::assertFalse($fixture->grant()->isIssued());
                 self::assertNull($fixture->grant()->getDelivery()->getEncryptedMaterial());
-                self::assertCount(2, $fixture->audit->all());
+                self::assertCount(2, $fixture->auditEvidenceRepository->all());
             }
         }
     }

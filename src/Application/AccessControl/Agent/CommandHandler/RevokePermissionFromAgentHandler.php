@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Fight\AccessControl\Application\AccessControl\Agent\CommandHandler;
 
+use Fight\AccessControl\Application\AccessControl\Agent\PermissionAssignment\AgentPermissionAssignmentCoordinator;
 use Fight\AccessControl\Application\AccessControl\Timing\Service\Clock;
 use Fight\AccessControl\Domain\AccessControl\Agent\AgentRepository;
 use Fight\AccessControl\Domain\AccessControl\Agent\Command\RevokePermissionFromAgent;

@@ -53,7 +53,7 @@ final class InMemoryAgentRepository implements AgentRepository
         private readonly ?Closure $beforeReplacePermissionAssignments = null,
         private readonly ?Closure $beforeValidatePermissionAssignments = null,
         private readonly ?Throwable $replacePermissionAssignmentsFailure = null,
-        private readonly ?InMemoryAgentOperationRepository $operations = null
+        private readonly ?InMemoryAgentOperationRepository $agentOperationRepository = null
     ) {
         $resolvedAuthorizationReferences = $authorizationReferences ?? new InMemoryAuthorizationReferenceState();
         if (
@@ -64,7 +64,7 @@ final class InMemoryAgentRepository implements AgentRepository
         }
 
         $this->authorizationReferences = $resolvedAuthorizationReferences;
-        $this->contract = $operations->contract ?? new InMemoryAgentOperationContract($unitOfWork);
+        $this->contract = $agentOperationRepository->contract ?? new InMemoryAgentOperationContract($unitOfWork);
     }
 
     public function getOperationContract(): AgentOperationContract
@@ -131,7 +131,11 @@ final class InMemoryAgentRepository implements AgentRepository
     {
         $this->beforeNameWrite?->__invoke();
         $this->getOperationContract()->assertCompatible();
-        if ($this->operations === null || !$this->operations->participatesIn($this->unitOfWork)) {
+        if (
+            $this->agentOperationRepository === null || !$this->agentOperationRepository->participatesIn(
+                $this->unitOfWork
+            )
+        ) {
             throw new AgentOperationRejectedException(AgentOperationFailure::UNAVAILABLE);
         }
 
@@ -141,7 +145,7 @@ final class InMemoryAgentRepository implements AgentRepository
         }
 
         $matches = array_filter(
-            $this->operations->operations,
+            $this->agentOperationRepository->operations,
             static function (AgentCredentialOperation $operation) use ($current): bool {
                 $issuance = $operation->getIssuance();
 
@@ -186,11 +190,15 @@ final class InMemoryAgentRepository implements AgentRepository
                 continue;
             }
 
-            if ($this->operations === null || !$this->operations->participatesIn($this->unitOfWork)) {
+            if (
+                $this->agentOperationRepository === null || !$this->agentOperationRepository->participatesIn(
+                    $this->unitOfWork
+                )
+            ) {
                 throw new AgentOperationRejectedException(AgentOperationFailure::UNAVAILABLE);
             }
 
-            $this->operations->retireCredential($expected, $replacement);
+            $this->agentOperationRepository->retireCredential($expected, $replacement);
 
             $this->agents[$index] = $replacement;
             $this->authorizationReferences->retainAgent($replacement);

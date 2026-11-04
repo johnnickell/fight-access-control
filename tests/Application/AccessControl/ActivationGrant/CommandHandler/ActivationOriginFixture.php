@@ -32,11 +32,11 @@ use Fight\Test\AccessControl\Application\AccessControl\User\Repository\InMemoryU
 
 final class ActivationOriginFixture
 {
-    public InMemoryActivationGrantRepository $grants;
+    public InMemoryActivationGrantRepository $activationGrantRepository;
 
-    public readonly InMemoryAuditEvidenceRepository $audit;
+    public readonly InMemoryAuditEvidenceRepository $auditEvidenceRepository;
 
-    public readonly InMemoryUserRepository $users;
+    public readonly InMemoryUserRepository $userRepository;
 
     public readonly ActivationGrant $initial;
 
@@ -47,9 +47,9 @@ final class ActivationOriginFixture
     public function __construct(ActivationOrigin $origin, ?InMemoryUnitOfWork $unitOfWork = null)
     {
         $this->unitOfWork = $unitOfWork ?? new InMemoryUnitOfWork();
-        $this->grants = new InMemoryActivationGrantRepository($this->unitOfWork);
-        $this->audit = new InMemoryAuditEvidenceRepository($this->unitOfWork);
-        $this->users = new InMemoryUserRepository($this->unitOfWork);
+        $this->activationGrantRepository = new InMemoryActivationGrantRepository($this->unitOfWork);
+        $this->auditEvidenceRepository = new InMemoryAuditEvidenceRepository($this->unitOfWork);
+        $this->userRepository = new InMemoryUserRepository($this->unitOfWork);
         $at = new DateTimeImmutable('2030-01-01T00:00:00Z');
         $this->user = User::invite(UserId::generate(), EmailAddress::fromString('origin@example.test'), $at);
         $this->initial = ActivationGrant::issue(
@@ -61,37 +61,37 @@ final class ActivationOriginFixture
             $this->user->getEmail(),
             'ciphertext:origin-fixture'
         );
-        $this->users->add($this->user);
-        $this->grants->add($this->initial);
+        $this->userRepository->add($this->user);
+        $this->activationGrantRepository->add($this->initial);
     }
 
     public function worker(
         RecordingCredentialDeliveryProvider $provider,
         string $at = '2030-01-01T00:00:00Z',
-        ?InMemoryEventDispatcher $events = null,
+        ?InMemoryEventDispatcher $eventDispatcher = null,
         ?TransactionalUnitOfWork $unitOfWork = null
     ): DeliverUserInvitationHandler {
         return new DeliverUserInvitationHandler(
-            $this->grants,
-            $this->audit,
+            $this->activationGrantRepository,
+            $this->auditEvidenceRepository,
             $unitOfWork ?? $this->unitOfWork,
             new PrefixInvitationDeliveryCipher(),
             $provider,
             new FixedClock($at),
-            $events ?? new InMemoryEventDispatcher()
+            $eventDispatcher ?? new InMemoryEventDispatcher()
         );
     }
 
-    public function resend(?InMemoryEventDispatcher $events = null): ResendInvitationDeliveryHandler
+    public function resend(?InMemoryEventDispatcher $eventDispatcher = null): ResendInvitationDeliveryHandler
     {
         return new ResendInvitationDeliveryHandler(
-            $this->grants,
-            $this->audit,
+            $this->activationGrantRepository,
+            $this->auditEvidenceRepository,
             $this->unitOfWork,
             new FixedCredentialGenerator('successor-fixture'),
             new PrefixInvitationDeliveryCipher(),
             new FixedClock('2030-01-01T00:01:00Z'),
-            $events ?? new InMemoryEventDispatcher()
+            $eventDispatcher ?? new InMemoryEventDispatcher()
         );
     }
 
@@ -99,7 +99,7 @@ final class ActivationOriginFixture
     public function discover(string $at): array
     {
         return new FindDueCredentialDeliveriesHandler(
-            $this->grants,
+            $this->activationGrantRepository,
             new InMemoryPasswordResetGrants(),
             new InMemoryEmailChangeGrantRepository()
         )->handle(QueryMessage::create(new FindDueCredentialDeliveries(new DateTimeImmutable($at), 50)));

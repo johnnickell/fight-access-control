@@ -34,38 +34,38 @@ final class RegisterUserHandlerTest extends TestCase
     public function test_complete_pending_registration_is_visible_before_its_fact_and_never_implies_delivery(): void
     {
         $fixture = null;
-        $events = new InMemoryEventDispatcher(static function ($event) use (&$fixture): void {
+        $eventDispatcher = new InMemoryEventDispatcher(static function ($event) use (&$fixture): void {
             self::assertInstanceOf(RegistrationFixture::class, $fixture);
             self::assertInstanceOf(UserRegistered::class, $event);
             self::assertFalse($fixture->unitOfWork->transactionActive);
             self::assertTrue($fixture->unitOfWork->transactionCompleted);
-            self::assertCount(1, $fixture->users->all());
-            self::assertCount(1, $fixture->grants->all());
-            self::assertCount(1, $fixture->audit->all());
+            self::assertCount(1, $fixture->userRepository->all());
+            self::assertCount(1, $fixture->activationGrantRepository->all());
+            self::assertCount(1, $fixture->auditEvidenceRepository->all());
         });
-        $fixture = new RegistrationFixture(events: $events);
+        $fixture = new RegistrationFixture(eventDispatcher: $eventDispatcher);
         $command = $fixture->command();
         $fixture->handler(['ROLE_MEMBER', 'ROLE_READER', 'ROLE_MEMBER'])->handle(CommandMessage::create($command));
         self::assertSame(RegisterUser::class, RegisterUserHandler::commandRegistration());
         self::assertSame(1, $fixture->unitOfWork->transactions);
-        $user = $fixture->users->getById($command->getUserId());
+        $user = $fixture->userRepository->getById($command->getUserId());
         self::assertNotNull($user);
         self::assertSame(UserState::PENDING_ACTIVATION, $user->getState());
         self::assertNull($user->getPasswordHash());
         self::assertSame('alice@example.test', $user->getEmail()->canonical());
         self::assertEqualsCanonicalizing([$fixture->member->getId(), $fixture->reader->getId()], $user->getRoleIds());
-        $grant = $fixture->grants->all()[0];
+        $grant = $fixture->activationGrantRepository->all()[0];
         self::assertSame($command->getUserId(), $grant->getUserId());
         self::assertSame(ActivationOrigin::REGISTRATION, $grant->getOrigin());
         self::assertSame(CredentialDeliveryStatus::PENDING, $grant->getDelivery()->getStatus());
         self::assertSame('2030-01-08T00:00:00+00:00', $grant->getExpiresAt()->format(DATE_ATOM));
-        self::assertSame('user.registered', $fixture->audit->all()[0]->action());
-        self::assertSame('registration', $fixture->audit->all()[0]->actorId());
-        self::assertSame($command->getUserId(), $fixture->audit->all()[0]->subjectId());
-        self::assertSame([], $fixture->audit->all()[0]->context());
-        self::assertCount(1, $events->events());
-        self::assertInstanceOf(UserRegistered::class, $events->events()[0]);
-        self::assertSame($grant->getDelivery()->getId(), $events->events()[0]->getActivationDeliveryId());
+        self::assertSame('user.registered', $fixture->auditEvidenceRepository->all()[0]->action());
+        self::assertSame('registration', $fixture->auditEvidenceRepository->all()[0]->actorId());
+        self::assertSame($command->getUserId(), $fixture->auditEvidenceRepository->all()[0]->subjectId());
+        self::assertSame([], $fixture->auditEvidenceRepository->all()[0]->context());
+        self::assertCount(1, $eventDispatcher->events());
+        self::assertInstanceOf(UserRegistered::class, $eventDispatcher->events()[0]);
+        self::assertSame($grant->getDelivery()->getId(), $eventDispatcher->events()[0]->getActivationDeliveryId());
     }
 
     /** @return iterable<string, array{list<string>}> */
@@ -87,7 +87,7 @@ final class RegisterUserHandlerTest extends TestCase
         } finally {
             self::assertSame(0, $fixture->unitOfWork->transactions);
             $this->assertNoRegistration($fixture);
-            self::assertSame([], $fixture->events->events());
+            self::assertSame([], $fixture->eventDispatcher->events());
         }
     }
 
@@ -134,11 +134,17 @@ final class RegisterUserHandlerTest extends TestCase
             [],
             new DateTimeImmutable('2030-01-01T00:01:00Z')
         );
-        self::assertTrue($fixture->roles->replace($fixture->reader, $replacement));
+        self::assertTrue($fixture->roleRepository->replace($fixture->reader, $replacement));
         $second = $fixture->command('second@example.test');
         $fixture->handler(['ROLE_CURRENT'])->handle(CommandMessage::create($second));
-        self::assertEquals([$fixture->member->getId()], $fixture->users->getById($first->getUserId())?->getRoleIds());
-        self::assertEquals([$replacement->getId()], $fixture->users->getById($second->getUserId())?->getRoleIds());
+        self::assertEquals(
+            [$fixture->member->getId()],
+            $fixture->userRepository->getById($first->getUserId())?->getRoleIds()
+        );
+        self::assertEquals(
+            [$replacement->getId()],
+            $fixture->userRepository->getById($second->getUserId())?->getRoleIds()
+        );
     }
 
     public function test_same_handler_resolves_names_again_without_reassigning_previous_users(): void
@@ -147,7 +153,7 @@ final class RegisterUserHandlerTest extends TestCase
         $handler = $fixture->handler(['ROLE_MEMBER']);
         $first = $fixture->command();
         $handler->handle(CommandMessage::create($first));
-        self::assertTrue($fixture->roles->replace($fixture->member, $fixture->member->renameCustom(
+        self::assertTrue($fixture->roleRepository->replace($fixture->member, $fixture->member->renameCustom(
             RoleName::fromString('ROLE_FORMER_MEMBER'),
             new DateTimeImmutable('2030-01-01T00:00:01Z')
         )));
@@ -157,11 +163,17 @@ final class RegisterUserHandlerTest extends TestCase
             [],
             new DateTimeImmutable('2030-01-01T00:00:01Z')
         );
-        $fixture->roles->add($newDefault);
+        $fixture->roleRepository->add($newDefault);
         $second = $fixture->command('second@example.test');
         $handler->handle(CommandMessage::create($second));
-        self::assertEquals([$fixture->member->getId()], $fixture->users->getById($first->getUserId())?->getRoleIds());
-        self::assertEquals([$newDefault->getId()], $fixture->users->getById($second->getUserId())?->getRoleIds());
+        self::assertEquals(
+            [$fixture->member->getId()],
+            $fixture->userRepository->getById($first->getUserId())?->getRoleIds()
+        );
+        self::assertEquals(
+            [$newDefault->getId()],
+            $fixture->userRepository->getById($second->getUserId())?->getRoleIds()
+        );
     }
 
     /** @return iterable<string, array{UserState}> */
@@ -177,14 +189,14 @@ final class RegisterUserHandlerTest extends TestCase
     {
         $fixture = new RegistrationFixture();
         $existing = UserFixture::withState('alice@example.test', $state);
-        $fixture->users->add($existing);
+        $fixture->userRepository->add($existing);
         $this->expectException(DuplicateEmailException::class);
         try {
             $fixture->handler()->handle(CommandMessage::create($fixture->command('ALICE@example.test')));
         } finally {
-            self::assertSame([$existing], $fixture->users->all());
-            self::assertSame([], $fixture->grants->all());
-            self::assertSame([], $fixture->audit->all());
+            self::assertSame([$existing], $fixture->userRepository->all());
+            self::assertSame([], $fixture->activationGrantRepository->all());
+            self::assertSame([], $fixture->auditEvidenceRepository->all());
             $this->assertSafeFailure($fixture);
         }
     }
@@ -195,14 +207,14 @@ final class RegisterUserHandlerTest extends TestCase
         $existing = UserFixture::withState('owner@example.test', UserState::ACTIVE);
         $existing->requestEmailChange(EmailAddress::fromString('Alice@example.test'), new DateTimeImmutable());
 
-        $fixture->users->add($existing);
+        $fixture->userRepository->add($existing);
         $this->expectException(DuplicateEmailException::class);
         try {
             $fixture->handler()->handle(CommandMessage::create($fixture->command()));
         } finally {
-            self::assertSame([$existing], $fixture->users->all());
-            self::assertSame([], $fixture->grants->all());
-            self::assertSame([], $fixture->audit->all());
+            self::assertSame([$existing], $fixture->userRepository->all());
+            self::assertSame([], $fixture->activationGrantRepository->all());
+            self::assertSame([], $fixture->auditEvidenceRepository->all());
             $this->assertSafeFailure($fixture);
         }
     }
@@ -226,7 +238,7 @@ final class RegisterUserHandlerTest extends TestCase
                 }
 
                 if ($failure === 'audit') {
-                    self::assertSame($fixture->audit->failure(), $caught);
+                    self::assertSame($fixture->auditEvidenceRepository->failure(), $caught);
                 }
             }
 
@@ -243,8 +255,13 @@ final class RegisterUserHandlerTest extends TestCase
     public function test_original_throwable_survives_even_failure_publication_fault(): void
     {
         $original = new RuntimeException('private credential-bearing storage diagnostic');
-        $events = new InMemoryEventDispatcher(static fn(): never => throw new RuntimeException('publisher failure'));
-        $fixture = new RegistrationFixture(afterInsert: static fn(): never => throw $original, events: $events);
+        $eventDispatcher = new InMemoryEventDispatcher(
+            static fn(): never => throw new RuntimeException('publisher failure')
+        );
+        $fixture = new RegistrationFixture(
+            afterInsert: static fn(): never => throw $original,
+            eventDispatcher: $eventDispatcher
+        );
         try {
             $fixture->handler()->handle(CommandMessage::create($fixture->command()));
             self::fail('The storage failure was hidden.');
@@ -257,15 +274,15 @@ final class RegisterUserHandlerTest extends TestCase
 
     private function assertNoRegistration(RegistrationFixture $fixture): void
     {
-        self::assertSame([], $fixture->users->all());
-        self::assertSame([], $fixture->grants->all());
-        self::assertSame([], $fixture->audit->all());
+        self::assertSame([], $fixture->userRepository->all());
+        self::assertSame([], $fixture->activationGrantRepository->all());
+        self::assertSame([], $fixture->auditEvidenceRepository->all());
     }
 
     private function assertSafeFailure(RegistrationFixture $fixture): void
     {
-        self::assertCount(1, $fixture->events->events());
-        $failure = $fixture->events->events()[0];
+        self::assertCount(1, $fixture->eventDispatcher->events());
+        $failure = $fixture->eventDispatcher->events()[0];
         self::assertInstanceOf(CommandFailedEvent::class, $failure);
         self::assertInstanceOf(RegisterUser::class, $failure->getCommand());
         self::assertSame('User registration failed.', $failure->getErrorMessage());

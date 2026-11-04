@@ -58,9 +58,9 @@ final class RoleRevisionHandlerTest extends TestCase
     {
         foreach (['name', 'membership', 'recreation'] as $writer) {
             $unitOfWork = new InMemoryUnitOfWork();
-            $roles = new InMemoryRoleRepository($unitOfWork);
+            $roleRepository = new InMemoryRoleRepository($unitOfWork);
             $role = $this->role();
-            $roles->add($role);
+            $roleRepository->add($role);
             $middle = $role->renameCustom(RoleName::fromString('ROLE_B'), $role->getUpdatedAt());
             $current = $middle->renameCustom($role->getName(), $role->getUpdatedAt());
             if ($writer === 'membership') {
@@ -74,27 +74,29 @@ final class RoleRevisionHandlerTest extends TestCase
                 $current = $middle->revokePermissionFromCustom($permission->getId(), $role->getUpdatedAt());
             }
 
-            $unitOfWork->commitTransactional(static function () use ($roles, $role, $middle, &$current, $writer): void {
-                if ($writer === 'recreation') {
-                    self::assertTrue($roles->remove($role));
-                    $current = Role::define($role->getId(), $role->getName(), [], $role->getUpdatedAt());
-                    $roles->add($current);
-                } else {
-                    self::assertTrue($roles->replace($role, $middle));
-                    self::assertTrue($roles->replace($middle, $current));
+            $unitOfWork->commitTransactional(
+                static function () use ($roleRepository, $role, $middle, &$current, $writer): void {
+                    if ($writer === 'recreation') {
+                        self::assertTrue($roleRepository->remove($role));
+                        $current = Role::define($role->getId(), $role->getName(), [], $role->getUpdatedAt());
+                        $roleRepository->add($current);
+                    } else {
+                        self::assertTrue($roleRepository->replace($role, $middle));
+                        self::assertTrue($roleRepository->replace($middle, $current));
+                    }
                 }
-            });
+            );
             $unitOfWork->transactionCompleted = false;
 
             $attempts = [];
-            $events = new InMemoryEventDispatcher(static function (Event $event) use (&$attempts): void {
+            $eventDispatcher = new InMemoryEventDispatcher(static function (Event $event) use (&$attempts): void {
                 $attempts[] = $event;
                 throw new RuntimeException('Synthetic notification detail.');
             });
             $command = $this->command($operation, $role);
-            $caught = $this->failure(fn() => $this->dispatch($command, $roles, $unitOfWork, $events));
+            $caught = $this->failure(fn() => $this->dispatch($command, $roleRepository, $unitOfWork, $eventDispatcher));
             self::assertInstanceOf(RoleConflictException::class, $caught);
-            self::assertSame($current, $roles->getById($role->getId()));
+            self::assertSame($current, $roleRepository->getById($role->getId()));
             self::assertFalse($unitOfWork->transactionCompleted);
             self::assertCount(1, $attempts);
             self::assertInstanceOf(CommandFailedEvent::class, $attempts[0]);
@@ -112,37 +114,37 @@ final class RoleRevisionHandlerTest extends TestCase
     public function test_fresh_same_name_fences_current_state_without_writing_or_success(): void
     {
         $role = $this->role();
-        $roles = $this->createMock(RoleRepository::class);
-        $roles->method('getById')->willReturn($role);
-        $roles->expects(self::once())->method('validateCurrent')->with($role)->willReturn(true);
-        $roles->expects(self::never())->method('replace');
-        $roles->expects(self::never())->method('remove');
+        $roleRepository = $this->createMock(RoleRepository::class);
+        $roleRepository->method('getById')->willReturn($role);
+        $roleRepository->expects(self::once())->method('validateCurrent')->with($role)->willReturn(true);
+        $roleRepository->expects(self::never())->method('replace');
+        $roleRepository->expects(self::never())->method('remove');
         $clock = $this->createMock(Clock::class);
         $clock->expects(self::never())->method('now');
         $unitOfWork = new InMemoryUnitOfWork();
-        $events = new InMemoryEventDispatcher();
-        $this->dispatch($this->command('same-name', $role), $roles, $unitOfWork, $events, $clock);
+        $eventDispatcher = new InMemoryEventDispatcher();
+        $this->dispatch($this->command('same-name', $role), $roleRepository, $unitOfWork, $eventDispatcher, $clock);
         self::assertTrue($unitOfWork->transactionCompleted);
-        self::assertSame([], $events->events());
+        self::assertSame([], $eventDispatcher->events());
     }
 
     public function test_same_name_final_comparison_loss_is_a_conflict_without_a_write_or_success(): void
     {
         $role = $this->role();
-        $roles = $this->createMock(RoleRepository::class);
-        $roles->method('getById')->willReturn($role);
-        $roles->expects(self::once())->method('validateCurrent')->with($role)->willReturn(false);
-        $roles->expects(self::never())->method('replace');
-        $events = new InMemoryEventDispatcher();
+        $roleRepository = $this->createMock(RoleRepository::class);
+        $roleRepository->method('getById')->willReturn($role);
+        $roleRepository->expects(self::once())->method('validateCurrent')->with($role)->willReturn(false);
+        $roleRepository->expects(self::never())->method('replace');
+        $eventDispatcher = new InMemoryEventDispatcher();
         $caught = $this->failure(fn() => $this->dispatch(
             $this->command('same-name', $role),
-            $roles,
+            $roleRepository,
             new InMemoryUnitOfWork(),
-            $events
+            $eventDispatcher
         ));
         self::assertInstanceOf(RoleConflictException::class, $caught);
-        self::assertCount(1, $events->events());
-        self::assertInstanceOf(CommandFailedEvent::class, $events->events()[0]);
+        self::assertCount(1, $eventDispatcher->events());
+        self::assertInstanceOf(CommandFailedEvent::class, $eventDispatcher->events()[0]);
     }
 
     public function test_change_after_handler_read_wins_final_comparison_and_survives_loser_rollback(): void
@@ -150,11 +152,11 @@ final class RoleRevisionHandlerTest extends TestCase
         foreach (['rename', 'remove'] as $operation) {
             $unitOfWork = new InMemoryUnitOfWork();
             $state = new InMemoryRoleRepositoryState();
-            $roles = new InMemoryRoleRepository($unitOfWork, state: $state);
+            $roleRepository = new InMemoryRoleRepository($unitOfWork, state: $state);
             $role = $this->role();
-            $roles->add($role);
+            $roleRepository->add($role);
             $winner = new InMemoryUnitOfWork();
-            $competing = new InMemoryRoleRepository(
+            $competingRoleRepository = new InMemoryRoleRepository(
                 $winner,
                 authorizationReferences: $unitOfWork->authorizationReferenceState(),
                 state: $state
@@ -163,30 +165,32 @@ final class RoleRevisionHandlerTest extends TestCase
             $clock = $this->createMock(Clock::class);
             $clock->expects(self::once())->method('now')->willReturnCallback(static function () use (
                 $winner,
-                $competing,
+                $competingRoleRepository,
                 $role,
                 $replacement
             ): DateTimeImmutable {
-                $winner->commitTransactional(static function () use ($competing, $role, $replacement): void {
-                    self::assertTrue($competing->replace($role, $replacement));
-                });
+                $winner->commitTransactional(
+                    static function () use ($competingRoleRepository, $role, $replacement): void {
+                        self::assertTrue($competingRoleRepository->replace($role, $replacement));
+                    }
+                );
 
                 return $role->getUpdatedAt();
             });
-            $events = new InMemoryEventDispatcher();
+            $eventDispatcher = new InMemoryEventDispatcher();
             $caught = $this->failure(fn() => $this->dispatch(
                 $this->command($operation, $role),
-                $roles,
+                $roleRepository,
                 $unitOfWork,
-                $events,
+                $eventDispatcher,
                 $clock
             ));
             self::assertInstanceOf(RoleConflictException::class, $caught);
-            self::assertSame($replacement, $roles->getById($role->getId()));
+            self::assertSame($replacement, $roleRepository->getById($role->getId()));
             self::assertTrue($winner->transactionCompleted);
             self::assertFalse($unitOfWork->transactionCompleted);
-            self::assertCount(1, $events->events());
-            self::assertInstanceOf(CommandFailedEvent::class, $events->events()[0]);
+            self::assertCount(1, $eventDispatcher->events());
+            self::assertInstanceOf(CommandFailedEvent::class, $eventDispatcher->events()[0]);
         }
     }
 
@@ -195,39 +199,48 @@ final class RoleRevisionHandlerTest extends TestCase
         foreach ([false, true] as $rollback) {
             $unitOfWork = new InMemoryUnitOfWork();
             $state = new InMemoryRoleRepositoryState();
-            $roles = new InMemoryRoleRepository($unitOfWork, state: $state);
+            $roleRepository = new InMemoryRoleRepository($unitOfWork, state: $state);
             $role = $this->role();
-            $roles->add($role);
+            $roleRepository->add($role);
             $competitor = new InMemoryUnitOfWork();
-            $competing = new InMemoryRoleRepository(
+            $competingRoleRepository = new InMemoryRoleRepository(
                 $competitor,
                 authorizationReferences: $unitOfWork->authorizationReferenceState(),
                 state: $state
             );
             $replacement = $role->renameCustom(RoleName::fromString('ROLE_B'), $role->getUpdatedAt());
-            $unitOfWork->beforeCommit = static function () use ($competitor, $competing, $role, $replacement): void {
-                $competitor->commitTransactional(static function () use ($competing, $role, $replacement): void {
-                    self::assertFalse($competing->replace($role, $replacement));
-                    self::assertFalse($competing->remove($role));
-                });
+            $unitOfWork->beforeCommit = static function () use (
+                $competitor,
+                $competingRoleRepository,
+                $role,
+                $replacement
+            ): void {
+                $competitor->commitTransactional(
+                    static function () use ($competingRoleRepository, $role, $replacement): void {
+                        self::assertFalse($competingRoleRepository->replace($role, $replacement));
+                        self::assertFalse($competingRoleRepository->remove($role));
+                    }
+                );
             };
             $unitOfWork->failNextCommit = $rollback;
-            $events = new InMemoryEventDispatcher();
+            $eventDispatcher = new InMemoryEventDispatcher();
             try {
-                $this->dispatch($this->command('same-name', $role), $roles, $unitOfWork, $events);
+                $this->dispatch($this->command('same-name', $role), $roleRepository, $unitOfWork, $eventDispatcher);
                 self::assertFalse($rollback);
-                self::assertSame([], $events->events());
+                self::assertSame([], $eventDispatcher->events());
             } catch (RuntimeException $caught) {
                 self::assertTrue($rollback);
                 self::assertSame('Injected transaction failure.', $caught->getMessage());
-                self::assertCount(1, $events->events());
+                self::assertCount(1, $eventDispatcher->events());
             }
 
-            self::assertSame($role, $roles->getById($role->getId()));
-            $competitor->commitTransactional(static function () use ($competing, $role, $replacement): void {
-                self::assertTrue($competing->replace($role, $replacement));
-            });
-            self::assertSame($replacement, $roles->getById($role->getId()));
+            self::assertSame($role, $roleRepository->getById($role->getId()));
+            $competitor->commitTransactional(
+                static function () use ($competingRoleRepository, $role, $replacement): void {
+                    self::assertTrue($competingRoleRepository->replace($role, $replacement));
+                }
+            );
+            self::assertSame($replacement, $roleRepository->getById($role->getId()));
         }
     }
 
@@ -236,9 +249,9 @@ final class RoleRevisionHandlerTest extends TestCase
         foreach (['rename', 'remove'] as $operation) {
             foreach (['before-commit', 'after-commit', 'publication'] as $stage) {
                 $unitOfWork = new InMemoryUnitOfWork();
-                $roles = new InMemoryRoleRepository($unitOfWork);
+                $roleRepository = new InMemoryRoleRepository($unitOfWork);
                 $role = $this->role();
-                $roles->add($role);
+                $roleRepository->add($role);
                 $primary = new RuntimeException('Synthetic primary storage or publication detail.');
                 $fail = static function () use ($primary): void {
                     throw $primary;
@@ -252,7 +265,7 @@ final class RoleRevisionHandlerTest extends TestCase
                 }
 
                 $attempts = [];
-                $events = new InMemoryEventDispatcher(static function (Event $event) use (
+                $eventDispatcher = new InMemoryEventDispatcher(static function (Event $event) use (
                     &$attempts,
                     $primary,
                     $unitOfWork
@@ -266,9 +279,11 @@ final class RoleRevisionHandlerTest extends TestCase
                     throw new RuntimeException('Synthetic secondary notification detail.');
                 });
                 $command = $this->command($operation, $role);
-                $caught = $this->failure(fn() => $this->dispatch($command, $roles, $unitOfWork, $events));
+                $caught = $this->failure(
+                    fn() => $this->dispatch($command, $roleRepository, $unitOfWork, $eventDispatcher)
+                );
                 self::assertSame($primary, $caught);
-                $current = $roles->getById($role->getId());
+                $current = $roleRepository->getById($role->getId());
                 if ($stage === 'before-commit') {
                     self::assertSame($role, $current);
                 } elseif ($operation === 'remove') {
@@ -349,20 +364,28 @@ final class RoleRevisionHandlerTest extends TestCase
 
     private function dispatch(
         RenameCustomRole|RemoveCustomRole $command,
-        RoleRepository $roles,
+        RoleRepository $roleRepository,
         InMemoryUnitOfWork $unitOfWork,
-        InMemoryEventDispatcher $events,
+        InMemoryEventDispatcher $eventDispatcher,
         ?Clock $clock = null
     ): void {
         $clock ??= new FixedClock('2030-01-01T00:00:00Z');
         if ($command instanceof RemoveCustomRole) {
-            new RemoveCustomRoleHandler($roles, new InMemoryUserRepository($unitOfWork), $clock, $unitOfWork, $events)
+            new RemoveCustomRoleHandler(
+                $roleRepository,
+                new InMemoryUserRepository($unitOfWork),
+                $clock,
+                $unitOfWork,
+                $eventDispatcher
+            )
                 ->handle(CommandMessage::create($command));
 
             return;
         }
 
-        new RenameCustomRoleHandler($roles, $clock, $unitOfWork, $events)->handle(CommandMessage::create($command));
+        new RenameCustomRoleHandler($roleRepository, $clock, $unitOfWork, $eventDispatcher)->handle(
+            CommandMessage::create($command)
+        );
     }
 
     /** @param callable(): mixed $operation */

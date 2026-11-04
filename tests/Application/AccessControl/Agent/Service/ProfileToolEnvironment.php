@@ -6,11 +6,11 @@ namespace Fight\Test\AccessControl\Application\AccessControl\Agent\Service;
 
 use DateTimeImmutable;
 use Fight\AccessControl\Application\AccessControl\Agent\AgentToolPermissionCatalog;
+use Fight\AccessControl\Application\AccessControl\Agent\Authentication\CurrentAgentPrincipalProvider;
+use Fight\AccessControl\Application\AccessControl\Agent\Authentication\SignedAgentRequest;
 use Fight\AccessControl\Application\AccessControl\Agent\CommandHandler\UpdateAgentHandler;
 use Fight\AccessControl\Application\AccessControl\Agent\QueryHandler\GetAgentProfileHandler;
 use Fight\AccessControl\Application\AccessControl\Agent\Security\AgentToolAvailability;
-use Fight\AccessControl\Application\AccessControl\Agent\Security\CurrentAgentPrincipalProvider;
-use Fight\AccessControl\Application\AccessControl\Agent\Security\SignedAgentRequest;
 use Fight\AccessControl\Application\AccessControl\Agent\Tool\AgentProfileToolFailures;
 use Fight\AccessControl\Application\AccessControl\Agent\Tool\GetAgentProfileTool;
 use Fight\AccessControl\Application\AccessControl\Agent\Tool\UpdateAgentProfileTool;
@@ -29,6 +29,10 @@ use Fight\Common\Application\Mcp\Tool\McpToolInvoker;
 use Fight\Common\Application\Mcp\Tool\McpToolRegistry;
 use Fight\Common\Application\Messaging\Command\SynchronousCommandBus;
 use Fight\Common\Application\Messaging\Query\QueryBus;
+use Fight\Test\AccessControl\Application\AccessControl\Agent\Authentication\FixedHmacSharedSecretDecipher;
+use Fight\Test\AccessControl\Application\AccessControl\Agent\Authentication\FixedHmacSignedAgentRequestVerifier;
+use Fight\Test\AccessControl\Application\AccessControl\Agent\Authentication\InMemoryAgentRequestNonceConsumer;
+use Fight\Test\AccessControl\Application\AccessControl\Agent\Credential\ProvisioningEnvironment;
 use Fight\Test\AccessControl\Application\AccessControl\Event\InMemoryEventDispatcher;
 use Fight\Test\AccessControl\Application\AccessControl\Permission\Repository\InMemoryPermissionRepository;
 use Fight\Test\AccessControl\Application\AccessControl\Timing\Service\FixedClock;
@@ -37,7 +41,7 @@ final class ProfileToolEnvironment
 {
     public readonly ProvisioningEnvironment $storage;
 
-    public readonly InMemoryPermissionRepository $permissions;
+    public readonly InMemoryPermissionRepository $permissionRepository;
 
     public readonly Agent $original;
 
@@ -59,19 +63,22 @@ final class ProfileToolEnvironment
     {
         $this->storage = new ProvisioningEnvironment();
         $this->storage->service()->provision($this->storage->key, $this->storage->request);
-        $this->permissions = new InMemoryPermissionRepository($this->storage->transaction);
-        $agent = $this->storage->agents->all()[0];
+        $this->permissionRepository = new InMemoryPermissionRepository($this->storage->transaction);
+        $agent = $this->storage->agentRepository->all()[0];
         foreach ([AgentProfilePermissions::READ, AgentProfilePermissions::UPDATE] as $name) {
             $id = PermissionId::generate();
-            $this->permissions->add(Permission::define($id, PermissionName::fromString($name), $this->now()));
+            $this->permissionRepository->add(Permission::define($id, PermissionName::fromString($name), $this->now()));
             $agent = $agent->grantPermission($id, $this->now());
         }
 
         // Modeled committed authority for the existing correlated Agent; no database qualification.
-        $this->storage->agents->restoreSnapshot([$agent]);
+        $this->storage->agentRepository->restoreSnapshot([$agent]);
         $this->original = $agent;
-        $this->storage->events = new InMemoryEventDispatcher();
-        $this->nonces = new InMemoryAgentRequestNonceConsumer($this->storage->agents, $this->storage->transaction);
+        $this->storage->eventDispatcher = new InMemoryEventDispatcher();
+        $this->nonces = new InMemoryAgentRequestNonceConsumer(
+            $this->storage->agentRepository,
+            $this->storage->transaction
+        );
         $this->nextRequest();
     }
 
@@ -93,8 +100,8 @@ final class ProfileToolEnvironment
             ''
         );
         $this->provider = new CurrentAgentPrincipalProvider(
-            $this->storage->agents,
-            $this->permissions,
+            $this->storage->agentRepository,
+            $this->permissionRepository,
             new FixedHmacSharedSecretDecipher('auth-envelope:'),
             new FixedHmacSignedAgentRequestVerifier($this->request, 'original-test-secret'),
             new FixedClock($this->now()),
@@ -103,31 +110,41 @@ final class ProfileToolEnvironment
         );
     }
 
-    public function read(QueryBus $queries): GetAgentProfileTool
+    public function read(QueryBus $queryBus): GetAgentProfileTool
     {
-        return new GetAgentProfileTool($this->provider, $this->request, $this->correlationId, $queries);
+        return new GetAgentProfileTool($this->provider, $this->request, $this->correlationId, $queryBus);
     }
 
-    public function update(SynchronousCommandBus $commands): UpdateAgentProfileTool
+    public function update(SynchronousCommandBus $synchronousCommandBus): UpdateAgentProfileTool
     {
-        return new UpdateAgentProfileTool($this->provider, $this->request, $this->correlationId, $commands);
+        return new UpdateAgentProfileTool(
+            $this->provider,
+            $this->request,
+            $this->correlationId,
+            $synchronousCommandBus
+        );
     }
 
-    public function invoker(?QueryBus $queries = null, ?SynchronousCommandBus $commands = null): McpToolInvoker
-    {
+    public function invoker(
+        ?QueryBus $queryBus = null,
+        ?SynchronousCommandBus $synchronousCommandBus = null
+    ): McpToolInvoker {
         $queryRouter = new InMemoryQueryRouter();
-        $queryRouter->registerHandler(GetAgentProfile::class, new GetAgentProfileHandler($this->storage->agents));
+        $queryRouter->registerHandler(
+            GetAgentProfile::class,
+            new GetAgentProfileHandler($this->storage->agentRepository)
+        );
 
         $commandRouter = new InMemoryCommandRouter();
         $commandRouter->registerHandler(UpdateAgent::class, new UpdateAgentHandler(
-            $this->storage->agents,
+            $this->storage->agentRepository,
             new FixedClock($this->now()),
             $this->storage->transaction,
-            $this->storage->events
+            $this->storage->eventDispatcher
         ));
         $this->registry = new McpToolRegistry([
-            $this->read($queries ?? new RoutingQueryBus($queryRouter)),
-            $this->update($commands ?? new RoutingCommandBus($commandRouter))
+            $this->read($queryBus ?? new RoutingQueryBus($queryRouter)),
+            $this->update($synchronousCommandBus ?? new RoutingCommandBus($commandRouter))
         ]);
         $this->availability = new AgentToolAvailability(
             new AgentToolPermissionCatalog($this->registry),

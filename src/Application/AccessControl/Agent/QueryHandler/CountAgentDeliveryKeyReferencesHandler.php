@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Fight\AccessControl\Application\AccessControl\Agent\QueryHandler;
 
-use Fight\AccessControl\Application\AccessControl\Agent\Service\AgentMaintenanceAuthorization;
+use Fight\AccessControl\Application\AccessControl\Agent\Maintenance\AgentMaintenanceAuthorization;
 use Fight\AccessControl\Application\AccessControl\Timing\Service\Clock;
 use Fight\AccessControl\Domain\AccessControl\Agent\Exception\AgentOperationRejectedException;
 use Fight\AccessControl\Domain\AccessControl\Agent\Operation\AgentOperationFailure;
@@ -23,8 +23,8 @@ final readonly class CountAgentDeliveryKeyReferencesHandler implements QueryHand
      * Constructs CountAgentDeliveryKeyReferencesHandler
      */
     public function __construct(
-        private AgentOperationRepository $operations,
-        private AgentMaintenanceAuthorization $authorization,
+        private AgentOperationRepository $agentOperationRepository,
+        private AgentMaintenanceAuthorization $maintenanceAuthorization,
         private Clock $clock
     ) {
     }
@@ -45,10 +45,10 @@ final readonly class CountAgentDeliveryKeyReferencesHandler implements QueryHand
         /** @var CountAgentDeliveryKeyReferences $query */
         $query = $queryMessage->payload();
         try {
-            $this->authorization->authorizeKeyAccounting($query->getVersion(), $this->clock->now());
-            $this->operations->getOperationContract()->assertCompatible();
-            $count = $this->operations->countDeliveryKeyReferences($query->getVersion());
-            $this->authorization->authorizeKeyAccounting($query->getVersion(), $this->clock->now());
+            $this->maintenanceAuthorization->authorizeKeyAccounting($query->getVersion(), $this->clock->now());
+            $this->agentOperationRepository->getOperationContract()->assertCompatible();
+            $count = $this->agentOperationRepository->countDeliveryKeyReferences($query->getVersion());
+            $this->maintenanceAuthorization->authorizeKeyAccounting($query->getVersion(), $this->clock->now());
             if ($count < 0) {
                 throw new AgentOperationRejectedException(AgentOperationFailure::UNAVAILABLE);
             }

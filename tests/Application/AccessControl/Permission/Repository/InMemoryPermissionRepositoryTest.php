@@ -36,27 +36,27 @@ final class InMemoryPermissionRepositoryTest extends TestCase
 
     public function test_it_retrieves_permissions_by_id_and_name(): void
     {
-        $repository = new InMemoryPermissionRepository();
+        $permissionRepository = new InMemoryPermissionRepository();
         $permission = $this->permission('VIEW_USERS');
-        $repository->add($permission);
+        $permissionRepository->add($permission);
 
-        self::assertSame($permission, $repository->getById($permission->getId()));
-        self::assertSame($permission, $repository->getByName($permission->getName()));
-        self::assertNull($repository->getById(PermissionId::generate()));
-        self::assertNull($repository->getByName(PermissionName::fromString('MISSING_PERMISSION')));
+        self::assertSame($permission, $permissionRepository->getById($permission->getId()));
+        self::assertSame($permission, $permissionRepository->getByName($permission->getName()));
+        self::assertNull($permissionRepository->getById(PermissionId::generate()));
+        self::assertNull($permissionRepository->getByName(PermissionName::fromString('MISSING_PERMISSION')));
     }
 
     public function test_get_by_ids_is_unpaginated_deduplicates_and_omits_missing_ids(): void
     {
-        $repository = new InMemoryPermissionRepository();
+        $permissionRepository = new InMemoryPermissionRepository();
         $first = $this->permission('VIEW_USERS');
         $second = $this->permission('MANAGE_USERS');
-        $repository->add($first);
-        $repository->add($second);
+        $permissionRepository->add($first);
+        $permissionRepository->add($second);
 
         self::assertSame(
             [$second, $first],
-            $repository->getByIds([
+            $permissionRepository->getByIds([
                 $second->getId(),
                 PermissionId::generate(),
                 $first->getId(),
@@ -67,15 +67,15 @@ final class InMemoryPermissionRepositoryTest extends TestCase
 
     public function test_get_all_returns_a_typed_paginated_result_set(): void
     {
-        $repository = new InMemoryPermissionRepository();
+        $permissionRepository = new InMemoryPermissionRepository();
         $first = $this->permission('VIEW_USERS');
         $second = $this->permission('MANAGE_USERS');
         $third = $this->permission('DELETE_USERS');
-        $repository->add($first);
-        $repository->add($second);
-        $repository->add($third);
+        $permissionRepository->add($first);
+        $permissionRepository->add($second);
+        $permissionRepository->add($third);
 
-        $resultSet = $repository->getAll(new Pagination(2, 2));
+        $resultSet = $permissionRepository->getAll(new Pagination(2, 2));
 
         self::assertSame(2, $resultSet->page());
         self::assertSame(2, $resultSet->perPage());
@@ -97,12 +97,12 @@ final class InMemoryPermissionRepositoryTest extends TestCase
     public function test_remove_rejects_a_permission_directly_referenced_by_an_agent(): void
     {
         $authorizationReferences = new InMemoryAuthorizationReferenceState();
-        $permissions = new InMemoryPermissionRepository(
+        $permissionRepository = new InMemoryPermissionRepository(
             authorizationReferences: $authorizationReferences
         );
         $permission = $this->permission('VIEW_USERS');
-        $permissions->add($permission);
-        $agents = new InMemoryAgentRepository(
+        $permissionRepository->add($permission);
+        $agentRepository = new InMemoryAgentRepository(
             authorizationReferences: $authorizationReferences
         );
         $agent = Agent::provision(
@@ -115,26 +115,26 @@ final class InMemoryPermissionRepositoryTest extends TestCase
             $permission->getId(),
             new DateTimeImmutable('2026-08-25T13:00:00+00:00')
         );
-        $agents->add($agent);
+        $agentRepository->add($agent);
 
-        self::assertFalse($permissions->remove($permission));
-        self::assertSame($permission, $permissions->getById($permission->getId()));
+        self::assertFalse($permissionRepository->remove($permission));
+        self::assertSame($permission, $permissionRepository->getById($permission->getId()));
     }
 
     public function test_remove_preserves_unreferenced_success_and_role_reference_rejection(): void
     {
         foreach (['unreferenced', 'role'] as $case) {
             $authorizationReferences = new InMemoryAuthorizationReferenceState();
-            $permissions = new InMemoryPermissionRepository(
+            $permissionRepository = new InMemoryPermissionRepository(
                 authorizationReferences: $authorizationReferences
             );
             $permission = $this->permission('VIEW_USERS');
-            $permissions->add($permission);
+            $permissionRepository->add($permission);
             if ($case === 'role') {
-                $roles = new InMemoryRoleRepository(
+                $roleRepository = new InMemoryRoleRepository(
                     authorizationReferences: $authorizationReferences
                 );
-                $roles->add(Role::define(
+                $roleRepository->add(Role::define(
                     RoleId::generate(),
                     RoleName::fromString('ROLE_VIEWER'),
                     [$permission->getId()],
@@ -142,10 +142,10 @@ final class InMemoryPermissionRepositoryTest extends TestCase
                 ));
             }
 
-            self::assertSame($case === 'unreferenced', $permissions->remove($permission));
+            self::assertSame($case === 'unreferenced', $permissionRepository->remove($permission));
             self::assertSame(
                 $case === 'unreferenced' ? null : $permission,
-                $permissions->getById($permission->getId())
+                $permissionRepository->getById($permission->getId())
             );
         }
     }
@@ -154,7 +154,7 @@ final class InMemoryPermissionRepositoryTest extends TestCase
     {
         $unitOfWork = new InMemoryUnitOfWork();
         $permission = $this->permission('VIEW_USERS');
-        $agents = new InMemoryAgentRepository($unitOfWork);
+        $agentRepository = new InMemoryAgentRepository($unitOfWork);
         $agent = Agent::provision(
             AgentId::generate(),
             AgentName::fromString('Production deployment'),
@@ -162,12 +162,12 @@ final class InMemoryPermissionRepositoryTest extends TestCase
             'encrypted:current-secret',
             new DateTimeImmutable('2026-08-25T12:00:00+00:00')
         );
-        $agents->add($agent);
-        $permissions = new InMemoryPermissionRepository(
+        $agentRepository->add($agent);
+        $permissionRepository = new InMemoryPermissionRepository(
             $unitOfWork,
-            beforeRemove: static function () use ($agent, $agents, $permission, $unitOfWork): void {
+            beforeRemove: static function () use ($agent, $agentRepository, $permission, $unitOfWork): void {
                 self::assertTrue($unitOfWork->authorizationReferenceState()->isReferenceFenceHeld());
-                self::assertTrue($agents->replacePermissionAssignments(
+                self::assertTrue($agentRepository->replacePermissionAssignments(
                     $agent,
                     $agent->grantPermission(
                         $permission->getId(),
@@ -176,15 +176,15 @@ final class InMemoryPermissionRepositoryTest extends TestCase
                 ));
             }
         );
-        $permissions->add($permission);
+        $permissionRepository->add($permission);
 
         $removed = $unitOfWork->commitTransactional(
-            static fn(): bool => $permissions->remove($permission)
+            static fn(): bool => $permissionRepository->remove($permission)
         );
 
         self::assertFalse($removed);
-        self::assertSame($permission, $permissions->getById($permission->getId()));
-        self::assertTrue($agents->getById($agent->getId())?->hasPermission($permission->getId()));
+        self::assertSame($permission, $permissionRepository->getById($permission->getId()));
+        self::assertTrue($agentRepository->getById($agent->getId())?->hasPermission($permission->getId()));
     }
 
     private function permission(string $name): Permission

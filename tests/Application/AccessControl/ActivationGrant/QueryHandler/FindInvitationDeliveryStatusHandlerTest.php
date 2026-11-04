@@ -29,8 +29,8 @@ final class FindInvitationDeliveryStatusHandlerTest extends TestCase
     public function test_that_it_returns_a_safe_status_view_without_credential_material(): void
     {
         $userId = UserId::fromString('018f0000-0000-7000-8000-000000000001');
-        $repository = new InMemoryActivationGrantRepository();
-        $repository->add(ActivationGrant::issue(
+        $activationGrantRepository = new InMemoryActivationGrantRepository();
+        $activationGrantRepository->add(ActivationGrant::issue(
             ActivationOrigin::PRIVATE_INVITATION,
             $userId,
             ActivationCredential::fromString('activate-once'),
@@ -39,14 +39,17 @@ final class FindInvitationDeliveryStatusHandlerTest extends TestCase
             EmailAddress::fromString('alice@example.test'),
             'ciphertext'
         ));
-        $handler = new FindInvitationDeliveryStatusHandler($repository);
+        $handler = new FindInvitationDeliveryStatusHandler($activationGrantRepository);
 
         self::assertSame(FindInvitationDeliveryStatus::class, FindInvitationDeliveryStatusHandler::queryRegistration());
         $view = $handler->handle(QueryMessage::create(new FindInvitationDeliveryStatus($userId)));
 
         self::assertInstanceOf(InvitationDeliveryStatusView::class, $view);
         self::assertSame($userId, $view->getUserId());
-        self::assertEquals($repository->all()[0]->getDelivery()->getId(), $view->getActivationDeliveryId());
+        self::assertEquals(
+            $activationGrantRepository->all()[0]->getDelivery()->getId(),
+            $view->getActivationDeliveryId()
+        );
         self::assertSame(CredentialDeliveryStatus::PENDING, $view->getStatus());
         self::assertSame('2026-08-25T12:00:00+00:00', $view->getExpiresAt()->format(DATE_ATOM));
         self::assertArrayNotHasKey('ciphertext', get_object_vars($view));
@@ -56,7 +59,7 @@ final class FindInvitationDeliveryStatusHandlerTest extends TestCase
                 'user_id'                => '018f0000-0000-7000-8000-000000000001',
                 'status'                 => 'pending',
                 'expires_at'             => '2026-08-25T12:00:00+00:00',
-                'activation_delivery_id' => $repository->all()[0]->getDelivery()->getId()->toString()
+                'activation_delivery_id' => $activationGrantRepository->all()[0]->getDelivery()->getId()->toString()
             ],
             $view->toArray()
         );

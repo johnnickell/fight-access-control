@@ -53,8 +53,14 @@ final class ExpiredCredentialOrderingTest extends TestCase
     public function test_each_family_orders_contrasting_instants_and_ids_before_limiting(): void
     {
         $fixture = $this->orderedFixture();
-        foreach ([$fixture->activation, $fixture->email, $fixture->reset] as $repository) {
-            $actual = $repository->findExpired($fixture->expiresAt->modify('+3 minutes'), 2);
+        foreach (
+            [
+            $fixture->activationGrantRepository,
+            $fixture->emailChangeGrantRepository,
+            $fixture->passwordResetGrantRepository
+            ] as $credentialGrantRepository
+        ) {
+            $actual = $credentialGrantRepository->findExpired($fixture->expiresAt->modify('+3 minutes'), 2);
             self::assertSame([
                 '33333333-3333-4333-8333-333333333333',
                 '11111111-1111-4111-8111-111111111111'
@@ -64,7 +70,7 @@ final class ExpiredCredentialOrderingTest extends TestCase
             ));
             self::assertEquals($fixture->expiresAt, $actual[0]->getExpiresAt());
             self::assertEquals($fixture->expiresAt->modify('+1 minute'), $actual[1]->getExpiresAt());
-            $all = $repository->findExpired($fixture->expiresAt->modify('+3 minutes'), 100);
+            $all = $credentialGrantRepository->findExpired($fixture->expiresAt->modify('+3 minutes'), 100);
             self::assertSame([
                 '33333333-3333-4333-8333-333333333333',
                 '11111111-1111-4111-8111-111111111111',
@@ -79,7 +85,7 @@ final class ExpiredCredentialOrderingTest extends TestCase
         }
 
         self::assertSame(0, $fixture->unitOfWork->transactions);
-        self::assertSame([], $fixture->events->events());
+        self::assertSame([], $fixture->eventDispatcher->events());
     }
 
     public function test_actual_mixed_family_pages_are_read_only_rediscoverable_and_drain_in_hand_order(): void
@@ -101,18 +107,29 @@ final class ExpiredCredentialOrderingTest extends TestCase
             ['email_change:44444444-4444-4444-8444-444444444444', 'password_reset:44444444-4444-4444-8444-444444444444']
         ];
         foreach ($expectedPages as $index => $expected) {
-            $before = [$fixture->activation->all(), $fixture->email->all(), $fixture->reset->all()];
-            $users = array_map(self::userState(...), $fixture->users->all());
+            $before = [
+                $fixture->activationGrantRepository->all(),
+                $fixture->emailChangeGrantRepository->all(),
+                $fixture->passwordResetGrantRepository->all()
+            ];
+            $users = array_map(self::userState(...), $fixture->userRepository->all());
             $transactions = $fixture->unitOfWork->transactions;
-            $events = $fixture->events->events();
+            $events = $fixture->eventDispatcher->events();
             $page = $fixture->discovery()->handle($query);
             self::assertSame($expected, array_map(static fn (ExpiredCredentialDelivery $item): string =>
                 $item->getPurpose().':'.$item->getDeliveryId()->toString(), $page));
             self::assertEquals($page, $fixture->discovery()->handle($query));
-            self::assertSame($before, [$fixture->activation->all(), $fixture->email->all(), $fixture->reset->all()]);
-            self::assertSame($users, array_map(self::userState(...), $fixture->users->all()));
+            self::assertSame(
+                $before,
+                [
+                    $fixture->activationGrantRepository->all(),
+                    $fixture->emailChangeGrantRepository->all(),
+                    $fixture->passwordResetGrantRepository->all()
+                ]
+            );
+            self::assertSame($users, array_map(self::userState(...), $fixture->userRepository->all()));
             self::assertSame($transactions, $fixture->unitOfWork->transactions);
-            self::assertSame($events, $fixture->events->events());
+            self::assertSame($events, $fixture->eventDispatcher->events());
             foreach ($page as $item) {
                 $command = match ($item->getPurpose()) {
                     'activation' => new ExpireInvitationDelivery(
@@ -136,34 +153,40 @@ final class ExpiredCredentialOrderingTest extends TestCase
                 };
                 $handler = match ($item->getPurpose()) {
                     'activation' => new ExpireInvitationDeliveryHandler(
-                        $fixture->activation,
+                        $fixture->activationGrantRepository,
                         $fixture->unitOfWork,
-                        $fixture->events
+                        $fixture->eventDispatcher
                     ),
                     'password_reset' => new ExpirePasswordResetDeliveryHandler(
-                        $fixture->reset,
+                        $fixture->passwordResetGrantRepository,
                         $fixture->unitOfWork,
-                        $fixture->events
+                        $fixture->eventDispatcher
                     ),
                     default => new ExpireEmailChangeHandler(
-                        $fixture->users,
-                        $fixture->email,
+                        $fixture->userRepository,
+                        $fixture->emailChangeGrantRepository,
                         $fixture->unitOfWork,
-                        $fixture->events
+                        $fixture->eventDispatcher
                     ),
                 };
                 $handler->handle(CommandMessage::create($command));
             }
 
-            self::assertCount(($index + 1) * 2, $fixture->events->events());
+            self::assertCount(($index + 1) * 2, $fixture->eventDispatcher->events());
         }
 
         self::assertSame([], $fixture->discovery()->handle($query));
-        self::assertSame([], $fixture->activation->findDue($at, 100));
-        self::assertSame([], $fixture->reset->findDue($at, 100));
-        self::assertSame([], $fixture->email->findDue($at, 100));
-        foreach ([$fixture->activation, $fixture->email, $fixture->reset] as $repository) {
-            foreach ($repository->all() as $grant) {
+        self::assertSame([], $fixture->activationGrantRepository->findDue($at, 100));
+        self::assertSame([], $fixture->passwordResetGrantRepository->findDue($at, 100));
+        self::assertSame([], $fixture->emailChangeGrantRepository->findDue($at, 100));
+        foreach (
+            [
+            $fixture->activationGrantRepository,
+            $fixture->emailChangeGrantRepository,
+            $fixture->passwordResetGrantRepository
+            ] as $credentialGrantRepository
+        ) {
+            foreach ($credentialGrantRepository->all() as $grant) {
                 self::assertFalse($grant->getDelivery()->hasRecoverableMaterial());
             }
         }
@@ -194,7 +217,7 @@ final class ExpiredCredentialOrderingTest extends TestCase
     private function orderedFixture(): ExpiredCredentialFixture
     {
         $fixture = new ExpiredCredentialFixture('activation');
-        self::assertTrue($fixture->activation->replace(
+        self::assertTrue($fixture->activationGrantRepository->replace(
             $fixture->initial,
             $fixture->initial->revoke($fixture->issuedAt)
         ));
@@ -234,9 +257,9 @@ final class ExpiredCredentialOrderingTest extends TestCase
         ActivationGrant|PasswordResetGrant|EmailChangeGrant $grant
     ): bool {
         return match (true) {
-            $grant instanceof ActivationGrant => $fixture->activation->add($grant),
-            $grant instanceof PasswordResetGrant => $fixture->reset->add($grant),
-            default => $fixture->email->add($grant),
+            $grant instanceof ActivationGrant => $fixture->activationGrantRepository->add($grant),
+            $grant instanceof PasswordResetGrant => $fixture->passwordResetGrantRepository->add($grant),
+            default => $fixture->emailChangeGrantRepository->add($grant),
         };
     }
 
@@ -260,7 +283,7 @@ final class ExpiredCredentialOrderingTest extends TestCase
             $user->requestEmailChange($email, $fixture->issuedAt);
         }
 
-        $fixture->users->add($user);
+        $fixture->userRepository->add($user);
         if ($purpose === 'email_change') {
             $grant = EmailChangeGrant::issue(
                 $user->getId(),

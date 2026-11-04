@@ -45,13 +45,13 @@ A consumer must instantiate every discovered declaration and reject invalid meta
 
 ## Explicit registration and composition
 
-The Application `Feature\FeatureReferences` collection is immutable. It deduplicates by validated name, retains
+The Application `Feature\Discovery\FeatureReferences` collection is immutable. It deduplicates by validated name, retains
 first-reference order for inspection, and offers no Feature settings or authority. Set membership, not declaration
 count, determines which Features are referenced. An ordinary collection alone claims no discovery completeness.
 
 ```php
 use Fight\AccessControl\Application\AccessControl\Feature\Attribute\FeatureFlag;
-use Fight\AccessControl\Application\AccessControl\Feature\FeatureReferences;
+use Fight\AccessControl\Application\AccessControl\Feature\Discovery\FeatureReferences;
 
 // Illustrates reflection on one already-selected method, not a complete production scanner.
 $method = new ReflectionMethod(Checkout::class, 'submit');
@@ -72,7 +72,7 @@ Invalid raw registrations throw `FeatureNameException`; typed construction accep
 
 ## Complete discovery versus failed or incomplete discovery
 
-Consumers implement `Fight\AccessControl\Application\AccessControl\Feature\Service\FeatureReferenceDiscovery`:
+Consumers implement `Fight\AccessControl\Application\AccessControl\Feature\Discovery\FeatureReferenceDiscovery`:
 
 ```php
 public function discover(FeatureReferenceScope $scope): FeatureDiscoveryResult;
@@ -93,8 +93,8 @@ Consumers may retain safe diagnostic details privately under their own logging p
 Callers explicitly require the correct scope when extracting references:
 
 ```php
-use Fight\AccessControl\Application\AccessControl\Feature\FeatureReferenceScope;
-use Fight\AccessControl\Application\AccessControl\Feature\Service\FeatureReferenceDiscovery;
+use Fight\AccessControl\Application\AccessControl\Feature\Discovery\FeatureReferenceScope;
+use Fight\AccessControl\Application\AccessControl\Feature\Discovery\FeatureReferenceDiscovery;
 
 function candidateReferences(FeatureReferenceDiscovery $discovery): array
 {
@@ -128,9 +128,9 @@ candidate discovery for provisioning; TASK-00063 adds [preparation validation](f
   invalid name/targets/repetition and direct method invocation without implied enforcement. The deliberately invalid
   `Fixture/InvalidFeatureTargets.php.fixture` is loaded by PHP during those tests; it is not valid consumer source
   for static analysis. Runtime execution, not source matching, proves rejection.
-- `tests/Application/AccessControl/Feature/FeatureReferencesTest.php`: discovered/explicit merge, duplicate identity,
+- `tests/Application/AccessControl/Feature/Discovery/FeatureReferencesTest.php`: discovered/explicit merge, duplicate identity,
   immutable inputs and returned arrays, empty collections and invalid registration rejection.
-- `tests/Application/AccessControl/Feature/FeatureDiscoveryResultTest.php`: both scopes, complete empty/nonempty,
+- `tests/Application/AccessControl/Feature/Discovery/FeatureDiscoveryResultTest.php`: both scopes, complete empty/nonempty,
   partial/empty failed or incomplete scans, invalid native/explicit metadata and wrong-scope rejection.
 
 The controlled test discovery implementation scans an already-selected object; it does not prove a real codebase

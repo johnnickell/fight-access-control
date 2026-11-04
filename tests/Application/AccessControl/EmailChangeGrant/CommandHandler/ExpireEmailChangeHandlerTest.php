@@ -38,15 +38,15 @@ final class ExpireEmailChangeHandlerTest extends TestCase
     public function test_expiry_terminalizes_current_authority_and_clears_only_its_matching_reservation(): void
     {
         $unitOfWork = new InMemoryUnitOfWork();
-        $users = new InMemoryUserRepository($unitOfWork);
+        $userRepository = new InMemoryUserRepository($unitOfWork);
         $user = UserFixture::withState('old@example.test', UserState::ACTIVE);
-        $users->add($user);
+        $userRepository->add($user);
         $reserved = clone $user;
         $reserved->requestEmailChange(EmailAddress::fromString('new@example.test'), new DateTimeImmutable(
             '2026-01-01T00:00:00+00:00'
         ));
-        self::assertTrue($users->replaceEmailChangeReservation($user, $reserved));
-        $grants = new InMemoryEmailChangeGrantRepository($unitOfWork);
+        self::assertTrue($userRepository->replaceEmailChangeReservation($user, $reserved));
+        $emailChangeGrantRepository = new InMemoryEmailChangeGrantRepository($unitOfWork);
         $grant = EmailChangeGrant::issue(
             $user->getId(),
             EmailChangeCredential::fromString('change-once'),
@@ -56,11 +56,16 @@ final class ExpireEmailChangeHandlerTest extends TestCase
             'ciphertext:change-once',
             $reserved->getEmailChangeReservationRevision()
         );
-        self::assertTrue($grants->add($grant));
-        $events = new InMemoryEventDispatcher(static function () use ($unitOfWork): void {
+        self::assertTrue($emailChangeGrantRepository->add($grant));
+        $eventDispatcher = new InMemoryEventDispatcher(static function () use ($unitOfWork): void {
             self::assertTrue($unitOfWork->transactionCompleted);
         });
-        $handler = new ExpireEmailChangeHandler($users, $grants, $unitOfWork, $events);
+        $handler = new ExpireEmailChangeHandler(
+            $userRepository,
+            $emailChangeGrantRepository,
+            $unitOfWork,
+            $eventDispatcher
+        );
 
         $handler->handle(CommandMessage::create(new ExpireEmailChange(
             'email-change-expiry',
@@ -69,16 +74,19 @@ final class ExpireEmailChangeHandlerTest extends TestCase
             new DateTimeImmutable('2026-08-22T13:00:00+00:00')
         )));
 
-        $storedUser = $users->getById($user->getId());
+        $storedUser = $userRepository->getById($user->getId());
         self::assertInstanceOf(User::class, $storedUser);
         self::assertSame('old@example.test', $storedUser->getEmail()->canonical());
         self::assertNull($storedUser->getPendingEmailChange());
         self::assertSame(2, $storedUser->getEmailChangeReservationRevision());
-        self::assertTrue($grants->all()[0]->isExpired());
-        self::assertSame('2026-08-22T13:00:00+00:00', $grants->all()[0]->getExpiredAt()?->format(DATE_ATOM));
-        self::assertFalse($grants->all()[0]->getDelivery()->hasRecoverableMaterial());
-        self::assertCount(1, $events->events());
-        self::assertInstanceOf(EmailChangeExpired::class, $events->events()[0]);
+        self::assertTrue($emailChangeGrantRepository->all()[0]->isExpired());
+        self::assertSame(
+            '2026-08-22T13:00:00+00:00',
+            $emailChangeGrantRepository->all()[0]->getExpiredAt()?->format(DATE_ATOM)
+        );
+        self::assertFalse($emailChangeGrantRepository->all()[0]->getDelivery()->hasRecoverableMaterial());
+        self::assertCount(1, $eventDispatcher->events());
+        self::assertInstanceOf(EmailChangeExpired::class, $eventDispatcher->events()[0]);
     }
 
     public function test_command_and_success_event_round_trip_with_explicit_occurrence_time(): void
@@ -136,7 +144,7 @@ final class ExpireEmailChangeHandlerTest extends TestCase
     public function test_early_stale_unknown_and_mismatched_expiry_are_mutation_free(): void
     {
         foreach (['early', 'stale grant', 'unknown user'] as $case) {
-            [$handler, $users, $grants, $events, $userId, $grant] = $this->fixture();
+            [$handler, $userRepository, $emailChangeGrantRepository, $events, $userId, $grant] = $this->fixture();
             $commandUserId = $case === 'unknown user' ? UserId::generate() : $userId;
             $grantId = $case === 'stale grant' ? EmailChangeGrantId::generate() : $grant->getId();
             $occurredAt = new DateTimeImmutable('2026-08-22T13:00:00+00:00');
@@ -153,31 +161,31 @@ final class ExpireEmailChangeHandlerTest extends TestCase
 
             self::assertSame(
                 'new@example.test',
-                $users->getById($userId)?->getPendingEmailChange()?->canonical()
+                $userRepository->getById($userId)?->getPendingEmailChange()?->canonical()
             );
-            self::assertTrue($grants->all()[0]->isIssued());
+            self::assertTrue($emailChangeGrantRepository->all()[0]->isIssued());
             self::assertSame([], $events->events());
         }
     }
 
     public function test_repeated_expiry_is_mutation_free(): void
     {
-        [$handler, $users, $grants, $events, $userId, $grant] = $this->fixture();
+        [$handler, $userRepository, $emailChangeGrantRepository, $events, $userId, $grant] = $this->fixture();
         $command = $this->command($userId, $grant);
         $handler->handle(CommandMessage::create($command));
-        $expired = $grants->all()[0];
+        $expired = $emailChangeGrantRepository->all()[0];
 
         $handler->handle(CommandMessage::create($command));
 
-        self::assertSame($expired, $grants->all()[0]);
-        self::assertNull($users->getById($userId)?->getPendingEmailChange());
+        self::assertSame($expired, $emailChangeGrantRepository->all()[0]);
+        self::assertNull($userRepository->getById($userId)?->getPendingEmailChange());
         self::assertCount(1, $events->events());
     }
 
     public function test_a_lost_reservation_or_grant_cas_rolls_back_the_coupled_transition(): void
     {
         foreach ([false, true] as $grantCasLoss) {
-            [$handler, $users, $grants, $events, $userId, $grant] = $this->fixture(
+            [$handler, $userRepository, $emailChangeGrantRepository, $events, $userId, $grant] = $this->fixture(
                 grantReplaceSucceeds: !$grantCasLoss,
                 userReplaceSucceeds: $grantCasLoss
             );
@@ -188,9 +196,9 @@ final class ExpireEmailChangeHandlerTest extends TestCase
             } catch (LogicException) {
                 self::assertSame(
                     'new@example.test',
-                    $users->getById($userId)?->getPendingEmailChange()?->canonical()
+                    $userRepository->getById($userId)?->getPendingEmailChange()?->canonical()
                 );
-                self::assertTrue($grants->all()[0]->isIssued());
+                self::assertTrue($emailChangeGrantRepository->all()[0]->isIssued());
                 self::assertInstanceOf(CommandFailedEvent::class, $events->events()[0]);
             }
         }
@@ -207,20 +215,20 @@ final class ExpireEmailChangeHandlerTest extends TestCase
     ): array {
         $unitOfWork = new InMemoryUnitOfWork();
         $state = new InMemoryUserRepositoryState();
-        $seedUsers = new InMemoryUserRepository($unitOfWork, state: $state);
+        $seedUserRepository = new InMemoryUserRepository($unitOfWork, state: $state);
         $user = UserFixture::withState('old@example.test', UserState::ACTIVE);
-        $seedUsers->add($user);
+        $seedUserRepository->add($user);
         $reserved = clone $user;
         $reserved->requestEmailChange(EmailAddress::fromString('new@example.test'), new DateTimeImmutable(
             '2026-01-01T00:00:00+00:00'
         ));
-        self::assertTrue($seedUsers->replaceEmailChangeReservation($user, $reserved));
-        $users = new InMemoryUserRepository(
+        self::assertTrue($seedUserRepository->replaceEmailChangeReservation($user, $reserved));
+        $userRepository = new InMemoryUserRepository(
             $unitOfWork,
             state: $state,
             replaceEmailChangeReservationSucceeds: $userReplaceSucceeds
         );
-        $grants = new InMemoryEmailChangeGrantRepository(
+        $emailChangeGrantRepository = new InMemoryEmailChangeGrantRepository(
             $unitOfWork,
             replaceSucceeds: $grantReplaceSucceeds
         );
@@ -233,11 +241,16 @@ final class ExpireEmailChangeHandlerTest extends TestCase
             'ciphertext:change-once',
             $reserved->getEmailChangeReservationRevision()
         );
-        self::assertTrue($grants->add($grant));
-        $events = new InMemoryEventDispatcher();
-        $handler = new ExpireEmailChangeHandler($users, $grants, $unitOfWork, $events);
+        self::assertTrue($emailChangeGrantRepository->add($grant));
+        $eventDispatcher = new InMemoryEventDispatcher();
+        $handler = new ExpireEmailChangeHandler(
+            $userRepository,
+            $emailChangeGrantRepository,
+            $unitOfWork,
+            $eventDispatcher
+        );
 
-        return [$handler, $users, $grants, $events, $user->getId(), $grant];
+        return [$handler, $userRepository, $emailChangeGrantRepository, $eventDispatcher, $user->getId(), $grant];
     }
 
     private function command(UserId $userId, EmailChangeGrant $grant): ExpireEmailChange

@@ -102,7 +102,7 @@ final class GetAgentProfileHandlerTest extends TestCase
 
     private function readOnlyRepository(): AgentRepository&MockObject
     {
-        $agents = $this->createMock(AgentRepository::class);
+        $agentRepository = $this->createMock(AgentRepository::class);
         foreach (
             [
                 'add',
@@ -116,10 +116,10 @@ final class GetAgentProfileHandlerTest extends TestCase
                 'hasPermissionAssignment'
             ] as $method
         ) {
-            $agents->expects(self::never())->method($method);
+            $agentRepository->expects(self::never())->method($method);
         }
 
-        return $agents;
+        return $agentRepository;
     }
 
     private function agent(): Agent

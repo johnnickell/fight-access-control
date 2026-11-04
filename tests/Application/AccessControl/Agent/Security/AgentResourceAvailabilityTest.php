@@ -8,9 +8,9 @@ use Closure;
 use DateTimeImmutable;
 use Fight\AccessControl\Application\AccessControl\Agent\AgentResourcePermissionBinding;
 use Fight\AccessControl\Application\AccessControl\Agent\AgentResourcePermissionCatalog;
+use Fight\AccessControl\Application\AccessControl\Agent\Authentication\CurrentAgentPrincipalProvider;
+use Fight\AccessControl\Application\AccessControl\Agent\Authentication\SignedAgentRequest;
 use Fight\AccessControl\Application\AccessControl\Agent\Security\AgentResourceAvailability;
-use Fight\AccessControl\Application\AccessControl\Agent\Security\CurrentAgentPrincipalProvider;
-use Fight\AccessControl\Application\AccessControl\Agent\Security\SignedAgentRequest;
 use Fight\AccessControl\Domain\AccessControl\Agent\Agent;
 use Fight\AccessControl\Domain\AccessControl\Agent\AgentCredentialId;
 use Fight\AccessControl\Domain\AccessControl\Agent\AgentId;
@@ -32,10 +32,10 @@ use Fight\Common\Application\Mcp\Resource\McpResourceInfo;
 use Fight\Common\Application\Mcp\Resource\McpResourceLimits;
 use Fight\Common\Application\Mcp\Resource\McpResourceReadLimits;
 use Fight\Common\Domain\Value\Basic\StrictJson;
+use Fight\Test\AccessControl\Application\AccessControl\Agent\Authentication\FixedHmacSharedSecretDecipher;
+use Fight\Test\AccessControl\Application\AccessControl\Agent\Authentication\FixedHmacSignedAgentRequestVerifier;
+use Fight\Test\AccessControl\Application\AccessControl\Agent\Authentication\InMemoryAgentRequestNonceConsumer;
 use Fight\Test\AccessControl\Application\AccessControl\Agent\Fixture\ResourceProvider;
-use Fight\Test\AccessControl\Application\AccessControl\Agent\Service\FixedHmacSharedSecretDecipher;
-use Fight\Test\AccessControl\Application\AccessControl\Agent\Service\FixedHmacSignedAgentRequestVerifier;
-use Fight\Test\AccessControl\Application\AccessControl\Agent\Service\InMemoryAgentRequestNonceConsumer;
 use Fight\Test\AccessControl\Application\AccessControl\Permission\Repository\InMemoryPermissionRepository;
 use Fight\Test\AccessControl\Application\AccessControl\Timing\Service\FixedClock;
 use Fight\Test\AccessControl\Application\AccessControl\User\InMemoryUnitOfWork;
@@ -52,9 +52,9 @@ final class AgentResourceAvailabilityTest extends TestCase
 {
     private ?Agent $agent;
 
-    private AgentRepository $agents;
+    private AgentRepository $agentRepository;
 
-    private InMemoryPermissionRepository $permissions;
+    private InMemoryPermissionRepository $permissionRepository;
 
     private InMemoryUnitOfWork $unitOfWork;
 
@@ -278,7 +278,7 @@ final class AgentResourceAvailabilityTest extends TestCase
 
             return [];
         };
-        $this->permissions = new InMemoryPermissionRepository(getByIdsResult: $lookup);
+        $this->permissionRepository = new InMemoryPermissionRepository(getByIdsResult: $lookup);
         if ($fault === 'unexpected') {
             $this->agent = null;
         }
@@ -305,7 +305,11 @@ final class AgentResourceAvailabilityTest extends TestCase
             self::assertNotNull($this->agent);
             $this->agent = $this->agent->revoke($this->now());
         };
-        $this->nonces = new InMemoryAgentRequestNonceConsumer($this->agents, $this->unitOfWork, afterConsume: $change);
+        $this->nonces = new InMemoryAgentRequestNonceConsumer(
+            $this->agentRepository,
+            $this->unitOfWork,
+            afterConsume: $change
+        );
         $provider = $this->resourceProvider(['docs:one' => 'One']);
         $catalog = $this->catalog($provider, ['docs:one']);
         $discovery = $this->discovery($catalog, $this->availability($catalog));
@@ -537,7 +541,7 @@ final class AgentResourceAvailabilityTest extends TestCase
     protected function setUp(): void
     {
         $this->unitOfWork = new InMemoryUnitOfWork();
-        $this->permissions = new InMemoryPermissionRepository();
+        $this->permissionRepository = new InMemoryPermissionRepository();
         $this->agent = Agent::provision(
             AgentId::fromString('018f0000-0000-7000-8000-000000000001'),
             AgentName::fromString('Resource conformance Agent'),
@@ -547,16 +551,16 @@ final class AgentResourceAvailabilityTest extends TestCase
         );
         foreach (['VIEW_DOCUMENTS', 'READ_DOCUMENTS'] as $index => $name) {
             $id = $this->permissionId($index);
-            $this->permissions->add(Permission::define($id, PermissionName::fromString($name), $this->now()));
+            $this->permissionRepository->add(Permission::define($id, PermissionName::fromString($name), $this->now()));
             $this->agent = $this->agent->grantPermission($id, $this->now());
         }
 
-        $this->agents = $this->createStub(AgentRepository::class);
-        $this->agents->method('getByCredentialId')->willReturnCallback(
+        $this->agentRepository = $this->createStub(AgentRepository::class);
+        $this->agentRepository->method('getByCredentialId')->willReturnCallback(
             $this->agentByCredential(...)
         );
-        $this->agents->method('getById')->willReturnCallback($this->currentAgent(...));
-        $this->nonces = new InMemoryAgentRequestNonceConsumer($this->agents, $this->unitOfWork);
+        $this->agentRepository->method('getById')->willReturnCallback($this->currentAgent(...));
+        $this->nonces = new InMemoryAgentRequestNonceConsumer($this->agentRepository, $this->unitOfWork);
     }
 
     private function availability(
@@ -572,8 +576,8 @@ final class AgentResourceAvailabilityTest extends TestCase
         $verifier = new FixedHmacSignedAgentRequestVerifier($request, $secret);
         $this->verifiers[] = $verifier;
         $provider = new CurrentAgentPrincipalProvider(
-            $this->agents,
-            $this->permissions,
+            $this->agentRepository,
+            $this->permissionRepository,
             new FixedHmacSharedSecretDecipher('encrypted:'),
             $verifier,
             new FixedClock($this->now()),

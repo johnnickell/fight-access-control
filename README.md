@@ -55,8 +55,10 @@ Symfony admission. Laravel and CodeIgniter 4 adapters remain planned. Domain/App
 Maintainers placing classes or naming collaborators should use the checkout-local
 [architecture target](docs/engineering/standards/Architecture.md#accesscontrol-placement-and-dependency-rules) and
 [naming rules](docs/engineering/standards/Naming.md#descriptive-collaborators-and-collections). These codify approved
-EPIC-00015 guidance; MCP relocation, capability cleanup and synchronous authentication decomposition remain later
-TASKs, not implemented source or blanket persistence/framework support.
+EPIC-00015 guidance. Agent authentication, credential lifecycle, delivery, maintenance and continuation now have
+cohesive Application homes, alongside Feature Discovery and authorization Admission; see the
+[current composition map](docs/agent-integration.md#public-composition-map). MCP relocation and User synchronous
+authentication decomposition remain separate TASKs, not implemented source or blanket persistence/framework support.
 
 | This package owns | Your application owns |
 | --- | --- |

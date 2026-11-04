@@ -8,7 +8,7 @@ EPIC release is not yet complete.
 
 ## Inward contract and trusted composition
 
-`Application\AccessControl\Authorization\PermissionDeclaration` has exactly three `AdmissionMode` values:
+`Application\AccessControl\Authorization\Admission\PermissionDeclaration` has exactly three `AdmissionMode` values:
 
 | Mode | Requirements | Behavior |
 | --- | --- | --- |

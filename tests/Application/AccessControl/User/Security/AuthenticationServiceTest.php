@@ -214,17 +214,17 @@ final class AuthenticationServiceTest extends TestCase
     public function test_that_email_confirmation_atomically_promotes_identity_and_invalidates_authentication(): void
     {
         $unitOfWork = new InMemoryUnitOfWork();
-        $users = new InMemoryUserRepository($unitOfWork);
+        $userRepository = new InMemoryUserRepository($unitOfWork);
         $user = $this->activeUserFor('old@example.test');
-        $users->add($user);
+        $userRepository->add($user);
         $reservedUser = clone $user;
         $reservedUser->requestEmailChange(
             EmailAddress::fromString('new@example.test'),
             new DateTimeImmutable('2026-01-01T00:00:00+00:00')
         );
-        self::assertTrue($users->replaceEmailChangeReservation($user, $reservedUser));
-        $grants = new InMemoryEmailChangeGrantRepository($unitOfWork);
-        self::assertTrue($grants->add(EmailChangeGrant::issue(
+        self::assertTrue($userRepository->replaceEmailChangeReservation($user, $reservedUser));
+        $emailChangeGrantRepository = new InMemoryEmailChangeGrantRepository($unitOfWork);
+        self::assertTrue($emailChangeGrantRepository->add(EmailChangeGrant::issue(
             $user->getId(),
             EmailChangeCredential::fromString(self::EMAIL_CHANGE_CREDENTIAL),
             new DateTimeImmutable('2026-08-19T11:00:00+00:00'),
@@ -233,49 +233,51 @@ final class AuthenticationServiceTest extends TestCase
             'ciphertext:confirm-email-once',
             $reservedUser->getEmailChangeReservationRevision()
         )));
-        $sessions = new InMemoryRefreshSessionRepository($unitOfWork);
-        $sessions->add($this->session($reservedUser, $this->refreshCredential(), false));
-        $sessions->add($this->session(
+        $refreshSessionRepository = new InMemoryRefreshSessionRepository($unitOfWork);
+        $refreshSessionRepository->add($this->session($reservedUser, $this->refreshCredential(), false));
+        $refreshSessionRepository->add($this->session(
             $reservedUser,
             RefreshCredential::fromString(self::SIBLING_CREDENTIAL),
             false
         ));
-        $audit = new InMemoryAuditEvidenceRepository($unitOfWork);
-        $events = new InMemoryEventDispatcher(static function ($event) use ($audit, $unitOfWork): void {
-            if ($event instanceof EmailChangeConfirmed) {
-                self::assertCount(1, $audit->all());
-                self::assertTrue($unitOfWork->transactionCompleted);
+        $auditEvidenceRepository = new InMemoryAuditEvidenceRepository($unitOfWork);
+        $eventDispatcher = new InMemoryEventDispatcher(
+            static function ($event) use ($auditEvidenceRepository, $unitOfWork): void {
+                if ($event instanceof EmailChangeConfirmed) {
+                    self::assertCount(1, $auditEvidenceRepository->all());
+                    self::assertTrue($unitOfWork->transactionCompleted);
+                }
             }
-        });
+        );
         $service = $this->service(
-            $users,
+            $userRepository,
             new InMemoryActivationGrantRepository($unitOfWork),
-            $sessions,
+            $refreshSessionRepository,
             $unitOfWork,
-            $events,
-            auditEvidenceRepository: $audit,
-            emailChangeGrantRepository: $grants
+            $eventDispatcher,
+            auditEvidenceRepository: $auditEvidenceRepository,
+            emailChangeGrantRepository: $emailChangeGrantRepository
         );
 
         $service->confirmEmail($user->getId(), self::EMAIL_CHANGE_CREDENTIAL);
 
-        $storedUser = $users->getById($user->getId());
+        $storedUser = $userRepository->getById($user->getId());
         self::assertInstanceOf(User::class, $storedUser);
         self::assertSame('new@example.test', $storedUser->getEmail()->canonical());
-        self::assertNull($users->getByEmail(EmailAddress::fromString('old@example.test')));
-        self::assertSame($storedUser, $users->getByEmail(EmailAddress::fromString('new@example.test')));
+        self::assertNull($userRepository->getByEmail(EmailAddress::fromString('old@example.test')));
+        self::assertSame($storedUser, $userRepository->getByEmail(EmailAddress::fromString('new@example.test')));
         self::assertNull($storedUser->getPendingEmailChange());
         self::assertSame(2, $storedUser->getAuthenticationVersion());
         self::assertSame(1, $storedUser->getAuthenticationAuthorityRevision());
-        self::assertTrue($grants->all()[0]->isConsumed());
-        self::assertFalse($grants->all()[0]->getDelivery()->hasRecoverableMaterial());
-        self::assertCount(2, $sessions->all());
-        self::assertTrue($sessions->all()[0]->isRevoked());
-        self::assertTrue($sessions->all()[1]->isRevoked());
-        self::assertSame('user.email_change_confirmed', $audit->all()[0]->action());
+        self::assertTrue($emailChangeGrantRepository->all()[0]->isConsumed());
+        self::assertFalse($emailChangeGrantRepository->all()[0]->getDelivery()->hasRecoverableMaterial());
+        self::assertCount(2, $refreshSessionRepository->all());
+        self::assertTrue($refreshSessionRepository->all()[0]->isRevoked());
+        self::assertTrue($refreshSessionRepository->all()[1]->isRevoked());
+        self::assertSame('user.email_change_confirmed', $auditEvidenceRepository->all()[0]->action());
         self::assertSame(1, $unitOfWork->transactions);
-        self::assertCount(1, $events->events());
-        self::assertInstanceOf(EmailChangeConfirmed::class, $events->events()[0]);
+        self::assertCount(1, $eventDispatcher->events());
+        self::assertInstanceOf(EmailChangeConfirmed::class, $eventDispatcher->events()[0]);
 
         try {
             $service->refresh(self::REFRESH_CREDENTIAL);
@@ -318,7 +320,7 @@ final class AuthenticationServiceTest extends TestCase
         string $credential
     ): void {
         $unitOfWork = new InMemoryUnitOfWork();
-        $users = new InMemoryUserRepository($unitOfWork);
+        $userRepository = new InMemoryUserRepository($unitOfWork);
         $user = $this->activeUserFor('old@example.test');
         $reservedUser = clone $user;
         $reservedUser->requestEmailChange(
@@ -326,10 +328,10 @@ final class AuthenticationServiceTest extends TestCase
             new DateTimeImmutable('2026-01-01T00:00:00+00:00')
         );
         if ($condition !== 'missing_user') {
-            $users->add($condition === 'missing_reservation' ? $user : $reservedUser);
+            $userRepository->add($condition === 'missing_reservation' ? $user : $reservedUser);
         }
 
-        $grants = new InMemoryEmailChangeGrantRepository($unitOfWork);
+        $emailChangeGrantRepository = new InMemoryEmailChangeGrantRepository($unitOfWork);
         if ($condition !== 'missing_grant') {
             $expiresAt = new DateTimeImmutable('2026-08-19T13:00:00+00:00');
             if ($condition === 'expired') {
@@ -347,32 +349,32 @@ final class AuthenticationServiceTest extends TestCase
                 'ciphertext:confirm-email-once',
                 $reservedUser->getEmailChangeReservationRevision()
             );
-            self::assertTrue($grants->add($grant));
+            self::assertTrue($emailChangeGrantRepository->add($grant));
             if ($condition === 'consumed') {
-                self::assertTrue($grants->replace(
+                self::assertTrue($emailChangeGrantRepository->replace(
                     $grant,
                     $grant->consume(new DateTimeImmutable('2026-08-19T11:30:00+00:00'))
                 ));
             } elseif ($condition === 'revoked') {
-                self::assertTrue($grants->replace(
+                self::assertTrue($emailChangeGrantRepository->replace(
                     $grant,
                     $grant->revoke(new DateTimeImmutable('2026-08-19T11:30:00+00:00'))
                 ));
             }
         }
 
-        $originalGrant = $grants->all()[0] ?? null;
-        $sessions = new InMemoryRefreshSessionRepository($unitOfWork);
-        $audit = new InMemoryAuditEvidenceRepository($unitOfWork);
-        $events = new InMemoryEventDispatcher();
+        $originalGrant = $emailChangeGrantRepository->all()[0] ?? null;
+        $refreshSessionRepository = new InMemoryRefreshSessionRepository($unitOfWork);
+        $auditEvidenceRepository = new InMemoryAuditEvidenceRepository($unitOfWork);
+        $eventDispatcher = new InMemoryEventDispatcher();
         $service = $this->service(
-            $users,
+            $userRepository,
             new InMemoryActivationGrantRepository($unitOfWork),
-            $sessions,
+            $refreshSessionRepository,
             $unitOfWork,
-            $events,
-            auditEvidenceRepository: $audit,
-            emailChangeGrantRepository: $grants
+            $eventDispatcher,
+            auditEvidenceRepository: $auditEvidenceRepository,
+            emailChangeGrantRepository: $emailChangeGrantRepository
         );
 
         $this->expectException(EmailChangeConfirmationRejectedException::class);
@@ -381,11 +383,11 @@ final class AuthenticationServiceTest extends TestCase
         } finally {
             self::assertSame(
                 $condition === 'missing_user' ? null : ($condition === 'missing_reservation' ? $user : $reservedUser),
-                $users->getById($user->getId())
+                $userRepository->getById($user->getId())
             );
-            self::assertSame($originalGrant, $grants->all()[0] ?? null);
-            self::assertSame([], $audit->all());
-            $this->assertEmailConfirmationFailureIsRedacted($events, $user->getId(), $credential);
+            self::assertSame($originalGrant, $emailChangeGrantRepository->all()[0] ?? null);
+            self::assertSame([], $auditEvidenceRepository->all());
+            $this->assertEmailConfirmationFailureIsRedacted($eventDispatcher, $user->getId(), $credential);
         }
     }
 
@@ -393,40 +395,40 @@ final class AuthenticationServiceTest extends TestCase
     {
         foreach (['grant', 'user'] as $casLoss) {
             $unitOfWork = new InMemoryUnitOfWork();
-            $users = new InMemoryUserRepository(
+            $userRepository = new InMemoryUserRepository(
                 $unitOfWork,
                 replaceEmailChangeConfirmationSucceeds: $casLoss !== 'user'
             );
             $user = $this->activeUserFor('old@example.test');
-            $users->add($user);
+            $userRepository->add($user);
             $reservedUser = clone $user;
             $reservedUser->requestEmailChange(
                 EmailAddress::fromString('new@example.test'),
                 new DateTimeImmutable('2026-01-01T00:00:00+00:00')
             );
-            self::assertTrue($users->replaceEmailChangeReservation($user, $reservedUser));
-            $grants = new InMemoryEmailChangeGrantRepository(
+            self::assertTrue($userRepository->replaceEmailChangeReservation($user, $reservedUser));
+            $emailChangeGrantRepository = new InMemoryEmailChangeGrantRepository(
                 $unitOfWork,
                 replaceSucceeds: $casLoss !== 'grant'
             );
-            self::assertTrue($grants->add($this->emailChangeGrant($user->getId())));
-            $events = new InMemoryEventDispatcher();
+            self::assertTrue($emailChangeGrantRepository->add($this->emailChangeGrant($user->getId())));
+            $eventDispatcher = new InMemoryEventDispatcher();
 
             try {
                 $this->service(
-                    $users,
+                    $userRepository,
                     new InMemoryActivationGrantRepository($unitOfWork),
                     new InMemoryRefreshSessionRepository($unitOfWork),
                     $unitOfWork,
-                    $events,
-                    emailChangeGrantRepository: $grants
+                    $eventDispatcher,
+                    emailChangeGrantRepository: $emailChangeGrantRepository
                 )->confirmEmail($user->getId(), self::EMAIL_CHANGE_CREDENTIAL);
                 self::fail('A stale confirmation compare-and-set was accepted.');
             } catch (EmailChangeConfirmationRejectedException) {
-                self::assertSame($reservedUser, $users->getById($user->getId()));
-                self::assertTrue($grants->all()[0]->isIssued());
+                self::assertSame($reservedUser, $userRepository->getById($user->getId()));
+                self::assertTrue($emailChangeGrantRepository->all()[0]->isIssued());
                 $this->assertEmailConfirmationFailureIsRedacted(
-                    $events,
+                    $eventDispatcher,
                     $user->getId(),
                     self::EMAIL_CHANGE_CREDENTIAL
                 );
@@ -437,43 +439,43 @@ final class AuthenticationServiceTest extends TestCase
     public function test_that_session_revocation_failure_rolls_back_confirmation(): void
     {
         $unitOfWork = new InMemoryUnitOfWork();
-        $users = new InMemoryUserRepository($unitOfWork);
+        $userRepository = new InMemoryUserRepository($unitOfWork);
         $user = $this->activeUserFor('old@example.test');
-        $users->add($user);
+        $userRepository->add($user);
         $reservedUser = clone $user;
         $reservedUser->requestEmailChange(
             EmailAddress::fromString('new@example.test'),
             new DateTimeImmutable('2026-01-01T00:00:00+00:00')
         );
-        self::assertTrue($users->replaceEmailChangeReservation($user, $reservedUser));
-        $grants = new InMemoryEmailChangeGrantRepository($unitOfWork);
-        self::assertTrue($grants->add($this->emailChangeGrant($user->getId())));
-        $sessions = new InMemoryRefreshSessionRepository(
+        self::assertTrue($userRepository->replaceEmailChangeReservation($user, $reservedUser));
+        $emailChangeGrantRepository = new InMemoryEmailChangeGrantRepository($unitOfWork);
+        self::assertTrue($emailChangeGrantRepository->add($this->emailChangeGrant($user->getId())));
+        $refreshSessionRepository = new InMemoryRefreshSessionRepository(
             $unitOfWork,
             beforeReplace: static function (): never {
                 throw new RuntimeException('Session persistence failed after secret-bearing confirmation.');
             }
         );
-        $sessions->add($this->session($reservedUser, $this->refreshCredential(), false));
+        $refreshSessionRepository->add($this->session($reservedUser, $this->refreshCredential(), false));
 
-        $events = new InMemoryEventDispatcher();
+        $eventDispatcher = new InMemoryEventDispatcher();
 
         $this->expectException(EmailChangeConfirmationRejectedException::class);
         try {
             $this->service(
-                $users,
+                $userRepository,
                 new InMemoryActivationGrantRepository($unitOfWork),
-                $sessions,
+                $refreshSessionRepository,
                 $unitOfWork,
-                $events,
-                emailChangeGrantRepository: $grants
+                $eventDispatcher,
+                emailChangeGrantRepository: $emailChangeGrantRepository
             )->confirmEmail($user->getId(), self::EMAIL_CHANGE_CREDENTIAL);
         } finally {
-            self::assertSame($reservedUser, $users->getById($user->getId()));
-            self::assertTrue($grants->all()[0]->isIssued());
-            self::assertFalse($sessions->all()[0]->isRevoked());
+            self::assertSame($reservedUser, $userRepository->getById($user->getId()));
+            self::assertTrue($emailChangeGrantRepository->all()[0]->isIssued());
+            self::assertFalse($refreshSessionRepository->all()[0]->isRevoked());
             $this->assertEmailConfirmationFailureIsRedacted(
-                $events,
+                $eventDispatcher,
                 $user->getId(),
                 self::EMAIL_CHANGE_CREDENTIAL
             );
@@ -483,41 +485,41 @@ final class AuthenticationServiceTest extends TestCase
     public function test_that_late_confirmation_audit_failure_rolls_back_all_staged_authority(): void
     {
         $unitOfWork = new InMemoryUnitOfWork();
-        $users = new InMemoryUserRepository($unitOfWork);
+        $userRepository = new InMemoryUserRepository($unitOfWork);
         $user = $this->activeUserFor('old@example.test');
-        $users->add($user);
+        $userRepository->add($user);
         $reservedUser = clone $user;
         $reservedUser->requestEmailChange(
             EmailAddress::fromString('new@example.test'),
             new DateTimeImmutable('2026-01-01T00:00:00+00:00')
         );
-        self::assertTrue($users->replaceEmailChangeReservation($user, $reservedUser));
-        $grants = new InMemoryEmailChangeGrantRepository($unitOfWork);
-        self::assertTrue($grants->add($this->emailChangeGrant($user->getId())));
-        $sessions = new InMemoryRefreshSessionRepository($unitOfWork);
-        $sessions->add($this->session($reservedUser, $this->refreshCredential(), false));
+        self::assertTrue($userRepository->replaceEmailChangeReservation($user, $reservedUser));
+        $emailChangeGrantRepository = new InMemoryEmailChangeGrantRepository($unitOfWork);
+        self::assertTrue($emailChangeGrantRepository->add($this->emailChangeGrant($user->getId())));
+        $refreshSessionRepository = new InMemoryRefreshSessionRepository($unitOfWork);
+        $refreshSessionRepository->add($this->session($reservedUser, $this->refreshCredential(), false));
 
-        $audit = new InMemoryAuditEvidenceRepository($unitOfWork, failAfterSave: true);
-        $events = new InMemoryEventDispatcher();
+        $auditEvidenceRepository = new InMemoryAuditEvidenceRepository($unitOfWork, failAfterSave: true);
+        $eventDispatcher = new InMemoryEventDispatcher();
 
         $this->expectException(EmailChangeConfirmationRejectedException::class);
         try {
             $this->service(
-                $users,
+                $userRepository,
                 new InMemoryActivationGrantRepository($unitOfWork),
-                $sessions,
+                $refreshSessionRepository,
                 $unitOfWork,
-                $events,
-                auditEvidenceRepository: $audit,
-                emailChangeGrantRepository: $grants
+                $eventDispatcher,
+                auditEvidenceRepository: $auditEvidenceRepository,
+                emailChangeGrantRepository: $emailChangeGrantRepository
             )->confirmEmail($user->getId(), self::EMAIL_CHANGE_CREDENTIAL);
         } finally {
-            self::assertSame($reservedUser, $users->getById($user->getId()));
-            self::assertTrue($grants->all()[0]->isIssued());
-            self::assertFalse($sessions->all()[0]->isRevoked());
-            self::assertSame([], $audit->all());
+            self::assertSame($reservedUser, $userRepository->getById($user->getId()));
+            self::assertTrue($emailChangeGrantRepository->all()[0]->isIssued());
+            self::assertFalse($refreshSessionRepository->all()[0]->isRevoked());
+            self::assertSame([], $auditEvidenceRepository->all());
             $this->assertEmailConfirmationFailureIsRedacted(
-                $events,
+                $eventDispatcher,
                 $user->getId(),
                 self::EMAIL_CHANGE_CREDENTIAL
             );
@@ -550,27 +552,27 @@ final class AuthenticationServiceTest extends TestCase
             ] as [$authenticatedUserId, $storedUser, $sessionOwner, $currentPassword]
         ) {
             $unitOfWork = new InMemoryUnitOfWork();
-            $users = new InMemoryUserRepository($unitOfWork);
-            $sessions = new InMemoryRefreshSessionRepository($unitOfWork);
-            $auditEvidence = new InMemoryAuditEvidenceRepository($unitOfWork);
+            $userRepository = new InMemoryUserRepository($unitOfWork);
+            $refreshSessionRepository = new InMemoryRefreshSessionRepository($unitOfWork);
+            $auditEvidenceRepository = new InMemoryAuditEvidenceRepository($unitOfWork);
             if ($storedUser instanceof User) {
                 $authenticatedUserId = $storedUser->getId();
-                $users->add($storedUser);
+                $userRepository->add($storedUser);
                 $sessionOwner = $storedUser;
             }
 
             self::assertInstanceOf(User::class, $sessionOwner);
             $refreshSession = $this->session($sessionOwner, $this->refreshCredential(), false);
-            $sessions->add($refreshSession);
+            $refreshSessionRepository->add($refreshSession);
             $originalPasswordHash = $storedUser?->getPasswordHash()?->toString();
-            $events = new InMemoryEventDispatcher();
+            $eventDispatcher = new InMemoryEventDispatcher();
             $service = $this->service(
-                $users,
+                $userRepository,
                 new InMemoryActivationGrantRepository($unitOfWork),
-                $sessions,
+                $refreshSessionRepository,
                 $unitOfWork,
-                $events,
-                auditEvidenceRepository: $auditEvidence
+                $eventDispatcher,
+                auditEvidenceRepository: $auditEvidenceRepository
             );
 
             try {
@@ -585,7 +587,7 @@ final class AuthenticationServiceTest extends TestCase
                 self::assertSame('Password change rejected.', $domainException->getMessage());
             }
 
-            $authoritativeUser = $users->getById($authenticatedUserId);
+            $authoritativeUser = $userRepository->getById($authenticatedUserId);
             if ($storedUser instanceof User) {
                 self::assertInstanceOf(User::class, $authoritativeUser);
                 self::assertSame($originalPasswordHash, $authoritativeUser->getPasswordHash()?->toString());
@@ -596,27 +598,27 @@ final class AuthenticationServiceTest extends TestCase
             }
 
             self::assertSame(1, $unitOfWork->transactions);
-            self::assertSame([$refreshSession], $sessions->all());
+            self::assertSame([$refreshSession], $refreshSessionRepository->all());
             self::assertFalse($refreshSession->isRevoked());
-            self::assertSame([], $auditEvidence->all());
-            self::assertCount(1, $events->events());
-            self::assertInstanceOf(RedactedCommandFailed::class, $events->events()[0]);
+            self::assertSame([], $auditEvidenceRepository->all());
+            self::assertCount(1, $eventDispatcher->events());
+            self::assertInstanceOf(RedactedCommandFailed::class, $eventDispatcher->events()[0]);
             self::assertSame(
                 AuthenticationService::class.'::changePassword',
-                $events->events()[0]->getCommandClass()
+                $eventDispatcher->events()[0]->getCommandClass()
             );
             self::assertSame(
                 ['user_id' => $authenticatedUserId->toString()],
-                $events->events()[0]->getRedactedCommandData()
+                $eventDispatcher->events()[0]->getRedactedCommandData()
             );
-            self::assertSame('Password change failed.', $events->events()[0]->getErrorMessage());
+            self::assertSame('Password change failed.', $eventDispatcher->events()[0]->getErrorMessage());
             self::assertStringNotContainsString(
                 $currentPassword,
-                serialize($events->events()[0]->toArray())
+                serialize($eventDispatcher->events()[0]->toArray())
             );
             self::assertStringNotContainsString(
                 'a sufficiently long rejected changed password',
-                serialize($events->events()[0]->toArray())
+                serialize($eventDispatcher->events()[0]->toArray())
             );
         }
     }
@@ -624,39 +626,39 @@ final class AuthenticationServiceTest extends TestCase
     public function test_that_proven_password_change_atomically_replaces_authority_and_revokes_all_sessions(): void
     {
         $unitOfWork = new InMemoryUnitOfWork();
-        $users = new InMemoryUserRepository($unitOfWork);
-        $sessions = new InMemoryRefreshSessionRepository($unitOfWork);
-        $auditEvidence = new InMemoryAuditEvidenceRepository($unitOfWork);
+        $userRepository = new InMemoryUserRepository($unitOfWork);
+        $refreshSessionRepository = new InMemoryRefreshSessionRepository($unitOfWork);
+        $auditEvidenceRepository = new InMemoryAuditEvidenceRepository($unitOfWork);
         $user = $this->activeUserFor('change-password@example.test');
-        $users->add($user);
-        $sessions->add($this->session($user, $this->refreshCredential(), false));
-        $sessions->add($this->session(
+        $userRepository->add($user);
+        $refreshSessionRepository->add($this->session($user, $this->refreshCredential(), false));
+        $refreshSessionRepository->add($this->session(
             $user,
             RefreshCredential::fromString(self::SIBLING_CREDENTIAL),
             true
         ));
-        $events = new InMemoryEventDispatcher(static function () use (
-            $auditEvidence,
-            $sessions,
+        $eventDispatcher = new InMemoryEventDispatcher(static function () use (
+            $auditEvidenceRepository,
+            $refreshSessionRepository,
             $unitOfWork,
             $user,
-            $users
+            $userRepository
         ): void {
             self::assertTrue($unitOfWork->transactionCompleted);
-            self::assertSame(2, $users->getById($user->getId())?->getAuthenticationVersion());
+            self::assertSame(2, $userRepository->getById($user->getId())?->getAuthenticationVersion());
             self::assertTrue(array_all(
-                $sessions->all(),
+                $refreshSessionRepository->all(),
                 static fn(RefreshSession $refreshSession): bool => $refreshSession->isRevoked()
             ));
-            self::assertCount(1, $auditEvidence->all());
+            self::assertCount(1, $auditEvidenceRepository->all());
         });
         $service = $this->service(
-            $users,
+            $userRepository,
             new InMemoryActivationGrantRepository($unitOfWork),
-            $sessions,
+            $refreshSessionRepository,
             $unitOfWork,
-            $events,
-            auditEvidenceRepository: $auditEvidence
+            $eventDispatcher,
+            auditEvidenceRepository: $auditEvidenceRepository
         );
 
         $service->changePassword(
@@ -665,7 +667,7 @@ final class AuthenticationServiceTest extends TestCase
             'a sufficiently long changed password'
         );
 
-        $authoritativeUser = $users->getById($user->getId());
+        $authoritativeUser = $userRepository->getById($user->getId());
         self::assertInstanceOf(User::class, $authoritativeUser);
         self::assertSame(1, $unitOfWork->transactions);
         self::assertTrue(password_verify(
@@ -675,27 +677,27 @@ final class AuthenticationServiceTest extends TestCase
         self::assertSame(2, $authoritativeUser->getAuthenticationVersion());
         self::assertSame(1, $authoritativeUser->getAuthenticationAuthorityRevision());
         self::assertTrue(array_all(
-            $sessions->all(),
+            $refreshSessionRepository->all(),
             static fn(RefreshSession $refreshSession): bool => $refreshSession->isRevoked()
         ));
-        self::assertSame(1, $sessions->getAllActiveByUserIdCalls());
-        self::assertSame(0, $sessions->getByUserIdCalls());
-        self::assertSame($user->getId()->toString(), $auditEvidence->all()[0]->actorId());
-        self::assertSame('user.password_changed', $auditEvidence->all()[0]->action());
-        self::assertSame($user->getId(), $auditEvidence->all()[0]->subjectId());
-        self::assertSame([], $auditEvidence->all()[0]->context());
-        self::assertCount(1, $events->events());
-        self::assertInstanceOf(PasswordChanged::class, $events->events()[0]);
-        self::assertSame($user->getId(), $events->events()[0]->getUserId());
-        self::assertSame('2026-08-19T12:00:00+00:00', $events->events()[0]->getChangedAt()->format(DATE_ATOM));
+        self::assertSame(1, $refreshSessionRepository->getAllActiveByUserIdCalls());
+        self::assertSame(0, $refreshSessionRepository->getByUserIdCalls());
+        self::assertSame($user->getId()->toString(), $auditEvidenceRepository->all()[0]->actorId());
+        self::assertSame('user.password_changed', $auditEvidenceRepository->all()[0]->action());
+        self::assertSame($user->getId(), $auditEvidenceRepository->all()[0]->subjectId());
+        self::assertSame([], $auditEvidenceRepository->all()[0]->context());
+        self::assertCount(1, $eventDispatcher->events());
+        self::assertInstanceOf(PasswordChanged::class, $eventDispatcher->events()[0]);
+        self::assertSame($user->getId(), $eventDispatcher->events()[0]->getUserId());
+        self::assertSame('2026-08-19T12:00:00+00:00', $eventDispatcher->events()[0]->getChangedAt()->format(DATE_ATOM));
         self::assertSame(
-            $events->events()[0]->toArray(),
-            PasswordChanged::fromArray($events->events()[0]->toArray())->toArray()
+            $eventDispatcher->events()[0]->toArray(),
+            PasswordChanged::fromArray($eventDispatcher->events()[0]->toArray())->toArray()
         );
-        self::assertStringNotContainsString('correct-secret', serialize($events->events()[0]->toArray()));
+        self::assertStringNotContainsString('correct-secret', serialize($eventDispatcher->events()[0]->toArray()));
         self::assertStringNotContainsString(
             'a sufficiently long changed password',
-            serialize($events->events()[0]->toArray())
+            serialize($eventDispatcher->events()[0]->toArray())
         );
 
         $this->expectException(DomainException::class);
@@ -705,25 +707,25 @@ final class AuthenticationServiceTest extends TestCase
     public function test_that_password_change_authority_cas_loss_is_generic_redacted_and_mutation_free(): void
     {
         $unitOfWork = new InMemoryUnitOfWork();
-        $users = new InMemoryUserRepository(
+        $userRepository = new InMemoryUserRepository(
             $unitOfWork,
             replaceAuthenticationAuthoritySucceeds: false
         );
-        $sessions = new InMemoryRefreshSessionRepository($unitOfWork);
-        $auditEvidence = new InMemoryAuditEvidenceRepository($unitOfWork);
+        $refreshSessionRepository = new InMemoryRefreshSessionRepository($unitOfWork);
+        $auditEvidenceRepository = new InMemoryAuditEvidenceRepository($unitOfWork);
         $user = $this->activeUserFor('change-password-cas-loss@example.test');
-        $users->add($user);
+        $userRepository->add($user);
         $refreshSession = $this->session($user, $this->refreshCredential(), false);
-        $sessions->add($refreshSession);
+        $refreshSessionRepository->add($refreshSession);
         $originalPasswordHash = $user->getPasswordHash()?->toString();
-        $events = new InMemoryEventDispatcher();
+        $eventDispatcher = new InMemoryEventDispatcher();
         $service = $this->service(
-            $users,
+            $userRepository,
             new InMemoryActivationGrantRepository($unitOfWork),
-            $sessions,
+            $refreshSessionRepository,
             $unitOfWork,
-            $events,
-            auditEvidenceRepository: $auditEvidence
+            $eventDispatcher,
+            auditEvidenceRepository: $auditEvidenceRepository
         );
 
         try {
@@ -738,16 +740,16 @@ final class AuthenticationServiceTest extends TestCase
             self::assertSame('Password change rejected.', $domainException->getMessage());
         }
 
-        $authoritativeUser = $users->getById($user->getId());
+        $authoritativeUser = $userRepository->getById($user->getId());
         self::assertInstanceOf(User::class, $authoritativeUser);
         self::assertSame($originalPasswordHash, $authoritativeUser->getPasswordHash()?->toString());
         self::assertSame(1, $authoritativeUser->getAuthenticationVersion());
         self::assertSame(0, $authoritativeUser->getAuthenticationAuthorityRevision());
-        self::assertSame([$refreshSession], $sessions->all());
+        self::assertSame([$refreshSession], $refreshSessionRepository->all());
         self::assertFalse($refreshSession->isRevoked());
-        self::assertSame([], $auditEvidence->all());
+        self::assertSame([], $auditEvidenceRepository->all());
         $this->assertPasswordChangeFailureIsRedacted(
-            $events,
+            $eventDispatcher,
             $user->getId(),
             'Password change rejected.',
             'correct-secret',
@@ -758,10 +760,10 @@ final class AuthenticationServiceTest extends TestCase
     public function test_that_session_revocation_failure_rolls_back_password_change_and_prior_revocations(): void
     {
         $unitOfWork = new InMemoryUnitOfWork();
-        $users = new InMemoryUserRepository($unitOfWork);
+        $userRepository = new InMemoryUserRepository($unitOfWork);
         $replacementCalls = 0;
         $failure = new RuntimeException('The refresh-session revocation write failed.');
-        $sessions = new InMemoryRefreshSessionRepository(
+        $refreshSessionRepository = new InMemoryRefreshSessionRepository(
             $unitOfWork,
             beforeReplace: static function () use (&$replacementCalls, $failure): void {
                 ++$replacementCalls;
@@ -770,9 +772,9 @@ final class AuthenticationServiceTest extends TestCase
                 }
             }
         );
-        $auditEvidence = new InMemoryAuditEvidenceRepository($unitOfWork);
+        $auditEvidenceRepository = new InMemoryAuditEvidenceRepository($unitOfWork);
         $user = $this->activeUserFor('change-password-session-rollback@example.test');
-        $users->add($user);
+        $userRepository->add($user);
         $originalPasswordHash = $user->getPasswordHash()?->toString();
         $firstSession = $this->session($user, $this->refreshCredential(), false);
         $secondSession = $this->session(
@@ -780,17 +782,17 @@ final class AuthenticationServiceTest extends TestCase
             RefreshCredential::fromString(self::SIBLING_CREDENTIAL),
             true
         );
-        $sessions->add($firstSession);
-        $sessions->add($secondSession);
+        $refreshSessionRepository->add($firstSession);
+        $refreshSessionRepository->add($secondSession);
 
-        $events = new InMemoryEventDispatcher();
+        $eventDispatcher = new InMemoryEventDispatcher();
         $service = $this->service(
-            $users,
+            $userRepository,
             new InMemoryActivationGrantRepository($unitOfWork),
-            $sessions,
+            $refreshSessionRepository,
             $unitOfWork,
-            $events,
-            auditEvidenceRepository: $auditEvidence
+            $eventDispatcher,
+            auditEvidenceRepository: $auditEvidenceRepository
         );
 
         try {
@@ -804,17 +806,17 @@ final class AuthenticationServiceTest extends TestCase
             self::assertSame($failure, $runtimeException);
         }
 
-        $authoritativeUser = $users->getById($user->getId());
+        $authoritativeUser = $userRepository->getById($user->getId());
         self::assertInstanceOf(User::class, $authoritativeUser);
         self::assertSame($originalPasswordHash, $authoritativeUser->getPasswordHash()?->toString());
         self::assertSame(1, $authoritativeUser->getAuthenticationVersion());
         self::assertSame(0, $authoritativeUser->getAuthenticationAuthorityRevision());
-        self::assertSame([$firstSession, $secondSession], $sessions->all());
+        self::assertSame([$firstSession, $secondSession], $refreshSessionRepository->all());
         self::assertFalse($firstSession->isRevoked());
         self::assertFalse($secondSession->isRevoked());
-        self::assertSame([], $auditEvidence->all());
+        self::assertSame([], $auditEvidenceRepository->all());
         $this->assertPasswordChangeFailureIsRedacted(
-            $events,
+            $eventDispatcher,
             $user->getId(),
             'The refresh-session revocation write failed.',
             'correct-secret',
@@ -825,11 +827,11 @@ final class AuthenticationServiceTest extends TestCase
     public function test_that_late_password_change_audit_failure_rolls_back_every_staged_effect(): void
     {
         $unitOfWork = new InMemoryUnitOfWork();
-        $users = new InMemoryUserRepository($unitOfWork);
-        $sessions = new InMemoryRefreshSessionRepository($unitOfWork);
-        $auditEvidence = new InMemoryAuditEvidenceRepository($unitOfWork, failAfterSave: true);
+        $userRepository = new InMemoryUserRepository($unitOfWork);
+        $refreshSessionRepository = new InMemoryRefreshSessionRepository($unitOfWork);
+        $auditEvidenceRepository = new InMemoryAuditEvidenceRepository($unitOfWork, failAfterSave: true);
         $user = $this->activeUserFor('change-password-audit-rollback@example.test');
-        $users->add($user);
+        $userRepository->add($user);
         $originalPasswordHash = $user->getPasswordHash()?->toString();
         $firstSession = $this->session($user, $this->refreshCredential(), false);
         $secondSession = $this->session(
@@ -837,17 +839,17 @@ final class AuthenticationServiceTest extends TestCase
             RefreshCredential::fromString(self::SIBLING_CREDENTIAL),
             true
         );
-        $sessions->add($firstSession);
-        $sessions->add($secondSession);
+        $refreshSessionRepository->add($firstSession);
+        $refreshSessionRepository->add($secondSession);
 
-        $events = new InMemoryEventDispatcher();
+        $eventDispatcher = new InMemoryEventDispatcher();
         $service = $this->service(
-            $users,
+            $userRepository,
             new InMemoryActivationGrantRepository($unitOfWork),
-            $sessions,
+            $refreshSessionRepository,
             $unitOfWork,
-            $events,
-            auditEvidenceRepository: $auditEvidence
+            $eventDispatcher,
+            auditEvidenceRepository: $auditEvidenceRepository
         );
 
         try {
@@ -858,20 +860,20 @@ final class AuthenticationServiceTest extends TestCase
             );
             self::fail('Expected audit persistence failure.');
         } catch (RuntimeException $runtimeException) {
-            self::assertSame($auditEvidence->failure(), $runtimeException);
+            self::assertSame($auditEvidenceRepository->failure(), $runtimeException);
         }
 
-        $authoritativeUser = $users->getById($user->getId());
+        $authoritativeUser = $userRepository->getById($user->getId());
         self::assertInstanceOf(User::class, $authoritativeUser);
         self::assertSame($originalPasswordHash, $authoritativeUser->getPasswordHash()?->toString());
         self::assertSame(1, $authoritativeUser->getAuthenticationVersion());
         self::assertSame(0, $authoritativeUser->getAuthenticationAuthorityRevision());
-        self::assertSame([$firstSession, $secondSession], $sessions->all());
+        self::assertSame([$firstSession, $secondSession], $refreshSessionRepository->all());
         self::assertFalse($firstSession->isRevoked());
         self::assertFalse($secondSession->isRevoked());
-        self::assertSame([], $auditEvidence->all());
+        self::assertSame([], $auditEvidenceRepository->all());
         $this->assertPasswordChangeFailureIsRedacted(
-            $events,
+            $eventDispatcher,
             $user->getId(),
             'The audit persistence write failed.',
             'correct-secret',
@@ -882,21 +884,28 @@ final class AuthenticationServiceTest extends TestCase
     public function test_that_activation_hashes_secrets_and_commits_a_token_set_before_safe_publication(): void
     {
         $unitOfWork = new InMemoryUnitOfWork();
-        $users = new InMemoryUserRepository($unitOfWork);
-        $grants = new InMemoryActivationGrantRepository($unitOfWork);
-        $sessions = new InMemoryRefreshSessionRepository($unitOfWork);
+        $userRepository = new InMemoryUserRepository($unitOfWork);
+        $activationGrantRepository = new InMemoryActivationGrantRepository($unitOfWork);
+        $refreshSessionRepository = new InMemoryRefreshSessionRepository($unitOfWork);
         $user = User::invite(
             UserId::generate(),
             EmailAddress::fromString('activate@example.test'),
             new DateTimeImmutable('2026-01-01T00:00:00+00:00')
         );
-        $users->add($user);
-        $grants->add($this->grant($user->getId()));
-        $events = new InMemoryEventDispatcher(static function () use ($unitOfWork): void {
+        $userRepository->add($user);
+        $activationGrantRepository->add($this->grant($user->getId()));
+        $eventDispatcher = new InMemoryEventDispatcher(static function () use ($unitOfWork): void {
             self::assertTrue($unitOfWork->transactionCompleted);
         });
         $tokenEncoder = new RecordingTokenEncoder();
-        $service = $this->service($users, $grants, $sessions, $unitOfWork, $events, tokenEncoder: $tokenEncoder);
+        $service = $this->service(
+            $userRepository,
+            $activationGrantRepository,
+            $refreshSessionRepository,
+            $unitOfWork,
+            $eventDispatcher,
+            tokenEncoder: $tokenEncoder
+        );
 
         $tokenSet = $service->activate(
             $user->getId(),
@@ -905,7 +914,7 @@ final class AuthenticationServiceTest extends TestCase
             true
         );
 
-        $authoritativeUser = $users->getById($user->getId());
+        $authoritativeUser = $userRepository->getById($user->getId());
         self::assertInstanceOf(User::class, $authoritativeUser);
         self::assertSame(1, $unitOfWork->transactions);
         self::assertSame(UserState::ACTIVE, $authoritativeUser->getState());
@@ -914,72 +923,96 @@ final class AuthenticationServiceTest extends TestCase
             $authoritativeUser->getPasswordHash()?->toString() ?? ''
         ));
         self::assertSame(1, $authoritativeUser->getAuthenticationAuthorityRevision());
-        self::assertTrue($grants->all()[0]->isConsumed());
-        self::assertCount(1, $sessions->all());
-        $this->assertTokenSet($tokenSet, $authoritativeUser, $sessions->all()[0], true);
+        self::assertTrue($activationGrantRepository->all()[0]->isConsumed());
+        self::assertCount(1, $refreshSessionRepository->all());
+        $this->assertTokenSet($tokenSet, $authoritativeUser, $refreshSessionRepository->all()[0], true);
         self::assertSame('access', $tokenEncoder->claims['type']);
         self::assertSame($user->getId()->toString(), $tokenEncoder->claims['sub']);
-        self::assertSame($sessions->all()[0]->getId()->toString(), $tokenEncoder->claims['sid']);
+        self::assertSame($refreshSessionRepository->all()[0]->getId()->toString(), $tokenEncoder->claims['sid']);
         self::assertSame(1, $tokenEncoder->claims['auth_version']);
         self::assertSame(1787140800, $tokenEncoder->claims['iat']);
         self::assertEquals(new DateTimeImmutable('2026-08-19T12:15:00+00:00'), $tokenEncoder->expiration);
-        self::assertInstanceOf(UserActivated::class, $events->events()[0]);
-        self::assertStringNotContainsString(self::ACTIVATION_CREDENTIAL, serialize($events->events()[0]->toArray()));
+        self::assertInstanceOf(UserActivated::class, $eventDispatcher->events()[0]);
+        self::assertStringNotContainsString(
+            self::ACTIVATION_CREDENTIAL,
+            serialize($eventDispatcher->events()[0]->toArray())
+        );
         self::assertStringNotContainsString(
             'a sufficiently long initial password',
-            serialize($events->events()[0]->toArray())
+            serialize($eventDispatcher->events()[0]->toArray())
         );
     }
 
     public function test_that_activation_rejects_a_wrong_credential_with_only_redacted_context(): void
     {
         $unitOfWork = new InMemoryUnitOfWork();
-        $users = new InMemoryUserRepository($unitOfWork);
-        $grants = new InMemoryActivationGrantRepository($unitOfWork);
-        $sessions = new InMemoryRefreshSessionRepository($unitOfWork);
-        $events = new InMemoryEventDispatcher();
+        $userRepository = new InMemoryUserRepository($unitOfWork);
+        $activationGrantRepository = new InMemoryActivationGrantRepository($unitOfWork);
+        $refreshSessionRepository = new InMemoryRefreshSessionRepository($unitOfWork);
+        $eventDispatcher = new InMemoryEventDispatcher();
         $user = User::invite(
             UserId::generate(),
             EmailAddress::fromString('activate@example.test'),
             new DateTimeImmutable('2026-01-01T00:00:00+00:00')
         );
-        $users->add($user);
-        $grants->add($this->grant($user->getId()));
-        $service = $this->service($users, $grants, $sessions, $unitOfWork, $events);
+        $userRepository->add($user);
+        $activationGrantRepository->add($this->grant($user->getId()));
+        $service = $this->service(
+            $userRepository,
+            $activationGrantRepository,
+            $refreshSessionRepository,
+            $unitOfWork,
+            $eventDispatcher
+        );
 
         $this->expectException(LogicException::class);
         try {
             $service->activate($user->getId(), 'wrong-credential', 'a sufficiently long initial password');
         } finally {
             self::assertSame(UserState::PENDING_ACTIVATION, $user->getState());
-            self::assertFalse($grants->all()[0]->isConsumed());
-            self::assertCount(0, $sessions->all());
-            self::assertInstanceOf(RedactedCommandFailed::class, $events->events()[0]);
-            self::assertSame(AuthenticationService::class.'::activate', $events->events()[0]->getCommandClass());
-            self::assertSame(['user_id' => $user->getId()->toString()], $events->events()[0]->getRedactedCommandData());
-            self::assertStringNotContainsString('wrong-credential', serialize($events->events()[0]->toArray()));
+            self::assertFalse($activationGrantRepository->all()[0]->isConsumed());
+            self::assertCount(0, $refreshSessionRepository->all());
+            self::assertInstanceOf(RedactedCommandFailed::class, $eventDispatcher->events()[0]);
+            self::assertSame(
+                AuthenticationService::class.'::activate',
+                $eventDispatcher->events()[0]->getCommandClass()
+            );
+            self::assertSame(
+                ['user_id' => $user->getId()->toString()],
+                $eventDispatcher->events()[0]->getRedactedCommandData()
+            );
+            self::assertStringNotContainsString(
+                'wrong-credential',
+                serialize($eventDispatcher->events()[0]->toArray())
+            );
         }
     }
 
     public function test_that_activation_rejects_concurrent_authentication_authority_change(): void
     {
         $unitOfWork = new InMemoryUnitOfWork();
-        $users = new InMemoryUserRepository(
+        $userRepository = new InMemoryUserRepository(
             $unitOfWork,
             replaceAuthenticationAuthoritySucceeds: false
         );
-        $grants = new InMemoryActivationGrantRepository($unitOfWork);
-        $sessions = new InMemoryRefreshSessionRepository($unitOfWork);
-        $events = new InMemoryEventDispatcher();
+        $activationGrantRepository = new InMemoryActivationGrantRepository($unitOfWork);
+        $refreshSessionRepository = new InMemoryRefreshSessionRepository($unitOfWork);
+        $eventDispatcher = new InMemoryEventDispatcher();
         $user = User::invite(
             UserId::generate(),
             EmailAddress::fromString('activate-conflict@example.test'),
             new DateTimeImmutable('2026-01-01T00:00:00+00:00')
         );
-        $users->add($user);
+        $userRepository->add($user);
         $grant = $this->grant($user->getId());
-        $grants->add($grant);
-        $service = $this->service($users, $grants, $sessions, $unitOfWork, $events);
+        $activationGrantRepository->add($grant);
+        $service = $this->service(
+            $userRepository,
+            $activationGrantRepository,
+            $refreshSessionRepository,
+            $unitOfWork,
+            $eventDispatcher
+        );
 
         try {
             $service->activate(
@@ -992,35 +1025,41 @@ final class AuthenticationServiceTest extends TestCase
             self::assertSame('The invited account changed concurrently.', $logicException->getMessage());
         }
 
-        self::assertSame($user, $users->getById($user->getId()));
+        self::assertSame($user, $userRepository->getById($user->getId()));
         self::assertSame(UserState::PENDING_ACTIVATION, $user->getState());
         self::assertNull($user->getPasswordHash());
-        self::assertSame([$grant], $grants->all());
-        self::assertSame([], $sessions->all());
-        self::assertCount(1, $events->events());
-        self::assertInstanceOf(RedactedCommandFailed::class, $events->events()[0]);
+        self::assertSame([$grant], $activationGrantRepository->all());
+        self::assertSame([], $refreshSessionRepository->all());
+        self::assertCount(1, $eventDispatcher->events());
+        self::assertInstanceOf(RedactedCommandFailed::class, $eventDispatcher->events()[0]);
         self::assertSame(
             ['user_id' => $user->getId()->toString()],
-            $events->events()[0]->getRedactedCommandData()
+            $eventDispatcher->events()[0]->getRedactedCommandData()
         );
     }
 
     public function test_that_activation_rejects_concurrent_grant_consumption(): void
     {
         $unitOfWork = new InMemoryUnitOfWork();
-        $users = new InMemoryUserRepository($unitOfWork);
-        $grants = new InMemoryActivationGrantRepository($unitOfWork, replaceSucceeds: false);
-        $sessions = new InMemoryRefreshSessionRepository($unitOfWork);
-        $events = new InMemoryEventDispatcher();
+        $userRepository = new InMemoryUserRepository($unitOfWork);
+        $activationGrantRepository = new InMemoryActivationGrantRepository($unitOfWork, replaceSucceeds: false);
+        $refreshSessionRepository = new InMemoryRefreshSessionRepository($unitOfWork);
+        $eventDispatcher = new InMemoryEventDispatcher();
         $user = User::invite(
             UserId::generate(),
             EmailAddress::fromString('activate-race@example.test'),
             new DateTimeImmutable('2026-01-01T00:00:00+00:00')
         );
-        $users->add($user);
+        $userRepository->add($user);
         $grant = $this->grant($user->getId());
-        $grants->add($grant);
-        $service = $this->service($users, $grants, $sessions, $unitOfWork, $events);
+        $activationGrantRepository->add($grant);
+        $service = $this->service(
+            $userRepository,
+            $activationGrantRepository,
+            $refreshSessionRepository,
+            $unitOfWork,
+            $eventDispatcher
+        );
 
         $this->expectException(LogicException::class);
         try {
@@ -1030,62 +1069,62 @@ final class AuthenticationServiceTest extends TestCase
                 'a sufficiently long initial password'
             );
         } finally {
-            self::assertSame($user, $users->getById($user->getId()));
-            self::assertSame([$grant], $grants->all());
-            self::assertSame([], $sessions->all());
-            self::assertInstanceOf(RedactedCommandFailed::class, $events->events()[0]);
+            self::assertSame($user, $userRepository->getById($user->getId()));
+            self::assertSame([$grant], $activationGrantRepository->all());
+            self::assertSame([], $refreshSessionRepository->all());
+            self::assertInstanceOf(RedactedCommandFailed::class, $eventDispatcher->events()[0]);
         }
     }
 
     public function test_that_login_uses_fight_common_password_services_and_rehashes_after_success(): void
     {
         $unitOfWork = new InMemoryUnitOfWork();
-        $users = new InMemoryUserRepository($unitOfWork);
-        $sessions = new InMemoryRefreshSessionRepository($unitOfWork);
-        $events = new InMemoryEventDispatcher();
+        $userRepository = new InMemoryUserRepository($unitOfWork);
+        $refreshSessionRepository = new InMemoryRefreshSessionRepository($unitOfWork);
+        $eventDispatcher = new InMemoryEventDispatcher();
         $user = $this->activeUserFor('person@example.test');
         $originalHash = $user->getPasswordHash()->toString();
-        $users->add($user);
+        $userRepository->add($user);
         $passwordSecurity = new TestPasswordSecurity(true);
         $service = $this->service(
-            $users,
+            $userRepository,
             new InMemoryActivationGrantRepository($unitOfWork),
-            $sessions,
+            $refreshSessionRepository,
             $unitOfWork,
-            $events,
+            $eventDispatcher,
             passwordHasher: $passwordSecurity,
             passwordValidator: $passwordSecurity
         );
 
         $tokenSet = $service->login('PERSON@example.test', 'correct-secret');
 
-        $authoritativeUser = $users->getById($user->getId());
+        $authoritativeUser = $userRepository->getById($user->getId());
         self::assertInstanceOf(User::class, $authoritativeUser);
-        $this->assertTokenSet($tokenSet, $authoritativeUser, $sessions->all()[0], false);
+        $this->assertTokenSet($tokenSet, $authoritativeUser, $refreshSessionRepository->all()[0], false);
         self::assertNotSame($originalHash, $authoritativeUser->getPasswordHash()?->toString());
         self::assertTrue(password_verify(
             'correct-secret',
             $authoritativeUser->getPasswordHash()?->toString() ?? ''
         ));
         self::assertSame(1, $authoritativeUser->getAuthenticationAuthorityRevision());
-        self::assertInstanceOf(UserLoggedIn::class, $events->events()[0]);
+        self::assertInstanceOf(UserLoggedIn::class, $eventDispatcher->events()[0]);
     }
 
     public function test_that_stale_login_rehash_cannot_overwrite_a_concurrent_password_reset(): void
     {
         $userState = new InMemoryUserRepositoryState();
         $sessionState = new InMemoryRefreshSessionRepositoryState();
-        $seedUsers = new InMemoryUserRepository(state: $userState);
+        $seedUserRepository = new InMemoryUserRepository(state: $userState);
         $user = $this->activeUserFor('stale-login-rehash@example.test');
-        $seedUsers->add($user);
+        $seedUserRepository->add($user);
         $resetUnitOfWork = new InMemoryUnitOfWork();
-        $resetUsers = new InMemoryUserRepository($resetUnitOfWork, state: $userState);
-        $resetSessions = new InMemoryRefreshSessionRepository($resetUnitOfWork, state: $sessionState);
-        $passwordResetGrants = new InMemoryPasswordResetGrants($resetUnitOfWork);
-        $auditEvidence = new InMemoryAuditEvidenceRepository($resetUnitOfWork);
-        $resetEvents = new InMemoryEventDispatcher();
-        $loginEvents = new InMemoryEventDispatcher();
-        $passwordResetGrants->add(PasswordResetGrant::issue(
+        $resetUserRepository = new InMemoryUserRepository($resetUnitOfWork, state: $userState);
+        $resetRefreshSessionRepository = new InMemoryRefreshSessionRepository($resetUnitOfWork, state: $sessionState);
+        $passwordResetGrantRepository = new InMemoryPasswordResetGrants($resetUnitOfWork);
+        $auditEvidenceRepository = new InMemoryAuditEvidenceRepository($resetUnitOfWork);
+        $resetEventDispatcher = new InMemoryEventDispatcher();
+        $loginEventDispatcher = new InMemoryEventDispatcher();
+        $passwordResetGrantRepository->add(PasswordResetGrant::issue(
             $user->getId(),
             PasswordResetCredential::fromString(self::RESET_CREDENTIAL),
             new DateTimeImmutable('2026-08-19T11:00:00+00:00'),
@@ -1095,13 +1134,13 @@ final class AuthenticationServiceTest extends TestCase
             $user->getRecoveryAuthority()
         ));
         $resetService = $this->service(
-            $resetUsers,
+            $resetUserRepository,
             new InMemoryActivationGrantRepository($resetUnitOfWork),
-            $resetSessions,
+            $resetRefreshSessionRepository,
             $resetUnitOfWork,
-            $resetEvents,
-            passwordResetGrantRepository: $passwordResetGrants,
-            auditEvidenceRepository: $auditEvidence
+            $resetEventDispatcher,
+            passwordResetGrantRepository: $passwordResetGrantRepository,
+            auditEvidenceRepository: $auditEvidenceRepository
         );
         $interleavingValidator = new readonly class (
             $resetService,
@@ -1133,14 +1172,14 @@ final class AuthenticationServiceTest extends TestCase
             }
         };
         $loginUnitOfWork = new InMemoryUnitOfWork();
-        $loginUsers = new InMemoryUserRepository($loginUnitOfWork, state: $userState);
-        $loginSessions = new InMemoryRefreshSessionRepository($loginUnitOfWork, state: $sessionState);
+        $loginUserRepository = new InMemoryUserRepository($loginUnitOfWork, state: $userState);
+        $loginRefreshSessionRepository = new InMemoryRefreshSessionRepository($loginUnitOfWork, state: $sessionState);
         $loginService = $this->service(
-            $loginUsers,
+            $loginUserRepository,
             new InMemoryActivationGrantRepository($loginUnitOfWork),
-            $loginSessions,
+            $loginRefreshSessionRepository,
             $loginUnitOfWork,
-            $loginEvents,
+            $loginEventDispatcher,
             passwordValidator: $interleavingValidator
         );
 
@@ -1151,7 +1190,7 @@ final class AuthenticationServiceTest extends TestCase
             self::assertSame('Login rejected.', $loginRejectedException->getMessage());
         }
 
-        $authoritativeUser = $loginUsers->getById($user->getId());
+        $authoritativeUser = $loginUserRepository->getById($user->getId());
         self::assertInstanceOf(User::class, $authoritativeUser);
         self::assertTrue(password_verify(
             'a sufficiently long concurrent reset password',
@@ -1163,21 +1202,21 @@ final class AuthenticationServiceTest extends TestCase
         ));
         self::assertSame(2, $authoritativeUser->getAuthenticationVersion());
         self::assertSame(1, $authoritativeUser->getAuthenticationAuthorityRevision());
-        self::assertTrue($passwordResetGrants->all()[0]->isConsumed());
-        self::assertSame('user.password_reset_completed', $auditEvidence->all()[0]->action());
-        self::assertSame([], $loginSessions->all());
-        self::assertCount(1, $resetEvents->events());
-        self::assertInstanceOf(PasswordResetCompleted::class, $resetEvents->events()[0]);
-        self::assertCount(1, $loginEvents->events());
-        self::assertInstanceOf(RedactedCommandFailed::class, $loginEvents->events()[0]);
-        self::assertSame([], $loginEvents->events()[0]->getRedactedCommandData());
+        self::assertTrue($passwordResetGrantRepository->all()[0]->isConsumed());
+        self::assertSame('user.password_reset_completed', $auditEvidenceRepository->all()[0]->action());
+        self::assertSame([], $loginRefreshSessionRepository->all());
+        self::assertCount(1, $resetEventDispatcher->events());
+        self::assertInstanceOf(PasswordResetCompleted::class, $resetEventDispatcher->events()[0]);
+        self::assertCount(1, $loginEventDispatcher->events());
+        self::assertInstanceOf(RedactedCommandFailed::class, $loginEventDispatcher->events()[0]);
+        self::assertSame([], $loginEventDispatcher->events()[0]->getRedactedCommandData());
         self::assertStringNotContainsString(
             'correct-secret',
-            serialize($loginEvents->events()[0]->toArray())
+            serialize($loginEventDispatcher->events()[0]->toArray())
         );
         self::assertStringNotContainsString(
             'a sufficiently long concurrent reset password',
-            serialize($loginEvents->events()[0]->toArray())
+            serialize($loginEventDispatcher->events()[0]->toArray())
         );
     }
 
@@ -1185,17 +1224,17 @@ final class AuthenticationServiceTest extends TestCase
     {
         $userState = new InMemoryUserRepositoryState();
         $sessionState = new InMemoryRefreshSessionRepositoryState();
-        $seedUsers = new InMemoryUserRepository(state: $userState);
+        $seedUserRepository = new InMemoryUserRepository(state: $userState);
         $user = $this->activeUserFor('no-rehash-race@example.test');
-        $seedUsers->add($user);
+        $seedUserRepository->add($user);
         $resetUnitOfWork = new InMemoryUnitOfWork();
-        $resetUsers = new InMemoryUserRepository($resetUnitOfWork, state: $userState);
-        $resetSessions = new InMemoryRefreshSessionRepository($resetUnitOfWork, state: $sessionState);
-        $passwordResetGrants = new InMemoryPasswordResetGrants($resetUnitOfWork);
-        $auditEvidence = new InMemoryAuditEvidenceRepository($resetUnitOfWork);
-        $resetEvents = new InMemoryEventDispatcher();
-        $loginEvents = new InMemoryEventDispatcher();
-        $passwordResetGrants->add(PasswordResetGrant::issue(
+        $resetUserRepository = new InMemoryUserRepository($resetUnitOfWork, state: $userState);
+        $resetRefreshSessionRepository = new InMemoryRefreshSessionRepository($resetUnitOfWork, state: $sessionState);
+        $passwordResetGrantRepository = new InMemoryPasswordResetGrants($resetUnitOfWork);
+        $auditEvidenceRepository = new InMemoryAuditEvidenceRepository($resetUnitOfWork);
+        $resetEventDispatcher = new InMemoryEventDispatcher();
+        $loginEventDispatcher = new InMemoryEventDispatcher();
+        $passwordResetGrantRepository->add(PasswordResetGrant::issue(
             $user->getId(),
             PasswordResetCredential::fromString(self::RESET_CREDENTIAL),
             new DateTimeImmutable('2026-08-19T11:00:00+00:00'),
@@ -1205,13 +1244,13 @@ final class AuthenticationServiceTest extends TestCase
             $user->getRecoveryAuthority()
         ));
         $resetService = $this->service(
-            $resetUsers,
+            $resetUserRepository,
             new InMemoryActivationGrantRepository($resetUnitOfWork),
-            $resetSessions,
+            $resetRefreshSessionRepository,
             $resetUnitOfWork,
-            $resetEvents,
-            passwordResetGrantRepository: $passwordResetGrants,
-            auditEvidenceRepository: $auditEvidence
+            $resetEventDispatcher,
+            passwordResetGrantRepository: $passwordResetGrantRepository,
+            auditEvidenceRepository: $auditEvidenceRepository
         );
         $interleavingValidator = new readonly class (
             $resetService,
@@ -1243,14 +1282,14 @@ final class AuthenticationServiceTest extends TestCase
             }
         };
         $loginUnitOfWork = new InMemoryUnitOfWork();
-        $loginUsers = new InMemoryUserRepository($loginUnitOfWork, state: $userState);
-        $loginSessions = new InMemoryRefreshSessionRepository($loginUnitOfWork, state: $sessionState);
+        $loginUserRepository = new InMemoryUserRepository($loginUnitOfWork, state: $userState);
+        $loginRefreshSessionRepository = new InMemoryRefreshSessionRepository($loginUnitOfWork, state: $sessionState);
         $loginService = $this->service(
-            $loginUsers,
+            $loginUserRepository,
             new InMemoryActivationGrantRepository($loginUnitOfWork),
-            $loginSessions,
+            $loginRefreshSessionRepository,
             $loginUnitOfWork,
-            $loginEvents,
+            $loginEventDispatcher,
             passwordValidator: $interleavingValidator
         );
 
@@ -1261,7 +1300,7 @@ final class AuthenticationServiceTest extends TestCase
             self::assertSame('Login rejected.', $loginRejectedException->getMessage());
         }
 
-        $authoritativeUser = $loginUsers->getById($user->getId());
+        $authoritativeUser = $loginUserRepository->getById($user->getId());
         self::assertInstanceOf(User::class, $authoritativeUser);
         self::assertTrue(password_verify(
             'a sufficiently long serialized reset password',
@@ -1269,15 +1308,15 @@ final class AuthenticationServiceTest extends TestCase
         ));
         self::assertSame(2, $authoritativeUser->getAuthenticationVersion());
         self::assertSame(1, $authoritativeUser->getAuthenticationAuthorityRevision());
-        self::assertSame([], $loginSessions->all());
-        self::assertCount(1, $resetEvents->events());
-        self::assertInstanceOf(PasswordResetCompleted::class, $resetEvents->events()[0]);
-        self::assertCount(1, $loginEvents->events());
-        self::assertInstanceOf(RedactedCommandFailed::class, $loginEvents->events()[0]);
-        self::assertSame([], $loginEvents->events()[0]->getRedactedCommandData());
+        self::assertSame([], $loginRefreshSessionRepository->all());
+        self::assertCount(1, $resetEventDispatcher->events());
+        self::assertInstanceOf(PasswordResetCompleted::class, $resetEventDispatcher->events()[0]);
+        self::assertCount(1, $loginEventDispatcher->events());
+        self::assertInstanceOf(RedactedCommandFailed::class, $loginEventDispatcher->events()[0]);
+        self::assertSame([], $loginEventDispatcher->events()[0]->getRedactedCommandData());
         self::assertStringNotContainsString(
             'correct-secret',
-            serialize($loginEvents->events()[0]->toArray())
+            serialize($loginEventDispatcher->events()[0]->toArray())
         );
     }
 
@@ -1285,26 +1324,26 @@ final class AuthenticationServiceTest extends TestCase
     {
         $userState = new InMemoryUserRepositoryState();
         $sessionState = new InMemoryRefreshSessionRepositoryState();
-        $seedUsers = new InMemoryUserRepository(state: $userState);
+        $seedUserRepository = new InMemoryUserRepository(state: $userState);
         $user = $this->activeUserFor('atomic-login-first@example.test');
-        $seedUsers->add($user);
+        $seedUserRepository->add($user);
         $loginUnitOfWork = new InMemoryUnitOfWork();
-        $loginUsers = new InMemoryUserRepository($loginUnitOfWork, state: $userState);
-        $loginSessions = new InMemoryRefreshSessionRepository($loginUnitOfWork, state: $sessionState);
-        $loginEvents = new InMemoryEventDispatcher();
+        $loginUserRepository = new InMemoryUserRepository($loginUnitOfWork, state: $userState);
+        $loginRefreshSessionRepository = new InMemoryRefreshSessionRepository($loginUnitOfWork, state: $sessionState);
+        $loginEventDispatcher = new InMemoryEventDispatcher();
         $loginService = $this->service(
-            $loginUsers,
+            $loginUserRepository,
             new InMemoryActivationGrantRepository($loginUnitOfWork),
-            $loginSessions,
+            $loginRefreshSessionRepository,
             $loginUnitOfWork,
-            $loginEvents
+            $loginEventDispatcher
         );
         $resetUnitOfWork = new InMemoryUnitOfWork();
-        $resetSessions = new InMemoryRefreshSessionRepository($resetUnitOfWork, state: $sessionState);
-        $passwordResetGrants = new InMemoryPasswordResetGrants($resetUnitOfWork);
-        $auditEvidence = new InMemoryAuditEvidenceRepository($resetUnitOfWork);
-        $resetEvents = new InMemoryEventDispatcher();
-        $passwordResetGrants->add(PasswordResetGrant::issue(
+        $resetRefreshSessionRepository = new InMemoryRefreshSessionRepository($resetUnitOfWork, state: $sessionState);
+        $passwordResetGrantRepository = new InMemoryPasswordResetGrants($resetUnitOfWork);
+        $auditEvidenceRepository = new InMemoryAuditEvidenceRepository($resetUnitOfWork);
+        $resetEventDispatcher = new InMemoryEventDispatcher();
+        $passwordResetGrantRepository->add(PasswordResetGrant::issue(
             $user->getId(),
             PasswordResetCredential::fromString(self::RESET_CREDENTIAL),
             new DateTimeImmutable('2026-08-19T11:00:00+00:00'),
@@ -1313,7 +1352,7 @@ final class AuthenticationServiceTest extends TestCase
             'ciphertext:reset-once',
             $user->getRecoveryAuthority()
         ));
-        $resetUsers = new InMemoryUserRepository(
+        $resetUserRepository = new InMemoryUserRepository(
             $resetUnitOfWork,
             state: $userState,
             beforeValidateRecoveryAuthority: static function () use ($loginService): void {
@@ -1321,13 +1360,13 @@ final class AuthenticationServiceTest extends TestCase
             }
         );
         $resetService = $this->service(
-            $resetUsers,
+            $resetUserRepository,
             new InMemoryActivationGrantRepository($resetUnitOfWork),
-            $resetSessions,
+            $resetRefreshSessionRepository,
             $resetUnitOfWork,
-            $resetEvents,
-            passwordResetGrantRepository: $passwordResetGrants,
-            auditEvidenceRepository: $auditEvidence
+            $resetEventDispatcher,
+            passwordResetGrantRepository: $passwordResetGrantRepository,
+            auditEvidenceRepository: $auditEvidenceRepository
         );
 
         try {
@@ -1341,7 +1380,7 @@ final class AuthenticationServiceTest extends TestCase
             self::assertSame('Password reset rejected.', $passwordResetRejectedException->getMessage());
         }
 
-        $authoritativeUser = $resetUsers->getById($user->getId());
+        $authoritativeUser = $resetUserRepository->getById($user->getId());
         self::assertInstanceOf(User::class, $authoritativeUser);
         self::assertTrue(password_verify(
             'correct-secret',
@@ -1349,25 +1388,25 @@ final class AuthenticationServiceTest extends TestCase
         ));
         self::assertSame(1, $authoritativeUser->getAuthenticationVersion());
         self::assertSame(1, $authoritativeUser->getAuthenticationAuthorityRevision());
-        self::assertCount(1, $loginSessions->all());
-        self::assertFalse($loginSessions->all()[0]->isRevoked());
-        self::assertFalse($passwordResetGrants->all()[0]->isConsumed());
-        self::assertSame([], $auditEvidence->all());
-        self::assertCount(1, $loginEvents->events());
-        self::assertInstanceOf(UserLoggedIn::class, $loginEvents->events()[0]);
-        self::assertCount(1, $resetEvents->events());
-        self::assertInstanceOf(RedactedCommandFailed::class, $resetEvents->events()[0]);
+        self::assertCount(1, $loginRefreshSessionRepository->all());
+        self::assertFalse($loginRefreshSessionRepository->all()[0]->isRevoked());
+        self::assertFalse($passwordResetGrantRepository->all()[0]->isConsumed());
+        self::assertSame([], $auditEvidenceRepository->all());
+        self::assertCount(1, $loginEventDispatcher->events());
+        self::assertInstanceOf(UserLoggedIn::class, $loginEventDispatcher->events()[0]);
+        self::assertCount(1, $resetEventDispatcher->events());
+        self::assertInstanceOf(RedactedCommandFailed::class, $resetEventDispatcher->events()[0]);
         self::assertSame(
             ['user_id' => $user->getId()->toString()],
-            $resetEvents->events()[0]->getRedactedCommandData()
+            $resetEventDispatcher->events()[0]->getRedactedCommandData()
         );
         self::assertStringNotContainsString(
             self::RESET_CREDENTIAL,
-            serialize($resetEvents->events()[0]->toArray())
+            serialize($resetEventDispatcher->events()[0]->toArray())
         );
         self::assertStringNotContainsString(
             'a sufficiently long stale reset password',
-            serialize($resetEvents->events()[0]->toArray())
+            serialize($resetEventDispatcher->events()[0]->toArray())
         );
     }
 
@@ -1375,30 +1414,30 @@ final class AuthenticationServiceTest extends TestCase
     {
         $userState = new InMemoryUserRepositoryState();
         $sessionState = new InMemoryRefreshSessionRepositoryState();
-        $seedUsers = new InMemoryUserRepository(state: $userState);
+        $seedUserRepository = new InMemoryUserRepository(state: $userState);
         $user = $this->activeUserFor('atomic-login-before-reset-read@example.test');
-        $seedUsers->add($user);
+        $seedUserRepository->add($user);
         $loginUnitOfWork = new InMemoryUnitOfWork();
-        $loginUsers = new InMemoryUserRepository($loginUnitOfWork, state: $userState);
-        $loginSessions = new InMemoryRefreshSessionRepository($loginUnitOfWork, state: $sessionState);
-        $loginEvents = new InMemoryEventDispatcher();
+        $loginUserRepository = new InMemoryUserRepository($loginUnitOfWork, state: $userState);
+        $loginRefreshSessionRepository = new InMemoryRefreshSessionRepository($loginUnitOfWork, state: $sessionState);
+        $loginEventDispatcher = new InMemoryEventDispatcher();
         $loginService = $this->service(
-            $loginUsers,
+            $loginUserRepository,
             new InMemoryActivationGrantRepository($loginUnitOfWork),
-            $loginSessions,
+            $loginRefreshSessionRepository,
             $loginUnitOfWork,
-            $loginEvents
+            $loginEventDispatcher
         );
 
         $loginService->login('atomic-login-before-reset-read@example.test', 'correct-secret');
 
         $resetUnitOfWork = new InMemoryUnitOfWork();
-        $resetUsers = new InMemoryUserRepository($resetUnitOfWork, state: $userState);
-        $resetSessions = new InMemoryRefreshSessionRepository($resetUnitOfWork, state: $sessionState);
-        $passwordResetGrants = new InMemoryPasswordResetGrants($resetUnitOfWork);
-        $auditEvidence = new InMemoryAuditEvidenceRepository($resetUnitOfWork);
-        $resetEvents = new InMemoryEventDispatcher();
-        $passwordResetGrants->add(PasswordResetGrant::issue(
+        $resetUserRepository = new InMemoryUserRepository($resetUnitOfWork, state: $userState);
+        $resetRefreshSessionRepository = new InMemoryRefreshSessionRepository($resetUnitOfWork, state: $sessionState);
+        $passwordResetGrantRepository = new InMemoryPasswordResetGrants($resetUnitOfWork);
+        $auditEvidenceRepository = new InMemoryAuditEvidenceRepository($resetUnitOfWork);
+        $resetEventDispatcher = new InMemoryEventDispatcher();
+        $passwordResetGrantRepository->add(PasswordResetGrant::issue(
             $user->getId(),
             PasswordResetCredential::fromString(self::RESET_CREDENTIAL),
             new DateTimeImmutable('2026-08-19T11:00:00+00:00'),
@@ -1408,13 +1447,13 @@ final class AuthenticationServiceTest extends TestCase
             $user->getRecoveryAuthority()
         ));
         $resetService = $this->service(
-            $resetUsers,
+            $resetUserRepository,
             new InMemoryActivationGrantRepository($resetUnitOfWork),
-            $resetSessions,
+            $resetRefreshSessionRepository,
             $resetUnitOfWork,
-            $resetEvents,
-            passwordResetGrantRepository: $passwordResetGrants,
-            auditEvidenceRepository: $auditEvidence
+            $resetEventDispatcher,
+            passwordResetGrantRepository: $passwordResetGrantRepository,
+            auditEvidenceRepository: $auditEvidenceRepository
         );
 
         $resetService->resetPassword(
@@ -1423,7 +1462,7 @@ final class AuthenticationServiceTest extends TestCase
             'a sufficiently long authoritative reset password'
         );
 
-        $authoritativeUser = $loginUsers->getById($user->getId());
+        $authoritativeUser = $loginUserRepository->getById($user->getId());
         self::assertInstanceOf(User::class, $authoritativeUser);
         self::assertTrue(password_verify(
             'a sufficiently long authoritative reset password',
@@ -1431,27 +1470,27 @@ final class AuthenticationServiceTest extends TestCase
         ));
         self::assertSame(2, $authoritativeUser->getAuthenticationVersion());
         self::assertSame(2, $authoritativeUser->getAuthenticationAuthorityRevision());
-        self::assertCount(1, $loginSessions->all());
-        self::assertTrue($loginSessions->all()[0]->isRevoked());
-        self::assertTrue($passwordResetGrants->all()[0]->isConsumed());
-        self::assertSame('user.password_reset_completed', $auditEvidence->all()[0]->action());
-        self::assertCount(1, $loginEvents->events());
-        self::assertInstanceOf(UserLoggedIn::class, $loginEvents->events()[0]);
-        self::assertCount(1, $resetEvents->events());
-        self::assertInstanceOf(PasswordResetCompleted::class, $resetEvents->events()[0]);
+        self::assertCount(1, $loginRefreshSessionRepository->all());
+        self::assertTrue($loginRefreshSessionRepository->all()[0]->isRevoked());
+        self::assertTrue($passwordResetGrantRepository->all()[0]->isConsumed());
+        self::assertSame('user.password_reset_completed', $auditEvidenceRepository->all()[0]->action());
+        self::assertCount(1, $loginEventDispatcher->events());
+        self::assertInstanceOf(UserLoggedIn::class, $loginEventDispatcher->events()[0]);
+        self::assertCount(1, $resetEventDispatcher->events());
+        self::assertInstanceOf(PasswordResetCompleted::class, $resetEventDispatcher->events()[0]);
     }
 
     public function test_that_transaction_duration_authentication_fence_blocks_login_during_reset_scan_window(): void
     {
         $userState = new InMemoryUserRepositoryState();
         $sessionState = new InMemoryRefreshSessionRepositoryState();
-        $seedUsers = new InMemoryUserRepository(state: $userState);
+        $seedUserRepository = new InMemoryUserRepository(state: $userState);
         $user = $this->activeUserFor('reset-fence-window@example.test');
-        $seedUsers->add($user);
+        $seedUserRepository->add($user);
         $loginService = null;
         $loginFailure = null;
         $resetUnitOfWork = new InMemoryUnitOfWork();
-        $resetUsers = new InMemoryUserRepository(
+        $resetUserRepository = new InMemoryUserRepository(
             $resetUnitOfWork,
             state: $userState,
             afterReplaceAuthenticationAuthority: static function () use (
@@ -1467,11 +1506,11 @@ final class AuthenticationServiceTest extends TestCase
                 }
             }
         );
-        $resetSessions = new InMemoryRefreshSessionRepository($resetUnitOfWork, state: $sessionState);
-        $passwordResetGrants = new InMemoryPasswordResetGrants($resetUnitOfWork);
-        $auditEvidence = new InMemoryAuditEvidenceRepository($resetUnitOfWork);
-        $resetEvents = new InMemoryEventDispatcher();
-        $passwordResetGrants->add(PasswordResetGrant::issue(
+        $resetRefreshSessionRepository = new InMemoryRefreshSessionRepository($resetUnitOfWork, state: $sessionState);
+        $passwordResetGrantRepository = new InMemoryPasswordResetGrants($resetUnitOfWork);
+        $auditEvidenceRepository = new InMemoryAuditEvidenceRepository($resetUnitOfWork);
+        $resetEventDispatcher = new InMemoryEventDispatcher();
+        $passwordResetGrantRepository->add(PasswordResetGrant::issue(
             $user->getId(),
             PasswordResetCredential::fromString(self::RESET_CREDENTIAL),
             new DateTimeImmutable('2026-08-19T11:00:00+00:00'),
@@ -1481,20 +1520,20 @@ final class AuthenticationServiceTest extends TestCase
             $user->getRecoveryAuthority()
         ));
         $loginUnitOfWork = new InMemoryUnitOfWork();
-        $loginUsers = new InMemoryUserRepository($loginUnitOfWork, state: $userState);
-        $loginSessions = new InMemoryRefreshSessionRepository($loginUnitOfWork, state: $sessionState);
-        $loginUsers->bindRefreshSessionRepository($loginSessions);
+        $loginUserRepository = new InMemoryUserRepository($loginUnitOfWork, state: $userState);
+        $loginRefreshSessionRepository = new InMemoryRefreshSessionRepository($loginUnitOfWork, state: $sessionState);
+        $loginUserRepository->bindRefreshSessionRepository($loginRefreshSessionRepository);
         $loginReadSnapshot = clone $user;
-        $snapshotUsers = new readonly class ($loginReadSnapshot, $loginUsers) implements UserRepository {
+        $snapshotUsers = new readonly class ($loginReadSnapshot, $loginUserRepository) implements UserRepository {
             public function __construct(
                 private User $loginReadSnapshot,
-                private InMemoryUserRepository $users
+                private InMemoryUserRepository $userRepository
             ) {
             }
 
             public function hasRoleAssignment(RoleId $roleId): bool
             {
-                return $this->users->hasRoleAssignment($roleId);
+                return $this->userRepository->hasRoleAssignment($roleId);
             }
 
             public function getByEmail(EmailAddress $email): ?User
@@ -1508,17 +1547,17 @@ final class AuthenticationServiceTest extends TestCase
 
             public function getById(UserId $id): ?User
             {
-                return $this->users->getById($id);
+                return $this->userRepository->getById($id);
             }
 
             public function validateRecoveryAuthority(User $expected): bool
             {
-                return $this->users->validateRecoveryAuthority($expected);
+                return $this->userRepository->validateRecoveryAuthority($expected);
             }
 
             public function replaceAuthenticationAuthority(User $expected, User $replacement): bool
             {
-                return $this->users->replaceAuthenticationAuthority($expected, $replacement);
+                return $this->userRepository->replaceAuthenticationAuthority($expected, $replacement);
             }
 
             public function replaceAuthenticationAuthorityAndAddRefreshSession(
@@ -1526,7 +1565,7 @@ final class AuthenticationServiceTest extends TestCase
                 User $replacement,
                 RefreshSession $refreshSession
             ): bool {
-                return $this->users->replaceAuthenticationAuthorityAndAddRefreshSession(
+                return $this->userRepository->replaceAuthenticationAuthorityAndAddRefreshSession(
                     $expected,
                     $replacement,
                     $refreshSession
@@ -1535,72 +1574,72 @@ final class AuthenticationServiceTest extends TestCase
 
             public function replaceRoleAssignments(User $expected, User $replacement): bool
             {
-                return $this->users->replaceRoleAssignments($expected, $replacement);
+                return $this->userRepository->replaceRoleAssignments($expected, $replacement);
             }
 
             public function validateRoleAssignmentReference(RoleId $roleId): bool
             {
-                return $this->users->validateRoleAssignmentReference($roleId);
+                return $this->userRepository->validateRoleAssignmentReference($roleId);
             }
 
             public function replaceEmailChangeReservation(User $expected, User $replacement): bool
             {
-                return $this->users->replaceEmailChangeReservation($expected, $replacement);
+                return $this->userRepository->replaceEmailChangeReservation($expected, $replacement);
             }
 
             public function replaceEmailChangeConfirmation(User $expected, User $replacement): bool
             {
-                return $this->users->replaceEmailChangeConfirmation($expected, $replacement);
+                return $this->userRepository->replaceEmailChangeConfirmation($expected, $replacement);
             }
 
             public function replacePendingInvitationEmail(User $expected, User $replacement): bool
             {
-                return $this->users->replacePendingInvitationEmail($expected, $replacement);
+                return $this->userRepository->replacePendingInvitationEmail($expected, $replacement);
             }
 
             public function replacePendingRegistration(User $expected, User $replacement): bool
             {
-                return $this->users->replacePendingRegistration($expected, $replacement);
+                return $this->userRepository->replacePendingRegistration($expected, $replacement);
             }
 
             public function replaceLifecycleState(User $expected, User $replacement): bool
             {
-                return $this->users->replaceLifecycleState($expected, $replacement);
+                return $this->userRepository->replaceLifecycleState($expected, $replacement);
             }
 
             /** @return ResultSet<User> */
             public function getAll(Pagination $pagination): ResultSet
             {
-                return $this->users->getAll($pagination);
+                return $this->userRepository->getAll($pagination);
             }
 
             public function add(User $user): void
             {
-                $this->users->add($user);
+                $this->userRepository->add($user);
             }
 
             /** @param list<Role> $expectedRoles */
             public function addWithRoleAssignments(User $user, array $expectedRoles): bool
             {
-                return $this->users->addWithRoleAssignments($user, $expectedRoles);
+                return $this->userRepository->addWithRoleAssignments($user, $expectedRoles);
             }
         };
-        $loginEvents = new InMemoryEventDispatcher();
+        $loginEventDispatcher = new InMemoryEventDispatcher();
         $loginService = $this->service(
             $snapshotUsers,
             new InMemoryActivationGrantRepository($loginUnitOfWork),
-            $loginSessions,
+            $loginRefreshSessionRepository,
             $loginUnitOfWork,
-            $loginEvents
+            $loginEventDispatcher
         );
         $resetService = $this->service(
-            $resetUsers,
+            $resetUserRepository,
             new InMemoryActivationGrantRepository($resetUnitOfWork),
-            $resetSessions,
+            $resetRefreshSessionRepository,
             $resetUnitOfWork,
-            $resetEvents,
-            passwordResetGrantRepository: $passwordResetGrants,
-            auditEvidenceRepository: $auditEvidence
+            $resetEventDispatcher,
+            passwordResetGrantRepository: $passwordResetGrantRepository,
+            auditEvidenceRepository: $auditEvidenceRepository
         );
 
         $resetService->resetPassword(
@@ -1609,7 +1648,7 @@ final class AuthenticationServiceTest extends TestCase
             'a sufficiently long transaction-fenced reset password'
         );
 
-        $authoritativeUser = $resetUsers->getById($user->getId());
+        $authoritativeUser = $resetUserRepository->getById($user->getId());
         self::assertInstanceOf(User::class, $authoritativeUser);
         self::assertInstanceOf(LoginRejectedException::class, $loginFailure);
         self::assertSame('Login rejected.', $loginFailure->getMessage());
@@ -1621,32 +1660,32 @@ final class AuthenticationServiceTest extends TestCase
         ));
         self::assertSame(2, $authoritativeUser->getAuthenticationVersion());
         self::assertSame(1, $authoritativeUser->getAuthenticationAuthorityRevision());
-        self::assertSame([], $loginSessions->all());
-        self::assertTrue($passwordResetGrants->all()[0]->isConsumed());
-        self::assertSame('user.password_reset_completed', $auditEvidence->all()[0]->action());
-        self::assertCount(1, $loginEvents->events());
-        self::assertInstanceOf(RedactedCommandFailed::class, $loginEvents->events()[0]);
-        self::assertSame([], $loginEvents->events()[0]->getRedactedCommandData());
+        self::assertSame([], $loginRefreshSessionRepository->all());
+        self::assertTrue($passwordResetGrantRepository->all()[0]->isConsumed());
+        self::assertSame('user.password_reset_completed', $auditEvidenceRepository->all()[0]->action());
+        self::assertCount(1, $loginEventDispatcher->events());
+        self::assertInstanceOf(RedactedCommandFailed::class, $loginEventDispatcher->events()[0]);
+        self::assertSame([], $loginEventDispatcher->events()[0]->getRedactedCommandData());
         self::assertStringNotContainsString(
             'correct-secret',
-            serialize($loginEvents->events()[0]->toArray())
+            serialize($loginEventDispatcher->events()[0]->toArray())
         );
-        self::assertCount(1, $resetEvents->events());
-        self::assertInstanceOf(PasswordResetCompleted::class, $resetEvents->events()[0]);
+        self::assertCount(1, $resetEventDispatcher->events());
+        self::assertInstanceOf(PasswordResetCompleted::class, $resetEventDispatcher->events()[0]);
     }
 
     public function test_that_password_reset_atomically_changes_authority_and_revokes_every_active_session(): void
     {
         $unitOfWork = new InMemoryUnitOfWork();
-        $users = new InMemoryUserRepository($unitOfWork);
-        $passwordResetGrants = new InMemoryPasswordResetGrants($unitOfWork);
-        $sessions = new InMemoryRefreshSessionRepository($unitOfWork);
-        $auditEvidence = new InMemoryAuditEvidenceRepository($unitOfWork);
+        $userRepository = new InMemoryUserRepository($unitOfWork);
+        $passwordResetGrantRepository = new InMemoryPasswordResetGrants($unitOfWork);
+        $refreshSessionRepository = new InMemoryRefreshSessionRepository($unitOfWork);
+        $auditEvidenceRepository = new InMemoryAuditEvidenceRepository($unitOfWork);
         $user = $this->activeUserFor('reset@example.test');
-        $users->add($user);
+        $userRepository->add($user);
         $issuedAt = new DateTimeImmutable('2026-08-19T11:00:00+00:00');
         $expiresAt = new DateTimeImmutable('2026-08-19T13:00:00+00:00');
-        $passwordResetGrants->add(PasswordResetGrant::issue(
+        $passwordResetGrantRepository->add(PasswordResetGrant::issue(
             $user->getId(),
             PasswordResetCredential::fromString(self::RESET_CREDENTIAL),
             $issuedAt,
@@ -1655,38 +1694,38 @@ final class AuthenticationServiceTest extends TestCase
             'ciphertext:reset-once',
             $user->getRecoveryAuthority()
         ));
-        $sessions->add($this->session($user, $this->refreshCredential(), false));
-        $sessions->add($this->session(
+        $refreshSessionRepository->add($this->session($user, $this->refreshCredential(), false));
+        $refreshSessionRepository->add($this->session(
             $user,
             RefreshCredential::fromString(self::SIBLING_CREDENTIAL),
             true
         ));
-        $events = new InMemoryEventDispatcher(static function () use (
-            $auditEvidence,
-            $passwordResetGrants,
-            $sessions,
+        $eventDispatcher = new InMemoryEventDispatcher(static function () use (
+            $auditEvidenceRepository,
+            $passwordResetGrantRepository,
+            $refreshSessionRepository,
             $unitOfWork,
             $user,
-            $users
+            $userRepository
         ): void {
             self::assertTrue($unitOfWork->transactionCompleted);
-            self::assertTrue($passwordResetGrants->all()[0]->isConsumed());
-            self::assertFalse($passwordResetGrants->all()[0]->getDelivery()->hasRecoverableMaterial());
+            self::assertTrue($passwordResetGrantRepository->all()[0]->isConsumed());
+            self::assertFalse($passwordResetGrantRepository->all()[0]->getDelivery()->hasRecoverableMaterial());
             self::assertTrue(array_all(
-                $sessions->all(),
+                $refreshSessionRepository->all(),
                 static fn(RefreshSession $refreshSession): bool => $refreshSession->isRevoked()
             ));
-            self::assertSame(2, $users->getById($user->getId())?->getAuthenticationVersion());
-            self::assertCount(1, $auditEvidence->all());
+            self::assertSame(2, $userRepository->getById($user->getId())?->getAuthenticationVersion());
+            self::assertCount(1, $auditEvidenceRepository->all());
         });
         $service = $this->service(
-            $users,
+            $userRepository,
             new InMemoryActivationGrantRepository($unitOfWork),
-            $sessions,
+            $refreshSessionRepository,
             $unitOfWork,
-            $events,
-            passwordResetGrantRepository: $passwordResetGrants,
-            auditEvidenceRepository: $auditEvidence
+            $eventDispatcher,
+            passwordResetGrantRepository: $passwordResetGrantRepository,
+            auditEvidenceRepository: $auditEvidenceRepository
         );
 
         $service->resetPassword(
@@ -1695,7 +1734,7 @@ final class AuthenticationServiceTest extends TestCase
             'a sufficiently long replacement password'
         );
 
-        $authoritativeUser = $users->getById($user->getId());
+        $authoritativeUser = $userRepository->getById($user->getId());
         self::assertInstanceOf(User::class, $authoritativeUser);
         self::assertSame(1, $unitOfWork->transactions);
         self::assertTrue(password_verify(
@@ -1704,34 +1743,40 @@ final class AuthenticationServiceTest extends TestCase
         ));
         self::assertSame(2, $authoritativeUser->getAuthenticationVersion());
         self::assertSame(1, $authoritativeUser->getAuthenticationAuthorityRevision());
-        self::assertTrue($passwordResetGrants->all()[0]->isConsumed());
+        self::assertTrue($passwordResetGrantRepository->all()[0]->isConsumed());
         self::assertSame(
             '2026-08-19T12:00:00+00:00',
-            $passwordResetGrants->all()[0]->getConsumedAt()?->format(DATE_ATOM)
+            $passwordResetGrantRepository->all()[0]->getConsumedAt()?->format(DATE_ATOM)
         );
-        self::assertFalse($passwordResetGrants->all()[0]->getDelivery()->hasRecoverableMaterial());
+        self::assertFalse($passwordResetGrantRepository->all()[0]->getDelivery()->hasRecoverableMaterial());
         self::assertTrue(array_all(
-            $sessions->all(),
+            $refreshSessionRepository->all(),
             static fn(RefreshSession $refreshSession): bool => $refreshSession->isRevoked()
         ));
-        self::assertSame(1, $sessions->getAllActiveByUserIdCalls());
-        self::assertSame(0, $sessions->getByUserIdCalls());
-        self::assertSame($user->getId()->toString(), $auditEvidence->all()[0]->actorId());
-        self::assertSame('user.password_reset_completed', $auditEvidence->all()[0]->action());
-        self::assertSame($user->getId(), $auditEvidence->all()[0]->subjectId());
-        self::assertSame([], $auditEvidence->all()[0]->context());
-        self::assertCount(1, $events->events());
-        self::assertInstanceOf(PasswordResetCompleted::class, $events->events()[0]);
-        self::assertSame($user->getId(), $events->events()[0]->getUserId());
-        self::assertSame('2026-08-19T12:00:00+00:00', $events->events()[0]->getCompletedAt()->format(DATE_ATOM));
+        self::assertSame(1, $refreshSessionRepository->getAllActiveByUserIdCalls());
+        self::assertSame(0, $refreshSessionRepository->getByUserIdCalls());
+        self::assertSame($user->getId()->toString(), $auditEvidenceRepository->all()[0]->actorId());
+        self::assertSame('user.password_reset_completed', $auditEvidenceRepository->all()[0]->action());
+        self::assertSame($user->getId(), $auditEvidenceRepository->all()[0]->subjectId());
+        self::assertSame([], $auditEvidenceRepository->all()[0]->context());
+        self::assertCount(1, $eventDispatcher->events());
+        self::assertInstanceOf(PasswordResetCompleted::class, $eventDispatcher->events()[0]);
+        self::assertSame($user->getId(), $eventDispatcher->events()[0]->getUserId());
         self::assertSame(
-            $events->events()[0]->toArray(),
-            PasswordResetCompleted::fromArray($events->events()[0]->toArray())->toArray()
+            '2026-08-19T12:00:00+00:00',
+            $eventDispatcher->events()[0]->getCompletedAt()->format(DATE_ATOM)
         );
-        self::assertStringNotContainsString(self::RESET_CREDENTIAL, serialize($events->events()[0]->toArray()));
+        self::assertSame(
+            $eventDispatcher->events()[0]->toArray(),
+            PasswordResetCompleted::fromArray($eventDispatcher->events()[0]->toArray())->toArray()
+        );
+        self::assertStringNotContainsString(
+            self::RESET_CREDENTIAL,
+            serialize($eventDispatcher->events()[0]->toArray())
+        );
         self::assertStringNotContainsString(
             'a sufficiently long replacement password',
-            serialize($events->events()[0]->toArray())
+            serialize($eventDispatcher->events()[0]->toArray())
         );
     }
 
@@ -1745,16 +1790,16 @@ final class AuthenticationServiceTest extends TestCase
     public function test_that_concurrent_grant_consumption_rejects_reset_without_mutating_authority(): void
     {
         $unitOfWork = new InMemoryUnitOfWork();
-        $users = new InMemoryUserRepository($unitOfWork);
-        $passwordResetGrants = new InMemoryPasswordResetGrants(
+        $userRepository = new InMemoryUserRepository($unitOfWork);
+        $passwordResetGrantRepository = new InMemoryPasswordResetGrants(
             $unitOfWork,
             replaceConsumedSucceeds: false
         );
-        $sessions = new InMemoryRefreshSessionRepository($unitOfWork);
-        $auditEvidence = new InMemoryAuditEvidenceRepository($unitOfWork);
-        $events = new InMemoryEventDispatcher();
+        $refreshSessionRepository = new InMemoryRefreshSessionRepository($unitOfWork);
+        $auditEvidenceRepository = new InMemoryAuditEvidenceRepository($unitOfWork);
+        $eventDispatcher = new InMemoryEventDispatcher();
         $user = $this->activeUserFor('reset-conflict@example.test');
-        $users->add($user);
+        $userRepository->add($user);
         $originalPasswordHash = $user->getPasswordHash()?->toString();
         $passwordResetGrant = PasswordResetGrant::issue(
             $user->getId(),
@@ -1765,17 +1810,17 @@ final class AuthenticationServiceTest extends TestCase
             'ciphertext:reset-once',
             $user->getRecoveryAuthority()
         );
-        $passwordResetGrants->add($passwordResetGrant);
+        $passwordResetGrantRepository->add($passwordResetGrant);
         $refreshSession = $this->session($user, $this->refreshCredential(), false);
-        $sessions->add($refreshSession);
+        $refreshSessionRepository->add($refreshSession);
         $service = $this->service(
-            $users,
+            $userRepository,
             new InMemoryActivationGrantRepository($unitOfWork),
-            $sessions,
+            $refreshSessionRepository,
             $unitOfWork,
-            $events,
-            passwordResetGrantRepository: $passwordResetGrants,
-            auditEvidenceRepository: $auditEvidence
+            $eventDispatcher,
+            passwordResetGrantRepository: $passwordResetGrantRepository,
+            auditEvidenceRepository: $auditEvidenceRepository
         );
 
         try {
@@ -1792,29 +1837,29 @@ final class AuthenticationServiceTest extends TestCase
         self::assertSame($originalPasswordHash, $user->getPasswordHash()?->toString());
         self::assertSame(1, $user->getAuthenticationVersion());
         self::assertSame(0, $user->getAuthenticationAuthorityRevision());
-        self::assertSame([$passwordResetGrant], $passwordResetGrants->all());
+        self::assertSame([$passwordResetGrant], $passwordResetGrantRepository->all());
         self::assertTrue($passwordResetGrant->isIssued());
-        self::assertSame([$refreshSession], $sessions->all());
+        self::assertSame([$refreshSession], $refreshSessionRepository->all());
         self::assertFalse($refreshSession->isRevoked());
-        self::assertSame([], $auditEvidence->all());
-        self::assertCount(1, $events->events());
-        self::assertInstanceOf(RedactedCommandFailed::class, $events->events()[0]);
-        self::assertSame('Password reset failed.', $events->events()[0]->getErrorMessage());
+        self::assertSame([], $auditEvidenceRepository->all());
+        self::assertCount(1, $eventDispatcher->events());
+        self::assertInstanceOf(RedactedCommandFailed::class, $eventDispatcher->events()[0]);
+        self::assertSame('Password reset failed.', $eventDispatcher->events()[0]->getErrorMessage());
     }
 
     public function test_that_password_reset_rejects_concurrent_authentication_authority_change(): void
     {
         $unitOfWork = new InMemoryUnitOfWork();
-        $users = new InMemoryUserRepository(
+        $userRepository = new InMemoryUserRepository(
             $unitOfWork,
             replaceAuthenticationAuthoritySucceeds: false
         );
-        $passwordResetGrants = new InMemoryPasswordResetGrants($unitOfWork);
-        $sessions = new InMemoryRefreshSessionRepository($unitOfWork);
-        $auditEvidence = new InMemoryAuditEvidenceRepository($unitOfWork);
-        $events = new InMemoryEventDispatcher();
+        $passwordResetGrantRepository = new InMemoryPasswordResetGrants($unitOfWork);
+        $refreshSessionRepository = new InMemoryRefreshSessionRepository($unitOfWork);
+        $auditEvidenceRepository = new InMemoryAuditEvidenceRepository($unitOfWork);
+        $eventDispatcher = new InMemoryEventDispatcher();
         $user = $this->activeUserFor('reset-authority-conflict@example.test');
-        $users->add($user);
+        $userRepository->add($user);
         $originalPasswordHash = $user->getPasswordHash()?->toString();
         $passwordResetGrant = PasswordResetGrant::issue(
             $user->getId(),
@@ -1825,17 +1870,17 @@ final class AuthenticationServiceTest extends TestCase
             'ciphertext:reset-once',
             $user->getRecoveryAuthority()
         );
-        $passwordResetGrants->add($passwordResetGrant);
+        $passwordResetGrantRepository->add($passwordResetGrant);
         $refreshSession = $this->session($user, $this->refreshCredential(), false);
-        $sessions->add($refreshSession);
+        $refreshSessionRepository->add($refreshSession);
         $service = $this->service(
-            $users,
+            $userRepository,
             new InMemoryActivationGrantRepository($unitOfWork),
-            $sessions,
+            $refreshSessionRepository,
             $unitOfWork,
-            $events,
-            passwordResetGrantRepository: $passwordResetGrants,
-            auditEvidenceRepository: $auditEvidence
+            $eventDispatcher,
+            passwordResetGrantRepository: $passwordResetGrantRepository,
+            auditEvidenceRepository: $auditEvidenceRepository
         );
 
         try {
@@ -1849,18 +1894,21 @@ final class AuthenticationServiceTest extends TestCase
             self::assertSame('Password reset rejected.', $passwordResetRejectedException->getMessage());
         }
 
-        self::assertSame($originalPasswordHash, $users->getById($user->getId())?->getPasswordHash()?->toString());
-        self::assertSame(1, $users->getById($user->getId())?->getAuthenticationVersion());
-        self::assertSame([$passwordResetGrant], $passwordResetGrants->all());
+        self::assertSame(
+            $originalPasswordHash,
+            $userRepository->getById($user->getId())?->getPasswordHash()?->toString()
+        );
+        self::assertSame(1, $userRepository->getById($user->getId())?->getAuthenticationVersion());
+        self::assertSame([$passwordResetGrant], $passwordResetGrantRepository->all());
         self::assertTrue($passwordResetGrant->isIssued());
-        self::assertSame([$refreshSession], $sessions->all());
+        self::assertSame([$refreshSession], $refreshSessionRepository->all());
         self::assertFalse($refreshSession->isRevoked());
-        self::assertSame([], $auditEvidence->all());
-        self::assertCount(1, $events->events());
-        self::assertInstanceOf(RedactedCommandFailed::class, $events->events()[0]);
+        self::assertSame([], $auditEvidenceRepository->all());
+        self::assertCount(1, $eventDispatcher->events());
+        self::assertInstanceOf(RedactedCommandFailed::class, $eventDispatcher->events()[0]);
         self::assertSame(
             ['user_id' => $user->getId()->toString()],
-            $events->events()[0]->getRedactedCommandData()
+            $eventDispatcher->events()[0]->getRedactedCommandData()
         );
     }
 
@@ -1868,13 +1916,13 @@ final class AuthenticationServiceTest extends TestCase
     public function test_that_password_reset_succeeds_without_delivery_authority(bool $hasInvalidatedDelivery): void
     {
         $unitOfWork = new InMemoryUnitOfWork();
-        $users = new InMemoryUserRepository($unitOfWork);
-        $passwordResetGrants = new InMemoryPasswordResetGrants($unitOfWork);
-        $sessions = new InMemoryRefreshSessionRepository($unitOfWork);
-        $auditEvidence = new InMemoryAuditEvidenceRepository($unitOfWork);
-        $events = new InMemoryEventDispatcher();
+        $userRepository = new InMemoryUserRepository($unitOfWork);
+        $passwordResetGrantRepository = new InMemoryPasswordResetGrants($unitOfWork);
+        $refreshSessionRepository = new InMemoryRefreshSessionRepository($unitOfWork);
+        $auditEvidenceRepository = new InMemoryAuditEvidenceRepository($unitOfWork);
+        $eventDispatcher = new InMemoryEventDispatcher();
         $user = $this->activeUserFor('reset-without-delivery@example.test');
-        $users->add($user);
+        $userRepository->add($user);
         $issuedPasswordResetGrant = PasswordResetGrant::issue(
             $user->getId(),
             PasswordResetCredential::fromString(self::RESET_CREDENTIAL),
@@ -1889,21 +1937,21 @@ final class AuthenticationServiceTest extends TestCase
             $passwordResetGrant = $passwordResetGrant->invalidateDelivery();
         }
 
-        self::assertTrue($passwordResetGrants->add($issuedPasswordResetGrant));
+        self::assertTrue($passwordResetGrantRepository->add($issuedPasswordResetGrant));
         if ($passwordResetGrant !== $issuedPasswordResetGrant) {
-            self::assertTrue($passwordResetGrants->replace($issuedPasswordResetGrant, $passwordResetGrant));
+            self::assertTrue($passwordResetGrantRepository->replace($issuedPasswordResetGrant, $passwordResetGrant));
         }
 
         $refreshSession = $this->session($user, $this->refreshCredential(), false);
-        $sessions->add($refreshSession);
+        $refreshSessionRepository->add($refreshSession);
         $service = $this->service(
-            $users,
+            $userRepository,
             new InMemoryActivationGrantRepository($unitOfWork),
-            $sessions,
+            $refreshSessionRepository,
             $unitOfWork,
-            $events,
-            passwordResetGrantRepository: $passwordResetGrants,
-            auditEvidenceRepository: $auditEvidence
+            $eventDispatcher,
+            passwordResetGrantRepository: $passwordResetGrantRepository,
+            auditEvidenceRepository: $auditEvidenceRepository
         );
 
         $service->resetPassword(
@@ -1912,7 +1960,7 @@ final class AuthenticationServiceTest extends TestCase
             'a sufficiently long replacement password'
         );
 
-        $authoritativeUser = $users->getById($user->getId());
+        $authoritativeUser = $userRepository->getById($user->getId());
         self::assertInstanceOf(User::class, $authoritativeUser);
         self::assertSame(1, $unitOfWork->transactions);
         self::assertTrue(password_verify(
@@ -1921,13 +1969,13 @@ final class AuthenticationServiceTest extends TestCase
         ));
         self::assertSame(2, $authoritativeUser->getAuthenticationVersion());
         self::assertSame(1, $authoritativeUser->getAuthenticationAuthorityRevision());
-        self::assertTrue($passwordResetGrants->all()[0]->isConsumed());
-        self::assertTrue($sessions->all()[0]->isRevoked());
-        self::assertFalse($passwordResetGrants->all()[0]->getDelivery()->hasRecoverableMaterial());
+        self::assertTrue($passwordResetGrantRepository->all()[0]->isConsumed());
+        self::assertTrue($refreshSessionRepository->all()[0]->isRevoked());
+        self::assertFalse($passwordResetGrantRepository->all()[0]->getDelivery()->hasRecoverableMaterial());
 
-        self::assertSame('user.password_reset_completed', $auditEvidence->all()[0]->action());
-        self::assertCount(1, $events->events());
-        self::assertInstanceOf(PasswordResetCompleted::class, $events->events()[0]);
+        self::assertSame('user.password_reset_completed', $auditEvidenceRepository->all()[0]->action());
+        self::assertCount(1, $eventDispatcher->events());
+        self::assertInstanceOf(PasswordResetCompleted::class, $eventDispatcher->events()[0]);
     }
 
     #[DataProvider('rejectedPasswordResetAuthority')]
@@ -1936,13 +1984,13 @@ final class AuthenticationServiceTest extends TestCase
         string $presentedCredential
     ): void {
         $unitOfWork = new InMemoryUnitOfWork();
-        $users = new InMemoryUserRepository($unitOfWork);
-        $passwordResetGrants = new InMemoryPasswordResetGrants($unitOfWork);
-        $sessions = new InMemoryRefreshSessionRepository($unitOfWork);
-        $auditEvidence = new InMemoryAuditEvidenceRepository($unitOfWork);
+        $userRepository = new InMemoryUserRepository($unitOfWork);
+        $passwordResetGrantRepository = new InMemoryPasswordResetGrants($unitOfWork);
+        $refreshSessionRepository = new InMemoryRefreshSessionRepository($unitOfWork);
+        $auditEvidenceRepository = new InMemoryAuditEvidenceRepository($unitOfWork);
         $user = $this->activeUserFor('reset-rejected@example.test');
         if ($scenario !== 'missing user authority') {
-            $users->add($user);
+            $userRepository->add($user);
         }
 
         $originalPasswordHash = $user->getPasswordHash()?->toString();
@@ -1974,23 +2022,25 @@ final class AuthenticationServiceTest extends TestCase
         }
 
         if ($scenario !== 'missing grant authority') {
-            self::assertTrue($passwordResetGrants->add($issuedPasswordResetGrant));
+            self::assertTrue($passwordResetGrantRepository->add($issuedPasswordResetGrant));
             if ($passwordResetGrant !== $issuedPasswordResetGrant) {
-                self::assertTrue($passwordResetGrants->replace($issuedPasswordResetGrant, $passwordResetGrant));
+                self::assertTrue(
+                    $passwordResetGrantRepository->replace($issuedPasswordResetGrant, $passwordResetGrant)
+                );
             }
         }
 
         $refreshSession = $this->session($user, $this->refreshCredential(), false);
-        $sessions->add($refreshSession);
-        $events = new InMemoryEventDispatcher();
+        $refreshSessionRepository->add($refreshSession);
+        $eventDispatcher = new InMemoryEventDispatcher();
         $service = $this->service(
-            $users,
+            $userRepository,
             new InMemoryActivationGrantRepository($unitOfWork),
-            $sessions,
+            $refreshSessionRepository,
             $unitOfWork,
-            $events,
-            passwordResetGrantRepository: $passwordResetGrants,
-            auditEvidenceRepository: $auditEvidence
+            $eventDispatcher,
+            passwordResetGrantRepository: $passwordResetGrantRepository,
+            auditEvidenceRepository: $auditEvidenceRepository
         );
 
         try {
@@ -2010,32 +2060,32 @@ final class AuthenticationServiceTest extends TestCase
         self::assertSame(1, $user->getAuthenticationVersion());
         self::assertSame(
             $scenario === 'missing grant authority' ? [] : [$passwordResetGrant],
-            $passwordResetGrants->all()
+            $passwordResetGrantRepository->all()
         );
-        self::assertSame([$refreshSession], $sessions->all());
+        self::assertSame([$refreshSession], $refreshSessionRepository->all());
         self::assertFalse($refreshSession->isRevoked());
-        self::assertSame([], $auditEvidence->all());
-        self::assertCount(1, $events->events());
-        self::assertInstanceOf(RedactedCommandFailed::class, $events->events()[0]);
+        self::assertSame([], $auditEvidenceRepository->all());
+        self::assertCount(1, $eventDispatcher->events());
+        self::assertInstanceOf(RedactedCommandFailed::class, $eventDispatcher->events()[0]);
         self::assertSame(
             AuthenticationService::class.'::resetPassword',
-            $events->events()[0]->getCommandClass()
+            $eventDispatcher->events()[0]->getCommandClass()
         );
         self::assertSame(
             ['user_id' => $user->getId()->toString()],
-            $events->events()[0]->getRedactedCommandData()
+            $eventDispatcher->events()[0]->getRedactedCommandData()
         );
-        self::assertSame('Password reset failed.', $events->events()[0]->getErrorMessage());
+        self::assertSame('Password reset failed.', $eventDispatcher->events()[0]->getErrorMessage());
         if ($presentedCredential !== '') {
             self::assertStringNotContainsString(
                 $presentedCredential,
-                serialize($events->events()[0]->toArray())
+                serialize($eventDispatcher->events()[0]->toArray())
             );
         }
 
         self::assertStringNotContainsString(
             'a sufficiently long rejected replacement password',
-            serialize($events->events()[0]->toArray())
+            serialize($eventDispatcher->events()[0]->toArray())
         );
     }
 
@@ -2043,12 +2093,12 @@ final class AuthenticationServiceTest extends TestCase
     {
         $unitOfWork = new InMemoryUnitOfWork();
         $userState = new InMemoryUserRepositoryState();
-        $users = new InMemoryUserRepository($unitOfWork, state: $userState);
-        $passwordResetGrants = new InMemoryPasswordResetGrants($unitOfWork);
-        $sessions = new InMemoryRefreshSessionRepository($unitOfWork);
-        $auditEvidence = new InMemoryAuditEvidenceRepository($unitOfWork, failAfterSave: true);
+        $userRepository = new InMemoryUserRepository($unitOfWork, state: $userState);
+        $passwordResetGrantRepository = new InMemoryPasswordResetGrants($unitOfWork);
+        $refreshSessionRepository = new InMemoryRefreshSessionRepository($unitOfWork);
+        $auditEvidenceRepository = new InMemoryAuditEvidenceRepository($unitOfWork, failAfterSave: true);
         $user = $this->activeUserFor('reset-rollback@example.test');
-        $users->add($user);
+        $userRepository->add($user);
         $originalPasswordHash = $user->getPasswordHash()?->toString();
         $expiresAt = new DateTimeImmutable('2026-08-19T13:00:00+00:00');
         $passwordResetGrant = PasswordResetGrant::issue(
@@ -2066,19 +2116,19 @@ final class AuthenticationServiceTest extends TestCase
             RefreshCredential::fromString(self::SIBLING_CREDENTIAL),
             true
         );
-        $passwordResetGrants->add($passwordResetGrant);
-        $sessions->add($firstSession);
-        $sessions->add($secondSession);
+        $passwordResetGrantRepository->add($passwordResetGrant);
+        $refreshSessionRepository->add($firstSession);
+        $refreshSessionRepository->add($secondSession);
 
-        $events = new InMemoryEventDispatcher();
+        $eventDispatcher = new InMemoryEventDispatcher();
         $service = $this->service(
-            $users,
+            $userRepository,
             new InMemoryActivationGrantRepository($unitOfWork),
-            $sessions,
+            $refreshSessionRepository,
             $unitOfWork,
-            $events,
-            passwordResetGrantRepository: $passwordResetGrants,
-            auditEvidenceRepository: $auditEvidence
+            $eventDispatcher,
+            passwordResetGrantRepository: $passwordResetGrantRepository,
+            auditEvidenceRepository: $auditEvidenceRepository
         );
 
         try {
@@ -2089,7 +2139,7 @@ final class AuthenticationServiceTest extends TestCase
             );
             self::fail('Expected audit persistence failure.');
         } catch (RuntimeException $runtimeException) {
-            self::assertSame($auditEvidence->failure(), $runtimeException);
+            self::assertSame($auditEvidenceRepository->failure(), $runtimeException);
             self::assertSame('The audit persistence write failed.', $runtimeException->getMessage());
         }
 
@@ -2098,28 +2148,31 @@ final class AuthenticationServiceTest extends TestCase
         self::assertSame(1, $user->getAuthenticationVersion());
         self::assertSame(0, $user->getAuthenticationAuthorityRevision());
         self::assertFalse($userState->isAuthenticationAuthorityFenceHeld($user->getId()));
-        self::assertSame([$passwordResetGrant], $passwordResetGrants->all());
-        self::assertFalse($passwordResetGrants->all()[0]->isConsumed());
-        self::assertTrue($passwordResetGrants->all()[0]->getDelivery()->hasRecoverableMaterial());
-        self::assertSame([$firstSession, $secondSession], $sessions->all());
+        self::assertSame([$passwordResetGrant], $passwordResetGrantRepository->all());
+        self::assertFalse($passwordResetGrantRepository->all()[0]->isConsumed());
+        self::assertTrue($passwordResetGrantRepository->all()[0]->getDelivery()->hasRecoverableMaterial());
+        self::assertSame([$firstSession, $secondSession], $refreshSessionRepository->all());
         self::assertFalse($firstSession->isRevoked());
         self::assertFalse($secondSession->isRevoked());
-        self::assertSame([], $auditEvidence->all());
-        self::assertCount(1, $events->events());
-        self::assertInstanceOf(RedactedCommandFailed::class, $events->events()[0]);
+        self::assertSame([], $auditEvidenceRepository->all());
+        self::assertCount(1, $eventDispatcher->events());
+        self::assertInstanceOf(RedactedCommandFailed::class, $eventDispatcher->events()[0]);
         self::assertSame(
             AuthenticationService::class.'::resetPassword',
-            $events->events()[0]->getCommandClass()
+            $eventDispatcher->events()[0]->getCommandClass()
         );
         self::assertSame(
             ['user_id' => $user->getId()->toString()],
-            $events->events()[0]->getRedactedCommandData()
+            $eventDispatcher->events()[0]->getRedactedCommandData()
         );
-        self::assertSame('Password reset failed.', $events->events()[0]->getErrorMessage());
-        self::assertStringNotContainsString(self::RESET_CREDENTIAL, serialize($events->events()[0]->toArray()));
+        self::assertSame('Password reset failed.', $eventDispatcher->events()[0]->getErrorMessage());
+        self::assertStringNotContainsString(
+            self::RESET_CREDENTIAL,
+            serialize($eventDispatcher->events()[0]->toArray())
+        );
         self::assertStringNotContainsString(
             'a sufficiently long rolled back password',
-            serialize($events->events()[0]->toArray())
+            serialize($eventDispatcher->events()[0]->toArray())
         );
     }
 
@@ -2129,11 +2182,11 @@ final class AuthenticationServiceTest extends TestCase
         bool $throttleAllows
     ): void {
         $unitOfWork = new InMemoryUnitOfWork();
-        $users = new InMemoryUserRepository($unitOfWork);
-        $events = new InMemoryEventDispatcher();
+        $userRepository = new InMemoryUserRepository($unitOfWork);
+        $eventDispatcher = new InMemoryEventDispatcher();
         $email = 'unknown@example.test';
         if ($user instanceof User) {
-            $users->add($user);
+            $userRepository->add($user);
             $email = $user->getEmail()->canonical();
         }
 
@@ -2153,11 +2206,11 @@ final class AuthenticationServiceTest extends TestCase
             }
         };
         $service = $this->service(
-            $users,
+            $userRepository,
             new InMemoryActivationGrantRepository($unitOfWork),
             new InMemoryRefreshSessionRepository($unitOfWork),
             $unitOfWork,
-            $events,
+            $eventDispatcher,
             loginThrottle: new FixedLoginThrottle($throttleAllows),
             passwordValidator: $passwordValidator
         );
@@ -2168,9 +2221,9 @@ final class AuthenticationServiceTest extends TestCase
             $service->login($email, 'wrong-secret');
         } finally {
             self::assertSame(1, $passwordValidator->validations);
-            self::assertInstanceOf(RedactedCommandFailed::class, $events->events()[0]);
-            self::assertSame([], $events->events()[0]->getRedactedCommandData());
-            self::assertStringNotContainsString('wrong-secret', serialize($events->events()[0]->toArray()));
+            self::assertInstanceOf(RedactedCommandFailed::class, $eventDispatcher->events()[0]);
+            self::assertSame([], $eventDispatcher->events()[0]->getRedactedCommandData());
+            self::assertStringNotContainsString('wrong-secret', serialize($eventDispatcher->events()[0]->toArray()));
         }
     }
 
@@ -2181,12 +2234,12 @@ final class AuthenticationServiceTest extends TestCase
         string $expectedAbsoluteExpiry
     ): void {
         $unitOfWork = new InMemoryUnitOfWork();
-        $users = new InMemoryUserRepository($unitOfWork);
-        $sessions = new InMemoryRefreshSessionRepository($unitOfWork);
+        $userRepository = new InMemoryUserRepository($unitOfWork);
+        $refreshSessionRepository = new InMemoryRefreshSessionRepository($unitOfWork);
         $user = $this->activeUserFor('refresh@example.test');
-        $users->add($user);
+        $userRepository->add($user);
         $session = $this->session($user, $this->refreshCredential(), $remembered);
-        $sessions->add($session);
+        $refreshSessionRepository->add($session);
         $rotatedCredential = RefreshCredential::fromString(self::ROTATED_CREDENTIAL);
         $credentialGenerator = new class ($rotatedCredential) implements RefreshCredentialGenerator {
             public int $calls = 0;
@@ -2204,9 +2257,9 @@ final class AuthenticationServiceTest extends TestCase
         };
         $tokenEncoder = new RecordingTokenEncoder();
         $service = $this->service(
-            $users,
+            $userRepository,
             new InMemoryActivationGrantRepository($unitOfWork),
-            $sessions,
+            $refreshSessionRepository,
             $unitOfWork,
             new InMemoryEventDispatcher(),
             tokenEncoder: $tokenEncoder,
@@ -2216,14 +2269,14 @@ final class AuthenticationServiceTest extends TestCase
         $refreshResult = $service->refresh(self::REFRESH_CREDENTIAL);
         $tokenSet = $refreshResult->getTokenSet();
 
-        $rotatedSession = $sessions->getById($session->getId());
+        $rotatedSession = $refreshSessionRepository->getById($session->getId());
         self::assertInstanceOf(RefreshSession::class, $rotatedSession);
         self::assertSame(RefreshOutcome::ROTATED, $refreshResult->getOutcome());
         self::assertInstanceOf(TokenSet::class, $tokenSet);
         self::assertSame(1, $credentialGenerator->calls);
         self::assertSame(self::ROTATED_CREDENTIAL, $tokenSet->getRefreshCredential()->toString());
-        self::assertSame($rotatedSession, $sessions->getByCredential($rotatedCredential));
-        self::assertNull($sessions->getByCredential($this->refreshCredential()));
+        self::assertSame($rotatedSession, $refreshSessionRepository->getByCredential($rotatedCredential));
+        self::assertNull($refreshSessionRepository->getByCredential($this->refreshCredential()));
         self::assertEquals(new DateTimeImmutable('2026-08-19T12:00:00+00:00'), $rotatedSession->getLastActivityAt());
         self::assertEquals(new DateTimeImmutable($expectedIdleExpiry), $rotatedSession->getIdleExpiresAt());
         self::assertEquals(new DateTimeImmutable($expectedAbsoluteExpiry), $rotatedSession->getAbsoluteExpiresAt());
@@ -2240,18 +2293,18 @@ final class AuthenticationServiceTest extends TestCase
     public function test_that_immediately_previous_refresh_credential_returns_a_secretless_conflict(): void
     {
         $unitOfWork = new InMemoryUnitOfWork();
-        $users = new InMemoryUserRepository($unitOfWork);
-        $sessions = new InMemoryRefreshSessionRepository($unitOfWork);
-        $events = new InMemoryEventDispatcher();
+        $userRepository = new InMemoryUserRepository($unitOfWork);
+        $refreshSessionRepository = new InMemoryRefreshSessionRepository($unitOfWork);
+        $eventDispatcher = new InMemoryEventDispatcher();
         $user = $this->activeUserFor('refresh-conflict@example.test');
-        $users->add($user);
-        $sessions->add($this->session($user, $this->refreshCredential(), false));
+        $userRepository->add($user);
+        $refreshSessionRepository->add($this->session($user, $this->refreshCredential(), false));
         $service = $this->service(
-            $users,
+            $userRepository,
             new InMemoryActivationGrantRepository($unitOfWork),
-            $sessions,
+            $refreshSessionRepository,
             $unitOfWork,
-            $events,
+            $eventDispatcher,
             tokenPolicy: AuthenticationTokenPolicy::starterDefaults(new DateInterval('PT5S')),
             refreshCredentialGenerator: new FixedRefreshCredentialGenerator(
                 RefreshCredential::fromString(self::ROTATED_CREDENTIAL)
@@ -2265,23 +2318,23 @@ final class AuthenticationServiceTest extends TestCase
         self::assertNotNull($winner->getTokenSet());
         self::assertSame(RefreshOutcome::CONFLICT, $conflict->getOutcome());
         self::assertNull($conflict->getTokenSet());
-        self::assertSame([], $events->events());
+        self::assertSame([], $eventDispatcher->events());
     }
 
     public function test_that_refresh_replay_outside_the_conflict_window_revokes_the_session_before_failing(): void
     {
         $unitOfWork = new InMemoryUnitOfWork();
-        $users = new InMemoryUserRepository($unitOfWork);
-        $sessions = new InMemoryRefreshSessionRepository($unitOfWork);
-        $events = new InMemoryEventDispatcher();
+        $userRepository = new InMemoryUserRepository($unitOfWork);
+        $refreshSessionRepository = new InMemoryRefreshSessionRepository($unitOfWork);
+        $eventDispatcher = new InMemoryEventDispatcher();
         $user = $this->activeUserFor('refresh-replay@example.test');
-        $users->add($user);
+        $userRepository->add($user);
         $session = $this->session($user, $this->refreshCredential(), false)->rotate(
             RefreshCredential::fromString(self::ROTATED_CREDENTIAL),
             new DateTimeImmutable('2026-08-19T11:59:54+00:00'),
             new DateTimeImmutable('2026-08-20T11:59:54+00:00')
         );
-        $sessions->add($session);
+        $refreshSessionRepository->add($session);
         $credentialGenerator = new class () implements RefreshCredentialGenerator {
             public int $calls = 0;
 
@@ -2295,11 +2348,11 @@ final class AuthenticationServiceTest extends TestCase
             }
         };
         $service = $this->service(
-            $users,
+            $userRepository,
             new InMemoryActivationGrantRepository($unitOfWork),
-            $sessions,
+            $refreshSessionRepository,
             $unitOfWork,
-            $events,
+            $eventDispatcher,
             tokenPolicy: AuthenticationTokenPolicy::starterDefaults(new DateInterval('PT5S')),
             refreshCredentialGenerator: $credentialGenerator
         );
@@ -2315,7 +2368,7 @@ final class AuthenticationServiceTest extends TestCase
         }
 
         self::assertTrue($unitOfWork->transactionCompleted);
-        self::assertTrue($sessions->getById($session->getId())?->isRevoked());
+        self::assertTrue($refreshSessionRepository->getById($session->getId())?->isRevoked());
 
         try {
             $service->refresh(self::ROTATED_CREDENTIAL);
@@ -2328,8 +2381,8 @@ final class AuthenticationServiceTest extends TestCase
         }
 
         self::assertSame(0, $credentialGenerator->calls);
-        self::assertCount(2, $events->events());
-        foreach ($events->events() as $event) {
+        self::assertCount(2, $eventDispatcher->events());
+        foreach ($eventDispatcher->events() as $event) {
             self::assertInstanceOf(RedactedCommandFailed::class, $event);
             self::assertSame(AuthenticationService::class.'::refresh', $event->getCommandClass());
             self::assertSame([], $event->getRedactedCommandData());
@@ -2341,13 +2394,13 @@ final class AuthenticationServiceTest extends TestCase
     public function test_that_older_used_credential_replay_revokes_the_authoritative_session_family(): void
     {
         $unitOfWork = new InMemoryUnitOfWork();
-        $users = new InMemoryUserRepository($unitOfWork);
-        $sessions = new InMemoryRefreshSessionRepository($unitOfWork);
-        $events = new InMemoryEventDispatcher();
+        $userRepository = new InMemoryUserRepository($unitOfWork);
+        $refreshSessionRepository = new InMemoryRefreshSessionRepository($unitOfWork);
+        $eventDispatcher = new InMemoryEventDispatcher();
         $user = $this->activeUserFor('older-refresh-replay@example.test');
-        $users->add($user);
+        $userRepository->add($user);
         $session = $this->session($user, $this->refreshCredential(), false);
-        $sessions->add($session);
+        $refreshSessionRepository->add($session);
         $credentialGenerator = new class ([
             RefreshCredential::fromString(self::ROTATED_CREDENTIAL),
             RefreshCredential::fromString(self::SECOND_ROTATED_CREDENTIAL)
@@ -2370,11 +2423,11 @@ final class AuthenticationServiceTest extends TestCase
             }
         };
         $service = $this->service(
-            $users,
+            $userRepository,
             new InMemoryActivationGrantRepository($unitOfWork),
-            $sessions,
+            $refreshSessionRepository,
             $unitOfWork,
-            $events,
+            $eventDispatcher,
             refreshCredentialGenerator: $credentialGenerator
         );
 
@@ -2398,7 +2451,7 @@ final class AuthenticationServiceTest extends TestCase
             );
         }
 
-        $authoritativeSession = $sessions->getById($session->getId());
+        $authoritativeSession = $refreshSessionRepository->getById($session->getId());
         self::assertInstanceOf(RefreshSession::class, $authoritativeSession);
         self::assertTrue($authoritativeSession->isRevoked());
 
@@ -2413,8 +2466,8 @@ final class AuthenticationServiceTest extends TestCase
         }
 
         self::assertSame(2, $credentialGenerator->calls);
-        self::assertCount(2, $events->events());
-        foreach ($events->events() as $event) {
+        self::assertCount(2, $eventDispatcher->events());
+        foreach ($eventDispatcher->events() as $event) {
             self::assertInstanceOf(RedactedCommandFailed::class, $event);
             self::assertSame(AuthenticationService::class.'::refresh', $event->getCommandClass());
             self::assertSame([], $event->getRedactedCommandData());
@@ -2427,11 +2480,11 @@ final class AuthenticationServiceTest extends TestCase
     {
         foreach (['expired', 'revoked'] as $terminalState) {
             $unitOfWork = new InMemoryUnitOfWork();
-            $users = new InMemoryUserRepository($unitOfWork);
-            $sessions = new InMemoryRefreshSessionRepository($unitOfWork);
-            $events = new InMemoryEventDispatcher();
+            $userRepository = new InMemoryUserRepository($unitOfWork);
+            $refreshSessionRepository = new InMemoryRefreshSessionRepository($unitOfWork);
+            $eventDispatcher = new InMemoryEventDispatcher();
             $user = $this->activeUserFor($terminalState.'-refresh@example.test');
-            $users->add($user);
+            $userRepository->add($user);
             $session = RefreshSession::start(
                 RefreshSessionId::generate(),
                 $user->getId(),
@@ -2448,7 +2501,7 @@ final class AuthenticationServiceTest extends TestCase
                 $session = $session->revoke();
             }
 
-            $sessions->add($session);
+            $refreshSessionRepository->add($session);
             $credentialGenerator = new class () implements RefreshCredentialGenerator {
                 public int $calls = 0;
 
@@ -2462,11 +2515,11 @@ final class AuthenticationServiceTest extends TestCase
                 }
             };
             $service = $this->service(
-                $users,
+                $userRepository,
                 new InMemoryActivationGrantRepository($unitOfWork),
-                $sessions,
+                $refreshSessionRepository,
                 $unitOfWork,
-                $events,
+                $eventDispatcher,
                 refreshCredentialGenerator: $credentialGenerator
             );
 
@@ -2478,37 +2531,37 @@ final class AuthenticationServiceTest extends TestCase
             }
 
             self::assertSame(0, $credentialGenerator->calls);
-            self::assertCount(1, $events->events());
-            self::assertInstanceOf(RedactedCommandFailed::class, $events->events()[0]);
-            self::assertSame([], $events->events()[0]->getRedactedCommandData());
+            self::assertCount(1, $eventDispatcher->events());
+            self::assertInstanceOf(RedactedCommandFailed::class, $eventDispatcher->events()[0]);
+            self::assertSame([], $eventDispatcher->events()[0]->getRedactedCommandData());
         }
     }
 
     public function test_that_an_interleaved_stale_refresh_cannot_become_a_second_winner(): void
     {
-        $users = new InMemoryUserRepository();
-        $storedSessions = new InMemoryRefreshSessionRepository();
+        $userRepository = new InMemoryUserRepository();
+        $storedRefreshSessionRepository = new InMemoryRefreshSessionRepository();
         $user = $this->activeUserFor('refresh-race@example.test');
-        $users->add($user);
+        $userRepository->add($user);
         $originalSession = $this->session($user, $this->refreshCredential(), false);
-        $storedSessions->add($originalSession);
-        $racingSessions = new class ($storedSessions) implements RefreshSessionRepository {
+        $storedRefreshSessionRepository->add($originalSession);
+        $racingSessions = new class ($storedRefreshSessionRepository) implements RefreshSessionRepository {
             public bool $interleaveNextReplace = false;
 
             public ?Closure $beforeReplace = null;
 
-            public function __construct(private readonly InMemoryRefreshSessionRepository $sessions)
+            public function __construct(private readonly InMemoryRefreshSessionRepository $refreshSessionRepository)
             {
             }
 
             public function add(RefreshSession $refreshSession): void
             {
-                $this->sessions->add($refreshSession);
+                $this->refreshSessionRepository->add($refreshSession);
             }
 
             public function getById(RefreshSessionId $id): ?RefreshSession
             {
-                return $this->sessions->getById($id);
+                return $this->refreshSessionRepository->getById($id);
             }
 
             /** @return ResultSet<RefreshSession> */
@@ -2517,22 +2570,22 @@ final class AuthenticationServiceTest extends TestCase
                 DateTimeImmutable $at,
                 Pagination $pagination
             ): ResultSet {
-                return $this->sessions->getByUserId($userId, $at, $pagination);
+                return $this->refreshSessionRepository->getByUserId($userId, $at, $pagination);
             }
 
             public function getAllActiveByUserId(UserId $userId, DateTimeImmutable $at): array
             {
-                return $this->sessions->getAllActiveByUserId($userId, $at);
+                return $this->refreshSessionRepository->getAllActiveByUserId($userId, $at);
             }
 
             public function getByCredential(RefreshCredential $refreshCredential): ?RefreshSession
             {
-                return $this->sessions->getByCredential($refreshCredential);
+                return $this->refreshSessionRepository->getByCredential($refreshCredential);
             }
 
             public function getByUsedCredential(RefreshCredential $refreshCredential): ?RefreshSession
             {
-                return $this->sessions->getByUsedCredential($refreshCredential);
+                return $this->refreshSessionRepository->getByUsedCredential($refreshCredential);
             }
 
             public function replace(RefreshSession $expected, RefreshSession $replacement): bool
@@ -2542,17 +2595,17 @@ final class AuthenticationServiceTest extends TestCase
                     ($this->beforeReplace)();
                 }
 
-                return $this->sessions->replace($expected, $replacement);
+                return $this->refreshSessionRepository->replace($expected, $replacement);
             }
         };
-        $winnerEvents = new InMemoryEventDispatcher();
-        $loserEvents = new InMemoryEventDispatcher();
+        $winnerEventDispatcher = new InMemoryEventDispatcher();
+        $loserEventDispatcher = new InMemoryEventDispatcher();
         $winnerService = $this->service(
-            $users,
+            $userRepository,
             new InMemoryActivationGrantRepository(),
             $racingSessions,
             new InMemoryUnitOfWork(),
-            $winnerEvents,
+            $winnerEventDispatcher,
             authenticationClock: new FixedClock(
                 new DateTimeImmutable('2026-08-19T12:00:01+00:00')
             ),
@@ -2576,11 +2629,11 @@ final class AuthenticationServiceTest extends TestCase
             }
         };
         $loserService = $this->service(
-            $users,
+            $userRepository,
             new InMemoryActivationGrantRepository(),
             $racingSessions,
             new InMemoryUnitOfWork(),
-            $loserEvents,
+            $loserEventDispatcher,
             authenticationClock: $loserClock,
             refreshCredentialGenerator: new FixedRefreshCredentialGenerator(
                 RefreshCredential::fromString(self::ROTATED_CREDENTIAL)
@@ -2602,41 +2655,41 @@ final class AuthenticationServiceTest extends TestCase
         );
         self::assertSame(RefreshOutcome::CONFLICT, $conflict->getOutcome());
         self::assertNull($conflict->getTokenSet());
-        self::assertTrue($storedSessions->getById($originalSession->getId())?->matchesCredential(
+        self::assertTrue($storedRefreshSessionRepository->getById($originalSession->getId())?->matchesCredential(
             RefreshCredential::fromString(self::WINNER_CREDENTIAL)
         ));
-        self::assertNull($storedSessions->getByCredential(
+        self::assertNull($storedRefreshSessionRepository->getByCredential(
             RefreshCredential::fromString(self::ROTATED_CREDENTIAL)
         ));
-        self::assertFalse($storedSessions->getById($originalSession->getId())->isRevoked());
-        self::assertSame([], $winnerEvents->events());
-        self::assertSame([], $loserEvents->events());
+        self::assertFalse($storedRefreshSessionRepository->getById($originalSession->getId())->isRevoked());
+        self::assertSame([], $winnerEventDispatcher->events());
+        self::assertSame([], $loserEventDispatcher->events());
     }
 
     public function test_that_stale_rotation_cannot_resurrect_a_concurrently_revoked_session(): void
     {
-        $users = new InMemoryUserRepository();
-        $storedSessions = new InMemoryRefreshSessionRepository();
-        $events = new InMemoryEventDispatcher();
+        $userRepository = new InMemoryUserRepository();
+        $storedRefreshSessionRepository = new InMemoryRefreshSessionRepository();
+        $eventDispatcher = new InMemoryEventDispatcher();
         $user = $this->activeUserFor('refresh-revocation-race@example.test');
-        $users->add($user);
+        $userRepository->add($user);
         $originalSession = $this->session($user, $this->refreshCredential(), false);
-        $storedSessions->add($originalSession);
-        $racingSessions = new class ($storedSessions) implements RefreshSessionRepository {
+        $storedRefreshSessionRepository->add($originalSession);
+        $racingSessions = new class ($storedRefreshSessionRepository) implements RefreshSessionRepository {
             public bool $revokedDuringReplace = false;
 
-            public function __construct(private readonly InMemoryRefreshSessionRepository $sessions)
+            public function __construct(private readonly InMemoryRefreshSessionRepository $refreshSessionRepository)
             {
             }
 
             public function add(RefreshSession $refreshSession): void
             {
-                $this->sessions->add($refreshSession);
+                $this->refreshSessionRepository->add($refreshSession);
             }
 
             public function getById(RefreshSessionId $id): ?RefreshSession
             {
-                return $this->sessions->getById($id);
+                return $this->refreshSessionRepository->getById($id);
             }
 
             /** @return ResultSet<RefreshSession> */
@@ -2645,22 +2698,22 @@ final class AuthenticationServiceTest extends TestCase
                 DateTimeImmutable $at,
                 Pagination $pagination
             ): ResultSet {
-                return $this->sessions->getByUserId($userId, $at, $pagination);
+                return $this->refreshSessionRepository->getByUserId($userId, $at, $pagination);
             }
 
             public function getAllActiveByUserId(UserId $userId, DateTimeImmutable $at): array
             {
-                return $this->sessions->getAllActiveByUserId($userId, $at);
+                return $this->refreshSessionRepository->getAllActiveByUserId($userId, $at);
             }
 
             public function getByCredential(RefreshCredential $refreshCredential): ?RefreshSession
             {
-                return $this->sessions->getByCredential($refreshCredential);
+                return $this->refreshSessionRepository->getByCredential($refreshCredential);
             }
 
             public function getByUsedCredential(RefreshCredential $refreshCredential): ?RefreshSession
             {
-                return $this->sessions->getByUsedCredential($refreshCredential);
+                return $this->refreshSessionRepository->getByUsedCredential($refreshCredential);
             }
 
             public function replace(RefreshSession $expected, RefreshSession $replacement): bool
@@ -2668,20 +2721,20 @@ final class AuthenticationServiceTest extends TestCase
                 if (!$this->revokedDuringReplace) {
                     $this->revokedDuringReplace = true;
                     $concurrentlyRevoked = $expected->revoke();
-                    if (!$this->sessions->replace($expected, $concurrentlyRevoked)) {
+                    if (!$this->refreshSessionRepository->replace($expected, $concurrentlyRevoked)) {
                         throw new LogicException('Expected the interleaved revocation to win.');
                     }
                 }
 
-                return $this->sessions->replace($expected, $replacement);
+                return $this->refreshSessionRepository->replace($expected, $replacement);
             }
         };
         $service = $this->service(
-            $users,
+            $userRepository,
             new InMemoryActivationGrantRepository(),
             $racingSessions,
             new InMemoryUnitOfWork(),
-            $events,
+            $eventDispatcher,
             refreshCredentialGenerator: new FixedRefreshCredentialGenerator(
                 RefreshCredential::fromString(self::ROTATED_CREDENTIAL)
             )
@@ -2697,40 +2750,42 @@ final class AuthenticationServiceTest extends TestCase
             );
         }
 
-        $authoritativeSession = $storedSessions->getById($originalSession->getId());
+        $authoritativeSession = $storedRefreshSessionRepository->getById($originalSession->getId());
         self::assertInstanceOf(RefreshSession::class, $authoritativeSession);
         self::assertTrue($authoritativeSession->isRevoked());
         self::assertTrue($authoritativeSession->matchesCredential($this->refreshCredential()));
-        self::assertNull($storedSessions->getByCredential(RefreshCredential::fromString(self::ROTATED_CREDENTIAL)));
+        self::assertNull(
+            $storedRefreshSessionRepository->getByCredential(RefreshCredential::fromString(self::ROTATED_CREDENTIAL))
+        );
         self::assertTrue($racingSessions->revokedDuringReplace);
-        self::assertCount(1, $events->events());
-        self::assertInstanceOf(RedactedCommandFailed::class, $events->events()[0]);
+        self::assertCount(1, $eventDispatcher->events());
+        self::assertInstanceOf(RedactedCommandFailed::class, $eventDispatcher->events()[0]);
     }
 
     public function test_that_non_conflicting_cas_contention_revokes_the_latest_authoritative_session(): void
     {
-        $users = new InMemoryUserRepository();
-        $storedSessions = new InMemoryRefreshSessionRepository();
-        $events = new InMemoryEventDispatcher();
+        $userRepository = new InMemoryUserRepository();
+        $storedRefreshSessionRepository = new InMemoryRefreshSessionRepository();
+        $eventDispatcher = new InMemoryEventDispatcher();
         $user = $this->activeUserFor('refresh-terminal-race@example.test');
-        $users->add($user);
+        $userRepository->add($user);
         $originalSession = $this->session($user, $this->refreshCredential(), false);
-        $storedSessions->add($originalSession);
-        $racingSessions = new class ($storedSessions) implements RefreshSessionRepository {
+        $storedRefreshSessionRepository->add($originalSession);
+        $racingSessions = new class ($storedRefreshSessionRepository) implements RefreshSessionRepository {
             public int $contentions = 0;
 
-            public function __construct(private readonly InMemoryRefreshSessionRepository $sessions)
+            public function __construct(private readonly InMemoryRefreshSessionRepository $refreshSessionRepository)
             {
             }
 
             public function add(RefreshSession $refreshSession): void
             {
-                $this->sessions->add($refreshSession);
+                $this->refreshSessionRepository->add($refreshSession);
             }
 
             public function getById(RefreshSessionId $id): ?RefreshSession
             {
-                return $this->sessions->getById($id);
+                return $this->refreshSessionRepository->getById($id);
             }
 
             /** @return ResultSet<RefreshSession> */
@@ -2739,22 +2794,22 @@ final class AuthenticationServiceTest extends TestCase
                 DateTimeImmutable $at,
                 Pagination $pagination
             ): ResultSet {
-                return $this->sessions->getByUserId($userId, $at, $pagination);
+                return $this->refreshSessionRepository->getByUserId($userId, $at, $pagination);
             }
 
             public function getAllActiveByUserId(UserId $userId, DateTimeImmutable $at): array
             {
-                return $this->sessions->getAllActiveByUserId($userId, $at);
+                return $this->refreshSessionRepository->getAllActiveByUserId($userId, $at);
             }
 
             public function getByCredential(RefreshCredential $refreshCredential): ?RefreshSession
             {
-                return $this->sessions->getByCredential($refreshCredential);
+                return $this->refreshSessionRepository->getByCredential($refreshCredential);
             }
 
             public function getByUsedCredential(RefreshCredential $refreshCredential): ?RefreshSession
             {
-                return $this->sessions->getByUsedCredential($refreshCredential);
+                return $this->refreshSessionRepository->getByUsedCredential($refreshCredential);
             }
 
             public function replace(RefreshSession $expected, RefreshSession $replacement): bool
@@ -2776,8 +2831,8 @@ final class AuthenticationServiceTest extends TestCase
                         new DateTimeImmutable('2026-08-20T12:00:00+00:00')
                     );
                     if (
-                        !$this->sessions->replace($expected, $firstWinner)
-                        || !$this->sessions->replace($firstWinner, $secondWinner)
+                        !$this->refreshSessionRepository->replace($expected, $firstWinner)
+                        || !$this->refreshSessionRepository->replace($firstWinner, $secondWinner)
                     ) {
                         throw new LogicException('Expected both interleaved rotations to win in sequence.');
                     }
@@ -2788,22 +2843,22 @@ final class AuthenticationServiceTest extends TestCase
                 if ($this->contentions === 1 && $replacement->isRevoked()) {
                     ++$this->contentions;
                     $concurrentlyRevoked = $expected->revoke();
-                    if (!$this->sessions->replace($expected, $concurrentlyRevoked)) {
+                    if (!$this->refreshSessionRepository->replace($expected, $concurrentlyRevoked)) {
                         throw new LogicException('Expected the interleaved revocation to win.');
                     }
 
                     return false;
                 }
 
-                return $this->sessions->replace($expected, $replacement);
+                return $this->refreshSessionRepository->replace($expected, $replacement);
             }
         };
         $service = $this->service(
-            $users,
+            $userRepository,
             new InMemoryActivationGrantRepository(),
             $racingSessions,
             new InMemoryUnitOfWork(),
-            $events,
+            $eventDispatcher,
             refreshCredentialGenerator: new FixedRefreshCredentialGenerator(
                 RefreshCredential::fromString(self::ROTATED_CREDENTIAL)
             )
@@ -2819,61 +2874,72 @@ final class AuthenticationServiceTest extends TestCase
             );
         }
 
-        $authoritativeSession = $storedSessions->getById($originalSession->getId());
+        $authoritativeSession = $storedRefreshSessionRepository->getById($originalSession->getId());
         self::assertInstanceOf(RefreshSession::class, $authoritativeSession);
         self::assertTrue($authoritativeSession->isRevoked());
         self::assertTrue($authoritativeSession->matchesCredential(RefreshCredential::fromString(
             '3333333333333333333333333333333333333333333333333333333333333333'
         )));
-        self::assertNull($storedSessions->getByCredential(RefreshCredential::fromString(self::ROTATED_CREDENTIAL)));
+        self::assertNull(
+            $storedRefreshSessionRepository->getByCredential(RefreshCredential::fromString(self::ROTATED_CREDENTIAL))
+        );
         self::assertSame(2, $racingSessions->contentions);
-        self::assertCount(1, $events->events());
-        self::assertInstanceOf(RedactedCommandFailed::class, $events->events()[0]);
-        self::assertSame([], $events->events()[0]->getRedactedCommandData());
+        self::assertCount(1, $eventDispatcher->events());
+        self::assertInstanceOf(RedactedCommandFailed::class, $eventDispatcher->events()[0]);
+        self::assertSame([], $eventDispatcher->events()[0]->getRedactedCommandData());
     }
 
     public function test_that_refresh_rejects_an_authentication_version_mismatch_without_leaking_the_credential(): void
     {
         $unitOfWork = new InMemoryUnitOfWork();
-        $users = new InMemoryUserRepository($unitOfWork);
-        $sessions = new InMemoryRefreshSessionRepository($unitOfWork);
-        $events = new InMemoryEventDispatcher();
+        $userRepository = new InMemoryUserRepository($unitOfWork);
+        $refreshSessionRepository = new InMemoryRefreshSessionRepository($unitOfWork);
+        $eventDispatcher = new InMemoryEventDispatcher();
         $userId = UserId::generate();
         $user = UserFixture::withIdAndAuthenticationVersion($userId, 'version@example.test', UserState::ACTIVE, 2);
-        $users->add($user);
+        $userRepository->add($user);
         $sessionOwner = $this->activeUserFor('session-owner@example.test', $userId);
-        $sessions->add($this->session($sessionOwner, $this->refreshCredential(), false));
-        $service = $this->service($users, new InMemoryActivationGrantRepository(), $sessions, $unitOfWork, $events);
+        $refreshSessionRepository->add($this->session($sessionOwner, $this->refreshCredential(), false));
+        $service = $this->service(
+            $userRepository,
+            new InMemoryActivationGrantRepository(),
+            $refreshSessionRepository,
+            $unitOfWork,
+            $eventDispatcher
+        );
 
         $this->expectException(RefreshSessionNotFoundException::class);
         try {
             $service->refresh(self::REFRESH_CREDENTIAL);
         } finally {
-            self::assertInstanceOf(RedactedCommandFailed::class, $events->events()[0]);
-            self::assertStringNotContainsString(self::REFRESH_CREDENTIAL, serialize($events->events()[0]->toArray()));
+            self::assertInstanceOf(RedactedCommandFailed::class, $eventDispatcher->events()[0]);
+            self::assertStringNotContainsString(
+                self::REFRESH_CREDENTIAL,
+                serialize($eventDispatcher->events()[0]->toArray())
+            );
         }
     }
 
     public function test_that_logout_revokes_only_the_credential_selected_session(): void
     {
         $unitOfWork = new InMemoryUnitOfWork();
-        $users = new InMemoryUserRepository($unitOfWork);
-        $sessions = new InMemoryRefreshSessionRepository($unitOfWork);
-        $events = new InMemoryEventDispatcher();
+        $userRepository = new InMemoryUserRepository($unitOfWork);
+        $refreshSessionRepository = new InMemoryRefreshSessionRepository($unitOfWork);
+        $eventDispatcher = new InMemoryEventDispatcher();
         $user = $this->activeUserFor('logout@example.test');
-        $users->add($user);
+        $userRepository->add($user);
         $current = $this->session($user, $this->refreshCredential(), false);
         $siblingCredential = RefreshCredential::fromString(self::SIBLING_CREDENTIAL);
         $sibling = $this->session($user, $siblingCredential, true);
-        $sessions->add($current);
-        $sessions->add($sibling);
+        $refreshSessionRepository->add($current);
+        $refreshSessionRepository->add($sibling);
 
         $service = $this->service(
-            $users,
+            $userRepository,
             new InMemoryActivationGrantRepository(),
-            $sessions,
+            $refreshSessionRepository,
             $unitOfWork,
-            $events,
+            $eventDispatcher,
             refreshCredentialGenerator: new FixedRefreshCredentialGenerator(
                 RefreshCredential::fromString(self::ROTATED_CREDENTIAL)
             )
@@ -2881,17 +2947,17 @@ final class AuthenticationServiceTest extends TestCase
 
         $service->logout(self::REFRESH_CREDENTIAL);
 
-        $revokedCurrent = $sessions->getById($current->getId());
+        $revokedCurrent = $refreshSessionRepository->getById($current->getId());
         self::assertInstanceOf(RefreshSession::class, $revokedCurrent);
         self::assertFalse($current->isRevoked());
         self::assertTrue($revokedCurrent->isRevoked());
         self::assertSame(1, $revokedCurrent->getRevision());
         self::assertFalse($sibling->isRevoked());
-        self::assertInstanceOf(CurrentSessionLoggedOut::class, $events->events()[0]);
-        self::assertSame($current->getId(), $events->events()[0]->getRefreshSessionId());
+        self::assertInstanceOf(CurrentSessionLoggedOut::class, $eventDispatcher->events()[0]);
+        self::assertSame($current->getId(), $eventDispatcher->events()[0]->getRefreshSessionId());
         $siblingRefreshResult = $service->refresh(self::SIBLING_CREDENTIAL);
         $siblingTokenSet = $siblingRefreshResult->getTokenSet();
-        $rotatedSibling = $sessions->getById($sibling->getId());
+        $rotatedSibling = $refreshSessionRepository->getById($sibling->getId());
         self::assertInstanceOf(RefreshSession::class, $rotatedSibling);
         self::assertInstanceOf(TokenSet::class, $siblingTokenSet);
         $this->assertTokenSet($siblingTokenSet, $user, $rotatedSibling, true);
@@ -2899,28 +2965,28 @@ final class AuthenticationServiceTest extends TestCase
 
     public function test_that_missing_logout_credentials_fail_with_redacted_context(): void
     {
-        $events = new InMemoryEventDispatcher();
+        $eventDispatcher = new InMemoryEventDispatcher();
         $service = $this->service(
             new InMemoryUserRepository(),
             new InMemoryActivationGrantRepository(),
             new InMemoryRefreshSessionRepository(),
             new InMemoryUnitOfWork(),
-            $events
+            $eventDispatcher
         );
 
         $this->expectException(RefreshSessionNotFoundException::class);
         try {
             $service->logout(self::REFRESH_CREDENTIAL);
         } finally {
-            self::assertInstanceOf(RedactedCommandFailed::class, $events->events()[0]);
-            self::assertSame(AuthenticationService::class.'::logout', $events->events()[0]->getCommandClass());
-            self::assertSame([], $events->events()[0]->getRedactedCommandData());
+            self::assertInstanceOf(RedactedCommandFailed::class, $eventDispatcher->events()[0]);
+            self::assertSame(AuthenticationService::class.'::logout', $eventDispatcher->events()[0]->getCommandClass());
+            self::assertSame([], $eventDispatcher->events()[0]->getRedactedCommandData());
         }
     }
 
     public function test_that_logout_fails_closed_when_the_session_disappears_during_revocation(): void
     {
-        $events = new InMemoryEventDispatcher();
+        $eventDispatcher = new InMemoryEventDispatcher();
         $session = $this->session(
             $this->activeUserFor('logout-disappeared@example.test'),
             $this->refreshCredential(),
@@ -2992,7 +3058,7 @@ final class AuthenticationServiceTest extends TestCase
             new InMemoryActivationGrantRepository(),
             $sessions,
             new InMemoryUnitOfWork(),
-            $events
+            $eventDispatcher
         );
 
         try {
@@ -3006,14 +3072,14 @@ final class AuthenticationServiceTest extends TestCase
         }
 
         self::assertFalse($session->isRevoked());
-        self::assertCount(1, $events->events());
-        self::assertInstanceOf(RedactedCommandFailed::class, $events->events()[0]);
-        self::assertSame(AuthenticationService::class.'::logout', $events->events()[0]->getCommandClass());
+        self::assertCount(1, $eventDispatcher->events());
+        self::assertInstanceOf(RedactedCommandFailed::class, $eventDispatcher->events()[0]);
+        self::assertSame(AuthenticationService::class.'::logout', $eventDispatcher->events()[0]->getCommandClass());
     }
 
     public function test_that_logout_fails_closed_after_bounded_authoritative_revision_contention(): void
     {
-        $events = new InMemoryEventDispatcher();
+        $eventDispatcher = new InMemoryEventDispatcher();
         $session = $this->session(
             $this->activeUserFor('logout-contention@example.test'),
             $this->refreshCredential(),
@@ -3119,7 +3185,7 @@ final class AuthenticationServiceTest extends TestCase
             new InMemoryActivationGrantRepository(),
             $sessions,
             new InMemoryUnitOfWork(),
-            $events
+            $eventDispatcher
         );
 
         try {
@@ -3134,10 +3200,10 @@ final class AuthenticationServiceTest extends TestCase
 
         self::assertSame(3, $sessions->replaceAttempts);
         self::assertSame(3, $sessions->authoritativeReads);
-        self::assertCount(1, $events->events());
-        self::assertInstanceOf(RedactedCommandFailed::class, $events->events()[0]);
-        self::assertSame(AuthenticationService::class.'::logout', $events->events()[0]->getCommandClass());
-        self::assertSame([], $events->events()[0]->getRedactedCommandData());
+        self::assertCount(1, $eventDispatcher->events());
+        self::assertInstanceOf(RedactedCommandFailed::class, $eventDispatcher->events()[0]);
+        self::assertSame(AuthenticationService::class.'::logout', $eventDispatcher->events()[0]->getCommandClass());
+        self::assertSame([], $eventDispatcher->events()[0]->getRedactedCommandData());
     }
 
     public function test_that_starter_token_lifetimes_and_value_validation_are_explicit(): void
@@ -3197,20 +3263,23 @@ final class AuthenticationServiceTest extends TestCase
     {
         foreach (['audit', 'commit', 'publication'] as $phase) {
             $unitOfWork = new InMemoryUnitOfWork();
-            $users = new InMemoryUserRepository($unitOfWork);
-            $sessions = new InMemoryRefreshSessionRepository($unitOfWork);
-            $audit = new InMemoryAuditEvidenceRepository($unitOfWork, failAfterSave: $phase === 'audit');
+            $userRepository = new InMemoryUserRepository($unitOfWork);
+            $refreshSessionRepository = new InMemoryRefreshSessionRepository($unitOfWork);
+            $auditEvidenceRepository = new InMemoryAuditEvidenceRepository(
+                $unitOfWork,
+                failAfterSave: $phase === 'audit'
+            );
             $user = $this->activeUserFor('person@example.test');
-            $users->add($user);
+            $userRepository->add($user);
             $session = $this->session($user, $this->refreshCredential(), false);
-            $sessions->add($session);
+            $refreshSessionRepository->add($session);
             $primary = new RuntimeException('Synthetic operation detail. correct-secret ciphertext:synthetic');
             if ($phase === 'commit') {
                 $unitOfWork->beforeCommit = static fn(): never => throw $primary;
             }
 
             $attempts = [];
-            $events = new InMemoryEventDispatcher(static function ($event) use (&$attempts, $primary): void {
+            $eventDispatcher = new InMemoryEventDispatcher(static function ($event) use (&$attempts, $primary): void {
                 $attempts[] = $event;
                 if ($event instanceof PasswordChanged) {
                     throw $primary;
@@ -3219,12 +3288,12 @@ final class AuthenticationServiceTest extends TestCase
                 throw new RuntimeException('Synthetic notification failure.');
             });
             $service = $this->service(
-                $users,
+                $userRepository,
                 new InMemoryActivationGrantRepository($unitOfWork),
-                $sessions,
+                $refreshSessionRepository,
                 $unitOfWork,
-                $events,
-                auditEvidenceRepository: $audit
+                $eventDispatcher,
+                auditEvidenceRepository: $auditEvidenceRepository
             );
             $caught = null;
             try {
@@ -3235,19 +3304,19 @@ final class AuthenticationServiceTest extends TestCase
 
             $expected = $primary;
             if ($phase === 'audit') {
-                $expected = $audit->failure();
+                $expected = $auditEvidenceRepository->failure();
             }
 
             self::assertSame($expected, $caught);
             $committed = $phase === 'publication';
             self::assertSame($committed, $unitOfWork->transactionCompleted);
             self::assertFalse($unitOfWork->transactionActive);
-            $stored = $users->getById($user->getId());
+            $stored = $userRepository->getById($user->getId());
             self::assertNotNull($stored);
             self::assertSame(1 + (int) $committed, $stored->getAuthenticationVersion());
             self::assertSame((int) $committed, $stored->getAuthenticationAuthorityRevision());
-            self::assertSame($committed, $sessions->all()[0]->isRevoked());
-            self::assertCount((int) $committed, $audit->all());
+            self::assertSame($committed, $refreshSessionRepository->all()[0]->isRevoked());
+            self::assertCount((int) $committed, $auditEvidenceRepository->all());
             if (!$committed) {
                 self::assertSame($user->getPasswordHash(), $stored->getPasswordHash());
             } else {
@@ -3255,7 +3324,7 @@ final class AuthenticationServiceTest extends TestCase
                     'a sufficiently long new password',
                     $stored->getPasswordHash()->toString()
                 ));
-                self::assertSame('user.password_changed', $audit->all()[0]->action());
+                self::assertSame('user.password_changed', $auditEvidenceRepository->all()[0]->action());
             }
 
             self::assertCount(1 + (int) $committed, $attempts);
@@ -3285,45 +3354,45 @@ final class AuthenticationServiceTest extends TestCase
     }
 
     private function assertPasswordChangeFailureIsRedacted(
-        InMemoryEventDispatcher $events,
+        InMemoryEventDispatcher $eventDispatcher,
         UserId $userId,
         string $errorMessage,
         string $currentPassword,
         string $newPassword
     ): void {
-        self::assertCount(1, $events->events());
-        self::assertInstanceOf(RedactedCommandFailed::class, $events->events()[0]);
+        self::assertCount(1, $eventDispatcher->events());
+        self::assertInstanceOf(RedactedCommandFailed::class, $eventDispatcher->events()[0]);
         self::assertSame(
             AuthenticationService::class.'::changePassword',
-            $events->events()[0]->getCommandClass()
+            $eventDispatcher->events()[0]->getCommandClass()
         );
         self::assertSame(
             ['user_id' => $userId->toString()],
-            $events->events()[0]->getRedactedCommandData()
+            $eventDispatcher->events()[0]->getRedactedCommandData()
         );
-        self::assertSame('Password change failed.', $events->events()[0]->getErrorMessage());
-        self::assertNotSame($errorMessage, $events->events()[0]->getErrorMessage());
-        self::assertStringNotContainsString($currentPassword, serialize($events->events()[0]->toArray()));
-        self::assertStringNotContainsString($newPassword, serialize($events->events()[0]->toArray()));
+        self::assertSame('Password change failed.', $eventDispatcher->events()[0]->getErrorMessage());
+        self::assertNotSame($errorMessage, $eventDispatcher->events()[0]->getErrorMessage());
+        self::assertStringNotContainsString($currentPassword, serialize($eventDispatcher->events()[0]->toArray()));
+        self::assertStringNotContainsString($newPassword, serialize($eventDispatcher->events()[0]->toArray()));
     }
 
     private function assertEmailConfirmationFailureIsRedacted(
-        InMemoryEventDispatcher $events,
+        InMemoryEventDispatcher $eventDispatcher,
         UserId $userId,
         string $credential
     ): void {
-        self::assertCount(1, $events->events());
-        self::assertInstanceOf(RedactedCommandFailed::class, $events->events()[0]);
+        self::assertCount(1, $eventDispatcher->events());
+        self::assertInstanceOf(RedactedCommandFailed::class, $eventDispatcher->events()[0]);
         self::assertSame(
             AuthenticationService::class.'::confirmEmail',
-            $events->events()[0]->getCommandClass()
+            $eventDispatcher->events()[0]->getCommandClass()
         );
         self::assertSame(
             ['user_id' => $userId->toString()],
-            $events->events()[0]->getRedactedCommandData()
+            $eventDispatcher->events()[0]->getRedactedCommandData()
         );
-        self::assertSame('Email change confirmation failed.', $events->events()[0]->getErrorMessage());
-        $serializedFailure = serialize($events->events()[0]->toArray());
+        self::assertSame('Email change confirmation failed.', $eventDispatcher->events()[0]->getErrorMessage());
+        $serializedFailure = serialize($eventDispatcher->events()[0]->toArray());
         if ($credential !== '') {
             self::assertStringNotContainsString($credential, $serializedFailure);
         }
@@ -3380,11 +3449,11 @@ final class AuthenticationServiceTest extends TestCase
     }
 
     private function service(
-        UserRepository $users,
-        ActivationGrantRepository $grants,
-        RefreshSessionRepository $sessions,
+        UserRepository $userRepository,
+        ActivationGrantRepository $activationGrantRepository,
+        RefreshSessionRepository $refreshSessionRepository,
         InMemoryUnitOfWork $unitOfWork,
-        InMemoryEventDispatcher $events,
+        InMemoryEventDispatcher $eventDispatcher,
         ?Clock $authenticationClock = null,
         ?LoginThrottle $loginThrottle = null,
         ?PasswordHasher $passwordHasher = null,
@@ -3398,17 +3467,17 @@ final class AuthenticationServiceTest extends TestCase
     ): AuthenticationService {
         $passwordSecurity = new TestPasswordSecurity();
         if (
-            $users instanceof InMemoryUserRepository
-            && $sessions instanceof InMemoryRefreshSessionRepository
+            $userRepository instanceof InMemoryUserRepository
+            && $refreshSessionRepository instanceof InMemoryRefreshSessionRepository
         ) {
-            $users->bindRefreshSessionRepository($sessions);
+            $userRepository->bindRefreshSessionRepository($refreshSessionRepository);
         }
 
         return new AuthenticationService(
-            $users,
-            $grants,
-            $sessions,
-            new SessionRevocationService($sessions),
+            $userRepository,
+            $activationGrantRepository,
+            $refreshSessionRepository,
+            new SessionRevocationService($refreshSessionRepository),
             $unitOfWork,
             $authenticationClock ?? new FixedClock(
                 new DateTimeImmutable('2026-08-19T12:00:00+00:00')
@@ -3420,7 +3489,7 @@ final class AuthenticationServiceTest extends TestCase
             $tokenEncoder ?? new RecordingTokenEncoder(),
             $tokenPolicy ?? AuthenticationTokenPolicy::starterDefaults(new DateInterval('PT5S')),
             PasswordHash::fromString(password_hash('dummy-password', PASSWORD_DEFAULT)),
-            $events,
+            $eventDispatcher,
             $passwordResetGrantRepository ?? new InMemoryPasswordResetGrants($unitOfWork),
             $auditEvidenceRepository ?? new InMemoryAuditEvidenceRepository($unitOfWork),
             $emailChangeGrantRepository ?? new InMemoryEmailChangeGrantRepository($unitOfWork)

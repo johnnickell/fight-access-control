@@ -41,10 +41,10 @@ final class GetUserByIdHandlerTest extends TestCase
         $references = new InMemoryAuthorizationReferenceState();
         $references->addRole(Role::define($roleId, RoleName::fromString('ROLE_FIXTURE'), [], $user->getCreatedAt()));
 
-        $users = new InMemoryUserRepository(authorizationReferences: $references);
-        $users->add($user);
+        $userRepository = new InMemoryUserRepository(authorizationReferences: $references);
+        $userRepository->add($user);
 
-        $handler = new GetUserByIdHandler($users);
+        $handler = new GetUserByIdHandler($userRepository);
 
         self::assertSame(GetUserById::class, GetUserByIdHandler::queryRegistration());
         $view = $handler->handle(QueryMessage::create(new GetUserById($userId)));

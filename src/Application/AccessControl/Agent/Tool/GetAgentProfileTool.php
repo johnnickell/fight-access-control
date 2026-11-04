@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace Fight\AccessControl\Application\AccessControl\Agent\Tool;
 
 use Fight\AccessControl\Application\AccessControl\Agent\Attribute\RequiresAgentPermission;
-use Fight\AccessControl\Application\AccessControl\Agent\Security\CurrentAgentPrincipalProvider;
-use Fight\AccessControl\Application\AccessControl\Agent\Security\SignedAgentRequest;
+use Fight\AccessControl\Application\AccessControl\Agent\Authentication\CurrentAgentPrincipalProvider;
+use Fight\AccessControl\Application\AccessControl\Agent\Authentication\SignedAgentRequest;
 use Fight\AccessControl\Domain\AccessControl\Agent\AgentProfilePermissions;
 use Fight\AccessControl\Domain\AccessControl\Agent\Query\AgentProfileView;
 use Fight\AccessControl\Domain\AccessControl\Agent\Query\GetAgentProfile;
@@ -33,7 +33,7 @@ final readonly class GetAgentProfileTool implements McpTool
         private CurrentAgentPrincipalProvider $provider,
         #[SensitiveParameter] private SignedAgentRequest $request,
         private string $correlationId,
-        private QueryBus $queries
+        private QueryBus $queryBus
     ) {
     }
 
@@ -56,7 +56,7 @@ final readonly class GetAgentProfileTool implements McpTool
     {
         $principal = $this->provider->resolve($this->request, $this->correlationId);
         /** @var AgentProfileView|null $profile */
-        $profile = $this->queries->fetch(new GetAgentProfile($principal->getAgentId()));
+        $profile = $this->queryBus->fetch(new GetAgentProfile($principal->getAgentId()));
         if ($profile === null) {
             throw new LookupException('The Agent profile is unavailable.');
         }

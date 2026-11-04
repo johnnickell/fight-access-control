@@ -41,7 +41,7 @@ final class ListUsersHandlerTest extends TestCase
             [],
             new DateTimeImmutable('2026-01-01T00:00:00+00:00')
         ));
-        $users = new InMemoryUserRepository(authorizationReferences: $references);
+        $userRepository = new InMemoryUserRepository(authorizationReferences: $references);
         $active = UserFixture::withIdAndAuthenticationVersion(
             UserId::fromString('018f0000-0000-7000-8000-000000000001'),
             'active@example.test',
@@ -51,10 +51,10 @@ final class ListUsersHandlerTest extends TestCase
         $active->assignRole($roleId, new DateTimeImmutable('2026-01-01T00:00:00+00:00'));
 
         $disabled = UserFixture::withState('disabled@example.test', UserState::DISABLED);
-        $users->add($active);
-        $users->add($disabled);
+        $userRepository->add($active);
+        $userRepository->add($disabled);
 
-        $handler = new ListUsersHandler($users);
+        $handler = new ListUsersHandler($userRepository);
 
         self::assertSame(ListUsers::class, ListUsersHandler::queryRegistration());
         $resultSet = $handler->handle(QueryMessage::create(new ListUsers(new Pagination(1, 25))));
@@ -126,13 +126,13 @@ final class ListUsersHandlerTest extends TestCase
 
     public function test_that_pagination_is_applied(): void
     {
-        $users = new InMemoryUserRepository();
+        $userRepository = new InMemoryUserRepository();
         $first = UserFixture::withState('first@example.test', UserState::ACTIVE);
         $second = UserFixture::withState('second@example.test', UserState::ACTIVE);
-        $users->add($first);
-        $users->add($second);
+        $userRepository->add($first);
+        $userRepository->add($second);
 
-        $handler = new ListUsersHandler($users);
+        $handler = new ListUsersHandler($userRepository);
 
         $resultSet = $handler->handle(QueryMessage::create(new ListUsers(new Pagination(2, 1))));
         $views = $resultSet->records();
@@ -147,8 +147,8 @@ final class ListUsersHandlerTest extends TestCase
 
     public function test_that_an_unknown_user_identifier_is_not_exposed(): void
     {
-        $users = new InMemoryUserRepository();
-        $handler = new ListUsersHandler($users);
+        $userRepository = new InMemoryUserRepository();
+        $handler = new ListUsersHandler($userRepository);
 
         $resultSet = $handler->handle(QueryMessage::create(new ListUsers(new Pagination())));
 

@@ -19,6 +19,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- **Breaking pre-v1 PHP organization:** Agent Application collaborators now live in cohesive `Authentication`,
+  `Credential`, `Delivery`, `Maintenance`, `Continuation` and `PermissionAssignment` homes; Feature discovery and
+  authorization admission have matching capability homes. Repository/bus/dispatcher parameter and property names
+  identify their capability, including named calls and maintained examples. Update imports and named arguments
+  directly; no old-name aliases are supplied. Behavior, wire schemas, grants, nonce/transaction/failure/outcome
+  contracts and Common dependencies are unchanged by this refactor.
 - Narrowed the Common minimum from `^1.3` to `^1.4` for tagged safe-error contracts. Native Slim/Yii dependencies
   remain optional production integrations and isolated dev fixtures. The combined integration release is unfinished;
   no new version or consumer adoption is selected.

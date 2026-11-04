@@ -6,10 +6,10 @@ namespace Fight\Test\AccessControl\Adapter\Middleware\Psr15;
 
 use Fight\AccessControl\Adapter\Middleware\Psr15\PermissionMiddleware;
 use Fight\AccessControl\Application\AccessControl\Agent\QueryHandler\GetAgentProfileHandler;
-use Fight\AccessControl\Application\AccessControl\Authorization\AdmissionMode;
-use Fight\AccessControl\Application\AccessControl\Authorization\PermissionDeclaration;
-use Fight\AccessControl\Application\AccessControl\Authorization\Service\PermissionAdmission;
-use Fight\AccessControl\Application\AccessControl\Authorization\Service\RequestAuthority;
+use Fight\AccessControl\Application\AccessControl\Authorization\Admission\AdmissionMode;
+use Fight\AccessControl\Application\AccessControl\Authorization\Admission\PermissionAdmission;
+use Fight\AccessControl\Application\AccessControl\Authorization\Admission\PermissionDeclaration;
+use Fight\AccessControl\Application\AccessControl\Authorization\Admission\RequestAuthority;
 use Fight\AccessControl\Application\AccessControl\Authorization\Service\SecurityContext;
 use Fight\AccessControl\Domain\AccessControl\Agent\Query\AgentProfileView;
 use Fight\AccessControl\Domain\AccessControl\Agent\Query\GetAgentProfile;
@@ -22,7 +22,7 @@ use Fight\Common\Adapter\Messaging\Query\Routing\InMemoryQueryRouter;
 use Fight\Common\Adapter\Messaging\Query\RoutingQueryBus;
 use Fight\Common\Application\Messaging\Query\QueryBus;
 use Fight\Test\AccessControl\Application\AccessControl\Agent\Service\ProfileToolEnvironment;
-use Fight\Test\AccessControl\Application\AccessControl\Authorization\Service\AdmissionEnvironment;
+use Fight\Test\AccessControl\Application\AccessControl\Authorization\Admission\AdmissionEnvironment;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
@@ -132,16 +132,16 @@ final class PermissionMiddlewareTest extends TestCase
         $router->registerHandler(
             GetAgentProfile::class,
             new GetAgentProfileHandler(
-                $environment->storage->agents
+                $environment->storage->agentRepository
             )
         );
-        $bus = new RoutingQueryBus($router);
-        $queries = $this->createMock(QueryBus::class);
-        $queries->expects(self::once())->method('fetch')->willReturnCallback($bus->fetch(...));
-        NativeController::$work = static function () use ($queries, $environment): void {
+        $routingQueryBus = new RoutingQueryBus($router);
+        $queryBus = $this->createMock(QueryBus::class);
+        $queryBus->expects(self::once())->method('fetch')->willReturnCallback($routingQueryBus->fetch(...));
+        NativeController::$work = static function () use ($queryBus, $environment): void {
             self::assertInstanceOf(
                 AgentProfileView::class,
-                $queries->fetch(new GetAgentProfile(
+                $queryBus->fetch(new GetAgentProfile(
                     $environment->original->getId()
                 ))
             );
@@ -155,10 +155,12 @@ final class PermissionMiddlewareTest extends TestCase
         self::assertNotNull($native->contexts[0]);
         self::assertTrue($native->contexts[0]->hasPermission(PermissionName::fromString('AGENT_PROFILE_READ')));
         self::assertSame(1, $environment->nonces->consumptionCalls());
-        $agent = $environment->storage->agents->all()[0];
-        $read = $environment->permissions->getByName(PermissionName::fromString('AGENT_PROFILE_READ'));
+        $agent = $environment->storage->agentRepository->all()[0];
+        $read = $environment->permissionRepository->getByName(PermissionName::fromString('AGENT_PROFILE_READ'));
         self::assertNotNull($read);
-        $environment->storage->agents->restoreSnapshot([$agent->revokePermission($read->getId(), $environment->now())]);
+        $environment->storage->agentRepository->restoreSnapshot(
+            [$agent->revokePermission($read->getId(), $environment->now())]
+        );
         $response = $native->request($this->request());
         self::assertSame(403, $response->getStatusCode());
         self::assertSame(2, $environment->nonces->consumptionCalls());

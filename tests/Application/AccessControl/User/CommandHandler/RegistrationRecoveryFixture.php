@@ -49,13 +49,13 @@ final class RegistrationRecoveryFixture
 
     public InMemoryUnitOfWork $unitOfWork;
 
-    public InMemoryUserRepository $users;
+    public InMemoryUserRepository $userRepository;
 
-    public InMemoryActivationGrantRepository $grants;
+    public InMemoryActivationGrantRepository $activationGrantRepository;
 
-    public InMemoryAuditEvidenceRepository $audit;
+    public InMemoryAuditEvidenceRepository $auditEvidenceRepository;
 
-    public InMemoryEventDispatcher $events;
+    public InMemoryEventDispatcher $eventDispatcher;
 
     public readonly User $initialUser;
 
@@ -68,18 +68,18 @@ final class RegistrationRecoveryFixture
         $this->registration = new RegistrationFixture();
         $this->registration->handler()->handle(CommandMessage::create($this->registration->command()));
         $this->unitOfWork = $this->registration->unitOfWork;
-        $this->initialUser = $this->registration->users->all()[0];
-        $this->initial = $this->registration->grants->all()[0];
+        $this->initialUser = $this->registration->userRepository->all()[0];
+        $this->initial = $this->registration->activationGrantRepository->all()[0];
         $this->actorId = UserId::generate();
-        $this->users = new InMemoryUserRepository(
+        $this->userRepository = new InMemoryUserRepository(
             $this->unitOfWork,
             state: $this->registration->userState,
             authorizationReferences: $this->unitOfWork->authorizationReferenceState(),
             beforeReplacePendingRegistration: $beforeReplace
         );
-        $this->grants = $this->registration->grants;
-        $this->audit = new InMemoryAuditEvidenceRepository($this->unitOfWork);
-        $this->events = new InMemoryEventDispatcher();
+        $this->activationGrantRepository = $this->registration->activationGrantRepository;
+        $this->auditEvidenceRepository = new InMemoryAuditEvidenceRepository($this->unitOfWork);
+        $this->eventDispatcher = new InMemoryEventDispatcher();
     }
 
     public function command(
@@ -97,20 +97,20 @@ final class RegistrationRecoveryFixture
 
     public function handler(
         string $at = '2030-01-02T00:00:00Z',
-        ?InMemoryEventDispatcher $events = null,
+        ?InMemoryEventDispatcher $eventDispatcher = null,
         ?TransactionalUnitOfWork $unitOfWork = null,
         ?RegistrationRecoveryAuthorization $authorization = null
     ): RecoverPendingRegistrationHandler {
         return new RecoverPendingRegistrationHandler(
-            $this->users,
-            $this->grants,
+            $this->userRepository,
+            $this->activationGrantRepository,
             $authorization ?? $this->authorization(),
-            $this->audit,
+            $this->auditEvidenceRepository,
             $unitOfWork ?? $this->unitOfWork,
             new FixedCredentialGenerator('recovered-registration-credential'),
             new PrefixInvitationDeliveryCipher(),
             new FixedClock($at),
-            $events ?? $this->events
+            $eventDispatcher ?? $this->eventDispatcher
         );
     }
 
@@ -144,27 +144,27 @@ final class RegistrationRecoveryFixture
     ): self {
         $connection = clone $this;
         $connection->unitOfWork = new InMemoryUnitOfWork();
-        $connection->users = new InMemoryUserRepository(
+        $connection->userRepository = new InMemoryUserRepository(
             $connection->unitOfWork,
             state: $this->registration->userState,
             authorizationReferences: $this->unitOfWork->authorizationReferenceState(),
             beforeReplacePendingRegistration: $beforeRecovery
         );
-        $connection->grants = new InMemoryActivationGrantRepository(
+        $connection->activationGrantRepository = new InMemoryActivationGrantRepository(
             $connection->unitOfWork,
             beforeReplace: $beforeGrantReplace,
-            state: $this->grants,
+            activationGrantRepository: $this->activationGrantRepository,
             beforeSuccessor: $beforeSuccessor
         );
-        $connection->audit = new InMemoryAuditEvidenceRepository($connection->unitOfWork);
-        $connection->events = new InMemoryEventDispatcher();
+        $connection->auditEvidenceRepository = new InMemoryAuditEvidenceRepository($connection->unitOfWork);
+        $connection->eventDispatcher = new InMemoryEventDispatcher();
 
         return $connection;
     }
 
     public function current(): ActivationGrant
     {
-        $grant = $this->grants->getLatestByUserId($this->initialUser->getId());
+        $grant = $this->activationGrantRepository->getLatestByUserId($this->initialUser->getId());
         if (!$grant instanceof ActivationGrant) {
             throw new LogicException('Missing fixture grant.');
         }
@@ -177,8 +177,8 @@ final class RegistrationRecoveryFixture
         string $at = '2030-01-02T00:00:00Z'
     ): DeliverUserInvitationHandler {
         return new DeliverUserInvitationHandler(
-            $this->grants,
-            $this->audit,
+            $this->activationGrantRepository,
+            $this->auditEvidenceRepository,
             $this->unitOfWork,
             new PrefixInvitationDeliveryCipher(),
             $provider,
@@ -201,8 +201,11 @@ final class RegistrationRecoveryFixture
         $uow = $unitOfWork ?? $this->unitOfWork;
 
         return new ResendInvitationDeliveryHandler(
-            $unitOfWork === null ? $this->grants : new InMemoryActivationGrantRepository($uow, state: $this->grants),
-            $unitOfWork === null ? $this->audit : new InMemoryAuditEvidenceRepository($uow),
+            $unitOfWork === null ? $this->activationGrantRepository : new InMemoryActivationGrantRepository(
+                $uow,
+                activationGrantRepository: $this->activationGrantRepository
+            ),
+            $unitOfWork === null ? $this->auditEvidenceRepository : new InMemoryAuditEvidenceRepository($uow),
             $uow,
             new FixedCredentialGenerator('resent-registration-credential'),
             new PrefixInvitationDeliveryCipher(),
@@ -213,15 +216,15 @@ final class RegistrationRecoveryFixture
 
     public function authentication(string $at = '2030-01-02T00:00:01Z'): AuthenticationService
     {
-        $sessions = new InMemoryRefreshSessionRepository($this->unitOfWork);
-        $this->users->bindRefreshSessionRepository($sessions);
+        $refreshSessionRepository = new InMemoryRefreshSessionRepository($this->unitOfWork);
+        $this->userRepository->bindRefreshSessionRepository($refreshSessionRepository);
         $passwords = new TestPasswordSecurity();
 
         return new AuthenticationService(
-            $this->users,
-            $this->grants,
-            $sessions,
-            new SessionRevocationService($sessions),
+            $this->userRepository,
+            $this->activationGrantRepository,
+            $refreshSessionRepository,
+            new SessionRevocationService($refreshSessionRepository),
             $this->unitOfWork,
             new FixedClock($at),
             new FixedLoginThrottle(true),
@@ -233,7 +236,7 @@ final class RegistrationRecoveryFixture
             PasswordHash::fromString($passwords->hash('unused-dummy-password')),
             new InMemoryEventDispatcher(),
             new InMemoryPasswordResetGrants($this->unitOfWork),
-            $this->audit,
+            $this->auditEvidenceRepository,
             new InMemoryEmailChangeGrantRepository($this->unitOfWork)
         );
     }

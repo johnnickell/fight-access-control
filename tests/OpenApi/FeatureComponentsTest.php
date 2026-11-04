@@ -72,6 +72,9 @@ final class FeatureComponentsTest extends TestCase
         $issue = $schemas['Fight.AccessControl.FeaturePreparationIssue'];
         self::assertSame(array_keys($result->toArray()['issues'][0]), $issue['required']);
         self::assertSame(array_keys($result->toArray()['issues'][0]), array_keys($issue['properties']));
-        self::assertSame(array_column(FeaturePreparationProblem::cases(), 'value'), $issue['properties']['problem']['enum']);
+        self::assertSame(
+            array_column(FeaturePreparationProblem::cases(), 'value'),
+            $issue['properties']['problem']['enum']
+        );
     }
 }

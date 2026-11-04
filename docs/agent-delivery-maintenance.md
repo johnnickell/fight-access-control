@@ -207,7 +207,7 @@ Package evidence:
 
 - [Domain tests](../tests/Domain/AccessControl/Agent/AgentMaintenanceTest.php): finite defaults/overrides, canonical
   Query round trips/rejection, expiry and invalid transitions, tombstone/history preservation.
-- [Maintenance service tests](../tests/Application/AccessControl/Agent/Security/AgentDeliveryMaintenanceServiceTest.php):
+- [Maintenance service tests](../tests/Application/AccessControl/Agent/Maintenance/AgentDeliveryMaintenanceServiceTest.php):
   actual provision/delivery/revocation paths, retry history and original-byte recovery, transient/permanent/corrupt
   outcomes, stale writes, key admission fences, capacity isolation, both outcomes of uncertain commits, outside-
   transaction cleanup, replay, current delivered protection, authorization/time/ABA and safe rollback.

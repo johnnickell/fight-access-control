@@ -51,15 +51,15 @@ final readonly class ExpiredCredentialFixture
 {
     public InMemoryUnitOfWork $unitOfWork;
 
-    public InMemoryUserRepository $users;
+    public InMemoryUserRepository $userRepository;
 
-    public InMemoryActivationGrantRepository $activation;
+    public InMemoryActivationGrantRepository $activationGrantRepository;
 
-    public InMemoryPasswordResetGrants $reset;
+    public InMemoryPasswordResetGrants $passwordResetGrantRepository;
 
-    public InMemoryEmailChangeGrantRepository $email;
+    public InMemoryEmailChangeGrantRepository $emailChangeGrantRepository;
 
-    public InMemoryEventDispatcher $events;
+    public InMemoryEventDispatcher $eventDispatcher;
 
     public User $user;
 
@@ -72,11 +72,11 @@ final readonly class ExpiredCredentialFixture
     public function __construct(public string $purpose)
     {
         $this->unitOfWork = new InMemoryUnitOfWork();
-        $this->users = new InMemoryUserRepository($this->unitOfWork);
-        $this->activation = new InMemoryActivationGrantRepository($this->unitOfWork);
-        $this->reset = new InMemoryPasswordResetGrants($this->unitOfWork);
-        $this->email = new InMemoryEmailChangeGrantRepository($this->unitOfWork);
-        $this->events = new InMemoryEventDispatcher();
+        $this->userRepository = new InMemoryUserRepository($this->unitOfWork);
+        $this->activationGrantRepository = new InMemoryActivationGrantRepository($this->unitOfWork);
+        $this->passwordResetGrantRepository = new InMemoryPasswordResetGrants($this->unitOfWork);
+        $this->emailChangeGrantRepository = new InMemoryEmailChangeGrantRepository($this->unitOfWork);
+        $this->eventDispatcher = new InMemoryEventDispatcher();
         $this->issuedAt = new DateTimeImmutable('2030-01-01T00:00:00.123456Z');
         $this->expiresAt = new DateTimeImmutable('2030-01-01T01:00:00.123456Z');
         $this->user = UserFixture::withIdAndAuthenticationVersion(
@@ -98,7 +98,7 @@ final readonly class ExpiredCredentialFixture
             $this->user->requestEmailChange(EmailAddress::fromString('next@example.test'), $this->issuedAt);
         }
 
-        $this->users->add($this->user);
+        $this->userRepository->add($this->user);
         $arguments = [
             $this->user->getId(),
             $this->issuedAt,
@@ -136,9 +136,9 @@ final readonly class ExpiredCredentialFixture
             default => throw new LogicException('Unknown fixture purpose.'),
         };
         $added = match ($purpose) {
-            'activation' => $this->activation->add($this->initial),
-            'password_reset' => $this->reset->add($this->initial),
-            'email_change' => $this->email->add($this->initial),
+            'activation' => $this->activationGrantRepository->add($this->initial),
+            'password_reset' => $this->passwordResetGrantRepository->add($this->initial),
+            'email_change' => $this->emailChangeGrantRepository->add($this->initial),
         };
         Assert::assertTrue($added);
     }
@@ -148,9 +148,9 @@ final readonly class ExpiredCredentialFixture
         /** @var 'activation'|'password_reset'|'email_change' $purpose */
         $purpose = $this->purpose;
         $grant = match ($purpose) {
-            'activation' => $this->activation->getLatestByUserId($this->user->getId()),
-            'password_reset' => $this->reset->getLatestByUserId($this->user->getId()),
-            'email_change' => $this->email->getLatestByUserId($this->user->getId()),
+            'activation' => $this->activationGrantRepository->getLatestByUserId($this->user->getId()),
+            'password_reset' => $this->passwordResetGrantRepository->getLatestByUserId($this->user->getId()),
+            'email_change' => $this->emailChangeGrantRepository->getLatestByUserId($this->user->getId()),
         };
         assert($grant !== null);
 
@@ -162,15 +162,15 @@ final readonly class ExpiredCredentialFixture
         ActivationGrant|PasswordResetGrant|EmailChangeGrant $after
     ): bool {
         if ($before instanceof ActivationGrant && $after instanceof ActivationGrant) {
-            return $this->activation->replace($before, $after);
+            return $this->activationGrantRepository->replace($before, $after);
         }
 
         if ($before instanceof PasswordResetGrant && $after instanceof PasswordResetGrant) {
-            return $this->reset->replace($before, $after);
+            return $this->passwordResetGrantRepository->replace($before, $after);
         }
 
         if ($before instanceof EmailChangeGrant && $after instanceof EmailChangeGrant) {
-            return $this->email->replace($before, $after);
+            return $this->emailChangeGrantRepository->replace($before, $after);
         }
 
         throw new LogicException('Mismatched fixture replacement.');
@@ -244,18 +244,31 @@ final readonly class ExpiredCredentialFixture
 
     public function handler(
         ?TransactionalUnitOfWork $unitOfWork = null,
-        ?EventDispatcher $events = null
+        ?EventDispatcher $eventDispatcher = null
     ): CommandHandler {
         $unitOfWork ??= $this->unitOfWork;
-        $events ??= $this->events;
+        $eventDispatcher ??= $this->eventDispatcher;
 
         /** @var 'activation'|'password_reset'|'email_change' $purpose */
         $purpose = $this->purpose;
 
         return match ($purpose) {
-            'activation' => new ExpireInvitationDeliveryHandler($this->activation, $unitOfWork, $events),
-            'password_reset' => new ExpirePasswordResetDeliveryHandler($this->reset, $unitOfWork, $events),
-            'email_change' => new ExpireEmailChangeHandler($this->users, $this->email, $unitOfWork, $events),
+            'activation' => new ExpireInvitationDeliveryHandler(
+                $this->activationGrantRepository,
+                $unitOfWork,
+                $eventDispatcher
+            ),
+            'password_reset' => new ExpirePasswordResetDeliveryHandler(
+                $this->passwordResetGrantRepository,
+                $unitOfWork,
+                $eventDispatcher
+            ),
+            'email_change' => new ExpireEmailChangeHandler(
+                $this->userRepository,
+                $this->emailChangeGrantRepository,
+                $unitOfWork,
+                $eventDispatcher
+            ),
         };
     }
 
@@ -279,13 +292,22 @@ final readonly class ExpiredCredentialFixture
                 PasswordResetDeliveryId::fromString($this->initial->getDelivery()->getId()->toString()),
                 $at
             ),
-            'email_change' => new ExpireEmailChange($actor, $this->user->getId(), $this->email->all()[0]->getId(), $at),
+            'email_change' => new ExpireEmailChange(
+                $actor,
+                $this->user->getId(),
+                $this->emailChangeGrantRepository->all()[0]->getId(),
+                $at
+            ),
         };
     }
 
     public function discovery(): FindExpiredCredentialDeliveriesHandler
     {
-        return new FindExpiredCredentialDeliveriesHandler($this->activation, $this->reset, $this->email);
+        return new FindExpiredCredentialDeliveriesHandler(
+            $this->activationGrantRepository,
+            $this->passwordResetGrantRepository,
+            $this->emailChangeGrantRepository
+        );
     }
 
     private function expireAuthority(

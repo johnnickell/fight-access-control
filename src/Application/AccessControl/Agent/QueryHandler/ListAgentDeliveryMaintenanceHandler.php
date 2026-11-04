@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Fight\AccessControl\Application\AccessControl\Agent\QueryHandler;
 
-use Fight\AccessControl\Application\AccessControl\Agent\Service\AgentMaintenanceAuthorization;
+use Fight\AccessControl\Application\AccessControl\Agent\Maintenance\AgentMaintenanceAuthorization;
 use Fight\AccessControl\Application\AccessControl\Timing\Service\Clock;
 use Fight\AccessControl\Domain\AccessControl\Agent\Exception\AgentOperationRejectedException;
 use Fight\AccessControl\Domain\AccessControl\Agent\Operation\AgentOperationFailure;
@@ -24,8 +24,8 @@ final readonly class ListAgentDeliveryMaintenanceHandler implements QueryHandler
      * Constructs ListAgentDeliveryMaintenanceHandler
      */
     public function __construct(
-        private AgentOperationRepository $operations,
-        private AgentMaintenanceAuthorization $authorization,
+        private AgentOperationRepository $agentOperationRepository,
+        private AgentMaintenanceAuthorization $maintenanceAuthorization,
         private Clock $clock
     ) {
     }
@@ -48,14 +48,14 @@ final readonly class ListAgentDeliveryMaintenanceHandler implements QueryHandler
         /** @var ListAgentDeliveryMaintenance $query */
         $query = $queryMessage->payload();
         try {
-            $this->authorization->authorizeRead(
+            $this->maintenanceAuthorization->authorizeRead(
                 $query->getScope(),
                 $query->getDestination(),
                 null,
                 $this->clock->now()
             );
-            $this->operations->getOperationContract()->assertCompatible();
-            $views = $this->operations->listMaintenance(
+            $this->agentOperationRepository->getOperationContract()->assertCompatible();
+            $views = $this->agentOperationRepository->listMaintenance(
                 $query->getScope(),
                 $query->getDestination(),
                 $query->getWork(),
@@ -63,7 +63,7 @@ final readonly class ListAgentDeliveryMaintenanceHandler implements QueryHandler
                 $query->getPolicy(),
                 $query->getAfter()
             );
-            $this->authorization->authorizeRead(
+            $this->maintenanceAuthorization->authorizeRead(
                 $query->getScope(),
                 $query->getDestination(),
                 null,
@@ -84,7 +84,7 @@ final readonly class ListAgentDeliveryMaintenanceHandler implements QueryHandler
                 }
 
                 $view->assertReadable($view->getKey(), $query->getDestination());
-                $this->authorization->authorizeRead(
+                $this->maintenanceAuthorization->authorizeRead(
                     $query->getScope(),
                     $query->getDestination(),
                     $issuance,

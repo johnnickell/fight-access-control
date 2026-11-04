@@ -90,16 +90,16 @@ final class InvitationDeliverySubscriberTest extends TestCase
 
     public function test_registration_dispatch_does_not_invent_an_authenticated_actor(): void
     {
-        $bus = new InMemoryCommandBus();
+        $commandBus = new InMemoryCommandBus();
         $event = new UserRegistered(
             UserId::generate(),
             ActivationDeliveryId::generate(),
             EmailAddress::fromString('registration@example.test'),
             new DateTimeImmutable('2030-01-01T00:00:00Z')
         );
-        new InvitationDeliverySubscriber($bus)->onUserRegistered(EventMessage::create($event));
-        self::assertCount(1, $bus->executedCommands());
-        $command = $bus->executedCommands()[0];
+        new InvitationDeliverySubscriber($commandBus)->onUserRegistered(EventMessage::create($event));
+        self::assertCount(1, $commandBus->executedCommands());
+        $command = $commandBus->executedCommands()[0];
         self::assertInstanceOf(DeliverUserInvitation::class, $command);
         self::assertSame('registration', $command->getActorId());
         self::assertSame($event->getUserId(), $command->getUserId());

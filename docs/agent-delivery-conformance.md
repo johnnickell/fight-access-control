@@ -11,14 +11,14 @@ cannot qualify a deployment.
 
 The reusable suites are:
 
-- [DeliveryLifecycleConformance](../tests/Application/AccessControl/Agent/Security/DeliveryLifecycleConformance.php):
+- [DeliveryLifecycleConformance](../tests/Application/AccessControl/Agent/Delivery/DeliveryLifecycleConformance.php):
   authority, rollback/commit uncertainty, restart/takeover, all-path retirement, keys, maintenance and bounds.
-- [ProtectedSinkConformance](../tests/Application/AccessControl/Agent/Security/ProtectedSinkConformance.php): exact
+- [ProtectedSinkConformance](../tests/Application/AccessControl/Agent/Delivery/ProtectedSinkConformance.php): exact
   receipt/idempotency binding, repeated bytes, real same/cross-slot rotation and cross-Agent/scope reassignment.
 
-They share [DeliveryConformance](../tests/Application/AccessControl/Agent/Security/DeliveryConformance.php), which
+They share [DeliveryConformance](../tests/Application/AccessControl/Agent/Delivery/DeliveryConformance.php), which
 constructs public package services. Implement only `newFixture(): DeliveryConformanceFixture` in each concrete
-subclass. The [fixture contract](../tests/Application/AccessControl/Agent/Service/Conformance/DeliveryConformanceFixture.php)
+subclass. The [fixture contract](../tests/Application/AccessControl/Agent/Delivery/Conformance/DeliveryConformanceFixture.php)
 defines adapter setup, fault injection and independent observations, not lifecycle decisions. It shares the public-port
 bundle `IssuanceRecoveryPorts` with issuance conformance, not its workflow or implementation fixture. Neither
 conformance slice is a prerequisite for the other's production inputs.
@@ -59,7 +59,7 @@ Consumer binding steps:
 
 ## Fixture semantics and real fault injection
 
-[`InMemoryDeliveryConformanceFixture`](../tests/Application/AccessControl/Agent/Service/Conformance/InMemoryDeliveryConformanceFixture.php)
+[`InMemoryDeliveryConformanceFixture`](../tests/Application/AccessControl/Agent/Delivery/Conformance/InMemoryDeliveryConformanceFixture.php)
 is a reference **behavioral model**. Retained repositories/sink model durable storage; `restart()` clears transient
 faults/hooks and each suite helper constructs new Application services. It is not an OS kill, database reconnect,
 real crypto or independent worker process. Do not copy its callbacks into production or cite them as database proof.

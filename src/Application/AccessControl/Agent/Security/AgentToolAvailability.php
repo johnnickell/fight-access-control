@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace Fight\AccessControl\Application\AccessControl\Agent\Security;
 
 use Fight\AccessControl\Application\AccessControl\Agent\AgentToolPermissionCatalog;
+use Fight\AccessControl\Application\AccessControl\Agent\Authentication\CurrentAgentPrincipalProvider;
+use Fight\AccessControl\Application\AccessControl\Agent\Authentication\SignedAgentRequest;
 use Fight\AccessControl\Domain\AccessControl\Agent\AuthenticatedAgentPrincipal;
 use Fight\AccessControl\Domain\AccessControl\Permission\PermissionName;
 use Fight\Common\Application\Mcp\Tool\McpToolAvailability;

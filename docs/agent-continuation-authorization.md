@@ -6,25 +6,26 @@ issue a bearer/session credential, run a worker, grant scope or qualify a produc
 
 ## Trusted original binding
 
-Types below live in `Fight\AccessControl\Application\AccessControl\Agent`, under `Security`, `Service` or `Exception`.
+Continuation types and ports live in `Fight\AccessControl\Application\AccessControl\Agent\Continuation`;
+request authentication lives in `Agent\Authentication`, and rejection remains in `Agent\Exception`.
 
 | Contract | Purpose |
 | --- | --- |
-| `Security\AgentContinuationBinding::fromRequest($provider, $request, $correlationId)` | Uses the same trusted request-scoped `CurrentAgentPrincipalProvider` as transport admission. Resolves successful authentication if necessary; an already admitted provider reuses its original snapshot and consumed nonce. |
+| `Continuation\AgentContinuationBinding::fromRequest($provider, $request, $correlationId)` | Uses the same trusted request-scoped `CurrentAgentPrincipalProvider` as transport admission. Resolves successful authentication if necessary; an already admitted provider reuses its original snapshot and consumed nonce. |
 | `CurrentAgentPrincipalProvider::continuationContext()` | Returns original Agent ID, credential ID/revision and authentication time only after complete successful resolution. These public claims are **not** binding proof. |
-| `Security\AgentContinuationContext` | Immutable original claims, not Permissions, relationship grants or a bearer credential. Its public constructor is useful to a trusted handoff adapter, not a binding factory. |
-| `Security\AgentContinuationBinding::fromHandoff($verifier)` | Creates a worker-local binding only through the explicitly injected trusted `Service\AgentContinuationHandoff::verify()` capability. Verification failure throws the neutral rejection. |
-| `Security\AgentContinuationGuard::run($binding, $requirements, $scope, $action)` | Revalidates and invokes one synchronous bounded action under the required composite fence. Returns no Boolean, admission token or continuing lease. |
+| `Continuation\AgentContinuationContext` | Immutable original claims, not Permissions, relationship grants or a bearer credential. Its public constructor is useful to a trusted handoff adapter, not a binding factory. |
+| `Continuation\AgentContinuationBinding::fromHandoff($verifier)` | Creates a worker-local binding only through the explicitly injected trusted `Continuation\AgentContinuationHandoff::verify()` capability. Verification failure throws the neutral rejection. |
+| `Continuation\AgentContinuationGuard::run($binding, $requirements, $scope, $action)` | Revalidates and invokes one synchronous bounded action under the required composite fence. Returns no Boolean, admission token or continuing lease. |
 
 Example of the request-local composition (consumer-supplied collaborators, not an endpoint):
 
 ```php
-use Fight\AccessControl\Application\AccessControl\Agent\Security\AgentContinuationBinding;
-use Fight\AccessControl\Application\AccessControl\Agent\Security\AgentContinuationGuard;
+use Fight\AccessControl\Application\AccessControl\Agent\Continuation\AgentContinuationBinding;
+use Fight\AccessControl\Application\AccessControl\Agent\Continuation\AgentContinuationGuard;
 use Fight\AccessControl\Domain\AccessControl\Permission\PermissionName;
 
 $binding = AgentContinuationBinding::fromRequest($provider, $signedRequest, $safeCorrelationId);
-$guard = new AgentContinuationGuard($agents, $permissions, $clock, $qualifiedFence);
+$guard = new AgentContinuationGuard($agentRepository, $permissionRepository, $clock, $qualifiedFence);
 $guard->run($binding, [PermissionName::fromString('VIEW_AGENTS')], $currentTargetScope, $boundedAction);
 ```
 

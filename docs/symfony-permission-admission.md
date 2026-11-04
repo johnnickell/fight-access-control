@@ -17,8 +17,8 @@ Invalid Permission lists fail when the shared declaration is constructed; there 
 
 ```php
 use Fight\AccessControl\Adapter\Http\Symfony\EventSubscriber\PermissionSubscriber;
-use Fight\AccessControl\Application\AccessControl\Authorization\AdmissionMode;
-use Fight\AccessControl\Application\AccessControl\Authorization\PermissionDeclaration;
+use Fight\AccessControl\Application\AccessControl\Authorization\Admission\AdmissionMode;
+use Fight\AccessControl\Application\AccessControl\Authorization\Admission\PermissionDeclaration;
 use Fight\AccessControl\Domain\AccessControl\Permission\PermissionName;
 use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Component\HttpKernel\EventListener\RouterListener;
@@ -37,8 +37,8 @@ $routes->add('reports', new Route('/reports/{id}', [
 ], methods: ['GET'])); // REPORT_READ is an illustrative consumer-owned Permission, not an installed grant.
 $stack = new RequestStack();
 $matcher = new UrlMatcher($routes, new RequestContext());
-$events->addSubscriber(new RouterListener($matcher, $stack));
-$events->addSubscriber(new PermissionSubscriber($matcher, $authorityFactory));
+$eventDispatcher->addSubscriber(new RouterListener($matcher, $stack));
+$eventDispatcher->addSubscriber(new PermissionSubscriber($matcher, $authorityFactory));
 // Compose HttpKernel with this dispatcher, the same RequestStack and native resolvers.
 ```
 

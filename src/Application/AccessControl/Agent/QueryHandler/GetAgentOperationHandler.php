@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Fight\AccessControl\Application\AccessControl\Agent\QueryHandler;
 
-use Fight\AccessControl\Application\AccessControl\Agent\Service\AgentOperationAuthorization;
+use Fight\AccessControl\Application\AccessControl\Agent\Credential\AgentOperationAuthorization;
 use Fight\AccessControl\Domain\AccessControl\Agent\Exception\AgentOperationRejectedException;
 use Fight\AccessControl\Domain\AccessControl\Agent\Operation\AgentOperationFailure;
 use Fight\AccessControl\Domain\AccessControl\Agent\Operation\AgentOperationRepository;
@@ -25,8 +25,8 @@ final readonly class GetAgentOperationHandler implements QueryHandler
      * Constructs GetAgentOperationHandler
      */
     public function __construct(
-        private AgentOperationRepository $operationRepository,
-        private AgentOperationAuthorization $authorization
+        private AgentOperationRepository $agentOperationRepository,
+        private AgentOperationAuthorization $operationAuthorization
     ) {
     }
 
@@ -46,10 +46,10 @@ final readonly class GetAgentOperationHandler implements QueryHandler
         /** @var GetAgentOperation $query */
         $query = $queryMessage->payload();
         try {
-            $this->authorization->authorizeRead($query->getKey()->getScope(), $query->getDestination(), null);
-            $view = $this->operationRepository->getStatusByKey($query->getKey());
+            $this->operationAuthorization->authorizeRead($query->getKey()->getScope(), $query->getDestination(), null);
+            $view = $this->agentOperationRepository->getStatusByKey($query->getKey());
             $view ??= AgentOperationView::indeterminate($query->getKey());
-            $this->authorization->authorizeRead(
+            $this->operationAuthorization->authorizeRead(
                 $query->getKey()->getScope(),
                 $query->getDestination(),
                 $view->getIssuance()?->getAgentId()

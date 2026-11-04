@@ -32,10 +32,10 @@ final class UpdateAgentProfileToolTest extends TestCase
     public function test_synchronous_dispatch_uses_normalized_name_and_principal_as_target_and_typed_initiator(): void
     {
         $env = new ProfileToolEnvironment();
-        $commands = $this->createMock(SynchronousCommandBus::class);
-        $commands->expects(self::never())->method('dispatch');
+        $synchronousCommandBus = $this->createMock(SynchronousCommandBus::class);
+        $synchronousCommandBus->expects(self::never())->method('dispatch');
         $completed = false;
-        $commands->expects(self::once())->method('execute')->willReturnCallback(
+        $synchronousCommandBus->expects(self::once())->method('execute')->willReturnCallback(
             static function (UpdateAgent $command) use ($env, &$completed): void {
                 self::assertTrue($env->original->getId()->equals($command->getAgentId()));
                 self::assertTrue($env->original->getId()->equals($command->getInitiator()->getId()));
@@ -46,7 +46,7 @@ final class UpdateAgentProfileToolTest extends TestCase
         );
         $progress = $this->createMock(McpProgressReporter::class);
         $progress->expects(self::never())->method('report');
-        $output = $env->update($commands)->handle(new ApplicationData([
+        $output = $env->update($synchronousCommandBus)->handle(new ApplicationData([
             'name'      => " \tWorker é\n",
             'agent_id'  => AgentId::generate()->toString(),
             'initiator' => 'caller cannot choose provenance'
@@ -56,17 +56,17 @@ final class UpdateAgentProfileToolTest extends TestCase
         self::assertSame($expected, $output->structuredContent()->properties());
         self::assertSame($expected, json_decode($output->text(), true, flags: JSON_THROW_ON_ERROR));
         self::assertSame([['type' => 'text', 'text' => $output->text()]], $output->contentItems());
-        self::assertSame([], $env->storage->events->events());
+        self::assertSame([], $env->storage->eventDispatcher->events());
     }
 
     #[DataProvider('invalidNames')]
     public function test_invalid_domain_name_never_dispatches(string $name): void
     {
         $env = new ProfileToolEnvironment();
-        $commands = $this->createMock(SynchronousCommandBus::class);
-        $commands->expects(self::never())->method('execute');
+        $synchronousCommandBus = $this->createMock(SynchronousCommandBus::class);
+        $synchronousCommandBus->expects(self::never())->method('execute');
         $this->expectException(AgentNameException::class);
-        $env->update($commands)->handle(
+        $env->update($synchronousCommandBus)->handle(
             new ApplicationData(['name' => $name]),
             $this->createStub(McpProgressReporter::class)
         );
@@ -76,10 +76,10 @@ final class UpdateAgentProfileToolTest extends TestCase
     {
         $env = new ProfileToolEnvironment();
         $failure = new RuntimeException('Private fixture publication detail');
-        $commands = $this->createMock(SynchronousCommandBus::class);
-        $commands->expects(self::once())->method('execute')->willThrowException($failure);
+        $synchronousCommandBus = $this->createMock(SynchronousCommandBus::class);
+        $synchronousCommandBus->expects(self::once())->method('execute')->willThrowException($failure);
         $this->expectExceptionObject($failure);
-        $env->update($commands)->handle(
+        $env->update($synchronousCommandBus)->handle(
             new ApplicationData(['name' => 'Renamed']),
             $this->createStub(McpProgressReporter::class)
         );

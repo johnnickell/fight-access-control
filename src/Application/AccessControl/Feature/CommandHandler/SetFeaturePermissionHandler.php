@@ -31,10 +31,10 @@ final readonly class SetFeaturePermissionHandler implements CommandHandler
      * Constructs SetFeaturePermissionHandler
      */
     public function __construct(
-        private FeatureRepository $features,
-        private PermissionRepository $permissions,
+        private FeatureRepository $featureRepository,
+        private PermissionRepository $permissionRepository,
         private TransactionalUnitOfWork $unitOfWork,
-        private EventDispatcher $events
+        private EventDispatcher $eventDispatcher
     ) {
     }
 
@@ -55,7 +55,7 @@ final readonly class SetFeaturePermissionHandler implements CommandHandler
         $command = $commandMessage->payload();
         try {
             $event = $this->unitOfWork->commitTransactional(function () use ($command): ?FeaturePermissionChanged {
-                $feature = $this->features->getById($command->getFeatureId());
+                $feature = $this->featureRepository->getById($command->getFeatureId());
                 if (!$feature instanceof Feature) {
                     throw new FeatureNotFoundException('The Feature does not exist.');
                 }
@@ -64,12 +64,12 @@ final readonly class SetFeaturePermissionHandler implements CommandHandler
                     throw new FeatureRevisionException('The Feature changed concurrently.');
                 }
 
-                if (!$this->permissions->getById($command->getPermissionId()) instanceof Permission) {
+                if (!$this->permissionRepository->getById($command->getPermissionId()) instanceof Permission) {
                     throw new FeatureReferenceException('The selected testing Permission does not exist.');
                 }
 
                 $successor = $feature->withPermission($command->getPermissionId());
-                if (!$this->features->replace($feature, $successor)) {
+                if (!$this->featureRepository->replace($feature, $successor)) {
                     throw new FeatureRevisionException('The Feature changed concurrently.');
                 }
 
@@ -84,11 +84,11 @@ final readonly class SetFeaturePermissionHandler implements CommandHandler
                 );
             });
             if ($event instanceof FeaturePermissionChanged) {
-                $this->events->trigger($event);
+                $this->eventDispatcher->trigger($event);
             }
         } catch (Throwable $throwable) {
             try {
-                $this->events->trigger(new CommandFailedEvent($command, 'Feature permission update failed.'));
+                $this->eventDispatcher->trigger(new CommandFailedEvent($command, 'Feature permission update failed.'));
             } finally {
                 throw $throwable;
             }

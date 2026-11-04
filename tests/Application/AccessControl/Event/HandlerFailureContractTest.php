@@ -16,10 +16,10 @@ use Fight\AccessControl\Application\AccessControl\EmailChangeGrant\Service\Email
 use Fight\AccessControl\Application\AccessControl\EmailChangeGrant\Service\EmailChangeCredentialGenerator;
 use Fight\AccessControl\Application\AccessControl\EmailChangeGrant\Service\EmailChangeDeliveryCipher;
 use Fight\AccessControl\Application\AccessControl\Feature\CommandHandler as Feature;
-use Fight\AccessControl\Application\AccessControl\Feature\FeatureDiscoveryResult;
-use Fight\AccessControl\Application\AccessControl\Feature\FeatureReferences;
-use Fight\AccessControl\Application\AccessControl\Feature\FeatureReferenceScope;
-use Fight\AccessControl\Application\AccessControl\Feature\Service\FeatureReferenceDiscovery;
+use Fight\AccessControl\Application\AccessControl\Feature\Discovery\FeatureDiscoveryResult;
+use Fight\AccessControl\Application\AccessControl\Feature\Discovery\FeatureReferenceDiscovery;
+use Fight\AccessControl\Application\AccessControl\Feature\Discovery\FeatureReferences;
+use Fight\AccessControl\Application\AccessControl\Feature\Discovery\FeatureReferenceScope;
 use Fight\AccessControl\Application\AccessControl\ManagedPolicy\CommandHandler\ReconcileManagedPolicyHandler;
 use Fight\AccessControl\Application\AccessControl\ManagedPolicy\Service\ManagedPolicyPlanner;
 use Fight\AccessControl\Application\AccessControl\PasswordResetGrant\CommandHandler as Reset;
@@ -154,7 +154,7 @@ final class HandlerFailureContractTest extends TestCase
     ): void {
         $primary = new RuntimeException('Synthetic operation detail.');
         $attempts = [];
-        $events = new InMemoryEventDispatcher(static function (Event $event) use (
+        $eventDispatcher = new InMemoryEventDispatcher(static function (Event $event) use (
             &$attempts,
             $notificationFails
         ): void {
@@ -165,7 +165,7 @@ final class HandlerFailureContractTest extends TestCase
         });
         $unitOfWork = $this->createMock(TransactionalUnitOfWork::class);
         $unitOfWork->expects(self::once())->method('commitTransactional')->willThrowException($primary);
-        $handler = $this->handler($handlerClass, $unitOfWork, $events);
+        $handler = $this->handler($handlerClass, $unitOfWork, $eventDispatcher);
         $command = $this->command($handlerClass);
         $caught = null;
         try {
@@ -245,13 +245,13 @@ final class HandlerFailureContractTest extends TestCase
     private function handler(
         string $handlerClass,
         TransactionalUnitOfWork $unitOfWork,
-        InMemoryEventDispatcher $events
+        InMemoryEventDispatcher $eventDispatcher
     ): CommandHandler {
-        $sessions = $this->createStub(RefreshSessionRepository::class);
-        $permissions = $this->createStub(PermissionRepository::class);
-        $roles = $this->createStub(RoleRepository::class);
-        $users = $this->createStub(UserRepository::class);
-        $agents = $this->createStub(AgentRepository::class);
+        $refreshSessionRepository = $this->createStub(RefreshSessionRepository::class);
+        $permissionRepository = $this->createStub(PermissionRepository::class);
+        $roleRepository = $this->createStub(RoleRepository::class);
+        $userRepository = $this->createStub(UserRepository::class);
+        $agentRepository = $this->createStub(AgentRepository::class);
         $discovery = $this->createStub(FeatureReferenceDiscovery::class);
         $discovery->method('discover')->willReturn(FeatureDiscoveryResult::complete(
             FeatureReferenceScope::CANDIDATE,
@@ -259,170 +259,238 @@ final class HandlerFailureContractTest extends TestCase
         ));
         $clock = $this->createStub(Clock::class);
         $clock->method('now')->willReturn(new DateTimeImmutable('2026-01-01T00:00:00+00:00'));
-        $activation = $this->createStub(ActivationGrantRepository::class);
-        $reset = $this->createStub(PasswordResetGrantRepository::class);
-        $email = $this->createStub(EmailChangeGrantRepository::class);
-        $audit = $this->createStub(AuditEvidenceRepository::class);
+        $activationGrantRepository = $this->createStub(ActivationGrantRepository::class);
+        $passwordResetGrantRepository = $this->createStub(PasswordResetGrantRepository::class);
+        $emailChangeGrantRepository = $this->createStub(EmailChangeGrantRepository::class);
+        $auditEvidenceRepository = $this->createStub(AuditEvidenceRepository::class);
         $credentials = $this->createStub(ActivationCredentialGenerator::class);
         $cipher = $this->createStub(InvitationDeliveryCipher::class);
         $provider = $this->createStub(CredentialDeliveryProvider::class);
-        $features = $this->createStub(FeatureRepository::class);
+        $featureRepository = $this->createStub(FeatureRepository::class);
 
         return match ($handlerClass) {
             Invitation\DeliverUserInvitationHandler::class => new Invitation\DeliverUserInvitationHandler(
-                $activation,
-                $audit, $unitOfWork, $cipher, $provider, $clock, $events
+                $activationGrantRepository,
+                $auditEvidenceRepository, $unitOfWork, $cipher, $provider, $clock, $eventDispatcher
             ),
             Invitation\ExpireInvitationDeliveryHandler::class => new Invitation\ExpireInvitationDeliveryHandler(
-                $activation,
-                $unitOfWork, $events
+                $activationGrantRepository,
+                $unitOfWork, $eventDispatcher
             ),
             Invitation\ResendInvitationDeliveryHandler::class => new Invitation\ResendInvitationDeliveryHandler(
-                $activation,
-                $audit, $unitOfWork, $credentials, $cipher, $clock, $events
+                $activationGrantRepository,
+                $auditEvidenceRepository, $unitOfWork, $credentials, $cipher, $clock, $eventDispatcher
             ),
             Invitation\RetryInvitationDeliveryHandler::class => new Invitation\RetryInvitationDeliveryHandler(
-                $activation,
-                $audit, $unitOfWork, $clock, $events
+                $activationGrantRepository,
+                $auditEvidenceRepository, $unitOfWork, $clock, $eventDispatcher
             ),
             Agent\GrantPermissionToAgentHandler::class => new Agent\GrantPermissionToAgentHandler(
-                $agents,
-                $permissions, $clock, $unitOfWork, $events
+                $agentRepository,
+                $permissionRepository, $clock, $unitOfWork, $eventDispatcher
             ),
             Agent\RevokePermissionFromAgentHandler::class => new Agent\RevokePermissionFromAgentHandler(
-                $agents,
-                $permissions, $clock, $unitOfWork, $events
+                $agentRepository,
+                $permissionRepository, $clock, $unitOfWork, $eventDispatcher
             ),
             Agent\ReplaceAgentPermissionsHandler::class => new Agent\ReplaceAgentPermissionsHandler(
-                $agents,
-                $permissions, $clock, $unitOfWork, $events
+                $agentRepository,
+                $permissionRepository, $clock, $unitOfWork, $eventDispatcher
             ),
-            Agent\UpdateAgentHandler::class => new Agent\UpdateAgentHandler($agents, $clock, $unitOfWork, $events),
+            Agent\UpdateAgentHandler::class => new Agent\UpdateAgentHandler(
+                $agentRepository,
+                $clock,
+                $unitOfWork,
+                $eventDispatcher
+            ),
             Email\CancelEmailChangeHandler::class => new Email\CancelEmailChangeHandler(
-                $users,
-                $email, $this->createStub(EmailChangeAdministrationAuthorization::class),
-                $audit, $unitOfWork, $clock, $events
+                $userRepository,
+                $emailChangeGrantRepository, $this->createStub(EmailChangeAdministrationAuthorization::class),
+                $auditEvidenceRepository, $unitOfWork, $clock, $eventDispatcher
             ),
             Email\DeliverEmailChangeHandler::class => new Email\DeliverEmailChangeHandler(
-                $email,
-                $audit, $unitOfWork, $this->createStub(EmailChangeDeliveryCipher::class), $provider, $clock, $events
+                $emailChangeGrantRepository,
+                $auditEvidenceRepository,
+                $unitOfWork,
+                $this->createStub(EmailChangeDeliveryCipher::class),
+                $provider,
+                $clock,
+                $eventDispatcher
             ),
             Email\ExpireEmailChangeHandler::class => new Email\ExpireEmailChangeHandler(
-                $users,
-                $email, $unitOfWork, $events
+                $userRepository,
+                $emailChangeGrantRepository, $unitOfWork, $eventDispatcher
             ),
             Email\RequestEmailChangeHandler::class => new Email\RequestEmailChangeHandler(
-                $users,
-                $email, $this->createStub(EmailChangeAdministrationAuthorization::class), $audit, $unitOfWork,
+                $userRepository,
+                $emailChangeGrantRepository,
+                $this->createStub(EmailChangeAdministrationAuthorization::class),
+                $auditEvidenceRepository,
+                $unitOfWork,
                 $this->createStub(EmailChangeCredentialGenerator::class),
-                $this->createStub(EmailChangeDeliveryCipher::class), $clock, $events
+                $this->createStub(EmailChangeDeliveryCipher::class),
+                $clock,
+                $eventDispatcher
             ),
             Feature\CreateFeatureHandler::class => new Feature\CreateFeatureHandler(
-                $features,
-                $permissions, $unitOfWork, $events
+                $featureRepository,
+                $permissionRepository, $unitOfWork, $eventDispatcher
             ),
             Feature\SetFeaturePermissionHandler::class => new Feature\SetFeaturePermissionHandler(
-                $features,
-                $permissions, $unitOfWork, $events
+                $featureRepository,
+                $permissionRepository, $unitOfWork, $eventDispatcher
             ),
             Feature\ProvisionFeaturesHandler::class => new Feature\ProvisionFeaturesHandler(
                 $discovery,
-                $features, $permissions, $unitOfWork, $events
+                $featureRepository, $permissionRepository, $unitOfWork, $eventDispatcher
             ),
             Feature\RemoveFeatureHandler::class => new Feature\RemoveFeatureHandler(
                 $discovery,
-                $features, $unitOfWork, $events
+                $featureRepository, $unitOfWork, $eventDispatcher
             ),
             Feature\SetFeatureStatusHandler::class => new Feature\SetFeatureStatusHandler(
-                $features,
+                $featureRepository,
                 $unitOfWork,
-                $events
+                $eventDispatcher
             ),
             ReconcileManagedPolicyHandler::class => new ReconcileManagedPolicyHandler(
-                $permissions,
-                $roles, new ManagedPolicyPlanner($permissions, $roles, $users, $agents),
-                $unitOfWork, $events, $clock
+                $permissionRepository,
+                $roleRepository,
+                new ManagedPolicyPlanner($permissionRepository, $roleRepository, $userRepository, $agentRepository),
+                $unitOfWork,
+                $eventDispatcher,
+                $clock
             ),
             Reset\DeliverPasswordResetHandler::class => new Reset\DeliverPasswordResetHandler(
-                $reset,
-                $audit, $unitOfWork, $this->createStub(PasswordResetDeliveryCipher::class), $provider, $clock, $events,
-                $users
+                $passwordResetGrantRepository,
+                $auditEvidenceRepository,
+                $unitOfWork,
+                $this->createStub(PasswordResetDeliveryCipher::class),
+                $provider,
+                $clock,
+                $eventDispatcher,
+                $userRepository
             ),
             Reset\ExpirePasswordResetDeliveryHandler::class => new Reset\ExpirePasswordResetDeliveryHandler(
-                $reset,
-                $unitOfWork, $events
+                $passwordResetGrantRepository,
+                $unitOfWork, $eventDispatcher
             ),
             Reset\RequestPasswordResetHandler::class => new Reset\RequestPasswordResetHandler(
-                $users,
-                $reset, $audit, $unitOfWork, $this->createStub(PasswordResetCredentialGenerator::class),
-                $this->createStub(PasswordResetDeliveryCipher::class), $clock, $events
+                $userRepository,
+                $passwordResetGrantRepository,
+                $auditEvidenceRepository,
+                $unitOfWork,
+                $this->createStub(PasswordResetCredentialGenerator::class),
+                $this->createStub(PasswordResetDeliveryCipher::class),
+                $clock,
+                $eventDispatcher
             ),
             RevokeSessionHandler::class => new RevokeSessionHandler(
-                $sessions,
-                $clock, $this->createStub(SessionAdministrationAuthorization::class), $audit, $unitOfWork, $events
+                $refreshSessionRepository,
+                $clock,
+                $this->createStub(SessionAdministrationAuthorization::class),
+                $auditEvidenceRepository,
+                $unitOfWork,
+                $eventDispatcher
             ),
             Role\CreateCustomRoleHandler::class => new Role\CreateCustomRoleHandler(
-                $roles,
+                $roleRepository,
                 $clock,
                 $unitOfWork,
-                $events
+                $eventDispatcher
             ),
             Role\RenameCustomRoleHandler::class => new Role\RenameCustomRoleHandler(
-                $roles,
+                $roleRepository,
                 $clock,
                 $unitOfWork,
-                $events
+                $eventDispatcher
             ),
             Role\GrantPermissionToCustomRoleHandler::class => new Role\GrantPermissionToCustomRoleHandler(
-                $roles,
-                $permissions, $clock, $unitOfWork, $events
+                $roleRepository,
+                $permissionRepository, $clock, $unitOfWork, $eventDispatcher
             ),
             Role\RevokePermissionFromCustomRoleHandler::class => new Role\RevokePermissionFromCustomRoleHandler(
-                $roles,
-                $permissions, $clock, $unitOfWork, $events
+                $roleRepository,
+                $permissionRepository, $clock, $unitOfWork, $eventDispatcher
             ),
             Role\RemoveCustomRoleHandler::class => new Role\RemoveCustomRoleHandler(
-                $roles,
-                $users, $clock, $unitOfWork, $events
+                $roleRepository,
+                $userRepository, $clock, $unitOfWork, $eventDispatcher
             ),
             User\AssignRoleToUserHandler::class => new User\AssignRoleToUserHandler(
-                $users,
-                $roles, $clock, $unitOfWork, $events
+                $userRepository,
+                $roleRepository, $clock, $unitOfWork, $eventDispatcher
             ),
             User\RemoveRoleFromUserHandler::class => new User\RemoveRoleFromUserHandler(
-                $users,
-                $roles, $clock, $unitOfWork, $events
+                $userRepository,
+                $roleRepository, $clock, $unitOfWork, $eventDispatcher
             ),
             User\CorrectPendingInvitationHandler::class => new User\CorrectPendingInvitationHandler(
-                $users,
-                $activation, $this->createStub(InvitationAdministrationAuthorization::class),
-                $audit, $unitOfWork, $credentials, $cipher, $clock, $events
+                $userRepository,
+                $activationGrantRepository, $this->createStub(InvitationAdministrationAuthorization::class),
+                $auditEvidenceRepository, $unitOfWork, $credentials, $cipher, $clock, $eventDispatcher
             ),
             User\DeleteUserHandler::class => new User\DeleteUserHandler(
-                $users,
-                new SessionRevocationService($sessions), $clock, $audit, $unitOfWork, $events, $reset
+                $userRepository,
+                new SessionRevocationService($refreshSessionRepository),
+                $clock,
+                $auditEvidenceRepository,
+                $unitOfWork,
+                $eventDispatcher,
+                $passwordResetGrantRepository
             ),
             User\DisableUserHandler::class => new User\DisableUserHandler(
-                $users,
-                new SessionRevocationService($sessions), $clock, $audit, $unitOfWork, $events, $reset
+                $userRepository,
+                new SessionRevocationService($refreshSessionRepository),
+                $clock,
+                $auditEvidenceRepository,
+                $unitOfWork,
+                $eventDispatcher,
+                $passwordResetGrantRepository
             ),
-            User\EnableUserHandler::class => new User\EnableUserHandler($users, $audit, $unitOfWork, $events, $clock),
+            User\EnableUserHandler::class => new User\EnableUserHandler(
+                $userRepository,
+                $auditEvidenceRepository,
+                $unitOfWork,
+                $eventDispatcher,
+                $clock
+            ),
             User\InvitePendingUserHandler::class => new User\InvitePendingUserHandler(
-                $users,
-                $activation, $audit, $unitOfWork, $credentials, $cipher, $clock, $events
+                $userRepository,
+                $activationGrantRepository,
+                $auditEvidenceRepository,
+                $unitOfWork,
+                $credentials,
+                $cipher,
+                $clock,
+                $eventDispatcher
             ),
             User\RecoverPendingRegistrationHandler::class => new User\RecoverPendingRegistrationHandler(
-                $users,
-                $activation, $this->createStub(RegistrationRecoveryAuthorization::class),
-                $audit, $unitOfWork, $credentials, $cipher, $clock, $events
+                $userRepository,
+                $activationGrantRepository, $this->createStub(RegistrationRecoveryAuthorization::class),
+                $auditEvidenceRepository, $unitOfWork, $credentials, $cipher, $clock, $eventDispatcher
             ),
             User\RegisterUserHandler::class => new User\RegisterUserHandler(
-                $users,
-                $roles, $activation, $audit, $unitOfWork, $credentials, $cipher, $clock, $events, ['ROLE_MEMBER']
+                $userRepository,
+                $roleRepository,
+                $activationGrantRepository,
+                $auditEvidenceRepository,
+                $unitOfWork,
+                $credentials,
+                $cipher,
+                $clock,
+                $eventDispatcher,
+                ['ROLE_MEMBER']
             ),
             User\RestoreUserHandler::class => new User\RestoreUserHandler(
-                $users,
-                $activation, $credentials, $cipher, $clock, $audit, $unitOfWork, $events
+                $userRepository,
+                $activationGrantRepository,
+                $credentials,
+                $cipher,
+                $clock,
+                $auditEvidenceRepository,
+                $unitOfWork,
+                $eventDispatcher
             ),
             default => throw new LogicException('Unsupported handler fixture.')
         };

@@ -58,7 +58,10 @@ final class CatalogCompositionTest extends TestCase
         foreach (['Permission', 'PermissionCollection'] as $name) {
             $envelope = $schemas['Fight.AccessControl.JSend.Success.'.$name];
             self::assertSame(['status', 'data'], $envelope['required']);
-            self::assertSame('#/components/schemas/Fight.AccessControl.'.$name, $envelope['properties']['data']['$ref']);
+            self::assertSame(
+                '#/components/schemas/Fight.AccessControl.'.$name,
+                $envelope['properties']['data']['$ref']
+            );
         }
     }
 }

@@ -12,8 +12,8 @@ Do not interpret this guide as permission to reset data.
 
 1. **Qualify one current composition before enablement.** Consumers own persistence/schema, authenticated context,
    authorization policy, keys, protected sinks, scheduling, storage admission and deployment tools. Package Domain
-   owns transitions; Application services own transactions and recovery coordination. There is no production Adapter
-   layer, consumer Permission catalog, enrollment service or broker here. Bind the exact candidate and its test suites
+   owns transitions; Application services own transactions and recovery coordination. There is no production persistence Adapter,
+   consumer Permission catalog, enrollment service or broker here. Bind the exact candidate and its test suites
    as described in [issuance conformance](agent-issuance-conformance.md#run-and-bind) and
    [delivery conformance](agent-delivery-conformance.md#run-and-bind), not an older installed package.
 2. **Inventory and fence every writer.** Repositories, audit and transactional authorization share the package-owned
@@ -59,9 +59,13 @@ Initial readiness requires affirmative external-effect inventory, not assuming e
 
 ## Public composition map
 
-Types below are the current PHP contracts, not suggested wrappers. Agent services live under
-`Application\AccessControl\Agent\Security`; consumer ports under `Application\AccessControl\Agent\Service`;
-Agent repositories, requests and policies under the matching Domain aggregate. `Clock` belongs to Application Timing,
+Types below are the current PHP contracts, not suggested wrappers. Under `Application\AccessControl\Agent`,
+`Credential` groups provisioning, rotation and revocation with their issuance ports/results; `Delivery` groups
+workers, recovery, cipher/decipher and sink/receipt contracts; `Maintenance` owns rewrapping/cleanup and its
+separate authority. `Authentication` owns signed requests, principal resolution, nonce consumption and verification;
+`Continuation` owns synchronized repeated-work admission and its scope/fence/handoff contracts. The internal
+assignment coordinator lives in `PermissionAssignment`, not `CommandHandler`. No forwarding facade or alias is supplied.
+Agent repositories, requests and policies stay under the matching Domain aggregate. `Clock` belongs to Application Timing,
 `TransactionalUnitOfWork` and `EventDispatcher` to Fight Common. Use the linked guides for full signatures and message
 round trips. Serializable Queries use their handlers' Common registrations; secret-bearing work is synchronous.
 

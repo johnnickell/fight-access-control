@@ -46,24 +46,24 @@ final class FeatureAvailabilityTest extends TestCase
     public function test_status_matrix_uses_captured_permission_identity_not_names_or_roles(): void
     {
         $unit = new InMemoryUnitOfWork();
-        $features = new InMemoryFeatureRepository($unit);
-        $permissions = new InMemoryPermissionRepository($unit);
+        $featureRepository = new InMemoryFeatureRepository($unit);
+        $permissionRepository = new InMemoryPermissionRepository($unit);
         $id = PermissionId::generate();
         $otherId = PermissionId::generate();
-        $permissions->add(Permission::defineManaged(
+        $permissionRepository->add(Permission::defineManaged(
             $id,
             PermissionName::fromString('PROTECTED'),
             PermissionTier::SUPER_ADMIN_ONLY,
             new DateTimeImmutable()
         ));
-        $service = new FeatureAvailability($features, $permissions);
+        $service = new FeatureAvailability($featureRepository, $permissionRepository);
         $user = $this->user([new PrincipalPermission($id, PermissionName::fromString('OLD_NAME'))]);
         $agent = $this->agent([new PrincipalPermission($otherId, PermissionName::fromString('PROTECTED'))]);
         $noGrants = $this->user([], true);
 
         foreach ([FeatureStatus::OFF, FeatureStatus::PREVIEW, FeatureStatus::ON] as $status) {
             $current = FeatureName::fromString('feature-'.$status->value);
-            $features->seed(Feature::reconstitute(FeatureId::generate(), $current, $id, $status, 1));
+            $featureRepository->seed(Feature::reconstitute(FeatureId::generate(), $current, $id, $status, 1));
             self::assertSame($status !== FeatureStatus::OFF, $service->isAvailable($current, $user));
             self::assertSame($status === FeatureStatus::ON, $service->isAvailable($current, $agent));
             self::assertSame($status === FeatureStatus::ON, $service->isAvailable($current, $noGrants));
@@ -71,18 +71,22 @@ final class FeatureAvailabilityTest extends TestCase
         }
 
         self::assertSame(0, $unit->transactions);
-        self::assertSame(0, $features->writes);
-        self::assertCount(12, $features->lookups);
+        self::assertSame(0, $featureRepository->writes);
+        self::assertCount(12, $featureRepository->lookups);
     }
 
     public function test_shared_and_distinct_preview_cohorts_follow_only_the_bound_identity(): void
     {
-        [$service, $features, $permissions, $first] = $this->fixture();
+        [$service, $featureRepository, $permissionRepository, $first] = $this->fixture();
         $second = PermissionId::generate();
-        $permissions->add(Permission::define($first, PermissionName::fromString('FIRST'), new DateTimeImmutable()));
-        $permissions->add(Permission::define($second, PermissionName::fromString('SECOND'), new DateTimeImmutable()));
+        $permissionRepository->add(
+            Permission::define($first, PermissionName::fromString('FIRST'), new DateTimeImmutable())
+        );
+        $permissionRepository->add(
+            Permission::define($second, PermissionName::fromString('SECOND'), new DateTimeImmutable())
+        );
         foreach (['shared', 'distinct'] as $name) {
-            $features->seed(Feature::reconstitute(
+            $featureRepository->seed(Feature::reconstitute(
                 FeatureId::generate(),
                 FeatureName::fromString($name),
                 $name === 'shared' ? $first : $second,
@@ -101,10 +105,12 @@ final class FeatureAvailabilityTest extends TestCase
 
     public function test_agent_with_direct_identity_previews_without_a_role_or_name_match(): void
     {
-        [$service, $features, $permissions, $id] = $this->fixture();
-        $permissions->add(Permission::define($id, PermissionName::fromString('RENAMED'), new DateTimeImmutable()));
+        [$service, $featureRepository, $permissionRepository, $id] = $this->fixture();
+        $permissionRepository->add(
+            Permission::define($id, PermissionName::fromString('RENAMED'), new DateTimeImmutable())
+        );
         $name = FeatureName::fromString('preview');
-        $features->seed(Feature::reconstitute(FeatureId::generate(), $name, $id, FeatureStatus::PREVIEW, 1));
+        $featureRepository->seed(Feature::reconstitute(FeatureId::generate(), $name, $id, FeatureStatus::PREVIEW, 1));
         self::assertTrue($service->isAvailable($name, $this->agent([
             new PrincipalPermission($id, PermissionName::fromString('OLD_NAME'))
         ])));
@@ -112,27 +118,27 @@ final class FeatureAvailabilityTest extends TestCase
 
     public function test_absence_broken_binding_and_invalid_stored_definitions_are_not_boolean_results(): void
     {
-        [$service, $features, $permissions, $id] = $this->fixture();
+        [$service, $featureRepository, $permissionRepository, $id] = $this->fixture();
         $name = FeatureName::fromString('missing');
         try {
             $service->isAvailable($name, null);
             self::fail('Unknown Features cannot be ordinary unavailable.');
         } catch (FeatureNotFoundException) {
-            self::assertSame(0, $features->writes);
+            self::assertSame(0, $featureRepository->writes);
         }
 
         foreach (FeatureStatus::cases() as $status) {
             $current = FeatureName::fromString('broken-'.$status->value);
-            $features->seed(Feature::reconstitute(FeatureId::generate(), $current, $id, $status, 1));
+            $featureRepository->seed(Feature::reconstitute(FeatureId::generate(), $current, $id, $status, 1));
             try {
                 $service->isAvailable($current, null);
                 self::fail('A missing bound Permission is invalid even for OFF or ON.');
             } catch (FeatureBindingException) {
-                self::assertSame(0, $features->writes);
+                self::assertSame(0, $featureRepository->writes);
             }
         }
 
-        $permissions->add(Permission::define(
+        $permissionRepository->add(Permission::define(
             PermissionId::generate(),
             PermissionName::fromString('REUSED'),
             new DateTimeImmutable()
@@ -145,20 +151,25 @@ final class FeatureAvailabilityTest extends TestCase
 
     public function test_invalid_names_and_malformed_persisted_state_fail_without_catalog_mutation(): void
     {
-        [, $features] = $this->fixture();
+        [, $featureRepository] = $this->fixture();
         try {
             FeatureName::fromString('BAD NAME');
             self::fail('Invalid Feature names must reject before service evaluation.');
         } catch (FeatureNameException) {
-            self::assertSame([], $features->lookups);
+            self::assertSame([], $featureRepository->lookups);
         }
 
-        $features = $this->createStub(FeatureRepository::class);
-        $features->method('getByName')->willThrowException(new FeatureStateException('Invalid persisted definition.'));
-        $permissions = $this->createMock(PermissionRepository::class);
-        $permissions->expects(self::never())->method('getById');
+        $featureRepository = $this->createStub(FeatureRepository::class);
+        $featureRepository->method('getByName')->willThrowException(
+            new FeatureStateException('Invalid persisted definition.')
+        );
+        $permissionRepository = $this->createMock(PermissionRepository::class);
+        $permissionRepository->expects(self::never())->method('getById');
         $this->expectException(FeatureStateException::class);
-        new FeatureAvailability($features, $permissions)->isAvailable(FeatureName::fromString('flag'), null);
+        new FeatureAvailability($featureRepository, $permissionRepository)->isAvailable(
+            FeatureName::fromString('flag'),
+            null
+        );
     }
 
     public function test_mismatched_repository_objects_and_hydration_fail_closed(): void
@@ -166,50 +177,53 @@ final class FeatureAvailabilityTest extends TestCase
         $name = FeatureName::fromString('requested');
         $id = PermissionId::generate();
         $wrong = Feature::define(FeatureId::generate(), FeatureName::fromString('different'), $id);
-        $features = $this->createStub(FeatureRepository::class);
-        $features->method('getByName')->willReturn($wrong);
-        $permissions = $this->createMock(PermissionRepository::class);
-        $permissions->expects(self::never())->method('getById');
-        $service = new FeatureAvailability($features, $permissions);
+        $featureRepository = $this->createStub(FeatureRepository::class);
+        $featureRepository->method('getByName')->willReturn($wrong);
+        $permissionRepository = $this->createMock(PermissionRepository::class);
+        $permissionRepository->expects(self::never())->method('getById');
+        $service = new FeatureAvailability($featureRepository, $permissionRepository);
         try {
             $service->isAvailable($name, null);
             self::fail('Mismatched Feature name must fail.');
         } catch (FeatureStateException) {
         }
 
-        $features = $this->createStub(FeatureRepository::class);
-        $features->method('getByName')->willReturn(Feature::define(FeatureId::generate(), $name, $id));
-        $permissions = $this->createStub(PermissionRepository::class);
-        $permissions->method('getById')->willReturn(Permission::define(
+        $featureRepository = $this->createStub(FeatureRepository::class);
+        $featureRepository->method('getByName')->willReturn(Feature::define(FeatureId::generate(), $name, $id));
+        $permissionRepository = $this->createStub(PermissionRepository::class);
+        $permissionRepository->method('getById')->willReturn(Permission::define(
             PermissionId::generate(),
             PermissionName::fromString('PREVIEW'),
             new DateTimeImmutable()
         ));
         $this->expectException(FeatureStateException::class);
-        new FeatureAvailability($features, $permissions)->isAvailable($name, null);
+        new FeatureAvailability($featureRepository, $permissionRepository)->isAvailable($name, null);
     }
 
     public function test_storage_failures_and_invalid_input_do_not_provision_or_hide_outages(): void
     {
-        $features = $this->createStub(FeatureRepository::class);
+        $featureRepository = $this->createStub(FeatureRepository::class);
         $failure = new RuntimeException('Unavailable');
-        $features->method('getByName')->willThrowException($failure);
-        $permissions = $this->createMock(PermissionRepository::class);
-        $permissions->expects(self::never())->method('getById');
+        $featureRepository->method('getByName')->willThrowException($failure);
+        $permissionRepository = $this->createMock(PermissionRepository::class);
+        $permissionRepository->expects(self::never())->method('getById');
         try {
-            new FeatureAvailability($features, $permissions)->isAvailable(FeatureName::fromString('flag'), null);
+            new FeatureAvailability($featureRepository, $permissionRepository)->isAvailable(
+                FeatureName::fromString('flag'),
+                null
+            );
             self::fail('Infrastructure failure must propagate.');
         } catch (RuntimeException $runtimeException) {
             self::assertSame($failure, $runtimeException);
         }
 
         $feature = Feature::define(FeatureId::generate(), FeatureName::fromString('flag'), PermissionId::generate());
-        $features = $this->createStub(FeatureRepository::class);
-        $features->method('getByName')->willReturn($feature);
-        $permissions = $this->createStub(PermissionRepository::class);
-        $permissions->method('getById')->willThrowException($failure);
+        $featureRepository = $this->createStub(FeatureRepository::class);
+        $featureRepository->method('getByName')->willReturn($feature);
+        $permissionRepository = $this->createStub(PermissionRepository::class);
+        $permissionRepository->method('getById')->willThrowException($failure);
         try {
-            new FeatureAvailability($features, $permissions)->isAvailable($feature->getName(), null);
+            new FeatureAvailability($featureRepository, $permissionRepository)->isAvailable($feature->getName(), null);
             self::fail('Permission storage failure must propagate.');
         } catch (RuntimeException $runtimeException) {
             self::assertSame($failure, $runtimeException);
@@ -220,10 +234,15 @@ final class FeatureAvailabilityTest extends TestCase
     private function fixture(): array
     {
         $unit = new InMemoryUnitOfWork();
-        $features = new InMemoryFeatureRepository($unit);
-        $permissions = new InMemoryPermissionRepository($unit);
+        $featureRepository = new InMemoryFeatureRepository($unit);
+        $permissionRepository = new InMemoryPermissionRepository($unit);
 
-        return [new FeatureAvailability($features, $permissions), $features, $permissions, PermissionId::generate()];
+        return [
+            new FeatureAvailability($featureRepository, $permissionRepository),
+            $featureRepository,
+            $permissionRepository,
+            PermissionId::generate()
+        ];
     }
 
     /** @param list<PrincipalPermission> $permissions */

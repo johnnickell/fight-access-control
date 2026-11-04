@@ -25,13 +25,13 @@ abstract class RecoveryAuthorityConformance extends TestCase
     public function test_persisted_authority_survives_claim_outcome_and_restart(): void
     {
         $user = $this->user();
-        $repository = $this->repository($user);
+        $passwordResetGrantRepository = $this->repository($user);
         $grant = $this->grant($user, 'first');
-        $this->transaction(static function () use ($repository, $grant): void {
-            self::assertTrue($repository->add($grant));
+        $this->transaction(static function () use ($passwordResetGrantRepository, $grant): void {
+            self::assertTrue($passwordResetGrantRepository->add($grant));
         });
-        $repository = $this->restart($repository);
-        $stored = $repository->getById($grant->getId());
+        $passwordResetGrantRepository = $this->restart($passwordResetGrantRepository);
+        $stored = $passwordResetGrantRepository->getById($grant->getId());
         self::assertNotNull($stored);
         self::assertSame(7, $stored->getAuthority()->getAuthenticationVersion());
         self::assertSame(4, $stored->getAuthority()->getCanonicalEmailRevision());
@@ -39,62 +39,64 @@ abstract class RecoveryAuthorityConformance extends TestCase
         $claim = CredentialDeliveryClaimToken::generate();
         $claimed = $stored->claimDelivery($claim, $at, $at->modify('+5 minutes'));
         $other = new RecoveryAuthority(8, 4);
-        $this->transaction(function () use ($repository, $stored, $claimed, $other, $grant): void {
-            self::assertFalse($repository->replace($this->withAuthority($stored, $other), $claimed));
-            self::assertFalse($repository->replace($stored, $this->withAuthority($claimed, $other)));
-            self::assertEquals($stored, $repository->getById($grant->getId()));
-            self::assertTrue($repository->replace($stored, $claimed));
+        $this->transaction(function () use ($passwordResetGrantRepository, $stored, $claimed, $other, $grant): void {
+            self::assertFalse($passwordResetGrantRepository->replace($this->withAuthority($stored, $other), $claimed));
+            self::assertFalse($passwordResetGrantRepository->replace($stored, $this->withAuthority($claimed, $other)));
+            self::assertEquals($stored, $passwordResetGrantRepository->getById($grant->getId()));
+            self::assertTrue($passwordResetGrantRepository->replace($stored, $claimed));
         });
-        $repository = $this->restart($repository);
-        $current = $repository->getByDeliveryId($grant->getDelivery()->getId());
+        $passwordResetGrantRepository = $this->restart($passwordResetGrantRepository);
+        $current = $passwordResetGrantRepository->getByDeliveryId($grant->getDelivery()->getId());
         self::assertTrue($claimed->getDelivery()->sameStateAs($current->getDelivery()));
         self::assertTrue($claimed->getAuthority()->equals($current->getAuthority()));
-        $this->transaction(static function () use ($repository, $current, $claim, $at): void {
-            self::assertTrue($repository->replace(
+        $this->transaction(static function () use ($passwordResetGrantRepository, $current, $claim, $at): void {
+            self::assertTrue($passwordResetGrantRepository->replace(
                 $current,
                 $current->confirmDelivery($claim, $at->modify('+1 minute'))
             ));
         });
-        $repository = $this->restart($repository);
-        self::assertTrue($repository->getById($grant->getId())->isIssued());
-        self::assertTrue($repository->getById($grant->getId())->getAuthority()->equals($grant->getAuthority()));
+        $passwordResetGrantRepository = $this->restart($passwordResetGrantRepository);
+        self::assertTrue($passwordResetGrantRepository->getById($grant->getId())->isIssued());
+        self::assertTrue(
+            $passwordResetGrantRepository->getById($grant->getId())->getAuthority()->equals($grant->getAuthority())
+        );
     }
 
     public function test_successor_preserves_terminal_predecessor_binding(): void
     {
         $user = $this->user();
-        $repository = $this->repository($user);
+        $passwordResetGrantRepository = $this->repository($user);
         $grant = $this->grant($user, 'first');
         $successor = $this->grant($user, 'next');
         $terminal = $grant->revoke(new DateTimeImmutable('2030-01-01T12:00:00Z'));
-        $this->transaction(function () use ($repository, $grant, $terminal, $successor): void {
-            self::assertTrue($repository->add($grant));
-            self::assertFalse($repository->replaceWithSuccessor(
+        $this->transaction(function () use ($passwordResetGrantRepository, $grant, $terminal, $successor): void {
+            self::assertTrue($passwordResetGrantRepository->add($grant));
+            self::assertFalse($passwordResetGrantRepository->replaceWithSuccessor(
                 $this->withAuthority($grant, new RecoveryAuthority(7, 5)),
                 $terminal,
                 $successor
             ));
-            self::assertFalse($repository->replaceWithSuccessor(
+            self::assertFalse($passwordResetGrantRepository->replaceWithSuccessor(
                 $grant,
                 $this->withAuthority($terminal, new RecoveryAuthority(7, 5)),
                 $successor
             ));
-            self::assertTrue($repository->replaceWithSuccessor($grant, $terminal, $successor));
+            self::assertTrue($passwordResetGrantRepository->replaceWithSuccessor($grant, $terminal, $successor));
         });
-        $repository = $this->restart($repository);
-        $storedTerminal = $repository->getById($grant->getId());
+        $passwordResetGrantRepository = $this->restart($passwordResetGrantRepository);
+        $storedTerminal = $passwordResetGrantRepository->getById($grant->getId());
         self::assertTrue($storedTerminal->isRevoked());
         self::assertEquals($terminal->getRevokedAt(), $storedTerminal->getRevokedAt());
         self::assertTrue($terminal->getAuthority()->equals($storedTerminal->getAuthority()));
-        $storedSuccessor = $repository->getLatestByUserId($grant->getUserId());
+        $storedSuccessor = $passwordResetGrantRepository->getLatestByUserId($grant->getUserId());
         self::assertTrue($successor->getId()->equals($storedSuccessor->getId()));
         self::assertTrue($successor->getAuthority()->equals($storedSuccessor->getAuthority()));
-        $this->transaction(function () use ($repository, $grant, $terminal, $user): void {
-            self::assertFalse($repository->replace(
+        $this->transaction(function () use ($passwordResetGrantRepository, $grant, $terminal, $user): void {
+            self::assertFalse($passwordResetGrantRepository->replace(
                 $grant,
                 $grant->consume(new DateTimeImmutable('2030-01-01T12:01:00Z'))
             ));
-            self::assertFalse($repository->appendAfterTerminal(
+            self::assertFalse($passwordResetGrantRepository->appendAfterTerminal(
                 $this->withAuthority($terminal, new RecoveryAuthority(8, 4)),
                 $this->grant($user, 'third')
             ));
@@ -104,36 +106,40 @@ abstract class RecoveryAuthorityConformance extends TestCase
     public function test_admission_requires_persisted_user_authority_before_and_after_restart(): void
     {
         $user = $this->user();
-        $repository = $this->repository($user);
+        $passwordResetGrantRepository = $this->repository($user);
         $grant = $this->grant($user, 'first');
         $orphan = $this->grant($this->user(), 'orphan');
         for ($attempt = 0; $attempt < 2; ++$attempt) {
-            $this->transaction(function () use ($repository, $grant, $orphan): void {
-                self::assertFalse($repository->add($orphan));
-                self::assertFalse($repository->add($this->withAuthority($grant, new RecoveryAuthority(8, 4))));
-                self::assertFalse($repository->add($this->withAuthority($grant, new RecoveryAuthority(7, 5))));
-                self::assertNull($repository->getById($orphan->getId()));
-                self::assertNull($repository->getById($grant->getId()));
+            $this->transaction(function () use ($passwordResetGrantRepository, $grant, $orphan): void {
+                self::assertFalse($passwordResetGrantRepository->add($orphan));
+                self::assertFalse(
+                    $passwordResetGrantRepository->add($this->withAuthority($grant, new RecoveryAuthority(8, 4)))
+                );
+                self::assertFalse(
+                    $passwordResetGrantRepository->add($this->withAuthority($grant, new RecoveryAuthority(7, 5)))
+                );
+                self::assertNull($passwordResetGrantRepository->getById($orphan->getId()));
+                self::assertNull($passwordResetGrantRepository->getById($grant->getId()));
             });
-            $repository = $this->restart($repository);
+            $passwordResetGrantRepository = $this->restart($passwordResetGrantRepository);
         }
 
-        $this->transaction(static function () use ($repository, $grant): void {
-            self::assertTrue($repository->add($grant));
+        $this->transaction(static function () use ($passwordResetGrantRepository, $grant): void {
+            self::assertTrue($passwordResetGrantRepository->add($grant));
         });
-        $repository = $this->restart($repository);
-        $this->assertStoredGrant($grant, $repository->getById($grant->getId()));
+        $passwordResetGrantRepository = $this->restart($passwordResetGrantRepository);
+        $this->assertStoredGrant($grant, $passwordResetGrantRepository->getById($grant->getId()));
     }
 
     public function test_grant_write_rolls_back_with_the_shared_transaction(): void
     {
         $user = $this->user();
-        $repository = $this->repository($user);
+        $passwordResetGrantRepository = $this->repository($user);
         $grant = $this->grant($user, 'first');
         $failure = new RuntimeException('Conformance transaction interruption.');
         try {
-            $this->transaction(static function () use ($repository, $grant, $failure): void {
-                self::assertTrue($repository->add($grant));
+            $this->transaction(static function () use ($passwordResetGrantRepository, $grant, $failure): void {
+                self::assertTrue($passwordResetGrantRepository->add($grant));
 
                 throw $failure;
             });
@@ -142,13 +148,13 @@ abstract class RecoveryAuthorityConformance extends TestCase
             self::assertSame($failure, $runtimeException);
         }
 
-        $repository = $this->restart($repository);
-        self::assertNull($repository->getById($grant->getId()));
-        $this->transaction(static function () use ($repository, $grant): void {
-            self::assertTrue($repository->add($grant));
+        $passwordResetGrantRepository = $this->restart($passwordResetGrantRepository);
+        self::assertNull($passwordResetGrantRepository->getById($grant->getId()));
+        $this->transaction(static function () use ($passwordResetGrantRepository, $grant): void {
+            self::assertTrue($passwordResetGrantRepository->add($grant));
         });
-        $repository = $this->restart($repository);
-        $this->assertStoredGrant($grant, $repository->getById($grant->getId()));
+        $passwordResetGrantRepository = $this->restart($passwordResetGrantRepository);
+        $this->assertStoredGrant($grant, $passwordResetGrantRepository->getById($grant->getId()));
     }
 
     /**
@@ -162,7 +168,9 @@ abstract class RecoveryAuthorityConformance extends TestCase
     /**
      * Reopens both persisted User and grant state without issuing replacement authority
      */
-    abstract protected function restart(PasswordResetGrantRepository $repository): PasswordResetGrantRepository;
+    abstract protected function restart(
+        PasswordResetGrantRepository $passwordResetGrantRepository
+    ): PasswordResetGrantRepository;
 
     /**
      * Commits the operation or rolls it back and rethrows through the bound Unit of Work

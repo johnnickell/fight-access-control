@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Fight\Test\AccessControl\Application\AccessControl\Feature\Conformance;
 
-use Fight\AccessControl\Application\AccessControl\Feature\Service\FeatureReferenceDiscovery;
+use Fight\AccessControl\Application\AccessControl\Feature\Discovery\FeatureReferenceDiscovery;
 
 /**
  * Consumer binding for current-code discovery, shared transaction and expected-state Feature removal.

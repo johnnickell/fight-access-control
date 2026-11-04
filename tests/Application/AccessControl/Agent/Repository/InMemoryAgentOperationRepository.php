@@ -22,7 +22,7 @@ use Fight\AccessControl\Domain\AccessControl\Agent\Operation\AgentOperationLimit
 use Fight\AccessControl\Domain\AccessControl\Agent\Operation\AgentOperationRepository;
 use Fight\AccessControl\Domain\AccessControl\Agent\Operation\AgentOperationScope;
 use Fight\AccessControl\Domain\AccessControl\Agent\Query\AgentOperationView;
-use Fight\Test\AccessControl\Application\AccessControl\Agent\Service\InMemoryAgentOperationAuthorization;
+use Fight\Test\AccessControl\Application\AccessControl\Agent\Credential\InMemoryAgentOperationAuthorization;
 use Fight\Test\AccessControl\Application\AccessControl\User\InMemoryUnitOfWork;
 use LogicException;
 use SensitiveParameter;
@@ -56,7 +56,7 @@ final class InMemoryAgentOperationRepository implements AgentOperationRepository
 
     public bool $retirementLocked = false;
 
-    public ?InMemoryAgentRepository $agents = null;
+    public ?InMemoryAgentRepository $agentRepository = null;
 
     public ?Closure $beforeDeliveryWrite = null;
 
@@ -77,7 +77,7 @@ final class InMemoryAgentOperationRepository implements AgentOperationRepository
 
     public function __construct(
         private readonly InMemoryUnitOfWork $unitOfWork,
-        private readonly InMemoryAgentOperationAuthorization $authorization
+        private readonly InMemoryAgentOperationAuthorization $operationAuthorization
     ) {
         $this->contract = new InMemoryAgentOperationContract($unitOfWork);
     }
@@ -290,7 +290,7 @@ final class InMemoryAgentOperationRepository implements AgentOperationRepository
         }
 
         $this->retirementLocked = true;
-        $this->authorization->holdFence();
+        $this->operationAuthorization->holdFence();
         $this->unitOfWork->onCompletion(function (): void {
             $this->retirementLocked = false;
         });
@@ -330,7 +330,7 @@ final class InMemoryAgentOperationRepository implements AgentOperationRepository
         $key = $expected->getIssuance()->getKey()->toString();
         if (
             ($this->operations[$key] ?? null) !== $expected
-            || $this->agents?->getById($expectedAgent->getId()) !== $expectedAgent
+            || $this->agentRepository?->getById($expectedAgent->getId()) !== $expectedAgent
             || $replacement->getStateRevision() !== $expected->getStateRevision() + 1
             || $expected->getIssuance()->toArray() !== $replacement->getIssuance()->toArray()
             || !$expected->hasPendingDeliveryAtRevision($expected->getStateRevision())
@@ -359,7 +359,7 @@ final class InMemoryAgentOperationRepository implements AgentOperationRepository
     private function assertFenced(): void
     {
         $this->getOperationContract()->assertCompatible();
-        if (!$this->unitOfWork->transactionActive || !$this->authorization->locked) {
+        if (!$this->unitOfWork->transactionActive || !$this->operationAuthorization->locked) {
             throw new LogicException('Operation persistence must share authority fences and the package transaction.');
         }
     }

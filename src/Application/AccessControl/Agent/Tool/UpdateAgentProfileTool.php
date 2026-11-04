@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace Fight\AccessControl\Application\AccessControl\Agent\Tool;
 
 use Fight\AccessControl\Application\AccessControl\Agent\Attribute\RequiresAgentPermission;
-use Fight\AccessControl\Application\AccessControl\Agent\Security\CurrentAgentPrincipalProvider;
-use Fight\AccessControl\Application\AccessControl\Agent\Security\SignedAgentRequest;
+use Fight\AccessControl\Application\AccessControl\Agent\Authentication\CurrentAgentPrincipalProvider;
+use Fight\AccessControl\Application\AccessControl\Agent\Authentication\SignedAgentRequest;
 use Fight\AccessControl\Domain\AccessControl\Agent\AgentName;
 use Fight\AccessControl\Domain\AccessControl\Agent\AgentProfilePermissions;
 use Fight\AccessControl\Domain\AccessControl\Agent\AgentUpdateInitiator;
@@ -33,7 +33,7 @@ final readonly class UpdateAgentProfileTool implements McpTool
         private CurrentAgentPrincipalProvider $provider,
         #[SensitiveParameter] private SignedAgentRequest $request,
         private string $correlationId,
-        private SynchronousCommandBus $commands
+        private SynchronousCommandBus $synchronousCommandBus
     ) {
     }
 
@@ -64,7 +64,7 @@ final readonly class UpdateAgentProfileTool implements McpTool
         /** @var string $inputName */
         $inputName = $input->get('name');
         $name = AgentName::fromString($inputName);
-        $this->commands->execute(new UpdateAgent(new AgentUpdateInitiator($id), $id, $name->toString()));
+        $this->synchronousCommandBus->execute(new UpdateAgent(new AgentUpdateInitiator($id), $id, $name->toString()));
 
         return McpToolOutput::structured(['agent_id' => $id->toString(), 'name' => $name->toString()]);
     }

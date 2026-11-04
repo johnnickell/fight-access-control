@@ -38,14 +38,14 @@ final class InMemoryRoleRevisionConformanceTest extends RoleRevisionConformance
         return new InMemoryRoleRepository($this->unitOfWork, state: $this->state);
     }
 
-    protected function restart(RoleRepository $repository): RoleRepository
+    protected function restart(RoleRepository $roleRepository): RoleRepository
     {
         $storedRoles = $this->state->roles;
         $this->unitOfWork = new InMemoryUnitOfWork();
         $this->state = new InMemoryRoleRepositoryState();
-        $permissions = new InMemoryPermissionRepository($this->unitOfWork);
+        $permissionRepository = new InMemoryPermissionRepository($this->unitOfWork);
         foreach ($this->permissions as $permission) {
-            $permissions->add(clone $permission);
+            $permissionRepository->add(clone $permission);
         }
 
         foreach ($storedRoles as $index => $role) {

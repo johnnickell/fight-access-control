@@ -23,8 +23,10 @@ final readonly class ListFeaturesHandler implements QueryHandler
     /**
      * Constructs ListFeaturesHandler
      */
-    public function __construct(private FeatureRepository $features, private PermissionRepository $permissions)
-    {
+    public function __construct(
+        private FeatureRepository $featureRepository,
+        private PermissionRepository $permissionRepository
+    ) {
     }
 
     /**
@@ -44,12 +46,12 @@ final readonly class ListFeaturesHandler implements QueryHandler
     {
         /** @var ListFeatures $query */
         $query = $queryMessage->payload();
-        $page = $this->features->getAll($query->getPagination());
+        $page = $this->featureRepository->getAll($query->getPagination());
         $views = ArrayList::of(FeatureView::class);
         foreach ($page->records() as $feature) {
             $views->add(FeatureView::fromFeature(
                 $feature,
-                $this->permissions->getById($feature->getPermissionId())
+                $this->permissionRepository->getById($feature->getPermissionId())
             ));
         }
 

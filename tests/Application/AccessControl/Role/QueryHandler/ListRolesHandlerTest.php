@@ -39,7 +39,7 @@ final class ListRolesHandlerTest extends TestCase
             new DateTimeImmutable('2026-01-01T00:00:00+00:00')
         ));
 
-        $roles = new InMemoryRoleRepository(authorizationReferences: $authorizationReferences);
+        $roleRepository = new InMemoryRoleRepository(authorizationReferences: $authorizationReferences);
         $custom = Role::define(
             RoleId::fromString('018f0000-0000-7000-8000-000000000002'),
             RoleName::fromString('ROLE_EDITOR'),
@@ -52,10 +52,10 @@ final class ListRolesHandlerTest extends TestCase
             [$permissionId],
             new DateTimeImmutable('2026-01-01T00:00:00+00:00')
         );
-        $roles->add($custom);
-        $roles->add($managed);
+        $roleRepository->add($custom);
+        $roleRepository->add($managed);
 
-        $handler = new ListRolesHandler($roles);
+        $handler = new ListRolesHandler($roleRepository);
 
         self::assertSame(ListRoles::class, ListRolesHandler::queryRegistration());
         $resultSet = $handler->handle(QueryMessage::create(new ListRoles(new Pagination(1, 25))));
@@ -132,7 +132,7 @@ final class ListRolesHandlerTest extends TestCase
 
     public function test_that_pagination_selects_the_actual_second_page(): void
     {
-        $roles = new InMemoryRoleRepository();
+        $roleRepository = new InMemoryRoleRepository();
         $first = Role::define(
             RoleId::fromString('018f0000-0000-7000-8000-000000000004'),
             RoleName::fromString('ROLE_FIRST'),
@@ -145,10 +145,10 @@ final class ListRolesHandlerTest extends TestCase
             [],
             new DateTimeImmutable('2026-01-01T00:00:00+00:00')
         );
-        $roles->add($first);
-        $roles->add($second);
+        $roleRepository->add($first);
+        $roleRepository->add($second);
 
-        $handler = new ListRolesHandler($roles);
+        $handler = new ListRolesHandler($roleRepository);
 
         $resultSet = $handler->handle(QueryMessage::create(new ListRoles(new Pagination(2, 1))));
 

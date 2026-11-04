@@ -6,9 +6,9 @@ namespace Fight\Test\AccessControl\Adapter\Http\Symfony\EventSubscriber;
 
 use Closure;
 use Fight\AccessControl\Adapter\Http\Symfony\EventSubscriber\PermissionSubscriber;
-use Fight\AccessControl\Application\AccessControl\Authorization\AdmissionMode;
-use Fight\AccessControl\Application\AccessControl\Authorization\PermissionDeclaration;
-use Fight\AccessControl\Application\AccessControl\Authorization\Service\RequestAuthority;
+use Fight\AccessControl\Application\AccessControl\Authorization\Admission\AdmissionMode;
+use Fight\AccessControl\Application\AccessControl\Authorization\Admission\PermissionDeclaration;
+use Fight\AccessControl\Application\AccessControl\Authorization\Admission\RequestAuthority;
 use Fight\Common\Adapter\Http\Error\SafeHttpDiagnostics;
 use Fight\Common\Adapter\Http\Error\SafeHttpErrorPolicy;
 use Fight\Common\Adapter\Http\Error\SafeHttpProjector;
@@ -47,7 +47,7 @@ final readonly class NativeKernel
 {
     public HttpKernel $kernel;
 
-    public EventDispatcher $events;
+    public EventDispatcher $eventDispatcher;
 
     public RouteCollection $routes;
 
@@ -74,11 +74,11 @@ final readonly class NativeKernel
             '_controller'                => static fn(): Response => new Response('', 202),
             PermissionDeclaration::class => new PermissionDeclaration(AdmissionMode::PUBLIC)
         ]));
-        $this->events = new EventDispatcher();
+        $this->eventDispatcher = new EventDispatcher();
         $this->stack = new RequestStack();
         $matcher = new UrlMatcher($this->routes, new RequestContext());
-        $this->events->addSubscriber(new RouterListener($matcher, $this->stack));
-        $this->events->addSubscriber(new PermissionSubscriber($matcher, $authority));
+        $this->eventDispatcher->addSubscriber(new RouterListener($matcher, $this->stack));
+        $this->eventDispatcher->addSubscriber(new PermissionSubscriber($matcher, $authority));
 
         $validation = new readonly class (new ValidationService(), $this->trace) extends SymfonyValidationSubscriber {
             public function __construct(ValidationService $service, private NativeTrace $trace)
@@ -92,7 +92,7 @@ final readonly class NativeKernel
                 parent::validateControllerInput($event);
             }
         };
-        $this->events->addSubscriber($validation);
+        $this->eventDispatcher->addSubscriber($validation);
         $checker = new readonly class ($this->trace) implements AuthorizationCheckerInterface {
             public function __construct(private NativeTrace $trace)
             {
@@ -109,10 +109,10 @@ final readonly class NativeKernel
             }
         };
         // Symfony 8.1 dispatches IsGranted via its native controller-attribute listener.
-        $this->events->addSubscriber(new ControllerAttributesListener([
+        $this->eventDispatcher->addSubscriber(new ControllerAttributesListener([
             KernelEvents::CONTROLLER_ARGUMENTS => [IsGranted::class => true]
         ]));
-        $this->events->addSubscriber(new IsGrantedAttributeListener($checker));
+        $this->eventDispatcher->addSubscriber(new IsGrantedAttributeListener($checker));
 
         $arguments = new readonly class ($this->trace) implements ArgumentResolverInterface {
             public function __construct(private NativeTrace $trace)
@@ -150,7 +150,7 @@ final readonly class NativeKernel
             $diagnostics,
             $projector
         ));
-        $this->events->addListener(KernelEvents::EXCEPTION, $safe->onKernelException(...), 64);
+        $this->eventDispatcher->addListener(KernelEvents::EXCEPTION, $safe->onKernelException(...), 64);
         $logger = new class ($this->trace) extends ErrorListener {
             public function __construct(private readonly NativeTrace $trace)
             {
@@ -163,16 +163,16 @@ final readonly class NativeKernel
                 parent::logKernelException($event);
             }
         };
-        $this->events->addSubscriber($logger);
-        $this->events->addListener(KernelEvents::EXCEPTION, function (ExceptionEvent $event): void {
+        $this->eventDispatcher->addSubscriber($logger);
+        $this->eventDispatcher->addListener(KernelEvents::EXCEPTION, function (ExceptionEvent $event): void {
             $this->trace->events[] = 'delegated-html';
             $event->setResponse(new Response('Consumer-owned HTML, not qualified as redacted.', 500));
         }, -64);
-        $this->events->addListener(KernelEvents::RESPONSE, function (ResponseEvent $event): void {
+        $this->eventDispatcher->addListener(KernelEvents::RESPONSE, function (ResponseEvent $event): void {
             $this->trace->events[] = 'response';
             $event->getResponse()->headers->set('X-Lifecycle', 'preserved');
         });
-        $this->kernel = new HttpKernel($this->events, new ControllerResolver(), $this->stack, $arguments);
+        $this->kernel = new HttpKernel($this->eventDispatcher, new ControllerResolver(), $this->stack, $arguments);
     }
 
     public function request(Request $request, int $type = HttpKernel::MAIN_REQUEST): Response

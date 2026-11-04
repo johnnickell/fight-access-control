@@ -60,42 +60,46 @@ final class CustomRoleMembershipHandlerTest extends TestCase
         $permission = $this->permission();
         $role = $this->role();
         $unitOfWork = new InMemoryUnitOfWork();
-        $roles = new InMemoryRoleRepository($unitOfWork);
-        $roles->add($role);
+        $roleRepository = new InMemoryRoleRepository($unitOfWork);
+        $roleRepository->add($role);
 
-        $permissions = new InMemoryPermissionRepository($unitOfWork);
-        $permissions->add($permission);
+        $permissionRepository = new InMemoryPermissionRepository($unitOfWork);
+        $permissionRepository->add($permission);
 
         $grantedAt = new DateTimeImmutable('2026-08-23T12:00:00+00:00');
-        $events = new InMemoryEventDispatcher(function () use ($roles, $role, $permission, $unitOfWork): void {
-            self::assertTrue($roles->getById($role->getId())?->hasPermission($permission->getId()));
-            self::assertTrue($unitOfWork->transactionCompleted);
-        });
+        $eventDispatcher = new InMemoryEventDispatcher(
+            function () use ($roleRepository, $role, $permission, $unitOfWork): void {
+                self::assertTrue($roleRepository->getById($role->getId())?->hasPermission($permission->getId()));
+                self::assertTrue($unitOfWork->transactionCompleted);
+            }
+        );
         $grant = new GrantPermissionToCustomRole($this->actorId(), $role->getId(), $permission->getId());
 
-        $this->grantHandler($roles, $permissions, $unitOfWork, $events, now: $grantedAt)
+        $this->grantHandler($roleRepository, $permissionRepository, $unitOfWork, $eventDispatcher, now: $grantedAt)
             ->handle(CommandMessage::create($grant));
 
         self::assertSame(GrantPermissionToCustomRole::class, GrantPermissionToCustomRoleHandler::commandRegistration());
         self::assertSame(1, $unitOfWork->transactions);
-        self::assertInstanceOf(CustomRolePermissionGranted::class, $events->events()[0]);
-        $granted = $events->events()[0];
+        self::assertInstanceOf(CustomRolePermissionGranted::class, $eventDispatcher->events()[0]);
+        $granted = $eventDispatcher->events()[0];
         self::assertSame($grant->getActorId(), $granted->getActorId());
         self::assertSame($grant->getRoleId(), $granted->getRoleId());
         self::assertSame($grant->getPermissionId(), $granted->getPermissionId());
         self::assertSame($grantedAt, $granted->getGrantedAt());
-        $grantedRole = $roles->getById($role->getId());
+        $grantedRole = $roleRepository->getById($role->getId());
         self::assertInstanceOf(Role::class, $grantedRole);
         self::assertTrue($role->getRevision()->next()->equals($grantedRole->getRevision()));
 
         $revokedAt = new DateTimeImmutable('2026-08-23T13:00:00+00:00');
-        $events = new InMemoryEventDispatcher(function () use ($roles, $role, $permission, $unitOfWork): void {
-            self::assertFalse($roles->getById($role->getId())?->hasPermission($permission->getId()));
-            self::assertTrue($unitOfWork->transactionCompleted);
-        });
+        $eventDispatcher = new InMemoryEventDispatcher(
+            function () use ($roleRepository, $role, $permission, $unitOfWork): void {
+                self::assertFalse($roleRepository->getById($role->getId())?->hasPermission($permission->getId()));
+                self::assertTrue($unitOfWork->transactionCompleted);
+            }
+        );
         $revoke = new RevokePermissionFromCustomRole($this->actorId(), $role->getId(), $permission->getId());
 
-        $this->revokeHandler($roles, $permissions, $unitOfWork, $events, $revokedAt)
+        $this->revokeHandler($roleRepository, $permissionRepository, $unitOfWork, $eventDispatcher, $revokedAt)
             ->handle(CommandMessage::create($revoke));
 
         self::assertSame(
@@ -103,13 +107,13 @@ final class CustomRoleMembershipHandlerTest extends TestCase
             RevokePermissionFromCustomRoleHandler::commandRegistration()
         );
         self::assertSame(2, $unitOfWork->transactions);
-        self::assertInstanceOf(CustomRolePermissionRevoked::class, $events->events()[0]);
-        $revoked = $events->events()[0];
+        self::assertInstanceOf(CustomRolePermissionRevoked::class, $eventDispatcher->events()[0]);
+        $revoked = $eventDispatcher->events()[0];
         self::assertSame($revoke->getActorId(), $revoked->getActorId());
         self::assertSame($revoke->getRoleId(), $revoked->getRoleId());
         self::assertSame($revoke->getPermissionId(), $revoked->getPermissionId());
         self::assertSame($revokedAt, $revoked->getRevokedAt());
-        $revokedRole = $roles->getById($role->getId());
+        $revokedRole = $roleRepository->getById($role->getId());
         self::assertInstanceOf(Role::class, $revokedRole);
         self::assertTrue($grantedRole->getRevision()->next()->equals($revokedRole->getRevision()));
     }
@@ -131,28 +135,28 @@ final class CustomRoleMembershipHandlerTest extends TestCase
         foreach ($commands as [$command, $role]) {
             $updatedAt = $role->getUpdatedAt();
             $unitOfWork = new InMemoryUnitOfWork();
-            $roles = new InMemoryRoleRepository(
+            $roleRepository = new InMemoryRoleRepository(
                 $unitOfWork,
                 beforeReplace: static function (): void {
                     self::fail('An already satisfied membership command must not replace the role.');
                 }
             );
-            $permissions = new InMemoryPermissionRepository($unitOfWork);
-            $permissions->add($permission);
-            $roles->add($role);
-            $events = new InMemoryEventDispatcher();
+            $permissionRepository = new InMemoryPermissionRepository($unitOfWork);
+            $permissionRepository->add($permission);
+            $roleRepository->add($role);
+            $eventDispatcher = new InMemoryEventDispatcher();
             if ($command instanceof GrantPermissionToCustomRole) {
-                $handler = $this->grantHandler($roles, $permissions, $unitOfWork, $events);
+                $handler = $this->grantHandler($roleRepository, $permissionRepository, $unitOfWork, $eventDispatcher);
             } else {
-                $handler = $this->revokeHandler($roles, $permissions, $unitOfWork, $events);
+                $handler = $this->revokeHandler($roleRepository, $permissionRepository, $unitOfWork, $eventDispatcher);
             }
 
             $handler->handle(CommandMessage::create($command));
 
             self::assertSame(1, $unitOfWork->transactions);
-            self::assertSame($role, $roles->getById($role->getId()));
+            self::assertSame($role, $roleRepository->getById($role->getId()));
             self::assertSame($updatedAt, $role->getUpdatedAt());
-            self::assertSame([], $events->events());
+            self::assertSame([], $eventDispatcher->events());
         }
     }
 
@@ -207,33 +211,33 @@ final class CustomRoleMembershipHandlerTest extends TestCase
 
         foreach ($cases as [$case, $commandClass, $role, $permissionExists]) {
             $unitOfWork = new InMemoryUnitOfWork();
-            $permissions = new InMemoryPermissionRepository($unitOfWork);
+            $permissionRepository = new InMemoryPermissionRepository($unitOfWork);
             if ($permissionExists) {
-                $permissions->add($permission);
+                $permissionRepository->add($permission);
             }
 
             if (!$permissionExists) {
-                $roles = new ControllableRoleRepository($role);
+                $roleRepository = new ControllableRoleRepository($role);
             } else {
-                $roles = new InMemoryRoleRepository(
+                $roleRepository = new InMemoryRoleRepository(
                     $unitOfWork,
                     beforeReplace: static function () use ($commandClass): void {
                         self::fail($commandClass.' rejected no-op membership command must not replace the role.');
                     }
                 );
                 if ($role instanceof Role) {
-                    $roles->add($role);
+                    $roleRepository->add($role);
                 }
             }
 
-            $events = new InMemoryEventDispatcher();
+            $eventDispatcher = new InMemoryEventDispatcher();
             $roleId = $role instanceof Role ? $role->getId() : RoleId::generate();
             if ($commandClass === GrantPermissionToCustomRole::class) {
                 $command = new GrantPermissionToCustomRole($this->actorId(), $roleId, $permission->getId());
-                $handler = $this->grantHandler($roles, $permissions, $unitOfWork, $events);
+                $handler = $this->grantHandler($roleRepository, $permissionRepository, $unitOfWork, $eventDispatcher);
             } else {
                 $command = new RevokePermissionFromCustomRole($this->actorId(), $roleId, $permission->getId());
-                $handler = $this->revokeHandler($roles, $permissions, $unitOfWork, $events);
+                $handler = $this->revokeHandler($roleRepository, $permissionRepository, $unitOfWork, $eventDispatcher);
             }
 
             $failure = $this->captureFailure($handler->handle(...), $command);
@@ -241,8 +245,8 @@ final class CustomRoleMembershipHandlerTest extends TestCase
             self::assertInstanceOf(CustomRoleException::class, $failure);
             self::assertSame(1, $unitOfWork->transactions);
             self::assertFalse($unitOfWork->transactionCompleted);
-            self::assertSame($role, $roles->getById($roleId), $case);
-            $this->assertCommandFailure($events, $command, $failure);
+            self::assertSame($role, $roleRepository->getById($roleId), $case);
+            $this->assertCommandFailure($eventDispatcher, $command, $failure);
         }
     }
 
@@ -261,31 +265,31 @@ final class CustomRoleMembershipHandlerTest extends TestCase
         foreach ($cases as [$commandClass, $role, $eventClass]) {
             $unitOfWork = new InMemoryUnitOfWork();
             $fenceChecks = 0;
-            $roles = new InMemoryRoleRepository(
+            $roleRepository = new InMemoryRoleRepository(
                 $unitOfWork,
                 beforeReplace: static function () use ($unitOfWork, &$fenceChecks): void {
                     ++$fenceChecks;
                     self::assertTrue($unitOfWork->authorizationReferenceState()->isReferenceFenceHeld());
                 }
             );
-            $permissions = new InMemoryPermissionRepository($unitOfWork);
-            $permissions->add($permission);
-            $roles->add($role);
-            $events = new InMemoryEventDispatcher();
+            $permissionRepository = new InMemoryPermissionRepository($unitOfWork);
+            $permissionRepository->add($permission);
+            $roleRepository->add($role);
+            $eventDispatcher = new InMemoryEventDispatcher();
             if ($commandClass === GrantPermissionToCustomRole::class) {
                 $command = new GrantPermissionToCustomRole($this->actorId(), $role->getId(), $permission->getId());
-                $handler = $this->grantHandler($roles, $permissions, $unitOfWork, $events);
+                $handler = $this->grantHandler($roleRepository, $permissionRepository, $unitOfWork, $eventDispatcher);
             } else {
                 $command = new RevokePermissionFromCustomRole($this->actorId(), $role->getId(), $permission->getId());
-                $handler = $this->revokeHandler($roles, $permissions, $unitOfWork, $events);
+                $handler = $this->revokeHandler($roleRepository, $permissionRepository, $unitOfWork, $eventDispatcher);
             }
 
             $handler->handle(CommandMessage::create($command));
 
             self::assertSame(1, $fenceChecks);
             self::assertSame(1, $unitOfWork->transactions);
-            self::assertCount(1, $events->events());
-            self::assertInstanceOf($eventClass, $events->events()[0]);
+            self::assertCount(1, $eventDispatcher->events());
+            self::assertInstanceOf($eventClass, $eventDispatcher->events()[0]);
         }
     }
 
@@ -300,7 +304,7 @@ final class CustomRoleMembershipHandlerTest extends TestCase
         foreach ($cases as [$commandClass, $role]) {
             $replacementCalls = 0;
             $unitOfWork = new InMemoryUnitOfWork();
-            $roles = new InMemoryRoleRepository(
+            $roleRepository = new InMemoryRoleRepository(
                 $unitOfWork,
                 beforeReplace: static function () use (&$replacementCalls): void {
                     ++$replacementCalls;
@@ -310,16 +314,16 @@ final class CustomRoleMembershipHandlerTest extends TestCase
                     $unitOfWork->authorizationReferenceState()->removePermission($permission->getId());
                 }
             );
-            $permissions = new InMemoryPermissionRepository($unitOfWork);
-            $permissions->add($permission);
-            $roles->add($role);
+            $permissionRepository = new InMemoryPermissionRepository($unitOfWork);
+            $permissionRepository->add($permission);
+            $roleRepository->add($role);
             if ($commandClass === GrantPermissionToCustomRole::class) {
                 $command = new GrantPermissionToCustomRole($this->actorId(), $role->getId(), $permission->getId());
             } else {
                 $command = new RevokePermissionFromCustomRole($this->actorId(), $role->getId(), $permission->getId());
             }
 
-            $events = new InMemoryEventDispatcher(
+            $eventDispatcher = new InMemoryEventDispatcher(
                 static function ($event) use ($unitOfWork): void {
                     self::assertInstanceOf(CommandFailedEvent::class, $event);
                     self::assertFalse($unitOfWork->transactionActive);
@@ -327,9 +331,9 @@ final class CustomRoleMembershipHandlerTest extends TestCase
                 }
             );
             if ($command instanceof GrantPermissionToCustomRole) {
-                $handler = $this->grantHandler($roles, $permissions, $unitOfWork, $events);
+                $handler = $this->grantHandler($roleRepository, $permissionRepository, $unitOfWork, $eventDispatcher);
             } else {
-                $handler = $this->revokeHandler($roles, $permissions, $unitOfWork, $events);
+                $handler = $this->revokeHandler($roleRepository, $permissionRepository, $unitOfWork, $eventDispatcher);
             }
 
             $updatedAt = $role->getUpdatedAt();
@@ -338,11 +342,11 @@ final class CustomRoleMembershipHandlerTest extends TestCase
 
             self::assertInstanceOf(CustomRoleException::class, $failure);
             self::assertSame('The authoritative permission changed concurrently.', $failure->getMessage());
-            self::assertSame($role, $roles->getById($role->getId()));
+            self::assertSame($role, $roleRepository->getById($role->getId()));
             self::assertSame($updatedAt, $role->getUpdatedAt());
             self::assertSame(0, $replacementCalls);
             self::assertSame(1, $unitOfWork->transactions);
-            $this->assertCommandFailure($events, $command, $failure);
+            $this->assertCommandFailure($eventDispatcher, $command, $failure);
         }
     }
 
@@ -351,15 +355,21 @@ final class CustomRoleMembershipHandlerTest extends TestCase
         foreach ([false, true] as $noOp) {
             $unitOfWork = new InMemoryUnitOfWork();
             $permission = $this->managedPermission();
-            $permissions = new InMemoryPermissionRepository($unitOfWork);
-            $permissions->add($permission);
+            $permissionRepository = new InMemoryPermissionRepository($unitOfWork);
+            $permissionRepository->add($permission);
             $role = $this->role($noOp ? [$permission->getId()] : []);
             $protected = $permission->reconcileManaged(
                 $permission->getName(),
                 PermissionTier::SUPER_ADMIN_ONLY,
                 new DateTimeImmutable('2026-08-23T00:00:00+00:00')
             );
-            $promote = static function () use ($permissions, $permission, $protected, $unitOfWork, $noOp): void {
+            $promote = static function () use (
+                $permissionRepository,
+                $permission,
+                $protected,
+                $unitOfWork,
+                $noOp
+            ): void {
                 self::assertTrue($unitOfWork->authorizationReferenceState()->isReferenceFenceHeld());
                 if ($noOp) {
                     // Model a stale authoritative tier snapshot: promotion itself now rejects live membership.
@@ -368,26 +378,26 @@ final class CustomRoleMembershipHandlerTest extends TestCase
                     return;
                 }
 
-                self::assertTrue($permissions->replace($permission, $protected));
+                self::assertTrue($permissionRepository->replace($permission, $protected));
             };
-            $roles = new InMemoryRoleRepository(
+            $roleRepository = new InMemoryRoleRepository(
                 $unitOfWork,
                 beforeReplace: $noOp ? null : $promote,
                 beforeValidatePermissionReference: $noOp ? $promote : null
             );
-            $roles->add($role);
-            $events = new InMemoryEventDispatcher();
+            $roleRepository->add($role);
+            $eventDispatcher = new InMemoryEventDispatcher();
             $command = new GrantPermissionToCustomRole($this->actorId(), $role->getId(), $permission->getId());
             $failure = $this->captureFailure(
-                $this->grantHandler($roles, $permissions, $unitOfWork, $events)->handle(...),
+                $this->grantHandler($roleRepository, $permissionRepository, $unitOfWork, $eventDispatcher)->handle(...),
                 $command
             );
 
             self::assertInstanceOf(CustomRoleException::class, $failure);
-            self::assertSame($role, $roles->getById($role->getId()));
-            self::assertSame($permission, $permissions->getById($permission->getId()));
+            self::assertSame($role, $roleRepository->getById($role->getId()));
+            self::assertSame($permission, $permissionRepository->getById($permission->getId()));
             self::assertFalse($unitOfWork->transactionCompleted);
-            $this->assertCommandFailure($events, $command, $failure);
+            $this->assertCommandFailure($eventDispatcher, $command, $failure);
         }
     }
 
@@ -395,23 +405,29 @@ final class CustomRoleMembershipHandlerTest extends TestCase
     {
         $role = $this->role();
         $unitOfWork = new InMemoryUnitOfWork();
-        $roles = new InMemoryRoleRepository($unitOfWork);
-        $roles->add($role);
+        $roleRepository = new InMemoryRoleRepository($unitOfWork);
+        $roleRepository->add($role);
 
         $removedAt = new DateTimeImmutable('2026-08-23T14:00:00+00:00');
-        $events = new InMemoryEventDispatcher(function () use ($roles, $role, $unitOfWork): void {
-            self::assertNull($roles->getById($role->getId()));
+        $eventDispatcher = new InMemoryEventDispatcher(function () use ($roleRepository, $role, $unitOfWork): void {
+            self::assertNull($roleRepository->getById($role->getId()));
             self::assertTrue($unitOfWork->transactionCompleted);
         });
         $command = new RemoveCustomRole($this->actorId(), $role->getId(), $role->getRevision());
-        $handler = $this->removeHandler($roles, new InMemoryUserRepository(), $unitOfWork, $events, now: $removedAt);
+        $handler = $this->removeHandler(
+            $roleRepository,
+            new InMemoryUserRepository(),
+            $unitOfWork,
+            $eventDispatcher,
+            now: $removedAt
+        );
 
         $handler->handle(CommandMessage::create($command));
 
         self::assertSame(RemoveCustomRole::class, RemoveCustomRoleHandler::commandRegistration());
         self::assertSame(1, $unitOfWork->transactions);
-        self::assertInstanceOf(CustomRoleRemoved::class, $events->events()[0]);
-        $removed = $events->events()[0];
+        self::assertInstanceOf(CustomRoleRemoved::class, $eventDispatcher->events()[0]);
+        $removed = $eventDispatcher->events()[0];
         self::assertSame($command->getActorId(), $removed->getActorId());
         self::assertSame($command->getRoleId(), $removed->getRoleId());
         self::assertSame($removedAt, $removed->getRemovedAt());
@@ -421,33 +437,33 @@ final class CustomRoleMembershipHandlerTest extends TestCase
     {
         $unitOfWork = new InMemoryUnitOfWork();
         $permission = $this->permission();
-        $permissions = new InMemoryPermissionRepository($unitOfWork);
-        $permissions->add($permission);
+        $permissionRepository = new InMemoryPermissionRepository($unitOfWork);
+        $permissionRepository->add($permission);
 
-        $roles = null;
-        $roles = new InMemoryRoleRepository(
+        $roleRepository = null;
+        $roleRepository = new InMemoryRoleRepository(
             $unitOfWork,
-            beforeReplace: static function () use (&$roles, $permission, $permissions): void {
-                self::assertInstanceOf(InMemoryRoleRepository::class, $roles);
-                self::assertTrue($permissions->remove($permission));
+            beforeReplace: static function () use (&$roleRepository, $permission, $permissionRepository): void {
+                self::assertInstanceOf(InMemoryRoleRepository::class, $roleRepository);
+                self::assertTrue($permissionRepository->remove($permission));
             }
         );
         $role = $this->role();
-        $roles->add($role);
-        $events = new InMemoryEventDispatcher();
+        $roleRepository->add($role);
+        $eventDispatcher = new InMemoryEventDispatcher();
         $command = new GrantPermissionToCustomRole($this->actorId(), $role->getId(), $permission->getId());
 
         $failure = $this->captureFailure(
-            $this->grantHandler($roles, $permissions, $unitOfWork, $events)->handle(...),
+            $this->grantHandler($roleRepository, $permissionRepository, $unitOfWork, $eventDispatcher)->handle(...),
             $command
         );
 
         self::assertInstanceOf(CustomRoleException::class, $failure);
         self::assertSame('The custom role changed concurrently.', $failure->getMessage());
-        self::assertInstanceOf(Permission::class, $permissions->getById($permission->getId()));
-        self::assertFalse($roles->getById($role->getId())?->hasPermission($permission->getId()));
+        self::assertInstanceOf(Permission::class, $permissionRepository->getById($permission->getId()));
+        self::assertFalse($roleRepository->getById($role->getId())?->hasPermission($permission->getId()));
         self::assertFalse($unitOfWork->transactionCompleted);
-        $this->assertCommandFailure($events, $command, $failure);
+        $this->assertCommandFailure($eventDispatcher, $command, $failure);
     }
 
     public function test_protected_grants_fail_for_any_actor_without_forbidden_existing_membership(): void
@@ -464,33 +480,38 @@ final class CustomRoleMembershipHandlerTest extends TestCase
         foreach ([$this->actorId(), $superAdmin->getId()] as $actorId) {
                 $unitOfWork = new InMemoryUnitOfWork();
                 $permission = $this->managedPermission();
-                $permissions = new InMemoryPermissionRepository($unitOfWork);
-                $permissions->add($permission);
+                $permissionRepository = new InMemoryPermissionRepository($unitOfWork);
+                $permissionRepository->add($permission);
                 $role = $this->role();
-                $roles = new InMemoryRoleRepository(
+                $roleRepository = new InMemoryRoleRepository(
                     $unitOfWork,
                     beforeReplace: static function (): void {
                         self::fail('A protected grant cannot write the Role.');
                     }
                 );
-                $roles->add($role);
+                $roleRepository->add($role);
                 $protected = $permission->reconcileManaged(
                     $permission->getName(),
                     PermissionTier::SUPER_ADMIN_ONLY,
                     $permission->getUpdatedAt()
                 );
-                self::assertTrue($permissions->replace($permission, $protected));
-                $events = new InMemoryEventDispatcher();
+                self::assertTrue($permissionRepository->replace($permission, $protected));
+                $eventDispatcher = new InMemoryEventDispatcher();
                 $command = new GrantPermissionToCustomRole($actorId, $role->getId(), $permission->getId());
                 $failure = $this->captureFailure(
-                    $this->grantHandler($roles, $permissions, $unitOfWork, $events)->handle(...),
+                    $this->grantHandler(
+                        $roleRepository,
+                        $permissionRepository,
+                        $unitOfWork,
+                        $eventDispatcher
+                    )->handle(...),
                     $command
                 );
 
                 self::assertInstanceOf(CustomRoleException::class, $failure);
-                self::assertSame($role, $roles->getById($role->getId()));
+                self::assertSame($role, $roleRepository->getById($role->getId()));
                 self::assertFalse($unitOfWork->transactionCompleted);
-                $this->assertCommandFailure($events, $command, $failure);
+                $this->assertCommandFailure($eventDispatcher, $command, $failure);
         }
     }
 
@@ -524,15 +545,15 @@ final class CustomRoleMembershipHandlerTest extends TestCase
 
         foreach ($cases as [$command, $seedRole, $seedPermission]) {
             $unitOfWork = new InMemoryUnitOfWork();
-            $permissions = new InMemoryPermissionRepository($unitOfWork);
+            $permissionRepository = new InMemoryPermissionRepository($unitOfWork);
             if ($seedPermission instanceof Permission) {
-                $permissions->add($seedPermission);
+                $permissionRepository->add($seedPermission);
             }
 
             if ($seedRole instanceof Role) {
                 foreach ($seedRole->getPermissionIds() as $seedPermissionId) {
-                    if (!$permissions->getById($seedPermissionId) instanceof Permission) {
-                        $permissions->add(Permission::define(
+                    if (!$permissionRepository->getById($seedPermissionId) instanceof Permission) {
+                        $permissionRepository->add(Permission::define(
                             $seedPermissionId,
                             PermissionName::fromString('EXISTING_PERMISSION'),
                             new DateTimeImmutable('2026-08-22T00:00:00+00:00')
@@ -541,22 +562,22 @@ final class CustomRoleMembershipHandlerTest extends TestCase
                 }
             }
 
-            $roles = new InMemoryRoleRepository($unitOfWork);
+            $roleRepository = new InMemoryRoleRepository($unitOfWork);
             if ($seedRole instanceof Role) {
-                $roles->add($seedRole);
+                $roleRepository->add($seedRole);
             }
 
-            $events = new InMemoryEventDispatcher();
+            $eventDispatcher = new InMemoryEventDispatcher();
             if ($command instanceof GrantPermissionToCustomRole) {
-                $handler = $this->grantHandler($roles, $permissions, $unitOfWork, $events);
+                $handler = $this->grantHandler($roleRepository, $permissionRepository, $unitOfWork, $eventDispatcher);
             } else {
-                $handler = $this->revokeHandler($roles, $permissions, $unitOfWork, $events);
+                $handler = $this->revokeHandler($roleRepository, $permissionRepository, $unitOfWork, $eventDispatcher);
             }
 
             $failure = $this->captureFailure($handler->handle(...), $command);
 
             self::assertInstanceOf(CustomRoleException::class, $failure);
-            $this->assertCommandFailure($events, $command, $failure);
+            $this->assertCommandFailure($eventDispatcher, $command, $failure);
         }
     }
 
@@ -565,28 +586,28 @@ final class CustomRoleMembershipHandlerTest extends TestCase
         foreach ([true, false] as $wrongRole) {
             $requestedRole = RoleId::generate();
             $requestedPermission = PermissionId::generate();
-            $roles = $this->createMock(RoleRepository::class);
-            $roles->method('getById')->willReturn($this->role());
-            $roles->expects(self::never())->method('replace');
-            $permissions = $this->createMock(PermissionRepository::class);
+            $roleRepository = $this->createMock(RoleRepository::class);
+            $roleRepository->method('getById')->willReturn($this->role());
+            $roleRepository->expects(self::never())->method('replace');
+            $permissionRepository = $this->createMock(PermissionRepository::class);
             if ($wrongRole) {
-                $permissions->expects(self::never())->method('getById');
+                $permissionRepository->expects(self::never())->method('getById');
             } else {
                 $requestedRole = $this->role()->getId();
-                $permissions->expects(self::once())->method('getById')->willReturn($this->permission());
+                $permissionRepository->expects(self::once())->method('getById')->willReturn($this->permission());
             }
 
-            $events = new InMemoryEventDispatcher();
+            $eventDispatcher = new InMemoryEventDispatcher();
             $unitOfWork = new InMemoryUnitOfWork();
             $command = new GrantPermissionToCustomRole($this->actorId(), $requestedRole, $requestedPermission);
             $failure = $this->captureFailure(
-                $this->grantHandler($roles, $permissions, $unitOfWork, $events)->handle(...),
+                $this->grantHandler($roleRepository, $permissionRepository, $unitOfWork, $eventDispatcher)->handle(...),
                 $command
             );
 
             self::assertInstanceOf(CustomRoleException::class, $failure);
             self::assertFalse($unitOfWork->transactionCompleted);
-            $this->assertCommandFailure($events, $command, $failure);
+            $this->assertCommandFailure($eventDispatcher, $command, $failure);
         }
     }
 
@@ -607,46 +628,46 @@ final class CustomRoleMembershipHandlerTest extends TestCase
 
         foreach ($commands as $command) {
             $unitOfWork = new InMemoryUnitOfWork();
-            $permissions = new InMemoryPermissionRepository($unitOfWork);
-            $permissions->add($permission);
+            $permissionRepository = new InMemoryPermissionRepository($unitOfWork);
+            $permissionRepository->add($permission);
             if ($command instanceof GrantPermissionToCustomRole) {
-                $permissions->add(Permission::define(
+                $permissionRepository->add(Permission::define(
                     $command->getPermissionId(),
                     PermissionName::fromString('SECOND_PERMISSION'),
                     new DateTimeImmutable('2026-08-22T00:00:00+00:00')
                 ));
             }
 
-            $roles = new InMemoryRoleRepository($unitOfWork);
-            $roles->add($role);
+            $roleRepository = new InMemoryRoleRepository($unitOfWork);
+            $roleRepository->add($role);
 
-            $events = new InMemoryEventDispatcher();
+            $eventDispatcher = new InMemoryEventDispatcher();
             $handler = match ($command::class) {
                 GrantPermissionToCustomRole::class => $this->grantHandler(
-                    $roles,
-                    $permissions,
+                    $roleRepository,
+                    $permissionRepository,
                     $unitOfWork,
-                    $events
+                    $eventDispatcher
                 ),
                 RevokePermissionFromCustomRole::class => $this->revokeHandler(
-                    $roles,
-                    $permissions,
+                    $roleRepository,
+                    $permissionRepository,
                     $unitOfWork,
-                    $events
+                    $eventDispatcher
                 ),
                 RemoveCustomRole::class => $this->removeHandler(
-                    $roles,
+                    $roleRepository,
                     new InMemoryUserRepository(),
                     new InMemoryUnitOfWork(),
-                    $events
+                    $eventDispatcher
                 ),
             };
 
             $failure = $this->captureFailure($handler->handle(...), $command);
 
             self::assertInstanceOf(CustomRoleException::class, $failure);
-            self::assertSame($role, $roles->getById($role->getId()));
-            $this->assertCommandFailure($events, $command, $failure);
+            self::assertSame($role, $roleRepository->getById($role->getId()));
+            $this->assertCommandFailure($eventDispatcher, $command, $failure);
         }
     }
 
@@ -663,39 +684,39 @@ final class CustomRoleMembershipHandlerTest extends TestCase
 
         foreach ($commands as $command) {
             $seed = $command instanceof RevokePermissionFromCustomRole ? $roleWithPermission : $emptyRole;
-            $roles = new ControllableRoleRepository(
+            $roleRepository = new ControllableRoleRepository(
                 $seed,
                 replaceSucceeds: false,
                 removeSucceeds: false
             );
-            $permissions = new InMemoryPermissionRepository();
-            $permissions->add($permission);
-            $events = new InMemoryEventDispatcher();
+            $permissionRepository = new InMemoryPermissionRepository();
+            $permissionRepository->add($permission);
+            $eventDispatcher = new InMemoryEventDispatcher();
             $handler = match ($command::class) {
                 GrantPermissionToCustomRole::class => $this->grantHandler(
-                    $roles,
-                    $permissions,
+                    $roleRepository,
+                    $permissionRepository,
                     new InMemoryUnitOfWork(),
-                    $events
+                    $eventDispatcher
                 ),
                 RevokePermissionFromCustomRole::class => $this->revokeHandler(
-                    $roles,
-                    $permissions,
+                    $roleRepository,
+                    $permissionRepository,
                     new InMemoryUnitOfWork(),
-                    $events
+                    $eventDispatcher
                 ),
                 RemoveCustomRole::class => $this->removeHandler(
-                    $roles,
+                    $roleRepository,
                     new InMemoryUserRepository(),
                     new InMemoryUnitOfWork(),
-                    $events
+                    $eventDispatcher
                 ),
             };
 
             $failure = $this->captureFailure($handler->handle(...), $command);
 
             self::assertInstanceOf(CustomRoleException::class, $failure);
-            $this->assertCommandFailure($events, $command, $failure);
+            $this->assertCommandFailure($eventDispatcher, $command, $failure);
         }
     }
 
@@ -707,19 +728,19 @@ final class CustomRoleMembershipHandlerTest extends TestCase
         $userRepository = new InMemoryUserRepository($unitOfWork);
         $userRepository->add(UserFixture::withRoleAssignments([$role->getId()], 1));
         foreach ([new InMemoryRoleRepository(), $this->rolesContaining($role)] as $roles) {
-            $events = new InMemoryEventDispatcher();
+            $eventDispatcher = new InMemoryEventDispatcher();
             $command = new RemoveCustomRole($this->actorId(), $role->getId(), $role->getRevision());
             $handler = $this->removeHandler(
                 $roles,
                 $userRepository,
                 new InMemoryUnitOfWork(),
-                $events
+                $eventDispatcher
             );
 
             $failure = $this->captureFailure($handler->handle(...), $command);
 
             self::assertInstanceOf(CustomRoleException::class, $failure);
-            $this->assertCommandFailure($events, $command, $failure);
+            $this->assertCommandFailure($eventDispatcher, $command, $failure);
         }
     }
 
@@ -728,7 +749,7 @@ final class CustomRoleMembershipHandlerTest extends TestCase
         $role = $this->role();
         $unitOfWork = new InMemoryUnitOfWork();
         $referenceChecks = 0;
-        $users = new InMemoryUserRepository(
+        $userRepository = new InMemoryUserRepository(
             $unitOfWork,
             beforeHasRoleAssignment: static function () use (&$referenceChecks): bool {
                 ++$referenceChecks;
@@ -736,35 +757,35 @@ final class CustomRoleMembershipHandlerTest extends TestCase
                 return false;
             }
         );
-        $roles = new InMemoryRoleRepository(
+        $roleRepository = new InMemoryRoleRepository(
             $unitOfWork,
-            beforeRemove: static function () use ($role, $unitOfWork, $users): void {
+            beforeRemove: static function () use ($role, $unitOfWork, $userRepository): void {
                 self::assertTrue($unitOfWork->authorizationReferenceState()->isReferenceFenceHeld());
-                $users->add(UserFixture::withRoleAssignments([$role->getId()], 1));
+                $userRepository->add(UserFixture::withRoleAssignments([$role->getId()], 1));
             }
         );
-        $roles->add($role);
+        $roleRepository->add($role);
 
-        $events = new InMemoryEventDispatcher();
+        $eventDispatcher = new InMemoryEventDispatcher();
         $command = new RemoveCustomRole($this->actorId(), $role->getId(), $role->getRevision());
 
         $failure = $this->captureFailure(
-            $this->removeHandler($roles, $users, $unitOfWork, $events)->handle(...),
+            $this->removeHandler($roleRepository, $userRepository, $unitOfWork, $eventDispatcher)->handle(...),
             $command
         );
 
         self::assertInstanceOf(CustomRoleException::class, $failure);
         self::assertSame(1, $referenceChecks);
-        self::assertSame($role, $roles->getById($role->getId()));
-        $this->assertCommandFailure($events, $command, $failure);
+        self::assertSame($role, $roleRepository->getById($role->getId()));
+        $this->assertCommandFailure($eventDispatcher, $command, $failure);
     }
 
     public function test_each_handler_rethrows_the_identical_repository_failure(): void
     {
         $expected = new RuntimeException('role read failed');
         $permission = $this->permission();
-        $permissions = new InMemoryPermissionRepository();
-        $permissions->add($permission);
+        $permissionRepository = new InMemoryPermissionRepository();
+        $permissionRepository->add($permission);
 
         $commands = [
             new GrantPermissionToCustomRole($this->actorId(), RoleId::generate(), $permission->getId()),
@@ -773,33 +794,33 @@ final class CustomRoleMembershipHandlerTest extends TestCase
         ];
 
         foreach ($commands as $command) {
-            $roles = new ControllableRoleRepository(getFailure: $expected);
-            $events = new InMemoryEventDispatcher();
+            $roleRepository = new ControllableRoleRepository(getFailure: $expected);
+            $eventDispatcher = new InMemoryEventDispatcher();
             $handler = match ($command::class) {
                 GrantPermissionToCustomRole::class => $this->grantHandler(
-                    $roles,
-                    $permissions,
+                    $roleRepository,
+                    $permissionRepository,
                     new InMemoryUnitOfWork(),
-                    $events
+                    $eventDispatcher
                 ),
                 RevokePermissionFromCustomRole::class => $this->revokeHandler(
-                    $roles,
-                    $permissions,
+                    $roleRepository,
+                    $permissionRepository,
                     new InMemoryUnitOfWork(),
-                    $events
+                    $eventDispatcher
                 ),
                 RemoveCustomRole::class => $this->removeHandler(
-                    $roles,
+                    $roleRepository,
                     new InMemoryUserRepository(),
                     new InMemoryUnitOfWork(),
-                    $events
+                    $eventDispatcher
                 ),
             };
 
             $actual = $this->captureFailure($handler->handle(...), $command);
 
             self::assertSame($expected, $actual);
-            $this->assertCommandFailure($events, $command, $expected);
+            $this->assertCommandFailure($eventDispatcher, $command, $expected);
         }
     }
 
@@ -870,57 +891,57 @@ final class CustomRoleMembershipHandlerTest extends TestCase
 
     private function rolesContaining(Role $role): InMemoryRoleRepository
     {
-        $roles = new InMemoryRoleRepository();
-        $roles->add($role);
+        $roleRepository = new InMemoryRoleRepository();
+        $roleRepository->add($role);
 
-        return $roles;
+        return $roleRepository;
     }
 
     private function grantHandler(
-        RoleRepository $roles,
-        PermissionRepository $permissions,
+        RoleRepository $roleRepository,
+        PermissionRepository $permissionRepository,
         InMemoryUnitOfWork $unitOfWork,
-        InMemoryEventDispatcher $events,
+        InMemoryEventDispatcher $eventDispatcher,
         DateTimeImmutable|string $now = '2026-08-23T12:00:00+00:00'
     ): GrantPermissionToCustomRoleHandler {
         return new GrantPermissionToCustomRoleHandler(
-            $roles,
-            $permissions,
+            $roleRepository,
+            $permissionRepository,
             new FixedClock($now),
             $unitOfWork,
-            $events
+            $eventDispatcher
         );
     }
 
     private function revokeHandler(
-        RoleRepository $roles,
-        InMemoryPermissionRepository $permissions,
+        RoleRepository $roleRepository,
+        InMemoryPermissionRepository $permissionRepository,
         InMemoryUnitOfWork $unitOfWork,
-        InMemoryEventDispatcher $events,
+        InMemoryEventDispatcher $eventDispatcher,
         DateTimeImmutable|string $now = '2026-08-23T12:00:00+00:00'
     ): RevokePermissionFromCustomRoleHandler {
         return new RevokePermissionFromCustomRoleHandler(
-            $roles,
-            $permissions,
+            $roleRepository,
+            $permissionRepository,
             new FixedClock($now),
             $unitOfWork,
-            $events
+            $eventDispatcher
         );
     }
 
     private function removeHandler(
-        RoleRepository $roles,
-        InMemoryUserRepository $users,
+        RoleRepository $roleRepository,
+        InMemoryUserRepository $userRepository,
         InMemoryUnitOfWork $unitOfWork,
-        InMemoryEventDispatcher $events,
+        InMemoryEventDispatcher $eventDispatcher,
         DateTimeImmutable|string $now = '2026-08-23T12:00:00+00:00'
     ): RemoveCustomRoleHandler {
         return new RemoveCustomRoleHandler(
-            $roles,
-            $users,
+            $roleRepository,
+            $userRepository,
             new FixedClock($now),
             $unitOfWork,
-            $events
+            $eventDispatcher
         );
     }
 
@@ -936,20 +957,20 @@ final class CustomRoleMembershipHandlerTest extends TestCase
     }
 
     private function assertCommandFailure(
-        InMemoryEventDispatcher $events,
+        InMemoryEventDispatcher $eventDispatcher,
         Command $command,
         Throwable $throwable
     ): void {
-        self::assertCount(1, $events->events());
-        self::assertInstanceOf(CommandFailedEvent::class, $events->events()[0]);
-        self::assertSame($command, $events->events()[0]->getCommand());
+        self::assertCount(1, $eventDispatcher->events());
+        self::assertInstanceOf(CommandFailedEvent::class, $eventDispatcher->events()[0]);
+        self::assertSame($command, $eventDispatcher->events()[0]->getCommand());
         $message = match ($command::class) {
             GrantPermissionToCustomRole::class => 'Custom role permission grant failed.',
             RevokePermissionFromCustomRole::class => 'Custom role permission revocation failed.',
             RemoveCustomRole::class => 'Custom role removal failed.',
             default => throw new LogicException('Unsupported custom role command.')
         };
-        self::assertSame($message, $events->events()[0]->getErrorMessage());
-        self::assertNotSame($throwable->getMessage(), $events->events()[0]->getErrorMessage());
+        self::assertSame($message, $eventDispatcher->events()[0]->getErrorMessage());
+        self::assertNotSame($throwable->getMessage(), $eventDispatcher->events()[0]->getErrorMessage());
     }
 }

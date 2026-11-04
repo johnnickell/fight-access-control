@@ -72,10 +72,10 @@ final class DeliveryFailureCompositionTest extends TestCase
         string $phase
     ): void {
         $unitOfWork = new InMemoryUnitOfWork();
-        $users = new InMemoryUserRepository($unitOfWork);
+        $userRepository = new InMemoryUserRepository($unitOfWork);
         $user = UserFixture::withState('person@example.test', UserState::ACTIVE);
-        $users->add($user);
-        $audit = new InMemoryAuditEvidenceRepository($unitOfWork);
+        $userRepository->add($user);
+        $auditEvidenceRepository = new InMemoryAuditEvidenceRepository($unitOfWork);
         $primary = new RuntimeException('Synthetic operation detail. delivery-once ciphertext:delivery-once');
         $unitOfWork->beforeCommit = static function () use ($phase, $unitOfWork, $primary): void {
             if (
@@ -87,7 +87,7 @@ final class DeliveryFailureCompositionTest extends TestCase
         };
         $attempts = [];
         $subscriber = null;
-        $events = new InMemoryEventDispatcher(static function (Event $event) use (
+        $eventDispatcher = new InMemoryEventDispatcher(static function (Event $event) use (
             &$attempts,
             &$subscriber,
             $primary
@@ -118,26 +118,26 @@ final class DeliveryFailureCompositionTest extends TestCase
             self::assertFalse($unitOfWork->transactionActive);
         });
         if ($emailChange) {
-            $grants = new InMemoryEmailChangeGrantRepository($unitOfWork);
+            $passwordResetGrantRepository = new InMemoryEmailChangeGrantRepository($unitOfWork);
             $worker = new DeliverEmailChangeHandler(
-                $grants,
-                $audit,
+                $passwordResetGrantRepository,
+                $auditEvidenceRepository,
                 $unitOfWork,
                 new PrefixEmailChangeDeliveryCipher(),
                 $provider,
                 $clock,
-                $events
+                $eventDispatcher
             );
             $request = new RequestEmailChangeHandler(
-                $users,
-                $grants,
+                $userRepository,
+                $passwordResetGrantRepository,
                 new EmailService\FixedEmailChangeAdministrationAuthorization(true),
-                $audit,
+                $auditEvidenceRepository,
                 $unitOfWork,
                 new FixedEmailChangeCredentialGenerator('delivery-once'),
                 new PrefixEmailChangeDeliveryCipher(),
                 $clock,
-                $events
+                $eventDispatcher
             );
             $command = new RequestEmailChange(
                 UserId::generate(),
@@ -145,37 +145,37 @@ final class DeliveryFailureCompositionTest extends TestCase
                 EmailAddress::fromString('new@example.test')
             );
         } else {
-            $grants = new InMemoryPasswordResetGrants($unitOfWork);
+            $passwordResetGrantRepository = new InMemoryPasswordResetGrants($unitOfWork);
             $worker = new DeliverPasswordResetHandler(
-                $grants,
-                $audit,
+                $passwordResetGrantRepository,
+                $auditEvidenceRepository,
                 $unitOfWork,
                 new PrefixPasswordResetDeliveryCipher(),
                 $provider,
                 $clock,
-                $events,
-                $users
+                $eventDispatcher,
+                $userRepository
             );
             $request = new RequestPasswordResetHandler(
-                $users,
-                $grants,
-                $audit,
+                $userRepository,
+                $passwordResetGrantRepository,
+                $auditEvidenceRepository,
                 $unitOfWork,
                 new FixedPasswordResetCredentialGenerator('delivery-once'),
                 new PrefixPasswordResetDeliveryCipher(),
                 $clock,
-                $events
+                $eventDispatcher
             );
             $command = new RequestPasswordReset($user->getEmail());
         }
 
         $router = $this->createStub(CommandRouter::class);
         $router->method('match')->willReturn($worker);
-        $bus = new RoutingCommandBus($router);
+        $synchronousCommandBus = new RoutingCommandBus($router);
         if ($emailChange) {
-            $subscriber = new EmailChangeDeliverySubscriber($bus);
+            $subscriber = new EmailChangeDeliverySubscriber($synchronousCommandBus);
         } else {
-            $subscriber = new PasswordResetDeliverySubscriber($bus);
+            $subscriber = new PasswordResetDeliverySubscriber($synchronousCommandBus);
         }
 
         $caught = null;
@@ -187,7 +187,7 @@ final class DeliveryFailureCompositionTest extends TestCase
 
         self::assertSame($primary, $caught);
         self::assertFalse($unitOfWork->transactionActive);
-        $grant = $grants->getLatestByUserId($user->getId());
+        $grant = $passwordResetGrantRepository->getLatestByUserId($user->getId());
         self::assertNotNull($grant);
         self::assertTrue($grant->isIssued());
         $status = match ($phase) {
@@ -198,12 +198,12 @@ final class DeliveryFailureCompositionTest extends TestCase
         };
         self::assertSame($status, $grant->getDelivery()->getStatus());
         self::assertSame($phase !== 'publication', $grant->getDelivery()->hasRecoverableMaterial());
-        self::assertCount(1 + (int) ($phase === 'publication'), $audit->all());
+        self::assertCount(1 + (int) ($phase === 'publication'), $auditEvidenceRepository->all());
         self::assertCount((int) ($phase !== 'claim'), $provider->invocations());
         if ($emailChange) {
             self::assertSame(
                 'new@example.test',
-                $users->getById($user->getId())->getPendingEmailChange()?->canonical()
+                $userRepository->getById($user->getId())->getPendingEmailChange()?->canonical()
             );
         }
 
@@ -230,7 +230,7 @@ final class DeliveryFailureCompositionTest extends TestCase
             self::assertSame($failure->toArray(), CommandFailedEvent::fromArray($failure->toArray())->toArray());
         }
 
-        $due = $grants->findDue(new DateTimeImmutable('2026-08-23T11:06:00+00:00'), 10);
+        $due = $passwordResetGrantRepository->findDue(new DateTimeImmutable('2026-08-23T11:06:00+00:00'), 10);
         self::assertCount((int) ($phase !== 'publication'), $due);
         if ($due !== []) {
             self::assertSame($grant->getDelivery()->getId(), $due[0]->getDeliveryId());

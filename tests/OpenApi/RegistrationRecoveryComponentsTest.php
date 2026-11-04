@@ -39,7 +39,12 @@ final class RegistrationRecoveryComponentsTest extends TestCase
             ActivationDeliveryId::generate(),
             $command->getEmail()
         );
-        foreach (['RecoverPendingRegistration' => $command, 'PendingRegistrationRecovered' => $event] as $name => $message) {
+        foreach (
+            [
+            'RecoverPendingRegistration'   => $command,
+            'PendingRegistrationRecovered' => $event
+            ] as $name => $message
+        ) {
             $schema = $schemas['Fight.AccessControl.'.$name];
             self::assertSame('object', $schema['type']);
             self::assertFalse($schema['additionalProperties']);

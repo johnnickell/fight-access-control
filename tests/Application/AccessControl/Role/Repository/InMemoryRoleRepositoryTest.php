@@ -32,27 +32,27 @@ final class InMemoryRoleRepositoryTest extends TestCase
 
     public function test_it_retrieves_roles_by_id_and_name(): void
     {
-        $repository = new InMemoryRoleRepository();
+        $roleRepository = new InMemoryRoleRepository();
         $role = $this->role('ROLE_EDITOR');
-        $repository->add($role);
+        $roleRepository->add($role);
 
-        self::assertSame($role, $repository->getById($role->getId()));
-        self::assertSame($role, $repository->getByName($role->getName()));
-        self::assertNull($repository->getById(RoleId::generate()));
-        self::assertNull($repository->getByName(RoleName::fromString('ROLE_MISSING')));
+        self::assertSame($role, $roleRepository->getById($role->getId()));
+        self::assertSame($role, $roleRepository->getByName($role->getName()));
+        self::assertNull($roleRepository->getById(RoleId::generate()));
+        self::assertNull($roleRepository->getByName(RoleName::fromString('ROLE_MISSING')));
     }
 
     public function test_get_by_ids_is_unpaginated_deduplicates_and_omits_missing_ids(): void
     {
-        $repository = new InMemoryRoleRepository();
+        $roleRepository = new InMemoryRoleRepository();
         $first = $this->role('ROLE_EDITOR');
         $second = $this->role('ROLE_ADMIN');
-        $repository->add($first);
-        $repository->add($second);
+        $roleRepository->add($first);
+        $roleRepository->add($second);
 
         self::assertSame(
             [$second, $first],
-            $repository->getByIds([
+            $roleRepository->getByIds([
                 $second->getId(),
                 RoleId::generate(),
                 $first->getId(),
@@ -63,15 +63,15 @@ final class InMemoryRoleRepositoryTest extends TestCase
 
     public function test_get_all_returns_a_typed_paginated_result_set(): void
     {
-        $repository = new InMemoryRoleRepository();
+        $roleRepository = new InMemoryRoleRepository();
         $first = $this->role('ROLE_EDITOR');
         $second = $this->role('ROLE_ADMIN');
         $third = $this->role('ROLE_AUDITOR');
-        $repository->add($first);
-        $repository->add($second);
-        $repository->add($third);
+        $roleRepository->add($first);
+        $roleRepository->add($second);
+        $roleRepository->add($third);
 
-        $resultSet = $repository->getAll(new Pagination(2, 2));
+        $resultSet = $roleRepository->getAll(new Pagination(2, 2));
 
         self::assertSame(2, $resultSet->page());
         self::assertSame(2, $resultSet->perPage());
@@ -93,7 +93,7 @@ final class InMemoryRoleRepositoryTest extends TestCase
     public function test_add_and_replace_reject_non_authoritative_permission_membership(): void
     {
         $permissionId = PermissionId::generate();
-        $repository = new InMemoryRoleRepository();
+        $roleRepository = new InMemoryRoleRepository();
         $missingMembership = Role::define(
             RoleId::generate(),
             RoleName::fromString('ROLE_MISSING_PERMISSION'),
@@ -102,16 +102,16 @@ final class InMemoryRoleRepositoryTest extends TestCase
         );
 
         try {
-            $repository->add($missingMembership);
+            $roleRepository->add($missingMembership);
             self::fail('Role add must reject a missing Permission reference.');
         } catch (RuntimeException $runtimeException) {
             self::assertSame('Role permission membership is not authoritative.', $runtimeException->getMessage());
         }
 
         $current = $this->role('ROLE_CURRENT');
-        $repository->add($current);
-        self::assertFalse($repository->replace($current, $missingMembership));
-        self::assertSame($current, $repository->getById($current->getId()));
+        $roleRepository->add($current);
+        self::assertFalse($roleRepository->replace($current, $missingMembership));
+        self::assertSame($current, $roleRepository->getById($current->getId()));
     }
 
     public function test_custom_membership_writes_reject_protected_authority_but_managed_roles_retain_it(): void
@@ -123,22 +123,22 @@ final class InMemoryRoleRepositoryTest extends TestCase
             new DateTimeImmutable('2026-01-01T00:00:00+00:00')
         );
         $references = new InMemoryAuthorizationReferenceState();
-        $permissions = new InMemoryPermissionRepository(authorizationReferences: $references);
-        $permissions->add($permission);
+        $permissionRepository = new InMemoryPermissionRepository(authorizationReferences: $references);
+        $permissionRepository->add($permission);
 
-        $roles = new InMemoryRoleRepository(authorizationReferences: $references);
+        $roleRepository = new InMemoryRoleRepository(authorizationReferences: $references);
         $current = $this->role('ROLE_EDITOR');
-        $roles->add($current);
+        $roleRepository->add($current);
         $customWithProtected = $current->grantPermissionToCustom(
             $permission->getId(),
             new DateTimeImmutable('2026-01-02T00:00:00+00:00')
         );
 
-        self::assertFalse($roles->validateCustomPermissionGrant($permission));
-        self::assertFalse($roles->replace($current, $customWithProtected));
-        self::assertSame($current, $roles->getById($current->getId()));
+        self::assertFalse($roleRepository->validateCustomPermissionGrant($permission));
+        self::assertFalse($roleRepository->replace($current, $customWithProtected));
+        self::assertSame($current, $roleRepository->getById($current->getId()));
         try {
-            $roles->add($customWithProtected);
+            $roleRepository->add($customWithProtected);
             self::fail('Custom membership cannot include a protected Permission.');
         } catch (RuntimeException $runtimeException) {
             self::assertSame('Role permission membership is not authoritative.', $runtimeException->getMessage());
@@ -150,8 +150,8 @@ final class InMemoryRoleRepositoryTest extends TestCase
             [$permission->getId()],
             new DateTimeImmutable('2026-01-01T00:00:00+00:00')
         );
-        $roles->add($managed);
-        self::assertSame($managed, $roles->getById($managed->getId()));
+        $roleRepository->add($managed);
+        self::assertSame($managed, $roleRepository->getById($managed->getId()));
     }
 
     private function role(string $name): Role

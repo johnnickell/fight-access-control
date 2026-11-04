@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Fight\AccessControl\Application\AccessControl\Feature\CommandHandler;
 
-use Fight\AccessControl\Application\AccessControl\Feature\FeatureReferenceScope;
-use Fight\AccessControl\Application\AccessControl\Feature\Service\FeatureReferenceDiscovery;
+use Fight\AccessControl\Application\AccessControl\Feature\Discovery\FeatureReferenceDiscovery;
+use Fight\AccessControl\Application\AccessControl\Feature\Discovery\FeatureReferenceScope;
 use Fight\AccessControl\Domain\AccessControl\Feature\Command\RemoveFeature;
 use Fight\AccessControl\Domain\AccessControl\Feature\Event\FeatureRemoved;
 use Fight\AccessControl\Domain\AccessControl\Feature\Exception\FeatureNotFoundException;
@@ -32,9 +32,9 @@ final readonly class RemoveFeatureHandler implements CommandHandler
      */
     public function __construct(
         private FeatureReferenceDiscovery $discovery,
-        private FeatureRepository $features,
+        private FeatureRepository $featureRepository,
         private TransactionalUnitOfWork $unitOfWork,
-        private EventDispatcher $events
+        private EventDispatcher $eventDispatcher
     ) {
     }
 
@@ -55,7 +55,7 @@ final readonly class RemoveFeatureHandler implements CommandHandler
         $command = $commandMessage->payload();
         try {
             $event = $this->unitOfWork->commitTransactional(function () use ($command): FeatureRemoved {
-                $feature = $this->features->getById($command->getFeatureId());
+                $feature = $this->featureRepository->getById($command->getFeatureId());
                 if (!$feature instanceof Feature) {
                     throw new FeatureNotFoundException('The Feature does not exist.');
                 }
@@ -72,16 +72,16 @@ final readonly class RemoveFeatureHandler implements CommandHandler
                     }
                 }
 
-                if (!$this->features->remove($feature)) {
+                if (!$this->featureRepository->remove($feature)) {
                     throw new FeatureRevisionException('The Feature changed concurrently.');
                 }
 
                 return new FeatureRemoved($feature->getId(), $feature->getName());
             });
-            $this->events->trigger($event);
+            $this->eventDispatcher->trigger($event);
         } catch (Throwable $throwable) {
             try {
-                $this->events->trigger(new CommandFailedEvent($command, 'Feature removal failed.'));
+                $this->eventDispatcher->trigger(new CommandFailedEvent($command, 'Feature removal failed.'));
             } finally {
                 throw $throwable;
             }

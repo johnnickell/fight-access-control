@@ -8,8 +8,10 @@ The earlier two-production-layer/no-Adapter summary is superseded by WF-035 and 
 [ADR 0001](../adr/0001-domain-application-package-boundary.md) retains the original decision and scoped amendments.
 
 Current source has Domain/Application plus opt-in PSR-15 and Symfony adapters. Agent MCP presentation is still
-in Application and secret-bearing User operations still use AuthenticationService. TASK-00108/00109/00112 own
-those future relocations/decomposition; TASK-00107 changes guidance only. Consumers retain persistence,
+in Application and secret-bearing User operations still use AuthenticationService. TASK-00108/00112 own
+those future relocations/decomposition; TASK-00107 changed guidance only. TASK-00109 now groups Agent capabilities,
+Feature Discovery and authorization Admission with descriptive collaborators; see the
+[current composition map](../../docs/agent-integration.md#public-composition-map). Consumers retain persistence,
 policy/grants/target scope, route/bootstrap/key/queue/runtime composition and actual integration qualification.
 A persistence placement pattern is not permission to implement production persistence here.
 

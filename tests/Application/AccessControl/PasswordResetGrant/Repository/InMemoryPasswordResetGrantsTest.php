@@ -24,17 +24,20 @@ final class InMemoryPasswordResetGrantsTest extends TestCase
 {
     public function test_it_discovers_only_due_authoritative_password_reset_work(): void
     {
-        $repository = new InMemoryPasswordResetGrants();
+        $passwordResetGrantRepository = new InMemoryPasswordResetGrants();
         $grant = $this->grant(
             UserId::generate(),
             'reset-due',
             '2026-08-20T13:00:00+00:00'
         );
-        self::assertTrue($repository->add($grant));
-        self::assertSame([], $repository->findDue(new DateTimeImmutable('2026-08-20T11:59:59+00:00'), 10));
+        self::assertTrue($passwordResetGrantRepository->add($grant));
+        self::assertSame(
+            [],
+            $passwordResetGrantRepository->findDue(new DateTimeImmutable('2026-08-20T11:59:59+00:00'), 10)
+        );
         self::assertSame(
             $grant->getDelivery()->getId()->toString(),
-            $repository->findDue(new DateTimeImmutable('2026-08-20T12:00:00+00:00'), 10)[0]
+            $passwordResetGrantRepository->findDue(new DateTimeImmutable('2026-08-20T12:00:00+00:00'), 10)[0]
                 ->getDeliveryId()
                 ->toString()
         );
@@ -44,43 +47,49 @@ final class InMemoryPasswordResetGrantsTest extends TestCase
             new DateTimeImmutable('2026-08-20T12:00:00+00:00'),
             new DateTimeImmutable('2026-08-20T12:05:00+00:00')
         );
-        self::assertTrue($repository->replace($grant, $claimed));
-        self::assertSame([], $repository->findDue(new DateTimeImmutable('2026-08-20T12:04:59+00:00'), 10));
-        self::assertCount(1, $repository->findDue(new DateTimeImmutable('2026-08-20T12:05:00+00:00'), 10));
+        self::assertTrue($passwordResetGrantRepository->replace($grant, $claimed));
+        self::assertSame(
+            [],
+            $passwordResetGrantRepository->findDue(new DateTimeImmutable('2026-08-20T12:04:59+00:00'), 10)
+        );
+        self::assertCount(
+            1,
+            $passwordResetGrantRepository->findDue(new DateTimeImmutable('2026-08-20T12:05:00+00:00'), 10)
+        );
     }
 
     public function test_that_issued_reissue_rejects_any_digest_from_the_users_history(): void
     {
         $userId = UserId::generate();
-        $repository = new InMemoryPasswordResetGrants();
+        $passwordResetGrantRepository = new InMemoryPasswordResetGrants();
         $grantA = $this->grant($userId, 'reset-a', '2026-08-20T13:00:00+00:00');
         $grantB = $this->grant($userId, 'reset-b', '2026-08-20T14:00:00+00:00');
         $reusedA = $this->grant($userId, 'reset-a', '2026-08-20T15:00:00+00:00');
-        $repository->add($grantA);
-        self::assertTrue($repository->replaceWithSuccessor(
+        $passwordResetGrantRepository->add($grantA);
+        self::assertTrue($passwordResetGrantRepository->replaceWithSuccessor(
             $grantA,
             $grantA->revoke(new DateTimeImmutable('2026-08-20T12:15:00+00:00')),
             $grantB
         ));
 
-        self::assertFalse($repository->replaceWithSuccessor(
+        self::assertFalse($passwordResetGrantRepository->replaceWithSuccessor(
             $grantB,
             $grantB->revoke(new DateTimeImmutable('2026-08-20T13:15:00+00:00')),
             $reusedA
         ));
-        self::assertSame($grantB, $repository->getLatestByUserId($userId));
-        self::assertCount(2, $repository->all());
+        self::assertSame($grantB, $passwordResetGrantRepository->getLatestByUserId($userId));
+        self::assertCount(2, $passwordResetGrantRepository->all());
     }
 
     public function test_that_terminal_append_rejects_any_digest_from_the_users_history(): void
     {
         $userId = UserId::generate();
-        $repository = new InMemoryPasswordResetGrants();
+        $passwordResetGrantRepository = new InMemoryPasswordResetGrants();
         $grantA = $this->grant($userId, 'reset-a', '2026-08-20T13:00:00+00:00');
         $grantB = $this->grant($userId, 'reset-b', '2026-08-20T14:00:00+00:00');
         $reusedA = $this->grant($userId, 'reset-a', '2026-08-20T15:00:00+00:00');
-        $repository->add($grantA);
-        self::assertTrue($repository->replaceWithSuccessor(
+        $passwordResetGrantRepository->add($grantA);
+        self::assertTrue($passwordResetGrantRepository->replaceWithSuccessor(
             $grantA,
             $grantA->revoke(new DateTimeImmutable('2026-08-20T12:15:00+00:00')),
             $grantB
@@ -88,47 +97,47 @@ final class InMemoryPasswordResetGrantsTest extends TestCase
         $terminalGrantB = $grantB->consume(
             new DateTimeImmutable('2026-08-20T13:15:00+00:00')
         )->invalidateDelivery();
-        self::assertTrue($repository->replace($grantB, $terminalGrantB));
+        self::assertTrue($passwordResetGrantRepository->replace($grantB, $terminalGrantB));
 
-        self::assertFalse($repository->appendAfterTerminal($terminalGrantB, $reusedA));
-        self::assertSame($terminalGrantB, $repository->getLatestByUserId($userId));
-        self::assertCount(2, $repository->all());
+        self::assertFalse($passwordResetGrantRepository->appendAfterTerminal($terminalGrantB, $reusedA));
+        self::assertSame($terminalGrantB, $passwordResetGrantRepository->getLatestByUserId($userId));
+        self::assertCount(2, $passwordResetGrantRepository->all());
     }
 
     public function test_that_only_the_first_empty_history_add_wins(): void
     {
         $userId = UserId::generate();
-        $repository = new InMemoryPasswordResetGrants();
+        $passwordResetGrantRepository = new InMemoryPasswordResetGrants();
         $winner = $this->grant($userId, 'reset-winner', '2026-08-20T13:00:00+00:00');
         $staleCandidate = $this->grant($userId, 'reset-stale', '2026-08-20T13:00:01+00:00');
 
-        self::assertTrue($repository->add($winner));
-        self::assertFalse($repository->add($staleCandidate));
-        self::assertSame($winner, $repository->getLatestByUserId($userId));
-        self::assertSame([$winner], $repository->all());
+        self::assertTrue($passwordResetGrantRepository->add($winner));
+        self::assertFalse($passwordResetGrantRepository->add($staleCandidate));
+        self::assertSame($winner, $passwordResetGrantRepository->getLatestByUserId($userId));
+        self::assertSame([$winner], $passwordResetGrantRepository->all());
     }
 
     public function test_that_fresh_authority_can_only_follow_the_latest_terminal_grant(): void
     {
         $userId = UserId::generate();
-        $repository = new InMemoryPasswordResetGrants();
+        $passwordResetGrantRepository = new InMemoryPasswordResetGrants();
         $issuedPredecessor = $this->grant(
             $userId,
             'reset-terminal',
             '2026-08-20T13:00:00+00:00'
         );
-        self::assertTrue($repository->add($issuedPredecessor));
+        self::assertTrue($passwordResetGrantRepository->add($issuedPredecessor));
         $terminalPredecessor = $issuedPredecessor
             ->consume(new DateTimeImmutable('2026-08-20T12:15:00+00:00'))
             ->invalidateDelivery();
-        self::assertTrue($repository->replace($issuedPredecessor, $terminalPredecessor));
+        self::assertTrue($passwordResetGrantRepository->replace($issuedPredecessor, $terminalPredecessor));
         $winner = $this->grant($userId, 'reset-winner', '2026-08-20T14:00:00+00:00');
         $staleCandidate = $this->grant($userId, 'reset-stale', '2026-08-20T14:00:01+00:00');
 
-        self::assertTrue($repository->appendAfterTerminal(clone $terminalPredecessor, $winner));
-        self::assertFalse($repository->appendAfterTerminal($terminalPredecessor, $staleCandidate));
-        self::assertSame($winner, $repository->getLatestByUserId($userId));
-        self::assertSame([$terminalPredecessor, $winner], $repository->all());
+        self::assertTrue($passwordResetGrantRepository->appendAfterTerminal(clone $terminalPredecessor, $winner));
+        self::assertFalse($passwordResetGrantRepository->appendAfterTerminal($terminalPredecessor, $staleCandidate));
+        self::assertSame($winner, $passwordResetGrantRepository->getLatestByUserId($userId));
+        self::assertSame([$terminalPredecessor, $winner], $passwordResetGrantRepository->all());
 
         $invalidRepository = new InMemoryPasswordResetGrants();
         self::assertTrue($invalidRepository->add($issuedPredecessor));
@@ -140,69 +149,69 @@ final class InMemoryPasswordResetGrantsTest extends TestCase
     public function test_that_only_the_latest_issued_predecessor_can_win_reissue(): void
     {
         $userId = UserId::generate();
-        $repository = new InMemoryPasswordResetGrants();
+        $passwordResetGrantRepository = new InMemoryPasswordResetGrants();
         $predecessor = $this->grant($userId, 'reset-old', '2026-08-20T13:00:00+00:00');
-        $repository->add($predecessor);
+        $passwordResetGrantRepository->add($predecessor);
         $winner = $this->grant($userId, 'reset-winner', '2026-08-20T14:00:00+00:00');
         $staleCandidate = $this->grant($userId, 'reset-stale', '2026-08-20T14:00:01+00:00');
         $reusedCredential = $this->grant($userId, 'reset-old', '2026-08-20T14:00:02+00:00');
 
-        self::assertFalse($repository->replaceWithSuccessor(
+        self::assertFalse($passwordResetGrantRepository->replaceWithSuccessor(
             $predecessor,
             $predecessor->revoke(new DateTimeImmutable('2026-08-20T12:14:59+00:00')),
             $reusedCredential
         ));
-        self::assertSame([$predecessor], $repository->all());
+        self::assertSame([$predecessor], $passwordResetGrantRepository->all());
 
         $equivalentPredecessor = clone $predecessor;
-        self::assertTrue($repository->replaceWithSuccessor(
+        self::assertTrue($passwordResetGrantRepository->replaceWithSuccessor(
             $equivalentPredecessor,
             $equivalentPredecessor->revoke(new DateTimeImmutable('2026-08-20T12:15:00+00:00')),
             $winner
         ));
-        self::assertFalse($repository->replaceWithSuccessor(
+        self::assertFalse($passwordResetGrantRepository->replaceWithSuccessor(
             $predecessor,
             $predecessor->revoke(new DateTimeImmutable('2026-08-20T12:15:01+00:00')),
             $staleCandidate
         ));
 
-        self::assertSame($winner, $repository->getLatestByUserId($userId));
-        self::assertSame([$repository->all()[0], $winner], $repository->all());
-        self::assertTrue($repository->all()[0]->isRevoked());
+        self::assertSame($winner, $passwordResetGrantRepository->getLatestByUserId($userId));
+        self::assertSame([$passwordResetGrantRepository->all()[0], $winner], $passwordResetGrantRepository->all());
+        self::assertTrue($passwordResetGrantRepository->all()[0]->isRevoked());
     }
 
     public function test_that_only_the_latest_issued_predecessor_can_win_consumption(): void
     {
         $userId = UserId::generate();
-        $repository = new InMemoryPasswordResetGrants();
+        $passwordResetGrantRepository = new InMemoryPasswordResetGrants();
         $predecessor = $this->grant($userId, 'reset-once', '2026-08-20T13:00:00+00:00');
-        $repository->add($predecessor);
+        $passwordResetGrantRepository->add($predecessor);
         $winner = $predecessor->consume(new DateTimeImmutable('2026-08-20T12:15:00+00:00'));
         $staleCandidate = $predecessor->consume(new DateTimeImmutable('2026-08-20T12:15:01+00:00'));
 
-        self::assertTrue($repository->replace($predecessor, $winner));
-        self::assertFalse($repository->replace($predecessor, $staleCandidate));
-        self::assertSame($winner, $repository->getLatestByUserId($userId));
-        self::assertSame([$winner], $repository->all());
+        self::assertTrue($passwordResetGrantRepository->replace($predecessor, $winner));
+        self::assertFalse($passwordResetGrantRepository->replace($predecessor, $staleCandidate));
+        self::assertSame($winner, $passwordResetGrantRepository->getLatestByUserId($userId));
+        self::assertSame([$winner], $passwordResetGrantRepository->all());
     }
 
     public function test_that_cas_accepts_a_distinct_equivalent_predecessor_and_rejects_its_stale_revision(): void
     {
         $userId = UserId::generate();
-        $repository = new InMemoryPasswordResetGrants();
+        $passwordResetGrantRepository = new InMemoryPasswordResetGrants();
         $predecessor = $this->grant($userId, 'reset-once', '2026-08-20T13:00:00+00:00');
-        self::assertTrue($repository->add($predecessor));
+        self::assertTrue($passwordResetGrantRepository->add($predecessor));
         $equivalentPredecessor = clone $predecessor;
         $consumed = $equivalentPredecessor->consume(new DateTimeImmutable('2026-08-20T12:15:00+00:00'));
 
         self::assertNotSame($predecessor, $equivalentPredecessor);
-        self::assertTrue($repository->replace($equivalentPredecessor, $consumed));
+        self::assertTrue($passwordResetGrantRepository->replace($equivalentPredecessor, $consumed));
         self::assertSame($equivalentPredecessor->getRevision() + 1, $consumed->getRevision());
-        self::assertFalse($repository->replace(
+        self::assertFalse($passwordResetGrantRepository->replace(
             $equivalentPredecessor,
             $equivalentPredecessor->consume(new DateTimeImmutable('2026-08-20T12:16:00+00:00'))
         ));
-        self::assertSame($consumed, $repository->getLatestByUserId($userId));
+        self::assertSame($consumed, $passwordResetGrantRepository->getLatestByUserId($userId));
     }
 
     public function test_initial_and_successor_writes_reject_non_pristine_delivery_state_without_mutation(): void
@@ -236,19 +245,19 @@ final class InMemoryPasswordResetGrantsTest extends TestCase
         ];
 
         foreach ($candidates as $candidate) {
-            $repository = new InMemoryPasswordResetGrants();
-            self::assertFalse($repository->add($candidate));
-            self::assertSame([], $repository->all());
+            $passwordResetGrantRepository = new InMemoryPasswordResetGrants();
+            self::assertFalse($passwordResetGrantRepository->add($candidate));
+            self::assertSame([], $passwordResetGrantRepository->all());
 
             $predecessor = $this->grant(
                 $candidate->getUserId(),
                 'predecessor',
                 '2026-08-20T13:00:00+00:00'
             );
-            self::assertTrue($repository->add($predecessor));
+            self::assertTrue($passwordResetGrantRepository->add($predecessor));
             $terminal = $predecessor->revoke(new DateTimeImmutable('2026-08-20T12:15:00+00:00'));
-            self::assertFalse($repository->replaceWithSuccessor($predecessor, $terminal, $candidate));
-            self::assertSame([$predecessor], $repository->all());
+            self::assertFalse($passwordResetGrantRepository->replaceWithSuccessor($predecessor, $terminal, $candidate));
+            self::assertSame([$predecessor], $passwordResetGrantRepository->all());
         }
     }
 
@@ -265,17 +274,17 @@ final class InMemoryPasswordResetGrantsTest extends TestCase
         ];
 
         foreach ($candidates as $candidate) {
-            $repository = new InMemoryPasswordResetGrants();
-            self::assertFalse($repository->add($candidate));
-            self::assertSame([], $repository->all());
+            $passwordResetGrantRepository = new InMemoryPasswordResetGrants();
+            self::assertFalse($passwordResetGrantRepository->add($candidate));
+            self::assertSame([], $passwordResetGrantRepository->all());
         }
     }
 
     public function test_that_terminal_append_rejects_fabricated_terminal_state_while_storage_is_issued(): void
     {
-        $repository = new InMemoryPasswordResetGrants();
+        $passwordResetGrantRepository = new InMemoryPasswordResetGrants();
         $issued = $this->grant(UserId::generate(), 'reset-old', '2026-08-20T13:00:00+00:00');
-        self::assertTrue($repository->add($issued));
+        self::assertTrue($passwordResetGrantRepository->add($issued));
         $fabricatedTerminal = $this->reconstitute(
             $issued,
             consumedAt: new DateTimeImmutable('2026-08-20T12:15:00+00:00'),
@@ -283,9 +292,9 @@ final class InMemoryPasswordResetGrantsTest extends TestCase
         );
         $successor = $this->grant($issued->getUserId(), 'reset-new', '2026-08-20T14:00:00+00:00');
 
-        self::assertFalse($repository->appendAfterTerminal($fabricatedTerminal, $successor));
-        self::assertSame([$issued], $repository->all());
-        self::assertNull($repository->getById($successor->getId()));
+        self::assertFalse($passwordResetGrantRepository->appendAfterTerminal($fabricatedTerminal, $successor));
+        self::assertSame([$issued], $passwordResetGrantRepository->all());
+        self::assertNull($passwordResetGrantRepository->getById($successor->getId()));
     }
 
     public function test_that_replace_rejects_transitions_derived_from_fabricated_predecessor_state(): void
@@ -315,10 +324,10 @@ final class InMemoryPasswordResetGrantsTest extends TestCase
         ];
 
         foreach ($attempts as [$fabricatedPredecessor, $replacement]) {
-            $repository = new InMemoryPasswordResetGrants();
-            self::assertTrue($repository->add($issued));
-            self::assertFalse($repository->replace($fabricatedPredecessor, $replacement));
-            self::assertSame([$issued], $repository->all());
+            $passwordResetGrantRepository = new InMemoryPasswordResetGrants();
+            self::assertTrue($passwordResetGrantRepository->add($issued));
+            self::assertFalse($passwordResetGrantRepository->replace($fabricatedPredecessor, $replacement));
+            self::assertSame([$issued], $passwordResetGrantRepository->all());
         }
     }
 
@@ -327,8 +336,8 @@ final class InMemoryPasswordResetGrantsTest extends TestCase
         $issued = $this->grant(UserId::generate(), 'reset-once', '2026-08-20T13:00:00+00:00');
 
         foreach ([$issued->getExpiresAt(), $issued->getExpiresAt()->modify('+1 second')] as $consumedAt) {
-            $repository = new InMemoryPasswordResetGrants();
-            self::assertTrue($repository->add($issued));
+            $passwordResetGrantRepository = new InMemoryPasswordResetGrants();
+            self::assertTrue($passwordResetGrantRepository->add($issued));
             $fabricatedConsumption = $this->reconstitute(
                 $issued,
                 revision: 1,
@@ -336,18 +345,18 @@ final class InMemoryPasswordResetGrantsTest extends TestCase
                 ciphertext: null
             );
 
-            self::assertFalse($repository->replace($issued, $fabricatedConsumption));
-            self::assertSame([$issued], $repository->all());
+            self::assertFalse($passwordResetGrantRepository->replace($issued, $fabricatedConsumption));
+            self::assertSame([$issued], $passwordResetGrantRepository->all());
         }
     }
 
     public function test_that_terminal_append_compares_complete_stored_terminal_state(): void
     {
-        $repository = new InMemoryPasswordResetGrants();
+        $passwordResetGrantRepository = new InMemoryPasswordResetGrants();
         $issued = $this->grant(UserId::generate(), 'reset-old', '2026-08-20T13:00:00+00:00');
-        self::assertTrue($repository->add($issued));
+        self::assertTrue($passwordResetGrantRepository->add($issued));
         $terminal = $issued->consume(new DateTimeImmutable('2026-08-20T12:15:00+00:00'));
-        self::assertTrue($repository->replace($issued, $terminal));
+        self::assertTrue($passwordResetGrantRepository->replace($issued, $terminal));
         $successor = $this->grant($issued->getUserId(), 'reset-new', '2026-08-20T14:00:00+00:00');
         $fabricatedTerminal = $this->reconstitute(
             $terminal,
@@ -356,8 +365,8 @@ final class InMemoryPasswordResetGrantsTest extends TestCase
             ciphertext: null
         );
 
-        self::assertFalse($repository->appendAfterTerminal($fabricatedTerminal, $successor));
-        self::assertSame([$terminal], $repository->all());
+        self::assertFalse($passwordResetGrantRepository->appendAfterTerminal($fabricatedTerminal, $successor));
+        self::assertSame([$terminal], $passwordResetGrantRepository->all());
     }
 
     public function test_that_successor_rejects_fabricated_predecessor_and_terminal_transition(): void
@@ -365,18 +374,18 @@ final class InMemoryPasswordResetGrantsTest extends TestCase
         $issued = $this->grant(UserId::generate(), 'reset-old', '2026-08-20T13:00:00+00:00');
         $successor = $this->grant($issued->getUserId(), 'reset-new', '2026-08-20T14:00:00+00:00');
 
-        $repository = new InMemoryPasswordResetGrants();
-        self::assertTrue($repository->add($issued));
+        $passwordResetGrantRepository = new InMemoryPasswordResetGrants();
+        self::assertTrue($passwordResetGrantRepository->add($issued));
         $fabricatedPredecessor = $this->reconstitute(
             $issued,
             email: EmailAddress::fromString('mallory@example.test')
         );
-        self::assertFalse($repository->replaceWithSuccessor(
+        self::assertFalse($passwordResetGrantRepository->replaceWithSuccessor(
             $fabricatedPredecessor,
             $fabricatedPredecessor->revoke(new DateTimeImmutable('2026-08-20T12:15:00+00:00')),
             $successor
         ));
-        self::assertSame([$issued], $repository->all());
+        self::assertSame([$issued], $passwordResetGrantRepository->all());
 
         $fabricatedTerminal = $this->reconstitute(
             $issued,
@@ -384,16 +393,18 @@ final class InMemoryPasswordResetGrantsTest extends TestCase
             consumedAt: $issued->getExpiresAt(),
             ciphertext: null
         );
-        self::assertFalse($repository->replaceWithSuccessor($issued, $fabricatedTerminal, $successor));
-        self::assertSame([$issued], $repository->all());
-        self::assertNull($repository->getById($successor->getId()));
+        self::assertFalse(
+            $passwordResetGrantRepository->replaceWithSuccessor($issued, $fabricatedTerminal, $successor)
+        );
+        self::assertSame([$issued], $passwordResetGrantRepository->all());
+        self::assertNull($passwordResetGrantRepository->getById($successor->getId()));
     }
 
     public function test_that_both_successor_paths_require_pristine_state_and_fresh_ids_and_digest(): void
     {
-        $repository = new InMemoryPasswordResetGrants();
+        $passwordResetGrantRepository = new InMemoryPasswordResetGrants();
         $predecessor = $this->grant(UserId::generate(), 'reset-old', '2026-08-20T13:00:00+00:00');
-        self::assertTrue($repository->add($predecessor));
+        self::assertTrue($passwordResetGrantRepository->add($predecessor));
         $terminal = $predecessor->revoke(new DateTimeImmutable('2026-08-20T12:15:00+00:00'));
         $successor = $this->grant($predecessor->getUserId(), 'reset-new', '2026-08-20T14:00:00+00:00');
         $malformed = [
@@ -407,14 +418,14 @@ final class InMemoryPasswordResetGrantsTest extends TestCase
         ];
 
         foreach ($malformed as $candidate) {
-            self::assertFalse($repository->replaceWithSuccessor($predecessor, $terminal, $candidate));
-            self::assertSame([$predecessor], $repository->all());
+            self::assertFalse($passwordResetGrantRepository->replaceWithSuccessor($predecessor, $terminal, $candidate));
+            self::assertSame([$predecessor], $passwordResetGrantRepository->all());
         }
 
-        self::assertTrue($repository->replace($predecessor, $terminal));
+        self::assertTrue($passwordResetGrantRepository->replace($predecessor, $terminal));
         foreach ($malformed as $candidate) {
-            self::assertFalse($repository->appendAfterTerminal($terminal, $candidate));
-            self::assertSame([$terminal], $repository->all());
+            self::assertFalse($passwordResetGrantRepository->appendAfterTerminal($terminal, $candidate));
+            self::assertSame([$terminal], $passwordResetGrantRepository->all());
         }
     }
 

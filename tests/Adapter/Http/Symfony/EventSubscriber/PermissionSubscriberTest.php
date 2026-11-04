@@ -5,10 +5,10 @@ declare(strict_types=1);
 namespace Fight\Test\AccessControl\Adapter\Http\Symfony\EventSubscriber;
 
 use Fight\AccessControl\Adapter\Http\Symfony\EventSubscriber\PermissionSubscriber;
-use Fight\AccessControl\Application\AccessControl\Authorization\AdmissionMode;
-use Fight\AccessControl\Application\AccessControl\Authorization\PermissionDeclaration;
-use Fight\AccessControl\Application\AccessControl\Authorization\Service\PermissionAdmission;
-use Fight\AccessControl\Application\AccessControl\Authorization\Service\RequestAuthority;
+use Fight\AccessControl\Application\AccessControl\Authorization\Admission\AdmissionMode;
+use Fight\AccessControl\Application\AccessControl\Authorization\Admission\PermissionAdmission;
+use Fight\AccessControl\Application\AccessControl\Authorization\Admission\PermissionDeclaration;
+use Fight\AccessControl\Application\AccessControl\Authorization\Admission\RequestAuthority;
 use Fight\AccessControl\Application\AccessControl\Authorization\Service\SecurityContext;
 use Fight\AccessControl\Domain\AccessControl\Permission\PermissionName;
 use Fight\Common\Adapter\Http\Error\SafeHttpMetadata;
@@ -17,7 +17,7 @@ use Fight\Common\Adapter\Http\Error\SafeHttpProjector;
 use Fight\Common\Application\Error\Exception\AuthenticationRequired;
 use Fight\Common\Application\Error\Exception\PermissionDenied;
 use Fight\Test\AccessControl\Application\AccessControl\Agent\Service\ProfileToolEnvironment;
-use Fight\Test\AccessControl\Application\AccessControl\Authorization\Service\AdmissionEnvironment;
+use Fight\Test\AccessControl\Application\AccessControl\Authorization\Admission\AdmissionEnvironment;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\PreserveGlobalState;
@@ -325,10 +325,12 @@ final class PermissionSubscriberTest extends TestCase
         self::assertSame(1, $environment->nonces->consumptionCalls());
         self::assertTrue($native->trace->contexts[0]->hasPermission(PermissionName::fromString('AGENT_PROFILE_READ')));
         self::assertSame(1, $environment->nonces->consumptionCalls());
-        $agent = $environment->storage->agents->all()[0];
-        $read = $environment->permissions->getByName(PermissionName::fromString('AGENT_PROFILE_READ'));
+        $agent = $environment->storage->agentRepository->all()[0];
+        $read = $environment->permissionRepository->getByName(PermissionName::fromString('AGENT_PROFILE_READ'));
         self::assertNotNull($read);
-        $environment->storage->agents->restoreSnapshot([$agent->revokePermission($read->getId(), $environment->now())]);
+        $environment->storage->agentRepository->restoreSnapshot(
+            [$agent->revokePermission($read->getId(), $environment->now())]
+        );
         self::assertSame(403, $native->request($this->request())->getStatusCode());
         self::assertSame(2, $environment->nonces->consumptionCalls());
         self::assertCount(1, $native->trace->contexts);
@@ -558,7 +560,7 @@ final class PermissionSubscriberTest extends TestCase
         self::assertSame(500, $native->request($this->request())->getStatusCode());
         self::assertSame(['report', 'response'], $native->trace->events);
         $native = new NativeKernel(static fn(): ?RequestAuthority => null, $this->protected());
-        $native->events->addListener(KernelEvents::REQUEST, static function (RequestEvent $event): void {
+        $native->eventDispatcher->addListener(KernelEvents::REQUEST, static function (RequestEvent $event): void {
             $event->getRequest()->attributes->set('_route', 'wrong');
         }, 17);
         self::assertSame(500, $native->request($this->request())->getStatusCode());

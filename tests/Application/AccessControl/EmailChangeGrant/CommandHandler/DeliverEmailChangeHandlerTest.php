@@ -61,8 +61,8 @@ final class DeliverEmailChangeHandlerTest extends TestCase
         ], EmailChangeDeliverySubscriber::eventRegistration());
 
         $unitOfWork = new InMemoryUnitOfWork();
-        $repository = new InMemoryEmailChangeGrantRepository($unitOfWork);
-        self::assertTrue($repository->add($grant));
+        $emailChangeGrantRepository = new InMemoryEmailChangeGrantRepository($unitOfWork);
+        self::assertTrue($emailChangeGrantRepository->add($grant));
         $provider = new RecordingCredentialDeliveryProvider(onDeliver: static function (
             CredentialDeliveryInvocation $invocation
         ) use ($unitOfWork): void {
@@ -71,18 +71,24 @@ final class DeliverEmailChangeHandlerTest extends TestCase
             self::assertSame('confirm-once', $invocation->getCredential());
             self::assertSame('new@example.test', $invocation->getEmail()->canonical());
         });
-        $audit = new InMemoryAuditEvidenceRepository($unitOfWork);
-        $events = new InMemoryEventDispatcher();
+        $auditEvidenceRepository = new InMemoryAuditEvidenceRepository($unitOfWork);
+        $eventDispatcher = new InMemoryEventDispatcher();
 
-        $this->handler($repository, $audit, $unitOfWork, $provider, $events)->handle(
+        $this->handler(
+            $emailChangeGrantRepository,
+            $auditEvidenceRepository,
+            $unitOfWork,
+            $provider,
+            $eventDispatcher
+        )->handle(
             CommandMessage::create($command)
         );
 
-        $stored = $repository->getLatestByUserId($grant->getUserId());
+        $stored = $emailChangeGrantRepository->getLatestByUserId($grant->getUserId());
         self::assertSame(2, $unitOfWork->transactions);
         self::assertSame(CredentialDeliveryStatus::DELIVERED, $stored?->getDelivery()->getStatus());
-        self::assertSame('user.email_change_delivery.confirmed', $audit->all()[0]->action());
-        self::assertInstanceOf(EmailChangeDelivered::class, $events->events()[0]);
+        self::assertSame('user.email_change_delivery.confirmed', $auditEvidenceRepository->all()[0]->action());
+        self::assertInstanceOf(EmailChangeDelivered::class, $eventDispatcher->events()[0]);
         self::assertSame(DeliverEmailChange::class, DeliverEmailChangeHandler::commandRegistration());
     }
 
@@ -97,23 +103,23 @@ final class DeliverEmailChangeHandlerTest extends TestCase
         ) {
             $unitOfWork = new InMemoryUnitOfWork();
             $grant = $this->grant();
-            $repository = new InMemoryEmailChangeGrantRepository($unitOfWork);
-            self::assertTrue($repository->add($grant));
-            $audit = new InMemoryAuditEvidenceRepository($unitOfWork);
-            $events = new InMemoryEventDispatcher();
+            $emailChangeGrantRepository = new InMemoryEmailChangeGrantRepository($unitOfWork);
+            self::assertTrue($emailChangeGrantRepository->add($grant));
+            $auditEvidenceRepository = new InMemoryAuditEvidenceRepository($unitOfWork);
+            $eventDispatcher = new InMemoryEventDispatcher();
 
             $this->handler(
-                $repository,
-                $audit,
+                $emailChangeGrantRepository,
+                $auditEvidenceRepository,
                 $unitOfWork,
                 new RecordingCredentialDeliveryProvider([$providerResult]),
-                $events
+                $eventDispatcher
             )->handle(CommandMessage::create($this->command($grant)));
 
-            $delivery = $repository->getLatestByUserId($grant->getUserId())?->getDelivery();
+            $delivery = $emailChangeGrantRepository->getLatestByUserId($grant->getUserId())?->getDelivery();
             self::assertSame($expectedStatus, $delivery?->getStatus());
-            self::assertSame('user.email_change_delivery.failed', $audit->all()[0]->action());
-            self::assertSame([], $events->events());
+            self::assertSame('user.email_change_delivery.failed', $auditEvidenceRepository->all()[0]->action());
+            self::assertSame([], $eventDispatcher->events());
             self::assertStringNotContainsString(
                 'vendor secret',
                 print_r($delivery, true).var_export($delivery, true)
@@ -127,14 +133,14 @@ final class DeliverEmailChangeHandlerTest extends TestCase
     public function test_missing_work_and_claim_cas_loss_fail_before_provider_invocation(): void
     {
         $provider = new RecordingCredentialDeliveryProvider();
-        $events = new InMemoryEventDispatcher();
+        $eventDispatcher = new InMemoryEventDispatcher();
         try {
             $this->handler(
                 new InMemoryEmailChangeGrantRepository(),
                 new InMemoryAuditEvidenceRepository(),
                 new InMemoryUnitOfWork(),
                 $provider,
-                $events
+                $eventDispatcher
             )->handle(CommandMessage::create(new DeliverEmailChange(
                 UserId::generate(),
                 UserId::generate(),
@@ -146,10 +152,15 @@ final class DeliverEmailChangeHandlerTest extends TestCase
 
         $unitOfWork = new InMemoryUnitOfWork();
         $grant = $this->grant();
-        $repository = new InMemoryEmailChangeGrantRepository($unitOfWork, replaceFailureOnCall: 1);
-        self::assertTrue($repository->add($grant));
+        $emailChangeGrantRepository = new InMemoryEmailChangeGrantRepository($unitOfWork, replaceFailureOnCall: 1);
+        self::assertTrue($emailChangeGrantRepository->add($grant));
         try {
-            $this->handler($repository, new InMemoryAuditEvidenceRepository(), $unitOfWork, $provider)->handle(
+            $this->handler(
+                $emailChangeGrantRepository,
+                new InMemoryAuditEvidenceRepository(),
+                $unitOfWork,
+                $provider
+            )->handle(
                 CommandMessage::create($this->command($grant))
             );
             self::fail('A competing claim was accepted.');
@@ -157,31 +168,36 @@ final class DeliverEmailChangeHandlerTest extends TestCase
         }
 
         self::assertSame([], $provider->invocations());
-        self::assertInstanceOf(CommandFailedEvent::class, $events->events()[0]);
+        self::assertInstanceOf(CommandFailedEvent::class, $eventDispatcher->events()[0]);
     }
 
     public function test_concurrent_outcome_makes_provider_result_stale(): void
     {
         $unitOfWork = new InMemoryUnitOfWork();
         $grant = $this->grant();
-        $repository = new InMemoryEmailChangeGrantRepository($unitOfWork);
-        self::assertTrue($repository->add($grant));
+        $emailChangeGrantRepository = new InMemoryEmailChangeGrantRepository($unitOfWork);
+        self::assertTrue($emailChangeGrantRepository->add($grant));
         $provider = new RecordingCredentialDeliveryProvider(onDeliver: static function () use (
-            $repository,
+            $emailChangeGrantRepository,
             $grant
         ): void {
-            $claimed = $repository->getLatestByUserId($grant->getUserId());
+            $claimed = $emailChangeGrantRepository->getLatestByUserId($grant->getUserId());
             $claimToken = $claimed?->getDelivery()->getClaimToken();
             self::assertNotNull($claimed);
             self::assertNotNull($claimToken);
-            self::assertTrue($repository->replace(
+            self::assertTrue($emailChangeGrantRepository->replace(
                 $claimed,
                 $claimed->confirmDelivery($claimToken, new DateTimeImmutable('2026-08-23T11:00:30+00:00'))
             ));
         });
 
         $this->expectException(EmailChangeDeliveryNotRetryableException::class);
-        $this->handler($repository, new InMemoryAuditEvidenceRepository(), $unitOfWork, $provider)->handle(
+        $this->handler(
+            $emailChangeGrantRepository,
+            new InMemoryAuditEvidenceRepository(),
+            $unitOfWork,
+            $provider
+        )->handle(
             CommandMessage::create($this->command($grant))
         );
     }
@@ -190,20 +206,20 @@ final class DeliverEmailChangeHandlerTest extends TestCase
     {
         $unitOfWork = new InMemoryUnitOfWork();
         $grant = $this->grant();
-        $repository = new InMemoryEmailChangeGrantRepository($unitOfWork, replaceFailureOnCall: 2);
-        self::assertTrue($repository->add($grant));
-        $audit = new InMemoryAuditEvidenceRepository($unitOfWork);
+        $emailChangeGrantRepository = new InMemoryEmailChangeGrantRepository($unitOfWork, replaceFailureOnCall: 2);
+        self::assertTrue($emailChangeGrantRepository->add($grant));
+        $auditEvidenceRepository = new InMemoryAuditEvidenceRepository($unitOfWork);
 
         $this->expectException(EmailChangeDeliveryNotRetryableException::class);
         try {
-            $this->handler($repository, $audit, $unitOfWork)->handle(
+            $this->handler($emailChangeGrantRepository, $auditEvidenceRepository, $unitOfWork)->handle(
                 CommandMessage::create($this->command($grant))
             );
         } finally {
-            self::assertSame([], $audit->all());
+            self::assertSame([], $auditEvidenceRepository->all());
             self::assertSame(
                 CredentialDeliveryStatus::CLAIMED,
-                $repository->getLatestByUserId($grant->getUserId())?->getDelivery()->getStatus()
+                $emailChangeGrantRepository->getLatestByUserId($grant->getUserId())?->getDelivery()->getStatus()
             );
         }
     }
@@ -212,19 +228,24 @@ final class DeliverEmailChangeHandlerTest extends TestCase
     {
         $unitOfWork = new InMemoryUnitOfWork();
         $grant = $this->grant('2026-08-23T11:01:00+00:00');
-        $repository = new InMemoryEmailChangeGrantRepository($unitOfWork);
-        self::assertTrue($repository->add($grant));
+        $emailChangeGrantRepository = new InMemoryEmailChangeGrantRepository($unitOfWork);
+        self::assertTrue($emailChangeGrantRepository->add($grant));
         $provider = new RecordingCredentialDeliveryProvider(onDeliver: static function () use (
-            $repository,
+            $emailChangeGrantRepository,
             $grant
         ): void {
             self::assertEquals(
                 $grant->getExpiresAt(),
-                $repository->getLatestByUserId($grant->getUserId())?->getDelivery()->getLeaseUntil()
+                $emailChangeGrantRepository->getLatestByUserId($grant->getUserId())?->getDelivery()->getLeaseUntil()
             );
         });
 
-        $this->handler($repository, new InMemoryAuditEvidenceRepository(), $unitOfWork, $provider)->handle(
+        $this->handler(
+            $emailChangeGrantRepository,
+            new InMemoryAuditEvidenceRepository(),
+            $unitOfWork,
+            $provider
+        )->handle(
             CommandMessage::create($this->command($grant))
         );
     }
@@ -271,9 +292,12 @@ final class DeliverEmailChangeHandlerTest extends TestCase
         foreach (['claim', 'audit', 'outcome', 'publication'] as $phase) {
             $unitOfWork = new InMemoryUnitOfWork();
             $grant = $this->grant();
-            $repository = new InMemoryEmailChangeGrantRepository($unitOfWork);
-            self::assertTrue($repository->add($grant));
-            $audit = new InMemoryAuditEvidenceRepository($unitOfWork, failAfterSave: $phase === 'audit');
+            $emailChangeGrantRepository = new InMemoryEmailChangeGrantRepository($unitOfWork);
+            self::assertTrue($emailChangeGrantRepository->add($grant));
+            $auditEvidenceRepository = new InMemoryAuditEvidenceRepository(
+                $unitOfWork,
+                failAfterSave: $phase === 'audit'
+            );
             $primary = new RuntimeException('Synthetic operation detail. confirm-once ciphertext:confirm-once');
             $unitOfWork->beforeCommit = static function () use ($phase, $unitOfWork, $primary): void {
                 if (
@@ -284,7 +308,7 @@ final class DeliverEmailChangeHandlerTest extends TestCase
                 }
             };
             $attempts = [];
-            $events = new InMemoryEventDispatcher(static function ($event) use (&$attempts, $primary): void {
+            $eventDispatcher = new InMemoryEventDispatcher(static function ($event) use (&$attempts, $primary): void {
                 $attempts[] = $event;
                 if ($event instanceof EmailChangeDelivered) {
                     throw $primary;
@@ -295,7 +319,13 @@ final class DeliverEmailChangeHandlerTest extends TestCase
             $provider = new RecordingCredentialDeliveryProvider();
             $caught = null;
             try {
-                $this->handler($repository, $audit, $unitOfWork, $provider, $events)->handle(
+                $this->handler(
+                    $emailChangeGrantRepository,
+                    $auditEvidenceRepository,
+                    $unitOfWork,
+                    $provider,
+                    $eventDispatcher
+                )->handle(
                     CommandMessage::create($this->command($grant))
                 );
             } catch (RuntimeException $exception) {
@@ -304,12 +334,12 @@ final class DeliverEmailChangeHandlerTest extends TestCase
 
             $expected = $primary;
             if ($phase === 'audit') {
-                $expected = $audit->failure();
+                $expected = $auditEvidenceRepository->failure();
             }
 
             self::assertSame($expected, $caught);
             $published = $phase === 'publication';
-            $stored = $repository->getLatestByUserId($grant->getUserId());
+            $stored = $emailChangeGrantRepository->getLatestByUserId($grant->getUserId());
             $status = CredentialDeliveryStatus::CLAIMED;
             if ($phase === 'claim') {
                 $status = CredentialDeliveryStatus::PENDING;
@@ -320,7 +350,7 @@ final class DeliverEmailChangeHandlerTest extends TestCase
             self::assertSame($status, $stored->getDelivery()->getStatus());
             self::assertSame(!$published, $stored->getDelivery()->hasRecoverableMaterial());
             self::assertSame($grant->getDelivery()->getId(), $stored->getDelivery()->getId());
-            self::assertCount((int) $published, $audit->all());
+            self::assertCount((int) $published, $auditEvidenceRepository->all());
             self::assertCount((int) ($phase !== 'claim'), $provider->invocations());
             self::assertCount(1 + (int) $published, $attempts);
             $failure = $attempts[array_key_last($attempts)];
@@ -329,12 +359,12 @@ final class DeliverEmailChangeHandlerTest extends TestCase
             self::assertStringNotContainsString('confirm-once', serialize($failure->toArray()));
             self::assertFalse($unitOfWork->transactionActive);
             $unitOfWork->beforeCommit = null;
-            $due = $repository->findDue(new DateTimeImmutable('2026-08-23T11:06:00+00:00'), 10);
+            $due = $emailChangeGrantRepository->findDue(new DateTimeImmutable('2026-08-23T11:06:00+00:00'), 10);
             self::assertCount((int) !$published, $due);
             if (!$published) {
                 self::assertSame($grant->getDelivery()->getId(), $due[0]->getDeliveryId());
                 new DeliverEmailChangeHandler(
-                    $repository,
+                    $emailChangeGrantRepository,
                     new InMemoryAuditEvidenceRepository($unitOfWork),
                     $unitOfWork,
                     new PrefixEmailChangeDeliveryCipher(),
@@ -344,7 +374,7 @@ final class DeliverEmailChangeHandlerTest extends TestCase
                 )->handle(CommandMessage::create($this->command($grant)));
                 self::assertSame(
                     CredentialDeliveryStatus::DELIVERED,
-                    $repository->getLatestByUserId($grant->getUserId())->getDelivery()->getStatus()
+                    $emailChangeGrantRepository->getLatestByUserId($grant->getUserId())->getDelivery()->getStatus()
                 );
             }
         }
@@ -373,20 +403,20 @@ final class DeliverEmailChangeHandlerTest extends TestCase
     }
 
     private function handler(
-        InMemoryEmailChangeGrantRepository $repository,
-        InMemoryAuditEvidenceRepository $audit,
+        InMemoryEmailChangeGrantRepository $emailChangeGrantRepository,
+        InMemoryAuditEvidenceRepository $auditEvidenceRepository,
         InMemoryUnitOfWork $unitOfWork,
         ?RecordingCredentialDeliveryProvider $provider = null,
-        ?InMemoryEventDispatcher $events = null
+        ?InMemoryEventDispatcher $eventDispatcher = null
     ): DeliverEmailChangeHandler {
         return new DeliverEmailChangeHandler(
-            $repository,
-            $audit,
+            $emailChangeGrantRepository,
+            $auditEvidenceRepository,
             $unitOfWork,
             new PrefixEmailChangeDeliveryCipher(),
             $provider ?? new RecordingCredentialDeliveryProvider(),
             new FixedClock('2026-08-23T11:00:00+00:00'),
-            $events ?? new InMemoryEventDispatcher()
+            $eventDispatcher ?? new InMemoryEventDispatcher()
         );
     }
 }
