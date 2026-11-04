@@ -301,6 +301,8 @@ No source/dependency/sibling/consumer mutation, product build, new checkout, com
 
 ## TASK-00109 capability organization — Work checkpoint
 
+Independent Review ACCEPT and nonvisual QA PASS cover candidate `eb976a98d967865030dc7bf964015365dbc7ad2f`. Publication and final delivery verification were pending at closeout; current results are in `.runs/handoffs/TASK-00109/land.md` and the actual PR. The Work checkpoint below is historical; consumer qualification remains separate.
+
 The selected implementation groups Agent collaborators and mirrored tests under `Authentication`, `Credential`,
 `Delivery`, `Maintenance` and `Continuation`, retaining actual inward ports and distinct failure/authority/outcome
 contracts. The internal assignment coordinator is in `PermissionAssignment`, while message handlers keep their
