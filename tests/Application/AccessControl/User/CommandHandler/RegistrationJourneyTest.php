@@ -11,10 +11,10 @@ use Fight\AccessControl\Application\AccessControl\ActivationGrant\EventSubscribe
 use Fight\AccessControl\Application\AccessControl\ActivationGrant\QueryHandler\FindInvitationDeliveryStatusHandler;
 use Fight\AccessControl\Application\AccessControl\CredentialDelivery\QueryHandler\FindDueCredentialDeliveriesHandler;
 use Fight\AccessControl\Application\AccessControl\CredentialDelivery\Service\CredentialDeliveryInvocation;
-use Fight\AccessControl\Application\AccessControl\RefreshSession\Service\SessionRevocationService;
+use Fight\AccessControl\Application\AccessControl\User\Authentication\TokenIssuer;
+use Fight\AccessControl\Application\AccessControl\User\Authentication\UserAuthentication;
 use Fight\AccessControl\Application\AccessControl\User\CommandHandler\RegisterUserHandler;
 use Fight\AccessControl\Application\AccessControl\User\QueryHandler\GetUserByIdHandler;
-use Fight\AccessControl\Application\AccessControl\User\Security\AuthenticationService;
 use Fight\AccessControl\Application\AccessControl\User\Security\AuthenticationTokenPolicy;
 use Fight\AccessControl\Domain\AccessControl\ActivationGrant\ActivationOrigin;
 use Fight\AccessControl\Domain\AccessControl\ActivationGrant\Command\DeliverUserInvitation;
@@ -411,30 +411,27 @@ final class RegistrationJourneyTest extends TestCase
         );
     }
 
-    private function authentication(RegistrationFixture $fixture): AuthenticationService
+    private function authentication(RegistrationFixture $fixture): UserAuthentication
     {
         $refreshSessionRepository = new InMemoryRefreshSessionRepository($fixture->unitOfWork);
         $fixture->userRepository->bindRefreshSessionRepository($refreshSessionRepository);
         $passwords = new TestPasswordSecurity();
 
-        return new AuthenticationService(
+        return new UserAuthentication(
             $fixture->userRepository,
             $fixture->activationGrantRepository,
-            $refreshSessionRepository,
-            new SessionRevocationService($refreshSessionRepository),
             $fixture->unitOfWork,
             new FixedClock('2030-01-01T00:00:01Z'),
             new FixedLoginThrottle(true),
             new FixedRefreshCredentialGenerator(RefreshCredential::fromString(str_repeat('a', 64))),
             $passwords,
             $passwords,
-            new RecordingTokenEncoder(),
-            AuthenticationTokenPolicy::starterDefaults(new DateInterval('PT5S')),
+            new TokenIssuer(
+                new RecordingTokenEncoder(),
+                AuthenticationTokenPolicy::starterDefaults(new DateInterval('PT5S'))
+            ),
             PasswordHash::fromString($passwords->hash('unused-dummy-password')),
-            new InMemoryEventDispatcher(),
-            new InMemoryPasswordResetGrants($fixture->unitOfWork),
-            $fixture->auditEvidenceRepository,
-            new InMemoryEmailChangeGrantRepository($fixture->unitOfWork)
+            new InMemoryEventDispatcher()
         );
     }
 }

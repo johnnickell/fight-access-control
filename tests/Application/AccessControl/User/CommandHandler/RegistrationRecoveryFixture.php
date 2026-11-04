@@ -8,9 +8,9 @@ use Closure;
 use DateInterval;
 use Fight\AccessControl\Application\AccessControl\ActivationGrant\CommandHandler\DeliverUserInvitationHandler;
 use Fight\AccessControl\Application\AccessControl\ActivationGrant\CommandHandler\ResendInvitationDeliveryHandler;
-use Fight\AccessControl\Application\AccessControl\RefreshSession\Service\SessionRevocationService;
+use Fight\AccessControl\Application\AccessControl\User\Authentication\TokenIssuer;
+use Fight\AccessControl\Application\AccessControl\User\Authentication\UserAuthentication;
 use Fight\AccessControl\Application\AccessControl\User\CommandHandler\RecoverPendingRegistrationHandler;
-use Fight\AccessControl\Application\AccessControl\User\Security\AuthenticationService;
 use Fight\AccessControl\Application\AccessControl\User\Security\AuthenticationTokenPolicy;
 use Fight\AccessControl\Application\AccessControl\User\Service\RegistrationRecoveryAuthorization;
 use Fight\AccessControl\Domain\AccessControl\ActivationGrant\ActivationDeliveryId;
@@ -30,9 +30,7 @@ use Fight\Test\AccessControl\Application\AccessControl\ActivationGrant\Service\F
 use Fight\Test\AccessControl\Application\AccessControl\ActivationGrant\Service\PrefixInvitationDeliveryCipher;
 use Fight\Test\AccessControl\Application\AccessControl\Audit\Repository\InMemoryAuditEvidenceRepository;
 use Fight\Test\AccessControl\Application\AccessControl\CredentialDelivery\Service\RecordingCredentialDeliveryProvider;
-use Fight\Test\AccessControl\Application\AccessControl\EmailChangeGrant\Repository\InMemoryEmailChangeGrantRepository;
 use Fight\Test\AccessControl\Application\AccessControl\Event\InMemoryEventDispatcher;
-use Fight\Test\AccessControl\Application\AccessControl\PasswordResetGrant\Repository\InMemoryPasswordResetGrants;
 use Fight\Test\AccessControl\Application\AccessControl\RefreshSession\Repository\InMemoryRefreshSessionRepository;
 use Fight\Test\AccessControl\Application\AccessControl\RefreshSession\Service\FixedRefreshCredentialGenerator;
 use Fight\Test\AccessControl\Application\AccessControl\Timing\Service\FixedClock;
@@ -214,30 +212,27 @@ final class RegistrationRecoveryFixture
         );
     }
 
-    public function authentication(string $at = '2030-01-02T00:00:01Z'): AuthenticationService
+    public function authentication(string $at = '2030-01-02T00:00:01Z'): UserAuthentication
     {
         $refreshSessionRepository = new InMemoryRefreshSessionRepository($this->unitOfWork);
         $this->userRepository->bindRefreshSessionRepository($refreshSessionRepository);
         $passwords = new TestPasswordSecurity();
 
-        return new AuthenticationService(
+        return new UserAuthentication(
             $this->userRepository,
             $this->activationGrantRepository,
-            $refreshSessionRepository,
-            new SessionRevocationService($refreshSessionRepository),
             $this->unitOfWork,
             new FixedClock($at),
             new FixedLoginThrottle(true),
             new FixedRefreshCredentialGenerator(RefreshCredential::fromString(str_repeat('a', 64))),
             $passwords,
             $passwords,
-            new RecordingTokenEncoder(),
-            AuthenticationTokenPolicy::starterDefaults(new DateInterval('PT5S')),
+            new TokenIssuer(
+                new RecordingTokenEncoder(),
+                AuthenticationTokenPolicy::starterDefaults(new DateInterval('PT5S'))
+            ),
             PasswordHash::fromString($passwords->hash('unused-dummy-password')),
-            new InMemoryEventDispatcher(),
-            new InMemoryPasswordResetGrants($this->unitOfWork),
-            $this->auditEvidenceRepository,
-            new InMemoryEmailChangeGrantRepository($this->unitOfWork)
+            new InMemoryEventDispatcher()
         );
     }
 }

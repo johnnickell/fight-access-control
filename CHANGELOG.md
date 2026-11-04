@@ -29,6 +29,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   shapes, original issuance, retained-key safety, atomic cancellation/audit, current authorization and
   cohort/restoration/claim/receipt fences remain unchanged. Actual consumer persistence qualification and the
   separate Agent Command conversion are not supplied. See [composition](docs/agent-integration.md#operation-ownership-and-readwrite-composition-unreleased).
+- **Breaking pre-v1 synchronous User API:** replace `AuthenticationService` directly with
+  `User\Authentication\UserAuthentication`, `RefreshSession\SessionLifecycle`, `User\PasswordManagement` and
+  `EmailChangeGrant\EmailChangeConfirmation`. Each owns its actual transaction and only relevant dependencies;
+  authentication/refresh share `User\Authentication\TokenIssuer`. No facade, alias or legacy mode remains.
+  Sensitive inputs, safe token/conflict/void results, atomicity, recovery, audit, concurrent-writer defenses and
+  post-commit failure behavior are unchanged. Failure notifications identify their current owner class/method.
+  See [direct composition and before/after callers](docs/user-authentication.md). No consumer qualification or release.
 - **Breaking pre-v1 User transitions:** activation, password change/reset and email confirmation now own their
   authentication-authority revision changes. Successful login uses `User::recordSuccessfulLogin()` with an optional
   verified rehash, advancing the persistence revision once without changing authenticationVersion or recovery

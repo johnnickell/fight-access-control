@@ -81,13 +81,13 @@ final class AuthenticationDomainTest extends TestCase
     public function test_that_redacted_failures_round_trip_only_allowlisted_context(): void
     {
         $event = new RedactedCommandFailed(
-            'AuthenticationService::activate',
+            'UserAuthentication::activate',
             ['user_id' => UserId::generate()->toString()],
             'Activation failed.'
         );
 
         self::assertSame($event->toArray(), RedactedCommandFailed::fromArray($event->toArray())->toArray());
-        self::assertSame('AuthenticationService::activate', $event->getCommandClass());
+        self::assertSame('UserAuthentication::activate', $event->getCommandClass());
         self::assertArrayHasKey('user_id', $event->getRedactedCommandData());
         self::assertSame('Activation failed.', $event->getErrorMessage());
 
@@ -99,7 +99,7 @@ final class AuthenticationDomainTest extends TestCase
     {
         $this->expectException(DomainException::class);
         RedactedCommandFailed::fromArray([
-            'command_class' => 'AuthenticationService::login',
+            'command_class' => 'UserAuthentication::login',
             'command_data'  => 'not-an-array',
             'error_message' => 'Login failed.'
         ]);

@@ -60,15 +60,18 @@ EPIC-00015 guidance. Agent MCP presentation/bindings now live in `Adapter/Mcp/{T
 ([current composition](docs/agent-profile-tools.md)); authentication, Permission policy and continuation stay inward.
 Agent authentication, credential lifecycle, delivery, maintenance and continuation now have cohesive Application
 homes, alongside Feature Discovery and authorization Admission; see the
-[current composition map](docs/agent-integration.md#public-composition-map). User synchronous authentication
-decomposition remains a later TASK; neither refactor supplies blanket persistence/framework support.
+[current composition map](docs/agent-integration.md#public-composition-map). User secret-bearing operations now use
+[direct synchronous authentication, session, password and email-confirmation owners](docs/user-authentication.md),
+without the retired broad service. Neither refactor supplies blanket persistence/framework support.
 The independently persisted `AgentCredentialOperation` now has its own Domain/Application aggregate home.
 Status, scheduler and maintenance readers inject `AgentCredentialOperationReadRepository`; material-bearing writers
 use the separate `AgentCredentialOperationRepository` with their existing UoW. Update imports/named arguments
 directly; wire shapes and atomic Agent/operation cancellation, cohort/restoration and recovery behavior are unchanged.
 See the [operation ownership map](docs/agent-integration.md#operation-ownership-and-readwrite-composition-unreleased).
-This unreleased candidate has independent Review and QA acceptance; it is not consumer qualification or the
-separate Agent Command conversion. Current delivery results are in the TASK-00114 Land handoff and PR.
+The original TASK-00114 candidate has independent Review and QA acceptance. Integration with TASK-00112's
+advanced authentication base now requires fresh independent Review and QA; the earlier acceptance does not cover
+that combined candidate. Current integration evidence is in the canonical TASK-00114 Work handoff; delivery history
+is in its Land handoff and PR. Neither scope supplies consumer qualification or the separate Agent Command conversion.
 
 | This package owns | Your application owns |
 | --- | --- |
@@ -97,7 +100,7 @@ separate Agent Command conversion. Current delivery results are in the TASK-0011
 | --- | --- |
 | User invitation, activation and credential delivery | [Delivery composition](docs/credential-delivery.md) · [Expired-work cleanup](docs/credential-expiry.md) |
 | Optional User registration and administrator recovery | [Registration](docs/user-registration.md) · [Recovery](docs/registration-recovery.md) |
-| Login, refresh, logout, passwords and current authority | [Behavioral contract](planning/tickets/00001-TICKET.md) · [Vocabulary and boundaries](CONTEXT.md#vocabulary) |
+| Login, refresh, logout, passwords and current authority | [Direct synchronous composition](docs/user-authentication.md) · [Behavioral contract](planning/tickets/00001-TICKET.md) · [Vocabulary and boundaries](CONTEXT.md#vocabulary) |
 | Roles, Permission tiers and managed policy | [Permission tiers](docs/permission-tiers.md) · [Operation outcomes](docs/operation-outcomes.md) |
 | Recoverable Agent provisioning, rotation and delivery | [Agent integration](docs/agent-integration.md) · [Conformance and evidence](docs/agent-operation-evidence.md) |
 | Agent profiles and protected MCP capabilities | [Profile Tools](docs/agent-profile-tools.md) · [Tool authorization](docs/agent-mcp-authorization.md) · [Resource authorization](docs/agent-resource-authorization.md) · [Skill authorization](docs/agent-skill-authorization.md) · [Current continuation](docs/agent-continuation-authorization.md) |

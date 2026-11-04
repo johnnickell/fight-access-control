@@ -11,7 +11,7 @@ the separate v1.0.0 stability decision. Package publication does not establish c
 `RegisterUser(UserId $userId, EmailAddress $email)` has exactly `user_id` and `email` serialized fields. Generate a
 new stable User ID at the consumer's admission boundary. `fromArray()` rejects missing, non-string or invalid values
 and extra keys, including actor, Role and credential inputs. There is no password at registration: the existing
-synchronous `AuthenticationService::activate()` takes the one-time credential and new password later.
+synchronous [`UserAuthentication::activate()`](user-authentication.md) takes the one-time credential and new password later.
 
 No authenticated actor is asserted by this command or `UserRegistered`. Audit uses fixed source `registration`,
 action `user.registered` and the new User ID, without email, credential or arbitrary caller context. That source

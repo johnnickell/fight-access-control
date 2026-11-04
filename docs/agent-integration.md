@@ -178,7 +178,7 @@ slot order survive. Safe status absence is indeterminate, not proof of rollback 
 | Confirmed new provision/rotation; publisher throws (even both publishers) | Confirmed safe metadata with typed `AgentPublicationWarning::PUBLICATION_FAILED`. Durable pending delivery survives; scheduler recovery needs neither event nor caller retry. Warning is transient, not stored delivery status. |
 | Confirmed issuance only | Not delivery, enrollment activation or launch/use. No raw-secret result or general secret-read capability exists. |
 | Receipt-confirmed delivery | Delivery copy removed; verify original exact receipt on recovery. Lost delivered material returns `RECONCILIATION_REQUIRED`, never envelope fallback or automatic rotation. |
-| Revocation publication throws | Durable retirement remains; original publication fault still rethrows after attempted redacted failure publication. The D3 warning exception applies **only** to replacement provision/rotation, not revocation, AuthenticationService or other handlers. |
+| Revocation publication throws | Durable retirement remains; original publication fault still rethrows after attempted redacted failure publication. The D3 warning exception applies **only** to replacement provision/rotation, not revocation, synchronous User capabilities or other handlers. |
 
 There is no outbox or automatic notification retry. Same-key service retries publish no second success fact. Consumer
 notification retry, if added, must retain the original fact identity and document duplicates. Receipt-aware recovery

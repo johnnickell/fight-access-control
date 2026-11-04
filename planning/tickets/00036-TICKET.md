@@ -73,8 +73,13 @@ compatibility aliases, split transactions, outbox/exactly-once delivery, physica
 | Order | TASK ID | Title | Status |
 | --- | --- | --- | --- |
 | 203 | [TASK-00113](../tasks/00113-TASK.md) | Make AgentName own provisioning and rename semantics | done |
-| 204 | [TASK-00114](../tasks/00114-TASK.md) | Establish credential-operation aggregate and narrow read repositories | done |
+| 204 | [TASK-00114](../tasks/00114-TASK.md) | Establish credential-operation aggregate and narrow read repositories | in-progress |
 ## Decisions and Progress
+
+The terminal status records the original independently accepted children and their administrative parent rollup.
+TASK-00114 has resumed integration work after develop advanced through TASK-00112. Preserve this already-terminal
+parent under local completion semantics; it does not independently accept the integrated candidate. Fresh Review/QA
+and exact integration evidence belong to TASK-00114 and its canonical Work handoff, not a new requirement or parent gate.
 
 John approved both slices and their lower priority than enabling refactors/current features. Existing specialized
 atomic repository methods remain valid where they encapsulate actual concurrency knowledge; do not flatten them

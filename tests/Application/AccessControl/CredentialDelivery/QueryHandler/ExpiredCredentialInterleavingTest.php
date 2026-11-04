@@ -5,20 +5,16 @@ declare(strict_types=1);
 namespace Fight\Test\AccessControl\Application\AccessControl\CredentialDelivery\QueryHandler;
 
 use Closure;
-use DateInterval;
 use Fiber;
 use Fight\AccessControl\Application\AccessControl\ActivationGrant\CommandHandler\ExpireInvitationDeliveryHandler;
 use Fight\AccessControl\Application\AccessControl\ActivationGrant\CommandHandler\ResendInvitationDeliveryHandler;
 use Fight\AccessControl\Application\AccessControl\EmailChangeGrant\CommandHandler\CancelEmailChangeHandler;
 use Fight\AccessControl\Application\AccessControl\EmailChangeGrant\CommandHandler\ExpireEmailChangeHandler;
 use Fight\AccessControl\Application\AccessControl\EmailChangeGrant\CommandHandler\RequestEmailChangeHandler;
+use Fight\AccessControl\Application\AccessControl\EmailChangeGrant\EmailChangeConfirmation;
 use Fight\AccessControl\Application\AccessControl\PasswordResetGrant\CommandHandler\ExpirePasswordResetDeliveryHandler;
 use Fight\AccessControl\Application\AccessControl\PasswordResetGrant\CommandHandler\RequestPasswordResetHandler;
-use Fight\AccessControl\Application\AccessControl\RefreshSession\Service\RefreshCredentialGenerator;
 use Fight\AccessControl\Application\AccessControl\RefreshSession\Service\SessionRevocationService;
-use Fight\AccessControl\Application\AccessControl\User\Security\AuthenticationService;
-use Fight\AccessControl\Application\AccessControl\User\Security\AuthenticationTokenPolicy;
-use Fight\AccessControl\Application\AccessControl\User\Service\LoginThrottle;
 use Fight\AccessControl\Domain\AccessControl\ActivationGrant\ActivationGrantRepository;
 use Fight\AccessControl\Domain\AccessControl\ActivationGrant\Command\ResendInvitationDelivery;
 use Fight\AccessControl\Domain\AccessControl\CredentialDelivery\CredentialDeliveryFailure;
@@ -35,9 +31,6 @@ use Fight\AccessControl\Domain\AccessControl\Role\RoleId;
 use Fight\AccessControl\Domain\AccessControl\User\Event\RedactedCommandFailed;
 use Fight\AccessControl\Domain\AccessControl\User\User;
 use Fight\AccessControl\Domain\AccessControl\User\UserRepository;
-use Fight\Common\Application\Auth\Security\PasswordHasher;
-use Fight\Common\Application\Auth\Security\PasswordValidator;
-use Fight\Common\Application\Auth\Security\TokenEncoder;
 use Fight\Common\Application\Messaging\Command\CommandHandler;
 use Fight\Common\Domain\Messaging\Command\CommandMessage;
 use Fight\Common\Domain\Messaging\Event\CommandFailedEvent;
@@ -65,7 +58,7 @@ use Throwable;
 #[CoversClass(RequestPasswordResetHandler::class)]
 #[CoversClass(CancelEmailChangeHandler::class)]
 #[CoversClass(RequestEmailChangeHandler::class)]
-#[CoversClass(AuthenticationService::class)]
+#[CoversClass(EmailChangeConfirmation::class)]
 final class ExpiredCredentialInterleavingTest extends TestCase
 {
     #[DataProvider('cleanupWorkers')]
@@ -536,27 +529,16 @@ final class ExpiredCredentialInterleavingTest extends TestCase
         // Confirmation reads a trusted time before expiry, then loses or wins against later cleanup.
         $clock = new FixedClock($fixture->expiresAt->modify('-1 microsecond')->format('Y-m-d\TH:i:s.uP'));
         if ($competitor === 'consume') {
-            $passwordHash = $fixture->user->getPasswordHash();
-            self::assertNotNull($passwordHash);
             $refreshSessionRepository = new InMemoryRefreshSessionRepository($fixture->unitOfWork);
-            $service = new AuthenticationService(
+            $service = new EmailChangeConfirmation(
                 $userRepository,
-                $fixture->activationGrantRepository,
-                $refreshSessionRepository,
+                $emailChangeGrantRepository,
+                $fixture->passwordResetGrantRepository,
                 new SessionRevocationService($refreshSessionRepository),
+                $auditEvidenceRepository,
                 $fixture->unitOfWork,
                 $clock,
-                $this->createStub(LoginThrottle::class),
-                $this->createStub(RefreshCredentialGenerator::class),
-                $this->createStub(PasswordHasher::class),
-                $this->createStub(PasswordValidator::class),
-                $this->createStub(TokenEncoder::class),
-                AuthenticationTokenPolicy::starterDefaults(new DateInterval('PT1S')),
-                $passwordHash,
-                $eventDispatcher,
-                $fixture->passwordResetGrantRepository,
-                $auditEvidenceRepository,
-                $emailChangeGrantRepository
+                $eventDispatcher
             );
 
             return static fn () => $service->confirmEmail($fixture->user->getId(), 'fixture');

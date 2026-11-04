@@ -4,12 +4,16 @@ declare(strict_types=1);
 
 namespace Fight\Test\AccessControl\Application\AccessControl\PasswordResetGrant;
 
+use Fight\AccessControl\Application\AccessControl\EmailChangeGrant\EmailChangeConfirmation;
 use Fight\AccessControl\Application\AccessControl\PasswordResetGrant\CommandHandler\DeliverPasswordResetHandler;
 use Fight\AccessControl\Application\AccessControl\PasswordResetGrant\CommandHandler\RequestPasswordResetHandler;
 use Fight\AccessControl\Application\AccessControl\PasswordResetGrant\Service\PasswordResetRevocationService;
+use Fight\AccessControl\Application\AccessControl\RefreshSession\SessionLifecycle;
+use Fight\AccessControl\Application\AccessControl\User\Authentication\TokenIssuer;
+use Fight\AccessControl\Application\AccessControl\User\Authentication\UserAuthentication;
 use Fight\AccessControl\Application\AccessControl\User\CommandHandler\DeleteUserHandler;
 use Fight\AccessControl\Application\AccessControl\User\CommandHandler\DisableUserHandler;
-use Fight\AccessControl\Application\AccessControl\User\Security\AuthenticationService;
+use Fight\AccessControl\Application\AccessControl\User\PasswordManagement;
 use Fight\AccessControl\Domain\AccessControl\CredentialDelivery\CredentialDeliveryStatus;
 use Fight\AccessControl\Domain\AccessControl\PasswordResetGrant\PasswordResetGrant;
 use Fight\AccessControl\Domain\AccessControl\User\Event\RedactedCommandFailed;
@@ -21,7 +25,11 @@ use PHPUnit\Framework\TestCase;
 use RuntimeException;
 use Throwable;
 
-#[CoversClass(AuthenticationService::class)]
+#[CoversClass(UserAuthentication::class)]
+#[CoversClass(TokenIssuer::class)]
+#[CoversClass(PasswordManagement::class)]
+#[CoversClass(SessionLifecycle::class)]
+#[CoversClass(EmailChangeConfirmation::class)]
 #[CoversClass(DeleteUserHandler::class)]
 #[CoversClass(DisableUserHandler::class)]
 #[CoversClass(DeliverPasswordResetHandler::class)]
@@ -162,13 +170,13 @@ final class RecoveryOutcomeTest extends TestCase
         if ($operation === 'request') {
             $fixture->request();
         } elseif ($operation === 'reset') {
-            $fixture->service()->resetPassword(
+            $fixture->passwordManagement()->resetPassword(
                 $fixture->userId,
                 'recovery-fixture',
                 'a sufficiently long recovered password'
             );
         } elseif ($operation === 'password') {
-            $fixture->service()->changePassword(
+            $fixture->passwordManagement()->changePassword(
                 $fixture->userId,
                 'correct-secret',
                 'a sufficiently long changed password'

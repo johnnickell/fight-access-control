@@ -10,8 +10,10 @@
 not synchronous execution or the supported JWT profile. Follow the current
 [Architecture rule](../../docs/engineering/standards/Architecture.md#application-mirrored-ownership-and-cohesive-capabilities):
 authentication/token issuance, refresh-session, password and email-confirmation capabilities have cohesive direct
-owners and actual dependencies, without a retained forwarding facade. TASK-00112 implements that replacement
-after TASK-00111; AuthenticationService is still present source, not retroactively nonconforming implementation.
+owners and actual dependencies, without a retained forwarding facade. TASK-00112 now implements that replacement
+after TASK-00111: `UserAuthentication`, `SessionLifecycle`, `PasswordManagement` and `EmailChangeConfirmation`, with
+shared `TokenIssuer` creation policy. The old service is removed directly; see [current composition](../../docs/user-authentication.md).
+This is an approved redesign, not a finding that the earlier implementation violated its accepted exception.
 
 Raw secrets remain SensitiveParameter, non-serializable inputs, absent from messages/facts/diagnostics. Preserve
 safe token/conflict/void results, login dummy-hash/throttle/rehash, grant single use, session lifetime/replay/logout,

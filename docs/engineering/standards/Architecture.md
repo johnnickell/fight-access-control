@@ -63,7 +63,8 @@ Commands, Queries or Events. EPIC-00015 replaces the *single AuthenticationServi
 cohesive authentication/token issuance, refresh-session, password and email-confirmation owners. TASK-00112 owns
 that replacement after TASK-00111's User transitions. Preserve the supported JWT profile, safe immutable results,
 login/throttle/rehash, grant/session/revocation semantics, audit and actual failure/transaction ordering; do not keep
-the old service as a forwarding facade. Until that work is accepted, AuthenticationService remains current source.
+the old service as a forwarding facade. TASK-00112's Work implementation now supplies the
+[direct owners and shared token creation](../../user-authentication.md); independent acceptance remains separate.
 Internally generating a secret does not exempt secret-free intent from Commands. John's amended
 [TICKET-00053](../../../planning/tickets/00053-TICKET.md)/[TASK-00182](../../../planning/tasks/00182-TASK.md) uses void
 provision/rotate Commands and independent authorized outcome Queries, invocable sync or async without transport

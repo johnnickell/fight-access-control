@@ -167,8 +167,9 @@ previous-iteration support; completed TASKs and earlier guidance cannot require 
 - Agent profile Tools/catalogs and family availability now live in `Adapter/Mcp/{Tool,Resource,Skill}/Agent`
   under TASK-00108; authentication, Permission policy and synchronized continuation remain inward. TASK-00109
   organizes Agent Authentication/Credential/Delivery/Maintenance/Continuation, PermissionAssignment, Feature Discovery
-  and authorization Admission, with descriptive collaborators and mirrored tests. Current source retains the single
-  User AuthenticationService; TASK-00112 owns synchronous decomposition after TASK-00111. User business transitions
+  and authorization Admission, with descriptive collaborators and mirrored tests. Current source has
+  direct User authentication/session/password/email-confirmation owners under TASK-00112 after TASK-00111;
+  see [synchronous composition](../../docs/user-authentication.md). User business transitions
   now own authentication-authority revisions, including successful login with optional verified rehash; see
   [current transition composition](../../docs/operation-outcomes.md#user-authentication-transitions-unreleased).
   TASK-00114's Work now places the operation root/owned values, Domain read/write repositories and Application
@@ -177,7 +178,9 @@ previous-iteration support; completed TASKs and earlier guidance cannot require 
   `AgentCredentialOperationRepository` and existing UoW. View mapping is query-owned; cohort evidence remains
   Domain-owned while actual composition qualification stays with consumers. See the
   [current ownership map](../../docs/agent-integration.md#operation-ownership-and-readwrite-composition-unreleased).
-  Independent Review and QA accepted the TASK-00114 candidate; delivery is recorded in its Land handoff and PR.
+  Independent Review and QA accepted TASK-00114's original candidate on its original base. The current merge with
+  TASK-00112's advanced authentication base requires fresh independent Review/QA; see the canonical Work handoff
+  for the integrated subject and verification, and the Land handoff/PR for delivery history.
   TASK-00110 owns qualified canonical Common adoption; TASK-00107
   implemented neither this source change nor Common adoption.
   See the [consumed-contract notes](domain.md#consumed-common-contracts) for actual source and supplier limits.
@@ -188,9 +191,10 @@ previous-iteration support; completed TASKs and earlier guidance cannot require 
 
 - Secret-bearing activation, login, refresh, logout, password and email-confirmation operations remain synchronous.
   EPIC-00015 replaces ADR 0003's single AuthenticationService placement mandate with cohesive direct owners under
-  the Architecture rule; TASK-00112 implements this later. The existing service remains current source, not a policy
-  violation retroactively. Raw secrets remain sensitive, non-serializable parameters and failures dispatch only
-  redacted failure evidence; supported JWT/security/atomic/recovery/post-commit guarantees are unchanged.
+  the Architecture rule; TASK-00112 implements `UserAuthentication`, `SessionLifecycle`, `PasswordManagement` and
+  `EmailChangeConfirmation`, sharing token creation through `TokenIssuer`. The retired service has no facade or alias;
+  this approved redesign is not a retroactive finding against its earlier accepted placement. Raw secrets remain
+  sensitive, non-serializable parameters and failures dispatch only redacted failure evidence; supported JWT/security/atomic/recovery/post-commit guarantees are unchanged.
 - Serializable Commands, Queries, and Events are immutable DTOs with canonical fromArray/toArray round trips,
   named getters, and rejection of missing required data.
 - Command and Query handlers implement the corresponding public Fight Common handler interface, declare their
@@ -212,7 +216,7 @@ previous-iteration support; completed TASKs and earlier guidance cannot require 
   Pre-commit failure and indeterminate commit remain distinct; same-key resolution and authorized scheduler discovery
   survive even both publishers failing. This prevents a notification fault disguising committed issuance. Issuance
   confirms neither delivery, enrollment activation nor launch permission; each needs its own confirmed outcome and
-  current authorization. Revocation, AuthenticationService and other handlers retain their publication behavior.
+  current authorization. Revocation, synchronous User capabilities and other handlers retain their publication behavior.
   TASK-00046 implements the provision exception and TASK-00048 implements rotation as unreleased work; the old
   raw-return rotation API is removed. TASK-00049/00052 prove package scheduler-only recovery; actual consumer
   qualification remains separate. This describes the current direct-service baseline, not a requirement to retain
@@ -263,7 +267,7 @@ previous-iteration support; completed TASKs and earlier guidance cannot require 
   neither guides nor package passes authorize release, activation/use, consumer adoption, deployment or
   Agent OS TASK-00138 closure.
 - QueryHandlers read through Domain repositories only: no aggregate mutation, commit, or domain-event dispatch.
-- Current AuthenticationService and its future cohesive replacements retain the same atomic, post-commit ordering,
+- Current direct synchronous User capabilities retain the same atomic, post-commit ordering,
   Fight Common password/token ports, non-serializable token results and RedactedCommandFailed without raw secret input.
 - Aggregate roots own state transitions. Keep aggregate entities extensible; use final readonly only for immutable
   DTOs, handlers, and services where extension is not part of the contract.
