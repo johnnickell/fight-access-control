@@ -35,6 +35,40 @@ worker fault may therefore propagate through the original request even though is
 [delivery status and due work](credential-delivery.md), retain exact generation identities, and keep provider retry
 classification distinct from outer operation failure notification. No outbox or guaranteed event replay is supplied.
 
+## User authentication transitions (Unreleased)
+
+User owns complete business transitions: `activate()`, `changePassword()`, `resetPassword()` and
+`confirmEmailChange()` each advance `authenticationAuthorityRevision` exactly once. Activation preserves
+`authenticationVersion`; password change/reset and confirmed email advance it once. Lifecycle semantics remain
+separate: disable/delete advance the security version, while enable/restore preserve it; none adds a login revision.
+
+After credential verification and throttle admission, `AuthenticationService::login()` calls
+`recordSuccessfulLogin($authenticatedAt, $rehashedPassword)` on a cloned User. The optional hash is present only
+when the verified password needs rehash. Both forms advance the persistence revision once without changing the
+security version or recovery authority. A rehash updates password/update metadata; a no-rehash login preserves it.
+The transition requires an active identity with an established password; it does not itself verify a raw password,
+check a throttle, persist a session or grant authentication outside the use case.
+
+For example, an existing password-change transaction now constructs its complete successor with:
+
+```php
+$replacementUser = clone $user;
+$replacementUser->changePassword($passwordHash, $changedAt);
+```
+
+Persist that successor through the existing `UserRepository::replaceAuthenticationAuthority()` inside the same
+Unit of Work as recovery cancellation, session revocation and required audit. Do not separately increment a revision.
+Login and activation still require `replaceAuthenticationAuthorityAndAddRefreshSession()`; email confirmation retains
+its dedicated full-state replacement. Aggregate encapsulation does not replace complete expected-state CAS,
+exact-one revision validation, coupled session insertion, single-use grants or transaction-duration fences.
+
+This is a breaking pre-v1 PHP API change: update callers directly to the complete transition. The standalone
+revision increment and standalone password-rehash APIs are removed, without compatibility aliases. Persist/hydrate
+actual current counters, never reconstruct them from lifecycle state or add a second activation bump. Safe token
+results, sensitive synchronous inputs, redacted failure evidence and pre-/post-commit outcomes above are unchanged.
+Package tests use controlled repositories and modeled races; consumers still qualify their actual database, crypto,
+shared connections and concurrent writers independently. No new grant, event or exactly-once promise is introduced.
+
 ## Recovery composition
 
 Password-reset generations carry immutable `User\\RecoveryAuthority`: the issuing `authenticationVersion` and

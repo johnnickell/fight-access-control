@@ -67,7 +67,6 @@ final class RequestEmailChangeHandlerTest extends TestCase
             if ($outcome === 'confirmed') {
                 $terminalUser = clone $reservedUser;
                 $terminalUser->confirmEmailChange(new DateTimeImmutable('2026-01-01T00:00:00+00:00'));
-                $terminalUser->advanceAuthenticationAuthorityRevision();
                 self::assertTrue($userRepository->replaceEmailChangeConfirmation($reservedUser, $terminalUser));
                 $terminalPredecessor = $predecessor->consume(
                     new DateTimeImmutable('2026-08-22T10:30:00+00:00')

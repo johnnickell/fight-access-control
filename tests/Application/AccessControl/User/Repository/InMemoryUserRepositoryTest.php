@@ -36,7 +36,7 @@ final class InMemoryUserRepositoryTest extends TestCase
             $staleExpected = clone $current;
             $staleReplacement = clone $staleExpected;
             if ($emailTransition === 'reservation') {
-                $staleReplacement->advanceAuthenticationAuthorityRevision();
+                $staleReplacement->recordSuccessfulLogin(new DateTimeImmutable('2026-01-01T00:00:00+00:00'));
                 $winner = clone $current;
                 $winner->requestEmailChange(
                     EmailAddress::fromString('reserved@example.test'),
@@ -48,7 +48,6 @@ final class InMemoryUserRepositoryTest extends TestCase
                     $this->passwordHash('stale-activation-password'),
                     new DateTimeImmutable('2026-01-01T00:00:00+00:00')
                 );
-                $staleReplacement->advanceAuthenticationAuthorityRevision();
                 $winner = clone $current;
                 $winner->correctPendingInvitationEmail(
                     EmailAddress::fromString('corrected@example.test'),
@@ -81,7 +80,7 @@ final class InMemoryUserRepositoryTest extends TestCase
         $userRepository->add($current);
         $staleExpected = clone $current;
         $staleReplacement = clone $staleExpected;
-        $staleReplacement->advanceAuthenticationAuthorityRevision();
+        $staleReplacement->recordSuccessfulLogin(new DateTimeImmutable('2026-01-01T00:00:00+00:00'));
 
         $session = $this->session($staleReplacement);
         $winner = clone $current;
@@ -168,9 +167,10 @@ final class InMemoryUserRepositoryTest extends TestCase
                             $this->passwordHash('replacement-password'),
                             new DateTimeImmutable('2026-01-01T00:00:00+00:00')
                         );
+                    } else {
+                        $replacement->recordSuccessfulLogin(new DateTimeImmutable('2026-01-01T00:00:00+00:00'));
                     }
 
-                    $replacement->advanceAuthenticationAuthorityRevision();
                     $result = $userRepository->replaceAuthenticationAuthority($current, $replacement);
                 } else {
                     $replacement->replaceRoleAssignments(
@@ -300,9 +300,9 @@ final class InMemoryUserRepositoryTest extends TestCase
         $userRepository->add($current);
         $replacement = clone $current;
         $replacement->replaceRoleAssignments([RoleId::generate()], new DateTimeImmutable('2026-01-01T00:00:00+00:00'));
-        $replacement->rehashPassword(
-            $this->passwordHash('unrelated-password-change'),
-            new DateTimeImmutable('2026-01-01T00:00:00+00:00')
+        $replacement->recordSuccessfulLogin(
+            new DateTimeImmutable('2026-01-01T00:00:00+00:00'),
+            $this->passwordHash('unrelated-password-change')
         );
 
         self::assertFalse($userRepository->replaceRoleAssignments($current, $replacement));
@@ -325,6 +325,31 @@ final class InMemoryUserRepositoryTest extends TestCase
         self::assertSame($current, $userRepository->getById($current->getId()));
     }
 
+    public function test_that_repositories_reject_missing_and_double_login_transitions_without_partial_writes(): void
+    {
+        foreach ([0, 2] as $transitions) {
+            $unitOfWork = new InMemoryUnitOfWork();
+            $userRepository = new InMemoryUserRepository($unitOfWork);
+            $refreshSessionRepository = new InMemoryRefreshSessionRepository($unitOfWork);
+            $userRepository->bindRefreshSessionRepository($refreshSessionRepository);
+            $user = $this->activeUser();
+            $userRepository->add($user);
+            $replacement = clone $user;
+            for ($index = 0; $index < $transitions; ++$index) {
+                $replacement->recordSuccessfulLogin(new DateTimeImmutable('2026-01-01Z'));
+            }
+
+            self::assertFalse($userRepository->replaceAuthenticationAuthority($user, $replacement));
+            self::assertFalse($userRepository->replaceAuthenticationAuthorityAndAddRefreshSession(
+                $user,
+                $replacement,
+                $this->session($replacement)
+            ));
+            self::assertSame($user, $userRepository->getById($user->getId()));
+            self::assertSame([], $refreshSessionRepository->all());
+        }
+    }
+
     public function test_that_authentication_replacement_preserves_role_assignments(): void
     {
         $unitOfWork = new InMemoryUnitOfWork();
@@ -340,11 +365,10 @@ final class InMemoryUserRepositoryTest extends TestCase
         $current->replaceRoleAssignments([$roleId], new DateTimeImmutable('2026-01-01T00:00:00+00:00'));
         $userRepository->add($current);
         $replacement = clone $current;
-        $replacement->rehashPassword(
-            $this->passwordHash('replacement-password'),
-            new DateTimeImmutable('2026-01-01T00:00:00+00:00')
+        $replacement->recordSuccessfulLogin(
+            new DateTimeImmutable('2026-01-01T00:00:00+00:00'),
+            $this->passwordHash('replacement-password')
         );
-        $replacement->advanceAuthenticationAuthorityRevision();
 
         self::assertTrue($userRepository->replaceAuthenticationAuthority($current, $replacement));
         self::assertSame([$roleId], $replacement->getRoleIds());
@@ -361,7 +385,7 @@ final class InMemoryUserRepositoryTest extends TestCase
         $userRepository->add($current);
         $replacement = clone $current;
         $replacement->replaceRoleAssignments([RoleId::generate()], new DateTimeImmutable('2026-01-01T00:00:00+00:00'));
-        $replacement->advanceAuthenticationAuthorityRevision();
+        $replacement->recordSuccessfulLogin(new DateTimeImmutable('2026-01-01T00:00:00+00:00'));
 
         self::assertFalse($userRepository->replaceAuthenticationAuthority($current, $replacement));
         self::assertSame($current, $userRepository->getById($current->getId()));
@@ -386,7 +410,7 @@ final class InMemoryUserRepositoryTest extends TestCase
         self::assertInstanceOf(User::class, $loginExpected);
         self::assertInstanceOf(User::class, $resetExpected);
         $loginReplacement = clone $loginExpected;
-        $loginReplacement->advanceAuthenticationAuthorityRevision();
+        $loginReplacement->recordSuccessfulLogin(new DateTimeImmutable('2026-01-01T00:00:00+00:00'));
 
         $session = $this->session($loginReplacement);
         $resetReplacement = clone $resetExpected;
@@ -394,7 +418,6 @@ final class InMemoryUserRepositoryTest extends TestCase
             $this->passwordHash('reset-password'),
             new DateTimeImmutable('2026-01-01T00:00:00+00:00')
         );
-        $resetReplacement->advanceAuthenticationAuthorityRevision();
 
         self::assertTrue($loginUnitOfWork->commitTransactional(
             static fn(): bool => $loginUserRepository->replaceAuthenticationAuthorityAndAddRefreshSession(
@@ -434,10 +457,9 @@ final class InMemoryUserRepositoryTest extends TestCase
             $this->passwordHash('reset-password'),
             new DateTimeImmutable('2026-01-01T00:00:00+00:00')
         );
-        $resetReplacement->advanceAuthenticationAuthorityRevision();
 
         $loginReplacement = clone $loginExpected;
-        $loginReplacement->advanceAuthenticationAuthorityRevision();
+        $loginReplacement->recordSuccessfulLogin(new DateTimeImmutable('2026-01-01T00:00:00+00:00'));
 
         $session = $this->session($loginReplacement);
 
@@ -466,10 +488,10 @@ final class InMemoryUserRepositoryTest extends TestCase
         $current = $this->activeUser();
         $outerRepository->add($current);
         $outerReplacement = clone $current;
-        $outerReplacement->advanceAuthenticationAuthorityRevision();
+        $outerReplacement->recordSuccessfulLogin(new DateTimeImmutable('2026-01-01T00:00:00+00:00'));
 
         $competingReplacement = clone $outerReplacement;
-        $competingReplacement->advanceAuthenticationAuthorityRevision();
+        $competingReplacement->recordSuccessfulLogin(new DateTimeImmutable('2026-01-01T00:00:00+00:00'));
 
         try {
             $outerUnitOfWork->commitTransactional(function () use (
@@ -498,11 +520,10 @@ final class InMemoryUserRepositoryTest extends TestCase
         $winnerExpected = $winnerRepository->getById($current->getId());
         self::assertInstanceOf(User::class, $winnerExpected);
         $winnerReplacement = clone $winnerExpected;
-        $winnerReplacement->rehashPassword(
-            $this->passwordHash('winner-password'),
-            new DateTimeImmutable('2026-01-01T00:00:00+00:00')
+        $winnerReplacement->recordSuccessfulLogin(
+            new DateTimeImmutable('2026-01-01T00:00:00+00:00'),
+            $this->passwordHash('winner-password')
         );
-        $winnerReplacement->advanceAuthenticationAuthorityRevision();
 
         self::assertTrue($winnerUnitOfWork->commitTransactional(
             static fn(): bool => $winnerRepository->replaceAuthenticationAuthority(
@@ -511,7 +532,10 @@ final class InMemoryUserRepositoryTest extends TestCase
             )
         ));
         self::assertSame($winnerReplacement, $outerRepository->getById($current->getId()));
-        self::assertSame(1, $winnerReplacement->getAuthenticationAuthorityRevision());
+        self::assertSame(
+            $current->getAuthenticationAuthorityRevision() + 1,
+            $winnerReplacement->getAuthenticationAuthorityRevision()
+        );
     }
 
     public function test_that_atomic_authentication_authority_and_session_roll_back_together(): void
@@ -525,7 +549,7 @@ final class InMemoryUserRepositoryTest extends TestCase
         $current = $this->activeUser();
         $userRepository->add($current);
         $replacement = clone $current;
-        $replacement->advanceAuthenticationAuthorityRevision();
+        $replacement->recordSuccessfulLogin(new DateTimeImmutable('2026-01-01T00:00:00+00:00'));
 
         $session = $this->session($replacement);
 
@@ -563,14 +587,12 @@ final class InMemoryUserRepositoryTest extends TestCase
             $this->passwordHash('winner-password'),
             new DateTimeImmutable('2026-01-01T00:00:00+00:00')
         );
-        $winner->advanceAuthenticationAuthorityRevision();
 
         $staleCandidate = clone $current;
-        $staleCandidate->rehashPassword(
-            $this->passwordHash('stale-password'),
-            new DateTimeImmutable('2026-01-01T00:00:00+00:00')
+        $staleCandidate->recordSuccessfulLogin(
+            new DateTimeImmutable('2026-01-01T00:00:00+00:00'),
+            $this->passwordHash('stale-password')
         );
-        $staleCandidate->advanceAuthenticationAuthorityRevision();
 
         self::assertTrue($userRepository->replaceAuthenticationAuthority($current, $winner));
         self::assertFalse($userRepository->replaceAuthenticationAuthority($current, $staleCandidate));
@@ -589,11 +611,10 @@ final class InMemoryUserRepositoryTest extends TestCase
         $current = $this->activeUser();
         $userRepository->add($current);
         $replacement = clone $current;
-        $replacement->rehashPassword(
-            $this->passwordHash('replacement-password'),
-            new DateTimeImmutable('2026-01-01T00:00:00+00:00')
+        $replacement->recordSuccessfulLogin(
+            new DateTimeImmutable('2026-01-01T00:00:00+00:00'),
+            $this->passwordHash('replacement-password')
         );
-        $replacement->advanceAuthenticationAuthorityRevision();
 
         try {
             $unitOfWork->commitTransactional(function () use ($current, $replacement, $userRepository): void {

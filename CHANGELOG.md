@@ -19,6 +19,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- **Breaking pre-v1 User transitions:** activation, password change/reset and email confirmation now own their
+  authentication-authority revision changes. Successful login uses `User::recordSuccessfulLogin()` with an optional
+  verified rehash, advancing the persistence revision once without changing authenticationVersion or recovery
+  authority. Standalone revision increment and password-rehash APIs are removed; update callers directly. Repository
+  CAS, coupled session insertion, grant/session/audit atomicity and publication outcomes remain unchanged. See
+  [User transition composition](docs/operation-outcomes.md#user-authentication-transitions-unreleased).
 - **Breaking pre-v1 PHP organization:** Agent Application collaborators now live in cohesive `Authentication`,
   `Credential`, `Delivery`, `Maintenance`, `Continuation` and `PermissionAssignment` homes; Feature discovery and
   authorization admission have matching capability homes. Repository/bus/dispatcher parameter and property names

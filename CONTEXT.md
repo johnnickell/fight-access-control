@@ -299,6 +299,20 @@ Common generic/canonical qualification remains with its owners. At the earlier p
 first; it has since been independently accepted and the current Board owns execution selection.
 No source/dependency/sibling/consumer mutation, product build, new checkout, commit/publication or release follows.
 
+## User authentication transitions — TASK-00111 Work checkpoint
+
+User activation, password change/reset and email confirmation now construct complete successors with one owned
+`authenticationAuthorityRevision` advancement. `recordSuccessfulLogin()` records the required login serialization
+with an optional verified rehash. It preserves `authenticationVersion` and recovery authority; no-rehash login keeps
+existing password-update metadata. Standalone revision increment/rehash APIs are removed with direct caller updates.
+Current [composition](docs/operation-outcomes.md#user-authentication-transitions-unreleased) retains repository CAS,
+coupled session insertion, recovery/grant/session/audit transaction fences and existing publication outcomes.
+
+This is TASK-00111's approved design change, not evidence of a previous persistence bypass. AuthenticationService
+remains the synchronous use-case owner; TASK-00112 decomposition is separate. Work verification and subject mapping
+belong in the canonical TASK handoff. Independent Review/nonvisual QA remain required; no consumer database/crypto
+qualification, release or deployment is claimed at this checkpoint.
+
 ## Current combined MCP and capability organization
 
 TASK-00108's outward MCP presentation/bindings/availability and TASK-00109's inward capability homes and descriptive

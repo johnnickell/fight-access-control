@@ -260,7 +260,6 @@ final class RegistrationRecoveryRaceTest extends TestCase
                             PasswordHash::fromString(password_hash('test-password', PASSWORD_BCRYPT)),
                             new DateTimeImmutable('2030-01-08Z')
                         );
-                        $activate->advanceAuthenticationAuthorityRevision();
                         self::assertFalse($other->userRepository->replaceAuthenticationAuthority($current, $activate));
                         $roles = clone $current;
                         $roles->removeRole(
