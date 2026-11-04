@@ -15,6 +15,15 @@ contract; delivery/maintenance outcomes also need consistent coverage. Under
 current writer fences, external-effect safety or confirmed-result warning semantics. Audit must report truth,
 not disguise committed issuance, uncertain commit or a delivery that cannot be undone by database rollback.
 
+## Approved caller-contract amendment
+
+John subsequently chose [TICKET-00053](00053-TICKET.md)/[TASK-00182](../tasks/00182-TASK.md)'s void Commands and independent
+outcome Queries, invocable sync or async without a transport assumption. Direct-service/result/warning references
+below are baseline contracts until conversion; afterwards this audit ticket follows the actual handlers/Queries,
+retaining commit/provenance/no-duplicate-evidence safety without resurrecting removed results or synchronous completion.
+Conversion stays separately owned and is not an audit prerequisite. Both-publisher failure still cannot hide committed
+issuance; no new durable warning storage or result-capable Common bus is implied.
+
 ## Use Cases and Contracts
 
 | Actor and trigger | Existing synchronous/worker interaction | Required outcome |

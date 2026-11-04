@@ -21,7 +21,7 @@ local casts/assertions are not proof of end-to-end typing.
 | Caller fetches a Query | All owned Queries, including lists/status/counts | Static inference produces the exact declared result, collection element or explicit optional state. |
 | Caller dispatches a QueryMessage | Same Queries with message metadata | Payload/result relationship survives message creation, metadata operations and dispatch. |
 | Caller dispatches a Command | All existing serializable Commands | Handler registration/payload contracts agree; successful void handling remains void. |
-| Authorized Agent caller uses future result-bearing dispatch | Provisioning/rotation Commands separately delivered by EPIC-00015 | Exact confirmed/indeterminate/publication-warning results survive real synchronous dispatch; this ticket qualifies typing, not conversion. |
+| Authorized Agent caller invokes issuance and reads its outcome | Void provisioning/rotation Commands and outcome Queries delivered by EPIC-00015 | Command payload/metadata/void contracts and exact Query-result inference survive sync/async-neutral composition; this ticket qualifies typing, not conversion. |
 | Maintainer changes handler registration or caller expectations | Existing messages; no new Event | Incompatible use is rejected by static checks and applicable runtime dispatch rules, not silently asserted away. |
 
 ## Requirements and Ownership
@@ -41,9 +41,10 @@ local casts/assertions are not proof of end-to-end typing.
 - Use the result/absence contracts delivered by [TICKET-00039](00039-TICKET.md) and Application contracts from
   [TICKET-00040](00040-TICKET.md). Validate coverage of every handler here, but assign semantic changes to those
   owners rather than duplicate their acceptance. Shared Domain shapes remain with TICKET-00037.
-- Qualify the already-approved Agent result follow-up through TASK-00130, without implementing EPIC-00015's
-  conversion. Preserve meaningful confirmed/indeterminate/publication-warning results and inward native/static
-  dependencies. Missing result-capable Common APIs/conversion hold that slice only, not the 37 existing void handlers.
+- Qualify the amended Agent follow-up through TASK-00130, without implementing EPIC-00015's conversion. John chose
+  void Commands and independent outcome Queries, invocable sync or async with no transport assumption. Qualify payload/
+  metadata/void contracts and exact Query-result inference; no result-capable Common bus is needed. Actual missing
+  generic APIs and the concrete conversion supplier hold only their affected qualification, not ordinary functional conversion.
 - Preserve message identity, serialization, metadata, authorization-before-work, existing facts and transactional/
   post-commit behavior. No new grant, Event, commit or result DTO is required merely to obtain generic typing.
   Raw secrets remain synchronous/non-serializable and do not become messages.
@@ -90,18 +91,17 @@ John approved the complete three-TASK split, now written with kind chore and nee
 | --- | --- | --- | --- |
 | [TASK-00128](../tasks/00128-TASK.md) | 307 | Exact Query payload/result typing through real fetch/message dispatch, metadata operations, registrations and callers; all 22 current handlers. | Qualified/tagged Common generic Query contracts and minimum evidence; no local TASK blocker demonstrated. |
 | [TASK-00129](../tasks/00129-TASK.md) | 308 | Typed Command payload/registration/handler/caller paths for all 37 existing handlers; successful handling stays void. | Qualified/tagged Common typed Command contracts and minimum evidence; no local TASK blocker demonstrated. |
-| [TASK-00130](../tasks/00130-TASK.md) | 309 | Exact result-bearing dispatch qualification for future Agent provisioning/rotation. | Qualified/tagged result-capable Common APIs plus EPIC-00015's actual conversion supplier, still undecomposed; no invented local edge. |
+| [TASK-00130](../tasks/00130-TASK.md) | 309 | Exact payload/metadata/void Command contracts and outcome Query-result typing for Agent issuance. | Qualified/tagged generic Command/Query typing APIs plus actual conversion supplier [TASK-00182](../tasks/00182-TASK.md). No Command-result API required. |
 
 Current source-name manifests account for all 22 QueryHandlers and 37 CommandHandlers. These are planning inventories,
 not exhaustive source audit, generic/runtime proof or completed supplier/consumer qualification. Refresh candidates
-and follow actual moved/new/removed owners. TASK-00130 is a distinct future result-bearing slice, not two currently
-implemented CommandHandlers and not permission to convert or add placeholder handlers.
+and follow actual moved/new/removed owners. TASK-00130 is the distinct conversion-specific Command/Query typing slice,
+not permission to implement its supplier or add placeholder handlers. The earlier result-bearing premise is superseded.
 
-All three blocked_by fields are empty: external evidence is a needs-info requirement, not a sibling/fictitious TASK
-ID. When the real conversion supplier TASK(s) exist, add their true local edges to TASK-00130 before clearing its
-readiness and require their implemented accepted subject for qualification. No mutual dependencies are demonstrated.
-Orders 307–309 follow the existing Domain typing plans without renumbering them or earlier work. Missing future
-Agent result APIs do not block Query adoption or the 37 existing void paths; missing Query generics do not block
+TASK-00128/00129 have no demonstrated local blocker. TASK-00130 now has blocked_by TASK-00182, whose accepted conversion
+supplies the actual production paths; no reverse dependency. Actual external generic-typing evidence remains needs-info,
+not a fictitious local TASK ID or a result-capable-bus requirement. Orders 307–309 and unrelated priorities are unchanged.
+Missing generic APIs do not block TASK-00182's ordinary functional conversion; missing Query generics do not block
 independent Command adoption. No blanket wait on TASK-00110, every Domain/query correction or architecture refactor.
 
 TASK-00110 retains existing canonical migration. Coordinate imports/minima/shared fixture plumbing once rather than
@@ -117,7 +117,7 @@ examples, full gate/exact owned coverage, logs and independent Review/behavioral
 | --- | --- | --- | --- |
 | 307 | [TASK-00128](../tasks/00128-TASK.md) | Preserve types through Query dispatch | needs-info |
 | 308 | [TASK-00129](../tasks/00129-TASK.md) | Preserve Command payload types through dispatch | needs-info |
-| 309 | [TASK-00130](../tasks/00130-TASK.md) | Qualify result-preserving Agent Command dispatch | needs-info |
+| 309 | [TASK-00130](../tasks/00130-TASK.md) | Qualify Agent issuance Command and Query dispatch | needs-info |
 ## Decisions and Progress
 
 John approved this requirement within the six-TICKET split, then the complete three-TASK plan now written as
@@ -131,7 +131,8 @@ priority are preserved; choose the implementation checkout explicitly before any
 
 At this three-TASK checkpoint, planning generation/read-only validation passed (194 records, 68 active), plus
 documentation links and diff/record whitespace checks. The new name manifests account for 22/22 QueryHandlers and 37/37 current CommandHandlers; both
-future Agent result use cases are explicitly assigned to TASK-00130 without claiming converted handlers exist.
+future Agent use cases were assigned to TASK-00130 under the original result-bearing premise; that premise is now
+superseded by John's void-Command/outcome-Query amendment without claiming converted handlers exist.
 This is planning coverage, not generic/runtime/supplier/consumer qualification; no product build was run.
 The Board still selects TASK-00107 first.
 
@@ -156,5 +157,6 @@ TICKET-00049's two-TASK declaration plan is now written as TASK-00170/TASK-00171
 TICKET-00050's four-TASK Feature plan is now written as TASK-00172–00175, not implemented/native qualification.
 TICKET-00051's four-TASK portable Permission plan is now written as TASK-00176–00179, not implemented/qualified.
 TICKET-00052's reduced evidence/gap-closure plan is now TASK-00180/00181, completing EPIC-00018 TASK planning only.
-Next: `/skill:next` for Board-based selection. EPIC-00015's conversion decomposition and actual
-Common supplier planning/qualification remain separate unfinished handoffs; no implementation starts here.
+EPIC-00015's added conversion is now fully planned as TICKET-00053/TASK-00182. TASK-00130 has its real supplier edge
+and its amended void-Command/outcome-Query qualification; actual generic/canonical supplier evidence remains separate.
+Next: `/skill:next` for current Board selection; no implementation starts here.

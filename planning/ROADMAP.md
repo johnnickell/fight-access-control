@@ -193,11 +193,11 @@ without waiting for later tooling. Shared cohort definitions have one owner, wit
 
 John explicitly selected TICKET-00038 and approved its complete three-TASK plan, now written as
 [TASK-00128](tasks/00128-TASK.md) (22 Query dispatch paths), [TASK-00129](tasks/00129-TASK.md) (37 existing void Command
-paths) and [TASK-00130](tasks/00130-TASK.md) (future Agent result-bearing dispatch typing/qualification, not conversion).
-Orders 307–309 follow existing Domain plans; all remain needs-info for actual qualified/tagged Common APIs/minimum
-composition evidence, with no invented local blocker or mutual dependency. TASK-00130 additionally awaits the real
-EPIC-00015 conversion supplier; add its actual local edge(s) when those TASKs exist before clearing readiness.
-Missing future Agent result support does not hold existing void handlers or independent Query adoption. These
+paths) and [TASK-00130](tasks/00130-TASK.md) (amended void Agent Command and outcome Query typing, not conversion).
+Orders 307–309 follow existing Domain plans; all retain actual qualified/tagged generic API/minimum evidence holds.
+TASK-00130 now has the genuine TASK-00182 conversion edge, with no reverse dependency. No result-capable bus is
+required and ordinary functional conversion does not wait on downstream generic typing. Existing void handlers and
+independent Query adoption retain their owners. These
 manifests are planning coverage, not executed inference/routing/consumer proof. Coordinate canonical adoption with
 TASK-00110 once; semantic owners retain their corrections and every slice retains its own tests/gate/acceptance.
 
@@ -261,9 +261,10 @@ John's subsequent five-framework Feature/portable Permission admission interview
 above, with its four-TICKET split and all TASK plans approved/written (12 TASKs), not implementation/qualification. Current
 FeatureAvailability still evaluates and FeatureFlag only declares
 references; no Feature middleware exists. The new requirements remain separate from audit/existing permission TASKs;
-Grill approval is neither implementation nor release/adoption proof. EPIC-00015's added Agent-conversion requirements/TASK plan and actual
-Common suppliers/qualification remain separate unfinished handoffs. Finish selected remaining planning phases
-before Board-based execution selection. Implementation stays separately invoked with an explicit checkout choice;
+Grill approval is neither implementation nor release/adoption proof. EPIC-00015's added Agent conversion is now fully
+planned as [TICKET-00053](tickets/00053-TICKET.md)/[TASK-00182](tasks/00182-TASK.md), with void Commands/outcome Queries
+rather than a result-capable Common supplier requirement. Actual canonical/generic supplier qualification remains
+separate. Use the current Board for execution selection. Implementation stays separately invoked with an explicit checkout choice;
 no source/dependency/consumer change, product build, new branch/worktree, commit/publication or release is claimed.
 
 ## First priority — pre-v1 architecture enablers
@@ -298,16 +299,27 @@ TASK-00110 adopts only affected consumed canonical APIs when genuinely available
 additional APIs and minima. No guessed version, stable claim from a dev snapshot, AccessControl compatibility alias,
 Common/consumer mutation or dependency adoption is authorized through these planning edits.
 
-EPIC-00015's original four-TICKET/eight-TASK plan is accepted/written; only TASK-00107's guidance is independently accepted. John additionally requested
-retaining [eventual Agent provisioning/rotation command conversion](epics/00015-EPIC.md#approved-follow-up--result-preserving-agent-commands).
-This architectural follow-up remains undecomposed; [EPIC-00016](epics/00016-EPIC.md#agent-command-result-coordination-follow-up)
-coordinates result typing/qualification without duplicate conversion ownership. The installed void Common command
-contracts cannot preserve existing confirmed/indeterminate/publication-warning results; actual qualified/tagged
-result-capable synchronous contracts gate affected conversion unless a different caller contract is separately
-approved. TASK-00130 now owns the coordinated dispatch-specific qualification, not the conversion; this record does
-not decompose EPIC-00015's missing requirements or implement a supplier. No local result shim, earlier-TASK scope
-expansion or audit-work prerequisite is introduced. Follow-up requirements: `/skill:to-tickets EPIC-00015` for this
-addition only, not the original split.
+### Completed planning handoff — void Agent Commands and outcome Queries
+
+EPIC-00015's original four-TICKET/eight-TASK plan is accepted/written; TASK-00107's guidance is independently accepted.
+John approved the added [TICKET-00053 — Issue Agent credentials through Commands and outcome Queries](tickets/00053-TICKET.md)
+and one chore [TASK-00182](tasks/00182-TASK.md), then explicitly replaced synchronous result-preserving dispatch with
+void Commands and a changed caller contract. Commands may be invoked sync or async at any time; no transport assumed.
+
+TASK-00182 (order 205) owns both complete issuance Command paths, authorized outcome Query integration, current callers/
+fixtures/docs and removal of superseded direct APIs. Reuse GetAgentOperation/AgentOperationView rather than duplicate
+status data. Retain original keys/requests, execution-time authority, atomicity, recovery and publication/delivery
+separation. Dispatch acceptance and status absence do not prove issuance or rollback. No returned warning or queue-
+progress promise; safe execution faults and authoritative reads carry the amended contract.
+
+No result-capable Common API is required: TASK-00182 is ready-for-agent, with no demonstrated local blocker.
+[EPIC-00016](epics/00016-EPIC.md#agent-command-result-coordination-follow-up)/TASK-00130 now qualify exact void Command
+and Query typing, not Command results, with a genuine TASK-00182 blocker and distinct generic API evidence holds.
+Conversion retains its own business/bus proof and gate; no reverse edge, earlier-task expansion or audit prerequisite.
+The follow-up is fully TASK-planned. Next: `/skill:next` for current Board selection; no execution starts automatically.
+Planning branch develop integration fast-forwarded to 3efa74d4092d98c3847f57f26896d1912b47256e with user authority,
+retaining newer accepted guidance. No source/tests/dependency/Common/consumer mutation, product build, commit/push/PR,
+supplier qualification or release follows from this planning update.
 
 EPIC-00014 keeps one combined future release/all five frameworks, opt-in capabilities, independent polling and an unassigned version. Existing acceptance/publication
 checkpoints below remain historical; EPIC-00015's current amendments govern conflicting future placement/supplier prose.
@@ -686,7 +698,7 @@ The EPIC's historical pre-v1.0.0 target is not an authorization to release v1.0.
 | [EPIC-00012](epics/00012-EPIC.md) | v0.5.0 | done | 1 | 1 |
 | [EPIC-00013](epics/00013-EPIC.md) | v1.0.0 | done | 3 | 3 |
 | [EPIC-00014](epics/00014-EPIC.md) | unassigned | ready-for-agent | 8 | 23 |
-| [EPIC-00015](epics/00015-EPIC.md) | unassigned | ready-for-agent | 4 | 8 |
+| [EPIC-00015](epics/00015-EPIC.md) | unassigned | ready-for-agent | 5 | 9 |
 | [EPIC-00016](epics/00016-EPIC.md) | unassigned | ready-for-agent | 6 | 31 |
 | [EPIC-00017](epics/00017-EPIC.md) | unassigned | ready-for-agent | 6 | 24 |
 | [EPIC-00018](epics/00018-EPIC.md) | unassigned | ready-for-agent | 4 | 12 |

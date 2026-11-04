@@ -56,3 +56,4 @@ This generated index is a projection; individual records remain canonical.
 | [TICKET-00050](00050-TICKET.md) | Enforce Feature admission across five frameworks | ready-for-agent |
 | [TICKET-00051](00051-TICKET.md) | Enforce portable Permission declarations across five frameworks | ready-for-agent |
 | [TICKET-00052](00052-TICKET.md) | Qualify independent and combined admission | ready-for-agent |
+| [TICKET-00053](00053-TICKET.md) | Issue Agent credentials through Commands and outcome Queries | ready-for-agent |

@@ -4,7 +4,10 @@ Wayfinder maps chart an uncertain feature before it becomes an EPIC, TICKET, or 
 index of linked decision tickets, not a second source of decisions. Start with an active map's **Frontier**; when
 none is available, `/ask-matt` should offer `/wayfinder` to chart a new feature.
 
-The directly approved [EPIC-00015 refactoring plan](../epics/00015-EPIC.md) is fully decomposed through TASK-00114;
+The directly approved [EPIC-00015 refactoring plan](../epics/00015-EPIC.md) is fully decomposed through TASK-00114
+for its original scope. Its separately approved Agent-command follow-up is fully planned as
+[TICKET-00053](../tickets/00053-TICKET.md)/[TASK-00182](../tasks/00182-TASK.md): void Commands and outcome Queries,
+invocable sync or async without a transport assumption. Next: `/skill:next` for current Board selection;
 no new map or reopening of Closed maps is needed. It amends future ownership/placement and adds canonical adapter/
 Common prerequisites to unfinished EPIC-00014 MCP roots. Map handoffs below preserve their original decomposition
 checkpoints; current blockers and execution priority belong to the [Board](../tasks/BOARD.md) and
