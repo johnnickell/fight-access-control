@@ -7,6 +7,22 @@
 **Map:** [Permission integration for evolving Common MCP capabilities](../mcp-capability-permission-integration-map.md)
 **Depends on:** WF-033
 
+## Subsequent approved specialization — EPIC-00015 / TASK-00107
+
+The closed resolution below preserves the original framework/capability layout decision. EPIC-00015 now specializes
+its no-DDD-at-Adapter restriction for protocol presentation: `Adapter/Mcp/{Tool,Resource,Skill}/Agent` groups neutral
+MCP surfaces by aggregate, without speculative Http/V1 folders. Framework/provider mechanisms and service-container
+extensions retain their original capability-first patterns. The current normative
+[Architecture rules](../../../docs/engineering/standards/Architecture.md#adapter-capability-and-aggregate-presentation)
+and [profile](../../agents/project-profile.md#package-boundary-and-contracts) own this amendment.
+
+TASK-00108 implements MCP relocation later; TASK-00107 changes guidance only. Genuine authentication, Permission
+policy and synchronized continuation stay inward; Common retains protocol engines/neutral ports/use cases.
+Optional framework isolation, independent admission, safe-error/protocol distinctions, exact coverage and consumer
+ownership remain unchanged. Aggregate-oriented persistence is a placement pattern only, not approval to ship it
+here. This update neither reopens the closed decision nor creates a new Wayfinder action; the historical Next
+line below is not today's execution route.
+
 ## Question
 
 Should reusable permission-check tooling include optional framework-native HTTP adapters, and where should those

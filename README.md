@@ -52,6 +52,11 @@ Core dependencies point inward: **Application → Domain**. Consumers supply inf
 Optional [HTTP Permission admission](docs/http-permission-admission.md) now uses capability-first `src/Adapter`,
 pointing inward through Application, with separately qualified Slim/Yii 3 route composition and optional native
 Symfony admission. Laravel and CodeIgniter 4 adapters remain planned. Domain/Application retain their DDD structure; no consumer bindings or configuration are installed.
+Maintainers placing classes or naming collaborators should use the checkout-local
+[architecture target](docs/engineering/standards/Architecture.md#accesscontrol-placement-and-dependency-rules) and
+[naming rules](docs/engineering/standards/Naming.md#descriptive-collaborators-and-collections). These codify approved
+EPIC-00015 guidance; MCP relocation, capability cleanup and synchronous authentication decomposition remain later
+TASKs, not implemented source or blanket persistence/framework support.
 
 | This package owns | Your application owns |
 | --- | --- |
