@@ -4,32 +4,35 @@ declare(strict_types=1);
 
 namespace Fight\Test\AccessControl\Application\AccessControl\Agent\Credential;
 
+use Fight\Test\AccessControl\Application\AccessControl\AgentCredentialOperation\Delivery\Conformance\{
+    DeliveryConformanceFixture
+};
 use Closure;
 use Fight\AccessControl\Application\AccessControl\Agent\CommandHandler\ProvisionAgentHandler;
 use Fight\AccessControl\Application\AccessControl\Agent\CommandHandler\RotateAgentCredentialHandler;
-use Fight\AccessControl\Application\AccessControl\Agent\Delivery\AgentDeliveryResult;
-use Fight\AccessControl\Application\AccessControl\Agent\Maintenance\AgentMaintenanceResult;
-use Fight\AccessControl\Application\AccessControl\Agent\QueryHandler\GetAgentOperationHandler;
+use Fight\AccessControl\Application\AccessControl\AgentCredentialOperation\Delivery\AgentDeliveryResult;
+use Fight\AccessControl\Application\AccessControl\AgentCredentialOperation\Maintenance\AgentMaintenanceResult;
+use Fight\AccessControl\Application\AccessControl\AgentCredentialOperation\QueryHandler\GetAgentOperationHandler;
 use Fight\AccessControl\Domain\AccessControl\Agent\AgentCredentialId;
 use Fight\AccessControl\Domain\AccessControl\Agent\AgentId;
 use Fight\AccessControl\Domain\AccessControl\Agent\Command\ProvisionAgent;
 use Fight\AccessControl\Domain\AccessControl\Agent\Command\RotateAgentCredential;
-use Fight\AccessControl\Domain\AccessControl\Agent\Exception\AgentOperationRejectedException;
-use Fight\AccessControl\Domain\AccessControl\Agent\Operation\AgentCredentialDestination;
-use Fight\AccessControl\Domain\AccessControl\Agent\Operation\AgentDestinationId;
-use Fight\AccessControl\Domain\AccessControl\Agent\Operation\AgentIssuance;
-use Fight\AccessControl\Domain\AccessControl\Agent\Operation\AgentOperationFailure;
-use Fight\AccessControl\Domain\AccessControl\Agent\Operation\AgentOperationId;
-use Fight\AccessControl\Domain\AccessControl\Agent\Operation\AgentOperationKey;
-use Fight\AccessControl\Domain\AccessControl\Agent\Operation\AgentOperationScope;
-use Fight\AccessControl\Domain\AccessControl\Agent\Operation\AgentProvisioningRequest;
-use Fight\AccessControl\Domain\AccessControl\Agent\Operation\AgentRotationRequest;
-use Fight\AccessControl\Domain\AccessControl\Agent\Query\AgentOperationView;
-use Fight\AccessControl\Domain\AccessControl\Agent\Query\GetAgentOperation;
+use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\AgentCredentialDestination;
+use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\AgentDestinationId;
+use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\AgentIssuance;
+use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\AgentOperationFailure;
+use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\AgentOperationId;
+use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\AgentOperationKey;
+use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\AgentOperationScope;
+use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\AgentProvisioningRequest;
+use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\AgentRotationRequest;
+use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\Exception\AgentOperationRejectedException;
+use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\Query\AgentOperationView;
+use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\Query\GetAgentOperation;
 use Fight\Common\Domain\Messaging\Query\QueryMessage;
 use Fight\Test\AccessControl\Application\AccessControl\Agent\Credential\Conformance\AgentCanonicalFixture;
-use Fight\Test\AccessControl\Application\AccessControl\Agent\Delivery\Conformance\DeliveryConformanceFixture;
-use Fight\Test\AccessControl\Application\AccessControl\Agent\Delivery\DeliveryConformance;
+use Fight\Test\AccessControl\Application\AccessControl\AgentCredentialOperation\Delivery\Conformance;
+use Fight\Test\AccessControl\Application\AccessControl\AgentCredentialOperation\Delivery\DeliveryConformance;
 use PHPUnit\Framework\Attributes\DataProvider;
 
 /** Consumer-bindable M3 proof of one canonical contract through public services and persisted outcomes */
@@ -231,7 +234,7 @@ abstract class AgentCanonicalConformance extends DeliveryConformance
             $wrong = new AgentOperationKey($scope, $key->getId());
             $this->assertRequestDenied($fixture, $wrong, $request, AgentOperationFailure::UNAUTHORIZED);
             $ports = $fixture->ports();
-            $handler = new GetAgentOperationHandler($ports->agentOperationRepository, $ports->operationAuthorization);
+            $handler = new GetAgentOperationHandler($ports->operationReadRepository, $ports->operationAuthorization);
             $this->assertDenial($fixture, fn(): AgentOperationView => $handler->handle(
                 QueryMessage::create(new GetAgentOperation($wrong, $request->getDestination()))
             ), AgentOperationFailure::UNAUTHORIZED);
@@ -245,7 +248,7 @@ abstract class AgentCanonicalConformance extends DeliveryConformance
 
     abstract protected function newFixture(): DeliveryConformanceFixture&AgentCanonicalFixture;
 
-    /** @return array{DeliveryConformanceFixture&AgentCanonicalFixture, AgentOperationKey, AgentProvisioningRequest|AgentRotationRequest, AgentIssuance} */
+    /** @return array{Conformance\DeliveryConformanceFixture&AgentCanonicalFixture, AgentOperationKey, AgentProvisioningRequest|AgentRotationRequest, AgentIssuance} */
     private function scenario(bool $rotation): array
     {
         $fixture = $this->newFixture();
@@ -275,7 +278,7 @@ abstract class AgentCanonicalConformance extends DeliveryConformance
         $ports = $fixture->ports();
         $arguments = [
             $ports->agentRepository,
-            $ports->agentOperationRepository,
+            $ports->operationRepository,
             $ports->auditEvidenceRepository,
             $ports->operationAuthorization,
             $ports->generator,
@@ -293,7 +296,7 @@ abstract class AgentCanonicalConformance extends DeliveryConformance
             $command = new RotateAgentCredential($key, $request);
         }
 
-        $result = new IssuanceBusFixture($handler, $ports->agentOperationRepository, $ports->operationAuthorization)
+        $result = new IssuanceBusFixture($handler, $ports->operationReadRepository, $ports->operationAuthorization)
             ->dispatchAndRead($command);
         self::assertTrue($result->isConfirmed());
         self::assertArrayNotHasKey('warning', $result->toArray());

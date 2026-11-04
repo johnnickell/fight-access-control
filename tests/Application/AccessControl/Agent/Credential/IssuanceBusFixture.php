@@ -4,13 +4,13 @@ declare(strict_types=1);
 
 namespace Fight\Test\AccessControl\Application\AccessControl\Agent\Credential;
 
-use Fight\AccessControl\Application\AccessControl\Agent\Credential\AgentOperationAuthorization;
-use Fight\AccessControl\Application\AccessControl\Agent\QueryHandler\GetAgentOperationHandler;
+use Fight\AccessControl\Application\AccessControl\AgentCredentialOperation\AgentOperationAuthorization;
+use Fight\AccessControl\Application\AccessControl\AgentCredentialOperation\QueryHandler\GetAgentOperationHandler;
 use Fight\AccessControl\Domain\AccessControl\Agent\Command\ProvisionAgent;
 use Fight\AccessControl\Domain\AccessControl\Agent\Command\RotateAgentCredential;
-use Fight\AccessControl\Domain\AccessControl\Agent\Operation\AgentOperationRepository;
-use Fight\AccessControl\Domain\AccessControl\Agent\Query\AgentOperationView;
-use Fight\AccessControl\Domain\AccessControl\Agent\Query\GetAgentOperation;
+use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\AgentCredentialOperationReadRepository;
+use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\Query\AgentOperationView;
+use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\Query\GetAgentOperation;
 use Fight\Common\Adapter\Messaging\Command\Sync\Routing\InMemoryCommandRouter;
 use Fight\Common\Adapter\Messaging\Command\Sync\RoutingCommandBus;
 use Fight\Common\Adapter\Messaging\Query\Routing\InMemoryQueryRouter;
@@ -28,7 +28,7 @@ final readonly class IssuanceBusFixture
 
     public function __construct(
         CommandHandler $handler,
-        AgentOperationRepository $agentOperationRepository,
+        AgentCredentialOperationReadRepository $operationReadRepository,
         AgentOperationAuthorization $operationAuthorization
     ) {
         $commandRouter = new InMemoryCommandRouter();
@@ -38,7 +38,7 @@ final readonly class IssuanceBusFixture
         $queryRouter = new InMemoryQueryRouter();
         $queryRouter->registerHandler(
             GetAgentOperationHandler::queryRegistration(),
-            new GetAgentOperationHandler($agentOperationRepository, $operationAuthorization)
+            new GetAgentOperationHandler($operationReadRepository, $operationAuthorization)
         );
         $this->queryBus = new RoutingQueryBus($queryRouter);
     }

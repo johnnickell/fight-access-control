@@ -11,6 +11,12 @@ cleanup authority to the persisted generation. [Package restoration](agent-resto
 
 ## Public composition
 
+Domain maintenance policy/work/key-version values and Application maintenance coordination/ports now belong to
+`AccessControl\AgentCredentialOperation\Maintenance`. The maintenance selection and key-accounting handlers
+live under its Application `QueryHandler` and require only `AgentCredentialOperationReadRepository`, maintenance
+authorization and Clock. They have no material-bearing/write/UoW API. Actual maintenance writes retain the
+separate aggregate-named write repository and UoW below; all existing expected-state and key-reference fences apply.
+
 `AgentDeliveryMaintenanceService` exposes three synchronous operations, each taking the original `AgentOperationKey`,
 `AgentCredentialDestination` and global `AgentDeliveryId`:
 
@@ -21,7 +27,7 @@ cleanup authority to the persisted generation. [Package restoration](agent-resto
 - `cleanup(...)` removes terminal inert sink material, including tombstoning a delivery whose admitted call has not
   arrived yet. It never deletes operation correlation or permits reuse of an old operation key.
 
-Inject `AgentOperationRepository`, `AgentMaintenanceAuthorization`, `AgentDeliveryRewrapper`,
+Inject `AgentCredentialOperationRepository`, `AgentMaintenanceAuthorization`, `AgentDeliveryRewrapper`,
 `AgentCredentialCleanup`, trusted `Clock`, shared `TransactionalUnitOfWork` and optional `AgentMaintenancePolicy`.
 No production implementation of these consumer capabilities is included. Repository and authorization must
 participate on the package transaction's connection; unsupported participation or an outer/nested transaction fails
@@ -206,13 +212,13 @@ reusable integrated conformance; these obligations do not claim a real database/
 
 Package evidence:
 
-- [Domain tests](../tests/Domain/AccessControl/Agent/AgentMaintenanceTest.php): finite defaults/overrides, canonical
+- [Domain tests](../tests/Domain/AccessControl/AgentCredentialOperation/AgentMaintenanceTest.php): finite defaults/overrides, canonical
   Query round trips/rejection, expiry and invalid transitions, tombstone/history preservation.
-- [Maintenance service tests](../tests/Application/AccessControl/Agent/Maintenance/AgentDeliveryMaintenanceServiceTest.php):
+- [Maintenance service tests](../tests/Application/AccessControl/AgentCredentialOperation/Maintenance/AgentDeliveryMaintenanceServiceTest.php):
   actual provision/delivery/revocation paths, retry history and original-byte recovery, transient/permanent/corrupt
   outcomes, stale writes, key admission fences, capacity isolation, both outcomes of uncertain commits, outside-
   transaction cleanup, replay, current delivered protection, authorization/time/ABA and safe rollback.
-- [Read tests](../tests/Application/AccessControl/Agent/QueryHandler/AgentMaintenanceQueryTest.php): multiple bounded
+- [Read tests](../tests/Application/AccessControl/AgentCredentialOperation/QueryHandler/AgentMaintenanceQueryTest.php): multiple bounded
   pages past obsolete reservations, all-scope accounting including unknown versions, target/scope rechecks, no query
   mutation/material access and safe failure. [Generated schemas](../tests/OpenApi/AgentDeliveryComponentsTest.php)
   compare the opt-in public maintenance components with canonical messages, enums and bounds in the normal suite.

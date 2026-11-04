@@ -4,10 +4,12 @@ declare(strict_types=1);
 
 namespace Fight\Test\AccessControl\Application\AccessControl\Agent\Credential\Conformance;
 
-use Fight\AccessControl\Domain\AccessControl\Agent\Exception\AgentOperationRejectedException;
-use Fight\AccessControl\Domain\AccessControl\Agent\Operation\AgentOperationFailure;
-use Fight\Test\AccessControl\Application\AccessControl\Agent\Delivery\DeliveryEnvironment;
-use Fight\Test\AccessControl\Application\AccessControl\Agent\Repository\InMemoryAgentOperationContract;
+use Fight\Test\AccessControl\Application\AccessControl\AgentCredentialOperation\Repository\{
+    InMemoryAgentOperationContract
+};
+use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\AgentOperationFailure;
+use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\Exception\AgentOperationRejectedException;
+use Fight\Test\AccessControl\Application\AccessControl\AgentCredentialOperation\Delivery\DeliveryEnvironment;
 use LogicException;
 
 /**
@@ -48,10 +50,10 @@ final class InMemoryAgentRestoration implements AgentRestorationFixture
         $this->required ??= InMemoryAgentRestorationSnapshot::capture($env);
         $this->trustedGeneration = max(
             $this->trustedGeneration,
-            $env->agentOperationRepository->contract->generation
+            $env->operationRepository->contract->generation
         ) + 1;
         // This independently held evidence is deliberately NOT part of snapshot->restore().
-        $env->agentOperationRepository->contract->reconciledGeneration = null;
+        $env->operationRepository->contract->reconciledGeneration = null;
         $snapshot->restore($env);
     }
 
@@ -66,7 +68,7 @@ final class InMemoryAgentRestoration implements AgentRestorationFixture
         $snapshot->contract?->assertCompatible();
         $env = $this->environment->provisioning;
         $snapshot->restore($env);
-        $state = $env->agentOperationRepository->contract;
+        $state = $env->operationRepository->contract;
         $state->generation = $this->trustedGeneration;
         $state->current = InMemoryAgentOperationContract::compatible($this->trustedGeneration);
         $state->reconciledGeneration = $this->trustedGeneration;
@@ -99,7 +101,7 @@ final class InMemoryAgentRestoration implements AgentRestorationFixture
     private function assertQuiescent(): void
     {
         $env = $this->environment->provisioning;
-        if ($env->transaction->transactionActive || $env->agentOperationRepository->contract->locked) {
+        if ($env->transaction->transactionActive || $env->operationRepository->contract->locked) {
             throw new AgentOperationRejectedException(AgentOperationFailure::CONTENTION);
         }
     }

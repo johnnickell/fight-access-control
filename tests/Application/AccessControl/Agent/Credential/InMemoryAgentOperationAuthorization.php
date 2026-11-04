@@ -5,12 +5,12 @@ declare(strict_types=1);
 namespace Fight\Test\AccessControl\Application\AccessControl\Agent\Credential;
 
 use Closure;
-use Fight\AccessControl\Application\AccessControl\Agent\Credential\AgentOperationAuthorization;
+use Fight\AccessControl\Application\AccessControl\AgentCredentialOperation\AgentOperationAuthorization;
 use Fight\AccessControl\Domain\AccessControl\Agent\AgentId;
-use Fight\AccessControl\Domain\AccessControl\Agent\Exception\AgentOperationRejectedException;
-use Fight\AccessControl\Domain\AccessControl\Agent\Operation\AgentCredentialDestination;
-use Fight\AccessControl\Domain\AccessControl\Agent\Operation\AgentOperationFailure;
-use Fight\AccessControl\Domain\AccessControl\Agent\Operation\AgentOperationScope;
+use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\AgentCredentialDestination;
+use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\AgentOperationFailure;
+use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\AgentOperationScope;
+use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\Exception\AgentOperationRejectedException;
 use Fight\Test\AccessControl\Application\AccessControl\User\InMemoryUnitOfWork;
 use LogicException;
 

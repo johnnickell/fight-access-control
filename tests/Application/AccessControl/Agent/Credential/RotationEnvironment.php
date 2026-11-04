@@ -8,19 +8,19 @@ use DateTimeImmutable;
 use Fight\AccessControl\Application\AccessControl\Agent\CommandHandler\RotateAgentCredentialHandler;
 use Fight\AccessControl\Application\AccessControl\Agent\Credential\HmacSharedSecretCipher;
 use Fight\AccessControl\Application\AccessControl\Agent\Credential\HmacSharedSecretGenerator;
-use Fight\AccessControl\Application\AccessControl\Agent\Delivery\AgentDeliveryCipher;
+use Fight\AccessControl\Application\AccessControl\AgentCredentialOperation\Delivery\AgentDeliveryCipher;
 use Fight\AccessControl\Application\AccessControl\Timing\Service\Clock;
 use Fight\AccessControl\Domain\AccessControl\Agent\AgentRepository;
 use Fight\AccessControl\Domain\AccessControl\Agent\Command\ProvisionAgent;
-use Fight\AccessControl\Domain\AccessControl\Agent\Operation\AgentIssuance;
-use Fight\AccessControl\Domain\AccessControl\Agent\Operation\AgentOperationId;
-use Fight\AccessControl\Domain\AccessControl\Agent\Operation\AgentOperationKey;
-use Fight\AccessControl\Domain\AccessControl\Agent\Operation\AgentOperationLimits;
-use Fight\AccessControl\Domain\AccessControl\Agent\Operation\AgentRotationRequest;
+use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\AgentIssuance;
+use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\AgentOperationId;
+use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\AgentOperationKey;
+use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\AgentOperationLimits;
+use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\AgentRotationRequest;
 use Fight\AccessControl\Domain\AccessControl\Audit\AuditEvidenceRepository;
 use Fight\Common\Application\Repository\TransactionalUnitOfWork;
-use Fight\Test\AccessControl\Application\AccessControl\Agent\Delivery\BoundAgentDeliveryCipher;
-use Fight\Test\AccessControl\Application\AccessControl\Agent\Delivery\DeliveryEnvironment;
+use Fight\Test\AccessControl\Application\AccessControl\AgentCredentialOperation\Delivery\BoundAgentDeliveryCipher;
+use Fight\Test\AccessControl\Application\AccessControl\AgentCredentialOperation\Delivery\DeliveryEnvironment;
 use Fight\Test\AccessControl\Application\AccessControl\Timing\Service\FixedClock;
 use LogicException;
 
@@ -65,7 +65,7 @@ final readonly class RotationEnvironment
 
         return new IssuanceBusFixture(new RotateAgentCredentialHandler(
             $agentRepository ?? $environment->agentRepository,
-            $environment->agentOperationRepository,
+            $environment->operationRepository,
             $auditEvidenceRepository ?? $environment->auditEvidenceRepository,
             $environment->operationAuthorization,
             $generator ?? new readonly class ($environment) implements HmacSharedSecretGenerator {
@@ -86,6 +86,6 @@ final readonly class RotationEnvironment
             $unitOfWork ?? $environment->transaction,
             $environment->eventDispatcher,
             $limits ?? new AgentOperationLimits()
-        ), $environment->agentOperationRepository, $environment->operationAuthorization);
+        ), $environment->operationRepository, $environment->operationAuthorization);
     }
 }

@@ -16,7 +16,7 @@ Call `AgentCredentialDeliveryService::deliver(AgentOperationKey, AgentCredential
 the authenticated worker. The input is exact original correlation, not an arbitrary slot, URL, path or secret handle.
 It contains no actor string. Inject:
 
-- `AgentRepository`, `AgentOperationRepository` and the package-owned `TransactionalUnitOfWork` on the same connection.
+- `AgentRepository`, `AgentCredentialOperationRepository` and the package-owned `TransactionalUnitOfWork` on the same connection.
 - `AgentOperationAuthorization` for current worker/scope/delegation/destination authorization **before every key
   lookup**. Its audit identity return is not a substitute for authorization and is not exposed by delivery.
 - `AgentDeliveryAuthorization` for current target/Permission/delegation, destination owner/binding and reserved slot
@@ -77,7 +77,7 @@ exception is not extended; those Commands return void and expose no publication 
 All state transitions live in `AgentCredentialOperation`; `AgentDeliveryAttempt` owns claim/admission comparisons
 and deadline caps. Application coordinates ports and transactions rather than reconstructing those rules.
 
-`AgentOperationRepository::replaceDelivery(expected, replacement, expectedAgent)` is an atomic expected-state
+`AgentCredentialOperationRepository::replaceDelivery(expected, replacement, expectedAgent)` is an atomic expected-state
 write, not a save/upsert. It verifies the authoritative expected operation revision and original tuple, expected
 Agent identity/credential/state and successor revision, and holds all fences through commit. It cannot resurrect
 retired work or accept a different connection. Every direct consumer delivery write has the same obligations as
@@ -179,15 +179,15 @@ requires fail-closed reconciliation, not an automatic reissue, rollback to a pre
 
 ## Evidence and limits
 
-- [Domain tests](../tests/Domain/AccessControl/Agent/AgentDeliveryTest.php): defaults/overrides and invalid combinations,
+- [Domain tests](../tests/Domain/AccessControl/AgentCredentialOperation/AgentDeliveryTest.php): defaults/overrides and invalid combinations,
   claim/admission/completion, earliest expiry, pinned policy, retry/exhaustion, exact token/fence/lease/epoch/deadline,
   stale revisions, material/credential retirement and malformed persisted attempt evidence.
-- [Delivery tests](../tests/Application/AccessControl/Agent/Delivery/AgentCredentialDeliveryServiceTest.php): real
+- [Delivery tests](../tests/Application/AccessControl/AgentCredentialOperation/Delivery/AgentCredentialDeliveryServiceTest.php): real
   provision-to-delivery path and persisted receipt, no materialization after claim, all three uncertain commits in
   committed/rolled-back forms, per-stage storage rollback, caller/Permission/delegation/destination/lifecycle changes
   around every boundary, real service/direct revocation races, ABA, worker identity, deadline expiry, capacity isolation,
   original-ID retry after key outage/response loss, ciphertext swaps, unsupported sinks, receipt rejection and safe output.
-- [Behavioral sink contract tests](../tests/Application/AccessControl/Agent/Delivery/AgentProtectedSinkContractTest.php):
+- [Behavioral sink contract tests](../tests/Application/AccessControl/AgentCredentialOperation/Delivery/AgentProtectedSinkContractTest.php):
   every immutable tuple field and secret bytes, missing/swapped receipts, scoped operation-ID collision, equal slot
   order rejection, late predecessor arrival, identical retry after newer writes, cleanup replay and cross-slot exact
   selection. Synthetic successor tuples specify sink behavior; they are not TASK-00048's actual rotation workflow.

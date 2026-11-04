@@ -12,11 +12,14 @@ qualified consumer deployment; see the [current integration guide](agent-integra
 ## Composition and authority
 
 Register `GetAgentOperationHandler::queryRegistration()` with Common's QueryHandler registration. Construct the
-handler with the Domain `AgentOperationRepository` and request-scoped Application `AgentOperationAuthorization`.
+handler with Domain `AgentCredentialOperation\AgentCredentialOperationReadRepository` and request-scoped
+Application `AgentCredentialOperation\AgentOperationAuthorization`. The read repository has no material-bearing
+lookup, reservation or persistence methods; its `Query` messages/View and Application `QueryHandler` now live under
+`AccessControl\AgentCredentialOperation`. See the [ownership/composition map](agent-integration.md#operation-ownership-and-readwrite-composition-unreleased).
 There is no Unit of Work, cipher, generator, sink, audit repository, event dispatcher or admission-limit dependency.
 
 ```php
-use Fight\AccessControl\Domain\AccessControl\Agent\Query\GetAgentOperation;
+use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\Query\GetAgentOperation;
 
 // Use the original retained key and registered destination, not a name, path or URL.
 $query = new GetAgentOperation($retainedKey, $registeredDestination);
@@ -107,13 +110,16 @@ or material access. A missing current operation cannot justify skipping lifecycl
 
 ## Storage, uncertainty and bounded recovery
 
-`AgentOperationRepository::getStatusByKey()` must project one coherent authoritative snapshot of original issuance,
+`AgentCredentialOperationReadRepository::getStatusByKey()` must project one coherent authoritative snapshot of original issuance,
 retained canonical version and recorded dispositions. Include permanent tombstones and unknown versions. Never use
 an eventually consistent replica, load/decrypt material, acknowledge work, advance a lifecycle, or apply new-work
 capacity limits. It must throw on storage failure, not return null. Do not implement this method by calling the
 transaction-fenced/material-bearing `getByKey()` path from a QueryHandler.
 
-`AgentCredentialOperation` carries persisted delivery and credential dispositions for safe projection. Newly
+`AgentCredentialOperation` carries persisted delivery and credential dispositions for safe projection.
+It exposes `getDeliveryDisposition()` / `getCredentialDisposition()`, not public read construction. Query-owned
+`AgentOperationView::fromOperation()` maps an already-loaded snapshot without reading material, receipts or
+canonical request content; read adapters should project persisted safe metadata directly, not hydrate a whole root. Newly
 provisioned records default to `pending` / `current`. Hydration must supply recorded values for later states; it must
 not reset retired or delivered work to defaults. The existing `retireMaterial()` retains original correlation and
 credential disposition, changes pending/retryable copies to `retired`, and preserves already-recorded delivered,
@@ -146,9 +152,9 @@ traces. Consumers remain responsible for their own logging and caller-stack argu
 
 ## Executable evidence and limits
 
-[AgentOperationViewTest](../tests/Domain/AccessControl/Agent/AgentOperationViewTest.php) proves canonical round trips,
+[AgentOperationViewTest](../tests/Domain/AccessControl/AgentCredentialOperation/AgentOperationViewTest.php) proves canonical round trips,
 required fields, strict types, finite identifiers, date/enum rejection, historical version/binding checks and safe
-retirement projection. [GetAgentOperationHandlerTest](../tests/Application/AccessControl/Agent/QueryHandler/GetAgentOperationHandlerTest.php)
+retirement projection. [GetAgentOperationHandlerTest](../tests/Application/AccessControl/AgentCredentialOperation/QueryHandler/GetAgentOperationHandlerTest.php)
 proves the public read path against controlled repository/consumer-policy fixtures:
 
 | TICKET-00012 evidence | Test |

@@ -8,16 +8,16 @@ use DateTimeImmutable;
 use Fight\AccessControl\Application\AccessControl\Agent\CommandHandler\ProvisionAgentHandler;
 use Fight\AccessControl\Application\AccessControl\Agent\CommandHandler\RotateAgentCredentialHandler;
 use Fight\AccessControl\Application\AccessControl\Agent\Credential\HmacSharedSecretGenerator;
-use Fight\AccessControl\Application\AccessControl\Agent\QueryHandler\GetAgentOperationHandler;
+use Fight\AccessControl\Application\AccessControl\AgentCredentialOperation\QueryHandler\GetAgentOperationHandler;
 use Fight\AccessControl\Domain\AccessControl\Agent\Command\ProvisionAgent;
 use Fight\AccessControl\Domain\AccessControl\Agent\Command\RotateAgentCredential;
-use Fight\AccessControl\Domain\AccessControl\Agent\Exception\AgentOperationRejectedException;
-use Fight\AccessControl\Domain\AccessControl\Agent\Operation\AgentDeliveryDisposition;
-use Fight\AccessControl\Domain\AccessControl\Agent\Operation\AgentOperationFailure;
-use Fight\AccessControl\Domain\AccessControl\Agent\Operation\AgentOperationId;
-use Fight\AccessControl\Domain\AccessControl\Agent\Operation\AgentOperationKey;
-use Fight\AccessControl\Domain\AccessControl\Agent\Query\AgentOperationView;
-use Fight\AccessControl\Domain\AccessControl\Agent\Query\GetAgentOperation;
+use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\AgentDeliveryDisposition;
+use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\AgentOperationFailure;
+use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\AgentOperationId;
+use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\AgentOperationKey;
+use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\Exception\AgentOperationRejectedException;
+use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\Query\AgentOperationView;
+use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\Query\GetAgentOperation;
 use Fight\Common\Domain\Messaging\Command\CommandMessage;
 use Fight\Common\Domain\Messaging\MessageId;
 use Fight\Common\Domain\Messaging\Meta;
@@ -25,7 +25,7 @@ use Fight\Test\AccessControl\Application\AccessControl\Agent\Credential\FixedHma
 use Fight\Test\AccessControl\Application\AccessControl\Agent\Credential\IssuanceBusFixture;
 use Fight\Test\AccessControl\Application\AccessControl\Agent\Credential\ProvisioningEnvironment;
 use Fight\Test\AccessControl\Application\AccessControl\Agent\Credential\RotationEnvironment;
-use Fight\Test\AccessControl\Application\AccessControl\Agent\Delivery\BoundAgentDeliveryCipher;
+use Fight\Test\AccessControl\Application\AccessControl\AgentCredentialOperation\Delivery\BoundAgentDeliveryCipher;
 use Fight\Test\AccessControl\Application\AccessControl\Timing\Service\FixedClock;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\DataProvider;
@@ -141,14 +141,14 @@ final class AgentIssuanceDispatchTest extends TestCase
         }
 
         $before = $this->effects($env);
-        $reads = $env->agentOperationRepository->reads;
+        $reads = $env->operationRepository->reads;
         $this->denied(
             fn () => $this->bus($env, $rotation)->commandBus->dispatch(CommandMessage::arrayDeserialize($retained))
         );
-        self::assertSame($reads, $env->agentOperationRepository->reads);
+        self::assertSame($reads, $env->operationRepository->reads);
         // Failure evidence is allowed; business state, generation, reservations and audit are unchanged.
         self::assertSame(array_slice($before, 0, -1), array_slice($this->effects($env), 0, -1));
-        self::assertArrayNotHasKey($command->getKey()->toString(), $env->agentOperationRepository->operations);
+        self::assertArrayNotHasKey($command->getKey()->toString(), $env->operationRepository->operations);
     }
 
     public function test_out_of_order_competing_rotations_cannot_retarget_the_original_predecessor(): void
@@ -201,7 +201,7 @@ final class AgentIssuanceDispatchTest extends TestCase
             // RotationEnvironment normally creates its predecessor. Reuse the already persisted original here.
             $handler = new RotateAgentCredentialHandler(
                 $env->agentRepository,
-                $env->agentOperationRepository,
+                $env->operationRepository,
                 $env->auditEvidenceRepository,
                 $env->operationAuthorization,
                 new readonly class ($env) implements HmacSharedSecretGenerator {
@@ -223,7 +223,7 @@ final class AgentIssuanceDispatchTest extends TestCase
                 $env->eventDispatcher
             );
 
-            return new IssuanceBusFixture($handler, $env->agentOperationRepository, $env->operationAuthorization);
+            return new IssuanceBusFixture($handler, $env->operationRepository, $env->operationAuthorization);
         }
 
         return $env->bus();
@@ -232,8 +232,8 @@ final class AgentIssuanceDispatchTest extends TestCase
     /** @return array<int, mixed> */
     private function effects(ProvisioningEnvironment $env): array
     {
-        return [$env->agentRepository->all(), $env->agentOperationRepository->operations,
-            $env->agentOperationRepository->versions, $env->auditEvidenceRepository->all(),
+        return [$env->agentRepository->all(), $env->operationRepository->operations,
+            $env->operationRepository->versions, $env->auditEvidenceRepository->all(),
             $env->generations, $env->eventDispatcher->events()];
     }
 

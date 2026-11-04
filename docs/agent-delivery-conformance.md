@@ -11,14 +11,14 @@ cannot qualify a deployment.
 
 The reusable suites are:
 
-- [DeliveryLifecycleConformance](../tests/Application/AccessControl/Agent/Delivery/DeliveryLifecycleConformance.php):
+- [DeliveryLifecycleConformance](../tests/Application/AccessControl/AgentCredentialOperation/Delivery/DeliveryLifecycleConformance.php):
   authority, rollback/commit uncertainty, restart/takeover, all-path retirement, keys, maintenance and bounds.
-- [ProtectedSinkConformance](../tests/Application/AccessControl/Agent/Delivery/ProtectedSinkConformance.php): exact
+- [ProtectedSinkConformance](../tests/Application/AccessControl/AgentCredentialOperation/Delivery/ProtectedSinkConformance.php): exact
   receipt/idempotency binding, repeated bytes, real same/cross-slot rotation and cross-Agent/scope reassignment.
 
-They share [DeliveryConformance](../tests/Application/AccessControl/Agent/Delivery/DeliveryConformance.php), which
+They share [DeliveryConformance](../tests/Application/AccessControl/AgentCredentialOperation/Delivery/DeliveryConformance.php), which
 constructs public package services. Implement only `newFixture(): DeliveryConformanceFixture` in each concrete
-subclass. The [fixture contract](../tests/Application/AccessControl/Agent/Delivery/Conformance/DeliveryConformanceFixture.php)
+subclass. The [fixture contract](../tests/Application/AccessControl/AgentCredentialOperation/Delivery/Conformance/DeliveryConformanceFixture.php)
 defines adapter setup, fault injection and independent observations, not lifecycle decisions. It shares the public-port
 bundle `IssuanceRecoveryPorts` with issuance conformance, not its workflow or implementation fixture. Neither
 conformance slice is a prerequisite for the other's production inputs.
@@ -32,8 +32,10 @@ No tooling tests or coverage exclusions are added. For a focused non-TTY run in 
   --filter 'InMemory(DeliveryLifecycle|DeliveryWithoutLookup|ProtectedSink)ConformanceTest'
 ```
 
-The selected-checkout wrapper uses noninteractive execution and reuses its isolated PHP runtime. The complete gate still uses the
-unmodified `./bin/build`. Exception arguments are deliberately enabled in focused safety proof.
+Run from the selected checkout so `bin/exec` reuses its isolated runtime, not main or a per-stage project.
+The complete gate still uses unmodified `./bin/build`. Exception arguments are enabled in focused safety proof.
+The shared `IssuanceRecoveryPorts` now receives separate write `operationRepository` and secret-free
+`operationReadRepository` capabilities; the same consumer adapter may implement both without a forwarding layer.
 
 Consumer binding steps:
 
@@ -58,7 +60,7 @@ Consumer binding steps:
 
 ## Fixture semantics and real fault injection
 
-[`InMemoryDeliveryConformanceFixture`](../tests/Application/AccessControl/Agent/Delivery/Conformance/InMemoryDeliveryConformanceFixture.php)
+[`InMemoryDeliveryConformanceFixture`](../tests/Application/AccessControl/AgentCredentialOperation/Delivery/Conformance/InMemoryDeliveryConformanceFixture.php)
 is a reference **behavioral model**. Retained repositories/sink model durable storage; `restart()` clears transient
 faults/hooks and each suite helper constructs new Application services. It is not an OS kill, database reconnect,
 real crypto or independent worker process. Do not copy its callbacks into production or cite them as database proof.
@@ -98,13 +100,13 @@ Names below locate assertions, not independent acceptance. `Lifecycle` means `De
 
 | Current test home | Focused suites referenced below |
 | --- | --- |
-| [`Agent/Delivery/`](../tests/Application/AccessControl/Agent/Delivery/) | `AgentCredentialDeliveryServiceTest`, `AgentDeliveryRecoveryServiceTest`, `AgentProtectedSinkContractTest` |
+| [`AgentCredentialOperation/Delivery/`](../tests/Application/AccessControl/AgentCredentialOperation/Delivery/) | `AgentCredentialDeliveryServiceTest`, `AgentDeliveryRecoveryServiceTest`, `AgentProtectedSinkContractTest` |
 | [`Agent/CommandHandler/`](../tests/Application/AccessControl/Agent/CommandHandler/) | `ProvisionAgentHandlerTest`, `RotateAgentCredentialHandlerTest`, `AgentIssuanceDispatchTest` |
 | [`Agent/Credential/`](../tests/Application/AccessControl/Agent/Credential/) | `AgentCredentialRetirementTest`, `InMemoryIssuanceRecoveryConformanceTest` (TASK-00049) |
 | [`Agent/Authentication/`](../tests/Application/AccessControl/Agent/Authentication/) | `AgentRotationAuthenticationTest` |
-| [`Agent/Maintenance/`](../tests/Application/AccessControl/Agent/Maintenance/) | `AgentDeliveryMaintenanceServiceTest` |
-| [`Agent/QueryHandler/`](../tests/Application/AccessControl/Agent/QueryHandler/) | `ListDueAgentDeliveriesHandlerTest`, `AgentMaintenanceQueryTest` |
-| [`Domain/AccessControl/Agent/`](../tests/Domain/AccessControl/Agent/) | `AgentDeliveryTest`, `AgentDeliveryDiscoveryTest`, `AgentMaintenanceTest` |
+| [`AgentCredentialOperation/Maintenance/`](../tests/Application/AccessControl/AgentCredentialOperation/Maintenance/) | `AgentDeliveryMaintenanceServiceTest` |
+| [`AgentCredentialOperation/QueryHandler/`](../tests/Application/AccessControl/AgentCredentialOperation/QueryHandler/) | `ListDueAgentDeliveriesHandlerTest`, `AgentMaintenanceQueryTest`, `OperationReadBoundaryTest` |
+| [`Domain/AccessControl/AgentCredentialOperation/`](../tests/Domain/AccessControl/AgentCredentialOperation/) | `AgentDeliveryTest`, `AgentDeliveryDiscoveryTest`, `AgentMaintenanceTest` |
 
 | Requirement | Reusable integrated proof | Focused predecessor proof retained |
 | --- | --- | --- |

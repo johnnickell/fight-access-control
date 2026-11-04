@@ -20,10 +20,10 @@ secret, URL, path, caller-computed digest or implicit operation identity is acce
 
 ```php
 use Fight\AccessControl\Domain\AccessControl\Agent\Command\RotateAgentCredential;
-use Fight\AccessControl\Domain\AccessControl\Agent\Operation\AgentOperationId;
-use Fight\AccessControl\Domain\AccessControl\Agent\Operation\AgentOperationKey;
-use Fight\AccessControl\Domain\AccessControl\Agent\Operation\AgentRotationRequest;
-use Fight\AccessControl\Domain\AccessControl\Agent\Query\GetAgentOperation;
+use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\AgentOperationId;
+use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\AgentOperationKey;
+use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\AgentRotationRequest;
+use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\Query\GetAgentOperation;
 
 $key = new AgentOperationKey($trustedScope, AgentOperationId::generate());
 $request = new AgentRotationRequest($agentId, $currentCredentialId, $currentRevision, $registeredDestination);
@@ -47,7 +47,7 @@ Consumers own broker/runtime/error handling and independently authenticate the r
 serialized actor/scope, metadata and enqueue-time authorization never confer execution authority. An async submitter
 is not promised the worker's exception.
 
-Inject the same capabilities as provisioning: `AgentRepository`, `AgentOperationRepository`,
+Inject the same capabilities as provisioning: `AgentRepository`, `AgentCredentialOperationRepository`,
 `AuditEvidenceRepository`, `AgentOperationAuthorization`, `HmacSharedSecretGenerator`, `HmacSharedSecretCipher`,
 `AgentDeliveryCipher`, `Clock`, `TransactionalUnitOfWork`, `EventDispatcher`, and optional `AgentOperationLimits`.
 The new mandatory `AgentOperationAuthorization::authorizeRotation(scope, destination, target)` authenticates the real

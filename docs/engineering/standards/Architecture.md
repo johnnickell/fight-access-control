@@ -41,7 +41,8 @@ Keep `Command`, `Query`, `Event` and aggregate `Exception` namespaces with the o
 verb-first intent/data names; Events name past facts. Reuse existing Common low-level Domain primitives such as
 UniqueId, EmailAddress and StrictJson rather than copying them or creating a generic contracts directory. A shared
 capability/value with no honest aggregate owner needs a specific reason and a named home, not a folder quota.
-AgentCredentialOperation's approved separate aggregate home remains TASK-00114 work, not a new bounded context.
+TASK-00114 implements AgentCredentialOperation's separate aggregate home, not a new bounded context. Its secret-free
+read repository and independent material-bearing write repository remain separate contracts during Command conversion.
 
 ### Application: mirrored ownership and cohesive capabilities
 

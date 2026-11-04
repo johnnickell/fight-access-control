@@ -14,13 +14,13 @@ Its only abstract method is `newFixture(): IssuanceRecoveryFixture`. The referen
 Run it using PHP 8.5 and the checkout's installed PHPUnit:
 
 ```sh
-php vendor/bin/phpunit --no-coverage \
+./bin/exec php vendor/bin/phpunit --fail-on-skipped --no-coverage \
   tests/Application/AccessControl/Agent/Credential/InMemoryIssuanceRecoveryConformanceTest.php
 ```
 
-This is product behavior/conformance, included in the ordinary Application suite and `./bin/build`, not tooling
-qualification. Use `./bin/phpunit --no-coverage` with the suite path for the selected isolated runtime; the wrapper
-uses noninteractive execution. Do not allocate another standalone Docker runtime for these checks.
+This is product behavior/conformance, included in the ordinary Application suite and `./bin/build`; it is not
+release-tooling qualification. Run from the selected checkout; `bin/exec` uses its isolated package runtime,
+without creating a separate main/per-stage project. See [local tooling](engineering/LOCAL_TOOLING.md).
 
 A consumer:
 
@@ -33,7 +33,10 @@ A consumer:
    [`IssuanceRecoveryFixture`](../tests/Application/AccessControl/Agent/Credential/Conformance/IssuanceRecoveryFixture.php)
    using its actual repositories, transaction/authority adapters and controlled test sink. Returns
    [`IssuanceRecoveryPorts`](../tests/Application/AccessControl/Agent/Credential/Conformance/IssuanceRecoveryPorts.php),
-   containing only public Domain/Application/Common capabilities. The suite constructs the actual registered issuance handlers/Common buses and independently queries status.
+   containing only public Domain/Application/Common capabilities. Supply distinct `operationRepository` (write)
+   and `operationReadRepository` (secret-free read) arguments; one consumer implementation may satisfy both.
+   Queries receive only the read contract, never the material-bearing repository/UoW. The suite constructs the actual
+   registered issuance handlers/Common buses and independently queries status.
 4. Extends `IssuanceRecoveryConformance`, implements `newFixture()`, and uses the reference subclass's coverage
    metadata when its PHPUnit configuration requires it. Each fixture must own a fresh isolated dataset, destination
    and authenticated context; UUID fixtures come from the owning factories.

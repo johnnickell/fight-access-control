@@ -67,6 +67,15 @@ without the retired broad service. Recoverable Agent issuance now uses registere
 see [current composition](docs/agent-integration.md). No direct issuance service/result facade or publication warning
 remains. These unreleased changes supply no blanket persistence/framework support or consumer qualification.
 
+The independently persisted `AgentCredentialOperation` now has its own Domain/Application aggregate home.
+Status, scheduler and maintenance readers inject `AgentCredentialOperationReadRepository`; material-bearing writers
+use the separate `AgentCredentialOperationRepository` with their existing UoW. Update imports/named arguments
+directly; wire shapes and atomic Agent/operation cancellation, cohort/restoration and recovery behavior are unchanged.
+See the [operation ownership map](docs/agent-integration.md#operation-ownership-and-readwrite-composition-unreleased).
+TASK-00114's integrated candidate with TASK-00112's advanced authentication base has independent Review ACCEPT
+and nonvisual QA PASS. Current delivery results are in its canonical Land handoff and PR #158. The integrated
+TASK-00182 Command conversion still requires fresh independent Review and nonvisual QA; no consumer qualification is claimed.
+
 | This package owns | Your application owns |
 | --- | --- |
 | Identity, credentials, sessions and account state | Persistence, schema and repository implementations |

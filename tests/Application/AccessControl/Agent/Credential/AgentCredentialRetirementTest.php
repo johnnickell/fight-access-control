@@ -15,20 +15,21 @@ use Fight\AccessControl\Domain\AccessControl\Agent\Command\ProvisionAgent;
 use Fight\AccessControl\Domain\AccessControl\Agent\Event\AgentCredentialLifecycleFailed;
 use Fight\AccessControl\Domain\AccessControl\Agent\Event\AgentCredentialRevoked;
 use Fight\AccessControl\Domain\AccessControl\Agent\Exception\AgentCredentialException;
-use Fight\AccessControl\Domain\AccessControl\Agent\Exception\AgentOperationRejectedException;
-use Fight\AccessControl\Domain\AccessControl\Agent\Operation\AgentCredentialDisposition;
-use Fight\AccessControl\Domain\AccessControl\Agent\Operation\AgentCredentialOperation;
-use Fight\AccessControl\Domain\AccessControl\Agent\Operation\AgentDeliveryDisposition;
-use Fight\AccessControl\Domain\AccessControl\Agent\Operation\AgentOperationFailure;
-use Fight\AccessControl\Domain\AccessControl\Agent\Operation\AgentOperationId;
-use Fight\AccessControl\Domain\AccessControl\Agent\Operation\AgentOperationKey;
-use Fight\AccessControl\Domain\AccessControl\Agent\Operation\AgentOperationLimits;
+use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\AgentCredentialDisposition;
+use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\AgentCredentialOperation;
+use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\AgentDeliveryDisposition;
+use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\AgentOperationFailure;
+use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\AgentOperationId;
+use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\AgentOperationKey;
+use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\AgentOperationLimits;
+use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\Exception\AgentOperationRejectedException;
+use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\Query\AgentOperationView;
 use Fight\AccessControl\Domain\AccessControl\Audit\AuditEvidence;
 use Fight\AccessControl\Domain\AccessControl\Permission\PermissionId;
 use Fight\Test\AccessControl\Application\AccessControl\Agent\Authentication\InMemoryAgentRequestNonceConsumer;
-use Fight\Test\AccessControl\Application\AccessControl\Agent\Delivery\ControlledAgentDeliveryWriter;
 use Fight\Test\AccessControl\Application\AccessControl\Agent\Repository\InMemoryAgentRepository;
 use Fight\Test\AccessControl\Application\AccessControl\Agent\Repository\RehydratedAgentFixture;
+use Fight\Test\AccessControl\Application\AccessControl\AgentCredentialOperation\Delivery\ControlledAgentDeliveryWriter;
 use Fight\Test\AccessControl\Application\AccessControl\Audit\Repository\InMemoryAuditEvidenceRepository;
 use Fight\Test\AccessControl\Application\AccessControl\Event\InMemoryEventDispatcher;
 use Fight\Test\AccessControl\Application\AccessControl\Timing\Service\FixedClock;
@@ -54,7 +55,7 @@ final class AgentCredentialRetirementTest extends TestCase
         $environment = $this->issued();
         $agent = $environment->agentRepository->all()[0];
         $original = $this->operation($environment);
-        $versions = $environment->agentOperationRepository->versions;
+        $versions = $environment->operationRepository->versions;
         $environment->eventDispatcher = new InMemoryEventDispatcher(function (object $event) use ($environment): void {
             self::assertFalse($environment->transaction->transactionActive);
             self::assertSame(AgentState::REVOKED, $environment->agentRepository->all()[0]->getState());
@@ -69,12 +70,12 @@ final class AgentCredentialRetirementTest extends TestCase
         self::assertSame($original->getIssuance(), $retired->getIssuance());
         self::assertSame($original->getCanonicalRequest(), $retired->getCanonicalRequest());
         self::assertSame($original->getCanonicalVersion(), $retired->getCanonicalVersion());
-        self::assertSame(AgentCredentialDisposition::REVOKED, $retired->getStatus()->getCredentialDisposition());
-        self::assertSame(AgentDeliveryDisposition::RETIRED, $retired->getStatus()->getDeliveryDisposition());
+        self::assertSame(AgentCredentialDisposition::REVOKED, $retired->getCredentialDisposition());
+        self::assertSame(AgentDeliveryDisposition::RETIRED, $retired->getDeliveryDisposition());
         self::assertSame(1, $retired->getStateRevision());
         self::assertFalse($retired->hasPendingDeliveryAtRevision(0));
         self::assertFalse($retired->hasPendingDeliveryAtRevision(1));
-        self::assertSame($versions, $environment->agentOperationRepository->versions);
+        self::assertSame($versions, $environment->operationRepository->versions);
         $nonces = new InMemoryAgentRequestNonceConsumer($environment->agentRepository, $environment->transaction);
         self::assertFalse($nonces->consume(
             $agent->getId(),
@@ -95,7 +96,10 @@ final class AgentCredentialRetirementTest extends TestCase
         self::assertSame($original->getIssuance(), $resolved->getIssuance());
         self::assertSame(1, $environment->generations);
         self::assertCount(2, $environment->auditEvidenceRepository->all());
-        $safe = serialize([$retired->getStatus()->toArray(), $environment->auditEvidenceRepository->all()]);
+        $safe = serialize([
+            AgentOperationView::fromOperation($retired)->toArray(),
+            $environment->auditEvidenceRepository->all()
+        ]);
         ob_start();
         var_dump($retired);
         $safe .= ob_get_clean();
@@ -125,7 +129,7 @@ final class AgentCredentialRetirementTest extends TestCase
 
         $stale = $this->operation($environment);
         $agent = $environment->agentRepository->all()[0];
-        $environment->agentOperationRepository->afterRetirement = function () use (
+        $environment->operationRepository->afterRetirement = function () use (
             $environment,
             $writer,
             $stale,
@@ -168,7 +172,7 @@ final class AgentCredentialRetirementTest extends TestCase
         self::assertNull($this->operation($environment)->getMaterial());
         self::assertSame(
             AgentCredentialDisposition::SUPERSEDED,
-            $this->operation($environment)->getStatus()->getCredentialDisposition()
+            $this->operation($environment)->getCredentialDisposition()
         );
         self::assertSame($original->getIssuance(), $this->operation($environment)->resolve($environment->request));
         self::assertFalse(new ControlledAgentDeliveryWriter($environment)->advance($original, 1, complete: true));
@@ -189,11 +193,11 @@ final class AgentCredentialRetirementTest extends TestCase
         $environment = $this->issued();
         $original = $this->operation($environment);
         $agent = $environment->agentRepository->all()[0];
-        $versions = $environment->agentOperationRepository->versions;
+        $versions = $environment->operationRepository->versions;
         $auditEvidenceRepository = $environment->auditEvidenceRepository;
         $failure = new RuntimeException('Safe injected persistence failure.');
         if ($fault === 'cancellation') {
-            $environment->agentOperationRepository->afterRetirement = static function (): void {
+            $environment->operationRepository->afterRetirement = static function (): void {
                 throw new RuntimeException('unsafe-provider-detail original-test-secret');
             };
         } elseif ($fault === 'agent') {
@@ -223,7 +227,7 @@ final class AgentCredentialRetirementTest extends TestCase
         self::assertSame($agent, $environment->agentRepository->all()[0]);
         self::assertSame($original, $this->operation($environment));
         self::assertNotNull($this->operation($environment)->getMaterial());
-        self::assertSame($versions, $environment->agentOperationRepository->versions);
+        self::assertSame($versions, $environment->operationRepository->versions);
         self::assertCount(1, $environment->auditEvidenceRepository->all());
         if ($fault === 'audit') {
             self::assertSame([], $auditEvidenceRepository->all());
@@ -231,7 +235,7 @@ final class AgentCredentialRetirementTest extends TestCase
 
         self::assertCount(1, $environment->eventDispatcher->events());
         self::assertInstanceOf(AgentCredentialLifecycleFailed::class, $environment->eventDispatcher->events()[0]);
-        self::assertFalse($environment->agentOperationRepository->retirementLocked);
+        self::assertFalse($environment->operationRepository->retirementLocked);
         self::assertFalse($environment->operationAuthorization->locked);
     }
 
@@ -284,7 +288,7 @@ final class AgentCredentialRetirementTest extends TestCase
             $disposition,
             stateRevision: 7
         );
-        $environment->agentOperationRepository->operations[$environment->key->toString()] = $operation;
+        $environment->operationRepository->operations[$environment->key->toString()] = $operation;
         $this->service($environment)->revoke('maintainer-42', $environment->agentRepository->all()[0]->getId());
         $retired = $this->operation($environment);
         $expected = $disposition;
@@ -292,8 +296,8 @@ final class AgentCredentialRetirementTest extends TestCase
             $expected = AgentDeliveryDisposition::RETIRED;
         }
 
-        self::assertSame($expected, $retired->getStatus()->getDeliveryDisposition());
-        self::assertSame(AgentCredentialDisposition::REVOKED, $retired->getStatus()->getCredentialDisposition());
+        self::assertSame($expected, $retired->getDeliveryDisposition());
+        self::assertSame(AgentCredentialDisposition::REVOKED, $retired->getCredentialDisposition());
         self::assertSame(8, $retired->getStateRevision());
         self::assertNull($retired->getMaterial());
         self::assertFalse($retired->hasPendingDeliveryAtRevision(8));
@@ -315,7 +319,7 @@ final class AgentCredentialRetirementTest extends TestCase
         }
 
         $original = $this->operation($environment);
-        $environment->agentOperationRepository->operations[$environment->key->toString()] = $original->retireMaterial();
+        $environment->operationRepository->operations[$environment->key->toString()] = $original->retireMaterial();
         $this->service($environment)->revoke('maintainer-42', $environment->agentRepository->all()[0]->getId());
         self::assertSame($original->getIssuance(), $environment->bus(
             limits: $limits
@@ -331,7 +335,7 @@ final class AgentCredentialRetirementTest extends TestCase
         self::assertNotSame($original->getIssuance()->getDeliveryId(), $next->getDeliveryId());
         self::assertSame(
             AgentCredentialDisposition::REVOKED,
-            $this->operation($environment)->getStatus()->getCredentialDisposition()
+            $this->operation($environment)->getCredentialDisposition()
         );
         self::assertNull($this->operation($environment)->getMaterial());
     }
@@ -344,18 +348,18 @@ final class AgentCredentialRetirementTest extends TestCase
             $original = $this->operation($environment);
             $agentRepository = $environment->agentRepository;
             if ($case === 'missing') {
-                $environment->agentOperationRepository->operations = [];
+                $environment->operationRepository->operations = [];
             } elseif ($case === 'ambiguous') {
-                $environment->agentOperationRepository->operations['duplicate'] = $original;
+                $environment->operationRepository->operations['duplicate'] = $original;
             } elseif ($case === 'wrong connection') {
                 $agentRepository = new InMemoryAgentRepository(
                     new InMemoryUnitOfWork(),
-                    agentOperationRepository: $environment->agentOperationRepository
+                    operationRepository: $environment->operationRepository
                 );
                 $agentRepository->add($agent);
             }
 
-            $before = $environment->agentOperationRepository->operations;
+            $before = $environment->operationRepository->operations;
             try {
                 if ($case === 'nested') {
                     $environment->transaction->commitTransactional(function () use ($environment, $agent): void {
@@ -372,7 +376,7 @@ final class AgentCredentialRetirementTest extends TestCase
                 self::fail('Unsupported composition must not perform partial cancellation.');
             } catch (RuntimeException) {
                 self::assertSame($agent, $agentRepository->getById($agent->getId()));
-                self::assertSame($before, $environment->agentOperationRepository->operations);
+                self::assertSame($before, $environment->operationRepository->operations);
                 self::assertCount(1, $environment->auditEvidenceRepository->all());
             }
         }
@@ -397,11 +401,11 @@ final class AgentCredentialRetirementTest extends TestCase
         $original = $this->operation($environment);
         $agentRepository = $environment->agentRepository;
         if ($case === 'missing') {
-            $environment->agentOperationRepository->operations = [];
+            $environment->operationRepository->operations = [];
         } elseif ($case === 'ambiguous') {
-            $environment->agentOperationRepository->operations['duplicate'] = $original;
+            $environment->operationRepository->operations['duplicate'] = $original;
         } elseif ($case === 'cancellation') {
-            $environment->agentOperationRepository->afterRetirement = static function (): void {
+            $environment->operationRepository->afterRetirement = static function (): void {
                 throw new RuntimeException('unsafe-provider-detail original-test-secret');
             };
         } elseif ($case === 'no operations') {
@@ -410,13 +414,13 @@ final class AgentCredentialRetirementTest extends TestCase
         } elseif ($case === 'wrong connection') {
             $agentRepository = new InMemoryAgentRepository(
                 new InMemoryUnitOfWork(),
-                agentOperationRepository: $environment->agentOperationRepository
+                operationRepository: $environment->operationRepository
             );
             $agentRepository->add($agent);
         }
 
-        $before = $environment->agentOperationRepository->operations;
-        $versions = $environment->agentOperationRepository->versions;
+        $before = $environment->operationRepository->operations;
+        $versions = $environment->operationRepository->versions;
         $previous = ini_set('zend.exception_ignore_args', '0');
         try {
             self::assertSame('0', ini_get('zend.exception_ignore_args'));
@@ -481,11 +485,11 @@ final class AgentCredentialRetirementTest extends TestCase
         }
 
         self::assertSame($agent, $agentRepository->getById($agent->getId()));
-        self::assertSame($before, $environment->agentOperationRepository->operations);
-        self::assertSame($versions, $environment->agentOperationRepository->versions);
+        self::assertSame($before, $environment->operationRepository->operations);
+        self::assertSame($versions, $environment->operationRepository->versions);
         self::assertCount(1, $environment->auditEvidenceRepository->all());
         self::assertFalse($environment->transaction->transactionActive);
-        self::assertFalse($environment->agentOperationRepository->retirementLocked);
+        self::assertFalse($environment->operationRepository->retirementLocked);
         self::assertFalse($environment->operationAuthorization->locked);
     }
 
@@ -516,7 +520,7 @@ final class AgentCredentialRetirementTest extends TestCase
             self::assertFalse($writer->advance($admitted, $epoch, complete: true));
             self::assertTrue($writer->advance($admitted, $environment->operationAuthorization->epoch));
             $before = $environment->operationAuthorization->epoch;
-            $environment->agentOperationRepository->afterRetirement = function () use ($environment, $before): void {
+            $environment->operationRepository->afterRetirement = function () use ($environment, $before): void {
                 $environment->operationAuthorization->changeAuthority(function () use ($environment): void {
                     $environment->operationAuthorization->delegationExpired = true;
                 });
@@ -586,7 +590,7 @@ final class AgentCredentialRetirementTest extends TestCase
 
     private function operation(ProvisioningEnvironment $environment): AgentCredentialOperation
     {
-        return $environment->agentOperationRepository->operations[$environment->key->toString()];
+        return $environment->operationRepository->operations[$environment->key->toString()];
     }
 
     private function now(): DateTimeImmutable

@@ -46,7 +46,7 @@ final class AgentCredentialLifecycleServiceTest extends TestCase
         $env = new ProvisioningEnvironment();
         $env->bus()->commandBus->execute(new ProvisionAgent($env->key, $env->request));
         $agent = $env->agentRepository->all()[0];
-        $original = $env->agentOperationRepository->operations[$env->key->toString()];
+        $original = $env->operationRepository->operations[$env->key->toString()];
         $auditEvidenceRepository = new InMemoryAuditEvidenceRepository(
             $env->transaction,
             failAfterSave: $case === 'audit'
@@ -95,9 +95,9 @@ final class AgentCredentialLifecycleServiceTest extends TestCase
             $env->agentRepository->all()[0]->getState()
         );
         if ($committed) {
-            self::assertNull($env->agentOperationRepository->operations[$env->key->toString()]->getMaterial());
+            self::assertNull($env->operationRepository->operations[$env->key->toString()]->getMaterial());
         } else {
-            self::assertSame($original, $env->agentOperationRepository->operations[$env->key->toString()]);
+            self::assertSame($original, $env->operationRepository->operations[$env->key->toString()]);
         }
 
         if ($case === 'both publishers') {
