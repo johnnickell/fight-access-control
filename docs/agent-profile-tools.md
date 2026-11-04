@@ -74,8 +74,12 @@ fresh minimal ACTIVE profile. Missing and revoked targets both produce the same 
 Permission lookup, name cache, mutation, transaction or event belongs to the read itself; request authentication
 retains its existing separate nonce transaction. Repository faults are not absence or a successful cached read.
 
-An update normalizes `name` through `AgentName::fromString()` (PHP `trim`, nonempty, at most 120 characters **after**
-trimming). Common's input schema validates the string shape; the Domain value owns name semantics. Invalid names
+An update normalizes `name` through `AgentName::fromString()`, shared with provisioning: trim the
+[fixed Unicode edge set plus NUL](agent-canonical-upgrades.md#supported-representation), require nonempty UTF-8 and
+at most 120 code points **after** trimming, preserve case/internal whitespace, no NFC conversion. U+200B/U+FEFF remain.
+This intentionally replaces rename's previous PHP `trim` semantics before v1: NBSP/ideographic padding now trims,
+and Unicode-whitespace-only names reject. Common's input schema validates the string shape, not raw length;
+the Domain value owns name semantics. Invalid names
 return a safe Tool failure before dispatch or a write. Both the command's target and typed Agent initiator come only
 from the authenticated principal, never input. Initiator identity records provenance, not authorization.
 

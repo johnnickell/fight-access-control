@@ -12,8 +12,16 @@ The immutable command constructor is `UpdateAgent(AgentUpdateInitiator, AgentId,
 accepts a typed `UserId` or `AgentId`; its type is derived from that identifier, never a separately contradictory
 flag. Its canonical representation is `{type: "user"|"agent", id: UUID}`. The command's required canonical keys
 are `initiator`, `agent_id`, and `name`. `fromArray()` rejects missing required data and unknown initiator types.
-The input name remains raw in the command; the handler normalizes it with `AgentName::fromString()` (PHP `trim`,
-nonempty, at most 120 characters after trimming). Names are neither unique nor revision-checked.
+The input name remains raw in the command; the handler normalizes it with `AgentName::fromString()`, the same
+single owner used by provisioning. It trims the [fixed Unicode White_Space edge set plus NUL](agent-canonical-upgrades.md#supported-representation),
+requires nonempty UTF-8 and at most 120 code points after trimming, preserves case/internal whitespace and performs
+no NFC conversion. U+200B/U+FEFF are not trimmed. Names are neither unique nor revision-checked.
+
+**Intentional breaking pre-v1 rename change (TASK-00113):** rename previously used PHP `trim`. For example,
+`"\u{00A0}Worker\u{3000}"` now renames to `Worker`, and an input containing only those spaces is invalid. This is
+not behavior-preserving cleanup. Provisioning's current marker **2** and exact canonical request bytes are unchanged;
+retained operations keep their original requests and issuance even after rename. No alias, old-name mode or
+consumer migration is provided.
 
 **Provenance is not authorization.** Protect every dispatch entry point: HTTP, CLI, workers, direct bus calls and
 any direct repository access. Derive the initiator from trusted authenticated context, then apply consumer caller,

@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Fight\AccessControl\Domain\AccessControl\Agent\Operation;
 
+use Fight\AccessControl\Domain\AccessControl\Agent\AgentName;
+use Fight\AccessControl\Domain\AccessControl\Agent\Exception\AgentNameException;
 use Fight\AccessControl\Domain\AccessControl\Agent\Exception\AgentOperationRejectedException;
 
 /**
@@ -44,9 +46,15 @@ final readonly class AgentProvisioningRequest
      */
     public function canonicalize(): string
     {
+        try {
+            $name = AgentName::fromString($this->name);
+        } catch (AgentNameException) {
+            throw new AgentOperationRejectedException(AgentOperationFailure::INVALID_REQUEST);
+        }
+
         return json_encode([
             'provision',
-            AgentOperationCanonicalization::name($this->name),
+            $name->toString(),
             $this->destination->getId()->toString(),
             $this->destination->getRevision()
         ], JSON_THROW_ON_ERROR);
