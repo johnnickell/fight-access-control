@@ -124,7 +124,6 @@ final readonly class AuthenticationService
 
                     $replacementUser = clone $user;
                     $replacementUser->confirmEmailChange($confirmedAt);
-                    $replacementUser->advanceAuthenticationAuthorityRevision();
                     if (!$this->emailChangeGrantRepository->replace($grant, $grant->consume($confirmedAt))) {
                         throw new EmailChangeConfirmationRejectedException('Email change confirmation rejected.');
                     }
@@ -205,7 +204,6 @@ final readonly class AuthenticationService
                     PasswordHash::fromString($this->passwordHasher->hash($newPassword)),
                     $changedAt
                 );
-                $replacementUser->advanceAuthenticationAuthorityRevision();
                 if (!$this->userRepository->replaceAuthenticationAuthority($user, $replacementUser)) {
                     throw new PasswordChangeRejectedException('Password change rejected.');
                 }
@@ -280,7 +278,6 @@ final readonly class AuthenticationService
                 $passwordHash = PasswordHash::fromString($this->passwordHasher->hash($plainPassword));
                 $replacementUser = clone $user;
                 $replacementUser->resetPassword($passwordHash, $completedAt);
-                $replacementUser->advanceAuthenticationAuthorityRevision();
                 if (
                     !$this->passwordResetGrantRepository->replace(
                         $passwordResetGrant,
@@ -349,7 +346,6 @@ final readonly class AuthenticationService
                 $passwordHash = PasswordHash::fromString($this->passwordHasher->hash($plainPassword));
                 $replacementUser = clone $user;
                 $replacementUser->activate($passwordHash, $authenticatedAt);
-                $replacementUser->advanceAuthenticationAuthorityRevision();
 
                 $refreshCredential = $this->refreshCredentialGenerator->generate();
                 $refreshSession = $this->newRefreshSession(
@@ -433,14 +429,12 @@ final readonly class AuthenticationService
 
                 $replacementUser = clone $user;
                 $authenticatedAt = $this->clock->now();
+                $rehashedPassword = null;
                 if ($this->passwordValidator->needsRehash($passwordHash->toString())) {
-                    $replacementUser->rehashPassword(
-                        PasswordHash::fromString($this->passwordHasher->hash($plainPassword)),
-                        $authenticatedAt
-                    );
+                    $rehashedPassword = PasswordHash::fromString($this->passwordHasher->hash($plainPassword));
                 }
 
-                $replacementUser->advanceAuthenticationAuthorityRevision();
+                $replacementUser->recordSuccessfulLogin($authenticatedAt, $rehashedPassword);
 
                 $refreshCredential = $this->refreshCredentialGenerator->generate();
                 $refreshSession = $this->newRefreshSession(

@@ -152,16 +152,15 @@ final class UserRoleAssignmentTest extends TestCase
         $authorizationAssignmentRevision = $user->getAuthorizationAssignmentRevision();
 
         $user->activate($this->passwordHash('initial-password'), new DateTimeImmutable('2026-01-01T00:00:00+00:00'));
-        $user->rehashPassword(
-            $this->passwordHash('rehash-password'),
-            new DateTimeImmutable('2026-01-01T00:00:00+00:00')
+        $user->recordSuccessfulLogin(
+            new DateTimeImmutable('2026-01-01T00:00:00+00:00'),
+            $this->passwordHash('rehash-password')
         );
         $user->changePassword(
             $this->passwordHash('changed-password'),
             new DateTimeImmutable('2026-01-01T00:00:00+00:00')
         );
         $user->resetPassword($this->passwordHash('reset-password'), new DateTimeImmutable('2026-01-01T00:00:00+00:00'));
-        $user->advanceAuthenticationAuthorityRevision();
 
         self::assertSame([$roleId], $user->getRoleIds());
         self::assertSame($authorizationAssignmentRevision, $user->getAuthorizationAssignmentRevision());

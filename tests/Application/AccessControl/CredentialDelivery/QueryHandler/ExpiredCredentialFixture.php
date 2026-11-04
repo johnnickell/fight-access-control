@@ -89,7 +89,6 @@ final readonly class ExpiredCredentialFixture
             PasswordHash::fromString(password_hash('fixture-only-password', PASSWORD_BCRYPT, ['cost' => 4])),
             $this->issuedAt
         );
-        $this->user->advanceAuthenticationAuthorityRevision();
 
         $role = Role::define(RoleId::generate(), RoleName::fromString('ROLE_FIXTURE'), [], $this->issuedAt);
         $this->unitOfWork->authorizationReferenceState()->addRole($role);

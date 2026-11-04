@@ -204,6 +204,7 @@ class User
         $this->email = $this->pendingEmailChange;
         $this->pendingEmailChange = null;
         ++$this->authenticationVersion;
+        ++$this->authenticationAuthorityRevision;
         ++$this->emailChangeReservationRevision;
         ++$this->canonicalEmailRevision;
         $this->updatedAt = $now;
@@ -417,6 +418,7 @@ class User
         }
 
         $this->passwordHash = $passwordHash;
+        ++$this->authenticationAuthorityRevision;
         $this->state = UserState::ACTIVE;
         $this->updatedAt = $now;
     }
@@ -430,16 +432,23 @@ class User
     }
 
     /**
-     * Replaces an active identity's password hash after successful verification
+     * Records a successful login with an optional verified password rehash
+     *
+     * Credential verification remains the caller's responsibility. Every login serializes authority without
+     * invalidating existing sessions or recovery. Without rehash, existing password-update metadata is preserved.
      */
-    public function rehashPassword(PasswordHash $passwordHash, DateTimeImmutable $now): void
+    public function recordSuccessfulLogin(DateTimeImmutable $now, ?PasswordHash $rehashedPassword = null): void
     {
         if ($this->state !== UserState::ACTIVE || !$this->passwordHash instanceof PasswordHash) {
-            throw new UserNotActiveException('Only an active user can rehash an established password.');
+            throw new UserNotActiveException('Only an active user with an established password can log in.');
         }
 
-        $this->passwordHash = $passwordHash;
-        $this->updatedAt = $now;
+        if ($rehashedPassword instanceof PasswordHash) {
+            $this->passwordHash = $rehashedPassword;
+            $this->updatedAt = $now;
+        }
+
+        ++$this->authenticationAuthorityRevision;
     }
 
     /**
@@ -453,6 +462,7 @@ class User
 
         $this->passwordHash = $passwordHash;
         ++$this->authenticationVersion;
+        ++$this->authenticationAuthorityRevision;
         $this->updatedAt = $now;
     }
 
@@ -467,6 +477,7 @@ class User
 
         $this->passwordHash = $passwordHash;
         ++$this->authenticationVersion;
+        ++$this->authenticationAuthorityRevision;
         $this->updatedAt = $now;
     }
 
@@ -484,14 +495,6 @@ class User
     public function getRecoveryAuthority(): RecoveryAuthority
     {
         return new RecoveryAuthority($this->authenticationVersion, $this->canonicalEmailRevision);
-    }
-
-    /**
-     * Advances the monotonic revision used to serialize credential-authority persistence
-     */
-    public function advanceAuthenticationAuthorityRevision(): void
-    {
-        ++$this->authenticationAuthorityRevision;
     }
 
     /**

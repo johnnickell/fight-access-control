@@ -11,6 +11,7 @@ use Fight\AccessControl\Domain\AccessControl\RefreshSession\RefreshSessionId;
 use Fight\AccessControl\Domain\AccessControl\User\Event\RedactedCommandFailed;
 use Fight\AccessControl\Domain\AccessControl\User\Event\UserActivated;
 use Fight\AccessControl\Domain\AccessControl\User\Event\UserLoggedIn;
+use Fight\AccessControl\Domain\AccessControl\User\Exception\EmailChangeConfirmationException;
 use Fight\AccessControl\Domain\AccessControl\User\Exception\UserNotActiveException;
 use Fight\AccessControl\Domain\AccessControl\User\Exception\UserNotPendingActivationException;
 use Fight\AccessControl\Domain\AccessControl\User\PasswordHash;
@@ -117,11 +118,13 @@ final class AuthenticationDomainTest extends TestCase
 
         self::assertSame(UserState::ACTIVE, $user->getState());
         self::assertSame($passwordHash, $user->getPasswordHash());
+        self::assertSame(1, $user->getAuthenticationVersion());
+        self::assertSame(1, $user->getAuthenticationAuthorityRevision());
         $this->expectException(UserNotPendingActivationException::class);
         $user->activate($this->passwordHash(), new DateTimeImmutable('2026-01-01T00:00:00+00:00'));
     }
 
-    public function test_that_password_rehash_requires_an_active_identity_with_a_password(): void
+    public function test_that_successful_login_requires_an_active_identity_with_a_password(): void
     {
         $user = User::invite(
             UserId::generate(),
@@ -130,7 +133,7 @@ final class AuthenticationDomainTest extends TestCase
         );
 
         $this->expectException(UserNotActiveException::class);
-        $user->rehashPassword($this->passwordHash(), new DateTimeImmutable('2026-01-01T00:00:00+00:00'));
+        $user->recordSuccessfulLogin(new DateTimeImmutable('2026-01-01T00:00:00+00:00'), $this->passwordHash());
     }
 
     public function test_that_password_change_requires_active_authority_and_advances_version_once(): void
@@ -151,6 +154,7 @@ final class AuthenticationDomainTest extends TestCase
 
         self::assertSame($replacementPasswordHash, $user->getPasswordHash());
         self::assertSame(2, $user->getAuthenticationVersion());
+        self::assertSame(2, $user->getAuthenticationAuthorityRevision());
 
         $pendingUser = User::invite(
             UserId::generate(),
@@ -163,23 +167,110 @@ final class AuthenticationDomainTest extends TestCase
         $pendingUser->changePassword($replacementPasswordHash, new DateTimeImmutable('2026-01-01T00:00:00+00:00'));
     }
 
-    public function test_that_authentication_authority_revision_advancement_is_monotonic_and_domain_owned(): void
+    public function test_that_business_transitions_own_exact_distinct_authentication_counters(): void
     {
-        $user = User::invite(
-            UserId::generate(),
-            EmailAddress::fromString('authority-revision@example.test'),
-            new DateTimeImmutable('2026-01-01T00:00:00+00:00')
-        );
-
+        $createdAt = new DateTimeImmutable('2026-01-01T00:00:00+00:00');
+        $now = $createdAt->modify('+1 day');
+        $user = User::invite(UserId::generate(), EmailAddress::fromString('authority@example.test'), $createdAt);
+        $hash = $this->passwordHash();
         self::assertSame(0, $user->getAuthenticationAuthorityRevision());
+        self::assertSame(1, $user->getAuthenticationVersion());
 
-        $user->advanceAuthenticationAuthorityRevision();
-
-        self::assertSame(1, $user->getAuthenticationAuthorityRevision());
-
-        $user->advanceAuthenticationAuthorityRevision();
-
+        $user->activate($hash, $createdAt);
+        $recoveryAuthority = $user->getRecoveryAuthority();
+        $user->recordSuccessfulLogin($now);
         self::assertSame(2, $user->getAuthenticationAuthorityRevision());
+        self::assertSame(1, $user->getAuthenticationVersion());
+        self::assertSame($hash, $user->getPasswordHash());
+        self::assertSame($createdAt, $user->getUpdatedAt());
+        self::assertEquals($recoveryAuthority, $user->getRecoveryAuthority());
+
+        $rehashedPassword = $this->passwordHash();
+        $user->recordSuccessfulLogin($now, $rehashedPassword);
+        self::assertSame(3, $user->getAuthenticationAuthorityRevision());
+        self::assertSame(1, $user->getAuthenticationVersion());
+        self::assertSame($rehashedPassword, $user->getPasswordHash());
+        self::assertSame($now, $user->getUpdatedAt());
+        self::assertEquals($recoveryAuthority, $user->getRecoveryAuthority());
+
+        $user->changePassword($rehashedPassword, $now);
+        self::assertSame(4, $user->getAuthenticationAuthorityRevision());
+        self::assertSame(2, $user->getAuthenticationVersion());
+        $user->resetPassword($hash, $now);
+        self::assertSame(5, $user->getAuthenticationAuthorityRevision());
+        self::assertSame(3, $user->getAuthenticationVersion());
+        self::assertSame($hash, $user->getPasswordHash());
+
+        $user->requestEmailChange(EmailAddress::fromString('confirmed@example.test'), $now);
+        self::assertSame(5, $user->getAuthenticationAuthorityRevision());
+        $user->confirmEmailChange($now);
+        self::assertSame(6, $user->getAuthenticationAuthorityRevision());
+        self::assertSame(4, $user->getAuthenticationVersion());
+        self::assertSame(1, $user->getCanonicalEmailRevision());
+        self::assertSame(2, $user->getEmailChangeReservationRevision());
+        self::assertSame('confirmed@example.test', $user->getEmail()->canonical());
+        self::assertNull($user->getPendingEmailChange());
+    }
+
+    public function test_that_rejected_authentication_transitions_preserve_the_complete_user_snapshot(): void
+    {
+        $now = new DateTimeImmutable('2026-01-01T00:00:00+00:00');
+        $hash = $this->passwordHash();
+        foreach (UserState::cases() as $state) {
+            foreach (['login', 'rehash login', 'change', 'reset', 'confirm'] as $transition) {
+                $user = UserFixture::withState('rejected@example.test', $state);
+                $before = clone $user;
+                try {
+                    match ($transition) {
+                        'login' => $user->recordSuccessfulLogin($now),
+                        'rehash login' => $user->recordSuccessfulLogin($now, $hash),
+                        'change' => $user->changePassword($hash, $now),
+                        'reset' => $user->resetPassword($hash, $now),
+                        'confirm' => $user->confirmEmailChange($now)
+                    };
+                    self::fail('An ineligible transition was accepted.');
+                } catch (UserNotActiveException | EmailChangeConfirmationException) {
+                    self::assertEquals($before, $user);
+                }
+            }
+        }
+
+        $user = User::invite(UserId::generate(), EmailAddress::fromString('activated@example.test'), $now);
+        $user->activate($hash, $now);
+        foreach ([UserState::ACTIVE, UserState::DISABLED, UserState::DELETED] as $state) {
+            if ($state === UserState::DISABLED) {
+                $user->disable($now);
+            } elseif ($state === UserState::DELETED) {
+                $user->delete($now);
+            }
+
+            $before = clone $user;
+            try {
+                $user->activate($hash, $now);
+                self::fail('A non-pending identity was activated.');
+            } catch (UserNotPendingActivationException) {
+                self::assertEquals($before, $user);
+            }
+        }
+    }
+
+    public function test_that_lifecycle_transitions_keep_security_versions_distinct_from_login_revisions(): void
+    {
+        $now = new DateTimeImmutable('2026-01-01T00:00:00+00:00');
+        $user = User::invite(UserId::generate(), EmailAddress::fromString('lifecycle@example.test'), $now);
+        $user->activate($this->passwordHash(), $now);
+        $user->disable($now);
+        self::assertSame(2, $user->getAuthenticationVersion());
+        self::assertSame(1, $user->getAuthenticationAuthorityRevision());
+        $user->enable($now);
+        self::assertSame(2, $user->getAuthenticationVersion());
+        self::assertSame(1, $user->getAuthenticationAuthorityRevision());
+        $user->delete($now);
+        self::assertSame(3, $user->getAuthenticationVersion());
+        self::assertSame(1, $user->getAuthenticationAuthorityRevision());
+        $user->restore(UserState::ACTIVE, $now);
+        self::assertSame(3, $user->getAuthenticationVersion());
+        self::assertSame(1, $user->getAuthenticationAuthorityRevision());
     }
 
     public function test_that_password_reset_requires_an_active_identity_with_an_established_password(): void
