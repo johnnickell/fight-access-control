@@ -43,6 +43,11 @@ not copied skills or provider-application assumptions.
 | Worktrees, runtime, PRs, merge, release, deploy | [Delivery](docs/engineering/standards/Delivery.md) and the actual project profile/runbooks |
 | Change these standards or adopt them elsewhere | [Governance](docs/engineering/standards/Governance.md) |
 
+For class placement, dependency selection or collaborator naming, start with the local
+[architecture target](docs/engineering/standards/Architecture.md#accesscontrol-placement-and-dependency-rules)
+and [naming rule](docs/engineering/standards/Naming.md#descriptive-collaborators-and-collections).
+The profile distinguishes implemented source from approved follow-ups; approval is not source conformance.
+
 **Build:** one TASK normally owns one PR. Use dependency-ordered SUBTASKs for layer assignments. Features are code-first; bugs start with one failing regression test. Keep domain knowledge with its owner and runtime dependencies behind Domain/Application contracts.
 
 **Verify:** use focused checks while iterating, then the complete project gate for implementation/build-input changes. Documentation-only follow-ups may retain prior full-gate evidence with verified input equivalence and targeted checks under the Testing standard. Cover production behavior; keep release/tooling tests separate from default builds and CI. Private repositories use a local build receipt as proof; a hosted CI pass is not required. Surface warnings and incomplete evidence. Keep CONTEXT.md and affected documentation aligned with the code.

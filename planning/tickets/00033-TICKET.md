@@ -72,7 +72,7 @@ and operation-boundary redesign belong to TICKET-00035/00036.
 
 | Order | TASK ID | Title | Status |
 | --- | --- | --- | --- |
-| 10 | [TASK-00107](../tasks/00107-TASK.md) | Codify aggregate-first architecture and descriptive dependency naming | ready-for-agent |
+| 10 | [TASK-00107](../tasks/00107-TASK.md) | Codify aggregate-first architecture and descriptive dependency naming | done |
 | 11 | [TASK-00108](../tasks/00108-TASK.md) | Move Agent MCP presentation and family bindings into adapters | ready-for-agent |
 | 12 | [TASK-00109](../tasks/00109-TASK.md) | Organize Application capabilities and descriptive collaborator names | ready-for-agent |
 ## Decisions and Progress

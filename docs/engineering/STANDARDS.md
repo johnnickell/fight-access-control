@@ -8,13 +8,13 @@ The ten canonical standards below are copied into this checkout for self-contain
 
 | Standard | Source SHA-256 | Installed SHA-256 |
 | --- | --- | --- |
-| [Architecture](standards/Architecture.md) | `3937a128e280f93bb9eece8dea9f612f02a63fdd79bd0f7d63b41a167e190980` | `3937a128e280f93bb9eece8dea9f612f02a63fdd79bd0f7d63b41a167e190980` |
-| [Delivery](standards/Delivery.md) | `f846b7dbb8977d7ef195cdbd339ce91a1632691a7664455ebdd2067de4ad925e` | `61dfcbd2ea0b34e4ab6e995c9761d752a3f74b248549a5ce48a33007c06225a1` |
+| [Architecture](standards/Architecture.md) | `3937a128e280f93bb9eece8dea9f612f02a63fdd79bd0f7d63b41a167e190980` | `5f31545392eb24ac4772e13ef199cb983ada67698f3dfce57e5828d0c7198dfb` |
+| [Delivery](standards/Delivery.md) | `f846b7dbb8977d7ef195cdbd339ce91a1632691a7664455ebdd2067de4ad925e` | `fa91f6431f00c4d0e944a8ff8790f4152a56ebb4bbe4c55b98568fd04ef57ba6` |
 | [Frontend](standards/Frontend.md) | `236d9fae3bd94af3a22b6158953979be04c0c8e388f62d56461579d58e9eb8ec` | `236d9fae3bd94af3a22b6158953979be04c0c8e388f62d56461579d58e9eb8ec` |
 | [Governance](standards/Governance.md) | `b15f5ccc7804f0c3a7745aa0d7ba9f200c24f7652e81883217ae80aa7e37b81d` | `b15f5ccc7804f0c3a7745aa0d7ba9f200c24f7652e81883217ae80aa7e37b81d` |
 | [HTTP](standards/HTTP.md) | `456f7161f08bdd23063bab934ba9a26fb178f0e1ad35e0d898255dd9702626c9` | `456f7161f08bdd23063bab934ba9a26fb178f0e1ad35e0d898255dd9702626c9` |
-| [Naming](standards/Naming.md) | `783c67a53b62f9a1576a3a0c00a6438f1b6c40b0df84f268874689b715e74907` | `783c67a53b62f9a1576a3a0c00a6438f1b6c40b0df84f268874689b715e74907` |
-| [PHP](standards/PHP.md) | `b102071e4939424796e4edc20d0b46373210634189c8f024038214e0e18cf623` | `b102071e4939424796e4edc20d0b46373210634189c8f024038214e0e18cf623` |
+| [Naming](standards/Naming.md) | `783c67a53b62f9a1576a3a0c00a6438f1b6c40b0df84f268874689b715e74907` | `208e06ec365a406b5b4a2255dc4ad89fc80ae6d8735fc95eac12c9374a0da4ca` |
+| [PHP](standards/PHP.md) | `b102071e4939424796e4edc20d0b46373210634189c8f024038214e0e18cf623` | `2c9eddc500bf7fa1be39134fb1098186d2bae0809c68b6fb4876b3fc79f93d38` |
 | [Planning](standards/Planning.md) | `616c8e3a793e200747a98b9b918ed921ac17708f4e08b0925a94bd04a79a1bd1` | `ec87830d1037e31aa2c4b3af537b1628e18ea1693da428c851ed2996a1c9777d` |
 | [Review](standards/Review.md) | `46b53d075a5cae328391eb57d645404c3fb55bc76aee461def94aa123f04ea35` | `d9b77bb05bc04176f323a6c86cd1af76eb4edf76ddec3cd1df01a5ba86e4bfd5` |
 | [Testing](standards/Testing.md) | `fdab5a64ba92f406d63c28d48d6fdf800397c079c29932372746caf31f2c432f` | `2e261e828a504b579d861b01f494ec7c78bdcd96493acc5114e659827af66879` |
@@ -61,7 +61,38 @@ This adoption does not certify all existing code against the baseline. Its compa
   [TASK-00060](../../planning/tasks/00060-TASK.md#approved-verification-amendment). That TASK owns implementation;
   recording the rule does not assert that the tests or suite wiring already exist.
 
+## Aggregate-first architecture and dependency naming amendment — TASK-00107
+
+- **Rule and scope:** The local [Architecture placement/dependency rules](standards/Architecture.md#accesscontrol-placement-and-dependency-rules)
+  and [Naming rule](standards/Naming.md#descriptive-collaborators-and-collections), with PHP's explicit aggregate
+  extensibility exception, codify the approved [EPIC-00015](../../planning/epics/00015-EPIC.md) target. Domain is
+  aggregate-first, Application mirrors ownership with semantic capabilities, and protocol Adapter presentation may
+  group by capability/surface/aggregate. Framework mechanisms retain capability/framework homes. Properties,
+  parameters and locals describe collaborators; actual collections retain plurals.
+- **Supersessions:** The framework-only/no-DDD-Adapter wording in WF-035, the profile and EPIC-00014 is specialized
+  for `Adapter/Mcp/{Tool,Resource,Skill}/Agent`. ADR 0001's no-Adapter boundary was already narrowly superseded by
+  WF-035. ADR 0003's single AuthenticationService placement mandate is replaced by cohesive synchronous owners,
+  without changing its JWT/security behavior. Original decisions and the amendment below remain history; current
+  normative rules and source/follow-up distinctions are linked from the profile and ADRs.
+- **Limits and rationale:** Cohesive ownership and descriptive dependencies make classes/coordination discoverable,
+  not a reason for Entity-only Domain, generic contracts/helpers, one-class folders, forwarding facades or framework
+  leakage. Application PSR/upstream inward contracts do not amend executable collectors by prose. Persistence remains
+  consumer-owned; aggregate-oriented persistence is illustrative, not package approval. Keep exact coverage/OpenAPI
+  integration, independent authorization, sensitive synchronous inputs, repository atomic capabilities/separate UoW,
+  current-contract safety and all transaction/recovery/post-commit exceptions. Common owns its protocol engines,
+  neutral ports and use cases; actual canonical adoption remains TASK-00110, not a guessed API/version.
+- **Approval/reference:** John approved EPIC-00015's explicit policy amendments and the guidance-only
+  [TASK-00107](../../planning/tasks/00107-TASK.md). TASK-00108/00109 and TASK-00111–00114 own later source changes;
+  no implementation conformance or independent acceptance is asserted here. Local Architecture/Naming/PHP installed
+  digests identify the amended bytes; all source columns preserve their original baseline/refresh identities.
+  Delivery's installed digest is also corrected to its actual unchanged bytes: the prior recorded digest already
+  disagreed at TASK-00107's base, `b968b601cde4ba41775de24e4aaf6ef553a8184f`. No Delivery policy is changed. No provider
+  standards, dependencies, production code or executable gate inputs other than governing guidance are rewritten.
+
 ## Optional capability-first Adapter boundary — WF-035
+
+Historical amendment, retained with its original rationale; the TASK-00107 amendment above specializes its layout
+restriction for aggregate-oriented protocol presentation without broadening infrastructure authority.
 
 - **Rule:** The [project profile](../../planning/agents/project-profile.md#package-boundary-and-contracts) is the
   authority for the approved optional `src/Adapter` integration boundary and Common-style capability-first layout.
@@ -108,7 +139,8 @@ Source columns retain their earlier baseline/refresh identities, not a claim of 
 The provider's skills and scripts remain provider-owned and optional; no catalog, private installation paths,
 global configuration or provider application assumptions are imported.
 
-Retained unchanged: Domain/Application-only production ownership, pre-v1 current-contract policy and security
+At that historical alignment checkpoint, retained unchanged: Domain/Application-only production ownership (since
+narrowly amended by WF-035 and the TASK-00107 amendment above), pre-v1 current-contract policy and security
 brief requirements; exact statement coverage, canonical Docker build, documentation-only evidence reuse and
 hosted-check policy; OpenAPI integration-test and singular worktree-layout exceptions; independent acceptance,
 behavioral QA, automatic parent completion and human-signed library-release controls. A single invocation may

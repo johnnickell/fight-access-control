@@ -66,8 +66,8 @@ QA and normal full-gate/exact coverage/evidence-reuse rules remain. All four TIC
 (2 + 4 + 4 + 2: ten features/two chores), not implemented/qualified; unfinished children keep parents open. Existing accepted
 PSR-15/Symfony and planned TASK-00105/00106 Laravel/CI4 Permission scope/order/blockers are preserved; assign actual
 native suppliers/shared adaptations once without duplicating existing work. Target version remains unassigned; consumer adoption/release
-obligations with other EPICs are not inferred. First Board selection remains TASK-00107, with explicit checkout and
-separate invocation before eventual implementation. Source/dependencies/Common/consumers remain unchanged.
+obligations with other EPICs are not inferred. At that planning checkpoint the first Board selection was TASK-00107;
+source/dependencies/Common/consumers remained unchanged.
 
 Next: `/skill:next` for Board-based selection, not automatic execution. This standalone destination has no
 earlier Wayfinder phase. All six EPIC-00017 audit TICKETs are now TASK-planned below, not implemented/qualified.
@@ -242,7 +242,7 @@ contract ownership (order 299), [TASK-00151](tasks/00151-TASK.md) executable typ
 foundations have no demonstrated blockers, final work waits on both plus all 28 correction/adoption tasks under
 TICKET-00037–00041. These 30 edges are final-completion fan-in only, inheriting real affected supplier/conversion
 holds without a blanket early wait. Approved early priorities precede existing 301–328 typing work without
-renumbering earlier records, adding dependencies to them or changing the Board's first TASK-00107 selection.
+renumbering earlier records, adding dependencies to them or changing the then-current Board selection of TASK-00107.
 Inventory is declaration/boundary-aware, not count-only; positive/negative fixture execution is required in the one
 canonical gate, distinct from runner tooling qualification. Final work completes sufficient rules/integrated checks
 and current contract/evidence reconciliation, returning new production defects to their owners. No audit-only,
@@ -268,6 +268,10 @@ no source/dependency/consumer change, product build, new branch/worktree, commit
 
 ## First priority — pre-v1 architecture enablers
 
+TASK-00107's guidance candidate has independent Review ACCEPT and QA PASS; publication and final delivery
+verification were pending at closeout. The current result is in `.runs/handoffs/TASK-00107/land.md` and the actual PR.
+The Board owns current execution routing; remaining implementation is not implied by guidance acceptance.
+
 John approved [EPIC-00015 — Pre-v1 Architecture and Supported Common Integration](epics/00015-EPIC.md), its
 four TICKETs ([00033](tickets/00033-TICKET.md)–[00036](tickets/00036-TICKET.md)) and all eight implementation TASKs.
 The [Board](tasks/BOARD.md) derives execution priority and blockers from those records; this section is strategy,
@@ -275,7 +279,7 @@ not a separate queue or authority to execute.
 
 | Priority | Accepted work | Purpose and dependency |
 | --- | --- | --- |
-| 10 | [TASK-00107](tasks/00107-TASK.md) — Architecture and naming rules | First executable enabler; reconcile old layout/single-service guidance with the approved target. |
+| 10 | [TASK-00107](tasks/00107-TASK.md) — Architecture and naming rules | Independently accepted guidance; reconciles old layout/single-service guidance with the approved target. |
 | 11 | [TASK-00108](tasks/00108-TASK.md) — MCP presentation/bindings in Adapter | After 107; provide the canonical boundary before extending MCP features. |
 | 12 | [TASK-00109](tasks/00109-TASK.md) — Application capabilities and descriptive names | After 107; follows 108 by priority only, not a dependency. |
 | 13 | [TASK-00110](tasks/00110-TASK.md) — Supported canonical Common contracts | needs-info for actual affected tagged/accepted APIs and sufficient minimum; independent ready work proceeds. |
@@ -294,7 +298,7 @@ TASK-00110 adopts only affected consumed canonical APIs when genuinely available
 additional APIs and minima. No guessed version, stable claim from a dev snapshot, AccessControl compatibility alias,
 Common/consumer mutation or dependency adoption is authorized through these planning edits.
 
-EPIC-00015's original four-TICKET/eight-TASK plan is accepted/written, not implemented. John additionally requested
+EPIC-00015's original four-TICKET/eight-TASK plan is accepted/written; only TASK-00107's guidance is independently accepted. John additionally requested
 retaining [eventual Agent provisioning/rotation command conversion](epics/00015-EPIC.md#approved-follow-up--result-preserving-agent-commands).
 This architectural follow-up remains undecomposed; [EPIC-00016](epics/00016-EPIC.md#agent-command-result-coordination-follow-up)
 coordinates result typing/qualification without duplicate conversion ownership. The installed void Common command

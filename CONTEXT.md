@@ -89,8 +89,7 @@ nonrepeatable metadata; Agent OS's RequiresPermission is still its class-only At
 Selected EPIC-00018 TASK planning is complete. Next: `/skill:next` for Board-based selection, not automatic execution.
 All six EPIC-00017 audit TICKETs are now TASK-planned below, not implemented/qualified. EPIC-00015's added Agent
 conversion and actual Common supplier planning/qualification remain unfinished. No earlier Wayfinder
-phase applies to this standalone destination. The Board still selects TASK-00107 first; choose the implementation
-checkout separately and never start execution from planning approval. Source/dependency/Common/consumer files remain
+phase applies to this standalone destination. At that planning checkpoint the Board selected TASK-00107 first; planning approval did not start execution. Source/dependency/Common/consumer files remain
 unchanged; no product build, new checkout, commit/publication, release or deployment follows.
 
 ## Approved explicit optional atomic audit destination
@@ -294,8 +293,29 @@ FeatureFlag metadata still is not enforcement and no Feature middleware exists. 
 now approved/written as TICKET-00049–00052, all four fully TASK-planned (12 TASKs), not implemented/qualified.
 This needs no further interview/TICKET split or expansion of audit/existing Permission TASKs.
 EPIC-00015's added Agent-conversion requirement/TASK plan and actual Common supplier planning/qualification remain
-unfinished. Finish selected remaining planning phases before Board-based execution selection; TASK-00107 stays first.
+unfinished. At that planning checkpoint TASK-00107 remained the first Board selection.
 No source/dependency/sibling/consumer mutation, product build, new checkout, commit/publication or release follows.
+
+## TASK-00107 guidance checkpoint — independently accepted
+
+Independent Review and nonvisual QA accepted candidate `cc022c4f664841e21a7401a6d356b411167a90c0`.
+Publication and final delivery verification were pending at closeout; current results are in
+`.runs/handoffs/TASK-00107/land.md` and the actual PR. The Board owns subsequent execution routing.
+
+The checkout-local [Architecture rules](docs/engineering/standards/Architecture.md#accesscontrol-placement-and-dependency-rules)
+and [Naming rule](docs/engineering/standards/Naming.md#descriptive-collaborators-and-collections) now codify the approved
+EPIC-00015 target. AGENTS links those owners; the profile and ADR 0001/0003 amendments visibly reconcile the earlier
+framework-only Adapter and single-AuthenticationService requirements. WF-035's closed resolution remains history.
+The [source-linked Common notes](planning/agents/domain.md#consumed-common-contracts) identify current consumption
+without guessing canonical APIs/minima or clearing TASK-00110's hold.
+
+This is guidance implementation only, not source-conformance certification. Current source still keeps Agent MCP
+Tools/catalogs/family availability in Application, broad Agent Security/Service homes, one AuthenticationService,
+and operation types under Agent. TASK-00108 owns MCP presentation moves, TASK-00109 cohesion/naming, TASK-00111/00112
+User transitions/synchronous decomposition, TASK-00113 AgentName and TASK-00114 operation/read ownership.
+TASK-00110 owns actual qualified Common adoption; the separate Agent command conversion is still a future supplier.
+No production/test/dependency/executable-gate change or consumer/persistence infrastructure is supplied here.
+At the Work checkpoint, independent Review and guidance walkthrough QA remained required; Work did not self-close TASK-00107.
 
 ## Approved pre-v1 architecture and Common integration plan
 
@@ -1489,13 +1509,16 @@ no merge, release or consumer qualification is claimed.
 ## Package Boundary
 
 Dependencies flow `Adapter → Application → Domain`. Domain owns invariants and lifecycle state. Application owns
-a synchronous secret-bearing authentication service, explicit non-sensitive commands and queries, portable ports,
-immutable token/read results, and transaction orchestration. TASK-00103 adds the first optional PSR-15 Permission
+synchronous secret-bearing use cases, explicit non-sensitive commands and queries, portable ports, immutable
+token/read results and transaction orchestration. Current source uses AuthenticationService; the approved cohesive
+replacement follows the [Architecture rule](docs/engineering/standards/Architecture.md#application-mirrored-ownership-and-cohesive-capabilities)
+and remains TASK-00112 work. TASK-00103 adds the first optional PSR-15 Permission
 adapter with separately qualified Slim/Yii 3 composition under capability-first `src/Adapter`, approved in
 [WF-035](planning/wayfinder/tickets/WF-035-framework-permission-adapter-ownership.md). Domain/Application retain their
 DDD structure; native frameworks remain optional. The [profile](planning/agents/project-profile.md#package-boundary-and-contracts)
-owns that narrow boundary, dependency isolation and later verification obligations. Consumers retain application
-policy/grants/scope, persistence, client/route/bootstrap composition, cryptographic keys, mail, queues, realtime
+owns that narrow boundary, dependency isolation and later verification obligations. EPIC-00015 additionally approves
+aggregate-oriented neutral MCP presentation in Adapter/Mcp; TASK-00108 has not moved its current Application source.
+Consumers retain application policy/grants/scope, persistence, client/route/bootstrap composition, cryptographic keys, mail, queues, realtime
 operations, hosting and runtime. The HTTP guide limits actual qualified native composition; approval alone supplies
 neither another adapter nor blanket framework support.
 

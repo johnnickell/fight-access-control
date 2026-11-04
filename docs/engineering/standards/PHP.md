@@ -2,7 +2,11 @@
 
 Read the installed Fight PHPCS ruleset and project composition for mechanically enforced details: strict types, four-space indentation, braces, import sorting, array alignment, member ordering, blank lines, and trailing commas. Follow current tooling; propose a scoped correction when it conflicts with an explicit preference. Warnings fail style checks.
 
-Use final classes by default. Preserve exceptions needed for extension or framework mapping; Doctrine entities in John's current projects are an exception. Properties are readonly by default unless mutation belongs to their responsibility. ValueObject classes are readonly. Prefer constructor promotion for straightforward assignments and explicit initialization when construction does real work.
+Choose placement and inward contracts under [Architecture](Architecture.md#accesscontrol-placement-and-dependency-rules)
+before following an existing PHP file as a template. Apply [descriptive collaborator naming](Naming.md#descriptive-collaborators-and-collections)
+to promoted properties, parameters and locals alike; update named-argument callers with an implemented rename.
+
+Use final classes by default. Preserve exceptions needed for extension or framework mapping; Doctrine entities in John's current projects are an exception. AccessControl aggregate entities remain extensible under the project profile; final readonly fits immutable DTOs, handlers and services where extension is not part of their contract. Properties are readonly by default unless mutation belongs to their responsibility. ValueObject classes are readonly. Prefer constructor promotion for straightforward assignments and explicit initialization when construction does real work.
 
 ```php
 /**

@@ -136,15 +136,19 @@ previous-iteration support; completed TASKs and earlier guidance cannot require 
 
 ## Package boundary and contracts
 
-- Domain/Application production behavior remains under `src/Domain/AccessControl` and
-  `src/Application/AccessControl`, with the existing DDD organization and mirrored tests.
-- John approved optional reusable permission/framework integrations under `src/Adapter` in
-  [WF-035](../wayfinder/tickets/WF-035-framework-permission-adapter-ownership.md), organized capability-first like
-  Common: `Adapter/<Capability>/<Framework-or-Provider-or-Standard>/...`; service-container extension points use
-  `Adapter/ServiceContainer/<Framework>/...`. Do not introduce framework-first or DDD aggregate buckets at this
-  layer. Reference Common's current canonical destinations, not its deprecated aliases.
-- Dependency direction remains `Adapter → Application → Domain`. Keep framework dependencies optional/isolated and
-  adapters explicitly enabled; reuse PSR-15 where the actual contract fits. Compose Common's safe-error approach
+- The normative [placement/dependency rules](../../docs/engineering/standards/Architecture.md#accesscontrol-placement-and-dependency-rules)
+  and [collaborator naming](../../docs/engineering/standards/Naming.md#descriptive-collaborators-and-collections)
+  codify EPIC-00015. Domain is aggregate-first under `src/Domain/AccessControl`; Application mirrors ownership with
+  cohesive capabilities and mirrored tests. These are approved rules, not certification of all current source.
+- [WF-035](../wayfinder/tickets/WF-035-framework-permission-adapter-ownership.md)'s capability-first framework layout
+  remains valid for mechanisms. EPIC-00015 explicitly specializes its no-DDD-buckets restriction for aggregate-oriented
+  protocol presentation: `Adapter/Mcp/{Tool,Resource,Skill}/Agent`. `Adapter/<Capability>/<Framework-or-Provider-or-Standard>`
+  and `Adapter/ServiceContainer/<Framework>` remain the framework patterns, not the only permitted presentation shape.
+  Common canonical API adoption still requires actual qualification, not a guessed future destination.
+- Dependency direction remains `Adapter → Application → Domain`; Application may use PSR and supported upstream
+  Application/Domain contracts, Domain pure PHP and supported upstream Domain contracts. Framework/infrastructure
+  mechanisms belong in Adapter; current executable collectors remain unchanged by guidance. Keep framework
+  dependencies optional/isolated and adapters explicitly enabled; reuse PSR-15 where the actual contract fits. Compose Common's safe-error approach
   without competing reporting/rendering or leaking private exceptions; preserve MCP/OAuth protocol boundaries.
 - Consumers still own production persistence adapters, application policy/grants/target scope, transport routes,
   framework bootstrap, keys, queues and runtime. The narrow Adapter approval does not authorize persistence or
@@ -156,16 +160,24 @@ previous-iteration support; completed TASKs and earlier guidance cannot require 
 - Reuse public Fight Common values and identities: context IDs extend UniqueId, email is the common EmailAddress,
   messages use the public Command, Query, Event, and handler contracts, and package exceptions stay under their
   aggregate Exception namespace.
-- Repositories are Domain interfaces beside their aggregate. Handlers use canonical add/getById/remove operations and
-  the supported atomic boundary; do not create Application Store ports, save ports, or preflight reservation calls.
+- Repositories are Domain interfaces beside their aggregate. Use canonical add/getById/remove where appropriate,
+  preserving actual CAS/uniqueness/coupled-write and transaction-duration fence contracts, not replacing them with
+  get-then-save. Keep UoW separate; do not create Application Store/save ports or preflight reservation calls.
+- Current source still has Agent profile Tools/catalogs and family availability in Application, broad Agent
+  Security/Service homes and the single AuthenticationService. TASK-00108 owns MCP relocation, TASK-00109 capability/
+  collaborator cleanup and TASK-00112 synchronous decomposition after TASK-00111. TASK-00114 owns operation aggregate/
+  read boundaries; TASK-00110 owns qualified canonical Common adoption. None is implemented or accepted by TASK-00107.
+  See the [consumed-contract notes](domain.md#consumed-common-contracts) for actual source and supplier limits.
 - UserRepository::add() enforces canonical-email uniqueness atomically. Backed enum cases are uppercase and retain
   stable serialized string values.
 
 ## Application and security behavior
 
-- Secret-bearing activation, login, refresh, logout, and password operations remain synchronous
-  AuthenticationService methods. Raw secrets are sensitive parameters, never serializable messages, and failures
-  dispatch only redacted failure evidence.
+- Secret-bearing activation, login, refresh, logout, password and email-confirmation operations remain synchronous.
+  EPIC-00015 replaces ADR 0003's single AuthenticationService placement mandate with cohesive direct owners under
+  the Architecture rule; TASK-00112 implements this later. The existing service remains current source, not a policy
+  violation retroactively. Raw secrets remain sensitive, non-serializable parameters and failures dispatch only
+  redacted failure evidence; supported JWT/security/atomic/recovery/post-commit guarantees are unchanged.
 - Serializable Commands, Queries, and Events are immutable DTOs with canonical fromArray/toArray round trips,
   named getters, and rejection of missing required data.
 - Command and Query handlers implement the corresponding public Fight Common handler interface, declare their
@@ -228,8 +240,8 @@ previous-iteration support; completed TASKs and earlier guidance cannot require 
   neither guides nor package passes authorize release, activation/use, consumer adoption, deployment or
   Agent OS TASK-00138 closure.
 - QueryHandlers read through Domain repositories only: no aggregate mutation, commit, or domain-event dispatch.
-- AuthenticationService follows the same atomic, post-commit ordering, uses Fight Common password and token ports,
-  returns non-serializable token results, and emits RedactedCommandFailed without raw secret input.
+- Current AuthenticationService and its future cohesive replacements retain the same atomic, post-commit ordering,
+  Fight Common password/token ports, non-serializable token results and RedactedCommandFailed without raw secret input.
 - Aggregate roots own state transitions. Keep aggregate entities extensible; use final readonly only for immutable
   DTOs, handlers, and services where extension is not part of the contract.
 
@@ -248,8 +260,9 @@ previous-iteration support; completed TASKs and earlier guidance cannot require 
   not the release-only tooling category. TASK-00052 established suite wiring and Agent discovery checks;
   TASK-00060 adds released credential-delivery and shared composition checks. Exact Domain/Application statement
   coverage remains unchanged.
-- Application clocks, credential generators, and ciphers belong under the matching Application aggregate Service
-  namespace; their test doubles use the matching test Service namespace.
+- Application clocks, credential generators and ciphers retain explicit inward aggregate/capability ownership,
+  with matching test doubles. Existing aggregate Service homes remain current source; apply the Architecture
+  semantic-capability rule during approved cohesion work, not a new cross-layer helper bucket.
 - Every production statement requires executable coverage. The isolated fight-access-control PHP container is the
   package runtime; ./bin/planning-check and ./bin/build are mandatory pre-submit gates, and the build enforces
   PHPCS, PHPStan, architecture, Rector, PHPUnit, and exact statement coverage.
