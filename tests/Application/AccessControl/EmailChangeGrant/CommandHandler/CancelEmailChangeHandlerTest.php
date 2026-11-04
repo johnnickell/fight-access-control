@@ -108,10 +108,10 @@ final class CancelEmailChangeHandlerTest extends TestCase
         self::assertSame($userId, $command->getActorId());
         self::assertSame($userId, $command->getUserId());
 
-        [$handler, , , $events] = $this->fixture($userId);
+        [$handler, , , $eventDispatcher] = $this->fixture($userId);
         $handler->handle(CommandMessage::create($command));
 
-        $event = $events->events()[0];
+        $event = $eventDispatcher->events()[0];
         self::assertInstanceOf(EmailChangeCancelled::class, $event);
         self::assertEquals($event, EmailChangeCancelled::fromArray($event->toArray()));
         self::assertSame($userId, $event->getActorId());
@@ -253,7 +253,7 @@ final class CancelEmailChangeHandlerTest extends TestCase
     public function test_a_lost_grant_cas_rolls_back_only_the_target_reservation_clear(): void
     {
         $userId = UserId::generate();
-        [$handler, $userRepository, $emailChangeGrantRepository, $events] = $this->fixture(
+        [$handler, $userRepository, $emailChangeGrantRepository, $eventDispatcher] = $this->fixture(
             $userId,
             replaceSucceeds: false
         );
@@ -278,7 +278,7 @@ final class CancelEmailChangeHandlerTest extends TestCase
                 $userRepository->getById($other->getId())?->getPendingEmailChange()?->canonical()
             );
             self::assertTrue($emailChangeGrantRepository->all()[0]->isIssued());
-            self::assertInstanceOf(CommandFailedEvent::class, $events->events()[0]);
+            self::assertInstanceOf(CommandFailedEvent::class, $eventDispatcher->events()[0]);
         }
     }
 

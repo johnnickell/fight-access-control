@@ -31,7 +31,7 @@ final class CurrentAgentPrincipalProviderBehavioralConformanceTest extends TestC
     public function test_that_the_framework_free_public_seam_resolves_one_complete_principal_and_fails_closed(): void
     {
         $viewAgents = PermissionName::fromString('VIEW_AGENTS');
-        [$provider, $request, $nonceConsumer, $agents, $permissions, $unitOfWork] = $this->provider();
+        [$provider, $request, $nonceConsumer, $agentRepository, $permissionRepository, $unitOfWork] = $this->provider();
 
         $firstPrincipal = $provider->resolve($request, 'correlation-success');
         $secondPrincipal = $provider->resolve($request, 'correlation-success');
@@ -60,7 +60,7 @@ final class CurrentAgentPrincipalProviderBehavioralConformanceTest extends TestC
         self::assertFalse($context->hasPermission(PermissionName::fromString('MANAGE_AGENTS')));
         self::assertFalse($context->hasRole(RoleName::fromString('ROLE_USER')));
 
-        $replayProvider = $this->providerFor($agents, $permissions, $nonceConsumer, $unitOfWork);
+        $replayProvider = $this->providerFor($agentRepository, $permissionRepository, $nonceConsumer, $unitOfWork);
         try {
             $replayProvider->resolve($request, 'correlation-replay');
             self::fail('A replayed signed Agent request must fail closed.');

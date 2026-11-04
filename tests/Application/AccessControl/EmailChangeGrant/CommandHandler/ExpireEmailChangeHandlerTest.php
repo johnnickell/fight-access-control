@@ -91,7 +91,7 @@ final class ExpireEmailChangeHandlerTest extends TestCase
 
     public function test_command_and_success_event_round_trip_with_explicit_occurrence_time(): void
     {
-        [$handler, , , $events, $userId, $grant] = $this->fixture();
+        [$handler, , , $eventDispatcher, $userId, $grant] = $this->fixture();
         $command = $this->command($userId, $grant);
 
         self::assertSame(ExpireEmailChange::class, ExpireEmailChangeHandler::commandRegistration());
@@ -103,7 +103,7 @@ final class ExpireEmailChangeHandlerTest extends TestCase
 
         $handler->handle(CommandMessage::create($command));
 
-        $event = $events->events()[0];
+        $event = $eventDispatcher->events()[0];
         self::assertInstanceOf(EmailChangeExpired::class, $event);
         self::assertEquals($event, EmailChangeExpired::fromArray($event->toArray()));
         self::assertSame('email-change-expiry', $event->getActorId());
@@ -144,7 +144,14 @@ final class ExpireEmailChangeHandlerTest extends TestCase
     public function test_early_stale_unknown_and_mismatched_expiry_are_mutation_free(): void
     {
         foreach (['early', 'stale grant', 'unknown user'] as $case) {
-            [$handler, $userRepository, $emailChangeGrantRepository, $events, $userId, $grant] = $this->fixture();
+            [
+                $handler,
+                $userRepository,
+                $emailChangeGrantRepository,
+                $eventDispatcher,
+                $userId,
+                $grant
+            ] = $this->fixture();
             $commandUserId = $case === 'unknown user' ? UserId::generate() : $userId;
             $grantId = $case === 'stale grant' ? EmailChangeGrantId::generate() : $grant->getId();
             $occurredAt = new DateTimeImmutable('2026-08-22T13:00:00+00:00');
@@ -164,13 +171,13 @@ final class ExpireEmailChangeHandlerTest extends TestCase
                 $userRepository->getById($userId)?->getPendingEmailChange()?->canonical()
             );
             self::assertTrue($emailChangeGrantRepository->all()[0]->isIssued());
-            self::assertSame([], $events->events());
+            self::assertSame([], $eventDispatcher->events());
         }
     }
 
     public function test_repeated_expiry_is_mutation_free(): void
     {
-        [$handler, $userRepository, $emailChangeGrantRepository, $events, $userId, $grant] = $this->fixture();
+        [$handler, $userRepository, $emailChangeGrantRepository, $eventDispatcher, $userId, $grant] = $this->fixture();
         $command = $this->command($userId, $grant);
         $handler->handle(CommandMessage::create($command));
         $expired = $emailChangeGrantRepository->all()[0];
@@ -179,16 +186,20 @@ final class ExpireEmailChangeHandlerTest extends TestCase
 
         self::assertSame($expired, $emailChangeGrantRepository->all()[0]);
         self::assertNull($userRepository->getById($userId)?->getPendingEmailChange());
-        self::assertCount(1, $events->events());
+        self::assertCount(1, $eventDispatcher->events());
     }
 
     public function test_a_lost_reservation_or_grant_cas_rolls_back_the_coupled_transition(): void
     {
         foreach ([false, true] as $grantCasLoss) {
-            [$handler, $userRepository, $emailChangeGrantRepository, $events, $userId, $grant] = $this->fixture(
-                grantReplaceSucceeds: !$grantCasLoss,
-                userReplaceSucceeds: $grantCasLoss
-            );
+            [
+                $handler,
+                $userRepository,
+                $emailChangeGrantRepository,
+                $eventDispatcher,
+                $userId,
+                $grant
+            ] = $this->fixture(grantReplaceSucceeds: !$grantCasLoss, userReplaceSucceeds: $grantCasLoss);
 
             try {
                 $handler->handle(CommandMessage::create($this->command($userId, $grant)));
@@ -199,7 +210,7 @@ final class ExpireEmailChangeHandlerTest extends TestCase
                     $userRepository->getById($userId)?->getPendingEmailChange()?->canonical()
                 );
                 self::assertTrue($emailChangeGrantRepository->all()[0]->isIssued());
-                self::assertInstanceOf(CommandFailedEvent::class, $events->events()[0]);
+                self::assertInstanceOf(CommandFailedEvent::class, $eventDispatcher->events()[0]);
             }
         }
     }

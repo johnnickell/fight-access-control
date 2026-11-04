@@ -76,9 +76,11 @@ final class InMemoryIssuanceRecoveryFixture extends IssuanceRecoveryFixture impl
     public function ports(): IssuanceRecoveryPorts
     {
         $env = $this->environment;
-        $audit = $env->auditEvidenceRepository;
+        $auditEvidenceRepository = $env->auditEvidenceRepository;
         if ($this->failure === 'audit') {
-            $audit = new readonly class ($audit) implements AuditEvidenceRepository {
+            $auditEvidenceRepository = new readonly class (
+                $auditEvidenceRepository
+            ) implements AuditEvidenceRepository {
                 public function __construct(private AuditEvidenceRepository $innerAuditEvidenceRepository)
                 {
                 }
@@ -94,7 +96,7 @@ final class InMemoryIssuanceRecoveryFixture extends IssuanceRecoveryFixture impl
         return new IssuanceRecoveryPorts(
             $env->agentRepository,
             $env->agentOperationRepository,
-            $audit,
+            $auditEvidenceRepository,
             $env->operationAuthorization,
             $this,
             new FixedHmacSharedSecretCipher('conformance-auth-envelope:'),

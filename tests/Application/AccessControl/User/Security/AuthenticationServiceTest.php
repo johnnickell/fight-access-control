@@ -1524,7 +1524,10 @@ final class AuthenticationServiceTest extends TestCase
         $loginRefreshSessionRepository = new InMemoryRefreshSessionRepository($loginUnitOfWork, state: $sessionState);
         $loginUserRepository->bindRefreshSessionRepository($loginRefreshSessionRepository);
         $loginReadSnapshot = clone $user;
-        $snapshotUsers = new readonly class ($loginReadSnapshot, $loginUserRepository) implements UserRepository {
+        $snapshotUserRepository = new readonly class (
+            $loginReadSnapshot,
+            $loginUserRepository
+        ) implements UserRepository {
             public function __construct(
                 private User $loginReadSnapshot,
                 private InMemoryUserRepository $userRepository
@@ -1626,7 +1629,7 @@ final class AuthenticationServiceTest extends TestCase
         };
         $loginEventDispatcher = new InMemoryEventDispatcher();
         $loginService = $this->service(
-            $snapshotUsers,
+            $snapshotUserRepository,
             new InMemoryActivationGrantRepository($loginUnitOfWork),
             $loginRefreshSessionRepository,
             $loginUnitOfWork,
@@ -2545,7 +2548,9 @@ final class AuthenticationServiceTest extends TestCase
         $userRepository->add($user);
         $originalSession = $this->session($user, $this->refreshCredential(), false);
         $storedRefreshSessionRepository->add($originalSession);
-        $racingSessions = new class ($storedRefreshSessionRepository) implements RefreshSessionRepository {
+        $racingRefreshSessionRepository = new class (
+            $storedRefreshSessionRepository
+        ) implements RefreshSessionRepository {
             public bool $interleaveNextReplace = false;
 
             public ?Closure $beforeReplace = null;
@@ -2603,7 +2608,7 @@ final class AuthenticationServiceTest extends TestCase
         $winnerService = $this->service(
             $userRepository,
             new InMemoryActivationGrantRepository(),
-            $racingSessions,
+            $racingRefreshSessionRepository,
             new InMemoryUnitOfWork(),
             $winnerEventDispatcher,
             authenticationClock: new FixedClock(
@@ -2631,7 +2636,7 @@ final class AuthenticationServiceTest extends TestCase
         $loserService = $this->service(
             $userRepository,
             new InMemoryActivationGrantRepository(),
-            $racingSessions,
+            $racingRefreshSessionRepository,
             new InMemoryUnitOfWork(),
             $loserEventDispatcher,
             authenticationClock: $loserClock,
@@ -2640,10 +2645,10 @@ final class AuthenticationServiceTest extends TestCase
             )
         );
         $winner = null;
-        $racingSessions->beforeReplace = static function () use (&$winner, $winnerService): void {
+        $racingRefreshSessionRepository->beforeReplace = static function () use (&$winner, $winnerService): void {
             $winner = $winnerService->refresh(self::REFRESH_CREDENTIAL);
         };
-        $racingSessions->interleaveNextReplace = true;
+        $racingRefreshSessionRepository->interleaveNextReplace = true;
 
         $conflict = $loserService->refresh(self::REFRESH_CREDENTIAL);
 
@@ -2675,7 +2680,9 @@ final class AuthenticationServiceTest extends TestCase
         $userRepository->add($user);
         $originalSession = $this->session($user, $this->refreshCredential(), false);
         $storedRefreshSessionRepository->add($originalSession);
-        $racingSessions = new class ($storedRefreshSessionRepository) implements RefreshSessionRepository {
+        $racingRefreshSessionRepository = new class (
+            $storedRefreshSessionRepository
+        ) implements RefreshSessionRepository {
             public bool $revokedDuringReplace = false;
 
             public function __construct(private readonly InMemoryRefreshSessionRepository $refreshSessionRepository)
@@ -2732,7 +2739,7 @@ final class AuthenticationServiceTest extends TestCase
         $service = $this->service(
             $userRepository,
             new InMemoryActivationGrantRepository(),
-            $racingSessions,
+            $racingRefreshSessionRepository,
             new InMemoryUnitOfWork(),
             $eventDispatcher,
             refreshCredentialGenerator: new FixedRefreshCredentialGenerator(
@@ -2757,7 +2764,7 @@ final class AuthenticationServiceTest extends TestCase
         self::assertNull(
             $storedRefreshSessionRepository->getByCredential(RefreshCredential::fromString(self::ROTATED_CREDENTIAL))
         );
-        self::assertTrue($racingSessions->revokedDuringReplace);
+        self::assertTrue($racingRefreshSessionRepository->revokedDuringReplace);
         self::assertCount(1, $eventDispatcher->events());
         self::assertInstanceOf(RedactedCommandFailed::class, $eventDispatcher->events()[0]);
     }
@@ -2771,7 +2778,9 @@ final class AuthenticationServiceTest extends TestCase
         $userRepository->add($user);
         $originalSession = $this->session($user, $this->refreshCredential(), false);
         $storedRefreshSessionRepository->add($originalSession);
-        $racingSessions = new class ($storedRefreshSessionRepository) implements RefreshSessionRepository {
+        $racingRefreshSessionRepository = new class (
+            $storedRefreshSessionRepository
+        ) implements RefreshSessionRepository {
             public int $contentions = 0;
 
             public function __construct(private readonly InMemoryRefreshSessionRepository $refreshSessionRepository)
@@ -2856,7 +2865,7 @@ final class AuthenticationServiceTest extends TestCase
         $service = $this->service(
             $userRepository,
             new InMemoryActivationGrantRepository(),
-            $racingSessions,
+            $racingRefreshSessionRepository,
             new InMemoryUnitOfWork(),
             $eventDispatcher,
             refreshCredentialGenerator: new FixedRefreshCredentialGenerator(
@@ -2883,7 +2892,7 @@ final class AuthenticationServiceTest extends TestCase
         self::assertNull(
             $storedRefreshSessionRepository->getByCredential(RefreshCredential::fromString(self::ROTATED_CREDENTIAL))
         );
-        self::assertSame(2, $racingSessions->contentions);
+        self::assertSame(2, $racingRefreshSessionRepository->contentions);
         self::assertCount(1, $eventDispatcher->events());
         self::assertInstanceOf(RedactedCommandFailed::class, $eventDispatcher->events()[0]);
         self::assertSame([], $eventDispatcher->events()[0]->getRedactedCommandData());
@@ -2992,7 +3001,7 @@ final class AuthenticationServiceTest extends TestCase
             $this->refreshCredential(),
             false
         );
-        $sessions = new readonly class ($session) implements RefreshSessionRepository {
+        $refreshSessionRepository = new readonly class ($session) implements RefreshSessionRepository {
             public function __construct(private RefreshSession $session)
             {
             }
@@ -3056,7 +3065,7 @@ final class AuthenticationServiceTest extends TestCase
         $service = $this->service(
             new InMemoryUserRepository(),
             new InMemoryActivationGrantRepository(),
-            $sessions,
+            $refreshSessionRepository,
             new InMemoryUnitOfWork(),
             $eventDispatcher
         );
@@ -3085,7 +3094,7 @@ final class AuthenticationServiceTest extends TestCase
             $this->refreshCredential(),
             false
         );
-        $sessions = new class ($session) implements RefreshSessionRepository {
+        $refreshSessionRepository = new class ($session) implements RefreshSessionRepository {
             public int $authoritativeReads = 0;
 
             public int $replaceAttempts = 0;
@@ -3183,7 +3192,7 @@ final class AuthenticationServiceTest extends TestCase
         $service = $this->service(
             new InMemoryUserRepository(),
             new InMemoryActivationGrantRepository(),
-            $sessions,
+            $refreshSessionRepository,
             new InMemoryUnitOfWork(),
             $eventDispatcher
         );
@@ -3198,8 +3207,8 @@ final class AuthenticationServiceTest extends TestCase
             );
         }
 
-        self::assertSame(3, $sessions->replaceAttempts);
-        self::assertSame(3, $sessions->authoritativeReads);
+        self::assertSame(3, $refreshSessionRepository->replaceAttempts);
+        self::assertSame(3, $refreshSessionRepository->authoritativeReads);
         self::assertCount(1, $eventDispatcher->events());
         self::assertInstanceOf(RedactedCommandFailed::class, $eventDispatcher->events()[0]);
         self::assertSame(AuthenticationService::class.'::logout', $eventDispatcher->events()[0]->getCommandClass());

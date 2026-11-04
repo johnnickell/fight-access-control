@@ -95,8 +95,16 @@ slot order and same-ID full-binding tombstones under real concurrent requests. U
 The exact executed results and local gate receipt belong to
 [TASK-00054's checkpoint](../planning/tasks/00054-TASK.md#implementation-and-verification-checkpoint).
 Names below locate assertions, not independent acceptance. `Lifecycle` means `DeliveryLifecycleConformance` and
-`Sink` means `ProtectedSinkConformance`; existing focused suites remain in
-[`tests/Application/AccessControl/Agent/Security/`](../tests/Application/AccessControl/Agent/Security/).
+`Sink` means `ProtectedSinkConformance`. Focused predecessor suites now live with their capability owners:
+
+| Current test home | Focused suites referenced below |
+| --- | --- |
+| [`Agent/Delivery/`](../tests/Application/AccessControl/Agent/Delivery/) | `AgentCredentialDeliveryServiceTest`, `AgentDeliveryRecoveryServiceTest`, `AgentProtectedSinkContractTest` |
+| [`Agent/Credential/`](../tests/Application/AccessControl/Agent/Credential/) | `AgentCredentialRotationServiceTest`, `AgentCredentialRetirementTest`, `InMemoryIssuanceRecoveryConformanceTest` (TASK-00049) |
+| [`Agent/Authentication/`](../tests/Application/AccessControl/Agent/Authentication/) | `AgentRotationAuthenticationTest` |
+| [`Agent/Maintenance/`](../tests/Application/AccessControl/Agent/Maintenance/) | `AgentDeliveryMaintenanceServiceTest` |
+| [`Agent/QueryHandler/`](../tests/Application/AccessControl/Agent/QueryHandler/) | `ListDueAgentDeliveriesHandlerTest`, `AgentMaintenanceQueryTest` |
+| [`Domain/AccessControl/Agent/`](../tests/Domain/AccessControl/Agent/) | `AgentDeliveryTest`, `AgentDeliveryDiscoveryTest`, `AgentMaintenanceTest` |
 
 | Requirement | Reusable integrated proof | Focused predecessor proof retained |
 | --- | --- | --- |
