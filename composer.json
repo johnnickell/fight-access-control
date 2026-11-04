@@ -10,6 +10,7 @@
         "psr/http-server-middleware": "^1.0"
     },
     "require-dev": {
+        "codeigniter4/framework": "^4.7.6",
         "deptrac/deptrac": "^4.7",
         "phpstan/phpstan": "^2.1",
         "phpunit/phpunit": "^13.0",
@@ -57,6 +58,7 @@
     },
     "minimum-stability": "stable",
     "suggest": {
+        "codeigniter4/framework": "Enable explicit native CodeIgniter 4 permission admission and safe JSON errors (^4.7.6).",
         "slim/slim": "Enable the optional Slim permission target integration (^4.15.3).",
         "symfony/event-dispatcher": "Enable explicit native Symfony permission admission (^8.1.5).",
         "symfony/http-foundation": "Enable native Symfony requests and safe JSON responses (^8.1.9).",

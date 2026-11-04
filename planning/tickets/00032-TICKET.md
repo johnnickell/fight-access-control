@@ -120,8 +120,13 @@ new protocol endpoints, duplicate error handling, actual Agent OS/starter source
 | 103 | [TASK-00103](../tasks/00103-TASK.md) | Protect Slim and Yii 3 requests through shared PSR-15 admission | done |
 | 104 | [TASK-00104](../tasks/00104-TASK.md) | Protect Symfony requests through native admission | done |
 | 104 | [TASK-00105](../tasks/00105-TASK.md) | Protect Laravel requests through native middleware | ready-for-agent |
-| 104 | [TASK-00106](../tasks/00106-TASK.md) | Protect CodeIgniter 4 requests through native before filters | ready-for-agent |
+| 104 | [TASK-00106](../tasks/00106-TASK.md) | Protect CodeIgniter 4 requests through native before filters | in-progress |
 ## Decisions and Progress
+
+TASK-00106 now has CI4 Work implementation with native before-filter admission and a thin selected-path Common-backed
+safe error bridge. Its [CI4 guide](../../docs/codeigniter-permission-admission.md) and TASK/Work handoff own explicit
+wiring, tagged minimum/optional composition proof, native lifetimes/order and JSON/fault coverage limits. Independent
+Review/behavioral QA remain pending; TASK-00105 is separate unfinished work, not part of this implementation.
 
 Current acceptance: TASK-00104 has independent Review ACCEPT and QA PASS on candidate
 `fb25934087f931527325c3d66aa49e2b83a944eb`. Publication and final delivery were pending at closeout;

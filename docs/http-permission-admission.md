@@ -3,8 +3,9 @@
 TASK-00103 supplies route-bound PSR-15 admission, qualified separately with **Slim 4** and **Yii 3** components.
 It does not register routes, authentication, grants, containers, error handlers or another framework.
 [TASK-00104's Symfony guide](symfony-permission-admission.md) covers the separate optional native post-routing
-subscriber and Common exception composition. Laravel/CodeIgniter integrations remain separate work. The combined
-EPIC release is not yet complete.
+subscriber and Common exception composition. [TASK-00106's CI4 guide](codeigniter-permission-admission.md) covers native
+before-filter admission and its thin Common-backed selected JSON error bridge. Laravel remains separate work.
+The combined EPIC release is not yet complete.
 
 ## Inward contract and trusted composition
 
