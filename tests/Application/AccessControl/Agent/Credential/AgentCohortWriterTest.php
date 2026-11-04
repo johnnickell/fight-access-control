@@ -4,21 +4,17 @@ declare(strict_types=1);
 
 namespace Fight\Test\AccessControl\Application\AccessControl\Agent\Credential;
 
-use Fight\AccessControl\Application\AccessControl\AgentCredentialOperation\QueryHandler\{
-    CountAgentDeliveryKeyReferencesHandler
-};
-use Fight\AccessControl\Application\AccessControl\AgentCredentialOperation\QueryHandler\{
-    ListAgentDeliveryMaintenanceHandler
-};
-use Fight\Test\AccessControl\Application\AccessControl\AgentCredentialOperation\Repository\{
-    InMemoryAgentOperationContract
-};
+use Fight\AccessControl\Application\AccessControl\Agent\CommandHandler\ProvisionAgentHandler;
 use Fight\AccessControl\Application\AccessControl\Agent\Credential\AgentCredentialLifecycleService;
-use Fight\AccessControl\Application\AccessControl\Agent\Credential\AgentProvisioningService;
 use Fight\AccessControl\Application\AccessControl\Agent\PermissionAssignment\AgentPermissionAssignmentCoordinator;
 use Fight\AccessControl\Application\AccessControl\AgentCredentialOperation\Delivery\AgentDeliveryResult;
 use Fight\AccessControl\Application\AccessControl\AgentCredentialOperation\Maintenance\AgentDeliveryMaintenanceService;
 use Fight\AccessControl\Application\AccessControl\AgentCredentialOperation\Maintenance\AgentMaintenanceResult;
+use Fight\AccessControl\Application\AccessControl\AgentCredentialOperation\QueryHandler\{
+    CountAgentDeliveryKeyReferencesHandler,
+    ListAgentDeliveryMaintenanceHandler
+};
+use Fight\AccessControl\Domain\AccessControl\Agent\Command\ProvisionAgent;
 use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\AgentCredentialOperation;
 use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\AgentOperationContract;
 use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\AgentOperationFailure;
@@ -37,6 +33,9 @@ use Fight\Common\Domain\Messaging\Query\QueryMessage;
 use Fight\Test\AccessControl\Application\AccessControl\Agent\Repository\InMemoryAgentRepository;
 use Fight\Test\AccessControl\Application\AccessControl\AgentCredentialOperation\Delivery\DeliveryEnvironment;
 use Fight\Test\AccessControl\Application\AccessControl\AgentCredentialOperation\Maintenance\MaintenanceEnvironment;
+use Fight\Test\AccessControl\Application\AccessControl\AgentCredentialOperation\Repository\{
+    InMemoryAgentOperationContract
+};
 use Fight\Test\AccessControl\Application\AccessControl\Permission\Repository\InMemoryPermissionRepository;
 use LogicException;
 use PHPUnit\Framework\Attributes\CoversClass;
@@ -50,7 +49,7 @@ use PHPUnit\Framework\TestCase;
 #[CoversClass(AgentPermissionAssignmentCoordinator::class)]
 #[CoversClass(AgentCredentialLifecycleService::class)]
 #[CoversClass(AgentDeliveryMaintenanceService::class)]
-#[CoversClass(AgentProvisioningService::class)]
+#[CoversClass(ProvisionAgentHandler::class)]
 final class AgentCohortWriterTest extends TestCase
 {
     /** @return iterable<string, array{string, bool}> */
@@ -185,7 +184,9 @@ final class AgentCohortWriterTest extends TestCase
         $agentRepository = new InMemoryAgentRepository($env->transaction);
         $agentRepository->contract->switchTo(InMemoryAgentOperationContract::compatible(2));
         try {
-            $env->service(agentRepository: $agentRepository)->provision($env->key, $env->request);
+            $env->bus(agentRepository: $agentRepository)->commandBus->execute(
+                new ProvisionAgent($env->key, $env->request)
+            );
             self::fail('Distinct repository cohorts cannot form a writer.');
         } catch (AgentOperationRejectedException $agentOperationRejectedException) {
             self::assertSame(AgentOperationFailure::UNAVAILABLE, $agentOperationRejectedException->getReason());

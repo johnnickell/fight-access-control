@@ -9,6 +9,7 @@ use Fight\AccessControl\Application\AccessControl\AgentCredentialOperation\Deliv
 use Fight\AccessControl\Application\AccessControl\AgentCredentialOperation\Delivery\AgentDeliveryResult;
 use Fight\AccessControl\Application\AccessControl\AgentCredentialOperation\QueryHandler\GetAgentOperationHandler;
 use Fight\AccessControl\Domain\AccessControl\Agent\AgentRepository;
+use Fight\AccessControl\Domain\AccessControl\Agent\Command\ProvisionAgent;
 use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\AgentCredentialDisposition;
 use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\AgentCredentialOperation;
 use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\AgentDeliveryDisposition;
@@ -91,10 +92,10 @@ final class AgentCredentialDeliveryServiceTest extends TestCase
         self::assertSame(AgentDeliveryResult::DELIVERED, $env->deliver());
         self::assertSame(1, $env->decipher->calls);
         self::assertSame(1, $env->sink->calls);
-        self::assertSame($env->issuance, $env->provisioning->service()->provision(
+        self::assertSame($env->issuance, $env->provisioning->bus()->dispatchAndRead(new ProvisionAgent(
             $env->provisioning->key,
             $env->provisioning->request
-        )->getIssuance());
+        ))->getIssuance());
     }
 
     /** @return iterable<string, array{int, bool}> */
@@ -387,10 +388,12 @@ final class AgentCredentialDeliveryServiceTest extends TestCase
         $env = new DeliveryEnvironment();
         $key = new AgentOperationKey($env->provisioning->key->getScope(), AgentOperationId::generate());
         try {
-            $env->provisioning->service(limits: new AgentOperationLimits(512, 1, 1))->provision(
+            $env->provisioning->bus(
+                limits: new AgentOperationLimits(512, 1, 1)
+            )->commandBus->execute(new ProvisionAgent(
                 $key,
                 $env->provisioning->request
-            );
+            ));
             self::fail('New issuance must reject at capacity.');
         } catch (AgentOperationRejectedException $agentOperationRejectedException) {
             self::assertSame(AgentOperationFailure::CAPACITY, $agentOperationRejectedException->getReason());
@@ -588,7 +591,9 @@ final class AgentCredentialDeliveryServiceTest extends TestCase
         $env = new DeliveryEnvironment();
         $env->sink->beforeStage = static function () use ($env): void {
             $key = new AgentOperationKey($env->issuance->getKey()->getScope(), AgentOperationId::generate());
-            $successor = $env->provisioning->service()->provision($key, $env->provisioning->request)->getIssuance();
+            $successor = $env->provisioning->bus()->dispatchAndRead(
+                new ProvisionAgent($key, $env->provisioning->request)
+            )->getIssuance();
             self::assertNotNull($successor);
             self::assertSame(2, $successor->getDestinationWriteVersion());
         };

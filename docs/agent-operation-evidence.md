@@ -4,6 +4,17 @@ This is the current-contract M5 inventory for [TASK-00059](../planning/tasks/000
 [integration guide](agent-integration.md). It does not implement deferred behavior, independently accept this TASK,
 release v0.5.0, qualify a consumer or close Agent OS TASK-00138.
 
+## TASK-00182 current caller-contract amendment
+
+Provision/rotation now execute through registered void Commands and independent authorized outcome Queries.
+The existing business/conformance suites use actual Common routing; `AgentIssuanceDispatchTest` adds serialized
+metadata-preserving delay/restart/redelivery, independent worker/delegation checks, changed execution authority and
+out-of-order predecessor competition. `AgentIssuanceCommandTest` covers original intent, required fields and strict
+bounded hydration. Neither supplies a consumer broker, database, real worker restart or independent acceptance.
+Current verification belongs to TASK-00182 and its canonical Work handoff; the F1/B0 results below are **historical
+TASK-00059 evidence**, not a claim that those counts ran on this converted candidate. The matrix retains scenario
+ownership and current assertion references, with amended void/Query outcomes. No publication warnings remain.
+
 ## Scope, provenance and result vocabulary
 
 Rows 01–25 preserve the order and every scenario in the pinned proposal's
@@ -13,7 +24,7 @@ I1–I7 belong to [TICKET-00012](../planning/tickets/00012-TICKET.md), D1–D7 t
 [TICKET-00013](../planning/tickets/00013-TICKET.md), M1–M5 to TICKET-00014. The **EPIC's** ratified D3/D4 decisions
 are separately mapped below; they are not the delivery TICKET's same-numbered criteria.
 
-- **P — package pass:** cited assertions executed successfully in the current focused run F1 below. Services are real
+- **P — package pass:** cited assertions executed successfully in the historical focused run F1 below. Workflows are real
   package code, but persistence, authority, time, key and sink collaborators are controlled behavioral adapters.
   A pass is not a real database/process/cryptography test or independent TASK-00059 acceptance.
 - **S — superseded:** ADR 0011 replaces previous-iteration requirements. Old-format/legacy migration is neither a
@@ -50,8 +61,8 @@ owned-statement gate, not a separately measured unit-only metric or proof of rea
 
 ## Executable suite keys and ownership
 
-Method references in the matrix resolve through this table. F1 ran all these current suites, not the superseded
-versions originally reviewed. The linked slice guides retain finer-grained predecessor tests and binding obligations.
+Method references in the matrix resolve through this table. F1 ran the suites at its historical checkpoint;
+TASK-00182 updates issuance names and execution contracts without claiming the old receipt covers changed inputs. The linked slice guides retain finer-grained predecessor tests and binding obligations.
 
 | Key | Current source / runners | Owning TASK and evidence map |
 | --- | --- | --- |
@@ -61,7 +72,7 @@ versions originally reviewed. The linked slice guides retain finer-grained prede
 | C | [AgentCohortConformance](../tests/Application/AccessControl/Agent/Credential/AgentCohortConformance.php), `InMemoryAgentCohortConformanceTest`; [AgentCohortWriterTest](../tests/Application/AccessControl/Agent/Credential/AgentCohortWriterTest.php) | [TASK-00056](../planning/tasks/00056-TASK.md); [M2 map](agent-operation-cohorts.md#executable-evidence-and-consumer-obligations), current amendments in TASK-00057/00058/00068 |
 | K | [AgentCanonicalConformance](../tests/Application/AccessControl/Agent/Credential/AgentCanonicalConformance.php), `InMemoryAgentCanonicalConformanceTest` | [TASK-00057](../planning/tasks/00057-TASK.md); [M3 map](agent-canonical-upgrades.md#m3-executable-evidence) |
 | R | [AgentRestorationConformance](../tests/Application/AccessControl/Agent/Credential/AgentRestorationConformance.php), `InMemoryAgentRestorationConformanceTest` and `InMemoryAgentRestorationWithoutLookupTest`; [AgentRestorationWriterTest](../tests/Application/AccessControl/Agent/Credential/AgentRestorationWriterTest.php) | [TASK-00058](../planning/tasks/00058-TASK.md); [M4 map](agent-restoration-safety.md#m4-executable-evidence) |
-| P / ROT | [AgentProvisioningServiceTest](../tests/Application/AccessControl/Agent/Credential/AgentProvisioningServiceTest.php) / [AgentCredentialRotationServiceTest](../tests/Application/AccessControl/Agent/Credential/AgentCredentialRotationServiceTest.php) | [TASK-00046](../planning/tasks/00046-TASK.md) / [TASK-00048](../planning/tasks/00048-TASK.md); [provision](agent-provisioning-operations.md#package-evidence-and-consumer-qualification) / [rotation](agent-rotation-operations.md#evidence-and-limits) maps |
+| P / ROT | [ProvisionAgentHandlerTest](../tests/Application/AccessControl/Agent/CommandHandler/ProvisionAgentHandlerTest.php) / [RotateAgentCredentialHandlerTest](../tests/Application/AccessControl/Agent/CommandHandler/RotateAgentCredentialHandlerTest.php) | [TASK-00046](../planning/tasks/00046-TASK.md) / [TASK-00048](../planning/tasks/00048-TASK.md); [provision](agent-provisioning-operations.md#package-evidence-and-consumer-qualification) / [rotation](agent-rotation-operations.md#evidence-and-limits) maps |
 | STATUS / RET | [GetAgentOperationHandlerTest](../tests/Application/AccessControl/AgentCredentialOperation/QueryHandler/GetAgentOperationHandlerTest.php) / [AgentCredentialRetirementTest](../tests/Application/AccessControl/Agent/Credential/AgentCredentialRetirementTest.php) | [TASK-00047](../planning/tasks/00047-TASK.md) / [TASK-00050](../planning/tasks/00050-TASK.md); [status](agent-operation-status.md#executable-evidence-and-limits) / [retirement](agent-credential-retirement.md#package-evidence-and-remaining-qualification) maps |
 | DEL / REC / MAINT | [AgentCredentialDeliveryServiceTest](../tests/Application/AccessControl/AgentCredentialOperation/Delivery/AgentCredentialDeliveryServiceTest.php) / [AgentDeliveryRecoveryServiceTest](../tests/Application/AccessControl/AgentCredentialOperation/Delivery/AgentDeliveryRecoveryServiceTest.php) / [AgentDeliveryMaintenanceServiceTest](../tests/Application/AccessControl/AgentCredentialOperation/Maintenance/AgentDeliveryMaintenanceServiceTest.php) | [TASK-00051](../planning/tasks/00051-TASK.md) / [TASK-00052](../planning/tasks/00052-TASK.md) / [TASK-00053](../planning/tasks/00053-TASK.md); [delivery](agent-credential-delivery.md#evidence-and-limits), [recovery](agent-delivery-recovery.md#api-and-verification-boundaries), [maintenance](agent-delivery-maintenance.md#adapter-obligations-and-acceptance-evidence) maps |
 
@@ -76,22 +87,23 @@ supply actual package writers. R's separate retained journal/sink model is not a
 Owning TASKs retain full original logs/manifests and canonical reviews under their ignored runs. Independently accepted
 candidates were: TASK-00049 `3fcf2c5`, TASK-00054 `7b58fbe`, TASK-00056 `ff5c035`, **amended** TASK-00057 `2de4104`,
 TASK-00068 `90c22b5`, TASK-00058 `eeb6f5f`. These explain ownership, not acceptance of every later source revision.
-F1/B0 establish the tested current content; no old test count is relabeled as a current run. TASK-00055's legacy
+F1/B0 establish that historical checkpoint's tested content, not TASK-00182's current content; no old test count is relabeled as a current run. TASK-00055's legacy
 acceptance and TASK-00057's original `04a2adf` cross-version acceptance are historical only. TASK-00068's
 [removal/retention accounting](../planning/tasks/00068-TASK.md) and ADR 0011 supersede those obligations.
 
 ## Complete proposal matrix
 
-Every P below refers to F1 and the exact methods/classes listed. Shared rows include both issuance and delivery
+P below records the historical package evidence and now-current methods/classes; TASK-00182's handoff owns the
+converted candidate's actual rerun results. Shared rows include both issuance and delivery
 owners rather than substituting one side's pass. Consumer gaps apply even when no package assertion is missing.
 
 | # / pinned scenario | Owner and executable references | Observed package result / remaining evidence |
 | --- | --- | --- |
 | 01 Normal provision and rotation | I1 / TASK-00046/00048/00049: P `test_it_commits_one_complete_issuance_before_publication_and_returns_no_secret`, ROT `test_rotation_commits_before_publication_and_recovers_after_restart`; D1/D3 / TASK-00054: L `test_restart_resolves_each_uncertain_delivery_commit_without_reissuing` | P: one issuance/audit, original safe identity; separate receipt-confirmed delivery removes only its copy. G1/G3/G4. |
-| 02 Commit succeeds, response is lost, then caller/service restarts | I2 / TASK-00049: I `test_same_key_retry_preserves_fact_identity_and_current_authority`; P `test_lost_response_and_service_restart_resolve_without_generation_audit_or_another_fact`; ROT `test_rotation_commits_before_publication_and_recovers_after_restart`; K `test_restart_preserves_original_keys_in_every_retained_state` | P: exact original outcome after reconstructed services, including original rotation predecessor, with no repeated generation/audit/fact. G1/G2 real process loss. |
-| 03 Indeterminate issuance commit, for both provision and rotation | I3 / TASK-00049: I `test_indeterminate_commit_resolves_original_request_after_restart`; P/ROT uncertain-commit cases | P: both committed/rolled-back storage outcomes return indeterminate first; same original key resolves, never partial persisted issuance. G1 actual connection/ack loss. |
+| 02 Commit succeeds, response is lost, then caller/service restarts | I2 / TASK-00049: I `test_same_key_retry_preserves_fact_identity_and_current_authority`; P `test_lost_response_and_restart_resolve_without_generation_audit_or_another_fact`; ROT `test_rotation_commits_before_publication_and_recovers_after_restart`; K `test_restart_preserves_original_keys_in_every_retained_state` | P: exact original outcome after reconstructed services, including original rotation predecessor, with no repeated generation/audit/fact. G1/G2 real process loss. |
+| 03 Indeterminate issuance commit, for both provision and rotation | I3 / TASK-00049: I `test_indeterminate_commit_resolves_original_request_after_restart`; P/ROT uncertain-commit cases | P: both committed/rolled-back storage outcomes throw safe execution uncertainty first; independent status and same original key reconcile, never partial persisted issuance. G1 actual connection/ack loss. |
 | 04 Indeterminate admission or delivery-outcome commit | D3 / TASK-00052/00054: L `test_restart_resolves_each_uncertain_delivery_commit_without_reissuing`; REC uncertainty/receipt-only cases | P: both issuance kinds, three commit stages and both storage outcomes; no materialization from uncertain admission, original receipt recovery or recorded completion. Lookup and non-lookup profiles. G1/G3. |
-| 05 Success event publication throws after commit, for both provision and rotation | I4 / TASK-00046/00048/00049: P `test_publication_failure_preserves_committed_work_and_returns_only_a_typed_warning`, ROT `test_both_publisher_failures_never_disguise_committed_issuance`; I combined recovery case | P: confirmed metadata with typed warning, even both publishers failing; retry retains single audit. No notification-retry implementation claimed. G4/G6. |
+| 05 Success event publication throws after commit, for both provision and rotation | I4 / TASK-00046/00048/00049: P `test_publication_failure_preserves_committed_work_without_reconstructed_warnings`, ROT `test_both_publisher_failures_never_disguise_committed_issuance`; I combined recovery case | P: void handling completes and independent Query confirms original metadata even with both publishers failing; no warning reconstruction, retry retains single audit. No notification-retry implementation claimed. G4/G6. |
 | 06 Both publishers fail and caller never retries | I4 + D1 / TASK-00049/00052/00054: I `test_both_publishers_and_caller_can_disappear_before_scheduler_only_recovery`; L `test_default_restart_skips_an_entire_obsolete_batch_without_manual_cleanup` | P: provision/rotation × pending/abandoned claim; caller inputs/events discarded, delegated scheduler delivers once confirmed, next pass empty, original audit/bytes retained. Modeled termination, not OS kill. G1/G2/G3/G4. |
 | 07 Pre-commit audit, encryption or persistence failure | I3 / TASK-00046/00048/00049: P `test_precommit_faults_roll_back_every_record_and_never_expose_provider_details`; ROT `test_precommit_failures_roll_back_successor_retirement_reservation_and_audit`; I `test_precommit_failure_rolls_back_every_participant_and_reservation` | P: all records, reservations and predecessor cancellation roll back; generation attempts are not persisted success. G1/G3 actual transaction and encryption faults. |
 | 08 Same key, changed name/target/predecessor/kind/destination | I2 / TASK-00049/00057: I `test_retained_binding_conflicts_and_unknown_versions_never_issue`; K `test_changed_bindings_conflict_after_restart`, `test_new_keys_share_one_normalized_name_contract_but_not_issuance_or_slot_order` | P: changed bindings conflict without issuance/disclosure; equivalent Unicode-edge names separately resolve. G1. |
@@ -117,7 +129,7 @@ owners rather than substituting one side's pass. Consumer gaps apply even when n
 
 | EPIC decision / owners | Executable evidence and observed result | Remaining evidence |
 | --- | --- | --- |
-| D3 outcome separation; I1/I3/I4/I7 + D1/D2/D4, TASK-00046/00048/00049/00054 | P: rows 01–07, 11, 16, 18, 25; I's both-publisher/no-caller case observes pending before delivery and exact confirmed receipt afterward; precommit/uncertainty cases keep warnings only on confirmed issuance. L revocation-publication case proves exception scope does not expand. Authentication after revocation denies despite retained receipt. No outbox/notification retry is asserted. | G4 actual enrollment activation and every use require their own current-authority confirmed outcomes; package results cannot establish them. G6 real publication/logging safety. |
+| D3 outcome separation; I1/I3/I4/I7 + D1/D2/D4, TASK-00046/00048/00049/00054 | P: rows 01–07, 11, 16, 18, 25; I's both-publisher/no-caller case observes pending before delivery and exact confirmed receipt afterward; precommit/uncertainty remain safe execution failures, and confirmed issuance stays queryable without returned/reconstructed warnings. L revocation-publication case proves exception scope does not expand. Authentication after revocation denies despite retained receipt. No outbox/notification retry is asserted. | G4 actual enrollment activation and every use require their own current-authority confirmed outcomes; package results cannot establish them. G6 real publication/logging safety. |
 | D4 finite defaults/overrides, capacity-preserved existing recovery and cleanup; I6 + D7, TASK-00046/00049/00051/00052/00053/00054 | P: I `test_capacity_preserves_status_resolution_and_bounded_recovery`; L `test_invalid_overrides_reject_without_work`, `test_default_restart_skips_an_entire_obsolete_batch_without_manual_cleanup`, `test_valid_overrides_pin_retry_retention_and_cleanup_without_manual_approval`, `test_capacity_policy_and_storage_outage_do_not_disguise_existing_recovery`; rows 19–20. Domain `AgentOperationTest`, `AgentDeliveryTest`, `AgentDeliveryDiscoveryTest`, `AgentMaintenanceTest` and `AgentMaintenanceQueryTest` cover exact bounds, keyset pages and global counts. Values are in the integration guide, not new speculative defaults. | G1 real capacity/uniqueness/rollback; G3 actual key closure/reference/cleanup races; G5 retention/replay through restore. Routine recovery needs no extra approval; an outage still cannot be reported as success. |
 
 ## Consumer gap register

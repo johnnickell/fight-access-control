@@ -6,6 +6,7 @@ namespace Fight\Test\AccessControl\Application\AccessControl\AgentCredentialOper
 
 use Fight\AccessControl\Application\AccessControl\AgentCredentialOperation\Delivery\AgentDeliveryResult;
 use Fight\AccessControl\Application\AccessControl\AgentCredentialOperation\QueryHandler\ListDueAgentDeliveriesHandler;
+use Fight\AccessControl\Domain\AccessControl\Agent\Command\ProvisionAgent;
 use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\AgentCredentialDestination;
 use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\AgentCredentialDisposition;
 use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\AgentCredentialOperationReadRepository;
@@ -33,10 +34,10 @@ final class ListDueAgentDeliveriesHandlerTest extends TestCase
     {
         $env = new DeliveryEnvironment();
         for ($index = 0; $index < 3; ++$index) {
-            $env->provisioning->service()->provision(
+            $env->provisioning->bus()->commandBus->execute(new ProvisionAgent(
                 new AgentOperationKey($env->issuance->getKey()->getScope(), AgentOperationId::generate()),
                 $env->provisioning->request
-            );
+            ));
         }
 
         $before = [$env->provisioning->transaction->transactions, $env->provisioning->auditEvidenceRepository->all(),
@@ -83,10 +84,10 @@ final class ListDueAgentDeliveriesHandlerTest extends TestCase
         $destination = $env->issuance->getDestination();
         $otherDestination = new AgentCredentialDestination(AgentDestinationId::generate(), 1);
         $env->provisioning->operationAuthorization->destinations[$otherDestination->getId()->toString()] = 1;
-        $env->provisioning->service()->provision(
+        $env->provisioning->bus()->commandBus->execute(new ProvisionAgent(
             new AgentOperationKey($scope, AgentOperationId::generate()),
             new AgentProvisioningRequest('Other destination', $otherDestination)
-        );
+        ));
         $message = QueryMessage::create(new ListDueAgentDeliveries($scope, $destination));
         self::assertSame([], $this->handler($env)->handle($message));
         $env->clock->advance(60);
@@ -106,10 +107,13 @@ final class ListDueAgentDeliveriesHandlerTest extends TestCase
         $destination = $env->issuance->getDestination();
         $otherScope = new AgentOperationScope('other-consumer', 'user', 'other-owner');
         $env->provisioning->operationAuthorization->scopes[$otherScope->toString()] = true;
-        $other = $env->provisioning->service()->provision(
+        $env->provisioning->operationAuthorization->readDelegations[
+            $env->provisioning->operationAuthorization->actor.':'.$otherScope->toString()
+        ] = true;
+        $other = $env->provisioning->bus()->dispatchAndRead(new ProvisionAgent(
             new AgentOperationKey($otherScope, AgentOperationId::generate()),
             $env->provisioning->request
-        )->getIssuance();
+        ))->getIssuance();
         self::assertNotNull($other);
         $originalQuery = QueryMessage::create(new ListDueAgentDeliveries($scope, $destination));
         self::assertSame([], $this->handler($env)->handle($originalQuery));
@@ -120,10 +124,10 @@ final class ListDueAgentDeliveriesHandlerTest extends TestCase
 
         $rebound = new AgentCredentialDestination($destination->getId(), 2);
         $env->provisioning->operationAuthorization->destinations[$rebound->getId()->toString()] = 2;
-        $latest = $env->provisioning->service()->provision(
+        $latest = $env->provisioning->bus()->dispatchAndRead(new ProvisionAgent(
             new AgentOperationKey($scope, AgentOperationId::generate()),
             new AgentProvisioningRequest('Rebound destination', $rebound)
-        )->getIssuance();
+        ))->getIssuance();
         self::assertNotNull($latest);
         self::assertSame(3, $latest->getDestinationWriteVersion());
         $reboundQuery = QueryMessage::create(new ListDueAgentDeliveries($scope, $rebound));
@@ -163,10 +167,10 @@ final class ListDueAgentDeliveriesHandlerTest extends TestCase
             throw new RuntimeException('Issuance rollback after reservation.');
         };
         try {
-            $env->provisioning->service()->provision(
+            $env->provisioning->bus()->commandBus->execute(new ProvisionAgent(
                 new AgentOperationKey($env->issuance->getKey()->getScope(), AgentOperationId::generate()),
                 $env->provisioning->request
-            );
+            ));
             self::fail('Issuance must roll back.');
         } catch (AgentOperationRejectedException $agentOperationRejectedException) {
             self::assertSame(AgentOperationFailure::UNAVAILABLE, $agentOperationRejectedException->getReason());

@@ -63,15 +63,21 @@ Agent authentication, credential lifecycle, delivery, maintenance and continuati
 homes, alongside Feature Discovery and authorization Admission; see the
 [current composition map](docs/agent-integration.md#public-composition-map). User secret-bearing operations now use
 [direct synchronous authentication, session, password and email-confirmation owners](docs/user-authentication.md),
-without the retired broad service. Neither refactor supplies blanket persistence/framework support.
+without the retired broad service. Recoverable Agent issuance now uses registered void `ProvisionAgent` and
+`RotateAgentCredential` Commands plus independent authorized outcome Queries, including delayed/restarted execution;
+see [current composition](docs/agent-integration.md). No direct issuance service/result facade or publication warning
+remains. These unreleased changes supply no blanket persistence/framework support or consumer qualification.
+
 The independently persisted `AgentCredentialOperation` now has its own Domain/Application aggregate home.
 Status, scheduler and maintenance readers inject `AgentCredentialOperationReadRepository`; material-bearing writers
 use the separate `AgentCredentialOperationRepository` with their existing UoW. Update imports/named arguments
 directly; wire shapes and atomic Agent/operation cancellation, cohort/restoration and recovery behavior are unchanged.
 See the [operation ownership map](docs/agent-integration.md#operation-ownership-and-readwrite-composition-unreleased).
 TASK-00114's integrated candidate with TASK-00112's advanced authentication base has independent Review ACCEPT
-and nonvisual QA PASS. Current delivery results are in its canonical Land handoff and PR #158. Neither scope
-supplies consumer qualification or the separate Agent Command conversion.
+and nonvisual QA PASS. Current delivery results are in its canonical Land handoff and PR #158. The integrated
+TASK-00182 Command conversion has independent Review ACCEPT and nonvisual QA PASS; publication and final delivery
+verification were pending at closeout. Current results are in its canonical Land handoff and actual PR; no consumer
+qualification is claimed.
 
 | This package owns | Your application owns |
 | --- | --- |

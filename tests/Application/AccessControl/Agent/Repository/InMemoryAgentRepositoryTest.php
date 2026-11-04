@@ -9,6 +9,7 @@ use Fight\AccessControl\Domain\AccessControl\Agent\Agent;
 use Fight\AccessControl\Domain\AccessControl\Agent\AgentCredentialId;
 use Fight\AccessControl\Domain\AccessControl\Agent\AgentId;
 use Fight\AccessControl\Domain\AccessControl\Agent\AgentName;
+use Fight\AccessControl\Domain\AccessControl\Agent\Command\RotateAgentCredential;
 use Fight\AccessControl\Domain\AccessControl\Permission\Permission;
 use Fight\AccessControl\Domain\AccessControl\Permission\PermissionId;
 use Fight\AccessControl\Domain\AccessControl\Permission\PermissionName;
@@ -28,7 +29,11 @@ final class InMemoryAgentRepositoryTest extends TestCase
         $agentRepository = $rotation->provisioning->agentRepository;
         $agent = $agentRepository->all()[0];
         self::assertSame($agent, $agentRepository->getById($agent->getId()));
-        self::assertTrue($rotation->service()->rotate($rotation->key, $rotation->request)->isConfirmed());
+        self::assertTrue(
+            $rotation->bus()->dispatchAndRead(
+                new RotateAgentCredential($rotation->key, $rotation->request)
+            )->isConfirmed()
+        );
         $replacement = $agentRepository->all()[0];
         self::assertSame($replacement, $agentRepository->getById($agent->getId()));
         self::assertFalse($agentRepository->replace($agent, $replacement));

@@ -8,6 +8,7 @@ use Fight\AccessControl\Application\AccessControl\AgentCredentialOperation\Deliv
 use Fight\AccessControl\Application\AccessControl\AgentCredentialOperation\Delivery\AgentDeliveryRecoveryService;
 use Fight\AccessControl\Application\AccessControl\AgentCredentialOperation\Delivery\AgentDeliveryResult;
 use Fight\AccessControl\Application\AccessControl\AgentCredentialOperation\QueryHandler\ListDueAgentDeliveriesHandler;
+use Fight\AccessControl\Domain\AccessControl\Agent\Command\ProvisionAgent;
 use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\AgentCredentialOperation;
 use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\AgentDeliveryDisposition;
 use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\AgentIssuance;
@@ -282,10 +283,12 @@ final class AgentDeliveryRecoveryServiceTest extends TestCase
     {
         $env = new DeliveryEnvironment();
         try {
-            $env->provisioning->service(limits: new AgentOperationLimits(512, 1, 1))->provision(
+            $env->provisioning->bus(
+                limits: new AgentOperationLimits(512, 1, 1)
+            )->commandBus->execute(new ProvisionAgent(
                 new AgentOperationKey($env->issuance->getKey()->getScope(), AgentOperationId::generate()),
                 $env->provisioning->request
-            );
+            ));
             self::fail('New work at capacity must reject.');
         } catch (AgentOperationRejectedException $agentOperationRejectedException) {
             self::assertSame(AgentOperationFailure::CAPACITY, $agentOperationRejectedException->getReason());
@@ -352,18 +355,18 @@ final class AgentDeliveryRecoveryServiceTest extends TestCase
         $scope = $env->issuance->getKey()->getScope();
         $destination = $env->issuance->getDestination();
         for ($index = 1; $index < 50; ++$index) {
-            $env->provisioning->service()->provision(
+            $env->provisioning->bus()->commandBus->execute(new ProvisionAgent(
                 new AgentOperationKey($scope, AgentOperationId::generate()),
                 $env->provisioning->request
-            );
+            ));
         }
 
         $obsolete = $env->provisioning->operationRepository->operations;
         $env->clock->advance(1);
-        $latest = $env->provisioning->service(clock: $env->clock)->provision(
+        $latest = $env->provisioning->bus(clock: $env->clock)->dispatchAndRead(new ProvisionAgent(
             new AgentOperationKey($scope, AgentOperationId::generate()),
             $env->provisioning->request
-        )->getIssuance();
+        ))->getIssuance();
         self::assertNotNull($latest);
         self::assertSame(51, $latest->getDestinationWriteVersion());
         $audit = $env->provisioning->auditEvidenceRepository->all();
@@ -410,10 +413,10 @@ final class AgentDeliveryRecoveryServiceTest extends TestCase
             }
 
             $env->deliveryAuthorization->afterDiscovery = null;
-            $env->provisioning->service()->provision(
+            $env->provisioning->bus()->commandBus->execute(new ProvisionAgent(
                 new AgentOperationKey($issuance->getKey()->getScope(), AgentOperationId::generate()),
                 $env->provisioning->request
-            );
+            ));
         };
         self::assertSame(
             [$env->issuance->getDeliveryId()->toString() => AgentDeliveryResult::REJECTED],
@@ -440,10 +443,10 @@ final class AgentDeliveryRecoveryServiceTest extends TestCase
     {
         $env = new DeliveryEnvironment();
         for ($index = 0; $index < 2; ++$index) {
-            $env->provisioning->service()->provision(
+            $env->provisioning->bus()->commandBus->execute(new ProvisionAgent(
                 new AgentOperationKey($env->issuance->getKey()->getScope(), AgentOperationId::generate()),
                 $env->provisioning->request
-            );
+            ));
         }
 
         $before = $env->transaction->commits;
@@ -461,10 +464,10 @@ final class AgentDeliveryRecoveryServiceTest extends TestCase
     public function test_current_retry_excludes_obsolete_due_work_until_lease_and_retry_expire(): void
     {
         $env = new DeliveryEnvironment();
-        $latest = $env->provisioning->service()->provision(
+        $latest = $env->provisioning->bus()->dispatchAndRead(new ProvisionAgent(
             new AgentOperationKey($env->issuance->getKey()->getScope(), AgentOperationId::generate()),
             $env->provisioning->request
-        )->getIssuance();
+        ))->getIssuance();
         self::assertNotNull($latest);
         $env->decipher->failure = AgentDeliveryFailure::TEMPORARY;
         self::assertSame(

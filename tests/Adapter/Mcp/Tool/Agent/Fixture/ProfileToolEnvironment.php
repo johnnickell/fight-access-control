@@ -16,6 +16,7 @@ use Fight\AccessControl\Application\AccessControl\Agent\CommandHandler\UpdateAge
 use Fight\AccessControl\Application\AccessControl\Agent\QueryHandler\GetAgentProfileHandler;
 use Fight\AccessControl\Domain\AccessControl\Agent\Agent;
 use Fight\AccessControl\Domain\AccessControl\Agent\AgentProfilePermissions;
+use Fight\AccessControl\Domain\AccessControl\Agent\Command\ProvisionAgent;
 use Fight\AccessControl\Domain\AccessControl\Agent\Command\UpdateAgent;
 use Fight\AccessControl\Domain\AccessControl\Agent\Query\GetAgentProfile;
 use Fight\AccessControl\Domain\AccessControl\Permission\Permission;
@@ -62,7 +63,7 @@ final class ProfileToolEnvironment
     public function __construct()
     {
         $this->storage = new ProvisioningEnvironment();
-        $this->storage->service()->provision($this->storage->key, $this->storage->request);
+        $this->storage->bus()->commandBus->execute(new ProvisionAgent($this->storage->key, $this->storage->request));
         $this->permissionRepository = new InMemoryPermissionRepository($this->storage->transaction);
         $agent = $this->storage->agentRepository->all()[0];
         foreach ([AgentProfilePermissions::READ, AgentProfilePermissions::UPDATE] as $name) {

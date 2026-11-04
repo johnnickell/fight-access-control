@@ -6,6 +6,37 @@ Fight AccessControl owns framework-neutral identity, credential, session, author
 behavior shared by Fight applications. The repository-local behavioral and security authority is
 [TICKET-00001](planning/tickets/00001-TICKET.md).
 
+## TASK-00182 void Agent issuance — accepted checkpoint
+
+Independent Review ACCEPT and nonvisual QA PASS cover integrated candidate `4990103d519bdd0a1bbb7d77bccf10619607f4cc`. Publication and final delivery verification were pending at closeout; current results are in `.runs/handoffs/TASK-00182/land.md` and the actual PR. Consumer qualification remains separate. The Work checkpoint below is historical.
+
+### Work checkpoint
+
+Provisioning and rotation now use immutable secret-free `ProvisionAgent` / `RotateAgentCredential` Commands and
+registered `ProvisionAgentHandler` / `RotateAgentCredentialHandler`. The handlers own coordination/transactions;
+retired direct services, issuance result wrappers and publication warnings have no facade or alias. Independently
+authorized `GetAgentOperation` Query dispatch supplies original issuance/dispositions; void dispatch acceptance and
+pre-execution/absent status cannot prove commit, rollback, rejection, queue progress, delivery or use authority.
+
+Serialized original key/request and envelope metadata survive delay/restart/redelivery. Actual executing invoker/
+explicit delegation and current scope/target/destination/cohort/restoration fences remain independent of payload or
+enqueue-time allows. Canonical marker **2** and request bytes, atomic predecessor cancellation/successor/audit,
+capacity-isolated original-key resolution, receipts/tombstones and recovery are preserved. Lost acknowledgement
+throws safe `AgentOperationUncertainException`; confirmed issuance completes void handling despite both publishers
+failing, without returned, durable or reconstructed warnings. Other operations keep their own publication policy.
+
+[Current composition](docs/agent-integration.md), issuance/status/recovery guides and the scenario inventory describe
+the breaking unreleased caller contract. Existing shared business/conformance fixtures now route through actual
+Common buses; focused serialized execution tests add current worker/delegation and out-of-order predecessor proof.
+Work verification and exact runtime/dependency/content identities belong to `.runs/handoffs/TASK-00182/work.md`.
+Independent Review/nonvisual QA remain required; this checkpoint claims no acceptance, consumer broker/database/
+crypto/activation qualification, publication, release or deployment. The advancing-base reconciliation imports
+accepted TASK-00114 from develop: operation values/failures, workers and Queries now live under the separate
+`AgentCredentialOperation` aggregate, with independent read/write repository contracts. The Agent Commands/handlers
+use those accepted homes without resurrecting direct services/results or duplicating Query models. Fresh integrated
+verification and independent Review/QA are required; old-subject acceptance does not cover this candidate.
+TASK-00130/TASK-00162 typing/audit enhancements remain separately owned and are not implemented here.
+
 ## Approved portable Feature and Permission admission destination
 
 John approved [EPIC-00018 — Portable Feature and Permission Admission](planning/epics/00018-EPIC.md): two independently
@@ -293,7 +324,8 @@ FeatureFlag metadata still is not enforcement and no Feature middleware exists. 
 now approved/written as TICKET-00049–00052, all four fully TASK-planned (12 TASKs), not implemented/qualified.
 This needs no further interview/TICKET split or expansion of audit/existing Permission TASKs.
 EPIC-00015's added Agent conversion is now fully planned as [TICKET-00053](planning/tickets/00053-TICKET.md)/
-[TASK-00182](planning/tasks/00182-TASK.md), not implemented. John superseded result-bearing synchronous dispatch
+[TASK-00182](planning/tasks/00182-TASK.md). That planning-only checkpoint did not implement it; the current Work
+checkpoint above records its implementation and subsequent independent acceptance. John superseded result-bearing synchronous dispatch
 with transport-neutral void Commands and outcome Queries; the result-capable Common hold is removed. Distinct actual
 Common generic/canonical qualification remains with its owners. At the earlier planning checkpoint TASK-00107 was
 first; it has since been independently accepted and the current Board owns execution selection.
@@ -469,8 +501,9 @@ approved target changes, not implemented source or verification claims.
 John approved one additional requirement area and one chore for Agent provisioning/rotation conversion, then
 explicitly amended the caller contract: void Commands and independent outcome Queries, invocable sync or async at any
 time with no particular transport. [TICKET-00053 — Issue Agent credentials through Commands and outcome Queries](planning/tickets/00053-TICKET.md)/
-[TASK-00182](planning/tasks/00182-TASK.md) now own the complete conversion/caller/fixture/docs change. Actual production
-sources remain direct services until implementation; this approval is not source conformance.
+[TASK-00182](planning/tasks/00182-TASK.md) own the complete conversion/caller/fixture/docs change. Production sources
+were direct services at that planning checkpoint; the current Work checkpoint above now supplies the conversion.
+Planning approval alone was not source conformance.
 
 Retain secret-free original operation key/request before dispatch and across delay, restart, retries and redelivery.
 Execution rechecks current real invoker/delegation, target/destination/expected state and transaction-duration writer
@@ -483,7 +516,7 @@ Confirmed commit remains queryable even when both publishers fail; no invocation
 reconstructed by status. Pre-commit and uncertain-commit failures retain safe execution error/same-key recovery semantics,
 without promising an async submitting caller the worker's exception or adding durable attempt/warning/outbox storage.
 The original result-capable Common prerequisite is superseded. TASK-00182 uses supported void Command/Query APIs and
-is ready-for-agent with no demonstrated local blocker; ordinary minimum/composition verification remains required.
+was ready-for-agent at that planning checkpoint; the accepted checkpoint above records subsequent minimum/composition verification.
 [EPIC-00016](planning/epics/00016-EPIC.md#agent-command-result-coordination-follow-up)/TASK-00130 retain separate exact
 payload/metadata/registration and Query-result typing qualification with blocked_by TASK-00182. Their actual generic
 supplier evidence holds are not a functional conversion prerequisite. Audit/type owners follow the actual candidate

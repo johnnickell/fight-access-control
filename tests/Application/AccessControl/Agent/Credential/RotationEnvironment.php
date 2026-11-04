@@ -5,12 +5,13 @@ declare(strict_types=1);
 namespace Fight\Test\AccessControl\Application\AccessControl\Agent\Credential;
 
 use DateTimeImmutable;
-use Fight\AccessControl\Application\AccessControl\Agent\Credential\AgentCredentialRotationService;
+use Fight\AccessControl\Application\AccessControl\Agent\CommandHandler\RotateAgentCredentialHandler;
 use Fight\AccessControl\Application\AccessControl\Agent\Credential\HmacSharedSecretCipher;
 use Fight\AccessControl\Application\AccessControl\Agent\Credential\HmacSharedSecretGenerator;
 use Fight\AccessControl\Application\AccessControl\AgentCredentialOperation\Delivery\AgentDeliveryCipher;
 use Fight\AccessControl\Application\AccessControl\Timing\Service\Clock;
 use Fight\AccessControl\Domain\AccessControl\Agent\AgentRepository;
+use Fight\AccessControl\Domain\AccessControl\Agent\Command\ProvisionAgent;
 use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\AgentIssuance;
 use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\AgentOperationId;
 use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\AgentOperationKey;
@@ -36,10 +37,10 @@ final readonly class RotationEnvironment
     public function __construct(?DeliveryEnvironment $delivery = null)
     {
         $this->provisioning = $delivery->provisioning ?? new ProvisioningEnvironment();
-        $this->original = $delivery->issuance ?? $this->provisioning->service()->provision(
+        $this->original = $delivery->issuance ?? $this->provisioning->bus()->dispatchAndRead(new ProvisionAgent(
             $this->provisioning->key,
             $this->provisioning->request
-        )->getIssuance() ?? throw new LogicException('Missing provision fixture.');
+        ))->getIssuance() ?? throw new LogicException('Missing provision fixture.');
         $this->key = new AgentOperationKey($this->original->getKey()->getScope(), AgentOperationId::generate());
         $this->request = new AgentRotationRequest(
             $this->original->getAgentId(),
@@ -49,7 +50,7 @@ final readonly class RotationEnvironment
         );
     }
 
-    public function service(
+    public function bus(
         ?TransactionalUnitOfWork $unitOfWork = null,
         ?AgentOperationLimits $limits = null,
         ?HmacSharedSecretGenerator $generator = null,
@@ -59,10 +60,10 @@ final readonly class RotationEnvironment
         ?AgentRepository $agentRepository = null,
         ?ProvisioningEnvironment $environment = null,
         ?Clock $clock = null
-    ): AgentCredentialRotationService {
+    ): IssuanceBusFixture {
         $environment ??= $this->provisioning;
 
-        return new AgentCredentialRotationService(
+        return new IssuanceBusFixture(new RotateAgentCredentialHandler(
             $agentRepository ?? $environment->agentRepository,
             $environment->operationRepository,
             $auditEvidenceRepository ?? $environment->auditEvidenceRepository,
@@ -85,6 +86,6 @@ final readonly class RotationEnvironment
             $unitOfWork ?? $environment->transaction,
             $environment->eventDispatcher,
             $limits ?? new AgentOperationLimits()
-        );
+        ), $environment->operationRepository, $environment->operationAuthorization);
     }
 }

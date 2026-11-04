@@ -19,6 +19,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- **Breaking pre-v1 Agent issuance caller contract:** replace direct provision/rotation services and their
+  result/publication-warning types with immutable secret-free `ProvisionAgent` / `RotateAgentCredential` Commands
+  and registered void handlers. Retain original key/request before dispatch; use authorized `GetAgentOperation`
+  Query dispatch for original issuance/dispositions independently of execution timing. Serialized delay/restart/
+  redelivery rechecks actual invoker/delegation and current transactional authority. Lost commit acknowledgement
+  surfaces safe execution uncertainty; confirmed issuance remains queryable even if both publishers fail, without
+  returned or reconstructed warnings. Canonical marker/bytes, atomic retirement/audit, bounded recovery and
+  cohort/restoration fences remain. No facade, transport/broker requirement, consumer qualification or release.
+  See [composition and outcomes](docs/agent-integration.md).
 - **Breaking pre-v1 operation ownership:** moved `AgentCredentialOperation`, its owned Domain values, delivery,
   maintenance, Queries/View and failures into `Domain\AccessControl\AgentCredentialOperation`; Application workers,
   policy ports and query handlers mirror that aggregate. Material-bearing persistence is now
@@ -27,8 +36,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   (`operationRepository` for writers, `operationReadRepository` for readers) directly; no aliases remain.
   Query-owned `AgentOperationView::fromOperation()` replaces aggregate `getStatus()` construction. Wire/schema
   shapes, original issuance, retained-key safety, atomic cancellation/audit, current authorization and
-  cohort/restoration/claim/receipt fences remain unchanged. Actual consumer persistence qualification and the
-  separate Agent Command conversion are not supplied. See [composition](docs/agent-integration.md#operation-ownership-and-readwrite-composition-unreleased).
+  cohort/restoration/claim/receipt fences remain unchanged. Actual consumer persistence qualification is not
+  supplied. See [composition](docs/agent-integration.md#operation-ownership-and-readwrite-composition-unreleased).
 - **Breaking pre-v1 synchronous User API:** replace `AuthenticationService` directly with
   `User\Authentication\UserAuthentication`, `RefreshSession\SessionLifecycle`, `User\PasswordManagement` and
   `EmailChangeGrant\EmailChangeConfirmation`. Each owns its actual transaction and only relevant dependencies;

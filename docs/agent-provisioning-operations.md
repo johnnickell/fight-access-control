@@ -1,6 +1,7 @@
-# Recoverable Agent provisioning (v0.5.0)
+# Recoverable Agent provisioning
 
-TASK-00046 replaces `AgentProvisioningService::provision(actorId, name)` with a request and retained scoped key.
+TASK-00182 replaces the direct provisioning service/result API with `ProvisionAgent` and registered
+`ProvisionAgentHandler`. This is an **unreleased breaking caller-contract change** over the v0.5.0 baseline.
 TASK-00047 adds [authorized safe operation status](agent-operation-status.md) without an issuance transaction,
 material access, capacity admission or side effects; original issuance remains separate from current disposition.
 This is **v0.5.0 package behavior**, not a qualified consumer deployment. The
@@ -21,17 +22,21 @@ No consumer adapter is supplied or qualified here.
 - `AgentProvisioningRequest` contains only a name and registered `AgentCredentialDestination` (UUID and binding
   revision). No URL, path, caller digest, secret or unspecified options are accepted. Marker `2` uses fixed Unicode
   edge trimming and case-sensitive name equality; request kind is always `provision`.
-- Inject request-scoped `AgentOperationAuthorization`. It authenticates the real invoker, authorizes the originating
+- Inject execution-scoped `AgentOperationAuthorization`. It authenticates the real invoker, authorizes the originating
   scope (including explicit current delegation) and destination, and holds same-connection authority and ownership
   fences until transaction completion. It returns the authenticated audit actor ID. It neither starts nor commits
   transactions. Boolean allows, actor strings and cached external decisions are not substitutes. Unsupported
   compositions reject. Delegation never rewrites the original key.
-- `AgentProvisioningResult` is safe metadata: confirmed original `AgentIssuance` or indeterminate with no guessed
-  identity. A typed publication warning can accompany only confirmed issuance. Neither result nor issuance confirms
-  delivery, enrollment activation or permission to launch. Those require their own confirmed outcomes and current
-  authorization. There is no raw-secret result or general secret-read method.
+- `ProvisionAgent(key, request)` is an immutable secret-free Common Command. Its canonical array contains the scoped
+  key, original `name`, `destination_id` and `destination_revision`; required fields and strict scalar types validate
+  on hydration. It retains the bounded original name, not a rewritten canonical request. Envelope identity/metadata
+  are separate from operation identity and never authorize execution.
+- Dispatch returns **void**, whether invoked synchronously or asynchronously. Obtain original `AgentIssuance` and
+  recorded dispositions through the independently authorized `GetAgentOperation` Query. Before execution or when
+  storage has no record, the view is indeterminate—not queued, rejected, rolled back or permission to use a new key.
+  Neither dispatch acceptance nor confirmed issuance establishes delivery, activation or use authority.
 
-The consumer composition root constructs `AgentProvisioningService` with `AgentRepository`,
+The consumer composition root constructs `ProvisionAgentHandler` with `AgentRepository`,
 `AgentCredentialOperationRepository`, `AuditEvidenceRepository`, `AgentOperationAuthorization`, `HmacSharedSecretGenerator`,
 `HmacSharedSecretCipher`, `AgentDeliveryCipher`, `Clock`, `TransactionalUnitOfWork`, `EventDispatcher`, and optionally
 `AgentOperationLimits`. None of these capabilities is optional; omitting limits alone selects defaults.
@@ -41,17 +46,28 @@ use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\AgentOpera
 use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\AgentOperationKey;
 use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\AgentProvisioningRequest;
 
-// Persist this key with the initiating workflow BEFORE invoking the composed service.
+use Fight\AccessControl\Domain\AccessControl\Agent\Command\ProvisionAgent;
+use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\Query\GetAgentOperation;
+
+// Persist this key and original request BEFORE dispatch, independently of any envelope ID.
 $key = new AgentOperationKey($trustedOriginatingScope, AgentOperationId::generate());
 $request = new AgentProvisioningRequest('Deployment worker', $registeredDestination);
-$result = $service->provision($key, $request);
-if (!$result->isConfirmed()) {
-    // Keep this exact key/request for authoritative resolution after storage recovers.
-    // Do not create another key or report rollback, delivery, activation or launch permission.
+$command = new ProvisionAgent($key, $request);
+$commandBus->execute($command); // void; configured transport may execute now or later
+$view = $queryBus->fetch(new GetAgentOperation($key, $registeredDestination));
+if (!$view->isConfirmed()) {
+    // Keep this exact key/request. Absence does not identify execution progress or prove rollback.
 }
-// Confirmed getIssuance() is safe original metadata; getWarning() is a typed optional publication warning.
-// A later retry calls provision($key, $request) with fresh authenticated composition.
+// When authorized to retry, dispatch the same original intent with current execution authority.
+// Neither this Query nor its confirmed metadata delivers, activates or authorizes use.
 ```
+
+Register `ProvisionAgentHandler::commandRegistration()` with the configured Common CommandBus, and
+`GetAgentOperationHandler::queryRegistration()` with its QueryBus. No direct handler/result channel is needed.
+Commands may be serialized, delayed, restarted and redelivered without an active submitting transport. Authenticate
+the actual executing invoker or explicitly delegated worker independently of the serialized scope and metadata;
+recheck current authority inside the package transaction on every attempt. Consumers own broker routing, worker
+errors and retry/dead-letter policy; an async submitter is not promised the worker's exception.
 
 `AgentOperationRejectedException::getReason()` returns a sanitized enum. `isRetryable()` identifies capacity,
 contention and unavailable capability/storage rejections. A retry always uses the retained key. Conflicting or unknown
@@ -114,9 +130,12 @@ adapter actually committed or rolled back. The caller retains the original key; 
 Adapters must propagate callback failures and must not retry callbacks invisibly or return before confirmed commit.
 
 Only confirmed new issuance publishes `AgentProvisioned`. The Agent ID uniquely identifies that provision fact;
-service retry does not publish it again. There is no automatic notification retry/outbox guarantee. Publication failure
-returns `PUBLICATION_FAILED`; even failed failure-evidence publication cannot disguise the committed outcome.
-Indeterminate and pre-commit failure publish only sanitized failure evidence, never a success fact. Durable operation
+Command retry does not publish it again. There is no automatic notification retry/outbox guarantee. Publication
+failure completes void handling after best-effort sanitized failure evidence, even when that publisher also fails.
+No publication warning is returned, persisted or reconstructed by status. Lost commit acknowledgement throws
+`AgentOperationUncertainException` without chaining diagnostics; retain the original key/request and reconcile
+through authorized status and same-key retry. Uncertain and pre-commit failure publish only sanitized failure
+evidence, never a success fact. Durable operation
 and prepared state survive absent notifications; [TASK-00049 conformance](agent-issuance-conformance.md) exercises
 scheduler-only discovery with TASK-00052's actual path, not merely this slice's prepared-state fixtures. Failure evidence contains no request strings or arbitrary provider messages.
 
@@ -141,7 +160,7 @@ new issuance capacity must never gate existing-operation status, claims or recov
 ## Package evidence and consumer qualification
 
 `AgentOperationTest` proves values, canonicalization, bounds, safe material and tombstone identity.
-`AgentProvisioningServiceTest` proves observable persisted outcomes using transaction-aware Domain repository and
+`ProvisionAgentHandlerTest` proves observable persisted outcomes using transaction-aware Domain repository and
 consumer-capability doubles. `ProvisioningEnvironment`, `InMemoryAgentCredentialOperationRepository`,
 `InMemoryAgentOperationAuthorization`, `BoundAgentDeliveryCipher` and `UncertainAgentUnitOfWork` are reusable test
 fixtures under `tests/Application/AccessControl/Agent/`, not production adapters. The cipher fixture is deliberately
@@ -152,12 +171,12 @@ locking, unique constraints and concurrent transactions before adoption. TASK-00
 | Requirement | Focused package evidence |
 | --- | --- |
 | I1, I7 complete issuance and safe result | `test_it_commits_one_complete_issuance_before_publication_and_returns_no_secret` |
-| I2 loss/restart, equivalent canonical request | `test_lost_response_and_service_restart_resolve_without_generation_audit_or_another_fact` |
+| I2 loss/restart, equivalent canonical request | `test_lost_response_and_restart_resolve_without_generation_audit_or_another_fact` |
 | I2 concurrent identical/conflicting keys | `test_unique_loser_rolls_back_then_resolves_or_conflicts_with_winner` |
 | I2 changed fields/unknown version | `test_changed_binding_or_unknown_version_rejects_without_generation` |
 | I3 uncertain committed/rolled-back outcomes | `test_uncertain_commit_never_guesses_and_restart_resolves_the_original_key` |
 | I3 pre-commit rollback across all write/encryption boundaries | `test_precommit_faults_roll_back_every_record_and_never_expose_provider_details` |
-| I4 success/both publisher failure | `test_publication_failure_preserves_committed_work_and_returns_only_a_typed_warning` |
+| I4 success/both publisher failure | `test_publication_failure_preserves_committed_work_without_reconstructed_warnings` |
 | I5 denied new/retry before lookup | `test_current_authority_denies_before_lookup` |
 | I5 shared authority fence/delegated identity | `test_authorization_writer_waits_for_issuance_and_next_retry_observes_revocation` |
 | I5 authority capability rollback | `test_authorization_participant_failure_rolls_back_its_own_writes` |

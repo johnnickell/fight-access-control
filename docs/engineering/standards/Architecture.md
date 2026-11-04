@@ -41,7 +41,8 @@ Keep `Command`, `Query`, `Event` and aggregate `Exception` namespaces with the o
 verb-first intent/data names; Events name past facts. Reuse existing Common low-level Domain primitives such as
 UniqueId, EmailAddress and StrictJson rather than copying them or creating a generic contracts directory. A shared
 capability/value with no honest aggregate owner needs a specific reason and a named home, not a folder quota.
-AgentCredentialOperation's approved separate aggregate home remains TASK-00114 work, not a new bounded context.
+TASK-00114 implements AgentCredentialOperation's separate aggregate home, not a new bounded context. Its secret-free
+read repository and independent material-bearing write repository remain separate contracts during Command conversion.
 
 ### Application: mirrored ownership and cohesive capabilities
 
@@ -119,9 +120,9 @@ tombstones, generations, ordering, writer fences and restoration safety. Apply
 [ADR 0011](../../../planning/adr/0011-pre-v1-current-contract-only.md): remove obsolete AccessControl APIs directly
 when their replacement is implemented, without aliases, historical readers or migration/backfill machinery.
 Do not confuse those removals with permission to weaken current safety. Success facts follow confirmed commit;
-uncertainty and Agent issuance's scoped publication policy remain distinct under the profile. Direct services remain
-the current source baseline; the approved void-Command/outcome-Query conversion supersedes their returned-warning
-caller contract only when implemented, not the guarantee that publication failure cannot hide committed issuance.
+uncertainty and Agent issuance's scoped publication policy remain distinct under the profile. TASK-00182's Work candidate now replaces the direct issuance services/results with registered void Commands and
+independent authorized outcome Queries. The returned-warning caller contract is removed; the guarantee that
+publication failure cannot hide committed issuance remains. Independent acceptance is separate.
 Required audit in current source is unchanged here; EPIC-00017's optional-atomic audit destination has separate owners.
 Exact owned-statement coverage and OpenAPI integration coverage remain mandatory. An actual source/policy mismatch
 returns to its named TASK/decision owner; this guidance neither repairs it nor authorizes later work.
