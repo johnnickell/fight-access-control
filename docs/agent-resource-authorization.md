@@ -1,7 +1,9 @@
 # Agent-protected MCP Resources
 
-[TASK-00085](../planning/tasks/00085-TASK.md) adds Resource Permission composition under
-`Fight\AccessControl\Application\AccessControl\Agent`. This is unreleased package behavior, not an endpoint,
+[TASK-00085](../planning/tasks/00085-TASK.md) introduced Resource Permission composition.
+[TASK-00108](../planning/tasks/00108-TASK.md) relocates its protocol bindings and availability to
+`Fight\AccessControl\Adapter\Mcp\Resource\Agent`. Update imports and registrations directly, with no aliases;
+authentication, Permission policy and synchronized continuation remain inward in Application/Domain. This is unreleased package behavior, not an endpoint,
 content provider, consumer qualification or acceptance of the combined [EPIC-00014](../planning/epics/00014-EPIC.md).
 [Whole-Skill authorization](agent-skill-authorization.md) composes this independent Resource decision in TASK-00086.
 [Tool authorization](agent-mcp-authorization.md) is independent.
@@ -12,14 +14,14 @@ content provider, consumer qualification or acceptance of the combined [EPIC-000
 | --- | --- |
 | `AgentResourcePermissionBinding` | Constructor takes a Common `McpReadableResourceProvider`, exact URI string and nonempty list of canonical Permission-name strings. Exposes `provider()`, `uri()` and validated `permissions()`. All requirements are conjunctive direct Agent Permissions. |
 | `AgentResourcePermissionCatalog` | Constructor takes a list of bindings. Rejects invalid entries, repeated/conflicting URIs, missing ownership and non-exact lookup. `providers()` supplies the exact unique provider instances for Common; `requirementsFor(McpResourceInfo)` returns the bound requirements or null. |
-| `Security\AgentResourceAvailability` | Implements Common `McpResourceAvailability`; takes the catalog, request's trusted `CurrentAgentPrincipalProvider`, `SignedAgentRequest` and safe nonempty correlation ID. Resolves authority lazily once for that short request. |
+| `AgentResourceAvailability` | Implements Common `McpResourceAvailability`; takes the catalog, request's trusted `CurrentAgentPrincipalProvider`, `SignedAgentRequest` and safe nonempty correlation ID. Resolves authority lazily once for that short request. |
 
 Example composition (consumer supplies the named dependencies and its real provider):
 
 ```php
-use Fight\AccessControl\Application\AccessControl\Agent\AgentResourcePermissionBinding;
-use Fight\AccessControl\Application\AccessControl\Agent\AgentResourcePermissionCatalog;
-use Fight\AccessControl\Application\AccessControl\Agent\Security\AgentResourceAvailability;
+use Fight\AccessControl\Adapter\Mcp\Resource\Agent\AgentResourceAvailability;
+use Fight\AccessControl\Adapter\Mcp\Resource\Agent\AgentResourcePermissionBinding;
+use Fight\AccessControl\Adapter\Mcp\Resource\Agent\AgentResourcePermissionCatalog;
 use Fight\Common\Application\Mcp\Resource\McpResourceDiscovery;
 use Fight\Common\Application\Mcp\Resource\McpResourceReadLimits;
 
@@ -105,10 +107,10 @@ under [ADR 0010](../planning/adr/0010-permission-eligibility-and-caller-authoriz
 
 ## Dependency and package evidence
 
-The supported minimum remains Common **v1.3.0**, source `7de6cad6e8a9752973ad9f8e27e285b0c1510582`; no dependency
+At TASK-00085's checkpoint the qualified family minimum was Common **v1.3.0**, source `7de6cad6e8a9752973ad9f8e27e285b0c1510582`; no dependency
 narrowing is needed beyond existing `^1.3`. Its tagged Resource contracts and actual list/read/responder behavior pass
 the Resource composition and existing principal-provider tests in an isolated Composer-resolved scratch copy. The
-ordinary installed lane uses v1.4.0, source `87b9580c072f3149d574e09865daa79620c92118`. Source/tag presence alone is
+current checkout now requires `^1.4` for the separate HTTP safe-error contract; TASK-00108 uses v1.4.0, source `87b9580c072f3149d574e09865daa79620c92118`. Source/tag presence alone is
 not that qualification; exact lock hashes, commands, complete logs/exits and candidate input mapping live in the TASK
 handoff. The ignored lockfile remains an execution artifact, not a new tracked dependency contract.
 
@@ -122,4 +124,5 @@ collisions, normalization attempts, provider/policy/authority faults, inert exac
 Controlled repositories, cryptographic ports, content providers and PSR streams qualify **package composition**, not
 a deployed database, actual cryptography, storage containment, transport/container lifetimes or client behavior.
 Independent Review and nonvisual behavioral QA remain required; screenshots add no useful proof for this boundary.
-No grants, storage/persisted shape, new business messages, adapters, release/version selection or deployment are added.
+Relocation changes PHP homes only, not grants, storage/persisted shape, business messages, dependency contracts,
+release/version selection or deployment.

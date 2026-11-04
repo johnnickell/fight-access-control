@@ -64,10 +64,10 @@ uses the same unknown-Tool error for unavailable and missing names. Retry privat
 Tool, then checks availability before restoring arguments or consuming confirmation. Common's registry lookup APIs
 and direct `handle()` calls are not authorizers. [Invoker][C6]
 
-AccessControl's [catalog](../../../src/Application/AccessControl/Agent/AgentToolPermissionCatalog.php) enumerates the
+AccessControl's [catalog](../../../src/Adapter/Mcp/Tool/Agent/AgentToolPermissionCatalog.php) enumerates the
 complete Common registry, reflects only `RequiresAgentPermission` on `handle()`, and rejects missing metadata.
 It binds requirements to the **exact immutable definition object**, not merely a same-name string. Repeatable
-attributes are conjunctive. The [availability implementation](../../../src/Application/AccessControl/Agent/Security/AgentToolAvailability.php)
+attributes are conjunctive. The [availability implementation](../../../src/Adapter/Mcp/Tool/Agent/AgentToolAvailability.php)
 exposes only a Boolean over direct Agent Permissions; it does not grant User Roles or convert OAuth scopes.
 
 The seven Common-owned Tools are `execution.summarize`, `execution.list`, `execution.get`, `execution.phases`,

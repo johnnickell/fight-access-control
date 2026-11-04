@@ -18,7 +18,7 @@ use Fight\Common\Application\Mcp\McpJsonResponse;
 use Fight\Common\Application\Mcp\McpProtocolException;
 use Fight\Common\Application\Messaging\Query\QueryBus;
 use Fight\Common\Domain\Exception\LookupException;
-use Fight\Test\AccessControl\Application\AccessControl\Agent\Service\ProfileToolEnvironment;
+use Fight\Test\AccessControl\Adapter\Mcp\Tool\Agent\Fixture\ProfileToolEnvironment;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\DataProviderExternal;
 use PHPUnit\Framework\TestCase;
