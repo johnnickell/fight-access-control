@@ -11,11 +11,14 @@ shim remains. This is package behavior, not release, consumer qualification, enr
 not an Agent type or a selectable runtime mode. Marker `1` is unsupported, as is any unknown marker. Storage and
 destination contract markers remain `1`; they describe different contracts.
 
-The Domain owner `AgentOperationCanonicalization::name()` trims a fixed set at the edges: NUL, U+0009–000D,
+The single Domain name owner `AgentName::fromString()` trims a fixed set at the edges: NUL, U+0009–000D,
 U+0020, U+0085, U+00A0, U+1680, U+2000–200A, U+2028, U+2029, U+202F, U+205F and U+3000. This supports names pasted
 with Unicode whitespace without depending on a changing Unicode property database. The normalized name must be
 nonempty UTF-8 and at most 120 Unicode code points. Case and internal whitespace are preserved; U+200B/U+FEFF are
-not trimmed and no NFC conversion is performed. New provisioning binds and stores the same normalized Agent name.
+not trimmed and no NFC conversion is performed. Provisioning and rename both consume this value; canonicalization
+serializes it rather than owning another algorithm. New provisioning binds and stores the same normalized Agent name.
+TASK-00113 intentionally changes rename from PHP `trim` to this rule; provisioning marker **2** and existing valid
+request bytes remain unchanged. No compatibility helper, normalization flag or version mode is supplied.
 
 Request construction bounds raw UTF-8 input to 4096 bytes. New-work admission retains its 512-byte default and
 optional validated override. A retained retry bypasses new-work capacity/raw-name admission limits, not current

@@ -158,7 +158,7 @@ final readonly class AgentProvisioningService
         $secret = $this->hmacSharedSecretGenerator->generate();
         $agent = Agent::provision(
             $agentId,
-            AgentName::fromString(AgentOperationCanonicalization::name($request->getName())),
+            AgentName::fromString($request->getName()),
             $credentialId,
             $this->hmacSharedSecretCipher->encrypt($secret),
             $issuedAt

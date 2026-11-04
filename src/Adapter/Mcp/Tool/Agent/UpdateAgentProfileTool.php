@@ -45,7 +45,10 @@ final readonly class UpdateAgentProfileTool implements McpTool
         'Update the authenticated Agent name',
         [
             'type'                 => 'object',
-            'properties'           => ['name' => ['type' => 'string']],
+            'properties'           => ['name' => [
+                'type'        => 'string',
+                'description' => 'AgentName: fixed Unicode edges + NUL; nonempty UTF-8, at most 120 code points.'
+            ]],
             'required'             => ['name'],
             'additionalProperties' => false
         ],

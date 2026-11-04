@@ -58,6 +58,50 @@ final class UpdateAgentHandlerTest extends TestCase
         }
     }
 
+    /** @return iterable<string, array{string, string}> */
+    public static function normalizedNames(): iterable
+    {
+        yield 'mixed edges' => ["\0\t\u{00A0}Deploy / é\u{3000}\r\n", 'Deploy / é'];
+        yield 'internal whitespace and case' => [" De\tploy\u{00A0}A  B ", "De\tploy\u{00A0}A  B"];
+        yield 'internal nul' => [" A\0B ", "A\0B"];
+        yield '120 code points' => ["\u{3000}".str_repeat('é', 120)."\u{00A0}", str_repeat('é', 120)];
+        yield 'zero width and bom are names' => [" \u{200B}\u{FEFF} ", "\u{200B}\u{FEFF}"];
+        yield 'decomposed remains decomposed' => [" e\u{0301} ", "e\u{0301}"];
+        yield 'composed remains composed' => [' é ', 'é'];
+    }
+
+    #[DataProvider('normalizedNames')]
+    public function test_unicode_rename_then_equivalent_noop_preserve_original_provisioning(
+        string $input,
+        string $expected
+    ): void {
+        $env = $this->environment();
+        $before = $env->agentRepository->all()[0];
+        $operation = $env->agentOperationRepository->operations[$env->key->toString()];
+        $handler = $this->handler($env);
+        $handler->handle($this->message($before->getId(), $input));
+
+        $after = $env->agentRepository->getById($before->getId());
+        self::assertSame($expected, $after->getName()->toString());
+        $event = $env->eventDispatcher->events()[0];
+        self::assertInstanceOf(AgentNameChanged::class, $event);
+        self::assertSame($expected, $event->getName()->toString());
+        $handler->handle($this->message($before->getId(), $expected));
+        self::assertSame($after, $env->agentRepository->getById($before->getId()));
+        self::assertSame(1, $env->agentRepository->nameWrites);
+        self::assertCount(1, $env->eventDispatcher->events());
+        self::assertSame($operation, $env->agentOperationRepository->operations[$env->key->toString()]);
+        self::assertSame($before->getCredentialId(), $after->getCredentialId());
+        self::assertSame($before->getPermissionIds(), $after->getPermissionIds());
+        self::assertSame(
+            $operation->getIssuance(),
+            $env->service()->provision($env->key, $env->request)->getIssuance()
+        );
+        self::assertSame($after, $env->agentRepository->getById($before->getId()));
+        self::assertSame(1, $env->generations);
+        self::assertCount(1, $env->eventDispatcher->events());
+    }
+
     public function test_handler_uses_name_only_intent_and_publishes_after_transaction_for_both_actor_types(): void
     {
         self::assertSame(UpdateAgent::class, UpdateAgentHandler::commandRegistration());
@@ -106,7 +150,7 @@ final class UpdateAgentHandlerTest extends TestCase
 
     public function test_invalid_names_dispatch_original_safe_command_failure_before_transaction_or_clock(): void
     {
-        foreach (['', '   ', str_repeat('a', 121)] as $name) {
+        foreach (['', " \t\n\0", "\u{00A0}\u{3000}", str_repeat('é', 121), "\xFF", "Valid\xC3"] as $name) {
             $command = new UpdateAgent(new AgentUpdateInitiator(UserId::generate()), AgentId::generate(), $name);
             $agentRepository = $this->createMock(AgentRepository::class);
             $agentRepository->expects(self::never())->method('rename');
@@ -309,7 +353,7 @@ final class UpdateAgentHandlerTest extends TestCase
         foreach ([true, false] as $noop) {
             $env = $this->environment();
             $before = $env->agentRepository->all()[0];
-            $name = $noop ? $before->getName()->toString() : 'Renamed';
+            $name = $noop ? "\u{00A0}".$before->getName()->toString()."\u{3000}" : 'Renamed';
             $env->agentRepository->beforeNameWrite = function () use ($env): void {
                 $env->agentRepository->beforeNameWrite = null;
                 $env->transaction->suspendBeforeFirstWrite();

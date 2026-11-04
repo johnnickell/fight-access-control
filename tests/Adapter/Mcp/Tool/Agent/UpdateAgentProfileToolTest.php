@@ -26,33 +26,50 @@ final class UpdateAgentProfileToolTest extends TestCase
     {
         yield 'empty' => [''];
         yield 'trimmed empty' => [" \t\n "];
-        yield 'too long' => [str_repeat('a', 121)];
+        yield 'unicode empty' => ["\u{00A0}\u{3000}"];
+        yield 'too long' => [str_repeat('é', 121)];
+        yield 'invalid encoding' => ["\xFF"];
     }
 
-    public function test_synchronous_dispatch_uses_normalized_name_and_principal_as_target_and_typed_initiator(): void
+    /** @return iterable<string, array{string, string}> */
+    public static function normalizedNames(): iterable
     {
+        yield 'mixed edges' => ["\0\t\u{00A0}Deploy / é\u{3000}\r\n", 'Deploy / é'];
+        yield 'internal whitespace and case' => [" De\tploy\u{00A0}A  B ", "De\tploy\u{00A0}A  B"];
+        yield 'internal nul' => [" A\0B ", "A\0B"];
+        yield '120 code points' => ["\u{3000}".str_repeat('é', 120)."\u{00A0}", str_repeat('é', 120)];
+        yield 'zero width and bom are names' => [" \u{200B}\u{FEFF} ", "\u{200B}\u{FEFF}"];
+        yield 'decomposed remains decomposed' => [" e\u{0301} ", "e\u{0301}"];
+        yield 'composed remains composed' => [' é ', 'é'];
+    }
+
+    #[DataProvider('normalizedNames')]
+    public function test_synchronous_dispatch_uses_normalized_name_and_principal_as_target_and_typed_initiator(
+        string $input,
+        string $expectedName
+    ): void {
         $env = new ProfileToolEnvironment();
         $synchronousCommandBus = $this->createMock(SynchronousCommandBus::class);
         $synchronousCommandBus->expects(self::never())->method('dispatch');
         $completed = false;
         $synchronousCommandBus->expects(self::once())->method('execute')->willReturnCallback(
-            static function (UpdateAgent $command) use ($env, &$completed): void {
+            static function (UpdateAgent $command) use ($env, &$completed, $expectedName): void {
                 self::assertTrue($env->original->getId()->equals($command->getAgentId()));
                 self::assertTrue($env->original->getId()->equals($command->getInitiator()->getId()));
                 self::assertSame(AuthenticatedPrincipalType::AGENT, $command->getInitiator()->getType());
-                self::assertSame('Worker é', $command->getName());
+                self::assertSame($expectedName, $command->getName());
                 $completed = true;
             }
         );
         $progress = $this->createMock(McpProgressReporter::class);
         $progress->expects(self::never())->method('report');
         $output = $env->update($synchronousCommandBus)->handle(new ApplicationData([
-            'name'      => " \tWorker é\n",
+            'name'      => $input,
             'agent_id'  => AgentId::generate()->toString(),
             'initiator' => 'caller cannot choose provenance'
         ]), $progress);
         self::assertTrue($completed);
-        $expected = ['agent_id' => $env->original->getId()->toString(), 'name' => 'Worker é'];
+        $expected = ['agent_id' => $env->original->getId()->toString(), 'name' => $expectedName];
         self::assertSame($expected, $output->structuredContent()->properties());
         self::assertSame($expected, json_decode($output->text(), true, flags: JSON_THROW_ON_ERROR));
         self::assertSame([['type' => 'text', 'text' => $output->text()]], $output->contentItems());

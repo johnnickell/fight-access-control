@@ -108,9 +108,10 @@ current authority, retains the original rotation predecessor and does not repeat
 issuance publication. A genuinely new rotation is a separately authorized operation, not an automatic retry fallback.
 
 The [single canonical contract](agent-canonical-upgrades.md) uses no-argument request `canonicalize()`, exact ordered
-JSON and marker **2**. Provision names trim the fixed Unicode edge set, preserve case/internal whitespace and do not
-normalize NFC. Rotation binds the original target/predecessor/destination. Retain exact request and issuance through
-completion, supersession, revocation, expiry and cleanup. Unsupported markers (including 1) reject without a reader,
+JSON and marker **2**. `AgentName::fromString()` owns the fixed Unicode-edge name rule for both provisioning and
+rename, preserving case/internal whitespace without NFC conversion. Rename intentionally replaces PHP `trim`;
+existing valid provisioning canonical bytes remain unchanged. Rotation binds the original target/predecessor/destination.
+Retain exact request and issuance through completion, supersession, revocation, expiry and cleanup. Unsupported markers (including 1) reject without a reader,
 rewrite, conversion or new key. Material expiry never expires deduplication: permanent operation/sink tombstones and
 slot order survive. Safe status absence is indeterminate, not proof of rollback or permission to issue another key.
 

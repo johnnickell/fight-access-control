@@ -64,7 +64,9 @@ separate delivery encryption, destination write reservation and safe audit. All 
 The operation repository reads authoritative state, never an eventually consistent replica. Scope authorization occurs
 before key lookup, including retry and collision resolution. Existing keys validate the sole supported marker `2`
 before comparing the request; unsupported markers reject without fallback. Unseen keys use that same fixed
-Unicode-aware normalization, for both binding and Agent name. Retained bindings are never rewritten; there is no
+Unicode-aware normalization owned by `AgentName::fromString()`, for both binding and Agent name; rename consumes
+that same value rule. Canonicalization translates invalid names to safe `INVALID_REQUEST` without chaining Domain
+diagnostics. Retained bindings are never rewritten; there is no
 historical reader or runtime version choice. See the [canonical contract](agent-canonical-upgrades.md).
 
 `AgentOperationRepository` owns operation persistence and destination write reservations. Reserve monotonically
