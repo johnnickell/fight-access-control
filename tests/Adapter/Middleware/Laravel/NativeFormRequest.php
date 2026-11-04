@@ -10,7 +10,7 @@ final class NativeFormRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        NativeController::$trace->events[] = 'form-authorize';
+        ControllerWithFormRequest::$trace->events[] = 'form-authorize';
 
         return true;
     }
@@ -18,7 +18,7 @@ final class NativeFormRequest extends FormRequest
     /** @return array<string, string> */
     public function rules(): array
     {
-        NativeController::$trace->events[] = 'form-rules';
+        ControllerWithFormRequest::$trace->events[] = 'form-rules';
 
         return ['name' => 'required'];
     }

@@ -4,15 +4,15 @@ declare(strict_types=1);
 
 namespace Fight\Test\AccessControl\Adapter\Middleware\Laravel;
 
-final readonly class NativeWork
+final readonly class RecordingActionDependency
 {
     public function __construct()
     {
-        NativeController::$trace->events[] = 'provider';
+        ControllerWithFormRequest::$trace->events[] = 'provider';
     }
 
     public function dispatch(): void
     {
-        NativeController::$trace->events[] = 'bus';
+        ControllerWithFormRequest::$trace->events[] = 'bus';
     }
 }

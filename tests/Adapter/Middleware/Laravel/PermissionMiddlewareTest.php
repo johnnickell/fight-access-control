@@ -57,7 +57,10 @@ final class PermissionMiddlewareTest extends TestCase
     /** @return iterable<string, array{string}> */
     public static function forms(): iterable
     {
-        foreach (['closure', 'method-string', 'method-array', 'invokable', 'static', 'legacy'] as $form) {
+        foreach (
+            ['closure', 'method-string', 'method-array', 'invokable',
+            'static-middleware', 'constructor-middleware'] as $form
+        ) {
             yield $form => [$form];
         }
     }
@@ -68,11 +71,11 @@ final class PermissionMiddlewareTest extends TestCase
         $native = new NativeApplication();
         $environment = new AdmissionEnvironment();
         $action = match ($form) {
-            'method-string' => NativeController::class.'@handle',
-            'method-array' => [NativeController::class, 'handle'],
-            'invokable' => NativeController::class,
-            'static' => StaticController::class,
-            'legacy' => LegacyController::class,
+            'method-string' => ControllerWithFormRequest::class.'@handle',
+            'method-array' => [ControllerWithFormRequest::class, 'handle'],
+            'invokable' => ControllerWithFormRequest::class,
+            'static-middleware' => ControllerWithStaticMiddleware::class,
+            'constructor-middleware' => ControllerWithConstructorMiddleware::class,
             default => null
         };
         $route = $native->route(action: $action);
@@ -89,7 +92,7 @@ final class PermissionMiddlewareTest extends TestCase
         $denied = $native->request();
         self::assertSame(403, $denied->getStatusCode());
         $expected = ['authority', 'report', 'response'];
-        if ($form === 'legacy') {
+        if ($form === 'constructor-middleware') {
             array_unshift($expected, 'construct');
         }
 
@@ -118,12 +121,12 @@ final class PermissionMiddlewareTest extends TestCase
 
     public function test_native_controller_middleware_discovery_alone_can_select_permission_admission(): void
     {
-        foreach ([StaticController::class, LegacyController::class] as $controller) {
+        foreach ([ControllerWithStaticMiddleware::class, ControllerWithConstructorMiddleware::class] as $controller) {
             $native = new NativeApplication();
             $environment = new AdmissionEnvironment();
             $route = $native->route(action: $controller);
             $route->setAction(array_replace($route->getAction(), [
-                'middleware' => [SubstituteBindings::class, NativeValidator::class]
+                'middleware' => [SubstituteBindings::class, RecordingValidationMiddleware::class]
             ]));
             $native->protect(
                 [[$route, $this->protected()]],
@@ -131,7 +134,7 @@ final class PermissionMiddlewareTest extends TestCase
             );
             self::assertSame(403, $native->request()->getStatusCode());
             $expected = ['report', 'response'];
-            if ($controller === LegacyController::class) {
+            if ($controller === ControllerWithConstructorMiddleware::class) {
                 array_unshift($expected, 'construct');
             }
 
@@ -144,7 +147,7 @@ final class PermissionMiddlewareTest extends TestCase
     {
         $native = new NativeApplication();
         $environment = new AdmissionEnvironment();
-        $route = $native->route(action: NativeController::class);
+        $route = $native->route(action: ControllerWithFormRequest::class);
         $native->protect([[$route, $this->protected()]], static fn(): RequestAuthority => $environment->user());
         $invalid = $native->request();
         self::assertSame(422, $invalid->getStatusCode());

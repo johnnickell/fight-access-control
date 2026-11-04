@@ -7,7 +7,7 @@ namespace Fight\Test\AccessControl\Adapter\Middleware\Laravel;
 use Fight\AccessControl\Application\AccessControl\Authorization\Service\SecurityContext;
 use Throwable;
 
-final class NativeTrace
+final class RequestExecutionTrace
 {
     /** @var list<string> */
     public array $events = [];

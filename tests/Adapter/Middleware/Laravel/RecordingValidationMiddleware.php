@@ -8,12 +8,12 @@ use Closure;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
 
-final readonly class NativeValidator
+final readonly class RecordingValidationMiddleware
 {
     /** @param Closure(Request): Response $next */
     public function handle(Request $request, Closure $next): Response
     {
-        NativeController::$trace->events[] = 'validator';
+        ControllerWithFormRequest::$trace->events[] = 'validator';
 
         return $next($request);
     }

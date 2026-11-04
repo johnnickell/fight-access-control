@@ -12,20 +12,20 @@ final class NativeFailure extends RuntimeException
 {
     public function report(): void
     {
-        NativeController::$trace->events[] = 'raw-exception-report';
+        ControllerWithFormRequest::$trace->events[] = 'raw-exception-report';
     }
 
     /** @return array<string, string> */
     public function context(): array
     {
-        NativeController::$trace->events[] = 'raw-exception-context';
+        ControllerWithFormRequest::$trace->events[] = 'raw-exception-context';
 
         return ['private' => 'PRIVATE CONTEXT'];
     }
 
     public function render(Request $request): Response
     {
-        NativeController::$trace->events[] = 'delegated-exception-render';
+        ControllerWithFormRequest::$trace->events[] = 'delegated-exception-render';
 
         return new Response('Consumer HTML sentinel', 409, ['Content-Type' => 'text/html']);
     }

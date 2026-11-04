@@ -44,7 +44,7 @@ final readonly class NativeApplication
 
     public Router $router;
 
-    public NativeTrace $trace;
+    public RequestExecutionTrace $trace;
 
     public function __construct(?SafeHttpProjector $projector = null)
     {
@@ -53,8 +53,8 @@ final readonly class NativeApplication
         require_once $framework.'/src/Illuminate/Foundation/helpers.php';
         require_once $framework.'/src/Illuminate/Support/helpers.php';
 
-        $this->trace = new NativeTrace();
-        NativeController::$trace = $this->trace;
+        $this->trace = new RequestExecutionTrace();
+        ControllerWithFormRequest::$trace = $this->trace;
         $app = new Application(__DIR__);
         $this->app = $app;
         $app->instance('config', new Repository([
@@ -67,7 +67,7 @@ final readonly class NativeApplication
         $app->register(FormRequestServiceProvider::class);
         $app->instance('translator', new Translator(new ArrayLoader(), 'en'));
         $app->instance(LoggerInterface::class, new class ($this->trace) extends AbstractLogger {
-            public function __construct(private readonly NativeTrace $trace)
+            public function __construct(private readonly RequestExecutionTrace $trace)
             {
             }
 
@@ -77,7 +77,7 @@ final readonly class NativeApplication
             }
         });
         $app->instance(SafeHttpDiagnostics::class, new readonly class ($this->trace) implements SafeHttpDiagnostics {
-            public function __construct(private NativeTrace $trace)
+            public function __construct(private RequestExecutionTrace $trace)
             {
             }
 
@@ -128,17 +128,19 @@ final readonly class NativeApplication
     public function route(string $path = '/protected/{id}', mixed $action = null, string $method = 'GET'): Route
     {
         $action ??= static function (Request $request, string $id): Response {
-            NativeController::$trace->events[] = 'action';
-            NativeController::$trace->contexts[] = $request->attributes->get(SecurityContext::class);
-            if (NativeController::$trace->failure !== null) {
-                throw NativeController::$trace->failure;
+            ControllerWithFormRequest::$trace->events[] = 'action';
+            ControllerWithFormRequest::$trace->contexts[] = $request->attributes->get(SecurityContext::class);
+            if (ControllerWithFormRequest::$trace->failure !== null) {
+                throw ControllerWithFormRequest::$trace->failure;
             }
 
             return new Response('', 204, ['X-Action' => $id]);
         };
 
         return $this->router->match([$method], $path, $action)
-            ->middleware([PermissionMiddleware::class, SubstituteBindings::class, NativeValidator::class]);
+            ->middleware([
+                PermissionMiddleware::class, SubstituteBindings::class, RecordingValidationMiddleware::class
+            ]);
     }
 
     /**

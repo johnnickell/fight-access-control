@@ -214,7 +214,7 @@ final class SafeLifecycleTest extends TestCase
         $projector = new class implements SafeHttpProjector {
             public function project(Throwable $failure, int $status): SafeHttpPresentation
             {
-                NativeController::$trace->events[] = 'projector';
+                ControllerWithFormRequest::$trace->events[] = 'projector';
 
                 return new SafeHttpPresentation(message: 'Not reached');
             }
@@ -241,8 +241,8 @@ final class SafeLifecycleTest extends TestCase
             {
                 TestCase::assertInstanceOf(AuthenticationRequired::class, $failure);
                 TestCase::assertSame(401, $status);
-                TestCase::assertSame(1, NativeController::$trace->deliveries);
-                NativeController::$trace->events[] = 'projector';
+                TestCase::assertSame(1, ControllerWithFormRequest::$trace->deliveries);
+                ControllerWithFormRequest::$trace->events[] = 'projector';
 
                 return new SafeHttpPresentation(
                     data: ['message' => 'Sign in.'],
