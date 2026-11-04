@@ -5,13 +5,11 @@ dependencies, acceptance, and verification.
 
 ## What's Next?
 
-Active Task: [TASK-00113](00113-TASK.md) — Make AgentName own provisioning and rename semantics.
+First ready Task: [TASK-00105](00105-TASK.md) — Protect Laravel requests through native middleware.
 
 ## In Progress
 
-| Order | TASK ID | Title | Parent TICKET | Status | Blocked by | PR |
-| --- | --- | --- | --- | --- | --- | --- |
-| 203 | [TASK-00113](00113-TASK.md) | Make AgentName own provisioning and rename semantics | [TICKET-00036](../tickets/00036-TICKET.md) — Clarify Agent name and credential-operation domain ownership | in-progress | — | — |
+No Tasks are currently in this state.
 
 ## Ready Frontier
 
@@ -220,3 +218,4 @@ No Tasks are currently in this state.
 | 103 | [TASK-00103](00103-TASK.md) | Protect Slim and Yii 3 requests through shared PSR-15 admission | [TICKET-00032](../tickets/00032-TICKET.md) — Protect native HTTP entry points across all five frameworks | done | — | https://github.com/johnnickell/fight-access-control/pull/143 |
 | 104 | [TASK-00104](00104-TASK.md) | Protect Symfony requests through native admission | [TICKET-00032](../tickets/00032-TICKET.md) — Protect native HTTP entry points across all five frameworks | done | [TASK-00103](00103-TASK.md) | https://github.com/johnnickell/fight-access-control/pull/144 |
 | 104 | [TASK-00106](00106-TASK.md) | Protect CodeIgniter 4 requests through native before filters | [TICKET-00032](../tickets/00032-TICKET.md) — Protect native HTTP entry points across all five frameworks | done | [TASK-00103](00103-TASK.md) | https://github.com/johnnickell/fight-access-control/pull/154 |
+| 203 | [TASK-00113](00113-TASK.md) | Make AgentName own provisioning and rename semantics | [TICKET-00036](../tickets/00036-TICKET.md) — Clarify Agent name and credential-operation domain ownership | done | — | — |

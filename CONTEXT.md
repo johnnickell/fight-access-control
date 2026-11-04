@@ -299,7 +299,11 @@ Common generic/canonical qualification remains with its owners. At the earlier p
 first; it has since been independently accepted and the current Board owns execution selection.
 No source/dependency/sibling/consumer mutation, product build, new checkout, commit/publication or release follows.
 
-## TASK-00113 AgentName ownership — Work checkpoint
+## TASK-00113 AgentName ownership — accepted checkpoint
+
+Independent Review ACCEPT and nonvisual QA PASS cover the implemented candidate; current delivery results are in
+`.runs/handoffs/TASK-00113/land.md`. Acceptance does not imply merge, release, consumer qualification or deployment.
+The Work checkpoint below records its earlier stage, not a current Review/QA instruction.
 
 `AgentName::fromString()` now owns the single fixed Unicode White_Space edge set plus NUL, nonempty UTF-8 and
 120-code-point rule for provisioning and rename. It preserves case/internal whitespace, performs no NFC conversion
