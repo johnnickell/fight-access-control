@@ -334,6 +334,8 @@ qualification, release or deployment is claimed at this checkpoint.
 
 ## TASK-00114 operation aggregate/read ownership — accepted checkpoint
 
+Current integrated candidate `f3794cc96872ee92eb23f67dc9773bf33e2c32ec` has independent Review ACCEPT and nonvisual QA PASS against `766442fe501a9c86f64b9eb1d1a825cf5b537b62`. Publication and final delivery verification are pending at this checkpoint; current results are in canonical `.runs/handoffs/TASK-00114/land.md` and PR #158. Consumer qualification remains separate. The original and Work checkpoints below are historical.
+
 Independent Review ACCEPT and nonvisual QA PASS cover original candidate `2cca7db1c19c31bd022a9075e30931d0cc967e18`
 against `4d677c1ee0d24543dc9909dbba907dd3298f8797`. Its unpublished administrative closeout is preserved. Develop
 then advanced through TASK-00112's direct synchronous User capabilities. Current integration retains both scopes

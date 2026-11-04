@@ -68,10 +68,9 @@ Status, scheduler and maintenance readers inject `AgentCredentialOperationReadRe
 use the separate `AgentCredentialOperationRepository` with their existing UoW. Update imports/named arguments
 directly; wire shapes and atomic Agent/operation cancellation, cohort/restoration and recovery behavior are unchanged.
 See the [operation ownership map](docs/agent-integration.md#operation-ownership-and-readwrite-composition-unreleased).
-The original TASK-00114 candidate has independent Review and QA acceptance. Integration with TASK-00112's
-advanced authentication base now requires fresh independent Review and QA; the earlier acceptance does not cover
-that combined candidate. Current integration evidence is in the canonical TASK-00114 Work handoff; delivery history
-is in its Land handoff and PR. Neither scope supplies consumer qualification or the separate Agent Command conversion.
+TASK-00114's integrated candidate with TASK-00112's advanced authentication base has independent Review ACCEPT
+and nonvisual QA PASS. Current delivery results are in its canonical Land handoff and PR #158. Neither scope
+supplies consumer qualification or the separate Agent Command conversion.
 
 | This package owns | Your application owns |
 | --- | --- |

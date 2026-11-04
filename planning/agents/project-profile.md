@@ -178,9 +178,9 @@ previous-iteration support; completed TASKs and earlier guidance cannot require 
   `AgentCredentialOperationRepository` and existing UoW. View mapping is query-owned; cohort evidence remains
   Domain-owned while actual composition qualification stays with consumers. See the
   [current ownership map](../../docs/agent-integration.md#operation-ownership-and-readwrite-composition-unreleased).
-  Independent Review and QA accepted TASK-00114's original candidate on its original base. The current merge with
-  TASK-00112's advanced authentication base requires fresh independent Review/QA; see the canonical Work handoff
-  for the integrated subject and verification, and the Land handoff/PR for delivery history.
+  Independent Review ACCEPT and nonvisual QA PASS cover TASK-00114's integrated candidate with TASK-00112's
+  advanced authentication base. See the canonical Work handoff for subject and verification, and the Land
+  handoff/PR #158 for current delivery results.
   TASK-00110 owns qualified canonical Common adoption; TASK-00107
   implemented neither this source change nor Common adoption.
   See the [consumed-contract notes](domain.md#consumed-common-contracts) for actual source and supplier limits.
