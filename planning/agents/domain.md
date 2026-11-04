@@ -7,17 +7,18 @@ When placing a class or choosing a dependency, read the normative
 The earlier two-production-layer/no-Adapter summary is superseded by WF-035 and EPIC-00015, not erased history;
 [ADR 0001](../adr/0001-domain-application-package-boundary.md) retains the original decision and scoped amendments.
 
-Current source has Domain/Application plus opt-in PSR-15 and Symfony adapters. Agent MCP presentation is still
-in Application and secret-bearing User operations still use AuthenticationService. TASK-00108/00112 own
-those future relocations/decomposition; TASK-00107 changed guidance only. TASK-00109 now groups Agent capabilities,
-Feature Discovery and authorization Admission with descriptive collaborators; see the
-[current composition map](../../docs/agent-integration.md#public-composition-map). Consumers retain persistence,
+Current source has Domain/Application plus opt-in PSR-15, Symfony and Agent MCP adapters. TASK-00108 moves MCP
+presentation/bindings/availability to `Adapter/Mcp/{Tool,Resource,Skill}/Agent`; authentication, Permission policy and
+synchronized continuation stay inward. TASK-00109 groups Agent capabilities, Feature Discovery and authorization
+Admission with descriptive collaborators; see the
+[current composition map](../../docs/agent-integration.md#public-composition-map). Secret-bearing User operations
+still use AuthenticationService; TASK-00112 owns its decomposition. TASK-00107 changed guidance only. Consumers retain persistence,
 policy/grants/target scope, route/bootstrap/key/queue/runtime composition and actual integration qualification.
 A persistence placement pattern is not permission to implement production persistence here.
 
 ## Consumed Common contracts
 
-These source-linked examples identify actual consumption at TASK-00107's base, not an exhaustive adoption
+These source-linked examples identify current consumption (paths refreshed by TASK-00108), not an exhaustive adoption
 inventory or claims about future canonical APIs. Names below are current imports, not new names to copy blindly.
 [Composer](../../composer.json) currently requires `johnnickell/fight-common: ^1.4`; a constraint alone does not
 prove the installed package, a sufficient future minimum or every integration journey.
@@ -35,10 +36,10 @@ neither a future canonical release nor TASK-00110's minimum/independent qualific
 | --- | --- | --- |
 | [UserId](../../src/Domain/AccessControl/User/UserId.php), [UserRepository](../../src/Domain/AccessControl/User/UserRepository.php) | Domain UniqueId, EmailAddress, Pagination, ResultSet | Reuse low-level primitives; preserve repository atomic capabilities. No new local Store or UoW/repository combination. |
 | [AuthenticationService](../../src/Application/AccessControl/User/Security/AuthenticationService.php) | Application Auth Security PasswordHasher/PasswordValidator/TokenEncoder, Repository TransactionalUnitOfWork, Messaging EventDispatcher | Keep supported synchronous sensitive inputs, actual transactions and post-commit policy. Native mixed UoW return plus known-local-callback @var is sufficient; no generic supplier wait. |
-| [GetAgentProfileTool](../../src/Application/AccessControl/Agent/Tool/GetAgentProfileTool.php), [UpdateAgentProfileTool](../../src/Application/AccessControl/Agent/Tool/UpdateAgentProfileTool.php) | Application McpTool/McpToolInfo/McpToolOutput, McpProgressReporter, ApplicationData and QueryBus/SynchronousCommandBus | TASK-00108 moves protocol presentation; dispatch existing use cases through actual buses, without copied schemas or handler bypass. Current progress import is Application/Mcp/McpProgressReporter, not proof of a future Tool home. |
-| [AgentToolPermissionCatalog](../../src/Application/AccessControl/Agent/AgentToolPermissionCatalog.php) | McpToolRegistry, McpToolAvailability and exact immutable McpToolInfo identity | Common owns registry/protocol identity; AccessControl binds conjunctive Permission policy. Construction-only enumeration is not request authorization. |
-| [Resource catalog](../../src/Application/AccessControl/Agent/AgentResourcePermissionCatalog.php), [Resource availability](../../src/Application/AccessControl/Agent/Security/AgentResourceAvailability.php) | McpReadableResourceProvider, McpResourceInfo, McpResourceAvailability and Domain StrictJson | Preserve descriptor/provider identity, independent read admission and request-local authority; operational faults are not successful empty catalogs. |
-| [Skill catalog](../../src/Application/AccessControl/Agent/AgentSkillPermissionCatalog.php), [Skill availability](../../src/Application/AccessControl/Agent/Security/AgentSkillAvailability.php) | McpSkillRevision, McpSkillAvailability and Domain StrictJson | Whole-Skill and Resource admission stay independent; preserve revision binding and shared request-local authentication. |
+| [GetAgentProfileTool](../../src/Adapter/Mcp/Tool/Agent/GetAgentProfileTool.php), [UpdateAgentProfileTool](../../src/Adapter/Mcp/Tool/Agent/UpdateAgentProfileTool.php) | Application McpTool/McpToolInfo/McpToolOutput, McpProgressReporter, ApplicationData and QueryBus/SynchronousCommandBus | Adapter protocol presentation dispatches existing use cases through actual buses, without copied schemas or handler bypass. Current progress import is Application/Mcp/McpProgressReporter, not proof of a future Tool home. |
+| [AgentToolPermissionCatalog](../../src/Adapter/Mcp/Tool/Agent/AgentToolPermissionCatalog.php) | McpToolRegistry, McpToolAvailability and exact immutable McpToolInfo identity | Common owns registry/protocol identity; AccessControl binds conjunctive Permission policy. Construction-only enumeration is not request authorization. |
+| [Resource catalog](../../src/Adapter/Mcp/Resource/Agent/AgentResourcePermissionCatalog.php), [Resource availability](../../src/Adapter/Mcp/Resource/Agent/AgentResourceAvailability.php) | McpReadableResourceProvider, McpResourceInfo, McpResourceAvailability and Domain StrictJson | Preserve descriptor/provider identity, independent read admission and request-local authority; operational faults are not successful empty catalogs. |
+| [Skill catalog](../../src/Adapter/Mcp/Skill/Agent/AgentSkillPermissionCatalog.php), [Skill availability](../../src/Adapter/Mcp/Skill/Agent/AgentSkillAvailability.php) | McpSkillRevision, McpSkillAvailability and Domain StrictJson | Whole-Skill and Resource admission stay independent; preserve revision binding and shared request-local authentication. |
 
 [TASK-00110](../tasks/00110-TASK.md) owns the actual exhaustive consumed-contract inventory, canonical adoption,
 supported minimum and ordinary/minimum-lane composition proof. Before adoption verify implemented APIs,

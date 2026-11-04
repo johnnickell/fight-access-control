@@ -281,8 +281,8 @@ not a separate queue or authority to execute.
 | Priority | Accepted work | Purpose and dependency |
 | --- | --- | --- |
 | 10 | [TASK-00107](tasks/00107-TASK.md) — Architecture and naming rules | Independently accepted guidance; reconciles old layout/single-service guidance with the approved target. |
-| 11 | [TASK-00108](tasks/00108-TASK.md) — MCP presentation/bindings in Adapter | After 107; provide the canonical boundary before extending MCP features. |
-| 12 | [TASK-00109](tasks/00109-TASK.md) — Application capabilities and descriptive names | After 107; follows 108 by priority only, not a dependency. |
+| 11 | [TASK-00108](tasks/00108-TASK.md) — MCP presentation/bindings in Adapter | Independently accepted; provides the canonical boundary before extending MCP features. |
+| 12 | [TASK-00109](tasks/00109-TASK.md) — Application capabilities and descriptive names | Independently accepted; combines cohesive inward capabilities and descriptive collaborators with 108's outward MCP boundary. |
 | 13 | [TASK-00110](tasks/00110-TASK.md) — Supported canonical Common contracts | needs-info for actual affected tagged/accepted APIs and sufficient minimum; independent ready work proceeds. |
 | 201–202 | [TASK-00111](tasks/00111-TASK.md) → [TASK-00112](tasks/00112-TASK.md) — User revisions and synchronous capabilities | Follow existing features; 112 consumes complete transitions from 111. |
 | 203–204 | [TASK-00113](tasks/00113-TASK.md) / [TASK-00114](tasks/00114-TASK.md) — AgentName and operation/read boundaries | Follow existing features; relative priority only, no mutual blocker. |

@@ -163,11 +163,11 @@ previous-iteration support; completed TASKs and earlier guidance cannot require 
 - Repositories are Domain interfaces beside their aggregate. Use canonical add/getById/remove where appropriate,
   preserving actual CAS/uniqueness/coupled-write and transaction-duration fence contracts, not replacing them with
   get-then-save. Keep UoW separate; do not create Application Store/save ports or preflight reservation calls.
-- Current source still has Agent profile Tools/catalogs and family availability in Application and the single
-  User AuthenticationService. TASK-00109 organizes Agent Authentication/Credential/Delivery/Maintenance/Continuation,
-  PermissionAssignment, Feature Discovery and authorization Admission, with descriptive collaborators and mirrored
-  tests. Only the separately owned MCP presentation leaves remain in Agent Security/Service. TASK-00108 owns their
-  relocation; TASK-00112 owns User synchronous decomposition after TASK-00111. TASK-00114 owns operation aggregate/
+- Agent profile Tools/catalogs and family availability now live in `Adapter/Mcp/{Tool,Resource,Skill}/Agent`
+  under TASK-00108; authentication, Permission policy and synchronized continuation remain inward. TASK-00109
+  organizes Agent Authentication/Credential/Delivery/Maintenance/Continuation, PermissionAssignment, Feature Discovery
+  and authorization Admission, with descriptive collaborators and mirrored tests. Current source retains the single
+  User AuthenticationService; TASK-00112 owns synchronous decomposition after TASK-00111. TASK-00114 owns operation aggregate/
   read boundaries; TASK-00110 owns qualified canonical Common adoption. None is implemented or accepted by TASK-00107.
   See the [consumed-contract notes](domain.md#consumed-common-contracts) for actual source and supplier limits.
 - UserRepository::add() enforces canonical-email uniqueness atomically. Backed enum cases are uppercase and retain

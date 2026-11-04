@@ -1,7 +1,8 @@
 # Agent-protected MCP Tool composition
 
-This additive v0.5.0 API implements [TASK-00035](../planning/tasks/00035-TASK.md). It requires Fight Common
-`^1.3` (first verified against v1.3.0, `7de6cad6e8a9752973ad9f8e27e285b0c1510582`). It supplies authorization
+This API originated in v0.5.0 through [TASK-00035](../planning/tasks/00035-TASK.md), first verified against
+Common v1.3.0 (`7de6cad6e8a9752973ad9f8e27e285b0c1510582`). The current checkout requires Common `^1.4`.
+[TASK-00108](../planning/tasks/00108-TASK.md) moves protocol bindings outward without changing wire behavior. It supplies authorization
 metadata and availability, **not** protocol policy, an endpoint, OAuth mapping or a consumer adapter.
 [Self-service profile Tools](agent-profile-tools.md) are a separate consumer of this boundary. Their request-bound
 instances require the same fresh provider/request as availability. Independent review/behavioral QA and actual
@@ -15,13 +16,15 @@ actual Common Subscription/Task integration remains downstream work.
 
 ## Public contracts
 
-All three types live under `Fight\AccessControl\Application\AccessControl\Agent`:
+All three types now live under `Fight\AccessControl\Adapter\Mcp\Tool\Agent`. Update imports, attributes and
+registrations directly; retired Application names have no aliases. Authentication, Permission policy and synchronized
+continuation remain inward in Application/Domain:
 
 | Type | Contract |
 | --- | --- |
 | `Attribute\RequiresAgentPermission` | Method-only, repeatable metadata. Constructor `string $permissionName`; `getPermissionName(): PermissionName` returns the existing validated canonical value. Every declaration is required. |
 | `AgentToolPermissionCatalog` | Immutable static requirements for one `McpToolRegistry`. Constructor accepts that registry only. `requirementsFor(McpToolInfo): ?array` returns a nonempty list of Permission names or null for an absent/foreign definition. |
-| `Security\AgentToolAvailability` | Request-scoped `McpToolAvailability`. Constructor takes the catalog, a fresh `CurrentAgentPrincipalProvider`, the request's `SignedAgentRequest`, and a nonempty correlation ID. `isAvailable(McpToolInfo): bool` is the only decision Common receives. |
+| `AgentToolAvailability` | Request-scoped `McpToolAvailability`. Constructor takes the catalog, a fresh `CurrentAgentPrincipalProvider`, the request's `SignedAgentRequest`, and a nonempty correlation ID. `isAvailable(McpToolInfo): bool` is the only decision Common receives. |
 
 Declare requirements on each Tool's `handle()` alongside Common's metadata, for example:
 
@@ -42,7 +45,7 @@ Permissions match existing canonical `PermissionName` values against direct Agen
 Construct the registry once from the complete explicitly exposed Tool set, then construct its catalog:
 
 ```php
-use Fight\AccessControl\Application\AccessControl\Agent\AgentToolPermissionCatalog;
+use Fight\AccessControl\Adapter\Mcp\Tool\Agent\AgentToolPermissionCatalog;
 use Fight\Common\Application\Mcp\Tool\McpToolRegistry;
 
 $registry = new McpToolRegistry($tools);
@@ -75,7 +78,7 @@ clock, atomic nonce consumer and transactional Unit of Work. Do not put that pro
 Use one availability object for all Common paths **within that request**:
 
 ```php
-use Fight\AccessControl\Application\AccessControl\Agent\Security\AgentToolAvailability;
+use Fight\AccessControl\Adapter\Mcp\Tool\Agent\AgentToolAvailability;
 use Fight\Common\Application\Mcp\Tool\McpToolDiscovery;
 use Fight\Common\Application\Mcp\Tool\McpToolInvoker;
 
@@ -137,7 +140,7 @@ consumer container lifetimes or a real state/confirmation backend. Before adopti
 fresh request/job scope and alternate-path protections. No screenshots are useful for this library boundary; executable
 MCP results, denial equality, nonce/validation/bus/progress counts and protected-state outcomes provide nonvisual proof.
 
-The three classes are additive public PHP APIs. Raising the Common minimum from `^1.2` to `^1.3` narrows dependency
-compatibility and belongs in the next pre-v1 minor release, not a patch/backport. Existing AccessControl authentication,
+The original three APIs were additive. Their current Adapter relocation is a pre-v1 PHP namespace break, not a
+Common API adoption or dependency change; the earlier `^1.2` → `^1.3` minimum change is release history. Existing AccessControl authentication,
 Permission assignment and SecurityContext APIs/behavior are unchanged. No serialization/OpenAPI payload, persistence
 migration, compatibility shim, release, consumer adoption or deployment is supplied by this TASK.

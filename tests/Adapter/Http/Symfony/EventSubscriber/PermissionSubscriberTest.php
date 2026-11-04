@@ -16,7 +16,7 @@ use Fight\Common\Adapter\Http\Error\SafeHttpPresentation;
 use Fight\Common\Adapter\Http\Error\SafeHttpProjector;
 use Fight\Common\Application\Error\Exception\AuthenticationRequired;
 use Fight\Common\Application\Error\Exception\PermissionDenied;
-use Fight\Test\AccessControl\Application\AccessControl\Agent\Service\ProfileToolEnvironment;
+use Fight\Test\AccessControl\Adapter\Mcp\Tool\Agent\Fixture\ProfileToolEnvironment;
 use Fight\Test\AccessControl\Application\AccessControl\Authorization\Admission\AdmissionEnvironment;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\DataProvider;

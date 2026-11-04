@@ -2,7 +2,7 @@
 id: TICKET-00033
 epic: EPIC-00015
 title: Clarify architecture and capability ownership before extending integrations
-status: ready-for-agent
+status: done
 ---
 
 # Clarify architecture and capability ownership before extending integrations
@@ -73,12 +73,26 @@ and operation-boundary redesign belong to TICKET-00035/00036.
 | Order | TASK ID | Title | Status |
 | --- | --- | --- | --- |
 | 10 | [TASK-00107](../tasks/00107-TASK.md) | Codify aggregate-first architecture and descriptive dependency naming | done |
-| 11 | [TASK-00108](../tasks/00108-TASK.md) | Move Agent MCP presentation and family bindings into adapters | ready-for-agent |
+| 11 | [TASK-00108](../tasks/00108-TASK.md) | Move Agent MCP presentation and family bindings into adapters | done |
 | 12 | [TASK-00109](../tasks/00109-TASK.md) | Organize Application capabilities and descriptive collaborator names | done |
 ## Decisions and Progress
 
+All three children now retain their independent acceptance and terminal states: TASK-00107 guidance, TASK-00108
+MCP relocation and TASK-00109 capability/naming organization. Automatic child rollup completes this TICKET;
+EPIC-00015 remains open for its other unfinished TICKETs. Historical checkpoints below retain their original
+subjects and pending-at-closeout wording. Combined integration evidence: `.runs/handoffs/TASK-00109/develop-merge.md`.
+
+TASK-00108 has independent Review ACCEPT and nonvisual QA PASS on candidate
+`eacf83ccb0637db24274339dc157cf045f3fdc58`; closeout records that acceptance, not merge or release.
+Publication and final delivery verification were pending at closeout; current results are in
+`.runs/handoffs/TASK-00108/land.md` and the actual PR. TASK-00109 remains unfinished, so this TICKET stays open.
+
 John approved this requirement and the full three-TASK split: TASK-00107 rules (order 10), TASK-00108 MCP ownership
 (11) and TASK-00109 capability/naming cohesion (12). Put these before the existing feature frontier without
-inventing a dependency between independent relocations. Planning only; no implementation or acceptance is claimed.
+inventing a dependency between independent relocations. That original planning checkpoint claimed no implementation
+or acceptance. TASK-00107 is now done. TASK-00108 Work relocates MCP protocol types and mirrored tests/callers/docs
+without changing inward authority or Common contracts. Builder verification passes focused composition/native checks
+and the full gate with exact statement coverage; at that Work checkpoint independent Review/nonvisual QA remained pending.
+TASK-00109 remains separate unfinished capability/naming work.
 
-Next: `/skill:next` for the Board's first executable TASK; execution is not launched by this record.
+The Work checkpoint's Review handoff is superseded by the acceptance checkpoint above; the Board owns current routing.

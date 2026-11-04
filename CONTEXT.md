@@ -299,6 +299,15 @@ Common generic/canonical qualification remains with its owners. At the earlier p
 first; it has since been independently accepted and the current Board owns execution selection.
 No source/dependency/sibling/consumer mutation, product build, new checkout, commit/publication or release follows.
 
+## Current combined MCP and capability organization
+
+TASK-00108's outward MCP presentation/bindings/availability and TASK-00109's inward capability homes and descriptive
+collaborators are combined here. Current composition uses `Adapter/Mcp/{Tool,Resource,Skill}/Agent`, Agent
+`Authentication`, `Credential`, `Delivery`, `Maintenance`, `Continuation` and `PermissionAssignment`, Feature
+`Discovery` and authorization `Admission`. No Common dependency, wire/security/transaction/recovery contract or
+consumer qualification is changed by their integration. Historical independent checkpoints below retain their
+original subjects; the advancing-base integration evidence is in `.runs/handoffs/TASK-00109/develop-merge.md`.
+
 ## TASK-00109 capability organization — Work checkpoint
 
 Independent Review ACCEPT and nonvisual QA PASS cover candidate `eb976a98d967865030dc7bf964015365dbc7ad2f`. Publication and final delivery verification were pending at closeout; current results are in `.runs/handoffs/TASK-00109/land.md` and the actual PR. The Work checkpoint below is historical; consumer qualification remains separate.
@@ -319,6 +328,25 @@ The current [composition map](docs/agent-integration.md#public-composition-map) 
 new forwarding graph, new dependency or behavior redesign is introduced. User authentication decomposition and Agent
 name/operation redesign remain separate work. Canonical TASK-00109 handoff/logs own verification and exact subject;
 independent Review and behavioral QA remain required. This Work checkpoint is not acceptance, release or adoption.
+
+## TASK-00108 MCP relocation — accepted checkpoint
+
+Independent Review ACCEPT and nonvisual QA PASS cover candidate `eacf83ccb0637db24274339dc157cf045f3fdc58`.
+Publication and final delivery verification were pending at closeout; current results are in
+`.runs/handoffs/TASK-00108/land.md` and the actual PR. The Board owns current execution routing.
+
+### Work checkpoint
+
+Agent profile Tools/failure mapping, Tool catalog/attribute and Tool/Resource/Skill bindings/catalogs/availability
+now live in `Adapter/Mcp/{Tool,Resource,Skill}/Agent`, with mirrored tests and current family composition guides.
+Retired Application PHP names have no aliases; profile bus arguments are `queryBus` and `synchronousCommandBus`.
+Existing Common v1.4.0 invocation/registry/descriptor and actual bus paths remain in use; TASK-00110 canonical
+upstream adoption is separate. Authentication, signed-request contracts, direct Permission policy and synchronized
+continuation remain in Application/Domain. There is no profile facade, new endpoint, grant or consumer bootstrap.
+Wire IDs/schemas/results, neutral Tool concealment versus Resource/Skill operational failures, nonce/request scope,
+post-commit name-change semantics and consumer qualification limits are unchanged. At the Work checkpoint independent
+Review and nonvisual QA were required; Work did not self-close the TASK. See [current profile composition](docs/agent-profile-tools.md)
+and [TASK-00108](planning/tasks/00108-TASK.md) for verification progress.
 
 ## TASK-00107 guidance checkpoint — independently accepted
 
@@ -1145,7 +1173,7 @@ qualification, dependency adoption, data operations and deployment are not estab
 ## Self-service Agent profile Tools — TASK-00071 accepted
 
 John selected the clean main checkout from `develop` `40168bc` on `feature/task-00071-agent-profile-tools`.
-The unreleased [profile Tool guide](docs/agent-profile-tools.md) defines Application `Agent\\Tool\\GetAgentProfileTool`
+At that checkpoint the [profile Tool guide](docs/agent-profile-tools.md) defined Application `Agent\\Tool\\GetAgentProfileTool`
 (`agent.profile.read`) and `UpdateAgentProfileTool` (`agent.profile.update`), sharing the same request-scoped provider,
 signed request and correlation as TASK-00035 availability. Distinct read/update Permissions precede protected work;
 no caller target/authority fields are accepted. Read uses TASK-00070's fresh query. Update derives target and typed
@@ -1219,8 +1247,9 @@ No MCP Tool, administrator endpoint, consumer migration, human approval/merge, r
 ## Agent-protected MCP authorization — TASK-00035 accepted
 
 John selected the main checkout for TASK-00035 from clean `develop` `4b6d083`, on
-`feature/task-00035-agent-mcp-authorization`. The [MCP authorization guide](docs/agent-mcp-authorization.md) records
-three additive public Application contracts: repeatable `RequiresAgentPermission` on Tool `handle()`, immutable
+`feature/task-00035-agent-mcp-authorization`. At that checkpoint the
+[MCP authorization guide](docs/agent-mcp-authorization.md) recorded three additive public Application contracts
+(now relocated by TASK-00108): repeatable `RequiresAgentPermission` on Tool `handle()`, immutable
 `AgentToolPermissionCatalog` built directly from one Common registry, and request-scoped `AgentToolAvailability`.
 The catalog enumerates complete Common-resolved metadata without a second Tool list/naming algorithm; exact immutable
 definition identity rejects foreign mappings. Missing/malformed requirements reject construction. One lazy provider
