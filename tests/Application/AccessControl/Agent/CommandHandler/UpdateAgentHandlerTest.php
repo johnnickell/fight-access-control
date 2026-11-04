@@ -16,6 +16,8 @@ use Fight\AccessControl\Domain\AccessControl\Agent\AgentName;
 use Fight\AccessControl\Domain\AccessControl\Agent\AgentRepository;
 use Fight\AccessControl\Domain\AccessControl\Agent\AgentState;
 use Fight\AccessControl\Domain\AccessControl\Agent\AgentUpdateInitiator;
+use Fight\AccessControl\Domain\AccessControl\Agent\Command\ProvisionAgent;
+use Fight\AccessControl\Domain\AccessControl\Agent\Command\RotateAgentCredential;
 use Fight\AccessControl\Domain\AccessControl\Agent\Command\UpdateAgent;
 use Fight\AccessControl\Domain\AccessControl\Agent\Event\AgentNameChanged;
 use Fight\AccessControl\Domain\AccessControl\Agent\Exception\AgentNameException;
@@ -95,7 +97,7 @@ final class UpdateAgentHandlerTest extends TestCase
         self::assertSame($before->getPermissionIds(), $after->getPermissionIds());
         self::assertSame(
             $operation->getIssuance(),
-            $env->service()->provision($env->key, $env->request)->getIssuance()
+            $env->bus()->dispatchAndRead(new ProvisionAgent($env->key, $env->request))->getIssuance()
         );
         self::assertSame($after, $env->agentRepository->getById($before->getId()));
         self::assertSame(1, $env->generations);
@@ -318,7 +320,9 @@ final class UpdateAgentHandlerTest extends TestCase
                 ));
             });
         } else {
-            self::assertTrue($rotation->service(clock: $clock)->rotate($rotation->key, $rotation->request)
+            self::assertTrue($rotation->bus(clock: $clock)->dispatchAndRead(
+                new RotateAgentCredential($rotation->key, $rotation->request)
+            )
                 ->isConfirmed());
         }
 
@@ -402,7 +406,11 @@ final class UpdateAgentHandlerTest extends TestCase
                 $renamed->grantPermission($permission->getId(), new DateTimeImmutable(self::NOW))
             ));
         });
-        self::assertTrue($rotation->service()->rotate($rotation->key, $rotation->request)->isConfirmed());
+        self::assertTrue(
+            $rotation->bus()->dispatchAndRead(
+                new RotateAgentCredential($rotation->key, $rotation->request)
+            )->isConfirmed()
+        );
         $rotated = $env->agentRepository->getById($before->getId());
         self::assertSame('Renamed', $rotated->getName()->toString());
         self::assertTrue($rotated->hasPermission($permission->getId()));
@@ -509,7 +517,7 @@ final class UpdateAgentHandlerTest extends TestCase
     private function environment(): ProvisioningEnvironment
     {
         $env = new ProvisioningEnvironment();
-        $env->service()->provision($env->key, $env->request);
+        $env->bus()->commandBus->execute(new ProvisionAgent($env->key, $env->request));
         $env->eventDispatcher = new InMemoryEventDispatcher();
 
         return $env;

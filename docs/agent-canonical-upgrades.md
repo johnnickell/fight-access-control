@@ -100,4 +100,5 @@ Independently observe records, Agent state, audits, counters and sink order; do 
 The reference runner is `InMemoryAgentCanonicalConformanceTest`. It executes actual delivery, revocation, expiry
 and cleanup, then reconstructs services over modeled persisted adapters. It is not a real database/process restart
 or qualification of consumer concurrency, sink cryptography or activation/use. Existing issuance and delivery suites
-retain publication warnings, uncertainty, capacity and recovery proof. No cross-version fixture matrix is needed.
+retain confirmed-commit publication containment, execution uncertainty, capacity and recovery proof under
+TASK-00182's void Commands and authorized outcome Queries, without returned/reconstructed warnings. No cross-version fixture matrix is needed.

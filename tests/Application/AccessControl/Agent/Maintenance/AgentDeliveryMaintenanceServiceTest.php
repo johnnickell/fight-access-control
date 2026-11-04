@@ -9,6 +9,7 @@ use Fight\AccessControl\Application\AccessControl\Agent\Delivery\AgentDeliveryRe
 use Fight\AccessControl\Application\AccessControl\Agent\Maintenance\AgentDeliveryMaintenanceService;
 use Fight\AccessControl\Application\AccessControl\Agent\Maintenance\AgentMaintenanceResult;
 use Fight\AccessControl\Domain\AccessControl\Agent\AgentState;
+use Fight\AccessControl\Domain\AccessControl\Agent\Command\ProvisionAgent;
 use Fight\AccessControl\Domain\AccessControl\Agent\Delivery\AgentDeliveryFailure;
 use Fight\AccessControl\Domain\AccessControl\Agent\Delivery\AgentDeliveryPolicy;
 use Fight\AccessControl\Domain\AccessControl\Agent\Exception\AgentDeliveryCommitUncertainException;
@@ -494,10 +495,12 @@ final class AgentDeliveryMaintenanceServiceTest extends TestCase
         $agentOperationRepository->closedKeyVersions['test-key-v2'] = false;
         $provisioning = $env->delivery->provisioning;
         try {
-            $provisioning->service(limits: new AgentOperationLimits(pendingPerScope: 1, pendingTotal: 1))->provision(
+            $provisioning->bus(
+                limits: new AgentOperationLimits(pendingPerScope: 1, pendingTotal: 1)
+            )->commandBus->execute(new ProvisionAgent(
                 new AgentOperationKey($provisioning->key->getScope(), AgentOperationId::generate()),
                 $provisioning->request
-            );
+            ));
             self::fail('New work must reject at capacity.');
         } catch (AgentOperationRejectedException) {
             self::assertSame($env->delivery->issuance, $env->delivery->operation()->getStatus()->getIssuance());
@@ -538,10 +541,10 @@ final class AgentDeliveryMaintenanceServiceTest extends TestCase
         $agentsBefore = $provisioning->agentRepository->all();
         $envelope = $agentsBefore[0]->getEncryptedHmacSharedSecretEnvelope();
         try {
-            $provisioning->service()->provision(
+            $provisioning->bus()->commandBus->execute(new ProvisionAgent(
                 new AgentOperationKey($provisioning->key->getScope(), AgentOperationId::generate()),
                 $provisioning->request
-            );
+            ));
             self::fail('Closed key version cannot acquire a new reference.');
         } catch (AgentOperationRejectedException) {
             self::assertSame($agentsBefore, $provisioning->agentRepository->all());

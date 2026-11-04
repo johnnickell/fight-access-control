@@ -6,6 +6,7 @@ namespace Fight\Test\AccessControl\Application\AccessControl\Agent\Delivery;
 
 use Fight\AccessControl\Application\AccessControl\Agent\Delivery\AgentCredentialInvocation;
 use Fight\AccessControl\Application\AccessControl\Agent\Delivery\AgentDeliveryResult;
+use Fight\AccessControl\Domain\AccessControl\Agent\Command\ProvisionAgent;
 use Fight\AccessControl\Domain\AccessControl\Agent\Delivery\AgentDeliveryReceipt;
 use Fight\AccessControl\Domain\AccessControl\Agent\Exception\AgentDeliveryFailedException;
 use Fight\AccessControl\Domain\AccessControl\Agent\Operation\AgentDeliveryId;
@@ -156,7 +157,9 @@ final class AgentProtectedSinkContractTest extends TestCase
         $scope = new AgentOperationScope('different-consumer', 'user', 'maintainer-42');
         $key = new AgentOperationKey($scope, $env->issuance->getKey()->getId());
         $env->provisioning->operationAuthorization->scopes[$scope->toString()] = true;
-        $second = $env->provisioning->service()->provision($key, $env->provisioning->request)->getIssuance();
+        $second = $env->provisioning->bus()->dispatchAndRead(
+            new ProvisionAgent($key, $env->provisioning->request)
+        )->getIssuance();
         self::assertNotNull($second);
         self::assertTrue($second->getKey()->getId()->equals($env->issuance->getKey()->getId()));
         self::assertFalse($second->getDeliveryId()->equals($env->issuance->getDeliveryId()));

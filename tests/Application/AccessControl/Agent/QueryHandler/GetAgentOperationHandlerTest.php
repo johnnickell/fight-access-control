@@ -6,10 +6,10 @@ namespace Fight\Test\AccessControl\Application\AccessControl\Agent\QueryHandler;
 
 use Closure;
 use Fight\AccessControl\Application\AccessControl\Agent\Credential\AgentOperationAuthorization;
-use Fight\AccessControl\Application\AccessControl\Agent\Credential\AgentProvisioningResult;
-use Fight\AccessControl\Application\AccessControl\Agent\Credential\AgentPublicationWarning;
 use Fight\AccessControl\Application\AccessControl\Agent\QueryHandler\GetAgentOperationHandler;
+use Fight\AccessControl\Domain\AccessControl\Agent\Command\ProvisionAgent;
 use Fight\AccessControl\Domain\AccessControl\Agent\Exception\AgentOperationRejectedException;
+use Fight\AccessControl\Domain\AccessControl\Agent\Exception\AgentOperationUncertainException;
 use Fight\AccessControl\Domain\AccessControl\Agent\Operation\AgentCredentialDestination;
 use Fight\AccessControl\Domain\AccessControl\Agent\Operation\AgentCredentialDisposition;
 use Fight\AccessControl\Domain\AccessControl\Agent\Operation\AgentCredentialOperation;
@@ -42,7 +42,7 @@ final class GetAgentOperationHandlerTest extends TestCase
     public function test_lost_response_and_restart_read_original_issuance_without_repeating_any_effect(): void
     {
         $environment = new ProvisioningEnvironment();
-        $environment->service()->provision($environment->key, $environment->request);
+        $environment->bus()->commandBus->execute(new ProvisionAgent($environment->key, $environment->request));
         $before = $this->effects($environment);
         $first = $this->read($environment);
         $second = $this->read($environment);
@@ -64,7 +64,7 @@ final class GetAgentOperationHandlerTest extends TestCase
     public function test_explicit_delegated_worker_retains_original_scope_and_target_authorization(): void
     {
         $environment = new ProvisioningEnvironment();
-        $environment->service()->provision($environment->key, $environment->request);
+        $environment->bus()->commandBus->execute(new ProvisionAgent($environment->key, $environment->request));
         $original = $this->read($environment);
         $environment->operationAuthorization->actor = 'worker-7';
         $this->assertRejected(
@@ -105,7 +105,7 @@ final class GetAgentOperationHandlerTest extends TestCase
     {
         foreach (['pending', 'terminal', 'missing'] as $state) {
             $environment = new ProvisioningEnvironment();
-            $environment->service()->provision($environment->key, $environment->request);
+            $environment->bus()->commandBus->execute(new ProvisionAgent($environment->key, $environment->request));
             if ($state === 'missing') {
                 $environment->agentOperationRepository->operations = [];
             } elseif ($state === 'terminal') {
@@ -162,7 +162,7 @@ final class GetAgentOperationHandlerTest extends TestCase
     {
         foreach (['target', 'scope', 'binding', 'delegation', 'absent-revocation'] as $case) {
             $environment = new ProvisioningEnvironment();
-            $environment->service()->provision($environment->key, $environment->request);
+            $environment->bus()->commandBus->execute(new ProvisionAgent($environment->key, $environment->request));
             $issuance = $this->read($environment)->getIssuance();
             if ($case === 'target') {
                 $environment->operationAuthorization->deniedTargets = [$issuance->getAgentId()->toString()];
@@ -202,7 +202,7 @@ final class GetAgentOperationHandlerTest extends TestCase
     public function test_persisted_disposition_fixtures_preserve_original_issuance_without_worker_claims(): void
     {
         $environment = new ProvisioningEnvironment();
-        $environment->service()->provision($environment->key, $environment->request);
+        $environment->bus()->commandBus->execute(new ProvisionAgent($environment->key, $environment->request));
         $original = $this->read($environment)->getIssuance();
         foreach (AgentDeliveryDisposition::cases() as $delivery) {
             foreach (AgentCredentialDisposition::cases() as $credential) {
@@ -222,7 +222,7 @@ final class GetAgentOperationHandlerTest extends TestCase
     public function test_tombstones_and_unknown_versions_preserve_request_binding_without_canonicalization(): void
     {
         $environment = new ProvisioningEnvironment();
-        $environment->service()->provision($environment->key, $environment->request);
+        $environment->bus()->commandBus->execute(new ProvisionAgent($environment->key, $environment->request));
         $stored = $environment->agentOperationRepository->operations[$environment->key->toString()];
         $environment->agentOperationRepository->operations[$environment->key->toString()] = $stored->retireMaterial();
         self::assertSame($stored->getIssuance(), $this->read($environment)->getIssuance());
@@ -253,11 +253,11 @@ final class GetAgentOperationHandlerTest extends TestCase
     {
         foreach (['key', 'destination', 'binding'] as $case) {
             $environment = new ProvisioningEnvironment();
-            $environment->service()->provision($environment->key, $environment->request);
+            $environment->bus()->commandBus->execute(new ProvisionAgent($environment->key, $environment->request));
             $query = new GetAgentOperation($environment->key, $environment->request->getDestination());
             if ($case === 'key') {
                 $other = new ProvisioningEnvironment();
-                $other->service()->provision($other->key, $other->request);
+                $other->bus()->commandBus->execute(new ProvisionAgent($other->key, $other->request));
                 $otherOperation = $other->agentOperationRepository->operations[$other->key->toString()];
                 $environment->agentOperationRepository->operations[$environment->key->toString()] = $otherOperation;
             } else {
@@ -282,9 +282,14 @@ final class GetAgentOperationHandlerTest extends TestCase
     {
         foreach ([true, false] as $committed) {
             $environment = new ProvisioningEnvironment();
-            $result = $environment->service(new UncertainAgentUnitOfWork($environment->transaction, $committed))
-                ->provision($environment->key, $environment->request);
-            self::assertFalse($result->isConfirmed());
+            try {
+                $environment->bus(new UncertainAgentUnitOfWork($environment->transaction, $committed))
+                    ->commandBus->execute(new ProvisionAgent($environment->key, $environment->request));
+                self::fail('Unknown commit must surface safe execution uncertainty.');
+            } catch (AgentOperationUncertainException $failure) {
+                self::assertNull($failure->getPrevious());
+            }
+
             $before = $this->effects($environment);
             $view = $this->read($environment);
             self::assertSame($committed, $view->isConfirmed());
@@ -295,7 +300,9 @@ final class GetAgentOperationHandlerTest extends TestCase
                 self::assertNull($view->getDeliveryDisposition());
             }
 
-            $resolved = $environment->service()->provision($environment->key, $environment->request);
+            $resolved = $environment->bus()->dispatchAndRead(
+                new ProvisionAgent($environment->key, $environment->request)
+            );
             self::assertEquals($resolved->getIssuance(), $this->read($environment)->getIssuance());
             self::assertCount(1, $environment->auditEvidenceRepository->all());
         }
@@ -305,10 +312,10 @@ final class GetAgentOperationHandlerTest extends TestCase
             throw new RuntimeException('private-storage-failure');
         };
         $this->assertRejected(
-            fn(): AgentProvisioningResult => $environment->service()->provision(
+            fn(): AgentOperationView => $environment->bus()->dispatchAndRead(new ProvisionAgent(
                 $environment->key,
                 $environment->request
-            ),
+            )),
             AgentOperationFailure::UNAVAILABLE
         );
         $before = $this->effects($environment);
@@ -323,8 +330,8 @@ final class GetAgentOperationHandlerTest extends TestCase
         $environment->eventDispatcher = new InMemoryEventDispatcher(static function (): never {
             throw new RuntimeException('private-publisher-failure');
         });
-        $result = $environment->service()->provision($environment->key, $environment->request);
-        self::assertSame(AgentPublicationWarning::PUBLICATION_FAILED, $result->getWarning());
+        $result = $environment->bus()->dispatchAndRead(new ProvisionAgent($environment->key, $environment->request));
+        self::assertArrayNotHasKey('warning', $result->toArray());
         $before = $this->effects($environment);
         $view = $this->read($environment);
         self::assertSame($result->getIssuance(), $view->getIssuance());
@@ -337,13 +344,15 @@ final class GetAgentOperationHandlerTest extends TestCase
     public function test_new_work_capacity_and_override_validation_do_not_gate_existing_status(): void
     {
         $environment = new ProvisioningEnvironment();
-        $service = $environment->service(limits: new AgentOperationLimits(128, 1, 1));
-        $original = $service->provision($environment->key, $environment->request)->getIssuance();
+        $service = $environment->bus(limits: new AgentOperationLimits(128, 1, 1));
+        $original = $service->dispatchAndRead(
+            new ProvisionAgent($environment->key, $environment->request)
+        )->getIssuance();
         $this->assertRejected(
-            fn(): AgentProvisioningResult => $service->provision(
+            fn(): AgentOperationView => $service->dispatchAndRead(new ProvisionAgent(
                 new AgentOperationKey($environment->key->getScope(), AgentOperationId::generate()),
                 $environment->request
-            ),
+            )),
             AgentOperationFailure::CAPACITY
         );
         $before = $this->effects($environment);
@@ -354,7 +363,10 @@ final class GetAgentOperationHandlerTest extends TestCase
         );
         self::assertSame($original, $this->read($environment)->getIssuance());
         self::assertSame($before, $this->effects($environment));
-        self::assertSame($original, $service->provision($environment->key, $environment->request)->getIssuance());
+        self::assertSame(
+            $original,
+            $service->dispatchAndRead(new ProvisionAgent($environment->key, $environment->request))->getIssuance()
+        );
     }
 
     public function test_storage_and_authorization_faults_are_sanitized_unavailable_not_absence(): void

@@ -5,11 +5,13 @@ dependencies, acceptance, and verification.
 
 ## What's Next?
 
-First ready Task: [TASK-00105](00105-TASK.md) — Protect Laravel requests through native middleware.
+Active Task: [TASK-00182](00182-TASK.md) — Convert recoverable Agent issuance to Commands and outcome Queries.
 
 ## In Progress
 
-No Tasks are currently in this state.
+| Order | TASK ID | Title | Parent TICKET | Status | Blocked by | PR |
+| --- | --- | --- | --- | --- | --- | --- |
+| 205 | [TASK-00182](00182-TASK.md) | Convert recoverable Agent issuance to Commands and outcome Queries | [TICKET-00053](../tickets/00053-TICKET.md) — Issue Agent credentials through Commands and outcome Queries | in-progress | — | — |
 
 ## Ready Frontier
 
@@ -17,7 +19,6 @@ No Tasks are currently in this state.
 | --- | --- | --- | --- | --- | --- | --- |
 | 104 | [TASK-00105](00105-TASK.md) | Protect Laravel requests through native middleware | [TICKET-00032](../tickets/00032-TICKET.md) — Protect native HTTP entry points across all five frameworks | ready-for-agent | [TASK-00103](00103-TASK.md) | — |
 | 204 | [TASK-00114](00114-TASK.md) | Establish credential-operation aggregate and narrow read repositories | [TICKET-00036](../tickets/00036-TICKET.md) — Clarify Agent name and credential-operation domain ownership | ready-for-agent | — | — |
-| 205 | [TASK-00182](00182-TASK.md) | Convert recoverable Agent issuance to Commands and outcome Queries | [TICKET-00053](../tickets/00053-TICKET.md) — Issue Agent credentials through Commands and outcome Queries | ready-for-agent | — | — |
 | 299 | [TASK-00150](00150-TASK.md) | Maintain exhaustive declaration and contract ownership | [TICKET-00042](../tickets/00042-TICKET.md) — Enforce and demonstrate whole-library type correctness | ready-for-agent | — | — |
 | 300 | [TASK-00151](00151-TASK.md) | Execute type-contract fixtures through the canonical gate | [TICKET-00042](../tickets/00042-TICKET.md) — Enforce and demonstrate whole-library type correctness | ready-for-agent | — | — |
 | 301 | [TASK-00115](00115-TASK.md) | Correct User, session and audit type contracts | [TICKET-00037](../tickets/00037-TICKET.md) — Make Domain and repository contracts precise | ready-for-agent | — | — |

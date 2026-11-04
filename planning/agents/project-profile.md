@@ -202,15 +202,17 @@ previous-iteration support; completed TASKs and earlier guidance cannot require 
   operation-outcome policy.
 - Approved replacement exception: [EPIC-00009 D3](../epics/00009-EPIC.md#d3--post-commit-result-behavior), ratified by
   John on 2026-09-27, applies only to replacement recoverable Agent provision and rotation. After a confirmed commit,
-  publication failure returns committed metadata with a typed, sanitized warning, not a publication-failure throw.
+  publication failure cannot disguise committed issuance. The original direct-service contract returned safe
+  metadata with a typed warning; TASK-00182 now replaces that caller contract with void Commands and independent
+  authorized outcome Queries, without returned or reconstructed warnings.
   Pre-commit failure and indeterminate commit remain distinct; same-key resolution and authorized scheduler discovery
   survive even both publishers failing. This prevents a notification fault disguising committed issuance. Issuance
   confirms neither delivery, enrollment activation nor launch permission; each needs its own confirmed outcome and
   current authorization. Revocation, synchronous User capabilities and other handlers retain their publication behavior.
   TASK-00046 implements the provision exception and TASK-00048 implements rotation as unreleased work; the old
   raw-return rotation API is removed. TASK-00049/00052 prove package scheduler-only recovery; actual consumer
-  qualification remains separate. This describes the current direct-service baseline, not a requirement to retain
-  returned warnings after the explicitly amended conversion below. No independent execution or release authority.
+  qualification remains separate. Historical direct-service results/warnings are removed without facades under
+  the amendment below. No independent execution or release authority.
 - **Approved Agent Command caller-contract amendment:** [TICKET-00053](../tickets/00053-TICKET.md)/
   [TASK-00182](../tasks/00182-TASK.md) replace those direct APIs with void Commands and authorized outcome Queries.
   Commands may execute sync or async at any time; no transport, response code, broker or request lifetime assumed.
@@ -218,8 +220,10 @@ previous-iteration support; completed TASKs and earlier guidance cannot require 
   publication warnings. Dispatch acceptance/absence is not commit/rollback proof. Current execution/read authority,
   original-key recovery, atomicity and committed issuance despite publication failure remain required. The prior
   result-capable Common bus prerequisite is superseded; generic typing proof remains TASK-00130's separate scope.
-  Raw-secret inputs stay non-serializable, and consumers retain broker/error/runtime ownership. This is approved
-  future behavior, not implemented source or permission to weaken unknown-commit safety.
+  Raw-secret inputs stay non-serializable, and consumers retain broker/error/runtime ownership. TASK-00182's Work
+  candidate implements this contract through ProvisionAgentHandler/RotateAgentCredentialHandler with supported
+  Common routing; independent acceptance remains required. Lost commit acknowledgement throws sanitized
+  AgentOperationUncertainException, never a guessed success/rollback. Follow the current composition guides.
 - For that credential-operation replacement, follow ratified [EPIC-00009 D4](../epics/00009-EPIC.md#d4--bounded-operation-and-integration-policy):
   documented finite defaults, optional validated overrides, and no manual-configuration or additional human-approval
   requirement for routine operation/recovery. Capacity exhaustion must give new work a clear retryable rejection or
@@ -269,7 +273,7 @@ previous-iteration support; completed TASKs and earlier guidance cannot require 
   behavior outside the scoped EPIC-00009 D3 replacement exception. Acceptance of that replacement requires tests for
   pre-commit rollback, both uncertain-commit outcomes, post-commit publication failures including both publishers
   failing, same-key recovery after response loss/restart, and authorized scheduler-only recovery without caller retry.
-  Assert persisted outcomes and typed warning safety, not only call order; issuance cannot imply delivery, activation
+  Assert persisted outcomes and safe void/Query execution distinctions, not only call order; issuance cannot imply delivery, activation
   or launch authority. Real consumer conformance must separately prove current activation/use authorization.
 - Shipped OpenAPI metadata is a public library contract. Its generated-schema integration tests belong in the
   default PHPUnit/build pipeline under the approved

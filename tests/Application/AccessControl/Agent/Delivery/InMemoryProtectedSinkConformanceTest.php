@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Fight\Test\AccessControl\Application\AccessControl\Agent\Delivery;
 
-use Fight\AccessControl\Application\AccessControl\Agent\Credential\AgentCredentialRotationService;
+use Fight\AccessControl\Application\AccessControl\Agent\CommandHandler\RotateAgentCredentialHandler;
 use Fight\AccessControl\Application\AccessControl\Agent\Delivery\AgentCredentialDeliveryService;
 use Fight\AccessControl\Application\AccessControl\Agent\Delivery\AgentCredentialInvocation;
 use Fight\AccessControl\Application\AccessControl\Agent\Delivery\AgentDeliveryRecoveryService;
@@ -15,7 +15,7 @@ use PHPUnit\Framework\Attributes\CoversClass;
 
 #[CoversClass(AgentCredentialDeliveryService::class)]
 #[CoversClass(AgentCredentialInvocation::class)]
-#[CoversClass(AgentCredentialRotationService::class)]
+#[CoversClass(RotateAgentCredentialHandler::class)]
 #[CoversClass(AgentDeliveryRecoveryService::class)]
 #[CoversClass(AgentDeliveryReceipt::class)]
 final class InMemoryProtectedSinkConformanceTest extends ProtectedSinkConformance

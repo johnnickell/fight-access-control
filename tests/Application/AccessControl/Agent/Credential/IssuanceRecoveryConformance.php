@@ -5,12 +5,9 @@ declare(strict_types=1);
 namespace Fight\Test\AccessControl\Application\AccessControl\Agent\Credential;
 
 use Closure;
+use Fight\AccessControl\Application\AccessControl\Agent\CommandHandler\ProvisionAgentHandler;
+use Fight\AccessControl\Application\AccessControl\Agent\CommandHandler\RotateAgentCredentialHandler;
 use Fight\AccessControl\Application\AccessControl\Agent\Credential\AgentCredentialLifecycleService;
-use Fight\AccessControl\Application\AccessControl\Agent\Credential\AgentCredentialRotationResult;
-use Fight\AccessControl\Application\AccessControl\Agent\Credential\AgentCredentialRotationService;
-use Fight\AccessControl\Application\AccessControl\Agent\Credential\AgentProvisioningResult;
-use Fight\AccessControl\Application\AccessControl\Agent\Credential\AgentProvisioningService;
-use Fight\AccessControl\Application\AccessControl\Agent\Credential\AgentPublicationWarning;
 use Fight\AccessControl\Application\AccessControl\Agent\Delivery\AgentCredentialDeliveryService;
 use Fight\AccessControl\Application\AccessControl\Agent\Delivery\AgentCredentialInvocation;
 use Fight\AccessControl\Application\AccessControl\Agent\Delivery\AgentDeliveryRecoveryService;
@@ -20,10 +17,13 @@ use Fight\AccessControl\Application\AccessControl\Agent\QueryHandler\GetAgentOpe
 use Fight\AccessControl\Application\AccessControl\Agent\QueryHandler\ListDueAgentDeliveriesHandler;
 use Fight\AccessControl\Domain\AccessControl\Agent\AgentCredentialId;
 use Fight\AccessControl\Domain\AccessControl\Agent\AgentId;
+use Fight\AccessControl\Domain\AccessControl\Agent\Command\ProvisionAgent;
+use Fight\AccessControl\Domain\AccessControl\Agent\Command\RotateAgentCredential;
 use Fight\AccessControl\Domain\AccessControl\Agent\Delivery\AgentDeliveryPolicy;
 use Fight\AccessControl\Domain\AccessControl\Agent\Delivery\AgentDeliverySchedule;
 use Fight\AccessControl\Domain\AccessControl\Agent\Exception\AgentDeliveryFailedException;
 use Fight\AccessControl\Domain\AccessControl\Agent\Exception\AgentOperationRejectedException;
+use Fight\AccessControl\Domain\AccessControl\Agent\Exception\AgentOperationUncertainException;
 use Fight\AccessControl\Domain\AccessControl\Agent\Exception\CurrentAgentPrincipalResolutionRejectedException;
 use Fight\AccessControl\Domain\AccessControl\Agent\Operation\AgentCredentialDestination;
 use Fight\AccessControl\Domain\AccessControl\Agent\Operation\AgentCredentialDisposition;
@@ -39,7 +39,8 @@ use Fight\AccessControl\Domain\AccessControl\Agent\Operation\AgentProvisioningRe
 use Fight\AccessControl\Domain\AccessControl\Agent\Operation\AgentRotationRequest;
 use Fight\AccessControl\Domain\AccessControl\Agent\Query\AgentOperationView;
 use Fight\AccessControl\Domain\AccessControl\Agent\Query\GetAgentOperation;
-use Fight\Common\Domain\Messaging\Query\QueryMessage;
+use Fight\Common\Adapter\Messaging\Query\Routing\InMemoryQueryRouter;
+use Fight\Common\Adapter\Messaging\Query\RoutingQueryBus;
 use Fight\Test\AccessControl\Application\AccessControl\Agent\Credential\Conformance\IssuanceRecoveryFixture;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
@@ -106,7 +107,7 @@ abstract class IssuanceRecoveryConformance extends TestCase
         $result = $this->issue($fixture, $key, $request);
         self::assertSame($transactions + 1, $fixture->transactions());
         self::assertTrue($result->isConfirmed());
-        self::assertSame(AgentPublicationWarning::PUBLICATION_FAILED, $result->getWarning());
+        self::assertArrayNotHasKey('warning', $result->toArray());
         self::assertCount(2, $fixture->publications());
         $issuance = $result->getIssuance();
         self::assertNotNull($issuance);
@@ -166,10 +167,17 @@ abstract class IssuanceRecoveryConformance extends TestCase
         [$fixture, $key, $request] = $this->scenario($rotation);
         $before = $fixture->state();
         $fixture->loseCommit($persist);
-        $result = $this->issue($fixture, $key, $request);
-        self::assertFalse($result->isConfirmed());
-        self::assertNull($result->getIssuance());
-        self::assertNull($result->getWarning());
+        try {
+            $this->invoke($fixture, $key, $request);
+            self::fail('Unknown commit must surface safe execution uncertainty.');
+        } catch (AgentOperationUncertainException $agentOperationUncertainException) {
+            self::assertNull($agentOperationUncertainException->getPrevious());
+            $this->assertSafe(
+                $fixture,
+                [$agentOperationUncertainException->getMessage(), $agentOperationUncertainException->getTraceAsString()]
+            );
+        }
+
         $original = $fixture->stored($key)?->getIssuance();
         self::assertSame($persist, $original !== null);
         if (!$persist) {
@@ -188,7 +196,7 @@ abstract class IssuanceRecoveryConformance extends TestCase
         self::assertSame($before['audit'] + 1, $fixture->state()['audit']);
         self::assertSame($before['operations'] + 1, $fixture->state()['operations']);
         self::assertSame($before['agents'] + (int) !$rotation, $fixture->state()['agents']);
-        $this->assertSafe($fixture, [$result, $resolved]);
+        $this->assertSafe($fixture, [$resolved]);
     }
 
     #[DataProvider('failures')]
@@ -202,7 +210,7 @@ abstract class IssuanceRecoveryConformance extends TestCase
         $fixture->failPublishers();
         $this->assertRejected(
             $fixture,
-            fn (): AgentProvisioningResult|AgentCredentialRotationResult => $this->issue($fixture, $key, $request),
+            fn (): AgentOperationView => $this->issue($fixture, $key, $request),
             AgentOperationFailure::UNAVAILABLE
         );
         self::assertSame($before, $fixture->state());
@@ -253,7 +261,7 @@ abstract class IssuanceRecoveryConformance extends TestCase
         $before = $fixture->state();
         $this->assertRejected(
             $fixture,
-            fn (): AgentProvisioningResult|AgentCredentialRotationResult => $this->issue($fixture, $key, $changed),
+            fn (): AgentOperationView => $this->issue($fixture, $key, $changed),
             $change === 'version' ? AgentOperationFailure::UNSUPPORTED_VERSION : AgentOperationFailure::CONFLICT
         );
         self::assertSame($before, $fixture->state());
@@ -279,7 +287,7 @@ abstract class IssuanceRecoveryConformance extends TestCase
         $fixture->revokeAuthority($key->getScope());
         $this->assertRejected(
             $fixture,
-            fn (): AgentProvisioningResult|AgentCredentialRotationResult => $this->issue($fixture, $key, $request)
+            fn (): AgentOperationView => $this->issue($fixture, $key, $request)
         );
         $this->assertRejected($fixture, fn (): AgentOperationView => $this->readOperation($fixture, $key, $request));
         $this->assertRejected(
@@ -296,11 +304,12 @@ abstract class IssuanceRecoveryConformance extends TestCase
         [$fixture, $key, $request] = $this->scenario($rotation);
         $before = $fixture->state();
         $fixture->contendWithAuthorityRevocation($key->getScope());
-        self::assertTrue($this->issue($fixture, $key, $request)->isConfirmed());
+        $this->invoke($fixture, $key, $request);
+        self::assertNotNull($fixture->stored($key));
         self::assertSame($before['audit'] + 1, $fixture->state()['audit']);
         $this->assertRejected(
             $fixture,
-            fn (): AgentProvisioningResult|AgentCredentialRotationResult => $this->issue($fixture, $key, $request)
+            fn (): AgentOperationView => $this->issue($fixture, $key, $request)
         );
         $this->assertRejected($fixture, fn (): AgentOperationView => $this->readOperation($fixture, $key, $request));
     }
@@ -352,7 +361,7 @@ abstract class IssuanceRecoveryConformance extends TestCase
         $next = $rotation ? $this->rotationRequest($issuance) : $request;
         $this->assertRejected(
             $fixture,
-            fn (): AgentProvisioningResult|AgentCredentialRotationResult => $this->issue(
+            fn (): AgentOperationView => $this->issue(
                 $fixture,
                 new AgentOperationKey($key->getScope(), AgentOperationId::generate()),
                 $next,
@@ -465,13 +474,11 @@ abstract class IssuanceRecoveryConformance extends TestCase
         [$fixture, $key, $request] = $this->scenario($rotation);
         $before = $fixture->state();
         $results = $fixture->contend([
-            fn (): AgentProvisioningResult|AgentCredentialRotationResult => $this->issue($fixture, $key, $request),
-            fn (): AgentProvisioningResult|AgentCredentialRotationResult => $this->issue($fixture, $key, $request)
+            fn (): AgentOperationView => $this->issue($fixture, $key, $request),
+            fn (): AgentOperationView => $this->issue($fixture, $key, $request)
         ]);
         foreach ($results as $result) {
-            self::assertTrue(
-                $result instanceof AgentProvisioningResult || $result instanceof AgentCredentialRotationResult
-            );
+            self::assertInstanceOf(AgentOperationView::class, $result);
             self::assertTrue($result->isConfirmed());
             self::assertEquals($fixture->stored($key)?->getIssuance(), $result->getIssuance());
         }
@@ -486,15 +493,15 @@ abstract class IssuanceRecoveryConformance extends TestCase
         [$fixture, $key, $request] = $this->scenario(true);
         $before = $fixture->state();
         $results = $fixture->contend([
-            fn (): AgentProvisioningResult|AgentCredentialRotationResult => $this->issue($fixture, $key, $request),
-            fn (): AgentProvisioningResult|AgentCredentialRotationResult => $this->issue(
+            fn (): AgentOperationView => $this->issue($fixture, $key, $request),
+            fn (): AgentOperationView => $this->issue(
                 $fixture,
                 new AgentOperationKey($key->getScope(), AgentOperationId::generate()),
                 $request
             )
         ]);
         self::assertCount(1, array_filter($results, static fn ($result): bool =>
-            $result instanceof AgentCredentialRotationResult && $result->isConfirmed()));
+            $result instanceof AgentOperationView && $result->isConfirmed()));
         self::assertCount(1, array_filter($results, static fn ($result): bool =>
             $result instanceof AgentOperationRejectedException
                 && $result->getReason() === AgentOperationFailure::CONFLICT));
@@ -590,7 +597,7 @@ abstract class IssuanceRecoveryConformance extends TestCase
         $this->assertRejected(
             $fixture,
             fn () => $fixture->ports()->transaction->commitTransactional(
-                fn (): AgentProvisioningResult|AgentCredentialRotationResult => $this->issue($fixture, $key, $request)
+                fn (): AgentOperationView => $this->issue($fixture, $key, $request)
             ),
             AgentOperationFailure::UNAVAILABLE
         );
@@ -614,7 +621,7 @@ abstract class IssuanceRecoveryConformance extends TestCase
             $wrongKey = new AgentOperationKey($scope, $key->getId());
             $this->assertRejected(
                 $fixture,
-                fn (): AgentProvisioningResult|AgentCredentialRotationResult =>
+                fn (): AgentOperationView =>
                     $this->issue($fixture, $wrongKey, $request)
             );
             $this->assertRejected(
@@ -636,7 +643,7 @@ abstract class IssuanceRecoveryConformance extends TestCase
             $wrongRequest = new AgentProvisioningRequest('Original Agent', $destination);
             $this->assertRejected(
                 $fixture,
-                fn (): AgentProvisioningResult|AgentCredentialRotationResult =>
+                fn (): AgentOperationView =>
                     $this->issue($fixture, $key, $wrongRequest)
             );
             $this->assertRejected(
@@ -667,12 +674,11 @@ abstract class IssuanceRecoveryConformance extends TestCase
 
         $before = $fixture->state();
         $results = $fixture->contend([
-            fn (): AgentProvisioningResult|AgentCredentialRotationResult => $this->issue($fixture, $key, $request),
-            fn (): AgentProvisioningResult|AgentCredentialRotationResult => $this->issue($fixture, $key, $changed)
+            fn (): AgentOperationView => $this->issue($fixture, $key, $request),
+            fn (): AgentOperationView => $this->issue($fixture, $key, $changed)
         ]);
         $confirmed = array_filter($results, static fn ($result): bool =>
-            ($result instanceof AgentProvisioningResult || $result instanceof AgentCredentialRotationResult)
-                && $result->isConfirmed());
+            $result instanceof AgentOperationView && $result->isConfirmed());
         self::assertCount(1, $confirmed);
         self::assertCount(1, array_filter($results, static fn ($result): bool =>
             $result instanceof AgentOperationRejectedException
@@ -687,7 +693,7 @@ abstract class IssuanceRecoveryConformance extends TestCase
         [$fixture, $key, $request] = $this->scenario(true);
         self::assertInstanceOf(AgentRotationRequest::class, $request);
         $fixture->contend([
-            fn (): AgentProvisioningResult|AgentCredentialRotationResult => $this->issue($fixture, $key, $request),
+            fn (): AgentOperationView => $this->issue($fixture, $key, $request),
             static function () use ($fixture, $key, $request): void {
                 $ports = $fixture->ports();
                 new AgentCredentialLifecycleService(
@@ -708,7 +714,7 @@ abstract class IssuanceRecoveryConformance extends TestCase
         self::assertSame([], $this->recover($fixture, $key->getScope(), $request->getDestination()));
         $this->assertRejected(
             $fixture,
-            fn (): AgentProvisioningResult|AgentCredentialRotationResult => $this->issue(
+            fn (): AgentOperationView => $this->issue(
                 $fixture,
                 new AgentOperationKey($key->getScope(), AgentOperationId::generate()),
                 $request
@@ -755,7 +761,18 @@ abstract class IssuanceRecoveryConformance extends TestCase
         AgentOperationKey $key,
         AgentProvisioningRequest|AgentRotationRequest $request,
         ?AgentOperationLimits $limits = null
-    ): AgentProvisioningResult|AgentCredentialRotationResult {
+    ): AgentOperationView {
+        $this->invoke($fixture, $key, $request, $limits);
+
+        return $this->readOperation($fixture, $key, $request);
+    }
+
+    private function invoke(
+        IssuanceRecoveryFixture $fixture,
+        AgentOperationKey $key,
+        AgentProvisioningRequest|AgentRotationRequest $request,
+        ?AgentOperationLimits $limits = null
+    ): void {
         $ports = $fixture->ports();
         $arguments = [
             $ports->agentRepository,
@@ -774,10 +791,15 @@ abstract class IssuanceRecoveryConformance extends TestCase
         }
 
         if ($request instanceof AgentRotationRequest) {
-            return new AgentCredentialRotationService(...$arguments)->rotate($key, $request);
+            $command = new RotateAgentCredential($key, $request);
+            $handler = new RotateAgentCredentialHandler(...$arguments);
+        } else {
+            $command = new ProvisionAgent($key, $request);
+            $handler = new ProvisionAgentHandler(...$arguments);
         }
 
-        return new AgentProvisioningService(...$arguments)->provision($key, $request);
+        new IssuanceBusFixture($handler, $ports->agentOperationRepository, $ports->operationAuthorization)
+            ->commandBus->execute($command);
     }
 
     private function readOperation(
@@ -789,9 +811,12 @@ abstract class IssuanceRecoveryConformance extends TestCase
         $before = $fixture->state();
         $events = $fixture->publications();
         $transactions = $fixture->transactions();
-        $view = new GetAgentOperationHandler($ports->agentOperationRepository, $ports->operationAuthorization)->handle(
-            QueryMessage::create(new GetAgentOperation($key, $request->getDestination()))
+        $queryRouter = new InMemoryQueryRouter();
+        $queryRouter->registerHandler(
+            GetAgentOperationHandler::queryRegistration(),
+            new GetAgentOperationHandler($ports->agentOperationRepository, $ports->operationAuthorization)
         );
+        $view = new RoutingQueryBus($queryRouter)->fetch(new GetAgentOperation($key, $request->getDestination()));
         self::assertSame($before, $fixture->state());
         self::assertSame($events, $fixture->publications());
         self::assertSame($transactions, $fixture->transactions());

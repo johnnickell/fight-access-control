@@ -11,6 +11,7 @@ use Fight\AccessControl\Application\AccessControl\Agent\QueryHandler\GetAgentByI
 use Fight\AccessControl\Application\AccessControl\Agent\QueryHandler\GetAgentOperationHandler;
 use Fight\AccessControl\Application\AccessControl\Agent\QueryHandler\ListAgentsHandler;
 use Fight\AccessControl\Domain\AccessControl\Agent\Agent;
+use Fight\AccessControl\Domain\AccessControl\Agent\Command\ProvisionAgent;
 use Fight\AccessControl\Domain\AccessControl\Agent\Exception\CurrentAgentPrincipalResolutionRejectedException;
 use Fight\AccessControl\Domain\AccessControl\Agent\Query\AgentView;
 use Fight\AccessControl\Domain\AccessControl\Agent\Query\GetAgentById;
@@ -48,7 +49,7 @@ final class AgentHydrationTest extends TestCase
     public function test_hydration_preserves_reads_authentication_and_original_issuance(bool $revoked): void
     {
         $env = new ProvisioningEnvironment();
-        $issuance = $env->service()->provision($env->key, $env->request)->getIssuance();
+        $issuance = $env->bus()->dispatchAndRead(new ProvisionAgent($env->key, $env->request))->getIssuance();
         self::assertNotNull($issuance);
         $clock = new FixedClock($issuance->getIssuedAt());
         if ($revoked) {

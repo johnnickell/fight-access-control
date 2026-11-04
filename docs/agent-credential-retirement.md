@@ -14,7 +14,7 @@ No real database/sink/consumer pass is claimed.
 | `AgentCredentialLifecycleService::revoke(actorId, agentId)` | Load exact current Agent, construct its terminal successor, replace through the repository and write safe audit in one package-owned transaction. Publish `AgentCredentialRevoked` only after commit. |
 | Direct `Agent::revoke()` | Construct an immutable successor, preserving the authentication envelope and credential tuple. This alone is not a persisted revocation. |
 | Direct `AgentRepository::replace(expected, replacement)` | Compare the entire authoritative predecessor, validate the Domain successor and atomically retire its original delivery before persisting the successor. Never bypass this because the caller is not HTTP or not the lifecycle service. |
-| `AgentCredentialRotationService::rotate()` / `Agent::rotateRecoverableCredential()` | Supported rotation with operation correlation and this cancellation seam. The old raw-return service and aggregate APIs are removed. |
+| `RotateAgentCredential` / `RotateAgentCredentialHandler` / `Agent::rotateRecoverableCredential()` | Registered void Command coordination with operation correlation and this cancellation seam. Original outcomes use authorized Query dispatch; no direct service/result facade. |
 | Rotation-capable direct repository replacement | A valid successor has a different credential ID and exactly the next credential revision. Every predecessor uses the same cancellation boundary. This is not a replacement rotation workflow or authorization to invent operation correlation. |
 | `replacePermissionAssignments()` | Must preserve all credential state and operation correlation, and share the Agent credential fence. A stale Permission writer cannot undo revocation. |
 | `add()` / consumer hydration | New insertion only, never an upsert over existing authority. Validate persisted authority and current-operation correlation. Reconstructing a revoked Agent as active or newly provisioned is not supported. |
@@ -106,7 +106,8 @@ It still participates in the shared fences; it never materializes secrets.
 Revocation keeps existing failure behavior: pre-commit errors roll back and rethrow; confirmed commit precedes the
 revocation event; a success-publication fault still throws that original fault after attempted redacted failure
 publication. Failure-publication faults cannot replace it. Both publishers failing leaves committed revocation and
-retirement intact. There is **no** provision/rotation publication-warning result here. An unconfirmed commit remains
+retirement intact. Provision/rotation instead contain publisher faults after confirmed commit under their void-Command contract;
+that exception does not apply here. An unconfirmed commit remains
 an error, not evidence of rollback; inspect current authoritative state before deciding the next authorized action.
 No automatic new issuance or compensating restore is allowed.
 

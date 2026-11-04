@@ -17,13 +17,12 @@ There is no Unit of Work, cipher, generator, sink, audit repository, event dispa
 
 ```php
 use Fight\AccessControl\Domain\AccessControl\Agent\Query\GetAgentOperation;
-use Fight\Common\Domain\Messaging\Query\QueryMessage;
 
 // Use the original retained key and registered destination, not a name, path or URL.
 $query = new GetAgentOperation($retainedKey, $registeredDestination);
-$view = $handler->handle(QueryMessage::create($query));
+$view = $queryBus->fetch($query);
 if (!$view->isConfirmed()) {
-    // Outcome remains indeterminate. Keep the original key/request for service resolution.
+    // Outcome remains indeterminate. Keep the original key/request for authorized Command retry.
     // Do not infer rollback, choose a new key, or report delivery or launch permission.
 }
 ```
@@ -98,8 +97,8 @@ whose key differs from its top-level key. Missing result fields and invalid enum
   `current` is recorded lifecycle metadata, not permission to sign, activate an enrollment or launch.
 
 Original issuance stays identical after supersession, revocation, expiry or delivery-copy retirement. No successor
-credential is substituted. Publication warnings are transient service-result metadata, not stored delivery outcomes;
-status does not reconstruct warnings from events. Even both publishers failing leaves authoritative issuance readable.
+credential is substituted. Under TASK-00182, provisioning/rotation Commands return void; there is no returned or
+stored publication warning, and status does not reconstruct one from events. Even both publishers failing leaves authoritative issuance readable.
 Neither a confirmed result nor a `delivered` value supplies enrollment activation, launch permission or secret access.
 
 Every Agent uses the [current correlated model](agent-current-contract.md). Administrative `AgentView` has no legacy
@@ -126,15 +125,17 @@ those writers and retain them in tombstones. Unknown canonical versions remain s
 | --- | --- | --- |
 | Authoritative committed record | Confirmed original issuance and recorded disposition | No issuance, generation, audit or event repeats |
 | Authoritative absence | Indeterminate view; no guessed identity/disposition | Absence is not proof of rollback; retain the key |
-| Storage or integration unavailable | Sanitized retryable `AgentOperationRejectedException(UNAVAILABLE)` | Retry status or original service request after recovery; no fabricated result |
+| Storage or integration unavailable | Sanitized retryable `AgentOperationRejectedException(UNAVAILABLE)` | Retry status or original Command after recovery; no fabricated result |
 | Current authority denied or binding mismatch | Sanitized `UNAUTHORIZED` | No conflicting/existing outcome disclosed |
 | Unsupported retained request version | Sanitized `UNSUPPORTED_VERSION` | No rewrite, current canonicalization, mutation or new issuance |
-| Prior known pre-commit service rejection | Remains the original service's rejection, not reconstructed by this query | An absent record still cannot prove why an earlier attempt left no record |
+| Prior known pre-commit execution rejection | Remains the execution-channel rejection, not reconstructed by this Query | An absent record still cannot prove why an earlier attempt left no record |
 
 The query never infers outcomes from missing success/failure events. After lost commit acknowledgement, an actually
 committed record becomes confirmed; an actually rolled-back attempt remains indeterminate to the read path. The
-owning provisioning/rotation service reconciles the same original key/request when a mutation decision is needed.
-No automatic key replacement or reissue occurs here. New-work capacity exhaustion and invalid issuance-limit
+owning provisioning/rotation CommandHandler reconciles the same original key/request when a mutation decision is needed.
+Before delayed execution, during in-flight work, after rollback or when unknown, absence remains the same
+indeterminate view—not queued/running/rejected status. It cannot reconstruct worker errors or promise an async
+submitter receives them. No automatic key replacement or reissue occurs here. New-work capacity exhaustion and invalid issuance-limit
 overrides do not gate status. There are no read-policy overrides requiring manual setup or another human approval.
 
 Dependency exceptions are sanitized without chaining their original throwable. Status arrays, ordinary object

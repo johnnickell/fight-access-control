@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace Fight\Test\AccessControl\Application\AccessControl\Agent\Delivery;
 
+use Fight\AccessControl\Application\AccessControl\Agent\CommandHandler\ProvisionAgentHandler;
+use Fight\AccessControl\Application\AccessControl\Agent\CommandHandler\RotateAgentCredentialHandler;
 use Fight\AccessControl\Application\AccessControl\Agent\Credential\AgentCredentialLifecycleService;
-use Fight\AccessControl\Application\AccessControl\Agent\Credential\AgentCredentialRotationService;
-use Fight\AccessControl\Application\AccessControl\Agent\Credential\AgentProvisioningService;
 use Fight\AccessControl\Application\AccessControl\Agent\Delivery\AgentCredentialDeliveryService;
 use Fight\AccessControl\Application\AccessControl\Agent\Delivery\AgentCredentialReceiptLookup;
 use Fight\AccessControl\Application\AccessControl\Agent\Delivery\AgentDeliveryRecoveryService;
@@ -14,6 +14,8 @@ use Fight\AccessControl\Application\AccessControl\Agent\Delivery\AgentDeliveryRe
 use Fight\AccessControl\Application\AccessControl\Agent\Maintenance\AgentDeliveryMaintenanceService;
 use Fight\AccessControl\Application\AccessControl\Agent\QueryHandler\GetAgentOperationHandler;
 use Fight\AccessControl\Application\AccessControl\Agent\QueryHandler\ListDueAgentDeliveriesHandler;
+use Fight\AccessControl\Domain\AccessControl\Agent\Command\ProvisionAgent;
+use Fight\AccessControl\Domain\AccessControl\Agent\Command\RotateAgentCredential;
 use Fight\AccessControl\Domain\AccessControl\Agent\Delivery\AgentDeliveryPolicy;
 use Fight\AccessControl\Domain\AccessControl\Agent\Delivery\AgentDeliverySchedule;
 use Fight\AccessControl\Domain\AccessControl\Agent\Maintenance\AgentMaintenancePolicy;
@@ -27,6 +29,7 @@ use Fight\AccessControl\Domain\AccessControl\Agent\Operation\AgentRotationReques
 use Fight\AccessControl\Domain\AccessControl\Agent\Query\AgentOperationView;
 use Fight\AccessControl\Domain\AccessControl\Agent\Query\GetAgentOperation;
 use Fight\Common\Domain\Messaging\Query\QueryMessage;
+use Fight\Test\AccessControl\Application\AccessControl\Agent\Credential\IssuanceBusFixture;
 use Fight\Test\AccessControl\Application\AccessControl\Agent\Delivery\Conformance\DeliveryConformanceFixture;
 use PHPUnit\Framework\TestCase;
 
@@ -114,7 +117,7 @@ abstract class DeliveryConformance extends TestCase
         ?AgentCredentialDestination $destination = null
     ): AgentIssuance {
         $ports = $fixture->ports();
-        $result = new AgentCredentialRotationService(
+        $handler = new RotateAgentCredentialHandler(
             $ports->agentRepository,
             $ports->agentOperationRepository,
             $ports->auditEvidenceRepository,
@@ -125,15 +128,17 @@ abstract class DeliveryConformance extends TestCase
             $ports->clock,
             $ports->transaction,
             $ports->eventDispatcher
-        )->rotate(
-            new AgentOperationKey($old->getKey()->getScope(), AgentOperationId::generate()),
-            new AgentRotationRequest(
-                $old->getAgentId(),
-                $old->getCredentialId(),
-                $old->getCredentialRevision(),
-                $destination ?? $old->getDestination()
-            )
         );
+        $result = new IssuanceBusFixture($handler, $ports->agentOperationRepository, $ports->operationAuthorization)
+            ->dispatchAndRead(new RotateAgentCredential(
+                new AgentOperationKey($old->getKey()->getScope(), AgentOperationId::generate()),
+                new AgentRotationRequest(
+                    $old->getAgentId(),
+                    $old->getCredentialId(),
+                    $old->getCredentialRevision(),
+                    $destination ?? $old->getDestination()
+                )
+            ));
         self::assertTrue($result->isConfirmed());
         $issuance = $result->getIssuance();
         self::assertNotNull($issuance);
@@ -148,7 +153,7 @@ abstract class DeliveryConformance extends TestCase
         ?AgentOperationLimits $limits = null
     ): AgentIssuance {
         $ports = $fixture->ports();
-        $result = new AgentProvisioningService(
+        $handler = new ProvisionAgentHandler(
             $ports->agentRepository,
             $ports->agentOperationRepository,
             $ports->auditEvidenceRepository,
@@ -160,7 +165,11 @@ abstract class DeliveryConformance extends TestCase
             $ports->transaction,
             $ports->eventDispatcher,
             $limits ?? new AgentOperationLimits()
-        )->provision($key, new AgentProvisioningRequest('Conformance Agent', $destination));
+        );
+        $result = new IssuanceBusFixture($handler, $ports->agentOperationRepository, $ports->operationAuthorization)
+            ->dispatchAndRead(
+                new ProvisionAgent($key, new AgentProvisioningRequest('Conformance Agent', $destination))
+            );
         self::assertTrue($result->isConfirmed());
         $issuance = $result->getIssuance();
         self::assertNotNull($issuance);

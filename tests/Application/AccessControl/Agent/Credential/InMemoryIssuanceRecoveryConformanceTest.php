@@ -5,9 +5,9 @@ declare(strict_types=1);
 namespace Fight\Test\AccessControl\Application\AccessControl\Agent\Credential;
 
 use Fight\AccessControl\Application\AccessControl\Agent\Authentication\CurrentAgentPrincipalProvider;
+use Fight\AccessControl\Application\AccessControl\Agent\CommandHandler\ProvisionAgentHandler;
+use Fight\AccessControl\Application\AccessControl\Agent\CommandHandler\RotateAgentCredentialHandler;
 use Fight\AccessControl\Application\AccessControl\Agent\Credential\AgentCredentialLifecycleService;
-use Fight\AccessControl\Application\AccessControl\Agent\Credential\AgentCredentialRotationService;
-use Fight\AccessControl\Application\AccessControl\Agent\Credential\AgentProvisioningService;
 use Fight\AccessControl\Application\AccessControl\Agent\Delivery\AgentCredentialDeliveryService;
 use Fight\AccessControl\Application\AccessControl\Agent\Delivery\AgentDeliveryRecoveryService;
 use Fight\AccessControl\Application\AccessControl\Agent\Maintenance\AgentDeliveryMaintenanceService;
@@ -18,8 +18,8 @@ use Fight\Test\AccessControl\Application\AccessControl\Agent\Credential\Conforma
 use Fight\Test\AccessControl\Application\AccessControl\Agent\Credential\Conformance\IssuanceRecoveryFixture;
 use PHPUnit\Framework\Attributes\CoversClass;
 
-#[CoversClass(AgentProvisioningService::class)]
-#[CoversClass(AgentCredentialRotationService::class)]
+#[CoversClass(ProvisionAgentHandler::class)]
+#[CoversClass(RotateAgentCredentialHandler::class)]
 #[CoversClass(AgentCredentialLifecycleService::class)]
 #[CoversClass(CurrentAgentPrincipalProvider::class)]
 #[CoversClass(GetAgentOperationHandler::class)]

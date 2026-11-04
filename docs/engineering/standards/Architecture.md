@@ -119,9 +119,9 @@ tombstones, generations, ordering, writer fences and restoration safety. Apply
 [ADR 0011](../../../planning/adr/0011-pre-v1-current-contract-only.md): remove obsolete AccessControl APIs directly
 when their replacement is implemented, without aliases, historical readers or migration/backfill machinery.
 Do not confuse those removals with permission to weaken current safety. Success facts follow confirmed commit;
-uncertainty and Agent issuance's scoped publication policy remain distinct under the profile. Direct services remain
-the current source baseline; the approved void-Command/outcome-Query conversion supersedes their returned-warning
-caller contract only when implemented, not the guarantee that publication failure cannot hide committed issuance.
+uncertainty and Agent issuance's scoped publication policy remain distinct under the profile. TASK-00182's Work candidate now replaces the direct issuance services/results with registered void Commands and
+independent authorized outcome Queries. The returned-warning caller contract is removed; the guarantee that
+publication failure cannot hide committed issuance remains. Independent acceptance is separate.
 Required audit in current source is unchanged here; EPIC-00017's optional-atomic audit destination has separate owners.
 Exact owned-statement coverage and OpenAPI integration coverage remain mandatory. An actual source/policy mismatch
 returns to its named TASK/decision owner; this guidance neither repairs it nor authorizes later work.

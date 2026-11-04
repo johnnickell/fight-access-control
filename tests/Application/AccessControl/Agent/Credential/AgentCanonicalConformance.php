@@ -5,13 +5,15 @@ declare(strict_types=1);
 namespace Fight\Test\AccessControl\Application\AccessControl\Agent\Credential;
 
 use Closure;
-use Fight\AccessControl\Application\AccessControl\Agent\Credential\AgentCredentialRotationService;
-use Fight\AccessControl\Application\AccessControl\Agent\Credential\AgentProvisioningService;
+use Fight\AccessControl\Application\AccessControl\Agent\CommandHandler\ProvisionAgentHandler;
+use Fight\AccessControl\Application\AccessControl\Agent\CommandHandler\RotateAgentCredentialHandler;
 use Fight\AccessControl\Application\AccessControl\Agent\Delivery\AgentDeliveryResult;
 use Fight\AccessControl\Application\AccessControl\Agent\Maintenance\AgentMaintenanceResult;
 use Fight\AccessControl\Application\AccessControl\Agent\QueryHandler\GetAgentOperationHandler;
 use Fight\AccessControl\Domain\AccessControl\Agent\AgentCredentialId;
 use Fight\AccessControl\Domain\AccessControl\Agent\AgentId;
+use Fight\AccessControl\Domain\AccessControl\Agent\Command\ProvisionAgent;
+use Fight\AccessControl\Domain\AccessControl\Agent\Command\RotateAgentCredential;
 use Fight\AccessControl\Domain\AccessControl\Agent\Exception\AgentOperationRejectedException;
 use Fight\AccessControl\Domain\AccessControl\Agent\Operation\AgentCredentialDestination;
 use Fight\AccessControl\Domain\AccessControl\Agent\Operation\AgentDestinationId;
@@ -284,13 +286,17 @@ abstract class AgentCanonicalConformance extends DeliveryConformance
             $ports->eventDispatcher
         ];
         if ($request instanceof AgentProvisioningRequest) {
-            $result = new AgentProvisioningService(...$arguments)->provision($key, $request);
+            $handler = new ProvisionAgentHandler(...$arguments);
+            $command = new ProvisionAgent($key, $request);
         } else {
-            $result = new AgentCredentialRotationService(...$arguments)->rotate($key, $request);
+            $handler = new RotateAgentCredentialHandler(...$arguments);
+            $command = new RotateAgentCredential($key, $request);
         }
 
+        $result = new IssuanceBusFixture($handler, $ports->agentOperationRepository, $ports->operationAuthorization)
+            ->dispatchAndRead($command);
         self::assertTrue($result->isConfirmed());
-        self::assertNull($result->getWarning());
+        self::assertArrayNotHasKey('warning', $result->toArray());
         $issuance = $result->getIssuance();
         self::assertNotNull($issuance);
         $this->assertSafe($fixture, [$result, $issuance->toArray()]);

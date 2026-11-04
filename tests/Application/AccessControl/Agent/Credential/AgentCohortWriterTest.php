@@ -4,14 +4,15 @@ declare(strict_types=1);
 
 namespace Fight\Test\AccessControl\Application\AccessControl\Agent\Credential;
 
+use Fight\AccessControl\Application\AccessControl\Agent\CommandHandler\ProvisionAgentHandler;
 use Fight\AccessControl\Application\AccessControl\Agent\Credential\AgentCredentialLifecycleService;
-use Fight\AccessControl\Application\AccessControl\Agent\Credential\AgentProvisioningService;
 use Fight\AccessControl\Application\AccessControl\Agent\Delivery\AgentDeliveryResult;
 use Fight\AccessControl\Application\AccessControl\Agent\Maintenance\AgentDeliveryMaintenanceService;
 use Fight\AccessControl\Application\AccessControl\Agent\Maintenance\AgentMaintenanceResult;
 use Fight\AccessControl\Application\AccessControl\Agent\PermissionAssignment\AgentPermissionAssignmentCoordinator;
 use Fight\AccessControl\Application\AccessControl\Agent\QueryHandler\CountAgentDeliveryKeyReferencesHandler;
 use Fight\AccessControl\Application\AccessControl\Agent\QueryHandler\ListAgentDeliveryMaintenanceHandler;
+use Fight\AccessControl\Domain\AccessControl\Agent\Command\ProvisionAgent;
 use Fight\AccessControl\Domain\AccessControl\Agent\Delivery\AgentDeliveryClaimId;
 use Fight\AccessControl\Domain\AccessControl\Agent\Delivery\AgentDeliveryPolicy;
 use Fight\AccessControl\Domain\AccessControl\Agent\Exception\AgentOperationRejectedException;
@@ -44,7 +45,7 @@ use PHPUnit\Framework\TestCase;
 #[CoversClass(AgentPermissionAssignmentCoordinator::class)]
 #[CoversClass(AgentCredentialLifecycleService::class)]
 #[CoversClass(AgentDeliveryMaintenanceService::class)]
-#[CoversClass(AgentProvisioningService::class)]
+#[CoversClass(ProvisionAgentHandler::class)]
 final class AgentCohortWriterTest extends TestCase
 {
     /** @return iterable<string, array{string, bool}> */
@@ -179,7 +180,9 @@ final class AgentCohortWriterTest extends TestCase
         $agentRepository = new InMemoryAgentRepository($env->transaction);
         $agentRepository->contract->switchTo(InMemoryAgentOperationContract::compatible(2));
         try {
-            $env->service(agentRepository: $agentRepository)->provision($env->key, $env->request);
+            $env->bus(agentRepository: $agentRepository)->commandBus->execute(
+                new ProvisionAgent($env->key, $env->request)
+            );
             self::fail('Distinct repository cohorts cannot form a writer.');
         } catch (AgentOperationRejectedException $agentOperationRejectedException) {
             self::assertSame(AgentOperationFailure::UNAVAILABLE, $agentOperationRejectedException->getReason());

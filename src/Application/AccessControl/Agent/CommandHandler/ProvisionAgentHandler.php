@@ -2,17 +2,24 @@
 
 declare(strict_types=1);
 
-namespace Fight\AccessControl\Application\AccessControl\Agent\Credential;
+namespace Fight\AccessControl\Application\AccessControl\Agent\CommandHandler;
 
+use Fight\AccessControl\Application\AccessControl\Agent\Credential\AgentOperationAuthorization;
+use Fight\AccessControl\Application\AccessControl\Agent\Credential\HmacSharedSecretCipher;
+use Fight\AccessControl\Application\AccessControl\Agent\Credential\HmacSharedSecretGenerator;
 use Fight\AccessControl\Application\AccessControl\Agent\Delivery\AgentDeliveryCipher;
 use Fight\AccessControl\Application\AccessControl\Timing\Service\Clock;
+use Fight\AccessControl\Domain\AccessControl\Agent\Agent;
 use Fight\AccessControl\Domain\AccessControl\Agent\AgentCredentialId;
+use Fight\AccessControl\Domain\AccessControl\Agent\AgentId;
+use Fight\AccessControl\Domain\AccessControl\Agent\AgentName;
 use Fight\AccessControl\Domain\AccessControl\Agent\AgentRepository;
-use Fight\AccessControl\Domain\AccessControl\Agent\Event\AgentCredentialLifecycleFailed;
-use Fight\AccessControl\Domain\AccessControl\Agent\Event\AgentCredentialRotated;
-use Fight\AccessControl\Domain\AccessControl\Agent\Exception\AgentCredentialException;
+use Fight\AccessControl\Domain\AccessControl\Agent\Command\ProvisionAgent;
+use Fight\AccessControl\Domain\AccessControl\Agent\Event\AgentProvisioned;
+use Fight\AccessControl\Domain\AccessControl\Agent\Event\AgentProvisioningFailed;
 use Fight\AccessControl\Domain\AccessControl\Agent\Exception\AgentOperationCollisionException;
 use Fight\AccessControl\Domain\AccessControl\Agent\Exception\AgentOperationRejectedException;
+use Fight\AccessControl\Domain\AccessControl\Agent\Exception\AgentOperationUncertainException;
 use Fight\AccessControl\Domain\AccessControl\Agent\Operation\AgentCredentialOperation;
 use Fight\AccessControl\Domain\AccessControl\Agent\Operation\AgentDeliveryId;
 use Fight\AccessControl\Domain\AccessControl\Agent\Operation\AgentIssuance;
@@ -21,22 +28,24 @@ use Fight\AccessControl\Domain\AccessControl\Agent\Operation\AgentOperationFailu
 use Fight\AccessControl\Domain\AccessControl\Agent\Operation\AgentOperationKey;
 use Fight\AccessControl\Domain\AccessControl\Agent\Operation\AgentOperationLimits;
 use Fight\AccessControl\Domain\AccessControl\Agent\Operation\AgentOperationRepository;
-use Fight\AccessControl\Domain\AccessControl\Agent\Operation\AgentRotationRequest;
+use Fight\AccessControl\Domain\AccessControl\Agent\Operation\AgentProvisioningRequest;
 use Fight\AccessControl\Domain\AccessControl\Audit\AuditEvidence;
 use Fight\AccessControl\Domain\AccessControl\Audit\AuditEvidenceRepository;
+use Fight\Common\Application\Messaging\Command\CommandHandler;
 use Fight\Common\Application\Messaging\Event\EventDispatcher;
 use Fight\Common\Application\Repository\TransactionalUnitOfWork;
+use Fight\Common\Domain\Messaging\Command\CommandMessage;
 use Throwable;
 
 /**
- * Class AgentCredentialRotationService
+ * Class ProvisionAgentHandler
  *
- * Commits a correlated successor and retirement together, resolving original requests without rotating again.
+ * Commits recoverable issuance and prepared delivery without returning raw credential material.
  */
-final readonly class AgentCredentialRotationService
+final readonly class ProvisionAgentHandler implements CommandHandler
 {
     /**
-     * Constructs AgentCredentialRotationService
+     * Constructs ProvisionAgentHandler
      */
     public function __construct(
         private AgentRepository $agentRepository,
@@ -54,12 +63,23 @@ final readonly class AgentCredentialRotationService
     }
 
     /**
-     * Updates or resolves the original key under current fenced scope, target and destination authority
+     * @inheritDoc
      */
-    public function rotate(AgentOperationKey $key, AgentRotationRequest $request): AgentCredentialRotationResult
+    public static function commandRegistration(): string
     {
+        return ProvisionAgent::class;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function handle(CommandMessage $commandMessage): void
+    {
+        /** @var ProvisionAgent $command */
+        $command = $commandMessage->payload();
+        $key = $command->getKey();
+        $request = $command->getRequest();
         $resolveOnly = false;
-        $missingReason = AgentOperationFailure::CONTENTION;
         while (true) {
             $callbackCompleted = false;
             $created = false;
@@ -73,18 +93,13 @@ final readonly class AgentCredentialRotationService
                     $key,
                     $request,
                     $resolveOnly,
-                    $missingReason,
                     &$callbackCompleted,
                     &$created
                 ): AgentIssuance {
                     $this->agentOperationRepository->getOperationContract()->assertSameCohort(
                         $this->agentRepository->getOperationContract()
                     );
-                    $actor = $this->operationAuthorization->authorizeRotation(
-                        $key->getScope(),
-                        $request->getDestination(),
-                        $request->getAgentId()
-                    );
+                    $actor = $this->operationAuthorization->authorize($key->getScope(), $request->getDestination());
                     if (preg_match('/\A[A-Za-z0-9_.:-]{1,128}\z/D', $actor) !== 1) {
                         throw new AgentOperationRejectedException(AgentOperationFailure::UNAVAILABLE);
                     }
@@ -94,7 +109,7 @@ final readonly class AgentCredentialRotationService
                         $issuance = $operation->resolve($request);
                     } else {
                         if ($resolveOnly) {
-                            throw new AgentOperationRejectedException($missingReason);
+                            throw new AgentOperationRejectedException(AgentOperationFailure::CONTENTION);
                         }
 
                         $issuance = $this->issue($key, $request, $actor);
@@ -106,24 +121,15 @@ final readonly class AgentCredentialRotationService
                     return $issuance;
                 });
             } catch (Throwable $failure) {
+                // A lost commit acknowledgement cannot be classified as rollback, even after a read-only retry.
                 if ($callbackCompleted) {
                     $this->publishFailure();
 
-                    return AgentCredentialRotationResult::indeterminate();
+                    throw new AgentOperationUncertainException();
                 }
 
-                // A concurrent same-key winner may have replaced the predecessor after our absent-key read.
-                // Resolve only after all losing writes roll back; never generate again inside this invocation.
-                if (
-                    !$resolveOnly
-                    && ($failure instanceof AgentOperationCollisionException
-                        || $failure instanceof AgentCredentialException)
-                ) {
+                if ($failure instanceof AgentOperationCollisionException && !$resolveOnly) {
                     $resolveOnly = true;
-                    if ($failure instanceof AgentCredentialException) {
-                        $missingReason = AgentOperationFailure::CONFLICT;
-                    }
-
                     continue;
                 }
 
@@ -133,57 +139,51 @@ final readonly class AgentCredentialRotationService
                     $reason = $failure->getReason();
                 }
 
+                // Do not chain arbitrary exceptions or expose their provider messages or trace arguments.
                 throw new AgentOperationRejectedException($reason);
             }
 
-            if (!$created) {
-                return AgentCredentialRotationResult::confirmed($issuance);
+            if ($created) {
+                $this->publishIssuance($issuance);
             }
 
-            return $this->publishIssuance($issuance);
+            return;
         }
     }
 
     /**
-     * Creates the successor through the existing atomic retirement seam inside one package transaction
+     * Creates all issuance state inside the package-owned transaction
      */
-    private function issue(AgentOperationKey $key, AgentRotationRequest $request, string $actor): AgentIssuance
-    {
+    private function issue(
+        AgentOperationKey $key,
+        AgentProvisioningRequest $request,
+        string $actor
+    ): AgentIssuance {
+        $this->limits->validateNewRequest($request);
         $canonicalRequest = $request->canonicalize();
-        $agent = $this->agentRepository->getById($request->getAgentId());
-        if ($agent === null) {
-            throw new AgentOperationRejectedException(AgentOperationFailure::CONFLICT);
-        }
-
-        $agent->assertRecoverableRotation(
-            $request->getExpectedCredentialId(),
-            $request->getExpectedCredentialRevision()
-        );
         $issuedAt = $this->clock->now();
+        $agentId = AgentId::generate();
         $credentialId = AgentCredentialId::generate();
         $issuance = new AgentIssuance(
             $key,
             AgentDeliveryId::generate(),
-            $request->getAgentId(),
+            $agentId,
             $credentialId,
-            $request->getExpectedCredentialRevision() + 1,
+            0,
             $request->getDestination(),
             $this->agentOperationRepository->reserveDestinationWrite($request->getDestination()),
             $issuedAt
         );
         $secret = $this->hmacSharedSecretGenerator->generate();
-        $successor = $agent->rotateRecoverableCredential(
-            $request->getExpectedCredentialId(),
-            $request->getExpectedCredentialRevision(),
+        $agent = Agent::provision(
+            $agentId,
+            AgentName::fromString($request->getName()),
             $credentialId,
             $this->hmacSharedSecretCipher->encrypt($secret),
             $issuedAt
         );
         $material = $this->deliveryCipher->encrypt($secret, $issuance);
-        if (!$this->agentRepository->replace($agent, $successor)) {
-            throw new AgentCredentialException('The expected Agent credential is no longer authoritative.');
-        }
-
+        $this->agentRepository->add($agent);
         $this->agentOperationRepository->add(
             new AgentCredentialOperation(
                 AgentOperationCanonicalization::VERSION,
@@ -193,18 +193,18 @@ final readonly class AgentCredentialRotationService
             ),
             $this->limits
         );
-        $this->auditEvidenceRepository->add(AuditEvidence::agentCredentialRotated($actor, $request->getAgentId()));
+        $this->auditEvidenceRepository->add(AuditEvidence::agentProvisioned($actor, $agentId));
 
         return $issuance;
     }
 
     /**
-     * Dispatches a confirmed fact without disguising committed issuance when publication fails
+     * Dispatches a confirmed fact without allowing notification faults to disguise committed issuance
      */
-    private function publishIssuance(AgentIssuance $issuance): AgentCredentialRotationResult
+    private function publishIssuance(AgentIssuance $issuance): void
     {
         try {
-            $this->eventDispatcher->trigger(new AgentCredentialRotated(
+            $this->eventDispatcher->trigger(new AgentProvisioned(
                 $issuance->getAgentId(),
                 $issuance->getCredentialId(),
                 $issuance->getCredentialRevision(),
@@ -212,20 +212,16 @@ final readonly class AgentCredentialRotationService
             ));
         } catch (Throwable) {
             $this->publishFailure();
-
-            return AgentCredentialRotationResult::confirmed($issuance, AgentPublicationWarning::PUBLICATION_FAILED);
         }
-
-        return AgentCredentialRotationResult::confirmed($issuance);
     }
 
     /**
-     * Dispatches sanitized evidence without replacing the original outcome
+     * Dispatches sanitized evidence without replacing the actual operation outcome
      */
     private function publishFailure(): void
     {
         try {
-            $this->eventDispatcher->trigger(new AgentCredentialLifecycleFailed(
+            $this->eventDispatcher->trigger(new AgentProvisioningFailed(
                 'credential-operation',
                 'Agent operation failed.'
             ));

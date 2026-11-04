@@ -18,10 +18,9 @@ php vendor/bin/phpunit --no-coverage \
   tests/Application/AccessControl/Agent/Credential/InMemoryIssuanceRecoveryConformanceTest.php
 ```
 
-This is product behavior/conformance, included in the ordinary Application suite and `./bin/build`; it is not
-release-tooling qualification. In the isolated package runtime, the same command can be passed directly to
-`docker run --rm -v "$PWD:/app" -w /app fight-access-control`. `bin/phpunit` uses an interactive TTY; automation
-without a TTY should use this direct container invocation rather than weakening the product gate.
+This is product behavior/conformance, included in the ordinary Application suite and `./bin/build`, not tooling
+qualification. Use `./bin/phpunit --no-coverage` with the suite path for the selected isolated runtime; the wrapper
+uses noninteractive execution. Do not allocate another standalone Docker runtime for these checks.
 
 A consumer:
 
@@ -34,7 +33,7 @@ A consumer:
    [`IssuanceRecoveryFixture`](../tests/Application/AccessControl/Agent/Credential/Conformance/IssuanceRecoveryFixture.php)
    using its actual repositories, transaction/authority adapters and controlled test sink. Returns
    [`IssuanceRecoveryPorts`](../tests/Application/AccessControl/Agent/Credential/Conformance/IssuanceRecoveryPorts.php),
-   containing only public Domain/Application/Common capabilities. The suite itself constructs package services.
+   containing only public Domain/Application/Common capabilities. The suite constructs the actual registered issuance handlers/Common buses and independently queries status.
 4. Extends `IssuanceRecoveryConformance`, implements `newFixture()`, and uses the reference subclass's coverage
    metadata when its PHPUnit configuration requires it. Each fixture must own a fresh isolated dataset, destination
    and authenticated context; UUID fixtures come from the owning factories.
@@ -89,7 +88,8 @@ accept supplied strings/booleans as its production authorization decision.
 ## Outcome and authority separation
 
 The combined publication scenario runs for **both provision and rotation**, with pending and abandoned-claim variants.
-It confirms one transaction/issuance/audit and a typed `PUBLICATION_FAILED` warning even when both publishers throw.
+Under TASK-00182 it executes the void Command, then independently queries one confirmed issuance/audit even when
+both publishers throw. No invocation warning is returned or reconstructed.
 Safe status is still pending and no sink bytes exist. After dropping caller inputs and publisher memory, the actual
 bounded discovery → claim → admission → sink → receipt-confirmed outcome path delivers without caller retry. A second
 pass is empty; the original tuple, audit fact and credential authority are unchanged. Neither a response nor a receipt
@@ -105,7 +105,7 @@ Before consumer support, additionally run the actual enrollment/broker boundary 
 
 | Consumer scenario | Required outcome |
 | --- | --- |
-| Confirmed issuance or publication warning, no confirmed exact delivery | No activation or launch; metadata cannot act as an authorization capability. |
+| Confirmed issuance (including after publisher failure), no confirmed exact delivery | No activation or launch; metadata cannot act as an authorization capability. |
 | Confirmed exact receipt and current transactional enrollment authority | Only an independently confirmed activation may be recorded; receipt alone is insufficient. |
 | Caller/delegation/destination revoked or rebound before activation, including revoke/regrant ABA | Deny stale activation; activation participates in the shared authority fence. |
 | Already staged bytes/receipt after rotation, revocation or cross-scope slot reassignment | Deny obsolete activation and use, even before the sink learns the newer slot version. |
@@ -125,7 +125,7 @@ is recorded in TASK-00049, with full logs/receipt in its ignored run directory. 
 | TICKET-00012 | Integrated/reusable evidence | Focused predecessor evidence retained |
 | --- | --- | --- |
 | I1 normal issuance, status, separate outcomes | `test_both_publishers_and_caller_can_disappear_before_scheduler_only_recovery`; `test_actual_delivery_then_revocation_retains_original_status_without_authority`; terminal/expiry tests below | [provisioning evidence](agent-provisioning-operations.md#package-evidence-and-consumer-qualification), [rotation evidence](agent-rotation-operations.md#evidence-and-limits), `GetAgentOperationHandlerTest` read-only/current-target checks |
-| I2 original-key recovery, canonical binding, uniqueness | `test_same_key_retry_preserves_fact_identity_and_current_authority`; `test_retained_binding_conflicts_and_unknown_versions_never_issue`; `test_contending_same_key_requests_resolve_one_issuance`; `test_contending_different_bindings_leave_one_winner_and_one_conflict`; `test_competing_rotation_keys_cannot_both_replace_one_predecessor` | `AgentProvisioningServiceTest::test_unique_loser_rolls_back_then_resolves_or_conflicts_with_winner`; `AgentCredentialRotationServiceTest::test_concurrent_loser_rolls_back_then_resolves_only_the_authoritative_winner` inject actual loser rollback/winner visibility rather than just serialized calls |
+| I2 original-key recovery, canonical binding, uniqueness | `test_same_key_retry_preserves_fact_identity_and_current_authority`; `test_retained_binding_conflicts_and_unknown_versions_never_issue`; `test_contending_same_key_requests_resolve_one_issuance`; `test_contending_different_bindings_leave_one_winner_and_one_conflict`; `test_competing_rotation_keys_cannot_both_replace_one_predecessor` | `ProvisionAgentHandlerTest::test_unique_loser_rolls_back_then_resolves_or_conflicts_with_winner`; `RotateAgentCredentialHandlerTest::test_concurrent_loser_rolls_back_then_resolves_only_the_authoritative_winner` inject actual loser rollback/winner visibility rather than just serialized calls |
 | I3 rollback and uncertain outcomes | `test_precommit_failure_rolls_back_every_participant_and_reservation`; `test_indeterminate_commit_resolves_original_request_after_restart`; `test_outer_transaction_cannot_wrap_an_issuance_service` | Both issuance service suites' precommit audit/encryption/persistence failures and committed/rolled-back uncertain-commit tests; closed capability checks |
 | I4 publication independence, no caller | `test_both_publishers_and_caller_can_disappear_before_scheduler_only_recovery` (both kinds × pending/abandoned); `test_same_key_retry_preserves_fact_identity_and_current_authority` | Both issuance service suites' publisher-failure tests; `AgentDeliveryRecoveryServiceTest` crash boundaries and receipt-first recovery |
 | I5 fresh authority, delegation, reservation, writers | `test_authority_writer_and_issuance_have_one_fenced_order`; `test_discovery_requires_delegation_and_cannot_cache_admission_authority`; `test_untrusted_scope_and_destination_cannot_read_or_resolve_an_existing_key`; `test_equal_ids_in_different_scopes_share_monotonic_slot_order_not_issuance`; `test_rotation_and_lifecycle_writer_never_leave_a_recoverable_revoked_credential` | Issuance authorization-participant rollback and target/delegation tests; `ListDueAgentDeliveriesHandlerTest`; `GetAgentOperationHandlerTest`; `AgentRotationAuthenticationTest` before/after nonce-boundary races |

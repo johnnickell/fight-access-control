@@ -27,7 +27,7 @@ use Throwable;
  */
 abstract class DeliveryConformanceFixture
 {
-    /** Creates exactly one pending operation through AgentProvisioningService, not hand-authored delivery state */
+    /** Creates exactly one pending operation through ProvisionAgentHandler, not hand-authored delivery state */
     abstract public function original(): AgentIssuance;
 
     /** Shares the capability bundle with issuance conformance without inheriting its workflow or fixture */

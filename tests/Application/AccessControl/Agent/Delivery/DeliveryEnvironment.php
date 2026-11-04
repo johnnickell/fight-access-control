@@ -8,6 +8,7 @@ use Fight\AccessControl\Application\AccessControl\Agent\Credential\AgentCredenti
 use Fight\AccessControl\Application\AccessControl\Agent\Delivery\AgentCredentialDeliveryService;
 use Fight\AccessControl\Application\AccessControl\Agent\Delivery\AgentCredentialSink;
 use Fight\AccessControl\Application\AccessControl\Agent\Delivery\AgentDeliveryResult;
+use Fight\AccessControl\Domain\AccessControl\Agent\Command\ProvisionAgent;
 use Fight\AccessControl\Domain\AccessControl\Agent\Delivery\AgentDeliveryPolicy;
 use Fight\AccessControl\Domain\AccessControl\Agent\Operation\AgentCredentialOperation;
 use Fight\AccessControl\Domain\AccessControl\Agent\Operation\AgentIssuance;
@@ -33,10 +34,10 @@ final readonly class DeliveryEnvironment
     public function __construct(?ProvisioningEnvironment $provisioning = null, ?AgentIssuance $issuance = null)
     {
         $this->provisioning = $provisioning ?? new ProvisioningEnvironment();
-        $this->issuance = $issuance ?? $this->provisioning->service()->provision(
+        $this->issuance = $issuance ?? $this->provisioning->bus()->dispatchAndRead(new ProvisionAgent(
             $this->provisioning->key,
             $this->provisioning->request
-        )->getIssuance() ?? throw new LogicException('Provisioning fixture failed.');
+        ))->getIssuance() ?? throw new LogicException('Provisioning fixture failed.');
         $this->clock = new DeliveryClock();
         $this->transaction = new DeliveryUnitOfWork($this->provisioning->transaction);
         $this->deliveryAuthorization = new InMemoryAgentDeliveryAuthorization($this->provisioning);

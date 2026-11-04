@@ -8,6 +8,7 @@ use Fight\AccessControl\Application\AccessControl\Agent\Maintenance\AgentMainten
 use Fight\AccessControl\Application\AccessControl\Agent\Maintenance\AgentMaintenanceResult;
 use Fight\AccessControl\Application\AccessControl\Agent\QueryHandler\CountAgentDeliveryKeyReferencesHandler;
 use Fight\AccessControl\Application\AccessControl\Agent\QueryHandler\ListAgentDeliveryMaintenanceHandler;
+use Fight\AccessControl\Domain\AccessControl\Agent\Command\ProvisionAgent;
 use Fight\AccessControl\Domain\AccessControl\Agent\Exception\AgentOperationRejectedException;
 use Fight\AccessControl\Domain\AccessControl\Agent\Maintenance\AgentDeliveryKeyVersion;
 use Fight\AccessControl\Domain\AccessControl\Agent\Maintenance\AgentMaintenanceWork;
@@ -38,10 +39,10 @@ final class AgentMaintenanceQueryTest extends TestCase
         $env = new MaintenanceEnvironment();
         $provisioning = $env->delivery->provisioning;
         for ($index = 0; $index < 51; ++$index) {
-            $provisioning->service()->provision(
+            $provisioning->bus()->commandBus->execute(new ProvisionAgent(
                 new AgentOperationKey($provisioning->key->getScope(), AgentOperationId::generate()),
                 $provisioning->request
-            );
+            ));
         }
 
         $before = [
@@ -92,11 +93,14 @@ final class AgentMaintenanceQueryTest extends TestCase
         $provisioning = $env->delivery->provisioning;
         $otherScope = new AgentOperationScope('other', 'user', 'other-maintainer');
         $provisioning->operationAuthorization->scopes[$otherScope->toString()] = true;
+        $provisioning->operationAuthorization->readDelegations[
+            $provisioning->operationAuthorization->actor.':'.$otherScope->toString()
+        ] = true;
         for ($index = 0; $index < 51; ++$index) {
-            $provisioning->service()->provision(
+            $provisioning->bus()->commandBus->execute(new ProvisionAgent(
                 new AgentOperationKey($otherScope, AgentOperationId::generate()),
                 $provisioning->request
-            );
+            ));
         }
 
         $lastKey = array_key_last($provisioning->agentOperationRepository->operations);

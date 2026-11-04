@@ -62,7 +62,10 @@ Agent authentication, credential lifecycle, delivery, maintenance and continuati
 homes, alongside Feature Discovery and authorization Admission; see the
 [current composition map](docs/agent-integration.md#public-composition-map). User secret-bearing operations now use
 [direct synchronous authentication, session, password and email-confirmation owners](docs/user-authentication.md),
-without the retired broad service. Neither refactor supplies blanket persistence/framework support.
+without the retired broad service. Recoverable Agent issuance now uses registered void `ProvisionAgent` and
+`RotateAgentCredential` Commands plus independent authorized outcome Queries, including delayed/restarted execution;
+see [current composition](docs/agent-integration.md). No direct issuance service/result facade or publication warning
+remains. These unreleased changes supply no blanket persistence/framework support or consumer qualification.
 
 | This package owns | Your application owns |
 | --- | --- |

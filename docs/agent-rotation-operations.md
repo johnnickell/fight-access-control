@@ -1,4 +1,4 @@
-# Recoverable Agent rotation (v0.5.0)
+# Recoverable Agent rotation
 
 [TASK-00048](../planning/tasks/00048-TASK.md) replaces raw-return rotation with an authorized, retained-key
 operation. It consumes [provisioning correlation](agent-provisioning-operations.md),
@@ -12,28 +12,40 @@ cover the actual paths. [Restoration guards](agent-restoration-safety.md) are im
 
 ## Public API and composition
 
-Use `AgentCredentialRotationService::rotate(AgentOperationKey, AgentRotationRequest)` with a key persisted by the
-caller **before** invocation. The request contains the target Agent ID, original expected credential ID and revision,
+TASK-00182 replaces the direct service/result API with immutable `RotateAgentCredential(key, request)` and
+registered void `RotateAgentCredentialHandler` as an **unreleased breaking caller-contract change**. Persist the key
+and original request **before** dispatch. The request contains the target Agent ID, original expected credential ID and revision,
 and a registered destination identity/binding revision. The scope comes from trusted authenticated context. No raw
 secret, URL, path, caller-computed digest or implicit operation identity is accepted.
 
 ```php
+use Fight\AccessControl\Domain\AccessControl\Agent\Command\RotateAgentCredential;
 use Fight\AccessControl\Domain\AccessControl\Agent\Operation\AgentOperationId;
 use Fight\AccessControl\Domain\AccessControl\Agent\Operation\AgentOperationKey;
 use Fight\AccessControl\Domain\AccessControl\Agent\Operation\AgentRotationRequest;
+use Fight\AccessControl\Domain\AccessControl\Agent\Query\GetAgentOperation;
 
 $key = new AgentOperationKey($trustedScope, AgentOperationId::generate());
 $request = new AgentRotationRequest($agentId, $currentCredentialId, $currentRevision, $registeredDestination);
-// Persist both key and ORIGINAL request before invoking the composed service.
-$result = $rotationService->rotate($key, $request);
-// On response loss or indeterminate commit, retry this same key AND original predecessor request.
+// Persist both key and ORIGINAL request before dispatch, independently of the envelope ID.
+$commandBus->execute(new RotateAgentCredential($key, $request)); // void, now or later
+$view = $queryBus->fetch(new GetAgentOperation($key, $registeredDestination));
+// Status before execution may be indeterminate. It cannot identify queue progress or rejection.
+// On response loss or execution uncertainty, retain this key AND original predecessor request.
 // Do not replace it with the now-current credential, create another key, or infer rollback.
 ```
 
-`AgentCredentialRotationResult` now contains only `isConfirmed()`, nullable `getIssuance()` and nullable typed
-`getWarning()`. Confirmed issuance identifies the original Agent/credential/revision, delivery ID, destination and
-write order. It is not proof of delivery, enrollment activation or launch/use permission. No secret getter remains;
-the old public raw-result constructor is gone. Safe results contain no ciphertext or decryption handle.
+Register `RotateAgentCredentialHandler::commandRegistration()` through the configured supported Common CommandBus;
+register the existing `GetAgentOperationHandler` through its QueryBus. No service facade or result channel remains.
+The Command round-trips original scoped key, Agent, expected credential ID/revision and destination ID/revision as
+strict secret-free fields. It preserves the canonical marker/bytes and original predecessor across envelope changes.
+Confirmed Query issuance identifies the original Agent/credential/revision, delivery ID, destination and write order,
+not a later successor or delivery/activation/use authority. Status contains no publication warning or secret handle.
+
+Invocation may be synchronous or asynchronous, delayed or redelivered without an active submitting transport.
+Consumers own broker/runtime/error handling and independently authenticate the real executing invoker/delegation;
+serialized actor/scope, metadata and enqueue-time authorization never confer execution authority. An async submitter
+is not promised the worker's exception.
 
 Inject the same capabilities as provisioning: `AgentRepository`, `AgentOperationRepository`,
 `AuditEvidenceRepository`, `AgentOperationAuthorization`, `HmacSharedSecretGenerator`, `HmacSharedSecretCipher`,
@@ -89,12 +101,14 @@ recompose and retain the original request rather than inventing another key.
 ## Failure, bounds and delivery
 
 Callback failures surface a sanitized `AgentOperationRejectedException` with no chained provider error. If the
-callback finished but commit did not confirm, return indeterminate with no guessed issuance—even if persistence
-actually committed. A fresh original-key retry reconciles either committed or rolled-back state.
+callback finished but commit did not confirm, throw sanitized `AgentOperationUncertainException` without claiming
+issuance or rollback—even if persistence actually committed. A fresh original-key retry reconciles either outcome;
+an authorized Query can confirm stored original issuance, while absence remains indeterminate.
 
 Only a confirmed new rotation publishes `AgentCredentialRotated`, identified by its Agent/credential/revision tuple.
-Publisher failure returns confirmed metadata plus `AgentPublicationWarning::PUBLICATION_FAILED`; failed publication
-of the fixed, sanitized `AgentCredentialLifecycleFailed` evidence cannot replace that outcome. There is no outbox or
+Publisher failure completes void handling after best-effort fixed, sanitized `AgentCredentialLifecycleFailed`
+evidence; failure of both publishers cannot disguise the committed outcome. No invocation warning is returned,
+stored or reconstructed by the Query. There is no outbox or
 automatic event retry guarantee. Same-key retries emit no duplicate mutation/audit/fact. Durable operation state,
 not notifications, owns recovery; [TASK-00049 conformance](agent-issuance-conformance.md) exercises both-publisher failure
 and scheduler-only restart through TASK-00052's actual path.
@@ -117,7 +131,7 @@ the [sensitive-trace obligations](agent-credential-retirement.md#composition-and
 
 | Requirement | Executable package evidence |
 | --- | --- |
-| I1 / I2 normal rotation and original-request restart | `AgentCredentialRotationServiceTest::test_rotation_commits_before_publication_and_recovers_after_restart` |
+| I1 / I2 normal rotation and original-request restart | `RotateAgentCredentialHandlerTest::test_rotation_commits_before_publication_and_recovers_after_restart` |
 | I2 same/conflicting keys, lost CAS, independent winner | `test_concurrent_loser_rolls_back_then_resolves_only_the_authoritative_winner`, `test_absent_collision_winner_is_bounded_contention_and_never_reissues` |
 | I2 / I6 changed requests, retained versions/tombstones | `test_changed_original_request_conflicts_and_unknown_versions_never_reissue`, `test_capacity_preserves_same_key_tombstones_and_rolls_back_a_rejected_new_rotation` |
 | I3 rollback and both uncertain commits | `test_precommit_failures_roll_back_successor_retirement_reservation_and_audit`, `test_uncertain_commit_requires_original_request_reconciliation` |

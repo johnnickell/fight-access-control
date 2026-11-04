@@ -72,7 +72,7 @@ is not a future authorization grant. Use a consistent global lock order; never s
 
 | Boundary / actual package path | Guard and required participation |
 | --- | --- |
-| `AgentProvisioningService::provision`, `AgentCredentialRotationService::rotate` | Check both repositories before current authorization, lookup or generation in every transaction/retry. Retained-key resolution still precedes new-work capacity; only an absent key reaches new-work admission using the fixed canonical contract. |
+| `ProvisionAgentHandler::handle`, `RotateAgentCredentialHandler::handle` | Check both repositories before current authorization, lookup or generation in every transaction/retry. Retained-key resolution still precedes new-work capacity; only an absent key reaches new-work admission using the fixed canonical contract. |
 | `AgentRepository::add`, `replace`, `replacePermissionAssignments` | Enforce the cohort on direct writes too, with unconditional correlation/cancellation and no raw-return fallback. Agent/operation/audit state remains one transaction. |
 | `AgentRepository::rename`, `UpdateAgentHandler` | Apply [name-only intent](agent-name-updates.md) to current ACTIVE state under the shared cohort/Agent fence, including no-ops and direct calls. Preserve exact operation correlation and all unrelated authority; no retirement, issuance, keys/sinks or capacity admission. |
 | `AgentCredentialLifecycleService::revoke` | Guard before loading/mutating authority; original cancellation/audit and post-commit publication/rethrow behavior are unchanged. There is no alternate authority mode. |
@@ -138,8 +138,9 @@ applies to real runtime cohort replacement and existing authority, not a require
 
 Previous-contract writers, historical migrations and automatic compatibility bridges are unsupported. Unsupported
 cohorts remain unavailable rather than falling back to raw issuance, unknown canonical rules or secret disclosure.
-Original publication-warning scope (provision/rotation only), finite bounds, capacity-preserved authorized recovery,
-separate delivery/activation/use outcomes and current policy are unchanged.
+Confirmed-commit publication containment remains scoped to provision/rotation only; TASK-00182 removes returned
+warnings in favor of void Commands and authorized outcome Queries. Finite bounds, capacity-preserved recovery,
+separate delivery/activation/use outcomes and current policy remain unchanged.
 
 ## Executable evidence and consumer obligations
 
