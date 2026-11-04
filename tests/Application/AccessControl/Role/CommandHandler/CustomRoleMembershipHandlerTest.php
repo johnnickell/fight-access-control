@@ -727,11 +727,11 @@ final class CustomRoleMembershipHandlerTest extends TestCase
         $unitOfWork->authorizationReferenceState()->addRole($role);
         $userRepository = new InMemoryUserRepository($unitOfWork);
         $userRepository->add(UserFixture::withRoleAssignments([$role->getId()], 1));
-        foreach ([new InMemoryRoleRepository(), $this->rolesContaining($role)] as $roles) {
+        foreach ([new InMemoryRoleRepository(), $this->rolesContaining($role)] as $roleRepository) {
             $eventDispatcher = new InMemoryEventDispatcher();
             $command = new RemoveCustomRole($this->actorId(), $role->getId(), $role->getRevision());
             $handler = $this->removeHandler(
-                $roles,
+                $roleRepository,
                 $userRepository,
                 new InMemoryUnitOfWork(),
                 $eventDispatcher
