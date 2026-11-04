@@ -2,7 +2,7 @@
 id: TICKET-00035
 epic: EPIC-00015
 title: Encapsulate User authentication transitions and synchronous use cases
-status: ready-for-agent
+status: done
 ---
 
 # Encapsulate User authentication transitions and synchronous use cases
@@ -76,7 +76,7 @@ UserRepository/UoW replacement, compatibility code, consumer deployment and unre
 | Order | TASK ID | Title | Status |
 | --- | --- | --- | --- |
 | 201 | [TASK-00111](../tasks/00111-TASK.md) | Make User transitions own authentication-authority revisions | done |
-| 202 | [TASK-00112](../tasks/00112-TASK.md) | Separate cohesive synchronous authentication capabilities | in-progress |
+| 202 | [TASK-00112](../tasks/00112-TASK.md) | Separate cohesive synchronous authentication capabilities | done |
 ## Decisions and Progress
 
 John approved the complete two-TASK split. Scope is an explicit pre-v1 API redesign, not a claim that existing code

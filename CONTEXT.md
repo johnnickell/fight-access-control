@@ -299,7 +299,11 @@ Common generic/canonical qualification remains with its owners. At the earlier p
 first; it has since been independently accepted and the current Board owns execution selection.
 No source/dependency/sibling/consumer mutation, product build, new checkout, commit/publication or release follows.
 
-## TASK-00112 direct synchronous User capabilities — Work checkpoint
+## TASK-00112 direct synchronous User capabilities — accepted checkpoint
+
+Independent Review ACCEPT and nonvisual QA PASS cover the implemented candidate. Publication and final delivery verification are pending at this checkpoint; current results belong to the canonical TASK-00112 Land handoff and actual PR. The Work checkpoint below is historical; consumer qualification remains separate.
+
+### Work checkpoint
 
 Secret-bearing User operations now have direct Application owners: `User\\Authentication\\UserAuthentication`
 for activation/login, `RefreshSession\\SessionLifecycle` for refresh/logout, `User\\PasswordManagement` for change/reset
