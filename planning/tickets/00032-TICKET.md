@@ -120,17 +120,17 @@ new protocol endpoints, duplicate error handling, actual Agent OS/starter source
 | 103 | [TASK-00103](../tasks/00103-TASK.md) | Protect Slim and Yii 3 requests through shared PSR-15 admission | done |
 | 104 | [TASK-00104](../tasks/00104-TASK.md) | Protect Symfony requests through native admission | done |
 | 104 | [TASK-00105](../tasks/00105-TASK.md) | Protect Laravel requests through native middleware | ready-for-agent |
-| 104 | [TASK-00106](../tasks/00106-TASK.md) | Protect CodeIgniter 4 requests through native before filters | in-progress |
+| 104 | [TASK-00106](../tasks/00106-TASK.md) | Protect CodeIgniter 4 requests through native before filters | done |
 ## Decisions and Progress
 
-TASK-00106 now has CI4 Work implementation with native before-filter admission and a thin selected-path Common-backed
-safe error bridge. Its [CI4 guide](../../docs/codeigniter-permission-admission.md) and TASK/Work handoff own explicit
-wiring, tagged minimum/optional composition proof, native lifetimes/order and JSON/fault coverage limits. Independent
-Review/behavioral QA remain pending; TASK-00105 is separate unfinished work, not part of this implementation.
+TASK-00106 has independent Review ACCEPT and behavioral QA PASS on candidate
+`eb1b70470747df0bbae776272284ef7b11c8d155`. Publication and final delivery were pending at closeout; current result:
+`.runs/handoffs/TASK-00106/land.md`. Its [CI4 guide](../../docs/codeigniter-permission-admission.md) owns composition
+and coverage limits. TASK-00105 is separate unfinished work, so this TICKET remains open.
 
 Current acceptance: TASK-00104 has independent Review ACCEPT and QA PASS on candidate
 `fb25934087f931527325c3d66aa49e2b83a944eb`. Publication and final delivery were pending at closeout;
-current result: `.runs/handoffs/TASK-00104/land.md`. TASK-00105 and TASK-00106 remain unfinished, so this
+current result: `.runs/handoffs/TASK-00104/land.md`. TASK-00105 remains unfinished, so this
 TICKET stays open. The Work and next-stage checkpoints below are historical.
 
 John approved item 8, explicitly invoked To Tasks, then approved four complete adapter journeys. The full accepted
