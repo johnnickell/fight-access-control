@@ -75,7 +75,7 @@ UserRepository/UoW replacement, compatibility code, consumer deployment and unre
 
 | Order | TASK ID | Title | Status |
 | --- | --- | --- | --- |
-| 201 | [TASK-00111](../tasks/00111-TASK.md) | Make User transitions own authentication-authority revisions | in-progress |
+| 201 | [TASK-00111](../tasks/00111-TASK.md) | Make User transitions own authentication-authority revisions | done |
 | 202 | [TASK-00112](../tasks/00112-TASK.md) | Separate cohesive synchronous authentication capabilities | ready-for-agent |
 ## Decisions and Progress
 
