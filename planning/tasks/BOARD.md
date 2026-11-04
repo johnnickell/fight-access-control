@@ -5,17 +5,18 @@ dependencies, acceptance, and verification.
 
 ## What's Next?
 
-First ready Task: [TASK-00108](00108-TASK.md) — Move Agent MCP presentation and family bindings into adapters.
+Active Task: [TASK-00108](00108-TASK.md) — Move Agent MCP presentation and family bindings into adapters.
 
 ## In Progress
 
-No Tasks are currently in this state.
+| Order | TASK ID | Title | Parent TICKET | Status | Blocked by | PR |
+| --- | --- | --- | --- | --- | --- | --- |
+| 11 | [TASK-00108](00108-TASK.md) | Move Agent MCP presentation and family bindings into adapters | [TICKET-00033](../tickets/00033-TICKET.md) — Clarify architecture and capability ownership before extending integrations | in-progress | [TASK-00107](00107-TASK.md) | — |
 
 ## Ready Frontier
 
 | Order | TASK ID | Title | Parent TICKET | Status | Blocked by | PR |
 | --- | --- | --- | --- | --- | --- | --- |
-| 11 | [TASK-00108](00108-TASK.md) | Move Agent MCP presentation and family bindings into adapters | [TICKET-00033](../tickets/00033-TICKET.md) — Clarify architecture and capability ownership before extending integrations | ready-for-agent | [TASK-00107](00107-TASK.md) | — |
 | 12 | [TASK-00109](00109-TASK.md) | Organize Application capabilities and descriptive collaborator names | [TICKET-00033](../tickets/00033-TICKET.md) — Clarify architecture and capability ownership before extending integrations | ready-for-agent | [TASK-00107](00107-TASK.md) | — |
 | 104 | [TASK-00105](00105-TASK.md) | Protect Laravel requests through native middleware | [TICKET-00032](../tickets/00032-TICKET.md) — Protect native HTTP entry points across all five frameworks | ready-for-agent | [TASK-00103](00103-TASK.md) | — |
 | 104 | [TASK-00106](00106-TASK.md) | Protect CodeIgniter 4 requests through native before filters | [TICKET-00032](../tickets/00032-TICKET.md) — Protect native HTTP entry points across all five frameworks | ready-for-agent | [TASK-00103](00103-TASK.md) | — |

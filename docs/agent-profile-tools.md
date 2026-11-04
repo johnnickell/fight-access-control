@@ -1,7 +1,8 @@
-# Self-service Agent profile Tools (v0.5.0)
+# Self-service Agent profile Tools
 
-[TASK-00071](../planning/tasks/00071-TASK.md) adds two noninteractive Application `Agent\Tool` classes using
-Fight Common `^1.3`. They reuse the [minimal profile query](agent-profile.md), [generic rename](agent-name-updates.md)
+[TASK-00071](../planning/tasks/00071-TASK.md) introduced two noninteractive Tools in v0.5.0.
+[TASK-00108](../planning/tasks/00108-TASK.md) relocates them to `Fight\AccessControl\Adapter\Mcp\Tool\Agent`
+in the current checkout, using the existing qualified Common contracts (`^1.4`). They reuse the [minimal profile query](agent-profile.md), [generic rename](agent-name-updates.md)
 and [Agent-aware authorization](agent-mcp-authorization.md); they do not implement a second protocol or rename path.
 
 | Class | Canonical Common Tool name | Input | Required Permission |
@@ -11,11 +12,14 @@ and [Agent-aware authorization](agent-mcp-authorization.md); they do not impleme
 
 Both declarations reject additional properties. There is no caller-selected Agent ID, initiator, credential,
 Permission or lifecycle field. Each successful output contains exactly `{agent_id, name}`, plus Common's matching
-derived JSON text, not an authored success sentence. These are additive PHP/Tool contracts, with no existing API,
-persisted contract or OpenAPI component change. No endpoint or consumer adapter is supplied.
+derived JSON text, not an authored success sentence. Tool IDs, schemas, persisted contracts and OpenAPI components are unchanged by relocation. The PHP namespace and
+bus constructor parameter changes are pre-v1 breaking changes: update imports/registrations and named arguments
+directly; no old-name aliases are supplied. No endpoint or consumer bootstrap is supplied.
 
 ## Compose one protected request
 
+Authentication (`CurrentAgentPrincipalProvider`, `SignedAgentRequest`), Permission policy and synchronized
+continuation remain in Application/Domain; adapters own only protocol presentation and binding.
 Use a fresh `CurrentAgentPrincipalProvider`, `SignedAgentRequest` and nonempty safe correlation ID for each MCP
 request. Pass **that same provider, request and correlation** to both Tools and `AgentToolAvailability`. The provider
 resolves lazily during availability and returns the same immutable principal during Tool execution, without a second
@@ -23,20 +27,20 @@ authentication/nonce transaction. Transport authentication may resolve that same
 Tools, provider or availability across requests or jobs, even when the signed credential has not changed.
 
 ```php
-use Fight\AccessControl\Application\AccessControl\Agent\AgentToolPermissionCatalog;
-use Fight\AccessControl\Application\AccessControl\Agent\Security\AgentToolAvailability;
-use Fight\AccessControl\Application\AccessControl\Agent\Tool\AgentProfileToolFailures;
-use Fight\AccessControl\Application\AccessControl\Agent\Tool\GetAgentProfileTool;
-use Fight\AccessControl\Application\AccessControl\Agent\Tool\UpdateAgentProfileTool;
+use Fight\AccessControl\Adapter\Mcp\Tool\Agent\AgentProfileToolFailures;
+use Fight\AccessControl\Adapter\Mcp\Tool\Agent\AgentToolAvailability;
+use Fight\AccessControl\Adapter\Mcp\Tool\Agent\AgentToolPermissionCatalog;
+use Fight\AccessControl\Adapter\Mcp\Tool\Agent\GetAgentProfileTool;
+use Fight\AccessControl\Adapter\Mcp\Tool\Agent\UpdateAgentProfileTool;
 use Fight\Common\Application\Mcp\Tool\McpToolDiscovery;
 use Fight\Common\Application\Mcp\Tool\McpToolInvocation;
 use Fight\Common\Application\Mcp\Tool\McpToolInvoker;
 use Fight\Common\Application\Mcp\Tool\McpToolRegistry;
 
-// Request-scoped dependencies; $commands implements Common SynchronousCommandBus.
+// Request-scoped dependencies; $synchronousCommandBus implements Common SynchronousCommandBus.
 $tools = [
-    new GetAgentProfileTool($provider, $signedRequest, $correlationId, $queries),
-    new UpdateAgentProfileTool($provider, $signedRequest, $correlationId, $commands)
+    new GetAgentProfileTool($provider, $signedRequest, $correlationId, queryBus: $queryBus),
+    new UpdateAgentProfileTool($provider, $signedRequest, $correlationId, synchronousCommandBus: $synchronousCommandBus)
 ];
 $registry = new McpToolRegistry($tools);
 $catalog = new AgentToolPermissionCatalog($registry);
@@ -46,8 +50,8 @@ $invoker = new McpToolInvoker($registry, $availability, failures: AgentProfileTo
 $invocation = new McpToolInvocation($invoker);
 ```
 
-Here `$queries` is Common `QueryBus`, registering `GetAgentProfile` with `GetAgentProfileHandler`; `$commands`
-registers `UpdateAgent` with `UpdateAgentHandler`. The latter is explicitly `SynchronousCommandBus`, not an async
+Here `$queryBus` is Common `QueryBus`, registering `GetAgentProfile` with `GetAgentProfileHandler`;
+`$synchronousCommandBus` registers `UpdateAgent` with `UpdateAgentHandler`. The latter is explicitly `SynchronousCommandBus`, not an async
 queue or a result-bearing bus. Handlers use consumer implementations of the existing Domain repositories and
 transaction/clock/event contracts. The cursor key is consumer-managed, at least 32 bytes, not an Agent credential.
 Register `$discovery` and `$invocation` with the consumer's Common capability registry and `McpResponder`.

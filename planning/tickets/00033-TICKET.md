@@ -73,12 +73,16 @@ and operation-boundary redesign belong to TICKET-00035/00036.
 | Order | TASK ID | Title | Status |
 | --- | --- | --- | --- |
 | 10 | [TASK-00107](../tasks/00107-TASK.md) | Codify aggregate-first architecture and descriptive dependency naming | done |
-| 11 | [TASK-00108](../tasks/00108-TASK.md) | Move Agent MCP presentation and family bindings into adapters | ready-for-agent |
+| 11 | [TASK-00108](../tasks/00108-TASK.md) | Move Agent MCP presentation and family bindings into adapters | in-progress |
 | 12 | [TASK-00109](../tasks/00109-TASK.md) | Organize Application capabilities and descriptive collaborator names | ready-for-agent |
 ## Decisions and Progress
 
 John approved this requirement and the full three-TASK split: TASK-00107 rules (order 10), TASK-00108 MCP ownership
 (11) and TASK-00109 capability/naming cohesion (12). Put these before the existing feature frontier without
-inventing a dependency between independent relocations. Planning only; no implementation or acceptance is claimed.
+inventing a dependency between independent relocations. That original planning checkpoint claimed no implementation
+or acceptance. TASK-00107 is now done. TASK-00108 Work relocates MCP protocol types and mirrored tests/callers/docs
+without changing inward authority or Common contracts. Builder verification passes focused composition/native checks
+and the full gate with exact statement coverage; independent Review/nonvisual QA remain pending.
+TASK-00109 remains separate unfinished capability/naming work.
 
-Next: `/skill:next` for the Board's first executable TASK; execution is not launched by this record.
+Next: TASK-00108 committed verification handoff to `/skill:review TASK-00108` in an independent session.

@@ -7,11 +7,15 @@
 
 ## Validated immutable association
 
-| Type in `Fight\AccessControl\Application\AccessControl\Agent` | Contract |
+[TASK-00108](../planning/tasks/00108-TASK.md) relocates these protocol bindings and availability to Adapter.
+Update imports and registrations directly; no retired Application aliases remain. Authentication, Permission policy
+and synchronized continuation stay inward in Application/Domain.
+
+| Type in `Fight\AccessControl\Adapter\Mcp\Skill\Agent` | Contract |
 | --- | --- |
 | `AgentSkillPermissionBinding` | Takes an actual validated Common `McpSkillRevision` and a nonempty list of canonical Permission-name strings. `revision()` and `permissions()` expose that association. Every requirement is conjunctive direct Agent authority. |
 | `AgentSkillPermissionCatalog` | Takes a list of bindings; rejects non-bindings, duplicate/conflicting roots and overlapping exact member ownership. `revisions()` supplies the immutable snapshots to Common. `requirementsFor(StrictJson)` returns the bound requirements or null. Empty bindings grant nothing. |
-| `Security\AgentSkillAvailability` | Implements Common `McpSkillAvailability`; takes the catalog, the request's trusted `CurrentAgentPrincipalProvider`, `SignedAgentRequest` and safe nonempty correlation ID. Shares that provider/request with Resource admission. |
+| `AgentSkillAvailability` | Implements Common `McpSkillAvailability`; takes the catalog, the request's trusted `CurrentAgentPrincipalProvider`, `SignedAgentRequest` and safe nonempty correlation ID. Shares that provider/request with Resource admission. |
 
 Bindings accept no arbitrary entry array or inferred URI prefix: Common must already have validated the complete
 revision. It owns frontmatter parsing, paths, member identities, finite construction bounds, bytes and digests.
@@ -33,12 +37,12 @@ Consumers supply the validated revisions, parser/stream ports, keys, trusted aut
 requirements/grants. For example (named collaborators below are consumer-owned):
 
 ```php
-use Fight\AccessControl\Application\AccessControl\Agent\AgentResourcePermissionBinding;
-use Fight\AccessControl\Application\AccessControl\Agent\AgentResourcePermissionCatalog;
-use Fight\AccessControl\Application\AccessControl\Agent\AgentSkillPermissionBinding;
-use Fight\AccessControl\Application\AccessControl\Agent\AgentSkillPermissionCatalog;
-use Fight\AccessControl\Application\AccessControl\Agent\Security\AgentResourceAvailability;
-use Fight\AccessControl\Application\AccessControl\Agent\Security\AgentSkillAvailability;
+use Fight\AccessControl\Adapter\Mcp\Resource\Agent\AgentResourceAvailability;
+use Fight\AccessControl\Adapter\Mcp\Resource\Agent\AgentResourcePermissionBinding;
+use Fight\AccessControl\Adapter\Mcp\Resource\Agent\AgentResourcePermissionCatalog;
+use Fight\AccessControl\Adapter\Mcp\Skill\Agent\AgentSkillAvailability;
+use Fight\AccessControl\Adapter\Mcp\Skill\Agent\AgentSkillPermissionBinding;
+use Fight\AccessControl\Adapter\Mcp\Skill\Agent\AgentSkillPermissionCatalog;
 use Fight\Common\Application\Mcp\Resource\McpResourceDiscovery;
 use Fight\Common\Application\Mcp\Resource\McpResourceReadLimits;
 use Fight\Common\Application\Mcp\Skill\McpSkillDiscovery;
@@ -126,11 +130,13 @@ Tool, Prompt, Resource, live disclosure or background continuation.
 
 ## Qualification boundary
 
-The supported Common minimum remains **v1.3.0**, exact tagged source
+At TASK-00086's checkpoint the qualified family minimum was Common **v1.3.0**, exact tagged source
 `7de6cad6e8a9752973ad9f8e27e285b0c1510582`, within unchanged `^1.3`. Its Skill/Resource contracts are identical to
 installed v1.4.0 (`87b9580c072f3149d574e09865daa79620c92118`) for the inspected paths. Actual isolated v1.3.0
 composition, not just tag presence, qualifies this minimum. TASK evidence retains exact lock/source manifests,
-commands, logs/exits and tested input mapping. No development snapshot or guessed future tag is required.
+commands, logs/exits and tested input mapping. The current checkout requires `^1.4` for the separate HTTP safe-error
+contract; TASK-00108 uses existing v1.4.0 APIs without changing that constraint. No development snapshot or guessed
+future tag is required.
 
 `AgentSkillPermissionCatalogTest` covers invalid requirements, malformed/foreign/inexact entries and conflicting
 immutable association. `AgentSkillAvailabilityTest` composes real Common list/get/read/responder with actual
