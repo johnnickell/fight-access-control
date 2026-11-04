@@ -276,7 +276,11 @@ final class PermissionMiddlewareTest extends TestCase
                     };
                 }
             };
-            $native->reportHook = $case === 'sink' ? static fn() => throw new RuntimeException('PRIVATE SINK') : null;
+            $native->reportHook = null;
+            if ($case === 'sink') {
+                $native->reportHook = static fn(): never => throw new RuntimeException('PRIVATE SINK');
+            }
+
             $responses = null;
             if ($case === 'render') {
                 $factory = $this->createMock(ResponseFactoryInterface::class);
@@ -329,7 +333,7 @@ final class PermissionMiddlewareTest extends TestCase
 
     public function test_unknown_type_remains_500_even_with_a_deliberately_public_projection(): void
     {
-        $native = new NativePipeline('slim', new PermissionMiddleware($this->protected(), static fn() =>
+        $native = new NativePipeline('slim', new PermissionMiddleware($this->protected(), static fn(): never =>
             throw new RuntimeException('PRIVATE AUTH SENTINEL', 401)));
         $native->errors = $native->boundary(new class implements SafeHttpProjector {
             public function project(Throwable $failure, int $status): SafeHttpPresentation

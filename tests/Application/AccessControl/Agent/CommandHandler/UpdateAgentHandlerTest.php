@@ -180,7 +180,7 @@ final class UpdateAgentHandlerTest extends TestCase
             $operation = $env->operations->operations[$env->key->toString()];
             $failure = new RuntimeException('Injected name persistence fault.');
             if ($stage === 'write') {
-                $env->agents->afterNameWrite = static fn() => throw $failure;
+                $env->agents->afterNameWrite = static fn(): never => throw $failure;
             } else {
                 $env->transaction->failNextCommit = true;
             }
@@ -443,12 +443,14 @@ final class UpdateAgentHandlerTest extends TestCase
         ], $acknowledgements);
         self::assertSame(1, $env->agents->nameWrites);
         self::assertCount(1, $env->events->events());
-        $env->agents->afterNameWrite = static fn() => throw new RuntimeException('Write failed.');
+        $env->agents->afterNameWrite = static fn(): never => throw new RuntimeException('Write failed.');
         $this->failure(fn() => $acknowledge(new UpdateAgent(new AgentUpdateInitiator($id), $id, 'Another name')));
         self::assertCount(2, $acknowledgements);
         self::assertSame('Renamed', $env->agents->getById($id)->getName()->toString());
         $env->agents->afterNameWrite = null;
-        $env->events = new InMemoryEventDispatcher(static fn() => throw new RuntimeException('Publication failed.'));
+        $env->events = new InMemoryEventDispatcher(
+            static fn(): never => throw new RuntimeException('Publication failed.')
+        );
         $this->failure(fn() => $acknowledge(new UpdateAgent(new AgentUpdateInitiator($id), $id, 'Committed name')));
         self::assertCount(2, $acknowledgements);
         self::assertSame('Committed name', $env->agents->getById($id)->getName()->toString());

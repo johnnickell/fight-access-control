@@ -3206,7 +3206,7 @@ final class AuthenticationServiceTest extends TestCase
             $sessions->add($session);
             $primary = new RuntimeException('Synthetic operation detail. correct-secret ciphertext:synthetic');
             if ($phase === 'commit') {
-                $unitOfWork->beforeCommit = static fn() => throw $primary;
+                $unitOfWork->beforeCommit = static fn(): never => throw $primary;
             }
 
             $attempts = [];

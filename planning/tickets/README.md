@@ -40,3 +40,19 @@ This generated index is a projection; individual records remain canonical.
 | [TICKET-00034](00034-TICKET.md) | Consume supported canonical Fight Common contracts | ready-for-agent |
 | [TICKET-00035](00035-TICKET.md) | Encapsulate User authentication transitions and synchronous use cases | ready-for-agent |
 | [TICKET-00036](00036-TICKET.md) | Clarify Agent name and credential-operation domain ownership | ready-for-agent |
+| [TICKET-00037](00037-TICKET.md) | Make Domain and repository contracts precise | ready-for-agent |
+| [TICKET-00038](00038-TICKET.md) | Preserve message and result types through dispatch | ready-for-agent |
+| [TICKET-00039](00039-TICKET.md) | Guarantee exact query results and explicit absence | ready-for-agent |
+| [TICKET-00040](00040-TICKET.md) | Make command and synchronous Application contracts explicit | ready-for-agent |
+| [TICKET-00041](00041-TICKET.md) | Align presentation and integration contracts | ready-for-agent |
+| [TICKET-00042](00042-TICKET.md) | Enforce and demonstrate whole-library type correctness | ready-for-agent |
+| [TICKET-00043](00043-TICKET.md) | Define typed audit evidence and explicit attribution | ready-for-agent |
+| [TICKET-00044](00044-TICKET.md) | Audit User account and credential journeys | ready-for-agent |
+| [TICKET-00045](00045-TICKET.md) | Audit Role, membership and Agent administration | ready-for-agent |
+| [TICKET-00046](00046-TICKET.md) | Audit Feature and managed-policy changes | ready-for-agent |
+| [TICKET-00047](00047-TICKET.md) | Audit Agent credential and recovery outcomes | ready-for-agent |
+| [TICKET-00048](00048-TICKET.md) | Qualify audit composition and document consumer adoption | ready-for-agent |
+| [TICKET-00049](00049-TICKET.md) | Declare effective action requirements | ready-for-agent |
+| [TICKET-00050](00050-TICKET.md) | Enforce Feature admission across five frameworks | ready-for-agent |
+| [TICKET-00051](00051-TICKET.md) | Enforce portable Permission declarations across five frameworks | ready-for-agent |
+| [TICKET-00052](00052-TICKET.md) | Qualify independent and combined admission | ready-for-agent |

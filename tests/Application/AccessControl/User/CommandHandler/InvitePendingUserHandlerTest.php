@@ -211,7 +211,7 @@ final class InvitePendingUserHandlerTest extends TestCase
             $audit = new InMemoryAuditEvidenceRepository($unitOfWork, failAfterSave: $phase === 'audit');
             $primary = new RuntimeException('Synthetic operation detail. activate-once ciphertext:activate-once');
             if ($phase === 'commit') {
-                $unitOfWork->beforeCommit = static fn() => throw $primary;
+                $unitOfWork->beforeCommit = static fn(): never => throw $primary;
             }
 
             $attempts = [];

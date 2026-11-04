@@ -212,7 +212,7 @@ final class RegisterUserHandlerTest extends TestCase
         foreach (['insert', 'grant', 'audit', 'commit'] as $failure) {
             $fault = new RuntimeException('storage diagnostic with registration-fixture-credential');
             $fixture = new RegistrationFixture(
-                afterInsert: $failure === 'insert' ? static fn() => throw $fault : null,
+                afterInsert: $failure === 'insert' ? static fn(): never => throw $fault : null,
                 failAudit: $failure === 'audit',
                 failGrant: $failure === 'grant'
             );
@@ -243,8 +243,8 @@ final class RegisterUserHandlerTest extends TestCase
     public function test_original_throwable_survives_even_failure_publication_fault(): void
     {
         $original = new RuntimeException('private credential-bearing storage diagnostic');
-        $events = new InMemoryEventDispatcher(static fn() => throw new RuntimeException('publisher failure'));
-        $fixture = new RegistrationFixture(afterInsert: static fn() => throw $original, events: $events);
+        $events = new InMemoryEventDispatcher(static fn(): never => throw new RuntimeException('publisher failure'));
+        $fixture = new RegistrationFixture(afterInsert: static fn(): never => throw $original, events: $events);
         try {
             $fixture->handler()->handle(CommandMessage::create($fixture->command()));
             self::fail('The storage failure was hidden.');
