@@ -299,7 +299,13 @@ Common generic/canonical qualification remains with its owners. At the earlier p
 first; it has since been independently accepted and the current Board owns execution selection.
 No source/dependency/sibling/consumer mutation, product build, new checkout, commit/publication or release follows.
 
-## TASK-00108 MCP relocation — Work checkpoint
+## TASK-00108 MCP relocation — accepted checkpoint
+
+Independent Review ACCEPT and nonvisual QA PASS cover candidate `eacf83ccb0637db24274339dc157cf045f3fdc58`.
+Publication and final delivery verification were pending at closeout; current results are in
+`.runs/handoffs/TASK-00108/land.md` and the actual PR. The Board owns current execution routing.
+
+### Work checkpoint
 
 Agent profile Tools/failure mapping, Tool catalog/attribute and Tool/Resource/Skill bindings/catalogs/availability
 now live in `Adapter/Mcp/{Tool,Resource,Skill}/Agent`, with mirrored tests and current family composition guides.
@@ -308,8 +314,8 @@ Existing Common v1.4.0 invocation/registry/descriptor and actual bus paths remai
 upstream adoption is separate. Authentication, signed-request contracts, direct Permission policy and synchronized
 continuation remain in Application/Domain. There is no profile facade, new endpoint, grant or consumer bootstrap.
 Wire IDs/schemas/results, neutral Tool concealment versus Resource/Skill operational failures, nonce/request scope,
-post-commit name-change semantics and consumer qualification limits are unchanged. Independent Review and nonvisual
-QA are required; Work does not self-close the TASK. See [current profile composition](docs/agent-profile-tools.md)
+post-commit name-change semantics and consumer qualification limits are unchanged. At the Work checkpoint independent
+Review and nonvisual QA were required; Work did not self-close the TASK. See [current profile composition](docs/agent-profile-tools.md)
 and [TASK-00108](planning/tasks/00108-TASK.md) for verification progress.
 
 ## TASK-00107 guidance checkpoint — independently accepted
