@@ -33,31 +33,33 @@ final class EnableUserHandlerTest extends TestCase
     public function test_that_enable_atomically_reactivates_and_audits_without_session_restoration(): void
     {
         $unitOfWork = new InMemoryUnitOfWork();
-        $users = new InMemoryUserRepository($unitOfWork);
+        $userRepository = new InMemoryUserRepository($unitOfWork);
         $user = UserFixture::withState('enable@example.test', UserState::DISABLED);
-        $users->add($user);
-        $audit = new InMemoryAuditEvidenceRepository($unitOfWork);
-        $events = new InMemoryEventDispatcher(static function () use ($audit, $unitOfWork): void {
-            self::assertCount(1, $audit->all());
-            self::assertTrue($unitOfWork->transactionCompleted);
-        });
+        $userRepository->add($user);
+        $auditEvidenceRepository = new InMemoryAuditEvidenceRepository($unitOfWork);
+        $eventDispatcher = new InMemoryEventDispatcher(
+            static function () use ($auditEvidenceRepository, $unitOfWork): void {
+                self::assertCount(1, $auditEvidenceRepository->all());
+                self::assertTrue($unitOfWork->transactionCompleted);
+            }
+        );
         $handler = new EnableUserHandler(
-            $users,
-            $audit,
+            $userRepository,
+            $auditEvidenceRepository,
             $unitOfWork,
-            $events,
+            $eventDispatcher,
             new FixedClock('2026-01-01T00:00:00+00:00')
         );
         $actorId = UserId::generate();
 
         $handler->handle(CommandMessage::create(new EnableUser($actorId, $user->getId())));
 
-        self::assertSame(UserState::ACTIVE, $users->getById($user->getId())?->getState());
-        self::assertSame('user.enabled', $audit->all()[0]->action());
-        self::assertSame($actorId->toString(), $audit->all()[0]->actorId());
-        self::assertSame($user->getId(), $audit->all()[0]->subjectId());
-        self::assertCount(1, $events->events());
-        self::assertInstanceOf(UserEnabled::class, $events->events()[0]);
+        self::assertSame(UserState::ACTIVE, $userRepository->getById($user->getId())?->getState());
+        self::assertSame('user.enabled', $auditEvidenceRepository->all()[0]->action());
+        self::assertSame($actorId->toString(), $auditEvidenceRepository->all()[0]->actorId());
+        self::assertSame($user->getId(), $auditEvidenceRepository->all()[0]->subjectId());
+        self::assertCount(1, $eventDispatcher->events());
+        self::assertInstanceOf(UserEnabled::class, $eventDispatcher->events()[0]);
     }
 
     public function test_that_the_command_and_event_round_trip(): void
@@ -113,27 +115,27 @@ final class EnableUserHandlerTest extends TestCase
     {
         foreach ([UserState::PENDING_ACTIVATION, UserState::ACTIVE, UserState::DELETED] as $state) {
             $unitOfWork = new InMemoryUnitOfWork();
-            $users = new InMemoryUserRepository($unitOfWork);
+            $userRepository = new InMemoryUserRepository($unitOfWork);
             $user = UserFixture::withState('enable-'.$state->value.'@example.test', $state);
-            $users->add($user);
-            $audit = new InMemoryAuditEvidenceRepository($unitOfWork);
-            $events = new InMemoryEventDispatcher();
+            $userRepository->add($user);
+            $auditEvidenceRepository = new InMemoryAuditEvidenceRepository($unitOfWork);
+            $eventDispatcher = new InMemoryEventDispatcher();
 
             try {
                 new EnableUserHandler(
-                    $users,
-                    $audit,
+                    $userRepository,
+                    $auditEvidenceRepository,
                     $unitOfWork,
-                    $events,
+                    $eventDispatcher,
                     new FixedClock('2026-01-01T00:00:00+00:00')
                 )->handle(
                     CommandMessage::create(new EnableUser(UserId::generate(), $user->getId()))
                 );
                 self::fail('A non-disabled identity was enabled.');
             } catch (UserLifecycleException) {
-                self::assertSame($state, $users->getById($user->getId())?->getState());
-                self::assertSame([], $audit->all());
-                self::assertInstanceOf(CommandFailedEvent::class, $events->events()[0]);
+                self::assertSame($state, $userRepository->getById($user->getId())?->getState());
+                self::assertSame([], $auditEvidenceRepository->all());
+                self::assertInstanceOf(CommandFailedEvent::class, $eventDispatcher->events()[0]);
             }
         }
     }
@@ -141,51 +143,51 @@ final class EnableUserHandlerTest extends TestCase
     public function test_that_a_missing_identity_is_rejected_without_mutation(): void
     {
         $unitOfWork = new InMemoryUnitOfWork();
-        $users = new InMemoryUserRepository($unitOfWork);
-        $audit = new InMemoryAuditEvidenceRepository($unitOfWork);
-        $events = new InMemoryEventDispatcher();
+        $userRepository = new InMemoryUserRepository($unitOfWork);
+        $auditEvidenceRepository = new InMemoryAuditEvidenceRepository($unitOfWork);
+        $eventDispatcher = new InMemoryEventDispatcher();
 
         try {
             new EnableUserHandler(
-                $users,
-                $audit,
+                $userRepository,
+                $auditEvidenceRepository,
                 $unitOfWork,
-                $events,
+                $eventDispatcher,
                 new FixedClock('2026-01-01T00:00:00+00:00')
             )->handle(
                 CommandMessage::create(new EnableUser(UserId::generate(), UserId::generate()))
             );
             self::fail('A missing identity was enabled.');
         } catch (UserLifecycleException) {
-            self::assertSame([], $audit->all());
-            self::assertInstanceOf(CommandFailedEvent::class, $events->events()[0]);
+            self::assertSame([], $auditEvidenceRepository->all());
+            self::assertInstanceOf(CommandFailedEvent::class, $eventDispatcher->events()[0]);
         }
     }
 
     public function test_that_a_stale_lifecycle_state_cas_rolls_back(): void
     {
         $unitOfWork = new InMemoryUnitOfWork();
-        $users = new InMemoryUserRepository($unitOfWork, replaceLifecycleStateSucceeds: false);
+        $userRepository = new InMemoryUserRepository($unitOfWork, replaceLifecycleStateSucceeds: false);
         $user = UserFixture::withState('enable@example.test', UserState::DISABLED);
-        $users->add($user);
-        $audit = new InMemoryAuditEvidenceRepository($unitOfWork);
-        $events = new InMemoryEventDispatcher();
+        $userRepository->add($user);
+        $auditEvidenceRepository = new InMemoryAuditEvidenceRepository($unitOfWork);
+        $eventDispatcher = new InMemoryEventDispatcher();
 
         try {
             new EnableUserHandler(
-                $users,
-                $audit,
+                $userRepository,
+                $auditEvidenceRepository,
                 $unitOfWork,
-                $events,
+                $eventDispatcher,
                 new FixedClock('2026-01-01T00:00:00+00:00')
             )->handle(
                 CommandMessage::create(new EnableUser(UserId::generate(), $user->getId()))
             );
             self::fail('A stale lifecycle state was replaced.');
         } catch (LogicException) {
-            self::assertSame(UserState::DISABLED, $users->getById($user->getId())?->getState());
-            self::assertSame([], $audit->all());
-            self::assertInstanceOf(CommandFailedEvent::class, $events->events()[0]);
+            self::assertSame(UserState::DISABLED, $userRepository->getById($user->getId())?->getState());
+            self::assertSame([], $auditEvidenceRepository->all());
+            self::assertInstanceOf(CommandFailedEvent::class, $eventDispatcher->events()[0]);
         }
     }
 }

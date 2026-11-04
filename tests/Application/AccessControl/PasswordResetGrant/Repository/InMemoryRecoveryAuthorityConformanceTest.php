@@ -27,19 +27,19 @@ final class InMemoryRecoveryAuthorityConformanceTest extends RecoveryAuthorityCo
     {
         $this->unitOfWork = new InMemoryUnitOfWork();
         $this->userState = new InMemoryUserRepositoryState();
-        $users = new InMemoryUserRepository($this->unitOfWork, state: $this->userState);
-        $this->transaction(static function () use ($users, $user): void {
-            $users->add($user);
+        $userRepository = new InMemoryUserRepository($this->unitOfWork, state: $this->userState);
+        $this->transaction(static function () use ($userRepository, $user): void {
+            $userRepository->add($user);
         });
 
         return new InMemoryPasswordResetGrants($this->unitOfWork, authorityState: $this->userState);
     }
 
-    protected function restart(PasswordResetGrantRepository $repository): PasswordResetGrantRepository
+    protected function restart(PasswordResetGrantRepository $passwordResetGrantRepository): PasswordResetGrantRepository
     {
-        assert($repository instanceof InMemoryPasswordResetGrants);
+        assert($passwordResetGrantRepository instanceof InMemoryPasswordResetGrants);
         $state = new InMemoryPasswordResetGrantState();
-        foreach ($repository->all() as $grant) {
+        foreach ($passwordResetGrantRepository->all() as $grant) {
             $state->grants[] = ExtensiblePasswordResetGrant::reconstitute(
                 $grant->getId(),
                 $grant->getUserId(),

@@ -38,12 +38,12 @@ final class RegistrationReferenceRaceTest extends TestCase
                 $change
             ): void {
                 self::assertInstanceOf(RegistrationFixture::class, $fixture);
-                $roles = $fixture->competingRoles($winner);
-                $winner->commitTransactional(static function () use ($fixture, $roles, $change): void {
+                $roleRepository = $fixture->competingRoles($winner);
+                $winner->commitTransactional(static function () use ($fixture, $roleRepository, $change): void {
                     if ($change === 'remove' || $change === 'recreate') {
-                        self::assertTrue($roles->remove($fixture->member));
+                        self::assertTrue($roleRepository->remove($fixture->member));
                         if ($change === 'recreate') {
-                            $roles->add(Role::define(
+                            $roleRepository->add(Role::define(
                                 $fixture->member->getId(),
                                 $fixture->member->getName(),
                                 [],
@@ -56,18 +56,18 @@ final class RegistrationReferenceRaceTest extends TestCase
                             $fixture->member->getUpdatedAt()
                         );
                         if ($change === 'revision') {
-                            self::assertTrue($roles->replace($fixture->member, $replacement));
+                            self::assertTrue($roleRepository->replace($fixture->member, $replacement));
                             $current = $replacement;
                             $replacement = $current->renameCustom(
                                 $fixture->member->getName(),
                                 $current->getUpdatedAt()
                             );
-                            self::assertTrue($roles->replace($current, $replacement));
+                            self::assertTrue($roleRepository->replace($current, $replacement));
                             self::assertEquals($fixture->member->getName(), $replacement->getName());
                             self::assertEquals($fixture->member->getUpdatedAt(), $replacement->getUpdatedAt());
                             self::assertFalse($fixture->member->getRevision()->equals($replacement->getRevision()));
                         } else {
-                            self::assertTrue($roles->replace($fixture->member, $replacement));
+                            self::assertTrue($roleRepository->replace($fixture->member, $replacement));
                         }
                     }
                 });
@@ -79,12 +79,15 @@ final class RegistrationReferenceRaceTest extends TestCase
                 self::assertSame('Registration default Roles are no longer authoritative.', $caught->getMessage());
             }
 
-            self::assertSame([], $fixture->users->all());
-            self::assertSame([], $fixture->grants->all());
-            self::assertSame([], $fixture->audit->all());
-            self::assertCount(1, $fixture->events->events());
+            self::assertSame([], $fixture->userRepository->all());
+            self::assertSame([], $fixture->activationGrantRepository->all());
+            self::assertSame([], $fixture->auditEvidenceRepository->all());
+            self::assertCount(1, $fixture->eventDispatcher->events());
             // The winner persists; registration rollback cannot undo its independent transaction.
-            self::assertNotSame($fixture->member, $fixture->roles->getByName(RoleName::fromString('ROLE_MEMBER')));
+            self::assertNotSame(
+                $fixture->member,
+                $fixture->roleRepository->getByName(RoleName::fromString('ROLE_MEMBER'))
+            );
             self::assertTrue($winner->transactionCompleted);
         }
     }
@@ -96,28 +99,28 @@ final class RegistrationReferenceRaceTest extends TestCase
             $competitor = new InMemoryUnitOfWork();
             $fixture->unitOfWork->beforeCommit = static function () use ($fixture, $competitor): void {
                 self::assertTrue($fixture->unitOfWork->transactionActive);
-                self::assertCount(1, $fixture->users->all());
-                self::assertCount(1, $fixture->grants->all());
-                self::assertCount(1, $fixture->audit->all());
-                $roles = $fixture->competingRoles($competitor);
-                $competitor->commitTransactional(static function () use ($roles, $fixture, $competitor): void {
-                    $users = new InMemoryUserRepository(
+                self::assertCount(1, $fixture->userRepository->all());
+                self::assertCount(1, $fixture->activationGrantRepository->all());
+                self::assertCount(1, $fixture->auditEvidenceRepository->all());
+                $roleRepository = $fixture->competingRoles($competitor);
+                $competitor->commitTransactional(static function () use ($roleRepository, $fixture, $competitor): void {
+                    $userRepository = new InMemoryUserRepository(
                         $competitor,
                         state: $fixture->userState,
                         authorizationReferences: $fixture->unitOfWork->authorizationReferenceState()
                     );
-                    $current = $fixture->users->all()[0];
+                    $current = $fixture->userRepository->all()[0];
                     $replacement = clone $current;
                     $replacement->removeRole($fixture->reader->getId(), new DateTimeImmutable('2030-01-01T00:00:01Z'));
-                    self::assertFalse($users->validateRoleAssignmentReference($fixture->member->getId()));
-                    self::assertFalse($users->replaceRoleAssignments($current, $replacement));
-                    self::assertFalse($roles->remove($fixture->member));
-                    self::assertFalse($roles->replace($fixture->member, $fixture->member->renameCustom(
+                    self::assertFalse($userRepository->validateRoleAssignmentReference($fixture->member->getId()));
+                    self::assertFalse($userRepository->replaceRoleAssignments($current, $replacement));
+                    self::assertFalse($roleRepository->remove($fixture->member));
+                    self::assertFalse($roleRepository->replace($fixture->member, $fixture->member->renameCustom(
                         RoleName::fromString('ROLE_CHANGED'),
                         new DateTimeImmutable('2030-01-01T00:00:01Z')
                     )));
                     try {
-                        $roles->add(Role::define(
+                        $roleRepository->add(Role::define(
                             RoleId::generate(),
                             RoleName::fromString('ROLE_LATE'),
                             [],
@@ -138,17 +141,21 @@ final class RegistrationReferenceRaceTest extends TestCase
                 self::assertSame('Injected transaction failure.', $caught->getMessage());
             }
 
-            self::assertSame($fixture->member, $fixture->roles->getById($fixture->member->getId()));
-            $roles = $fixture->competingRoles($competitor);
+            self::assertSame($fixture->member, $fixture->roleRepository->getById($fixture->member->getId()));
+            $roleRepository = $fixture->competingRoles($competitor);
             if ($rollback) {
-                self::assertSame([], $fixture->users->all());
-                self::assertTrue($competitor->commitTransactional(fn(): bool => $roles->remove($fixture->member)));
+                self::assertSame([], $fixture->userRepository->all());
+                self::assertTrue(
+                    $competitor->commitTransactional(fn(): bool => $roleRepository->remove($fixture->member))
+                );
             } else {
-                self::assertCount(1, $fixture->users->all());
-                self::assertCount(2, $fixture->users->all()[0]->getRoleIds());
-                self::assertFalse($competitor->commitTransactional(fn(): bool => $roles->remove($fixture->member)));
+                self::assertCount(1, $fixture->userRepository->all());
+                self::assertCount(2, $fixture->userRepository->all()[0]->getRoleIds());
+                self::assertFalse(
+                    $competitor->commitTransactional(fn(): bool => $roleRepository->remove($fixture->member))
+                );
                 // Replacement can serialize after completed registration, not during it.
-                self::assertTrue($competitor->commitTransactional(fn(): bool => $roles->replace(
+                self::assertTrue($competitor->commitTransactional(fn(): bool => $roleRepository->replace(
                     $fixture->member,
                     $fixture->member->renameCustom(
                         RoleName::fromString('ROLE_CHANGED'),
@@ -163,37 +170,37 @@ final class RegistrationReferenceRaceTest extends TestCase
     {
         $fixture = null;
         $winnerId = null;
-        $winnerGrants = null;
-        $winnerAudit = null;
-        $winnerEvents = new InMemoryEventDispatcher();
+        $winnerActivationGrantRepository = null;
+        $winnerAuditEvidenceRepository = null;
+        $winnerEventDispatcher = new InMemoryEventDispatcher();
         $fixture = new RegistrationFixture(beforeInsert: static function () use (
             &$fixture,
             &$winnerId,
-            &$winnerGrants,
-            &$winnerAudit,
-            $winnerEvents
+            &$winnerActivationGrantRepository,
+            &$winnerAuditEvidenceRepository,
+            $winnerEventDispatcher
         ): void {
             self::assertInstanceOf(RegistrationFixture::class, $fixture);
             $other = new InMemoryUnitOfWork();
-            $users = new InMemoryUserRepository(
+            $userRepository = new InMemoryUserRepository(
                 $other,
                 state: $fixture->userState,
                 authorizationReferences: $fixture->unitOfWork->authorizationReferenceState()
             );
-            $winnerGrants = new InMemoryActivationGrantRepository($other);
-            $winnerAudit = new InMemoryAuditEvidenceRepository($other);
+            $winnerActivationGrantRepository = new InMemoryActivationGrantRepository($other);
+            $winnerAuditEvidenceRepository = new InMemoryAuditEvidenceRepository($other);
             $command = $fixture->command('ALICE@example.test');
             $winnerId = $command->getUserId();
             new RegisterUserHandler(
-                $users,
+                $userRepository,
                 $fixture->competingRoles($other),
-                $winnerGrants,
-                $winnerAudit,
+                $winnerActivationGrantRepository,
+                $winnerAuditEvidenceRepository,
                 $other,
                 new FixedCredentialGenerator('competing-registration-fixture'),
                 new PrefixInvitationDeliveryCipher(),
                 new FixedClock('2030-01-01T00:00:00Z'),
-                $winnerEvents,
+                $winnerEventDispatcher,
                 ['ROLE_READER']
             )->handle(CommandMessage::create($command));
         });
@@ -202,17 +209,17 @@ final class RegistrationReferenceRaceTest extends TestCase
         try {
             $fixture->handler()->handle(CommandMessage::create($loser));
         } finally {
-            self::assertCount(1, $fixture->users->all());
-            self::assertNull($fixture->users->getById($loser->getUserId()));
-            self::assertSame($winnerId, $fixture->users->all()[0]->getId());
-            self::assertEquals([$fixture->reader->getId()], $fixture->users->all()[0]->getRoleIds());
-            self::assertSame([], $fixture->grants->all());
-            self::assertSame([], $fixture->audit->all());
-            self::assertNotNull($winnerGrants);
-            self::assertNotNull($winnerAudit);
-            self::assertCount(1, $winnerGrants->all());
-            self::assertCount(1, $winnerAudit->all());
-            self::assertCount(1, $winnerEvents->events());
+            self::assertCount(1, $fixture->userRepository->all());
+            self::assertNull($fixture->userRepository->getById($loser->getUserId()));
+            self::assertSame($winnerId, $fixture->userRepository->all()[0]->getId());
+            self::assertEquals([$fixture->reader->getId()], $fixture->userRepository->all()[0]->getRoleIds());
+            self::assertSame([], $fixture->activationGrantRepository->all());
+            self::assertSame([], $fixture->auditEvidenceRepository->all());
+            self::assertNotNull($winnerActivationGrantRepository);
+            self::assertNotNull($winnerAuditEvidenceRepository);
+            self::assertCount(1, $winnerActivationGrantRepository->all());
+            self::assertCount(1, $winnerAuditEvidenceRepository->all());
+            self::assertCount(1, $winnerEventDispatcher->events());
         }
     }
 }

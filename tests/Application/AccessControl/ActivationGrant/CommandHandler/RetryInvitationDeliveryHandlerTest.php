@@ -59,16 +59,16 @@ final class RetryInvitationDeliveryHandlerTest extends TestCase
     public function test_that_exact_expiry_rejects_without_mutating_persisted_retry_work(): void
     {
         $unitOfWork = new InMemoryUnitOfWork();
-        $repository = new InMemoryActivationGrantRepository($unitOfWork);
-        $grant = $this->persistedFailedGrant($repository);
-        $audit = new InMemoryAuditEvidenceRepository($unitOfWork);
-        $events = new InMemoryEventDispatcher();
+        $activationGrantRepository = new InMemoryActivationGrantRepository($unitOfWork);
+        $grant = $this->persistedFailedGrant($activationGrantRepository);
+        $auditEvidenceRepository = new InMemoryAuditEvidenceRepository($unitOfWork);
+        $eventDispatcher = new InMemoryEventDispatcher();
         $handler = new RetryInvitationDeliveryHandler(
-            $repository,
-            $audit,
+            $activationGrantRepository,
+            $auditEvidenceRepository,
             $unitOfWork,
             new FixedClock($grant->getExpiresAt()),
-            $events
+            $eventDispatcher
         );
 
         $rejection = null;
@@ -84,27 +84,27 @@ final class RetryInvitationDeliveryHandlerTest extends TestCase
             'At exact expiry retry must reject, not return normally after persisting retry state and audit.'
         );
         self::assertSame('The activation delivery work is no longer retryable.', $rejection->getMessage());
-        self::assertEquals($grant, $repository->getLatestByUserId($grant->getUserId()));
-        self::assertSame([], $audit->all());
-        self::assertCount(1, $events->events());
-        self::assertInstanceOf(CommandFailedEvent::class, $events->events()[0]);
+        self::assertEquals($grant, $activationGrantRepository->getLatestByUserId($grant->getUserId()));
+        self::assertSame([], $auditEvidenceRepository->all());
+        self::assertCount(1, $eventDispatcher->events());
+        self::assertInstanceOf(CommandFailedEvent::class, $eventDispatcher->events()[0]);
     }
 
     public function test_that_it_publishes_a_retry_request_after_the_durable_commit(): void
     {
-        $repository = new InMemoryActivationGrantRepository();
-        $activationGrant = $this->persistedFailedGrant($repository);
+        $activationGrantRepository = new InMemoryActivationGrantRepository();
+        $activationGrant = $this->persistedFailedGrant($activationGrantRepository);
         $unitOfWork = new InMemoryUnitOfWork();
-        $events = new InMemoryEventDispatcher(static function () use ($unitOfWork): void {
+        $eventDispatcher = new InMemoryEventDispatcher(static function () use ($unitOfWork): void {
             self::assertTrue($unitOfWork->transactionCompleted);
         });
         $auditEvidenceRepository = new InMemoryAuditEvidenceRepository($unitOfWork);
         $handler = new RetryInvitationDeliveryHandler(
-            $repository,
+            $activationGrantRepository,
             $auditEvidenceRepository,
             $unitOfWork,
             new FixedClock('2026-08-19T12:00:00Z'),
-            $events
+            $eventDispatcher
         );
 
         $handler->handle(CommandMessage::create(new RetryInvitationDelivery(
@@ -114,31 +114,31 @@ final class RetryInvitationDeliveryHandlerTest extends TestCase
 
         self::assertSame(RetryInvitationDelivery::class, RetryInvitationDeliveryHandler::commandRegistration());
         self::assertSame(1, $unitOfWork->transactions);
-        $retryRequested = $repository->getLatestByUserId($activationGrant->getUserId());
+        $retryRequested = $activationGrantRepository->getLatestByUserId($activationGrant->getUserId());
         self::assertTrue($retryRequested?->getDelivery()->isRetryable());
         self::assertSame('ciphertext', $retryRequested->getDelivery()->getEncryptedMaterial()?->reveal());
         self::assertSame('user.invitation_delivery.retry_requested', $auditEvidenceRepository->all()[0]->action());
-        self::assertInstanceOf(InvitationDeliveryRetryRequested::class, $events->events()[0]);
+        self::assertInstanceOf(InvitationDeliveryRetryRequested::class, $eventDispatcher->events()[0]);
     }
 
     public function test_that_terminal_delivery_work_does_not_publish_a_retry_request(): void
     {
-        $repository = new InMemoryActivationGrantRepository();
+        $activationGrantRepository = new InMemoryActivationGrantRepository();
         $activationGrant = $this->grant();
-        self::assertTrue($repository->add($activationGrant));
+        self::assertTrue($activationGrantRepository->add($activationGrant));
         $token = CredentialDeliveryClaimToken::generate();
         $at = new DateTimeImmutable('2026-08-18T12:00:00+00:00');
         $claimed = $activationGrant->claimDelivery($token, $at, $at->modify('+5 minutes'));
-        self::assertTrue($repository->replace($activationGrant, $claimed));
+        self::assertTrue($activationGrantRepository->replace($activationGrant, $claimed));
         $activationGrant = $claimed->confirmDelivery($token, $at);
-        self::assertTrue($repository->replace($claimed, $activationGrant));
-        $events = new InMemoryEventDispatcher();
+        self::assertTrue($activationGrantRepository->replace($claimed, $activationGrant));
+        $eventDispatcher = new InMemoryEventDispatcher();
         $handler = new RetryInvitationDeliveryHandler(
-            $repository,
+            $activationGrantRepository,
             new InMemoryAuditEvidenceRepository(),
             new InMemoryUnitOfWork(),
             new FixedClock('2026-08-19T12:00:00Z'),
-            $events
+            $eventDispatcher
         );
 
         $this->expectException(ActivationDeliveryNotRetryableException::class);
@@ -148,19 +148,19 @@ final class RetryInvitationDeliveryHandlerTest extends TestCase
                 $activationGrant->getUserId()
             )));
         } finally {
-            self::assertInstanceOf(CommandFailedEvent::class, $events->events()[0]);
+            self::assertInstanceOf(CommandFailedEvent::class, $eventDispatcher->events()[0]);
         }
     }
 
     public function test_that_missing_delivery_work_does_not_publish_a_retry_request(): void
     {
-        $events = new InMemoryEventDispatcher();
+        $eventDispatcher = new InMemoryEventDispatcher();
         $handler = new RetryInvitationDeliveryHandler(
             new InMemoryActivationGrantRepository(),
             new InMemoryAuditEvidenceRepository(),
             new InMemoryUnitOfWork(),
             new FixedClock('2026-08-19T12:00:00Z'),
-            $events
+            $eventDispatcher
         );
 
         $this->expectException(ActivationDeliveryNotRetryableException::class);
@@ -170,23 +170,23 @@ final class RetryInvitationDeliveryHandlerTest extends TestCase
                 UserId::generate()
             )));
         } finally {
-            self::assertInstanceOf(CommandFailedEvent::class, $events->events()[0]);
+            self::assertInstanceOf(CommandFailedEvent::class, $eventDispatcher->events()[0]);
         }
     }
 
     public function test_that_an_audit_write_failure_prevents_retry_request_publication(): void
     {
         $unitOfWork = new InMemoryUnitOfWork();
-        $repository = new InMemoryActivationGrantRepository($unitOfWork);
-        $activationGrant = $this->persistedFailedGrant($repository);
+        $activationGrantRepository = new InMemoryActivationGrantRepository($unitOfWork);
+        $activationGrant = $this->persistedFailedGrant($activationGrantRepository);
         $auditEvidenceRepository = new InMemoryAuditEvidenceRepository($unitOfWork, failAfterSave: true);
-        $events = new InMemoryEventDispatcher();
+        $eventDispatcher = new InMemoryEventDispatcher();
         $handler = new RetryInvitationDeliveryHandler(
-            $repository,
+            $activationGrantRepository,
             $auditEvidenceRepository,
             $unitOfWork,
             new FixedClock('2026-08-19T12:00:00Z'),
-            $events
+            $eventDispatcher
         );
 
         $this->expectException(RuntimeException::class);
@@ -196,9 +196,12 @@ final class RetryInvitationDeliveryHandlerTest extends TestCase
                 $activationGrant->getUserId()
             )));
         } finally {
-            self::assertEquals($activationGrant, $repository->getLatestByUserId($activationGrant->getUserId()));
+            self::assertEquals(
+                $activationGrant,
+                $activationGrantRepository->getLatestByUserId($activationGrant->getUserId())
+            );
             self::assertCount(0, $auditEvidenceRepository->all());
-            self::assertInstanceOf(CommandFailedEvent::class, $events->events()[0]);
+            self::assertInstanceOf(CommandFailedEvent::class, $eventDispatcher->events()[0]);
         }
     }
 
@@ -213,12 +216,12 @@ final class RetryInvitationDeliveryHandlerTest extends TestCase
             EmailAddress::fromString('alice@example.test'),
             'new-ciphertext'
         );
-        $repository = new InMemoryActivationGrantRepository(
+        $activationGrantRepository = new InMemoryActivationGrantRepository(
             beforeReplace: static function (
-                InMemoryActivationGrantRepository $repository,
+                InMemoryActivationGrantRepository $activationGrantRepository,
                 ActivationGrant $predecessor
             ) use ($successor): void {
-                self::assertTrue($repository->replaceWithSuccessor(
+                self::assertTrue($activationGrantRepository->replaceWithSuccessor(
                     $predecessor,
                     $predecessor->revoke(new DateTimeImmutable('2026-08-19T12:00:00+00:00')),
                     $successor
@@ -226,15 +229,15 @@ final class RetryInvitationDeliveryHandlerTest extends TestCase
             },
             beforeReplaceOnCall: 3
         );
-        $activationGrant = $this->persistedFailedGrant($repository, $userId);
+        $activationGrant = $this->persistedFailedGrant($activationGrantRepository, $userId);
         $auditEvidenceRepository = new InMemoryAuditEvidenceRepository();
-        $events = new InMemoryEventDispatcher();
+        $eventDispatcher = new InMemoryEventDispatcher();
         $handler = new RetryInvitationDeliveryHandler(
-            $repository,
+            $activationGrantRepository,
             $auditEvidenceRepository,
             new InMemoryUnitOfWork(),
             new FixedClock('2026-08-19T12:00:00Z'),
-            $events
+            $eventDispatcher
         );
 
         $this->expectException(ActivationDeliveryNotRetryableException::class);
@@ -245,9 +248,9 @@ final class RetryInvitationDeliveryHandlerTest extends TestCase
             )));
         } finally {
             self::assertSame([], $auditEvidenceRepository->all());
-            self::assertCount(1, $events->events());
-            self::assertInstanceOf(CommandFailedEvent::class, $events->events()[0]);
-            self::assertSame($successor, $repository->getLatestByUserId($activationGrant->getUserId()));
+            self::assertCount(1, $eventDispatcher->events());
+            self::assertInstanceOf(CommandFailedEvent::class, $eventDispatcher->events()[0]);
+            self::assertSame($successor, $activationGrantRepository->getLatestByUserId($activationGrant->getUserId()));
         }
     }
 
@@ -256,17 +259,17 @@ final class RetryInvitationDeliveryHandlerTest extends TestCase
         foreach ([false, true] as $subscribed) {
             foreach ([-1, 0, 1] as $offset) {
                 $unitOfWork = new InMemoryUnitOfWork();
-                $repository = new InMemoryActivationGrantRepository($unitOfWork);
-                $grant = $this->persistedFailedGrant($repository);
+                $activationGrantRepository = new InMemoryActivationGrantRepository($unitOfWork);
+                $grant = $this->persistedFailedGrant($activationGrantRepository);
                 $at = $grant->getExpiresAt()->modify(sprintf('%+d seconds', $offset));
-                $audit = new InMemoryAuditEvidenceRepository($unitOfWork);
-                $events = new SimpleEventDispatcher();
+                $auditEvidenceRepository = new InMemoryAuditEvidenceRepository($unitOfWork);
+                $eventDispatcher = new SimpleEventDispatcher();
                 $facts = [];
-                $events->addHandler(
+                $eventDispatcher->addHandler(
                     ClassName::underscore(InvitationDeliveryRetryRequested::class),
-                    static function () use (&$facts, $unitOfWork, $audit): void {
+                    static function () use (&$facts, $unitOfWork, $auditEvidenceRepository): void {
                         self::assertFalse($unitOfWork->transactionActive);
-                        self::assertCount(1, $audit->all());
+                        self::assertCount(1, $auditEvidenceRepository->all());
                         $facts[] = 'retry';
                     }
                 );
@@ -278,7 +281,7 @@ final class RetryInvitationDeliveryHandlerTest extends TestCase
                     CredentialDeliveryInvocation $invocation
                 ) use (
                     $unitOfWork,
-                    $repository,
+                    $activationGrantRepository,
                     $grant
                 ): void {
                     self::assertFalse($unitOfWork->transactionActive);
@@ -286,33 +289,33 @@ final class RetryInvitationDeliveryHandlerTest extends TestCase
                     self::assertSame($grant->getDelivery()->getId()->toString(), $invocation->getIdempotencyId());
                     self::assertSame(
                         CredentialDeliveryStatus::CLAIMED,
-                        $repository->getLatestByUserId($grant->getUserId())?->getDelivery()->getStatus()
+                        $activationGrantRepository->getLatestByUserId($grant->getUserId())?->getDelivery()->getStatus()
                     );
                 });
                 if ($subscribed) {
                     $worker = new DeliverUserInvitationHandler(
-                        $repository,
-                        $audit,
+                        $activationGrantRepository,
+                        $auditEvidenceRepository,
                         $unitOfWork,
                         $cipher,
                         $provider,
                         new FixedClock($at),
-                        $events
+                        $eventDispatcher
                     );
-                    $bus = $this->createMock(CommandBus::class);
-                    $bus->expects($offset < 0 ? self::once() : self::never())->method('execute')
+                    $commandBus = $this->createMock(CommandBus::class);
+                    $commandBus->expects($offset < 0 ? self::once() : self::never())->method('execute')
                         ->willReturnCallback(static function (DeliverUserInvitation $command) use ($worker): void {
                             $worker->handle(CommandMessage::create($command));
                         });
-                    $events->register(new InvitationDeliverySubscriber($bus));
+                    $eventDispatcher->register(new InvitationDeliverySubscriber($commandBus));
                 }
 
                 $handler = new RetryInvitationDeliveryHandler(
-                    $repository,
-                    $audit,
+                    $activationGrantRepository,
+                    $auditEvidenceRepository,
                     $unitOfWork,
                     new FixedClock($at),
-                    $events
+                    $eventDispatcher
                 );
                 $failure = null;
                 try {
@@ -324,12 +327,12 @@ final class RetryInvitationDeliveryHandlerTest extends TestCase
                     $failure = $throwable;
                 }
 
-                $stored = $repository->getLatestByUserId($grant->getUserId());
+                $stored = $activationGrantRepository->getLatestByUserId($grant->getUserId());
                 if ($offset >= 0) {
                     self::assertInstanceOf(ActivationDeliveryNotRetryableException::class, $failure);
                     self::assertSame('The activation delivery work is no longer retryable.', $failure->getMessage());
                     self::assertEquals($grant, $stored);
-                    self::assertSame([], $audit->all());
+                    self::assertSame([], $auditEvidenceRepository->all());
                     self::assertSame([], $facts);
                     self::assertSame([], $provider->invocations());
                     continue;
@@ -350,30 +353,30 @@ final class RetryInvitationDeliveryHandlerTest extends TestCase
     {
         foreach (['2026-08-25T14:00:00.123455+02:00', '2026-08-25T07:00:00.123456-05:00'] as $time) {
             $unitOfWork = new InMemoryUnitOfWork();
-            $repository = new InMemoryActivationGrantRepository($unitOfWork);
+            $activationGrantRepository = new InMemoryActivationGrantRepository($unitOfWork);
             $grant = $this->persistedFailedGrant(
-                $repository,
+                $activationGrantRepository,
                 expiresAt: new DateTimeImmutable('2026-08-25T12:00:00.123456Z')
             );
-            $audit = new InMemoryAuditEvidenceRepository($unitOfWork);
-            $events = new InMemoryEventDispatcher();
+            $auditEvidenceRepository = new InMemoryAuditEvidenceRepository($unitOfWork);
+            $eventDispatcher = new InMemoryEventDispatcher();
             $at = new DateTimeImmutable($time);
             $handler = new RetryInvitationDeliveryHandler(
-                $repository,
-                $audit,
+                $activationGrantRepository,
+                $auditEvidenceRepository,
                 $unitOfWork,
                 new FixedClock($at),
-                $events
+                $eventDispatcher
             );
             try {
                 $handler->handle(CommandMessage::create(new RetryInvitationDelivery('Admin-42', $grant->getUserId())));
                 self::assertLessThan($grant->getExpiresAt(), $at);
-                self::assertCount(1, $audit->all());
+                self::assertCount(1, $auditEvidenceRepository->all());
             } catch (ActivationDeliveryNotRetryableException $exception) {
                 self::assertEquals($grant->getExpiresAt(), $at);
                 self::assertSame('The activation delivery work is no longer retryable.', $exception->getMessage());
-                self::assertEquals($grant, $repository->getLatestByUserId($grant->getUserId()));
-                self::assertSame([], $audit->all());
+                self::assertEquals($grant, $activationGrantRepository->getLatestByUserId($grant->getUserId()));
+                self::assertSame([], $auditEvidenceRepository->all());
             }
         }
     }
@@ -381,12 +384,12 @@ final class RetryInvitationDeliveryHandlerTest extends TestCase
     public function test_clock_is_sampled_after_the_transactional_read_even_if_the_read_crosses_expiry(): void
     {
         $unitOfWork = new InMemoryUnitOfWork();
-        $storage = new InMemoryActivationGrantRepository($unitOfWork);
-        $grant = $this->persistedFailedGrant($storage);
+        $storedActivationGrantRepository = new InMemoryActivationGrantRepository($unitOfWork);
+        $grant = $this->persistedFailedGrant($storedActivationGrantRepository);
         $time = $grant->getExpiresAt()->modify('-1 second');
         $readCompleted = false;
-        $repository = $this->createMock(ActivationGrantRepository::class);
-        $repository->expects(self::once())->method('getLatestByUserId')->with($grant->getUserId())
+        $activationGrantRepository = $this->createMock(ActivationGrantRepository::class);
+        $activationGrantRepository->expects(self::once())->method('getLatestByUserId')->with($grant->getUserId())
             ->willReturnCallback(
                 static function () use (&$time, &$readCompleted, $grant, $unitOfWork): ActivationGrant {
                     self::assertTrue($unitOfWork->transactionActive);
@@ -396,7 +399,7 @@ final class RetryInvitationDeliveryHandlerTest extends TestCase
                     return $grant;
                 }
             );
-        $repository->expects(self::never())->method('replace');
+        $activationGrantRepository->expects(self::never())->method('replace');
         $clock = $this->createMock(Clock::class);
         $clock->expects(self::once())->method('now')->willReturnCallback(
             static function () use (&$time, &$readCompleted, $unitOfWork): DateTimeImmutable {
@@ -406,10 +409,10 @@ final class RetryInvitationDeliveryHandlerTest extends TestCase
                 return $time;
             }
         );
-        $audit = new InMemoryAuditEvidenceRepository($unitOfWork);
+        $auditEvidenceRepository = new InMemoryAuditEvidenceRepository($unitOfWork);
         $handler = new RetryInvitationDeliveryHandler(
-            $repository,
-            $audit,
+            $activationGrantRepository,
+            $auditEvidenceRepository,
             $unitOfWork,
             $clock,
             new InMemoryEventDispatcher()
@@ -418,18 +421,18 @@ final class RetryInvitationDeliveryHandlerTest extends TestCase
             $handler->handle(CommandMessage::create(new RetryInvitationDelivery('Admin-42', $grant->getUserId())));
             self::fail('A read crossing expiry must not reuse pre-transaction time.');
         } catch (ActivationDeliveryNotRetryableException) {
-            self::assertSame([], $audit->all());
-            self::assertEquals($grant, $storage->getLatestByUserId($grant->getUserId()));
+            self::assertSame([], $auditEvidenceRepository->all());
+            self::assertEquals($grant, $storedActivationGrantRepository->getLatestByUserId($grant->getUserId()));
         }
     }
 
     public function test_success_preserves_authority_identity_and_delivery_history(): void
     {
         $unitOfWork = new InMemoryUnitOfWork();
-        $repository = new InMemoryActivationGrantRepository($unitOfWork);
-        $grant = $this->persistedFailedGrant($repository);
+        $activationGrantRepository = new InMemoryActivationGrantRepository($unitOfWork);
+        $grant = $this->persistedFailedGrant($activationGrantRepository);
         $handler = new RetryInvitationDeliveryHandler(
-            $repository,
+            $activationGrantRepository,
             new InMemoryAuditEvidenceRepository($unitOfWork),
             $unitOfWork,
             new FixedClock('2026-08-25T11:59:59Z'),
@@ -437,7 +440,7 @@ final class RetryInvitationDeliveryHandlerTest extends TestCase
         );
         $handler->handle(CommandMessage::create(new RetryInvitationDelivery('Admin-42', $grant->getUserId())));
 
-        $stored = $repository->getLatestByUserId($grant->getUserId());
+        $stored = $activationGrantRepository->getLatestByUserId($grant->getUserId());
         self::assertNotNull($stored);
         self::assertSame($grant->getRevision() + 1, $stored->getRevision());
         self::assertTrue($grant->getId()->equals($stored->getId()));
@@ -457,21 +460,21 @@ final class RetryInvitationDeliveryHandlerTest extends TestCase
         self::assertSame($before->getLastFailure(), $after->getLastFailure());
         self::assertEquals($before->getLastAttemptAt(), $after->getNextAttemptAt());
         self::assertSame(CredentialDeliveryStatus::PENDING, $after->getStatus());
-        self::assertCount(1, $repository->all());
+        self::assertCount(1, $activationGrantRepository->all());
     }
 
     public function test_non_retry_pending_and_terminal_authority_reject_without_changes(): void
     {
         foreach (['pending', 'claimed', 'delivered', 'permanent', 'consumed', 'revoked', 'expired'] as $state) {
             $unitOfWork = new InMemoryUnitOfWork();
-            $repository = new InMemoryActivationGrantRepository($unitOfWork);
+            $activationGrantRepository = new InMemoryActivationGrantRepository($unitOfWork);
             $grant = $this->grant();
-            self::assertTrue($repository->add($grant));
+            self::assertTrue($activationGrantRepository->add($grant));
             $at = new DateTimeImmutable('2026-08-18T12:00:00Z');
             $token = CredentialDeliveryClaimToken::generate();
             if (in_array($state, ['claimed', 'delivered', 'permanent'], true)) {
                 $claimed = $grant->claimDelivery($token, $at, $at->modify('+5 minutes'));
-                self::assertTrue($repository->replace($grant, $claimed));
+                self::assertTrue($activationGrantRepository->replace($grant, $claimed));
                 $grant = $claimed;
             }
 
@@ -484,27 +487,27 @@ final class RetryInvitationDeliveryHandlerTest extends TestCase
                 default => $grant
             };
             if ($next !== $grant) {
-                self::assertTrue($repository->replace($grant, $next));
+                self::assertTrue($activationGrantRepository->replace($grant, $next));
             }
 
-            $audit = new InMemoryAuditEvidenceRepository($unitOfWork);
-            $events = new InMemoryEventDispatcher();
+            $auditEvidenceRepository = new InMemoryAuditEvidenceRepository($unitOfWork);
+            $eventDispatcher = new InMemoryEventDispatcher();
             $handler = new RetryInvitationDeliveryHandler(
-                $repository,
-                $audit,
+                $activationGrantRepository,
+                $auditEvidenceRepository,
                 $unitOfWork,
                 new FixedClock('2026-08-19T12:00:00Z'),
-                $events
+                $eventDispatcher
             );
             try {
                 $handler->handle(CommandMessage::create(new RetryInvitationDelivery('Admin-42', $grant->getUserId())));
                 self::fail('Ineligible work accepted: '.$state);
             } catch (ActivationDeliveryNotRetryableException $exception) {
                 self::assertSame('The activation delivery work is no longer retryable.', $exception->getMessage());
-                self::assertEquals($next, $repository->getLatestByUserId($grant->getUserId()));
-                self::assertSame([], $audit->all());
-                self::assertCount(1, $events->events());
-                self::assertInstanceOf(CommandFailedEvent::class, $events->events()[0]);
+                self::assertEquals($next, $activationGrantRepository->getLatestByUserId($grant->getUserId()));
+                self::assertSame([], $auditEvidenceRepository->all());
+                self::assertCount(1, $eventDispatcher->events());
+                self::assertInstanceOf(CommandFailedEvent::class, $eventDispatcher->events()[0]);
             }
         }
     }
@@ -512,48 +515,50 @@ final class RetryInvitationDeliveryHandlerTest extends TestCase
     public function test_commit_failure_rolls_back_both_persisted_retry_and_audit(): void
     {
         $unitOfWork = new InMemoryUnitOfWork(failOnTransaction: 1);
-        $repository = new InMemoryActivationGrantRepository($unitOfWork);
-        $grant = $this->persistedFailedGrant($repository);
-        $audit = new InMemoryAuditEvidenceRepository($unitOfWork);
-        $events = new InMemoryEventDispatcher();
+        $activationGrantRepository = new InMemoryActivationGrantRepository($unitOfWork);
+        $grant = $this->persistedFailedGrant($activationGrantRepository);
+        $auditEvidenceRepository = new InMemoryAuditEvidenceRepository($unitOfWork);
+        $eventDispatcher = new InMemoryEventDispatcher();
         $handler = new RetryInvitationDeliveryHandler(
-            $repository,
-            $audit,
+            $activationGrantRepository,
+            $auditEvidenceRepository,
             $unitOfWork,
             new FixedClock('2026-08-19T12:00:00Z'),
-            $events
+            $eventDispatcher
         );
         try {
             $handler->handle(CommandMessage::create(new RetryInvitationDelivery('Admin-42', $grant->getUserId())));
             self::fail('Commit failure was hidden.');
         } catch (RuntimeException $runtimeException) {
             self::assertSame('Injected transaction failure.', $runtimeException->getMessage());
-            self::assertEquals($grant, $repository->getLatestByUserId($grant->getUserId()));
-            self::assertSame([], $audit->all());
-            self::assertCount(1, $events->events());
-            self::assertInstanceOf(CommandFailedEvent::class, $events->events()[0]);
+            self::assertEquals($grant, $activationGrantRepository->getLatestByUserId($grant->getUserId()));
+            self::assertSame([], $auditEvidenceRepository->all());
+            self::assertCount(1, $eventDispatcher->events());
+            self::assertInstanceOf(CommandFailedEvent::class, $eventDispatcher->events()[0]);
         }
     }
 
     public function test_failure_notification_cannot_replace_the_expected_expiry_rejection(): void
     {
         $unitOfWork = new InMemoryUnitOfWork();
-        $repository = new InMemoryActivationGrantRepository($unitOfWork);
-        $grant = $this->persistedFailedGrant($repository);
+        $activationGrantRepository = new InMemoryActivationGrantRepository($unitOfWork);
+        $grant = $this->persistedFailedGrant($activationGrantRepository);
         $command = new RetryInvitationDelivery('Admin-42', $grant->getUserId());
-        $audit = new InMemoryAuditEvidenceRepository($unitOfWork);
+        $auditEvidenceRepository = new InMemoryAuditEvidenceRepository($unitOfWork);
         $notified = null;
-        $events = new InMemoryEventDispatcher(static function (CommandFailedEvent $event) use (&$notified): void {
-            $notified = $event;
+        $eventDispatcher = new InMemoryEventDispatcher(
+            static function (CommandFailedEvent $event) use (&$notified): void {
+                $notified = $event;
 
-            throw new RuntimeException('Secondary notification failure.');
-        });
+                throw new RuntimeException('Secondary notification failure.');
+            }
+        );
         $handler = new RetryInvitationDeliveryHandler(
-            $repository,
-            $audit,
+            $activationGrantRepository,
+            $auditEvidenceRepository,
             $unitOfWork,
             new FixedClock($grant->getExpiresAt()),
-            $events
+            $eventDispatcher
         );
         try {
             $handler->handle(CommandMessage::create($command));
@@ -566,40 +571,45 @@ final class RetryInvitationDeliveryHandlerTest extends TestCase
             self::assertInstanceOf(CommandFailedEvent::class, $notified);
             self::assertSame($command, $notified->getCommand());
             self::assertSame('Invitation delivery retry failed.', $notified->getErrorMessage());
-            self::assertEquals($grant, $repository->getLatestByUserId($grant->getUserId()));
-            self::assertSame([], $audit->all());
+            self::assertEquals($grant, $activationGrantRepository->getLatestByUserId($grant->getUserId()));
+            self::assertSame([], $auditEvidenceRepository->all());
         }
     }
 
     public function test_publication_failure_keeps_committed_retry_and_original_throwable(): void
     {
         $unitOfWork = new InMemoryUnitOfWork();
-        $repository = new InMemoryActivationGrantRepository($unitOfWork);
-        $grant = $this->persistedFailedGrant($repository);
-        $audit = new InMemoryAuditEvidenceRepository($unitOfWork);
+        $activationGrantRepository = new InMemoryActivationGrantRepository($unitOfWork);
+        $grant = $this->persistedFailedGrant($activationGrantRepository);
+        $auditEvidenceRepository = new InMemoryAuditEvidenceRepository($unitOfWork);
         $primary = new RuntimeException('Publication failed.');
-        $events = new InMemoryEventDispatcher(static function (Event $event) use ($primary, $unitOfWork): void {
-            self::assertFalse($unitOfWork->transactionActive);
-            if ($event instanceof InvitationDeliveryRetryRequested) {
-                throw $primary;
-            }
+        $eventDispatcher = new InMemoryEventDispatcher(
+            static function (Event $event) use ($primary, $unitOfWork): void {
+                self::assertFalse($unitOfWork->transactionActive);
+                if ($event instanceof InvitationDeliveryRetryRequested) {
+                    throw $primary;
+                }
 
-            throw new RuntimeException('Secondary notification failure.');
-        });
+                throw new RuntimeException('Secondary notification failure.');
+            }
+        );
         $handler = new RetryInvitationDeliveryHandler(
-            $repository,
-            $audit,
+            $activationGrantRepository,
+            $auditEvidenceRepository,
             $unitOfWork,
             new FixedClock('2026-08-19T12:00:00Z'),
-            $events
+            $eventDispatcher
         );
         try {
             $handler->handle(CommandMessage::create(new RetryInvitationDelivery('Admin-42', $grant->getUserId())));
             self::fail('Publication failure was hidden.');
         } catch (RuntimeException $runtimeException) {
             self::assertSame($primary, $runtimeException);
-            self::assertEquals($grant->requestDeliveryRetry(), $repository->getLatestByUserId($grant->getUserId()));
-            self::assertCount(1, $audit->all());
+            self::assertEquals(
+                $grant->requestDeliveryRetry(),
+                $activationGrantRepository->getLatestByUserId($grant->getUserId())
+            );
+            self::assertCount(1, $auditEvidenceRepository->all());
         }
     }
 
@@ -607,22 +617,22 @@ final class RetryInvitationDeliveryHandlerTest extends TestCase
     {
         foreach (['resend', 'consume', 'revoke', 'expiry', 'claim', 'retry'] as $winner) {
             $unitOfWork = new InMemoryUnitOfWork();
-            $repository = new InMemoryActivationGrantRepository(
+            $activationGrantRepository = new InMemoryActivationGrantRepository(
                 $unitOfWork,
                 beforeReplace: static function () use ($unitOfWork): void {
                     $unitOfWork->suspendBeforeFirstWrite();
                 },
                 beforeReplaceOnCall: 3
             );
-            $grant = $this->persistedFailedGrant($repository);
-            $audit = new InMemoryAuditEvidenceRepository($unitOfWork);
-            $loserEvents = new InMemoryEventDispatcher();
+            $grant = $this->persistedFailedGrant($activationGrantRepository);
+            $auditEvidenceRepository = new InMemoryAuditEvidenceRepository($unitOfWork);
+            $loserEventDispatcher = new InMemoryEventDispatcher();
             $handler = new RetryInvitationDeliveryHandler(
-                $repository,
-                $audit,
+                $activationGrantRepository,
+                $auditEvidenceRepository,
                 $unitOfWork,
                 new FixedClock('2026-08-19T12:00:00Z'),
-                $loserEvents
+                $loserEventDispatcher
             );
             $loser = new Fiber(static function () use ($handler, $grant): void {
                 $handler->handle(CommandMessage::create(new RetryInvitationDelivery('Loser', $grant->getUserId())));
@@ -631,57 +641,72 @@ final class RetryInvitationDeliveryHandlerTest extends TestCase
             self::assertTrue($loser->isSuspended());
             if ($winner === 'retry') {
                 new RetryInvitationDeliveryHandler(
-                    $repository,
-                    $audit,
+                    $activationGrantRepository,
+                    $auditEvidenceRepository,
                     $unitOfWork,
                     new FixedClock('2026-08-19T12:00:00Z'),
                     new InMemoryEventDispatcher()
                 )->handle(CommandMessage::create(new RetryInvitationDelivery('Winner', $grant->getUserId())));
             } else {
-                $unitOfWork->commitTransactional(static function () use ($repository, $grant, $winner, $audit): void {
-                    $at = new DateTimeImmutable('2026-08-19T12:00:00Z');
-                    if ($winner === 'resend') {
-                        $successor = ActivationGrant::issue(
-                            ActivationOrigin::PRIVATE_INVITATION,
-                            $grant->getUserId(),
-                            ActivationCredential::fromString('new-authority'),
-                            $at,
-                            $at->modify('+7 days'),
-                            $grant->getDelivery()->getEmail(),
-                            'new-material'
-                        );
-                        self::assertTrue($repository->replaceWithSuccessor($grant, $grant->revoke($at), $successor));
-                    } else {
-                        $replacement = match ($winner) {
-                            'consume' => $grant->consume($at),
-                            'revoke' => $grant->revoke($at),
-                            'expiry' => $grant->expireDeliveryAt($grant->getExpiresAt()),
-                            'claim' => $grant->claimDelivery(
-                                CredentialDeliveryClaimToken::generate(),
+                $unitOfWork->commitTransactional(
+                    static function () use (
+                        $activationGrantRepository,
+                        $grant,
+                        $winner,
+                        $auditEvidenceRepository
+                    ): void {
+                        $at = new DateTimeImmutable('2026-08-19T12:00:00Z');
+                        if ($winner === 'resend') {
+                            $successor = ActivationGrant::issue(
+                                ActivationOrigin::PRIVATE_INVITATION,
+                                $grant->getUserId(),
+                                ActivationCredential::fromString('new-authority'),
                                 $at,
-                                $at->modify('+5 minutes')
-                            )
-                        };
-                        self::assertTrue($repository->replace($grant, $replacement));
-                    }
+                                $at->modify('+7 days'),
+                                $grant->getDelivery()->getEmail(),
+                                'new-material'
+                            );
+                            self::assertTrue(
+                                $activationGrantRepository->replaceWithSuccessor(
+                                    $grant,
+                                    $grant->revoke($at),
+                                    $successor
+                                )
+                            );
+                        } else {
+                            $replacement = match ($winner) {
+                                'consume' => $grant->consume($at),
+                                'revoke' => $grant->revoke($at),
+                                'expiry' => $grant->expireDeliveryAt($grant->getExpiresAt()),
+                                'claim' => $grant->claimDelivery(
+                                    CredentialDeliveryClaimToken::generate(),
+                                    $at,
+                                    $at->modify('+5 minutes')
+                                )
+                            };
+                            self::assertTrue($activationGrantRepository->replace($grant, $replacement));
+                        }
 
-                    $audit->add(AuditEvidence::record('Winner', 'winner.'.$winner, $grant->getUserId()));
-                });
+                        $auditEvidenceRepository->add(
+                            AuditEvidence::record('Winner', 'winner.'.$winner, $grant->getUserId())
+                        );
+                    }
+                );
             }
 
-            $committedWinner = $repository->getLatestByUserId($grant->getUserId());
-            $winnerAudit = $audit->all();
+            $committedWinner = $activationGrantRepository->getLatestByUserId($grant->getUserId());
+            $winnerAudit = $auditEvidenceRepository->all();
             try {
                 $loser->resume();
                 self::fail('Stale retry overwrote '.$winner);
             } catch (ActivationDeliveryNotRetryableException $exception) {
                 self::assertSame('The activation delivery generation changed concurrently.', $exception->getMessage());
-                self::assertSame($committedWinner, $repository->getLatestByUserId($grant->getUserId()));
-                self::assertSame($winnerAudit, $audit->all());
+                self::assertSame($committedWinner, $activationGrantRepository->getLatestByUserId($grant->getUserId()));
+                self::assertSame($winnerAudit, $auditEvidenceRepository->all());
                 self::assertCount(1, $winnerAudit);
-                self::assertCount(1, $loserEvents->events());
-                self::assertInstanceOf(CommandFailedEvent::class, $loserEvents->events()[0]);
-                self::assertFalse($repository->replace($grant, $grant->requestDeliveryRetry()));
+                self::assertCount(1, $loserEventDispatcher->events());
+                self::assertInstanceOf(CommandFailedEvent::class, $loserEventDispatcher->events()[0]);
+                self::assertFalse($activationGrantRepository->replace($grant, $grant->requestDeliveryRetry()));
             }
         }
     }
@@ -690,18 +715,18 @@ final class RetryInvitationDeliveryHandlerTest extends TestCase
     {
         foreach (['consume', 'revoke', 'expiry', 'claim', 'resend'] as $next) {
             $unitOfWork = new InMemoryUnitOfWork();
-            $repository = new InMemoryActivationGrantRepository($unitOfWork);
-            $grant = $this->persistedFailedGrant($repository);
-            $audit = new InMemoryAuditEvidenceRepository($unitOfWork);
+            $activationGrantRepository = new InMemoryActivationGrantRepository($unitOfWork);
+            $grant = $this->persistedFailedGrant($activationGrantRepository);
+            $auditEvidenceRepository = new InMemoryAuditEvidenceRepository($unitOfWork);
             $handler = new RetryInvitationDeliveryHandler(
-                $repository,
-                $audit,
+                $activationGrantRepository,
+                $auditEvidenceRepository,
                 $unitOfWork,
                 new FixedClock('2026-08-19T12:00:00Z'),
                 new InMemoryEventDispatcher()
             );
             $handler->handle(CommandMessage::create(new RetryInvitationDelivery('Admin-42', $grant->getUserId())));
-            $current = $repository->getLatestByUserId($grant->getUserId());
+            $current = $activationGrantRepository->getLatestByUserId($grant->getUserId());
             self::assertNotNull($current);
             $at = new DateTimeImmutable('2026-08-19T12:00:00Z');
             if ($next === 'resend') {
@@ -714,7 +739,9 @@ final class RetryInvitationDeliveryHandlerTest extends TestCase
                     $grant->getDelivery()->getEmail(),
                     'new-material'
                 );
-                self::assertTrue($repository->replaceWithSuccessor($current, $current->revoke($at), $successor));
+                self::assertTrue(
+                    $activationGrantRepository->replaceWithSuccessor($current, $current->revoke($at), $successor)
+                );
             } else {
                 $successor = match ($next) {
                     'consume' => $current->consume($at),
@@ -726,51 +753,60 @@ final class RetryInvitationDeliveryHandlerTest extends TestCase
                         $at->modify('+5 minutes')
                     )
                 };
-                self::assertTrue($repository->replace($current, $successor));
+                self::assertTrue($activationGrantRepository->replace($current, $successor));
             }
 
-            self::assertFalse($repository->replace($grant, $grant->requestDeliveryRetry()));
-            self::assertSame($successor, $repository->getLatestByUserId($grant->getUserId()));
-            self::assertCount(1, $audit->all());
+            self::assertFalse($activationGrantRepository->replace($grant, $grant->requestDeliveryRetry()));
+            self::assertSame($successor, $activationGrantRepository->getLatestByUserId($grant->getUserId()));
+            self::assertCount(1, $auditEvidenceRepository->all());
         }
     }
 
     public function test_expiry_after_admission_rejects_subscriber_claim_but_keeps_committed_retry(): void
     {
         $unitOfWork = new InMemoryUnitOfWork();
-        $repository = new InMemoryActivationGrantRepository($unitOfWork);
-        $grant = $this->persistedFailedGrant($repository);
-        $audit = new InMemoryAuditEvidenceRepository($unitOfWork);
-        $events = new SimpleEventDispatcher();
+        $activationGrantRepository = new InMemoryActivationGrantRepository($unitOfWork);
+        $grant = $this->persistedFailedGrant($activationGrantRepository);
+        $auditEvidenceRepository = new InMemoryAuditEvidenceRepository($unitOfWork);
+        $eventDispatcher = new SimpleEventDispatcher();
         $clock = new FixedClock($grant->getExpiresAt()->modify('-1 second'), $grant->getExpiresAt());
         $cipher = $this->createMock(InvitationDeliveryCipher::class);
         $cipher->expects(self::never())->method('decrypt');
         $provider = new RecordingCredentialDeliveryProvider();
         $worker = new DeliverUserInvitationHandler(
-            $repository,
-            $audit,
+            $activationGrantRepository,
+            $auditEvidenceRepository,
             $unitOfWork,
             $cipher,
             $provider,
             $clock,
-            $events
+            $eventDispatcher
         );
-        $bus = $this->createMock(CommandBus::class);
-        $bus->expects(self::once())->method('execute')->willReturnCallback(
+        $commandBus = $this->createMock(CommandBus::class);
+        $commandBus->expects(self::once())->method('execute')->willReturnCallback(
             static function (DeliverUserInvitation $command) use ($worker): void {
                 $worker->handle(CommandMessage::create($command));
             }
         );
-        $events->register(new InvitationDeliverySubscriber($bus));
-        $handler = new RetryInvitationDeliveryHandler($repository, $audit, $unitOfWork, $clock, $events);
+        $eventDispatcher->register(new InvitationDeliverySubscriber($commandBus));
+        $handler = new RetryInvitationDeliveryHandler(
+            $activationGrantRepository,
+            $auditEvidenceRepository,
+            $unitOfWork,
+            $clock,
+            $eventDispatcher
+        );
         try {
             $handler->handle(CommandMessage::create(new RetryInvitationDelivery('Admin-42', $grant->getUserId())));
             self::fail('The expired subscriber claim was accepted.');
         } catch (EventDispatchFailed) {
             self::assertSame(2, $clock->calls());
-            self::assertEquals($grant->requestDeliveryRetry(), $repository->getLatestByUserId($grant->getUserId()));
-            self::assertCount(1, $audit->all());
-            self::assertSame('user.invitation_delivery.retry_requested', $audit->all()[0]->action());
+            self::assertEquals(
+                $grant->requestDeliveryRetry(),
+                $activationGrantRepository->getLatestByUserId($grant->getUserId())
+            );
+            self::assertCount(1, $auditEvidenceRepository->all());
+            self::assertSame('user.invitation_delivery.retry_requested', $auditEvidenceRepository->all()[0]->action());
             self::assertSame([], $provider->invocations());
         }
     }
@@ -778,44 +814,53 @@ final class RetryInvitationDeliveryHandlerTest extends TestCase
     public function test_expired_retry_requires_explicit_resend_with_fresh_authority(): void
     {
         $unitOfWork = new InMemoryUnitOfWork();
-        $repository = new InMemoryActivationGrantRepository($unitOfWork);
-        $grant = $this->persistedFailedGrant($repository);
-        $audit = new InMemoryAuditEvidenceRepository($unitOfWork);
-        $events = new InMemoryEventDispatcher();
+        $activationGrantRepository = new InMemoryActivationGrantRepository($unitOfWork);
+        $grant = $this->persistedFailedGrant($activationGrantRepository);
+        $auditEvidenceRepository = new InMemoryAuditEvidenceRepository($unitOfWork);
+        $eventDispatcher = new InMemoryEventDispatcher();
         $clock = new FixedClock($grant->getExpiresAt());
         $resend = new ResendInvitationDeliveryHandler(
-            $repository,
-            $audit,
+            $activationGrantRepository,
+            $auditEvidenceRepository,
             $unitOfWork,
             new FixedCredentialGenerator('fresh-authority'),
             new PrefixInvitationDeliveryCipher(),
             $clock,
-            $events
+            $eventDispatcher
         );
         $resend->handle(CommandMessage::create(new ResendInvitationDelivery('Admin-42', $grant->getUserId())));
 
-        $successor = $repository->getLatestByUserId($grant->getUserId());
+        $successor = $activationGrantRepository->getLatestByUserId($grant->getUserId());
         self::assertNotNull($successor);
         self::assertFalse($grant->getId()->equals($successor->getId()));
         self::assertFalse($grant->getDelivery()->getId()->equals($successor->getDelivery()->getId()));
         self::assertNotSame($grant->getCredentialHash(), $successor->getCredentialHash());
         self::assertGreaterThan($grant->getExpiresAt(), $successor->getExpiresAt());
-        self::assertTrue($repository->getById($grant->getId())?->isRevoked());
-        self::assertFalse($repository->replace($grant, $grant->requestDeliveryRetry()));
-        self::assertSame($successor, $repository->getLatestByUserId($grant->getUserId()));
+        self::assertTrue($activationGrantRepository->getById($grant->getId())?->isRevoked());
+        self::assertFalse($activationGrantRepository->replace($grant, $grant->requestDeliveryRetry()));
+        self::assertSame($successor, $activationGrantRepository->getLatestByUserId($grant->getUserId()));
 
         $token = CredentialDeliveryClaimToken::generate();
         $at = $grant->getExpiresAt();
         $claimed = $successor->claimDelivery($token, $at, $at->modify('+5 minutes'));
-        self::assertTrue($repository->replace($successor, $claimed));
+        self::assertTrue($activationGrantRepository->replace($successor, $claimed));
         $failed = $claimed->failDelivery($token, $at, CredentialDeliveryFailure::RETRYABLE_PROVIDER);
-        self::assertTrue($repository->replace($claimed, $failed));
-        new RetryInvitationDeliveryHandler($repository, $audit, $unitOfWork, $clock, $events)->handle(
+        self::assertTrue($activationGrantRepository->replace($claimed, $failed));
+        new RetryInvitationDeliveryHandler(
+            $activationGrantRepository,
+            $auditEvidenceRepository,
+            $unitOfWork,
+            $clock,
+            $eventDispatcher
+        )->handle(
             CommandMessage::create(new RetryInvitationDelivery('Admin-42', $grant->getUserId()))
         );
-        self::assertEquals($failed->requestDeliveryRetry(), $repository->getLatestByUserId($grant->getUserId()));
-        self::assertTrue($repository->getById($grant->getId())->isRevoked());
-        self::assertCount(2, $audit->all());
+        self::assertEquals(
+            $failed->requestDeliveryRetry(),
+            $activationGrantRepository->getLatestByUserId($grant->getUserId())
+        );
+        self::assertTrue($activationGrantRepository->getById($grant->getId())->isRevoked());
+        self::assertCount(2, $auditEvidenceRepository->all());
     }
 
     public function test_that_command_and_event_round_trip_and_reject_missing_data(): void
@@ -856,7 +901,7 @@ final class RetryInvitationDeliveryHandlerTest extends TestCase
     }
 
     private function persistedFailedGrant(
-        InMemoryActivationGrantRepository $repository,
+        InMemoryActivationGrantRepository $activationGrantRepository,
         ?UserId $userId = null,
         ?DateTimeImmutable $expiresAt = null
     ): ActivationGrant {
@@ -869,13 +914,13 @@ final class RetryInvitationDeliveryHandlerTest extends TestCase
             EmailAddress::fromString('alice@example.test'),
             'ciphertext'
         );
-        self::assertTrue($repository->add($activationGrant));
+        self::assertTrue($activationGrantRepository->add($activationGrant));
         $token = CredentialDeliveryClaimToken::generate();
         $at = new DateTimeImmutable('2026-08-18T12:00:00+00:00');
         $claimed = $activationGrant->claimDelivery($token, $at, $at->modify('+5 minutes'));
-        self::assertTrue($repository->replace($activationGrant, $claimed));
+        self::assertTrue($activationGrantRepository->replace($activationGrant, $claimed));
         $failed = $claimed->failDelivery($token, $at, CredentialDeliveryFailure::UNEXPECTED_PROVIDER);
-        self::assertTrue($repository->replace($claimed, $failed));
+        self::assertTrue($activationGrantRepository->replace($claimed, $failed));
 
         return $failed;
     }

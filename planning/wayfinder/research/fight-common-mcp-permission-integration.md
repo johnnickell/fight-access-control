@@ -115,7 +115,7 @@ AccessControl integration is not absence of Common enforcement.
 
 ### 4. Current request snapshots are not live revocation
 
-[CurrentAgentPrincipalProvider](../../../src/Application/AccessControl/Agent/Security/CurrentAgentPrincipalProvider.php)
+[CurrentAgentPrincipalProvider](../../../src/Application/AccessControl/Agent/Authentication/CurrentAgentPrincipalProvider.php)
 authenticates a signed request, consumes its nonce and caches an immutable successful principal for that request.
 `AgentToolAvailability` also remembers failed resolution and its resolved principal. That is the accepted contract
 for short requests and fresh retry requests; authority changes after resolution do not cancel already admitted work.

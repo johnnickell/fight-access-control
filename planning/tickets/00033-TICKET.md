@@ -2,7 +2,7 @@
 id: TICKET-00033
 epic: EPIC-00015
 title: Clarify architecture and capability ownership before extending integrations
-status: ready-for-agent
+status: done
 ---
 
 # Clarify architecture and capability ownership before extending integrations
@@ -74,8 +74,13 @@ and operation-boundary redesign belong to TICKET-00035/00036.
 | --- | --- | --- | --- |
 | 10 | [TASK-00107](../tasks/00107-TASK.md) | Codify aggregate-first architecture and descriptive dependency naming | done |
 | 11 | [TASK-00108](../tasks/00108-TASK.md) | Move Agent MCP presentation and family bindings into adapters | done |
-| 12 | [TASK-00109](../tasks/00109-TASK.md) | Organize Application capabilities and descriptive collaborator names | ready-for-agent |
+| 12 | [TASK-00109](../tasks/00109-TASK.md) | Organize Application capabilities and descriptive collaborator names | done |
 ## Decisions and Progress
+
+All three children now retain their independent acceptance and terminal states: TASK-00107 guidance, TASK-00108
+MCP relocation and TASK-00109 capability/naming organization. Automatic child rollup completes this TICKET;
+EPIC-00015 remains open for its other unfinished TICKETs. Historical checkpoints below retain their original
+subjects and pending-at-closeout wording. Combined integration evidence: `.runs/handoffs/TASK-00109/develop-merge.md`.
 
 TASK-00108 has independent Review ACCEPT and nonvisual QA PASS on candidate
 `eacf83ccb0637db24274339dc157cf045f3fdc58`; closeout records that acceptance, not merge or release.

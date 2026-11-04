@@ -93,12 +93,12 @@ final class ExpiredCredentialRecoveryTest extends TestCase
         $work = $fixture->discovery()->handle(QueryMessage::create($query));
         self::assertSame($before, $fixture->current());
         self::assertSame(0, $fixture->unitOfWork->transactions);
-        self::assertSame([], $fixture->events->events());
+        self::assertSame([], $fixture->eventDispatcher->events());
         if ($offset === '-1 microsecond') {
             self::assertSame([], $work);
             $fixture->handler()->handle(CommandMessage::create($fixture->command($at)));
             self::assertSame($before, $fixture->current());
-            self::assertSame([], $fixture->events->events());
+            self::assertSame([], $fixture->eventDispatcher->events());
 
             return;
         }
@@ -118,13 +118,13 @@ final class ExpiredCredentialRecoveryTest extends TestCase
             array_keys($item->toArray())
         );
         self::assertEquals($purpose === 'email_change' ? $before->getId() : null, $item->getEmailChangeGrantId());
-        $events = new InMemoryEventDispatcher(static function () use ($fixture): void {
+        $eventDispatcher = new InMemoryEventDispatcher(static function () use ($fixture): void {
             self::assertTrue($fixture->unitOfWork->transactionCompleted);
             self::assertFalse($fixture->current()->getDelivery()->hasRecoverableMaterial());
         });
         $command = $fixture->command($at);
         self::assertEquals($command, $command::fromArray($command->toArray()));
-        $fixture->handler(events: $events)->handle(CommandMessage::create($command));
+        $fixture->handler(eventDispatcher: $eventDispatcher)->handle(CommandMessage::create($command));
         $after = $fixture->current();
         self::assertSame($before->getId(), $after->getId());
         self::assertSame($before->getDelivery()->getId(), $after->getDelivery()->getId());
@@ -140,12 +140,12 @@ final class ExpiredCredentialRecoveryTest extends TestCase
         self::assertEquals($before->getDelivery()->getLastAttemptAt(), $after->getDelivery()->getLastAttemptAt());
         self::assertEquals($before->getDelivery()->getLastOutcomeAt(), $after->getDelivery()->getLastOutcomeAt());
         self::assertSame($before->getDelivery()->getLastFailure(), $after->getDelivery()->getLastFailure());
-        self::assertCount(1, $events->events());
-        $event = $events->events()[0];
+        self::assertCount(1, $eventDispatcher->events());
+        $event = $eventDispatcher->events()[0];
         self::assertEquals($event, $event::fromArray($event->toArray()));
-        $fixture->handler(events: $events)->handle(CommandMessage::create($command));
+        $fixture->handler(eventDispatcher: $eventDispatcher)->handle(CommandMessage::create($command));
         self::assertSame($after, $fixture->current());
-        self::assertCount(1, $events->events());
+        self::assertCount(1, $eventDispatcher->events());
         self::assertSame([], $fixture->discovery()->handle(QueryMessage::create($query)));
     }
 
@@ -165,11 +165,11 @@ final class ExpiredCredentialRecoveryTest extends TestCase
         if ($eligible) {
             self::assertInstanceOf(EmailChangeGrant::class, $after);
             self::assertTrue($after->isExpired());
-            self::assertNull($fixture->users->getById($fixture->user->getId())?->getPendingEmailChange());
-            self::assertCount(1, $fixture->events->events());
+            self::assertNull($fixture->userRepository->getById($fixture->user->getId())?->getPendingEmailChange());
+            self::assertCount(1, $fixture->eventDispatcher->events());
         } else {
             self::assertSame($before, $after);
-            self::assertSame([], $fixture->events->events());
+            self::assertSame([], $fixture->eventDispatcher->events());
         }
     }
 
@@ -180,19 +180,19 @@ final class ExpiredCredentialRecoveryTest extends TestCase
         $before = clone $fixture->user;
         if (in_array($state, ['disabled', 'enabled'], true)) {
             $before->disable($fixture->issuedAt);
-            self::assertTrue($fixture->users->replaceLifecycleState($fixture->user, $before));
+            self::assertTrue($fixture->userRepository->replaceLifecycleState($fixture->user, $before));
         }
 
         if ($state === 'enabled') {
             $enabled = clone $before;
             $enabled->enable($fixture->issuedAt);
-            self::assertTrue($fixture->users->replaceLifecycleState($before, $enabled));
+            self::assertTrue($fixture->userRepository->replaceLifecycleState($before, $enabled));
             $before = $enabled;
         }
 
         if (in_array($state, ['deleted', 'restored-active', 'restored-pending'], true)) {
             $before->delete($fixture->issuedAt);
-            self::assertTrue($fixture->users->replaceLifecycleState($fixture->user, $before));
+            self::assertTrue($fixture->userRepository->replaceLifecycleState($fixture->user, $before));
         }
 
         if (str_starts_with($state, 'restored')) {
@@ -201,12 +201,12 @@ final class ExpiredCredentialRecoveryTest extends TestCase
                 $state === 'restored-active' ? UserState::ACTIVE : UserState::PENDING_ACTIVATION,
                 $fixture->issuedAt
             );
-            self::assertTrue($fixture->users->replaceLifecycleState($before, $restored));
+            self::assertTrue($fixture->userRepository->replaceLifecycleState($before, $restored));
             $before = $restored;
         }
 
         $fixture->handler()->handle(CommandMessage::create($fixture->command()));
-        $after = $fixture->users->getById($fixture->user->getId());
+        $after = $fixture->userRepository->getById($fixture->user->getId());
         self::assertInstanceOf(User::class, $after);
         self::assertSame($before->getState(), $after->getState());
         self::assertSame($before->getEmail()->canonical(), $after->getEmail()->canonical());
@@ -220,25 +220,25 @@ final class ExpiredCredentialRecoveryTest extends TestCase
         self::assertEquals($fixture->expiresAt, $after->getUpdatedAt());
         self::assertNull($after->getPendingEmailChange());
         self::assertSame($before->getEmailChangeReservationRevision() + 1, $after->getEmailChangeReservationRevision());
-        self::assertTrue($fixture->email->all()[0]->isExpired());
+        self::assertTrue($fixture->emailChangeGrantRepository->all()[0]->isExpired());
     }
 
     public function test_a_fresh_same_email_request_after_release_has_a_new_bound_generation(): void
     {
         $fixture = new ExpiredCredentialFixture('email_change');
         $fixture->handler()->handle(CommandMessage::create($fixture->command()));
-        $user = $fixture->users->getById($fixture->user->getId());
+        $user = $fixture->userRepository->getById($fixture->user->getId());
         self::assertInstanceOf(User::class, $user);
         $request = new RequestEmailChangeHandler(
-            $fixture->users,
-            $fixture->email,
+            $fixture->userRepository,
+            $fixture->emailChangeGrantRepository,
             new EmailChangeService\FixedEmailChangeAdministrationAuthorization(true),
             new InMemoryAuditEvidenceRepository($fixture->unitOfWork),
             $fixture->unitOfWork,
             new EmailChangeService\FixedEmailChangeCredentialGenerator('fresh-fixture'),
             new EmailChangeService\PrefixEmailChangeDeliveryCipher(),
             new FixedClock('2030-01-01T01:01:00Z'),
-            $fixture->events
+            $fixture->eventDispatcher
         );
         $request->handle(CommandMessage::create(new RequestEmailChange(
             $user->getId(),
@@ -254,9 +254,9 @@ final class ExpiredCredentialRecoveryTest extends TestCase
         self::assertSame($successor, $fixture->current());
         self::assertSame(
             'next@example.test',
-            $fixture->users->getById($user->getId())?->getPendingEmailChange()?->canonical()
+            $fixture->userRepository->getById($user->getId())?->getPendingEmailChange()?->canonical()
         );
-        self::assertCount(2, $fixture->events->events());
+        self::assertCount(2, $fixture->eventDispatcher->events());
     }
 
     public function test_current_issued_authority_with_a_missing_or_ABA_reservation_fails_closed(): void
@@ -265,14 +265,14 @@ final class ExpiredCredentialRecoveryTest extends TestCase
             $fixture = new ExpiredCredentialFixture('email_change');
             $replacement = clone $fixture->user;
             $replacement->cancelEmailChange($fixture->issuedAt);
-            self::assertTrue($fixture->users->replaceEmailChangeReservation($fixture->user, $replacement));
+            self::assertTrue($fixture->userRepository->replaceEmailChangeReservation($fixture->user, $replacement));
             if ($case !== 'missing') {
                 $next = clone $replacement;
                 $next->requestEmailChange(
                     EmailAddress::fromString($case === 'different' ? 'other@example.test' : 'next@example.test'),
                     $fixture->issuedAt
                 );
-                self::assertTrue($fixture->users->replaceEmailChangeReservation($replacement, $next));
+                self::assertTrue($fixture->userRepository->replaceEmailChangeReservation($replacement, $next));
                 $replacement = $next;
             }
 
@@ -285,8 +285,8 @@ final class ExpiredCredentialRecoveryTest extends TestCase
                     $failure->getMessage()
                 );
                 self::assertSame($fixture->initial, $fixture->current());
-                self::assertSame($replacement, $fixture->users->getById($fixture->user->getId()));
-                self::assertInstanceOf(CommandFailedEvent::class, $fixture->events->events()[0]);
+                self::assertSame($replacement, $fixture->userRepository->getById($fixture->user->getId()));
+                self::assertInstanceOf(CommandFailedEvent::class, $fixture->eventDispatcher->events()[0]);
             }
         }
     }
@@ -294,21 +294,26 @@ final class ExpiredCredentialRecoveryTest extends TestCase
     public function test_missing_user_for_current_expired_authority_is_an_unresolved_failure_not_success(): void
     {
         $fixture = new ExpiredCredentialFixture('email_change');
-        $users = $this->createStub(UserRepository::class);
-        $handler = new ExpireEmailChangeHandler($users, $fixture->email, $fixture->unitOfWork, $fixture->events);
+        $userRepository = $this->createStub(UserRepository::class);
+        $handler = new ExpireEmailChangeHandler(
+            $userRepository,
+            $fixture->emailChangeGrantRepository,
+            $fixture->unitOfWork,
+            $fixture->eventDispatcher
+        );
         $this->expectException(LogicException::class);
         try {
             $handler->handle(CommandMessage::create($fixture->command()));
         } finally {
             self::assertSame($fixture->initial, $fixture->current());
-            self::assertInstanceOf(CommandFailedEvent::class, $fixture->events->events()[0]);
+            self::assertInstanceOf(CommandFailedEvent::class, $fixture->eventDispatcher->events()[0]);
         }
     }
 
     public function test_corrupt_email_relationships_are_rejected_without_implicit_repair(): void
     {
         $fixture = new ExpiredCredentialFixture('email_change');
-        $grant = $fixture->email->all()[0];
+        $grant = $fixture->emailChangeGrantRepository->all()[0];
         $invalid = [
             FabricatedEmailChangeGrant::withDeliveryOwner($grant, UserId::generate()),
             FabricatedEmailChangeGrant::withDeliveryExpiry($grant, $fixture->expiresAt->modify('+1 hour')),
@@ -316,23 +321,30 @@ final class ExpiredCredentialRecoveryTest extends TestCase
         ];
         foreach ($invalid as $corrupt) {
             self::assertFalse(new InMemoryEmailChangeGrantRepository()->add($corrupt));
-            $repository = $this->createStub(EmailChangeGrantRepository::class);
-            $repository->method('getLatestByUserId')->willReturn($corrupt);
-            $events = new InMemoryEventDispatcher();
+            $emailChangeGrantRepository = $this->createStub(EmailChangeGrantRepository::class);
+            $emailChangeGrantRepository->method('getLatestByUserId')->willReturn($corrupt);
+            $eventDispatcher = new InMemoryEventDispatcher();
             try {
-                new ExpireEmailChangeHandler($fixture->users, $repository, $fixture->unitOfWork, $events)->handle(
+                new ExpireEmailChangeHandler(
+                    $fixture->userRepository,
+                    $emailChangeGrantRepository,
+                    $fixture->unitOfWork,
+                    $eventDispatcher
+                )->handle(
                     CommandMessage::create($fixture->command())
                 );
                 self::fail('Corrupt authority was repaired implicitly.');
             } catch (LogicException) {
                 self::assertSame($grant, $fixture->current());
-                self::assertSame($fixture->user, $fixture->users->getById($fixture->user->getId()));
-                self::assertInstanceOf(CommandFailedEvent::class, $events->events()[0]);
+                self::assertSame($fixture->user, $fixture->userRepository->getById($fixture->user->getId()));
+                self::assertInstanceOf(CommandFailedEvent::class, $eventDispatcher->events()[0]);
             }
         }
 
         $fabricated = FabricatedEmailChangeGrant::withReservationRevision($grant, 3);
-        self::assertFalse($fixture->email->replace($fabricated, $grant->expireAt($fixture->expiresAt)));
+        self::assertFalse(
+            $fixture->emailChangeGrantRepository->replace($fabricated, $grant->expireAt($fixture->expiresAt))
+        );
         self::assertSame($grant, $fixture->current());
     }
 
@@ -341,23 +353,28 @@ final class ExpiredCredentialRecoveryTest extends TestCase
         $fixture = new ExpiredCredentialFixture('email_change');
         $foreign = new ExpiredCredentialFixture('email_change');
         foreach ([true, false] as $wrongUser) {
-            $users = $this->createStub(UserRepository::class);
-            $users->method('getById')->willReturn($foreign->user);
-            $repository = $this->createStub(EmailChangeGrantRepository::class);
-            $repository->method('getLatestByUserId')->willReturn($fixture->initial);
+            $userRepository = $this->createStub(UserRepository::class);
+            $userRepository->method('getById')->willReturn($foreign->user);
+            $emailChangeGrantRepository = $this->createStub(EmailChangeGrantRepository::class);
+            $emailChangeGrantRepository->method('getLatestByUserId')->willReturn($fixture->initial);
             $command = $fixture->command();
             if (!$wrongUser) {
                 $command = new ExpireEmailChange(
                     'worker:expiry',
                     $foreign->user->getId(),
-                    $fixture->email->all()[0]->getId(),
+                    $fixture->emailChangeGrantRepository->all()[0]->getId(),
                     $fixture->expiresAt
                 );
             }
 
-            $events = new InMemoryEventDispatcher();
+            $eventDispatcher = new InMemoryEventDispatcher();
             try {
-                new ExpireEmailChangeHandler($users, $repository, $fixture->unitOfWork, $events)->handle(
+                new ExpireEmailChangeHandler(
+                    $userRepository,
+                    $emailChangeGrantRepository,
+                    $fixture->unitOfWork,
+                    $eventDispatcher
+                )->handle(
                     CommandMessage::create($command)
                 );
                 self::fail('Unrelated reservation was expired.');
@@ -365,7 +382,7 @@ final class ExpiredCredentialRecoveryTest extends TestCase
                 self::assertSame($fixture->initial, $fixture->current());
                 self::assertSame($foreign->initial, $foreign->current());
                 self::assertNotNull($foreign->user->getPendingEmailChange());
-                self::assertInstanceOf(CommandFailedEvent::class, $events->events()[0]);
+                self::assertInstanceOf(CommandFailedEvent::class, $eventDispatcher->events()[0]);
             }
         }
     }
@@ -382,14 +399,14 @@ final class ExpiredCredentialRecoveryTest extends TestCase
             self::fail('Failed commit was accepted.');
         } catch (RuntimeException) {
             self::assertSame($before, $fixture->current());
-            self::assertUserStateEquals($expectedUser, $fixture->users->getById($fixture->user->getId()));
-            self::assertInstanceOf(CommandFailedEvent::class, $fixture->events->events()[0]);
+            self::assertUserStateEquals($expectedUser, $fixture->userRepository->getById($fixture->user->getId()));
+            self::assertInstanceOf(CommandFailedEvent::class, $fixture->eventDispatcher->events()[0]);
             self::assertCount(1, $this->expired($fixture, limit: 1));
         }
 
         $fixture->handler()->handle(CommandMessage::create($fixture->command()));
         self::assertFalse($fixture->current()->getDelivery()->hasRecoverableMaterial());
-        self::assertCount(2, $fixture->events->events());
+        self::assertCount(2, $fixture->eventDispatcher->events());
     }
 
     #[DataProvider('uncertainCases')]
@@ -430,13 +447,15 @@ final class ExpiredCredentialRecoveryTest extends TestCase
         if ($purpose === 'email_change') {
             self::assertSame(
                 !$committed,
-                $fixture->users->getById($fixture->user->getId())?->getPendingEmailChange() !== null
+                $fixture->userRepository->getById($fixture->user->getId())?->getPendingEmailChange() !== null
             );
         }
 
-        $restartEvents = new InMemoryEventDispatcher();
-        $fixture->handler(events: $restartEvents)->handle(CommandMessage::create($fixture->command()));
-        self::assertCount($committed ? 0 : 1, $restartEvents->events());
+        $restartEventDispatcher = new InMemoryEventDispatcher();
+        $fixture->handler(eventDispatcher: $restartEventDispatcher)->handle(
+            CommandMessage::create($fixture->command())
+        );
+        self::assertCount($committed ? 0 : 1, $restartEventDispatcher->events());
         self::assertFalse($fixture->current()->getDelivery()->hasRecoverableMaterial());
     }
 
@@ -446,13 +465,13 @@ final class ExpiredCredentialRecoveryTest extends TestCase
     ): void {
         $fixture = new ExpiredCredentialFixture($purpose);
         $fault = new RuntimeException('Injected notification loss.');
-        $events = new InMemoryEventDispatcher(static function ($event) use ($fault): void {
+        $eventDispatcher = new InMemoryEventDispatcher(static function ($event) use ($fault): void {
             if (!$event instanceof CommandFailedEvent) {
                 throw $fault;
             }
         });
         try {
-            $fixture->handler(events: $events)->handle(CommandMessage::create($fixture->command()));
+            $fixture->handler(eventDispatcher: $eventDispatcher)->handle(CommandMessage::create($fixture->command()));
             self::fail('Publication fault must retain ordinary failure semantics.');
         } catch (RuntimeException $runtimeException) {
             self::assertSame($fault, $runtimeException);
@@ -460,10 +479,10 @@ final class ExpiredCredentialRecoveryTest extends TestCase
 
         $after = $fixture->current();
         self::assertFalse($after->getDelivery()->hasRecoverableMaterial());
-        self::assertInstanceOf(CommandFailedEvent::class, $events->events()[0]);
+        self::assertInstanceOf(CommandFailedEvent::class, $eventDispatcher->events()[0]);
         $fixture->handler()->handle(CommandMessage::create($fixture->command()));
         self::assertSame($after, $fixture->current());
-        self::assertSame([], $fixture->events->events());
+        self::assertSame([], $fixture->eventDispatcher->events());
     }
 
     #[DataProvider('families')]
@@ -480,7 +499,7 @@ final class ExpiredCredentialRecoveryTest extends TestCase
             self::assertSame($fault, $runtimeException);
         }
 
-        $event = $fixture->events->events()[0];
+        $event = $fixture->eventDispatcher->events()[0];
         self::assertInstanceOf(CommandFailedEvent::class, $event);
         self::assertSame('Credential expiry failed.', $event->getErrorMessage());
         $payload = json_encode($event->toArray(), JSON_THROW_ON_ERROR);
@@ -496,7 +515,7 @@ final class ExpiredCredentialRecoveryTest extends TestCase
         $fixture = new ExpiredCredentialFixture($purpose);
         $original = new RuntimeException('Original cleanup failure.');
         $secondary = new RuntimeException('Failure notification unavailable.');
-        $events = new InMemoryEventDispatcher(static function ($event) use ($original, $secondary): never {
+        $eventDispatcher = new InMemoryEventDispatcher(static function ($event) use ($original, $secondary): never {
             if ($event instanceof CommandFailedEvent) {
                 throw $secondary;
             }
@@ -510,7 +529,7 @@ final class ExpiredCredentialRecoveryTest extends TestCase
         }
 
         try {
-            $fixture->handler($unitOfWork, $events)->handle(CommandMessage::create($fixture->command()));
+            $fixture->handler($unitOfWork, $eventDispatcher)->handle(CommandMessage::create($fixture->command()));
             self::fail('Original failure was hidden.');
         } catch (RuntimeException $runtimeException) {
             self::assertSame($original, $runtimeException);
@@ -518,7 +537,7 @@ final class ExpiredCredentialRecoveryTest extends TestCase
 
         self::assertSame(!$committed, $fixture->current()->getDelivery()->hasRecoverableMaterial());
         $fixture->handler()->handle(CommandMessage::create($fixture->command()));
-        self::assertCount($committed ? 0 : 1, $fixture->events->events());
+        self::assertCount($committed ? 0 : 1, $fixture->eventDispatcher->events());
     }
 
     #[DataProvider('raceCases')]
@@ -566,8 +585,8 @@ final class ExpiredCredentialRecoveryTest extends TestCase
             // A caller can lose the confirmed response and recreate the handler after restart.
             $second->handle(CommandMessage::create($fixture->command(actor: $loser)));
             self::assertSame($persisted, $fixture->current());
-            self::assertCount(1, $fixture->events->events());
-            self::assertSame($winner, $fixture->events->events()[0]->toArray()['actor_id']);
+            self::assertCount(1, $fixture->eventDispatcher->events());
+            self::assertSame($winner, $fixture->eventDispatcher->events()[0]->toArray()['actor_id']);
         }
     }
 
@@ -580,7 +599,7 @@ final class ExpiredCredentialRecoveryTest extends TestCase
                 if (str_starts_with($transition, 'restore')) {
                     $deleted = clone $before;
                     $deleted->delete($fixture->issuedAt);
-                    self::assertTrue($fixture->users->replaceLifecycleState($before, $deleted));
+                    self::assertTrue($fixture->userRepository->replaceLifecycleState($before, $deleted));
                     $before = $deleted;
                 }
 
@@ -600,19 +619,19 @@ final class ExpiredCredentialRecoveryTest extends TestCase
                 $expired->expireEmailChange($fixture->expiresAt);
                 if ($cleanupWins) {
                     $fixture->handler()->handle(CommandMessage::create($fixture->command()));
-                    self::assertFalse($fixture->users->replaceLifecycleState(clone $before, $lifecycle));
-                    self::assertUserStateEquals($expired, $fixture->users->getById($before->getId()));
+                    self::assertFalse($fixture->userRepository->replaceLifecycleState(clone $before, $lifecycle));
+                    self::assertUserStateEquals($expired, $fixture->userRepository->getById($before->getId()));
                 } else {
-                    self::assertTrue($fixture->users->replaceLifecycleState($before, $lifecycle));
-                    self::assertFalse($fixture->users->replaceEmailChangeReservation(clone $before, $expired));
+                    self::assertTrue($fixture->userRepository->replaceLifecycleState($before, $lifecycle));
+                    self::assertFalse($fixture->userRepository->replaceEmailChangeReservation(clone $before, $expired));
                     $fixture->handler()->handle(CommandMessage::create($fixture->command()));
                     $expected = clone $lifecycle;
                     $expected->expireEmailChange($fixture->expiresAt);
-                    self::assertUserStateEquals($expected, $fixture->users->getById($before->getId()));
+                    self::assertUserStateEquals($expected, $fixture->userRepository->getById($before->getId()));
                 }
 
-                self::assertTrue($fixture->email->all()[0]->isExpired());
-                self::assertCount(1, $fixture->events->events());
+                self::assertTrue($fixture->emailChangeGrantRepository->all()[0]->isExpired());
+                self::assertCount(1, $fixture->eventDispatcher->events());
             }
         }
     }
@@ -623,7 +642,7 @@ final class ExpiredCredentialRecoveryTest extends TestCase
         $fixture->handler()->handle(CommandMessage::create(new ExpireInvitationDelivery(
             'worker:expiry',
             UserId::generate(),
-            $fixture->activation->all()[0]->getDelivery()->getId(),
+            $fixture->activationGrantRepository->all()[0]->getDelivery()->getId(),
             $fixture->expiresAt
         )));
         $fixture->handler()->handle(CommandMessage::create(new ExpireInvitationDelivery(
@@ -633,31 +652,39 @@ final class ExpiredCredentialRecoveryTest extends TestCase
             $fixture->expiresAt
         )));
         foreach ([null, new ExpiredCredentialFixture('activation')->initial, $fixture->initial] as $latest) {
-            $repository = $this->createStub(ActivationGrantRepository::class);
-            $repository->method('getByDeliveryId')->willReturn($fixture->initial);
-            $repository->method('getLatestByUserId')->willReturn($latest);
-            $handler = new ExpireInvitationDeliveryHandler($repository, $fixture->unitOfWork, $fixture->events);
+            $activationGrantRepository = $this->createStub(ActivationGrantRepository::class);
+            $activationGrantRepository->method('getByDeliveryId')->willReturn($fixture->initial);
+            $activationGrantRepository->method('getLatestByUserId')->willReturn($latest);
+            $handler = new ExpireInvitationDeliveryHandler(
+                $activationGrantRepository,
+                $fixture->unitOfWork,
+                $fixture->eventDispatcher
+            );
             $handler->handle(CommandMessage::create($fixture->command()));
         }
 
         self::assertSame($fixture->initial, $fixture->current());
-        self::assertSame([], $fixture->events->events());
+        self::assertSame([], $fixture->eventDispatcher->events());
     }
 
     public function test_invitation_storage_failure_rethrows_the_original_throwable_with_failure_evidence(): void
     {
         $fixture = new ExpiredCredentialFixture('activation');
-        $repository = $this->createStub(ActivationGrantRepository::class);
+        $activationGrantRepository = $this->createStub(ActivationGrantRepository::class);
         $fault = new RuntimeException('Injected expiry storage failure.');
-        $repository->method('getByDeliveryId')->willThrowException($fault);
+        $activationGrantRepository->method('getByDeliveryId')->willThrowException($fault);
         try {
-            new ExpireInvitationDeliveryHandler($repository, $fixture->unitOfWork, $fixture->events)->handle(
+            new ExpireInvitationDeliveryHandler(
+                $activationGrantRepository,
+                $fixture->unitOfWork,
+                $fixture->eventDispatcher
+            )->handle(
                 CommandMessage::create($fixture->command())
             );
             self::fail('Storage fault was hidden.');
         } catch (RuntimeException $runtimeException) {
             self::assertSame($fault, $runtimeException);
-            self::assertInstanceOf(CommandFailedEvent::class, $fixture->events->events()[0]);
+            self::assertInstanceOf(CommandFailedEvent::class, $fixture->eventDispatcher->events()[0]);
             self::assertSame($fixture->initial, $fixture->current());
         }
     }
@@ -668,25 +695,33 @@ final class ExpiredCredentialRecoveryTest extends TestCase
             $fixture = new ExpiredCredentialFixture($purpose);
             $foreign = new ExpiredCredentialFixture($purpose);
             if ($purpose === 'activation') {
-                $repository = $this->createStub(ActivationGrantRepository::class);
-                $repository->method('getByDeliveryId')->willReturn($foreign->initial);
-                $repository->method('getLatestByUserId')->willReturn($foreign->initial);
-                $handler = new ExpireInvitationDeliveryHandler($repository, $fixture->unitOfWork, $fixture->events);
+                $passwordResetGrantRepository = $this->createStub(ActivationGrantRepository::class);
+                $passwordResetGrantRepository->method('getByDeliveryId')->willReturn($foreign->initial);
+                $passwordResetGrantRepository->method('getLatestByUserId')->willReturn($foreign->initial);
+                $handler = new ExpireInvitationDeliveryHandler(
+                    $passwordResetGrantRepository,
+                    $fixture->unitOfWork,
+                    $fixture->eventDispatcher
+                );
                 $command = new ExpireInvitationDelivery(
                     'worker:expiry',
                     $foreign->user->getId(),
-                    $fixture->activation->all()[0]->getDelivery()->getId(),
+                    $fixture->activationGrantRepository->all()[0]->getDelivery()->getId(),
                     $fixture->expiresAt
                 );
             } else {
-                $repository = $this->createStub(PasswordResetGrantRepository::class);
-                $repository->method('getByDeliveryId')->willReturn($foreign->initial);
-                $repository->method('getLatestByUserId')->willReturn($foreign->initial);
-                $handler = new ExpirePasswordResetDeliveryHandler($repository, $fixture->unitOfWork, $fixture->events);
+                $passwordResetGrantRepository = $this->createStub(PasswordResetGrantRepository::class);
+                $passwordResetGrantRepository->method('getByDeliveryId')->willReturn($foreign->initial);
+                $passwordResetGrantRepository->method('getLatestByUserId')->willReturn($foreign->initial);
+                $handler = new ExpirePasswordResetDeliveryHandler(
+                    $passwordResetGrantRepository,
+                    $fixture->unitOfWork,
+                    $fixture->eventDispatcher
+                );
                 $command = new ExpirePasswordResetDelivery(
                     'worker:expiry',
                     $foreign->user->getId(),
-                    $fixture->reset->all()[0]->getDelivery()->getId(),
+                    $fixture->passwordResetGrantRepository->all()[0]->getDelivery()->getId(),
                     $fixture->expiresAt
                 );
             }
@@ -697,7 +732,7 @@ final class ExpiredCredentialRecoveryTest extends TestCase
             } catch (LogicException) {
                 self::assertSame($fixture->initial, $fixture->current());
                 self::assertSame($foreign->initial, $foreign->current());
-                self::assertInstanceOf(CommandFailedEvent::class, $fixture->events->events()[0]);
+                self::assertInstanceOf(CommandFailedEvent::class, $fixture->eventDispatcher->events()[0]);
             }
         }
     }
@@ -705,7 +740,7 @@ final class ExpiredCredentialRecoveryTest extends TestCase
     public function test_replaced_invitation_discovery_and_stale_cleanup_cannot_retarget_a_successor(): void
     {
         $fixture = new ExpiredCredentialFixture('activation');
-        $old = $fixture->activation->all()[0];
+        $old = $fixture->activationGrantRepository->all()[0];
         $successor = ActivationGrant::issue(
             ActivationOrigin::PRIVATE_INVITATION,
             $old->getUserId(),
@@ -715,7 +750,7 @@ final class ExpiredCredentialRecoveryTest extends TestCase
             EmailAddress::fromString('next@example.test'),
             'fixture:successor'
         );
-        self::assertTrue($fixture->activation->replaceWithSuccessor(
+        self::assertTrue($fixture->activationGrantRepository->replaceWithSuccessor(
             $old,
             $old->revoke($fixture->issuedAt),
             $successor
@@ -724,7 +759,7 @@ final class ExpiredCredentialRecoveryTest extends TestCase
         $fixture->handler()->handle(CommandMessage::create($fixture->command()));
         self::assertSame($successor, $fixture->current());
         self::assertTrue($successor->getDelivery()->hasRecoverableMaterial());
-        self::assertSame([], $fixture->events->events());
+        self::assertSame([], $fixture->eventDispatcher->events());
     }
 
     public function test_expiry_payloads_reject_blank_relative_and_normalized_invalid_timestamps(): void
@@ -735,7 +770,7 @@ final class ExpiredCredentialRecoveryTest extends TestCase
             $family = new ExpiredCredentialFixture($purpose);
             $models[] = $family->command();
             $family->handler()->handle(CommandMessage::create($family->command()));
-            $models[] = $family->events->events()[0];
+            $models[] = $family->eventDispatcher->events()[0];
         }
 
         foreach ($models as $model) {
@@ -873,15 +908,15 @@ final class ExpiredCredentialRecoveryTest extends TestCase
     public function test_family_discovery_rejects_invalid_bounds(string $purpose): void
     {
         $fixture = new ExpiredCredentialFixture($purpose);
-        $repository = match ($purpose) {
-            'activation' => $fixture->activation,
-            'password_reset' => $fixture->reset,
-            'email_change' => $fixture->email,
+        $credentialGrantRepository = match ($purpose) {
+            'activation' => $fixture->activationGrantRepository,
+            'password_reset' => $fixture->passwordResetGrantRepository,
+            'email_change' => $fixture->emailChangeGrantRepository,
             default => throw new LogicException('Unknown fixture purpose.'),
         };
         foreach ([0, -1, 101] as $limit) {
             try {
-                $repository->findExpired($fixture->expiresAt, $limit);
+                $credentialGrantRepository->findExpired($fixture->expiresAt, $limit);
                 self::fail('Unbounded repository discovery accepted.');
             } catch (DomainException) {
                 self::addToAssertionCount(1);
@@ -921,16 +956,18 @@ final class ExpiredCredentialRecoveryTest extends TestCase
             0,
             CredentialDeliveryStatus::DELIVERED
         );
-        $activationRepo = $this->createMock(ActivationGrantRepository::class);
-        $resetRepo = $this->createMock(PasswordResetGrantRepository::class);
-        $emailRepo = $this->createMock(EmailChangeGrantRepository::class);
-        $activationRepo->expects(self::once())->method('findExpired')->with($at, 2)->willReturn([$activation]);
-        $resetRepo->expects(self::once())->method('findExpired')->with($at, 2)->willReturn([$reset]);
-        $emailRepo->expects(self::once())->method('findExpired')->with($at, 2)->willReturn([$email]);
+        $activationGrantRepository = $this->createMock(ActivationGrantRepository::class);
+        $passwordResetGrantRepository = $this->createMock(PasswordResetGrantRepository::class);
+        $emailChangeGrantRepository = $this->createMock(EmailChangeGrantRepository::class);
+        $activationGrantRepository->expects(self::once())->method('findExpired')->with($at, 2)->willReturn(
+            [$activation]
+        );
+        $passwordResetGrantRepository->expects(self::once())->method('findExpired')->with($at, 2)->willReturn([$reset]);
+        $emailChangeGrantRepository->expects(self::once())->method('findExpired')->with($at, 2)->willReturn([$email]);
         $actual = new FindExpiredCredentialDeliveriesHandler(
-            $activationRepo,
-            $resetRepo,
-            $emailRepo
+            $activationGrantRepository,
+            $passwordResetGrantRepository,
+            $emailChangeGrantRepository
         )->handle(
             QueryMessage::create(new FindExpiredCredentialDeliveries($at, 2))
         );
@@ -950,8 +987,8 @@ final class ExpiredCredentialRecoveryTest extends TestCase
                 EmailAddress::fromString('fixture@example.test'),
                 'fixture:encrypted'
             );
-            self::assertTrue($fixture->activation->add($grant));
-            self::assertTrue($fixture->activation->replace($grant, $grant->revoke($fixture->issuedAt)));
+            self::assertTrue($fixture->activationGrantRepository->add($grant));
+            self::assertTrue($fixture->activationGrantRepository->replace($grant, $grant->revoke($fixture->issuedAt)));
         }
 
         $later = ActivationGrant::issue(
@@ -963,7 +1000,7 @@ final class ExpiredCredentialRecoveryTest extends TestCase
             EmailAddress::fromString('fixture@example.test'),
             'fixture:encrypted'
         );
-        self::assertTrue($fixture->activation->add($later));
+        self::assertTrue($fixture->activationGrantRepository->add($later));
         $query = QueryMessage::create(new FindExpiredCredentialDeliveries($fixture->expiresAt->modify('+1 second'), 1));
         self::assertSame(
             $fixture->initial->getDelivery()->getId()->toString(),

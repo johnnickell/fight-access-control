@@ -4,12 +4,12 @@ declare(strict_types=1);
 
 namespace Fight\Test\AccessControl\Adapter\Middleware\Psr15;
 
-use Fight\AccessControl\Application\AccessControl\Agent\Security\CurrentAgentPrincipalProvider;
-use Fight\AccessControl\Application\AccessControl\Agent\Security\SignedAgentRequest;
-use Fight\AccessControl\Application\AccessControl\Authorization\Service\RequestAuthority;
+use Fight\AccessControl\Application\AccessControl\Agent\Authentication\CurrentAgentPrincipalProvider;
+use Fight\AccessControl\Application\AccessControl\Agent\Authentication\SignedAgentRequest;
+use Fight\AccessControl\Application\AccessControl\Authorization\Admission\RequestAuthority;
 use Fight\Test\AccessControl\Adapter\Mcp\Tool\Agent\Fixture\ProfileToolEnvironment;
-use Fight\Test\AccessControl\Application\AccessControl\Agent\Service\FixedHmacSharedSecretDecipher;
-use Fight\Test\AccessControl\Application\AccessControl\Agent\Service\FixedHmacSignedAgentRequestVerifier;
+use Fight\Test\AccessControl\Application\AccessControl\Agent\Authentication\FixedHmacSharedSecretDecipher;
+use Fight\Test\AccessControl\Application\AccessControl\Agent\Authentication\FixedHmacSignedAgentRequestVerifier;
 use Fight\Test\AccessControl\Application\AccessControl\Permission\Repository\InMemoryPermissionRepository;
 use Fight\Test\AccessControl\Application\AccessControl\Timing\Service\FixedClock;
 use Psr\Http\Message\ServerRequestInterface;
@@ -39,14 +39,14 @@ final readonly class NativeAgentAuthority
             $body === '' ? null : hash('sha256', $body),
             $body
         );
-        $permissions = $environment->permissions;
+        $permissionRepository = $environment->permissionRepository;
         if ($brokenSnapshot) {
-            $permissions = new InMemoryPermissionRepository();
+            $permissionRepository = new InMemoryPermissionRepository();
         }
 
         $environment->provider = new CurrentAgentPrincipalProvider(
-            $environment->storage->agents,
-            $permissions,
+            $environment->storage->agentRepository,
+            $permissionRepository,
             new FixedHmacSharedSecretDecipher('auth-envelope:'),
             new FixedHmacSignedAgentRequestVerifier($environment->request, 'original-test-secret'),
             new FixedClock($environment->now()),

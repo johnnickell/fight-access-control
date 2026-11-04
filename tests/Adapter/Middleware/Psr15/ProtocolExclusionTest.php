@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace Fight\Test\AccessControl\Adapter\Middleware\Psr15;
 
 use Fight\AccessControl\Adapter\Middleware\Psr15\PermissionMiddleware;
-use Fight\AccessControl\Application\AccessControl\Authorization\AdmissionMode;
-use Fight\AccessControl\Application\AccessControl\Authorization\PermissionDeclaration;
+use Fight\AccessControl\Application\AccessControl\Authorization\Admission\AdmissionMode;
+use Fight\AccessControl\Application\AccessControl\Authorization\Admission\PermissionDeclaration;
 use Fight\AccessControl\Domain\AccessControl\Permission\PermissionName;
 use Fight\Common\Adapter\Http\Mcp\McpResponseFactory;
 use Fight\Common\Adapter\Http\OAuth\OAuthResponseFactory;
@@ -38,15 +38,15 @@ final class ProtocolExclusionTest extends TestCase
     {
         foreach (['known', 'subclass', 'denied'] as $case) {
             $environment = new ProfileToolEnvironment();
-            $queries = $this->createMock(QueryBus::class);
+            $queryBus = $this->createMock(QueryBus::class);
             if ($case === 'denied') {
-                $read = $environment->permissions->getByName(PermissionName::fromString('AGENT_PROFILE_READ'));
+                $read = $environment->permissionRepository->getByName(PermissionName::fromString('AGENT_PROFILE_READ'));
                 self::assertNotNull($read);
-                $agent = $environment->storage->agents->all()[0];
-                $environment->storage->agents->restoreSnapshot([
+                $agent = $environment->storage->agentRepository->all()[0];
+                $environment->storage->agentRepository->restoreSnapshot([
                     $agent->revokePermission($read->getId(), $environment->now())
                 ]);
-                $queries->expects(self::never())->method('fetch');
+                $queryBus->expects(self::never())->method('fetch');
             } else {
                 $failure = new LookupException('PRIVATE MCP SENTINEL');
                 if ($case === 'subclass') {
@@ -54,10 +54,10 @@ final class ProtocolExclusionTest extends TestCase
                     };
                 }
 
-                $queries->expects(self::once())->method('fetch')->willThrowException($failure);
+                $queryBus->expects(self::once())->method('fetch')->willThrowException($failure);
             }
 
-            $invoker = $environment->invoker(queries: $queries);
+            $invoker = $environment->invoker(queryBus: $queryBus);
             $diagnostics = $this->createMock(McpDiagnostics::class);
             $diagnostics->expects($case === 'subclass' ? self::once() : self::never())->method('record');
             $responses = new McpResponseFactory(new ResponseFactory(), new StreamFactory(), $diagnostics);

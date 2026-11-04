@@ -6,11 +6,11 @@ namespace Fight\Test\AccessControl\Application\AccessControl\Feature\QueryHandle
 
 use DateTimeImmutable;
 use Fight\AccessControl\Application\AccessControl\Feature\Attribute\FeatureFlag;
-use Fight\AccessControl\Application\AccessControl\Feature\FeatureDiscoveryResult;
-use Fight\AccessControl\Application\AccessControl\Feature\FeatureReferences;
-use Fight\AccessControl\Application\AccessControl\Feature\FeatureReferenceScope;
+use Fight\AccessControl\Application\AccessControl\Feature\Discovery\FeatureDiscoveryResult;
+use Fight\AccessControl\Application\AccessControl\Feature\Discovery\FeatureReferenceDiscovery;
+use Fight\AccessControl\Application\AccessControl\Feature\Discovery\FeatureReferences;
+use Fight\AccessControl\Application\AccessControl\Feature\Discovery\FeatureReferenceScope;
 use Fight\AccessControl\Application\AccessControl\Feature\QueryHandler\ValidateFeaturePreparationHandler;
-use Fight\AccessControl\Application\AccessControl\Feature\Service\FeatureReferenceDiscovery;
 use Fight\AccessControl\Domain\AccessControl\Feature\Exception\FeatureDiscoveryException;
 use Fight\AccessControl\Domain\AccessControl\Feature\Exception\FeatureStateException;
 use Fight\AccessControl\Domain\AccessControl\Feature\Feature;
@@ -29,8 +29,8 @@ use Fight\AccessControl\Domain\AccessControl\Permission\PermissionRepository;
 use Fight\AccessControl\Domain\AccessControl\Permission\Query\GetPermissionById;
 use Fight\Common\Domain\Exception\DomainException;
 use Fight\Common\Domain\Messaging\Query\QueryMessage;
+use Fight\Test\AccessControl\Application\AccessControl\Feature\Discovery\FixtureFeatureDiscovery;
 use Fight\Test\AccessControl\Application\AccessControl\Feature\Repository\InMemoryFeatureRepository;
-use Fight\Test\AccessControl\Application\AccessControl\Feature\Service\FixtureFeatureDiscovery;
 use Fight\Test\AccessControl\Application\AccessControl\Permission\Repository\InMemoryPermissionRepository;
 use Fight\Test\AccessControl\Application\AccessControl\User\InMemoryUnitOfWork;
 use PHPUnit\Framework\Attributes\CoversClass;
@@ -50,12 +50,12 @@ final class ValidateFeaturePreparationHandlerTest extends TestCase
         self::assertSame([], $query->toArray());
         self::assertSame(ValidateFeaturePreparation::class, ValidateFeaturePreparationHandler::queryRegistration());
 
-        $features = $this->createMock(FeatureRepository::class);
-        $features->expects(self::never())->method('getByName');
-        $features->expects(self::never())->method('add');
-        $permissions = $this->createMock(PermissionRepository::class);
-        $permissions->expects(self::never())->method('getById');
-        $result = $this->handler([], $features, $permissions)->handle(QueryMessage::create($query));
+        $featureRepository = $this->createMock(FeatureRepository::class);
+        $featureRepository->expects(self::never())->method('getByName');
+        $featureRepository->expects(self::never())->method('add');
+        $permissionRepository = $this->createMock(PermissionRepository::class);
+        $permissionRepository->expects(self::never())->method('getById');
+        $result = $this->handler([], $featureRepository, $permissionRepository)->handle(QueryMessage::create($query));
         self::assertSame(['prepared' => true, 'issues' => []], $result->toArray());
     }
 
@@ -83,8 +83,8 @@ final class ValidateFeaturePreparationHandlerTest extends TestCase
     public function test_every_distinct_name_is_checked_and_invalid_configuration_is_safe_and_distinguishable(): void
     {
         $unitOfWork = new InMemoryUnitOfWork();
-        $features = new InMemoryFeatureRepository($unitOfWork);
-        $permissions = new InMemoryPermissionRepository($unitOfWork);
+        $featureRepository = new InMemoryFeatureRepository($unitOfWork);
+        $permissionRepository = new InMemoryPermissionRepository($unitOfWork);
         $valid = Permission::define(
             PermissionId::generate(),
             PermissionName::fromString('PREVIEW'),
@@ -95,17 +95,17 @@ final class ValidateFeaturePreparationHandlerTest extends TestCase
             PermissionName::fromString('REMOVED'),
             new DateTimeImmutable()
         );
-        $permissions->add($valid);
-        $permissions->add($replacement);
+        $permissionRepository->add($valid);
+        $permissionRepository->add($replacement);
 
-        $features->seed(Feature::reconstitute(
+        $featureRepository->seed(Feature::reconstitute(
             FeatureId::generate(),
             FeatureName::fromString('off'),
             $valid->getId(),
             FeatureStatus::OFF,
             7
         ));
-        $features->seed(Feature::reconstitute(
+        $featureRepository->seed(Feature::reconstitute(
             FeatureId::generate(),
             FeatureName::fromString('on'),
             PermissionId::generate(),
@@ -114,7 +114,7 @@ final class ValidateFeaturePreparationHandlerTest extends TestCase
         ));
 
         $names = ['off', 'missing', 'on', 'missing'];
-        $result = $this->handler($names, $features, $permissions)
+        $result = $this->handler($names, $featureRepository, $permissionRepository)
             ->handle(QueryMessage::create(new ValidateFeaturePreparation()));
 
         self::assertFalse($result->isPrepared());
@@ -122,9 +122,9 @@ final class ValidateFeaturePreparationHandlerTest extends TestCase
             ['name' => 'missing', 'problem' => 'missing_feature'],
             ['name' => 'on', 'problem' => 'broken_binding']
         ], $result->toArray()['issues']);
-        self::assertSame(['off', 'missing', 'on'], $features->lookups);
+        self::assertSame(['off', 'missing', 'on'], $featureRepository->lookups);
         self::assertSame(0, $unitOfWork->transactions);
-        self::assertSame(0, $features->writes);
+        self::assertSame(0, $featureRepository->writes);
         self::assertSame(FeaturePreparationProblem::BROKEN_BINDING, $result->getIssues()[1]->getProblem());
         self::assertSame('on', $result->getIssues()[1]->getName()->toString());
         self::assertSame('REMOVED', $replacement->getName()->toString());
@@ -139,11 +139,11 @@ final class ValidateFeaturePreparationHandlerTest extends TestCase
         foreach ($results as $discoveryResult) {
             $discovery = $this->createStub(FeatureReferenceDiscovery::class);
             $discovery->method('discover')->willReturn($discoveryResult);
-            $features = $this->createMock(FeatureRepository::class);
-            $features->expects(self::never())->method('getByName');
+            $featureRepository = $this->createMock(FeatureRepository::class);
+            $featureRepository->expects(self::never())->method('getByName');
             $handler = new ValidateFeaturePreparationHandler(
                 $discovery,
-                $features,
+                $featureRepository,
                 $this->createStub(PermissionRepository::class)
             );
             try {
@@ -169,11 +169,11 @@ final class ValidateFeaturePreparationHandlerTest extends TestCase
             }
         };
         $discovery = new FixtureFeatureDiscovery($code, [], static fn(): bool => true);
-        $features = $this->createMock(FeatureRepository::class);
-        $features->expects(self::never())->method('getByName');
+        $featureRepository = $this->createMock(FeatureRepository::class);
+        $featureRepository->expects(self::never())->method('getByName');
         $handler = new ValidateFeaturePreparationHandler(
             $discovery,
-            $features,
+            $featureRepository,
             $this->createStub(PermissionRepository::class)
         );
 
@@ -183,8 +183,8 @@ final class ValidateFeaturePreparationHandlerTest extends TestCase
 
     public function test_invalid_persisted_definition_is_configuration_but_storage_failure_propagates(): void
     {
-        $features = $this->createStub(FeatureRepository::class);
-        $features->method('getByName')->willReturnCallback(static function (FeatureName $name): ?Feature {
+        $featureRepository = $this->createStub(FeatureRepository::class);
+        $featureRepository->method('getByName')->willReturnCallback(static function (FeatureName $name): ?Feature {
             if ($name->toString() === 'invalid') {
                 throw new FeatureStateException('Unsafe persisted bytes.');
             }
@@ -195,8 +195,8 @@ final class ValidateFeaturePreparationHandlerTest extends TestCase
 
             return null;
         });
-        $permissions = $this->createStub(PermissionRepository::class);
-        $result = $this->handler(['invalid', 'absent'], $features, $permissions)
+        $permissionRepository = $this->createStub(PermissionRepository::class);
+        $result = $this->handler(['invalid', 'absent'], $featureRepository, $permissionRepository)
             ->handle(QueryMessage::create(new ValidateFeaturePreparation()));
         self::assertSame([
             ['name' => 'invalid', 'problem' => 'invalid_definition'],
@@ -204,7 +204,7 @@ final class ValidateFeaturePreparationHandlerTest extends TestCase
         ], $result->toArray()['issues']);
 
         $this->expectException(RuntimeException::class);
-        $this->handler(['invalid', 'outage'], $features, $permissions)
+        $this->handler(['invalid', 'outage'], $featureRepository, $permissionRepository)
             ->handle(QueryMessage::create(new ValidateFeaturePreparation()));
     }
 
@@ -215,14 +215,14 @@ final class ValidateFeaturePreparationHandlerTest extends TestCase
             FeatureName::fromString('dashboard'),
             PermissionId::generate()
         );
-        $features = $this->createStub(FeatureRepository::class);
-        $features->method('getByName')->willReturn($feature);
+        $featureRepository = $this->createStub(FeatureRepository::class);
+        $featureRepository->method('getByName')->willReturn($feature);
         $failure = new RuntimeException('Database connection unavailable.');
-        $permissions = $this->createStub(PermissionRepository::class);
-        $permissions->method('getById')->willThrowException($failure);
+        $permissionRepository = $this->createStub(PermissionRepository::class);
+        $permissionRepository->method('getById')->willThrowException($failure);
 
         try {
-            $this->handler(['dashboard'], $features, $permissions)
+            $this->handler(['dashboard'], $featureRepository, $permissionRepository)
                 ->handle(QueryMessage::create(new ValidateFeaturePreparation()));
             self::fail('An outage cannot yield a configuration result.');
         } catch (RuntimeException $runtimeException) {
@@ -238,11 +238,11 @@ final class ValidateFeaturePreparationHandlerTest extends TestCase
         }
 
         $unitOfWork = new InMemoryUnitOfWork();
-        $features = new InMemoryFeatureRepository($unitOfWork);
-        $result = $this->handler($names, $features, $this->createStub(PermissionRepository::class))
+        $featureRepository = new InMemoryFeatureRepository($unitOfWork);
+        $result = $this->handler($names, $featureRepository, $this->createStub(PermissionRepository::class))
             ->handle(QueryMessage::create(new ValidateFeaturePreparation()));
 
-        self::assertCount(75, $features->lookups);
+        self::assertCount(75, $featureRepository->lookups);
         self::assertCount(75, $result->getIssues());
         self::assertSame('flag-75', $result->getIssues()[74]->getName()->toString());
     }
@@ -254,9 +254,9 @@ final class ValidateFeaturePreparationHandlerTest extends TestCase
             FeatureName::fromString('other'),
             PermissionId::generate()
         );
-        $features = $this->createStub(FeatureRepository::class);
-        $features->method('getByName')->willReturn($wrongFeature);
-        $result = $this->handler(['requested'], $features, $this->createStub(PermissionRepository::class))
+        $featureRepository = $this->createStub(FeatureRepository::class);
+        $featureRepository->method('getByName')->willReturn($wrongFeature);
+        $result = $this->handler(['requested'], $featureRepository, $this->createStub(PermissionRepository::class))
             ->handle(QueryMessage::create(new ValidateFeaturePreparation()));
         self::assertSame('invalid_definition', $result->toArray()['issues'][0]['problem']);
 
@@ -265,15 +265,15 @@ final class ValidateFeaturePreparationHandlerTest extends TestCase
             FeatureName::fromString('requested'),
             PermissionId::generate()
         );
-        $features = $this->createStub(FeatureRepository::class);
-        $features->method('getByName')->willReturn($feature);
-        $permissions = $this->createStub(PermissionRepository::class);
-        $permissions->method('getById')->willReturn(Permission::define(
+        $featureRepository = $this->createStub(FeatureRepository::class);
+        $featureRepository->method('getByName')->willReturn($feature);
+        $permissionRepository = $this->createStub(PermissionRepository::class);
+        $permissionRepository->method('getById')->willReturn(Permission::define(
             PermissionId::generate(),
             PermissionName::fromString('PREVIEW'),
             new DateTimeImmutable()
         ));
-        $result = $this->handler(['requested'], $features, $permissions)
+        $result = $this->handler(['requested'], $featureRepository, $permissionRepository)
             ->handle(QueryMessage::create(new ValidateFeaturePreparation()));
         self::assertSame('invalid_definition', $result->toArray()['issues'][0]['problem']);
     }
@@ -281,8 +281,8 @@ final class ValidateFeaturePreparationHandlerTest extends TestCase
     /** @param list<string> $names */
     private function handler(
         array $names,
-        FeatureRepository $features,
-        PermissionRepository $permissions
+        FeatureRepository $featureRepository,
+        PermissionRepository $permissionRepository
     ): ValidateFeaturePreparationHandler {
         $discovery = $this->createMock(FeatureReferenceDiscovery::class);
         $discovery->expects(self::once())->method('discover')->with(FeatureReferenceScope::CANDIDATE)->willReturn(
@@ -292,6 +292,6 @@ final class ValidateFeaturePreparationHandlerTest extends TestCase
             )
         );
 
-        return new ValidateFeaturePreparationHandler($discovery, $features, $permissions);
+        return new ValidateFeaturePreparationHandler($discovery, $featureRepository, $permissionRepository);
     }
 }

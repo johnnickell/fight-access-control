@@ -30,10 +30,10 @@ final readonly class CreateFeatureHandler implements CommandHandler
      * Constructs CreateFeatureHandler
      */
     public function __construct(
-        private FeatureRepository $features,
-        private PermissionRepository $permissions,
+        private FeatureRepository $featureRepository,
+        private PermissionRepository $permissionRepository,
         private TransactionalUnitOfWork $unitOfWork,
-        private EventDispatcher $events
+        private EventDispatcher $eventDispatcher
     ) {
     }
 
@@ -54,19 +54,19 @@ final readonly class CreateFeatureHandler implements CommandHandler
         $command = $commandMessage->payload();
         try {
             $event = $this->unitOfWork->commitTransactional(function () use ($command): FeatureCreated {
-                if (!$this->permissions->getById($command->getPermissionId()) instanceof Permission) {
+                if (!$this->permissionRepository->getById($command->getPermissionId()) instanceof Permission) {
                     throw new FeatureReferenceException('The selected testing Permission does not exist.');
                 }
 
                 $feature = Feature::define(FeatureId::generate(), $command->getName(), $command->getPermissionId());
-                $this->features->add($feature);
+                $this->featureRepository->add($feature);
 
                 return new FeatureCreated($feature->getId(), $feature->getName(), $feature->getPermissionId());
             });
-            $this->events->trigger($event);
+            $this->eventDispatcher->trigger($event);
         } catch (Throwable $throwable) {
             try {
-                $this->events->trigger(new CommandFailedEvent($command, 'Feature creation failed.'));
+                $this->eventDispatcher->trigger(new CommandFailedEvent($command, 'Feature creation failed.'));
             } finally {
                 throw $throwable;
             }

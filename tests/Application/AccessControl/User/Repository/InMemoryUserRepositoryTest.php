@@ -30,9 +30,9 @@ final class InMemoryUserRepositoryTest extends TestCase
     public function test_stale_authentication_replacement_cannot_erase_later_email_state(): void
     {
         foreach (['reservation', 'canonical correction'] as $emailTransition) {
-            $repository = new InMemoryUserRepository();
+            $userRepository = new InMemoryUserRepository();
             $current = $this->userBeforeEmailTransition($emailTransition);
-            $repository->add($current);
+            $userRepository->add($current);
             $staleExpected = clone $current;
             $staleReplacement = clone $staleExpected;
             if ($emailTransition === 'reservation') {
@@ -42,7 +42,7 @@ final class InMemoryUserRepositoryTest extends TestCase
                     EmailAddress::fromString('reserved@example.test'),
                     new DateTimeImmutable('2026-01-01T00:00:00+00:00')
                 );
-                self::assertTrue($repository->replaceEmailChangeReservation($current, $winner));
+                self::assertTrue($userRepository->replaceEmailChangeReservation($current, $winner));
             } else {
                 $staleReplacement->activate(
                     $this->passwordHash('stale-activation-password'),
@@ -54,18 +54,18 @@ final class InMemoryUserRepositoryTest extends TestCase
                     EmailAddress::fromString('corrected@example.test'),
                     new DateTimeImmutable('2026-01-01T00:00:00+00:00')
                 );
-                self::assertTrue($repository->replacePendingInvitationEmail($current, $winner));
+                self::assertTrue($userRepository->replacePendingInvitationEmail($current, $winner));
             }
 
-            self::assertFalse($repository->replaceAuthenticationAuthority($staleExpected, $staleReplacement));
-            self::assertSame($winner, $repository->getById($current->getId()));
+            self::assertFalse($userRepository->replaceAuthenticationAuthority($staleExpected, $staleReplacement));
+            self::assertSame($winner, $userRepository->getById($current->getId()));
             self::assertSame(
                 $emailTransition === 'reservation' ? 'authority@example.test' : 'corrected@example.test',
-                $repository->getById($current->getId())->getEmail()->canonical()
+                $userRepository->getById($current->getId())->getEmail()->canonical()
             );
             self::assertSame(
                 $emailTransition === 'reservation' ? 'reserved@example.test' : null,
-                $repository->getById($current->getId())->getPendingEmailChange()?->canonical()
+                $userRepository->getById($current->getId())->getPendingEmailChange()?->canonical()
             );
         }
     }
@@ -73,12 +73,12 @@ final class InMemoryUserRepositoryTest extends TestCase
     public function test_stale_coupled_authentication_and_session_replacement_cannot_erase_a_reservation(): void
     {
         $unitOfWork = new InMemoryUnitOfWork();
-        $sessions = new InMemoryRefreshSessionRepository($unitOfWork);
-        $repository = new InMemoryUserRepository($unitOfWork);
-        $repository->bindRefreshSessionRepository($sessions);
+        $refreshSessionRepository = new InMemoryRefreshSessionRepository($unitOfWork);
+        $userRepository = new InMemoryUserRepository($unitOfWork);
+        $userRepository->bindRefreshSessionRepository($refreshSessionRepository);
 
         $current = $this->activeUser();
-        $repository->add($current);
+        $userRepository->add($current);
         $staleExpected = clone $current;
         $staleReplacement = clone $staleExpected;
         $staleReplacement->advanceAuthenticationAuthorityRevision();
@@ -89,24 +89,24 @@ final class InMemoryUserRepositoryTest extends TestCase
             EmailAddress::fromString('reserved@example.test'),
             new DateTimeImmutable('2026-01-01T00:00:00+00:00')
         );
-        self::assertTrue($repository->replaceEmailChangeReservation($current, $winner));
+        self::assertTrue($userRepository->replaceEmailChangeReservation($current, $winner));
 
-        self::assertFalse($repository->replaceAuthenticationAuthorityAndAddRefreshSession(
+        self::assertFalse($userRepository->replaceAuthenticationAuthorityAndAddRefreshSession(
             $staleExpected,
             $staleReplacement,
             $session
         ));
-        self::assertSame($winner, $repository->getById($current->getId()));
+        self::assertSame($winner, $userRepository->getById($current->getId()));
         self::assertSame('reserved@example.test', $winner->getPendingEmailChange()?->canonical());
-        self::assertSame([], $sessions->all());
+        self::assertSame([], $refreshSessionRepository->all());
     }
 
     public function test_stale_role_replacement_cannot_erase_later_email_state(): void
     {
         foreach (['reservation', 'canonical correction'] as $emailTransition) {
-            $repository = new InMemoryUserRepository();
+            $userRepository = new InMemoryUserRepository();
             $current = $this->userBeforeEmailTransition($emailTransition);
-            $repository->add($current);
+            $userRepository->add($current);
             $staleExpected = clone $current;
             $staleReplacement = clone $staleExpected;
             $staleReplacement->replaceRoleAssignments(
@@ -119,25 +119,25 @@ final class InMemoryUserRepositoryTest extends TestCase
                     EmailAddress::fromString('reserved@example.test'),
                     new DateTimeImmutable('2026-01-01T00:00:00+00:00')
                 );
-                self::assertTrue($repository->replaceEmailChangeReservation($current, $winner));
+                self::assertTrue($userRepository->replaceEmailChangeReservation($current, $winner));
             } else {
                 $winner = clone $current;
                 $winner->correctPendingInvitationEmail(
                     EmailAddress::fromString('corrected@example.test'),
                     new DateTimeImmutable('2026-01-01T00:00:00+00:00')
                 );
-                self::assertTrue($repository->replacePendingInvitationEmail($current, $winner));
+                self::assertTrue($userRepository->replacePendingInvitationEmail($current, $winner));
             }
 
-            self::assertFalse($repository->replaceRoleAssignments($staleExpected, $staleReplacement));
-            self::assertSame($winner, $repository->getById($current->getId()));
+            self::assertFalse($userRepository->replaceRoleAssignments($staleExpected, $staleReplacement));
+            self::assertSame($winner, $userRepository->getById($current->getId()));
             self::assertSame(
                 $emailTransition === 'reservation' ? 1 : 0,
-                $repository->getById($current->getId())->getEmailChangeReservationRevision()
+                $userRepository->getById($current->getId())->getEmailChangeReservationRevision()
             );
             self::assertSame(
                 $emailTransition === 'reservation' ? 0 : 1,
-                $repository->getById($current->getId())->getCanonicalEmailRevision()
+                $userRepository->getById($current->getId())->getCanonicalEmailRevision()
             );
         }
     }
@@ -146,9 +146,9 @@ final class InMemoryUserRepositoryTest extends TestCase
     {
         foreach (['authentication', 'role'] as $replacementType) {
             foreach (['reservation', 'canonical correction'] as $emailTransition) {
-                $repository = new InMemoryUserRepository();
+                $userRepository = new InMemoryUserRepository();
                 $current = $this->userBeforeEmailTransition($emailTransition);
-                $repository->add($current);
+                $userRepository->add($current);
                 $replacement = clone $current;
                 if ($emailTransition === 'reservation') {
                     $replacement->requestEmailChange(
@@ -171,29 +171,29 @@ final class InMemoryUserRepositoryTest extends TestCase
                     }
 
                     $replacement->advanceAuthenticationAuthorityRevision();
-                    $result = $repository->replaceAuthenticationAuthority($current, $replacement);
+                    $result = $userRepository->replaceAuthenticationAuthority($current, $replacement);
                 } else {
                     $replacement->replaceRoleAssignments(
                         [RoleId::generate()],
                         new DateTimeImmutable('2026-01-01T00:00:00+00:00')
                     );
-                    $result = $repository->replaceRoleAssignments($current, $replacement);
+                    $result = $userRepository->replaceRoleAssignments($current, $replacement);
                 }
 
                 self::assertFalse($result);
-                self::assertSame($current, $repository->getById($current->getId()));
+                self::assertSame($current, $userRepository->getById($current->getId()));
                 self::assertSame(
                     $emailTransition === 'reservation' ? 'authority@example.test' : 'invited@example.test',
-                    $repository->getById($current->getId())->getEmail()->canonical()
+                    $userRepository->getById($current->getId())->getEmail()->canonical()
                 );
-                self::assertNull($repository->getById($current->getId())->getPendingEmailChange());
+                self::assertNull($userRepository->getById($current->getId())->getPendingEmailChange());
             }
         }
     }
 
     public function test_a_live_email_change_reservation_blocks_a_new_canonical_identity(): void
     {
-        $repository = new InMemoryUserRepository();
+        $userRepository = new InMemoryUserRepository();
         $current = $this->activeUser();
         $replacement = clone $current;
         $replacement->requestEmailChange(
@@ -201,11 +201,11 @@ final class InMemoryUserRepositoryTest extends TestCase
             new DateTimeImmutable('2026-01-01T00:00:00+00:00')
         );
 
-        $repository->add($current);
-        self::assertTrue($repository->replaceEmailChangeReservation($current, $replacement));
+        $userRepository->add($current);
+        self::assertTrue($userRepository->replaceEmailChangeReservation($current, $replacement));
 
         $this->expectException(DuplicateEmailException::class);
-        $repository->add(User::invite(
+        $userRepository->add(User::invite(
             UserId::generate(),
             EmailAddress::fromString('reserved@example.test'),
             new DateTimeImmutable('2026-01-01T00:00:00+00:00')
@@ -214,9 +214,9 @@ final class InMemoryUserRepositoryTest extends TestCase
 
     public function test_a_stale_email_change_reservation_replacement_loses_without_mutation(): void
     {
-        $repository = new InMemoryUserRepository();
+        $userRepository = new InMemoryUserRepository();
         $current = $this->activeUser();
-        $repository->add($current);
+        $userRepository->add($current);
         $winner = clone $current;
         $winner->requestEmailChange(
             EmailAddress::fromString('winner@example.test'),
@@ -229,48 +229,51 @@ final class InMemoryUserRepositoryTest extends TestCase
             new DateTimeImmutable('2026-01-01T00:00:00+00:00')
         );
 
-        self::assertTrue($repository->replaceEmailChangeReservation($current, $winner));
-        self::assertFalse($repository->replaceEmailChangeReservation($current, $stale));
-        self::assertSame($winner, $repository->getById($current->getId()));
+        self::assertTrue($userRepository->replaceEmailChangeReservation($current, $winner));
+        self::assertFalse($userRepository->replaceEmailChangeReservation($current, $stale));
+        self::assertSame($winner, $userRepository->getById($current->getId()));
     }
 
     public function test_cancelling_a_reservation_releases_only_its_destination(): void
     {
-        $repository = new InMemoryUserRepository();
+        $userRepository = new InMemoryUserRepository();
         $current = $this->activeUser();
-        $repository->add($current);
+        $userRepository->add($current);
         $reserved = clone $current;
         $reserved->requestEmailChange(
             EmailAddress::fromString('released@example.test'),
             new DateTimeImmutable('2026-01-01T00:00:00+00:00')
         );
-        self::assertTrue($repository->replaceEmailChangeReservation($current, $reserved));
+        self::assertTrue($userRepository->replaceEmailChangeReservation($current, $reserved));
         $cancelled = clone $reserved;
         $cancelled->cancelEmailChange(new DateTimeImmutable('2026-01-01T00:00:00+00:00'));
 
-        self::assertTrue($repository->replaceEmailChangeReservation($reserved, $cancelled));
+        self::assertTrue($userRepository->replaceEmailChangeReservation($reserved, $cancelled));
         $replacementIdentity = User::invite(
             UserId::generate(),
             EmailAddress::fromString('released@example.test'),
             new DateTimeImmutable('2026-01-01T00:00:00+00:00')
         );
-        $repository->add($replacementIdentity);
+        $userRepository->add($replacementIdentity);
 
-        self::assertSame($replacementIdentity, $repository->getByEmail(
+        self::assertSame($replacementIdentity, $userRepository->getByEmail(
             EmailAddress::fromString('released@example.test')
         ));
-        self::assertSame('authority@example.test', $repository->getById($current->getId())?->getEmail()->canonical());
+        self::assertSame(
+            'authority@example.test',
+            $userRepository->getById($current->getId())?->getEmail()->canonical()
+        );
     }
 
     public function test_that_only_the_expected_role_assignments_can_be_replaced(): void
     {
         $authorizationReferences = new InMemoryAuthorizationReferenceState();
-        $repository = new InMemoryUserRepository(authorizationReferences: $authorizationReferences);
-        $roles = new InMemoryRoleRepository(authorizationReferences: $authorizationReferences);
+        $userRepository = new InMemoryUserRepository(authorizationReferences: $authorizationReferences);
+        $roleRepository = new InMemoryRoleRepository(authorizationReferences: $authorizationReferences);
         $current = $this->activeUser();
-        $repository->add($current);
+        $userRepository->add($current);
         $winnerRoleId = RoleId::generate();
-        $roles->add(Role::define(
+        $roleRepository->add(Role::define(
             $winnerRoleId,
             RoleName::fromString('ROLE_WINNER'),
             [],
@@ -285,16 +288,16 @@ final class InMemoryUserRepositoryTest extends TestCase
             new DateTimeImmutable('2026-01-01T00:00:00+00:00')
         );
 
-        self::assertTrue($repository->replaceRoleAssignments($current, $winner));
-        self::assertFalse($repository->replaceRoleAssignments($current, $staleCandidate));
-        self::assertSame($winner, $repository->getById($current->getId()));
+        self::assertTrue($userRepository->replaceRoleAssignments($current, $winner));
+        self::assertFalse($userRepository->replaceRoleAssignments($current, $staleCandidate));
+        self::assertSame($winner, $userRepository->getById($current->getId()));
     }
 
     public function test_that_role_assignment_replacement_rejects_unrelated_user_changes(): void
     {
-        $repository = new InMemoryUserRepository();
+        $userRepository = new InMemoryUserRepository();
         $current = $this->activeUser();
-        $repository->add($current);
+        $userRepository->add($current);
         $replacement = clone $current;
         $replacement->replaceRoleAssignments([RoleId::generate()], new DateTimeImmutable('2026-01-01T00:00:00+00:00'));
         $replacement->rehashPassword(
@@ -302,15 +305,15 @@ final class InMemoryUserRepositoryTest extends TestCase
             new DateTimeImmutable('2026-01-01T00:00:00+00:00')
         );
 
-        self::assertFalse($repository->replaceRoleAssignments($current, $replacement));
-        self::assertSame($current, $repository->getById($current->getId()));
+        self::assertFalse($userRepository->replaceRoleAssignments($current, $replacement));
+        self::assertSame($current, $userRepository->getById($current->getId()));
     }
 
     public function test_that_role_assignment_replacement_requires_exactly_one_revision_advance(): void
     {
-        $repository = new InMemoryUserRepository();
+        $userRepository = new InMemoryUserRepository();
         $current = $this->activeUser();
-        $repository->add($current);
+        $userRepository->add($current);
         $replacement = clone $current;
         $replacement->replaceRoleAssignments(
             [RoleId::generate(), RoleId::generate()],
@@ -318,14 +321,14 @@ final class InMemoryUserRepositoryTest extends TestCase
         );
         $replacement->replaceRoleAssignments([RoleId::generate()], new DateTimeImmutable('2026-01-01T00:00:00+00:00'));
 
-        self::assertFalse($repository->replaceRoleAssignments($current, $replacement));
-        self::assertSame($current, $repository->getById($current->getId()));
+        self::assertFalse($userRepository->replaceRoleAssignments($current, $replacement));
+        self::assertSame($current, $userRepository->getById($current->getId()));
     }
 
     public function test_that_authentication_replacement_preserves_role_assignments(): void
     {
         $unitOfWork = new InMemoryUnitOfWork();
-        $repository = new InMemoryUserRepository($unitOfWork);
+        $userRepository = new InMemoryUserRepository($unitOfWork);
         $current = $this->activeUser();
         $roleId = RoleId::generate();
         new InMemoryRoleRepository($unitOfWork)->add(Role::define(
@@ -335,7 +338,7 @@ final class InMemoryUserRepositoryTest extends TestCase
             $current->getCreatedAt()
         ));
         $current->replaceRoleAssignments([$roleId], new DateTimeImmutable('2026-01-01T00:00:00+00:00'));
-        $repository->add($current);
+        $userRepository->add($current);
         $replacement = clone $current;
         $replacement->rehashPassword(
             $this->passwordHash('replacement-password'),
@@ -343,7 +346,7 @@ final class InMemoryUserRepositoryTest extends TestCase
         );
         $replacement->advanceAuthenticationAuthorityRevision();
 
-        self::assertTrue($repository->replaceAuthenticationAuthority($current, $replacement));
+        self::assertTrue($userRepository->replaceAuthenticationAuthority($current, $replacement));
         self::assertSame([$roleId], $replacement->getRoleIds());
         self::assertSame(
             $current->getAuthorizationAssignmentRevision(),
@@ -353,33 +356,33 @@ final class InMemoryUserRepositoryTest extends TestCase
 
     public function test_that_authentication_replacement_rejects_role_assignment_changes(): void
     {
-        $repository = new InMemoryUserRepository();
+        $userRepository = new InMemoryUserRepository();
         $current = $this->activeUser();
-        $repository->add($current);
+        $userRepository->add($current);
         $replacement = clone $current;
         $replacement->replaceRoleAssignments([RoleId::generate()], new DateTimeImmutable('2026-01-01T00:00:00+00:00'));
         $replacement->advanceAuthenticationAuthorityRevision();
 
-        self::assertFalse($repository->replaceAuthenticationAuthority($current, $replacement));
-        self::assertSame($current, $repository->getById($current->getId()));
+        self::assertFalse($userRepository->replaceAuthenticationAuthority($current, $replacement));
+        self::assertSame($current, $userRepository->getById($current->getId()));
     }
 
     public function test_that_atomic_login_authority_and_session_win_before_a_stale_reset_or_both_lose(): void
     {
         $userState = new InMemoryUserRepositoryState();
         $sessionState = new InMemoryRefreshSessionRepositoryState();
-        $seedUsers = new InMemoryUserRepository(state: $userState);
+        $seedUserRepository = new InMemoryUserRepository(state: $userState);
         $current = $this->activeUser();
-        $seedUsers->add($current);
+        $seedUserRepository->add($current);
         $loginUnitOfWork = new InMemoryUnitOfWork();
-        $loginSessions = new InMemoryRefreshSessionRepository($loginUnitOfWork, state: $sessionState);
-        $loginUsers = new InMemoryUserRepository($loginUnitOfWork, state: $userState);
-        $loginUsers->bindRefreshSessionRepository($loginSessions);
+        $loginRefreshSessionRepository = new InMemoryRefreshSessionRepository($loginUnitOfWork, state: $sessionState);
+        $loginUserRepository = new InMemoryUserRepository($loginUnitOfWork, state: $userState);
+        $loginUserRepository->bindRefreshSessionRepository($loginRefreshSessionRepository);
 
         $resetUnitOfWork = new InMemoryUnitOfWork();
-        $resetUsers = new InMemoryUserRepository($resetUnitOfWork, state: $userState);
-        $loginExpected = $loginUsers->getById($current->getId());
-        $resetExpected = $resetUsers->getById($current->getId());
+        $resetUserRepository = new InMemoryUserRepository($resetUnitOfWork, state: $userState);
+        $loginExpected = $loginUserRepository->getById($current->getId());
+        $resetExpected = $resetUserRepository->getById($current->getId());
         self::assertInstanceOf(User::class, $loginExpected);
         self::assertInstanceOf(User::class, $resetExpected);
         $loginReplacement = clone $loginExpected;
@@ -394,36 +397,36 @@ final class InMemoryUserRepositoryTest extends TestCase
         $resetReplacement->advanceAuthenticationAuthorityRevision();
 
         self::assertTrue($loginUnitOfWork->commitTransactional(
-            static fn(): bool => $loginUsers->replaceAuthenticationAuthorityAndAddRefreshSession(
+            static fn(): bool => $loginUserRepository->replaceAuthenticationAuthorityAndAddRefreshSession(
                 $loginExpected,
                 $loginReplacement,
                 $session
             )
         ));
         self::assertFalse($resetUnitOfWork->commitTransactional(
-            static fn(): bool => $resetUsers->replaceAuthenticationAuthority($resetExpected, $resetReplacement)
+            static fn(): bool => $resetUserRepository->replaceAuthenticationAuthority($resetExpected, $resetReplacement)
         ));
 
-        self::assertSame($loginReplacement, $resetUsers->getById($current->getId()));
-        self::assertSame([$session], $loginSessions->all());
+        self::assertSame($loginReplacement, $resetUserRepository->getById($current->getId()));
+        self::assertSame([$session], $loginRefreshSessionRepository->all());
     }
 
     public function test_that_reset_authority_wins_before_a_stale_atomic_login_or_both_lose(): void
     {
         $userState = new InMemoryUserRepositoryState();
         $sessionState = new InMemoryRefreshSessionRepositoryState();
-        $seedUsers = new InMemoryUserRepository(state: $userState);
+        $seedUserRepository = new InMemoryUserRepository(state: $userState);
         $current = $this->activeUser();
-        $seedUsers->add($current);
+        $seedUserRepository->add($current);
         $resetUnitOfWork = new InMemoryUnitOfWork();
-        $resetUsers = new InMemoryUserRepository($resetUnitOfWork, state: $userState);
+        $resetUserRepository = new InMemoryUserRepository($resetUnitOfWork, state: $userState);
         $loginUnitOfWork = new InMemoryUnitOfWork();
-        $loginSessions = new InMemoryRefreshSessionRepository($loginUnitOfWork, state: $sessionState);
-        $loginUsers = new InMemoryUserRepository($loginUnitOfWork, state: $userState);
-        $loginUsers->bindRefreshSessionRepository($loginSessions);
+        $loginRefreshSessionRepository = new InMemoryRefreshSessionRepository($loginUnitOfWork, state: $sessionState);
+        $loginUserRepository = new InMemoryUserRepository($loginUnitOfWork, state: $userState);
+        $loginUserRepository->bindRefreshSessionRepository($loginRefreshSessionRepository);
 
-        $resetExpected = $resetUsers->getById($current->getId());
-        $loginExpected = $loginUsers->getById($current->getId());
+        $resetExpected = $resetUserRepository->getById($current->getId());
+        $loginExpected = $loginUserRepository->getById($current->getId());
         self::assertInstanceOf(User::class, $resetExpected);
         self::assertInstanceOf(User::class, $loginExpected);
         $resetReplacement = clone $resetExpected;
@@ -439,18 +442,18 @@ final class InMemoryUserRepositoryTest extends TestCase
         $session = $this->session($loginReplacement);
 
         self::assertTrue($resetUnitOfWork->commitTransactional(
-            static fn(): bool => $resetUsers->replaceAuthenticationAuthority($resetExpected, $resetReplacement)
+            static fn(): bool => $resetUserRepository->replaceAuthenticationAuthority($resetExpected, $resetReplacement)
         ));
         self::assertFalse($loginUnitOfWork->commitTransactional(
-            static fn(): bool => $loginUsers->replaceAuthenticationAuthorityAndAddRefreshSession(
+            static fn(): bool => $loginUserRepository->replaceAuthenticationAuthorityAndAddRefreshSession(
                 $loginExpected,
                 $loginReplacement,
                 $session
             )
         ));
 
-        self::assertSame($resetReplacement, $loginUsers->getById($current->getId()));
-        self::assertSame([], $loginSessions->all());
+        self::assertSame($resetReplacement, $loginUserRepository->getById($current->getId()));
+        self::assertSame([], $loginRefreshSessionRepository->all());
     }
 
     public function test_that_competing_authority_retries_only_after_fence_owner_rolls_back(): void
@@ -515,12 +518,12 @@ final class InMemoryUserRepositoryTest extends TestCase
     {
         $unitOfWork = new InMemoryUnitOfWork();
         $sessionState = new InMemoryRefreshSessionRepositoryState();
-        $sessions = new InMemoryRefreshSessionRepository($unitOfWork, state: $sessionState);
-        $repository = new InMemoryUserRepository($unitOfWork);
-        $repository->bindRefreshSessionRepository($sessions);
+        $refreshSessionRepository = new InMemoryRefreshSessionRepository($unitOfWork, state: $sessionState);
+        $userRepository = new InMemoryUserRepository($unitOfWork);
+        $userRepository->bindRefreshSessionRepository($refreshSessionRepository);
 
         $current = $this->activeUser();
-        $repository->add($current);
+        $userRepository->add($current);
         $replacement = clone $current;
         $replacement->advanceAuthenticationAuthorityRevision();
 
@@ -530,10 +533,10 @@ final class InMemoryUserRepositoryTest extends TestCase
             $unitOfWork->commitTransactional(function () use (
                 $current,
                 $replacement,
-                $repository,
+                $userRepository,
                 $session
             ): void {
-                self::assertTrue($repository->replaceAuthenticationAuthorityAndAddRefreshSession(
+                self::assertTrue($userRepository->replaceAuthenticationAuthorityAndAddRefreshSession(
                     $current,
                     $replacement,
                     $session
@@ -546,15 +549,15 @@ final class InMemoryUserRepositoryTest extends TestCase
             self::assertSame('Rollback requested after atomic persistence.', $runtimeException->getMessage());
         }
 
-        self::assertSame($current, $repository->getById($current->getId()));
-        self::assertSame([], $sessions->all());
+        self::assertSame($current, $userRepository->getById($current->getId()));
+        self::assertSame([], $refreshSessionRepository->all());
     }
 
     public function test_that_only_the_expected_authentication_authority_can_be_replaced(): void
     {
-        $repository = new InMemoryUserRepository();
+        $userRepository = new InMemoryUserRepository();
         $current = $this->activeUser();
-        $repository->add($current);
+        $userRepository->add($current);
         $winner = clone $current;
         $winner->resetPassword(
             $this->passwordHash('winner-password'),
@@ -569,9 +572,9 @@ final class InMemoryUserRepositoryTest extends TestCase
         );
         $staleCandidate->advanceAuthenticationAuthorityRevision();
 
-        self::assertTrue($repository->replaceAuthenticationAuthority($current, $winner));
-        self::assertFalse($repository->replaceAuthenticationAuthority($current, $staleCandidate));
-        self::assertSame($winner, $repository->getById($current->getId()));
+        self::assertTrue($userRepository->replaceAuthenticationAuthority($current, $winner));
+        self::assertFalse($userRepository->replaceAuthenticationAuthority($current, $staleCandidate));
+        self::assertSame($winner, $userRepository->getById($current->getId()));
         self::assertSame(2, $winner->getAuthenticationVersion());
         self::assertTrue(password_verify(
             'winner-password',
@@ -582,9 +585,9 @@ final class InMemoryUserRepositoryTest extends TestCase
     public function test_that_authentication_authority_replacement_rolls_back_with_its_unit_of_work(): void
     {
         $unitOfWork = new InMemoryUnitOfWork();
-        $repository = new InMemoryUserRepository($unitOfWork);
+        $userRepository = new InMemoryUserRepository($unitOfWork);
         $current = $this->activeUser();
-        $repository->add($current);
+        $userRepository->add($current);
         $replacement = clone $current;
         $replacement->rehashPassword(
             $this->passwordHash('replacement-password'),
@@ -593,8 +596,8 @@ final class InMemoryUserRepositoryTest extends TestCase
         $replacement->advanceAuthenticationAuthorityRevision();
 
         try {
-            $unitOfWork->commitTransactional(function () use ($current, $replacement, $repository): void {
-                self::assertTrue($repository->replaceAuthenticationAuthority($current, $replacement));
+            $unitOfWork->commitTransactional(function () use ($current, $replacement, $userRepository): void {
+                self::assertTrue($userRepository->replaceAuthenticationAuthority($current, $replacement));
                 throw new RuntimeException('Rollback requested.');
             });
             self::fail('Expected rollback request.');
@@ -602,7 +605,7 @@ final class InMemoryUserRepositoryTest extends TestCase
             self::assertSame('Rollback requested.', $runtimeException->getMessage());
         }
 
-        self::assertSame($current, $repository->getById($current->getId()));
+        self::assertSame($current, $userRepository->getById($current->getId()));
         self::assertTrue(password_verify(
             'correct-secret',
             $current->getPasswordHash()?->toString() ?? ''

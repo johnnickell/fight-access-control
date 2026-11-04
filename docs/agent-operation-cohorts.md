@@ -143,7 +143,7 @@ separate delivery/activation/use outcomes and current policy are unchanged.
 
 ## Executable evidence and consumer obligations
 
-`tests/Application/AccessControl/Agent/Security/AgentCohortConformance.php` composes actual package services through
+`tests/Application/AccessControl/Agent/Credential/AgentCohortConformance.php` composes actual package services through
 `DeliveryConformanceFixture & AgentCohortFixture`. A consumer binds its real ports and persisted observations, supplies
 `breakCohort()` by changing actual storage/composition, and `switchCohort()` through its conflicting writer fence.
 Do not emulate failure by returning canned Application results. `restart()` must discard process-local readiness while

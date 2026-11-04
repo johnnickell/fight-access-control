@@ -22,7 +22,7 @@ use Fight\AccessControl\Domain\AccessControl\Agent\Operation\AgentOperationScope
 use Fight\AccessControl\Domain\AccessControl\Agent\Query\CountAgentDeliveryKeyReferences;
 use Fight\AccessControl\Domain\AccessControl\Agent\Query\ListAgentDeliveryMaintenance;
 use Fight\AccessControl\Domain\AccessControl\CredentialDelivery\EncryptedCredentialMaterial;
-use Fight\Test\AccessControl\Application\AccessControl\Agent\Service\DeliveryEnvironment;
+use Fight\Test\AccessControl\Application\AccessControl\Agent\Delivery\DeliveryEnvironment;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
@@ -179,7 +179,7 @@ final class AgentMaintenanceTest extends TestCase
         $now = $env->clock->now()->modify('+2 days');
         $cleaned = $original->expireMaterial($now)->confirmCleanup($now, new AgentMaintenancePolicy());
         self::assertTrue($cleaned->isSinkCleaned());
-        $agent = $env->provisioning->agents->all()[0];
+        $agent = $env->provisioning->agentRepository->all()[0];
         $revoked = $cleaned->retireCredential($agent, $agent->revoke($now));
         self::assertTrue($revoked->isSinkCleaned());
         self::assertTrue($revoked->retireMaterial()->isSinkCleaned());

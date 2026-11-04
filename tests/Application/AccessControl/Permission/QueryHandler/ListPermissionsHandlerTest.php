@@ -31,7 +31,7 @@ final class ListPermissionsHandlerTest extends TestCase
 {
     public function test_that_it_returns_a_typed_page_of_safe_permission_views(): void
     {
-        $permissions = new InMemoryPermissionRepository();
+        $permissionRepository = new InMemoryPermissionRepository();
         $custom = Permission::define(
             PermissionId::fromString('018f0000-0000-7000-8000-000000000001'),
             PermissionName::fromString('EDIT_CONTENT'),
@@ -43,10 +43,10 @@ final class ListPermissionsHandlerTest extends TestCase
             PermissionTier::SUPER_ADMIN_ONLY,
             new DateTimeImmutable('2026-01-01T00:00:00+00:00')
         );
-        $permissions->add($custom);
-        $permissions->add($managed);
+        $permissionRepository->add($custom);
+        $permissionRepository->add($managed);
 
-        $handler = new ListPermissionsHandler($permissions);
+        $handler = new ListPermissionsHandler($permissionRepository);
 
         self::assertSame(ListPermissions::class, ListPermissionsHandler::queryRegistration());
         $resultSet = $handler->handle(QueryMessage::create(new ListPermissions(new Pagination(1, 25))));
@@ -150,7 +150,7 @@ final class ListPermissionsHandlerTest extends TestCase
 
     public function test_that_pagination_selects_the_actual_second_page(): void
     {
-        $permissions = new InMemoryPermissionRepository();
+        $permissionRepository = new InMemoryPermissionRepository();
         $first = Permission::define(
             PermissionId::fromString('018f0000-0000-7000-8000-000000000003'),
             PermissionName::fromString('FIRST_PERMISSION'),
@@ -161,10 +161,10 @@ final class ListPermissionsHandlerTest extends TestCase
             PermissionName::fromString('SECOND_PERMISSION'),
             new DateTimeImmutable('2026-01-01T00:00:00+00:00')
         );
-        $permissions->add($first);
-        $permissions->add($second);
+        $permissionRepository->add($first);
+        $permissionRepository->add($second);
 
-        $handler = new ListPermissionsHandler($permissions);
+        $handler = new ListPermissionsHandler($permissionRepository);
 
         $resultSet = $handler->handle(QueryMessage::create(new ListPermissions(new Pagination(2, 1))));
 

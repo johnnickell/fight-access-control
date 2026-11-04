@@ -51,32 +51,32 @@ final class CustomRoleIdentityHandlerTest extends TestCase
         $name = RoleName::fromString('ROLE_SUPPORT');
         $createdAt = new DateTimeImmutable('2026-08-23T12:00:00+00:00');
         $unitOfWork = new InMemoryUnitOfWork();
-        $repository = new InMemoryRoleRepository($unitOfWork);
-        $events = new InMemoryEventDispatcher(function () use ($repository, $roleId, $unitOfWork): void {
-            self::assertInstanceOf(Role::class, $repository->getById($roleId));
+        $roleRepository = new InMemoryRoleRepository($unitOfWork);
+        $eventDispatcher = new InMemoryEventDispatcher(function () use ($roleRepository, $roleId, $unitOfWork): void {
+            self::assertInstanceOf(Role::class, $roleRepository->getById($roleId));
             self::assertTrue($unitOfWork->transactionCompleted);
         });
         $handler = new CreateCustomRoleHandler(
-            $repository,
+            $roleRepository,
             new FixedClock($createdAt),
             $unitOfWork,
-            $events
+            $eventDispatcher
         );
 
         $handler->handle(CommandMessage::create(new CreateCustomRole($actorId, $roleId, $name)));
 
         self::assertSame(CreateCustomRole::class, CreateCustomRoleHandler::commandRegistration());
         self::assertSame(1, $unitOfWork->transactions);
-        $role = $repository->getById($roleId);
+        $role = $roleRepository->getById($roleId);
         self::assertInstanceOf(Role::class, $role);
         self::assertSame($name, $role->getName());
         self::assertFalse($role->isManaged());
         self::assertSame([], $role->getPermissionIds());
         self::assertSame($createdAt, $role->getCreatedAt());
         self::assertSame($createdAt, $role->getUpdatedAt());
-        self::assertCount(1, $events->events());
-        self::assertInstanceOf(CustomRoleCreated::class, $events->events()[0]);
-        $event = $events->events()[0];
+        self::assertCount(1, $eventDispatcher->events());
+        self::assertInstanceOf(CustomRoleCreated::class, $eventDispatcher->events()[0]);
+        $event = $eventDispatcher->events()[0];
         self::assertSame($actorId, $event->getActorId());
         self::assertSame($roleId, $event->getRoleId());
         self::assertSame($name, $event->getName());
@@ -91,27 +91,27 @@ final class CustomRoleIdentityHandlerTest extends TestCase
         $createdAt = new DateTimeImmutable('2026-08-22T12:00:00+00:00');
         $renamedAt = new DateTimeImmutable('2026-08-23T12:00:00+00:00');
         $unitOfWork = new InMemoryUnitOfWork();
-        $permissions = new InMemoryPermissionRepository($unitOfWork);
-        $permissions->add(Permission::define(
+        $permissionRepository = new InMemoryPermissionRepository($unitOfWork);
+        $permissionRepository->add(Permission::define(
             $permissionId,
             PermissionName::fromString('VIEW_SUPPORT'),
             $createdAt
         ));
-        $repository = new InMemoryRoleRepository($unitOfWork);
-        $repository->add(Role::define(
+        $roleRepository = new InMemoryRoleRepository($unitOfWork);
+        $roleRepository->add(Role::define(
             $roleId,
             RoleName::fromString('ROLE_SUPPORT'),
             [$permissionId],
             $createdAt
         ));
-        $events = new InMemoryEventDispatcher(function () use ($repository, $roleId, $unitOfWork): void {
-            self::assertSame('ROLE_HELP_DESK', $repository->getById($roleId)?->getName()->toString());
+        $eventDispatcher = new InMemoryEventDispatcher(function () use ($roleRepository, $roleId, $unitOfWork): void {
+            self::assertSame('ROLE_HELP_DESK', $roleRepository->getById($roleId)?->getName()->toString());
             self::assertTrue($unitOfWork->transactionCompleted);
         });
         $handler = $this->renameHandler(
-            $repository,
+            $roleRepository,
             $unitOfWork,
-            $events,
+            $eventDispatcher,
             $renamedAt
         );
 
@@ -119,21 +119,21 @@ final class CustomRoleIdentityHandlerTest extends TestCase
             $actorId,
             $roleId,
             RoleName::fromString('ROLE_HELP_DESK'),
-            $repository->getById($roleId)->getRevision()
+            $roleRepository->getById($roleId)->getRevision()
         )));
 
         self::assertSame(RenameCustomRole::class, RenameCustomRoleHandler::commandRegistration());
         self::assertSame(1, $unitOfWork->transactions);
-        $role = $repository->getById($roleId);
+        $role = $roleRepository->getById($roleId);
         self::assertInstanceOf(Role::class, $role);
         self::assertSame($roleId, $role->getId());
         self::assertSame([$permissionId], $role->getPermissionIds());
         self::assertFalse($role->isManaged());
         self::assertSame($createdAt, $role->getCreatedAt());
         self::assertSame($renamedAt, $role->getUpdatedAt());
-        self::assertCount(1, $events->events());
-        self::assertInstanceOf(CustomRoleRenamed::class, $events->events()[0]);
-        $event = $events->events()[0];
+        self::assertCount(1, $eventDispatcher->events());
+        self::assertInstanceOf(CustomRoleRenamed::class, $eventDispatcher->events()[0]);
+        $event = $eventDispatcher->events()[0];
         self::assertSame($actorId, $event->getActorId());
         self::assertSame($roleId, $event->getRoleId());
         self::assertSame('ROLE_HELP_DESK', $event->getName()->toString());
@@ -142,32 +142,32 @@ final class CustomRoleIdentityHandlerTest extends TestCase
 
     public function test_creation_and_rename_reject_the_reserved_name_without_success_events(): void
     {
-        $repository = new InMemoryRoleRepository();
+        $roleRepository = new InMemoryRoleRepository();
         $role = $this->customRole();
-        $repository->add($role);
+        $roleRepository->add($role);
         $reserved = RoleName::fromString(Role::SUPER_ADMIN_NAME);
         $commands = [
             new CreateCustomRole($this->actorId(), RoleId::generate(), $reserved),
             new RenameCustomRole($this->actorId(), $role->getId(), $reserved, $role->getRevision())
         ];
         foreach ($commands as $command) {
-            $events = new InMemoryEventDispatcher();
+            $eventDispatcher = new InMemoryEventDispatcher();
             $unitOfWork = new InMemoryUnitOfWork();
-            $handler = $this->renameHandler($repository, $unitOfWork, $events);
+            $handler = $this->renameHandler($roleRepository, $unitOfWork, $eventDispatcher);
             if ($command instanceof CreateCustomRole) {
                 $handler = new CreateCustomRoleHandler(
-                    $repository,
+                    $roleRepository,
                     new FixedClock('2026-08-23T12:00:00+00:00'),
                     $unitOfWork,
-                    $events
+                    $eventDispatcher
                 );
             }
 
             $failure = $this->captureFailure($handler->handle(...), $command);
 
             self::assertInstanceOf(CustomRoleException::class, $failure);
-            self::assertSame($role, $repository->getById($role->getId()));
-            $this->assertCommandFailure($events, $command, $failure);
+            self::assertSame($role, $roleRepository->getById($role->getId()));
+            $this->assertCommandFailure($eventDispatcher, $command, $failure);
         }
     }
 
@@ -188,21 +188,21 @@ final class CustomRoleIdentityHandlerTest extends TestCase
                 )
             ] as $command
         ) {
-            $repository = new InMemoryRoleRepository();
-            $repository->add($existing);
-            $events = new InMemoryEventDispatcher();
+            $roleRepository = new InMemoryRoleRepository();
+            $roleRepository->add($existing);
+            $eventDispatcher = new InMemoryEventDispatcher();
             $handler = new CreateCustomRoleHandler(
-                $repository,
+                $roleRepository,
                 new FixedClock('2026-08-23T12:00:00+00:00'),
                 new InMemoryUnitOfWork(),
-                $events
+                $eventDispatcher
             );
 
             $failure = $this->captureFailure($handler->handle(...), $command);
 
             self::assertInstanceOf(CustomRoleException::class, $failure);
-            self::assertSame($existing, $repository->getById($existing->getId()));
-            $this->assertCommandFailure($events, $command, $failure);
+            self::assertSame($existing, $roleRepository->getById($existing->getId()));
+            $this->assertCommandFailure($eventDispatcher, $command, $failure);
         }
     }
 
@@ -229,48 +229,48 @@ final class CustomRoleIdentityHandlerTest extends TestCase
             new ControllableRoleRepository($this->customRole(), replaceSucceeds: false)
         ];
         $commands = [];
-        foreach ($cases as $index => $repository) {
+        foreach ($cases as $index => $roleRepository) {
             $commands[] = new RenameCustomRole(
                 $this->actorId(),
                 $roleId,
                 RoleName::fromString($index === 1 ? 'ROLE_TAKEN' : 'ROLE_RENAMED'),
-                $repository->getById($roleId)?->getRevision() ?? RoleRevision::initial()
+                $roleRepository->getById($roleId)?->getRevision() ?? RoleRevision::initial()
             );
         }
 
-        foreach ($cases as $index => $repository) {
-            $events = new InMemoryEventDispatcher();
+        foreach ($cases as $index => $roleRepository) {
+            $eventDispatcher = new InMemoryEventDispatcher();
             $failure = $this->captureFailure(
-                $this->renameHandler($repository, new InMemoryUnitOfWork(), $events)->handle(...),
+                $this->renameHandler($roleRepository, new InMemoryUnitOfWork(), $eventDispatcher)->handle(...),
                 $commands[$index]
             );
 
             self::assertInstanceOf(CustomRoleException::class, $failure);
-            $this->assertCommandFailure($events, $commands[$index], $failure);
+            $this->assertCommandFailure($eventDispatcher, $commands[$index], $failure);
         }
     }
 
     public function test_it_rethrows_the_identical_repository_failure_and_dispatches_command_failure(): void
     {
         $expected = new RuntimeException('role repository read failed');
-        $repository = new ControllableRoleRepository(getFailure: $expected);
-        $events = new InMemoryEventDispatcher();
+        $roleRepository = new ControllableRoleRepository(getFailure: $expected);
+        $eventDispatcher = new InMemoryEventDispatcher();
         $command = new CreateCustomRole(
             $this->actorId(),
             RoleId::fromString('018f0000-0000-7000-8000-000000000002'),
             RoleName::fromString('ROLE_SUPPORT')
         );
         $handler = new CreateCustomRoleHandler(
-            $repository,
+            $roleRepository,
             new FixedClock('2026-08-23T12:00:00+00:00'),
             new InMemoryUnitOfWork(),
-            $events
+            $eventDispatcher
         );
 
         $actual = $this->captureFailure($handler->handle(...), $command);
 
         self::assertSame($expected, $actual);
-        $this->assertCommandFailure($events, $command, $expected);
+        $this->assertCommandFailure($eventDispatcher, $command, $expected);
     }
 
     public function test_commands_and_events_round_trip_and_reject_missing_required_data(): void
@@ -325,16 +325,16 @@ final class CustomRoleIdentityHandlerTest extends TestCase
     }
 
     private function renameHandler(
-        RoleRepository $repository,
+        RoleRepository $roleRepository,
         InMemoryUnitOfWork $unitOfWork,
-        InMemoryEventDispatcher $events,
+        InMemoryEventDispatcher $eventDispatcher,
         ?DateTimeImmutable $now = null
     ): RenameCustomRoleHandler {
         return new RenameCustomRoleHandler(
-            $repository,
+            $roleRepository,
             new FixedClock($now ?? '2026-08-23T12:00:00+00:00'),
             $unitOfWork,
-            $events
+            $eventDispatcher
         );
     }
 
@@ -352,19 +352,19 @@ final class CustomRoleIdentityHandlerTest extends TestCase
     }
 
     private function assertCommandFailure(
-        InMemoryEventDispatcher $events,
+        InMemoryEventDispatcher $eventDispatcher,
         Command $command,
         Throwable $throwable
     ): void {
-        self::assertCount(1, $events->events());
-        self::assertInstanceOf(CommandFailedEvent::class, $events->events()[0]);
-        self::assertSame($command, $events->events()[0]->getCommand());
+        self::assertCount(1, $eventDispatcher->events());
+        self::assertInstanceOf(CommandFailedEvent::class, $eventDispatcher->events()[0]);
+        self::assertSame($command, $eventDispatcher->events()[0]->getCommand());
         $message = 'Custom role rename failed.';
         if ($command instanceof CreateCustomRole) {
             $message = 'Custom role creation failed.';
         }
 
-        self::assertSame($message, $events->events()[0]->getErrorMessage());
-        self::assertNotSame($throwable->getMessage(), $events->events()[0]->getErrorMessage());
+        self::assertSame($message, $eventDispatcher->events()[0]->getErrorMessage());
+        self::assertNotSame($throwable->getMessage(), $eventDispatcher->events()[0]->getErrorMessage());
     }
 }

@@ -27,7 +27,7 @@ return void. After successful dispatch, a consumer may acknowledge the target an
 
 ```php
 $name = AgentName::fromString($command->getName());
-$bus->execute($command); // SynchronousCommandBus: returns only after the handler completes
+$synchronousCommandBus->execute($command); // Returns only after the handler completes
 $acknowledgement = ['agent_id' => $command->getAgentId()->toString(), 'name' => $name->toString()];
 ```
 

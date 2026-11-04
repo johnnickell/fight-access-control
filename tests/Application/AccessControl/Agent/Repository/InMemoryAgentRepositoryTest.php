@@ -14,7 +14,7 @@ use Fight\AccessControl\Domain\AccessControl\Permission\PermissionId;
 use Fight\AccessControl\Domain\AccessControl\Permission\PermissionName;
 use Fight\AccessControl\Domain\AccessControl\Permission\PermissionTier;
 use Fight\Common\Domain\Repository\Pagination;
-use Fight\Test\AccessControl\Application\AccessControl\Agent\Service\RotationEnvironment;
+use Fight\Test\AccessControl\Application\AccessControl\Agent\Credential\RotationEnvironment;
 use Fight\Test\AccessControl\Application\AccessControl\User\Repository\InMemoryAuthorizationReferenceState;
 use PHPUnit\Framework\Attributes\CoversNothing;
 use PHPUnit\Framework\TestCase;
@@ -25,25 +25,25 @@ final class InMemoryAgentRepositoryTest extends TestCase
     public function test_it_retrieves_the_current_agent_authority_by_stable_identity(): void
     {
         $rotation = new RotationEnvironment();
-        $repository = $rotation->provisioning->agents;
-        $agent = $repository->all()[0];
-        self::assertSame($agent, $repository->getById($agent->getId()));
+        $agentRepository = $rotation->provisioning->agentRepository;
+        $agent = $agentRepository->all()[0];
+        self::assertSame($agent, $agentRepository->getById($agent->getId()));
         self::assertTrue($rotation->service()->rotate($rotation->key, $rotation->request)->isConfirmed());
-        $replacement = $repository->all()[0];
-        self::assertSame($replacement, $repository->getById($agent->getId()));
-        self::assertFalse($repository->replace($agent, $replacement));
-        self::assertNull($repository->getById(AgentId::generate()));
+        $replacement = $agentRepository->all()[0];
+        self::assertSame($replacement, $agentRepository->getById($agent->getId()));
+        self::assertFalse($agentRepository->replace($agent, $replacement));
+        self::assertNull($agentRepository->getById(AgentId::generate()));
     }
 
     public function test_it_returns_the_requested_ordered_page_of_agent_authorities(): void
     {
-        $repository = new InMemoryAgentRepository();
+        $agentRepository = new InMemoryAgentRepository();
         $first = $this->agent('First deployment');
         $second = $this->agent('Second deployment');
-        $repository->add($first);
-        $repository->add($second);
+        $agentRepository->add($first);
+        $agentRepository->add($second);
 
-        $result = $repository->getAll(new Pagination(2, 1));
+        $result = $agentRepository->getAll(new Pagination(2, 1));
 
         self::assertSame(2, $result->page());
         self::assertSame(1, $result->perPage());
@@ -64,11 +64,11 @@ final class InMemoryAgentRepositoryTest extends TestCase
                 $case === 'membership' ? [] : [$permissionId],
                 $case === 'revision' ? 3 : 2
             );
-            $repository = new InMemoryAgentRepository();
-            $repository->add($expected);
+            $agentRepository = new InMemoryAgentRepository();
+            $agentRepository->add($expected);
 
-            self::assertFalse($repository->replace($expected, $replacement));
-            self::assertSame($expected, $repository->getById($expected->getId()));
+            self::assertFalse($agentRepository->replace($expected, $replacement));
+            self::assertSame($expected, $agentRepository->getById($expected->getId()));
         }
     }
 
@@ -87,11 +87,11 @@ final class InMemoryAgentRepositoryTest extends TestCase
             new DateTimeImmutable('2026-01-01T00:00:00+00:00')
         ));
 
-        $repository = new InMemoryAgentRepository(authorizationReferences: $authorizationReferences);
-        $repository->add($expected);
+        $agentRepository = new InMemoryAgentRepository(authorizationReferences: $authorizationReferences);
+        $agentRepository->add($expected);
 
-        self::assertFalse($repository->replacePermissionAssignments($expected, $replacement));
-        self::assertSame($expected, $repository->getById($expected->getId()));
+        self::assertFalse($agentRepository->replacePermissionAssignments($expected, $replacement));
+        self::assertSame($expected, $agentRepository->getById($expected->getId()));
     }
 
     public function test_assignment_fence_requires_exact_eligible_definitions_and_rejects_protected_writes(): void
@@ -111,18 +111,18 @@ final class InMemoryAgentRepositoryTest extends TestCase
         $references = new InMemoryAuthorizationReferenceState();
         $references->addPermission($safe);
 
-        $repository = new InMemoryAgentRepository(authorizationReferences: $references);
+        $agentRepository = new InMemoryAgentRepository(authorizationReferences: $references);
         $agent = $this->agent('Production deployment');
-        $repository->add($agent);
+        $agentRepository->add($agent);
         $replacement = $agent->grantPermission($permissionId, new DateTimeImmutable('2026-08-26T12:00:00+00:00'));
 
-        self::assertTrue($repository->validatePermissionAssignments([$safe]));
+        self::assertTrue($agentRepository->validatePermissionAssignments([$safe]));
         self::assertTrue($references->isReferenceFenceHeld());
         $references->addPermission($protected);
-        self::assertFalse($repository->validatePermissionAssignments([$safe]));
-        self::assertFalse($repository->validatePermissionAssignments([$protected]));
-        self::assertFalse($repository->replacePermissionAssignments($agent, $replacement));
-        self::assertSame($agent, $repository->getById($agent->getId()));
+        self::assertFalse($agentRepository->validatePermissionAssignments([$safe]));
+        self::assertFalse($agentRepository->validatePermissionAssignments([$protected]));
+        self::assertFalse($agentRepository->replacePermissionAssignments($agent, $replacement));
+        self::assertSame($agent, $agentRepository->getById($agent->getId()));
     }
 
     private function agent(string $name): Agent

@@ -8,7 +8,7 @@ use Closure;
 use DateTimeImmutable;
 use Fiber;
 use Fight\AccessControl\Application\AccessControl\Agent\CommandHandler\UpdateAgentHandler;
-use Fight\AccessControl\Application\AccessControl\Agent\Security\AgentCredentialLifecycleService;
+use Fight\AccessControl\Application\AccessControl\Agent\Credential\AgentCredentialLifecycleService;
 use Fight\AccessControl\Application\AccessControl\Timing\Service\Clock;
 use Fight\AccessControl\Domain\AccessControl\Agent\Agent;
 use Fight\AccessControl\Domain\AccessControl\Agent\AgentId;
@@ -31,8 +31,8 @@ use Fight\Common\Adapter\Messaging\Command\Sync\RoutingCommandBus;
 use Fight\Common\Domain\Messaging\Command\CommandMessage;
 use Fight\Common\Domain\Messaging\Event\CommandFailedEvent;
 use Fight\Common\Domain\Messaging\Event\Event;
-use Fight\Test\AccessControl\Application\AccessControl\Agent\Service\ProvisioningEnvironment;
-use Fight\Test\AccessControl\Application\AccessControl\Agent\Service\RotationEnvironment;
+use Fight\Test\AccessControl\Application\AccessControl\Agent\Credential\ProvisioningEnvironment;
+use Fight\Test\AccessControl\Application\AccessControl\Agent\Credential\RotationEnvironment;
 use Fight\Test\AccessControl\Application\AccessControl\Event\InMemoryEventDispatcher;
 use Fight\Test\AccessControl\Application\AccessControl\Timing\Service\FixedClock;
 use Fight\Test\AccessControl\Application\AccessControl\User\InMemoryUnitOfWork;
@@ -65,9 +65,9 @@ final class UpdateAgentHandlerTest extends TestCase
             $initiator = new AgentUpdateInitiator($actor);
             $command = new UpdateAgent($initiator, AgentId::generate(), '  Renamed  ');
             $uow = new InMemoryUnitOfWork();
-            $agents = $this->createMock(AgentRepository::class);
+            $agentRepository = $this->createMock(AgentRepository::class);
             $clock = new FixedClock(self::NOW);
-            $agents->expects(self::once())->method('rename')->with(
+            $agentRepository->expects(self::once())->method('rename')->with(
                 $command->getAgentId(),
                 self::callback(static fn(AgentName $name): bool => $name->toString() === 'Renamed'),
                 self::isInstanceOf(Closure::class)
@@ -84,7 +84,7 @@ final class UpdateAgentHandlerTest extends TestCase
 
                 return $now();
             });
-            $events = new InMemoryEventDispatcher(static function (Event $event) use (
+            $eventDispatcher = new InMemoryEventDispatcher(static function (Event $event) use (
                 $uow,
                 $initiator,
                 $command
@@ -96,8 +96,10 @@ final class UpdateAgentHandlerTest extends TestCase
                 self::assertSame($command->getAgentId(), $event->getAgentId());
                 self::assertSame('Renamed', $event->getName()->toString());
             });
-            new UpdateAgentHandler($agents, $clock, $uow, $events)->handle(CommandMessage::create($command));
-            self::assertCount(1, $events->events());
+            new UpdateAgentHandler($agentRepository, $clock, $uow, $eventDispatcher)->handle(
+                CommandMessage::create($command)
+            );
+            self::assertCount(1, $eventDispatcher->events());
             self::assertSame(1, $uow->transactions);
         }
     }
@@ -106,17 +108,17 @@ final class UpdateAgentHandlerTest extends TestCase
     {
         foreach (['', '   ', str_repeat('a', 121)] as $name) {
             $command = new UpdateAgent(new AgentUpdateInitiator(UserId::generate()), AgentId::generate(), $name);
-            $agents = $this->createMock(AgentRepository::class);
-            $agents->expects(self::never())->method('rename');
+            $agentRepository = $this->createMock(AgentRepository::class);
+            $agentRepository->expects(self::never())->method('rename');
             $clock = $this->createMock(Clock::class);
             $clock->expects(self::never())->method('now');
             $uow = new InMemoryUnitOfWork();
-            $events = new InMemoryEventDispatcher();
-            $failure = $this->failure(fn() => new UpdateAgentHandler($agents, $clock, $uow, $events)
+            $eventDispatcher = new InMemoryEventDispatcher();
+            $failure = $this->failure(fn() => new UpdateAgentHandler($agentRepository, $clock, $uow, $eventDispatcher)
                 ->handle(CommandMessage::create($command)));
             self::assertInstanceOf(AgentNameException::class, $failure);
             self::assertSame(0, $uow->transactions);
-            $event = $events->events()[0];
+            $event = $eventDispatcher->events()[0];
             self::assertInstanceOf(CommandFailedEvent::class, $event);
             self::assertSame($command, $event->getCommand());
             self::assertSame('Agent update failed.', $event->getErrorMessage());
@@ -126,48 +128,48 @@ final class UpdateAgentHandlerTest extends TestCase
     public function test_real_change_then_normalized_noop_preserve_authority_operation_and_timestamp(): void
     {
         $env = $this->environment();
-        $before = $env->agents->all()[0];
-        $operation = $env->operations->operations[$env->key->toString()];
+        $before = $env->agentRepository->all()[0];
+        $operation = $env->agentOperationRepository->operations[$env->key->toString()];
         $clock = new FixedClock('2026-09-27T12:00:01+00:00', '2026-09-27T13:00:00+00:00');
         $handler = $this->handler($env, $clock);
         $handler->handle($this->message($before->getId(), '  Renamed  '));
 
-        $after = $env->agents->getById($before->getId());
+        $after = $env->agentRepository->getById($before->getId());
         self::assertSame('Renamed', $after->getName()->toString());
-        self::assertSame(1, $env->agents->nameWrites);
+        self::assertSame(1, $env->agentRepository->nameWrites);
         self::assertSame($before->getCredentialId(), $after->getCredentialId());
         self::assertSame(
             $before->getEncryptedHmacSharedSecretEnvelope(),
             $after->getEncryptedHmacSharedSecretEnvelope()
         );
         self::assertSame($before->getPermissionIds(), $after->getPermissionIds());
-        self::assertSame($operation, $env->operations->operations[$env->key->toString()]);
+        self::assertSame($operation, $env->agentOperationRepository->operations[$env->key->toString()]);
         $handler->handle($this->message($before->getId(), 'Renamed'));
         self::assertSame(2, $clock->calls());
-        self::assertSame($after, $env->agents->getById($before->getId()));
-        self::assertSame(1, $env->agents->nameWrites);
-        self::assertCount(1, $env->events->events());
-        self::assertInstanceOf(AgentNameChanged::class, $env->events->events()[0]);
-        self::assertFalse($env->agents->contract->locked);
+        self::assertSame($after, $env->agentRepository->getById($before->getId()));
+        self::assertSame(1, $env->agentRepository->nameWrites);
+        self::assertCount(1, $env->eventDispatcher->events());
+        self::assertInstanceOf(AgentNameChanged::class, $env->eventDispatcher->events()[0]);
+        self::assertFalse($env->agentRepository->contract->locked);
     }
 
     public function test_missing_and_revoked_targets_reject_including_same_name_without_success_fact(): void
     {
         $env = $this->environment();
-        $agent = $env->agents->all()[0];
+        $agent = $env->agentRepository->all()[0];
         self::assertInstanceOf(AgentUpdateException::class, $this->failure(fn() => $this->handler($env)
             ->handle($this->message(AgentId::generate(), 'Renamed'))));
         $this->revoke($env, $agent->getId());
-        $revoked = $env->agents->getById($agent->getId());
+        $revoked = $env->agentRepository->getById($agent->getId());
         foreach ([$agent->getName()->toString(), 'Renamed'] as $name) {
             self::assertInstanceOf(AgentUpdateException::class, $this->failure(fn() => $this->handler($env)
                 ->handle($this->message($agent->getId(), $name))));
-            self::assertSame($revoked, $env->agents->getById($agent->getId()));
+            self::assertSame($revoked, $env->agentRepository->getById($agent->getId()));
         }
 
-        self::assertSame(0, $env->agents->nameWrites);
+        self::assertSame(0, $env->agentRepository->nameWrites);
         self::assertCount(0, array_filter(
-            $env->events->events(),
+            $env->eventDispatcher->events(),
             static fn($event): bool => $event instanceof AgentNameChanged
         ));
     }
@@ -176,11 +178,11 @@ final class UpdateAgentHandlerTest extends TestCase
     {
         foreach (['write', 'commit'] as $stage) {
             $env = $this->environment();
-            $before = $env->agents->all()[0];
-            $operation = $env->operations->operations[$env->key->toString()];
+            $before = $env->agentRepository->all()[0];
+            $operation = $env->agentOperationRepository->operations[$env->key->toString()];
             $failure = new RuntimeException('Injected name persistence fault.');
             if ($stage === 'write') {
-                $env->agents->afterNameWrite = static fn(): never => throw $failure;
+                $env->agentRepository->afterNameWrite = static fn(): never => throw $failure;
             } else {
                 $env->transaction->failNextCommit = true;
             }
@@ -192,12 +194,12 @@ final class UpdateAgentHandlerTest extends TestCase
                 self::assertSame('Injected transaction failure.', $thrown->getMessage());
             }
 
-            self::assertSame($before, $env->agents->getById($before->getId()));
-            self::assertSame($operation, $env->operations->operations[$env->key->toString()]);
-            self::assertInstanceOf(CommandFailedEvent::class, $env->events->events()[0]);
-            $env->agents->afterNameWrite = null;
+            self::assertSame($before, $env->agentRepository->getById($before->getId()));
+            self::assertSame($operation, $env->agentOperationRepository->operations[$env->key->toString()]);
+            self::assertInstanceOf(CommandFailedEvent::class, $env->eventDispatcher->events()[0]);
+            $env->agentRepository->afterNameWrite = null;
             $this->handler($env)->handle($this->message($before->getId(), 'Renamed'));
-            self::assertSame('Renamed', $env->agents->getById($before->getId())->getName()->toString());
+            self::assertSame('Renamed', $env->agentRepository->getById($before->getId())->getName()->toString());
         }
     }
 
@@ -205,9 +207,9 @@ final class UpdateAgentHandlerTest extends TestCase
     {
         foreach ([false, true] as $failurePublisherAlsoFails) {
             $env = $this->environment();
-            $agent = $env->agents->all()[0];
+            $agent = $env->agentRepository->all()[0];
             $failure = new RuntimeException('Injected event publication failure.');
-            $env->events = new InMemoryEventDispatcher(static function (Event $event) use (
+            $env->eventDispatcher = new InMemoryEventDispatcher(static function (Event $event) use (
                 $failure,
                 $failurePublisherAlsoFails
             ): void {
@@ -221,16 +223,16 @@ final class UpdateAgentHandlerTest extends TestCase
             });
             self::assertSame($failure, $this->failure(fn() => $this->handler($env)
                 ->handle($this->message($agent->getId(), 'Renamed'))));
-            self::assertSame('Renamed', $env->agents->getById($agent->getId())->getName()->toString());
-            self::assertSame(1, $env->agents->nameWrites);
+            self::assertSame('Renamed', $env->agentRepository->getById($agent->getId())->getName()->toString());
+            self::assertSame(1, $env->agentRepository->nameWrites);
             if (!$failurePublisherAlsoFails) {
-                self::assertInstanceOf(CommandFailedEvent::class, $env->events->events()[0]);
+                self::assertInstanceOf(CommandFailedEvent::class, $env->eventDispatcher->events()[0]);
             }
 
-            $env->events = new InMemoryEventDispatcher();
+            $env->eventDispatcher = new InMemoryEventDispatcher();
             $this->handler($env)->handle($this->message($agent->getId(), 'Renamed'));
-            self::assertSame([], $env->events->events());
-            self::assertSame(1, $env->agents->nameWrites);
+            self::assertSame([], $env->eventDispatcher->events());
+            self::assertSame(1, $env->agentRepository->nameWrites);
         }
     }
 
@@ -239,16 +241,16 @@ final class UpdateAgentHandlerTest extends TestCase
     {
         $rotation = new RotationEnvironment();
         $env = $rotation->provisioning;
-        $env->events = new InMemoryEventDispatcher();
+        $env->eventDispatcher = new InMemoryEventDispatcher();
 
-        $before = $env->agents->all()[0];
+        $before = $env->agentRepository->all()[0];
         $now = new DateTimeImmutable('2026-09-27T12:00:01+00:00');
         $clock = $this->createStub(Clock::class);
         $clock->method('now')->willReturnCallback(static function () use (&$now): DateTimeImmutable {
             return $now;
         });
-        $env->agents->beforeNameWrite = function () use ($env): void {
-            $env->agents->beforeNameWrite = null;
+        $env->agentRepository->beforeNameWrite = function () use ($env): void {
+            $env->agentRepository->beforeNameWrite = null;
             $env->transaction->suspendBeforeFirstWrite();
         };
         $pending = new Fiber(fn() => $this->handler($env, $clock)
@@ -266,7 +268,7 @@ final class UpdateAgentHandlerTest extends TestCase
             );
             $env->transaction->authorizationReferenceState()->addPermission($permission);
             $env->transaction->commitTransactional(function () use ($env, $before, $permission, $now): void {
-                self::assertTrue($env->agents->replacePermissionAssignments(
+                self::assertTrue($env->agentRepository->replacePermissionAssignments(
                     $before,
                     $before->grantPermission($permission->getId(), $now)
                 ));
@@ -276,13 +278,13 @@ final class UpdateAgentHandlerTest extends TestCase
                 ->isConfirmed());
         }
 
-        $winnerState = $env->agents->getById($before->getId());
+        $winnerState = $env->agentRepository->getById($before->getId());
         self::assertEquals($now, $winnerState->getUpdatedAt());
-        $operations = $env->operations->operations;
+        $operations = $env->agentOperationRepository->operations;
         $now = new DateTimeImmutable('2026-09-27T12:00:03.123456+00:00');
         $pending->resume();
         self::assertTrue($pending->isTerminated());
-        $after = $env->agents->getById($before->getId());
+        $after = $env->agentRepository->getById($before->getId());
         self::assertSame('Last rename', $after->getName()->toString());
         self::assertSame($winnerState->getCredentialId(), $after->getCredentialId());
         self::assertSame($winnerState->getCredentialRevision(), $after->getCredentialRevision());
@@ -295,9 +297,9 @@ final class UpdateAgentHandlerTest extends TestCase
             $winnerState->getPermissionAssignmentRevision(),
             $after->getPermissionAssignmentRevision()
         );
-        self::assertSame($operations, $env->operations->operations);
+        self::assertSame($operations, $env->agentOperationRepository->operations);
         self::assertEquals($now, $after->getUpdatedAt());
-        $event = array_last($env->events->events());
+        $event = array_last($env->eventDispatcher->events());
         self::assertInstanceOf(AgentNameChanged::class, $event);
         self::assertEquals($after->getUpdatedAt(), $event->getChangedAt());
     }
@@ -306,22 +308,22 @@ final class UpdateAgentHandlerTest extends TestCase
     {
         foreach ([true, false] as $noop) {
             $env = $this->environment();
-            $before = $env->agents->all()[0];
+            $before = $env->agentRepository->all()[0];
             $name = $noop ? $before->getName()->toString() : 'Renamed';
-            $env->agents->beforeNameWrite = function () use ($env): void {
-                $env->agents->beforeNameWrite = null;
+            $env->agentRepository->beforeNameWrite = function () use ($env): void {
+                $env->agentRepository->beforeNameWrite = null;
                 $env->transaction->suspendBeforeFirstWrite();
             };
             $pending = new Fiber(fn(): Throwable => $this->failure(fn() => $this->handler($env)
                 ->handle($this->message($before->getId(), $name))));
             $pending->start();
             $this->revoke($env, $before->getId());
-            $revoked = $env->agents->getById($before->getId());
+            $revoked = $env->agentRepository->getById($before->getId());
             $pending->resume();
             self::assertInstanceOf(AgentUpdateException::class, $pending->getReturn());
-            self::assertSame($revoked, $env->agents->getById($before->getId()));
+            self::assertSame($revoked, $env->agentRepository->getById($before->getId()));
             self::assertSame(AgentState::REVOKED, $revoked->getState());
-            self::assertSame(0, $env->agents->nameWrites);
+            self::assertSame(0, $env->agentRepository->nameWrites);
         }
     }
 
@@ -329,9 +331,9 @@ final class UpdateAgentHandlerTest extends TestCase
     {
         $rotation = new RotationEnvironment();
         $env = $rotation->provisioning;
-        $env->events = new InMemoryEventDispatcher();
+        $env->eventDispatcher = new InMemoryEventDispatcher();
 
-        $before = $env->agents->all()[0];
+        $before = $env->agentRepository->all()[0];
         $permission = Permission::define(
             PermissionId::generate(),
             PermissionName::fromString('PROFILE'),
@@ -339,47 +341,51 @@ final class UpdateAgentHandlerTest extends TestCase
         );
         $env->transaction->authorizationReferenceState()->addPermission($permission);
         $this->handler($env)->handle($this->message($before->getId(), 'Renamed'));
-        $renamed = $env->agents->getById($before->getId());
+        $renamed = $env->agentRepository->getById($before->getId());
         $env->transaction->commitTransactional(function () use ($env, $before, $permission): void {
-            self::assertFalse($env->agents->replace($before, $before->revoke(new DateTimeImmutable(self::NOW))));
-            self::assertFalse($env->agents->replacePermissionAssignments(
+            self::assertFalse(
+                $env->agentRepository->replace($before, $before->revoke(new DateTimeImmutable(self::NOW)))
+            );
+            self::assertFalse($env->agentRepository->replacePermissionAssignments(
                 $before,
                 $before->grantPermission($permission->getId(), new DateTimeImmutable(self::NOW))
             ));
         });
-        self::assertSame($renamed, $env->agents->getById($before->getId()));
+        self::assertSame($renamed, $env->agentRepository->getById($before->getId()));
         $env->transaction->commitTransactional(function () use ($env, $renamed, $permission): void {
-            self::assertTrue($env->agents->replacePermissionAssignments(
+            self::assertTrue($env->agentRepository->replacePermissionAssignments(
                 $renamed,
                 $renamed->grantPermission($permission->getId(), new DateTimeImmutable(self::NOW))
             ));
         });
         self::assertTrue($rotation->service()->rotate($rotation->key, $rotation->request)->isConfirmed());
-        $rotated = $env->agents->getById($before->getId());
+        $rotated = $env->agentRepository->getById($before->getId());
         self::assertSame('Renamed', $rotated->getName()->toString());
         self::assertTrue($rotated->hasPermission($permission->getId()));
         self::assertSame(1, $rotated->getCredentialRevision());
         $this->revoke($env, $before->getId());
-        self::assertSame('Renamed', $env->agents->getById($before->getId())->getName()->toString());
-        self::assertSame(AgentState::REVOKED, $env->agents->getById($before->getId())->getState());
+        self::assertSame('Renamed', $env->agentRepository->getById($before->getId())->getName()->toString());
+        self::assertSame(AgentState::REVOKED, $env->agentRepository->getById($before->getId())->getState());
     }
 
     public function test_direct_noops_require_current_correlation_transaction_and_restore_admission(): void
     {
         foreach (['transaction', 'correlation', 'duplicate', 'restore'] as $case) {
             $env = $this->environment();
-            $before = $env->agents->all()[0];
+            $before = $env->agentRepository->all()[0];
             if ($case === 'correlation') {
-                $env->operations->operations = [];
+                $env->agentOperationRepository->operations = [];
             } elseif ($case === 'duplicate') {
-                $env->operations->operations['duplicate'] = $env->operations->operations[$env->key->toString()];
+                $env->agentOperationRepository->operations['duplicate'] = $env->agentOperationRepository->operations[
+                    $env->key->toString()
+                ];
             } elseif ($case === 'restore') {
-                $env->agents->contract->reconciledGeneration = null;
+                $env->agentRepository->contract->reconciledGeneration = null;
             }
 
             $clock = $this->createMock(Clock::class);
             $clock->expects(self::never())->method('now');
-            $attempt = fn(): ?DateTimeImmutable => $env->agents->rename(
+            $attempt = fn(): ?DateTimeImmutable => $env->agentRepository->rename(
                 $before->getId(),
                 $before->getName(),
                 $clock->now(...)
@@ -394,19 +400,19 @@ final class UpdateAgentHandlerTest extends TestCase
             }
 
             self::assertSame($reason, $failure->getReason());
-            self::assertSame($before, $env->agents->getById($before->getId()));
-            self::assertSame(0, $env->agents->nameWrites);
-            self::assertSame([], $env->events->events());
+            self::assertSame($before, $env->agentRepository->getById($before->getId()));
+            self::assertSame(0, $env->agentRepository->nameWrites);
+            self::assertSame([], $env->eventDispatcher->events());
         }
     }
 
     public function test_direct_name_write_rejects_a_backdating_clock_without_partial_effects(): void
     {
         $env = $this->environment();
-        $before = $env->agents->all()[0];
-        $operation = $env->operations->operations[$env->key->toString()];
+        $before = $env->agentRepository->all()[0];
+        $operation = $env->agentOperationRepository->operations[$env->key->toString()];
         $failure = $this->failure(fn(): mixed => $env->transaction->commitTransactional(
-            fn(): ?DateTimeImmutable => $env->agents->rename(
+            fn(): ?DateTimeImmutable => $env->agentRepository->rename(
                 $before->getId(),
                 AgentName::fromString('Renamed'),
                 static fn(): DateTimeImmutable => new DateTimeImmutable('2026-09-27T11:59:59+00:00')
@@ -414,23 +420,23 @@ final class UpdateAgentHandlerTest extends TestCase
         ));
         self::assertInstanceOf(AgentUpdateException::class, $failure);
         self::assertSame('The Agent name update time is stale.', $failure->getMessage());
-        self::assertSame($before, $env->agents->getById($before->getId()));
-        self::assertSame($operation, $env->operations->operations[$env->key->toString()]);
-        self::assertSame(0, $env->agents->nameWrites);
-        self::assertSame([], $env->events->events());
+        self::assertSame($before, $env->agentRepository->getById($before->getId()));
+        self::assertSame($operation, $env->agentOperationRepository->operations[$env->key->toString()]);
+        self::assertSame(0, $env->agentRepository->nameWrites);
+        self::assertSame([], $env->eventDispatcher->events());
     }
 
     public function test_void_bus_allows_identical_input_acknowledgements_only_after_success(): void
     {
         $env = $this->environment();
-        $id = $env->agents->all()[0]->getId();
+        $id = $env->agentRepository->all()[0]->getId();
         $router = $this->createStub(CommandRouter::class);
         $router->method('match')->willReturnCallback(fn(): UpdateAgentHandler => $this->handler($env));
-        $bus = new RoutingCommandBus($router);
+        $synchronousCommandBus = new RoutingCommandBus($router);
         $acknowledgements = [];
-        $acknowledge = static function (UpdateAgent $command) use ($bus, &$acknowledgements): void {
+        $acknowledge = static function (UpdateAgent $command) use ($synchronousCommandBus, &$acknowledgements): void {
             $name = AgentName::fromString($command->getName());
-            $bus->execute($command);
+            $synchronousCommandBus->execute($command);
             $acknowledgements[] = ['agent_id' => $command->getAgentId()->toString(), 'name' => $name->toString()];
         };
         foreach (['  Renamed  ', 'Renamed'] as $name) {
@@ -441,26 +447,26 @@ final class UpdateAgentHandlerTest extends TestCase
             ['agent_id' => $id->toString(), 'name' => 'Renamed'],
             ['agent_id' => $id->toString(), 'name' => 'Renamed']
         ], $acknowledgements);
-        self::assertSame(1, $env->agents->nameWrites);
-        self::assertCount(1, $env->events->events());
-        $env->agents->afterNameWrite = static fn(): never => throw new RuntimeException('Write failed.');
+        self::assertSame(1, $env->agentRepository->nameWrites);
+        self::assertCount(1, $env->eventDispatcher->events());
+        $env->agentRepository->afterNameWrite = static fn(): never => throw new RuntimeException('Write failed.');
         $this->failure(fn() => $acknowledge(new UpdateAgent(new AgentUpdateInitiator($id), $id, 'Another name')));
         self::assertCount(2, $acknowledgements);
-        self::assertSame('Renamed', $env->agents->getById($id)->getName()->toString());
-        $env->agents->afterNameWrite = null;
-        $env->events = new InMemoryEventDispatcher(
+        self::assertSame('Renamed', $env->agentRepository->getById($id)->getName()->toString());
+        $env->agentRepository->afterNameWrite = null;
+        $env->eventDispatcher = new InMemoryEventDispatcher(
             static fn(): never => throw new RuntimeException('Publication failed.')
         );
         $this->failure(fn() => $acknowledge(new UpdateAgent(new AgentUpdateInitiator($id), $id, 'Committed name')));
         self::assertCount(2, $acknowledgements);
-        self::assertSame('Committed name', $env->agents->getById($id)->getName()->toString());
+        self::assertSame('Committed name', $env->agentRepository->getById($id)->getName()->toString());
     }
 
     private function environment(): ProvisioningEnvironment
     {
         $env = new ProvisioningEnvironment();
         $env->service()->provision($env->key, $env->request);
-        $env->events = new InMemoryEventDispatcher();
+        $env->eventDispatcher = new InMemoryEventDispatcher();
 
         return $env;
     }
@@ -468,10 +474,10 @@ final class UpdateAgentHandlerTest extends TestCase
     private function handler(ProvisioningEnvironment $env, ?Clock $clock = null): UpdateAgentHandler
     {
         return new UpdateAgentHandler(
-            $env->agents,
+            $env->agentRepository,
             $clock ?? new FixedClock(self::NOW),
             $env->transaction,
-            $env->events
+            $env->eventDispatcher
         );
     }
 
@@ -483,11 +489,11 @@ final class UpdateAgentHandlerTest extends TestCase
     private function revoke(ProvisioningEnvironment $env, AgentId $id): void
     {
         new AgentCredentialLifecycleService(
-            $env->agents,
-            $env->audit,
+            $env->agentRepository,
+            $env->auditEvidenceRepository,
             new FixedClock(self::NOW),
             $env->transaction,
-            $env->events
+            $env->eventDispatcher
         )->revoke('authorized-test-actor', $id);
     }
 

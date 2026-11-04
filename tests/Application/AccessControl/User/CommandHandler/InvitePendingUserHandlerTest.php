@@ -57,13 +57,13 @@ final class InvitePendingUserHandlerTest extends TestCase
         $activationGrantRepository = new InMemoryActivationGrantRepository();
         $auditEvidenceRepository = new InMemoryAuditEvidenceRepository();
         $unitOfWork = new InMemoryUnitOfWork();
-        $events = new InMemoryEventDispatcher();
+        $eventDispatcher = new InMemoryEventDispatcher();
         $handler = $this->handler(
             $userRepository,
             $activationGrantRepository,
             $auditEvidenceRepository,
             $unitOfWork,
-            $events
+            $eventDispatcher
         );
         $userId = UserId::generate();
 
@@ -78,7 +78,7 @@ final class InvitePendingUserHandlerTest extends TestCase
         self::assertCount(1, $userRepository->all());
         self::assertCount(1, $activationGrantRepository->all());
         self::assertCount(1, $auditEvidenceRepository->all());
-        self::assertCount(1, $events->events());
+        self::assertCount(1, $eventDispatcher->events());
         self::assertSame($userId, $userRepository->all()[0]->getId());
         self::assertSame('alice@example.test', $userRepository->all()[0]->getEmail()->canonical());
         self::assertSame(UserState::PENDING_ACTIVATION, $userRepository->all()[0]->getState());
@@ -86,7 +86,7 @@ final class InvitePendingUserHandlerTest extends TestCase
         self::assertSame(ActivationOrigin::PRIVATE_INVITATION, $activationGrantRepository->all()[0]->getOrigin());
         self::assertSame($userId, $activationGrantRepository->all()[0]->getDelivery()->getUserId());
         self::assertSame($userId, $auditEvidenceRepository->all()[0]->subjectId());
-        self::assertInstanceOf(UserInvited::class, $events->events()[0]);
+        self::assertInstanceOf(UserInvited::class, $eventDispatcher->events()[0]);
     }
 
     #[DataProvider('reservingUserStates')]
@@ -95,13 +95,13 @@ final class InvitePendingUserHandlerTest extends TestCase
         $userRepository = new InMemoryUserRepository();
         $userRepository->add(UserFixture::withState('alice@example.test', $state));
 
-        $events = new InMemoryEventDispatcher();
+        $eventDispatcher = new InMemoryEventDispatcher();
         $handler = $this->handler(
             $userRepository,
             new InMemoryActivationGrantRepository(),
             new InMemoryAuditEvidenceRepository(),
             new InMemoryUnitOfWork(),
-            $events
+            $eventDispatcher
         );
 
         $this->expectException(DuplicateEmailException::class);
@@ -113,7 +113,7 @@ final class InvitePendingUserHandlerTest extends TestCase
             )));
         } finally {
             self::assertCount(1, $userRepository->all());
-            self::assertCount(1, $events->events());
+            self::assertCount(1, $eventDispatcher->events());
         }
     }
 
@@ -121,13 +121,13 @@ final class InvitePendingUserHandlerTest extends TestCase
     {
         $unitOfWork = new InMemoryUnitOfWork();
         $userRepository = new InMemoryUserRepository($unitOfWork);
-        $events = new InMemoryEventDispatcher();
+        $eventDispatcher = new InMemoryEventDispatcher();
         $handler = $this->handler(
             $userRepository,
             new InMemoryActivationGrantRepository($unitOfWork),
             new InMemoryAuditEvidenceRepository($unitOfWork, failAfterSave: true),
             $unitOfWork,
-            $events
+            $eventDispatcher
         );
 
         $this->expectException(RuntimeException::class);
@@ -139,7 +139,7 @@ final class InvitePendingUserHandlerTest extends TestCase
             )));
         } finally {
             self::assertCount(0, $userRepository->all());
-            self::assertCount(1, $events->events());
+            self::assertCount(1, $eventDispatcher->events());
         }
     }
 
@@ -181,13 +181,13 @@ final class InvitePendingUserHandlerTest extends TestCase
 
     public function test_it_rejects_an_initial_activation_generation_race(): void
     {
-        $events = new InMemoryEventDispatcher();
+        $eventDispatcher = new InMemoryEventDispatcher();
         $handler = $this->handler(
             new InMemoryUserRepository(),
             new InMemoryActivationGrantRepository(addSucceeds: false),
             new InMemoryAuditEvidenceRepository(),
             new InMemoryUnitOfWork(),
-            $events
+            $eventDispatcher
         );
 
         $this->expectException(LogicException::class);
@@ -198,7 +198,7 @@ final class InvitePendingUserHandlerTest extends TestCase
                 EmailAddress::fromString('alice@example.test')
             )));
         } finally {
-            self::assertInstanceOf(CommandFailedEvent::class, $events->events()[0]);
+            self::assertInstanceOf(CommandFailedEvent::class, $eventDispatcher->events()[0]);
         }
     }
 
@@ -206,16 +206,19 @@ final class InvitePendingUserHandlerTest extends TestCase
     {
         foreach (['audit', 'commit', 'publication'] as $phase) {
             $unitOfWork = new InMemoryUnitOfWork();
-            $users = new InMemoryUserRepository($unitOfWork);
-            $grants = new InMemoryActivationGrantRepository($unitOfWork);
-            $audit = new InMemoryAuditEvidenceRepository($unitOfWork, failAfterSave: $phase === 'audit');
+            $userRepository = new InMemoryUserRepository($unitOfWork);
+            $activationGrantRepository = new InMemoryActivationGrantRepository($unitOfWork);
+            $auditEvidenceRepository = new InMemoryAuditEvidenceRepository(
+                $unitOfWork,
+                failAfterSave: $phase === 'audit'
+            );
             $primary = new RuntimeException('Synthetic operation detail. activate-once ciphertext:activate-once');
             if ($phase === 'commit') {
                 $unitOfWork->beforeCommit = static fn(): never => throw $primary;
             }
 
             $attempts = [];
-            $events = new InMemoryEventDispatcher(static function ($event) use (&$attempts, $primary): void {
+            $eventDispatcher = new InMemoryEventDispatcher(static function ($event) use (&$attempts, $primary): void {
                 $attempts[] = $event;
                 if ($event instanceof UserInvited) {
                     throw $primary;
@@ -230,21 +233,29 @@ final class InvitePendingUserHandlerTest extends TestCase
             );
             $caught = null;
             try {
-                $this->handler($users, $grants, $audit, $unitOfWork, $events)->handle(CommandMessage::create($command));
+                $this->handler(
+                    $userRepository,
+                    $activationGrantRepository,
+                    $auditEvidenceRepository,
+                    $unitOfWork,
+                    $eventDispatcher
+                )->handle(
+                    CommandMessage::create($command)
+                );
             } catch (RuntimeException $exception) {
                 $caught = $exception;
             }
 
             $expected = $primary;
             if ($phase === 'audit') {
-                $expected = $audit->failure();
+                $expected = $auditEvidenceRepository->failure();
             }
 
             self::assertSame($expected, $caught);
             $committed = $phase === 'publication';
-            self::assertCount((int) $committed, $users->all());
-            self::assertCount((int) $committed, $grants->all());
-            self::assertCount((int) $committed, $audit->all());
+            self::assertCount((int) $committed, $userRepository->all());
+            self::assertCount((int) $committed, $activationGrantRepository->all());
+            self::assertCount((int) $committed, $auditEvidenceRepository->all());
             self::assertSame($committed, $unitOfWork->transactionCompleted);
             self::assertFalse($unitOfWork->transactionActive);
             self::assertCount(1 + (int) $committed, $attempts);
@@ -254,10 +265,10 @@ final class InvitePendingUserHandlerTest extends TestCase
             self::assertSame('User invitation failed.', $failure->getErrorMessage());
             self::assertStringNotContainsString('activate-once', serialize($failure->toArray()));
             if ($committed) {
-                self::assertSame(UserState::PENDING_ACTIVATION, $users->all()[0]->getState());
-                self::assertTrue($grants->all()[0]->isIssued());
-                self::assertTrue($grants->all()[0]->getDelivery()->hasRecoverableMaterial());
-                self::assertSame('user.invited', $audit->all()[0]->action());
+                self::assertSame(UserState::PENDING_ACTIVATION, $userRepository->all()[0]->getState());
+                self::assertTrue($activationGrantRepository->all()[0]->isIssued());
+                self::assertTrue($activationGrantRepository->all()[0]->getDelivery()->hasRecoverableMaterial());
+                self::assertSame('user.invited', $auditEvidenceRepository->all()[0]->action());
             }
         }
     }
@@ -267,7 +278,7 @@ final class InvitePendingUserHandlerTest extends TestCase
         InMemoryActivationGrantRepository $activationGrantRepository,
         InMemoryAuditEvidenceRepository $auditEvidenceRepository,
         InMemoryUnitOfWork $unitOfWork,
-        InMemoryEventDispatcher $events
+        InMemoryEventDispatcher $eventDispatcher
     ): InvitePendingUserHandler {
         return new InvitePendingUserHandler(
             $userRepository,
@@ -277,7 +288,7 @@ final class InvitePendingUserHandlerTest extends TestCase
             new FixedCredentialGenerator('activate-once'),
             new PrefixInvitationDeliveryCipher(),
             new FixedClock('2026-08-18T12:00:00+00:00'),
-            $events
+            $eventDispatcher
         );
     }
 }

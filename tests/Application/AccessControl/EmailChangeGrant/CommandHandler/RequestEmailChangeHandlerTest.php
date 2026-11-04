@@ -45,15 +45,15 @@ final class RequestEmailChangeHandlerTest extends TestCase
     {
         foreach (['confirmed', 'cancelled', 'expired'] as $outcome) {
             $unitOfWork = new InMemoryUnitOfWork();
-            $users = new InMemoryUserRepository($unitOfWork);
+            $userRepository = new InMemoryUserRepository($unitOfWork);
             $user = UserFixture::withState('old@example.test', UserState::ACTIVE);
-            $users->add($user);
+            $userRepository->add($user);
             $reservedUser = clone $user;
             $reservedUser->requestEmailChange(EmailAddress::fromString('first@example.test'), new DateTimeImmutable(
                 '2026-01-01T00:00:00+00:00'
             ));
-            self::assertTrue($users->replaceEmailChangeReservation($user, $reservedUser));
-            $grants = new InMemoryEmailChangeGrantRepository($unitOfWork);
+            self::assertTrue($userRepository->replaceEmailChangeReservation($user, $reservedUser));
+            $emailChangeGrantRepository = new InMemoryEmailChangeGrantRepository($unitOfWork);
             $predecessor = EmailChangeGrant::issue(
                 $user->getId(),
                 EmailChangeCredential::fromString('predecessor-'.$outcome),
@@ -63,62 +63,70 @@ final class RequestEmailChangeHandlerTest extends TestCase
                 'ciphertext:predecessor-'.$outcome,
                 $reservedUser->getEmailChangeReservationRevision()
             );
-            self::assertTrue($grants->add($predecessor));
+            self::assertTrue($emailChangeGrantRepository->add($predecessor));
             if ($outcome === 'confirmed') {
                 $terminalUser = clone $reservedUser;
                 $terminalUser->confirmEmailChange(new DateTimeImmutable('2026-01-01T00:00:00+00:00'));
                 $terminalUser->advanceAuthenticationAuthorityRevision();
-                self::assertTrue($users->replaceEmailChangeConfirmation($reservedUser, $terminalUser));
+                self::assertTrue($userRepository->replaceEmailChangeConfirmation($reservedUser, $terminalUser));
                 $terminalPredecessor = $predecessor->consume(
                     new DateTimeImmutable('2026-08-22T10:30:00+00:00')
                 );
             } elseif ($outcome === 'cancelled') {
                 $terminalUser = clone $reservedUser;
                 $terminalUser->cancelEmailChange(new DateTimeImmutable('2026-01-01T00:00:00+00:00'));
-                self::assertTrue($users->replaceEmailChangeReservation($reservedUser, $terminalUser));
+                self::assertTrue($userRepository->replaceEmailChangeReservation($reservedUser, $terminalUser));
                 $terminalPredecessor = $predecessor->revoke(
                     new DateTimeImmutable('2026-08-22T10:30:00+00:00')
                 );
             } else {
                 $terminalUser = clone $reservedUser;
                 $terminalUser->expireEmailChange(new DateTimeImmutable('2026-01-01T00:00:00+00:00'));
-                self::assertTrue($users->replaceEmailChangeReservation($reservedUser, $terminalUser));
+                self::assertTrue($userRepository->replaceEmailChangeReservation($reservedUser, $terminalUser));
                 $terminalPredecessor = $predecessor->expireAt(
                     new DateTimeImmutable('2026-08-22T11:00:00+00:00')
                 );
             }
 
-            self::assertTrue($grants->replace($predecessor, $terminalPredecessor));
-            $events = new InMemoryEventDispatcher();
+            self::assertTrue($emailChangeGrantRepository->replace($predecessor, $terminalPredecessor));
+            $eventDispatcher = new InMemoryEventDispatcher();
 
-            $this->handler($users, $grants, $unitOfWork, $events)->handle(CommandMessage::create(
-                new RequestEmailChange(
-                    $user->getId(),
-                    $user->getId(),
-                    EmailAddress::fromString('successor-'.$outcome.'@example.test')
+            $this->handler($userRepository, $emailChangeGrantRepository, $unitOfWork, $eventDispatcher)->handle(
+                CommandMessage::create(
+                    new RequestEmailChange(
+                        $user->getId(),
+                        $user->getId(),
+                        EmailAddress::fromString('successor-'.$outcome.'@example.test')
+                    )
                 )
-            ));
+            );
 
-            self::assertCount(2, $grants->all());
-            self::assertSame($terminalPredecessor, $grants->all()[0]);
-            self::assertFalse($grants->all()[0]->isUsableAt(
+            self::assertCount(2, $emailChangeGrantRepository->all());
+            self::assertSame($terminalPredecessor, $emailChangeGrantRepository->all()[0]);
+            self::assertFalse($emailChangeGrantRepository->all()[0]->isUsableAt(
                 new DateTimeImmutable('2026-08-22T12:00:00+00:00')
             ));
-            self::assertFalse($grants->all()[0]->getDelivery()->hasRecoverableMaterial());
-            self::assertTrue($grants->all()[1]->isIssued());
-            self::assertNotSame($grants->all()[0]->getId()->toString(), $grants->all()[1]->getId()->toString());
+            self::assertFalse($emailChangeGrantRepository->all()[0]->getDelivery()->hasRecoverableMaterial());
+            self::assertTrue($emailChangeGrantRepository->all()[1]->isIssued());
             self::assertNotSame(
-                $grants->all()[0]->getDelivery()->getId()->toString(),
-                $grants->all()[1]->getDelivery()->getId()->toString()
+                $emailChangeGrantRepository->all()[0]->getId()->toString(),
+                $emailChangeGrantRepository->all()[1]->getId()->toString()
             );
-            self::assertNotSame($grants->all()[0]->getCredentialHash(), $grants->all()[1]->getCredentialHash());
+            self::assertNotSame(
+                $emailChangeGrantRepository->all()[0]->getDelivery()->getId()->toString(),
+                $emailChangeGrantRepository->all()[1]->getDelivery()->getId()->toString()
+            );
+            self::assertNotSame(
+                $emailChangeGrantRepository->all()[0]->getCredentialHash(),
+                $emailChangeGrantRepository->all()[1]->getCredentialHash()
+            );
             self::assertSame(
                 'e360e565220f2dfb032b70e01acf5ebb17ab3e47a79d8cb4a825e7ac0a6aa4ea',
-                $grants->all()[1]->getCredentialHash()
+                $emailChangeGrantRepository->all()[1]->getCredentialHash()
             );
             self::assertSame(
                 'successor-'.$outcome.'@example.test',
-                $grants->all()[1]->getDelivery()->getEmail()->canonical()
+                $emailChangeGrantRepository->all()[1]->getDelivery()->getEmail()->canonical()
             );
         }
     }
@@ -126,25 +134,25 @@ final class RequestEmailChangeHandlerTest extends TestCase
     public function test_an_active_owner_reserves_a_destination_and_records_confirmation_work_atomically(): void
     {
         $unitOfWork = new InMemoryUnitOfWork();
-        $users = new InMemoryUserRepository($unitOfWork);
+        $userRepository = new InMemoryUserRepository($unitOfWork);
         $user = UserFixture::withState('old@example.test', UserState::ACTIVE);
-        $users->add($user);
-        $grants = new InMemoryEmailChangeGrantRepository($unitOfWork);
+        $userRepository->add($user);
+        $emailChangeGrantRepository = new InMemoryEmailChangeGrantRepository($unitOfWork);
         $authorization = new EmailChangeService\FixedEmailChangeAdministrationAuthorization(true);
-        $audit = new InMemoryAuditEvidenceRepository($unitOfWork);
-        $events = new InMemoryEventDispatcher(static function () use ($unitOfWork): void {
+        $auditEvidenceRepository = new InMemoryAuditEvidenceRepository($unitOfWork);
+        $eventDispatcher = new InMemoryEventDispatcher(static function () use ($unitOfWork): void {
             self::assertTrue($unitOfWork->transactionCompleted);
         });
         $handler = new RequestEmailChangeHandler(
-            $users,
-            $grants,
+            $userRepository,
+            $emailChangeGrantRepository,
             $authorization,
-            $audit,
+            $auditEvidenceRepository,
             $unitOfWork,
             new FixedEmailChangeCredentialGenerator('change-once'),
             new PrefixEmailChangeDeliveryCipher(),
             new FixedClock('2026-08-22T12:00:00+00:00'),
-            $events
+            $eventDispatcher
         );
 
         $handler->handle(CommandMessage::create(new RequestEmailChange(
@@ -153,33 +161,42 @@ final class RequestEmailChangeHandlerTest extends TestCase
             EmailAddress::fromString('New@Example.test')
         )));
 
-        $storedUser = $users->getById($user->getId());
+        $storedUser = $userRepository->getById($user->getId());
         self::assertInstanceOf(User::class, $storedUser);
         self::assertSame('old@example.test', $storedUser->getEmail()->canonical());
         self::assertSame('new@example.test', $storedUser->getPendingEmailChange()->canonical());
         self::assertSame(1, $unitOfWork->transactions);
-        self::assertCount(1, $grants->all());
+        self::assertCount(1, $emailChangeGrantRepository->all());
         self::assertSame(
             'e360e565220f2dfb032b70e01acf5ebb17ab3e47a79d8cb4a825e7ac0a6aa4ea',
-            $grants->all()[0]->getCredentialHash()
+            $emailChangeGrantRepository->all()[0]->getCredentialHash()
         );
-        self::assertSame('email_change', $grants->all()[0]->purpose());
-        self::assertSame('2026-08-22T13:00:00+00:00', $grants->all()[0]->getExpiresAt()->format(DATE_ATOM));
-        self::assertSame('new@example.test', $grants->all()[0]->getDelivery()->getEmail()->canonical());
-        self::assertSame('ciphertext:change-once', $grants->all()[0]->getDelivery()->getEncryptedMaterial()?->reveal());
-        self::assertCount(1, $events->events());
-        self::assertInstanceOf(EmailChangeRequested::class, $events->events()[0]);
+        self::assertSame('email_change', $emailChangeGrantRepository->all()[0]->purpose());
+        self::assertSame(
+            '2026-08-22T13:00:00+00:00',
+            $emailChangeGrantRepository->all()[0]->getExpiresAt()->format(DATE_ATOM)
+        );
+        self::assertSame(
+            'new@example.test',
+            $emailChangeGrantRepository->all()[0]->getDelivery()->getEmail()->canonical()
+        );
+        self::assertSame(
+            'ciphertext:change-once',
+            $emailChangeGrantRepository->all()[0]->getDelivery()->getEncryptedMaterial()?->reveal()
+        );
+        self::assertCount(1, $eventDispatcher->events());
+        self::assertInstanceOf(EmailChangeRequested::class, $eventDispatcher->events()[0]);
         self::assertSame(0, $authorization->calls());
-        self::assertSame([], $audit->all());
+        self::assertSame([], $auditEvidenceRepository->all());
     }
 
     public function test_a_successor_cas_loss_rolls_back_the_new_destination_reservation(): void
     {
         $unitOfWork = new InMemoryUnitOfWork();
-        $users = new InMemoryUserRepository($unitOfWork);
+        $userRepository = new InMemoryUserRepository($unitOfWork);
         $user = UserFixture::withState('old@example.test', UserState::ACTIVE);
-        $users->add($user);
-        $grants = new InMemoryEmailChangeGrantRepository(
+        $userRepository->add($user);
+        $emailChangeGrantRepository = new InMemoryEmailChangeGrantRepository(
             $unitOfWork,
             appendAfterTerminalSucceeds: false
         );
@@ -192,24 +209,26 @@ final class RequestEmailChangeHandlerTest extends TestCase
             'ciphertext:predecessor',
             1
         );
-        self::assertTrue($grants->add($issued));
+        self::assertTrue($emailChangeGrantRepository->add($issued));
         $terminal = $issued->revoke(new DateTimeImmutable('2026-08-22T10:30:00+00:00'));
-        self::assertTrue($grants->replace($issued, $terminal));
-        $events = new InMemoryEventDispatcher();
+        self::assertTrue($emailChangeGrantRepository->replace($issued, $terminal));
+        $eventDispatcher = new InMemoryEventDispatcher();
 
         $this->expectException(LogicException::class);
         try {
-            $this->handler($users, $grants, $unitOfWork, $events)->handle(CommandMessage::create(
-                new RequestEmailChange(
-                    $user->getId(),
-                    $user->getId(),
-                    EmailAddress::fromString('successor@example.test')
+            $this->handler($userRepository, $emailChangeGrantRepository, $unitOfWork, $eventDispatcher)->handle(
+                CommandMessage::create(
+                    new RequestEmailChange(
+                        $user->getId(),
+                        $user->getId(),
+                        EmailAddress::fromString('successor@example.test')
+                    )
                 )
-            ));
+            );
         } finally {
-            self::assertNull($users->getById($user->getId())?->getPendingEmailChange());
-            self::assertSame([$terminal], $grants->all());
-            self::assertInstanceOf(CommandFailedEvent::class, $events->events()[0]);
+            self::assertNull($userRepository->getById($user->getId())?->getPendingEmailChange());
+            self::assertSame([$terminal], $emailChangeGrantRepository->all());
+            self::assertInstanceOf(CommandFailedEvent::class, $eventDispatcher->events()[0]);
         }
     }
 
@@ -225,22 +244,22 @@ final class RequestEmailChangeHandlerTest extends TestCase
         self::assertSame('new@example.test', $command->getEmail()->canonical());
 
         $unitOfWork = new InMemoryUnitOfWork();
-        $users = new InMemoryUserRepository($unitOfWork);
-        $users->add(UserFixture::withIdAndAuthenticationVersion(
+        $userRepository = new InMemoryUserRepository($unitOfWork);
+        $userRepository->add(UserFixture::withIdAndAuthenticationVersion(
             $userId,
             'old@example.test',
             UserState::ACTIVE,
             1
         ));
-        $events = new InMemoryEventDispatcher();
+        $eventDispatcher = new InMemoryEventDispatcher();
         $this->handler(
-            $users,
+            $userRepository,
             new InMemoryEmailChangeGrantRepository($unitOfWork),
             $unitOfWork,
-            $events
+            $eventDispatcher
         )->handle(CommandMessage::create($command));
 
-        $event = $events->events()[0];
+        $event = $eventDispatcher->events()[0];
         self::assertInstanceOf(EmailChangeRequested::class, $event);
         self::assertEquals($event, EmailChangeRequested::fromArray($event->toArray()));
         self::assertSame($userId, $event->getActorId());
@@ -296,10 +315,10 @@ final class RequestEmailChangeHandlerTest extends TestCase
     {
         foreach ([null, UserState::DISABLED] as $state) {
             $unitOfWork = new InMemoryUnitOfWork();
-            $users = new InMemoryUserRepository($unitOfWork);
+            $userRepository = new InMemoryUserRepository($unitOfWork);
             $userId = UserId::generate();
             if ($state instanceof UserState) {
-                $users->add(UserFixture::withIdAndAuthenticationVersion(
+                $userRepository->add(UserFixture::withIdAndAuthenticationVersion(
                     $userId,
                     'old@example.test',
                     $state,
@@ -307,17 +326,19 @@ final class RequestEmailChangeHandlerTest extends TestCase
                 ));
             }
 
-            $grants = new InMemoryEmailChangeGrantRepository($unitOfWork);
-            $events = new InMemoryEventDispatcher();
+            $emailChangeGrantRepository = new InMemoryEmailChangeGrantRepository($unitOfWork);
+            $eventDispatcher = new InMemoryEventDispatcher();
 
             try {
-                $this->handler($users, $grants, $unitOfWork, $events)->handle(CommandMessage::create(
-                    new RequestEmailChange($userId, $userId, EmailAddress::fromString('new@example.test'))
-                ));
+                $this->handler($userRepository, $emailChangeGrantRepository, $unitOfWork, $eventDispatcher)->handle(
+                    CommandMessage::create(
+                        new RequestEmailChange($userId, $userId, EmailAddress::fromString('new@example.test'))
+                    )
+                );
                 self::fail('An ineligible owner requested an email change.');
             } catch (EmailChangeRequestException) {
-                self::assertSame([], $grants->all());
-                self::assertInstanceOf(CommandFailedEvent::class, $events->events()[0]);
+                self::assertSame([], $emailChangeGrantRepository->all());
+                self::assertInstanceOf(CommandFailedEvent::class, $eventDispatcher->events()[0]);
             }
         }
     }
@@ -326,30 +347,41 @@ final class RequestEmailChangeHandlerTest extends TestCase
     {
         foreach ([false, true] as $liveReservation) {
             $unitOfWork = new InMemoryUnitOfWork();
-            $users = new InMemoryUserRepository($unitOfWork);
-            $grants = new InMemoryEmailChangeGrantRepository($unitOfWork);
-            $events = new InMemoryEventDispatcher();
+            $userRepository = new InMemoryUserRepository($unitOfWork);
+            $emailChangeGrantRepository = new InMemoryEmailChangeGrantRepository($unitOfWork);
+            $eventDispatcher = new InMemoryEventDispatcher();
             $first = UserFixture::withState('first@example.test', UserState::ACTIVE);
             $second = UserFixture::withState('second@example.test', UserState::ACTIVE);
-            $users->add($first);
-            $users->add($second);
+            $userRepository->add($first);
+            $userRepository->add($second);
 
             $destination = 'first@example.test';
             if ($liveReservation) {
                 $destination = 'reserved@example.test';
-                $this->handler($users, $grants, $unitOfWork, $events)->handle(CommandMessage::create(
-                    new RequestEmailChange($first->getId(), $first->getId(), EmailAddress::fromString($destination))
-                ));
+                $this->handler($userRepository, $emailChangeGrantRepository, $unitOfWork, $eventDispatcher)->handle(
+                    CommandMessage::create(
+                        new RequestEmailChange($first->getId(), $first->getId(), EmailAddress::fromString($destination))
+                    )
+                );
             }
 
             try {
-                $this->handler($users, $grants, $unitOfWork, $events)->handle(CommandMessage::create(
-                    new RequestEmailChange($second->getId(), $second->getId(), EmailAddress::fromString($destination))
-                ));
+                $this->handler($userRepository, $emailChangeGrantRepository, $unitOfWork, $eventDispatcher)->handle(
+                    CommandMessage::create(
+                        new RequestEmailChange(
+                            $second->getId(),
+                            $second->getId(),
+                            EmailAddress::fromString($destination)
+                        )
+                    )
+                );
                 self::fail('A reserved destination was claimed twice.');
             } catch (LogicException) {
-                self::assertNull($users->getById($second->getId())?->getPendingEmailChange());
-                self::assertInstanceOf(CommandFailedEvent::class, $events->events()[array_key_last($events->events())]);
+                self::assertNull($userRepository->getById($second->getId())?->getPendingEmailChange());
+                self::assertInstanceOf(
+                    CommandFailedEvent::class,
+                    $eventDispatcher->events()[array_key_last($eventDispatcher->events())]
+                );
             }
         }
     }
@@ -357,52 +389,54 @@ final class RequestEmailChangeHandlerTest extends TestCase
     public function test_a_grant_generation_race_rolls_back_the_destination_reservation(): void
     {
         $unitOfWork = new InMemoryUnitOfWork();
-        $users = new InMemoryUserRepository($unitOfWork);
+        $userRepository = new InMemoryUserRepository($unitOfWork);
         $user = UserFixture::withState('old@example.test', UserState::ACTIVE);
-        $users->add($user);
-        $events = new InMemoryEventDispatcher();
+        $userRepository->add($user);
+        $eventDispatcher = new InMemoryEventDispatcher();
 
         $this->expectException(LogicException::class);
         try {
             $this->handler(
-                $users,
+                $userRepository,
                 new InMemoryEmailChangeGrantRepository($unitOfWork, addSucceeds: false),
                 $unitOfWork,
-                $events
+                $eventDispatcher
             )->handle(CommandMessage::create(new RequestEmailChange(
                 $user->getId(),
                 $user->getId(),
                 EmailAddress::fromString('new@example.test')
             )));
         } finally {
-            self::assertNull($users->getById($user->getId())?->getPendingEmailChange());
-            self::assertInstanceOf(CommandFailedEvent::class, $events->events()[0]);
+            self::assertNull($userRepository->getById($user->getId())?->getPendingEmailChange());
+            self::assertInstanceOf(CommandFailedEvent::class, $eventDispatcher->events()[0]);
         }
     }
 
     public function test_an_authorized_administrator_requests_the_same_confirmed_journey_with_atomic_audit(): void
     {
         $unitOfWork = new InMemoryUnitOfWork();
-        $users = new InMemoryUserRepository($unitOfWork);
+        $userRepository = new InMemoryUserRepository($unitOfWork);
         $target = UserFixture::withState('old@example.test', UserState::ACTIVE);
-        $users->add($target);
-        $grants = new InMemoryEmailChangeGrantRepository($unitOfWork);
+        $userRepository->add($target);
+        $emailChangeGrantRepository = new InMemoryEmailChangeGrantRepository($unitOfWork);
         $authorization = new EmailChangeService\FixedEmailChangeAdministrationAuthorization(true);
-        $audit = new InMemoryAuditEvidenceRepository($unitOfWork);
-        $events = new InMemoryEventDispatcher(static function () use ($audit, $unitOfWork): void {
-            self::assertCount(1, $audit->all());
-            self::assertTrue($unitOfWork->transactionCompleted);
-        });
+        $auditEvidenceRepository = new InMemoryAuditEvidenceRepository($unitOfWork);
+        $eventDispatcher = new InMemoryEventDispatcher(
+            static function () use ($auditEvidenceRepository, $unitOfWork): void {
+                self::assertCount(1, $auditEvidenceRepository->all());
+                self::assertTrue($unitOfWork->transactionCompleted);
+            }
+        );
         $handler = new RequestEmailChangeHandler(
-            $users,
-            $grants,
+            $userRepository,
+            $emailChangeGrantRepository,
             $authorization,
-            $audit,
+            $auditEvidenceRepository,
             $unitOfWork,
             new FixedEmailChangeCredentialGenerator('change-once'),
             new PrefixEmailChangeDeliveryCipher(),
             new FixedClock('2026-08-22T12:00:00+00:00'),
-            $events
+            $eventDispatcher
         );
         $actorId = UserId::generate();
 
@@ -412,43 +446,43 @@ final class RequestEmailChangeHandlerTest extends TestCase
             EmailAddress::fromString('new@example.test')
         )));
 
-        self::assertSame('old@example.test', $users->getById($target->getId())->getEmail()->canonical());
+        self::assertSame('old@example.test', $userRepository->getById($target->getId())->getEmail()->canonical());
         self::assertSame(
             'new@example.test',
-            $users->getById($target->getId())->getPendingEmailChange()?->canonical()
+            $userRepository->getById($target->getId())->getPendingEmailChange()?->canonical()
         );
-        self::assertTrue($grants->all()[0]->isIssued());
-        self::assertTrue($grants->all()[0]->getDelivery()->hasRecoverableMaterial());
+        self::assertTrue($emailChangeGrantRepository->all()[0]->isIssued());
+        self::assertTrue($emailChangeGrantRepository->all()[0]->getDelivery()->hasRecoverableMaterial());
         self::assertSame(1, $authorization->calls());
         self::assertSame($actorId, $authorization->lastActorId());
         self::assertSame($target->getId(), $authorization->lastUserId());
-        self::assertSame('user.email_change_administratively_requested', $audit->all()[0]->action());
-        self::assertSame($actorId->toString(), $audit->all()[0]->actorId());
-        self::assertSame($target->getId(), $audit->all()[0]->subjectId());
-        self::assertSame([], $audit->all()[0]->context());
-        self::assertCount(1, $events->events());
+        self::assertSame('user.email_change_administratively_requested', $auditEvidenceRepository->all()[0]->action());
+        self::assertSame($actorId->toString(), $auditEvidenceRepository->all()[0]->actorId());
+        self::assertSame($target->getId(), $auditEvidenceRepository->all()[0]->subjectId());
+        self::assertSame([], $auditEvidenceRepository->all()[0]->context());
+        self::assertCount(1, $eventDispatcher->events());
     }
 
     public function test_unauthorized_administrative_initiation_fails_before_mutation(): void
     {
         $unitOfWork = new InMemoryUnitOfWork();
-        $users = new InMemoryUserRepository($unitOfWork);
+        $userRepository = new InMemoryUserRepository($unitOfWork);
         $target = UserFixture::withState('old@example.test', UserState::ACTIVE);
-        $users->add($target);
-        $grants = new InMemoryEmailChangeGrantRepository($unitOfWork);
+        $userRepository->add($target);
+        $emailChangeGrantRepository = new InMemoryEmailChangeGrantRepository($unitOfWork);
         $authorization = new EmailChangeService\FixedEmailChangeAdministrationAuthorization(false);
-        $audit = new InMemoryAuditEvidenceRepository($unitOfWork);
-        $events = new InMemoryEventDispatcher();
+        $auditEvidenceRepository = new InMemoryAuditEvidenceRepository($unitOfWork);
+        $eventDispatcher = new InMemoryEventDispatcher();
         $handler = new RequestEmailChangeHandler(
-            $users,
-            $grants,
+            $userRepository,
+            $emailChangeGrantRepository,
             $authorization,
-            $audit,
+            $auditEvidenceRepository,
             $unitOfWork,
             new FixedEmailChangeCredentialGenerator('change-once'),
             new PrefixEmailChangeDeliveryCipher(),
             new FixedClock('2026-08-22T12:00:00+00:00'),
-            $events
+            $eventDispatcher
         );
         $actorId = UserId::generate();
 
@@ -461,32 +495,32 @@ final class RequestEmailChangeHandlerTest extends TestCase
             )));
         } finally {
             self::assertSame(1, $authorization->calls());
-            self::assertNull($users->getById($target->getId())?->getPendingEmailChange());
-            self::assertSame([], $grants->all());
-            self::assertSame([], $audit->all());
-            self::assertInstanceOf(CommandFailedEvent::class, $events->events()[0]);
+            self::assertNull($userRepository->getById($target->getId())?->getPendingEmailChange());
+            self::assertSame([], $emailChangeGrantRepository->all());
+            self::assertSame([], $auditEvidenceRepository->all());
+            self::assertInstanceOf(CommandFailedEvent::class, $eventDispatcher->events()[0]);
         }
     }
 
     public function test_administrative_initiation_rolls_back_when_required_audit_fails(): void
     {
         $unitOfWork = new InMemoryUnitOfWork();
-        $users = new InMemoryUserRepository($unitOfWork);
+        $userRepository = new InMemoryUserRepository($unitOfWork);
         $target = UserFixture::withState('old@example.test', UserState::ACTIVE);
-        $users->add($target);
-        $grants = new InMemoryEmailChangeGrantRepository($unitOfWork);
-        $audit = new InMemoryAuditEvidenceRepository($unitOfWork, failAfterSave: true);
-        $events = new InMemoryEventDispatcher();
+        $userRepository->add($target);
+        $emailChangeGrantRepository = new InMemoryEmailChangeGrantRepository($unitOfWork);
+        $auditEvidenceRepository = new InMemoryAuditEvidenceRepository($unitOfWork, failAfterSave: true);
+        $eventDispatcher = new InMemoryEventDispatcher();
         $handler = new RequestEmailChangeHandler(
-            $users,
-            $grants,
+            $userRepository,
+            $emailChangeGrantRepository,
             new EmailChangeService\FixedEmailChangeAdministrationAuthorization(true),
-            $audit,
+            $auditEvidenceRepository,
             $unitOfWork,
             new FixedEmailChangeCredentialGenerator('change-once'),
             new PrefixEmailChangeDeliveryCipher(),
             new FixedClock('2026-08-22T12:00:00+00:00'),
-            $events
+            $eventDispatcher
         );
 
         $this->expectException(RuntimeException::class);
@@ -497,29 +531,29 @@ final class RequestEmailChangeHandlerTest extends TestCase
                 EmailAddress::fromString('new@example.test')
             )));
         } finally {
-            self::assertNull($users->getById($target->getId())?->getPendingEmailChange());
-            self::assertSame([], $grants->all());
-            self::assertSame([], $audit->all());
-            self::assertInstanceOf(CommandFailedEvent::class, $events->events()[0]);
+            self::assertNull($userRepository->getById($target->getId())?->getPendingEmailChange());
+            self::assertSame([], $emailChangeGrantRepository->all());
+            self::assertSame([], $auditEvidenceRepository->all());
+            self::assertInstanceOf(CommandFailedEvent::class, $eventDispatcher->events()[0]);
         }
     }
 
     private function handler(
-        InMemoryUserRepository $users,
-        InMemoryEmailChangeGrantRepository $grants,
+        InMemoryUserRepository $userRepository,
+        InMemoryEmailChangeGrantRepository $emailChangeGrantRepository,
         InMemoryUnitOfWork $unitOfWork,
-        InMemoryEventDispatcher $events
+        InMemoryEventDispatcher $eventDispatcher
     ): RequestEmailChangeHandler {
         return new RequestEmailChangeHandler(
-            $users,
-            $grants,
+            $userRepository,
+            $emailChangeGrantRepository,
             new EmailChangeService\FixedEmailChangeAdministrationAuthorization(true),
             new InMemoryAuditEvidenceRepository($unitOfWork),
             $unitOfWork,
             new FixedEmailChangeCredentialGenerator('change-once'),
             new PrefixEmailChangeDeliveryCipher(),
             new FixedClock('2026-08-22T12:00:00+00:00'),
-            $events
+            $eventDispatcher
         );
     }
 }

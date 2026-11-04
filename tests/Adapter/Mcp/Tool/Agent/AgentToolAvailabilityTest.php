@@ -9,8 +9,8 @@ use DateTimeImmutable;
 use Fight\AccessControl\Adapter\Mcp\Tool\Agent\AgentToolAvailability;
 use Fight\AccessControl\Adapter\Mcp\Tool\Agent\AgentToolPermissionCatalog;
 use Fight\AccessControl\Adapter\Mcp\Tool\Agent\Attribute\RequiresAgentPermission;
-use Fight\AccessControl\Application\AccessControl\Agent\Security\CurrentAgentPrincipalProvider;
-use Fight\AccessControl\Application\AccessControl\Agent\Security\SignedAgentRequest;
+use Fight\AccessControl\Application\AccessControl\Agent\Authentication\CurrentAgentPrincipalProvider;
+use Fight\AccessControl\Application\AccessControl\Agent\Authentication\SignedAgentRequest;
 use Fight\AccessControl\Domain\AccessControl\Agent\Agent;
 use Fight\AccessControl\Domain\AccessControl\Agent\AgentCredentialId;
 use Fight\AccessControl\Domain\AccessControl\Agent\AgentId;
@@ -49,9 +49,9 @@ use Fight\Common\Application\Validation\Validator;
 use Fight\Common\Domain\Value\Basic\StrictJson;
 use Fight\Test\AccessControl\Adapter\Mcp\Tool\Agent\Fixture\InteractiveProtectedTool;
 use Fight\Test\AccessControl\Adapter\Mcp\Tool\Agent\Fixture\ProtectedTool;
-use Fight\Test\AccessControl\Application\AccessControl\Agent\Service\FixedHmacSharedSecretDecipher;
-use Fight\Test\AccessControl\Application\AccessControl\Agent\Service\FixedHmacSignedAgentRequestVerifier;
-use Fight\Test\AccessControl\Application\AccessControl\Agent\Service\InMemoryAgentRequestNonceConsumer;
+use Fight\Test\AccessControl\Application\AccessControl\Agent\Authentication\FixedHmacSharedSecretDecipher;
+use Fight\Test\AccessControl\Application\AccessControl\Agent\Authentication\FixedHmacSignedAgentRequestVerifier;
+use Fight\Test\AccessControl\Application\AccessControl\Agent\Authentication\InMemoryAgentRequestNonceConsumer;
 use Fight\Test\AccessControl\Application\AccessControl\Permission\Repository\InMemoryPermissionRepository;
 use Fight\Test\AccessControl\Application\AccessControl\Timing\Service\FixedClock;
 use Fight\Test\AccessControl\Application\AccessControl\User\InMemoryUnitOfWork;
@@ -67,9 +67,9 @@ final class AgentToolAvailabilityTest extends TestCase
 {
     private ?Agent $agent;
 
-    private AgentRepository $agents;
+    private AgentRepository $agentRepository;
 
-    private InMemoryPermissionRepository $permissions;
+    private InMemoryPermissionRepository $permissionRepository;
 
     private InMemoryUnitOfWork $unitOfWork;
 
@@ -242,11 +242,13 @@ final class AgentToolAvailabilityTest extends TestCase
     public function test_permission_storage_failure_is_neutral_and_does_not_repeat_resolution_in_one_request(): void
     {
         $reads = 0;
-        $this->permissions = new InMemoryPermissionRepository(getByIdsResult: static function () use (&$reads): array {
-            ++$reads;
+        $this->permissionRepository = new InMemoryPermissionRepository(
+            getByIdsResult: static function () use (&$reads): array {
+                ++$reads;
 
-            throw new RuntimeException('Private storage diagnostic');
-        });
+                throw new RuntimeException('Private storage diagnostic');
+            }
+        );
         $registry = new McpToolRegistry([new ProtectedTool($this->dispatch(0))]);
         $availability = $this->availability(new AgentToolPermissionCatalog($registry));
         $definition = $registry->definition('agents.inspect');
@@ -344,7 +346,7 @@ final class AgentToolAvailabilityTest extends TestCase
     protected function setUp(): void
     {
         $this->unitOfWork = new InMemoryUnitOfWork();
-        $this->permissions = new InMemoryPermissionRepository();
+        $this->permissionRepository = new InMemoryPermissionRepository();
         $this->agent = Agent::provision(
             AgentId::fromString('018f0000-0000-7000-8000-000000000001'),
             AgentName::fromString('MCP conformance Agent'),
@@ -354,15 +356,15 @@ final class AgentToolAvailabilityTest extends TestCase
         );
         foreach (['VIEW_AGENTS', 'UPDATE_AGENTS'] as $index => $name) {
             $id = $this->permissionId($index);
-            $this->permissions->add(Permission::define($id, PermissionName::fromString($name), $this->now()));
+            $this->permissionRepository->add(Permission::define($id, PermissionName::fromString($name), $this->now()));
             $this->agent = $this->agent->grantPermission($id, $this->now());
         }
 
         // Mutable authoritative read fixture: models committed snapshots, not actual database writer races.
-        $this->agents = $this->createStub(AgentRepository::class);
-        $this->agents->method('getByCredentialId')->willReturnCallback($this->agentByCredential(...));
-        $this->agents->method('getById')->willReturnCallback($this->currentAgent(...));
-        $this->nonces = new InMemoryAgentRequestNonceConsumer($this->agents, $this->unitOfWork);
+        $this->agentRepository = $this->createStub(AgentRepository::class);
+        $this->agentRepository->method('getByCredentialId')->willReturnCallback($this->agentByCredential(...));
+        $this->agentRepository->method('getById')->willReturnCallback($this->currentAgent(...));
+        $this->nonces = new InMemoryAgentRequestNonceConsumer($this->agentRepository, $this->unitOfWork);
     }
 
     private function exerciseInteraction(?string $change): void
@@ -457,8 +459,8 @@ final class AgentToolAvailabilityTest extends TestCase
         $verifier = new FixedHmacSignedAgentRequestVerifier($request, $secret);
         $this->verifiers[] = $verifier;
         $provider = new CurrentAgentPrincipalProvider(
-            $this->agents,
-            $this->permissions,
+            $this->agentRepository,
+            $this->permissionRepository,
             new FixedHmacSharedSecretDecipher('encrypted:'),
             $verifier,
             new FixedClock($this->now()),
@@ -493,16 +495,16 @@ final class AgentToolAvailabilityTest extends TestCase
 
     private function dispatch(int $calls): Closure
     {
-        $commands = $this->createMock(CommandBus::class);
-        $queries = $this->createMock(QueryBus::class);
-        $commands->expects(self::exactly($calls))->method('execute')->with(self::isInstanceOf(UpdateAgent::class));
-        $commands->expects(self::never())->method('dispatch');
-        $queries->expects(self::exactly($calls))->method('fetch')->with(self::isInstanceOf(GetAgentById::class));
+        $commandBus = $this->createMock(CommandBus::class);
+        $queryBus = $this->createMock(QueryBus::class);
+        $commandBus->expects(self::exactly($calls))->method('execute')->with(self::isInstanceOf(UpdateAgent::class));
+        $commandBus->expects(self::never())->method('dispatch');
+        $queryBus->expects(self::exactly($calls))->method('fetch')->with(self::isInstanceOf(GetAgentById::class));
         $id = AgentId::fromString('018f0000-0000-7000-8000-000000000001');
 
-        return static function () use ($commands, $queries, $id): void {
-            $queries->fetch(new GetAgentById($id));
-            $commands->execute(new UpdateAgent(new AgentUpdateInitiator($id), $id, 'Fixture action'));
+        return static function () use ($commandBus, $queryBus, $id): void {
+            $queryBus->fetch(new GetAgentById($id));
+            $commandBus->execute(new UpdateAgent(new AgentUpdateInitiator($id), $id, 'Fixture action'));
         };
     }
 

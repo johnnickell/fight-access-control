@@ -47,16 +47,24 @@ final class RestoreUserHandlerTest extends TestCase
     public function test_that_restore_to_active_reactivates_without_issuing_activation_authority(): void
     {
         $unitOfWork = new InMemoryUnitOfWork();
-        $users = new InMemoryUserRepository($unitOfWork);
+        $userRepository = new InMemoryUserRepository($unitOfWork);
         $user = UserFixture::withState('restore@example.test', UserState::DELETED);
-        $users->add($user);
-        $grants = new InMemoryActivationGrantRepository($unitOfWork);
-        $audit = new InMemoryAuditEvidenceRepository($unitOfWork);
-        $events = new InMemoryEventDispatcher(static function () use ($audit, $unitOfWork): void {
-            self::assertCount(1, $audit->all());
-            self::assertTrue($unitOfWork->transactionCompleted);
-        });
-        $handler = $this->handler($users, $grants, $audit, $unitOfWork, $events);
+        $userRepository->add($user);
+        $activationGrantRepository = new InMemoryActivationGrantRepository($unitOfWork);
+        $auditEvidenceRepository = new InMemoryAuditEvidenceRepository($unitOfWork);
+        $eventDispatcher = new InMemoryEventDispatcher(
+            static function () use ($auditEvidenceRepository, $unitOfWork): void {
+                self::assertCount(1, $auditEvidenceRepository->all());
+                self::assertTrue($unitOfWork->transactionCompleted);
+            }
+        );
+        $handler = $this->handler(
+            $userRepository,
+            $activationGrantRepository,
+            $auditEvidenceRepository,
+            $unitOfWork,
+            $eventDispatcher
+        );
         $actorId = UserId::generate();
 
         $handler->handle(CommandMessage::create(new RestoreUser(
@@ -65,30 +73,38 @@ final class RestoreUserHandlerTest extends TestCase
             UserState::ACTIVE
         )));
 
-        self::assertSame(UserState::ACTIVE, $users->getById($user->getId())?->getState());
-        self::assertSame([], $grants->all());
-        self::assertSame('user.restored', $audit->all()[0]->action());
-        self::assertSame($actorId->toString(), $audit->all()[0]->actorId());
-        self::assertCount(1, $events->events());
-        self::assertInstanceOf(UserRestored::class, $events->events()[0]);
-        self::assertSame(UserState::ACTIVE, $events->events()[0]->getRestorationState());
-        self::assertNull($events->events()[0]->getActivationDeliveryId());
+        self::assertSame(UserState::ACTIVE, $userRepository->getById($user->getId())?->getState());
+        self::assertSame([], $activationGrantRepository->all());
+        self::assertSame('user.restored', $auditEvidenceRepository->all()[0]->action());
+        self::assertSame($actorId->toString(), $auditEvidenceRepository->all()[0]->actorId());
+        self::assertCount(1, $eventDispatcher->events());
+        self::assertInstanceOf(UserRestored::class, $eventDispatcher->events()[0]);
+        self::assertSame(UserState::ACTIVE, $eventDispatcher->events()[0]->getRestorationState());
+        self::assertNull($eventDispatcher->events()[0]->getActivationDeliveryId());
     }
 
     public function test_that_restore_to_pending_activation_issues_fresh_activation_authority(): void
     {
         $unitOfWork = new InMemoryUnitOfWork();
-        $users = new InMemoryUserRepository($unitOfWork);
+        $userRepository = new InMemoryUserRepository($unitOfWork);
         $user = UserFixture::withState('restore@example.test', UserState::DELETED);
-        $users->add($user);
-        $grants = new InMemoryActivationGrantRepository($unitOfWork);
-        $this->seedTerminalActivationGrant($grants, $user->getId(), $user->getEmail());
-        $audit = new InMemoryAuditEvidenceRepository($unitOfWork);
-        $events = new InMemoryEventDispatcher(static function () use ($audit, $unitOfWork): void {
-            self::assertCount(1, $audit->all());
-            self::assertTrue($unitOfWork->transactionCompleted);
-        });
-        $handler = $this->handler($users, $grants, $audit, $unitOfWork, $events);
+        $userRepository->add($user);
+        $activationGrantRepository = new InMemoryActivationGrantRepository($unitOfWork);
+        $this->seedTerminalActivationGrant($activationGrantRepository, $user->getId(), $user->getEmail());
+        $auditEvidenceRepository = new InMemoryAuditEvidenceRepository($unitOfWork);
+        $eventDispatcher = new InMemoryEventDispatcher(
+            static function () use ($auditEvidenceRepository, $unitOfWork): void {
+                self::assertCount(1, $auditEvidenceRepository->all());
+                self::assertTrue($unitOfWork->transactionCompleted);
+            }
+        );
+        $handler = $this->handler(
+            $userRepository,
+            $activationGrantRepository,
+            $auditEvidenceRepository,
+            $unitOfWork,
+            $eventDispatcher
+        );
         $actorId = UserId::generate();
 
         $handler->handle(CommandMessage::create(new RestoreUser(
@@ -97,26 +113,28 @@ final class RestoreUserHandlerTest extends TestCase
             UserState::PENDING_ACTIVATION
         )));
 
-        $restored = $users->getById($user->getId());
+        $restored = $userRepository->getById($user->getId());
         self::assertInstanceOf(User::class, $restored);
         self::assertSame(UserState::PENDING_ACTIVATION, $restored->getState());
         self::assertNull($restored->getPasswordHash());
-        self::assertCount(2, $grants->all());
-        $successor = $grants->all()[1];
+        self::assertCount(2, $activationGrantRepository->all());
+        $successor = $activationGrantRepository->all()[1];
         self::assertTrue($successor->isIssued());
-        self::assertSame(ActivationOrigin::REGISTRATION, $grants->all()[0]->getOrigin());
+        self::assertSame(ActivationOrigin::REGISTRATION, $activationGrantRepository->all()[0]->getOrigin());
         self::assertSame(ActivationOrigin::PRIVATE_INVITATION, $successor->getOrigin());
-        self::assertFalse($successor->getDelivery()->getId()->equals($grants->all()[0]->getDelivery()->getId()));
+        self::assertFalse(
+            $successor->getDelivery()->getId()->equals($activationGrantRepository->all()[0]->getDelivery()->getId())
+        );
         self::assertSame('ciphertext:restore-credential', $successor->getDelivery()->getEncryptedMaterial()?->reveal());
-        self::assertSame('user.restored', $audit->all()[0]->action());
-        self::assertCount(1, $events->events());
-        self::assertInstanceOf(UserRestored::class, $events->events()[0]);
-        self::assertSame(UserState::PENDING_ACTIVATION, $events->events()[0]->getRestorationState());
-        self::assertSame($successor->getDelivery()->getId(), $events->events()[0]->getActivationDeliveryId());
+        self::assertSame('user.restored', $auditEvidenceRepository->all()[0]->action());
+        self::assertCount(1, $eventDispatcher->events());
+        self::assertInstanceOf(UserRestored::class, $eventDispatcher->events()[0]);
+        self::assertSame(UserState::PENDING_ACTIVATION, $eventDispatcher->events()[0]->getRestorationState());
+        self::assertSame($successor->getDelivery()->getId(), $eventDispatcher->events()[0]->getActivationDeliveryId());
         $provider = new RecordingCredentialDeliveryProvider();
         new DeliverUserInvitationHandler(
-            $grants->restart(),
-            $audit,
+            $activationGrantRepository->restart(),
+            $auditEvidenceRepository,
             $unitOfWork,
             new PrefixInvitationDeliveryCipher(),
             $provider,
@@ -192,22 +210,28 @@ final class RestoreUserHandlerTest extends TestCase
     {
         foreach ([UserState::DISABLED, UserState::DELETED] as $target) {
             $unitOfWork = new InMemoryUnitOfWork();
-            $users = new InMemoryUserRepository($unitOfWork);
+            $userRepository = new InMemoryUserRepository($unitOfWork);
             $user = UserFixture::withState('restore@example.test', UserState::DELETED);
-            $users->add($user);
-            $grants = new InMemoryActivationGrantRepository($unitOfWork);
-            $audit = new InMemoryAuditEvidenceRepository($unitOfWork);
-            $events = new InMemoryEventDispatcher();
+            $userRepository->add($user);
+            $activationGrantRepository = new InMemoryActivationGrantRepository($unitOfWork);
+            $auditEvidenceRepository = new InMemoryAuditEvidenceRepository($unitOfWork);
+            $eventDispatcher = new InMemoryEventDispatcher();
 
             try {
-                $this->handler($users, $grants, $audit, $unitOfWork, $events)->handle(
+                $this->handler(
+                    $userRepository,
+                    $activationGrantRepository,
+                    $auditEvidenceRepository,
+                    $unitOfWork,
+                    $eventDispatcher
+                )->handle(
                     CommandMessage::create(new RestoreUser(UserId::generate(), $user->getId(), $target))
                 );
                 self::fail('An unsupported restoration target was accepted.');
             } catch (UserLifecycleException) {
-                self::assertSame(UserState::DELETED, $users->getById($user->getId())?->getState());
-                self::assertSame([], $audit->all());
-                self::assertInstanceOf(CommandFailedEvent::class, $events->events()[0]);
+                self::assertSame(UserState::DELETED, $userRepository->getById($user->getId())?->getState());
+                self::assertSame([], $auditEvidenceRepository->all());
+                self::assertInstanceOf(CommandFailedEvent::class, $eventDispatcher->events()[0]);
             }
         }
     }
@@ -215,35 +239,47 @@ final class RestoreUserHandlerTest extends TestCase
     public function test_that_a_non_deleted_identity_cannot_be_restored(): void
     {
         $unitOfWork = new InMemoryUnitOfWork();
-        $users = new InMemoryUserRepository($unitOfWork);
+        $userRepository = new InMemoryUserRepository($unitOfWork);
         $user = UserFixture::withState('restore@example.test', UserState::ACTIVE);
-        $users->add($user);
-        $grants = new InMemoryActivationGrantRepository($unitOfWork);
-        $audit = new InMemoryAuditEvidenceRepository($unitOfWork);
-        $events = new InMemoryEventDispatcher();
+        $userRepository->add($user);
+        $activationGrantRepository = new InMemoryActivationGrantRepository($unitOfWork);
+        $auditEvidenceRepository = new InMemoryAuditEvidenceRepository($unitOfWork);
+        $eventDispatcher = new InMemoryEventDispatcher();
 
         try {
-            $this->handler($users, $grants, $audit, $unitOfWork, $events)->handle(
+            $this->handler(
+                $userRepository,
+                $activationGrantRepository,
+                $auditEvidenceRepository,
+                $unitOfWork,
+                $eventDispatcher
+            )->handle(
                 CommandMessage::create(new RestoreUser(UserId::generate(), $user->getId(), UserState::ACTIVE))
             );
             self::fail('A non-deleted identity was restored.');
         } catch (UserLifecycleException) {
-            self::assertSame(UserState::ACTIVE, $users->getById($user->getId())?->getState());
-            self::assertSame([], $audit->all());
-            self::assertInstanceOf(CommandFailedEvent::class, $events->events()[0]);
+            self::assertSame(UserState::ACTIVE, $userRepository->getById($user->getId())?->getState());
+            self::assertSame([], $auditEvidenceRepository->all());
+            self::assertInstanceOf(CommandFailedEvent::class, $eventDispatcher->events()[0]);
         }
     }
 
     public function test_that_a_missing_identity_is_rejected_without_mutation(): void
     {
         $unitOfWork = new InMemoryUnitOfWork();
-        $users = new InMemoryUserRepository($unitOfWork);
-        $grants = new InMemoryActivationGrantRepository($unitOfWork);
-        $audit = new InMemoryAuditEvidenceRepository($unitOfWork);
-        $events = new InMemoryEventDispatcher();
+        $userRepository = new InMemoryUserRepository($unitOfWork);
+        $activationGrantRepository = new InMemoryActivationGrantRepository($unitOfWork);
+        $auditEvidenceRepository = new InMemoryAuditEvidenceRepository($unitOfWork);
+        $eventDispatcher = new InMemoryEventDispatcher();
 
         try {
-            $this->handler($users, $grants, $audit, $unitOfWork, $events)->handle(
+            $this->handler(
+                $userRepository,
+                $activationGrantRepository,
+                $auditEvidenceRepository,
+                $unitOfWork,
+                $eventDispatcher
+            )->handle(
                 CommandMessage::create(new RestoreUser(
                     UserId::generate(),
                     UserId::generate(),
@@ -252,47 +288,59 @@ final class RestoreUserHandlerTest extends TestCase
             );
             self::fail('A missing identity was restored.');
         } catch (UserLifecycleException) {
-            self::assertSame([], $grants->all());
-            self::assertSame([], $audit->all());
-            self::assertInstanceOf(CommandFailedEvent::class, $events->events()[0]);
+            self::assertSame([], $activationGrantRepository->all());
+            self::assertSame([], $auditEvidenceRepository->all());
+            self::assertInstanceOf(CommandFailedEvent::class, $eventDispatcher->events()[0]);
         }
     }
 
     public function test_that_a_stale_lifecycle_state_cas_rolls_back(): void
     {
         $unitOfWork = new InMemoryUnitOfWork();
-        $users = new InMemoryUserRepository($unitOfWork, replaceLifecycleStateSucceeds: false);
+        $userRepository = new InMemoryUserRepository($unitOfWork, replaceLifecycleStateSucceeds: false);
         $user = UserFixture::withState('restore@example.test', UserState::DELETED);
-        $users->add($user);
-        $grants = new InMemoryActivationGrantRepository($unitOfWork);
-        $audit = new InMemoryAuditEvidenceRepository($unitOfWork);
-        $events = new InMemoryEventDispatcher();
+        $userRepository->add($user);
+        $activationGrantRepository = new InMemoryActivationGrantRepository($unitOfWork);
+        $auditEvidenceRepository = new InMemoryAuditEvidenceRepository($unitOfWork);
+        $eventDispatcher = new InMemoryEventDispatcher();
 
         try {
-            $this->handler($users, $grants, $audit, $unitOfWork, $events)->handle(
+            $this->handler(
+                $userRepository,
+                $activationGrantRepository,
+                $auditEvidenceRepository,
+                $unitOfWork,
+                $eventDispatcher
+            )->handle(
                 CommandMessage::create(new RestoreUser(UserId::generate(), $user->getId(), UserState::ACTIVE))
             );
             self::fail('A stale lifecycle state was replaced.');
         } catch (LogicException) {
-            self::assertSame(UserState::DELETED, $users->getById($user->getId())?->getState());
-            self::assertSame([], $audit->all());
-            self::assertInstanceOf(CommandFailedEvent::class, $events->events()[0]);
+            self::assertSame(UserState::DELETED, $userRepository->getById($user->getId())?->getState());
+            self::assertSame([], $auditEvidenceRepository->all());
+            self::assertInstanceOf(CommandFailedEvent::class, $eventDispatcher->events()[0]);
         }
     }
 
     public function test_that_a_failed_activation_successor_rolls_back_the_restoration(): void
     {
         $unitOfWork = new InMemoryUnitOfWork();
-        $users = new InMemoryUserRepository($unitOfWork);
+        $userRepository = new InMemoryUserRepository($unitOfWork);
         $user = UserFixture::withState('restore@example.test', UserState::DELETED);
-        $users->add($user);
-        $grants = new InMemoryActivationGrantRepository($unitOfWork, addSuccessorSucceeds: false);
-        $this->seedTerminalActivationGrant($grants, $user->getId(), $user->getEmail());
-        $audit = new InMemoryAuditEvidenceRepository($unitOfWork);
-        $events = new InMemoryEventDispatcher();
+        $userRepository->add($user);
+        $activationGrantRepository = new InMemoryActivationGrantRepository($unitOfWork, addSuccessorSucceeds: false);
+        $this->seedTerminalActivationGrant($activationGrantRepository, $user->getId(), $user->getEmail());
+        $auditEvidenceRepository = new InMemoryAuditEvidenceRepository($unitOfWork);
+        $eventDispatcher = new InMemoryEventDispatcher();
 
         try {
-            $this->handler($users, $grants, $audit, $unitOfWork, $events)->handle(
+            $this->handler(
+                $userRepository,
+                $activationGrantRepository,
+                $auditEvidenceRepository,
+                $unitOfWork,
+                $eventDispatcher
+            )->handle(
                 CommandMessage::create(new RestoreUser(
                     UserId::generate(),
                     $user->getId(),
@@ -301,34 +349,34 @@ final class RestoreUserHandlerTest extends TestCase
             );
             self::fail('A failed activation successor was accepted.');
         } catch (LogicException) {
-            self::assertSame(UserState::DELETED, $users->getById($user->getId())?->getState());
-            self::assertCount(1, $grants->all());
-            self::assertSame([], $audit->all());
-            self::assertInstanceOf(CommandFailedEvent::class, $events->events()[0]);
+            self::assertSame(UserState::DELETED, $userRepository->getById($user->getId())?->getState());
+            self::assertCount(1, $activationGrantRepository->all());
+            self::assertSame([], $auditEvidenceRepository->all());
+            self::assertInstanceOf(CommandFailedEvent::class, $eventDispatcher->events()[0]);
         }
     }
 
     private function handler(
-        InMemoryUserRepository $users,
-        InMemoryActivationGrantRepository $grants,
-        InMemoryAuditEvidenceRepository $audit,
+        InMemoryUserRepository $userRepository,
+        InMemoryActivationGrantRepository $activationGrantRepository,
+        InMemoryAuditEvidenceRepository $auditEvidenceRepository,
         InMemoryUnitOfWork $unitOfWork,
-        InMemoryEventDispatcher $events
+        InMemoryEventDispatcher $eventDispatcher
     ): RestoreUserHandler {
         return new RestoreUserHandler(
-            $users,
-            $grants,
+            $userRepository,
+            $activationGrantRepository,
             new FixedCredentialGenerator('restore-credential'),
             new PrefixInvitationDeliveryCipher(),
             new FixedClock('2026-08-21T12:00:00+00:00'),
-            $audit,
+            $auditEvidenceRepository,
             $unitOfWork,
-            $events
+            $eventDispatcher
         );
     }
 
     private function seedTerminalActivationGrant(
-        InMemoryActivationGrantRepository $grants,
+        InMemoryActivationGrantRepository $activationGrantRepository,
         UserId $userId,
         EmailAddress $email
     ): void {
@@ -342,8 +390,8 @@ final class RestoreUserHandlerTest extends TestCase
             $email,
             'ciphertext:original-credential'
         );
-        self::assertTrue($grants->add($grant));
-        self::assertTrue($grants->replace(
+        self::assertTrue($activationGrantRepository->add($grant));
+        self::assertTrue($activationGrantRepository->replace(
             $grant,
             $grant->consume(new DateTimeImmutable('2026-08-19T11:00:00+00:00'))
         ));

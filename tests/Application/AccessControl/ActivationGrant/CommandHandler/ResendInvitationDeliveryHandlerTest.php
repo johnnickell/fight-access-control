@@ -54,7 +54,7 @@ final class ResendInvitationDeliveryHandlerTest extends TestCase
         $activationGrantRepository->add($predecessor);
 
         $unitOfWork = new InMemoryUnitOfWork();
-        $events = new InMemoryEventDispatcher(static function () use ($unitOfWork): void {
+        $eventDispatcher = new InMemoryEventDispatcher(static function () use ($unitOfWork): void {
             self::assertTrue($unitOfWork->transactionCompleted);
         });
         $auditEvidenceRepository = new InMemoryAuditEvidenceRepository($unitOfWork);
@@ -62,7 +62,7 @@ final class ResendInvitationDeliveryHandlerTest extends TestCase
             $activationGrantRepository,
             $auditEvidenceRepository,
             $unitOfWork,
-            $events
+            $eventDispatcher
         );
 
         $handler->handle(CommandMessage::create(new ResendInvitationDelivery('Admin-42', $userId)));
@@ -83,8 +83,8 @@ final class ResendInvitationDeliveryHandlerTest extends TestCase
         );
         self::assertCount(1, $auditEvidenceRepository->all());
         self::assertSame('user.invitation_delivery.resent', $auditEvidenceRepository->all()[0]->action());
-        self::assertCount(1, $events->events());
-        self::assertInstanceOf(InvitationDeliveryResent::class, $events->events()[0]);
+        self::assertCount(1, $eventDispatcher->events());
+        self::assertInstanceOf(InvitationDeliveryResent::class, $eventDispatcher->events()[0]);
     }
 
     public function test_that_it_resends_a_confirmed_but_unredeemed_invitation(): void
@@ -109,12 +109,12 @@ final class ResendInvitationDeliveryHandlerTest extends TestCase
         self::assertTrue($activationGrantRepository->replace($claimed, $confirmed));
         self::assertFalse($confirmed->getDelivery()->isRetryable());
 
-        $events = new InMemoryEventDispatcher();
+        $eventDispatcher = new InMemoryEventDispatcher();
         $handler = $this->handler(
             $activationGrantRepository,
             new InMemoryAuditEvidenceRepository(),
             new InMemoryUnitOfWork(),
-            $events
+            $eventDispatcher
         );
 
         $handler->handle(CommandMessage::create(new ResendInvitationDelivery('Admin-42', $userId)));
@@ -127,7 +127,7 @@ final class ResendInvitationDeliveryHandlerTest extends TestCase
             'ciphertext:activate-new',
             $grants[1]->getDelivery()->getEncryptedMaterial()?->reveal()
         );
-        self::assertInstanceOf(InvitationDeliveryResent::class, $events->events()[0]);
+        self::assertInstanceOf(InvitationDeliveryResent::class, $eventDispatcher->events()[0]);
     }
 
     public function test_that_a_delivery_storage_failure_restores_the_predecessor_before_rethrowing(): void
@@ -149,12 +149,12 @@ final class ResendInvitationDeliveryHandlerTest extends TestCase
         );
         $activationGrantRepository->add($predecessor);
 
-        $events = new InMemoryEventDispatcher();
+        $eventDispatcher = new InMemoryEventDispatcher();
         $handler = $this->handler(
             $activationGrantRepository,
             new InMemoryAuditEvidenceRepository($unitOfWork),
             $unitOfWork,
-            $events
+            $eventDispatcher
         );
 
         $this->expectException(LogicException::class);
@@ -165,8 +165,8 @@ final class ResendInvitationDeliveryHandlerTest extends TestCase
             self::assertSame(1, $unitOfWork->transactions);
             self::assertCount(1, $activationGrantRepository->all());
             self::assertTrue($activationGrantRepository->all()[0]->isIssued());
-            self::assertCount(1, $events->events());
-            self::assertInstanceOf(CommandFailedEvent::class, $events->events()[0]);
+            self::assertCount(1, $eventDispatcher->events());
+            self::assertInstanceOf(CommandFailedEvent::class, $eventDispatcher->events()[0]);
         }
     }
 
@@ -184,12 +184,12 @@ final class ResendInvitationDeliveryHandlerTest extends TestCase
             EmailAddress::fromString('alice@example.test'),
             'ciphertext:activate-old'
         )));
-        $events = new InMemoryEventDispatcher();
+        $eventDispatcher = new InMemoryEventDispatcher();
         $handler = $this->handler(
             $activationGrantRepository,
             new InMemoryAuditEvidenceRepository($unitOfWork, failAfterSave: true),
             $unitOfWork,
-            $events
+            $eventDispatcher
         );
 
         $this->expectException(RuntimeException::class);
@@ -199,8 +199,8 @@ final class ResendInvitationDeliveryHandlerTest extends TestCase
         } finally {
             self::assertCount(1, $activationGrantRepository->all());
             self::assertTrue($activationGrantRepository->all()[0]->isIssued());
-            self::assertCount(1, $events->events());
-            self::assertInstanceOf(CommandFailedEvent::class, $events->events()[0]);
+            self::assertCount(1, $eventDispatcher->events());
+            self::assertInstanceOf(CommandFailedEvent::class, $eventDispatcher->events()[0]);
         }
     }
 
@@ -222,12 +222,12 @@ final class ResendInvitationDeliveryHandlerTest extends TestCase
             $issued,
             $issued->revoke(new DateTimeImmutable('2026-08-19T11:00:00+00:00'))
         ));
-        $events = new InMemoryEventDispatcher();
+        $eventDispatcher = new InMemoryEventDispatcher();
         $handler = $this->handler(
             $activationGrantRepository,
             new InMemoryAuditEvidenceRepository(),
             new InMemoryUnitOfWork(),
-            $events
+            $eventDispatcher
         );
 
         $this->expectException(ActivationDeliveryNotResendableException::class);
@@ -235,8 +235,8 @@ final class ResendInvitationDeliveryHandlerTest extends TestCase
             $handler->handle(CommandMessage::create(new ResendInvitationDelivery('Admin-42', $userId)));
         } finally {
             self::assertCount(1, $activationGrantRepository->all());
-            self::assertCount(1, $events->events());
-            self::assertInstanceOf(CommandFailedEvent::class, $events->events()[0]);
+            self::assertCount(1, $eventDispatcher->events());
+            self::assertInstanceOf(CommandFailedEvent::class, $eventDispatcher->events()[0]);
         }
     }
 
@@ -268,7 +268,7 @@ final class ResendInvitationDeliveryHandlerTest extends TestCase
         InMemoryActivationGrantRepository $activationGrantRepository,
         InMemoryAuditEvidenceRepository $auditEvidenceRepository,
         InMemoryUnitOfWork $unitOfWork,
-        InMemoryEventDispatcher $events
+        InMemoryEventDispatcher $eventDispatcher
     ): ResendInvitationDeliveryHandler {
         return new ResendInvitationDeliveryHandler(
             $activationGrantRepository,
@@ -277,7 +277,7 @@ final class ResendInvitationDeliveryHandlerTest extends TestCase
             new FixedCredentialGenerator('activate-new'),
             new PrefixInvitationDeliveryCipher(),
             new FixedClock('2026-08-19T12:00:00+00:00'),
-            $events
+            $eventDispatcher
         );
     }
 }

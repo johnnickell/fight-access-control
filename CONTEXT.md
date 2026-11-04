@@ -299,6 +299,36 @@ Common generic/canonical qualification remains with its owners. At the earlier p
 first; it has since been independently accepted and the current Board owns execution selection.
 No source/dependency/sibling/consumer mutation, product build, new checkout, commit/publication or release follows.
 
+## Current combined MCP and capability organization
+
+TASK-00108's outward MCP presentation/bindings/availability and TASK-00109's inward capability homes and descriptive
+collaborators are combined here. Current composition uses `Adapter/Mcp/{Tool,Resource,Skill}/Agent`, Agent
+`Authentication`, `Credential`, `Delivery`, `Maintenance`, `Continuation` and `PermissionAssignment`, Feature
+`Discovery` and authorization `Admission`. No Common dependency, wire/security/transaction/recovery contract or
+consumer qualification is changed by their integration. Historical independent checkpoints below retain their
+original subjects; the advancing-base integration evidence is in `.runs/handoffs/TASK-00109/develop-merge.md`.
+
+## TASK-00109 capability organization — Work checkpoint
+
+Independent Review ACCEPT and nonvisual QA PASS cover candidate `eb976a98d967865030dc7bf964015365dbc7ad2f`. Publication and final delivery verification were pending at closeout; current results are in `.runs/handoffs/TASK-00109/land.md` and the actual PR. The Work checkpoint below is historical; consumer qualification remains separate.
+
+The selected implementation groups Agent collaborators and mirrored tests under `Authentication`, `Credential`,
+`Delivery`, `Maintenance` and `Continuation`, retaining actual inward ports and distinct failure/authority/outcome
+contracts. The internal assignment coordinator is in `PermissionAssignment`, while message handlers keep their
+registrations and post-commit publication. Feature reference/discovery contracts share `Feature/Discovery`;
+Permission declarations, admission and trusted request authority share `Authorization/Admission`. MCP profile
+Tools/catalogs/family availability remain at their current Application homes for separate TASK-00108.
+
+The naming inspection covers all owned PHP source, tests/fixtures, shipped OpenAPI helpers and maintained runnable
+examples. Repositories, buses and dispatchers now use responsibility names, including named callers and native
+composition. Actual lists/maps/results retain plurals: Agent/Permission/Role collections, repository backing arrays,
+FeatureCreated event batches, captured event lists and the User repository-state fixture are not collaborators.
+Different fixture participants keep qualifiers (for example login/reset repositories and role/Agent dispatchers).
+The current [composition map](docs/agent-integration.md#public-composition-map) describes canonical homes; no aliases,
+new forwarding graph, new dependency or behavior redesign is introduced. User authentication decomposition and Agent
+name/operation redesign remain separate work. Canonical TASK-00109 handoff/logs own verification and exact subject;
+independent Review and behavioral QA remain required. This Work checkpoint is not acceptance, release or adoption.
+
 ## TASK-00108 MCP relocation — accepted checkpoint
 
 Independent Review ACCEPT and nonvisual QA PASS cover candidate `eacf83ccb0637db24274339dc157cf045f3fdc58`.
@@ -331,10 +361,9 @@ framework-only Adapter and single-AuthenticationService requirements. WF-035's c
 The [source-linked Common notes](planning/agents/domain.md#consumed-common-contracts) identify current consumption
 without guessing canonical APIs/minima or clearing TASK-00110's hold.
 
-This is guidance implementation only, not source-conformance certification. At that guidance checkpoint source still kept Agent MCP
-Tools/catalogs/family availability in Application; TASK-00108's Work checkpoint above supersedes that placement.
-Current source retains broad Agent Security/Service homes, one AuthenticationService and operation types under Agent.
-TASK-00109 owns cohesion/naming, TASK-00111/00112
+This was guidance implementation only, not source-conformance certification. At that candidate, source kept Agent MCP
+Tools/catalogs/family availability in Application, broad Agent Security/Service homes, one AuthenticationService,
+and operation types under Agent. TASK-00108 owns MCP presentation moves, TASK-00109 cohesion/naming, TASK-00111/00112
 User transitions/synchronous decomposition, TASK-00113 AgentName and TASK-00114 operation/read ownership.
 TASK-00110 owns actual qualified Common adoption; the separate Agent command conversion is still a future supplier.
 No production/test/dependency/executable-gate change or consumer/persistence infrastructure is supplied here.

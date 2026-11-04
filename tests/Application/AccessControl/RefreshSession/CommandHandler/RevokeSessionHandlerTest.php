@@ -77,22 +77,24 @@ final class RevokeSessionHandlerTest extends TestCase
         $currentSessionId = RefreshSessionId::fromString('018f0000-0000-7000-8000-000000000002');
         $targetSessionId = RefreshSessionId::fromString('018f0000-0000-7000-8000-000000000003');
         $unitOfWork = new InMemoryUnitOfWork();
-        $repository = new InMemoryRefreshSessionRepository($unitOfWork);
-        $repository->add($this->session($targetSessionId, $actorId));
+        $refreshSessionRepository = new InMemoryRefreshSessionRepository($unitOfWork);
+        $refreshSessionRepository->add($this->session($targetSessionId, $actorId));
 
-        $events = new InMemoryEventDispatcher(function () use ($repository, $targetSessionId, $unitOfWork): void {
-            self::assertTrue($repository->getById($targetSessionId)?->isRevoked());
-            self::assertTrue($unitOfWork->transactionCompleted);
-        });
+        $eventDispatcher = new InMemoryEventDispatcher(
+            function () use ($refreshSessionRepository, $targetSessionId, $unitOfWork): void {
+                self::assertTrue($refreshSessionRepository->getById($targetSessionId)?->isRevoked());
+                self::assertTrue($unitOfWork->transactionCompleted);
+            }
+        );
         $authorization = new FixedSessionAdministrationAuthorization(true);
         $auditEvidenceRepository = new InMemoryAuditEvidenceRepository($unitOfWork);
         $handler = new RevokeSessionHandler(
-            $repository,
+            $refreshSessionRepository,
             new FixedClock(new DateTimeImmutable('2026-08-20T12:00:00+00:00')),
             $authorization,
             $auditEvidenceRepository,
             $unitOfWork,
-            $events
+            $eventDispatcher
         );
 
         $handler->handle(CommandMessage::create(new RevokeSession(
@@ -103,10 +105,10 @@ final class RevokeSessionHandlerTest extends TestCase
 
         self::assertSame(RevokeSession::class, RevokeSessionHandler::commandRegistration());
         self::assertSame(1, $unitOfWork->transactions);
-        self::assertTrue($repository->getById($targetSessionId)?->isRevoked());
-        self::assertCount(1, $events->events());
-        self::assertInstanceOf(RefreshSessionRevoked::class, $events->events()[0]);
-        $event = $events->events()[0];
+        self::assertTrue($refreshSessionRepository->getById($targetSessionId)?->isRevoked());
+        self::assertCount(1, $eventDispatcher->events());
+        self::assertInstanceOf(RefreshSessionRevoked::class, $eventDispatcher->events()[0]);
+        $event = $eventDispatcher->events()[0];
         self::assertSame($actorId, $event->getActorId());
         self::assertSame($actorId, $event->getUserId());
         self::assertSame($targetSessionId, $event->getRefreshSessionId());
@@ -120,18 +122,18 @@ final class RevokeSessionHandlerTest extends TestCase
         $actorId = UserId::fromString('018f0000-0000-7000-8000-000000000001');
         $currentSessionId = RefreshSessionId::fromString('018f0000-0000-7000-8000-000000000002');
         $unitOfWork = new InMemoryUnitOfWork();
-        $repository = new InMemoryRefreshSessionRepository($unitOfWork);
-        $repository->add($this->session($currentSessionId, $actorId));
+        $refreshSessionRepository = new InMemoryRefreshSessionRepository($unitOfWork);
+        $refreshSessionRepository->add($this->session($currentSessionId, $actorId));
 
         $command = new RevokeSession($actorId, $currentSessionId, $currentSessionId);
-        $events = new InMemoryEventDispatcher();
-        $handler = $this->handler($repository, $unitOfWork, $events);
+        $eventDispatcher = new InMemoryEventDispatcher();
+        $handler = $this->handler($refreshSessionRepository, $unitOfWork, $eventDispatcher);
 
         $failure = $this->captureFailure($handler, $command);
 
         self::assertInstanceOf(CurrentRefreshSessionRevocationException::class, $failure);
-        self::assertFalse($repository->getById($currentSessionId)?->isRevoked());
-        $this->assertCommandFailure($events, $command, $failure);
+        self::assertFalse($refreshSessionRepository->getById($currentSessionId)?->isRevoked());
+        $this->assertCommandFailure($eventDispatcher, $command, $failure);
     }
 
     public function test_it_rejects_revoking_another_users_session_and_preserves_it(): void
@@ -140,23 +142,23 @@ final class RevokeSessionHandlerTest extends TestCase
         $currentSessionId = RefreshSessionId::fromString('018f0000-0000-7000-8000-000000000002');
         $targetSessionId = RefreshSessionId::fromString('018f0000-0000-7000-8000-000000000003');
         $unitOfWork = new InMemoryUnitOfWork();
-        $repository = new InMemoryRefreshSessionRepository($unitOfWork);
-        $repository->add($this->session(
+        $refreshSessionRepository = new InMemoryRefreshSessionRepository($unitOfWork);
+        $refreshSessionRepository->add($this->session(
             $targetSessionId,
             UserId::fromString('018f0000-0000-7000-8000-000000000004')
         ));
         $command = new RevokeSession($actorId, $currentSessionId, $targetSessionId);
-        $events = new InMemoryEventDispatcher();
+        $eventDispatcher = new InMemoryEventDispatcher();
         $authorization = new FixedSessionAdministrationAuthorization(false);
-        $handler = $this->handler($repository, $unitOfWork, $events, $authorization);
+        $handler = $this->handler($refreshSessionRepository, $unitOfWork, $eventDispatcher, $authorization);
 
         $failure = $this->captureFailure($handler, $command);
 
         self::assertInstanceOf(SessionAdministrationAuthorizationException::class, $failure);
         self::assertSame('Session administration is not authorized.', $failure->getMessage());
         self::assertSame(1, $authorization->calls());
-        self::assertFalse($repository->getById($targetSessionId)?->isRevoked());
-        $this->assertCommandFailure($events, $command, $failure);
+        self::assertFalse($refreshSessionRepository->getById($targetSessionId)?->isRevoked());
+        $this->assertCommandFailure($eventDispatcher, $command, $failure);
     }
 
     public function test_it_rejects_a_missing_or_unusable_target_as_non_authoritative(): void
@@ -166,17 +168,17 @@ final class RevokeSessionHandlerTest extends TestCase
         $targetSessionId = RefreshSessionId::fromString('018f0000-0000-7000-8000-000000000003');
 
         foreach ([null, $this->session($targetSessionId, $actorId)->revoke()] as $targetSession) {
-            $repository = new ControllableRefreshSessionRepository($targetSession);
+            $refreshSessionRepository = new ControllableRefreshSessionRepository($targetSession);
             $unitOfWork = new InMemoryUnitOfWork();
             $command = new RevokeSession($actorId, $currentSessionId, $targetSessionId);
-            $events = new InMemoryEventDispatcher();
-            $handler = $this->handler($repository, $unitOfWork, $events);
+            $eventDispatcher = new InMemoryEventDispatcher();
+            $handler = $this->handler($refreshSessionRepository, $unitOfWork, $eventDispatcher);
 
             $failure = $this->captureFailure($handler, $command);
 
             self::assertInstanceOf(RefreshSessionNotFoundException::class, $failure);
             self::assertSame(1, $unitOfWork->transactions);
-            $this->assertCommandFailure($events, $command, $failure);
+            $this->assertCommandFailure($eventDispatcher, $command, $failure);
         }
     }
 
@@ -185,20 +187,20 @@ final class RevokeSessionHandlerTest extends TestCase
         $actorId = UserId::fromString('018f0000-0000-7000-8000-000000000001');
         $currentSessionId = RefreshSessionId::fromString('018f0000-0000-7000-8000-000000000002');
         $targetSessionId = RefreshSessionId::fromString('018f0000-0000-7000-8000-000000000003');
-        $repository = new ControllableRefreshSessionRepository(
+        $refreshSessionRepository = new ControllableRefreshSessionRepository(
             $this->session($targetSessionId, $actorId),
             replaceSucceeds: false
         );
         $unitOfWork = new InMemoryUnitOfWork();
         $command = new RevokeSession($actorId, $currentSessionId, $targetSessionId);
-        $events = new InMemoryEventDispatcher();
-        $handler = $this->handler($repository, $unitOfWork, $events);
+        $eventDispatcher = new InMemoryEventDispatcher();
+        $handler = $this->handler($refreshSessionRepository, $unitOfWork, $eventDispatcher);
 
         $failure = $this->captureFailure($handler, $command);
 
         self::assertInstanceOf(RefreshSessionConflictException::class, $failure);
-        self::assertFalse($repository->getById($targetSessionId)?->isRevoked());
-        $this->assertCommandFailure($events, $command, $failure);
+        self::assertFalse($refreshSessionRepository->getById($targetSessionId)?->isRevoked());
+        $this->assertCommandFailure($eventDispatcher, $command, $failure);
     }
 
     public function test_it_rethrows_the_same_repository_failure_and_dispatches_command_failure(): void
@@ -207,15 +209,15 @@ final class RevokeSessionHandlerTest extends TestCase
         $currentSessionId = RefreshSessionId::fromString('018f0000-0000-7000-8000-000000000002');
         $targetSessionId = RefreshSessionId::fromString('018f0000-0000-7000-8000-000000000003');
         $expectedFailure = new RuntimeException('repository read failed');
-        $repository = new ControllableRefreshSessionRepository(null, getFailure: $expectedFailure);
+        $refreshSessionRepository = new ControllableRefreshSessionRepository(null, getFailure: $expectedFailure);
         $command = new RevokeSession($actorId, $currentSessionId, $targetSessionId);
-        $events = new InMemoryEventDispatcher();
-        $handler = $this->handler($repository, new InMemoryUnitOfWork(), $events);
+        $eventDispatcher = new InMemoryEventDispatcher();
+        $handler = $this->handler($refreshSessionRepository, new InMemoryUnitOfWork(), $eventDispatcher);
 
         $actualFailure = $this->captureFailure($handler, $command);
 
         self::assertSame($expectedFailure, $actualFailure);
-        $this->assertCommandFailure($events, $command, $expectedFailure);
+        $this->assertCommandFailure($eventDispatcher, $command, $expectedFailure);
     }
 
     public function test_it_rethrows_the_same_clock_failure_and_dispatches_command_failure(): void
@@ -225,20 +227,20 @@ final class RevokeSessionHandlerTest extends TestCase
         $targetSessionId = RefreshSessionId::fromString('018f0000-0000-7000-8000-000000000003');
         $expectedFailure = new RuntimeException('clock failed');
         $command = new RevokeSession($actorId, $currentSessionId, $targetSessionId);
-        $events = new InMemoryEventDispatcher();
+        $eventDispatcher = new InMemoryEventDispatcher();
         $handler = new RevokeSessionHandler(
             new ControllableRefreshSessionRepository($this->session($targetSessionId, $actorId)),
             new FailingClock($expectedFailure),
             new FixedSessionAdministrationAuthorization(true),
             new InMemoryAuditEvidenceRepository(),
             new InMemoryUnitOfWork(),
-            $events
+            $eventDispatcher
         );
 
         $actualFailure = $this->captureFailure($handler, $command);
 
         self::assertSame($expectedFailure, $actualFailure);
-        $this->assertCommandFailure($events, $command, $expectedFailure);
+        $this->assertCommandFailure($eventDispatcher, $command, $expectedFailure);
     }
 
     public function test_it_requires_a_reason_for_an_authorized_administrative_revocation(): void
@@ -248,18 +250,18 @@ final class RevokeSessionHandlerTest extends TestCase
         $currentSessionId = RefreshSessionId::fromString('018f0000-0000-7000-8000-000000000002');
         $targetSessionId = RefreshSessionId::fromString('018f0000-0000-7000-8000-000000000003');
         $unitOfWork = new InMemoryUnitOfWork();
-        $repository = new InMemoryRefreshSessionRepository($unitOfWork);
-        $repository->add($this->session($targetSessionId, $userId));
+        $refreshSessionRepository = new InMemoryRefreshSessionRepository($unitOfWork);
+        $refreshSessionRepository->add($this->session($targetSessionId, $userId));
 
         $command = new RevokeSession($actorId, $currentSessionId, $targetSessionId);
-        $events = new InMemoryEventDispatcher();
-        $handler = $this->handler($repository, $unitOfWork, $events);
+        $eventDispatcher = new InMemoryEventDispatcher();
+        $handler = $this->handler($refreshSessionRepository, $unitOfWork, $eventDispatcher);
 
         $failure = $this->captureFailure($handler, $command);
 
         self::assertInstanceOf(SessionRevocationReasonRequiredException::class, $failure);
-        self::assertFalse($repository->getById($targetSessionId)?->isRevoked());
-        $this->assertCommandFailure($events, $command, $failure);
+        self::assertFalse($refreshSessionRepository->getById($targetSessionId)?->isRevoked());
+        $this->assertCommandFailure($eventDispatcher, $command, $failure);
     }
 
     public function test_it_atomically_revokes_another_users_session_with_reasoned_audit_evidence(): void
@@ -269,30 +271,30 @@ final class RevokeSessionHandlerTest extends TestCase
         $currentSessionId = RefreshSessionId::fromString('018f0000-0000-7000-8000-000000000002');
         $targetSessionId = RefreshSessionId::fromString('018f0000-0000-7000-8000-000000000003');
         $unitOfWork = new InMemoryUnitOfWork();
-        $repository = new InMemoryRefreshSessionRepository($unitOfWork);
-        $repository->add($this->session($targetSessionId, $userId));
+        $refreshSessionRepository = new InMemoryRefreshSessionRepository($unitOfWork);
+        $refreshSessionRepository->add($this->session($targetSessionId, $userId));
 
         $authorization = new FixedSessionAdministrationAuthorization(true);
         $auditEvidenceRepository = new InMemoryAuditEvidenceRepository($unitOfWork);
         $reason = SessionRevocationReason::fromString('Compromised device');
         $command = new RevokeSession($actorId, $currentSessionId, $targetSessionId, $reason);
-        $events = new InMemoryEventDispatcher(
+        $eventDispatcher = new InMemoryEventDispatcher(
             function () use ($auditEvidenceRepository, $unitOfWork): void {
                 self::assertCount(1, $auditEvidenceRepository->all());
                 self::assertTrue($unitOfWork->transactionCompleted);
             }
         );
         $handler = $this->handler(
-            $repository,
+            $refreshSessionRepository,
             $unitOfWork,
-            $events,
+            $eventDispatcher,
             $authorization,
             $auditEvidenceRepository
         );
 
         $handler->handle(CommandMessage::create($command));
 
-        self::assertTrue($repository->getById($targetSessionId)?->isRevoked());
+        self::assertTrue($refreshSessionRepository->getById($targetSessionId)?->isRevoked());
         self::assertSame(1, $authorization->calls());
         self::assertSame($actorId, $authorization->lastActorId());
         self::assertSame($userId, $authorization->lastUserId());
@@ -305,9 +307,9 @@ final class RevokeSessionHandlerTest extends TestCase
             'refresh_session_id' => $targetSessionId->toString(),
             'reason'             => 'Compromised device'
         ], $evidence->context());
-        self::assertCount(1, $events->events());
-        self::assertInstanceOf(RefreshSessionRevoked::class, $events->events()[0]);
-        self::assertArrayNotHasKey('reason', $events->events()[0]->toArray());
+        self::assertCount(1, $eventDispatcher->events());
+        self::assertInstanceOf(RefreshSessionRevoked::class, $eventDispatcher->events()[0]);
+        self::assertArrayNotHasKey('reason', $eventDispatcher->events()[0]->toArray());
     }
 
     public function test_it_rolls_back_an_administrative_revocation_when_audit_persistence_fails(): void
@@ -317,11 +319,11 @@ final class RevokeSessionHandlerTest extends TestCase
         $currentSessionId = RefreshSessionId::fromString('018f0000-0000-7000-8000-000000000002');
         $targetSessionId = RefreshSessionId::fromString('018f0000-0000-7000-8000-000000000003');
         $unitOfWork = new InMemoryUnitOfWork();
-        $repository = new InMemoryRefreshSessionRepository($unitOfWork);
-        $repository->add($this->session($targetSessionId, $userId));
+        $refreshSessionRepository = new InMemoryRefreshSessionRepository($unitOfWork);
+        $refreshSessionRepository->add($this->session($targetSessionId, $userId));
 
         $auditEvidenceRepository = new InMemoryAuditEvidenceRepository($unitOfWork, failAfterSave: true);
-        $events = new InMemoryEventDispatcher();
+        $eventDispatcher = new InMemoryEventDispatcher();
         $command = new RevokeSession(
             $actorId,
             $currentSessionId,
@@ -329,9 +331,9 @@ final class RevokeSessionHandlerTest extends TestCase
             SessionRevocationReason::fromString('Suspected compromise')
         );
         $handler = $this->handler(
-            $repository,
+            $refreshSessionRepository,
             $unitOfWork,
-            $events,
+            $eventDispatcher,
             new FixedSessionAdministrationAuthorization(true),
             $auditEvidenceRepository
         );
@@ -339,9 +341,9 @@ final class RevokeSessionHandlerTest extends TestCase
         $failure = $this->captureFailure($handler, $command);
 
         self::assertSame('The audit persistence write failed.', $failure->getMessage());
-        self::assertFalse($repository->getById($targetSessionId)?->isRevoked());
+        self::assertFalse($refreshSessionRepository->getById($targetSessionId)?->isRevoked());
         self::assertSame([], $auditEvidenceRepository->all());
-        $this->assertCommandFailure($events, $command, $failure);
+        $this->assertCommandFailure($eventDispatcher, $command, $failure);
     }
 
     public function test_the_command_and_event_round_trip_and_reject_missing_required_data(): void
@@ -413,15 +415,15 @@ final class RevokeSessionHandlerTest extends TestCase
     }
 
     private function assertCommandFailure(
-        InMemoryEventDispatcher $events,
+        InMemoryEventDispatcher $eventDispatcher,
         RevokeSession $command,
         Throwable $failure
     ): void {
-        self::assertCount(1, $events->events());
-        self::assertInstanceOf(CommandFailedEvent::class, $events->events()[0]);
-        self::assertSame($command, $events->events()[0]->getCommand());
-        self::assertSame('Session revocation failed.', $events->events()[0]->getErrorMessage());
-        self::assertNotSame($failure->getMessage(), $events->events()[0]->getErrorMessage());
+        self::assertCount(1, $eventDispatcher->events());
+        self::assertInstanceOf(CommandFailedEvent::class, $eventDispatcher->events()[0]);
+        self::assertSame($command, $eventDispatcher->events()[0]->getCommand());
+        self::assertSame('Session revocation failed.', $eventDispatcher->events()[0]->getErrorMessage());
+        self::assertNotSame($failure->getMessage(), $eventDispatcher->events()[0]->getErrorMessage());
     }
 
     private function captureFailure(RevokeSessionHandler $handler, RevokeSession $command): Throwable
@@ -438,7 +440,7 @@ final class RevokeSessionHandlerTest extends TestCase
     private function handler(
         RefreshSessionRepository $refreshSessionRepository,
         InMemoryUnitOfWork $unitOfWork,
-        InMemoryEventDispatcher $events,
+        InMemoryEventDispatcher $eventDispatcher,
         ?FixedSessionAdministrationAuthorization $sessionAdministrationAuthorization = null,
         ?InMemoryAuditEvidenceRepository $auditEvidenceRepository = null
     ): RevokeSessionHandler {
@@ -448,7 +450,7 @@ final class RevokeSessionHandlerTest extends TestCase
             $sessionAdministrationAuthorization ?? new FixedSessionAdministrationAuthorization(true),
             $auditEvidenceRepository ?? new InMemoryAuditEvidenceRepository($unitOfWork),
             $unitOfWork,
-            $events
+            $eventDispatcher
         );
     }
 

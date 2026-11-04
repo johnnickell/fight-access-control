@@ -43,8 +43,8 @@ use Fight\Common\Domain\Messaging\Event\CommandFailedEvent;
 use Fight\Common\Domain\Messaging\Query\QueryMessage;
 use Fight\Common\Domain\Repository\Pagination;
 use Fight\Test\AccessControl\Application\AccessControl\Event\InMemoryEventDispatcher;
+use Fight\Test\AccessControl\Application\AccessControl\Feature\Discovery\FixtureFeatureDiscovery;
 use Fight\Test\AccessControl\Application\AccessControl\Feature\Repository\InMemoryFeatureRepository;
-use Fight\Test\AccessControl\Application\AccessControl\Feature\Service\FixtureFeatureDiscovery;
 use Fight\Test\AccessControl\Application\AccessControl\Permission\Repository\InMemoryPermissionRepository;
 use Fight\Test\AccessControl\Application\AccessControl\User\InMemoryUnitOfWork;
 use PHPUnit\Framework\Attributes\CoversClass;
@@ -72,11 +72,11 @@ final class FeatureManagementTest extends TestCase
 {
     private InMemoryUnitOfWork $uow;
 
-    private InMemoryFeatureRepository $features;
+    private InMemoryFeatureRepository $featureRepository;
 
-    private InMemoryPermissionRepository $permissions;
+    private InMemoryPermissionRepository $permissionRepository;
 
-    private InMemoryEventDispatcher $events;
+    private InMemoryEventDispatcher $eventDispatcher;
 
     private Permission $first;
 
@@ -85,25 +85,25 @@ final class FeatureManagementTest extends TestCase
     protected function setUp(): void
     {
         $this->uow = new InMemoryUnitOfWork();
-        $this->features = new InMemoryFeatureRepository($this->uow);
-        $this->permissions = new InMemoryPermissionRepository($this->uow);
-        $this->events = new InMemoryEventDispatcher();
+        $this->featureRepository = new InMemoryFeatureRepository($this->uow);
+        $this->permissionRepository = new InMemoryPermissionRepository($this->uow);
+        $this->eventDispatcher = new InMemoryEventDispatcher();
         $time = new DateTimeImmutable('2026-01-01T00:00:00+00:00');
         $this->first = Permission::define(PermissionId::generate(), PermissionName::fromString('FIRST'), $time);
         $this->second = Permission::define(PermissionId::generate(), PermissionName::fromString('SECOND'), $time);
-        $this->permissions->add($this->first);
-        $this->permissions->add($this->second);
+        $this->permissionRepository->add($this->first);
+        $this->permissionRepository->add($this->second);
     }
 
     public function test_create_read_provision_preservation_and_paginated_broken_binding(): void
     {
         $this->create('dashboard');
-        $stored = $this->features->getByName(FeatureName::fromString('dashboard'));
+        $stored = $this->featureRepository->getByName(FeatureName::fromString('dashboard'));
         self::assertInstanceOf(Feature::class, $stored);
         self::assertSame(FeatureStatus::OFF, $stored->getStatus());
         self::assertSame(1, $stored->getRevision());
-        self::assertInstanceOf(FeatureCreated::class, $this->events->events()[0]);
-        $this->features->seed(Feature::reconstitute(
+        self::assertInstanceOf(FeatureCreated::class, $this->eventDispatcher->events()[0]);
+        $this->featureRepository->seed(Feature::reconstitute(
             FeatureId::generate(),
             FeatureName::fromString('broken'),
             PermissionId::generate(),
@@ -111,12 +111,12 @@ final class FeatureManagementTest extends TestCase
             4
         ));
 
-        $view = new GetFeatureByIdHandler($this->features, $this->permissions)
+        $view = new GetFeatureByIdHandler($this->featureRepository, $this->permissionRepository)
             ->handle(QueryMessage::create(new GetFeatureById($stored->getId())));
         self::assertSame('FIRST', $view->getPermissionName()?->toString());
         self::assertSame(1, $view->getRevision());
         self::assertFalse($view->isBindingMissing());
-        $page = new ListFeaturesHandler($this->features, $this->permissions)
+        $page = new ListFeaturesHandler($this->featureRepository, $this->permissionRepository)
             ->handle(QueryMessage::create(new ListFeatures(new Pagination(2, 1, []))));
         self::assertSame(2, $page->page());
         self::assertSame(2, $page->totalRecords());
@@ -126,14 +126,14 @@ final class FeatureManagementTest extends TestCase
         self::assertNull($broken->getPermissionName());
         self::assertSame(4, $broken->toArray()['revision']);
         self::assertSame('on', $broken->toArray()['status']);
-        self::assertSame(1, $this->features->writes);
-        self::assertSame($stored, $this->features->getByName(FeatureName::fromString('dashboard')));
+        self::assertSame(1, $this->featureRepository->writes);
+        self::assertSame($stored, $this->featureRepository->getByName(FeatureName::fromString('dashboard')));
     }
 
     public function test_status_and_binding_edits_share_revision_and_fresh_evaluation(): void
     {
         $feature = $this->create('dashboard');
-        $availability = new FeatureAvailability($this->features, $this->permissions);
+        $availability = new FeatureAvailability($this->featureRepository, $this->permissionRepository);
         $name = $feature->getName();
         self::assertFalse($availability->isAvailable($name, null));
         $this->changeStatus($feature, FeatureStatus::PREVIEW, 1);
@@ -141,16 +141,16 @@ final class FeatureManagementTest extends TestCase
         $this->binding($feature, $this->second->getId(), 2);
         $this->changeStatus($feature, FeatureStatus::ON, 3);
         self::assertTrue($availability->isAvailable($name, null));
-        $current = $this->features->getById($feature->getId());
+        $current = $this->featureRepository->getById($feature->getId());
         self::assertSame($this->second->getId(), $current?->getPermissionId());
         self::assertSame(4, $current->getRevision());
-        self::assertCount(4, $this->events->events());
-        self::assertInstanceOf(FeatureStatusChanged::class, $this->events->events()[1]);
-        self::assertInstanceOf(FeaturePermissionChanged::class, $this->events->events()[2]);
+        self::assertCount(4, $this->eventDispatcher->events());
+        self::assertInstanceOf(FeatureStatusChanged::class, $this->eventDispatcher->events()[1]);
+        self::assertInstanceOf(FeaturePermissionChanged::class, $this->eventDispatcher->events()[2]);
         $this->changeStatus($feature, FeatureStatus::ON, 4);
         $this->binding($feature, $this->second->getId(), 4);
-        self::assertCount(4, $this->events->events());
-        self::assertSame(4, $this->features->writes);
+        self::assertCount(4, $this->eventDispatcher->events());
+        self::assertSame(4, $this->featureRepository->writes);
         $this->changeStatus($feature, FeatureStatus::OFF, 4);
         self::assertFalse($availability->isAvailable($name, null));
     }
@@ -160,15 +160,21 @@ final class FeatureManagementTest extends TestCase
         $created = $this->create('dashboard');
         $this->binding($created, $this->second->getId(), 1);
         $this->changeStatus($created, FeatureStatus::PREVIEW, 2);
-        $before = $this->features->getById($created->getId());
+        $before = $this->featureRepository->getById($created->getId());
         $discovery = new FixtureFeatureDiscovery(new class {
         }, ['dashboard', 'new-checkout'], static fn(): bool => true);
-        new ProvisionFeaturesHandler($discovery, $this->features, $this->permissions, $this->uow, $this->events)
+        new ProvisionFeaturesHandler(
+            $discovery,
+            $this->featureRepository,
+            $this->permissionRepository,
+            $this->uow,
+            $this->eventDispatcher
+        )
             ->handle(CommandMessage::create(new ProvisionFeatures('FIRST')));
-        self::assertSame($before, $this->features->getById($created->getId()));
+        self::assertSame($before, $this->featureRepository->getById($created->getId()));
         self::assertSame(3, $before->getRevision());
         self::assertSame($this->second->getId(), $before->getPermissionId());
-        $new = $this->features->getByName(FeatureName::fromString('new-checkout'));
+        $new = $this->featureRepository->getByName(FeatureName::fromString('new-checkout'));
         self::assertSame(FeatureStatus::OFF, $new->getStatus());
     }
 
@@ -179,7 +185,7 @@ final class FeatureManagementTest extends TestCase
         $principal = new AuthenticatedAgentPrincipal(AgentId::generate(), AgentCredentialId::generate(), 1, 1, [
             new PrincipalPermission($this->first->getId(), $this->first->getName())
         ]);
-        $availability = new FeatureAvailability($this->features, $this->permissions);
+        $availability = new FeatureAvailability($this->featureRepository, $this->permissionRepository);
         $this->changeStatus($feature, FeatureStatus::PREVIEW, 1);
         self::assertTrue($availability->isAvailable($name, $principal));
         $this->binding($feature, $this->second->getId(), 2);
@@ -196,8 +202,11 @@ final class FeatureManagementTest extends TestCase
         self::assertInstanceOf(FeatureRevisionException::class, $failure);
         $failure = $this->fails(fn() => $this->changeStatus($feature, FeatureStatus::ON, 1));
         self::assertInstanceOf(FeatureRevisionException::class, $failure);
-        self::assertSame(2, $this->features->getById($feature->getId())->getRevision());
-        self::assertSame($this->first->getId(), $this->features->getById($feature->getId())?->getPermissionId());
+        self::assertSame(2, $this->featureRepository->getById($feature->getId())->getRevision());
+        self::assertSame(
+            $this->first->getId(),
+            $this->featureRepository->getById($feature->getId())?->getPermissionId()
+        );
     }
 
     public function test_broken_binding_can_only_be_repaired_with_an_existing_identity(): void
@@ -210,15 +219,15 @@ final class FeatureManagementTest extends TestCase
             FeatureStatus::PREVIEW,
             3
         );
-        $this->features->seed($feature);
+        $this->featureRepository->seed($feature);
         $principal = new AuthenticatedAgentPrincipal(AgentId::generate(), AgentCredentialId::generate(), 1, 1, [
             new PrincipalPermission($this->first->getId(), $this->first->getName())
         ]);
-        $availability = new FeatureAvailability($this->features, $this->permissions);
+        $availability = new FeatureAvailability($this->featureRepository, $this->permissionRepository);
         self::assertInstanceOf(FeatureBindingException::class, $this->fails(
             fn(): bool => $availability->isAvailable($feature->getName(), $principal)
         ));
-        $view = new GetFeatureByIdHandler($this->features, $this->permissions)
+        $view = new GetFeatureByIdHandler($this->featureRepository, $this->permissionRepository)
             ->handle(QueryMessage::create(new GetFeatureById($feature->getId())));
         self::assertTrue($view->isBindingMissing());
         self::assertSame($missingId, $view->getPermissionId());
@@ -227,10 +236,13 @@ final class FeatureManagementTest extends TestCase
         self::assertInstanceOf(FeatureReferenceException::class, $this->fails(
             fn() => $this->changeStatus($feature, FeatureStatus::ON, 3)
         ));
-        self::assertSame($missingId, $this->features->getById($feature->getId())?->getPermissionId());
+        self::assertSame($missingId, $this->featureRepository->getById($feature->getId())?->getPermissionId());
         $this->binding($feature, $this->first->getId(), 3);
-        self::assertSame(4, $this->features->getById($feature->getId())->getRevision());
-        self::assertSame($this->first->getId(), $this->features->getById($feature->getId())?->getPermissionId());
+        self::assertSame(4, $this->featureRepository->getById($feature->getId())->getRevision());
+        self::assertSame(
+            $this->first->getId(),
+            $this->featureRepository->getById($feature->getId())?->getPermissionId()
+        );
         self::assertTrue($availability->isAvailable($feature->getName(), $principal));
         self::assertFalse($availability->isAvailable($feature->getName(), null));
     }
@@ -238,28 +250,31 @@ final class FeatureManagementTest extends TestCase
     public function test_reference_fence_rejects_conflicting_removal_and_validates_noop(): void
     {
         $feature = $this->create('dashboard');
-        $this->features->beforeReplace = function (): void {
-            self::assertFalse($this->permissions->remove($this->first));
+        $this->featureRepository->beforeReplace = function (): void {
+            self::assertFalse($this->permissionRepository->remove($this->first));
         };
         $this->binding($feature, $this->first->getId(), 1);
-        $this->features->beforeReplace = null;
-        self::assertSame(1, $this->features->writes);
+        $this->featureRepository->beforeReplace = null;
+        self::assertSame(1, $this->featureRepository->writes);
 
         // Rebinding has retained the new target inside its transaction-duration reference fence.
-        $this->features->afterReplace = function (Feature $replacement): void {
+        $this->featureRepository->afterReplace = function (Feature $replacement): void {
             self::assertSame($this->second->getId(), $replacement->getPermissionId());
             self::assertTrue($this->uow->authorizationReferenceState()->isReferenceFenceHeld());
-            self::assertFalse($this->permissions->remove($this->second));
-            self::assertTrue($this->permissions->hasFeatureReference($this->second->getId()));
+            self::assertFalse($this->permissionRepository->remove($this->second));
+            self::assertTrue($this->permissionRepository->hasFeatureReference($this->second->getId()));
         };
         $this->binding($feature, $this->second->getId(), 1);
-        $this->features->afterReplace = null;
-        self::assertTrue($this->permissions->remove($this->first));
-        self::assertNull($this->permissions->getById($this->first->getId()));
-        self::assertFalse($this->permissions->hasFeatureReference($this->first->getId()));
-        self::assertFalse($this->permissions->remove($this->second));
-        self::assertSame(2, $this->features->getById($feature->getId())?->getRevision());
-        self::assertSame($this->second->getId(), $this->features->getById($feature->getId())->getPermissionId());
+        $this->featureRepository->afterReplace = null;
+        self::assertTrue($this->permissionRepository->remove($this->first));
+        self::assertNull($this->permissionRepository->getById($this->first->getId()));
+        self::assertFalse($this->permissionRepository->hasFeatureReference($this->first->getId()));
+        self::assertFalse($this->permissionRepository->remove($this->second));
+        self::assertSame(2, $this->featureRepository->getById($feature->getId())?->getRevision());
+        self::assertSame(
+            $this->second->getId(),
+            $this->featureRepository->getById($feature->getId())->getPermissionId()
+        );
 
         // In the opposite order the target disappears before the handler can retain its binding.
         $third = Permission::define(
@@ -267,22 +282,25 @@ final class FeatureManagementTest extends TestCase
             PermissionName::fromString('THIRD'),
             new DateTimeImmutable('2026-01-01T00:00:00+00:00')
         );
-        $this->permissions->add($third);
-        $this->features->beforeReplace = function () use ($third): void {
-            self::assertTrue($this->permissions->remove($third));
+        $this->permissionRepository->add($third);
+        $this->featureRepository->beforeReplace = function () use ($third): void {
+            self::assertTrue($this->permissionRepository->remove($third));
         };
-        $eventCount = count($this->events->events());
-        $writes = $this->features->writes;
+        $eventCount = count($this->eventDispatcher->events());
+        $writes = $this->featureRepository->writes;
         self::assertInstanceOf(FeatureReferenceException::class, $this->fails(
             fn() => $this->binding($feature, $third->getId(), 2)
         ));
-        $this->features->beforeReplace = null;
-        self::assertSame($third, $this->permissions->getById($third->getId()));
-        self::assertSame($writes, $this->features->writes);
-        self::assertSame($this->second->getId(), $this->features->getById($feature->getId())?->getPermissionId());
-        self::assertSame(2, $this->features->getById($feature->getId())->getRevision());
-        self::assertCount($eventCount + 1, $this->events->events());
-        self::assertInstanceOf(CommandFailedEvent::class, $this->events->events()[$eventCount]);
+        $this->featureRepository->beforeReplace = null;
+        self::assertSame($third, $this->permissionRepository->getById($third->getId()));
+        self::assertSame($writes, $this->featureRepository->writes);
+        self::assertSame(
+            $this->second->getId(),
+            $this->featureRepository->getById($feature->getId())?->getPermissionId()
+        );
+        self::assertSame(2, $this->featureRepository->getById($feature->getId())->getRevision());
+        self::assertCount($eventCount + 1, $this->eventDispatcher->events());
+        self::assertInstanceOf(CommandFailedEvent::class, $this->eventDispatcher->events()[$eventCount]);
     }
 
     public function test_failed_transaction_and_publication_keep_correct_state(): void
@@ -290,17 +308,17 @@ final class FeatureManagementTest extends TestCase
         $feature = $this->create('dashboard');
         $this->uow->failNextCommit = true;
         $this->fails(fn() => $this->changeStatus($feature, FeatureStatus::ON, 1));
-        self::assertSame(FeatureStatus::OFF, $this->features->getById($feature->getId())?->getStatus());
-        self::assertSame(1, $this->features->getById($feature->getId())->getRevision());
-        self::assertCount(2, $this->events->events());
-        self::assertInstanceOf(CommandFailedEvent::class, $this->events->events()[1]);
-        $this->events = new InMemoryEventDispatcher(static function (object $event): void {
+        self::assertSame(FeatureStatus::OFF, $this->featureRepository->getById($feature->getId())?->getStatus());
+        self::assertSame(1, $this->featureRepository->getById($feature->getId())->getRevision());
+        self::assertCount(2, $this->eventDispatcher->events());
+        self::assertInstanceOf(CommandFailedEvent::class, $this->eventDispatcher->events()[1]);
+        $this->eventDispatcher = new InMemoryEventDispatcher(static function (object $event): void {
             if ($event instanceof FeatureStatusChanged) {
                 throw new RuntimeException('Post-commit publication failed.');
             }
         });
         $this->fails(fn() => $this->changeStatus($feature, FeatureStatus::ON, 1));
-        self::assertSame(FeatureStatus::ON, $this->features->getById($feature->getId())?->getStatus());
+        self::assertSame(FeatureStatus::ON, $this->featureRepository->getById($feature->getId())?->getStatus());
     }
 
     public function test_missing_targets_invalid_selection_and_final_boundary_race_reject_safely(): void
@@ -313,11 +331,16 @@ final class FeatureManagementTest extends TestCase
         $createMissing = new CreateFeature(FeatureName::fromString('missing-binding'), PermissionId::generate());
         self::assertInstanceOf(FeatureReferenceException::class, $this->fails(
             function () use ($createMissing): void {
-                new CreateFeatureHandler($this->features, $this->permissions, $this->uow, $this->events)
+                new CreateFeatureHandler(
+                    $this->featureRepository,
+                    $this->permissionRepository,
+                    $this->uow,
+                    $this->eventDispatcher
+                )
                     ->handle(CommandMessage::create($createMissing));
             }
         ));
-        self::assertNull($this->features->getByName($createMissing->getName()));
+        self::assertNull($this->featureRepository->getByName($createMissing->getName()));
 
         $unknown = Feature::define(FeatureId::generate(), FeatureName::fromString('unknown'), $this->first->getId());
         self::assertInstanceOf(FeatureNotFoundException::class, $this->fails(
@@ -329,24 +352,24 @@ final class FeatureManagementTest extends TestCase
         self::assertInstanceOf(FeatureReferenceException::class, $this->fails(
             fn() => $this->binding($this->create('dashboard'), PermissionId::generate(), 1)
         ));
-        $feature = $this->features->getByName(FeatureName::fromString('dashboard'));
+        $feature = $this->featureRepository->getByName(FeatureName::fromString('dashboard'));
         self::assertInstanceOf(Feature::class, $feature);
-        $this->features->beforeReplace = function () use ($feature): void {
-            $this->features->seed($feature->withStatus(FeatureStatus::PREVIEW));
+        $this->featureRepository->beforeReplace = function () use ($feature): void {
+            $this->featureRepository->seed($feature->withStatus(FeatureStatus::PREVIEW));
         };
         self::assertInstanceOf(FeatureRevisionException::class, $this->fails(
             fn() => $this->changeStatus($feature, FeatureStatus::ON, 1)
         ));
-        $this->features->beforeReplace = null;
-        self::assertSame(FeatureStatus::PREVIEW, $this->features->getById($feature->getId())->getStatus());
-        $this->features->seed($feature);
-        $this->features->beforeReplace = function () use ($feature): void {
-            $this->features->seed($feature->withStatus(FeatureStatus::ON));
+        $this->featureRepository->beforeReplace = null;
+        self::assertSame(FeatureStatus::PREVIEW, $this->featureRepository->getById($feature->getId())->getStatus());
+        $this->featureRepository->seed($feature);
+        $this->featureRepository->beforeReplace = function () use ($feature): void {
+            $this->featureRepository->seed($feature->withStatus(FeatureStatus::ON));
         };
         self::assertInstanceOf(FeatureRevisionException::class, $this->fails(
             fn() => $this->binding($feature, $this->second->getId(), 1)
         ));
-        $this->features->beforeReplace = null;
+        $this->featureRepository->beforeReplace = null;
     }
 
     public function test_safe_messages_and_facts_round_trip_without_guessing_required_data(): void
@@ -414,7 +437,7 @@ final class FeatureManagementTest extends TestCase
         $feature = $this->create('dashboard');
         self::assertInstanceOf(Throwable::class, $this->fails(fn(): Feature => $this->create('dashboard')));
         self::assertInstanceOf(FeatureNotFoundException::class, $this->fails(
-            fn(): FeatureView => new GetFeatureByIdHandler($this->features, $this->permissions)
+            fn(): FeatureView => new GetFeatureByIdHandler($this->featureRepository, $this->permissionRepository)
                 ->handle(QueryMessage::create(new GetFeatureById(FeatureId::generate())))
         ));
         self::assertInstanceOf(FeatureStateException::class, $this->fails(
@@ -431,21 +454,31 @@ final class FeatureManagementTest extends TestCase
 
     private function create(string $name): Feature
     {
-        new CreateFeatureHandler($this->features, $this->permissions, $this->uow, $this->events)
+        new CreateFeatureHandler(
+            $this->featureRepository,
+            $this->permissionRepository,
+            $this->uow,
+            $this->eventDispatcher
+        )
             ->handle(CommandMessage::create(new CreateFeature(FeatureName::fromString($name), $this->first->getId())));
 
-        return $this->features->getByName(FeatureName::fromString($name));
+        return $this->featureRepository->getByName(FeatureName::fromString($name));
     }
 
     private function changeStatus(Feature $feature, FeatureStatus $status, int $revision): void
     {
-        new SetFeatureStatusHandler($this->features, $this->uow, $this->events)
+        new SetFeatureStatusHandler($this->featureRepository, $this->uow, $this->eventDispatcher)
             ->handle(CommandMessage::create(new SetFeatureStatus($feature->getId(), $status, $revision)));
     }
 
     private function binding(Feature $feature, PermissionId $id, int $revision): void
     {
-        new SetFeaturePermissionHandler($this->features, $this->permissions, $this->uow, $this->events)
+        new SetFeaturePermissionHandler(
+            $this->featureRepository,
+            $this->permissionRepository,
+            $this->uow,
+            $this->eventDispatcher
+        )
             ->handle(CommandMessage::create(new SetFeaturePermission($feature->getId(), $id, $revision)));
     }
 

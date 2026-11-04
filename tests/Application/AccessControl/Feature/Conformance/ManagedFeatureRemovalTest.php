@@ -33,8 +33,8 @@ use Fight\Common\Domain\Messaging\Command\CommandMessage;
 use Fight\Common\Domain\Messaging\Event\CommandFailedEvent;
 use Fight\Test\AccessControl\Application\AccessControl\Agent\Repository\InMemoryAgentRepository;
 use Fight\Test\AccessControl\Application\AccessControl\Event\InMemoryEventDispatcher;
+use Fight\Test\AccessControl\Application\AccessControl\Feature\Discovery\FixtureFeatureDiscovery;
 use Fight\Test\AccessControl\Application\AccessControl\Feature\Repository\InMemoryFeatureRepository;
-use Fight\Test\AccessControl\Application\AccessControl\Feature\Service\FixtureFeatureDiscovery;
 use Fight\Test\AccessControl\Application\AccessControl\Permission\Repository\InMemoryPermissionRepository;
 use Fight\Test\AccessControl\Application\AccessControl\Role\Repository\InMemoryRoleRepository;
 use Fight\Test\AccessControl\Application\AccessControl\Timing\Service\FixedClock;
@@ -52,13 +52,13 @@ final class ManagedFeatureRemovalTest extends TestCase
     {
         foreach (FeatureStatus::cases() as $status) {
             $unit = new InMemoryUnitOfWork();
-            $permissions = new InMemoryPermissionRepository($unit);
-            $features = new InMemoryFeatureRepository($unit);
+            $permissionRepository = new InMemoryPermissionRepository($unit);
+            $featureRepository = new InMemoryFeatureRepository($unit);
             $obsolete = $this->permission('OBSOLETE');
-            $permissions->add($obsolete);
+            $permissionRepository->add($obsolete);
             $feature = $this->feature($obsolete, $status);
-            $features->seed($feature);
-            $planner = $this->planner($unit, $permissions);
+            $featureRepository->seed($feature);
+            $planner = $this->planner($unit, $permissionRepository);
             $command = new ReconcileManagedPolicy(new ManagedPolicy([], [], []));
             try {
                 $planner->plan($command->getPolicy());
@@ -67,15 +67,17 @@ final class ManagedFeatureRemovalTest extends TestCase
                 self::assertStringContainsString('Feature references', $failure->getMessage());
             }
 
-            $events = new InMemoryEventDispatcher();
+            $eventDispatcher = new InMemoryEventDispatcher();
             try {
-                $this->handler($unit, $permissions, $events)->handle(CommandMessage::create($command));
+                $this->handler($unit, $permissionRepository, $eventDispatcher)->handle(
+                    CommandMessage::create($command)
+                );
                 self::fail('Reconciliation must also reject the referenced removal.');
             } catch (ManagedPolicyDefinitionException) {
-                self::assertSame($obsolete, $permissions->getById($obsolete->getId()));
-                self::assertSame($feature, $features->getById($feature->getId()));
-                self::assertCount(1, $events->events());
-                self::assertInstanceOf(CommandFailedEvent::class, $events->events()[0]);
+                self::assertSame($obsolete, $permissionRepository->getById($obsolete->getId()));
+                self::assertSame($feature, $featureRepository->getById($feature->getId()));
+                self::assertCount(1, $eventDispatcher->events());
+                self::assertInstanceOf(CommandFailedEvent::class, $eventDispatcher->events()[0]);
             }
         }
     }
@@ -83,11 +85,11 @@ final class ManagedFeatureRemovalTest extends TestCase
     public function test_feature_binding_does_not_block_protected_tier_promotion(): void
     {
         $unit = new InMemoryUnitOfWork();
-        $permissions = new InMemoryPermissionRepository($unit);
-        $features = new InMemoryFeatureRepository($unit);
+        $permissionRepository = new InMemoryPermissionRepository($unit);
+        $featureRepository = new InMemoryFeatureRepository($unit);
         $permission = $this->permission('TEST_PERMISSION');
-        $permissions->add($permission);
-        $features->seed($this->feature($permission, FeatureStatus::PREVIEW));
+        $permissionRepository->add($permission);
+        $featureRepository->seed($this->feature($permission, FeatureStatus::PREVIEW));
         $policy = new ManagedPolicy([
             new ManagedPermissionDefinition(
                 $permission->getId(),
@@ -95,31 +97,34 @@ final class ManagedFeatureRemovalTest extends TestCase
                 PermissionTier::SUPER_ADMIN_ONLY
             )
         ], [], []);
-        $events = new InMemoryEventDispatcher();
+        $eventDispatcher = new InMemoryEventDispatcher();
 
-        $this->handler($unit, $permissions, $events)->handle(
+        $this->handler($unit, $permissionRepository, $eventDispatcher)->handle(
             CommandMessage::create(new ReconcileManagedPolicy($policy))
         );
 
-        self::assertSame(PermissionTier::SUPER_ADMIN_ONLY, $permissions->getById($permission->getId())?->getTier());
-        self::assertCount(1, $events->events());
+        self::assertSame(
+            PermissionTier::SUPER_ADMIN_ONLY,
+            $permissionRepository->getById($permission->getId())?->getTier()
+        );
+        self::assertCount(1, $eventDispatcher->events());
     }
 
     public function test_late_reference_rejects_final_removal_and_rolls_back_prior_definition_creation(): void
     {
         $unit = new InMemoryUnitOfWork();
-        $features = new InMemoryFeatureRepository($unit);
+        $featureRepository = new InMemoryFeatureRepository($unit);
         $obsolete = $this->permission('OBSOLETE');
         $late = $this->feature($obsolete, FeatureStatus::OFF);
-        $permissions = new InMemoryPermissionRepository(
+        $permissionRepository = new InMemoryPermissionRepository(
             $unit,
-            beforeRemove: static function () use ($unit, $features, $late): void {
+            beforeRemove: static function () use ($unit, $featureRepository, $late): void {
                 self::assertTrue($unit->authorizationReferenceState()->isReferenceFenceHeld());
                 // Model a reference becoming visible after planning, at the final fenced decision.
-                $features->seed($late);
+                $featureRepository->seed($late);
             }
         );
-        $permissions->add($obsolete);
+        $permissionRepository->add($obsolete);
 
         $addedId = PermissionId::generate();
         $command = new ReconcileManagedPolicy(new ManagedPolicy([
@@ -129,37 +134,37 @@ final class ManagedFeatureRemovalTest extends TestCase
                 PermissionTier::ADMIN_SAFE
             )
         ], [], []));
-        $events = new InMemoryEventDispatcher();
+        $eventDispatcher = new InMemoryEventDispatcher();
 
         try {
-            $this->handler($unit, $permissions, $events)->handle(CommandMessage::create($command));
+            $this->handler($unit, $permissionRepository, $eventDispatcher)->handle(CommandMessage::create($command));
             self::fail('Final removal must reject the late reference.');
         } catch (LogicException $logicException) {
             self::assertStringContainsString('became referenced', $logicException->getMessage());
         }
 
-        self::assertSame($obsolete, $permissions->getById($obsolete->getId()));
-        self::assertNull($permissions->getById($addedId));
-        self::assertSame($late, $features->getById($late->getId()));
-        self::assertCount(1, $events->events());
-        self::assertInstanceOf(CommandFailedEvent::class, $events->events()[0]);
+        self::assertSame($obsolete, $permissionRepository->getById($obsolete->getId()));
+        self::assertNull($permissionRepository->getById($addedId));
+        self::assertSame($late, $featureRepository->getById($late->getId()));
+        self::assertCount(1, $eventDispatcher->events());
+        self::assertInstanceOf(CommandFailedEvent::class, $eventDispatcher->events()[0]);
     }
 
     public function test_retirement_releases_only_its_feature_reference_for_reconciliation(): void
     {
         foreach (['none', 'feature', 'role', 'agent'] as $remaining) {
             $unit = new InMemoryUnitOfWork();
-            $permissions = new InMemoryPermissionRepository($unit);
-            $features = new InMemoryFeatureRepository($unit);
-            $roles = new InMemoryRoleRepository($unit);
-            $agents = new InMemoryAgentRepository($unit);
+            $permissionRepository = new InMemoryPermissionRepository($unit);
+            $featureRepository = new InMemoryFeatureRepository($unit);
+            $roleRepository = new InMemoryRoleRepository($unit);
+            $agentRepository = new InMemoryAgentRepository($unit);
             $permission = $this->permission('OBSOLETE');
-            $permissions->add($permission);
+            $permissionRepository->add($permission);
             $retiring = $this->feature($permission, FeatureStatus::ON);
-            $features->seed($retiring);
+            $featureRepository->seed($retiring);
             $time = new DateTimeImmutable('2026-01-01T00:00:00+00:00');
             if ($remaining === 'feature') {
-                $features->seed(Feature::define(
+                $featureRepository->seed(Feature::define(
                     FeatureId::generate(),
                     FeatureName::fromString('other-flag'),
                     $permission->getId()
@@ -167,7 +172,7 @@ final class ManagedFeatureRemovalTest extends TestCase
             }
 
             if ($remaining === 'role') {
-                $roles->add(Role::define(
+                $roleRepository->add(Role::define(
                     RoleId::generate(),
                     RoleName::fromString('ROLE_CUSTOM'),
                     [$permission->getId()],
@@ -176,7 +181,7 @@ final class ManagedFeatureRemovalTest extends TestCase
             }
 
             if ($remaining === 'agent') {
-                $agents->add(Agent::reconstitute(
+                $agentRepository->add(Agent::reconstitute(
                     AgentId::generate(),
                     AgentName::fromString('reference fixture'),
                     AgentState::ACTIVE,
@@ -190,45 +195,52 @@ final class ManagedFeatureRemovalTest extends TestCase
                 ));
             }
 
-            $events = new InMemoryEventDispatcher();
+            $eventDispatcher = new InMemoryEventDispatcher();
             $discovery = new FixtureFeatureDiscovery(new class {
             }, [], static fn(): bool => true);
-            new RemoveFeatureHandler($discovery, $features, $unit, $events)->handle(
+            new RemoveFeatureHandler($discovery, $featureRepository, $unit, $eventDispatcher)->handle(
                 CommandMessage::create(new RemoveFeature($retiring->getId(), 1))
             );
-            self::assertNull($features->getById($retiring->getId()));
-            self::assertSame($permission, $permissions->getById($permission->getId()));
-            $planner = new ManagedPolicyPlanner($permissions, $roles, new InMemoryUserRepository($unit), $agents);
+            self::assertNull($featureRepository->getById($retiring->getId()));
+            self::assertSame($permission, $permissionRepository->getById($permission->getId()));
+            $planner = new ManagedPolicyPlanner(
+                $permissionRepository,
+                $roleRepository,
+                new InMemoryUserRepository($unit),
+                $agentRepository
+            );
             $handler = new ReconcileManagedPolicyHandler(
-                $permissions,
-                $roles,
+                $permissionRepository,
+                $roleRepository,
                 $planner,
                 $unit,
-                $events,
+                $eventDispatcher,
                 new FixedClock($time)
             );
             try {
                 $handler->handle(CommandMessage::create(new ReconcileManagedPolicy(new ManagedPolicy([], [], []))));
                 self::assertSame('none', $remaining);
-                self::assertNull($permissions->getById($permission->getId()));
+                self::assertNull($permissionRepository->getById($permission->getId()));
             } catch (ManagedPolicyDefinitionException | LogicException $failure) {
                 self::assertNotSame('none', $remaining);
                 self::assertInstanceOf(ManagedPolicyDefinitionException::class, $failure);
                 if ($remaining === 'agent') {
-                    self::assertTrue($agents->hasPermissionAssignment($permission->getId()));
+                    self::assertTrue($agentRepository->hasPermissionAssignment($permission->getId()));
                 }
 
-                self::assertSame($permission, $permissions->getById($permission->getId()));
-                self::assertCount(2, $events->events());
-                self::assertInstanceOf(CommandFailedEvent::class, $events->events()[1]);
+                self::assertSame($permission, $permissionRepository->getById($permission->getId()));
+                self::assertCount(2, $eventDispatcher->events());
+                self::assertInstanceOf(CommandFailedEvent::class, $eventDispatcher->events()[1]);
             }
         }
     }
 
-    private function planner(InMemoryUnitOfWork $unit, InMemoryPermissionRepository $permissions): ManagedPolicyPlanner
-    {
+    private function planner(
+        InMemoryUnitOfWork $unit,
+        InMemoryPermissionRepository $permissionRepository
+    ): ManagedPolicyPlanner {
         return new ManagedPolicyPlanner(
-            $permissions,
+            $permissionRepository,
             new InMemoryRoleRepository($unit),
             new InMemoryUserRepository($unit),
             new InMemoryAgentRepository($unit)
@@ -237,15 +249,15 @@ final class ManagedFeatureRemovalTest extends TestCase
 
     private function handler(
         InMemoryUnitOfWork $unit,
-        InMemoryPermissionRepository $permissions,
-        InMemoryEventDispatcher $events
+        InMemoryPermissionRepository $permissionRepository,
+        InMemoryEventDispatcher $eventDispatcher
     ): ReconcileManagedPolicyHandler {
         return new ReconcileManagedPolicyHandler(
-            $permissions,
+            $permissionRepository,
             new InMemoryRoleRepository($unit),
-            $this->planner($unit, $permissions),
+            $this->planner($unit, $permissionRepository),
             $unit,
-            $events,
+            $eventDispatcher,
             new FixedClock(new DateTimeImmutable('2026-01-02T00:00:00+00:00'))
         );
     }

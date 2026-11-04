@@ -5,7 +5,7 @@ dependencies, acceptance, and verification.
 
 ## What's Next?
 
-First ready Task: [TASK-00109](00109-TASK.md) — Organize Application capabilities and descriptive collaborator names.
+First ready Task: [TASK-00105](00105-TASK.md) — Protect Laravel requests through native middleware.
 
 ## In Progress
 
@@ -15,7 +15,6 @@ No Tasks are currently in this state.
 
 | Order | TASK ID | Title | Parent TICKET | Status | Blocked by | PR |
 | --- | --- | --- | --- | --- | --- | --- |
-| 12 | [TASK-00109](00109-TASK.md) | Organize Application capabilities and descriptive collaborator names | [TICKET-00033](../tickets/00033-TICKET.md) — Clarify architecture and capability ownership before extending integrations | ready-for-agent | [TASK-00107](00107-TASK.md) | — |
 | 104 | [TASK-00105](00105-TASK.md) | Protect Laravel requests through native middleware | [TICKET-00032](../tickets/00032-TICKET.md) — Protect native HTTP entry points across all five frameworks | ready-for-agent | [TASK-00103](00103-TASK.md) | — |
 | 104 | [TASK-00106](00106-TASK.md) | Protect CodeIgniter 4 requests through native before filters | [TICKET-00032](../tickets/00032-TICKET.md) — Protect native HTTP entry points across all five frameworks | ready-for-agent | [TASK-00103](00103-TASK.md) | — |
 | 201 | [TASK-00111](00111-TASK.md) | Make User transitions own authentication-authority revisions | [TICKET-00035](../tickets/00035-TICKET.md) — Encapsulate User authentication transitions and synchronous use cases | ready-for-agent | — | — |
@@ -145,6 +144,7 @@ No Tasks are currently in this state.
 | 11 | [TASK-00011](00011-TASK.md) | Administer account lifecycle | [TICKET-00001](../tickets/00001-TICKET.md) — Fight AccessControl Identity and Authentication Lifecycle | done | [TASK-00006](00006-TASK.md), [TASK-00009](00009-TASK.md) | — |
 | 11 | [TASK-00108](00108-TASK.md) | Move Agent MCP presentation and family bindings into adapters | [TICKET-00033](../tickets/00033-TICKET.md) — Clarify architecture and capability ownership before extending integrations | done | [TASK-00107](00107-TASK.md) | https://github.com/johnnickell/fight-access-control/pull/152 |
 | 12 | [TASK-00012](00012-TASK.md) | Reconcile managed policy and custom roles | [TICKET-00001](../tickets/00001-TICKET.md) — Fight AccessControl Identity and Authentication Lifecycle | done | [TASK-00009](00009-TASK.md) | — |
+| 12 | [TASK-00109](00109-TASK.md) | Organize Application capabilities and descriptive collaborator names | [TICKET-00033](../tickets/00033-TICKET.md) — Clarify architecture and capability ownership before extending integrations | done | [TASK-00107](00107-TASK.md) | https://github.com/johnnickell/fight-access-control/pull/153 |
 | 14 | [TASK-00014](00014-TASK.md) | Unify password-reset grant persistence | [TICKET-00001](../tickets/00001-TICKET.md) — Fight AccessControl Identity and Authentication Lifecycle | done | [TASK-00007](00007-TASK.md) | — |
 | 15 | [TASK-00015](00015-TASK.md) | Unify activation-grant persistence | [TICKET-00001](../tickets/00001-TICKET.md) — Fight AccessControl Identity and Authentication Lifecycle | done | [TASK-00001](00001-TASK.md), [TASK-00002](00002-TASK.md), [TASK-00003](00003-TASK.md) | — |
 | 16 | [TASK-00016](00016-TASK.md) | Extract the ManagedPolicy capability | [TICKET-00001](../tickets/00001-TICKET.md) — Fight AccessControl Identity and Authentication Lifecycle | done | — | — |

@@ -27,10 +27,10 @@ final readonly class UpdateAgentHandler implements CommandHandler
      * Constructs UpdateAgentHandler
      */
     public function __construct(
-        private AgentRepository $agents,
+        private AgentRepository $agentRepository,
         private Clock $clock,
         private TransactionalUnitOfWork $unitOfWork,
-        private EventDispatcher $events
+        private EventDispatcher $eventDispatcher
     ) {
     }
 
@@ -52,7 +52,7 @@ final readonly class UpdateAgentHandler implements CommandHandler
         try {
             $name = AgentName::fromString($command->getName());
             $event = $this->unitOfWork->commitTransactional(function () use ($command, $name): ?AgentNameChanged {
-                $changedAt = $this->agents->rename($command->getAgentId(), $name, $this->clock->now(...));
+                $changedAt = $this->agentRepository->rename($command->getAgentId(), $name, $this->clock->now(...));
                 if ($changedAt === null) {
                     return null;
                 }
@@ -60,11 +60,11 @@ final readonly class UpdateAgentHandler implements CommandHandler
                 return new AgentNameChanged($command->getInitiator(), $command->getAgentId(), $name, $changedAt);
             });
             if ($event instanceof AgentNameChanged) {
-                $this->events->trigger($event);
+                $this->eventDispatcher->trigger($event);
             }
         } catch (Throwable $throwable) {
             try {
-                $this->events->trigger(new CommandFailedEvent($command, 'Agent update failed.'));
+                $this->eventDispatcher->trigger(new CommandFailedEvent($command, 'Agent update failed.'));
             } finally {
                 throw $throwable;
             }

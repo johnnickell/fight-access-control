@@ -74,7 +74,7 @@ final class OperationFailureContractTest extends TestCase
     {
         $primary = new RuntimeException('Synthetic dependency detail.');
         $attempts = [];
-        $events = $this->events($attempts, $notificationFails);
+        $eventDispatcher = $this->events($attempts, $notificationFails);
         $unitOfWork = $this->createMock(TransactionalUnitOfWork::class);
         $unitOfWork->expects(self::once())->method('commitTransactional')->willThrowException($primary);
         $command = new CreateCustomRole(UserId::generate(), RoleId::generate(), RoleName::fromString('ROLE_EDITOR'));
@@ -82,7 +82,7 @@ final class OperationFailureContractTest extends TestCase
             $this->createStub(RoleRepository::class),
             $this->createStub(Clock::class),
             $unitOfWork,
-            $events
+            $eventDispatcher
         );
 
         $caught = null;
@@ -109,15 +109,15 @@ final class OperationFailureContractTest extends TestCase
     ): void {
         $primary = new RuntimeException('Synthetic dependency detail.');
         $attempts = [];
-        $events = $this->events($attempts, $notificationFails);
+        $eventDispatcher = $this->events($attempts, $notificationFails);
         $unitOfWork = $this->createMock(TransactionalUnitOfWork::class);
         $unitOfWork->expects(self::once())->method('commitTransactional')->willThrowException($primary);
-        $sessions = $this->createStub(RefreshSessionRepository::class);
+        $refreshSessionRepository = $this->createStub(RefreshSessionRepository::class);
         $service = new AuthenticationService(
             $this->createStub(UserRepository::class),
             $this->createStub(ActivationGrantRepository::class),
-            $sessions,
-            new SessionRevocationService($sessions),
+            $refreshSessionRepository,
+            new SessionRevocationService($refreshSessionRepository),
             $unitOfWork,
             $this->createStub(Clock::class),
             $this->createStub(LoginThrottle::class),
@@ -127,7 +127,7 @@ final class OperationFailureContractTest extends TestCase
             $this->createStub(TokenEncoder::class),
             AuthenticationTokenPolicy::starterDefaults(new DateInterval('PT5S')),
             PasswordHash::fromString(password_hash('synthetic-password', PASSWORD_DEFAULT)),
-            $events,
+            $eventDispatcher,
             $this->createStub(PasswordResetGrantRepository::class),
             $this->createStub(AuditEvidenceRepository::class),
             $this->createStub(EmailChangeGrantRepository::class)

@@ -50,8 +50,8 @@ $invoker = new McpToolInvoker($registry, $availability, failures: AgentProfileTo
 $invocation = new McpToolInvocation($invoker);
 ```
 
-Here `$queryBus` is Common `QueryBus`, registering `GetAgentProfile` with `GetAgentProfileHandler`;
-`$synchronousCommandBus` registers `UpdateAgent` with `UpdateAgentHandler`. The latter is explicitly `SynchronousCommandBus`, not an async
+Here `$queryBus` is Common `QueryBus`, registering `GetAgentProfile` with `GetAgentProfileHandler`; `$synchronousCommandBus`
+registers `UpdateAgent` with `UpdateAgentHandler`. The latter is explicitly `SynchronousCommandBus`, not an async
 queue or a result-bearing bus. Handlers use consumer implementations of the existing Domain repositories and
 transaction/clock/event contracts. The cursor key is consumer-managed, at least 32 bytes, not an Agent credential.
 Register `$discovery` and `$invocation` with the consumer's Common capability registry and `McpResponder`.

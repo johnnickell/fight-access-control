@@ -50,145 +50,168 @@ final class RequestPasswordResetHandlerTest extends TestCase
     public function test_it_atomically_stages_the_complete_aggregate_audit_and_post_commit_event(): void
     {
         $unitOfWork = new InMemoryUnitOfWork();
-        $users = new InMemoryUserRepository();
+        $userRepository = new InMemoryUserRepository();
         $user = UserFixture::withState('alice@example.test', UserState::ACTIVE);
-        $users->add($user);
-        $repository = new InMemoryPasswordResetGrants($unitOfWork);
-        $audit = new InMemoryAuditEvidenceRepository($unitOfWork);
-        $events = new InMemoryEventDispatcher(static function () use ($audit, $repository, $unitOfWork): void {
-            self::assertTrue($unitOfWork->transactionCompleted);
-            self::assertCount(1, $repository->all());
-            self::assertCount(1, $audit->all());
-        });
+        $userRepository->add($user);
+        $passwordResetGrantRepository = new InMemoryPasswordResetGrants($unitOfWork);
+        $auditEvidenceRepository = new InMemoryAuditEvidenceRepository($unitOfWork);
+        $eventDispatcher = new InMemoryEventDispatcher(
+            static function () use ($auditEvidenceRepository, $passwordResetGrantRepository, $unitOfWork): void {
+                self::assertTrue($unitOfWork->transactionCompleted);
+                self::assertCount(1, $passwordResetGrantRepository->all());
+                self::assertCount(1, $auditEvidenceRepository->all());
+            }
+        );
 
-        $this->handler($users, $repository, $audit, $unitOfWork, $events)->handle(
+        $this->handler(
+            $userRepository,
+            $passwordResetGrantRepository,
+            $auditEvidenceRepository,
+            $unitOfWork,
+            $eventDispatcher
+        )->handle(
             CommandMessage::create(new RequestPasswordReset(EmailAddress::fromString('ALICE@example.test')))
         );
 
-        $grant = $repository->all()[0];
+        $grant = $passwordResetGrantRepository->all()[0];
         self::assertSame(RequestPasswordReset::class, RequestPasswordResetHandler::commandRegistration());
         self::assertSame(1, $unitOfWork->transactions);
-        self::assertSame($grant, $repository->getById($grant->getId()));
-        self::assertSame($grant, $repository->getByDeliveryId($grant->getDelivery()->getId()));
+        self::assertSame($grant, $passwordResetGrantRepository->getById($grant->getId()));
+        self::assertSame($grant, $passwordResetGrantRepository->getByDeliveryId($grant->getDelivery()->getId()));
         self::assertSame($user->getId(), $grant->getUserId());
         self::assertSame('ciphertext:reset-once', $grant->getDelivery()->getEncryptedMaterial()?->reveal());
         self::assertSame('alice@example.test', $grant->getDelivery()->getEmail()->canonical());
         self::assertSame($grant->getExpiresAt(), $grant->getDelivery()->getExpiresAt());
-        self::assertSame('user.password_reset_requested', $audit->all()[0]->action());
-        self::assertInstanceOf(PasswordResetRequested::class, $events->events()[0]);
-        self::assertSame($grant->getDelivery()->getId(), $events->events()[0]->getPasswordResetDeliveryId());
+        self::assertSame('user.password_reset_requested', $auditEvidenceRepository->all()[0]->action());
+        self::assertInstanceOf(PasswordResetRequested::class, $eventDispatcher->events()[0]);
+        self::assertSame($grant->getDelivery()->getId(), $eventDispatcher->events()[0]->getPasswordResetDeliveryId());
     }
 
     public function test_reissue_atomically_terminalizes_the_predecessor_and_inserts_the_successor(): void
     {
         $unitOfWork = new InMemoryUnitOfWork();
-        $users = new InMemoryUserRepository();
+        $userRepository = new InMemoryUserRepository();
         $user = UserFixture::withState('alice@example.test', UserState::ACTIVE);
-        $users->add($user);
-        $repository = new InMemoryPasswordResetGrants($unitOfWork);
-        $audit = new InMemoryAuditEvidenceRepository($unitOfWork);
-        $events = new InMemoryEventDispatcher();
+        $userRepository->add($user);
+        $passwordResetGrantRepository = new InMemoryPasswordResetGrants($unitOfWork);
+        $auditEvidenceRepository = new InMemoryAuditEvidenceRepository($unitOfWork);
+        $eventDispatcher = new InMemoryEventDispatcher();
         $command = CommandMessage::create(new RequestPasswordReset(EmailAddress::fromString('alice@example.test')));
-        $this->handler($users, $repository, $audit, $unitOfWork, $events, 'reset-old')->handle($command);
-        $predecessor = $repository->all()[0];
+        $this->handler(
+            $userRepository,
+            $passwordResetGrantRepository,
+            $auditEvidenceRepository,
+            $unitOfWork,
+            $eventDispatcher,
+            'reset-old'
+        )->handle(
+            $command
+        );
+        $predecessor = $passwordResetGrantRepository->all()[0];
 
         $this->handler(
-            $users,
-            $repository,
-            $audit,
+            $userRepository,
+            $passwordResetGrantRepository,
+            $auditEvidenceRepository,
             $unitOfWork,
-            $events,
+            $eventDispatcher,
             'reset-new',
             '2026-08-20T12:15:00+00:00'
         )->handle($command);
 
-        self::assertCount(2, $repository->all());
-        self::assertTrue($repository->all()[0]->isRevoked());
-        self::assertFalse($repository->all()[0]->getDelivery()->hasRecoverableMaterial());
-        self::assertTrue($repository->all()[1]->isIssued());
+        self::assertCount(2, $passwordResetGrantRepository->all());
+        self::assertTrue($passwordResetGrantRepository->all()[0]->isRevoked());
+        self::assertFalse($passwordResetGrantRepository->all()[0]->getDelivery()->hasRecoverableMaterial());
+        self::assertTrue($passwordResetGrantRepository->all()[1]->isIssued());
         self::assertSame(
             'ciphertext:reset-new',
-            $repository->all()[1]->getDelivery()->getEncryptedMaterial()?->reveal()
+            $passwordResetGrantRepository->all()[1]->getDelivery()->getEncryptedMaterial()?->reveal()
         );
-        self::assertFalse($repository->all()[1]->getId()->equals($predecessor->getId()));
-        self::assertCount(2, $audit->all());
-        self::assertCount(2, $events->events());
+        self::assertFalse($passwordResetGrantRepository->all()[1]->getId()->equals($predecessor->getId()));
+        self::assertCount(2, $auditEvidenceRepository->all());
+        self::assertCount(2, $eventDispatcher->events());
     }
 
     public function test_fresh_authority_appends_after_a_fully_terminal_generation(): void
     {
         $unitOfWork = new InMemoryUnitOfWork();
-        $users = new InMemoryUserRepository();
+        $userRepository = new InMemoryUserRepository();
         $user = UserFixture::withState('alice@example.test', UserState::ACTIVE);
-        $users->add($user);
-        $repository = new InMemoryPasswordResetGrants($unitOfWork);
+        $userRepository->add($user);
+        $passwordResetGrantRepository = new InMemoryPasswordResetGrants($unitOfWork);
         $issued = $this->grant($user->getId(), 'old');
-        self::assertTrue($repository->add($issued));
+        self::assertTrue($passwordResetGrantRepository->add($issued));
         $terminal = $issued->consume(
             new DateTimeImmutable('2026-08-20T12:05:00+00:00')
         )->invalidateDelivery();
-        self::assertTrue($repository->replace($issued, $terminal));
+        self::assertTrue($passwordResetGrantRepository->replace($issued, $terminal));
 
         $this->handler(
-            $users,
-            $repository,
+            $userRepository,
+            $passwordResetGrantRepository,
             new InMemoryAuditEvidenceRepository($unitOfWork),
             $unitOfWork,
             new InMemoryEventDispatcher(),
             'new'
         )->handle(CommandMessage::create(new RequestPasswordReset(EmailAddress::fromString('alice@example.test'))));
 
-        self::assertSame($terminal, $repository->all()[0]);
-        self::assertTrue($repository->all()[1]->isIssued());
+        self::assertSame($terminal, $passwordResetGrantRepository->all()[0]);
+        self::assertTrue($passwordResetGrantRepository->all()[1]->isIssued());
     }
 
     public function test_terminal_authority_with_recoverable_delivery_is_terminalized_before_successor_insertion(): void
     {
         $unitOfWork = new InMemoryUnitOfWork();
-        $users = new InMemoryUserRepository();
+        $userRepository = new InMemoryUserRepository();
         $user = UserFixture::withState('alice@example.test', UserState::ACTIVE);
-        $users->add($user);
-        $repository = new InMemoryPasswordResetGrants($unitOfWork);
+        $userRepository->add($user);
+        $passwordResetGrantRepository = new InMemoryPasswordResetGrants($unitOfWork);
         $issued = $this->grant($user->getId(), 'old');
-        self::assertTrue($repository->add($issued));
+        self::assertTrue($passwordResetGrantRepository->add($issued));
         $consumed = $issued->consume(
             new DateTimeImmutable('2026-08-20T12:05:00+00:00')
         );
-        self::assertTrue($repository->replace($issued, $consumed));
+        self::assertTrue($passwordResetGrantRepository->replace($issued, $consumed));
 
         $this->handler(
-            $users,
-            $repository,
+            $userRepository,
+            $passwordResetGrantRepository,
             new InMemoryAuditEvidenceRepository($unitOfWork),
             $unitOfWork,
             new InMemoryEventDispatcher(),
             'new'
         )->handle(CommandMessage::create(new RequestPasswordReset(EmailAddress::fromString('alice@example.test'))));
 
-        self::assertTrue($repository->all()[0]->isConsumed());
-        self::assertFalse($repository->all()[0]->getDelivery()->hasRecoverableMaterial());
+        self::assertTrue($passwordResetGrantRepository->all()[0]->isConsumed());
+        self::assertFalse($passwordResetGrantRepository->all()[0]->getDelivery()->hasRecoverableMaterial());
     }
 
     #[DataProvider('genericOutcomeStates')]
     public function test_unknown_and_ineligible_requests_have_the_same_no_work_outcome(?UserState $state): void
     {
-        $users = new InMemoryUserRepository();
+        $userRepository = new InMemoryUserRepository();
         if ($state instanceof UserState) {
-            $users->add(UserFixture::withState('alice@example.test', $state));
+            $userRepository->add(UserFixture::withState('alice@example.test', $state));
         }
 
         $unitOfWork = new InMemoryUnitOfWork();
-        $repository = new InMemoryPasswordResetGrants($unitOfWork);
-        $audit = new InMemoryAuditEvidenceRepository($unitOfWork);
-        $events = new InMemoryEventDispatcher();
+        $passwordResetGrantRepository = new InMemoryPasswordResetGrants($unitOfWork);
+        $auditEvidenceRepository = new InMemoryAuditEvidenceRepository($unitOfWork);
+        $eventDispatcher = new InMemoryEventDispatcher();
 
-        $this->handler($users, $repository, $audit, $unitOfWork, $events)->handle(
+        $this->handler(
+            $userRepository,
+            $passwordResetGrantRepository,
+            $auditEvidenceRepository,
+            $unitOfWork,
+            $eventDispatcher
+        )->handle(
             CommandMessage::create(new RequestPasswordReset(EmailAddress::fromString('alice@example.test')))
         );
 
-        self::assertSame([], $repository->all());
-        self::assertSame([], $audit->all());
-        self::assertSame([], $events->events());
+        self::assertSame([], $passwordResetGrantRepository->all());
+        self::assertSame([], $auditEvidenceRepository->all());
+        self::assertSame([], $eventDispatcher->events());
         self::assertSame(1, $unitOfWork->transactions);
     }
 
@@ -196,35 +219,35 @@ final class RequestPasswordResetHandlerTest extends TestCase
     {
         foreach ([false, true] as $reissue) {
             $unitOfWork = new InMemoryUnitOfWork();
-            $users = new InMemoryUserRepository();
+            $userRepository = new InMemoryUserRepository();
             $user = UserFixture::withState('alice@example.test', UserState::ACTIVE);
-            $users->add($user);
-            $repository = new InMemoryPasswordResetGrants(
+            $userRepository->add($user);
+            $passwordResetGrantRepository = new InMemoryPasswordResetGrants(
                 $unitOfWork,
                 replaceWithSuccessorSucceeds: false,
                 addSucceeds: $reissue
             );
             if ($reissue) {
-                $repository->add($this->grant($user->getId(), 'old'));
+                $passwordResetGrantRepository->add($this->grant($user->getId(), 'old'));
             }
 
-            $before = $repository->all();
-            $events = new InMemoryEventDispatcher();
+            $before = $passwordResetGrantRepository->all();
+            $eventDispatcher = new InMemoryEventDispatcher();
 
             try {
                 $this->handler(
-                    $users,
-                    $repository,
+                    $userRepository,
+                    $passwordResetGrantRepository,
                     new InMemoryAuditEvidenceRepository($unitOfWork),
                     $unitOfWork,
-                    $events
+                    $eventDispatcher
                 )->handle(CommandMessage::create(new RequestPasswordReset(
                     EmailAddress::fromString('alice@example.test')
                 )));
                 self::fail('A lost aggregate CAS succeeded.');
             } catch (LogicException) {
-                self::assertSame($before, $repository->all());
-                self::assertInstanceOf(CommandFailedEvent::class, $events->events()[0]);
+                self::assertSame($before, $passwordResetGrantRepository->all());
+                self::assertInstanceOf(CommandFailedEvent::class, $eventDispatcher->events()[0]);
             }
         }
     }
@@ -232,52 +255,55 @@ final class RequestPasswordResetHandlerTest extends TestCase
     public function test_a_lost_terminal_append_is_mutation_free(): void
     {
         $unitOfWork = new InMemoryUnitOfWork();
-        $users = new InMemoryUserRepository();
+        $userRepository = new InMemoryUserRepository();
         $user = UserFixture::withState('alice@example.test', UserState::ACTIVE);
-        $users->add($user);
-        $repository = new InMemoryPasswordResetGrants($unitOfWork, appendAfterTerminalSucceeds: false);
+        $userRepository->add($user);
+        $passwordResetGrantRepository = new InMemoryPasswordResetGrants(
+            $unitOfWork,
+            appendAfterTerminalSucceeds: false
+        );
         $issued = $this->grant($user->getId(), 'old');
-        self::assertTrue($repository->add($issued));
+        self::assertTrue($passwordResetGrantRepository->add($issued));
         $terminal = $issued->revoke(new DateTimeImmutable())->invalidateDelivery();
-        self::assertTrue($repository->replace($issued, $terminal));
-        $events = new InMemoryEventDispatcher();
+        self::assertTrue($passwordResetGrantRepository->replace($issued, $terminal));
+        $eventDispatcher = new InMemoryEventDispatcher();
 
         $this->expectException(LogicException::class);
         try {
             $this->handler(
-                $users,
-                $repository,
+                $userRepository,
+                $passwordResetGrantRepository,
                 new InMemoryAuditEvidenceRepository($unitOfWork),
                 $unitOfWork,
-                $events
+                $eventDispatcher
             )->handle(CommandMessage::create(new RequestPasswordReset(EmailAddress::fromString('alice@example.test'))));
         } finally {
-            self::assertSame([$terminal], $repository->all());
-            self::assertInstanceOf(CommandFailedEvent::class, $events->events()[0]);
+            self::assertSame([$terminal], $passwordResetGrantRepository->all());
+            self::assertInstanceOf(CommandFailedEvent::class, $eventDispatcher->events()[0]);
         }
     }
 
     public function test_audit_failure_rolls_back_the_complete_aggregate_write(): void
     {
         $unitOfWork = new InMemoryUnitOfWork();
-        $users = new InMemoryUserRepository();
-        $users->add(UserFixture::withState('alice@example.test', UserState::ACTIVE));
+        $userRepository = new InMemoryUserRepository();
+        $userRepository->add(UserFixture::withState('alice@example.test', UserState::ACTIVE));
 
-        $repository = new InMemoryPasswordResetGrants($unitOfWork);
-        $events = new InMemoryEventDispatcher();
+        $passwordResetGrantRepository = new InMemoryPasswordResetGrants($unitOfWork);
+        $eventDispatcher = new InMemoryEventDispatcher();
 
         $this->expectException(RuntimeException::class);
         try {
             $this->handler(
-                $users,
-                $repository,
+                $userRepository,
+                $passwordResetGrantRepository,
                 new InMemoryAuditEvidenceRepository($unitOfWork, failAfterSave: true),
                 $unitOfWork,
-                $events
+                $eventDispatcher
             )->handle(CommandMessage::create(new RequestPasswordReset(EmailAddress::fromString('alice@example.test'))));
         } finally {
-            self::assertSame([], $repository->all());
-            self::assertInstanceOf(CommandFailedEvent::class, $events->events()[0]);
+            self::assertSame([], $passwordResetGrantRepository->all());
+            self::assertInstanceOf(CommandFailedEvent::class, $eventDispatcher->events()[0]);
         }
     }
 
@@ -295,23 +321,23 @@ final class RequestPasswordResetHandlerTest extends TestCase
     }
 
     private function handler(
-        InMemoryUserRepository $users,
-        InMemoryPasswordResetGrants $repository,
-        InMemoryAuditEvidenceRepository $audit,
+        InMemoryUserRepository $userRepository,
+        InMemoryPasswordResetGrants $passwordResetGrantRepository,
+        InMemoryAuditEvidenceRepository $auditEvidenceRepository,
         InMemoryUnitOfWork $unitOfWork,
-        InMemoryEventDispatcher $events,
+        InMemoryEventDispatcher $eventDispatcher,
         string $credential = 'reset-once',
         string $now = '2026-08-20T12:00:00+00:00'
     ): RequestPasswordResetHandler {
         return new RequestPasswordResetHandler(
-            $users,
-            $repository,
-            $audit,
+            $userRepository,
+            $passwordResetGrantRepository,
+            $auditEvidenceRepository,
             $unitOfWork,
             new FixedPasswordResetCredentialGenerator($credential),
             new PrefixPasswordResetDeliveryCipher(),
             new FixedClock($now),
-            $events
+            $eventDispatcher
         );
     }
 }

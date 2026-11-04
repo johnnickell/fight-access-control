@@ -43,50 +43,64 @@ final class DeleteUserHandlerTest extends TestCase
     public function test_that_delete_atomically_soft_deletes_revokes_sessions_and_retains_identity(): void
     {
         $unitOfWork = new InMemoryUnitOfWork();
-        $users = new InMemoryUserRepository($unitOfWork);
+        $userRepository = new InMemoryUserRepository($unitOfWork);
         $user = UserFixture::withState('delete@example.test', UserState::ACTIVE);
-        $users->add($user);
-        $sessions = new InMemoryRefreshSessionRepository($unitOfWork);
-        $sessions->add($this->session(RefreshSessionId::generate(), $user->getId()));
+        $userRepository->add($user);
+        $refreshSessionRepository = new InMemoryRefreshSessionRepository($unitOfWork);
+        $refreshSessionRepository->add($this->session(RefreshSessionId::generate(), $user->getId()));
 
-        $audit = new InMemoryAuditEvidenceRepository($unitOfWork);
-        $events = new InMemoryEventDispatcher(static function () use ($audit, $unitOfWork): void {
-            self::assertCount(1, $audit->all());
-            self::assertTrue($unitOfWork->transactionCompleted);
-        });
-        $handler = $this->handler($users, $sessions, $audit, $unitOfWork, $events);
+        $auditEvidenceRepository = new InMemoryAuditEvidenceRepository($unitOfWork);
+        $eventDispatcher = new InMemoryEventDispatcher(
+            static function () use ($auditEvidenceRepository, $unitOfWork): void {
+                self::assertCount(1, $auditEvidenceRepository->all());
+                self::assertTrue($unitOfWork->transactionCompleted);
+            }
+        );
+        $handler = $this->handler(
+            $userRepository,
+            $refreshSessionRepository,
+            $auditEvidenceRepository,
+            $unitOfWork,
+            $eventDispatcher
+        );
         $actorId = UserId::generate();
 
         $handler->handle(CommandMessage::create(new DeleteUser($actorId, $user->getId())));
 
-        $stored = $users->getById($user->getId());
+        $stored = $userRepository->getById($user->getId());
         self::assertSame(UserState::DELETED, $stored?->getState());
-        $retained = $users->getByEmail(EmailAddress::fromString('delete@example.test'));
+        $retained = $userRepository->getByEmail(EmailAddress::fromString('delete@example.test'));
         self::assertInstanceOf(User::class, $retained);
         self::assertSame($user->getId(), $retained->getId());
         self::assertSame(UserState::DELETED, $retained->getState());
-        self::assertTrue($sessions->all()[0]->isRevoked());
-        self::assertSame('user.deleted', $audit->all()[0]->action());
-        self::assertSame($actorId->toString(), $audit->all()[0]->actorId());
-        self::assertCount(1, $events->events());
-        self::assertInstanceOf(UserDeleted::class, $events->events()[0]);
+        self::assertTrue($refreshSessionRepository->all()[0]->isRevoked());
+        self::assertSame('user.deleted', $auditEvidenceRepository->all()[0]->action());
+        self::assertSame($actorId->toString(), $auditEvidenceRepository->all()[0]->actorId());
+        self::assertCount(1, $eventDispatcher->events());
+        self::assertInstanceOf(UserDeleted::class, $eventDispatcher->events()[0]);
     }
 
     public function test_that_a_disabled_identity_can_also_be_deleted(): void
     {
         $unitOfWork = new InMemoryUnitOfWork();
-        $users = new InMemoryUserRepository($unitOfWork);
+        $userRepository = new InMemoryUserRepository($unitOfWork);
         $user = UserFixture::withState('delete-disabled@example.test', UserState::DISABLED);
-        $users->add($user);
-        $sessions = new InMemoryRefreshSessionRepository($unitOfWork);
-        $audit = new InMemoryAuditEvidenceRepository($unitOfWork);
-        $events = new InMemoryEventDispatcher();
+        $userRepository->add($user);
+        $refreshSessionRepository = new InMemoryRefreshSessionRepository($unitOfWork);
+        $auditEvidenceRepository = new InMemoryAuditEvidenceRepository($unitOfWork);
+        $eventDispatcher = new InMemoryEventDispatcher();
 
-        $this->handler($users, $sessions, $audit, $unitOfWork, $events)->handle(
+        $this->handler(
+            $userRepository,
+            $refreshSessionRepository,
+            $auditEvidenceRepository,
+            $unitOfWork,
+            $eventDispatcher
+        )->handle(
             CommandMessage::create(new DeleteUser(UserId::generate(), $user->getId()))
         );
 
-        self::assertSame(UserState::DELETED, $users->getById($user->getId())?->getState());
+        self::assertSame(UserState::DELETED, $userRepository->getById($user->getId())?->getState());
     }
 
     public function test_that_the_command_and_event_round_trip(): void
@@ -142,22 +156,28 @@ final class DeleteUserHandlerTest extends TestCase
     {
         foreach ([UserState::PENDING_ACTIVATION, UserState::DELETED] as $state) {
             $unitOfWork = new InMemoryUnitOfWork();
-            $users = new InMemoryUserRepository($unitOfWork);
+            $userRepository = new InMemoryUserRepository($unitOfWork);
             $user = UserFixture::withState('delete-'.$state->value.'@example.test', $state);
-            $users->add($user);
-            $sessions = new InMemoryRefreshSessionRepository($unitOfWork);
-            $audit = new InMemoryAuditEvidenceRepository($unitOfWork);
-            $events = new InMemoryEventDispatcher();
+            $userRepository->add($user);
+            $refreshSessionRepository = new InMemoryRefreshSessionRepository($unitOfWork);
+            $auditEvidenceRepository = new InMemoryAuditEvidenceRepository($unitOfWork);
+            $eventDispatcher = new InMemoryEventDispatcher();
 
             try {
-                $this->handler($users, $sessions, $audit, $unitOfWork, $events)->handle(
+                $this->handler(
+                    $userRepository,
+                    $refreshSessionRepository,
+                    $auditEvidenceRepository,
+                    $unitOfWork,
+                    $eventDispatcher
+                )->handle(
                     CommandMessage::create(new DeleteUser(UserId::generate(), $user->getId()))
                 );
                 self::fail('An ineligible identity was deleted.');
             } catch (UserLifecycleException) {
-                self::assertSame($state, $users->getById($user->getId())?->getState());
-                self::assertSame([], $audit->all());
-                self::assertInstanceOf(CommandFailedEvent::class, $events->events()[0]);
+                self::assertSame($state, $userRepository->getById($user->getId())?->getState());
+                self::assertSame([], $auditEvidenceRepository->all());
+                self::assertInstanceOf(CommandFailedEvent::class, $eventDispatcher->events()[0]);
             }
         }
     }
@@ -165,58 +185,70 @@ final class DeleteUserHandlerTest extends TestCase
     public function test_that_a_missing_identity_is_rejected_without_mutation(): void
     {
         $unitOfWork = new InMemoryUnitOfWork();
-        $users = new InMemoryUserRepository($unitOfWork);
-        $sessions = new InMemoryRefreshSessionRepository($unitOfWork);
-        $audit = new InMemoryAuditEvidenceRepository($unitOfWork);
-        $events = new InMemoryEventDispatcher();
+        $userRepository = new InMemoryUserRepository($unitOfWork);
+        $refreshSessionRepository = new InMemoryRefreshSessionRepository($unitOfWork);
+        $auditEvidenceRepository = new InMemoryAuditEvidenceRepository($unitOfWork);
+        $eventDispatcher = new InMemoryEventDispatcher();
 
         try {
-            $this->handler($users, $sessions, $audit, $unitOfWork, $events)->handle(
+            $this->handler(
+                $userRepository,
+                $refreshSessionRepository,
+                $auditEvidenceRepository,
+                $unitOfWork,
+                $eventDispatcher
+            )->handle(
                 CommandMessage::create(new DeleteUser(UserId::generate(), UserId::generate()))
             );
             self::fail('A missing identity was deleted.');
         } catch (UserLifecycleException) {
-            self::assertSame([], $audit->all());
-            self::assertInstanceOf(CommandFailedEvent::class, $events->events()[0]);
+            self::assertSame([], $auditEvidenceRepository->all());
+            self::assertInstanceOf(CommandFailedEvent::class, $eventDispatcher->events()[0]);
         }
     }
 
     public function test_that_a_stale_lifecycle_state_cas_rolls_back(): void
     {
         $unitOfWork = new InMemoryUnitOfWork();
-        $users = new InMemoryUserRepository($unitOfWork, replaceLifecycleStateSucceeds: false);
+        $userRepository = new InMemoryUserRepository($unitOfWork, replaceLifecycleStateSucceeds: false);
         $user = UserFixture::withState('delete@example.test', UserState::ACTIVE);
-        $users->add($user);
-        $sessions = new InMemoryRefreshSessionRepository($unitOfWork);
-        $audit = new InMemoryAuditEvidenceRepository($unitOfWork);
-        $events = new InMemoryEventDispatcher();
+        $userRepository->add($user);
+        $refreshSessionRepository = new InMemoryRefreshSessionRepository($unitOfWork);
+        $auditEvidenceRepository = new InMemoryAuditEvidenceRepository($unitOfWork);
+        $eventDispatcher = new InMemoryEventDispatcher();
 
         try {
-            $this->handler($users, $sessions, $audit, $unitOfWork, $events)->handle(
+            $this->handler(
+                $userRepository,
+                $refreshSessionRepository,
+                $auditEvidenceRepository,
+                $unitOfWork,
+                $eventDispatcher
+            )->handle(
                 CommandMessage::create(new DeleteUser(UserId::generate(), $user->getId()))
             );
             self::fail('A stale lifecycle state was replaced.');
         } catch (LogicException) {
-            self::assertSame(UserState::ACTIVE, $users->getById($user->getId())?->getState());
-            self::assertSame([], $audit->all());
-            self::assertInstanceOf(CommandFailedEvent::class, $events->events()[0]);
+            self::assertSame(UserState::ACTIVE, $userRepository->getById($user->getId())?->getState());
+            self::assertSame([], $auditEvidenceRepository->all());
+            self::assertInstanceOf(CommandFailedEvent::class, $eventDispatcher->events()[0]);
         }
     }
 
     private function handler(
-        InMemoryUserRepository $users,
-        InMemoryRefreshSessionRepository $sessions,
-        InMemoryAuditEvidenceRepository $audit,
+        InMemoryUserRepository $userRepository,
+        InMemoryRefreshSessionRepository $refreshSessionRepository,
+        InMemoryAuditEvidenceRepository $auditEvidenceRepository,
         InMemoryUnitOfWork $unitOfWork,
-        InMemoryEventDispatcher $events
+        InMemoryEventDispatcher $eventDispatcher
     ): DeleteUserHandler {
         return new DeleteUserHandler(
-            $users,
-            new SessionRevocationService($sessions),
+            $userRepository,
+            new SessionRevocationService($refreshSessionRepository),
             new FixedClock(new DateTimeImmutable('2026-08-20T12:00:00+00:00')),
-            $audit,
+            $auditEvidenceRepository,
             $unitOfWork,
-            $events,
+            $eventDispatcher,
             new InMemoryPasswordResetGrants($unitOfWork)
         );
     }

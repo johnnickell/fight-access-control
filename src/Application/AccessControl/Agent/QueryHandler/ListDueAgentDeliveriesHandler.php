@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Fight\AccessControl\Application\AccessControl\Agent\QueryHandler;
 
-use Fight\AccessControl\Application\AccessControl\Agent\Service\AgentDeliveryAuthorization;
+use Fight\AccessControl\Application\AccessControl\Agent\Delivery\AgentDeliveryAuthorization;
 use Fight\AccessControl\Application\AccessControl\Timing\Service\Clock;
 use Fight\AccessControl\Domain\AccessControl\Agent\Exception\AgentOperationRejectedException;
 use Fight\AccessControl\Domain\AccessControl\Agent\Operation\AgentOperationFailure;
@@ -26,8 +26,8 @@ final readonly class ListDueAgentDeliveriesHandler implements QueryHandler
      * Constructs ListDueAgentDeliveriesHandler
      */
     public function __construct(
-        private AgentOperationRepository $operations,
-        private AgentDeliveryAuthorization $authorization,
+        private AgentOperationRepository $agentOperationRepository,
+        private AgentDeliveryAuthorization $deliveryAuthorization,
         private Clock $clock
     ) {
     }
@@ -50,20 +50,20 @@ final readonly class ListDueAgentDeliveriesHandler implements QueryHandler
         /** @var ListDueAgentDeliveries $query */
         $query = $queryMessage->payload();
         try {
-            $this->authorization->authorizeDiscovery(
+            $this->deliveryAuthorization->authorizeDiscovery(
                 $query->getScope(),
                 $query->getDestination(),
                 null,
                 $this->clock->now()
             );
-            $this->operations->getOperationContract()->assertCompatible();
-            $views = $this->operations->listDueDeliveries(
+            $this->agentOperationRepository->getOperationContract()->assertCompatible();
+            $views = $this->agentOperationRepository->listDueDeliveries(
                 $query->getScope(),
                 $query->getDestination(),
                 $this->clock->now(),
                 $query->getLimit()
             );
-            $this->authorization->authorizeDiscovery(
+            $this->deliveryAuthorization->authorizeDiscovery(
                 $query->getScope(),
                 $query->getDestination(),
                 null,
@@ -82,7 +82,7 @@ final readonly class ListDueAgentDeliveriesHandler implements QueryHandler
                 }
 
                 $view->assertReadable($view->getKey(), $query->getDestination());
-                $this->authorization->authorizeDiscovery(
+                $this->deliveryAuthorization->authorizeDiscovery(
                     $query->getScope(),
                     $query->getDestination(),
                     $view->getIssuance(),

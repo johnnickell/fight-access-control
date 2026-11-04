@@ -43,7 +43,10 @@ final class CredentialDeliveryComponentsTest extends TestCase
         ) {
             $fixture = new ExpiredCredentialFixture($purpose);
             $query = new FindExpiredCredentialDeliveries($fixture->expiresAt, 50);
-            $this->assertCanonicalFields($schemas['Fight.AccessControl.FindExpiredCredentialDeliveries'], $query->toArray());
+            $this->assertCanonicalFields(
+                $schemas['Fight.AccessControl.FindExpiredCredentialDeliveries'],
+                $query->toArray()
+            );
             $work = $fixture->discovery()->handle(QueryMessage::create($query))[0];
             $workSchema = $schemas['Fight.AccessControl.ExpiredCredentialDelivery'];
             $this->assertCanonicalFields($workSchema, $work->toArray());
@@ -54,8 +57,11 @@ final class CredentialDeliveryComponentsTest extends TestCase
             $command = $fixture->command();
             $this->assertCanonicalFields($schemas['Fight.AccessControl.'.$commandName], $command->toArray());
             $fixture->handler()->handle(CommandMessage::create($command));
-            $event = $fixture->events->events()[0];
-            self::assertSame('#/components/schemas/Fight.AccessControl.'.$commandName, $schemas['Fight.AccessControl.'.$eventName]['$ref']);
+            $event = $fixture->eventDispatcher->events()[0];
+            self::assertSame(
+                '#/components/schemas/Fight.AccessControl.'.$commandName,
+                $schemas['Fight.AccessControl.'.$eventName]['$ref']
+            );
             $this->assertCanonicalFields($schemas['Fight.AccessControl.'.$commandName], $event->toArray());
             self::assertSame($command->toArray()['occurred_at'], $event->toArray()['occurred_at']);
         }
@@ -64,11 +70,20 @@ final class CredentialDeliveryComponentsTest extends TestCase
             'at'    => ['type' => 'string', 'format' => 'date-time'],
             'limit' => ['type' => 'integer', 'maximum' => 100, 'minimum' => 1]
         ], $schemas['Fight.AccessControl.FindExpiredCredentialDeliveries']['properties']);
-        self::assertSame(0, $schemas['Fight.AccessControl.ExpiredCredentialDelivery']['properties']['revision']['minimum']);
+        self::assertSame(
+            0,
+            $schemas['Fight.AccessControl.ExpiredCredentialDelivery']['properties']['revision']['minimum']
+        );
         self::assertSame('array', $schemas['Fight.AccessControl.ExpiredCredentialDeliveries']['type']);
         self::assertSame(100, $schemas['Fight.AccessControl.ExpiredCredentialDeliveries']['maxItems']);
-        self::assertSame('#/components/schemas/Fight.AccessControl.ExpiredCredentialDelivery', $schemas['Fight.AccessControl.ExpiredCredentialDeliveries']['items']['$ref']);
-        self::assertSame('#/components/schemas/Fight.AccessControl.ExpiredCredentialDeliveries', $schemas['Fight.AccessControl.JSend.Success.ExpiredCredentialDeliveries']['properties']['data']['$ref']);
+        self::assertSame(
+            '#/components/schemas/Fight.AccessControl.ExpiredCredentialDelivery',
+            $schemas['Fight.AccessControl.ExpiredCredentialDeliveries']['items']['$ref']
+        );
+        self::assertSame(
+            '#/components/schemas/Fight.AccessControl.ExpiredCredentialDeliveries',
+            $schemas['Fight.AccessControl.JSend.Success.ExpiredCredentialDeliveries']['properties']['data']['$ref']
+        );
     }
 
     public function test_generated_activation_origin_matches_the_current_serialized_value_contract(): void
@@ -272,7 +287,10 @@ final class CredentialDeliveryComponentsTest extends TestCase
             self::assertSame(['status', 'data'], $envelope['required']);
             self::assertSame(['status', 'data'], array_keys($envelope['properties']));
             self::assertSame(['type' => 'string', 'enum' => ['success']], $envelope['properties']['status']);
-            self::assertSame('#/components/schemas/Fight.AccessControl.'.$name, $envelope['properties']['data']['$ref']);
+            self::assertSame(
+                '#/components/schemas/Fight.AccessControl.'.$name,
+                $envelope['properties']['data']['$ref']
+            );
         }
 
         array_walk_recursive($schemas, static function (mixed $value, string|int $key) use ($schemas): void {

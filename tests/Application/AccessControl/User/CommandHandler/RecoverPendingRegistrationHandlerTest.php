@@ -51,16 +51,16 @@ final class RecoverPendingRegistrationHandlerTest extends TestCase
             $fixture = new RegistrationRecoveryFixture();
             $at = '2030-01-08T00:00:00Z';
             $command = $fixture->command($email);
-            $events = new InMemoryEventDispatcher(static function ($event) use ($fixture, $email): void {
+            $eventDispatcher = new InMemoryEventDispatcher(static function ($event) use ($fixture, $email): void {
                 self::assertFalse($fixture->unitOfWork->transactionActive);
                 self::assertTrue($fixture->unitOfWork->transactionCompleted);
-                self::assertCount(1, $fixture->audit->all());
-                self::assertCount(2, $fixture->grants->all());
+                self::assertCount(1, $fixture->auditEvidenceRepository->all());
+                self::assertCount(2, $fixture->activationGrantRepository->all());
                 self::assertInstanceOf(PendingRegistrationRecovered::class, $event);
                 self::assertSame(strtolower($email), $event->getEmail()->canonical());
             });
-            $fixture->handler($at, $events)->handle(CommandMessage::create($command));
-            $stored = $fixture->users->getById($command->getUserId());
+            $fixture->handler($at, $eventDispatcher)->handle(CommandMessage::create($command));
+            $stored = $fixture->userRepository->getById($command->getUserId());
             self::assertNotNull($stored);
             self::assertSame($fixture->initialUser->getId(), $stored->getId());
             self::assertSame(UserState::PENDING_ACTIVATION, $stored->getState());
@@ -87,11 +87,11 @@ final class RecoverPendingRegistrationHandlerTest extends TestCase
             } else {
                 self::assertSame(1, $stored->getCanonicalEmailRevision());
                 self::assertEquals(new DateTimeImmutable($at), $stored->getUpdatedAt());
-                self::assertNull($fixture->users->getByEmail($fixture->initialUser->getEmail()));
+                self::assertNull($fixture->userRepository->getByEmail($fixture->initialUser->getEmail()));
             }
 
-            self::assertCount(1, $fixture->users->all());
-            $old = $fixture->grants->all()[0];
+            self::assertCount(1, $fixture->userRepository->all());
+            $old = $fixture->activationGrantRepository->all()[0];
             self::assertTrue($old->isRevoked());
             self::assertNull($old->getDelivery()->getEncryptedMaterial());
             self::assertFalse($old->isUsableAt(new DateTimeImmutable($at)));
@@ -109,12 +109,12 @@ final class RecoverPendingRegistrationHandlerTest extends TestCase
                 'ciphertext:recovered-registration-credential',
                 $next->getDelivery()->getEncryptedMaterial()?->reveal()
             );
-            $audit = $fixture->audit->all()[0];
+            $audit = $fixture->auditEvidenceRepository->all()[0];
             self::assertSame('user.pending_registration_recovered', $audit->action());
             self::assertSame($fixture->actorId->toString(), $audit->actorId());
             self::assertSame($command->getUserId(), $audit->subjectId());
             self::assertSame([], $audit->context());
-            $event = $events->events()[0];
+            $event = $eventDispatcher->events()[0];
             self::assertInstanceOf(PendingRegistrationRecovered::class, $event);
             self::assertSame($fixture->actorId, $event->getActorId());
             self::assertSame($command->getUserId(), $event->getUserId());
@@ -134,7 +134,7 @@ final class RecoverPendingRegistrationHandlerTest extends TestCase
         self::assertSame($fixture->initial->getDelivery()->getId(), $command->getExpectedActivationDeliveryId());
         self::assertSame('corrected@example.test', $command->getEmail()->canonical());
         $fixture->handler()->handle(CommandMessage::create($command));
-        $event = $fixture->events->events()[0];
+        $event = $fixture->eventDispatcher->events()[0];
         self::assertInstanceOf(PendingRegistrationRecovered::class, $event);
         foreach ([$command, $event] as $message) {
             self::assertEquals($message, $message::fromArray($message->toArray()));
@@ -193,7 +193,7 @@ final class RecoverPendingRegistrationHandlerTest extends TestCase
         foreach (['absent', 'grant', UserState::ACTIVE, UserState::DISABLED, UserState::DELETED] as $condition) {
             $fixture = new RegistrationRecoveryFixture();
             if ($condition === 'grant') {
-                $fixture->grants = new InMemoryActivationGrantRepository($fixture->unitOfWork);
+                $fixture->activationGrantRepository = new InMemoryActivationGrantRepository($fixture->unitOfWork);
             } elseif ($condition === 'absent') {
                 $fixture->registration->userState->users = [];
             } else {
@@ -205,16 +205,16 @@ final class RecoverPendingRegistrationHandlerTest extends TestCase
                 )];
             }
 
-            $beforeUsers = $fixture->users->all();
-            $beforeGrants = $fixture->grants->all();
+            $beforeUsers = $fixture->userRepository->all();
+            $beforeGrants = $fixture->activationGrantRepository->all();
             try {
                 $fixture->handler()->handle(CommandMessage::create($fixture->command()));
                 self::fail('An ineligible User/grant was recovered.');
             } catch (RegistrationRecoveryException) {
-                self::assertEquals($beforeUsers, $fixture->users->all());
-                self::assertEquals($beforeGrants, $fixture->grants->all());
-                self::assertSame([], $fixture->audit->all());
-                self::assertInstanceOf(CommandFailedEvent::class, $fixture->events->events()[0]);
+                self::assertEquals($beforeUsers, $fixture->userRepository->all());
+                self::assertEquals($beforeGrants, $fixture->activationGrantRepository->all());
+                self::assertSame([], $fixture->auditEvidenceRepository->all());
+                self::assertInstanceOf(CommandFailedEvent::class, $fixture->eventDispatcher->events()[0]);
             }
         }
     }
@@ -236,8 +236,8 @@ final class RecoverPendingRegistrationHandlerTest extends TestCase
                     ),
                     'ciphertext:other-credential'
                 );
-                $fixture->grants = new InMemoryActivationGrantRepository($fixture->unitOfWork);
-                self::assertTrue($fixture->grants->add($grant));
+                $fixture->activationGrantRepository = new InMemoryActivationGrantRepository($fixture->unitOfWork);
+                self::assertTrue($fixture->activationGrantRepository->add($grant));
             } elseif ($condition === 'revoked' || $condition === 'consumed') {
                 $at = new DateTimeImmutable('2030-01-01T01:00:00Z');
                 $terminal = $grant->consume($at);
@@ -245,10 +245,10 @@ final class RecoverPendingRegistrationHandlerTest extends TestCase
                     $terminal = $grant->revoke($at);
                 }
 
-                self::assertTrue($fixture->grants->replace($grant, $terminal));
+                self::assertTrue($fixture->activationGrantRepository->replace($grant, $terminal));
             }
 
-            $before = $fixture->grants->all();
+            $before = $fixture->activationGrantRepository->all();
             try {
                 $expected = $grant->getDelivery()->getId();
                 if ($condition === 'generation') {
@@ -258,9 +258,9 @@ final class RecoverPendingRegistrationHandlerTest extends TestCase
                 $fixture->handler()->handle(CommandMessage::create($fixture->command(expected: $expected)));
                 self::fail('Invalid authority was recovered.');
             } catch (RegistrationRecoveryException) {
-                self::assertEquals($before, $fixture->grants->all());
-                self::assertEquals([$fixture->initialUser], $fixture->users->all());
-                self::assertSame([], $fixture->audit->all());
+                self::assertEquals($before, $fixture->activationGrantRepository->all());
+                self::assertEquals([$fixture->initialUser], $fixture->userRepository->all());
+                self::assertSame([], $fixture->auditEvidenceRepository->all());
             }
         }
     }
@@ -272,9 +272,9 @@ final class RecoverPendingRegistrationHandlerTest extends TestCase
             try {
                 $fixture->handler($at)->handle(CommandMessage::create($fixture->command('ALICE@example.test')));
                 self::assertNotSame('2030-01-07T23:59:59.999999Z', $at);
-                self::assertEquals($fixture->initialUser, $fixture->users->all()[0]);
-                self::assertCount(2, $fixture->grants->all());
-                self::assertCount(1, $fixture->audit->all());
+                self::assertEquals($fixture->initialUser, $fixture->userRepository->all()[0]);
+                self::assertCount(2, $fixture->activationGrantRepository->all());
+                self::assertCount(1, $fixture->auditEvidenceRepository->all());
             } catch (RegistrationRecoveryException) {
                 self::assertSame('2030-01-07T23:59:59.999999Z', $at);
                 $this->assertUnchanged($fixture);
@@ -290,7 +290,7 @@ final class RecoverPendingRegistrationHandlerTest extends TestCase
                 'taken@example.test',
                 $claim instanceof UserState ? $claim : UserState::ACTIVE
             );
-            $fixture->users->add($other);
+            $fixture->userRepository->add($other);
             $destination = 'TAKEN@example.test';
             if ($claim === 'reservation') {
                 $next = clone $other;
@@ -298,18 +298,18 @@ final class RecoverPendingRegistrationHandlerTest extends TestCase
                     EmailAddress::fromString('reserved@example.test'),
                     new DateTimeImmutable('2030-01-01Z')
                 );
-                self::assertTrue($fixture->users->replaceEmailChangeReservation($other, $next));
+                self::assertTrue($fixture->userRepository->replaceEmailChangeReservation($other, $next));
                 $destination = 'RESERVED@example.test';
             }
 
-            $before = $fixture->users->all();
+            $before = $fixture->userRepository->all();
             try {
                 $fixture->handler()->handle(CommandMessage::create($fixture->command($destination)));
                 self::fail('Claimed destination was stolen.');
             } catch (RegistrationRecoveryException) {
-                self::assertEquals($before, $fixture->users->all());
-                self::assertEquals([$fixture->initial], $fixture->grants->all());
-                self::assertSame([], $fixture->audit->all());
+                self::assertEquals($before, $fixture->userRepository->all());
+                self::assertEquals([$fixture->initial], $fixture->activationGrantRepository->all());
+                self::assertSame([], $fixture->auditEvidenceRepository->all());
             }
         }
     }
@@ -319,35 +319,38 @@ final class RecoverPendingRegistrationHandlerTest extends TestCase
         foreach (['user', 'grant', 'audit', 'commit'] as $failure) {
             $fixture = new RegistrationRecoveryFixture();
             if ($failure === 'user') {
-                $fixture->users = new InMemoryUserRepository(
+                $fixture->userRepository = new InMemoryUserRepository(
                     $fixture->unitOfWork
                 );
                 // Existing target has disappeared by authoritative replacement admission.
             } elseif ($failure === 'grant') {
-                $fixture->grants = new InMemoryActivationGrantRepository(
+                $fixture->activationGrantRepository = new InMemoryActivationGrantRepository(
                     $fixture->unitOfWork,
                     replaceWithSuccessorSucceeds: false,
-                    state: $fixture->grants
+                    activationGrantRepository: $fixture->activationGrantRepository
                 );
             } elseif ($failure === 'audit') {
-                $fixture->audit = new InMemoryAuditEvidenceRepository($fixture->unitOfWork, failAfterSave: true);
+                $fixture->auditEvidenceRepository = new InMemoryAuditEvidenceRepository(
+                    $fixture->unitOfWork,
+                    failAfterSave: true
+                );
             } else {
                 $fixture->unitOfWork->failNextCommit = true;
             }
 
-            $before = $fixture->users->all();
+            $before = $fixture->userRepository->all();
             try {
                 $fixture->handler()->handle(CommandMessage::create($fixture->command()));
                 self::fail('Injected failure was hidden.');
             } catch (DomainException | RuntimeException) {
-                self::assertEquals($before, $fixture->users->all());
-                self::assertEquals([$fixture->initial], $fixture->grants->all());
-                self::assertSame([], $fixture->audit->all());
-                self::assertCount(1, $fixture->events->events());
-                self::assertInstanceOf(CommandFailedEvent::class, $fixture->events->events()[0]);
+                self::assertEquals($before, $fixture->userRepository->all());
+                self::assertEquals([$fixture->initial], $fixture->activationGrantRepository->all());
+                self::assertSame([], $fixture->auditEvidenceRepository->all());
+                self::assertCount(1, $fixture->eventDispatcher->events());
+                self::assertInstanceOf(CommandFailedEvent::class, $fixture->eventDispatcher->events()[0]);
                 self::assertSame(
                     'Pending registration recovery failed.',
-                    $fixture->events->events()[0]->getErrorMessage()
+                    $fixture->eventDispatcher->events()[0]->getErrorMessage()
                 );
             }
         }
@@ -371,9 +374,9 @@ final class RecoverPendingRegistrationHandlerTest extends TestCase
                 $fixture->handler()->handle(CommandMessage::create($fixture->command()));
                 self::fail('Recovery repaired inconsistent authority implicitly.');
             } catch (RegistrationRecoveryException) {
-                self::assertSame($user, $fixture->users->all()[0]);
-                self::assertEquals([$fixture->initial], $fixture->grants->all());
-                self::assertSame([], $fixture->audit->all());
+                self::assertSame($user, $fixture->userRepository->all()[0]);
+                self::assertEquals([$fixture->initial], $fixture->activationGrantRepository->all());
+                self::assertSame([], $fixture->auditEvidenceRepository->all());
             }
         }
     }
@@ -407,21 +410,21 @@ final class RecoverPendingRegistrationHandlerTest extends TestCase
             }
 
             $attempts = [];
-            $events = new InMemoryEventDispatcher(static function ($event) use (&$attempts): void {
+            $eventDispatcher = new InMemoryEventDispatcher(static function ($event) use (&$attempts): void {
                 $attempts[] = $event;
 
                 throw new RuntimeException('secondary publisher failure');
             });
             $handler = new RecoverPendingRegistrationHandler(
-                $fixture->users,
-                $fixture->grants,
+                $fixture->userRepository,
+                $fixture->activationGrantRepository,
                 $fixture->authorization(),
-                $fixture->audit,
+                $fixture->auditEvidenceRepository,
                 $fixture->unitOfWork,
                 $generator,
                 $cipher,
                 new FixedClock('2030-01-02Z'),
-                $events
+                $eventDispatcher
             );
             $command = $fixture->command();
             try {
@@ -444,10 +447,10 @@ final class RecoverPendingRegistrationHandlerTest extends TestCase
 
     private function assertUnchanged(RegistrationRecoveryFixture $fixture): void
     {
-        self::assertEquals([$fixture->initialUser], $fixture->users->all());
-        self::assertEquals([$fixture->initial], $fixture->grants->all());
-        self::assertSame([], $fixture->audit->all());
-        foreach ($fixture->events->events() as $event) {
+        self::assertEquals([$fixture->initialUser], $fixture->userRepository->all());
+        self::assertEquals([$fixture->initial], $fixture->activationGrantRepository->all());
+        self::assertSame([], $fixture->auditEvidenceRepository->all());
+        foreach ($fixture->eventDispatcher->events() as $event) {
             self::assertInstanceOf(CommandFailedEvent::class, $event);
             self::assertSame('Pending registration recovery failed.', $event->getErrorMessage());
         }

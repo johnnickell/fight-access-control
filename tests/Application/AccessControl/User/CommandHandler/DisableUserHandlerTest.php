@@ -43,33 +43,41 @@ final class DisableUserHandlerTest extends TestCase
     public function test_that_disable_atomically_suspends_revokes_sessions_and_audits(): void
     {
         $unitOfWork = new InMemoryUnitOfWork();
-        $users = new InMemoryUserRepository($unitOfWork);
+        $userRepository = new InMemoryUserRepository($unitOfWork);
         $user = UserFixture::withState('disable@example.test', UserState::ACTIVE);
-        $users->add($user);
-        $sessions = new InMemoryRefreshSessionRepository($unitOfWork);
+        $userRepository->add($user);
+        $refreshSessionRepository = new InMemoryRefreshSessionRepository($unitOfWork);
         $sessionId = RefreshSessionId::generate();
-        $sessions->add($this->session($sessionId, $user->getId()));
-        $audit = new InMemoryAuditEvidenceRepository($unitOfWork);
-        $events = new InMemoryEventDispatcher(static function () use ($audit, $unitOfWork, $sessions): void {
-            self::assertCount(1, $audit->all());
-            self::assertTrue($unitOfWork->transactionCompleted);
-            self::assertTrue($sessions->all()[0]->isRevoked());
-        });
-        $handler = $this->handler($users, $sessions, $audit, $unitOfWork, $events);
+        $refreshSessionRepository->add($this->session($sessionId, $user->getId()));
+        $auditEvidenceRepository = new InMemoryAuditEvidenceRepository($unitOfWork);
+        $eventDispatcher = new InMemoryEventDispatcher(
+            static function () use ($auditEvidenceRepository, $unitOfWork, $refreshSessionRepository): void {
+                self::assertCount(1, $auditEvidenceRepository->all());
+                self::assertTrue($unitOfWork->transactionCompleted);
+                self::assertTrue($refreshSessionRepository->all()[0]->isRevoked());
+            }
+        );
+        $handler = $this->handler(
+            $userRepository,
+            $refreshSessionRepository,
+            $auditEvidenceRepository,
+            $unitOfWork,
+            $eventDispatcher
+        );
         $actorId = UserId::generate();
 
         $handler->handle(CommandMessage::create(new DisableUser($actorId, $user->getId())));
 
-        self::assertSame(UserState::DISABLED, $users->getById($user->getId())?->getState());
-        self::assertTrue($sessions->all()[0]->isRevoked());
-        self::assertSame('user.disabled', $audit->all()[0]->action());
-        self::assertSame($actorId->toString(), $audit->all()[0]->actorId());
-        self::assertSame($user->getId(), $audit->all()[0]->subjectId());
-        self::assertSame([], $audit->all()[0]->context());
-        self::assertCount(1, $events->events());
-        self::assertInstanceOf(UserDisabled::class, $events->events()[0]);
-        self::assertSame($actorId, $events->events()[0]->getActorId());
-        self::assertSame($user->getId(), $events->events()[0]->getUserId());
+        self::assertSame(UserState::DISABLED, $userRepository->getById($user->getId())?->getState());
+        self::assertTrue($refreshSessionRepository->all()[0]->isRevoked());
+        self::assertSame('user.disabled', $auditEvidenceRepository->all()[0]->action());
+        self::assertSame($actorId->toString(), $auditEvidenceRepository->all()[0]->actorId());
+        self::assertSame($user->getId(), $auditEvidenceRepository->all()[0]->subjectId());
+        self::assertSame([], $auditEvidenceRepository->all()[0]->context());
+        self::assertCount(1, $eventDispatcher->events());
+        self::assertInstanceOf(UserDisabled::class, $eventDispatcher->events()[0]);
+        self::assertSame($actorId, $eventDispatcher->events()[0]->getActorId());
+        self::assertSame($user->getId(), $eventDispatcher->events()[0]->getUserId());
     }
 
     public function test_that_the_command_and_event_round_trip_without_secret_material(): void
@@ -127,22 +135,28 @@ final class DisableUserHandlerTest extends TestCase
     {
         foreach ([UserState::PENDING_ACTIVATION, UserState::DISABLED, UserState::DELETED] as $state) {
             $unitOfWork = new InMemoryUnitOfWork();
-            $users = new InMemoryUserRepository($unitOfWork);
+            $userRepository = new InMemoryUserRepository($unitOfWork);
             $user = UserFixture::withState('disable-'.$state->value.'@example.test', $state);
-            $users->add($user);
-            $sessions = new InMemoryRefreshSessionRepository($unitOfWork);
-            $audit = new InMemoryAuditEvidenceRepository($unitOfWork);
-            $events = new InMemoryEventDispatcher();
+            $userRepository->add($user);
+            $refreshSessionRepository = new InMemoryRefreshSessionRepository($unitOfWork);
+            $auditEvidenceRepository = new InMemoryAuditEvidenceRepository($unitOfWork);
+            $eventDispatcher = new InMemoryEventDispatcher();
 
             try {
-                $this->handler($users, $sessions, $audit, $unitOfWork, $events)->handle(
+                $this->handler(
+                    $userRepository,
+                    $refreshSessionRepository,
+                    $auditEvidenceRepository,
+                    $unitOfWork,
+                    $eventDispatcher
+                )->handle(
                     CommandMessage::create(new DisableUser(UserId::generate(), $user->getId()))
                 );
                 self::fail('A non-active identity was disabled.');
             } catch (UserLifecycleException) {
-                self::assertSame($state, $users->getById($user->getId())?->getState());
-                self::assertSame([], $audit->all());
-                self::assertInstanceOf(CommandFailedEvent::class, $events->events()[0]);
+                self::assertSame($state, $userRepository->getById($user->getId())?->getState());
+                self::assertSame([], $auditEvidenceRepository->all());
+                self::assertInstanceOf(CommandFailedEvent::class, $eventDispatcher->events()[0]);
             }
         }
     }
@@ -150,58 +164,70 @@ final class DisableUserHandlerTest extends TestCase
     public function test_that_a_missing_identity_is_rejected_without_mutation(): void
     {
         $unitOfWork = new InMemoryUnitOfWork();
-        $users = new InMemoryUserRepository($unitOfWork);
-        $sessions = new InMemoryRefreshSessionRepository($unitOfWork);
-        $audit = new InMemoryAuditEvidenceRepository($unitOfWork);
-        $events = new InMemoryEventDispatcher();
+        $userRepository = new InMemoryUserRepository($unitOfWork);
+        $refreshSessionRepository = new InMemoryRefreshSessionRepository($unitOfWork);
+        $auditEvidenceRepository = new InMemoryAuditEvidenceRepository($unitOfWork);
+        $eventDispatcher = new InMemoryEventDispatcher();
 
         try {
-            $this->handler($users, $sessions, $audit, $unitOfWork, $events)->handle(
+            $this->handler(
+                $userRepository,
+                $refreshSessionRepository,
+                $auditEvidenceRepository,
+                $unitOfWork,
+                $eventDispatcher
+            )->handle(
                 CommandMessage::create(new DisableUser(UserId::generate(), UserId::generate()))
             );
             self::fail('A missing identity was disabled.');
         } catch (UserLifecycleException) {
-            self::assertSame([], $audit->all());
-            self::assertInstanceOf(CommandFailedEvent::class, $events->events()[0]);
+            self::assertSame([], $auditEvidenceRepository->all());
+            self::assertInstanceOf(CommandFailedEvent::class, $eventDispatcher->events()[0]);
         }
     }
 
     public function test_that_a_stale_lifecycle_state_cas_rolls_back(): void
     {
         $unitOfWork = new InMemoryUnitOfWork();
-        $users = new InMemoryUserRepository($unitOfWork, replaceLifecycleStateSucceeds: false);
+        $userRepository = new InMemoryUserRepository($unitOfWork, replaceLifecycleStateSucceeds: false);
         $user = UserFixture::withState('disable@example.test', UserState::ACTIVE);
-        $users->add($user);
-        $sessions = new InMemoryRefreshSessionRepository($unitOfWork);
-        $audit = new InMemoryAuditEvidenceRepository($unitOfWork);
-        $events = new InMemoryEventDispatcher();
+        $userRepository->add($user);
+        $refreshSessionRepository = new InMemoryRefreshSessionRepository($unitOfWork);
+        $auditEvidenceRepository = new InMemoryAuditEvidenceRepository($unitOfWork);
+        $eventDispatcher = new InMemoryEventDispatcher();
 
         try {
-            $this->handler($users, $sessions, $audit, $unitOfWork, $events)->handle(
+            $this->handler(
+                $userRepository,
+                $refreshSessionRepository,
+                $auditEvidenceRepository,
+                $unitOfWork,
+                $eventDispatcher
+            )->handle(
                 CommandMessage::create(new DisableUser(UserId::generate(), $user->getId()))
             );
             self::fail('A stale lifecycle state was replaced.');
         } catch (LogicException) {
-            self::assertSame(UserState::ACTIVE, $users->getById($user->getId())?->getState());
-            self::assertSame([], $audit->all());
-            self::assertInstanceOf(CommandFailedEvent::class, $events->events()[0]);
+            self::assertSame(UserState::ACTIVE, $userRepository->getById($user->getId())?->getState());
+            self::assertSame([], $auditEvidenceRepository->all());
+            self::assertInstanceOf(CommandFailedEvent::class, $eventDispatcher->events()[0]);
         }
     }
 
     private function handler(
-        InMemoryUserRepository $users,
-        InMemoryRefreshSessionRepository $sessions,
-        InMemoryAuditEvidenceRepository $audit,
+        InMemoryUserRepository $userRepository,
+        InMemoryRefreshSessionRepository $refreshSessionRepository,
+        InMemoryAuditEvidenceRepository $auditEvidenceRepository,
         InMemoryUnitOfWork $unitOfWork,
-        InMemoryEventDispatcher $events
+        InMemoryEventDispatcher $eventDispatcher
     ): DisableUserHandler {
         return new DisableUserHandler(
-            $users,
-            new SessionRevocationService($sessions),
+            $userRepository,
+            new SessionRevocationService($refreshSessionRepository),
             new FixedClock(new DateTimeImmutable('2026-08-20T12:00:00+00:00')),
-            $audit,
+            $auditEvidenceRepository,
             $unitOfWork,
-            $events,
+            $eventDispatcher,
             new InMemoryPasswordResetGrants($unitOfWork)
         );
     }

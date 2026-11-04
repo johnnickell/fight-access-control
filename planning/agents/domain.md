@@ -9,8 +9,10 @@ The earlier two-production-layer/no-Adapter summary is superseded by WF-035 and 
 
 Current source has Domain/Application plus opt-in PSR-15, Symfony and Agent MCP adapters. TASK-00108 moves MCP
 presentation/bindings/availability to `Adapter/Mcp/{Tool,Resource,Skill}/Agent`; authentication, Permission policy and
-synchronized continuation stay inward. Secret-bearing User operations still use AuthenticationService.
-TASK-00109/00112 own future capability cleanup/decomposition; TASK-00107 changed guidance only. Consumers retain persistence,
+synchronized continuation stay inward. TASK-00109 groups Agent capabilities, Feature Discovery and authorization
+Admission with descriptive collaborators; see the
+[current composition map](../../docs/agent-integration.md#public-composition-map). Secret-bearing User operations
+still use AuthenticationService; TASK-00112 owns its decomposition. TASK-00107 changed guidance only. Consumers retain persistence,
 policy/grants/target scope, route/bootstrap/key/queue/runtime composition and actual integration qualification.
 A persistence placement pattern is not permission to implement production persistence here.
 

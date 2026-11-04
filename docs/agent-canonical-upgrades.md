@@ -77,7 +77,7 @@ of version upgrades; [TASK-00058](../planning/tasks/00058-TASK.md) retains resto
 
 ## M3 executable evidence
 
-The consumer-bindable [AgentCanonicalConformance](../tests/Application/AccessControl/Agent/Security/AgentCanonicalConformance.php)
+The consumer-bindable [AgentCanonicalConformance](../tests/Application/AccessControl/Agent/Credential/AgentCanonicalConformance.php)
 uses `DeliveryConformanceFixture & AgentCanonicalFixture` with actual public services. Bind ports to real adapters,
 expire delegation through its authority writer, and inject unsupported markers/corrupt requests without changing
 other state. Restart must discard process composition while preserving durable operation/sink/authority state.

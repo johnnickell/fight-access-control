@@ -28,9 +28,9 @@ final readonly class SetFeatureStatusHandler implements CommandHandler
      * Constructs SetFeatureStatusHandler
      */
     public function __construct(
-        private FeatureRepository $features,
+        private FeatureRepository $featureRepository,
         private TransactionalUnitOfWork $unitOfWork,
-        private EventDispatcher $events
+        private EventDispatcher $eventDispatcher
     ) {
     }
 
@@ -51,7 +51,7 @@ final readonly class SetFeatureStatusHandler implements CommandHandler
         $command = $commandMessage->payload();
         try {
             $event = $this->unitOfWork->commitTransactional(function () use ($command): ?FeatureStatusChanged {
-                $feature = $this->features->getById($command->getFeatureId());
+                $feature = $this->featureRepository->getById($command->getFeatureId());
                 if (!$feature instanceof Feature) {
                     throw new FeatureNotFoundException('The Feature does not exist.');
                 }
@@ -61,7 +61,7 @@ final readonly class SetFeatureStatusHandler implements CommandHandler
                 }
 
                 $successor = $feature->withStatus($command->getStatus());
-                if (!$this->features->replace($feature, $successor)) {
+                if (!$this->featureRepository->replace($feature, $successor)) {
                     throw new FeatureRevisionException('The Feature changed concurrently.');
                 }
 
@@ -72,11 +72,11 @@ final readonly class SetFeatureStatusHandler implements CommandHandler
                 return new FeatureStatusChanged($feature->getId(), $successor->getStatus(), $successor->getRevision());
             });
             if ($event instanceof FeatureStatusChanged) {
-                $this->events->trigger($event);
+                $this->eventDispatcher->trigger($event);
             }
         } catch (Throwable $throwable) {
             try {
-                $this->events->trigger(new CommandFailedEvent($command, 'Feature status update failed.'));
+                $this->eventDispatcher->trigger(new CommandFailedEvent($command, 'Feature status update failed.'));
             } finally {
                 throw $throwable;
             }

@@ -8,14 +8,14 @@ consumer Permission or alternate workflow. “Publish” means available in this
 ## Run and bind
 
 The reusable suite is
-[`IssuanceRecoveryConformance`](../tests/Application/AccessControl/Agent/Security/IssuanceRecoveryConformance.php).
+[`IssuanceRecoveryConformance`](../tests/Application/AccessControl/Agent/Credential/IssuanceRecoveryConformance.php).
 Its only abstract method is `newFixture(): IssuanceRecoveryFixture`. The reference subclass is
-[`InMemoryIssuanceRecoveryConformanceTest`](../tests/Application/AccessControl/Agent/Security/InMemoryIssuanceRecoveryConformanceTest.php).
+[`InMemoryIssuanceRecoveryConformanceTest`](../tests/Application/AccessControl/Agent/Credential/InMemoryIssuanceRecoveryConformanceTest.php).
 Run it using PHP 8.5 and the checkout's installed PHPUnit:
 
 ```sh
 php vendor/bin/phpunit --no-coverage \
-  tests/Application/AccessControl/Agent/Security/InMemoryIssuanceRecoveryConformanceTest.php
+  tests/Application/AccessControl/Agent/Credential/InMemoryIssuanceRecoveryConformanceTest.php
 ```
 
 This is product behavior/conformance, included in the ordinary Application suite and `./bin/build`; it is not
@@ -31,9 +31,9 @@ A consumer:
    its test bootstrap/autoload-dev. Dependency autoload-dev mappings are not automatically inherited. Do not add the
    test namespace to production autoload or copy lifecycle policy into a consumer wrapper.
 3. Implements
-   [`IssuanceRecoveryFixture`](../tests/Application/AccessControl/Agent/Service/Conformance/IssuanceRecoveryFixture.php)
+   [`IssuanceRecoveryFixture`](../tests/Application/AccessControl/Agent/Credential/Conformance/IssuanceRecoveryFixture.php)
    using its actual repositories, transaction/authority adapters and controlled test sink. Returns
-   [`IssuanceRecoveryPorts`](../tests/Application/AccessControl/Agent/Service/Conformance/IssuanceRecoveryPorts.php),
+   [`IssuanceRecoveryPorts`](../tests/Application/AccessControl/Agent/Credential/Conformance/IssuanceRecoveryPorts.php),
    containing only public Domain/Application/Common capabilities. The suite itself constructs package services.
 4. Extends `IssuanceRecoveryConformance`, implements `newFixture()`, and uses the reference subclass's coverage
    metadata when its PHPUnit configuration requires it. Each fixture must own a fresh isolated dataset, destination

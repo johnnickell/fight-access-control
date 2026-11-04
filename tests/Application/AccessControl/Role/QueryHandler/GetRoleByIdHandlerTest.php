@@ -37,14 +37,14 @@ final class GetRoleByIdHandlerTest extends TestCase
             new DateTimeImmutable('2026-01-01T00:00:00+00:00')
         ));
 
-        $roles = new InMemoryRoleRepository(authorizationReferences: $authorizationReferences);
-        $roles->add(Role::defineManaged(
+        $roleRepository = new InMemoryRoleRepository(authorizationReferences: $authorizationReferences);
+        $roleRepository->add(Role::defineManaged(
             $roleId,
             RoleName::fromString('ROLE_ADMINISTRATOR'),
             [$permissionId],
             new DateTimeImmutable('2026-01-01T00:00:00+00:00')
         ));
-        $handler = new GetRoleByIdHandler($roles);
+        $handler = new GetRoleByIdHandler($roleRepository);
 
         self::assertSame(GetRoleById::class, GetRoleByIdHandler::queryRegistration());
         $view = $handler->handle(QueryMessage::create(new GetRoleById($roleId)));
@@ -53,7 +53,7 @@ final class GetRoleByIdHandlerTest extends TestCase
         self::assertInstanceOf(Arrayable::class, $view);
         self::assertSame(
             [
-                'revision'       => $roles->getById($roleId)->getRevision()->toString(),
+                'revision'       => $roleRepository->getById($roleId)->getRevision()->toString(),
                 'role_id'        => '018f0000-0000-7000-8000-000000000002',
                 'name'           => 'ROLE_ADMINISTRATOR',
                 'managed'        => true,

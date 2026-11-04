@@ -7,10 +7,10 @@ namespace Fight\Test\AccessControl\Application\AccessControl\Feature\CommandHand
 use DateTimeImmutable;
 use Fight\AccessControl\Application\AccessControl\Feature\Attribute\FeatureFlag;
 use Fight\AccessControl\Application\AccessControl\Feature\CommandHandler\ProvisionFeaturesHandler;
-use Fight\AccessControl\Application\AccessControl\Feature\FeatureDiscoveryResult;
-use Fight\AccessControl\Application\AccessControl\Feature\FeatureReferences;
-use Fight\AccessControl\Application\AccessControl\Feature\FeatureReferenceScope;
-use Fight\AccessControl\Application\AccessControl\Feature\Service\FeatureReferenceDiscovery;
+use Fight\AccessControl\Application\AccessControl\Feature\Discovery\FeatureDiscoveryResult;
+use Fight\AccessControl\Application\AccessControl\Feature\Discovery\FeatureReferenceDiscovery;
+use Fight\AccessControl\Application\AccessControl\Feature\Discovery\FeatureReferences;
+use Fight\AccessControl\Application\AccessControl\Feature\Discovery\FeatureReferenceScope;
 use Fight\AccessControl\Domain\AccessControl\Feature\Command\ProvisionFeatures;
 use Fight\AccessControl\Domain\AccessControl\Feature\Event\FeatureCreated;
 use Fight\AccessControl\Domain\AccessControl\Feature\Exception\FeatureConflictException;
@@ -33,8 +33,8 @@ use Fight\Common\Domain\Messaging\Command\CommandMessage;
 use Fight\Common\Domain\Messaging\Event\CommandFailedEvent;
 use Fight\Common\Domain\Messaging\Event\Event;
 use Fight\Test\AccessControl\Application\AccessControl\Event\InMemoryEventDispatcher;
+use Fight\Test\AccessControl\Application\AccessControl\Feature\Discovery\FixtureFeatureDiscovery;
 use Fight\Test\AccessControl\Application\AccessControl\Feature\Repository\InMemoryFeatureRepository;
-use Fight\Test\AccessControl\Application\AccessControl\Feature\Service\FixtureFeatureDiscovery;
 use Fight\Test\AccessControl\Application\AccessControl\Permission\Repository\InMemoryPermissionRepository;
 use Fight\Test\AccessControl\Application\AccessControl\User\InMemoryUnitOfWork;
 use PHPUnit\Framework\Attributes\CoversClass;
@@ -48,11 +48,11 @@ final class ProvisionFeaturesHandlerTest extends TestCase
 {
     private InMemoryUnitOfWork $unitOfWork;
 
-    private InMemoryFeatureRepository $features;
+    private InMemoryFeatureRepository $featureRepository;
 
-    private InMemoryPermissionRepository $permissions;
+    private InMemoryPermissionRepository $permissionRepository;
 
-    private InMemoryEventDispatcher $events;
+    private InMemoryEventDispatcher $eventDispatcher;
 
     private Permission $default;
 
@@ -61,9 +61,9 @@ final class ProvisionFeaturesHandlerTest extends TestCase
     protected function setUp(): void
     {
         $this->unitOfWork = new InMemoryUnitOfWork();
-        $this->features = new InMemoryFeatureRepository($this->unitOfWork);
-        $this->permissions = new InMemoryPermissionRepository($this->unitOfWork);
-        $this->events = new InMemoryEventDispatcher();
+        $this->featureRepository = new InMemoryFeatureRepository($this->unitOfWork);
+        $this->permissionRepository = new InMemoryPermissionRepository($this->unitOfWork);
+        $this->eventDispatcher = new InMemoryEventDispatcher();
         $this->default = Permission::define(
             PermissionId::generate(),
             PermissionName::fromString('TEST_FEATURES'),
@@ -75,8 +75,8 @@ final class ProvisionFeaturesHandlerTest extends TestCase
             PermissionTier::SUPER_ADMIN_ONLY,
             new DateTimeImmutable('2026-01-01T00:00:00+00:00')
         );
-        $this->permissions->add($this->default);
-        $this->permissions->add($this->protected);
+        $this->permissionRepository->add($this->default);
+        $this->permissionRepository->add($this->protected);
     }
 
     public function test_atomic_pass_creates_only_missing_names_and_publishes_after_every_insert_commits(): void
@@ -85,35 +85,35 @@ final class ProvisionFeaturesHandlerTest extends TestCase
         $existing = [];
         foreach (FeatureStatus::cases() as $status) {
             $feature = $this->stored('existing-'.$status->value, $status);
-            $this->features->seed($feature);
+            $this->featureRepository->seed($feature);
             $existing[] = $feature;
             $names[] = $feature->getName()->toString();
         }
 
         $unregistered = $this->stored('unregistered', FeatureStatus::ON);
-        $this->features->seed($unregistered);
-        $this->features->afterAdd = function (): void {
+        $this->featureRepository->seed($unregistered);
+        $this->featureRepository->afterAdd = function (): void {
             self::assertTrue($this->unitOfWork->transactionActive);
             self::assertTrue($this->unitOfWork->authorizationReferenceState()->isReferenceFenceHeld());
-            self::assertSame([], $this->events->events());
+            self::assertSame([], $this->eventDispatcher->events());
         };
-        $this->events = new InMemoryEventDispatcher(function (Event $event): void {
+        $this->eventDispatcher = new InMemoryEventDispatcher(function (Event $event): void {
             self::assertInstanceOf(FeatureCreated::class, $event);
             self::assertTrue($this->unitOfWork->transactionCompleted);
             self::assertFalse($this->unitOfWork->transactionActive);
             self::assertFalse($this->unitOfWork->authorizationReferenceState()->isReferenceFenceHeld());
-            self::assertCount(6, $this->features->records);
+            self::assertCount(6, $this->featureRepository->records);
         });
 
         $this->handler($names)->handle($this->message());
 
         self::assertSame(ProvisionFeatures::class, ProvisionFeaturesHandler::commandRegistration());
         self::assertSame(1, $this->unitOfWork->transactions);
-        self::assertSame(2, $this->features->writes);
-        self::assertCount(2, $this->events->events());
-        foreach ($this->events->events() as $event) {
+        self::assertSame(2, $this->featureRepository->writes);
+        self::assertCount(2, $this->eventDispatcher->events());
+        foreach ($this->eventDispatcher->events() as $event) {
             self::assertInstanceOf(FeatureCreated::class, $event);
-            $created = $this->features->getById($event->getFeatureId());
+            $created = $this->featureRepository->getById($event->getFeatureId());
             self::assertInstanceOf(Feature::class, $created);
             self::assertContains($created->getName()->toString(), ['new-checkout', 'dashboard']);
             self::assertSame($created->getName(), $event->getName());
@@ -124,24 +124,24 @@ final class ProvisionFeaturesHandlerTest extends TestCase
         }
 
         foreach ([...$existing, $unregistered] as $feature) {
-            self::assertSame($feature, $this->features->getById($feature->getId()));
+            self::assertSame($feature, $this->featureRepository->getById($feature->getId()));
         }
 
-        self::assertSame($this->default, $this->permissions->getById($this->default->getId()));
-        self::assertSame($this->protected, $this->permissions->getById($this->protected->getId()));
+        self::assertSame($this->default, $this->permissionRepository->getById($this->default->getId()));
+        self::assertSame($this->protected, $this->permissionRepository->getById($this->protected->getId()));
     }
 
     public function test_protected_default_is_a_reference_not_a_grant_or_tier_change(): void
     {
         $this->handler()->handle($this->message('PROTECTED_PREVIEW'));
 
-        self::assertCount(2, $this->features->records);
-        foreach ($this->features->records as $feature) {
+        self::assertCount(2, $this->featureRepository->records);
+        foreach ($this->featureRepository->records as $feature) {
             self::assertSame($this->protected->getId(), $feature->getPermissionId());
             self::assertSame(FeatureStatus::OFF, $feature->getStatus());
         }
 
-        self::assertSame($this->protected, $this->permissions->getById($this->protected->getId()));
+        self::assertSame($this->protected, $this->permissionRepository->getById($this->protected->getId()));
         self::assertSame(PermissionTier::SUPER_ADMIN_ONLY, $this->protected->getTier());
     }
 
@@ -154,8 +154,8 @@ final class ProvisionFeaturesHandlerTest extends TestCase
         $failure = $this->failure(fn() => $this->handler()->handle(CommandMessage::create($command)));
 
         self::assertInstanceOf($exception, $failure);
-        self::assertSame([], $this->features->records);
-        self::assertSame(0, $this->features->writes);
+        self::assertSame([], $this->featureRepository->records);
+        self::assertSame(0, $this->featureRepository->writes);
         self::assertFalse($this->unitOfWork->transactionCompleted);
         $this->assertFailureEvent($command, $failure);
     }
@@ -172,29 +172,31 @@ final class ProvisionFeaturesHandlerTest extends TestCase
     public function test_noop_preserves_even_broken_bindings_without_validating_unused_configuration(): void
     {
         $stored = $this->stored('existing', FeatureStatus::PREVIEW, PermissionId::generate());
-        $this->features->seed($stored);
-        $permissions = $this->createMock(PermissionRepository::class);
-        $permissions->expects(self::never())->method('getByName');
-        $permissions->expects(self::never())->method('getById');
-        $permissions->expects(self::never())->method('add');
+        $this->featureRepository->seed($stored);
+        $permissionRepository = $this->createMock(PermissionRepository::class);
+        $permissionRepository->expects(self::never())->method('getByName');
+        $permissionRepository->expects(self::never())->method('getById');
+        $permissionRepository->expects(self::never())->method('add');
 
         foreach ([null, '', 'invalid', 'UNDEFINED_PERMISSION'] as $configuration) {
-            $this->handler(['existing'], permissions: $permissions)->handle($this->message($configuration));
+            $this->handler(['existing'], permissionRepository: $permissionRepository)->handle(
+                $this->message($configuration)
+            );
         }
 
-        self::assertSame([$stored->getId()->toString() => $stored], $this->features->records);
-        self::assertSame(0, $this->features->writes);
-        self::assertSame([], $this->events->events());
+        self::assertSame([$stored->getId()->toString() => $stored], $this->featureRepository->records);
+        self::assertSame(0, $this->featureRepository->writes);
+        self::assertSame([], $this->eventDispatcher->events());
     }
 
     public function test_complete_empty_inventory_succeeds_without_configuration_or_writes(): void
     {
         $this->handler([])->handle($this->message(null));
 
-        self::assertSame([], $this->features->records);
-        self::assertSame([], $this->features->lookups);
-        self::assertSame(0, $this->features->writes);
-        self::assertSame([], $this->events->events());
+        self::assertSame([], $this->featureRepository->records);
+        self::assertSame([], $this->featureRepository->lookups);
+        self::assertSame(0, $this->featureRepository->writes);
+        self::assertSame([], $this->eventDispatcher->events());
     }
 
     public function test_incomplete_and_wrong_scope_discovery_cannot_start_a_transaction(): void
@@ -204,7 +206,7 @@ final class ProvisionFeaturesHandlerTest extends TestCase
             FeatureDiscoveryResult::complete(FeatureReferenceScope::CURRENT, new FeatureReferences())
         ];
         foreach ($results as $result) {
-            $this->events = new InMemoryEventDispatcher();
+            $this->eventDispatcher = new InMemoryEventDispatcher();
             $discovery = $this->createMock(FeatureReferenceDiscovery::class);
             $discovery->expects(self::once())->method('discover')->with(FeatureReferenceScope::CANDIDATE)
                 ->willReturn($result);
@@ -215,7 +217,7 @@ final class ProvisionFeaturesHandlerTest extends TestCase
 
             self::assertInstanceOf(FeatureDiscoveryException::class, $failure);
             self::assertSame(0, $this->unitOfWork->transactions);
-            self::assertSame([], $this->features->records);
+            self::assertSame([], $this->featureRepository->records);
             $this->assertFailureEvent($command, $failure);
         }
     }
@@ -237,35 +239,39 @@ final class ProvisionFeaturesHandlerTest extends TestCase
         $failure = $this->failure(fn() => $this->handler(discovery: $discovery)->handle($this->message()));
 
         self::assertInstanceOf(FeatureDiscoveryException::class, $failure);
-        self::assertSame([], $this->features->records);
+        self::assertSame([], $this->featureRepository->records);
         self::assertSame(0, $this->unitOfWork->transactions);
     }
 
     public function test_discovery_lookup_and_permission_storage_failures_rethrow_the_same_failure(): void
     {
         foreach (['discovery', 'feature-read', 'permission-read'] as $boundary) {
-            $this->events = new InMemoryEventDispatcher();
+            $this->eventDispatcher = new InMemoryEventDispatcher();
             $failure = new RuntimeException('Storage unavailable: '.$boundary);
             $discovery = null;
-            $features = null;
-            $permissions = null;
+            $featureRepository = null;
+            $permissionRepository = null;
             if ($boundary === 'discovery') {
                 $discovery = $this->createStub(FeatureReferenceDiscovery::class);
                 $discovery->method('discover')->willThrowException($failure);
             } elseif ($boundary === 'feature-read') {
-                $features = $this->createMock(FeatureRepository::class);
-                $features->method('getByName')->willThrowException($failure);
-                $features->expects(self::never())->method('add');
+                $featureRepository = $this->createMock(FeatureRepository::class);
+                $featureRepository->method('getByName')->willThrowException($failure);
+                $featureRepository->expects(self::never())->method('add');
             } else {
-                $permissions = $this->createStub(PermissionRepository::class);
-                $permissions->method('getByName')->willThrowException($failure);
+                $permissionRepository = $this->createStub(PermissionRepository::class);
+                $permissionRepository->method('getByName')->willThrowException($failure);
             }
 
             $command = new ProvisionFeatures('TEST_FEATURES');
-            $handler = $this->handler(discovery: $discovery, features: $features, permissions: $permissions);
+            $handler = $this->handler(
+                discovery: $discovery,
+                featureRepository: $featureRepository,
+                permissionRepository: $permissionRepository
+            );
 
             self::assertSame($failure, $this->failure(fn() => $handler->handle(CommandMessage::create($command))));
-            self::assertSame([], $this->features->records);
+            self::assertSame([], $this->featureRepository->records);
             $this->assertFailureEvent($command, $failure);
         }
     }
@@ -273,52 +279,52 @@ final class ProvisionFeaturesHandlerTest extends TestCase
     public function test_later_insertion_failure_rolls_back_earlier_inserts_and_retry_rereads(): void
     {
         $failure = new RuntimeException('Second insert failed.');
-        $this->features->beforeAdd = static function (Feature $feature) use ($failure): void {
+        $this->featureRepository->beforeAdd = static function (Feature $feature) use ($failure): void {
             if ($feature->getName()->toString() === 'dashboard') {
                 throw $failure;
             }
         };
         $command = new ProvisionFeatures('TEST_FEATURES');
         self::assertSame($failure, $this->failure(fn() => $this->handler()->handle(CommandMessage::create($command))));
-        self::assertSame(1, $this->features->writes);
-        self::assertSame([], $this->features->records);
+        self::assertSame(1, $this->featureRepository->writes);
+        self::assertSame([], $this->featureRepository->records);
         $this->assertFailureEvent($command, $failure);
         self::assertFalse($this->unitOfWork->authorizationReferenceState()->isReferenceFenceHeld());
 
-        $this->features->beforeAdd = null;
-        $this->events = new InMemoryEventDispatcher();
+        $this->featureRepository->beforeAdd = null;
+        $this->eventDispatcher = new InMemoryEventDispatcher();
         $this->handler()->handle($this->message('PROTECTED_PREVIEW'));
 
-        self::assertCount(2, $this->features->records);
-        self::assertCount(2, $this->events->events());
-        self::assertSame(['new-checkout', 'dashboard', 'new-checkout', 'dashboard'], $this->features->lookups);
-        foreach ($this->features->records as $feature) {
+        self::assertCount(2, $this->featureRepository->records);
+        self::assertCount(2, $this->eventDispatcher->events());
+        self::assertSame(['new-checkout', 'dashboard', 'new-checkout', 'dashboard'], $this->featureRepository->lookups);
+        foreach ($this->featureRepository->records as $feature) {
             self::assertSame($this->protected->getId(), $feature->getPermissionId());
         }
     }
 
     public function test_permission_removal_cannot_win_after_first_insert_of_atomic_provisioning_pass(): void
     {
-        $this->features->beforeAdd = function (Feature $feature): void {
+        $this->featureRepository->beforeAdd = function (Feature $feature): void {
             if ($feature->getName()->toString() !== 'dashboard') {
                 return;
             }
 
             self::assertTrue($this->unitOfWork->authorizationReferenceState()->isReferenceFenceHeld());
-            self::assertFalse($this->permissions->remove($this->default));
-            self::assertSame($this->default, $this->permissions->getById($this->default->getId()));
+            self::assertFalse($this->permissionRepository->remove($this->default));
+            self::assertSame($this->default, $this->permissionRepository->getById($this->default->getId()));
         };
 
         $this->handler()->handle($this->message());
 
-        self::assertCount(2, $this->features->records);
-        self::assertSame($this->default, $this->permissions->getById($this->default->getId()));
-        self::assertCount(2, $this->events->events());
+        self::assertCount(2, $this->featureRepository->records);
+        self::assertSame($this->default, $this->permissionRepository->getById($this->default->getId()));
+        self::assertCount(2, $this->eventDispatcher->events());
     }
 
     public function test_reference_loss_after_default_resolution_rejects_the_entire_pass(): void
     {
-        $this->features->beforeAdd = function (Feature $feature): void {
+        $this->featureRepository->beforeAdd = function (Feature $feature): void {
             if ($feature->getName()->toString() === 'dashboard') {
                 // Models authoritative reference rejection, not an allowed concurrent deletion under a held fence.
                 $this->unitOfWork->authorizationReferenceState()->removePermission($feature->getPermissionId());
@@ -327,44 +333,44 @@ final class ProvisionFeaturesHandlerTest extends TestCase
         $failure = $this->failure(fn() => $this->handler()->handle($this->message()));
 
         self::assertInstanceOf(FeatureReferenceException::class, $failure);
-        self::assertSame(1, $this->features->writes);
-        self::assertSame([], $this->features->records);
-        self::assertCount(1, $this->events->events());
-        self::assertInstanceOf(CommandFailedEvent::class, $this->events->events()[0]);
+        self::assertSame(1, $this->featureRepository->writes);
+        self::assertSame([], $this->featureRepository->records);
+        self::assertCount(1, $this->eventDispatcher->events());
+        self::assertInstanceOf(CommandFailedEvent::class, $this->eventDispatcher->events()[0]);
     }
 
     public function test_concurrent_name_winner_survives_losing_pass_rollback_and_fresh_retry(): void
     {
         $winner = $this->stored('dashboard', FeatureStatus::ON, $this->protected->getId());
-        $this->features->beforeAdd = function (Feature $feature) use ($winner): void {
+        $this->featureRepository->beforeAdd = function (Feature $feature) use ($winner): void {
             if ($feature->getName()->toString() === 'dashboard') {
-                $this->features->seed($winner);
+                $this->featureRepository->seed($winner);
             }
         };
 
         $failure = $this->failure(fn() => $this->handler()->handle($this->message()));
 
         self::assertInstanceOf(FeatureConflictException::class, $failure);
-        self::assertSame([$winner->getId()->toString() => $winner], $this->features->records);
-        self::assertSame(1, $this->features->writes);
-        self::assertCount(1, $this->events->events());
-        self::assertInstanceOf(CommandFailedEvent::class, $this->events->events()[0]);
+        self::assertSame([$winner->getId()->toString() => $winner], $this->featureRepository->records);
+        self::assertSame(1, $this->featureRepository->writes);
+        self::assertCount(1, $this->eventDispatcher->events());
+        self::assertInstanceOf(CommandFailedEvent::class, $this->eventDispatcher->events()[0]);
 
-        $this->features->beforeAdd = null;
-        $this->events = new InMemoryEventDispatcher();
+        $this->featureRepository->beforeAdd = null;
+        $this->eventDispatcher = new InMemoryEventDispatcher();
         $this->handler()->handle($this->message());
 
-        self::assertSame($winner, $this->features->getByName(FeatureName::fromString('dashboard')));
-        self::assertCount(2, $this->features->records);
-        self::assertCount(1, $this->events->events());
-        self::assertInstanceOf(FeatureCreated::class, $this->events->events()[0]);
-        self::assertSame('new-checkout', $this->events->events()[0]->getName()->toString());
+        self::assertSame($winner, $this->featureRepository->getByName(FeatureName::fromString('dashboard')));
+        self::assertCount(2, $this->featureRepository->records);
+        self::assertCount(1, $this->eventDispatcher->events());
+        self::assertInstanceOf(FeatureCreated::class, $this->eventDispatcher->events()[0]);
+        self::assertSame('new-checkout', $this->eventDispatcher->events()[0]->getName()->toString());
     }
 
     public function test_identity_collision_never_overwrites_a_different_name(): void
     {
         $winner = null;
-        $this->features->beforeAdd = function (Feature $feature) use (&$winner): void {
+        $this->featureRepository->beforeAdd = function (Feature $feature) use (&$winner): void {
             $winner = Feature::reconstitute(
                 $feature->getId(),
                 FeatureName::fromString('other-name'),
@@ -372,15 +378,15 @@ final class ProvisionFeaturesHandlerTest extends TestCase
                 FeatureStatus::PREVIEW,
                 8
             );
-            $this->features->seed($winner);
+            $this->featureRepository->seed($winner);
         };
 
         $failure = $this->failure(fn() => $this->handler()->handle($this->message()));
 
         self::assertInstanceOf(FeatureConflictException::class, $failure);
         self::assertInstanceOf(Feature::class, $winner);
-        self::assertSame([$winner->getId()->toString() => $winner], $this->features->records);
-        self::assertSame(0, $this->features->writes);
+        self::assertSame([$winner->getId()->toString() => $winner], $this->featureRepository->records);
+        self::assertSame(0, $this->featureRepository->writes);
     }
 
     public function test_commit_failure_rolls_back_all_inserts_without_creation_facts(): void
@@ -389,8 +395,8 @@ final class ProvisionFeaturesHandlerTest extends TestCase
         $command = new ProvisionFeatures('TEST_FEATURES');
         $failure = $this->failure(fn() => $this->handler()->handle(CommandMessage::create($command)));
 
-        self::assertSame([], $this->features->records);
-        self::assertSame(2, $this->features->writes);
+        self::assertSame([], $this->featureRepository->records);
+        self::assertSame(2, $this->featureRepository->writes);
         self::assertFalse($this->unitOfWork->transactionCompleted);
         $this->assertFailureEvent($command, $failure);
     }
@@ -416,19 +422,19 @@ final class ProvisionFeaturesHandlerTest extends TestCase
 
         self::assertSame($failure, $this->failure(fn() => $this->handler(unitOfWork: $uncertain)
             ->handle(CommandMessage::create($command))));
-        self::assertCount($committed ? 2 : 0, $this->features->records);
-        $beforeRetry = $this->features->records;
+        self::assertCount($committed ? 2 : 0, $this->featureRepository->records);
+        $beforeRetry = $this->featureRepository->records;
         $this->assertFailureEvent($command, $failure);
 
-        $this->events = new InMemoryEventDispatcher();
+        $this->eventDispatcher = new InMemoryEventDispatcher();
         $this->handler()->handle($this->message('PROTECTED_PREVIEW'));
 
-        self::assertCount(2, $this->features->records);
-        self::assertCount($committed ? 0 : 2, $this->events->events());
+        self::assertCount(2, $this->featureRepository->records);
+        self::assertCount($committed ? 0 : 2, $this->eventDispatcher->events());
         if ($committed) {
-            self::assertSame($beforeRetry, $this->features->records);
+            self::assertSame($beforeRetry, $this->featureRepository->records);
         } else {
-            foreach ($this->features->records as $feature) {
+            foreach ($this->featureRepository->records as $feature) {
                 self::assertSame($this->protected->getId(), $feature->getPermissionId());
             }
         }
@@ -449,7 +455,7 @@ final class ProvisionFeaturesHandlerTest extends TestCase
         $failure = new RuntimeException('Creation publisher failed.');
         $attempts = 0;
         $failureEvents = [];
-        $this->events = new InMemoryEventDispatcher(function (Event $event) use (
+        $this->eventDispatcher = new InMemoryEventDispatcher(function (Event $event) use (
             &$attempts,
             &$failureEvents,
             $failAt,
@@ -457,7 +463,7 @@ final class ProvisionFeaturesHandlerTest extends TestCase
             $failure
         ): void {
             self::assertFalse($this->unitOfWork->transactionActive);
-            self::assertCount(2, $this->features->records);
+            self::assertCount(2, $this->featureRepository->records);
             if ($event instanceof CommandFailedEvent) {
                 $failureEvents[] = $event;
                 if ($failurePublisherFails) {
@@ -473,15 +479,15 @@ final class ProvisionFeaturesHandlerTest extends TestCase
         self::assertCount(1, $failureEvents);
         self::assertSame($command, $failureEvents[0]->getCommand());
         self::assertSame($failAt, $attempts);
-        self::assertCount(2, $this->features->records);
-        $committed = $this->features->records;
+        self::assertCount(2, $this->featureRepository->records);
+        $committed = $this->featureRepository->records;
 
-        $this->events = new InMemoryEventDispatcher();
+        $this->eventDispatcher = new InMemoryEventDispatcher();
         $this->handler()->handle($this->message('PROTECTED_PREVIEW'));
 
-        self::assertSame($committed, $this->features->records);
-        self::assertSame(2, $this->features->writes);
-        self::assertSame([], $this->events->events());
+        self::assertSame($committed, $this->featureRepository->records);
+        self::assertSame(2, $this->featureRepository->writes);
+        self::assertSame([], $this->eventDispatcher->events());
     }
 
     /** @return iterable<string, array{int, bool}> */
@@ -495,34 +501,34 @@ final class ProvisionFeaturesHandlerTest extends TestCase
     public function test_successful_retry_preserves_choices_but_a_seeded_absent_name_gets_new_identity(): void
     {
         $this->handler()->handle($this->message());
-        $original = $this->features->records;
-        $this->events = new InMemoryEventDispatcher();
+        $original = $this->featureRepository->records;
+        $this->eventDispatcher = new InMemoryEventDispatcher();
         $this->handler()->handle($this->message('PROTECTED_PREVIEW'));
-        self::assertSame($original, $this->features->records);
-        self::assertSame([], $this->events->events());
+        self::assertSame($original, $this->featureRepository->records);
+        self::assertSame([], $this->eventDispatcher->events());
 
-        $removed = $this->features->getByName(FeatureName::fromString('dashboard'));
+        $removed = $this->featureRepository->getByName(FeatureName::fromString('dashboard'));
         self::assertInstanceOf(Feature::class, $removed);
         // Seeded absence only: actual guarded deletion is TASK-00067's composed acceptance.
-        unset($this->features->records[$removed->getId()->toString()]);
+        unset($this->featureRepository->records[$removed->getId()->toString()]);
         $this->handler()->handle($this->message('PROTECTED_PREVIEW'));
 
-        $new = $this->features->getByName(FeatureName::fromString('dashboard'));
+        $new = $this->featureRepository->getByName(FeatureName::fromString('dashboard'));
         self::assertInstanceOf(Feature::class, $new);
         self::assertFalse($new->getId()->equals($removed->getId()));
         self::assertSame(FeatureStatus::OFF, $new->getStatus());
         self::assertSame(1, $new->getRevision());
         self::assertSame($this->protected->getId(), $new->getPermissionId());
-        self::assertCount(1, $this->events->events());
-        self::assertNull($this->features->getById($removed->getId()));
+        self::assertCount(1, $this->eventDispatcher->events());
+        self::assertNull($this->featureRepository->getById($removed->getId()));
     }
 
     /** @param list<string> $names */
     private function handler(
         array $names = ['new-checkout', 'dashboard'],
         ?FeatureReferenceDiscovery $discovery = null,
-        ?FeatureRepository $features = null,
-        ?PermissionRepository $permissions = null,
+        ?FeatureRepository $featureRepository = null,
+        ?PermissionRepository $permissionRepository = null,
         ?TransactionalUnitOfWork $unitOfWork = null
     ): ProvisionFeaturesHandler {
         $discovery ??= new FixtureFeatureDiscovery(new class {
@@ -530,10 +536,10 @@ final class ProvisionFeaturesHandlerTest extends TestCase
 
         return new ProvisionFeaturesHandler(
             $discovery,
-            $features ?? $this->features,
-            $permissions ?? $this->permissions,
+            $featureRepository ?? $this->featureRepository,
+            $permissionRepository ?? $this->permissionRepository,
             $unitOfWork ?? $this->unitOfWork,
-            $this->events
+            $this->eventDispatcher
         );
     }
 
@@ -566,8 +572,8 @@ final class ProvisionFeaturesHandlerTest extends TestCase
 
     private function assertFailureEvent(ProvisionFeatures $command, Throwable $failure): void
     {
-        self::assertCount(1, $this->events->events());
-        $event = $this->events->events()[0];
+        self::assertCount(1, $this->eventDispatcher->events());
+        $event = $this->eventDispatcher->events()[0];
         self::assertInstanceOf(CommandFailedEvent::class, $event);
         self::assertSame($command, $event->getCommand());
         self::assertSame('Feature provisioning failed.', $event->getErrorMessage());

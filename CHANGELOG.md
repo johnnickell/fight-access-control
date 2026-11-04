@@ -19,6 +19,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- **Breaking pre-v1 PHP organization:** Agent Application collaborators now live in cohesive `Authentication`,
+  `Credential`, `Delivery`, `Maintenance`, `Continuation` and `PermissionAssignment` homes; Feature discovery and
+  authorization admission have matching capability homes. Repository/bus/dispatcher parameter and property names
+  identify their capability, including named calls and maintained examples. Update imports and named arguments
+  directly; no old-name aliases are supplied. Behavior, wire schemas, grants, nonce/transaction/failure/outcome
+  contracts and Common dependencies are unchanged by this refactor.
 - **Breaking pre-v1 MCP PHP homes:** moved Agent profile Tools/failure mappings, Tool Permission catalog/attribute
   and Tool/Resource/Skill bindings/catalogs/availability from Application to `Adapter/Mcp/{Tool,Resource,Skill}/Agent`.
   Update imports, registrations and attributes directly; no old-name aliases remain. Profile Tool named bus arguments

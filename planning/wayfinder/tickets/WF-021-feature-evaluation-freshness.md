@@ -28,7 +28,7 @@ worker jobs?
   [CurrentPrincipalProvider](../../../src/Application/AccessControl/Authorization/Service/CurrentPrincipalProvider.php)
   resolves once per request; [SecurityContext](../../../src/Application/AccessControl/Authorization/Service/SecurityContext.php)
   delegates checks to the selected immutable authority. The
-  [Agent provider](../../../src/Application/AccessControl/Agent/Security/CurrentAgentPrincipalProvider.php) likewise
+  [Agent provider](../../../src/Application/AccessControl/Agent/Authentication/CurrentAgentPrincipalProvider.php) likewise
   caches a complete immutable principal for one request. Source inspection, not executed behavioral verification.
 - John agreed to fresh stored Feature state on every explicit check, no shared cache, no automatic interruption of
   already-admitted work, and reuse of the existing authenticated authority snapshot.

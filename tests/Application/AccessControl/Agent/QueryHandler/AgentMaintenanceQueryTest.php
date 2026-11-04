@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace Fight\Test\AccessControl\Application\AccessControl\Agent\QueryHandler;
 
+use Fight\AccessControl\Application\AccessControl\Agent\Maintenance\AgentMaintenanceAuthorization;
+use Fight\AccessControl\Application\AccessControl\Agent\Maintenance\AgentMaintenanceResult;
 use Fight\AccessControl\Application\AccessControl\Agent\QueryHandler\CountAgentDeliveryKeyReferencesHandler;
 use Fight\AccessControl\Application\AccessControl\Agent\QueryHandler\ListAgentDeliveryMaintenanceHandler;
-use Fight\AccessControl\Application\AccessControl\Agent\Security\AgentMaintenanceResult;
-use Fight\AccessControl\Application\AccessControl\Agent\Service\AgentMaintenanceAuthorization;
 use Fight\AccessControl\Domain\AccessControl\Agent\Exception\AgentOperationRejectedException;
 use Fight\AccessControl\Domain\AccessControl\Agent\Maintenance\AgentDeliveryKeyVersion;
 use Fight\AccessControl\Domain\AccessControl\Agent\Maintenance\AgentMaintenanceWork;
@@ -23,7 +23,7 @@ use Fight\AccessControl\Domain\AccessControl\Agent\Query\AgentOperationView;
 use Fight\AccessControl\Domain\AccessControl\Agent\Query\CountAgentDeliveryKeyReferences;
 use Fight\AccessControl\Domain\AccessControl\Agent\Query\ListAgentDeliveryMaintenance;
 use Fight\Common\Domain\Messaging\Query\QueryMessage;
-use Fight\Test\AccessControl\Application\AccessControl\Agent\Service\MaintenanceEnvironment;
+use Fight\Test\AccessControl\Application\AccessControl\Agent\Maintenance\MaintenanceEnvironment;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
@@ -46,10 +46,10 @@ final class AgentMaintenanceQueryTest extends TestCase
 
         $before = [
             $provisioning->transaction->transactions,
-            $provisioning->audit->all(),
-            $provisioning->operations->operations
+            $provisioning->auditEvidenceRepository->all(),
+            $provisioning->agentOperationRepository->operations
         ];
-        $reads = $provisioning->operations->reads;
+        $reads = $provisioning->agentOperationRepository->reads;
         $handler = $this->handler($env);
         self::assertSame(ListAgentDeliveryMaintenance::class, $handler::queryRegistration());
         $first = $handler->handle(QueryMessage::create($this->query($env)));
@@ -71,11 +71,11 @@ final class AgentMaintenanceQueryTest extends TestCase
         self::assertSame($sorted, $ids);
         self::assertSame($before, [
             $provisioning->transaction->transactions,
-            $provisioning->audit->all(),
-            $provisioning->operations->operations
+            $provisioning->auditEvidenceRepository->all(),
+            $provisioning->agentOperationRepository->operations
         ]);
         self::assertSame(0, $env->rewraps);
-        self::assertSame($reads, $provisioning->operations->reads);
+        self::assertSame($reads, $provisioning->agentOperationRepository->reads);
         self::assertSame(0, $env->delivery->sink->cleanups);
         ob_start();
         var_dump($first);
@@ -91,7 +91,7 @@ final class AgentMaintenanceQueryTest extends TestCase
         $env = new MaintenanceEnvironment();
         $provisioning = $env->delivery->provisioning;
         $otherScope = new AgentOperationScope('other', 'user', 'other-maintainer');
-        $provisioning->authorization->scopes[$otherScope->toString()] = true;
+        $provisioning->operationAuthorization->scopes[$otherScope->toString()] = true;
         for ($index = 0; $index < 51; ++$index) {
             $provisioning->service()->provision(
                 new AgentOperationKey($otherScope, AgentOperationId::generate()),
@@ -99,10 +99,10 @@ final class AgentMaintenanceQueryTest extends TestCase
             );
         }
 
-        $lastKey = array_key_last($provisioning->operations->operations);
+        $lastKey = array_key_last($provisioning->agentOperationRepository->operations);
         self::assertNotNull($lastKey);
-        $last = $provisioning->operations->operations[$lastKey];
-        $provisioning->operations->operations[$lastKey] = new AgentCredentialOperation(
+        $last = $provisioning->agentOperationRepository->operations[$lastKey];
+        $provisioning->agentOperationRepository->operations[$lastKey] = new AgentCredentialOperation(
             99,
             $last->getCanonicalRequest(),
             $last->getIssuance(),
@@ -120,7 +120,7 @@ final class AgentMaintenanceQueryTest extends TestCase
         self::assertSame(0, $handler->handle(QueryMessage::create($unused)));
         self::assertSame(AgentMaintenanceResult::REWRAPPED, $env->rewrapOriginal());
         self::assertSame(51, $handler->handle($message));
-        self::assertSame(1, $provisioning->operations->maintenanceWrites);
+        self::assertSame(1, $provisioning->agentOperationRepository->maintenanceWrites);
     }
 
     public function test_cleanup_selection_excludes_ineligible_and_acknowledged_work_without_changing_state(): void
@@ -159,8 +159,8 @@ final class AgentMaintenanceQueryTest extends TestCase
         } elseif ($case === 'target') {
             $env->targetPermitted = false;
         } else {
-            $repository = $env->delivery->provisioning->operations;
-            $repository->afterMaintenanceRead = static function () use ($env, $case): void {
+            $agentOperationRepository = $env->delivery->provisioning->agentOperationRepository;
+            $agentOperationRepository->afterMaintenanceRead = static function () use ($env, $case): void {
                 if ($case === 'storage') {
                     throw new RuntimeException('original-test-secret /unsafe/provider/key');
                 }
@@ -226,16 +226,20 @@ final class AgentMaintenanceQueryTest extends TestCase
             );
         }
 
-        $repo = $this->createStub(AgentOperationRepository::class);
-        $repo->method('getOperationContract')
-            ->willReturn($env->delivery->provisioning->operations->getOperationContract());
-        $repo->method('listMaintenance')->willReturn($views);
-        $authorization = $env;
+        $agentOperationRepository = $this->createStub(AgentOperationRepository::class);
+        $agentOperationRepository->method('getOperationContract')
+            ->willReturn($env->delivery->provisioning->agentOperationRepository->getOperationContract());
+        $agentOperationRepository->method('listMaintenance')->willReturn($views);
+        $maintenanceAuthorization = $env;
         if ($case === 'wrong scope') {
-            $authorization = $this->createStub(AgentMaintenanceAuthorization::class);
+            $maintenanceAuthorization = $this->createStub(AgentMaintenanceAuthorization::class);
         }
 
-        $handler = new ListAgentDeliveryMaintenanceHandler($repo, $authorization, $env->delivery->clock);
+        $handler = new ListAgentDeliveryMaintenanceHandler(
+            $agentOperationRepository,
+            $maintenanceAuthorization,
+            $env->delivery->clock
+        );
         $this->expectException(AgentOperationRejectedException::class);
         $handler->handle(QueryMessage::create($query));
     }
@@ -252,25 +256,25 @@ final class AgentMaintenanceQueryTest extends TestCase
     public function test_accounting_failure_never_becomes_zero_or_retirement_permission(string $case): void
     {
         $env = new MaintenanceEnvironment();
-        $repo = $env->delivery->provisioning->operations;
+        $agentOperationRepository = $env->delivery->provisioning->agentOperationRepository;
         if ($case === 'initial denial') {
             $env->accountingPermitted = false;
         } elseif ($case === 'revoked after count') {
-            $repo->afterMaintenanceRead = static function () use ($env): void {
+            $agentOperationRepository->afterMaintenanceRead = static function () use ($env): void {
                 $env->accountingPermitted = false;
             };
         } elseif ($case === 'negative count') {
-            $repo = $this->createStub(AgentOperationRepository::class);
-            $repo->method('getOperationContract')
-                ->willReturn($env->delivery->provisioning->operations->getOperationContract());
-            $repo->method('countDeliveryKeyReferences')->willReturn(-1);
+            $agentOperationRepository = $this->createStub(AgentOperationRepository::class);
+            $agentOperationRepository->method('getOperationContract')
+                ->willReturn($env->delivery->provisioning->agentOperationRepository->getOperationContract());
+            $agentOperationRepository->method('countDeliveryKeyReferences')->willReturn(-1);
         } else {
-            $repo->afterMaintenanceRead = static function (): void {
+            $agentOperationRepository->afterMaintenanceRead = static function (): void {
                 throw new RuntimeException('unsafe key path');
             };
         }
 
-        $handler = new CountAgentDeliveryKeyReferencesHandler($repo, $env, $env->delivery->clock);
+        $handler = new CountAgentDeliveryKeyReferencesHandler($agentOperationRepository, $env, $env->delivery->clock);
         try {
             $query = new CountAgentDeliveryKeyReferences(new AgentDeliveryKeyVersion('test-key-v1'));
             $handler->handle(QueryMessage::create($query));
@@ -298,7 +302,7 @@ final class AgentMaintenanceQueryTest extends TestCase
     private function handler(MaintenanceEnvironment $env): ListAgentDeliveryMaintenanceHandler
     {
         return new ListAgentDeliveryMaintenanceHandler(
-            $env->delivery->provisioning->operations,
+            $env->delivery->provisioning->agentOperationRepository,
             $env,
             $env->delivery->clock
         );
@@ -307,7 +311,7 @@ final class AgentMaintenanceQueryTest extends TestCase
     private function counter(MaintenanceEnvironment $env): CountAgentDeliveryKeyReferencesHandler
     {
         return new CountAgentDeliveryKeyReferencesHandler(
-            $env->delivery->provisioning->operations,
+            $env->delivery->provisioning->agentOperationRepository,
             $env,
             $env->delivery->clock
         );

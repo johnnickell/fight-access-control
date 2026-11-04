@@ -5,10 +5,10 @@ declare(strict_types=1);
 namespace Fight\AccessControl\Adapter\Middleware\Psr15;
 
 use Closure;
-use Fight\AccessControl\Application\AccessControl\Authorization\AdmissionMode;
-use Fight\AccessControl\Application\AccessControl\Authorization\PermissionDeclaration;
-use Fight\AccessControl\Application\AccessControl\Authorization\Service\PermissionAdmission;
-use Fight\AccessControl\Application\AccessControl\Authorization\Service\RequestAuthority;
+use Fight\AccessControl\Application\AccessControl\Authorization\Admission\AdmissionMode;
+use Fight\AccessControl\Application\AccessControl\Authorization\Admission\PermissionAdmission;
+use Fight\AccessControl\Application\AccessControl\Authorization\Admission\PermissionDeclaration;
+use Fight\AccessControl\Application\AccessControl\Authorization\Admission\RequestAuthority;
 use Fight\AccessControl\Application\AccessControl\Authorization\Service\SecurityContext;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;

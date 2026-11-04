@@ -15,10 +15,10 @@ final class InMemoryActivationOriginConformanceTest extends ActivationOriginConf
         return new InMemoryActivationGrantRepository();
     }
 
-    protected function restart(ActivationGrantRepository $repository): ActivationGrantRepository
+    protected function restart(ActivationGrantRepository $activationGrantRepository): ActivationGrantRepository
     {
-        assert($repository instanceof InMemoryActivationGrantRepository);
+        assert($activationGrantRepository instanceof InMemoryActivationGrantRepository);
 
-        return $repository->restart();
+        return $activationGrantRepository->restart();
     }
 }

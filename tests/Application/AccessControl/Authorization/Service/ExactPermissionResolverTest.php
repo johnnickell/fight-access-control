@@ -30,11 +30,11 @@ final class ExactPermissionResolverTest extends TestCase
             PermissionName::fromString('CONTENT_REVIEW'),
             new DateTimeImmutable('2026-08-29T12:00:00+00:00')
         );
-        $permissions = new InMemoryPermissionRepository();
-        $permissions->add($first);
-        $permissions->add($second);
+        $permissionRepository = new InMemoryPermissionRepository();
+        $permissionRepository->add($first);
+        $permissionRepository->add($second);
 
-        $snapshots = new ExactPermissionResolver($permissions)->resolve([$second->getId(), $first->getId()]);
+        $snapshots = new ExactPermissionResolver($permissionRepository)->resolve([$second->getId(), $first->getId()]);
 
         self::assertSame([$second->getId(), $first->getId()], array_map(
             static fn($snapshot) => $snapshot->getPermissionId(),
@@ -46,10 +46,10 @@ final class ExactPermissionResolverTest extends TestCase
     {
         $first = $this->permission('CONTENT_PUBLISH');
         $second = $this->permission('CONTENT_REVIEW');
-        $permissions = new InMemoryPermissionRepository(getByIdsResult: static fn(): array => [$first]);
+        $permissionRepository = new InMemoryPermissionRepository(getByIdsResult: static fn(): array => [$first]);
 
         $this->expectException(ExactPermissionResolutionException::class);
-        new ExactPermissionResolver($permissions)->resolve([$first->getId(), $second->getId()]);
+        new ExactPermissionResolver($permissionRepository)->resolve([$first->getId(), $second->getId()]);
     }
 
     public function test_it_rejects_unexpected_authoritative_definitions(): void
@@ -57,34 +57,36 @@ final class ExactPermissionResolverTest extends TestCase
         $first = $this->permission('CONTENT_PUBLISH');
         $second = $this->permission('CONTENT_REVIEW');
         $unexpected = $this->permission('CONTENT_DELETE');
-        $permissions = new InMemoryPermissionRepository(
+        $permissionRepository = new InMemoryPermissionRepository(
             getByIdsResult: static fn(): array => [$first, $second, $unexpected]
         );
 
         $this->expectException(ExactPermissionResolutionException::class);
-        new ExactPermissionResolver($permissions)->resolve([$first->getId(), $second->getId()]);
+        new ExactPermissionResolver($permissionRepository)->resolve([$first->getId(), $second->getId()]);
     }
 
     public function test_it_rejects_duplicated_authoritative_definitions(): void
     {
         $first = $this->permission('CONTENT_PUBLISH');
         $second = $this->permission('CONTENT_REVIEW');
-        $permissions = new InMemoryPermissionRepository(getByIdsResult: static fn(): array => [$first, $first]);
+        $permissionRepository = new InMemoryPermissionRepository(
+            getByIdsResult: static fn(): array => [$first, $first]
+        );
 
         $this->expectException(ExactPermissionResolutionException::class);
-        new ExactPermissionResolver($permissions)->resolve([$first->getId(), $second->getId()]);
+        new ExactPermissionResolver($permissionRepository)->resolve([$first->getId(), $second->getId()]);
     }
 
     public function test_it_rejects_an_unresolved_stale_identity(): void
     {
         $first = $this->permission('CONTENT_PUBLISH');
         $unexpected = $this->permission('CONTENT_DELETE');
-        $permissions = new InMemoryPermissionRepository(
+        $permissionRepository = new InMemoryPermissionRepository(
             getByIdsResult: static fn(): array => [$first, $unexpected]
         );
 
         $this->expectException(ExactPermissionResolutionException::class);
-        new ExactPermissionResolver($permissions)->resolve([$first->getId(), PermissionId::generate()]);
+        new ExactPermissionResolver($permissionRepository)->resolve([$first->getId(), PermissionId::generate()]);
     }
 
     private function permission(string $name): Permission

@@ -26,9 +26,9 @@ final class GetAgentProfileToolTest extends TestCase
         $env = new ProfileToolEnvironment();
         $principal = $env->provider->resolve($env->request, $env->correlationId);
         $transactions = $env->storage->transaction->transactions;
-        $queries = $this->createMock(QueryBus::class);
-        $queries->expects(self::never())->method('dispatch');
-        $queries->expects(self::exactly(2))->method('fetch')->with(self::callback(
+        $queryBus = $this->createMock(QueryBus::class);
+        $queryBus->expects(self::never())->method('dispatch');
+        $queryBus->expects(self::exactly(2))->method('fetch')->with(self::callback(
             static fn(GetAgentProfile $query): bool => $query->getAgentId()->equals($principal->getAgentId())
         ))->willReturnOnConsecutiveCalls(
             new AgentProfileView($principal->getAgentId(), AgentName::fromString('First')),
@@ -36,7 +36,7 @@ final class GetAgentProfileToolTest extends TestCase
         );
         $progress = $this->createMock(McpProgressReporter::class);
         $progress->expects(self::never())->method('report');
-        $tool = $env->read($queries);
+        $tool = $env->read($queryBus);
         foreach (['First', 'Later'] as $name) {
             // Even bypassed caller data cannot select a different target; Common rejects it at invocation.
             $output = $tool->handle(new ApplicationData(['agent_id' => AgentId::generate()->toString()]), $progress);
@@ -48,27 +48,27 @@ final class GetAgentProfileToolTest extends TestCase
 
         self::assertSame($transactions, $env->storage->transaction->transactions);
         self::assertSame(1, $env->nonces->consumptionCalls());
-        self::assertSame(0, $env->storage->agents->nameWrites);
-        self::assertSame([], $env->storage->events->events());
+        self::assertSame(0, $env->storage->agentRepository->nameWrites);
+        self::assertSame([], $env->storage->eventDispatcher->events());
     }
 
     public function test_unavailable_profile_has_no_success_output(): void
     {
         $env = new ProfileToolEnvironment();
-        $queries = $this->createMock(QueryBus::class);
-        $queries->expects(self::once())->method('fetch')->willReturn(null);
+        $queryBus = $this->createMock(QueryBus::class);
+        $queryBus->expects(self::once())->method('fetch')->willReturn(null);
         $this->expectException(LookupException::class);
         $this->expectExceptionMessage('The Agent profile is unavailable.');
-        $env->read($queries)->handle(new ApplicationData([]), $this->createStub(McpProgressReporter::class));
+        $env->read($queryBus)->handle(new ApplicationData([]), $this->createStub(McpProgressReporter::class));
     }
 
     public function test_storage_failure_is_not_cached_or_converted_to_absence(): void
     {
         $env = new ProfileToolEnvironment();
         $failure = new RuntimeException('Private fixture storage detail');
-        $queries = $this->createMock(QueryBus::class);
-        $queries->expects(self::once())->method('fetch')->willThrowException($failure);
+        $queryBus = $this->createMock(QueryBus::class);
+        $queryBus->expects(self::once())->method('fetch')->willThrowException($failure);
         $this->expectExceptionObject($failure);
-        $env->read($queries)->handle(new ApplicationData([]), $this->createStub(McpProgressReporter::class));
+        $env->read($queryBus)->handle(new ApplicationData([]), $this->createStub(McpProgressReporter::class));
     }
 }

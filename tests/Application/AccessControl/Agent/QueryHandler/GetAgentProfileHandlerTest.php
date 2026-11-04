@@ -28,9 +28,12 @@ final class GetAgentProfileHandlerTest extends TestCase
     {
         $agent = $this->agent();
         $renamed = $agent->rename(AgentName::fromString('Renamed worker'), new DateTimeImmutable('2026-01-03'));
-        $agents = $this->readOnlyRepository();
-        $agents->expects(self::exactly(2))->method('getById')->with($agent->getId())->willReturn($agent, $renamed);
-        $handler = new GetAgentProfileHandler($agents);
+        $agentRepository = $this->readOnlyRepository();
+        $agentRepository->expects(self::exactly(2))
+            ->method('getById')
+            ->with($agent->getId())
+            ->willReturn($agent, $renamed);
+        $handler = new GetAgentProfileHandler($agentRepository);
         $message = QueryMessage::create(new GetAgentProfile($agent->getId()));
 
         self::assertInstanceOf(QueryHandler::class, $handler);
@@ -58,12 +61,12 @@ final class GetAgentProfileHandlerTest extends TestCase
     {
         $agent = $this->agent();
         $revoked = $agent->revoke(new DateTimeImmutable('2026-01-03'));
-        $agents = $this->readOnlyRepository();
-        $agents->expects(self::exactly(3))
+        $agentRepository = $this->readOnlyRepository();
+        $agentRepository->expects(self::exactly(3))
             ->method('getById')
             ->with($agent->getId())
             ->willReturn($agent, $revoked, null);
-        $handler = new GetAgentProfileHandler($agents);
+        $handler = new GetAgentProfileHandler($agentRepository);
         $message = QueryMessage::create(new GetAgentProfile($agent->getId()));
 
         self::assertInstanceOf(AgentProfileView::class, $handler->handle($message));
@@ -75,8 +78,8 @@ final class GetAgentProfileHandlerTest extends TestCase
     {
         $agent = $this->agent();
         $failure = new RuntimeException('Storage unavailable');
-        $agents = $this->readOnlyRepository();
-        $agents->expects(self::exactly(2))->method('getById')->with($agent->getId())->willReturnCallback(
+        $agentRepository = $this->readOnlyRepository();
+        $agentRepository->expects(self::exactly(2))->method('getById')->with($agent->getId())->willReturnCallback(
             static function () use (&$agent, $failure): Agent {
                 if ($agent === null) {
                     throw $failure;
@@ -88,7 +91,7 @@ final class GetAgentProfileHandlerTest extends TestCase
                 return $current;
             }
         );
-        $handler = new GetAgentProfileHandler($agents);
+        $handler = new GetAgentProfileHandler($agentRepository);
         $message = QueryMessage::create(new GetAgentProfile($agent->getId()));
         self::assertInstanceOf(AgentProfileView::class, $handler->handle($message));
 
@@ -102,7 +105,7 @@ final class GetAgentProfileHandlerTest extends TestCase
 
     private function readOnlyRepository(): AgentRepository&MockObject
     {
-        $agents = $this->createMock(AgentRepository::class);
+        $agentRepository = $this->createMock(AgentRepository::class);
         foreach (
             [
                 'add',
@@ -116,10 +119,10 @@ final class GetAgentProfileHandlerTest extends TestCase
                 'hasPermissionAssignment'
             ] as $method
         ) {
-            $agents->expects(self::never())->method($method);
+            $agentRepository->expects(self::never())->method($method);
         }
 
-        return $agents;
+        return $agentRepository;
     }
 
     private function agent(): Agent

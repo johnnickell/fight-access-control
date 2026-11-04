@@ -153,7 +153,7 @@ and optional typed JSend envelope. These are value descriptions, not a package e
 - [Discovery tests](../tests/Application/AccessControl/Agent/QueryHandler/ListDueAgentDeliveriesHandlerTest.php)
   prove safe deterministic bounded reads, equal-time current-write selection, cross-scope/binding exclusion,
   completed-reservation and rollback behavior, real-worker checks, target denial, revocation during selection and faults.
-- [Recovery tests](../tests/Application/AccessControl/Agent/Security/AgentDeliveryRecoveryServiceTest.php) exercise
+- [Recovery tests](../tests/Application/AccessControl/Agent/Delivery/AgentDeliveryRecoveryServiceTest.php) exercise
   real provisioning and actual delivery with fresh Application services, both persisted/rolled-back forms of all
   three uncertain commits, interruption around durable boundaries, receipt-first key-independent recovery,
   takeover, authority/expiry races, original identity/material, capacity isolation, bounds and terminal outcomes.

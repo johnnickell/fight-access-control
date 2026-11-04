@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Fight\Test\AccessControl\OpenApi;
 
 use DateTimeImmutable;
-use Fight\AccessControl\Application\AccessControl\Agent\Security\AgentMaintenanceResult;
+use Fight\AccessControl\Application\AccessControl\Agent\Maintenance\AgentMaintenanceResult;
 use Fight\AccessControl\Domain\AccessControl\Agent\AgentCredentialId;
 use Fight\AccessControl\Domain\AccessControl\Agent\AgentId;
 use Fight\AccessControl\Domain\AccessControl\Agent\Maintenance\AgentDeliveryKeyVersion;
@@ -42,7 +42,10 @@ final class AgentDeliveryComponentsTest extends TestCase
         self::assertNotNull($document);
         $schemas = json_decode($document->toJson(), true, 512, JSON_THROW_ON_ERROR)['components']['schemas'];
         self::assertArrayHasKey('Consumer.AgentRecovery', $schemas);
-        $key = new AgentOperationKey(new AgentOperationScope('consumer', 'user', 'owner'), AgentOperationId::generate());
+        $key = new AgentOperationKey(
+            new AgentOperationScope('consumer', 'user', 'owner'),
+            AgentOperationId::generate()
+        );
         $destination = new AgentCredentialDestination(AgentDestinationId::generate(), 1);
         $query = new ListDueAgentDeliveries($key->getScope(), $destination);
         $maintenance = new ListAgentDeliveryMaintenance($key->getScope(), $destination);
@@ -106,8 +109,14 @@ final class AgentDeliveryComponentsTest extends TestCase
         self::assertSame(100, $limit['maximum']);
         self::assertSame($query->getLimit(), $limit['default']);
         $confirmed = $schemas['Fight.AccessControl.AgentOperation.Confirmed']['properties'];
-        self::assertSame(array_column(AgentDeliveryDisposition::cases(), 'value'), $confirmed['delivery_disposition']['enum']);
-        self::assertSame(array_column(AgentCredentialDisposition::cases(), 'value'), $confirmed['credential_disposition']['enum']);
+        self::assertSame(
+            array_column(AgentDeliveryDisposition::cases(), 'value'),
+            $confirmed['delivery_disposition']['enum']
+        );
+        self::assertSame(
+            array_column(AgentCredentialDisposition::cases(), 'value'),
+            $confirmed['credential_disposition']['enum']
+        );
         self::assertSame([2], $confirmed['canonical_version']['enum']);
         $retained = AgentOperationView::confirmed(
             2,

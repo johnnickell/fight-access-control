@@ -136,12 +136,12 @@ final class AuthoritativePrincipalResolverTest extends TestCase
             $user = $this->activeUser(7);
             $user->replaceRoleAssignments([$assignedRole->getId()], $now);
             $session = $this->session($user->getId(), 7, $now);
-            $roles = $this->createStub(RoleRepository::class);
-            $roles->method('getByIds')->willReturn([$assignedRole]);
-            $roles->method('getByName')->willReturn($resolvedName);
+            $roleRepository = $this->createStub(RoleRepository::class);
+            $roleRepository->method('getByIds')->willReturn([$assignedRole]);
+            $roleRepository->method('getByName')->willReturn($resolvedName);
 
             $this->expectPrincipalDenied(
-                $this->resolver($now, $user, $session, roleRepository: $roles),
+                $this->resolver($now, $user, $session, roleRepository: $roleRepository),
                 $user,
                 $session
             );
@@ -155,11 +155,15 @@ final class AuthoritativePrincipalResolverTest extends TestCase
         $role = ImpersonatingRole::define(RoleId::generate(), RoleName::fromString('ROLE_EDITOR'), [], $now);
         $user->replaceRoleAssignments([$role->getId()], $now);
         $session = $this->session($user->getId(), 7, $now);
-        $roles = $this->createStub(RoleRepository::class);
-        $roles->method('getByIds')->willReturn([$role]);
-        $roles->method('getByName')->willReturn($role);
+        $roleRepository = $this->createStub(RoleRepository::class);
+        $roleRepository->method('getByIds')->willReturn([$role]);
+        $roleRepository->method('getByName')->willReturn($role);
 
-        $this->expectPrincipalDenied($this->resolver($now, $user, $session, roleRepository: $roles), $user, $session);
+        $this->expectPrincipalDenied(
+            $this->resolver($now, $user, $session, roleRepository: $roleRepository),
+            $user,
+            $session
+        );
     }
 
     private function expectPrincipalDenied(

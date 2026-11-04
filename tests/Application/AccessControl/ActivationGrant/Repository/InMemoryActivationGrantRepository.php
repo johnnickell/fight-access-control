@@ -42,12 +42,12 @@ final class InMemoryActivationGrantRepository implements ActivationGrantReposito
         private readonly ?int $replaceFailureOnCall = null,
         private readonly int $beforeReplaceOnCall = 1,
         private readonly bool $addSuccessorSucceeds = true,
-        ?self $state = null,
+        ?self $activationGrantRepository = null,
         private readonly ?Closure $beforeSuccessor = null
     ) {
-        if ($state instanceof self) {
-            $this->activationGrants =& $state->activationGrants;
-            $this->writers =& $state->writers;
+        if ($activationGrantRepository instanceof self) {
+            $this->activationGrants =& $activationGrantRepository->activationGrants;
+            $this->writers =& $activationGrantRepository->writers;
         }
     }
 
@@ -269,9 +269,9 @@ final class InMemoryActivationGrantRepository implements ActivationGrantReposito
 
     public function restart(): self
     {
-        $restarted = new self($this->unitOfWork);
+        $restartedActivationGrantRepository = new self($this->unitOfWork);
         foreach ($this->activationGrants as $grant) {
-            $restarted->activationGrants[] = ExtensibleActivationGrant::reconstitute(
+            $restartedActivationGrantRepository->activationGrants[] = ExtensibleActivationGrant::reconstitute(
                 ActivationOrigin::from($grant->getOrigin()->value),
                 $grant->getId(),
                 $grant->getUserId(),
@@ -284,7 +284,7 @@ final class InMemoryActivationGrantRepository implements ActivationGrantReposito
             );
         }
 
-        return $restarted;
+        return $restartedActivationGrantRepository;
     }
 
     /** @return list<ActivationGrant> */

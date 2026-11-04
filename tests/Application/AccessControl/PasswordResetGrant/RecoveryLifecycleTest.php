@@ -67,7 +67,7 @@ final class RecoveryLifecycleTest extends TestCase
         self::assertFalse($before->equals($fixture->user()->getRecoveryAuthority()));
         self::assertTrue($fixture->grant()->isRevoked());
         self::assertNull($fixture->grant()->getDelivery()->getEncryptedMaterial());
-        self::assertSame([], $fixture->grants->findDue($fixture->now, 10));
+        self::assertSame([], $fixture->passwordResetGrantRepository->findDue($fixture->now, 10));
         self::assertSame($issued->getId(), $fixture->grant()->getId());
         self::assertFalse($issued->isAuthorizedBy($fixture->user()));
         if ($transition === 'disable') {
@@ -79,7 +79,7 @@ final class RecoveryLifecycleTest extends TestCase
         self::assertSame(UserState::ACTIVE, $fixture->user()->getState());
         $this->assertResetRejected($fixture);
         self::assertTrue($fixture->grant()->isRevoked());
-        self::assertCount(1, $fixture->grants->all());
+        self::assertCount(1, $fixture->passwordResetGrantRepository->all());
         $fixture->request('fresh-recovery-fixture');
         self::assertTrue($fixture->grant()->isAuthorizedBy($fixture->user()));
         $fixture->service()->resetPassword(
@@ -96,24 +96,24 @@ final class RecoveryLifecycleTest extends TestCase
         $fixture->request();
 
         $grant = $fixture->grant();
-        $roles = new InMemoryRoleRepository($fixture->unitOfWork);
+        $roleRepository = new InMemoryRoleRepository($fixture->unitOfWork);
         $role = Role::define(RoleId::generate(), RoleName::fromString('ROLE_MEMBER'), [], $fixture->now);
-        $roles->add($role);
+        $roleRepository->add($role);
         new AssignRoleToUserHandler(
-            $fixture->users,
-            $roles,
+            $fixture->userRepository,
+            $roleRepository,
             new FixedClock($fixture->now),
             $fixture->unitOfWork,
-            $fixture->events
+            $fixture->eventDispatcher
         )->handle(CommandMessage::create(new AssignRoleToUser($fixture->userId, $fixture->userId, $role->getId())));
         self::assertTrue($fixture->user()->hasRole($role->getId()));
         self::assertTrue($grant->isAuthorizedBy($fixture->user()));
         new RemoveRoleFromUserHandler(
-            $fixture->users,
-            $roles,
+            $fixture->userRepository,
+            $roleRepository,
             new FixedClock($fixture->now),
             $fixture->unitOfWork,
-            $fixture->events
+            $fixture->eventDispatcher
         )->handle(CommandMessage::create(new RemoveRoleFromUser($fixture->userId, $fixture->userId, $role->getId())));
         self::assertFalse($fixture->user()->hasRole($role->getId()));
         self::assertEquals($grant, $fixture->grant());
@@ -218,7 +218,7 @@ final class RecoveryLifecycleTest extends TestCase
             $fixture->request();
             $issued = $fixture->grant();
             $this->transition($fixture, $transition);
-            $auditCount = count($fixture->audit->all());
+            $auditCount = count($fixture->auditEvidenceRepository->all());
             foreach ([false, true] as $issuedSnapshot) {
                 if ($issuedSnapshot) {
                     // Model an independently hydrated generation against current User state.
@@ -237,8 +237,8 @@ final class RecoveryLifecycleTest extends TestCase
 
                 self::assertNotNull($caught);
                 self::assertFalse($called);
-                self::assertSame($auditCount, count($fixture->audit->all()));
-                self::assertSame([], $fixture->grants->findDue($fixture->now, 10));
+                self::assertSame($auditCount, count($fixture->auditEvidenceRepository->all()));
+                self::assertSame([], $fixture->passwordResetGrantRepository->findDue($fixture->now, 10));
                 $this->assertResetRejected($fixture);
             }
         }
@@ -254,7 +254,7 @@ final class RecoveryLifecycleTest extends TestCase
         $this->assertResetRejected($fixture);
         self::assertEquals($before, $fixture->user());
         self::assertTrue($fixture->grant()->isIssued());
-        self::assertCount(1, $fixture->audit->all());
+        self::assertCount(1, $fixture->auditEvidenceRepository->all());
     }
 
     #[DataProvider('securityTransitions')]
@@ -270,7 +270,11 @@ final class RecoveryLifecycleTest extends TestCase
         $beforeGrant = $fixture->grant();
         $failing = $fixture->connection(auditFails: true);
         if ($transition === 'email') {
-            self::assertTrue($failing->emailGrants->add($fixture->emailGrants->getLatestByUserId($fixture->userId)));
+            self::assertTrue(
+                $failing->emailChangeGrantRepository->add(
+                    $fixture->emailChangeGrantRepository->getLatestByUserId($fixture->userId)
+                )
+            );
         }
 
         $caught = null;
@@ -283,8 +287,8 @@ final class RecoveryLifecycleTest extends TestCase
         self::assertNotNull($caught);
         self::assertEquals($beforeUser, $fixture->user());
         self::assertEquals($beforeGrant, $fixture->grant());
-        self::assertSame([], $failing->audit->all());
-        self::assertCount(1, $failing->events->events());
+        self::assertSame([], $failing->auditEvidenceRepository->all());
+        self::assertCount(1, $failing->eventDispatcher->events());
     }
 
     public function test_failed_cancellation_cannot_commit_lifecycle_or_password_change(): void
@@ -310,7 +314,7 @@ final class RecoveryLifecycleTest extends TestCase
             self::assertNotNull($caught);
             self::assertEquals($before, $fixture->user());
             self::assertTrue($fixture->grant()->isIssued());
-            self::assertSame([], $failing->audit->all());
+            self::assertSame([], $failing->auditEvidenceRepository->all());
         }
     }
 
@@ -343,7 +347,7 @@ final class RecoveryLifecycleTest extends TestCase
 
                 self::assertNotNull($caught);
                 self::assertNotSame(CredentialDeliveryStatus::DELIVERED, $fixture->grant()->getDelivery()->getStatus());
-                $old = $fixture->grants->getById($first->getId());
+                $old = $fixture->passwordResetGrantRepository->getById($first->getId());
                 self::assertFalse($old->isIssued());
                 self::assertNull($old->getDelivery()->getEncryptedMaterial());
                 if ($transition === 'replacement') {

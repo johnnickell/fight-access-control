@@ -76,28 +76,28 @@ final class AgentProfileToolsTest extends TestCase
         $invoker = $env->invoker();
         $env->provider->resolve($env->request, $env->correlationId);
         $transactions = $env->storage->transaction->transactions;
-        $operations = $env->storage->operations->operations;
+        $operations = $env->storage->agentOperationRepository->operations;
         $before = $this->wireResult($invoker->invoke('agent.profile.read', (object) []));
         $this->assertProfile($before, $env, 'Production deployment');
         self::assertSame($transactions, $env->storage->transaction->transactions);
-        self::assertSame([], $env->storage->events->events());
+        self::assertSame([], $env->storage->eventDispatcher->events());
         $changed = $this->wireResult($invoker->invoke('agent.profile.update', ['name' => '  New worker  ']));
         $this->assertProfile($changed, $env, 'New worker');
-        $after = $env->storage->agents->getById($env->original->getId());
+        $after = $env->storage->agentRepository->getById($env->original->getId());
         self::assertNotNull($after);
         self::assertSame('New worker', $after->getName()->toString());
-        self::assertSame(1, $env->storage->agents->nameWrites);
-        self::assertCount(1, $env->storage->events->events());
-        $event = $env->storage->events->events()[0];
+        self::assertSame(1, $env->storage->agentRepository->nameWrites);
+        self::assertCount(1, $env->storage->eventDispatcher->events());
+        $event = $env->storage->eventDispatcher->events()[0];
         self::assertInstanceOf(AgentNameChanged::class, $event);
         self::assertSame('agent:'.$env->original->getId()->toString(), $event->getInitiator()->toString());
         self::assertTrue($env->original->getId()->equals($event->getAgentId()));
         $unchanged = $this->wireResult($invoker->invoke('agent.profile.update', ['name' => 'New worker']));
         self::assertSame($changed, $unchanged);
-        self::assertSame($after, $env->storage->agents->getById($env->original->getId()));
-        self::assertSame(1, $env->storage->agents->nameWrites);
-        self::assertCount(1, $env->storage->events->events());
-        self::assertSame($operations, $env->storage->operations->operations);
+        self::assertSame($after, $env->storage->agentRepository->getById($env->original->getId()));
+        self::assertSame(1, $env->storage->agentRepository->nameWrites);
+        self::assertCount(1, $env->storage->eventDispatcher->events());
+        self::assertSame($operations, $env->storage->agentOperationRepository->operations);
         self::assertSame($env->original->getCredentialId(), $after->getCredentialId());
         self::assertSame($env->original->getPermissionIds(), $after->getPermissionIds());
         $this->assertProfile(
@@ -113,13 +113,13 @@ final class AgentProfileToolsTest extends TestCase
     {
         $env = new ProfileToolEnvironment();
         $handler = new UpdateAgentHandler(
-            $env->storage->agents,
+            $env->storage->agentRepository,
             new FixedClock($env->now()),
             $env->storage->transaction,
-            $env->storage->events
+            $env->storage->eventDispatcher
         );
-        $commands = $this->createMock(SynchronousCommandBus::class);
-        $commands->expects(self::once())->method('execute')->willReturnCallback(
+        $synchronousCommandBus = $this->createMock(SynchronousCommandBus::class);
+        $synchronousCommandBus->expects(self::once())->method('execute')->willReturnCallback(
             static function (UpdateAgent $command) use ($env, $handler): void {
                 $handler->handle(CommandMessage::create($command));
                 // A second committed command wins before the first caller receives its acknowledgement.
@@ -130,19 +130,19 @@ final class AgentProfileToolsTest extends TestCase
                 )));
             }
         );
-        $queries = $this->createMock(QueryBus::class);
-        $queries->expects(self::never())->method('fetch');
-        $invoker = $env->invoker($queries, $commands);
+        $queryBus = $this->createMock(QueryBus::class);
+        $queryBus->expects(self::never())->method('fetch');
+        $invoker = $env->invoker($queryBus, $synchronousCommandBus);
         $this->assertProfile(
             $this->wireResult($invoker->invoke('agent.profile.update', ['name' => 'My request'])),
             $env,
             'My request'
         );
-        $winner = $env->storage->agents->getById($env->original->getId());
+        $winner = $env->storage->agentRepository->getById($env->original->getId());
         self::assertNotNull($winner);
         self::assertSame('Competing winner', $winner->getName()->toString());
-        self::assertSame(2, $env->storage->agents->nameWrites);
-        self::assertCount(2, $env->storage->events->events());
+        self::assertSame(2, $env->storage->agentRepository->nameWrites);
+        self::assertCount(2, $env->storage->eventDispatcher->events());
     }
 
     /** @param list<string> $granted */
@@ -155,20 +155,22 @@ final class AgentProfileToolsTest extends TestCase
         $agent = $env->original;
         foreach ([AgentProfilePermissions::READ, AgentProfilePermissions::UPDATE] as $name) {
             if (!in_array($name, $granted, true)) {
-                $permission = $env->permissions->getByName(PermissionName::fromString($name));
+                $permission = $env->permissionRepository->getByName(PermissionName::fromString($name));
                 self::assertNotNull($permission);
                 $agent = $agent->revokePermission($permission->getId(), $env->now());
             }
         }
 
-        $env->storage->agents->restoreSnapshot($unresolved ? [] : [$agent]);
-        $queries = $this->createMock(QueryBus::class);
-        $queries->expects(self::exactly(in_array(AgentProfilePermissions::READ, $granted, true) ? 1 : 0))
+        $env->storage->agentRepository->restoreSnapshot($unresolved ? [] : [$agent]);
+        $queryBus = $this->createMock(QueryBus::class);
+        $queryBus->expects(self::exactly(in_array(AgentProfilePermissions::READ, $granted, true) ? 1 : 0))
             ->method('fetch')->willReturn(new AgentProfileView($agent->getId(), AgentName::fromString('Visible')));
-        $commands = $this->createMock(SynchronousCommandBus::class);
-        $commands->expects(self::exactly(in_array(AgentProfilePermissions::UPDATE, $granted, true) ? 1 : 0))
+        $synchronousCommandBus = $this->createMock(SynchronousCommandBus::class);
+        $synchronousCommandBus->expects(
+            self::exactly(in_array(AgentProfilePermissions::UPDATE, $granted, true) ? 1 : 0)
+        )
             ->method('execute');
-        $invoker = $env->invoker($queries, $commands);
+        $invoker = $env->invoker($queryBus, $synchronousCommandBus);
         $progress = $this->createMock(McpProgressReporter::class);
         $progress->expects(self::never())->method('report');
         $requirements = [
@@ -206,11 +208,13 @@ final class AgentProfileToolsTest extends TestCase
             $env,
             'Admitted'
         );
-        $agent = $env->storage->agents->getById($env->original->getId());
+        $agent = $env->storage->agentRepository->getById($env->original->getId());
         self::assertNotNull($agent);
-        $permission = $env->permissions->getByName(PermissionName::fromString(AgentProfilePermissions::UPDATE));
+        $permission = $env->permissionRepository->getByName(
+            PermissionName::fromString(AgentProfilePermissions::UPDATE)
+        );
         self::assertNotNull($permission);
-        $env->storage->agents->restoreSnapshot([$agent->revokePermission($permission->getId(), $env->now())]);
+        $env->storage->agentRepository->restoreSnapshot([$agent->revokePermission($permission->getId(), $env->now())]);
         $env->nextRequest();
 
         $later = $env->invoker();
@@ -226,15 +230,17 @@ final class AgentProfileToolsTest extends TestCase
     public function test_invalid_inputs_never_reach_query_or_command(string $tool, array $arguments): void
     {
         $env = new ProfileToolEnvironment();
-        $queries = $this->createMock(QueryBus::class);
-        $queries->expects(self::never())->method('fetch');
-        $commands = $this->createMock(SynchronousCommandBus::class);
-        $commands->expects(self::never())->method('execute');
-        $result = $this->wireResult($env->invoker($queries, $commands)->invoke($tool, (object) $arguments));
+        $queryBus = $this->createMock(QueryBus::class);
+        $queryBus->expects(self::never())->method('fetch');
+        $synchronousCommandBus = $this->createMock(SynchronousCommandBus::class);
+        $synchronousCommandBus->expects(self::never())->method('execute');
+        $result = $this->wireResult(
+            $env->invoker($queryBus, $synchronousCommandBus)->invoke($tool, (object) $arguments)
+        );
         self::assertTrue($result['isError']);
         self::assertArrayNotHasKey('structuredContent', $result);
-        self::assertSame(0, $env->storage->agents->nameWrites);
-        self::assertSame([], $env->storage->events->events());
+        self::assertSame(0, $env->storage->agentRepository->nameWrites);
+        self::assertSame([], $env->storage->eventDispatcher->events());
     }
 
     public function test_missing_and_revoked_targets_after_admission_share_safe_read_and_update_failure(): void
@@ -243,16 +249,18 @@ final class AgentProfileToolsTest extends TestCase
             $env = new ProfileToolEnvironment();
             $invoker = $env->invoker();
             $env->provider->resolve($env->request, $env->correlationId);
-            $env->storage->agents->restoreSnapshot($state === null ? [] : [$env->original->revoke($env->now())]);
+            $env->storage->agentRepository->restoreSnapshot(
+                $state === null ? [] : [$env->original->revoke($env->now())]
+            );
             $read = $this->wireResult($invoker->invoke('agent.profile.read', (object) []));
             $update = $this->wireResult($invoker->invoke('agent.profile.update', ['name' => 'Valid']));
             self::assertSame($read, $update);
             self::assertTrue($read['isError']);
             self::assertSame([['type' => 'text', 'text' => 'The Agent profile is unavailable.']], $read['content']);
             self::assertArrayNotHasKey('structuredContent', $read);
-            self::assertSame(0, $env->storage->agents->nameWrites);
+            self::assertSame(0, $env->storage->agentRepository->nameWrites);
             self::assertCount(0, array_filter(
-                $env->storage->events->events(),
+                $env->storage->eventDispatcher->events(),
                 static fn(Event $event): bool => $event instanceof AgentNameChanged
             ));
         }
@@ -263,14 +271,14 @@ final class AgentProfileToolsTest extends TestCase
         foreach (['read', 'write', 'publication'] as $stage) {
             $env = new ProfileToolEnvironment();
             $failure = new RuntimeException('PRIVATE fixture credential envelope / permissions / storage / stack');
-            $queries = null;
+            $queryBus = null;
             if ($stage === 'read') {
-                $queries = $this->createMock(QueryBus::class);
-                $queries->expects(self::once())->method('fetch')->willThrowException($failure);
+                $queryBus = $this->createMock(QueryBus::class);
+                $queryBus->expects(self::once())->method('fetch')->willThrowException($failure);
             } elseif ($stage === 'write') {
-                $env->storage->agents->afterNameWrite = static fn(): never => throw $failure;
+                $env->storage->agentRepository->afterNameWrite = static fn(): never => throw $failure;
             } else {
-                $env->storage->events = new InMemoryEventDispatcher(
+                $env->storage->eventDispatcher = new InMemoryEventDispatcher(
                     static function (Event $event) use ($env, $failure): void {
                         self::assertFalse($env->storage->transaction->transactionActive);
                         if ($event instanceof AgentNameChanged) {
@@ -280,7 +288,7 @@ final class AgentProfileToolsTest extends TestCase
                 );
             }
 
-            $invoker = $env->invoker($queries);
+            $invoker = $env->invoker($queryBus);
             $responder = new McpResponder(new McpCapabilityRegistry(new McpServerInfo('profile-tests', '1'), [
                 new McpToolInvocation($invoker),
                 new McpToolDiscovery($env->registry, $env->availability, str_repeat('c', 32))
@@ -301,7 +309,7 @@ final class AgentProfileToolsTest extends TestCase
             self::assertSame(['code' => -32603, 'message' => 'Internal error.'], $response['error']);
             self::assertArrayNotHasKey('result', $response);
             self::assertStringNotContainsString('PRIVATE', json_encode($response, JSON_THROW_ON_ERROR));
-            $current = $env->storage->agents->getById($env->original->getId());
+            $current = $env->storage->agentRepository->getById($env->original->getId());
             self::assertNotNull($current);
             self::assertSame(
                 $stage === 'publication' ? 'Committed name' : 'Production deployment',

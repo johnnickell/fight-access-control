@@ -57,8 +57,8 @@ final class RecoveryConcurrencyTest extends TestCase
                 self::assertNotNull($caught);
                 self::assertEquals($expectedUser, $fixture->user());
                 self::assertEquals($expectedGrant, $fixture->grant());
-                self::assertSame([], $paused->audit->all());
-                self::assertCount(1, $paused->events->events());
+                self::assertSame([], $paused->auditEvidenceRepository->all());
+                self::assertCount(1, $paused->eventDispatcher->events());
                 self::assertFalse($fixture->userState->isAuthenticationAuthorityFenceHeld($fixture->userId));
             }
         }
@@ -82,7 +82,7 @@ final class RecoveryConcurrencyTest extends TestCase
                 );
                 self::assertFalse($fixture->grant()->isIssued());
                 self::assertNull($fixture->grant()->getDelivery()->getEncryptedMaterial());
-                self::assertSame([], $fixture->grants->findDue($fixture->now, 10));
+                self::assertSame([], $fixture->passwordResetGrantRepository->findDue($fixture->now, 10));
                 self::assertFalse($fixture->unitOfWork->transactionActive);
             }
         }
@@ -125,9 +125,11 @@ final class RecoveryConcurrencyTest extends TestCase
 
                     $competitor->unitOfWork->commitTransactional(function () use ($competitor): void {
                         $grant = $competitor->grant();
-                        self::assertFalse($competitor->grants->replace($grant, $grant->invalidateDelivery()));
+                        self::assertFalse(
+                            $competitor->passwordResetGrantRepository->replace($grant, $grant->invalidateDelivery())
+                        );
                     });
-                    self::assertSame([], $competitor->audit->all());
+                    self::assertSame([], $competitor->auditEvidenceRepository->all());
                 };
                 $fixture->unitOfWork->failNextCommit = $rollback;
                 $caught = null;
@@ -182,9 +184,9 @@ final class RecoveryConcurrencyTest extends TestCase
                 self::assertSame(2, $other->grant()->getAuthority()->getAuthenticationVersion());
             }
 
-            self::assertCount(2, $fixture->grants->all());
-            self::assertFalse($fixture->grants->all()[0]->isIssued());
-            self::assertNull($fixture->grants->all()[0]->getDelivery()->getEncryptedMaterial());
+            self::assertCount(2, $fixture->passwordResetGrantRepository->all());
+            self::assertFalse($fixture->passwordResetGrantRepository->all()[0]->isIssued());
+            self::assertNull($fixture->passwordResetGrantRepository->all()[0]->getDelivery()->getEncryptedMaterial());
         }
     }
 

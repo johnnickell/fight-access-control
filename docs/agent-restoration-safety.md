@@ -119,7 +119,7 @@ or prior-binary resumption is required or supplied.
 
 ## M4 executable evidence
 
-`tests/Application/AccessControl/Agent/Security/AgentRestorationConformance.php` is reusable through
+`tests/Application/AccessControl/Agent/Credential/AgentRestorationConformance.php` is reusable through
 `DeliveryConformanceFixture & AgentRestorationFixture`. The fixture supplies real consumer save/restore/reconciliation
 controls and independent persisted observations; the suite calls actual public package services. It must not return
 canned Application results or substitute a manually flipped ready flag for reconciliation. Run it alongside
