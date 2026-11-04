@@ -64,8 +64,11 @@ cohesive authentication/token issuance, refresh-session, password and email-conf
 that replacement after TASK-00111's User transitions. Preserve the supported JWT profile, safe immutable results,
 login/throttle/rehash, grant/session/revocation semantics, audit and actual failure/transaction ordering; do not keep
 the old service as a forwarding facade. Until that work is accepted, AuthenticationService remains current source.
-Internally generating a secret does not exempt secret-free intent from Commands; the separately planned Agent
-provision/rotate conversion still needs qualified result-capable Common dispatch and is not part of TASK-00107.
+Internally generating a secret does not exempt secret-free intent from Commands. John's amended
+[TICKET-00053](../../../planning/tickets/00053-TICKET.md)/[TASK-00182](../../../planning/tasks/00182-TASK.md) uses void
+provision/rotate Commands and independent authorized outcome Queries, invocable sync or async without transport
+assumptions. No result-capable CommandBus is required; retained-key recovery, current execution/read authority and
+transaction fences remain mandatory. This later conversion is not part of TASK-00107's implemented guidance.
 
 ### Adapter: capability and aggregate presentation
 
@@ -115,7 +118,9 @@ tombstones, generations, ordering, writer fences and restoration safety. Apply
 [ADR 0011](../../../planning/adr/0011-pre-v1-current-contract-only.md): remove obsolete AccessControl APIs directly
 when their replacement is implemented, without aliases, historical readers or migration/backfill machinery.
 Do not confuse those removals with permission to weaken current safety. Success facts follow confirmed commit;
-uncertainty and the scoped Agent issuance publication-warning exception remain distinct under the profile.
+uncertainty and Agent issuance's scoped publication policy remain distinct under the profile. Direct services remain
+the current source baseline; the approved void-Command/outcome-Query conversion supersedes their returned-warning
+caller contract only when implemented, not the guarantee that publication failure cannot hide committed issuance.
 Required audit in current source is unchanged here; EPIC-00017's optional-atomic audit destination has separate owners.
 Exact owned-statement coverage and OpenAPI integration coverage remain mandatory. An actual source/policy mismatch
 returns to its named TASK/decision owner; this guidance neither repairs it nor authorizes later work.

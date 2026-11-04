@@ -22,6 +22,7 @@ No Tasks are currently in this state.
 | 201 | [TASK-00111](00111-TASK.md) | Make User transitions own authentication-authority revisions | [TICKET-00035](../tickets/00035-TICKET.md) — Encapsulate User authentication transitions and synchronous use cases | ready-for-agent | — | — |
 | 203 | [TASK-00113](00113-TASK.md) | Make AgentName own provisioning and rename semantics | [TICKET-00036](../tickets/00036-TICKET.md) — Clarify Agent name and credential-operation domain ownership | ready-for-agent | — | — |
 | 204 | [TASK-00114](00114-TASK.md) | Establish credential-operation aggregate and narrow read repositories | [TICKET-00036](../tickets/00036-TICKET.md) — Clarify Agent name and credential-operation domain ownership | ready-for-agent | — | — |
+| 205 | [TASK-00182](00182-TASK.md) | Convert recoverable Agent issuance to Commands and outcome Queries | [TICKET-00053](../tickets/00053-TICKET.md) — Issue Agent credentials through Commands and outcome Queries | ready-for-agent | — | — |
 | 299 | [TASK-00150](00150-TASK.md) | Maintain exhaustive declaration and contract ownership | [TICKET-00042](../tickets/00042-TICKET.md) — Enforce and demonstrate whole-library type correctness | ready-for-agent | — | — |
 | 300 | [TASK-00151](00151-TASK.md) | Execute type-contract fixtures through the canonical gate | [TICKET-00042](../tickets/00042-TICKET.md) — Enforce and demonstrate whole-library type correctness | ready-for-agent | — | — |
 | 301 | [TASK-00115](00115-TASK.md) | Correct User, session and audit type contracts | [TICKET-00037](../tickets/00037-TICKET.md) — Make Domain and repository contracts precise | ready-for-agent | — | — |
@@ -114,7 +115,7 @@ No Tasks are currently in this state.
 | 102 | [TASK-00102](00102-TASK.md) | Authorize optional full-state Task notifications | [TICKET-00031](../tickets/00031-TICKET.md) — Authorize durable Task operations and state disclosure | needs-info | [TASK-00093](00093-TASK.md), [TASK-00101](00101-TASK.md) | — |
 | 307 | [TASK-00128](00128-TASK.md) | Preserve types through Query dispatch | [TICKET-00038](../tickets/00038-TICKET.md) — Preserve message and result types through dispatch | needs-info | — | — |
 | 308 | [TASK-00129](00129-TASK.md) | Preserve Command payload types through dispatch | [TICKET-00038](../tickets/00038-TICKET.md) — Preserve message and result types through dispatch | needs-info | — | — |
-| 309 | [TASK-00130](00130-TASK.md) | Qualify result-preserving Agent Command dispatch | [TICKET-00038](../tickets/00038-TICKET.md) — Preserve message and result types through dispatch | needs-info | — | — |
+| 309 | [TASK-00130](00130-TASK.md) | Qualify Agent issuance Command and Query dispatch | [TICKET-00038](../tickets/00038-TICKET.md) — Preserve message and result types through dispatch | needs-info | [TASK-00182](00182-TASK.md) | — |
 | 311 | [TASK-00132](00132-TASK.md) | Enforce paged query result contracts | [TICKET-00039](../tickets/00039-TICKET.md) — Guarantee exact query results and explicit absence | needs-info | — | — |
 | 315 | [TASK-00136](00136-TASK.md) | Preserve Event-driven delivery contracts | [TICKET-00040](../tickets/00040-TICKET.md) — Make command and synchronous Application contracts explicit | needs-info | — | — |
 

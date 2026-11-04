@@ -202,7 +202,17 @@ previous-iteration support; completed TASKs and earlier guidance cannot require 
   current authorization. Revocation, AuthenticationService and other handlers retain their publication behavior.
   TASK-00046 implements the provision exception and TASK-00048 implements rotation as unreleased work; the old
   raw-return rotation API is removed. TASK-00049/00052 prove package scheduler-only recovery; actual consumer
-  qualification remains separate. This guidance grants no independent implementation or release authority.
+  qualification remains separate. This describes the current direct-service baseline, not a requirement to retain
+  returned warnings after the explicitly amended conversion below. No independent execution or release authority.
+- **Approved Agent Command caller-contract amendment:** [TICKET-00053](../tickets/00053-TICKET.md)/
+  [TASK-00182](../tasks/00182-TASK.md) replace those direct APIs with void Commands and authorized outcome Queries.
+  Commands may execute sync or async at any time; no transport, response code, broker or request lifetime assumed.
+  Reuse GetAgentOperation for authoritative original issuance/dispositions, not queue progress or reconstructed
+  publication warnings. Dispatch acceptance/absence is not commit/rollback proof. Current execution/read authority,
+  original-key recovery, atomicity and committed issuance despite publication failure remain required. The prior
+  result-capable Common bus prerequisite is superseded; generic typing proof remains TASK-00130's separate scope.
+  Raw-secret inputs stay non-serializable, and consumers retain broker/error/runtime ownership. This is approved
+  future behavior, not implemented source or permission to weaken unknown-commit safety.
 - For that credential-operation replacement, follow ratified [EPIC-00009 D4](../epics/00009-EPIC.md#d4--bounded-operation-and-integration-policy):
   documented finite defaults, optional validated overrides, and no manual-configuration or additional human-approval
   requirement for routine operation/recovery. Capacity exhaustion must give new work a clear retryable rejection or

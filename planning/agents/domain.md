@@ -49,9 +49,11 @@ target. Common's released 1.x compatibility obligations remain upstream, not Acc
 historical Common snapshot and planned foundation/Task/Notice/identity/Tool refactors. Those sibling plans are
 external evidence, not local blocked_by IDs or proof of tagged availability. Each future MCP family owns its
 additional operation APIs and qualification. An unavailable contract holds only affected adoption; TASK-00108/00109
-can use existing qualified APIs. The separate Agent command conversion still needs supported result-preserving
-synchronous dispatch; the current void contracts cannot supply its confirmed/indeterminate/publication-warning
-result. Do not implement that conversion, guess a Common version or edit Common through this guidance task.
+can use existing qualified APIs. John amended the separate Agent conversion to void Commands and independent
+outcome Queries, invocable sync or async without transport assumptions; no result-return Common API is required.
+[TICKET-00053](../tickets/00053-TICKET.md)/[TASK-00182](../tasks/00182-TASK.md) own conversion, while TASK-00130 separately
+qualifies exact Command/Query typing. Original-key recovery and current execution/read authority remain required.
+Do not implement conversion, guess a Common version or edit Common merely through this guidance amendment.
 
 All production statements retain exact coverage, including Adapter; shipped OpenAPI contract integration tests
 remain in the default suite. Current audit, independent authorization, atomicity, recovery and publication

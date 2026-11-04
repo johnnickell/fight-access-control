@@ -8,7 +8,7 @@ The ten canonical standards below are copied into this checkout for self-contain
 
 | Standard | Source SHA-256 | Installed SHA-256 |
 | --- | --- | --- |
-| [Architecture](standards/Architecture.md) | `3937a128e280f93bb9eece8dea9f612f02a63fdd79bd0f7d63b41a167e190980` | `5f31545392eb24ac4772e13ef199cb983ada67698f3dfce57e5828d0c7198dfb` |
+| [Architecture](standards/Architecture.md) | `3937a128e280f93bb9eece8dea9f612f02a63fdd79bd0f7d63b41a167e190980` | `d672a38f76807d5d21ea452733ee5e165701748cc1e078d72c7120999206f07a` |
 | [Delivery](standards/Delivery.md) | `f846b7dbb8977d7ef195cdbd339ce91a1632691a7664455ebdd2067de4ad925e` | `fa91f6431f00c4d0e944a8ff8790f4152a56ebb4bbe4c55b98568fd04ef57ba6` |
 | [Frontend](standards/Frontend.md) | `236d9fae3bd94af3a22b6158953979be04c0c8e388f62d56461579d58e9eb8ec` | `236d9fae3bd94af3a22b6158953979be04c0c8e388f62d56461579d58e9eb8ec` |
 | [Governance](standards/Governance.md) | `b15f5ccc7804f0c3a7745aa0d7ba9f200c24f7652e81883217ae80aa7e37b81d` | `b15f5ccc7804f0c3a7745aa0d7ba9f200c24f7652e81883217ae80aa7e37b81d` |
@@ -88,6 +88,18 @@ This adoption does not certify all existing code against the baseline. Its compa
   Delivery's installed digest is also corrected to its actual unchanged bytes: the prior recorded digest already
   disagreed at TASK-00107's base, `b968b601cde4ba41775de24e4aaf6ef553a8184f`. No Delivery policy is changed. No provider
   standards, dependencies, production code or executable gate inputs other than governing guidance are rewritten.
+
+## Agent issuance caller-contract amendment — TICKET-00053
+
+John explicitly chose void Commands and independent outcome Queries for Agent provisioning/rotation, invocable
+sync or async at any time without a transport assumption. The scoped Architecture correction links
+[TICKET-00053](../../planning/tickets/00053-TICKET.md)/[TASK-00182](../../planning/tasks/00182-TASK.md) rather than
+requiring a future result-capable CommandBus. ADR 0004/profile distinguish the existing direct-service baseline from
+this approved conversion; original-key recovery, execution/read authority, atomicity and safe commit/publication
+outcomes remain mandatory. This supersedes returned issuance/warning requirements for the future converted callers,
+not existing raw-secret restrictions or consumer broker/storage ownership. TASK-00130 separately qualifies void
+Command/Query typing. Only Architecture's installed digest changes; source digests preserve the baseline. No provider
+standards or executable dependency checks are changed and no conversion implementation is claimed by this amendment.
 
 ## Optional capability-first Adapter boundary — WF-035
 
