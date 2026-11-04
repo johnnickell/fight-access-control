@@ -2,7 +2,7 @@
 id: TICKET-00053
 epic: EPIC-00015
 title: Issue Agent credentials through Commands and outcome Queries
-status: ready-for-agent
+status: done
 ---
 
 # Issue Agent credentials through Commands and outcome Queries
@@ -114,7 +114,7 @@ priorities remain intact. This directly selected standalone follow-up has no ear
 
 | Order | TASK ID | Title | Status |
 | --- | --- | --- | --- |
-| 205 | [TASK-00182](../tasks/00182-TASK.md) | Convert recoverable Agent issuance to Commands and outcome Queries | in-progress |
+| 205 | [TASK-00182](../tasks/00182-TASK.md) | Convert recoverable Agent issuance to Commands and outcome Queries | done |
 ## Acceptance Evidence
 
 - [ ] Both production handlers own issuance coordination, implement actual void Common dispatch and serialize only
@@ -146,7 +146,4 @@ needs-info hold based solely on it. TASK-00182 now records the accepted complete
 real conversion edge and retains only its distinct generic-typing evidence holds. Planning used the selected isolated
 worktree; no source/dependency/consumer changes, product build, implementation acceptance, commit/push/PR or release.
 
-That was the planning-only handoff. TASK-00182 now has a Work candidate implementing the paired void Command/
-authorized Query contract and direct caller/result removal; its owning record and canonical ignored Work handoff
-carry current verification. Independent Review/nonvisual QA remain outstanding. This TICKET is not independently
-accepted or complete, and no consumer qualification or release is claimed.
+That was the planning-only handoff. TASK-00182's integrated candidate has independent Review ACCEPT and nonvisual QA PASS; its record and canonical Work handoff carry verification. Publication and final delivery verification were pending at closeout; current results are in `.runs/handoffs/TASK-00182/land.md` and the actual PR. No consumer qualification or release is claimed.

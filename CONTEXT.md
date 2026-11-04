@@ -6,7 +6,11 @@ Fight AccessControl owns framework-neutral identity, credential, session, author
 behavior shared by Fight applications. The repository-local behavioral and security authority is
 [TICKET-00001](planning/tickets/00001-TICKET.md).
 
-## TASK-00182 void Agent issuance — Work checkpoint
+## TASK-00182 void Agent issuance — accepted checkpoint
+
+Independent Review ACCEPT and nonvisual QA PASS cover integrated candidate `4990103d519bdd0a1bbb7d77bccf10619607f4cc`. Publication and final delivery verification were pending at closeout; current results are in `.runs/handoffs/TASK-00182/land.md` and the actual PR. Consumer qualification remains separate. The Work checkpoint below is historical.
+
+### Work checkpoint
 
 Provisioning and rotation now use immutable secret-free `ProvisionAgent` / `RotateAgentCredential` Commands and
 registered `ProvisionAgentHandler` / `RotateAgentCredentialHandler`. The handlers own coordination/transactions;
@@ -321,7 +325,7 @@ now approved/written as TICKET-00049–00052, all four fully TASK-planned (12 TA
 This needs no further interview/TICKET split or expansion of audit/existing Permission TASKs.
 EPIC-00015's added Agent conversion is now fully planned as [TICKET-00053](planning/tickets/00053-TICKET.md)/
 [TASK-00182](planning/tasks/00182-TASK.md). That planning-only checkpoint did not implement it; the current Work
-checkpoint above now records its implementation awaiting independent acceptance. John superseded result-bearing synchronous dispatch
+checkpoint above records its implementation and subsequent independent acceptance. John superseded result-bearing synchronous dispatch
 with transport-neutral void Commands and outcome Queries; the result-capable Common hold is removed. Distinct actual
 Common generic/canonical qualification remains with its owners. At the earlier planning checkpoint TASK-00107 was
 first; it has since been independently accepted and the current Board owns execution selection.
@@ -512,7 +516,7 @@ Confirmed commit remains queryable even when both publishers fail; no invocation
 reconstructed by status. Pre-commit and uncertain-commit failures retain safe execution error/same-key recovery semantics,
 without promising an async submitting caller the worker's exception or adding durable attempt/warning/outbox storage.
 The original result-capable Common prerequisite is superseded. TASK-00182 uses supported void Command/Query APIs and
-is ready-for-agent with no demonstrated local blocker; ordinary minimum/composition verification remains required.
+was ready-for-agent at that planning checkpoint; the accepted checkpoint above records subsequent minimum/composition verification.
 [EPIC-00016](planning/epics/00016-EPIC.md#agent-command-result-coordination-follow-up)/TASK-00130 retain separate exact
 payload/metadata/registration and Query-result typing qualification with blocked_by TASK-00182. Their actual generic
 supplier evidence holds are not a functional conversion prerequisite. Audit/type owners follow the actual candidate

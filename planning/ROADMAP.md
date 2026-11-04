@@ -1,5 +1,9 @@
 # Roadmap
 
+## TASK-00182 accepted implementation checkpoint
+
+TASK-00182's integrated void Agent Command conversion has independent Review ACCEPT and nonvisual QA PASS; TICKET-00053 closes with its sole child. EPIC-00015 remains open for its unfinished Common adoption work. Publication and final delivery verification were pending at closeout; current results are in `.runs/handoffs/TASK-00182/land.md` and the actual PR. The planning handoffs below retain their historical checkpoints.
+
 ## Completed TASK-planning handoff — portable Feature and Permission admission
 
 John approved [EPIC-00018 — Portable Feature and Permission Admission](epics/00018-EPIC.md): separate opt-in Feature

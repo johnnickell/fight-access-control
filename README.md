@@ -74,7 +74,9 @@ directly; wire shapes and atomic Agent/operation cancellation, cohort/restoratio
 See the [operation ownership map](docs/agent-integration.md#operation-ownership-and-readwrite-composition-unreleased).
 TASK-00114's integrated candidate with TASK-00112's advanced authentication base has independent Review ACCEPT
 and nonvisual QA PASS. Current delivery results are in its canonical Land handoff and PR #158. The integrated
-TASK-00182 Command conversion still requires fresh independent Review and nonvisual QA; no consumer qualification is claimed.
+TASK-00182 Command conversion has independent Review ACCEPT and nonvisual QA PASS; publication and final delivery
+verification were pending at closeout. Current results are in its canonical Land handoff and actual PR; no consumer
+qualification is claimed.
 
 | This package owns | Your application owns |
 | --- | --- |

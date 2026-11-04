@@ -230,9 +230,10 @@ previous-iteration support; completed TASKs and earlier guidance cannot require 
   publication warnings. Dispatch acceptance/absence is not commit/rollback proof. Current execution/read authority,
   original-key recovery, atomicity and committed issuance despite publication failure remain required. The prior
   result-capable Common bus prerequisite is superseded; generic typing proof remains TASK-00130's separate scope.
-  Raw-secret inputs stay non-serializable, and consumers retain broker/error/runtime ownership. TASK-00182's Work
+  Raw-secret inputs stay non-serializable, and consumers retain broker/error/runtime ownership. TASK-00182's integrated
   candidate implements this contract through ProvisionAgentHandler/RotateAgentCredentialHandler with supported
-  Common routing; independent acceptance remains required. Lost commit acknowledgement throws sanitized
+  Common routing and has independent Review ACCEPT and nonvisual QA PASS; current delivery results are in its
+  canonical Land handoff and actual PR. Lost commit acknowledgement throws sanitized
   AgentOperationUncertainException, never a guessed success/rollback. Follow the current composition guides.
 - For that credential-operation replacement, follow ratified [EPIC-00009 D4](../epics/00009-EPIC.md#d4--bounded-operation-and-integration-policy):
   documented finite defaults, optional validated overrides, and no manual-configuration or additional human-approval
