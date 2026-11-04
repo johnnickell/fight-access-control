@@ -168,8 +168,13 @@ behavior stays unchanged. Agent OS's custom mapper is not a drop-in migration ta
 
 ## Qualified minimums and limits
 
-The installed lane is also the **selected minimum** lane: every listed lower bound below is the actual installed tag,
-not a guessed oldest compatible release. Common is narrowed from `^1.3` to `^1.4` because 1.3 does not guarantee safe
+Current package minimum is Common `^1.4.1`, raised by [Laravel qualification](laravel-permission-admission.md) to
+exclude its broken 1.4.0 terminal fallback. The full default suite rechecks shared/Slim/Yii behavior on that current
+installed dependency. The table and source/archive counts below preserve TASK-00103's original qualification lane,
+not the current installed lock or a claim that Laravel works with 1.4.0.
+
+At that checkpoint the installed lane was also the **selected minimum** lane: every listed lower bound below was an
+actual installed tag, not a guessed oldest compatible release. Common was narrowed from `^1.3` to `^1.4` because 1.3 does not guarantee safe
 HTTP declarations. No compatibility aliases/readers or development branches are used. Native libraries are dev fixture
 dependencies plus Composer suggestions, not mandatory production frameworks. PSR HTTP contracts are explicit runtime
 requirements. A separate no-dev install proves inward User/Agent admission and adapter autoload without Slim/Yii.

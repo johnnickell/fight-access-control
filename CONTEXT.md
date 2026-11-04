@@ -88,7 +88,7 @@ TICKET-00051's four-TASK plan is approved/written as [TASK-00176](planning/tasks
 Permission integration with separate Slim/Yii journeys, [TASK-00177](planning/tasks/00177-TASK.md) Symfony,
 [TASK-00178](planning/tasks/00178-TASK.md) Laravel and [TASK-00179](planning/tasks/00179-TASK.md) CI4. Equal order 505
 selects no relative native-peer priority. Each directly consumes TASK-00171 plus respectively completed TASK-00103,
-completed TASK-00104, planned TASK-00105 and accepted TASK-00106. No new shared runtime prefactor/sibling blocker or
+completed TASK-00104, accepted TASK-00105 and accepted TASK-00106. No new shared runtime prefactor/sibling blocker or
 TASK-00172–00175/Feature activation wait: effective composition/pure traversal/existing inward admission already have
 owners. Unlike Feature-only Laravel, TASK-00178 genuinely consumes TASK-00105's native Permission middleware. Reuse
 actual accepted base adapters/error bridge once; preserve earlier scope/orders/blockers. Attribute-only protection,
@@ -111,7 +111,7 @@ Normal independent Review/QA/full-gate/exact coverage rules remain, including st
 reuse only with complete input-equivalence/log/receipt/exit proof and targeted checks. Supplier defects return to their
 actual owner for authorized repair, not duplicate implementation. All four EPIC-00018 TICKETs are fully TASK-planned as
 12 TASKs (2 + 4 + 4 + 2: ten features/two chores), not implemented/qualified; parents remain open with unfinished children.
-Existing PSR-15/Symfony/CI4 and planned TASK-00105 Laravel
+Existing PSR-15/Symfony/CI4 and accepted TASK-00105 Laravel
 Permission work retain scope/order/blockers; assign actual native suppliers and shared adaptations once during
 TASK decomposition rather than duplicate or silently expand them. No new version,
 consumer adoption or release obligation with other EPICs is selected. Current FeatureFlag is still method-only,
@@ -659,6 +659,53 @@ Adapter/default/OpenAPI tests, exact owned coverage and existing gates remain re
 statements; current counts/full-gate evidence and exact candidate bridge belong to TASK-00106's Work handoff. Independent
 Review and behavioral QA are pending; this Work checkpoint is not acceptance, adoption, release or deployment.
 Actual consumer bootstrap/routes/reset/authentication/storage/crypto/scope/sinks/proxies/cache/runtime remain unqualified.
+
+## Native Laravel Permission admission — TASK-00105 acceptance checkpoint
+
+TASK-00105 now supplies explicit `Adapter\\Middleware\\Laravel\\PermissionMiddleware`, exact trusted Route/action
+bindings and fresh inward User/Agent admission. The [Laravel guide](docs/laravel-permission-admission.md) owns native
+registration, six controller forms, discovery/construction limits, FormRequest/validator order, sequential/nested
+request lifetimes and single-authentication nonce semantics. No guard fallback, Feature/portable Attribute, automatic
+bootstrap/grants or competing error handler is supplied. Common alone owns selected safe JSON report/render.
+
+The original supplier defect below is resolved by tagged Common **v1.4.1**; minimum is now `^1.4.1`, excluding broken
+1.4.0. The original persistent-encoder regression passes with one diagnostic attempt and fixed safe native 500;
+default native tests include two/persistent encoder faults and failed-sink/terminal fallback. Actual response
+prepare/sendContent and later independent requests remain bounded. Common's delegated non-JSON path is explicitly
+not a sanitizer. Native ambient state restoration/concurrency and arbitrary final observers remain consumer duties.
+
+Selected native bounds are Laravel `^13.40.0`, HttpFoundation/HttpKernel `^8.1.11` and Event Dispatcher `^8.1.5`.
+Preliminary 8.1.9 components passed behavior but reported five security advisories; 8.1.11 is the supported floor.
+Actual tagged source/archive/lock, independent-supplier-to-tag runtime bridge, ordinary/isolated minimum and no-Laravel
+core evidence are retained in canonical `.runs/tasks/TASK-00105/runs/engineer-02/`. The same branch safely integrates
+current develop through `2705dcc2fe10489080113489488b6f124b47c4cb`, reusing current CI4/User/Agent boundaries.
+The initial combined full gate exposed Laravel/CI4 global `config()` helper collisions. Native test launchers now
+defer Laravel Foundation/Support globals before Composer; fresh Laravel test processes load actual supplier helpers.
+This isolates application bootstraps without modifying CI4 or supplier production code. Current full-gate result and
+exact content-to-commit bridge belong to `.runs/handoffs/TASK-00105/work.md`.
+Independent Review ACCEPT and behavioral QA PASS cover candidate `b7faea4c10b84ec86ad090f9ea790111c846cc84`.
+Publication and final delivery were pending at this checkpoint; current result: `.runs/handoffs/TASK-00105/land.md`.
+Controlled fixtures do not qualify actual consumer guards/bootstrap/storage/crypto/scope/sinks/proxies/workers/deployed
+runtime. The combined release remains incomplete and unassigned.
+
+### Historical supplier-blocked Work checkpoint
+
+TASK-00105's isolated Work attempt contains partial **uncommitted, unaccepted** native middleware and mirrored
+kernel/router fixtures. It binds declarations to exact trusted Laravel Route objects and their registered actions,
+selects fresh inward User/Agent authority and leaves reporting/rendering solely with Common's explicitly selected
+native handler. Controlled tests distinguish lazy/static controller forms from legacy constructor-time middleware
+discovery, and exercise FormRequest/order, sequential/nested requests, nonce replay refusal, safe JSON negotiation,
+headers and primary fallback. Feature admission and portable Attributes remain follow-up work.
+
+**Supplier hold:** tagged Common v1.4.0 `SafeLaravelExceptionHandler::fallback()` does not contain an encoder failure.
+Actual Laravel kernel probes show recursive report/render (two attempts for two encoding failures; six for persistent
+failure) and a private-bearing renderer exception escaping on persistent failure. The TASK therefore needs a
+qualified tagged Common terminal-render/fallback contract before its dependency minimum can be called sufficient.
+No competing AccessControl renderer or supplier repair is authorized. The focused ordinary/minimum suite passes
+57 tests / 504 assertions, but the separate supplier regression fails; no complete gate, commit or acceptance is
+claimed. See [TASK-00105](planning/tasks/00105-TASK.md) and canonical `.runs/handoffs/TASK-00105/work.md` for exact
+source/lock/runtime evidence, retained isolated resources and resumption inputs. Native fixtures do not qualify
+consumer guards, bootstrap, persistence/crypto, sinks, deployed or worker runtimes. Combined release remains incomplete.
 
 ## Native Symfony Permission admission — TASK-00104 Work checkpoint
 

@@ -51,7 +51,7 @@ TICKET-00051's four-TASK plan is approved/written as [TASK-00176](tasks/00176-TA
 integration (separate Slim/Yii journeys), [TASK-00177](tasks/00177-TASK.md) Symfony,
 [TASK-00178](tasks/00178-TASK.md) Laravel and [TASK-00179](tasks/00179-TASK.md) CI4. Equal order 505 selects no relative
 native-peer priority. Direct suppliers are each TASK-00171 plus respectively completed TASK-00103, completed TASK-00104,
-planned TASK-00105 and accepted TASK-00106. Existing effective composition/pure traversal/inward admission need no new
+accepted TASK-00105 and accepted TASK-00106. Existing effective composition/pure traversal/inward admission need no new
 shared prefactor or native-peer/Feature wait. Laravel genuinely consumes its base Permission middleware, unlike the
 Feature-only path; CI4 consumes its actual filter/error bridge. No duplicate base implementation or changed earlier
 scope/orders/blockers. All five families are allocated as 2 + 1 + 1 + 1, not implemented/native/supplier/consumer proof.
@@ -68,7 +68,7 @@ risk. No per-framework retest suites, exhaustive combination grid, conformance f
 existing evidence requires no new tests. Current requirement accounting, candidate compatibility, independent Review/
 QA and normal full-gate/exact coverage/evidence-reuse rules remain. All four TICKETs are fully TASK-planned as 12 TASKs
 (2 + 4 + 4 + 2: ten features/two chores), not implemented/qualified; unfinished children keep parents open. Existing accepted
-PSR-15/Symfony/CI4 and planned TASK-00105 Laravel Permission scope/order/blockers are preserved; assign actual
+PSR-15/Symfony/CI4 and accepted TASK-00105 Laravel Permission scope/order/blockers are preserved; assign actual
 native suppliers/shared adaptations once without duplicating existing work. Target version remains unassigned; consumer adoption/release
 obligations with other EPICs are not inferred. At that planning checkpoint the first Board selection was TASK-00107;
 source/dependencies/Common/consumers remained unchanged.

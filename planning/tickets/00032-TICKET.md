@@ -2,7 +2,7 @@
 id: TICKET-00032
 epic: EPIC-00014
 title: Protect native HTTP entry points across all five frameworks
-status: in-progress
+status: done
 ---
 
 # Protect native HTTP entry points across all five frameworks
@@ -119,9 +119,20 @@ new protocol endpoints, duplicate error handling, actual Agent OS/starter source
 | --- | --- | --- | --- |
 | 103 | [TASK-00103](../tasks/00103-TASK.md) | Protect Slim and Yii 3 requests through shared PSR-15 admission | done |
 | 104 | [TASK-00104](../tasks/00104-TASK.md) | Protect Symfony requests through native admission | done |
-| 104 | [TASK-00105](../tasks/00105-TASK.md) | Protect Laravel requests through native middleware | ready-for-agent |
+| 104 | [TASK-00105](../tasks/00105-TASK.md) | Protect Laravel requests through native middleware | done |
 | 104 | [TASK-00106](../tasks/00106-TASK.md) | Protect CodeIgniter 4 requests through native before filters | done |
 ## Decisions and Progress
+
+All four child TASKs have independent acceptance and applicable QA; TICKET completion records package acceptance,
+not consumer qualification, publication or release. TASK-00105 Review ACCEPT and QA PASS cover candidate
+`b7faea4c10b84ec86ad090f9ea790111c846cc84`; publication and final delivery were pending at this checkpoint.
+Current delivery result: `.runs/handoffs/TASK-00105/land.md`. Earlier stage statements below are historical.
+
+TASK-00105 Work now implements explicit Laravel middleware/Common-only safe handler composition; see the
+[Laravel guide](../../docs/laravel-permission-admission.md) for trusted route/action and authority binding,
+construction/order/lifetime/negotiation limits and tagged Common 1.4.1/component floors. Its canonical Work handoff
+owns current verification and commit mapping; independent Review/behavioral QA remain required. Supplier fallback
+recovery does not accept/close this TASK or parent, and native fixtures do not qualify consumer deployment.
 
 TASK-00106 has independent Review ACCEPT and behavioral QA PASS on candidate
 `eb1b70470747df0bbae776272284ef7b11c8d155`. Publication and final delivery were pending at closeout; current result:

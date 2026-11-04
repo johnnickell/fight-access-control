@@ -177,7 +177,11 @@ filter: PUBLIC is not a protocol exclusion. No JSON-RPC concealment, OAuth chall
 
 ## Qualified minimum and remaining consumer duties
 
-The ordinary installed lane and isolated exact-minimum lane use tagged **Common v1.4.0**
+Current package Common minimum is `^1.4.1`, raised by [Laravel qualification](laravel-permission-admission.md) for
+its terminal native fallback. Current full default tests recheck CI4 composition on that installed dependency.
+The identities/counts below preserve TASK-00106's original qualification, not today's installed lock.
+
+At that checkpoint the ordinary installed lane and isolated exact-minimum lane used tagged **Common v1.4.0**
 (`87b9580c072f3149d574e09865daa79620c92118`, range `^1.4`) and **CI4 v4.7.6**
 (`d755dca632526b116e4611eea9e303505fa6889a`, range `^4.7.6`). These are selected sufficient minima, not guessed oldest
 compatible releases. CI4 is a dev fixture plus optional Composer suggestion, never a production framework requirement.
