@@ -177,7 +177,8 @@ previous-iteration support; completed TASKs and earlier guidance cannot require 
   `AgentCredentialOperationRepository` and existing UoW. View mapping is query-owned; cohort evidence remains
   Domain-owned while actual composition qualification stays with consumers. See the
   [current ownership map](../../docs/agent-integration.md#operation-ownership-and-readwrite-composition-unreleased).
-  Independent acceptance/QA remain required. TASK-00110 owns qualified canonical Common adoption; TASK-00107
+  Independent Review and QA accepted the TASK-00114 candidate; delivery is recorded in its Land handoff and PR.
+  TASK-00110 owns qualified canonical Common adoption; TASK-00107
   implemented neither this source change nor Common adoption.
   See the [consumed-contract notes](domain.md#consumed-common-contracts) for actual source and supplier limits.
 - UserRepository::add() enforces canonical-email uniqueness atomically. Backed enum cases are uppercase and retain

@@ -285,7 +285,7 @@ not a separate queue or authority to execute.
 | 12 | [TASK-00109](tasks/00109-TASK.md) — Application capabilities and descriptive names | Independently accepted; combines cohesive inward capabilities and descriptive collaborators with 108's outward MCP boundary. |
 | 13 | [TASK-00110](tasks/00110-TASK.md) — Supported canonical Common contracts | needs-info for actual affected tagged/accepted APIs and sufficient minimum; independent ready work proceeds. |
 | 201–202 | [TASK-00111](tasks/00111-TASK.md) → [TASK-00112](tasks/00112-TASK.md) — User revisions and synchronous capabilities | Follow existing features; 112 consumes complete transitions from 111. |
-| 203–204 | [TASK-00113](tasks/00113-TASK.md) / [TASK-00114](tasks/00114-TASK.md) — AgentName and operation/read boundaries | Follow existing features; relative priority only, no mutual blocker. |
+| 203–204 | [TASK-00113](tasks/00113-TASK.md) / [TASK-00114](tasks/00114-TASK.md) — AgentName and operation/read boundaries | Both candidates independently accepted; current delivery results are in their Land handoffs and PRs. |
 
 Unfinished MCP roots TASK-00084/00087/00091/00097 now consume 108/110; existing descendants inherit those technical
 suppliers. Their new Common family/operation tagged-contract holds remain separate. Laravel TASK-00105 and

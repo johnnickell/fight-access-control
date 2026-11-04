@@ -5,13 +5,11 @@ dependencies, acceptance, and verification.
 
 ## What's Next?
 
-Active Task: [TASK-00114](00114-TASK.md) — Establish credential-operation aggregate and narrow read repositories.
+First ready Task: [TASK-00105](00105-TASK.md) — Protect Laravel requests through native middleware.
 
 ## In Progress
 
-| Order | TASK ID | Title | Parent TICKET | Status | Blocked by | PR |
-| --- | --- | --- | --- | --- | --- | --- |
-| 204 | [TASK-00114](00114-TASK.md) | Establish credential-operation aggregate and narrow read repositories | [TICKET-00036](../tickets/00036-TICKET.md) — Clarify Agent name and credential-operation domain ownership | in-progress | — | — |
+No Tasks are currently in this state.
 
 ## Ready Frontier
 
@@ -220,3 +218,4 @@ No Tasks are currently in this state.
 | 104 | [TASK-00106](00106-TASK.md) | Protect CodeIgniter 4 requests through native before filters | [TICKET-00032](../tickets/00032-TICKET.md) — Protect native HTTP entry points across all five frameworks | done | [TASK-00103](00103-TASK.md) | https://github.com/johnnickell/fight-access-control/pull/154 |
 | 201 | [TASK-00111](00111-TASK.md) | Make User transitions own authentication-authority revisions | [TICKET-00035](../tickets/00035-TICKET.md) — Encapsulate User authentication transitions and synchronous use cases | done | — | https://github.com/johnnickell/fight-access-control/pull/156 |
 | 203 | [TASK-00113](00113-TASK.md) | Make AgentName own provisioning and rename semantics | [TICKET-00036](../tickets/00036-TICKET.md) — Clarify Agent name and credential-operation domain ownership | done | — | https://github.com/johnnickell/fight-access-control/pull/155 |
+| 204 | [TASK-00114](00114-TASK.md) | Establish credential-operation aggregate and narrow read repositories | [TICKET-00036](../tickets/00036-TICKET.md) — Clarify Agent name and credential-operation domain ownership | done | — | https://github.com/johnnickell/fight-access-control/pull/158 |

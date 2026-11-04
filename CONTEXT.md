@@ -313,7 +313,13 @@ remains the synchronous use-case owner; TASK-00112 decomposition is separate. Wo
 belong in the canonical TASK handoff. Independent Review/nonvisual QA remain required; no consumer database/crypto
 qualification, release or deployment is claimed at this checkpoint.
 
-## TASK-00114 operation aggregate/read ownership — Work checkpoint
+## TASK-00114 operation aggregate/read ownership — accepted checkpoint
+
+Independent Review ACCEPT and nonvisual QA PASS cover the implemented candidate. Current delivery results are in
+`.runs/handoffs/TASK-00114/land.md` and PR #158. Acceptance does not imply merge, release, consumer qualification
+or deployment. The Work checkpoint below records its earlier stage, not a current Review/QA instruction.
+
+### Work checkpoint
 
 `AgentCredentialOperation` now has a distinct aggregate home inside AccessControl, with aggregate-named write
 `AgentCredentialOperationRepository` and independent `AgentCredentialOperationReadRepository`. The four read handlers

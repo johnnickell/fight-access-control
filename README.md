@@ -67,7 +67,8 @@ Status, scheduler and maintenance readers inject `AgentCredentialOperationReadRe
 use the separate `AgentCredentialOperationRepository` with their existing UoW. Update imports/named arguments
 directly; wire shapes and atomic Agent/operation cancellation, cohort/restoration and recovery behavior are unchanged.
 See the [operation ownership map](docs/agent-integration.md#operation-ownership-and-readwrite-composition-unreleased).
-This is unreleased Work, not independent acceptance, consumer qualification or the separate Agent Command conversion.
+This unreleased candidate has independent Review and QA acceptance; it is not consumer qualification or the
+separate Agent Command conversion. Current delivery results are in the TASK-00114 Land handoff and PR.
 
 | This package owns | Your application owns |
 | --- | --- |

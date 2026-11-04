@@ -2,7 +2,7 @@
 id: TICKET-00036
 epic: EPIC-00015
 title: Clarify Agent name and credential-operation domain ownership
-status: ready-for-agent
+status: done
 ---
 
 # Clarify Agent name and credential-operation domain ownership
@@ -73,7 +73,7 @@ compatibility aliases, split transactions, outbox/exactly-once delivery, physica
 | Order | TASK ID | Title | Status |
 | --- | --- | --- | --- |
 | 203 | [TASK-00113](../tasks/00113-TASK.md) | Make AgentName own provisioning and rename semantics | done |
-| 204 | [TASK-00114](../tasks/00114-TASK.md) | Establish credential-operation aggregate and narrow read repositories | in-progress |
+| 204 | [TASK-00114](../tasks/00114-TASK.md) | Establish credential-operation aggregate and narrow read repositories | done |
 ## Decisions and Progress
 
 John approved both slices and their lower priority than enabling refactors/current features. Existing specialized
