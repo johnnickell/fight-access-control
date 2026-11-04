@@ -26,7 +26,7 @@ Inject `AgentOperationRepository`, `AgentMaintenanceAuthorization`, `AgentDelive
 No production implementation of these consumer capabilities is included. Repository and authorization must
 participate on the package transaction's connection; unsupported participation or an outer/nested transaction fails
 closed. No new event is required: persisted state is the maintenance outcome, not an issuance/delivery fact.
-AuthenticationService, revocation publication and the scoped issuance publication-warning exception are unchanged.
+Synchronous User capabilities, revocation publication and the scoped issuance publication-warning exception are unchanged.
 
 `AgentMaintenanceResult` returns only:
 

@@ -18,7 +18,11 @@ use Fight\AccessControl\Application\AccessControl\User\CommandHandler\DeleteUser
 use Fight\AccessControl\Application\AccessControl\User\CommandHandler\DisableUserHandler;
 use Fight\AccessControl\Application\AccessControl\User\CommandHandler\EnableUserHandler;
 use Fight\AccessControl\Application\AccessControl\User\CommandHandler\RestoreUserHandler;
-use Fight\AccessControl\Application\AccessControl\User\Security\AuthenticationService;
+use Fight\AccessControl\Application\AccessControl\EmailChangeGrant\EmailChangeConfirmation;
+use Fight\AccessControl\Application\AccessControl\RefreshSession\SessionLifecycle;
+use Fight\AccessControl\Application\AccessControl\User\Authentication\TokenIssuer;
+use Fight\AccessControl\Application\AccessControl\User\Authentication\UserAuthentication;
+use Fight\AccessControl\Application\AccessControl\User\PasswordManagement;
 use Fight\AccessControl\Application\AccessControl\User\Security\AuthenticationTokenPolicy;
 use Fight\AccessControl\Domain\AccessControl\EmailChangeGrant\Command\CancelEmailChange;
 use Fight\AccessControl\Domain\AccessControl\EmailChangeGrant\Command\ExpireEmailChange;
@@ -167,28 +171,69 @@ final class RecoveryFixture
         )->handle(CommandMessage::create(new RequestPasswordReset($this->user()->getEmail())));
     }
 
-    public function service(bool $rehash = false): AuthenticationService
+    public function authentication(bool $rehash = false): UserAuthentication
     {
         $passwords = new TestPasswordSecurity($rehash);
 
-        return new AuthenticationService(
+        return new UserAuthentication(
             $this->userRepository,
             new InMemoryActivationGrantRepository($this->unitOfWork),
-            $this->refreshSessionRepository,
-            new SessionRevocationService($this->refreshSessionRepository),
             $this->unitOfWork,
             new FixedClock($this->now),
             new FixedLoginThrottle(true),
             new FixedRefreshCredentialGenerator(RefreshCredential::fromString(str_repeat('a', 64))),
             $passwords,
             $passwords,
-            new RecordingTokenEncoder(),
-            AuthenticationTokenPolicy::starterDefaults(new DateInterval('PT5S')),
+            $this->tokenIssuer(),
             PasswordHash::fromString(password_hash('dummy', PASSWORD_DEFAULT)),
-            $this->eventDispatcher,
+            $this->eventDispatcher
+        );
+    }
+
+    public function passwordManagement(): PasswordManagement
+    {
+        $passwords = new TestPasswordSecurity();
+
+        return new PasswordManagement(
+            $this->userRepository,
             $this->passwordResetGrantRepository,
+            new SessionRevocationService($this->refreshSessionRepository),
             $this->auditEvidenceRepository,
-            $this->emailChangeGrantRepository
+            $this->unitOfWork,
+            new FixedClock($this->now),
+            $passwords,
+            $passwords,
+            PasswordHash::fromString(password_hash('dummy', PASSWORD_DEFAULT)),
+            $this->eventDispatcher
+        );
+    }
+
+    public function emailChangeConfirmation(): EmailChangeConfirmation
+    {
+        return new EmailChangeConfirmation(
+            $this->userRepository,
+            $this->emailChangeGrantRepository,
+            $this->passwordResetGrantRepository,
+            new SessionRevocationService($this->refreshSessionRepository),
+            $this->auditEvidenceRepository,
+            $this->unitOfWork,
+            new FixedClock($this->now),
+            $this->eventDispatcher
+        );
+    }
+
+    public function sessionLifecycle(): SessionLifecycle
+    {
+        return new SessionLifecycle(
+            $this->userRepository,
+            $this->refreshSessionRepository,
+            new SessionRevocationService($this->refreshSessionRepository),
+            $this->unitOfWork,
+            new FixedClock($this->now),
+            new FixedRefreshCredentialGenerator(RefreshCredential::fromString(str_repeat('b', 64))),
+            $this->tokenIssuer(),
+            AuthenticationTokenPolicy::starterDefaults(new DateInterval('PT5S')),
+            $this->eventDispatcher
         );
     }
 
@@ -316,5 +361,13 @@ final class RecoveryFixture
             new FixedClock($this->now),
             $this->eventDispatcher
         )->handle(CommandMessage::create(new CancelEmailChange($this->userId, $this->userId)));
+    }
+
+    private function tokenIssuer(): TokenIssuer
+    {
+        return new TokenIssuer(
+            new RecordingTokenEncoder(),
+            AuthenticationTokenPolicy::starterDefaults(new DateInterval('PT5S'))
+        );
     }
 }

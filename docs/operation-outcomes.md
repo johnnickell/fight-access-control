@@ -8,8 +8,8 @@ the overview separates verified package publication from unexecuted consumer qua
 ## Notifications and callers
 
 Package-produced failure notifications use operation-specific constant text with the original safe Command or
-allowlisted context. Synchronous `AuthenticationService` methods emit `RedactedCommandFailed` and never serialize
-passwords or credentials as Commands. Existing expiry notifications retain their constant cleanup text. Do not parse
+allowlisted context. The [direct synchronous User capabilities](user-authentication.md) emit `RedactedCommandFailed`
+with their current owner class/method and never serialize passwords or credentials as Commands. Existing expiry notifications retain their constant cleanup text. Do not parse
 notification text for transport decisions or treat a notification as a durable outcome receipt.
 
 Failure notification is best effort. A notification fault cannot replace the operation's primary throwable.
@@ -42,7 +42,7 @@ User owns complete business transitions: `activate()`, `changePassword()`, `rese
 `authenticationVersion`; password change/reset and confirmed email advance it once. Lifecycle semantics remain
 separate: disable/delete advance the security version, while enable/restore preserve it; none adds a login revision.
 
-After credential verification and throttle admission, `AuthenticationService::login()` calls
+After credential verification and throttle admission, `UserAuthentication::login()` calls
 `recordSuccessfulLogin($authenticatedAt, $rehashedPassword)` on a cloned User. The optional hash is present only
 when the verified password needs rehash. Both forms advance the persistence revision once without changing the
 security version or recovery authority. A rehash updates password/update metadata; a no-rehash login preserves it.
@@ -106,7 +106,9 @@ Current constructor composition requires:
 
 - `DeliverPasswordResetHandler`: append the shared `UserRepository` after the dispatcher.
 - `DisableUserHandler` and `DeleteUserHandler`: append the shared `PasswordResetGrantRepository` after the dispatcher.
-- `AuthenticationService` and `RequestPasswordResetHandler`: retain their existing shared User/grant/audit composition.
+- `PasswordManagement`, `EmailChangeConfirmation` and `RequestPasswordResetHandler`: retain shared User/reset-grant/
+  audit composition. Their [direct constructors](user-authentication.md#explicit-composition) need no unrelated
+  activation, login or token ports.
 
 The reset worker validates current User authority in its claim and outcome transactions. Decryption and the provider
 call remain outside transactions. An admitted invocation can arrive late externally; its outcome cannot restore
