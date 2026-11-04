@@ -5,17 +5,18 @@ dependencies, acceptance, and verification.
 
 ## What's Next?
 
-First ready Task: [TASK-00105](00105-TASK.md) — Protect Laravel requests through native middleware.
+Active Task: [TASK-00105](00105-TASK.md) — Protect Laravel requests through native middleware.
 
 ## In Progress
 
-No Tasks are currently in this state.
+| Order | TASK ID | Title | Parent TICKET | Status | Blocked by | PR |
+| --- | --- | --- | --- | --- | --- | --- |
+| 104 | [TASK-00105](00105-TASK.md) | Protect Laravel requests through native middleware | [TICKET-00032](../tickets/00032-TICKET.md) — Protect native HTTP entry points across all five frameworks | in-progress | [TASK-00103](00103-TASK.md) | — |
 
 ## Ready Frontier
 
 | Order | TASK ID | Title | Parent TICKET | Status | Blocked by | PR |
 | --- | --- | --- | --- | --- | --- | --- |
-| 104 | [TASK-00105](00105-TASK.md) | Protect Laravel requests through native middleware | [TICKET-00032](../tickets/00032-TICKET.md) — Protect native HTTP entry points across all five frameworks | ready-for-agent | [TASK-00103](00103-TASK.md) | — |
 | 205 | [TASK-00182](00182-TASK.md) | Convert recoverable Agent issuance to Commands and outcome Queries | [TICKET-00053](../tickets/00053-TICKET.md) — Issue Agent credentials through Commands and outcome Queries | ready-for-agent | — | — |
 | 299 | [TASK-00150](00150-TASK.md) | Maintain exhaustive declaration and contract ownership | [TICKET-00042](../tickets/00042-TICKET.md) — Enforce and demonstrate whole-library type correctness | ready-for-agent | — | — |
 | 300 | [TASK-00151](00151-TASK.md) | Execute type-contract fixtures through the canonical gate | [TICKET-00042](../tickets/00042-TICKET.md) — Enforce and demonstrate whole-library type correctness | ready-for-agent | — | — |

@@ -156,8 +156,14 @@ JSend handler. This package installs no protocol or global allowlist and changes
 
 ## Qualified tags and remaining obligations
 
-These **selected sufficient minimums** are the installed tagged lane, not a claim about the earliest theoretically
-compatible release. Common remains `^1.4`; native components are dev fixtures plus optional Composer suggestions.
+Current package Common minimum is `^1.4.1`; current HttpFoundation/HttpKernel dev/suggestion floors are `^8.1.11`.
+[Laravel qualification](laravel-permission-admission.md) establishes these tagged bounds: Common's terminal Laravel
+fallback needs 1.4.1, and a preliminary 8.1.9 component lane reported five security advisories fixed by 8.1.11.
+The current full default suite also exercises Symfony on the installed dependency set. The table/file counts below
+preserve TASK-00104's original behavioral qualification, not today's installed lock or security-floor recommendation.
+
+Those **selected sufficient behavioral minimums** were the installed tagged lane, not a claim about the earliest
+theoretically compatible release. Native components remain dev fixtures plus optional Composer suggestions.
 Security HTTP is optional even for Symfony admission: a core-only fixture passes with it absent. Another exact-minimum
 fixture exercises actual native User/Agent/order/error behavior with Slim/Yii application packages absent.
 

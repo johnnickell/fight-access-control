@@ -52,7 +52,8 @@ Core dependencies point inward: **Application → Domain**. Consumers supply inf
 Optional [HTTP Permission admission](docs/http-permission-admission.md) now uses capability-first `src/Adapter`,
 pointing inward through Application, with separately qualified Slim/Yii 3 route composition and optional native
 Symfony admission and [native CodeIgniter 4 before-filter/JSON-error composition](docs/codeigniter-permission-admission.md).
-Laravel remains separate work. Domain/Application retain their DDD structure; no consumer bindings or configuration are installed.
+[Native Laravel middleware](docs/laravel-permission-admission.md) now has TASK-00105's Work implementation, awaiting
+independent acceptance. Domain/Application retain their DDD structure; no consumer bindings or configuration are installed.
 Maintainers placing classes or naming collaborators should use the checkout-local
 [architecture target](docs/engineering/standards/Architecture.md#accesscontrol-placement-and-dependency-rules) and
 [naming rules](docs/engineering/standards/Naming.md#descriptive-collaborators-and-collections). These codify approved
@@ -103,7 +104,7 @@ supplies consumer qualification or the separate Agent Command conversion.
 | Roles, Permission tiers and managed policy | [Permission tiers](docs/permission-tiers.md) · [Operation outcomes](docs/operation-outcomes.md) |
 | Recoverable Agent provisioning, rotation and delivery | [Agent integration](docs/agent-integration.md) · [Conformance and evidence](docs/agent-operation-evidence.md) |
 | Agent profiles and protected MCP capabilities | [Profile Tools](docs/agent-profile-tools.md) · [Tool authorization](docs/agent-mcp-authorization.md) · [Resource authorization](docs/agent-resource-authorization.md) · [Skill authorization](docs/agent-skill-authorization.md) · [Current continuation](docs/agent-continuation-authorization.md) |
-| Optional HTTP Permission admission (Unreleased) | [Shared/Slim/Yii 3 composition](docs/http-permission-admission.md) · [Native Symfony composition](docs/symfony-permission-admission.md) · [Native CI4 composition](docs/codeigniter-permission-admission.md) |
+| Optional HTTP Permission admission (Unreleased) | [Shared/Slim/Yii 3 composition](docs/http-permission-admission.md) · [Native Symfony composition](docs/symfony-permission-admission.md) · [Native CI4 composition](docs/codeigniter-permission-admission.md) · [Native Laravel composition](docs/laravel-permission-admission.md) |
 | Permission-based Feature flags | [Declarations](docs/feature-references.md) · [Provisioning](docs/feature-provisioning.md) · [Preparation](docs/feature-preparation.md) · [Availability](docs/feature-availability.md) · [Management](docs/feature-management.md) · [Retirement](docs/feature-retirement.md) |
 | Consumer-owned OpenAPI documents | [Opt-in schema components](docs/openapi-composition.md) |
 
