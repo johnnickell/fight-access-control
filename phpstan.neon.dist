@@ -4,6 +4,10 @@ includes:
 parameters:
     level: 6
     tmpDir: var/cache/phpstan
+    scanDirectories:
+        - vendor/codeigniter4/framework/app/Config
+    scanFiles:
+        - vendor/codeigniter4/framework/system/Common.php
     paths:
         - openapi
         - src

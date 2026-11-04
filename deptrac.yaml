@@ -23,6 +23,16 @@ deptrac:
           collectors:
               - type: classLike
                 value: ^Symfony\\Component\\(EventDispatcher|HttpFoundation|HttpKernel|Routing)\\.*
+        - name: CodeIgniterHttp
+          collectors:
+              - type: classLike
+                value: ^CodeIgniter\\(CodeIgniter|Filters\\FilterInterface|HTTP\\.*|Router\\.*)$
+              - type: classLike
+                value: ^Config\\(App|Cache)$
+        - name: CommonHttpError
+          collectors:
+              - type: classLike
+                value: ^Fight\\Common\\Adapter\\Http\\Error\\.*
         - name: CommonDomain
           collectors:
               - type: classLike
@@ -54,9 +64,15 @@ deptrac:
             - CommonApplication
             - PsrHttp
             - SymfonyHttp
+            - CodeIgniterHttp
+            - CommonHttpError
             - PhpInternal
         PsrHttp: []
         SymfonyHttp: []
+        CodeIgniterHttp: []
+        CommonHttpError:
+            - CommonApplication
+            - PhpInternal
         CommonDomain:
             - PhpInternal
         CommonApplication:

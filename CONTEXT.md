@@ -43,8 +43,8 @@ TICKET-00050's complete four-TASK plan is approved/written as [TASK-00172](plann
 Feature admission/context and PSR-15 with separate Slim/Yii 3 proof, [TASK-00173](planning/tasks/00173-TASK.md) Symfony,
 [TASK-00174](planning/tasks/00174-TASK.md) Laravel and [TASK-00175](planning/tasks/00175-TASK.md) CI4. Orders 503/504/504/504
 select no relative native-peer priority. TASK-00172 consumes TASK-00170/completed TASK-00103; Symfony consumes
-TASK-00172/completed TASK-00104; Laravel consumes only TASK-00172; CI4 consumes TASK-00172 and TASK-00106's planned thin
-native safe error bridge. Common already supplies Laravel's safe handler, not an equivalent CI4 exception owner;
+TASK-00172/completed TASK-00104; Laravel consumes only TASK-00172; CI4 consumes TASK-00172 and TASK-00106's thin
+native safe error bridge (independently accepted at the checkpoint below). Common already supplies Laravel's safe handler, not an equivalent CI4 exception owner;
 response helpers are insufficient. Source overlap with TASK-00105 is coordination, not a wait or duplicate base
 Permission implementation. Reusing suppliers enables no Permission middleware/filter; no TASK-00171/TICKET-00051 wait.
 Preserve one shared restriction/context meaning, actual fresh Feature/binding reads, generic 404 only for ordinary
@@ -57,7 +57,7 @@ TICKET-00051's four-TASK plan is approved/written as [TASK-00176](planning/tasks
 Permission integration with separate Slim/Yii journeys, [TASK-00177](planning/tasks/00177-TASK.md) Symfony,
 [TASK-00178](planning/tasks/00178-TASK.md) Laravel and [TASK-00179](planning/tasks/00179-TASK.md) CI4. Equal order 505
 selects no relative native-peer priority. Each directly consumes TASK-00171 plus respectively completed TASK-00103,
-completed TASK-00104, planned TASK-00105 and planned TASK-00106. No new shared runtime prefactor/sibling blocker or
+completed TASK-00104, planned TASK-00105 and accepted TASK-00106. No new shared runtime prefactor/sibling blocker or
 TASK-00172–00175/Feature activation wait: effective composition/pure traversal/existing inward admission already have
 owners. Unlike Feature-only Laravel, TASK-00178 genuinely consumes TASK-00105's native Permission middleware. Reuse
 actual accepted base adapters/error bridge once; preserve earlier scope/orders/blockers. Attribute-only protection,
@@ -80,7 +80,7 @@ Normal independent Review/QA/full-gate/exact coverage rules remain, including st
 reuse only with complete input-equivalence/log/receipt/exit proof and targeted checks. Supplier defects return to their
 actual owner for authorized repair, not duplicate implementation. All four EPIC-00018 TICKETs are fully TASK-planned as
 12 TASKs (2 + 4 + 4 + 2: ten features/two chores), not implemented/qualified; parents remain open with unfinished children.
-Existing PSR-15/Symfony and planned TASK-00105/00106 Laravel/CI4
+Existing PSR-15/Symfony/CI4 and planned TASK-00105 Laravel
 Permission work retain scope/order/blockers; assign actual native suppliers and shared adaptations once during
 TASK decomposition rather than duplicate or silently expand them. No new version,
 consumer adoption or release obligation with other EPICs is selected. Current FeatureFlag is still method-only,
@@ -442,7 +442,7 @@ compatibility with Common's safe-error approach. [WF-035](planning/wayfinder/tic
 is Closed: John selected optional integrations in this package's `src/Adapter`, using Common-style capability-first
 layout while retaining DDD in Domain/Application. The profile records the narrow approved boundary; TASK-00103 now implements the first optional PSR-15 adapter
 with Slim/Yii 3 composition under the checkpoint below. TASK-00104 now implements the optional native Symfony
-subscriber under its Work checkpoint below; Laravel/CodeIgniter integrations remain unimplemented. WF-034 is also Closed: John approved one combined release covering the selected MCP families including
+subscriber under its Work checkpoint below; TASK-00106's CI4 implementation has independent acceptance below. Laravel remains separate work. WF-034 is also Closed: John approved one combined release covering the selected MCP families including
 Subscriptions/Tasks and all five frameworks (Slim, Yii 3, Symfony, Laravel, CodeIgniter 4). Grill wrote the single
 approved destination as [EPIC-00014 — Permission-Aware MCP Integration and Framework Adapters](planning/epics/00014-EPIC.md).
 The map is Closed for completed decisions and EPIC handoff. John approved the complete requirement split, now
@@ -505,6 +505,40 @@ pushing and opening a PR to develop for these planning changes only. Implementat
 changes, merge, release and consumer adoption remain outside that publication request. v0.8.0 remains the current published
 AccessControl release. Existing product suites were inspected, not rerun; the bounded host-PHP probe is not a
 canonical Docker build or consumer qualification.
+
+## Native CodeIgniter 4 Permission admission — TASK-00106 Work checkpoint
+
+Independent Review ACCEPT and behavioral QA PASS cover candidate `eb1b70470747df0bbae776272284ef7b11c8d155`.
+Publication and final delivery were pending at closeout; current result: `.runs/handoffs/TASK-00106/land.md`.
+The Work checkpoint and its pending-stage wording below are historical; consumer qualification remains separate.
+
+TASK-00106 Work supplies optional `Adapter\\Http\\CodeIgniter` before-filter admission using the existing inward
+PermissionDeclaration/RequestAuthority/PermissionAdmission and actual User/Agent providers. Native matched PHP route
+options supply requirements; headers/filter arguments/copied contexts are not grants. Reused injected services clear
+per-request context before fresh selection. Native ResponseInterface denial precedes protected validation/controller
+construction/action for the four documented route forms. Multiple requirements use one Agent authentication/nonce.
+No automatic registration, identity issuer, grants, scope policy, Feature or portable Permission API is introduced.
+
+The [CI4 guide](docs/codeigniter-permission-admission.md) owns the zero-argument native filter shell/service composition,
+current router/request/service-reset duties, route/attribute construction limits and explicit JSON-only coverage.
+CI4's normal custom exception handler runs after its raw logger. The selected SafeCodeIgniter loop therefore catches
+routing through downstream handleRequest failures before native 404/global formatting, sharing one Common-policy
+SafeErrorResponder with the filter. One redaction-aware diagnostic attempt precedes finite Common projection/encoding;
+metadata/sink/projector/native-render/fallback failure retains a fixed safe 500. Fresh responses discard stale headers
+and partial output. Required filters and native Restrict remain intact; bootstrap/required-filter/outer-event/send/
+shutdown failures, HTML/global handling and reentrant process-global nested dispatch are explicitly outside proof.
+MCP/OAuth keep separate entry points. Native CI4 exceptions unknown to Common remain generic 500, not guessed statuses.
+Common v1.4.0's CI4 JSend helper double-encodes under the qualified native API, so the bridge applies Common's encoded
+envelope with native setJSON's default encoded-string mode; no supplier source or semantic policy is duplicated.
+
+Selected sufficient tags: Common v1.4.0 (`^1.4`) and CI4 v4.7.6 (`^4.7.6`), executed PHP 8.5.12/Xdebug 3.5.3 with
+intl/mbstring. CI4 is an optional suggestion/dev fixture; tooling now installs its required intl extension. Both
+ordinary and isolated exact-minimum Common/CI4 source sets match tag archives; isolated native tests need no Slim/Yii/
+Symfony application runtime, and a no-dev core fixture proves actual User/Agent admission with CI4 absent. Mirrored
+Adapter/default/OpenAPI tests, exact owned coverage and existing gates remain required. Focused tests cover all 52 new
+statements; current counts/full-gate evidence and exact candidate bridge belong to TASK-00106's Work handoff. Independent
+Review and behavioral QA are pending; this Work checkpoint is not acceptance, adoption, release or deployment.
+Actual consumer bootstrap/routes/reset/authentication/storage/crypto/scope/sinks/proxies/cache/runtime remain unqualified.
 
 ## Native Symfony Permission admission — TASK-00104 Work checkpoint
 
