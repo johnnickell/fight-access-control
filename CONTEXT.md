@@ -57,7 +57,7 @@ TICKET-00051's four-TASK plan is approved/written as [TASK-00176](planning/tasks
 Permission integration with separate Slim/Yii journeys, [TASK-00177](planning/tasks/00177-TASK.md) Symfony,
 [TASK-00178](planning/tasks/00178-TASK.md) Laravel and [TASK-00179](planning/tasks/00179-TASK.md) CI4. Equal order 505
 selects no relative native-peer priority. Each directly consumes TASK-00171 plus respectively completed TASK-00103,
-completed TASK-00104, planned TASK-00105 and accepted TASK-00106. No new shared runtime prefactor/sibling blocker or
+completed TASK-00104, accepted TASK-00105 and accepted TASK-00106. No new shared runtime prefactor/sibling blocker or
 TASK-00172–00175/Feature activation wait: effective composition/pure traversal/existing inward admission already have
 owners. Unlike Feature-only Laravel, TASK-00178 genuinely consumes TASK-00105's native Permission middleware. Reuse
 actual accepted base adapters/error bridge once; preserve earlier scope/orders/blockers. Attribute-only protection,
@@ -80,7 +80,7 @@ Normal independent Review/QA/full-gate/exact coverage rules remain, including st
 reuse only with complete input-equivalence/log/receipt/exit proof and targeted checks. Supplier defects return to their
 actual owner for authorized repair, not duplicate implementation. All four EPIC-00018 TICKETs are fully TASK-planned as
 12 TASKs (2 + 4 + 4 + 2: ten features/two chores), not implemented/qualified; parents remain open with unfinished children.
-Existing PSR-15/Symfony/CI4 and planned TASK-00105 Laravel
+Existing PSR-15/Symfony/CI4 and accepted TASK-00105 Laravel
 Permission work retain scope/order/blockers; assign actual native suppliers and shared adaptations once during
 TASK decomposition rather than duplicate or silently expand them. No new version,
 consumer adoption or release obligation with other EPICs is selected. Current FeatureFlag is still method-only,
@@ -627,7 +627,7 @@ statements; current counts/full-gate evidence and exact candidate bridge belong 
 Review and behavioral QA are pending; this Work checkpoint is not acceptance, adoption, release or deployment.
 Actual consumer bootstrap/routes/reset/authentication/storage/crypto/scope/sinks/proxies/cache/runtime remain unqualified.
 
-## Native Laravel Permission admission — TASK-00105 Work continuation
+## Native Laravel Permission admission — TASK-00105 acceptance checkpoint
 
 TASK-00105 now supplies explicit `Adapter\\Middleware\\Laravel\\PermissionMiddleware`, exact trusted Route/action
 bindings and fresh inward User/Agent admission. The [Laravel guide](docs/laravel-permission-admission.md) owns native
@@ -650,9 +650,10 @@ The initial combined full gate exposed Laravel/CI4 global `config()` helper coll
 defer Laravel Foundation/Support globals before Composer; fresh Laravel test processes load actual supplier helpers.
 This isolates application bootstraps without modifying CI4 or supplier production code. Current full-gate result and
 exact content-to-commit bridge belong to `.runs/handoffs/TASK-00105/work.md`.
-Independent Review/behavioral QA remain required; Work does not close its own TASK. Controlled fixtures do not
-qualify actual consumer guards/bootstrap/storage/crypto/scope/sinks/proxies/workers/deployed runtime. The combined
-release remains incomplete and unassigned.
+Independent Review ACCEPT and behavioral QA PASS cover candidate `b7faea4c10b84ec86ad090f9ea790111c846cc84`.
+Publication and final delivery were pending at this checkpoint; current result: `.runs/handoffs/TASK-00105/land.md`.
+Controlled fixtures do not qualify actual consumer guards/bootstrap/storage/crypto/scope/sinks/proxies/workers/deployed
+runtime. The combined release remains incomplete and unassigned.
 
 ### Historical supplier-blocked Work checkpoint
 

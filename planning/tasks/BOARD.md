@@ -5,13 +5,11 @@ dependencies, acceptance, and verification.
 
 ## What's Next?
 
-Active Task: [TASK-00105](00105-TASK.md) — Protect Laravel requests through native middleware.
+First ready Task: [TASK-00182](00182-TASK.md) — Convert recoverable Agent issuance to Commands and outcome Queries.
 
 ## In Progress
 
-| Order | TASK ID | Title | Parent TICKET | Status | Blocked by | PR |
-| --- | --- | --- | --- | --- | --- | --- |
-| 104 | [TASK-00105](00105-TASK.md) | Protect Laravel requests through native middleware | [TICKET-00032](../tickets/00032-TICKET.md) — Protect native HTTP entry points across all five frameworks | in-progress | [TASK-00103](00103-TASK.md) | — |
+No Tasks are currently in this state.
 
 ## Ready Frontier
 
@@ -215,6 +213,7 @@ No Tasks are currently in this state.
 | 88 | [TASK-00088](00088-TASK.md) | Revalidate bound Agent authority before protected continuation | [TICKET-00028](../tickets/00028-TICKET.md) — Revalidate Agent authority for protected continuation | done | — | https://github.com/johnnickell/fight-access-control/pull/142 |
 | 103 | [TASK-00103](00103-TASK.md) | Protect Slim and Yii 3 requests through shared PSR-15 admission | [TICKET-00032](../tickets/00032-TICKET.md) — Protect native HTTP entry points across all five frameworks | done | — | https://github.com/johnnickell/fight-access-control/pull/143 |
 | 104 | [TASK-00104](00104-TASK.md) | Protect Symfony requests through native admission | [TICKET-00032](../tickets/00032-TICKET.md) — Protect native HTTP entry points across all five frameworks | done | [TASK-00103](00103-TASK.md) | https://github.com/johnnickell/fight-access-control/pull/144 |
+| 104 | [TASK-00105](00105-TASK.md) | Protect Laravel requests through native middleware | [TICKET-00032](../tickets/00032-TICKET.md) — Protect native HTTP entry points across all five frameworks | done | [TASK-00103](00103-TASK.md) | — |
 | 104 | [TASK-00106](00106-TASK.md) | Protect CodeIgniter 4 requests through native before filters | [TICKET-00032](../tickets/00032-TICKET.md) — Protect native HTTP entry points across all five frameworks | done | [TASK-00103](00103-TASK.md) | https://github.com/johnnickell/fight-access-control/pull/154 |
 | 201 | [TASK-00111](00111-TASK.md) | Make User transitions own authentication-authority revisions | [TICKET-00035](../tickets/00035-TICKET.md) — Encapsulate User authentication transitions and synchronous use cases | done | — | https://github.com/johnnickell/fight-access-control/pull/156 |
 | 202 | [TASK-00112](00112-TASK.md) | Separate cohesive synchronous authentication capabilities | [TICKET-00035](../tickets/00035-TICKET.md) — Encapsulate User authentication transitions and synchronous use cases | done | [TASK-00111](00111-TASK.md) | https://github.com/johnnickell/fight-access-control/pull/157 |
