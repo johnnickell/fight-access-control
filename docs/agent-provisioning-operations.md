@@ -32,14 +32,14 @@ No consumer adapter is supplied or qualified here.
   authorization. There is no raw-secret result or general secret-read method.
 
 The consumer composition root constructs `AgentProvisioningService` with `AgentRepository`,
-`AgentOperationRepository`, `AuditEvidenceRepository`, `AgentOperationAuthorization`, `HmacSharedSecretGenerator`,
+`AgentCredentialOperationRepository`, `AuditEvidenceRepository`, `AgentOperationAuthorization`, `HmacSharedSecretGenerator`,
 `HmacSharedSecretCipher`, `AgentDeliveryCipher`, `Clock`, `TransactionalUnitOfWork`, `EventDispatcher`, and optionally
 `AgentOperationLimits`. None of these capabilities is optional; omitting limits alone selects defaults.
 
 ```php
-use Fight\AccessControl\Domain\AccessControl\Agent\Operation\AgentOperationId;
-use Fight\AccessControl\Domain\AccessControl\Agent\Operation\AgentOperationKey;
-use Fight\AccessControl\Domain\AccessControl\Agent\Operation\AgentProvisioningRequest;
+use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\AgentOperationId;
+use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\AgentOperationKey;
+use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\AgentProvisioningRequest;
 
 // Persist this key with the initiating workflow BEFORE invoking the composed service.
 $key = new AgentOperationKey($trustedOriginatingScope, AgentOperationId::generate());
@@ -69,7 +69,7 @@ that same value rule. Canonicalization translates invalid names to safe `INVALID
 diagnostics. Retained bindings are never rewritten; there is no
 historical reader or runtime version choice. See the [canonical contract](agent-canonical-upgrades.md).
 
-`AgentOperationRepository` owns operation persistence and destination write reservations. Reserve monotonically
+`AgentCredentialOperationRepository` owns operation persistence and destination write reservations. Reserve monotonically
 increasing versions under the destination ownership fence shared with reassignment; the counter belongs to the stable
 slot UUID, not its binding revision, Agent, scope or operation. Failed transactions undo reservations. Never reset
 committed high-water marks. `add` enforces scoped key and globally unique delivery ID constraints and capacity under
@@ -80,7 +80,7 @@ instances cannot be reused; the caller recomposes and retries the original key. 
 
 Operation records retain the canonical version/request, original issuance and recorded delivery/credential
 dispositions forever (or in equivalent secret-free permanent tombstones). TASK-00047's read contract adds
-`AgentOperationRepository::getStatusByKey()` and `AgentOperationAuthorization::authorizeRead()`; consumer
+`AgentCredentialOperationReadRepository::getStatusByKey()` and `AgentOperationAuthorization::authorizeRead()`; consumer
 implementations must provide both, with no permissive compatibility default. They own a separately encrypted prepared delivery copy, with consumer key-version identity.
 Cleanup cannot remove correlation or make a retained key fresh. The original tuple remains distinct from delivery
 state. Repository replacement for downstream lifecycle/claim work must CAS the complete expected operation while
@@ -89,7 +89,7 @@ credential retirement without cipher/sink access. All adapters and direct writer
 
 Every Agent uses the [current correlated model](agent-current-contract.md), with no legacy mode or recovery marker.
 Revocation constructs a terminal successor whose persistence requires atomic original-operation cancellation via
-`AgentRepository::replace()` and `AgentOperationRepository::retireCredential()`. Persist operation state revisions
+`AgentRepository::replace()` and `AgentCredentialOperationRepository::retireCredential()`. Persist operation state revisions
 and reject stale delivery writes; see the [retirement contract](agent-credential-retirement.md). Retired aggregate and
 raw-return lifecycle rotation APIs are removed. Validated hydration and Permission assignments preserve authority and
 correlation; missing cancellation support fails closed. This is not permission to deploy the intermediate composition.
@@ -142,7 +142,7 @@ new issuance capacity must never gate existing-operation status, claims or recov
 
 `AgentOperationTest` proves values, canonicalization, bounds, safe material and tombstone identity.
 `AgentProvisioningServiceTest` proves observable persisted outcomes using transaction-aware Domain repository and
-consumer-capability doubles. `ProvisioningEnvironment`, `InMemoryAgentOperationRepository`,
+consumer-capability doubles. `ProvisioningEnvironment`, `InMemoryAgentCredentialOperationRepository`,
 `InMemoryAgentOperationAuthorization`, `BoundAgentDeliveryCipher` and `UncertainAgentUnitOfWork` are reusable test
 fixtures under `tests/Application/AccessControl/Agent/`, not production adapters. The cipher fixture is deliberately
 not cryptography. Consumers must independently qualify authenticated encryption and the actual shared connection,

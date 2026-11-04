@@ -62,6 +62,12 @@ Agent authentication, credential lifecycle, delivery, maintenance and continuati
 homes, alongside Feature Discovery and authorization Admission; see the
 [current composition map](docs/agent-integration.md#public-composition-map). User synchronous authentication
 decomposition remains a later TASK; neither refactor supplies blanket persistence/framework support.
+The independently persisted `AgentCredentialOperation` now has its own Domain/Application aggregate home.
+Status, scheduler and maintenance readers inject `AgentCredentialOperationReadRepository`; material-bearing writers
+use the separate `AgentCredentialOperationRepository` with their existing UoW. Update imports/named arguments
+directly; wire shapes and atomic Agent/operation cancellation, cohort/restoration and recovery behavior are unchanged.
+See the [operation ownership map](docs/agent-integration.md#operation-ownership-and-readwrite-composition-unreleased).
+This is unreleased Work, not independent acceptance, consumer qualification or the separate Agent Command conversion.
 
 | This package owns | Your application owns |
 | --- | --- |

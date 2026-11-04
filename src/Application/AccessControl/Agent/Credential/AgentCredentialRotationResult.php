@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Fight\AccessControl\Application\AccessControl\Agent\Credential;
 
-use Fight\AccessControl\Domain\AccessControl\Agent\Operation\AgentIssuance;
+use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\AgentIssuance;
 
 /**
  * Class AgentCredentialRotationResult

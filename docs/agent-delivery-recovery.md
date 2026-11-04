@@ -8,6 +8,12 @@ are implemented by their owning slices; the [integration guide](agent-integratio
 
 ## Public scheduler composition
 
+Delivery workers/ports now live under `Application\AccessControl\AgentCredentialOperation\Delivery`; the Query
+and its handler mirror operation ownership in Domain/Application. `ListDueAgentDeliveriesHandler` injects only
+`AgentCredentialOperationReadRepository`, delivery authorization and Clock. It needs no write/material repository
+or UoW. The delivery worker separately retains `AgentCredentialOperationRepository` and its existing UoW; read
+selection never supplies those capabilities or grants admission.
+
 Inject `ListDueAgentDeliveriesHandler`, `AgentCredentialDeliveryService`, a trusted `Clock` and optionally
 `AgentDeliverySchedule` into `AgentDeliveryRecoveryService`. As an authenticated worker with explicit current
 delegation, call `recover(originalScope, registeredDestination)` once per scheduled pass. It selects one batch,
@@ -31,7 +37,7 @@ same package transitions; consumers must not copy claim, admission, retry or ter
 
 ## Discovery, authority and persistence
 
-`AgentOperationRepository::listDueDeliveries(scope, destination, now, limit)` returns `list<AgentOperationView>`.
+`AgentCredentialOperationReadRepository::listDueDeliveries(scope, destination, now, limit)` returns `list<AgentOperationView>`.
 It is an authoritative, bounded, **secret-free projection**, not an entity/material load or write transaction.
 The existing [safe operation representation](agent-operation-status.md) keeps original issuance and recorded
 credential/delivery disposition separate. No receipt, claim token, key version, ciphertext or capability is returned.
@@ -150,18 +156,18 @@ The existing delivery result enum adds `reconciliation_required`; consumers must
 The opt-in OpenAPI catalog includes the new Query, bounded unpaginated due list, shared safe operation/issuance values
 and optional typed JSend envelope. These are value descriptions, not a package endpoint or worker authorization.
 
-- [Discovery tests](../tests/Application/AccessControl/Agent/QueryHandler/ListDueAgentDeliveriesHandlerTest.php)
+- [Discovery tests](../tests/Application/AccessControl/AgentCredentialOperation/QueryHandler/ListDueAgentDeliveriesHandlerTest.php)
   prove safe deterministic bounded reads, equal-time current-write selection, cross-scope/binding exclusion,
   completed-reservation and rollback behavior, real-worker checks, target denial, revocation during selection and faults.
-- [Recovery tests](../tests/Application/AccessControl/Agent/Delivery/AgentDeliveryRecoveryServiceTest.php) exercise
+- [Recovery tests](../tests/Application/AccessControl/AgentCredentialOperation/Delivery/AgentDeliveryRecoveryServiceTest.php) exercise
   real provisioning and actual delivery with fresh Application services, both persisted/rolled-back forms of all
   three uncertain commits, interruption around durable boundaries, receipt-first key-independent recovery,
   takeover, authority/expiry races, original identity/material, capacity isolation, bounds and terminal outcomes.
   A 51-operation regression proves default-only restarted passes deliver the current write past 50 obsolete writes,
   leave obsolete delivery denied and unchanged, and never repeat issuance. Additional tests cover reservation changes
   after discovery and current retry delays without falling back to an older due write.
-- [Domain discovery tests](../tests/Domain/AccessControl/Agent/AgentDeliveryDiscoveryTest.php) and
-  [delivery tests](../tests/Domain/AccessControl/Agent/AgentDeliveryTest.php) cover input/override validation,
+- [Domain discovery tests](../tests/Domain/AccessControl/AgentCredentialOperation/AgentDeliveryDiscoveryTest.php) and
+  [delivery tests](../tests/Domain/AccessControl/AgentCredentialOperation/AgentDeliveryTest.php) cover input/override validation,
   canonical Query round trips, due-time and recovered-admission policy.
 - [Generated schema integration](../tests/OpenApi/AgentDeliveryComponentsTest.php) runs in the default PHPUnit suite
   and full gate with `CoversNothing`, keeping incidental schema-fixture execution out of exact `src/` coverage.

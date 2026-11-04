@@ -4,33 +4,39 @@ declare(strict_types=1);
 
 namespace Fight\Test\AccessControl\Application\AccessControl\Agent\Credential;
 
+use Fight\AccessControl\Application\AccessControl\AgentCredentialOperation\QueryHandler\{
+    CountAgentDeliveryKeyReferencesHandler
+};
+use Fight\AccessControl\Application\AccessControl\AgentCredentialOperation\QueryHandler\{
+    ListAgentDeliveryMaintenanceHandler
+};
+use Fight\Test\AccessControl\Application\AccessControl\AgentCredentialOperation\Repository\{
+    InMemoryAgentOperationContract
+};
 use Fight\AccessControl\Application\AccessControl\Agent\Credential\AgentCredentialLifecycleService;
 use Fight\AccessControl\Application\AccessControl\Agent\Credential\AgentProvisioningService;
-use Fight\AccessControl\Application\AccessControl\Agent\Delivery\AgentDeliveryResult;
-use Fight\AccessControl\Application\AccessControl\Agent\Maintenance\AgentDeliveryMaintenanceService;
-use Fight\AccessControl\Application\AccessControl\Agent\Maintenance\AgentMaintenanceResult;
 use Fight\AccessControl\Application\AccessControl\Agent\PermissionAssignment\AgentPermissionAssignmentCoordinator;
-use Fight\AccessControl\Application\AccessControl\Agent\QueryHandler\CountAgentDeliveryKeyReferencesHandler;
-use Fight\AccessControl\Application\AccessControl\Agent\QueryHandler\ListAgentDeliveryMaintenanceHandler;
-use Fight\AccessControl\Domain\AccessControl\Agent\Delivery\AgentDeliveryClaimId;
-use Fight\AccessControl\Domain\AccessControl\Agent\Delivery\AgentDeliveryPolicy;
-use Fight\AccessControl\Domain\AccessControl\Agent\Exception\AgentOperationRejectedException;
-use Fight\AccessControl\Domain\AccessControl\Agent\Maintenance\AgentDeliveryKeyVersion;
-use Fight\AccessControl\Domain\AccessControl\Agent\Operation\AgentCredentialOperation;
-use Fight\AccessControl\Domain\AccessControl\Agent\Operation\AgentOperationContract;
-use Fight\AccessControl\Domain\AccessControl\Agent\Operation\AgentOperationFailure;
-use Fight\AccessControl\Domain\AccessControl\Agent\Operation\AgentOperationLimits;
-use Fight\AccessControl\Domain\AccessControl\Agent\Query\CountAgentDeliveryKeyReferences;
-use Fight\AccessControl\Domain\AccessControl\Agent\Query\ListAgentDeliveryMaintenance;
+use Fight\AccessControl\Application\AccessControl\AgentCredentialOperation\Delivery\AgentDeliveryResult;
+use Fight\AccessControl\Application\AccessControl\AgentCredentialOperation\Maintenance\AgentDeliveryMaintenanceService;
+use Fight\AccessControl\Application\AccessControl\AgentCredentialOperation\Maintenance\AgentMaintenanceResult;
+use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\AgentCredentialOperation;
+use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\AgentOperationContract;
+use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\AgentOperationFailure;
+use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\AgentOperationLimits;
+use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\Delivery\AgentDeliveryClaimId;
+use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\Delivery\AgentDeliveryPolicy;
+use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\Exception\AgentOperationRejectedException;
+use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\Maintenance\AgentDeliveryKeyVersion;
+use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\Query\CountAgentDeliveryKeyReferences;
+use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\Query\ListAgentDeliveryMaintenance;
 use Fight\AccessControl\Domain\AccessControl\Permission\Permission;
 use Fight\AccessControl\Domain\AccessControl\Permission\PermissionId;
 use Fight\AccessControl\Domain\AccessControl\Permission\PermissionName;
 use Fight\AccessControl\Domain\AccessControl\User\UserId;
 use Fight\Common\Domain\Messaging\Query\QueryMessage;
-use Fight\Test\AccessControl\Application\AccessControl\Agent\Delivery\DeliveryEnvironment;
-use Fight\Test\AccessControl\Application\AccessControl\Agent\Maintenance\MaintenanceEnvironment;
-use Fight\Test\AccessControl\Application\AccessControl\Agent\Repository\InMemoryAgentOperationContract;
 use Fight\Test\AccessControl\Application\AccessControl\Agent\Repository\InMemoryAgentRepository;
+use Fight\Test\AccessControl\Application\AccessControl\AgentCredentialOperation\Delivery\DeliveryEnvironment;
+use Fight\Test\AccessControl\Application\AccessControl\AgentCredentialOperation\Maintenance\MaintenanceEnvironment;
 use Fight\Test\AccessControl\Application\AccessControl\Permission\Repository\InMemoryPermissionRepository;
 use LogicException;
 use PHPUnit\Framework\Attributes\CoversClass;
@@ -72,11 +78,11 @@ final class AgentCohortWriterTest extends TestCase
             new AgentDeliveryPolicy(),
             $env->clock->now()
         );
-        $versions = $ports->agentOperationRepository->versions;
+        $versions = $ports->operationRepository->versions;
         if ($restored) {
-            $ports->agentOperationRepository->contract->reconciledGeneration = null;
+            $ports->operationRepository->contract->reconciledGeneration = null;
         } else {
-            $ports->agentOperationRepository->contract->current = null;
+            $ports->operationRepository->contract->current = null;
         }
 
         try {
@@ -91,16 +97,16 @@ final class AgentCohortWriterTest extends TestCase
             ): void {
                 $ports->operationAuthorization->authorize($ports->key->getScope(), $ports->request->getDestination());
                 match ($path) {
-                    'reservation' => $ports->agentOperationRepository->reserveDestinationWrite(
+                    'reservation' => $ports->operationRepository->reserveDestinationWrite(
                         $ports->request->getDestination()
                     ),
-                    'operation' => $ports->agentOperationRepository->add($original, new AgentOperationLimits()),
-                    'delivery' => $ports->agentOperationRepository->replaceDelivery($original, $claim, $agent),
-                    'maintenance' => $ports->agentOperationRepository->replaceMaintenance(
+                    'operation' => $ports->operationRepository->add($original, new AgentOperationLimits()),
+                    'delivery' => $ports->operationRepository->replaceDelivery($original, $claim, $agent),
+                    'maintenance' => $ports->operationRepository->replaceMaintenance(
                         $original,
                         $original->expireMaterial($env->clock->now()->modify('+2 days'))
                     ),
-                    'retirement' => $ports->agentOperationRepository->retireCredential($agent, $revoked),
+                    'retirement' => $ports->operationRepository->retireCredential($agent, $revoked),
                     'agent' => $ports->agentRepository->add($agent),
                     'lifecycle' => $ports->agentRepository->replace($agent, $revoked),
                     'permission' => $ports->agentRepository->replacePermissionAssignments(
@@ -117,7 +123,7 @@ final class AgentCohortWriterTest extends TestCase
 
         self::assertSame([$agent], $ports->agentRepository->all());
         self::assertSame($original, $env->operation());
-        self::assertSame($versions, $ports->agentOperationRepository->versions);
+        self::assertSame($versions, $ports->operationRepository->versions);
         self::assertCount(1, $ports->auditEvidenceRepository->all());
         self::assertSame(0, $env->decipher->calls);
         self::assertSame(0, $env->sink->calls);
@@ -142,7 +148,7 @@ final class AgentCohortWriterTest extends TestCase
                 $env->clock,
                 $ports->transaction
             );
-            $ports->agentOperationRepository->contract->current = null;
+            $ports->operationRepository->contract->current = null;
             $actor = UserId::generate();
             try {
                 match ($path) {
@@ -187,8 +193,8 @@ final class AgentCohortWriterTest extends TestCase
 
         self::assertSame(0, $env->generations);
         self::assertSame([], $agentRepository->all());
-        self::assertSame([], $env->agentOperationRepository->operations);
-        self::assertSame([], $env->agentOperationRepository->versions);
+        self::assertSame([], $env->operationRepository->operations);
+        self::assertSame([], $env->operationRepository->versions);
     }
 
     public function test_cleanup_switch_back_cannot_acknowledge_an_old_generation(): void
@@ -199,7 +205,7 @@ final class AgentCohortWriterTest extends TestCase
         $delivery->revoke();
         $delivery->clock->advance(172801);
 
-        $state = $delivery->provisioning->agentOperationRepository->contract;
+        $state = $delivery->provisioning->operationRepository->contract;
         $delivery->sink->afterCleanup = static function () use ($state): void {
             $state->switchTo(InMemoryAgentOperationContract::compatible(2));
             $state->switchTo(InMemoryAgentOperationContract::compatible(3));
@@ -216,21 +222,21 @@ final class AgentCohortWriterTest extends TestCase
     {
         $env = new MaintenanceEnvironment();
         $delivery = $env->delivery;
-        $agentOperationRepository = $delivery->provisioning->agentOperationRepository;
-        $agentOperationRepository->contract->current = null;
+        $operationRepository = $delivery->provisioning->operationRepository;
+        $operationRepository->contract->current = null;
         self::assertSame(AgentMaintenanceResult::UNAVAILABLE, $env->rewrapOriginal());
         self::assertSame(0, $env->rewraps);
         self::assertSame(AgentMaintenanceResult::UNAVAILABLE, $env->cleanup());
         self::assertSame(0, $delivery->sink->cleanups);
-        self::assertSame(0, $agentOperationRepository->maintenanceWrites);
+        self::assertSame(0, $operationRepository->maintenanceWrites);
         $issuance = $delivery->issuance;
         $queries = [
             [
-                new ListAgentDeliveryMaintenanceHandler($agentOperationRepository, $env, $delivery->clock),
+                new ListAgentDeliveryMaintenanceHandler($operationRepository, $env, $delivery->clock),
                 new ListAgentDeliveryMaintenance($issuance->getKey()->getScope(), $issuance->getDestination())
             ],
             [
-                new CountAgentDeliveryKeyReferencesHandler($agentOperationRepository, $env, $delivery->clock),
+                new CountAgentDeliveryKeyReferencesHandler($operationRepository, $env, $delivery->clock),
                 new CountAgentDeliveryKeyReferences(new AgentDeliveryKeyVersion('test-key-v1'))
             ]
         ];
@@ -252,7 +258,7 @@ final class AgentCohortWriterTest extends TestCase
     {
         $env = new MaintenanceEnvironment();
         $before = $env->delivery->operation();
-        $state = $env->delivery->provisioning->agentOperationRepository->contract;
+        $state = $env->delivery->provisioning->operationRepository->contract;
         $env->afterRewrap = static function () use ($state): void {
             $state->switchTo(InMemoryAgentOperationContract::compatible(2));
         };

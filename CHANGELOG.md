@@ -19,6 +19,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- **Breaking pre-v1 operation ownership:** moved `AgentCredentialOperation`, its owned Domain values, delivery,
+  maintenance, Queries/View and failures into `Domain\AccessControl\AgentCredentialOperation`; Application workers,
+  policy ports and query handlers mirror that aggregate. Material-bearing persistence is now
+  `AgentCredentialOperationRepository`; the independent `AgentCredentialOperationReadRepository` exposes only safe
+  status, due/maintenance selection, key inventory and cohort observation. Update imports and named arguments
+  (`operationRepository` for writers, `operationReadRepository` for readers) directly; no aliases remain.
+  Query-owned `AgentOperationView::fromOperation()` replaces aggregate `getStatus()` construction. Wire/schema
+  shapes, original issuance, retained-key safety, atomic cancellation/audit, current authorization and
+  cohort/restoration/claim/receipt fences remain unchanged. Actual consumer persistence qualification and the
+  separate Agent Command conversion are not supplied. See [composition](docs/agent-integration.md#operation-ownership-and-readwrite-composition-unreleased).
 - **Breaking pre-v1 User transitions:** activation, password change/reset and email confirmation now own their
   authentication-authority revision changes. Successful login uses `User::recordSuccessfulLogin()` with an optional
   verified rehash, advancing the persistence revision once without changing authenticationVersion or recovery

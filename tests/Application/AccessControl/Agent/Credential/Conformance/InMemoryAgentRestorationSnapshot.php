@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace Fight\Test\AccessControl\Application\AccessControl\Agent\Credential\Conformance;
 
 use Fight\AccessControl\Domain\AccessControl\Agent\Agent;
-use Fight\AccessControl\Domain\AccessControl\Agent\Operation\AgentCredentialOperation;
-use Fight\AccessControl\Domain\AccessControl\Agent\Operation\AgentOperationContract;
+use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\AgentCredentialOperation;
+use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\AgentOperationContract;
 use Fight\AccessControl\Domain\AccessControl\Audit\AuditEvidence;
 use Fight\Test\AccessControl\Application\AccessControl\Agent\Credential\ProvisioningEnvironment;
 
@@ -35,23 +35,23 @@ final readonly class InMemoryAgentRestorationSnapshot
     {
         return new self(
             $env->agentRepository->all(),
-            $env->agentOperationRepository->operations,
-            $env->agentOperationRepository->versions,
-            $env->agentOperationRepository->closedKeyVersions,
+            $env->operationRepository->operations,
+            $env->operationRepository->versions,
+            $env->operationRepository->closedKeyVersions,
             $env->auditEvidenceRepository->all(),
-            $env->agentOperationRepository->contract->current,
-            $env->agentOperationRepository->contract->generation
+            $env->operationRepository->contract->current,
+            $env->operationRepository->contract->generation
         );
     }
 
     public function restore(ProvisioningEnvironment $env): void
     {
         $env->agentRepository->restoreSnapshot($this->agents);
-        $env->agentOperationRepository->operations = $this->operations;
-        $env->agentOperationRepository->versions = $this->versions;
-        $env->agentOperationRepository->closedKeyVersions = $this->closedKeys;
+        $env->operationRepository->operations = $this->operations;
+        $env->operationRepository->versions = $this->versions;
+        $env->operationRepository->closedKeyVersions = $this->closedKeys;
         $env->auditEvidenceRepository->restoreSnapshot($this->audit);
-        $env->agentOperationRepository->contract->current = $this->contract;
-        $env->agentOperationRepository->contract->generation = $this->generation;
+        $env->operationRepository->contract->current = $this->contract;
+        $env->operationRepository->contract->generation = $this->generation;
     }
 }

@@ -8,8 +8,11 @@ there is no legacy mode or adoption transition. The [single canonical contract](
 
 ## Composition and persisted meaning
 
-Both `AgentRepository` and `AgentOperationRepository` now extend Domain
-`AgentOperationContractRepository`. Implement `getOperationContract(): AgentOperationContract` against one
+`AgentRepository`, `AgentCredentialOperationRepository` and the independent secret-free
+`AgentCredentialOperationReadRepository` extend Domain `AgentOperationContractRepository`, now under
+`Domain\AccessControl\AgentCredentialOperation`. The read repository retains cohort observation for operational
+selection/count checks without material-bearing lookup or write APIs; status still grants no writer admission.
+See the [ownership map](agent-integration.md#operation-ownership-and-readwrite-composition-unreleased). Implement `getOperationContract(): AgentOperationContract` against one
 shared authoritative cohort record, qualified against the **actual local composition**. Do not synthesize a current
 record when storage is absent, copy a startup-ready boolean, or infer compatibility from implemented PHP interfaces.
 
@@ -53,6 +56,10 @@ physical rollback or qualify consumer storage tools.
 | `ordered-sink-v1` | Server-registered fixed sinks, immutable exact-tuple staging, verified receipts, global delivery identities, persistent high-water/deduplication and inert late effects |
 | `material-maintenance-v1` | Authorized rewrap/expiry, shared key-reference admission, exact-tuple inert-entry cleanup and durable cleanup evidence |
 
+The Domain snapshot retains generation/authority evidence, not operational qualification machinery. Relocating
+it does not add a caller Boolean, optional preflight or entity readiness flag. Every direct writer still enforces
+this evidence under the transaction-duration cohort fence.
+
 The repository adapter's composition qualification must derive this intersection from the persisted qualified profile
 and its injected participants, not from the caller or arbitrary flags. Consumers may implement that check through their
 composition root; the package supplies no production adapter or universal reflection-based capability detector.
@@ -77,7 +84,7 @@ is not a future authorization grant. Use a consistent global lock order; never s
 | `AgentRepository::rename`, `UpdateAgentHandler` | Apply [name-only intent](agent-name-updates.md) to current ACTIVE state under the shared cohort/Agent fence, including no-ops and direct calls. Preserve exact operation correlation and all unrelated authority; no retirement, issuance, keys/sinks or capacity admission. |
 | `AgentCredentialLifecycleService::revoke` | Guard before loading/mutating authority; original cancellation/audit and post-commit publication/rethrow behavior are unchanged. There is no alternate authority mode. |
 | Grant/revoke/replace Agent Permission handlers and their coordinator | Guard before target lookup/transition, including desired-state no-ops. Current ADMIN_SAFE checks, expected revisions and consumer caller policy still apply. |
-| `AgentOperationRepository::reserveDestinationWrite`, `add`, `retireCredential` | Enforce the cohort before reservations, correlation/material creation and lifecycle cancellation. No external direct caller may omit it. |
+| `AgentCredentialOperationRepository::reserveDestinationWrite`, `add`, `retireCredential` | Enforce the cohort before reservations, correlation/material creation and lifecycle cancellation. No external direct caller may omit it. |
 | `AgentCredentialDeliveryService` and `replaceDelivery` | Fresh compatible same-cohort transaction for claim, admission and outcome, including material-free/recorded outcomes. Recheck compatibility before outside-transaction receipt lookup/materialization. |
 | `ListDueAgentDeliveriesHandler`, `AgentDeliveryRecoveryService` | Discovery checks compatibility after initial current discovery authorization. Each subsequent delivery performs its own fenced checks; selection is not admission. |
 | `AgentDeliveryMaintenanceService`, `replaceMaintenance` | Guard each rewrap/expiry/cleanup-admission/cleanup-ack transaction. Rewrap and key references stay fenced; check compatibility again before outside-transaction cleanup. |

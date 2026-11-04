@@ -18,9 +18,9 @@ and a registered destination identity/binding revision. The scope comes from tru
 secret, URL, path, caller-computed digest or implicit operation identity is accepted.
 
 ```php
-use Fight\AccessControl\Domain\AccessControl\Agent\Operation\AgentOperationId;
-use Fight\AccessControl\Domain\AccessControl\Agent\Operation\AgentOperationKey;
-use Fight\AccessControl\Domain\AccessControl\Agent\Operation\AgentRotationRequest;
+use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\AgentOperationId;
+use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\AgentOperationKey;
+use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\AgentRotationRequest;
 
 $key = new AgentOperationKey($trustedScope, AgentOperationId::generate());
 $request = new AgentRotationRequest($agentId, $currentCredentialId, $currentRevision, $registeredDestination);
@@ -35,7 +35,7 @@ $result = $rotationService->rotate($key, $request);
 write order. It is not proof of delivery, enrollment activation or launch/use permission. No secret getter remains;
 the old public raw-result constructor is gone. Safe results contain no ciphertext or decryption handle.
 
-Inject the same capabilities as provisioning: `AgentRepository`, `AgentOperationRepository`,
+Inject the same capabilities as provisioning: `AgentRepository`, `AgentCredentialOperationRepository`,
 `AuditEvidenceRepository`, `AgentOperationAuthorization`, `HmacSharedSecretGenerator`, `HmacSharedSecretCipher`,
 `AgentDeliveryCipher`, `Clock`, `TransactionalUnitOfWork`, `EventDispatcher`, and optional `AgentOperationLimits`.
 The new mandatory `AgentOperationAuthorization::authorizeRotation(scope, destination, target)` authenticates the real

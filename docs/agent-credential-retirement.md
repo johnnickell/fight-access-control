@@ -38,7 +38,7 @@ fabricates an operation. Every predecessor uses the following indivisible operat
 
 1. Require the package-owned transaction and hold the exact authoritative Agent/credential fence. Compare all
    predecessor state, including Permission authority. Validate the Domain successor.
-2. Call `AgentOperationRepository::retireCredential(expected, replacement)` on that connection. Resolve exactly one
+2. Call `AgentCredentialOperationRepository::retireCredential(expected, replacement)` on that connection. Resolve exactly one
    original operation by Agent ID, credential ID and credential revision, including delivered/material-free records.
    Missing, ambiguous or mismatched correlation rejects; never manufacture an operation from an envelope or audit.
 3. Hold the original operation/delivery, destination binding and shared consumer authority fences through completion.

@@ -170,8 +170,15 @@ previous-iteration support; completed TASKs and earlier guidance cannot require 
   and authorization Admission, with descriptive collaborators and mirrored tests. Current source retains the single
   User AuthenticationService; TASK-00112 owns synchronous decomposition after TASK-00111. User business transitions
   now own authentication-authority revisions, including successful login with optional verified rehash; see
-  [current transition composition](../../docs/operation-outcomes.md#user-authentication-transitions-unreleased). TASK-00114 owns operation aggregate/
-  read boundaries; TASK-00110 owns qualified canonical Common adoption. None is implemented or accepted by TASK-00107.
+  [current transition composition](../../docs/operation-outcomes.md#user-authentication-transitions-unreleased).
+  TASK-00114's Work now places the operation root/owned values, Domain read/write repositories and Application
+  Delivery/Maintenance/query owners under `AccessControl/AgentCredentialOperation`; Agent issuance/lifecycle
+  remain separate. Readers require only `AgentCredentialOperationReadRepository`, writers the independent
+  `AgentCredentialOperationRepository` and existing UoW. View mapping is query-owned; cohort evidence remains
+  Domain-owned while actual composition qualification stays with consumers. See the
+  [current ownership map](../../docs/agent-integration.md#operation-ownership-and-readwrite-composition-unreleased).
+  Independent acceptance/QA remain required. TASK-00110 owns qualified canonical Common adoption; TASK-00107
+  implemented neither this source change nor Common adoption.
   See the [consumed-contract notes](domain.md#consumed-common-contracts) for actual source and supplier limits.
 - UserRepository::add() enforces canonical-email uniqueness atomically. Backed enum cases are uppercase and retain
   stable serialized string values.

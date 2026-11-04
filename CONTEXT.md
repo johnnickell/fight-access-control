@@ -313,6 +313,28 @@ remains the synchronous use-case owner; TASK-00112 decomposition is separate. Wo
 belong in the canonical TASK handoff. Independent Review/nonvisual QA remain required; no consumer database/crypto
 qualification, release or deployment is claimed at this checkpoint.
 
+## TASK-00114 operation aggregate/read ownership — Work checkpoint
+
+`AgentCredentialOperation` now has a distinct aggregate home inside AccessControl, with aggregate-named write
+`AgentCredentialOperationRepository` and independent `AgentCredentialOperationReadRepository`. The four read handlers
+receive only safe status, bounded due/maintenance selection, global key-reference inventory and cohort observation;
+no root/material lookup, reservation, write or UoW capability is exposed. One consumer persistence adapter may
+implement both contracts on the existing shared connection. The [current ownership/composition map](docs/agent-integration.md#operation-ownership-and-readwrite-composition-unreleased)
+classifies the moved Domain values/messages/evidence and Application authorization/worker/port/result responsibilities.
+
+Operation Delivery/Maintenance/query owners and mirrored tests now follow that aggregate. Agent identity/name,
+authentication and issuance/lifecycle owners remain Agent responsibilities. `AgentOperationView::fromOperation()`
+owns projection of already loaded snapshots; the root exposes recorded dispositions, not `getStatus()` construction.
+Real read adapters project metadata directly without loading secrets. PHP imports/registrations/named arguments
+change directly without aliases; safe wire/OpenAPI shapes and canonical marker 2 remain unchanged.
+
+Original-key/restart/uncertain outcomes, scope/target/destination checks, atomic Agent retirement/operation cancellation
+and audit, current cohort/restoration/key/order/claim/receipt fences and scoped publication outcomes are preserved.
+Actual participant qualification and trusted witness verification remain consumer responsibilities, not entity flags
+or optional preflights. TASK-00182's Command conversion is not implemented here. Canonical Work handoff/receipts own
+verification and exact subject mapping; independent Review and nonvisual QA are still required. This checkpoint
+claims no acceptance, consumer persistence/crypto/restore qualification, publication, release or deployment.
+
 ## TASK-00113 AgentName ownership — accepted checkpoint
 
 Independent Review ACCEPT and nonvisual QA PASS cover the implemented candidate; current delivery results are in

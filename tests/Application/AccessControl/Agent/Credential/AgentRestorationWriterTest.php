@@ -4,16 +4,16 @@ declare(strict_types=1);
 
 namespace Fight\Test\AccessControl\Application\AccessControl\Agent\Credential;
 
-use Fight\AccessControl\Application\AccessControl\Agent\Delivery\AgentCredentialDeliveryService;
-use Fight\AccessControl\Application\AccessControl\Agent\Delivery\AgentDeliveryResult;
-use Fight\AccessControl\Application\AccessControl\Agent\Maintenance\AgentDeliveryMaintenanceService;
-use Fight\AccessControl\Application\AccessControl\Agent\Maintenance\AgentMaintenanceResult;
-use Fight\AccessControl\Domain\AccessControl\Agent\Exception\AgentOperationRejectedException;
-use Fight\AccessControl\Domain\AccessControl\Agent\Operation\AgentOperationContract;
-use Fight\AccessControl\Domain\AccessControl\Agent\Operation\AgentOperationFailure;
+use Fight\AccessControl\Application\AccessControl\AgentCredentialOperation\Delivery\AgentCredentialDeliveryService;
+use Fight\AccessControl\Application\AccessControl\AgentCredentialOperation\Delivery\AgentDeliveryResult;
+use Fight\AccessControl\Application\AccessControl\AgentCredentialOperation\Maintenance\AgentDeliveryMaintenanceService;
+use Fight\AccessControl\Application\AccessControl\AgentCredentialOperation\Maintenance\AgentMaintenanceResult;
+use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\AgentOperationContract;
+use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\AgentOperationFailure;
+use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\Exception\AgentOperationRejectedException;
 use Fight\Test\AccessControl\Application\AccessControl\Agent\Credential\Conformance\InMemoryAgentRestoration;
-use Fight\Test\AccessControl\Application\AccessControl\Agent\Delivery\DeliveryEnvironment;
-use Fight\Test\AccessControl\Application\AccessControl\Agent\Maintenance\MaintenanceEnvironment;
+use Fight\Test\AccessControl\Application\AccessControl\AgentCredentialOperation\Delivery\DeliveryEnvironment;
+use Fight\Test\AccessControl\Application\AccessControl\AgentCredentialOperation\Maintenance\MaintenanceEnvironment;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
 
