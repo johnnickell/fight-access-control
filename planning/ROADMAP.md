@@ -172,6 +172,20 @@ or release is authorized by this planning.
 
 ## Current planning handoff — library-wide typing and failure contracts
 
+Both early foundations, TASK-00150 inventory and TASK-00151 fixtures, are now independently accepted at the
+historical candidates recorded below. EPIC-00016/TICKET-00042 remain open for semantic corrections and
+TASK-00152's integrated enforcement/reconciliation. Current delivery results belong to each TASK's canonical
+Land receipt and actual PR; the Board owns execution selection. No whole-library audit is complete.
+
+### Historical foundation and planning checkpoints
+
+TASK-00151's bounded fixture foundation now has independent Review ACCEPT and nonvisual QA PASS at
+`c7b6900ecf3ee376ba152d84eddac0170f1b335d`. Publication/final delivery verification are pending at this closeout
+checkpoint; current delivery/resource outcomes are in canonical `.runs/handoffs/TASK-00151/land.md` and the actual
+PR. EPIC-00016/TICKET-00042 remain open for unfinished inventory/correction/integrated-enforcement work. The
+approved-planning checkpoint below is historical, not a claim that TASK-00151 remains unimplemented or needs QA;
+current execution selection belongs to the Board. No whole-library or supplier qualification is implied.
+
 John approved [EPIC-00016 — Library-wide Typing and Handler Failure Contracts](epics/00016-EPIC.md).
 The destination is exhaustive audit and correction across all production layers, every command/query handler,
 synchronous services and their supporting contracts, with end-to-end typing, explicit absence/failure semantics

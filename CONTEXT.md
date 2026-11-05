@@ -18,7 +18,10 @@ consumer adjustments and unchanged boundaries.
 The exhaustive declaration/member inventory, actual caller traces, regression-first evidence, static probes and
 verification/content/runtime mapping are retained in canonical `.runs/handoffs/TASK-00116/work.md`. This Work
 checkpoint claims no independent acceptance, consumer persistence/provider qualification, publication, release or
-deployment. Independent Review and nonvisual QA remain required; sibling typing/audit tasks retain their ownership.
+deployment. Before first independent Review, the advancing-base integration retains TASK-00151's accepted fixture
+gate from develop without changing this slice's production contracts. The canonical handoff preserves original
+evidence separately from fresh integrated verification. Independent Review and nonvisual QA remain required;
+sibling typing/audit tasks retain their ownership.
 
 ## TASK-00150 structural contract inventory — accepted checkpoint
 
@@ -254,6 +257,26 @@ TICKET-00052's reduced evidence/gap-closure plan is now TASK-00180/00181, comple
 EPIC-00016's six accepted TICKET plans below are complete, not implemented/qualified; added EPIC-00015 Agent conversion and actual
 Common suppliers remain separate unfinished planning/qualification handoffs. Existing scope/order/blockers and first
 Board selection remain unchanged. No source/dependency/consumer mutation, product build or implementation follows.
+
+## TASK-00151 type-contract foundation — accepted checkpoint
+
+Independent Review ACCEPT and nonvisual QA PASS cover `c7b6900ecf3ee376ba152d84eddac0170f1b335d` against
+`2993293d02c1679a53b4741cf7732eaa7dc65370`. Publication/final delivery verification are pending at this closeout;
+current delivery/resource results are in canonical `.runs/handoffs/TASK-00151/land.md` and the actual PR.
+TASK-00151 is done; its parents remain open. This accepts the bounded fixture foundation, not whole-library,
+dispatch/Event supplier, minimum-lane or consumer qualification. The Work checkpoint below is historical.
+
+### Work checkpoint
+
+The [type-contract fixture guide](docs/type-contracts.md) describes the required `bin/quality` check and focused
+`./bin/type-contracts` command. Two cases check six exact positive types and six case-bound rejections against current
+identity/list/shape/nullable/callback contracts. The runner validates actual exits and complete diagnostic identities;
+its failure-path qualification is separate tooling, outside product PHPUnit/coverage. Ordinary source/caller analysis
+and exact production coverage remain unchanged. Work evidence belongs in `.runs/handoffs/TASK-00151/work.md`.
+Independent Review and nonvisual QA remain required; this checkpoint claims neither acceptance nor a whole-library
+audit, dispatch/Event supplier qualification, business repair, publication or release. TASK-00150/00152 and the
+semantic owners retain their inventory, sufficient enforcement and real composition obligations. Native UoW mixed
+with a matching known-local callback `@var` remains sufficient.
 
 ## Approved library-wide typing and failure-contract destination
 
