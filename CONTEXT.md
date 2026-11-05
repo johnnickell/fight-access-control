@@ -260,6 +260,16 @@ changed Composer/quality inputs require fresh integrated verification, not reuse
 Independent technical Review and behavioral QA remain pending; this checkpoint does not
 self-accept or close the TASK, qualify consumer persistence/crypto, publish, release or deploy anything.
 
+### Integrated fixture repair
+
+The prior TASK-00115 candidate received independent Review ACCEPT and behavioral QA PASS. Integration of pinned
+develop `46a15c89fdb33de3e411053e53dfe33a4c60ea0e` then exposed stale UserView shape messages in the required
+fixture manifest. The repair aligns only those two expectations with the precise four-value UserState output;
+production/test bytes and exact diagnostic enforcement remain unchanged. Original failure and current verification,
+inventory equivalence and newly prepared runtime identity are retained in the canonical TASK-00115 Work handoff.
+Independent reassessment/applicable QA remain required for the repaired integrated subject; the earlier checkpoint
+and verdicts are historical, not acceptance of this repair. TASK-00115 remains in-progress.
+
 ## TASK-00151 type-contract foundation — accepted checkpoint
 
 Independent Review ACCEPT and nonvisual QA PASS cover `c7b6900ecf3ee376ba152d84eddac0170f1b335d` against
