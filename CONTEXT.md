@@ -16,6 +16,13 @@ content/runtime identity, interaction limits and continuation belong to canonica
 `.runs/handoffs/TASK-00117/develop-merge-20261105.md`. Historical completion remains intact; this Work checkpoint
 claims no new independent acceptance, publication, merge or consumer qualification.
 
+John subsequently authorized the narrow inherited RefreshSession empty-history correction (QA-01 / Review I-01)
+in this continuation. The most-recently-used credential predicate now returns false without diagnostics before
+rotation; latest-predecessor selection and the inclusive-start/exclusive-end conflict window remain unchanged.
+Regression-first proof and current verification belong to canonical `.runs/handoffs/TASK-00117/qa-01-repair.md`.
+Historical TASK completion does not accept this correction: current independent reassessment remains pending,
+and the prior QA FAIL remains an unchanged exact-subject report. No unrelated User typing repair is included.
+
 ## TASK-00116 develop integration — historical Work checkpoint
 
 The published TASK-00116 branch integrates develop `998e892b4a4a9c1efd5464e76d3ee542c9d24a89`, including
