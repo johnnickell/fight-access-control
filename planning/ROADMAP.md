@@ -172,6 +172,14 @@ or release is authorized by this planning.
 
 ## Current planning handoff — library-wide typing and failure contracts
 
+[TASK-00116](tasks/00116-TASK.md)'s 68-file human grant/delivery Domain slice has independent Review ACCEPT and
+nonvisual QA PASS at candidate `080afc43b2b3942625e264547b75cb9b3a74b3bc`, with no findings. The TASK is done;
+TICKET-00037 and EPIC-00016 remain open for unfinished children. [PR #164](https://github.com/johnnickell/fight-access-control/pull/164)
+is open with accepted implementation; administrative closeout publication/final-head verification remain pending
+at this checkpoint. Current delivery/resource results and the administrative bridge belong to canonical
+`.runs/handoffs/TASK-00116/land.md`. No whole-library/consumer qualification, approval, merge or release is implied.
+The Board owns current execution selection; the planning checkpoints below remain historical.
+
 Both early foundations, TASK-00150 inventory and TASK-00151 fixtures, are now independently accepted at the
 historical candidates recorded below. EPIC-00016/TICKET-00042 remain open for semantic corrections and
 TASK-00152's integrated enforcement/reconciliation. Current delivery results belong to each TASK's canonical
