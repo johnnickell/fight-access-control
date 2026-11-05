@@ -41,7 +41,9 @@ final readonly class RegisterUser implements Command
     }
 
     /**
-     * @inheritDoc
+     * Returns the canonical registration payload
+     *
+     * @phpstan-return array{user_id: string, email: string}
      */
     public function toArray(): array
     {

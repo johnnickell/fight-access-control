@@ -14,20 +14,25 @@ use Fight\Common\Domain\Messaging\Event\Event;
  */
 final readonly class RedactedCommandFailed implements Event
 {
+    /** @var array<string, mixed> */
+    private array $redactedCommandData;
+
     /**
      * Constructs RedactedCommandFailed
      *
      * Constructs the redacted command-failure event.
      *
-     * @param string               $commandClass
-     * @param array<string, mixed> $redactedCommandData
-     * @param string               $errorMessage
+     * Validates named context fields without pretending that dynamic values are all strings.
+     * Producers remain responsible for allowlisting secret-free content.
+     *
+     * @phpstan-param array<string, mixed> $redactedCommandData
      */
     public function __construct(
         private string $commandClass,
-        private array $redactedCommandData,
+        array $redactedCommandData,
         private string $errorMessage
     ) {
+        $this->redactedCommandData = self::validatedContext($redactedCommandData);
     }
 
     /**
@@ -46,15 +51,21 @@ final readonly class RedactedCommandFailed implements Event
             throw new DomainException('The redacted command data must be an array.');
         }
 
+        if (!is_string($data['command_class']) || !is_string($data['error_message'])) {
+            throw new DomainException('Failure identity and message must be strings.');
+        }
+
         return new static(
-            (string) $data['command_class'],
-            $data['command_data'],
-            (string) $data['error_message']
+            $data['command_class'],
+            self::validatedContext($data['command_data']),
+            $data['error_message']
         );
     }
 
     /**
-     * @inheritDoc
+     * Returns the canonical redacted failure payload
+     *
+     * @phpstan-return array{command_class: string, command_data: array<string, mixed>, error_message: string}
      */
     public function toArray(): array
     {
@@ -89,5 +100,25 @@ final readonly class RedactedCommandFailed implements Event
     public function getErrorMessage(): string
     {
         return $this->errorMessage;
+    }
+
+    /**
+     * Validates native context keys while preserving genuinely dynamic safe values
+     *
+     * @phpstan-param array<array-key, mixed> $context
+     * @phpstan-return array<string, mixed>
+     */
+    private static function validatedContext(array $context): array
+    {
+        $validatedContext = [];
+        foreach ($context as $key => $value) {
+            if (!is_string($key)) {
+                throw new DomainException('Redacted command context requires named fields.');
+            }
+
+            $validatedContext[$key] = $value;
+        }
+
+        return $validatedContext;
     }
 }

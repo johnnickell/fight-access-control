@@ -34,20 +34,22 @@ final readonly class RestoreUser implements Command
     public static function fromArray(array $data): static
     {
         foreach (['actor_id', 'user_id', 'restoration_state'] as $key) {
-            if (!array_key_exists($key, $data)) {
-                throw new DomainException(sprintf('Missing required key "%s" in data array', $key));
+            if (!array_key_exists($key, $data) || !is_string($data[$key])) {
+                throw new DomainException(sprintf('Missing or invalid string "%s" in data array', $key));
             }
         }
 
         return new static(
-            UserId::fromString((string) $data['actor_id']),
-            UserId::fromString((string) $data['user_id']),
-            UserState::from((string) $data['restoration_state'])
+            UserId::fromString($data['actor_id']),
+            UserId::fromString($data['user_id']),
+            UserState::from($data['restoration_state'])
         );
     }
 
     /**
-     * @inheritDoc
+     * Returns the canonical restoration payload
+     *
+     * @phpstan-return array{actor_id: string, user_id: string, restoration_state: value-of<UserState>}
      */
     public function toArray(): array
     {

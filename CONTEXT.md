@@ -223,6 +223,22 @@ EPIC-00016's six accepted TICKET plans below are complete, not implemented/quali
 Common suppliers remain separate unfinished planning/qualification handoffs. Existing scope/order/blockers and first
 Board selection remain unchanged. No source/dependency/consumer mutation, product build or implementation follows.
 
+## TASK-00115 User/session/audit typing — Engineer checkpoint
+
+The Engineer candidate audits the complete current 67-file User/RefreshSession/Audit Domain boundary, with a
+candidate-specific declaration/member/contract/caller inventory: 37 corrected declarations and 30 justified
+unchanged dispositions, without Domain additions, moves or removals. All 32 owned messages retain valid current
+outputs while rejecting coercive type mismatches; typed Role/context collections, current hydration, counter limits
+and exact refresh-credential shape have executable regressions. The User test repository preserves native subsecond
+instants in expected-state comparisons, including rejected coupled session insertion. See the
+[current type-contract guide](docs/user-session-type-contracts.md).
+
+Existing nullable repository lookups, direct synchronous User capability homes, CAS/coupled persistence, required
+audit, recovery and secret handling remain. No Common adoption, optional-audit design or query absence change is
+included. Exact candidate, regression/focused/static results and final gate/coverage evidence belong to the canonical
+TASK-00115 Work handoff. Independent technical Review and behavioral QA remain pending; this checkpoint does not
+self-accept or close the TASK, qualify consumer persistence/crypto, publish, release or deploy anything.
+
 ## Approved library-wide typing and failure-contract destination
 
 John approved [EPIC-00016](planning/epics/00016-EPIC.md) to audit and correct typing throughout the entire library,
