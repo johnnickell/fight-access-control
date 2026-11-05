@@ -145,10 +145,15 @@ is required for each implementation slice; planning approval supplies none of it
 
 | Order | TASK ID | Title | Status |
 | --- | --- | --- | --- |
-| 299 | [TASK-00150](../tasks/00150-TASK.md) | Maintain exhaustive declaration and contract ownership | ready-for-agent |
+| 299 | [TASK-00150](../tasks/00150-TASK.md) | Maintain exhaustive declaration and contract ownership | in-progress |
 | 300 | [TASK-00151](../tasks/00151-TASK.md) | Execute type-contract fixtures through the canonical gate | ready-for-agent |
 | 329 | [TASK-00152](../tasks/00152-TASK.md) | Enforce and qualify the integrated library contracts | ready-for-agent |
 ## Decisions and Progress
+
+TASK-00150's Work now implements the early [structural inventory foundation](../../docs/contract-inventory.md)
+with independent Review/nonvisual QA still pending. Enumeration and drift enforcement do not complete semantic
+review or final reconciliation; TASK-00151 and every correction supplier retain their existing scope/ownership.
+The planning-only checkpoints below are historical, not a claim that the current foundation is unimplemented.
 
 John approved this sixth requirement in EPIC-00016, then the complete three-TASK plan now written as
 TASK-00150–00152. Both early foundations are independent; final integrated enforcement waits on the 30 named local

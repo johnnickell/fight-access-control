@@ -1,0 +1,36 @@
+{
+  "schema": 1,
+  "roots": ["src", "openapi"],
+  "rules": [
+    {"ticket": "TICKET-00037", "task": "TASK-00115", "path": "src/Domain/AccessControl/(User|RefreshSession|Audit)/.*"},
+    {"ticket": "TICKET-00037", "task": "TASK-00116", "path": "src/Domain/AccessControl/(ActivationGrant|PasswordResetGrant|EmailChangeGrant|CredentialDelivery)/.*"},
+    {"ticket": "TICKET-00037", "task": "TASK-00117", "path": "src/Domain/AccessControl/(Permission|Role|ManagedPolicy|Authorization)/.*"},
+    {"ticket": "TICKET-00037", "task": "TASK-00118", "path": "src/Domain/AccessControl/Agent/.*", "except": "src/Domain/AccessControl/Agent/(Event/(AgentCredentialLifecycleFailed|AgentCredentialRevoked|AgentCredentialRotated|AgentProvisioned|AgentProvisioningFailed)|Command/(ProvisionAgent|RotateAgentCredential)|Exception/AgentOperationUncertainException)\\.php"},
+    {"ticket": "TICKET-00037", "task": "TASK-00119", "path": "src/Domain/AccessControl/AgentCredentialOperation/.*|src/Domain/AccessControl/Agent/(Event/(AgentCredentialLifecycleFailed|AgentCredentialRevoked|AgentCredentialRotated|AgentProvisioned|AgentProvisioningFailed)|Command/(ProvisionAgent|RotateAgentCredential)|Exception/AgentOperationUncertainException)\\.php"},
+    {"ticket": "TICKET-00037", "task": "TASK-00120", "path": "src/Domain/AccessControl/Feature/.*"},
+    {"ticket": "TICKET-00039", "task": "TASK-00131", "path": "src/Application/AccessControl/[^/]+/QueryHandler/Get(UserById|RoleById|PermissionById|AgentById|AgentProfile|FeatureById)Handler\\.php"},
+    {"ticket": "TICKET-00039", "task": "TASK-00132", "path": "src/Application/AccessControl/[^/]+/QueryHandler/List(Users|Roles|Permissions|Agents|Features|ActiveSessions)Handler\\.php"},
+    {"ticket": "TICKET-00039", "task": "TASK-00133", "path": "src/Application/AccessControl/[^/]+/QueryHandler/Find(InvitationDeliveryStatus|CredentialDeliveryStatus|DueCredentialDeliveries|ExpiredCredentialDeliveries)Handler\\.php"},
+    {"ticket": "TICKET-00039", "task": "TASK-00134", "path": "src/Application/AccessControl/AgentCredentialOperation/QueryHandler/.*"},
+    {"ticket": "TICKET-00039", "task": "TASK-00135", "path": "src/Application/AccessControl/(Feature/QueryHandler/ValidateFeaturePreparationHandler|ManagedPolicy/QueryHandler/PreviewManagedPolicyHandler)\\.php"},
+    {"ticket": "TICKET-00040", "task": "TASK-00136", "path": "src/Application/AccessControl/((ActivationGrant|PasswordResetGrant|EmailChangeGrant)/EventSubscriber/.*|Timing/Service/.*)"},
+    {"ticket": "TICKET-00040", "task": "TASK-00137", "path": "src/Application/AccessControl/(User/(CommandHandler/(RegisterUser|InvitePendingUser|RecoverPendingRegistration|CorrectPendingInvitation|EnableUser|DisableUser|DeleteUser|RestoreUser)Handler|Service/RegistrationRecoveryAuthorization)|ActivationGrant/Service/InvitationAdministrationAuthorization)\\.php"},
+    {"ticket": "TICKET-00040", "task": "TASK-00138", "path": "src/Application/AccessControl/((ActivationGrant|PasswordResetGrant|EmailChangeGrant)/(CommandHandler|Service)/.*|CredentialDelivery/Service/.*)", "except": "src/Application/AccessControl/ActivationGrant/Service/InvitationAdministrationAuthorization\\.php"},
+    {"ticket": "TICKET-00040", "task": "TASK-00139", "path": "src/Application/AccessControl/(User/(Authentication/.*|Security/.*|PasswordManagement\\.php|Service/LoginThrottle\\.php)|RefreshSession/(CommandHandler/.*|Service/.*|SessionLifecycle\\.php)|EmailChangeGrant/EmailChangeConfirmation\\.php)"},
+    {"ticket": "TICKET-00040", "task": "TASK-00140", "path": "src/Application/AccessControl/(Role/CommandHandler/.*|User/CommandHandler/(AssignRoleToUser|RemoveRoleFromUser)Handler\\.php)"},
+    {"ticket": "TICKET-00040", "task": "TASK-00141", "path": "src/Application/AccessControl/Agent/(PermissionAssignment/.*|CommandHandler/(GrantPermissionToAgent|RevokePermissionFromAgent|ReplaceAgentPermissions|UpdateAgent)Handler\\.php)"},
+    {"ticket": "TICKET-00040", "task": "TASK-00142", "path": "src/Application/AccessControl/(Feature/(CommandHandler|Discovery|Service)/.*|ManagedPolicy/(CommandHandler|Service)/.*)"},
+    {"ticket": "TICKET-00040", "task": "TASK-00143", "path": "src/Application/AccessControl/(Agent/(CommandHandler/(ProvisionAgent|RotateAgentCredential)Handler\\.php|Credential/HmacSharedSecret(Cipher|Generator)\\.php)|AgentCredentialOperation/(AgentOperationAuthorization|Delivery/AgentDeliveryCipher)\\.php)"},
+    {"ticket": "TICKET-00040", "task": "TASK-00144", "path": "src/Application/AccessControl/(Agent/Credential/AgentCredentialLifecycleService\\.php|AgentCredentialOperation/(Delivery|Maintenance)/.*)", "except": "src/Application/AccessControl/AgentCredentialOperation/Delivery/AgentDeliveryCipher\\.php"},
+    {"ticket": "TICKET-00040", "task": "TASK-00145", "path": "src/Application/AccessControl/(Authorization/.*|Agent/(Authentication|Continuation|Exception)/.*)"},
+    {"ticket": "TICKET-00041", "task": "TASK-00146", "path": "src/Adapter/(Middleware|Http)/.*"},
+    {"ticket": "TICKET-00041", "task": "TASK-00147", "path": "src/Adapter/Mcp/Tool/Agent/.*"},
+    {"ticket": "TICKET-00041", "task": "TASK-00148", "path": "src/Adapter/Mcp/(Resource|Skill)/Agent/.*"},
+    {"ticket": "TICKET-00041", "task": "TASK-00149", "path": "openapi/.*|src/Application/AccessControl/Feature/Attribute/.*"}
+  ],
+  "concerns": [
+    {"ticket": "TICKET-00038", "task": "TASK-00128", "path": "src/(Application/.*/QueryHandler|Domain/.*/Query)/.*|src/Adapter/Mcp/Tool/Agent/GetAgentProfileTool\\.php|src/Application/AccessControl/AgentCredentialOperation/Delivery/AgentDeliveryRecoveryService\\.php"},
+    {"ticket": "TICKET-00038", "task": "TASK-00129", "path": "src/(Application/.*/CommandHandler|Domain/.*/Command)/.*|src/Adapter/Mcp/Tool/Agent/UpdateAgentProfileTool\\.php", "except": ".*/(ProvisionAgent|RotateAgentCredential)(Handler)?\\.php"},
+    {"ticket": "TICKET-00038", "task": "TASK-00130", "path": "src/(Application|Domain)/AccessControl/Agent/(CommandHandler|Command)/(ProvisionAgent|RotateAgentCredential)(Handler)?\\.php|src/Application/AccessControl/AgentCredentialOperation/QueryHandler/GetAgentOperationHandler\\.php"}
+  ]
+}

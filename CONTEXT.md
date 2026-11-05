@@ -6,6 +6,16 @@ Fight AccessControl owns framework-neutral identity, credential, session, author
 behavior shared by Fight applications. The repository-local behavioral and security authority is
 [TICKET-00001](planning/tickets/00001-TICKET.md).
 
+## TASK-00150 structural contract inventory — Work checkpoint
+
+The [declaration/contract inventory](docs/contract-inventory.md) parses all current src/OpenAPI PHP inputs and
+routes declarations, members, callbacks and syntactic relationships to existing typing correction owners. Compact
+tracked fingerprints enforce structural drift in `bin/quality`; detailed candidate-bound inventories and owner
+judgments stay in ignored TASK evidence. Initial semantic dispositions remain pending. This foundation neither
+completes EPIC-00016's semantic audit nor qualifies suppliers/consumers. Production behavior, default PHPUnit and
+exact statement coverage are unchanged. Independent Review and nonvisual behavioral QA remain required; current
+verification/content/runtime identity belongs to `.runs/handoffs/TASK-00150/work.md`.
+
 ## TASK-00182 void Agent issuance — accepted checkpoint
 
 Independent Review ACCEPT and nonvisual QA PASS cover integrated candidate `4990103d519bdd0a1bbb7d77bccf10619607f4cc`. Publication and final delivery verification were pending at closeout; current results are in `.runs/handoffs/TASK-00182/land.md` and the actual PR. Consumer qualification remains separate. The Work checkpoint below is historical.

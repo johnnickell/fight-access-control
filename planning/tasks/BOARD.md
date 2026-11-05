@@ -5,17 +5,18 @@ dependencies, acceptance, and verification.
 
 ## What's Next?
 
-First ready Task: [TASK-00150](00150-TASK.md) — Maintain exhaustive declaration and contract ownership.
+Active Task: [TASK-00150](00150-TASK.md) — Maintain exhaustive declaration and contract ownership.
 
 ## In Progress
 
-No Tasks are currently in this state.
+| Order | TASK ID | Title | Parent TICKET | Status | Blocked by | PR |
+| --- | --- | --- | --- | --- | --- | --- |
+| 299 | [TASK-00150](00150-TASK.md) | Maintain exhaustive declaration and contract ownership | [TICKET-00042](../tickets/00042-TICKET.md) — Enforce and demonstrate whole-library type correctness | in-progress | — | — |
 
 ## Ready Frontier
 
 | Order | TASK ID | Title | Parent TICKET | Status | Blocked by | PR |
 | --- | --- | --- | --- | --- | --- | --- |
-| 299 | [TASK-00150](00150-TASK.md) | Maintain exhaustive declaration and contract ownership | [TICKET-00042](../tickets/00042-TICKET.md) — Enforce and demonstrate whole-library type correctness | ready-for-agent | — | — |
 | 300 | [TASK-00151](00151-TASK.md) | Execute type-contract fixtures through the canonical gate | [TICKET-00042](../tickets/00042-TICKET.md) — Enforce and demonstrate whole-library type correctness | ready-for-agent | — | — |
 | 301 | [TASK-00115](00115-TASK.md) | Correct User, session and audit type contracts | [TICKET-00037](../tickets/00037-TICKET.md) — Make Domain and repository contracts precise | ready-for-agent | — | — |
 | 302 | [TASK-00116](00116-TASK.md) | Correct human credential and delivery type contracts | [TICKET-00037](../tickets/00037-TICKET.md) — Make Domain and repository contracts precise | ready-for-agent | — | — |
