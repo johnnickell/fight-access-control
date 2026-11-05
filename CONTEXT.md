@@ -241,7 +241,16 @@ EPIC-00016's six accepted TICKET plans below are complete, not implemented/quali
 Common suppliers remain separate unfinished planning/qualification handoffs. Existing scope/order/blockers and first
 Board selection remain unchanged. No source/dependency/consumer mutation, product build or implementation follows.
 
-## TASK-00117 Permission, Role and authority typing — Work checkpoint
+## TASK-00117 Permission, Role and authority typing — accepted checkpoint
+
+Independent Review ACCEPT and nonvisual QA PASS cover candidate `191b972258acfa4ca0bb7e8c90ded115a26f2fcc`
+against `46a15c89fdb33de3e411053e53dfe33a4c60ea0e`. This accepts the complete owned Domain correction slice,
+not whole-library typing or actual consumer qualification. TASK-00117 is done; its parents remain open for
+unfinished children. Publication/final delivery verification are pending at this closeout checkpoint; current
+results belong to canonical `.runs/handoffs/TASK-00117/land.md` and the actual PR. The Work checkpoint below
+is historical, not a current Review/QA prerequisite.
+
+### Work checkpoint
 
 The complete Permission/Role/ManagedPolicy/Authorization Domain slice has been inspected, with an exhaustive
 member/callback inventory and caller/disposition evidence retained in the canonical TASK Work handoff. Current

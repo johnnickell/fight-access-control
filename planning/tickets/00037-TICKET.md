@@ -116,11 +116,20 @@ Review/applicable QA, without waiting to delegate those obligations to final rec
 | --- | --- | --- | --- |
 | 301 | [TASK-00115](../tasks/00115-TASK.md) | Correct User, session and audit type contracts | ready-for-agent |
 | 302 | [TASK-00116](../tasks/00116-TASK.md) | Correct human credential and delivery type contracts | ready-for-agent |
-| 303 | [TASK-00117](../tasks/00117-TASK.md) | Correct Permission, Role and authority type contracts | in-progress |
+| 303 | [TASK-00117](../tasks/00117-TASK.md) | Correct Permission, Role and authority type contracts | done |
 | 304 | [TASK-00118](../tasks/00118-TASK.md) | Correct Agent identity and administration type contracts | ready-for-agent |
 | 305 | [TASK-00119](../tasks/00119-TASK.md) | Correct Agent operation and recovery type contracts | ready-for-agent |
 | 306 | [TASK-00120](../tasks/00120-TASK.md) | Correct Feature type contracts | ready-for-agent |
 ## Decisions and Progress
+
+TASK-00117 has independent Review ACCEPT and nonvisual QA PASS at candidate
+`191b972258acfa4ca0bb7e8c90ded115a26f2fcc` against `46a15c89fdb33de3e411053e53dfe33a4c60ea0e`.
+Its complete Permission/Role/ManagedPolicy/Authorization Domain slice is accepted and done. This TICKET remains
+open for unfinished children; its aggregate acceptance criteria are not claimed complete. Publication/final
+delivery verification are pending at this closeout checkpoint; current results belong to canonical
+`.runs/handoffs/TASK-00117/land.md` and the actual PR. The Engineer/planning checkpoints below are historical.
+
+### Historical Engineer and planning checkpoints
 
 TASK-00117 now has its Engineer implementation checkpoint for the complete Permission/Role/ManagedPolicy/
 Authorization Domain slice. Its record and canonical ignored Work handoff own exhaustive member/callback/caller
