@@ -5,39 +5,71 @@ import shutil
 import subprocess
 
 from .preparation import resolve
-from .resources import query, registrations, require, run, text
+from .resources import native_ids, query, registrations, require, run, text
 
 
 DOWN_HOOK = '{{ primary_worktree_path }}/bin/down --worktree {{ worktree_path }}'
 
 
-def removal_hooks(safe, checkout):
-    """Inspect effective system/user/project hooks without disclosing personal commands"""
+def removal_hooks(safe, checkout, *, runtime_free_fixture=False):
+    """Inspect effective hooks; runtime-free fixtures admit no removal hooks"""
     for directory in dict.fromkeys((safe, checkout)):
         for phase in ('pre-remove', 'post-remove'):
             hooks = query(['wt', 'hook', 'show', phase, '--format=json'], directory)
             require(isinstance(hooks, list), 'Worktrunk hook inventory unavailable')
-            require(all(isinstance(hook, dict) and phase == 'pre-remove' and
+            require(all(not runtime_free_fixture and isinstance(hook, dict) and phase == 'pre-remove' and
                         hook.get('type') == phase and hook.get('source') == 'project' and
                         hook.get('name') == 'runtime' and hook.get('template') == DOWN_HOOK
                         for hook in hooks),
                     'Unqualified Worktrunk ' + phase + ' hook in ' +
                     ('canonical' if directory == safe else 'target') +
-                    ' context; source retained, Docker teardown completed')
+                    ' context; source retained, ' +
+                    ('runtime absence qualified' if runtime_free_fixture else 'Docker teardown completed'))
 
 
-def remove(root, selector, expected_oid, delivery=None):
-    """Run Docker first, then one non-force native removal for delivery or owned fixtures
+def remove(root, selector, expected_oid, delivery=None, *, runtime_free_fixture=False):
+    """Qualify runtime, then one non-force native removal for delivery or owned fixtures
 
-    Land supplies its exact publication check. Without it, only an explicitly owned
-    qualification fixture with no commits outside canonical HEAD is eligible.
-    Caller authority and live-source qualification remain required; this is not a sandbox.
+    Application paths run public Docker teardown first. Explicit runtime-free
+    qualification fixtures instead require absent declarations, state and native
+    resources; missing bin/down alone is never proof. This mode cannot deliver a
+    published subject or remove a QA-purpose checkout and admits no removal hooks.
+    Without delivery, fixtures need canonical ancestry. Caller ownership and
+    live-source qualification remain required.
     """
     safe, checkout, project, entry = resolve(root, selector, removed=True)
     require(root == safe, 'Run source removal from canonical safe checkout')
-    # Always use the public command, also used by the repository pre-remove hook.
-    # Source, publication and hook holds cannot suppress independent Docker teardown.
-    run([safe / 'bin/down', '--worktree', str(checkout)], safe)
+    require(not runtime_free_fixture or delivery is None,
+            'Runtime-free fixture mode cannot replace delivery or QA runtime teardown')
+
+    def teardown():
+        if not runtime_free_fixture:
+            # Application source/publication holds cannot suppress public down.
+            run([safe / 'bin/down', '--worktree', str(checkout)], safe)
+            return
+        require(not text(['git', 'remote'], safe),
+                'Runtime-free fixture must be a local generated repository without remotes')
+        for directory in dict.fromkeys((safe, checkout)):
+            for name in ('bin/down', 'compose.yaml', 'compose.yml', 'docker-compose.yaml', 'docker-compose.yml'):
+                path = directory / name
+                require(not path.exists() and not path.is_symlink(),
+                        'Runtime-free fixture has an application lifecycle declaration; use its owning teardown')
+        for path in (safe / 'var/worktrees' / project, safe / '.runs/compose' / project):
+            require(not path.exists() and not path.is_symlink(),
+                    'Runtime-free fixture has generated runtime state; use its owning teardown')
+        for kind in ('containers', 'volumes', 'networks'):
+            require(not native_ids(safe, kind, project),
+                    'Runtime-free fixture has native project ' + kind + '; use its owning teardown')
+        tags = text(['docker', 'image', 'ls', '--format', '{{.Repository}}:{{.Tag}}'], safe).splitlines()
+        require(not any(tag.startswith(project + '-') for tag in tags),
+                'Runtime-free fixture has task image tags; use its owning teardown')
+        builders = text(['docker', 'buildx', 'ls', '--format', '{{.Name}}'], safe).splitlines()
+        cache = text(['docker', 'volume', 'ls', '-q', '--filter',
+                      'name=^buildx_buildkit_' + project + '0_state$'], safe)
+        require(project not in builders and not cache,
+                'Runtime-free fixture has a task builder/cache; use its owning teardown')
+
+    teardown()
     if entry is None:
         require(not (safe / 'var/worktrees' / project).exists(),
                 'Unlocated generated configuration remains; inspect exact state, never infer retirement')
@@ -49,8 +81,10 @@ def remove(root, selector, expected_oid, delivery=None):
                           'config_absent': True, 'branch_outcome': 'not_observed'}))
         return 0
     require(checkout != safe and checkout != Path.cwd().resolve(),
-            'Main/current checkout is never disposable; Docker teardown completed')
+            'Main/current checkout is never disposable; runtime qualification completed')
     branch = entry['branch']
+    require(not runtime_free_fixture or not branch.startswith('qa/'),
+            'Runtime-free fixture mode cannot remove a QA-purpose ref')
     ref = 'refs/heads/' + branch if branch else None
     present = str(checkout) in [value['path'] for value in registrations(safe)]
     require(present == checkout.exists(), 'Source path/registration mismatch; inspect partial effects')
@@ -70,9 +104,9 @@ def remove(root, selector, expected_oid, delivery=None):
                     'Worktrunk ref postcondition changed; source/config closeout incomplete')
 
         postconditions()
-        # Final public down must also succeed; a source/ref hold never substitutes
-        # for Docker absence. Pin the original path, not a reattached branch.
-        run([safe / 'bin/down', '--worktree', str(checkout)], safe)
+        # Recheck runtime after native removal, pinned to the original path.
+        # Runtime-free inspection never creates or disposes application state.
+        teardown()
         postconditions()
         state = safe / 'var/worktrees' / project
         require(state.resolve() == state and not state.is_symlink(), 'Runtime state alias refused')
@@ -126,8 +160,10 @@ def remove(root, selector, expected_oid, delivery=None):
     source_state()
     # Re-read complete effective pre/post hooks in BOTH contexts immediately before
     # the native effect, using the same inherited config/environment as removal.
-    removal_hooks(safe, checkout if present else safe)
-    # Hook inventory is native work too: revalidate ownership after it, before effect.
+    removal_hooks(safe, checkout if present else safe, runtime_free_fixture=runtime_free_fixture)
+    # Runtime/hook inventory is native work too: recheck source ownership last.
+    if runtime_free_fixture:
+        teardown()
     source_state()
     target = str(checkout) if present else branch
     require(target, 'No exact native removal target')
