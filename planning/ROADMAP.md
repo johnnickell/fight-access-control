@@ -172,6 +172,12 @@ or release is authorized by this planning.
 
 ## Current planning handoff — library-wide typing and failure contracts
 
+TASK-00115's complete User/RefreshSession/Audit slice is now independently accepted and done at repaired
+integrated candidate `e0853b518997713493fb1473d2ea0f6878479e68`, with Review v3 ACCEPT, nonvisual QA PASS
+and complete gate/exact coverage. Publication/final delivery verification are pending at this closeout checkpoint;
+current results belong to canonical `.runs/handoffs/TASK-00115/land.md` and the actual PR. TICKET-00037/EPIC-00016
+remain open for other unfinished Domain/semantic/enforcement children; consumer qualification remains separate.
+
 Both early foundations, TASK-00150 inventory and TASK-00151 fixtures, are now independently accepted at the
 historical candidates recorded below. EPIC-00016/TICKET-00042 remain open for semantic corrections and
 TASK-00152's integrated enforcement/reconciliation. Current delivery results belong to each TASK's canonical
