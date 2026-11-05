@@ -6,6 +6,49 @@ Fight AccessControl owns framework-neutral identity, credential, session, author
 behavior shared by Fight applications. The repository-local behavioral and security authority is
 [TICKET-00001](planning/tickets/00001-TICKET.md).
 
+## TASK-00116 develop integration — current Work checkpoint
+
+The published TASK-00116 branch integrates develop `998e892b4a4a9c1efd5464e76d3ee542c9d24a89`, including
+TASK-00115's independently accepted User/session/audit contracts. Both slices' production changes and structural
+ownership fingerprints are retained; current exact fixture diagnostics follow develop's narrowed UserView state.
+Only overlapping progress prose and generated planning views require conflict resolution. Canonical
+`.runs/handoffs/TASK-00116/work.md` owns fresh integrated verification, runtime identity and the exact old/new
+base/head/effective-diff bridge. The independent reports below remain unchanged and name their original subjects;
+this integration does not create a combined verdict or claim publication, merge, release or consumer qualification.
+Land must qualify the bridge before the non-force PR update; canceled cleanup must not resume from old instructions.
+
+## TASK-00116 human credential Domain contracts — accepted checkpoint
+
+Independent Review ACCEPT and nonvisual QA PASS cover candidate `080afc43b2b3942625e264547b75cb9b3a74b3bc`
+against base `46a15c89fdb33de3e411053e53dfe33a4c60ea0e`, with no findings. TASK-00116 is done for its 68-file
+Domain/caller/metadata slice; TICKET-00037 and EPIC-00016 remain open for unfinished children. The qualified earlier
+full gate covers 3,480 tests / 51,037 assertions and exact 7,922/7,922 statements; fresh Land focused checks pass
+650 tests / 1,003 assertions. No consumer persistence/provider qualification or whole-library acceptance is implied.
+
+[PR #164](https://github.com/johnnickell/fight-access-control/pull/164) is open with accepted implementation at this
+checkpoint; administrative closeout publication/final-head verification remain pending. Current delivery/resource
+results and the administrative bridge belong to canonical `.runs/handoffs/TASK-00116/land.md` and the actual PR.
+Independent reports remain unchanged. No hosted acceptance gate is declared; hosted CI is unchecked, not passed.
+No approval, merge, release or deployment is claimed. The Work checkpoint below is historical, not a current
+Review/QA action.
+
+### TASK-00116 human credential Domain contracts — historical Work checkpoint
+
+The four grant/delivery Domain families retain their current serialization, nullable repositories and worker/recovery
+ownership. Required message fields now reject wrong-type coercion and timestamp payloads require explicit valid
+RFC3339 instants. Safe work/status values validate purpose-specific identity, nonnegative revision and applicable
+status relationships; due-work OpenAPI metadata agrees. Grant transitions expose their actual subtype with `static`
+returns. The [current delivery guide](docs/credential-delivery.md#precise-domain-type-contracts-unreleased) records
+consumer adjustments and unchanged boundaries.
+
+The exhaustive declaration/member inventory, actual caller traces, regression-first evidence, static probes and
+verification/content/runtime mapping are retained in canonical `.runs/handoffs/TASK-00116/work.md`. This Work
+checkpoint claims no independent acceptance, consumer persistence/provider qualification, publication, release or
+deployment. Before first independent Review, the advancing-base integration retains TASK-00151's accepted fixture
+gate from develop without changing this slice's production contracts. The canonical handoff preserves original
+evidence separately from fresh integrated verification. Independent Review and nonvisual QA remain required;
+sibling typing/audit tasks retain their ownership.
+
 ## TASK-00150 structural contract inventory — accepted checkpoint
 
 Independent Review ACCEPT and nonvisual QA PASS cover candidate `73154cf29907711e67e254630465dcb16480da66`.

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Fight\AccessControl\Domain\AccessControl\EmailChangeGrant\Event;
 
 use DateTimeImmutable;
+use Fight\AccessControl\Domain\AccessControl\CredentialDelivery\CredentialDeliveryTimestamp;
 use Fight\AccessControl\Domain\AccessControl\EmailChangeGrant\EmailChangeDeliveryId;
 use Fight\AccessControl\Domain\AccessControl\User\UserId;
 use Fight\Common\Domain\Exception\DomainException;
@@ -41,19 +42,27 @@ final readonly class EmailChangeRequested implements Event
             if (!array_key_exists($key, $data)) {
                 throw new DomainException(sprintf('Missing required key "%s" in data array', $key));
             }
+
+            if (!is_string($data[$key])) {
+                throw new DomainException(sprintf('Invalid type for "%s" in data array', $key));
+            }
         }
 
         return new static(
-            UserId::fromString((string) $data['actor_id']),
-            UserId::fromString((string) $data['user_id']),
-            EmailChangeDeliveryId::fromString((string) $data['email_change_delivery_id']),
-            EmailAddress::fromString((string) $data['email']),
-            new DateTimeImmutable((string) $data['issued_at'])
+            UserId::fromString($data['actor_id']),
+            UserId::fromString($data['user_id']),
+            EmailChangeDeliveryId::fromString($data['email_change_delivery_id']),
+            EmailAddress::fromString($data['email']),
+            CredentialDeliveryTimestamp::fromString($data['issued_at'])->toDateTimeImmutable()
         );
     }
 
     /**
-     * @inheritDoc
+     * Returns the canonical request event payload
+     *
+     * @phpstan-return array{
+     *     actor_id: string, user_id: string, email_change_delivery_id: string, email: string, issued_at: string
+     * }
      */
     public function toArray(): array
     {

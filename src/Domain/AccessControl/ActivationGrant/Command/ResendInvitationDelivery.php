@@ -36,13 +36,19 @@ final readonly class ResendInvitationDelivery implements Command
                 $message = sprintf('Missing required key "%s" in data array', $key);
                 throw new DomainException($message);
             }
+
+            if (!is_string($data[$key])) {
+                throw new DomainException(sprintf('Invalid type for "%s" in data array', $key));
+            }
         }
 
-        return new static((string) $data['actor_id'], UserId::fromString((string) $data['user_id']));
+        return new static($data['actor_id'], UserId::fromString($data['user_id']));
     }
 
     /**
-     * @inheritDoc
+     * Returns the canonical resend command payload
+     *
+     * @phpstan-return array{actor_id: string, user_id: string}
      */
     public function toArray(): array
     {

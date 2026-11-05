@@ -40,18 +40,24 @@ final readonly class InvitationDeliveryExpired implements Event
             if (!array_key_exists($key, $data)) {
                 throw new DomainException(sprintf('Missing required key "%s" in data array', $key));
             }
+
+            if (!is_string($data[$key])) {
+                throw new DomainException(sprintf('Invalid type for "%s" in data array', $key));
+            }
         }
 
         return new static(
-            (string) $data['actor_id'],
-            UserId::fromString((string) $data['user_id']),
-            ActivationDeliveryId::fromString((string) $data['activation_delivery_id']),
-            CredentialDeliveryTimestamp::fromString((string) $data['occurred_at'])->toDateTimeImmutable()
+            $data['actor_id'],
+            UserId::fromString($data['user_id']),
+            ActivationDeliveryId::fromString($data['activation_delivery_id']),
+            CredentialDeliveryTimestamp::fromString($data['occurred_at'])->toDateTimeImmutable()
         );
     }
 
     /**
-     * @inheritDoc
+     * Returns the canonical expiry event payload
+     *
+     * @phpstan-return array{actor_id: string, user_id: string, activation_delivery_id: string, occurred_at: string}
      */
     public function toArray(): array
     {

@@ -5,7 +5,7 @@ dependencies, acceptance, and verification.
 
 ## What's Next?
 
-First ready Task: [TASK-00116](00116-TASK.md) — Correct human credential and delivery type contracts.
+First ready Task: [TASK-00117](00117-TASK.md) — Correct Permission, Role and authority type contracts.
 
 ## In Progress
 
@@ -15,7 +15,6 @@ No Tasks are currently in this state.
 
 | Order | TASK ID | Title | Parent TICKET | Status | Blocked by | PR |
 | --- | --- | --- | --- | --- | --- | --- |
-| 302 | [TASK-00116](00116-TASK.md) | Correct human credential and delivery type contracts | [TICKET-00037](../tickets/00037-TICKET.md) — Make Domain and repository contracts precise | ready-for-agent | — | — |
 | 303 | [TASK-00117](00117-TASK.md) | Correct Permission, Role and authority type contracts | [TICKET-00037](../tickets/00037-TICKET.md) — Make Domain and repository contracts precise | ready-for-agent | — | — |
 | 304 | [TASK-00118](00118-TASK.md) | Correct Agent identity and administration type contracts | [TICKET-00037](../tickets/00037-TICKET.md) — Make Domain and repository contracts precise | ready-for-agent | — | — |
 | 305 | [TASK-00119](00119-TASK.md) | Correct Agent operation and recovery type contracts | [TICKET-00037](../tickets/00037-TICKET.md) — Make Domain and repository contracts precise | ready-for-agent | — | — |
@@ -219,3 +218,4 @@ No Tasks are currently in this state.
 | 299 | [TASK-00150](00150-TASK.md) | Maintain exhaustive declaration and contract ownership | [TICKET-00042](../tickets/00042-TICKET.md) — Enforce and demonstrate whole-library type correctness | done | — | https://github.com/johnnickell/fight-access-control/pull/162 |
 | 300 | [TASK-00151](00151-TASK.md) | Execute type-contract fixtures through the canonical gate | [TICKET-00042](../tickets/00042-TICKET.md) — Enforce and demonstrate whole-library type correctness | done | — | https://github.com/johnnickell/fight-access-control/pull/161 |
 | 301 | [TASK-00115](00115-TASK.md) | Correct User, session and audit type contracts | [TICKET-00037](../tickets/00037-TICKET.md) — Make Domain and repository contracts precise | done | — | https://github.com/johnnickell/fight-access-control/pull/163 |
+| 302 | [TASK-00116](00116-TASK.md) | Correct human credential and delivery type contracts | [TICKET-00037](../tickets/00037-TICKET.md) — Make Domain and repository contracts precise | done | — | https://github.com/johnnickell/fight-access-control/pull/164 |

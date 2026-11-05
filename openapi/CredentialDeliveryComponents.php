@@ -48,7 +48,7 @@ use OpenApi\Attributes as OA;
         new OA\Property(property: 'purpose', type: 'string', enum: ['activation', 'password_reset', 'email_change']),
         new OA\Property(property: 'delivery_id', type: 'string', format: 'uuid'),
         new OA\Property(property: 'user_id', type: 'string', format: 'uuid'),
-        new OA\Property(property: 'revision', type: 'integer'),
+        new OA\Property(property: 'revision', type: 'integer', minimum: 0),
         new OA\Property(property: 'status', type: 'string', enum: ['pending', 'claimed', 'retry_pending', 'delivered', 'permanent_failure', 'expired', 'invalidated']),
         new OA\Property(property: 'due_at', type: 'string', format: 'date-time'),
         new OA\Property(property: 'expires_at', type: 'string', format: 'date-time'),
@@ -66,8 +66,8 @@ use OpenApi\Attributes as OA;
         new OA\Property(property: 'delivery_id', type: 'string', format: 'uuid'),
         new OA\Property(property: 'user_id', type: 'string', format: 'uuid'),
         new OA\Property(property: 'due_at', type: 'string', format: 'date-time'),
-        new OA\Property(property: 'revision', type: 'integer'),
-        new OA\Property(property: 'status', type: 'string', enum: ['pending', 'claimed', 'retry_pending', 'delivered', 'permanent_failure', 'expired', 'invalidated'])
+        new OA\Property(property: 'revision', type: 'integer', minimum: 0),
+        new OA\Property(property: 'status', type: 'string', enum: ['pending', 'claimed', 'retry_pending'])
     ]
 )]
 #[OA\Schema(
