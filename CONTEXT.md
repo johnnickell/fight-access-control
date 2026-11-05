@@ -223,7 +223,15 @@ EPIC-00016's six accepted TICKET plans below are complete, not implemented/quali
 Common suppliers remain separate unfinished planning/qualification handoffs. Existing scope/order/blockers and first
 Board selection remain unchanged. No source/dependency/consumer mutation, product build or implementation follows.
 
-## TASK-00151 type-contract foundation — Work checkpoint
+## TASK-00151 type-contract foundation — accepted checkpoint
+
+Independent Review ACCEPT and nonvisual QA PASS cover `c7b6900ecf3ee376ba152d84eddac0170f1b335d` against
+`2993293d02c1679a53b4741cf7732eaa7dc65370`. Publication/final delivery verification are pending at this closeout;
+current delivery/resource results are in canonical `.runs/handoffs/TASK-00151/land.md` and the actual PR.
+TASK-00151 is done; its parents remain open. This accepts the bounded fixture foundation, not whole-library,
+dispatch/Event supplier, minimum-lane or consumer qualification. The Work checkpoint below is historical.
+
+### Work checkpoint
 
 The [type-contract fixture guide](docs/type-contracts.md) describes the required `bin/quality` check and focused
 `./bin/type-contracts` command. Two cases check six exact positive types and six case-bound rejections against current
