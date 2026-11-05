@@ -29,15 +29,17 @@ final readonly class CurrentSessionLoggedOut implements Event
      */
     public static function fromArray(array $data): static
     {
-        if (!array_key_exists('refresh_session_id', $data)) {
-            throw new DomainException('Missing required key "refresh_session_id" in data array');
+        if (!isset($data['refresh_session_id']) || !is_string($data['refresh_session_id'])) {
+            throw new DomainException('Missing or invalid refresh-session ID.');
         }
 
-        return new static(RefreshSessionId::fromString((string) $data['refresh_session_id']));
+        return new static(RefreshSessionId::fromString($data['refresh_session_id']));
     }
 
     /**
-     * @inheritDoc
+     * Returns the canonical logout fact
+     *
+     * @phpstan-return array{refresh_session_id: string}
      */
     public function toArray(): array
     {

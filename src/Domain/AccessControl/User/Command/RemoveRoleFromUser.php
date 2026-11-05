@@ -32,19 +32,23 @@ final readonly class RemoveRoleFromUser implements Command
     public static function fromArray(array $data): static
     {
         foreach (['actor_id', 'target_user_id', 'role_id'] as $key) {
-            if (!array_key_exists($key, $data)) {
-                throw new DomainException(sprintf('Missing required key "%s" in data array', $key));
+            if (!array_key_exists($key, $data) || !is_string($data[$key])) {
+                throw new DomainException(sprintf('Missing or invalid string "%s" in data array', $key));
             }
         }
 
         return new static(
-            UserId::fromString((string) $data['actor_id']),
-            UserId::fromString((string) $data['target_user_id']),
-            RoleId::fromString((string) $data['role_id'])
+            UserId::fromString($data['actor_id']),
+            UserId::fromString($data['target_user_id']),
+            RoleId::fromString($data['role_id'])
         );
     }
 
-    /** @inheritDoc */
+    /**
+     * Returns the canonical role-removal payload
+     *
+     * @phpstan-return array{actor_id: string, target_user_id: string, role_id: string}
+     */
     public function toArray(): array
     {
         return [

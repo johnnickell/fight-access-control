@@ -172,6 +172,14 @@ or release is authorized by this planning.
 
 ## Current planning handoff — library-wide typing and failure contracts
 
+TASK-00116's published branch now integrates develop's accepted TASK-00115 contracts without changing either
+slice's production implementation. Original acceptance checkpoints below retain their exact subjects; the new-base
+interaction checks and evidence bridge belong to canonical `.runs/handoffs/TASK-00116/work.md`. Land must qualify
+that bridge before updating PR #164. TICKET-00037/EPIC-00016 remain open for unfinished children; no new combined
+acceptance, publication, merge or consumer qualification is asserted.
+
+### Historical slice acceptance checkpoints
+
 [TASK-00116](tasks/00116-TASK.md)'s 68-file human grant/delivery Domain slice has independent Review ACCEPT and
 nonvisual QA PASS at candidate `080afc43b2b3942625e264547b75cb9b3a74b3bc`, with no findings. The TASK is done;
 TICKET-00037 and EPIC-00016 remain open for unfinished children. [PR #164](https://github.com/johnnickell/fight-access-control/pull/164)
@@ -179,6 +187,12 @@ is open with accepted implementation; administrative closeout publication/final-
 at this checkpoint. Current delivery/resource results and the administrative bridge belong to canonical
 `.runs/handoffs/TASK-00116/land.md`. No whole-library/consumer qualification, approval, merge or release is implied.
 The Board owns current execution selection; the planning checkpoints below remain historical.
+
+TASK-00115's complete User/RefreshSession/Audit slice is now independently accepted and done at repaired
+integrated candidate `e0853b518997713493fb1473d2ea0f6878479e68`, with Review v3 ACCEPT, nonvisual QA PASS
+and complete gate/exact coverage. Publication/final delivery verification are pending at this closeout checkpoint;
+current results belong to canonical `.runs/handoffs/TASK-00115/land.md` and the actual PR. TICKET-00037/EPIC-00016
+remain open for other unfinished Domain/semantic/enforcement children; consumer qualification remains separate.
 
 Both early foundations, TASK-00150 inventory and TASK-00151 fixtures, are now independently accepted at the
 historical candidates recorded below. EPIC-00016/TICKET-00042 remain open for semantic corrections and

@@ -4,6 +4,8 @@ Secret-bearing operations use direct Application capabilities, not serializable 
 breaking pre-v1 replacement of `User\Security\AuthenticationService`; that class is removed without an alias,
 forwarding facade or compatibility mode. Update imports, constructor bindings and named arguments directly.
 The supported JWT profile and existing token/conflict/void result shapes remain unchanged.
+[User/session type contracts](user-session-type-contracts.md) describe current message validation, typed Role lists,
+hydration and integer-counter limits without changing these synchronous capability homes.
 
 ## Direct owners
 

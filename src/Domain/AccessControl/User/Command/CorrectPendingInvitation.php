@@ -34,21 +34,23 @@ final readonly class CorrectPendingInvitation implements Command
     public static function fromArray(array $data): static
     {
         foreach (['actor_id', 'user_id', 'email'] as $key) {
-            if (!array_key_exists($key, $data)) {
-                $message = sprintf('Missing required key "%s" in data array', $key);
+            if (!array_key_exists($key, $data) || !is_string($data[$key])) {
+                $message = sprintf('Missing or invalid string "%s" in data array', $key);
                 throw new DomainException($message);
             }
         }
 
         return new static(
-            UserId::fromString((string) $data['actor_id']),
-            UserId::fromString((string) $data['user_id']),
-            EmailAddress::fromString((string) $data['email'])
+            UserId::fromString($data['actor_id']),
+            UserId::fromString($data['user_id']),
+            EmailAddress::fromString($data['email'])
         );
     }
 
     /**
-     * @inheritDoc
+     * Returns the canonical invitation-correction payload
+     *
+     * @phpstan-return array{actor_id: string, user_id: string, email: string}
      */
     public function toArray(): array
     {
