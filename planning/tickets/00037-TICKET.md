@@ -115,12 +115,18 @@ Review/applicable QA, without waiting to delegate those obligations to final rec
 | Order | TASK ID | Title | Status |
 | --- | --- | --- | --- |
 | 301 | [TASK-00115](../tasks/00115-TASK.md) | Correct User, session and audit type contracts | ready-for-agent |
-| 302 | [TASK-00116](../tasks/00116-TASK.md) | Correct human credential and delivery type contracts | ready-for-agent |
+| 302 | [TASK-00116](../tasks/00116-TASK.md) | Correct human credential and delivery type contracts | in-progress |
 | 303 | [TASK-00117](../tasks/00117-TASK.md) | Correct Permission, Role and authority type contracts | ready-for-agent |
 | 304 | [TASK-00118](../tasks/00118-TASK.md) | Correct Agent identity and administration type contracts | ready-for-agent |
 | 305 | [TASK-00119](../tasks/00119-TASK.md) | Correct Agent operation and recovery type contracts | ready-for-agent |
 | 306 | [TASK-00120](../tasks/00120-TASK.md) | Correct Feature type contracts | ready-for-agent |
 ## Decisions and Progress
+
+TASK-00116 now has a Work implementation checkpoint for the four human grant/delivery Domain families, including
+owned callers, complete inventory dispositions, runtime/static regressions and schema alignment. Independent
+Review and nonvisual QA remain required; the TASK's canonical Work handoff owns exact verification/content/runtime
+evidence. This does not accept the slice, complete this TICKET or change sibling ownership/dependencies.
+
 
 Grill, To Tickets and this TICKET's complete six-TASK decomposition are approved/written. No source/dependency
 change, completed audit, product build, commit/publication or independent implementation acceptance is claimed.

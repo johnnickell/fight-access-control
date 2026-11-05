@@ -11,7 +11,6 @@ use Fight\AccessControl\Domain\AccessControl\EmailChangeGrant\EmailChangeGrantId
 use Fight\AccessControl\Domain\AccessControl\PasswordResetGrant\PasswordResetDeliveryId;
 use Fight\AccessControl\Domain\AccessControl\User\UserId;
 use Fight\Common\Domain\Exception\DomainException;
-use Fight\Common\Domain\Identity\UniqueId;
 use Fight\Common\Domain\Type\Arrayable;
 
 /**
@@ -26,7 +25,7 @@ final readonly class ExpiredCredentialDelivery implements Arrayable
      */
     public function __construct(
         private string $purpose,
-        private UniqueId $deliveryId,
+        private ActivationDeliveryId|PasswordResetDeliveryId|EmailChangeDeliveryId $deliveryId,
         private UserId $userId,
         private ?EmailChangeGrantId $emailChangeGrantId,
         private DateTimeImmutable $expiresAt,
@@ -104,7 +103,7 @@ final readonly class ExpiredCredentialDelivery implements Arrayable
     /**
      * Returns the exact delivery-generation identifier
      */
-    public function getDeliveryId(): UniqueId
+    public function getDeliveryId(): ActivationDeliveryId|PasswordResetDeliveryId|EmailChangeDeliveryId
     {
         return $this->deliveryId;
     }
@@ -151,6 +150,11 @@ final readonly class ExpiredCredentialDelivery implements Arrayable
 
     /**
      * Returns the canonical secret-free representation
+     *
+     * @phpstan-return array{
+     *     purpose: string, delivery_id: string, user_id: string, email_change_grant_id: ?string,
+     *     expires_at: string, revision: int, status: string
+     * }
      */
     public function toArray(): array
     {

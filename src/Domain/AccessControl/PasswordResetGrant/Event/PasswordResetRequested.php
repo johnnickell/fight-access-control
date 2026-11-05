@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Fight\AccessControl\Domain\AccessControl\PasswordResetGrant\Event;
 
 use DateTimeImmutable;
+use Fight\AccessControl\Domain\AccessControl\CredentialDelivery\CredentialDeliveryTimestamp;
 use Fight\AccessControl\Domain\AccessControl\PasswordResetGrant\PasswordResetDeliveryId;
 use Fight\AccessControl\Domain\AccessControl\User\UserId;
 use Fight\Common\Domain\Exception\DomainException;
@@ -39,17 +40,23 @@ final readonly class PasswordResetRequested implements Event
                 $message = sprintf('Missing required key "%s" in data array', $key);
                 throw new DomainException($message);
             }
+
+            if (!is_string($data[$key])) {
+                throw new DomainException(sprintf('Invalid type for "%s" in data array', $key));
+            }
         }
 
         return new static(
-            UserId::fromString((string) $data['user_id']),
-            PasswordResetDeliveryId::fromString((string) $data['password_reset_delivery_id']),
-            new DateTimeImmutable((string) $data['issued_at'])
+            UserId::fromString($data['user_id']),
+            PasswordResetDeliveryId::fromString($data['password_reset_delivery_id']),
+            CredentialDeliveryTimestamp::fromString($data['issued_at'])->toDateTimeImmutable()
         );
     }
 
     /**
-     * @inheritDoc
+     * Returns the canonical recovery event payload
+     *
+     * @phpstan-return array{user_id: string, password_reset_delivery_id: string, issued_at: string}
      */
     public function toArray(): array
     {

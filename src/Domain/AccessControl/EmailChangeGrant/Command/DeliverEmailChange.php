@@ -38,17 +38,23 @@ final readonly class DeliverEmailChange implements Command
                 $message = sprintf('Missing required key "%s" in data array', $key);
                 throw new DomainException($message);
             }
+
+            if (!is_string($data[$key])) {
+                throw new DomainException(sprintf('Invalid type for "%s" in data array', $key));
+            }
         }
 
         return new static(
-            UserId::fromString((string) $data['actor_id']),
-            UserId::fromString((string) $data['user_id']),
-            EmailChangeDeliveryId::fromString((string) $data['email_change_delivery_id'])
+            UserId::fromString($data['actor_id']),
+            UserId::fromString($data['user_id']),
+            EmailChangeDeliveryId::fromString($data['email_change_delivery_id'])
         );
     }
 
     /**
-     * @inheritDoc
+     * Returns the canonical delivery command payload
+     *
+     * @phpstan-return array{actor_id: string, user_id: string, email_change_delivery_id: string}
      */
     public function toArray(): array
     {

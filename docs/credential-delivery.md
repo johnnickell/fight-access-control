@@ -4,6 +4,32 @@ Invitation, password-reset and email-change grants own recoverable, provider-neu
 pre-v1 contract is supported under [ADR 0011](../planning/adr/0011-pre-v1-current-contract-only.md). There is no
 historical signature, row conversion or migration/backfill obligation. Consumer adapters and runtime remain separate.
 
+## Precise Domain type contracts (Unreleased)
+
+Human credential Commands, Queries and Events decode required fields without scalar or object coercion: identity,
+actor, email, purpose and timestamp payload fields must be strings, and discovery limits must be integers.
+Timestamp-bearing payloads require an explicit valid RFC3339 instant, never relative dates or calendar rollover.
+Canonical field names, nullability and existing timestamp output precision are unchanged. `fromArray()` remains a
+dynamic input boundary; exact `toArray()` shapes describe validated output, not unchecked input assertions.
+
+`DueCredentialDelivery` and `ExpiredCredentialDelivery` expose the union of the three purpose-specific delivery ID
+types rather than arbitrary `UniqueId`. Due-work construction validates the purpose/ID pair, nonnegative observed
+revision and pending/claimed/retry-pending status. Expired work retains its existing required email-grant ID only
+for email change; email authority may need cleanup even after delivery is terminal. Safe status projection rejects
+a mismatched purpose/delivery family or negative revision. The OpenAPI due-work status and revision bounds agree.
+These DTOs are advisory descriptions, not worker admission, current authority or proof of provider delivery.
+
+Grant transitions now declare `static` results, preserving the actual subtype through immutable replacements and
+no-ops. Consumer subclasses overriding these methods must preserve that covariant return contract. Update consumers
+that relied on coerced payload fields or fabricated discovery/status values directly; no compatibility mode is
+provided. Repositories still return aggregate-or-null and retain complete-state, generation and transaction fences.
+No Query absence/failure redesign, generic bus adoption, new recovery policy or consumer qualification is included.
+
+`HumanCredentialPayloadTest` covers every owned message decoder's current round trip and missing/wrong-type fields;
+`CredentialWorkIdentityTest` covers purpose/revision/status relationships. Existing grant, worker, repository,
+expiry/recovery and generated-schema suites remain preservation evidence. Detailed declaration/member dispositions
+and standalone positive/negative static probes belong to the canonical TASK-00116 Work evidence, not public logs.
+
 ## Composition and persistence
 
 Bind the three purpose-specific cipher capabilities (encryption and decryption), one `CredentialDeliveryProvider`,

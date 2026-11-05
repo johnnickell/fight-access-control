@@ -45,7 +45,9 @@ final readonly class FindExpiredCredentialDeliveries implements Query
     }
 
     /**
-     * @inheritDoc
+     * Returns the canonical expired-work query payload
+     *
+     * @phpstan-return array{at: string, limit: int}
      */
     public function toArray(): array
     {

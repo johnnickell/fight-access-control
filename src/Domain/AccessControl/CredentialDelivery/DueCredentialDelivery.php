@@ -5,8 +5,11 @@ declare(strict_types=1);
 namespace Fight\AccessControl\Domain\AccessControl\CredentialDelivery;
 
 use DateTimeImmutable;
+use Fight\AccessControl\Domain\AccessControl\ActivationGrant\ActivationDeliveryId;
+use Fight\AccessControl\Domain\AccessControl\EmailChangeGrant\EmailChangeDeliveryId;
+use Fight\AccessControl\Domain\AccessControl\PasswordResetGrant\PasswordResetDeliveryId;
 use Fight\AccessControl\Domain\AccessControl\User\UserId;
-use Fight\Common\Domain\Identity\UniqueId;
+use Fight\Common\Domain\Exception\DomainException;
 use Fight\Common\Domain\Type\Arrayable;
 
 /**
@@ -21,12 +24,29 @@ final readonly class DueCredentialDelivery implements Arrayable
      */
     public function __construct(
         private string $purpose,
-        private UniqueId $deliveryId,
+        private ActivationDeliveryId|PasswordResetDeliveryId|EmailChangeDeliveryId $deliveryId,
         private UserId $userId,
         private DateTimeImmutable $dueAt,
         private int $revision,
         private CredentialDeliveryStatus $status
     ) {
+        $validIdentity = match ($purpose) {
+            'activation' => $deliveryId instanceof ActivationDeliveryId,
+            'password_reset' => $deliveryId instanceof PasswordResetDeliveryId,
+            'email_change' => $deliveryId instanceof EmailChangeDeliveryId,
+            default => false
+        };
+        if (
+            !$validIdentity
+            || $revision < 0
+            || !in_array($status, [
+                CredentialDeliveryStatus::PENDING,
+                CredentialDeliveryStatus::RETRY_PENDING,
+                CredentialDeliveryStatus::CLAIMED
+            ], true)
+        ) {
+            throw new DomainException('Invalid due credential-work state.');
+        }
     }
 
     /**
@@ -40,7 +60,7 @@ final readonly class DueCredentialDelivery implements Arrayable
     /**
      * Returns the stable delivery-generation identifier
      */
-    public function getDeliveryId(): UniqueId
+    public function getDeliveryId(): ActivationDeliveryId|PasswordResetDeliveryId|EmailChangeDeliveryId
     {
         return $this->deliveryId;
     }

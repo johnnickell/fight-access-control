@@ -6,6 +6,20 @@ Fight AccessControl owns framework-neutral identity, credential, session, author
 behavior shared by Fight applications. The repository-local behavioral and security authority is
 [TICKET-00001](planning/tickets/00001-TICKET.md).
 
+## TASK-00116 human credential Domain contracts — Work checkpoint
+
+The four grant/delivery Domain families retain their current serialization, nullable repositories and worker/recovery
+ownership. Required message fields now reject wrong-type coercion and timestamp payloads require explicit valid
+RFC3339 instants. Safe work/status values validate purpose-specific identity, nonnegative revision and applicable
+status relationships; due-work OpenAPI metadata agrees. Grant transitions expose their actual subtype with `static`
+returns. The [current delivery guide](docs/credential-delivery.md#precise-domain-type-contracts-unreleased) records
+consumer adjustments and unchanged boundaries.
+
+The exhaustive declaration/member inventory, actual caller traces, regression-first evidence, static probes and
+verification/content/runtime mapping are retained in canonical `.runs/handoffs/TASK-00116/work.md`. This Work
+checkpoint claims no independent acceptance, consumer persistence/provider qualification, publication, release or
+deployment. Independent Review and nonvisual QA remain required; sibling typing/audit tasks retain their ownership.
+
 ## TASK-00150 structural contract inventory — accepted checkpoint
 
 Independent Review ACCEPT and nonvisual QA PASS cover candidate `73154cf29907711e67e254630465dcb16480da66`.

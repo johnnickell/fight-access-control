@@ -223,7 +223,7 @@ class PasswordResetGrant
     /**
      * Uses usable authority
      */
-    public function consume(DateTimeImmutable $at): self
+    public function consume(DateTimeImmutable $at): static
     {
         if ($this->isUsableAt($at) === false) {
             throw new PasswordResetGrantException('The password-reset grant is no longer usable.');
@@ -245,7 +245,7 @@ class PasswordResetGrant
     /**
      * Revokes issued authority and destroys its delivery ciphertext
      */
-    public function revoke(DateTimeImmutable $at): self
+    public function revoke(DateTimeImmutable $at): static
     {
         if ($this->isIssued() === false) {
             throw new PasswordResetGrantException('The password-reset grant is no longer issued.');
@@ -271,7 +271,7 @@ class PasswordResetGrant
         CredentialDeliveryClaimToken $claimToken,
         DateTimeImmutable $claimedAt,
         DateTimeImmutable $leaseUntil
-    ): self {
+    ): static {
         return $this->withDelivery($this->delivery->claim($claimToken, $claimedAt, $leaseUntil));
     }
 
@@ -281,7 +281,7 @@ class PasswordResetGrant
     public function confirmDelivery(
         CredentialDeliveryClaimToken $claimToken,
         DateTimeImmutable $occurredAt
-    ): self {
+    ): static {
         return $this->withDelivery($this->delivery->confirm($claimToken, $occurredAt));
     }
 
@@ -292,7 +292,7 @@ class PasswordResetGrant
         CredentialDeliveryClaimToken $claimToken,
         DateTimeImmutable $occurredAt,
         CredentialDeliveryFailure $failure
-    ): self {
+    ): static {
         return $this->withDelivery($this->delivery->fail($claimToken, $occurredAt, $failure));
     }
 
@@ -302,14 +302,14 @@ class PasswordResetGrant
     public function failDeliveryPermanently(
         CredentialDeliveryClaimToken $claimToken,
         DateTimeImmutable $occurredAt
-    ): self {
+    ): static {
         return $this->withDelivery($this->delivery->failPermanently($claimToken, $occurredAt));
     }
 
     /**
      * Returns retry work to immediate eligibility
      */
-    public function requestDeliveryRetry(): self
+    public function requestDeliveryRetry(): static
     {
         return $this->withDelivery($this->delivery->requestRetry());
     }
@@ -317,7 +317,7 @@ class PasswordResetGrant
     /**
      * Marks the owned delivery at its terminal boundary
      */
-    public function expireDeliveryAt(DateTimeImmutable $occurredAt): self
+    public function expireDeliveryAt(DateTimeImmutable $occurredAt): static
     {
         return $this->withDelivery($this->delivery->expireAt($occurredAt));
     }
@@ -325,7 +325,7 @@ class PasswordResetGrant
     /**
      * Deletes recoverable delivery ciphertext
      */
-    public function invalidateDelivery(): self
+    public function invalidateDelivery(): static
     {
         return $this->withDelivery($this->delivery->invalidate());
     }
@@ -341,7 +341,7 @@ class PasswordResetGrant
     /**
      * Replaces only the owned delivery within this immutable generation
      */
-    private function withDelivery(PasswordResetDelivery $delivery): self
+    private function withDelivery(PasswordResetDelivery $delivery): static
     {
         if ($delivery === $this->delivery) {
             return $this;
