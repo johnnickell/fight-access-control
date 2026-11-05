@@ -260,6 +260,26 @@ changed Composer/quality inputs require fresh integrated verification, not reuse
 Independent technical Review and behavioral QA remain pending; this checkpoint does not
 self-accept or close the TASK, qualify consumer persistence/crypto, publish, release or deploy anything.
 
+## TASK-00151 type-contract foundation — accepted checkpoint
+
+Independent Review ACCEPT and nonvisual QA PASS cover `c7b6900ecf3ee376ba152d84eddac0170f1b335d` against
+`2993293d02c1679a53b4741cf7732eaa7dc65370`. Publication/final delivery verification are pending at this closeout;
+current delivery/resource results are in canonical `.runs/handoffs/TASK-00151/land.md` and the actual PR.
+TASK-00151 is done; its parents remain open. This accepts the bounded fixture foundation, not whole-library,
+dispatch/Event supplier, minimum-lane or consumer qualification. The Work checkpoint below is historical.
+
+### Work checkpoint
+
+The [type-contract fixture guide](docs/type-contracts.md) describes the required `bin/quality` check and focused
+`./bin/type-contracts` command. Two cases check six exact positive types and six case-bound rejections against current
+identity/list/shape/nullable/callback contracts. The runner validates actual exits and complete diagnostic identities;
+its failure-path qualification is separate tooling, outside product PHPUnit/coverage. Ordinary source/caller analysis
+and exact production coverage remain unchanged. Work evidence belongs in `.runs/handoffs/TASK-00151/work.md`.
+Independent Review and nonvisual QA remain required; this checkpoint claims neither acceptance nor a whole-library
+audit, dispatch/Event supplier qualification, business repair, publication or release. TASK-00150/00152 and the
+semantic owners retain their inventory, sufficient enforcement and real composition obligations. Native UoW mixed
+with a matching known-local callback `@var` remains sufficient.
+
 ## Approved library-wide typing and failure-contract destination
 
 John approved [EPIC-00016](planning/epics/00016-EPIC.md) to audit and correct typing throughout the entire library,

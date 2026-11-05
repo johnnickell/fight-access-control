@@ -8,6 +8,7 @@
     <file>tests/Adapter</file>
     <file>tests/OpenApi</file>
     <file>scripts</file>
+    <file>type-contracts</file>
     <arg name="cache" value="var/cache/phpcs.cache" />
     <rule ref="vendor/johnnickell/fight-common/src/Standards/Phpcs/ruleset.xml">
         <exclude name="Phpcs.Formatting.RequireVisibilityGroupSpacing" />
