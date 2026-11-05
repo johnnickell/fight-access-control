@@ -172,6 +172,13 @@ or release is authorized by this planning.
 
 ## Current planning handoff — library-wide typing and failure contracts
 
+Both early foundations, TASK-00150 inventory and TASK-00151 fixtures, are now independently accepted at the
+historical candidates recorded below. EPIC-00016/TICKET-00042 remain open for semantic corrections and
+TASK-00152's integrated enforcement/reconciliation. Current delivery results belong to each TASK's canonical
+Land receipt and actual PR; the Board owns execution selection. No whole-library audit is complete.
+
+### Historical foundation and planning checkpoints
+
 TASK-00151's bounded fixture foundation now has independent Review ACCEPT and nonvisual QA PASS at
 `c7b6900ecf3ee376ba152d84eddac0170f1b335d`. Publication/final delivery verification are pending at this closeout
 checkpoint; current delivery/resource outcomes are in canonical `.runs/handoffs/TASK-00151/land.md` and the actual
@@ -246,6 +253,12 @@ omission, not completed source review or runtime/type/supplier/consumer qualific
 protocol/schema composition, minimum/ordinary proof, callers/docs/full gate/exact coverage/independent acceptance.
 Known local callback annotations with UoW mixed remain sufficient; schema tests neither qualify ResultSet runtime
 invariants nor add a blanket metadata blocker for unchanged wire shapes. No Common/consumer source is edited.
+
+TASK-00150's structural inventory foundation has independent Review ACCEPT and nonvisual QA PASS at
+`73154cf29907711e67e254630465dcb16480da66`. Only this tooling foundation is complete; semantic judgments,
+TASK-00151/00152 and the unfinished correction suppliers keep TICKET-00042/EPIC-00016 open. Publication/final
+delivery verification are pending at this checkpoint; current results belong to `.runs/handoffs/TASK-00150/land.md`
+and the actual PR. The planning allocation below records its earlier checkpoint, not current TASK readiness.
 
 TICKET-00042's complete three-TASK plan is approved/written as [TASK-00150](tasks/00150-TASK.md) declaration/
 contract ownership (order 299), [TASK-00151](tasks/00151-TASK.md) executable type-contract fixtures (300) and

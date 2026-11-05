@@ -84,6 +84,10 @@ Coding style composes Fight Common's published PHPCS ruleset through [phpcs.xml]
 repository's documented exclusions and extensions. It covers the package's required strict types, layout,
 naming, spacing, arrays, and documentation checks; do not copy Fight Common sniffs into this repository.
 
+Production declaration/contract changes also reconcile the required [structural ownership inventory](docs/contract-inventory.md).
+Its compact fingerprints run in `bin/quality`; detailed candidate evidence stays ignored and pending semantic judgments
+remain with the existing correction owners. Qualify changes to the inventory tool separately from product PHPUnit.
+
 The repository has no pre-commit or pre-push build hook. Run and retain the required local gate evidence through
 implementation and review; committing does not run the build again or establish verification by itself. A failing
 required gate still blocks a completed handoff.
