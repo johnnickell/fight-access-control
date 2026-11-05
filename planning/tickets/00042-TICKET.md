@@ -146,9 +146,14 @@ is required for each implementation slice; planning approval supplies none of it
 | Order | TASK ID | Title | Status |
 | --- | --- | --- | --- |
 | 299 | [TASK-00150](../tasks/00150-TASK.md) | Maintain exhaustive declaration and contract ownership | ready-for-agent |
-| 300 | [TASK-00151](../tasks/00151-TASK.md) | Execute type-contract fixtures through the canonical gate | ready-for-agent |
+| 300 | [TASK-00151](../tasks/00151-TASK.md) | Execute type-contract fixtures through the canonical gate | in-progress |
 | 329 | [TASK-00152](../tasks/00152-TASK.md) | Enforce and qualify the integrated library contracts | ready-for-agent |
 ## Decisions and Progress
+
+TASK-00151 now has the [type-contract foundation](../../docs/type-contracts.md) implemented at its Engineer checkpoint,
+with focused fixture and separate runner-qualification evidence in its ignored Work handoff. Independent Review,
+nonvisual QA and final acceptance remain outstanding. This does not complete TASK-00150's inventory, TASK-00152's
+sufficient integrated rules/reconciliation, or the dispatch/Event semantic owners' supplier/runtime proof.
 
 John approved this sixth requirement in EPIC-00016, then the complete three-TASK plan now written as
 TASK-00150–00152. Both early foundations are independent; final integrated enforcement waits on the 30 named local

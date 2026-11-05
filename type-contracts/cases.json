@@ -1,0 +1,78 @@
+{
+  "cases": [
+    {
+      "id": "known-contract-precision",
+      "kind": "positive",
+      "file": "positive.php",
+      "diagnostics": [
+        {
+          "line": 19,
+          "identifier": "phpstan.dumpType",
+          "message": "Dumped type: Fight\\AccessControl\\Domain\\AccessControl\\User\\UserId"
+        },
+        {
+          "line": 20,
+          "identifier": "phpstan.dumpType",
+          "message": "Dumped type: list<Fight\\AccessControl\\Domain\\AccessControl\\Role\\RoleId>"
+        },
+        {
+          "line": 21,
+          "identifier": "phpstan.dumpType",
+          "message": "Dumped type: array{user_id: string, email: string, state: string, role_ids: list<string>, created_at: string, updated_at: string}"
+        },
+        {
+          "line": 22,
+          "identifier": "phpstan.dumpType",
+          "message": "Dumped type: Fight\\AccessControl\\Domain\\AccessControl\\User\\User|null"
+        },
+        {
+          "line": 23,
+          "identifier": "phpstan.dumpType",
+          "message": "Dumped type: list<Fight\\AccessControl\\Domain\\AccessControl\\Feature\\FeatureName>"
+        },
+        {
+          "line": 24,
+          "identifier": "phpstan.dumpType",
+          "message": "Dumped type: list<string>"
+        }
+      ]
+    },
+    {
+      "id": "incompatible-contract-uses",
+      "kind": "negative",
+      "file": "negative.php",
+      "diagnostics": [
+        {
+          "line": 35,
+          "identifier": "argument.type",
+          "message": "Parameter #1 $id of method Fight\\AccessControl\\Domain\\AccessControl\\User\\UserRepository::getById() expects Fight\\AccessControl\\Domain\\AccessControl\\User\\UserId, Fight\\AccessControl\\Domain\\AccessControl\\Role\\RoleId given."
+        },
+        {
+          "line": 36,
+          "identifier": "argument.type",
+          "message": "Parameter #4 $roleIds of class Fight\\AccessControl\\Domain\\AccessControl\\User\\Query\\UserView constructor expects list<Fight\\AccessControl\\Domain\\AccessControl\\Role\\RoleId>, array{Fight\\AccessControl\\Domain\\AccessControl\\User\\UserId} given."
+        },
+        {
+          "line": 37,
+          "identifier": "argument.type",
+          "message": "Parameter #1 $data of function consumeRoleIdentityShape expects array{role_ids: list<Fight\\AccessControl\\Domain\\AccessControl\\Role\\RoleId>}, array{user_id: string, email: string, state: string, role_ids: list<string>, created_at: string, updated_at: string} given."
+        },
+        {
+          "line": 39,
+          "identifier": "argument.type",
+          "message": "Parameter #1 $user of closure expects Fight\\AccessControl\\Domain\\AccessControl\\User\\User, Fight\\AccessControl\\Domain\\AccessControl\\User\\User|null given."
+        },
+        {
+          "line": 40,
+          "identifier": "argument.type",
+          "message": "Parameter #1 ...$names of class Fight\\AccessControl\\Application\\AccessControl\\Feature\\Discovery\\FeatureReferences constructor expects Fight\\AccessControl\\Domain\\AccessControl\\Feature\\FeatureName, Fight\\AccessControl\\Domain\\AccessControl\\Role\\RoleId given."
+        },
+        {
+          "line": 41,
+          "identifier": "argument.type",
+          "message": "Parameter #1 $callback of function array_map expects (callable(string): mixed)|null, Closure(Fight\\AccessControl\\Domain\\AccessControl\\Role\\RoleId): string given."
+        }
+      ]
+    }
+  ]
+}

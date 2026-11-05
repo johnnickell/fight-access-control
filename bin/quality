@@ -10,7 +10,7 @@ composer validate --strict --no-interaction
 printf '[quality] PHP syntax\n'
 {
     find . -maxdepth 1 -type f -name '*.php' -print
-    find openapi src tests scripts -type f -name '*.php' -print
+    find openapi src tests scripts type-contracts -type f -name '*.php' -print
 } | LC_ALL=C sort | while IFS= read -r php_file; do
     php -l "${php_file#./}"
 done
@@ -23,6 +23,9 @@ php vendor/bin/phpcs
 
 printf '[quality] PHPStan\n'
 php -d memory_limit=512M vendor/bin/phpstan analyse
+
+printf '[quality] Type contracts\n'
+python3 scripts/check_type_contracts.py
 
 printf '[quality] Architecture\n'
 php vendor/bin/deptrac --fail-on-uncovered --report-uncovered --report-skipped

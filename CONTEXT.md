@@ -223,6 +223,18 @@ EPIC-00016's six accepted TICKET plans below are complete, not implemented/quali
 Common suppliers remain separate unfinished planning/qualification handoffs. Existing scope/order/blockers and first
 Board selection remain unchanged. No source/dependency/consumer mutation, product build or implementation follows.
 
+## TASK-00151 type-contract foundation — Work checkpoint
+
+The [type-contract fixture guide](docs/type-contracts.md) describes the required `bin/quality` check and focused
+`./bin/type-contracts` command. Two cases check six exact positive types and six case-bound rejections against current
+identity/list/shape/nullable/callback contracts. The runner validates actual exits and complete diagnostic identities;
+its failure-path qualification is separate tooling, outside product PHPUnit/coverage. Ordinary source/caller analysis
+and exact production coverage remain unchanged. Work evidence belongs in `.runs/handoffs/TASK-00151/work.md`.
+Independent Review and nonvisual QA remain required; this checkpoint claims neither acceptance nor a whole-library
+audit, dispatch/Event supplier qualification, business repair, publication or release. TASK-00150/00152 and the
+semantic owners retain their inventory, sufficient enforcement and real composition obligations. Native UoW mixed
+with a matching known-local callback `@var` remains sufficient.
+
 ## Approved library-wide typing and failure-contract destination
 
 John approved [EPIC-00016](planning/epics/00016-EPIC.md) to audit and correct typing throughout the entire library,
