@@ -94,6 +94,22 @@ absence separately. An exact unchanged `retained_unmerged` local ref is reported
 failed cleanup. Never delete a remote head, stop a shared VM, strip protections or archive source routinely.
 After successful retirement, repeat using the original absolute path; do not redirect through a surviving ref.
 
+## Runtime-free qualification fixtures
+
+An owning qualification caller can pass `runtime_free_fixture=True` to
+`scripts/local_tooling/worktrunk.py`'s guarded `remove` with the fixture's canonical primary, exact linked
+checkout and expected commit. This is for generated local Git fixtures. The caller must establish ownership.
+The guard requires absent remotes, application declarations, runtime settings and project Docker resources,
+successful native inventories and absent effective removal hooks. The existing source, ancestry, consumer
+and protection checks still apply. Retry only with the original absolute path. Published delivery and
+application or QA environments use the Docker-first path above.
+
+## Local QA
+
+Use the isolated Docker environment and the focused or full project gate above for library QA.
+Browser HTTPS is supplied by the framework checkout that hosts the library. Keep that application's
+runtime and this repository's test services in their respective Compose projects.
+
 ## Maintainer ownership
 
 `etc/local-tooling.json` binds the local service set, gate, artifact paths and runtime probes. Update it whenever
