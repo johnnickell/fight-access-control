@@ -6,6 +6,24 @@ Fight AccessControl owns framework-neutral identity, credential, session, author
 behavior shared by Fight applications. The repository-local behavioral and security authority is
 [TICKET-00001](planning/tickets/00001-TICKET.md).
 
+## TASK-00150 structural contract inventory — accepted checkpoint
+
+Independent Review ACCEPT and nonvisual QA PASS cover candidate `73154cf29907711e67e254630465dcb16480da66`.
+This accepts the structural tooling foundation only, not production semantics or EPIC-00016 completion;
+all initial semantic judgments remain pending. Publication/final delivery verification are pending at this
+closeout checkpoint; current results belong to `.runs/handoffs/TASK-00150/land.md` and the actual PR.
+The Work checkpoint below is historical, not a current Review/QA prerequisite.
+
+### Work checkpoint
+
+The [declaration/contract inventory](docs/contract-inventory.md) parses all current src/OpenAPI PHP inputs and
+routes declarations, members, callbacks and syntactic relationships to existing typing correction owners. Compact
+tracked fingerprints enforce structural drift in `bin/quality`; detailed candidate-bound inventories and owner
+judgments stay in ignored TASK evidence. Initial semantic dispositions remain pending. This foundation neither
+completes EPIC-00016's semantic audit nor qualifies suppliers/consumers. Production behavior, default PHPUnit and
+exact statement coverage are unchanged. Independent Review and nonvisual behavioral QA remain required; current
+verification/content/runtime identity belongs to `.runs/handoffs/TASK-00150/work.md`.
+
 ## TASK-00182 void Agent issuance — accepted checkpoint
 
 Independent Review ACCEPT and nonvisual QA PASS cover integrated candidate `4990103d519bdd0a1bbb7d77bccf10619607f4cc`. Publication and final delivery verification were pending at closeout; current results are in `.runs/handoffs/TASK-00182/land.md` and the actual PR. Consumer qualification remains separate. The Work checkpoint below is historical.
@@ -236,7 +254,10 @@ instants in expected-state comparisons, including rejected coupled session inser
 Existing nullable repository lookups, direct synchronous User capability homes, CAS/coupled persistence, required
 audit, recovery and secret handling remain. No Common adoption, optional-audit design or query absence change is
 included. Exact candidate, regression/focused/static results and final gate/coverage evidence belong to the canonical
-TASK-00115 Work handoff. Independent technical Review and behavioral QA remain pending; this checkpoint does not
+TASK-00115 Work handoff. The pre-Review candidate integrates pinned develop `47f1e1a8d61ba87a91ac4055a376332a5f4ae1ee`,
+preserving TASK-00150's accepted structural foundation. Owned fingerprints and candidate evidence are reconciled;
+changed Composer/quality inputs require fresh integrated verification, not reuse of the earlier gate as current proof.
+Independent technical Review and behavioral QA remain pending; this checkpoint does not
 self-accept or close the TASK, qualify consumer persistence/crypto, publish, release or deploy anything.
 
 ## Approved library-wide typing and failure-contract destination

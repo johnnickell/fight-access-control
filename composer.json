@@ -13,6 +13,7 @@
         "codeigniter4/framework": "^4.7.6",
         "deptrac/deptrac": "^4.7",
         "laravel/framework": "^13.40.0",
+        "nikic/php-parser": "^5.9",
         "phpstan/phpstan": "^2.1",
         "phpunit/phpunit": "^13.0",
         "rector/rector": "^2.4",
