@@ -16,17 +16,21 @@ use InvalidArgumentException;
  */
 class RefreshSession
 {
+    /** @var list<string> */
+    private readonly array $usedCredentialDigests;
+
     /**
      * Constructs RefreshSession
      *
-     * Creates a first refresh session for an activated identity.
+     * Validates complete persisted session authority, including ordered digest history.
+     *
+     * @phpstan-param list<string> $usedCredentialDigests
      */
     protected function __construct(
         private readonly RefreshSessionId $id,
         private readonly UserId $userId,
         private readonly string $credentialDigest,
-        /** @var list<string> */
-        private readonly array $usedCredentialDigests,
+        array $usedCredentialDigests,
         private readonly DateTimeImmutable $createdAt,
         private readonly DateTimeImmutable $lastActivityAt,
         private readonly ?DateTimeImmutable $rotatedAt,
@@ -37,10 +41,27 @@ class RefreshSession
         private readonly int $revision,
         private readonly bool $revoked
     ) {
+        if ($authenticationVersion < 1 || $revision < 0) {
+            throw new InvalidArgumentException('Refresh-session authority counters are invalid.');
+        }
+
+        $validatedUsedCredentialDigests = self::validatedCredentialHistory($credentialDigest, $usedCredentialDigests);
+
+        if (
+            $lastActivityAt < $createdAt
+            || $idleExpiresAt <= $lastActivityAt
+            || $idleExpiresAt > $absoluteExpiresAt
+            || ($rotatedAt === null) !== ($validatedUsedCredentialDigests === [])
+            || $rotatedAt !== null && $rotatedAt != $lastActivityAt
+        ) {
+            throw new InvalidArgumentException('Refresh-session activity and expiry must form a valid lifetime.');
+        }
+
+        $this->usedCredentialDigests = $validatedUsedCredentialDigests;
     }
 
     /**
-     * Starts the first session at initial authentication version one
+     * Starts a session at the supplied current authentication version
      */
     public static function start(
         RefreshSessionId $id,
@@ -229,7 +250,7 @@ class RefreshSession
             $this->absoluteExpiresAt,
             $this->authenticationVersion,
             $this->remembered,
-            $this->revision + 1,
+            $this->nextRevision(),
             $this->revoked
         );
     }
@@ -251,7 +272,7 @@ class RefreshSession
             $this->absoluteExpiresAt,
             $this->authenticationVersion,
             $this->remembered,
-            $this->revision + 1,
+            $this->nextRevision(),
             true
         );
     }
@@ -270,5 +291,46 @@ class RefreshSession
     public function isUsableAt(DateTimeImmutable $at): bool
     {
         return !$this->revoked && $at < $this->idleExpiresAt && $at < $this->absoluteExpiresAt;
+    }
+
+    /**
+     * Validates native digest data into the declared ordered string history
+     *
+     * @phpstan-param array<array-key, mixed> $usedCredentialDigests
+     * @phpstan-return list<string>
+     */
+    private static function validatedCredentialHistory(string $credentialDigest, array $usedCredentialDigests): array
+    {
+        if (preg_match('/\A[0-9a-f]{64}\z/', $credentialDigest) !== 1 || !array_is_list($usedCredentialDigests)) {
+            throw new InvalidArgumentException('Refresh-session credential digests require a current digest and list.');
+        }
+
+        $validatedUsedCredentialDigests = [];
+        foreach ($usedCredentialDigests as $usedCredentialDigest) {
+            if (
+                !is_string($usedCredentialDigest)
+                || preg_match('/\A[0-9a-f]{64}\z/', $usedCredentialDigest) !== 1
+                || $usedCredentialDigest === $credentialDigest
+                || in_array($usedCredentialDigest, $validatedUsedCredentialDigests, true)
+            ) {
+                throw new InvalidArgumentException('Refresh-session credential history is invalid.');
+            }
+
+            $validatedUsedCredentialDigests[] = $usedCredentialDigest;
+        }
+
+        return $validatedUsedCredentialDigests;
+    }
+
+    /**
+     * Returns the next representable persistence revision
+     */
+    private function nextRevision(): int
+    {
+        if ($this->revision === PHP_INT_MAX) {
+            throw new InvalidArgumentException('Refresh-session persistence revision is exhausted.');
+        }
+
+        return $this->revision + 1;
     }
 }

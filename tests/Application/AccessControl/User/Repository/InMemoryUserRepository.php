@@ -504,6 +504,7 @@ final class InMemoryUserRepository implements UserRepository
             && $replacement->getAuthorizationAssignmentRevision() === $expected->getAuthorizationAssignmentRevision()
             && $this->roleAssignmentsMatch($replacement, $expected)
             && $this->emailStateMatches($replacement, $expected)
+            && $replacement->getCreatedAt() == $expected->getCreatedAt()
             && $replacement->getPasswordHash() instanceof PasswordHash;
     }
 
@@ -524,8 +525,8 @@ final class InMemoryUserRepository implements UserRepository
                 && $user->getAuthorizationAssignmentRevision() === $expected->getAuthorizationAssignmentRevision()
                 && $this->passwordHashesMatch($user->getPasswordHash(), $expected->getPasswordHash())
                 && $this->roleAssignmentsMatch($user, $expected)
-                && $user->getCreatedAt()->getTimestamp() === $expected->getCreatedAt()->getTimestamp()
-                && $user->getUpdatedAt()->getTimestamp() === $expected->getUpdatedAt()->getTimestamp()
+                && $user->getCreatedAt() == $expected->getCreatedAt()
+                && $user->getUpdatedAt() == $expected->getUpdatedAt()
                 && $this->replacementIsValid($expected, $replacement)
             ) {
                 return $index;
@@ -560,9 +561,9 @@ final class InMemoryUserRepository implements UserRepository
                 && !$this->roleAssignmentsMatch($replacement, $expected)
                 && $this->emailStateMatches($user, $expected)
                 && $this->emailStateMatches($replacement, $expected)
-                && $user->getCreatedAt()->getTimestamp() === $expected->getCreatedAt()->getTimestamp()
-                && $user->getUpdatedAt()->getTimestamp() === $expected->getUpdatedAt()->getTimestamp()
-                && $replacement->getCreatedAt()->getTimestamp() === $expected->getCreatedAt()->getTimestamp()
+                && $user->getCreatedAt() == $expected->getCreatedAt()
+                && $user->getUpdatedAt() == $expected->getUpdatedAt()
+                && $replacement->getCreatedAt() == $expected->getCreatedAt()
             ) {
                 return $index;
             }
@@ -655,9 +656,9 @@ final class InMemoryUserRepository implements UserRepository
                 && $replacement->getEmailChangeReservationRevision() === $emailChangeReservationRevision
                 && $user->getCanonicalEmailRevision() === $canonicalEmailRevision
                 && $replacement->getCanonicalEmailRevision() === $canonicalEmailRevision + 1
-                && $user->getCreatedAt()->getTimestamp() === $expected->getCreatedAt()->getTimestamp()
-                && $user->getUpdatedAt()->getTimestamp() === $expected->getUpdatedAt()->getTimestamp()
-                && $replacement->getCreatedAt()->getTimestamp() === $expected->getCreatedAt()->getTimestamp()
+                && $user->getCreatedAt() == $expected->getCreatedAt()
+                && $user->getUpdatedAt() == $expected->getUpdatedAt()
+                && $replacement->getCreatedAt() == $expected->getCreatedAt()
             ) {
                 return $index;
             }
@@ -702,9 +703,9 @@ final class InMemoryUserRepository implements UserRepository
                 && $replacement->getEmailChangeReservationRevision() === $emailChangeReservationRevision + 1
                 && $user->getCanonicalEmailRevision() === $canonicalEmailRevision
                 && $replacement->getCanonicalEmailRevision() === $canonicalEmailRevision + 1
-                && $user->getCreatedAt()->getTimestamp() === $expected->getCreatedAt()->getTimestamp()
-                && $user->getUpdatedAt()->getTimestamp() === $expected->getUpdatedAt()->getTimestamp()
-                && $replacement->getCreatedAt()->getTimestamp() === $expected->getCreatedAt()->getTimestamp()
+                && $user->getCreatedAt() == $expected->getCreatedAt()
+                && $user->getUpdatedAt() == $expected->getUpdatedAt()
+                && $replacement->getCreatedAt() == $expected->getCreatedAt()
             ) {
                 return $index;
             }
@@ -752,9 +753,9 @@ final class InMemoryUserRepository implements UserRepository
                 && $replacement->getEmailChangeReservationRevision() === $emailChangeReservationRevision
                 && $user->getCanonicalEmailRevision() === $canonicalEmailRevision
                 && $replacement->getCanonicalEmailRevision() === $canonicalEmailRevision
-                && $user->getCreatedAt()->getTimestamp() === $expected->getCreatedAt()->getTimestamp()
-                && $user->getUpdatedAt()->getTimestamp() === $expected->getUpdatedAt()->getTimestamp()
-                && $replacement->getCreatedAt()->getTimestamp() === $expected->getCreatedAt()->getTimestamp()
+                && $user->getCreatedAt() == $expected->getCreatedAt()
+                && $user->getUpdatedAt() == $expected->getUpdatedAt()
+                && $replacement->getCreatedAt() == $expected->getCreatedAt()
             ) {
                 return $index;
             }

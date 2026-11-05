@@ -241,6 +241,47 @@ EPIC-00016's six accepted TICKET plans below are complete, not implemented/quali
 Common suppliers remain separate unfinished planning/qualification handoffs. Existing scope/order/blockers and first
 Board selection remain unchanged. No source/dependency/consumer mutation, product build or implementation follows.
 
+## TASK-00115 User/session/audit typing — accepted checkpoint
+
+Independent Review v3 ACCEPT and nonvisual QA PASS cover repaired integrated candidate
+`e0853b518997713493fb1473d2ea0f6878479e68` against `46a15c89fdb33de3e411053e53dfe33a4c60ea0e`.
+L-01 is resolved; TASK-00115 is done, while TICKET-00037/EPIC-00016 remain open for unfinished children.
+The complete gate passed with 3,756 tests / 51,540 assertions and exact global/owned statement coverage.
+QA executed eight affected groups / 99 checks freshly and qualified fourteen unchanged production groups /
+759 original checks for reuse, not fresh execution. Publication/final delivery verification are pending at this
+closeout checkpoint; current delivery/resource results belong to canonical `.runs/handoffs/TASK-00115/land.md`
+and the actual PR. No consumer qualification, merge, release or deployment is implied. The Engineer and repair
+checkpoints below are historical; independent canonical reports preserve their exact subjects.
+
+## TASK-00115 User/session/audit typing — Engineer checkpoint
+
+The Engineer candidate audits the complete current 67-file User/RefreshSession/Audit Domain boundary, with a
+candidate-specific declaration/member/contract/caller inventory: 37 corrected declarations and 30 justified
+unchanged dispositions, without Domain additions, moves or removals. All 32 owned messages retain valid current
+outputs while rejecting coercive type mismatches; typed Role/context collections, current hydration, counter limits
+and exact refresh-credential shape have executable regressions. The User test repository preserves native subsecond
+instants in expected-state comparisons, including rejected coupled session insertion. See the
+[current type-contract guide](docs/user-session-type-contracts.md).
+
+Existing nullable repository lookups, direct synchronous User capability homes, CAS/coupled persistence, required
+audit, recovery and secret handling remain. No Common adoption, optional-audit design or query absence change is
+included. Exact candidate, regression/focused/static results and final gate/coverage evidence belong to the canonical
+TASK-00115 Work handoff. The pre-Review candidate integrates pinned develop `47f1e1a8d61ba87a91ac4055a376332a5f4ae1ee`,
+preserving TASK-00150's accepted structural foundation. Owned fingerprints and candidate evidence are reconciled;
+changed Composer/quality inputs require fresh integrated verification, not reuse of the earlier gate as current proof.
+Independent technical Review and behavioral QA remain pending; this checkpoint does not
+self-accept or close the TASK, qualify consumer persistence/crypto, publish, release or deploy anything.
+
+### Integrated fixture repair
+
+The prior TASK-00115 candidate received independent Review ACCEPT and behavioral QA PASS. Integration of pinned
+develop `46a15c89fdb33de3e411053e53dfe33a4c60ea0e` then exposed stale UserView shape messages in the required
+fixture manifest. The repair aligns only those two expectations with the precise four-value UserState output;
+production/test bytes and exact diagnostic enforcement remain unchanged. Original failure and current verification,
+inventory equivalence and newly prepared runtime identity are retained in the canonical TASK-00115 Work handoff.
+Independent reassessment/applicable QA remain required for the repaired integrated subject; the earlier checkpoint
+and verdicts are historical, not acceptance of this repair. TASK-00115 remains in-progress.
+
 ## TASK-00151 type-contract foundation — accepted checkpoint
 
 Independent Review ACCEPT and nonvisual QA PASS cover `c7b6900ecf3ee376ba152d84eddac0170f1b335d` against

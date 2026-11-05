@@ -32,19 +32,21 @@ final readonly class UserDeleted implements Event
     public static function fromArray(array $data): static
     {
         foreach (['actor_id', 'user_id'] as $key) {
-            if (!array_key_exists($key, $data)) {
-                throw new DomainException(sprintf('Missing required key "%s" in data array', $key));
+            if (!array_key_exists($key, $data) || !is_string($data[$key])) {
+                throw new DomainException(sprintf('Missing or invalid string "%s" in data array', $key));
             }
         }
 
         return new static(
-            UserId::fromString((string) $data['actor_id']),
-            UserId::fromString((string) $data['user_id'])
+            UserId::fromString($data['actor_id']),
+            UserId::fromString($data['user_id'])
         );
     }
 
     /**
-     * @inheritDoc
+     * Returns the canonical deletion fact
+     *
+     * @phpstan-return array{actor_id: string, user_id: string}
      */
     public function toArray(): array
     {

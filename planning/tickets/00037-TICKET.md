@@ -114,13 +114,27 @@ Review/applicable QA, without waiting to delegate those obligations to final rec
 
 | Order | TASK ID | Title | Status |
 | --- | --- | --- | --- |
-| 301 | [TASK-00115](../tasks/00115-TASK.md) | Correct User, session and audit type contracts | ready-for-agent |
+| 301 | [TASK-00115](../tasks/00115-TASK.md) | Correct User, session and audit type contracts | done |
 | 302 | [TASK-00116](../tasks/00116-TASK.md) | Correct human credential and delivery type contracts | ready-for-agent |
 | 303 | [TASK-00117](../tasks/00117-TASK.md) | Correct Permission, Role and authority type contracts | ready-for-agent |
 | 304 | [TASK-00118](../tasks/00118-TASK.md) | Correct Agent identity and administration type contracts | ready-for-agent |
 | 305 | [TASK-00119](../tasks/00119-TASK.md) | Correct Agent operation and recovery type contracts | ready-for-agent |
 | 306 | [TASK-00120](../tasks/00120-TASK.md) | Correct Feature type contracts | ready-for-agent |
 ## Decisions and Progress
+
+TASK-00115 is independently accepted and done for repaired integrated candidate
+`e0853b518997713493fb1473d2ea0f6878479e68`: current Review v3 ACCEPT, nonvisual QA PASS, complete gate and
+exact statement coverage. L-01 is resolved. Publication/final delivery verification are pending at this closeout
+checkpoint; current results belong to canonical `.runs/handoffs/TASK-00115/land.md` and the actual PR. This TICKET
+remains open for its five other unfinished Domain children; no whole-Domain or consumer qualification is claimed.
+
+### Historical Engineer and planning checkpoints
+
+TASK-00115 now has an Engineer candidate for its complete 67-file User/RefreshSession/Audit boundary, with an
+exhaustive member/caller/disposition inventory and regression-backed type/shape corrections. Its
+[current contract guide](../../docs/user-session-type-contracts.md) preserves nullable repositories, direct User
+capability homes and current authority/transaction guarantees. Independent Review and behavioral QA remain pending;
+this does not accept that slice, complete this TICKET or qualify the other five Domain boundaries.
 
 Grill, To Tickets and this TICKET's complete six-TASK decomposition are approved/written. No source/dependency
 change, completed audit, product build, commit/publication or independent implementation acceptance is claimed.

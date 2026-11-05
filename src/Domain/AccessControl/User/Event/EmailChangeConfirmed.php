@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Fight\AccessControl\Domain\AccessControl\User\Event;
 
 use DateTimeImmutable;
+use Fight\AccessControl\Domain\AccessControl\CredentialDelivery\CredentialDeliveryTimestamp;
 use Fight\AccessControl\Domain\AccessControl\User\UserId;
 use Fight\Common\Domain\Exception\DomainException;
 use Fight\Common\Domain\Messaging\Event\Event;
@@ -33,20 +34,22 @@ final readonly class EmailChangeConfirmed implements Event
     public static function fromArray(array $data): static
     {
         foreach (['user_id', 'confirmed_at'] as $key) {
-            if (!array_key_exists($key, $data)) {
-                $message = sprintf('Missing required key "%s" in data array', $key);
+            if (!array_key_exists($key, $data) || !is_string($data[$key])) {
+                $message = sprintf('Missing or invalid string "%s" in data array', $key);
                 throw new DomainException($message);
             }
         }
 
         return new static(
-            UserId::fromString((string) $data['user_id']),
-            new DateTimeImmutable((string) $data['confirmed_at'])
+            UserId::fromString($data['user_id']),
+            CredentialDeliveryTimestamp::fromString($data['confirmed_at'])->toDateTimeImmutable()
         );
     }
 
     /**
-     * @inheritDoc
+     * Returns the canonical email-confirmation fact
+     *
+     * @phpstan-return array{user_id: string, confirmed_at: string}
      */
     public function toArray(): array
     {
