@@ -6,7 +6,25 @@ Fight AccessControl owns framework-neutral identity, credential, session, author
 behavior shared by Fight applications. The repository-local behavioral and security authority is
 [TICKET-00001](planning/tickets/00001-TICKET.md).
 
-## TASK-00117 develop integration — Work checkpoint
+## TASK-00117 integrated QA-01 repair — accepted checkpoint
+
+Independent Review ACCEPT and nonvisual QA PASS cover repaired candidate
+`52540b7293a0cfd84d8fa03230c6e2ab2cde6520` against `e13995a5b2760d4d02300de2b81797b1d009eb38`.
+QA-01 / Review I-01 is resolved by actual strict-diagnostic and affected lifecycle revalidation. The full gate
+passes 4,429 tests / 52,484 assertions and exact 8,063/8,063 statements on the final installed lane. Two inherited,
+out-of-scope User level-8 precision diagnostics remain; no whole-library level-8 or consumer qualification is claimed.
+
+Land mechanically merges develop `f48e5dc9966c083e0207430954c54f08d9a97cb0` in
+`decc2577edb799e23a4c5a701323a41a7b25c543`: only runtime-free fixture cleanup tooling/guidance changes,
+with product, tests, fixtures and dependency constraints unchanged from the accepted repair. Independent reports
+retain their exact subjects; the bridge and new-input gate results belong to canonical
+`.runs/handoffs/TASK-00117/land.md`. TASK-00117 remains done; unfinished children keep its parents open.
+Publication/final-head verification are pending at this administrative checkpoint; current delivery/resource
+results belong to that Land handoff and [PR #165](https://github.com/johnnickell/fight-access-control/pull/165).
+No approval, merge, release or deployment is claimed. The following Work and failure checkpoints are historical,
+not current independent-QA instructions.
+
+## TASK-00117 develop integration — historical Work checkpoint
 
 TASK-00117 integrates develop `e13995a5b2760d4d02300de2b81797b1d009eb38`, retaining the accepted
 TASK-00115/00116 source alongside its Permission/Role/authority contracts. Conflict reconciliation preserves

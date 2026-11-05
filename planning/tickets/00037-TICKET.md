@@ -122,6 +122,19 @@ Review/applicable QA, without waiting to delegate those obligations to final rec
 | 306 | [TASK-00120](../tasks/00120-TASK.md) | Correct Feature type contracts | ready-for-agent |
 ## Decisions and Progress
 
+### TASK-00117 integrated repair — accepted checkpoint
+
+Independent Review ACCEPT and nonvisual QA PASS cover repaired TASK-00117 candidate
+`52540b7293a0cfd84d8fa03230c6e2ab2cde6520` against `e13995a5b2760d4d02300de2b81797b1d009eb38`;
+QA-01 / Review I-01 is independently resolved. Land mechanically integrates develop's runtime-free fixture
+tooling at `f48e5dc9966c083e0207430954c54f08d9a97cb0`, preserving accepted product/test/fixture contracts.
+Exact bridge, new-input gate and current delivery/resource outcomes belong to canonical
+`.runs/handoffs/TASK-00117/land.md` and PR #165. Publication/final checks are pending at this checkpoint,
+not acceptance or human merge. TASK-00117 remains done; TASK-00118–00120 keep this TICKET and EPIC-00016 open.
+Original acceptance and failed reports retain their exact subjects; no whole-Domain or consumer qualification.
+
+### Historical original TASK-00117 acceptance checkpoint
+
 TASK-00117 has independent Review ACCEPT and nonvisual QA PASS at candidate
 `191b972258acfa4ca0bb7e8c90ded115a26f2fcc` against `46a15c89fdb33de3e411053e53dfe33a4c60ea0e`.
 Its complete Permission/Role/ManagedPolicy/Authorization Domain slice is accepted and done. This TICKET remains
