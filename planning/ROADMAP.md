@@ -240,6 +240,12 @@ protocol/schema composition, minimum/ordinary proof, callers/docs/full gate/exac
 Known local callback annotations with UoW mixed remain sufficient; schema tests neither qualify ResultSet runtime
 invariants nor add a blanket metadata blocker for unchanged wire shapes. No Common/consumer source is edited.
 
+TASK-00150's structural inventory foundation has independent Review ACCEPT and nonvisual QA PASS at
+`73154cf29907711e67e254630465dcb16480da66`. Only this tooling foundation is complete; semantic judgments,
+TASK-00151/00152 and the unfinished correction suppliers keep TICKET-00042/EPIC-00016 open. Publication/final
+delivery verification are pending at this checkpoint; current results belong to `.runs/handoffs/TASK-00150/land.md`
+and the actual PR. The planning allocation below records its earlier checkpoint, not current TASK readiness.
+
 TICKET-00042's complete three-TASK plan is approved/written as [TASK-00150](tasks/00150-TASK.md) declaration/
 contract ownership (order 299), [TASK-00151](tasks/00151-TASK.md) executable type-contract fixtures (300) and
 [TASK-00152](tasks/00152-TASK.md) integrated enforcement/qualification (329). All are ready-for-agent; the independent
