@@ -29,15 +29,17 @@ final readonly class GetUserById implements Query
      */
     public static function fromArray(array $data): static
     {
-        if (!array_key_exists('user_id', $data)) {
-            throw new DomainException('Missing required key "user_id" in data array');
+        if (!isset($data['user_id']) || !is_string($data['user_id'])) {
+            throw new DomainException('Missing or invalid User ID.');
         }
 
-        return new static(UserId::fromString((string) $data['user_id']));
+        return new static(UserId::fromString($data['user_id']));
     }
 
     /**
-     * @inheritDoc
+     * Returns the canonical User lookup payload
+     *
+     * @phpstan-return array{user_id: string}
      */
     public function toArray(): array
     {

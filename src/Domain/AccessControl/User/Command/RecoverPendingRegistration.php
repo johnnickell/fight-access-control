@@ -51,7 +51,9 @@ final readonly class RecoverPendingRegistration implements Command
     }
 
     /**
-     * @inheritDoc
+     * Returns the canonical registration-recovery payload
+     *
+     * @phpstan-return array{actor_id: string, user_id: string, expected_activation_delivery_id: string, email: string}
      */
     public function toArray(): array
     {

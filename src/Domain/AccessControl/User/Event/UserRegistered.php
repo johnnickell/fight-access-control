@@ -50,7 +50,9 @@ final readonly class UserRegistered implements Event
     }
 
     /**
-     * @inheritDoc
+     * Returns the canonical registration fact
+     *
+     * @phpstan-return array{user_id: string, activation_delivery_id: string, email: string, issued_at: string}
      */
     public function toArray(): array
     {

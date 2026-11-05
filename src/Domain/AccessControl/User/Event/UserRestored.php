@@ -41,18 +41,32 @@ final readonly class UserRestored implements Event
             }
         }
 
+        foreach (['actor_id', 'user_id', 'restoration_state'] as $key) {
+            if (!is_string($data[$key])) {
+                throw new DomainException(sprintf('Invalid string "%s" in restoration data', $key));
+            }
+        }
+
         $activationDeliveryId = $data['activation_delivery_id'];
+        if ($activationDeliveryId !== null && !is_string($activationDeliveryId)) {
+            throw new DomainException('The activation delivery ID must be a string or null.');
+        }
 
         return new static(
-            UserId::fromString((string) $data['actor_id']),
-            UserId::fromString((string) $data['user_id']),
-            UserState::from((string) $data['restoration_state']),
-            $activationDeliveryId === null ? null : ActivationDeliveryId::fromString((string) $activationDeliveryId)
+            UserId::fromString($data['actor_id']),
+            UserId::fromString($data['user_id']),
+            UserState::from($data['restoration_state']),
+            $activationDeliveryId === null ? null : ActivationDeliveryId::fromString($activationDeliveryId)
         );
     }
 
     /**
-     * @inheritDoc
+     * Returns the canonical restoration fact
+     *
+     * @phpstan-return array{
+     *     actor_id: string, user_id: string, restoration_state: value-of<UserState>,
+     *     activation_delivery_id: string|null
+     * }
      */
     public function toArray(): array
     {

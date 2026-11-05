@@ -147,7 +147,7 @@ class EmailChangeGrant
     /**
      * Uses usable authority and destroys recoverable credential material
      */
-    public function consume(DateTimeImmutable $at): self
+    public function consume(DateTimeImmutable $at): static
     {
         if (!$this->isUsableAt($at)) {
             throw new EmailChangeGrantException('The email-change grant is no longer usable.');
@@ -170,7 +170,7 @@ class EmailChangeGrant
     /**
      * Revokes issued authority and destroys recoverable delivery material
      */
-    public function revoke(DateTimeImmutable $at): self
+    public function revoke(DateTimeImmutable $at): static
     {
         if (!$this->isIssued()) {
             throw new EmailChangeGrantException('The email-change grant is no longer issued.');
@@ -193,7 +193,7 @@ class EmailChangeGrant
     /**
      * Ends issued authority once its expiry boundary is reached
      */
-    public function expireAt(DateTimeImmutable $at): self
+    public function expireAt(DateTimeImmutable $at): static
     {
         if (!$this->isIssued() || $at < $this->expiresAt) {
             return $this;
@@ -294,7 +294,7 @@ class EmailChangeGrant
         CredentialDeliveryClaimToken $claimToken,
         DateTimeImmutable $claimedAt,
         DateTimeImmutable $leaseUntil
-    ): self {
+    ): static {
         return $this->withDelivery($this->delivery->claim($claimToken, $claimedAt, $leaseUntil));
     }
 
@@ -304,7 +304,7 @@ class EmailChangeGrant
     public function confirmDelivery(
         CredentialDeliveryClaimToken $claimToken,
         DateTimeImmutable $occurredAt
-    ): self {
+    ): static {
         return $this->withDelivery($this->delivery->confirm($claimToken, $occurredAt));
     }
 
@@ -315,7 +315,7 @@ class EmailChangeGrant
         CredentialDeliveryClaimToken $claimToken,
         DateTimeImmutable $occurredAt,
         CredentialDeliveryFailure $failure
-    ): self {
+    ): static {
         return $this->withDelivery($this->delivery->fail($claimToken, $occurredAt, $failure));
     }
 
@@ -325,14 +325,14 @@ class EmailChangeGrant
     public function failDeliveryPermanently(
         CredentialDeliveryClaimToken $claimToken,
         DateTimeImmutable $occurredAt
-    ): self {
+    ): static {
         return $this->withDelivery($this->delivery->failPermanently($claimToken, $occurredAt));
     }
 
     /**
      * Marks owned delivery at its terminal boundary
      */
-    public function expireDeliveryAt(DateTimeImmutable $occurredAt): self
+    public function expireDeliveryAt(DateTimeImmutable $occurredAt): static
     {
         return $this->withDelivery($this->delivery->expireAt($occurredAt));
     }
@@ -340,7 +340,7 @@ class EmailChangeGrant
     /**
      * Returns retry work to immediate eligibility
      */
-    public function requestDeliveryRetry(): self
+    public function requestDeliveryRetry(): static
     {
         return $this->withDelivery($this->delivery->requestRetry());
     }
@@ -356,7 +356,7 @@ class EmailChangeGrant
     /**
      * Replaces only the owned delivery within this generation
      */
-    private function withDelivery(EmailChangeDelivery $delivery): self
+    private function withDelivery(EmailChangeDelivery $delivery): static
     {
         if ($delivery->sameStateAs($this->delivery)) {
             return $this;

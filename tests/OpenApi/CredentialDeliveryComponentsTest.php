@@ -116,7 +116,7 @@ final class CredentialDeliveryComponentsTest extends TestCase
     {
         $schemas = $this->schemas();
         $expected = array_column(CredentialDeliveryStatus::cases(), 'value');
-        foreach (['InvitationDeliveryStatus', 'CredentialDeliveryStatus', 'DueCredentialDelivery'] as $name) {
+        foreach (['InvitationDeliveryStatus', 'CredentialDeliveryStatus'] as $name) {
             $status = $schemas['Fight.AccessControl.'.$name]['properties']['status'];
             self::assertSame('string', $status['type']);
             self::assertSame($expected, $status['enum']);
@@ -125,6 +125,13 @@ final class CredentialDeliveryComponentsTest extends TestCase
             }
         }
 
+        $dueStatuses = ['pending', 'claimed', 'retry_pending'];
+        self::assertSame(
+            $dueStatuses,
+            $schemas['Fight.AccessControl.DueCredentialDelivery']['properties']['status']['enum']
+        );
+        self::assertSame(0, $schemas['Fight.AccessControl.DueCredentialDelivery']['properties']['revision']['minimum']);
+        self::assertSame(0, $schemas['Fight.AccessControl.CredentialDeliveryStatus']['properties']['revision']['minimum']);
         $deliveries = $this->deliveries();
         self::assertEqualsCanonicalizing($expected, array_keys($deliveries));
         foreach ($deliveries as $delivery) {
@@ -137,21 +144,22 @@ final class CredentialDeliveryComponentsTest extends TestCase
                 )
             );
             $view = CredentialDeliveryStatusView::fromDelivery('password_reset', $delivery, 0);
-            $due = new DueCredentialDelivery(
-                'password_reset',
-                $delivery->getId(),
-                $delivery->getUserId(),
-                $delivery->getNextAttemptAt(),
-                0,
-                $delivery->getStatus()
-            );
-            foreach (
-                [
+            $payloads = [
                 'InvitationDeliveryStatus' => $invitation->toArray(),
-                'CredentialDeliveryStatus' => $view->toArray(),
-                'DueCredentialDelivery'    => $due->toArray()
-                ] as $name => $payload
-            ) {
+                'CredentialDeliveryStatus' => $view->toArray()
+            ];
+            if (in_array($delivery->getStatus()->value, $dueStatuses, true)) {
+                $payloads['DueCredentialDelivery'] = new DueCredentialDelivery(
+                    'password_reset',
+                    $delivery->getId(),
+                    $delivery->getUserId(),
+                    $delivery->getNextAttemptAt(),
+                    0,
+                    $delivery->getStatus()
+                )->toArray();
+            }
+
+            foreach ($payloads as $name => $payload) {
                 $schema = $schemas['Fight.AccessControl.'.$name];
                 $this->assertCanonicalFields($schema, $payload);
                 self::assertContains($payload['status'], $schema['properties']['status']['enum']);
@@ -214,7 +222,7 @@ final class CredentialDeliveryComponentsTest extends TestCase
             'purpose'         => $purpose,
             'delivery_id'     => $uuid,
             'user_id'         => $uuid,
-            'revision'        => ['type' => 'integer'],
+            'revision'        => ['type' => 'integer', 'minimum' => 0],
             'status'          => $status,
             'due_at'          => $date,
             'expires_at'      => $date,
@@ -228,8 +236,8 @@ final class CredentialDeliveryComponentsTest extends TestCase
             'delivery_id' => $uuid,
             'user_id'     => $uuid,
             'due_at'      => $date,
-            'revision'    => ['type' => 'integer'],
-            'status'      => $status
+            'revision'    => ['type' => 'integer', 'minimum' => 0],
+            'status'      => ['type' => 'string', 'enum' => ['pending', 'claimed', 'retry_pending']]
         ], $schemas['Fight.AccessControl.DueCredentialDelivery']['properties']);
         self::assertSame([
             'user_id'                => $uuid,

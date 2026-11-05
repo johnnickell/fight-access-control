@@ -33,11 +33,17 @@ final readonly class RequestPasswordReset implements Command
             throw new DomainException('Missing required key "email" in data array');
         }
 
-        return new static(EmailAddress::fromString((string) $data['email']));
+        if (!is_string($data['email'])) {
+            throw new DomainException('Invalid type for "email" in data array');
+        }
+
+        return new static(EmailAddress::fromString($data['email']));
     }
 
     /**
-     * @inheritDoc
+     * Returns the canonical recovery request payload
+     *
+     * @phpstan-return array{email: string}
      */
     public function toArray(): array
     {

@@ -35,16 +35,22 @@ final readonly class CancelEmailChange implements Command
             if (!array_key_exists($key, $data)) {
                 throw new DomainException(sprintf('Missing required key "%s" in data array', $key));
             }
+
+            if (!is_string($data[$key])) {
+                throw new DomainException(sprintf('Invalid type for "%s" in data array', $key));
+            }
         }
 
         return new static(
-            UserId::fromString((string) $data['actor_id']),
-            UserId::fromString((string) $data['user_id'])
+            UserId::fromString($data['actor_id']),
+            UserId::fromString($data['user_id'])
         );
     }
 
     /**
-     * @inheritDoc
+     * Returns the canonical cancellation command payload
+     *
+     * @phpstan-return array{actor_id: string, user_id: string}
      */
     public function toArray(): array
     {

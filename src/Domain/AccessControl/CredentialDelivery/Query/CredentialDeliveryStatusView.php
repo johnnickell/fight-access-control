@@ -5,10 +5,14 @@ declare(strict_types=1);
 namespace Fight\AccessControl\Domain\AccessControl\CredentialDelivery\Query;
 
 use DateTimeImmutable;
+use Fight\AccessControl\Domain\AccessControl\ActivationGrant\ActivationDelivery;
 use Fight\AccessControl\Domain\AccessControl\CredentialDelivery\CredentialDelivery;
 use Fight\AccessControl\Domain\AccessControl\CredentialDelivery\CredentialDeliveryFailure;
 use Fight\AccessControl\Domain\AccessControl\CredentialDelivery\CredentialDeliveryStatus;
+use Fight\AccessControl\Domain\AccessControl\EmailChangeGrant\EmailChangeDelivery;
+use Fight\AccessControl\Domain\AccessControl\PasswordResetGrant\PasswordResetDelivery;
 use Fight\AccessControl\Domain\AccessControl\User\UserId;
+use Fight\Common\Domain\Exception\DomainException;
 use Fight\Common\Domain\Type\Arrayable;
 
 /**
@@ -41,6 +45,16 @@ final readonly class CredentialDeliveryStatusView implements Arrayable
      */
     public static function fromDelivery(string $purpose, CredentialDelivery $delivery, int $revision): self
     {
+        $validPurpose = match ($purpose) {
+            'activation' => $delivery instanceof ActivationDelivery,
+            'password_reset' => $delivery instanceof PasswordResetDelivery,
+            'email_change' => $delivery instanceof EmailChangeDelivery,
+            default => false
+        };
+        if (!$validPurpose || $revision < 0) {
+            throw new DomainException('Invalid credential-delivery status identity or revision.');
+        }
+
         return new self(
             $purpose,
             $delivery->getId()->toString(),

@@ -18,7 +18,7 @@
         {
           "line": 21,
           "identifier": "phpstan.dumpType",
-          "message": "Dumped type: array{user_id: string, email: string, state: string, role_ids: list<string>, created_at: string, updated_at: string}"
+          "message": "Dumped type: array{user_id: string, email: string, state: 'active'|'deleted'|'disabled'|'pending_activation', role_ids: list<string>, created_at: string, updated_at: string}"
         },
         {
           "line": 22,
@@ -55,7 +55,7 @@
         {
           "line": 37,
           "identifier": "argument.type",
-          "message": "Parameter #1 $data of function consumeRoleIdentityShape expects array{role_ids: list<Fight\\AccessControl\\Domain\\AccessControl\\Role\\RoleId>}, array{user_id: string, email: string, state: string, role_ids: list<string>, created_at: string, updated_at: string} given."
+          "message": "Parameter #1 $data of function consumeRoleIdentityShape expects array{role_ids: list<Fight\\AccessControl\\Domain\\AccessControl\\Role\\RoleId>}, array{user_id: string, email: string, state: 'active'|'deleted'|'disabled'|'pending_activation', role_ids: list<string>, created_at: string, updated_at: string} given."
         },
         {
           "line": 39,

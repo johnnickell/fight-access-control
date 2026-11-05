@@ -9,6 +9,7 @@ use Fight\AccessControl\Domain\AccessControl\Role\RoleId;
 use Fight\AccessControl\Domain\AccessControl\User\User;
 use Fight\AccessControl\Domain\AccessControl\User\UserId;
 use Fight\AccessControl\Domain\AccessControl\User\UserState;
+use Fight\Common\Domain\Exception\DomainException;
 use Fight\Common\Domain\Type\Arrayable;
 use Fight\Common\Domain\Value\Internet\EmailAddress;
 
@@ -19,10 +20,15 @@ use Fight\Common\Domain\Value\Internet\EmailAddress;
  */
 final readonly class UserView implements Arrayable
 {
+    /** @var list<RoleId> */
+    private array $roleIds;
+
     /**
      * Constructs UserView
      *
      * Constructs the safe user view.
+     *
+     * Validates the supplied Role list before retaining its typed immutable snapshot.
      *
      * @phpstan-param list<RoleId> $roleIds
      */
@@ -30,11 +36,11 @@ final readonly class UserView implements Arrayable
         private UserId $userId,
         private EmailAddress $email,
         private UserState $state,
-        /** @var list<RoleId> */
-        private array $roleIds,
+        array $roleIds,
         private DateTimeImmutable $createdAt,
         private DateTimeImmutable $updatedAt
     ) {
+        $this->roleIds = self::validatedRoleIds($roleIds);
     }
 
     /**
@@ -108,7 +114,7 @@ final readonly class UserView implements Arrayable
      * @return array{
      *     user_id: string,
      *     email: string,
-     *     state: string,
+     *     state: value-of<UserState>,
      *     role_ids: list<string>,
      *     created_at: string,
      *     updated_at: string
@@ -127,5 +133,29 @@ final readonly class UserView implements Arrayable
             'created_at' => $this->createdAt->format(DATE_ATOM),
             'updated_at' => $this->updatedAt->format(DATE_ATOM)
         ];
+    }
+
+    /**
+     * Validates native array contents before retaining the typed immutable Role list
+     *
+     * @phpstan-param array<array-key, mixed> $roleIds
+     * @phpstan-return list<RoleId>
+     */
+    private static function validatedRoleIds(array $roleIds): array
+    {
+        if (!array_is_list($roleIds)) {
+            throw new DomainException('User view Role identities must form a list.');
+        }
+
+        $validatedRoleIds = [];
+        foreach ($roleIds as $roleId) {
+            if (!$roleId instanceof RoleId) {
+                throw new DomainException('User views require Role identities.');
+            }
+
+            $validatedRoleIds[] = $roleId;
+        }
+
+        return $validatedRoleIds;
     }
 }

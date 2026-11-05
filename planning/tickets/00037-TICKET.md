@@ -114,8 +114,8 @@ Review/applicable QA, without waiting to delegate those obligations to final rec
 
 | Order | TASK ID | Title | Status |
 | --- | --- | --- | --- |
-| 301 | [TASK-00115](../tasks/00115-TASK.md) | Correct User, session and audit type contracts | ready-for-agent |
-| 302 | [TASK-00116](../tasks/00116-TASK.md) | Correct human credential and delivery type contracts | ready-for-agent |
+| 301 | [TASK-00115](../tasks/00115-TASK.md) | Correct User, session and audit type contracts | done |
+| 302 | [TASK-00116](../tasks/00116-TASK.md) | Correct human credential and delivery type contracts | done |
 | 303 | [TASK-00117](../tasks/00117-TASK.md) | Correct Permission, Role and authority type contracts | done |
 | 304 | [TASK-00118](../tasks/00118-TASK.md) | Correct Agent identity and administration type contracts | ready-for-agent |
 | 305 | [TASK-00119](../tasks/00119-TASK.md) | Correct Agent operation and recovery type contracts | ready-for-agent |
@@ -136,6 +136,46 @@ Authorization Domain slice. Its record and canonical ignored Work handoff own ex
 inventory, corrections, justified unchanged contracts and verification evidence. Independent Review and behavioral
 QA remain pending; this TICKET and the other Domain slices remain open. The planning-only history below is retained.
 
+### Historical TASK-00116 integration checkpoint
+
+TASK-00116's published branch now integrates develop's accepted TASK-00115 without changing either slice's
+production implementation. Both original acceptance checkpoints remain below with their exact subjects. The new-base
+interaction checks and provenance bridge are in canonical `.runs/handoffs/TASK-00116/work.md`; Land qualifies the
+bridge before updating the PR. Four other Domain children remain unfinished, so this TICKET and EPIC-00016 remain
+open. No new combined verdict, publication, merge or consumer qualification is claimed.
+
+### Historical TASK-00116 acceptance and Work checkpoints
+
+TASK-00116 has independent Review ACCEPT and nonvisual QA PASS at candidate
+`080afc43b2b3942625e264547b75cb9b3a74b3bc`, with no findings, and is done for its complete 68-file human grant/delivery
+Domain slice. [PR #164](https://github.com/johnnickell/fight-access-control/pull/164) is open with that implementation;
+administrative closeout publication/final-head verification remain pending at this checkpoint. Current delivery
+results and the administrative bridge belong to canonical `.runs/handoffs/TASK-00116/land.md`. Other children remain
+unfinished, so automatic parent completion keeps this TICKET and EPIC-00016 open. This is not whole-library or
+consumer qualification, approval, merge or release. The Work/planning checkpoints below remain historical.
+
+### Historical Work and planning checkpoints
+
+TASK-00116 now has a Work implementation checkpoint for the four human grant/delivery Domain families, including
+owned callers, complete inventory dispositions, runtime/static regressions and schema alignment. Independent
+Review and nonvisual QA remain required; the TASK's canonical Work handoff owns exact verification/content/runtime
+evidence. This does not accept the slice, complete this TICKET or change sibling ownership/dependencies.
+
+### Historical TASK-00115 acceptance checkpoint
+
+TASK-00115 is independently accepted and done for repaired integrated candidate
+`e0853b518997713493fb1473d2ea0f6878479e68`: current Review v3 ACCEPT, nonvisual QA PASS, complete gate and
+exact statement coverage. L-01 is resolved. Publication/final delivery verification are pending at this closeout
+checkpoint; current results belong to canonical `.runs/handoffs/TASK-00115/land.md` and the actual PR. This TICKET
+remains open for its five other unfinished Domain children; no whole-Domain or consumer qualification is claimed.
+
+### Historical Engineer and planning checkpoints
+
+TASK-00115 now has an Engineer candidate for its complete 67-file User/RefreshSession/Audit boundary, with an
+exhaustive member/caller/disposition inventory and regression-backed type/shape corrections. Its
+[current contract guide](../../docs/user-session-type-contracts.md) preserves nullable repositories, direct User
+capability homes and current authority/transaction guarantees. Independent Review and behavioral QA remain pending;
+this does not accept that slice, complete this TICKET or qualify the other five Domain boundaries.
 
 Grill, To Tickets and this TICKET's complete six-TASK decomposition are approved/written. No source/dependency
 change, completed audit, product build, commit/publication or independent implementation acceptance is claimed.

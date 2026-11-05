@@ -55,7 +55,12 @@ final readonly class PendingRegistrationRecovered implements Event
     }
 
     /**
-     * @inheritDoc
+     * Returns the canonical registration-recovery fact
+     *
+     * @phpstan-return array{
+     *     actor_id: string, user_id: string, previous_activation_delivery_id: string,
+     *     activation_delivery_id: string, email: string
+     * }
      */
     public function toArray(): array
     {

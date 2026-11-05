@@ -4,6 +4,8 @@ The current package contract separates business persistence, required audit, not
 Commands and synchronous authentication methods retain their established authorization and transaction boundaries.
 Queries remain read-only. This composition is published in [v0.8.0](release-0.8.0.md), not part of v0.7.0;
 the overview separates verified package publication from unexecuted consumer qualification.
+Unreleased [User/session type validation](user-session-type-contracts.md) preserves these outcomes and fences;
+shape validation is not authorization, diagnostic sanitization or consumer persistence qualification.
 
 ## Notifications and callers
 

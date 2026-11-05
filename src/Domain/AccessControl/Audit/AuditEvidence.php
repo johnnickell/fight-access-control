@@ -8,6 +8,7 @@ use Fight\AccessControl\Domain\AccessControl\Agent\AgentId;
 use Fight\AccessControl\Domain\AccessControl\RefreshSession\RefreshSessionId;
 use Fight\AccessControl\Domain\AccessControl\RefreshSession\SessionRevocationReason;
 use Fight\AccessControl\Domain\AccessControl\User\UserId;
+use Fight\Common\Domain\Exception\DomainException;
 
 /**
  * Class AuditEvidence
@@ -18,18 +19,24 @@ use Fight\AccessControl\Domain\AccessControl\User\UserId;
  */
 class AuditEvidence
 {
+    /** @var array<string, string> */
+    private readonly array $context;
+
     /**
      * Constructs AuditEvidence
      *
-     * Creates secret-free durable audit evidence.
+     * Creates secret-free durable audit evidence with validated context shape.
+     * Callers remain responsible for supplying only approved secret-free values.
+     *
+     * @phpstan-param array<string, string> $context
      */
     protected function __construct(
         private readonly string $actorId,
         private readonly string $action,
         private readonly UserId|AgentId $subjectId,
-        /** @var array<string, string> */
-        private readonly array $context = []
+        array $context = []
     ) {
+        $this->context = self::validatedContext($context);
     }
 
     /**
@@ -116,5 +123,25 @@ class AuditEvidence
     public function context(): array
     {
         return $this->context;
+    }
+
+    /**
+     * Validates native context data into the declared named string map
+     *
+     * @phpstan-param array<array-key, mixed> $context
+     * @phpstan-return array<string, string>
+     */
+    private static function validatedContext(array $context): array
+    {
+        $validatedContext = [];
+        foreach ($context as $key => $value) {
+            if (!is_string($key) || !is_string($value)) {
+                throw new DomainException('Audit context requires named string values.');
+            }
+
+            $validatedContext[$key] = $value;
+        }
+
+        return $validatedContext;
     }
 }

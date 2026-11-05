@@ -38,17 +38,23 @@ final readonly class DeliverUserInvitation implements Command
                 $message = sprintf('Missing required key "%s" in data array', $key);
                 throw new DomainException($message);
             }
+
+            if (!is_string($data[$key])) {
+                throw new DomainException(sprintf('Invalid type for "%s" in data array', $key));
+            }
         }
 
         return new static(
-            (string) $data['actor_id'],
-            UserId::fromString((string) $data['user_id']),
-            ActivationDeliveryId::fromString((string) $data['activation_delivery_id'])
+            $data['actor_id'],
+            UserId::fromString($data['user_id']),
+            ActivationDeliveryId::fromString($data['activation_delivery_id'])
         );
     }
 
     /**
-     * @inheritDoc
+     * Returns the canonical delivery command payload
+     *
+     * @phpstan-return array{actor_id: string, user_id: string, activation_delivery_id: string}
      */
     public function toArray(): array
     {

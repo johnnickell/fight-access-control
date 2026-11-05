@@ -6,6 +6,59 @@ Fight AccessControl owns framework-neutral identity, credential, session, author
 behavior shared by Fight applications. The repository-local behavioral and security authority is
 [TICKET-00001](planning/tickets/00001-TICKET.md).
 
+## TASK-00117 develop integration — Work checkpoint
+
+TASK-00117 integrates develop `e13995a5b2760d4d02300de2b81797b1d009eb38`, retaining the accepted
+TASK-00115/00116 source alongside its Permission/Role/authority contracts. Conflict reconciliation preserves
+all three TASK records and regenerates planning views; no new policy or supplier adoption is introduced.
+The original independent reports retain their exact subjects, not a new integrated verdict. Current verification,
+content/runtime identity, interaction limits and continuation belong to canonical
+`.runs/handoffs/TASK-00117/develop-merge-20261105.md`. Historical completion remains intact; this Work checkpoint
+claims no new independent acceptance, publication, merge or consumer qualification.
+
+## TASK-00116 develop integration — historical Work checkpoint
+
+The published TASK-00116 branch integrates develop `998e892b4a4a9c1efd5464e76d3ee542c9d24a89`, including
+TASK-00115's independently accepted User/session/audit contracts. Both slices' production changes and structural
+ownership fingerprints are retained; current exact fixture diagnostics follow develop's narrowed UserView state.
+Only overlapping progress prose and generated planning views require conflict resolution. Canonical
+`.runs/handoffs/TASK-00116/work.md` owns fresh integrated verification, runtime identity and the exact old/new
+base/head/effective-diff bridge. The independent reports below remain unchanged and name their original subjects;
+this integration does not create a combined verdict or claim publication, merge, release or consumer qualification.
+Land must qualify the bridge before the non-force PR update; canceled cleanup must not resume from old instructions.
+
+## TASK-00116 human credential Domain contracts — accepted checkpoint
+
+Independent Review ACCEPT and nonvisual QA PASS cover candidate `080afc43b2b3942625e264547b75cb9b3a74b3bc`
+against base `46a15c89fdb33de3e411053e53dfe33a4c60ea0e`, with no findings. TASK-00116 is done for its 68-file
+Domain/caller/metadata slice; TICKET-00037 and EPIC-00016 remain open for unfinished children. The qualified earlier
+full gate covers 3,480 tests / 51,037 assertions and exact 7,922/7,922 statements; fresh Land focused checks pass
+650 tests / 1,003 assertions. No consumer persistence/provider qualification or whole-library acceptance is implied.
+
+[PR #164](https://github.com/johnnickell/fight-access-control/pull/164) is open with accepted implementation at this
+checkpoint; administrative closeout publication/final-head verification remain pending. Current delivery/resource
+results and the administrative bridge belong to canonical `.runs/handoffs/TASK-00116/land.md` and the actual PR.
+Independent reports remain unchanged. No hosted acceptance gate is declared; hosted CI is unchecked, not passed.
+No approval, merge, release or deployment is claimed. The Work checkpoint below is historical, not a current
+Review/QA action.
+
+### TASK-00116 human credential Domain contracts — historical Work checkpoint
+
+The four grant/delivery Domain families retain their current serialization, nullable repositories and worker/recovery
+ownership. Required message fields now reject wrong-type coercion and timestamp payloads require explicit valid
+RFC3339 instants. Safe work/status values validate purpose-specific identity, nonnegative revision and applicable
+status relationships; due-work OpenAPI metadata agrees. Grant transitions expose their actual subtype with `static`
+returns. The [current delivery guide](docs/credential-delivery.md#precise-domain-type-contracts-unreleased) records
+consumer adjustments and unchanged boundaries.
+
+The exhaustive declaration/member inventory, actual caller traces, regression-first evidence, static probes and
+verification/content/runtime mapping are retained in canonical `.runs/handoffs/TASK-00116/work.md`. This Work
+checkpoint claims no independent acceptance, consumer persistence/provider qualification, publication, release or
+deployment. Before first independent Review, the advancing-base integration retains TASK-00151's accepted fixture
+gate from develop without changing this slice's production contracts. The canonical handoff preserves original
+evidence separately from fresh integrated verification. Independent Review and nonvisual QA remain required;
+sibling typing/audit tasks retain their ownership.
+
 ## TASK-00150 structural contract inventory — accepted checkpoint
 
 Independent Review ACCEPT and nonvisual QA PASS cover candidate `73154cf29907711e67e254630465dcb16480da66`.
@@ -262,6 +315,47 @@ Principal snapshot arrays remain genuinely dynamic validated inputs, not live au
 [policy input types](docs/operation-outcomes.md#serialized-policy-types-unreleased) and
 [type-contract proof](docs/type-contracts.md). No Common adoption, new policy, compatibility reader or consumer
 qualification is included. Independent Review and behavioral QA remain pending; Work does not mark TASK-00117 done.
+
+## TASK-00115 User/session/audit typing — accepted checkpoint
+
+Independent Review v3 ACCEPT and nonvisual QA PASS cover repaired integrated candidate
+`e0853b518997713493fb1473d2ea0f6878479e68` against `46a15c89fdb33de3e411053e53dfe33a4c60ea0e`.
+L-01 is resolved; TASK-00115 is done, while TICKET-00037/EPIC-00016 remain open for unfinished children.
+The complete gate passed with 3,756 tests / 51,540 assertions and exact global/owned statement coverage.
+QA executed eight affected groups / 99 checks freshly and qualified fourteen unchanged production groups /
+759 original checks for reuse, not fresh execution. Publication/final delivery verification are pending at this
+closeout checkpoint; current delivery/resource results belong to canonical `.runs/handoffs/TASK-00115/land.md`
+and the actual PR. No consumer qualification, merge, release or deployment is implied. The Engineer and repair
+checkpoints below are historical; independent canonical reports preserve their exact subjects.
+
+## TASK-00115 User/session/audit typing — Engineer checkpoint
+
+The Engineer candidate audits the complete current 67-file User/RefreshSession/Audit Domain boundary, with a
+candidate-specific declaration/member/contract/caller inventory: 37 corrected declarations and 30 justified
+unchanged dispositions, without Domain additions, moves or removals. All 32 owned messages retain valid current
+outputs while rejecting coercive type mismatches; typed Role/context collections, current hydration, counter limits
+and exact refresh-credential shape have executable regressions. The User test repository preserves native subsecond
+instants in expected-state comparisons, including rejected coupled session insertion. See the
+[current type-contract guide](docs/user-session-type-contracts.md).
+
+Existing nullable repository lookups, direct synchronous User capability homes, CAS/coupled persistence, required
+audit, recovery and secret handling remain. No Common adoption, optional-audit design or query absence change is
+included. Exact candidate, regression/focused/static results and final gate/coverage evidence belong to the canonical
+TASK-00115 Work handoff. The pre-Review candidate integrates pinned develop `47f1e1a8d61ba87a91ac4055a376332a5f4ae1ee`,
+preserving TASK-00150's accepted structural foundation. Owned fingerprints and candidate evidence are reconciled;
+changed Composer/quality inputs require fresh integrated verification, not reuse of the earlier gate as current proof.
+Independent technical Review and behavioral QA remain pending; this checkpoint does not
+self-accept or close the TASK, qualify consumer persistence/crypto, publish, release or deploy anything.
+
+### Integrated fixture repair
+
+The prior TASK-00115 candidate received independent Review ACCEPT and behavioral QA PASS. Integration of pinned
+develop `46a15c89fdb33de3e411053e53dfe33a4c60ea0e` then exposed stale UserView shape messages in the required
+fixture manifest. The repair aligns only those two expectations with the precise four-value UserState output;
+production/test bytes and exact diagnostic enforcement remain unchanged. Original failure and current verification,
+inventory equivalence and newly prepared runtime identity are retained in the canonical TASK-00115 Work handoff.
+Independent reassessment/applicable QA remain required for the repaired integrated subject; the earlier checkpoint
+and verdicts are historical, not acceptance of this repair. TASK-00115 remains in-progress.
 
 ## TASK-00151 type-contract foundation — accepted checkpoint
 
