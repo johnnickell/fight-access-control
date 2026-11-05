@@ -241,6 +241,19 @@ EPIC-00016's six accepted TICKET plans below are complete, not implemented/quali
 Common suppliers remain separate unfinished planning/qualification handoffs. Existing scope/order/blockers and first
 Board selection remain unchanged. No source/dependency/consumer mutation, product build or implementation follows.
 
+## TASK-00117 Permission, Role and authority typing — Work checkpoint
+
+The complete Permission/Role/ManagedPolicy/Authorization Domain slice has been inspected, with an exhaustive
+member/callback inventory and caller/disposition evidence retained in the canonical TASK Work handoff. Current
+corrections validate decoded message/policy values without coercion, describe exact policy-plan/Event payloads,
+project Role membership as typed lists and enforce complete canonical Role names. Valid serialization, nullable
+repositories, revisions, tier/reserved identity and reference/authority fences retain their existing semantics.
+Principal snapshot arrays remain genuinely dynamic validated inputs, not live authority. See
+[Role input types](docs/role-revisions.md#serialized-input-types-unreleased),
+[policy input types](docs/operation-outcomes.md#serialized-policy-types-unreleased) and
+[type-contract proof](docs/type-contracts.md). No Common adoption, new policy, compatibility reader or consumer
+qualification is included. Independent Review and behavioral QA remain pending; Work does not mark TASK-00117 done.
+
 ## TASK-00151 type-contract foundation — accepted checkpoint
 
 Independent Review ACCEPT and nonvisual QA PASS cover `c7b6900ecf3ee376ba152d84eddac0170f1b335d` against

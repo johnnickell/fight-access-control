@@ -74,6 +74,22 @@ final class AuthenticatedPrincipalTest extends TestCase
         self::assertFalse($principal->hasPermission(PermissionName::fromString('VIEW_ARTICLE')));
     }
 
+    public function test_dynamic_snapshot_maps_become_lists_without_changing_first_identity_semantics(): void
+    {
+        $role = new PrincipalRole(RoleId::generate(), RoleName::fromString('ROLE_EDITOR'));
+        $permission = new PrincipalPermission(PermissionId::generate(), PermissionName::fromString('VIEW_USERS'));
+        $principal = new AuthenticatedUserPrincipal(
+            UserId::generate(),
+            RefreshSessionId::generate(),
+            1,
+            ['first' => $role, 'duplicate' => $role],
+            ['first' => $permission, 'duplicate' => $permission]
+        );
+
+        self::assertSame([$role], $principal->getRoles());
+        self::assertSame([$permission], $principal->getPermissions());
+    }
+
     public function test_it_rejects_a_non_positive_authentication_version(): void
     {
         $this->expectException(AuthenticatedPrincipalException::class);

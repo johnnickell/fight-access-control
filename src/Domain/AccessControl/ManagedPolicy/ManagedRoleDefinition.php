@@ -62,17 +62,27 @@ final readonly class ManagedRoleDefinition
             }
         }
 
-        if (!is_array($data['permission_ids'])) {
-            throw new ManagedPolicyDefinitionException('Managed role permission_ids must be an array.');
+        if (!is_string($data['id']) || !is_string($data['name'])) {
+            throw new ManagedPolicyDefinitionException('Managed role id and name must be strings.');
+        }
+
+        if (!is_array($data['permission_ids']) || !array_is_list($data['permission_ids'])) {
+            throw new ManagedPolicyDefinitionException('Managed role permission_ids must be a list.');
+        }
+
+        foreach ($data['permission_ids'] as $permissionId) {
+            if (!is_string($permissionId)) {
+                throw new ManagedPolicyDefinitionException('Managed role permission identifiers must be strings.');
+            }
         }
 
         try {
             return new self(
-                RoleId::fromString((string) $data['id']),
-                RoleName::fromString((string) $data['name']),
+                RoleId::fromString($data['id']),
+                RoleName::fromString($data['name']),
                 array_map(
-                    static fn(mixed $permissionId): PermissionId => PermissionId::fromString((string) $permissionId),
-                    array_values($data['permission_ids'])
+                    PermissionId::fromString(...),
+                    $data['permission_ids']
                 )
             );
         } catch (Throwable $throwable) {

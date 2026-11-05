@@ -73,6 +73,50 @@
           "message": "Parameter #1 $callback of function array_map expects (callable(string): mixed)|null, Closure(Fight\\AccessControl\\Domain\\AccessControl\\Role\\RoleId): string given."
         }
       ]
+    },
+    {
+      "id": "permission-role-contract-precision",
+      "kind": "positive",
+      "file": "permission-role-positive.php",
+      "diagnostics": [
+        {"line": 36, "identifier": "phpstan.dumpType", "message": "Dumped type: list<Fight\\AccessControl\\Domain\\AccessControl\\Permission\\PermissionId>"},
+        {"line": 37, "identifier": "phpstan.dumpType", "message": "Dumped type: Fight\\AccessControl\\Domain\\AccessControl\\Role\\RoleRevision"},
+        {"line": 38, "identifier": "phpstan.dumpType", "message": "Dumped type: Fight\\AccessControl\\Domain\\AccessControl\\Role\\Role|null"},
+        {"line": 39, "identifier": "phpstan.dumpType", "message": "Dumped type: list<Fight\\AccessControl\\Domain\\AccessControl\\Role\\Role>"},
+        {"line": 40, "identifier": "phpstan.dumpType", "message": "Dumped type: Fight\\Common\\Domain\\Repository\\ResultSet<Fight\\AccessControl\\Domain\\AccessControl\\Role\\Role>"},
+        {"line": 41, "identifier": "phpstan.dumpType", "message": "Dumped type: Fight\\AccessControl\\Domain\\AccessControl\\Permission\\Permission|null"},
+        {"line": 42, "identifier": "phpstan.dumpType", "message": "Dumped type: list<Fight\\AccessControl\\Domain\\AccessControl\\Permission\\Permission>"},
+        {"line": 43, "identifier": "phpstan.dumpType", "message": "Dumped type: Fight\\Common\\Domain\\Repository\\ResultSet<Fight\\AccessControl\\Domain\\AccessControl\\Permission\\Permission>"},
+        {"line": 44, "identifier": "phpstan.dumpType", "message": "Dumped type: list<Fight\\AccessControl\\Domain\\AccessControl\\Authorization\\PrincipalRole>"},
+        {"line": 45, "identifier": "phpstan.dumpType", "message": "Dumped type: list<Fight\\AccessControl\\Domain\\AccessControl\\Authorization\\PrincipalPermission>"},
+        {"line": 46, "identifier": "phpstan.dumpType", "message": "Dumped type: list<Fight\\AccessControl\\Domain\\AccessControl\\ManagedPolicy\\ManagedPermissionDefinition>"},
+        {"line": 47, "identifier": "phpstan.dumpType", "message": "Dumped type: list<Fight\\AccessControl\\Domain\\AccessControl\\ManagedPolicy\\ManagedRoleDefinition>"},
+        {"line": 48, "identifier": "phpstan.dumpType", "message": "Dumped type: list<Fight\\AccessControl\\Domain\\AccessControl\\ManagedPolicy\\ManagedPermissionPlanItem>"},
+        {"line": 49, "identifier": "phpstan.dumpType", "message": "Dumped type: list<Fight\\AccessControl\\Domain\\AccessControl\\ManagedPolicy\\ManagedRolePlanItem>"},
+        {"line": 50, "identifier": "phpstan.dumpType", "message": "Dumped type: array{permissions: list<array{id: string, name: string, tier: string, action: string}>, roles: list<array{id: string, name: string, permission_ids: list<string>, action: string}>}"},
+        {"line": 51, "identifier": "phpstan.dumpType", "message": "Dumped type: array{permissions: list<array{id: string, name: string, tier: string, action: string}>, roles: list<array{id: string, name: string, permission_ids: list<string>, action: string}>}"},
+        {"line": 52, "identifier": "phpstan.dumpType", "message": "Dumped type: array{plan: array{permissions: list<array{id: string, name: string, tier: string, action: string}>, roles: list<array{id: string, name: string, permission_ids: list<string>, action: string}>}, occurred_at: string}"},
+        {"line": 53, "identifier": "phpstan.dumpType", "message": "Dumped type: array{actor_id: string, role_id: string, name: string, expected_revision: string}"},
+        {"line": 54, "identifier": "phpstan.dumpType", "message": "Dumped type: array{permissions: list<array{id: string, name: string, tier: string}>, roles: list<array{id: string, name: string, permission_ids: list<string>}>, referenced_permission_ids: list<string>}"},
+        {"line": 55, "identifier": "phpstan.dumpType", "message": "Dumped type: array{permissions: list<array{id: string, name: string, tier: string}>, roles: list<array{id: string, name: string, permission_ids: list<string>}>, referenced_permission_ids: list<string>}"},
+        {"line": 56, "identifier": "phpstan.dumpType", "message": "Dumped type: list<string>"}
+      ]
+    },
+    {
+      "id": "permission-role-incompatible-uses",
+      "kind": "negative",
+      "file": "permission-role-negative.php",
+      "diagnostics": [
+        {"line": 31, "identifier": "argument.type", "message": "Parameter #1 $id of method Fight\\AccessControl\\Domain\\AccessControl\\Role\\RoleRepository::getById() expects Fight\\AccessControl\\Domain\\AccessControl\\Role\\RoleId, Fight\\AccessControl\\Domain\\AccessControl\\Permission\\PermissionId given."},
+        {"line": 32, "identifier": "argument.type", "message": "Parameter #1 $id of method Fight\\AccessControl\\Domain\\AccessControl\\Permission\\PermissionRepository::getById() expects Fight\\AccessControl\\Domain\\AccessControl\\Permission\\PermissionId, Fight\\AccessControl\\Domain\\AccessControl\\Role\\RoleId given."},
+        {"line": 33, "identifier": "argument.type", "message": "Parameter #3 $permissionIds of static method Fight\\AccessControl\\Domain\\AccessControl\\Role\\Role::define() expects list<Fight\\AccessControl\\Domain\\AccessControl\\Permission\\PermissionId>, array{Fight\\AccessControl\\Domain\\AccessControl\\Role\\RoleId} given."},
+        {"line": 34, "identifier": "argument.type", "message": "Parameter #4 $permissionIds of class Fight\\AccessControl\\Domain\\AccessControl\\Role\\Query\\RoleView constructor expects list<Fight\\AccessControl\\Domain\\AccessControl\\Permission\\PermissionId>, array{Fight\\AccessControl\\Domain\\AccessControl\\Role\\RoleId} given."},
+        {"line": 35, "identifier": "argument.type", "message": "Parameter #1 $permissions of class Fight\\AccessControl\\Domain\\AccessControl\\ManagedPolicy\\ManagedPolicy constructor expects list<Fight\\AccessControl\\Domain\\AccessControl\\ManagedPolicy\\ManagedPermissionDefinition>, array{Fight\\AccessControl\\Domain\\AccessControl\\ManagedPolicy\\ManagedPermissionPlanItem} given."},
+        {"line": 36, "identifier": "argument.type", "message": "Parameter #1 $permissions of class Fight\\AccessControl\\Domain\\AccessControl\\ManagedPolicy\\ManagedPolicyPlan constructor expects list<Fight\\AccessControl\\Domain\\AccessControl\\ManagedPolicy\\ManagedPermissionPlanItem>, array{Fight\\AccessControl\\Domain\\AccessControl\\ManagedPolicy\\ManagedPermissionDefinition} given."},
+        {"line": 38, "identifier": "argument.type", "message": "Parameter #1 $role of closure expects Fight\\AccessControl\\Domain\\AccessControl\\Role\\Role, Fight\\AccessControl\\Domain\\AccessControl\\Role\\Role|null given."},
+        {"line": 40, "identifier": "argument.type", "message": "Parameter #1 $permission of closure expects Fight\\AccessControl\\Domain\\AccessControl\\Permission\\Permission, Fight\\AccessControl\\Domain\\AccessControl\\Permission\\Permission|null given."},
+        {"line": 41, "identifier": "argument.type", "message": "Parameter #1 $callback of function array_map expects (callable(string): mixed)|null, Closure(Fight\\AccessControl\\Domain\\AccessControl\\Permission\\PermissionId): string given."}
+      ]
     }
   ]
 }

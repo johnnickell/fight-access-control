@@ -170,6 +170,19 @@ ordered outcomes, late final-boundary conflicts, rollback, eligible retry and pu
 SQL isolation, real adapter locks or independent processes. Qualify those against the actual shared transaction,
 including both concurrent winner orders, expected-state conflicts, rollback and indeterminate commit outcomes.
 
+### Serialized policy types (Unreleased)
+
+`ManagedPolicy::fromArray()` and its preview/reconcile messages validate dynamic decoded input: `permissions`,
+`roles` and `referenced_permission_ids` are lists, definition items are arrays, and IDs/names/tiers are strings.
+Role definition `permission_ids` is a list of strings. Values are not obtained by casting objects/scalars into the
+current shape. Typed PHP constructors retain their existing list-of-value preconditions. Valid wire payloads,
+managed membership and tier rules are unchanged; update malformed producers without compatibility defaults.
+
+`ManagedPolicyPlan::toArray()` and `ManagedPolicyReconciled::getPlan()` expose exact static item shapes:
+Permission items contain `id`, `name`, `tier`, `action`; Role items contain `id`, `name`, `permission_ids`, `action`.
+The Event retains runtime validation of dynamic plan input and requires a nonempty string `occurred_at` when decoded.
+Richer annotations do not turn preview, an Event or a principal snapshot into a reservation or authorization.
+
 ## Role revision composition
 
 Custom Role detail/list Views expose required `revision`; rename/remove require the displayed state's

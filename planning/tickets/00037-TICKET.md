@@ -116,11 +116,17 @@ Review/applicable QA, without waiting to delegate those obligations to final rec
 | --- | --- | --- | --- |
 | 301 | [TASK-00115](../tasks/00115-TASK.md) | Correct User, session and audit type contracts | ready-for-agent |
 | 302 | [TASK-00116](../tasks/00116-TASK.md) | Correct human credential and delivery type contracts | ready-for-agent |
-| 303 | [TASK-00117](../tasks/00117-TASK.md) | Correct Permission, Role and authority type contracts | ready-for-agent |
+| 303 | [TASK-00117](../tasks/00117-TASK.md) | Correct Permission, Role and authority type contracts | in-progress |
 | 304 | [TASK-00118](../tasks/00118-TASK.md) | Correct Agent identity and administration type contracts | ready-for-agent |
 | 305 | [TASK-00119](../tasks/00119-TASK.md) | Correct Agent operation and recovery type contracts | ready-for-agent |
 | 306 | [TASK-00120](../tasks/00120-TASK.md) | Correct Feature type contracts | ready-for-agent |
 ## Decisions and Progress
+
+TASK-00117 now has its Engineer implementation checkpoint for the complete Permission/Role/ManagedPolicy/
+Authorization Domain slice. Its record and canonical ignored Work handoff own exhaustive member/callback/caller
+inventory, corrections, justified unchanged contracts and verification evidence. Independent Review and behavioral
+QA remain pending; this TICKET and the other Domain slices remain open. The planning-only history below is retained.
+
 
 Grill, To Tickets and this TICKET's complete six-TASK decomposition are approved/written. No source/dependency
 change, completed audit, product build, commit/publication or independent implementation acceptance is claimed.

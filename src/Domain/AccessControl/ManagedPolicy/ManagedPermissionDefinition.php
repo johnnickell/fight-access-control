@@ -43,13 +43,20 @@ final readonly class ManagedPermissionDefinition
                     $key
                 ));
             }
+
+            if (!is_string($data[$key])) {
+                throw new ManagedPolicyDefinitionException(sprintf(
+                    'Managed permission %s must be a string.',
+                    $key
+                ));
+            }
         }
 
         try {
             return new self(
-                PermissionId::fromString((string) $data['id']),
-                PermissionName::fromString((string) $data['name']),
-                PermissionTier::from((string) $data['tier'])
+                PermissionId::fromString($data['id']),
+                PermissionName::fromString($data['name']),
+                PermissionTier::from($data['tier'])
             );
         } catch (Throwable $throwable) {
             throw new ManagedPolicyDefinitionException(
