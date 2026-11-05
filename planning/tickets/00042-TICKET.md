@@ -146,15 +146,34 @@ is required for each implementation slice; planning approval supplies none of it
 | Order | TASK ID | Title | Status |
 | --- | --- | --- | --- |
 | 299 | [TASK-00150](../tasks/00150-TASK.md) | Maintain exhaustive declaration and contract ownership | done |
-| 300 | [TASK-00151](../tasks/00151-TASK.md) | Execute type-contract fixtures through the canonical gate | ready-for-agent |
+| 300 | [TASK-00151](../tasks/00151-TASK.md) | Execute type-contract fixtures through the canonical gate | done |
 | 329 | [TASK-00152](../tasks/00152-TASK.md) | Enforce and qualify the integrated library contracts | ready-for-agent |
 ## Decisions and Progress
+
+Both early foundations are done at the independently accepted candidates recorded below. This TICKET remains
+open for TASK-00152 and the unfinished semantic correction suppliers. The following acceptance/Work checkpoints
+retain their original subjects and chronology; current results belong to each TASK's canonical Land receipt.
+
+### Historical foundation acceptance checkpoints
+
+TASK-00151's fixture foundation is independently accepted at `c7b6900ecf3ee376ba152d84eddac0170f1b335d`
+(Review ACCEPT; nonvisual QA PASS). Publication/final delivery verification are pending at this closeout checkpoint;
+current outcomes are in canonical `.runs/handoffs/TASK-00151/land.md` and the actual PR. This TICKET remains open:
+TASK-00150 and TASK-00152 are unfinished. No whole-library or dispatch/Event supplier qualification is claimed.
+The Engineer and approved-planning checkpoints below are historical; the Board owns current execution selection.
 
 TASK-00150's structural foundation has independent Review ACCEPT and nonvisual QA PASS at candidate
 `73154cf29907711e67e254630465dcb16480da66`. Its completion does not close this TICKET: TASK-00151/00152
 and semantic correction/reconciliation remain unfinished. Publication/final delivery verification are pending
 at this checkpoint; current delivery results belong to `.runs/handoffs/TASK-00150/land.md` and the actual PR.
 The Work and planning checkpoints below are historical, not current acceptance prerequisites.
+
+### Historical Engineer checkpoints
+
+TASK-00151 now has the [type-contract foundation](../../docs/type-contracts.md) implemented at its Engineer checkpoint,
+with focused fixture and separate runner-qualification evidence in its ignored Work handoff. Independent Review,
+nonvisual QA and final acceptance remain outstanding. This does not complete TASK-00150's inventory, TASK-00152's
+sufficient integrated rules/reconciliation, or the dispatch/Event semantic owners' supplier/runtime proof.
 
 TASK-00150's Work now implements the early [structural inventory foundation](../../docs/contract-inventory.md)
 with independent Review/nonvisual QA still pending. Enumeration and drift enforcement do not complete semantic

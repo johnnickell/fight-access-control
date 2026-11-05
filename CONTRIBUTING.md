@@ -74,6 +74,12 @@ dependencies and calls the same `./bin/quality` gate; it does not maintain a sec
 [Testing's hosted-check policy](docs/engineering/standards/Testing.md#gate-boundaries); do not infer a new hosted
 requirement from public visibility or a workflow file. Builders do not monitor CI unless explicitly required/authorized.
 
+For type-contract work, run `./bin/type-contracts` during iteration and follow the
+[fixture guide](docs/type-contracts.md) to register exact positive inference and expected-negative diagnostics.
+`bin/quality` requires these product contracts; qualify changes to the runner separately with
+`./bin/exec python3 scripts/qualify_type_contracts.py`, outside default PHPUnit and production coverage.
+Representative fixtures do not establish whole-library correctness or qualify missing Common dispatch/Event APIs.
+
 Coding style composes Fight Common's published PHPCS ruleset through [phpcs.xml](phpcs.xml), with the
 repository's documented exclusions and extensions. It covers the package's required strict types, layout,
 naming, spacing, arrays, and documentation checks; do not copy Fight Common sniffs into this repository.

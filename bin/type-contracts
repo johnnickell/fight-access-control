@@ -1,0 +1,4 @@
+#!/usr/bin/env sh
+set -eu
+cd "$(dirname "$0")/.."
+exec ./bin/.container-run python3 scripts/check_type_contracts.py "$@"
