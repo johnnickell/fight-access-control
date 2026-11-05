@@ -145,10 +145,16 @@ is required for each implementation slice; planning approval supplies none of it
 
 | Order | TASK ID | Title | Status |
 | --- | --- | --- | --- |
-| 299 | [TASK-00150](../tasks/00150-TASK.md) | Maintain exhaustive declaration and contract ownership | in-progress |
+| 299 | [TASK-00150](../tasks/00150-TASK.md) | Maintain exhaustive declaration and contract ownership | done |
 | 300 | [TASK-00151](../tasks/00151-TASK.md) | Execute type-contract fixtures through the canonical gate | ready-for-agent |
 | 329 | [TASK-00152](../tasks/00152-TASK.md) | Enforce and qualify the integrated library contracts | ready-for-agent |
 ## Decisions and Progress
+
+TASK-00150's structural foundation has independent Review ACCEPT and nonvisual QA PASS at candidate
+`73154cf29907711e67e254630465dcb16480da66`. Its completion does not close this TICKET: TASK-00151/00152
+and semantic correction/reconciliation remain unfinished. Publication/final delivery verification are pending
+at this checkpoint; current delivery results belong to `.runs/handoffs/TASK-00150/land.md` and the actual PR.
+The Work and planning checkpoints below are historical, not current acceptance prerequisites.
 
 TASK-00150's Work now implements the early [structural inventory foundation](../../docs/contract-inventory.md)
 with independent Review/nonvisual QA still pending. Enumeration and drift enforcement do not complete semantic

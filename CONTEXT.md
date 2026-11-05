@@ -6,7 +6,15 @@ Fight AccessControl owns framework-neutral identity, credential, session, author
 behavior shared by Fight applications. The repository-local behavioral and security authority is
 [TICKET-00001](planning/tickets/00001-TICKET.md).
 
-## TASK-00150 structural contract inventory — Work checkpoint
+## TASK-00150 structural contract inventory — accepted checkpoint
+
+Independent Review ACCEPT and nonvisual QA PASS cover candidate `73154cf29907711e67e254630465dcb16480da66`.
+This accepts the structural tooling foundation only, not production semantics or EPIC-00016 completion;
+all initial semantic judgments remain pending. Publication/final delivery verification are pending at this
+closeout checkpoint; current results belong to `.runs/handoffs/TASK-00150/land.md` and the actual PR.
+The Work checkpoint below is historical, not a current Review/QA prerequisite.
+
+### Work checkpoint
 
 The [declaration/contract inventory](docs/contract-inventory.md) parses all current src/OpenAPI PHP inputs and
 routes declarations, members, callbacks and syntactic relationships to existing typing correction owners. Compact

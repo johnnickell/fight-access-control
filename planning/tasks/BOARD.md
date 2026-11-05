@@ -5,13 +5,11 @@ dependencies, acceptance, and verification.
 
 ## What's Next?
 
-Active Task: [TASK-00150](00150-TASK.md) — Maintain exhaustive declaration and contract ownership.
+First ready Task: [TASK-00151](00151-TASK.md) — Execute type-contract fixtures through the canonical gate.
 
 ## In Progress
 
-| Order | TASK ID | Title | Parent TICKET | Status | Blocked by | PR |
-| --- | --- | --- | --- | --- | --- | --- |
-| 299 | [TASK-00150](00150-TASK.md) | Maintain exhaustive declaration and contract ownership | [TICKET-00042](../tickets/00042-TICKET.md) — Enforce and demonstrate whole-library type correctness | in-progress | — | — |
+No Tasks are currently in this state.
 
 ## Ready Frontier
 
@@ -220,3 +218,4 @@ No Tasks are currently in this state.
 | 203 | [TASK-00113](00113-TASK.md) | Make AgentName own provisioning and rename semantics | [TICKET-00036](../tickets/00036-TICKET.md) — Clarify Agent name and credential-operation domain ownership | done | — | https://github.com/johnnickell/fight-access-control/pull/155 |
 | 204 | [TASK-00114](00114-TASK.md) | Establish credential-operation aggregate and narrow read repositories | [TICKET-00036](../tickets/00036-TICKET.md) — Clarify Agent name and credential-operation domain ownership | done | — | https://github.com/johnnickell/fight-access-control/pull/158 |
 | 205 | [TASK-00182](00182-TASK.md) | Convert recoverable Agent issuance to Commands and outcome Queries | [TICKET-00053](../tickets/00053-TICKET.md) — Issue Agent credentials through Commands and outcome Queries | done | — | https://github.com/johnnickell/fight-access-control/pull/159 |
+| 299 | [TASK-00150](00150-TASK.md) | Maintain exhaustive declaration and contract ownership | [TICKET-00042](../tickets/00042-TICKET.md) — Enforce and demonstrate whole-library type correctness | done | — | — |
