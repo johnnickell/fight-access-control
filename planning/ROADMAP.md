@@ -172,6 +172,16 @@ or release is authorized by this planning.
 
 ## Current planning handoff — library-wide typing and failure contracts
 
+[TASK-00118](tasks/00118-TASK.md)'s complete Agent identity/administration Domain slice has independent
+Review v3 ACCEPT and nonvisual QA PASS at `b4300b8108ff4cffa9499e1f4530d58459d78f6d`; R-01 is resolved.
+The TASK is done, with qualified full-gate/exact coverage and nine passing QA scenarios. Publication/final-head
+verification are pending at this closeout checkpoint; current delivery/resource outcomes and administrative-only
+provenance belong to canonical `.runs/handoffs/TASK-00118/land.md` and the actual PR. TASK-00119/00120 and other
+unfinished children keep TICKET-00037/EPIC-00016 open. No whole-library or consumer qualification is implied;
+current execution selection remains with the Board, not these historical planning checkpoints.
+
+### Historical TASK-00117 integrated acceptance checkpoint
+
 TASK-00117's integrated QA-01 repair has independent Review ACCEPT and nonvisual QA PASS at
 `52540b7293a0cfd84d8fa03230c6e2ab2cde6520` against `e13995a5b2760d4d02300de2b81797b1d009eb38`.
 QA-01 / Review I-01 is resolved. Land mechanically integrates develop's runtime-free fixture tooling at

@@ -5,13 +5,11 @@ dependencies, acceptance, and verification.
 
 ## What's Next?
 
-Active Task: [TASK-00118](00118-TASK.md) — Correct Agent identity and administration type contracts.
+First ready Task: [TASK-00119](00119-TASK.md) — Correct Agent operation and recovery type contracts.
 
 ## In Progress
 
-| Order | TASK ID | Title | Parent TICKET | Status | Blocked by | PR |
-| --- | --- | --- | --- | --- | --- | --- |
-| 304 | [TASK-00118](00118-TASK.md) | Correct Agent identity and administration type contracts | [TICKET-00037](../tickets/00037-TICKET.md) — Make Domain and repository contracts precise | in-progress | — | — |
+No Tasks are currently in this state.
 
 ## Ready Frontier
 
@@ -220,3 +218,4 @@ No Tasks are currently in this state.
 | 301 | [TASK-00115](00115-TASK.md) | Correct User, session and audit type contracts | [TICKET-00037](../tickets/00037-TICKET.md) — Make Domain and repository contracts precise | done | — | https://github.com/johnnickell/fight-access-control/pull/163 |
 | 302 | [TASK-00116](00116-TASK.md) | Correct human credential and delivery type contracts | [TICKET-00037](../tickets/00037-TICKET.md) — Make Domain and repository contracts precise | done | — | https://github.com/johnnickell/fight-access-control/pull/164 |
 | 303 | [TASK-00117](00117-TASK.md) | Correct Permission, Role and authority type contracts | [TICKET-00037](../tickets/00037-TICKET.md) — Make Domain and repository contracts precise | done | — | https://github.com/johnnickell/fight-access-control/pull/165 |
+| 304 | [TASK-00118](00118-TASK.md) | Correct Agent identity and administration type contracts | [TICKET-00037](../tickets/00037-TICKET.md) — Make Domain and repository contracts precise | done | — | — |

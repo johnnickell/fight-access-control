@@ -79,6 +79,12 @@ TASK-00182 Command conversion has independent Review ACCEPT and nonvisual QA PAS
 verification were pending at closeout. Current results are in its canonical Land handoff and actual PR; no consumer
 qualification is claimed.
 
+The unreleased [Agent identity/administration type corrections](docs/agent-current-contract.md#precise-identity-and-administration-types-unreleased)
+have independent Review ACCEPT and nonvisual QA PASS for TASK-00118, including R-01's iterable-member repair.
+The TASK records its accepted candidate; publication/final checks are pending at that closeout checkpoint.
+Current delivery/resource results belong to canonical `.runs/handoffs/TASK-00118/land.md` and the actual PR.
+This bounded acceptance does not qualify consumer persistence, cryptography or the whole-library typing target.
+
 | This package owns | Your application owns |
 | --- | --- |
 | Identity, credentials, sessions and account state | Persistence, schema and repository implementations |
