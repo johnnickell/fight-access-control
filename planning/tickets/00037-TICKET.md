@@ -118,9 +118,20 @@ Review/applicable QA, without waiting to delegate those obligations to final rec
 | 302 | [TASK-00116](../tasks/00116-TASK.md) | Correct human credential and delivery type contracts | done |
 | 303 | [TASK-00117](../tasks/00117-TASK.md) | Correct Permission, Role and authority type contracts | done |
 | 304 | [TASK-00118](../tasks/00118-TASK.md) | Correct Agent identity and administration type contracts | ready-for-agent |
-| 305 | [TASK-00119](../tasks/00119-TASK.md) | Correct Agent operation and recovery type contracts | in-progress |
+| 305 | [TASK-00119](../tasks/00119-TASK.md) | Correct Agent operation and recovery type contracts | done |
 | 306 | [TASK-00120](../tasks/00120-TASK.md) | Correct Feature type contracts | ready-for-agent |
 ## Decisions and Progress
+
+### TASK-00119 operation/recovery slice — accepted checkpoint
+
+Independent Review v3 ACCEPT and nonvisual QA PASS cover TASK-00119 candidate
+`3ce0b96c5ca713673be4e74e20f4aa9d46b5c7a4` against
+`458a35ac224d8dd6b855c4652db9fad34c327187`; R-001/R-002 are independently resolved.
+The complete 47-declaration package slice is done, with retained full gate/exact coverage and fresh independent
+nonvisual QA. TASK-00118/00120 remain unfinished, so automatic parent completion keeps this TICKET and
+EPIC-00016 open. No whole-Domain or consumer qualification is claimed. Publication/final delivery verification
+are pending at this checkpoint; current bridge, checks and delivery/resource results belong to canonical
+`.runs/handoffs/TASK-00119/land.md` and the actual PR. Independent reports and historical checkpoints remain intact.
 
 ### TASK-00117 integrated repair — accepted checkpoint
 

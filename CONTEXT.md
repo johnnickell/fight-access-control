@@ -6,7 +6,23 @@ Fight AccessControl owns framework-neutral identity, credential, session, author
 behavior shared by Fight applications. The repository-local behavioral and security authority is
 [TICKET-00001](planning/tickets/00001-TICKET.md).
 
-## TASK-00119 Agent operation typing — Work checkpoint
+## TASK-00119 Agent operation typing — accepted checkpoint
+
+Independent Review v3 ACCEPT and nonvisual QA PASS cover candidate
+`3ce0b96c5ca713673be4e74e20f4aa9d46b5c7a4` against
+`458a35ac224d8dd6b855c4652db9fad34c327187`. R-001/R-002 are independently resolved; no new blocking findings.
+TASK-00119 is done for its complete 47-declaration package slice. TICKET-00037 and EPIC-00016 remain open for
+unfinished children, including TASK-00118/00120; no sibling, whole-library or consumer qualification is implied.
+The retained Engineer-02 gate passed 4,495 tests / 52,776 assertions and exact global 8,128/8,128 and owned
+743/743 statements. Independent QA freshly passed 15 nonvisual scenarios / 482 checks.
+
+Publication/final delivery verification are pending at this administrative checkpoint; the accepted-to-published
+bridge, fresh closeout checks and current delivery/resource results belong to canonical
+`.runs/handoffs/TASK-00119/land.md` and the actual PR. Retained gate evidence is not fresh final-head execution.
+Canonical independent reports and earlier failures remain unchanged. No approval, merge, release or deployment
+is claimed. The Work checkpoint below is historical, not a current Review/QA instruction.
+
+### TASK-00119 Agent operation typing — historical Work checkpoint
 
 The current 47-declaration operation/recovery Domain slice now has strict Event decoding, exact safe payload
 shapes and a discriminated confirmed/indeterminate View representation. Current operation hydration rejects
