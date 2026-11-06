@@ -5,10 +5,14 @@ declare(strict_types=1);
 namespace Fight\AccessControl\Application\AccessControl\AgentCredentialOperation\QueryHandler;
 
 use Fight\AccessControl\Application\AccessControl\AgentCredentialOperation\Delivery\AgentDeliveryAuthorization;
+use Fight\AccessControl\Application\AccessControl\AgentCredentialOperation\Exception\AgentOperationReadFailed;
 use Fight\AccessControl\Application\AccessControl\Timing\Service\Clock;
+use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\AgentCredentialDisposition;
 use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\AgentCredentialOperationReadRepository;
+use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\AgentDeliveryDisposition;
 use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\AgentOperationFailure;
 use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\Exception\AgentOperationRejectedException;
+use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\Query\AgentDeliveryWorkView;
 use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\Query\AgentOperationView;
 use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\Query\ListDueAgentDeliveries;
 use Fight\Common\Application\Messaging\Query\QueryHandler;
@@ -57,10 +61,11 @@ final readonly class ListDueAgentDeliveriesHandler implements QueryHandler
                 $this->clock->now()
             );
             $this->operationReadRepository->getOperationContract()->assertCompatible();
-            $views = $this->operationReadRepository->listDueDeliveries(
+            $selectedAt = $this->clock->now();
+            $work = $this->operationReadRepository->listDueDeliveries(
                 $query->getScope(),
                 $query->getDestination(),
-                $this->clock->now(),
+                $selectedAt,
                 $query->getLimit()
             );
             $this->deliveryAuthorization->authorizeDiscovery(
@@ -69,38 +74,88 @@ final readonly class ListDueAgentDeliveriesHandler implements QueryHandler
                 null,
                 $this->clock->now()
             );
-            if (count($views) > $query->getLimit()) {
-                throw new AgentOperationRejectedException(AgentOperationFailure::UNAVAILABLE);
-            }
+            $this->validateWork($work, $query->getLimit());
 
-            foreach ($views as $view) {
+            $views = [];
+            $previous = null;
+            $keys = [];
+            $deliveryIds = [];
+            foreach ($work as $item) {
+                $view = $item->getOperation();
+                $issuance = $view->getIssuance();
+                $dueAt = $item->getDueAt();
                 if (
-                    !$view->isConfirmed()
-                    || $view->getKey()->getScope()->toString() !== $query->getScope()->toString()
+                    $issuance === null || $view->getKey()->getScope()->toString() !== $query->getScope()->toString()
+                    || $issuance->getDestination()->toArray() !== $query->getDestination()->toArray()
+                    || !$item->hasMaterial() || $item->isSinkCleaned() || $dueAt === null || $dueAt > $selectedAt
+                    || $dueAt < $issuance->getIssuedAt() || $dueAt > $item->getRetentionEnd()
+                    || $item->getRetentionEnd() <= $issuance->getIssuedAt()
+                    || $view->getCredentialDisposition() !== AgentCredentialDisposition::CURRENT
+                    || !in_array($view->getDeliveryDisposition(), [
+                        AgentDeliveryDisposition::PENDING, AgentDeliveryDisposition::RETRYABLE
+                    ], true)
+                    || $issuance->getDestinationWriteVersion() !== $item->getCurrentDestinationWriteVersion()
                 ) {
-                    throw new AgentOperationRejectedException(AgentOperationFailure::UNAVAILABLE);
+                    throw new AgentOperationReadFailed();
                 }
 
-                $view->assertReadable($view->getKey(), $query->getDestination());
+                $id = $issuance->getDeliveryId()->toString();
+                $order = [$dueAt, $id];
+                if (
+                    ($previous !== null && ($dueAt < $previous[0]
+                        || ($dueAt == $previous[0] && strcmp($id, $previous[1]) <= 0)))
+                    || isset($keys[$view->getKey()->toString()]) || isset($deliveryIds[$id])
+                ) {
+                    throw new AgentOperationReadFailed();
+                }
+
                 $this->deliveryAuthorization->authorizeDiscovery(
                     $query->getScope(),
                     $query->getDestination(),
-                    $view->getIssuance(),
+                    $issuance,
                     $this->clock->now()
                 );
+                $previous = $order;
+                $keys[$view->getKey()->toString()] = true;
+                $deliveryIds[$id] = true;
+                $views[] = $view;
             }
-
-            return $views;
-        } catch (Throwable $throwable) {
-            $reason = AgentOperationFailure::UNAVAILABLE;
+        } catch (AgentOperationRejectedException $failure) {
             if (
-                $throwable instanceof AgentOperationRejectedException
-                && $throwable->getReason() === AgentOperationFailure::UNAUTHORIZED
+                !in_array($failure->getReason(), [
+                AgentOperationFailure::UNAUTHORIZED, AgentOperationFailure::UNAVAILABLE
+                ], true)
             ) {
-                $reason = AgentOperationFailure::UNAUTHORIZED;
+                throw new AgentOperationReadFailed();
             }
 
-            throw new AgentOperationRejectedException($reason);
+            throw new AgentOperationRejectedException($failure->getReason());
+        } catch (Throwable) {
+            throw new AgentOperationReadFailed();
+        }
+
+        foreach ($views as $view) {
+            $view->assertReadable($view->getKey(), $query->getDestination());
+        }
+
+        return $views;
+    }
+
+    /**
+     * Validates the dynamic native array boundary independently of the repository's static promise
+     *
+     * @param array<array-key, mixed> $work
+     */
+    private function validateWork(array $work, int $limit): void
+    {
+        if (!array_is_list($work) || count($work) > $limit) {
+            throw new AgentOperationReadFailed();
+        }
+
+        foreach ($work as $item) {
+            if (!$item instanceof AgentDeliveryWorkView) {
+                throw new AgentOperationReadFailed();
+            }
         }
     }
 }

@@ -108,7 +108,8 @@ receipt/status recovery exists; later sink loss does not recreate a secret-read 
 `CountAgentDeliveryKeyReferences` and its handler return a nonnegative **global diagnostic count**, after current
 accounting authority both before and after the read. The repository counts every retained delivery copy across
 scopes, keyset pages, dispositions, claims, obsolete reservations and unknown canonical versions. It projects only
-reference metadata, not ciphertext. Storage failure is unavailable, never zero. A work page or per-scope count is
+reference metadata, not ciphertext. Deliberately classified storage unavailability retains its operation reason;
+unclassified faults/negative results now raise safe internal `AgentOperationReadFailed`, never zero. A work page or per-scope count is
 not a retirement account.
 
 **A zero snapshot never authorizes physical key destruction.** The consumer retirement protocol must:
@@ -130,8 +131,11 @@ not a retirement account.
 
 `ListAgentDeliveryMaintenance` is an immutable Query with canonical `fromArray()`/`toArray()` and named getters.
 All canonical fields, including nullable `after`, are required on deserialization. The constructor supplies defaults.
-Its handler reads one secret-free page of `AgentOperationView` values, checks scope authority before/after selection
+Its handler returns one secret-free page of `AgentOperationView` values, checks scope authority before/after selection
 and each target before disclosure, and rejects oversized, duplicate/out-of-order, foreign-scope or unsupported views.
+Internally the read repository now supplies `AgentDeliveryWorkView` metadata for exact material/cleanup predicate,
+pinned retention/grace and binding validation. See the unreleased [Query contracts](agent-query-contracts.md);
+no selection metadata is added to public status output, and a malformed page is an internal fault, not caller denial.
 Reads take no claims, commit nothing, dispatch no events and load no material.
 
 - `work = material` selects **all retained copies**, including obsolete reservations. Call `expire()` for expiry-only

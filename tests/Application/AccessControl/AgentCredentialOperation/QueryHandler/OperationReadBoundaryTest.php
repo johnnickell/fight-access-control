@@ -14,11 +14,14 @@ use Fight\AccessControl\Application\AccessControl\AgentCredentialOperation\Query
 };
 use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\AgentCredentialOperationReadRepository;
 use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\Maintenance\AgentDeliveryKeyVersion;
+use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\Query\AgentDeliveryWorkView;
 use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\Query\AgentOperationView;
 use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\Query\CountAgentDeliveryKeyReferences;
 use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\Query\GetAgentOperation;
 use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\Query\ListAgentDeliveryMaintenance;
 use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\Query\ListDueAgentDeliveries;
+use Fight\Common\Adapter\Messaging\Query\Routing\InMemoryQueryRouter;
+use Fight\Common\Adapter\Messaging\Query\RoutingQueryBus;
 use Fight\Common\Domain\Messaging\Query\QueryMessage;
 use Fight\Test\AccessControl\Application\AccessControl\AgentCredentialOperation\Maintenance\MaintenanceEnvironment;
 use PHPUnit\Framework\Attributes\CoversClass;
@@ -36,6 +39,7 @@ final class OperationReadBoundaryTest extends TestCase
         $delivery = $env->delivery;
         $provisioning = $delivery->provisioning;
         $view = AgentOperationView::fromOperation($delivery->operation());
+        $item = AgentDeliveryWorkView::fromOperation($delivery->operation(), 1);
         $scope = $delivery->issuance->getKey()->getScope();
         $destination = $delivery->issuance->getDestination();
         $version = new AgentDeliveryKeyVersion('test-key-v1');
@@ -53,8 +57,8 @@ final class OperationReadBoundaryTest extends TestCase
         $operationReadRepository->expects(self::once())->method('getStatusByKey')
             ->with($delivery->issuance->getKey())->willReturn($view);
         $operationReadRepository->expects(self::once())->method('listDueDeliveries')
-            ->with($scope, $destination, $delivery->clock->now(), 50)->willReturn([$view]);
-        $operationReadRepository->expects(self::once())->method('listMaintenance')->willReturn([$view]);
+            ->with($scope, $destination, $delivery->clock->now(), 50)->willReturn([$item]);
+        $operationReadRepository->expects(self::once())->method('listMaintenance')->willReturn([$item]);
         $operationReadRepository->expects(self::once())->method('countDeliveryKeyReferences')
             ->with($version)->willReturn(1);
 
@@ -77,19 +81,25 @@ final class OperationReadBoundaryTest extends TestCase
             maintenanceAuthorization: $env,
             clock: $delivery->clock
         );
-        self::assertSame($view, $status->handle(QueryMessage::create(new GetAgentOperation(
+        $router = new InMemoryQueryRouter();
+        foreach ([$status, $due, $maintenance, $accounting] as $handler) {
+            $router->registerHandler($handler::queryRegistration(), $handler);
+        }
+
+        $bus = new RoutingQueryBus($router);
+        self::assertSame($view, $bus->dispatch(QueryMessage::create(new GetAgentOperation(
             $delivery->issuance->getKey(),
             $destination
         ))));
-        self::assertSame([$view], $due->handle(QueryMessage::create(new ListDueAgentDeliveries(
+        self::assertEquals([$view], $bus->dispatch(QueryMessage::create(new ListDueAgentDeliveries(
             $scope,
             $destination
         ))));
-        self::assertSame([$view], $maintenance->handle(QueryMessage::create(new ListAgentDeliveryMaintenance(
+        self::assertEquals([$view], $bus->dispatch(QueryMessage::create(new ListAgentDeliveryMaintenance(
             $scope,
             $destination
         ))));
-        self::assertSame(1, $accounting->handle(QueryMessage::create(new CountAgentDeliveryKeyReferences($version))));
+        self::assertSame(1, $bus->dispatch(QueryMessage::create(new CountAgentDeliveryKeyReferences($version))));
         self::assertSame($before, [
             $provisioning->operationRepository->operations,
             $provisioning->operationRepository->versions,

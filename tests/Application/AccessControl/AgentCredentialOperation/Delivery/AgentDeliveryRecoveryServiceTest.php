@@ -7,6 +7,7 @@ namespace Fight\Test\AccessControl\Application\AccessControl\AgentCredentialOper
 use Fight\AccessControl\Application\AccessControl\AgentCredentialOperation\Delivery\AgentCredentialDeliveryService;
 use Fight\AccessControl\Application\AccessControl\AgentCredentialOperation\Delivery\AgentDeliveryRecoveryService;
 use Fight\AccessControl\Application\AccessControl\AgentCredentialOperation\Delivery\AgentDeliveryResult;
+use Fight\AccessControl\Application\AccessControl\AgentCredentialOperation\Exception\AgentOperationReadFailed;
 use Fight\AccessControl\Application\AccessControl\AgentCredentialOperation\QueryHandler\ListDueAgentDeliveriesHandler;
 use Fight\AccessControl\Domain\AccessControl\Agent\Command\ProvisionAgent;
 use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\AgentCredentialOperation;
@@ -547,7 +548,7 @@ final class AgentDeliveryRecoveryServiceTest extends TestCase
         self::assertSame(1, $env->sink->calls);
     }
 
-    public function test_storage_outage_during_restart_is_unavailable_not_empty_work(): void
+    public function test_unclassified_storage_fault_during_restart_is_internal_not_empty_work(): void
     {
         $env = new DeliveryEnvironment();
         $env->provisioning->operationRepository->afterDueRead = static function (): void {
@@ -556,9 +557,9 @@ final class AgentDeliveryRecoveryServiceTest extends TestCase
         try {
             $this->recover($env);
             self::fail('Unavailable storage must not look like an empty queue.');
-        } catch (AgentOperationRejectedException $agentOperationRejectedException) {
-            self::assertSame(AgentOperationFailure::UNAVAILABLE, $agentOperationRejectedException->getReason());
-            self::assertNull($agentOperationRejectedException->getPrevious());
+        } catch (AgentOperationReadFailed $agentOperationReadFailed) {
+            self::assertNull($agentOperationReadFailed->getPrevious());
+            self::assertStringNotContainsString('Unsafe storage path', (string) $agentOperationReadFailed);
         }
 
         self::assertSame(0, $env->decipher->calls);

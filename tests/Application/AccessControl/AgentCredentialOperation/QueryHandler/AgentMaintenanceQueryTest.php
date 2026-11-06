@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Fight\Test\AccessControl\Application\AccessControl\AgentCredentialOperation\QueryHandler;
 
+use Fight\AccessControl\Application\AccessControl\AgentCredentialOperation\Exception\AgentOperationReadFailed;
 use Fight\AccessControl\Application\AccessControl\AgentCredentialOperation\Maintenance\AgentMaintenanceAuthorization;
 use Fight\AccessControl\Application\AccessControl\AgentCredentialOperation\Maintenance\AgentMaintenanceResult;
 use Fight\AccessControl\Application\AccessControl\AgentCredentialOperation\QueryHandler\{
@@ -22,6 +23,7 @@ use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\AgentOpera
 use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\Exception\AgentOperationRejectedException;
 use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\Maintenance\AgentDeliveryKeyVersion;
 use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\Maintenance\AgentMaintenanceWork;
+use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\Query\AgentDeliveryWorkView;
 use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\Query\AgentOperationView;
 use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\Query\CountAgentDeliveryKeyReferences;
 use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\Query\ListAgentDeliveryMaintenance;
@@ -178,15 +180,13 @@ final class AgentMaintenanceQueryTest extends TestCase
         try {
             $this->handler($env)->handle(QueryMessage::create($this->query($env)));
             self::fail('Unauthorized/failed read must throw.');
-        } catch (AgentOperationRejectedException $agentOperationRejectedException) {
-            $reason = AgentOperationFailure::UNAUTHORIZED;
-            if ($case === 'storage') {
-                $reason = AgentOperationFailure::UNAVAILABLE;
-            }
-
-            self::assertSame($reason, $agentOperationRejectedException->getReason());
-            self::assertNull($agentOperationRejectedException->getPrevious());
-            self::assertStringNotContainsString('original-test-secret', (string) $agentOperationRejectedException);
+        } catch (AgentOperationReadFailed $failure) {
+            self::assertSame('storage', $case);
+            self::assertNull($failure->getPrevious());
+            self::assertStringNotContainsString('original-test-secret', serialize($failure));
+        } catch (AgentOperationRejectedException $failure) {
+            self::assertNotSame('storage', $case);
+            self::assertSame(AgentOperationFailure::UNAUTHORIZED, $failure->getReason());
         }
     }
 
@@ -235,7 +235,15 @@ final class AgentMaintenanceQueryTest extends TestCase
         $operationReadRepository = $this->createStub(AgentCredentialOperationReadRepository::class);
         $operationReadRepository->method('getOperationContract')
             ->willReturn($env->delivery->provisioning->operationRepository->getOperationContract());
-        $operationReadRepository->method('listMaintenance')->willReturn($views);
+        $items = array_map(fn (AgentOperationView $view): AgentDeliveryWorkView => new AgentDeliveryWorkView(
+            $view,
+            true,
+            null,
+            $env->delivery->clock->now()->modify('+1 day'),
+            false,
+            null
+        ), $views);
+        $operationReadRepository->method('listMaintenance')->willReturn($items);
         $maintenanceAuthorization = $env;
         if ($case === 'wrong scope') {
             $maintenanceAuthorization = $this->createStub(AgentMaintenanceAuthorization::class);
@@ -246,7 +254,9 @@ final class AgentMaintenanceQueryTest extends TestCase
             $maintenanceAuthorization,
             $env->delivery->clock
         );
-        $this->expectException(AgentOperationRejectedException::class);
+        $this->expectException(
+            $case === 'unknown version' ? AgentOperationRejectedException::class : AgentOperationReadFailed::class
+        );
         $handler->handle(QueryMessage::create($query));
     }
 
@@ -289,14 +299,12 @@ final class AgentMaintenanceQueryTest extends TestCase
             $query = new CountAgentDeliveryKeyReferences(new AgentDeliveryKeyVersion('test-key-v1'));
             $handler->handle(QueryMessage::create($query));
             self::fail('Failed count must not return zero.');
-        } catch (AgentOperationRejectedException $agentOperationRejectedException) {
-            $reason = AgentOperationFailure::UNAVAILABLE;
-            if (str_contains($case, 'denial') || str_contains($case, 'revoked')) {
-                $reason = AgentOperationFailure::UNAUTHORIZED;
-            }
-
-            self::assertSame($reason, $agentOperationRejectedException->getReason());
-            self::assertNull($agentOperationRejectedException->getPrevious());
+        } catch (AgentOperationReadFailed $failure) {
+            self::assertContains($case, ['storage', 'negative count']);
+            self::assertNull($failure->getPrevious());
+        } catch (AgentOperationRejectedException $failure) {
+            self::assertContains($case, ['initial denial', 'revoked after count']);
+            self::assertSame(AgentOperationFailure::UNAUTHORIZED, $failure->getReason());
         }
     }
 

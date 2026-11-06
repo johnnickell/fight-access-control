@@ -24,6 +24,7 @@ use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\Exception\
 use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\Maintenance\AgentDeliveryKeyVersion;
 use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\Maintenance\AgentMaintenancePolicy;
 use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\Maintenance\AgentMaintenanceWork;
+use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\Query\AgentDeliveryWorkView;
 use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\Query\AgentOperationView;
 use Fight\Test\AccessControl\Application\AccessControl\Agent\Credential\InMemoryAgentOperationAuthorization;
 use Fight\Test\AccessControl\Application\AccessControl\Agent\Repository\InMemoryAgentRepository;
@@ -163,7 +164,8 @@ final class InMemoryAgentCredentialOperationRepository implements
             );
         });
         $views = array_map(
-            AgentOperationView::fromOperation(...),
+            static fn (AgentCredentialOperation $operation): AgentDeliveryWorkView =>
+                AgentDeliveryWorkView::fromOperation($operation, $currentWrite),
             array_slice($due, 0, $limit)
         );
         $this->afterDueRead?->__invoke();
@@ -203,7 +205,8 @@ final class InMemoryAgentCredentialOperationRepository implements
             $right->getIssuance()->getDeliveryId()->toString()
         ));
         $views = array_map(
-            AgentOperationView::fromOperation(...),
+            static fn (AgentCredentialOperation $operation): AgentDeliveryWorkView =>
+                AgentDeliveryWorkView::fromOperation($operation, null),
             array_slice($selected, 0, $policy->getBatchSize())
         );
         $this->afterMaintenanceRead?->__invoke();

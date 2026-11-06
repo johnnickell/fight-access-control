@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Fight\Test\AccessControl\Application\AccessControl\AgentCredentialOperation\QueryHandler;
 
 use Fight\AccessControl\Application\AccessControl\AgentCredentialOperation\Delivery\AgentDeliveryResult;
+use Fight\AccessControl\Application\AccessControl\AgentCredentialOperation\Exception\AgentOperationReadFailed;
 use Fight\AccessControl\Application\AccessControl\AgentCredentialOperation\QueryHandler\ListDueAgentDeliveriesHandler;
 use Fight\AccessControl\Domain\AccessControl\Agent\Command\ProvisionAgent;
 use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\AgentCredentialDestination;
@@ -18,6 +19,7 @@ use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\AgentOpera
 use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\AgentOperationScope;
 use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\AgentProvisioningRequest;
 use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\Exception\AgentOperationRejectedException;
+use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\Query\AgentDeliveryWorkView;
 use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\Query\AgentOperationView;
 use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\Query\ListDueAgentDeliveries;
 use Fight\Common\Domain\Messaging\Query\QueryMessage;
@@ -298,13 +300,21 @@ final class ListDueAgentDeliveriesHandlerTest extends TestCase
             $env->provisioning->operationAuthorization->destinations[$queryDestination->getId()->toString()] = 1;
         }
 
+        $item = new AgentDeliveryWorkView(
+            $view,
+            true,
+            $env->clock->now(),
+            $env->clock->now()->modify('+1 day'),
+            false,
+            1
+        );
         if ($case === 'storage') {
             $operationReadRepository->method('listDueDeliveries')->willThrowException(
                 new RuntimeException('secret /provider/key')
             );
         } else {
             $operationReadRepository->method('listDueDeliveries')->willReturn(
-                $case === 'oversized' ? [$view, $view] : [$view]
+                $case === 'oversized' ? [$item, $item] : [$item]
             );
         }
 
@@ -315,13 +325,13 @@ final class ListDueAgentDeliveriesHandlerTest extends TestCase
                 1
             )));
             self::fail('Invalid storage must fail closed.');
-        } catch (AgentOperationRejectedException $agentOperationRejectedException) {
-            self::assertSame(
-                $case === 'destination' ? AgentOperationFailure::UNAUTHORIZED : AgentOperationFailure::UNAVAILABLE,
-                $agentOperationRejectedException->getReason()
-            );
-            self::assertNull($agentOperationRejectedException->getPrevious());
-            self::assertStringNotContainsString('/provider/key', serialize($agentOperationRejectedException));
+        } catch (AgentOperationReadFailed $failure) {
+            self::assertNotSame('version', $case);
+            self::assertNull($failure->getPrevious());
+            self::assertStringNotContainsString('/provider/key', serialize($failure));
+        } catch (AgentOperationRejectedException $failure) {
+            self::assertSame('version', $case);
+            self::assertSame(AgentOperationFailure::UNSUPPORTED_VERSION, $failure->getReason());
         }
     }
 

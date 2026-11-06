@@ -6,6 +6,20 @@ Fight AccessControl owns framework-neutral identity, credential, session, author
 behavior shared by Fight applications. The repository-local behavioral and security authority is
 [TICKET-00001](planning/tickets/00001-TICKET.md).
 
+## TASK-00134 Agent Query contracts — Work checkpoint
+
+The four operation/status/due/maintenance/count read paths now distinguish caller/binding concealment from
+broken repository promises and unexpected internal faults. The narrow read interface remains independent of
+material-bearing writes. Its work reads return secret-free `AgentDeliveryWorkView` evidence internally so handlers
+can validate predicates, exact bindings, selection time, current reservation, bounds/order and cursor/grace policy;
+public handler results and status wire shapes remain unchanged. Existing intentional operation failure reasons,
+confirmed/indeterminate original issuance, retained history and current authority/cohort/restoration checks remain.
+See [current Query contracts](docs/agent-query-contracts.md) for breaking PHP adapter/failure obligations and limits.
+
+Canonical `.runs/handoffs/TASK-00134/work.md` owns regression chronology, exhaustive declaration/caller dispositions,
+minimum/ordinary qualification and full-gate/content/runtime evidence. Independent Review and nonvisual QA remain
+required; this checkpoint claims no acceptance, publication, consumer qualification, release or deployment.
+
 ## TASK-00120 pinned develop integration — Work checkpoint
 
 The existing Feature branch integrates develop `4ea9fcd3a78624fae041232859eae2f249daaf3b`, retaining
