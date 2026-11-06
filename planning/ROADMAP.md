@@ -172,6 +172,27 @@ or release is authorized by this planning.
 
 ## Current planning handoff — library-wide typing and failure contracts
 
+TASK-00120's existing branch integrates pinned develop `4ea9fcd3a78624fae041232859eae2f249daaf3b`,
+preserving the accepted Feature and Agent identity/operation slices. All six Domain children are terminal
+here; automatic parent completion closes TICKET-00037 while EPIC-00016 remains open for other unfinished
+children. Canonical `.runs/handoffs/TASK-00120/work.md` owns mechanical provenance, fresh integrated
+verification and current runtime; Land independently qualifies the bridge before updating PR #167.
+Original independent reports and the checkpoint-specific sibling counts below remain historical evidence,
+not a new combined verdict or publication/merge claim. The Board owns unrelated execution selection.
+
+### Historical TASK-00120 accepted checkpoint
+
+[TASK-00120](tasks/00120-TASK.md)'s complete Feature Domain slice has independent Review v3 ACCEPT and nonvisual
+QA PASS at candidate `fb01e06e9b86ff1bdc550eaef437573ec3896b84` against develop
+`458a35ac224d8dd6b855c4652db9fad34c327187`, with no findings; QA passes eight scenarios / 243 fresh assertions.
+The TASK is done, with qualified earlier complete-gate/exact-coverage proof. TICKET-00037/EPIC-00016 stay open
+for unfinished children, including TASK-00118/00119 here. Publication/final-head checks are pending at this
+administrative checkpoint; current exact PR, bridge, evidence and resource results belong to canonical
+`.runs/handoffs/TASK-00120/land.md` and the actual PR. No whole-library or consumer qualification is claimed;
+independent reports/history remain unchanged and the Board owns execution selection.
+
+### Historical TASK-00119 combined-slice checkpoint
+
 TASK-00118 and TASK-00119 are historically accepted/done; TASK-00120 and other unfinished children keep their
 parents open. TASK-00119's requested develop integration preserves both slices and exact historical verdicts.
 Independent Review ACCEPT covers integrated candidate `9e5a21be9244c43c2cc8ae36f9a1bc669918f874` against

@@ -35,7 +35,9 @@ final readonly class GetFeatureById implements Query
     }
 
     /**
-     * @inheritDoc
+     * Returns the canonical query payload
+     *
+     * @return array{feature_id: string}
      */
     public function toArray(): array
     {

@@ -48,6 +48,28 @@ messages in consumer presentation/logging; only configuration issue fields are i
 Neither a failed query nor an invalid result authorizes activation. The consumer authorizes setup/read entry points,
 retries only after fixing the failure and rereads the target catalog.
 
+## Precise preparation output (unreleased)
+
+`FeaturePreparationResult` always projects issues as an ordered list, including when PHP callers supply named
+variadic issues. `getIssues()` returns `list<FeaturePreparationIssue>`; the `issues` field in `toArray()` is a list of exact
+`{name: string, problem: 'missing_feature'|'broken_binding'|'invalid_definition'}` shapes, never an object keyed
+by PHP argument names. `FeaturePreparationIssue` exposes the same closed problem union. Empty results and
+ordinary positional construction remain unchanged, and the shipped OpenAPI array/enum metadata already agrees.
+
+```php
+use Fight\AccessControl\Domain\AccessControl\Feature\FeatureName;
+use Fight\AccessControl\Domain\AccessControl\Feature\Query\FeaturePreparationIssue;
+use Fight\AccessControl\Domain\AccessControl\Feature\Query\FeaturePreparationProblem;
+use Fight\AccessControl\Domain\AccessControl\Feature\Query\FeaturePreparationResult;
+
+$issue = new FeaturePreparationIssue(FeatureName::fromString('checkout'), FeaturePreparationProblem::MISSING_FEATURE);
+$result = new FeaturePreparationResult(checkout: $issue);
+// getIssues() is [$issue]; serialized issues is [{"name":"checkout","problem":"missing_feature"}].
+```
+
+TASK-00120 adds executable named-argument/JSON regression and exact static shape/callback proof. This is a Domain
+contract correction, not scanner, deployment or action-authorization qualification.
+
 ## Preparation sequence and limits
 
 1. Discover the complete candidate inventory; run `ProvisionFeatures` with the configured default if creation is

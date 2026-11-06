@@ -6,6 +6,24 @@ AccessControl supplies framework-neutral Domain/Application operations; consumer
 
 `SetFeatureStatus` and `SetFeaturePermission` each require the current positive `expected_revision` and use one shared revision. `Feature::withStatus` / `withPermission` own immutable-name transitions; real edits increment once and publish `FeatureStatusChanged` / `FeaturePermissionChanged` **after** commit. No-op selections still validate current expected state and an authoritative bound Permission through `FeatureRepository::replace($expected, $successor)`, but write nothing, advance nothing and publish no success fact. Broken bindings remain visible for recovery: status changes cannot launder them, and a valid selected ID can repair them through the ordinary rebinding path. A stale selection (including stale no-op) throws `FeatureRevisionException`, a missing target throws `FeatureNotFoundException`, an invalid selected ID throws `FeatureReferenceException`; infrastructure errors propagate. The handler publishes `CommandFailedEvent` on failure and rethrows the original throwable. A post-commit publication fault does not roll back the edit or promise eventual event delivery.
 
+## Precise Domain types (unreleased)
+
+Feature Commands, Queries, Events and `FeatureView::toArray()` now expose exact static payload shapes.
+Decoded `ListFeatures` requires integer `page`/`per_page` and a string-keyed, string-valued `orderings` map;
+nulls, numeric strings, booleans, floats and arrays are not coerced into bounds. This is input-type validation,
+not a change to Query absence, pagination policy or Common dispatch typing. Callers must decode integers and
+ordering maps before constructing the current message; valid payload bytes and ordering normalization remain unchanged.
+Other Feature messages retain their existing strict field validation and nullable raw provisioning configuration.
+
+Direct `FeatureView` construction rejects nonpositive revisions just as authoritative Feature hydration does.
+At `PHP_INT_MAX`, a real status/binding transition rejects with `FeatureStateException` before integer overflow;
+an unchanged selection still returns the original aggregate. Nullable repository reads, full expected-state writes,
+Permission reference/tier fences, retirement and availability versus action permission retain their existing meaning.
+The complete 30-declaration/member audit and regression/static evidence belong to TASK-00120's canonical Work
+handoff. Independent Review ACCEPT and nonvisual QA PASS cover candidate
+`fb01e06e9b86ff1bdc550eaef437573ec3896b84`; current delivery results belong to the canonical TASK-00120 Land
+handoff and actual PR. No real consumer persistence qualification is claimed.
+
 ## Atomic adapter obligation
 
 `FeatureRepository::replace` must compare the entire expected state (identity, name, status, binding and revision) at the *final* write/no-op boundary, not merely a preflight read. It rejects stale or missing rows, forbids identity/name changes, accepts only a single revision advance for a real edit, and performs no write for an unchanged successor. Validate the selected Permission ID on **every** attempt, including no-ops; coordinate with `PermissionRepository::remove` and `FeatureRepository::add` using the same transaction-duration reference fence held through commit. A removal and new binding cannot both win. The actual consumer must prove these properties on its database/connection, including isolation, lock ordering, rollback and any ORM identity-map cache bypass. Persist positive revisions for *all* creation/hydration paths. Existing pre-v1 mappings require deliberate consumer adapter/schema adjustment; no package migration or legacy reader is provided. Package fixtures model these contracts, not real concurrent database qualification.

@@ -6,6 +6,45 @@ Fight AccessControl owns framework-neutral identity, credential, session, author
 behavior shared by Fight applications. The repository-local behavioral and security authority is
 [TICKET-00001](planning/tickets/00001-TICKET.md).
 
+## TASK-00120 pinned develop integration — Work checkpoint
+
+The existing Feature branch integrates develop `4ea9fcd3a78624fae041232859eae2f249daaf3b`, retaining
+TASK-00118/00119's accepted Agent contracts and TASK-00120's accepted Feature implementation. Original
+independent reports keep their exact subjects; this mechanical integration is not a new combined verdict.
+Canonical `.runs/handoffs/TASK-00120/work.md` owns the provenance bridge, fresh integrated verification and
+new runtime identity; Land must independently qualify that bridge before updating the existing PR.
+All six Domain children are terminal here, so automatic parent completion closes TICKET-00037. EPIC-00016
+remains open for its other unfinished children. Earlier sibling-status observations below are historical,
+not current counts. No push, PR update, approval, merge into develop, release or deployment is claimed by Work.
+
+## TASK-00120 Feature Domain types — accepted checkpoint
+
+Independent Review v3 ACCEPT and nonvisual QA PASS cover candidate
+`fb01e06e9b86ff1bdc550eaef437573ec3896b84` against develop
+`458a35ac224d8dd6b855c4652db9fad34c327187`, with no findings. QA passes eight independent scenarios /
+243 fresh assertions. The earlier complete gate is retained: 4,605 tests / 52,666 assertions and exact
+8,073/8,073 global / 225/225 Feature Domain statements, with qualified prose-only follow-ups.
+TASK-00120 is done; unfinished children keep TICKET-00037/EPIC-00016 open. Publication/final-head verification
+are pending at this administrative checkpoint; current PR, bridge, proof and resource outcomes belong to
+canonical `.runs/handoffs/TASK-00120/land.md` and the actual PR. Independent reports preserve their exact subjects.
+No whole-library, consumer, merge, release or deployment qualification is implied. The Work checkpoint below
+is historical, not a current independent-Review/QA instruction.
+
+### TASK-00120 Feature Domain types — historical Work checkpoint
+
+The complete current Feature Domain boundary has an Engineer audit/correction candidate: all 30 declarations,
+including members, preparation values/callbacks, messages, exceptions, View and repository contracts. Payload
+outputs now expose precise static shapes; ListFeatures rejects wrong input types without coercion, named variadic
+preparation issues serialize as a list, direct Views require positive revisions and real Feature changes reject
+revision exhaustion before integer overflow. See [management types](docs/feature-management.md#precise-domain-types-unreleased)
+and [preparation output](docs/feature-preparation.md#precise-preparation-output-unreleased).
+
+Nullable repositories, expected-state/reference/tier/retirement guards, no-ops and availability versus action
+permission remain unchanged. Exhaustive candidate/member/caller/disposition inventory, regression-first logs and
+verification/runtime/content mapping belong to canonical `.runs/handoffs/TASK-00120/work.md`. Independent Review
+and nonvisual QA remain required; this checkpoint does not self-accept, close the TASK/parents, qualify consumer
+persistence, publish, merge, release or deploy. Other Domain/Application/Common/audit owners retain their scopes.
+
 ## TASK-00119 develop integration — accepted delivery checkpoint
 
 Independent Review ACCEPT covers integrated candidate `9e5a21be9244c43c2cc8ae36f9a1bc669918f874` against

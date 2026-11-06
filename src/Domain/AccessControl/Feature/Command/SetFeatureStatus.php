@@ -51,7 +51,9 @@ final readonly class SetFeatureStatus implements Command
     }
 
     /**
-     * @inheritDoc
+     * Returns the canonical command payload
+     *
+     * @return array{feature_id: string, status: 'off'|'preview'|'on', expected_revision: int}
      */
     public function toArray(): array
     {

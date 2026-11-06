@@ -27,7 +27,9 @@ final readonly class ValidateFeaturePreparation implements Query
     }
 
     /**
-     * @inheritDoc
+     * Returns the empty query payload
+     *
+     * @return array{}
      */
     public function toArray(): array
     {

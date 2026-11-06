@@ -42,7 +42,9 @@ final readonly class RemoveFeature implements Command
     }
 
     /**
-     * @inheritDoc
+     * Returns the canonical command payload
+     *
+     * @return array{feature_id: string, expected_revision: int}
      */
     public function toArray(): array
     {
