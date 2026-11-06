@@ -11,6 +11,7 @@ use Fight\AccessControl\Domain\AccessControl\ActivationGrant\ActivationCredentia
 use Fight\AccessControl\Domain\AccessControl\ActivationGrant\ActivationGrant;
 use Fight\AccessControl\Domain\AccessControl\ActivationGrant\ActivationOrigin;
 use Fight\AccessControl\Domain\AccessControl\CredentialDelivery\CredentialDeliveryStatus;
+use Fight\AccessControl\Domain\AccessControl\CredentialDelivery\Query\CredentialDeliveryAbsent;
 use Fight\AccessControl\Domain\AccessControl\CredentialDelivery\Query\CredentialDeliveryStatusView;
 use Fight\AccessControl\Domain\AccessControl\CredentialDelivery\Query\FindCredentialDeliveryStatus;
 use Fight\AccessControl\Domain\AccessControl\CredentialDelivery\Query\FindDueCredentialDeliveries;
@@ -137,10 +138,9 @@ final class CredentialDeliveryQueryHandlerTest extends TestCase
         }
 
         self::assertSame(FindCredentialDeliveryStatus::class, $handler::queryRegistration());
-        self::assertNull($handler->handle(QueryMessage::create(new FindCredentialDeliveryStatus(
-            'activation',
-            $emailChange->getDelivery()->getId()->toString()
-        ))));
+        self::assertInstanceOf(CredentialDeliveryAbsent::class, $handler->handle(QueryMessage::create(
+            new FindCredentialDeliveryStatus('activation', $emailChange->getDelivery()->getId()->toString())
+        )));
     }
 
     public function test_queries_reject_missing_unsupported_or_unbounded_input(): void

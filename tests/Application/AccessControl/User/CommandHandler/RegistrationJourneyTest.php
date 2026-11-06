@@ -19,8 +19,10 @@ use Fight\AccessControl\Application\AccessControl\User\Security\AuthenticationTo
 use Fight\AccessControl\Domain\AccessControl\ActivationGrant\ActivationOrigin;
 use Fight\AccessControl\Domain\AccessControl\ActivationGrant\Command\DeliverUserInvitation;
 use Fight\AccessControl\Domain\AccessControl\ActivationGrant\Query\FindInvitationDeliveryStatus;
+use Fight\AccessControl\Domain\AccessControl\ActivationGrant\Query\InvitationDeliveryStatusView;
 use Fight\AccessControl\Domain\AccessControl\CredentialDelivery\CredentialDeliveryStatus;
 use Fight\AccessControl\Domain\AccessControl\CredentialDelivery\DueCredentialDelivery;
+use Fight\AccessControl\Domain\AccessControl\CredentialDelivery\Query\CredentialDeliveryAbsent;
 use Fight\AccessControl\Domain\AccessControl\CredentialDelivery\Query\FindDueCredentialDeliveries;
 use Fight\AccessControl\Domain\AccessControl\RefreshSession\RefreshCredential;
 use Fight\AccessControl\Domain\AccessControl\User\Event\UserRegistered;
@@ -160,13 +162,13 @@ final class RegistrationJourneyTest extends TestCase
                     self::addToAssertionCount(1);
                 }
 
-                self::assertNull($status);
+                self::assertInstanceOf(CredentialDeliveryAbsent::class, $status);
                 self::assertSame([], $this->discover($fixture));
                 continue;
             }
 
             $view = $readUser();
-            self::assertNotNull($status);
+            self::assertInstanceOf(InvitationDeliveryStatusView::class, $status);
             self::assertSame(UserState::PENDING_ACTIVATION, $view->getState());
             self::assertCount(2, $view->getRoleIds());
             self::assertStringNotContainsString('credential', serialize($view->toArray()));

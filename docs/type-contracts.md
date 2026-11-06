@@ -107,6 +107,11 @@ non-null direct-handler/planner results, issue/item lists and serialized shapes.
 fixtures retain definition, action enum, message and callback proof. Real configured routing/safe-error tests are
 separate runtime proof; Common's current mixed QueryBus still does not establish generic result inference.
 
+TASK-00133 adds credential Query cases: eight exact positive types and three incompatible uses prove both status
+unions, explicit absence narrowing/payload, invitation origin, precise due/expired lists and unchanged nullable
+repository lookup. Runtime tests separately prove actual tagged Common routing and safe errors in minimum/ordinary
+compositions. This does not claim generic bus inference or consumer persistence qualification.
+
 Native transactional results remain `mixed`; a matching local `@var` for a known owned callback result (including
 tuples/unions) remains sufficient. No generic UoW supplier or redundant runtime check is required.
 

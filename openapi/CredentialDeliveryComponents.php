@@ -39,6 +39,26 @@ use OpenApi\Attributes as OA;
     ]
 )]
 #[OA\Schema(
+    schema: 'Fight.AccessControl.CredentialDeliveryAbsent',
+    description: 'Optional status absence; not rollback, rejection, or permission to issue or disclose credentials',
+    required: ['state'],
+    properties: [new OA\Property(property: 'state', type: 'string', enum: ['absent'])]
+)]
+#[OA\Schema(
+    schema: 'Fight.AccessControl.CredentialDeliveryStatusResult',
+    oneOf: [
+        new OA\Schema(ref: '#/components/schemas/Fight.AccessControl.CredentialDeliveryStatus'),
+        new OA\Schema(ref: '#/components/schemas/Fight.AccessControl.CredentialDeliveryAbsent')
+    ]
+)]
+#[OA\Schema(
+    schema: 'Fight.AccessControl.InvitationDeliveryStatusResult',
+    oneOf: [
+        new OA\Schema(ref: '#/components/schemas/Fight.AccessControl.InvitationDeliveryStatus'),
+        new OA\Schema(ref: '#/components/schemas/Fight.AccessControl.CredentialDeliveryAbsent')
+    ]
+)]
+#[OA\Schema(
     schema: 'Fight.AccessControl.CredentialDeliveryStatus',
     required: [
         'purpose', 'delivery_id', 'user_id', 'revision', 'status', 'due_at', 'expires_at',
@@ -80,7 +100,7 @@ use OpenApi\Attributes as OA;
     required: ['status', 'data'],
     properties: [
         new OA\Property(property: 'status', type: 'string', enum: ['success']),
-        new OA\Property(property: 'data', ref: '#/components/schemas/Fight.AccessControl.CredentialDeliveryStatus')
+        new OA\Property(property: 'data', ref: '#/components/schemas/Fight.AccessControl.CredentialDeliveryStatusResult')
     ]
 )]
 #[OA\Schema(

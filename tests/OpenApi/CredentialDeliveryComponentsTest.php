@@ -12,6 +12,7 @@ use Fight\AccessControl\Domain\AccessControl\CredentialDelivery\CredentialDelive
 use Fight\AccessControl\Domain\AccessControl\CredentialDelivery\CredentialDeliveryFailure;
 use Fight\AccessControl\Domain\AccessControl\CredentialDelivery\CredentialDeliveryStatus;
 use Fight\AccessControl\Domain\AccessControl\CredentialDelivery\DueCredentialDelivery;
+use Fight\AccessControl\Domain\AccessControl\CredentialDelivery\Query\CredentialDeliveryAbsent;
 use Fight\AccessControl\Domain\AccessControl\CredentialDelivery\Query\CredentialDeliveryStatusView;
 use Fight\AccessControl\Domain\AccessControl\CredentialDelivery\Query\FindCredentialDeliveryStatus;
 use Fight\AccessControl\Domain\AccessControl\CredentialDelivery\Query\FindDueCredentialDeliveries;
@@ -141,7 +142,8 @@ final class CredentialDeliveryComponentsTest extends TestCase
                 $delivery->getExpiresAt(),
                 ActivationDeliveryId::fromString(
                     $delivery->getId()->toString()
-                )
+                ),
+                ActivationOrigin::PRIVATE_INVITATION
             );
             $view = CredentialDeliveryStatusView::fromDelivery('password_reset', $delivery, 0);
             $payloads = [
@@ -243,7 +245,8 @@ final class CredentialDeliveryComponentsTest extends TestCase
             'user_id'                => $uuid,
             'status'                 => $status,
             'expires_at'             => $date,
-            'activation_delivery_id' => $uuid
+            'activation_delivery_id' => $uuid,
+            'origin'                 => ['$ref' => '#/components/schemas/Fight.AccessControl.ActivationOrigin']
         ], $schemas['Fight.AccessControl.InvitationDeliveryStatus']['properties']);
 
         $deliveries = $this->deliveries();
@@ -296,9 +299,19 @@ final class CredentialDeliveryComponentsTest extends TestCase
             self::assertSame(['status', 'data'], array_keys($envelope['properties']));
             self::assertSame(['type' => 'string', 'enum' => ['success']], $envelope['properties']['status']);
             self::assertSame(
-                '#/components/schemas/Fight.AccessControl.'.$name,
+                '#/components/schemas/Fight.AccessControl.'.$name.($name === 'DueCredentialDeliveries' ? '' : 'Result'),
                 $envelope['properties']['data']['$ref']
             );
+        }
+
+        $absent = new CredentialDeliveryAbsent()->toArray();
+        $this->assertCanonicalFields($schemas['Fight.AccessControl.CredentialDeliveryAbsent'], $absent);
+        self::assertContains($absent['state'], $schemas['Fight.AccessControl.CredentialDeliveryAbsent']['properties']['state']['enum']);
+        foreach (['InvitationDeliveryStatus', 'CredentialDeliveryStatus'] as $name) {
+            self::assertSame([
+                ['$ref' => '#/components/schemas/Fight.AccessControl.'.$name],
+                ['$ref' => '#/components/schemas/Fight.AccessControl.CredentialDeliveryAbsent']
+            ], $schemas['Fight.AccessControl.'.$name.'Result']['oneOf']);
         }
 
         array_walk_recursive($schemas, static function (mixed $value, string|int $key) use ($schemas): void {
