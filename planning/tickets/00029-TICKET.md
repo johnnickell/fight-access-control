@@ -55,8 +55,12 @@ protected bodies may appear only in the explicitly admitted response, never in s
   invoker. Consumer context is trusted, never `_meta`, caller permission arrays or a claimed administrator label.
 - Keep ordinary request-local authority and fresh later requests. References, historical capture, a previous page
   and a content chunk do not grant subsequent access, continuous storage or complete-capture guarantees.
-- Preserve existing Common output schemas, exact safe projections, finite encoded output and protocol error handling.
-  AccessControl must not duplicate SQL, shared Query business logic or protected body retrieval.
+- Preserve the actual selected tagged Common output schemas, exact safe projections, finite encoded output and
+  protocol error handling. Common TASK-00205 plans optional typed activity target/timing/result facts in the existing
+  activity output; TASK-00089 owns their scoped qualification when supplied. Those facts create no reference/body
+  grants, stable history, automatic capture or business-success evidence. TASK-00090 remains independent and must
+  retain metadata-only results without requiring body Permission at coarse Tool admission. AccessControl must not
+  duplicate upstream values/schemas, SQL, shared Query business logic or protected body retrieval.
 
 ## Dependencies and External Gates
 
@@ -64,6 +68,8 @@ protected bodies may appear only in the explicitly admitted response, never in s
   do not block generic Tool bindings on a particular consumer data policy.
 - Existing Common `ExecutionReadAdmission`, `DetailReadAdmission`, scoped access types and owning Queries are source
   evidence, not permission for an untagged dependency. Reinspect actual accepted/tagged contracts and minimum version.
+  The approved Common TASK-00205 plan is not implemented or tagged availability and adds no standalone blocker here;
+  Common release does not wait for this consumer's binding/scoped-read implementation or Agent OS adoption.
 - [TICKET-00028](00028-TICKET.md) supplies revalidation if a consumer later performs repeated live disclosure or
   background continuation; ordinary paged/chunked request admission does not depend on adding a live transport.
 - Actual consumer relationship/persistence/transport composition and race qualification remain separate from package
@@ -109,6 +115,11 @@ their shared TASK-00084 dependency. Each owns real Tool/Query/handler/reader com
 scope/projection/totals, fresh pages/chunks, safe truthful faults, tests/docs/gates and independent Review/QA.
 No separate layer or verification-only TASK is planned. Ordinary request reads do not depend on TASK-00088/live
 transports; actual consumer relationship/persistence/race qualification remains separate.
+
+John accepted the external-Tool architecture recommendations and requested reconciliation without duplicate work.
+TASK-00084 retains coarse binding; TASK-00089 qualifies applicable safe activity facts; TASK-00090 preserves independent
+structural/metadata/body admission. No new TASK, grant, dependency edge or Common release prerequisite is introduced.
+The existing needs-info holds, actual tagged/minimum qualification and combined-release boundary remain unchanged.
 
 This TICKET's TASK planning is complete, not implementation. TICKET-00030's approved TASK-00091–00096 plan is now
 written, as is TICKET-00031's TASK-00097–00102 plan. TICKET-00032's approved TASK-00103–00106 plan is also written.
