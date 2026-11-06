@@ -6,7 +6,20 @@ Fight AccessControl owns framework-neutral identity, credential, session, author
 behavior shared by Fight applications. The repository-local behavioral and security authority is
 [TICKET-00001](planning/tickets/00001-TICKET.md).
 
-## TASK-00120 Feature Domain types — Work checkpoint
+## TASK-00120 Feature Domain types — accepted checkpoint
+
+Independent Review v3 ACCEPT and nonvisual QA PASS cover candidate
+`fb01e06e9b86ff1bdc550eaef437573ec3896b84` against develop
+`458a35ac224d8dd6b855c4652db9fad34c327187`, with no findings. QA passes eight independent scenarios /
+243 fresh assertions. The earlier complete gate is retained: 4,605 tests / 52,666 assertions and exact
+8,073/8,073 global / 225/225 Feature Domain statements, with qualified prose-only follow-ups.
+TASK-00120 is done; unfinished children keep TICKET-00037/EPIC-00016 open. Publication/final-head verification
+are pending at this administrative checkpoint; current PR, bridge, proof and resource outcomes belong to
+canonical `.runs/handoffs/TASK-00120/land.md` and the actual PR. Independent reports preserve their exact subjects.
+No whole-library, consumer, merge, release or deployment qualification is implied. The Work checkpoint below
+is historical, not a current independent-Review/QA instruction.
+
+### TASK-00120 Feature Domain types — historical Work checkpoint
 
 The complete current Feature Domain boundary has an Engineer audit/correction candidate: all 30 declarations,
 including members, preparation values/callbacks, messages, exceptions, View and repository contracts. Payload

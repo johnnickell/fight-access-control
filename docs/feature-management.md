@@ -20,7 +20,9 @@ At `PHP_INT_MAX`, a real status/binding transition rejects with `FeatureStateExc
 an unchanged selection still returns the original aggregate. Nullable repository reads, full expected-state writes,
 Permission reference/tier fences, retirement and availability versus action permission retain their existing meaning.
 The complete 30-declaration/member audit and regression/static evidence belong to TASK-00120's canonical Work
-handoff. Independent acceptance remains required; no real consumer persistence qualification is claimed.
+handoff. Independent Review ACCEPT and nonvisual QA PASS cover candidate
+`fb01e06e9b86ff1bdc550eaef437573ec3896b84`; current delivery results belong to the canonical TASK-00120 Land
+handoff and actual PR. No real consumer persistence qualification is claimed.
 
 ## Atomic adapter obligation
 
