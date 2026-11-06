@@ -126,8 +126,14 @@ Review/applicable QA, without waiting to delegate those obligations to final rec
 
 TASK-00118 and TASK-00119 remain historically accepted/done; TASK-00120 keeps this TICKET open. The requested
 TASK-00119 develop integration retains both slices and their exact-subject verdicts without claiming a combined
-acceptance. Canonical `.runs/handoffs/TASK-00119/work.md` owns current provenance, interaction verification and
-the independent evidence-owner handoff. The checkpoints below retain their original sibling-status observations.
+acceptance merely from merging. Independent Review ACCEPT now covers integrated candidate
+`9e5a21be9244c43c2cc8ae36f9a1bc669918f874` against `309b62f3a76d9a2b399ae5dfc1b3ceb17b4d8780`, with
+qualified retained QA scenario evidence from both original subjects, not a fresh integrated QA PASS. The new
+gate passed 4,579 tests / 53,165 assertions and exact 8,193/8,193 statements. Canonical
+`.runs/handoffs/TASK-00119/work.md` owns provenance; publication/final checks remain pending at this checkpoint.
+Current administrative bridge and delivery/resource results belong to `.runs/handoffs/TASK-00119/land.md` and
+[PR #169](https://github.com/johnnickell/fight-access-control/pull/169). The checkpoints below retain their
+original sibling-status observations.
 
 ### TASK-00119 operation/recovery slice — accepted checkpoint
 

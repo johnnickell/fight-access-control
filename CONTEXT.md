@@ -6,7 +6,17 @@ Fight AccessControl owns framework-neutral identity, credential, session, author
 behavior shared by Fight applications. The repository-local behavioral and security authority is
 [TICKET-00001](planning/tickets/00001-TICKET.md).
 
-## TASK-00119 develop integration — current Work handoff
+## TASK-00119 develop integration — accepted delivery checkpoint
+
+Independent Review ACCEPT covers integrated candidate `9e5a21be9244c43c2cc8ae36f9a1bc669918f874` against
+`309b62f3a76d9a2b399ae5dfc1b3ceb17b4d8780`. The mechanical bridge qualifies retained scenario evidence from
+both original independent QA reports; this is not a fresh integrated QA PASS. The new integration gate passed
+4,579 tests / 53,165 assertions and exact 8,193/8,193 statements. Publication/final delivery checks remain pending
+at this checkpoint; current administrative bridge and delivery/resource results belong to canonical
+`.runs/handoffs/TASK-00119/land.md` and [PR #169](https://github.com/johnnickell/fight-access-control/pull/169).
+Both TASKs remain done; unfinished children keep their parents open. Historical reports/checkpoints stay intact.
+
+### Historical integration Work handoff
 
 The feature branch integrates develop `309b62f3a76d9a2b399ae5dfc1b3ceb17b4d8780`, retaining accepted
 TASK-00118 identity/admin contracts, including Permission iterable validation, alongside TASK-00119's operation/

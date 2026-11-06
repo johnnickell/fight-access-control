@@ -174,8 +174,12 @@ or release is authorized by this planning.
 
 TASK-00118 and TASK-00119 are historically accepted/done; TASK-00120 and other unfinished children keep their
 parents open. TASK-00119's requested develop integration preserves both slices and exact historical verdicts.
-Current integration verification and the evidence-owner handoff belong to canonical
-`.runs/handoffs/TASK-00119/work.md`; integration alone is not a combined acceptance or PR publication.
+Independent Review ACCEPT covers integrated candidate `9e5a21be9244c43c2cc8ae36f9a1bc669918f874` against
+`309b62f3a76d9a2b399ae5dfc1b3ceb17b4d8780`, with qualified reuse of both original QA scenario evidence sets,
+not a fresh integrated QA PASS. The new integration gate passed 4,579 tests / 53,165 assertions and exact
+8,193/8,193 statements. Canonical `.runs/handoffs/TASK-00119/work.md` owns integration provenance;
+publication/final checks remain pending at this checkpoint, with current administrative bridge and delivery/
+resource results in `.runs/handoffs/TASK-00119/land.md` and [PR #169](https://github.com/johnnickell/fight-access-control/pull/169).
 The Board owns unrelated execution selection. The exact-subject acceptance checkpoints below remain historical.
 
 ### TASK-00119 accepted checkpoint
