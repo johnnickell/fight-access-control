@@ -6,17 +6,20 @@ Fight AccessControl owns framework-neutral identity, credential, session, author
 behavior shared by Fight applications. The repository-local behavioral and security authority is
 [TICKET-00001](planning/tickets/00001-TICKET.md).
 
-## TASK-00133 credential status/discovery — Work checkpoint
+## TASK-00133 credential status/discovery — accepted contract
 
-The four human credential Queries now have an Engineer correction candidate: optional status returns a safe View or
+The four human credential Queries now have independently accepted corrections: optional status returns a safe View or
 explicit `CredentialDeliveryAbsent`, invitation inspection retains recorded origin, and each discovery source is
 validated before deterministic global top-N selection. Nullable Domain lookups and distinct family authority/recovery/
 expiry semantics remain; no query mutates, admits work, commits, audits or publishes. See the
 [current contract](docs/credential-delivery.md#explicit-status-and-bounded-discovery-unreleased).
 
-Candidate inventory, regression-first chronology, static/runtime/minimum/ordinary and full-gate evidence belong to
-canonical `.runs/handoffs/TASK-00133/work.md`. Independent Review and nonvisual QA remain required; this Work checkpoint
-does not accept/close TASK-00133 or its parents, qualify consumers, publish, merge, release or deploy.
+Inventory, regression chronology, static/runtime/minimum/ordinary and full-gate evidence belong to canonical
+`.runs/handoffs/TASK-00133/work.md`. Review ACCEPT and nonvisual QA PASS cover clean candidate
+`c62d261726082547757cba98eb3af150afa4665d`; TASK-00133 is done, while unfinished children keep its parents open.
+The owning TASK preserves acceptance and verification; canonical `.runs/handoffs/TASK-00133/land.md` owns the
+administrative bridge and current delivery/resource results. Consumer qualification, approval, merge, release
+and deployment remain separate.
 
 ## TASK-00120 pinned develop integration — Work checkpoint
 
@@ -598,7 +601,8 @@ John approved TICKET-00041's complete four-TASK plan, now written as
 [TASK-00146](planning/tasks/00146-TASK.md) (ordinary HTTP), [TASK-00147](planning/tasks/00147-TASK.md) (profile Tools),
 [TASK-00148](planning/tasks/00148-TASK.md) (Resource/Skill) and [TASK-00149](planning/tasks/00149-TASK.md) (public payload/
 declarative metadata). Orders 325–328 are ready-for-agent; TASK-00146/00148 have no demonstrated local blocker,
-TASK-00147 waits on TASK-00128/00131/00141 and TASK-00149 on TASK-00133. Primary manifests allocate all 23 current
+TASK-00147 waits on TASK-00128/00131/00141 and TASK-00149 consumes TASK-00133's now-accepted status representation.
+Primary manifests allocate all 23 current
 files (2 Adapter, 13 Application presentation, 8 OpenAPI) without overlap/omission, not completed source audit or
 runtime/type/supplier/consumer qualification. Preserve protocol distinctions, actual tagged/minimum/ordinary proof,
 current examples and directly necessary earlier schema/caller fixes; every slice keeps its gate/independent acceptance.

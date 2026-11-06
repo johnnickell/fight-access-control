@@ -5,13 +5,11 @@ dependencies, acceptance, and verification.
 
 ## What's Next?
 
-Active Task: [TASK-00133](00133-TASK.md) — Make human credential status and discovery results explicit.
+First ready Task: [TASK-00131](00131-TASK.md) — Make required resource queries exact and non-null.
 
 ## In Progress
 
-| Order | TASK ID | Title | Parent TICKET | Status | Blocked by | PR |
-| --- | --- | --- | --- | --- | --- | --- |
-| 312 | [TASK-00133](00133-TASK.md) | Make human credential status and discovery results explicit | [TICKET-00039](../tickets/00039-TICKET.md) — Guarantee exact query results and explicit absence | in-progress | — | — |
+No Tasks are currently in this state.
 
 ## Ready Frontier
 
@@ -31,6 +29,7 @@ Active Task: [TASK-00133](00133-TASK.md) — Make human credential status and di
 | 324 | [TASK-00145](00145-TASK.md) | Correct authority and continuation contracts | [TICKET-00040](../tickets/00040-TICKET.md) — Make command and synchronous Application contracts explicit | ready-for-agent | — | — |
 | 325 | [TASK-00146](00146-TASK.md) | Qualify ordinary HTTP contracts and safe failures | [TICKET-00041](../tickets/00041-TICKET.md) — Align presentation and integration contracts | ready-for-agent | — | — |
 | 327 | [TASK-00148](00148-TASK.md) | Align Resource and Skill binding contracts | [TICKET-00041](../tickets/00041-TICKET.md) — Align presentation and integration contracts | ready-for-agent | — | — |
+| 328 | [TASK-00149](00149-TASK.md) | Align public payload schemas and declarative metadata | [TICKET-00041](../tickets/00041-TICKET.md) — Align presentation and integration contracts | ready-for-agent | [TASK-00133](00133-TASK.md) | — |
 | 399 | [TASK-00166](00166-TASK.md) | Maintain complete audit outcome coverage | [TICKET-00048](../tickets/00048-TICKET.md) — Qualify audit composition and document consumer adoption | ready-for-agent | — | — |
 | 401 | [TASK-00121](00121-TASK.md) | Introduce fixed system and anonymous identities | [TICKET-00043](../tickets/00043-TICKET.md) — Define typed audit evidence and explicit attribution | ready-for-agent | — | — |
 | 499 | [TASK-00180](00180-TASK.md) | Map existing admission evidence | [TICKET-00052](../tickets/00052-TICKET.md) — Qualify independent and combined admission | ready-for-agent | — | — |
@@ -41,7 +40,6 @@ Active Task: [TASK-00133](00133-TASK.md) — Make human credential status and di
 | Order | TASK ID | Title | Parent TICKET | Status | Blocked by | PR |
 | --- | --- | --- | --- | --- | --- | --- |
 | 326 | [TASK-00147](00147-TASK.md) | Align protected Agent profile Tool contracts | [TICKET-00041](../tickets/00041-TICKET.md) — Align presentation and integration contracts | ready-for-agent | [TASK-00128](00128-TASK.md), [TASK-00131](00131-TASK.md), [TASK-00141](00141-TASK.md) | — |
-| 328 | [TASK-00149](00149-TASK.md) | Align public payload schemas and declarative metadata | [TICKET-00041](../tickets/00041-TICKET.md) — Align presentation and integration contracts | ready-for-agent | [TASK-00133](00133-TASK.md) | — |
 | 329 | [TASK-00152](00152-TASK.md) | Enforce and qualify the integrated library contracts | [TICKET-00042](../tickets/00042-TICKET.md) — Enforce and demonstrate whole-library type correctness | ready-for-agent | [TASK-00150](00150-TASK.md), [TASK-00151](00151-TASK.md), [TASK-00115](00115-TASK.md), [TASK-00116](00116-TASK.md), [TASK-00117](00117-TASK.md), [TASK-00118](00118-TASK.md), [TASK-00119](00119-TASK.md), [TASK-00120](00120-TASK.md), [TASK-00128](00128-TASK.md), [TASK-00129](00129-TASK.md), [TASK-00130](00130-TASK.md), [TASK-00131](00131-TASK.md), [TASK-00132](00132-TASK.md), [TASK-00133](00133-TASK.md), [TASK-00134](00134-TASK.md), [TASK-00135](00135-TASK.md), [TASK-00136](00136-TASK.md), [TASK-00137](00137-TASK.md), [TASK-00138](00138-TASK.md), [TASK-00139](00139-TASK.md), [TASK-00140](00140-TASK.md), [TASK-00141](00141-TASK.md), [TASK-00142](00142-TASK.md), [TASK-00143](00143-TASK.md), [TASK-00144](00144-TASK.md), [TASK-00145](00145-TASK.md), [TASK-00146](00146-TASK.md), [TASK-00147](00147-TASK.md), [TASK-00148](00148-TASK.md), [TASK-00149](00149-TASK.md) | — |
 | 400 | [TASK-00167](00167-TASK.md) | Provide reusable audit transaction conformance | [TICKET-00048](../tickets/00048-TICKET.md) — Qualify audit composition and document consumer adoption | ready-for-agent | [TASK-00122](00122-TASK.md) | — |
 | 402 | [TASK-00122](00122-TASK.md) | Replace audit evidence contracts across existing writers | [TICKET-00043](../tickets/00043-TICKET.md) — Define typed audit evidence and explicit attribution | ready-for-agent | [TASK-00121](00121-TASK.md) | — |
@@ -220,3 +218,4 @@ No Tasks are currently in this state.
 | 304 | [TASK-00118](00118-TASK.md) | Correct Agent identity and administration type contracts | [TICKET-00037](../tickets/00037-TICKET.md) — Make Domain and repository contracts precise | done | — | https://github.com/johnnickell/fight-access-control/pull/168 |
 | 305 | [TASK-00119](00119-TASK.md) | Correct Agent operation and recovery type contracts | [TICKET-00037](../tickets/00037-TICKET.md) — Make Domain and repository contracts precise | done | — | https://github.com/johnnickell/fight-access-control/pull/169 |
 | 306 | [TASK-00120](00120-TASK.md) | Correct Feature type contracts | [TICKET-00037](../tickets/00037-TICKET.md) — Make Domain and repository contracts precise | done | — | https://github.com/johnnickell/fight-access-control/pull/167 |
+| 312 | [TASK-00133](00133-TASK.md) | Make human credential status and discovery results explicit | [TICKET-00039](../tickets/00039-TICKET.md) — Guarantee exact query results and explicit absence | done | — | — |
