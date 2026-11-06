@@ -286,17 +286,7 @@ class Agent
         int $expectedPermissionAssignmentRevision,
         DateTimeImmutable $replacedAt
     ): static {
-        $replacementIds = [];
-        $seen = [];
-        foreach ($permissionIds as $permissionId) {
-            $key = $permissionId->toString();
-            if (isset($seen[$key])) {
-                continue;
-            }
-
-            $seen[$key] = true;
-            $replacementIds[] = $permissionId;
-        }
+        $replacementIds = self::normalizePermissionIds($permissionIds);
 
         if ($expectedPermissionAssignmentRevision !== $this->permissionAssignmentRevision) {
             throw new AgentPermissionAssignmentException('The Agent Permission assignment revision is stale.');
@@ -437,6 +427,35 @@ class Agent
         return $replacement->state === AgentState::ACTIVE
             && !$replacement->credentialId->equals($this->credentialId)
             && $replacement->credentialRevision === $this->credentialRevision + 1;
+    }
+
+    /**
+     * Validates iterable members before retaining each Permission identity's first occurrence
+     *
+     * @phpstan-param iterable<mixed> $permissionIds
+     * @phpstan-return list<PermissionId>
+     */
+    private static function normalizePermissionIds(iterable $permissionIds): array
+    {
+        $replacementIds = [];
+        $seen = [];
+        foreach ($permissionIds as $permissionId) {
+            if (!$permissionId instanceof PermissionId) {
+                throw new AgentPermissionAssignmentException(
+                    'Agent Permission identities must be PermissionId values.'
+                );
+            }
+
+            $key = $permissionId->toString();
+            if (isset($seen[$key])) {
+                continue;
+            }
+
+            $seen[$key] = true;
+            $replacementIds[] = $permissionId;
+        }
+
+        return $replacementIds;
     }
 
     /**

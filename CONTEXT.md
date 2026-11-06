@@ -13,7 +13,10 @@ boundaries and explicit administration-Event instants, and exposes exact message
 and successors preserve extending types; Permission revision exhaustion rejects changed membership without altering
 no-ops. The [current Agent guide](docs/agent-current-contract.md#precise-identity-and-administration-types-unreleased)
 records current caller obligations and unchanged nullable repositories, lazy rename time, correlation, redaction and
-Permission/cohort authority. No optional audit, Common adoption or query-absence redesign is included.
+Permission/cohort authority. Review R-01 identified an erased iterable gap: aggregate Permission replacement now
+validates each member before deduplication/no-op, rejecting wrong-purpose identities even when UUIDs duplicate a
+valid member. Regression-first repair evidence awaits independent reassessment; no acceptance is implied.
+No optional audit, Common adoption or query-absence redesign is included.
 
 Canonical `.runs/handoffs/TASK-00118/work.md` owns exhaustive member/callback/caller dispositions, regression chronology,
 verification and exact candidate/runtime/dependency mapping. Independent Review and nonvisual QA remain required;

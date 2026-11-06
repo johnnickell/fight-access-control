@@ -61,7 +61,11 @@ string-to-string ordering map; Common retains pagination validation/normalizatio
 fields reject in Domain. Update current callers directly; no historical readers, aliases or migration are supplied.
 
 `ReplaceAgentPermissions` and `AgentPermissionsReplaced` require positive assignment revisions and actual lists of
-`PermissionId` values at construction as well as decoded input. Their existing duplicate/set semantics are unchanged.
+`PermissionId` values at construction as well as decoded input. `Agent::replacePermissions()` also validates every
+member of its arbitrary iterable before string-key deduplication, including wrong-purpose identities with a valid
+member's UUID. Invalid members reject with `AgentPermissionAssignmentException` before any successor or no-op is
+returned; they are never coerced into Permission identities. Valid arrays/generators retain first-occurrence set
+semantics, followed by the existing stale-revision, no-op and revision-exhaustion checks in that order.
 `AgentView` requires nonnegative credential revision, positive assignment revision and a list of `PrincipalPermission`
 snapshots. Its shape and the minimal profile shape remain secret-free; neither a View nor an authenticated principal's
 snapshot authorizes a later action. Live Permission/cohort checks remain mandatory.

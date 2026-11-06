@@ -129,6 +129,8 @@ necessary metadata/tests/docs. Canonical `.runs/handoffs/TASK-00118/work.md` own
 member/callback/caller dispositions, regression chronology and verification identities. Independent Review and
 nonvisual QA remain pending; this does not accept that slice or complete this TICKET. Operation/cohort definitions
 remain with TASK-00119, following their accepted relocation rather than historical file counts.
+Review R-01 returned the original Agent candidate for aggregate iterable-member validation; Engineer repair 1
+adds regression-first validation before deduplication and awaits independent reassessment before nonvisual QA.
 
 
 ### TASK-00117 integrated repair — accepted checkpoint
