@@ -117,10 +117,17 @@ Review/applicable QA, without waiting to delegate those obligations to final rec
 | 301 | [TASK-00115](../tasks/00115-TASK.md) | Correct User, session and audit type contracts | done |
 | 302 | [TASK-00116](../tasks/00116-TASK.md) | Correct human credential and delivery type contracts | done |
 | 303 | [TASK-00117](../tasks/00117-TASK.md) | Correct Permission, Role and authority type contracts | done |
-| 304 | [TASK-00118](../tasks/00118-TASK.md) | Correct Agent identity and administration type contracts | ready-for-agent |
+| 304 | [TASK-00118](../tasks/00118-TASK.md) | Correct Agent identity and administration type contracts | done |
 | 305 | [TASK-00119](../tasks/00119-TASK.md) | Correct Agent operation and recovery type contracts | done |
 | 306 | [TASK-00120](../tasks/00120-TASK.md) | Correct Feature type contracts | ready-for-agent |
 ## Decisions and Progress
+
+### Current combined-slice handoff
+
+TASK-00118 and TASK-00119 remain historically accepted/done; TASK-00120 keeps this TICKET open. The requested
+TASK-00119 develop integration retains both slices and their exact-subject verdicts without claiming a combined
+acceptance. Canonical `.runs/handoffs/TASK-00119/work.md` owns current provenance, interaction verification and
+the independent evidence-owner handoff. The checkpoints below retain their original sibling-status observations.
 
 ### TASK-00119 operation/recovery slice — accepted checkpoint
 
@@ -132,6 +139,27 @@ nonvisual QA. TASK-00118/00120 remain unfinished, so automatic parent completion
 EPIC-00016 open. No whole-Domain or consumer qualification is claimed. Publication/final delivery verification
 are pending at this checkpoint; current bridge, checks and delivery/resource results belong to canonical
 `.runs/handoffs/TASK-00119/land.md` and the actual PR. Independent reports and historical checkpoints remain intact.
+
+### TASK-00118 accepted checkpoint
+
+Independent Review v3 ACCEPT and nonvisual QA PASS cover candidate
+`b4300b8108ff4cffa9499e1f4530d58459d78f6d` against `458a35ac224d8dd6b855c4652db9fad34c327187`;
+R-01 is resolved and TASK-00118 is done. The complete owned Agent identity/admin slice has exact global/owned
+statement coverage and nine passing QA scenarios. Current delivery/resource results and administrative-only
+provenance belong to canonical `.runs/handoffs/TASK-00118/land.md` and the actual PR; publication/final checks
+are pending at this checkpoint. Independent reports retain their exact subjects. TASK-00119/00120 keep this
+TICKET open; neither whole-Domain nor consumer qualification is claimed. The following checkpoint is historical.
+
+### Historical TASK-00118 Engineer checkpoint
+
+TASK-00118 records implementation of the complete Agent identity/administration Domain slice and its directly
+necessary metadata/tests/docs. Canonical `.runs/handoffs/TASK-00118/work.md` owns exhaustive current ownership,
+member/callback/caller dispositions, regression chronology and verification identities. Independent Review and
+nonvisual QA remain pending; this does not accept that slice or complete this TICKET. Operation/cohort definitions
+remain with TASK-00119, following their accepted relocation rather than historical file counts.
+Review R-01 returned the original Agent candidate for aggregate iterable-member validation; Engineer repair 1
+adds regression-first validation before deduplication and awaits independent reassessment before nonvisual QA.
+
 
 ### TASK-00117 integrated repair — accepted checkpoint
 

@@ -9,6 +9,7 @@ use Fight\AccessControl\Domain\AccessControl\Agent\AgentCredentialId;
 use Fight\AccessControl\Domain\AccessControl\Agent\AgentId;
 use Fight\AccessControl\Domain\AccessControl\Agent\AgentName;
 use Fight\AccessControl\Domain\AccessControl\Agent\AgentState;
+use Fight\AccessControl\Domain\AccessControl\Agent\Exception\AgentReadException;
 use Fight\AccessControl\Domain\AccessControl\Authorization\PrincipalPermission;
 use Fight\Common\Domain\Type\Arrayable;
 
@@ -35,6 +36,11 @@ final readonly class AgentView implements Arrayable
         private int $permissionAssignmentRevision,
         private array $permissions
     ) {
+        if ($credentialRevision < 0 || $permissionAssignmentRevision < 1) {
+            throw new AgentReadException('The Agent view requires valid revisions.');
+        }
+
+        self::assertPermissions($permissions);
     }
 
     /**
@@ -119,7 +125,7 @@ final readonly class AgentView implements Arrayable
      * @return array{
      *     agent_id: string,
      *     name: string,
-     *     state: string,
+     *     state: 'provisioned'|'active'|'revoked',
      *     credential_id: string,
      *     credential_revision: int,
      *     permission_assignment_revision: int,
@@ -140,5 +146,20 @@ final readonly class AgentView implements Arrayable
                 $this->permissions
             )
         ];
+    }
+
+    /**
+     * Validates the native array boundary without relying on erased collection annotations
+     *
+     * @param array<array-key, mixed> $permissions
+     */
+    private static function assertPermissions(array $permissions): void
+    {
+        if (
+            !array_is_list($permissions)
+            || !array_all($permissions, static fn(mixed $value): bool => $value instanceof PrincipalPermission)
+        ) {
+            throw new AgentReadException('The Agent view requires a list of PrincipalPermission snapshots.');
+        }
     }
 }
