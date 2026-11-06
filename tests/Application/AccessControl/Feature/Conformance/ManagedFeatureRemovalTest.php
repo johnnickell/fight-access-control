@@ -19,7 +19,6 @@ use Fight\AccessControl\Domain\AccessControl\Feature\FeatureId;
 use Fight\AccessControl\Domain\AccessControl\Feature\FeatureName;
 use Fight\AccessControl\Domain\AccessControl\Feature\FeatureStatus;
 use Fight\AccessControl\Domain\AccessControl\ManagedPolicy\Command\ReconcileManagedPolicy;
-use Fight\AccessControl\Domain\AccessControl\ManagedPolicy\Exception\ManagedPolicyDefinitionException;
 use Fight\AccessControl\Domain\AccessControl\ManagedPolicy\ManagedPermissionDefinition;
 use Fight\AccessControl\Domain\AccessControl\ManagedPolicy\ManagedPolicy;
 use Fight\AccessControl\Domain\AccessControl\Permission\Permission;
@@ -29,6 +28,7 @@ use Fight\AccessControl\Domain\AccessControl\Permission\PermissionTier;
 use Fight\AccessControl\Domain\AccessControl\Role\Role;
 use Fight\AccessControl\Domain\AccessControl\Role\RoleId;
 use Fight\AccessControl\Domain\AccessControl\Role\RoleName;
+use Fight\Common\Application\Error\Exception\RuleViolation;
 use Fight\Common\Domain\Messaging\Command\CommandMessage;
 use Fight\Common\Domain\Messaging\Event\CommandFailedEvent;
 use Fight\Test\AccessControl\Application\AccessControl\Agent\Repository\InMemoryAgentRepository;
@@ -63,7 +63,7 @@ final class ManagedFeatureRemovalTest extends TestCase
             try {
                 $planner->plan($command->getPolicy());
                 self::fail('The preview must reject a referenced removal.');
-            } catch (ManagedPolicyDefinitionException $failure) {
+            } catch (RuleViolation $failure) {
                 self::assertStringContainsString('Feature references', $failure->getMessage());
             }
 
@@ -73,7 +73,7 @@ final class ManagedFeatureRemovalTest extends TestCase
                     CommandMessage::create($command)
                 );
                 self::fail('Reconciliation must also reject the referenced removal.');
-            } catch (ManagedPolicyDefinitionException) {
+            } catch (RuleViolation) {
                 self::assertSame($obsolete, $permissionRepository->getById($obsolete->getId()));
                 self::assertSame($feature, $featureRepository->getById($feature->getId()));
                 self::assertCount(1, $eventDispatcher->events());
@@ -221,9 +221,9 @@ final class ManagedFeatureRemovalTest extends TestCase
                 $handler->handle(CommandMessage::create(new ReconcileManagedPolicy(new ManagedPolicy([], [], []))));
                 self::assertSame('none', $remaining);
                 self::assertNull($permissionRepository->getById($permission->getId()));
-            } catch (ManagedPolicyDefinitionException | LogicException $failure) {
+            } catch (RuleViolation | LogicException $failure) {
                 self::assertNotSame('none', $remaining);
-                self::assertInstanceOf(ManagedPolicyDefinitionException::class, $failure);
+                self::assertInstanceOf(RuleViolation::class, $failure);
                 if ($remaining === 'agent') {
                     self::assertTrue($agentRepository->hasPermissionAssignment($permission->getId()));
                 }

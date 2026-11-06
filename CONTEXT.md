@@ -6,6 +6,20 @@ Fight AccessControl owns framework-neutral identity, credential, session, author
 behavior shared by Fight applications. The repository-local behavioral and security authority is
 [TICKET-00001](planning/tickets/00001-TICKET.md).
 
+## TASK-00135 preparation and policy preview — Work checkpoint
+
+The two [preparation](docs/feature-preparation.md) / [policy-preview](docs/operation-outcomes.md#managed-policy-composition)
+paths now distinguish legitimate typed diagnostics and known policy refusal from wrong repository identities,
+relationships and unknown failures. One shared planner retains deterministic exact plans, tiers/reserved identity,
+reference guards and preview/apply agreement. Apply replans inside its transaction and retains final fences;
+queries remain read-only advisory observations, never reservations or authority.
+
+Canonical `.runs/handoffs/TASK-00135/work.md` owns exhaustive member/caller dispositions, regression-first evidence,
+minimum/ordinary real routing/safe-error proof, full gate/exact coverage and retained runtime provenance. Independent
+Review and nonvisual QA remain required; TASK-00135 stays in-progress and unfinished children keep its parents open.
+No Common/consumer mutation, generic bus inference qualification, optional-audit redesign, publication, merge,
+release, deployment or consumer qualification is claimed.
+
 ## TASK-00131 required-resource Queries — accepted checkpoint
 
 Independent Review v3 ACCEPT and independent nonvisual QA PASS cover candidate

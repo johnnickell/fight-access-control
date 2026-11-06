@@ -22,6 +22,7 @@ use Fight\Common\Domain\Messaging\Command\CommandMessage;
 use Fight\Common\Domain\Messaging\Event\CommandFailedEvent;
 use LogicException;
 use Throwable;
+use UnexpectedValueException;
 
 /**
  * Class ReconcileManagedPolicyHandler
@@ -58,6 +59,7 @@ final readonly class ReconcileManagedPolicyHandler implements CommandHandler
         $command = $commandMessage->payload();
 
         try {
+            /** @var ManagedPolicyReconciled $event */
             $event = $this->unitOfWork->commitTransactional(function () use ($command): ManagedPolicyReconciled {
                 $plan = $this->managedPolicyPlanner->plan($command->getPolicy());
                 $occurredAt = $this->clock->now();
@@ -102,6 +104,10 @@ final readonly class ReconcileManagedPolicyHandler implements CommandHandler
 
             if ($item->getAction() === ManagedPolicyChangeAction::RECONCILE) {
                 $current = $this->permissionRepository->getById($definition->getId());
+                if ($current !== null && !$current->getId()->equals($definition->getId())) {
+                    throw new UnexpectedValueException('Permission lookup returned a different identity.');
+                }
+
                 if (
                     !$current instanceof Permission || !$this->permissionRepository->replace(
                         $current,
@@ -132,6 +138,10 @@ final readonly class ReconcileManagedPolicyHandler implements CommandHandler
 
             if ($item->getAction() === ManagedPolicyChangeAction::RECONCILE) {
                 $current = $this->roleRepository->getById($definition->getId());
+                if ($current !== null && !$current->getId()->equals($definition->getId())) {
+                    throw new UnexpectedValueException('Role lookup returned a different identity.');
+                }
+
                 if (
                     !$current instanceof Role || !$this->roleRepository->replace(
                         $current,
@@ -159,6 +169,10 @@ final readonly class ReconcileManagedPolicyHandler implements CommandHandler
             }
 
             $current = $this->permissionRepository->getById($item->getDefinition()->getId());
+            if ($current !== null && !$current->getId()->equals($item->getDefinition()->getId())) {
+                throw new UnexpectedValueException('Permission lookup returned a different identity.');
+            }
+
             if (!$current instanceof Permission) {
                 throw new LogicException('Managed permission changed after preflight.');
             }
@@ -180,6 +194,10 @@ final readonly class ReconcileManagedPolicyHandler implements CommandHandler
             }
 
             $current = $this->roleRepository->getById($item->getDefinition()->getId());
+            if ($current !== null && !$current->getId()->equals($item->getDefinition()->getId())) {
+                throw new UnexpectedValueException('Role lookup returned a different identity.');
+            }
+
             if (!$current instanceof Role) {
                 throw new LogicException('Managed role changed after preflight.');
             }

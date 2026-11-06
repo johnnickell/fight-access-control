@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace Fight\AccessControl\Application\AccessControl\ManagedPolicy\Service;
 
 use Fight\AccessControl\Domain\AccessControl\Agent\AgentRepository;
-use Fight\AccessControl\Domain\AccessControl\ManagedPolicy\Exception\ManagedPolicyDefinitionException;
 use Fight\AccessControl\Domain\AccessControl\ManagedPolicy\ManagedPermissionDefinition;
 use Fight\AccessControl\Domain\AccessControl\ManagedPolicy\ManagedPermissionPlanItem;
 use Fight\AccessControl\Domain\AccessControl\ManagedPolicy\ManagedPolicy;
@@ -21,6 +20,8 @@ use Fight\AccessControl\Domain\AccessControl\Role\Role;
 use Fight\AccessControl\Domain\AccessControl\Role\RoleName;
 use Fight\AccessControl\Domain\AccessControl\Role\RoleRepository;
 use Fight\AccessControl\Domain\AccessControl\User\UserRepository;
+use Fight\Common\Application\Error\Exception\RuleViolation;
+use UnexpectedValueException;
 
 /**
  * Class ManagedPolicyPlanner
@@ -64,10 +65,10 @@ final readonly class ManagedPolicyPlanner
             $roleItems[] = $this->planRole($definition);
         }
 
-        foreach ($this->roleRepository->getManaged() as $role) {
+        foreach ($this->validateRoles($this->roleRepository->getManaged()) as $role) {
             if (!isset($desiredRoleIds[$role->getId()->toString()])) {
                 if ($this->userRepository->hasRoleAssignment($role->getId())) {
-                    throw new ManagedPolicyDefinitionException(sprintf(
+                    throw new RuleViolation(sprintf(
                         'Managed role "%s" cannot be removed because a user references it.',
                         $role->getName()->toString()
                     ));
@@ -84,34 +85,39 @@ final readonly class ManagedPolicyPlanner
             array_map(static fn(PermissionId $id): string => $id->toString(), $referencedPermissionIds),
             true
         );
-        foreach ($this->permissionRepository->getManaged() as $permission) {
+        foreach ($this->validateManagedPermissions($this->permissionRepository->getManaged()) as $permission) {
             $key = $permission->getId()->toString();
             if (isset($desiredPermissionIds[$key])) {
                 continue;
             }
 
             if (isset($codeReferences[$key])) {
-                throw new ManagedPolicyDefinitionException(sprintf(
+                throw new RuleViolation(sprintf(
                     'Managed permission "%s" cannot be removed because consumer code references it.',
                     $permission->getName()->toString()
                 ));
             }
 
             if ($this->permissionRepository->hasFeatureReference($permission->getId())) {
-                throw new ManagedPolicyDefinitionException(sprintf(
+                throw new RuleViolation(sprintf(
                     'Managed permission "%s" cannot be removed because a Feature references it.',
                     $permission->getName()->toString()
                 ));
             }
 
             if ($this->agentRepository->hasPermissionAssignment($permission->getId())) {
-                throw new ManagedPolicyDefinitionException(sprintf(
+                throw new RuleViolation(sprintf(
                     'Managed permission "%s" cannot be removed because an Agent references it.',
                     $permission->getName()->toString()
                 ));
             }
 
-            foreach ($this->roleRepository->getContainingPermission($permission->getId()) as $role) {
+            foreach (
+                $this->validateRoles(
+                    $this->roleRepository->getContainingPermission($permission->getId()),
+                    $permission->getId()
+                ) as $role
+            ) {
                 if (
                     !$role->isManaged()
                     || isset($desiredRoleIds[$role->getId()->toString()])
@@ -121,7 +127,7 @@ final readonly class ManagedPolicyPlanner
                         !$desired instanceof ManagedRoleDefinition
                         || $this->definitionContains($desired, $permission->getId())
                     ) {
-                        throw new ManagedPolicyDefinitionException(sprintf(
+                        throw new RuleViolation(sprintf(
                             'Managed permission "%s" cannot be removed because role "%s" references it.',
                             $permission->getName()->toString(),
                             $role->getName()->toString()
@@ -155,8 +161,16 @@ final readonly class ManagedPolicyPlanner
     {
         $byId = $this->permissionRepository->getById($definition->getId());
         $byName = $this->permissionRepository->getByName($definition->getName());
+        if ($byId !== null && !$byId->getId()->equals($definition->getId())) {
+            throw new UnexpectedValueException('Permission lookup returned a different identity.');
+        }
+
+        if ($byName !== null && !$byName->getName()->equals($definition->getName())) {
+            throw new UnexpectedValueException('Permission lookup returned a different name.');
+        }
+
         if ($byName instanceof Permission && !$byName->getId()->equals($definition->getId())) {
-            throw new ManagedPolicyDefinitionException(sprintf(
+            throw new RuleViolation(sprintf(
                 'Permission name "%s" belongs to persisted identifier "%s".',
                 $definition->getName()->toString(),
                 $byName->getId()->toString()
@@ -164,7 +178,7 @@ final readonly class ManagedPolicyPlanner
         }
 
         if ($byId instanceof Permission && !$byId->isManaged()) {
-            throw new ManagedPolicyDefinitionException('A custom permission cannot be claimed by managed policy.');
+            throw new RuleViolation('A custom permission cannot be claimed by managed policy.');
         }
 
         if (
@@ -172,14 +186,19 @@ final readonly class ManagedPolicyPlanner
             && $byId->getTier() !== PermissionTier::SUPER_ADMIN_ONLY
             && $definition->getTier() === PermissionTier::SUPER_ADMIN_ONLY
         ) {
-            foreach ($this->roleRepository->getContainingPermission($definition->getId()) as $role) {
+            foreach (
+                $this->validateRoles(
+                    $this->roleRepository->getContainingPermission($definition->getId()),
+                    $definition->getId()
+                ) as $role
+            ) {
                 if (!$role->isManaged() || $role->getName()->toString() !== Role::SUPER_ADMIN_NAME) {
-                    throw new ManagedPolicyDefinitionException('Protected promotion conflicts with Role membership.');
+                    throw new RuleViolation('Protected promotion conflicts with Role membership.');
                 }
             }
 
             if ($this->agentRepository->hasPermissionAssignment($definition->getId())) {
-                throw new ManagedPolicyDefinitionException('Protected promotion conflicts with Agent membership.');
+                throw new RuleViolation('Protected promotion conflicts with Agent membership.');
             }
         }
 
@@ -200,11 +219,19 @@ final readonly class ManagedPolicyPlanner
     {
         $byId = $this->roleRepository->getById($definition->getId());
         $byName = $this->roleRepository->getByName($definition->getName());
+        if ($byId !== null && !$byId->getId()->equals($definition->getId())) {
+            throw new UnexpectedValueException('Role lookup returned a different identity.');
+        }
+
+        if ($byName !== null && !$byName->getName()->equals($definition->getName())) {
+            throw new UnexpectedValueException('Role lookup returned a different name.');
+        }
+
         $designated = $this->roleRepository->getByName(RoleName::fromString(Role::SUPER_ADMIN_NAME));
         $byId?->assertConsistentWithSuperAdmin($designated);
         $byName?->assertConsistentWithSuperAdmin($designated);
         if ($byName instanceof Role && !$byName->getId()->equals($definition->getId())) {
-            throw new ManagedPolicyDefinitionException(sprintf(
+            throw new RuleViolation(sprintf(
                 'Role name "%s" belongs to persisted identifier "%s".',
                 $definition->getName()->toString(),
                 $byName->getId()->toString()
@@ -212,7 +239,7 @@ final readonly class ManagedPolicyPlanner
         }
 
         if ($byId instanceof Role && !$byId->isManaged()) {
-            throw new ManagedPolicyDefinitionException('A custom role cannot be claimed by managed policy.');
+            throw new RuleViolation('A custom role cannot be claimed by managed policy.');
         }
 
         $action = match (true) {
@@ -223,6 +250,91 @@ final readonly class ManagedPolicyPlanner
         };
 
         return new ManagedRolePlanItem($definition, $action);
+    }
+
+    /**
+     * Returns the complete validated managed Permission inventory
+     *
+     * @param array<array-key, mixed> $permissions
+     *
+     * @return list<Permission>
+     */
+    private function validateManagedPermissions(array $permissions): array
+    {
+        if (!array_is_list($permissions)) {
+            throw new UnexpectedValueException('Managed Permission inventory is not a list.');
+        }
+
+        $ids = [];
+        $names = [];
+        foreach ($permissions as $permission) {
+            if (!$permission instanceof Permission || !$permission->isManaged()) {
+                throw new UnexpectedValueException('Managed Permission inventory contains an invalid member.');
+            }
+
+            $id = $permission->getId()->toString();
+            $name = $permission->getName()->toString();
+            if (isset($ids[$id]) || isset($names[$name])) {
+                throw new UnexpectedValueException('Managed Permission inventory contains duplicate identities.');
+            }
+
+            $ids[$id] = true;
+            $names[$name] = true;
+        }
+
+        return $permissions;
+    }
+
+    /**
+     * Returns validated managed Roles or exact Permission references
+     *
+     * @param array<array-key, mixed> $roles
+     *
+     * @return list<Role>
+     */
+    private function validateRoles(array $roles, ?PermissionId $permissionId = null): array
+    {
+        if (!array_is_list($roles)) {
+            throw new UnexpectedValueException('Role inventory is not a list.');
+        }
+
+        $designated = null;
+        if ($roles !== []) {
+            $designated = $this->roleRepository->getByName(RoleName::fromString(Role::SUPER_ADMIN_NAME));
+        }
+
+        $ids = [];
+        $names = [];
+        foreach ($roles as $role) {
+            if (!$role instanceof Role) {
+                throw new UnexpectedValueException('Role inventory contains an invalid member.');
+            }
+
+            $role->assertConsistentWithSuperAdmin($designated);
+            if ($permissionId === null && !$role->isManaged()) {
+                throw new UnexpectedValueException('Managed Role inventory contains a custom Role.');
+            }
+
+            if (
+                $permissionId !== null && !array_any(
+                    $role->getPermissionIds(),
+                    static fn(PermissionId $id): bool => $id->equals($permissionId)
+                )
+            ) {
+                throw new UnexpectedValueException('Role reference inventory contains an unrelated Role.');
+            }
+
+            $id = $role->getId()->toString();
+            $name = $role->getName()->toString();
+            if (isset($ids[$id]) || isset($names[$name])) {
+                throw new UnexpectedValueException('Role inventory contains duplicate identities.');
+            }
+
+            $ids[$id] = true;
+            $names[$name] = true;
+        }
+
+        return $roles;
     }
 
     /**

@@ -102,6 +102,11 @@ Runtime regressions prove decoded types, explicit event instants, native-array c
 exhaustion/no-ops and subtype preservation. Existing authentication/administration/recovery/Tool tests retain
 behavioral fence/redaction proof. This adds neither bus generic qualification nor actual consumer persistence proof.
 
+TASK-00135 adds preparation/preview cases with eight exact positive types and three rejected incompatible uses:
+non-null direct-handler/planner results, issue/item lists and serialized shapes. Existing Feature/Permission/Role
+fixtures retain definition, action enum, message and callback proof. Real configured routing/safe-error tests are
+separate runtime proof; Common's current mixed QueryBus still does not establish generic result inference.
+
 Native transactional results remain `mixed`; a matching local `@var` for a known owned callback result (including
 tuples/unions) remains sufficient. No generic UoW supplier or redundant runtime check is required.
 
