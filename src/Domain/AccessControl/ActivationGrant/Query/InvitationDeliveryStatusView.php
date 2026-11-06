@@ -7,6 +7,7 @@ namespace Fight\AccessControl\Domain\AccessControl\ActivationGrant\Query;
 use DateTimeImmutable;
 use Fight\AccessControl\Domain\AccessControl\ActivationGrant\ActivationDelivery;
 use Fight\AccessControl\Domain\AccessControl\ActivationGrant\ActivationDeliveryId;
+use Fight\AccessControl\Domain\AccessControl\ActivationGrant\ActivationOrigin;
 use Fight\AccessControl\Domain\AccessControl\CredentialDelivery\CredentialDeliveryStatus;
 use Fight\AccessControl\Domain\AccessControl\User\UserId;
 use Fight\Common\Domain\Type\Arrayable;
@@ -27,16 +28,25 @@ final readonly class InvitationDeliveryStatusView implements Arrayable
         private UserId $userId,
         private CredentialDeliveryStatus $status,
         private DateTimeImmutable $expiresAt,
-        private ActivationDeliveryId $activationDeliveryId
+        private ActivationDeliveryId $activationDeliveryId,
+        private ActivationOrigin $origin
     ) {
     }
 
     /**
      * Creates the safe view from delivery work without exposing credential material
      */
-    public static function fromWork(ActivationDelivery $work): self
+    public static function fromWork(ActivationDelivery $work, ActivationOrigin $origin): self
     {
-        return new self($work->getUserId(), $work->getStatus(), $work->getExpiresAt(), $work->getId());
+        return new self($work->getUserId(), $work->getStatus(), $work->getExpiresAt(), $work->getId(), $origin);
+    }
+
+    /**
+     * Returns the recorded activation journey without granting delivery authority
+     */
+    public function getOrigin(): ActivationOrigin
+    {
+        return $this->origin;
     }
 
     /**
@@ -74,7 +84,10 @@ final readonly class InvitationDeliveryStatusView implements Arrayable
     /**
      * Returns the canonical safe array representation
      *
-     * @return array{user_id: string, status: string, expires_at: string, activation_delivery_id: string}
+     * @return array{
+     *     user_id: string, status: string, expires_at: string, activation_delivery_id: string,
+     *     origin: 'private_invitation'|'registration'
+     * }
      */
     public function toArray(): array
     {
@@ -82,7 +95,8 @@ final readonly class InvitationDeliveryStatusView implements Arrayable
             'user_id'                => $this->userId->toString(),
             'status'                 => $this->status->value,
             'expires_at'             => $this->expiresAt->format(DATE_ATOM),
-            'activation_delivery_id' => $this->activationDeliveryId->toString()
+            'activation_delivery_id' => $this->activationDeliveryId->toString(),
+            'origin'                 => $this->origin->value
         ];
     }
 }

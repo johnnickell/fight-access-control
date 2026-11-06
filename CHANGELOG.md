@@ -19,6 +19,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- **Breaking pre-v1 credential status contract:** optional invitation/exact delivery status Queries now return a safe
+  View or explicit `CredentialDeliveryAbsent`, not null. Invitation Views require/expose recorded activation origin.
+  Discovery validates each bounded purpose-family batch before legitimate deterministic global top-N selection.
+  Update callers, View constructors and composed schemas directly; repository lookups remain nullable and all four
+  Queries remain advisory/read-only, with unchanged authority, recovery and expiry policy. See
+  [current contracts](docs/credential-delivery.md#explicit-status-and-bounded-discovery-unreleased).
 - **Breaking pre-v1 Agent issuance caller contract:** replace direct provision/rotation services and their
   result/publication-warning types with immutable secret-free `ProvisionAgent` / `RotateAgentCredential` Commands
   and registered void handlers. Retain original key/request before dispatch; use authorized `GetAgentOperation`

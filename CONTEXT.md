@@ -6,6 +6,18 @@ Fight AccessControl owns framework-neutral identity, credential, session, author
 behavior shared by Fight applications. The repository-local behavioral and security authority is
 [TICKET-00001](planning/tickets/00001-TICKET.md).
 
+## TASK-00133 credential status/discovery — Work checkpoint
+
+The four human credential Queries now have an Engineer correction candidate: optional status returns a safe View or
+explicit `CredentialDeliveryAbsent`, invitation inspection retains recorded origin, and each discovery source is
+validated before deterministic global top-N selection. Nullable Domain lookups and distinct family authority/recovery/
+expiry semantics remain; no query mutates, admits work, commits, audits or publishes. See the
+[current contract](docs/credential-delivery.md#explicit-status-and-bounded-discovery-unreleased).
+
+Candidate inventory, regression-first chronology, static/runtime/minimum/ordinary and full-gate evidence belong to
+canonical `.runs/handoffs/TASK-00133/work.md`. Independent Review and nonvisual QA remain required; this Work checkpoint
+does not accept/close TASK-00133 or its parents, qualify consumers, publish, merge, release or deploy.
+
 ## TASK-00120 pinned develop integration — Work checkpoint
 
 The existing Feature branch integrates develop `4ea9fcd3a78624fae041232859eae2f249daaf3b`, retaining

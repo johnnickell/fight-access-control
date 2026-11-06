@@ -121,10 +121,15 @@ exact coverage, local evidence and independent Review/behavioral QA. Choose the 
 | --- | --- | --- | --- |
 | 310 | [TASK-00131](../tasks/00131-TASK.md) | Make required resource queries exact and non-null | ready-for-agent |
 | 311 | [TASK-00132](../tasks/00132-TASK.md) | Enforce paged query result contracts | needs-info |
-| 312 | [TASK-00133](../tasks/00133-TASK.md) | Make human credential status and discovery results explicit | ready-for-agent |
+| 312 | [TASK-00133](../tasks/00133-TASK.md) | Make human credential status and discovery results explicit | in-progress |
 | 313 | [TASK-00134](../tasks/00134-TASK.md) | Correct Agent operation, scheduler and count query contracts | ready-for-agent |
 | 314 | [TASK-00135](../tasks/00135-TASK.md) | Make preparation and policy-preview results truthful | ready-for-agent |
 ## Decisions and Progress
+
+TASK-00133 now has a four-query Engineer implementation candidate with explicit status absence and independently
+bounded source validation, aligned callers/schemas and local verification evidence. Canonical
+`.runs/handoffs/TASK-00133/work.md` owns exact candidate/gate/runtime facts. Independent Review/nonvisual QA remain
+required; this does not accept that child, close this TICKET or qualify other Query/supplier/consumer boundaries.
 
 John approved this requirement within the six-TICKET split, then the complete five-TASK plan now written as
 TASK-00131–00135. Four are ready-for-agent with no demonstrated local blockers; TASK-00132 remains needs-info for

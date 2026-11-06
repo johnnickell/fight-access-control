@@ -12,6 +12,7 @@ use Fight\AccessControl\Domain\AccessControl\ActivationGrant\ActivationOrigin;
 use Fight\AccessControl\Domain\AccessControl\ActivationGrant\Query\FindInvitationDeliveryStatus;
 use Fight\AccessControl\Domain\AccessControl\ActivationGrant\Query\InvitationDeliveryStatusView;
 use Fight\AccessControl\Domain\AccessControl\CredentialDelivery\CredentialDeliveryStatus;
+use Fight\AccessControl\Domain\AccessControl\CredentialDelivery\Query\CredentialDeliveryAbsent;
 use Fight\AccessControl\Domain\AccessControl\User\UserId;
 use Fight\Common\Domain\Exception\DomainException;
 use Fight\Common\Domain\Messaging\Query\QueryMessage;
@@ -24,6 +25,7 @@ use PHPUnit\Framework\TestCase;
 #[CoversClass(FindInvitationDeliveryStatusHandler::class)]
 #[CoversClass(FindInvitationDeliveryStatus::class)]
 #[CoversClass(InvitationDeliveryStatusView::class)]
+#[CoversClass(CredentialDeliveryAbsent::class)]
 final class FindInvitationDeliveryStatusHandlerTest extends TestCase
 {
     public function test_that_it_returns_a_safe_status_view_without_credential_material(): void
@@ -46,6 +48,7 @@ final class FindInvitationDeliveryStatusHandlerTest extends TestCase
 
         self::assertInstanceOf(InvitationDeliveryStatusView::class, $view);
         self::assertSame($userId, $view->getUserId());
+        self::assertSame(ActivationOrigin::PRIVATE_INVITATION, $view->getOrigin());
         self::assertEquals(
             $activationGrantRepository->all()[0]->getDelivery()->getId(),
             $view->getActivationDeliveryId()
@@ -59,7 +62,8 @@ final class FindInvitationDeliveryStatusHandlerTest extends TestCase
                 'user_id'                => '018f0000-0000-7000-8000-000000000001',
                 'status'                 => 'pending',
                 'expires_at'             => '2026-08-25T12:00:00+00:00',
-                'activation_delivery_id' => $activationGrantRepository->all()[0]->getDelivery()->getId()->toString()
+                'activation_delivery_id' => $activationGrantRepository->all()[0]->getDelivery()->getId()->toString(),
+                'origin'                 => 'private_invitation'
             ],
             $view->toArray()
         );
@@ -74,12 +78,13 @@ final class FindInvitationDeliveryStatusHandlerTest extends TestCase
         FindInvitationDeliveryStatus::fromArray([]);
     }
 
-    public function test_that_it_returns_null_when_no_delivery_work_exists(): void
+    public function test_that_it_returns_explicit_absence_when_no_delivery_work_exists(): void
     {
         $handler = new FindInvitationDeliveryStatusHandler(new InMemoryActivationGrantRepository());
 
         $view = $handler->handle(QueryMessage::create(new FindInvitationDeliveryStatus(UserId::generate())));
 
-        self::assertNull($view);
+        self::assertInstanceOf(CredentialDeliveryAbsent::class, $view);
+        self::assertSame(['state' => 'absent'], $view->toArray());
     }
 }

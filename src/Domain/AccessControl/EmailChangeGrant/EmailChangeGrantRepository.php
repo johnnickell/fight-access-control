@@ -21,7 +21,9 @@ interface EmailChangeGrantRepository
      * Returns deterministic secret-free due work ordered by eligibility time then delivery identifier
      *
      * Pending and due-retry work is eligible at its due time. Claimed work is eligible at lease expiry. Only the
-     * authoritative latest generation for each User participates. The positive limit is applied after ordering.
+     * authoritative latest generation for each User participates. Return a list of email_change-purpose work with
+     * eligibility time <= at, at most one entry per User and delivery ID. Apply the positive limit after filtering
+     * and ordering; return no more than limit entries. Reads never mutate. No cross-family snapshot is promised.
      *
      * @return list<DueCredentialDelivery>
      *
@@ -35,7 +37,8 @@ interface EmailChangeGrantRepository
      * Select authority at expiry <= at regardless of delivery status or material, including delivered,
      * permanent-failure and delivery-expired work. Exclude consumed, revoked, fully expired or obsolete authority.
      * Filter before ordering by expiry instant, delivery ID and purpose, then apply the limit (1–100).
-     * Reads never mutate or publish. Results include the exact grant ID needed by full authority expiry.
+     * Return a list of email_change-purpose work, no more than limit entries and at most one entry per User and
+     * delivery ID. Reads never mutate or publish. Results include the exact grant ID needed by full authority expiry.
      * Commands revalidate advisory identities and the bound reservation inside their transaction.
      *
      * @return list<ExpiredCredentialDelivery>
