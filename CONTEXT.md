@@ -6,7 +6,19 @@ Fight AccessControl owns framework-neutral identity, credential, session, author
 behavior shared by Fight applications. The repository-local behavioral and security authority is
 [TICKET-00001](planning/tickets/00001-TICKET.md).
 
-## TASK-00133 develop integration — Work checkpoint
+## TASK-00133 develop integration — accepted checkpoint
+
+Independent Review v3 ACCEPT and nonvisual QA PASS cover clean integrated candidate
+`5b7829595f92e075f5ae85a053b287b29fe4688e` against develop `313db75af6821dbeaff9ee889697fb9e48628af6`,
+with no findings. Fresh residual QA passes 14 cases / 400 checks and shared journeys 14 tests / 418 assertions;
+criterion-specific original/incoming evidence remains explicitly retained, not relabeled fresh. The integrated
+full gate passes 4,868 tests / 53,942 assertions, exact 8,292/8,292 global and 229/229 combined changed statements.
+Both TASKs remain done; unfinished siblings keep parents open. Existing-PR publication/final-head checks remain
+pending at this checkpoint; canonical `.runs/handoffs/TASK-00133/land.md` owns the administrative bridge and current
+delivery/resource results. Original acceptance/history retains its exact subjects; no merge, release, deployment
+or consumer qualification is implied. The following Work checkpoint is historical, not a current Review/QA action.
+
+### Historical integration Work checkpoint
 
 The existing published feature branch integrates pinned develop `313db75af6821dbeaff9ee889697fb9e48628af6`,
 preserving TASK-00131's required-resource result-or-failure contracts and TASK-00133's explicit optional status and

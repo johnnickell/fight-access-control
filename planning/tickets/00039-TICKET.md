@@ -128,9 +128,12 @@ exact coverage, local evidence and independent Review/behavioral QA. Choose the 
 
 TASK-00133's four human credential status/discovery paths are independently accepted and done, with explicit
 absence, exact status correlation, per-source admission and aligned callers/schemas. The owning TASK records
-candidate `c62d261726082547757cba98eb3af150afa4665d`, Review ACCEPT, nonvisual QA PASS and qualified complete-gate
-proof; canonical `.runs/handoffs/TASK-00133/land.md` owns current delivery/resource results. Unfinished siblings
-keep this TICKET open; this acceptance does not qualify other Query, supplier or consumer boundaries.
+original candidate `c62d261726082547757cba98eb3af150afa4665d` and integrated candidate
+`5b7829595f92e075f5ae85a053b287b29fe4688e` against `313db75af6821dbeaff9ee889697fb9e48628af6`, each with its
+exact independent Review ACCEPT/nonvisual QA PASS and qualified complete-gate proof. Original history remains
+preserved; existing-PR publication/final-head checks are pending at the integrated closeout checkpoint.
+Canonical `.runs/handoffs/TASK-00133/land.md` owns current delivery/resource results. Unfinished siblings keep this
+TICKET open; this acceptance does not qualify other Query, supplier or consumer boundaries.
 
 ### TASK-00131 accepted implementation checkpoint
 
