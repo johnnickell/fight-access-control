@@ -43,8 +43,11 @@ nonce consumption remains a distinct, request-scoped side effect of the current 
 
 ## Requirements, Validation and Permissions
 
-- Support explicit mappings and existing attributes in the current chosen contract. Specify coexistence and
-  conflict mechanics downstream without silently overriding declarations or introducing an implicit public Tool.
+- Use explicit configuration mappings for Common-owned Tools and `RequiresAgentPermission` attributes for
+  application/package-owned Tools. They coexist in one registry, not on the same Tool: reject both declarations
+  even when their requirements are identical. Neither source silently overrides, supplements or rescues the other.
+  [TASK-00084's approved binding contract](../tasks/00084-TASK.md#approved-binding-contract) owns the precise API
+  and validation rules; there is no implicit public Tool.
 - Every Tool in a protected composition has a nonempty validated requirement set; all required canonical
   `PermissionName` values must be present in direct Agent authority. Missing/malformed/conflicting composition rejects.
 - Preserve complete registry coverage and same-registry/exact-definition identity, not merely string-name equality.
@@ -55,8 +58,10 @@ nonce consumption remains a distinct, request-scoped side effect of the current 
   `execution.activity`, `execution.messages`, `execution.detail`) alongside attributed profile Tools.
 - Retain ordinary request-local principal semantics, fresh later requests and private zero-TTL discovery posture.
   Reuse the same trusted provider within one request rather than consuming the nonce for every Tool check.
-- Availability is not target/data permission. Scope and protected-body composition belong to TICKET-00029; direct
-  Tool/bus entry points outside the composed invoker require their own consumer protection.
+- Availability is not target/data permission. Scope and protected-body composition belong to TICKET-00029.
+  Every exposed direct Tool, CLI, HTTP, broker or worker entry owns applicable caller/operation/target admission
+  before configured dispatch; attributes do not intercept PHP calls. The raw in-process bus remains trusted
+  infrastructure, not a second authenticated public API or a reason for blanket duplicate Application admission.
 - Common receives only its neutral decision, never an Agent principal, Permission reasoning or credentials.
   Preserve protocol-specific concealment and safe diagnostics; do not publish attribute errors or exception text.
 
@@ -66,14 +71,17 @@ nonce consumption remains a distinct, request-scoped side effect of the current 
 - [TICKET-00029](00029-TICKET.md) consumes this binding for the complete scoped execution-Tool journey.
   [TICKET-00031](00031-TICKET.md) uses it for applicable Tool-start paths, not as a substitute for Task operation checks.
 - Inspect actual accepted/tagged Common definitions, invocation/retry ordering and execution Tool APIs before affected
-  adoption. Establish/test the minimum Common version; the existing `^1.3` constraint is not proof of new classes.
+  adoption. Establish/test the minimum Common version; the current `^1.4.1` constraint is not proof of new classes.
 - Keep Domain/Application ownership, ADR 0011's current-contract policy and the EPIC's combined-release gate.
-  Exact API names, implementation slicing and dependency wiring are downstream design, not invented here.
+  The approved catalog API is specified in TASK-00084; actual supplier signatures and dependency wiring still
+  require implementation-time qualification. Common's planned typed activity execution facts are reconciled there
+  and in TICKET-00029, not a new binding TASK or a reverse Common release prerequisite.
 
 ## Acceptance Evidence
 
 - [ ] Real mixed Common-owned/attributed Tool registry composes with complete explicit requirements and no wrappers
-  copying Tool schemas; each missing, malformed, conflicting and foreign-definition case fails as specified.
+  copying Tool schemas; each missing, malformed, conflicting and foreign-definition case fails as specified,
+  including a mapped attributed Tool with either equal or different requirements.
 - [ ] Every missing-Permission permutation denies before selected validation, Tool/Query/Command work, progress or
   protected retry restoration/consumption; unavailable and unknown public outcomes remain equivalent.
 - [ ] Permitted discovery/invocation/retry uses the real Common paths; private paging/cursors do not cache authority.
@@ -105,6 +113,12 @@ there is no separate prefactor or testing-only TASK.
 TASK-00084 is `needs-info` pending actual qualified/tagged Common execution APIs and minimum-version evidence,
 with TASK-00108 and TASK-00110 now added as the approved canonical adapter/consumed-Common prerequisites. Requirement/TASK-plan acceptance is not implementation acceptance or
 execution authority. No source, dependency adoption, grant or publication is authorized or performed.
+
+John accepted the external-Tool architecture recommendations and requested reconciliation of these existing records.
+Explicit maps and attributes now have one-source-per-Tool semantics under TASK-00084; no new TASK, grant or Common
+permission dependency is introduced. Common TASK-00205's merged planning adds typed activity facts, not implemented
+or tagged supplier availability. The existing qualified/tagged prerequisite and TASK-00110 edge remain unchanged.
+Agent OS documentation reconciliation is a separate operator handoff; this change does not edit that project.
 
 This TICKET's TASK planning is complete. TICKET-00026's subsequently approved TASK-00085/00086 plan is also
 written, as are TICKET-00027/00028's approved TASK-00087/00088 plans. TICKET-00029's approved TASK-00089/00090 plan is also written; TICKET-00030's approved TASK-00091–00096 plan is now written; TICKET-00031's TASK-00097–00102 and TICKET-00032's approved TASK-00103–00106 plans are written.

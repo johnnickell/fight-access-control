@@ -842,6 +842,32 @@ aliases/legacy modes. Existing code, completed TASKs and release checkpoints bel
 no source/dependency/configuration/grant change, Common/consumer mutation, execution, commit/publication or release
 is claimed. EPIC-00014's combined release/all-five-framework scope and unassigned version remain unchanged.
 
+## Approved external MCP Tool binding reconciliation
+
+John accepted the existing external-Tool design recommendations and authorized reconciliation of AccessControl's
+records only. [TICKET-00025](planning/tickets/00025-TICKET.md) / [TASK-00084](planning/tasks/00084-TASK.md#approved-binding-contract)
+retain one complete mixed registry: explicit maps for Common-owned Tools, attributes for application/package-owned
+Tools, and rejection of both on one Tool even when equal. The approved catalog extension accepts exact canonical
+Tool-name keys with nonempty conjunctive Permission-string lists, retaining Common's exact immutable definitions.
+This remains an implementation target; the current catalog is attribute-only. No subclass/copied schema, reverse
+Common dependency, automatic grant or duplicate TASK is introduced.
+
+Request-bound providers/availability/profile Tools share one request and cannot become singletons; rebuild their
+registry/catalog together. Later pages/calls/retries need fresh request authority. Exposed direct Tool/CLI/HTTP/
+broker/worker entries own caller/operation/target admission; the raw configured bus remains trusted, not another
+public API or a blanket second authentication gate. Coarse availability creates no target, metadata or body scope.
+
+[Common TASK-00205](https://github.com/johnnickell/fight-common/blob/8f69f701102f246c0f77000d46bd4238f8f56455/planning/tasks/00205-TASK.md)
+is merged approved planning for optional safe activity target/timing/result facts, not implemented/tagged supplier
+availability. [TASK-00089](planning/tasks/00089-TASK.md#typed-activity-facts-reconciliation) owns their scoped timeline
+qualification when supplied by the selected tag; [TASK-00090](planning/tasks/00090-TASK.md#external-tool-and-typed-fact-reconciliation)
+retains independent structural/metadata/body admission, including metadata-only results. Typed facts confer no
+grants, business-success evidence, stable history, automatic capture or new transaction guarantee. No new
+TASK-00205 blocker or reverse Common release prerequisite is added. Existing statuses/orders/edges, TASK-00110,
+the qualified/tagged/minimum holds and EPIC-00014's combined-release boundary remain unchanged. Agent OS record
+reconciliation is a separate operator prompt; this operation makes no edits there and starts no implementation.
+The investigation below retains its historical observations; the owning TASKs record current amendments.
+
 ## Future Common MCP permission integration — investigation 2026-10-25
 
 John requested investigation/planning for a future AccessControl release. The
