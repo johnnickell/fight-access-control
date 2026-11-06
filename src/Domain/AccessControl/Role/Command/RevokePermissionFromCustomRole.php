@@ -36,16 +36,24 @@ final readonly class RevokePermissionFromCustomRole implements Command
             if (!array_key_exists($key, $data)) {
                 throw new DomainException(sprintf('Missing required key "%s" in data array', $key));
             }
+
+            if (!is_string($data[$key]) || $data[$key] === '') {
+                throw new DomainException(sprintf('Required key "%s" must be a nonempty string.', $key));
+            }
         }
 
         return new static(
-            UserId::fromString((string) $data['actor_id']),
-            RoleId::fromString((string) $data['role_id']),
-            PermissionId::fromString((string) $data['permission_id'])
+            UserId::fromString($data['actor_id']),
+            RoleId::fromString($data['role_id']),
+            PermissionId::fromString($data['permission_id'])
         );
     }
 
-    /** @inheritDoc */
+    /**
+     * Returns the canonical command payload
+     *
+     * @return array{actor_id: string, role_id: string, permission_id: string}
+     */
     public function toArray(): array
     {
         return [

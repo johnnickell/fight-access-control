@@ -51,8 +51,11 @@ invitation defaults.
 RefreshSession validates positive authentication version, nonnegative revision, exact hexadecimal digest shapes
 and an ordered, duplicate-free used-digest list disjoint from the current digest. Rotation history and its timestamp
 must agree with last activity and the bounded lifetime. Rotation cannot reuse the current or a historical
-credential. Exhausted persistence revisions reject without producing a successor. Raw refresh transport values
-must be exactly 64 lowercase hexadecimal characters, with no whitespace or newline suffix.
+credential. Before the first rotation, the most-recently-used credential predicate returns false without PHP
+diagnostics for both current and unrelated credentials. After rotation, only the latest predecessor can match,
+from the rotation instant inclusive to the conflict-window deadline exclusive; older history remains replay
+evidence, not a benign conflict. Exhausted persistence revisions reject without producing a successor. Raw refresh
+transport values must be exactly 64 lowercase hexadecimal characters, with no whitespace or newline suffix.
 
 Retain all existing expected-state comparisons, exact revision advancement, coupled User/session insertion,
 transaction-duration fences and required audit. Compare persisted immutable instants without discarding their

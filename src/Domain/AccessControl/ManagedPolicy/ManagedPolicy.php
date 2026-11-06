@@ -13,6 +13,12 @@ use Fight\AccessControl\Domain\AccessControl\Role\Role;
  * Class ManagedPolicy
  *
  * Owns one complete version-controlled authorization policy.
+ *
+ * @phpstan-type SerializedPolicy array{
+ *     permissions: list<array{id: string, name: string, tier: string}>,
+ *     roles: list<array{id: string, name: string, permission_ids: list<string>}>,
+ *     referenced_permission_ids: list<string>
+ * }
  */
 final readonly class ManagedPolicy
 {
@@ -89,29 +95,38 @@ final readonly class ManagedPolicy
                 ));
             }
 
-            if (!is_array($data[$key])) {
+            if (!is_array($data[$key]) || !array_is_list($data[$key])) {
                 throw new ManagedPolicyDefinitionException(sprintf(
-                    'Managed policy %s must be an array.',
+                    'Managed policy %s must be a list.',
                     $key
                 ));
             }
         }
 
+        foreach ([...$data['permissions'], ...$data['roles']] as $definition) {
+            if (!is_array($definition)) {
+                throw new ManagedPolicyDefinitionException('Managed policy definitions must be arrays.');
+            }
+        }
+
+        foreach ($data['referenced_permission_ids'] as $id) {
+            if (!is_string($id)) {
+                throw new ManagedPolicyDefinitionException('Managed policy reference identifiers must be strings.');
+            }
+        }
+
         return new self(
             array_map(
-                static fn(mixed $definition): ManagedPermissionDefinition =>
-                    ManagedPermissionDefinition::fromArray((array) $definition),
-                array_values($data['permissions'])
+                ManagedPermissionDefinition::fromArray(...),
+                $data['permissions']
             ),
             array_map(
-                static fn(mixed $definition): ManagedRoleDefinition => ManagedRoleDefinition::fromArray(
-                    (array) $definition
-                ),
-                array_values($data['roles'])
+                ManagedRoleDefinition::fromArray(...),
+                $data['roles']
             ),
             array_map(
-                static fn(mixed $id): PermissionId => PermissionId::fromString((string) $id),
-                array_values($data['referenced_permission_ids'])
+                PermissionId::fromString(...),
+                $data['referenced_permission_ids']
             )
         );
     }
@@ -149,11 +164,7 @@ final readonly class ManagedPolicy
     /**
      * Returns the canonical serialized policy
      *
-     * @return array{
-     *     permissions: list<array{id: string, name: string, tier: string}>,
-     *     roles: list<array{id: string, name: string, permission_ids: list<string>}>,
-     *     referenced_permission_ids: list<string>
-     * }
+     * @phpstan-return SerializedPolicy
      */
     public function toArray(): array
     {

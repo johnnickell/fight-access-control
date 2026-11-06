@@ -11,6 +11,8 @@ use Fight\Common\Domain\Messaging\Command\Command;
  * Class ReconcileManagedPolicy
  *
  * Requests atomic reconciliation of version-controlled authorization policy.
+ *
+ * @phpstan-import-type SerializedPolicy from ManagedPolicy
  */
 final readonly class ReconcileManagedPolicy implements Command
 {
@@ -37,7 +39,11 @@ final readonly class ReconcileManagedPolicy implements Command
         return $this->policy;
     }
 
-    /** @inheritDoc */
+    /**
+     * Returns the canonical command payload
+     *
+     * @phpstan-return SerializedPolicy
+     */
     public function toArray(): array
     {
         return $this->policy->toArray();

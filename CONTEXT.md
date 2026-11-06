@@ -6,7 +6,42 @@ Fight AccessControl owns framework-neutral identity, credential, session, author
 behavior shared by Fight applications. The repository-local behavioral and security authority is
 [TICKET-00001](planning/tickets/00001-TICKET.md).
 
-## TASK-00116 develop integration — current Work checkpoint
+## TASK-00117 integrated QA-01 repair — accepted checkpoint
+
+Independent Review ACCEPT and nonvisual QA PASS cover repaired candidate
+`52540b7293a0cfd84d8fa03230c6e2ab2cde6520` against `e13995a5b2760d4d02300de2b81797b1d009eb38`.
+QA-01 / Review I-01 is resolved by actual strict-diagnostic and affected lifecycle revalidation. The full gate
+passes 4,429 tests / 52,484 assertions and exact 8,063/8,063 statements on the final installed lane. Two inherited,
+out-of-scope User level-8 precision diagnostics remain; no whole-library level-8 or consumer qualification is claimed.
+
+Land mechanically merges develop `f48e5dc9966c083e0207430954c54f08d9a97cb0` in
+`decc2577edb799e23a4c5a701323a41a7b25c543`: only runtime-free fixture cleanup tooling/guidance changes,
+with product, tests, fixtures and dependency constraints unchanged from the accepted repair. Independent reports
+retain their exact subjects; the bridge and new-input gate results belong to canonical
+`.runs/handoffs/TASK-00117/land.md`. TASK-00117 remains done; unfinished children keep its parents open.
+Publication/final-head verification are pending at this administrative checkpoint; current delivery/resource
+results belong to that Land handoff and [PR #165](https://github.com/johnnickell/fight-access-control/pull/165).
+No approval, merge, release or deployment is claimed. The following Work and failure checkpoints are historical,
+not current independent-QA instructions.
+
+## TASK-00117 develop integration — historical Work checkpoint
+
+TASK-00117 integrates develop `e13995a5b2760d4d02300de2b81797b1d009eb38`, retaining the accepted
+TASK-00115/00116 source alongside its Permission/Role/authority contracts. Conflict reconciliation preserves
+all three TASK records and regenerates planning views; no new policy or supplier adoption is introduced.
+The original independent reports retain their exact subjects, not a new integrated verdict. Current verification,
+content/runtime identity, interaction limits and continuation belong to canonical
+`.runs/handoffs/TASK-00117/develop-merge-20261105.md`. Historical completion remains intact; this Work checkpoint
+claims no new independent acceptance, publication, merge or consumer qualification.
+
+John subsequently authorized the narrow inherited RefreshSession empty-history correction (QA-01 / Review I-01)
+in this continuation. The most-recently-used credential predicate now returns false without diagnostics before
+rotation; latest-predecessor selection and the inclusive-start/exclusive-end conflict window remain unchanged.
+Regression-first proof and current verification belong to canonical `.runs/handoffs/TASK-00117/qa-01-repair.md`.
+Historical TASK completion does not accept this correction: current independent reassessment remains pending,
+and the prior QA FAIL remains an unchanged exact-subject report. No unrelated User typing repair is included.
+
+## TASK-00116 develop integration — historical Work checkpoint
 
 The published TASK-00116 branch integrates develop `998e892b4a4a9c1efd5464e76d3ee542c9d24a89`, including
 TASK-00115's independently accepted User/session/audit contracts. Both slices' production changes and structural
@@ -283,6 +318,28 @@ TICKET-00052's reduced evidence/gap-closure plan is now TASK-00180/00181, comple
 EPIC-00016's six accepted TICKET plans below are complete, not implemented/qualified; added EPIC-00015 Agent conversion and actual
 Common suppliers remain separate unfinished planning/qualification handoffs. Existing scope/order/blockers and first
 Board selection remain unchanged. No source/dependency/consumer mutation, product build or implementation follows.
+
+## TASK-00117 Permission, Role and authority typing — accepted checkpoint
+
+Independent Review ACCEPT and nonvisual QA PASS cover candidate `191b972258acfa4ca0bb7e8c90ded115a26f2fcc`
+against `46a15c89fdb33de3e411053e53dfe33a4c60ea0e`. This accepts the complete owned Domain correction slice,
+not whole-library typing or actual consumer qualification. TASK-00117 is done; its parents remain open for
+unfinished children. Publication/final delivery verification are pending at this closeout checkpoint; current
+results belong to canonical `.runs/handoffs/TASK-00117/land.md` and the actual PR. The Work checkpoint below
+is historical, not a current Review/QA prerequisite.
+
+### Work checkpoint
+
+The complete Permission/Role/ManagedPolicy/Authorization Domain slice has been inspected, with an exhaustive
+member/callback inventory and caller/disposition evidence retained in the canonical TASK Work handoff. Current
+corrections validate decoded message/policy values without coercion, describe exact policy-plan/Event payloads,
+project Role membership as typed lists and enforce complete canonical Role names. Valid serialization, nullable
+repositories, revisions, tier/reserved identity and reference/authority fences retain their existing semantics.
+Principal snapshot arrays remain genuinely dynamic validated inputs, not live authority. See
+[Role input types](docs/role-revisions.md#serialized-input-types-unreleased),
+[policy input types](docs/operation-outcomes.md#serialized-policy-types-unreleased) and
+[type-contract proof](docs/type-contracts.md). No Common adoption, new policy, compatibility reader or consumer
+qualification is included. Independent Review and behavioral QA remain pending; Work does not mark TASK-00117 done.
 
 ## TASK-00115 User/session/audit typing — accepted checkpoint
 

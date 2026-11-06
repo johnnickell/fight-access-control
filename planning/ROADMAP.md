@@ -172,6 +172,26 @@ or release is authorized by this planning.
 
 ## Current planning handoff — library-wide typing and failure contracts
 
+TASK-00117's integrated QA-01 repair has independent Review ACCEPT and nonvisual QA PASS at
+`52540b7293a0cfd84d8fa03230c6e2ab2cde6520` against `e13995a5b2760d4d02300de2b81797b1d009eb38`.
+QA-01 / Review I-01 is resolved. Land mechanically integrates develop's runtime-free fixture tooling at
+`f48e5dc9966c083e0207430954c54f08d9a97cb0` without changing accepted product/test/fixture contracts.
+Exact bridge, new-input gate and current delivery/resource results belong to canonical
+`.runs/handoffs/TASK-00117/land.md` and PR #165; publication/final checks are pending at this checkpoint.
+TASK-00117 stays done, unfinished children keep its parents open, and the Board owns execution selection.
+No human merge, whole-library or consumer qualification is claimed. Original checkpoints/reports remain historical.
+
+### Historical original TASK-00117 acceptance checkpoint
+
+[TASK-00117](tasks/00117-TASK.md)'s complete Permission/Role/ManagedPolicy/Authorization Domain correction slice
+has independent Review ACCEPT and nonvisual QA PASS at candidate `191b972258acfa4ca0bb7e8c90ded115a26f2fcc`.
+The TASK is done; TICKET-00037 and EPIC-00016 remain open for unfinished children. Publication/final delivery
+verification are pending at this closeout checkpoint; current results belong to canonical
+`.runs/handoffs/TASK-00117/land.md` and the actual PR. No whole-library or consumer qualification is implied;
+execution selection remains with the Board, not the historical planning checkpoints below.
+
+### Historical TASK-00116 integration checkpoint
+
 TASK-00116's published branch now integrates develop's accepted TASK-00115 contracts without changing either
 slice's production implementation. Original acceptance checkpoints below retain their exact subjects; the new-base
 interaction checks and evidence bridge belong to canonical `.runs/handoffs/TASK-00116/work.md`. Land must qualify

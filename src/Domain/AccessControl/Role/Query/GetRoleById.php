@@ -33,11 +33,17 @@ final readonly class GetRoleById implements Query
             throw new DomainException('Missing required key "role_id" in data array');
         }
 
-        return new static(RoleId::fromString((string) $data['role_id']));
+        if (!is_string($data['role_id'])) {
+            throw new DomainException('The role_id must be a string.');
+        }
+
+        return new static(RoleId::fromString($data['role_id']));
     }
 
     /**
-     * @inheritDoc
+     * Returns the canonical query payload
+     *
+     * @return array{role_id: string}
      */
     public function toArray(): array
     {

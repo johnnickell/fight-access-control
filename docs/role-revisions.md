@@ -35,6 +35,21 @@ Permission grant/revoke advances exactly once. Managed creation/reconciliation/r
 and revision rules. Unchanged managed definitions retain their state; the existing policy-level reconciliation
 notification semantics are unchanged. Reads and User Role assignments do not advance Role state.
 
+## Serialized input types (Unreleased)
+
+Role Commands, Events and identity Queries require string identities/names; Event timestamps must be nonempty
+strings rather than values coerced to strings or an implicit current time. Rename/remove still parse the required
+revision through `RoleRevision`, with its existing typed rejection. Canonical serialized fields and valid round trips
+are unchanged. `ListRoles` and `ListPermissions` require integer bounds and a string-field/string-direction ordering
+map when decoded; this does not change the existing Pagination object's bounds/normalization semantics.
+Role names must match their complete canonical spelling, without a trailing newline.
+
+Typed membership constructors still take `list<PermissionId>`; returned memberships are independent lists, preserving
+set deduplication and order. Principal snapshot constructors deliberately accept dynamic arrays, validate every
+entry, and expose typed deduplicated lists. These snapshots remain request facts, never continuing authority.
+Update malformed producers directly; no coercion/legacy mode or new grant is supplied. See the focused
+[type-contract fixtures](type-contracts.md) for native/static proof and its limits.
+
 ## Persistence and all-writer fences
 
 Creation factories `Role::define()` and `defineManaged()` establish a fresh random incarnation at sequence one.

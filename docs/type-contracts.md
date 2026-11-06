@@ -60,7 +60,7 @@ Temporary probes are not accepted replacements for the tracked product cases.
 
 ## Current proof and remaining ownership
 
-The initial two cases assert six positive types and six incompatible uses: UserId versus RoleId, UserView Role
+The initial two foundation cases assert six positive types and six incompatible uses: UserId versus RoleId, UserView Role
 lists and canonical serialized shape, nullable UserRepository lookup, FeatureReferences names and typed array-map
 callbacks. Expectations come from those current package declarations. No production API or business behavior changes.
 Static collection/callback inference does not validate untrusted values, enforce PHP generics at runtime, establish
@@ -70,6 +70,13 @@ TASK-00128/00129/00130 may add real dispatch cases using this manifest/runner; T
 Those owners must prove their actual payload/result/registration relationships through qualified Common contracts,
 minimum/ordinary dependency lanes and applicable runtime composition. Local sinks/probes, dummy handlers or direct
 handler calls cannot stand in for an unqualified bus relationship. These initial cases claim none of that proof.
+TASK-00117 adds two Domain cases: 21 exact positive types and nine incompatible uses covering Permission/Role
+identities, nullable repositories and typed batches/pages, Role revisions/membership, principal lists, policy definitions
+and plan items, exact plan/Event/message shapes and typed callbacks. The owned Domain source is also checked at level 8
+during that slice's focused verification; this does not change the ordinary whole-library level. Runtime tests separately
+exercise decoded-input validation, round trips, dynamic principal snapshots and existing authority/reference fences.
+No bus/Event dispatch generic or real persistence qualification is claimed by these Domain fixtures.
+
 Native transactional results remain `mixed`; a matching local `@var` for a known owned callback result (including
 tuples/unions) remains sufficient. No generic UoW supplier or redundant runtime check is required.
 

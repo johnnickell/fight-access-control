@@ -178,12 +178,13 @@ class RefreshSession
         DateTimeImmutable $presentedAt,
         DateInterval $conflictWindow
     ): bool {
-        $mostRecentlyUsedCredentialDigest = $this->usedCredentialDigests[array_key_last(
-            $this->usedCredentialDigests
-        )] ?? null;
+        if ($this->usedCredentialDigests === []) {
+            return false;
+        }
 
-        return $mostRecentlyUsedCredentialDigest !== null
-            && hash_equals($mostRecentlyUsedCredentialDigest, $refreshCredential->digest())
+        $mostRecentlyUsedCredentialDigest = $this->usedCredentialDigests[array_key_last($this->usedCredentialDigests)];
+
+        return hash_equals($mostRecentlyUsedCredentialDigest, $refreshCredential->digest())
             && $this->rotatedAt instanceof DateTimeImmutable
             && $presentedAt >= $this->rotatedAt
             && $presentedAt < $this->rotatedAt->add($conflictWindow);

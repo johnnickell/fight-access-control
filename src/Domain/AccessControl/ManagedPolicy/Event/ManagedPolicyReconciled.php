@@ -7,6 +7,7 @@ namespace Fight\AccessControl\Domain\AccessControl\ManagedPolicy\Event;
 use DateTimeImmutable;
 use Fight\AccessControl\Domain\AccessControl\ManagedPolicy\ManagedPermissionDefinition;
 use Fight\AccessControl\Domain\AccessControl\ManagedPolicy\ManagedPolicyChangeAction;
+use Fight\AccessControl\Domain\AccessControl\ManagedPolicy\ManagedPolicyPlan;
 use Fight\AccessControl\Domain\AccessControl\ManagedPolicy\ManagedRoleDefinition;
 use Fight\AccessControl\Domain\AccessControl\Permission\PermissionTier;
 use Fight\Common\Domain\Exception\DomainException;
@@ -16,10 +17,12 @@ use Fight\Common\Domain\Messaging\Event\Event;
  * Class ManagedPolicyReconciled
  *
  * Announces one safely committed managed-policy reconciliation.
+ *
+ * @phpstan-import-type SerializedPlan from ManagedPolicyPlan
  */
 final readonly class ManagedPolicyReconciled implements Event
 {
-    /** @var array{permissions: list<array<string, mixed>>, roles: list<array<string, mixed>>} */
+    /** @phpstan-var SerializedPlan */
     private array $plan;
 
     /**
@@ -45,16 +48,17 @@ final readonly class ManagedPolicyReconciled implements Event
             throw new DomainException('Managed policy reconciliation plan must be an array.');
         }
 
-        /** @var array<string, mixed> $plan */
-        $plan = $data['plan'];
+        if (!is_string($data['occurred_at']) || $data['occurred_at'] === '') {
+            throw new DomainException('Managed policy reconciliation time must be a nonempty string.');
+        }
 
-        return new static($plan, new DateTimeImmutable((string) $data['occurred_at']));
+        return new static($data['plan'], new DateTimeImmutable($data['occurred_at']));
     }
 
     /**
      * Returns the reconciled plan
      *
-     * @return array{permissions: list<array<string, mixed>>, roles: list<array<string, mixed>>}
+     * @phpstan-return SerializedPlan
      */
     public function getPlan(): array
     {
@@ -69,7 +73,11 @@ final readonly class ManagedPolicyReconciled implements Event
         return $this->occurredAt;
     }
 
-    /** @inheritDoc */
+    /**
+     * Returns the canonical event payload
+     *
+     * @phpstan-return array{plan: SerializedPlan, occurred_at: string}
+     */
     public function toArray(): array
     {
         return [
@@ -83,7 +91,7 @@ final readonly class ManagedPolicyReconciled implements Event
      *
      * @param array<string, mixed> $plan
      *
-     * @return array{permissions: list<array<string, mixed>>, roles: list<array<string, mixed>>}
+     * @phpstan-return SerializedPlan
      */
     private static function validatedPlan(array $plan): array
     {

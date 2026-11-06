@@ -116,11 +116,40 @@ Review/applicable QA, without waiting to delegate those obligations to final rec
 | --- | --- | --- | --- |
 | 301 | [TASK-00115](../tasks/00115-TASK.md) | Correct User, session and audit type contracts | done |
 | 302 | [TASK-00116](../tasks/00116-TASK.md) | Correct human credential and delivery type contracts | done |
-| 303 | [TASK-00117](../tasks/00117-TASK.md) | Correct Permission, Role and authority type contracts | ready-for-agent |
+| 303 | [TASK-00117](../tasks/00117-TASK.md) | Correct Permission, Role and authority type contracts | done |
 | 304 | [TASK-00118](../tasks/00118-TASK.md) | Correct Agent identity and administration type contracts | ready-for-agent |
 | 305 | [TASK-00119](../tasks/00119-TASK.md) | Correct Agent operation and recovery type contracts | ready-for-agent |
 | 306 | [TASK-00120](../tasks/00120-TASK.md) | Correct Feature type contracts | ready-for-agent |
 ## Decisions and Progress
+
+### TASK-00117 integrated repair — accepted checkpoint
+
+Independent Review ACCEPT and nonvisual QA PASS cover repaired TASK-00117 candidate
+`52540b7293a0cfd84d8fa03230c6e2ab2cde6520` against `e13995a5b2760d4d02300de2b81797b1d009eb38`;
+QA-01 / Review I-01 is independently resolved. Land mechanically integrates develop's runtime-free fixture
+tooling at `f48e5dc9966c083e0207430954c54f08d9a97cb0`, preserving accepted product/test/fixture contracts.
+Exact bridge, new-input gate and current delivery/resource outcomes belong to canonical
+`.runs/handoffs/TASK-00117/land.md` and PR #165. Publication/final checks are pending at this checkpoint,
+not acceptance or human merge. TASK-00117 remains done; TASK-00118–00120 keep this TICKET and EPIC-00016 open.
+Original acceptance and failed reports retain their exact subjects; no whole-Domain or consumer qualification.
+
+### Historical original TASK-00117 acceptance checkpoint
+
+TASK-00117 has independent Review ACCEPT and nonvisual QA PASS at candidate
+`191b972258acfa4ca0bb7e8c90ded115a26f2fcc` against `46a15c89fdb33de3e411053e53dfe33a4c60ea0e`.
+Its complete Permission/Role/ManagedPolicy/Authorization Domain slice is accepted and done. This TICKET remains
+open for unfinished children; its aggregate acceptance criteria are not claimed complete. Publication/final
+delivery verification are pending at this closeout checkpoint; current results belong to canonical
+`.runs/handoffs/TASK-00117/land.md` and the actual PR. The Engineer/planning checkpoints below are historical.
+
+### Historical Engineer and planning checkpoints
+
+TASK-00117 now has its Engineer implementation checkpoint for the complete Permission/Role/ManagedPolicy/
+Authorization Domain slice. Its record and canonical ignored Work handoff own exhaustive member/callback/caller
+inventory, corrections, justified unchanged contracts and verification evidence. Independent Review and behavioral
+QA remain pending; this TICKET and the other Domain slices remain open. The planning-only history below is retained.
+
+### Historical TASK-00116 integration checkpoint
 
 TASK-00116's published branch now integrates develop's accepted TASK-00115 without changing either slice's
 production implementation. Both original acceptance checkpoints remain below with their exact subjects. The new-base
