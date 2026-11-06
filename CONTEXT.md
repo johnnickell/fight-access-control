@@ -6,6 +6,25 @@ Fight AccessControl owns framework-neutral identity, credential, session, author
 behavior shared by Fight applications. The repository-local behavioral and security authority is
 [TICKET-00001](planning/tickets/00001-TICKET.md).
 
+## TASK-00134 Agent Query contracts — accepted checkpoint
+
+The four operation/status/due/maintenance/count read paths now distinguish caller/binding concealment from
+broken repository promises and unexpected internal faults. The narrow read interface remains independent of
+material-bearing writes. Its work reads return secret-free `AgentDeliveryWorkView` evidence internally so handlers
+can validate predicates, exact bindings, selection time, current reservation, bounds/order and cursor/grace policy;
+public handler results and status wire shapes remain unchanged. Existing intentional operation failure reasons,
+confirmed/indeterminate original issuance, retained history and current authority/cohort/restoration checks remain.
+See [current Query contracts](docs/agent-query-contracts.md) for breaking PHP adapter/failure obligations and limits.
+
+Independent Review v3 ACCEPT and nonvisual QA PASS cover candidate
+`4bca0f4c235d98a6920093c216c148e8a97df5c1` against develop
+`8655f35011405ebaf2ffa2cf2655c339fdbfc2e0`. TASK-00134 is done for this bounded package slice;
+unfinished children keep TICKET-00039 and EPIC-00016 open. Canonical `.runs/handoffs/TASK-00134/work.md`
+owns regression chronology, exhaustive dispositions and retained minimum/ordinary/full-gate proof. Publication
+and final delivery verification are pending at this administrative checkpoint; current bridge, delivery and
+resource outcomes belong to `.runs/handoffs/TASK-00134/land.md` and the actual PR. Independent reports retain
+their exact subjects. No consumer qualification, release or deployment is claimed.
+
 ## TASK-00133 develop integration — accepted checkpoint
 
 Independent Review v3 ACCEPT and nonvisual QA PASS cover clean integrated candidate

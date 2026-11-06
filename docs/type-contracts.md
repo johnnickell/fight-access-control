@@ -102,6 +102,11 @@ Runtime regressions prove decoded types, explicit event instants, native-array c
 exhaustion/no-ops and subtype preservation. Existing authentication/administration/recovery/Tool tests retain
 behavioral fence/redaction proof. This adds neither bus generic qualification nor actual consumer persistence proof.
 
+TASK-00134 adds four exact handler-result probes and two rejected collection/count uses, and updates operation
+repository work probes to `AgentDeliveryWorkView`. Public work handler results remain `list<AgentOperationView>`.
+These fixtures qualify direct native/static contracts, not the separately owned generic bus relationship;
+real configured routing and safe-error composition have independent runtime tests.
+
 TASK-00133 adds credential Query cases: eight exact positive types and three incompatible uses prove both status
 unions, explicit absence narrowing/payload, invitation origin, precise due/expired lists and unchanged nullable
 repository lookup. Runtime tests separately prove actual tagged Common routing and safe errors in minimum/ordinary

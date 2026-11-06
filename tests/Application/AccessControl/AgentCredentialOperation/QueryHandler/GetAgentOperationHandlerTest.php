@@ -6,6 +6,7 @@ namespace Fight\Test\AccessControl\Application\AccessControl\AgentCredentialOper
 
 use Closure;
 use Fight\AccessControl\Application\AccessControl\AgentCredentialOperation\AgentOperationAuthorization;
+use Fight\AccessControl\Application\AccessControl\AgentCredentialOperation\Exception\AgentOperationReadFailed;
 use Fight\AccessControl\Application\AccessControl\AgentCredentialOperation\QueryHandler\GetAgentOperationHandler;
 use Fight\AccessControl\Domain\AccessControl\Agent\Command\ProvisionAgent;
 use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\AgentCredentialDestination;
@@ -271,10 +272,19 @@ final class GetAgentOperationHandlerTest extends TestCase
                 $query = new GetAgentOperation($environment->key, $destination);
             }
 
-            $this->assertRejected(
-                fn(): AgentOperationView => $this->read($environment, $query),
-                AgentOperationFailure::UNAUTHORIZED
-            );
+            if ($case === 'key') {
+                try {
+                    $this->read($environment, $query);
+                    self::fail('A key-contract violation is internal.');
+                } catch (AgentOperationReadFailed $failure) {
+                    self::assertNull($failure->getPrevious());
+                }
+            } else {
+                $this->assertRejected(
+                    fn(): AgentOperationView => $this->read($environment, $query),
+                    AgentOperationFailure::UNAUTHORIZED
+                );
+            }
         }
     }
 
@@ -369,7 +379,7 @@ final class GetAgentOperationHandlerTest extends TestCase
         );
     }
 
-    public function test_storage_and_authorization_faults_are_sanitized_unavailable_not_absence(): void
+    public function test_storage_and_authorization_faults_preserve_internal_or_known_intent_not_absence(): void
     {
         foreach (['repository', 'authorization', 'typed-capacity', 'typed-unavailable', 'typed-version'] as $case) {
             $environment = new ProvisioningEnvironment();
@@ -381,7 +391,7 @@ final class GetAgentOperationHandlerTest extends TestCase
             } elseif ($case === 'typed-unavailable') {
                 $failure = new AgentOperationRejectedException(AgentOperationFailure::UNAVAILABLE);
             } elseif ($case === 'typed-version') {
-                // Repository failures cannot disclose versions before target authorization.
+                // A failed read cannot bypass target authorization by reporting a record's marker.
                 $failure = new AgentOperationRejectedException(AgentOperationFailure::UNSUPPORTED_VERSION);
             }
 
@@ -401,10 +411,23 @@ final class GetAgentOperationHandlerTest extends TestCase
                 $environment->key,
                 $environment->request->getDestination()
             ));
-            $this->assertRejected(
-                fn(): AgentOperationView => $handler->handle($message),
-                AgentOperationFailure::UNAVAILABLE
-            );
+            if (
+                $failure instanceof AgentOperationRejectedException
+                && $failure->getReason() === AgentOperationFailure::UNAVAILABLE
+            ) {
+                $this->assertRejected(
+                    fn(): AgentOperationView => $handler->handle($message),
+                    $failure->getReason()
+                );
+            } else {
+                try {
+                    $handler->handle($message);
+                    self::fail('Unexpected faults must remain internal.');
+                } catch (AgentOperationReadFailed $safeFailure) {
+                    self::assertNull($safeFailure->getPrevious());
+                    self::assertStringNotContainsString('private-provider-error', (string) $safeFailure);
+                }
+            }
         }
     }
 

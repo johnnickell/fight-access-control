@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Fight\AccessControl\Application\AccessControl\AgentCredentialOperation\QueryHandler;
 
+use Fight\AccessControl\Application\AccessControl\AgentCredentialOperation\Exception\AgentOperationReadFailed;
 use Fight\AccessControl\Application\AccessControl\AgentCredentialOperation\Maintenance\AgentMaintenanceAuthorization;
 use Fight\AccessControl\Application\AccessControl\Timing\Service\Clock;
 use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\AgentCredentialOperationReadRepository;
@@ -50,20 +51,22 @@ final readonly class CountAgentDeliveryKeyReferencesHandler implements QueryHand
             $count = $this->operationReadRepository->countDeliveryKeyReferences($query->getVersion());
             $this->maintenanceAuthorization->authorizeKeyAccounting($query->getVersion(), $this->clock->now());
             if ($count < 0) {
-                throw new AgentOperationRejectedException(AgentOperationFailure::UNAVAILABLE);
+                throw new AgentOperationReadFailed();
             }
 
             return $count;
-        } catch (Throwable $throwable) {
-            $reason = AgentOperationFailure::UNAVAILABLE;
+        } catch (AgentOperationRejectedException $failure) {
             if (
-                $throwable instanceof AgentOperationRejectedException
-                && $throwable->getReason() === AgentOperationFailure::UNAUTHORIZED
+                !in_array($failure->getReason(), [
+                AgentOperationFailure::UNAUTHORIZED, AgentOperationFailure::UNAVAILABLE
+                ], true)
             ) {
-                $reason = AgentOperationFailure::UNAUTHORIZED;
+                throw new AgentOperationReadFailed();
             }
 
-            throw new AgentOperationRejectedException($reason);
+            throw new AgentOperationRejectedException($failure->getReason());
+        } catch (Throwable) {
+            throw new AgentOperationReadFailed();
         }
     }
 }

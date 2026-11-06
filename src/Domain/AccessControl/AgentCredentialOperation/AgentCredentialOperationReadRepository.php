@@ -8,6 +8,7 @@ use DateTimeImmutable;
 use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\Maintenance\AgentDeliveryKeyVersion;
 use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\Maintenance\AgentMaintenancePolicy;
 use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\Maintenance\AgentMaintenanceWork;
+use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\Query\AgentDeliveryWorkView;
 use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\Query\AgentOperationView;
 
 /**
@@ -45,12 +46,14 @@ interface AgentCredentialOperationReadRepository extends AgentOperationContractR
      * Selection grants no delivery authority: claim/admission/completion must still check current slot reservation.
      * Include persisted canonical versions so unsupported versions fail closed rather than appear absent. Use
      * authoritative storage, never replicas, issuance events, process memory or new-work capacity.
-     * Project AgentOperationView only; never load material, tokens or receipts, take claims, commit or mutate.
+     * Project AgentDeliveryWorkView selection evidence and its AgentOperationView from the SAME snapshot;
+     * include due time, retained-copy presence, pinned retention, cleanup acknowledgement and the authoritative
+     * current stable-slot reservation. Never load material, tokens or receipts, take claims, commit or mutate.
      * No query-time lifecycle transitions.
      * The handler rechecks current scope/delegation and each target before any disclosure. Consumer indexes must
      * support bounded selection, not an unbounded in-process scan. Storage failure throws, never returns empty work.
      *
-     * @return list<AgentOperationView>
+     * @return list<AgentDeliveryWorkView>
      */
     public function listDueDeliveries(
         AgentOperationScope $scope,
@@ -66,12 +69,15 @@ interface AgentCredentialOperationReadRepository extends AgentOperationContractR
      * MATERIAL includes EVERY retained copy regardless of disposition/version/key;
      * CLEANUP uses canCleanup(now, policy).
      * Sort by global delivery ID bytewise ascending, exclusively after the optional cursor, before applying batch size.
-     * Do not load ciphertext or attempts. Return original status views; no mutation, claims, capacity check or commit.
+     * Do not load ciphertext or attempts. Return AgentDeliveryWorkView selection evidence and original status
+     * from the SAME snapshot, including retained-copy presence, pinned retention and sink cleanup acknowledgement.
+     * The current reservation may be null: obsolete reservations remain maintenance work.
+     * No mutation, claims, capacity check or commit.
      * Use indexed bounded selection. Continue with the last ID even when a maintenance attempt defers or is unchanged;
      * restart at null after the final page to catch concurrent earlier inserts. A page is never a complete key count.
      * Storage failure throws; do not return an empty page on failure.
      *
-     * @return list<AgentOperationView>
+     * @return list<AgentDeliveryWorkView>
      */
     public function listMaintenance(
         AgentOperationScope $scope,

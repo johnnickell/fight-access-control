@@ -87,7 +87,7 @@ John approved the complete five-TASK split, now written with kind chore and empt
 | [TASK-00131](../tasks/00131-TASK.md) | 310 | Six required-resource queries: exact non-null safe Views or intentional Application failure. | done; independently accepted six-query slice; other families remain unfinished. |
 | [TASK-00132](../tasks/00132-TASK.md) | 311 | Six paged queries: qualified Common container invariants plus AccessControl request/element/scope consistency. | needs-info for separately planned/implemented/accepted/tagged Common ResultSet validation and minimum evidence. |
 | [TASK-00133](../tasks/00133-TASK.md) | 312 | Four human credential status/due/expired queries: explicit absence/state and exact bounded work. | done; independent Review ACCEPT and nonvisual QA PASS for the owning TASK's accepted candidate. |
-| [TASK-00134](../tasks/00134-TASK.md) | 313 | Four Agent operation/scheduler/maintenance/count queries: exact authorized safe outcomes. | ready-for-agent; applicable private criteria must be obtained before implementation/review. |
+| [TASK-00134](../tasks/00134-TASK.md) | 313 | Four Agent operation/scheduler/maintenance/count queries: exact authorized safe outcomes. | done; independent Review ACCEPT and nonvisual QA PASS for the bounded four-query slice; exact candidate/proof in TASK-00134. |
 | [TASK-00135](../tasks/00135-TASK.md) | 314 | Two preparation/policy-preview queries: truthful typed diagnostics/plans. | ready-for-agent; no demonstrated local blocker or newly missing Common API. |
 
 The manifests account for 6 + 6 + 4 + 4 + 2 = all 22 current QueryHandlers without overlap/omission. This is planning
@@ -122,9 +122,13 @@ exact coverage, local evidence and independent Review/behavioral QA. Choose the 
 | 310 | [TASK-00131](../tasks/00131-TASK.md) | Make required resource queries exact and non-null | done |
 | 311 | [TASK-00132](../tasks/00132-TASK.md) | Enforce paged query result contracts | needs-info |
 | 312 | [TASK-00133](../tasks/00133-TASK.md) | Make human credential status and discovery results explicit | done |
-| 313 | [TASK-00134](../tasks/00134-TASK.md) | Correct Agent operation, scheduler and count query contracts | ready-for-agent |
+| 313 | [TASK-00134](../tasks/00134-TASK.md) | Correct Agent operation, scheduler and count query contracts | done |
 | 314 | [TASK-00135](../tasks/00135-TASK.md) | Make preparation and policy-preview results truthful | ready-for-agent |
 ## Decisions and Progress
+
+TASK-00134 is independently accepted and done for its four-query slice; its owning record retains the exact
+candidate, verification and publication checkpoint. Unfinished children keep this TICKET and EPIC-00016 open;
+no whole-query-family or consumer qualification is implied.
 
 TASK-00133's four human credential status/discovery paths are independently accepted and done, with explicit
 absence, exact status correlation, per-source admission and aligned callers/schemas. The owning TASK records
@@ -161,7 +165,7 @@ unfinished children. This does not qualify other Query families, generic bus inf
 John approved this requirement within the six-TICKET split, then the complete five-TASK plan now written as
 TASK-00131–00135. At that planning checkpoint four were ready-for-agent and TASK-00132 was needs-info for the
 explicit Common ResultSet supplier and actual qualification; none was then implemented/accepted. Current child
-status derives from the owning records, including TASK-00131 and TASK-00133's subsequent acceptances.
+status derives from the owning records, including TASK-00131, TASK-00133 and TASK-00134's subsequent acceptances.
 
 No source/dependency/consumer or sibling change, product build, new branch/worktree, commit/publication, release
 or independent acceptance follows. Earlier TASK scope/order/blockers and Board priority remain unchanged. The
