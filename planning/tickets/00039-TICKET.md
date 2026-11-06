@@ -119,12 +119,23 @@ exact coverage, local evidence and independent Review/behavioral QA. Choose the 
 
 | Order | TASK ID | Title | Status |
 | --- | --- | --- | --- |
-| 310 | [TASK-00131](../tasks/00131-TASK.md) | Make required resource queries exact and non-null | ready-for-agent |
+| 310 | [TASK-00131](../tasks/00131-TASK.md) | Make required resource queries exact and non-null | in-progress |
 | 311 | [TASK-00132](../tasks/00132-TASK.md) | Enforce paged query result contracts | needs-info |
 | 312 | [TASK-00133](../tasks/00133-TASK.md) | Make human credential status and discovery results explicit | ready-for-agent |
 | 313 | [TASK-00134](../tasks/00134-TASK.md) | Correct Agent operation, scheduler and count query contracts | ready-for-agent |
 | 314 | [TASK-00135](../tasks/00135-TASK.md) | Make preparation and policy-preview results truthful | ready-for-agent |
 ## Decisions and Progress
+
+### TASK-00131 Work checkpoint
+
+All six required-resource paths now have an Engineer candidate: exact non-null safe Views or deliberate Common
+Application not-found, identity-before-disclosure and necessary profile Tool/caller bindings. Nullable repositories,
+profile concealment, authority, Feature missing-binding data, Role revisions and exact Agent Permissions remain.
+Canonical Work evidence records minimum/ordinary real composition and final full gate/exact owned coverage.
+Independent Review/nonvisual QA remain pending; TASK-00131 is in-progress and this TICKET remains open for all
+unfinished children. This does not qualify other Query families, generic bus inference, Common or consumers.
+
+### Historical planning checkpoint
 
 John approved this requirement within the six-TICKET split, then the complete five-TASK plan now written as
 TASK-00131–00135. Four are ready-for-agent with no demonstrated local blockers; TASK-00132 remains needs-info for

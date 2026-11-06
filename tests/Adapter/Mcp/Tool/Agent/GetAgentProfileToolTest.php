@@ -9,10 +9,10 @@ use Fight\AccessControl\Domain\AccessControl\Agent\AgentId;
 use Fight\AccessControl\Domain\AccessControl\Agent\AgentName;
 use Fight\AccessControl\Domain\AccessControl\Agent\Query\AgentProfileView;
 use Fight\AccessControl\Domain\AccessControl\Agent\Query\GetAgentProfile;
+use Fight\Common\Application\Error\Exception\ResourceNotFound;
 use Fight\Common\Application\Mcp\McpProgressReporter;
 use Fight\Common\Application\Messaging\Query\QueryBus;
 use Fight\Common\Application\Validation\Data\ApplicationData;
-use Fight\Common\Domain\Exception\LookupException;
 use Fight\Test\AccessControl\Adapter\Mcp\Tool\Agent\Fixture\ProfileToolEnvironment;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
@@ -56,8 +56,10 @@ final class GetAgentProfileToolTest extends TestCase
     {
         $env = new ProfileToolEnvironment();
         $queryBus = $this->createMock(QueryBus::class);
-        $queryBus->expects(self::once())->method('fetch')->willReturn(null);
-        $this->expectException(LookupException::class);
+        $queryBus->expects(self::once())->method('fetch')->willThrowException(
+            new ResourceNotFound('The Agent profile is unavailable.')
+        );
+        $this->expectException(ResourceNotFound::class);
         $this->expectExceptionMessage('The Agent profile is unavailable.');
         $env->read($queryBus)->handle(new ApplicationData([]), $this->createStub(McpProgressReporter::class));
     }

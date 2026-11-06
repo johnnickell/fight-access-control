@@ -7,8 +7,8 @@ namespace Fight\AccessControl\Adapter\Mcp\Tool\Agent;
 use Fight\AccessControl\Domain\AccessControl\Agent\Exception\AgentNameException;
 use Fight\AccessControl\Domain\AccessControl\Agent\Exception\AgentUpdateException;
 use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\Exception\AgentOperationRejectedException;
+use Fight\Common\Application\Error\Exception\ResourceNotFound;
 use Fight\Common\Application\Mcp\Tool\McpToolFailureMap;
-use Fight\Common\Domain\Exception\LookupException;
 
 /**
  * Class AgentProfileToolFailures
@@ -26,7 +26,7 @@ final class AgentProfileToolFailures
             AgentNameException::class              => 'The Agent name is invalid.',
             AgentOperationRejectedException::class => 'The Agent profile operation could not be completed.',
             AgentUpdateException::class            => 'The Agent profile is unavailable.',
-            LookupException::class                 => 'The Agent profile is unavailable.'
+            ResourceNotFound::class                => 'The Agent profile is unavailable.'
         ]);
     }
 }

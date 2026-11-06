@@ -1,6 +1,19 @@
 {
   "cases": [
     {
+      "id": "required-resource-exact-non-null-results",
+      "kind": "positive",
+      "file": "required-resource-positive.php",
+      "diagnostics": [
+        {"line": 24, "identifier": "phpstan.dumpType", "message": "Dumped type: Fight\\AccessControl\\Domain\\AccessControl\\User\\Query\\UserView"},
+        {"line": 25, "identifier": "phpstan.dumpType", "message": "Dumped type: Fight\\AccessControl\\Domain\\AccessControl\\Role\\Query\\RoleView"},
+        {"line": 26, "identifier": "phpstan.dumpType", "message": "Dumped type: Fight\\AccessControl\\Domain\\AccessControl\\Permission\\Query\\PermissionView"},
+        {"line": 27, "identifier": "phpstan.dumpType", "message": "Dumped type: Fight\\AccessControl\\Domain\\AccessControl\\Agent\\Query\\AgentView"},
+        {"line": 28, "identifier": "phpstan.dumpType", "message": "Dumped type: Fight\\AccessControl\\Domain\\AccessControl\\Agent\\Query\\AgentProfileView"},
+        {"line": 29, "identifier": "phpstan.dumpType", "message": "Dumped type: Fight\\AccessControl\\Domain\\AccessControl\\Feature\\Query\\FeatureView"}
+      ]
+    },
+    {
       "id": "feature-contract-precision",
       "kind": "positive",
       "file": "feature-positive.php",

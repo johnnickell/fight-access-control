@@ -6,6 +6,20 @@ Fight AccessControl owns framework-neutral identity, credential, session, author
 behavior shared by Fight applications. The repository-local behavioral and security authority is
 [TICKET-00001](planning/tickets/00001-TICKET.md).
 
+## TASK-00131 required-resource Queries — Work checkpoint
+
+The six [required-resource Queries](docs/required-resource-queries.md) now have an Engineer candidate: exact non-null
+safe Views or deliberate Common Application `ResourceNotFound`. Nullable Domain repositories remain unchanged.
+Each handler checks requested identity before disclosure/related reads; wrong identities/native contracts and
+operational failures remain internal. Agent profiles conceal absent/revoked targets identically, with fresh reads
+and unchanged outer authorization. Feature missing-binding data, exact Agent Permissions and Role revisions remain.
+The profile Tool consumes result-or-throw and explicitly binds ResourceNotFound, not generic lookup/configuration faults.
+
+Canonical `.runs/handoffs/TASK-00131/work.md` owns refreshed inventory/caller dispositions, regression-first proof,
+supported dependency lanes, canonical gate/coverage and retained isolated-runtime provenance. Independent Review
+and nonvisual QA remain pending; TASK-00131 stays in-progress. No consumer/Common/provider changes, generic bus
+inference adoption, optional audit, publication, merge, release or deployment is claimed.
+
 ## TASK-00120 pinned develop integration — Work checkpoint
 
 The existing Feature branch integrates develop `4ea9fcd3a78624fae041232859eae2f249daaf3b`, retaining

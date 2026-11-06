@@ -4,14 +4,14 @@ declare(strict_types=1);
 
 namespace Fight\AccessControl\Application\AccessControl\Feature\QueryHandler;
 
-use Fight\AccessControl\Domain\AccessControl\Feature\Exception\FeatureNotFoundException;
-use Fight\AccessControl\Domain\AccessControl\Feature\Feature;
 use Fight\AccessControl\Domain\AccessControl\Feature\FeatureRepository;
 use Fight\AccessControl\Domain\AccessControl\Feature\Query\FeatureView;
 use Fight\AccessControl\Domain\AccessControl\Feature\Query\GetFeatureById;
 use Fight\AccessControl\Domain\AccessControl\Permission\PermissionRepository;
+use Fight\Common\Application\Error\Exception\ResourceNotFound;
 use Fight\Common\Application\Messaging\Query\QueryHandler;
 use Fight\Common\Domain\Messaging\Query\QueryMessage;
+use UnexpectedValueException;
 
 /**
  * Class GetFeatureByIdHandler
@@ -45,8 +45,12 @@ final readonly class GetFeatureByIdHandler implements QueryHandler
         /** @var GetFeatureById $query */
         $query = $queryMessage->payload();
         $feature = $this->featureRepository->getById($query->getFeatureId());
-        if (!$feature instanceof Feature) {
-            throw new FeatureNotFoundException('The Feature does not exist.');
+        if ($feature === null) {
+            throw new ResourceNotFound('The Feature is unavailable.');
+        }
+
+        if (!$feature->getId()->equals($query->getFeatureId())) {
+            throw new UnexpectedValueException('The Feature lookup returned a different identity.');
         }
 
         return FeatureView::fromFeature($feature, $this->permissionRepository->getById($feature->getPermissionId()));

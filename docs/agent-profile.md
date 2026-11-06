@@ -12,10 +12,9 @@ Its `queryRegistration()` names Domain `Agent\Query\GetAgentProfile`; dispatch t
 
 ```php
 use Fight\AccessControl\Domain\AccessControl\Agent\Query\GetAgentProfile;
-use Fight\Common\Domain\Messaging\Query\QueryMessage;
-
+// $queryBus is the configured Common QueryBus registering GetAgentProfileHandler.
 // $authorizedTargetId has already passed the consumer's caller/target authorization.
-$profile = $handler->handle(QueryMessage::create(new GetAgentProfile($authorizedTargetId)));
+$profile = $queryBus->fetch(new GetAgentProfile($authorizedTargetId));
 ```
 
 Each invocation calls `AgentRepository::getById()` anew. Consumers must implement an authoritative current lookup,
@@ -30,8 +29,10 @@ The result retains neither the aggregate nor an administrative `AgentView`. No a
 credentials, lifecycle state, revisions and timestamps are absent. A later read observes a committed rename; a
 previous result stays unchanged. A read is only an observation, not a lock, authority snapshot or permission to act.
 
-Both missing and revoked targets return **null**, meaning generically unavailable; consumers must not distinguish
-these cases publicly. Repository failures propagate, rather than becoming absence or a stale successful result.
+Both missing and revoked targets throw the same Common Application **ResourceNotFound**, meaning generically
+unavailable; consumers must not distinguish these cases publicly. A different returned identity is an internal fault,
+even when revoked, checked before state concealment. Repository failures propagate, rather than becoming absence or
+a stale successful result. See [required-resource Queries](required-resource-queries.md) for the breaking caller contract.
 The consumer response/log boundary must sanitize operational errors and traces. This query writes nothing, opens no
 transaction, commits nothing and emits no events, including failure events. It does not acquire writer admission.
 
