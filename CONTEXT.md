@@ -15,10 +15,13 @@ Counter exhaustion, invalid capacity evidence and malformed cohort capability li
 repositories, void issuance Commands, independent outcome Queries and current publication/recovery/fence contracts
 remain separate and unchanged in authority. See [current contracts](docs/agent-operation-type-contracts.md).
 
-The canonical `.runs/handoffs/TASK-00119/work.md` owns exhaustive declaration/member/callback/caller dispositions,
-regression-first evidence, verification and exact candidate/dependency/runtime mapping. Independent Review and
-nonvisual QA remain required; this Work checkpoint does not accept the TASK, qualify consumers, change sibling
-TASK-00118 or authorize publication, merge, release or deployment.
+Independent Review requested R-001/R-002; the first shared repair now caps hydrated admission at original pinned
+retention and constrains model delivery replacements to preserved policy and valid claim/admission/outcome
+succession. The canonical `.runs/handoffs/TASK-00119/work.md` owns refreshed exhaustive declaration/member/callback/
+caller dispositions, regression-first evidence, fresh verification and exact candidate/dependency/runtime mapping.
+Original evidence is preserved separately. Independent re-review and nonvisual QA remain required; this Work
+checkpoint does not accept the TASK, qualify consumers, change sibling TASK-00118 or authorize publication,
+merge, release or deployment.
 
 ## TASK-00117 integrated QA-01 repair — accepted checkpoint
 

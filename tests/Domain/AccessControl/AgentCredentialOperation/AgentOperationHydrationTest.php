@@ -125,6 +125,75 @@ final class AgentOperationHydrationTest extends TestCase
         }
     }
 
+    public function test_hydration_rejects_admission_beyond_original_pinned_retention(): void
+    {
+        $env = new DeliveryEnvironment();
+        $original = $env->operation();
+        $policy = new AgentDeliveryPolicy(retentionSeconds: 120);
+        $retentionEnd = $policy->retainUntil($original->getIssuance()->getIssuedAt());
+        $attempt = new AgentDeliveryAttempt(
+            1,
+            AgentDeliveryClaimId::generate(),
+            $retentionEnd->modify('+60 seconds'),
+            new AgentDeliveryAuthority('worker-epoch-1', $retentionEnd->modify('+120 seconds')),
+            $retentionEnd->modify('+30 seconds')
+        );
+        try {
+            new AgentCredentialOperation(
+                2,
+                $original->getCanonicalRequest(),
+                $original->getIssuance(),
+                $original->getMaterial(),
+                stateRevision: 2,
+                attempt: $attempt,
+                deliveryPolicy: $policy
+            );
+            self::fail('Hydration extended materialization beyond original retention.');
+        } catch (AgentOperationRejectedException $agentOperationRejectedException) {
+            self::assertSame(AgentOperationFailure::INVALID_REQUEST, $agentOperationRejectedException->getReason());
+            self::assertNull($agentOperationRejectedException->getPrevious());
+        }
+    }
+
+    public function test_hydrated_normal_admission_preserves_the_exact_original_retention_boundary(): void
+    {
+        $env = new DeliveryEnvironment();
+        $original = $env->operation();
+        $policy = new AgentDeliveryPolicy(retentionSeconds: 120);
+        $retentionEnd = $policy->retainUntil($original->getIssuance()->getIssuedAt());
+        $now = $retentionEnd->modify('-1 second');
+        $claim = $original->claimDelivery(AgentDeliveryClaimId::generate(), $policy, $now);
+        $admitted = $claim->admitDelivery(
+            $claim->requireAttempt(),
+            new AgentDeliveryAuthority('worker-epoch-1', $now->modify('+1 hour')),
+            $now,
+            $claim->getStateRevision()
+        );
+        $hydrated = new AgentCredentialOperation(
+            2,
+            $admitted->getCanonicalRequest(),
+            $admitted->getIssuance(),
+            $admitted->getMaterial(),
+            stateRevision: $admitted->getStateRevision(),
+            attempt: $admitted->getAttempt(),
+            deliveryPolicy: $admitted->getDeliveryPolicy()
+        );
+        self::assertEquals($retentionEnd, $hydrated->requireAttempt()->getDeadline());
+        self::assertSame(
+            $original->getMaterial(),
+            $hydrated->getAdmittedMaterial($retentionEnd->modify('-1 microsecond'))
+        );
+        foreach ([$retentionEnd, $retentionEnd->modify('+1 microsecond')] as $late) {
+            self::assertTrue($hydrated->isMaterialExpired($late));
+            try {
+                $hydrated->getAdmittedMaterial($late);
+                self::fail('Materialization started at or beyond original retention.');
+            } catch (AgentOperationRejectedException $agentOperationRejectedException) {
+                self::assertSame(AgentOperationFailure::CONFLICT, $agentOperationRejectedException->getReason());
+            }
+        }
+    }
+
     public function test_complete_transition_snapshots_rehydrate_losslessly(): void
     {
         $env = new DeliveryEnvironment();

@@ -40,9 +40,10 @@ secret retrieval or use authority.
   Existing Event output formats/fields and publisher failure policies are unchanged. Typed failure text is not
   automatically sanitized: publishers still supply operation-specific constant evidence, and consumers sanitize logs.
 - Current operation hydration rejects contradictory material/disposition/credential combinations, missing claim
-  policy, claims beyond state revision, malformed retry history, incompatible receipt/failure fields and impossible
-  cleanup state. It never fills in missing material, policies, attempts or receipts. Persist **every** recorded field
-  on hydration; constructor defaults describe new pending work, not a repair strategy for stored terminal state.
+  policy, claims beyond state revision, admitted deadlines beyond original pinned retention, malformed retry
+  history, incompatible receipt/failure fields and impossible cleanup state. It never fills in missing material,
+  policies, attempts or receipts. Persist **every** recorded field on hydration; constructor defaults describe new
+  pending work, not a repair strategy for stored terminal state.
   A delivered snapshot lacking receipt evidence remains representable for the existing reconciliation-required
   outcome; it cannot recreate material or assert a newly verified acknowledgement.
 - Opaque retained canonical request strings are compared at resolution, not parsed or rewritten during hydration.
@@ -62,8 +63,13 @@ become absence, empty work or a zero key count. Write repositories remain separa
 expected-state, same-connection, transaction-duration cohort/Agent/authority/slot/key fences are unchanged.
 Persist exact original correlation, pinned policy, claim/admission epochs/deadlines, retry/receipt/failure history,
 material references and cleanup evidence. Replacement must not rewrite canonical bindings, reset claim history,
-swap delivery material outside maintenance or resurrect retired authority. The in-memory test adapter now preserves
-these predicates and declares its exact no-argument hook callbacks; it is still not production persistence.
+swap delivery material outside maintenance or resurrect retired authority. The in-memory test adapter distinguishes
+first claim/takeover, admission to the exact unadmitted claim, exact-attempt completion and terminalization.
+A takeover advances the fence once, changes the claim token and advances the lease without clearing pinned policy;
+admission cannot renew existing authority/deadline evidence. Completion retains the admitted attempt. Expiry and
+attempt exhaustion retain claim history rather than reopening work. Exact current Agent/operation comparison and
+transaction rollback remain mandatory. The adapter declares its exact no-argument hook callbacks; it is still a
+package model, not production persistence or independent proof of real-time/database writer fencing.
 
 Existing package issuance, delivery, receipt-first restart, scheduler-only recovery, maintenance, canonical,
 cohort and restoration scenarios remain applicable. The [type fixtures](type-contracts.md) add exact positive

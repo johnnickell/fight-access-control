@@ -583,7 +583,9 @@ class AgentCredentialOperation
             ($this->material !== null) !== $unfinished
             || ($unfinished && $this->credentialDisposition !== AgentCredentialDisposition::CURRENT)
             || ($this->attempt !== null
-                && ($this->deliveryPolicy === null || $this->attempt->getFence() > $this->stateRevision))
+                && ($this->deliveryPolicy === null || $this->attempt->getFence() > $this->stateRevision
+                    || ($this->attempt->getDeadline() !== null
+                        && $this->attempt->getDeadline() > $this->retentionEnd())))
             || ($this->sinkCleaned && ($unfinished
                 || ($this->deliveryDisposition === AgentDeliveryDisposition::DELIVERED
                     && $this->credentialDisposition === AgentCredentialDisposition::CURRENT)))
