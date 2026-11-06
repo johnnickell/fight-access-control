@@ -52,6 +52,37 @@ All writers validate the [cohort contract](agent-operation-cohorts.md) and hold 
 implementations redact sensitive Agent parameters and transaction callbacks as required by the
 [retirement contract](agent-credential-retirement.md#composition-and-atomic-cancellation).
 
+## Precise identity and administration types (unreleased)
+
+Agent administration Commands, Queries and Events decode the current field types without scalar or array coercion.
+Required identities/names must be strings, revisions must be integers, Permission IDs must be lists of UUID strings,
+and initiator provenance must be a type-qualified object. `ListAgents` requires integer pagination bounds and a
+string-to-string ordering map; Common retains pagination validation/normalization ownership. Missing/wrong-type
+fields reject in Domain. Update current callers directly; no historical readers, aliases or migration are supplied.
+
+`ReplaceAgentPermissions` and `AgentPermissionsReplaced` require positive assignment revisions and actual lists of
+`PermissionId` values at construction as well as decoded input. Their existing duplicate/set semantics are unchanged.
+`AgentView` requires nonnegative credential revision, positive assignment revision and a list of `PrincipalPermission`
+snapshots. Its shape and the minimal profile shape remain secret-free; neither a View nor an authenticated principal's
+snapshot authorizes a later action. Live Permission/cohort checks remain mandatory.
+
+The four administration Events require explicit valid RFC3339 instants (numeric offset or `Z`, with up to six
+fractional digits), not relative expressions, implicit timezones or calendar normalization. Their existing output
+formats are unchanged: name-change time preserves six fractional digits; Permission Events retain second precision.
+Typed `DateTimeImmutable` constructor inputs remain trusted instants, not strings to reinterpret.
+
+Agent factories and immutable transitions return `static`, preserving an extending aggregate. Extenders must retain
+the consistent protected constructor contract. Changed Permission membership at `PHP_INT_MAX` rejects with
+`AgentPermissionAssignmentException` rather than overflowing into a float/TypeError; existing no-ops remain no-ops.
+Repository nullable lookups and the lazy `Closure(): DateTimeImmutable` rename contract are unchanged, as are complete
+predecessor checks, operation correlation, redaction, atomic audit and authoritative Permission/cohort fences.
+Application-wide required-query absence and failure redesign remain outside this Domain slice.
+
+Executable proof lives in `AgentMessageContractTest`, `AgentTypeContractTest`, `AgentEventTimeTest`, the existing
+Agent authentication/admin/recovery/Tool suites and the generated-schema tests. The
+[type-contract gate](type-contracts.md) also checks exact collection/payload/callback/nullability/subtype inference and
+rejects incompatible callers. These checks qualify this package contract only, not consumer storage/crypto/runtime.
+
 ## Retained safety, not historical support
 
 Current-contract authentication/nonce fencing, caller and target authorization, transaction rollback, uncertain-commit

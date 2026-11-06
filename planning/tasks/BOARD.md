@@ -5,17 +5,18 @@ dependencies, acceptance, and verification.
 
 ## What's Next?
 
-First ready Task: [TASK-00118](00118-TASK.md) — Correct Agent identity and administration type contracts.
+Active Task: [TASK-00118](00118-TASK.md) — Correct Agent identity and administration type contracts.
 
 ## In Progress
 
-No Tasks are currently in this state.
+| Order | TASK ID | Title | Parent TICKET | Status | Blocked by | PR |
+| --- | --- | --- | --- | --- | --- | --- |
+| 304 | [TASK-00118](00118-TASK.md) | Correct Agent identity and administration type contracts | [TICKET-00037](../tickets/00037-TICKET.md) — Make Domain and repository contracts precise | in-progress | — | — |
 
 ## Ready Frontier
 
 | Order | TASK ID | Title | Parent TICKET | Status | Blocked by | PR |
 | --- | --- | --- | --- | --- | --- | --- |
-| 304 | [TASK-00118](00118-TASK.md) | Correct Agent identity and administration type contracts | [TICKET-00037](../tickets/00037-TICKET.md) — Make Domain and repository contracts precise | ready-for-agent | — | — |
 | 305 | [TASK-00119](00119-TASK.md) | Correct Agent operation and recovery type contracts | [TICKET-00037](../tickets/00037-TICKET.md) — Make Domain and repository contracts precise | ready-for-agent | — | — |
 | 306 | [TASK-00120](00120-TASK.md) | Correct Feature type contracts | [TICKET-00037](../tickets/00037-TICKET.md) — Make Domain and repository contracts precise | ready-for-agent | — | — |
 | 310 | [TASK-00131](00131-TASK.md) | Make required resource queries exact and non-null | [TICKET-00039](../tickets/00039-TICKET.md) — Guarantee exact query results and explicit absence | ready-for-agent | — | — |

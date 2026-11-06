@@ -31,11 +31,17 @@ final readonly class GetAgentProfile implements Query
             throw new DomainException('Missing required key "agent_id" in data array');
         }
 
-        return new static(AgentId::fromString((string) $data['agent_id']));
+        if (!is_string($data['agent_id'])) {
+            throw new DomainException('Required key "agent_id" must be a string.');
+        }
+
+        return new static(AgentId::fromString($data['agent_id']));
     }
 
     /**
-     * @inheritDoc
+     * Returns the canonical query payload
+     *
+     * @return array{agent_id: string}
      */
     public function toArray(): array
     {
