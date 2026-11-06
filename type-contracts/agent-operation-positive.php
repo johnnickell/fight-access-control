@@ -14,6 +14,7 @@ use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\AgentOpera
 use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\Delivery\AgentDeliveryPolicy;
 use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\Maintenance\AgentMaintenancePolicy;
 use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\Maintenance\AgentMaintenanceWork;
+use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\Query\AgentDeliveryWorkView as WorkView;
 use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\Query\AgentOperationView;
 use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\Query\CountAgentDeliveryKeyReferences;
 use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\Query\GetAgentOperation;
@@ -43,7 +44,7 @@ static function (
     dumpType($reader->getStatusByKey($key));
     $views = $reader->listDueDeliveries($key->getScope(), $destination, $now, 50);
     dumpType($views);
-    dumpType(array_map(static fn(AgentOperationView $item): AgentOperationKey => $item->getKey(), $views));
+    dumpType(array_map(static fn(WorkView $item): AgentOperationKey => $item->getOperation()->getKey(), $views));
     dumpType($reader->listMaintenance(
         $key->getScope(),
         $destination,

@@ -110,7 +110,10 @@ operation state.
 Before this change every status/scheduler/maintenance reader required the material-bearing `AgentCredentialOperationRepository`.
 Now the independent `AgentCredentialOperationReadRepository` exposes only `getStatusByKey`, `listDueDeliveries`,
 `listMaintenance`, `countDeliveryKeyReferences` and the read-only cohort observation `getOperationContract`.
-It does not extend the write repository. `AgentCredentialOperationRepository` separately retains `getByKey`, `add`,
+It does not extend the write repository. TASK-00134's unreleased [exact Query contracts](agent-query-contracts.md)
+require both work reads to return `AgentDeliveryWorkView` selection evidence internally while handlers still return
+safe status Views. Unexpected/result faults are safe internal failures; existing deliberate operation classifications
+and destination concealment remain distinct. `AgentCredentialOperationRepository` separately retains `getByKey`, `add`,
 `reserveDestinationWrite`, `replaceDelivery`, `replaceMaintenance`, `retireCredential` and mandatory cohort fencing;
 it does not inherit read obligations. Neither is a UoW. One consumer adapter may implement both without forwarding
 adapters or a second connection. For example, inject that adapter as follows (existing authorization/clock omitted

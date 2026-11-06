@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Fight\AccessControl\Application\AccessControl\AgentCredentialOperation\QueryHandler;
 
 use Fight\AccessControl\Application\AccessControl\AgentCredentialOperation\AgentOperationAuthorization;
+use Fight\AccessControl\Application\AccessControl\AgentCredentialOperation\Exception\AgentOperationReadFailed;
 use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\AgentCredentialOperationReadRepository;
 use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\AgentOperationFailure;
 use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\Exception\AgentOperationRejectedException;
@@ -54,19 +55,25 @@ final readonly class GetAgentOperationHandler implements QueryHandler
                 $query->getDestination(),
                 $view->getIssuance()?->getAgentId()
             );
-        } catch (Throwable $throwable) {
-            $reason = AgentOperationFailure::UNAVAILABLE;
+            if ($view->getKey()->toString() !== $query->getKey()->toString()) {
+                throw new AgentOperationReadFailed();
+            }
+        } catch (AgentOperationRejectedException $failure) {
             if (
-                $throwable instanceof AgentOperationRejectedException
-                && $throwable->getReason() === AgentOperationFailure::UNAUTHORIZED
+                !in_array($failure->getReason(), [
+                AgentOperationFailure::UNAUTHORIZED, AgentOperationFailure::UNAVAILABLE
+                ], true)
             ) {
-                $reason = $throwable->getReason();
+                throw new AgentOperationReadFailed();
             }
 
-            // Do not retain arbitrary provider exceptions, messages or trace arguments in public failures.
-            throw new AgentOperationRejectedException($reason);
+            throw new AgentOperationRejectedException($failure->getReason());
+        } catch (Throwable) {
+            throw new AgentOperationReadFailed();
         }
 
+        // A key-only lookup may legitimately find another destination binding: conceal it.
+        // Check the marker only after target authorization, never from a provider's failed read.
         $view->assertReadable($query->getKey(), $query->getDestination());
 
         return $view;

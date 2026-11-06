@@ -107,6 +107,11 @@ non-null direct-handler/planner results, issue/item lists and serialized shapes.
 fixtures retain definition, action enum, message and callback proof. Real configured routing/safe-error tests are
 separate runtime proof; Common's current mixed QueryBus still does not establish generic result inference.
 
+TASK-00134 adds four exact handler-result probes and two rejected collection/count uses, and updates operation
+repository work probes to `AgentDeliveryWorkView`. Public work handler results remain `list<AgentOperationView>`.
+These fixtures qualify direct native/static contracts, not the separately owned generic bus relationship;
+real configured routing and safe-error composition have independent runtime tests.
+
 TASK-00133 adds credential Query cases: eight exact positive types and three incompatible uses prove both status
 unions, explicit absence narrowing/payload, invitation origin, precise due/expired lists and unchanged nullable
 repository lookup. Runtime tests separately prove actual tagged Common routing and safe errors in minimum/ordinary

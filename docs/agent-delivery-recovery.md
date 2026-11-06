@@ -37,7 +37,9 @@ same package transitions; consumers must not copy claim, admission, retry or ter
 
 ## Discovery, authority and persistence
 
-`AgentCredentialOperationReadRepository::listDueDeliveries(scope, destination, now, limit)` returns `list<AgentOperationView>`.
+`AgentCredentialOperationReadRepository::listDueDeliveries(scope, destination, now, limit)` now returns
+`list<AgentDeliveryWorkView>` selection evidence internally; the handler returns `list<AgentOperationView>`.
+See the unreleased [exact Query/read-adapter contracts](agent-query-contracts.md).
 It is an authoritative, bounded, **secret-free projection**, not an entity/material load or write transaction.
 The existing [safe operation representation](agent-operation-status.md) keeps original issuance and recorded
 credential/delivery disposition separate. No receipt, claim token, key version, ciphertext or capability is returned.
@@ -86,9 +88,10 @@ checks every returned original target before revealing any batch. A denied item 
 partial disclosure. Current-authority races after this read are handled independently by delivery admission; a
 read allow never authorizes materialization. Consumers implement visibility policy, not package lifecycle policy.
 
-Storage faults or malformed/unsupported snapshots produce sanitized `AgentOperationRejectedException(UNAVAILABLE)`;
-current authorization denials produce `UNAUTHORIZED`. Neither becomes an empty queue. Unknown canonical versions
-fail closed without reinterpreting or reissuing. Query execution does not commit, emit events or consult issuance
+Deliberately classified availability failures retain `AgentOperationRejectedException(UNAVAILABLE)` and current
+authorization denials retain `UNAUTHORIZED`. Unexpected faults and broken repository selection contracts now raise
+safe internal `AgentOperationReadFailed`, never an ordinary business refusal or empty queue. Unknown canonical
+versions retain `UNSUPPORTED_VERSION` after current target authorization, without reinterpretation or reissuance. Query execution does not commit, emit events or consult issuance
 capacity. `getDeliveryDueAt()` owns operation-local eligibility in Domain; the Domain repository contract additionally
 requires current cross-operation slot reservation. Adapters implement both as equivalent bounded selection.
 

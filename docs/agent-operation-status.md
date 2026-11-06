@@ -47,14 +47,17 @@ v0.5.0 contract; there is no permissive compatibility default.
 3. Immediately before disclosure, `authorizeRead()` rechecks the scope/delegation/destination and, when present,
    the original Agent target. It also repeats the check when storage returned no record. Do not cache the earlier
    allow. Terminal or retired work does not bypass current target/destination policy.
-4. The Domain view verifies the exact scoped key/destination binding and single supported request marker (`2`).
-   A binding mismatch denies without exposing a conflicting operation. Unsupported versions reject only after
+4. The handler rejects a wrong repository key as an internal contract fault. The Domain view then verifies the
+   requested destination binding and single supported request marker (`2`). A key-only lookup's legitimate binding
+   mismatch remains concealed, not an internal fault. Unsupported versions reject only after
    current target authorization, without selecting a current canonicalizer or changing retained request evidence.
 
 A read returns the stored snapshot observed by the repository; it does not freeze subsequent lifecycle/authority
 changes. Authorization changes observed before the final check deny. Later changes do not retroactively recall an
 already authorized response. This is **not** the transactional admission fence required for delivery or activation.
 Consumers must check current authority again for those operations and each credential use.
+
+See [exact Query contracts](agent-query-contracts.md) for the unreleased read-adapter and failure distinction.
 
 ## Query and result shapes
 
@@ -131,7 +134,8 @@ those writers and retain them in tombstones. Unknown canonical versions remain s
 | --- | --- | --- |
 | Authoritative committed record | Confirmed original issuance and recorded disposition | No issuance, generation, audit or event repeats |
 | Authoritative absence | Indeterminate view; no guessed identity/disposition | Absence is not proof of rollback; retain the key |
-| Storage or integration unavailable | Sanitized retryable `AgentOperationRejectedException(UNAVAILABLE)` | Retry status or original Command after recovery; no fabricated result |
+| Deliberately classified storage/integration unavailability | Sanitized retryable `AgentOperationRejectedException(UNAVAILABLE)` | Retry status or original Command after recovery; no fabricated result |
+| Unexpected provider/programmer fault or wrong returned key | Safe Application `AgentOperationReadFailed` / Common `ServerError` | Internal failure, not caller denial, absence or ordinary refusal; no diagnostic cause retained |
 | Current authority denied or binding mismatch | Sanitized `UNAUTHORIZED` | No conflicting/existing outcome disclosed |
 | Unsupported retained request version | Sanitized `UNSUPPORTED_VERSION` | No rewrite, current canonicalization, mutation or new issuance |
 | Prior known pre-commit execution rejection | Remains the execution-channel rejection, not reconstructed by this Query | An absent record still cannot prove why an earlier attempt left no record |
@@ -169,7 +173,7 @@ proves the public read path against controlled repository/consumer-policy fixtur
 | I1, I7 actual provision commit uncertainty and known pre-commit rejection | `test_uncertain_commit_and_known_precommit_rejection_never_turn_absence_into_rollback` |
 | I1, I7 both publishers failing, no inferred delivery | `test_both_publishers_failing_cannot_hide_issuance_or_prove_delivery` |
 | I6 new-work capacity and invalid overrides preserve status/retry | `test_new_work_capacity_and_override_validation_do_not_gate_existing_status` |
-| I7 safe storage/authorization failure, no material reads or writes | `test_storage_and_authorization_faults_are_sanitized_unavailable_not_absence` |
+| I7 safe storage/authorization failure, no material reads or writes | `test_storage_and_authorization_faults_preserve_internal_or_known_intent_not_absence` |
 
 Provision-to-read and uncertain-provision-to-read cases exercise real package code with in-memory persistence and
 transaction fixtures. All delivered, superseded, revoked, expired, retryable and terminal **disposition fixtures**

@@ -17,9 +17,11 @@ use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\AgentCrede
 use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\AgentDeliveryMaterial;
 use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\AgentIssuance;
 use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\AgentOperationContract;
+use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\AgentOperationFailure;
 use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\AgentOperationScope;
 use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\Delivery\AgentDeliveryFailure;
 use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\Delivery\AgentDeliveryReceipt;
+use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\Exception\AgentOperationRejectedException;
 use Fight\AccessControl\Domain\AccessControl\CredentialDelivery\EncryptedCredentialMaterial;
 use Fight\Common\Domain\Messaging\Event\Event;
 use Fight\Test\AccessControl\Application\AccessControl\Agent\Authentication\FixedHmacSharedSecretDecipher;
@@ -349,7 +351,8 @@ final class InMemoryDeliveryConformanceFixture extends DeliveryConformanceFixtur
     public function storageUnavailable(): void
     {
         $fail = static function (): void {
-            throw new RuntimeException('unsafe-delivery-provider /private/delivery-key');
+            // This capability models a deliberately classified availability failure, not an arbitrary fault.
+            throw new AgentOperationRejectedException(AgentOperationFailure::UNAVAILABLE);
         };
         $this->delivery->provisioning->operationRepository->afterDueRead = $fail;
         $this->delivery->provisioning->operationRepository->afterStatusRead = $fail;
