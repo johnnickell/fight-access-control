@@ -21,7 +21,7 @@ final readonly class FeaturePreparationResult implements Arrayable
      */
     public function __construct(FeaturePreparationIssue ...$issues)
     {
-        $this->issues = $issues;
+        $this->issues = array_values($issues);
     }
 
     /**
@@ -45,7 +45,9 @@ final readonly class FeaturePreparationResult implements Arrayable
     /**
      * Returns the safe preparation result
      *
-     * @return array{prepared: bool, issues: list<array{name: string, problem: string}>}
+     * @return array{prepared: bool, issues: list<array{
+     *     name: string, problem: 'missing_feature'|'broken_binding'|'invalid_definition'
+     * }>}
      */
     public function toArray(): array
     {

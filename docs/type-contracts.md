@@ -77,6 +77,13 @@ during that slice's focused verification; this does not change the ordinary whol
 exercise decoded-input validation, round trips, dynamic principal snapshots and existing authority/reference fences.
 No bus/Event dispatch generic or real persistence qualification is claimed by these Domain fixtures.
 
+TASK-00120 adds two Feature Domain cases: 23 exact positive types and seven rejected incompatible uses cover
+identities/status, both nullable lookups, typed repository pages, every Command/Query/Event output, View and
+preparation shapes/lists, and typed mapping callbacks. Runtime regressions separately prove decoded-input type
+validation, named variadic list projection, positive View revisions and overflow-safe Feature transitions.
+Focused level-8 analysis covers the complete Feature Domain, without changing the whole-library analysis level
+or claiming bus generics, real persistence or independent acceptance.
+
 Native transactional results remain `mixed`; a matching local `@var` for a known owned callback result (including
 tuples/unions) remains sufficient. No generic UoW supplier or redundant runtime check is required.
 

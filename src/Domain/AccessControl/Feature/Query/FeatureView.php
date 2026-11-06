@@ -32,6 +32,9 @@ final readonly class FeatureView implements Arrayable
         private ?PermissionName $permissionName,
         private int $revision
     ) {
+        if ($revision < 1) {
+            throw new FeatureStateException('A Feature view revision must be positive.');
+        }
     }
 
     /**
@@ -111,6 +114,11 @@ final readonly class FeatureView implements Arrayable
 
     /**
      * Returns safe management data without an availability verdict
+     *
+     * @return array{
+     *     feature_id: string, name: string, status: 'off'|'preview'|'on', permission_id: string,
+     *     permission_name: string|null, binding_missing: bool, revision: int
+     * }
      */
     public function toArray(): array
     {

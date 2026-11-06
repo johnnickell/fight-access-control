@@ -38,7 +38,9 @@ final readonly class CreateFeature implements Command
     }
 
     /**
-     * @inheritDoc
+     * Returns the canonical command payload
+     *
+     * @return array{name: string, permission_id: string}
      */
     public function toArray(): array
     {

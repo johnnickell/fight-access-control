@@ -129,7 +129,7 @@ The [Task Board](BOARD.md) is the operational projection.
 | 303 | [TASK-00117](00117-TASK.md) | Correct Permission, Role and authority type contracts | [TICKET-00037](../tickets/00037-TICKET.md) — Make Domain and repository contracts precise | done | — | https://github.com/johnnickell/fight-access-control/pull/165 |
 | 304 | [TASK-00118](00118-TASK.md) | Correct Agent identity and administration type contracts | [TICKET-00037](../tickets/00037-TICKET.md) — Make Domain and repository contracts precise | ready-for-agent | — | — |
 | 305 | [TASK-00119](00119-TASK.md) | Correct Agent operation and recovery type contracts | [TICKET-00037](../tickets/00037-TICKET.md) — Make Domain and repository contracts precise | ready-for-agent | — | — |
-| 306 | [TASK-00120](00120-TASK.md) | Correct Feature type contracts | [TICKET-00037](../tickets/00037-TICKET.md) — Make Domain and repository contracts precise | ready-for-agent | — | — |
+| 306 | [TASK-00120](00120-TASK.md) | Correct Feature type contracts | [TICKET-00037](../tickets/00037-TICKET.md) — Make Domain and repository contracts precise | in-progress | — | — |
 | 307 | [TASK-00128](00128-TASK.md) | Preserve types through Query dispatch | [TICKET-00038](../tickets/00038-TICKET.md) — Preserve message and result types through dispatch | needs-info | — | — |
 | 308 | [TASK-00129](00129-TASK.md) | Preserve Command payload types through dispatch | [TICKET-00038](../tickets/00038-TICKET.md) — Preserve message and result types through dispatch | needs-info | — | — |
 | 309 | [TASK-00130](00130-TASK.md) | Qualify Agent issuance Command and Query dispatch | [TICKET-00038](../tickets/00038-TICKET.md) — Preserve message and result types through dispatch | needs-info | [TASK-00182](00182-TASK.md) | — |

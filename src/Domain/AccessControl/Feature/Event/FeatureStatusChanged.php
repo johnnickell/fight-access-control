@@ -46,7 +46,9 @@ final readonly class FeatureStatusChanged implements Event
     }
 
     /**
-     * @inheritDoc
+     * Returns the canonical event payload
+     *
+     * @return array{feature_id: string, status: 'off'|'preview'|'on', revision: int}
      */
     public function toArray(): array
     {

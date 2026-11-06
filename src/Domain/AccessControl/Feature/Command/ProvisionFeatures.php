@@ -41,7 +41,9 @@ final readonly class ProvisionFeatures implements Command
     }
 
     /**
-     * @inheritDoc
+     * Returns the canonical command payload
+     *
+     * @return array{default_permission_name: string|null}
      */
     public function toArray(): array
     {

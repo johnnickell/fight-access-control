@@ -6,6 +6,21 @@ Fight AccessControl owns framework-neutral identity, credential, session, author
 behavior shared by Fight applications. The repository-local behavioral and security authority is
 [TICKET-00001](planning/tickets/00001-TICKET.md).
 
+## TASK-00120 Feature Domain types — Work checkpoint
+
+The complete current Feature Domain boundary has an Engineer audit/correction candidate: all 30 declarations,
+including members, preparation values/callbacks, messages, exceptions, View and repository contracts. Payload
+outputs now expose precise static shapes; ListFeatures rejects wrong input types without coercion, named variadic
+preparation issues serialize as a list, direct Views require positive revisions and real Feature changes reject
+revision exhaustion before integer overflow. See [management types](docs/feature-management.md#precise-domain-types-unreleased)
+and [preparation output](docs/feature-preparation.md#precise-preparation-output-unreleased).
+
+Nullable repositories, expected-state/reference/tier/retirement guards, no-ops and availability versus action
+permission remain unchanged. Exhaustive candidate/member/caller/disposition inventory, regression-first logs and
+verification/runtime/content mapping belong to canonical `.runs/handoffs/TASK-00120/work.md`. Independent Review
+and nonvisual QA remain required; this checkpoint does not self-accept, close the TASK/parents, qualify consumer
+persistence, publish, merge, release or deploy. Other Domain/Application/Common/audit owners retain their scopes.
+
 ## TASK-00117 integrated QA-01 repair — accepted checkpoint
 
 Independent Review ACCEPT and nonvisual QA PASS cover repaired candidate

@@ -40,7 +40,7 @@ final readonly class FeaturePreparationIssue implements Arrayable
     /**
      * Returns the safe diagnostic fields
      *
-     * @return array{name: string, problem: string}
+     * @return array{name: string, problem: 'missing_feature'|'broken_binding'|'invalid_definition'}
      */
     public function toArray(): array
     {

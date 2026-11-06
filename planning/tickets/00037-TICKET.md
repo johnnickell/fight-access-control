@@ -119,8 +119,16 @@ Review/applicable QA, without waiting to delegate those obligations to final rec
 | 303 | [TASK-00117](../tasks/00117-TASK.md) | Correct Permission, Role and authority type contracts | done |
 | 304 | [TASK-00118](../tasks/00118-TASK.md) | Correct Agent identity and administration type contracts | ready-for-agent |
 | 305 | [TASK-00119](../tasks/00119-TASK.md) | Correct Agent operation and recovery type contracts | ready-for-agent |
-| 306 | [TASK-00120](../tasks/00120-TASK.md) | Correct Feature type contracts | ready-for-agent |
+| 306 | [TASK-00120](../tasks/00120-TASK.md) | Correct Feature type contracts | in-progress |
 ## Decisions and Progress
+
+### TASK-00120 Engineer checkpoint
+
+TASK-00120 records its complete current Feature Domain audit/correction candidate, including exhaustive member/
+caller dispositions, regression-first runtime/static evidence and exact candidate/gate/runtime mapping in its
+canonical Work handoff. Independent Review and nonvisual QA remain required; neither this TICKET nor the TASK
+is self-accepted or closed. Nullable repositories and current reference/revision/retirement/availability semantics
+remain; other Domain slices and final reconciliation retain their ownership.
 
 ### TASK-00117 integrated repair — accepted checkpoint
 
