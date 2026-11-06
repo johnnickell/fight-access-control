@@ -38,6 +38,7 @@ use Fight\AccessControl\Domain\AccessControl\Feature\Query\ListFeatures;
 use Fight\AccessControl\Domain\AccessControl\Permission\Permission;
 use Fight\AccessControl\Domain\AccessControl\Permission\PermissionId;
 use Fight\AccessControl\Domain\AccessControl\Permission\PermissionName;
+use Fight\Common\Application\Error\Exception\ResourceNotFound;
 use Fight\Common\Domain\Messaging\Command\CommandMessage;
 use Fight\Common\Domain\Messaging\Event\CommandFailedEvent;
 use Fight\Common\Domain\Messaging\Query\QueryMessage;
@@ -436,7 +437,7 @@ final class FeatureManagementTest extends TestCase
     {
         $feature = $this->create('dashboard');
         self::assertInstanceOf(Throwable::class, $this->fails(fn(): Feature => $this->create('dashboard')));
-        self::assertInstanceOf(FeatureNotFoundException::class, $this->fails(
+        self::assertInstanceOf(ResourceNotFound::class, $this->fails(
             fn(): FeatureView => new GetFeatureByIdHandler($this->featureRepository, $this->permissionRepository)
                 ->handle(QueryMessage::create(new GetFeatureById(FeatureId::generate())))
         ));

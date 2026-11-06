@@ -6,6 +6,17 @@ Fight AccessControl owns framework-neutral identity, credential, session, author
 behavior shared by Fight applications. The repository-local behavioral and security authority is
 [TICKET-00001](planning/tickets/00001-TICKET.md).
 
+## TASK-00133 develop integration — Work checkpoint
+
+The existing published feature branch integrates pinned develop `313db75af6821dbeaff9ee889697fb9e48628af6`,
+preserving TASK-00131's required-resource result-or-failure contracts and TASK-00133's explicit optional status and
+bounded family discovery. Shared registration journeys retain both result contracts; static cases and structural
+fingerprints include both slices. Both TASKs remain historically done and their original independent reports retain
+their exact subjects, not a new combined verdict. Canonical `.runs/handoffs/TASK-00133/develop-integration.md` owns
+both-parent provenance, conflict resolutions, fresh integrated verification and recreated-runtime identity.
+Independent bridge review/applicable QA and Land's existing-PR update remain coordinator-owned; this Work stage
+performs no push, PR mutation, teardown, acceptance, merge into develop, release or deployment.
+
 ## TASK-00133 credential status/discovery — accepted contract
 
 The four human credential Queries now have independently accepted corrections: optional status returns a safe View or
@@ -20,6 +31,33 @@ Inventory, regression chronology, static/runtime/minimum/ordinary and full-gate 
 The owning TASK preserves acceptance and verification; canonical `.runs/handoffs/TASK-00133/land.md` owns the
 administrative bridge and current delivery/resource results. Consumer qualification, approval, merge, release
 and deployment remain separate.
+
+## TASK-00131 required-resource Queries — accepted checkpoint
+
+Independent Review v3 ACCEPT and independent nonvisual QA PASS cover candidate
+`e5c39fe1256f43e81a7c9a682d5f0250b97e1fff` against `8655f35011405ebaf2ffa2cf2655c339fdbfc2e0`,
+with no findings; QA passes 14 scenarios / 609 fresh checks. TASK-00131 is done for its six-query slice.
+Land's normal build freshly passes 4,789 tests / 53,683 assertions and exact 8,215/8,215 statements;
+the original gate and exact 71/71 changed-statement evidence remain separately preserved. Minimum-lane
+advisories remain disclosed, with ordinary dependencies restored. Unfinished children keep TICKET-00039 and
+EPIC-00016 open. Publication/final-head verification are pending at this administrative checkpoint; current
+bridge, delivery/resource results and actual PR belong to canonical `.runs/handoffs/TASK-00131/land.md`.
+Independent reports retain their exact subjects. No whole-library/consumer qualification, merge, release or
+deployment is implied. The Work checkpoint below is historical, not a current Review/QA instruction.
+
+### TASK-00131 required-resource Queries — historical Work checkpoint
+
+The six [required-resource Queries](docs/required-resource-queries.md) now have an Engineer candidate: exact non-null
+safe Views or deliberate Common Application `ResourceNotFound`. Nullable Domain repositories remain unchanged.
+Each handler checks requested identity before disclosure/related reads; wrong identities/native contracts and
+operational failures remain internal. Agent profiles conceal absent/revoked targets identically, with fresh reads
+and unchanged outer authorization. Feature missing-binding data, exact Agent Permissions and Role revisions remain.
+The profile Tool consumes result-or-throw and explicitly binds ResourceNotFound, not generic lookup/configuration faults.
+
+Canonical `.runs/handoffs/TASK-00131/work.md` owns refreshed inventory/caller dispositions, regression-first proof,
+supported dependency lanes, canonical gate/coverage and retained isolated-runtime provenance. Independent Review
+and nonvisual QA remain pending; TASK-00131 stays in-progress. No consumer/Common/provider changes, generic bus
+inference adoption, optional audit, publication, merge, release or deployment is claimed.
 
 ## TASK-00120 pinned develop integration — Work checkpoint
 

@@ -16,7 +16,6 @@ use Fight\Common\Application\Mcp\Tool\McpToolInfo;
 use Fight\Common\Application\Mcp\Tool\McpToolOutput;
 use Fight\Common\Application\Messaging\Query\QueryBus;
 use Fight\Common\Application\Validation\Data\ApplicationData;
-use Fight\Common\Domain\Exception\LookupException;
 use SensitiveParameter;
 
 /**
@@ -55,11 +54,8 @@ final readonly class GetAgentProfileTool implements McpTool
     public function handle(ApplicationData $input, McpProgressReporter $progress): McpToolOutput
     {
         $principal = $this->provider->resolve($this->request, $this->correlationId);
-        /** @var AgentProfileView|null $profile */
+        /** @var AgentProfileView $profile */
         $profile = $this->queryBus->fetch(new GetAgentProfile($principal->getAgentId()));
-        if ($profile === null) {
-            throw new LookupException('The Agent profile is unavailable.');
-        }
 
         return McpToolOutput::structured($profile->toArray());
     }

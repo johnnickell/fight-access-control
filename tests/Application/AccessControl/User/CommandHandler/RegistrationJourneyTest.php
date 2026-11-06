@@ -29,9 +29,11 @@ use Fight\AccessControl\Domain\AccessControl\User\Event\UserRegistered;
 use Fight\AccessControl\Domain\AccessControl\User\Exception\DuplicateEmailException;
 use Fight\AccessControl\Domain\AccessControl\User\PasswordHash;
 use Fight\AccessControl\Domain\AccessControl\User\Query\GetUserById;
+use Fight\AccessControl\Domain\AccessControl\User\Query\UserView;
 use Fight\AccessControl\Domain\AccessControl\User\UserState;
 use Fight\Common\Adapter\Messaging\Command\Sync\Routing\CommandRouter;
 use Fight\Common\Adapter\Messaging\Command\Sync\RoutingCommandBus;
+use Fight\Common\Application\Error\Exception\ResourceNotFound;
 use Fight\Common\Domain\Messaging\Command\CommandMessage;
 use Fight\Common\Domain\Messaging\Event\CommandFailedEvent;
 use Fight\Common\Domain\Messaging\Event\EventMessage;
@@ -139,9 +141,9 @@ final class RegistrationJourneyTest extends TestCase
 
             $fixture->activationGrantRepository = $fixture->activationGrantRepository->restart();
             $restartedUserRepository = new InMemoryUserRepository($fixture->unitOfWork, state: $fixture->userState);
-            $view = new GetUserByIdHandler($restartedUserRepository)->handle(QueryMessage::create(new GetUserById(
-                $command->getUserId()
-            )));
+            $readUser = static fn(): UserView => new GetUserByIdHandler($restartedUserRepository)->handle(
+                QueryMessage::create(new GetUserById($command->getUserId()))
+            );
             $status = new FindInvitationDeliveryStatusHandler($fixture->activationGrantRepository)->handle(
                 QueryMessage::create(
                     new FindInvitationDeliveryStatus($command->getUserId())
@@ -153,13 +155,19 @@ final class RegistrationJourneyTest extends TestCase
             self::assertInstanceOf(CommandFailedEvent::class, $fixture->eventDispatcher->events()[0]);
             self::assertSame('User registration failed.', $fixture->eventDispatcher->events()[0]->getErrorMessage());
             if (!$committed) {
-                self::assertNull($view);
+                try {
+                    $readUser();
+                    self::fail('An uncommitted User must be unavailable.');
+                } catch (ResourceNotFound) {
+                    self::addToAssertionCount(1);
+                }
+
                 self::assertInstanceOf(CredentialDeliveryAbsent::class, $status);
                 self::assertSame([], $this->discover($fixture));
                 continue;
             }
 
-            self::assertNotNull($view);
+            $view = $readUser();
             self::assertInstanceOf(InvitationDeliveryStatusView::class, $status);
             self::assertSame(UserState::PENDING_ACTIVATION, $view->getState());
             self::assertCount(2, $view->getRoleIds());

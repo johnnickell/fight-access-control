@@ -25,6 +25,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   Update callers, View constructors and composed schemas directly; repository lookups remain nullable and all four
   Queries remain advisory/read-only, with unchanged authority, recovery and expiry policy. See
   [current contracts](docs/credential-delivery.md#explicit-status-and-bounded-discovery-unreleased).
+- **Breaking pre-v1 required-resource Query contract:** `GetUserById`, `GetRoleById`, `GetPermissionById`,
+  `GetAgentById` and `GetAgentProfile` return non-null safe Views or Common Application `ResourceNotFound`;
+  `GetFeatureById` uses that same deliberate absence category instead of Domain `FeatureNotFoundException`.
+  All six reject wrong returned identities as internal faults. Nullable repositories, absent/revoked profile
+  concealment, authorization, exact Agent Permissions, Role revisions and Feature missing-binding data remain.
+  Update nullable callers/catches and explicit profile Tool failure bindings directly, without compatibility mode.
+  See [required-resource Queries](docs/required-resource-queries.md).
 - **Breaking pre-v1 Agent issuance caller contract:** replace direct provision/rotation services and their
   result/publication-warning types with immutable secret-free `ProvisionAgent` / `RotateAgentCredential` Commands
   and registered void handlers. Retain original key/request before dispatch; use authorized `GetAgentOperation`

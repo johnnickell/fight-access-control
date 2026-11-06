@@ -131,7 +131,13 @@ returns to its named TASK/decision owner; this guidance neither repairs it nor a
 
 Commands express intent; queries return data without business mutation; events express facts. Follow the project's message identity, metadata, bus, and dispatch contracts. Keep transport information out of domain messages unless it is meaningful use-case context. Application handlers orchestrate; adapters do not become alternate business workflows.
 
-Repositories may return null from `getById()`. The QueryHandler or CommandHandler decides whether absence is a failure and throws Fight Common's `LookupException` where appropriate. An adapter translates that failure. Do not rename a nullable repository method solely to imply failure behavior.
+Repositories may return null from `getById()`. The Application handler decides whether absence is intentional
+not-found, an optional outcome or another use-case failure. Required-resource Queries throw Common Application
+`ResourceNotFound` for deliberate absence; Domain exceptions remain Domain-owned and independent of Application.
+Wrong identities/result contracts and unknown operational faults remain internal failures. Generic `LookupException`
+is not safe not-found intent (it can also mean missing bus configuration). Adapters use explicit safe categories,
+never diagnostic text/codes. See [required-resource contracts](../../required-resource-queries.md).
+Do not rename a nullable repository method solely to imply failure behavior.
 
 Where a project owns migrations, map them to its persistence adapter and coordinate Domain/model changes before dependent artifacts. AccessControl's ADR 0011 overrides any previous-iteration migration/compatibility obligation; actual consumer storage and current-state restoration safety remain consumer qualification. Do not infer a package persistence adapter or reversible migration from this general pattern.
 

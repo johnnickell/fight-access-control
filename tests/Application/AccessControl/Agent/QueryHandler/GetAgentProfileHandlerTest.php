@@ -14,6 +14,7 @@ use Fight\AccessControl\Domain\AccessControl\Agent\AgentRepository;
 use Fight\AccessControl\Domain\AccessControl\Agent\Query\AgentProfileView;
 use Fight\AccessControl\Domain\AccessControl\Agent\Query\GetAgentProfile;
 use Fight\AccessControl\Domain\AccessControl\Permission\PermissionId;
+use Fight\Common\Application\Error\Exception\ResourceNotFound;
 use Fight\Common\Application\Messaging\Query\QueryHandler;
 use Fight\Common\Domain\Messaging\Query\QueryMessage;
 use PHPUnit\Framework\Attributes\CoversClass;
@@ -70,8 +71,22 @@ final class GetAgentProfileHandlerTest extends TestCase
         $message = QueryMessage::create(new GetAgentProfile($agent->getId()));
 
         self::assertInstanceOf(AgentProfileView::class, $handler->handle($message));
-        self::assertNull($handler->handle($message));
-        self::assertNull($handler->handle($message));
+        $failures = [];
+        for ($i = 0; $i < 2; ++$i) {
+            try {
+                $handler->handle($message);
+                self::fail('An unavailable profile must not return success.');
+            } catch (ResourceNotFound $resourceNotFound) {
+                $failures[] = [
+                    $resourceNotFound::class,
+                    $resourceNotFound->getMessage(),
+                    $resourceNotFound->getCode(),
+                    $resourceNotFound->getPrevious()
+                ];
+            }
+        }
+
+        self::assertSame($failures[0], $failures[1]);
     }
 
     public function test_repository_failure_propagates_instead_of_becoming_absence_or_a_cached_result(): void

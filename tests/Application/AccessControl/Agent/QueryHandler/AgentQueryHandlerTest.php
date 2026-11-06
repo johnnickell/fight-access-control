@@ -21,6 +21,7 @@ use Fight\AccessControl\Domain\AccessControl\Permission\Permission;
 use Fight\AccessControl\Domain\AccessControl\Permission\PermissionId;
 use Fight\AccessControl\Domain\AccessControl\Permission\PermissionName;
 use Fight\AccessControl\Domain\AccessControl\Permission\PermissionRepository;
+use Fight\Common\Application\Error\Exception\ResourceNotFound;
 use Fight\Common\Domain\Exception\DomainException;
 use Fight\Common\Domain\Messaging\Query\QueryMessage;
 use Fight\Common\Domain\Repository\Pagination;
@@ -89,14 +90,20 @@ final class AgentQueryHandlerTest extends TestCase
         self::assertStringNotContainsString('consumer-encrypted-secret', serialize($view));
     }
 
-    public function test_get_returns_null_for_unknown_agent_and_supports_empty_assignments(): void
+    public function test_get_rejects_unknown_agent_and_supports_empty_assignments(): void
     {
         $agentRepository = new InMemoryAgentRepository();
         $agent = $this->agent('Production deployment');
         $agentRepository->add($agent);
         $handler = new GetAgentByIdHandler($agentRepository, new InMemoryPermissionRepository());
 
-        self::assertNull($handler->handle(QueryMessage::create(new GetAgentById(AgentId::generate()))));
+        try {
+            $handler->handle(QueryMessage::create(new GetAgentById(AgentId::generate())));
+            self::fail('An unknown Agent must not return success.');
+        } catch (ResourceNotFound) {
+            self::addToAssertionCount(1);
+        }
+
         $view = $handler->handle(QueryMessage::create(new GetAgentById($agent->getId())));
 
         self::assertInstanceOf(AgentView::class, $view);

@@ -188,7 +188,7 @@ final class RegistrationRecoveryJourneyTest extends TestCase
                         new FindInvitationDeliveryStatus($fixture->initialUser->getId())
                     )
                 );
-                self::assertNotNull($view);
+                self::assertSame($fixture->initialUser->getId(), $view->getUserId());
                 self::assertInstanceOf(InvitationDeliveryStatusView::class, $status);
                 self::assertEqualsCanonicalizing($fixture->initialUser->getRoleIds(), $view->getRoleIds());
                 self::assertCount((int) $committed, $fixture->auditEvidenceRepository->all());
@@ -355,7 +355,7 @@ final class RegistrationRecoveryJourneyTest extends TestCase
         $status = $statusHandler->handle($statusQuery);
         $user = $userHandler->handle($userQuery);
         self::assertInstanceOf(InvitationDeliveryStatusView::class, $status);
-        self::assertNotNull($user);
+        self::assertSame($fixture->initialUser->getId(), $user->getUserId());
         self::assertEquals($fixture->initial->getDelivery()->getId(), $status->getActivationDeliveryId());
         self::assertSame($before, $fixture->unitOfWork->transactions);
         self::assertSame([], $fixture->eventDispatcher->events());
@@ -367,7 +367,7 @@ final class RegistrationRecoveryJourneyTest extends TestCase
         $nextStatus = $statusHandler->handle($statusQuery);
         $nextUser = $userHandler->handle($userQuery);
         self::assertInstanceOf(InvitationDeliveryStatusView::class, $nextStatus);
-        self::assertNotNull($nextUser);
+        self::assertSame($fixture->initialUser->getId(), $nextUser->getUserId());
         self::assertFalse($status->getActivationDeliveryId()->equals($nextStatus->getActivationDeliveryId()));
         self::assertEquals($fixture->current()->getDelivery()->getId(), $nextStatus->getActivationDeliveryId());
         self::assertSame('corrected@example.test', $nextUser->getEmail()->canonical());
