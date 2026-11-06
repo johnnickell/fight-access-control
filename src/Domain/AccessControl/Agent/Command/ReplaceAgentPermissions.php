@@ -30,6 +30,11 @@ final readonly class ReplaceAgentPermissions implements Command
         private int $expectedPermissionAssignmentRevision,
         private array $permissionIds
     ) {
+        if ($expectedPermissionAssignmentRevision < 1) {
+            throw new DomainException('Agent Permission replacement requires a positive revision.');
+        }
+
+        self::assertPermissionIds($permissionIds);
     }
 
     /** @inheritDoc */
@@ -41,18 +46,39 @@ final readonly class ReplaceAgentPermissions implements Command
             }
         }
 
+        if (
+            !is_string($data['actor_id']) || !is_string($data['agent_id'])
+            || !is_int($data['expected_permission_assignment_revision'])
+            || !is_array($data['permission_ids']) || !array_is_list($data['permission_ids'])
+        ) {
+            throw new DomainException('Agent Permission replacement requires string IDs, an integer and a list.');
+        }
+
+        $permissionIds = [];
+        foreach ($data['permission_ids'] as $id) {
+            if (!is_string($id)) {
+                throw new DomainException('Agent Permission identities must be strings.');
+            }
+
+            $permissionIds[] = PermissionId::fromString($id);
+        }
+
         return new static(
-            UserId::fromString((string) $data['actor_id']),
-            AgentId::fromString((string) $data['agent_id']),
-            (int) $data['expected_permission_assignment_revision'],
-            array_map(
-                static fn(mixed $id): PermissionId => PermissionId::fromString((string) $id),
-                (array) $data['permission_ids']
-            )
+            UserId::fromString($data['actor_id']),
+            AgentId::fromString($data['agent_id']),
+            $data['expected_permission_assignment_revision'],
+            $permissionIds
         );
     }
 
-    /** @inheritDoc */
+    /**
+     * Returns the canonical command payload
+     *
+     * @return array{
+     *     actor_id: string, agent_id: string,
+     *     expected_permission_assignment_revision: int, permission_ids: list<string>
+     * }
+     */
     public function toArray(): array
     {
         return [
@@ -98,5 +124,20 @@ final readonly class ReplaceAgentPermissions implements Command
     public function getPermissionIds(): array
     {
         return $this->permissionIds;
+    }
+
+    /**
+     * Validates the native array boundary without relying on erased collection annotations
+     *
+     * @param array<array-key, mixed> $permissionIds
+     */
+    private static function assertPermissionIds(array $permissionIds): void
+    {
+        if (
+            !array_is_list($permissionIds)
+            || !array_all($permissionIds, static fn(mixed $id): bool => $id instanceof PermissionId)
+        ) {
+            throw new DomainException('Agent Permission identities must be a list of PermissionId values.');
+        }
     }
 }

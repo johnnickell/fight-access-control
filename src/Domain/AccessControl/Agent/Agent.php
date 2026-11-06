@@ -15,6 +15,8 @@ use SensitiveParameter;
  * Class Agent
  *
  * Represents one machine authority with its current HMAC credential.
+ *
+ * @phpstan-consistent-constructor
  */
 class Agent
 {
@@ -47,8 +49,8 @@ class Agent
         AgentCredentialId $credentialId,
         string $encryptedHmacSharedSecretEnvelope,
         DateTimeImmutable $provisionedAt
-    ): self {
-        return new self(
+    ): static {
+        return new static(
             $id,
             $name,
             AgentState::ACTIVE,
@@ -80,7 +82,7 @@ class Agent
         int $permissionAssignmentRevision,
         DateTimeImmutable $createdAt,
         DateTimeImmutable $updatedAt
-    ): self {
+    ): static {
         $permissionKeys = array_map(static fn(PermissionId $id): string => $id->toString(), $permissionIds);
         if (
             $credentialRevision < 0
@@ -93,7 +95,7 @@ class Agent
             throw new AgentCredentialException('The persisted Agent authority is invalid.');
         }
 
-        return new self(
+        return new static(
             $id,
             $name,
             $state,
@@ -197,7 +199,7 @@ class Agent
     /**
      * Renames an active Agent without changing its authority
      */
-    public function rename(AgentName $name, DateTimeImmutable $renamedAt): self
+    public function rename(AgentName $name, DateTimeImmutable $renamedAt): static
     {
         if ($this->state !== AgentState::ACTIVE) {
             throw new AgentUpdateException('The Agent is unavailable for a name update.');
@@ -211,7 +213,7 @@ class Agent
             throw new AgentUpdateException('The Agent name update time is stale.');
         }
 
-        return new self(
+        return new static(
             $this->id,
             $name,
             $this->state,
@@ -228,13 +230,13 @@ class Agent
     /**
      * Returns the immutable successor with one newly assigned Permission
      */
-    public function grantPermission(PermissionId $permissionId, DateTimeImmutable $grantedAt): self
+    public function grantPermission(PermissionId $permissionId, DateTimeImmutable $grantedAt): static
     {
         if ($this->hasPermission($permissionId)) {
             return $this;
         }
 
-        return new self(
+        return new static(
             $this->id,
             $this->name,
             $this->state,
@@ -242,7 +244,7 @@ class Agent
             $this->credentialRevision,
             $this->encryptedHmacSharedSecretEnvelope,
             [...$this->permissionIds, $permissionId],
-            $this->permissionAssignmentRevision + 1,
+            $this->nextPermissionAssignmentRevision(),
             $this->createdAt,
             $grantedAt
         );
@@ -251,13 +253,13 @@ class Agent
     /**
      * Returns the immutable successor without one directly assigned Permission
      */
-    public function revokePermission(PermissionId $permissionId, DateTimeImmutable $revokedAt): self
+    public function revokePermission(PermissionId $permissionId, DateTimeImmutable $revokedAt): static
     {
         if (!$this->hasPermission($permissionId)) {
             return $this;
         }
 
-        return new self(
+        return new static(
             $this->id,
             $this->name,
             $this->state,
@@ -268,7 +270,7 @@ class Agent
                 $this->permissionIds,
                 static fn(PermissionId $assigned): bool => !$assigned->equals($permissionId)
             )),
-            $this->permissionAssignmentRevision + 1,
+            $this->nextPermissionAssignmentRevision(),
             $this->createdAt,
             $revokedAt
         );
@@ -283,18 +285,8 @@ class Agent
         iterable $permissionIds,
         int $expectedPermissionAssignmentRevision,
         DateTimeImmutable $replacedAt
-    ): self {
-        $replacementIds = [];
-        $seen = [];
-        foreach ($permissionIds as $permissionId) {
-            $key = $permissionId->toString();
-            if (isset($seen[$key])) {
-                continue;
-            }
-
-            $seen[$key] = true;
-            $replacementIds[] = $permissionId;
-        }
+    ): static {
+        $replacementIds = self::normalizePermissionIds($permissionIds);
 
         if ($expectedPermissionAssignmentRevision !== $this->permissionAssignmentRevision) {
             throw new AgentPermissionAssignmentException('The Agent Permission assignment revision is stale.');
@@ -307,7 +299,7 @@ class Agent
             return $this;
         }
 
-        return new self(
+        return new static(
             $this->id,
             $this->name,
             $this->state,
@@ -315,7 +307,7 @@ class Agent
             $this->credentialRevision,
             $this->encryptedHmacSharedSecretEnvelope,
             $replacementIds,
-            $this->permissionAssignmentRevision + 1,
+            $this->nextPermissionAssignmentRevision(),
             $this->createdAt,
             $replacedAt
         );
@@ -361,13 +353,13 @@ class Agent
         AgentCredentialId $successorCredentialId,
         #[SensitiveParameter] string $encryptedHmacSharedSecretEnvelope,
         DateTimeImmutable $rotatedAt
-    ): self {
+    ): static {
         $this->assertRecoverableRotation($expectedCredentialId, $expectedRevision);
         if ($successorCredentialId->equals($this->credentialId) || $rotatedAt < $this->updatedAt) {
             throw new AgentCredentialException('The Agent credential successor is invalid.');
         }
 
-        return new self(
+        return new static(
             $this->id,
             $this->name,
             $this->state,
@@ -384,13 +376,13 @@ class Agent
     /**
      * Returns the terminally revoked Agent authority
      */
-    public function revoke(DateTimeImmutable $revokedAt): self
+    public function revoke(DateTimeImmutable $revokedAt): static
     {
         if ($this->state !== AgentState::ACTIVE) {
             throw new AgentCredentialException('The Agent credential is no longer active.');
         }
 
-        return new self(
+        return new static(
             $this->id,
             $this->name,
             AgentState::REVOKED,
@@ -435,5 +427,46 @@ class Agent
         return $replacement->state === AgentState::ACTIVE
             && !$replacement->credentialId->equals($this->credentialId)
             && $replacement->credentialRevision === $this->credentialRevision + 1;
+    }
+
+    /**
+     * Validates iterable members before retaining each Permission identity's first occurrence
+     *
+     * @phpstan-param iterable<mixed> $permissionIds
+     * @phpstan-return list<PermissionId>
+     */
+    private static function normalizePermissionIds(iterable $permissionIds): array
+    {
+        $replacementIds = [];
+        $seen = [];
+        foreach ($permissionIds as $permissionId) {
+            if (!$permissionId instanceof PermissionId) {
+                throw new AgentPermissionAssignmentException(
+                    'Agent Permission identities must be PermissionId values.'
+                );
+            }
+
+            $key = $permissionId->toString();
+            if (isset($seen[$key])) {
+                continue;
+            }
+
+            $seen[$key] = true;
+            $replacementIds[] = $permissionId;
+        }
+
+        return $replacementIds;
+    }
+
+    /**
+     * Returns the next representable Permission-assignment revision
+     */
+    private function nextPermissionAssignmentRevision(): int
+    {
+        if ($this->permissionAssignmentRevision === PHP_INT_MAX) {
+            throw new AgentPermissionAssignmentException('The Agent Permission assignment revision is exhausted.');
+        }
+
+        return $this->permissionAssignmentRevision + 1;
     }
 }

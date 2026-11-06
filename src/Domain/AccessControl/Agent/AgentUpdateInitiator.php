@@ -47,12 +47,16 @@ final readonly class AgentUpdateInitiator extends ValueObject
             if (!array_key_exists($key, $data)) {
                 throw new DomainException(sprintf('Missing required key "%s" in data array', $key));
             }
+
+            if (!is_string($data[$key])) {
+                throw new DomainException(sprintf('Required key "%s" must be a string.', $key));
+            }
         }
 
-        $type = AuthenticatedPrincipalType::from((string) $data['type']);
+        $type = AuthenticatedPrincipalType::from($data['type']);
         $id = match ($type) {
-            AuthenticatedPrincipalType::USER => UserId::fromString((string) $data['id']),
-            AuthenticatedPrincipalType::AGENT => AgentId::fromString((string) $data['id'])
+            AuthenticatedPrincipalType::USER => UserId::fromString($data['id']),
+            AuthenticatedPrincipalType::AGENT => AgentId::fromString($data['id'])
         };
 
         return new self($id);
@@ -89,7 +93,7 @@ final readonly class AgentUpdateInitiator extends ValueObject
     /**
      * Returns canonical secret-free provenance
      *
-     * @return array{type: string, id: string}
+     * @return array{type: 'user'|'agent', id: string}
      */
     public function toArray(): array
     {

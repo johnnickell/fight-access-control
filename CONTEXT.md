@@ -6,6 +6,35 @@ Fight AccessControl owns framework-neutral identity, credential, session, author
 behavior shared by Fight applications. The repository-local behavioral and security authority is
 [TICKET-00001](planning/tickets/00001-TICKET.md).
 
+## TASK-00118 Agent identity and administration — accepted checkpoint
+
+Independent Review v3 ACCEPT and nonvisual QA PASS cover candidate
+`b4300b8108ff4cffa9499e1f4530d58459d78f6d` against `458a35ac224d8dd6b855c4652db9fad34c327187`.
+R-01 is independently resolved; TASK-00118 is done for its complete owned Domain slice, not whole-library or
+consumer qualification. Earlier full gate retained: 4,513 tests / 52,873 assertions, exact 8,128/8,128 statements
+and 558/558 owned. QA adds 715 fresh driver checks and 121 tests / 1,653 assertions with no findings.
+Publication/final-head verification are pending at this closeout checkpoint; current delivery/resource results
+and the administrative-only bridge belong to canonical `.runs/handoffs/TASK-00118/land.md` and the actual PR.
+Independent reports remain unchanged. Unfinished children keep TICKET-00037/EPIC-00016 open. The following Work
+checkpoint is historical, not a current independent-reassessment instruction.
+
+### TASK-00118 historical Work checkpoint
+
+The owned Agent identity/administration Domain slice now rejects coercive decoded fields, validates list/revision
+boundaries and explicit administration-Event instants, and exposes exact message/View shapes. Aggregate factories
+and successors preserve extending types; Permission revision exhaustion rejects changed membership without altering
+no-ops. The [current Agent guide](docs/agent-current-contract.md#precise-identity-and-administration-types-unreleased)
+records current caller obligations and unchanged nullable repositories, lazy rename time, correlation, redaction and
+Permission/cohort authority. Review R-01 identified an erased iterable gap: aggregate Permission replacement now
+validates each member before deduplication/no-op, rejecting wrong-purpose identities even when UUIDs duplicate a
+valid member. Regression-first repair evidence awaits independent reassessment; no acceptance is implied.
+No optional audit, Common adoption or query-absence redesign is included.
+
+Canonical `.runs/handoffs/TASK-00118/work.md` owns exhaustive member/callback/caller dispositions, regression chronology,
+verification and exact candidate/runtime/dependency mapping. Independent Review and nonvisual QA remain required;
+Work does not accept or close the TASK, qualify consumer persistence/crypto, publish, release or deploy it.
+TASK-00119 retains operation/cohort ownership after the accepted aggregate relocation and Agent Command conversion.
+
 ## TASK-00117 integrated QA-01 repair — accepted checkpoint
 
 Independent Review ACCEPT and nonvisual QA PASS cover repaired candidate
