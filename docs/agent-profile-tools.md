@@ -69,7 +69,10 @@ request retains its snapshot. Fresh profile reads and ACTIVE-state rename fences
 
 ## Read and update outcomes
 
-A read dispatches `GetAgentProfile` using only the authenticated principal's Agent ID. Every invocation fetches a
+A read dispatches `GetAgentProfile` using only the authenticated principal's Agent ID. Its result is non-null or
+throws deliberate Common Application `ResourceNotFound`; the exact-class Tool binding preserves the unavailable
+message for both missing and revoked targets. Generic `LookupException` (including missing bus configuration) and
+identity/result faults stay unmapped internal errors, never profile absence. Every invocation fetches a
 fresh minimal ACTIVE profile. Missing and revoked targets both produce the same safe unavailable failure. No
 Permission lookup, name cache, mutation, transaction or event belongs to the read itself; request authentication
 retains its existing separate nonce transaction. Repository faults are not absence or a successful cached read.
@@ -95,7 +98,7 @@ bindings, never throwable text:
 | Failure class | Safe Tool message |
 | --- | --- |
 | `AgentNameException` | `The Agent name is invalid.` |
-| `AgentUpdateException`, Common `LookupException` | `The Agent profile is unavailable.` |
+| `AgentUpdateException`, Common Application `ResourceNotFound` | `The Agent profile is unavailable.` |
 | `AgentOperationRejectedException` | `The Agent profile operation could not be completed.` |
 
 Expected mapped failures are Common `isError: true` Tool results without structured success content. They are distinct

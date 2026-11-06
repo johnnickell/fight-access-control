@@ -19,6 +19,7 @@ use Fight\AccessControl\Domain\AccessControl\Agent\Query\AgentProfileView;
 use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\AgentOperationFailure;
 use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\Exception\AgentOperationRejectedException;
 use Fight\AccessControl\Domain\AccessControl\Permission\PermissionName;
+use Fight\Common\Application\Error\Exception\ResourceNotFound;
 use Fight\Common\Application\Mcp\McpCapabilityRegistry;
 use Fight\Common\Application\Mcp\McpProgressReporter;
 use Fight\Common\Application\Mcp\McpProtocolException;
@@ -30,7 +31,6 @@ use Fight\Common\Application\Mcp\Tool\McpToolDiscovery;
 use Fight\Common\Application\Mcp\Tool\McpToolInvocation;
 use Fight\Common\Application\Messaging\Command\SynchronousCommandBus;
 use Fight\Common\Application\Messaging\Query\QueryBus;
-use Fight\Common\Domain\Exception\LookupException;
 use Fight\Common\Domain\Messaging\Command\CommandMessage;
 use Fight\Common\Domain\Messaging\Event\Event;
 use Fight\Test\AccessControl\Adapter\Mcp\Tool\Agent\Fixture\ProfileToolEnvironment;
@@ -329,7 +329,7 @@ final class AgentProfileToolsTest extends TestCase
         $failures = [
             new AgentNameException('private'),
             new AgentUpdateException('private'),
-            new LookupException('private'),
+            new ResourceNotFound('private'),
             new AgentOperationRejectedException(AgentOperationFailure::CONFLICT)
         ];
         foreach ($failures as $failure) {

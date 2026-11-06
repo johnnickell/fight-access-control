@@ -13,6 +13,7 @@ use Fight\Common\Adapter\Http\OAuth\OAuthResponseFactory;
 use Fight\Common\Application\Auth\OAuth\OAuthFailure;
 use Fight\Common\Application\Auth\OAuth\OAuthResourceMetadata;
 use Fight\Common\Application\Auth\OAuth\OAuthScopeSet;
+use Fight\Common\Application\Error\Exception\ResourceNotFound;
 use Fight\Common\Application\Mcp\McpDiagnostics;
 use Fight\Common\Application\Mcp\McpJsonResponse;
 use Fight\Common\Application\Mcp\McpProtocolException;
@@ -36,7 +37,7 @@ final class ProtocolExclusionTest extends TestCase
     #[DataProviderExternal(PermissionMiddlewareTest::class, 'frameworks')]
     public function test_native_protocol_routes_keep_mcp_exact_class_failure_and_concealment(string $framework): void
     {
-        foreach (['known', 'subclass', 'denied'] as $case) {
+        foreach (['known', 'subclass', 'lookup', 'denied'] as $case) {
             $environment = new ProfileToolEnvironment();
             $queryBus = $this->createMock(QueryBus::class);
             if ($case === 'denied') {
@@ -48,9 +49,13 @@ final class ProtocolExclusionTest extends TestCase
                 ]);
                 $queryBus->expects(self::never())->method('fetch');
             } else {
-                $failure = new LookupException('PRIVATE MCP SENTINEL');
+                $failure = new ResourceNotFound('PRIVATE MCP SENTINEL');
+                if ($case === 'lookup') {
+                    $failure = new LookupException('PRIVATE MCP SENTINEL');
+                }
+
                 if ($case === 'subclass') {
-                    $failure = new class ('PRIVATE MCP SENTINEL') extends LookupException {
+                    $failure = new class ('PRIVATE MCP SENTINEL') extends ResourceNotFound {
                     };
                 }
 
@@ -59,7 +64,8 @@ final class ProtocolExclusionTest extends TestCase
 
             $invoker = $environment->invoker(queryBus: $queryBus);
             $diagnostics = $this->createMock(McpDiagnostics::class);
-            $diagnostics->expects($case === 'subclass' ? self::once() : self::never())->method('record');
+            $internal = in_array($case, ['subclass', 'lookup'], true);
+            $diagnostics->expects($internal ? self::once() : self::never())->method('record');
             $responses = new McpResponseFactory(new ResponseFactory(), new StreamFactory(), $diagnostics);
             $native = new NativePipeline($framework, new PermissionMiddleware(
                 new PermissionDeclaration(AdmissionMode::AUTHENTICATED),
@@ -93,7 +99,7 @@ final class ProtocolExclusionTest extends TestCase
                 self::assertSame('The Agent profile is unavailable.', $data['result']['content'][0]['text']);
             } else {
                 self::assertArrayHasKey('error', $data);
-                self::assertSame($case === 'subclass' ? 500 : 400, $response->getStatusCode());
+                self::assertSame($internal ? 500 : 400, $response->getStatusCode());
             }
         }
     }

@@ -6,6 +6,33 @@ Fight AccessControl owns framework-neutral identity, credential, session, author
 behavior shared by Fight applications. The repository-local behavioral and security authority is
 [TICKET-00001](planning/tickets/00001-TICKET.md).
 
+## TASK-00131 required-resource Queries — accepted checkpoint
+
+Independent Review v3 ACCEPT and independent nonvisual QA PASS cover candidate
+`e5c39fe1256f43e81a7c9a682d5f0250b97e1fff` against `8655f35011405ebaf2ffa2cf2655c339fdbfc2e0`,
+with no findings; QA passes 14 scenarios / 609 fresh checks. TASK-00131 is done for its six-query slice.
+Land's normal build freshly passes 4,789 tests / 53,683 assertions and exact 8,215/8,215 statements;
+the original gate and exact 71/71 changed-statement evidence remain separately preserved. Minimum-lane
+advisories remain disclosed, with ordinary dependencies restored. Unfinished children keep TICKET-00039 and
+EPIC-00016 open. Publication/final-head verification are pending at this administrative checkpoint; current
+bridge, delivery/resource results and actual PR belong to canonical `.runs/handoffs/TASK-00131/land.md`.
+Independent reports retain their exact subjects. No whole-library/consumer qualification, merge, release or
+deployment is implied. The Work checkpoint below is historical, not a current Review/QA instruction.
+
+### TASK-00131 required-resource Queries — historical Work checkpoint
+
+The six [required-resource Queries](docs/required-resource-queries.md) now have an Engineer candidate: exact non-null
+safe Views or deliberate Common Application `ResourceNotFound`. Nullable Domain repositories remain unchanged.
+Each handler checks requested identity before disclosure/related reads; wrong identities/native contracts and
+operational failures remain internal. Agent profiles conceal absent/revoked targets identically, with fresh reads
+and unchanged outer authorization. Feature missing-binding data, exact Agent Permissions and Role revisions remain.
+The profile Tool consumes result-or-throw and explicitly binds ResourceNotFound, not generic lookup/configuration faults.
+
+Canonical `.runs/handoffs/TASK-00131/work.md` owns refreshed inventory/caller dispositions, regression-first proof,
+supported dependency lanes, canonical gate/coverage and retained isolated-runtime provenance. Independent Review
+and nonvisual QA remain pending; TASK-00131 stays in-progress. No consumer/Common/provider changes, generic bus
+inference adoption, optional audit, publication, merge, release or deployment is claimed.
+
 ## TASK-00120 pinned develop integration — Work checkpoint
 
 The existing Feature branch integrates develop `4ea9fcd3a78624fae041232859eae2f249daaf3b`, retaining
