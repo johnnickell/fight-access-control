@@ -32,7 +32,12 @@ final readonly class GetAgentOperation implements Query
     }
 
     /**
-     * @inheritDoc
+     * Returns the original key and requested destination without granting read authority
+     *
+     * @phpstan-return array{
+     *     namespace: string, caller_type: string, caller_id: string, operation_id: string,
+     *     destination_id: string, destination_revision: int
+     * }
      */
     public function toArray(): array
     {

@@ -11,6 +11,8 @@ use Throwable;
 
 /**
  * Class AgentOperationKey
+ *
+ * @phpstan-type KeyPayload array{namespace: string, caller_type: string, caller_id: string, operation_id: string}
  */
 final readonly class AgentOperationKey implements Arrayable
 {
@@ -47,7 +49,7 @@ final readonly class AgentOperationKey implements Arrayable
     /**
      * Returns the canonical safe scoped identifier
      *
-     * @return array<string, string>
+     * @phpstan-return KeyPayload
      */
     public function toArray(): array
     {

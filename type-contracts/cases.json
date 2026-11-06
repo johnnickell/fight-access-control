@@ -1,6 +1,49 @@
 {
   "cases": [
     {
+      "id": "agent-operation-contract-precision",
+      "kind": "positive",
+      "file": "agent-operation-positive.php",
+      "diagnostics": [
+        {"line": 42, "identifier": "phpstan.dumpType", "message": "Dumped type: Fight\\AccessControl\\Domain\\AccessControl\\AgentCredentialOperation\\AgentCredentialOperation|null"},
+        {"line": 43, "identifier": "phpstan.dumpType", "message": "Dumped type: Fight\\AccessControl\\Domain\\AccessControl\\AgentCredentialOperation\\Query\\AgentOperationView|null"},
+        {"line": 45, "identifier": "phpstan.dumpType", "message": "Dumped type: list<Fight\\AccessControl\\Domain\\AccessControl\\AgentCredentialOperation\\Query\\AgentOperationView>"},
+        {"line": 46, "identifier": "phpstan.dumpType", "message": "Dumped type: list<Fight\\AccessControl\\Domain\\AccessControl\\AgentCredentialOperation\\AgentOperationKey>"},
+        {"line": 47, "identifier": "phpstan.dumpType", "message": "Dumped type: list<Fight\\AccessControl\\Domain\\AccessControl\\AgentCredentialOperation\\Query\\AgentOperationView>"},
+        {"line": 55, "identifier": "phpstan.dumpType", "message": "Dumped type: array{namespace: string, caller_type: string, caller_id: string, operation_id: string, delivery_id: string, agent_id: string, credential_id: string, credential_revision: int, destination_id: string, destination_revision: int, destination_write_version: int, issued_at: string}"},
+        {"line": 56, "identifier": "phpstan.dumpType", "message": "Dumped type: array{namespace: string, caller_type: string, caller_id: string, operation_id: string}"},
+        {"line": 57, "identifier": "phpstan.dumpType", "message": "Dumped type: array{namespace: string, caller_type: string, caller_id: string, operation_id: string, name: string, destination_id: string, destination_revision: int}"},
+        {"line": 58, "identifier": "phpstan.dumpType", "message": "Dumped type: array{namespace: string, caller_type: string, caller_id: string, operation_id: string, agent_id: string, expected_credential_id: string, expected_credential_revision: int, destination_id: string, destination_revision: int}"},
+        {"line": 59, "identifier": "phpstan.dumpType", "message": "Dumped type: array{namespace: string, caller_type: string, caller_id: string, operation_id: string, destination_id: string, destination_revision: int}"},
+        {"line": 60, "identifier": "phpstan.dumpType", "message": "Dumped type: array{namespace: string, caller_type: string, caller_id: string, destination_id: string, destination_revision: int, limit: int}"},
+        {"line": 61, "identifier": "phpstan.dumpType", "message": "Dumped type: array{namespace: string, caller_type: string, caller_id: string, destination_id: string, destination_revision: int, work: 'cleanup'|'material', after: string|null, batch_size: int, cleanup_grace_seconds: int}"},
+        {"line": 62, "identifier": "phpstan.dumpType", "message": "Dumped type: array{key_version: string}"},
+        {"line": 63, "identifier": "phpstan.dumpType", "message": "Dumped type: array{agent_id: string, credential_id: string, credential_revision: int, provisioned_at: string}"},
+        {"line": 64, "identifier": "phpstan.dumpType", "message": "Dumped type: array{lease_seconds: int, admission_seconds: int, retry_seconds: int, retention_seconds: int, maximum_attempts: int}"},
+        {"line": 65, "identifier": "phpstan.dumpType", "message": "Dumped type: Fight\\AccessControl\\Domain\\AccessControl\\AgentCredentialOperation\\AgentDeliveryMaterial|null"},
+        {"line": 66, "identifier": "phpstan.dumpType", "message": "Dumped type: Fight\\AccessControl\\Domain\\AccessControl\\AgentCredentialOperation\\Delivery\\AgentDeliveryAttempt|null"},
+        {"line": 69, "identifier": "phpstan.dumpType", "message": "Dumped type: array{namespace: string, caller_type: string, caller_id: string, operation_id: string, delivery_id: string, agent_id: string, credential_id: string, credential_revision: int, destination_id: string, destination_revision: int, destination_write_version: int, issued_at: string}"},
+        {"line": 70, "identifier": "phpstan.dumpType", "message": "Dumped type: 'delivered'|'expired'|'pending'|'retired'|'retryable'|'terminal'"},
+        {"line": 72, "identifier": "phpstan.dumpType", "message": "Dumped type: null"},
+        {"line": 73, "identifier": "phpstan.dumpType", "message": "Dumped type: null"}
+      ]
+    },
+    {
+      "id": "agent-operation-incompatible-uses",
+      "kind": "negative",
+      "file": "agent-operation-negative.php",
+      "diagnostics": [
+        {"line": 26, "identifier": "argument.type", "message": "Parameter #1 $key of method Fight\\AccessControl\\Domain\\AccessControl\\AgentCredentialOperation\\AgentCredentialOperationRepository::getByKey() expects Fight\\AccessControl\\Domain\\AccessControl\\AgentCredentialOperation\\AgentOperationKey, Fight\\AccessControl\\Domain\\AccessControl\\AgentCredentialOperation\\AgentDeliveryId given."},
+        {"line": 28, "identifier": "argument.type", "message": "Parameter #1 $value of closure expects Fight\\AccessControl\\Domain\\AccessControl\\AgentCredentialOperation\\AgentCredentialOperation, Fight\\AccessControl\\Domain\\AccessControl\\AgentCredentialOperation\\AgentCredentialOperation|null given."},
+        {"line": 30, "identifier": "argument.type", "message": "Parameter #1 $value of closure expects Fight\\AccessControl\\Domain\\AccessControl\\AgentCredentialOperation\\Query\\AgentOperationView, Fight\\AccessControl\\Domain\\AccessControl\\AgentCredentialOperation\\Query\\AgentOperationView|null given."},
+        {"line": 31, "identifier": "argument.type", "message": "Parameter #1 $claimId of method Fight\\AccessControl\\Domain\\AccessControl\\AgentCredentialOperation\\AgentCredentialOperation::claimDelivery() expects Fight\\AccessControl\\Domain\\AccessControl\\AgentCredentialOperation\\Delivery\\AgentDeliveryClaimId, Fight\\AccessControl\\Domain\\AccessControl\\AgentCredentialOperation\\Delivery\\AgentDeliveryReceipt given."},
+        {"line": 32, "identifier": "argument.type", "message": "Parameter #1 $material of method Fight\\AccessControl\\Domain\\AccessControl\\AgentCredentialOperation\\AgentCredentialOperation::rewrapMaterial() expects Fight\\AccessControl\\Domain\\AccessControl\\AgentCredentialOperation\\AgentDeliveryMaterial, Fight\\AccessControl\\Domain\\AccessControl\\AgentCredentialOperation\\AgentDeliveryMaterial|null given."},
+        {"line": 34, "identifier": "argument.type", "message": "Parameter #1 $callback of function array_map expects (callable(Fight\\AccessControl\\Domain\\AccessControl\\AgentCredentialOperation\\Query\\AgentOperationView): mixed)|null, Closure(Fight\\AccessControl\\Domain\\AccessControl\\AgentCredentialOperation\\AgentIssuance): Fight\\AccessControl\\Domain\\AccessControl\\AgentCredentialOperation\\AgentOperationKey given."},
+        {"line": 39, "identifier": "argument.type", "message": "Parameter #1 $version of closure expects int, null given."},
+        {"line": 42, "identifier": "method.notFound", "message": "Call to an undefined method Fight\\AccessControl\\Domain\\AccessControl\\AgentCredentialOperation\\AgentCredentialOperationReadRepository::replaceDelivery()."}
+      ]
+    },
+    {
       "id": "agent-identity-contract-precision",
       "kind": "positive",
       "file": "agent-identity-positive.php",

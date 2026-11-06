@@ -60,7 +60,12 @@ final readonly class ListDueAgentDeliveries implements Query
     }
 
     /**
-     * @inheritDoc
+     * Returns the bounded discovery request without admission authority
+     *
+     * @phpstan-return array{
+     *     namespace: string, caller_type: string, caller_id: string,
+     *     destination_id: string, destination_revision: int, limit: int
+     * }
      */
     public function toArray(): array
     {

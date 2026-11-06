@@ -18,9 +18,15 @@ use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\AgentOpera
 use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\AgentOperationId;
 use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\AgentOperationKey;
 use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\AgentOperationScope;
+use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\Delivery\AgentDeliveryAuthority;
+use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\Delivery\AgentDeliveryClaimId;
+use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\Delivery\AgentDeliveryFailure;
+use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\Delivery\AgentDeliveryPolicy;
+use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\Delivery\AgentDeliveryReceipt;
 use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\Exception\AgentOperationRejectedException;
 use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\Query\AgentOperationView;
 use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\Query\GetAgentOperation;
+use Fight\Test\AccessControl\Application\AccessControl\AgentCredentialOperation\Delivery\DeliveryEnvironment;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
 
@@ -134,7 +140,9 @@ final class AgentOperationViewTest extends TestCase
             ['destination_write_version', 0],
             ['destination_write_version', 1.5],
             ['issued_at', 'tomorrow'],
+            ['issued_at', '2026-11-06T12:00:00+00:00'],
             ['issued_at', '2026-02-30T12:00:00.000000+00:00'],
+            ['issued_at', '2026-11-06T12:00:00.000000+24:00'],
             ['issued_at', 42]
         ];
         foreach ($cases as [$field, $value]) {
@@ -213,17 +221,29 @@ final class AgentOperationViewTest extends TestCase
 
     public function test_retirement_preserves_recorded_outcomes_and_never_infers_delivery_from_missing_material(): void
     {
-        $issuance = $this->issuance();
-        foreach (AgentDeliveryDisposition::cases() as $delivery) {
-            $operation = new AgentCredentialOperation(
-                2,
-                'retained-original-request',
-                $issuance,
-                null,
-                $delivery,
-                AgentCredentialDisposition::REVOKED
+        $env = new DeliveryEnvironment();
+        $original = $env->operation();
+        $issuance = $original->getIssuance();
+        $agent = $env->provisioning->agentRepository->all()[0];
+        $now = $env->clock->now();
+        $claim = $original->claimDelivery(AgentDeliveryClaimId::generate(), new AgentDeliveryPolicy(), $now);
+        $authority = new AgentDeliveryAuthority('worker-epoch-1', $now->modify('+1 hour'));
+        $admitted = $claim->admitDelivery($claim->requireAttempt(), $authority, $now, $claim->getStateRevision());
+        $snapshots = [$original, $original->retireMaterial(), $original->expireMaterial($now->modify('+1 day')),
+            $original->failMaterial(AgentDeliveryFailure::KEY_RETIRED)];
+        foreach ([new AgentDeliveryReceipt('opaque-receipt-123'), AgentDeliveryFailure::TEMPORARY] as $outcome) {
+            $snapshots[] = $admitted->finishDelivery(
+                $admitted->requireAttempt(),
+                $authority,
+                $outcome,
+                $now,
+                $admitted->getStateRevision()
             );
-            $retired = $operation->retireMaterial();
+        }
+
+        foreach ($snapshots as $operation) {
+            $delivery = $operation->getDeliveryDisposition();
+            $retired = $operation->retireCredential($agent, $agent->revoke($now))->retireMaterial();
             $expected = $delivery;
             if (in_array($delivery, [AgentDeliveryDisposition::PENDING, AgentDeliveryDisposition::RETRYABLE], true)) {
                 $expected = AgentDeliveryDisposition::RETIRED;
@@ -232,7 +252,7 @@ final class AgentOperationViewTest extends TestCase
             self::assertSame($expected, $retired->getDeliveryDisposition());
             self::assertSame(AgentCredentialDisposition::REVOKED, $retired->getCredentialDisposition());
             self::assertSame($issuance, $retired->getIssuance());
-            self::assertSame('retained-original-request', $retired->getCanonicalRequest());
+            self::assertSame($original->getCanonicalRequest(), $retired->getCanonicalRequest());
             self::assertSame($delivery, $operation->getDeliveryDisposition());
             self::assertNull($retired->getMaterial());
         }

@@ -77,6 +77,12 @@ during that slice's focused verification; this does not change the ordinary whol
 exercise decoded-input validation, round trips, dynamic principal snapshots and existing authority/reference fences.
 No bus/Event dispatch generic or real persistence qualification is claimed by these Domain fixtures.
 
+TASK-00119 adds two Agent operation Domain cases: 21 positive types and eight incompatible uses for exact
+Command/Query/Event/policy/key/issuance payloads, confirmed-versus-indeterminate serialized state, nullable
+read/write lookups, material/attempt optionality, typed work lists and callbacks, and the independent read-port
+boundary. See [current operation contracts](agent-operation-type-contracts.md). These do not establish generic
+bus inference or actual consumer persistence; runtime recovery/fence/serialization tests remain separate.
+
 TASK-00118 adds Agent identity/administration cases with 31 exact positive types and 11 incompatible uses:
 typed Permission/principal lists, both nullable repository lookups, typed pages, the lazy rename clock and nullable
 change time, all owned message/View/provenance shapes, typed callbacks and extending aggregate successors.

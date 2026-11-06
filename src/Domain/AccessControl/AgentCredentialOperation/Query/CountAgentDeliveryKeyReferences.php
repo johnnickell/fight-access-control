@@ -39,7 +39,9 @@ final readonly class CountAgentDeliveryKeyReferences implements Query
     }
 
     /**
-     * @inheritDoc
+     * Returns the opaque version to count without key-retirement authority
+     *
+     * @phpstan-return array{key_version: string}
      */
     public function toArray(): array
     {

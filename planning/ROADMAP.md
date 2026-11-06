@@ -172,6 +172,26 @@ or release is authorized by this planning.
 
 ## Current planning handoff — library-wide typing and failure contracts
 
+TASK-00118 and TASK-00119 are historically accepted/done; TASK-00120 and other unfinished children keep their
+parents open. TASK-00119's requested develop integration preserves both slices and exact historical verdicts.
+Independent Review ACCEPT covers integrated candidate `9e5a21be9244c43c2cc8ae36f9a1bc669918f874` against
+`309b62f3a76d9a2b399ae5dfc1b3ceb17b4d8780`, with qualified reuse of both original QA scenario evidence sets,
+not a fresh integrated QA PASS. The new integration gate passed 4,579 tests / 53,165 assertions and exact
+8,193/8,193 statements. Canonical `.runs/handoffs/TASK-00119/work.md` owns integration provenance;
+publication/final checks remain pending at this checkpoint, with current administrative bridge and delivery/
+resource results in `.runs/handoffs/TASK-00119/land.md` and [PR #169](https://github.com/johnnickell/fight-access-control/pull/169).
+The Board owns unrelated execution selection. The exact-subject acceptance checkpoints below remain historical.
+
+### TASK-00119 accepted checkpoint
+
+[TASK-00119](tasks/00119-TASK.md)'s complete operation/recovery Domain slice has independent Review v3 ACCEPT
+and nonvisual QA PASS at `3ce0b96c5ca713673be4e74e20f4aa9d46b5c7a4` against
+`458a35ac224d8dd6b855c4652db9fad34c327187`; R-001/R-002 are independently resolved. The TASK is done,
+not whole-library or consumer qualification. TASK-00118/00120 and other unfinished children keep TICKET-00037
+and EPIC-00016 open. Publication/final delivery verification are pending at this administrative checkpoint;
+current bridge, checks and delivery/resource results belong to canonical `.runs/handoffs/TASK-00119/land.md`
+and the actual PR. Independent reports and historical checkpoints remain intact; the Board owns execution selection.
+
 [TASK-00118](tasks/00118-TASK.md)'s complete Agent identity/administration Domain slice has independent
 Review v3 ACCEPT and nonvisual QA PASS at `b4300b8108ff4cffa9499e1f4530d58459d78f6d`; R-01 is resolved.
 The TASK is done, with qualified full-gate/exact coverage and nine passing QA scenarios. Publication/final-head

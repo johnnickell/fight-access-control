@@ -6,6 +6,59 @@ Fight AccessControl owns framework-neutral identity, credential, session, author
 behavior shared by Fight applications. The repository-local behavioral and security authority is
 [TICKET-00001](planning/tickets/00001-TICKET.md).
 
+## TASK-00119 develop integration — accepted delivery checkpoint
+
+Independent Review ACCEPT covers integrated candidate `9e5a21be9244c43c2cc8ae36f9a1bc669918f874` against
+`309b62f3a76d9a2b399ae5dfc1b3ceb17b4d8780`. The mechanical bridge qualifies retained scenario evidence from
+both original independent QA reports; this is not a fresh integrated QA PASS. The new integration gate passed
+4,579 tests / 53,165 assertions and exact 8,193/8,193 statements. Publication/final delivery checks remain pending
+at this checkpoint; current administrative bridge and delivery/resource results belong to canonical
+`.runs/handoffs/TASK-00119/land.md` and [PR #169](https://github.com/johnnickell/fight-access-control/pull/169).
+Both TASKs remain done; unfinished children keep their parents open. Historical reports/checkpoints stay intact.
+
+### Historical integration Work handoff
+
+The feature branch integrates develop `309b62f3a76d9a2b399ae5dfc1b3ceb17b4d8780`, retaining accepted
+TASK-00118 identity/admin contracts, including Permission iterable validation, alongside TASK-00119's operation/
+cohort/delivery/maintenance contracts and R-001/R-002 repairs. Both historical acceptance subjects below remain
+unchanged; neither is a new integrated verdict. Canonical `.runs/handoffs/TASK-00119/work.md` owns the exact
+base/head/content/input/runtime bridge, both-parent provenance and fresh integrated verification. The Build
+coordinator owns independent evidence qualification and subsequent delivery; Work performs no PR update or teardown.
+Both TASKs remain historically done; TASK-00120 and other unfinished children keep their parents open.
+
+## TASK-00119 Agent operation typing — accepted checkpoint
+
+Independent Review v3 ACCEPT and nonvisual QA PASS cover candidate
+`3ce0b96c5ca713673be4e74e20f4aa9d46b5c7a4` against
+`458a35ac224d8dd6b855c4652db9fad34c327187`. R-001/R-002 are independently resolved; no new blocking findings.
+TASK-00119 is done for its complete 47-declaration package slice. TICKET-00037 and EPIC-00016 remain open for
+unfinished children, including TASK-00118/00120; no sibling, whole-library or consumer qualification is implied.
+The retained Engineer-02 gate passed 4,495 tests / 52,776 assertions and exact global 8,128/8,128 and owned
+743/743 statements. Independent QA freshly passed 15 nonvisual scenarios / 482 checks.
+
+Publication/final delivery verification are pending at this administrative checkpoint; the accepted-to-published
+bridge, fresh closeout checks and current delivery/resource results belong to canonical
+`.runs/handoffs/TASK-00119/land.md` and the actual PR. Retained gate evidence is not fresh final-head execution.
+Canonical independent reports and earlier failures remain unchanged. No approval, merge, release or deployment
+is claimed. The Work checkpoint below is historical, not a current Review/QA instruction.
+
+### TASK-00119 Agent operation typing — historical Work checkpoint
+
+The current 47-declaration operation/recovery Domain slice now has strict Event decoding, exact safe payload
+shapes and a discriminated confirmed/indeterminate View representation. Current operation hydration rejects
+contradictory state without fabricated history; retained-request resolution checks original issuance correlation.
+Counter exhaustion, invalid capacity evidence and malformed cohort capability lists fail safely. Read/write
+repositories, void issuance Commands, independent outcome Queries and current publication/recovery/fence contracts
+remain separate and unchanged in authority. See [current contracts](docs/agent-operation-type-contracts.md).
+
+Independent Review requested R-001/R-002; the first shared repair now caps hydrated admission at original pinned
+retention and constrains model delivery replacements to preserved policy and valid claim/admission/outcome
+succession. The canonical `.runs/handoffs/TASK-00119/work.md` owns refreshed exhaustive declaration/member/callback/
+caller dispositions, regression-first evidence, fresh verification and exact candidate/dependency/runtime mapping.
+Original evidence is preserved separately. Independent re-review and nonvisual QA remain required; this Work
+checkpoint does not accept the TASK, qualify consumers, change sibling TASK-00118 or authorize publication,
+merge, release or deployment.
+
 ## TASK-00118 Agent identity and administration — accepted checkpoint
 
 Independent Review v3 ACCEPT and nonvisual QA PASS cover candidate

@@ -428,13 +428,9 @@ final class GetAgentOperationHandlerTest extends TestCase
         AgentCredentialDisposition $credential
     ): void {
         $operation = $environment->operationRepository->operations[$environment->key->toString()];
-        $environment->operationRepository->operations[
-            $environment->key->toString()
-        ] = new AgentCredentialOperation(
+        $environment->operationRepository->statusViews[$environment->key->toString()] = AgentOperationView::confirmed(
             $operation->getCanonicalVersion(),
-            $operation->getCanonicalRequest(),
             $operation->getIssuance(),
-            null,
             $delivery,
             $credential
         );
@@ -445,6 +441,7 @@ final class GetAgentOperationHandlerTest extends TestCase
     {
         return [
             $environment->operationRepository->operations,
+            $environment->operationRepository->statusViews,
             $environment->operationRepository->versions,
             $environment->auditEvidenceRepository->all(),
             $environment->eventDispatcher->events(),
