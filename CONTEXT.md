@@ -6,7 +6,7 @@ Fight AccessControl owns framework-neutral identity, credential, session, author
 behavior shared by Fight applications. The repository-local behavioral and security authority is
 [TICKET-00001](planning/tickets/00001-TICKET.md).
 
-## TASK-00134 Agent Query contracts — Work checkpoint
+## TASK-00134 Agent Query contracts — accepted checkpoint
 
 The four operation/status/due/maintenance/count read paths now distinguish caller/binding concealment from
 broken repository promises and unexpected internal faults. The narrow read interface remains independent of
@@ -16,9 +16,14 @@ public handler results and status wire shapes remain unchanged. Existing intenti
 confirmed/indeterminate original issuance, retained history and current authority/cohort/restoration checks remain.
 See [current Query contracts](docs/agent-query-contracts.md) for breaking PHP adapter/failure obligations and limits.
 
-Canonical `.runs/handoffs/TASK-00134/work.md` owns regression chronology, exhaustive declaration/caller dispositions,
-minimum/ordinary qualification and full-gate/content/runtime evidence. Independent Review and nonvisual QA remain
-required; this checkpoint claims no acceptance, publication, consumer qualification, release or deployment.
+Independent Review v3 ACCEPT and nonvisual QA PASS cover candidate
+`4bca0f4c235d98a6920093c216c148e8a97df5c1` against develop
+`8655f35011405ebaf2ffa2cf2655c339fdbfc2e0`. TASK-00134 is done for this bounded package slice;
+unfinished children keep TICKET-00039 and EPIC-00016 open. Canonical `.runs/handoffs/TASK-00134/work.md`
+owns regression chronology, exhaustive dispositions and retained minimum/ordinary/full-gate proof. Publication
+and final delivery verification are pending at this administrative checkpoint; current bridge, delivery and
+resource outcomes belong to `.runs/handoffs/TASK-00134/land.md` and the actual PR. Independent reports retain
+their exact subjects. No consumer qualification, release or deployment is claimed.
 
 ## TASK-00120 pinned develop integration — Work checkpoint
 

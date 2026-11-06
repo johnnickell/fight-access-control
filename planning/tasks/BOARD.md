@@ -5,13 +5,11 @@ dependencies, acceptance, and verification.
 
 ## What's Next?
 
-Active Task: [TASK-00134](00134-TASK.md) — Correct Agent operation, scheduler and count query contracts.
+First ready Task: [TASK-00131](00131-TASK.md) — Make required resource queries exact and non-null.
 
 ## In Progress
 
-| Order | TASK ID | Title | Parent TICKET | Status | Blocked by | PR |
-| --- | --- | --- | --- | --- | --- | --- |
-| 313 | [TASK-00134](00134-TASK.md) | Correct Agent operation, scheduler and count query contracts | [TICKET-00039](../tickets/00039-TICKET.md) — Guarantee exact query results and explicit absence | in-progress | — | — |
+No Tasks are currently in this state.
 
 ## Ready Frontier
 
@@ -220,3 +218,4 @@ No Tasks are currently in this state.
 | 304 | [TASK-00118](00118-TASK.md) | Correct Agent identity and administration type contracts | [TICKET-00037](../tickets/00037-TICKET.md) — Make Domain and repository contracts precise | done | — | https://github.com/johnnickell/fight-access-control/pull/168 |
 | 305 | [TASK-00119](00119-TASK.md) | Correct Agent operation and recovery type contracts | [TICKET-00037](../tickets/00037-TICKET.md) — Make Domain and repository contracts precise | done | — | https://github.com/johnnickell/fight-access-control/pull/169 |
 | 306 | [TASK-00120](00120-TASK.md) | Correct Feature type contracts | [TICKET-00037](../tickets/00037-TICKET.md) — Make Domain and repository contracts precise | done | — | https://github.com/johnnickell/fight-access-control/pull/167 |
+| 313 | [TASK-00134](00134-TASK.md) | Correct Agent operation, scheduler and count query contracts | [TICKET-00039](../tickets/00039-TICKET.md) — Guarantee exact query results and explicit absence | done | — | — |
