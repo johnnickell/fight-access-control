@@ -574,8 +574,9 @@ John also approved TICKET-00039's five-TASK plan, now written as
 [TASK-00134](planning/tasks/00134-TASK.md) (four Agent operation/scheduler/count queries) and
 [TASK-00135](planning/tasks/00135-TASK.md) (two preparation/policy-preview queries). The manifests cover all 22 current
 handlers without overlap/omission, not executed type/runtime/consumer qualification. Orders 310–314 follow existing
-typing plans with no demonstrated local/mutual blockers. Four slices are ready-for-agent; TASK-00132 remains needs-info
-for Common ResultSet validation NOT found in current local Common plans. Common's done strict Pagination task
+typing plans with no demonstrated local/mutual blockers. At that planning checkpoint four slices were ready-for-agent;
+current status belongs to the owning TASKs and Board. TASK-00132 remains needs-info for Common ResultSet validation
+NOT found in current local Common plans. Common's done strict Pagination task
 validates request bounds, not returned-page metadata. A separate bounded Common plan under its 1.x policy and actual
 accepted/tagged/minimum composition evidence are required; no sibling file or fictitious blocker is created here.
 The other slices still verify supported tagged APIs/minimum/ordinary lanes, and keep their own gate/independent acceptance.
