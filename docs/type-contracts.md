@@ -102,6 +102,11 @@ Runtime regressions prove decoded types, explicit event instants, native-array c
 exhaustion/no-ops and subtype preservation. Existing authentication/administration/recovery/Tool tests retain
 behavioral fence/redaction proof. This adds neither bus generic qualification nor actual consumer persistence proof.
 
+TASK-00133 adds credential Query cases: eight exact positive types and three incompatible uses prove both status
+unions, explicit absence narrowing/payload, invitation origin, precise due/expired lists and unchanged nullable
+repository lookup. Runtime tests separately prove actual tagged Common routing and safe errors in minimum/ordinary
+compositions. This does not claim generic bus inference or consumer persistence qualification.
+
 Native transactional results remain `mixed`; a matching local `@var` for a known owned callback result (including
 tuples/unions) remains sufficient. No generic UoW supplier or redundant runtime check is required.
 

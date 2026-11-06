@@ -17,6 +17,7 @@ use Fight\AccessControl\Domain\AccessControl\ActivationGrant\ActivationOrigin;
 use Fight\AccessControl\Domain\AccessControl\ActivationGrant\Command\ResendInvitationDelivery;
 use Fight\AccessControl\Domain\AccessControl\ActivationGrant\Exception\ActivationDeliveryNotRetryableException;
 use Fight\AccessControl\Domain\AccessControl\ActivationGrant\Query\FindInvitationDeliveryStatus;
+use Fight\AccessControl\Domain\AccessControl\ActivationGrant\Query\InvitationDeliveryStatusView;
 use Fight\AccessControl\Domain\AccessControl\CredentialDelivery\CredentialDeliveryStatus;
 use Fight\AccessControl\Domain\AccessControl\User\Command\CorrectPendingInvitation;
 use Fight\AccessControl\Domain\AccessControl\User\Command\RecoverPendingRegistration;
@@ -188,7 +189,7 @@ final class RegistrationRecoveryJourneyTest extends TestCase
                     )
                 );
                 self::assertSame($fixture->initialUser->getId(), $view->getUserId());
-                self::assertNotNull($status);
+                self::assertInstanceOf(InvitationDeliveryStatusView::class, $status);
                 self::assertEqualsCanonicalizing($fixture->initialUser->getRoleIds(), $view->getRoleIds());
                 self::assertCount((int) $committed, $fixture->auditEvidenceRepository->all());
                 self::assertCount(1 + (int) $committed, $fixture->activationGrantRepository->all());
@@ -353,7 +354,7 @@ final class RegistrationRecoveryJourneyTest extends TestCase
         $userQuery = QueryMessage::create(new GetUserById($fixture->initialUser->getId()));
         $status = $statusHandler->handle($statusQuery);
         $user = $userHandler->handle($userQuery);
-        self::assertNotNull($status);
+        self::assertInstanceOf(InvitationDeliveryStatusView::class, $status);
         self::assertSame($fixture->initialUser->getId(), $user->getUserId());
         self::assertEquals($fixture->initial->getDelivery()->getId(), $status->getActivationDeliveryId());
         self::assertSame($before, $fixture->unitOfWork->transactions);
@@ -365,7 +366,7 @@ final class RegistrationRecoveryJourneyTest extends TestCase
         $before = $fixture->unitOfWork->transactions;
         $nextStatus = $statusHandler->handle($statusQuery);
         $nextUser = $userHandler->handle($userQuery);
-        self::assertNotNull($nextStatus);
+        self::assertInstanceOf(InvitationDeliveryStatusView::class, $nextStatus);
         self::assertSame($fixture->initialUser->getId(), $nextUser->getUserId());
         self::assertFalse($status->getActivationDeliveryId()->equals($nextStatus->getActivationDeliveryId()));
         self::assertEquals($fixture->current()->getDelivery()->getId(), $nextStatus->getActivationDeliveryId());

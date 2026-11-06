@@ -27,7 +27,9 @@ caller-supplied actor, route admission alone or cached UI permission is not prod
 
 Use existing consumer-protected `GetUserById` and `FindInvitationDeliveryStatus` for operator inspection. The latter's
 current `InvitationDeliveryStatusView` now requires/exposes typed `getActivationDeliveryId()` and serialized
-`activation_delivery_id`, alongside User, delivery status and expiry. This non-secret generation identity is necessary
+`activation_delivery_id`, alongside User, delivery status, expiry and recorded `origin` (Unreleased). The Query now
+returns that View or explicit `CredentialDeliveryAbsent`, never null; narrow the result before inspecting a generation.
+This non-secret generation identity is necessary
 for the command expectation and uncertain-commit resolution; it does not authorize recovery or reveal credentials.
 No new query, public address-existence check or availability preflight is added. These reads are advisory: they neither
 reserve state nor prove final eligibility. The handler revalidates current origin, User, generation and destination.

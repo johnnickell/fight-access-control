@@ -84,7 +84,10 @@ over HTTP. All names below have the `Fight.AccessControl.` prefix:
 | `DeliverPasswordReset` | `actor_id` (an arbitrary string, including worker provenance), UUID `user_id` and `password_reset_delivery_id` |
 | `FindCredentialDeliveryStatus` | `purpose` (`activation`, `password_reset`, `email_change`) and nonempty UUID `delivery_id` |
 | `FindDueCredentialDeliveries` | `at` (`date-time`, including fractional seconds) and positive integer `limit`; no default or upper bound is imposed |
-| `CredentialDeliveryStatus` | `CredentialDeliveryStatusView`: purpose, delivery/User IDs, revision, status, due/expiry times, attempt count and nullable attempt/outcome/failure history |
+| `CredentialDeliveryStatus` | Found `CredentialDeliveryStatusView`: purpose, delivery/User IDs, revision, status, due/expiry times, attempt count and nullable attempt/outcome/failure history |
+| `CredentialDeliveryAbsent` (Unreleased) | Explicit optional absence object: required `state: absent`, not a rollback or authority claim |
+| `CredentialDeliveryStatusResult` / `InvitationDeliveryStatusResult` (Unreleased) | Exactly one of the corresponding found status object or `CredentialDeliveryAbsent`; no nullable result |
+| `InvitationDeliveryStatus` (Unreleased) | Found invitation state with User, status, expiry, exact activation delivery ID and required recorded `origin` |
 | `DueCredentialDelivery` | Purpose, delivery/User IDs, due time, revision and status |
 | `DueCredentialDeliveries` | An unpaginated array of `DueCredentialDelivery`; an empty array is valid |
 | `FindExpiredCredentialDeliveries` | Explicit fractional `at` and required integer `limit` 1–100; runner guidance 50, no constructor default |
@@ -95,7 +98,7 @@ over HTTP. All names below have the `Fight.AccessControl.` prefix:
 | `ExpireEmailChange` / `EmailChangeExpired` | String actor provenance, User/email grant UUIDs and fractional occurrence time |
 
 The v0.7.0 `ActivationOrigin` component is a standalone scalar contract. It does not add an origin input to
-Commands or fields to due/status Views. `CredentialDeliveryInvocation` remains sensitive and non-serializable, with
+Commands or fields to due Views. The Unreleased invitation status View now separately exposes recorded `origin`. `CredentialDeliveryInvocation` remains sensitive and non-serializable, with
 no OpenAPI payload schema; consumers use its required typed origin in provider code. See the
 [current activation-origin composition](credential-delivery.md#activation-origin-v070) for required grant
 persistence/CAS and provider changes. Generated default-suite tests compare the component with the owning enum's
@@ -112,11 +115,13 @@ string; its handler resolves a purpose-specific UUID, consistent with the catalo
 values are no longer admitted. These safe results describe no credential, ciphertext, destination email, or claim
 token. The status View component intentionally omits the PHP `View` suffix, like the existing invitation component.
 
-`JSend.Success.InvitationDeliveryStatus` keeps its existing reference. Optional
-`JSend.Success.CredentialDeliveryStatus` describes a found status result and `JSend.Success.DueCredentialDeliveries`
-wraps the array directly, without ResultSet pagination. The status handler may return null for an absent generation;
-consumers own absence mapping rather than receiving a package-defined HTTP response. Schemas grant no access:
-consumer entry-point authorization, routes, HTTP status codes and delivery invocation remain unchanged.
+Unreleased `JSend.Success.InvitationDeliveryStatus` and `JSend.Success.CredentialDeliveryStatus` reference their
+explicit `*StatusResult` unions. Found objects retain their status fields; absent objects are `{"state":"absent"}`.
+Update nullable callers, invitation View construction (`ActivationOrigin` required) and generated clients directly;
+no nullable facade or legacy schema mode is provided. Internal correlation/storage faults are not success/absence.
+`JSend.Success.DueCredentialDeliveries` still wraps the array directly, without ResultSet pagination. Consumers own
+HTTP/absence presentation rather than receiving a package-defined endpoint or status code. Schemas grant no access:
+consumer entry-point authorization and delivery invocation remain unchanged.
 
 The v0.5.0 `JSend.Success.ExpiredCredentialDeliveries` likewise wraps its array directly. Expiry facts reference
 exact command-shaped payload components; this adds no endpoint or event-replay guarantee. The email grant identity
