@@ -84,6 +84,20 @@ validation, named variadic list projection, positive View revisions and overflow
 Focused level-8 analysis covers the complete Feature Domain, without changing the whole-library analysis level
 or claiming bus generics, real persistence or independent acceptance.
 
+TASK-00119 adds two Agent operation Domain cases: 21 positive types and eight incompatible uses for exact
+Command/Query/Event/policy/key/issuance payloads, confirmed-versus-indeterminate serialized state, nullable
+read/write lookups, material/attempt optionality, typed work lists and callbacks, and the independent read-port
+boundary. See [current operation contracts](agent-operation-type-contracts.md). These do not establish generic
+bus inference or actual consumer persistence; runtime recovery/fence/serialization tests remain separate.
+
+TASK-00118 adds Agent identity/administration cases with 31 exact positive types and 11 incompatible uses:
+typed Permission/principal lists, both nullable repository lookups, typed pages, the lazy rename clock and nullable
+change time, all owned message/View/provenance shapes, typed callbacks and extending aggregate successors.
+Focused level-8 analysis covers the owned Agent Domain source separately from the ordinary whole-library level.
+Runtime regressions prove decoded types, explicit event instants, native-array constructor validation, revision
+exhaustion/no-ops and subtype preservation. Existing authentication/administration/recovery/Tool tests retain
+behavioral fence/redaction proof. This adds neither bus generic qualification nor actual consumer persistence proof.
+
 Native transactional results remain `mixed`; a matching local `@var` for a known owned callback result (including
 tuples/unions) remains sufficient. No generic UoW supplier or redundant runtime check is required.
 

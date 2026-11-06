@@ -45,6 +45,10 @@ final readonly class AgentOperationLimits
      */
     public function validateCapacity(int $pendingForScope, int $pendingTotal): void
     {
+        if ($pendingForScope < 0 || $pendingTotal < $pendingForScope) {
+            throw new AgentOperationRejectedException(AgentOperationFailure::UNAVAILABLE);
+        }
+
         if ($pendingForScope >= $this->pendingPerScope || $pendingTotal >= $this->pendingTotal) {
             throw new AgentOperationRejectedException(AgentOperationFailure::CAPACITY);
         }

@@ -2,7 +2,7 @@
 id: TICKET-00037
 epic: EPIC-00016
 title: Make Domain and repository contracts precise
-status: ready-for-agent
+status: done
 ---
 
 # Make Domain and repository contracts precise
@@ -117,10 +117,21 @@ Review/applicable QA, without waiting to delegate those obligations to final rec
 | 301 | [TASK-00115](../tasks/00115-TASK.md) | Correct User, session and audit type contracts | done |
 | 302 | [TASK-00116](../tasks/00116-TASK.md) | Correct human credential and delivery type contracts | done |
 | 303 | [TASK-00117](../tasks/00117-TASK.md) | Correct Permission, Role and authority type contracts | done |
-| 304 | [TASK-00118](../tasks/00118-TASK.md) | Correct Agent identity and administration type contracts | ready-for-agent |
-| 305 | [TASK-00119](../tasks/00119-TASK.md) | Correct Agent operation and recovery type contracts | ready-for-agent |
+| 304 | [TASK-00118](../tasks/00118-TASK.md) | Correct Agent identity and administration type contracts | done |
+| 305 | [TASK-00119](../tasks/00119-TASK.md) | Correct Agent operation and recovery type contracts | done |
 | 306 | [TASK-00120](../tasks/00120-TASK.md) | Correct Feature type contracts | done |
 ## Decisions and Progress
+
+### Integrated terminal children — automatic parent completion
+
+The TASK-00120 branch integrates pinned develop `4ea9fcd3a78624fae041232859eae2f249daaf3b`, retaining
+TASK-00118/00119's accepted Agent slices and TASK-00120's accepted Feature contracts. Every real child,
+TASK-00115 through TASK-00120, is now terminal; automatic parent completion closes this TICKET in the same
+operation. EPIC-00016 stays open for its other unfinished TICKETs. This rollup is not a new combined
+semantic verdict, whole-library or consumer qualification. Original independent reports and exact-subject
+acceptance checkpoints remain unchanged. Canonical `.runs/handoffs/TASK-00120/work.md` owns the mechanical
+bridge and fresh integrated verification; Land must independently qualify it before updating PR #167.
+Earlier sibling-status observations below are historical, not current unfinished-child counts.
 
 ### TASK-00120 Feature Domain types — accepted checkpoint
 
@@ -141,6 +152,51 @@ caller dispositions, regression-first runtime/static evidence and exact candidat
 canonical Work handoff. Independent Review and nonvisual QA remain required; neither this TICKET nor the TASK
 is self-accepted or closed. Nullable repositories and current reference/revision/retirement/availability semantics
 remain; other Domain slices and final reconciliation retain their ownership.
+
+### Historical TASK-00119 combined-slice handoff
+
+TASK-00118 and TASK-00119 remain historically accepted/done; TASK-00120 keeps this TICKET open. The requested
+TASK-00119 develop integration retains both slices and their exact-subject verdicts without claiming a combined
+acceptance merely from merging. Independent Review ACCEPT now covers integrated candidate
+`9e5a21be9244c43c2cc8ae36f9a1bc669918f874` against `309b62f3a76d9a2b399ae5dfc1b3ceb17b4d8780`, with
+qualified retained QA scenario evidence from both original subjects, not a fresh integrated QA PASS. The new
+gate passed 4,579 tests / 53,165 assertions and exact 8,193/8,193 statements. Canonical
+`.runs/handoffs/TASK-00119/work.md` owns provenance; publication/final checks remain pending at this checkpoint.
+Current administrative bridge and delivery/resource results belong to `.runs/handoffs/TASK-00119/land.md` and
+[PR #169](https://github.com/johnnickell/fight-access-control/pull/169). The checkpoints below retain their
+original sibling-status observations.
+
+### TASK-00119 operation/recovery slice — accepted checkpoint
+
+Independent Review v3 ACCEPT and nonvisual QA PASS cover TASK-00119 candidate
+`3ce0b96c5ca713673be4e74e20f4aa9d46b5c7a4` against
+`458a35ac224d8dd6b855c4652db9fad34c327187`; R-001/R-002 are independently resolved.
+The complete 47-declaration package slice is done, with retained full gate/exact coverage and fresh independent
+nonvisual QA. TASK-00118/00120 remain unfinished, so automatic parent completion keeps this TICKET and
+EPIC-00016 open. No whole-Domain or consumer qualification is claimed. Publication/final delivery verification
+are pending at this checkpoint; current bridge, checks and delivery/resource results belong to canonical
+`.runs/handoffs/TASK-00119/land.md` and the actual PR. Independent reports and historical checkpoints remain intact.
+
+### TASK-00118 accepted checkpoint
+
+Independent Review v3 ACCEPT and nonvisual QA PASS cover candidate
+`b4300b8108ff4cffa9499e1f4530d58459d78f6d` against `458a35ac224d8dd6b855c4652db9fad34c327187`;
+R-01 is resolved and TASK-00118 is done. The complete owned Agent identity/admin slice has exact global/owned
+statement coverage and nine passing QA scenarios. Current delivery/resource results and administrative-only
+provenance belong to canonical `.runs/handoffs/TASK-00118/land.md` and the actual PR; publication/final checks
+are pending at this checkpoint. Independent reports retain their exact subjects. TASK-00119/00120 keep this
+TICKET open; neither whole-Domain nor consumer qualification is claimed. The following checkpoint is historical.
+
+### Historical TASK-00118 Engineer checkpoint
+
+TASK-00118 records implementation of the complete Agent identity/administration Domain slice and its directly
+necessary metadata/tests/docs. Canonical `.runs/handoffs/TASK-00118/work.md` owns exhaustive current ownership,
+member/callback/caller dispositions, regression chronology and verification identities. Independent Review and
+nonvisual QA remain pending; this does not accept that slice or complete this TICKET. Operation/cohort definitions
+remain with TASK-00119, following their accepted relocation rather than historical file counts.
+Review R-01 returned the original Agent candidate for aggregate iterable-member validation; Engineer repair 1
+adds regression-first validation before deduplication and awaits independent reassessment before nonvisual QA.
+
 
 ### TASK-00117 integrated repair — accepted checkpoint
 

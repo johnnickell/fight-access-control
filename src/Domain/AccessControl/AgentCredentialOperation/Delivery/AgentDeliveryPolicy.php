@@ -39,7 +39,9 @@ final readonly class AgentDeliveryPolicy
     /**
      * Returns finite policy settings for persistence alongside the first claim
      *
-     * @return array<string, int>
+     * @phpstan-return array{
+     *     lease_seconds: int, admission_seconds: int, retry_seconds: int, retention_seconds: int, maximum_attempts: int
+     * }
      */
     public function toArray(): array
     {
@@ -89,6 +91,6 @@ final readonly class AgentDeliveryPolicy
      */
     public function permitsAttempt(int $attempt): bool
     {
-        return $attempt <= $this->maximumAttempts;
+        return $attempt >= 1 && $attempt <= $this->maximumAttempts;
     }
 }

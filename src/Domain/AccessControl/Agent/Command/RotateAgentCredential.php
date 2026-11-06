@@ -58,7 +58,13 @@ final readonly class RotateAgentCredential implements Command
     }
 
     /**
-     * @inheritDoc
+     * Returns the complete original secret-free rotation intent
+     *
+     * @phpstan-return array{
+     *     namespace: string, caller_type: string, caller_id: string, operation_id: string,
+     *     agent_id: string, expected_credential_id: string, expected_credential_revision: int,
+     *     destination_id: string, destination_revision: int
+     * }
      */
     public function toArray(): array
     {

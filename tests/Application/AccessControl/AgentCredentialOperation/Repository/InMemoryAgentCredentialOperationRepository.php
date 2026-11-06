@@ -11,12 +11,14 @@ use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\AgentCrede
 use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\AgentCredentialOperation;
 use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\AgentCredentialOperationReadRepository;
 use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\AgentCredentialOperationRepository;
+use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\AgentDeliveryDisposition;
 use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\AgentDeliveryId;
 use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\AgentOperationContract;
 use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\AgentOperationFailure;
 use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\AgentOperationKey;
 use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\AgentOperationLimits;
 use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\AgentOperationScope;
+use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\Delivery\AgentDeliveryFailure;
 use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\Exception\AgentOperationCollisionException;
 use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\Exception\AgentOperationRejectedException;
 use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\Maintenance\AgentDeliveryKeyVersion;
@@ -39,41 +41,54 @@ final class InMemoryAgentCredentialOperationRepository implements
     /** @var array<string, AgentCredentialOperation> */
     public array $operations = [];
 
+    /** @var array<string, AgentOperationView> Secret-free projection fixtures, not material-bearing hydration */
+    public array $statusViews = [];
+
     /** @var array<string, int> */
     public array $versions = [];
 
     public int $reads = 0;
 
+    /** @var (Closure(): void)|null */
     public ?Closure $beforeAdd = null;
 
+    /** @var (Closure(): void)|null */
     public ?Closure $afterAdd = null;
 
+    /** @var (Closure(): void)|null */
     public ?Closure $afterStatusRead = null;
 
     public int $statusReads = 0;
 
     public int $dueReads = 0;
 
+    /** @var (Closure(): void)|null */
     public ?Closure $afterDueRead = null;
 
+    /** @var (Closure(): void)|null */
     public ?Closure $afterRetirement = null;
 
     public bool $retirementLocked = false;
 
     public ?InMemoryAgentRepository $agentRepository = null;
 
+    /** @var (Closure(): void)|null */
     public ?Closure $beforeDeliveryWrite = null;
 
+    /** @var (Closure(): void)|null */
     public ?Closure $afterDeliveryWrite = null;
 
     public int $deliveryWrites = 0;
 
     public int $maintenanceWrites = 0;
 
+    /** @var (Closure(): void)|null */
     public ?Closure $beforeMaintenanceWrite = null;
 
+    /** @var (Closure(): void)|null */
     public ?Closure $afterMaintenanceWrite = null;
 
+    /** @var (Closure(): void)|null */
     public ?Closure $afterMaintenanceRead = null;
 
     /** @var array<string, bool> */
@@ -108,6 +123,7 @@ final class InMemoryAgentCredentialOperationRepository implements
             $view = AgentOperationView::fromOperation($operation);
         }
 
+        $view = $this->statusViews[$key->toString()] ?? $view;
         $this->afterStatusRead?->__invoke();
 
         return $view;
@@ -218,6 +234,11 @@ final class InMemoryAgentCredentialOperationRepository implements
             || $expected->getCanonicalRequest() !== $replacement->getCanonicalRequest()
             || $expected->getCanonicalVersion() !== $replacement->getCanonicalVersion()
             || ($expected->getMaterial() === null && $replacement->getMaterial() !== null)
+            || $expected->getCredentialDisposition() !== $replacement->getCredentialDisposition()
+            || $expected->getAttempt() != $replacement->getAttempt()
+            || ($expected->getDeliveryPolicy() !== null
+                && $expected->getDeliveryPolicy() != $replacement->getDeliveryPolicy())
+            || ($expected->isSinkCleaned() && !$replacement->isSinkCleaned())
         ) {
             throw new AgentOperationRejectedException(AgentOperationFailure::CONFLICT);
         }
@@ -342,7 +363,12 @@ final class InMemoryAgentCredentialOperationRepository implements
             || $this->agentRepository?->getById($expectedAgent->getId()) !== $expectedAgent
             || $replacement->getStateRevision() !== $expected->getStateRevision() + 1
             || $expected->getIssuance()->toArray() !== $replacement->getIssuance()->toArray()
+            || $expected->getCanonicalVersion() !== $replacement->getCanonicalVersion()
+            || $expected->getCanonicalRequest() !== $replacement->getCanonicalRequest()
+            || $expected->getCredentialDisposition() !== $replacement->getCredentialDisposition()
+            || ($replacement->getMaterial() !== null && $replacement->getMaterial() !== $expected->getMaterial())
             || !$expected->hasPendingDeliveryAtRevision($expected->getStateRevision())
+            || !$this->isDeliverySuccessor($expected, $replacement)
         ) {
             throw new AgentOperationRejectedException(AgentOperationFailure::CONFLICT);
         }
@@ -355,6 +381,62 @@ final class InMemoryAgentCredentialOperationRepository implements
             $this->operations[$key] = $expected;
         });
         $this->afterDeliveryWrite?->__invoke();
+    }
+
+    private function isDeliverySuccessor(
+        AgentCredentialOperation $expected,
+        AgentCredentialOperation $replacement
+    ): bool {
+        $policy = $replacement->getDeliveryPolicy();
+        if (
+            $policy === null
+            || ($expected->getDeliveryPolicy() !== null && $expected->getDeliveryPolicy() != $policy)
+            || $expected->isSinkCleaned() !== $replacement->isSinkCleaned()
+        ) {
+            return false;
+        }
+
+        $prior = $expected->getAttempt();
+        $next = $replacement->getAttempt();
+        if ($prior == $next) {
+            $admitted = $expected->getDeliveryDisposition() === AgentDeliveryDisposition::PENDING
+                && $prior?->getDeadline() !== null;
+
+            return match ($replacement->getDeliveryDisposition()) {
+                AgentDeliveryDisposition::EXPIRED => true,
+                AgentDeliveryDisposition::DELIVERED => $admitted && $replacement->getReceipt() !== null,
+                AgentDeliveryDisposition::RETRYABLE => $admitted,
+                AgentDeliveryDisposition::TERMINAL => match ($replacement->getDeliveryFailure()) {
+                    null => $prior !== null
+                        && ($prior->getFence() === PHP_INT_MAX || !$policy->permitsAttempt($prior->getFence() + 1)),
+                    AgentDeliveryFailure::KEY_RETIRED, AgentDeliveryFailure::CORRUPT_MATERIAL => true,
+                    default => $admitted
+                },
+                default => false
+            };
+        }
+
+        if ($next === null || $replacement->getDeliveryDisposition() !== AgentDeliveryDisposition::PENDING) {
+            return false;
+        }
+
+        // Admission adds evidence to the exact unadmitted claim, never renews an existing admission.
+        if ($prior !== null && $next->getFence() === $prior->getFence()) {
+            return $expected->getDeliveryDisposition() === AgentDeliveryDisposition::PENDING
+                && $prior->getAuthority() === null && $next->getAuthority() !== null
+                && $next->getClaimId()->equals($prior->getClaimId())
+                && $next->getLeaseUntil() == $prior->getLeaseUntil();
+        }
+
+        // A takeover clears admission only by advancing the fence and replacing the claim token/lease.
+        return ($prior === null || $prior->getFence() < PHP_INT_MAX)
+            && $next->getFence() === ($prior?->getFence() ?? 0) + 1
+            && $policy->permitsAttempt($next->getFence())
+            && $next->getAuthority() === null && $next->getDeadline() === null
+            && ($expected->getRetryAt() === null
+                || $next->getLeaseUntil() >= $policy->leaseUntil($expected->getRetryAt()))
+            && ($prior === null || (!$next->getClaimId()->equals($prior->getClaimId())
+                && $next->getLeaseUntil() >= $policy->leaseUntil($prior->getLeaseUntil())));
     }
 
     private function assertWritableKey(#[SensitiveParameter] AgentCredentialOperation $operation): void

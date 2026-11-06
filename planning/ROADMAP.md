@@ -172,6 +172,16 @@ or release is authorized by this planning.
 
 ## Current planning handoff — library-wide typing and failure contracts
 
+TASK-00120's existing branch integrates pinned develop `4ea9fcd3a78624fae041232859eae2f249daaf3b`,
+preserving the accepted Feature and Agent identity/operation slices. All six Domain children are terminal
+here; automatic parent completion closes TICKET-00037 while EPIC-00016 remains open for other unfinished
+children. Canonical `.runs/handoffs/TASK-00120/work.md` owns mechanical provenance, fresh integrated
+verification and current runtime; Land independently qualifies the bridge before updating PR #167.
+Original independent reports and the checkpoint-specific sibling counts below remain historical evidence,
+not a new combined verdict or publication/merge claim. The Board owns unrelated execution selection.
+
+### Historical TASK-00120 accepted checkpoint
+
 [TASK-00120](tasks/00120-TASK.md)'s complete Feature Domain slice has independent Review v3 ACCEPT and nonvisual
 QA PASS at candidate `fb01e06e9b86ff1bdc550eaef437573ec3896b84` against develop
 `458a35ac224d8dd6b855c4652db9fad34c327187`, with no findings; QA passes eight scenarios / 243 fresh assertions.
@@ -181,7 +191,37 @@ administrative checkpoint; current exact PR, bridge, evidence and resource resul
 `.runs/handoffs/TASK-00120/land.md` and the actual PR. No whole-library or consumer qualification is claimed;
 independent reports/history remain unchanged and the Board owns execution selection.
 
-### Historical TASK-00117 integrated repair checkpoint
+### Historical TASK-00119 combined-slice checkpoint
+
+TASK-00118 and TASK-00119 are historically accepted/done; TASK-00120 and other unfinished children keep their
+parents open. TASK-00119's requested develop integration preserves both slices and exact historical verdicts.
+Independent Review ACCEPT covers integrated candidate `9e5a21be9244c43c2cc8ae36f9a1bc669918f874` against
+`309b62f3a76d9a2b399ae5dfc1b3ceb17b4d8780`, with qualified reuse of both original QA scenario evidence sets,
+not a fresh integrated QA PASS. The new integration gate passed 4,579 tests / 53,165 assertions and exact
+8,193/8,193 statements. Canonical `.runs/handoffs/TASK-00119/work.md` owns integration provenance;
+publication/final checks remain pending at this checkpoint, with current administrative bridge and delivery/
+resource results in `.runs/handoffs/TASK-00119/land.md` and [PR #169](https://github.com/johnnickell/fight-access-control/pull/169).
+The Board owns unrelated execution selection. The exact-subject acceptance checkpoints below remain historical.
+
+### TASK-00119 accepted checkpoint
+
+[TASK-00119](tasks/00119-TASK.md)'s complete operation/recovery Domain slice has independent Review v3 ACCEPT
+and nonvisual QA PASS at `3ce0b96c5ca713673be4e74e20f4aa9d46b5c7a4` against
+`458a35ac224d8dd6b855c4652db9fad34c327187`; R-001/R-002 are independently resolved. The TASK is done,
+not whole-library or consumer qualification. TASK-00118/00120 and other unfinished children keep TICKET-00037
+and EPIC-00016 open. Publication/final delivery verification are pending at this administrative checkpoint;
+current bridge, checks and delivery/resource results belong to canonical `.runs/handoffs/TASK-00119/land.md`
+and the actual PR. Independent reports and historical checkpoints remain intact; the Board owns execution selection.
+
+[TASK-00118](tasks/00118-TASK.md)'s complete Agent identity/administration Domain slice has independent
+Review v3 ACCEPT and nonvisual QA PASS at `b4300b8108ff4cffa9499e1f4530d58459d78f6d`; R-01 is resolved.
+The TASK is done, with qualified full-gate/exact coverage and nine passing QA scenarios. Publication/final-head
+verification are pending at this closeout checkpoint; current delivery/resource outcomes and administrative-only
+provenance belong to canonical `.runs/handoffs/TASK-00118/land.md` and the actual PR. TASK-00119/00120 and other
+unfinished children keep TICKET-00037/EPIC-00016 open. No whole-library or consumer qualification is implied;
+current execution selection remains with the Board, not these historical planning checkpoints.
+
+### Historical TASK-00117 integrated acceptance checkpoint
 
 TASK-00117's integrated QA-01 repair has independent Review ACCEPT and nonvisual QA PASS at
 `52540b7293a0cfd84d8fa03230c6e2ab2cde6520` against `e13995a5b2760d4d02300de2b81797b1d009eb38`.

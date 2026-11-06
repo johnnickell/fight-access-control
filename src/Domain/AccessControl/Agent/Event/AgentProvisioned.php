@@ -7,6 +7,7 @@ namespace Fight\AccessControl\Domain\AccessControl\Agent\Event;
 use DateTimeImmutable;
 use Fight\AccessControl\Domain\AccessControl\Agent\AgentCredentialId;
 use Fight\AccessControl\Domain\AccessControl\Agent\AgentId;
+use Fight\AccessControl\Domain\AccessControl\CredentialDelivery\CredentialDeliveryTimestamp;
 use Fight\Common\Domain\Exception\DomainException;
 use Fight\Common\Domain\Messaging\Event\Event;
 
@@ -28,6 +29,9 @@ final readonly class AgentProvisioned implements Event
         private int $credentialRevision,
         private DateTimeImmutable $provisionedAt
     ) {
+        if ($credentialRevision < 0) {
+            throw new DomainException('Invalid Agent credential revision.');
+        }
     }
 
     /**
@@ -35,22 +39,28 @@ final readonly class AgentProvisioned implements Event
      */
     public static function fromArray(array $data): static
     {
-        foreach (['agent_id', 'credential_id', 'credential_revision', 'provisioned_at'] as $key) {
-            if (!array_key_exists($key, $data)) {
-                throw new DomainException(sprintf('Missing required key "%s" in data array', $key));
+        foreach (['agent_id', 'credential_id', 'provisioned_at'] as $key) {
+            if (!isset($data[$key]) || !is_string($data[$key])) {
+                throw new DomainException('Missing or invalid Agent provisioning fact field.');
             }
         }
 
+        if (!isset($data['credential_revision']) || !is_int($data['credential_revision'])) {
+            throw new DomainException('Missing or invalid Agent credential revision.');
+        }
+
         return new static(
-            AgentId::fromString((string) $data['agent_id']),
-            AgentCredentialId::fromString((string) $data['credential_id']),
-            (int) $data['credential_revision'],
-            new DateTimeImmutable((string) $data['provisioned_at'])
+            AgentId::fromString($data['agent_id']),
+            AgentCredentialId::fromString($data['credential_id']),
+            $data['credential_revision'],
+            CredentialDeliveryTimestamp::fromString($data['provisioned_at'])->toDateTimeImmutable()
         );
     }
 
     /**
-     * @inheritDoc
+     * Returns the canonical secret-free provisioning fact
+     *
+     * @phpstan-return array{agent_id: string, credential_id: string, credential_revision: int, provisioned_at: string}
      */
     public function toArray(): array
     {

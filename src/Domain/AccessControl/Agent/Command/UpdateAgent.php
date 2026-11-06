@@ -37,15 +37,21 @@ final readonly class UpdateAgent implements Command
             }
         }
 
+        if (!is_array($data['initiator']) || !is_string($data['agent_id']) || !is_string($data['name'])) {
+            throw new DomainException('Agent name updates require typed provenance, a string identity and name.');
+        }
+
         return new static(
             AgentUpdateInitiator::fromArray($data['initiator']),
-            AgentId::fromString((string) $data['agent_id']),
-            (string) $data['name']
+            AgentId::fromString($data['agent_id']),
+            $data['name']
         );
     }
 
     /**
-     * @inheritDoc
+     * Returns the canonical command payload
+     *
+     * @return array{initiator: array{type: 'user'|'agent', id: string}, agent_id: string, name: string}
      */
     public function toArray(): array
     {

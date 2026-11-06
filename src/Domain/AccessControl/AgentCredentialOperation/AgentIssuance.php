@@ -8,6 +8,7 @@ use DateTimeImmutable;
 use Fight\AccessControl\Domain\AccessControl\Agent\AgentCredentialId;
 use Fight\AccessControl\Domain\AccessControl\Agent\AgentId;
 use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\Exception\AgentOperationRejectedException;
+use Fight\AccessControl\Domain\AccessControl\CredentialDelivery\CredentialDeliveryTimestamp;
 use Fight\Common\Domain\Type\Arrayable;
 use SensitiveParameter;
 use Throwable;
@@ -16,6 +17,12 @@ use Throwable;
  * Class AgentIssuance
  *
  * Describes original issuance without asserting delivery, activation or current use authority.
+ *
+ * @phpstan-type IssuancePayload array{
+ *     namespace: string, caller_type: string, caller_id: string, operation_id: string,
+ *     delivery_id: string, agent_id: string, credential_id: string, credential_revision: int,
+ *     destination_id: string, destination_revision: int, destination_write_version: int, issued_at: string
+ * }
  */
 final readonly class AgentIssuance implements Arrayable
 {
@@ -57,8 +64,8 @@ final readonly class AgentIssuance implements Arrayable
                 }
             }
 
-            $issuedAt = DateTimeImmutable::createFromFormat('!Y-m-d\TH:i:s.uP', $data['issued_at']);
-            if ($issuedAt === false || $issuedAt->format('Y-m-d\TH:i:s.uP') !== $data['issued_at']) {
+            $issuedAt = CredentialDeliveryTimestamp::fromString($data['issued_at'])->toDateTimeImmutable();
+            if ($issuedAt->format('Y-m-d\TH:i:s.uP') !== $data['issued_at']) {
                 throw new AgentOperationRejectedException(AgentOperationFailure::INVALID_REQUEST);
             }
 
@@ -144,7 +151,7 @@ final readonly class AgentIssuance implements Arrayable
     /**
      * Returns safe original metadata also used as the delivery cipher's authenticated binding
      *
-     * @return array<string, int|string>
+     * @phpstan-return IssuancePayload
      */
     public function toArray(): array
     {

@@ -6,6 +6,7 @@ namespace Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation;
 
 use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\Delivery\AgentDeliveryAuthority;
 use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\Exception\AgentOperationRejectedException;
+use SensitiveParameter;
 
 /**
  * Class AgentOperationContract
@@ -22,6 +23,9 @@ final readonly class AgentOperationContract
         'material-maintenance-v1'
     ];
 
+    /** @phpstan-var list<string> */
+    private array $capabilities;
+
     /**
      * Constructs AgentOperationContract
      *
@@ -32,16 +36,27 @@ final readonly class AgentOperationContract
      * this exact storage incarnation and reconciled history under the cohort fence, not merely a stored ready flag.
      * Missing, unverified or unavailable evidence is null; a restore invalidates it before any writer can resume.
      *
-     * @phpstan-param list<string> $capabilities
+     * @phpstan-param array<array-key, mixed> $capabilities Persisted evidence validated before typed retention
      */
     public function __construct(
         private int $storageVersion,
         private int $canonicalVersion,
         private int $destinationVersion,
         private int $generation,
-        private array $capabilities,
+        #[SensitiveParameter] array $capabilities,
         private ?int $reconciledGeneration
     ) {
+        if (!array_is_list($capabilities)) {
+            throw new AgentOperationRejectedException(AgentOperationFailure::UNAVAILABLE);
+        }
+
+        foreach ($capabilities as $capability) {
+            if (!is_string($capability)) {
+                throw new AgentOperationRejectedException(AgentOperationFailure::UNAVAILABLE);
+            }
+        }
+
+        $this->capabilities = $capabilities;
     }
 
     /**

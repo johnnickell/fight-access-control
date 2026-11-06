@@ -21,19 +21,31 @@ use Throwable;
  * Class AgentOperationView
  *
  * Separates original issuance from recorded disposition without retaining material or implying use authority.
+ *
+ * @phpstan-import-type KeyPayload from AgentOperationKey
+ * @phpstan-import-type IssuancePayload from AgentIssuance
+ * @phpstan-type Confirmation array{
+ *     canonical_version: int, issuance: AgentIssuance,
+ *     delivery_disposition: AgentDeliveryDisposition, credential_disposition: AgentCredentialDisposition
+ * }
+ * @phpstan-type ViewPayload array{
+ *     key: KeyPayload, issuance_outcome: 'indeterminate', canonical_version: null, issuance: null,
+ *     delivery_disposition: null, credential_disposition: null
+ * }|array{
+ *     key: KeyPayload, issuance_outcome: 'confirmed', canonical_version: int, issuance: IssuancePayload,
+ *     delivery_disposition: value-of<AgentDeliveryDisposition>,
+ *     credential_disposition: value-of<AgentCredentialDisposition>
+ * }
  */
 final readonly class AgentOperationView implements Arrayable
 {
     /**
      * Constructs AgentOperationView
+     *
+     * @phpstan-param Confirmation|null $confirmation
      */
-    private function __construct(
-        private AgentOperationKey $key,
-        private ?int $canonicalVersion,
-        private ?AgentIssuance $issuance,
-        private ?AgentDeliveryDisposition $deliveryDisposition,
-        private ?AgentCredentialDisposition $credentialDisposition
-    ) {
+    private function __construct(private AgentOperationKey $key, private ?array $confirmation)
+    {
     }
 
     /**
@@ -47,13 +59,12 @@ final readonly class AgentOperationView implements Arrayable
         AgentDeliveryDisposition $deliveryDisposition,
         AgentCredentialDisposition $credentialDisposition
     ): self {
-        return new self(
-            $issuance->getKey(),
-            $canonicalVersion,
-            $issuance,
-            $deliveryDisposition,
-            $credentialDisposition
-        );
+        return new self($issuance->getKey(), [
+            'canonical_version'      => $canonicalVersion,
+            'issuance'               => $issuance,
+            'delivery_disposition'   => $deliveryDisposition,
+            'credential_disposition' => $credentialDisposition
+        ]);
     }
 
     /**
@@ -77,7 +88,7 @@ final readonly class AgentOperationView implements Arrayable
      */
     public static function indeterminate(AgentOperationKey $key): self
     {
-        return new self($key, null, null, null, null);
+        return new self($key, null);
     }
 
     /**
@@ -143,13 +154,14 @@ final readonly class AgentOperationView implements Arrayable
     {
         if (
             $this->key->toString() !== $key->toString()
-            || ($this->issuance !== null && $this->issuance->getDestination()->toArray() !== $destination->toArray())
+            || ($this->confirmation !== null
+                && $this->confirmation['issuance']->getDestination()->toArray() !== $destination->toArray())
         ) {
             throw new AgentOperationRejectedException(AgentOperationFailure::UNAUTHORIZED);
         }
 
-        if ($this->issuance !== null) {
-            AgentOperationCanonicalization::assertSupported($this->canonicalVersion ?? 0);
+        if ($this->confirmation !== null) {
+            AgentOperationCanonicalization::assertSupported($this->confirmation['canonical_version']);
         }
     }
 
@@ -158,7 +170,7 @@ final readonly class AgentOperationView implements Arrayable
      */
     public function isConfirmed(): bool
     {
-        return $this->issuance !== null;
+        return $this->confirmation !== null;
     }
 
     /**
@@ -174,7 +186,7 @@ final readonly class AgentOperationView implements Arrayable
      */
     public function getCanonicalVersion(): ?int
     {
-        return $this->canonicalVersion;
+        return $this->confirmation['canonical_version'] ?? null;
     }
 
     /**
@@ -182,7 +194,7 @@ final readonly class AgentOperationView implements Arrayable
      */
     public function getIssuance(): ?AgentIssuance
     {
-        return $this->issuance;
+        return $this->confirmation['issuance'] ?? null;
     }
 
     /**
@@ -190,7 +202,7 @@ final readonly class AgentOperationView implements Arrayable
      */
     public function getDeliveryDisposition(): ?AgentDeliveryDisposition
     {
-        return $this->deliveryDisposition;
+        return $this->confirmation['delivery_disposition'] ?? null;
     }
 
     /**
@@ -198,28 +210,34 @@ final readonly class AgentOperationView implements Arrayable
      */
     public function getCredentialDisposition(): ?AgentCredentialDisposition
     {
-        return $this->credentialDisposition;
+        return $this->confirmation['credential_disposition'] ?? null;
     }
 
     /**
      * Returns only safe metadata without request digests, receipts, provider details or secret handles
      *
-     * @return array<string, mixed>
+     * @phpstan-return ViewPayload
      */
     public function toArray(): array
     {
-        $outcome = 'indeterminate';
-        if ($this->isConfirmed()) {
-            $outcome = 'confirmed';
+        if ($this->confirmation === null) {
+            return [
+                'key'                    => $this->key->toArray(),
+                'issuance_outcome'       => 'indeterminate',
+                'canonical_version'      => null,
+                'issuance'               => null,
+                'delivery_disposition'   => null,
+                'credential_disposition' => null
+            ];
         }
 
         return [
             'key'                    => $this->key->toArray(),
-            'issuance_outcome'       => $outcome,
-            'canonical_version'      => $this->canonicalVersion,
-            'issuance'               => $this->issuance?->toArray(),
-            'delivery_disposition'   => $this->deliveryDisposition?->value,
-            'credential_disposition' => $this->credentialDisposition?->value
+            'issuance_outcome'       => 'confirmed',
+            'canonical_version'      => $this->confirmation['canonical_version'],
+            'issuance'               => $this->confirmation['issuance']->toArray(),
+            'delivery_disposition'   => $this->confirmation['delivery_disposition']->value,
+            'credential_disposition' => $this->confirmation['credential_disposition']->value
         ];
     }
 }
