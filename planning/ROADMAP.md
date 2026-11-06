@@ -316,8 +316,9 @@ TICKET-00039's complete five-TASK plan is approved/written as [TASK-00131](tasks
 [TASK-00135](tasks/00135-TASK.md): six required-resource queries, six paged queries, four human credential status/
 discovery queries, four Agent operation/scheduler/count queries and two preparation/policy-preview queries. All 22
 current handlers have planning ownership without overlap/omission, not executed behavioral/supplier/consumer proof.
-Orders 310–314 follow existing typing work with empty local blocked_by and no demonstrated mutual dependency. Four
-slices are ready-for-agent; TASK-00132 remains needs-info for separately planned/implemented/accepted/tagged Common
+Orders 310–314 follow existing typing work with empty local blocked_by and no demonstrated mutual dependency. At
+that planning checkpoint four slices were ready-for-agent; current status comes from the owning records/Board.
+TASK-00132 remains needs-info for separately planned/implemented/accepted/tagged Common
 ResultSet validation and sufficient-minimum evidence. That supplier was not found in inspected Common plans; its
 completed strict Pagination request task explicitly excludes ResultSet redesign. No Common file or invented blocker
 is created here; the requested short planning prompt is a separate handoff under Common's own 1.x policy. Other

@@ -84,7 +84,7 @@ John approved the complete five-TASK split, now written with kind chore and empt
 
 | TASK | Order | Owned outcome / baseline handler coverage | Status / actual hold |
 | --- | --- | --- | --- |
-| [TASK-00131](../tasks/00131-TASK.md) | 310 | Six required-resource queries: exact non-null safe Views or intentional Application failure. | ready-for-agent; no demonstrated local blocker or newly missing Common API. |
+| [TASK-00131](../tasks/00131-TASK.md) | 310 | Six required-resource queries: exact non-null safe Views or intentional Application failure. | done; independently accepted six-query slice; other families remain unfinished. |
 | [TASK-00132](../tasks/00132-TASK.md) | 311 | Six paged queries: qualified Common container invariants plus AccessControl request/element/scope consistency. | needs-info for separately planned/implemented/accepted/tagged Common ResultSet validation and minimum evidence. |
 | [TASK-00133](../tasks/00133-TASK.md) | 312 | Four human credential status/due/expired queries: explicit absence/state and exact bounded work. | ready-for-agent; no demonstrated local blocker or newly missing Common API. |
 | [TASK-00134](../tasks/00134-TASK.md) | 313 | Four Agent operation/scheduler/maintenance/count queries: exact authorized safe outcomes. | ready-for-agent; applicable private criteria must be obtained before implementation/review. |
@@ -119,14 +119,26 @@ exact coverage, local evidence and independent Review/behavioral QA. Choose the 
 
 | Order | TASK ID | Title | Status |
 | --- | --- | --- | --- |
-| 310 | [TASK-00131](../tasks/00131-TASK.md) | Make required resource queries exact and non-null | in-progress |
+| 310 | [TASK-00131](../tasks/00131-TASK.md) | Make required resource queries exact and non-null | done |
 | 311 | [TASK-00132](../tasks/00132-TASK.md) | Enforce paged query result contracts | needs-info |
 | 312 | [TASK-00133](../tasks/00133-TASK.md) | Make human credential status and discovery results explicit | ready-for-agent |
 | 313 | [TASK-00134](../tasks/00134-TASK.md) | Correct Agent operation, scheduler and count query contracts | ready-for-agent |
 | 314 | [TASK-00135](../tasks/00135-TASK.md) | Make preparation and policy-preview results truthful | ready-for-agent |
 ## Decisions and Progress
 
-### TASK-00131 Work checkpoint
+### TASK-00131 accepted implementation checkpoint
+
+Independent Review v3 ACCEPT and nonvisual QA PASS cover candidate
+`e5c39fe1256f43e81a7c9a682d5f0250b97e1fff` against `8655f35011405ebaf2ffa2cf2655c339fdbfc2e0`,
+with no findings and 14 QA scenarios / 609 fresh checks. TASK-00131 is done for the six required-resource paths;
+other Query families, generic inference and actual consumer qualification remain separate. The original complete
+gate/exact 71/71 changed coverage is preserved; Land also freshly passes 4,789 tests / 53,683 assertions and exact
+8,215/8,215 global statements. Publication/final-head verification are pending at this administrative checkpoint;
+current bridge/delivery/resource results belong to canonical `.runs/handoffs/TASK-00131/land.md` and the actual PR.
+This TICKET and EPIC-00016 remain open for unfinished children under automatic parent completion.
+Canonical independent reports and the historical Work checkpoint remain unchanged in provenance.
+
+### Historical TASK-00131 Work checkpoint
 
 All six required-resource paths now have an Engineer candidate: exact non-null safe Views or deliberate Common
 Application not-found, identity-before-disclosure and necessary profile Tool/caller bindings. Nullable repositories,
