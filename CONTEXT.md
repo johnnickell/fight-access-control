@@ -6,7 +6,20 @@ Fight AccessControl owns framework-neutral identity, credential, session, author
 behavior shared by Fight applications. The repository-local behavioral and security authority is
 [TICKET-00001](planning/tickets/00001-TICKET.md).
 
-## TASK-00135 preparation and policy preview — Work checkpoint
+## TASK-00135 preparation and policy preview — accepted checkpoint
+
+Independent Review v3 ACCEPT and nonvisual QA PASS cover candidate
+`853e63718e3e158171af7b2e6498ace9d971c1c1` against `313db75af6821dbeaff9ee889697fb9e48628af6`, with no
+findings; QA passes 14 scenarios / 606 checks. Land's behavior-preserving develop merge preserves both slices'
+production/test contracts at `88398980f347a00e909e916b2e304793e0f2fb1d`. The fresh integrated full gate passes
+4,912 tests / 54,142 assertions, exact 8,354/8,354 global and 291/291 owned statements; focused interaction/static
+checks and the existing scenario driver pass. Original independent reports retain their exact subjects, not a
+new integrated verdict. TASK-00135 is done; unfinished children keep its parents open. Publication/final-head
+verification are pending at this checkpoint; current bridge/delivery/resource results belong to canonical
+`.runs/handoffs/TASK-00135/land.md` and the actual PR. Lowest-lane advisories and consumer qualification limits
+remain explicit. No whole-library, consumer, approval, merge, release or deployment claim follows.
+
+### Historical TASK-00135 Work checkpoint
 
 The two [preparation](docs/feature-preparation.md) / [policy-preview](docs/operation-outcomes.md#managed-policy-composition)
 paths now distinguish legitimate typed diagnostics and known policy refusal from wrong repository identities,
