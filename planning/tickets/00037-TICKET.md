@@ -118,7 +118,7 @@ Review/applicable QA, without waiting to delegate those obligations to final rec
 | 302 | [TASK-00116](../tasks/00116-TASK.md) | Correct human credential and delivery type contracts | done |
 | 303 | [TASK-00117](../tasks/00117-TASK.md) | Correct Permission, Role and authority type contracts | done |
 | 304 | [TASK-00118](../tasks/00118-TASK.md) | Correct Agent identity and administration type contracts | ready-for-agent |
-| 305 | [TASK-00119](../tasks/00119-TASK.md) | Correct Agent operation and recovery type contracts | ready-for-agent |
+| 305 | [TASK-00119](../tasks/00119-TASK.md) | Correct Agent operation and recovery type contracts | in-progress |
 | 306 | [TASK-00120](../tasks/00120-TASK.md) | Correct Feature type contracts | ready-for-agent |
 ## Decisions and Progress
 

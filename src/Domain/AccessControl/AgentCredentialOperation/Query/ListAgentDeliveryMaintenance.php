@@ -67,7 +67,13 @@ final readonly class ListAgentDeliveryMaintenance implements Query
     }
 
     /**
-     * @inheritDoc
+     * Returns the complete bounded maintenance selection
+     *
+     * @phpstan-return array{
+     *     namespace: string, caller_type: string, caller_id: string,
+     *     destination_id: string, destination_revision: int, work: value-of<AgentMaintenanceWork>,
+     *     after: string|null, batch_size: int, cleanup_grace_seconds: int
+     * }
      */
     public function toArray(): array
     {

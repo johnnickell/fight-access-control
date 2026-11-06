@@ -11,6 +11,7 @@ use Fight\AccessControl\Domain\AccessControl\Agent\AgentId;
 use Fight\AccessControl\Domain\AccessControl\Agent\AgentName;
 use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\AgentCredentialDestination;
 use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\AgentCredentialOperation;
+use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\AgentDeliveryDisposition;
 use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\AgentDeliveryId;
 use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\AgentDeliveryMaterial;
 use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\AgentDestinationId;
@@ -235,7 +236,13 @@ final class AgentOperationTest extends TestCase
             'authentication-envelope',
             $issuance->getIssuedAt()
         );
-        $operation = new AgentCredentialOperation(2, 'retained-request', $issuance, null);
+        $operation = new AgentCredentialOperation(
+            2,
+            'retained-request',
+            $issuance,
+            null,
+            AgentDeliveryDisposition::RETIRED
+        );
         $revoked = $agent->revoke($issuance->getIssuedAt());
         $retired = $operation->retireCredential($agent, $revoked);
         $other = Agent::provision(
@@ -276,7 +283,13 @@ final class AgentOperationTest extends TestCase
         foreach ($mismatches as $key => $value) {
             $data = $issuance->toArray();
             $data[$key] = $value;
-            $operation = new AgentCredentialOperation(2, 'request', AgentIssuance::fromArray($data), null);
+            $operation = new AgentCredentialOperation(
+                2,
+                'request',
+                AgentIssuance::fromArray($data),
+                null,
+                AgentDeliveryDisposition::RETIRED
+            );
             try {
                 $operation->retireCredential($agent, $agent->revoke($issuance->getIssuedAt()));
                 self::fail('A different original credential tuple must not retire.');

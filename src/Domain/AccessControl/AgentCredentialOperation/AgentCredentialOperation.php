@@ -47,6 +47,8 @@ class AgentCredentialOperation
         if ($stateRevision < 0) {
             throw new AgentOperationRejectedException(AgentOperationFailure::INVALID_REQUEST);
         }
+
+        $this->assertCoherentSnapshot();
     }
 
     /**
@@ -58,6 +60,8 @@ class AgentCredentialOperation
         if ($request->canonicalize() !== $this->canonicalRequest) {
             throw new AgentOperationRejectedException(AgentOperationFailure::CONFLICT);
         }
+
+        $this->assertIssuanceMatches($request);
 
         return $this->issuance;
     }
@@ -281,15 +285,15 @@ class AgentCredentialOperation
             throw new AgentOperationRejectedException(AgentOperationFailure::CONTENTION);
         }
 
-        $fence = ($this->attempt?->getFence() ?? 0) + 1;
-        if (!$policy->permitsAttempt($fence)) {
+        $priorFence = $this->attempt?->getFence() ?? 0;
+        if ($priorFence === PHP_INT_MAX || !$policy->permitsAttempt($priorFence + 1)) {
             return $this->withDelivery(null, AgentDeliveryDisposition::TERMINAL, $this->attempt, $policy);
         }
 
         return $this->withDelivery(
             $this->material,
             AgentDeliveryDisposition::PENDING,
-            new AgentDeliveryAttempt($fence, $claimId, $policy->leaseUntil($now)),
+            new AgentDeliveryAttempt($priorFence + 1, $claimId, $policy->leaseUntil($now)),
             $policy
         );
     }
@@ -484,7 +488,7 @@ class AgentCredentialOperation
             null,
             $this->deliveryDisposition,
             $this->credentialDisposition,
-            $this->stateRevision + 1,
+            $this->nextStateRevision(),
             $this->attempt,
             $this->deliveryPolicy,
             $this->retryAt,
@@ -527,7 +531,7 @@ class AgentCredentialOperation
             null,
             $this->retiredDeliveryDisposition(),
             $credentialDisposition,
-            $this->stateRevision + 1,
+            $this->nextStateRevision(),
             $this->attempt,
             $this->deliveryPolicy,
             null,
@@ -552,7 +556,7 @@ class AgentCredentialOperation
             null,
             $this->retiredDeliveryDisposition(),
             $this->credentialDisposition,
-            $this->stateRevision + 1,
+            $this->nextStateRevision(),
             $this->attempt,
             $this->deliveryPolicy,
             null,
@@ -560,6 +564,84 @@ class AgentCredentialOperation
             $this->deliveryFailure,
             $this->sinkCleaned
         );
+    }
+
+    /**
+     * Validates current persisted state without fabricating missing material, receipt or admission history
+     */
+    private function assertCoherentSnapshot(): void
+    {
+        if ($this->canonicalVersion !== AgentOperationCanonicalization::VERSION) {
+            return;
+        }
+
+        $unfinished = in_array($this->deliveryDisposition, [
+            AgentDeliveryDisposition::PENDING,
+            AgentDeliveryDisposition::RETRYABLE
+        ], true);
+        if (
+            ($this->material !== null) !== $unfinished
+            || ($unfinished && $this->credentialDisposition !== AgentCredentialDisposition::CURRENT)
+            || ($this->attempt !== null
+                && ($this->deliveryPolicy === null || $this->attempt->getFence() > $this->stateRevision))
+            || ($this->sinkCleaned && ($unfinished
+                || ($this->deliveryDisposition === AgentDeliveryDisposition::DELIVERED
+                    && $this->credentialDisposition === AgentCredentialDisposition::CURRENT)))
+        ) {
+            throw new AgentOperationRejectedException(AgentOperationFailure::INVALID_REQUEST);
+        }
+
+        $valid = match ($this->deliveryDisposition) {
+            AgentDeliveryDisposition::PENDING => $this->retryAt === null
+                && $this->receipt === null && $this->deliveryFailure === null,
+            AgentDeliveryDisposition::RETRYABLE => $this->retryAt !== null && $this->receipt === null
+                && $this->deliveryFailure === AgentDeliveryFailure::TEMPORARY
+                && $this->attempt?->getDeadline() !== null,
+            // Missing acknowledgement evidence remains reconciliation-required, never renewed materialization.
+            AgentDeliveryDisposition::DELIVERED => $this->retryAt === null && $this->deliveryFailure === null,
+            AgentDeliveryDisposition::RETIRED => $this->retryAt === null && $this->receipt === null
+                && ($this->deliveryFailure === null || $this->deliveryFailure === AgentDeliveryFailure::TEMPORARY),
+            AgentDeliveryDisposition::EXPIRED => $this->deliveryPolicy !== null && $this->retryAt === null
+                && $this->receipt === null && $this->deliveryFailure === null,
+            AgentDeliveryDisposition::TERMINAL => $this->deliveryPolicy !== null && $this->retryAt === null
+                && $this->receipt === null && $this->deliveryFailure !== AgentDeliveryFailure::TEMPORARY
+                && ($this->deliveryFailure !== null || $this->attempt !== null)
+        };
+        if (!$valid) {
+            throw new AgentOperationRejectedException(AgentOperationFailure::INVALID_REQUEST);
+        }
+    }
+
+    /**
+     * Validates retained issuance against the original request without rewriting either representation
+     */
+    private function assertIssuanceMatches(AgentProvisioningRequest|AgentRotationRequest $request): void
+    {
+        $matches = $request->getDestination()->toArray() === $this->issuance->getDestination()->toArray();
+        if ($request instanceof AgentProvisioningRequest) {
+            $matches = $matches && $this->issuance->getCredentialRevision() === 0;
+        } else {
+            $matches = $matches
+                && $request->getAgentId()->equals($this->issuance->getAgentId())
+                && !$request->getExpectedCredentialId()->equals($this->issuance->getCredentialId())
+                && $request->getExpectedCredentialRevision() + 1 === $this->issuance->getCredentialRevision();
+        }
+
+        if (!$matches) {
+            throw new AgentOperationRejectedException(AgentOperationFailure::CONFLICT);
+        }
+    }
+
+    /**
+     * Returns a representable successor revision without resetting exhausted retained state
+     */
+    private function nextStateRevision(): int
+    {
+        if ($this->stateRevision === PHP_INT_MAX) {
+            throw new AgentOperationRejectedException(AgentOperationFailure::CONFLICT);
+        }
+
+        return $this->stateRevision + 1;
     }
 
     /**
@@ -601,7 +683,7 @@ class AgentCredentialOperation
             $material,
             $disposition,
             $this->credentialDisposition,
-            $this->stateRevision + 1,
+            $this->nextStateRevision(),
             $attempt,
             $policy,
             $retryAt,

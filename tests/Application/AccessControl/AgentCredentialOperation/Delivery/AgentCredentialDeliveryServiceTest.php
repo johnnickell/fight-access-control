@@ -491,19 +491,23 @@ final class AgentCredentialDeliveryServiceTest extends TestCase
             $env = new DeliveryEnvironment();
             $original = $env->operation();
             $key = $env->provisioning->key->toString();
-            $env->provisioning->operationRepository->operations[$key] = new AgentCredentialOperation(
-                $original->getCanonicalVersion(),
-                $original->getCanonicalRequest(),
-                $env->issuance,
-                null,
-                $disposition
-            );
-            $expected = AgentDeliveryResult::REJECTED;
-            if ($disposition === AgentDeliveryDisposition::RETIRED) {
-                $expected = AgentDeliveryResult::RETIRED;
+            try {
+                $snapshot = new AgentCredentialOperation(
+                    $original->getCanonicalVersion(),
+                    $original->getCanonicalRequest(),
+                    $env->issuance,
+                    null,
+                    $disposition
+                );
+                self::assertSame(AgentDeliveryDisposition::RETIRED, $disposition);
+                $env->provisioning->operationRepository->operations[$key] = $snapshot;
+                self::assertSame(AgentDeliveryResult::RETIRED, $env->deliver());
+            } catch (AgentOperationRejectedException $failure) {
+                self::assertSame(AgentDeliveryDisposition::PENDING, $disposition);
+                self::assertSame(AgentOperationFailure::INVALID_REQUEST, $failure->getReason());
+                self::assertSame($original, $env->operation());
             }
 
-            self::assertSame($expected, $env->deliver());
             self::assertSame(0, $env->decipher->calls);
         }
     }

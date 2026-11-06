@@ -39,41 +39,54 @@ final class InMemoryAgentCredentialOperationRepository implements
     /** @var array<string, AgentCredentialOperation> */
     public array $operations = [];
 
+    /** @var array<string, AgentOperationView> Secret-free projection fixtures, not material-bearing hydration */
+    public array $statusViews = [];
+
     /** @var array<string, int> */
     public array $versions = [];
 
     public int $reads = 0;
 
+    /** @var (Closure(): void)|null */
     public ?Closure $beforeAdd = null;
 
+    /** @var (Closure(): void)|null */
     public ?Closure $afterAdd = null;
 
+    /** @var (Closure(): void)|null */
     public ?Closure $afterStatusRead = null;
 
     public int $statusReads = 0;
 
     public int $dueReads = 0;
 
+    /** @var (Closure(): void)|null */
     public ?Closure $afterDueRead = null;
 
+    /** @var (Closure(): void)|null */
     public ?Closure $afterRetirement = null;
 
     public bool $retirementLocked = false;
 
     public ?InMemoryAgentRepository $agentRepository = null;
 
+    /** @var (Closure(): void)|null */
     public ?Closure $beforeDeliveryWrite = null;
 
+    /** @var (Closure(): void)|null */
     public ?Closure $afterDeliveryWrite = null;
 
     public int $deliveryWrites = 0;
 
     public int $maintenanceWrites = 0;
 
+    /** @var (Closure(): void)|null */
     public ?Closure $beforeMaintenanceWrite = null;
 
+    /** @var (Closure(): void)|null */
     public ?Closure $afterMaintenanceWrite = null;
 
+    /** @var (Closure(): void)|null */
     public ?Closure $afterMaintenanceRead = null;
 
     /** @var array<string, bool> */
@@ -108,6 +121,7 @@ final class InMemoryAgentCredentialOperationRepository implements
             $view = AgentOperationView::fromOperation($operation);
         }
 
+        $view = $this->statusViews[$key->toString()] ?? $view;
         $this->afterStatusRead?->__invoke();
 
         return $view;
@@ -218,6 +232,11 @@ final class InMemoryAgentCredentialOperationRepository implements
             || $expected->getCanonicalRequest() !== $replacement->getCanonicalRequest()
             || $expected->getCanonicalVersion() !== $replacement->getCanonicalVersion()
             || ($expected->getMaterial() === null && $replacement->getMaterial() !== null)
+            || $expected->getCredentialDisposition() !== $replacement->getCredentialDisposition()
+            || $expected->getAttempt() != $replacement->getAttempt()
+            || ($expected->getDeliveryPolicy() !== null
+                && $expected->getDeliveryPolicy() != $replacement->getDeliveryPolicy())
+            || ($expected->isSinkCleaned() && !$replacement->isSinkCleaned())
         ) {
             throw new AgentOperationRejectedException(AgentOperationFailure::CONFLICT);
         }
@@ -342,6 +361,10 @@ final class InMemoryAgentCredentialOperationRepository implements
             || $this->agentRepository?->getById($expectedAgent->getId()) !== $expectedAgent
             || $replacement->getStateRevision() !== $expected->getStateRevision() + 1
             || $expected->getIssuance()->toArray() !== $replacement->getIssuance()->toArray()
+            || $expected->getCanonicalVersion() !== $replacement->getCanonicalVersion()
+            || $expected->getCanonicalRequest() !== $replacement->getCanonicalRequest()
+            || $expected->getCredentialDisposition() !== $replacement->getCredentialDisposition()
+            || ($replacement->getMaterial() !== null && $replacement->getMaterial() !== $expected->getMaterial())
             || !$expected->hasPendingDeliveryAtRevision($expected->getStateRevision())
         ) {
             throw new AgentOperationRejectedException(AgentOperationFailure::CONFLICT);

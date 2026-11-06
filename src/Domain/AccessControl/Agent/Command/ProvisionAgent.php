@@ -42,7 +42,12 @@ final readonly class ProvisionAgent implements Command
     }
 
     /**
-     * @inheritDoc
+     * Returns the complete original secret-free intent
+     *
+     * @phpstan-return array{
+     *     namespace: string, caller_type: string, caller_id: string, operation_id: string,
+     *     name: string, destination_id: string, destination_revision: int
+     * }
      */
     public function toArray(): array
     {

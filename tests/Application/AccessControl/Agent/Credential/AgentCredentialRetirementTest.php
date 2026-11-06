@@ -22,6 +22,11 @@ use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\AgentOpera
 use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\AgentOperationId;
 use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\AgentOperationKey;
 use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\AgentOperationLimits;
+use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\Delivery\AgentDeliveryAuthority;
+use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\Delivery\AgentDeliveryClaimId;
+use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\Delivery\AgentDeliveryFailure;
+use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\Delivery\AgentDeliveryPolicy;
+use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\Delivery\AgentDeliveryReceipt;
 use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\Exception\AgentOperationRejectedException;
 use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\Query\AgentOperationView;
 use Fight\AccessControl\Domain\AccessControl\Audit\AuditEvidence;
@@ -280,13 +285,42 @@ final class AgentCredentialRetirementTest extends TestCase
     ): void {
         $environment = $this->issued();
         $original = $this->operation($environment);
+        $now = $original->getIssuance()->getIssuedAt();
+        $claim = $original->claimDelivery(AgentDeliveryClaimId::generate(), new AgentDeliveryPolicy(), $now);
+        $authority = new AgentDeliveryAuthority('worker-epoch-1', $now->modify('+1 hour'));
+        $admitted = $claim->admitDelivery($claim->requireAttempt(), $authority, $now, $claim->getStateRevision());
+        $outcome = AgentDeliveryFailure::TEMPORARY;
+        if ($disposition === AgentDeliveryDisposition::DELIVERED) {
+            $outcome = new AgentDeliveryReceipt('opaque-receipt-123');
+        }
+
+        $snapshot = match ($disposition) {
+            AgentDeliveryDisposition::PENDING => $original,
+            AgentDeliveryDisposition::RETIRED => $original->retireMaterial(),
+            AgentDeliveryDisposition::EXPIRED => $original->expireMaterial($now->modify('+1 day')),
+            AgentDeliveryDisposition::TERMINAL => $original->failMaterial(AgentDeliveryFailure::KEY_RETIRED),
+            default => $admitted->finishDelivery(
+                $admitted->requireAttempt(),
+                $authority,
+                $outcome,
+                $now,
+                $admitted->getStateRevision()
+            )
+        };
         $operation = new AgentCredentialOperation(
-            $original->getCanonicalVersion(),
-            $original->getCanonicalRequest(),
-            $original->getIssuance(),
-            $original->getMaterial(),
-            $disposition,
-            stateRevision: 7
+            $snapshot->getCanonicalVersion(),
+            $snapshot->getCanonicalRequest(),
+            $snapshot->getIssuance(),
+            $snapshot->getMaterial(),
+            $snapshot->getDeliveryDisposition(),
+            $snapshot->getCredentialDisposition(),
+            7,
+            $snapshot->getAttempt(),
+            $snapshot->getDeliveryPolicy(),
+            $snapshot->getRetryAt(),
+            $snapshot->getReceipt(),
+            $snapshot->getDeliveryFailure(),
+            $snapshot->isSinkCleaned()
         );
         $environment->operationRepository->operations[$environment->key->toString()] = $operation;
         $this->service($environment)->revoke('maintainer-42', $environment->agentRepository->all()[0]->getId());

@@ -6,6 +6,20 @@ Fight AccessControl owns framework-neutral identity, credential, session, author
 behavior shared by Fight applications. The repository-local behavioral and security authority is
 [TICKET-00001](planning/tickets/00001-TICKET.md).
 
+## TASK-00119 Agent operation typing — Work checkpoint
+
+The current 47-declaration operation/recovery Domain slice now has strict Event decoding, exact safe payload
+shapes and a discriminated confirmed/indeterminate View representation. Current operation hydration rejects
+contradictory state without fabricated history; retained-request resolution checks original issuance correlation.
+Counter exhaustion, invalid capacity evidence and malformed cohort capability lists fail safely. Read/write
+repositories, void issuance Commands, independent outcome Queries and current publication/recovery/fence contracts
+remain separate and unchanged in authority. See [current contracts](docs/agent-operation-type-contracts.md).
+
+The canonical `.runs/handoffs/TASK-00119/work.md` owns exhaustive declaration/member/callback/caller dispositions,
+regression-first evidence, verification and exact candidate/dependency/runtime mapping. Independent Review and
+nonvisual QA remain required; this Work checkpoint does not accept the TASK, qualify consumers, change sibling
+TASK-00118 or authorize publication, merge, release or deployment.
+
 ## TASK-00117 integrated QA-01 repair — accepted checkpoint
 
 Independent Review ACCEPT and nonvisual QA PASS cover repaired candidate

@@ -3,7 +3,9 @@
 This describes the **checked-out current contract**, including the unreleased operation ownership changes and
 TASK-00182's breaking void-Command/outcome-Query conversion over v0.5.0, not a release receipt, consumer qualification
 or deployment permission.
-Use its public contracts together; previously released versions are unchanged. See the
+Use its public contracts together; previously released versions are unchanged. TASK-00119's
+[precise Domain type contracts](agent-operation-type-contracts.md) describe current safe payloads, hydration,
+retained-request correlation and directly affected consumer obligations. See the
 [release overview](release-0.5.0.md) for scope and delivery gates. The
 [scenario/evidence inventory](agent-operation-evidence.md) separates package results, superseded requirements and
 missing consumer proof. [ADR 0011](../planning/adr/0011-pre-v1-current-contract-only.md) permits only the current
