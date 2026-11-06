@@ -60,6 +60,10 @@ Temporary probes are not accepted replacements for the tracked product cases.
 
 ## Current proof and remaining ownership
 
+TASK-00131 adds six exact non-null direct-handler result probes in `required-resource-positive.php`.
+These assert the declared Views, not generic inference across Common's current mixed QueryBus. Runtime routing,
+identity/failure semantics and preserved nullable repositories have separate [required-resource proof](required-resource-queries.md).
+
 The initial two foundation cases assert six positive types and six incompatible uses: UserId versus RoleId, UserView Role
 lists and canonical serialized shape, nullable UserRepository lookup, FeatureReferences names and typed array-map
 callbacks. Expectations come from those current package declarations. No production API or business behavior changes.
@@ -102,6 +106,11 @@ TASK-00134 adds four exact handler-result probes and two rejected collection/cou
 repository work probes to `AgentDeliveryWorkView`. Public work handler results remain `list<AgentOperationView>`.
 These fixtures qualify direct native/static contracts, not the separately owned generic bus relationship;
 real configured routing and safe-error composition have independent runtime tests.
+
+TASK-00133 adds credential Query cases: eight exact positive types and three incompatible uses prove both status
+unions, explicit absence narrowing/payload, invitation origin, precise due/expired lists and unchanged nullable
+repository lookup. Runtime tests separately prove actual tagged Common routing and safe errors in minimum/ordinary
+compositions. This does not claim generic bus inference or consumer persistence qualification.
 
 Native transactional results remain `mixed`; a matching local `@var` for a known owned callback result (including
 tuples/unions) remains sufficient. No generic UoW supplier or redundant runtime check is required.

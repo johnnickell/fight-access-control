@@ -5,18 +5,17 @@ declare(strict_types=1);
 namespace Fight\AccessControl\Application\AccessControl\CredentialDelivery\QueryHandler;
 
 use Fight\AccessControl\Domain\AccessControl\ActivationGrant\ActivationDeliveryId;
-use Fight\AccessControl\Domain\AccessControl\ActivationGrant\ActivationGrant;
 use Fight\AccessControl\Domain\AccessControl\ActivationGrant\ActivationGrantRepository;
+use Fight\AccessControl\Domain\AccessControl\CredentialDelivery\Query\CredentialDeliveryAbsent;
 use Fight\AccessControl\Domain\AccessControl\CredentialDelivery\Query\CredentialDeliveryStatusView;
 use Fight\AccessControl\Domain\AccessControl\CredentialDelivery\Query\FindCredentialDeliveryStatus;
 use Fight\AccessControl\Domain\AccessControl\EmailChangeGrant\EmailChangeDeliveryId;
-use Fight\AccessControl\Domain\AccessControl\EmailChangeGrant\EmailChangeGrant;
 use Fight\AccessControl\Domain\AccessControl\EmailChangeGrant\EmailChangeGrantRepository;
 use Fight\AccessControl\Domain\AccessControl\PasswordResetGrant\PasswordResetDeliveryId;
-use Fight\AccessControl\Domain\AccessControl\PasswordResetGrant\PasswordResetGrant;
 use Fight\AccessControl\Domain\AccessControl\PasswordResetGrant\PasswordResetGrantRepository;
 use Fight\Common\Application\Messaging\Query\QueryHandler;
 use Fight\Common\Domain\Messaging\Query\QueryMessage;
+use LogicException;
 
 /**
  * Class FindCredentialDeliveryStatusHandler
@@ -46,34 +45,39 @@ final readonly class FindCredentialDeliveryStatusHandler implements QueryHandler
     /**
      * @inheritDoc
      */
-    public function handle(QueryMessage $queryMessage): ?CredentialDeliveryStatusView
+    public function handle(QueryMessage $queryMessage): CredentialDeliveryStatusView|CredentialDeliveryAbsent
     {
         /** @var FindCredentialDeliveryStatus $query */
         $query = $queryMessage->payload();
-        $grant = match ($query->getPurpose()) {
-            'activation' => $this->activationGrantRepository->getByDeliveryId(
-                ActivationDeliveryId::fromString($query->getDeliveryId())
+        $deliveryId = match ($query->getPurpose()) {
+            'activation' => ActivationDeliveryId::fromString($query->getDeliveryId()),
+            'password_reset' => PasswordResetDeliveryId::fromString($query->getDeliveryId()),
+            'email_change' => EmailChangeDeliveryId::fromString($query->getDeliveryId())
+        };
+        $grant = match (true) {
+            $deliveryId instanceof ActivationDeliveryId => $this->activationGrantRepository->getByDeliveryId(
+                $deliveryId
             ),
-            'password_reset' => $this->passwordResetGrantRepository->getByDeliveryId(
-                PasswordResetDeliveryId::fromString($query->getDeliveryId())
+            $deliveryId instanceof PasswordResetDeliveryId => $this->passwordResetGrantRepository->getByDeliveryId(
+                $deliveryId
             ),
-            'email_change' => $this->emailChangeGrantRepository->getByDeliveryId(
-                EmailChangeDeliveryId::fromString($query->getDeliveryId())
-            )
+            default => $this->emailChangeGrantRepository->getByDeliveryId($deliveryId)
         };
 
-        if (
-            !$grant instanceof ActivationGrant
-            && !$grant instanceof PasswordResetGrant
-            && !$grant instanceof EmailChangeGrant
-        ) {
-            return null;
+        if ($grant === null) {
+            return new CredentialDeliveryAbsent();
         }
 
-        return CredentialDeliveryStatusView::fromDelivery(
-            $grant->purpose(),
-            $grant->getDelivery(),
-            $grant->getRevision()
-        );
+        $delivery = $grant->getDelivery();
+        if (
+            $grant->purpose() !== $query->getPurpose()
+            || !$delivery->getId()->equals($deliveryId)
+            || !$delivery->getUserId()->equals($grant->getUserId())
+            || $delivery->getExpiresAt() != $grant->getExpiresAt()
+        ) {
+            throw new LogicException('Invalid credential status repository result.');
+        }
+
+        return CredentialDeliveryStatusView::fromDelivery($grant->purpose(), $delivery, $grant->getRevision());
     }
 }

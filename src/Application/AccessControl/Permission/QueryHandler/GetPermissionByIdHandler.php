@@ -4,12 +4,13 @@ declare(strict_types=1);
 
 namespace Fight\AccessControl\Application\AccessControl\Permission\QueryHandler;
 
-use Fight\AccessControl\Domain\AccessControl\Permission\Permission;
 use Fight\AccessControl\Domain\AccessControl\Permission\PermissionRepository;
 use Fight\AccessControl\Domain\AccessControl\Permission\Query\GetPermissionById;
 use Fight\AccessControl\Domain\AccessControl\Permission\Query\PermissionView;
+use Fight\Common\Application\Error\Exception\ResourceNotFound;
 use Fight\Common\Application\Messaging\Query\QueryHandler;
 use Fight\Common\Domain\Messaging\Query\QueryMessage;
+use UnexpectedValueException;
 
 /**
  * Class GetPermissionByIdHandler
@@ -38,14 +39,18 @@ final readonly class GetPermissionByIdHandler implements QueryHandler
     /**
      * @inheritDoc
      */
-    public function handle(QueryMessage $queryMessage): ?PermissionView
+    public function handle(QueryMessage $queryMessage): PermissionView
     {
         /** @var GetPermissionById $query */
         $query = $queryMessage->payload();
         $permission = $this->permissionRepository->getById($query->getPermissionId());
 
-        if (!$permission instanceof Permission) {
-            return null;
+        if ($permission === null) {
+            throw new ResourceNotFound('The Permission is unavailable.');
+        }
+
+        if (!$permission->getId()->equals($query->getPermissionId())) {
+            throw new UnexpectedValueException('The Permission lookup returned a different identity.');
         }
 
         return PermissionView::fromPermission($permission);

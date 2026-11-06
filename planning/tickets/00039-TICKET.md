@@ -84,9 +84,9 @@ John approved the complete five-TASK split, now written with kind chore and empt
 
 | TASK | Order | Owned outcome / baseline handler coverage | Status / actual hold |
 | --- | --- | --- | --- |
-| [TASK-00131](../tasks/00131-TASK.md) | 310 | Six required-resource queries: exact non-null safe Views or intentional Application failure. | ready-for-agent; no demonstrated local blocker or newly missing Common API. |
+| [TASK-00131](../tasks/00131-TASK.md) | 310 | Six required-resource queries: exact non-null safe Views or intentional Application failure. | done; independently accepted six-query slice; other families remain unfinished. |
 | [TASK-00132](../tasks/00132-TASK.md) | 311 | Six paged queries: qualified Common container invariants plus AccessControl request/element/scope consistency. | needs-info for separately planned/implemented/accepted/tagged Common ResultSet validation and minimum evidence. |
-| [TASK-00133](../tasks/00133-TASK.md) | 312 | Four human credential status/due/expired queries: explicit absence/state and exact bounded work. | ready-for-agent; no demonstrated local blocker or newly missing Common API. |
+| [TASK-00133](../tasks/00133-TASK.md) | 312 | Four human credential status/due/expired queries: explicit absence/state and exact bounded work. | done; independent Review ACCEPT and nonvisual QA PASS for the owning TASK's accepted candidate. |
 | [TASK-00134](../tasks/00134-TASK.md) | 313 | Four Agent operation/scheduler/maintenance/count queries: exact authorized safe outcomes. | done; independent Review ACCEPT and nonvisual QA PASS for the bounded four-query slice; exact candidate/proof in TASK-00134. |
 | [TASK-00135](../tasks/00135-TASK.md) | 314 | Two preparation/policy-preview queries: truthful typed diagnostics/plans. | ready-for-agent; no demonstrated local blocker or newly missing Common API. |
 
@@ -119,9 +119,9 @@ exact coverage, local evidence and independent Review/behavioral QA. Choose the 
 
 | Order | TASK ID | Title | Status |
 | --- | --- | --- | --- |
-| 310 | [TASK-00131](../tasks/00131-TASK.md) | Make required resource queries exact and non-null | ready-for-agent |
+| 310 | [TASK-00131](../tasks/00131-TASK.md) | Make required resource queries exact and non-null | done |
 | 311 | [TASK-00132](../tasks/00132-TASK.md) | Enforce paged query result contracts | needs-info |
-| 312 | [TASK-00133](../tasks/00133-TASK.md) | Make human credential status and discovery results explicit | ready-for-agent |
+| 312 | [TASK-00133](../tasks/00133-TASK.md) | Make human credential status and discovery results explicit | done |
 | 313 | [TASK-00134](../tasks/00134-TASK.md) | Correct Agent operation, scheduler and count query contracts | done |
 | 314 | [TASK-00135](../tasks/00135-TASK.md) | Make preparation and policy-preview results truthful | ready-for-agent |
 ## Decisions and Progress
@@ -130,10 +130,42 @@ TASK-00134 is independently accepted and done for its four-query slice; its owni
 candidate, verification and publication checkpoint. Unfinished children keep this TICKET and EPIC-00016 open;
 no whole-query-family or consumer qualification is implied.
 
-At the five-TASK planning checkpoint, John approved this requirement within the six-TICKET split, then the complete
-plan as TASK-00131–00135. Four were ready-for-agent with no demonstrated local blockers; TASK-00132 remained
-needs-info for the explicit, not-yet-planned Common ResultSet supplier and actual qualification. None was then
-implemented/accepted.
+TASK-00133's four human credential status/discovery paths are independently accepted and done, with explicit
+absence, exact status correlation, per-source admission and aligned callers/schemas. The owning TASK records
+original candidate `c62d261726082547757cba98eb3af150afa4665d` and integrated candidate
+`5b7829595f92e075f5ae85a053b287b29fe4688e` against `313db75af6821dbeaff9ee889697fb9e48628af6`, each with its
+exact independent Review ACCEPT/nonvisual QA PASS and qualified complete-gate proof. Original history remains
+preserved; existing-PR publication/final-head checks are pending at the integrated closeout checkpoint.
+Canonical `.runs/handoffs/TASK-00133/land.md` owns current delivery/resource results. Unfinished siblings keep this
+TICKET open; this acceptance does not qualify other Query, supplier or consumer boundaries.
+
+### TASK-00131 accepted implementation checkpoint
+
+Independent Review v3 ACCEPT and nonvisual QA PASS cover candidate
+`e5c39fe1256f43e81a7c9a682d5f0250b97e1fff` against `8655f35011405ebaf2ffa2cf2655c339fdbfc2e0`,
+with no findings and 14 QA scenarios / 609 fresh checks. TASK-00131 is done for the six required-resource paths;
+other Query families, generic inference and actual consumer qualification remain separate. The original complete
+gate/exact 71/71 changed coverage is preserved; Land also freshly passes 4,789 tests / 53,683 assertions and exact
+8,215/8,215 global statements. Publication/final-head verification are pending at this administrative checkpoint;
+current bridge/delivery/resource results belong to canonical `.runs/handoffs/TASK-00131/land.md` and the actual PR.
+This TICKET and EPIC-00016 remain open for unfinished children under automatic parent completion.
+Canonical independent reports and the historical Work checkpoint remain unchanged in provenance.
+
+### Historical TASK-00131 Work checkpoint
+
+All six required-resource paths now have an Engineer candidate: exact non-null safe Views or deliberate Common
+Application not-found, identity-before-disclosure and necessary profile Tool/caller bindings. Nullable repositories,
+profile concealment, authority, Feature missing-binding data, Role revisions and exact Agent Permissions remain.
+Canonical Work evidence records minimum/ordinary real composition and final full gate/exact owned coverage.
+Independent Review/nonvisual QA remain pending; TASK-00131 is in-progress and this TICKET remains open for all
+unfinished children. This does not qualify other Query families, generic bus inference, Common or consumers.
+
+### Historical planning checkpoint
+
+John approved this requirement within the six-TICKET split, then the complete five-TASK plan now written as
+TASK-00131–00135. At that planning checkpoint four were ready-for-agent and TASK-00132 was needs-info for the
+explicit Common ResultSet supplier and actual qualification; none was then implemented/accepted. Current child
+status derives from the owning records, including TASK-00131, TASK-00133 and TASK-00134's subsequent acceptances.
 
 No source/dependency/consumer or sibling change, product build, new branch/worktree, commit/publication, release
 or independent acceptance follows. Earlier TASK scope/order/blockers and Board priority remain unchanged. The

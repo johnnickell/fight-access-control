@@ -6,10 +6,11 @@ namespace Fight\AccessControl\Application\AccessControl\Role\QueryHandler;
 
 use Fight\AccessControl\Domain\AccessControl\Role\Query\GetRoleById;
 use Fight\AccessControl\Domain\AccessControl\Role\Query\RoleView;
-use Fight\AccessControl\Domain\AccessControl\Role\Role;
 use Fight\AccessControl\Domain\AccessControl\Role\RoleRepository;
+use Fight\Common\Application\Error\Exception\ResourceNotFound;
 use Fight\Common\Application\Messaging\Query\QueryHandler;
 use Fight\Common\Domain\Messaging\Query\QueryMessage;
+use UnexpectedValueException;
 
 /**
  * Class GetRoleByIdHandler
@@ -38,14 +39,18 @@ final readonly class GetRoleByIdHandler implements QueryHandler
     /**
      * @inheritDoc
      */
-    public function handle(QueryMessage $queryMessage): ?RoleView
+    public function handle(QueryMessage $queryMessage): RoleView
     {
         /** @var GetRoleById $query */
         $query = $queryMessage->payload();
         $role = $this->roleRepository->getById($query->getRoleId());
 
-        if (!$role instanceof Role) {
-            return null;
+        if ($role === null) {
+            throw new ResourceNotFound('The Role is unavailable.');
+        }
+
+        if (!$role->getId()->equals($query->getRoleId())) {
+            throw new UnexpectedValueException('The Role lookup returned a different identity.');
         }
 
         return RoleView::fromRole($role);

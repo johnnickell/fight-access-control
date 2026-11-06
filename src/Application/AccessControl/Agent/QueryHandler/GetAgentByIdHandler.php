@@ -6,14 +6,15 @@ namespace Fight\AccessControl\Application\AccessControl\Agent\QueryHandler;
 
 use Fight\AccessControl\Application\AccessControl\Authorization\Service\ExactPermissionResolutionException;
 use Fight\AccessControl\Application\AccessControl\Authorization\Service\ExactPermissionResolver;
-use Fight\AccessControl\Domain\AccessControl\Agent\Agent;
 use Fight\AccessControl\Domain\AccessControl\Agent\AgentRepository;
 use Fight\AccessControl\Domain\AccessControl\Agent\Exception\AgentReadException;
 use Fight\AccessControl\Domain\AccessControl\Agent\Query\AgentView;
 use Fight\AccessControl\Domain\AccessControl\Agent\Query\GetAgentById;
 use Fight\AccessControl\Domain\AccessControl\Permission\PermissionRepository;
+use Fight\Common\Application\Error\Exception\ResourceNotFound;
 use Fight\Common\Application\Messaging\Query\QueryHandler;
 use Fight\Common\Domain\Messaging\Query\QueryMessage;
+use UnexpectedValueException;
 
 /**
  * Class GetAgentByIdHandler
@@ -33,20 +34,28 @@ final readonly class GetAgentByIdHandler implements QueryHandler
     ) {
     }
 
-    /** @inheritDoc */
+    /**
+     * @inheritDoc
+     */
     public static function queryRegistration(): string
     {
         return GetAgentById::class;
     }
 
-    /** @inheritDoc */
-    public function handle(QueryMessage $queryMessage): ?AgentView
+    /**
+     * @inheritDoc
+     */
+    public function handle(QueryMessage $queryMessage): AgentView
     {
         /** @var GetAgentById $query */
         $query = $queryMessage->payload();
         $agent = $this->agentRepository->getById($query->getAgentId());
-        if (!$agent instanceof Agent) {
-            return null;
+        if ($agent === null) {
+            throw new ResourceNotFound('The Agent is unavailable.');
+        }
+
+        if (!$agent->getId()->equals($query->getAgentId())) {
+            throw new UnexpectedValueException('The Agent lookup returned a different identity.');
         }
 
         try {

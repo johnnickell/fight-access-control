@@ -21,6 +21,44 @@
       ]
     },
     {
+      "id": "credential-query-precision",
+      "kind": "positive",
+      "file": "credential-query-positive.php",
+      "diagnostics": [
+        {"line": 25, "identifier": "phpstan.dumpType", "message": "Dumped type: Fight\\AccessControl\\Domain\\AccessControl\\ActivationGrant\\Query\\InvitationDeliveryStatusView|Fight\\AccessControl\\Domain\\AccessControl\\CredentialDelivery\\Query\\CredentialDeliveryAbsent"},
+        {"line": 26, "identifier": "phpstan.dumpType", "message": "Dumped type: Fight\\AccessControl\\Domain\\AccessControl\\CredentialDelivery\\Query\\CredentialDeliveryAbsent|Fight\\AccessControl\\Domain\\AccessControl\\CredentialDelivery\\Query\\CredentialDeliveryStatusView"},
+        {"line": 27, "identifier": "phpstan.dumpType", "message": "Dumped type: list<Fight\\AccessControl\\Domain\\AccessControl\\CredentialDelivery\\DueCredentialDelivery>"},
+        {"line": 28, "identifier": "phpstan.dumpType", "message": "Dumped type: list<Fight\\AccessControl\\Domain\\AccessControl\\CredentialDelivery\\ExpiredCredentialDelivery>"},
+        {"line": 29, "identifier": "phpstan.dumpType", "message": "Dumped type: Fight\\AccessControl\\Domain\\AccessControl\\ActivationGrant\\ActivationGrant|null"},
+        {"line": 32, "identifier": "phpstan.dumpType", "message": "Dumped type: array{state: 'absent'}"},
+        {"line": 34, "identifier": "phpstan.dumpType", "message": "Dumped type: Fight\\AccessControl\\Domain\\AccessControl\\ActivationGrant\\ActivationOrigin"},
+        {"line": 35, "identifier": "phpstan.dumpType", "message": "Dumped type: array{user_id: string, status: string, expires_at: string, activation_delivery_id: string, origin: 'private_invitation'|'registration'}"}
+      ]
+    },
+    {
+      "id": "credential-query-incompatible-uses",
+      "kind": "negative",
+      "file": "credential-query-negative.php",
+      "diagnostics": [
+        {"line": 19, "identifier": "argument.type", "message": "Parameter #1 $view of closure expects Fight\\AccessControl\\Domain\\AccessControl\\ActivationGrant\\Query\\InvitationDeliveryStatusView, Fight\\AccessControl\\Domain\\AccessControl\\ActivationGrant\\Query\\InvitationDeliveryStatusView|Fight\\AccessControl\\Domain\\AccessControl\\CredentialDelivery\\Query\\CredentialDeliveryAbsent given."},
+        {"line": 20, "identifier": "argument.type", "message": "Parameter #1 $view of closure expects Fight\\AccessControl\\Domain\\AccessControl\\CredentialDelivery\\Query\\CredentialDeliveryStatusView, Fight\\AccessControl\\Domain\\AccessControl\\CredentialDelivery\\Query\\CredentialDeliveryAbsent|Fight\\AccessControl\\Domain\\AccessControl\\CredentialDelivery\\Query\\CredentialDeliveryStatusView given."},
+        {"line": 21, "identifier": "argument.type", "message": "Parameter #1 $callback of function array_map expects (callable(Fight\\AccessControl\\Domain\\AccessControl\\CredentialDelivery\\DueCredentialDelivery): mixed)|null, Closure(Fight\\AccessControl\\Domain\\AccessControl\\CredentialDelivery\\ExpiredCredentialDelivery): string given."}
+      ]
+    },
+    {
+      "id": "required-resource-exact-non-null-results",
+      "kind": "positive",
+      "file": "required-resource-positive.php",
+      "diagnostics": [
+        {"line": 24, "identifier": "phpstan.dumpType", "message": "Dumped type: Fight\\AccessControl\\Domain\\AccessControl\\User\\Query\\UserView"},
+        {"line": 25, "identifier": "phpstan.dumpType", "message": "Dumped type: Fight\\AccessControl\\Domain\\AccessControl\\Role\\Query\\RoleView"},
+        {"line": 26, "identifier": "phpstan.dumpType", "message": "Dumped type: Fight\\AccessControl\\Domain\\AccessControl\\Permission\\Query\\PermissionView"},
+        {"line": 27, "identifier": "phpstan.dumpType", "message": "Dumped type: Fight\\AccessControl\\Domain\\AccessControl\\Agent\\Query\\AgentView"},
+        {"line": 28, "identifier": "phpstan.dumpType", "message": "Dumped type: Fight\\AccessControl\\Domain\\AccessControl\\Agent\\Query\\AgentProfileView"},
+        {"line": 29, "identifier": "phpstan.dumpType", "message": "Dumped type: Fight\\AccessControl\\Domain\\AccessControl\\Feature\\Query\\FeatureView"}
+      ]
+    },
+    {
       "id": "feature-contract-precision",
       "kind": "positive",
       "file": "feature-positive.php",

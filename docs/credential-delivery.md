@@ -4,6 +4,37 @@ Invitation, password-reset and email-change grants own recoverable, provider-neu
 pre-v1 contract is supported under [ADR 0011](../planning/adr/0011-pre-v1-current-contract-only.md). There is no
 historical signature, row conversion or migration/backfill obligation. Consumer adapters and runtime remain separate.
 
+## Explicit status and bounded discovery (Unreleased)
+
+`FindInvitationDeliveryStatus` returns `InvitationDeliveryStatusView|CredentialDeliveryAbsent`;
+`FindCredentialDeliveryStatus` returns `CredentialDeliveryStatusView|CredentialDeliveryAbsent`. Replace nullable
+handling directly: narrow on `CredentialDeliveryAbsent` (serialized `{"state":"absent"}`), otherwise consume the
+safe View. There is no nullable compatibility mode. The invitation View additionally requires `ActivationOrigin`
+and exposes `getOrigin()` / `origin`; supply the recorded grant origin to `fromWork()` or direct construction.
+
+Invitation reads require the exact requested User; credential reads require the exact purpose/delivery UUID.
+Both validate available grant/delivery ownership and expiry correlation. Retained terminal history remains present,
+not absent. A contradictory repository result is an internal fault; storage exceptions propagate unchanged.
+Absence proves neither rollback nor permission to issue, resend, redeem or disclose another generation. Consumers
+still protect every status/worker entry and sanitize errors; Common's opt-in safe HTTP boundary renders internal/
+unknown storage faults as generic server errors, not absence or diagnostic-derived not-found outcomes.
+
+Due/expired handlers validate each source's list, element family, admitted time, order, unique User/delivery IDs
+and individual maximum before merging. Invitation/reset expired work must retain recoverable delivery status;
+email expiry selects issued authority regardless of terminal delivery. Repository adapters still own latest/issued,
+material and applicable User-authority eligibility; the safe DTOs cannot prove those facts. No readbacks, locks,
+stronger cross-family snapshot or new lifecycle policy are added. Three valid source lists can exceed the final
+limit: merge by time instant, delivery ID and purpose, then select global top-N. Due limits remain positive with
+no new maximum; expired limits remain 1–100. Empty lists are ordinary success, never a substitute for failure.
+
+All four queries remain read-only and advisory: no claim, expiry, cleanup, admission, transaction, commit, audit
+or Events. Commands recheck final authority/state. `CredentialQueryContractTest` and
+`CredentialQueryCompositionTest` cover source rejection, terminal history, real Common registration/routing,
+serialized Query dispatch, safe-error distinction and unchanged persisted state. Static fixtures prove handler
+result unions/list elements and absence narrowing, not generic bus inference (TASK-00128's separate supplier).
+The installed tagged Common 1.4.1 supports these runtime contracts; minimum/ordinary lane and exact candidate
+verification belong to TASK-00133's local handoff, not consumer database/provider qualification.
+
 ## Precise Domain type contracts (Unreleased)
 
 Human credential Commands, Queries and Events decode required fields without scalar or object coercion: identity,
@@ -83,7 +114,8 @@ Current consumer composition must change directly:
 
 Claims, typed outcomes, manual retry, scheduler discovery and lease takeover preserve the generation's stored origin.
 A fresh worker reconstructs it from authoritative storage, not the secret-free due/status DTOs. The protected
-latest invitation status additionally exposes `activation_delivery_id` for administrator recovery expectations.
+latest invitation status exposes `activation_delivery_id` and recorded `origin` for administrator inspection;
+both are advisory, not recovery or dispatch authority.
 Immediate direct dispatch and event-triggered dispatch use that same worker. Both origins are delivered
 outside transactions; provider success still does not activate the pending User.
 

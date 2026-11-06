@@ -11,7 +11,7 @@ Expose explicit safe Views such as `UserView`; avoid serializing raw entities. F
 ```php
 try {
     $userView = $this->queryBus->fetch(new GetUserById($userId));
-} catch (LookupException $exception) {
+} catch (ResourceNotFound $exception) {
     return $this->errorResponder->notFound($exception);
 } catch (Throwable $exception) {
     return $this->errorResponder->serverError($exception);
@@ -19,6 +19,11 @@ try {
 
 return $this->responder->createResponse($userView);
 ```
+
+Here `ResourceNotFound` is `Fight\Common\Application\Error\Exception\ResourceNotFound`. It expresses deliberate
+Application absence, not every generic Domain `LookupException`. Wrong identities, malformed repository results,
+missing routing and unknown operational faults remain server errors. Use Common's opt-in safe error composition
+where applicable; response data must not copy exception diagnostics.
 
 The error responder owns public error presentation and responsibility for diagnostic logging. A shared logger/subscriber may implement that responsibility; avoid lost or duplicated logs. Debug-enabled development may expose exception details and traces. Production exposes only deliberately public-safe messages or sanitized errors. Default an arbitrary Throwable to a generic public message. Log diagnostic details and traces in both environments while redacting secrets. The project's public-safe exception classification and logging integration must be explicit.
 

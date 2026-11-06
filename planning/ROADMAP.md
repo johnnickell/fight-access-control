@@ -316,8 +316,9 @@ TICKET-00039's complete five-TASK plan is approved/written as [TASK-00131](tasks
 [TASK-00135](tasks/00135-TASK.md): six required-resource queries, six paged queries, four human credential status/
 discovery queries, four Agent operation/scheduler/count queries and two preparation/policy-preview queries. All 22
 current handlers have planning ownership without overlap/omission, not executed behavioral/supplier/consumer proof.
-Orders 310–314 follow existing typing work with empty local blocked_by and no demonstrated mutual dependency. Four
-slices are ready-for-agent; TASK-00132 remains needs-info for separately planned/implemented/accepted/tagged Common
+Orders 310–314 follow existing typing work with empty local blocked_by and no demonstrated mutual dependency. At
+that planning checkpoint four slices were ready-for-agent; current status belongs to the owning TASKs and Board.
+TASK-00132 remains needs-info for separately planned/implemented/accepted/tagged Common
 ResultSet validation and sufficient-minimum evidence. That supplier was not found in inspected Common plans; its
 completed strict Pagination request task explicitly excludes ResultSet redesign. No Common file or invented blocker
 is created here; the requested short planning prompt is a separate handoff under Common's own 1.x policy. Other
@@ -340,7 +341,8 @@ slice retains its own callers/docs/tests/full gate/exact coverage/independent ac
 TICKET-00041's complete four-TASK plan is approved/written as [TASK-00146](tasks/00146-TASK.md) ordinary HTTP,
 [TASK-00147](tasks/00147-TASK.md) profile Tools, [TASK-00148](tasks/00148-TASK.md) Resource/Skill and
 [TASK-00149](tasks/00149-TASK.md) public payload/declarative metadata. Orders 325–328 are ready-for-agent; the first/
-third have no demonstrated local blockers, TASK-00147 waits on TASK-00128/00131/00141 and TASK-00149 on TASK-00133.
+third have no demonstrated local blockers, TASK-00147 waits on TASK-00128/00131/00141 and TASK-00149 consumes
+TASK-00133's now-accepted status representation. Current executability derives from the owning records and Board.
 Primary manifests allocate 23 current files (2 Adapter + 13 Application presentation + 8 OpenAPI) without overlap/
 omission, not completed source review or runtime/type/supplier/consumer qualification. Each slice retains actual
 protocol/schema composition, minimum/ordinary proof, callers/docs/full gate/exact coverage/independent acceptance.

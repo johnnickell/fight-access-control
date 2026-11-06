@@ -13,6 +13,7 @@ use Fight\AccessControl\Domain\AccessControl\User\Query\GetUserById;
 use Fight\AccessControl\Domain\AccessControl\User\Query\UserView;
 use Fight\AccessControl\Domain\AccessControl\User\UserId;
 use Fight\AccessControl\Domain\AccessControl\User\UserState;
+use Fight\Common\Application\Error\Exception\ResourceNotFound;
 use Fight\Common\Domain\Exception\DomainException;
 use Fight\Common\Domain\Messaging\Query\QueryMessage;
 use Fight\Common\Domain\Type\Arrayable;
@@ -75,14 +76,13 @@ final class GetUserByIdHandlerTest extends TestCase
         GetUserById::fromArray([]);
     }
 
-    public function test_that_it_returns_null_for_an_unknown_stable_identifier(): void
+    public function test_that_it_rejects_an_unknown_stable_identifier(): void
     {
         $handler = new GetUserByIdHandler(new InMemoryUserRepository());
 
-        $view = $handler->handle(QueryMessage::create(new GetUserById(
+        $this->expectException(ResourceNotFound::class);
+        $handler->handle(QueryMessage::create(new GetUserById(
             UserId::fromString('018f0000-0000-7000-8000-000000000004')
         )));
-
-        self::assertNull($view);
     }
 }

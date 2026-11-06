@@ -25,6 +25,71 @@ and final delivery verification are pending at this administrative checkpoint; c
 resource outcomes belong to `.runs/handoffs/TASK-00134/land.md` and the actual PR. Independent reports retain
 their exact subjects. No consumer qualification, release or deployment is claimed.
 
+## TASK-00133 develop integration — accepted checkpoint
+
+Independent Review v3 ACCEPT and nonvisual QA PASS cover clean integrated candidate
+`5b7829595f92e075f5ae85a053b287b29fe4688e` against develop `313db75af6821dbeaff9ee889697fb9e48628af6`,
+with no findings. Fresh residual QA passes 14 cases / 400 checks and shared journeys 14 tests / 418 assertions;
+criterion-specific original/incoming evidence remains explicitly retained, not relabeled fresh. The integrated
+full gate passes 4,868 tests / 53,942 assertions, exact 8,292/8,292 global and 229/229 combined changed statements.
+Both TASKs remain done; unfinished siblings keep parents open. Existing-PR publication/final-head checks remain
+pending at this checkpoint; canonical `.runs/handoffs/TASK-00133/land.md` owns the administrative bridge and current
+delivery/resource results. Original acceptance/history retains its exact subjects; no merge, release, deployment
+or consumer qualification is implied. The following Work checkpoint is historical, not a current Review/QA action.
+
+### Historical integration Work checkpoint
+
+The existing published feature branch integrates pinned develop `313db75af6821dbeaff9ee889697fb9e48628af6`,
+preserving TASK-00131's required-resource result-or-failure contracts and TASK-00133's explicit optional status and
+bounded family discovery. Shared registration journeys retain both result contracts; static cases and structural
+fingerprints include both slices. Both TASKs remain historically done and their original independent reports retain
+their exact subjects, not a new combined verdict. Canonical `.runs/handoffs/TASK-00133/develop-integration.md` owns
+both-parent provenance, conflict resolutions, fresh integrated verification and recreated-runtime identity.
+Independent bridge review/applicable QA and Land's existing-PR update remain coordinator-owned; this Work stage
+performs no push, PR mutation, teardown, acceptance, merge into develop, release or deployment.
+
+## TASK-00133 credential status/discovery — accepted contract
+
+The four human credential Queries now have independently accepted corrections: optional status returns a safe View or
+explicit `CredentialDeliveryAbsent`, invitation inspection retains recorded origin, and each discovery source is
+validated before deterministic global top-N selection. Nullable Domain lookups and distinct family authority/recovery/
+expiry semantics remain; no query mutates, admits work, commits, audits or publishes. See the
+[current contract](docs/credential-delivery.md#explicit-status-and-bounded-discovery-unreleased).
+
+Inventory, regression chronology, static/runtime/minimum/ordinary and full-gate evidence belong to canonical
+`.runs/handoffs/TASK-00133/work.md`. Review ACCEPT and nonvisual QA PASS cover clean candidate
+`c62d261726082547757cba98eb3af150afa4665d`; TASK-00133 is done, while unfinished children keep its parents open.
+The owning TASK preserves acceptance and verification; canonical `.runs/handoffs/TASK-00133/land.md` owns the
+administrative bridge and current delivery/resource results. Consumer qualification, approval, merge, release
+and deployment remain separate.
+
+## TASK-00131 required-resource Queries — accepted checkpoint
+
+Independent Review v3 ACCEPT and independent nonvisual QA PASS cover candidate
+`e5c39fe1256f43e81a7c9a682d5f0250b97e1fff` against `8655f35011405ebaf2ffa2cf2655c339fdbfc2e0`,
+with no findings; QA passes 14 scenarios / 609 fresh checks. TASK-00131 is done for its six-query slice.
+Land's normal build freshly passes 4,789 tests / 53,683 assertions and exact 8,215/8,215 statements;
+the original gate and exact 71/71 changed-statement evidence remain separately preserved. Minimum-lane
+advisories remain disclosed, with ordinary dependencies restored. Unfinished children keep TICKET-00039 and
+EPIC-00016 open. Publication/final-head verification are pending at this administrative checkpoint; current
+bridge, delivery/resource results and actual PR belong to canonical `.runs/handoffs/TASK-00131/land.md`.
+Independent reports retain their exact subjects. No whole-library/consumer qualification, merge, release or
+deployment is implied. The Work checkpoint below is historical, not a current Review/QA instruction.
+
+### TASK-00131 required-resource Queries — historical Work checkpoint
+
+The six [required-resource Queries](docs/required-resource-queries.md) now have an Engineer candidate: exact non-null
+safe Views or deliberate Common Application `ResourceNotFound`. Nullable Domain repositories remain unchanged.
+Each handler checks requested identity before disclosure/related reads; wrong identities/native contracts and
+operational failures remain internal. Agent profiles conceal absent/revoked targets identically, with fresh reads
+and unchanged outer authorization. Feature missing-binding data, exact Agent Permissions and Role revisions remain.
+The profile Tool consumes result-or-throw and explicitly binds ResourceNotFound, not generic lookup/configuration faults.
+
+Canonical `.runs/handoffs/TASK-00131/work.md` owns refreshed inventory/caller dispositions, regression-first proof,
+supported dependency lanes, canonical gate/coverage and retained isolated-runtime provenance. Independent Review
+and nonvisual QA remain pending; TASK-00131 stays in-progress. No consumer/Common/provider changes, generic bus
+inference adoption, optional audit, publication, merge, release or deployment is claimed.
+
 ## TASK-00120 pinned develop integration — Work checkpoint
 
 The existing Feature branch integrates develop `4ea9fcd3a78624fae041232859eae2f249daaf3b`, retaining
@@ -578,8 +643,9 @@ John also approved TICKET-00039's five-TASK plan, now written as
 [TASK-00134](planning/tasks/00134-TASK.md) (four Agent operation/scheduler/count queries) and
 [TASK-00135](planning/tasks/00135-TASK.md) (two preparation/policy-preview queries). The manifests cover all 22 current
 handlers without overlap/omission, not executed type/runtime/consumer qualification. Orders 310–314 follow existing
-typing plans with no demonstrated local/mutual blockers. Four slices are ready-for-agent; TASK-00132 remains needs-info
-for Common ResultSet validation NOT found in current local Common plans. Common's done strict Pagination task
+typing plans with no demonstrated local/mutual blockers. At that planning checkpoint four slices were ready-for-agent;
+current status belongs to the owning TASKs and Board. TASK-00132 remains needs-info for Common ResultSet validation
+NOT found in current local Common plans. Common's done strict Pagination task
 validates request bounds, not returned-page metadata. A separate bounded Common plan under its 1.x policy and actual
 accepted/tagged/minimum composition evidence are required; no sibling file or fictitious blocker is created here.
 The other slices still verify supported tagged APIs/minimum/ordinary lanes, and keep their own gate/independent acceptance.
@@ -605,7 +671,8 @@ John approved TICKET-00041's complete four-TASK plan, now written as
 [TASK-00146](planning/tasks/00146-TASK.md) (ordinary HTTP), [TASK-00147](planning/tasks/00147-TASK.md) (profile Tools),
 [TASK-00148](planning/tasks/00148-TASK.md) (Resource/Skill) and [TASK-00149](planning/tasks/00149-TASK.md) (public payload/
 declarative metadata). Orders 325–328 are ready-for-agent; TASK-00146/00148 have no demonstrated local blocker,
-TASK-00147 waits on TASK-00128/00131/00141 and TASK-00149 on TASK-00133. Primary manifests allocate all 23 current
+TASK-00147 waits on TASK-00128/00131/00141 and TASK-00149 consumes TASK-00133's now-accepted status representation.
+Primary manifests allocate all 23 current
 files (2 Adapter, 13 Application presentation, 8 OpenAPI) without overlap/omission, not completed source audit or
 runtime/type/supplier/consumer qualification. Preserve protocol distinctions, actual tagged/minimum/ordinary proof,
 current examples and directly necessary earlier schema/caller fixes; every slice keeps its gate/independent acceptance.
