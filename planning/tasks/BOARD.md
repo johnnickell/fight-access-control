@@ -5,13 +5,11 @@ dependencies, acceptance, and verification.
 
 ## What's Next?
 
-Active Task: [TASK-00140](00140-TASK.md) — Correct Role and User membership contracts.
+First ready Task: [TASK-00141](00141-TASK.md) — Correct Agent administration contracts.
 
 ## In Progress
 
-| Order | TASK ID | Title | Parent TICKET | Status | Blocked by | PR |
-| --- | --- | --- | --- | --- | --- | --- |
-| 319 | [TASK-00140](00140-TASK.md) | Correct Role and User membership contracts | [TICKET-00040](../tickets/00040-TICKET.md) — Make command and synchronous Application contracts explicit | in-progress | — | — |
+No Tasks are currently in this state.
 
 ## Ready Frontier
 
@@ -220,3 +218,4 @@ No Tasks are currently in this state.
 | 316 | [TASK-00137](00137-TASK.md) | Correct User account lifecycle contracts | [TICKET-00040](../tickets/00040-TICKET.md) — Make command and synchronous Application contracts explicit | done | — | https://github.com/johnnickell/fight-access-control/pull/176 |
 | 317 | [TASK-00138](00138-TASK.md) | Correct human credential request and worker contracts | [TICKET-00040](../tickets/00040-TICKET.md) — Make command and synchronous Application contracts explicit | done | — | https://github.com/johnnickell/fight-access-control/pull/177 |
 | 318 | [TASK-00139](00139-TASK.md) | Correct synchronous User and session contracts | [TICKET-00040](../tickets/00040-TICKET.md) — Make command and synchronous Application contracts explicit | done | — | https://github.com/johnnickell/fight-access-control/pull/175 |
+| 319 | [TASK-00140](00140-TASK.md) | Correct Role and User membership contracts | [TICKET-00040](../tickets/00040-TICKET.md) — Make command and synchronous Application contracts explicit | done | — | — |
