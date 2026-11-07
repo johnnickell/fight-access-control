@@ -6,10 +6,11 @@ namespace Fight\Test\AccessControl\Application\AccessControl\ActivationGrant\Ser
 
 use Fight\AccessControl\Application\AccessControl\ActivationGrant\Service\InvitationDeliveryCipher;
 use Fight\AccessControl\Domain\AccessControl\CredentialDelivery\EncryptedCredentialMaterial;
+use SensitiveParameter;
 
 final class PrefixInvitationDeliveryCipher implements InvitationDeliveryCipher
 {
-    public function encrypt(string $plaintext): string
+    public function encrypt(#[SensitiveParameter] string $plaintext): string
     {
         return 'ciphertext:'.$plaintext;
     }

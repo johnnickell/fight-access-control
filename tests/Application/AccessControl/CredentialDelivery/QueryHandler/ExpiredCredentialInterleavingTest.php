@@ -31,6 +31,7 @@ use Fight\AccessControl\Domain\AccessControl\User\Event\RedactedCommandFailed;
 use Fight\AccessControl\Domain\AccessControl\User\User;
 use Fight\AccessControl\Domain\AccessControl\User\UserRepository;
 use Fight\Common\Application\Error\Exception\AuthenticationRequired as EmailChangeConfirmationRejectedException;
+use Fight\Common\Application\Error\Exception\StateConflict;
 use Fight\Common\Application\Messaging\Command\CommandHandler;
 use Fight\Common\Domain\Messaging\Command\CommandMessage;
 use Fight\Common\Domain\Messaging\Event\CommandFailedEvent;
@@ -139,7 +140,7 @@ final class ExpiredCredentialInterleavingTest extends TestCase
         $persisted = $fixture->current();
         $failure = $this->resume($fiber);
         if ($cleanupWins) {
-            self::assertInstanceOf(LogicException::class, $failure);
+            self::assertInstanceOf(StateConflict::class, $failure);
             $message = 'Password-reset authority changed concurrently.';
             if ($purpose === 'activation') {
                 $message = 'The activation grant changed concurrently.';
@@ -223,7 +224,7 @@ final class ExpiredCredentialInterleavingTest extends TestCase
             self::assertInstanceOf(EmailChangeConfirmationRejectedException::class, $failure);
             self::assertSame('Email change confirmation rejected.', $failure->getMessage());
         } else {
-            self::assertInstanceOf(LogicException::class, $failure);
+            self::assertInstanceOf($cleanupWins ? StateConflict::class : LogicException::class, $failure);
             self::assertSame('The email-change reservation changed concurrently.', $failure->getMessage());
         }
 

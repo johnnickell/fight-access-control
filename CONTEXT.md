@@ -25,6 +25,53 @@ actual PR. Independent reports retain their exact subjects. Minimum-lane 43/14 a
 restoration reported none. No optional-audit feature, generic dispatch or actual consumer storage/crypto/transport
 qualification, approval, merge, release or deployment is claimed.
 
+## TASK-00138 human credential workers — accepted checkpoint
+
+Independent Review v3 ACCEPT and nonvisual QA PASS cover clean candidate
+`e122bd09eac2a17e261257f4e2c34f486815e62b` against develop
+`80f6d0d213a2324fdc02f29a26a17fc82ccd3702`, with no findings. QA freshly passes 125 independent tests /
+1,376 assertions and 989 complementary tests / 7,507 assertions. Land's normal build executes freshly after a
+native cache miss: 5,045 tests / 54,654 assertions, exact 8,596/8,596 global and 873/873 owned statements.
+TASK-00138 is done; unfinished children keep TICKET-00040 and EPIC-00016 open. Publication/final-head verification
+are pending at this administrative checkpoint; canonical `.runs/handoffs/TASK-00138/land.md` owns the bridge and
+current delivery/resource results. Original independent reports and minimum-lane warnings remain preserved.
+No whole-library, generic bus, optional-audit, real consumer, merge, release or deployment qualification follows.
+The following Work checkpoint is historical, not a current independent Review/QA action.
+
+### Historical TASK-00138 Work checkpoint
+
+The eleven human request/delivery/retry/resend/cancellation/expiry Commands retain void execution and distinct
+family no-work, authority and cleanup semantics. Their Engineer candidate separates intentional Common Application
+failure categories from broken lookup/claim promises and internal faults, with exact owned callback results and
+provider/invocation contracts. See [current worker contracts](docs/credential-delivery.md#request-and-worker-contracts-unreleased).
+Required audit/transactions, User-before-grant recovery fencing, claim/generation/time checks, provider-outside-
+transaction behavior, expiry cleanup, redaction and post-commit publication truth remain authoritative.
+
+Canonical `.runs/handoffs/TASK-00138/work.md` owns exhaustive declaration/member/caller dispositions, regression
+chronology, private intake provenance, minimum/ordinary/routing/static/full-gate/exact coverage and retained runtime
+identity. Independent Review and nonvisual QA remain required; TASK-00138 stays in-progress, with no parent closeout,
+publication, generic bus qualification, optional-audit implementation or real consumer qualification claimed.
+
+## TASK-00137 User lifecycle contracts — accepted checkpoint
+
+The eight account handlers and two target-specific authorization ports now have independently accepted corrections.
+[Current lifecycle contracts](docs/user-lifecycle-contracts.md) distinguish deliberate absence, denial, conflict and
+explicit expected-generation failure from wrong identities, broken configuration and unknown faults. Success remains
+void; Domain transitions, registration defaults/origins, complete-state fences, adopted audit, recovery/session
+cancellation, uncertainty and primary publication errors remain authoritative. Known callback results use local
+annotations with native mixed UoW; no generic supplier, result DTO or optional-audit redesign is introduced.
+
+Canonical `.runs/handoffs/TASK-00137/work.md` owns exhaustive declarations/member/callback/caller dispositions,
+regression-first evidence, actual dependency-lane/runtime/dispatch/static checks and final gate/coverage results.
+Independent Review v3 ACCEPT and nonvisual QA PASS cover candidate
+`d1e1e3a44781468f1a4d210389da179c30e55394` against `80f6d0d213a2324fdc02f29a26a17fc82ccd3702`, with no findings.
+QA passes 17 scenario groups / 1,426 assertions and 286 preservation tests / 4,000 assertions; the retained complete
+gate passes 5,036 tests / 54,677 assertions, exact 8,505/8,505 global and 414/414 owned statements. Lowest-lane
+advisories remain disclosed; ordinary dependencies were restored before that full gate. TASK-00137 is done;
+unfinished children keep TICKET-00040/EPIC-00016 open. Publication/final delivery verification are pending at this
+administrative checkpoint; canonical `.runs/handoffs/TASK-00137/land.md` owns current bridge/delivery/resource
+results. No consumer qualification, sibling acceptance, approval, merge, release or deployment is claimed.
+
 ## TASK-00135 preparation and policy preview — accepted checkpoint
 
 Independent Review v3 ACCEPT and nonvisual QA PASS cover candidate
@@ -703,8 +750,9 @@ Feature/policy, Agent issuance/results, Agent workers and authority/continuation
 non-query/non-presentation Application files and all 37 CommandHandlers without overlap/omission. With 22 QueryHandler
 and 13 Application presentation files, all 154 baseline Application files have planning ownership, not completed
 source review or executed type/runtime/supplier/consumer proof. Orders 315–324 preserve earlier scope/priority with
-empty local blocked_by and no demonstrated mutual blockers. Nine slices are ready-for-agent; TASK-00136 retains
-needs-info for actual qualified/tagged Event payload/registration APIs and minimum/ordinary composition evidence.
+empty local blocked_by and no demonstrated mutual blockers. At that planning checkpoint nine slices were
+ready-for-agent; current status belongs to the owning TASKs and Board. TASK-00136 retains needs-info for actual
+qualified/tagged Event payload/registration APIs and minimum/ordinary composition evidence.
 
 John explicitly removed the UoW supplier hold. Native commitTransactional() remains mixed; a matching local @var
 for the known owned callback result is sufficient, including known tuple/union branches. No generic Common UoW

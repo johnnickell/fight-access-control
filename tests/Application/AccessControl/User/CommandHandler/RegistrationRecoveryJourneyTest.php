@@ -15,21 +15,19 @@ use Fight\AccessControl\Application\AccessControl\User\QueryHandler\GetUserByIdH
 use Fight\AccessControl\Domain\AccessControl\ActivationGrant\ActivationGrant;
 use Fight\AccessControl\Domain\AccessControl\ActivationGrant\ActivationOrigin;
 use Fight\AccessControl\Domain\AccessControl\ActivationGrant\Command\ResendInvitationDelivery;
-use Fight\AccessControl\Domain\AccessControl\ActivationGrant\Exception\ActivationDeliveryNotRetryableException;
 use Fight\AccessControl\Domain\AccessControl\ActivationGrant\Query\FindInvitationDeliveryStatus;
 use Fight\AccessControl\Domain\AccessControl\ActivationGrant\Query\InvitationDeliveryStatusView;
 use Fight\AccessControl\Domain\AccessControl\CredentialDelivery\CredentialDeliveryStatus;
 use Fight\AccessControl\Domain\AccessControl\User\Command\CorrectPendingInvitation;
 use Fight\AccessControl\Domain\AccessControl\User\Command\RecoverPendingRegistration;
 use Fight\AccessControl\Domain\AccessControl\User\Event\PendingRegistrationRecovered;
-use Fight\AccessControl\Domain\AccessControl\User\Exception\DuplicateEmailException;
-use Fight\AccessControl\Domain\AccessControl\User\Exception\PendingInvitationCorrectionException;
-use Fight\AccessControl\Domain\AccessControl\User\Exception\RegistrationRecoveryException;
 use Fight\AccessControl\Domain\AccessControl\User\Query\GetUserById;
 use Fight\AccessControl\Domain\AccessControl\User\UserState;
 use Fight\Common\Adapter\Messaging\Command\Sync\Routing\CommandRouter;
 use Fight\Common\Adapter\Messaging\Command\Sync\RoutingCommandBus;
 use Fight\Common\Application\Error\Exception\AuthenticationRequired;
+use Fight\Common\Application\Error\Exception\PreconditionFailed;
+use Fight\Common\Application\Error\Exception\StateConflict;
 use Fight\Common\Domain\Messaging\Command\CommandMessage;
 use Fight\Common\Domain\Messaging\Event\CommandFailedEvent;
 use Fight\Common\Domain\Messaging\Event\EventMessage;
@@ -319,7 +317,7 @@ final class RegistrationRecoveryJourneyTest extends TestCase
                 EmailAddress::fromString('corrected@example.test')
             )));
             self::fail('Private correction accepted a registration.');
-        } catch (PendingInvitationCorrectionException) {
+        } catch (StateConflict) {
             self::assertEquals($fixture->initial, $fixture->current());
         }
 
@@ -328,7 +326,7 @@ final class RegistrationRecoveryJourneyTest extends TestCase
                 $fixture->registration->command('ALICE@example.test')
             ));
             self::fail('Duplicate registration reclaimed an existing identity.');
-        } catch (DuplicateEmailException) {
+        } catch (StateConflict) {
             self::assertCount(1, $fixture->userRepository->all());
             self::assertEqualsCanonicalizing(
                 $fixture->initialUser->getRoleIds(),
@@ -386,7 +384,7 @@ final class RegistrationRecoveryJourneyTest extends TestCase
         try {
             $fixture->handler($at)->handle(CommandMessage::create($command));
             self::fail('Replaying a stale request issued a second success.');
-        } catch (RegistrationRecoveryException) {
+        } catch (PreconditionFailed) {
             self::assertSame($before, $fixture->current());
             self::assertCount(2, $fixture->activationGrantRepository->all());
             self::assertCount(1, $fixture->auditEvidenceRepository->all());
@@ -405,7 +403,7 @@ final class RegistrationRecoveryJourneyTest extends TestCase
         try {
             $fixture->worker($provider, $at)->handle(CommandMessage::create($fixture->delivery($fixture->initial)));
             self::fail('Obsolete delivery invoked as current work.');
-        } catch (ActivationDeliveryNotRetryableException) {
+        } catch (StateConflict) {
             self::assertCount(0, $provider->invocations());
         }
 

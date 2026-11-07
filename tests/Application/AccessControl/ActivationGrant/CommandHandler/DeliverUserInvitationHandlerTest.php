@@ -15,10 +15,10 @@ use Fight\AccessControl\Domain\AccessControl\ActivationGrant\ActivationGrant;
 use Fight\AccessControl\Domain\AccessControl\ActivationGrant\ActivationOrigin;
 use Fight\AccessControl\Domain\AccessControl\ActivationGrant\Command\DeliverUserInvitation;
 use Fight\AccessControl\Domain\AccessControl\ActivationGrant\Event\UserInvitationDelivered;
-use Fight\AccessControl\Domain\AccessControl\ActivationGrant\Exception\ActivationDeliveryNotRetryableException;
 use Fight\AccessControl\Domain\AccessControl\CredentialDelivery\CredentialDeliveryFailure;
 use Fight\AccessControl\Domain\AccessControl\CredentialDelivery\CredentialDeliveryStatus;
 use Fight\AccessControl\Domain\AccessControl\User\UserId;
+use Fight\Common\Application\Error\Exception\StateConflict;
 use Fight\Common\Domain\Exception\DomainException;
 use Fight\Common\Domain\Messaging\Command\CommandMessage;
 use Fight\Common\Domain\Messaging\Event\CommandFailedEvent;
@@ -216,7 +216,7 @@ final class DeliverUserInvitationHandlerTest extends TestCase
                 ActivationDeliveryId::generate()
             )));
             self::fail('Missing work was accepted.');
-        } catch (ActivationDeliveryNotRetryableException) {
+        } catch (StateConflict) {
         }
 
         $unitOfWork = new InMemoryUnitOfWork();
@@ -233,7 +233,7 @@ final class DeliverUserInvitationHandlerTest extends TestCase
                 CommandMessage::create($this->command($grant))
             );
             self::fail('A competing claim loss was accepted.');
-        } catch (ActivationDeliveryNotRetryableException) {
+        } catch (StateConflict) {
         }
 
         self::assertSame([], $provider->invocations());
@@ -261,7 +261,7 @@ final class DeliverUserInvitationHandlerTest extends TestCase
             ));
         });
 
-        $this->expectException(ActivationDeliveryNotRetryableException::class);
+        $this->expectException(StateConflict::class);
         $this->handler(
             $activationGrantRepository,
             new InMemoryAuditEvidenceRepository(),
@@ -281,7 +281,7 @@ final class DeliverUserInvitationHandlerTest extends TestCase
         $auditEvidenceRepository = new InMemoryAuditEvidenceRepository($unitOfWork);
         $provider = new RecordingCredentialDeliveryProvider();
 
-        $this->expectException(ActivationDeliveryNotRetryableException::class);
+        $this->expectException(StateConflict::class);
         try {
             $this->handler($activationGrantRepository, $auditEvidenceRepository, $unitOfWork, $provider)->handle(
                 CommandMessage::create($this->command($grant))

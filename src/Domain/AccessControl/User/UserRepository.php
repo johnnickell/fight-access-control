@@ -8,6 +8,7 @@ use Exception;
 use Fight\AccessControl\Domain\AccessControl\RefreshSession\RefreshSession;
 use Fight\AccessControl\Domain\AccessControl\Role\Role;
 use Fight\AccessControl\Domain\AccessControl\Role\RoleId;
+use Fight\AccessControl\Domain\AccessControl\User\Exception\DuplicateEmailException;
 use Fight\Common\Domain\Repository\Pagination;
 use Fight\Common\Domain\Repository\ResultSet;
 use Fight\Common\Domain\Value\Internet\EmailAddress;
@@ -200,7 +201,8 @@ interface UserRepository
      * through transaction completion, including Role removal/replacement. Name-resolved creation additionally uses
      * addWithRoleAssignments() to bind the complete expected definitions; add() alone cannot substitute for it.
      *
-     * @throws Exception When an error occurs
+     * @throws DuplicateEmailException When the canonical email is already claimed or reserved
+     * @throws Exception When another identity or storage error occurs
      */
     public function add(User $user): void;
 
@@ -218,7 +220,8 @@ interface UserRepository
      *
      * @phpstan-param list<Role> $expectedRoles
      *
-     * @throws Exception When an error occurs
+     * @throws DuplicateEmailException When the canonical email is already claimed or reserved
+     * @throws Exception When another identity or storage error occurs
      */
     public function addWithRoleAssignments(User $user, array $expectedRoles): bool;
 }

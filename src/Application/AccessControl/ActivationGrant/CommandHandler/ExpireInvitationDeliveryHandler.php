@@ -52,12 +52,24 @@ final readonly class ExpireInvitationDeliveryHandler implements CommandHandler
         $command = $commandMessage->payload();
 
         try {
+            /** @var ?InvitationDeliveryExpired $successEvent */
             $successEvent = $this->unitOfWork->commitTransactional(function () use (
                 $command
             ): ?InvitationDeliveryExpired {
                 $activationGrant = $this->activationGrantRepository->getByDeliveryId(
                     $command->getActivationDeliveryId()
                 );
+                if (
+                    $activationGrant instanceof ActivationGrant
+                    && (!$activationGrant->getDelivery()->getId()->equals($command->getActivationDeliveryId())
+                        || !$activationGrant->ownsDelivery(
+                            $command->getActivationDeliveryId(),
+                            $activationGrant->getUserId()
+                        ))
+                ) {
+                    throw new LogicException('The credential repository returned another delivery.');
+                }
+
                 if (
                     !$activationGrant instanceof ActivationGrant
                     || !$activationGrant->getUserId()->equals($command->getUserId())
@@ -66,16 +78,16 @@ final readonly class ExpireInvitationDeliveryHandler implements CommandHandler
                 }
 
                 $latest = $this->activationGrantRepository->getLatestByUserId($command->getUserId());
+                if ($latest instanceof ActivationGrant && !$latest->getUserId()->equals($command->getUserId())) {
+                    throw new LogicException("The credential repository returned another User's generation.");
+                }
+
                 if (
                     !$latest instanceof ActivationGrant
                     || !$latest->getId()->equals($activationGrant->getId())
                     || !$activationGrant->isIssued()
                 ) {
                     return null;
-                }
-
-                if (!$activationGrant->ownsDelivery($command->getActivationDeliveryId(), $command->getUserId())) {
-                    throw new LogicException('The expired invitation delivery ownership is inconsistent.');
                 }
 
                 $expiredGrant = $activationGrant->expireDeliveryAt($command->getOccurredAt());

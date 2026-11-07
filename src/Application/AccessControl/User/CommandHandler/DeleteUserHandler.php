@@ -13,8 +13,9 @@ use Fight\AccessControl\Domain\AccessControl\PasswordResetGrant\PasswordResetGra
 use Fight\AccessControl\Domain\AccessControl\User\Command\DeleteUser;
 use Fight\AccessControl\Domain\AccessControl\User\Event\UserDeleted;
 use Fight\AccessControl\Domain\AccessControl\User\Exception\UserLifecycleException;
-use Fight\AccessControl\Domain\AccessControl\User\User;
 use Fight\AccessControl\Domain\AccessControl\User\UserRepository;
+use Fight\Common\Application\Error\Exception\ResourceNotFound;
+use Fight\Common\Application\Error\Exception\StateConflict;
 use Fight\Common\Application\Messaging\Command\CommandHandler;
 use Fight\Common\Application\Messaging\Event\EventDispatcher;
 use Fight\Common\Application\Repository\TransactionalUnitOfWork;
@@ -63,17 +64,27 @@ final readonly class DeleteUserHandler implements CommandHandler
         $command = $commandMessage->payload();
 
         try {
+            /** @var UserDeleted $event */
             $event = $this->unitOfWork->commitTransactional(function () use ($command): UserDeleted {
                 $user = $this->userRepository->getById($command->getUserId());
-                if (!$user instanceof User) {
-                    throw new UserLifecycleException('The user cannot be deleted.');
+                if ($user === null) {
+                    throw new ResourceNotFound('The user cannot be deleted.');
+                }
+
+                if (!$user->getId()->equals($command->getUserId())) {
+                    throw new LogicException('The User repository returned an unrelated identity.');
                 }
 
                 $now = $this->clock->now();
                 $replacementUser = clone $user;
-                $replacementUser->delete($now);
+                try {
+                    $replacementUser->delete($now);
+                } catch (UserLifecycleException $userLifecycleException) {
+                    throw new StateConflict('The user cannot be deleted.', previous: $userLifecycleException);
+                }
+
                 if (!$this->userRepository->replaceLifecycleState($user, $replacementUser)) {
-                    throw new LogicException('The user lifecycle state changed concurrently.');
+                    throw new StateConflict('The user lifecycle state changed concurrently.');
                 }
 
                 new PasswordResetRevocationService($this->passwordResetGrantRepository)->revokeFor(

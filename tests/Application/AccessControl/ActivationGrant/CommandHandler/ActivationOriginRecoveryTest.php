@@ -16,13 +16,12 @@ use Fight\AccessControl\Domain\AccessControl\ActivationGrant\ActivationOrigin;
 use Fight\AccessControl\Domain\AccessControl\ActivationGrant\Command\DeliverUserInvitation;
 use Fight\AccessControl\Domain\AccessControl\ActivationGrant\Command\ResendInvitationDelivery;
 use Fight\AccessControl\Domain\AccessControl\ActivationGrant\Command\RetryInvitationDelivery;
-use Fight\AccessControl\Domain\AccessControl\ActivationGrant\Exception\ActivationDeliveryNotRetryableException;
 use Fight\AccessControl\Domain\AccessControl\CredentialDelivery\CredentialDeliveryStatus;
 use Fight\AccessControl\Domain\AccessControl\CredentialDelivery\Query\CredentialDeliveryStatusView;
 use Fight\AccessControl\Domain\AccessControl\User\Command\CorrectPendingInvitation;
-use Fight\AccessControl\Domain\AccessControl\User\Exception\PendingInvitationCorrectionException;
 use Fight\AccessControl\Domain\AccessControl\User\UserId;
 use Fight\AccessControl\Domain\AccessControl\User\UserState;
+use Fight\Common\Application\Error\Exception\StateConflict;
 use Fight\Common\Domain\Messaging\Command\CommandMessage;
 use Fight\Common\Domain\Messaging\Event\CommandFailedEvent;
 use Fight\Common\Domain\Value\Internet\EmailAddress;
@@ -286,7 +285,7 @@ final class ActivationOriginRecoveryTest extends TestCase
                     CommandMessage::create($this->command($fixture->initial))
                 );
                 self::fail('Obsolete work invoked the provider.');
-            } catch (ActivationDeliveryNotRetryableException) {
+            } catch (StateConflict) {
                 self::assertCount(0, $provider->invocations());
             }
 
@@ -315,7 +314,7 @@ final class ActivationOriginRecoveryTest extends TestCase
             try {
                 $fixture->worker($provider)->handle(CommandMessage::create($this->command($fixture->initial)));
                 self::fail('An obsolete provider outcome overwrote the successor.');
-            } catch (ActivationDeliveryNotRetryableException) {
+            } catch (StateConflict) {
                 self::assertCount(1, $provider->invocations());
             }
 
@@ -401,7 +400,7 @@ final class ActivationOriginRecoveryTest extends TestCase
                     ActivationOrigin::PRIVATE_INVITATION,
                     $provider->invocations()[0]->getActivationOrigin()
                 );
-            } catch (PendingInvitationCorrectionException) {
+            } catch (StateConflict) {
                 self::assertSame(ActivationOrigin::REGISTRATION, $origin);
                 self::assertSame(
                     'origin@example.test',

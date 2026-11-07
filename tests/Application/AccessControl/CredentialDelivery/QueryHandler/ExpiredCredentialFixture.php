@@ -119,7 +119,7 @@ final readonly class ExpiredCredentialFixture
                 PasswordResetCredential::fromString('fixture'),
                 $arguments[1],
                 $arguments[2],
-                $arguments[3],
+                $this->user->getEmail(),
                 'fixture:encrypted',
                 $this->user->getRecoveryAuthority()
             ),

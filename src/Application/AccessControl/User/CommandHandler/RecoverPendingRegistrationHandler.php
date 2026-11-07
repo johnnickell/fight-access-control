@@ -16,14 +16,19 @@ use Fight\AccessControl\Domain\AccessControl\Audit\AuditEvidence;
 use Fight\AccessControl\Domain\AccessControl\Audit\AuditEvidenceRepository;
 use Fight\AccessControl\Domain\AccessControl\User\Command\RecoverPendingRegistration;
 use Fight\AccessControl\Domain\AccessControl\User\Event\PendingRegistrationRecovered;
+use Fight\AccessControl\Domain\AccessControl\User\Exception\RegistrationRecoveryAuthorizationException;
 use Fight\AccessControl\Domain\AccessControl\User\Exception\RegistrationRecoveryException;
-use Fight\AccessControl\Domain\AccessControl\User\User;
 use Fight\AccessControl\Domain\AccessControl\User\UserRepository;
+use Fight\Common\Application\Error\Exception\PermissionDenied;
+use Fight\Common\Application\Error\Exception\PreconditionFailed;
+use Fight\Common\Application\Error\Exception\ResourceNotFound;
+use Fight\Common\Application\Error\Exception\StateConflict;
 use Fight\Common\Application\Messaging\Command\CommandHandler;
 use Fight\Common\Application\Messaging\Event\EventDispatcher;
 use Fight\Common\Application\Repository\TransactionalUnitOfWork;
 use Fight\Common\Domain\Messaging\Command\CommandMessage;
 use Fight\Common\Domain\Messaging\Event\CommandFailedEvent;
+use LogicException;
 use Throwable;
 
 /**
@@ -37,11 +42,11 @@ final readonly class RecoverPendingRegistrationHandler implements CommandHandler
     public function __construct(
         private UserRepository $userRepository,
         private ActivationGrantRepository $activationGrantRepository,
-        private RegistrationRecoveryAuthorization $authorization,
+        private RegistrationRecoveryAuthorization $registrationRecoveryAuthorization,
         private AuditEvidenceRepository $auditEvidenceRepository,
         private TransactionalUnitOfWork $unitOfWork,
-        private ActivationCredentialGenerator $credentials,
-        private InvitationDeliveryCipher $cipher,
+        private ActivationCredentialGenerator $activationCredentialGenerator,
+        private InvitationDeliveryCipher $invitationDeliveryCipher,
         private Clock $clock,
         private EventDispatcher $eventDispatcher
     ) {
@@ -64,34 +69,66 @@ final readonly class RecoverPendingRegistrationHandler implements CommandHandler
         $command = $commandMessage->payload();
 
         try {
+            /** @var PendingRegistrationRecovered $event */
             $event = $this->unitOfWork->commitTransactional(function () use ($command): PendingRegistrationRecovered {
-                $this->authorization->assertCanRecoverRegistration($command->getActorId(), $command->getUserId());
+                try {
+                    $this->registrationRecoveryAuthorization->assertCanRecoverRegistration(
+                        $command->getActorId(),
+                        $command->getUserId()
+                    );
+                } catch (RegistrationRecoveryAuthorizationException $registrationRecoveryAuthorizationException) {
+                    throw new PermissionDenied(
+                        'Registration recovery is not authorized.',
+                        previous: $registrationRecoveryAuthorizationException
+                    );
+                }
+
                 $user = $this->userRepository->getById($command->getUserId());
+                if ($user === null) {
+                    throw new ResourceNotFound('The pending registration cannot be recovered.');
+                }
+
+                if (!$user->getId()->equals($command->getUserId())) {
+                    throw new LogicException('The User repository returned an unrelated identity.');
+                }
+
                 $predecessor = $this->activationGrantRepository->getLatestByUserId($command->getUserId());
-                if (
-                    !$user instanceof User
-                    || !$user->getId()->equals($command->getUserId())
-                    || !$predecessor instanceof ActivationGrant
-                ) {
-                    throw new RegistrationRecoveryException('The pending registration cannot be recovered.');
+                if ($predecessor === null) {
+                    throw new StateConflict('The pending registration has no activation authority.');
+                }
+
+                if (!$predecessor->ownsDelivery($predecessor->getDelivery()->getId(), $command->getUserId())) {
+                    throw new LogicException('The activation repository returned inconsistent ownership.');
+                }
+
+                if (!$predecessor->getDelivery()->getId()->equals($command->getExpectedActivationDeliveryId())) {
+                    throw new PreconditionFailed('The expected activation generation is no longer current.');
                 }
 
                 // A fresh admission sample after authoritative reads, not a completion deadline.
                 $issuedAt = $this->clock->now();
-                $predecessor->assertRegistrationRecovery(
-                    $command->getUserId(),
-                    $command->getExpectedActivationDeliveryId(),
-                    $user->getEmail(),
-                    $command->getEmail(),
-                    $issuedAt
-                );
                 $replacement = clone $user;
-                $replacement->recoverPendingRegistrationEmail($command->getEmail(), $issuedAt);
-                if (!$this->userRepository->replacePendingRegistration($user, $replacement)) {
-                    throw new RegistrationRecoveryException('The pending registration changed or is reserved.');
+                try {
+                    $predecessor->assertRegistrationRecovery(
+                        $command->getUserId(),
+                        $command->getExpectedActivationDeliveryId(),
+                        $user->getEmail(),
+                        $command->getEmail(),
+                        $issuedAt
+                    );
+                    $replacement->recoverPendingRegistrationEmail($command->getEmail(), $issuedAt);
+                } catch (RegistrationRecoveryException $registrationRecoveryException) {
+                    throw new StateConflict(
+                        'The pending registration cannot be recovered.',
+                        previous: $registrationRecoveryException
+                    );
                 }
 
-                $credential = $this->credentials->generate();
+                if (!$this->userRepository->replacePendingRegistration($user, $replacement)) {
+                    throw new StateConflict('The pending registration changed or is reserved.');
+                }
+
+                $credential = $this->activationCredentialGenerator->generate();
                 $successor = ActivationGrant::issue(
                     ActivationOrigin::REGISTRATION,
                     $user->getId(),
@@ -99,7 +136,7 @@ final readonly class RecoverPendingRegistrationHandler implements CommandHandler
                     $issuedAt,
                     $issuedAt->add(new DateInterval('P7D')),
                     $replacement->getEmail(),
-                    $this->cipher->encrypt($credential->toString())
+                    $this->invitationDeliveryCipher->encrypt($credential->toString())
                 );
                 if (
                     !$this->activationGrantRepository->replaceWithSuccessor(
@@ -108,7 +145,7 @@ final readonly class RecoverPendingRegistrationHandler implements CommandHandler
                         $successor
                     )
                 ) {
-                    throw new RegistrationRecoveryException('The pending registration changed concurrently.');
+                    throw new StateConflict('The pending registration changed concurrently.');
                 }
 
                 $this->auditEvidenceRepository->add(AuditEvidence::record(
