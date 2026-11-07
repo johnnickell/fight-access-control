@@ -11,10 +11,12 @@ use Fight\AccessControl\Domain\AccessControl\CredentialDelivery\CredentialDelive
 use Fight\AccessControl\Domain\AccessControl\Role\Role;
 use Fight\AccessControl\Domain\AccessControl\Role\RoleId;
 use Fight\AccessControl\Domain\AccessControl\Role\RoleName;
+use Fight\AccessControl\Domain\AccessControl\Role\RoleRepository;
 use Fight\AccessControl\Domain\AccessControl\User\Command\RegisterUser;
 use Fight\AccessControl\Domain\AccessControl\User\Event\UserRegistered;
-use Fight\AccessControl\Domain\AccessControl\User\Exception\DuplicateEmailException;
 use Fight\AccessControl\Domain\AccessControl\User\UserState;
+use Fight\Common\Adapter\Http\Error\SafeHttpErrorPolicy;
+use Fight\Common\Application\Error\Exception\StateConflict;
 use Fight\Common\Domain\Exception\DomainException;
 use Fight\Common\Domain\Messaging\Command\CommandMessage;
 use Fight\Common\Domain\Messaging\Event\CommandFailedEvent;
@@ -27,6 +29,7 @@ use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 use RuntimeException;
+use Throwable;
 
 #[CoversClass(RegisterUserHandler::class)]
 final class RegisterUserHandlerTest extends TestCase
@@ -81,7 +84,7 @@ final class RegisterUserHandlerTest extends TestCase
     public function test_configuration_is_validated_at_construction(array $names): void
     {
         $fixture = new RegistrationFixture();
-        $this->expectException(DomainException::class);
+        $this->expectException($names === ['member'] ? DomainException::class : LogicException::class);
         try {
             $fixture->handler($names);
         } finally {
@@ -116,11 +119,64 @@ final class RegisterUserHandlerTest extends TestCase
             try {
                 $fixture->handler($names)->handle(CommandMessage::create($fixture->command()));
                 self::fail('Invalid stored Role authority was accepted.');
-            } catch (DomainException | RuntimeException) {
+            } catch (LogicException | StateConflict | RuntimeException) {
             }
 
             $this->assertNoRegistration($fixture);
             $this->assertSafeFailure($fixture);
+        }
+    }
+
+    public function test_distinct_configured_names_cannot_resolve_to_the_same_role_identity(): void
+    {
+        $fixture = new RegistrationFixture();
+        $roleRepository = $this->createStub(RoleRepository::class);
+        $duplicate = Role::define(
+            $fixture->member->getId(),
+            RoleName::fromString('ROLE_READER'),
+            [],
+            new DateTimeImmutable('2030-01-01T00:00:00Z')
+        );
+        $roleRepository->method('getByName')->willReturnOnConsecutiveCalls($fixture->member, $duplicate);
+        try {
+            $fixture->handler(roleRepository: $roleRepository)->handle(CommandMessage::create($fixture->command()));
+            self::fail('Conflicting Role identities were admitted.');
+        } catch (Throwable $throwable) {
+            self::assertSame(LogicException::class, $throwable::class);
+            self::assertSame(500, new SafeHttpErrorPolicy()->status($throwable));
+            $this->assertNoRegistration($fixture);
+        }
+    }
+
+    public function test_wrong_role_result_and_unexpected_domain_provider_fault_remain_internal(): void
+    {
+        foreach ([false, true] as $providerFails) {
+            $fixture = new RegistrationFixture();
+            $fault = new DomainException('Synthetic provider not-found diagnostic', 404);
+            $roleRepository = $this->createStub(RoleRepository::class);
+            $lookup = $roleRepository->method('getByName');
+            if ($providerFails) {
+                $lookup->willThrowException($fault);
+            } else {
+                $lookup->willReturn($fixture->reader);
+            }
+
+            try {
+                $fixture->handler(['ROLE_MEMBER'], roleRepository: $roleRepository)->handle(
+                    CommandMessage::create($fixture->command())
+                );
+                self::fail('A broken configured Role was accepted.');
+            } catch (Throwable $caught) {
+                if ($providerFails) {
+                    self::assertSame($fault, $caught);
+                } else {
+                    self::assertSame(LogicException::class, $caught::class);
+                }
+
+                self::assertSame(500, new SafeHttpErrorPolicy()->status($caught));
+                $this->assertNoRegistration($fixture);
+                $this->assertSafeFailure($fixture);
+            }
         }
     }
 
@@ -190,7 +246,7 @@ final class RegisterUserHandlerTest extends TestCase
         $fixture = new RegistrationFixture();
         $existing = UserFixture::withState('alice@example.test', $state);
         $fixture->userRepository->add($existing);
-        $this->expectException(DuplicateEmailException::class);
+        $this->expectException(StateConflict::class);
         try {
             $fixture->handler()->handle(CommandMessage::create($fixture->command('ALICE@example.test')));
         } finally {
@@ -208,7 +264,7 @@ final class RegisterUserHandlerTest extends TestCase
         $existing->requestEmailChange(EmailAddress::fromString('Alice@example.test'), new DateTimeImmutable());
 
         $fixture->userRepository->add($existing);
-        $this->expectException(DuplicateEmailException::class);
+        $this->expectException(StateConflict::class);
         try {
             $fixture->handler()->handle(CommandMessage::create($fixture->command()));
         } finally {

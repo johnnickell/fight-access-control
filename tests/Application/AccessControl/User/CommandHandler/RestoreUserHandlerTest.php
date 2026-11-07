@@ -15,10 +15,11 @@ use Fight\AccessControl\Domain\AccessControl\ActivationGrant\Command\DeliverUser
 use Fight\AccessControl\Domain\AccessControl\Audit\AuditEvidence;
 use Fight\AccessControl\Domain\AccessControl\User\Command\RestoreUser;
 use Fight\AccessControl\Domain\AccessControl\User\Event\UserRestored;
-use Fight\AccessControl\Domain\AccessControl\User\Exception\UserLifecycleException;
 use Fight\AccessControl\Domain\AccessControl\User\User;
 use Fight\AccessControl\Domain\AccessControl\User\UserId;
 use Fight\AccessControl\Domain\AccessControl\User\UserState;
+use Fight\Common\Application\Error\Exception\ResourceNotFound;
+use Fight\Common\Application\Error\Exception\StateConflict;
 use Fight\Common\Domain\Exception\DomainException;
 use Fight\Common\Domain\Messaging\Command\CommandMessage;
 use Fight\Common\Domain\Messaging\Event\CommandFailedEvent;
@@ -33,7 +34,6 @@ use Fight\Test\AccessControl\Application\AccessControl\Timing\Service\FixedClock
 use Fight\Test\AccessControl\Application\AccessControl\User\InMemoryUnitOfWork;
 use Fight\Test\AccessControl\Application\AccessControl\User\Repository\InMemoryUserRepository;
 use Fight\Test\AccessControl\Domain\AccessControl\User\UserFixture;
-use LogicException;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
 
@@ -228,7 +228,7 @@ final class RestoreUserHandlerTest extends TestCase
                     CommandMessage::create(new RestoreUser(UserId::generate(), $user->getId(), $target))
                 );
                 self::fail('An unsupported restoration target was accepted.');
-            } catch (UserLifecycleException) {
+            } catch (StateConflict) {
                 self::assertSame(UserState::DELETED, $userRepository->getById($user->getId())?->getState());
                 self::assertSame([], $auditEvidenceRepository->all());
                 self::assertInstanceOf(CommandFailedEvent::class, $eventDispatcher->events()[0]);
@@ -257,7 +257,7 @@ final class RestoreUserHandlerTest extends TestCase
                 CommandMessage::create(new RestoreUser(UserId::generate(), $user->getId(), UserState::ACTIVE))
             );
             self::fail('A non-deleted identity was restored.');
-        } catch (UserLifecycleException) {
+        } catch (StateConflict) {
             self::assertSame(UserState::ACTIVE, $userRepository->getById($user->getId())?->getState());
             self::assertSame([], $auditEvidenceRepository->all());
             self::assertInstanceOf(CommandFailedEvent::class, $eventDispatcher->events()[0]);
@@ -287,7 +287,7 @@ final class RestoreUserHandlerTest extends TestCase
                 ))
             );
             self::fail('A missing identity was restored.');
-        } catch (UserLifecycleException) {
+        } catch (ResourceNotFound) {
             self::assertSame([], $activationGrantRepository->all());
             self::assertSame([], $auditEvidenceRepository->all());
             self::assertInstanceOf(CommandFailedEvent::class, $eventDispatcher->events()[0]);
@@ -315,7 +315,7 @@ final class RestoreUserHandlerTest extends TestCase
                 CommandMessage::create(new RestoreUser(UserId::generate(), $user->getId(), UserState::ACTIVE))
             );
             self::fail('A stale lifecycle state was replaced.');
-        } catch (LogicException) {
+        } catch (StateConflict) {
             self::assertSame(UserState::DELETED, $userRepository->getById($user->getId())?->getState());
             self::assertSame([], $auditEvidenceRepository->all());
             self::assertInstanceOf(CommandFailedEvent::class, $eventDispatcher->events()[0]);
@@ -348,7 +348,7 @@ final class RestoreUserHandlerTest extends TestCase
                 ))
             );
             self::fail('A failed activation successor was accepted.');
-        } catch (LogicException) {
+        } catch (StateConflict) {
             self::assertSame(UserState::DELETED, $userRepository->getById($user->getId())?->getState());
             self::assertCount(1, $activationGrantRepository->all());
             self::assertSame([], $auditEvidenceRepository->all());

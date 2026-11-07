@@ -13,10 +13,11 @@ use Fight\AccessControl\Domain\AccessControl\RefreshSession\RefreshSession;
 use Fight\AccessControl\Domain\AccessControl\RefreshSession\RefreshSessionId;
 use Fight\AccessControl\Domain\AccessControl\User\Command\DeleteUser;
 use Fight\AccessControl\Domain\AccessControl\User\Event\UserDeleted;
-use Fight\AccessControl\Domain\AccessControl\User\Exception\UserLifecycleException;
 use Fight\AccessControl\Domain\AccessControl\User\User;
 use Fight\AccessControl\Domain\AccessControl\User\UserId;
 use Fight\AccessControl\Domain\AccessControl\User\UserState;
+use Fight\Common\Application\Error\Exception\ResourceNotFound;
+use Fight\Common\Application\Error\Exception\StateConflict;
 use Fight\Common\Domain\Exception\DomainException;
 use Fight\Common\Domain\Messaging\Command\CommandMessage;
 use Fight\Common\Domain\Messaging\Event\CommandFailedEvent;
@@ -29,7 +30,6 @@ use Fight\Test\AccessControl\Application\AccessControl\Timing\Service\FixedClock
 use Fight\Test\AccessControl\Application\AccessControl\User\InMemoryUnitOfWork;
 use Fight\Test\AccessControl\Application\AccessControl\User\Repository\InMemoryUserRepository;
 use Fight\Test\AccessControl\Domain\AccessControl\User\UserFixture;
-use LogicException;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
 
@@ -174,7 +174,7 @@ final class DeleteUserHandlerTest extends TestCase
                     CommandMessage::create(new DeleteUser(UserId::generate(), $user->getId()))
                 );
                 self::fail('An ineligible identity was deleted.');
-            } catch (UserLifecycleException) {
+            } catch (StateConflict) {
                 self::assertSame($state, $userRepository->getById($user->getId())?->getState());
                 self::assertSame([], $auditEvidenceRepository->all());
                 self::assertInstanceOf(CommandFailedEvent::class, $eventDispatcher->events()[0]);
@@ -201,7 +201,7 @@ final class DeleteUserHandlerTest extends TestCase
                 CommandMessage::create(new DeleteUser(UserId::generate(), UserId::generate()))
             );
             self::fail('A missing identity was deleted.');
-        } catch (UserLifecycleException) {
+        } catch (ResourceNotFound) {
             self::assertSame([], $auditEvidenceRepository->all());
             self::assertInstanceOf(CommandFailedEvent::class, $eventDispatcher->events()[0]);
         }
@@ -228,7 +228,7 @@ final class DeleteUserHandlerTest extends TestCase
                 CommandMessage::create(new DeleteUser(UserId::generate(), $user->getId()))
             );
             self::fail('A stale lifecycle state was replaced.');
-        } catch (LogicException) {
+        } catch (StateConflict) {
             self::assertSame(UserState::ACTIVE, $userRepository->getById($user->getId())?->getState());
             self::assertSame([], $auditEvidenceRepository->all());
             self::assertInstanceOf(CommandFailedEvent::class, $eventDispatcher->events()[0]);

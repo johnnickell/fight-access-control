@@ -21,6 +21,10 @@ interface RegistrationRecoveryAuthorization
     /**
      * Rejects recovery without trusted administrator authority for this exact target
      *
+     * The handler translates only this port's explicit denial to Application PermissionDenied.
+     * Unknown identity, configuration and provider failures must propagate as internal faults,
+     * never be fabricated as authorization denial.
+     *
      * @throws RegistrationRecoveryAuthorizationException When the actor or target is unauthorized
      */
     public function assertCanRecoverRegistration(UserId $actorId, UserId $userId): void;
