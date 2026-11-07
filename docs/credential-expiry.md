@@ -109,7 +109,8 @@ outbox/reliable-publication infrastructure or exactly-once event guarantee is ad
 ## Invitation recovery after expiry (v0.6.0 retry repair)
 
 Manual `RetryInvitationDelivery` now samples a required injected Clock after latest-grant retrieval inside its existing
-transaction. At `now >= expiresAt` it throws `ActivationDeliveryNotRetryableException` with constant safe text
+transaction. In the Unreleased worker contract, at `now >= expiresAt` it throws Common Application `StateConflict`
+(the v0.6.0 release used the Domain `ActivationDeliveryNotRetryableException`) with constant safe text
 `The activation delivery work is no longer retryable.`, without changing retry state/audit or publishing a retry-request
 fact. Failure notification cannot replace that rejection. This does not run cleanup, destroy material or issue new
 authority. `ExpireInvitationDelivery` remains the explicit cleanup path; an authorized `ResendInvitationDelivery`

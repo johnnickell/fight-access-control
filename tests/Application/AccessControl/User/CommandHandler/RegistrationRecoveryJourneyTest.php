@@ -15,7 +15,6 @@ use Fight\AccessControl\Application\AccessControl\User\QueryHandler\GetUserByIdH
 use Fight\AccessControl\Domain\AccessControl\ActivationGrant\ActivationGrant;
 use Fight\AccessControl\Domain\AccessControl\ActivationGrant\ActivationOrigin;
 use Fight\AccessControl\Domain\AccessControl\ActivationGrant\Command\ResendInvitationDelivery;
-use Fight\AccessControl\Domain\AccessControl\ActivationGrant\Exception\ActivationDeliveryNotRetryableException;
 use Fight\AccessControl\Domain\AccessControl\ActivationGrant\Query\FindInvitationDeliveryStatus;
 use Fight\AccessControl\Domain\AccessControl\ActivationGrant\Query\InvitationDeliveryStatusView;
 use Fight\AccessControl\Domain\AccessControl\CredentialDelivery\CredentialDeliveryStatus;
@@ -29,6 +28,7 @@ use Fight\AccessControl\Domain\AccessControl\User\Query\GetUserById;
 use Fight\AccessControl\Domain\AccessControl\User\UserState;
 use Fight\Common\Adapter\Messaging\Command\Sync\Routing\CommandRouter;
 use Fight\Common\Adapter\Messaging\Command\Sync\RoutingCommandBus;
+use Fight\Common\Application\Error\Exception\StateConflict;
 use Fight\Common\Domain\Messaging\Command\CommandMessage;
 use Fight\Common\Domain\Messaging\Event\CommandFailedEvent;
 use Fight\Common\Domain\Messaging\Event\EventMessage;
@@ -405,7 +405,7 @@ final class RegistrationRecoveryJourneyTest extends TestCase
         try {
             $fixture->worker($provider, $at)->handle(CommandMessage::create($fixture->delivery($fixture->initial)));
             self::fail('Obsolete delivery invoked as current work.');
-        } catch (ActivationDeliveryNotRetryableException) {
+        } catch (StateConflict) {
             self::assertCount(0, $provider->invocations());
         }
 

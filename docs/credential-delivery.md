@@ -4,6 +4,52 @@ Invitation, password-reset and email-change grants own recoverable, provider-neu
 pre-v1 contract is supported under [ADR 0011](../planning/adr/0011-pre-v1-current-contract-only.md). There is no
 historical signature, row conversion or migration/backfill obligation. Consumer adapters and runtime remain separate.
 
+## Request and worker contracts (Unreleased)
+
+The eleven human request/delivery/retry/resend/cancellation/expiry handlers remain registered **void** Commands.
+Consumers protect every worker and alternate entry point; actor IDs, stored origin and status are not grants.
+Unknown/ineligible password-reset requests still complete without work or an existence signal. Ordinary stale,
+early or terminal expiry dispatch remains a no-op; email expiry still releases only its exact reservation in every
+supported account state. No Query/subscriber/admission policy or optional-audit feature is added here.
+
+Use Common Application `StateConflict` for known request/state/CAS/claim/lease refusals and invitation retry/resend
+refusals. Email request/cancellation use `ResourceNotFound` for an absent requested User and `PermissionDenied`
+for the authorization port's declared administrative denial. Domain transition exceptions remain inward; handlers
+translate only the specific transition/authorization call they own. They do not classify by diagnostic text or
+wrap repository, clock, transaction, audit or publication faults as ordinary refusals. Broken lookup identity,
+delivery correlation and unchanged-revision claim promises are internal faults, not missing work or retry success.
+Update catches directly; no old exception facade or compatibility mode is supplied. These are breaking pre-v1 PHP
+caller-contract changes, not a selected release/version.
+
+Claims and outcomes still use separate transactions with complete-state CAS. Password reset validates current
+User recovery authority before grant access in both phases. The owned callback results are locally annotated with
+their actual Event/ID/nullable result; native UoW remains mixed, with no replacement wrapper or generic prerequisite.
+At outcome, an unchanged revision must still describe the exact committed claim. Decryption and provider calls
+remain outside transactions: their throwables deliberately become secret-free `UNEXPECTED_PROVIDER` retry outcomes.
+Clock faults are internal; an expired claim is a conflict, not a newly manufactured provider failure. Real revision,
+generation, authority or lease changes cannot acknowledge a successor or revive cancelled work. Late external mail
+and lost acknowledgements retain at-least-once identity/recovery semantics, never exactly-once delivery.
+
+Cancellation matches the grant's exact User/destination/reservation revision, not email equality alone. The reset
+revocation helper validates its requested User before issued/terminal decisions and retains the caller-owned User
+fence/transaction; its lifecycle/password/confirmation callers retain their own synchronous failure policies.
+Confirmed state remains authoritative when post-commit publication throws. Failure notifications keep constant safe
+text and cannot replace the primary fault; consumers must still sanitize rethrown diagnostics.
+
+Provider outcomes remain the three-case enum. Internal attempt results have only four factory combinations:
+delivered/null, retryable/RETRYABLE_PROVIDER, permanent/PERMANENT_PROVIDER and retryable/UNEXPECTED_PROVIDER.
+Invocation purpose is restricted to activation/password_reset/email_change, with stored activation origin only for
+activation. The opaque stable delivery ID is not newly restricted to UUID syntax. Invocation material stays redacted
+and non-serializable (`__serialize(): never`). Cipher implementations must mark raw plaintext parameters sensitive;
+PHP does not inherit the interface's parameter attribute. Keys, provider mechanisms and concrete trace/log safety
+remain consumer-owned and require separate qualification.
+
+`HumanCredentialContractTest`, `HumanCredentialCompositionTest` and the existing family/recovery/expiry/failure
+suites exercise these boundaries. Static fixtures and focused level-8 analysis qualify the owned contracts, not
+Common generic bus inference. Actual tagged minimum/ordinary routing and safe HTTP composition are recorded in
+TASK-00138's ignored Work evidence; HTTP maps deliberate 403/404/409 intent and keeps unknown/internal faults 500.
+MCP/OAuth mapping and real consumer storage/provider/worker qualification remain separate.
+
 ## Explicit status and bounded discovery (Unreleased)
 
 `FindInvitationDeliveryStatus` returns `InvitationDeliveryStatusView|CredentialDeliveryAbsent`;
@@ -241,7 +287,7 @@ provider composition plus required persisted state.
 Inside the shared transaction, the handler reads the latest grant, then takes one fresh clock sample before mutation,
 complete-state CAS and audit. Only still-issued authority with `now < expiresAt` and material-bearing `RETRY_PENDING`
 delivery may retry. Exact expiry, including fractional/timezone-equivalent equality, rejects. Missing, consumed,
-revoked or ineligible delivery also rejects with public `ActivationDeliveryNotRetryableException` and constant text
+revoked or ineligible delivery also rejects with Common Application `StateConflict` and constant text
 `The activation delivery work is no longer retryable.` A lost CAS retains the same class and constant concurrent-change
 message. Map the exception class, not parsed text. Current `CommandFailedEvent` evidence retains the safe command
 with constant `Invitation delivery retry failed.` text; notification failure cannot mask the original throwable.

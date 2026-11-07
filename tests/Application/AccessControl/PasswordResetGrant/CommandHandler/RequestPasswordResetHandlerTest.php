@@ -14,6 +14,7 @@ use Fight\AccessControl\Domain\AccessControl\PasswordResetGrant\PasswordResetGra
 use Fight\AccessControl\Domain\AccessControl\User\RecoveryAuthority;
 use Fight\AccessControl\Domain\AccessControl\User\UserId;
 use Fight\AccessControl\Domain\AccessControl\User\UserState;
+use Fight\Common\Application\Error\Exception\StateConflict;
 use Fight\Common\Domain\Messaging\Command\CommandMessage;
 use Fight\Common\Domain\Messaging\Event\CommandFailedEvent;
 use Fight\Common\Domain\Value\Internet\EmailAddress;
@@ -26,7 +27,6 @@ use Fight\Test\AccessControl\Application\AccessControl\Timing\Service\FixedClock
 use Fight\Test\AccessControl\Application\AccessControl\User\InMemoryUnitOfWork;
 use Fight\Test\AccessControl\Application\AccessControl\User\Repository\InMemoryUserRepository;
 use Fight\Test\AccessControl\Domain\AccessControl\User\UserFixture;
-use LogicException;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
@@ -245,7 +245,7 @@ final class RequestPasswordResetHandlerTest extends TestCase
                     EmailAddress::fromString('alice@example.test')
                 )));
                 self::fail('A lost aggregate CAS succeeded.');
-            } catch (LogicException) {
+            } catch (StateConflict) {
                 self::assertSame($before, $passwordResetGrantRepository->all());
                 self::assertInstanceOf(CommandFailedEvent::class, $eventDispatcher->events()[0]);
             }
@@ -268,7 +268,7 @@ final class RequestPasswordResetHandlerTest extends TestCase
         self::assertTrue($passwordResetGrantRepository->replace($issued, $terminal));
         $eventDispatcher = new InMemoryEventDispatcher();
 
-        $this->expectException(LogicException::class);
+        $this->expectException(StateConflict::class);
         try {
             $this->handler(
                 $userRepository,

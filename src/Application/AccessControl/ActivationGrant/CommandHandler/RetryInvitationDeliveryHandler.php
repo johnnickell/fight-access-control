@@ -13,11 +13,13 @@ use Fight\AccessControl\Domain\AccessControl\ActivationGrant\Event\InvitationDel
 use Fight\AccessControl\Domain\AccessControl\ActivationGrant\Exception\ActivationDeliveryNotRetryableException;
 use Fight\AccessControl\Domain\AccessControl\Audit\AuditEvidence;
 use Fight\AccessControl\Domain\AccessControl\Audit\AuditEvidenceRepository;
+use Fight\Common\Application\Error\Exception\StateConflict;
 use Fight\Common\Application\Messaging\Command\CommandHandler;
 use Fight\Common\Application\Messaging\Event\EventDispatcher;
 use Fight\Common\Application\Repository\TransactionalUnitOfWork;
 use Fight\Common\Domain\Messaging\Command\CommandMessage;
 use Fight\Common\Domain\Messaging\Event\CommandFailedEvent;
+use LogicException;
 use Throwable;
 
 /**
@@ -58,22 +60,38 @@ final readonly class RetryInvitationDeliveryHandler implements CommandHandler
         $command = $commandMessage->payload();
 
         try {
+            /** @var ActivationDeliveryId $activationDeliveryId */
             $activationDeliveryId = $this->unitOfWork->commitTransactional(function () use (
                 $command
             ): ActivationDeliveryId {
                 $activationGrant = $this->activationGrantRepository->getLatestByUserId($command->getUserId());
                 if (
+                    $activationGrant instanceof ActivationGrant
+                    && !$activationGrant->getUserId()->equals($command->getUserId())
+                ) {
+                    throw new LogicException("The credential repository returned another User's generation.");
+                }
+
+                if (
                     !$activationGrant instanceof ActivationGrant
                     || !$activationGrant->isUsableAt($this->clock->now())
                 ) {
-                    throw new ActivationDeliveryNotRetryableException(
+                    throw new StateConflict(
                         'The activation delivery work is no longer retryable.'
                     );
                 }
 
-                $retryRequested = $activationGrant->requestDeliveryRetry();
+                try {
+                    $retryRequested = $activationGrant->requestDeliveryRetry();
+                } catch (ActivationDeliveryNotRetryableException $activationDeliveryNotRetryableException) {
+                    throw new StateConflict(
+                        'The activation delivery work is no longer retryable.',
+                        previous: $activationDeliveryNotRetryableException
+                    );
+                }
+
                 if (!$this->activationGrantRepository->replace($activationGrant, $retryRequested)) {
-                    throw new ActivationDeliveryNotRetryableException(
+                    throw new StateConflict(
                         'The activation delivery generation changed concurrently.'
                     );
                 }

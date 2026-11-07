@@ -117,6 +117,12 @@ unions, explicit absence narrowing/payload, invitation origin, precise due/expir
 repository lookup. Runtime tests separately prove actual tagged Common routing and safe errors in minimum/ordinary
 compositions. This does not claim generic bus inference or consumer persistence qualification.
 
+TASK-00138 adds eleven exact provider/generator/cipher/invocation/result probes and four rejected incompatible
+uses for human credential workers. All 24 owned Application declarations also receive focused level-8 analysis.
+The runtime suite separately exercises all eleven real Command routes and decoded messages, intentional safe
+failure categories, internal failures, time/claim boundaries and existing family recovery/expiry guarantees.
+These fixtures establish neither generic Command/Event inference nor consumer persistence/provider qualification.
+
 Native transactional results remain `mixed`; a matching local `@var` for a known owned callback result (including
 tuples/unions) remains sufficient. No generic UoW supplier or redundant runtime check is required.
 

@@ -19,6 +19,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- **Breaking pre-v1 human credential worker failures:** eleven void request/worker handlers now distinguish known
+  Common Application conflict/not-found/permission intent from internal lookup and claim faults. Preserve generic
+  reset no-work, distinct family authority/expiry, outside-transaction provider retry classification and ordinary
+  post-commit publication behavior. Invocation purposes and internal result contracts are precise; concrete ciphers
+  must mark sensitive plaintext parameters. Update catches/composition directly. See
+  [request and worker contracts](docs/credential-delivery.md#request-and-worker-contracts-unreleased).
 - **Breaking pre-v1 credential status contract:** optional invitation/exact delivery status Queries now return a safe
   View or explicit `CredentialDeliveryAbsent`, not null. Invitation Views require/expose recorded activation origin.
   Discovery validates each bounded purpose-family batch before legitimate deterministic global top-N selection.

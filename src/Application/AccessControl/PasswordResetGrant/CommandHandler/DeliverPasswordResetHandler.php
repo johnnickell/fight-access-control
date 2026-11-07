@@ -16,18 +16,20 @@ use Fight\AccessControl\Domain\AccessControl\Audit\AuditEvidence;
 use Fight\AccessControl\Domain\AccessControl\Audit\AuditEvidenceRepository;
 use Fight\AccessControl\Domain\AccessControl\CredentialDelivery\CredentialDeliveryClaimToken;
 use Fight\AccessControl\Domain\AccessControl\CredentialDelivery\CredentialDeliveryFailure;
+use Fight\AccessControl\Domain\AccessControl\CredentialDelivery\Exception\CredentialDeliveryTransitionException;
 use Fight\AccessControl\Domain\AccessControl\PasswordResetGrant\Command\DeliverPasswordReset;
 use Fight\AccessControl\Domain\AccessControl\PasswordResetGrant\Event\PasswordResetDeliveryConfirmed;
-use Fight\AccessControl\Domain\AccessControl\PasswordResetGrant\Exception\PasswordResetDeliveryException;
 use Fight\AccessControl\Domain\AccessControl\PasswordResetGrant\PasswordResetGrant;
 use Fight\AccessControl\Domain\AccessControl\PasswordResetGrant\PasswordResetGrantRepository;
 use Fight\AccessControl\Domain\AccessControl\User\User;
 use Fight\AccessControl\Domain\AccessControl\User\UserRepository;
+use Fight\Common\Application\Error\Exception\StateConflict;
 use Fight\Common\Application\Messaging\Command\CommandHandler;
 use Fight\Common\Application\Messaging\Event\EventDispatcher;
 use Fight\Common\Application\Repository\TransactionalUnitOfWork;
 use Fight\Common\Domain\Messaging\Command\CommandMessage;
 use Fight\Common\Domain\Messaging\Event\CommandFailedEvent;
+use LogicException;
 use Throwable;
 
 /**
@@ -96,10 +98,15 @@ final readonly class DeliverPasswordResetHandler implements CommandHandler
      */
     private function claim(DeliverPasswordReset $command): PasswordResetGrant
     {
-        return $this->unitOfWork->commitTransactional(function () use ($command): PasswordResetGrant {
+        /** @var PasswordResetGrant $claimed */
+        $claimed = $this->unitOfWork->commitTransactional(function () use ($command): PasswordResetGrant {
             $user = $this->userRepository->getById($command->getUserId());
+            if ($user instanceof User && !$user->getId()->equals($command->getUserId())) {
+                throw new LogicException('The User repository returned another identity.');
+            }
+
             if (!$user instanceof User || !$this->userRepository->validateRecoveryAuthority($user)) {
-                throw new PasswordResetDeliveryException('The password-reset delivery work is no longer retryable.');
+                throw new StateConflict('The password-reset delivery work is no longer retryable.');
             }
 
             $grant = $this->passwordResetGrantRepository->getByDeliveryId(
@@ -107,25 +114,36 @@ final readonly class DeliverPasswordResetHandler implements CommandHandler
             );
             $latest = $this->passwordResetGrantRepository->getLatestByUserId($command->getUserId());
             if (!$this->isCurrent($grant, $latest, $command) || !$grant->isAuthorizedBy($user)) {
-                throw new PasswordResetDeliveryException(
+                throw new StateConflict(
                     'The password-reset delivery work is no longer retryable.'
                 );
             }
 
             $claimedAt = $this->clock->now();
-            $claimed = $grant->claimDelivery(
-                CredentialDeliveryClaimToken::generate(),
-                $claimedAt,
-                $this->leaseUntil($claimedAt, $grant->getExpiresAt())
-            );
+            $leaseUntil = $this->leaseUntil($claimedAt, $grant->getExpiresAt());
+            try {
+                $claimed = $grant->claimDelivery(
+                    CredentialDeliveryClaimToken::generate(),
+                    $claimedAt,
+                    $leaseUntil
+                );
+            } catch (CredentialDeliveryTransitionException $credentialDeliveryTransitionException) {
+                throw new StateConflict(
+                    'The password-reset delivery cannot be claimed.',
+                    previous: $credentialDeliveryTransitionException
+                );
+            }
+
             if (!$this->passwordResetGrantRepository->replace($grant, $claimed)) {
-                throw new PasswordResetDeliveryException(
+                throw new StateConflict(
                     'The password-reset delivery generation changed concurrently.'
                 );
             }
 
             return $claimed;
         });
+
+        return $claimed;
     }
 
     /**
@@ -136,9 +154,17 @@ final readonly class DeliverPasswordResetHandler implements CommandHandler
         CredentialDeliveryClaimToken $claimToken
     ): CredentialDeliveryAttemptResult {
         $delivery = $claimed->getDelivery();
+        $at = $this->clock->now();
+        try {
+            $material = $delivery->materialForClaim($claimToken, $at);
+        } catch (CredentialDeliveryTransitionException $credentialDeliveryTransitionException) {
+            throw new StateConflict(
+                'The password-reset delivery claim is stale.',
+                previous: $credentialDeliveryTransitionException
+            );
+        }
 
         try {
-            $material = $delivery->materialForClaim($claimToken, $this->clock->now());
             $credential = $this->passwordResetDeliveryCipher->decrypt($material);
             $outcome = $this->credentialDeliveryProvider->deliver(new CredentialDeliveryInvocation(
                 $claimed->purpose(),
@@ -163,15 +189,20 @@ final readonly class DeliverPasswordResetHandler implements CommandHandler
         CredentialDeliveryClaimToken $claimToken,
         CredentialDeliveryAttemptResult $attemptResult
     ): ?PasswordResetDeliveryConfirmed {
-        return $this->unitOfWork->commitTransactional(function () use (
+        /** @var ?PasswordResetDeliveryConfirmed $successEvent */
+        $successEvent = $this->unitOfWork->commitTransactional(function () use (
             $command,
             $claimed,
             $claimToken,
             $attemptResult
         ): ?PasswordResetDeliveryConfirmed {
             $user = $this->userRepository->getById($command->getUserId());
+            if ($user instanceof User && !$user->getId()->equals($command->getUserId())) {
+                throw new LogicException('The User repository returned another identity.');
+            }
+
             if (!$user instanceof User || !$this->userRepository->validateRecoveryAuthority($user)) {
-                throw new PasswordResetDeliveryException('The password-reset delivery outcome is stale.');
+                throw new StateConflict('The password-reset delivery outcome is stale.');
             }
 
             $current = $this->passwordResetGrantRepository->getByDeliveryId(
@@ -183,27 +214,39 @@ final readonly class DeliverPasswordResetHandler implements CommandHandler
                 || !$current->isAuthorizedBy($user)
                 || $current->getRevision() !== $claimed->getRevision()
             ) {
-                throw new PasswordResetDeliveryException(
+                throw new StateConflict(
                     'The password-reset delivery outcome is stale.'
                 );
             }
 
+            if (!$current->getDelivery()->sameStateAs($claimed->getDelivery())) {
+                throw new LogicException('The credential repository changed claim state without a revision.');
+            }
+
             $occurredAt = $this->clock->now();
             $outcome = $attemptResult->getOutcome();
-            $replacement = match ($outcome) {
-                CredentialDeliveryOutcome::DELIVERED => $current->confirmDelivery($claimToken, $occurredAt),
-                CredentialDeliveryOutcome::RETRYABLE_FAILURE => $current->failDelivery(
-                    $claimToken,
-                    $occurredAt,
-                    $attemptResult->getFailure() ?? CredentialDeliveryFailure::UNEXPECTED_PROVIDER
-                ),
-                CredentialDeliveryOutcome::PERMANENT_FAILURE => $current->failDeliveryPermanently(
-                    $claimToken,
-                    $occurredAt
-                )
-            };
+            try {
+                $replacement = match ($outcome) {
+                    CredentialDeliveryOutcome::DELIVERED => $current->confirmDelivery($claimToken, $occurredAt),
+                    CredentialDeliveryOutcome::RETRYABLE_FAILURE => $current->failDelivery(
+                        $claimToken,
+                        $occurredAt,
+                        $attemptResult->getFailure() ?? CredentialDeliveryFailure::UNEXPECTED_PROVIDER
+                    ),
+                    CredentialDeliveryOutcome::PERMANENT_FAILURE => $current->failDeliveryPermanently(
+                        $claimToken,
+                        $occurredAt
+                    )
+                };
+            } catch (CredentialDeliveryTransitionException $credentialDeliveryTransitionException) {
+                throw new StateConflict(
+                    'The password-reset delivery outcome is stale.',
+                    previous: $credentialDeliveryTransitionException
+                );
+            }
+
             if (!$this->passwordResetGrantRepository->replace($current, $replacement)) {
-                throw new PasswordResetDeliveryException(
+                throw new StateConflict(
                     'The password-reset delivery outcome changed concurrently.'
                 );
             }
@@ -230,6 +273,8 @@ final readonly class DeliverPasswordResetHandler implements CommandHandler
                 $occurredAt
             );
         });
+
+        return $successEvent;
     }
 
     /**
@@ -247,12 +292,28 @@ final readonly class DeliverPasswordResetHandler implements CommandHandler
 
     /**
      * Returns whether the exact generation remains authoritative
+     *
+     * @phpstan-assert-if-true PasswordResetGrant $grant
+     * @phpstan-assert-if-true PasswordResetGrant $latest
      */
     private function isCurrent(
         ?PasswordResetGrant $grant,
         ?PasswordResetGrant $latest,
         DeliverPasswordReset $command
     ): bool {
+        if (
+            $grant instanceof PasswordResetGrant
+            && (!$grant->getDelivery()->getId()->equals($command->getPasswordResetDeliveryId())
+                || $grant->purpose() !== 'password_reset'
+                || !$grant->ownsDelivery($command->getPasswordResetDeliveryId(), $grant->getUserId()))
+        ) {
+            throw new LogicException('The credential repository returned another delivery.');
+        }
+
+        if ($latest instanceof PasswordResetGrant && !$latest->getUserId()->equals($command->getUserId())) {
+            throw new LogicException("The credential repository returned another User's generation.");
+        }
+
         return $grant instanceof PasswordResetGrant
             && $latest instanceof PasswordResetGrant
             && $latest->getId()->equals($grant->getId())

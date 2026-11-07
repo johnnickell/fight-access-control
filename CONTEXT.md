@@ -6,6 +6,20 @@ Fight AccessControl owns framework-neutral identity, credential, session, author
 behavior shared by Fight applications. The repository-local behavioral and security authority is
 [TICKET-00001](planning/tickets/00001-TICKET.md).
 
+## TASK-00138 human credential workers — Work checkpoint
+
+The eleven human request/delivery/retry/resend/cancellation/expiry Commands retain void execution and distinct
+family no-work, authority and cleanup semantics. Their Engineer candidate separates intentional Common Application
+failure categories from broken lookup/claim promises and internal faults, with exact owned callback results and
+provider/invocation contracts. See [current worker contracts](docs/credential-delivery.md#request-and-worker-contracts-unreleased).
+Required audit/transactions, User-before-grant recovery fencing, claim/generation/time checks, provider-outside-
+transaction behavior, expiry cleanup, redaction and post-commit publication truth remain authoritative.
+
+Canonical `.runs/handoffs/TASK-00138/work.md` owns exhaustive declaration/member/caller dispositions, regression
+chronology, private intake provenance, minimum/ordinary/routing/static/full-gate/exact coverage and retained runtime
+identity. Independent Review and nonvisual QA remain required; TASK-00138 stays in-progress, with no parent closeout,
+publication, generic bus qualification, optional-audit implementation or real consumer qualification claimed.
+
 ## TASK-00135 preparation and policy preview — accepted checkpoint
 
 Independent Review v3 ACCEPT and nonvisual QA PASS cover candidate

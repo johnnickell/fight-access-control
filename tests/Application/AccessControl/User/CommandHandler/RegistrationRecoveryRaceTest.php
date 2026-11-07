@@ -14,7 +14,6 @@ use Fight\AccessControl\Application\AccessControl\User\CommandHandler\RestoreUse
 use Fight\AccessControl\Domain\AccessControl\ActivationGrant\ActivationGrant;
 use Fight\AccessControl\Domain\AccessControl\ActivationGrant\ActivationOrigin;
 use Fight\AccessControl\Domain\AccessControl\ActivationGrant\Command\ResendInvitationDelivery;
-use Fight\AccessControl\Domain\AccessControl\ActivationGrant\Exception\ActivationDeliveryNotRetryableException;
 use Fight\AccessControl\Domain\AccessControl\CredentialDelivery\CredentialDeliveryStatus;
 use Fight\AccessControl\Domain\AccessControl\User\Command\DeleteUser;
 use Fight\AccessControl\Domain\AccessControl\User\Command\RestoreUser;
@@ -22,6 +21,7 @@ use Fight\AccessControl\Domain\AccessControl\User\Exception\RegistrationRecovery
 use Fight\AccessControl\Domain\AccessControl\User\Exception\UserLifecycleException;
 use Fight\AccessControl\Domain\AccessControl\User\PasswordHash;
 use Fight\AccessControl\Domain\AccessControl\User\UserState;
+use Fight\Common\Application\Error\Exception\StateConflict;
 use Fight\Common\Domain\Messaging\Command\CommandMessage;
 use Fight\Common\Domain\Value\Internet\EmailAddress;
 use Fight\Test\AccessControl\Application\AccessControl\ActivationGrant\Service\FixedCredentialGenerator;
@@ -74,7 +74,7 @@ final class RegistrationRecoveryRaceTest extends TestCase
                 try {
                     $loser->resume();
                     self::fail('A stale replacement overwrote the winner.');
-                } catch (LogicException | RegistrationRecoveryException) {
+                } catch (StateConflict | RegistrationRecoveryException) {
                     self::assertSame($winner, $fixture->current());
                     self::assertCount(2, $fixture->activationGrantRepository->all());
                     self::assertSame(ActivationOrigin::REGISTRATION, $winner->getOrigin());
@@ -328,7 +328,7 @@ final class RegistrationRecoveryRaceTest extends TestCase
                 try {
                     $fixture->worker($provider)->handle(CommandMessage::create($fixture->delivery($fixture->initial)));
                     self::assertFalse($recoveryFirst);
-                } catch (ActivationDeliveryNotRetryableException) {
+                } catch (StateConflict) {
                     self::assertTrue($recoveryFirst);
                 }
 
