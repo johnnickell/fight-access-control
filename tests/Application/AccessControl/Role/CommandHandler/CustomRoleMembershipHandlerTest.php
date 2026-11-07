@@ -19,13 +19,15 @@ use Fight\AccessControl\Domain\AccessControl\Role\Command\RevokePermissionFromCu
 use Fight\AccessControl\Domain\AccessControl\Role\Event\CustomRolePermissionGranted;
 use Fight\AccessControl\Domain\AccessControl\Role\Event\CustomRolePermissionRevoked;
 use Fight\AccessControl\Domain\AccessControl\Role\Event\CustomRoleRemoved;
-use Fight\AccessControl\Domain\AccessControl\Role\Exception\CustomRoleException;
 use Fight\AccessControl\Domain\AccessControl\Role\Role;
 use Fight\AccessControl\Domain\AccessControl\Role\RoleId;
 use Fight\AccessControl\Domain\AccessControl\Role\RoleName;
 use Fight\AccessControl\Domain\AccessControl\Role\RoleRepository;
 use Fight\AccessControl\Domain\AccessControl\Role\RoleRevision;
 use Fight\AccessControl\Domain\AccessControl\User\UserId;
+use Fight\Common\Application\Error\Exception\ResourceNotFound;
+use Fight\Common\Application\Error\Exception\RuleViolation;
+use Fight\Common\Application\Error\Exception\StateConflict;
 use Fight\Common\Domain\Exception\DomainException;
 use Fight\Common\Domain\Messaging\Command\Command;
 use Fight\Common\Domain\Messaging\Command\CommandMessage;
@@ -242,7 +244,10 @@ final class CustomRoleMembershipHandlerTest extends TestCase
 
             $failure = $this->captureFailure($handler->handle(...), $command);
 
-            self::assertInstanceOf(CustomRoleException::class, $failure);
+            self::assertInstanceOf(
+                str_starts_with($case, 'managed') ? RuleViolation::class : ResourceNotFound::class,
+                $failure
+            );
             self::assertSame(1, $unitOfWork->transactions);
             self::assertFalse($unitOfWork->transactionCompleted);
             self::assertSame($role, $roleRepository->getById($roleId), $case);
@@ -340,7 +345,7 @@ final class CustomRoleMembershipHandlerTest extends TestCase
 
             $failure = $this->captureFailure($handler->handle(...), $command);
 
-            self::assertInstanceOf(CustomRoleException::class, $failure);
+            self::assertInstanceOf(StateConflict::class, $failure);
             self::assertSame('The authoritative permission changed concurrently.', $failure->getMessage());
             self::assertSame($role, $roleRepository->getById($role->getId()));
             self::assertSame($updatedAt, $role->getUpdatedAt());
@@ -393,7 +398,7 @@ final class CustomRoleMembershipHandlerTest extends TestCase
                 $command
             );
 
-            self::assertInstanceOf(CustomRoleException::class, $failure);
+            self::assertInstanceOf(StateConflict::class, $failure);
             self::assertSame($role, $roleRepository->getById($role->getId()));
             self::assertSame($permission, $permissionRepository->getById($permission->getId()));
             self::assertFalse($unitOfWork->transactionCompleted);
@@ -458,7 +463,7 @@ final class CustomRoleMembershipHandlerTest extends TestCase
             $command
         );
 
-        self::assertInstanceOf(CustomRoleException::class, $failure);
+        self::assertInstanceOf(StateConflict::class, $failure);
         self::assertSame('The custom role changed concurrently.', $failure->getMessage());
         self::assertInstanceOf(Permission::class, $permissionRepository->getById($permission->getId()));
         self::assertFalse($roleRepository->getById($role->getId())?->hasPermission($permission->getId()));
@@ -508,7 +513,7 @@ final class CustomRoleMembershipHandlerTest extends TestCase
                     $command
                 );
 
-                self::assertInstanceOf(CustomRoleException::class, $failure);
+                self::assertInstanceOf(RuleViolation::class, $failure);
                 self::assertSame($role, $roleRepository->getById($role->getId()));
                 self::assertFalse($unitOfWork->transactionCompleted);
                 $this->assertCommandFailure($eventDispatcher, $command, $failure);
@@ -576,7 +581,7 @@ final class CustomRoleMembershipHandlerTest extends TestCase
 
             $failure = $this->captureFailure($handler->handle(...), $command);
 
-            self::assertInstanceOf(CustomRoleException::class, $failure);
+            self::assertInstanceOf(ResourceNotFound::class, $failure);
             $this->assertCommandFailure($eventDispatcher, $command, $failure);
         }
     }
@@ -605,7 +610,7 @@ final class CustomRoleMembershipHandlerTest extends TestCase
                 $command
             );
 
-            self::assertInstanceOf(CustomRoleException::class, $failure);
+            self::assertInstanceOf(LogicException::class, $failure);
             self::assertFalse($unitOfWork->transactionCompleted);
             $this->assertCommandFailure($eventDispatcher, $command, $failure);
         }
@@ -665,7 +670,7 @@ final class CustomRoleMembershipHandlerTest extends TestCase
 
             $failure = $this->captureFailure($handler->handle(...), $command);
 
-            self::assertInstanceOf(CustomRoleException::class, $failure);
+            self::assertInstanceOf(RuleViolation::class, $failure);
             self::assertSame($role, $roleRepository->getById($role->getId()));
             $this->assertCommandFailure($eventDispatcher, $command, $failure);
         }
@@ -715,7 +720,7 @@ final class CustomRoleMembershipHandlerTest extends TestCase
 
             $failure = $this->captureFailure($handler->handle(...), $command);
 
-            self::assertInstanceOf(CustomRoleException::class, $failure);
+            self::assertInstanceOf(StateConflict::class, $failure);
             $this->assertCommandFailure($eventDispatcher, $command, $failure);
         }
     }
@@ -739,7 +744,10 @@ final class CustomRoleMembershipHandlerTest extends TestCase
 
             $failure = $this->captureFailure($handler->handle(...), $command);
 
-            self::assertInstanceOf(CustomRoleException::class, $failure);
+            self::assertInstanceOf(
+                $roleRepository->getById($role->getId()) === null ? ResourceNotFound::class : RuleViolation::class,
+                $failure
+            );
             $this->assertCommandFailure($eventDispatcher, $command, $failure);
         }
     }
@@ -774,7 +782,7 @@ final class CustomRoleMembershipHandlerTest extends TestCase
             $command
         );
 
-        self::assertInstanceOf(CustomRoleException::class, $failure);
+        self::assertInstanceOf(StateConflict::class, $failure);
         self::assertSame(1, $referenceChecks);
         self::assertSame($role, $roleRepository->getById($role->getId()));
         $this->assertCommandFailure($eventDispatcher, $command, $failure);

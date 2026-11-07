@@ -28,7 +28,6 @@ use Fight\AccessControl\Domain\AccessControl\Permission\PermissionId;
 use Fight\AccessControl\Domain\AccessControl\Permission\PermissionName;
 use Fight\AccessControl\Domain\AccessControl\Permission\PermissionTier;
 use Fight\AccessControl\Domain\AccessControl\Role\Command\GrantPermissionToCustomRole;
-use Fight\AccessControl\Domain\AccessControl\Role\Exception\CustomRoleException;
 use Fight\AccessControl\Domain\AccessControl\Role\Exception\ManagedRoleException;
 use Fight\AccessControl\Domain\AccessControl\Role\Role;
 use Fight\AccessControl\Domain\AccessControl\Role\RoleId;
@@ -316,7 +315,7 @@ final class ProtectedManagedPolicyTest extends TestCase
             try {
                 $handler->handle(CommandMessage::create($command));
                 self::fail('Protected membership must not be committed.');
-            } catch (CustomRoleException | AgentPermissionAssignmentException) {
+            } catch (RuleViolation | AgentPermissionAssignmentException) {
                 self::assertSame(
                     PermissionTier::SUPER_ADMIN_ONLY,
                     $permissionRepository->getById($permission->getId())?->getTier()

@@ -6,6 +6,35 @@ Fight AccessControl owns framework-neutral identity, credential, session, author
 behavior shared by Fight applications. The repository-local behavioral and security authority is
 [TICKET-00001](planning/tickets/00001-TICKET.md).
 
+## TASK-00140 Role and User membership — accepted checkpoint
+
+Independent Review v3 ACCEPT and nonvisual QA PASS cover clean candidate
+`a4a39aeff80ce482d93b8d287f742258cf4b91a5` against develop
+`5e011cbc39bf935d3981433d6b993555d3a5df87`, with no findings. QA freshly passes 113 cases / 790 assertions
+and 121 focused tests / 1,928 assertions plus owned level 8. The original fresh full gate passes 5,158 tests /
+55,717 assertions, exact global 8,734/8,734 and owned 303/303 statements. TASK-00140 is done; unfinished
+children keep TICKET-00040 and EPIC-00016 open. Land preserves both accepted slices through the advancing
+session-contract base; the owning TASK records the integration and fresh focused checks. Integrated full-gate,
+publication and final-head verification remain pending at this administrative checkpoint. Canonical
+`.runs/handoffs/TASK-00140/land.md` owns subsequent bridge/delivery/resource results; independent reports retain
+their exact subjects. Minimum-lane advisories and package/consumer boundaries remain explicit below.
+
+### Historical TASK-00140 Work checkpoint
+
+The seven [Role lifecycle/Permission and User membership Commands](docs/role-membership-contracts.md) now distinguish
+intentional Common Application absence, rule refusal, caller-precondition failure and state conflict from wrong
+identities, contradictory/reserved definitions and unknown faults. Success remains void. Domain owns decisions;
+local owned Event/Event-null annotations retain native mixed UoW without a generic supplier or result DTO.
+Role Permission no-ops also fence the complete current Role without writing. Consumer entry authorization,
+tiers/reserved identity, revisions/incarnations, registration/reference/all-writer CAS, actually adopted audit and
+primary/uncertain/post-commit failure truth remain authoritative; optional audit is not implemented here.
+
+Canonical `.runs/handoffs/TASK-00140/work.md` owns exhaustive member/callback/caller dispositions, regression-first
+chronology, actual minimum/ordinary dependencies, routing/static/safe-error/focused/full-gate/exact coverage and
+retained runtime identity. At that Work checkpoint, independent Review and nonvisual QA remained required and
+TASK-00140 remained in-progress. Unfinished children keep its parents open. No whole-library, generic bus,
+consumer, publication, merge, release or deployment qualification is claimed.
+
 ## TASK-00139 synchronous User/session contracts — accepted checkpoint
 
 The seven direct sensitive operations and secret-free `RevokeSession` Command now distinguish deliberate Common

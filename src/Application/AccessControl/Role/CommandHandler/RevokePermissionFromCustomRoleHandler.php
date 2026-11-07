@@ -5,18 +5,20 @@ declare(strict_types=1);
 namespace Fight\AccessControl\Application\AccessControl\Role\CommandHandler;
 
 use Fight\AccessControl\Application\AccessControl\Timing\Service\Clock;
-use Fight\AccessControl\Domain\AccessControl\Permission\Permission;
 use Fight\AccessControl\Domain\AccessControl\Permission\PermissionRepository;
 use Fight\AccessControl\Domain\AccessControl\Role\Command\RevokePermissionFromCustomRole;
 use Fight\AccessControl\Domain\AccessControl\Role\Event\CustomRolePermissionRevoked;
 use Fight\AccessControl\Domain\AccessControl\Role\Exception\CustomRoleException;
-use Fight\AccessControl\Domain\AccessControl\Role\Role;
 use Fight\AccessControl\Domain\AccessControl\Role\RoleRepository;
+use Fight\Common\Application\Error\Exception\ResourceNotFound;
+use Fight\Common\Application\Error\Exception\RuleViolation;
+use Fight\Common\Application\Error\Exception\StateConflict;
 use Fight\Common\Application\Messaging\Command\CommandHandler;
 use Fight\Common\Application\Messaging\Event\EventDispatcher;
 use Fight\Common\Application\Repository\TransactionalUnitOfWork;
 use Fight\Common\Domain\Messaging\Command\CommandMessage;
 use Fight\Common\Domain\Messaging\Event\CommandFailedEvent;
+use LogicException;
 use Throwable;
 
 /**
@@ -40,34 +42,57 @@ final readonly class RevokePermissionFromCustomRoleHandler implements CommandHan
     ) {
     }
 
-    /** @inheritDoc */
+    /**
+     * @inheritDoc
+     */
     public static function commandRegistration(): string
     {
         return RevokePermissionFromCustomRole::class;
     }
 
-    /** @inheritDoc */
+    /**
+     * @inheritDoc
+     */
     public function handle(CommandMessage $commandMessage): void
     {
         /** @var RevokePermissionFromCustomRole $command */
         $command = $commandMessage->payload();
 
         try {
+            /** @var CustomRolePermissionRevoked|null $event */
             $event = $this->unitOfWork->commitTransactional(
                 function () use ($command): ?CustomRolePermissionRevoked {
                     $role = $this->roleRepository->getById($command->getRoleId());
-                    if (!$role instanceof Role) {
-                        throw new CustomRoleException('The custom role does not exist.');
+                    if ($role === null) {
+                        throw new ResourceNotFound('The custom role does not exist.');
                     }
 
-                    if (!$this->permissionRepository->getById($command->getPermissionId()) instanceof Permission) {
-                        throw new CustomRoleException('The permission does not exist.');
+                    if (!$role->getId()->equals($command->getRoleId())) {
+                        throw new LogicException('The Role repository returned an unrelated identity.');
                     }
 
-                    $role->assertCustom();
+                    $permission = $this->permissionRepository->getById($command->getPermissionId());
+                    if ($permission === null) {
+                        throw new ResourceNotFound('The permission does not exist.');
+                    }
+
+                    if (!$permission->getId()->equals($command->getPermissionId())) {
+                        throw new LogicException('The Permission repository returned an unrelated identity.');
+                    }
+
+                    try {
+                        $role->assertCustom();
+                    } catch (CustomRoleException $customRoleException) {
+                        throw new RuleViolation('The role is not runtime-owned.', previous: $customRoleException);
+                    }
+
                     if (!$role->hasPermission($command->getPermissionId())) {
                         if (!$this->roleRepository->validatePermissionReference($command->getPermissionId())) {
-                            throw new CustomRoleException('The authoritative permission changed concurrently.');
+                            throw new StateConflict('The authoritative permission changed concurrently.');
+                        }
+
+                        if (!$this->roleRepository->validateCurrent($role)) {
+                            throw new StateConflict('The custom role changed concurrently.');
                         }
 
                         return null;
@@ -76,7 +101,7 @@ final readonly class RevokePermissionFromCustomRoleHandler implements CommandHan
                     $revokedAt = $this->clock->now();
                     $replacement = $role->revokePermissionFromCustom($command->getPermissionId(), $revokedAt);
                     if (!$this->roleRepository->replace($role, $replacement)) {
-                        throw new CustomRoleException('The custom role changed concurrently.');
+                        throw new StateConflict('The custom role changed concurrently.');
                     }
 
                     return new CustomRolePermissionRevoked(
@@ -88,7 +113,7 @@ final readonly class RevokePermissionFromCustomRoleHandler implements CommandHan
                 }
             );
 
-            if ($event instanceof CustomRolePermissionRevoked) {
+            if ($event !== null) {
                 $this->eventDispatcher->trigger($event);
             }
         } catch (Throwable $throwable) {
