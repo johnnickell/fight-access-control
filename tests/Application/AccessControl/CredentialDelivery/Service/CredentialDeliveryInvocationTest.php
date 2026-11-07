@@ -74,6 +74,25 @@ final class CredentialDeliveryInvocationTest extends TestCase
         }
     }
 
+    public function test_unknown_purposes_are_rejected_without_secret_diagnostics(): void
+    {
+        foreach (['', 'unknown', 'Activation'] as $purpose) {
+            try {
+                new CredentialDeliveryInvocation(
+                    $purpose,
+                    'opaque-delivery-id',
+                    EmailAddress::fromString('alice@example.test'),
+                    'RAW-SECRET',
+                    null
+                );
+                self::fail('An unsupported purpose was accepted.');
+            } catch (InvalidArgumentException $exception) {
+                self::assertSame('The credential delivery purpose is unsupported.', $exception->getMessage());
+                self::assertStringNotContainsString('RAW-SECRET', (string) $exception);
+            }
+        }
+    }
+
     private function invocation(): CredentialDeliveryInvocation
     {
         return new CredentialDeliveryInvocation(

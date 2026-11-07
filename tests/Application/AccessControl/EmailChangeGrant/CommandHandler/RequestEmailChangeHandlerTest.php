@@ -10,11 +10,12 @@ use Fight\AccessControl\Domain\AccessControl\EmailChangeGrant\Command\RequestEma
 use Fight\AccessControl\Domain\AccessControl\EmailChangeGrant\EmailChangeCredential;
 use Fight\AccessControl\Domain\AccessControl\EmailChangeGrant\EmailChangeGrant;
 use Fight\AccessControl\Domain\AccessControl\EmailChangeGrant\Event\EmailChangeRequested;
-use Fight\AccessControl\Domain\AccessControl\EmailChangeGrant\Exception as EmailChangeException;
-use Fight\AccessControl\Domain\AccessControl\User\Exception\EmailChangeRequestException;
 use Fight\AccessControl\Domain\AccessControl\User\User;
 use Fight\AccessControl\Domain\AccessControl\User\UserId;
 use Fight\AccessControl\Domain\AccessControl\User\UserState;
+use Fight\Common\Application\Error\Exception\PermissionDenied;
+use Fight\Common\Application\Error\Exception\ResourceNotFound;
+use Fight\Common\Application\Error\Exception\StateConflict;
 use Fight\Common\Domain\Exception\DomainException;
 use Fight\Common\Domain\Messaging\Command\CommandMessage;
 use Fight\Common\Domain\Messaging\Event\CommandFailedEvent;
@@ -29,7 +30,6 @@ use Fight\Test\AccessControl\Application\AccessControl\Timing\Service\FixedClock
 use Fight\Test\AccessControl\Application\AccessControl\User\InMemoryUnitOfWork;
 use Fight\Test\AccessControl\Application\AccessControl\User\Repository\InMemoryUserRepository;
 use Fight\Test\AccessControl\Domain\AccessControl\User\UserFixture;
-use LogicException;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
 use RuntimeException;
@@ -213,7 +213,7 @@ final class RequestEmailChangeHandlerTest extends TestCase
         self::assertTrue($emailChangeGrantRepository->replace($issued, $terminal));
         $eventDispatcher = new InMemoryEventDispatcher();
 
-        $this->expectException(LogicException::class);
+        $this->expectException(StateConflict::class);
         try {
             $this->handler($userRepository, $emailChangeGrantRepository, $unitOfWork, $eventDispatcher)->handle(
                 CommandMessage::create(
@@ -335,7 +335,8 @@ final class RequestEmailChangeHandlerTest extends TestCase
                     )
                 );
                 self::fail('An ineligible owner requested an email change.');
-            } catch (EmailChangeRequestException) {
+            } catch (ResourceNotFound | StateConflict $exception) {
+                self::assertInstanceOf($state === null ? ResourceNotFound::class : StateConflict::class, $exception);
                 self::assertSame([], $emailChangeGrantRepository->all());
                 self::assertInstanceOf(CommandFailedEvent::class, $eventDispatcher->events()[0]);
             }
@@ -375,7 +376,7 @@ final class RequestEmailChangeHandlerTest extends TestCase
                     )
                 );
                 self::fail('A reserved destination was claimed twice.');
-            } catch (LogicException) {
+            } catch (StateConflict) {
                 self::assertNull($userRepository->getById($second->getId())?->getPendingEmailChange());
                 self::assertInstanceOf(
                     CommandFailedEvent::class,
@@ -393,7 +394,7 @@ final class RequestEmailChangeHandlerTest extends TestCase
         $userRepository->add($user);
         $eventDispatcher = new InMemoryEventDispatcher();
 
-        $this->expectException(LogicException::class);
+        $this->expectException(StateConflict::class);
         try {
             $this->handler(
                 $userRepository,
@@ -485,7 +486,7 @@ final class RequestEmailChangeHandlerTest extends TestCase
         );
         $actorId = UserId::generate();
 
-        $this->expectException(EmailChangeException\EmailChangeAdministrationAuthorizationException::class);
+        $this->expectException(PermissionDenied::class);
         try {
             $handler->handle(CommandMessage::create(new RequestEmailChange(
                 $actorId,

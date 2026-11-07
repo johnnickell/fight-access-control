@@ -12,9 +12,9 @@ use Fight\AccessControl\Domain\AccessControl\ActivationGrant\ActivationGrant;
 use Fight\AccessControl\Domain\AccessControl\ActivationGrant\ActivationOrigin;
 use Fight\AccessControl\Domain\AccessControl\ActivationGrant\Command\ResendInvitationDelivery;
 use Fight\AccessControl\Domain\AccessControl\ActivationGrant\Event\InvitationDeliveryResent;
-use Fight\AccessControl\Domain\AccessControl\ActivationGrant\Exception\ActivationDeliveryNotResendableException;
 use Fight\AccessControl\Domain\AccessControl\CredentialDelivery\CredentialDeliveryClaimToken;
 use Fight\AccessControl\Domain\AccessControl\User\UserId;
+use Fight\Common\Application\Error\Exception\StateConflict;
 use Fight\Common\Domain\Exception\DomainException;
 use Fight\Common\Domain\Messaging\Command\CommandMessage;
 use Fight\Common\Domain\Messaging\Event\CommandFailedEvent;
@@ -26,7 +26,6 @@ use Fight\Test\AccessControl\Application\AccessControl\Audit\Repository\InMemory
 use Fight\Test\AccessControl\Application\AccessControl\Event\InMemoryEventDispatcher;
 use Fight\Test\AccessControl\Application\AccessControl\Timing\Service\FixedClock;
 use Fight\Test\AccessControl\Application\AccessControl\User\InMemoryUnitOfWork;
-use LogicException;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
 use RuntimeException;
@@ -157,7 +156,7 @@ final class ResendInvitationDeliveryHandlerTest extends TestCase
             $eventDispatcher
         );
 
-        $this->expectException(LogicException::class);
+        $this->expectException(StateConflict::class);
         $this->expectExceptionMessage('The activation grant changed concurrently.');
         try {
             $handler->handle(CommandMessage::create(new ResendInvitationDelivery('Admin-42', $userId)));
@@ -230,7 +229,7 @@ final class ResendInvitationDeliveryHandlerTest extends TestCase
             $eventDispatcher
         );
 
-        $this->expectException(ActivationDeliveryNotResendableException::class);
+        $this->expectException(StateConflict::class);
         try {
             $handler->handle(CommandMessage::create(new ResendInvitationDelivery('Admin-42', $userId)));
         } finally {

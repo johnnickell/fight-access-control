@@ -35,25 +35,41 @@ final readonly class ExpirePasswordResetDeliveryHandler implements CommandHandle
     ) {
     }
 
-    /** @inheritDoc */
+    /**
+     * @inheritDoc
+     */
     public static function commandRegistration(): string
     {
         return ExpirePasswordResetDelivery::class;
     }
 
-    /** @inheritDoc */
+    /**
+     * @inheritDoc
+     */
     public function handle(CommandMessage $commandMessage): void
     {
         /** @var ExpirePasswordResetDelivery $command */
         $command = $commandMessage->payload();
 
         try {
+            /** @var ?PasswordResetDeliveryExpired $successEvent */
             $successEvent = $this->unitOfWork->commitTransactional(function () use (
                 $command
             ): ?PasswordResetDeliveryExpired {
                 $passwordResetGrant = $this->passwordResetGrantRepository->getByDeliveryId(
                     $command->getPasswordResetDeliveryId()
                 );
+                if (
+                    $passwordResetGrant instanceof PasswordResetGrant
+                    && (!$passwordResetGrant->getDelivery()->getId()->equals($command->getPasswordResetDeliveryId())
+                        || !$passwordResetGrant->ownsDelivery(
+                            $command->getPasswordResetDeliveryId(),
+                            $passwordResetGrant->getUserId()
+                        ))
+                ) {
+                    throw new LogicException('The credential repository returned another delivery.');
+                }
+
                 if (
                     !$passwordResetGrant instanceof PasswordResetGrant
                     || !$passwordResetGrant->getUserId()->equals($command->getUserId())
@@ -62,21 +78,16 @@ final readonly class ExpirePasswordResetDeliveryHandler implements CommandHandle
                 }
 
                 $latest = $this->passwordResetGrantRepository->getLatestByUserId($command->getUserId());
+                if ($latest instanceof PasswordResetGrant && !$latest->getUserId()->equals($command->getUserId())) {
+                    throw new LogicException("The credential repository returned another User's generation.");
+                }
+
                 if (
                     !$latest instanceof PasswordResetGrant
                     || !$latest->getId()->equals($passwordResetGrant->getId())
                     || !$passwordResetGrant->isIssued()
                 ) {
                     return null;
-                }
-
-                if (
-                    !$passwordResetGrant->ownsDelivery(
-                        $command->getPasswordResetDeliveryId(),
-                        $command->getUserId()
-                    )
-                ) {
-                    throw new LogicException('The expired password-reset delivery ownership is inconsistent.');
                 }
 
                 $expiredGrant = $passwordResetGrant->expireDeliveryAt($command->getOccurredAt());

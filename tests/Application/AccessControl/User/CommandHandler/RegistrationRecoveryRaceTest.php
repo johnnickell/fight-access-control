@@ -14,7 +14,6 @@ use Fight\AccessControl\Application\AccessControl\User\CommandHandler\RestoreUse
 use Fight\AccessControl\Domain\AccessControl\ActivationGrant\ActivationGrant;
 use Fight\AccessControl\Domain\AccessControl\ActivationGrant\ActivationOrigin;
 use Fight\AccessControl\Domain\AccessControl\ActivationGrant\Command\ResendInvitationDelivery;
-use Fight\AccessControl\Domain\AccessControl\ActivationGrant\Exception\ActivationDeliveryNotRetryableException;
 use Fight\AccessControl\Domain\AccessControl\CredentialDelivery\CredentialDeliveryStatus;
 use Fight\AccessControl\Domain\AccessControl\User\Command\DeleteUser;
 use Fight\AccessControl\Domain\AccessControl\User\Command\RestoreUser;
@@ -73,7 +72,7 @@ final class RegistrationRecoveryRaceTest extends TestCase
                 try {
                     $loser->resume();
                     self::fail('A stale replacement overwrote the winner.');
-                } catch (LogicException | StateConflict) {
+                } catch (StateConflict) {
                     self::assertSame($winner, $fixture->current());
                     self::assertCount(2, $fixture->activationGrantRepository->all());
                     self::assertSame(ActivationOrigin::REGISTRATION, $winner->getOrigin());
@@ -327,7 +326,7 @@ final class RegistrationRecoveryRaceTest extends TestCase
                 try {
                     $fixture->worker($provider)->handle(CommandMessage::create($fixture->delivery($fixture->initial)));
                     self::assertFalse($recoveryFirst);
-                } catch (ActivationDeliveryNotRetryableException) {
+                } catch (StateConflict) {
                     self::assertTrue($recoveryFirst);
                 }
 

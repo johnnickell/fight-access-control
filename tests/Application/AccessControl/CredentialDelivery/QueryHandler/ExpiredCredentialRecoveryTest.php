@@ -651,7 +651,16 @@ final class ExpiredCredentialRecoveryTest extends TestCase
             ActivationDeliveryId::generate(),
             $fixture->expiresAt
         )));
-        foreach ([null, new ExpiredCredentialFixture('activation')->initial, $fixture->initial] as $latest) {
+        $successor = ActivationGrant::issue(
+            ActivationOrigin::PRIVATE_INVITATION,
+            $fixture->user->getId(),
+            ActivationCredential::fromString('successor'),
+            $fixture->issuedAt,
+            $fixture->expiresAt,
+            $fixture->user->getEmail(),
+            'encrypted-successor'
+        );
+        foreach ([null, $successor, $fixture->initial] as $latest) {
             $activationGrantRepository = $this->createStub(ActivationGrantRepository::class);
             $activationGrantRepository->method('getByDeliveryId')->willReturn($fixture->initial);
             $activationGrantRepository->method('getLatestByUserId')->willReturn($latest);
