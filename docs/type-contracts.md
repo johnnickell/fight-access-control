@@ -128,6 +128,12 @@ UserId authorization ports, plus four diagnostics rejecting wrong-purpose identi
 Owned handler analysis checks the local callback-result annotations separately. These fixtures neither qualify
 Common bus/Event generics nor replace runtime identity, failure, transaction and authorization proof.
 
+TASK-00140 adds seven exact void-handler callback probes and nine rejected incompatible uses for all five Role
+and both User membership handlers. These reject consuming void results, wrong-purpose Permission identities and
+string revisions. Focused level-8 analysis also checks every owned handler and its known local Event/Event-null
+transaction-result annotation. Real seven-route serialized dispatch and safe HTTP error composition remain separate
+runtime proof; no generic bus/Event inference or actual consumer persistence qualification is claimed.
+
 Native transactional results remain `mixed`; a matching local `@var` for a known owned callback result (including
 tuples/unions) remains sufficient. No generic UoW supplier or redundant runtime check is required.
 

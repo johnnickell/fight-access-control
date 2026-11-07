@@ -21,6 +21,8 @@ use Fight\AccessControl\Domain\AccessControl\Role\RoleId;
 use Fight\AccessControl\Domain\AccessControl\Role\RoleName;
 use Fight\AccessControl\Domain\AccessControl\Role\RoleRepository;
 use Fight\AccessControl\Domain\AccessControl\User\UserId;
+use Fight\Common\Application\Error\Exception\PreconditionFailed;
+use Fight\Common\Application\Error\Exception\StateConflict;
 use Fight\Common\Domain\Exception\DomainException;
 use Fight\Common\Domain\Messaging\Command\CommandMessage;
 use Fight\Common\Domain\Messaging\Event\CommandFailedEvent;
@@ -95,7 +97,8 @@ final class RoleRevisionHandlerTest extends TestCase
             });
             $command = $this->command($operation, $role);
             $caught = $this->failure(fn() => $this->dispatch($command, $roleRepository, $unitOfWork, $eventDispatcher));
-            self::assertInstanceOf(RoleConflictException::class, $caught);
+            self::assertInstanceOf(PreconditionFailed::class, $caught);
+            self::assertInstanceOf(RoleConflictException::class, $caught->getPrevious());
             self::assertSame($current, $roleRepository->getById($role->getId()));
             self::assertFalse($unitOfWork->transactionCompleted);
             self::assertCount(1, $attempts);
@@ -142,7 +145,7 @@ final class RoleRevisionHandlerTest extends TestCase
             new InMemoryUnitOfWork(),
             $eventDispatcher
         ));
-        self::assertInstanceOf(RoleConflictException::class, $caught);
+        self::assertInstanceOf(StateConflict::class, $caught);
         self::assertCount(1, $eventDispatcher->events());
         self::assertInstanceOf(CommandFailedEvent::class, $eventDispatcher->events()[0]);
     }
@@ -185,7 +188,7 @@ final class RoleRevisionHandlerTest extends TestCase
                 $eventDispatcher,
                 $clock
             ));
-            self::assertInstanceOf(RoleConflictException::class, $caught);
+            self::assertInstanceOf(StateConflict::class, $caught);
             self::assertSame($replacement, $roleRepository->getById($role->getId()));
             self::assertTrue($winner->transactionCompleted);
             self::assertFalse($unitOfWork->transactionCompleted);

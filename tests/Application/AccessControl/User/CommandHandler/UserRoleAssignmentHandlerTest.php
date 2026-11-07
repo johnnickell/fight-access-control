@@ -16,10 +16,11 @@ use Fight\AccessControl\Domain\AccessControl\User\Command\AssignRoleToUser;
 use Fight\AccessControl\Domain\AccessControl\User\Command\RemoveRoleFromUser;
 use Fight\AccessControl\Domain\AccessControl\User\Event\RoleAssignedToUser;
 use Fight\AccessControl\Domain\AccessControl\User\Event\RoleRemovedFromUser;
-use Fight\AccessControl\Domain\AccessControl\User\Exception\UserRoleAssignmentException;
 use Fight\AccessControl\Domain\AccessControl\User\User;
 use Fight\AccessControl\Domain\AccessControl\User\UserId;
 use Fight\AccessControl\Domain\AccessControl\User\UserState;
+use Fight\Common\Application\Error\Exception\ResourceNotFound;
+use Fight\Common\Application\Error\Exception\StateConflict;
 use Fight\Common\Domain\Exception\DomainException;
 use Fight\Common\Domain\Messaging\Command\CommandMessage;
 use Fight\Common\Domain\Messaging\Event\CommandFailedEvent;
@@ -30,6 +31,7 @@ use Fight\Test\AccessControl\Application\AccessControl\Timing\Service\FixedClock
 use Fight\Test\AccessControl\Application\AccessControl\User\InMemoryUnitOfWork;
 use Fight\Test\AccessControl\Application\AccessControl\User\Repository\InMemoryUserRepository;
 use Fight\Test\AccessControl\Domain\AccessControl\User\UserFixture;
+use LogicException;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
 use RuntimeException;
@@ -250,7 +252,7 @@ final class UserRoleAssignmentHandlerTest extends TestCase
                 $failure = $this->captureFailure($handler, $command);
 
                 self::assertInstanceOf(
-                    $invalid === 'identity' ? RuntimeException::class : UserRoleAssignmentException::class,
+                    $invalid === 'identity' ? RuntimeException::class : ResourceNotFound::class,
                     $failure
                 );
                 self::assertSame(3, $user->getAuthorizationAssignmentRevision());
@@ -294,7 +296,7 @@ final class UserRoleAssignmentHandlerTest extends TestCase
 
                 $failure = $this->captureFailure($handler, $command);
 
-                self::assertInstanceOf(UserRoleAssignmentException::class, $failure);
+                self::assertInstanceOf(LogicException::class, $failure);
                 self::assertSame($user, $userRepository->getById($user->getId()));
                 $this->assertFailure($eventDispatcher, $command, $failure);
             }
@@ -337,7 +339,7 @@ final class UserRoleAssignmentHandlerTest extends TestCase
                 );
                 $failure = $this->captureFailure($handler, $command);
 
-                self::assertInstanceOf(UserRoleAssignmentException::class, $failure);
+                self::assertInstanceOf(StateConflict::class, $failure);
                 self::assertSame($user, $userRepository->getById($user->getId()));
                 self::assertSame(7, $user->getAuthorizationAssignmentRevision());
                 $this->assertFailure($eventDispatcher, $command, $failure);

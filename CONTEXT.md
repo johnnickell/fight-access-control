@@ -6,6 +6,22 @@ Fight AccessControl owns framework-neutral identity, credential, session, author
 behavior shared by Fight applications. The repository-local behavioral and security authority is
 [TICKET-00001](planning/tickets/00001-TICKET.md).
 
+## TASK-00140 Role and User membership — Work checkpoint
+
+The seven [Role lifecycle/Permission and User membership Commands](docs/role-membership-contracts.md) now distinguish
+intentional Common Application absence, rule refusal, caller-precondition failure and state conflict from wrong
+identities, contradictory/reserved definitions and unknown faults. Success remains void. Domain owns decisions;
+local owned Event/Event-null annotations retain native mixed UoW without a generic supplier or result DTO.
+Role Permission no-ops also fence the complete current Role without writing. Consumer entry authorization,
+tiers/reserved identity, revisions/incarnations, registration/reference/all-writer CAS, actually adopted audit and
+primary/uncertain/post-commit failure truth remain authoritative; optional audit is not implemented here.
+
+Canonical `.runs/handoffs/TASK-00140/work.md` owns exhaustive member/callback/caller dispositions, regression-first
+chronology, actual minimum/ordinary dependencies, routing/static/safe-error/focused/full-gate/exact coverage and
+retained runtime identity. Independent Review and nonvisual QA remain required. TASK-00140 remains in-progress;
+unfinished children keep its parents open. No whole-library, generic bus, consumer, publication, merge, release or
+deployment qualification is claimed.
+
 ## TASK-00138 human credential workers — accepted checkpoint
 
 Independent Review v3 ACCEPT and nonvisual QA PASS cover clean candidate

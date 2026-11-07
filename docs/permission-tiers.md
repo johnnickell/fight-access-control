@@ -47,3 +47,6 @@ for current wiring, rollback and outcome handling. Consumer repositories must qu
 independent writer races; modeled package tests are not PostgreSQL qualification.
 The managed Super Admin Role can be assigned to a pending User for bootstrap; only active Users authenticate.
 Assignments/removals preserve expected revisions, reference checks, desired-state no-ops and post-commit events.
+The unreleased [Role and User membership contracts](role-membership-contracts.md) distinguish deliberate absence,
+rule refusal, failed caller expectations and state conflicts from wrong identities and unknown internal faults.
+Role Permission no-ops also fence the complete Role snapshot without writing.

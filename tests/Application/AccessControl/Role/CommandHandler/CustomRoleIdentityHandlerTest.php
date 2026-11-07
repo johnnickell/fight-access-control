@@ -14,13 +14,15 @@ use Fight\AccessControl\Domain\AccessControl\Role\Command\CreateCustomRole;
 use Fight\AccessControl\Domain\AccessControl\Role\Command\RenameCustomRole;
 use Fight\AccessControl\Domain\AccessControl\Role\Event\CustomRoleCreated;
 use Fight\AccessControl\Domain\AccessControl\Role\Event\CustomRoleRenamed;
-use Fight\AccessControl\Domain\AccessControl\Role\Exception\CustomRoleException;
 use Fight\AccessControl\Domain\AccessControl\Role\Role;
 use Fight\AccessControl\Domain\AccessControl\Role\RoleId;
 use Fight\AccessControl\Domain\AccessControl\Role\RoleName;
 use Fight\AccessControl\Domain\AccessControl\Role\RoleRepository;
 use Fight\AccessControl\Domain\AccessControl\Role\RoleRevision;
 use Fight\AccessControl\Domain\AccessControl\User\UserId;
+use Fight\Common\Application\Error\Exception\ResourceNotFound;
+use Fight\Common\Application\Error\Exception\RuleViolation;
+use Fight\Common\Application\Error\Exception\StateConflict;
 use Fight\Common\Domain\Exception\DomainException;
 use Fight\Common\Domain\Messaging\Command\Command;
 use Fight\Common\Domain\Messaging\Command\CommandMessage;
@@ -165,7 +167,7 @@ final class CustomRoleIdentityHandlerTest extends TestCase
 
             $failure = $this->captureFailure($handler->handle(...), $command);
 
-            self::assertInstanceOf(CustomRoleException::class, $failure);
+            self::assertInstanceOf(RuleViolation::class, $failure);
             self::assertSame($role, $roleRepository->getById($role->getId()));
             $this->assertCommandFailure($eventDispatcher, $command, $failure);
         }
@@ -200,7 +202,7 @@ final class CustomRoleIdentityHandlerTest extends TestCase
 
             $failure = $this->captureFailure($handler->handle(...), $command);
 
-            self::assertInstanceOf(CustomRoleException::class, $failure);
+            self::assertInstanceOf(StateConflict::class, $failure);
             self::assertSame($existing, $roleRepository->getById($existing->getId()));
             $this->assertCommandFailure($eventDispatcher, $command, $failure);
         }
@@ -245,7 +247,11 @@ final class CustomRoleIdentityHandlerTest extends TestCase
                 $commands[$index]
             );
 
-            self::assertInstanceOf(CustomRoleException::class, $failure);
+            self::assertInstanceOf(match ($index) {
+                0 => ResourceNotFound::class,
+                2 => RuleViolation::class,
+                default => StateConflict::class
+            }, $failure);
             $this->assertCommandFailure($eventDispatcher, $commands[$index], $failure);
         }
     }
