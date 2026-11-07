@@ -6,7 +6,20 @@ Fight AccessControl owns framework-neutral identity, credential, session, author
 behavior shared by Fight applications. The repository-local behavioral and security authority is
 [TICKET-00001](planning/tickets/00001-TICKET.md).
 
-## TASK-00138 human credential workers — Work checkpoint
+## TASK-00138 human credential workers — accepted checkpoint
+
+Independent Review v3 ACCEPT and nonvisual QA PASS cover clean candidate
+`e122bd09eac2a17e261257f4e2c34f486815e62b` against develop
+`80f6d0d213a2324fdc02f29a26a17fc82ccd3702`, with no findings. QA freshly passes 125 independent tests /
+1,376 assertions and 989 complementary tests / 7,507 assertions. Land's normal build executes freshly after a
+native cache miss: 5,045 tests / 54,654 assertions, exact 8,596/8,596 global and 873/873 owned statements.
+TASK-00138 is done; unfinished children keep TICKET-00040 and EPIC-00016 open. Publication/final-head verification
+are pending at this administrative checkpoint; canonical `.runs/handoffs/TASK-00138/land.md` owns the bridge and
+current delivery/resource results. Original independent reports and minimum-lane warnings remain preserved.
+No whole-library, generic bus, optional-audit, real consumer, merge, release or deployment qualification follows.
+The following Work checkpoint is historical, not a current independent Review/QA action.
+
+### Historical TASK-00138 Work checkpoint
 
 The eleven human request/delivery/retry/resend/cancellation/expiry Commands retain void execution and distinct
 family no-work, authority and cleanup semantics. Their Engineer candidate separates intentional Common Application
