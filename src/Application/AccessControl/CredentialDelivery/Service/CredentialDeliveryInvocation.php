@@ -20,25 +20,35 @@ final readonly class CredentialDeliveryInvocation
 {
     private SensitiveParameterValue $credential;
 
+    /** @var 'activation'|'password_reset'|'email_change' */
+    private string $purpose;
+
     /**
      * Constructs CredentialDeliveryInvocation
      */
     public function __construct(
-        private string $purpose,
+        string $purpose,
         private string $idempotencyId,
         private EmailAddress $email,
         #[SensitiveParameter] string $credential,
         private ?ActivationOrigin $activationOrigin
     ) {
+        if (!in_array($purpose, ['activation', 'password_reset', 'email_change'], true)) {
+            throw new InvalidArgumentException('The credential delivery purpose is unsupported.');
+        }
+
         if (($purpose === 'activation') !== ($activationOrigin instanceof ActivationOrigin)) {
             throw new InvalidArgumentException('Only activation delivery requires an activation origin.');
         }
 
+        $this->purpose = $purpose;
         $this->credential = new SensitiveParameterValue($credential);
     }
 
     /**
      * Returns the credential purpose
+     *
+     * @return 'activation'|'password_reset'|'email_change'
      */
     public function getPurpose(): string
     {
@@ -74,14 +84,17 @@ final readonly class CredentialDeliveryInvocation
      */
     public function getCredential(): string
     {
-        return (string) $this->credential->getValue();
+        /** @var string $credential */
+        $credential = $this->credential->getValue();
+
+        return $credential;
     }
 
     /**
      * Returns a diagnostic representation without raw credential material
      *
      * @return array{
-     *     purpose: string,
+     *     purpose: 'activation'|'password_reset'|'email_change',
      *     activationOrigin: ?ActivationOrigin,
      *     idempotencyId: string,
      *     email: EmailAddress,
@@ -102,7 +115,7 @@ final readonly class CredentialDeliveryInvocation
     /**
      * Prevents raw credential material from being serialized into durable work
      */
-    public function __serialize(): array
+    public function __serialize(): never
     {
         throw new LogicException('Credential-delivery invocations cannot be serialized.');
     }

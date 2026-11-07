@@ -18,7 +18,6 @@ use Fight\AccessControl\Application\AccessControl\User\CommandHandler\DisableUse
 use Fight\AccessControl\Application\AccessControl\User\CommandHandler\RemoveRoleFromUserHandler;
 use Fight\AccessControl\Application\AccessControl\User\PasswordManagement;
 use Fight\AccessControl\Domain\AccessControl\CredentialDelivery\CredentialDeliveryStatus;
-use Fight\AccessControl\Domain\AccessControl\PasswordResetGrant\Exception\PasswordResetDeliveryException;
 use Fight\AccessControl\Domain\AccessControl\PasswordResetGrant\Exception\PasswordResetRejectedException;
 use Fight\AccessControl\Domain\AccessControl\PasswordResetGrant\PasswordResetGrant;
 use Fight\AccessControl\Domain\AccessControl\Role\Role;
@@ -29,6 +28,7 @@ use Fight\AccessControl\Domain\AccessControl\User\Command\RemoveRoleFromUser;
 use Fight\AccessControl\Domain\AccessControl\User\RecoveryAuthority;
 use Fight\AccessControl\Domain\AccessControl\User\User;
 use Fight\AccessControl\Domain\AccessControl\User\UserState;
+use Fight\Common\Application\Error\Exception\StateConflict;
 use Fight\Common\Domain\Messaging\Command\CommandMessage;
 use Fight\Test\AccessControl\Application\AccessControl\Role\Repository\InMemoryRoleRepository;
 use Fight\Test\AccessControl\Application\AccessControl\Timing\Service\FixedClock;
@@ -239,7 +239,7 @@ final class RecoveryLifecycleTest extends TestCase
                     $fixture->deliver(static function () use (&$called): void {
                         $called = true;
                     });
-                } catch (PasswordResetDeliveryException $exception) {
+                } catch (StateConflict $exception) {
                     $caught = $exception;
                 }
 
@@ -349,7 +349,7 @@ final class RecoveryLifecycleTest extends TestCase
                             $this->transition($fixture, $transition);
                         }
                     }, $outcome);
-                } catch (PasswordResetDeliveryException $exception) {
+                } catch (StateConflict $exception) {
                     $caught = $exception;
                 }
 

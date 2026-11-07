@@ -38,21 +38,33 @@ final readonly class ExpireEmailChangeHandler implements CommandHandler
     ) {
     }
 
-    /** @inheritDoc */
+    /**
+     * @inheritDoc
+     */
     public static function commandRegistration(): string
     {
         return ExpireEmailChange::class;
     }
 
-    /** @inheritDoc */
+    /**
+     * @inheritDoc
+     */
     public function handle(CommandMessage $commandMessage): void
     {
         /** @var ExpireEmailChange $command */
         $command = $commandMessage->payload();
 
         try {
+            /** @var ?EmailChangeExpired $event */
             $event = $this->unitOfWork->commitTransactional(function () use ($command): ?EmailChangeExpired {
                 $emailChangeGrant = $this->emailChangeGrantRepository->getLatestByUserId($command->getUserId());
+                if (
+                    $emailChangeGrant instanceof EmailChangeGrant
+                    && !$emailChangeGrant->getUserId()->equals($command->getUserId())
+                ) {
+                    throw new LogicException("The credential repository returned another User's generation.");
+                }
+
                 if (
                     !$emailChangeGrant instanceof EmailChangeGrant
                     || !$emailChangeGrant->getId()->equals($command->getEmailChangeGrantId())

@@ -22,13 +22,13 @@ use Fight\AccessControl\Domain\AccessControl\ActivationGrant\Command\DeliverUser
 use Fight\AccessControl\Domain\AccessControl\ActivationGrant\Command\ResendInvitationDelivery;
 use Fight\AccessControl\Domain\AccessControl\ActivationGrant\Command\RetryInvitationDelivery;
 use Fight\AccessControl\Domain\AccessControl\ActivationGrant\Event\InvitationDeliveryRetryRequested;
-use Fight\AccessControl\Domain\AccessControl\ActivationGrant\Exception\ActivationDeliveryNotRetryableException;
 use Fight\AccessControl\Domain\AccessControl\Audit\AuditEvidence;
 use Fight\AccessControl\Domain\AccessControl\CredentialDelivery\CredentialDeliveryClaimToken;
 use Fight\AccessControl\Domain\AccessControl\CredentialDelivery\CredentialDeliveryFailure;
 use Fight\AccessControl\Domain\AccessControl\CredentialDelivery\CredentialDeliveryStatus;
 use Fight\AccessControl\Domain\AccessControl\User\UserId;
 use Fight\Common\Adapter\Messaging\Event\Sync\SimpleEventDispatcher;
+use Fight\Common\Application\Error\Exception\StateConflict;
 use Fight\Common\Application\Messaging\Command\CommandBus;
 use Fight\Common\Application\Messaging\Event\EventDispatchFailed;
 use Fight\Common\Domain\Exception\DomainException;
@@ -74,12 +74,12 @@ final class RetryInvitationDeliveryHandlerTest extends TestCase
         $rejection = null;
         try {
             $handler->handle(CommandMessage::create(new RetryInvitationDelivery('Admin-42', $grant->getUserId())));
-        } catch (ActivationDeliveryNotRetryableException $activationDeliveryNotRetryableException) {
-            $rejection = $activationDeliveryNotRetryableException;
+        } catch (StateConflict $stateConflict) {
+            $rejection = $stateConflict;
         }
 
         self::assertInstanceOf(
-            ActivationDeliveryNotRetryableException::class,
+            StateConflict::class,
             $rejection,
             'At exact expiry retry must reject, not return normally after persisting retry state and audit.'
         );
@@ -141,7 +141,7 @@ final class RetryInvitationDeliveryHandlerTest extends TestCase
             $eventDispatcher
         );
 
-        $this->expectException(ActivationDeliveryNotRetryableException::class);
+        $this->expectException(StateConflict::class);
         try {
             $handler->handle(CommandMessage::create(new RetryInvitationDelivery(
                 'Admin-42',
@@ -163,7 +163,7 @@ final class RetryInvitationDeliveryHandlerTest extends TestCase
             $eventDispatcher
         );
 
-        $this->expectException(ActivationDeliveryNotRetryableException::class);
+        $this->expectException(StateConflict::class);
         try {
             $handler->handle(CommandMessage::create(new RetryInvitationDelivery(
                 'Admin-42',
@@ -240,7 +240,7 @@ final class RetryInvitationDeliveryHandlerTest extends TestCase
             $eventDispatcher
         );
 
-        $this->expectException(ActivationDeliveryNotRetryableException::class);
+        $this->expectException(StateConflict::class);
         try {
             $handler->handle(CommandMessage::create(new RetryInvitationDelivery(
                 'Admin-42',
@@ -329,7 +329,7 @@ final class RetryInvitationDeliveryHandlerTest extends TestCase
 
                 $stored = $activationGrantRepository->getLatestByUserId($grant->getUserId());
                 if ($offset >= 0) {
-                    self::assertInstanceOf(ActivationDeliveryNotRetryableException::class, $failure);
+                    self::assertInstanceOf(StateConflict::class, $failure);
                     self::assertSame('The activation delivery work is no longer retryable.', $failure->getMessage());
                     self::assertEquals($grant, $stored);
                     self::assertSame([], $auditEvidenceRepository->all());
@@ -372,7 +372,7 @@ final class RetryInvitationDeliveryHandlerTest extends TestCase
                 $handler->handle(CommandMessage::create(new RetryInvitationDelivery('Admin-42', $grant->getUserId())));
                 self::assertLessThan($grant->getExpiresAt(), $at);
                 self::assertCount(1, $auditEvidenceRepository->all());
-            } catch (ActivationDeliveryNotRetryableException $exception) {
+            } catch (StateConflict $exception) {
                 self::assertEquals($grant->getExpiresAt(), $at);
                 self::assertSame('The activation delivery work is no longer retryable.', $exception->getMessage());
                 self::assertEquals($grant, $activationGrantRepository->getLatestByUserId($grant->getUserId()));
@@ -420,7 +420,7 @@ final class RetryInvitationDeliveryHandlerTest extends TestCase
         try {
             $handler->handle(CommandMessage::create(new RetryInvitationDelivery('Admin-42', $grant->getUserId())));
             self::fail('A read crossing expiry must not reuse pre-transaction time.');
-        } catch (ActivationDeliveryNotRetryableException) {
+        } catch (StateConflict) {
             self::assertSame([], $auditEvidenceRepository->all());
             self::assertEquals($grant, $storedActivationGrantRepository->getLatestByUserId($grant->getUserId()));
         }
@@ -502,7 +502,7 @@ final class RetryInvitationDeliveryHandlerTest extends TestCase
             try {
                 $handler->handle(CommandMessage::create(new RetryInvitationDelivery('Admin-42', $grant->getUserId())));
                 self::fail('Ineligible work accepted: '.$state);
-            } catch (ActivationDeliveryNotRetryableException $exception) {
+            } catch (StateConflict $exception) {
                 self::assertSame('The activation delivery work is no longer retryable.', $exception->getMessage());
                 self::assertEquals($next, $activationGrantRepository->getLatestByUserId($grant->getUserId()));
                 self::assertSame([], $auditEvidenceRepository->all());
@@ -563,10 +563,10 @@ final class RetryInvitationDeliveryHandlerTest extends TestCase
         try {
             $handler->handle(CommandMessage::create($command));
             self::fail('Expiry was accepted.');
-        } catch (ActivationDeliveryNotRetryableException $activationDeliveryNotRetryableException) {
+        } catch (StateConflict $stateConflict) {
             self::assertSame(
                 'The activation delivery work is no longer retryable.',
-                $activationDeliveryNotRetryableException->getMessage()
+                $stateConflict->getMessage()
             );
             self::assertInstanceOf(CommandFailedEvent::class, $notified);
             self::assertSame($command, $notified->getCommand());
@@ -699,7 +699,7 @@ final class RetryInvitationDeliveryHandlerTest extends TestCase
             try {
                 $loser->resume();
                 self::fail('Stale retry overwrote '.$winner);
-            } catch (ActivationDeliveryNotRetryableException $exception) {
+            } catch (StateConflict $exception) {
                 self::assertSame('The activation delivery generation changed concurrently.', $exception->getMessage());
                 self::assertSame($committedWinner, $activationGrantRepository->getLatestByUserId($grant->getUserId()));
                 self::assertSame($winnerAudit, $auditEvidenceRepository->all());

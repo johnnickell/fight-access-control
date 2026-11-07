@@ -14,13 +14,13 @@ use Fight\AccessControl\Domain\AccessControl\CredentialDelivery\CredentialDelive
 use Fight\AccessControl\Domain\AccessControl\PasswordResetGrant\Command\DeliverPasswordReset;
 use Fight\AccessControl\Domain\AccessControl\PasswordResetGrant\Event\PasswordResetDeliveryConfirmed;
 use Fight\AccessControl\Domain\AccessControl\PasswordResetGrant\Event\PasswordResetRequested;
-use Fight\AccessControl\Domain\AccessControl\PasswordResetGrant\Exception\PasswordResetDeliveryException;
 use Fight\AccessControl\Domain\AccessControl\PasswordResetGrant\PasswordResetCredential;
 use Fight\AccessControl\Domain\AccessControl\PasswordResetGrant\PasswordResetDeliveryId;
 use Fight\AccessControl\Domain\AccessControl\PasswordResetGrant\PasswordResetGrant;
 use Fight\AccessControl\Domain\AccessControl\User\RecoveryAuthority;
 use Fight\AccessControl\Domain\AccessControl\User\UserId;
 use Fight\AccessControl\Domain\AccessControl\User\UserState;
+use Fight\Common\Application\Error\Exception\StateConflict;
 use Fight\Common\Domain\Exception\DomainException;
 use Fight\Common\Domain\Messaging\Command\CommandMessage;
 use Fight\Common\Domain\Messaging\Event\CommandFailedEvent;
@@ -149,7 +149,7 @@ final class DeliverPasswordResetHandlerTest extends TestCase
                 PasswordResetDeliveryId::generate()
             )));
             self::fail('Missing reset delivery was accepted.');
-        } catch (PasswordResetDeliveryException) {
+        } catch (StateConflict) {
         }
 
         $unitOfWork = new InMemoryUnitOfWork();
@@ -166,7 +166,7 @@ final class DeliverPasswordResetHandlerTest extends TestCase
                 CommandMessage::create($this->command($grant))
             );
             self::fail('A competing reset-delivery claim was accepted.');
-        } catch (PasswordResetDeliveryException) {
+        } catch (StateConflict) {
         }
 
         self::assertSame([], $provider->invocations());
@@ -193,7 +193,7 @@ final class DeliverPasswordResetHandlerTest extends TestCase
             ));
         });
 
-        $this->expectException(PasswordResetDeliveryException::class);
+        $this->expectException(StateConflict::class);
         $this->handler(
             $passwordResetGrantRepository,
             new InMemoryAuditEvidenceRepository(),
@@ -212,7 +212,7 @@ final class DeliverPasswordResetHandlerTest extends TestCase
         self::assertTrue($passwordResetGrantRepository->add($grant));
         $auditEvidenceRepository = new InMemoryAuditEvidenceRepository($unitOfWork);
 
-        $this->expectException(PasswordResetDeliveryException::class);
+        $this->expectException(StateConflict::class);
         try {
             $this->handler($passwordResetGrantRepository, $auditEvidenceRepository, $unitOfWork)->handle(
                 CommandMessage::create($this->command($grant))

@@ -10,11 +10,12 @@ use Fight\AccessControl\Domain\AccessControl\EmailChangeGrant\Command\CancelEmai
 use Fight\AccessControl\Domain\AccessControl\EmailChangeGrant\EmailChangeCredential;
 use Fight\AccessControl\Domain\AccessControl\EmailChangeGrant\EmailChangeGrant;
 use Fight\AccessControl\Domain\AccessControl\EmailChangeGrant\Event\EmailChangeCancelled;
-use Fight\AccessControl\Domain\AccessControl\EmailChangeGrant\Exception as EmailChangeException;
-use Fight\AccessControl\Domain\AccessControl\User\Exception\EmailChangeCancellationException;
 use Fight\AccessControl\Domain\AccessControl\User\User;
 use Fight\AccessControl\Domain\AccessControl\User\UserId;
 use Fight\AccessControl\Domain\AccessControl\User\UserState;
+use Fight\Common\Application\Error\Exception\PermissionDenied;
+use Fight\Common\Application\Error\Exception\ResourceNotFound;
+use Fight\Common\Application\Error\Exception\StateConflict;
 use Fight\Common\Domain\Exception\DomainException;
 use Fight\Common\Domain\Messaging\Command\CommandMessage;
 use Fight\Common\Domain\Messaging\Event\CommandFailedEvent;
@@ -183,7 +184,8 @@ final class CancelEmailChangeHandlerTest extends TestCase
                     )
                 );
                 self::fail('Cancellation succeeded without matching issued authority.');
-            } catch (EmailChangeCancellationException) {
+            } catch (StateConflict | LogicException $exception) {
+                self::assertInstanceOf($mismatchedDelivery ? LogicException::class : StateConflict::class, $exception);
                 self::assertSame(
                     'new@example.test',
                     $userRepository->getById($user->getId())?->getPendingEmailChange()?->canonical()
@@ -199,7 +201,7 @@ final class CancelEmailChangeHandlerTest extends TestCase
         $eventDispatcher = new InMemoryEventDispatcher();
         $userId = UserId::generate();
 
-        $this->expectException(EmailChangeCancellationException::class);
+        $this->expectException(ResourceNotFound::class);
         try {
             $this->handler(
                 new InMemoryUserRepository($unitOfWork),
@@ -233,7 +235,7 @@ final class CancelEmailChangeHandlerTest extends TestCase
         self::assertTrue($emailChangeGrantRepository->add($this->grant($user->getId(), 'new@example.test')));
         $eventDispatcher = new InMemoryEventDispatcher();
 
-        $this->expectException(LogicException::class);
+        $this->expectException(StateConflict::class);
         try {
             $this->handler($userRepository, $emailChangeGrantRepository, $unitOfWork, $eventDispatcher)->handle(
                 CommandMessage::create(
@@ -265,7 +267,7 @@ final class CancelEmailChangeHandlerTest extends TestCase
         ));
         self::assertTrue($userRepository->replaceEmailChangeReservation($other, $reservedOther));
 
-        $this->expectException(LogicException::class);
+        $this->expectException(StateConflict::class);
         try {
             $handler->handle(CommandMessage::create(new CancelEmailChange($userId, $userId)));
         } finally {
@@ -356,7 +358,7 @@ final class CancelEmailChangeHandlerTest extends TestCase
             $eventDispatcher
         );
 
-        $this->expectException(EmailChangeException\EmailChangeAdministrationAuthorizationException::class);
+        $this->expectException(PermissionDenied::class);
         try {
             $handler->handle(CommandMessage::create(new CancelEmailChange(
                 UserId::generate(),

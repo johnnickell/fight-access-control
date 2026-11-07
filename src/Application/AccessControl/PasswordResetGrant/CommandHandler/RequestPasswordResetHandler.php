@@ -17,6 +17,7 @@ use Fight\AccessControl\Domain\AccessControl\PasswordResetGrant\PasswordResetGra
 use Fight\AccessControl\Domain\AccessControl\User\User;
 use Fight\AccessControl\Domain\AccessControl\User\UserRepository;
 use Fight\AccessControl\Domain\AccessControl\User\UserState;
+use Fight\Common\Application\Error\Exception\StateConflict;
 use Fight\Common\Application\Messaging\Command\CommandHandler;
 use Fight\Common\Application\Messaging\Event\EventDispatcher;
 use Fight\Common\Application\Repository\TransactionalUnitOfWork;
@@ -68,20 +69,32 @@ final readonly class RequestPasswordResetHandler implements CommandHandler
         $command = $commandMessage->payload();
 
         try {
+            /** @var ?PasswordResetRequested $successEvent */
             $successEvent = $this->unitOfWork->commitTransactional(function () use (
                 $command
             ): ?PasswordResetRequested {
                 $user = $this->userRepository->getByEmail($command->getEmail());
+                if ($user instanceof User && $user->getEmail()->canonical() !== $command->getEmail()->canonical()) {
+                    throw new LogicException('The User repository returned another canonical email.');
+                }
+
                 if (!$user instanceof User || $user->getState() !== UserState::ACTIVE) {
                     return null;
                 }
 
                 if (!$this->userRepository->validateRecoveryAuthority($user)) {
-                    throw new LogicException('Password-reset authority changed concurrently.');
+                    throw new StateConflict('Password-reset authority changed concurrently.');
                 }
 
                 $issuedAt = $this->clock->now();
                 $predecessorGrant = $this->passwordResetGrantRepository->getLatestByUserId($user->getId());
+                if (
+                    $predecessorGrant instanceof PasswordResetGrant
+                    && !$predecessorGrant->getUserId()->equals($user->getId())
+                ) {
+                    throw new LogicException("The credential repository returned another User's generation.");
+                }
+
                 $credential = $this->passwordResetCredentialGenerator->generate();
                 $expiresAt = $issuedAt->add(new DateInterval(self::GRANT_LIFETIME));
                 $passwordResetGrant = PasswordResetGrant::issue(
@@ -111,7 +124,7 @@ final readonly class RequestPasswordResetHandler implements CommandHandler
                             $passwordResetGrant
                         )
                     ) {
-                        throw new LogicException('Password-reset authority changed concurrently.');
+                        throw new StateConflict('Password-reset authority changed concurrently.');
                     }
                 } elseif ($predecessorGrant instanceof PasswordResetGrant) {
                     if (
@@ -120,11 +133,11 @@ final readonly class RequestPasswordResetHandler implements CommandHandler
                             $passwordResetGrant
                         )
                     ) {
-                        throw new LogicException('Password-reset authority changed concurrently.');
+                        throw new StateConflict('Password-reset authority changed concurrently.');
                     }
                 } else {
                     if (!$this->passwordResetGrantRepository->add($passwordResetGrant)) {
-                        throw new LogicException('Password-reset authority changed concurrently.');
+                        throw new StateConflict('Password-reset authority changed concurrently.');
                     }
                 }
 

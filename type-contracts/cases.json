@@ -371,6 +371,35 @@
         {"line": 40, "identifier": "argument.type", "message": "Parameter #1 $permission of closure expects Fight\\AccessControl\\Domain\\AccessControl\\Permission\\Permission, Fight\\AccessControl\\Domain\\AccessControl\\Permission\\Permission|null given."},
         {"line": 41, "identifier": "argument.type", "message": "Parameter #1 $callback of function array_map expects (callable(string): mixed)|null, Closure(Fight\\AccessControl\\Domain\\AccessControl\\Permission\\PermissionId): string given."}
       ]
+    },
+    {
+      "id": "human-credential-worker-types",
+      "kind": "positive",
+      "file": "human-credential-positive.php",
+      "diagnostics": [
+        {"line": 24, "identifier": "phpstan.dumpType", "message": "Dumped type: Fight\\AccessControl\\Domain\\AccessControl\\ActivationGrant\\ActivationCredential"},
+        {"line": 25, "identifier": "phpstan.dumpType", "message": "Dumped type: Fight\\AccessControl\\Domain\\AccessControl\\PasswordResetGrant\\PasswordResetCredential"},
+        {"line": 26, "identifier": "phpstan.dumpType", "message": "Dumped type: Fight\\AccessControl\\Domain\\AccessControl\\EmailChangeGrant\\EmailChangeCredential"},
+        {"line": 27, "identifier": "phpstan.dumpType", "message": "Dumped type: string"},
+        {"line": 28, "identifier": "phpstan.dumpType", "message": "Dumped type: string"},
+        {"line": 29, "identifier": "phpstan.dumpType", "message": "Dumped type: Fight\\AccessControl\\Application\\AccessControl\\CredentialDelivery\\Service\\CredentialDeliveryOutcome"},
+        {"line": 30, "identifier": "phpstan.dumpType", "message": "Dumped type: Fight\\AccessControl\\Application\\AccessControl\\CredentialDelivery\\Service\\CredentialDeliveryOutcome"},
+        {"line": 31, "identifier": "phpstan.dumpType", "message": "Dumped type: Fight\\AccessControl\\Domain\\AccessControl\\CredentialDelivery\\CredentialDeliveryFailure::PERMANENT_PROVIDER|Fight\\AccessControl\\Domain\\AccessControl\\CredentialDelivery\\CredentialDeliveryFailure::RETRYABLE_PROVIDER|Fight\\AccessControl\\Domain\\AccessControl\\CredentialDelivery\\CredentialDeliveryFailure::UNEXPECTED_PROVIDER|null"},
+        {"line": 32, "identifier": "phpstan.dumpType", "message": "Dumped type: 'activation'|'email_change'|'password_reset'"},
+        {"line": 33, "identifier": "phpstan.dumpType", "message": "Dumped type: Fight\\AccessControl\\Domain\\AccessControl\\ActivationGrant\\ActivationOrigin|null"},
+        {"line": 34, "identifier": "phpstan.dumpType", "message": "Dumped type: array{purpose: 'activation'|'email_change'|'password_reset', activationOrigin: Fight\\AccessControl\\Domain\\AccessControl\\ActivationGrant\\ActivationOrigin|null, idempotencyId: string, email: Fight\\Common\\Domain\\Value\\Internet\\EmailAddress, credential: string}"}
+      ]
+    },
+    {
+      "id": "human-credential-incompatible-uses",
+      "kind": "negative",
+      "file": "human-credential-negative.php",
+      "diagnostics": [
+        {"line": 19, "identifier": "argument.type", "message": "Parameter #1 $invocation of method Fight\\AccessControl\\Application\\AccessControl\\CredentialDelivery\\Service\\CredentialDeliveryProvider::deliver() expects Fight\\AccessControl\\Application\\AccessControl\\CredentialDelivery\\Service\\CredentialDeliveryInvocation, Fight\\AccessControl\\Domain\\AccessControl\\CredentialDelivery\\EncryptedCredentialMaterial given."},
+        {"line": 20, "identifier": "argument.type", "message": "Parameter #1 $encryptedMaterial of method Fight\\AccessControl\\Application\\AccessControl\\CredentialDelivery\\Service\\CredentialDeliveryCipher::decrypt() expects Fight\\AccessControl\\Domain\\AccessControl\\CredentialDelivery\\EncryptedCredentialMaterial, Fight\\AccessControl\\Application\\AccessControl\\CredentialDelivery\\Service\\CredentialDeliveryInvocation given."},
+        {"line": 23, "identifier": "argument.type", "message": "Parameter #1 $credential of closure expects Fight\\AccessControl\\Domain\\AccessControl\\PasswordResetGrant\\PasswordResetCredential, string given."},
+        {"line": 27, "identifier": "return.type", "message": "Anonymous function should return Fight\\AccessControl\\Domain\\AccessControl\\CredentialDelivery\\CredentialDeliveryFailure::PERMANENT_PROVIDER|Fight\\AccessControl\\Domain\\AccessControl\\CredentialDelivery\\CredentialDeliveryFailure::RETRYABLE_PROVIDER|Fight\\AccessControl\\Domain\\AccessControl\\CredentialDelivery\\CredentialDeliveryFailure::UNEXPECTED_PROVIDER but returns Fight\\AccessControl\\Domain\\AccessControl\\CredentialDelivery\\CredentialDeliveryFailure::PERMANENT_PROVIDER|Fight\\AccessControl\\Domain\\AccessControl\\CredentialDelivery\\CredentialDeliveryFailure::RETRYABLE_PROVIDER|Fight\\AccessControl\\Domain\\AccessControl\\CredentialDelivery\\CredentialDeliveryFailure::UNEXPECTED_PROVIDER|null."}
+      ]
     }
   ]
 }

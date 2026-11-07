@@ -17,8 +17,8 @@ use Fight\AccessControl\Domain\AccessControl\EmailChangeGrant\EmailChangeDeliver
 use Fight\AccessControl\Domain\AccessControl\EmailChangeGrant\EmailChangeGrant;
 use Fight\AccessControl\Domain\AccessControl\EmailChangeGrant\Event\EmailChangeDelivered;
 use Fight\AccessControl\Domain\AccessControl\EmailChangeGrant\Event\EmailChangeRequested;
-use Fight\AccessControl\Domain\AccessControl\EmailChangeGrant\Exception\EmailChangeDeliveryNotRetryableException;
 use Fight\AccessControl\Domain\AccessControl\User\UserId;
+use Fight\Common\Application\Error\Exception\StateConflict;
 use Fight\Common\Domain\Exception\DomainException;
 use Fight\Common\Domain\Messaging\Command\CommandMessage;
 use Fight\Common\Domain\Messaging\Event\CommandFailedEvent;
@@ -147,7 +147,7 @@ final class DeliverEmailChangeHandlerTest extends TestCase
                 EmailChangeDeliveryId::generate()
             )));
             self::fail('Missing delivery work was accepted.');
-        } catch (EmailChangeDeliveryNotRetryableException) {
+        } catch (StateConflict) {
         }
 
         $unitOfWork = new InMemoryUnitOfWork();
@@ -164,7 +164,7 @@ final class DeliverEmailChangeHandlerTest extends TestCase
                 CommandMessage::create($this->command($grant))
             );
             self::fail('A competing claim was accepted.');
-        } catch (EmailChangeDeliveryNotRetryableException) {
+        } catch (StateConflict) {
         }
 
         self::assertSame([], $provider->invocations());
@@ -191,7 +191,7 @@ final class DeliverEmailChangeHandlerTest extends TestCase
             ));
         });
 
-        $this->expectException(EmailChangeDeliveryNotRetryableException::class);
+        $this->expectException(StateConflict::class);
         $this->handler(
             $emailChangeGrantRepository,
             new InMemoryAuditEvidenceRepository(),
@@ -210,7 +210,7 @@ final class DeliverEmailChangeHandlerTest extends TestCase
         self::assertTrue($emailChangeGrantRepository->add($grant));
         $auditEvidenceRepository = new InMemoryAuditEvidenceRepository($unitOfWork);
 
-        $this->expectException(EmailChangeDeliveryNotRetryableException::class);
+        $this->expectException(StateConflict::class);
         try {
             $this->handler($emailChangeGrantRepository, $auditEvidenceRepository, $unitOfWork)->handle(
                 CommandMessage::create($this->command($grant))
