@@ -1,6 +1,31 @@
 {
   "cases": [
     {
+      "id": "preparation-preview-results",
+      "kind": "positive",
+      "file": "preparation-preview-positive.php",
+      "diagnostics": [
+        {"line": 22, "identifier": "phpstan.dumpType", "message": "Dumped type: Fight\\AccessControl\\Domain\\AccessControl\\Feature\\Query\\FeaturePreparationResult"},
+        {"line": 23, "identifier": "phpstan.dumpType", "message": "Dumped type: list<Fight\\AccessControl\\Domain\\AccessControl\\Feature\\Query\\FeaturePreparationIssue>"},
+        {"line": 24, "identifier": "phpstan.dumpType", "message": "Dumped type: array{prepared: bool, issues: list<array{name: string, problem: 'broken_binding'|'invalid_definition'|'missing_feature'}>}"},
+        {"line": 25, "identifier": "phpstan.dumpType", "message": "Dumped type: Fight\\AccessControl\\Domain\\AccessControl\\ManagedPolicy\\ManagedPolicyPlan"},
+        {"line": 26, "identifier": "phpstan.dumpType", "message": "Dumped type: Fight\\AccessControl\\Domain\\AccessControl\\ManagedPolicy\\ManagedPolicyPlan"},
+        {"line": 27, "identifier": "phpstan.dumpType", "message": "Dumped type: list<Fight\\AccessControl\\Domain\\AccessControl\\ManagedPolicy\\ManagedPermissionPlanItem>"},
+        {"line": 28, "identifier": "phpstan.dumpType", "message": "Dumped type: list<Fight\\AccessControl\\Domain\\AccessControl\\ManagedPolicy\\ManagedRolePlanItem>"},
+        {"line": 29, "identifier": "phpstan.dumpType", "message": "Dumped type: array{permissions: list<array{id: string, name: string, tier: string, action: string}>, roles: list<array{id: string, name: string, permission_ids: list<string>, action: string}>}"}
+      ]
+    },
+    {
+      "id": "preparation-preview-incompatible-uses",
+      "kind": "negative",
+      "file": "preparation-preview-negative.php",
+      "diagnostics": [
+        {"line": 10, "identifier": "argument.type", "message": "Parameter #1 $expected of closure expects Fight\\AccessControl\\Domain\\AccessControl\\Feature\\Query\\FeaturePreparationResult, Fight\\AccessControl\\Domain\\AccessControl\\ManagedPolicy\\ManagedPolicyPlan given."},
+        {"line": 11, "identifier": "argument.type", "message": "Parameter #1 $expected of closure expects Fight\\AccessControl\\Domain\\AccessControl\\ManagedPolicy\\ManagedPolicyPlan, Fight\\AccessControl\\Domain\\AccessControl\\Feature\\Query\\FeaturePreparationResult given."},
+        {"line": 12, "identifier": "argument.type", "message": "Parameter #1 $callback of function array_map expects (callable(Fight\\AccessControl\\Domain\\AccessControl\\ManagedPolicy\\ManagedPermissionPlanItem): mixed)|null, Closure(Fight\\AccessControl\\Domain\\AccessControl\\ManagedPolicy\\ManagedRolePlanItem): ('CREATE'|'RECONCILE'|'REMOVE'|'UNCHANGED') given."}
+      ]
+    },
+    {
       "id": "agent-query-native-results",
       "kind": "positive",
       "file": "agent-query-positive.php",

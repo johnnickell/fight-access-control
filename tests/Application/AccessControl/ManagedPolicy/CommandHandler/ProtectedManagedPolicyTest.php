@@ -34,6 +34,7 @@ use Fight\AccessControl\Domain\AccessControl\Role\Role;
 use Fight\AccessControl\Domain\AccessControl\Role\RoleId;
 use Fight\AccessControl\Domain\AccessControl\Role\RoleName;
 use Fight\AccessControl\Domain\AccessControl\User\UserId;
+use Fight\Common\Application\Error\Exception\RuleViolation;
 use Fight\Common\Domain\Messaging\Command\CommandMessage;
 use Fight\Common\Domain\Messaging\Event\CommandFailedEvent;
 use Fight\Common\Domain\Messaging\Query\QueryMessage;
@@ -207,14 +208,14 @@ final class ProtectedManagedPolicyTest extends TestCase
                     QueryMessage::create(new PreviewManagedPolicy($policy))
                 );
                 self::fail('Preview must disclose the forbidden promotion.');
-            } catch (ManagedPolicyDefinitionException) {
+            } catch (RuleViolation) {
                 self::addToAssertionCount(1);
             }
 
             try {
                 $handler->handle(CommandMessage::create(new ReconcileManagedPolicy($policy)));
                 self::fail('Promotion must fail until forbidden membership is removed.');
-            } catch (ManagedPolicyDefinitionException) {
+            } catch (RuleViolation) {
                 self::assertSame(
                     PermissionTier::ADMIN_SAFE,
                     $permissionRepository->getById($permission->getId())?->getTier()

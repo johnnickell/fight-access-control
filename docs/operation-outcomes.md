@@ -153,9 +153,22 @@ Agent assignments and stored Features do not reference them. Managed Roles being
 their memberships within the complete policy; custom Role and Agent assignments are not implicitly stripped.
 Repository outages propagate, never become reference absence. Preview writes, commits and publishes nothing.
 
+The shared planner validates exact ID/name lookups and complete managed/reference batches before using them.
+Batches must be lists of the promised aggregate, without repeated IDs/names; managed inventories contain only managed
+records and containing-Permission reads contain that exact Permission ID. Invalid repository relationships throw
+internal `UnexpectedValueException`, not a plan or ordinary refusal. Native return violations and unknown faults
+propagate unchanged. These checks establish no atomic snapshot across separate reads.
+
+Known planner policy refusals now throw Common Application `RuleViolation` (safe generic HTTP 422 through Common's
+opt-in safe middleware), rather than Domain `ManagedPolicyDefinitionException`. The latter still owns malformed
+policy construction/decoding in Domain and is not blanket-translated. Update catches for planner/preview/apply
+refusals directly; do not map arbitrary Domain/programmer/provider faults to rule rejection. Reserved-identity
+inconsistency remains internal. No private exception text belongs in public responses.
+
 For example, preview the complete desired `ManagedPolicy` through `PreviewManagedPolicy`, then dispatch
 `ReconcileManagedPolicy` with that same value. Preview is a snapshot, **not a reservation or authorization**. Apply
-replans inside its Unit of Work and still calls `PermissionRepository::remove(expectedPermission)` for every removal.
+replans inside its Unit of Work, checks each subsequently reread identity before mutation and still calls
+`PermissionRepository::remove(expectedPermission)` for every removal.
 Every Role, Agent and Feature reference-changing writer, including direct writes and validated no-ops, shares that
 transaction-duration reference fence and actual connection with removal. A prior read or ORM snapshot cannot replace
 final expected-state and reference validation. A reference winner rejects removal; a removal winner rejects a later

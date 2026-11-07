@@ -7,17 +7,16 @@ namespace Fight\AccessControl\Application\AccessControl\Feature\QueryHandler;
 use Fight\AccessControl\Application\AccessControl\Feature\Discovery\FeatureReferenceDiscovery;
 use Fight\AccessControl\Application\AccessControl\Feature\Discovery\FeatureReferenceScope;
 use Fight\AccessControl\Domain\AccessControl\Feature\Exception\FeatureStateException;
-use Fight\AccessControl\Domain\AccessControl\Feature\Feature;
 use Fight\AccessControl\Domain\AccessControl\Feature\FeatureRepository;
 use Fight\AccessControl\Domain\AccessControl\Feature\Query\FeaturePreparationIssue;
 use Fight\AccessControl\Domain\AccessControl\Feature\Query\FeaturePreparationProblem;
 use Fight\AccessControl\Domain\AccessControl\Feature\Query\FeaturePreparationResult;
 use Fight\AccessControl\Domain\AccessControl\Feature\Query\ValidateFeaturePreparation;
-use Fight\AccessControl\Domain\AccessControl\Permission\Permission;
 use Fight\AccessControl\Domain\AccessControl\Permission\PermissionRepository;
 use Fight\Common\Application\Messaging\Query\QueryHandler;
 use Fight\Common\Domain\Exception\DomainException;
 use Fight\Common\Domain\Messaging\Query\QueryMessage;
+use UnexpectedValueException;
 
 /**
  * Class ValidateFeaturePreparationHandler
@@ -61,24 +60,23 @@ final readonly class ValidateFeaturePreparationHandler implements QueryHandler
         foreach ($references->getNames() as $name) {
             try {
                 $feature = $this->featureRepository->getByName($name);
-                if (!$feature instanceof Feature) {
+                if ($feature === null) {
                     $issues[] = new FeaturePreparationIssue($name, FeaturePreparationProblem::MISSING_FEATURE);
                     continue;
                 }
 
                 if (!$feature->getName()->equals($name)) {
-                    $issues[] = new FeaturePreparationIssue($name, FeaturePreparationProblem::INVALID_DEFINITION);
-                    continue;
+                    throw new UnexpectedValueException('Feature lookup returned a different name.');
                 }
 
                 $permission = $this->permissionRepository->getById($feature->getPermissionId());
-                if (!$permission instanceof Permission) {
+                if ($permission === null) {
                     $issues[] = new FeaturePreparationIssue($name, FeaturePreparationProblem::BROKEN_BINDING);
                     continue;
                 }
 
                 if (!$permission->getId()->equals($feature->getPermissionId())) {
-                    $issues[] = new FeaturePreparationIssue($name, FeaturePreparationProblem::INVALID_DEFINITION);
+                    throw new UnexpectedValueException('Permission lookup returned a different identity.');
                 }
             } catch (FeatureStateException) {
                 // Adapters signal malformed persisted definitions explicitly; outages propagate unchanged.

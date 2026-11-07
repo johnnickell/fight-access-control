@@ -88,7 +88,7 @@ John approved the complete five-TASK split, now written with kind chore and empt
 | [TASK-00132](../tasks/00132-TASK.md) | 311 | Six paged queries: qualified Common container invariants plus AccessControl request/element/scope consistency. | needs-info for separately planned/implemented/accepted/tagged Common ResultSet validation and minimum evidence. |
 | [TASK-00133](../tasks/00133-TASK.md) | 312 | Four human credential status/due/expired queries: explicit absence/state and exact bounded work. | done; independent Review ACCEPT and nonvisual QA PASS for the owning TASK's accepted candidate. |
 | [TASK-00134](../tasks/00134-TASK.md) | 313 | Four Agent operation/scheduler/maintenance/count queries: exact authorized safe outcomes. | done; independent Review ACCEPT and nonvisual QA PASS for the bounded four-query slice; exact candidate/proof in TASK-00134. |
-| [TASK-00135](../tasks/00135-TASK.md) | 314 | Two preparation/policy-preview queries: truthful typed diagnostics/plans. | ready-for-agent; no demonstrated local blocker or newly missing Common API. |
+| [TASK-00135](../tasks/00135-TASK.md) | 314 | Two preparation/policy-preview queries: truthful typed diagnostics/plans. | done; independent Review ACCEPT and nonvisual QA PASS for the owning TASK's accepted candidate. |
 
 The manifests account for 6 + 6 + 4 + 4 + 2 = all 22 current QueryHandlers without overlap/omission. This is planning
 coverage, not an exhaustive source audit or executed runtime/type/supplier/consumer qualification. Refresh actual
@@ -123,8 +123,16 @@ exact coverage, local evidence and independent Review/behavioral QA. Choose the 
 | 311 | [TASK-00132](../tasks/00132-TASK.md) | Enforce paged query result contracts | needs-info |
 | 312 | [TASK-00133](../tasks/00133-TASK.md) | Make human credential status and discovery results explicit | done |
 | 313 | [TASK-00134](../tasks/00134-TASK.md) | Correct Agent operation, scheduler and count query contracts | done |
-| 314 | [TASK-00135](../tasks/00135-TASK.md) | Make preparation and policy-preview results truthful | ready-for-agent |
+| 314 | [TASK-00135](../tasks/00135-TASK.md) | Make preparation and policy-preview results truthful | done |
 ## Decisions and Progress
+
+TASK-00135's preparation/policy-preview slice is independently accepted and done at
+`853e63718e3e158171af7b2e6498ace9d971c1c1`, with Review v3 ACCEPT and nonvisual QA PASS, no findings.
+Its owning TASK records the behavior-preserving advancing-base bridge, fresh integrated full gate/exact coverage
+and focused interaction proof. Publication/final-head verification remain pending at that administrative
+checkpoint; canonical `.runs/handoffs/TASK-00135/land.md` owns current delivery/resource results. Original reports
+remain unchanged. TASK-00132/00134 and other unfinished children keep this TICKET/EPIC open; this is not
+whole-library, supplier or consumer qualification.
 
 TASK-00134 is independently accepted and done for its four-query slice; its owning record retains the exact
 candidate, verification and publication checkpoint. Unfinished children keep this TICKET and EPIC-00016 open;

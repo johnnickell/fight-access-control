@@ -29,6 +29,7 @@ use Fight\AccessControl\Domain\AccessControl\Role\Role;
 use Fight\AccessControl\Domain\AccessControl\Role\RoleId;
 use Fight\AccessControl\Domain\AccessControl\Role\RoleName;
 use Fight\AccessControl\Domain\AccessControl\Role\RoleRepository;
+use Fight\Common\Application\Error\Exception\RuleViolation;
 use Fight\Common\Domain\Exception\DomainException;
 use Fight\Common\Domain\Messaging\Command\CommandMessage;
 use Fight\Common\Domain\Messaging\Event\CommandFailedEvent;
@@ -299,7 +300,7 @@ final class ReconcileManagedPolicyHandlerTest extends TestCase
             try {
                 $handler->handle(CommandMessage::create($command));
                 self::fail('Referenced managed permissions must not be removed.');
-            } catch (ManagedPolicyDefinitionException) {
+            } catch (RuleViolation) {
                 ++$rejections;
             }
 
@@ -342,10 +343,10 @@ final class ReconcileManagedPolicyHandlerTest extends TestCase
                 )
             )->handle(QueryMessage::create($query));
             self::fail('Preview must reject removal of an assigned managed Role.');
-        } catch (ManagedPolicyDefinitionException $managedPolicyDefinitionException) {
+        } catch (RuleViolation $ruleViolation) {
             self::assertSame(
                 'Managed role "ROLE_ASSIGNED" cannot be removed because a user references it.',
-                $managedPolicyDefinitionException->getMessage()
+                $ruleViolation->getMessage()
             );
             ++$rejections;
         }
@@ -366,10 +367,10 @@ final class ReconcileManagedPolicyHandlerTest extends TestCase
         try {
             $handler->handle(CommandMessage::create($command));
             self::fail('Apply must reject the same assigned managed Role snapshot during planning.');
-        } catch (ManagedPolicyDefinitionException $managedPolicyDefinitionException) {
+        } catch (RuleViolation $ruleViolation) {
             self::assertSame(
                 'Managed role "ROLE_ASSIGNED" cannot be removed because a user references it.',
-                $managedPolicyDefinitionException->getMessage()
+                $ruleViolation->getMessage()
             );
             ++$rejections;
         }
@@ -413,10 +414,10 @@ final class ReconcileManagedPolicyHandlerTest extends TestCase
         try {
             new PreviewManagedPolicyHandler($planner)->handle(QueryMessage::create(new PreviewManagedPolicy($policy)));
             self::fail('Preview must reject a currently assigned Permission.');
-        } catch (ManagedPolicyDefinitionException $managedPolicyDefinitionException) {
+        } catch (RuleViolation $ruleViolation) {
             self::assertSame(
                 'Managed permission "OBSOLETE" cannot be removed because an Agent references it.',
-                $managedPolicyDefinitionException->getMessage()
+                $ruleViolation->getMessage()
             );
         }
 
@@ -435,10 +436,10 @@ final class ReconcileManagedPolicyHandlerTest extends TestCase
                 new FixedClock($createdAt)
             )->handle(CommandMessage::create($command));
             self::fail('Apply must reject the same snapshot during planning.');
-        } catch (ManagedPolicyDefinitionException $managedPolicyDefinitionException) {
+        } catch (RuleViolation $ruleViolation) {
             self::assertSame(
                 'Managed permission "OBSOLETE" cannot be removed because an Agent references it.',
-                $managedPolicyDefinitionException->getMessage()
+                $ruleViolation->getMessage()
             );
         }
 
@@ -681,7 +682,7 @@ final class ReconcileManagedPolicyHandlerTest extends TestCase
                     []
                 ));
                 self::fail('Custom records must not be claimed by managed policy.');
-            } catch (ManagedPolicyDefinitionException) {
+            } catch (RuleViolation) {
                 ++$rejections;
             }
         }

@@ -102,6 +102,11 @@ Runtime regressions prove decoded types, explicit event instants, native-array c
 exhaustion/no-ops and subtype preservation. Existing authentication/administration/recovery/Tool tests retain
 behavioral fence/redaction proof. This adds neither bus generic qualification nor actual consumer persistence proof.
 
+TASK-00135 adds preparation/preview cases with eight exact positive types and three rejected incompatible uses:
+non-null direct-handler/planner results, issue/item lists and serialized shapes. Existing Feature/Permission/Role
+fixtures retain definition, action enum, message and callback proof. Real configured routing/safe-error tests are
+separate runtime proof; Common's current mixed QueryBus still does not establish generic result inference.
+
 TASK-00134 adds four exact handler-result probes and two rejected collection/count uses, and updates operation
 repository work probes to `AgentDeliveryWorkView`. Public work handler results remain `list<AgentOperationView>`.
 These fixtures qualify direct native/static contracts, not the separately owned generic bus relationship;

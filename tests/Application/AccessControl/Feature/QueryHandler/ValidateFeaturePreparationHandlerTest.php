@@ -36,6 +36,7 @@ use Fight\Test\AccessControl\Application\AccessControl\User\InMemoryUnitOfWork;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
 use RuntimeException;
+use UnexpectedValueException;
 
 #[CoversClass(ValidateFeaturePreparationHandler::class)]
 #[CoversClass(ValidateFeaturePreparation::class)]
@@ -256,9 +257,15 @@ final class ValidateFeaturePreparationHandlerTest extends TestCase
         );
         $featureRepository = $this->createStub(FeatureRepository::class);
         $featureRepository->method('getByName')->willReturn($wrongFeature);
-        $result = $this->handler(['requested'], $featureRepository, $this->createStub(PermissionRepository::class))
-            ->handle(QueryMessage::create(new ValidateFeaturePreparation()));
-        self::assertSame('invalid_definition', $result->toArray()['issues'][0]['problem']);
+        $permissionRepository = $this->createMock(PermissionRepository::class);
+        $permissionRepository->expects(self::never())->method('getById');
+        try {
+            $this->handler(['requested'], $featureRepository, $permissionRepository)
+                ->handle(QueryMessage::create(new ValidateFeaturePreparation()));
+            self::fail('A wrong Feature name is an internal lookup contract fault.');
+        } catch (UnexpectedValueException) {
+            self::addToAssertionCount(1);
+        }
 
         $feature = Feature::define(
             FeatureId::generate(),
@@ -273,9 +280,9 @@ final class ValidateFeaturePreparationHandlerTest extends TestCase
             PermissionName::fromString('PREVIEW'),
             new DateTimeImmutable()
         ));
-        $result = $this->handler(['requested'], $featureRepository, $permissionRepository)
+        $this->expectException(UnexpectedValueException::class);
+        $this->handler(['requested'], $featureRepository, $permissionRepository)
             ->handle(QueryMessage::create(new ValidateFeaturePreparation()));
-        self::assertSame('invalid_definition', $result->toArray()['issues'][0]['problem']);
     }
 
     /** @param list<string> $names */
