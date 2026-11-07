@@ -19,10 +19,7 @@ use Fight\AccessControl\Domain\AccessControl\ActivationGrant\ActivationGrant;
 use Fight\AccessControl\Domain\AccessControl\Audit\AuditEvidence;
 use Fight\AccessControl\Domain\AccessControl\EmailChangeGrant\EmailChangeCredential;
 use Fight\AccessControl\Domain\AccessControl\EmailChangeGrant\EmailChangeGrant;
-use Fight\AccessControl\Domain\AccessControl\EmailChangeGrant\Exception\EmailChangeConfirmationRejectedException;
-use Fight\AccessControl\Domain\AccessControl\PasswordResetGrant\Exception\PasswordResetRejectedException;
 use Fight\AccessControl\Domain\AccessControl\PasswordResetGrant\PasswordResetGrant;
-use Fight\AccessControl\Domain\AccessControl\RefreshSession\Exception\RefreshSessionNotFoundException;
 use Fight\AccessControl\Domain\AccessControl\RefreshSession\RefreshCredential;
 use Fight\AccessControl\Domain\AccessControl\RefreshSession\RefreshSession;
 use Fight\AccessControl\Domain\AccessControl\User\Event\EmailChangeConfirmed;
@@ -30,10 +27,11 @@ use Fight\AccessControl\Domain\AccessControl\User\Event\PasswordChanged;
 use Fight\AccessControl\Domain\AccessControl\User\Event\PasswordResetCompleted;
 use Fight\AccessControl\Domain\AccessControl\User\Event\UserActivated;
 use Fight\AccessControl\Domain\AccessControl\User\Event\UserLoggedIn;
-use Fight\AccessControl\Domain\AccessControl\User\Exception\PasswordChangeRejectedException;
 use Fight\AccessControl\Domain\AccessControl\User\PasswordHash;
 use Fight\AccessControl\Domain\AccessControl\User\User;
 use Fight\AccessControl\Domain\AccessControl\User\UserId;
+use Fight\Common\Application\Error\Exception\AuthenticationRequired as EmailChangeConfirmationRejectedException;
+use Fight\Common\Application\Error\Exception\AuthenticationRequired as RefreshSessionNotFoundException;
 use Fight\Common\Domain\Exception\DomainException;
 use Fight\Common\Domain\Value\Internet\EmailAddress;
 use Fight\Test\AccessControl\Application\AccessControl\Audit\Repository\InMemoryAuditEvidenceRepository;
@@ -63,10 +61,8 @@ use RuntimeException;
 #[CoversClass(EmailChangeGrant::class)]
 #[CoversClass(PasswordHash::class)]
 #[CoversClass(PasswordChanged::class)]
-#[CoversClass(PasswordChangeRejectedException::class)]
 #[CoversClass(PasswordResetCompleted::class)]
 #[CoversClass(PasswordResetGrant::class)]
-#[CoversClass(PasswordResetRejectedException::class)]
 #[CoversClass(RefreshCredential::class)]
 #[CoversClass(RefreshSession::class)]
 #[CoversClass(TokenSet::class)]
@@ -330,7 +326,7 @@ final class EmailChangeConfirmationTest extends TestCase
 
         $eventDispatcher = new InMemoryEventDispatcher();
 
-        $this->expectException(EmailChangeConfirmationRejectedException::class);
+        $this->expectException(RuntimeException::class);
         try {
             $this->emailChangeConfirmation(
                 userRepository: $userRepository,
@@ -371,7 +367,7 @@ final class EmailChangeConfirmationTest extends TestCase
         $auditEvidenceRepository = new InMemoryAuditEvidenceRepository($unitOfWork, failAfterSave: true);
         $eventDispatcher = new InMemoryEventDispatcher();
 
-        $this->expectException(EmailChangeConfirmationRejectedException::class);
+        $this->expectException(RuntimeException::class);
         try {
             $this->emailChangeConfirmation(
                 userRepository: $userRepository,

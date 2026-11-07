@@ -6,6 +6,20 @@ Fight AccessControl owns framework-neutral identity, credential, session, author
 behavior shared by Fight applications. The repository-local behavioral and security authority is
 [TICKET-00001](planning/tickets/00001-TICKET.md).
 
+## TASK-00139 synchronous User/session contracts — Work checkpoint
+
+The seven direct sensitive operations and secret-free `RevokeSession` Command now distinguish deliberate Common
+Application refusals/conflicts from broken repository promises and unexpected faults. Actual narrow capability
+homes, exact token/conflict/void results, known local UoW annotations and transaction/audit/authority/recovery fences
+remain. Refresh bounded conflict does not revoke; terminal replay commits its safety mutation before outward refusal.
+See [current composition and failure contracts](docs/user-authentication.md#explicit-failure-and-adapter-contracts-unreleased).
+
+Canonical `.runs/handoffs/TASK-00139/work.md` owns exhaustive member/callback/caller dispositions, regression-first
+chronology, minimum/ordinary routing/static/full-gate proof and runtime/content/dependency identity. Independent
+Review and nonvisual QA remain required; TASK-00139 stays in-progress and unfinished children keep its parents open.
+No optional-audit feature, Common/consumer/provider change, generic dispatch qualification, publication, merge,
+release, deployment or actual consumer storage/crypto/transport qualification is claimed.
+
 ## TASK-00135 preparation and policy preview — accepted checkpoint
 
 Independent Review v3 ACCEPT and nonvisual QA PASS cover candidate

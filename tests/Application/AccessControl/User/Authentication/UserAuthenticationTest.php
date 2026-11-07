@@ -19,7 +19,6 @@ use Fight\AccessControl\Application\AccessControl\User\Security\TokenSet;
 use Fight\AccessControl\Domain\AccessControl\ActivationGrant\ActivationGrant;
 use Fight\AccessControl\Domain\AccessControl\Audit\AuditEvidence;
 use Fight\AccessControl\Domain\AccessControl\EmailChangeGrant\EmailChangeGrant;
-use Fight\AccessControl\Domain\AccessControl\PasswordResetGrant\Exception\PasswordResetRejectedException;
 use Fight\AccessControl\Domain\AccessControl\PasswordResetGrant\PasswordResetCredential;
 use Fight\AccessControl\Domain\AccessControl\PasswordResetGrant\PasswordResetGrant;
 use Fight\AccessControl\Domain\AccessControl\RefreshSession\RefreshCredential;
@@ -32,7 +31,6 @@ use Fight\AccessControl\Domain\AccessControl\User\Event\PasswordResetCompleted;
 use Fight\AccessControl\Domain\AccessControl\User\Event\RedactedCommandFailed;
 use Fight\AccessControl\Domain\AccessControl\User\Event\UserActivated;
 use Fight\AccessControl\Domain\AccessControl\User\Event\UserLoggedIn;
-use Fight\AccessControl\Domain\AccessControl\User\Exception\LoginRejectedException;
 use Fight\AccessControl\Domain\AccessControl\User\Exception\PasswordChangeRejectedException;
 use Fight\AccessControl\Domain\AccessControl\User\PasswordHash;
 use Fight\AccessControl\Domain\AccessControl\User\User;
@@ -40,6 +38,9 @@ use Fight\AccessControl\Domain\AccessControl\User\UserId;
 use Fight\AccessControl\Domain\AccessControl\User\UserRepository;
 use Fight\AccessControl\Domain\AccessControl\User\UserState;
 use Fight\Common\Application\Auth\Security\PasswordValidator;
+use Fight\Common\Application\Error\Exception\AuthenticationRequired as PasswordResetRejectedException;
+use Fight\Common\Application\Error\Exception\AuthenticationRequired as LoginRejectedException;
+use Fight\Common\Application\Error\Exception\StateConflict;
 use Fight\Common\Domain\Exception\DomainException;
 use Fight\Common\Domain\Repository\Pagination;
 use Fight\Common\Domain\Repository\ResultSet;
@@ -57,7 +58,6 @@ use Fight\Test\AccessControl\Application\AccessControl\User\Repository\InMemoryU
 use Fight\Test\AccessControl\Application\AccessControl\User\Security\RecordingTokenEncoder;
 use Fight\Test\AccessControl\Application\AccessControl\User\Security\TestPasswordSecurity;
 use Fight\Test\AccessControl\Application\AccessControl\User\Service\FixedLoginThrottle;
-use LogicException;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
@@ -81,7 +81,6 @@ use RuntimeException;
 #[CoversClass(PasswordChangeRejectedException::class)]
 #[CoversClass(PasswordResetCompleted::class)]
 #[CoversClass(PasswordResetGrant::class)]
-#[CoversClass(PasswordResetRejectedException::class)]
 #[CoversClass(RefreshCredential::class)]
 #[CoversClass(RefreshSession::class)]
 #[CoversClass(TokenSet::class)]
@@ -176,7 +175,7 @@ final class UserAuthenticationTest extends TestCase
             eventDispatcher: $eventDispatcher
         );
 
-        $this->expectException(LogicException::class);
+        $this->expectException(LoginRejectedException::class);
         try {
             $service->activate($user->getId(), 'wrong-credential', 'a sufficiently long initial password');
         } finally {
@@ -232,8 +231,8 @@ final class UserAuthenticationTest extends TestCase
                 'a sufficiently long initial password'
             );
             self::fail('Expected concurrent activation authority to be rejected.');
-        } catch (LogicException $logicException) {
-            self::assertSame('The invited account changed concurrently.', $logicException->getMessage());
+        } catch (StateConflict $stateConflict) {
+            self::assertSame('The invited account changed concurrently.', $stateConflict->getMessage());
         }
 
         self::assertSame($user, $userRepository->getById($user->getId()));
@@ -272,7 +271,7 @@ final class UserAuthenticationTest extends TestCase
             eventDispatcher: $eventDispatcher
         );
 
-        $this->expectException(LogicException::class);
+        $this->expectException(StateConflict::class);
         try {
             $service->activate(
                 $user->getId(),
