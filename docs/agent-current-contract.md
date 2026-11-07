@@ -87,6 +87,16 @@ Agent authentication/admin/recovery/Tool suites and the generated-schema tests. 
 [type-contract gate](type-contracts.md) also checks exact collection/payload/callback/nullability/subtype inference and
 rejects incompatible callers. These checks qualify this package contract only, not consumer storage/crypto/runtime.
 
+## Application administration outcomes (unreleased)
+
+TASK-00141's Engineer candidate corrects the four void administration handlers and internal Permission-assignment
+coordinator. [Administration contracts](agent-administration-contracts.md) specify deliberate Common Application
+absence/input/rule/precondition/conflict outcomes, internal identity/snapshot faults, exact current Domain exception
+subtypes and consumer adapter/catch obligations. Known local callback results retain native mixed UoW with matching
+nullable-Event annotations. Entry authorization remains consumer-owned and distinct from ADMIN_SAFE membership
+eligibility; current no-op, complete-set/revision/reference/cohort and commit/publication fences remain unchanged.
+Independent Review/nonvisual QA are pending; generic bus, optional-audit and consumer qualification are separate.
+
 ## Retained safety, not historical support
 
 Current-contract authentication/nonce fencing, caller and target authorization, transaction rollback, uncertain-commit

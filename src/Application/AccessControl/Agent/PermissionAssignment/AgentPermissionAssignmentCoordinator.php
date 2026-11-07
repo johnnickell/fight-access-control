@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Fight\AccessControl\Application\AccessControl\Agent\PermissionAssignment;
 
-use Fight\AccessControl\Application\AccessControl\Authorization\Service\ExactPermissionResolutionException;
 use Fight\AccessControl\Application\AccessControl\Authorization\Service\ExactPermissionResolver;
 use Fight\AccessControl\Application\AccessControl\Timing\Service\Clock;
 use Fight\AccessControl\Domain\AccessControl\Agent\Agent;
@@ -14,12 +13,18 @@ use Fight\AccessControl\Domain\AccessControl\Agent\Event\AgentPermissionsReplace
 use Fight\AccessControl\Domain\AccessControl\Agent\Event\PermissionGrantedToAgent;
 use Fight\AccessControl\Domain\AccessControl\Agent\Event\PermissionRevokedFromAgent;
 use Fight\AccessControl\Domain\AccessControl\Agent\Exception\AgentPermissionAssignmentException;
+use Fight\AccessControl\Domain\AccessControl\Agent\Exception\AgentPermissionRevisionMismatchException;
 use Fight\AccessControl\Domain\AccessControl\Permission\Permission;
 use Fight\AccessControl\Domain\AccessControl\Permission\PermissionId;
 use Fight\AccessControl\Domain\AccessControl\Permission\PermissionRepository;
 use Fight\AccessControl\Domain\AccessControl\Permission\PermissionTier;
 use Fight\AccessControl\Domain\AccessControl\User\UserId;
+use Fight\Common\Application\Error\Exception\PreconditionFailed;
+use Fight\Common\Application\Error\Exception\ResourceNotFound;
+use Fight\Common\Application\Error\Exception\RuleViolation;
+use Fight\Common\Application\Error\Exception\StateConflict;
 use Fight\Common\Application\Repository\TransactionalUnitOfWork;
+use LogicException;
 
 /**
  * Class AgentPermissionAssignmentCoordinator
@@ -32,8 +37,6 @@ final readonly class AgentPermissionAssignmentCoordinator
 {
     /**
      * Constructs AgentPermissionAssignmentCoordinator
-     *
-     * Creates the direct Agent Permission-assignment coordinator.
      */
     public function __construct(
         private AgentRepository $agentRepository,
@@ -48,20 +51,17 @@ final readonly class AgentPermissionAssignmentCoordinator
      */
     public function grant(UserId $actorId, AgentId $agentId, PermissionId $permissionId): ?PermissionGrantedToAgent
     {
-        return $this->unitOfWork->commitTransactional(
+        /** @var PermissionGrantedToAgent|null $event */
+        $event = $this->unitOfWork->commitTransactional(
             function () use ($actorId, $agentId, $permissionId): ?PermissionGrantedToAgent {
                 $agent = $this->getAgent($agentId);
-                $permission = $this->permissionRepository->getById($permissionId);
-                if (!$permission instanceof Permission || !$permission->getId()->equals($permissionId)) {
-                    throw new AgentPermissionAssignmentException('The Permission does not exist.');
-                }
-
+                $permission = $this->getPermission($permissionId);
                 if ($permission->getTier() !== PermissionTier::ADMIN_SAFE) {
-                    throw new AgentPermissionAssignmentException('The Permission is not eligible for an Agent.');
+                    throw new RuleViolation('The Permission is not eligible for an Agent.');
                 }
 
                 if (!$this->agentRepository->validatePermissionAssignments([$permission])) {
-                    throw new AgentPermissionAssignmentException('The authoritative Permission changed concurrently.');
+                    throw new StateConflict('The authoritative Permission changed concurrently.');
                 }
 
                 if ($agent->hasPermission($permissionId)) {
@@ -69,12 +69,22 @@ final readonly class AgentPermissionAssignmentCoordinator
                 }
 
                 $grantedAt = $this->clock->now();
-                $replacement = $agent->grantPermission($permissionId, $grantedAt);
+                try {
+                    $replacement = $agent->grantPermission($permissionId, $grantedAt);
+                } catch (AgentPermissionAssignmentException $agentPermissionAssignmentException) {
+                    throw new RuleViolation(
+                        'The Agent assignment cannot change.',
+                        previous: $agentPermissionAssignmentException
+                    );
+                }
+
                 $this->persistReplacement($agent, $replacement);
 
                 return new PermissionGrantedToAgent($actorId, $agentId, $permissionId, $grantedAt);
             }
         );
+
+        return $event;
     }
 
     /**
@@ -82,21 +92,32 @@ final readonly class AgentPermissionAssignmentCoordinator
      */
     public function revoke(UserId $actorId, AgentId $agentId, PermissionId $permissionId): ?PermissionRevokedFromAgent
     {
-        return $this->unitOfWork->commitTransactional(
+        /** @var PermissionRevokedFromAgent|null $event */
+        $event = $this->unitOfWork->commitTransactional(
             function () use ($actorId, $agentId, $permissionId): ?PermissionRevokedFromAgent {
                 $agent = $this->getAgent($agentId);
-                $this->assertPermissionExists($permissionId);
+                $this->getPermission($permissionId);
                 if (!$agent->hasPermission($permissionId)) {
                     return null;
                 }
 
                 $revokedAt = $this->clock->now();
-                $replacement = $agent->revokePermission($permissionId, $revokedAt);
+                try {
+                    $replacement = $agent->revokePermission($permissionId, $revokedAt);
+                } catch (AgentPermissionAssignmentException $agentPermissionAssignmentException) {
+                    throw new RuleViolation(
+                        'The Agent assignment cannot change.',
+                        previous: $agentPermissionAssignmentException
+                    );
+                }
+
                 $this->persistReplacement($agent, $replacement);
 
                 return new PermissionRevokedFromAgent($actorId, $agentId, $permissionId, $revokedAt);
             }
         );
+
+        return $event;
     }
 
     /**
@@ -110,7 +131,8 @@ final readonly class AgentPermissionAssignmentCoordinator
         int $expectedPermissionAssignmentRevision,
         array $permissionIds
     ): ?AgentPermissionsReplaced {
-        return $this->unitOfWork->commitTransactional(
+        /** @var AgentPermissionsReplaced|null $event */
+        $event = $this->unitOfWork->commitTransactional(
             function () use (
                 $actorId,
                 $agentId,
@@ -121,11 +143,18 @@ final readonly class AgentPermissionAssignmentCoordinator
                 $normalizedPermissionIds = $this->normalizePermissionIds($permissionIds);
                 $this->assertPermissionsAreEligible($normalizedPermissionIds);
                 $replacedAt = $this->clock->now();
-                $replacement = $agent->replacePermissions(
-                    $normalizedPermissionIds,
-                    $expectedPermissionAssignmentRevision,
-                    $replacedAt
-                );
+                try {
+                    $replacement = $agent->replacePermissions(
+                        $normalizedPermissionIds,
+                        $expectedPermissionAssignmentRevision,
+                        $replacedAt
+                    );
+                } catch (AgentPermissionRevisionMismatchException $exception) {
+                    throw new PreconditionFailed('The Agent assignment revision is stale.', previous: $exception);
+                } catch (AgentPermissionAssignmentException $exception) {
+                    throw new RuleViolation('The Agent assignment cannot change.', previous: $exception);
+                }
+
                 if ($replacement === $agent) {
                     return null;
                 }
@@ -141,31 +170,43 @@ final readonly class AgentPermissionAssignmentCoordinator
                 );
             }
         );
+
+        return $event;
     }
 
     /**
-     * Returns the target Agent
+     * Returns the exact target Agent after cohort admission
      */
     private function getAgent(AgentId $agentId): Agent
     {
         $this->agentRepository->getOperationContract()->assertCompatible();
         $agent = $this->agentRepository->getById($agentId);
-        if (!$agent instanceof Agent) {
-            throw new AgentPermissionAssignmentException('The Agent does not exist.');
+        if ($agent === null) {
+            throw new ResourceNotFound('The Agent does not exist.');
+        }
+
+        if (!$agent->getId()->equals($agentId)) {
+            throw new LogicException('The Agent repository returned an unrelated identity.');
         }
 
         return $agent;
     }
 
     /**
-     * Validates one authoritative Permission reference
+     * Returns one exact authoritative Permission reference
      */
-    private function assertPermissionExists(PermissionId $permissionId): void
+    private function getPermission(PermissionId $permissionId): Permission
     {
         $permission = $this->permissionRepository->getById($permissionId);
-        if (!$permission instanceof Permission || !$permission->getId()->equals($permissionId)) {
-            throw new AgentPermissionAssignmentException('The Permission does not exist.');
+        if ($permission === null) {
+            throw new ResourceNotFound('The Permission does not exist.');
         }
+
+        if (!$permission->getId()->equals($permissionId)) {
+            throw new LogicException('The Permission repository returned an unrelated identity.');
+        }
+
+        return $permission;
     }
 
     /**
@@ -175,22 +216,20 @@ final readonly class AgentPermissionAssignmentCoordinator
      */
     private function assertPermissionsAreEligible(array $permissionIds): void
     {
-        try {
-            $permissions = new ExactPermissionResolver($this->permissionRepository)->resolveDefinitions($permissionIds);
-        } catch (ExactPermissionResolutionException) {
-            throw new AgentPermissionAssignmentException(
-                'The complete Agent Permission assignment set is not authoritative.'
-            );
+        // Explicit lookups distinguish genuine absence from a broken bulk snapshot contract.
+        foreach ($permissionIds as $permissionId) {
+            $this->getPermission($permissionId);
         }
 
+        $permissions = new ExactPermissionResolver($this->permissionRepository)->resolveDefinitions($permissionIds);
         foreach ($permissions as $permission) {
             if ($permission->getTier() !== PermissionTier::ADMIN_SAFE) {
-                throw new AgentPermissionAssignmentException('The Permission is not eligible for an Agent.');
+                throw new RuleViolation('The Permission is not eligible for an Agent.');
             }
         }
 
         if (!$this->agentRepository->validatePermissionAssignments($permissions)) {
-            throw new AgentPermissionAssignmentException('The authoritative Permissions changed concurrently.');
+            throw new StateConflict('The authoritative Permissions changed concurrently.');
         }
     }
 
@@ -198,8 +237,7 @@ final readonly class AgentPermissionAssignmentCoordinator
      * Normalizes supplied Permission identities to their first-occurring set order
      *
      * @phpstan-param list<PermissionId> $permissionIds
-     *
-     * @return list<PermissionId>
+     * @phpstan-return list<PermissionId>
      */
     private function normalizePermissionIds(array $permissionIds): array
     {
@@ -224,7 +262,7 @@ final readonly class AgentPermissionAssignmentCoordinator
     private function persistReplacement(Agent $agent, Agent $replacement): void
     {
         if (!$this->agentRepository->replacePermissionAssignments($agent, $replacement)) {
-            throw new AgentPermissionAssignmentException(
+            throw new StateConflict(
                 'The Agent Permission assignments or authoritative Permissions changed concurrently.'
             );
         }

@@ -6,8 +6,10 @@ namespace Fight\AccessControl\Domain\AccessControl\Agent;
 
 use DateTimeImmutable;
 use Fight\AccessControl\Domain\AccessControl\Agent\Exception\AgentCredentialException;
+use Fight\AccessControl\Domain\AccessControl\Agent\Exception\AgentNameUpdateConflictException;
 use Fight\AccessControl\Domain\AccessControl\Agent\Exception\AgentPermissionAssignmentException;
-use Fight\AccessControl\Domain\AccessControl\Agent\Exception\AgentUpdateException;
+use Fight\AccessControl\Domain\AccessControl\Agent\Exception\AgentPermissionRevisionMismatchException;
+use Fight\AccessControl\Domain\AccessControl\Agent\Exception\AgentUnavailableException;
 use Fight\AccessControl\Domain\AccessControl\Permission\PermissionId;
 use SensitiveParameter;
 
@@ -202,7 +204,7 @@ class Agent
     public function rename(AgentName $name, DateTimeImmutable $renamedAt): static
     {
         if ($this->state !== AgentState::ACTIVE) {
-            throw new AgentUpdateException('The Agent is unavailable for a name update.');
+            throw new AgentUnavailableException('The Agent is unavailable for a name update.');
         }
 
         if ($this->name->equals($name)) {
@@ -210,7 +212,7 @@ class Agent
         }
 
         if ($renamedAt < $this->updatedAt) {
-            throw new AgentUpdateException('The Agent name update time is stale.');
+            throw new AgentNameUpdateConflictException('The Agent name update time is stale.');
         }
 
         return new static(
@@ -289,7 +291,7 @@ class Agent
         $replacementIds = self::normalizePermissionIds($permissionIds);
 
         if ($expectedPermissionAssignmentRevision !== $this->permissionAssignmentRevision) {
-            throw new AgentPermissionAssignmentException('The Agent Permission assignment revision is stale.');
+            throw new AgentPermissionRevisionMismatchException('The Agent Permission assignment revision is stale.');
         }
 
         if (

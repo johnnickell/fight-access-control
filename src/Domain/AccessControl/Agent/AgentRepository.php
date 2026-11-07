@@ -69,7 +69,10 @@ interface AgentRepository extends AgentOperationContractRepository
      * now exactly once and apply Agent::rename(name, now()). The callback supplies trusted current time only; do not
      * invoke it before admission or reuse a timestamp sampled before waiting for the fence. Return the exact persisted
      * updatedAt for a real change, or null only for an unchanged normalized name on a still ACTIVE target.
-     * Missing/inactive targets throw AgentUpdateException; missing/inconsistent correlation or unsupported transaction
+     * Missing/inactive targets throw AgentUnavailableException.
+     * Backdated changes throw AgentNameUpdateConflictException.
+     * Repository implementations must reject unrelated returned identities as internal faults before mutation or no-op.
+     * Missing/inconsistent correlation or unsupported transaction
      * participation throws sanitized AgentOperationRejectedException. Never return null
      * for missing, inactive or unavailable authority. Storage failures throw and abort the enclosing transaction.
      *

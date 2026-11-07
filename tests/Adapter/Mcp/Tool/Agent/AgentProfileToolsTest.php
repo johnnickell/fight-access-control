@@ -19,7 +19,9 @@ use Fight\AccessControl\Domain\AccessControl\Agent\Query\AgentProfileView;
 use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\AgentOperationFailure;
 use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\Exception\AgentOperationRejectedException;
 use Fight\AccessControl\Domain\AccessControl\Permission\PermissionName;
+use Fight\Common\Application\Error\Exception\InvalidInput;
 use Fight\Common\Application\Error\Exception\ResourceNotFound;
+use Fight\Common\Application\Error\Exception\StateConflict;
 use Fight\Common\Application\Mcp\McpCapabilityRegistry;
 use Fight\Common\Application\Mcp\McpProgressReporter;
 use Fight\Common\Application\Mcp\McpProtocolException;
@@ -328,7 +330,8 @@ final class AgentProfileToolsTest extends TestCase
         $map = AgentProfileToolFailures::create();
         $failures = [
             new AgentNameException('private'),
-            new AgentUpdateException('private'),
+            new InvalidInput('private'),
+            new StateConflict('private'),
             new ResourceNotFound('private'),
             new AgentOperationRejectedException(AgentOperationFailure::CONFLICT)
         ];
@@ -343,6 +346,7 @@ final class AgentProfileToolsTest extends TestCase
             $map->messageFor(new AgentOperationRejectedException(AgentOperationFailure::CONFLICT))
         );
         self::assertNull($map->messageFor(new RuntimeException('private')));
+        self::assertNull($map->messageFor(new AgentUpdateException('private')));
     }
 
     /** @return array<string, mixed> */

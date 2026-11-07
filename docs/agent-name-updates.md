@@ -66,8 +66,11 @@ This is a mandatory name-intent capability, not a generic whole-Agent update. In
 2. Hold the current Agent/credential fence shared with lifecycle and Permission writers. Validate exactly one current
    persisted operation correlation; missing, ambiguous or inconsistent correlation fails closed. Do not load keys,
    invoke a sink, create issuance, retire a credential or apply new-operation capacity limits.
-3. Load authoritative current Agent state **under that fence**. Missing/inactive targets throw `AgentUpdateException`;
-   missing correlation or unsupported participation throws sanitized `AgentOperationRejectedException`. After current
+3. Load the exact requested Agent state **under that fence**; unrelated identities are internal faults.
+   Missing/inactive targets throw `AgentUnavailableException`; backdated changes throw `AgentNameUpdateConflictException`.
+   These Domain subtypes are translated by Application to deliberate absence/state conflict respectively; see
+   [administration contracts](agent-administration-contracts.md). Missing correlation or unsupported participation
+   throws sanitized `AgentOperationRejectedException`. After current
    state/correlation validation, invoke `$now()` exactly once and apply `Agent::rename($name, $now())` with that sample.
    The callback supplies only trusted current time; the handler passes `$clock->now(...)`, not a captured timestamp.
    Never sample before waiting for writer admission, retain the callback or invoke it outside this transaction.
