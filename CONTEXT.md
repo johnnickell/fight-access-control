@@ -6,6 +6,22 @@ Fight AccessControl owns framework-neutral identity, credential, session, author
 behavior shared by Fight applications. The repository-local behavioral and security authority is
 [TICKET-00001](planning/tickets/00001-TICKET.md).
 
+## TASK-00142 Feature and policy mutation — Work checkpoint
+
+The six Feature/policy Commands now distinguish deliberate Common Application absence, explicit revision
+preconditions, current-reference rule refusal and final state/reference conflict from wrong lookup identities and
+unknown faults. [Current management contracts](docs/feature-management.md#mutation-contracts-unreleased) preserve
+void handling, complete-empty discovery, lazy defaults, fresh Boolean restriction-only availability and existing
+primary/uncertain/post-commit publication truth. One unchanged shared planner supplies preview and transaction-time
+apply; unchanged managed definitions now also pass final nonwriting state/reference fences. Optional audit,
+generic dispatch/Event typing and actual consumer scanner/database qualification remain separate.
+
+Canonical `.runs/handoffs/TASK-00142/work.md` owns exhaustive declaration/member/callback/caller dispositions,
+regression chronology, dependency lanes, real routing/safe errors, static/full-gate/exact-coverage and retained
+runtime evidence for the implementation candidate. Independent Review and nonvisual QA remain required;
+TASK-00142 stays in-progress and unfinished children keep TICKET-00040/EPIC-00016 open. No sibling or whole-library
+acceptance, publication, merge, release or deployment is claimed.
+
 ## TASK-00140 Role and User membership — accepted checkpoint
 
 Independent Review v3 ACCEPT and nonvisual QA PASS cover clean candidate

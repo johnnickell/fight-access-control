@@ -13,8 +13,6 @@ use Fight\AccessControl\Application\AccessControl\Feature\QueryHandler\ListFeatu
 use Fight\AccessControl\Domain\AccessControl\Feature\Command\CreateFeature;
 use Fight\AccessControl\Domain\AccessControl\Feature\Command\SetFeaturePermission;
 use Fight\AccessControl\Domain\AccessControl\Feature\Command\SetFeatureStatus;
-use Fight\AccessControl\Domain\AccessControl\Feature\Exception\FeatureReferenceException;
-use Fight\AccessControl\Domain\AccessControl\Feature\Exception\FeatureRevisionException;
 use Fight\AccessControl\Domain\AccessControl\Feature\Feature;
 use Fight\AccessControl\Domain\AccessControl\Feature\FeatureName;
 use Fight\AccessControl\Domain\AccessControl\Feature\FeatureStatus;
@@ -23,6 +21,8 @@ use Fight\AccessControl\Domain\AccessControl\Feature\Query\ListFeatures;
 use Fight\AccessControl\Domain\AccessControl\Permission\Permission;
 use Fight\AccessControl\Domain\AccessControl\Permission\PermissionId;
 use Fight\AccessControl\Domain\AccessControl\Permission\PermissionName;
+use Fight\Common\Application\Error\Exception\PreconditionFailed;
+use Fight\Common\Application\Error\Exception\ResourceNotFound;
 use Fight\Common\Domain\Messaging\Command\CommandMessage;
 use Fight\Common\Domain\Messaging\Query\QueryMessage;
 use Fight\Common\Domain\Repository\Pagination;
@@ -63,7 +63,7 @@ abstract class FeatureManagementConformance extends TestCase
                 new SetFeatureStatus($stored->getId(), FeatureStatus::ON, 1)
             ));
             self::fail('Cross-field stale edit must reject.');
-        } catch (FeatureRevisionException) {
+        } catch (PreconditionFailed) {
             self::assertSame(2, $featureRepository->getById($stored->getId())?->getRevision());
         }
 
@@ -113,7 +113,7 @@ abstract class FeatureManagementConformance extends TestCase
                 $environment->events()
             )->handle(CommandMessage::create(new SetFeaturePermission($stored->getId(), $second->getId(), 1)));
             self::fail('Removal of the target must prevent rebinding.');
-        } catch (FeatureReferenceException) {
+        } catch (ResourceNotFound) {
             self::assertSame($first->getId(), $featureRepository->getById($stored->getId())?->getPermissionId());
             self::assertSame(1, $featureRepository->getById($stored->getId())->getRevision());
             self::assertFalse($environment->removePermission($first));

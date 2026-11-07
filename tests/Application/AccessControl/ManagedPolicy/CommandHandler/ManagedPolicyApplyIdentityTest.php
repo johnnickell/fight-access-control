@@ -35,18 +35,23 @@ use UnexpectedValueException;
 #[CoversClass(ReconcileManagedPolicyHandler::class)]
 final class ManagedPolicyApplyIdentityTest extends TestCase
 {
-    /** @return iterable<string, array{bool, bool}> */
+    /** @return iterable<string, array{bool, bool, bool}> */
     public static function actions(): iterable
     {
-        yield 'reconcile-permission' => [false, false];
-        yield 'remove-permission' => [false, true];
-        yield 'reconcile-role' => [true, false];
-        yield 'remove-role' => [true, true];
+        yield 'reconcile-permission' => [false, false, false];
+        yield 'remove-permission' => [false, true, false];
+        yield 'reconcile-role' => [true, false, false];
+        yield 'remove-role' => [true, true, false];
+        yield 'remove-custom-permission' => [false, true, true];
+        yield 'remove-custom-role' => [true, true, true];
     }
 
     #[DataProvider('actions')]
-    public function test_apply_rejects_wrong_identity_after_planning(bool $isRole, bool $remove): void
-    {
+    public function test_apply_rejects_wrong_identity_or_ownership_after_planning(
+        bool $isRole,
+        bool $remove,
+        bool $custom
+    ): void {
         $now = new DateTimeImmutable('2026-01-01');
         $permission = Permission::defineManaged(
             PermissionId::generate(),
@@ -62,6 +67,11 @@ final class ManagedPolicyApplyIdentityTest extends TestCase
         );
         $role = Role::defineManaged(RoleId::generate(), RoleName::fromString('ROLE_READER'), [], $now);
         $wrongRole = Role::defineManaged(RoleId::generate(), RoleName::fromString('ROLE_OTHER'), [], $now);
+        if ($custom) {
+            $wrongPermission = Permission::define($permission->getId(), $permission->getName(), $now);
+            $wrongRole = Role::define($role->getId(), $role->getName(), [], $now);
+        }
+
         $permissions = $this->createMock(PermissionRepository::class);
         $roles = $this->createMock(RoleRepository::class);
         foreach ([$permissions, $roles] as $repository) {

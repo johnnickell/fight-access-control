@@ -34,6 +34,7 @@ use Fight\AccessControl\Domain\AccessControl\Role\RoleId;
 use Fight\AccessControl\Domain\AccessControl\Role\RoleName;
 use Fight\AccessControl\Domain\AccessControl\User\UserId;
 use Fight\Common\Application\Error\Exception\RuleViolation;
+use Fight\Common\Application\Error\Exception\StateConflict;
 use Fight\Common\Domain\Messaging\Command\CommandMessage;
 use Fight\Common\Domain\Messaging\Event\CommandFailedEvent;
 use Fight\Common\Domain\Messaging\Query\QueryMessage;
@@ -45,7 +46,6 @@ use Fight\Test\AccessControl\Application\AccessControl\Timing\Service\FixedClock
 use Fight\Test\AccessControl\Application\AccessControl\User\InMemoryUnitOfWork;
 use Fight\Test\AccessControl\Application\AccessControl\User\Repository\InMemoryUserRepository;
 use Fight\Test\AccessControl\Domain\AccessControl\Role\ImpersonatingRole;
-use LogicException;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
 
@@ -391,7 +391,7 @@ final class ProtectedManagedPolicyTest extends TestCase
             try {
                 $handler->handle(CommandMessage::create(new ReconcileManagedPolicy($policy)));
                 self::fail('A stale promotion must not overwrite a later grant.');
-            } catch (LogicException $failure) {
+            } catch (StateConflict $failure) {
                 self::assertSame('Managed permission changed after preflight.', $failure->getMessage());
             }
 

@@ -6,16 +6,18 @@ namespace Fight\AccessControl\Application\AccessControl\Feature\CommandHandler;
 
 use Fight\AccessControl\Domain\AccessControl\Feature\Command\SetFeatureStatus;
 use Fight\AccessControl\Domain\AccessControl\Feature\Event\FeatureStatusChanged;
-use Fight\AccessControl\Domain\AccessControl\Feature\Exception\FeatureNotFoundException;
-use Fight\AccessControl\Domain\AccessControl\Feature\Exception\FeatureRevisionException;
-use Fight\AccessControl\Domain\AccessControl\Feature\Feature;
+use Fight\AccessControl\Domain\AccessControl\Feature\Exception\FeatureReferenceException;
 use Fight\AccessControl\Domain\AccessControl\Feature\FeatureRepository;
+use Fight\Common\Application\Error\Exception\PreconditionFailed;
+use Fight\Common\Application\Error\Exception\ResourceNotFound;
+use Fight\Common\Application\Error\Exception\StateConflict;
 use Fight\Common\Application\Messaging\Command\CommandHandler;
 use Fight\Common\Application\Messaging\Event\EventDispatcher;
 use Fight\Common\Application\Repository\TransactionalUnitOfWork;
 use Fight\Common\Domain\Messaging\Command\CommandMessage;
 use Fight\Common\Domain\Messaging\Event\CommandFailedEvent;
 use Throwable;
+use UnexpectedValueException;
 
 /**
  * Class SetFeatureStatusHandler
@@ -50,19 +52,31 @@ final readonly class SetFeatureStatusHandler implements CommandHandler
         /** @var SetFeatureStatus $command */
         $command = $commandMessage->payload();
         try {
+            /** @var FeatureStatusChanged|null $event */
             $event = $this->unitOfWork->commitTransactional(function () use ($command): ?FeatureStatusChanged {
                 $feature = $this->featureRepository->getById($command->getFeatureId());
-                if (!$feature instanceof Feature) {
-                    throw new FeatureNotFoundException('The Feature does not exist.');
+                if ($feature === null) {
+                    throw new ResourceNotFound('The Feature does not exist.');
+                }
+
+                if (!$feature->getId()->equals($command->getFeatureId())) {
+                    throw new UnexpectedValueException('Feature lookup returned a different identity.');
                 }
 
                 if ($feature->getRevision() !== $command->getExpectedRevision()) {
-                    throw new FeatureRevisionException('The Feature changed concurrently.');
+                    throw new PreconditionFailed('The expected Feature revision does not match.');
                 }
 
                 $successor = $feature->withStatus($command->getStatus());
-                if (!$this->featureRepository->replace($feature, $successor)) {
-                    throw new FeatureRevisionException('The Feature changed concurrently.');
+                try {
+                    if (!$this->featureRepository->replace($feature, $successor)) {
+                        throw new StateConflict('The Feature changed concurrently.');
+                    }
+                } catch (FeatureReferenceException $featureReferenceException) {
+                    throw new StateConflict(
+                        'The Feature Permission changed concurrently.',
+                        previous: $featureReferenceException
+                    );
                 }
 
                 if ($successor === $feature) {
@@ -71,7 +85,7 @@ final readonly class SetFeatureStatusHandler implements CommandHandler
 
                 return new FeatureStatusChanged($feature->getId(), $successor->getStatus(), $successor->getRevision());
             });
-            if ($event instanceof FeatureStatusChanged) {
+            if ($event !== null) {
                 $this->eventDispatcher->trigger($event);
             }
         } catch (Throwable $throwable) {

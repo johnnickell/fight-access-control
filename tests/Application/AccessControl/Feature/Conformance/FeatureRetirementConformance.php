@@ -11,9 +11,6 @@ use Fight\AccessControl\Application\AccessControl\Feature\CommandHandler\SetFeat
 use Fight\AccessControl\Domain\AccessControl\Feature\Command\CreateFeature;
 use Fight\AccessControl\Domain\AccessControl\Feature\Command\RemoveFeature;
 use Fight\AccessControl\Domain\AccessControl\Feature\Command\SetFeatureStatus;
-use Fight\AccessControl\Domain\AccessControl\Feature\Exception\FeatureNotFoundException;
-use Fight\AccessControl\Domain\AccessControl\Feature\Exception\FeatureReferenceException;
-use Fight\AccessControl\Domain\AccessControl\Feature\Exception\FeatureRevisionException;
 use Fight\AccessControl\Domain\AccessControl\Feature\Feature;
 use Fight\AccessControl\Domain\AccessControl\Feature\FeatureId;
 use Fight\AccessControl\Domain\AccessControl\Feature\FeatureName;
@@ -21,6 +18,9 @@ use Fight\AccessControl\Domain\AccessControl\Feature\FeatureStatus;
 use Fight\AccessControl\Domain\AccessControl\Permission\Permission;
 use Fight\AccessControl\Domain\AccessControl\Permission\PermissionId;
 use Fight\AccessControl\Domain\AccessControl\Permission\PermissionName;
+use Fight\Common\Application\Error\Exception\PreconditionFailed;
+use Fight\Common\Application\Error\Exception\ResourceNotFound;
+use Fight\Common\Application\Error\Exception\RuleViolation;
 use Fight\Common\Domain\Messaging\Command\CommandMessage;
 use PHPUnit\Framework\TestCase;
 
@@ -56,7 +56,7 @@ abstract class FeatureRetirementConformance extends TestCase
             )
                 ->handle($command);
             self::fail('Current registration must block retirement.');
-        } catch (FeatureReferenceException) {
+        } catch (RuleViolation) {
             self::assertSame($stored->getId()->toString(), $featureRepository->getByName($name)?->getId()->toString());
             self::assertFalse($environment->removePermission($permission));
         }
@@ -101,7 +101,7 @@ abstract class FeatureRetirementConformance extends TestCase
         try {
             $delete->handle(CommandMessage::create(new RemoveFeature($first->getId(), 1)));
             self::fail('Stale revision must reject.');
-        } catch (FeatureRevisionException) {
+        } catch (PreconditionFailed) {
             self::assertSame(FeatureStatus::ON, $featureRepository->getByName($name)?->getStatus());
         }
 
@@ -115,7 +115,7 @@ abstract class FeatureRetirementConformance extends TestCase
         try {
             $delete->handle(CommandMessage::create(new RemoveFeature($first->getId(), 2)));
             self::fail('An old identity must not delete its successor.');
-        } catch (FeatureNotFoundException) {
+        } catch (ResourceNotFound) {
             self::assertSame($second->getId()->toString(), $featureRepository->getByName($name)->getId()->toString());
         }
     }
