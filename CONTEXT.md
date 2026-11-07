@@ -6,6 +6,18 @@ Fight AccessControl owns framework-neutral identity, credential, session, author
 behavior shared by Fight applications. The repository-local behavioral and security authority is
 [TICKET-00001](planning/tickets/00001-TICKET.md).
 
+## TASK-00141 Agent administration — Engineer checkpoint
+
+The four void administration handlers and relocated internal PermissionAssignment coordinator now distinguish
+intentional Application absence/input/rule/precondition/conflict from internal repository identity/snapshot faults.
+Domain owns precise rename/revision outcomes; Application translates only known outcomes without text/code
+classification. [Administration contracts](docs/agent-administration-contracts.md) document current consumer
+repository/catch obligations and the unchanged entry-authorization versus ADMIN_SAFE distinction, exact resolver,
+validated no-op/revision/reference/cohort fences, native mixed UoW/local nullable-Event annotations and primary-failure/
+commit/publication truth. This is a bounded Engineer candidate, not independent acceptance, generic bus inference,
+optional-audit implementation or real consumer qualification. Canonical Work handoff owns exhaustive inventory,
+regression/minimum/ordinary/full-gate/runtime evidence; independent Review/nonvisual QA remain required.
+
 ## TASK-00138 human credential workers — accepted checkpoint
 
 Independent Review v3 ACCEPT and nonvisual QA PASS cover clean candidate

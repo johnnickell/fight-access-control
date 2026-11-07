@@ -168,7 +168,7 @@ No source overlap alone establishes a dependency, and no blanket wait on Common/
 | 317 | [TASK-00138](../tasks/00138-TASK.md) | Correct human credential request and worker contracts | done |
 | 318 | [TASK-00139](../tasks/00139-TASK.md) | Correct synchronous User and session contracts | ready-for-agent |
 | 319 | [TASK-00140](../tasks/00140-TASK.md) | Correct Role and User membership contracts | ready-for-agent |
-| 320 | [TASK-00141](../tasks/00141-TASK.md) | Correct Agent administration contracts | ready-for-agent |
+| 320 | [TASK-00141](../tasks/00141-TASK.md) | Correct Agent administration contracts | in-progress |
 | 321 | [TASK-00142](../tasks/00142-TASK.md) | Correct Feature and policy mutation contracts | ready-for-agent |
 | 322 | [TASK-00143](../tasks/00143-TASK.md) | Correct Agent issuance and result contracts | ready-for-agent |
 | 323 | [TASK-00144](../tasks/00144-TASK.md) | Correct Agent delivery, recovery and maintenance contracts | ready-for-agent |

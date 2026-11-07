@@ -8,7 +8,6 @@ use Fight\AccessControl\Application\AccessControl\Agent\PermissionAssignment\Age
 use Fight\AccessControl\Application\AccessControl\Timing\Service\Clock;
 use Fight\AccessControl\Domain\AccessControl\Agent\AgentRepository;
 use Fight\AccessControl\Domain\AccessControl\Agent\Command\ReplaceAgentPermissions;
-use Fight\AccessControl\Domain\AccessControl\Agent\Event\AgentPermissionsReplaced;
 use Fight\AccessControl\Domain\AccessControl\Permission\PermissionRepository;
 use Fight\Common\Application\Messaging\Command\CommandHandler;
 use Fight\Common\Application\Messaging\Event\EventDispatcher;
@@ -38,13 +37,17 @@ final readonly class ReplaceAgentPermissionsHandler implements CommandHandler
     ) {
     }
 
-    /** @inheritDoc */
+    /**
+     * @inheritDoc
+     */
     public static function commandRegistration(): string
     {
         return ReplaceAgentPermissions::class;
     }
 
-    /** @inheritDoc */
+    /**
+     * @inheritDoc
+     */
     public function handle(CommandMessage $commandMessage): void
     {
         /** @var ReplaceAgentPermissions $command */
@@ -62,7 +65,7 @@ final readonly class ReplaceAgentPermissionsHandler implements CommandHandler
                 $command->getExpectedPermissionAssignmentRevision(),
                 $command->getPermissionIds()
             );
-            if ($event instanceof AgentPermissionsReplaced) {
+            if ($event !== null) {
                 $this->eventDispatcher->trigger($event);
             }
         } catch (Throwable $throwable) {

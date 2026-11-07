@@ -9,6 +9,7 @@ use Fight\AccessControl\Application\AccessControl\Agent\CommandHandler\GrantPerm
 use Fight\AccessControl\Application\AccessControl\Agent\CommandHandler\ReplaceAgentPermissionsHandler;
 use Fight\AccessControl\Application\AccessControl\Agent\CommandHandler\RevokePermissionFromAgentHandler;
 use Fight\AccessControl\Application\AccessControl\Agent\PermissionAssignment\AgentPermissionAssignmentCoordinator;
+use Fight\AccessControl\Application\AccessControl\Authorization\Service\ExactPermissionResolutionException;
 use Fight\AccessControl\Domain\AccessControl\Agent\Agent;
 use Fight\AccessControl\Domain\AccessControl\Agent\AgentCredentialId;
 use Fight\AccessControl\Domain\AccessControl\Agent\AgentId;
@@ -25,6 +26,11 @@ use Fight\AccessControl\Domain\AccessControl\Permission\PermissionId;
 use Fight\AccessControl\Domain\AccessControl\Permission\PermissionName;
 use Fight\AccessControl\Domain\AccessControl\Permission\PermissionTier;
 use Fight\AccessControl\Domain\AccessControl\User\UserId;
+use Fight\Common\Application\Error\Exception\ApplicationException;
+use Fight\Common\Application\Error\Exception\PreconditionFailed;
+use Fight\Common\Application\Error\Exception\ResourceNotFound;
+use Fight\Common\Application\Error\Exception\RuleViolation;
+use Fight\Common\Application\Error\Exception\StateConflict;
 use Fight\Common\Domain\Exception\DomainException;
 use Fight\Common\Domain\Messaging\Command\CommandMessage;
 use Fight\Common\Domain\Messaging\Event\CommandFailedEvent;
@@ -340,7 +346,12 @@ final class AgentPermissionAssignmentHandlerTest extends TestCase
                     $requestedIds
                 )));
                 self::fail(sprintf('Invalid complete-set replacement case "%s" was accepted.', $case));
-            } catch (AgentPermissionAssignmentException) {
+            } catch (ApplicationException $exception) {
+                self::assertInstanceOf(match ($case) {
+                    'stale-revision' => PreconditionFailed::class,
+                    'cas-loss' => StateConflict::class,
+                    default => ResourceNotFound::class
+                }, $exception);
                 $stored = $agentRepository->getById($agent->getId());
                 if ($case === 'missing-agent') {
                     self::assertNull($stored);
@@ -394,7 +405,7 @@ final class AgentPermissionAssignmentHandlerTest extends TestCase
                     [$firstPermission->getId(), $secondPermission->getId()]
                 )));
                 self::fail(sprintf('Invalid bulk Permission result "%s" was accepted.', $case));
-            } catch (AgentPermissionAssignmentException) {
+            } catch (ExactPermissionResolutionException) {
                 self::assertSame(0, $agentRepository->permissionAssignmentReplacementCalls());
                 self::assertSame([], $agentRepository->getById($agent->getId())?->getPermissionIds());
                 self::assertInstanceOf(CommandFailedEvent::class, $eventDispatcher->events()[0]);
@@ -571,7 +582,11 @@ final class AgentPermissionAssignmentHandlerTest extends TestCase
                     )
                 );
                 self::fail(sprintf('Invalid Agent Permission grant case "%s" was accepted.', $case));
-            } catch (AgentPermissionAssignmentException) {
+            } catch (ApplicationException $exception) {
+                self::assertInstanceOf(
+                    $case === 'cas-loss' ? StateConflict::class : ResourceNotFound::class,
+                    $exception
+                );
                 self::assertSame(
                     $case === 'missing-agent' ? [] : $beforeIds,
                     $agentRepository->getById($agent->getId())?->getPermissionIds() ?? []
@@ -627,7 +642,11 @@ final class AgentPermissionAssignmentHandlerTest extends TestCase
                     )
                 );
                 self::fail(sprintf('Invalid Agent Permission revoke case "%s" was accepted.', $case));
-            } catch (AgentPermissionAssignmentException) {
+            } catch (ApplicationException $exception) {
+                self::assertInstanceOf(
+                    $case === 'cas-loss' ? StateConflict::class : ResourceNotFound::class,
+                    $exception
+                );
                 self::assertSame(
                     $case === 'missing-agent' ? [] : $beforeIds,
                     $agentRepository->getById($agent->getId())?->getPermissionIds() ?? []
@@ -738,7 +757,7 @@ final class AgentPermissionAssignmentHandlerTest extends TestCase
                 )
             );
             self::fail('A Permission that lost authority before persistence was assigned.');
-        } catch (AgentPermissionAssignmentException) {
+        } catch (StateConflict) {
             $stored = $agentRepository->getById($agent->getId());
             self::assertInstanceOf(Agent::class, $stored);
             self::assertSame([], $stored->getPermissionIds());
@@ -973,7 +992,7 @@ final class AgentPermissionAssignmentHandlerTest extends TestCase
             try {
                 $handler->handle(CommandMessage::create($command));
                 self::fail(sprintf('Protected Agent assignment %s was accepted.', $case));
-            } catch (AgentPermissionAssignmentException) {
+            } catch (RuleViolation) {
                 self::assertSame($agent, $agentRepository->getById($agent->getId()));
                 self::assertSame(0, $agentRepository->permissionAssignmentReplacementCalls());
                 self::assertCount(1, $eventDispatcher->events());
@@ -1031,7 +1050,7 @@ final class AgentPermissionAssignmentHandlerTest extends TestCase
             try {
                 $handler->handle(CommandMessage::create($command));
                 self::fail('A stale Permission definition was accepted.');
-            } catch (AgentPermissionAssignmentException) {
+            } catch (StateConflict) {
                 self::assertSame($agent, $agentRepository->getById($agent->getId()));
                 self::assertSame(0, $agentRepository->permissionAssignmentReplacementCalls());
                 self::assertCount(1, $eventDispatcher->events());
@@ -1094,7 +1113,7 @@ final class AgentPermissionAssignmentHandlerTest extends TestCase
             try {
                 $handler->handle(CommandMessage::create($command));
                 self::fail('An idempotent assignment bypassed the tier fence.');
-            } catch (AgentPermissionAssignmentException) {
+            } catch (StateConflict) {
                 self::assertSame($agent, $agentRepository->getById($agent->getId()));
                 self::assertSame(0, $agentRepository->permissionAssignmentReplacementCalls());
                 self::assertCount(1, $eventDispatcher->events());
@@ -1157,7 +1176,7 @@ final class AgentPermissionAssignmentHandlerTest extends TestCase
             try {
                 $handler->handle(CommandMessage::create($command));
                 self::fail('Concurrent tier promotion was accepted.');
-            } catch (AgentPermissionAssignmentException) {
+            } catch (StateConflict) {
                 self::assertSame($agent, $agentRepository->getById($agent->getId()));
                 self::assertSame(1, $agentRepository->permissionAssignmentReplacementCalls());
                 self::assertCount(1, $eventDispatcher->events());
