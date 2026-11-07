@@ -23,14 +23,18 @@ No endpoint, transport status or error envelope is supplied.
 
 A matching token permits only an otherwise legal operation. Missing Roles, managed/reserved identities, colliding
 names, invalid membership and live references still reject. A stale token, including a stale same-name request,
-raises safe typed `RoleConflictException` (a `CustomRoleException`). A lost final expected-state/reference fence also
-raises that type; the preliminary comparison does not replace final atomic admission. On conflict, refresh the
+raises Common Application `PreconditionFailed` at the Command boundary (Unreleased). Direct Domain revision checks
+retain `RoleConflictException` (a `CustomRoleException`). A lost final expected-state/reference fence raises
+Application `StateConflict`; the preliminary comparison does not replace final atomic admission. See the complete
+[Role and User membership contract](role-membership-contracts.md) for deliberate failures versus internal faults.
+On a failed expectation, refresh the
 current Role, display the new state and obtain fresh intent/confirmation. **Never silently substitute a newer token
 or automatically retry stale intent.** A token is neither a credential nor permission.
 
 A valid same-name rename validates/fences the complete current snapshot without writing, changing timestamps or
 revision, or publishing success. Membership desired-state retries retain their existing no-write/no-success behavior
-and required Permission/reference guards; they have no new caller-token input. Every real custom rename or
+and required Permission/reference guards, plus non-writing complete Role-state validation through transaction
+completion (Unreleased); they have no new caller-token input. Every real custom rename or
 Permission grant/revoke advances exactly once. Managed creation/reconciliation/removal uses the same incarnation
 and revision rules. Unchanged managed definitions retain their state; the existing policy-level reconciliation
 notification semantics are unchanged. Reads and User Role assignments do not advance Role state.

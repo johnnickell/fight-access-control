@@ -28,6 +28,36 @@
       ]
     },
     {
+      "id": "role-membership-void-handlers",
+      "kind": "positive",
+      "file": "role-membership-positive.php",
+      "diagnostics": [
+        {"line": 22, "identifier": "phpstan.dumpType", "message": "Dumped type: Closure(Fight\\Common\\Domain\\Messaging\\Command\\CommandMessage): void"},
+        {"line": 23, "identifier": "phpstan.dumpType", "message": "Dumped type: Closure(Fight\\Common\\Domain\\Messaging\\Command\\CommandMessage): void"},
+        {"line": 24, "identifier": "phpstan.dumpType", "message": "Dumped type: Closure(Fight\\Common\\Domain\\Messaging\\Command\\CommandMessage): void"},
+        {"line": 25, "identifier": "phpstan.dumpType", "message": "Dumped type: Closure(Fight\\Common\\Domain\\Messaging\\Command\\CommandMessage): void"},
+        {"line": 26, "identifier": "phpstan.dumpType", "message": "Dumped type: Closure(Fight\\Common\\Domain\\Messaging\\Command\\CommandMessage): void"},
+        {"line": 27, "identifier": "phpstan.dumpType", "message": "Dumped type: Closure(Fight\\Common\\Domain\\Messaging\\Command\\CommandMessage): void"},
+        {"line": 28, "identifier": "phpstan.dumpType", "message": "Dumped type: Closure(Fight\\Common\\Domain\\Messaging\\Command\\CommandMessage): void"}
+      ]
+    },
+    {
+      "id": "role-membership-incompatible-uses",
+      "kind": "negative",
+      "file": "role-membership-negative.php",
+      "diagnostics": [
+        {"line": 32, "identifier": "method.void", "message": "Result of method Fight\\AccessControl\\Application\\AccessControl\\Role\\CommandHandler\\CreateCustomRoleHandler::handle() (void) is used."},
+        {"line": 33, "identifier": "method.void", "message": "Result of method Fight\\AccessControl\\Application\\AccessControl\\Role\\CommandHandler\\RenameCustomRoleHandler::handle() (void) is used."},
+        {"line": 34, "identifier": "method.void", "message": "Result of method Fight\\AccessControl\\Application\\AccessControl\\Role\\CommandHandler\\RemoveCustomRoleHandler::handle() (void) is used."},
+        {"line": 35, "identifier": "method.void", "message": "Result of method Fight\\AccessControl\\Application\\AccessControl\\Role\\CommandHandler\\GrantPermissionToCustomRoleHandler::handle() (void) is used."},
+        {"line": 36, "identifier": "method.void", "message": "Result of method Fight\\AccessControl\\Application\\AccessControl\\Role\\CommandHandler\\RevokePermissionFromCustomRoleHandler::handle() (void) is used."},
+        {"line": 37, "identifier": "method.void", "message": "Result of method Fight\\AccessControl\\Application\\AccessControl\\User\\CommandHandler\\AssignRoleToUserHandler::handle() (void) is used."},
+        {"line": 38, "identifier": "method.void", "message": "Result of method Fight\\AccessControl\\Application\\AccessControl\\User\\CommandHandler\\RemoveRoleFromUserHandler::handle() (void) is used."},
+        {"line": 39, "identifier": "argument.type", "message": "Parameter #3 $permissionId of class Fight\\AccessControl\\Domain\\AccessControl\\Role\\Command\\GrantPermissionToCustomRole constructor expects Fight\\AccessControl\\Domain\\AccessControl\\Permission\\PermissionId, Fight\\AccessControl\\Domain\\AccessControl\\Role\\RoleId given."},
+        {"line": 40, "identifier": "argument.type", "message": "Parameter #4 $expectedRevision of class Fight\\AccessControl\\Domain\\AccessControl\\Role\\Command\\RenameCustomRole constructor expects Fight\\AccessControl\\Domain\\AccessControl\\Role\\RoleRevision, string given."}
+      ]
+    },
+    {
       "id": "user-session-exact-results",
       "kind": "positive",
       "file": "user-session-positive.php",

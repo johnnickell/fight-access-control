@@ -11,14 +11,15 @@ use Fight\AccessControl\Domain\AccessControl\Role\RoleName;
 use Fight\AccessControl\Domain\AccessControl\Role\RoleRepository;
 use Fight\AccessControl\Domain\AccessControl\User\Command\AssignRoleToUser;
 use Fight\AccessControl\Domain\AccessControl\User\Event\RoleAssignedToUser;
-use Fight\AccessControl\Domain\AccessControl\User\Exception\UserRoleAssignmentException;
-use Fight\AccessControl\Domain\AccessControl\User\User;
 use Fight\AccessControl\Domain\AccessControl\User\UserRepository;
+use Fight\Common\Application\Error\Exception\ResourceNotFound;
+use Fight\Common\Application\Error\Exception\StateConflict;
 use Fight\Common\Application\Messaging\Command\CommandHandler;
 use Fight\Common\Application\Messaging\Event\EventDispatcher;
 use Fight\Common\Application\Repository\TransactionalUnitOfWork;
 use Fight\Common\Domain\Messaging\Command\CommandMessage;
 use Fight\Common\Domain\Messaging\Event\CommandFailedEvent;
+use LogicException;
 use Throwable;
 
 /**
@@ -42,43 +43,59 @@ final readonly class AssignRoleToUserHandler implements CommandHandler
     ) {
     }
 
-    /** @inheritDoc */
+    /**
+     * @inheritDoc
+     */
     public static function commandRegistration(): string
     {
         return AssignRoleToUser::class;
     }
 
-    /** @inheritDoc */
+    /**
+     * @inheritDoc
+     */
     public function handle(CommandMessage $commandMessage): void
     {
         /** @var AssignRoleToUser $command */
         $command = $commandMessage->payload();
 
         try {
+            /** @var RoleAssignedToUser|null $event */
             $event = $this->unitOfWork->commitTransactional(function () use ($command): ?RoleAssignedToUser {
                 $user = $this->userRepository->getById($command->getTargetUserId());
-                if (!$user instanceof User) {
-                    throw new UserRoleAssignmentException('The target user does not exist.');
+                if ($user === null) {
+                    throw new ResourceNotFound('The target user does not exist.');
+                }
+
+                if (!$user->getId()->equals($command->getTargetUserId())) {
+                    throw new LogicException('The User repository returned an unrelated identity.');
                 }
 
                 $role = $this->roleRepository->getById($command->getRoleId());
-                if (!$role instanceof Role || !$role->getId()->equals($command->getRoleId())) {
-                    throw new UserRoleAssignmentException('The role does not exist.');
+                if ($role === null) {
+                    throw new ResourceNotFound('The role does not exist.');
+                }
+
+                if (!$role->getId()->equals($command->getRoleId())) {
+                    throw new LogicException('The Role repository returned an unrelated identity.');
                 }
 
                 try {
                     $role->assertConsistentWithSuperAdmin(
                         $this->roleRepository->getByName(RoleName::fromString(Role::SUPER_ADMIN_NAME))
                     );
-                } catch (ManagedRoleException) {
-                    throw new UserRoleAssignmentException('The authoritative role identity is inconsistent.');
+                } catch (ManagedRoleException $managedRoleException) {
+                    throw new LogicException(
+                        'The authoritative role identity is inconsistent.',
+                        previous: $managedRoleException
+                    );
                 }
 
                 $assignedAt = $this->clock->now();
                 $replacement = clone $user;
                 if (!$replacement->assignRole($command->getRoleId(), $assignedAt)) {
                     if (!$this->userRepository->validateRoleAssignmentReference($command->getRoleId())) {
-                        throw new UserRoleAssignmentException(
+                        throw new StateConflict(
                             'The authoritative role changed concurrently.'
                         );
                     }
@@ -87,7 +104,7 @@ final readonly class AssignRoleToUserHandler implements CommandHandler
                 }
 
                 if (!$this->userRepository->replaceRoleAssignments($user, $replacement)) {
-                    throw new UserRoleAssignmentException(
+                    throw new StateConflict(
                         'The user role assignments or authoritative roles changed concurrently.'
                     );
                 }
@@ -100,7 +117,7 @@ final readonly class AssignRoleToUserHandler implements CommandHandler
                 );
             });
 
-            if ($event instanceof RoleAssignedToUser) {
+            if ($event !== null) {
                 $this->eventDispatcher->trigger($event);
             }
         } catch (Throwable $throwable) {
