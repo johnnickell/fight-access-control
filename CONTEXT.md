@@ -6,6 +6,20 @@ Fight AccessControl owns framework-neutral identity, credential, session, author
 behavior shared by Fight applications. The repository-local behavioral and security authority is
 [TICKET-00001](planning/tickets/00001-TICKET.md).
 
+## TASK-00137 User lifecycle contracts — Work checkpoint
+
+The eight account handlers and two target-specific authorization ports now have an Engineer correction candidate.
+[Current lifecycle contracts](docs/user-lifecycle-contracts.md) distinguish deliberate absence, denial, conflict and
+explicit expected-generation failure from wrong identities, broken configuration and unknown faults. Success remains
+void; Domain transitions, registration defaults/origins, complete-state fences, adopted audit, recovery/session
+cancellation, uncertainty and primary publication errors remain authoritative. Known callback results use local
+annotations with native mixed UoW; no generic supplier, result DTO or optional-audit redesign is introduced.
+
+Canonical `.runs/handoffs/TASK-00137/work.md` owns exhaustive declarations/member/callback/caller dispositions,
+regression-first evidence, actual dependency-lane/runtime/dispatch/static checks and final gate/coverage results.
+TASK-00137 remains in-progress pending independent Review and nonvisual QA; no acceptance, consumer qualification,
+publication, merge, release or deployment is claimed. Other correction owners retain their scopes.
+
 ## TASK-00135 preparation and policy preview — accepted checkpoint
 
 Independent Review v3 ACCEPT and nonvisual QA PASS cover candidate

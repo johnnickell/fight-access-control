@@ -164,7 +164,7 @@ No source overlap alone establishes a dependency, and no blanket wait on Common/
 | Order | TASK ID | Title | Status |
 | --- | --- | --- | --- |
 | 315 | [TASK-00136](../tasks/00136-TASK.md) | Preserve Event-driven delivery contracts | needs-info |
-| 316 | [TASK-00137](../tasks/00137-TASK.md) | Correct User account lifecycle contracts | ready-for-agent |
+| 316 | [TASK-00137](../tasks/00137-TASK.md) | Correct User account lifecycle contracts | in-progress |
 | 317 | [TASK-00138](../tasks/00138-TASK.md) | Correct human credential request and worker contracts | ready-for-agent |
 | 318 | [TASK-00139](../tasks/00139-TASK.md) | Correct synchronous User and session contracts | ready-for-agent |
 | 319 | [TASK-00140](../tasks/00140-TASK.md) | Correct Role and User membership contracts | ready-for-agent |

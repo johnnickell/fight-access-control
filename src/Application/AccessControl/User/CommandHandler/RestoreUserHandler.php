@@ -16,9 +16,10 @@ use Fight\AccessControl\Domain\AccessControl\Audit\AuditEvidenceRepository;
 use Fight\AccessControl\Domain\AccessControl\User\Command\RestoreUser;
 use Fight\AccessControl\Domain\AccessControl\User\Event\UserRestored;
 use Fight\AccessControl\Domain\AccessControl\User\Exception\UserLifecycleException;
-use Fight\AccessControl\Domain\AccessControl\User\User;
 use Fight\AccessControl\Domain\AccessControl\User\UserRepository;
 use Fight\AccessControl\Domain\AccessControl\User\UserState;
+use Fight\Common\Application\Error\Exception\ResourceNotFound;
+use Fight\Common\Application\Error\Exception\StateConflict;
 use Fight\Common\Application\Messaging\Command\CommandHandler;
 use Fight\Common\Application\Messaging\Event\EventDispatcher;
 use Fight\Common\Application\Repository\TransactionalUnitOfWork;
@@ -68,17 +69,27 @@ final readonly class RestoreUserHandler implements CommandHandler
         $command = $commandMessage->payload();
 
         try {
+            /** @var UserRestored $event */
             $event = $this->unitOfWork->commitTransactional(function () use ($command): UserRestored {
                 $user = $this->userRepository->getById($command->getUserId());
-                if (!$user instanceof User) {
-                    throw new UserLifecycleException('The user cannot be restored.');
+                if ($user === null) {
+                    throw new ResourceNotFound('The user cannot be restored.');
+                }
+
+                if (!$user->getId()->equals($command->getUserId())) {
+                    throw new LogicException('The User repository returned an unrelated identity.');
                 }
 
                 $now = $this->clock->now();
                 $replacementUser = clone $user;
-                $replacementUser->restore($command->getRestorationState(), $now);
+                try {
+                    $replacementUser->restore($command->getRestorationState(), $now);
+                } catch (UserLifecycleException $userLifecycleException) {
+                    throw new StateConflict('The user cannot be restored.', previous: $userLifecycleException);
+                }
+
                 if (!$this->userRepository->replaceLifecycleState($user, $replacementUser)) {
-                    throw new LogicException('The user lifecycle state changed concurrently.');
+                    throw new StateConflict('The user lifecycle state changed concurrently.');
                 }
 
                 $activationDeliveryId = null;
@@ -95,7 +106,7 @@ final readonly class RestoreUserHandler implements CommandHandler
                         $this->invitationDeliveryCipher->encrypt($credential->toString())
                     );
                     if (!$this->activationGrantRepository->addSuccessor($successor)) {
-                        throw new LogicException('The activation grant successor could not be issued.');
+                        throw new StateConflict('The activation grant successor could not be issued.');
                     }
 
                     $activationDeliveryId = $successor->getDelivery()->getId();

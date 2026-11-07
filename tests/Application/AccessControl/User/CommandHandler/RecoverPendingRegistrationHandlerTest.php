@@ -15,12 +15,15 @@ use Fight\AccessControl\Domain\AccessControl\ActivationGrant\ActivationOrigin;
 use Fight\AccessControl\Domain\AccessControl\Audit\AuditEvidence;
 use Fight\AccessControl\Domain\AccessControl\User\Command\RecoverPendingRegistration;
 use Fight\AccessControl\Domain\AccessControl\User\Event\PendingRegistrationRecovered;
-use Fight\AccessControl\Domain\AccessControl\User\Exception\RegistrationRecoveryAuthorizationException;
 use Fight\AccessControl\Domain\AccessControl\User\Exception\RegistrationRecoveryException;
 use Fight\AccessControl\Domain\AccessControl\User\PasswordHash;
 use Fight\AccessControl\Domain\AccessControl\User\User;
 use Fight\AccessControl\Domain\AccessControl\User\UserId;
 use Fight\AccessControl\Domain\AccessControl\User\UserState;
+use Fight\Common\Application\Error\Exception\PermissionDenied;
+use Fight\Common\Application\Error\Exception\PreconditionFailed;
+use Fight\Common\Application\Error\Exception\ResourceNotFound;
+use Fight\Common\Application\Error\Exception\StateConflict;
 use Fight\Common\Domain\Exception\DomainException;
 use Fight\Common\Domain\Messaging\Command\CommandMessage;
 use Fight\Common\Domain\Messaging\Event\CommandFailedEvent;
@@ -182,7 +185,7 @@ final class RecoverPendingRegistrationHandlerTest extends TestCase
             try {
                 $fixture->handler()->handle(CommandMessage::create($command));
                 self::fail('Untrusted actor/target was admitted.');
-            } catch (RegistrationRecoveryAuthorizationException) {
+            } catch (PermissionDenied) {
                 $this->assertUnchanged($fixture);
             }
         }
@@ -210,7 +213,11 @@ final class RecoverPendingRegistrationHandlerTest extends TestCase
             try {
                 $fixture->handler()->handle(CommandMessage::create($fixture->command()));
                 self::fail('An ineligible User/grant was recovered.');
-            } catch (RegistrationRecoveryException) {
+            } catch (ResourceNotFound | StateConflict $failure) {
+                self::assertSame(
+                    $condition === 'absent' ? ResourceNotFound::class : StateConflict::class,
+                    $failure::class
+                );
                 self::assertEquals($beforeUsers, $fixture->userRepository->all());
                 self::assertEquals($beforeGrants, $fixture->activationGrantRepository->all());
                 self::assertSame([], $fixture->auditEvidenceRepository->all());
@@ -257,7 +264,11 @@ final class RecoverPendingRegistrationHandlerTest extends TestCase
 
                 $fixture->handler()->handle(CommandMessage::create($fixture->command(expected: $expected)));
                 self::fail('Invalid authority was recovered.');
-            } catch (RegistrationRecoveryException) {
+            } catch (PreconditionFailed | StateConflict $failure) {
+                self::assertSame(
+                    $condition === 'generation' ? PreconditionFailed::class : StateConflict::class,
+                    $failure::class
+                );
                 self::assertEquals($before, $fixture->activationGrantRepository->all());
                 self::assertEquals([$fixture->initialUser], $fixture->userRepository->all());
                 self::assertSame([], $fixture->auditEvidenceRepository->all());
@@ -275,7 +286,7 @@ final class RecoverPendingRegistrationHandlerTest extends TestCase
                 self::assertEquals($fixture->initialUser, $fixture->userRepository->all()[0]);
                 self::assertCount(2, $fixture->activationGrantRepository->all());
                 self::assertCount(1, $fixture->auditEvidenceRepository->all());
-            } catch (RegistrationRecoveryException) {
+            } catch (StateConflict) {
                 self::assertSame('2030-01-07T23:59:59.999999Z', $at);
                 $this->assertUnchanged($fixture);
             }
@@ -306,7 +317,7 @@ final class RecoverPendingRegistrationHandlerTest extends TestCase
             try {
                 $fixture->handler()->handle(CommandMessage::create($fixture->command($destination)));
                 self::fail('Claimed destination was stolen.');
-            } catch (RegistrationRecoveryException) {
+            } catch (StateConflict) {
                 self::assertEquals($before, $fixture->userRepository->all());
                 self::assertEquals([$fixture->initial], $fixture->activationGrantRepository->all());
                 self::assertSame([], $fixture->auditEvidenceRepository->all());
@@ -342,7 +353,7 @@ final class RecoverPendingRegistrationHandlerTest extends TestCase
             try {
                 $fixture->handler()->handle(CommandMessage::create($fixture->command()));
                 self::fail('Injected failure was hidden.');
-            } catch (DomainException | RuntimeException) {
+            } catch (ResourceNotFound | StateConflict | RuntimeException) {
                 self::assertEquals($before, $fixture->userRepository->all());
                 self::assertEquals([$fixture->initial], $fixture->activationGrantRepository->all());
                 self::assertSame([], $fixture->auditEvidenceRepository->all());
@@ -373,7 +384,7 @@ final class RecoverPendingRegistrationHandlerTest extends TestCase
             try {
                 $fixture->handler()->handle(CommandMessage::create($fixture->command()));
                 self::fail('Recovery repaired inconsistent authority implicitly.');
-            } catch (RegistrationRecoveryException) {
+            } catch (StateConflict) {
                 self::assertSame($user, $fixture->userRepository->all()[0]);
                 self::assertEquals([$fixture->initial], $fixture->activationGrantRepository->all());
                 self::assertSame([], $fixture->auditEvidenceRepository->all());

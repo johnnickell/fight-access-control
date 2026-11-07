@@ -18,10 +18,9 @@ use Fight\AccessControl\Domain\AccessControl\ActivationGrant\Exception\Activatio
 use Fight\AccessControl\Domain\AccessControl\CredentialDelivery\CredentialDeliveryStatus;
 use Fight\AccessControl\Domain\AccessControl\User\Command\DeleteUser;
 use Fight\AccessControl\Domain\AccessControl\User\Command\RestoreUser;
-use Fight\AccessControl\Domain\AccessControl\User\Exception\RegistrationRecoveryException;
-use Fight\AccessControl\Domain\AccessControl\User\Exception\UserLifecycleException;
 use Fight\AccessControl\Domain\AccessControl\User\PasswordHash;
 use Fight\AccessControl\Domain\AccessControl\User\UserState;
+use Fight\Common\Application\Error\Exception\StateConflict;
 use Fight\Common\Domain\Messaging\Command\CommandMessage;
 use Fight\Common\Domain\Value\Internet\EmailAddress;
 use Fight\Test\AccessControl\Application\AccessControl\ActivationGrant\Service\FixedCredentialGenerator;
@@ -74,7 +73,7 @@ final class RegistrationRecoveryRaceTest extends TestCase
                 try {
                     $loser->resume();
                     self::fail('A stale replacement overwrote the winner.');
-                } catch (LogicException | RegistrationRecoveryException) {
+                } catch (LogicException | StateConflict) {
                     self::assertSame($winner, $fixture->current());
                     self::assertCount(2, $fixture->activationGrantRepository->all());
                     self::assertSame(ActivationOrigin::REGISTRATION, $winner->getOrigin());
@@ -114,7 +113,7 @@ final class RegistrationRecoveryRaceTest extends TestCase
                 try {
                     $loser->resume();
                     self::fail('The stale second recovery replaced the winner.');
-                } catch (RegistrationRecoveryException) {
+                } catch (StateConflict) {
                     self::assertSame($winner, $fixture->current());
                     self::assertSame(
                         strtolower($winnerEmail),
@@ -169,7 +168,7 @@ final class RegistrationRecoveryRaceTest extends TestCase
             try {
                 $loser->resume();
                 self::fail('The stale activation/recovery won.');
-            } catch (LogicException | RegistrationRecoveryException) {
+            } catch (LogicException | StateConflict) {
                 self::assertSame($winner, $fixture->current());
                 self::assertSame(
                     $recoveryWins ? UserState::PENDING_ACTIVATION : UserState::ACTIVE,
@@ -232,7 +231,7 @@ final class RegistrationRecoveryRaceTest extends TestCase
                 try {
                     $loser->resume();
                     self::fail('Recovery stole a committed destination reservation.');
-                } catch (RegistrationRecoveryException) {
+                } catch (StateConflict) {
                     self::assertEquals($fixture->initial, $fixture->current());
                     self::assertSame([], $paused->auditEvidenceRepository->all());
                     self::assertSame(
@@ -372,7 +371,7 @@ final class RegistrationRecoveryRaceTest extends TestCase
                     $fixture->initialUser->getId()
                 )));
                 self::fail('Pending deletion became a new allowed lifecycle transition.');
-            } catch (UserLifecycleException) {
+            } catch (StateConflict) {
                 self::assertSame(UserState::PENDING_ACTIVATION, $fixture->userRepository->all()[0]->getState());
             }
 
@@ -419,7 +418,7 @@ final class RegistrationRecoveryRaceTest extends TestCase
                 try {
                     $loser->resume();
                     self::fail('Stale recovery overwrote a restored private invitation.');
-                } catch (RegistrationRecoveryException) {
+                } catch (StateConflict) {
                     self::assertSame($winner, $fixture->current());
                     self::assertSame([], $paused->auditEvidenceRepository->all());
                 }
@@ -433,7 +432,7 @@ final class RegistrationRecoveryRaceTest extends TestCase
                     expected: $winner->getDelivery()->getId()
                 )));
                 self::fail('Restored private work became registration recovery.');
-            } catch (RegistrationRecoveryException) {
+            } catch (StateConflict) {
                 self::assertSame($winner, $fixture->current());
             }
         }

@@ -20,9 +20,9 @@ use Fight\AccessControl\Domain\AccessControl\ActivationGrant\Exception\Activatio
 use Fight\AccessControl\Domain\AccessControl\CredentialDelivery\CredentialDeliveryStatus;
 use Fight\AccessControl\Domain\AccessControl\CredentialDelivery\Query\CredentialDeliveryStatusView;
 use Fight\AccessControl\Domain\AccessControl\User\Command\CorrectPendingInvitation;
-use Fight\AccessControl\Domain\AccessControl\User\Exception\PendingInvitationCorrectionException;
 use Fight\AccessControl\Domain\AccessControl\User\UserId;
 use Fight\AccessControl\Domain\AccessControl\User\UserState;
+use Fight\Common\Application\Error\Exception\StateConflict;
 use Fight\Common\Domain\Messaging\Command\CommandMessage;
 use Fight\Common\Domain\Messaging\Event\CommandFailedEvent;
 use Fight\Common\Domain\Value\Internet\EmailAddress;
@@ -401,7 +401,7 @@ final class ActivationOriginRecoveryTest extends TestCase
                     ActivationOrigin::PRIVATE_INVITATION,
                     $provider->invocations()[0]->getActivationOrigin()
                 );
-            } catch (PendingInvitationCorrectionException) {
+            } catch (StateConflict) {
                 self::assertSame(ActivationOrigin::REGISTRATION, $origin);
                 self::assertSame(
                     'origin@example.test',

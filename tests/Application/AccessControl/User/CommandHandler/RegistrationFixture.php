@@ -10,6 +10,7 @@ use Fight\AccessControl\Application\AccessControl\User\CommandHandler\RegisterUs
 use Fight\AccessControl\Domain\AccessControl\Role\Role;
 use Fight\AccessControl\Domain\AccessControl\Role\RoleId;
 use Fight\AccessControl\Domain\AccessControl\Role\RoleName;
+use Fight\AccessControl\Domain\AccessControl\Role\RoleRepository;
 use Fight\AccessControl\Domain\AccessControl\User\Command\RegisterUser;
 use Fight\AccessControl\Domain\AccessControl\User\UserId;
 use Fight\Common\Application\Repository\TransactionalUnitOfWork;
@@ -85,11 +86,12 @@ final class RegistrationFixture
     /** @param list<string> $names */
     public function handler(
         array $names = ['ROLE_MEMBER', 'ROLE_READER'],
-        ?TransactionalUnitOfWork $unitOfWork = null
+        ?TransactionalUnitOfWork $unitOfWork = null,
+        ?RoleRepository $roleRepository = null
     ): RegisterUserHandler {
         return new RegisterUserHandler(
             $this->userRepository,
-            $this->roleRepository,
+            $roleRepository ?? $this->roleRepository,
             $this->activationGrantRepository,
             $this->auditEvidenceRepository,
             $unitOfWork ?? $this->unitOfWork,

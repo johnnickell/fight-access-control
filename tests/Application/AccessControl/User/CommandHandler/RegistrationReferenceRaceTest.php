@@ -9,8 +9,7 @@ use Fight\AccessControl\Application\AccessControl\User\CommandHandler\RegisterUs
 use Fight\AccessControl\Domain\AccessControl\Role\Role;
 use Fight\AccessControl\Domain\AccessControl\Role\RoleId;
 use Fight\AccessControl\Domain\AccessControl\Role\RoleName;
-use Fight\AccessControl\Domain\AccessControl\User\Exception\DuplicateEmailException;
-use Fight\Common\Domain\Exception\DomainException;
+use Fight\Common\Application\Error\Exception\StateConflict;
 use Fight\Common\Domain\Messaging\Command\CommandMessage;
 use Fight\Test\AccessControl\Application\AccessControl\ActivationGrant\Repository\InMemoryActivationGrantRepository;
 use Fight\Test\AccessControl\Application\AccessControl\ActivationGrant\Service\FixedCredentialGenerator;
@@ -75,7 +74,7 @@ final class RegistrationReferenceRaceTest extends TestCase
             try {
                 $fixture->handler()->handle(CommandMessage::create($fixture->command()));
                 self::fail('A stale resolved Role was inserted.');
-            } catch (DomainException $caught) {
+            } catch (StateConflict $caught) {
                 self::assertSame('Registration default Roles are no longer authoritative.', $caught->getMessage());
             }
 
@@ -205,7 +204,7 @@ final class RegistrationReferenceRaceTest extends TestCase
             )->handle(CommandMessage::create($command));
         });
         $loser = $fixture->command();
-        $this->expectException(DuplicateEmailException::class);
+        $this->expectException(StateConflict::class);
         try {
             $fixture->handler()->handle(CommandMessage::create($loser));
         } finally {

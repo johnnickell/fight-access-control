@@ -9,14 +9,14 @@ use Fight\AccessControl\Application\AccessControl\User\CommandHandler\CorrectPen
 use Fight\AccessControl\Domain\AccessControl\ActivationGrant\ActivationCredential;
 use Fight\AccessControl\Domain\AccessControl\ActivationGrant\ActivationGrant;
 use Fight\AccessControl\Domain\AccessControl\ActivationGrant\ActivationOrigin;
-use Fight\AccessControl\Domain\AccessControl\ActivationGrant\Exception\InvitationAdministrationAuthorizationException;
 use Fight\AccessControl\Domain\AccessControl\Audit\AuditEvidence;
 use Fight\AccessControl\Domain\AccessControl\User\Command\CorrectPendingInvitation;
 use Fight\AccessControl\Domain\AccessControl\User\Event\PendingInvitationCorrected;
-use Fight\AccessControl\Domain\AccessControl\User\Exception\PendingInvitationCorrectionException;
 use Fight\AccessControl\Domain\AccessControl\User\User;
 use Fight\AccessControl\Domain\AccessControl\User\UserId;
 use Fight\AccessControl\Domain\AccessControl\User\UserState;
+use Fight\Common\Application\Error\Exception\PermissionDenied;
+use Fight\Common\Application\Error\Exception\StateConflict;
 use Fight\Common\Domain\Exception\DomainException;
 use Fight\Common\Domain\Messaging\Command\CommandMessage;
 use Fight\Common\Domain\Messaging\Event\CommandFailedEvent;
@@ -31,7 +31,6 @@ use Fight\Test\AccessControl\Application\AccessControl\Timing\Service\FixedClock
 use Fight\Test\AccessControl\Application\AccessControl\User\InMemoryUnitOfWork;
 use Fight\Test\AccessControl\Application\AccessControl\User\Repository\InMemoryUserRepository;
 use Fight\Test\AccessControl\Domain\AccessControl\User\UserFixture;
-use LogicException;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
 use RuntimeException;
@@ -213,7 +212,7 @@ final class CorrectPendingInvitationHandlerTest extends TestCase
         $auditEvidenceRepository = new InMemoryAuditEvidenceRepository($unitOfWork);
         $eventDispatcher = new InMemoryEventDispatcher();
 
-        $this->expectException(InvitationAdministrationAuthorizationException::class);
+        $this->expectException(PermissionDenied::class);
         try {
             $this->handler(
                 $userRepository,
@@ -273,7 +272,7 @@ final class CorrectPendingInvitationHandlerTest extends TestCase
                     )
                 )));
                 self::fail('An ineligible pending invitation was corrected.');
-            } catch (PendingInvitationCorrectionException) {
+            } catch (StateConflict) {
                 self::assertSame(
                     'old@example.test',
                     $userRepository->getById($user->getId())?->getEmail()->canonical()
@@ -326,7 +325,7 @@ final class CorrectPendingInvitationHandlerTest extends TestCase
                     EmailAddress::fromString($destination)
                 )));
                 self::fail('A claimed invitation destination was accepted.');
-            } catch (LogicException) {
+            } catch (StateConflict) {
                 self::assertSame(
                     'old@example.test',
                     $userRepository->getById($target->getId())?->getEmail()->canonical()
@@ -380,7 +379,7 @@ final class CorrectPendingInvitationHandlerTest extends TestCase
                     EmailAddress::fromString('corrected@example.test')
                 )));
                 self::fail('Invalid predecessor authority was accepted.');
-            } catch (PendingInvitationCorrectionException) {
+            } catch (StateConflict) {
                 self::assertSame(
                     'old@example.test',
                     $userRepository->getById($user->getId())?->getEmail()->canonical()
@@ -407,7 +406,7 @@ final class CorrectPendingInvitationHandlerTest extends TestCase
         self::assertTrue($activationGrantRepository->add($this->grant($user)));
         $eventDispatcher = new InMemoryEventDispatcher();
 
-        $this->expectException(LogicException::class);
+        $this->expectException(StateConflict::class);
         try {
             $this->handler(
                 $userRepository,
