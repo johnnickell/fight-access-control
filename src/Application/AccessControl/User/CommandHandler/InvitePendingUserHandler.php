@@ -16,8 +16,10 @@ use Fight\AccessControl\Domain\AccessControl\Audit\AuditEvidence;
 use Fight\AccessControl\Domain\AccessControl\Audit\AuditEvidenceRepository;
 use Fight\AccessControl\Domain\AccessControl\User\Command\InvitePendingUser;
 use Fight\AccessControl\Domain\AccessControl\User\Event\UserInvited;
+use Fight\AccessControl\Domain\AccessControl\User\Exception\DuplicateEmailException;
 use Fight\AccessControl\Domain\AccessControl\User\User;
 use Fight\AccessControl\Domain\AccessControl\User\UserRepository;
+use Fight\Common\Application\Error\Exception\StateConflict;
 use Fight\Common\Application\Messaging\Command\CommandHandler;
 use Fight\Common\Application\Messaging\Event\EventDispatcher;
 use Fight\Common\Application\Repository\TransactionalUnitOfWork;
@@ -43,8 +45,8 @@ final readonly class InvitePendingUserHandler implements CommandHandler
         private ActivationGrantRepository $activationGrantRepository,
         private AuditEvidenceRepository $auditEvidenceRepository,
         private TransactionalUnitOfWork $unitOfWork,
-        private ActivationCredentialGenerator $credentials,
-        private InvitationDeliveryCipher $cipher,
+        private ActivationCredentialGenerator $activationCredentialGenerator,
+        private InvitationDeliveryCipher $invitationDeliveryCipher,
         private Clock $clock,
         private EventDispatcher $eventDispatcher
     ) {
@@ -65,17 +67,25 @@ final readonly class InvitePendingUserHandler implements CommandHandler
     {
         /** @var InvitePendingUser $command */
         $command = $commandMessage->payload();
-        $issuedAt = $this->clock->now();
 
         try {
+            $issuedAt = $this->clock->now();
+            /** @var ActivationDeliveryId $activationDeliveryId */
             $activationDeliveryId = $this->unitOfWork->commitTransactional(function () use (
                 $command,
                 $issuedAt
             ): ActivationDeliveryId {
                 $user = User::invite($command->getUserId(), $command->getEmail(), $issuedAt);
-                $this->userRepository->add($user);
+                try {
+                    $this->userRepository->add($user);
+                } catch (DuplicateEmailException $duplicateEmailException) {
+                    throw new StateConflict(
+                        'The invitation email is already claimed.',
+                        previous: $duplicateEmailException
+                    );
+                }
 
-                $credential = $this->credentials->generate();
+                $credential = $this->activationCredentialGenerator->generate();
                 $grant = ActivationGrant::issue(
                     ActivationOrigin::PRIVATE_INVITATION,
                     $user->getId(),
@@ -83,7 +93,7 @@ final readonly class InvitePendingUserHandler implements CommandHandler
                     $issuedAt,
                     $issuedAt->add(new DateInterval('P7D')),
                     $user->getEmail(),
-                    $this->cipher->encrypt($credential->toString())
+                    $this->invitationDeliveryCipher->encrypt($credential->toString())
                 );
                 if (!$this->activationGrantRepository->add($grant)) {
                     throw new LogicException('The activation grant could not be added.');

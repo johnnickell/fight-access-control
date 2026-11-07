@@ -1,6 +1,34 @@
 {
   "cases": [
     {
+      "id": "user-lifecycle-void-and-target-ports",
+      "kind": "positive",
+      "file": "user-lifecycle-positive.php",
+      "diagnostics": [
+        {"line": 28, "identifier": "phpstan.dumpType", "message": "Dumped type: Closure(Fight\\Common\\Domain\\Messaging\\Command\\CommandMessage): void"},
+        {"line": 29, "identifier": "phpstan.dumpType", "message": "Dumped type: Closure(Fight\\Common\\Domain\\Messaging\\Command\\CommandMessage): void"},
+        {"line": 30, "identifier": "phpstan.dumpType", "message": "Dumped type: Closure(Fight\\Common\\Domain\\Messaging\\Command\\CommandMessage): void"},
+        {"line": 31, "identifier": "phpstan.dumpType", "message": "Dumped type: Closure(Fight\\Common\\Domain\\Messaging\\Command\\CommandMessage): void"},
+        {"line": 32, "identifier": "phpstan.dumpType", "message": "Dumped type: Closure(Fight\\Common\\Domain\\Messaging\\Command\\CommandMessage): void"},
+        {"line": 33, "identifier": "phpstan.dumpType", "message": "Dumped type: Closure(Fight\\Common\\Domain\\Messaging\\Command\\CommandMessage): void"},
+        {"line": 34, "identifier": "phpstan.dumpType", "message": "Dumped type: Closure(Fight\\Common\\Domain\\Messaging\\Command\\CommandMessage): void"},
+        {"line": 35, "identifier": "phpstan.dumpType", "message": "Dumped type: Closure(Fight\\Common\\Domain\\Messaging\\Command\\CommandMessage): void"},
+        {"line": 36, "identifier": "phpstan.dumpType", "message": "Dumped type: Closure(Fight\\AccessControl\\Domain\\AccessControl\\User\\UserId, Fight\\AccessControl\\Domain\\AccessControl\\User\\UserId): void"},
+        {"line": 37, "identifier": "phpstan.dumpType", "message": "Dumped type: Closure(Fight\\AccessControl\\Domain\\AccessControl\\User\\UserId, Fight\\AccessControl\\Domain\\AccessControl\\User\\UserId): void"}
+      ]
+    },
+    {
+      "id": "user-lifecycle-incompatible-uses",
+      "kind": "negative",
+      "file": "user-lifecycle-negative.php",
+      "diagnostics": [
+        {"line": 20, "identifier": "argument.type", "message": "Parameter #1 $actorId of method Fight\\AccessControl\\Application\\AccessControl\\User\\Service\\RegistrationRecoveryAuthorization::assertCanRecoverRegistration() expects Fight\\AccessControl\\Domain\\AccessControl\\User\\UserId, Fight\\AccessControl\\Domain\\AccessControl\\Role\\RoleId given."},
+        {"line": 21, "identifier": "argument.type", "message": "Parameter #2 $userId of method Fight\\AccessControl\\Application\\AccessControl\\ActivationGrant\\Service\\InvitationAdministrationAuthorization::assertCanCorrectInvitation() expects Fight\\AccessControl\\Domain\\AccessControl\\User\\UserId, Fight\\AccessControl\\Domain\\AccessControl\\Role\\RoleId given."},
+        {"line": 22, "identifier": "argument.type", "message": "Parameter #1 $result of closure expects Fight\\AccessControl\\Domain\\AccessControl\\User\\UserId, null given."},
+        {"line": 22, "identifier": "method.void", "message": "Result of method Fight\\AccessControl\\Application\\AccessControl\\User\\CommandHandler\\EnableUserHandler::handle() (void) is used."}
+      ]
+    },
+    {
       "id": "preparation-preview-results",
       "kind": "positive",
       "file": "preparation-preview-positive.php",

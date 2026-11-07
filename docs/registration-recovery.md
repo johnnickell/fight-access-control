@@ -23,7 +23,10 @@ The handler calls it inside its transaction, before protected repository reads. 
 current authenticated administrator context, reject actor substitution and check permission for the **exact target**.
 Keep that authority valid through transaction completion under the consumer's authorization fence. A permissive stub,
 caller-supplied actor, route admission alone or cached UI permission is not production authorization. Throw
-`RegistrationRecoveryAuthorizationException` for denied actor/target admission. Consumers own actual policy and wiring.
+`RegistrationRecoveryAuthorizationException` only for denied actor/target admission; the handler translates this
+explicit denial to Application `PermissionDenied`. Unknown context/provider faults remain internal. Consumers own
+actual policy and wiring. The unreleased [lifecycle contract table](user-lifecycle-contracts.md) documents missing,
+unusable, expected-generation and concurrency outcomes; success remains void.
 
 Use existing consumer-protected `GetUserById` and `FindInvitationDeliveryStatus` for operator inspection. The latter's
 current `InvitationDeliveryStatusView` now requires/exposes typed `getActivationDeliveryId()` and serialized

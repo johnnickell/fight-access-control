@@ -25,6 +25,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   post-commit publication behavior. Invocation purposes and internal result contracts are precise; concrete ciphers
   must mark sensitive plaintext parameters. Update catches/composition directly. See
   [request and worker contracts](docs/credential-delivery.md#request-and-worker-contracts-unreleased).
+- **Breaking pre-v1 User lifecycle Application contracts:** eight void handlers distinguish deliberate missing User,
+  target denial, state conflict and explicit recovery-generation precondition failure using Common Application
+  categories. Wrong identities/correlations, broken registration configuration and unknown faults remain internal.
+  Update affected catches and named generator/cipher/recovery-authorization arguments directly; repository
+  nullability, Domain transitions, success wire shapes, atomic audit/fences and commit/publication outcomes remain.
+  See [current lifecycle contracts](docs/user-lifecycle-contracts.md). No version, release or consumer qualification
+  is selected.
 - **Breaking pre-v1 credential status contract:** optional invitation/exact delivery status Queries now return a safe
   View or explicit `CredentialDeliveryAbsent`, not null. Invitation Views require/expose recorded activation origin.
   Discovery validates each bounded purpose-family batch before legitimate deterministic global top-N selection.

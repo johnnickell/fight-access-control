@@ -42,6 +42,9 @@ expected complete Role snapshots, not caller authority. A missing/mismatched or 
 Changing defaults affects later registrations only. A later rename/redefinition does not retroactively change the
 stored assignment IDs of earlier Users; normal Role authority management still applies to those IDs.
 
+Current unreleased [Application lifecycle contracts](user-lifecycle-contracts.md) distinguish broken configuration
+from canonical-email/reference conflicts and document renamed PHP constructor arguments. Success remains void.
+
 ## Creation-time persistence contract
 
 Consumers implement the new mandatory Domain method directly; there is no optional capability, compatibility default,
@@ -53,12 +56,14 @@ creation. The extra expected-snapshot method binds registration's configured **n
 The consumer adapter must, on the same connection and transaction:
 
 - Atomically enforce fresh User identity and canonical-email uniqueness against **all** pending, active, disabled and
-  deleted Users and live email-change reservations. Never rely on an availability preflight. A duplicate throws the
-  existing internal rejection; it does not create a User, activation, delivery, successful-registration audit or fact,
+  deleted Users and live email-change reservations. Never rely on an availability preflight. A claimed/reserved
+  email throws Domain `DuplicateEmailException`, translated here to Application `StateConflict`; it does not create a
+  User, activation, delivery, successful-registration audit or fact,
   send duplicate mail, recover another User or return package generic success.
 - Validate the nonempty expected Role set against the User's **exact entire initial assignment set** and authoritative
   stored Roles. Compare complete current identity, unique canonical name, managed ownership, Permission membership and
-  timestamps. Duplicate/conflicting IDs or names, removal, rename and replacement must reject stale expectations.
+  timestamps and required incarnation/revision. Duplicate/conflicting IDs or names, removal, rename and replacement
+  must reject stale expectations.
   A matching PHP object or cached name lookup alone is not evidence of persisted authority.
 - Hold the shared Role-reference/name fence through **transaction completion**, including User insertion and every
   Role add/replace/remove path (including managed-policy writers). Removal may not miss a newly created pending User's

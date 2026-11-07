@@ -19,7 +19,6 @@ use Fight\AccessControl\Domain\AccessControl\ActivationGrant\Command\RetryInvita
 use Fight\AccessControl\Domain\AccessControl\CredentialDelivery\CredentialDeliveryStatus;
 use Fight\AccessControl\Domain\AccessControl\CredentialDelivery\Query\CredentialDeliveryStatusView;
 use Fight\AccessControl\Domain\AccessControl\User\Command\CorrectPendingInvitation;
-use Fight\AccessControl\Domain\AccessControl\User\Exception\PendingInvitationCorrectionException;
 use Fight\AccessControl\Domain\AccessControl\User\UserId;
 use Fight\AccessControl\Domain\AccessControl\User\UserState;
 use Fight\Common\Application\Error\Exception\StateConflict;
@@ -401,7 +400,7 @@ final class ActivationOriginRecoveryTest extends TestCase
                     ActivationOrigin::PRIVATE_INVITATION,
                     $provider->invocations()[0]->getActivationOrigin()
                 );
-            } catch (PendingInvitationCorrectionException) {
+            } catch (StateConflict) {
                 self::assertSame(ActivationOrigin::REGISTRATION, $origin);
                 self::assertSame(
                     'origin@example.test',

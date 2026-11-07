@@ -26,7 +26,6 @@ use Fight\AccessControl\Domain\AccessControl\CredentialDelivery\Query\Credential
 use Fight\AccessControl\Domain\AccessControl\CredentialDelivery\Query\FindDueCredentialDeliveries;
 use Fight\AccessControl\Domain\AccessControl\RefreshSession\RefreshCredential;
 use Fight\AccessControl\Domain\AccessControl\User\Event\UserRegistered;
-use Fight\AccessControl\Domain\AccessControl\User\Exception\DuplicateEmailException;
 use Fight\AccessControl\Domain\AccessControl\User\PasswordHash;
 use Fight\AccessControl\Domain\AccessControl\User\Query\GetUserById;
 use Fight\AccessControl\Domain\AccessControl\User\Query\UserView;
@@ -34,6 +33,7 @@ use Fight\AccessControl\Domain\AccessControl\User\UserState;
 use Fight\Common\Adapter\Messaging\Command\Sync\Routing\CommandRouter;
 use Fight\Common\Adapter\Messaging\Command\Sync\RoutingCommandBus;
 use Fight\Common\Application\Error\Exception\ResourceNotFound;
+use Fight\Common\Application\Error\Exception\StateConflict;
 use Fight\Common\Domain\Messaging\Command\CommandMessage;
 use Fight\Common\Domain\Messaging\Event\CommandFailedEvent;
 use Fight\Common\Domain\Messaging\Event\EventMessage;
@@ -233,7 +233,7 @@ final class RegistrationJourneyTest extends TestCase
         try {
             $fixture->handler()->handle(CommandMessage::create($command));
             self::fail('A duplicate became an implicit recovery command.');
-        } catch (DuplicateEmailException) {
+        } catch (StateConflict) {
         }
 
         self::assertCount(1, $fixture->userRepository->all());

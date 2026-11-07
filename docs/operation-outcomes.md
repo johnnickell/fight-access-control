@@ -40,6 +40,13 @@ worker fault may therefore propagate through the original request even though is
 [delivery status and due work](credential-delivery.md), retain exact generation identities, and keep provider retry
 classification distinct from outer operation failure notification. No outbox or guaranteed event replay is supplied.
 
+## Account lifecycle failures (Unreleased)
+
+The eight [User lifecycle handlers](user-lifecycle-contracts.md) now expose intentional Common Application
+absence, target denial, state conflict and explicit recovery-precondition outcomes. Wrong identities, broken
+configuration and unknown faults remain internal. Domain stays independent; no blanket transaction-wide exception
+translation, result DTO, new no-op event or changed uncertainty/publication policy is introduced.
+
 ## User authentication transitions (Unreleased)
 
 User owns complete business transitions: `activate()`, `changePassword()`, `resetPassword()` and
