@@ -19,6 +19,7 @@ use Fight\AccessControl\Domain\AccessControl\User\Command\DeleteUser;
 use Fight\AccessControl\Domain\AccessControl\User\Command\RestoreUser;
 use Fight\AccessControl\Domain\AccessControl\User\PasswordHash;
 use Fight\AccessControl\Domain\AccessControl\User\UserState;
+use Fight\Common\Application\Error\Exception\AuthenticationRequired;
 use Fight\Common\Application\Error\Exception\StateConflict;
 use Fight\Common\Domain\Messaging\Command\CommandMessage;
 use Fight\Common\Domain\Value\Internet\EmailAddress;
@@ -30,7 +31,6 @@ use Fight\Test\AccessControl\Application\AccessControl\PasswordResetGrant\Reposi
 use Fight\Test\AccessControl\Application\AccessControl\RefreshSession\Repository\InMemoryRefreshSessionRepository;
 use Fight\Test\AccessControl\Application\AccessControl\Timing\Service\FixedClock;
 use Fight\Test\AccessControl\Domain\AccessControl\User\UserFixture;
-use LogicException;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
 use RuntimeException;
@@ -167,7 +167,7 @@ final class RegistrationRecoveryRaceTest extends TestCase
             try {
                 $loser->resume();
                 self::fail('The stale activation/recovery won.');
-            } catch (LogicException | StateConflict) {
+            } catch (StateConflict) {
                 self::assertSame($winner, $fixture->current());
                 self::assertSame(
                     $recoveryWins ? UserState::PENDING_ACTIVATION : UserState::ACTIVE,
@@ -187,7 +187,7 @@ final class RegistrationRecoveryRaceTest extends TestCase
                 'long-new-password'
             );
             self::fail('Expired activation won before reissue.');
-        } catch (LogicException) {
+        } catch (AuthenticationRequired) {
             $fixture->handler('2030-01-08T00:00:00Z')->handle(CommandMessage::create(
                 $fixture->command('alice@example.test')
             ));

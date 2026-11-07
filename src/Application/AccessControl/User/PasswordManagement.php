@@ -10,14 +10,12 @@ use Fight\AccessControl\Application\AccessControl\RefreshSession\Service\Session
 use Fight\AccessControl\Application\AccessControl\Timing\Service\Clock;
 use Fight\AccessControl\Domain\AccessControl\Audit\AuditEvidence;
 use Fight\AccessControl\Domain\AccessControl\Audit\AuditEvidenceRepository;
-use Fight\AccessControl\Domain\AccessControl\PasswordResetGrant\Exception\PasswordResetRejectedException;
 use Fight\AccessControl\Domain\AccessControl\PasswordResetGrant\PasswordResetCredential;
 use Fight\AccessControl\Domain\AccessControl\PasswordResetGrant\PasswordResetGrant;
 use Fight\AccessControl\Domain\AccessControl\PasswordResetGrant\PasswordResetGrantRepository;
 use Fight\AccessControl\Domain\AccessControl\User\Event\PasswordChanged;
 use Fight\AccessControl\Domain\AccessControl\User\Event\PasswordResetCompleted;
 use Fight\AccessControl\Domain\AccessControl\User\Event\RedactedCommandFailed;
-use Fight\AccessControl\Domain\AccessControl\User\Exception\PasswordChangeRejectedException;
 use Fight\AccessControl\Domain\AccessControl\User\PasswordHash;
 use Fight\AccessControl\Domain\AccessControl\User\User;
 use Fight\AccessControl\Domain\AccessControl\User\UserId;
@@ -25,8 +23,11 @@ use Fight\AccessControl\Domain\AccessControl\User\UserRepository;
 use Fight\AccessControl\Domain\AccessControl\User\UserState;
 use Fight\Common\Application\Auth\Security\PasswordHasher;
 use Fight\Common\Application\Auth\Security\PasswordValidator;
+use Fight\Common\Application\Error\Exception\AuthenticationRequired;
 use Fight\Common\Application\Messaging\Event\EventDispatcher;
 use Fight\Common\Application\Repository\TransactionalUnitOfWork;
+use Fight\Common\Domain\Exception\DomainException;
+use LogicException;
 use SensitiveParameter;
 use Throwable;
 
@@ -63,15 +64,19 @@ final readonly class PasswordManagement
         #[SensitiveParameter] string $newPassword
     ): void {
         try {
+            /** @var DateTimeImmutable $changedAt */
             $changedAt = $this->unitOfWork->commitTransactional(function () use (
                 $authenticatedUserId,
                 $currentPassword,
                 $newPassword
             ): DateTimeImmutable {
                 $user = $this->userRepository->getById($authenticatedUserId);
+                if ($user !== null && !$user->getId()->equals($authenticatedUserId)) {
+                    throw new LogicException('The User lookup returned a different identity.');
+                }
+
                 $passwordHash = $user?->getPasswordHash();
                 $isActiveUser = $user instanceof User
-                    && $user->getId()->equals($authenticatedUserId)
                     && $user->getState() === UserState::ACTIVE
                     && $passwordHash instanceof PasswordHash;
                 $verificationHash = $this->dummyPasswordHash;
@@ -84,7 +89,7 @@ final readonly class PasswordManagement
                     $verificationHash->toString()
                 );
                 if (!$isActiveUser || !$credentialsMatch) {
-                    throw new PasswordChangeRejectedException('Password change rejected.');
+                    throw new AuthenticationRequired('Password change rejected.');
                 }
 
                 $changedAt = $this->clock->now();
@@ -94,7 +99,7 @@ final readonly class PasswordManagement
                     $changedAt
                 );
                 if (!$this->userRepository->replaceAuthenticationAuthority($user, $replacementUser)) {
-                    throw new PasswordChangeRejectedException('Password change rejected.');
+                    throw new AuthenticationRequired('Password change rejected.');
                 }
 
                 new PasswordResetRevocationService($this->passwordResetGrantRepository)->revokeFor(
@@ -132,6 +137,7 @@ final readonly class PasswordManagement
         #[SensitiveParameter] string $plainPassword
     ): void {
         try {
+            /** @var DateTimeImmutable $completedAt */
             $completedAt = $this->unitOfWork->commitTransactional(function () use (
                 $userId,
                 $resetCredential,
@@ -139,29 +145,40 @@ final readonly class PasswordManagement
             ): DateTimeImmutable {
                 $completedAt = $this->clock->now();
                 $user = $this->userRepository->getById($userId);
+                if ($user !== null && !$user->getId()->equals($userId)) {
+                    throw new LogicException('The User lookup returned a different identity.');
+                }
+
                 if (!$user instanceof User || !$this->userRepository->validateRecoveryAuthority($user)) {
-                    throw new PasswordResetRejectedException('Password reset rejected.');
+                    throw new AuthenticationRequired('Password reset rejected.');
                 }
 
                 $passwordResetGrant = $this->passwordResetGrantRepository->getLatestByUserId($userId);
+                if (
+                    $passwordResetGrant !== null
+                    && (
+                        !$passwordResetGrant->getUserId()->equals($userId)
+                        || $passwordResetGrant->purpose() !== 'password_reset'
+                    )
+                ) {
+                    throw new LogicException('The reset lookup returned unrelated authority.');
+                }
+
                 try {
                     $credential = PasswordResetCredential::fromString($resetCredential);
-                } catch (Throwable) {
-                    throw new PasswordResetRejectedException('Password reset rejected.');
+                } catch (DomainException) {
+                    throw new AuthenticationRequired('Password reset rejected.');
                 }
 
                 if (
-                    !$user->getId()->equals($userId)
-                    || $user->getState() !== UserState::ACTIVE
+                    $user->getState() !== UserState::ACTIVE
                     || !$user->getPasswordHash() instanceof PasswordHash
                     || !$passwordResetGrant instanceof PasswordResetGrant
-                    || !$passwordResetGrant->getUserId()->equals($userId)
-                    || $passwordResetGrant->purpose() !== 'password_reset'
                     || !$passwordResetGrant->isAuthorizedBy($user)
                     || !$passwordResetGrant->isUsableAt($completedAt)
                     || !$passwordResetGrant->matchesCredential($credential)
                 ) {
-                    throw new PasswordResetRejectedException('Password reset rejected.');
+                    throw new AuthenticationRequired('Password reset rejected.');
                 }
 
                 $passwordHash = PasswordHash::fromString($this->passwordHasher->hash($plainPassword));
@@ -173,11 +190,11 @@ final readonly class PasswordManagement
                         $passwordResetGrant->consume($completedAt)
                     )
                 ) {
-                    throw new PasswordResetRejectedException('Password reset rejected.');
+                    throw new AuthenticationRequired('Password reset rejected.');
                 }
 
                 if (!$this->userRepository->replaceAuthenticationAuthority($user, $replacementUser)) {
-                    throw new PasswordResetRejectedException('Password reset rejected.');
+                    throw new AuthenticationRequired('Password reset rejected.');
                 }
 
                 $this->sessionRevocationService->revokeAllActiveFor($userId, $completedAt);
@@ -201,9 +218,7 @@ final readonly class PasswordManagement
     /**
      * Dispatches only allowlisted operation context after a sensitive failure
      *
-     * @param string               $operation
-     * @param array<string, mixed> $safeData
-     * @param string               $failureMessage
+     * @phpstan-param array{user_id: string} $safeData
      */
     private function publishFailure(string $operation, array $safeData, string $failureMessage): void
     {

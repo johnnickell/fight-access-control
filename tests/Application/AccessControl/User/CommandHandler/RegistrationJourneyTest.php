@@ -32,6 +32,7 @@ use Fight\AccessControl\Domain\AccessControl\User\Query\UserView;
 use Fight\AccessControl\Domain\AccessControl\User\UserState;
 use Fight\Common\Adapter\Messaging\Command\Sync\Routing\CommandRouter;
 use Fight\Common\Adapter\Messaging\Command\Sync\RoutingCommandBus;
+use Fight\Common\Application\Error\Exception\AuthenticationRequired;
 use Fight\Common\Application\Error\Exception\ResourceNotFound;
 use Fight\Common\Application\Error\Exception\StateConflict;
 use Fight\Common\Domain\Messaging\Command\CommandMessage;
@@ -52,7 +53,6 @@ use Fight\Test\AccessControl\Application\AccessControl\User\Repository\InMemoryU
 use Fight\Test\AccessControl\Application\AccessControl\User\Security\RecordingTokenEncoder;
 use Fight\Test\AccessControl\Application\AccessControl\User\Security\TestPasswordSecurity;
 use Fight\Test\AccessControl\Application\AccessControl\User\Service\FixedLoginThrottle;
-use LogicException;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
 use RuntimeException;
@@ -119,7 +119,7 @@ final class RegistrationJourneyTest extends TestCase
             $fixture->userRepository->all()[0]->getRoleIds()
         );
         self::assertFalse($fixture->activationGrantRepository->all()[0]->isIssued());
-        $this->expectException(LogicException::class);
+        $this->expectException(AuthenticationRequired::class);
         $service->activate($command->getUserId(), $provider->invocations()[0]->getCredential(), 'another-password');
     }
 
