@@ -5,13 +5,11 @@ dependencies, acceptance, and verification.
 
 ## What's Next?
 
-Active Task: [TASK-00137](00137-TASK.md) — Correct User account lifecycle contracts.
+First ready Task: [TASK-00138](00138-TASK.md) — Correct human credential request and worker contracts.
 
 ## In Progress
 
-| Order | TASK ID | Title | Parent TICKET | Status | Blocked by | PR |
-| --- | --- | --- | --- | --- | --- | --- |
-| 316 | [TASK-00137](00137-TASK.md) | Correct User account lifecycle contracts | [TICKET-00040](../tickets/00040-TICKET.md) — Make command and synchronous Application contracts explicit | in-progress | — | — |
+No Tasks are currently in this state.
 
 ## Ready Frontier
 
@@ -220,3 +218,4 @@ No Tasks are currently in this state.
 | 312 | [TASK-00133](00133-TASK.md) | Make human credential status and discovery results explicit | [TICKET-00039](../tickets/00039-TICKET.md) — Guarantee exact query results and explicit absence | done | — | https://github.com/johnnickell/fight-access-control/pull/171 |
 | 313 | [TASK-00134](00134-TASK.md) | Correct Agent operation, scheduler and count query contracts | [TICKET-00039](../tickets/00039-TICKET.md) — Guarantee exact query results and explicit absence | done | — | https://github.com/johnnickell/fight-access-control/pull/173 |
 | 314 | [TASK-00135](00135-TASK.md) | Make preparation and policy-preview results truthful | [TICKET-00039](../tickets/00039-TICKET.md) — Guarantee exact query results and explicit absence | done | — | https://github.com/johnnickell/fight-access-control/pull/174 |
+| 316 | [TASK-00137](00137-TASK.md) | Correct User account lifecycle contracts | [TICKET-00040](../tickets/00040-TICKET.md) — Make command and synchronous Application contracts explicit | done | — | — |

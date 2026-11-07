@@ -101,7 +101,7 @@ All records are kind chore, orders 315–324, with empty local blocked_by; prefe
 | TASK | Order | Primary Application files / CommandHandlers | Delivered contract area | Status |
 | --- | --- | --- | --- | --- |
 | [TASK-00136](../tasks/00136-TASK.md) | 315 | 4 / 0 | Three Event-to-delivery subscribers and shared Clock; qualified Event typing only. | needs-info |
-| [TASK-00137](../tasks/00137-TASK.md) | 316 | 10 / 8 | User creation, invitation/recovery/correction and lifecycle. | ready-for-agent |
+| [TASK-00137](../tasks/00137-TASK.md) | 316 | 10 / 8 | User creation, invitation/recovery/correction and lifecycle. | done |
 | [TASK-00138](../tasks/00138-TASK.md) | 317 | 24 / 11 | Human credential requests/workers and shared provider/cipher/invocation/results. | ready-for-agent |
 | [TASK-00139](../tasks/00139-TASK.md) | 318 | 11 / 1 | Seven synchronous User security operations, RevokeSession and helpers/results. | ready-for-agent |
 | [TASK-00140](../tasks/00140-TASK.md) | 319 | 7 / 7 | Role lifecycle/Permission membership and User Role membership. | ready-for-agent |
@@ -164,7 +164,7 @@ No source overlap alone establishes a dependency, and no blanket wait on Common/
 | Order | TASK ID | Title | Status |
 | --- | --- | --- | --- |
 | 315 | [TASK-00136](../tasks/00136-TASK.md) | Preserve Event-driven delivery contracts | needs-info |
-| 316 | [TASK-00137](../tasks/00137-TASK.md) | Correct User account lifecycle contracts | in-progress |
+| 316 | [TASK-00137](../tasks/00137-TASK.md) | Correct User account lifecycle contracts | done |
 | 317 | [TASK-00138](../tasks/00138-TASK.md) | Correct human credential request and worker contracts | ready-for-agent |
 | 318 | [TASK-00139](../tasks/00139-TASK.md) | Correct synchronous User and session contracts | ready-for-agent |
 | 319 | [TASK-00140](../tasks/00140-TASK.md) | Correct Role and User membership contracts | ready-for-agent |
@@ -176,12 +176,13 @@ No source overlap alone establishes a dependency, and no blanket wait on Common/
 ## Decisions and Progress
 
 John approved this requirement in the six-TICKET split, then the revised complete ten-TASK plan, now written as
-TASK-00136–00145. Nine are ready-for-agent; TASK-00136 remains needs-info for Event typing only. Native UoW mixed
+TASK-00136–00145. At that planning checkpoint nine were ready-for-agent; current status belongs to the owning
+TASKs and generated child table. TASK-00136 remains needs-info for Event typing only. Native UoW mixed
 and known local callback-result @var are explicitly accepted with no UoW supplier prerequisite. No local/mutual
 blockers are demonstrated and existing TASK scope/order/blockers and Board priority remain unchanged.
 
-This is planning only: no implementation, source/dependency/sibling/consumer mutation, product build, new checkout/
-branch/worktree, commit/publication, release or independent acceptance is claimed. Private criteria must be obtained
+That approval checkpoint was planning only: no implementation, source/dependency/sibling/consumer mutation,
+product build, new checkout/branch/worktree, commit/publication, release or independent acceptance was claimed. Private criteria must be obtained
 through the authorized channel before applicable implementation/review, not inferred available from public planning.
 
 At this ten-TASK checkpoint, planning generation/read-only validation passed (209 records, 83 active), alongside
