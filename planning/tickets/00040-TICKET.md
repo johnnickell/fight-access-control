@@ -166,7 +166,7 @@ No source overlap alone establishes a dependency, and no blanket wait on Common/
 | 315 | [TASK-00136](../tasks/00136-TASK.md) | Preserve Event-driven delivery contracts | needs-info |
 | 316 | [TASK-00137](../tasks/00137-TASK.md) | Correct User account lifecycle contracts | ready-for-agent |
 | 317 | [TASK-00138](../tasks/00138-TASK.md) | Correct human credential request and worker contracts | ready-for-agent |
-| 318 | [TASK-00139](../tasks/00139-TASK.md) | Correct synchronous User and session contracts | in-progress |
+| 318 | [TASK-00139](../tasks/00139-TASK.md) | Correct synchronous User and session contracts | done |
 | 319 | [TASK-00140](../tasks/00140-TASK.md) | Correct Role and User membership contracts | ready-for-agent |
 | 320 | [TASK-00141](../tasks/00141-TASK.md) | Correct Agent administration contracts | ready-for-agent |
 | 321 | [TASK-00142](../tasks/00142-TASK.md) | Correct Feature and policy mutation contracts | ready-for-agent |
@@ -174,6 +174,14 @@ No source overlap alone establishes a dependency, and no blanket wait on Common/
 | 323 | [TASK-00144](../tasks/00144-TASK.md) | Correct Agent delivery, recovery and maintenance contracts | ready-for-agent |
 | 324 | [TASK-00145](../tasks/00145-TASK.md) | Correct authority and continuation contracts | ready-for-agent |
 ## Decisions and Progress
+
+TASK-00139's synchronous User/session slice has independent Review v3 ACCEPT and nonvisual QA PASS at clean
+candidate `07a50e549a84b45b74e4d72cd6f0a44eb6aa8439` against `80f6d0d213a2324fdc02f29a26a17fc82ccd3702`, with
+qualified complete-gate/exact-coverage proof. The owning TASK records acceptance and limits; its canonical Land
+handoff owns current delivery/resource results. TASK-00139 is done, but unfinished children keep this TICKET and
+EPIC-00016 open. This is not acceptance of other Application contracts, optional audit or consumer composition.
+
+### Historical planning checkpoints
 
 John approved this requirement in the six-TICKET split, then the revised complete ten-TASK plan, now written as
 TASK-00136–00145. Nine are ready-for-agent; TASK-00136 remains needs-info for Event typing only. Native UoW mixed
