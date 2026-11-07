@@ -6,6 +6,25 @@ Fight AccessControl owns framework-neutral identity, credential, session, author
 behavior shared by Fight applications. The repository-local behavioral and security authority is
 [TICKET-00001](planning/tickets/00001-TICKET.md).
 
+## TASK-00139 synchronous User/session contracts — accepted checkpoint
+
+The seven direct sensitive operations and secret-free `RevokeSession` Command now distinguish deliberate Common
+Application refusals/conflicts from broken repository promises and unexpected faults. Actual narrow capability
+homes, exact token/conflict/void results, known local UoW annotations and transaction/audit/authority/recovery fences
+remain. Refresh bounded conflict does not revoke; terminal replay commits its safety mutation before outward refusal.
+See [current composition and failure contracts](docs/user-authentication.md#explicit-failure-and-adapter-contracts-unreleased).
+
+Independent Review v3 ACCEPT and nonvisual QA PASS cover clean candidate
+`07a50e549a84b45b74e4d72cd6f0a44eb6aa8439` against develop `80f6d0d213a2324fdc02f29a26a17fc82ccd3702`, with no
+findings. QA passes 24 groups / 906 checks; the qualified earlier full gate passes 5,011 tests / 54,432 assertions,
+exact 8,496/8,496 global and 528/528 owned statements. TASK-00139 is done; unfinished children keep its parents open.
+Canonical `.runs/handoffs/TASK-00139/work.md` retains exhaustive dispositions, regression chronology and dependency/
+runtime proof. Publication/final-head checks remain pending at this closeout checkpoint; current administrative
+bridge, delivery/resource results and fresh targeted checks belong to `.runs/handoffs/TASK-00139/land.md` and the
+actual PR. Independent reports retain their exact subjects. Minimum-lane 43/14 advisories remain disclosed; ordinary
+restoration reported none. No optional-audit feature, generic dispatch or actual consumer storage/crypto/transport
+qualification, approval, merge, release or deployment is claimed.
+
 ## TASK-00135 preparation and policy preview — accepted checkpoint
 
 Independent Review v3 ACCEPT and nonvisual QA PASS cover candidate

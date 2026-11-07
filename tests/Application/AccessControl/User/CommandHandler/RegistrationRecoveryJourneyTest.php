@@ -29,6 +29,7 @@ use Fight\AccessControl\Domain\AccessControl\User\Query\GetUserById;
 use Fight\AccessControl\Domain\AccessControl\User\UserState;
 use Fight\Common\Adapter\Messaging\Command\Sync\Routing\CommandRouter;
 use Fight\Common\Adapter\Messaging\Command\Sync\RoutingCommandBus;
+use Fight\Common\Application\Error\Exception\AuthenticationRequired;
 use Fight\Common\Domain\Messaging\Command\CommandMessage;
 use Fight\Common\Domain\Messaging\Event\CommandFailedEvent;
 use Fight\Common\Domain\Messaging\Event\EventMessage;
@@ -41,7 +42,6 @@ use Fight\Test\AccessControl\Application\AccessControl\ActivationGrant\Service\U
 use Fight\Test\AccessControl\Application\AccessControl\CredentialDelivery\Service\RecordingCredentialDeliveryProvider;
 use Fight\Test\AccessControl\Application\AccessControl\Event\InMemoryEventDispatcher;
 use Fight\Test\AccessControl\Application\AccessControl\Timing\Service\FixedClock;
-use LogicException;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
 use RuntimeException;
@@ -98,7 +98,7 @@ final class RegistrationRecoveryJourneyTest extends TestCase
                     'long-new-password'
                 );
                 self::fail('The predecessor token activated the User.');
-            } catch (LogicException) {
+            } catch (AuthenticationRequired) {
                 self::assertNull($fixture->userRepository->all()[0]->getPasswordHash());
             }
 
@@ -121,7 +121,7 @@ final class RegistrationRecoveryJourneyTest extends TestCase
                     'another-password'
                 );
                 self::fail('Activation replay succeeded.');
-            } catch (LogicException) {
+            } catch (AuthenticationRequired) {
                 self::assertTrue($fixture->current()->isConsumed());
             }
         }

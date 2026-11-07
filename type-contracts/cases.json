@@ -1,6 +1,35 @@
 {
   "cases": [
     {
+      "id": "user-session-exact-results",
+      "kind": "positive",
+      "file": "user-session-positive.php",
+      "diagnostics": [
+        {"line": 14, "identifier": "phpstan.dumpType", "message": "Dumped type: Fight\\AccessControl\\Application\\AccessControl\\User\\Security\\TokenSet"},
+        {"line": 15, "identifier": "phpstan.dumpType", "message": "Dumped type: Fight\\AccessControl\\Application\\AccessControl\\User\\Security\\TokenSet"},
+        {"line": 16, "identifier": "phpstan.dumpType", "message": "Dumped type: Fight\\AccessControl\\Application\\AccessControl\\User\\Security\\RefreshResult"},
+        {"line": 17, "identifier": "phpstan.dumpType", "message": "Dumped type: Fight\\AccessControl\\Domain\\AccessControl\\User\\UserId"},
+        {"line": 18, "identifier": "phpstan.dumpType", "message": "Dumped type: Fight\\AccessControl\\Domain\\AccessControl\\RefreshSession\\RefreshSessionId"},
+        {"line": 19, "identifier": "phpstan.dumpType", "message": "Dumped type: Fight\\AccessControl\\Domain\\AccessControl\\RefreshSession\\RefreshCredential"},
+        {"line": 20, "identifier": "phpstan.dumpType", "message": "Dumped type: DateTimeImmutable"},
+        {"line": 21, "identifier": "phpstan.dumpType", "message": "Dumped type: bool"},
+        {"line": 22, "identifier": "phpstan.dumpType", "message": "Dumped type: Fight\\AccessControl\\Application\\AccessControl\\User\\Security\\AccessToken"},
+        {"line": 23, "identifier": "phpstan.dumpType", "message": "Dumped type: DateTimeImmutable"},
+        {"line": 24, "identifier": "phpstan.dumpType", "message": "Dumped type: Fight\\AccessControl\\Application\\AccessControl\\User\\Security\\TokenSet|null"}
+      ]
+    },
+    {
+      "id": "user-session-incompatible-uses",
+      "kind": "negative",
+      "file": "user-session-negative.php",
+      "diagnostics": [
+        {"line": 11, "identifier": "argument.type", "message": "Parameter #1 $tokens of closure expects Fight\\AccessControl\\Application\\AccessControl\\User\\Security\\TokenSet, Fight\\AccessControl\\Application\\AccessControl\\User\\Security\\TokenSet|null given."},
+        {"line": 12, "identifier": "argument.type", "message": "Parameter #1 $refreshCredential of method Fight\\AccessControl\\Application\\AccessControl\\RefreshSession\\SessionLifecycle::refresh() expects string, Fight\\AccessControl\\Domain\\AccessControl\\RefreshSession\\RefreshCredential given."},
+        {"line": 13, "identifier": "argument.type", "message": "Parameter #1 $userId of closure expects Fight\\AccessControl\\Domain\\AccessControl\\User\\UserId, Fight\\AccessControl\\Domain\\AccessControl\\RefreshSession\\RefreshSessionId given."},
+        {"line": 14, "identifier": "method.void", "message": "Result of method Fight\\AccessControl\\Application\\AccessControl\\RefreshSession\\SessionLifecycle::logout() (void) is used."}
+      ]
+    },
+    {
       "id": "preparation-preview-results",
       "kind": "positive",
       "file": "preparation-preview-positive.php",

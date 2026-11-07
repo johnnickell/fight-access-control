@@ -9,18 +9,18 @@ use Fight\AccessControl\Application\AccessControl\RefreshSession\CommandHandler\
 use Fight\AccessControl\Domain\AccessControl\Audit\AuditEvidence;
 use Fight\AccessControl\Domain\AccessControl\RefreshSession\Command\RevokeSession;
 use Fight\AccessControl\Domain\AccessControl\RefreshSession\Event\RefreshSessionRevoked;
-use Fight\AccessControl\Domain\AccessControl\RefreshSession\Exception\CurrentRefreshSessionRevocationException;
-use Fight\AccessControl\Domain\AccessControl\RefreshSession\Exception\RefreshSessionConflictException;
-use Fight\AccessControl\Domain\AccessControl\RefreshSession\Exception\RefreshSessionNotFoundException;
-use Fight\AccessControl\Domain\AccessControl\RefreshSession\Exception\SessionAdministrationAuthorizationException;
 use Fight\AccessControl\Domain\AccessControl\RefreshSession\Exception\SessionRevocationReasonException;
-use Fight\AccessControl\Domain\AccessControl\RefreshSession\Exception\SessionRevocationReasonRequiredException;
 use Fight\AccessControl\Domain\AccessControl\RefreshSession\RefreshCredential;
 use Fight\AccessControl\Domain\AccessControl\RefreshSession\RefreshSession;
 use Fight\AccessControl\Domain\AccessControl\RefreshSession\RefreshSessionId;
 use Fight\AccessControl\Domain\AccessControl\RefreshSession\RefreshSessionRepository;
 use Fight\AccessControl\Domain\AccessControl\RefreshSession\SessionRevocationReason;
 use Fight\AccessControl\Domain\AccessControl\User\UserId;
+use Fight\Common\Application\Error\Exception\InvalidInput as SessionRevocationReasonRequiredException;
+use Fight\Common\Application\Error\Exception\PermissionDenied as SessionAdministrationAuthorizationException;
+use Fight\Common\Application\Error\Exception\ResourceNotFound as RefreshSessionNotFoundException;
+use Fight\Common\Application\Error\Exception\RuleViolation as CurrentRefreshSessionRevocationException;
+use Fight\Common\Application\Error\Exception\StateConflict as RefreshSessionConflictException;
 use Fight\Common\Domain\Exception\DomainException;
 use Fight\Common\Domain\Messaging\Command\CommandMessage;
 use Fight\Common\Domain\Messaging\Event\CommandFailedEvent;
@@ -155,7 +155,7 @@ final class RevokeSessionHandlerTest extends TestCase
         $failure = $this->captureFailure($handler, $command);
 
         self::assertInstanceOf(SessionAdministrationAuthorizationException::class, $failure);
-        self::assertSame('Session administration is not authorized.', $failure->getMessage());
+        self::assertSame('Session administration rejected.', $failure->getMessage());
         self::assertSame(1, $authorization->calls());
         self::assertFalse($refreshSessionRepository->getById($targetSessionId)?->isRevoked());
         $this->assertCommandFailure($eventDispatcher, $command, $failure);

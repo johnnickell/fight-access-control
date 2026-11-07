@@ -19,7 +19,6 @@ use Fight\AccessControl\Application\AccessControl\User\CommandHandler\RemoveRole
 use Fight\AccessControl\Application\AccessControl\User\PasswordManagement;
 use Fight\AccessControl\Domain\AccessControl\CredentialDelivery\CredentialDeliveryStatus;
 use Fight\AccessControl\Domain\AccessControl\PasswordResetGrant\Exception\PasswordResetDeliveryException;
-use Fight\AccessControl\Domain\AccessControl\PasswordResetGrant\Exception\PasswordResetRejectedException;
 use Fight\AccessControl\Domain\AccessControl\PasswordResetGrant\PasswordResetGrant;
 use Fight\AccessControl\Domain\AccessControl\Role\Role;
 use Fight\AccessControl\Domain\AccessControl\Role\RoleId;
@@ -29,6 +28,7 @@ use Fight\AccessControl\Domain\AccessControl\User\Command\RemoveRoleFromUser;
 use Fight\AccessControl\Domain\AccessControl\User\RecoveryAuthority;
 use Fight\AccessControl\Domain\AccessControl\User\User;
 use Fight\AccessControl\Domain\AccessControl\User\UserState;
+use Fight\Common\Application\Error\Exception\AuthenticationRequired as PasswordResetRejectedException;
 use Fight\Common\Domain\Messaging\Command\CommandMessage;
 use Fight\Test\AccessControl\Application\AccessControl\Role\Repository\InMemoryRoleRepository;
 use Fight\Test\AccessControl\Application\AccessControl\Timing\Service\FixedClock;

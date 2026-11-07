@@ -12,7 +12,6 @@ use Fight\AccessControl\Application\AccessControl\User\Authentication\TokenIssue
 use Fight\AccessControl\Application\AccessControl\User\Security\AuthenticationTokenPolicy;
 use Fight\AccessControl\Application\AccessControl\User\Security\RefreshResult;
 use Fight\AccessControl\Domain\AccessControl\RefreshSession\Event\CurrentSessionLoggedOut;
-use Fight\AccessControl\Domain\AccessControl\RefreshSession\Exception\RefreshSessionNotFoundException;
 use Fight\AccessControl\Domain\AccessControl\RefreshSession\RefreshCredential;
 use Fight\AccessControl\Domain\AccessControl\RefreshSession\RefreshSession;
 use Fight\AccessControl\Domain\AccessControl\RefreshSession\RefreshSessionId;
@@ -21,8 +20,11 @@ use Fight\AccessControl\Domain\AccessControl\User\Event\RedactedCommandFailed;
 use Fight\AccessControl\Domain\AccessControl\User\User;
 use Fight\AccessControl\Domain\AccessControl\User\UserRepository;
 use Fight\AccessControl\Domain\AccessControl\User\UserState;
+use Fight\Common\Application\Error\Exception\AuthenticationRequired;
 use Fight\Common\Application\Messaging\Event\EventDispatcher;
 use Fight\Common\Application\Repository\TransactionalUnitOfWork;
+use Fight\Common\Domain\Exception\DomainException;
+use LogicException;
 use SensitiveParameter;
 use Throwable;
 
@@ -55,15 +57,23 @@ final readonly class SessionLifecycle
     public function refresh(#[SensitiveParameter] string $refreshCredential): RefreshResult
     {
         try {
-            /** @var RefreshResult|RefreshSessionNotFoundException $refreshResult */
+            /** @var RefreshResult|AuthenticationRequired $refreshResult */
             $refreshResult = $this->unitOfWork->commitTransactional(function () use (
                 $refreshCredential
-            ): RefreshResult|RefreshSessionNotFoundException {
+            ): RefreshResult|AuthenticationRequired {
                 $authenticatedAt = $this->clock->now();
-                $credential = RefreshCredential::fromString($refreshCredential);
+                $credential = $this->presentedCredential($refreshCredential);
                 $refreshSession = $this->refreshSessionRepository->getByCredential($credential);
+                if ($refreshSession !== null && !$refreshSession->matchesCredential($credential)) {
+                    throw new LogicException('The current-credential lookup returned unrelated authority.');
+                }
+
                 if (!$refreshSession instanceof RefreshSession) {
                     $refreshSession = $this->refreshSessionRepository->getByUsedCredential($credential);
+                    if ($refreshSession !== null && !$refreshSession->matchesUsedCredential($credential)) {
+                        throw new LogicException('The used-credential lookup returned unrelated authority.');
+                    }
+
                     $user = null;
                     if ($refreshSession instanceof RefreshSession) {
                         $user = $this->userRepository->getById($refreshSession->getUserId());
@@ -73,7 +83,6 @@ final readonly class SessionLifecycle
                 }
 
                 $user = $this->userRepository->getById($refreshSession->getUserId());
-
                 $this->assertAuthoritativeSession($refreshSession, $user, $authenticatedAt);
                 $rotatedCredential = $this->refreshCredentialGenerator->generate();
                 $proposedIdleExpiry = $this->tokenPolicy->refreshIdleExpiresAt(
@@ -86,6 +95,12 @@ final readonly class SessionLifecycle
                 if (!$this->refreshSessionRepository->replace($refreshSession, $rotatedSession)) {
                     $observedAt = $this->clock->now();
                     $currentSession = $this->refreshSessionRepository->getById($refreshSession->getId());
+                    if ($currentSession !== null) {
+                        SessionRevocationService::assertSameFamily($refreshSession, $currentSession);
+                        if (!$currentSession->isRevoked() && !$currentSession->matchesUsedCredential($credential)) {
+                            throw new LogicException('The rotation retry lost the expected credential history.');
+                        }
+                    }
 
                     return $this->resolveUsedCredential($currentSession, $user, $credential, $observedAt);
                 }
@@ -95,7 +110,8 @@ final readonly class SessionLifecycle
                 );
             });
 
-            if ($refreshResult instanceof RefreshSessionNotFoundException) {
+            // Terminal replay returns a refusal so its safety mutation commits before outward rejection.
+            if ($refreshResult instanceof AuthenticationRequired) {
                 throw $refreshResult;
             }
 
@@ -112,13 +128,18 @@ final readonly class SessionLifecycle
     public function logout(#[SensitiveParameter] string $refreshCredential): void
     {
         try {
+            /** @var RefreshSessionId $refreshSessionId */
             $refreshSessionId = $this->unitOfWork->commitTransactional(function () use (
                 $refreshCredential
             ): RefreshSessionId {
-                $credential = RefreshCredential::fromString($refreshCredential);
+                $credential = $this->presentedCredential($refreshCredential);
                 $refreshSession = $this->refreshSessionRepository->getByCredential($credential);
+                if ($refreshSession !== null && !$refreshSession->matchesCredential($credential)) {
+                    throw new LogicException('The current-credential lookup returned unrelated authority.');
+                }
+
                 if (!$refreshSession instanceof RefreshSession) {
-                    throw new RefreshSessionNotFoundException('The refresh session does not exist.');
+                    throw new AuthenticationRequired('The refresh session is not authoritative.');
                 }
 
                 $refreshSession = $this->sessionRevocationService->revoke($refreshSession);
@@ -135,21 +156,27 @@ final readonly class SessionLifecycle
 
     /**
      * Rejects any session or owner that is no longer authoritative
+     *
+     * @phpstan-assert RefreshSession $refreshSession
+     * @phpstan-assert User $user
      */
     private function assertAuthoritativeSession(
         ?RefreshSession $refreshSession,
         ?User $user,
         DateTimeImmutable $authenticatedAt
     ): void {
+        if ($refreshSession !== null && $user !== null && !$user->getId()->equals($refreshSession->getUserId())) {
+            throw new LogicException('The session owner lookup returned a different identity.');
+        }
+
         if (
             !$refreshSession instanceof RefreshSession
             || !$user instanceof User
-            || !$user->getId()->equals($refreshSession->getUserId())
             || $user->getState() !== UserState::ACTIVE
             || $user->getAuthenticationVersion() !== $refreshSession->getAuthenticationVersion()
             || !$refreshSession->isUsableAt($authenticatedAt)
         ) {
-            throw new RefreshSessionNotFoundException('The refresh session is not authoritative.');
+            throw new AuthenticationRequired('The refresh session is not authoritative.');
         }
     }
 
@@ -161,7 +188,7 @@ final readonly class SessionLifecycle
         ?User $user,
         RefreshCredential $credential,
         DateTimeImmutable $observedAt
-    ): RefreshResult|RefreshSessionNotFoundException {
+    ): RefreshResult|AuthenticationRequired {
         $this->assertAuthoritativeSession($refreshSession, $user, $observedAt);
         if (
             $refreshSession->matchesMostRecentlyUsedCredentialWithin(
@@ -179,19 +206,29 @@ final readonly class SessionLifecycle
     /**
      * Revokes the authoritative session family atomically after terminal credential replay
      */
-    private function revokeCompromisedSession(RefreshSession $refreshSession): RefreshSessionNotFoundException
+    private function revokeCompromisedSession(RefreshSession $refreshSession): AuthenticationRequired
     {
         $this->sessionRevocationService->revoke($refreshSession);
 
-        return new RefreshSessionNotFoundException('The refresh session is not authoritative.');
+        return new AuthenticationRequired('The refresh session is not authoritative.');
+    }
+
+    /**
+     * Parses a presented credential without classifying unrelated provider faults
+     */
+    private function presentedCredential(#[SensitiveParameter] string $refreshCredential): RefreshCredential
+    {
+        try {
+            return RefreshCredential::fromString($refreshCredential);
+        } catch (DomainException) {
+            throw new AuthenticationRequired('The refresh session is not authoritative.');
+        }
     }
 
     /**
      * Dispatches only allowlisted operation context after a sensitive failure
      *
-     * @param string               $operation
-     * @param array<string, mixed> $safeData
-     * @param string               $failureMessage
+     * @phpstan-param array{} $safeData
      */
     private function publishFailure(string $operation, array $safeData, string $failureMessage): void
     {

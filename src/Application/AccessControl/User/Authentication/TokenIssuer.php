@@ -13,6 +13,7 @@ use Fight\AccessControl\Domain\AccessControl\RefreshSession\RefreshSession;
 use Fight\AccessControl\Domain\AccessControl\RefreshSession\RefreshSessionId;
 use Fight\AccessControl\Domain\AccessControl\User\User;
 use Fight\Common\Application\Auth\Security\TokenEncoder;
+use LogicException;
 use SensitiveParameter;
 
 /**
@@ -61,6 +62,15 @@ final readonly class TokenIssuer
         #[SensitiveParameter] RefreshCredential $refreshCredential,
         DateTimeImmutable $authenticatedAt
     ): TokenSet {
+        if (
+            !$refreshSession->getUserId()->equals($user->getId())
+            || $refreshSession->getAuthenticationVersion() !== $user->getAuthenticationVersion()
+            || !$refreshSession->matchesCredential($refreshCredential)
+            || !$refreshSession->isUsableAt($authenticatedAt)
+        ) {
+            throw new LogicException('Token issuance requires matching current session authority.');
+        }
+
         $accessTokenExpiresAt = $this->tokenPolicy->accessExpiresAt($authenticatedAt);
         $accessToken = $this->tokenEncoder->encode([
             'auth_version' => $user->getAuthenticationVersion(),

@@ -25,7 +25,6 @@ use Fight\AccessControl\Domain\AccessControl\EmailChangeGrant\EmailChangeGrant;
 use Fight\AccessControl\Domain\AccessControl\PasswordResetGrant\Exception\PasswordResetRejectedException;
 use Fight\AccessControl\Domain\AccessControl\PasswordResetGrant\PasswordResetGrant;
 use Fight\AccessControl\Domain\AccessControl\RefreshSession\Event\CurrentSessionLoggedOut;
-use Fight\AccessControl\Domain\AccessControl\RefreshSession\Exception\RefreshSessionNotFoundException;
 use Fight\AccessControl\Domain\AccessControl\RefreshSession\RefreshCredential;
 use Fight\AccessControl\Domain\AccessControl\RefreshSession\RefreshSession;
 use Fight\AccessControl\Domain\AccessControl\RefreshSession\RefreshSessionId;
@@ -41,6 +40,8 @@ use Fight\AccessControl\Domain\AccessControl\User\PasswordHash;
 use Fight\AccessControl\Domain\AccessControl\User\User;
 use Fight\AccessControl\Domain\AccessControl\User\UserId;
 use Fight\AccessControl\Domain\AccessControl\User\UserState;
+use Fight\Common\Application\Error\Exception\AuthenticationRequired as RefreshSessionNotFoundException;
+use Fight\Common\Application\Error\Exception\StateConflict;
 use Fight\Common\Domain\Collection\ArrayList;
 use Fight\Common\Domain\Exception\DomainException;
 use Fight\Common\Domain\Repository\Pagination;
@@ -927,10 +928,10 @@ final class SessionLifecycleTest extends TestCase
         try {
             $service->logout(self::REFRESH_CREDENTIAL);
             self::fail('Expected disappeared session state to fail closed.');
-        } catch (RefreshSessionNotFoundException $refreshSessionNotFoundException) {
+        } catch (StateConflict $stateConflict) {
             self::assertSame(
-                'The refresh session is not authoritative.',
-                $refreshSessionNotFoundException->getMessage()
+                'The refresh session lost authority during revocation.',
+                $stateConflict->getMessage()
             );
         }
 
@@ -1053,10 +1054,10 @@ final class SessionLifecycleTest extends TestCase
         try {
             $service->logout(self::REFRESH_CREDENTIAL);
             self::fail('Expected perpetual authoritative contention to fail closed.');
-        } catch (RefreshSessionNotFoundException $refreshSessionNotFoundException) {
+        } catch (StateConflict $stateConflict) {
             self::assertSame(
-                'The refresh session is not authoritative.',
-                $refreshSessionNotFoundException->getMessage()
+                'The refresh session changed during bounded revocation.',
+                $stateConflict->getMessage()
             );
         }
 

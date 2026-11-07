@@ -22,6 +22,8 @@ use Fight\AccessControl\Domain\AccessControl\User\Exception\RegistrationRecovery
 use Fight\AccessControl\Domain\AccessControl\User\Exception\UserLifecycleException;
 use Fight\AccessControl\Domain\AccessControl\User\PasswordHash;
 use Fight\AccessControl\Domain\AccessControl\User\UserState;
+use Fight\Common\Application\Error\Exception\AuthenticationRequired;
+use Fight\Common\Application\Error\Exception\StateConflict;
 use Fight\Common\Domain\Messaging\Command\CommandMessage;
 use Fight\Common\Domain\Value\Internet\EmailAddress;
 use Fight\Test\AccessControl\Application\AccessControl\ActivationGrant\Service\FixedCredentialGenerator;
@@ -169,7 +171,7 @@ final class RegistrationRecoveryRaceTest extends TestCase
             try {
                 $loser->resume();
                 self::fail('The stale activation/recovery won.');
-            } catch (LogicException | RegistrationRecoveryException) {
+            } catch (StateConflict | RegistrationRecoveryException) {
                 self::assertSame($winner, $fixture->current());
                 self::assertSame(
                     $recoveryWins ? UserState::PENDING_ACTIVATION : UserState::ACTIVE,
@@ -189,7 +191,7 @@ final class RegistrationRecoveryRaceTest extends TestCase
                 'long-new-password'
             );
             self::fail('Expired activation won before reissue.');
-        } catch (LogicException) {
+        } catch (AuthenticationRequired) {
             $fixture->handler('2030-01-08T00:00:00Z')->handle(CommandMessage::create(
                 $fixture->command('alice@example.test')
             ));
