@@ -15,7 +15,6 @@ use Fight\AccessControl\Domain\AccessControl\ActivationGrant\ActivationGrantRepo
 use Fight\AccessControl\Domain\AccessControl\User\Event\RedactedCommandFailed;
 use Fight\AccessControl\Domain\AccessControl\User\Event\UserActivated;
 use Fight\AccessControl\Domain\AccessControl\User\Event\UserLoggedIn;
-use Fight\AccessControl\Domain\AccessControl\User\Exception\LoginRejectedException;
 use Fight\AccessControl\Domain\AccessControl\User\PasswordHash;
 use Fight\AccessControl\Domain\AccessControl\User\User;
 use Fight\AccessControl\Domain\AccessControl\User\UserId;
@@ -23,8 +22,11 @@ use Fight\AccessControl\Domain\AccessControl\User\UserRepository;
 use Fight\AccessControl\Domain\AccessControl\User\UserState;
 use Fight\Common\Application\Auth\Security\PasswordHasher;
 use Fight\Common\Application\Auth\Security\PasswordValidator;
+use Fight\Common\Application\Error\Exception\AuthenticationRequired;
+use Fight\Common\Application\Error\Exception\StateConflict;
 use Fight\Common\Application\Messaging\Event\EventDispatcher;
 use Fight\Common\Application\Repository\TransactionalUnitOfWork;
+use Fight\Common\Domain\Exception\DomainException;
 use Fight\Common\Domain\Value\Internet\EmailAddress;
 use LogicException;
 use SensitiveParameter;
@@ -75,18 +77,28 @@ final readonly class UserAuthentication
                 $authenticatedAt = $this->clock->now();
                 $user = $this->userRepository->getById($userId);
                 $grant = $this->activationGrantRepository->getLatestByUserId($userId);
-                $credential = ActivationCredential::fromString($activationCredential);
+                if ($user !== null && !$user->getId()->equals($userId)) {
+                    throw new LogicException('The User lookup returned a different identity.');
+                }
+
+                if ($grant !== null && (!$grant->getUserId()->equals($userId) || $grant->purpose() !== 'activation')) {
+                    throw new LogicException('The activation lookup returned unrelated authority.');
+                }
+
+                try {
+                    $credential = ActivationCredential::fromString($activationCredential);
+                } catch (DomainException) {
+                    throw new AuthenticationRequired('Activation rejected.');
+                }
 
                 if (
                     !$user instanceof User
-                    || !$user->getId()->equals($userId)
+                    || $user->getState() !== UserState::PENDING_ACTIVATION
                     || !$grant instanceof ActivationGrant
-                    || !$grant->getUserId()->equals($userId)
-                    || $grant->purpose() !== 'activation'
                     || !$grant->isUsableAt($authenticatedAt)
                     || !$grant->matchesCredential($credential)
                 ) {
-                    throw new LogicException('The activation grant cannot activate this invited account.');
+                    throw new AuthenticationRequired('Activation rejected.');
                 }
 
                 $passwordHash = PasswordHash::fromString($this->passwordHasher->hash($plainPassword));
@@ -108,7 +120,7 @@ final readonly class UserAuthentication
                 );
                 $consumedGrant = $grant->consume($authenticatedAt);
                 if (!$this->activationGrantRepository->replace($grant, $consumedGrant)) {
-                    throw new LogicException('The activation grant changed concurrently.');
+                    throw new StateConflict('The activation grant changed concurrently.');
                 }
 
                 if (
@@ -118,7 +130,7 @@ final readonly class UserAuthentication
                         $refreshSession
                     )
                 ) {
-                    throw new LogicException('The invited account changed concurrently.');
+                    throw new StateConflict('The invited account changed concurrently.');
                 }
 
                 return [$tokenSet, $authenticatedAt];
@@ -152,8 +164,17 @@ final readonly class UserAuthentication
                 $plainPassword,
                 $remember
             ): array {
-                $emailAddress = EmailAddress::fromString($email);
+                try {
+                    $emailAddress = EmailAddress::fromString($email);
+                } catch (DomainException) {
+                    throw new AuthenticationRequired('Login rejected.');
+                }
+
                 $user = $this->userRepository->getByEmail($emailAddress);
+                if ($user !== null && $user->getEmail()->canonical() !== $emailAddress->canonical()) {
+                    throw new LogicException('The User lookup returned a different canonical email.');
+                }
+
                 $passwordHash = $user?->getPasswordHash();
                 $isActiveUser = $user instanceof User
                     && $user->getState() === UserState::ACTIVE
@@ -170,7 +191,7 @@ final readonly class UserAuthentication
                 );
 
                 if (!$isActiveUser || !$credentialsMatch || !$loginIsAllowed) {
-                    throw new LoginRejectedException('Login rejected.');
+                    throw new AuthenticationRequired('Login rejected.');
                 }
 
                 $replacementUser = clone $user;
@@ -202,7 +223,7 @@ final readonly class UserAuthentication
                         $refreshSession
                     )
                 ) {
-                    throw new LoginRejectedException('Login rejected.');
+                    throw new AuthenticationRequired('Login rejected.');
                 }
 
                 return [$tokenSet, $authenticatedAt];
@@ -224,9 +245,7 @@ final readonly class UserAuthentication
     /**
      * Dispatches only allowlisted operation context after a sensitive failure
      *
-     * @param string               $operation
-     * @param array<string, mixed> $safeData
-     * @param string               $failureMessage
+     * @phpstan-param array{user_id?: string} $safeData
      */
     private function publishFailure(string $operation, array $safeData, string $failureMessage): void
     {

@@ -18,7 +18,6 @@ use Fight\AccessControl\Application\AccessControl\User\Security\TokenSet;
 use Fight\AccessControl\Domain\AccessControl\ActivationGrant\ActivationGrant;
 use Fight\AccessControl\Domain\AccessControl\Audit\AuditEvidence;
 use Fight\AccessControl\Domain\AccessControl\EmailChangeGrant\EmailChangeGrant;
-use Fight\AccessControl\Domain\AccessControl\PasswordResetGrant\Exception\PasswordResetRejectedException;
 use Fight\AccessControl\Domain\AccessControl\PasswordResetGrant\PasswordResetCredential;
 use Fight\AccessControl\Domain\AccessControl\PasswordResetGrant\PasswordResetGrant;
 use Fight\AccessControl\Domain\AccessControl\RefreshSession\RefreshCredential;
@@ -29,11 +28,12 @@ use Fight\AccessControl\Domain\AccessControl\User\Event\PasswordResetCompleted;
 use Fight\AccessControl\Domain\AccessControl\User\Event\RedactedCommandFailed;
 use Fight\AccessControl\Domain\AccessControl\User\Event\UserActivated;
 use Fight\AccessControl\Domain\AccessControl\User\Event\UserLoggedIn;
-use Fight\AccessControl\Domain\AccessControl\User\Exception\PasswordChangeRejectedException;
 use Fight\AccessControl\Domain\AccessControl\User\PasswordHash;
 use Fight\AccessControl\Domain\AccessControl\User\User;
 use Fight\AccessControl\Domain\AccessControl\User\UserId;
 use Fight\AccessControl\Domain\AccessControl\User\UserState;
+use Fight\Common\Application\Error\Exception\AuthenticationRequired as PasswordResetRejectedException;
+use Fight\Common\Application\Error\Exception\AuthenticationRequired as PasswordChangeRejectedException;
 use Fight\Common\Domain\Exception\DomainException;
 use Fight\Test\AccessControl\Application\AccessControl\Audit\Repository\InMemoryAuditEvidenceRepository;
 use Fight\Test\AccessControl\Application\AccessControl\Event\InMemoryEventDispatcher;
@@ -64,10 +64,8 @@ use RuntimeException;
 #[CoversClass(EmailChangeGrant::class)]
 #[CoversClass(PasswordHash::class)]
 #[CoversClass(PasswordChanged::class)]
-#[CoversClass(PasswordChangeRejectedException::class)]
 #[CoversClass(PasswordResetCompleted::class)]
 #[CoversClass(PasswordResetGrant::class)]
-#[CoversClass(PasswordResetRejectedException::class)]
 #[CoversClass(RefreshCredential::class)]
 #[CoversClass(RefreshSession::class)]
 #[CoversClass(TokenSet::class)]
@@ -135,7 +133,7 @@ final class PasswordManagementTest extends TestCase
                     'a sufficiently long rejected changed password'
                 );
                 self::fail('Expected password change rejection.');
-            } catch (DomainException $domainException) {
+            } catch (PasswordChangeRejectedException $domainException) {
                 self::assertInstanceOf(PasswordChangeRejectedException::class, $domainException);
                 self::assertSame('Password change rejected.', $domainException->getMessage());
             }
@@ -289,9 +287,9 @@ final class PasswordManagementTest extends TestCase
                 'a sufficiently long rejected changed password'
             );
             self::fail('Expected password change rejection.');
-        } catch (DomainException $domainException) {
-            self::assertInstanceOf(PasswordChangeRejectedException::class, $domainException);
-            self::assertSame('Password change rejected.', $domainException->getMessage());
+        } catch (PasswordChangeRejectedException $passwordChangeRejectedException) {
+            self::assertInstanceOf(PasswordChangeRejectedException::class, $passwordChangeRejectedException);
+            self::assertSame('Password change rejected.', $passwordChangeRejectedException->getMessage());
         }
 
         $authoritativeUser = $userRepository->getById($user->getId());
@@ -804,9 +802,9 @@ final class PasswordManagementTest extends TestCase
                 'a sufficiently long rejected replacement password'
             );
             self::fail('Expected password reset rejection.');
-        } catch (DomainException $domainException) {
-            self::assertInstanceOf(PasswordResetRejectedException::class, $domainException);
-            self::assertSame('Password reset rejected.', $domainException->getMessage());
+        } catch (PasswordResetRejectedException $passwordResetRejectedException) {
+            self::assertInstanceOf(PasswordResetRejectedException::class, $passwordResetRejectedException);
+            self::assertSame('Password reset rejected.', $passwordResetRejectedException->getMessage());
         }
 
         self::assertSame(1, $unitOfWork->transactions);

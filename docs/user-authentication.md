@@ -141,10 +141,52 @@ Audit remains required on the existing password/email paths; this change does no
 
 Pre-commit faults roll back staged business/audit state. Lost commit acknowledgement remains indeterminate until
 an authorized authoritative read resolves state. A post-commit publisher/subscriber fault still throws with committed
-state retained; authentication does not inherit Agent issuance's returned-warning exception. Existing generic
-password/email rejections remain generic. Each owner emits best-effort `RedactedCommandFailed` with its current
+state retained; authentication does not inherit Agent issuance's returned-warning exception. Deliberate credential/state refusals remain generic, but unknown faults are not credential refusals.
+Each owner emits best-effort `RedactedCommandFailed` with its current
 fully qualified class and method, unchanged allowlisted context and operation-constant text. Notification faults
 cannot replace the primary throwable. Consumers must still sanitize rethrown errors independently.
+
+## Explicit failure and adapter contracts (Unreleased)
+
+All seven direct calls use Common Application `AuthenticationRequired` for deliberate unusable credentials,
+missing/ineligible identity or grant, expired/consumed authority and established generic password/email refusal.
+No public response may distinguish those cases. Login throttle denial remains the same generic authentication
+refusal, not an account-existence or rate-limit disclosure. Malformed presented credentials are translated only
+at their value parser. Domain transition and hydration faults outside those known boundaries, storage/audit/token/
+clock/provider faults and native contract failures stay internal; do not classify them by text or integer code.
+
+Activation compare-and-replace loss uses `StateConflict`. Password change/reset and email confirmation retain their
+existing generic refusal for expected authority loss. Refresh's benign bounded race remains `RefreshResult::conflict()`
+with no tokens or revocation; terminal replay commits the actual family revocation before throwing
+`AuthenticationRequired` outside the transaction. Neither a thrown fault nor a dispatch acknowledgement proves rollback.
+
+`RevokeSession` remains a secret-free, successful-void Command on the configured Common bus. Its handler maps intended
+absent/unusable targets to `ResourceNotFound`, current-session management refusal to `RuleViolation`, the authorization
+port's declared denial to `PermissionDenied`, absent administrative reason to `InvalidInput` and CAS loss to
+`StateConflict`. Unknown authorization failures propagate unchanged. Own-session management and consumer-authorized
+cross-user management retain their existing scopes; supplied actor/current/target IDs do not authenticate or grant access.
+Consumers protect the entry point and bind each identity to the actual authenticated caller.
+
+Repository results must match the requested User ID/canonical email, grant owner/purpose, current/used credential and
+session target. Wrong identities or broken promises are internal `LogicException`/native faults, never 401/404/409.
+Email confirmation also checks the exact current reservation generation through the Domain's `matchesReservation()`.
+Token issuance checks matching usable session ownership, authentication version and credential before encoding.
+The session helper validates the complete active-session list (membership, usability and uniqueness) before mutation;
+retries preserve immutable family correlation and monotonic revision, with at most three replacements. Disappearance
+or exhausted contention during revocation is `StateConflict`. Helpers neither open nested transactions nor audit or
+publish independent success facts; enclosing use cases retain rollback/uncertainty and adopted audit ownership.
+
+Update consumer catches directly from the former Domain refusal exceptions to these Common Application categories;
+there is no facade, alias or legacy failure mode. Domain exceptions remain inward and do not inherit Application
+exceptions. Common `^1.4.1` supplies the consumed categories and password/token/UoW contracts; no generic UoW upgrade
+is needed. Known callback tuples, timestamps, session IDs and refresh-result/refusal unions use matching local
+annotations. Every callback branch agrees, and no external result is narrowed by such an assertion.
+
+Common's opt-in safe HTTP composition produces generic 401/400/403/404/409/422 responses for the deliberate categories
+and 500 for internal faults. Use its public projection/constants, never dependency messages, codes, causes or traces.
+The real session Command routing tests exercise execute and serialized dispatch through that composition. This does
+not select an endpoint, JWT profile, response transport, MCP/OAuth mapping or consumer persistence implementation.
+No optional-audit redesign, new permission, Common/consumer edit or production qualification is implied.
 
 Nonvisual before/after evidence uses real direct capability calls, persisted User/grant/session/audit outcomes,
 redacted facts and deterministic competing writers, not delegation mocks or screenshots. Mirrored
