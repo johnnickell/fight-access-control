@@ -35,7 +35,8 @@ final class CatalogCompositionTest extends TestCase
         );
         foreach (['PaginationRequest', 'ListActiveSessions'] as $name) {
             $orderings = $schemas['Fight.AccessControl.'.$name]['properties']['orderings'];
-            self::assertSame('object', $orderings['type']);
+            self::assertSame(['object', 'array'], $orderings['type']);
+            self::assertSame(0, $orderings['maxItems']);
             self::assertSame('string', $orderings['additionalProperties']['type']);
             self::assertSame(['ASC', 'DESC'], $orderings['additionalProperties']['enum']);
         }

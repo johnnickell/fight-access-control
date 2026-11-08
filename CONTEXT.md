@@ -31,6 +31,20 @@ administrative checkpoint; canonical `.runs/handoffs/TASK-00148/land.md` owns su
 and resource results. Original report subjects, historical Work proof and lowest-lane advisories remain preserved;
 no whole-library or actual consumer qualification, approval, merge, release or deployment is claimed.
 
+## Current public payload composition
+
+The [current payload catalog](docs/public-payload-catalog.md) maps public messages, safe Query results, all seven
+synchronous User payloads and deliberate internal/non-wire boundaries to the opt-in OpenAPI anchors. Consumers
+explicitly project safe Views and TokenSet getters; arbitrary object serialization is not the wire contract.
+Generated OpenAPI 3.1 samples run in the default suite without incidental production coverage. FeatureFlag remains
+method-only, nonrepeatable and declaration-only; no HTTP policy or future declaration redesign is implemented.
+TASK-00149's canonical Work handoff owns implementation verification and limits. Independent Review v3 ACCEPT
+and nonvisual QA PASS cover candidate `713837ab11122cafc5a66d00c0c0e6174eedb333`, with no open findings;
+TASK-00149 is done, while unfinished siblings keep TICKET-00041/EPIC-00016 open. Publication/final-head verification
+remain pending at this administrative checkpoint; canonical `.runs/handoffs/TASK-00149/land.md` owns subsequent
+provenance, delivery and resource outcomes. Original report subjects and minimum-lane warnings remain preserved;
+no actual consumer qualification, approval, merge, release or deployment is claimed.
+
 ## TASK-00144 Agent worker contracts — accepted checkpoint
 
 The current [worker contracts](docs/agent-worker-contracts.md) retain exact safe delivery/maintenance outcomes and
