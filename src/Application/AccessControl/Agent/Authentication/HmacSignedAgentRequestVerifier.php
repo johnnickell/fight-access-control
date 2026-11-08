@@ -17,7 +17,7 @@ interface HmacSignedAgentRequestVerifier
      * Returns whether the request body digest and canonical signature are valid
      */
     public function verifies(
-        SignedAgentRequest $signedAgentRequest,
+        #[SensitiveParameter] SignedAgentRequest $signedAgentRequest,
         #[SensitiveParameter] string $hmacSharedSecret
     ): bool;
 }

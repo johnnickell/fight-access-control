@@ -53,7 +53,9 @@ final class FeatureComponentsTest extends TestCase
         self::assertNotNull($document);
         $schemas = json_decode($document->toJson(), true, flags: JSON_THROW_ON_ERROR)['components']['schemas'];
         self::assertSame([], new ValidateFeaturePreparation()->toArray());
-        self::assertSame('object', $schemas['Fight.AccessControl.ValidateFeaturePreparation']['type']);
+        self::assertSame(['object', 'array'], $schemas['Fight.AccessControl.ValidateFeaturePreparation']['type']);
+        self::assertSame(0, $schemas['Fight.AccessControl.ValidateFeaturePreparation']['maxItems']);
+        self::assertSame(0, $schemas['Fight.AccessControl.ValidateFeaturePreparation']['maxProperties']);
         self::assertSame([], $schemas['Fight.AccessControl.ValidateFeaturePreparation']['properties'] ?? []);
 
         $result = new FeaturePreparationResult(new FeaturePreparationIssue(

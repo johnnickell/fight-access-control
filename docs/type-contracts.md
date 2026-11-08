@@ -60,6 +60,12 @@ Temporary probes are not accepted replacements for the tracked product cases.
 
 ## Current proof and remaining ownership
 
+TASK-00144 adds 17 positive worker/port/result probes and five rejected incompatible uses: void revocation,
+delivery/maintenance enums, bounded recovery maps, trusted next-run time, optional receipt, sensitive invocation,
+rewrap material and independent authority/cleanup ports. The debug shape is exactly redacted. The final bus probe
+intentionally asserts current `mixed`, not generic Query-result inference; the worker validates its one dynamic
+result boundary at runtime. Configured Common routing and safe-error/public behavior have separate runtime proof.
+
 TASK-00131 adds six exact non-null direct-handler result probes in `required-resource-positive.php`.
 These assert the declared Views, not generic inference across Common's current mixed QueryBus. Runtime routing,
 identity/failure semantics and preserved nullable repositories have separate [required-resource proof](required-resource-queries.md).
@@ -149,6 +155,21 @@ scoped discovery/references and merged name lists, plus eight rejected incompati
 fixtures retain plan/action/definition/message/callback precision. Owned level-8 analysis separately checks the
 actual local Event/null/list annotations. Real Common execute/decoded dispatch and relevant safe errors are runtime
 proof, not generic bus/Event inference or consumer scanner/persistence qualification.
+
+TASK-00145 adds 16 exact authority/admission/continuation probes and four rejected incompatible identity/provider/
+provenance uses. These cover distinct User/Agent snapshots, exact Permission definitions/lists, selected context,
+validated declaration lists, original continuation claims, Boolean nonce/crypto/scope ports and the synchronous void
+bounded-action callback. Dynamic declaration/continuation configuration remains validated at its owning boundary,
+not falsely narrowed by an annotation. Owned level-8 analysis checks all 23 current Application declarations;
+real admission/continuation and relevant Common safe-error/protocol composition remain separate runtime proof.
+No generic bus/Event or real consumer crypto/persistence/fence/handoff qualification is claimed.
+
+TASK-00148 adds 14 exact Resource/Skill probes and eight rejected incompatible uses: exact provider/revision and
+Permission lists, optional requirements, Boolean availability, typed mapping callbacks and cross-family metadata.
+The descriptor export and arbitrary StrictJson property deliberately retain their actual dynamic types; runtime
+owner validation, not a fixture annotation, narrows them. Focused level-8 analysis covers all six family declarations.
+Actual Common discovery/read/responder and request-scope proof remain separate from static inference and do not
+qualify real consumer storage, parser, crypto, bootstrap or diagnostic sinks.
 
 Native transactional results remain `mixed`; a matching local `@var` for a known owned callback result (including
 tuples/unions) remains sufficient. No generic UoW supplier or redundant runtime check is required.

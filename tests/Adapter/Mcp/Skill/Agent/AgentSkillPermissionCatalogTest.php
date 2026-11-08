@@ -72,10 +72,19 @@ final class AgentSkillPermissionCatalogTest extends TestCase
         $entry = SkillRevision::create()->entry();
         yield 'not object' => [StrictJson::fromData([])];
         yield 'missing uri' => [StrictJson::fromObject([])];
-        yield 'typed uri' => [$entry->with('uri', 42)];
+        foreach ([null, false, 42, 1.5, [], StrictJson::fromObject([])] as $index => $uri) {
+            yield 'non-string uri '.$index => [$entry->with('uri', $uri)];
+        }
+
         yield 'unknown' => [$entry->with('uri', 'skill://catalog/unknown/work/SKILL.md')];
         yield 'alias' => [$entry->with('uri', 'skill://catalog/v1/work/%53KILL.md')];
         yield 'partial manifest' => [$entry->with('resources', [])];
+        yield 'reordered manifest' => [$entry->with('resources', array_reverse($entry->get('resources')))];
+        yield 'reordered export' => [StrictJson::fromObject([
+            'resources'   => $entry->get('resources'),
+            'frontmatter' => $entry->get('frontmatter'),
+            'uri'         => $entry->get('uri')
+        ])];
         yield 'changed digest' => [$entry->with('resources', [
             $entry->get('resources')[0]->with('digest', 'sha256:'.str_repeat('0', 64)),
             ...array_slice($entry->get('resources'), 1)

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Fight\Test\AccessControl\Adapter\Mcp\Skill\Agent;
 
+use Closure;
 use DateTimeImmutable;
 use Fight\AccessControl\Adapter\Mcp\Resource\Agent\AgentResourceAvailability;
 use Fight\AccessControl\Adapter\Mcp\Resource\Agent\AgentResourcePermissionBinding;
@@ -18,6 +19,7 @@ use Fight\AccessControl\Domain\AccessControl\Agent\AgentCredentialId;
 use Fight\AccessControl\Domain\AccessControl\Agent\AgentId;
 use Fight\AccessControl\Domain\AccessControl\Agent\AgentName;
 use Fight\AccessControl\Domain\AccessControl\Agent\AgentRepository;
+use Fight\AccessControl\Domain\AccessControl\Agent\Exception\CurrentAgentPrincipalResolutionRejectedException;
 use Fight\AccessControl\Domain\AccessControl\Permission\Permission;
 use Fight\AccessControl\Domain\AccessControl\Permission\PermissionId;
 use Fight\AccessControl\Domain\AccessControl\Permission\PermissionName;
@@ -345,6 +347,65 @@ final class AgentSkillAvailabilityTest extends TestCase
         self::assertSame(1, $this->nonces->consumptionCalls());
     }
 
+    public function test_resolution_fault_is_retained_exactly_without_blocking_a_fresh_request(): void
+    {
+        $healthy = $this->permissionRepository;
+        $this->permissionRepository = new InMemoryPermissionRepository(getByIdsResult: static fn(): array => []);
+        $revision = SkillRevision::create();
+        $catalog = new AgentSkillPermissionCatalog([new AgentSkillPermissionBinding($revision, ['READ_SKILLS'])]);
+        [$provider, $request] = $this->authority();
+        $availability = new AgentSkillAvailability($catalog, $provider, $request, 'retained-fault');
+        $first = null;
+        for ($attempt = 0; $attempt < 2; ++$attempt) {
+            try {
+                $availability->isAvailable($revision->entry());
+                self::fail('Invalid authoritative snapshots must propagate, not become denial.');
+            } catch (CurrentAgentPrincipalResolutionRejectedException $failure) {
+                $first ??= $failure;
+                self::assertSame($first, $failure);
+                self::assertNull($failure->getPrevious());
+            }
+        }
+
+        $this->permissionRepository = $healthy;
+        $fresh = $this->composition([$revision]);
+        self::assertSame([$this->entry($revision)], $this->response($fresh, 'skills/list')['result']['skills']);
+        try {
+            $availability->isAvailable($revision->entry());
+            self::fail('A failed request must not acquire authority from another request.');
+        } catch (CurrentAgentPrincipalResolutionRejectedException $currentAgentPrincipalResolutionRejectedException) {
+            self::assertSame($first, $currentAgentPrincipalResolutionRejectedException);
+        }
+
+        self::assertSame(2, $this->nonces->consumptionCalls());
+        self::assertSame([], $this->opened);
+    }
+
+    public function test_nested_request_cannot_reuse_outer_whole_skill_or_member_authority(): void
+    {
+        $revision = SkillRevision::create();
+        $beforeOpen = function () use ($revision): void {
+            self::assertNotNull($this->agent);
+            $this->agent = $this->agent->revokePermission($this->permissionId(1), $this->now());
+            $nested = $this->composition([$revision]);
+            self::assertSame([], $this->response($nested, 'skills/list')['result']['skills']);
+            self::assertSame($this->unknown($nested), $this->response(
+                $nested,
+                'resources/read',
+                ['uri' => $revision->entry()->get('uri')]
+            ));
+        };
+        $outer = $this->composition([$revision], beforeOpen: $beforeOpen);
+        $read = $this->response($outer, 'resources/read', ['uri' => $revision->entry()->get('uri')]);
+        $file = $revision->file($revision->entry()->get('uri'));
+        self::assertNotNull($file);
+        self::assertSame($file->bytes, $read['result']['contents'][0]['text']);
+        self::assertCount(1, $this->opened);
+        self::assertSame(1, $this->closed);
+        self::assertSame(2, $this->nonces->consumptionCalls());
+        self::assertSame(2, $this->unitOfWork->transactions);
+    }
+
     public function test_resource_first_and_whole_skill_decisions_share_previously_resolved_trusted_authority(): void
     {
         $revision = SkillRevision::create();
@@ -580,7 +641,8 @@ final class AgentSkillAvailabilityTest extends TestCase
         ?McpResourceReadLimits $readLimits = null,
         ?McpSkillDiscoveryLimits $skillLimits = null,
         array $concealed = [],
-        bool $unmappedMember = false
+        bool $unmappedMember = false,
+        ?Closure $beforeOpen = null
     ): array {
         $catalog = new AgentSkillPermissionCatalog(array_map(
             static fn(McpSkillRevision $revision): AgentSkillPermissionBinding => new AgentSkillPermissionBinding(
@@ -596,7 +658,13 @@ final class AgentSkillAvailabilityTest extends TestCase
 
         $availability = new AgentSkillAvailability($catalog, $provider, $request, $correlationId);
         $streams = $this->createStub(StreamFactoryInterface::class);
-        $streams->method('createStream')->willReturnCallback($this->stream(...));
+        $streams->method('createStream')->willReturnCallback(
+            function (string $bytes) use ($beforeOpen): StreamInterface {
+                $beforeOpen?->__invoke();
+
+                return $this->stream($bytes);
+            }
+        );
         $skillResources = new McpSkillResources(
             $unmapped ? $revisions : $catalog->revisions(),
             $availability,

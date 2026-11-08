@@ -50,6 +50,10 @@ final readonly class ExactPermissionResolver
     /**
      * Returns exact authoritative Permission definitions in requested order
      *
+     * Requested identities form a list without duplicates. The repository must return a complete list of distinct
+     * IDs and canonical names; order may differ. Violations are internal faults, never ordinary permission denial.
+     * Storage failures propagate unchanged. These snapshots grant no authority or synchronization by themselves.
+     *
      * @phpstan-param list<PermissionId> $requestedIds
      *
      * @return list<Permission>
@@ -58,21 +62,13 @@ final readonly class ExactPermissionResolver
      */
     public function resolveDefinitions(array $requestedIds): array
     {
+        $this->validateRequestedIds($requestedIds);
         $permissions = $this->permissionRepository->getByIds($requestedIds);
         if (count($requestedIds) !== count($permissions)) {
             $this->reject();
         }
 
-        $permissionsById = [];
-        foreach ($permissions as $permission) {
-            $permissionKey = $permission->getId()->toString();
-            if (isset($permissionsById[$permissionKey])) {
-                $this->reject();
-            }
-
-            $permissionsById[$permissionKey] = $permission;
-        }
-
+        $permissionsById = $this->indexDefinitions($permissions);
         $definitions = [];
         foreach ($requestedIds as $requestedId) {
             $permissionKey = $requestedId->toString();
@@ -84,6 +80,59 @@ final readonly class ExactPermissionResolver
         }
 
         return $definitions;
+    }
+
+    /**
+     * Validates the erased requested identity set without silently deduplicating it
+     *
+     * @phpstan-param array<array-key, mixed> $requestedIds
+     */
+    private function validateRequestedIds(array $requestedIds): void
+    {
+        if (!array_is_list($requestedIds)) {
+            $this->reject();
+        }
+
+        $seen = [];
+        foreach ($requestedIds as $requestedId) {
+            if (!$requestedId instanceof PermissionId || isset($seen[$requestedId->toString()])) {
+                $this->reject();
+            }
+
+            $seen[$requestedId->toString()] = true;
+        }
+    }
+
+    /**
+     * Validates and indexes the erased repository collection at its owning boundary
+     *
+     * @phpstan-param array<array-key, mixed> $permissions
+     * @return array<string, Permission>
+     */
+    private function indexDefinitions(array $permissions): array
+    {
+        if (!array_is_list($permissions)) {
+            $this->reject();
+        }
+
+        $permissionsById = [];
+        $permissionNames = [];
+        foreach ($permissions as $permission) {
+            if (!$permission instanceof Permission) {
+                $this->reject();
+            }
+
+            $permissionKey = $permission->getId()->toString();
+            $permissionName = $permission->getName()->toString();
+            if (isset($permissionsById[$permissionKey]) || isset($permissionNames[$permissionName])) {
+                $this->reject();
+            }
+
+            $permissionsById[$permissionKey] = $permission;
+            $permissionNames[$permissionName] = true;
+        }
+
+        return $permissionsById;
     }
 
     /**

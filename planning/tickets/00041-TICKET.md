@@ -93,7 +93,9 @@ John approved the complete four-TASK plan, now written as kind chore with orders
 | [TASK-00148](../tasks/00148-TASK.md) | 6 | Resource/Skill binding, descriptor/revision, admission and protocol contracts. | None demonstrated. |
 | [TASK-00149](../tasks/00149-TASK.md) | 9 | Public payload schemas/bootstrap and FeatureFlag declarative metadata. | TASK-00133. |
 
-All four are ready-for-agent because scope is settled; TASK-00147/00149 wait on the listed unfinished local suppliers.
+At the approved-plan checkpoint, all four were ready-for-agent because scope was settled; TASK-00147/00149
+waited on the listed unfinished local suppliers. Current status and executable blockers derive from the owning
+TASK records and Board.
 TASK-00147 needs actual Query inference, required-profile absence and Agent-update failure contracts, not mocked or
 asserted replacements. TASK-00149 consumes actual explicit credential-status absence representation, not a guessed
 wrapper or consumer HTTP response. Preference order is not a serial dependency and no mutual edges are demonstrated.
@@ -137,13 +139,15 @@ No consumer/Common edits, compatibility mode, new business policy/grant/endpoint
 | --- | --- | --- | --- |
 | 325 | [TASK-00146](../tasks/00146-TASK.md) | Qualify ordinary HTTP contracts and safe failures | needs-info |
 | 326 | [TASK-00147](../tasks/00147-TASK.md) | Align protected Agent profile Tool contracts | ready-for-agent |
-| 327 | [TASK-00148](../tasks/00148-TASK.md) | Align Resource and Skill binding contracts | ready-for-agent |
-| 328 | [TASK-00149](../tasks/00149-TASK.md) | Align public payload schemas and declarative metadata | ready-for-agent |
+| 327 | [TASK-00148](../tasks/00148-TASK.md) | Align Resource and Skill binding contracts | done |
+| 328 | [TASK-00149](../tasks/00149-TASK.md) | Align public payload schemas and declarative metadata | done |
 ## Decisions and Progress
 
 John approved this requirement in the six-TICKET split, then the complete four-TASK plan now written as
-TASK-00146–00149. All are ready-for-agent; TASK-00147 waits on TASK-00128/00131/00141 and TASK-00149 on TASK-00133.
-TASK-00146/00148 have no demonstrated local blockers. Readiness is not runtime/type/supplier/consumer qualification.
+TASK-00146–00149. At that planning checkpoint all were ready-for-agent; TASK-00147 waited on
+TASK-00128/00131/00141 and TASK-00149 on TASK-00133. Current statuses and remaining blockers derive from the
+owning records and Board. TASK-00146/00148 have no demonstrated local blockers. Readiness is not
+runtime/type/supplier/consumer qualification.
 
 Planning only: no implementation, source/dependency/sibling/consumer mutation, product build, new branch/worktree/
 checkout, commit/publication, release or independent acceptance is claimed. Obtain applicable complete authorized

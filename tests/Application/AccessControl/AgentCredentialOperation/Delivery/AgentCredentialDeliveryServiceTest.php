@@ -355,6 +355,15 @@ final class AgentCredentialDeliveryServiceTest extends TestCase
                 $env->sink->supported = false;
             }
 
+            if ($case === 'wrong invocation') {
+                self::assertSame(AgentDeliveryResult::UNAVAILABLE, $env->deliver());
+                self::assertSame($original->getMaterial(), $env->operation()->getMaterial());
+                self::assertNull($env->operation()->getDeliveryFailure());
+                self::assertSame(0, $env->sink->calls);
+
+                continue;
+            }
+
             self::assertSame(AgentDeliveryResult::TERMINAL, $env->deliver(), $case);
             self::assertNull($env->operation()->getMaterial());
             self::assertSame($original->getIssuance(), $env->operation()->getIssuance());

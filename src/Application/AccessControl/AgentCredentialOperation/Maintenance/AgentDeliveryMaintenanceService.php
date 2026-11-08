@@ -4,11 +4,14 @@ declare(strict_types=1);
 
 namespace Fight\AccessControl\Application\AccessControl\AgentCredentialOperation\Maintenance;
 
+use DateTimeImmutable;
 use Fight\AccessControl\Application\AccessControl\Timing\Service\Clock;
 use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\AgentCredentialDestination;
 use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\AgentCredentialOperation;
 use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\AgentCredentialOperationRepository;
 use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\AgentDeliveryId;
+use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\AgentIssuance;
+use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\AgentOperationContract;
 use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\AgentOperationFailure;
 use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\AgentOperationKey;
 use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\Delivery\AgentDeliveryAuthority;
@@ -20,6 +23,7 @@ use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\Maintenanc
 use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\Maintenance\AgentMaintenancePolicy;
 use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\Query\AgentOperationView;
 use Fight\Common\Application\Repository\TransactionalUnitOfWork;
+use LogicException;
 use SensitiveParameter;
 use Throwable;
 
@@ -53,49 +57,74 @@ final readonly class AgentDeliveryMaintenanceService
         AgentDeliveryId $deliveryId,
         AgentDeliveryKeyVersion $target
     ): AgentMaintenanceResult {
-        return $this->execute(fn (): AgentMaintenanceResult => $this->transact(function () use (
+        return $this->execute(function (AgentDeliveryCommitUncertainException $commitUncertain) use (
             $key,
             $destination,
             $deliveryId,
             $target
         ): AgentMaintenanceResult {
-            [$original, $authority] = $this->load($key, $destination, $deliveryId, $target);
-            if ($original->isMaterialExpired($this->clock->now())) {
-                return $this->expireOriginal($original);
-            }
-
-            $material = $original->getMaterial();
-            if ($material === null || $material->getKeyVersion() === $target->toString()) {
-                return AgentMaintenanceResult::UNCHANGED;
-            }
-
-            $result = AgentMaintenanceResult::REWRAPPED;
-            try {
-                $replacementMaterial = $this->rewrapper->rewrap($material, $original->getIssuance(), $target);
-                if ($replacementMaterial->getKeyVersion() !== $target->toString()) {
-                    throw new AgentOperationRejectedException(AgentOperationFailure::UNAVAILABLE);
+            /** @var AgentMaintenanceResult $result */
+            $result = $this->transact(function () use (
+                $key,
+                $destination,
+                $deliveryId,
+                $target
+            ): AgentMaintenanceResult {
+                [$original, $authority] = $this->load($key, $destination, $deliveryId, $target);
+                if ($original->isMaterialExpired($this->now())) {
+                    return $this->expireOriginal($original);
                 }
 
-                $replacement = $original->rewrapMaterial($replacementMaterial, $this->clock->now());
-            } catch (AgentDeliveryFailedException $agentDeliveryFailedException) {
-                if (
-                    !in_array($agentDeliveryFailedException->getReason(), [
-                    AgentDeliveryFailure::KEY_RETIRED,
-                    AgentDeliveryFailure::CORRUPT_MATERIAL
-                    ], true)
-                ) {
-                    return AgentMaintenanceResult::RETRYABLE;
+                $material = $original->getMaterial();
+                if ($material === null || $material->getKeyVersion() === $target->toString()) {
+                    return AgentMaintenanceResult::UNCHANGED;
                 }
 
-                $replacement = $original->failMaterial($agentDeliveryFailedException->getReason());
-                $result = AgentMaintenanceResult::TERMINAL;
-            }
+                try {
+                    $rewrapped = $this->rewrapper->rewrap($material, $original->getIssuance(), $target);
+                } catch (AgentOperationRejectedException $failure) {
+                    if ($failure->getReason() === AgentOperationFailure::CONTENTION) {
+                        throw $failure;
+                    }
 
-            $this->assertAuthority($authority);
-            $this->operationRepository->replaceMaintenance($original, $replacement);
+                    throw new LogicException('The delivery rewrapper failure contract failed.');
+                } catch (AgentDeliveryFailedException $agentDeliveryFailedException) {
+                    if (
+                        !in_array($agentDeliveryFailedException->getReason(), [
+                        AgentDeliveryFailure::KEY_RETIRED,
+                        AgentDeliveryFailure::CORRUPT_MATERIAL
+                        ], true)
+                    ) {
+                        if ($agentDeliveryFailedException->getReason() !== AgentDeliveryFailure::TEMPORARY) {
+                            throw new LogicException('The delivery rewrapper contract failed.');
+                        }
+
+                        return AgentMaintenanceResult::RETRYABLE;
+                    }
+
+                    $rewrapped = $agentDeliveryFailedException->getReason();
+                }
+
+                $result = AgentMaintenanceResult::REWRAPPED;
+                if ($rewrapped instanceof AgentDeliveryFailure) {
+                    $replacement = $original->failMaterial($rewrapped);
+                    $result = AgentMaintenanceResult::TERMINAL;
+                } else {
+                    if ($rewrapped->getKeyVersion() !== $target->toString()) {
+                        throw new AgentOperationRejectedException(AgentOperationFailure::UNAVAILABLE);
+                    }
+
+                    $replacement = $original->rewrapMaterial($rewrapped, $this->now());
+                }
+
+                $this->assertAuthority($authority);
+                $this->replaceMaintenance($original, $replacement);
+
+                return $result;
+            }, $commitUncertain);
 
             return $result;
-        }));
+        });
     }
 
     /**
@@ -106,15 +135,20 @@ final readonly class AgentDeliveryMaintenanceService
         AgentCredentialDestination $destination,
         AgentDeliveryId $deliveryId
     ): AgentMaintenanceResult {
-        return $this->execute(fn (): AgentMaintenanceResult => $this->transact(function () use (
+        return $this->execute(function (AgentDeliveryCommitUncertainException $commitUncertain) use (
             $key,
             $destination,
             $deliveryId
         ): AgentMaintenanceResult {
-            [$original] = $this->load($key, $destination, $deliveryId);
+            /** @var AgentMaintenanceResult $result */
+            $result = $this->transact(function () use ($key, $destination, $deliveryId): AgentMaintenanceResult {
+                [$original] = $this->load($key, $destination, $deliveryId);
 
-            return $this->expireOriginal($original);
-        }));
+                return $this->expireOriginal($original);
+            }, $commitUncertain);
+
+            return $result;
+        });
     }
 
     /**
@@ -125,21 +159,42 @@ final readonly class AgentDeliveryMaintenanceService
         AgentCredentialDestination $destination,
         AgentDeliveryId $deliveryId
     ): AgentMaintenanceResult {
-        return $this->execute(function () use ($key, $destination, $deliveryId): AgentMaintenanceResult {
-            [$original, $authority] = $this->transact(fn (): array => $this->load($key, $destination, $deliveryId));
+        return $this->execute(function (AgentDeliveryCommitUncertainException $commitUncertain) use (
+            $key,
+            $destination,
+            $deliveryId
+        ): AgentMaintenanceResult {
+            /** @var array{AgentCredentialOperation, AgentDeliveryAuthority} $admission */
+            $admission = $this->transact(
+                fn (): array => $this->load($key, $destination, $deliveryId),
+                $commitUncertain
+            );
+            [$original, $authority] = $admission;
             if ($original->isSinkCleaned()) {
                 return AgentMaintenanceResult::CLEANED;
             }
 
-            if (!$original->canCleanup($this->clock->now(), $this->policy)) {
+            if (!$original->canCleanup($this->now(), $this->policy)) {
                 return AgentMaintenanceResult::UNCHANGED;
             }
 
-            $this->operationRepository->getOperationContract()->assertCompatible();
+            $this->operationContract()->assertCompatible();
             $this->assertAuthority($authority);
-            $this->cleanup->remove($original->getIssuance());
+            try {
+                $this->cleanup->remove($original->getIssuance());
+            } catch (AgentDeliveryFailedException $failure) {
+                return match ($failure->getReason()) {
+                    AgentDeliveryFailure::TEMPORARY,
+                    AgentDeliveryFailure::UNSUPPORTED_SINK => AgentMaintenanceResult::RETRYABLE,
+                    AgentDeliveryFailure::INVALID_RECEIPT => AgentMaintenanceResult::REJECTED,
+                    default => AgentMaintenanceResult::UNAVAILABLE
+                };
+            } catch (AgentOperationRejectedException) {
+                throw new LogicException('The protected cleanup failure contract failed.');
+            }
 
-            return $this->transact(function () use (
+            /** @var AgentMaintenanceResult $result */
+            $result = $this->transact(function () use (
                 $key,
                 $destination,
                 $deliveryId,
@@ -155,13 +210,15 @@ final readonly class AgentDeliveryMaintenanceService
                     throw new AgentOperationRejectedException(AgentOperationFailure::CONFLICT);
                 }
 
-                $this->operationRepository->replaceMaintenance(
+                $this->replaceMaintenance(
                     $current,
-                    $current->confirmCleanup($this->clock->now(), $this->policy)
+                    $current->confirmCleanup($this->now(), $this->policy)
                 );
 
                 return AgentMaintenanceResult::CLEANED;
-            });
+            }, $commitUncertain);
+
+            return $result;
         });
     }
 
@@ -176,21 +233,24 @@ final readonly class AgentDeliveryMaintenanceService
         AgentDeliveryId $deliveryId,
         ?AgentDeliveryKeyVersion $target = null
     ): array {
-        $this->maintenanceAuthorization->authorize($key->getScope(), $destination, null, $target, $this->clock->now());
-        $original = $this->operationRepository->getByKey($key);
+        $this->authorize($key, $destination, null, $target);
+        try {
+            $original = $this->operationRepository->getByKey($key);
+        } catch (AgentOperationRejectedException) {
+            throw new LogicException('The operation lookup failed.');
+        }
+
+        if ($original !== null && $original->getIssuance()->getKey()->toString() !== $key->toString()) {
+            throw new LogicException('The operation lookup identity is inconsistent.');
+        }
+
         if ($original === null || !$original->getIssuance()->getDeliveryId()->equals($deliveryId)) {
             throw new AgentOperationRejectedException(AgentOperationFailure::CONFLICT);
         }
 
         AgentOperationView::fromOperation($original)->assertReadable($key, $destination);
-        $authority = $this->operationRepository->getOperationContract()->bindAuthority(
-            $this->maintenanceAuthorization->authorize(
-                $key->getScope(),
-                $destination,
-                $original->getIssuance(),
-                $target,
-                $this->clock->now()
-            )
+        $authority = $this->operationContract()->bindAuthority(
+            $this->authorize($key, $destination, $original->getIssuance(), $target)
         );
         $this->assertAuthority($authority);
 
@@ -198,16 +258,51 @@ final readonly class AgentDeliveryMaintenanceService
     }
 
     /**
+     * Validates authorization failure intent and deadline before a concealed read or effect
+     */
+    private function authorize(
+        AgentOperationKey $key,
+        AgentCredentialDestination $destination,
+        ?AgentIssuance $issuance,
+        ?AgentDeliveryKeyVersion $target
+    ): AgentDeliveryAuthority {
+        $now = $this->now();
+        try {
+            $authority = $this->maintenanceAuthorization->authorize(
+                $key->getScope(),
+                $destination,
+                $issuance,
+                $target,
+                $now
+            );
+        } catch (AgentOperationRejectedException $agentOperationRejectedException) {
+            if (
+                !in_array($agentOperationRejectedException->getReason(), [
+                AgentOperationFailure::UNAUTHORIZED, AgentOperationFailure::CONFLICT, AgentOperationFailure::UNAVAILABLE
+                ], true)
+            ) {
+                throw new LogicException('The maintenance authorization contract failed.');
+            }
+
+            throw $agentOperationRejectedException;
+        }
+
+        $this->assertAuthority($authority);
+
+        return $authority;
+    }
+
+    /**
      * Creates expiry only when the aggregate requires a durable transition
      */
     private function expireOriginal(#[SensitiveParameter] AgentCredentialOperation $original): AgentMaintenanceResult
     {
-        $replacement = $original->expireMaterial($this->clock->now());
+        $replacement = $original->expireMaterial($this->now());
         if ($replacement === $original) {
             return AgentMaintenanceResult::UNCHANGED;
         }
 
-        $this->operationRepository->replaceMaintenance($original, $replacement);
+        $this->replaceMaintenance($original, $replacement);
 
         return AgentMaintenanceResult::EXPIRED;
     }
@@ -217,62 +312,139 @@ final readonly class AgentDeliveryMaintenanceService
      */
     private function assertAuthority(AgentDeliveryAuthority $authority): void
     {
-        if ($this->clock->now() >= $authority->getExpiresAt()) {
+        if ($this->now() >= $authority->getExpiresAt()) {
             throw new AgentOperationRejectedException(AgentOperationFailure::UNAUTHORIZED);
+        }
+    }
+
+    /**
+     * Retrieves cohort evidence without treating a failed capability lookup as maintenance refusal
+     */
+    private function operationContract(): AgentOperationContract
+    {
+        try {
+            return $this->operationRepository->getOperationContract();
+        } catch (AgentOperationRejectedException) {
+            throw new LogicException('The operation cohort is unavailable.');
+        }
+    }
+
+    /**
+     * Persists only the maintenance writer's deliberate expected-state refusal meanings
+     */
+    private function replaceMaintenance(
+        #[SensitiveParameter] AgentCredentialOperation $original,
+        #[SensitiveParameter] AgentCredentialOperation $replacement
+    ): void {
+        try {
+            $this->operationRepository->replaceMaintenance($original, $replacement);
+        } catch (AgentOperationRejectedException $agentOperationRejectedException) {
+            if (
+                !in_array($agentOperationRejectedException->getReason(), [
+                AgentOperationFailure::UNAUTHORIZED,
+                AgentOperationFailure::CONFLICT,
+                AgentOperationFailure::CONTENTION,
+                AgentOperationFailure::UNAVAILABLE
+                ], true)
+            ) {
+                throw new LogicException('The maintenance write contract failed.');
+            }
+
+            throw $agentOperationRejectedException;
         }
     }
 
     /**
      * Executes one transaction without guessing rollback when commit acknowledgement is missing
      *
-     * @param callable(): T $operation
-     *
-     * @template T
-     * @return T
+     * @phpstan-param callable(): (AgentMaintenanceResult|array{
+     *     AgentCredentialOperation, AgentDeliveryAuthority
+     * }) $operation
      */
-    private function transact(#[SensitiveParameter] callable $operation): mixed
-    {
-        if ($this->unitOfWork->isClosed()) {
-            throw new AgentOperationRejectedException(AgentOperationFailure::UNAVAILABLE);
-        }
-
+    private function transact(
+        #[SensitiveParameter] callable $operation,
+        AgentDeliveryCommitUncertainException $commitUncertain
+    ): mixed {
         $completed = false;
+        $callbackFailure = null;
         try {
-            return $this->unitOfWork->commitTransactional(function () use ($operation, &$completed): mixed {
-                $this->operationRepository->getOperationContract()->assertCompatible();
-                $result = $operation();
-                $completed = true;
-
-                return $result;
-            });
-        } catch (Throwable $throwable) {
-            if ($completed) {
-                throw new AgentDeliveryCommitUncertainException();
+            if ($this->unitOfWork->isClosed()) {
+                throw new LogicException('The maintenance transaction is closed.');
             }
 
-            throw $throwable;
+            return $this->unitOfWork->commitTransactional(function () use (
+                $operation,
+                &$completed,
+                &$callbackFailure
+            ): mixed {
+                try {
+                    $this->operationContract()->assertCompatible();
+                    $result = $operation();
+                    $completed = true;
+
+                    return $result;
+                } catch (Throwable $throwable) {
+                    $callbackFailure = $throwable;
+                    throw $throwable;
+                }
+            });
+        } catch (Throwable) {
+            /** @var bool $completed Updated by the owned callback before commit acknowledgement */
+            if ($completed) {
+                // Only this invocation's private marker proves owned callback completion without acknowledgement.
+                throw $commitUncertain;
+            }
+
+            /** @var Throwable|null $callbackFailure Captured at the owned callback, not inferred from UoW mechanics */
+            if ($callbackFailure !== null) {
+                throw $callbackFailure;
+            }
+
+            throw new LogicException('The maintenance transaction is unavailable.');
+        }
+    }
+
+    /**
+     * Returns trusted time without adopting failure intent from the Clock
+     */
+    private function now(): DateTimeImmutable
+    {
+        try {
+            return $this->clock->now();
+        } catch (Throwable) {
+            throw new LogicException('The maintenance clock is unavailable.');
         }
     }
 
     /**
      * Returns only safe classifications without publishing or chaining dependency diagnostics
      *
-     * @param callable(): AgentMaintenanceResult $operation
+     * @param callable(AgentDeliveryCommitUncertainException): AgentMaintenanceResult $operation
      */
     private function execute(#[SensitiveParameter] callable $operation): AgentMaintenanceResult
     {
+        $commitUncertain = new AgentDeliveryCommitUncertainException();
         try {
-            return $operation();
-        } catch (AgentDeliveryCommitUncertainException) {
-            return AgentMaintenanceResult::INDETERMINATE;
-        } catch (AgentDeliveryFailedException) {
-            return AgentMaintenanceResult::RETRYABLE;
-        } catch (AgentOperationRejectedException $failure) {
-            if ($failure->getReason() !== AgentOperationFailure::UNAVAILABLE) {
+            return $operation($commitUncertain);
+        } catch (Throwable $throwable) {
+            if ($throwable === $commitUncertain) {
+                return AgentMaintenanceResult::INDETERMINATE;
+            }
+
+            if (!$throwable instanceof AgentOperationRejectedException) {
+                return AgentMaintenanceResult::UNAVAILABLE;
+            }
+
+            if (
+                in_array($throwable->getReason(), [
+                AgentOperationFailure::UNAUTHORIZED,
+                AgentOperationFailure::CONFLICT,
+                AgentOperationFailure::CONTENTION,
+                AgentOperationFailure::UNSUPPORTED_VERSION
+                ], true)
+            ) {
                 return AgentMaintenanceResult::REJECTED;
             }
-        } catch (Throwable) {
-            // Preserve original state after unclassified failure; never leak a provider trace or infer completion.
         }
 
         return AgentMaintenanceResult::UNAVAILABLE;

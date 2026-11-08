@@ -842,12 +842,17 @@ abstract class IssuanceRecoveryConformance extends TestCase
             $ports->transaction,
             new AgentDeliveryPolicy()
         );
-        $scheduler = new AgentDeliveryRecoveryService(
+        $queryRouter = new InMemoryQueryRouter();
+        $queryRouter->registerHandler(
+            ListDueAgentDeliveriesHandler::queryRegistration(),
             new ListDueAgentDeliveriesHandler(
                 $ports->operationReadRepository,
                 $ports->deliveryAuthorization,
                 $ports->clock
-            ),
+            )
+        );
+        $scheduler = new AgentDeliveryRecoveryService(
+            new RoutingQueryBus($queryRouter),
             $delivery,
             $ports->clock,
             $schedule ?? new AgentDeliverySchedule()

@@ -24,7 +24,9 @@ interface AgentDeliveryRewrapper
      * authentication envelope or invoke a sink. Return only a separately protected copy. Keep key use leased against
      * physical retirement until completion; bound provider latency. A consumer unable to participate fails closed.
      * Throw sanitized AgentDeliveryFailedException: TEMPORARY, KEY_RETIRED for permanent source-key loss, or
-     * CORRUPT_MATERIAL. Target-key unavailability is TEMPORARY, not loss of the original. Never chain diagnostics.
+     * CORRUPT_MATERIAL. Target-key unavailability is TEMPORARY, not loss of the original. A cooperating transaction
+     * or key-use fence may reject with AgentOperationRejectedException(CONTENTION), not authorization refusal.
+     * Never chain diagnostics.
      * Implementations must retain SensitiveParameter; do not log, cache or serialize plaintext intermediates.
      */
     public function rewrap(

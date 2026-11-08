@@ -48,6 +48,14 @@ padding/malformed names; it does not normalize input. Their collaborators must b
 bindings and capability composition together when registration changes. Public/unprotected content needs a separately
 chosen composition, never a missing-requirement fallback. Empty bindings serve nothing.
 
+Binding and catalog constructors intentionally accept dynamic PHP arrays (`array<array-key, mixed>`), validating
+list structure, members and canonical names at their owner. They do not advertise an already-validated list as input.
+The resulting requirements are `non-empty-list<PermissionName>`; lookup absence is explicitly nullable, provider
+exports are `list<McpReadableResourceProvider>` and availability returns `bool` or propagates an operational failure.
+Recursive descriptor comparison retains `mixed` for genuine JSON values with typed array keys, rather than narrowing
+extension metadata to an invented schema. Duplicate/conflicting URI associations reject; repeated Permission names
+remain conjunctive requirements, not new grants.
+
 Construction validates each explicit binding with metadata-only `find()`; it never enumerates `resources()` or opens
 content. It does not freeze dynamic discovery. Unknown future entries are concealed until explicitly bound; an owned
 URI need not be listed to be bound/read. Runtime decisions repeat metadata-only lookup through the **bound provider**
@@ -110,8 +118,10 @@ under [ADR 0010](../planning/adr/0010-permission-eligibility-and-caller-authoriz
 At TASK-00085's checkpoint the qualified family minimum was Common **v1.3.0**, source `7de6cad6e8a9752973ad9f8e27e285b0c1510582`; no dependency
 narrowing is needed beyond existing `^1.3`. Its tagged Resource contracts and actual list/read/responder behavior pass
 the Resource composition and existing principal-provider tests in an isolated Composer-resolved scratch copy. The
-current checkout now requires `^1.4` for the separate HTTP safe-error contract; TASK-00108 uses v1.4.0, source `87b9580c072f3149d574e09865daa79620c92118`. Source/tag presence alone is
-not that qualification; exact lock hashes, commands, complete logs/exits and candidate input mapping live in the TASK
+current checkout requires Common `^1.4.1`. TASK-00148 requalifies the actual tagged sufficient minimum **v1.4.1**
+(`a482c220d312d2ef7762c3f0d85d9fb76a7021fa`) and ordinary dependency lanes through real Resource/Skill composition.
+This does not replace TASK-00110's separate canonical-API adoption. Source/tag presence alone is not qualification;
+exact resolved dependencies, commands, complete logs/exits and candidate input mapping live in the canonical Work
 handoff. The ignored lockfile remains an execution artifact, not a new tracked dependency contract.
 
 `AgentResourcePermissionCatalogTest` covers static validation, empty/unknown/foreign mappings, dynamic fresh metadata,
@@ -123,6 +133,9 @@ reads, private pagination/cursors, request isolation, nonce counts, revocation/r
 collisions, normalization attempts, provider/policy/authority faults, inert exact bytes, bounds and stream closure.
 Controlled repositories, cryptographic ports, content providers and PSR streams qualify **package composition**, not
 a deployed database, actual cryptography, storage containment, transport/container lifetimes or client behavior.
-Independent Review and nonvisual behavioral QA remain required; screenshots add no useful proof for this boundary.
-Relocation changes PHP homes only, not grants, storage/persisted shape, business messages, dependency contracts,
-release/version selection or deployment.
+TASK-00148 adds exact static positive/negative probes, retained operational-fault identity/recovery, catalog-fault
+propagation and fresh nested-request isolation while an admitted outer read completes. The full owned declaration/
+callback/caller dispositions are in its canonical Work handoff. Independent Review and nonvisual behavioral QA remain
+required; screenshots add no useful proof for this boundary. No grant, persisted shape, business write, audit insertion
+or new transaction is introduced; the existing authentication nonce transaction remains separately owned. No released
+history, dependency constraint, consumer implementation, version selection or deployment is changed.

@@ -96,6 +96,7 @@ final readonly class AgentResourcePermissionCatalog
      * Returns whether public descriptor values match without coercion or object identity
      *
      * Common bounds the JSON tree. Object property order is irrelevant; list positions and scalar types are not.
+     * Mixed is intentional at this recursive JSON boundary, not an unvalidated provider or Permission result.
      */
     private function sameMetadataValues(mixed $current, mixed $presented): bool
     {
@@ -110,7 +111,7 @@ final readonly class AgentResourcePermissionCatalog
 
             return array_all(
                 $current,
-                fn($value, $key): bool => array_key_exists($key, $presented)
+                fn(mixed $value, int|string $key): bool => array_key_exists($key, $presented)
                     && $this->sameMetadataValues($value, $presented[$key])
             );
         }

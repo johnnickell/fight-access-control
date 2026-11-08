@@ -6,6 +6,87 @@ Fight AccessControl owns framework-neutral identity, credential, session, author
 behavior shared by Fight applications. The repository-local behavioral and security authority is
 [TICKET-00001](planning/tickets/00001-TICKET.md).
 
+## TASK-00148 Resource/Skill contracts — accepted checkpoint
+
+The current [Resource](docs/agent-resource-authorization.md) and [Skill](docs/agent-skill-authorization.md)
+contracts retain exact provider/URI and complete immutable-revision ownership, dynamically validated configuration,
+precise typed exports and deliberate concealment versus operational-failure propagation. The Skill catalog now
+narrows its actual dynamic JSON URI before association-key use; recursive Resource metadata callbacks keep justified
+mixed values with explicit key types. Static fixtures and real Common composition preserve whole-entry versus
+selected-member admission, fresh nested/later request authority, one ordinary-request nonce result, private zero-TTL
+hints and opening/cleanup ordering. No business write, audit insertion, new transaction or grant is introduced.
+
+Canonical `.runs/handoffs/TASK-00148/work.md` owns complete declaration/member/callback/caller dispositions,
+minimum/ordinary dependency and focused/static/full-gate evidence, warnings and retained package runtime.
+At this Work checkpoint independent Review and nonvisual QA remain required and TASK-00148 stays open;
+this is not whole-library, actual consumer storage/parser/crypto/bootstrap/sink qualification, publication,
+merge, release or deployment. Other slices and canonical Common adoption retain their own owners.
+
+Independent Review v3 ACCEPT and complete nonvisual QA PASS now cover clean candidate
+`91e4b9c78eb4e3cb98dd5b8d50c647cf9407ac00` against `311d6769668c8eea57758ae0c661465ca1b5e88c`,
+without findings. QA passes 11 scenarios / 1,432 checks; Land's normal build cache miss freshly passes
+6,800 tests / 73,498 assertions, exact 9,254/9,254 global and 124/124 owned statements. TASK-00148 is done;
+unfinished children keep TICKET-00041/EPIC-00016 open. Publication/final delivery verification remain pending at this
+administrative checkpoint; canonical `.runs/handoffs/TASK-00148/land.md` owns subsequent bridge, checks, delivery
+and resource results. Original report subjects, historical Work proof and lowest-lane advisories remain preserved;
+no whole-library or actual consumer qualification, approval, merge, release or deployment is claimed.
+
+## Current public payload composition
+
+The [current payload catalog](docs/public-payload-catalog.md) maps public messages, safe Query results, all seven
+synchronous User payloads and deliberate internal/non-wire boundaries to the opt-in OpenAPI anchors. Consumers
+explicitly project safe Views and TokenSet getters; arbitrary object serialization is not the wire contract.
+Generated OpenAPI 3.1 samples run in the default suite without incidental production coverage. FeatureFlag remains
+method-only, nonrepeatable and declaration-only; no HTTP policy or future declaration redesign is implemented.
+TASK-00149's canonical Work handoff owns implementation verification and limits. Independent Review v3 ACCEPT
+and nonvisual QA PASS cover candidate `713837ab11122cafc5a66d00c0c0e6174eedb333`, with no open findings;
+TASK-00149 is done, while unfinished siblings keep TICKET-00041/EPIC-00016 open. Publication/final-head verification
+remain pending at this administrative checkpoint; canonical `.runs/handoffs/TASK-00149/land.md` owns subsequent
+provenance, delivery and resource outcomes. Original report subjects and minimum-lane warnings remain preserved;
+no actual consumer qualification, approval, merge, release or deployment is claimed.
+
+## TASK-00144 Agent worker contracts — accepted checkpoint
+
+The current [worker contracts](docs/agent-worker-contracts.md) retain exact safe delivery/maintenance outcomes and
+source-qualified provider meanings, exact lookup identity, native mixed UoW/local known-result annotations and
+revocation's distinct throwing policy. Recovery uses the configured QueryBus rather than an injected handler;
+its bounded dynamic-result validation does not qualify TASK-00128's generic relationship. Current authority before
+concealed reads, claim/admission/outcome separation, receipt-first restart, retirement/audit coupling, original
+expiry/rewrap identity and external cleanup/acknowledgement uncertainty remain authoritative. Commit uncertainty
+requires the owned invocation's completion evidence, not a collaborator's exception class. Failed recorded-receipt
+verification is unavailable without refusal, history rewrite or restaging.
+
+Canonical `.runs/handoffs/TASK-00144/work.md` owns exhaustive inventory/caller dispositions, regression chronology,
+dependency/runtime/static/behavior/full-gate/exact-coverage evidence and limitations. Independent Review v3 ACCEPT
+and nonvisual QA PASS cover clean candidate `94b151ddc4e4fff5ae3156a318a9a552449bbf2c` against develop
+`17f7c8048bee3429f3ddbcfa66eb41968c299fe6`, with all four findings resolved. QA passes 122 adversarial cases /
+540 checks plus 259 focused tests / 8,277 assertions; the qualified original gate passes 6,776 tests /
+73,349 assertions, exact global 9,197/9,197 and owned 481/481 statements. TASK-00144 is done; unfinished children
+keep TICKET-00040/EPIC-00016 open. Publication/final delivery verification remain pending at this administrative
+checkpoint; canonical `.runs/handoffs/TASK-00144/land.md` owns subsequent bridge, checks, delivery and resource
+results. Original independent report subjects and minimum-lane warnings remain preserved. No optional-audit feature,
+generic bus or actual consumer qualification, approval, merge, release or deployment is claimed.
+
+## TASK-00145 request authority and continuation — accepted checkpoint
+
+The [current authority contracts](docs/authority-contracts.md) distinguish genuine User/Agent authentication refusal
+from malformed or inconsistent authoritative snapshots and operational resolution faults. Exact Permission sets,
+request-sensitive state and synchronized bounded continuation retain explicit native/static contracts. Nonce consumption,
+original provenance time, current all-writer admission and post-invocation primary-error truth remain authoritative.
+No new grants, executor, business transaction, Common implementation or consumer implementation is introduced.
+
+Canonical `.runs/handoffs/TASK-00145/work.md` owns the exhaustive current declaration/member/callback/caller
+dispositions, regression chronology, dependency/static/behavior/full-gate/exact-coverage evidence and retained runtime.
+Independent Review v3 ACCEPT and complete nonvisual QA PASS cover clean candidate
+`2c0570f66e0a59a068f92c1bf48c8d377aae413a` against `17f7c8048bee3429f3ddbcfa66eb41968c299fe6`, with no
+findings. QA passes 12 scenarios / 335 checks / 36 protected effects and zero forbidden effects; its fresh full gate
+passes 5,402 tests / 57,293 assertions, exact global 9,064/9,064 and owned 351/351 statements. TASK-00145 is done;
+unfinished children keep TICKET-00040/EPIC-00016 open. Publication/final delivery verification remain pending at
+this administrative checkpoint; canonical `.runs/handoffs/TASK-00145/land.md` owns subsequent bridge/delivery/
+resource outcomes. Original Work history and independent report subjects remain preserved. Minimum-lane advisories
+and deprecation plus QA's focused runner-option deprecation remain disclosed in the owning evidence. No whole-library,
+generic dispatch, optional-audit or actual consumer qualification, approval, merge, release or deployment is claimed.
+
 ## TASK-00143 Agent issuance contracts — accepted checkpoint
 
 The current void provision/rotation handlers now distinguish source-qualified Common Application refusals from

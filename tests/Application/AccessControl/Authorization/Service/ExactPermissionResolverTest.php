@@ -89,6 +89,20 @@ final class ExactPermissionResolverTest extends TestCase
         new ExactPermissionResolver($permissionRepository)->resolve([$first->getId(), PermissionId::generate()]);
     }
 
+    public function test_it_rejects_non_list_wrong_purpose_and_duplicate_requested_identities(): void
+    {
+        $permission = $this->permission('CONTENT_READ');
+        foreach ([['key' => $permission->getId()], [null], [$permission->getId(), $permission->getId()]] as $ids) {
+            $repository = new InMemoryPermissionRepository(getByIdsResult: static fn(): array => [$permission]);
+            try {
+                new ExactPermissionResolver($repository)->resolve($ids);
+                self::fail('Requested identities must form a valid exact set.');
+            } catch (ExactPermissionResolutionException $failure) {
+                self::assertNull($failure->getPrevious());
+            }
+        }
+    }
+
     private function permission(string $name): Permission
     {
         return Permission::define(
