@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Fight\AccessControl\Application\AccessControl\AgentCredentialOperation\QueryHandler;
 
 use Fight\AccessControl\Application\AccessControl\AgentCredentialOperation\AgentOperationAuthorization;
+use Fight\AccessControl\Application\AccessControl\AgentCredentialOperation\AgentOperationRejection;
 use Fight\AccessControl\Application\AccessControl\AgentCredentialOperation\Exception\AgentOperationReadFailed;
 use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\AgentCredentialOperationReadRepository;
 use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\AgentOperationFailure;
@@ -50,14 +51,15 @@ final readonly class GetAgentOperationHandler implements QueryHandler
             $this->operationAuthorization->authorizeRead($query->getKey()->getScope(), $query->getDestination(), null);
             $view = $this->operationReadRepository->getStatusByKey($query->getKey());
             $view ??= AgentOperationView::indeterminate($query->getKey());
+            if ($view->getKey()->toString() !== $query->getKey()->toString()) {
+                throw new AgentOperationReadFailed();
+            }
+
             $this->operationAuthorization->authorizeRead(
                 $query->getKey()->getScope(),
                 $query->getDestination(),
                 $view->getIssuance()?->getAgentId()
             );
-            if ($view->getKey()->toString() !== $query->getKey()->toString()) {
-                throw new AgentOperationReadFailed();
-            }
         } catch (AgentOperationRejectedException $failure) {
             if (
                 !in_array($failure->getReason(), [
@@ -67,14 +69,18 @@ final readonly class GetAgentOperationHandler implements QueryHandler
                 throw new AgentOperationReadFailed();
             }
 
-            throw new AgentOperationRejectedException($failure->getReason());
+            throw AgentOperationRejection::fromReason($failure->getReason());
         } catch (Throwable) {
             throw new AgentOperationReadFailed();
         }
 
         // A key-only lookup may legitimately find another destination binding: conceal it.
         // Check the marker only after target authorization, never from a provider's failed read.
-        $view->assertReadable($query->getKey(), $query->getDestination());
+        try {
+            $view->assertReadable($query->getKey(), $query->getDestination());
+        } catch (AgentOperationRejectedException $agentOperationRejectedException) {
+            throw AgentOperationRejection::fromReason($agentOperationRejectedException->getReason());
+        }
 
         return $view;
     }

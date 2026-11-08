@@ -26,6 +26,8 @@ use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\Exception\
 use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\Maintenance\AgentDeliveryKeyVersion;
 use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\Maintenance\AgentMaintenancePolicy;
 use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\Query\AgentOperationView;
+use Fight\Common\Application\Error\Exception\RateLimitExceeded;
+use Fight\Common\Application\Error\Exception\ServiceUnavailable;
 use PHPUnit\Framework\Attributes\DataProvider;
 use Throwable;
 
@@ -557,8 +559,8 @@ abstract class DeliveryLifecycleConformance extends DeliveryConformance
                 new AgentOperationLimits(512, 1, 1)
             );
             self::fail('Capacity must reject new work.');
-        } catch (AgentOperationRejectedException $agentOperationRejectedException) {
-            self::assertSame(AgentOperationFailure::CAPACITY, $agentOperationRejectedException->getReason());
+        } catch (RateLimitExceeded $rateLimitExceeded) {
+            self::assertNull($rateLimitExceeded->getPrevious());
         }
 
         $afterRejection = $fixture->counts();
@@ -568,8 +570,11 @@ abstract class DeliveryLifecycleConformance extends DeliveryConformance
             try {
                 $read === 'status' ? $this->readOperation($fixture, $issuance) : $this->recover($fixture, $issuance);
                 self::fail('Storage outage cannot become absence or success.');
-            } catch (AgentOperationRejectedException $agentOperationRejectedException) {
-                self::assertSame(AgentOperationFailure::UNAVAILABLE, $agentOperationRejectedException->getReason());
+            } catch (AgentOperationRejectedException | ServiceUnavailable $agentOperationRejectedException) {
+                if ($agentOperationRejectedException instanceof AgentOperationRejectedException) {
+                    self::assertSame(AgentOperationFailure::UNAVAILABLE, $agentOperationRejectedException->getReason());
+                }
+
                 self::assertNull($agentOperationRejectedException->getPrevious());
                 $this->assertSafe($fixture, [
                     $agentOperationRejectedException->getMessage(),

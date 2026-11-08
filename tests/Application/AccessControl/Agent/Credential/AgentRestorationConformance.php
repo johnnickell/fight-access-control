@@ -20,6 +20,7 @@ use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\Maintenanc
 use Fight\Test\AccessControl\Application\AccessControl\Agent\Credential\Conformance\AgentRestorationFixture;
 use Fight\Test\AccessControl\Application\AccessControl\AgentCredentialOperation\Delivery\DeliveryConformance;
 use LogicException;
+use Throwable;
 use PHPUnit\Framework\Attributes\DataProvider;
 
 /** Real public operations against separately retained external history; reference restore is simulated, not physical */
@@ -333,13 +334,16 @@ abstract class AgentRestorationConformance extends DeliveryConformance
                 };
                 self::assertSame(AgentMaintenanceResult::UNAVAILABLE, $result);
             }
-        } catch (AgentOperationRejectedException $agentOperationRejectedException) {
+        } catch (Throwable $throwable) {
             self::assertContains($path, ['provision', 'retry', 'rotation', 'revocation', 'discovery']);
-            self::assertSame(AgentOperationFailure::UNAVAILABLE, $agentOperationRejectedException->getReason());
-            self::assertNull($agentOperationRejectedException->getPrevious());
+            OperationFailureAssertions::assertMatches(
+                AgentOperationFailure::UNAVAILABLE,
+                $throwable
+            );
+            self::assertNull($throwable->getPrevious());
             $this->assertSafe($fixture, [
-                $agentOperationRejectedException->getMessage(),
-                $agentOperationRejectedException->getTraceAsString()
+                $throwable->getMessage(),
+                $throwable->getTraceAsString()
             ]);
         }
     }

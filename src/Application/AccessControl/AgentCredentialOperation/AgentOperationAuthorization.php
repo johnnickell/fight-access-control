@@ -21,9 +21,12 @@ interface AgentOperationAuthorization
      * Check current caller/delegation and destination ownership on the shared connection before key lookup.
      * Hold authority revisions/epochs and destination binding fences through transaction completion, shared by
      * every authority writer. Do not begin or commit a transaction. Cached allows and actor strings are not authority.
-     * Reject unsupported integration, expired delegation or revoked authority with AgentOperationRejectedException.
+     * Reject expired delegation or revoked authority with AgentOperationRejectedException(UNAUTHORIZED), and
+     * explicitly unsupported/unavailable integration with UNAVAILABLE. Other reasons violate this port contract;
+     * arbitrary provider/programmer faults remain internal, never ordinary permission refusal.
      * A delegated worker remains itself and must not rewrite the original scope. Audit identity is bounded to the
      * same 128-character identifier alphabet as a scope caller ID and must contain no credentials/provider details.
+     * A malformed returned audit identity is an internal contract failure, not unavailability or authorization.
      */
     public function authorize(AgentOperationScope $scope, AgentCredentialDestination $destination): string;
 

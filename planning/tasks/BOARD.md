@@ -5,11 +5,13 @@ dependencies, acceptance, and verification.
 
 ## What's Next?
 
-First ready Task: [TASK-00141](00141-TASK.md) — Correct Agent administration contracts.
+Active Task: [TASK-00143](00143-TASK.md) — Correct Agent issuance and result contracts.
 
 ## In Progress
 
-No Tasks are currently in this state.
+| Order | TASK ID | Title | Parent TICKET | Status | Blocked by | PR |
+| --- | --- | --- | --- | --- | --- | --- |
+| 322 | [TASK-00143](00143-TASK.md) | Correct Agent issuance and result contracts | [TICKET-00040](../tickets/00040-TICKET.md) — Make command and synchronous Application contracts explicit | in-progress | — | — |
 
 ## Ready Frontier
 
@@ -17,7 +19,6 @@ No Tasks are currently in this state.
 | --- | --- | --- | --- | --- | --- | --- |
 | 320 | [TASK-00141](00141-TASK.md) | Correct Agent administration contracts | [TICKET-00040](../tickets/00040-TICKET.md) — Make command and synchronous Application contracts explicit | ready-for-agent | — | — |
 | 321 | [TASK-00142](00142-TASK.md) | Correct Feature and policy mutation contracts | [TICKET-00040](../tickets/00040-TICKET.md) — Make command and synchronous Application contracts explicit | ready-for-agent | — | — |
-| 322 | [TASK-00143](00143-TASK.md) | Correct Agent issuance and result contracts | [TICKET-00040](../tickets/00040-TICKET.md) — Make command and synchronous Application contracts explicit | ready-for-agent | — | — |
 | 323 | [TASK-00144](00144-TASK.md) | Correct Agent delivery, recovery and maintenance contracts | [TICKET-00040](../tickets/00040-TICKET.md) — Make command and synchronous Application contracts explicit | ready-for-agent | — | — |
 | 324 | [TASK-00145](00145-TASK.md) | Correct authority and continuation contracts | [TICKET-00040](../tickets/00040-TICKET.md) — Make command and synchronous Application contracts explicit | ready-for-agent | — | — |
 | 325 | [TASK-00146](00146-TASK.md) | Qualify ordinary HTTP contracts and safe failures | [TICKET-00041](../tickets/00041-TICKET.md) — Align presentation and integration contracts | ready-for-agent | — | — |

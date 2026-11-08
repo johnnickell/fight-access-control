@@ -6,6 +6,21 @@ Fight AccessControl owns framework-neutral identity, credential, session, author
 behavior shared by Fight applications. The repository-local behavioral and security authority is
 [TICKET-00001](planning/tickets/00001-TICKET.md).
 
+## TASK-00143 Agent issuance contracts — Work checkpoint
+
+The current void provision/rotation handlers now distinguish source-qualified Common Application refusals from
+sanitized internal failures. Exact retained-key/Agent/issuance and positive reservation promises are checked by their
+owning boundary. The independent outcome Query retains confirmed/indeterminate Views and binding concealment, with
+Common denial/unavailability categories. See [issuance composition](docs/agent-provisioning-operations.md#public-boundary)
+and [rotation failures](docs/agent-rotation-operations.md#failure-bounds-and-delivery).
+
+Native mixed UoW/local known issuance annotations, current execution/read authorization, original predecessor,
+cohort/restoration, capacity/collision fences, same-transaction state/audit, uncertainty and committed issuance despite
+both publisher failures remain authoritative. No retired service/result/warning, result channel, optional audit,
+worker/authority redesign or consumer implementation is introduced. Canonical `.runs/handoffs/TASK-00143/work.md`
+owns exhaustive dispositions, regression chronology, dependency/runtime/static/behavior/gate/coverage evidence and
+limits. Independent Review and nonvisual QA remain required; TASK-00143 and its unfinished parents stay open.
+
 ## TASK-00140 Role and User membership — accepted checkpoint
 
 Independent Review v3 ACCEPT and nonvisual QA PASS cover clean candidate

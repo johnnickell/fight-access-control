@@ -100,8 +100,12 @@ recompose and retain the original request rather than inventing another key.
 
 ## Failure, bounds and delivery
 
-Callback failures surface a sanitized `AgentOperationRejectedException` with no chained provider error. If the
-callback finished but commit did not confirm, throw sanitized `AgentOperationUncertainException` without claiming
+Callback failures use the [issuance Application categories](agent-provisioning-operations.md#public-boundary),
+with no chained provider error. Only an actual scoped-key insertion collision or the known predecessor/CAS refusal
+enters resolution-only retry; unrelated provider or successor-construction faults stay internal. Wrong repository
+Agent/key/correlation and invalid reservation promises raise sanitized `AgentIssuanceFailed`, not caller rejection.
+The local callback still returns known `AgentIssuance` under a matching `@var`; Common's native UoW remains mixed.
+If the callback finished but commit did not confirm, throw sanitized `AgentOperationUncertainException` without claiming
 issuance or rollback—even if persistence actually committed. A fresh original-key retry reconciles either outcome;
 an authorized Query can confirm stored original issuance, while absence remains indeterminate.
 

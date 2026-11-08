@@ -41,9 +41,11 @@ whose destination differs from the caller's requested binding: it remains concea
 A wrong returned key, foreign filtered batch, inconsistent selection predicate/order/cursor or negative count instead
 violates the repository promise and raises Application `AgentOperationReadFailed`, a Common `ServerError` subtype.
 
-Deliberately classified read denial/unavailability retain `AgentOperationRejectedException(UNAUTHORIZED)` and
-`UNAVAILABLE`; handlers reconstruct only the safe reason. A returned View's `UNSUPPORTED_VERSION` remains explicit
-only after target authorization. A failed repository read cannot bypass that ordering by reporting a record marker.
+For `GetAgentOperation`, deliberate read denial now becomes Common Application `PermissionDenied`; explicit
+unavailability and an authorized View's unsupported marker become `ServiceUnavailable`. Other Query/worker paths
+retain their existing Domain reason contracts. Status validates the returned key before using its target for a
+second authorization check; a wrong-key promise remains internal even when that foreign target would be denied.
+A valid same-key View's marker is checked only after current target authorization. A failed repository read cannot bypass that ordering by reporting a record marker.
 Invalid decoded rows and write-only business reasons (capacity/conflict/contention) at a read boundary are internal
 faults, not caller input errors or a new Query admission policy.
 Unknown infrastructure/programmer/result faults raise `AgentOperationReadFailed`, not fabricated expected

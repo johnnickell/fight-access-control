@@ -27,6 +27,8 @@ use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\Exception\
 use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\Maintenance\AgentDeliveryKeyVersion;
 use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\Maintenance\AgentMaintenancePolicy;
 use Fight\AccessControl\Domain\AccessControl\CredentialDelivery\EncryptedCredentialMaterial;
+use Fight\Common\Application\Error\Exception\RateLimitExceeded;
+use Fight\Common\Application\Error\Exception\StateConflict;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
@@ -502,7 +504,7 @@ final class AgentDeliveryMaintenanceServiceTest extends TestCase
                 $provisioning->request
             ));
             self::fail('New work must reject at capacity.');
-        } catch (AgentOperationRejectedException) {
+        } catch (RateLimitExceeded) {
             self::assertSame($env->delivery->issuance, $env->delivery->operation()->getIssuance());
         }
 
@@ -546,7 +548,7 @@ final class AgentDeliveryMaintenanceServiceTest extends TestCase
                 $provisioning->request
             ));
             self::fail('Closed key version cannot acquire a new reference.');
-        } catch (AgentOperationRejectedException) {
+        } catch (StateConflict) {
             self::assertSame($agentsBefore, $provisioning->agentRepository->all());
             self::assertSame(1, $operationRepository->countDeliveryKeyReferences($version));
         }

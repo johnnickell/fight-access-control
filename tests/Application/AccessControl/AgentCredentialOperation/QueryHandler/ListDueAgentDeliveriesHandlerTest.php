@@ -22,6 +22,7 @@ use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\Exception\
 use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\Query\AgentDeliveryWorkView;
 use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\Query\AgentOperationView;
 use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\Query\ListDueAgentDeliveries;
+use Fight\Common\Application\Error\Exception\ServerError;
 use Fight\Common\Domain\Messaging\Query\QueryMessage;
 use Fight\Test\AccessControl\Application\AccessControl\AgentCredentialOperation\Delivery\DeliveryEnvironment;
 use PHPUnit\Framework\Attributes\CoversClass;
@@ -174,8 +175,8 @@ final class ListDueAgentDeliveriesHandlerTest extends TestCase
                 $env->provisioning->request
             ));
             self::fail('Issuance must roll back.');
-        } catch (AgentOperationRejectedException $agentOperationRejectedException) {
-            self::assertSame(AgentOperationFailure::UNAVAILABLE, $agentOperationRejectedException->getReason());
+        } catch (ServerError $serverError) {
+            self::assertNull($serverError->getPrevious());
         }
 
         self::assertEquals(

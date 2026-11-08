@@ -134,10 +134,10 @@ those writers and retain them in tombstones. Unknown canonical versions remain s
 | --- | --- | --- |
 | Authoritative committed record | Confirmed original issuance and recorded disposition | No issuance, generation, audit or event repeats |
 | Authoritative absence | Indeterminate view; no guessed identity/disposition | Absence is not proof of rollback; retain the key |
-| Deliberately classified storage/integration unavailability | Sanitized retryable `AgentOperationRejectedException(UNAVAILABLE)` | Retry status or original Command after recovery; no fabricated result |
+| Deliberately classified storage/integration unavailability | Common Application `ServiceUnavailable`, without provider cause | Retry status or original Command after recovery; no fabricated result |
 | Unexpected provider/programmer fault or wrong returned key | Safe Application `AgentOperationReadFailed` / Common `ServerError` | Internal failure, not caller denial, absence or ordinary refusal; no diagnostic cause retained |
-| Current authority denied or binding mismatch | Sanitized `UNAUTHORIZED` | No conflicting/existing outcome disclosed |
-| Unsupported retained request version | Sanitized `UNSUPPORTED_VERSION` | No rewrite, current canonicalization, mutation or new issuance |
+| Current authority denied or binding mismatch | Common Application `PermissionDenied` | No conflicting/existing outcome disclosed |
+| Unsupported retained request version | Common Application `ServiceUnavailable` | No rewrite, current canonicalization, mutation or new issuance |
 | Prior known pre-commit execution rejection | Remains the execution-channel rejection, not reconstructed by this Query | An absent record still cannot prove why an earlier attempt left no record |
 
 The query never infers outcomes from missing success/failure events. After lost commit acknowledgement, an actually

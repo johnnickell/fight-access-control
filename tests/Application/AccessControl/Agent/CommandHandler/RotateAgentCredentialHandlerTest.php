@@ -10,6 +10,7 @@ use Fight\AccessControl\Application\AccessControl\Agent\Credential\HmacSharedSec
 use Fight\AccessControl\Application\AccessControl\Agent\Credential\HmacSharedSecretGenerator;
 use Fight\AccessControl\Application\AccessControl\AgentCredentialOperation\Delivery\AgentDeliveryCipher;
 use Fight\AccessControl\Application\AccessControl\AgentCredentialOperation\Delivery\AgentDeliveryResult;
+use Fight\AccessControl\Application\AccessControl\AgentCredentialOperation\Exception\AgentRotationConflict;
 use Fight\AccessControl\Domain\AccessControl\Agent\Agent;
 use Fight\AccessControl\Domain\AccessControl\Agent\AgentCredentialId;
 use Fight\AccessControl\Domain\AccessControl\Agent\AgentId;
@@ -35,7 +36,9 @@ use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\Exception\
 use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\Exception\AgentOperationUncertainException;
 use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\Query\AgentOperationView;
 use Fight\AccessControl\Domain\AccessControl\Audit\AuditEvidence;
+use Fight\Common\Application\Error\Exception\RateLimitExceeded;
 use Fight\Common\Application\Repository\TransactionalUnitOfWork;
+use Fight\Test\AccessControl\Application\AccessControl\Agent\Credential\OperationFailureAssertions;
 use Fight\Test\AccessControl\Application\AccessControl\Agent\Credential\ProvisioningEnvironment;
 use Fight\Test\AccessControl\Application\AccessControl\Agent\Credential\RotationEnvironment;
 use Fight\Test\AccessControl\Application\AccessControl\Agent\Credential\UncertainAgentUnitOfWork;
@@ -47,8 +50,10 @@ use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 use RuntimeException;
 use SensitiveParameter;
+use Throwable;
 
 #[CoversClass(RotateAgentCredentialHandler::class)]
+#[CoversClass(AgentRotationConflict::class)]
 #[CoversClass(AgentRotationRequest::class)]
 #[CoversClass(Agent::class)]
 #[CoversClass(AgentCredentialOperation::class)]
@@ -252,7 +257,8 @@ final class RotateAgentCredentialHandlerTest extends TestCase
             $failure = $this->reject(
                 fn(): AgentOperationView => $service->dispatchAndRead(
                     new RotateAgentCredential($rotation->key, $rotation->request)
-                )
+                ),
+                $case === 'retirement' ? AgentOperationFailure::UNAVAILABLE : null
             );
             self::assertNull($failure->getPrevious());
             $this->assertSafe($failure);
@@ -322,7 +328,7 @@ final class RotateAgentCredentialHandlerTest extends TestCase
             fn(): AgentOperationView => $rotation->bus()->dispatchAndRead(
                 new RotateAgentCredential($key, $rotation->request)
             ),
-            $case === 'audit' ? AgentOperationFailure::UNAVAILABLE : AgentOperationFailure::UNAUTHORIZED
+            $case === 'audit' ? null : AgentOperationFailure::UNAUTHORIZED
         );
         self::assertSame($reads, $env->operationRepository->reads);
         self::assertSame($generations, $env->generations);
@@ -393,7 +399,7 @@ final class RotateAgentCredentialHandlerTest extends TestCase
             ),
             AgentOperationFailure::CAPACITY
         );
-        self::assertTrue($failure->isRetryable());
+        self::assertInstanceOf(RateLimitExceeded::class, $failure);
         self::assertSame(0, $env->agentRepository->all()[0]->getCredentialRevision());
         self::assertNotNull($env->operationRepository->operations[$env->key->toString()]->getMaterial());
         self::assertSame([2], array_values($env->operationRepository->versions));
@@ -544,7 +550,8 @@ final class RotateAgentCredentialHandlerTest extends TestCase
             fn(): AgentOperationView => $rotation->bus($closed)->dispatchAndRead(new RotateAgentCredential(
                 $rotation->key,
                 $rotation->request
-            ))
+            )),
+            AgentOperationFailure::UNAVAILABLE
         );
         $env->transaction->commitTransactional(function () use ($rotation): void {
             $this->reject(
@@ -770,21 +777,21 @@ final class RotateAgentCredentialHandlerTest extends TestCase
 
     private function reject(
         #[SensitiveParameter] Closure $operation,
-        AgentOperationFailure $reason = AgentOperationFailure::UNAVAILABLE
-    ): AgentOperationRejectedException {
+        ?AgentOperationFailure $reason = null
+    ): Throwable {
         try {
             $operation();
             self::fail('Expected a safe rejection.');
-        } catch (AgentOperationRejectedException $agentOperationRejectedException) {
-            self::assertSame($reason, $agentOperationRejectedException->getReason());
+        } catch (Throwable $throwable) {
+            OperationFailureAssertions::assertMatches($reason, $throwable);
 
-            return $agentOperationRejectedException;
+            return $throwable;
         }
     }
 
     private function assertSafe(mixed $value): void
     {
-        if ($value instanceof AgentOperationRejectedException) {
+        if ($value instanceof Throwable) {
             $representation = (string) $value;
             $trace = [];
             foreach ($value->getTrace() as $frame) {

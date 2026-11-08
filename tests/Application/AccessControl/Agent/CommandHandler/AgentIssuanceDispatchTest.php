@@ -15,7 +15,6 @@ use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\AgentDeliv
 use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\AgentOperationFailure;
 use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\AgentOperationId;
 use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\AgentOperationKey;
-use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\Exception\AgentOperationRejectedException;
 use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\Query\AgentOperationView;
 use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\Query\GetAgentOperation;
 use Fight\Common\Domain\Messaging\Command\CommandMessage;
@@ -23,6 +22,7 @@ use Fight\Common\Domain\Messaging\MessageId;
 use Fight\Common\Domain\Messaging\Meta;
 use Fight\Test\AccessControl\Application\AccessControl\Agent\Credential\FixedHmacSharedSecretCipher;
 use Fight\Test\AccessControl\Application\AccessControl\Agent\Credential\IssuanceBusFixture;
+use Fight\Test\AccessControl\Application\AccessControl\Agent\Credential\OperationFailureAssertions;
 use Fight\Test\AccessControl\Application\AccessControl\Agent\Credential\ProvisioningEnvironment;
 use Fight\Test\AccessControl\Application\AccessControl\Agent\Credential\RotationEnvironment;
 use Fight\Test\AccessControl\Application\AccessControl\AgentCredentialOperation\Delivery\BoundAgentDeliveryCipher;
@@ -30,6 +30,7 @@ use Fight\Test\AccessControl\Application\AccessControl\Timing\Service\FixedClock
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
+use Throwable;
 
 #[CoversClass(ProvisionAgentHandler::class)]
 #[CoversClass(RotateAgentCredentialHandler::class)]
@@ -242,9 +243,9 @@ final class AgentIssuanceDispatchTest extends TestCase
         try {
             $action();
             self::fail('Current authority or expected state must reject.');
-        } catch (AgentOperationRejectedException $agentOperationRejectedException) {
-            self::assertSame($reason, $agentOperationRejectedException->getReason());
-            self::assertNull($agentOperationRejectedException->getPrevious());
+        } catch (Throwable $throwable) {
+            OperationFailureAssertions::assertMatches($reason, $throwable);
+            self::assertNull($throwable->getPrevious());
         }
     }
 }

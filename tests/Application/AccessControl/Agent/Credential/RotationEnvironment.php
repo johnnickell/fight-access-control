@@ -12,6 +12,7 @@ use Fight\AccessControl\Application\AccessControl\AgentCredentialOperation\Deliv
 use Fight\AccessControl\Application\AccessControl\Timing\Service\Clock;
 use Fight\AccessControl\Domain\AccessControl\Agent\AgentRepository;
 use Fight\AccessControl\Domain\AccessControl\Agent\Command\ProvisionAgent;
+use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\AgentCredentialOperationRepository;
 use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\AgentIssuance;
 use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\AgentOperationId;
 use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\AgentOperationKey;
@@ -59,13 +60,14 @@ final readonly class RotationEnvironment
         ?AuditEvidenceRepository $auditEvidenceRepository = null,
         ?AgentRepository $agentRepository = null,
         ?ProvisioningEnvironment $environment = null,
-        ?Clock $clock = null
+        ?Clock $clock = null,
+        ?AgentCredentialOperationRepository $operationRepository = null
     ): IssuanceBusFixture {
         $environment ??= $this->provisioning;
 
         return new IssuanceBusFixture(new RotateAgentCredentialHandler(
             $agentRepository ?? $environment->agentRepository,
-            $environment->operationRepository,
+            $operationRepository ?? $environment->operationRepository,
             $auditEvidenceRepository ?? $environment->auditEvidenceRepository,
             $environment->operationAuthorization,
             $generator ?? new readonly class ($environment) implements HmacSharedSecretGenerator {
