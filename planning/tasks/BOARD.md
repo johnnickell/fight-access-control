@@ -5,13 +5,11 @@ dependencies, acceptance, and verification.
 
 ## What's Next?
 
-Active Task: [TASK-00149](00149-TASK.md) — Align public payload schemas and declarative metadata.
+First ready Task: [TASK-00146](00146-TASK.md) — Qualify ordinary HTTP contracts and safe failures.
 
 ## In Progress
 
-| Order | TASK ID | Title | Parent TICKET | Status | Blocked by | PR |
-| --- | --- | --- | --- | --- | --- | --- |
-| 328 | [TASK-00149](00149-TASK.md) | Align public payload schemas and declarative metadata | [TICKET-00041](../tickets/00041-TICKET.md) — Align presentation and integration contracts | in-progress | [TASK-00133](00133-TASK.md) | — |
+No Tasks are currently in this state.
 
 ## Ready Frontier
 
@@ -220,3 +218,4 @@ No Tasks are currently in this state.
 | 322 | [TASK-00143](00143-TASK.md) | Correct Agent issuance and result contracts | [TICKET-00040](../tickets/00040-TICKET.md) — Make command and synchronous Application contracts explicit | done | — | https://github.com/johnnickell/fight-access-control/pull/181 |
 | 323 | [TASK-00144](00144-TASK.md) | Correct Agent delivery, recovery and maintenance contracts | [TICKET-00040](../tickets/00040-TICKET.md) — Make command and synchronous Application contracts explicit | done | — | https://github.com/johnnickell/fight-access-control/pull/183 |
 | 324 | [TASK-00145](00145-TASK.md) | Correct authority and continuation contracts | [TICKET-00040](../tickets/00040-TICKET.md) — Make command and synchronous Application contracts explicit | done | — | https://github.com/johnnickell/fight-access-control/pull/182 |
+| 328 | [TASK-00149](00149-TASK.md) | Align public payload schemas and declarative metadata | [TICKET-00041](../tickets/00041-TICKET.md) — Align presentation and integration contracts | done | [TASK-00133](00133-TASK.md) | — |
