@@ -4,7 +4,9 @@
 [protected delivery](agent-credential-delivery.md), [retirement](agent-credential-retirement.md) and
 [recovery](agent-delivery-recovery.md) paths. The package owns maintenance transitions, expected-state obligations,
 read contracts and coordination. Consumers own authorization, actual encryption, keys, database indexes/fences and
-protected sinks. This is not a key vault, plaintext retrieval API, physical key-destruction command or supported
+protected sinks. The unreleased [worker contracts](agent-worker-contracts.md) refine exact failure/provider ownership
+and known local transaction-result annotations without changing the maintenance protocol. This is not a key vault,
+plaintext retrieval API, physical key-destruction command or supported
 partial deployment. Mandatory [cohort guards](agent-operation-cohorts.md) fence maintenance transactions and bind
 cleanup authority to the persisted generation. [Package restoration](agent-restoration-safety.md) is implemented;
 [real consumer qualification](agent-operation-evidence.md#consumer-gap-register) and release remain separate.
@@ -45,7 +47,7 @@ scoped confirmed-commit publication containment without returned or reconstructe
 | `cleaned` | Confirmed sink erasure/tombstone acknowledgement, or an already acknowledged cleanup. Not delivery, activation or use authority. |
 | `unchanged` | No applicable transition: same wrapping version, no copy, unexpired material or ineligible cleanup. Not proof of key health or successful delivery. |
 | `retryable` | Typed transient key/sink failure or unsupported cleanup capability. State is not acknowledged; unsupported capability requires adapter correction, not blind retries. |
-| `rejected` | Authorization, version, exact binding, deadline or expected-state conflict. No existence detail is disclosed. |
+| `rejected` | Authorization, version, exact binding (including cleanup binding refusal), deadline or expected-state conflict. No existence detail is disclosed. |
 | `unavailable` | Unclassified dependency/storage failure; original state remains recoverable unless commit is uncertain. |
 | `indeterminate` | Callback completed but commit did not confirm. Neither rollback nor external completion is inferred. |
 
@@ -64,7 +66,8 @@ additional human approval or mandatory manual limits configuration.
 
 `AgentMaintenanceAuthorization::authorize()` runs before lookup with null issuance, then again for the exact original
 issuance. It holds transaction-duration authority, operation/lifecycle, historical-destination and key-reference
-fences and returns an opaque worker/revision epoch plus earliest delegation expiry. Revoke/regrant advances the
+fences and returns an opaque worker/revision epoch plus earliest delegation expiry. The worker checks the returned
+deadline before the concealed lookup, and again before effects; a slow authorization cannot extend it. Revoke/regrant advances the
 epoch; clock rollback must not extend authority. A target key additionally requires explicit rewrap authority and
 open write admission. No cached external allow or nested authorization transaction is supported.
 
@@ -98,7 +101,9 @@ Use sanitized `AgentDeliveryFailedException` classifications:
 - `KEY_RETIRED`: permanent loss of the original source key, not planned removal of a target key. Remove the copy and
   record terminal failure for explicit reconciliation.
 - `CORRUPT_MATERIAL`: changed/swapped ciphertext or associated data. Remove the copy and record terminal failure.
-- Unclassified faults remain unavailable with rollback, never terminal success or an arbitrary provider message.
+- Unclassified or out-of-contract provider faults remain unavailable with rollback, never terminal success or an
+  arbitrary provider message. Key providers do not supply operation-authorization intent; sink providers do not
+  supply delivery-key-loss/integrity intent. Only the relevant provider's documented classifications are adopted.
 
 Known-active Agents may require a separately authorized new rotation; ambiguous historical provision requires
 explicit reconciliation. Never auto-provision/rotate, decrypt the authentication envelope as delivery fallback,

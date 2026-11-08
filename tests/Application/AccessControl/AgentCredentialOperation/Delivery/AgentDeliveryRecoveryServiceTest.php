@@ -20,6 +20,8 @@ use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\Delivery\A
 use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\Delivery\AgentDeliveryPolicy;
 use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\Delivery\AgentDeliveryReceipt;
 use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\Delivery\AgentDeliverySchedule;
+use Fight\Common\Adapter\Messaging\Query\Routing\InMemoryQueryRouter;
+use Fight\Common\Adapter\Messaging\Query\RoutingQueryBus;
 use Fight\Common\Application\Error\Exception\RateLimitExceeded;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\DataProvider;
@@ -198,12 +200,17 @@ final class AgentDeliveryRecoveryServiceTest extends TestCase
             $env->sink->afterStage = null;
             $env->clock->advance(60);
 
-            $scheduler = new AgentDeliveryRecoveryService(
+            $queryRouter = new InMemoryQueryRouter();
+            $queryRouter->registerHandler(
+                ListDueAgentDeliveriesHandler::queryRegistration(),
                 new ListDueAgentDeliveriesHandler(
                     $env->provisioning->operationRepository,
                     $env->deliveryAuthorization,
                     $env->clock
-                ),
+                )
+            );
+            $scheduler = new AgentDeliveryRecoveryService(
+                new RoutingQueryBus($queryRouter),
                 $env->service(sink: new ReceiptLookupSink($env)),
                 $env->clock
             );
@@ -576,12 +583,18 @@ final class AgentDeliveryRecoveryServiceTest extends TestCase
         ?AgentDeliverySchedule $schedule = null,
         ?AgentDeliveryPolicy $policy = null
     ): AgentDeliveryRecoveryService {
-        return new AgentDeliveryRecoveryService(
+        $queryRouter = new InMemoryQueryRouter();
+        $queryRouter->registerHandler(
+            ListDueAgentDeliveriesHandler::queryRegistration(),
             new ListDueAgentDeliveriesHandler(
                 $env->provisioning->operationRepository,
                 $env->deliveryAuthorization,
                 $env->clock
-            ),
+            )
+        );
+
+        return new AgentDeliveryRecoveryService(
+            new RoutingQueryBus($queryRouter),
             $env->service($policy, new ReceiptLookupSink($env)),
             $env->clock,
             $schedule ?? new AgentDeliverySchedule()

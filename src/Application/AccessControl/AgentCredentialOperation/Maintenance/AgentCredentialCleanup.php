@@ -24,7 +24,9 @@ interface AgentCredentialCleanup
      * an unseen lower-order entry must not lower order or select it. A receipt is never activation/use authority.
      * Return only after durable erasure/tombstone confirmation. Lost response retries this same tuple. Unsupported
      * capability throws AgentDeliveryFailedException(UNSUPPORTED_SINK) before effects; transient outages use
-     * TEMPORARY. Never return secrets, digests, paths or provider errors. Physical effect is not database-atomic.
+     * TEMPORARY; deliberate tuple rejection uses INVALID_RECEIPT. This port does not classify delivery-key loss,
+     * ciphertext integrity or operation authorization. Never return secrets, digests, paths or provider errors.
+     * Physical effect is not database-atomic.
      */
     public function remove(AgentIssuance $issuance): void;
 }

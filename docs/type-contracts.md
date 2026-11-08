@@ -60,6 +60,12 @@ Temporary probes are not accepted replacements for the tracked product cases.
 
 ## Current proof and remaining ownership
 
+TASK-00144 adds 17 positive worker/port/result probes and five rejected incompatible uses: void revocation,
+delivery/maintenance enums, bounded recovery maps, trusted next-run time, optional receipt, sensitive invocation,
+rewrap material and independent authority/cleanup ports. The debug shape is exactly redacted. The final bus probe
+intentionally asserts current `mixed`, not generic Query-result inference; the worker validates its one dynamic
+result boundary at runtime. Configured Common routing and safe-error/public behavior have separate runtime proof.
+
 TASK-00131 adds six exact non-null direct-handler result probes in `required-resource-positive.php`.
 These assert the declared Views, not generic inference across Common's current mixed QueryBus. Runtime routing,
 identity/failure semantics and preserved nullable repositories have separate [required-resource proof](required-resource-queries.md).

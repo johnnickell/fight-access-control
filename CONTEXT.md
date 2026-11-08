@@ -6,6 +6,28 @@ Fight AccessControl owns framework-neutral identity, credential, session, author
 behavior shared by Fight applications. The repository-local behavioral and security authority is
 [TICKET-00001](planning/tickets/00001-TICKET.md).
 
+## TASK-00144 Agent worker contracts — accepted checkpoint
+
+The current [worker contracts](docs/agent-worker-contracts.md) retain exact safe delivery/maintenance outcomes and
+source-qualified provider meanings, exact lookup identity, native mixed UoW/local known-result annotations and
+revocation's distinct throwing policy. Recovery uses the configured QueryBus rather than an injected handler;
+its bounded dynamic-result validation does not qualify TASK-00128's generic relationship. Current authority before
+concealed reads, claim/admission/outcome separation, receipt-first restart, retirement/audit coupling, original
+expiry/rewrap identity and external cleanup/acknowledgement uncertainty remain authoritative. Commit uncertainty
+requires the owned invocation's completion evidence, not a collaborator's exception class. Failed recorded-receipt
+verification is unavailable without refusal, history rewrite or restaging.
+
+Canonical `.runs/handoffs/TASK-00144/work.md` owns exhaustive inventory/caller dispositions, regression chronology,
+dependency/runtime/static/behavior/full-gate/exact-coverage evidence and limitations. Independent Review v3 ACCEPT
+and nonvisual QA PASS cover clean candidate `94b151ddc4e4fff5ae3156a318a9a552449bbf2c` against develop
+`17f7c8048bee3429f3ddbcfa66eb41968c299fe6`, with all four findings resolved. QA passes 122 adversarial cases /
+540 checks plus 259 focused tests / 8,277 assertions; the qualified original gate passes 6,776 tests /
+73,349 assertions, exact global 9,197/9,197 and owned 481/481 statements. TASK-00144 is done; unfinished children
+keep TICKET-00040/EPIC-00016 open. Publication/final delivery verification remain pending at this administrative
+checkpoint; canonical `.runs/handoffs/TASK-00144/land.md` owns subsequent bridge, checks, delivery and resource
+results. Original independent report subjects and minimum-lane warnings remain preserved. No optional-audit feature,
+generic bus or actual consumer qualification, approval, merge, release or deployment is claimed.
+
 ## TASK-00145 request authority and continuation — accepted checkpoint
 
 The [current authority contracts](docs/authority-contracts.md) distinguish genuine User/Agent authentication refusal

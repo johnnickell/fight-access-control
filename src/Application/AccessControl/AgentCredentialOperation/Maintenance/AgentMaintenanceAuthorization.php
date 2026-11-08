@@ -47,7 +47,8 @@ interface AgentMaintenanceAuthorization
      * never physical key retirement or credential delivery. Hold shared authority/operation/lifecycle/key-reference
      * fences on the package connection; all writers participate. Reject nested/unsupported transactions. Return
      * real-worker/revision-bound epoch and earliest expiry; revoke/regrant advances epochs. No cached allow or actor
-     * string is authority. No extra routine human approval. Throw sanitized rejection without previous exceptions.
+     * string is authority. No extra routine human approval. Throw sanitized UNAUTHORIZED for denial, CONFLICT for
+     * closed target-key admission, or UNAVAILABLE for unsupported participation/outage, without previous exceptions.
      */
     public function authorize(
         AgentOperationScope $scope,

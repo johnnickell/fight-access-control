@@ -14,8 +14,11 @@ and its handler mirror operation ownership in Domain/Application. `ListDueAgentD
 or UoW. The delivery worker separately retains `AgentCredentialOperationRepository` and its existing UoW; read
 selection never supplies those capabilities or grants admission.
 
-Inject `ListDueAgentDeliveriesHandler`, `AgentCredentialDeliveryService`, a trusted `Clock` and optionally
-`AgentDeliverySchedule` into `AgentDeliveryRecoveryService`. As an authenticated worker with explicit current
+Inject the configured Common `QueryBus`, `AgentCredentialDeliveryService`, a trusted `Clock` and optionally
+`AgentDeliverySchedule` into `AgentDeliveryRecoveryService`. Register `ListDueAgentDeliveries` with its actual
+`ListDueAgentDeliveriesHandler` on that bus; direct-handler injection is removed without a compatibility mode.
+See the unreleased [worker contracts](agent-worker-contracts.md) for dynamic result validation and the separate
+generic-inference ownership. As an authenticated worker with explicit current
 delegation, call `recover(originalScope, registeredDestination)` once per scheduled pass. It selects one batch,
 then calls the actual delivery service once per item. The safe result maps original global delivery IDs to
 `AgentDeliveryResult` values. No process-local queue, event, initiating caller retry, claim token or secret is input.
@@ -28,7 +31,7 @@ impersonate the originating caller. The service neither sleeps nor schedules ano
 is scheduling guidance enforced by consumer composition, not a cross-worker global rate limiter. Each pass is
 bounded even if another pass runs concurrently; persisted claim/admission/attempt policy still governs each delivery.
 
-Alternatively dispatch the public `ListDueAgentDeliveries(scope, destination, limit = 50)` Query through its handler
+Alternatively dispatch the public `ListDueAgentDeliveries(scope, destination, limit = 50)` Query through the configured bus
 and schedule the returned exact keys/destinations/delivery IDs through `AgentCredentialDeliveryService::deliver()`.
 The message has canonical `namespace`, `caller_type`, `caller_id`, `destination_id`, `destination_revision`, and
 `limit` fields. All are required by `fromArray()`; the constructor supplies a default limit. Worker identity is not

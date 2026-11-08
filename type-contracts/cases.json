@@ -1,6 +1,42 @@
 {
   "cases": [
     {
+      "id": "agent-worker-ports-and-results",
+      "kind": "positive",
+      "file": "agent-worker-positive.php",
+      "diagnostics": [
+        {"line": 48, "identifier": "phpstan.dumpType", "message": "Dumped type: Closure(string, Fight\\AccessControl\\Domain\\AccessControl\\Agent\\AgentId): void"},
+        {"line": 49, "identifier": "phpstan.dumpType", "message": "Dumped type: Fight\\AccessControl\\Application\\AccessControl\\AgentCredentialOperation\\Delivery\\AgentDeliveryResult"},
+        {"line": 50, "identifier": "phpstan.dumpType", "message": "Dumped type: array<string, Fight\\AccessControl\\Application\\AccessControl\\AgentCredentialOperation\\Delivery\\AgentDeliveryResult>"},
+        {"line": 51, "identifier": "phpstan.dumpType", "message": "Dumped type: DateTimeImmutable"},
+        {"line": 52, "identifier": "phpstan.dumpType", "message": "Dumped type: Fight\\AccessControl\\Application\\AccessControl\\AgentCredentialOperation\\Maintenance\\AgentMaintenanceResult"},
+        {"line": 53, "identifier": "phpstan.dumpType", "message": "Dumped type: Fight\\AccessControl\\Application\\AccessControl\\AgentCredentialOperation\\Maintenance\\AgentMaintenanceResult"},
+        {"line": 54, "identifier": "phpstan.dumpType", "message": "Dumped type: Fight\\AccessControl\\Application\\AccessControl\\AgentCredentialOperation\\Maintenance\\AgentMaintenanceResult"},
+        {"line": 55, "identifier": "phpstan.dumpType", "message": "Dumped type: Fight\\AccessControl\\Domain\\AccessControl\\AgentCredentialOperation\\Delivery\\AgentDeliveryReceipt"},
+        {"line": 56, "identifier": "phpstan.dumpType", "message": "Dumped type: Fight\\AccessControl\\Domain\\AccessControl\\AgentCredentialOperation\\Delivery\\AgentDeliveryReceipt|null"},
+        {"line": 57, "identifier": "phpstan.dumpType", "message": "Dumped type: Fight\\AccessControl\\Domain\\AccessControl\\AgentCredentialOperation\\Delivery\\AgentDeliveryAuthority"},
+        {"line": 58, "identifier": "phpstan.dumpType", "message": "Dumped type: Fight\\AccessControl\\Domain\\AccessControl\\AgentCredentialOperation\\Delivery\\AgentDeliveryAuthority"},
+        {"line": 59, "identifier": "phpstan.dumpType", "message": "Dumped type: Fight\\AccessControl\\Application\\AccessControl\\AgentCredentialOperation\\Delivery\\AgentCredentialInvocation"},
+        {"line": 60, "identifier": "phpstan.dumpType", "message": "Dumped type: Fight\\AccessControl\\Domain\\AccessControl\\AgentCredentialOperation\\AgentDeliveryMaterial"},
+        {"line": 61, "identifier": "phpstan.dumpType", "message": "Dumped type: Closure(Fight\\AccessControl\\Domain\\AccessControl\\AgentCredentialOperation\\AgentIssuance): void"},
+        {"line": 62, "identifier": "phpstan.dumpType", "message": "Dumped type: array{invocation: '[REDACTED]'}"},
+        {"line": 63, "identifier": "phpstan.dumpType", "message": "Dumped type: string"},
+        {"line": 64, "identifier": "phpstan.dumpType", "message": "Dumped type: mixed"}
+      ]
+    },
+    {
+      "id": "agent-worker-incompatible-uses",
+      "kind": "negative",
+      "file": "agent-worker-negative.php",
+      "diagnostics": [
+        {"line": 31, "identifier": "argument.type", "message": "Parameter #3 $deliveryId of method Fight\\AccessControl\\Application\\AccessControl\\AgentCredentialOperation\\Delivery\\AgentCredentialDeliveryService::deliver() expects Fight\\AccessControl\\Domain\\AccessControl\\AgentCredentialOperation\\AgentDeliveryId, Fight\\AccessControl\\Domain\\AccessControl\\User\\UserId given."},
+        {"line": 32, "identifier": "argument.type", "message": "Parameter #2 $agentId of method Fight\\AccessControl\\Application\\AccessControl\\Agent\\Credential\\AgentCredentialLifecycleService::revoke() expects Fight\\AccessControl\\Domain\\AccessControl\\Agent\\AgentId, Fight\\AccessControl\\Domain\\AccessControl\\User\\UserId given."},
+        {"line": 33, "identifier": "argument.type", "message": "Parameter #1 $receipt of method Fight\\AccessControl\\Application\\AccessControl\\AgentCredentialOperation\\Delivery\\AgentCredentialSink::verify() expects Fight\\AccessControl\\Domain\\AccessControl\\AgentCredentialOperation\\Delivery\\AgentDeliveryReceipt, Fight\\AccessControl\\Domain\\AccessControl\\AgentCredentialOperation\\Delivery\\AgentDeliveryReceipt|null given."},
+        {"line": 34, "identifier": "argument.type", "message": "Parameter #1 $material of method Fight\\AccessControl\\Application\\AccessControl\\AgentCredentialOperation\\Delivery\\AgentDeliveryDecipher::materialize() expects Fight\\AccessControl\\Domain\\AccessControl\\AgentCredentialOperation\\AgentDeliveryMaterial, Fight\\AccessControl\\Domain\\AccessControl\\AgentCredentialOperation\\AgentIssuance given."},
+        {"line": 36, "identifier": "argument.type", "message": "Parameter #1 $result of closure expects Fight\\AccessControl\\Application\\AccessControl\\AgentCredentialOperation\\Delivery\\AgentDeliveryResult, Fight\\AccessControl\\Application\\AccessControl\\AgentCredentialOperation\\Maintenance\\AgentMaintenanceResult given."}
+      ]
+    },
+    {
       "id": "authority-admission-and-continuation-contracts",
       "kind": "positive",
       "file": "authority-positive.php",

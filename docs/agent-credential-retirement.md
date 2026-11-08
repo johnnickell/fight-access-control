@@ -103,6 +103,10 @@ caller authority or a delivery capability. Cancellation does not require the ori
 a currently authorized maintainer must be able to revoke even after that grant or destination access has gone away.
 It still participates in the shared fences; it never materializes secrets.
 
+The unreleased [worker contracts](agent-worker-contracts.md) classify authoritative absence as Common Application
+`ResourceNotFound`, and already-retired state or lost expected-state replacement as `StateConflict`. A wrong returned
+Agent identity remains internal and cannot reach retirement. Consumer entry authorization is unchanged.
+
 Revocation keeps existing failure behavior: pre-commit errors roll back and rethrow; confirmed commit precedes the
 revocation event; a success-publication fault still throws that original fault after attempted redacted failure
 publication. Failure-publication faults cannot replace it. Both publishers failing leaves committed revocation and
