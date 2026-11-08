@@ -36,6 +36,13 @@ plus planning integrity and the complete package gate. It requires a clean check
 and command logs under ignored `.runs/`. Certification does not merge, tag, push,
 or publish anything.
 
+The [current declaration-to-component map](public-payload-catalog.md) accounts for every public Command/Query,
+safe result, synchronous User payload and deliberate non-wire boundary. The default `PublicPayloadContractTest`
+validates real canonical round trips and explicit safe consumer projections against generated OpenAPI 3.1 using
+Opis JSON Schema 2020-12 (development-only). Validator defaults are disabled: a documented default cannot hide a
+missing required canonical field. Invalid values exercise required/null branches, typed elements, references,
+formats, enums/bounds and browser/portable separation. FeatureFlag retains independent native executable coverage.
+
 The catalog uses canonical snake-case `toArray()` keys. UUID identifiers use
 `uuid`; `*_at` values use `date-time`; paginated administrative results have `page`, `per_page`,
 `total_pages`, `total_records`, and typed `records`.
@@ -106,13 +113,14 @@ serialized round trips; this does not qualify consumer template composition.
 
 All canonical fields are required, including `last_attempt_at`, `last_outcome_at` and `last_failure`, whose values
 may be null. Non-null `last_failure` is only `retryable_provider`, `unexpected_provider` or `permanent_provider`;
-arbitrary provider details are not exposed. Attempt counts start at zero. Revisions retain the integer value
-supplied by the owning snapshot without adding a schema-only bound. The generic status Query checks a nonempty
+arbitrary provider details are not exposed. Attempt counts start at zero. Revisions retain the nonnegative integer value
+validated by the owning snapshot. The generic status Query checks a nonempty
 string; its handler resolves a purpose-specific UUID, consistent with the catalog's identifier convention.
 
-`InvitationDeliveryStatus`, `CredentialDeliveryStatus` and `DueCredentialDelivery` use exactly `pending`, `claimed`,
-`retry_pending`, `delivered`, `permanent_failure`, `expired` and `invalidated`. The obsolete `failed` and `confirmed`
-values are no longer admitted. These safe results describe no credential, ciphertext, destination email, or claim
+`InvitationDeliveryStatus` and `CredentialDeliveryStatus` use exactly `pending`, `claimed`, `retry_pending`,
+`delivered`, `permanent_failure`, `expired` and `invalidated`. `DueCredentialDelivery` admits only `pending`, `claimed`
+and `retry_pending`; terminal states are not due-work values. The obsolete `failed` and `confirmed` values are no longer
+admitted. These safe results describe no credential, ciphertext, destination email, or claim
 token. The status View component intentionally omits the PHP `View` suffix, like the existing invitation component.
 
 Unreleased `JSend.Success.InvitationDeliveryStatus` and `JSend.Success.CredentialDeliveryStatus` reference their
@@ -152,8 +160,9 @@ key-retirement permission. `AgentMaintenanceResult` mirrors the safe backed resu
 Generated Agent discovery/maintenance schema integration tests run in the default PHPUnit/build pipeline without
 contributing incidental Domain/Application execution to statement coverage. Release certification remains separate.
 
-Use `Authentication.BrowserResponse` for browser JSON: it has no refresh token,
-so the consumer may issue that credential only in an `HttpOnly` cookie. Use
+Use `Authentication.BrowserResponse` for browser JSON: it has no refresh token and rejects extra fields,
+so the consumer may issue that credential only in an `HttpOnly` cookie. `TokenSet` itself remains non-serializable;
+explicitly project its getters into the selected safe transport profile. Use
 `Authentication.TokenSet` for an explicit portable body-token profile; it includes
 the required `refresh_token`, with no example. Request-only passwords and
 credentials are write-only and intentionally have no examples.

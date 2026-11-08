@@ -121,6 +121,16 @@ use OpenApi\Attributes as OA;
 )]
 #[OA\Schema(
     schema: 'Fight.AccessControl.ExpiredCredentialDelivery',
+    oneOf: [
+        new OA\Schema(properties: [
+            new OA\Property(property: 'purpose', type: 'string', enum: ['activation', 'password_reset']),
+            new OA\Property(property: 'email_change_grant_id', type: ['null'])
+        ]),
+        new OA\Schema(properties: [
+            new OA\Property(property: 'purpose', type: 'string', enum: ['email_change']),
+            new OA\Property(property: 'email_change_grant_id', type: 'string', format: 'uuid')
+        ])
+    ],
     required: ['purpose', 'delivery_id', 'user_id', 'email_change_grant_id', 'expires_at', 'revision', 'status'],
     properties: [
         new OA\Property(property: 'purpose', type: 'string', enum: ['activation', 'password_reset', 'email_change']),
