@@ -18,7 +18,7 @@ use Fight\AccessControl\Domain\AccessControl\Agent\AgentId;
 use Fight\AccessControl\Domain\AccessControl\Agent\AgentName;
 use Fight\AccessControl\Domain\AccessControl\Agent\AgentRepository;
 use Fight\AccessControl\Domain\AccessControl\Agent\AgentState;
-use Fight\AccessControl\Domain\AccessControl\Agent\Exception\AgentUpdateException;
+use Fight\AccessControl\Domain\AccessControl\Agent\Exception\AgentUnavailableException;
 use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\AgentCredentialOperation;
 use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\AgentOperationContract;
 use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\AgentOperationFailure;
@@ -147,7 +147,7 @@ final class InMemoryAgentRepository implements AgentRepository
 
         $current = $this->getById($id);
         if ($current === null || $current->getState() !== AgentState::ACTIVE) {
-            throw new AgentUpdateException('The Agent is unavailable for a name update.');
+            throw new AgentUnavailableException('The Agent is unavailable for a name update.');
         }
 
         $matches = array_filter(

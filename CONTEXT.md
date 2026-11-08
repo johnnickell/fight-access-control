@@ -6,7 +6,19 @@ Fight AccessControl owns framework-neutral identity, credential, session, author
 behavior shared by Fight applications. The repository-local behavioral and security authority is
 [TICKET-00001](planning/tickets/00001-TICKET.md).
 
-## TASK-00142 Feature and policy mutation — Work checkpoint
+## TASK-00142 Feature and policy mutation — accepted checkpoint
+
+Independent Review v3 ACCEPT and nonvisual QA PASS cover clean candidate
+`c9a537f05ac499b07e34bf7c1babb583c3899c8b` against `0c8fd732e5d7c11a978f41918b913021fa00ba08`, with no
+findings. QA passes 13 scenario groups / 372 checks and 634 focused tests / 3,327 assertions. The original full
+gate passes 5,301 tests / 56,709 assertions, exact global 8,845/8,845 and owned 458/458 statements. TASK-00142
+is done for this bounded slice; unfinished children keep TICKET-00040/EPIC-00016 open. Land integrates the
+advancing Agent administration base without changing either slice's intended behavior. Integration verification
+and publication remain pending at this closeout checkpoint; canonical `.runs/handoffs/TASK-00142/land.md` owns
+current bridge, delivery and resource results. Original independent reports retain their exact subjects.
+Lowest-lane advisories and actual consumer qualification limits remain explicit in the owning TASK.
+
+### Historical TASK-00142 Work checkpoint
 
 The six Feature/policy Commands now distinguish deliberate Common Application absence, explicit revision
 preconditions, current-reference rule refusal and final state/reference conflict from wrong lookup identities and
@@ -18,9 +30,31 @@ generic dispatch/Event typing and actual consumer scanner/database qualification
 
 Canonical `.runs/handoffs/TASK-00142/work.md` owns exhaustive declaration/member/callback/caller dispositions,
 regression chronology, dependency lanes, real routing/safe errors, static/full-gate/exact-coverage and retained
-runtime evidence for the implementation candidate. Independent Review and nonvisual QA remain required;
-TASK-00142 stays in-progress and unfinished children keep TICKET-00040/EPIC-00016 open. No sibling or whole-library
-acceptance, publication, merge, release or deployment is claimed.
+runtime evidence for the implementation candidate. At that Work checkpoint, independent Review and nonvisual QA
+remained required and TASK-00142 remained in-progress. Unfinished children keep TICKET-00040/EPIC-00016 open.
+No sibling or whole-library acceptance, publication, merge, release or deployment is claimed.
+
+## TASK-00141 Agent administration — accepted checkpoint
+
+The four void administration handlers and relocated internal PermissionAssignment coordinator now distinguish
+intentional Application absence/input/rule/precondition/conflict from internal repository identity/snapshot faults.
+Domain owns precise rename/revision outcomes; Application translates only known outcomes without text/code
+classification. [Administration contracts](docs/agent-administration-contracts.md) document current consumer
+repository/catch obligations and the unchanged entry-authorization versus ADMIN_SAFE distinction, exact resolver,
+validated no-op/revision/reference/cohort fences, native mixed UoW/local nullable-Event annotations and primary-failure/
+commit/publication truth. Independent Review v3 ACCEPT and nonvisual QA PASS cover clean candidate
+`190213325c22e5e93ce22f5ff4e02029e723420c` against `5e011cbc39bf935d3981433d6b993555d3a5df87`; R-01 is
+resolved, with no open findings. QA passes 74 cases / 1,794 checks plus 138 tests / 1,314 assertions.
+
+Land's behavior-preserving develop merge at `5e72e68762802a5b9f29ae433ddd5b12f8e34550` preserves both slices'
+production/test bytes and combines shared static/inventory/context records. Fresh integrated focused verification
+passes 313 tests / 2,762 assertions and the retained driver passes 74 cases / 1,794 checks. The normal full gate
+executes freshly after a native cache miss: 5,190 tests / 55,654 assertions, exact 8,749/8,749 statements.
+TASK-00141 is done; unfinished children keep TICKET-00040/EPIC-00016 open. Canonical Work retains original
+inventory/regression/minimum/ordinary/full-gate evidence; original independent reports retain their exact subjects.
+Publication/final-head verification remain pending at this administrative checkpoint; canonical
+`.runs/handoffs/TASK-00141/land.md` owns current bridge/delivery/resource results. No generic bus inference,
+optional-audit feature, real consumer qualification, approval, merge, release or deployment is claimed.
 
 ## TASK-00140 Role and User membership — accepted checkpoint
 

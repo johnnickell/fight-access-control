@@ -8,7 +8,6 @@ use Fight\AccessControl\Application\AccessControl\Agent\PermissionAssignment\Age
 use Fight\AccessControl\Application\AccessControl\Timing\Service\Clock;
 use Fight\AccessControl\Domain\AccessControl\Agent\AgentRepository;
 use Fight\AccessControl\Domain\AccessControl\Agent\Command\GrantPermissionToAgent;
-use Fight\AccessControl\Domain\AccessControl\Agent\Event\PermissionGrantedToAgent;
 use Fight\AccessControl\Domain\AccessControl\Permission\PermissionRepository;
 use Fight\Common\Application\Messaging\Command\CommandHandler;
 use Fight\Common\Application\Messaging\Event\EventDispatcher;
@@ -38,13 +37,17 @@ final readonly class GrantPermissionToAgentHandler implements CommandHandler
     ) {
     }
 
-    /** @inheritDoc */
+    /**
+     * @inheritDoc
+     */
     public static function commandRegistration(): string
     {
         return GrantPermissionToAgent::class;
     }
 
-    /** @inheritDoc */
+    /**
+     * @inheritDoc
+     */
     public function handle(CommandMessage $commandMessage): void
     {
         /** @var GrantPermissionToAgent $command */
@@ -57,7 +60,7 @@ final readonly class GrantPermissionToAgentHandler implements CommandHandler
                 $this->clock,
                 $this->unitOfWork
             )->grant($command->getActorId(), $command->getAgentId(), $command->getPermissionId());
-            if ($event instanceof PermissionGrantedToAgent) {
+            if ($event !== null) {
                 $this->eventDispatcher->trigger($event);
             }
         } catch (Throwable $throwable) {

@@ -11,6 +11,6 @@ use Fight\Common\Domain\Exception\DomainException;
  *
  * Indicates that the current Agent cannot accept a name update.
  */
-final class AgentUpdateException extends DomainException
+class AgentUpdateException extends DomainException
 {
 }

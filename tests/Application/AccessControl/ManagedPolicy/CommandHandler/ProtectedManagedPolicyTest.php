@@ -15,7 +15,6 @@ use Fight\AccessControl\Domain\AccessControl\Agent\AgentCredentialId;
 use Fight\AccessControl\Domain\AccessControl\Agent\AgentId;
 use Fight\AccessControl\Domain\AccessControl\Agent\AgentName;
 use Fight\AccessControl\Domain\AccessControl\Agent\Command\GrantPermissionToAgent;
-use Fight\AccessControl\Domain\AccessControl\Agent\Exception\AgentPermissionAssignmentException;
 use Fight\AccessControl\Domain\AccessControl\ManagedPolicy\Command\ReconcileManagedPolicy;
 use Fight\AccessControl\Domain\AccessControl\ManagedPolicy\Event\ManagedPolicyReconciled;
 use Fight\AccessControl\Domain\AccessControl\ManagedPolicy\Exception\ManagedPolicyDefinitionException;
@@ -315,7 +314,7 @@ final class ProtectedManagedPolicyTest extends TestCase
             try {
                 $handler->handle(CommandMessage::create($command));
                 self::fail('Protected membership must not be committed.');
-            } catch (RuleViolation | AgentPermissionAssignmentException) {
+            } catch (RuleViolation) {
                 self::assertSame(
                     PermissionTier::SUPER_ADMIN_ONLY,
                     $permissionRepository->getById($permission->getId())?->getTier()
