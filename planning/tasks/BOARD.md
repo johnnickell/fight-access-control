@@ -17,7 +17,6 @@ No Tasks are currently in this state.
 | --- | --- | --- | --- | --- | --- | --- |
 | 323 | [TASK-00144](00144-TASK.md) | Correct Agent delivery, recovery and maintenance contracts | [TICKET-00040](../tickets/00040-TICKET.md) — Make command and synchronous Application contracts explicit | ready-for-agent | — | — |
 | 324 | [TASK-00145](00145-TASK.md) | Correct authority and continuation contracts | [TICKET-00040](../tickets/00040-TICKET.md) — Make command and synchronous Application contracts explicit | ready-for-agent | — | — |
-| 325 | [TASK-00146](00146-TASK.md) | Qualify ordinary HTTP contracts and safe failures | [TICKET-00041](../tickets/00041-TICKET.md) — Align presentation and integration contracts | ready-for-agent | — | — |
 | 327 | [TASK-00148](00148-TASK.md) | Align Resource and Skill binding contracts | [TICKET-00041](../tickets/00041-TICKET.md) — Align presentation and integration contracts | ready-for-agent | — | — |
 | 328 | [TASK-00149](00149-TASK.md) | Align public payload schemas and declarative metadata | [TICKET-00041](../tickets/00041-TICKET.md) — Align presentation and integration contracts | ready-for-agent | [TASK-00133](00133-TASK.md) | — |
 | 399 | [TASK-00166](00166-TASK.md) | Maintain complete audit outcome coverage | [TICKET-00048](../tickets/00048-TICKET.md) — Qualify audit composition and document consumer adoption | ready-for-agent | — | — |
@@ -90,6 +89,7 @@ No Tasks are currently in this state.
 | 309 | [TASK-00130](00130-TASK.md) | Qualify Agent issuance Command and Query dispatch | [TICKET-00038](../tickets/00038-TICKET.md) — Preserve message and result types through dispatch | needs-info | [TASK-00182](00182-TASK.md) | — |
 | 311 | [TASK-00132](00132-TASK.md) | Enforce paged query result contracts | [TICKET-00039](../tickets/00039-TICKET.md) — Guarantee exact query results and explicit absence | needs-info | — | — |
 | 315 | [TASK-00136](00136-TASK.md) | Preserve Event-driven delivery contracts | [TICKET-00040](../tickets/00040-TICKET.md) — Make command and synchronous Application contracts explicit | needs-info | — | — |
+| 325 | [TASK-00146](00146-TASK.md) | Qualify ordinary HTTP contracts and safe failures | [TICKET-00041](../tickets/00041-TICKET.md) — Align presentation and integration contracts | needs-info | — | — |
 
 ## Human Action
 

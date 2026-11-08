@@ -135,7 +135,7 @@ No consumer/Common edits, compatibility mode, new business policy/grant/endpoint
 
 | Order | TASK ID | Title | Status |
 | --- | --- | --- | --- |
-| 325 | [TASK-00146](../tasks/00146-TASK.md) | Qualify ordinary HTTP contracts and safe failures | ready-for-agent |
+| 325 | [TASK-00146](../tasks/00146-TASK.md) | Qualify ordinary HTTP contracts and safe failures | needs-info |
 | 326 | [TASK-00147](../tasks/00147-TASK.md) | Align protected Agent profile Tool contracts | ready-for-agent |
 | 327 | [TASK-00148](../tasks/00148-TASK.md) | Align Resource and Skill binding contracts | ready-for-agent |
 | 328 | [TASK-00149](../tasks/00149-TASK.md) | Align public payload schemas and declarative metadata | ready-for-agent |
