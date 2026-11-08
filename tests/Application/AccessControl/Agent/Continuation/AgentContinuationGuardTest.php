@@ -559,6 +559,71 @@ final class AgentContinuationGuardTest extends TestCase
         }
     }
 
+    public function test_that_fence_failure_after_successful_action_does_not_imply_no_effect(): void
+    {
+        [, $state] = $this->guard();
+        $failure = new RuntimeException('Private fence failure after effect.');
+        $fence = $this->createStub(AgentContinuationFence::class);
+        $fence->method('synchronized')->willReturnCallback(
+            static function (AgentId $id, AgentContinuationScope $scope, Closure $admit) use ($state, $failure): void {
+                $state->synchronized($id, $state, $admit);
+                throw $failure;
+            }
+        );
+        [$guard] = $this->guard(state: $state, fence: $fence);
+        $effects = [];
+        try {
+            $guard->run($this->binding(), $this->requirements(), $state, static function () use (&$effects): void {
+                $effects[] = 'protected output';
+            });
+            self::fail('The fence failure must propagate after invocation.');
+        } catch (RuntimeException $runtimeException) {
+            self::assertSame($failure, $runtimeException);
+            self::assertSame(['protected output'], $effects);
+            self::assertFalse($state->held);
+        }
+    }
+
+    public function test_that_action_failure_remains_primary_when_the_fence_also_fails_or_swallows_it(): void
+    {
+        foreach (['release-fault', 'swallowed', 'repeated'] as $mode) {
+            $failure = new RuntimeException('Private action failure.');
+            $effects = [];
+            [, $state] = $this->guard();
+            $fence = $this->createStub(AgentContinuationFence::class);
+            $fence->method('synchronized')->willReturnCallback(
+                static function (AgentId $id, AgentContinuationScope $scope, Closure $admit) use ($state, $mode): void {
+                    try {
+                        $state->synchronized($id, $state, $admit);
+                    } catch (RuntimeException) {
+                        if ($mode === 'release-fault') {
+                            throw new RuntimeException('Private fence release failure.');
+                        }
+
+                        if ($mode === 'repeated') {
+                            $admit();
+                        }
+                    }
+                }
+            );
+            [$guard] = $this->guard(state: $state, fence: $fence);
+            try {
+                $guard->run($this->binding(), $this->requirements(), $state, static function () use (
+                    &$effects,
+                    $failure
+                ): void {
+                    $effects[] = 'protected effect';
+                    throw $failure;
+                });
+                self::fail('The action failure must remain observable.');
+            } catch (RuntimeException $actual) {
+                self::assertSame($failure, $actual);
+                self::assertSame(['protected effect'], $effects);
+                self::assertFalse($state->held);
+            }
+        }
+    }
+
     public function test_that_missing_deferred_and_retried_fence_callbacks_cannot_create_a_reusable_allow(): void
     {
         $binding = $this->binding();

@@ -172,7 +172,7 @@ No source overlap alone establishes a dependency, and no blanket wait on Common/
 | 321 | [TASK-00142](../tasks/00142-TASK.md) | Correct Feature and policy mutation contracts | done |
 | 322 | [TASK-00143](../tasks/00143-TASK.md) | Correct Agent issuance and result contracts | done |
 | 323 | [TASK-00144](../tasks/00144-TASK.md) | Correct Agent delivery, recovery and maintenance contracts | ready-for-agent |
-| 324 | [TASK-00145](../tasks/00145-TASK.md) | Correct authority and continuation contracts | ready-for-agent |
+| 324 | [TASK-00145](../tasks/00145-TASK.md) | Correct authority and continuation contracts | done |
 ## Decisions and Progress
 
 TASK-00143's bounded issuance-contract slice is independently accepted and done at clean candidate

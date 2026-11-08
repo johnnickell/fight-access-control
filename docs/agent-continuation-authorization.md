@@ -71,7 +71,7 @@ when restoring a binding in another process; no serialized binding or reconstruc
 
 ## Synchronized bounded admission
 
-`Service\AgentContinuationFence::synchronized(AgentId, AgentContinuationScope, Closure): void` is a **required trusted
+`Continuation\AgentContinuationFence::synchronized(AgentId, AgentContinuationScope, Closure): void` is a **required trusted
 consumer port**, not a no-op implementation supplied by AccessControl. It acquires the complete qualified fence before
 invoking its callback exactly once synchronously, and releases in `finally` only after callback completion/failure.
 Unsupported, incomplete or unverifiable participation must throw **before** invoking the callback. No startup-ready
@@ -86,7 +86,7 @@ Under that fence the guard:
    extra or mismatched definitions fail closed; every definition must remain `ADMIN_SAFE`. Initial assignment revisions
    and Permission snapshots grant nothing. Every supplied canonical `PermissionName` must hold conjunctively; empty,
    malformed or non-list requirements deny. New grants/regrants and changed definition names affect the next check.
-4. Calls `Service\AgentContinuationScope::isAllowed($freshPrincipal)` for current trusted consumer relationship policy.
+4. Calls `Continuation\AgentContinuationScope::isAllowed($freshPrincipal)` for current trusted consumer relationship policy.
    Target selectors, direct Permissions, Role labels and earlier input acceptance are not relationship grants.
 5. Samples current time **after** scope resolution. With valid original provenance, sets local admission and immediately
    invokes the action inside the still-held fence. This successful final sample/check is the admission point.
@@ -122,6 +122,8 @@ no per-frame HMAC verification/nonce consume, business mutation, commit or new D
 resource participation, not a business grant.
 
 Once the action begins, action/fence faults propagate to the consumer's existing redaction-aware safe error owner.
+The action's original throwable stays primary if fence cleanup also fails or suppresses it. A fence failure after a
+successful action still propagates, with no assertion that its protected effect was undone.
 They are **not** converted into a fabricated pre-effect denial; an exception is not proof that an effect never happened.
 Keep one reporting owner. Never publish raw throwables, binding/context contents, signed requests, nonce/credential
 material, Permission/scope explanations or captured closures. Sensitive parameters and redacted debug projections
@@ -149,7 +151,8 @@ finite action/effect boundaries and retained-input CAS/recovery. The package can
 port tells the truth. Qualification and trusted injection are mandatory; no production-safe-race claim follows from
 these fixtures. Independent technical Review and behavioral QA remain distinct acceptance stages.
 
-New continuation types import no new Fight Common declarations. The existing `^1.3` dependency remains unchanged;
+Continuation types import no additional Fight Common declarations. The current package minimum is `^1.4.1`;
+TASK-00145 verifies minimum and ordinary composition without changing that requirement. Historically,
 original request admission still uses the actual tagged v1.3.0 `TransactionalUnitOfWork::commitTransactional(callable)`
 contract (`7de6cad6e8a9752973ad9f8e27e285b0c1510582`). No Common Subscription/Task signatures, development snapshot or
 new runtime prerequisite is assumed. Actual Common live/Task integration belongs to TICKET-00030/00031. This additive

@@ -150,6 +150,14 @@ fixtures retain plan/action/definition/message/callback precision. Owned level-8
 actual local Event/null/list annotations. Real Common execute/decoded dispatch and relevant safe errors are runtime
 proof, not generic bus/Event inference or consumer scanner/persistence qualification.
 
+TASK-00145 adds 16 exact authority/admission/continuation probes and four rejected incompatible identity/provider/
+provenance uses. These cover distinct User/Agent snapshots, exact Permission definitions/lists, selected context,
+validated declaration lists, original continuation claims, Boolean nonce/crypto/scope ports and the synchronous void
+bounded-action callback. Dynamic declaration/continuation configuration remains validated at its owning boundary,
+not falsely narrowed by an annotation. Owned level-8 analysis checks all 23 current Application declarations;
+real admission/continuation and relevant Common safe-error/protocol composition remain separate runtime proof.
+No generic bus/Event or real consumer crypto/persistence/fence/handoff qualification is claimed.
+
 Native transactional results remain `mixed`; a matching local `@var` for a known owned callback result (including
 tuples/unions) remains sufficient. No generic UoW supplier or redundant runtime check is required.
 

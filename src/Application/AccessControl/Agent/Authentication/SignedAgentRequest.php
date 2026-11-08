@@ -7,6 +7,8 @@ namespace Fight\AccessControl\Application\AccessControl\Agent\Authentication;
 use DateTimeImmutable;
 use Fight\AccessControl\Domain\AccessControl\Agent\AgentCredentialId;
 use Fight\AccessControl\Domain\AccessControl\Agent\Exception\AgentAuthenticationRejectedException;
+use RuntimeException;
+use SensitiveParameter;
 
 /**
  * Class SignedAgentRequest
@@ -24,14 +26,14 @@ final readonly class SignedAgentRequest
         private string $method,
         private string $authority,
         private string $path,
-        private string $normalizedQuery,
+        #[SensitiveParameter] private string $normalizedQuery,
         private DateTimeImmutable $timestamp,
-        private string $nonce,
+        #[SensitiveParameter] private string $nonce,
         private AgentCredentialId $credentialId,
         private string $authorizationAlgorithm,
-        private string $signature,
-        private ?string $bodyDigest,
-        private string $body
+        #[SensitiveParameter] private string $signature,
+        #[SensitiveParameter] private ?string $bodyDigest,
+        #[SensitiveParameter] private string $body
     ) {
         if (
             $method === ''
@@ -134,5 +136,33 @@ final readonly class SignedAgentRequest
     public function getTimestamp(): DateTimeImmutable
     {
         return $this->timestamp;
+    }
+
+    /**
+     * Rejects serialization of sensitive request authentication state
+     */
+    public function __serialize(): array
+    {
+        throw new RuntimeException('Signed Agent requests cannot be serialized.');
+    }
+
+    /**
+     * Rejects hydration outside the actual trusted request composition
+     *
+     * @phpstan-param array<mixed> $data
+     */
+    public function __unserialize(#[SensitiveParameter] array $data): void
+    {
+        throw new RuntimeException('Signed Agent requests cannot be unserialized.');
+    }
+
+    /**
+     * Returns an empty diagnostic projection
+     *
+     * @return array<never, never>
+     */
+    public function __debugInfo(): array
+    {
+        return [];
     }
 }

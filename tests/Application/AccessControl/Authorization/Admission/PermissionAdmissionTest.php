@@ -46,6 +46,18 @@ final class PermissionAdmissionTest extends TestCase
         self::assertSame(1, $environment->resolutions);
     }
 
+    public function test_independent_nested_request_authorities_do_not_share_snapshots(): void
+    {
+        $outer = new AdmissionEnvironment()->user();
+        $nested = new AdmissionEnvironment()->user();
+        $first = $outer->resolve()->getAuthenticatedAuthority();
+        $inner = $nested->resolve()->getAuthenticatedAuthority();
+        self::assertNotSame($first, $inner);
+        self::assertSame($first, $outer->resolve()->getAuthenticatedAuthority());
+        self::assertSame($inner, $nested->resolve()->getAuthenticatedAuthority());
+        self::assertNotSame($first, new AdmissionEnvironment()->user()->resolve()->getAuthenticatedAuthority());
+    }
+
     public function test_all_permissions_are_required_and_authenticated_does_not_grant_permissions(): void
     {
         $guard = new PermissionAdmission();
