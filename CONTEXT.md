@@ -6,7 +6,7 @@ Fight AccessControl owns framework-neutral identity, credential, session, author
 behavior shared by Fight applications. The repository-local behavioral and security authority is
 [TICKET-00001](planning/tickets/00001-TICKET.md).
 
-## TASK-00148 Resource/Skill contracts — Work checkpoint
+## TASK-00148 Resource/Skill contracts — accepted checkpoint
 
 The current [Resource](docs/agent-resource-authorization.md) and [Skill](docs/agent-skill-authorization.md)
 contracts retain exact provider/URI and complete immutable-revision ownership, dynamically validated configuration,
@@ -21,6 +21,15 @@ minimum/ordinary dependency and focused/static/full-gate evidence, warnings and 
 At this Work checkpoint independent Review and nonvisual QA remain required and TASK-00148 stays open;
 this is not whole-library, actual consumer storage/parser/crypto/bootstrap/sink qualification, publication,
 merge, release or deployment. Other slices and canonical Common adoption retain their own owners.
+
+Independent Review v3 ACCEPT and complete nonvisual QA PASS now cover clean candidate
+`91e4b9c78eb4e3cb98dd5b8d50c647cf9407ac00` against `311d6769668c8eea57758ae0c661465ca1b5e88c`,
+without findings. QA passes 11 scenarios / 1,432 checks; Land's normal build cache miss freshly passes
+6,800 tests / 73,498 assertions, exact 9,254/9,254 global and 124/124 owned statements. TASK-00148 is done;
+unfinished children keep TICKET-00041/EPIC-00016 open. Publication/final delivery verification remain pending at this
+administrative checkpoint; canonical `.runs/handoffs/TASK-00148/land.md` owns subsequent bridge, checks, delivery
+and resource results. Original report subjects, historical Work proof and lowest-lane advisories remain preserved;
+no whole-library or actual consumer qualification, approval, merge, release or deployment is claimed.
 
 ## TASK-00144 Agent worker contracts — accepted checkpoint
 
