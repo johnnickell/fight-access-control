@@ -6,6 +6,22 @@ Fight AccessControl owns framework-neutral identity, credential, session, author
 behavior shared by Fight applications. The repository-local behavioral and security authority is
 [TICKET-00001](planning/tickets/00001-TICKET.md).
 
+## TASK-00148 Resource/Skill contracts — Work checkpoint
+
+The current [Resource](docs/agent-resource-authorization.md) and [Skill](docs/agent-skill-authorization.md)
+contracts retain exact provider/URI and complete immutable-revision ownership, dynamically validated configuration,
+precise typed exports and deliberate concealment versus operational-failure propagation. The Skill catalog now
+narrows its actual dynamic JSON URI before association-key use; recursive Resource metadata callbacks keep justified
+mixed values with explicit key types. Static fixtures and real Common composition preserve whole-entry versus
+selected-member admission, fresh nested/later request authority, one ordinary-request nonce result, private zero-TTL
+hints and opening/cleanup ordering. No business write, audit insertion, new transaction or grant is introduced.
+
+Canonical `.runs/handoffs/TASK-00148/work.md` owns complete declaration/member/callback/caller dispositions,
+minimum/ordinary dependency and focused/static/full-gate evidence, warnings and retained package runtime.
+At this Work checkpoint independent Review and nonvisual QA remain required and TASK-00148 stays open;
+this is not whole-library, actual consumer storage/parser/crypto/bootstrap/sink qualification, publication,
+merge, release or deployment. Other slices and canonical Common adoption retain their own owners.
+
 ## TASK-00144 Agent worker contracts — accepted checkpoint
 
 The current [worker contracts](docs/agent-worker-contracts.md) retain exact safe delivery/maintenance outcomes and

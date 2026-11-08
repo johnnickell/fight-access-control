@@ -39,7 +39,11 @@ final readonly class AgentSkillPermissionCatalog
 
             $revision = $binding->revision();
             $uri = $revision->entry()->get('uri');
-            if (isset($registered[$uri]) || array_intersect_key($members, $revision->resources()) !== []) {
+            // StrictJson exposes dynamic values even for a validated immutable revision's export.
+            if (
+                !is_string($uri) || isset($registered[$uri])
+                || array_intersect_key($members, $revision->resources()) !== []
+            ) {
                 throw new DomainException('Skill bindings require one immutable revision owner per exact member URI.');
             }
 
@@ -73,11 +77,12 @@ final readonly class AgentSkillPermissionCatalog
      */
     public function requirementsFor(StrictJson $entry): ?array
     {
-        if (!$entry->isObject() || !is_string($entry->get('uri'))) {
+        $uri = $entry->isObject() ? $entry->get('uri') : null;
+        if (!is_string($uri)) {
             return null;
         }
 
-        $binding = $this->bindings[$entry->get('uri')] ?? null;
+        $binding = $this->bindings[$uri] ?? null;
         if ($binding === null || $binding->revision()->entry()->toString() !== $entry->toString()) {
             return null;
         }

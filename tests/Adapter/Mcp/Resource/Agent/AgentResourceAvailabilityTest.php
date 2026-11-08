@@ -16,6 +16,7 @@ use Fight\AccessControl\Domain\AccessControl\Agent\AgentCredentialId;
 use Fight\AccessControl\Domain\AccessControl\Agent\AgentId;
 use Fight\AccessControl\Domain\AccessControl\Agent\AgentName;
 use Fight\AccessControl\Domain\AccessControl\Agent\AgentRepository;
+use Fight\AccessControl\Domain\AccessControl\Agent\Exception\CurrentAgentPrincipalResolutionRejectedException;
 use Fight\AccessControl\Domain\AccessControl\Permission\Permission;
 use Fight\AccessControl\Domain\AccessControl\Permission\PermissionId;
 use Fight\AccessControl\Domain\AccessControl\Permission\PermissionName;
@@ -65,6 +66,8 @@ final class AgentResourceAvailabilityTest extends TestCase
     private int $closed = 0;
 
     private int $readBytes = 0;
+
+    private AgentResourcePermissionCatalog $nestedRequestCatalog;
 
     /** @var list<FixedHmacSignedAgentRequestVerifier> */
     private array $verifiers = [];
@@ -297,6 +300,86 @@ final class AgentResourceAvailabilityTest extends TestCase
 
         self::assertSame($fault === 'unexpected' ? 0 : 1, $reads);
         self::assertSame([], $provider->opened);
+    }
+
+    public function test_resolution_fault_is_retained_exactly_but_a_later_request_can_recover(): void
+    {
+        $healthy = $this->permissionRepository;
+        $this->permissionRepository = new InMemoryPermissionRepository(getByIdsResult: static fn(): array => []);
+        $provider = $this->resourceProvider(['docs:one' => 'One']);
+        $catalog = $this->catalog($provider, ['docs:one']);
+        $availability = $this->availability($catalog);
+        $descriptor = $provider->find('docs:one');
+        self::assertNotNull($descriptor);
+        $first = null;
+        for ($attempt = 0; $attempt < 2; ++$attempt) {
+            try {
+                $availability->isAvailable($descriptor);
+                self::fail('Invalid authoritative snapshots must propagate, not become denial.');
+            } catch (CurrentAgentPrincipalResolutionRejectedException $failure) {
+                $first ??= $failure;
+                self::assertSame($first, $failure);
+                self::assertNull($failure->getPrevious());
+            }
+        }
+
+        $this->permissionRepository = $healthy;
+        $fresh = $this->discovery($catalog, $this->availability($catalog));
+        $read = $this->response($fresh, 'resources/read', ['uri' => 'docs:one']);
+        self::assertSame('One', $read['result']['contents'][0]['text']);
+        $failed = $this->discovery($catalog, $availability);
+        self::assertSame(-32603, $this->response($failed, 'resources/list', [], true)['error']['code']);
+        self::assertSame(2, $this->nonces->consumptionCalls());
+        self::assertSame(['docs:one'], $provider->opened);
+        self::assertSame(1, $this->closed);
+    }
+
+    public function test_catalog_fault_preserves_throwable_and_does_not_poison_request_authentication(): void
+    {
+        $provider = $this->resourceProvider(['docs:one' => 'One']);
+        $catalog = $this->catalog($provider, ['docs:one']);
+        $availability = $this->availability($catalog);
+        $descriptor = $provider->find('docs:one');
+        self::assertNotNull($descriptor);
+        $fault = new RuntimeException('Synthetic private catalog diagnostic');
+        $provider->lookup = static fn(): never => throw $fault;
+        try {
+            $availability->isAvailable($descriptor);
+            self::fail('Catalog failures must not become missing associations.');
+        } catch (RuntimeException $runtimeException) {
+            self::assertSame($fault, $runtimeException);
+        }
+
+        self::assertSame(0, $this->nonces->consumptionCalls());
+        self::assertSame([], $provider->opened);
+        $provider->lookup = null;
+        self::assertTrue($availability->isAvailable($descriptor));
+        self::assertSame(1, $this->nonces->consumptionCalls());
+    }
+
+    public function test_nested_later_request_has_fresh_authority_without_replacing_admitted_outer_snapshot(): void
+    {
+        $open = function (McpResourceInfo $info): McpResourceContent {
+            self::assertNotNull($this->agent);
+            $this->agent = $this->agent->revokePermission($this->permissionId(1), $this->now());
+            $catalog = $this->nestedRequestCatalog;
+            $nested = $this->discovery($catalog, $this->availability($catalog));
+            self::assertSame([], $this->response($nested, 'resources/list')['result']['resources']);
+            $denied = $this->response($nested, 'resources/read', ['uri' => 'docs:one']);
+            self::assertSame(-32602, $denied['error']['code']);
+
+            return McpResourceContent::text($info, $this->stream('One'));
+        };
+        $provider = $this->resourceProvider(['docs:one' => 'One'], content: $open);
+        $catalog = $this->catalog($provider, ['docs:one']);
+        $this->nestedRequestCatalog = $catalog;
+        $outer = $this->discovery($catalog, $this->availability($catalog));
+        $read = $this->response($outer, 'resources/read', ['uri' => 'docs:one']);
+        self::assertSame('One', $read['result']['contents'][0]['text']);
+        self::assertSame(2, $this->nonces->consumptionCalls());
+        self::assertSame(2, $this->unitOfWork->transactions);
+        self::assertSame(['docs:one'], $provider->opened);
+        self::assertSame(1, $this->closed);
     }
 
     public function test_authority_change_during_nonce_consumption_is_a_deliberate_denial(): void

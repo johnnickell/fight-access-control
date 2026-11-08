@@ -19,6 +19,11 @@ and synchronized continuation stay inward in Application/Domain.
 
 Bindings accept no arbitrary entry array or inferred URI prefix: Common must already have validated the complete
 revision. It owns frontmatter parsing, paths, member identities, finite construction bounds, bytes and digests.
+Binding/catalog array inputs remain deliberately dynamic and validated locally; outputs are exact
+`non-empty-list<PermissionName>`, `list<McpSkillRevision>` and nullable requirements, never a generic array result.
+`StrictJson::get()` remains dynamic even for a validated revision's export: the catalog checks a string root before
+using it as an association key. Arbitrary presented entries are independently checked for object/string identity
+before complete-export comparison; no cast, unchecked annotation or duplicate upstream parser supplies that promise.
 Historical revisions require their own explicit bindings just like current revisions. A root URI is not a grant.
 Rebuild catalog/provider/capability composition together when registrations change; do not replace an immutable
 revision's bytes at the same address.
@@ -134,9 +139,10 @@ At TASK-00086's checkpoint the qualified family minimum was Common **v1.3.0**, e
 `7de6cad6e8a9752973ad9f8e27e285b0c1510582`, within unchanged `^1.3`. Its Skill/Resource contracts are identical to
 installed v1.4.0 (`87b9580c072f3149d574e09865daa79620c92118`) for the inspected paths. Actual isolated v1.3.0
 composition, not just tag presence, qualifies this minimum. TASK evidence retains exact lock/source manifests,
-commands, logs/exits and tested input mapping. The current checkout requires `^1.4` for the separate HTTP safe-error
-contract; TASK-00108 uses existing v1.4.0 APIs without changing that constraint. No development snapshot or guessed
-future tag is required.
+commands, logs/exits and tested input mapping. The current checkout requires Common `^1.4.1`. TASK-00148 requalifies
+the actual tagged sufficient minimum **v1.4.1** (`a482c220d312d2ef7762c3f0d85d9fb76a7021fa`) and ordinary dependency
+lanes through real composition, with unchanged constraints. TASK-00110 still owns separate canonical-API adoption.
+No development snapshot or guessed future tag is required.
 
 `AgentSkillPermissionCatalogTest` covers invalid requirements, malformed/foreign/inexact entries and conflicting
 immutable association. `AgentSkillAvailabilityTest` composes real Common list/get/read/responder with actual
@@ -146,4 +152,10 @@ freshness, caller isolation, safe faults, ownership conflicts, private cursors a
 Controlled repository, cryptographic, parser and stream ports prove **package composition**, not actual deployed
 storage, YAML parser security, crypto, database races, transport containment or real-client behavior. Independent
 technical Review and nonvisual behavioral QA remain required; screenshots add no useful library proof.
-The combined EPIC release, all five frameworks and unassigned version remain unchanged.
+TASK-00148 adds exact static probes, non-string/reordered immutable-export rejection, retained resolution-fault
+identity with fresh-request recovery and nested-request authority isolation during an admitted read. Its canonical
+Work handoff accounts for all owned declarations, members, callbacks and callers, including justified unchanged
+binding/availability behavior. No business Command/Query/Event, write, audit insertion or new commit boundary is
+introduced; ordinary authentication's existing nonce transaction is separately owned. External integrations update
+current imports/constructors and preserve exact shared provider/capability and request lifetimes; these tests do not
+qualify a consumer's actual composition. The combined EPIC release and unassigned version remain unchanged.

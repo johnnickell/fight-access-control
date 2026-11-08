@@ -1,6 +1,42 @@
 {
   "cases": [
     {
+      "id": "resource-skill-association-contracts",
+      "kind": "positive",
+      "file": "resource-skill-positive.php",
+      "diagnostics": [
+        {"line": 30, "identifier": "phpstan.dumpType", "message": "Dumped type: Fight\\Common\\Application\\Mcp\\Resource\\McpReadableResourceProvider"},
+        {"line": 31, "identifier": "phpstan.dumpType", "message": "Dumped type: string"},
+        {"line": 32, "identifier": "phpstan.dumpType", "message": "Dumped type: non-empty-list<Fight\\AccessControl\\Domain\\AccessControl\\Permission\\PermissionName>"},
+        {"line": 33, "identifier": "phpstan.dumpType", "message": "Dumped type: list<Fight\\Common\\Application\\Mcp\\Resource\\McpReadableResourceProvider>"},
+        {"line": 34, "identifier": "phpstan.dumpType", "message": "Dumped type: non-empty-list<Fight\\AccessControl\\Domain\\AccessControl\\Permission\\PermissionName>|null"},
+        {"line": 35, "identifier": "phpstan.dumpType", "message": "Dumped type: bool"},
+        {"line": 36, "identifier": "phpstan.dumpType", "message": "Dumped type: Fight\\Common\\Application\\Mcp\\Skill\\McpSkillRevision"},
+        {"line": 37, "identifier": "phpstan.dumpType", "message": "Dumped type: non-empty-list<Fight\\AccessControl\\Domain\\AccessControl\\Permission\\PermissionName>"},
+        {"line": 38, "identifier": "phpstan.dumpType", "message": "Dumped type: list<Fight\\Common\\Application\\Mcp\\Skill\\McpSkillRevision>"},
+        {"line": 39, "identifier": "phpstan.dumpType", "message": "Dumped type: non-empty-list<Fight\\AccessControl\\Domain\\AccessControl\\Permission\\PermissionName>|null"},
+        {"line": 40, "identifier": "phpstan.dumpType", "message": "Dumped type: bool"},
+        {"line": 41, "identifier": "phpstan.dumpType", "message": "Dumped type: non-empty-list<string>"},
+        {"line": 45, "identifier": "phpstan.dumpType", "message": "Dumped type: array<string, mixed>"},
+        {"line": 46, "identifier": "phpstan.dumpType", "message": "Dumped type: bool|Fight\\Common\\Domain\\Value\\Basic\\StrictJson|float|int|list<mixed>|string|null"}
+      ]
+    },
+    {
+      "id": "resource-skill-incompatible-families-and-optionality",
+      "kind": "negative",
+      "file": "resource-skill-negative.php",
+      "diagnostics": [
+        {"line": 30, "identifier": "argument.type", "message": "Parameter #1 $resource of method Fight\\AccessControl\\Adapter\\Mcp\\Resource\\Agent\\AgentResourceAvailability::isAvailable() expects Fight\\Common\\Application\\Mcp\\Resource\\McpResourceInfo, Fight\\Common\\Domain\\Value\\Basic\\StrictJson given."},
+        {"line": 31, "identifier": "argument.type", "message": "Parameter #1 $entry of method Fight\\AccessControl\\Adapter\\Mcp\\Skill\\Agent\\AgentSkillAvailability::isAvailable() expects Fight\\Common\\Domain\\Value\\Basic\\StrictJson, Fight\\Common\\Application\\Mcp\\Resource\\McpResourceInfo given."},
+        {"line": 32, "identifier": "argument.type", "message": "Parameter #1 $provider of class Fight\\AccessControl\\Adapter\\Mcp\\Resource\\Agent\\AgentResourcePermissionBinding constructor expects Fight\\Common\\Application\\Mcp\\Resource\\McpReadableResourceProvider, Fight\\Common\\Application\\Mcp\\Skill\\McpSkillRevision given."},
+        {"line": 33, "identifier": "argument.type", "message": "Parameter #1 $revision of class Fight\\AccessControl\\Adapter\\Mcp\\Skill\\Agent\\AgentSkillPermissionBinding constructor expects Fight\\Common\\Application\\Mcp\\Skill\\McpSkillRevision, Fight\\Common\\Application\\Mcp\\Resource\\McpResourceInfo given."},
+        {"line": 36, "identifier": "argument.type", "message": "Parameter #1 ...$permissions of closure expects Fight\\AccessControl\\Domain\\AccessControl\\Permission\\PermissionName, Fight\\Common\\Application\\Mcp\\Resource\\McpReadableResourceProvider given."},
+        {"line": 37, "identifier": "argument.type", "message": "Parameter #1 ...$permissions of closure expects Fight\\AccessControl\\Domain\\AccessControl\\Permission\\PermissionName, Fight\\Common\\Application\\Mcp\\Skill\\McpSkillRevision given."},
+        {"line": 38, "identifier": "argument.type", "message": "Parameter #1 $permissions of function Fight\\Test\\AccessControl\\TypeContracts\\requireResourceSkillPermissions expects non-empty-list<Fight\\AccessControl\\Domain\\AccessControl\\Permission\\PermissionName>, non-empty-list<Fight\\AccessControl\\Domain\\AccessControl\\Permission\\PermissionName>|null given."},
+        {"line": 39, "identifier": "argument.type", "message": "Parameter #1 $permissions of function Fight\\Test\\AccessControl\\TypeContracts\\requireResourceSkillPermissions expects non-empty-list<Fight\\AccessControl\\Domain\\AccessControl\\Permission\\PermissionName>, non-empty-list<Fight\\AccessControl\\Domain\\AccessControl\\Permission\\PermissionName>|null given."}
+      ]
+    },
+    {
       "id": "agent-worker-ports-and-results",
       "kind": "positive",
       "file": "agent-worker-positive.php",
