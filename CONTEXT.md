@@ -6,7 +6,7 @@ Fight AccessControl owns framework-neutral identity, credential, session, author
 behavior shared by Fight applications. The repository-local behavioral and security authority is
 [TICKET-00001](planning/tickets/00001-TICKET.md).
 
-## TASK-00144 Agent worker contracts — Work checkpoint
+## TASK-00144 Agent worker contracts — accepted checkpoint
 
 The current [worker contracts](docs/agent-worker-contracts.md) retain exact safe delivery/maintenance outcomes and
 source-qualified provider meanings, exact lookup identity, native mixed UoW/local known-result annotations and
@@ -18,11 +18,15 @@ requires the owned invocation's completion evidence, not a collaborator's except
 verification is unavailable without refusal, history rewrite or restaging.
 
 Canonical `.runs/handoffs/TASK-00144/work.md` owns exhaustive inventory/caller dispositions, regression chronology,
-dependency/runtime/static/behavior/full-gate/exact-coverage evidence and limitations. Engineer checks pass, including
-the fresh canonical gate and exact owned coverage; independent Review/nonvisual QA remain required. TASK-00144
-stays in-progress and unfinished children
-keep TICKET-00040/EPIC-00016 open. No optional-audit feature, generic bus or actual consumer qualification,
-acceptance, publication, merge, release or deployment is claimed.
+dependency/runtime/static/behavior/full-gate/exact-coverage evidence and limitations. Independent Review v3 ACCEPT
+and nonvisual QA PASS cover clean candidate `94b151ddc4e4fff5ae3156a318a9a552449bbf2c` against develop
+`17f7c8048bee3429f3ddbcfa66eb41968c299fe6`, with all four findings resolved. QA passes 122 adversarial cases /
+540 checks plus 259 focused tests / 8,277 assertions; the qualified original gate passes 6,776 tests /
+73,349 assertions, exact global 9,197/9,197 and owned 481/481 statements. TASK-00144 is done; unfinished children
+keep TICKET-00040/EPIC-00016 open. Publication/final delivery verification remain pending at this administrative
+checkpoint; canonical `.runs/handoffs/TASK-00144/land.md` owns subsequent bridge, checks, delivery and resource
+results. Original independent report subjects and minimum-lane warnings remain preserved. No optional-audit feature,
+generic bus or actual consumer qualification, approval, merge, release or deployment is claimed.
 
 ## TASK-00143 Agent issuance contracts — accepted checkpoint
 

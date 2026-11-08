@@ -132,6 +132,7 @@ The default tests exercise real Common routing and safe HTTP composition, public
 precise provider results and modeled durable restart/interleavings. Positive/negative static fixtures cover native
 ports/results, optional receipts and wrong-purpose uses; they explicitly retain the bus's current `mixed` result.
 The canonical TASK Work handoff owns exhaustive member/callback/caller dispositions, regression chronology,
-supported-minimum/ordinary dependencies, exact coverage and complete gate evidence. Independent Review and
-nonvisual QA remain required. Package doubles do not qualify real SQL, cryptography, sinks, cohort restoration,
+supported-minimum/ordinary dependencies, exact coverage and complete gate evidence. Independent Review ACCEPT and
+nonvisual QA PASS cover the candidate recorded in TASK-00144; the canonical Land handoff owns subsequent delivery
+and resource outcomes. Package doubles do not qualify real SQL, cryptography, sinks, cohort restoration,
 activation/use, consumer adoption or deployment.
