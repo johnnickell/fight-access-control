@@ -28,6 +28,26 @@ checkpoint; canonical `.runs/handoffs/TASK-00144/land.md` owns subsequent bridge
 results. Original independent report subjects and minimum-lane warnings remain preserved. No optional-audit feature,
 generic bus or actual consumer qualification, approval, merge, release or deployment is claimed.
 
+## TASK-00145 request authority and continuation — accepted checkpoint
+
+The [current authority contracts](docs/authority-contracts.md) distinguish genuine User/Agent authentication refusal
+from malformed or inconsistent authoritative snapshots and operational resolution faults. Exact Permission sets,
+request-sensitive state and synchronized bounded continuation retain explicit native/static contracts. Nonce consumption,
+original provenance time, current all-writer admission and post-invocation primary-error truth remain authoritative.
+No new grants, executor, business transaction, Common implementation or consumer implementation is introduced.
+
+Canonical `.runs/handoffs/TASK-00145/work.md` owns the exhaustive current declaration/member/callback/caller
+dispositions, regression chronology, dependency/static/behavior/full-gate/exact-coverage evidence and retained runtime.
+Independent Review v3 ACCEPT and complete nonvisual QA PASS cover clean candidate
+`2c0570f66e0a59a068f92c1bf48c8d377aae413a` against `17f7c8048bee3429f3ddbcfa66eb41968c299fe6`, with no
+findings. QA passes 12 scenarios / 335 checks / 36 protected effects and zero forbidden effects; its fresh full gate
+passes 5,402 tests / 57,293 assertions, exact global 9,064/9,064 and owned 351/351 statements. TASK-00145 is done;
+unfinished children keep TICKET-00040/EPIC-00016 open. Publication/final delivery verification remain pending at
+this administrative checkpoint; canonical `.runs/handoffs/TASK-00145/land.md` owns subsequent bridge/delivery/
+resource outcomes. Original Work history and independent report subjects remain preserved. Minimum-lane advisories
+and deprecation plus QA's focused runner-option deprecation remain disclosed in the owning evidence. No whole-library,
+generic dispatch, optional-audit or actual consumer qualification, approval, merge, release or deployment is claimed.
+
 ## TASK-00143 Agent issuance contracts — accepted checkpoint
 
 The current void provision/rotation handlers now distinguish source-qualified Common Application refusals from

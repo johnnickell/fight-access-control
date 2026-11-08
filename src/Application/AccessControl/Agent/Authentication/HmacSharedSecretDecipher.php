@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Fight\AccessControl\Application\AccessControl\Agent\Authentication;
 
+use SensitiveParameter;
+
 /**
  * Interface HmacSharedSecretDecipher
  *
@@ -14,5 +16,5 @@ interface HmacSharedSecretDecipher
     /**
      * Decrypts one consumer-managed envelope for HMAC verification
      */
-    public function decrypt(string $encryptedHmacSharedSecretEnvelope): string;
+    public function decrypt(#[SensitiveParameter] string $encryptedHmacSharedSecretEnvelope): string;
 }

@@ -13,6 +13,7 @@ use Fight\AccessControl\Domain\AccessControl\Agent\AgentAuthenticationDiagnostic
 use Fight\AccessControl\Domain\AccessControl\Agent\Exception\CurrentAgentPrincipalResolutionRejectedException;
 use Fight\AccessControl\Domain\AccessControl\Authorization\Exception\PrincipalResolutionException;
 use Fight\Common\Application\Error\Exception\AuthenticationRequired;
+use SensitiveParameter;
 
 /**
  * Class RequestAuthority
@@ -26,7 +27,7 @@ final readonly class RequestAuthority
      *
      * @phpstan-param Closure(): SecurityContext $resolve
      */
-    private function __construct(private Closure $resolve)
+    private function __construct(#[SensitiveParameter] private Closure $resolve)
     {
     }
 
@@ -43,7 +44,7 @@ final readonly class RequestAuthority
      */
     public static function agent(
         CurrentAgentPrincipalProvider $provider,
-        SignedAgentRequest $request,
+        #[SensitiveParameter] SignedAgentRequest $request,
         string $correlationId
     ): self {
         return new self(static fn(): SecurityContext => new SecurityContext(
