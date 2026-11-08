@@ -97,6 +97,55 @@ use OpenApi\Attributes as OA;
         new OA\Property(property: 'data', ref: '#/components/schemas/Fight.AccessControl.DueAgentDeliveries')
     ]
 )]
+#[OA\Schema(
+    schema: 'Fight.AccessControl.GetAgentOperation',
+    description: 'Independent authorized status read, not dispatch acceptance, queue progress, publication warnings or delivery/use authority.',
+    required: ['namespace', 'caller_type', 'caller_id', 'operation_id', 'destination_id', 'destination_revision'],
+    properties: [
+        new OA\Property(property: 'namespace', type: 'string', minLength: 1, maxLength: 64, pattern: '^[A-Za-z0-9_.:-]+$'),
+        new OA\Property(property: 'caller_type', type: 'string', minLength: 1, maxLength: 32, pattern: '^[A-Za-z0-9_.:-]+$'),
+        new OA\Property(property: 'caller_id', type: 'string', minLength: 1, maxLength: 128, pattern: '^[A-Za-z0-9_.:-]+$'),
+        new OA\Property(property: 'operation_id', type: 'string', format: 'uuid'),
+        new OA\Property(property: 'destination_id', type: 'string', format: 'uuid'),
+        new OA\Property(property: 'destination_revision', type: 'integer', minimum: 1)
+    ]
+)]
+#[OA\Schema(
+    schema: 'Fight.AccessControl.ProvisionAgent',
+    description: 'Secret-free original intent. Handling is void, sync or async. Raw name is bounded to 4096 UTF-8 bytes before later AgentName canonical validation; maxLength cannot express that byte limit.',
+    required: ['namespace', 'caller_type', 'caller_id', 'operation_id', 'name', 'destination_id', 'destination_revision'],
+    properties: [
+        new OA\Property(property: 'namespace', type: 'string', minLength: 1, maxLength: 64, pattern: '^[A-Za-z0-9_.:-]+$'),
+        new OA\Property(property: 'caller_type', type: 'string', minLength: 1, maxLength: 32, pattern: '^[A-Za-z0-9_.:-]+$'),
+        new OA\Property(property: 'caller_id', type: 'string', minLength: 1, maxLength: 128, pattern: '^[A-Za-z0-9_.:-]+$'),
+        new OA\Property(property: 'operation_id', type: 'string', format: 'uuid'),
+        new OA\Property(property: 'name', type: 'string'),
+        new OA\Property(property: 'destination_id', type: 'string', format: 'uuid'),
+        new OA\Property(property: 'destination_revision', type: 'integer', minimum: 1)
+    ]
+)]
+#[OA\Schema(
+    schema: 'Fight.AccessControl.RotateAgentCredential',
+    description: 'Secret-free original predecessor intent. Handling is void, sync or async; never silently substitute a current predecessor.',
+    required: ['namespace', 'caller_type', 'caller_id', 'operation_id', 'agent_id', 'expected_credential_id', 'expected_credential_revision', 'destination_id', 'destination_revision'],
+    properties: [
+        new OA\Property(property: 'namespace', type: 'string', minLength: 1, maxLength: 64, pattern: '^[A-Za-z0-9_.:-]+$'),
+        new OA\Property(property: 'caller_type', type: 'string', minLength: 1, maxLength: 32, pattern: '^[A-Za-z0-9_.:-]+$'),
+        new OA\Property(property: 'caller_id', type: 'string', minLength: 1, maxLength: 128, pattern: '^[A-Za-z0-9_.:-]+$'),
+        new OA\Property(property: 'operation_id', type: 'string', format: 'uuid'),
+        new OA\Property(property: 'agent_id', type: 'string', format: 'uuid'),
+        new OA\Property(property: 'expected_credential_id', type: 'string', format: 'uuid'),
+        new OA\Property(property: 'expected_credential_revision', type: 'integer', minimum: 0),
+        new OA\Property(property: 'destination_id', type: 'string', format: 'uuid'),
+        new OA\Property(property: 'destination_revision', type: 'integer', minimum: 1)
+    ]
+)]
+#[OA\Schema(
+    schema: 'Fight.AccessControl.AgentDeliveryResult',
+    description: 'Safe invocation outcome only, distinct from independently read operation status and current delivery/use authority.',
+    type: 'string',
+    enum: ['delivered', 'retired', 'expired', 'terminal', 'retryable', 'deferred', 'rejected', 'unavailable', 'indeterminate', 'reconciliation_required']
+)]
 final class AgentDeliveryComponents
 {
 }

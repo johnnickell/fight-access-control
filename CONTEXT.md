@@ -6,6 +6,15 @@ Fight AccessControl owns framework-neutral identity, credential, session, author
 behavior shared by Fight applications. The repository-local behavioral and security authority is
 [TICKET-00001](planning/tickets/00001-TICKET.md).
 
+## Current public payload composition
+
+The [current payload catalog](docs/public-payload-catalog.md) maps public messages, safe Query results, all seven
+synchronous User payloads and deliberate internal/non-wire boundaries to the opt-in OpenAPI anchors. Consumers
+explicitly project safe Views and TokenSet getters; arbitrary object serialization is not the wire contract.
+Generated OpenAPI 3.1 samples run in the default suite without incidental production coverage. FeatureFlag remains
+method-only, nonrepeatable and declaration-only; no HTTP policy or future declaration redesign is implemented.
+TASK-00149's canonical Work handoff owns implementation verification and limits; independent Review/QA remain required.
+
 ## TASK-00144 Agent worker contracts — accepted checkpoint
 
 The current [worker contracts](docs/agent-worker-contracts.md) retain exact safe delivery/maintenance outcomes and

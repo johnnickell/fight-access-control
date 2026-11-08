@@ -42,6 +42,8 @@ constant, parameter or function. PHP rejects wrong targets/repetition when refle
 merely reading `getArguments()` does **not** validate native placement or multiplicity. The instance exposes
 `getName(): FeatureName`, with no status, testing Permission, principal, configuration or any/all composition.
 A consumer must instantiate every discovered declaration and reject invalid metadata, not silently skip it.
+The [current payload catalog](public-payload-catalog.md) uses the same canonical FeatureName rule for public
+Feature values. Its generated metadata does not extend this Attribute's targets or implement discovery/enforcement.
 
 ## Explicit registration and composition
 

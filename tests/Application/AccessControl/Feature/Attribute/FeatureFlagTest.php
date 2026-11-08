@@ -12,6 +12,7 @@ use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 use ReflectionClass;
+use ReflectionFunction;
 use ReflectionMethod;
 use ReflectionParameter;
 use ReflectionProperty;
@@ -47,6 +48,27 @@ final class FeatureFlagTest extends TestCase
             new ReflectionClass($declaration)->getProperties()
         ));
         self::assertSame('invoked without an availability check', $fixture->checkout());
+    }
+
+    public function test_native_function_target_is_rejected_on_instantiation(): void
+    {
+        $function = require __DIR__.'/../Fixture/InvalidFeatureFunction.php.fixture';
+        $attribute = new ReflectionFunction($function)->getAttributes(FeatureFlag::class)[0];
+        $this->expectException(Error::class);
+        $this->expectExceptionMessage('cannot target function');
+
+        $attribute->newInstance();
+    }
+
+    public function test_native_name_retains_the_validated_boundary_without_normalization(): void
+    {
+        $name = 'a'.str_repeat('1', 127);
+        $declaration = new FeatureFlag($name);
+        self::assertInstanceOf(FeatureName::class, $declaration->getName());
+        self::assertSame($name, $declaration->getName()->toString());
+        $this->expectException(FeatureNameException::class);
+
+        new FeatureFlag($name.'1');
     }
 
     public function test_native_instantiation_rejects_an_invalid_name(): void
