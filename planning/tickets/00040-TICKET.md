@@ -170,10 +170,18 @@ No source overlap alone establishes a dependency, and no blanket wait on Common/
 | 319 | [TASK-00140](../tasks/00140-TASK.md) | Correct Role and User membership contracts | done |
 | 320 | [TASK-00141](../tasks/00141-TASK.md) | Correct Agent administration contracts | done |
 | 321 | [TASK-00142](../tasks/00142-TASK.md) | Correct Feature and policy mutation contracts | ready-for-agent |
-| 322 | [TASK-00143](../tasks/00143-TASK.md) | Correct Agent issuance and result contracts | in-progress |
+| 322 | [TASK-00143](../tasks/00143-TASK.md) | Correct Agent issuance and result contracts | done |
 | 323 | [TASK-00144](../tasks/00144-TASK.md) | Correct Agent delivery, recovery and maintenance contracts | ready-for-agent |
 | 324 | [TASK-00145](../tasks/00145-TASK.md) | Correct authority and continuation contracts | ready-for-agent |
 ## Decisions and Progress
+
+TASK-00143's bounded issuance-contract slice is independently accepted and done at clean candidate
+`1b8f7113eb30f51d34411141b6564029fbcc16e1` against `0c8fd732e5d7c11a978f41918b913021fa00ba08`, with Review
+v3 ACCEPT, nonvisual QA PASS and no findings. The owning TASK retains the approved void-Command/outcome-Query
+interpretation, original complete-gate/exact-coverage evidence and minimum-lane warnings. Land preserves both
+accepted issuance/administration slices through advancing-base integration; canonical
+`.runs/handoffs/TASK-00143/land.md` owns integration, publication and resource outcomes. Unfinished children keep
+this TICKET and EPIC-00016 open; no sibling, whole-library, generic typing or consumer qualification is implied.
 
 TASK-00139's synchronous User/session slice has independent Review v3 ACCEPT and nonvisual QA PASS at clean
 candidate `07a50e549a84b45b74e4d72cd6f0a44eb6aa8439` against `80f6d0d213a2324fdc02f29a26a17fc82ccd3702`, with
