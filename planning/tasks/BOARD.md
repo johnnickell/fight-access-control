@@ -17,7 +17,6 @@ Active Task: [TASK-00143](00143-TASK.md) — Correct Agent issuance and result c
 
 | Order | TASK ID | Title | Parent TICKET | Status | Blocked by | PR |
 | --- | --- | --- | --- | --- | --- | --- |
-| 320 | [TASK-00141](00141-TASK.md) | Correct Agent administration contracts | [TICKET-00040](../tickets/00040-TICKET.md) — Make command and synchronous Application contracts explicit | ready-for-agent | — | — |
 | 321 | [TASK-00142](00142-TASK.md) | Correct Feature and policy mutation contracts | [TICKET-00040](../tickets/00040-TICKET.md) — Make command and synchronous Application contracts explicit | ready-for-agent | — | — |
 | 323 | [TASK-00144](00144-TASK.md) | Correct Agent delivery, recovery and maintenance contracts | [TICKET-00040](../tickets/00040-TICKET.md) — Make command and synchronous Application contracts explicit | ready-for-agent | — | — |
 | 324 | [TASK-00145](00145-TASK.md) | Correct authority and continuation contracts | [TICKET-00040](../tickets/00040-TICKET.md) — Make command and synchronous Application contracts explicit | ready-for-agent | — | — |
@@ -220,3 +219,4 @@ No Tasks are currently in this state.
 | 317 | [TASK-00138](00138-TASK.md) | Correct human credential request and worker contracts | [TICKET-00040](../tickets/00040-TICKET.md) — Make command and synchronous Application contracts explicit | done | — | https://github.com/johnnickell/fight-access-control/pull/177 |
 | 318 | [TASK-00139](00139-TASK.md) | Correct synchronous User and session contracts | [TICKET-00040](../tickets/00040-TICKET.md) — Make command and synchronous Application contracts explicit | done | — | https://github.com/johnnickell/fight-access-control/pull/175 |
 | 319 | [TASK-00140](00140-TASK.md) | Correct Role and User membership contracts | [TICKET-00040](../tickets/00040-TICKET.md) — Make command and synchronous Application contracts explicit | done | — | https://github.com/johnnickell/fight-access-control/pull/178 |
+| 320 | [TASK-00141](00141-TASK.md) | Correct Agent administration contracts | [TICKET-00040](../tickets/00040-TICKET.md) — Make command and synchronous Application contracts explicit | done | — | https://github.com/johnnickell/fight-access-control/pull/179 |

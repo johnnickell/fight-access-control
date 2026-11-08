@@ -28,6 +28,33 @@
       ]
     },
     {
+      "id": "agent-administration-local-results",
+      "kind": "positive",
+      "file": "agent-administration-positive.php",
+      "diagnostics": [
+        {"line": 28, "identifier": "phpstan.dumpType", "message": "Dumped type: Closure(Fight\\Common\\Domain\\Messaging\\Command\\CommandMessage): void"},
+        {"line": 29, "identifier": "phpstan.dumpType", "message": "Dumped type: Closure(Fight\\Common\\Domain\\Messaging\\Command\\CommandMessage): void"},
+        {"line": 30, "identifier": "phpstan.dumpType", "message": "Dumped type: Closure(Fight\\Common\\Domain\\Messaging\\Command\\CommandMessage): void"},
+        {"line": 31, "identifier": "phpstan.dumpType", "message": "Dumped type: Closure(Fight\\Common\\Domain\\Messaging\\Command\\CommandMessage): void"},
+        {"line": 32, "identifier": "phpstan.dumpType", "message": "Dumped type: Fight\\AccessControl\\Domain\\AccessControl\\Agent\\Event\\PermissionGrantedToAgent|null"},
+        {"line": 33, "identifier": "phpstan.dumpType", "message": "Dumped type: Fight\\AccessControl\\Domain\\AccessControl\\Agent\\Event\\PermissionRevokedFromAgent|null"},
+        {"line": 34, "identifier": "phpstan.dumpType", "message": "Dumped type: Fight\\AccessControl\\Domain\\AccessControl\\Agent\\Event\\AgentPermissionsReplaced|null"},
+        {"line": 35, "identifier": "phpstan.dumpType", "message": "Dumped type: Closure(Fight\\AccessControl\\Domain\\AccessControl\\Agent\\AgentId, Fight\\AccessControl\\Domain\\AccessControl\\Agent\\AgentName, Closure(): DateTimeImmutable): (DateTimeImmutable|null)"}
+      ]
+    },
+    {
+      "id": "agent-administration-incompatible-uses",
+      "kind": "negative",
+      "file": "agent-administration-negative.php",
+      "diagnostics": [
+        {"line": 23, "identifier": "argument.type", "message": "Parameter #1 $actorId of method Fight\\AccessControl\\Application\\AccessControl\\Agent\\PermissionAssignment\\AgentPermissionAssignmentCoordinator::grant() expects Fight\\AccessControl\\Domain\\AccessControl\\User\\UserId, Fight\\AccessControl\\Domain\\AccessControl\\Agent\\AgentId given."},
+        {"line": 24, "identifier": "argument.type", "message": "Parameter #4 $permissionIds of method Fight\\AccessControl\\Application\\AccessControl\\Agent\\PermissionAssignment\\AgentPermissionAssignmentCoordinator::replace() expects list<Fight\\AccessControl\\Domain\\AccessControl\\Permission\\PermissionId>, array{Fight\\AccessControl\\Domain\\AccessControl\\Agent\\AgentId} given."},
+        {"line": 26, "identifier": "argument.type", "message": "Parameter #1 $event of closure expects Fight\\AccessControl\\Domain\\AccessControl\\Agent\\Event\\PermissionGrantedToAgent, Fight\\AccessControl\\Domain\\AccessControl\\Agent\\Event\\PermissionGrantedToAgent|null given."},
+        {"line": 28, "identifier": "argument.type", "message": "Parameter #1 $id of closure expects Fight\\AccessControl\\Domain\\AccessControl\\Agent\\AgentId, null given."},
+        {"line": 28, "identifier": "method.void", "message": "Result of method Fight\\AccessControl\\Application\\AccessControl\\Agent\\CommandHandler\\UpdateAgentHandler::handle() (void) is used."}
+      ]
+    },
+    {
       "id": "role-membership-void-handlers",
       "kind": "positive",
       "file": "role-membership-positive.php",

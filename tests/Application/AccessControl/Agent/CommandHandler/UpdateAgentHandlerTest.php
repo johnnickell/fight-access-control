@@ -30,6 +30,8 @@ use Fight\AccessControl\Domain\AccessControl\Permission\PermissionName;
 use Fight\AccessControl\Domain\AccessControl\User\UserId;
 use Fight\Common\Adapter\Messaging\Command\Sync\Routing\CommandRouter;
 use Fight\Common\Adapter\Messaging\Command\Sync\RoutingCommandBus;
+use Fight\Common\Application\Error\Exception\InvalidInput;
+use Fight\Common\Application\Error\Exception\ResourceNotFound;
 use Fight\Common\Domain\Messaging\Command\CommandMessage;
 use Fight\Common\Domain\Messaging\Event\CommandFailedEvent;
 use Fight\Common\Domain\Messaging\Event\Event;
@@ -162,7 +164,8 @@ final class UpdateAgentHandlerTest extends TestCase
             $eventDispatcher = new InMemoryEventDispatcher();
             $failure = $this->failure(fn() => new UpdateAgentHandler($agentRepository, $clock, $uow, $eventDispatcher)
                 ->handle(CommandMessage::create($command)));
-            self::assertInstanceOf(AgentNameException::class, $failure);
+            self::assertInstanceOf(InvalidInput::class, $failure);
+            self::assertInstanceOf(AgentNameException::class, $failure->getPrevious());
             self::assertSame(0, $uow->transactions);
             $event = $eventDispatcher->events()[0];
             self::assertInstanceOf(CommandFailedEvent::class, $event);
@@ -203,12 +206,12 @@ final class UpdateAgentHandlerTest extends TestCase
     {
         $env = $this->environment();
         $agent = $env->agentRepository->all()[0];
-        self::assertInstanceOf(AgentUpdateException::class, $this->failure(fn() => $this->handler($env)
+        self::assertInstanceOf(ResourceNotFound::class, $this->failure(fn() => $this->handler($env)
             ->handle($this->message(AgentId::generate(), 'Renamed'))));
         $this->revoke($env, $agent->getId());
         $revoked = $env->agentRepository->getById($agent->getId());
         foreach ([$agent->getName()->toString(), 'Renamed'] as $name) {
-            self::assertInstanceOf(AgentUpdateException::class, $this->failure(fn() => $this->handler($env)
+            self::assertInstanceOf(ResourceNotFound::class, $this->failure(fn() => $this->handler($env)
                 ->handle($this->message($agent->getId(), $name))));
             self::assertSame($revoked, $env->agentRepository->getById($agent->getId()));
         }
@@ -368,7 +371,7 @@ final class UpdateAgentHandlerTest extends TestCase
             $this->revoke($env, $before->getId());
             $revoked = $env->agentRepository->getById($before->getId());
             $pending->resume();
-            self::assertInstanceOf(AgentUpdateException::class, $pending->getReturn());
+            self::assertInstanceOf(ResourceNotFound::class, $pending->getReturn());
             self::assertSame($revoked, $env->agentRepository->getById($before->getId()));
             self::assertSame(AgentState::REVOKED, $revoked->getState());
             self::assertSame(0, $env->agentRepository->nameWrites);

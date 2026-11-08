@@ -21,6 +21,28 @@ worker/authority redesign or consumer implementation is introduced. Canonical `.
 owns exhaustive dispositions, regression chronology, dependency/runtime/static/behavior/gate/coverage evidence and
 limits. Independent Review and nonvisual QA remain required; TASK-00143 and its unfinished parents stay open.
 
+## TASK-00141 Agent administration — accepted checkpoint
+
+The four void administration handlers and relocated internal PermissionAssignment coordinator now distinguish
+intentional Application absence/input/rule/precondition/conflict from internal repository identity/snapshot faults.
+Domain owns precise rename/revision outcomes; Application translates only known outcomes without text/code
+classification. [Administration contracts](docs/agent-administration-contracts.md) document current consumer
+repository/catch obligations and the unchanged entry-authorization versus ADMIN_SAFE distinction, exact resolver,
+validated no-op/revision/reference/cohort fences, native mixed UoW/local nullable-Event annotations and primary-failure/
+commit/publication truth. Independent Review v3 ACCEPT and nonvisual QA PASS cover clean candidate
+`190213325c22e5e93ce22f5ff4e02029e723420c` against `5e011cbc39bf935d3981433d6b993555d3a5df87`; R-01 is
+resolved, with no open findings. QA passes 74 cases / 1,794 checks plus 138 tests / 1,314 assertions.
+
+Land's behavior-preserving develop merge at `5e72e68762802a5b9f29ae433ddd5b12f8e34550` preserves both slices'
+production/test bytes and combines shared static/inventory/context records. Fresh integrated focused verification
+passes 313 tests / 2,762 assertions and the retained driver passes 74 cases / 1,794 checks. The normal full gate
+executes freshly after a native cache miss: 5,190 tests / 55,654 assertions, exact 8,749/8,749 statements.
+TASK-00141 is done; unfinished children keep TICKET-00040/EPIC-00016 open. Canonical Work retains original
+inventory/regression/minimum/ordinary/full-gate evidence; original independent reports retain their exact subjects.
+Publication/final-head verification remain pending at this administrative checkpoint; canonical
+`.runs/handoffs/TASK-00141/land.md` owns current bridge/delivery/resource results. No generic bus inference,
+optional-audit feature, real consumer qualification, approval, merge, release or deployment is claimed.
+
 ## TASK-00140 Role and User membership — accepted checkpoint
 
 Independent Review v3 ACCEPT and nonvisual QA PASS cover clean candidate

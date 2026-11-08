@@ -98,8 +98,12 @@ bindings, never throwable text:
 | Failure class | Safe Tool message |
 | --- | --- |
 | `AgentNameException` | `The Agent name is invalid.` |
-| `AgentUpdateException`, Common Application `ResourceNotFound` | `The Agent profile is unavailable.` |
 | `AgentOperationRejectedException` | `The Agent profile operation could not be completed.` |
+| Common Application `InvalidInput` | `The Agent name is invalid.` |
+| Common Application `ResourceNotFound` | `The Agent profile is unavailable.` |
+| Common Application `StateConflict` | `The Agent profile operation could not be completed.` |
+
+Generic Domain `AgentUpdateException` is deliberately unmapped and remains an internal error.
 
 Expected mapped failures are Common `isError: true` Tool results without structured success content. They are distinct
 from pre-execution unknown/unavailable concealment. Unmapped exceptions propagate through Common's diagnostic boundary;

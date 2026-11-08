@@ -128,6 +128,11 @@ UserId authorization ports, plus four diagnostics rejecting wrong-purpose identi
 Owned handler analysis checks the local callback-result annotations separately. These fixtures neither qualify
 Common bus/Event generics nor replace runtime identity, failure, transaction and authorization proof.
 
+TASK-00141 adds eight exact probes for all four void administration handlers, the coordinator's three nullable
+purpose-specific Event results and the repository's lazy rename callback, plus five diagnostics rejecting
+wrong-purpose actors/list members, unhandled nullable Events and use of void as an Agent result. These local
+contracts do not claim generic bus inference. Real tagged Common routing/safe-error tests are separate runtime proof.
+
 TASK-00140 adds seven exact void-handler callback probes and nine rejected incompatible uses for all five Role
 and both User membership handlers. These reject consuming void results, wrong-purpose Permission identities and
 string revisions. Focused level-8 analysis also checks every owned handler and its known local Event/Event-null
