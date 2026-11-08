@@ -163,6 +163,13 @@ final readonly class AgentDeliveryMaintenanceService
             $this->assertAuthority($authority);
             try {
                 $this->cleanup->remove($original->getIssuance());
+            } catch (AgentDeliveryFailedException $failure) {
+                return match ($failure->getReason()) {
+                    AgentDeliveryFailure::TEMPORARY,
+                    AgentDeliveryFailure::UNSUPPORTED_SINK => AgentMaintenanceResult::RETRYABLE,
+                    AgentDeliveryFailure::INVALID_RECEIPT => AgentMaintenanceResult::REJECTED,
+                    default => AgentMaintenanceResult::UNAVAILABLE
+                };
             } catch (AgentOperationRejectedException) {
                 throw new LogicException('The protected cleanup failure contract failed.');
             }
@@ -370,13 +377,6 @@ final readonly class AgentDeliveryMaintenanceService
             return $operation();
         } catch (AgentDeliveryCommitUncertainException) {
             return AgentMaintenanceResult::INDETERMINATE;
-        } catch (AgentDeliveryFailedException $failure) {
-            return match ($failure->getReason()) {
-                AgentDeliveryFailure::TEMPORARY,
-                AgentDeliveryFailure::UNSUPPORTED_SINK => AgentMaintenanceResult::RETRYABLE,
-                AgentDeliveryFailure::INVALID_RECEIPT => AgentMaintenanceResult::REJECTED,
-                default => AgentMaintenanceResult::UNAVAILABLE
-            };
         } catch (AgentOperationRejectedException $failure) {
             if (
                 in_array($failure->getReason(), [

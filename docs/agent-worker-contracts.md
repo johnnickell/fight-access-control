@@ -75,8 +75,11 @@ A cooperating rewrap transaction/key-use fence retains deliberate `CONTENTION`; 
 operation-authorization denial. Approved transient provider containment remains distinct from a confirmed outcome;
 no diagnostic-text/code guessing or chained raw cause is used.
 
-Cleanup maps temporary/unsupported capability to `RETRYABLE`, a deliberate exact-binding rejection to `REJECTED`,
-and out-of-contract faults to `UNAVAILABLE`. Neither failure acknowledges cleanup. A physical effect may already
+Only the actual cleanup provider call maps temporary/unsupported capability to `RETRYABLE` and deliberate
+exact-binding rejection to `REJECTED`; out-of-contract faults remain `UNAVAILABLE`. Delivery-failure exceptions
+from authorization, capability, lookup, expected-state writes or pre-completion transaction work do not inherit
+provider intent, including during expiry, which invokes no provider. A failure after the owned transaction callback
+completes remains `INDETERMINATE`. Neither failure acknowledges cleanup. A physical effect may already
 have happened before a lost response; retry only the same original tuple under fresh maintenance authority.
 
 Revocation deliberately throws Common `ResourceNotFound` for authoritative absence and `StateConflict` for an
