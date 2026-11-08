@@ -25,7 +25,8 @@ interface AgentContinuationFence
      * through the callback's bounded action and its real effect admission/completion boundary, including exceptions.
      * No release between checks and action, deferred callback, nested admission, callback retry or partial fence.
      * Unsupported/unverifiable participation must throw before invoking the callback. Propagate callback faults;
-     * release in finally. Do not commit business work, consume nonces or claim rollback of external effects.
+     * release in finally without replacing the action's primary fault with a release fault. Do not commit business
+     * work, consume nonces or claim rollback of external effects.
      *
      * The consumer qualifies lock ordering, connection/cohort participation, scope binding, timeouts, restoration
      * and the action's finite duration. Sequential repository reads alone do not implement this capability.

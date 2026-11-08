@@ -19,9 +19,13 @@ use Fight\AccessControl\Domain\AccessControl\Agent\AgentState;
 use Fight\AccessControl\Domain\AccessControl\Agent\AuthenticatedAgentPrincipal;
 use Fight\AccessControl\Domain\AccessControl\Agent\Exception\AgentAuthenticationRejectedException;
 use Fight\AccessControl\Domain\AccessControl\Agent\Exception\CurrentAgentPrincipalResolutionRejectedException;
+use Fight\AccessControl\Domain\AccessControl\Authorization\PrincipalPermission;
 use Fight\AccessControl\Domain\AccessControl\Permission\PermissionRepository;
+use Fight\AccessControl\Domain\AccessControl\Permission\PermissionTier;
 use Fight\Common\Application\Repository\TransactionalUnitOfWork;
+use SensitiveParameter;
 use Throwable;
+use UnexpectedValueException;
 
 /**
  * Class CurrentAgentPrincipalProvider
@@ -56,7 +60,7 @@ final class CurrentAgentPrincipalProvider
      * Authenticates and authoritatively resolves the current Agent principal once for this request
      */
     public function resolve(
-        SignedAgentRequest $signedAgentRequest,
+        #[SensitiveParameter] SignedAgentRequest $signedAgentRequest,
         string $correlationId
     ): AuthenticatedAgentPrincipal {
         if ($this->principal instanceof AuthenticatedAgentPrincipal) {
@@ -71,7 +75,7 @@ final class CurrentAgentPrincipalProvider
                 $agent->getCredentialId(),
                 $agent->getCredentialRevision(),
                 $agent->getPermissionAssignmentRevision(),
-                new ExactPermissionResolver($this->permissionRepository)->resolve($agent->getPermissionIds())
+                $this->resolvePermissions($agent)
             );
 
             return $this->principal;
@@ -107,10 +111,32 @@ final class CurrentAgentPrincipalProvider
     }
 
     /**
+     * Returns the complete eligible direct Permission snapshot after nonce consumption
+     *
+     * @return list<PrincipalPermission>
+     */
+    private function resolvePermissions(Agent $agent): array
+    {
+        $definitions = new ExactPermissionResolver($this->permissionRepository)->resolveDefinitions(
+            $agent->getPermissionIds()
+        );
+        $permissions = [];
+        foreach ($definitions as $definition) {
+            if ($definition->getTier() !== PermissionTier::ADMIN_SAFE) {
+                throw new ExactPermissionResolutionException('The Agent Permission snapshot is invalid.');
+            }
+
+            $permissions[] = new PrincipalPermission($definition->getId(), $definition->getName());
+        }
+
+        return $permissions;
+    }
+
+    /**
      * Validates the signed request, atomically consumes its nonce, and rechecks its current authority
      */
     private function authenticateAndConsumeNonce(
-        SignedAgentRequest $signedAgentRequest,
+        #[SensitiveParameter] SignedAgentRequest $signedAgentRequest,
         string $correlationId
     ): Agent {
         $now = $this->clock->now();
@@ -134,7 +160,11 @@ final class CurrentAgentPrincipalProvider
         }
 
         $agent = $this->agentRepository->getByCredentialId($signedAgentRequest->getCredentialId());
-        if (!$agent instanceof Agent || $agent->getState() !== AgentState::ACTIVE) {
+        if ($agent !== null && !$agent->getCredentialId()->equals($signedAgentRequest->getCredentialId())) {
+            throw new UnexpectedValueException('The authoritative Agent credential identity is inconsistent.');
+        }
+
+        if ($agent === null || $agent->getState() !== AgentState::ACTIVE) {
             throw new AgentAuthenticationRejectedException('Agent authentication rejected.');
         }
 
@@ -147,6 +177,7 @@ final class CurrentAgentPrincipalProvider
         $credentialId = $agent->getCredentialId();
         $credentialRevision = $agent->getCredentialRevision();
         $permissionAssignmentRevision = $agent->getPermissionAssignmentRevision();
+        /** @var bool $nonceConsumed */
         $nonceConsumed = $this->unitOfWork->commitTransactional(
             fn(): bool => $this->agentRequestNonceConsumer->consume(
                 $agentId,
@@ -162,10 +193,13 @@ final class CurrentAgentPrincipalProvider
         }
 
         $currentAgent = $this->agentRepository->getById($agentId);
+        if ($currentAgent !== null && !$currentAgent->getId()->equals($agentId)) {
+            throw new UnexpectedValueException('The authoritative Agent identity is inconsistent.');
+        }
+
         if (
-            !$currentAgent instanceof Agent
+            $currentAgent === null
             || $currentAgent->getState() !== AgentState::ACTIVE
-            || !$currentAgent->getId()->equals($agentId)
             || !$currentAgent->getCredentialId()->equals($credentialId)
             || $currentAgent->getCredentialRevision() !== $credentialRevision
             || $currentAgent->getPermissionAssignmentRevision() !== $permissionAssignmentRevision

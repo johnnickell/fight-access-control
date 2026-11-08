@@ -1,6 +1,40 @@
 {
   "cases": [
     {
+      "id": "authority-admission-and-continuation-contracts",
+      "kind": "positive",
+      "file": "authority-positive.php",
+      "diagnostics": [
+        {"line": 46, "identifier": "phpstan.dumpType", "message": "Dumped type: Fight\\AccessControl\\Domain\\AccessControl\\Authorization\\AuthenticatedUserPrincipal"},
+        {"line": 47, "identifier": "phpstan.dumpType", "message": "Dumped type: Fight\\AccessControl\\Application\\AccessControl\\Authorization\\Service\\AuthenticationContext"},
+        {"line": 48, "identifier": "phpstan.dumpType", "message": "Dumped type: Fight\\AccessControl\\Domain\\AccessControl\\Agent\\AuthenticatedAgentPrincipal"},
+        {"line": 49, "identifier": "phpstan.dumpType", "message": "Dumped type: list<Fight\\AccessControl\\Domain\\AccessControl\\Authorization\\PrincipalPermission>"},
+        {"line": 50, "identifier": "phpstan.dumpType", "message": "Dumped type: list<Fight\\AccessControl\\Domain\\AccessControl\\Permission\\Permission>"},
+        {"line": 51, "identifier": "phpstan.dumpType", "message": "Dumped type: Fight\\AccessControl\\Application\\AccessControl\\Authorization\\Service\\SecurityContext"},
+        {"line": 52, "identifier": "phpstan.dumpType", "message": "Dumped type: Fight\\AccessControl\\Application\\AccessControl\\Authorization\\Service\\SecurityContext|null"},
+        {"line": 57, "identifier": "phpstan.dumpType", "message": "Dumped type: list<Fight\\AccessControl\\Domain\\AccessControl\\Permission\\PermissionName>"},
+        {"line": 58, "identifier": "phpstan.dumpType", "message": "Dumped type: Fight\\AccessControl\\Application\\AccessControl\\Agent\\Continuation\\AgentContinuationContext"},
+        {"line": 59, "identifier": "phpstan.dumpType", "message": "Dumped type: Fight\\AccessControl\\Application\\AccessControl\\Agent\\Continuation\\AgentContinuationContext"},
+        {"line": 60, "identifier": "phpstan.dumpType", "message": "Dumped type: Fight\\AccessControl\\Application\\AccessControl\\Agent\\Continuation\\AgentContinuationContext"},
+        {"line": 61, "identifier": "phpstan.dumpType", "message": "Dumped type: bool"},
+        {"line": 62, "identifier": "phpstan.dumpType", "message": "Dumped type: bool"},
+        {"line": 70, "identifier": "phpstan.dumpType", "message": "Dumped type: bool"},
+        {"line": 71, "identifier": "phpstan.dumpType", "message": "Dumped type: Closure(Fight\\AccessControl\\Application\\AccessControl\\Agent\\Continuation\\AgentContinuationBinding, array<mixed>, Fight\\AccessControl\\Application\\AccessControl\\Agent\\Continuation\\AgentContinuationScope, Closure(): void): void"},
+        {"line": 72, "identifier": "phpstan.dumpType", "message": "Dumped type: bool"}
+      ]
+    },
+    {
+      "id": "authority-incompatible-identities-and-provenance",
+      "kind": "negative",
+      "file": "authority-negative.php",
+      "diagnostics": [
+        {"line": 28, "identifier": "argument.type", "message": "Parameter #1 $requestedIds of method Fight\\AccessControl\\Application\\AccessControl\\Authorization\\Service\\ExactPermissionResolver::resolve() expects list<Fight\\AccessControl\\Domain\\AccessControl\\Permission\\PermissionId>, array{Fight\\AccessControl\\Domain\\AccessControl\\Role\\RoleId} given."},
+        {"line": 29, "identifier": "argument.type", "message": "Parameter #1 $provider of static method Fight\\AccessControl\\Application\\AccessControl\\Authorization\\Admission\\RequestAuthority::user() expects Fight\\AccessControl\\Application\\AccessControl\\Authorization\\Service\\CurrentPrincipalProvider, Fight\\AccessControl\\Application\\AccessControl\\Agent\\Authentication\\CurrentAgentPrincipalProvider given."},
+        {"line": 30, "identifier": "argument.type", "message": "Parameter #2 $request of static method Fight\\AccessControl\\Application\\AccessControl\\Authorization\\Admission\\RequestAuthority::agent() expects Fight\\AccessControl\\Application\\AccessControl\\Agent\\Authentication\\SignedAgentRequest, Fight\\AccessControl\\Domain\\AccessControl\\Agent\\AuthenticatedAgentPrincipal given."},
+        {"line": 31, "identifier": "argument.type", "message": "Parameter #1 $binding of method Fight\\AccessControl\\Application\\AccessControl\\Agent\\Continuation\\AgentContinuationGuard::run() expects Fight\\AccessControl\\Application\\AccessControl\\Agent\\Continuation\\AgentContinuationBinding, Fight\\AccessControl\\Application\\AccessControl\\Agent\\Continuation\\AgentContinuationContext given."}
+      ]
+    },
+    {
       "id": "agent-issuance-ports-and-void-handlers",
       "kind": "positive",
       "file": "agent-issuance-positive.php",

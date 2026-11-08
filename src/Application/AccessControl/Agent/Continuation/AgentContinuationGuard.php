@@ -57,12 +57,22 @@ final readonly class AgentContinuationGuard
         $active = true;
         $attempted = false;
         $admitted = false;
+        $actionFailure = null;
         try {
             $context = $binding->getContext();
             $this->fence->synchronized(
                 $context->getAgentId(),
                 $scope,
-                function () use ($context, $requirements, $scope, $action, &$active, &$attempted, &$admitted): void {
+                function () use (
+                    $context,
+                    $requirements,
+                    $scope,
+                    $action,
+                    &$active,
+                    &$attempted,
+                    &$admitted,
+                    &$actionFailure
+                ): void {
                     // A nonconforming fence may retain the callback until after run() has returned.
                     // @phpstan-ignore booleanNot.alwaysFalse
                     if (!$active || $attempted) {
@@ -72,15 +82,26 @@ final readonly class AgentContinuationGuard
                     $attempted = true;
                     $this->validate($context, $requirements, $scope);
                     $admitted = true;
-                    $action();
+                    try {
+                        $action();
+                    } catch (Throwable $throwable) {
+                        $actionFailure = $throwable;
+                        throw $throwable;
+                    }
                 }
             );
+            /** @var Throwable|null $actionFailure Known primary fault captured by the synchronous owned callback */
+            if ($actionFailure !== null) {
+                throw $actionFailure;
+            }
+
             if (!$admitted) {
                 throw new AgentContinuationRejectedException();
             }
         } catch (Throwable $throwable) {
             if ($admitted) {
-                throw $throwable;
+                /** @var Throwable|null $actionFailure Known primary fault captured by the synchronous owned callback */
+                throw $actionFailure ?? $throwable;
             }
 
             throw new AgentContinuationRejectedException();

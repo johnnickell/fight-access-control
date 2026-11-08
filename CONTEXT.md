@@ -6,6 +6,20 @@ Fight AccessControl owns framework-neutral identity, credential, session, author
 behavior shared by Fight applications. The repository-local behavioral and security authority is
 [TICKET-00001](planning/tickets/00001-TICKET.md).
 
+## TASK-00145 request authority and continuation — Work checkpoint
+
+The [current authority contracts](docs/authority-contracts.md) distinguish genuine User/Agent authentication refusal
+from malformed or inconsistent authoritative snapshots and operational resolution faults. Exact Permission sets,
+request-sensitive state and synchronized bounded continuation retain explicit native/static contracts. Nonce consumption,
+original provenance time, current all-writer admission and post-invocation primary-error truth remain authoritative.
+No new grants, executor, business transaction, Common implementation or consumer implementation is introduced.
+
+Canonical `.runs/handoffs/TASK-00145/work.md` owns the exhaustive current declaration/member/callback/caller
+dispositions, regression chronology, dependency/static/behavior/full-gate/exact-coverage evidence and retained runtime.
+At this Work checkpoint, independent Review and nonvisual QA remain required; TASK-00145 stays in-progress and
+unfinished children keep TICKET-00040/EPIC-00016 open. No whole-library, generic dispatch, optional-audit or actual
+consumer qualification, publication, merge, release or deployment is claimed.
+
 ## TASK-00143 Agent issuance contracts — accepted checkpoint
 
 The current void provision/rotation handlers now distinguish source-qualified Common Application refusals from

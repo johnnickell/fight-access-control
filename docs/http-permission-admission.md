@@ -47,7 +47,10 @@ selection, crypto ports, repositories, claims verification and scheme remain the
 Agent's signed context to the actual incoming method, authority, path, canonical query and body; a valid signed request
 for another target is not authentication of this native request. Consumers own canonicalization/proxy handling; the
 controlled native fixtures derive those fields from the current request, not a reused MCP request. Never infer authority from an incoming `SecurityContext` attribute. No default credentials or fallback to a different
-identity are provided. Operational factory/provider exceptions are not anonymous access.
+identity are provided. Operational factory/provider exceptions are not anonymous access. The
+[current authority contracts](authority-contracts.md) distinguish known User/session refusal from wrong repository
+identities and malformed/incomplete Role or Permission snapshots. Those internal faults must reach the safe server
+error owner, not become ordinary authentication rejection. Agent diagnostic classifications retain the same distinction.
 
 `PermissionAdmission::admit($declaration, $authority)` is the reusable inward check for later native adapters. It
 returns a `SecurityContext` (or null only for explicit public admission); it adds no business messages/events/commits.
