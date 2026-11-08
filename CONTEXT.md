@@ -87,7 +87,7 @@ resource outcomes. Original Work history and independent report subjects remain 
 and deprecation plus QA's focused runner-option deprecation remain disclosed in the owning evidence. No whole-library,
 generic dispatch, optional-audit or actual consumer qualification, approval, merge, release or deployment is claimed.
 
-## TASK-00146 ordinary HTTP contracts — Work checkpoint
+## TASK-00146 ordinary HTTP contracts — accepted checkpoint
 
 Current composition selects Common `^1.4.2` and preserves one Common safe classification/reporting/presentation
 owner across PSR/Slim/Yii and present Symfony/Laravel/CI4 peers. The
@@ -99,9 +99,18 @@ inward policy/grants/nonce/continuation semantics are unchanged. Older framework
 original tested versions and do not describe the current supported minimum.
 
 Canonical `.runs/handoffs/TASK-00146/work.md` owns exact source/tag/registry/runtime/lane/static/native/full-gate/
-coverage evidence, historical prerequisite recovery and all warnings/limits. Work is not independent acceptance;
-Review and nonvisual behavioral QA remain required. Controlled fixtures do not qualify consumer persistence,
+coverage evidence, historical prerequisite recovery and all warnings/limits. At the original Work checkpoint,
+Review and nonvisual behavioral QA remained required. Controlled fixtures do not qualify consumer persistence,
 crypto, target scope, sinks, bootstrap/proxies/HTML/deployment or an all-five-framework release.
+
+Independent Review v3 ACCEPT and complete nonvisual QA PASS now cover clean candidate
+`6f175c4b2bfca4a223af25c77f503b2995b4cb15` against `d1c18902add65ac65759c1ce5abd8500fdaf2b27`, with no product
+findings. QA passes 37 independent scenarios / 214 checks plus 174 native tests / 2,122 assertions; the qualified
+original gate passes 7,009 tests / 78,157 assertions, exact global 9,254/9,254 and owned 101/101 statements.
+TASK-00146 is done; unfinished TASK-00147 keeps TICKET-00041/EPIC-00016 open. Publication/final delivery verification
+remain pending at this administrative checkpoint; canonical `.runs/handoffs/TASK-00146/land.md` owns subsequent
+bridge, checks, delivery and resource results. Original report subjects and historical warnings remain unchanged;
+no actual consumer qualification, approval, merge, release or deployment is claimed.
 
 ## TASK-00143 Agent issuance contracts — accepted checkpoint
 
@@ -967,7 +976,8 @@ shared planner/resolver/caller edits have one owner and every slice retains its 
 John approved TICKET-00041's complete four-TASK plan, now written as
 [TASK-00146](planning/tasks/00146-TASK.md) (ordinary HTTP), [TASK-00147](planning/tasks/00147-TASK.md) (profile Tools),
 [TASK-00148](planning/tasks/00148-TASK.md) (Resource/Skill) and [TASK-00149](planning/tasks/00149-TASK.md) (public payload/
-declarative metadata). Orders 325–328 are ready-for-agent; TASK-00146/00148 have no demonstrated local blocker,
+declarative metadata). At that planning checkpoint orders 325–328 were ready-for-agent and TASK-00146/00148 had no
+local blocker; current status belongs to the owning TASK records and Board.
 TASK-00147 waits on TASK-00128/00131/00141 and TASK-00149 consumes TASK-00133's now-accepted status representation.
 Primary manifests allocate all 23 current
 files (2 Adapter, 13 Application presentation, 8 OpenAPI) without overlap/omission, not completed source audit or
