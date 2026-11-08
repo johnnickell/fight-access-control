@@ -74,23 +74,14 @@ final readonly class AgentDeliveryMaintenanceService
                     return AgentMaintenanceResult::UNCHANGED;
                 }
 
-                $result = AgentMaintenanceResult::REWRAPPED;
                 try {
-                    try {
-                        $replacementMaterial = $this->rewrapper->rewrap($material, $original->getIssuance(), $target);
-                    } catch (AgentOperationRejectedException $failure) {
-                        if ($failure->getReason() === AgentOperationFailure::CONTENTION) {
-                            throw $failure;
-                        }
-
-                        throw new LogicException('The delivery rewrapper failure contract failed.');
+                    $rewrapped = $this->rewrapper->rewrap($material, $original->getIssuance(), $target);
+                } catch (AgentOperationRejectedException $failure) {
+                    if ($failure->getReason() === AgentOperationFailure::CONTENTION) {
+                        throw $failure;
                     }
 
-                    if ($replacementMaterial->getKeyVersion() !== $target->toString()) {
-                        throw new AgentOperationRejectedException(AgentOperationFailure::UNAVAILABLE);
-                    }
-
-                    $replacement = $original->rewrapMaterial($replacementMaterial, $this->clock->now());
+                    throw new LogicException('The delivery rewrapper failure contract failed.');
                 } catch (AgentDeliveryFailedException $agentDeliveryFailedException) {
                     if (
                         !in_array($agentDeliveryFailedException->getReason(), [
@@ -105,8 +96,19 @@ final readonly class AgentDeliveryMaintenanceService
                         return AgentMaintenanceResult::RETRYABLE;
                     }
 
-                    $replacement = $original->failMaterial($agentDeliveryFailedException->getReason());
+                    $rewrapped = $agentDeliveryFailedException->getReason();
+                }
+
+                $result = AgentMaintenanceResult::REWRAPPED;
+                if ($rewrapped instanceof AgentDeliveryFailure) {
+                    $replacement = $original->failMaterial($rewrapped);
                     $result = AgentMaintenanceResult::TERMINAL;
+                } else {
+                    if ($rewrapped->getKeyVersion() !== $target->toString()) {
+                        throw new AgentOperationRejectedException(AgentOperationFailure::UNAVAILABLE);
+                    }
+
+                    $replacement = $original->rewrapMaterial($rewrapped, $this->clock->now());
                 }
 
                 $this->assertAuthority($authority);

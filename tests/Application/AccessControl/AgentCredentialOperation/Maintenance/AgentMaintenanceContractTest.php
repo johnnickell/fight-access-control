@@ -9,6 +9,7 @@ use Fight\AccessControl\Application\AccessControl\AgentCredentialOperation\Maint
 use Fight\AccessControl\Application\AccessControl\AgentCredentialOperation\Maintenance\AgentDeliveryMaintenanceService;
 use Fight\AccessControl\Application\AccessControl\AgentCredentialOperation\Maintenance\AgentMaintenanceAuthorization;
 use Fight\AccessControl\Application\AccessControl\AgentCredentialOperation\Maintenance\AgentMaintenanceResult;
+use Fight\AccessControl\Application\AccessControl\Timing\Service\Clock;
 use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\AgentCredentialDestination;
 use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\AgentCredentialOperation;
 use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\AgentCredentialOperationRepository;
@@ -26,6 +27,7 @@ use Fight\Common\Application\Repository\TransactionalUnitOfWork;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
+use RuntimeException;
 
 #[CoversClass(AgentDeliveryMaintenanceService::class)]
 final class AgentMaintenanceContractTest extends TestCase
@@ -44,6 +46,72 @@ final class AgentMaintenanceContractTest extends TestCase
         self::assertSame(AgentMaintenanceResult::UNAVAILABLE, $this->rewrap($env, $repository));
         self::assertSame($before, $env->delivery->operation());
         self::assertSame(0, $env->rewraps);
+    }
+
+    /** @return iterable<string, array{int, ?AgentDeliveryFailure}> */
+    public static function rewrapClockFailures(): iterable
+    {
+        foreach ([1, 2] as $sample) {
+            foreach ([...AgentDeliveryFailure::cases(), null] as $reason) {
+                yield $sample.':'.($reason->value ?? 'unclassified') => [$sample, $reason];
+            }
+        }
+    }
+
+    #[DataProvider('rewrapClockFailures')]
+    public function test_clock_after_rewrap_cannot_discard_original_material_or_record_provider_failure(
+        int $sample,
+        ?AgentDeliveryFailure $reason
+    ): void {
+        $env = new MaintenanceEnvironment();
+        $before = $env->delivery->operation();
+        $agents = $env->delivery->provisioning->agentRepository->all();
+        $audit = $env->delivery->provisioning->auditEvidenceRepository->all();
+        $clock = $this->createStub(Clock::class);
+        $samples = 0;
+        $clock->method('now')->willReturnCallback(static function () use (
+            $env,
+            $sample,
+            $reason,
+            &$samples
+        ): DateTimeImmutable {
+            if ($env->rewraps > 0 && ++$samples === $sample) {
+                if ($reason !== null) {
+                    throw new AgentDeliveryFailedException($reason);
+                }
+
+                throw new RuntimeException('Synthetic clock failure.');
+            }
+
+            return $env->delivery->clock->now();
+        });
+        $issuance = $env->delivery->issuance;
+        $service = new AgentDeliveryMaintenanceService(
+            $env->delivery->provisioning->operationRepository,
+            $env,
+            $env,
+            $env->delivery->sink,
+            $clock,
+            $env->delivery->transaction
+        );
+        self::assertSame(AgentMaintenanceResult::UNAVAILABLE, $service->rewrap(
+            $issuance->getKey(),
+            $issuance->getDestination(),
+            $issuance->getDeliveryId(),
+            new AgentDeliveryKeyVersion('test-key-v2')
+        ));
+        self::assertSame($sample, $samples);
+        self::assertSame(1, $env->rewraps);
+        self::assertSame($before, $env->delivery->operation());
+        self::assertSame($before->getMaterial(), $env->delivery->operation()->getMaterial());
+        self::assertNull($env->delivery->operation()->getDeliveryFailure());
+        self::assertSame($agents, $env->delivery->provisioning->agentRepository->all());
+        self::assertSame($audit, $env->delivery->provisioning->auditEvidenceRepository->all());
+        self::assertSame(0, $env->delivery->sink->cleanups);
+
+        self::assertSame(AgentMaintenanceResult::REWRAPPED, $env->rewrapOriginal());
+        self::assertSame($issuance, $env->delivery->operation()->getIssuance());
+        self::assertSame('test-key-v2', $env->delivery->operation()->getMaterial()?->getKeyVersion());
     }
 
     /** @return iterable<string, array{AgentOperationFailure}> */

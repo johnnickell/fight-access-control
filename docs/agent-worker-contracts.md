@@ -72,8 +72,11 @@ a broken return promise is unavailable, not evidence that the persisted original
 must return the requested target version. The sink/receipt/cleanup boundaries instead own temporary availability,
 unsupported sink and invalid receipt/binding. They cannot report delivery-key loss as a reason to retire ciphertext.
 A cooperating rewrap transaction/key-use fence retains deliberate `CONTENTION`; key providers do not invent
-operation-authorization denial. Approved transient provider containment remains distinct from a confirmed outcome;
-no diagnostic-text/code guessing or chained raw cause is used.
+operation-authorization denial. Provider interpretation surrounds only the actual port work: trusted-time samples,
+returned-binding validation and owned transitions remain outside that scope. An unrelated collaborator failure
+cannot supply evidence for a provider outcome or discard valid original material. Confirmed claim/admission state
+remains durable even when invocation cannot proceed. Approved transient provider containment remains distinct from
+a confirmed outcome; no diagnostic-text/code guessing or chained raw cause is used.
 
 Only the actual cleanup provider call maps temporary/unsupported capability to `RETRYABLE` and deliberate
 exact-binding rejection to `REJECTED`; out-of-contract faults remain `UNAVAILABLE`. Delivery-failure exceptions

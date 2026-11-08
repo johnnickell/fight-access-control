@@ -264,56 +264,80 @@ final readonly class AgentCredentialDeliveryService
         $this->operationContract()->assertCompatible();
         $attempt = $admitted->requireAttempt();
         $attempt->assertAdmittedAt($this->clock->now());
+
+        $issuance = $admitted->getIssuance();
         try {
-            $issuance = $admitted->getIssuance();
             $this->sink->assertSupported($issuance);
-            $attempt->assertAdmittedAt($this->clock->now());
-            if ($this->sink instanceof AgentCredentialReceiptLookup) {
+        } catch (Throwable $throwable) {
+            return $this->sinkFailure($throwable);
+        }
+
+        $attempt->assertAdmittedAt($this->clock->now());
+        if ($this->sink instanceof AgentCredentialReceiptLookup) {
+            try {
                 $receipt = $this->sink->lookupReceipt($issuance);
                 if ($receipt !== null) {
                     if (!$this->sink->verify($receipt, $issuance)) {
-                        throw new AgentDeliveryFailedException(AgentDeliveryFailure::INVALID_RECEIPT);
+                        return AgentDeliveryFailure::INVALID_RECEIPT;
                     }
 
                     return $receipt;
                 }
+            } catch (Throwable $throwable) {
+                return $this->sinkFailure($throwable);
+            }
+        }
+
+        if ($receiptOnly) {
+            return null;
+        }
+
+        $attempt->assertAdmittedAt($this->clock->now());
+        $material = $admitted->getAdmittedMaterial($this->clock->now());
+        try {
+            $invocation = $this->decipher->materialize($material, $issuance);
+        } catch (AgentDeliveryFailedException $failure) {
+            if (
+                !in_array($failure->getReason(), [
+                AgentDeliveryFailure::TEMPORARY,
+                AgentDeliveryFailure::KEY_RETIRED,
+                AgentDeliveryFailure::CORRUPT_MATERIAL
+                ], true)
+            ) {
+                throw new LogicException('The delivery decipher contract failed.');
             }
 
-            if ($receiptOnly) {
-                return null;
-            }
+            return $failure->getReason();
+        } catch (LogicException $failure) {
+            throw $failure;
+        } catch (Throwable) {
+            return AgentDeliveryFailure::TEMPORARY;
+        }
 
-            $attempt->assertAdmittedAt($this->clock->now());
-            $material = $admitted->getAdmittedMaterial($this->clock->now());
-            try {
-                $invocation = $this->decipher->materialize($material, $issuance);
-            } catch (AgentDeliveryFailedException $failure) {
-                if (
-                    !in_array($failure->getReason(), [
-                    AgentDeliveryFailure::TEMPORARY,
-                    AgentDeliveryFailure::KEY_RETIRED,
-                    AgentDeliveryFailure::CORRUPT_MATERIAL
-                    ], true)
-                ) {
-                    throw new LogicException('The delivery decipher contract failed.');
-                }
+        if ($invocation->getIssuance()->toArray() !== $issuance->toArray()) {
+            throw new LogicException('The delivery invocation binding is inconsistent.');
+        }
 
-                return $failure->getReason();
-            }
-
-            if ($invocation->getIssuance()->toArray() !== $issuance->toArray()) {
-                throw new LogicException('The delivery invocation binding is inconsistent.');
-            }
-
-            $attempt->assertAdmittedAt($this->clock->now());
+        $attempt->assertAdmittedAt($this->clock->now());
+        try {
             $receipt = $this->sink->stage($invocation);
             unset($invocation);
             if (!$this->sink->verify($receipt, $issuance)) {
-                throw new AgentDeliveryFailedException(AgentDeliveryFailure::INVALID_RECEIPT);
+                return AgentDeliveryFailure::INVALID_RECEIPT;
             }
 
             return $receipt;
-        } catch (AgentDeliveryFailedException $failure) {
+        } catch (Throwable $throwable) {
+            return $this->sinkFailure($throwable);
+        }
+    }
+
+    /**
+     * Returns only failure intent supplied by an actual protected sink call
+     */
+    private function sinkFailure(Throwable $failure): AgentDeliveryFailure
+    {
+        if ($failure instanceof AgentDeliveryFailedException) {
             if (
                 !in_array($failure->getReason(), [
                 AgentDeliveryFailure::TEMPORARY,
@@ -325,12 +349,13 @@ final readonly class AgentCredentialDeliveryService
             }
 
             return $failure->getReason();
-        } catch (LogicException $failure) {
-            throw $failure;
-        } catch (Throwable) {
-            // Unclassified provider faults retain bounded material, never imply success or trigger new issuance.
         }
 
+        if ($failure instanceof LogicException) {
+            throw $failure;
+        }
+
+        // Unclassified provider faults retain bounded material, never imply success or trigger new issuance.
         return AgentDeliveryFailure::TEMPORARY;
     }
 
