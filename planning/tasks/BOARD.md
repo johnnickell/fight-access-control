@@ -5,17 +5,18 @@ dependencies, acceptance, and verification.
 
 ## What's Next?
 
-First ready Task: [TASK-00144](00144-TASK.md) — Correct Agent delivery, recovery and maintenance contracts.
+Active Task: [TASK-00144](00144-TASK.md) — Correct Agent delivery, recovery and maintenance contracts.
 
 ## In Progress
 
-No Tasks are currently in this state.
+| Order | TASK ID | Title | Parent TICKET | Status | Blocked by | PR |
+| --- | --- | --- | --- | --- | --- | --- |
+| 323 | [TASK-00144](00144-TASK.md) | Correct Agent delivery, recovery and maintenance contracts | [TICKET-00040](../tickets/00040-TICKET.md) — Make command and synchronous Application contracts explicit | in-progress | — | — |
 
 ## Ready Frontier
 
 | Order | TASK ID | Title | Parent TICKET | Status | Blocked by | PR |
 | --- | --- | --- | --- | --- | --- | --- |
-| 323 | [TASK-00144](00144-TASK.md) | Correct Agent delivery, recovery and maintenance contracts | [TICKET-00040](../tickets/00040-TICKET.md) — Make command and synchronous Application contracts explicit | ready-for-agent | — | — |
 | 324 | [TASK-00145](00145-TASK.md) | Correct authority and continuation contracts | [TICKET-00040](../tickets/00040-TICKET.md) — Make command and synchronous Application contracts explicit | ready-for-agent | — | — |
 | 325 | [TASK-00146](00146-TASK.md) | Qualify ordinary HTTP contracts and safe failures | [TICKET-00041](../tickets/00041-TICKET.md) — Align presentation and integration contracts | ready-for-agent | — | — |
 | 327 | [TASK-00148](00148-TASK.md) | Align Resource and Skill binding contracts | [TICKET-00041](../tickets/00041-TICKET.md) — Align presentation and integration contracts | ready-for-agent | — | — |

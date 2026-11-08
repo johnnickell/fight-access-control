@@ -13,6 +13,7 @@ use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\AgentCrede
 use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\AgentCredentialOperationRepository;
 use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\AgentDeliveryDisposition;
 use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\AgentDeliveryId;
+use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\AgentOperationContract;
 use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\AgentOperationFailure;
 use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\AgentOperationKey;
 use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\Delivery\AgentDeliveryAuthority;
@@ -25,6 +26,7 @@ use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\Exception\
 use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\Exception\AgentOperationRejectedException;
 use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\Query\AgentOperationView;
 use Fight\Common\Application\Repository\TransactionalUnitOfWork;
+use LogicException;
 use SensitiveParameter;
 use Throwable;
 
@@ -76,7 +78,7 @@ final readonly class AgentCredentialDeliveryService
                     $this->policy,
                     $this->clock->now()
                 );
-                $this->operationRepository->replaceDelivery($original, $replacement, $agent);
+                $this->replaceDelivery($original, $replacement, $agent);
 
                 return $replacement;
             });
@@ -107,7 +109,7 @@ final readonly class AgentCredentialDeliveryService
                     $this->clock->now(),
                     $admitted->getStateRevision()
                 );
-                $this->operationRepository->replaceDelivery($original, $replacement, $agent);
+                $this->replaceDelivery($original, $replacement, $agent);
 
                 return $replacement;
             });
@@ -123,7 +125,13 @@ final readonly class AgentCredentialDeliveryService
                     return AgentDeliveryResult::DEFERRED;
                 }
 
-                if ($throwable->getReason() !== AgentOperationFailure::UNAVAILABLE) {
+                if (
+                    in_array($throwable->getReason(), [
+                    AgentOperationFailure::UNAUTHORIZED,
+                    AgentOperationFailure::CONFLICT,
+                    AgentOperationFailure::UNSUPPORTED_VERSION
+                    ], true)
+                ) {
                     return AgentDeliveryResult::REJECTED;
                 }
             }
@@ -152,7 +160,7 @@ final readonly class AgentCredentialDeliveryService
                 $this->clock->now(),
                 $claimed->getStateRevision()
             );
-            $this->operationRepository->replaceDelivery($original, $replacement, $agent);
+            $this->replaceDelivery($original, $replacement, $agent);
 
             return $replacement;
         });
@@ -163,9 +171,21 @@ final readonly class AgentCredentialDeliveryService
      */
     private function authorize(AgentCredentialOperation $operation): AgentDeliveryAuthority
     {
-        return $this->operationRepository->getOperationContract()->bindAuthority(
-            $this->deliveryAuthorization->authorize($operation->getIssuance(), $this->clock->now())
-        );
+        try {
+            $authority = $this->deliveryAuthorization->authorize($operation->getIssuance(), $this->clock->now());
+        } catch (AgentOperationRejectedException $agentOperationRejectedException) {
+            if (
+                !in_array($agentOperationRejectedException->getReason(), [
+                AgentOperationFailure::UNAUTHORIZED, AgentOperationFailure::UNAVAILABLE
+                ], true)
+            ) {
+                throw new LogicException('The delivery authorization contract failed.');
+            }
+
+            throw $agentOperationRejectedException;
+        }
+
+        return $this->operationContract()->bindAuthority($authority);
     }
 
     /**
@@ -176,8 +196,31 @@ final readonly class AgentCredentialDeliveryService
         AgentCredentialDestination $destination,
         AgentDeliveryId $deliveryId
     ): AgentCredentialOperation {
-        $this->scopeAuthorization->authorize($key->getScope(), $destination);
-        $operation = $this->operationRepository->getByKey($key);
+        try {
+            $this->scopeAuthorization->authorize($key->getScope(), $destination);
+        } catch (AgentOperationRejectedException $agentOperationRejectedException) {
+            if (
+                !in_array($agentOperationRejectedException->getReason(), [
+                AgentOperationFailure::UNAUTHORIZED, AgentOperationFailure::UNAVAILABLE
+                ], true)
+            ) {
+                throw new LogicException('The scope authorization contract failed.');
+            }
+
+            throw $agentOperationRejectedException;
+        }
+
+        try {
+            $operation = $this->operationRepository->getByKey($key);
+        } catch (AgentOperationRejectedException) {
+            // A failed lookup supplies neither caller refusal nor claim contention.
+            throw new LogicException('The operation lookup failed.');
+        }
+
+        if ($operation !== null && $operation->getIssuance()->getKey()->toString() !== $key->toString()) {
+            throw new LogicException('The operation lookup identity is inconsistent.');
+        }
+
         if ($operation === null || !$operation->getIssuance()->getDeliveryId()->equals($deliveryId)) {
             throw new AgentOperationRejectedException(AgentOperationFailure::CONFLICT);
         }
@@ -192,9 +235,18 @@ final readonly class AgentCredentialDeliveryService
      */
     private function currentAgent(AgentCredentialOperation $operation): Agent
     {
-        $agent = $this->agentRepository->getById($operation->getIssuance()->getAgentId());
+        try {
+            $agent = $this->agentRepository->getById($operation->getIssuance()->getAgentId());
+        } catch (AgentOperationRejectedException) {
+            throw new LogicException('The Agent lookup failed.');
+        }
+
         if ($agent === null) {
             throw new AgentOperationRejectedException(AgentOperationFailure::CONFLICT);
+        }
+
+        if (!$agent->getId()->equals($operation->getIssuance()->getAgentId())) {
+            throw new LogicException('The Agent lookup identity is inconsistent.');
         }
 
         $operation->assertDeliveryCredential($agent);
@@ -209,7 +261,7 @@ final readonly class AgentCredentialDeliveryService
         AgentCredentialOperation $admitted,
         bool $receiptOnly
     ): AgentDeliveryReceipt|AgentDeliveryFailure|null {
-        $this->operationRepository->getOperationContract()->assertCompatible();
+        $this->operationContract()->assertCompatible();
         $attempt = $admitted->requireAttempt();
         $attempt->assertAdmittedAt($this->clock->now());
         try {
@@ -233,9 +285,24 @@ final readonly class AgentCredentialDeliveryService
 
             $attempt->assertAdmittedAt($this->clock->now());
             $material = $admitted->getAdmittedMaterial($this->clock->now());
-            $invocation = $this->decipher->materialize($material, $issuance);
+            try {
+                $invocation = $this->decipher->materialize($material, $issuance);
+            } catch (AgentDeliveryFailedException $failure) {
+                if (
+                    !in_array($failure->getReason(), [
+                    AgentDeliveryFailure::TEMPORARY,
+                    AgentDeliveryFailure::KEY_RETIRED,
+                    AgentDeliveryFailure::CORRUPT_MATERIAL
+                    ], true)
+                ) {
+                    throw new LogicException('The delivery decipher contract failed.');
+                }
+
+                return $failure->getReason();
+            }
+
             if ($invocation->getIssuance()->toArray() !== $issuance->toArray()) {
-                throw new AgentDeliveryFailedException(AgentDeliveryFailure::CORRUPT_MATERIAL);
+                throw new LogicException('The delivery invocation binding is inconsistent.');
             }
 
             $attempt->assertAdmittedAt($this->clock->now());
@@ -247,12 +314,62 @@ final readonly class AgentCredentialDeliveryService
 
             return $receipt;
         } catch (AgentDeliveryFailedException $failure) {
+            if (
+                !in_array($failure->getReason(), [
+                AgentDeliveryFailure::TEMPORARY,
+                AgentDeliveryFailure::UNSUPPORTED_SINK,
+                AgentDeliveryFailure::INVALID_RECEIPT
+                ], true)
+            ) {
+                throw new LogicException('The protected sink contract failed.');
+            }
+
             return $failure->getReason();
+        } catch (LogicException $failure) {
+            throw $failure;
         } catch (Throwable) {
-            // Unclassified faults retain bounded original material, never imply success or trigger new issuance.
+            // Unclassified provider faults retain bounded material, never imply success or trigger new issuance.
         }
 
         return AgentDeliveryFailure::TEMPORARY;
+    }
+
+    /**
+     * Retrieves cohort evidence without treating a failed capability lookup as delivery refusal
+     */
+    private function operationContract(): AgentOperationContract
+    {
+        try {
+            return $this->operationRepository->getOperationContract();
+        } catch (AgentOperationRejectedException) {
+            throw new LogicException('The operation cohort is unavailable.');
+        }
+    }
+
+    /**
+     * Persists a successor with only the expected-state writer's deliberate refusal meanings
+     */
+    private function replaceDelivery(
+        #[SensitiveParameter] AgentCredentialOperation $original,
+        #[SensitiveParameter] AgentCredentialOperation $replacement,
+        #[SensitiveParameter] Agent $agent
+    ): void {
+        try {
+            $this->operationRepository->replaceDelivery($original, $replacement, $agent);
+        } catch (AgentOperationRejectedException $agentOperationRejectedException) {
+            if (
+                !in_array($agentOperationRejectedException->getReason(), [
+                AgentOperationFailure::UNAUTHORIZED,
+                AgentOperationFailure::CONFLICT,
+                AgentOperationFailure::CONTENTION,
+                AgentOperationFailure::UNAVAILABLE
+                ], true)
+            ) {
+                throw new LogicException('The delivery write contract failed.');
+            }
+
+            throw $agentOperationRejectedException;
+        }
     }
 
     /**
@@ -271,9 +388,12 @@ final readonly class AgentCredentialDeliveryService
             /** @var AgentCredentialOperation $result */
             $result = $this->unitOfWork->commitTransactional(
                 function () use ($operation, &$callbackCompleted): AgentCredentialOperation {
-                    $this->operationRepository->getOperationContract()->assertSameCohort(
-                        $this->agentRepository->getOperationContract()
-                    );
+                    try {
+                        $this->operationContract()->assertSameCohort($this->agentRepository->getOperationContract());
+                    } catch (AgentOperationRejectedException) {
+                        throw new LogicException('The delivery cohort is unavailable.');
+                    }
+
                     $result = $operation();
                     $callbackCompleted = true;
 
@@ -283,6 +403,7 @@ final readonly class AgentCredentialDeliveryService
 
             return $result;
         } catch (Throwable $throwable) {
+            /** @var bool $callbackCompleted Updated by the owned callback before commit acknowledgement */
             if ($callbackCompleted) {
                 throw new AgentDeliveryCommitUncertainException();
             }

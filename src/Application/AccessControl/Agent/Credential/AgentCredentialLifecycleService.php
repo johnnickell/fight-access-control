@@ -5,13 +5,15 @@ declare(strict_types=1);
 namespace Fight\AccessControl\Application\AccessControl\Agent\Credential;
 
 use Fight\AccessControl\Application\AccessControl\Timing\Service\Clock;
-use Fight\AccessControl\Domain\AccessControl\Agent\Agent;
 use Fight\AccessControl\Domain\AccessControl\Agent\AgentId;
 use Fight\AccessControl\Domain\AccessControl\Agent\AgentRepository;
 use Fight\AccessControl\Domain\AccessControl\Agent\Event\AgentCredentialLifecycleFailed;
 use Fight\AccessControl\Domain\AccessControl\Agent\Event\AgentCredentialRevoked;
+use Fight\AccessControl\Domain\AccessControl\Agent\Exception\AgentCredentialException;
 use Fight\AccessControl\Domain\AccessControl\Audit\AuditEvidence;
 use Fight\AccessControl\Domain\AccessControl\Audit\AuditEvidenceRepository;
+use Fight\Common\Application\Error\Exception\ResourceNotFound;
+use Fight\Common\Application\Error\Exception\StateConflict;
 use Fight\Common\Application\Messaging\Event\EventDispatcher;
 use Fight\Common\Application\Repository\TransactionalUnitOfWork;
 use LogicException;
@@ -55,15 +57,23 @@ final readonly class AgentCredentialLifecycleService
                     $this->agentRepository->getOperationContract()->assertCompatible();
                     $agent = $this->agentRepository->getById($agentId);
 
-                    if (!$agent instanceof Agent) {
-                        throw new LogicException('The Agent does not exist.');
+                    if ($agent === null) {
+                        throw new ResourceNotFound('The Agent does not exist.');
+                    }
+
+                    if (!$agent->getId()->equals($agentId)) {
+                        throw new LogicException('The Agent lookup identity is inconsistent.');
                     }
 
                     $revokedAt = $this->clock->now();
-                    $revoked = $agent->revoke($revokedAt);
+                    try {
+                        $revoked = $agent->revoke($revokedAt);
+                    } catch (AgentCredentialException) {
+                        throw new StateConflict('The Agent credential is no longer active.');
+                    }
 
                     if (!$this->agentRepository->replace($agent, $revoked)) {
-                        throw new LogicException('The expected Agent authority is no longer authoritative.');
+                        throw new StateConflict('The expected Agent authority is no longer authoritative.');
                     }
 
                     $this->auditEvidenceRepository->add(AuditEvidence::agentCredentialRevoked($actorId, $agentId));

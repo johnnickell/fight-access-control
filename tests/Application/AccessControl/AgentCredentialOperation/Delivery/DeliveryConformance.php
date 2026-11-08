@@ -28,6 +28,8 @@ use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\Delivery\A
 use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\Maintenance\AgentMaintenancePolicy;
 use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\Query\AgentOperationView;
 use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\Query\GetAgentOperation;
+use Fight\Common\Adapter\Messaging\Query\Routing\InMemoryQueryRouter;
+use Fight\Common\Adapter\Messaging\Query\RoutingQueryBus;
 use Fight\Common\Domain\Messaging\Query\QueryMessage;
 use Fight\Test\AccessControl\Application\AccessControl\Agent\Credential\IssuanceBusFixture;
 use Fight\Test\AccessControl\Application\AccessControl\AgentCredentialOperation\Delivery\Conformance\{
@@ -84,12 +86,18 @@ abstract class DeliveryConformance extends TestCase
     ): array {
         $ports = $fixture->ports();
 
-        return new AgentDeliveryRecoveryService(
+        $queryRouter = new InMemoryQueryRouter();
+        $queryRouter->registerHandler(
+            ListDueAgentDeliveriesHandler::queryRegistration(),
             new ListDueAgentDeliveriesHandler(
                 $ports->operationReadRepository,
                 $ports->deliveryAuthorization,
                 $ports->clock
-            ),
+            )
+        );
+
+        return new AgentDeliveryRecoveryService(
+            new RoutingQueryBus($queryRouter),
             $this->delivery($fixture),
             $ports->clock,
             $schedule ?? new AgentDeliverySchedule()

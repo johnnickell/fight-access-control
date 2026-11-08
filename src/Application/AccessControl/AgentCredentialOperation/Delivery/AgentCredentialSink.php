@@ -31,7 +31,9 @@ interface AgentCredentialSink
      * Equal order with a different binding rejects. Identical retry returns its original receipt without changing
      * selection. Lower-order delayed writes cannot overwrite/select/reactivate newer material. Entries remain inert
      * until consumer selection independently validates the exact current package/destination tuple, not a pointer.
-     * Throw typed sanitized AgentDeliveryFailedException; concrete implementations must annotate sensitive inputs.
+     * Throw sanitized AgentDeliveryFailedException: TEMPORARY, UNSUPPORTED_SINK or INVALID_RECEIPT for binding
+     * rejection. Delivery-key loss/integrity classification belongs to the decipher, not the sink. Unknown faults
+     * must not fabricate a receipt. Concrete implementations must annotate sensitive inputs.
      */
     public function stage(#[SensitiveParameter] AgentCredentialInvocation $invocation): AgentDeliveryReceipt;
 
@@ -39,7 +41,8 @@ interface AgentCredentialSink
      * Verifies a durable receipt against the exact full original tuple without reading secret material
      *
      * Return false for missing, swapped, unverifiable or lost entries. A format-valid ID alone proves nothing.
-     * Never return a digest, credential, key path or secret-read capability. Run outside all package transactions.
+     * An unavailable verifier throws; do not fabricate false absence from a failed read. Never return a digest,
+     * credential, key path or secret-read capability. Run outside all package transactions.
      */
     public function verify(AgentDeliveryReceipt $receipt, AgentIssuance $issuance): bool;
 }

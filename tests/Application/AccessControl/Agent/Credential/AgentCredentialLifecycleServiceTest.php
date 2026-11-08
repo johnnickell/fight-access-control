@@ -15,6 +15,7 @@ use Fight\AccessControl\Domain\AccessControl\Agent\Event\AgentCredentialLifecycl
 use Fight\AccessControl\Domain\AccessControl\Agent\Event\AgentCredentialRevoked;
 use Fight\AccessControl\Domain\AccessControl\Agent\Event\AgentCredentialRotated;
 use Fight\AccessControl\Domain\AccessControl\Audit\AuditEvidence;
+use Fight\Common\Application\Error\Exception\ApplicationException;
 use Fight\Common\Domain\Exception\DomainException;
 use Fight\Test\AccessControl\Application\AccessControl\Audit\Repository\InMemoryAuditEvidenceRepository;
 use Fight\Test\AccessControl\Application\AccessControl\Event\InMemoryEventDispatcher;
@@ -80,7 +81,7 @@ final class AgentCredentialLifecycleServiceTest extends TestCase
         try {
             $service->revoke('maintainer-42', $agent->getId());
             self::fail('Expected revocation failure.');
-        } catch (LogicException | RuntimeException $failure) {
+        } catch (ApplicationException | LogicException | RuntimeException $failure) {
             if (in_array($case, ['repository', 'publication', 'both publishers'], true)) {
                 self::assertSame($fault, $failure);
             } elseif ($case === 'audit') {

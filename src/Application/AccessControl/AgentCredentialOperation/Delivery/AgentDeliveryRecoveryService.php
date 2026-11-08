@@ -5,13 +5,17 @@ declare(strict_types=1);
 namespace Fight\AccessControl\Application\AccessControl\AgentCredentialOperation\Delivery;
 
 use DateTimeImmutable;
-use Fight\AccessControl\Application\AccessControl\AgentCredentialOperation\QueryHandler\ListDueAgentDeliveriesHandler;
+use Fight\AccessControl\Application\AccessControl\AgentCredentialOperation\Exception\AgentOperationReadFailed;
 use Fight\AccessControl\Application\AccessControl\Timing\Service\Clock;
 use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\AgentCredentialDestination;
+use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\AgentOperationFailure;
 use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\AgentOperationScope;
 use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\Delivery\AgentDeliverySchedule;
+use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\Exception\AgentOperationRejectedException;
+use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\Query\AgentOperationView;
 use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\Query\ListDueAgentDeliveries;
-use Fight\Common\Domain\Messaging\Query\QueryMessage;
+use Fight\Common\Application\Messaging\Query\QueryBus;
+use Throwable;
 
 /**
  * Class AgentDeliveryRecoveryService
@@ -24,7 +28,7 @@ final readonly class AgentDeliveryRecoveryService
      * Constructs AgentDeliveryRecoveryService
      */
     public function __construct(
-        private ListDueAgentDeliveriesHandler $discovery,
+        private QueryBus $queryBus,
         private AgentCredentialDeliveryService $delivery,
         private Clock $clock,
         private AgentDeliverySchedule $schedule = new AgentDeliverySchedule()
@@ -41,22 +45,61 @@ final readonly class AgentDeliveryRecoveryService
      */
     public function recover(AgentOperationScope $scope, AgentCredentialDestination $destination): array
     {
-        $views = $this->discovery->handle(QueryMessage::create(new ListDueAgentDeliveries(
-            $scope,
-            $destination,
-            $this->schedule->getBatchSize()
-        )));
-        $results = [];
-        foreach ($views as $view) {
-            // Discovery guarantees confirmed issuance; no outcome grants admission or activation authority.
-            $issuance = $view->getIssuance();
-            if ($issuance !== null) {
-                $results[$issuance->getDeliveryId()->toString()] = $this->delivery->deliver(
-                    $issuance->getKey(),
-                    $issuance->getDestination(),
-                    $issuance->getDeliveryId()
-                );
+        try {
+            $views = $this->queryBus->fetch(new ListDueAgentDeliveries(
+                $scope,
+                $destination,
+                $this->schedule->getBatchSize()
+            ));
+        } catch (AgentOperationRejectedException $failure) {
+            if (
+                !in_array($failure->getReason(), [
+                AgentOperationFailure::UNAUTHORIZED,
+                AgentOperationFailure::UNAVAILABLE,
+                AgentOperationFailure::UNSUPPORTED_VERSION
+                ], true)
+            ) {
+                throw new AgentOperationReadFailed();
             }
+
+            throw new AgentOperationRejectedException($failure->getReason());
+        } catch (Throwable) {
+            throw new AgentOperationReadFailed();
+        }
+
+        // Common currently returns mixed. Validate this one worker boundary, not a generic inference claim.
+        if (!is_array($views) || !array_is_list($views) || count($views) > $this->schedule->getBatchSize()) {
+            throw new AgentOperationReadFailed();
+        }
+
+        $issuances = [];
+        $ids = [];
+        foreach ($views as $view) {
+            if (!$view instanceof AgentOperationView) {
+                throw new AgentOperationReadFailed();
+            }
+
+            $issuance = $view->getIssuance();
+            if (
+                $issuance === null || $issuance->getKey()->getScope()->toString() !== $scope->toString()
+                || $issuance->getDestination()->toArray() !== $destination->toArray()
+                || isset($ids[$issuance->getDeliveryId()->toString()])
+            ) {
+                throw new AgentOperationReadFailed();
+            }
+
+            $view->assertReadable($issuance->getKey(), $destination);
+            $ids[$issuance->getDeliveryId()->toString()] = true;
+            $issuances[] = $issuance;
+        }
+
+        $results = [];
+        foreach ($issuances as $issuance) {
+            $results[$issuance->getDeliveryId()->toString()] = $this->delivery->deliver(
+                $issuance->getKey(),
+                $issuance->getDestination(),
+                $issuance->getDeliveryId()
+            );
         }
 
         return $results;

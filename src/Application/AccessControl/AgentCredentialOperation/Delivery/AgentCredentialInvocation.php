@@ -41,7 +41,7 @@ final readonly class AgentCredentialInvocation
     /**
      * Returns a redacted diagnostic representation
      *
-     * @return array{invocation: string}
+     * @return array{invocation: '[REDACTED]'}
      */
     public function __debugInfo(): array
     {
@@ -50,6 +50,8 @@ final readonly class AgentCredentialInvocation
 
     /**
      * Prevents invocation serialization into messages or persistence
+     *
+     * @return never
      */
     public function __serialize(): array
     {

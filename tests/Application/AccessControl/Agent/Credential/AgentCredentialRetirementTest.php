@@ -32,6 +32,7 @@ use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\Query\Agen
 use Fight\AccessControl\Domain\AccessControl\Audit\AuditEvidence;
 use Fight\AccessControl\Domain\AccessControl\Permission\PermissionId;
 use Fight\Common\Application\Error\Exception\RateLimitExceeded;
+use Fight\Common\Application\Error\Exception\StateConflict;
 use Fight\Test\AccessControl\Application\AccessControl\Agent\Authentication\InMemoryAgentRequestNonceConsumer;
 use Fight\Test\AccessControl\Application\AccessControl\Agent\Repository\InMemoryAgentRepository;
 use Fight\Test\AccessControl\Application\AccessControl\Agent\Repository\RehydratedAgentFixture;
@@ -268,7 +269,7 @@ final class AgentCredentialRetirementTest extends TestCase
         self::assertSame(AgentState::REVOKED, $environment->agentRepository->all()[0]->getState());
         self::assertNull($this->operation($environment)->getMaterial());
         self::assertCount(2, $environment->auditEvidenceRepository->all());
-        $this->expectException(AgentCredentialException::class);
+        $this->expectException(StateConflict::class);
         $this->service($environment)->revoke('maintainer-42', $environment->agentRepository->all()[0]->getId());
     }
 

@@ -17,7 +17,8 @@ interface AgentCredentialReceiptLookup
     /**
      * Retrieves a durable receipt for the exact original tuple outside every package transaction
      *
-     * Return null only when no receipt is recorded; unavailable storage throws a sanitized delivery failure.
+     * Return null only when no receipt is recorded; unavailable storage throws sanitized TEMPORARY delivery failure.
+     * This port classifies sink availability/binding, never delivery-copy key loss or ciphertext integrity.
      * A returned receipt must still pass AgentCredentialSink::verify. Never read or return bytes, digests,
      * key paths or secret-read capabilities. Lookup does not stage, select, activate or recreate lost material.
      * Implement on the injected AgentCredentialSink when supported; absence permits at-least-once staging only
