@@ -6,6 +6,33 @@ Fight AccessControl owns framework-neutral identity, credential, session, author
 behavior shared by Fight applications. The repository-local behavioral and security authority is
 [TICKET-00001](planning/tickets/00001-TICKET.md).
 
+## TASK-00143 Agent issuance contracts — accepted checkpoint
+
+The current void provision/rotation handlers now distinguish source-qualified Common Application refusals from
+sanitized internal failures. Exact retained-key/Agent/issuance and positive reservation promises are checked by their
+owning boundary. The independent outcome Query retains confirmed/indeterminate Views and binding concealment, with
+Common denial/unavailability categories. See [issuance composition](docs/agent-provisioning-operations.md#public-boundary)
+and [rotation failures](docs/agent-rotation-operations.md#failure-bounds-and-delivery).
+
+Native mixed UoW/local known issuance annotations, current execution/read authorization, original predecessor,
+cohort/restoration, capacity/collision fences, same-transaction state/audit, uncertainty and committed issuance despite
+both publisher failures remain authoritative. No retired service/result/warning, result channel, optional audit,
+worker/authority redesign or consumer implementation is introduced. Canonical `.runs/handoffs/TASK-00143/work.md`
+owns exhaustive dispositions, regression chronology, dependency/runtime/static/behavior/gate/coverage evidence and
+limits. Independent Review v3 ACCEPT and nonvisual QA PASS cover clean candidate
+`1b8f7113eb30f51d34411141b6564029fbcc16e1` against `0c8fd732e5d7c11a978f41918b913021fa00ba08`, with no
+findings. QA freshly passes 118 cases / 2,693 checks plus 577 focused tests / 22,405 assertions; the original
+complete gate passes 5,235 tests / 56,094 assertions, exact 8,928/8,928 global and 371/371 selected statements.
+TASK-00143 is done; unfinished children keep TICKET-00040/EPIC-00016 open. Land's behavior-preserving merge
+`f1e63299f7568b00c8b70f8042bc2b5fef789f5f` integrates develop `d5792e998b4f776a6974e866052ecc02b9946c1c`,
+retaining both accepted slices and their original independent report subjects. Fresh focused integration passes
+1,549 tests / 33,115 assertions and the retained QA driver passes 118 cases / 2,693 checks; this is Land evidence,
+not a new independent verdict. Integrated full-gate/publication/final-head verification remain pending at this
+administrative checkpoint; canonical `.runs/handoffs/TASK-00143/land.md` owns subsequent bridge/delivery/resource
+results. Minimum compatibility advisories remain disclosed; ordinary dependencies are restored. No whole-library,
+generic message typing, optional-audit feature or actual consumer qualification, approval, merge, release or
+deployment is claimed.
+
 ## TASK-00142 Feature and policy mutation — accepted checkpoint
 
 Independent Review v3 ACCEPT and nonvisual QA PASS cover clean candidate

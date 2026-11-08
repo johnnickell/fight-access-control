@@ -139,6 +139,11 @@ string revisions. Focused level-8 analysis also checks every owned handler and i
 transaction-result annotation. Real seven-route serialized dispatch and safe HTTP error composition remain separate
 runtime proof; no generic bus/Event inference or actual consumer persistence qualification is claimed.
 
+TASK-00143 adds nine exact positive contracts for both void issuance callbacks, generator/ciphers, all three
+operation authorization methods and the non-null outcome Query, plus four rejected void/result/identity/tuple uses.
+Real registered Command/Query dispatch and Common safe HTTP middleware are separate runtime proof; this does not
+qualify generic bus inference, production crypto or consumer persistence.
+
 TASK-00142 adds ten exact probes for all six void Feature/policy handler callbacks, Boolean availability,
 scoped discovery/references and merged name lists, plus eight rejected incompatible uses. Existing policy/Feature
 fixtures retain plan/action/definition/message/callback precision. Owned level-8 analysis separately checks the

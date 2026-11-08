@@ -25,6 +25,7 @@ use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\Exception\
 use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\Query\AgentOperationView;
 use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\Query\GetAgentOperation;
 use Fight\Common\Domain\Messaging\Query\QueryMessage;
+use Fight\Test\AccessControl\Application\AccessControl\Agent\Credential\OperationFailureAssertions;
 use Fight\Test\AccessControl\Application\AccessControl\Agent\Credential\ProvisioningEnvironment;
 use Fight\Test\AccessControl\Application\AccessControl\Agent\Credential\UncertainAgentUnitOfWork;
 use Fight\Test\AccessControl\Application\AccessControl\Event\InMemoryEventDispatcher;
@@ -33,6 +34,7 @@ use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 use RuntimeException;
 use SensitiveParameter;
+use Throwable;
 
 #[CoversClass(GetAgentOperationHandler::class)]
 #[CoversClass(AgentOperationView::class)]
@@ -261,6 +263,9 @@ final class GetAgentOperationHandlerTest extends TestCase
                 $other->bus()->commandBus->execute(new ProvisionAgent($other->key, $other->request));
                 $otherOperation = $other->operationRepository->operations[$other->key->toString()];
                 $environment->operationRepository->operations[$environment->key->toString()] = $otherOperation;
+                $environment->operationAuthorization->deniedTargets = [
+                    $otherOperation->getIssuance()->getAgentId()->toString()
+                ];
             } else {
                 $destination = new AgentCredentialDestination(AgentDestinationId::generate(), 1);
                 if ($case === 'binding') {
@@ -326,7 +331,7 @@ final class GetAgentOperationHandlerTest extends TestCase
                 $environment->key,
                 $environment->request
             )),
-            AgentOperationFailure::UNAVAILABLE
+            null
         );
         $before = $this->effects($environment);
         self::assertFalse($this->read($environment)->isConfirmed());
@@ -474,21 +479,17 @@ final class GetAgentOperationHandlerTest extends TestCase
         ];
     }
 
-    private function assertRejected(#[SensitiveParameter] Closure $operation, AgentOperationFailure $reason): void
+    private function assertRejected(#[SensitiveParameter] Closure $operation, ?AgentOperationFailure $reason): void
     {
         try {
             $operation();
             self::fail('Expected a safe rejection.');
-        } catch (AgentOperationRejectedException $agentOperationRejectedException) {
-            self::assertSame($reason, $agentOperationRejectedException->getReason());
-            self::assertSame(
-                'Agent operation rejected: '.$reason->value.'.',
-                $agentOperationRejectedException->getMessage()
-            );
-            self::assertNull($agentOperationRejectedException->getPrevious());
+        } catch (Throwable $throwable) {
+            OperationFailureAssertions::assertMatches($reason, $throwable);
+            self::assertNull($throwable->getPrevious());
             foreach (['private-provider', '/key/path', 'raw-secret', 'ciphertext'] as $unsafe) {
-                self::assertStringNotContainsString($unsafe, (string) $agentOperationRejectedException);
-                self::assertStringNotContainsString($unsafe, $agentOperationRejectedException->getMessage());
+                self::assertStringNotContainsString($unsafe, (string) $throwable);
+                self::assertStringNotContainsString($unsafe, $throwable->getMessage());
             }
         }
     }

@@ -15,6 +15,7 @@ use Fight\AccessControl\Application\AccessControl\AgentCredentialOperation\Deliv
 use Fight\AccessControl\Application\AccessControl\Timing\Service\Clock;
 use Fight\AccessControl\Domain\AccessControl\Agent\AgentRepository;
 use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\AgentCredentialDestination;
+use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\AgentCredentialOperationRepository;
 use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\AgentDestinationId;
 use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\AgentOperationId;
 use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\AgentOperationKey;
@@ -81,11 +82,12 @@ final class ProvisioningEnvironment
         ?AgentDeliveryCipher $deliveryCipher = null,
         ?AuditEvidenceRepository $auditEvidenceRepository = null,
         ?AgentRepository $agentRepository = null,
-        ?Clock $clock = null
+        ?Clock $clock = null,
+        ?AgentCredentialOperationRepository $operationRepository = null
     ): IssuanceBusFixture {
         return new IssuanceBusFixture(new ProvisionAgentHandler(
             $agentRepository ?? $this->agentRepository,
-            $this->operationRepository,
+            $operationRepository ?? $this->operationRepository,
             $auditEvidenceRepository ?? $this->auditEvidenceRepository,
             $this->operationAuthorization,
             $generator ?? new readonly class ($this) implements HmacSharedSecretGenerator {

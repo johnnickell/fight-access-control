@@ -31,6 +31,7 @@ use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\Exception\
 use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\Query\AgentOperationView;
 use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\Query\GetAgentOperation;
 use Fight\AccessControl\Domain\AccessControl\CredentialDelivery\EncryptedCredentialMaterial;
+use Fight\Common\Application\Error\Exception\RateLimitExceeded;
 use Fight\Common\Domain\Messaging\Query\QueryMessage;
 use LogicException;
 use PHPUnit\Framework\Attributes\CoversClass;
@@ -395,8 +396,8 @@ final class AgentCredentialDeliveryServiceTest extends TestCase
                 $env->provisioning->request
             ));
             self::fail('New issuance must reject at capacity.');
-        } catch (AgentOperationRejectedException $agentOperationRejectedException) {
-            self::assertSame(AgentOperationFailure::CAPACITY, $agentOperationRejectedException->getReason());
+        } catch (RateLimitExceeded $rateLimitExceeded) {
+            self::assertNull($rateLimitExceeded->getPrevious());
         }
 
         self::assertSame(AgentDeliveryResult::DELIVERED, $env->deliver());

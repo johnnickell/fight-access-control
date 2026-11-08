@@ -31,6 +31,9 @@ interface AgentRepository extends AgentOperationContractRepository
     /**
      * Retrieves an Agent by its stable identifier
      *
+     * Return only the exact requested identity or authoritative absence. Wrong identities and failed reads are
+     * contract/storage faults, never absence or evidence of a changed credential predecessor.
+     *
      * @throws Exception When an error occurs
      */
     public function getById(AgentId $id): ?Agent;

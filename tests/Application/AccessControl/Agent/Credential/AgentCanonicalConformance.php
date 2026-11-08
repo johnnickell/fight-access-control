@@ -26,7 +26,6 @@ use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\AgentOpera
 use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\AgentOperationScope;
 use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\AgentProvisioningRequest;
 use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\AgentRotationRequest;
-use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\Exception\AgentOperationRejectedException;
 use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\Query\AgentOperationView;
 use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\Query\GetAgentOperation;
 use Fight\Common\Domain\Messaging\Query\QueryMessage;
@@ -34,6 +33,7 @@ use Fight\Test\AccessControl\Application\AccessControl\Agent\Credential\Conforma
 use Fight\Test\AccessControl\Application\AccessControl\AgentCredentialOperation\Delivery\Conformance;
 use Fight\Test\AccessControl\Application\AccessControl\AgentCredentialOperation\Delivery\DeliveryConformance;
 use PHPUnit\Framework\Attributes\DataProvider;
+use Throwable;
 
 /** Consumer-bindable M3 proof of one canonical contract through public services and persisted outcomes */
 abstract class AgentCanonicalConformance extends DeliveryConformance
@@ -348,12 +348,12 @@ abstract class AgentCanonicalConformance extends DeliveryConformance
         try {
             $attempt();
             self::fail('Invalid request must reject without fallback issuance or disclosure.');
-        } catch (AgentOperationRejectedException $agentOperationRejectedException) {
-            self::assertSame($reason, $agentOperationRejectedException->getReason());
-            self::assertNull($agentOperationRejectedException->getPrevious());
+        } catch (Throwable $throwable) {
+            OperationFailureAssertions::assertMatches($reason, $throwable);
+            self::assertNull($throwable->getPrevious());
             $this->assertSafe($fixture, [
-                $agentOperationRejectedException->getMessage(),
-                $agentOperationRejectedException->getTraceAsString()
+                $throwable->getMessage(),
+                $throwable->getTraceAsString()
             ]);
         }
     }

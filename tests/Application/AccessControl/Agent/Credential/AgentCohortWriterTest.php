@@ -41,6 +41,7 @@ use LogicException;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
+use Fight\Common\Application\Error\Exception\ServiceUnavailable;
 
 #[CoversClass(CountAgentDeliveryKeyReferencesHandler::class)]
 #[CoversClass(ListAgentDeliveryMaintenanceHandler::class)]
@@ -188,8 +189,8 @@ final class AgentCohortWriterTest extends TestCase
                 new ProvisionAgent($env->key, $env->request)
             );
             self::fail('Distinct repository cohorts cannot form a writer.');
-        } catch (AgentOperationRejectedException $agentOperationRejectedException) {
-            self::assertSame(AgentOperationFailure::UNAVAILABLE, $agentOperationRejectedException->getReason());
+        } catch (ServiceUnavailable $serviceUnavailable) {
+            self::assertNull($serviceUnavailable->getPrevious());
         }
 
         self::assertSame(0, $env->generations);

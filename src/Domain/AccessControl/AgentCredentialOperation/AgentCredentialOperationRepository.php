@@ -22,6 +22,8 @@ interface AgentCredentialOperationRepository extends AgentOperationContractRepos
      * Retrieves authoritative retained correlation only after current scope and destination authorization
      *
      * Includes permanent tombstones and unknown canonical versions; never treats either as absent.
+     * Return the exact scoped key and coherent original request/issuance, or null for authoritative absence only.
+     * Inconsistent correlation is a repository fault; failed reads must not return null or a different key.
      */
     public function getByKey(AgentOperationKey $key): ?AgentCredentialOperation;
 
@@ -47,6 +49,7 @@ interface AgentCredentialOperationRepository extends AgentOperationContractRepos
      *
      * Counters span all Agents and scopes for the stable destination ID, never reset on rebinding, and roll back
      * with failed issuance. Authorization already holds the binding fence through transaction completion.
+     * Return a positive version; invalid reservations are repository faults, not invalid caller requests.
      */
     public function reserveDestinationWrite(AgentCredentialDestination $destination): int;
 

@@ -15,6 +15,10 @@ interface HmacSharedSecretCipher
 {
     /**
      * Encrypts one raw HMAC shared secret into a consumer-managed envelope
+     *
+     * Preserve the supplied bytes without generating or delivering a replacement. The authentication envelope
+     * is independent of the operation-bound delivery copy. Failure aborts issuance; arbitrary provider faults
+     * are internal failures. Never return provider diagnostics in place of an envelope.
      */
     public function encrypt(#[SensitiveParameter] string $hmacSharedSecret): string;
 }

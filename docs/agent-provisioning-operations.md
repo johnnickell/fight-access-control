@@ -69,9 +69,14 @@ the actual executing invoker or explicitly delegated worker independently of the
 recheck current authority inside the package transaction on every attempt. Consumers own broker routing, worker
 errors and retry/dead-letter policy; an async submitter is not promised the worker's exception.
 
-`AgentOperationRejectedException::getReason()` returns a sanitized enum. `isRetryable()` identifies capacity,
-contention and unavailable capability/storage rejections. A retry always uses the retained key. Conflicting or unknown
-canonical requests need correction, not guessed issuance. No implicit operation ID or destination is manufactured.
+Issuance execution now exposes intentional Common Application categories: `InvalidInput` for an invalid new
+request, `PermissionDenied` for current authorization refusal, `StateConflict` for request/predecessor conflict,
+`RateLimitExceeded` for capacity and `ServiceUnavailable` for explicit unavailability, unsupported persisted markers
+or bounded contention. Unknown faults and broken repository/port promises instead become sanitized
+`AgentIssuanceFailed` (`ServerError`), without provider causes. Domain/worker exceptions retain their own contracts;
+do not catch Domain `AgentOperationRejectedException` as the issuance Command's outward contract. A retry always
+uses the retained key and original request; unsupported state needs compatible composition, not guessed issuance.
+No implicit operation ID, destination, returned result or warning is manufactured.
 
 ## Transaction, persistence and concurrency
 
@@ -123,8 +128,12 @@ material alone does not establish delivery.
 
 ## Failure and publication
 
-A callback failure is pre-commit rejection. Arbitrary dependency failures become sanitized storage/integration
-rejection without the original exception, trace arguments or provider details in public diagnostics. A failure after
+A callback failure prevents confirmed completion. Known refusals are translated only at their supplying boundary;
+for example authorization permits only `UNAUTHORIZED`/`UNAVAILABLE`, not arbitrary write/input reasons. Cipher and
+generator faults are internal, never authorization or key-collision intent. Repository reads promise the exact key
+or Agent, and destination reservation must be positive. Matching retained requests require coherent original
+issuance; inconsistent persisted promises remain internal rather than caller conflict. Internal failures contain
+fixed text without the original exception, provider trace arguments or material. A failure after
 the callback completed but before `commitTransactional` returned is **indeterminate**, regardless of whether the
 adapter actually committed or rolled back. The caller retains the original key; an exception cannot prove rollback.
 Adapters must propagate callback failures and must not retry callbacks invisibly or return before confirmed commit.

@@ -7,7 +7,10 @@ namespace Fight\AccessControl\Application\AccessControl\Agent\CommandHandler;
 use Fight\AccessControl\Application\AccessControl\Agent\Credential\HmacSharedSecretCipher;
 use Fight\AccessControl\Application\AccessControl\Agent\Credential\HmacSharedSecretGenerator;
 use Fight\AccessControl\Application\AccessControl\AgentCredentialOperation\AgentOperationAuthorization;
+use Fight\AccessControl\Application\AccessControl\AgentCredentialOperation\AgentOperationRejection;
 use Fight\AccessControl\Application\AccessControl\AgentCredentialOperation\Delivery\AgentDeliveryCipher;
+use Fight\AccessControl\Application\AccessControl\AgentCredentialOperation\Exception\AgentIssuanceFailed;
+use Fight\AccessControl\Application\AccessControl\AgentCredentialOperation\Exception\AgentRotationConflict;
 use Fight\AccessControl\Application\AccessControl\Timing\Service\Clock;
 use Fight\AccessControl\Domain\AccessControl\Agent\AgentCredentialId;
 use Fight\AccessControl\Domain\AccessControl\Agent\AgentRepository;
@@ -84,7 +87,7 @@ final readonly class RotateAgentCredentialHandler implements CommandHandler
             $created = false;
             try {
                 if ($this->unitOfWork->isClosed()) {
-                    throw new AgentOperationRejectedException(AgentOperationFailure::UNAVAILABLE);
+                    throw new AgentOperationRejection(AgentOperationFailure::UNAVAILABLE);
                 }
 
                 /** @var AgentIssuance $issuance */
@@ -96,24 +99,69 @@ final readonly class RotateAgentCredentialHandler implements CommandHandler
                     &$callbackCompleted,
                     &$created
                 ): AgentIssuance {
-                    $this->operationRepository->getOperationContract()->assertSameCohort(
-                        $this->agentRepository->getOperationContract()
-                    );
-                    $actor = $this->operationAuthorization->authorizeRotation(
-                        $key->getScope(),
-                        $request->getDestination(),
-                        $request->getAgentId()
-                    );
-                    if (preg_match('/\A[A-Za-z0-9_.:-]{1,128}\z/D', $actor) !== 1) {
-                        throw new AgentOperationRejectedException(AgentOperationFailure::UNAVAILABLE);
+                    try {
+                        $this->operationRepository->getOperationContract()->assertSameCohort(
+                            $this->agentRepository->getOperationContract()
+                        );
+                    } catch (AgentOperationRejectedException $agentOperationRejectedException) {
+                        throw AgentOperationRejection::fromDomain(
+                            $agentOperationRejectedException,
+                            AgentOperationFailure::UNAVAILABLE
+                        );
                     }
 
-                    $operation = $this->operationRepository->getByKey($key);
+                    try {
+                        $actor = $this->operationAuthorization->authorizeRotation(
+                            $key->getScope(),
+                            $request->getDestination(),
+                            $request->getAgentId()
+                        );
+                    } catch (AgentOperationRejectedException $agentOperationRejectedException) {
+                        throw AgentOperationRejection::fromDomain(
+                            $agentOperationRejectedException,
+                            AgentOperationFailure::UNAUTHORIZED,
+                            AgentOperationFailure::UNAVAILABLE
+                        );
+                    }
+
+                    if (preg_match('/\A[A-Za-z0-9_.:-]{1,128}\z/D', $actor) !== 1) {
+                        throw new AgentIssuanceFailed();
+                    }
+
+                    try {
+                        $operation = $this->operationRepository->getByKey($key);
+                    } catch (AgentOperationRejectedException $agentOperationRejectedException) {
+                        throw AgentOperationRejection::fromDomain(
+                            $agentOperationRejectedException,
+                            AgentOperationFailure::UNAVAILABLE
+                        );
+                    }
+
                     if ($operation !== null) {
-                        $issuance = $operation->resolve($request);
+                        if ($operation->getIssuance()->getKey()->toString() !== $key->toString()) {
+                            throw new AgentIssuanceFailed();
+                        }
+
+                        try {
+                            $issuance = $operation->resolve($request);
+                        } catch (AgentOperationRejectedException $rejection) {
+                            if (
+                                $rejection->getReason() === AgentOperationFailure::CONFLICT
+                                && $operation->getCanonicalRequest() === $request->canonicalize()
+                            ) {
+                                throw new AgentIssuanceFailed();
+                            }
+
+                            throw AgentOperationRejection::fromDomain(
+                                $rejection,
+                                AgentOperationFailure::INVALID_REQUEST,
+                                AgentOperationFailure::CONFLICT,
+                                AgentOperationFailure::UNSUPPORTED_VERSION
+                            );
+                        }
                     } else {
                         if ($resolveOnly) {
-                            throw new AgentOperationRejectedException($missingReason);
+                            throw new AgentOperationRejection($missingReason);
                         }
 
                         $issuance = $this->issue($key, $request, $actor);
@@ -125,6 +173,7 @@ final readonly class RotateAgentCredentialHandler implements CommandHandler
                     return $issuance;
                 });
             } catch (Throwable $failure) {
+                /** @var bool $callbackCompleted Updated by the owned callback before a possible commit fault */
                 if ($callbackCompleted) {
                     $this->publishFailure();
 
@@ -135,11 +184,12 @@ final readonly class RotateAgentCredentialHandler implements CommandHandler
                 // Resolve only after all losing writes roll back; never generate again inside this invocation.
                 if (
                     !$resolveOnly
-                    && ($failure instanceof AgentOperationCollisionException
-                        || $failure instanceof AgentCredentialException)
+                    && (($failure instanceof AgentOperationRejection
+                            && $failure->getReason() === AgentOperationFailure::CONTENTION)
+                        || $failure instanceof AgentRotationConflict)
                 ) {
                     $resolveOnly = true;
-                    if ($failure instanceof AgentCredentialException) {
+                    if ($failure instanceof AgentRotationConflict) {
                         $missingReason = AgentOperationFailure::CONFLICT;
                     }
 
@@ -147,12 +197,11 @@ final readonly class RotateAgentCredentialHandler implements CommandHandler
                 }
 
                 $this->publishFailure();
-                $reason = AgentOperationFailure::UNAVAILABLE;
-                if ($failure instanceof AgentOperationRejectedException) {
-                    $reason = $failure->getReason();
+                if ($failure instanceof AgentOperationRejection) {
+                    throw AgentOperationRejection::fromReason($failure->getReason());
                 }
 
-                throw new AgentOperationRejectedException($reason);
+                throw new AgentIssuanceFailed();
             }
 
             if ($created) {
@@ -169,17 +218,48 @@ final readonly class RotateAgentCredentialHandler implements CommandHandler
     private function issue(AgentOperationKey $key, AgentRotationRequest $request, string $actor): AgentIssuance
     {
         $canonicalRequest = $request->canonicalize();
-        $agent = $this->agentRepository->getById($request->getAgentId());
-        if ($agent === null) {
-            throw new AgentOperationRejectedException(AgentOperationFailure::CONFLICT);
+        try {
+            $agent = $this->agentRepository->getById($request->getAgentId());
+        } catch (AgentOperationRejectedException $agentOperationRejectedException) {
+            throw AgentOperationRejection::fromDomain(
+                $agentOperationRejectedException,
+                AgentOperationFailure::UNAVAILABLE
+            );
         }
 
-        $agent->assertRecoverableRotation(
-            $request->getExpectedCredentialId(),
-            $request->getExpectedCredentialRevision()
-        );
+        if ($agent === null) {
+            throw new AgentOperationRejection(AgentOperationFailure::CONFLICT);
+        }
+
+        if (!$agent->getId()->equals($request->getAgentId())) {
+            throw new AgentIssuanceFailed();
+        }
+
+        try {
+            $agent->assertRecoverableRotation(
+                $request->getExpectedCredentialId(),
+                $request->getExpectedCredentialRevision()
+            );
+        } catch (AgentCredentialException) {
+            throw new AgentRotationConflict();
+        }
+
         $issuedAt = $this->clock->now();
         $credentialId = AgentCredentialId::generate();
+        try {
+            $writeVersion = $this->operationRepository->reserveDestinationWrite($request->getDestination());
+        } catch (AgentOperationRejectedException $agentOperationRejectedException) {
+            throw AgentOperationRejection::fromDomain(
+                $agentOperationRejectedException,
+                AgentOperationFailure::CONFLICT,
+                AgentOperationFailure::UNAVAILABLE
+            );
+        }
+
+        if ($writeVersion < 1) {
+            throw new AgentIssuanceFailed();
+        }
+
         $issuance = new AgentIssuance(
             $key,
             AgentDeliveryId::generate(),
@@ -187,31 +267,56 @@ final readonly class RotateAgentCredentialHandler implements CommandHandler
             $credentialId,
             $request->getExpectedCredentialRevision() + 1,
             $request->getDestination(),
-            $this->operationRepository->reserveDestinationWrite($request->getDestination()),
+            $writeVersion,
             $issuedAt
         );
-        $secret = $this->hmacSharedSecretGenerator->generate();
+        try {
+            $secret = $this->hmacSharedSecretGenerator->generate();
+            $envelope = $this->hmacSharedSecretCipher->encrypt($secret);
+            $material = $this->deliveryCipher->encrypt($secret, $issuance);
+        } catch (Throwable) {
+            throw new AgentIssuanceFailed();
+        }
+
         $successor = $agent->rotateRecoverableCredential(
             $request->getExpectedCredentialId(),
             $request->getExpectedCredentialRevision(),
             $credentialId,
-            $this->hmacSharedSecretCipher->encrypt($secret),
+            $envelope,
             $issuedAt
         );
-        $material = $this->deliveryCipher->encrypt($secret, $issuance);
-        if (!$this->agentRepository->replace($agent, $successor)) {
-            throw new AgentCredentialException('The expected Agent credential is no longer authoritative.');
+        try {
+            $replaced = $this->agentRepository->replace($agent, $successor);
+        } catch (AgentOperationRejectedException $agentOperationRejectedException) {
+            throw AgentOperationRejection::fromDomain(
+                $agentOperationRejectedException,
+                AgentOperationFailure::UNAVAILABLE
+            );
         }
 
-        $this->operationRepository->add(
-            new AgentCredentialOperation(
-                AgentOperationCanonicalization::VERSION,
-                $canonicalRequest,
-                $issuance,
-                $material
-            ),
-            $this->limits
+        if (!$replaced) {
+            throw new AgentRotationConflict();
+        }
+
+        $operation = new AgentCredentialOperation(
+            AgentOperationCanonicalization::VERSION,
+            $canonicalRequest,
+            $issuance,
+            $material
         );
+        try {
+            $this->operationRepository->add($operation, $this->limits);
+        } catch (AgentOperationCollisionException) {
+            throw new AgentOperationRejection(AgentOperationFailure::CONTENTION);
+        } catch (AgentOperationRejectedException $rejection) {
+            throw AgentOperationRejection::fromDomain(
+                $rejection,
+                AgentOperationFailure::CAPACITY,
+                AgentOperationFailure::CONFLICT,
+                AgentOperationFailure::UNAVAILABLE
+            );
+        }
+
         $this->auditEvidenceRepository->add(AuditEvidence::agentCredentialRotated($actor, $request->getAgentId()));
 
         return $issuance;

@@ -32,6 +32,9 @@ use Fight\Common\Adapter\Http\Error\SafeHttpErrorPolicy;
 use Fight\Common\Adapter\Messaging\Query\Routing\InMemoryQueryRouter;
 use Fight\Common\Adapter\Messaging\Query\RoutingQueryBus;
 use Fight\Common\Application\Error\Exception\ServerError;
+use Fight\Common\Application\Error\Exception\PermissionDenied;
+use Fight\Common\Application\Error\Exception\ServiceUnavailable;
+use Fight\Test\AccessControl\Application\AccessControl\Agent\Credential\OperationFailureAssertions;
 use Fight\Common\Domain\Messaging\Query\QueryMessage;
 use Fight\Test\AccessControl\Application\AccessControl\AgentCredentialOperation\Maintenance\MaintenanceEnvironment;
 use PHPUnit\Framework\Attributes\CoversClass;
@@ -153,9 +156,9 @@ final class AgentQueryContractTest extends TestCase
         try {
             new RoutingQueryBus($router)->fetch($query);
             self::fail('A classified read failure cannot return success.');
-        } catch (AgentOperationRejectedException $failure) {
+        } catch (AgentOperationRejectedException | PermissionDenied | ServiceUnavailable $failure) {
             self::assertContains($reason, [AgentOperationFailure::UNAUTHORIZED, AgentOperationFailure::UNAVAILABLE]);
-            self::assertSame($reason, $failure->getReason());
+            OperationFailureAssertions::assertMatches($reason, $failure);
             self::assertNull($failure->getPrevious());
         } catch (AgentOperationReadFailed $failure) {
             // Invalid decoded rows and write-only business failures are not ordinary Query refusals.

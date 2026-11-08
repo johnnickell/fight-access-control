@@ -27,7 +27,9 @@ interface AgentCredentialOperationReadRepository extends AgentOperationContractR
      * together, including tombstones and unknown versions. Do not load material, decrypt, take a claim, apply admission
      * limits or mutate state. Never read from an eventually consistent replica. No package write transaction is needed.
      * Return null only for authoritative absence, never storage failure; throw on unavailable/inconsistent storage.
-     * Absence cannot establish rollback. The handler rechecks current authority including the target before disclosure.
+     * Absence cannot establish rollback. Return only the exact requested scoped key; a key-only lookup does not
+     * promise the caller's destination binding. The handler validates key correlation before using the returned
+     * target, then rechecks current authority before disclosure. Different destination bindings remain concealed.
      */
     public function getStatusByKey(AgentOperationKey $key): ?AgentOperationView;
 

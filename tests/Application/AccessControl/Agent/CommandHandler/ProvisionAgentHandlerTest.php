@@ -35,8 +35,10 @@ use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\Query\Agen
 use Fight\AccessControl\Domain\AccessControl\Audit\AuditEvidence;
 use Fight\AccessControl\Domain\AccessControl\Permission\PermissionId;
 use Fight\AccessControl\Domain\AccessControl\User\UserId;
+use Fight\Common\Application\Error\Exception\ServiceUnavailable;
 use Fight\Common\Application\Repository\TransactionalUnitOfWork;
 use Fight\Common\Domain\Exception\DomainException;
+use Fight\Test\AccessControl\Application\AccessControl\Agent\Credential\OperationFailureAssertions;
 use Fight\Test\AccessControl\Application\AccessControl\Agent\Credential\ProvisioningEnvironment;
 use Fight\Test\AccessControl\Application\AccessControl\Agent\Credential\UncertainAgentUnitOfWork;
 use Fight\Test\AccessControl\Application\AccessControl\Agent\Repository\InMemoryAgentRepository;
@@ -47,6 +49,7 @@ use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 use RuntimeException;
+use Throwable;
 
 #[CoversClass(ProvisionAgentHandler::class)]
 #[CoversClass(AgentOperationUncertainException::class)]
@@ -314,7 +317,7 @@ final class ProvisionAgentHandlerTest extends TestCase
             fn(): AgentOperationView => $service->dispatchAndRead(
                 new ProvisionAgent($environment->key, $environment->request)
             ),
-            AgentOperationFailure::UNAVAILABLE
+            null
         );
         self::assertNull($exception->getPrevious());
         self::assertStringNotContainsString('original-test-secret', (string) $exception);
@@ -385,7 +388,7 @@ final class ProvisionAgentHandlerTest extends TestCase
             fn(): AgentOperationView => $environment->bus()->dispatchAndRead(
                 new ProvisionAgent($key, $environment->request)
             ),
-            $case === 'audit identity' ? AgentOperationFailure::UNAVAILABLE : AgentOperationFailure::UNAUTHORIZED
+            $case === 'audit identity' ? null : AgentOperationFailure::UNAUTHORIZED
         );
         self::assertSame((int) $retry, $environment->operationRepository->reads);
         self::assertSame((int) $retry, $environment->generations);
@@ -441,7 +444,7 @@ final class ProvisionAgentHandlerTest extends TestCase
                 $environment->key,
                 $environment->request
             )),
-            AgentOperationFailure::UNAVAILABLE
+            null
         );
         self::assertSame([], $participantWrites);
         self::assertSame([], $environment->agentRepository->all());
@@ -636,7 +639,7 @@ final class ProvisionAgentHandlerTest extends TestCase
             )),
             AgentOperationFailure::CONTENTION
         );
-        self::assertTrue($exception->isRetryable());
+        self::assertInstanceOf(ServiceUnavailable::class, $exception);
         self::assertSame(2, $environment->transaction->transactions);
         self::assertSame(1, $environment->generations);
         self::assertSame([], $environment->agentRepository->all());
@@ -721,15 +724,15 @@ final class ProvisionAgentHandlerTest extends TestCase
         self::assertStringNotContainsString('original-test-secret', serialize($failure));
     }
 
-    private function assertRejected(callable $operation, AgentOperationFailure $reason): AgentOperationRejectedException
+    private function assertRejected(callable $operation, ?AgentOperationFailure $reason): Throwable
     {
         try {
             $operation();
             self::fail('Expected safe rejection.');
-        } catch (AgentOperationRejectedException $agentOperationRejectedException) {
-            self::assertSame($reason, $agentOperationRejectedException->getReason());
+        } catch (Throwable $throwable) {
+            OperationFailureAssertions::assertMatches($reason, $throwable);
 
-            return $agentOperationRejectedException;
+            return $throwable;
         }
     }
 }

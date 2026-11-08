@@ -35,15 +35,16 @@ use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\AgentRotat
 use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\Delivery\AgentDeliveryPolicy;
 use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\Delivery\AgentDeliverySchedule;
 use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\Exception\AgentDeliveryFailedException;
-use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\Exception\AgentOperationRejectedException;
 use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\Exception\AgentOperationUncertainException;
 use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\Query\AgentOperationView;
 use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\Query\GetAgentOperation;
 use Fight\Common\Adapter\Messaging\Query\Routing\InMemoryQueryRouter;
 use Fight\Common\Adapter\Messaging\Query\RoutingQueryBus;
+use Fight\Common\Application\Error\Exception\StateConflict;
 use Fight\Test\AccessControl\Application\AccessControl\Agent\Credential\Conformance\IssuanceRecoveryFixture;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
+use Throwable;
 
 /** Consumer-bindable observable contract; every workflow below invokes the real package services */
 abstract class IssuanceRecoveryConformance extends TestCase
@@ -211,7 +212,7 @@ abstract class IssuanceRecoveryConformance extends TestCase
         $this->assertRejected(
             $fixture,
             fn (): AgentOperationView => $this->issue($fixture, $key, $request),
-            AgentOperationFailure::UNAVAILABLE
+            null
         );
         self::assertSame($before, $fixture->state());
         self::assertNull($fixture->stored($key));
@@ -503,8 +504,7 @@ abstract class IssuanceRecoveryConformance extends TestCase
         self::assertCount(1, array_filter($results, static fn ($result): bool =>
             $result instanceof AgentOperationView && $result->isConfirmed()));
         self::assertCount(1, array_filter($results, static fn ($result): bool =>
-            $result instanceof AgentOperationRejectedException
-                && $result->getReason() === AgentOperationFailure::CONFLICT));
+            $result instanceof StateConflict));
         self::assertSame($before['audit'] + 1, $fixture->state()['audit']);
         self::assertSame($before['operations'] + 1, $fixture->state()['operations']);
     }
@@ -599,7 +599,7 @@ abstract class IssuanceRecoveryConformance extends TestCase
             fn () => $fixture->ports()->transaction->commitTransactional(
                 fn (): AgentOperationView => $this->issue($fixture, $key, $request)
             ),
-            AgentOperationFailure::UNAVAILABLE
+            null
         );
         self::assertSame($before, $fixture->state());
     }
@@ -681,8 +681,7 @@ abstract class IssuanceRecoveryConformance extends TestCase
             $result instanceof AgentOperationView && $result->isConfirmed());
         self::assertCount(1, $confirmed);
         self::assertCount(1, array_filter($results, static fn ($result): bool =>
-            $result instanceof AgentOperationRejectedException
-                && $result->getReason() === AgentOperationFailure::CONFLICT));
+            $result instanceof StateConflict));
         self::assertSame($before['audit'] + 1, $fixture->state()['audit']);
         self::assertSame($before['operations'] + 1, $fixture->state()['operations']);
         self::assertSame($before['agents'] + (int) !$rotation, $fixture->state()['agents']);
@@ -864,17 +863,17 @@ abstract class IssuanceRecoveryConformance extends TestCase
     private function assertRejected(
         IssuanceRecoveryFixture $fixture,
         Closure $action,
-        AgentOperationFailure $reason = AgentOperationFailure::UNAUTHORIZED
+        ?AgentOperationFailure $reason = AgentOperationFailure::UNAUTHORIZED
     ): void {
         try {
             $action();
             self::fail('Expected safe rejection.');
-        } catch (AgentOperationRejectedException $agentOperationRejectedException) {
-            self::assertSame($reason, $agentOperationRejectedException->getReason());
-            self::assertNull($agentOperationRejectedException->getPrevious());
+        } catch (Throwable $throwable) {
+            OperationFailureAssertions::assertMatches($reason, $throwable);
+            self::assertNull($throwable->getPrevious());
             $this->assertSafe($fixture, [
-                $agentOperationRejectedException->getMessage(),
-                $agentOperationRejectedException->getTraceAsString()
+                $throwable->getMessage(),
+                $throwable->getTraceAsString()
             ]);
         }
     }

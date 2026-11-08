@@ -31,6 +31,7 @@ use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\Exception\
 use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\Query\AgentOperationView;
 use Fight\AccessControl\Domain\AccessControl\Audit\AuditEvidence;
 use Fight\AccessControl\Domain\AccessControl\Permission\PermissionId;
+use Fight\Common\Application\Error\Exception\RateLimitExceeded;
 use Fight\Test\AccessControl\Application\AccessControl\Agent\Authentication\InMemoryAgentRequestNonceConsumer;
 use Fight\Test\AccessControl\Application\AccessControl\Agent\Repository\InMemoryAgentRepository;
 use Fight\Test\AccessControl\Application\AccessControl\Agent\Repository\RehydratedAgentFixture;
@@ -348,8 +349,8 @@ final class AgentCredentialRetirementTest extends TestCase
         try {
             $environment->bus(limits: $limits)->commandBus->execute(new ProvisionAgent($newKey, $environment->request));
             self::fail('The one-slot override is full.');
-        } catch (AgentOperationRejectedException $agentOperationRejectedException) {
-            self::assertSame(AgentOperationFailure::CAPACITY, $agentOperationRejectedException->getReason());
+        } catch (RateLimitExceeded $rateLimitExceeded) {
+            self::assertNull($rateLimitExceeded->getPrevious());
         }
 
         $original = $this->operation($environment);
