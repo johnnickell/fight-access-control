@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Fight\AccessControl\Application\AccessControl\AgentCredentialOperation\Maintenance;
 
+use DateTimeImmutable;
 use Fight\AccessControl\Application\AccessControl\Timing\Service\Clock;
 use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\AgentCredentialDestination;
 use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\AgentCredentialOperation;
@@ -65,7 +66,7 @@ final readonly class AgentDeliveryMaintenanceService
                 $target
             ): AgentMaintenanceResult {
                 [$original, $authority] = $this->load($key, $destination, $deliveryId, $target);
-                if ($original->isMaterialExpired($this->clock->now())) {
+                if ($original->isMaterialExpired($this->now())) {
                     return $this->expireOriginal($original);
                 }
 
@@ -108,7 +109,7 @@ final readonly class AgentDeliveryMaintenanceService
                         throw new AgentOperationRejectedException(AgentOperationFailure::UNAVAILABLE);
                     }
 
-                    $replacement = $original->rewrapMaterial($rewrapped, $this->clock->now());
+                    $replacement = $original->rewrapMaterial($rewrapped, $this->now());
                 }
 
                 $this->assertAuthority($authority);
@@ -157,7 +158,7 @@ final readonly class AgentDeliveryMaintenanceService
                 return AgentMaintenanceResult::CLEANED;
             }
 
-            if (!$original->canCleanup($this->clock->now(), $this->policy)) {
+            if (!$original->canCleanup($this->now(), $this->policy)) {
                 return AgentMaintenanceResult::UNCHANGED;
             }
 
@@ -195,7 +196,7 @@ final readonly class AgentDeliveryMaintenanceService
 
                 $this->replaceMaintenance(
                     $current,
-                    $current->confirmCleanup($this->clock->now(), $this->policy)
+                    $current->confirmCleanup($this->now(), $this->policy)
                 );
 
                 return AgentMaintenanceResult::CLEANED;
@@ -249,13 +250,14 @@ final readonly class AgentDeliveryMaintenanceService
         ?AgentIssuance $issuance,
         ?AgentDeliveryKeyVersion $target
     ): AgentDeliveryAuthority {
+        $now = $this->now();
         try {
             $authority = $this->maintenanceAuthorization->authorize(
                 $key->getScope(),
                 $destination,
                 $issuance,
                 $target,
-                $this->clock->now()
+                $now
             );
         } catch (AgentOperationRejectedException $agentOperationRejectedException) {
             if (
@@ -279,7 +281,7 @@ final readonly class AgentDeliveryMaintenanceService
      */
     private function expireOriginal(#[SensitiveParameter] AgentCredentialOperation $original): AgentMaintenanceResult
     {
-        $replacement = $original->expireMaterial($this->clock->now());
+        $replacement = $original->expireMaterial($this->now());
         if ($replacement === $original) {
             return AgentMaintenanceResult::UNCHANGED;
         }
@@ -294,7 +296,7 @@ final readonly class AgentDeliveryMaintenanceService
      */
     private function assertAuthority(AgentDeliveryAuthority $authority): void
     {
-        if ($this->clock->now() >= $authority->getExpiresAt()) {
+        if ($this->now() >= $authority->getExpiresAt()) {
             throw new AgentOperationRejectedException(AgentOperationFailure::UNAUTHORIZED);
         }
     }
@@ -345,26 +347,53 @@ final readonly class AgentDeliveryMaintenanceService
      */
     private function transact(#[SensitiveParameter] callable $operation): mixed
     {
-        if ($this->unitOfWork->isClosed()) {
-            throw new AgentOperationRejectedException(AgentOperationFailure::UNAVAILABLE);
-        }
-
         $completed = false;
+        $callbackFailure = null;
         try {
-            return $this->unitOfWork->commitTransactional(function () use ($operation, &$completed): mixed {
-                $this->operationContract()->assertCompatible();
-                $result = $operation();
-                $completed = true;
+            if ($this->unitOfWork->isClosed()) {
+                throw new LogicException('The maintenance transaction is closed.');
+            }
 
-                return $result;
+            return $this->unitOfWork->commitTransactional(function () use (
+                $operation,
+                &$completed,
+                &$callbackFailure
+            ): mixed {
+                try {
+                    $this->operationContract()->assertCompatible();
+                    $result = $operation();
+                    $completed = true;
+
+                    return $result;
+                } catch (Throwable $throwable) {
+                    $callbackFailure = $throwable;
+                    throw $throwable;
+                }
             });
-        } catch (Throwable $throwable) {
+        } catch (Throwable) {
             /** @var bool $completed Updated by the owned callback before commit acknowledgement */
             if ($completed) {
                 throw new AgentDeliveryCommitUncertainException();
             }
 
-            throw $throwable;
+            /** @var Throwable|null $callbackFailure Captured at the owned callback, not inferred from UoW mechanics */
+            if ($callbackFailure !== null) {
+                throw $callbackFailure;
+            }
+
+            throw new LogicException('The maintenance transaction is unavailable.');
+        }
+    }
+
+    /**
+     * Returns trusted time without adopting failure intent from the Clock
+     */
+    private function now(): DateTimeImmutable
+    {
+        try {
+            return $this->clock->now();
+        } catch (Throwable) {
+            throw new LogicException('The maintenance clock is unavailable.');
         }
     }
 

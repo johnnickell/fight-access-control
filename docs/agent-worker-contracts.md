@@ -64,7 +64,15 @@ identity has no business-refusal intent. Same-key wrong destination remains conc
 correlation remains rejected. Among external storage ports, only an actual expected-state writer supplies
 conflict/contention meanings; owned Domain claim/admission decisions retain their own reasons.
 Authorization ports supply only their documented denial/unavailability and, for maintenance, closed-target-key
-conflict. Capability lookup cannot invent claim contention or caller denial.
+conflict. Capability lookup cannot invent claim contention or caller denial. Trusted Clock evaluations supply time,
+not authority, contention, version refusal or commit evidence. Their faults remain internal `UNAVAILABLE`, including
+when sampling authorization time; the provider catch encloses only the actual authorization call.
+
+Transaction status/start failures likewise remain internal `UNAVAILABLE`, not business refusal or deferral. The
+owned callback retains its exact primary throwable through the UoW boundary, even if transaction mechanics fail
+while propagating it. Actual qualified authority, Domain and expected-state writer refusals keep their meanings.
+A completed callback takes precedence as `INDETERMINATE` when acknowledgement fails, whether its effects ultimately
+committed or rolled back. Native mixed results and local callback annotations do not change this distinction.
 
 The decipher and rewrapper deliberately classify temporary failure, permanent original-key loss and corrupt material.
 Only those providers own key/integrity classification. A returned invocation must match every original issuance field;
