@@ -164,6 +164,13 @@ not falsely narrowed by an annotation. Owned level-8 analysis checks all 23 curr
 real admission/continuation and relevant Common safe-error/protocol composition remain separate runtime proof.
 No generic bus/Event or real consumer crypto/persistence/fence/handoff qualification is claimed.
 
+TASK-00148 adds 14 exact Resource/Skill probes and eight rejected incompatible uses: exact provider/revision and
+Permission lists, optional requirements, Boolean availability, typed mapping callbacks and cross-family metadata.
+The descriptor export and arbitrary StrictJson property deliberately retain their actual dynamic types; runtime
+owner validation, not a fixture annotation, narrows them. Focused level-8 analysis covers all six family declarations.
+Actual Common discovery/read/responder and request-scope proof remain separate from static inference and do not
+qualify real consumer storage, parser, crypto, bootstrap or diagnostic sinks.
+
 Native transactional results remain `mixed`; a matching local `@var` for a known owned callback result (including
 tuples/unions) remains sufficient. No generic UoW supplier or redundant runtime check is required.
 

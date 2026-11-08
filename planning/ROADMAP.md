@@ -341,9 +341,9 @@ slice retains its own callers/docs/tests/full gate/exact coverage/independent ac
 
 TICKET-00041's complete four-TASK plan is approved/written as [TASK-00146](tasks/00146-TASK.md) ordinary HTTP,
 [TASK-00147](tasks/00147-TASK.md) profile Tools, [TASK-00148](tasks/00148-TASK.md) Resource/Skill and
-[TASK-00149](tasks/00149-TASK.md) public payload/declarative metadata. At that plan checkpoint, orders 325–328
-were ready-for-agent. The first/third have no demonstrated local blockers, TASK-00147 waits on TASK-00128/00131/00141
-and TASK-00149 consumes
+[TASK-00149](tasks/00149-TASK.md) public payload/declarative metadata. At that planning checkpoint orders 325–328
+were ready-for-agent; the first/third had no demonstrated local blockers. TASK-00147 waits on
+TASK-00128/00131/00141 and TASK-00149 consumes
 TASK-00133's now-accepted status representation. Current executability derives from the owning records and Board.
 Primary manifests allocate 23 current files (2 Adapter + 13 Application presentation + 8 OpenAPI) without overlap/
 omission, not completed source review or runtime/type/supplier/consumer qualification. Each slice retains actual
