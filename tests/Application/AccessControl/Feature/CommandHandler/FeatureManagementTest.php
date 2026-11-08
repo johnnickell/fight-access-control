@@ -24,8 +24,6 @@ use Fight\AccessControl\Domain\AccessControl\Feature\Event\FeatureCreated;
 use Fight\AccessControl\Domain\AccessControl\Feature\Event\FeaturePermissionChanged;
 use Fight\AccessControl\Domain\AccessControl\Feature\Event\FeatureStatusChanged;
 use Fight\AccessControl\Domain\AccessControl\Feature\Exception\FeatureBindingException;
-use Fight\AccessControl\Domain\AccessControl\Feature\Exception\FeatureNotFoundException;
-use Fight\AccessControl\Domain\AccessControl\Feature\Exception\FeatureReferenceException;
 use Fight\AccessControl\Domain\AccessControl\Feature\Exception\FeatureRevisionException;
 use Fight\AccessControl\Domain\AccessControl\Feature\Exception\FeatureStateException;
 use Fight\AccessControl\Domain\AccessControl\Feature\Feature;
@@ -38,7 +36,9 @@ use Fight\AccessControl\Domain\AccessControl\Feature\Query\ListFeatures;
 use Fight\AccessControl\Domain\AccessControl\Permission\Permission;
 use Fight\AccessControl\Domain\AccessControl\Permission\PermissionId;
 use Fight\AccessControl\Domain\AccessControl\Permission\PermissionName;
+use Fight\Common\Application\Error\Exception\PreconditionFailed;
 use Fight\Common\Application\Error\Exception\ResourceNotFound;
+use Fight\Common\Application\Error\Exception\StateConflict;
 use Fight\Common\Domain\Messaging\Command\CommandMessage;
 use Fight\Common\Domain\Messaging\Event\CommandFailedEvent;
 use Fight\Common\Domain\Messaging\Query\QueryMessage;
@@ -200,9 +200,9 @@ final class FeatureManagementTest extends TestCase
         $feature = $this->create('dashboard');
         $this->changeStatus($feature, FeatureStatus::ON, 1);
         $failure = $this->fails(fn() => $this->binding($feature, $this->second->getId(), 1));
-        self::assertInstanceOf(FeatureRevisionException::class, $failure);
+        self::assertInstanceOf(PreconditionFailed::class, $failure);
         $failure = $this->fails(fn() => $this->changeStatus($feature, FeatureStatus::ON, 1));
-        self::assertInstanceOf(FeatureRevisionException::class, $failure);
+        self::assertInstanceOf(PreconditionFailed::class, $failure);
         self::assertSame(2, $this->featureRepository->getById($feature->getId())->getRevision());
         self::assertSame(
             $this->first->getId(),
@@ -234,7 +234,7 @@ final class FeatureManagementTest extends TestCase
         self::assertSame($missingId, $view->getPermissionId());
         self::assertNull($view->getPermissionName());
         self::assertSame(3, $view->getRevision());
-        self::assertInstanceOf(FeatureReferenceException::class, $this->fails(
+        self::assertInstanceOf(StateConflict::class, $this->fails(
             fn() => $this->changeStatus($feature, FeatureStatus::ON, 3)
         ));
         self::assertSame($missingId, $this->featureRepository->getById($feature->getId())?->getPermissionId());
@@ -289,7 +289,7 @@ final class FeatureManagementTest extends TestCase
         };
         $eventCount = count($this->eventDispatcher->events());
         $writes = $this->featureRepository->writes;
-        self::assertInstanceOf(FeatureReferenceException::class, $this->fails(
+        self::assertInstanceOf(StateConflict::class, $this->fails(
             fn() => $this->binding($feature, $third->getId(), 2)
         ));
         $this->featureRepository->beforeReplace = null;
@@ -330,7 +330,7 @@ final class FeatureManagementTest extends TestCase
         self::assertSame(GetFeatureById::class, GetFeatureByIdHandler::queryRegistration());
         self::assertSame(ListFeatures::class, ListFeaturesHandler::queryRegistration());
         $createMissing = new CreateFeature(FeatureName::fromString('missing-binding'), PermissionId::generate());
-        self::assertInstanceOf(FeatureReferenceException::class, $this->fails(
+        self::assertInstanceOf(ResourceNotFound::class, $this->fails(
             function () use ($createMissing): void {
                 new CreateFeatureHandler(
                     $this->featureRepository,
@@ -344,13 +344,13 @@ final class FeatureManagementTest extends TestCase
         self::assertNull($this->featureRepository->getByName($createMissing->getName()));
 
         $unknown = Feature::define(FeatureId::generate(), FeatureName::fromString('unknown'), $this->first->getId());
-        self::assertInstanceOf(FeatureNotFoundException::class, $this->fails(
+        self::assertInstanceOf(ResourceNotFound::class, $this->fails(
             fn() => $this->changeStatus($unknown, FeatureStatus::ON, 1)
         ));
-        self::assertInstanceOf(FeatureNotFoundException::class, $this->fails(
+        self::assertInstanceOf(ResourceNotFound::class, $this->fails(
             fn() => $this->binding($unknown, $this->first->getId(), 1)
         ));
-        self::assertInstanceOf(FeatureReferenceException::class, $this->fails(
+        self::assertInstanceOf(ResourceNotFound::class, $this->fails(
             fn() => $this->binding($this->create('dashboard'), PermissionId::generate(), 1)
         ));
         $feature = $this->featureRepository->getByName(FeatureName::fromString('dashboard'));
@@ -358,7 +358,7 @@ final class FeatureManagementTest extends TestCase
         $this->featureRepository->beforeReplace = function () use ($feature): void {
             $this->featureRepository->seed($feature->withStatus(FeatureStatus::PREVIEW));
         };
-        self::assertInstanceOf(FeatureRevisionException::class, $this->fails(
+        self::assertInstanceOf(StateConflict::class, $this->fails(
             fn() => $this->changeStatus($feature, FeatureStatus::ON, 1)
         ));
         $this->featureRepository->beforeReplace = null;
@@ -367,7 +367,7 @@ final class FeatureManagementTest extends TestCase
         $this->featureRepository->beforeReplace = function () use ($feature): void {
             $this->featureRepository->seed($feature->withStatus(FeatureStatus::ON));
         };
-        self::assertInstanceOf(FeatureRevisionException::class, $this->fails(
+        self::assertInstanceOf(StateConflict::class, $this->fails(
             fn() => $this->binding($feature, $this->second->getId(), 1)
         ));
         $this->featureRepository->beforeReplace = null;

@@ -207,6 +207,10 @@ final readonly class InMemoryRoleRepository implements RoleRepository
                 continue;
             }
 
+            if ($expected->hasSameState($replacement)) {
+                return true;
+            }
+
             $this->state->roles[$index] = $replacement;
             $this->authorizationReferences->addRole($replacement);
             $this->unitOfWork?->onRollback(function () use ($expected, $index): void {

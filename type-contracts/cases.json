@@ -486,6 +486,38 @@
         {"line": 23, "identifier": "argument.type", "message": "Parameter #1 $credential of closure expects Fight\\AccessControl\\Domain\\AccessControl\\PasswordResetGrant\\PasswordResetCredential, string given."},
         {"line": 27, "identifier": "return.type", "message": "Anonymous function should return Fight\\AccessControl\\Domain\\AccessControl\\CredentialDelivery\\CredentialDeliveryFailure::PERMANENT_PROVIDER|Fight\\AccessControl\\Domain\\AccessControl\\CredentialDelivery\\CredentialDeliveryFailure::RETRYABLE_PROVIDER|Fight\\AccessControl\\Domain\\AccessControl\\CredentialDelivery\\CredentialDeliveryFailure::UNEXPECTED_PROVIDER but returns Fight\\AccessControl\\Domain\\AccessControl\\CredentialDelivery\\CredentialDeliveryFailure::PERMANENT_PROVIDER|Fight\\AccessControl\\Domain\\AccessControl\\CredentialDelivery\\CredentialDeliveryFailure::RETRYABLE_PROVIDER|Fight\\AccessControl\\Domain\\AccessControl\\CredentialDelivery\\CredentialDeliveryFailure::UNEXPECTED_PROVIDER|null."}
       ]
+    },
+    {
+      "id": "feature-policy-types",
+      "kind": "positive",
+      "file": "feature-policy-positive.php",
+      "diagnostics": [
+        {"line": 31, "identifier": "phpstan.dumpType", "message": "Dumped type: Closure(Fight\\Common\\Domain\\Messaging\\Command\\CommandMessage): void"},
+        {"line": 32, "identifier": "phpstan.dumpType", "message": "Dumped type: Closure(Fight\\Common\\Domain\\Messaging\\Command\\CommandMessage): void"},
+        {"line": 33, "identifier": "phpstan.dumpType", "message": "Dumped type: Closure(Fight\\Common\\Domain\\Messaging\\Command\\CommandMessage): void"},
+        {"line": 34, "identifier": "phpstan.dumpType", "message": "Dumped type: Closure(Fight\\Common\\Domain\\Messaging\\Command\\CommandMessage): void"},
+        {"line": 35, "identifier": "phpstan.dumpType", "message": "Dumped type: Closure(Fight\\Common\\Domain\\Messaging\\Command\\CommandMessage): void"},
+        {"line": 36, "identifier": "phpstan.dumpType", "message": "Dumped type: Closure(Fight\\Common\\Domain\\Messaging\\Command\\CommandMessage): void"},
+        {"line": 37, "identifier": "phpstan.dumpType", "message": "Dumped type: bool"},
+        {"line": 38, "identifier": "phpstan.dumpType", "message": "Dumped type: Fight\\AccessControl\\Application\\AccessControl\\Feature\\Discovery\\FeatureDiscoveryResult"},
+        {"line": 39, "identifier": "phpstan.dumpType", "message": "Dumped type: Fight\\AccessControl\\Application\\AccessControl\\Feature\\Discovery\\FeatureReferences"},
+        {"line": 40, "identifier": "phpstan.dumpType", "message": "Dumped type: list<Fight\\AccessControl\\Domain\\AccessControl\\Feature\\FeatureName>"}
+      ]
+    },
+    {
+      "id": "feature-policy-incompatible-uses",
+      "kind": "negative",
+      "file": "feature-policy-negative.php",
+      "diagnostics": [
+        {"line": 26, "identifier": "method.void", "message": "Result of method Fight\\AccessControl\\Application\\AccessControl\\Feature\\CommandHandler\\CreateFeatureHandler::handle() (void) is used."},
+        {"line": 27, "identifier": "method.void", "message": "Result of method Fight\\AccessControl\\Application\\AccessControl\\Feature\\CommandHandler\\ProvisionFeaturesHandler::handle() (void) is used."},
+        {"line": 28, "identifier": "method.void", "message": "Result of method Fight\\AccessControl\\Application\\AccessControl\\Feature\\CommandHandler\\RemoveFeatureHandler::handle() (void) is used."},
+        {"line": 29, "identifier": "method.void", "message": "Result of method Fight\\AccessControl\\Application\\AccessControl\\Feature\\CommandHandler\\SetFeaturePermissionHandler::handle() (void) is used."},
+        {"line": 30, "identifier": "method.void", "message": "Result of method Fight\\AccessControl\\Application\\AccessControl\\Feature\\CommandHandler\\SetFeatureStatusHandler::handle() (void) is used."},
+        {"line": 31, "identifier": "method.void", "message": "Result of method Fight\\AccessControl\\Application\\AccessControl\\ManagedPolicy\\CommandHandler\\ReconcileManagedPolicyHandler::handle() (void) is used."},
+        {"line": 32, "identifier": "argument.type", "message": "Parameter #1 $requiredScope of method Fight\\AccessControl\\Application\\AccessControl\\Feature\\Discovery\\FeatureDiscoveryResult::getReferences() expects Fight\\AccessControl\\Application\\AccessControl\\Feature\\Discovery\\FeatureReferenceScope, string given."},
+        {"line": 33, "identifier": "argument.type", "message": "Parameter #1 ...$names of class Fight\\AccessControl\\Application\\AccessControl\\Feature\\Discovery\\FeatureReferences constructor expects Fight\\AccessControl\\Domain\\AccessControl\\Feature\\FeatureName, string given."}
+      ]
     }
   ]
 }

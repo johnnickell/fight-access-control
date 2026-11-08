@@ -8,11 +8,15 @@ HTTP/CLI surface, UI, scanner, database adapter or deployment workflow.
 ```php
 use Fight\AccessControl\Application\AccessControl\Feature\CommandHandler\RemoveFeatureHandler;
 use Fight\AccessControl\Domain\AccessControl\Feature\Command\RemoveFeature;
-use Fight\Common\Domain\Messaging\Command\CommandMessage;
+use Fight\Common\Adapter\Messaging\Command\Sync\Routing\InMemoryCommandRouter;
+use Fight\Common\Adapter\Messaging\Command\Sync\RoutingCommandBus;
 
 // Consumer-owned current-code discovery, shared persistence/transaction and event publisher.
 $handler = new RemoveFeatureHandler($currentDiscovery, $featureRepository, $transactionalUnitOfWork, $eventDispatcher);
-$handler->handle(CommandMessage::create(new RemoveFeature($featureId, $expectedRevision)));
+$router = new InMemoryCommandRouter();
+$router->registerHandler($handler::commandRegistration(), $handler);
+$commandBus = new RoutingCommandBus($router);
+$commandBus->execute(new RemoveFeature($featureId, $expectedRevision));
 ```
 
 `commandRegistration()` returns `RemoveFeature::class`. The immutable command serializes exactly
@@ -50,7 +54,11 @@ uses the [unknown-Feature error](feature-availability.md), not ON or on-demand p
 shared transaction, compare **ID, name, status, Permission ID and revision at the final write boundary**, not only
 at the earlier read. Return false for missing or stale state. A status/Permission edit during discovery must leave
 the newer record intact. Never retarget a name to a newly created identity. The handler maps a final false result
-to `FeatureRevisionException`; initial absence throws `FeatureNotFoundException`.
+to Common Application `StateConflict`; initial absence throws `ResourceNotFound`, and explicit expected-revision
+mismatch throws `PreconditionFailed`. A returned unrelated Feature ID is an internal fault checked before revision
+or discovery. A complete current reference deliberately refuses removal with `RuleViolation`; failed/wrong-scope
+discovery remains an internal configuration/operational failure. Update catches directly for this unreleased contract;
+Domain input validation still uses its own exceptions.
 
 The removal and release of its Permission reference commit together and both restore on rollback. Use the same
 transaction-duration Permission-reference fence as creation/rebinding/removal: another Permission removal must

@@ -13,10 +13,8 @@ use Fight\AccessControl\Application\AccessControl\Feature\Discovery\FeatureRefer
 use Fight\AccessControl\Application\AccessControl\Feature\Discovery\FeatureReferenceScope;
 use Fight\AccessControl\Domain\AccessControl\Feature\Command\ProvisionFeatures;
 use Fight\AccessControl\Domain\AccessControl\Feature\Event\FeatureCreated;
-use Fight\AccessControl\Domain\AccessControl\Feature\Exception\FeatureConflictException;
 use Fight\AccessControl\Domain\AccessControl\Feature\Exception\FeatureDiscoveryException;
 use Fight\AccessControl\Domain\AccessControl\Feature\Exception\FeatureProvisioningException;
-use Fight\AccessControl\Domain\AccessControl\Feature\Exception\FeatureReferenceException;
 use Fight\AccessControl\Domain\AccessControl\Feature\Feature;
 use Fight\AccessControl\Domain\AccessControl\Feature\FeatureId;
 use Fight\AccessControl\Domain\AccessControl\Feature\FeatureName;
@@ -28,6 +26,7 @@ use Fight\AccessControl\Domain\AccessControl\Permission\PermissionId;
 use Fight\AccessControl\Domain\AccessControl\Permission\PermissionName;
 use Fight\AccessControl\Domain\AccessControl\Permission\PermissionRepository;
 use Fight\AccessControl\Domain\AccessControl\Permission\PermissionTier;
+use Fight\Common\Application\Error\Exception\StateConflict;
 use Fight\Common\Application\Repository\TransactionalUnitOfWork;
 use Fight\Common\Domain\Messaging\Command\CommandMessage;
 use Fight\Common\Domain\Messaging\Event\CommandFailedEvent;
@@ -332,7 +331,7 @@ final class ProvisionFeaturesHandlerTest extends TestCase
         };
         $failure = $this->failure(fn() => $this->handler()->handle($this->message()));
 
-        self::assertInstanceOf(FeatureReferenceException::class, $failure);
+        self::assertInstanceOf(StateConflict::class, $failure);
         self::assertSame(1, $this->featureRepository->writes);
         self::assertSame([], $this->featureRepository->records);
         self::assertCount(1, $this->eventDispatcher->events());
@@ -350,7 +349,7 @@ final class ProvisionFeaturesHandlerTest extends TestCase
 
         $failure = $this->failure(fn() => $this->handler()->handle($this->message()));
 
-        self::assertInstanceOf(FeatureConflictException::class, $failure);
+        self::assertInstanceOf(StateConflict::class, $failure);
         self::assertSame([$winner->getId()->toString() => $winner], $this->featureRepository->records);
         self::assertSame(1, $this->featureRepository->writes);
         self::assertCount(1, $this->eventDispatcher->events());
@@ -383,7 +382,7 @@ final class ProvisionFeaturesHandlerTest extends TestCase
 
         $failure = $this->failure(fn() => $this->handler()->handle($this->message()));
 
-        self::assertInstanceOf(FeatureConflictException::class, $failure);
+        self::assertInstanceOf(StateConflict::class, $failure);
         self::assertInstanceOf(Feature::class, $winner);
         self::assertSame([$winner->getId()->toString() => $winner], $this->featureRepository->records);
         self::assertSame(0, $this->featureRepository->writes);

@@ -6,19 +6,19 @@ namespace Fight\AccessControl\Application\AccessControl\Feature\CommandHandler;
 
 use Fight\AccessControl\Domain\AccessControl\Feature\Command\SetFeaturePermission;
 use Fight\AccessControl\Domain\AccessControl\Feature\Event\FeaturePermissionChanged;
-use Fight\AccessControl\Domain\AccessControl\Feature\Exception\FeatureNotFoundException;
 use Fight\AccessControl\Domain\AccessControl\Feature\Exception\FeatureReferenceException;
-use Fight\AccessControl\Domain\AccessControl\Feature\Exception\FeatureRevisionException;
-use Fight\AccessControl\Domain\AccessControl\Feature\Feature;
 use Fight\AccessControl\Domain\AccessControl\Feature\FeatureRepository;
-use Fight\AccessControl\Domain\AccessControl\Permission\Permission;
 use Fight\AccessControl\Domain\AccessControl\Permission\PermissionRepository;
+use Fight\Common\Application\Error\Exception\PreconditionFailed;
+use Fight\Common\Application\Error\Exception\ResourceNotFound;
+use Fight\Common\Application\Error\Exception\StateConflict;
 use Fight\Common\Application\Messaging\Command\CommandHandler;
 use Fight\Common\Application\Messaging\Event\EventDispatcher;
 use Fight\Common\Application\Repository\TransactionalUnitOfWork;
 use Fight\Common\Domain\Messaging\Command\CommandMessage;
 use Fight\Common\Domain\Messaging\Event\CommandFailedEvent;
 use Throwable;
+use UnexpectedValueException;
 
 /**
  * Class SetFeaturePermissionHandler
@@ -54,23 +54,40 @@ final readonly class SetFeaturePermissionHandler implements CommandHandler
         /** @var SetFeaturePermission $command */
         $command = $commandMessage->payload();
         try {
+            /** @var FeaturePermissionChanged|null $event */
             $event = $this->unitOfWork->commitTransactional(function () use ($command): ?FeaturePermissionChanged {
                 $feature = $this->featureRepository->getById($command->getFeatureId());
-                if (!$feature instanceof Feature) {
-                    throw new FeatureNotFoundException('The Feature does not exist.');
+                if ($feature === null) {
+                    throw new ResourceNotFound('The Feature does not exist.');
+                }
+
+                if (!$feature->getId()->equals($command->getFeatureId())) {
+                    throw new UnexpectedValueException('Feature lookup returned a different identity.');
                 }
 
                 if ($feature->getRevision() !== $command->getExpectedRevision()) {
-                    throw new FeatureRevisionException('The Feature changed concurrently.');
+                    throw new PreconditionFailed('The expected Feature revision does not match.');
                 }
 
-                if (!$this->permissionRepository->getById($command->getPermissionId()) instanceof Permission) {
-                    throw new FeatureReferenceException('The selected testing Permission does not exist.');
+                $permission = $this->permissionRepository->getById($command->getPermissionId());
+                if ($permission === null) {
+                    throw new ResourceNotFound('The selected testing Permission does not exist.');
+                }
+
+                if (!$permission->getId()->equals($command->getPermissionId())) {
+                    throw new UnexpectedValueException('Permission lookup returned a different identity.');
                 }
 
                 $successor = $feature->withPermission($command->getPermissionId());
-                if (!$this->featureRepository->replace($feature, $successor)) {
-                    throw new FeatureRevisionException('The Feature changed concurrently.');
+                try {
+                    if (!$this->featureRepository->replace($feature, $successor)) {
+                        throw new StateConflict('The Feature changed concurrently.');
+                    }
+                } catch (FeatureReferenceException $featureReferenceException) {
+                    throw new StateConflict(
+                        'The Feature Permission changed concurrently.',
+                        previous: $featureReferenceException
+                    );
                 }
 
                 if ($successor === $feature) {
@@ -83,7 +100,7 @@ final readonly class SetFeaturePermissionHandler implements CommandHandler
                     $successor->getRevision()
                 );
             });
-            if ($event instanceof FeaturePermissionChanged) {
+            if ($event !== null) {
                 $this->eventDispatcher->trigger($event);
             }
         } catch (Throwable $throwable) {

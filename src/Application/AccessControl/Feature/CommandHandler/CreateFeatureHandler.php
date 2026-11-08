@@ -6,18 +6,21 @@ namespace Fight\AccessControl\Application\AccessControl\Feature\CommandHandler;
 
 use Fight\AccessControl\Domain\AccessControl\Feature\Command\CreateFeature;
 use Fight\AccessControl\Domain\AccessControl\Feature\Event\FeatureCreated;
+use Fight\AccessControl\Domain\AccessControl\Feature\Exception\FeatureConflictException;
 use Fight\AccessControl\Domain\AccessControl\Feature\Exception\FeatureReferenceException;
 use Fight\AccessControl\Domain\AccessControl\Feature\Feature;
 use Fight\AccessControl\Domain\AccessControl\Feature\FeatureId;
 use Fight\AccessControl\Domain\AccessControl\Feature\FeatureRepository;
-use Fight\AccessControl\Domain\AccessControl\Permission\Permission;
 use Fight\AccessControl\Domain\AccessControl\Permission\PermissionRepository;
+use Fight\Common\Application\Error\Exception\ResourceNotFound;
+use Fight\Common\Application\Error\Exception\StateConflict;
 use Fight\Common\Application\Messaging\Command\CommandHandler;
 use Fight\Common\Application\Messaging\Event\EventDispatcher;
 use Fight\Common\Application\Repository\TransactionalUnitOfWork;
 use Fight\Common\Domain\Messaging\Command\CommandMessage;
 use Fight\Common\Domain\Messaging\Event\CommandFailedEvent;
 use Throwable;
+use UnexpectedValueException;
 
 /**
  * Class CreateFeatureHandler
@@ -53,13 +56,23 @@ final readonly class CreateFeatureHandler implements CommandHandler
         /** @var CreateFeature $command */
         $command = $commandMessage->payload();
         try {
+            /** @var FeatureCreated $event */
             $event = $this->unitOfWork->commitTransactional(function () use ($command): FeatureCreated {
-                if (!$this->permissionRepository->getById($command->getPermissionId()) instanceof Permission) {
-                    throw new FeatureReferenceException('The selected testing Permission does not exist.');
+                $permission = $this->permissionRepository->getById($command->getPermissionId());
+                if ($permission === null) {
+                    throw new ResourceNotFound('The selected testing Permission does not exist.');
+                }
+
+                if (!$permission->getId()->equals($command->getPermissionId())) {
+                    throw new UnexpectedValueException('Permission lookup returned a different identity.');
                 }
 
                 $feature = Feature::define(FeatureId::generate(), $command->getName(), $command->getPermissionId());
-                $this->featureRepository->add($feature);
+                try {
+                    $this->featureRepository->add($feature);
+                } catch (FeatureConflictException | FeatureReferenceException $exception) {
+                    throw new StateConflict('Feature creation conflicts with current state.', previous: $exception);
+                }
 
                 return new FeatureCreated($feature->getId(), $feature->getName(), $feature->getPermissionId());
             });

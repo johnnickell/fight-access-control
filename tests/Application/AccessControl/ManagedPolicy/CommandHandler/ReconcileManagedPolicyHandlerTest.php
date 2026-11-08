@@ -30,6 +30,7 @@ use Fight\AccessControl\Domain\AccessControl\Role\RoleId;
 use Fight\AccessControl\Domain\AccessControl\Role\RoleName;
 use Fight\AccessControl\Domain\AccessControl\Role\RoleRepository;
 use Fight\Common\Application\Error\Exception\RuleViolation;
+use Fight\Common\Application\Error\Exception\StateConflict;
 use Fight\Common\Domain\Exception\DomainException;
 use Fight\Common\Domain\Messaging\Command\CommandMessage;
 use Fight\Common\Domain\Messaging\Event\CommandFailedEvent;
@@ -43,7 +44,6 @@ use Fight\Test\AccessControl\Application\AccessControl\Timing\Service\FixedClock
 use Fight\Test\AccessControl\Application\AccessControl\User\InMemoryUnitOfWork;
 use Fight\Test\AccessControl\Application\AccessControl\User\Repository\InMemoryUserRepository;
 use Fight\Test\AccessControl\Domain\AccessControl\User\UserFixture;
-use LogicException;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
 use ReflectionClass;
@@ -780,7 +780,7 @@ final class ReconcileManagedPolicyHandlerTest extends TestCase
             try {
                 $handler->handle(CommandMessage::create($command));
                 self::fail(sprintf('The %s post-preflight persistence race must fail closed.', $scenario));
-            } catch (LogicException) {
+            } catch (StateConflict) {
                 ++$failures;
             }
 
@@ -841,8 +841,8 @@ final class ReconcileManagedPolicyHandlerTest extends TestCase
                 new ReconcileManagedPolicy(new ManagedPolicy([], [], []))
             ));
             self::fail('A newly live Role reference must block final Permission removal.');
-        } catch (LogicException $logicException) {
-            $failure = $logicException;
+        } catch (StateConflict $stateConflict) {
+            $failure = $stateConflict;
         }
 
         self::assertSame(
@@ -946,10 +946,10 @@ final class ReconcileManagedPolicyHandlerTest extends TestCase
         try {
             $handler->handle(CommandMessage::create($this->command()));
             self::fail('A final Agent reference must fail the complete managed-policy transaction.');
-        } catch (LogicException $logicException) {
+        } catch (StateConflict $stateConflict) {
             self::assertSame(
                 'Managed permission changed or became referenced after preflight.',
-                $logicException->getMessage()
+                $stateConflict->getMessage()
             );
         }
 
