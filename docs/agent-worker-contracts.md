@@ -72,7 +72,10 @@ Transaction status/start failures likewise remain internal `UNAVAILABLE`, not bu
 owned callback retains its exact primary throwable through the UoW boundary, even if transaction mechanics fail
 while propagating it. Actual qualified authority, Domain and expected-state writer refusals keep their meanings.
 A completed callback takes precedence as `INDETERMINATE` when acknowledgement fails, whether its effects ultimately
-committed or rolled back. Native mixed results and local callback annotations do not change this distinction.
+committed or rolled back. This meaning requires the worker's own invocation-local completion evidence, not merely
+an exception class from a collaborator. Foreign uncertainty from authorization, reads, writes, keys or cleanup
+remains `UNAVAILABLE`; external erasure alone does not prove an uncertain database commit. Native mixed results
+and local callback annotations do not change this distinction.
 
 The decipher and rewrapper deliberately classify temporary failure, permanent original-key loss and corrupt material.
 Only those providers own key/integrity classification. A returned invocation must match every original issuance field;
@@ -92,6 +95,11 @@ from authorization, capability, lookup, expected-state writes or pre-completion 
 provider intent, including during expiry, which invokes no provider. A failure after the owned transaction callback
 completes remains `INDETERMINATE`. Neither failure acknowledges cleanup. A physical effect may already
 have happened before a lost response; retry only the same original tuple under fresh maintenance authority.
+
+For already recorded delivery, verification only attests the original receipt: true remains `DELIVERED`,
+authoritative false requires reconciliation, and any failed verification read is `UNAVAILABLE`. It cannot supply
+caller refusal, deferral or commit uncertainty, rewrite history, or trigger materialization/restaging. Pending
+provider calls retain their separate approved transient containment; neither path grants new issuance authority.
 
 Revocation deliberately throws Common `ResourceNotFound` for authoritative absence and `StateConflict` for an
 already-retired credential or lost expected-state replacement. Wrong lookup identity is internal. Its required

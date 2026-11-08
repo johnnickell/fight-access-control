@@ -17,6 +17,7 @@ use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\AgentCrede
 use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\AgentOperationFailure;
 use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\Delivery\AgentDeliveryFailure;
 use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\Delivery\AgentDeliveryReceipt;
+use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\Exception\AgentDeliveryCommitUncertainException;
 use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\Exception\AgentDeliveryFailedException;
 use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\Exception\AgentOperationRejectedException;
 use LogicException;
@@ -188,18 +189,18 @@ final class AgentDeliveryContractTest extends TestCase
         }
     }
 
-    /** @return iterable<string, array{string, AgentDeliveryFailure|'unclassified'|'logic'}> */
+    /** @return iterable<string, array{string, AgentDeliveryFailure|'unclassified'|'logic'|'foreign'}> */
     public static function providerFailures(): iterable
     {
         foreach (['support', 'lookup', 'stage', 'verify', 'decipher'] as $source) {
-            foreach ([...AgentDeliveryFailure::cases(), 'unclassified', 'logic'] as $failure) {
+            foreach ([...AgentDeliveryFailure::cases(), 'unclassified', 'logic', 'foreign'] as $failure) {
                 yield $source.':'.($failure instanceof AgentDeliveryFailure ? $failure->value : $failure)
                     => [$source, $failure];
             }
         }
     }
 
-    /** @param AgentDeliveryFailure|'unclassified'|'logic' $failure */
+    /** @param AgentDeliveryFailure|'unclassified'|'logic'|'foreign' $failure */
     #[DataProvider('providerFailures')]
     public function test_actual_provider_failure_keeps_its_owned_classification(
         string $source,
@@ -210,6 +211,7 @@ final class AgentDeliveryContractTest extends TestCase
         $exception = match ($failure) {
             'unclassified' => new RuntimeException('Synthetic provider failure.'),
             'logic' => new LogicException('Synthetic provider contract failure.'),
+            'foreign' => new AgentDeliveryCommitUncertainException(),
             default => new AgentDeliveryFailedException($failure)
         };
         if ($source === 'lookup') {
@@ -256,9 +258,9 @@ final class AgentDeliveryContractTest extends TestCase
             ];
         }
 
-        if ($failure === 'unclassified' || in_array($failure, $ownedReasons, true)) {
+        if (in_array($failure, ['unclassified', 'foreign'], true) || in_array($failure, $ownedReasons, true)) {
             $expected = AgentDeliveryResult::TERMINAL;
-            if ($failure === 'unclassified' || $failure === AgentDeliveryFailure::TEMPORARY) {
+            if (in_array($failure, ['unclassified', 'foreign'], true) || $failure === AgentDeliveryFailure::TEMPORARY) {
                 $expected = AgentDeliveryResult::RETRYABLE;
             }
         }
@@ -279,7 +281,7 @@ final class AgentDeliveryContractTest extends TestCase
         } else {
             self::assertSame(3, $env->operation()->getStateRevision());
             self::assertSame(
-                $failure === 'unclassified' ? AgentDeliveryFailure::TEMPORARY : $failure,
+                in_array($failure, ['unclassified', 'foreign'], true) ? AgentDeliveryFailure::TEMPORARY : $failure,
                 $env->operation()->getDeliveryFailure()
             );
         }

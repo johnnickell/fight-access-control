@@ -57,7 +57,12 @@ final readonly class AgentDeliveryMaintenanceService
         AgentDeliveryId $deliveryId,
         AgentDeliveryKeyVersion $target
     ): AgentMaintenanceResult {
-        return $this->execute(function () use ($key, $destination, $deliveryId, $target): AgentMaintenanceResult {
+        return $this->execute(function (AgentDeliveryCommitUncertainException $commitUncertain) use (
+            $key,
+            $destination,
+            $deliveryId,
+            $target
+        ): AgentMaintenanceResult {
             /** @var AgentMaintenanceResult $result */
             $result = $this->transact(function () use (
                 $key,
@@ -116,7 +121,7 @@ final readonly class AgentDeliveryMaintenanceService
                 $this->replaceMaintenance($original, $replacement);
 
                 return $result;
-            });
+            }, $commitUncertain);
 
             return $result;
         });
@@ -130,13 +135,17 @@ final readonly class AgentDeliveryMaintenanceService
         AgentCredentialDestination $destination,
         AgentDeliveryId $deliveryId
     ): AgentMaintenanceResult {
-        return $this->execute(function () use ($key, $destination, $deliveryId): AgentMaintenanceResult {
+        return $this->execute(function (AgentDeliveryCommitUncertainException $commitUncertain) use (
+            $key,
+            $destination,
+            $deliveryId
+        ): AgentMaintenanceResult {
             /** @var AgentMaintenanceResult $result */
             $result = $this->transact(function () use ($key, $destination, $deliveryId): AgentMaintenanceResult {
                 [$original] = $this->load($key, $destination, $deliveryId);
 
                 return $this->expireOriginal($original);
-            });
+            }, $commitUncertain);
 
             return $result;
         });
@@ -150,9 +159,16 @@ final readonly class AgentDeliveryMaintenanceService
         AgentCredentialDestination $destination,
         AgentDeliveryId $deliveryId
     ): AgentMaintenanceResult {
-        return $this->execute(function () use ($key, $destination, $deliveryId): AgentMaintenanceResult {
+        return $this->execute(function (AgentDeliveryCommitUncertainException $commitUncertain) use (
+            $key,
+            $destination,
+            $deliveryId
+        ): AgentMaintenanceResult {
             /** @var array{AgentCredentialOperation, AgentDeliveryAuthority} $admission */
-            $admission = $this->transact(fn (): array => $this->load($key, $destination, $deliveryId));
+            $admission = $this->transact(
+                fn (): array => $this->load($key, $destination, $deliveryId),
+                $commitUncertain
+            );
             [$original, $authority] = $admission;
             if ($original->isSinkCleaned()) {
                 return AgentMaintenanceResult::CLEANED;
@@ -200,7 +216,7 @@ final readonly class AgentDeliveryMaintenanceService
                 );
 
                 return AgentMaintenanceResult::CLEANED;
-            });
+            }, $commitUncertain);
 
             return $result;
         });
@@ -345,8 +361,10 @@ final readonly class AgentDeliveryMaintenanceService
      *     AgentCredentialOperation, AgentDeliveryAuthority
      * }) $operation
      */
-    private function transact(#[SensitiveParameter] callable $operation): mixed
-    {
+    private function transact(
+        #[SensitiveParameter] callable $operation,
+        AgentDeliveryCommitUncertainException $commitUncertain
+    ): mixed {
         $completed = false;
         $callbackFailure = null;
         try {
@@ -373,7 +391,8 @@ final readonly class AgentDeliveryMaintenanceService
         } catch (Throwable) {
             /** @var bool $completed Updated by the owned callback before commit acknowledgement */
             if ($completed) {
-                throw new AgentDeliveryCommitUncertainException();
+                // Only this invocation's private marker proves owned callback completion without acknowledgement.
+                throw $commitUncertain;
             }
 
             /** @var Throwable|null $callbackFailure Captured at the owned callback, not inferred from UoW mechanics */
@@ -400,17 +419,24 @@ final readonly class AgentDeliveryMaintenanceService
     /**
      * Returns only safe classifications without publishing or chaining dependency diagnostics
      *
-     * @param callable(): AgentMaintenanceResult $operation
+     * @param callable(AgentDeliveryCommitUncertainException): AgentMaintenanceResult $operation
      */
     private function execute(#[SensitiveParameter] callable $operation): AgentMaintenanceResult
     {
+        $commitUncertain = new AgentDeliveryCommitUncertainException();
         try {
-            return $operation();
-        } catch (AgentDeliveryCommitUncertainException) {
-            return AgentMaintenanceResult::INDETERMINATE;
-        } catch (AgentOperationRejectedException $failure) {
+            return $operation($commitUncertain);
+        } catch (Throwable $throwable) {
+            if ($throwable === $commitUncertain) {
+                return AgentMaintenanceResult::INDETERMINATE;
+            }
+
+            if (!$throwable instanceof AgentOperationRejectedException) {
+                return AgentMaintenanceResult::UNAVAILABLE;
+            }
+
             if (
-                in_array($failure->getReason(), [
+                in_array($throwable->getReason(), [
                 AgentOperationFailure::UNAUTHORIZED,
                 AgentOperationFailure::CONFLICT,
                 AgentOperationFailure::CONTENTION,
@@ -419,8 +445,6 @@ final readonly class AgentDeliveryMaintenanceService
             ) {
                 return AgentMaintenanceResult::REJECTED;
             }
-        } catch (Throwable) {
-            // Preserve original state after unclassified failure; never leak a provider trace or infer completion.
         }
 
         return AgentMaintenanceResult::UNAVAILABLE;

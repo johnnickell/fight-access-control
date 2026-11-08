@@ -62,6 +62,7 @@ final readonly class AgentCredentialDeliveryService
         AgentCredentialDestination $destination,
         AgentDeliveryId $deliveryId
     ): AgentDeliveryResult {
+        $commitUncertain = new AgentDeliveryCommitUncertainException();
         try {
             $claimed = $this->transact(function () use ($key, $destination, $deliveryId): AgentCredentialOperation {
                 $original = $this->load($key, $destination, $deliveryId);
@@ -82,7 +83,7 @@ final readonly class AgentCredentialDeliveryService
                 $this->replaceDelivery($original, $replacement, $agent);
 
                 return $replacement;
-            });
+            }, $commitUncertain);
             if (!$claimed->hasPendingDeliveryAtRevision($claimed->getStateRevision())) {
                 return $this->reconcileRecordedResult($claimed);
             }
@@ -90,7 +91,7 @@ final readonly class AgentCredentialDeliveryService
             $receiptOnly = $claimed->requireAttempt()->getAuthority() !== null;
             $admitted = $claimed;
             if (!$receiptOnly) {
-                $admitted = $this->admit($key, $destination, $deliveryId, $claimed);
+                $admitted = $this->admit($key, $destination, $deliveryId, $claimed, $commitUncertain);
             }
 
             $outcome = $this->invoke($admitted, $receiptOnly);
@@ -113,11 +114,11 @@ final readonly class AgentCredentialDeliveryService
                 $this->replaceDelivery($original, $replacement, $agent);
 
                 return $replacement;
-            });
+            }, $commitUncertain);
 
             return $this->recordedResult($completed);
         } catch (Throwable $throwable) {
-            if ($throwable instanceof AgentDeliveryCommitUncertainException) {
+            if ($throwable === $commitUncertain) {
                 return AgentDeliveryResult::INDETERMINATE;
             }
 
@@ -149,7 +150,8 @@ final readonly class AgentCredentialDeliveryService
         AgentOperationKey $key,
         AgentCredentialDestination $destination,
         AgentDeliveryId $deliveryId,
-        AgentCredentialOperation $claimed
+        AgentCredentialOperation $claimed,
+        AgentDeliveryCommitUncertainException $commitUncertain
     ): AgentCredentialOperation {
         return $this->transact(function () use ($key, $destination, $deliveryId, $claimed) {
             $original = $this->load($key, $destination, $deliveryId);
@@ -164,7 +166,7 @@ final readonly class AgentCredentialDeliveryService
             $this->replaceDelivery($original, $replacement, $agent);
 
             return $replacement;
-        });
+        }, $commitUncertain);
     }
 
     /**
@@ -404,8 +406,10 @@ final readonly class AgentCredentialDeliveryService
      *
      * @param callable(): AgentCredentialOperation $operation
      */
-    private function transact(#[SensitiveParameter] callable $operation): AgentCredentialOperation
-    {
+    private function transact(
+        #[SensitiveParameter] callable $operation,
+        AgentDeliveryCommitUncertainException $commitUncertain
+    ): AgentCredentialOperation {
         $callbackCompleted = false;
         $callbackFailure = null;
         try {
@@ -444,7 +448,8 @@ final readonly class AgentCredentialDeliveryService
         } catch (Throwable) {
             /** @var bool $callbackCompleted Updated by the owned callback before commit acknowledgement */
             if ($callbackCompleted) {
-                throw new AgentDeliveryCommitUncertainException();
+                // Only this invocation's private marker proves owned callback completion without acknowledgement.
+                throw $commitUncertain;
             }
 
             /** @var Throwable|null $callbackFailure Captured at the owned callback, not inferred from UoW mechanics */
@@ -479,8 +484,13 @@ final readonly class AgentCredentialDeliveryService
         }
 
         $receipt = $operation->getReceipt();
-        if ($receipt === null || !$this->sink->verify($receipt, $operation->getIssuance())) {
-            return AgentDeliveryResult::RECONCILIATION_REQUIRED;
+        try {
+            if ($receipt === null || !$this->sink->verify($receipt, $operation->getIssuance())) {
+                return AgentDeliveryResult::RECONCILIATION_REQUIRED;
+            }
+        } catch (Throwable) {
+            // A failed historical receipt read supplies neither absence, refusal nor commit evidence.
+            return AgentDeliveryResult::UNAVAILABLE;
         }
 
         return $result;

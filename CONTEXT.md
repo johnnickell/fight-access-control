@@ -13,7 +13,9 @@ source-qualified provider meanings, exact lookup identity, native mixed UoW/loca
 revocation's distinct throwing policy. Recovery uses the configured QueryBus rather than an injected handler;
 its bounded dynamic-result validation does not qualify TASK-00128's generic relationship. Current authority before
 concealed reads, claim/admission/outcome separation, receipt-first restart, retirement/audit coupling, original
-expiry/rewrap identity and external cleanup/acknowledgement uncertainty remain authoritative.
+expiry/rewrap identity and external cleanup/acknowledgement uncertainty remain authoritative. Commit uncertainty
+requires the owned invocation's completion evidence, not a collaborator's exception class. Failed recorded-receipt
+verification is unavailable without refusal, history rewrite or restaging.
 
 Canonical `.runs/handoffs/TASK-00144/work.md` owns exhaustive inventory/caller dispositions, regression chronology,
 dependency/runtime/static/behavior/full-gate/exact-coverage evidence and limitations. Engineer checks pass, including
