@@ -26,7 +26,6 @@ use Fight\AccessControl\Domain\AccessControl\Feature\Event\FeatureRemoved;
 use Fight\AccessControl\Domain\AccessControl\Feature\Exception\FeatureDiscoveryException;
 use Fight\AccessControl\Domain\AccessControl\Feature\Exception\FeatureNotFoundException;
 use Fight\AccessControl\Domain\AccessControl\Feature\Exception\FeatureProvisioningException;
-use Fight\AccessControl\Domain\AccessControl\Feature\Exception\FeatureReferenceException;
 use Fight\AccessControl\Domain\AccessControl\Feature\Exception\FeatureRevisionException;
 use Fight\AccessControl\Domain\AccessControl\Feature\Feature;
 use Fight\AccessControl\Domain\AccessControl\Feature\FeatureId;
@@ -36,6 +35,10 @@ use Fight\AccessControl\Domain\AccessControl\Feature\Query\ValidateFeaturePrepar
 use Fight\AccessControl\Domain\AccessControl\Permission\Permission;
 use Fight\AccessControl\Domain\AccessControl\Permission\PermissionId;
 use Fight\AccessControl\Domain\AccessControl\Permission\PermissionName;
+use Fight\Common\Application\Error\Exception\PreconditionFailed;
+use Fight\Common\Application\Error\Exception\ResourceNotFound;
+use Fight\Common\Application\Error\Exception\RuleViolation;
+use Fight\Common\Application\Error\Exception\StateConflict;
 use Fight\Common\Domain\Exception\DomainException;
 use Fight\Common\Domain\Messaging\Command\CommandMessage;
 use Fight\Common\Domain\Messaging\Event\CommandFailedEvent;
@@ -140,7 +143,7 @@ final class RemoveFeatureHandlerTest extends TestCase
                 }, ['dashboard']], [$attribute, ['dashboard']]] as [$code, $registrations]
             ) {
                 $before = count($this->eventDispatcher->events());
-                self::assertInstanceOf(FeatureReferenceException::class, $this->fails(
+                self::assertInstanceOf(RuleViolation::class, $this->fails(
                     fn() => $this->remove($this->discovery($code, $registrations), 3)
                 ));
                 self::assertCount($before + 1, $this->eventDispatcher->events());
@@ -192,10 +195,10 @@ final class RemoveFeatureHandlerTest extends TestCase
         self::assertInstanceOf(FeatureDiscoveryException::class, $this->fails(
             fn() => $this->remove($wrongScope, 1)
         ));
-        self::assertInstanceOf(FeatureNotFoundException::class, $this->fails(
+        self::assertInstanceOf(ResourceNotFound::class, $this->fails(
             fn() => $this->remove($candidate, 1, FeatureId::generate())
         ));
-        self::assertInstanceOf(FeatureRevisionException::class, $this->fails(
+        self::assertInstanceOf(PreconditionFailed::class, $this->fails(
             fn() => $this->remove($candidate, 2)
         ));
         self::assertSame(0, $this->featureRepository->writes);
@@ -209,7 +212,7 @@ final class RemoveFeatureHandlerTest extends TestCase
         $this->featureRepository->beforeRemove = function () use ($newer): void {
             $this->featureRepository->seed($newer);
         };
-        self::assertInstanceOf(FeatureRevisionException::class, $this->fails(
+        self::assertInstanceOf(StateConflict::class, $this->fails(
             fn() => $this->remove($discovery, 1)
         ));
         self::assertSame($newer, $this->featureRepository->getById($this->feature->getId()));
@@ -217,7 +220,7 @@ final class RemoveFeatureHandlerTest extends TestCase
         $this->remove($discovery, 2);
         $replacement = Feature::define(FeatureId::generate(), $this->feature->getName(), $this->permission->getId());
         $this->featureRepository->seed($replacement);
-        self::assertInstanceOf(FeatureNotFoundException::class, $this->fails(
+        self::assertInstanceOf(ResourceNotFound::class, $this->fails(
             fn() => $this->remove($discovery, 1)
         ));
         self::assertSame($replacement, $this->featureRepository->getByName($replacement->getName()));
@@ -277,7 +280,7 @@ final class RemoveFeatureHandlerTest extends TestCase
 
             return true;
         });
-        self::assertInstanceOf(FeatureRevisionException::class, $this->fails(
+        self::assertInstanceOf(StateConflict::class, $this->fails(
             fn() => $this->remove($discovery, 1)
         ));
         self::assertSame($newer, $this->featureRepository->getById($this->feature->getId()));
@@ -321,10 +324,10 @@ final class RemoveFeatureHandlerTest extends TestCase
             {
             }
         };
-        self::assertInstanceOf(FeatureReferenceException::class, $this->fails(
+        self::assertInstanceOf(RuleViolation::class, $this->fails(
             fn() => $this->remove($this->discovery($code, ['dashboard']), 2)
         ));
-        self::assertInstanceOf(FeatureReferenceException::class, $this->fails(
+        self::assertInstanceOf(RuleViolation::class, $this->fails(
             fn() => $this->remove($this->discovery(new class {
             }, ['dashboard']), 2)
         ));
@@ -368,11 +371,11 @@ final class RemoveFeatureHandlerTest extends TestCase
             $new->getId()->toString(),
             $this->featureRepository->getByName($new->getName())?->getId()->toString()
         );
-        self::assertInstanceOf(FeatureNotFoundException::class, $this->fails(
+        self::assertInstanceOf(ResourceNotFound::class, $this->fails(
             fn() => $this->remove($this->discovery(new class {
             }, []), 2)
         ));
-        self::assertInstanceOf(FeatureNotFoundException::class, $this->fails(
+        self::assertInstanceOf(ResourceNotFound::class, $this->fails(
             fn() => new SetFeatureStatusHandler($this->featureRepository, $this->unit, $this->eventDispatcher)->handle(
                 CommandMessage::create(new SetFeatureStatus($old->getId(), FeatureStatus::ON, 2))
             )

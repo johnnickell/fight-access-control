@@ -4,7 +4,23 @@ AccessControl supplies framework-neutral Domain/Application operations; consumer
 
 `GetFeatureById` and `ListFeatures` use `FeatureRepository::getById` and `getAll(Pagination)` to return safe `FeatureView` results. The latter preserves the requested page, size and total through `ResultSet<FeatureView>`. Each result contains `feature_id`, immutable `name`, `status`, stored `permission_id`, nullable `permission_name`, explicit `binding_missing`, and positive `revision`. A missing definition never fabricates a name or substitutes the configured default; a missing Feature ID throws Common Application `ResourceNotFound`. A different returned Feature identity is an internal fault, checked before resolving its Permission. See [required-resource Queries](required-resource-queries.md). Existing `ListPermissions` supplies the selection choices. Reads do not transact, publish, grant or decide availability. Adapters must preserve exact current IDs and ordering/pagination semantics, and distinguish absence from storage failure or invalid reconstruction.
 
-`SetFeatureStatus` and `SetFeaturePermission` each require the current positive `expected_revision` and use one shared revision. `Feature::withStatus` / `withPermission` own immutable-name transitions; real edits increment once and publish `FeatureStatusChanged` / `FeaturePermissionChanged` **after** commit. No-op selections still validate current expected state and an authoritative bound Permission through `FeatureRepository::replace($expected, $successor)`, but write nothing, advance nothing and publish no success fact. Broken bindings remain visible for recovery: status changes cannot launder them, and a valid selected ID can repair them through the ordinary rebinding path. A stale selection (including stale no-op) throws `FeatureRevisionException`, a missing target throws `FeatureNotFoundException`, an invalid selected ID throws `FeatureReferenceException`; infrastructure errors propagate. The handler publishes `CommandFailedEvent` on failure and rethrows the original throwable. A post-commit publication fault does not roll back the edit or promise eventual event delivery.
+`SetFeatureStatus` and `SetFeaturePermission` each require the current positive `expected_revision` and use one shared revision. `Feature::withStatus` / `withPermission` own immutable-name transitions; real edits increment once and publish `FeatureStatusChanged` / `FeaturePermissionChanged` **after** commit. No-op selections still validate current expected state and an authoritative bound Permission through `FeatureRepository::replace($expected, $successor)`, but write nothing, advance nothing and publish no success fact. Broken bindings remain visible for recovery: status changes cannot launder them, and a valid selected ID can repair them through the ordinary rebinding path. An explicit stale selection (including stale no-op) throws Common Application `PreconditionFailed`; a missing target or selected Permission throws `ResourceNotFound`. Final state/reference races throw `StateConflict`. Wrong lookup identities and infrastructure errors remain internal, never ordinary absence or conflict. The handler publishes `CommandFailedEvent` on failure and rethrows the original throwable. A post-commit publication fault does not roll back the edit or promise eventual event delivery.
+
+## Mutation contracts (unreleased)
+
+All five Feature Commands remain void through supported Common synchronous routing and decoded-message dispatch.
+Creation and rebinding validate the exact requested Permission ID; update/removal validate the exact Feature ID
+before revision checks, discovery or mutation. Provisioning validates existing names and its lazily resolved default
+name without validating unused configuration or repairing existing bindings. Known repository uniqueness/reference
+outcomes translate narrowly to `StateConflict`, retaining the Domain cause. Unknown failures are not translated.
+Current-code references deliberately refuse retirement with `RuleViolation`.
+
+Consumers must update exception catches directly; Domain constructor validation, availability configuration errors
+and malformed persisted state remain distinct internal boundaries. Common's opt-in safe middleware renders deliberate
+absence/precondition/conflict/rule intent as generic 404/412/409/422, and unknown/native/identity faults as generic 500.
+Never classify by diagnostic text or codes. Existing local transaction-result annotations describe owned Event/null
+or Event-list branches while the UoW remains native mixed. No new result DTO, generic supplier or optional audit is
+introduced. See [operation outcomes](operation-outcomes.md#managed-policy-composition) for the shared policy path.
 
 ## Precise Domain types (unreleased)
 

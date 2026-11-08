@@ -19,7 +19,8 @@ same connection/transaction as the `TransactionalUnitOfWork`; do not wrap the ha
 ```php
 use Fight\AccessControl\Application\AccessControl\Feature\CommandHandler\ProvisionFeaturesHandler;
 use Fight\AccessControl\Domain\AccessControl\Feature\Command\ProvisionFeatures;
-use Fight\Common\Domain\Messaging\Command\CommandMessage;
+use Fight\Common\Adapter\Messaging\Command\Sync\Routing\InMemoryCommandRouter;
+use Fight\Common\Adapter\Messaging\Command\Sync\RoutingCommandBus;
 
 // Consumer-owned discovery, persistence, transaction and event-dispatcher implementations.
 $handler = new ProvisionFeaturesHandler(
@@ -29,7 +30,10 @@ $handler = new ProvisionFeaturesHandler(
     $transactionalUnitOfWork,
     $eventDispatcher
 );
-$handler->handle(CommandMessage::create(new ProvisionFeatures($configuredDefaultOrNull)));
+$router = new InMemoryCommandRouter();
+$router->registerHandler($handler::commandRegistration(), $handler);
+$commandBus = new RoutingCommandBus($router);
+$commandBus->execute(new ProvisionFeatures($configuredDefaultOrNull));
 ```
 
 `commandRegistration()` returns `ProvisionFeatures::class` for Common command-handler registration. The command's
@@ -68,7 +72,9 @@ Domain types live under `Fight\AccessControl\Domain\AccessControl\Feature`:
 
 `FeatureRepository` owns `add(Feature): void`, `getById(FeatureId): ?Feature` and
 `getByName(FeatureName): ?Feature`. A read returning null means authoritative absence; storage failures throw,
-never masquerade as absence. Existing records, including broken Permission references, are preserved without repair.
+never masquerade as absence. Existing records, including broken Permission references, are preserved without repair. The returned Feature must
+match the requested name even on an apparent no-op, and the resolved default must match the actual configured name.
+A mismatch is an internal fault, not a successful pass or a substitute definition.
 
 **Adapter obligations:**
 
@@ -106,8 +112,8 @@ Unregistered stored records are untouched; absence from the inventory never dele
 | Malformed required Permission name | Existing `PermissionNameException`; no new records commit. Correct configuration. |
 | Unresolved required default | `FeatureProvisioningException`; no new records commit. Consumer must establish the intended definition, not let provisioning create a Permission. |
 | Incomplete/wrong-scope discovery | `FeatureDiscoveryException` (or propagated scanner error); no transaction or inserts. Repair discovery and rerun. |
-| Duplicate ID/name | `FeatureConflictException`; losing pass rolls back entirely. Retry with fresh storage; preserve the winning record's settings. No internal unbounded retry. |
-| Lost/unsafe Permission reference | `FeatureReferenceException`; roll back the entire pass, including earlier inserts. Resolve the underlying reference/integration condition before retry. |
+| Duplicate ID/name | Common Application `StateConflict` wrapping known Domain `FeatureConflictException`; losing pass rolls back entirely. Retry with fresh storage; preserve the winning record's settings. No internal unbounded retry. |
+| Lost/unsafe Permission reference | Common Application `StateConflict` wrapping known Domain `FeatureReferenceException`; roll back the entire pass, including earlier inserts. Resolve the underlying reference/integration condition before retry. |
 | Confirmed pre-commit failure | Transaction rolls back all this pass's writes; no creation fact publishes. Retry consults storage rather than a cached missing-name list. |
 | Commit acknowledgement lost | The same throwable propagates; it does not certify rollback. Storage may contain all inserts or none. A fresh pass discovers which records are missing. |
 | Creation publisher throws after commit | All records remain committed; some/none of the facts may have published. Retry leaves them unchanged and does not recreate or replay their facts. |

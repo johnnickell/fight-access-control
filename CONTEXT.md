@@ -33,6 +33,34 @@ results. Minimum compatibility advisories remain disclosed; ordinary dependencie
 generic message typing, optional-audit feature or actual consumer qualification, approval, merge, release or
 deployment is claimed.
 
+## TASK-00142 Feature and policy mutation — accepted checkpoint
+
+Independent Review v3 ACCEPT and nonvisual QA PASS cover clean candidate
+`c9a537f05ac499b07e34bf7c1babb583c3899c8b` against `0c8fd732e5d7c11a978f41918b913021fa00ba08`, with no
+findings. QA passes 13 scenario groups / 372 checks and 634 focused tests / 3,327 assertions. The original full
+gate passes 5,301 tests / 56,709 assertions, exact global 8,845/8,845 and owned 458/458 statements. TASK-00142
+is done for this bounded slice; unfinished children keep TICKET-00040/EPIC-00016 open. Land integrates the
+advancing Agent administration base without changing either slice's intended behavior. Integration verification
+and publication remain pending at this closeout checkpoint; canonical `.runs/handoffs/TASK-00142/land.md` owns
+current bridge, delivery and resource results. Original independent reports retain their exact subjects.
+Lowest-lane advisories and actual consumer qualification limits remain explicit in the owning TASK.
+
+### Historical TASK-00142 Work checkpoint
+
+The six Feature/policy Commands now distinguish deliberate Common Application absence, explicit revision
+preconditions, current-reference rule refusal and final state/reference conflict from wrong lookup identities and
+unknown faults. [Current management contracts](docs/feature-management.md#mutation-contracts-unreleased) preserve
+void handling, complete-empty discovery, lazy defaults, fresh Boolean restriction-only availability and existing
+primary/uncertain/post-commit publication truth. One unchanged shared planner supplies preview and transaction-time
+apply; unchanged managed definitions now also pass final nonwriting state/reference fences. Optional audit,
+generic dispatch/Event typing and actual consumer scanner/database qualification remain separate.
+
+Canonical `.runs/handoffs/TASK-00142/work.md` owns exhaustive declaration/member/callback/caller dispositions,
+regression chronology, dependency lanes, real routing/safe errors, static/full-gate/exact-coverage and retained
+runtime evidence for the implementation candidate. At that Work checkpoint, independent Review and nonvisual QA
+remained required and TASK-00142 remained in-progress. Unfinished children keep TICKET-00040/EPIC-00016 open.
+No sibling or whole-library acceptance, publication, merge, release or deployment is claimed.
+
 ## TASK-00141 Agent administration — accepted checkpoint
 
 The four void administration handlers and relocated internal PermissionAssignment coordinator now distinguish

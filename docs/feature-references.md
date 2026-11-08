@@ -78,7 +78,7 @@ Consumers implement `Fight\AccessControl\Application\AccessControl\Feature\Disco
 public function discover(FeatureReferenceScope $scope): FeatureDiscoveryResult;
 ```
 
-`FeatureReferenceScope`, `FeatureDiscoveryResult` and `FeatureReferences` are in the Application `Feature` namespace.
+`FeatureReferenceScope`, `FeatureDiscoveryResult` and `FeatureReferences` are in the Application `Feature\Discovery` namespace.
 The consumer selects the exact intended code and merges all its discovered and explicit references before returning:
 
 - `FeatureDiscoveryResult::complete($scope, $combined)` only after complete, successful discovery.

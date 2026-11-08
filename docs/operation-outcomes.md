@@ -175,7 +175,13 @@ inconsistency remains internal. No private exception text belongs in public resp
 For example, preview the complete desired `ManagedPolicy` through `PreviewManagedPolicy`, then dispatch
 `ReconcileManagedPolicy` with that same value. Preview is a snapshot, **not a reservation or authorization**. Apply
 replans inside its Unit of Work, checks each subsequently reread identity before mutation and still calls
-`PermissionRepository::remove(expectedPermission)` for every removal.
+`PermissionRepository::remove(expectedPermission)` for every removal. Known final false/missing-state outcomes
+throw Common Application `StateConflict`; wrong identities, contradictory ownership and unknown faults remain internal.
+Every `UNCHANGED` Permission/Role also goes through a final `replace(expected, expected)` fence without a write,
+timestamp/revision advance or invented item change. It must still match the desired definition. Role no-op validation
+includes complete membership and current Permission eligibility, not just a prior planning read. Permission adapters
+must implement the complete expected-state comparison and transaction-duration no-op fence too. The policy-level
+`ManagedPolicyReconciled` fact remains the existing post-commit summary, including an all-unchanged/empty policy.
 Every Role, Agent and Feature reference-changing writer, including direct writes and validated no-ops, shares that
 transaction-duration reference fence and actual connection with removal. A prior read or ORM snapshot cannot replace
 final expected-state and reference validation. A reference winner rejects removal; a removal winner rejects a later

@@ -29,6 +29,7 @@ use Fight\AccessControl\Domain\AccessControl\Role\Role;
 use Fight\AccessControl\Domain\AccessControl\Role\RoleId;
 use Fight\AccessControl\Domain\AccessControl\Role\RoleName;
 use Fight\Common\Application\Error\Exception\RuleViolation;
+use Fight\Common\Application\Error\Exception\StateConflict;
 use Fight\Common\Domain\Messaging\Command\CommandMessage;
 use Fight\Common\Domain\Messaging\Event\CommandFailedEvent;
 use Fight\Test\AccessControl\Application\AccessControl\Agent\Repository\InMemoryAgentRepository;
@@ -40,7 +41,6 @@ use Fight\Test\AccessControl\Application\AccessControl\Role\Repository\InMemoryR
 use Fight\Test\AccessControl\Application\AccessControl\Timing\Service\FixedClock;
 use Fight\Test\AccessControl\Application\AccessControl\User\InMemoryUnitOfWork;
 use Fight\Test\AccessControl\Application\AccessControl\User\Repository\InMemoryUserRepository;
-use LogicException;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
 
@@ -139,8 +139,8 @@ final class ManagedFeatureRemovalTest extends TestCase
         try {
             $this->handler($unit, $permissionRepository, $eventDispatcher)->handle(CommandMessage::create($command));
             self::fail('Final removal must reject the late reference.');
-        } catch (LogicException $logicException) {
-            self::assertStringContainsString('became referenced', $logicException->getMessage());
+        } catch (StateConflict $stateConflict) {
+            self::assertStringContainsString('became referenced', $stateConflict->getMessage());
         }
 
         self::assertSame($obsolete, $permissionRepository->getById($obsolete->getId()));
@@ -221,7 +221,7 @@ final class ManagedFeatureRemovalTest extends TestCase
                 $handler->handle(CommandMessage::create(new ReconcileManagedPolicy(new ManagedPolicy([], [], []))));
                 self::assertSame('none', $remaining);
                 self::assertNull($permissionRepository->getById($permission->getId()));
-            } catch (RuleViolation | LogicException $failure) {
+            } catch (RuleViolation | StateConflict $failure) {
                 self::assertNotSame('none', $remaining);
                 self::assertInstanceOf(RuleViolation::class, $failure);
                 if ($remaining === 'agent') {

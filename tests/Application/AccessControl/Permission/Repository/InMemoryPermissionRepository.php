@@ -153,6 +153,10 @@ final class InMemoryPermissionRepository implements PermissionRepository
                 continue;
             }
 
+            if ($expected === $replacement) {
+                return true;
+            }
+
             $this->permissions[$index] = $replacement;
             $this->authorizationReferences->addPermission($replacement);
             $this->unitOfWork?->onRollback(function () use ($expected, $index): void {

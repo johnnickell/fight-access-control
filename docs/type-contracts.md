@@ -144,6 +144,12 @@ operation authorization methods and the non-null outcome Query, plus four reject
 Real registered Command/Query dispatch and Common safe HTTP middleware are separate runtime proof; this does not
 qualify generic bus inference, production crypto or consumer persistence.
 
+TASK-00142 adds ten exact probes for all six void Feature/policy handler callbacks, Boolean availability,
+scoped discovery/references and merged name lists, plus eight rejected incompatible uses. Existing policy/Feature
+fixtures retain plan/action/definition/message/callback precision. Owned level-8 analysis separately checks the
+actual local Event/null/list annotations. Real Common execute/decoded dispatch and relevant safe errors are runtime
+proof, not generic bus/Event inference or consumer scanner/persistence qualification.
+
 Native transactional results remain `mixed`; a matching local `@var` for a known owned callback result (including
 tuples/unions) remains sufficient. No generic UoW supplier or redundant runtime check is required.
 

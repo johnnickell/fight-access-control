@@ -8,19 +8,23 @@ use Fight\AccessControl\Application\AccessControl\Feature\Discovery\FeatureRefer
 use Fight\AccessControl\Application\AccessControl\Feature\Discovery\FeatureReferenceScope;
 use Fight\AccessControl\Domain\AccessControl\Feature\Command\ProvisionFeatures;
 use Fight\AccessControl\Domain\AccessControl\Feature\Event\FeatureCreated;
+use Fight\AccessControl\Domain\AccessControl\Feature\Exception\FeatureConflictException;
 use Fight\AccessControl\Domain\AccessControl\Feature\Exception\FeatureProvisioningException;
+use Fight\AccessControl\Domain\AccessControl\Feature\Exception\FeatureReferenceException;
 use Fight\AccessControl\Domain\AccessControl\Feature\Feature;
 use Fight\AccessControl\Domain\AccessControl\Feature\FeatureId;
 use Fight\AccessControl\Domain\AccessControl\Feature\FeatureRepository;
 use Fight\AccessControl\Domain\AccessControl\Permission\Permission;
 use Fight\AccessControl\Domain\AccessControl\Permission\PermissionName;
 use Fight\AccessControl\Domain\AccessControl\Permission\PermissionRepository;
+use Fight\Common\Application\Error\Exception\StateConflict;
 use Fight\Common\Application\Messaging\Command\CommandHandler;
 use Fight\Common\Application\Messaging\Event\EventDispatcher;
 use Fight\Common\Application\Repository\TransactionalUnitOfWork;
 use Fight\Common\Domain\Messaging\Command\CommandMessage;
 use Fight\Common\Domain\Messaging\Event\CommandFailedEvent;
 use Throwable;
+use UnexpectedValueException;
 
 /**
  * Class ProvisionFeaturesHandler
@@ -60,17 +64,31 @@ final readonly class ProvisionFeaturesHandler implements CommandHandler
         try {
             $references = $this->discovery->discover(FeatureReferenceScope::CANDIDATE)
                 ->getReferences(FeatureReferenceScope::CANDIDATE);
+            /** @var list<FeatureCreated> $events */
             $events = $this->unitOfWork->commitTransactional(function () use ($command, $references): array {
                 $events = [];
                 $permission = null;
                 foreach ($references->getNames() as $name) {
-                    if ($this->featureRepository->getByName($name) instanceof Feature) {
+                    $existing = $this->featureRepository->getByName($name);
+                    if ($existing !== null) {
+                        if (!$existing->getName()->equals($name)) {
+                            throw new UnexpectedValueException('Feature lookup returned a different name.');
+                        }
+
                         continue;
                     }
 
                     $permission ??= $this->resolveDefault($command->getDefaultPermissionName());
                     $feature = Feature::define(FeatureId::generate(), $name, $permission->getId());
-                    $this->featureRepository->add($feature);
+                    try {
+                        $this->featureRepository->add($feature);
+                    } catch (FeatureConflictException | FeatureReferenceException $exception) {
+                        throw new StateConflict(
+                            'Feature provisioning conflicts with current state.',
+                            previous: $exception
+                        );
+                    }
+
                     $events[] = new FeatureCreated($feature->getId(), $name, $feature->getPermissionId());
                 }
 
@@ -99,9 +117,14 @@ final readonly class ProvisionFeaturesHandler implements CommandHandler
             throw new FeatureProvisioningException('A default Permission is required to create missing Features.');
         }
 
-        $permission = $this->permissionRepository->getByName(PermissionName::fromString($name));
+        $permissionName = PermissionName::fromString($name);
+        $permission = $this->permissionRepository->getByName($permissionName);
         if (!$permission instanceof Permission) {
             throw new FeatureProvisioningException('The default Permission does not exist.');
+        }
+
+        if (!$permission->getName()->equals($permissionName)) {
+            throw new UnexpectedValueException('Permission lookup returned a different name.');
         }
 
         return $permission;
