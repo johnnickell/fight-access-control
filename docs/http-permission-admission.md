@@ -4,7 +4,9 @@ TASK-00103 supplies route-bound PSR-15 admission, qualified separately with **Sl
 It does not register routes, authentication, grants, containers, error handlers or another framework.
 [TASK-00104's Symfony guide](symfony-permission-admission.md) covers the separate optional native post-routing
 subscriber and Common exception composition. [TASK-00106's CI4 guide](codeigniter-permission-admission.md) covers native
-before-filter admission and its thin Common-backed selected JSON error bridge. Laravel remains separate work.
+before-filter admission and its thin Common-backed selected JSON error bridge. The
+[Laravel guide](laravel-permission-admission.md) covers its present native middleware. Current typed categories,
+validation privacy and all seven native contracts are reconciled in [ordinary HTTP failures](ordinary-http-failures.md).
 The combined EPIC release is not yet complete.
 
 ## Inward contract and trusted composition
@@ -171,9 +173,9 @@ behavior stays unchanged. Agent OS's custom mapper is not a drop-in migration ta
 
 ## Qualified minimums and limits
 
-Current package minimum is Common `^1.4.1`, raised by [Laravel qualification](laravel-permission-admission.md) to
-exclude its broken 1.4.0 terminal fallback. The full default suite rechecks shared/Slim/Yii behavior on that current
-installed dependency. The table and source/archive counts below preserve TASK-00103's original qualification lane,
+Current package minimum is Common `^1.4.2` for the selected native safe-error composition. TASK-00146 requalifies
+ordinary typed categories, privacy, fallback and optional native lanes; see [current contracts](ordinary-http-failures.md).
+The full default suite rechecks shared/Slim/Yii behavior on that current installed dependency. The table and source/archive counts below preserve TASK-00103's original qualification lane,
 not the current installed lock or a claim that Laravel works with 1.4.0.
 
 At that checkpoint the installed lane was also the **selected minimum** lane: every listed lower bound below was an

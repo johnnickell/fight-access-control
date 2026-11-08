@@ -21,6 +21,7 @@ use Fight\Common\Adapter\Http\Psr17\JSendResponseFactory;
 use Fight\Common\Adapter\Messaging\Query\Routing\InMemoryQueryRouter;
 use Fight\Common\Adapter\Messaging\Query\RoutingQueryBus;
 use Fight\Common\Application\Messaging\Query\QueryBus;
+use Fight\Test\AccessControl\Adapter\Http\OrdinaryFailureCases;
 use Fight\Test\AccessControl\Adapter\Mcp\Tool\Agent\Fixture\ProfileToolEnvironment;
 use Fight\Test\AccessControl\Application\AccessControl\Authorization\Admission\AdmissionEnvironment;
 use PHPUnit\Framework\Attributes\CoversClass;
@@ -331,6 +332,38 @@ final class PermissionMiddlewareTest extends TestCase
             static fn(): RequestAuthority => new AdmissionEnvironment()->user(false)
         ));
         self::assertSame(204, $authenticated->request($this->request())->getStatusCode());
+    }
+
+    #[DataProvider('frameworks')]
+    public function test_native_application_categories_and_structured_validation_are_safe_by_type(
+        string $framework
+    ): void {
+        $environment = new AdmissionEnvironment();
+        $native = new NativePipeline($framework, new PermissionMiddleware(
+            $this->protected(),
+            static fn(): RequestAuthority => $environment->user()
+        ));
+        foreach (OrdinaryFailureCases::cases() as [$case, $status, $message]) {
+            $failure = OrdinaryFailureCases::failure($case);
+            NativeController::$work = static fn(): never => throw $failure;
+            $before = $native->reports;
+            $response = $native->request($this->request());
+            self::assertSame($status, $response->getStatusCode(), $case);
+            OrdinaryFailureCases::assertBody((string) $response->getBody(), $status, $message);
+            self::assertSame($before + 1, $native->reports);
+            self::assertSame($failure::class, $native->reportedTypes[$before]);
+            self::assertSame('', $response->getHeaderLine('WWW-Authenticate'));
+        }
+
+        $native->errors = $native->boundary(OrdinaryFailureCases::validationProjection());
+        NativeController::$work = static fn(): never => throw OrdinaryFailureCases::failure('validation');
+        self::assertSame(
+            ['status' => 'fail', 'data' => ['fields' => ['name' => ['invalid']]]],
+            json_decode((string) $native->request($this->request())->getBody(), true, flags: JSON_THROW_ON_ERROR)
+        );
+        self::assertSame(11, $environment->resolutions);
+        self::assertSame(11, $native->validators);
+        self::assertSame(11, $native->reports);
     }
 
     public function test_unknown_type_remains_500_even_with_a_deliberately_public_projection(): void

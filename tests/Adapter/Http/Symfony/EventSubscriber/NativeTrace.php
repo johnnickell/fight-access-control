@@ -17,6 +17,8 @@ final class NativeTrace
     /** @var list<array{type: class-string}> */
     public array $reports = [];
 
+    public int $deliveries = 0;
+
     public bool $sinkFails = false;
 
     public bool $nativeGranted = true;

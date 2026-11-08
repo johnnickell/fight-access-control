@@ -21,7 +21,9 @@ use Fight\AccessControl\Application\AccessControl\Authorization\Admission\Admiss
 use Fight\AccessControl\Application\AccessControl\Authorization\Admission\PermissionDeclaration;
 use Fight\AccessControl\Domain\AccessControl\Permission\PermissionName;
 use Symfony\Component\HttpFoundation\RequestStack;
+use Symfony\Component\HttpKernel\Controller\ControllerResolver;
 use Symfony\Component\HttpKernel\EventListener\RouterListener;
+use Symfony\Component\HttpKernel\HttpKernel;
 use Symfony\Component\Routing\Matcher\UrlMatcher;
 use Symfony\Component\Routing\RequestContext;
 use Symfony\Component\Routing\Route;
@@ -39,7 +41,12 @@ $stack = new RequestStack();
 $matcher = new UrlMatcher($routes, new RequestContext());
 $eventDispatcher->addSubscriber(new RouterListener($matcher, $stack));
 $eventDispatcher->addSubscriber(new PermissionSubscriber($matcher, $authorityFactory));
-// Compose HttpKernel with this dispatcher, the same RequestStack and native resolvers.
+$kernel = new HttpKernel(
+    $eventDispatcher,
+    new ControllerResolver(),
+    $stack,
+    handleAllThrowables: true
+); // Required here for PHP Errors/TypeErrors to enter safe kernel.exception dispatch.
 ```
 
 `$authorityFactory` is a trusted `Closure(Request): ?RequestAuthority`, not a package service ID or callable from
@@ -120,7 +127,7 @@ uses [current continuation authority](agent-continuation-authorization.md) at it
 
 ## One Common native safe error owner
 
-Select Common v1.4.0's canonical `Adapter\Http\Symfony\EventSubscriber\SafeSymfonyExceptionSubscriber`, with its
+Select Common `^1.4.2`'s canonical `Adapter\Http\Symfony\EventSubscriber\SafeSymfonyExceptionSubscriber`, with its
 `Controller\SafeErrorController`, `Adapter\Http\Error\SafeHttpErrorPolicy`, required redaction-aware
 `SafeHttpDiagnostics` and optional `SafeHttpProjector`. Register `onKernelException` explicitly on
 `kernel.exception` at **64**, before Symfony ErrorListener's `logKernelException` at **0**. It is deliberately not an
@@ -140,8 +147,11 @@ native 401/405 challenges/Allow and canonical string Retry-After seconds are pre
 Malformed/duplicate metadata, missing required challenge/Allow, projector/sink/encoding/render faults fall back to
 fixed generic 500 with one report attempt. Common v1.4.0 accepts native Retry-After only as a canonical decimal **string**;
 Symfony's integer-valued TooManyRequestsHttpException header yields safe 500. Select string seconds explicitly where
-using this path; this package does not silently coerce or repair foreign metadata. Tests inject one real envelope
-encoder failure in an isolated process and observe successful native fallback rendering, without modifying Common source.
+using this path; this package does not silently coerce or repair foreign metadata. Native tests qualify primary,
+terminal and persistent encoding faults, failed reporting and subsequent healthy requests with the selected Common
+release, without modifying supplier source. See [current category/privacy contracts](ordinary-http-failures.md).
+Use `handleAllThrowables: true` on the selected HttpKernel: native default false propagates Errors/TypeErrors
+without dispatching the safe listener. The default behavior is explicitly tested as outside safe presentation.
 
 Negotiation is Common's actual native policy: exact XHR wins; otherwise application/json must precede text/html in
 Symfony's quality-ordered acceptable types. Missing Accept, wildcard or HTML preference delegates. Those paths reach
@@ -156,10 +166,12 @@ JSend handler. This package installs no protocol or global allowlist and changes
 
 ## Qualified tags and remaining obligations
 
-Current package Common minimum is `^1.4.1`; current HttpFoundation/HttpKernel dev/suggestion floors are `^8.1.11`.
-[Laravel qualification](laravel-permission-admission.md) establishes these tagged bounds: Common's terminal Laravel
-fallback needs 1.4.1, and a preliminary 8.1.9 component lane reported five security advisories fixed by 8.1.11.
-The current full default suite also exercises Symfony on the installed dependency set. The table/file counts below
+Current package Common minimum is `^1.4.2`; current HttpFoundation/HttpKernel dev/suggestion floors are `^8.1.11`.
+TASK-00146 requalifies the selected Symfony safe-error contract and native minima, including the explicit Throwable
+kernel option. Routing and optional Security HTTP now also require `^8.1.11` after the older lower-bound audit
+reported advisories; supported-minimum and ordinary lanes report none. [Laravel qualification](laravel-permission-admission.md) previously established the 8.1.11 component
+floor after a preliminary 8.1.9 lane reported five security advisories. The current full default suite also exercises
+Symfony on the installed dependency set. The table/file counts below
 preserve TASK-00104's original behavioral qualification, not today's installed lock or security-floor recommendation.
 
 Those **selected sufficient behavioral minimums** were the installed tagged lane, not a claim about the earliest

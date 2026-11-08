@@ -87,6 +87,22 @@ resource outcomes. Original Work history and independent report subjects remain 
 and deprecation plus QA's focused runner-option deprecation remain disclosed in the owning evidence. No whole-library,
 generic dispatch, optional-audit or actual consumer qualification, approval, merge, release or deployment is claimed.
 
+## TASK-00146 ordinary HTTP contracts — Work checkpoint
+
+Current composition selects Common `^1.4.2` and preserves one Common safe classification/reporting/presentation
+owner across PSR/Slim/Yii and present Symfony/Laravel/CI4 peers. The
+[ordinary HTTP contract map](docs/ordinary-http-failures.md) records deliberate Application 404/409/412/422,
+private structured validation versus unknown/internal 500, required metadata and native/protocol/lifetime limits.
+Symfony's exact event tuple is now statically declared; current native kernel examples explicitly select
+`handleAllThrowables: true` for PHP Errors to enter safe exception dispatch. Constructors/named arguments and
+inward policy/grants/nonce/continuation semantics are unchanged. Older framework checkpoints below retain their
+original tested versions and do not describe the current supported minimum.
+
+Canonical `.runs/handoffs/TASK-00146/work.md` owns exact source/tag/registry/runtime/lane/static/native/full-gate/
+coverage evidence, historical prerequisite recovery and all warnings/limits. Work is not independent acceptance;
+Review and nonvisual behavioral QA remain required. Controlled fixtures do not qualify consumer persistence,
+crypto, target scope, sinks, bootstrap/proxies/HTML/deployment or an all-five-framework release.
+
 ## TASK-00143 Agent issuance contracts — accepted checkpoint
 
 The current void provision/rotation handlers now distinguish source-qualified Common Application refusals from

@@ -8,7 +8,7 @@ User Role-derived versus Agent direct Permissions and separate target-scope auth
 
 ## Install and select deliberately
 
-The qualified combination is Common `^1.4.1`, Laravel framework `^13.40.0`, Symfony HttpFoundation/HttpKernel
+The current selected combination is Common `^1.4.2`, Laravel framework `^13.40.0`, Symfony HttpFoundation/HttpKernel
 `^8.1.11` and Event Dispatcher `^8.1.5`, on patched PHP 8.5.12. Laravel is a dev fixture and optional suggestion,
 not a required production framework. A consumer selecting Laravel installs and maintains its native components:
 
@@ -20,6 +20,8 @@ Common 1.4.0 is explicitly excluded: its Laravel fallback can throw when fallbac
 recursive native reporting and private renderer-fault escape. Common 1.4.1 supplies the terminal native response;
 AccessControl adds no competing handler, logger or renderer. Installing this package activates neither middleware
 nor error handling and does not replace consumer bootstrap, authentication, routes, persistence or diagnostics.
+TASK-00146 requalifies current categories/privacy/fallback on Common 1.4.2; see
+[ordinary HTTP contracts](ordinary-http-failures.md). The original tag table below remains historical TASK-00105 evidence.
 
 ## Bind exact trusted routes and actions
 
