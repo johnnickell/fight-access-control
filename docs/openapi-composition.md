@@ -117,9 +117,10 @@ arbitrary provider details are not exposed. Attempt counts start at zero. Revisi
 validated by the owning snapshot. The generic status Query checks a nonempty
 string; its handler resolves a purpose-specific UUID, consistent with the catalog's identifier convention.
 
-`InvitationDeliveryStatus`, `CredentialDeliveryStatus` and `DueCredentialDelivery` use exactly `pending`, `claimed`,
-`retry_pending`, `delivered`, `permanent_failure`, `expired` and `invalidated`. The obsolete `failed` and `confirmed`
-values are no longer admitted. These safe results describe no credential, ciphertext, destination email, or claim
+`InvitationDeliveryStatus` and `CredentialDeliveryStatus` use exactly `pending`, `claimed`, `retry_pending`,
+`delivered`, `permanent_failure`, `expired` and `invalidated`. `DueCredentialDelivery` admits only `pending`, `claimed`
+and `retry_pending`; terminal states are not due-work values. The obsolete `failed` and `confirmed` values are no longer
+admitted. These safe results describe no credential, ciphertext, destination email, or claim
 token. The status View component intentionally omits the PHP `View` suffix, like the existing invitation component.
 
 Unreleased `JSend.Success.InvitationDeliveryStatus` and `JSend.Success.CredentialDeliveryStatus` reference their
