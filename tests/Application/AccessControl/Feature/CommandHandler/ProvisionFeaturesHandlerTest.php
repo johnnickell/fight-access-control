@@ -234,7 +234,12 @@ final class ProvisionFeaturesHandlerTest extends TestCase
             {
             }
         };
-        $discovery = new FixtureFeatureDiscovery($code, [], static fn(): bool => true);
+        $discovery = new FixtureFeatureDiscovery(
+            FeatureReferenceScope::CANDIDATE,
+            $code,
+            [],
+            static fn(): bool => true
+        );
         $failure = $this->failure(fn() => $this->handler(discovery: $discovery)->handle($this->message()));
 
         self::assertInstanceOf(FeatureDiscoveryException::class, $failure);
@@ -530,7 +535,7 @@ final class ProvisionFeaturesHandlerTest extends TestCase
         ?PermissionRepository $permissionRepository = null,
         ?TransactionalUnitOfWork $unitOfWork = null
     ): ProvisionFeaturesHandler {
-        $discovery ??= new FixtureFeatureDiscovery(new class {
+        $discovery ??= new FixtureFeatureDiscovery(FeatureReferenceScope::CANDIDATE, new class {
         }, $names, static fn(): bool => true);
 
         return new ProvisionFeaturesHandler(

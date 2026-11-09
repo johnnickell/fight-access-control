@@ -2,6 +2,7 @@
   "schema": 1,
   "roots": ["src", "openapi"],
   "rules": [
+    {"ticket": "TICKET-00049", "task": "TASK-00170", "path": "src/Application/AccessControl/(Action/.*|Feature/FeatureRequirements\\.php)"},
     {"ticket": "TICKET-00037", "task": "TASK-00115", "path": "src/Domain/AccessControl/(User|RefreshSession|Audit)/.*"},
     {"ticket": "TICKET-00037", "task": "TASK-00116", "path": "src/Domain/AccessControl/(ActivationGrant|PasswordResetGrant|EmailChangeGrant|CredentialDelivery)/.*", "except": "src/Domain/AccessControl/CredentialDelivery/Query/CredentialDeliveryAbsent\\.php"},
     {"ticket": "TICKET-00037", "task": "TASK-00117", "path": "src/Domain/AccessControl/(Permission|Role|ManagedPolicy|Authorization)/.*"},
@@ -29,6 +30,7 @@
     {"ticket": "TICKET-00041", "task": "TASK-00149", "path": "openapi/.*|src/Application/AccessControl/Feature/Attribute/.*"}
   ],
   "concerns": [
+    {"ticket": "TICKET-00049", "task": "TASK-00170", "path": "src/Application/AccessControl/Feature/(Attribute|Discovery)/.*"},
     {"ticket": "TICKET-00038", "task": "TASK-00128", "path": "src/(Application/.*/QueryHandler|Domain/.*/Query)/.*|src/Adapter/Mcp/Tool/Agent/GetAgentProfileTool\\.php|src/Application/AccessControl/AgentCredentialOperation/Delivery/AgentDeliveryRecoveryService\\.php"},
     {"ticket": "TICKET-00038", "task": "TASK-00129", "path": "src/(Application/.*/CommandHandler|Domain/.*/Command)/.*|src/Adapter/Mcp/Tool/Agent/UpdateAgentProfileTool\\.php", "except": ".*/(ProvisionAgent|RotateAgentCredential)(Handler)?\\.php"},
     {"ticket": "TICKET-00038", "task": "TASK-00130", "path": "src/(Application|Domain)/AccessControl/Agent/(CommandHandler|Command)/(ProvisionAgent|RotateAgentCredential)(Handler)?\\.php|src/Application/AccessControl/AgentCredentialOperation/QueryHandler/GetAgentOperationHandler\\.php"}

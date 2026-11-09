@@ -141,7 +141,7 @@ private criteria before implementation/review without disclosure and choose the 
 
 | Order | TASK ID | Title | Status |
 | --- | --- | --- | --- |
-| 501 | [TASK-00170](../tasks/00170-TASK.md) | Declare and discover effective Feature requirements | ready-for-agent |
+| 501 | [TASK-00170](../tasks/00170-TASK.md) | Declare and discover effective Feature requirements | in-progress |
 | 502 | [TASK-00171](../tasks/00171-TASK.md) | Declare effective portable Permission requirements | ready-for-agent |
 ## Decisions and Progress
 

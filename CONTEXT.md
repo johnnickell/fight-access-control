@@ -51,8 +51,9 @@ no whole-library or actual consumer qualification, approval, merge, release or d
 The [current payload catalog](docs/public-payload-catalog.md) maps public messages, safe Query results, all seven
 synchronous User payloads and deliberate internal/non-wire boundaries to the opt-in OpenAPI anchors. Consumers
 explicitly project safe Views and TokenSet getters; arbitrary object serialization is not the wire contract.
-Generated OpenAPI 3.1 samples run in the default suite without incidental production coverage. FeatureFlag remains
-method-only, nonrepeatable and declaration-only; no HTTP policy or future declaration redesign is implemented.
+Generated OpenAPI 3.1 samples run in the default suite without incidental production coverage. TASK-00170 now extends FeatureFlag to repeated class/method declarations with cumulative effective ancestry and
+trusted route requirements; it remains declaration-only, without HTTP admission. See [effective declarations](docs/feature-references.md).
+The earlier TASK-00149 acceptance below covers its original narrower contract, not this new behavior.
 TASK-00149's canonical Work handoff owns implementation verification and limits. Independent Review v3 ACCEPT
 and nonvisual QA PASS cover candidate `713837ab11122cafc5a66d00c0c0e6174eedb333`, with no open findings;
 TASK-00149 is done, while unfinished siblings keep TICKET-00041/EPIC-00016 open. Publication/final-head verification
@@ -743,8 +744,11 @@ actual owner for authorized repair, not duplicate implementation. All four EPIC-
 Existing PSR-15/Symfony/CI4 and accepted TASK-00105 Laravel
 Permission work retain scope/order/blockers; assign actual native suppliers and shared adaptations once during
 TASK decomposition rather than duplicate or silently expand them. No new version,
-consumer adoption or release obligation with other EPICs is selected. Current FeatureFlag is still method-only,
-nonrepeatable metadata; Agent OS's RequiresPermission is still its class-only Attribute, not a portable package API.
+consumer adoption or release obligation with other EPICs is selected. TASK-00170's Work implementation now supplies
+repeated class/method FeatureFlag, FeatureRequirements and shared pure Action/SelectedAction ancestry/association,
+with aligned scoped discovery and preparation/provisioning/retirement tests. Independent acceptance remains required;
+no native Feature admission or portable Permission declaration is implemented here. The canonical Work handoff owns
+current verification/runtime details. Feature metadata remains declaration-only; Agent OS's RequiresPermission is still its class-only Attribute, not a portable package API.
 
 Selected EPIC-00018 TASK planning is complete. Next: `/skill:next` for Board-based selection, not automatic execution.
 All six EPIC-00017 audit TICKETs are now TASK-planned below, not implemented/qualified. EPIC-00015's added Agent

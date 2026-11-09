@@ -6,6 +6,7 @@ namespace Fight\Test\AccessControl\Application\AccessControl\Feature\Conformance
 
 use DateTimeImmutable;
 use Fight\AccessControl\Application\AccessControl\Feature\CommandHandler\RemoveFeatureHandler;
+use Fight\AccessControl\Application\AccessControl\Feature\Discovery\FeatureReferenceScope;
 use Fight\AccessControl\Application\AccessControl\ManagedPolicy\CommandHandler\ReconcileManagedPolicyHandler;
 use Fight\AccessControl\Application\AccessControl\ManagedPolicy\Service\ManagedPolicyPlanner;
 use Fight\AccessControl\Domain\AccessControl\Agent\Agent;
@@ -196,7 +197,7 @@ final class ManagedFeatureRemovalTest extends TestCase
             }
 
             $eventDispatcher = new InMemoryEventDispatcher();
-            $discovery = new FixtureFeatureDiscovery(new class {
+            $discovery = new FixtureFeatureDiscovery(FeatureReferenceScope::CURRENT, new class {
             }, [], static fn(): bool => true);
             new RemoveFeatureHandler($discovery, $featureRepository, $unit, $eventDispatcher)->handle(
                 CommandMessage::create(new RemoveFeature($retiring->getId(), 1))

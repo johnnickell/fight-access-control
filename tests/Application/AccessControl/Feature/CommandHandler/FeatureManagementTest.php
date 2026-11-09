@@ -9,6 +9,7 @@ use Fight\AccessControl\Application\AccessControl\Feature\CommandHandler\CreateF
 use Fight\AccessControl\Application\AccessControl\Feature\CommandHandler\ProvisionFeaturesHandler;
 use Fight\AccessControl\Application\AccessControl\Feature\CommandHandler\SetFeaturePermissionHandler;
 use Fight\AccessControl\Application\AccessControl\Feature\CommandHandler\SetFeatureStatusHandler;
+use Fight\AccessControl\Application\AccessControl\Feature\Discovery\FeatureReferenceScope;
 use Fight\AccessControl\Application\AccessControl\Feature\QueryHandler\GetFeatureByIdHandler;
 use Fight\AccessControl\Application\AccessControl\Feature\QueryHandler\ListFeaturesHandler;
 use Fight\AccessControl\Application\AccessControl\Feature\Service\FeatureAvailability;
@@ -162,7 +163,7 @@ final class FeatureManagementTest extends TestCase
         $this->binding($created, $this->second->getId(), 1);
         $this->changeStatus($created, FeatureStatus::PREVIEW, 2);
         $before = $this->featureRepository->getById($created->getId());
-        $discovery = new FixtureFeatureDiscovery(new class {
+        $discovery = new FixtureFeatureDiscovery(FeatureReferenceScope::CANDIDATE, new class {
         }, ['dashboard', 'new-checkout'], static fn(): bool => true);
         new ProvisionFeaturesHandler(
             $discovery,

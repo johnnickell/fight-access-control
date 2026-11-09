@@ -7,8 +7,8 @@ certify a consumer deployment. An OFF Feature is valid preparation; it is not av
 
 ## Consumer composition
 
-Use native, method-only, nonrepeatable `#[FeatureFlag('name')]` declarations and explicit registration for other
-checks. The consumer scans the exact **candidate** code, instantiates every Attribute to validate it, merges all
+Use native repeated class/method `#[FeatureFlag('name')]` declarations with cumulative parent/overridden-method
+requirements and explicit registration for other checks (TASK-00170, unreleased). The consumer scans the exact **candidate** code, instantiates every Attribute to validate it, merges all
 references and attests completeness through `FeatureDiscoveryResult::complete(CANDIDATE, $references)`. A complete
 empty inventory is distinct from failed/incomplete discovery. See [declarations](feature-references.md). Supply the
 same consumer-composed `FeatureReferenceDiscovery`, `FeatureRepository` and `PermissionRepository` contracts used

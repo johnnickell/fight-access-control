@@ -337,7 +337,12 @@ final class RemoveFeatureHandlerTest extends TestCase
         self::assertInstanceOf(FeatureNotFoundException::class, $this->fails(
             fn(): bool => $availability->isAvailable($old->getName(), null)
         ));
-        $candidate = $this->discovery($code, ['dashboard']);
+        $candidate = new FixtureFeatureDiscovery(
+            FeatureReferenceScope::CANDIDATE,
+            $code,
+            ['dashboard'],
+            static fn(): bool => true
+        );
         $provision = new ProvisionFeaturesHandler(
             $candidate,
             $this->featureRepository,
@@ -438,7 +443,12 @@ final class RemoveFeatureHandlerTest extends TestCase
     /** @param list<string> $registrations */
     private function discovery(object $code, array $registrations, ?Closure $finish = null): FixtureFeatureDiscovery
     {
-        return new FixtureFeatureDiscovery($code, $registrations, $finish ?? static fn(): bool => true);
+        return new FixtureFeatureDiscovery(
+            FeatureReferenceScope::CURRENT,
+            $code,
+            $registrations,
+            $finish ?? static fn(): bool => true
+        );
     }
 
     private function remove(FeatureReferenceDiscovery $discovery, int $revision, ?FeatureId $id = null): void

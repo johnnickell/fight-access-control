@@ -25,7 +25,7 @@ final class FeatureFlagTest extends TestCase
     /** @return iterable<string, array{string}> */
     public static function invalidTargets(): iterable
     {
-        foreach (['class', 'property', 'constant', 'parameter', 'repeated-first', 'repeated-second'] as $target) {
+        foreach (['property', 'constant', 'parameter'] as $target) {
             yield $target => [$target];
         }
     }
@@ -85,13 +85,26 @@ final class FeatureFlagTest extends TestCase
         $attribute->newInstance();
     }
 
+    public function test_native_class_and_repeated_method_targets_are_validated_by_construction(): void
+    {
+        $fixture = require __DIR__.'/../Fixture/InvalidFeatureTargets.php.fixture';
+        $class = new ReflectionClass($fixture);
+        $declaration = $class->getAttributes(FeatureFlag::class)[0]->newInstance();
+        self::assertSame('dashboard', $declaration->getName()->toString());
+        $names = [];
+        foreach ($class->getMethod('repeated')->getAttributes(FeatureFlag::class) as $attribute) {
+            $names[] = $attribute->newInstance()->getName()->toString();
+        }
+
+        self::assertSame(['dashboard', 'new-checkout'], $names);
+    }
+
     #[DataProvider('invalidTargets')]
-    public function test_native_instantiation_rejects_wrong_targets_and_repeatability(string $target): void
+    public function test_native_instantiation_rejects_wrong_targets(string $target): void
     {
         $fixture = require __DIR__.'/../Fixture/InvalidFeatureTargets.php.fixture';
         $class = new ReflectionClass($fixture);
         $reflection = match ($target) {
-            'class'     => $class,
             'property'  => $class->getProperty('value'),
             'constant'  => $class->getReflectionConstant('NAME'),
             'parameter' => new ReflectionParameter([$fixture, 'repeated'], 'argument'),
@@ -99,14 +112,9 @@ final class FeatureFlagTest extends TestCase
         };
         self::assertNotFalse($reflection);
         $attributes = $reflection->getAttributes(FeatureFlag::class);
-        $index = 0;
-        if ($target === 'repeated-second') {
-            $index = 1;
-        }
-
         $this->expectException(Error::class);
         $this->expectExceptionMessage('Attribute "'.FeatureFlag::class.'"');
 
-        $attributes[$index]->newInstance();
+        $attributes[0]->newInstance();
     }
 }
