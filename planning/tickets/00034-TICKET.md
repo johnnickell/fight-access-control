@@ -2,7 +2,7 @@
 id: TICKET-00034
 epic: EPIC-00015
 title: Consume supported canonical Fight Common contracts
-status: ready-for-agent
+status: done
 ---
 
 # Consume supported canonical Fight Common contracts
@@ -46,7 +46,8 @@ consumed-contract inventory for subsequent features under [EPIC-00015](../epics/
 ## Dependencies and External Gate
 
 TASK-00110 has order 13; its historical needs-info hold is resolved by verified published Common v1.5.0
-source/tag/independent release evidence. It is now in-progress pending independent adoption Review/QA. There is no local TASK blocker and no cross-repository blocked_by ID. The
+source/tag/independent release evidence. Its current-package adoption now has independent Review ACCEPT and
+nonvisual QA PASS on the candidate recorded in TASK-00110. There is no local TASK blocker or cross-repository blocked_by ID. The
 maintainer/implementation owner verifies source/tag/minimum evidence before changing readiness; Common planning,
 local completion and deprecation bridges are not proof of a canonical release.
 
@@ -56,15 +57,15 @@ without this MCP migration. Unavailable unrelated supplier work never blocks all
 
 ## Acceptance Evidence
 
-- [ ] A source-linked inventory accounts for affected consumed names, signatures, construction, interfaces,
+- [x] A source-linked inventory accounts for affected consumed names, signatures, construction, interfaces,
   messages/value serialization and owned references, with precise implemented versus planned versus tagged status.
-- [ ] Real current Tool/Resource/Skill, profile, authority and optional native composition works through canonical
+- [x] Real current Tool/Resource/Skill, profile, authority and optional native composition works through canonical
   APIs at the sufficient supported minimum; exact package/source/runtime evidence and necessary manifest changes exist.
-- [ ] Owned imports/docs/examples no longer use affected deprecated APIs; no legacy wrappers or shadow workflows
+- [x] Owned imports/docs/examples no longer use affected deprecated APIs; no legacy wrappers or shadow workflows
   are added. Future feature suppliers/holds remain explicit rather than certified by this refactor.
-- [ ] Denial-before-work, sensitive-error handling, request scopes, existing outcomes and wire/persistence shapes
+- [x] Denial-before-work, sensitive-error handling, request scopes, existing outcomes and wire/persistence shapes
   remain unchanged; any actual incompatible semantic change returns for scoped disposition rather than being hidden.
-- [ ] Focused checks, exact statement coverage/full gate, complete local receipts and independent Review/QA qualify
+- [x] Focused checks, exact statement coverage/full gate, complete local receipts and independent Review/QA qualify
   this package integration, not actual consumer storage/cryptography/bootstrap/deployment.
 
 ## Exclusions
@@ -77,13 +78,15 @@ new feature implementations, release and deployment.
 
 | Order | TASK ID | Title | Status |
 | --- | --- | --- | --- |
-| 13 | [TASK-00110](../tasks/00110-TASK.md) | Adopt qualified canonical Fight Common contracts | in-progress |
+| 13 | [TASK-00110](../tasks/00110-TASK.md) | Adopt qualified canonical Fight Common contracts | done |
 ## Decisions and Progress
 
 John approved one complete TASK-00110 for this requirement. Work has now qualified the supplier v1.5.0 baseline
-and implemented current-package adoption; independent adoption acceptance remains required. See the
+and implemented current-package adoption, now independently accepted with nonvisual QA PASS. See the
 [contract inventory](../../docs/common-contracts.md). Local refactoring and ordinary native-framework work remain independent. The existing combined EPIC-00014 release scope
 and unassigned version are unchanged. Planning creates no dependency adoption or publication authority.
 
-Next: independent Review and behavioral QA of TASK-00110's committed adoption and retained gate evidence;
-new MCP features retain their own supplier/operation qualification.
+TASK-00110 records accepted candidate `c4fc6d249eed0e80e6f00237960b96c92416299f`, complete gate/exact coverage
+and independent reports. Its completion closes this sole-child ticket; publication/final delivery checks are pending
+at that administrative checkpoint, with subsequent results in canonical `.runs/handoffs/TASK-00110/land.md`.
+New MCP features retain their own supplier/operation qualification.
