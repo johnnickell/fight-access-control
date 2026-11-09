@@ -9,6 +9,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Portable repeatable class/method `RequiresPermission` and effective `PermissionRequirements`, reusing shared
+  selected-action ancestry. Attribute-only protection and trusted route conjunction preserve parent gates, validate
+  before deduplication and reject conflicting explicit modes without changing raw declaration or admission rules.
+  Pure metadata only: no automatic native enforcement, Feature dependency or new grant. See
+  [Permission declarations](docs/permission-requirements.md).
 - Effective Feature requirements bound to trusted selected class/method, inherited/overridden/invokable or closure
   actions, with one reusable pure ancestry mechanism. Class, method, parent and explicit route gates accumulate;
   validation precedes deduplication. Scoped fixture discovery and actual preparation/provisioning/retirement callers

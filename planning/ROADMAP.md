@@ -29,7 +29,8 @@ slice keeps its own callers/docs/tests/full gate/exact coverage/independent acce
 four PRs or qualified runtime. TICKET-00049's two-TASK plan is now approved/written as
 [TASK-00170](tasks/00170-TASK.md) complete effective Feature declarations/discovery/current callers (order 501, no
 blocker) and [TASK-00171](tasks/00171-TASK.md) portable Permission declarations/composition (order 502, dependency on
-TASK-00170). TASK-00170 is now done; TASK-00171 remains unimplemented with its pure traversal supplier satisfied.
+TASK-00170). Both declaration TASKs are now independently accepted with nonvisual QA and done; TICKET-00049 is
+complete. Native admission/integration and consumer qualification remain unfinished under their separate tickets.
 The first owns the small shared pure selected-action/ancestry output; the second reuses it without a
 Feature evaluation/discovery/repository/runtime-activation dependency. Feature admission can consume the first without
 waiting for the second. Keep new native class/method/repeated/inherited/route metadata coherent with scoped discovery/

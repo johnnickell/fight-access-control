@@ -1,0 +1,15 @@
+<?php
+
+declare(strict_types=1);
+
+use Fight\AccessControl\Application\AccessControl\Authorization\Attribute\RequiresPermission;
+
+return new class {
+    #[RequiresPermission('PROPERTY')]
+    public string $property = '';
+
+    #[RequiresPermission('CONSTANT')]
+    public const string VALUE = '';
+
+    public function execute(#[RequiresPermission('PARAMETER')] string $value): void {}
+};
