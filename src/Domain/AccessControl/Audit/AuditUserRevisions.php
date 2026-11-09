@@ -90,6 +90,71 @@ final readonly class AuditUserRevisions implements Arrayable
     }
 
     /**
+     * Validates the declared outcome against the bounded User lifecycle and counter transitions
+     *
+     * @throws DomainException When an action contradicts the actual User transition semantics
+     */
+    public function assertOutcome(AuditAction $action, ?self $before): void
+    {
+        if ($before === null) {
+            $assignmentsValid = $this->authorizationAssignment === 0;
+            if ($action === AuditAction::USER_REGISTERED) {
+                $assignmentsValid = $this->authorizationAssignment > 0;
+            }
+
+            if (
+                $this->state !== UserState::PENDING_ACTIVATION || $this->authenticationVersion !== 1
+                || $this->authenticationAuthority !== 0 || $this->emailReservation !== 0
+                || $this->canonicalEmail !== 0 || !$assignmentsValid
+            ) {
+                throw new DomainException('Audit User creation requires its actual initial lifecycle and counters.');
+            }
+
+            return;
+        }
+
+        $validState = match ($action) {
+            AuditAction::USER_PENDING_INVITATION_CORRECTED, AuditAction::USER_PENDING_REGISTRATION_RECOVERED
+                => $before->state === UserState::PENDING_ACTIVATION && $this->state === $before->state,
+            AuditAction::USER_ENABLED => $before->state === UserState::DISABLED && $this->state === UserState::ACTIVE,
+            AuditAction::USER_DISABLED => $before->state === UserState::ACTIVE && $this->state === UserState::DISABLED,
+            AuditAction::USER_DELETED => in_array($before->state, [UserState::ACTIVE, UserState::DISABLED], true)
+                && $this->state === UserState::DELETED,
+            AuditAction::USER_RESTORED => $before->state === UserState::DELETED
+                && in_array($this->state, [UserState::ACTIVE, UserState::PENDING_ACTIVATION], true),
+            default => $before->state === UserState::ACTIVE && $this->state === UserState::ACTIVE
+        };
+        if (!$validState) {
+            throw new DomainException('Audit User lifecycle must match its declared outcome.');
+        }
+
+        $advances = match ($action) {
+            AuditAction::USER_DISABLED, AuditAction::USER_DELETED => ['authentication_version'],
+            AuditAction::PASSWORD_CHANGED, AuditAction::PASSWORD_RESET_COMPLETED
+                => ['authentication_version', 'authentication_authority'],
+            AuditAction::EMAIL_CHANGE_REQUESTED, AuditAction::EMAIL_CHANGE_CANCELLED => ['email_reservation'],
+            AuditAction::EMAIL_CHANGE_CONFIRMED
+                => ['authentication_version', 'authentication_authority', 'email_reservation', 'canonical_email'],
+            AuditAction::USER_PENDING_INVITATION_CORRECTED => ['canonical_email'],
+            AuditAction::USER_PENDING_REGISTRATION_RECOVERED
+                => $this->canonicalEmail === $before->canonicalEmail ? [] : ['canonical_email'],
+            default => []
+        };
+        $afterCounters = $this->toArray();
+        $beforeCounters = $before->toArray();
+        unset($afterCounters['state'], $beforeCounters['state']);
+        foreach ($beforeCounters as $field => $value) {
+            if (in_array($field, $advances, true)) {
+                if ($value === PHP_INT_MAX || $afterCounters[$field] !== $value + 1) {
+                    throw new DomainException('Audit User outcome must advance each affected counter exactly once.');
+                }
+            } elseif ($afterCounters[$field] !== $value) {
+                throw new DomainException('Audit User outcome must preserve unaffected counters.');
+            }
+        }
+    }
+
+    /**
      * Returns only admitted state and revision facts
      *
      * @phpstan-return UserRevisionsPayload

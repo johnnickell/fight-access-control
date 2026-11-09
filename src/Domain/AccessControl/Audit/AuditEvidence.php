@@ -337,6 +337,8 @@ class AuditEvidence implements Arrayable
         ) {
             throw new DomainException('Audit outcome requires its actual grant and delivery relationship.');
         }
+
+        $facts->getAfter()->assertOutcome($this->action, $facts->getBefore());
     }
 
     /**
@@ -362,6 +364,14 @@ class AuditEvidence implements Arrayable
             || ($facts->getBefore() === null && $this->action !== AuditAction::PASSWORD_RESET_REQUESTED)
         ) {
             throw new DomainException('Audit grant facts require the actual outcome family and predecessor.');
+        }
+
+        $issuance = in_array($this->action, [
+            AuditAction::INVITATION_RESENT, AuditAction::PASSWORD_RESET_REQUESTED
+        ], true);
+        $sameGeneration = $facts->getBefore()?->getId()->equals($facts->getAfter()->getId()) ?? false;
+        if ($issuance === $sameGeneration) {
+            throw new DomainException('Audit issuance replaces a generation; delivery outcomes preserve it.');
         }
 
         $validOutcome = match ($this->action) {

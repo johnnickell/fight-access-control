@@ -75,6 +75,14 @@ final readonly class AuditUserOutcome implements Arrayable
     }
 
     /**
+     * Returns the authoritative successor User counters
+     */
+    public function getAfter(): AuditUserRevisions
+    {
+        return $this->after;
+    }
+
+    /**
      * Returns the actual predecessor grant relationship when applicable
      */
     public function getGrantBefore(): ?AuditGrantState

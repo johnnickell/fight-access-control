@@ -26,7 +26,11 @@ correlation; record identity/correlation is neither authority nor universal dedu
 
 - `AuditUserOutcome` captures actual before/after `AuditUserRevisions` and applicable typed grant relationships.
   These snapshots contain lifecycle and authoritative counters, not email addresses, hashes or entities.
-  Creation has no predecessor. Soft deletion retains an actual successor, not fictitious physical removal.
+  Creation has no predecessor and retains initial counters (including the actual default-Role assignments for
+  registration). Each supported action validates its lifecycle transition, exact one-step affected counters and
+  unchanged unaffected counters. Same-address pending-registration recovery may leave User counters unchanged;
+  enable/restore do not invent security-counter increments. Soft deletion retains an actual successor, not
+  fictitious physical removal.
 - `AuditGrantOutcome` captures actual grant revisions/delivery identities without implying a User mutation.
   Delivery facts carry the actual persisted `CredentialDeliveryStatus` and bounded failure classification, not provider
   diagnostics. Permanent provider failure pairs with permanent-failure state; retryable/unexpected failure pairs
@@ -35,7 +39,10 @@ correlation; record identity/correlation is neither authority nor universal dedu
   additionally retain `replaced_predecessor`: the old generation's actual post-cancellation revision, or its
   unchanged terminal revision when appending after terminal history. It is required when replacing a different
   grant identity and absent on initial issuance/in-place outcomes. The original, retained predecessor and new
-  successor are separate facts, not a fictional before/after revision of one grant.
+  successor are separate facts, not a fictional before/after revision of one grant. An in-place outcome preserves
+  its delivery identity and advances the grant revision exactly once without overflow. New-generation issuance
+  starts at revision zero with a distinct delivery; delivery confirmation/failure and retry cannot replace a
+  generation. Unchanged terminal predecessor retention remains valid when issuing a replacement.
 - `AuditAgentOutcome` captures credential identities/revisions/lifecycle and the actual issuance delivery ID.
   Provisioning has no predecessor; rotation advances the credential revision; revocation retains the same
   credential tuple while changing lifecycle. Issuance requires its real scoped operation correlation.

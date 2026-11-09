@@ -110,6 +110,8 @@ final class AuditEvidenceContractTest extends TestCase
     {
         $at = new DateTimeImmutable('2026-11-09T15:23:45.123456Z');
         $user = User::invite(UserId::generate(), EmailAddress::fromString('person@example.test'), $at);
+        $user->assignRole(RoleId::generate(), $at);
+
         $grant = ActivationGrant::issue(
             ActivationOrigin::REGISTRATION,
             $user->getId(),
@@ -145,10 +147,13 @@ final class AuditEvidenceContractTest extends TestCase
     public function test_all_grant_families_have_exact_kind_preserving_revision_relationships(): void
     {
         $pairs = [
-            [ActivationGrantId::generate(), ActivationDeliveryId::generate(), AuditAction::INVITATION_RESENT],
+            [
+                ActivationGrantId::generate(), ActivationDeliveryId::generate(),
+                AuditAction::INVITATION_DELIVERY_CONFIRMED
+            ],
             [
                 PasswordResetGrantId::generate(), PasswordResetDeliveryId::generate(),
-                AuditAction::PASSWORD_RESET_REQUESTED
+                AuditAction::PASSWORD_RESET_DELIVERY_CONFIRMED
             ],
             [
                 EmailChangeGrantId::generate(), EmailChangeDeliveryId::generate(),
@@ -158,7 +163,7 @@ final class AuditEvidenceContractTest extends TestCase
         foreach ($pairs as [$id, $deliveryId, $action]) {
             $before = new AuditGrantState($id, 4, $deliveryId);
             $after = new AuditGrantState($id, 5, $deliveryId);
-            $outcome = null;
+            $outcome = CredentialDeliveryStatus::DELIVERED;
             if ($action === AuditAction::EMAIL_CHANGE_DELIVERY_FAILED) {
                 $outcome = CredentialDeliveryStatus::PERMANENT_FAILURE;
             }
@@ -377,6 +382,8 @@ final class AuditEvidenceContractTest extends TestCase
     {
         $grant = new AuditGrantState(ActivationGrantId::generate(), 1, ActivationDeliveryId::generate());
         $reset = new AuditGrantState(PasswordResetGrantId::generate(), 1, PasswordResetDeliveryId::generate());
+        $grantNext = AuditGrantState::fromArray(array_replace($grant->toArray(), ['revision' => 2]));
+        $resetNext = AuditGrantState::fromArray(array_replace($reset->toArray(), ['revision' => 2]));
         $cases = [
             [
                 AuditAction::USER_INVITED,
@@ -387,13 +394,13 @@ final class AuditEvidenceContractTest extends TestCase
                 $this->userRevisions(),
                 $this->userRevisions(),
                 $reset,
-                $reset
+                $resetNext
             )],
             [AuditAction::ROLE_RENAMED, new AuditUserOutcome($this->userRevisions(), $this->userRevisions())],
             [AuditAction::INVITATION_RESENT, new AuditGrantOutcome(null, $grant)],
-            [AuditAction::INVITATION_DELIVERY_CONFIRMED, new AuditGrantOutcome($reset, $reset)],
-            [AuditAction::ROLE_REMOVED, new AuditGrantOutcome($grant, $grant)],
-            [AuditAction::INVITATION_DELIVERY_CONFIRMED, new AuditGrantOutcome($grant, $grant)]
+            [AuditAction::INVITATION_DELIVERY_CONFIRMED, new AuditGrantOutcome($reset, $resetNext)],
+            [AuditAction::ROLE_REMOVED, new AuditGrantOutcome($grant, $grantNext)],
+            [AuditAction::INVITATION_DELIVERY_CONFIRMED, new AuditGrantOutcome($grant, $grantNext)]
         ];
         foreach ($cases as [$action, $facts]) {
             try {

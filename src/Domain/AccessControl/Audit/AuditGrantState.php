@@ -100,8 +100,11 @@ final readonly class AuditGrantState implements Arrayable
     public function assertReplacement(self $after, ?self $replacedPredecessor): void
     {
         if ($this->id->equals($after->id)) {
-            if ($replacedPredecessor !== null) {
-                throw new DomainException('An in-place grant outcome has no replaced predecessor.');
+            if (
+                $replacedPredecessor !== null || !$this->deliveryId->equals($after->deliveryId)
+                || $this->revision === PHP_INT_MAX || $after->revision !== $this->revision + 1
+            ) {
+                throw new DomainException('An in-place grant outcome preserves delivery identity and advances once.');
             }
 
             return;
@@ -109,6 +112,7 @@ final readonly class AuditGrantState implements Arrayable
 
         if (
             $replacedPredecessor === null || $this->id::class !== $after->id::class
+            || $after->revision !== 0 || $this->deliveryId->equals($after->deliveryId)
             || !$this->id->equals($replacedPredecessor->id)
             || !$this->deliveryId->equals($replacedPredecessor->deliveryId)
             || $replacedPredecessor->revision < $this->revision
