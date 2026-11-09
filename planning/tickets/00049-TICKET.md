@@ -100,7 +100,8 @@ Attribute-flags/merger/discovery layer split:
 | [TASK-00170](../tasks/00170-TASK.md) | 501 | Effective Feature declarations through scoped discovery/preparation/provisioning/retirement callers, including one small shared pure selected-action/ancestry mechanism. | None |
 | [TASK-00171](../tasks/00171-TASK.md) | 502 | Portable RequiresPermission and effective conjunctive PermissionDeclaration composition, consuming that same pure selected-action/ancestry output. | TASK-00170 |
 
-Both are ready-for-agent because scope is settled; TASK-00171's unfinished actual supplier still holds execution.
+TASK-00170 is now independently accepted with nonvisual QA and done; TASK-00171 remains ready-for-agent and can
+consume its completed pure traversal supplier. The Permission path is not implemented by Feature acceptance.
 Orders are preference beyond that edge, not a blanket wait on architecture/typing/Common/audit or native adapters.
 Shared traversal ownership belongs solely to TASK-00170: TASK-00171 reuses it without a copied hierarchy walk or a
 runtime dependency on Feature evaluation, discovery providers/repositories or capability activation. Concrete public
@@ -141,7 +142,7 @@ private criteria before implementation/review without disclosure and choose the 
 
 | Order | TASK ID | Title | Status |
 | --- | --- | --- | --- |
-| 501 | [TASK-00170](../tasks/00170-TASK.md) | Declare and discover effective Feature requirements | in-progress |
+| 501 | [TASK-00170](../tasks/00170-TASK.md) | Declare and discover effective Feature requirements | done |
 | 502 | [TASK-00171](../tasks/00171-TASK.md) | Declare effective portable Permission requirements | ready-for-agent |
 ## Decisions and Progress
 

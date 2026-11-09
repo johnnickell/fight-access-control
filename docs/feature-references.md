@@ -101,6 +101,9 @@ flowchart LR
     D --> P[Preparation / provisioning / retirement]
 ```
 
+The [maintained ownership view](feature-references/README.md) shows the bounded new Application dependencies,
+with editable Python, PNG and source/arrow traces; the flow above separately explains consumer composition.
+
 The inventory arrow is consumer composition, not a package scanner. Permission declarations will consume the same
 SelectedAction output independently; no Feature evaluator or discovery provider is required to traverse metadata.
 

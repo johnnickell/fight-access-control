@@ -53,6 +53,9 @@ synchronous User payloads and deliberate internal/non-wire boundaries to the opt
 explicitly project safe Views and TokenSet getters; arbitrary object serialization is not the wire contract.
 Generated OpenAPI 3.1 samples run in the default suite without incidental production coverage. TASK-00170 now extends FeatureFlag to repeated class/method declarations with cumulative effective ancestry and
 trusted route requirements; it remains declaration-only, without HTTP admission. See [effective declarations](docs/feature-references.md).
+TASK-00170 has independent Review ACCEPT and nonvisual QA PASS on its named candidate; the owning TASK records
+acceptance and canonical `.runs/handoffs/TASK-00170/land.md` owns subsequent delivery/resource results. Permission
+and native admission remain unfinished; this is not whole-library or actual consumer qualification.
 The earlier TASK-00149 acceptance below covers its original narrower contract, not this new behavior.
 TASK-00149's canonical Work handoff owns implementation verification and limits. Independent Review v3 ACCEPT
 and nonvisual QA PASS cover candidate `713837ab11122cafc5a66d00c0c0e6174eedb333`, with no open findings;
