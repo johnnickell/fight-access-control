@@ -157,7 +157,7 @@ and task scope/orders/blockers remain unchanged.
 
 | Order | TASK ID | Title | Status |
 | --- | --- | --- | --- |
-| 399 | [TASK-00166](../tasks/00166-TASK.md) | Maintain complete audit outcome coverage | ready-for-agent |
+| 399 | [TASK-00166](../tasks/00166-TASK.md) | Maintain complete audit outcome coverage | in-progress |
 | 400 | [TASK-00167](../tasks/00167-TASK.md) | Provide reusable audit transaction conformance | ready-for-agent |
 | 421 | [TASK-00168](../tasks/00168-TASK.md) | Demonstrate ordinary Role audit composition | ready-for-agent |
 | 422 | [TASK-00169](../tasks/00169-TASK.md) | Qualify integrated audit coverage and reconcile guidance | ready-for-agent |

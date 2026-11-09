@@ -7,6 +7,10 @@ the overview separates verified package publication from unexecuted consumer qua
 Unreleased [User/session type validation](user-session-type-contracts.md) preserves these outcomes and fences;
 shape validation is not authorization, diagnostic sanitization or consumer persistence qualification.
 
+The [living audit outcome matrix](audit-outcome-coverage.md) reconciles every current handler and related sensitive/
+worker entry with EPIC-00017's approved optional-audit target and its pending family/conformance proof. Current
+required writers and this guide's implemented guarantees remain the baseline; optional auditing is not yet shipped.
+
 ## Notifications and callers
 
 Package-produced failure notifications use operation-specific constant text with the original safe Command or
