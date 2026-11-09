@@ -649,8 +649,9 @@ TASK-00180's documentation-only [early evidence assessment](docs/http-permission
 now distinguishes current base Permission support in all five native families from pending portable declarations,
 Feature-only HTTP enforcement and combined qualification. Shared evaluator/authority/raw-validation and existing native
 lifecycle/error/minimum evidence is reused; genuine gaps name actual supplier owners and smallest recovery inputs.
-TASK-00181 retains final candidate-compatible reconciliation. This Work checkpoint awaits independent Review/nonvisual
-QA; it implements no new runtime capability, tests or consumer adoption and closes no unfinished parent.
+TASK-00181 retains final candidate-compatible reconciliation. Independent Review ACCEPT and nonvisual QA PASS cover
+TASK-00180's assessment candidate `1bee3e3f7e8387f907bc9be8d470d64c85676d33`; TASK-00180 is complete for evidence
+accounting only. It implements no new runtime capability, tests or consumer adoption and closes no unfinished parent.
 
 John approved [EPIC-00018 — Portable Feature and Permission Admission](planning/epics/00018-EPIC.md): two independently
 selectable HTTP capabilities across Slim, Yii 3, Symfony, Laravel and CodeIgniter 4. Extend FeatureFlag and add
