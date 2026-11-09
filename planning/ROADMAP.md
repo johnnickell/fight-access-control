@@ -30,7 +30,8 @@ four PRs or qualified runtime. TICKET-00049's two-TASK plan is now approved/writ
 [TASK-00170](tasks/00170-TASK.md) complete effective Feature declarations/discovery/current callers (order 501, no
 blocker) and [TASK-00171](tasks/00171-TASK.md) portable Permission declarations/composition (order 502, dependency on
 TASK-00170). Both declaration TASKs are now independently accepted with nonvisual QA and done; TICKET-00049 is
-complete. Native admission/integration and consumer qualification remain unfinished under their separate tickets.
+complete. The shared/Slim/Yii Feature slice is now accepted under TASK-00172; remaining native admission/integration
+and consumer qualification stay unfinished under their separate tickets.
 The first owns the small shared pure selected-action/ancestry output; the second reuses it without a
 Feature evaluation/discovery/repository/runtime-activation dependency. Feature admission can consume the first without
 waiting for the second. Keep new native class/method/repeated/inherited/route metadata coherent with scoped discovery/
@@ -45,7 +46,8 @@ relative native-peer priority. TASK-00172 consumes TASK-00170/completed TASK-001
 TASK-00104; Laravel consumes only TASK-00172; CI4 consumes TASK-00172 and TASK-00106's accepted native safe error bridge.
 Common already supplies a safe Laravel handler, whereas CI4 response helpers do not establish an exception owner.
 No TASK-00105 or portable-Permission wait, duplicate base adapter/bridge or runtime Permission activation follows.
-All five frameworks are covered as 2 + 1 + 1 + 1, not implemented/native/consumer qualification. Each slice retains
+The plan allocates all five frameworks as 2 + 1 + 1 + 1; TASK-00172 now supplies independently accepted shared/Slim/Yii
+Feature admission. The other native slices and actual consumer qualification remain unfinished. Each slice retains
 real target/status/context/order/construction/lifetime/safe error/minimum/ordinary/isolation proof and its own current
 docs/gate/exact coverage/independent acceptance.
 

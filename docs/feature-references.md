@@ -1,7 +1,8 @@
 # Feature declarations and discovery
 
 TASK-00170 extends the original v0.5.0 declarations with effective class/method requirements (unreleased).
-This is metadata only; native HTTP admission and portable Permission declarations retain separate owners.
+The declaration contract is metadata only. Optional [PSR-15 Feature admission](http-feature-admission.md) now
+consumes it through separately exercised Slim/Yii 3 bindings; other native and portable Permission owners remain separate.
 
 [TASK-00061](../planning/tasks/00061-TASK.md) supplies portable name-only metadata and inventory contracts. It does
 not itself implement Feature storage, provisioning, availability checks, management or runtime enforcement.
@@ -78,7 +79,7 @@ Interface class/method promises accumulate too. `invokable(ClassName::class)` se
 Methods must resolve on a concrete class and be public, concrete, non-constructor/non-destructor methods. Magic
 unresolved names, abstract/interface/trait targets and ambiguous native extraction cannot yield an empty fallback:
 the caller must resolve a supported exact target or stop. Static public methods are supported explicitly. No
-controller is constructed or invoked for inspection. Native route extraction and lifecycle timing are not supplied.
+controller is constructed or invoked for inspection. This metadata contract supplies no native extraction/timing; the optional PSR-15 guide defines its actual bindings.
 
 `SelectedAction::ancestry()` also exposes the same class/interface walk to consumer-owned inventory. Inventory
 must include every applicable class and declared method, including overridden-parent declarations and explicit

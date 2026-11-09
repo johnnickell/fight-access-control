@@ -32,8 +32,12 @@ final class AdmissionEnvironment
 {
     public int $resolutions = 0;
 
-    public function user(bool $grant = true, bool $valid = true, ?Throwable $fault = null): RequestAuthority
-    {
+    public function user(
+        bool $grant = true,
+        bool $valid = true,
+        ?Throwable $fault = null,
+        ?PermissionId $permissionId = null
+    ): RequestAuthority {
         $now = new DateTimeImmutable('2026-10-27T12:00:00Z');
         $transaction = new InMemoryUnitOfWork();
         $permissionRepository = new InMemoryPermissionRepository($transaction);
@@ -41,7 +45,7 @@ final class AdmissionEnvironment
         $userRepository = new InMemoryUserRepository($transaction, getByIdFailure: $fault);
         $refreshSessionRepository = new InMemoryRefreshSessionRepository();
         $permission = Permission::define(
-            PermissionId::generate(),
+            $permissionId ?? PermissionId::generate(),
             PermissionName::fromString('AGENT_PROFILE_READ'),
             $now
         );
