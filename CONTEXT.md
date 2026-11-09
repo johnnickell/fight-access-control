@@ -729,14 +729,18 @@ conversion and actual Common supplier planning/qualification remain unfinished. 
 phase applies to this standalone destination. At that planning checkpoint the Board selected TASK-00107 first; planning approval did not start execution. Source/dependency/Common/consumer files remain
 unchanged; no product build, new checkout, commit/publication, release or deployment follows.
 
-## Fixed actor identities — Work checkpoint
+## Fixed actor identities — accepted checkpoint
 
 [TASK-00121](planning/tasks/00121-TASK.md) introduces direct `Audit\SystemId` and `Audit\AnonymousId` values
 using supported Common UniqueId contracts. Both generate canonical nil and accept only exact nil strings;
 equality/hashing and known-type string reconstruction preserve kind. See [identity guidance](docs/actor-identities.md)
 for the fixed-generation exception, explicit provenance, consumer kind preservation and no-authority/no-evidence-ID
-limits. Independent Review and nonvisual QA remain required; the TASK stays in-progress. No existing evidence
-constructor/writer or optional audit wiring changes in this prefactor. The broader destination below remains
+limits. Independent Review v3 ACCEPT and nonvisual QA PASS cover candidate
+`4ffca636abe6eada9293cd28325c3dd6fa38f85b` against `39691e1b4156c3e98c0d55aaf243f40c0fa4456a`;
+TASK-00121 is done. Unfinished TASK-00122 keeps TICKET-00043 and EPIC-00017 open. Publication/final delivery
+verification remain pending at this administrative checkpoint; canonical `.runs/handoffs/TASK-00121/land.md`
+owns subsequent bridge, checks, publication and resource outcomes. Original independent reports are preserved.
+No existing evidence constructor/writer or optional audit wiring changes in this prefactor. The broader destination below remains
 unimplemented apart from these two prerequisite values; its planning/source observations describe that baseline.
 
 ## Approved explicit optional atomic audit destination
