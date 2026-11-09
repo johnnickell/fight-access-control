@@ -54,8 +54,12 @@ explicitly project safe Views and TokenSet getters; arbitrary object serializati
 Generated OpenAPI 3.1 samples run in the default suite without incidental production coverage. TASK-00170 now extends FeatureFlag to repeated class/method declarations with cumulative effective ancestry and
 trusted route requirements; it remains declaration-only, without HTTP admission. See [effective declarations](docs/feature-references.md).
 TASK-00170 has independent Review ACCEPT and nonvisual QA PASS on its named candidate; the owning TASK records
-acceptance and canonical `.runs/handoffs/TASK-00170/land.md` owns subsequent delivery/resource results. Permission
-and native admission remain unfinished; this is not whole-library or actual consumer qualification.
+acceptance and canonical `.runs/handoffs/TASK-00170/land.md` owns subsequent delivery/resource results.
+TASK-00171's Work adds [portable Permission declarations](docs/permission-requirements.md): repeatable canonical
+class/method RequiresPermission and pure effective PermissionRequirements consume that same SelectedAction traversal.
+Attribute-only protection, cumulative parent/route gates and explicit mode-conflict rejection preserve raw
+PermissionDeclaration/admission semantics. Independent Review/QA remain required; native portable integration and
+Feature admission remain unfinished. This is not whole-library or actual consumer qualification.
 The earlier TASK-00149 acceptance below covers its original narrower contract, not this new behavior.
 TASK-00149's canonical Work handoff owns implementation verification and limits. Independent Review v3 ACCEPT
 and nonvisual QA PASS cover candidate `713837ab11122cafc5a66d00c0c0e6174eedb333`, with no open findings;
@@ -750,8 +754,10 @@ TASK decomposition rather than duplicate or silently expand them. No new version
 consumer adoption or release obligation with other EPICs is selected. TASK-00170's Work implementation now supplies
 repeated class/method FeatureFlag, FeatureRequirements and shared pure Action/SelectedAction ancestry/association,
 with aligned scoped discovery and preparation/provisioning/retirement tests. Independent acceptance remains required;
-no native Feature admission or portable Permission declaration is implemented here. The canonical Work handoff owns
-current verification/runtime details. Feature metadata remains declaration-only; Agent OS's RequiresPermission is still its class-only Attribute, not a portable package API.
+no native Feature admission is implemented here. TASK-00171's Work now adds the separate portable Permission
+metadata path without a consumer Attribute dependency or native activation; independent acceptance remains required.
+The canonical Work handoffs own current verification/runtime details. Both metadata capabilities remain declaration-only;
+Agent OS's class-only Attribute is not a dependency or alias of the package API.
 
 Selected EPIC-00018 TASK planning is complete. Next: `/skill:next` for Board-based selection, not automatic execution.
 All six EPIC-00017 audit TICKETs are now TASK-planned below, not implemented/qualified. EPIC-00015's added Agent

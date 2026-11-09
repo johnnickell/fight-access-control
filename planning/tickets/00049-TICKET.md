@@ -143,7 +143,7 @@ private criteria before implementation/review without disclosure and choose the 
 | Order | TASK ID | Title | Status |
 | --- | --- | --- | --- |
 | 501 | [TASK-00170](../tasks/00170-TASK.md) | Declare and discover effective Feature requirements | done |
-| 502 | [TASK-00171](../tasks/00171-TASK.md) | Declare effective portable Permission requirements | ready-for-agent |
+| 502 | [TASK-00171](../tasks/00171-TASK.md) | Declare effective portable Permission requirements | in-progress |
 ## Decisions and Progress
 
 John approved this requirement in EPIC-00018's complete four-TICKET split, then its complete two-TASK plan now written
