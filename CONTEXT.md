@@ -46,6 +46,20 @@ administrative checkpoint; canonical `.runs/handoffs/TASK-00148/land.md` owns su
 and resource results. Original report subjects, historical Work proof and lowest-lane advisories remain preserved;
 no whole-library or actual consumer qualification, approval, merge, release or deployment is claimed.
 
+## TASK-00172 Feature admission — Work checkpoint
+
+Optional [PSR-15 Feature admission](docs/http-feature-admission.md) now connects the effective declaration supplier
+to shared inward restriction/context semantics and real Slim/Yii 3 route-bound journeys. Feature-only registration
+requires no Permission middleware; adjacent cooperating gates share trusted request-owned provider selection without
+trusting copied contexts or replaying Agent authentication. Only ordinary OFF/unmet PREVIEW becomes generic 404;
+missing/broken definitions and metadata/context/provider/storage faults remain safe errors through Common's one owner.
+Availability still never authorizes an action. The guide records exact supported forms, eager-construction, request
+identity/adjacency, selected JSON and consumer limits, with a source-linked runtime diagram.
+
+Canonical `.runs/handoffs/TASK-00172/work.md` owns exact candidate, verification/dependency/runtime evidence and
+remaining limitations. Independent Review and nonvisual QA are required; this Work checkpoint does not accept or
+close TASK-00172 or its parents, qualify other native peers/consumer installations, publish, merge, release or deploy.
+
 ## Current public payload composition
 
 The [current payload catalog](docs/public-payload-catalog.md) maps public messages, safe Query results, all seven

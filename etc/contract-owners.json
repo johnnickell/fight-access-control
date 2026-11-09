@@ -2,6 +2,7 @@
   "schema": 1,
   "roots": ["src", "openapi"],
   "rules": [
+    {"ticket": "TICKET-00050", "task": "TASK-00172", "path": "src/Application/AccessControl/Feature/Admission/.*|src/Adapter/Middleware/Psr15/(FeatureMiddleware|RequestAuthentication|RequestAuthenticationState)\\.php"},
     {"ticket": "TICKET-00049", "task": "TASK-00170", "path": "src/Application/AccessControl/(Action/.*|Feature/FeatureRequirements\\.php)"},
     {"ticket": "TICKET-00037", "task": "TASK-00115", "path": "src/Domain/AccessControl/(User|RefreshSession|Audit)/.*", "except": "src/Domain/AccessControl/Audit/(SystemId|AnonymousId)\\.php"},
     {"ticket": "TICKET-00043", "task": "TASK-00121", "path": "src/Domain/AccessControl/Audit/(SystemId|AnonymousId)\\.php"},
@@ -25,7 +26,7 @@
     {"ticket": "TICKET-00040", "task": "TASK-00143", "path": "src/Application/AccessControl/(Agent/(CommandHandler/(ProvisionAgent|RotateAgentCredential)Handler\\.php|Credential/HmacSharedSecret(Cipher|Generator)\\.php)|AgentCredentialOperation/(AgentOperationAuthorization|AgentOperationRejection|Exception/(AgentIssuanceFailed|AgentRotationConflict)|Delivery/AgentDeliveryCipher)\\.php)"},
     {"ticket": "TICKET-00040", "task": "TASK-00144", "path": "src/Application/AccessControl/(Agent/Credential/AgentCredentialLifecycleService\\.php|AgentCredentialOperation/(Delivery|Maintenance)/.*)", "except": "src/Application/AccessControl/AgentCredentialOperation/Delivery/AgentDeliveryCipher\\.php"},
     {"ticket": "TICKET-00040", "task": "TASK-00145", "path": "src/Application/AccessControl/(Authorization/.*|Agent/(Authentication|Continuation|Exception)/.*)"},
-    {"ticket": "TICKET-00041", "task": "TASK-00146", "path": "src/Adapter/(Middleware|Http)/.*"},
+    {"ticket": "TICKET-00041", "task": "TASK-00146", "path": "src/Adapter/(Middleware|Http)/.*", "except": "src/Adapter/Middleware/Psr15/(FeatureMiddleware|RequestAuthentication|RequestAuthenticationState)\\.php"},
     {"ticket": "TICKET-00041", "task": "TASK-00147", "path": "src/Adapter/Mcp/Tool/Agent/.*"},
     {"ticket": "TICKET-00041", "task": "TASK-00148", "path": "src/Adapter/Mcp/(Resource|Skill)/Agent/.*"},
     {"ticket": "TICKET-00041", "task": "TASK-00149", "path": "openapi/.*|src/Application/AccessControl/Feature/Attribute/.*"}

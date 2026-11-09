@@ -146,7 +146,7 @@ authorized private criteria before implementation/review without disclosure; cho
 
 | Order | TASK ID | Title | Status |
 | --- | --- | --- | --- |
-| 503 | [TASK-00172](../tasks/00172-TASK.md) | Enforce Feature admission through PSR-15 | ready-for-agent |
+| 503 | [TASK-00172](../tasks/00172-TASK.md) | Enforce Feature admission through PSR-15 | in-progress |
 | 504 | [TASK-00173](../tasks/00173-TASK.md) | Enforce Symfony Feature admission | ready-for-agent |
 | 504 | [TASK-00174](../tasks/00174-TASK.md) | Enforce Laravel Feature admission | ready-for-agent |
 | 504 | [TASK-00175](../tasks/00175-TASK.md) | Enforce CodeIgniter 4 Feature admission | ready-for-agent |

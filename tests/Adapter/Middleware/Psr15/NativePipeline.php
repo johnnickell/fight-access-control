@@ -6,6 +6,7 @@ namespace Fight\Test\AccessControl\Adapter\Middleware\Psr15;
 
 use Closure;
 use Fight\AccessControl\Adapter\Middleware\Psr15\PermissionMiddleware;
+use Fight\AccessControl\Application\AccessControl\Action\SelectedAction;
 use Fight\AccessControl\Application\AccessControl\Authorization\Service\SecurityContext;
 use Fight\Common\Adapter\Http\Error\SafeHttpDiagnostics;
 use Fight\Common\Adapter\Http\Error\SafeHttpErrorPolicy;
@@ -15,15 +16,18 @@ use Fight\Common\Adapter\Http\Error\SafeHttpProjector;
 use Fight\Common\Adapter\Http\Psr17\JSendResponseFactory;
 use Fight\Common\Adapter\Middleware\Psr15\SafeJSendErrorMiddleware;
 use Fight\Common\Application\Error\Exception\AuthenticationRequired;
+use LogicException;
 use Psr\Container\ContainerInterface;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
+use Psr\Http\Server\MiddlewareInterface;
 use Psr\Http\Server\RequestHandlerInterface;
 use Slim\App;
 use Slim\Factory\AppFactory;
 use Slim\Psr7\Factory\ResponseFactory;
 use Slim\Psr7\Factory\StreamFactory;
 use Slim\Psr7\Response;
+use Slim\Routing\RouteContext;
 use Throwable;
 use Yiisoft\Di\Container;
 use Yiisoft\Middleware\Dispatcher\MiddlewareFactory;
@@ -34,6 +38,7 @@ use Yiisoft\Router\Route;
 use Yiisoft\Router\RouteCollection;
 use Yiisoft\Router\RouteCollector;
 
+/** @phpstan-type TargetFactory Closure(ServerRequestInterface): SelectedAction */
 final class NativePipeline implements RequestHandlerInterface, SafeHttpDiagnostics
 {
     public int $reports = 0;
@@ -57,9 +62,12 @@ final class NativePipeline implements RequestHandlerInterface, SafeHttpDiagnosti
 
     private readonly RouteCollection $yiiRoutes;
 
+    /**
+     * @phpstan-param MiddlewareInterface|Closure(SelectedAction, TargetFactory): MiddlewareInterface $permission
+     */
     public function __construct(
         private readonly string $framework,
-        PermissionMiddleware $permission,
+        MiddlewareInterface|Closure $permission,
         string $form = 'method',
         ?PermissionMiddleware $otherPermission = null,
         ?Closure $protocol = null
@@ -76,14 +84,29 @@ final class NativePipeline implements RequestHandlerInterface, SafeHttpDiagnosti
             return $handler->handle($request);
         };
         $slimAction = NativeController::class.':slim';
-        if ($form === 'invokable') {
+        if ($form === 'inherited') {
+            $slimAction = FeatureNativeChild::class.':slim';
+        } elseif ($form === 'invokable') {
             $slimAction = NativeController::class;
         } elseif ($form === 'closure') {
             $slimAction = static fn(ServerRequestInterface $request, ResponseInterface $response): ResponseInterface =>
                 new NativeController()->slim($request, $response);
         }
 
-        $this->slim->get('/protected/{id}', $slimAction)->add($validator)->add($permission);
+        $slimPermission = $permission;
+        if ($permission instanceof Closure) {
+            $slimTarget = static function (ServerRequestInterface $request): SelectedAction {
+                $route = RouteContext::fromRequest($request)->getRoute();
+                if ($route === null) {
+                    throw new LogicException('A native selected route is required.');
+                }
+
+                return self::action($route->getCallable());
+            };
+            $slimPermission = $permission(self::action($slimAction), $slimTarget);
+        }
+
+        $this->slim->get('/protected/{id}', $slimAction)->add($validator)->add($slimPermission);
         $this->slim->get('/other', static fn($request, $response): ResponseInterface => $response->withStatus(202));
         if ($otherPermission !== null) {
             $this->slim->get('/second/{id}', $slimAction)->add($validator)->add($otherPermission);
@@ -95,15 +118,24 @@ final class NativePipeline implements RequestHandlerInterface, SafeHttpDiagnosti
 
         $this->slim->addRoutingMiddleware();
         $yiiAction = [NativeController::class, 'yii'];
-        if ($form === 'closure') {
+        if ($form === 'inherited') {
+            $yiiAction = [FeatureNativeChild::class, 'yii'];
+        } elseif ($form === 'closure') {
             $yiiAction = static fn(ServerRequestInterface $request): ResponseInterface =>
                 new NativeController()->yii($request);
+        }
+
+        $yiiPermission = $permission;
+        if ($permission instanceof Closure) {
+            // Bind the exact same immutable action definition to middleware and native dispatch.
+            $selected = self::action($yiiAction);
+            $yiiPermission = $permission($selected, static fn(): SelectedAction => $selected);
         }
 
         // Yii's supported definition is the bound PSR-15 process callable, not an invented shared route API.
         $collector = new RouteCollector();
         $collector->addRoute(
-            Route::get('/protected/{id}')->middleware($permission->process(...), $validator)->action($yiiAction),
+            Route::get('/protected/{id}')->middleware($yiiPermission->process(...), $validator)->action($yiiAction),
             Route::get('/other')->action(static fn(): ResponseInterface => new Response(202))
         );
         if ($otherPermission !== null) {
@@ -138,6 +170,7 @@ final class NativePipeline implements RequestHandlerInterface, SafeHttpDiagnosti
         });
     }
 
+    /** @phpstan-impure */
     public function request(ServerRequestInterface $request): ResponseInterface
     {
         if ($request->getUri()->getPath() === '/protocol') {
@@ -180,5 +213,24 @@ final class NativePipeline implements RequestHandlerInterface, SafeHttpDiagnosti
             $this,
             $projector
         );
+    }
+
+    private static function action(mixed $action): SelectedAction
+    {
+        if ($action instanceof Closure) {
+            return SelectedAction::closure($action);
+        }
+
+        if (is_array($action)) {
+            return SelectedAction::method($action[0], $action[1]);
+        }
+
+        if (is_string($action) && str_contains($action, ':')) {
+            [$class, $method] = explode(':', $action, 2);
+
+            return SelectedAction::method($class, $method);
+        }
+
+        return SelectedAction::invokable($action);
     }
 }

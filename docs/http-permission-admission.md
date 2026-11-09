@@ -9,11 +9,22 @@ before-filter admission and its thin Common-backed selected JSON error bridge. T
 validation privacy and all seven native contracts are reconciled in [ordinary HTTP failures](ordinary-http-failures.md).
 The combined EPIC release is not yet complete.
 
-## Portable admission evidence assessment (Unreleased)
+## Feature cooperation (Unreleased)
+
+[PSR-15 Feature admission](http-feature-admission.md) now consumes effective declarations independently of this
+Permission middleware. Adjacent gates may share one `RequestAuthentication` as their trusted factory/scope; both
+restrictions still apply and copied attributes never establish authority. PUBLIC Permission admission continues to
+skip authentication, but preserves a context already selected by the cooperating Feature gate. Standalone PUBLIC
+admission still erases an incoming copied context. See the Feature guide for exact lifetime and adjacency limits.
+
+## Historical portable admission evidence assessment (Unreleased)
 
 [TASK-00180](../planning/tasks/00180-TASK.md) assesses the current source against
 [EPIC-00018](../planning/epics/00018-EPIC.md) and [TICKET-00052](../planning/tickets/00052-TICKET.md).
-This is coverage accounting, not implementation, new supplier acceptance or consumer qualification.
+The assessment below preserves its earlier inspected snapshot and original gap ownership, not the current
+implementation inventory. TASK-00170 now supplies effective Feature declarations and TASK-00172 adds the shared
+PSR-15 Feature path described above; independent acceptance is recorded by those TASKs, not inferred here.
+This is historical coverage accounting, not new supplier acceptance or consumer qualification.
 “Accepted” below identifies bounded historical supplier acceptance; current source/tests establish what remains present.
 TASK-00103–00106 have independent Review/QA evidence, with later ownership/authority/HTTP changes integrated.
 In particular, Laravel and CI4 are implemented, unlike the EPIC's older inspected-baseline paragraph.
@@ -88,7 +99,7 @@ operation, compatibility mode, release, deployment or new grant is authorized by
 
 | Mode | Requirements | Behavior |
 | --- | --- | --- |
-| `PUBLIC` | Empty | No authority factory/provider resolution; remove inherited SecurityContext attribute. |
+| `PUBLIC` | Empty | No authority factory/provider resolution; remove copied SecurityContext, preserving only an active cooperating gate's privately selected context. |
 | `AUTHENTICATED` | Empty | Require one complete actual User or Agent authority, without a Permission grant. |
 | `PROTECTED` | Nonempty list of distinct `PermissionName` values | Require every named Permission. |
 
@@ -106,7 +117,7 @@ replace the declaration. Every ordinary route must deliberately install its admi
 public routes. A route with no middleware is outside this adapter's coverage, **not** automatically protected.
 Audit actual consumer registration; this package cannot detect an omitted registration in another application.
 
-The required authority factory has signature `Closure(ServerRequestInterface): ?RequestAuthority`. It is **trusted
+A standalone authority factory has signature `Closure(ServerRequestInterface): ?RequestAuthority`. It is **trusted
 consumer composition**, not a request-supplied callable. Return null for genuinely absent selected authentication.
 Otherwise choose exactly one of:
 
