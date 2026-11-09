@@ -24,6 +24,7 @@ use Fight\Common\Adapter\Http\Error\SafeHttpPresentation;
 use Fight\Common\Adapter\Http\Error\SafeHttpProjector;
 use Fight\Common\Application\Error\Exception\AuthenticationRequired;
 use Fight\Common\Application\Error\Exception\PermissionDenied;
+use Fight\Test\AccessControl\Adapter\Http\OrdinaryFailureCases;
 use Fight\Test\AccessControl\Adapter\Mcp\Tool\Agent\Fixture\ProfileToolEnvironment;
 use Fight\Test\AccessControl\Application\AccessControl\Authorization\Admission\AdmissionEnvironment;
 use PHPUnit\Framework\Attributes\CoversClass;
@@ -217,6 +218,37 @@ final class PermissionFilterTest extends TestCase
         self::assertSame(['type' => $fault::class], $native->reports[0]);
         self::assertSame([], $native->nativeLogs);
         self::assertSame(['validator', 'construct', 'action'], NativeController::$events);
+    }
+
+    public function test_native_application_categories_and_structured_validation_are_safe_by_type(): void
+    {
+        $environment = new AdmissionEnvironment();
+        $native = new NativeApplication(static fn(): RequestAuthority => $environment->user(), $this->protected());
+        foreach (OrdinaryFailureCases::cases() as [$case, $status, $message]) {
+            $failure = OrdinaryFailureCases::failure($case);
+            NativeController::$work = static fn(): never => throw $failure;
+            $before = count($native->reports);
+            $response = $native->run($native->request());
+            self::assertSame($status, $response->getStatusCode(), $case);
+            OrdinaryFailureCases::assertBody($response->getBody(), $status, $message);
+            self::assertCount($before + 1, $native->reports);
+            self::assertSame(['type' => $failure::class], $native->reports[$before]);
+            self::assertSame([], $native->nativeLogs);
+            self::assertSame('', $response->getHeaderLine('WWW-Authenticate'));
+        }
+
+        $native = new NativeApplication(
+            static fn(): RequestAuthority => $environment->user(),
+            $this->protected(),
+            projector: OrdinaryFailureCases::validationProjection()
+        );
+        NativeController::$work = static fn(): never => throw OrdinaryFailureCases::failure('validation');
+        self::assertSame(
+            ['status' => 'fail', 'data' => ['fields' => ['name' => ['invalid']]]],
+            json_decode($native->run($native->request())->getBody(), true, flags: JSON_THROW_ON_ERROR)
+        );
+        self::assertSame(11, $environment->resolutions);
+        self::assertCount(1, $native->reports);
     }
 
     public function test_native_validation_and_routing_failures_are_not_public_fallback_or_raw_errors(): void

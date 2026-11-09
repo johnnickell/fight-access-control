@@ -5,7 +5,7 @@ dependencies, acceptance, and verification.
 
 ## What's Next?
 
-First ready Task: [TASK-00146](00146-TASK.md) — Qualify ordinary HTTP contracts and safe failures.
+First ready Task: [TASK-00166](00166-TASK.md) — Maintain complete audit outcome coverage.
 
 ## In Progress
 
@@ -15,7 +15,6 @@ No Tasks are currently in this state.
 
 | Order | TASK ID | Title | Parent TICKET | Status | Blocked by | PR |
 | --- | --- | --- | --- | --- | --- | --- |
-| 325 | [TASK-00146](00146-TASK.md) | Qualify ordinary HTTP contracts and safe failures | [TICKET-00041](../tickets/00041-TICKET.md) — Align presentation and integration contracts | ready-for-agent | — | — |
 | 399 | [TASK-00166](00166-TASK.md) | Maintain complete audit outcome coverage | [TICKET-00048](../tickets/00048-TICKET.md) — Qualify audit composition and document consumer adoption | ready-for-agent | — | — |
 | 401 | [TASK-00121](00121-TASK.md) | Introduce fixed system and anonymous identities | [TICKET-00043](../tickets/00043-TICKET.md) — Define typed audit evidence and explicit attribution | ready-for-agent | — | — |
 | 499 | [TASK-00180](00180-TASK.md) | Map existing admission evidence | [TICKET-00052](../tickets/00052-TICKET.md) — Qualify independent and combined admission | ready-for-agent | — | — |
@@ -217,5 +216,6 @@ No Tasks are currently in this state.
 | 322 | [TASK-00143](00143-TASK.md) | Correct Agent issuance and result contracts | [TICKET-00040](../tickets/00040-TICKET.md) — Make command and synchronous Application contracts explicit | done | — | https://github.com/johnnickell/fight-access-control/pull/181 |
 | 323 | [TASK-00144](00144-TASK.md) | Correct Agent delivery, recovery and maintenance contracts | [TICKET-00040](../tickets/00040-TICKET.md) — Make command and synchronous Application contracts explicit | done | — | https://github.com/johnnickell/fight-access-control/pull/183 |
 | 324 | [TASK-00145](00145-TASK.md) | Correct authority and continuation contracts | [TICKET-00040](../tickets/00040-TICKET.md) — Make command and synchronous Application contracts explicit | done | — | https://github.com/johnnickell/fight-access-control/pull/182 |
+| 325 | [TASK-00146](00146-TASK.md) | Qualify ordinary HTTP contracts and safe failures | [TICKET-00041](../tickets/00041-TICKET.md) — Align presentation and integration contracts | done | — | https://github.com/johnnickell/fight-access-control/pull/186 |
 | 327 | [TASK-00148](00148-TASK.md) | Align Resource and Skill binding contracts | [TICKET-00041](../tickets/00041-TICKET.md) — Align presentation and integration contracts | done | — | https://github.com/johnnickell/fight-access-control/pull/184 |
 | 328 | [TASK-00149](00149-TASK.md) | Align public payload schemas and declarative metadata | [TICKET-00041](../tickets/00041-TICKET.md) — Align presentation and integration contracts | done | [TASK-00133](00133-TASK.md) | https://github.com/johnnickell/fight-access-control/pull/185 |

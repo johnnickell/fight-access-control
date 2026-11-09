@@ -39,6 +39,8 @@ final readonly class PermissionSubscriber implements EventSubscriberInterface
 
     /**
      * Returns the qualified post-routing admission priority for main and subrequests
+     *
+     * @phpstan-return array{'kernel.request': array{'onKernelRequest', 16}}
      */
     public static function getSubscribedEvents(): array
     {

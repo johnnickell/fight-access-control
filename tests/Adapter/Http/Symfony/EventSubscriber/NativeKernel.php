@@ -60,7 +60,8 @@ final readonly class NativeKernel
         Closure $authority,
         mixed $declaration,
         mixed $controller = NativeController::class.'::handle',
-        ?SafeHttpProjector $projector = null
+        ?SafeHttpProjector $projector = null,
+        bool $handleAllThrowables = true
     ) {
         $this->trace = new NativeTrace();
         NativeController::$trace = $this->trace;
@@ -143,6 +144,8 @@ final readonly class NativeKernel
                 if ($this->trace->sinkFails) {
                     throw new RuntimeException('PRIVATE SINK');
                 }
+
+                ++$this->trace->deliveries;
             }
         };
         $safe = new SafeSymfonyExceptionSubscriber(new SafeErrorController(
@@ -172,7 +175,13 @@ final readonly class NativeKernel
             $this->trace->events[] = 'response';
             $event->getResponse()->headers->set('X-Lifecycle', 'preserved');
         });
-        $this->kernel = new HttpKernel($this->eventDispatcher, new ControllerResolver(), $this->stack, $arguments);
+        $this->kernel = new HttpKernel(
+            $this->eventDispatcher,
+            new ControllerResolver(),
+            $this->stack,
+            $arguments,
+            handleAllThrowables: $handleAllThrowables
+        );
     }
 
     public function request(Request $request, int $type = HttpKernel::MAIN_REQUEST): Response

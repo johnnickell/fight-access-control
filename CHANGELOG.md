@@ -19,6 +19,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- **Current ordinary HTTP composition:** require Common `^1.4.2` and optional Symfony Routing/Security HTTP
+  `^8.1.11`; qualify typed 404/409/412/422 versus internal
+  500, private structured validation, required metadata and one safe reporting/fallback owner. Symfony composition
+  must explicitly select `handleAllThrowables: true` for PHP Errors to enter safe dispatch. Its event-map static
+  contract is precise; public constructors/named arguments, permission/nonce/scope and protocol boundaries remain.
+  Update current nullable-result/catch and safe-handler composition directly, without compatibility mode. See
+  [ordinary HTTP contracts](docs/ordinary-http-failures.md). No consumer readiness or release is implied.
 - **Breaking pre-v1 payload metadata alignment:** complete current Agent issuance/status/profile and Feature
   payload components, retain explicit credential-status absence and confirmed/indeterminate operation states,
   constrain browser output to its safe fields, and align optional relationships, canonical names/session reasons and

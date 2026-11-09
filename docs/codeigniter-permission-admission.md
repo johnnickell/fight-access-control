@@ -177,8 +177,9 @@ filter: PUBLIC is not a protocol exclusion. No JSON-RPC concealment, OAuth chall
 
 ## Qualified minimum and remaining consumer duties
 
-Current package Common minimum is `^1.4.1`, raised by [Laravel qualification](laravel-permission-admission.md) for
-its terminal native fallback. Current full default tests recheck CI4 composition on that installed dependency.
+Current package Common minimum is `^1.4.2` for the selected safe-error composition. TASK-00146 requalifies CI4
+categories/privacy and native ordering alongside the other present peers; see
+[ordinary HTTP contracts](ordinary-http-failures.md). Current full default tests recheck CI4 on that dependency.
 The identities/counts below preserve TASK-00106's original qualification, not today's installed lock.
 
 At that checkpoint the ordinary installed lane and isolated exact-minimum lane used tagged **Common v1.4.0**

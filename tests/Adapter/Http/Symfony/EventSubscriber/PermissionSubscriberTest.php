@@ -16,6 +16,7 @@ use Fight\Common\Adapter\Http\Error\SafeHttpPresentation;
 use Fight\Common\Adapter\Http\Error\SafeHttpProjector;
 use Fight\Common\Application\Error\Exception\AuthenticationRequired;
 use Fight\Common\Application\Error\Exception\PermissionDenied;
+use Fight\Test\AccessControl\Adapter\Http\OrdinaryFailureCases;
 use Fight\Test\AccessControl\Adapter\Mcp\Tool\Agent\Fixture\ProfileToolEnvironment;
 use Fight\Test\AccessControl\Application\AccessControl\Authorization\Admission\AdmissionEnvironment;
 use PHPUnit\Framework\Attributes\CoversClass;
@@ -454,6 +455,58 @@ final class PermissionSubscriberTest extends TestCase
         }
     }
 
+    public function test_native_application_categories_and_structured_validation_are_safe_by_type(): void
+    {
+        $environment = new AdmissionEnvironment();
+        foreach (OrdinaryFailureCases::cases() as [$case, $status, $message]) {
+            $native = new NativeKernel(static fn(): RequestAuthority => $environment->user(), $this->protected());
+            $failure = OrdinaryFailureCases::failure($case);
+            NativeController::$work = static fn(): never => throw $failure;
+            $response = $native->request($this->request());
+            self::assertSame($status, $response->getStatusCode(), $case);
+            OrdinaryFailureCases::assertBody((string) $response->getContent(), $status, $message);
+            self::assertSame([['type' => $failure::class]], $native->trace->reports);
+            self::assertNotContains('raw-logger', $native->trace->events);
+            self::assertSame('preserved', $response->headers->get('X-Lifecycle'));
+            self::assertNull($native->stack->getCurrentRequest());
+        }
+
+        $native = new NativeKernel(
+            static fn(): RequestAuthority => $environment->user(),
+            $this->protected(),
+            projector: OrdinaryFailureCases::validationProjection()
+        );
+        NativeController::$work = static fn(): never => throw OrdinaryFailureCases::failure('validation');
+        self::assertSame(
+            ['status' => 'fail', 'data' => ['fields' => ['name' => ['invalid']]]],
+            json_decode((string) $native->request($this->request())->getContent(), true, flags: JSON_THROW_ON_ERROR)
+        );
+        self::assertSame(11, $environment->resolutions);
+        self::assertCount(1, $native->trace->reports);
+    }
+
+    public function test_native_kernel_without_throwable_handling_is_explicitly_outside_safe_error_dispatch(): void
+    {
+        $environment = new AdmissionEnvironment();
+        $native = new NativeKernel(
+            static fn(): RequestAuthority => $environment->user(),
+            $this->protected(),
+            handleAllThrowables: false
+        );
+        $failure = OrdinaryFailureCases::failure('result');
+        NativeController::$work = static fn(): never => throw $failure;
+        try {
+            $native->request($this->request());
+            self::fail('Native Error propagation must not be mistaken for selected safe presentation.');
+        } catch (Throwable $throwable) {
+            self::assertSame($failure, $throwable);
+        }
+
+        self::assertSame([], $native->trace->reports);
+        self::assertNotContains('response', $native->trace->events);
+        self::assertNull($native->stack->getCurrentRequest());
+    }
+
     public function test_public_projection_never_reclassifies_and_faults_fall_back_without_duplicate_reports(): void
     {
         foreach (['public', 'object', 'nonfinite', 'utf8', 'throw', 'sink'] as $mode) {
@@ -535,23 +588,45 @@ final class PermissionSubscriberTest extends TestCase
         self::assertSame(!$safe, in_array('delegated-html', $native->trace->events, true));
     }
 
+    /** @return iterable<string, array{int, bool}> */
+    public static function terminalFaults(): iterable
+    {
+        yield 'primary' => [1, false];
+        yield 'primary-and-fallback' => [2, false];
+        yield 'persistent' => [PHP_INT_MAX, false];
+        yield 'failed-sink-persistent-fallback' => [PHP_INT_MAX, true];
+    }
+
+    #[DataProvider('terminalFaults')]
     #[RunInSeparateProcess]
     #[PreserveGlobalState(false)]
-    public function test_real_native_encoder_failure_uses_safe_fallback_without_a_second_report(): void
-    {
+    public function test_real_native_encoder_failure_uses_safe_fallback_without_a_second_report(
+        int $failures,
+        bool $sinkFails
+    ): void {
         require __DIR__.'/FaultingEncoder.php';
         $native = new NativeKernel(
             static fn(): ?RequestAuthority => null,
             $this->protected(),
             projector: $this->challenge()
         );
-        EncodingFault::$remaining = 1;
+        EncodingFault::$remaining = $failures;
+        $native->trace->sinkFails = $sinkFails;
         $response = $native->request($this->request());
         self::assertSame(500, $response->getStatusCode());
         self::assertSame('{"status":"error","message":"Internal server error."}', $response->getContent());
-        self::assertSame(2, EncodingFault::$calls);
+        self::assertSame($sinkFails ? 1 : 2, EncodingFault::$calls);
         self::assertCount(1, $native->trace->reports);
         self::assertNotContains('raw-logger', $native->trace->events);
+        self::assertSame('preserved', $response->headers->get('X-Lifecycle'));
+        self::assertFalse($response->headers->has('WWW-Authenticate'));
+        self::assertNull($native->stack->getCurrentRequest());
+
+        EncodingFault::$remaining = 0;
+        $native->trace->sinkFails = false;
+        self::assertSame(401, $native->request($this->request())->getStatusCode());
+        self::assertCount(2, $native->trace->reports);
+        self::assertSame($sinkFails ? 1 : 2, $native->trace->deliveries);
     }
 
     public function test_mismatched_router_or_missing_native_controller_is_configuration_failure(): void

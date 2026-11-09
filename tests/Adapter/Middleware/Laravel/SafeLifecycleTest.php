@@ -14,6 +14,7 @@ use Fight\Common\Adapter\Http\Error\SafeHttpProjector;
 use Fight\Common\Adapter\Http\Laravel\JSendResponse;
 use Fight\Common\Application\Error\Exception\AuthenticationRequired;
 use Fight\Common\Application\Error\Exception\PermissionDenied;
+use Fight\Test\AccessControl\Adapter\Http\OrdinaryFailureCases;
 use Fight\Test\AccessControl\Adapter\Http\Symfony\EventSubscriber\EncodingFault;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Auth\AuthenticationException;
@@ -331,6 +332,31 @@ final class SafeLifecycleTest extends TestCase
         $native->trace->failure = null;
         self::assertSame(204, $native->request()->getStatusCode());
         self::assertCount(2, $native->trace->reports);
+    }
+
+    public function test_native_application_categories_and_structured_validation_are_safe_by_type(): void
+    {
+        $native = $this->application();
+        foreach (OrdinaryFailureCases::cases() as [$case, $status, $message]) {
+            $native->trace->failure = OrdinaryFailureCases::failure($case);
+            $before = count($native->trace->reports);
+            $response = $native->request();
+            self::assertSame($status, $response->getStatusCode(), $case);
+            OrdinaryFailureCases::assertBody((string) $response->getContent(), $status, $message);
+            self::assertCount($before + 1, $native->trace->reports);
+            self::assertSame($native->trace->failure::class, $native->trace->reports[$before]);
+            self::assertSame($before + 1, $native->trace->deliveries);
+            self::assertNotContains('raw-logger', $native->trace->events);
+            self::assertSame('preserved', $response->headers->get('X-Lifecycle'));
+        }
+
+        $native = $this->application(OrdinaryFailureCases::validationProjection());
+        $native->trace->failure = OrdinaryFailureCases::failure('validation');
+        self::assertSame(
+            ['status' => 'fail', 'data' => ['fields' => ['name' => ['invalid']]]],
+            json_decode((string) $native->request()->getContent(), true, flags: JSON_THROW_ON_ERROR)
+        );
+        self::assertCount(1, $native->trace->reports);
     }
 
     public function test_projection_cannot_reclassify_unknown_failure_by_status_or_cause(): void

@@ -60,6 +60,13 @@ Temporary probes are not accepted replacements for the tracked product cases.
 
 ## Current proof and remaining ownership
 
+TASK-00146 adds eleven exact native HTTP probes and eight rejected incompatible uses: PSR request/handler/result,
+Symfony event tuple/callback/request, Laravel native next/response, CI4 optional denial/context, null after hook and
+native responder/application result. Wrong framework requests, copied context as authority, wrong factory inputs,
+non-native next/results and unchecked nullable contexts reject. All seven owned production boundaries receive
+focused level-8 analysis; dynamic native route/action/filter metadata retains runtime validation. This is not
+generic bus typing or real consumer bootstrap/sink qualification; see [ordinary HTTP contracts](ordinary-http-failures.md).
+
 TASK-00144 adds 17 positive worker/port/result probes and five rejected incompatible uses: void revocation,
 delivery/maintenance enums, bounded recovery maps, trusted next-run time, optional receipt, sensitive invocation,
 rewrap material and independent authority/cleanup ports. The debug shape is exactly redacted. The final bus probe
