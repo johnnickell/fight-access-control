@@ -118,7 +118,7 @@ John rejected the initial six-TASK testing-heavy proposal before any IDs/records
 | [TASK-00180](../tasks/00180-TASK.md) | 499 | Map existing admission evidence in current guidance; identify genuine gaps/consumer limits. No new tests or framework. | None |
 | [TASK-00181](../tasks/00181-TASK.md) | 506 | Close demonstrated composition gaps, preferably with unit tests and only occasional necessary native integration; reconcile examples/guidance and candidate-compatible evidence. | TASK-00180, TASK-00172–00179 |
 
-Both are ready-for-agent because scope is settled, not implemented/accepted. The first starts before suppliers finish;
+At the planning checkpoint both were ready-for-agent because scope was settled, not implemented/accepted. The first starts before suppliers finish;
 the second has nine exact direct edges for genuine final fan-in. Declaration TASK-00170/00171 and base native
 TASK-00103–00106 are inherited. No earlier TASK scope/orders/blockers change or new blanket architecture/typing/audit/
 Common/conversion wait; first Board selection remains TASK-00107.
@@ -142,7 +142,7 @@ examples/Unreleased and actual consumer limits remain in scope; no consumer adop
 
 | Order | TASK ID | Title | Status |
 | --- | --- | --- | --- |
-| 499 | [TASK-00180](../tasks/00180-TASK.md) | Map existing admission evidence | ready-for-agent |
+| 499 | [TASK-00180](../tasks/00180-TASK.md) | Map existing admission evidence | done |
 | 506 | [TASK-00181](../tasks/00181-TASK.md) | Close composition gaps and reconcile guidance | ready-for-agent |
 ## Decisions and Progress
 

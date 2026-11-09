@@ -6,6 +6,21 @@ Fight AccessControl owns framework-neutral identity, credential, session, author
 behavior shared by Fight applications. The repository-local behavioral and security authority is
 [TICKET-00001](planning/tickets/00001-TICKET.md).
 
+## Audit outcome inventory — TASK-00166 accepted checkpoint
+
+The [living audit matrix](docs/audit-outcome-coverage.md) reconciles the historical 37 + 7 + 8 baseline to current
+39 CommandHandlers, seven sensitive User operations and six remaining Agent service entries, without counting
+converted issuance or delegated recovery twice. It records observed writes/gaps, approved optionality/provenance,
+actual transaction/external-effect boundaries and pending family/conformance/consumer proof. Optional auditing and
+the evolved typed evidence API are not implemented by this documentation slice. Independent Review v3 ACCEPT
+and nonvisual QA PASS cover candidate `1654b71a359e44547e21686b25e52ea12d2d8bf6`: ten scenario groups and
+192 focused tests / 2,724 assertions, with no findings. TASK-00166 is done; unfinished siblings keep TICKET-00048
+and EPIC-00017 open. Earlier full gate retained (7,009 tests / 78,157 assertions, exact 9,254/9,254 statements);
+this is not fresh final-head execution. Publication/final delivery verification remain pending at this administrative
+checkpoint; canonical `.runs/handoffs/TASK-00166/land.md` owns subsequent bridge, delivery and resource results.
+Original independent reports and QA runner-option correction history remain preserved. Other audit suppliers retain
+their own implementation and acceptance; no actual consumer qualification, merge, release or deployment is claimed.
+
 ## TASK-00148 Resource/Skill contracts — accepted checkpoint
 
 The current [Resource](docs/agent-resource-authorization.md) and [Skill](docs/agent-skill-authorization.md)
@@ -644,6 +659,14 @@ verification and independent Review/QA are required; old-subject acceptance does
 TASK-00130/TASK-00162 typing/audit enhancements remain separately owned and are not implemented here.
 
 ## Approved portable Feature and Permission admission destination
+
+TASK-00180's documentation-only [early evidence assessment](docs/http-permission-admission.md#portable-admission-evidence-assessment-unreleased)
+now distinguishes current base Permission support in all five native families from pending portable declarations,
+Feature-only HTTP enforcement and combined qualification. Shared evaluator/authority/raw-validation and existing native
+lifecycle/error/minimum evidence is reused; genuine gaps name actual supplier owners and smallest recovery inputs.
+TASK-00181 retains final candidate-compatible reconciliation. Independent Review ACCEPT and nonvisual QA PASS cover
+TASK-00180's assessment candidate `1bee3e3f7e8387f907bc9be8d470d64c85676d33`; TASK-00180 is complete for evidence
+accounting only. It implements no new runtime capability, tests or consumer adoption and closes no unfinished parent.
 
 John approved [EPIC-00018 — Portable Feature and Permission Admission](planning/epics/00018-EPIC.md): two independently
 selectable HTTP capabilities across Slim, Yii 3, Symfony, Laravel and CodeIgniter 4. Extend FeatureFlag and add
