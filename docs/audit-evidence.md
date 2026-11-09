@@ -42,7 +42,22 @@ correlation; record identity/correlation is neither authority nor universal dedu
   successor are separate facts, not a fictional before/after revision of one grant. An in-place outcome preserves
   its delivery identity and advances the grant revision exactly once without overflow. New-generation issuance
   starts at revision zero with a distinct delivery; delivery confirmation/failure and retry cannot replace a
-  generation. Unchanged terminal predecessor retention remains valid when issuing a replacement.
+  generation. Initial issuance also starts at zero when there is no predecessor. Consumption/cancellation requires
+  both operands of the same exact generation, never a fresh or replaced grant. Dangling grant predecessors reject.
+
+  | Existing action | Admitted grant relationship |
+  | --- | --- |
+  | Invite/register User | Initial activation issuance, no grant predecessor |
+  | Correct invitation/recover registration | Replacement activation issuance; retained predecessor advances once by cancellation |
+  | Restore User | Initial activation issuance only for pending activation; active restoration has no grant facts |
+  | Enable/disable/delete User; change password | No grant facts (incidental lifecycle cancellation is not this outcome's relationship) |
+  | Complete password reset | Exact reset generation consumed, advancing once |
+  | Request email change | Initial email-change issuance or replacement retaining the unchanged terminal predecessor |
+  | Cancel/confirm email change | Exact email-change generation cancelled/consumed, advancing once |
+  | Resend invitation | Replacement activation issuance; retained predecessor advances once by cancellation |
+  | Request password reset | Initial reset issuance or replacement retaining the cancelled/unchanged terminal predecessor |
+  | Delivery confirmation/failure; invitation retry | Exact grant/delivery generation, advancing once; no replacement |
+
 - `AuditAgentOutcome` captures credential identities/revisions/lifecycle and the actual issuance delivery ID.
   Provisioning has no predecessor; rotation advances the credential revision; revocation retains the same
   credential tuple while changing lifecycle. Issuance requires its real scoped operation correlation.

@@ -38,6 +38,8 @@ final readonly class AuditGrantOutcome implements Arrayable
             $before->assertReplacement($after, $replacedPredecessor);
         } elseif ($replacedPredecessor !== null) {
             throw new DomainException('Initial grant issuance has no replaced predecessor.');
+        } else {
+            $after->assertInitialRevision();
         }
 
         if (

@@ -387,7 +387,12 @@ final class AuditEvidenceContractTest extends TestCase
         $cases = [
             [
                 AuditAction::USER_INVITED,
-                new AuditUserOutcome($this->userRevisions(), $this->userRevisions(), null, $grant)
+                new AuditUserOutcome(
+                    $this->userRevisions(),
+                    $this->userRevisions(),
+                    null,
+                    new AuditGrantState(ActivationGrantId::generate(), 0, ActivationDeliveryId::generate())
+                )
             ],
             [AuditAction::USER_REGISTERED, new AuditUserOutcome(null, $this->userRevisions())],
             [AuditAction::USER_PENDING_INVITATION_CORRECTED, new AuditUserOutcome(
@@ -397,7 +402,10 @@ final class AuditEvidenceContractTest extends TestCase
                 $resetNext
             )],
             [AuditAction::ROLE_RENAMED, new AuditUserOutcome($this->userRevisions(), $this->userRevisions())],
-            [AuditAction::INVITATION_RESENT, new AuditGrantOutcome(null, $grant)],
+            [AuditAction::INVITATION_RESENT, new AuditGrantOutcome(
+                null,
+                new AuditGrantState(ActivationGrantId::generate(), 0, ActivationDeliveryId::generate())
+            )],
             [AuditAction::INVITATION_DELIVERY_CONFIRMED, new AuditGrantOutcome($reset, $resetNext)],
             [AuditAction::ROLE_REMOVED, new AuditGrantOutcome($grant, $grantNext)],
             [AuditAction::INVITATION_DELIVERY_CONFIRMED, new AuditGrantOutcome($grant, $grantNext)]

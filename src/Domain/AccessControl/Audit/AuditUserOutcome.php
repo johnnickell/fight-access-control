@@ -33,8 +33,10 @@ final readonly class AuditUserOutcome implements Arrayable
     ) {
         if ($grantBefore !== null && $grantAfter !== null) {
             $grantBefore->assertReplacement($grantAfter, $replacedPredecessor);
-        } elseif ($replacedPredecessor !== null) {
-            throw new DomainException('A replaced predecessor requires both grant generations.');
+        } elseif ($replacedPredecessor !== null || $grantBefore !== null) {
+            throw new DomainException('A grant predecessor requires its actual successor.');
+        } else {
+            $grantAfter?->assertInitialRevision();
         }
     }
 

@@ -42,7 +42,12 @@ final class AuditOutcomeAdmissionTest extends TestCase
             ]);
         }
 
-        $outcome = AuditUserOutcome::fromArray($facts);
+        $outcome = AuditUserOutcome::class;
+        if (array_key_exists('delivery_status', $facts)) {
+            $outcome = AuditGrantOutcome::class;
+        }
+
+        $outcome = $outcome::fromArray($facts);
 
         return AuditEvidence::record(SystemId::generate(), $subject, $action, $at, $outcome, null);
     }
@@ -103,12 +108,13 @@ final class AuditOutcomeAdmissionTest extends TestCase
     }
 
     /** @return array<array-key, mixed> */
-    private static function userFacts(AuditAction $action): array
+    private static function userFacts(AuditAction $action, bool $pendingRestoration = false): array
     {
         $grant = match ($action) {
             AuditAction::USER_INVITED, AuditAction::USER_REGISTERED,
             AuditAction::USER_PENDING_INVITATION_CORRECTED, AuditAction::USER_PENDING_REGISTRATION_RECOVERED
                 => 'activation',
+            AuditAction::USER_RESTORED => $pendingRestoration ? 'activation' : null,
             AuditAction::PASSWORD_RESET_COMPLETED => 'password_reset',
             AuditAction::EMAIL_CHANGE_REQUESTED, AuditAction::EMAIL_CHANGE_CANCELLED,
                 AuditAction::EMAIL_CHANGE_CONFIRMED => 'email_change',
@@ -124,12 +130,36 @@ final class AuditOutcomeAdmissionTest extends TestCase
             ];
         }
 
+        $before = null;
+        $retained = null;
+        if (
+            in_array($action, [
+                AuditAction::PASSWORD_RESET_COMPLETED, AuditAction::EMAIL_CHANGE_CANCELLED,
+                AuditAction::EMAIL_CHANGE_CONFIRMED
+            ], true)
+        ) {
+            $before = $after;
+            $before['revision'] = 5;
+            $after['revision'] = 6;
+        } elseif (
+            in_array($action, [
+                AuditAction::USER_PENDING_INVITATION_CORRECTED, AuditAction::USER_PENDING_REGISTRATION_RECOVERED
+            ], true)
+        ) {
+            $before = $after;
+            $before['id'] = UserId::generate()->toString();
+            $before['delivery_id'] = UserId::generate()->toString();
+            $before['revision'] = 5;
+            $retained = $before;
+            $retained['revision'] = 6;
+        }
+
         return [
             'before'               => null,
             'after'                => [],
-            'grant_before'         => null,
+            'grant_before'         => $before,
             'grant_after'          => $after,
-            'replaced_predecessor' => null
+            'replaced_predecessor' => $retained
         ];
     }
 
@@ -143,7 +173,7 @@ final class AuditOutcomeAdmissionTest extends TestCase
         ?array $before,
         array $after
     ): void {
-        $facts = self::userFacts($action);
+        $facts = self::userFacts($action, $after[0] === 'pending_activation');
         $facts['before'] = $before === null ? null : self::revisions($before);
         $facts['after'] = self::revisions($after);
         $evidence = $this->admit($action, $facts, false);
@@ -154,7 +184,7 @@ final class AuditOutcomeAdmissionTest extends TestCase
     public static function invalidUserOutcomes(): iterable
     {
         foreach (self::userTransitions() as $name => [$action, $before, $after]) {
-            $facts = self::userFacts($action);
+            $facts = self::userFacts($action, $after[0] === 'pending_activation');
             $facts['before'] = $before === null ? null : self::revisions($before);
             $facts['after'] = self::revisions($after);
             foreach ([false, true] as $hydrate) {
@@ -229,12 +259,199 @@ final class AuditOutcomeAdmissionTest extends TestCase
     }
 
     /** @return iterable<string, array{AuditAction, array<array-key, mixed>, bool}> */
+    public static function invalidUserGrantRelationships(): iterable
+    {
+        foreach (self::userTransitions() as $name => [$action, $before, $after]) {
+            $facts = self::userFacts($action, $after[0] === 'pending_activation');
+            $facts['before'] = $before === null ? null : self::revisions($before);
+            $facts['after'] = self::revisions($after);
+            $grant = $facts['grant_after'];
+            if ($grant === null) {
+                foreach ([false, true] as $hydrate) {
+                    $invalid = $facts;
+                    $invalid['grant_after'] = self::userFacts(AuditAction::USER_INVITED)['grant_after'];
+                    yield $name.' unrelated issuance '.(int) $hydrate => [$action, $invalid, $hydrate];
+                    $invalid['grant_before'] = $invalid['grant_after'];
+                    $invalid['grant_after'] = null;
+                    yield $name.' dangling predecessor '.(int) $hydrate => [$action, $invalid, $hydrate];
+                }
+
+                continue;
+            }
+
+            $variants = [];
+            $invalid = $facts;
+            $invalid['grant_after'] = null;
+            $invalid['replaced_predecessor'] = null;
+            $variants['missing successor'] = $invalid;
+            $invalid = $facts;
+            $invalid['grant_before'] = null;
+            $invalid['grant_after']['revision'] = 0;
+            $invalid['replaced_predecessor'] = null;
+            if ($facts['grant_before'] !== null) {
+                $variants['missing predecessor'] = $invalid;
+            }
+
+            $invalid = $facts;
+            if ($facts['grant_before'] === null) {
+                $invalid['grant_after']['revision'] = 99;
+                $variants['initial revision'] = $invalid;
+                $invalid = $facts;
+                $invalid['grant_before'] = $grant;
+                $invalid['grant_after']['revision'] = $grant['revision'] + 1;
+                $variants['unexpected in-place predecessor'] = $invalid;
+            } elseif ($facts['replaced_predecessor'] === null) {
+                $invalid['grant_after']['id'] = UserId::generate()->toString();
+                $invalid['grant_after']['delivery_id'] = UserId::generate()->toString();
+                $invalid['grant_after']['revision'] = 0;
+                $invalid['replaced_predecessor'] = $facts['grant_before'];
+                $variants['replacement instead of consumption'] = $invalid;
+            } else {
+                $invalid['replaced_predecessor'] = $facts['grant_before'];
+                $variants['replacement omitted cancellation advance'] = $invalid;
+                $invalid = $facts;
+                $invalid['grant_after'] = $facts['grant_before'];
+                $invalid['grant_after']['revision']++;
+                $invalid['replaced_predecessor'] = null;
+                $variants['in-place instead of replacement'] = $invalid;
+            }
+
+            if ($action === AuditAction::EMAIL_CHANGE_REQUESTED) {
+                $invalid = $facts;
+                $invalid['grant_before'] = $grant;
+                $invalid['grant_before']['id'] = UserId::generate()->toString();
+                $invalid['grant_before']['delivery_id'] = UserId::generate()->toString();
+                $invalid['grant_before']['revision'] = 5;
+                $invalid['replaced_predecessor'] = $invalid['grant_before'];
+                $invalid['replaced_predecessor']['revision'] = 6;
+                $variants['terminal predecessor advanced'] = $invalid;
+            }
+
+            foreach ($variants as $case => $invalid) {
+                foreach ([false, true] as $hydrate) {
+                    yield $name.' '.$case.' '.(int) $hydrate => [$action, $invalid, $hydrate];
+                }
+            }
+        }
+    }
+
+    /** @param array<array-key, mixed> $facts */
+    #[DataProvider('invalidUserGrantRelationships')]
+    public function test_user_action_requires_its_actual_grant_relationship(
+        AuditAction $action,
+        array $facts,
+        bool $hydrate
+    ): void {
+        $this->expectException(DomainException::class);
+        $this->admit($action, $facts, $hydrate);
+    }
+
+    #[DataProvider('hydrationModes')]
+    public function test_initial_reset_issuance_cannot_start_at_an_arbitrary_revision(bool $hydrate): void
+    {
+        $facts = [
+            'grant_before'         => null,
+            'grant_after'          => self::userFacts(AuditAction::PASSWORD_RESET_COMPLETED)['grant_after'],
+            'delivery_status'      => null,
+            'failure'              => null,
+            'replaced_predecessor' => null
+        ];
+        $facts['grant_after']['revision'] = 99;
+        $this->expectException(DomainException::class);
+        $this->admit(AuditAction::PASSWORD_RESET_REQUESTED, $facts, $hydrate);
+    }
+
+    #[DataProvider('hydrationModes')]
+    public function test_email_request_retains_terminal_predecessor_without_advancing_it(bool $hydrate): void
+    {
+        $facts = self::userFacts(AuditAction::EMAIL_CHANGE_REQUESTED);
+        $facts['before'] = self::revisions(['active', 3, 4, 2, 5, 6]);
+        $facts['after'] = self::revisions(['active', 3, 4, 2, 6, 6]);
+        $facts['grant_before'] = $facts['grant_after'];
+        $facts['grant_before']['id'] = UserId::generate()->toString();
+        $facts['grant_before']['delivery_id'] = UserId::generate()->toString();
+        $facts['grant_before']['revision'] = 5;
+        $facts['replaced_predecessor'] = $facts['grant_before'];
+        $evidence = $this->admit(AuditAction::EMAIL_CHANGE_REQUESTED, $facts, $hydrate);
+        self::assertSame($facts, $evidence->getFacts()->toArray());
+    }
+
+    /** @return iterable<string, array{AuditAction, array<array-key, mixed>, bool, bool}> */
+    public static function issuanceRelationships(): iterable
+    {
+        foreach ([AuditAction::INVITATION_RESENT, AuditAction::PASSWORD_RESET_REQUESTED] as $action) {
+            $kind = $action === AuditAction::INVITATION_RESENT ? 'activation' : 'password_reset';
+            $after = [
+                'kind'        => $kind,
+                'id'          => UserId::generate()->toString(),
+                'revision'    => 0,
+                'delivery_id' => UserId::generate()->toString()
+            ];
+            $before = $after;
+            $before['id'] = UserId::generate()->toString();
+            $before['delivery_id'] = UserId::generate()->toString();
+            $before['revision'] = 5;
+            $cases = ['initial', 'cancelled', 'terminal', 'in-place', 'missing retained', 'skipped retained'];
+            foreach ($cases as $case) {
+                $retained = $before;
+                $retained['revision'] = match ($case) {
+                    'terminal' => 5,
+                    'skipped retained' => 7,
+                    default => 6
+                };
+                $facts = [
+                    'grant_before'         => $case === 'initial' ? null : $before,
+                    'grant_after'          => $after,
+                    'delivery_status'      => null,
+                    'failure'              => null,
+                    'replaced_predecessor' => in_array($case, ['initial', 'missing retained'], true) ? null : $retained
+                ];
+                if ($case === 'in-place') {
+                    $facts['grant_after'] = $before;
+                    $facts['grant_after']['revision'] = 6;
+                    $facts['replaced_predecessor'] = null;
+                }
+
+                $valid = $case === 'cancelled' || ($action === AuditAction::PASSWORD_RESET_REQUESTED
+                    && in_array($case, ['initial', 'terminal'], true));
+                foreach ([false, true] as $hydrate) {
+                    yield $action->value.' '.$case.' '.(int) $hydrate => [$action, $facts, $hydrate, $valid];
+                }
+            }
+        }
+    }
+
+    /** @param array<array-key, mixed> $facts */
+    #[DataProvider('issuanceRelationships')]
+    public function test_issuance_preserves_its_actual_initial_or_replaced_predecessor(
+        AuditAction $action,
+        array $facts,
+        bool $hydrate,
+        bool $valid
+    ): void {
+        if (!$valid) {
+            $this->expectException(DomainException::class);
+        }
+
+        $evidence = $this->admit($action, $facts, $hydrate);
+        self::assertSame($facts, $evidence->getFacts()->toArray());
+    }
+
+    /** @return iterable<array{bool}> */
+    public static function hydrationModes(): iterable
+    {
+        yield [false];
+        yield [true];
+    }
+
+    /** @return iterable<string, array{AuditAction, array<array-key, mixed>, bool}> */
     public static function invalidGrantOutcomes(): iterable
     {
         foreach (
             [
                 'activation'     => [
-                    AuditAction::INVITATION_DELIVERY_CONFIRMED, AuditAction::INVITATION_DELIVERY_FAILED
+                    AuditAction::INVITATION_DELIVERY_CONFIRMED, AuditAction::INVITATION_DELIVERY_FAILED,
+                    AuditAction::INVITATION_RETRY_REQUESTED
                 ],
                 'password_reset' => [
                     AuditAction::PASSWORD_RESET_DELIVERY_CONFIRMED, AuditAction::PASSWORD_RESET_DELIVERY_FAILED
@@ -253,7 +470,7 @@ final class AuditOutcomeAdmissionTest extends TestCase
                 ];
                 $after = $before;
                 $after['revision'] = 6;
-                $status = 'delivered';
+                $status = $action === AuditAction::INVITATION_RETRY_REQUESTED ? null : 'delivered';
                 if (str_ends_with($action->value, 'failed')) {
                     $status = 'retry_pending';
                 }

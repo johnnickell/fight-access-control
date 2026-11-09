@@ -328,7 +328,10 @@ class AuditEvidence implements Arrayable
             AuditAction::EMAIL_CHANGE_REQUESTED, AuditAction::EMAIL_CHANGE_CANCELLED,
                 AuditAction::EMAIL_CHANGE_CONFIRMED => EmailChangeGrantId::class,
             AuditAction::USER_ENABLED, AuditAction::USER_DISABLED, AuditAction::USER_DELETED,
-            AuditAction::USER_RESTORED, AuditAction::PASSWORD_CHANGED => null,
+                AuditAction::PASSWORD_CHANGED => null,
+            AuditAction::USER_RESTORED => (
+                $facts->getAfter()->toArray()['state'] === 'pending_activation' ? ActivationGrantId::class : null
+            ),
             default => throw new DomainException('Audit User facts do not admit this action.')
         };
         if (
@@ -336,6 +339,35 @@ class AuditEvidence implements Arrayable
             && ($facts->getGrantAfter() === null || $facts->getGrantAfter()->getId()::class !== $grantKind)
         ) {
             throw new DomainException('Audit outcome requires its actual grant and delivery relationship.');
+        }
+
+        $before = $facts->getGrantBefore();
+        $after = $facts->getGrantAfter();
+        $sameGeneration = $before !== null && $after !== null && $before->getId()->equals($after->getId());
+        $validRelationship = match ($this->action) {
+            AuditAction::USER_INVITED, AuditAction::USER_REGISTERED,
+                AuditAction::USER_RESTORED => $before === null && ($after !== null) === ($grantKind !== null),
+            AuditAction::USER_PENDING_INVITATION_CORRECTED,
+                AuditAction::USER_PENDING_REGISTRATION_RECOVERED => $before !== null && !$sameGeneration,
+            AuditAction::EMAIL_CHANGE_REQUESTED => !$sameGeneration,
+            AuditAction::PASSWORD_RESET_COMPLETED, AuditAction::EMAIL_CHANGE_CANCELLED,
+                AuditAction::EMAIL_CHANGE_CONFIRMED => $sameGeneration,
+            default => $before === null && $after === null
+        };
+        if (!$validRelationship) {
+            throw new DomainException('Audit User action requires its actual issuance or in-place grant outcome.');
+        }
+
+        if (
+            in_array($this->action, [
+                AuditAction::USER_PENDING_INVITATION_CORRECTED, AuditAction::USER_PENDING_REGISTRATION_RECOVERED,
+                AuditAction::EMAIL_CHANGE_REQUESTED
+            ], true)
+        ) {
+            $before?->assertRetainedRevision(
+                $facts->getReplacedPredecessor(),
+                $this->action !== AuditAction::EMAIL_CHANGE_REQUESTED
+            );
         }
 
         $facts->getAfter()->assertOutcome($this->action, $facts->getBefore());
@@ -372,6 +404,10 @@ class AuditEvidence implements Arrayable
         $sameGeneration = $facts->getBefore()?->getId()->equals($facts->getAfter()->getId()) ?? false;
         if ($issuance === $sameGeneration) {
             throw new DomainException('Audit issuance replaces a generation; delivery outcomes preserve it.');
+        }
+
+        if ($this->action === AuditAction::INVITATION_RESENT) {
+            $facts->getBefore()?->assertRetainedRevision($facts->getReplacedPredecessor(), true);
         }
 
         $validOutcome = match ($this->action) {

@@ -93,6 +93,18 @@ final readonly class AuditGrantState implements Arrayable
     }
 
     /**
+     * Validates the revision of a newly issued generation without a predecessor
+     *
+     * @throws DomainException When initial issuance invents an existing revision
+     */
+    public function assertInitialRevision(): void
+    {
+        if ($this->revision !== 0) {
+            throw new DomainException('Initial grant issuance starts at revision zero.');
+        }
+    }
+
+    /**
      * Validates the actual retained predecessor revision when a different generation succeeds it
      *
      * @throws DomainException When a replacement omits or invents its retained predecessor
@@ -120,6 +132,21 @@ final readonly class AuditGrantState implements Arrayable
                 && ($this->revision === PHP_INT_MAX || $replacedPredecessor->revision !== $this->revision + 1))
         ) {
             throw new DomainException('A grant replacement requires its actual retained predecessor revision.');
+        }
+    }
+
+    /**
+     * Validates whether replacement cancelled the predecessor or retained its terminal revision
+     *
+     * @throws DomainException When the retained revision contradicts the declared operation
+     */
+    public function assertRetainedRevision(?self $retained, bool $cancelled): void
+    {
+        if (
+            $retained === null || ($cancelled && $this->revision === PHP_INT_MAX)
+            || $retained->revision !== $this->revision + (int) $cancelled
+        ) {
+            throw new DomainException('Audit replacement must retain the actual predecessor outcome revision.');
         }
     }
 
