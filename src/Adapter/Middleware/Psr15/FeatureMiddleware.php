@@ -11,11 +11,14 @@ use Fight\AccessControl\Application\AccessControl\Authorization\Service\Security
 use Fight\AccessControl\Application\AccessControl\Feature\Admission\FeatureAdmission;
 use Fight\AccessControl\Application\AccessControl\Feature\Admission\FeatureUnavailable;
 use Fight\AccessControl\Application\AccessControl\Feature\FeatureRequirements;
+use Fight\Common\Application\Error\Exception\AuthenticationRequired;
 use Fight\Common\Application\Error\Exception\ResourceNotFound;
+use LogicException;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Server\MiddlewareInterface;
 use Psr\Http\Server\RequestHandlerInterface;
+use Throwable;
 
 /**
  * Class FeatureMiddleware
@@ -48,7 +51,14 @@ final readonly class FeatureMiddleware implements MiddlewareInterface
             $request,
             $handler,
             function (?RequestAuthority $authority) use ($references): ?SecurityContext {
-                $context = $authority?->resolve();
+                try {
+                    $context = $authority?->resolve();
+                } catch (AuthenticationRequired $failure) {
+                    throw $failure;
+                } catch (Throwable $failure) {
+                    throw new LogicException('Feature authority resolution failed.', previous: $failure);
+                }
+
                 try {
                     return $this->admission->admit($references, $context);
                 } catch (FeatureUnavailable $featureUnavailable) {

@@ -95,7 +95,12 @@ Only ordinary false availability throws `FeatureUnavailable`; this gate alone tr
 unsupported contexts and operational/native faults remain safe server faults. This is deliberately **not** the older
 optional consumer concealment of broken bindings described in the historical availability guide. Known authentication
 refusals retain Common's typed 401 behavior and require valid consumer-selected challenges. No classification uses
-exception text, code or cause. No Feature name/status/bound ID/private diagnostic enters refusal output.
+exception text, code or cause. Dependency failures at Feature evaluation, trusted authority selection and Feature
+provider resolution are retained as causes of operational faults, not passed outward as unrelated declared safe
+outcomes (for example, a repository's `ResourceNotFound` is not Feature denial). Only the authority boundary preserves
+known typed authentication refusals; an evaluation dependency cannot declare an authentication outcome. These catches
+do not surround downstream validation/action work, whose own declared outcomes remain Common's responsibility.
+No Feature name/status/bound ID/private diagnostic enters refusal output.
 
 Compose the existing Common `SafeJSendErrorMiddleware`, `SafeHttpErrorPolicy`, required redaction-aware diagnostics
 owner, PSR-17 JSend factory and optional validated projector described in the Permission guide. There is one reporting

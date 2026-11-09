@@ -10,6 +10,7 @@ use Fight\AccessControl\Application\AccessControl\Feature\Service\FeatureAvailab
 use Fight\AccessControl\Domain\AccessControl\Agent\AuthenticatedAgentPrincipal;
 use Fight\AccessControl\Domain\AccessControl\Authorization\AuthenticatedUserPrincipal;
 use LogicException;
+use Throwable;
 
 /**
  * Class FeatureAdmission
@@ -46,9 +47,9 @@ final readonly class FeatureAdmission
         foreach ($references->getNames() as $name) {
             try {
                 $available = $this->featureAvailability->isAvailable($name, $principal);
-            } catch (FeatureUnavailable $featureUnavailable) {
-                // A collaborator throwing our outcome is still a fault, not an owned false result.
-                throw new LogicException('Feature evaluation failed.', previous: $featureUnavailable);
+            } catch (Throwable $failure) {
+                // Dependency failures are not admission outcomes, regardless of their declared category.
+                throw new LogicException('Feature evaluation failed.', previous: $failure);
             }
 
             if (!$available) {

@@ -27,6 +27,17 @@ use Fight\AccessControl\Domain\AccessControl\Feature\FeatureStatus;
 use Fight\AccessControl\Domain\AccessControl\Permission\Permission;
 use Fight\AccessControl\Domain\AccessControl\Permission\PermissionId;
 use Fight\AccessControl\Domain\AccessControl\Permission\PermissionName;
+use Fight\Common\Application\Error\Exception\AuthenticationRequired;
+use Fight\Common\Application\Error\Exception\InvalidInput;
+use Fight\Common\Application\Error\Exception\PermissionDenied;
+use Fight\Common\Application\Error\Exception\PreconditionFailed;
+use Fight\Common\Application\Error\Exception\RateLimitExceeded;
+use Fight\Common\Application\Error\Exception\ResourceGone;
+use Fight\Common\Application\Error\Exception\ResourceNotFound;
+use Fight\Common\Application\Error\Exception\RuleViolation;
+use Fight\Common\Application\Error\Exception\ServiceUnavailable;
+use Fight\Common\Application\Error\Exception\StateConflict;
+use Fight\Common\Domain\Exception\ValidationException;
 use Fight\Test\AccessControl\Adapter\Mcp\Tool\Agent\Fixture\ProfileToolEnvironment;
 use Fight\Test\AccessControl\Application\AccessControl\Authorization\Admission\AdmissionEnvironment;
 use Fight\Test\AccessControl\Application\AccessControl\Feature\Repository\InMemoryFeatureRepository;
@@ -39,6 +50,7 @@ use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Server\MiddlewareInterface;
 use RuntimeException;
 use Slim\Psr7\Factory\ServerRequestFactory;
+use Throwable;
 
 #[CoversClass(FeatureMiddleware::class)]
 #[CoversClass(FeatureAdmission::class)]
@@ -339,6 +351,100 @@ final class FeatureMiddlewareTest extends TestCase
         self::assertSame(0, $native->validators);
         self::assertSame(1, $native->reports);
         self::assertStringNotContainsString('PRIVATE', (string) $response->getBody());
+    }
+
+    /** @return iterable<string, array{string, string, Throwable}> */
+    public static function dependencyFaults(): iterable
+    {
+        foreach (['slim', 'yii'] as $framework) {
+            foreach (['factory', 'user-provider', 'feature-storage'] as $source) {
+                $faults = [
+                    new ResourceNotFound('PRIVATE DEPENDENCY FAILURE'),
+                    new ResourceGone('PRIVATE DEPENDENCY FAILURE'),
+                    new InvalidInput('PRIVATE DEPENDENCY FAILURE'),
+                    new PermissionDenied('PRIVATE DEPENDENCY FAILURE'),
+                    new StateConflict('PRIVATE DEPENDENCY FAILURE'),
+                    new PreconditionFailed('PRIVATE DEPENDENCY FAILURE'),
+                    new RuleViolation('PRIVATE DEPENDENCY FAILURE'),
+                    new RateLimitExceeded('PRIVATE DEPENDENCY FAILURE'),
+                    new ServiceUnavailable('PRIVATE DEPENDENCY FAILURE'),
+                    new ValidationException(['private' => ['PRIVATE DEPENDENCY FAILURE']])
+                ];
+                foreach ($faults as $fault) {
+                    yield $framework.' '.$source.' '.$fault::class => [$framework, $source, $fault];
+                }
+            }
+        }
+    }
+
+    #[DataProvider('dependencyFaults')]
+    public function test_typed_dependency_faults_are_not_declared_admission_outcomes(
+        string $framework,
+        string $source,
+        Throwable $fault
+    ): void {
+        NativeController::$constructed = 0;
+        NativeController::$handled = 0;
+        NativeController::$work = null;
+        [$features, $permissions, $id] = $this->storage();
+        $this->seed($features, $id, FeatureStatus::ON);
+        if ($source === 'feature-storage') {
+            $features = $this->createMock(FeatureRepository::class);
+            $features->expects(self::once())->method('getByName')->willThrowException($fault);
+        }
+
+        $environment = new AdmissionEnvironment();
+        $authentication = new RequestAuthentication(static function () use (
+            $source,
+            $environment,
+            $fault
+        ): ?RequestAuthority {
+            if ($source === 'factory') {
+                throw $fault;
+            }
+
+            return $source === 'user-provider' ? $environment->user(fault: $fault) : null;
+        });
+        $factory = static fn($action, $selected): FeatureMiddleware => new FeatureMiddleware(
+            new FeatureRequirements($action, 'rollout'),
+            $selected,
+            $authentication,
+            new FeatureAdmission(new FeatureAvailability($features, $permissions))
+        );
+        $native = new NativePipeline($framework, $factory);
+        $response = $native->request($this->request());
+        self::assertSame(500, $response->getStatusCode());
+        self::assertSame('{"status":"error","message":"Internal server error."}', (string) $response->getBody());
+        self::assertSame('', $response->getHeaderLine('WWW-Authenticate'));
+        self::assertSame('', $response->getHeaderLine('Retry-After'));
+        self::assertSame(0, $native->validators);
+        self::assertSame(0, NativeController::$constructed);
+        self::assertSame(0, NativeController::$handled);
+        self::assertSame(1, $native->reports);
+    }
+
+    #[DataProvider('frameworks')]
+    public function test_known_authentication_and_downstream_absence_keep_their_categories(string $framework): void
+    {
+        [$features, $permissions, $id] = $this->storage();
+        $this->seed($features, $id, FeatureStatus::ON);
+        $authentication = new RequestAuthentication(static function (): never {
+            throw new AuthenticationRequired('PRIVATE AUTHENTICATION REFUSAL');
+        });
+        $native = new NativePipeline($framework, $this->gate($features, $permissions, $authentication));
+        $response = $native->request($this->request());
+        self::assertSame(401, $response->getStatusCode());
+        self::assertSame('Signature realm="example"', $response->getHeaderLine('WWW-Authenticate'));
+        self::assertSame(0, $native->validators);
+        self::assertSame(1, $native->reports);
+        $anonymous = new RequestAuthentication(static fn(): null => null);
+        $native = new NativePipeline($framework, $this->gate($features, $permissions, $anonymous));
+        $native->beforeWork = static function (): never {
+            throw new ResourceNotFound('PRIVATE DOWNSTREAM ABSENCE');
+        };
+        self::assertSame(404, $native->request($this->request())->getStatusCode());
+        self::assertSame(1, $native->validators);
+        self::assertSame(1, $native->reports);
     }
 
     /** @return array{InMemoryFeatureRepository, InMemoryPermissionRepository, PermissionId} */
