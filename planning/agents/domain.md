@@ -19,39 +19,33 @@ A persistence placement pattern is not permission to implement production persis
 
 ## Consumed Common contracts
 
-These source-linked examples identify current consumption (paths refreshed by TASK-00108), not an exhaustive adoption
-inventory or claims about future canonical APIs. Names below are current imports, not new names to copy blindly.
-[Composer](../../composer.json) currently requires `johnnickell/fight-common: ^1.4`; a constraint alone does not
-prove the installed package, a sufficient future minimum or every integration journey.
+The [complete affected contract inventory](../../docs/common-contracts.md) owns TASK-00110's canonical spelling,
+getter, construction/serialization/error semantics and future-feature boundaries. [Composer](../../composer.json)
+now requires `johnnickell/fight-common: ^1.5.0`. Exact-minimum and ordinary composition are qualified separately;
+a manifest alone does not prove consumer readiness. The following table remains a compact ownership index.
 
-Work's ordinary dependency resolution inspected Common `v1.4.0`, source reference
-`87b9580c072f3149d574e09865daa79620c92118` from its Composer metadata. Representative upstream definitions at that
-reference are [McpProgressReporter](https://github.com/johnnickell/fight-common/blob/87b9580c072f3149d574e09865daa79620c92118/src/Application/Mcp/McpProgressReporter.php),
-[CommandBus](https://github.com/johnnickell/fight-common/blob/87b9580c072f3149d574e09865daa79620c92118/src/Application/Messaging/Command/CommandBus.php),
-[CommandHandler](https://github.com/johnnickell/fight-common/blob/87b9580c072f3149d574e09865daa79620c92118/src/Application/Messaging/Command/CommandHandler.php)
-and [TransactionalUnitOfWork](https://github.com/johnnickell/fight-common/blob/87b9580c072f3149d574e09865daa79620c92118/src/Application/Repository/TransactionalUnitOfWork.php).
-The inspected command contracts return void and UoW returns mixed. This bounded source observation supplies
-neither a future canonical release nor TASK-00110's minimum/independent qualification; its hold remains unchanged.
+Current supported source is Common v1.5.0, `06fb5cd3720af9cf8295198f74040d95b64c5155`, not sibling HEAD.
+Supplier acceptance, release certification/publication and exact installed tag bytes resolve the historical supplier
+hold. Commands still return void and UoW returns mixed. Independent adoption Review and behavioral QA remain required.
 
 | Current AccessControl source | Actually consumed Common contracts | Coordination boundary |
 | --- | --- | --- |
 | [UserId](../../src/Domain/AccessControl/User/UserId.php), [UserRepository](../../src/Domain/AccessControl/User/UserRepository.php) | Domain UniqueId, EmailAddress, Pagination, ResultSet | Reuse low-level primitives; preserve repository atomic capabilities. No new local Store or UoW/repository combination. |
 | [UserAuthentication](../../src/Application/AccessControl/User/Authentication/UserAuthentication.php), [TokenIssuer](../../src/Application/AccessControl/User/Authentication/TokenIssuer.php), [PasswordManagement](../../src/Application/AccessControl/User/PasswordManagement.php), [SessionLifecycle](../../src/Application/AccessControl/RefreshSession/SessionLifecycle.php), [EmailChangeConfirmation](../../src/Application/AccessControl/EmailChangeGrant/EmailChangeConfirmation.php) | Application Auth Security PasswordHasher/PasswordValidator/TokenEncoder, Repository TransactionalUnitOfWork, Messaging EventDispatcher | Keep supported synchronous sensitive inputs, actual transactions and post-commit policy. Native mixed UoW return plus known-local-callback @var is sufficient; no generic supplier wait. |
-| [GetAgentProfileTool](../../src/Adapter/Mcp/Tool/Agent/GetAgentProfileTool.php), [UpdateAgentProfileTool](../../src/Adapter/Mcp/Tool/Agent/UpdateAgentProfileTool.php) | Application McpTool/McpToolInfo/McpToolOutput, McpProgressReporter, ApplicationData and QueryBus/SynchronousCommandBus | Adapter protocol presentation dispatches existing use cases through actual buses, without copied schemas or handler bypass. Current progress import is Application/Mcp/McpProgressReporter, not proof of a future Tool home. |
+| [GetAgentProfileTool](../../src/Adapter/Mcp/Tool/Agent/GetAgentProfileTool.php), [UpdateAgentProfileTool](../../src/Adapter/Mcp/Tool/Agent/UpdateAgentProfileTool.php) | Application McpTool/McpToolInfo/McpToolOutput, McpProgressReporter, ApplicationData and QueryBus/SynchronousCommandBus | Adapter protocol presentation dispatches existing use cases through actual buses, without copied schemas or handler bypass. Canonical progress import is Application/Mcp/Tool/McpProgressReporter; its upstream alias preserves assignability. |
 | [AgentToolPermissionCatalog](../../src/Adapter/Mcp/Tool/Agent/AgentToolPermissionCatalog.php) | McpToolRegistry, McpToolAvailability and exact immutable McpToolInfo identity | Common owns registry/protocol identity; AccessControl binds conjunctive Permission policy. Construction-only enumeration is not request authorization. |
 | [Resource catalog](../../src/Adapter/Mcp/Resource/Agent/AgentResourcePermissionCatalog.php), [Resource availability](../../src/Adapter/Mcp/Resource/Agent/AgentResourceAvailability.php) | McpReadableResourceProvider, McpResourceInfo, McpResourceAvailability and Domain StrictJson | Preserve descriptor/provider identity, independent read admission and request-local authority; operational faults are not successful empty catalogs. |
 | [Skill catalog](../../src/Adapter/Mcp/Skill/Agent/AgentSkillPermissionCatalog.php), [Skill availability](../../src/Adapter/Mcp/Skill/Agent/AgentSkillAvailability.php) | McpSkillRevision, McpSkillAvailability and Domain StrictJson | Whole-Skill and Resource admission stay independent; preserve revision binding and shared request-local authentication. |
 
-[TASK-00110](../tasks/00110-TASK.md) owns the actual exhaustive consumed-contract inventory, canonical adoption,
-supported minimum and ordinary/minimum-lane composition proof. Before adoption verify implemented APIs,
-independent acceptance/qualification, actual tags and sufficient minimum; neither these examples nor a current
-import clears its needs-info hold. Common owns neutral ports, protocol engines and existing execution/Task/Notice
+[TASK-00110](../tasks/00110-TASK.md) owns the inventory, canonical adoption, supported minimum and ordinary/minimum
+composition evidence. Its historical supplier hold is resolved by the published v1.5.0 evidence, not planning status. Common owns neutral ports, protocol engines and existing execution/Task/Notice
 use cases; AccessControl must not copy them, introduce shadow lifecycle facades or use deprecated bridges as its
 target. Common's released 1.x compatibility obligations remain upstream, not AccessControl aliases under ADR 0011.
 
 [EPIC-00015's external observations](../epics/00015-EPIC.md#common-coordination-and-external-evidence) retain the
-historical Common snapshot and planned foundation/Task/Notice/identity/Tool refactors. Those sibling plans are
-external evidence, not local blocked_by IDs or proof of tagged availability. Each future MCP family owns its
+historical Common snapshot and planned foundation/Task/Notice/identity/Tool refactors. Those historical sibling plans are
+not local blocked_by IDs; the current inventory distinguishes now-released supplier APIs from unimplemented local
+features. Each future MCP family owns its
 additional operation APIs and qualification. An unavailable contract holds only affected adoption; TASK-00108/00109
 can use existing qualified APIs. John amended the separate Agent conversion to void Commands and independent
 outcome Queries, invocable sync or async without transport assumptions; no result-return Common API is required.

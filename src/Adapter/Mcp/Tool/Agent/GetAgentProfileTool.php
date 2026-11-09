@@ -10,7 +10,7 @@ use Fight\AccessControl\Application\AccessControl\Agent\Authentication\SignedAge
 use Fight\AccessControl\Domain\AccessControl\Agent\AgentProfilePermissions;
 use Fight\AccessControl\Domain\AccessControl\Agent\Query\AgentProfileView;
 use Fight\AccessControl\Domain\AccessControl\Agent\Query\GetAgentProfile;
-use Fight\Common\Application\Mcp\McpProgressReporter;
+use Fight\Common\Application\Mcp\Tool\McpProgressReporter;
 use Fight\Common\Application\Mcp\Tool\McpTool;
 use Fight\Common\Application\Mcp\Tool\McpToolInfo;
 use Fight\Common\Application\Mcp\Tool\McpToolOutput;

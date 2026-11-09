@@ -6,7 +6,7 @@ namespace Fight\Test\AccessControl\Adapter\Mcp\Tool\Agent;
 
 use Fight\AccessControl\Adapter\Mcp\Tool\Agent\AgentToolPermissionCatalog;
 use Fight\AccessControl\Adapter\Mcp\Tool\Agent\Attribute\RequiresAgentPermission;
-use Fight\Common\Application\Mcp\McpProgressReporter;
+use Fight\Common\Application\Mcp\Tool\McpProgressReporter;
 use Fight\Common\Application\Mcp\Tool\McpTool;
 use Fight\Common\Application\Mcp\Tool\McpToolAvailability;
 use Fight\Common\Application\Mcp\Tool\McpToolInfo;

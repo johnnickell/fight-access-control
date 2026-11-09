@@ -45,8 +45,8 @@ consumed-contract inventory for subsequent features under [EPIC-00015](../epics/
 
 ## Dependencies and External Gate
 
-TASK-00110 has order 13 and status needs-info until Common supplies the affected canonical released contracts and
-acceptance/qualification evidence. There is no local TASK blocker and no cross-repository blocked_by ID. The
+TASK-00110 has order 13; its historical needs-info hold is resolved by verified published Common v1.5.0
+source/tag/independent release evidence. It is now in-progress pending independent adoption Review/QA. There is no local TASK blocker and no cross-repository blocked_by ID. The
 maintainer/implementation owner verifies source/tag/minimum evidence before changing readiness; Common planning,
 local completion and deprecation bridges are not proof of a canonical release.
 
@@ -77,12 +77,13 @@ new feature implementations, release and deployment.
 
 | Order | TASK ID | Title | Status |
 | --- | --- | --- | --- |
-| 13 | [TASK-00110](../tasks/00110-TASK.md) | Adopt qualified canonical Fight Common contracts | needs-info |
+| 13 | [TASK-00110](../tasks/00110-TASK.md) | Adopt qualified canonical Fight Common contracts | in-progress |
 ## Decisions and Progress
 
-John approved one complete TASK-00110 for this requirement. Its external hold remains honest; local refactoring
-and ordinary native-framework work can proceed independently. The existing combined EPIC-00014 release scope
+John approved one complete TASK-00110 for this requirement. Work has now qualified the supplier v1.5.0 baseline
+and implemented current-package adoption; independent adoption acceptance remains required. See the
+[contract inventory](../../docs/common-contracts.md). Local refactoring and ordinary native-framework work remain independent. The existing combined EPIC-00014 release scope
 and unassigned version are unchanged. Planning creates no dependency adoption or publication authority.
 
-Next: recover TASK-00110's affected Common tagged/acceptance/minimum evidence before its execution; use the Board
-for independent ready work.
+Next: independent Review and behavioral QA of TASK-00110's committed adoption and retained gate evidence;
+new MCP features retain their own supplier/operation qualification.

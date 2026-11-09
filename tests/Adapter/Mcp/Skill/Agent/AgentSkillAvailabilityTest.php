@@ -23,13 +23,13 @@ use Fight\AccessControl\Domain\AccessControl\Agent\Exception\CurrentAgentPrincip
 use Fight\AccessControl\Domain\AccessControl\Permission\Permission;
 use Fight\AccessControl\Domain\AccessControl\Permission\PermissionId;
 use Fight\AccessControl\Domain\AccessControl\Permission\PermissionName;
-use Fight\Common\Application\Mcp\McpCapabilityRegistry;
+use Fight\Common\Application\Mcp\Capability\McpCapabilityRegistry;
 use Fight\Common\Application\Mcp\McpDiagnostics;
-use Fight\Common\Application\Mcp\McpProtocolError;
-use Fight\Common\Application\Mcp\McpProtocolException;
-use Fight\Common\Application\Mcp\McpRequestMetadata;
 use Fight\Common\Application\Mcp\McpResponder;
-use Fight\Common\Application\Mcp\McpServerInfo;
+use Fight\Common\Application\Mcp\Protocol\Exception\McpProtocolException;
+use Fight\Common\Application\Mcp\Protocol\McpProtocolError;
+use Fight\Common\Application\Mcp\Protocol\McpRequestMetadata;
+use Fight\Common\Application\Mcp\Protocol\McpServerInfo;
 use Fight\Common\Application\Mcp\Resource\McpResourceAvailability;
 use Fight\Common\Application\Mcp\Resource\McpResourceDiscovery;
 use Fight\Common\Application\Mcp\Resource\McpResourceReadLimits;
@@ -110,7 +110,7 @@ final class AgentSkillAvailabilityTest extends TestCase
             $read = $this->response($composition, 'resources/read', ['uri' => $uri]);
             if ($admitted) {
                 self::assertArrayHasKey('result', $read);
-                $expectedOpened[] = $revision->file($uri)->bytes;
+                $expectedOpened[] = $revision->file($uri)->bytes();
             } else {
                 self::assertSame($this->unknown($composition), $read);
             }
@@ -158,11 +158,14 @@ final class AgentSkillAvailabilityTest extends TestCase
                 $file = $revision->file($member['uri']);
                 $read = $this->response($composition, 'resources/read', ['uri' => $member['uri']])['result'];
                 $content = $read['contents'][0];
-                self::assertSame($file->bytes, $file->text ? $content['text'] : base64_decode($content['blob'], true));
+                self::assertSame(
+                    $file->bytes(),
+                    $file->text() ? $content['text'] : base64_decode($content['blob'], true)
+                );
                 self::assertSame($member['uri'], $content['uri']);
-                self::assertSame($file->mimeType, $content['mimeType']);
-                self::assertSame('sha256:'.hash('sha256', $file->bytes), $member['digest']);
-                self::assertSame(strlen($file->bytes), $member['size']);
+                self::assertSame($file->mimeType(), $content['mimeType']);
+                self::assertSame('sha256:'.hash('sha256', $file->bytes()), $member['digest']);
+                self::assertSame(strlen($file->bytes()), $member['size']);
                 self::assertSame('private', $read['cacheScope']);
                 self::assertSame(0, $read['ttlMs']);
             }
@@ -399,7 +402,7 @@ final class AgentSkillAvailabilityTest extends TestCase
         $read = $this->response($outer, 'resources/read', ['uri' => $revision->entry()->get('uri')]);
         $file = $revision->file($revision->entry()->get('uri'));
         self::assertNotNull($file);
-        self::assertSame($file->bytes, $read['result']['contents'][0]['text']);
+        self::assertSame($file->bytes(), $read['result']['contents'][0]['text']);
         self::assertCount(1, $this->opened);
         self::assertSame(1, $this->closed);
         self::assertSame(2, $this->nonces->consumptionCalls());
@@ -508,7 +511,7 @@ final class AgentSkillAvailabilityTest extends TestCase
         foreach ($revisions as $index => $revision) {
             $page = $this->response($composition, 'skills/list', $parameters)['result'];
             self::assertSame([$this->entry($revision)], $page['skills']);
-            self::assertLessThanOrEqual($limits->maxResultBytes, strlen(json_encode($page, JSON_THROW_ON_ERROR)));
+            self::assertLessThanOrEqual($limits->maxResultBytes(), strlen(json_encode($page, JSON_THROW_ON_ERROR)));
             if ($index < 2) {
                 $parameters = ['cursor' => $page['nextCursor']];
                 if ($index === 0) {

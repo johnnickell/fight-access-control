@@ -5,11 +5,13 @@ dependencies, acceptance, and verification.
 
 ## What's Next?
 
-First ready Task: [TASK-00122](00122-TASK.md) — Replace audit evidence contracts across existing writers.
+Active Task: [TASK-00110](00110-TASK.md) — Adopt qualified canonical Fight Common contracts.
 
 ## In Progress
 
-No Tasks are currently in this state.
+| Order | TASK ID | Title | Parent TICKET | Status | Blocked by | PR |
+| --- | --- | --- | --- | --- | --- | --- |
+| 13 | [TASK-00110](00110-TASK.md) | Adopt qualified canonical Fight Common contracts | [TICKET-00034](../tickets/00034-TICKET.md) — Consume supported canonical Fight Common contracts | in-progress | — | — |
 
 ## Ready Frontier
 
@@ -58,7 +60,6 @@ No Tasks are currently in this state.
 
 | Order | TASK ID | Title | Parent TICKET | Status | Blocked by | PR |
 | --- | --- | --- | --- | --- | --- | --- |
-| 13 | [TASK-00110](00110-TASK.md) | Adopt qualified canonical Fight Common contracts | [TICKET-00034](../tickets/00034-TICKET.md) — Consume supported canonical Fight Common contracts | needs-info | — | — |
 | 84 | [TASK-00084](00084-TASK.md) | Protect mixed Common-owned and attributed MCP Tools | [TICKET-00025](../tickets/00025-TICKET.md) — Bind Common-owned and attributed Tools to Agent Permissions | needs-info | [TASK-00108](00108-TASK.md), [TASK-00110](00110-TASK.md) | — |
 | 87 | [TASK-00087](00087-TASK.md) | Authorize Agent-protected Prompt discovery and retrieval | [TICKET-00027](../tickets/00027-TICKET.md) — Authorize Prompt discovery and retrieval | needs-info | [TASK-00108](00108-TASK.md), [TASK-00110](00110-TASK.md) | — |
 | 89 | [TASK-00089](00089-TASK.md) | Compose scoped execution and timeline reads | [TICKET-00029](../tickets/00029-TICKET.md) — Compose scoped execution and protected-detail access | needs-info | [TASK-00084](00084-TASK.md) | — |

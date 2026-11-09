@@ -6,6 +6,23 @@ Fight AccessControl owns framework-neutral identity, credential, session, author
 behavior shared by Fight applications. The repository-local behavioral and security authority is
 [TICKET-00001](planning/tickets/00001-TICKET.md).
 
+## Canonical Common adoption — TASK-00110 Work checkpoint
+
+Current composition requires Common `^1.5.0`, published tagged source
+`06fb5cd3720af9cf8295198f74040d95b64c5155`. The [consumed-contract inventory](docs/common-contracts.md)
+maps every affected foundation spelling, MCP HTTP adapter and getter read, unchanged supported contracts and
+future-feature owners. Exact-minimum and ordinary dependency lanes exercise actual registry/invoker/responder,
+profile/Resource/Skill, authority/continuation and native safe-error composition. Upstream aliases retain runtime
+identity, construction, serialization and safe errors; AccessControl adds no shim or new capability.
+
+Supplier independent acceptance, final-main certification, publication and installed tag bytes resolve the old
+needs-info premise. Adoption acceptance still belongs to independent Review and nonvisual QA. New MCP family
+holds and generic typing/returned-page validation owners remain separate. In particular, the pre-existing
+Pagination constructor deprecation is inventoried, not silently replaced with behavior-changing strict validation.
+Historical checkpoints below retain their actual older minima and planning observations; this section and the
+current manifest/inventory own today's baseline. No sibling/consumer mutation, publication, merge, release or
+deployment is implied by Work.
+
 ## Audit outcome inventory — TASK-00166 accepted checkpoint
 
 The [living audit matrix](docs/audit-outcome-coverage.md) reconciles the historical 37 + 7 + 8 baseline to current
@@ -116,7 +133,7 @@ generic dispatch, optional-audit or actual consumer qualification, approval, mer
 
 ## TASK-00146 ordinary HTTP contracts — accepted checkpoint
 
-Current composition selects Common `^1.4.2` and preserves one Common safe classification/reporting/presentation
+This accepted checkpoint selected Common `^1.4.2` (current baseline: `^1.5.0`, above) and preserves one Common safe classification/reporting/presentation
 owner across PSR/Slim/Yii and present Symfony/Laravel/CI4 peers. The
 [ordinary HTTP contract map](docs/ordinary-http-failures.md) records deliberate Application 404/409/412/422,
 private structured validation versus unknown/internal 500, required metadata and native/protocol/lifetime limits.
