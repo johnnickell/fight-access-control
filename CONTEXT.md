@@ -645,6 +645,13 @@ TASK-00130/TASK-00162 typing/audit enhancements remain separately owned and are 
 
 ## Approved portable Feature and Permission admission destination
 
+TASK-00180's documentation-only [early evidence assessment](docs/http-permission-admission.md#portable-admission-evidence-assessment-unreleased)
+now distinguishes current base Permission support in all five native families from pending portable declarations,
+Feature-only HTTP enforcement and combined qualification. Shared evaluator/authority/raw-validation and existing native
+lifecycle/error/minimum evidence is reused; genuine gaps name actual supplier owners and smallest recovery inputs.
+TASK-00181 retains final candidate-compatible reconciliation. This Work checkpoint awaits independent Review/nonvisual
+QA; it implements no new runtime capability, tests or consumer adoption and closes no unfinished parent.
+
 John approved [EPIC-00018 — Portable Feature and Permission Admission](planning/epics/00018-EPIC.md): two independently
 selectable HTTP capabilities across Slim, Yii 3, Symfony, Laravel and CodeIgniter 4. Extend FeatureFlag and add
 AccessControl-owned portable RequiresPermission, both class/method and repeatable. Effective class, method, inherited

@@ -5,11 +5,13 @@ dependencies, acceptance, and verification.
 
 ## What's Next?
 
-First ready Task: [TASK-00166](00166-TASK.md) — Maintain complete audit outcome coverage.
+Active Task: [TASK-00180](00180-TASK.md) — Map existing admission evidence.
 
 ## In Progress
 
-No Tasks are currently in this state.
+| Order | TASK ID | Title | Parent TICKET | Status | Blocked by | PR |
+| --- | --- | --- | --- | --- | --- | --- |
+| 499 | [TASK-00180](00180-TASK.md) | Map existing admission evidence | [TICKET-00052](../tickets/00052-TICKET.md) — Qualify independent and combined admission | in-progress | — | — |
 
 ## Ready Frontier
 
@@ -17,7 +19,6 @@ No Tasks are currently in this state.
 | --- | --- | --- | --- | --- | --- | --- |
 | 399 | [TASK-00166](00166-TASK.md) | Maintain complete audit outcome coverage | [TICKET-00048](../tickets/00048-TICKET.md) — Qualify audit composition and document consumer adoption | ready-for-agent | — | — |
 | 401 | [TASK-00121](00121-TASK.md) | Introduce fixed system and anonymous identities | [TICKET-00043](../tickets/00043-TICKET.md) — Define typed audit evidence and explicit attribution | ready-for-agent | — | — |
-| 499 | [TASK-00180](00180-TASK.md) | Map existing admission evidence | [TICKET-00052](../tickets/00052-TICKET.md) — Qualify independent and combined admission | ready-for-agent | — | — |
 | 501 | [TASK-00170](00170-TASK.md) | Declare and discover effective Feature requirements | [TICKET-00049](../tickets/00049-TICKET.md) — Declare effective action requirements | ready-for-agent | — | — |
 
 ## Waiting

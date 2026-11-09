@@ -142,7 +142,7 @@ examples/Unreleased and actual consumer limits remain in scope; no consumer adop
 
 | Order | TASK ID | Title | Status |
 | --- | --- | --- | --- |
-| 499 | [TASK-00180](../tasks/00180-TASK.md) | Map existing admission evidence | ready-for-agent |
+| 499 | [TASK-00180](../tasks/00180-TASK.md) | Map existing admission evidence | in-progress |
 | 506 | [TASK-00181](../tasks/00181-TASK.md) | Close composition gaps and reconcile guidance | ready-for-agent |
 ## Decisions and Progress
 
