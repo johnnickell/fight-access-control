@@ -11,8 +11,13 @@ use Fight\AccessControl\Domain\AccessControl\ActivationGrant\ActivationGrantRepo
 use Fight\AccessControl\Domain\AccessControl\ActivationGrant\Command\RetryInvitationDelivery;
 use Fight\AccessControl\Domain\AccessControl\ActivationGrant\Event\InvitationDeliveryRetryRequested;
 use Fight\AccessControl\Domain\AccessControl\ActivationGrant\Exception\ActivationDeliveryNotRetryableException;
+use Fight\AccessControl\Domain\AccessControl\Audit\AuditAction;
+use Fight\AccessControl\Domain\AccessControl\Audit\AuditCorrelation;
 use Fight\AccessControl\Domain\AccessControl\Audit\AuditEvidence;
 use Fight\AccessControl\Domain\AccessControl\Audit\AuditEvidenceRepository;
+use Fight\AccessControl\Domain\AccessControl\Audit\AuditGrantOutcome;
+use Fight\AccessControl\Domain\AccessControl\Audit\AuditGrantState;
+use Fight\AccessControl\Domain\AccessControl\Audit\AuditSubject;
 use Fight\Common\Application\Error\Exception\StateConflict;
 use Fight\Common\Application\Messaging\Command\CommandHandler;
 use Fight\Common\Application\Messaging\Event\EventDispatcher;
@@ -62,7 +67,8 @@ final readonly class RetryInvitationDeliveryHandler implements CommandHandler
         try {
             /** @var ActivationDeliveryId $activationDeliveryId */
             $activationDeliveryId = $this->unitOfWork->commitTransactional(function () use (
-                $command
+                $command,
+                $commandMessage
             ): ActivationDeliveryId {
                 $activationGrant = $this->activationGrantRepository->getLatestByUserId($command->getUserId());
                 if (
@@ -72,9 +78,10 @@ final readonly class RetryInvitationDeliveryHandler implements CommandHandler
                     throw new LogicException("The credential repository returned another User's generation.");
                 }
 
+                $occurredAt = $this->clock->now();
                 if (
                     !$activationGrant instanceof ActivationGrant
-                    || !$activationGrant->isUsableAt($this->clock->now())
+                    || !$activationGrant->isUsableAt($occurredAt)
                 ) {
                     throw new StateConflict(
                         'The activation delivery work is no longer retryable.'
@@ -98,8 +105,14 @@ final readonly class RetryInvitationDeliveryHandler implements CommandHandler
 
                 $this->auditEvidenceRepository->add(AuditEvidence::record(
                     $command->getActorId(),
-                    'user.invitation_delivery.retry_requested',
-                    $command->getUserId()
+                    new AuditSubject($command->getUserId()),
+                    AuditAction::INVITATION_RETRY_REQUESTED,
+                    $occurredAt,
+                    new AuditGrantOutcome(
+                        AuditGrantState::fromGrant($activationGrant),
+                        AuditGrantState::fromGrant($retryRequested)
+                    ),
+                    new AuditCorrelation($commandMessage->id(), null)
                 ));
 
                 return $retryRequested->getDelivery()->getId();

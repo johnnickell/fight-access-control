@@ -8,6 +8,7 @@ use DateTimeImmutable;
 use Fight\AccessControl\Domain\AccessControl\ActivationGrant\ActivationDeliveryId;
 use Fight\AccessControl\Domain\AccessControl\ActivationGrant\ActivationOrigin;
 use Fight\AccessControl\Domain\AccessControl\ActivationGrant\Query\InvitationDeliveryStatusView;
+use Fight\AccessControl\Domain\AccessControl\Audit\AnonymousId;
 use Fight\AccessControl\Domain\AccessControl\CredentialDelivery\CredentialDeliveryClaimToken;
 use Fight\AccessControl\Domain\AccessControl\CredentialDelivery\CredentialDeliveryFailure;
 use Fight\AccessControl\Domain\AccessControl\CredentialDelivery\CredentialDeliveryStatus;
@@ -173,11 +174,12 @@ final class CredentialDeliveryComponentsTest extends TestCase
     {
         $schemas = $this->schemas();
         $delivery = $this->deliveries()['pending'];
-        $command = new DeliverPasswordReset('worker:reset', $delivery->getUserId(), $delivery->getId());
+        $command = new DeliverPasswordReset(AnonymousId::generate(), $delivery->getUserId(), $delivery->getId());
         $commandSchema = $schemas['Fight.AccessControl.DeliverPasswordReset'];
         $this->assertCanonicalFields($commandSchema, $command->toArray());
         self::assertSame([
-            'actor_id'                   => ['type' => 'string'],
+            'actor_kind'                 => ['type' => 'string', 'enum' => ['user', 'agent', 'system', 'anonymous']],
+            'actor_id'                   => ['type' => 'string', 'format' => 'uuid'],
             'user_id'                    => ['type' => 'string', 'format' => 'uuid'],
             'password_reset_delivery_id' => ['type' => 'string', 'format' => 'uuid']
         ], $commandSchema['properties']);

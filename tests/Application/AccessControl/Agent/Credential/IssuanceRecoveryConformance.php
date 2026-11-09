@@ -38,6 +38,7 @@ use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\Exception\
 use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\Exception\AgentOperationUncertainException;
 use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\Query\AgentOperationView;
 use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\Query\GetAgentOperation;
+use Fight\AccessControl\Domain\AccessControl\User\UserId;
 use Fight\Common\Adapter\Messaging\Query\Routing\InMemoryQueryRouter;
 use Fight\Common\Adapter\Messaging\Query\RoutingQueryBus;
 use Fight\Common\Application\Error\Exception\StateConflict;
@@ -447,7 +448,7 @@ abstract class IssuanceRecoveryConformance extends TestCase
             $ports->clock,
             $ports->transaction,
             $ports->eventDispatcher
-        )->revoke($key->getScope()->getCallerId(), $issuance->getAgentId());
+        )->revoke(UserId::generate(), $issuance->getAgentId());
         $before = $fixture->state();
         $generations = $fixture->generations();
         self::assertEquals($issuance, $this->issue($fixture, $key, $request)->getIssuance());
@@ -693,7 +694,7 @@ abstract class IssuanceRecoveryConformance extends TestCase
         self::assertInstanceOf(AgentRotationRequest::class, $request);
         $fixture->contend([
             fn (): AgentOperationView => $this->issue($fixture, $key, $request),
-            static function () use ($fixture, $key, $request): void {
+            static function () use ($fixture, $request): void {
                 $ports = $fixture->ports();
                 new AgentCredentialLifecycleService(
                     $ports->agentRepository,
@@ -701,7 +702,7 @@ abstract class IssuanceRecoveryConformance extends TestCase
                     $ports->clock,
                     $ports->transaction,
                     $ports->eventDispatcher
-                )->revoke($key->getScope()->getCallerId(), $request->getAgentId());
+                )->revoke(UserId::generate(), $request->getAgentId());
             }
         ]);
         $operation = $fixture->stored($key);

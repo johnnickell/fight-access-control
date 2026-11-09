@@ -10,6 +10,7 @@ use Fight\AccessControl\Domain\AccessControl\ActivationGrant\ActivationDeliveryI
 use Fight\AccessControl\Domain\AccessControl\ActivationGrant\Command\DeliverUserInvitation;
 use Fight\AccessControl\Domain\AccessControl\ActivationGrant\Event\InvitationDeliveryResent;
 use Fight\AccessControl\Domain\AccessControl\ActivationGrant\Event\InvitationDeliveryRetryRequested;
+use Fight\AccessControl\Domain\AccessControl\Audit\AnonymousId;
 use Fight\AccessControl\Domain\AccessControl\User\Event\PendingRegistrationRecovered;
 use Fight\AccessControl\Domain\AccessControl\User\Event\UserInvited;
 use Fight\AccessControl\Domain\AccessControl\User\Event\UserRegistered;
@@ -31,8 +32,9 @@ final class InvitationDeliverySubscriberTest extends TestCase
         $subscriber = new InvitationDeliverySubscriber($commandBus);
         $userId = UserId::generate();
 
+        $actorId = UserId::generate();
         $subscriber->onInvitationDeliveryRetryRequested(EventMessage::create(
-            new InvitationDeliveryRetryRequested('Admin-42', $userId, ActivationDeliveryId::generate())
+            new InvitationDeliveryRetryRequested($actorId, $userId, ActivationDeliveryId::generate())
         ));
 
         self::assertSame(
@@ -48,7 +50,7 @@ final class InvitationDeliverySubscriberTest extends TestCase
         );
         self::assertCount(1, $commandBus->executedCommands());
         self::assertInstanceOf(DeliverUserInvitation::class, $commandBus->executedCommands()[0]);
-        self::assertSame('Admin-42', $commandBus->executedCommands()[0]->getActorId());
+        self::assertSame($actorId, $commandBus->executedCommands()[0]->getActorId());
         self::assertSame($userId, $commandBus->executedCommands()[0]->getUserId());
     }
 
@@ -58,13 +60,14 @@ final class InvitationDeliverySubscriberTest extends TestCase
         $subscriber = new InvitationDeliverySubscriber($commandBus);
         $userId = UserId::generate();
 
+        $actorId = UserId::generate();
         $subscriber->onInvitationDeliveryResent(EventMessage::create(
-            new InvitationDeliveryResent('Admin-42', $userId, ActivationDeliveryId::generate())
+            new InvitationDeliveryResent($actorId, $userId, ActivationDeliveryId::generate())
         ));
 
         self::assertCount(1, $commandBus->executedCommands());
         self::assertInstanceOf(DeliverUserInvitation::class, $commandBus->executedCommands()[0]);
-        self::assertSame('Admin-42', $commandBus->executedCommands()[0]->getActorId());
+        self::assertSame($actorId, $commandBus->executedCommands()[0]->getActorId());
         self::assertSame($userId, $commandBus->executedCommands()[0]->getUserId());
     }
 
@@ -74,8 +77,9 @@ final class InvitationDeliverySubscriberTest extends TestCase
         $subscriber = new InvitationDeliverySubscriber($commandBus);
         $userId = UserId::generate();
 
+        $actorId = UserId::generate();
         $subscriber->onUserInvited(EventMessage::create(new UserInvited(
-            'Admin-42',
+            $actorId,
             $userId,
             ActivationDeliveryId::generate(),
             EmailAddress::fromString('alice@example.test'),
@@ -84,7 +88,7 @@ final class InvitationDeliverySubscriberTest extends TestCase
 
         self::assertCount(1, $commandBus->executedCommands());
         self::assertInstanceOf(DeliverUserInvitation::class, $commandBus->executedCommands()[0]);
-        self::assertSame('Admin-42', $commandBus->executedCommands()[0]->getActorId());
+        self::assertSame($actorId, $commandBus->executedCommands()[0]->getActorId());
         self::assertSame($userId, $commandBus->executedCommands()[0]->getUserId());
     }
 
@@ -101,7 +105,7 @@ final class InvitationDeliverySubscriberTest extends TestCase
         self::assertCount(1, $commandBus->executedCommands());
         $command = $commandBus->executedCommands()[0];
         self::assertInstanceOf(DeliverUserInvitation::class, $command);
-        self::assertSame('registration', $command->getActorId());
+        self::assertEquals(AnonymousId::generate(), $command->getActorId());
         self::assertSame($event->getUserId(), $command->getUserId());
         self::assertSame($event->getActivationDeliveryId(), $command->getActivationDeliveryId());
     }
@@ -123,7 +127,7 @@ final class InvitationDeliverySubscriberTest extends TestCase
 
         self::assertCount(1, $commandBus->executedCommands());
         self::assertInstanceOf(DeliverUserInvitation::class, $commandBus->executedCommands()[0]);
-        self::assertSame($actorId->toString(), $commandBus->executedCommands()[0]->getActorId());
+        self::assertSame($actorId, $commandBus->executedCommands()[0]->getActorId());
         self::assertSame($userId, $commandBus->executedCommands()[0]->getUserId());
         self::assertSame(
             $activationDeliveryId,

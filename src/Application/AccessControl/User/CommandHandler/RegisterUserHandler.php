@@ -12,8 +12,15 @@ use Fight\AccessControl\Domain\AccessControl\ActivationGrant\ActivationDeliveryI
 use Fight\AccessControl\Domain\AccessControl\ActivationGrant\ActivationGrant;
 use Fight\AccessControl\Domain\AccessControl\ActivationGrant\ActivationGrantRepository;
 use Fight\AccessControl\Domain\AccessControl\ActivationGrant\ActivationOrigin;
+use Fight\AccessControl\Domain\AccessControl\Audit\AnonymousId;
+use Fight\AccessControl\Domain\AccessControl\Audit\AuditAction;
+use Fight\AccessControl\Domain\AccessControl\Audit\AuditCorrelation;
 use Fight\AccessControl\Domain\AccessControl\Audit\AuditEvidence;
 use Fight\AccessControl\Domain\AccessControl\Audit\AuditEvidenceRepository;
+use Fight\AccessControl\Domain\AccessControl\Audit\AuditGrantState;
+use Fight\AccessControl\Domain\AccessControl\Audit\AuditSubject;
+use Fight\AccessControl\Domain\AccessControl\Audit\AuditUserOutcome;
+use Fight\AccessControl\Domain\AccessControl\Audit\AuditUserRevisions;
 use Fight\AccessControl\Domain\AccessControl\Role\Role;
 use Fight\AccessControl\Domain\AccessControl\Role\RoleName;
 use Fight\AccessControl\Domain\AccessControl\Role\RoleRepository;
@@ -94,6 +101,7 @@ final readonly class RegisterUserHandler implements CommandHandler
             /** @var ActivationDeliveryId $deliveryId */
             $deliveryId = $this->unitOfWork->commitTransactional(function () use (
                 $command,
+                $commandMessage,
                 $issuedAt
             ): ActivationDeliveryId {
                 $roles = [];
@@ -145,9 +153,17 @@ final readonly class RegisterUserHandler implements CommandHandler
                 }
 
                 $this->auditEvidenceRepository->add(AuditEvidence::record(
-                    'registration',
-                    'user.registered',
-                    $user->getId()
+                    AnonymousId::generate(),
+                    new AuditSubject($user->getId()),
+                    AuditAction::USER_REGISTERED,
+                    $issuedAt,
+                    new AuditUserOutcome(
+                        null,
+                        AuditUserRevisions::fromUser($user),
+                        null,
+                        AuditGrantState::fromGrant($grant)
+                    ),
+                    new AuditCorrelation($commandMessage->id(), null)
                 ));
 
                 return $grant->getDelivery()->getId();

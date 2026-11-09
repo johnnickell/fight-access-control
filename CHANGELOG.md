@@ -24,6 +24,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- **Breaking pre-v1 audit evidence contract:** replace actor/action strings and arbitrary context with direct typed
+  originating identities, finite subjects/actions, unique evidence identity, trusted outcome time, actual revisions,
+  relationships/correlation and admitted facts across existing writers. Current invitation/reset messages persist
+  actor kind plus ID; synchronous reset/confirmation require explicit origin for their mandatory audited mutations.
+  Agent authorization returns typed originating attribution separately from real-invoker policy. Update current
+  callers, hydration and consumer persistence mapping directly; no old-shape reader or backfill is supplied.
+  Existing transaction, recovery and publication policies remain. Actual optional constructor wiring and expanded
+  family outcomes remain separate work, not enabled by this replacement. See [typed evidence](docs/audit-evidence.md).
 - **Current ordinary HTTP composition:** require Common `^1.4.2` and optional Symfony Routing/Security HTTP
   `^8.1.11`; qualify typed 404/409/412/422 versus internal
   500, private structured validation, required metadata and one safe reporting/fallback owner. Symfony composition

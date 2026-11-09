@@ -16,6 +16,7 @@ use Fight\AccessControl\Domain\AccessControl\ActivationGrant\ActivationOrigin;
 use Fight\AccessControl\Domain\AccessControl\ActivationGrant\Command\DeliverUserInvitation;
 use Fight\AccessControl\Domain\AccessControl\ActivationGrant\Command\ResendInvitationDelivery;
 use Fight\AccessControl\Domain\AccessControl\ActivationGrant\Command\RetryInvitationDelivery;
+use Fight\AccessControl\Domain\AccessControl\Audit\SystemId;
 use Fight\AccessControl\Domain\AccessControl\CredentialDelivery\CredentialDeliveryStatus;
 use Fight\AccessControl\Domain\AccessControl\CredentialDelivery\Query\CredentialDeliveryStatusView;
 use Fight\AccessControl\Domain\AccessControl\User\Command\CorrectPendingInvitation;
@@ -100,7 +101,10 @@ final class ActivationOriginRecoveryTest extends TestCase
                         $fixture->unitOfWork,
                         new FixedClock('2030-01-01T00:00:01Z'),
                         new InMemoryEventDispatcher()
-                    )->handle(CommandMessage::create(new RetryInvitationDelivery('worker', $fixture->user->getId())));
+                    )->handle(CommandMessage::create(new RetryInvitationDelivery(
+                        SystemId::generate(),
+                        $fixture->user->getId()
+                    )));
                 }
 
                 $fixture->activationGrantRepository = $fixture->activationGrantRepository->restart();
@@ -109,7 +113,8 @@ final class ActivationOriginRecoveryTest extends TestCase
                 self::assertSame('activation', $due[0]->getPurpose());
                 $fixture->worker($provider, '2030-01-01T00:01:00Z')->handle(CommandMessage::create(
                     DeliverUserInvitation::fromArray([
-                        'actor_id'               => 'restarted-worker',
+                        'actor_kind'             => 'system',
+                        'actor_id'               => SystemId::generate()->toString(),
                         'user_id'                => $due[0]->getUserId()->toString(),
                         'activation_delivery_id' => $due[0]->getDeliveryId()->toString()
                     ])
@@ -245,7 +250,10 @@ final class ActivationOriginRecoveryTest extends TestCase
     {
         foreach (ActivationOrigin::cases() as $origin) {
             $fixture = new ActivationOriginFixture($origin);
-            $command = CommandMessage::create(new ResendInvitationDelivery('worker', $fixture->user->getId()));
+            $command = CommandMessage::create(new ResendInvitationDelivery(
+                SystemId::generate(),
+                $fixture->user->getId()
+            ));
             $fixture->unitOfWork->failNextCommit = true;
             try {
                 $fixture->resend()->handle($command);
@@ -307,7 +315,7 @@ final class ActivationOriginRecoveryTest extends TestCase
             $fixture = new ActivationOriginFixture($origin);
             $provider = new RecordingCredentialDeliveryProvider(onDeliver: static function () use ($fixture): void {
                 $fixture->resend()->handle(CommandMessage::create(new ResendInvitationDelivery(
-                    'worker',
+                    SystemId::generate(),
                     $fixture->user->getId()
                 )));
             });
@@ -417,6 +425,6 @@ final class ActivationOriginRecoveryTest extends TestCase
 
     private function command(ActivationGrant $grant): DeliverUserInvitation
     {
-        return new DeliverUserInvitation('worker', $grant->getUserId(), $grant->getDelivery()->getId());
+        return new DeliverUserInvitation(SystemId::generate(), $grant->getUserId(), $grant->getDelivery()->getId());
     }
 }

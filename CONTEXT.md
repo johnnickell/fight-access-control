@@ -775,6 +775,12 @@ unimplemented apart from these two prerequisite values; its planning/source obse
 
 ## Approved explicit optional atomic audit destination
 
+TASK-00122 supplies the [typed evidence replacement](docs/audit-evidence.md): the old string/context model
+and necessary callers/fixtures/schemas are replaced across all 22 current writer owners. Its TASK and canonical
+Work handoff own verification and candidate status; independent acceptance remains separate. Existing mandatory
+constructor wiring and currently unaudited paths remain unchanged. The destination and historical planning
+observations below are not claims that optional auditing is implemented.
+
 John approved [EPIC-00017](planning/epics/00017-EPIC.md): explicit audit recording in all 37 current CommandHandlers
 and related synchronous account/credential/delivery/maintenance use cases. Evolve AuditEvidence and its existing
 repository; use an optional last constructor dependency everywhere, including previously mandatory audit writers.

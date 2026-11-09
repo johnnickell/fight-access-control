@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Fight\Test\AccessControl\Application\AccessControl\AgentCredentialOperation\Delivery;
 
+use Fight\AccessControl\Domain\AccessControl\User\UserId;
 use Fight\AccessControl\Application\AccessControl\Agent\CommandHandler\ProvisionAgentHandler;
 use Fight\AccessControl\Application\AccessControl\Agent\CommandHandler\RotateAgentCredentialHandler;
 use Fight\AccessControl\Application\AccessControl\Agent\Credential\AgentCredentialLifecycleService;
@@ -196,7 +197,7 @@ abstract class DeliveryConformance extends TestCase
             $ports->clock,
             $ports->transaction,
             $ports->eventDispatcher
-        )->revoke($issuance->getKey()->getScope()->getCallerId(), $issuance->getAgentId());
+        )->revoke(UserId::generate(), $issuance->getAgentId());
     }
 
     protected function readOperation(

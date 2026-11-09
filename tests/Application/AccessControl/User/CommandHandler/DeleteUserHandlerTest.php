@@ -74,8 +74,8 @@ final class DeleteUserHandlerTest extends TestCase
         self::assertSame($user->getId(), $retained->getId());
         self::assertSame(UserState::DELETED, $retained->getState());
         self::assertTrue($refreshSessionRepository->all()[0]->isRevoked());
-        self::assertSame('user.deleted', $auditEvidenceRepository->all()[0]->action());
-        self::assertSame($actorId->toString(), $auditEvidenceRepository->all()[0]->actorId());
+        self::assertSame('user.deleted', $auditEvidenceRepository->all()[0]->action()->value);
+        self::assertSame($actorId, $auditEvidenceRepository->all()[0]->actorId());
         self::assertCount(1, $eventDispatcher->events());
         self::assertInstanceOf(UserDeleted::class, $eventDispatcher->events()[0]);
     }

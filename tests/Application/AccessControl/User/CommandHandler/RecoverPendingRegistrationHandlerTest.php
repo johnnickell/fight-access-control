@@ -12,7 +12,10 @@ use Fight\AccessControl\Domain\AccessControl\ActivationGrant\ActivationCredentia
 use Fight\AccessControl\Domain\AccessControl\ActivationGrant\ActivationDeliveryId;
 use Fight\AccessControl\Domain\AccessControl\ActivationGrant\ActivationGrant;
 use Fight\AccessControl\Domain\AccessControl\ActivationGrant\ActivationOrigin;
+use Fight\AccessControl\Domain\AccessControl\Audit\AuditAction;
 use Fight\AccessControl\Domain\AccessControl\Audit\AuditEvidence;
+use Fight\AccessControl\Domain\AccessControl\Audit\AuditGrantState;
+use Fight\AccessControl\Domain\AccessControl\Audit\AuditUserOutcome;
 use Fight\AccessControl\Domain\AccessControl\User\Command\RecoverPendingRegistration;
 use Fight\AccessControl\Domain\AccessControl\User\Event\PendingRegistrationRecovered;
 use Fight\AccessControl\Domain\AccessControl\User\Exception\RegistrationRecoveryException;
@@ -113,10 +116,15 @@ final class RecoverPendingRegistrationHandlerTest extends TestCase
                 $next->getDelivery()->getEncryptedMaterial()?->reveal()
             );
             $audit = $fixture->auditEvidenceRepository->all()[0];
-            self::assertSame('user.pending_registration_recovered', $audit->action());
-            self::assertSame($fixture->actorId->toString(), $audit->actorId());
-            self::assertSame($command->getUserId(), $audit->subjectId());
-            self::assertSame([], $audit->context());
+            self::assertSame(AuditAction::USER_PENDING_REGISTRATION_RECOVERED, $audit->action());
+            self::assertSame($fixture->actorId, $audit->actorId());
+            self::assertSame($command->getUserId(), $audit->getSubject()->getId());
+            self::assertEquals(new DateTimeImmutable($at), $audit->getOccurredAt());
+            $facts = $audit->getFacts();
+            self::assertInstanceOf(AuditUserOutcome::class, $facts);
+            self::assertEquals(AuditGrantState::fromGrant($fixture->initial), $facts->getGrantBefore());
+            self::assertEquals(AuditGrantState::fromGrant($old), $facts->getReplacedPredecessor());
+            self::assertEquals(AuditGrantState::fromGrant($next), $facts->getGrantAfter());
             $event = $eventDispatcher->events()[0];
             self::assertInstanceOf(PendingRegistrationRecovered::class, $event);
             self::assertSame($fixture->actorId, $event->getActorId());

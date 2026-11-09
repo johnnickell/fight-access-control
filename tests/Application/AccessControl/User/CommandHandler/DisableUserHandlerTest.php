@@ -70,10 +70,11 @@ final class DisableUserHandlerTest extends TestCase
 
         self::assertSame(UserState::DISABLED, $userRepository->getById($user->getId())?->getState());
         self::assertTrue($refreshSessionRepository->all()[0]->isRevoked());
-        self::assertSame('user.disabled', $auditEvidenceRepository->all()[0]->action());
-        self::assertSame($actorId->toString(), $auditEvidenceRepository->all()[0]->actorId());
-        self::assertSame($user->getId(), $auditEvidenceRepository->all()[0]->subjectId());
-        self::assertSame([], $auditEvidenceRepository->all()[0]->context());
+        self::assertSame('user.disabled', $auditEvidenceRepository->all()[0]->action()->value);
+        self::assertSame($actorId, $auditEvidenceRepository->all()[0]->actorId());
+        self::assertSame($user->getId(), $auditEvidenceRepository->all()[0]->getSubject()->getId());
+        self::assertSame('active', $auditEvidenceRepository->all()[0]->getFacts()->toArray()['before']['state']);
+        self::assertSame('disabled', $auditEvidenceRepository->all()[0]->getFacts()->toArray()['after']['state']);
         self::assertCount(1, $eventDispatcher->events());
         self::assertInstanceOf(UserDisabled::class, $eventDispatcher->events()[0]);
         self::assertSame($actorId, $eventDispatcher->events()[0]->getActorId());

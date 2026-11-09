@@ -24,6 +24,7 @@ use Fight\AccessControl\Application\AccessControl\User\Authentication\TokenIssue
 use Fight\AccessControl\Application\AccessControl\User\Authentication\UserAuthentication;
 use Fight\AccessControl\Application\AccessControl\User\PasswordManagement;
 use Fight\AccessControl\Application\AccessControl\User\Security\AuthenticationTokenPolicy;
+use Fight\AccessControl\Domain\AccessControl\Audit\AnonymousId;
 use Fight\AccessControl\Domain\AccessControl\EmailChangeGrant\Command\CancelEmailChange;
 use Fight\AccessControl\Domain\AccessControl\EmailChangeGrant\Command\ExpireEmailChange;
 use Fight\AccessControl\Domain\AccessControl\EmailChangeGrant\Command\RequestEmailChange;
@@ -252,7 +253,7 @@ final class RecoveryFixture
             $this->eventDispatcher,
             $this->userRepository
         )->handle(CommandMessage::create(new DeliverPasswordReset(
-            'worker',
+            AnonymousId::generate(),
             $this->userId,
             $this->grant()->getDelivery()->getId()
         )));

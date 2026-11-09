@@ -85,7 +85,10 @@ final class AgentIssuanceDispatchTest extends TestCase
         $confirmed = $bus->queryBus->fetch($query);
         self::assertTrue($confirmed->isConfirmed());
         self::assertSame(AgentDeliveryDisposition::PENDING, $confirmed->getDeliveryDisposition());
-        self::assertSame('worker', array_last($env->auditEvidenceRepository->all())->actorId());
+        self::assertSame(
+            $env->operationAuthorization->originatingActorId,
+            array_last($env->auditEvidenceRepository->all())->actorId()
+        );
         self::assertSame($command->getKey()->toArray(), $confirmed->getIssuance()->getKey()->toArray());
         self::assertArrayNotHasKey('warning', $confirmed->toArray());
         $committed = $this->effects($env);
