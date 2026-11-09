@@ -9,6 +9,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Optional Feature-only PSR-15 admission with shared inward restrictions, separately exercised real Slim/Yii 3
+  bindings, effective inherited requirements and trusted request-owned User/Agent/anonymous context. Cooperating
+  Permission gates share one authentication selection without trusting copied attributes or replaying Agent nonces.
+  Only ordinary OFF/unmet PREVIEW yields generic 404; binding/configuration/provider faults remain safe errors under
+  Common's existing reporting owner. See [Feature HTTP composition](docs/http-feature-admission.md).
+
 - Portable repeatable class/method `RequiresPermission` and effective `PermissionRequirements`, reusing shared
   selected-action ancestry. Attribute-only protection and trusted route conjunction preserve parent gates, validate
   before deduplication and reject conflicting explicit modes without changing raw declaration or admission rules.
@@ -17,7 +23,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Effective Feature requirements bound to trusted selected class/method, inherited/overridden/invokable or closure
   actions, with one reusable pure ancestry mechanism. Class, method, parent and explicit route gates accumulate;
   validation precedes deduplication. Scoped fixture discovery and actual preparation/provisioning/retirement callers
-  account for all declarations. No production scanner, native admission or Permission grant is supplied. See
+  account for all declarations. No production scanner or Permission grant is supplied; optional native enforcement is separately described above. See
   [Feature declarations](docs/feature-references.md).
 - Optional route-bound PSR-15 Permission admission with shared inward declarations and trusted User/Agent authority
   selection, separately qualified Slim/Yii 3 composition, request isolation and Common-owned safe HTTP errors.

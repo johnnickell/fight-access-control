@@ -68,6 +68,25 @@ administrative checkpoint; canonical `.runs/handoffs/TASK-00148/land.md` owns su
 and resource results. Original report subjects, historical Work proof and lowest-lane advisories remain preserved;
 no whole-library or actual consumer qualification, approval, merge, release or deployment is claimed.
 
+## TASK-00172 Feature admission — accepted checkpoint
+
+Optional [PSR-15 Feature admission](docs/http-feature-admission.md) now connects the effective declaration supplier
+to shared inward restriction/context semantics and real Slim/Yii 3 route-bound journeys. Feature-only registration
+requires no Permission middleware; adjacent cooperating gates share trusted request-owned provider selection without
+trusting copied contexts or replaying Agent authentication. Only ordinary OFF/unmet PREVIEW becomes generic 404;
+missing/broken definitions and metadata/context/provider/storage faults remain safe errors through Common's one owner.
+Availability still never authorizes an action. The guide records exact supported forms, eager-construction, request
+identity/adjacency, selected JSON and consumer limits, with a source-linked runtime diagram.
+
+Independent Review v3 ACCEPT and complete nonvisual QA PASS cover clean candidate
+`51f4dc199fc326388d3172268f8a4d3dc7817402`: 17 fresh behavioral groups / 107 cases / 1,015 checks,
+with no findings. The fresh QA full gate passes 7,162 tests / 79,435 assertions and exact 9,366/9,366 statements.
+TASK-00172 is done; unfinished native siblings keep TICKET-00050 and EPIC-00018 open. Publication and final delivery
+verification remain pending at this administrative checkpoint. Canonical `.runs/handoffs/TASK-00172/land.md` owns
+subsequent integration/administrative bridges, checks, delivery and resource outcomes; the Work handoff retains
+original verification/dependency/runtime evidence, interrupted attempts and minimum-lane warnings. Original independent
+reports remain unchanged. Other native peers and real consumer installations, merge, release and deployment are not qualified.
+
 ## Current public payload composition
 
 The [current payload catalog](docs/public-payload-catalog.md) maps public messages, safe Query results, all seven
@@ -85,7 +104,8 @@ PermissionDeclaration/admission semantics. Independent Review ACCEPT and nonvisu
 Earlier full gate retained: 7,080 tests / 78,397 assertions, exact 9,324/9,324 global and 19/19 added statements.
 Publication/final delivery verification remain pending at this closeout checkpoint; canonical
 `.runs/handoffs/TASK-00171/land.md` owns subsequent bridge/delivery/resource results. Original reports and minimum-lane
-warnings remain preserved. Native portable integration and Feature admission remain unfinished. This is not whole-library or actual consumer qualification.
+warnings remain preserved. Native portable Permission integration and the remaining native Feature peers stay
+unfinished; the accepted shared/Slim/Yii Feature slice is described above. This is not whole-library or actual consumer qualification.
 The earlier TASK-00149 acceptance below covers its original narrower contract, not this new behavior.
 TASK-00149's canonical Work handoff owns implementation verification and limits. Independent Review v3 ACCEPT
 and nonvisual QA PASS cover candidate `713837ab11122cafc5a66d00c0c0e6174eedb333`, with no open findings;
@@ -779,11 +799,12 @@ Permission work retain scope/order/blockers; assign actual native suppliers and 
 TASK decomposition rather than duplicate or silently expand them. No new version,
 consumer adoption or release obligation with other EPICs is selected. TASK-00170's Work implementation now supplies
 repeated class/method FeatureFlag, FeatureRequirements and shared pure Action/SelectedAction ancestry/association,
-with aligned scoped discovery and preparation/provisioning/retirement tests. Independent acceptance remains required;
-no native Feature admission is implemented here. TASK-00171's Work now adds the separate portable Permission
-metadata path without a consumer Attribute dependency or native activation; independent acceptance remains required.
-The canonical Work handoffs own current verification/runtime details. Both metadata capabilities remain declaration-only;
-Agent OS's class-only Attribute is not a dependency or alias of the package API.
+with aligned scoped discovery and preparation/provisioning/retirement tests. TASK-00170 and TASK-00171 now have
+independent acceptance for the two metadata capabilities; TASK-00171 adds portable Permission metadata without a
+consumer Attribute dependency or native activation. TASK-00172's accepted shared/Slim/Yii Feature admission is described
+above; remaining native Feature and portable Permission integrations retain their own TASKs. The canonical handoffs
+own verification/runtime details. Metadata alone still activates no runtime gate; Agent OS's class-only Attribute is
+not a dependency or alias of the package API.
 
 Selected EPIC-00018 TASK planning is complete. Next: `/skill:next` for Board-based selection, not automatic execution.
 All six EPIC-00017 audit TICKETs are now TASK-planned below, not implemented/qualified. EPIC-00015's added Agent
