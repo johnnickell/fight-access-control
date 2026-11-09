@@ -115,7 +115,7 @@ remain unchanged; source overlap is not a blanket dependency. Choose the impleme
 
 | Order | TASK ID | Title | Status |
 | --- | --- | --- | --- |
-| 401 | [TASK-00121](../tasks/00121-TASK.md) | Introduce fixed system and anonymous identities | ready-for-agent |
+| 401 | [TASK-00121](../tasks/00121-TASK.md) | Introduce fixed system and anonymous identities | done |
 | 402 | [TASK-00122](../tasks/00122-TASK.md) | Replace audit evidence contracts across existing writers | ready-for-agent |
 ## Decisions and Progress
 

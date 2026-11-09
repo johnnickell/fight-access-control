@@ -23,9 +23,11 @@ suppliers below; this guide deliberately supplies no speculative factories or co
 - Enabled work admits required originating attribution before its first mutation requiring evidence, including a
   terminal transition inside an apparent claim path. Discovery/validation may precede it. Disabled and pure no-change
   paths gain no new audit-only actor requirement; existing business-required provenance remains required.
-- A UserId/AgentId identifies origin, not authority. Approved SystemId and AnonymousId are distinct fixed-nil types,
-  not accounts, fallback actors or privileges. Trusted callers establish origin; workers do not replace an admitted
-  origin with their own identity. Real invoker authorization, target policy and transaction-duration fences remain.
+- A UserId/AgentId identifies origin, not authority. TASK-00121 now supplies the distinct fixed-nil SystemId and
+  AnonymousId values; [identity guidance](actor-identities.md) qualifies their factories and kind preservation only,
+  not evidence/writer adoption. They are not accounts, fallback actors or privileges. Trusted callers establish
+  origin; workers do not replace an admitted origin with their own identity. Real invoker authorization, target
+  policy and transaction-duration fences remain.
 - Meaningful committed changes receive enabled evidence inside the actual mutation transaction before commit.
   Validated no-change and rejected/rolled-back work receive no new committed-mutation record. Guaranteed durable
   rejected-attempt storage is excluded. An outward refusal can nevertheless follow a committed safety mutation.
