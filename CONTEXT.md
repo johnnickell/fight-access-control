@@ -55,11 +55,15 @@ Generated OpenAPI 3.1 samples run in the default suite without incidental produc
 trusted route requirements; it remains declaration-only, without HTTP admission. See [effective declarations](docs/feature-references.md).
 TASK-00170 has independent Review ACCEPT and nonvisual QA PASS on its named candidate; the owning TASK records
 acceptance and canonical `.runs/handoffs/TASK-00170/land.md` owns subsequent delivery/resource results.
-TASK-00171's Work adds [portable Permission declarations](docs/permission-requirements.md): repeatable canonical
+TASK-00171 adds [portable Permission declarations](docs/permission-requirements.md): repeatable canonical
 class/method RequiresPermission and pure effective PermissionRequirements consume that same SelectedAction traversal.
 Attribute-only protection, cumulative parent/route gates and explicit mode-conflict rejection preserve raw
-PermissionDeclaration/admission semantics. Independent Review/QA remain required; native portable integration and
-Feature admission remain unfinished. This is not whole-library or actual consumer qualification.
+PermissionDeclaration/admission semantics. Independent Review ACCEPT and nonvisual QA PASS cover candidate
+`c6b01fd707f83bb34e75d715f787e45b258415fc` (12 scenarios / 80 checks); TASK-00171 and TICKET-00049 are done.
+Earlier full gate retained: 7,080 tests / 78,397 assertions, exact 9,324/9,324 global and 19/19 added statements.
+Publication/final delivery verification remain pending at this closeout checkpoint; canonical
+`.runs/handoffs/TASK-00171/land.md` owns subsequent bridge/delivery/resource results. Original reports and minimum-lane
+warnings remain preserved. Native portable integration and Feature admission remain unfinished. This is not whole-library or actual consumer qualification.
 The earlier TASK-00149 acceptance below covers its original narrower contract, not this new behavior.
 TASK-00149's canonical Work handoff owns implementation verification and limits. Independent Review v3 ACCEPT
 and nonvisual QA PASS cover candidate `713837ab11122cafc5a66d00c0c0e6174eedb333`, with no open findings;

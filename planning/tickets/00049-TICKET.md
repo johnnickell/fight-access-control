@@ -2,7 +2,7 @@
 id: TICKET-00049
 epic: EPIC-00018
 title: Declare effective action requirements
-status: ready-for-agent
+status: done
 ---
 
 # Declare effective action requirements
@@ -100,8 +100,10 @@ Attribute-flags/merger/discovery layer split:
 | [TASK-00170](../tasks/00170-TASK.md) | 501 | Effective Feature declarations through scoped discovery/preparation/provisioning/retirement callers, including one small shared pure selected-action/ancestry mechanism. | None |
 | [TASK-00171](../tasks/00171-TASK.md) | 502 | Portable RequiresPermission and effective conjunctive PermissionDeclaration composition, consuming that same pure selected-action/ancestry output. | TASK-00170 |
 
-TASK-00170 is now independently accepted with nonvisual QA and done; TASK-00171 remains ready-for-agent and can
-consume its completed pure traversal supplier. The Permission path is not implemented by Feature acceptance.
+TASK-00170 and TASK-00171 are independently accepted with nonvisual QA and done. TASK-00171 consumes the completed
+pure traversal supplier; its own Review ACCEPT and QA PASS cover candidate
+`c6b01fd707f83bb34e75d715f787e45b258415fc`, not an inference from Feature acceptance. Both declaration paths are
+complete; native admission and consumer qualification remain with their separate owners.
 Orders are preference beyond that edge, not a blanket wait on architecture/typing/Common/audit or native adapters.
 Shared traversal ownership belongs solely to TASK-00170: TASK-00171 reuses it without a copied hierarchy walk or a
 runtime dependency on Feature evaluation, discovery providers/repositories or capability activation. Concrete public
@@ -143,7 +145,7 @@ private criteria before implementation/review without disclosure and choose the 
 | Order | TASK ID | Title | Status |
 | --- | --- | --- | --- |
 | 501 | [TASK-00170](../tasks/00170-TASK.md) | Declare and discover effective Feature requirements | done |
-| 502 | [TASK-00171](../tasks/00171-TASK.md) | Declare effective portable Permission requirements | in-progress |
+| 502 | [TASK-00171](../tasks/00171-TASK.md) | Declare effective portable Permission requirements | done |
 ## Decisions and Progress
 
 John approved this requirement in EPIC-00018's complete four-TICKET split, then its complete two-TASK plan now written
