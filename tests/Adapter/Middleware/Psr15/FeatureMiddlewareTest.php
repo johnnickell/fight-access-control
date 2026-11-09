@@ -51,6 +51,7 @@ use Psr\Http\Server\MiddlewareInterface;
 use RuntimeException;
 use Slim\Psr7\Factory\ServerRequestFactory;
 use Throwable;
+use TypeError;
 
 #[CoversClass(FeatureMiddleware::class)]
 #[CoversClass(FeatureAdmission::class)]
@@ -417,6 +418,58 @@ final class FeatureMiddlewareTest extends TestCase
         self::assertSame('{"status":"error","message":"Internal server error."}', (string) $response->getBody());
         self::assertSame('', $response->getHeaderLine('WWW-Authenticate'));
         self::assertSame('', $response->getHeaderLine('Retry-After'));
+        self::assertSame(0, $native->validators);
+        self::assertSame(0, NativeController::$constructed);
+        self::assertSame(0, NativeController::$handled);
+        self::assertSame(1, $native->reports);
+    }
+
+    /** @return iterable<string, array{string, Throwable}> */
+    public static function selectedActionFaults(): iterable
+    {
+        foreach (self::dependencyFaults() as $name => [$framework, $source, $fault]) {
+            if ($source === 'factory') {
+                yield $name => [$framework, $fault];
+            }
+        }
+
+        foreach (['slim', 'yii'] as $framework) {
+            yield $framework.' authentication' => [$framework, new AuthenticationRequired('PRIVATE TARGET FAILURE')];
+            yield $framework.' type' => [$framework, new TypeError('PRIVATE TARGET FAILURE')];
+        }
+    }
+
+    #[DataProvider('selectedActionFaults')]
+    public function test_selected_action_faults_are_not_authentication_or_feature_outcomes(
+        string $framework,
+        Throwable $fault
+    ): void {
+        NativeController::$constructed = 0;
+        NativeController::$handled = 0;
+        NativeController::$work = null;
+        [$features, $permissions, $id] = $this->storage();
+        $this->seed($features, $id, FeatureStatus::ON);
+        $authenticationCalls = 0;
+        $authentication = new RequestAuthentication(static function () use (&$authenticationCalls): null {
+            ++$authenticationCalls;
+
+            return null;
+        });
+        $native = new NativePipeline($framework, static fn($action): FeatureMiddleware => new FeatureMiddleware(
+            new FeatureRequirements($action, 'rollout'),
+            static function () use ($fault): never {
+                throw $fault;
+            },
+            $authentication,
+            new FeatureAdmission(new FeatureAvailability($features, $permissions))
+        ));
+        $response = $native->request($this->request());
+        self::assertSame(500, $response->getStatusCode());
+        self::assertSame('{"status":"error","message":"Internal server error."}', (string) $response->getBody());
+        self::assertSame('', $response->getHeaderLine('WWW-Authenticate'));
+        self::assertSame('', $response->getHeaderLine('Retry-After'));
+        self::assertSame(0, $authenticationCalls);
+        self::assertSame([], $features->lookups);
         self::assertSame(0, $native->validators);
         self::assertSame(0, NativeController::$constructed);
         self::assertSame(0, NativeController::$handled);

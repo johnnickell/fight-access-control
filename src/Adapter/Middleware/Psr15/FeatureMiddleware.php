@@ -45,7 +45,11 @@ final readonly class FeatureMiddleware implements MiddlewareInterface
      */
     public function process(ServerRequestInterface $request, RequestHandlerInterface $handler): ResponseInterface
     {
-        $references = $this->requirements->getReferences(($this->selectedAction)($request));
+        try {
+            $references = $this->requirements->getReferences(($this->selectedAction)($request));
+        } catch (Throwable $throwable) {
+            throw new LogicException('Feature selected action resolution failed.', previous: $throwable);
+        }
 
         return $this->authentication->admit(
             $request,
