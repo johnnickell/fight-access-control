@@ -3,7 +3,8 @@
   "roots": ["src", "openapi"],
   "rules": [
     {"ticket": "TICKET-00049", "task": "TASK-00170", "path": "src/Application/AccessControl/(Action/.*|Feature/FeatureRequirements\\.php)"},
-    {"ticket": "TICKET-00037", "task": "TASK-00115", "path": "src/Domain/AccessControl/(User|RefreshSession|Audit)/.*"},
+    {"ticket": "TICKET-00037", "task": "TASK-00115", "path": "src/Domain/AccessControl/(User|RefreshSession|Audit)/.*", "except": "src/Domain/AccessControl/Audit/(SystemId|AnonymousId)\\.php"},
+    {"ticket": "TICKET-00043", "task": "TASK-00121", "path": "src/Domain/AccessControl/Audit/(SystemId|AnonymousId)\\.php"},
     {"ticket": "TICKET-00037", "task": "TASK-00116", "path": "src/Domain/AccessControl/(ActivationGrant|PasswordResetGrant|EmailChangeGrant|CredentialDelivery)/.*", "except": "src/Domain/AccessControl/CredentialDelivery/Query/CredentialDeliveryAbsent\\.php"},
     {"ticket": "TICKET-00037", "task": "TASK-00117", "path": "src/Domain/AccessControl/(Permission|Role|ManagedPolicy|Authorization)/.*"},
     {"ticket": "TICKET-00037", "task": "TASK-00118", "path": "src/Domain/AccessControl/Agent/.*", "except": "src/Domain/AccessControl/Agent/(Event/(AgentCredentialLifecycleFailed|AgentCredentialRevoked|AgentCredentialRotated|AgentProvisioned|AgentProvisioningFailed)|Command/(ProvisionAgent|RotateAgentCredential)|Exception/AgentOperationUncertainException)\\.php"},
