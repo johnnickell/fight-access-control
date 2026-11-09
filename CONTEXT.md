@@ -729,6 +729,16 @@ conversion and actual Common supplier planning/qualification remain unfinished. 
 phase applies to this standalone destination. At that planning checkpoint the Board selected TASK-00107 first; planning approval did not start execution. Source/dependency/Common/consumer files remain
 unchanged; no product build, new checkout, commit/publication, release or deployment follows.
 
+## Fixed actor identities — Work checkpoint
+
+[TASK-00121](planning/tasks/00121-TASK.md) introduces direct `Audit\SystemId` and `Audit\AnonymousId` values
+using supported Common UniqueId contracts. Both generate canonical nil and accept only exact nil strings;
+equality/hashing and known-type string reconstruction preserve kind. See [identity guidance](docs/actor-identities.md)
+for the fixed-generation exception, explicit provenance, consumer kind preservation and no-authority/no-evidence-ID
+limits. Independent Review and nonvisual QA remain required; the TASK stays in-progress. No existing evidence
+constructor/writer or optional audit wiring changes in this prefactor. The broader destination below remains
+unimplemented apart from these two prerequisite values; its planning/source observations describe that baseline.
+
 ## Approved explicit optional atomic audit destination
 
 John approved [EPIC-00017](planning/epics/00017-EPIC.md): explicit audit recording in all 37 current CommandHandlers
