@@ -9,6 +9,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Effective Feature requirements bound to trusted selected class/method, inherited/overridden/invokable or closure
+  actions, with one reusable pure ancestry mechanism. Class, method, parent and explicit route gates accumulate;
+  validation precedes deduplication. Scoped fixture discovery and actual preparation/provisioning/retirement callers
+  account for all declarations. No production scanner, native admission or Permission grant is supplied. See
+  [Feature declarations](docs/feature-references.md).
 - Optional route-bound PSR-15 Permission admission with shared inward declarations and trusted User/Agent authority
   selection, separately qualified Slim/Yii 3 composition, request isolation and Common-owned safe HTTP errors.
   No routes, credentials, grants or framework bootstrap are installed. See [HTTP admission](docs/http-permission-admission.md).
@@ -30,7 +35,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   payload components, retain explicit credential-status absence and confirmed/indeterminate operation states,
   constrain browser output to its safe fields, and align optional relationships, canonical names/session reasons and
   native empty payload/ordering shapes. Default generated OpenAPI 3.1 tests validate real values and invalid
-  samples; FeatureFlag remains method-only, nonrepeatable and declaration-only. Recompose consumer documents
+  samples; FeatureFlag now permits repeated class/method declarations and remains declaration-only. Recompose consumer documents
   and regenerate clients as appropriate; no endpoint, generic failure policy, compatibility mode or release
   number is selected. See the [current payload map](docs/public-payload-catalog.md).
 - **Breaking pre-v1 human credential worker failures:** eleven void request/worker handlers now distinguish known

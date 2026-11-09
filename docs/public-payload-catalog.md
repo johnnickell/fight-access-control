@@ -92,7 +92,7 @@ allow `{}` or canonical `[]`, never nonempty objects/arrays. These are value sha
 | `AgentDeliveryResult`, `AgentMaintenanceResult` | Same-named safe invocation enums; distinct from status reads and current authority |
 | Existing registration and expiry Events | `UserRegistered`, `PendingRegistrationRecovered`, `InvitationDeliveryExpired`, `PasswordResetDeliveryExpired`, `EmailChangeExpired`; no generic event envelope or replay guarantee |
 | `CreatedResource`, `PaginationRequest`, `JSend.Success.*` | Explicit optional consumer projections/envelopes, not additional handler return types; `JSend.Success.Empty` is a body-bearing null success, never an HTTP 204 body |
-| `FeatureFlag` | Native method-only, nonrepeatable name declaration yielding FeatureName; no wire DTO or runtime enforcement |
+| `FeatureFlag` | Native repeatable class/method name declaration yielding FeatureName; cumulative ancestry/route metadata, no wire DTO or runtime enforcement |
 | Identity/name/status values used above | UUID/name/enum fields or named scalar components (`FeatureName`, `PermissionName`, `RoleName`, `RoleRevision`, `ActivationOrigin`); not raw aggregate serialization |
 | Aggregates, repositories, policy/authority snapshots, claims, receipts, cohort/restoration evidence, encrypted material, provider invocations/results and exceptions | Internal/persistence/security contracts, not public wire schemas. In particular `AgentDeliveryWorkView` is internal read-validation evidence, not a public Query result |
 

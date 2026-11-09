@@ -1,4 +1,7 @@
-# Feature declarations and discovery (v0.5.0)
+# Feature declarations and discovery
+
+TASK-00170 extends the original v0.5.0 declarations with effective class/method requirements (unreleased).
+This is metadata only; native HTTP admission and portable Permission declarations retain separate owners.
 
 [TASK-00061](../planning/tasks/00061-TASK.md) supplies portable name-only metadata and inventory contracts. It does
 not itself implement Feature storage, provisioning, availability checks, management or runtime enforcement.
@@ -22,14 +25,17 @@ lowercase letters/digits separated by single hyphens, starting with a letter. Ex
 leading digits, whitespace (including trailing newlines), non-ASCII characters, underscores, repeated/trailing
 hyphens and normalization lookalikes throw `Feature\Exception\FeatureNameException`. Nothing is trimmed or converted.
 
-Use `Fight\AccessControl\Application\AccessControl\Feature\Attribute\FeatureFlag` on a method:
+Use `Fight\AccessControl\Application\AccessControl\Feature\Attribute\FeatureFlag` on classes and methods:
 
 ```php
 use Fight\AccessControl\Application\AccessControl\Feature\Attribute\FeatureFlag;
 
+#[FeatureFlag('checkout-family')]
+#[FeatureFlag('shared-cart')]
 final class Checkout
 {
     #[FeatureFlag('new-checkout')]
+    #[FeatureFlag('shared-cart')]
     public function submit(): void
     {
         // Consumer-owned operation; this Attribute does not intercept calls.
@@ -37,9 +43,10 @@ final class Checkout
 }
 ```
 
-One method declaration carries one name. The Attribute is not repeatable and cannot target a class, property,
-constant, parameter or function. PHP rejects wrong targets/repetition when reflection calls `newInstance()`;
-merely reading `getArguments()` does **not** validate native placement or multiplicity. The instance exposes
+Each declaration carries exactly one canonical name. Class and method declarations are repeatable, including valid
+duplicates. Properties, constants, parameters and functions remain unsupported. Reflection must call `newInstance()`
+on every Attribute to validate placement and arguments; `getArguments()` alone is insufficient. Missing, extra,
+unknown or malformed arguments reject rather than disappearing behind a duplicate. The instance exposes
 `getName(): FeatureName`, with no status, testing Permission, principal, configuration or any/all composition.
 A consumer must instantiate every discovered declaration and reject invalid metadata, not silently skip it.
 The [current payload catalog](public-payload-catalog.md) uses the same canonical FeatureName rule for public
@@ -52,25 +59,53 @@ first-reference order for inspection, and offers no Feature settings or authorit
 count, determines which Features are referenced. An ordinary collection alone claims no discovery completeness.
 
 ```php
-use Fight\AccessControl\Application\AccessControl\Feature\Attribute\FeatureFlag;
-use Fight\AccessControl\Application\AccessControl\Feature\Discovery\FeatureReferences;
+use Fight\AccessControl\Application\AccessControl\Action\SelectedAction;
+use Fight\AccessControl\Application\AccessControl\Feature\FeatureRequirements;
 
-// Illustrates reflection on one already-selected method, not a complete production scanner.
-$method = new ReflectionMethod(Checkout::class, 'submit');
-$names = [];
-foreach ($method->getAttributes(FeatureFlag::class) as $attribute) {
-    $names[] = $attribute->newInstance()->getName();
-}
-$discovered = new FeatureReferences(...$names);
-$registered = FeatureReferences::fromStrings('agent-tools-v2', 'new-checkout');
-$combined = $discovered->merge($registered);
-// $combined->getNames() contains new-checkout, agent-tools-v2 (FeatureName values).
-// Neither input changes. Every supplied string validates, even among duplicate references.
+// Trusted router composition supplies the actually selected class/method, never client input.
+$selected = SelectedAction::method(Checkout::class, 'submit');
+$requirements = new FeatureRequirements($selected, 'agent-tools-v2', 'new-checkout');
+$combined = $requirements->getReferences($selected);
+// checkout-family, shared-cart, new-checkout, agent-tools-v2 (FeatureName values).
+// These are conjunctive restrictions; no evaluation, provisioning or authorization has happened.
 ```
+
+`SelectedAction` supplies pure class/interface and method ancestry once for independent declaration capabilities.
+Requirements on every parent class and same-named parent method remain, including overridden and inherited actions.
+Interface class/method promises accumulate too. `invokable(ClassName::class)` selects `__invoke`;
+`closure($actualClosure)` supports explicit trusted registrations, with exact closure-object association.
+`getReferences($actuallySelectedAction)` rejects a different class/method or closure, even for empty bindings.
+Methods must resolve on a concrete class and be public, concrete, non-constructor/non-destructor methods. Magic
+unresolved names, abstract/interface/trait targets and ambiguous native extraction cannot yield an empty fallback:
+the caller must resolve a supported exact target or stop. Static public methods are supported explicitly. No
+controller is constructed or invoked for inspection. Native route extraction and lifecycle timing are not supplied.
+
+`SelectedAction::ancestry()` also exposes the same class/interface walk to consumer-owned inventory. Inventory
+must include every applicable class and declared method, including overridden-parent declarations and explicit
+registrations, not just `getMethods()` on a child. Validate unsupported placement too; invalid code cannot be
+reported complete. Trait-imported selected methods use PHP's resolved method metadata; this does not infer a native
+framework's routing/alias choice. No declaration means no Feature gate, **not** public Permission access.
 
 Supported programmatic checks must be registered. Dynamic unregistered checks are unsupported. Consumers must
 inventory all supported declaration paths; the package cannot discover an intended check a developer never declared.
 Invalid raw registrations throw `FeatureNameException`; typed construction accepts only `FeatureName` values.
+
+```mermaid
+flowchart LR
+    T[Trusted selected action] --> S[SelectedAction: pure ancestry and association]
+    S --> F[FeatureRequirements: native attributes plus route additions]
+    F --> R[FeatureReferences: validated names only]
+    S --> I[Consumer-owned complete inventory]
+    I --> D[FeatureDiscoveryResult: candidate or current]
+    R --> I
+    D --> P[Preparation / provisioning / retirement]
+```
+
+The [maintained ownership view](feature-references/README.md) shows the bounded new Application dependencies,
+with editable Python, PNG and source/arrow traces; the flow above separately explains consumer composition.
+
+The inventory arrow is consumer composition, not a package scanner. Permission declarations will consume the same
+SelectedAction output independently; no Feature evaluator or discovery provider is required to traverse metadata.
 
 ## Complete discovery versus failed or incomplete discovery
 
@@ -127,7 +162,7 @@ candidate discovery for provisioning; TASK-00063 adds [preparation validation](f
 
 - `tests/Domain/AccessControl/Feature/FeatureNameTest.php`: exact name boundaries and rejection without normalization.
 - `tests/Application/AccessControl/Feature/Attribute/FeatureFlagTest.php`: actual PHP reflection instantiation,
-  invalid name/targets/repetition and direct method invocation without implied enforcement. The deliberately invalid
+  invalid names/unsupported targets/arguments, valid class/method repetition and direct method invocation without implied enforcement. The deliberately invalid
   `Fixture/InvalidFeatureTargets.php.fixture` is loaded by PHP during those tests; it is not valid consumer source
   for static analysis. Runtime execution, not source matching, proves rejection.
 - `tests/Application/AccessControl/Feature/Discovery/FeatureReferencesTest.php`: discovered/explicit merge, duplicate identity,
@@ -135,7 +170,12 @@ candidate discovery for provisioning; TASK-00063 adds [preparation validation](f
 - `tests/Application/AccessControl/Feature/Discovery/FeatureDiscoveryResultTest.php`: both scopes, complete empty/nonempty,
   partial/empty failed or incomplete scans, invalid native/explicit metadata and wrong-scope rejection.
 
-The controlled test discovery implementation scans an already-selected object; it does not prove a real codebase
+- `tests/Application/AccessControl/Feature/FeatureRequirementsTest.php`: selected inherited/overridden/invokable/
+  closure forms, parent accumulation, association mismatch, validation before deduplication and no construction.
+- `tests/Application/AccessControl/Feature/Conformance/EffectiveFeatureDiscoveryTest.php`: class/repeated/parent/
+  overridden/registered inventory through actual preparation, provisioning and retirement handlers.
+
+The controlled test discovery implementation scans an already-selected class/object and fixed code scope; it does not prove a real codebase
 was fully scanned or that a consumer selected the correct running deployment. Consumer qualification must exercise
 its own scanner, invalid declarations, inaccessible code, explicit registry, code identity and candidate/current
 selection before treating discovery as evidence. No screenshots are needed for these nonvisual PHP contracts.

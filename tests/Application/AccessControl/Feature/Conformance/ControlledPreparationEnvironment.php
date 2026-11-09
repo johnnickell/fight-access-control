@@ -8,6 +8,7 @@ use DateTimeImmutable;
 use Fight\AccessControl\Application\AccessControl\Feature\Attribute\FeatureFlag;
 use Fight\AccessControl\Application\AccessControl\Feature\CommandHandler\ProvisionFeaturesHandler;
 use Fight\AccessControl\Application\AccessControl\Feature\Discovery\FeatureReferenceDiscovery;
+use Fight\AccessControl\Application\AccessControl\Feature\Discovery\FeatureReferenceScope;
 use Fight\AccessControl\Application\AccessControl\Feature\QueryHandler\ValidateFeaturePreparationHandler;
 use Fight\AccessControl\Domain\AccessControl\Feature\Command\ProvisionFeatures;
 use Fight\AccessControl\Domain\AccessControl\Feature\Event\FeatureCreated;
@@ -75,7 +76,12 @@ final class ControlledPreparationEnvironment implements FeaturePreparationEnviro
             };
         }
 
-        $this->discovery = new FixtureFeatureDiscovery($code, $registrations, static fn(): bool => $complete);
+        $this->discovery = new FixtureFeatureDiscovery(
+            FeatureReferenceScope::CANDIDATE,
+            $code,
+            $registrations,
+            static fn(): bool => $complete
+        );
     }
 
     public function provision(?string $default): void

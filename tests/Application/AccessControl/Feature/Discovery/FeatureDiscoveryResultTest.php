@@ -47,7 +47,7 @@ final class FeatureDiscoveryResultTest extends TestCase
     #[DataProvider('scopes')]
     public function test_complete_empty_discovery_can_supply_an_empty_inventory(FeatureReferenceScope $scope): void
     {
-        $discovery = new FixtureFeatureDiscovery(new stdClass(), [], static fn(): bool => true);
+        $discovery = new FixtureFeatureDiscovery($scope, new stdClass(), [], static fn(): bool => true);
 
         self::assertSame([], $discovery->discover($scope)->getReferences($scope)->getNames());
     }
@@ -67,6 +67,7 @@ final class FeatureDiscoveryResultTest extends TestCase
             }
         };
         $discovery = new FixtureFeatureDiscovery(
+            $scope,
             $code,
             ['agent-tools-v2', 'dashboard'],
             static fn(): bool => true
@@ -97,7 +98,7 @@ final class FeatureDiscoveryResultTest extends TestCase
 
             return false;
         };
-        $discovery = new FixtureFeatureDiscovery(new stdClass(), $registrations, $finishScan);
+        $discovery = new FixtureFeatureDiscovery($scope, new stdClass(), $registrations, $finishScan);
         $result = $discovery->discover($scope);
         $this->expectException(FeatureDiscoveryException::class);
         $this->expectExceptionMessage('Complete Feature discovery is unavailable.');
@@ -133,6 +134,7 @@ final class FeatureDiscoveryResultTest extends TestCase
     public function test_invalid_explicit_registration_rejects_discovery_instead_of_dropping_the_name(): void
     {
         $discovery = new FixtureFeatureDiscovery(
+            FeatureReferenceScope::CANDIDATE,
             new stdClass(),
             ['dashboard', 'Dashboard'],
             static fn(): bool => true
@@ -145,7 +147,12 @@ final class FeatureDiscoveryResultTest extends TestCase
     public function test_malformed_native_metadata_cannot_be_reported_as_complete_discovery(): void
     {
         $code = require dirname(__DIR__).'/Fixture/InvalidFeatureTargets.php.fixture';
-        $discovery = new FixtureFeatureDiscovery($code, ['dashboard'], static fn(): bool => true);
+        $discovery = new FixtureFeatureDiscovery(
+            FeatureReferenceScope::CURRENT,
+            $code,
+            ['dashboard'],
+            static fn(): bool => true
+        );
         $this->expectException(FeatureDiscoveryException::class);
 
         $discovery->discover(FeatureReferenceScope::CURRENT)->getReferences(FeatureReferenceScope::CURRENT);

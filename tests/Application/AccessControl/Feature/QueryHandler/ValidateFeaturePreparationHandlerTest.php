@@ -169,7 +169,12 @@ final class ValidateFeaturePreparationHandlerTest extends TestCase
             {
             }
         };
-        $discovery = new FixtureFeatureDiscovery($code, [], static fn(): bool => true);
+        $discovery = new FixtureFeatureDiscovery(
+            FeatureReferenceScope::CANDIDATE,
+            $code,
+            [],
+            static fn(): bool => true
+        );
         $featureRepository = $this->createMock(FeatureRepository::class);
         $featureRepository->expects(self::never())->method('getByName');
         $handler = new ValidateFeaturePreparationHandler(

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Fight\Test\AccessControl\Application\AccessControl\Feature\Conformance;
 
 use Fight\AccessControl\Application\AccessControl\Feature\Discovery\FeatureReferenceDiscovery;
+use Fight\AccessControl\Application\AccessControl\Feature\Discovery\FeatureReferenceScope;
 use Fight\AccessControl\Domain\AccessControl\Feature\FeatureRepository;
 use Fight\AccessControl\Domain\AccessControl\Permission\Permission;
 use Fight\AccessControl\Domain\AccessControl\Permission\PermissionRepository;
@@ -74,7 +75,7 @@ final class InMemoryFeatureRetirementConformanceTest extends FeatureRetirementCo
             /** @param list<string> $registrations */
             public function discovery(array $registrations, bool $complete = true): FeatureReferenceDiscovery
             {
-                return new FixtureFeatureDiscovery(new class {
+                return new FixtureFeatureDiscovery(FeatureReferenceScope::CURRENT, new class {
                 }, $registrations, static fn(): bool => $complete);
             }
         };
