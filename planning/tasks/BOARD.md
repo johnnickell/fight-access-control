@@ -5,13 +5,11 @@ dependencies, acceptance, and verification.
 
 ## What's Next?
 
-Active Task: [TASK-00166](00166-TASK.md) — Maintain complete audit outcome coverage.
+First ready Task: [TASK-00121](00121-TASK.md) — Introduce fixed system and anonymous identities.
 
 ## In Progress
 
-| Order | TASK ID | Title | Parent TICKET | Status | Blocked by | PR |
-| --- | --- | --- | --- | --- | --- | --- |
-| 399 | [TASK-00166](00166-TASK.md) | Maintain complete audit outcome coverage | [TICKET-00048](../tickets/00048-TICKET.md) — Qualify audit composition and document consumer adoption | in-progress | — | — |
+No Tasks are currently in this state.
 
 ## Ready Frontier
 
@@ -220,3 +218,4 @@ No Tasks are currently in this state.
 | 325 | [TASK-00146](00146-TASK.md) | Qualify ordinary HTTP contracts and safe failures | [TICKET-00041](../tickets/00041-TICKET.md) — Align presentation and integration contracts | done | — | https://github.com/johnnickell/fight-access-control/pull/186 |
 | 327 | [TASK-00148](00148-TASK.md) | Align Resource and Skill binding contracts | [TICKET-00041](../tickets/00041-TICKET.md) — Align presentation and integration contracts | done | — | https://github.com/johnnickell/fight-access-control/pull/184 |
 | 328 | [TASK-00149](00149-TASK.md) | Align public payload schemas and declarative metadata | [TICKET-00041](../tickets/00041-TICKET.md) — Align presentation and integration contracts | done | [TASK-00133](00133-TASK.md) | https://github.com/johnnickell/fight-access-control/pull/185 |
+| 399 | [TASK-00166](00166-TASK.md) | Maintain complete audit outcome coverage | [TICKET-00048](../tickets/00048-TICKET.md) — Qualify audit composition and document consumer adoption | done | — | — |

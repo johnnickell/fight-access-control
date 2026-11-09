@@ -6,14 +6,20 @@ Fight AccessControl owns framework-neutral identity, credential, session, author
 behavior shared by Fight applications. The repository-local behavioral and security authority is
 [TICKET-00001](planning/tickets/00001-TICKET.md).
 
-## Audit outcome inventory — TASK-00166 Work checkpoint
+## Audit outcome inventory — TASK-00166 accepted checkpoint
 
 The [living audit matrix](docs/audit-outcome-coverage.md) reconciles the historical 37 + 7 + 8 baseline to current
 39 CommandHandlers, seven sensitive User operations and six remaining Agent service entries, without counting
 converted issuance or delegated recovery twice. It records observed writes/gaps, approved optionality/provenance,
 actual transaction/external-effect boundaries and pending family/conformance/consumer proof. Optional auditing and
-the evolved typed evidence API are not implemented by this documentation slice. Independent Review and nonvisual
-QA remain required; TASK-00166 remains open. Other audit suppliers retain their own implementation and acceptance.
+the evolved typed evidence API are not implemented by this documentation slice. Independent Review v3 ACCEPT
+and nonvisual QA PASS cover candidate `1654b71a359e44547e21686b25e52ea12d2d8bf6`: ten scenario groups and
+192 focused tests / 2,724 assertions, with no findings. TASK-00166 is done; unfinished siblings keep TICKET-00048
+and EPIC-00017 open. Earlier full gate retained (7,009 tests / 78,157 assertions, exact 9,254/9,254 statements);
+this is not fresh final-head execution. Publication/final delivery verification remain pending at this administrative
+checkpoint; canonical `.runs/handoffs/TASK-00166/land.md` owns subsequent bridge, delivery and resource results.
+Original independent reports and QA runner-option correction history remain preserved. Other audit suppliers retain
+their own implementation and acceptance; no actual consumer qualification, merge, release or deployment is claimed.
 
 ## TASK-00148 Resource/Skill contracts — accepted checkpoint
 
