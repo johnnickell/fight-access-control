@@ -58,7 +58,6 @@ No Tasks are currently in this state.
 
 | Order | TASK ID | Title | Parent TICKET | Status | Blocked by | PR |
 | --- | --- | --- | --- | --- | --- | --- |
-| 13 | [TASK-00110](00110-TASK.md) | Adopt qualified canonical Fight Common contracts | [TICKET-00034](../tickets/00034-TICKET.md) — Consume supported canonical Fight Common contracts | needs-info | — | — |
 | 84 | [TASK-00084](00084-TASK.md) | Protect mixed Common-owned and attributed MCP Tools | [TICKET-00025](../tickets/00025-TICKET.md) — Bind Common-owned and attributed Tools to Agent Permissions | needs-info | [TASK-00108](00108-TASK.md), [TASK-00110](00110-TASK.md) | — |
 | 87 | [TASK-00087](00087-TASK.md) | Authorize Agent-protected Prompt discovery and retrieval | [TICKET-00027](../tickets/00027-TICKET.md) — Authorize Prompt discovery and retrieval | needs-info | [TASK-00108](00108-TASK.md), [TASK-00110](00110-TASK.md) | — |
 | 89 | [TASK-00089](00089-TASK.md) | Compose scoped execution and timeline reads | [TICKET-00029](../tickets/00029-TICKET.md) — Compose scoped execution and protected-detail access | needs-info | [TASK-00084](00084-TASK.md) | — |
@@ -108,6 +107,7 @@ No Tasks are currently in this state.
 | 11 | [TASK-00108](00108-TASK.md) | Move Agent MCP presentation and family bindings into adapters | [TICKET-00033](../tickets/00033-TICKET.md) — Clarify architecture and capability ownership before extending integrations | done | [TASK-00107](00107-TASK.md) | https://github.com/johnnickell/fight-access-control/pull/152 |
 | 12 | [TASK-00012](00012-TASK.md) | Reconcile managed policy and custom roles | [TICKET-00001](../tickets/00001-TICKET.md) — Fight AccessControl Identity and Authentication Lifecycle | done | [TASK-00009](00009-TASK.md) | — |
 | 12 | [TASK-00109](00109-TASK.md) | Organize Application capabilities and descriptive collaborator names | [TICKET-00033](../tickets/00033-TICKET.md) — Clarify architecture and capability ownership before extending integrations | done | [TASK-00107](00107-TASK.md) | https://github.com/johnnickell/fight-access-control/pull/153 |
+| 13 | [TASK-00110](00110-TASK.md) | Adopt qualified canonical Fight Common contracts | [TICKET-00034](../tickets/00034-TICKET.md) — Consume supported canonical Fight Common contracts | done | — | https://github.com/johnnickell/fight-access-control/pull/193 |
 | 14 | [TASK-00014](00014-TASK.md) | Unify password-reset grant persistence | [TICKET-00001](../tickets/00001-TICKET.md) — Fight AccessControl Identity and Authentication Lifecycle | done | [TASK-00007](00007-TASK.md) | — |
 | 15 | [TASK-00015](00015-TASK.md) | Unify activation-grant persistence | [TICKET-00001](../tickets/00001-TICKET.md) — Fight AccessControl Identity and Authentication Lifecycle | done | [TASK-00001](00001-TASK.md), [TASK-00002](00002-TASK.md), [TASK-00003](00003-TASK.md) | — |
 | 16 | [TASK-00016](00016-TASK.md) | Extract the ManagedPolicy capability | [TICKET-00001](../tickets/00001-TICKET.md) — Fight AccessControl Identity and Authentication Lifecycle | done | — | — |

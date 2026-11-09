@@ -37,7 +37,7 @@ This generated index is a projection; individual records remain canonical.
 | [TICKET-00031](00031-TICKET.md) | Authorize durable Task operations and state disclosure | ready-for-agent |
 | [TICKET-00032](00032-TICKET.md) | Protect native HTTP entry points across all five frameworks | done |
 | [TICKET-00033](00033-TICKET.md) | Clarify architecture and capability ownership before extending integrations | done |
-| [TICKET-00034](00034-TICKET.md) | Consume supported canonical Fight Common contracts | ready-for-agent |
+| [TICKET-00034](00034-TICKET.md) | Consume supported canonical Fight Common contracts | done |
 | [TICKET-00035](00035-TICKET.md) | Encapsulate User authentication transitions and synchronous use cases | done |
 | [TICKET-00036](00036-TICKET.md) | Clarify Agent name and credential-operation domain ownership | done |
 | [TICKET-00037](00037-TICKET.md) | Make Domain and repository contracts precise | done |
