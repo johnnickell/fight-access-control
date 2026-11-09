@@ -85,7 +85,7 @@ John approved the complete five-TASK split, now written with kind chore and empt
 | TASK | Order | Owned outcome / baseline handler coverage | Status / actual hold |
 | --- | --- | --- | --- |
 | [TASK-00131](../tasks/00131-TASK.md) | 310 | Six required-resource queries: exact non-null safe Views or intentional Application failure. | done; independently accepted six-query slice; other families remain unfinished. |
-| [TASK-00132](../tasks/00132-TASK.md) | 311 | Six paged queries: qualified Common container invariants plus AccessControl request/element/scope consistency. | needs-info for separately planned/implemented/accepted/tagged Common ResultSet validation and minimum evidence. |
+| [TASK-00132](../tasks/00132-TASK.md) | 311 | Six paged queries: qualified Common container invariants plus AccessControl request/element/scope consistency. | ready-for-agent; released Common v1.5.0 ResultSet::strict() clears supplier discovery; AC adoption/minimum/ordinary proof remains required. |
 | [TASK-00133](../tasks/00133-TASK.md) | 312 | Four human credential status/due/expired queries: explicit absence/state and exact bounded work. | done; independent Review ACCEPT and nonvisual QA PASS for the owning TASK's accepted candidate. |
 | [TASK-00134](../tasks/00134-TASK.md) | 313 | Four Agent operation/scheduler/maintenance/count queries: exact authorized safe outcomes. | done; independent Review ACCEPT and nonvisual QA PASS for the bounded four-query slice; exact candidate/proof in TASK-00134. |
 | [TASK-00135](../tasks/00135-TASK.md) | 314 | Two preparation/policy-preview queries: truthful typed diagnostics/plans. | done; independent Review ACCEPT and nonvisual QA PASS for the owning TASK's accepted candidate. |
@@ -95,12 +95,15 @@ coverage, not an exhaustive source audit or executed runtime/type/supplier/consu
 candidates and follow added/moved/removed owners. No mutual blockers are demonstrated and priority is not a serial
 chain. Orders 310–314 follow existing typing work without renumbering it or earlier tasks.
 
-TASK-00132's hold is a concrete Common planning gap, not a claim that an upstream task is already scheduled. The
-inspected Common ResultSet still lacks shared returned-page metadata admission. Common's completed TASK-00128
-adds Pagination::strict() for request bounds and explicitly excludes ResultSet redesign; do not confuse it with this
-supplier or AccessControl's same-numbered Query-dispatch task. Plan bounded Common result validation under Common's
-1.x compatibility policy; establish actual accepted/tagged APIs and minimum/ordinary composition before adoption.
-No Common ID is invented or placed in local blocked_by, and no Common file is written by this planning approval.
+TASK-00132's former Common planning-gap hold is cleared by released Common v1.5.0 and completed Common
+[TASK-00193](https://github.com/johnnickell/fight-common/blob/v1.5.0/planning/tasks/00193-TASK.md).
+The owning AC TASK records independent supplier acceptance, exact tag/Packagist identity and the supported
+`ResultSet::strict()` construction contract. It is ready-for-agent; no new Common plan/release is needed. Strict
+construction validates local numeric/count bounds only at creation and retains a mutable shared list; legacy
+construction remains permissive. AC must explicitly adopt the strict boundary, set a sufficient minimum of at least
+Common ^1.5.0, and qualify actual minimum/ordinary lanes plus request/element/scope semantics during implementation.
+This is not supplied by Pagination::strict() or either repository's TASK-00128. No external ID becomes a local
+blocked_by edge, and this planning refresh changes no Common or AC product/dependency files.
 
 The ready slices still verify actual supported tagged failure/result APIs and minimum/ordinary lanes at execution;
 readiness is not supplier/consumer acceptance. No blanket dependency on TASK-00128's generic bus adoption,
@@ -120,7 +123,7 @@ exact coverage, local evidence and independent Review/behavioral QA. Choose the 
 | Order | TASK ID | Title | Status |
 | --- | --- | --- | --- |
 | 310 | [TASK-00131](../tasks/00131-TASK.md) | Make required resource queries exact and non-null | done |
-| 311 | [TASK-00132](../tasks/00132-TASK.md) | Enforce paged query result contracts | needs-info |
+| 311 | [TASK-00132](../tasks/00132-TASK.md) | Enforce paged query result contracts | ready-for-agent |
 | 312 | [TASK-00133](../tasks/00133-TASK.md) | Make human credential status and discovery results explicit | done |
 | 313 | [TASK-00134](../tasks/00134-TASK.md) | Correct Agent operation, scheduler and count query contracts | done |
 | 314 | [TASK-00135](../tasks/00135-TASK.md) | Make preparation and policy-preview results truthful | done |
@@ -191,7 +194,8 @@ TICKET-00041's four-TASK plan is now approved/written as TASK-00146–00149. Tar
 TASK-00131/00133; unchanged schema wire tests do not qualify or inherit TASK-00132's ResultSet runtime hold.
 
 TICKET-00042's three-TASK plan is now approved/written as TASK-00150–00152. Independent foundations start early;
-final reconciliation consumes actual accepted query contracts and retains the ResultSet qualification hold.
+final reconciliation consumes actual accepted query contracts and retains TASK-00132's AC adoption/qualification
+requirements, not its now-cleared external ResultSet discovery hold.
 
 TICKET-00045's separate administration audit plan is now approved/written as TASK-00153–00157.
 TICKET-00046's separate four-TASK Feature/policy audit plan is now approved/written as TASK-00158–00161.
@@ -202,4 +206,5 @@ TICKET-00050's four-TASK Feature plan is now written as TASK-00172–00175, not 
 TICKET-00051's four-TASK portable Permission plan is now written as TASK-00176–00179, not implemented/qualified.
 TICKET-00052's reduced evidence/gap-closure plan is now TASK-00180/00181, completing EPIC-00018 TASK planning only.
 Next: `/skill:next` for Board-based selection. EPIC-00015's conversion and actual Common supplier
-planning/qualification remain separate unfinished handoffs, including the Common ResultSet plan. No implementation starts here.
+planning/qualification remain separate unfinished handoffs; the former Common ResultSet planning gap is cleared
+by v1.5.0, while AC TASK-00132 adoption/qualification remains unfinished. No implementation starts here.
