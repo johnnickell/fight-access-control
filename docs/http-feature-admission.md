@@ -8,6 +8,9 @@ and a trusted `SecurityContext` or deliberate anonymous null. It accepts only ac
 
 ## Ownership and runtime flow
 
+The [maintained runtime image and arrow traces](http-feature-admission/README.md) provide a bounded rendered view
+alongside this sequence, with editable source, exact implementation revision and explicit omissions.
+
 ```mermaid
 sequenceDiagram
     participant Router as Native selected route
