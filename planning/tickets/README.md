@@ -52,7 +52,7 @@ This generated index is a projection; individual records remain canonical.
 | [TICKET-00046](00046-TICKET.md) | Audit Feature and managed-policy changes | ready-for-agent |
 | [TICKET-00047](00047-TICKET.md) | Audit Agent credential and recovery outcomes | ready-for-agent |
 | [TICKET-00048](00048-TICKET.md) | Qualify audit composition and document consumer adoption | ready-for-agent |
-| [TICKET-00049](00049-TICKET.md) | Declare effective action requirements | ready-for-agent |
+| [TICKET-00049](00049-TICKET.md) | Declare effective action requirements | done |
 | [TICKET-00050](00050-TICKET.md) | Enforce Feature admission across five frameworks | ready-for-agent |
 | [TICKET-00051](00051-TICKET.md) | Enforce portable Permission declarations across five frameworks | ready-for-agent |
 | [TICKET-00052](00052-TICKET.md) | Qualify independent and combined admission | ready-for-agent |

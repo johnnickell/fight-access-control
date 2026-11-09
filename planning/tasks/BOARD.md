@@ -5,20 +5,24 @@ dependencies, acceptance, and verification.
 
 ## What's Next?
 
-Active Task: [TASK-00172](00172-TASK.md) — Enforce Feature admission through PSR-15.
+First ready Task: [TASK-00122](00122-TASK.md) — Replace audit evidence contracts across existing writers.
 
 ## In Progress
 
-| Order | TASK ID | Title | Parent TICKET | Status | Blocked by | PR |
-| --- | --- | --- | --- | --- | --- | --- |
-| 503 | [TASK-00172](00172-TASK.md) | Enforce Feature admission through PSR-15 | [TICKET-00050](../tickets/00050-TICKET.md) — Enforce Feature admission across five frameworks | in-progress | [TASK-00170](00170-TASK.md), [TASK-00103](00103-TASK.md) | — |
+No Tasks are currently in this state.
 
 ## Ready Frontier
 
 | Order | TASK ID | Title | Parent TICKET | Status | Blocked by | PR |
 | --- | --- | --- | --- | --- | --- | --- |
 | 402 | [TASK-00122](00122-TASK.md) | Replace audit evidence contracts across existing writers | [TICKET-00043](../tickets/00043-TICKET.md) — Define typed audit evidence and explicit attribution | ready-for-agent | [TASK-00121](00121-TASK.md) | — |
-| 502 | [TASK-00171](00171-TASK.md) | Declare effective portable Permission requirements | [TICKET-00049](../tickets/00049-TICKET.md) — Declare effective action requirements | ready-for-agent | [TASK-00170](00170-TASK.md) | — |
+| 504 | [TASK-00173](00173-TASK.md) | Enforce Symfony Feature admission | [TICKET-00050](../tickets/00050-TICKET.md) — Enforce Feature admission across five frameworks | ready-for-agent | [TASK-00172](00172-TASK.md), [TASK-00104](00104-TASK.md) | — |
+| 504 | [TASK-00174](00174-TASK.md) | Enforce Laravel Feature admission | [TICKET-00050](../tickets/00050-TICKET.md) — Enforce Feature admission across five frameworks | ready-for-agent | [TASK-00172](00172-TASK.md) | — |
+| 504 | [TASK-00175](00175-TASK.md) | Enforce CodeIgniter 4 Feature admission | [TICKET-00050](../tickets/00050-TICKET.md) — Enforce Feature admission across five frameworks | ready-for-agent | [TASK-00172](00172-TASK.md), [TASK-00106](00106-TASK.md) | — |
+| 505 | [TASK-00176](00176-TASK.md) | Integrate portable Permissions through PSR-15 | [TICKET-00051](../tickets/00051-TICKET.md) — Enforce portable Permission declarations across five frameworks | ready-for-agent | [TASK-00171](00171-TASK.md), [TASK-00103](00103-TASK.md) | — |
+| 505 | [TASK-00177](00177-TASK.md) | Integrate portable Permissions in Symfony | [TICKET-00051](../tickets/00051-TICKET.md) — Enforce portable Permission declarations across five frameworks | ready-for-agent | [TASK-00171](00171-TASK.md), [TASK-00104](00104-TASK.md) | — |
+| 505 | [TASK-00178](00178-TASK.md) | Integrate portable Permissions in Laravel | [TICKET-00051](../tickets/00051-TICKET.md) — Enforce portable Permission declarations across five frameworks | ready-for-agent | [TASK-00171](00171-TASK.md), [TASK-00105](00105-TASK.md) | — |
+| 505 | [TASK-00179](00179-TASK.md) | Integrate portable Permissions in CodeIgniter 4 | [TICKET-00051](../tickets/00051-TICKET.md) — Enforce portable Permission declarations across five frameworks | ready-for-agent | [TASK-00171](00171-TASK.md), [TASK-00106](00106-TASK.md) | — |
 
 ## Waiting
 
@@ -47,13 +51,6 @@ Active Task: [TASK-00172](00172-TASK.md) — Enforce Feature admission through P
 | 420 | [TASK-00165](00165-TASK.md) | Audit Agent material maintenance | [TICKET-00047](../tickets/00047-TICKET.md) — Audit Agent credential and recovery outcomes | ready-for-agent | [TASK-00122](00122-TASK.md) | — |
 | 421 | [TASK-00168](00168-TASK.md) | Demonstrate ordinary Role audit composition | [TICKET-00048](../tickets/00048-TICKET.md) — Qualify audit composition and document consumer adoption | ready-for-agent | [TASK-00167](00167-TASK.md), [TASK-00153](00153-TASK.md) | — |
 | 422 | [TASK-00169](00169-TASK.md) | Qualify integrated audit coverage and reconcile guidance | [TICKET-00048](../tickets/00048-TICKET.md) — Qualify audit composition and document consumer adoption | ready-for-agent | [TASK-00166](00166-TASK.md), [TASK-00167](00167-TASK.md), [TASK-00168](00168-TASK.md), [TASK-00123](00123-TASK.md), [TASK-00124](00124-TASK.md), [TASK-00125](00125-TASK.md), [TASK-00126](00126-TASK.md), [TASK-00127](00127-TASK.md), [TASK-00153](00153-TASK.md), [TASK-00154](00154-TASK.md), [TASK-00155](00155-TASK.md), [TASK-00156](00156-TASK.md), [TASK-00157](00157-TASK.md), [TASK-00158](00158-TASK.md), [TASK-00159](00159-TASK.md), [TASK-00160](00160-TASK.md), [TASK-00161](00161-TASK.md), [TASK-00162](00162-TASK.md), [TASK-00163](00163-TASK.md), [TASK-00164](00164-TASK.md), [TASK-00165](00165-TASK.md) | — |
-| 504 | [TASK-00173](00173-TASK.md) | Enforce Symfony Feature admission | [TICKET-00050](../tickets/00050-TICKET.md) — Enforce Feature admission across five frameworks | ready-for-agent | [TASK-00172](00172-TASK.md), [TASK-00104](00104-TASK.md) | — |
-| 504 | [TASK-00174](00174-TASK.md) | Enforce Laravel Feature admission | [TICKET-00050](../tickets/00050-TICKET.md) — Enforce Feature admission across five frameworks | ready-for-agent | [TASK-00172](00172-TASK.md) | — |
-| 504 | [TASK-00175](00175-TASK.md) | Enforce CodeIgniter 4 Feature admission | [TICKET-00050](../tickets/00050-TICKET.md) — Enforce Feature admission across five frameworks | ready-for-agent | [TASK-00172](00172-TASK.md), [TASK-00106](00106-TASK.md) | — |
-| 505 | [TASK-00176](00176-TASK.md) | Integrate portable Permissions through PSR-15 | [TICKET-00051](../tickets/00051-TICKET.md) — Enforce portable Permission declarations across five frameworks | ready-for-agent | [TASK-00171](00171-TASK.md), [TASK-00103](00103-TASK.md) | — |
-| 505 | [TASK-00177](00177-TASK.md) | Integrate portable Permissions in Symfony | [TICKET-00051](../tickets/00051-TICKET.md) — Enforce portable Permission declarations across five frameworks | ready-for-agent | [TASK-00171](00171-TASK.md), [TASK-00104](00104-TASK.md) | — |
-| 505 | [TASK-00178](00178-TASK.md) | Integrate portable Permissions in Laravel | [TICKET-00051](../tickets/00051-TICKET.md) — Enforce portable Permission declarations across five frameworks | ready-for-agent | [TASK-00171](00171-TASK.md), [TASK-00105](00105-TASK.md) | — |
-| 505 | [TASK-00179](00179-TASK.md) | Integrate portable Permissions in CodeIgniter 4 | [TICKET-00051](../tickets/00051-TICKET.md) — Enforce portable Permission declarations across five frameworks | ready-for-agent | [TASK-00171](00171-TASK.md), [TASK-00106](00106-TASK.md) | — |
 | 506 | [TASK-00181](00181-TASK.md) | Close composition gaps and reconcile guidance | [TICKET-00052](../tickets/00052-TICKET.md) — Qualify independent and combined admission | ready-for-agent | [TASK-00180](00180-TASK.md), [TASK-00172](00172-TASK.md), [TASK-00173](00173-TASK.md), [TASK-00174](00174-TASK.md), [TASK-00175](00175-TASK.md), [TASK-00176](00176-TASK.md), [TASK-00177](00177-TASK.md), [TASK-00178](00178-TASK.md), [TASK-00179](00179-TASK.md) | — |
 
 ## Needs Info
@@ -220,3 +217,5 @@ No Tasks are currently in this state.
 | 401 | [TASK-00121](00121-TASK.md) | Introduce fixed system and anonymous identities | [TICKET-00043](../tickets/00043-TICKET.md) — Define typed audit evidence and explicit attribution | done | — | https://github.com/johnnickell/fight-access-control/pull/189 |
 | 499 | [TASK-00180](00180-TASK.md) | Map existing admission evidence | [TICKET-00052](../tickets/00052-TICKET.md) — Qualify independent and combined admission | done | — | https://github.com/johnnickell/fight-access-control/pull/187 |
 | 501 | [TASK-00170](00170-TASK.md) | Declare and discover effective Feature requirements | [TICKET-00049](../tickets/00049-TICKET.md) — Declare effective action requirements | done | — | https://github.com/johnnickell/fight-access-control/pull/190 |
+| 502 | [TASK-00171](00171-TASK.md) | Declare effective portable Permission requirements | [TICKET-00049](../tickets/00049-TICKET.md) — Declare effective action requirements | done | [TASK-00170](00170-TASK.md) | https://github.com/johnnickell/fight-access-control/pull/191 |
+| 503 | [TASK-00172](00172-TASK.md) | Enforce Feature admission through PSR-15 | [TICKET-00050](../tickets/00050-TICKET.md) — Enforce Feature admission across five frameworks | done | [TASK-00170](00170-TASK.md), [TASK-00103](00103-TASK.md) | — |
