@@ -117,7 +117,7 @@ This bounded acceptance does not qualify consumer persistence, cryptography or t
 | Recoverable Agent provisioning, rotation and delivery | [Agent integration](docs/agent-integration.md) · [Conformance and evidence](docs/agent-operation-evidence.md) |
 | Agent profiles and protected MCP capabilities | [Profile Tools](docs/agent-profile-tools.md) · [Tool authorization](docs/agent-mcp-authorization.md) · [Resource authorization](docs/agent-resource-authorization.md) · [Skill authorization](docs/agent-skill-authorization.md) · [Current continuation](docs/agent-continuation-authorization.md) |
 | Optional HTTP Permission admission (Unreleased) | [Shared/Slim/Yii 3 composition](docs/http-permission-admission.md) · [Native Symfony composition](docs/symfony-permission-admission.md) · [Native CI4 composition](docs/codeigniter-permission-admission.md) · [Native Laravel composition](docs/laravel-permission-admission.md) |
-| Optional Feature HTTP admission (Unreleased) | [Shared/Slim/Yii 3 composition and runtime flow](docs/http-feature-admission.md) |
+| Optional Feature HTTP admission (Unreleased) | [Shared/Slim/Yii 3 composition and runtime flow](docs/http-feature-admission.md) · [Native Symfony composition and runtime flow](docs/symfony-feature-admission.md) |
 | Permission-based Feature flags | [Declarations](docs/feature-references.md) · [Provisioning](docs/feature-provisioning.md) · [Preparation](docs/feature-preparation.md) · [Availability](docs/feature-availability.md) · [Management](docs/feature-management.md) · [Retirement](docs/feature-retirement.md) |
 | Consumer-owned OpenAPI documents | [Opt-in schema components](docs/openapi-composition.md) |
 

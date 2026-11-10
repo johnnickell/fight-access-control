@@ -5,13 +5,11 @@ dependencies, acceptance, and verification.
 
 ## What's Next?
 
-Active Task: [TASK-00173](00173-TASK.md) — Enforce Symfony Feature admission.
+First ready Task: [TASK-00122](00122-TASK.md) — Replace audit evidence contracts across existing writers.
 
 ## In Progress
 
-| Order | TASK ID | Title | Parent TICKET | Status | Blocked by | PR |
-| --- | --- | --- | --- | --- | --- | --- |
-| 504 | [TASK-00173](00173-TASK.md) | Enforce Symfony Feature admission | [TICKET-00050](../tickets/00050-TICKET.md) — Enforce Feature admission across five frameworks | in-progress | [TASK-00172](00172-TASK.md), [TASK-00104](00104-TASK.md) | — |
+No Tasks are currently in this state.
 
 ## Ready Frontier
 
@@ -220,3 +218,4 @@ No Tasks are currently in this state.
 | 501 | [TASK-00170](00170-TASK.md) | Declare and discover effective Feature requirements | [TICKET-00049](../tickets/00049-TICKET.md) — Declare effective action requirements | done | — | https://github.com/johnnickell/fight-access-control/pull/190 |
 | 502 | [TASK-00171](00171-TASK.md) | Declare effective portable Permission requirements | [TICKET-00049](../tickets/00049-TICKET.md) — Declare effective action requirements | done | [TASK-00170](00170-TASK.md) | https://github.com/johnnickell/fight-access-control/pull/191 |
 | 503 | [TASK-00172](00172-TASK.md) | Enforce Feature admission through PSR-15 | [TICKET-00050](../tickets/00050-TICKET.md) — Enforce Feature admission across five frameworks | done | [TASK-00170](00170-TASK.md), [TASK-00103](00103-TASK.md) | https://github.com/johnnickell/fight-access-control/pull/192 |
+| 504 | [TASK-00173](00173-TASK.md) | Enforce Symfony Feature admission | [TICKET-00050](../tickets/00050-TICKET.md) — Enforce Feature admission across five frameworks | done | [TASK-00172](00172-TASK.md), [TASK-00104](00104-TASK.md) | — |

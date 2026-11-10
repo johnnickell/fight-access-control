@@ -85,7 +85,7 @@ administrative checkpoint; canonical `.runs/handoffs/TASK-00148/land.md` owns su
 and resource results. Original report subjects, historical Work proof and lowest-lane advisories remain preserved;
 no whole-library or actual consumer qualification, approval, merge, release or deployment is claimed.
 
-## TASK-00173 Symfony Feature admission — Work checkpoint
+## TASK-00173 Symfony Feature admission — accepted checkpoint
 
 Optional [native Symfony Feature admission](docs/symfony-feature-admission.md) now consumes the shared effective
 requirements/evaluator at kernel.request after routing, independently of PermissionSubscriber. Trusted rematching and
@@ -93,8 +93,15 @@ resolved-controller integrity protect supported selected code; dispatch-owned pr
 context and one Agent nonce. Only ordinary OFF/unmet PREVIEW is generic 404; Common retains one native safe-error owner.
 The source-linked runtime flow documents pre-validation/action and lazy-construction boundaries, eager/late-listener,
 non-JSON and real consumer limits. Minimum/core-only/native-without-Security-HTTP probes and ordinary composition remain
-distinct evidence in the canonical Work handoff. Independent Review/nonvisual QA are still required; no acceptance,
-consumer qualification, publication, merge or deployment is claimed by this implementation checkpoint.
+distinct evidence in the canonical Work handoff. Independent Review v3 ACCEPT and complete nonvisual QA PASS
+cover `75dbe8418469b1bbf40506b364e6952430ab8c20`, with no outstanding findings: 12 QA groups including
+40 new native journeys / 211 checks and 75 existing tests / 805 assertions. Land's behavior-preserving develop
+integration retains native source/test bytes and the separate paged-query slice; fresh integrated gate passes
+7,277 tests / 80,253 assertions, exact 9,493/9,493 statements. TASK-00173 is done; unfinished children keep
+TICKET-00050/EPIC-00018 open. Publication/final delivery verification remain pending at this administrative
+checkpoint; canonical `.runs/handoffs/TASK-00173/land.md` owns subsequent bridge, delivery and resource results.
+Original independent report subjects and historical failures remain preserved. No actual consumer qualification,
+approval, merge, release or deployment is claimed.
 
 ## TASK-00172 Feature admission — accepted checkpoint
 
