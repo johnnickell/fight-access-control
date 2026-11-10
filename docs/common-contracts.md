@@ -112,7 +112,13 @@ DBAL UoW, 00185/00186 supply repositories, 00187 handler ownership, 00188 Task p
 00191 aggregate/adapter homes. TASK-00084 exercises the seven execution Tools through mixed protected composition
 in package tests, and TASK-00087 consumes the Prompt contracts described above. TASK-00091 consumes actual Notice
 recording/removal admission, Commands, handlers, recorder/remover and DBAL storage in its independently accepted
-[mutation composition](agent-notice-authorization.md). Other TASK-00089–00090/00092–00102 must inspect their exact
-declarations, configure actual Common buses and independently qualify each operation/family. This baseline
-clears only TASK-00110's historical supplier hold, not those feature
+[mutation composition](agent-notice-authorization.md). TASK-00097 consumes `TaskCreationAdmission`, `TaskUpdateAdmission` and
+`TaskReadAdmission` in inward Agent policy. Its feature tests configure actual `CreateTaskHandler`,
+`RecordTaskStateHandler` and `GetTaskHandler`, typed Task identities/definitions/states, Commands/Query, payload
+policy and real routing buses, with Common DBAL repository/Task transaction/committed reads over SQLite.
+See [Task composition](agent-task-authorization.md) for independent grants, guarded worker authority, comparison
+epochs, safe faults and consumer limits. DBAL remains development-only here; no production persistence is copied.
+Other TASK-00089–00090/00092–00096 and TASK-00098–00102 must inspect their exact declarations, configure actual
+Common buses and independently qualify each operation/family. This baseline clears only TASK-00110's historical
+supplier hold, not those feature
 holds, grant requirements, live-runtime requirements or separate generic typing/returned-page evidence gaps.
