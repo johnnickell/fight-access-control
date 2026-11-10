@@ -6,7 +6,7 @@ Fight AccessControl owns framework-neutral identity, credential, session, author
 behavior shared by Fight applications. The repository-local behavioral and security authority is
 [TICKET-00001](planning/tickets/00001-TICKET.md).
 
-## TASK-00132 paged Query contracts — Work checkpoint
+## TASK-00132 paged Query contracts — accepted checkpoint
 
 The six [paged Query paths](docs/paged-queries.md) now adopt Common v1.5.0 strict construction for incoming and
 mapped results, check request metadata and preserve exact safe View mapping. Session reads independently check
@@ -14,7 +14,14 @@ admitted owner/usability; Agent exact Permissions, Feature binding information a
 Captured page membership prevents dependency callbacks from changing enumeration; returned lists remain mutable.
 Empty/out-of-range semantics and actual persistence/ordering limits are explicit, without new locks or writes.
 Canonical `.runs/handoffs/TASK-00132/work.md` owns inventory, regressions, dependency/runtime and gate evidence.
-Independent Review and nonvisual QA remain required; this is neither acceptance nor consumer qualification.
+Independent Review v3 ACCEPT and complete nonvisual QA PASS cover candidate
+`98dcd31d4ab5e48ab4a8d9eb889dd0810b26aeba`, without findings: 11 QA scenario groups, 30 independent cases /
+787 assertions plus 106 regression tests / 866 assertions. Earlier full gate retained: 7,251 tests / 79,950
+assertions, exact 9,422/9,422 global and 142/142 owned statements, with Review-qualified prose-only follow-ups.
+TASK-00132 and eligible TICKET-00039 are done; unfinished children keep EPIC-00016 open. Publication/final delivery
+verification remain pending at this administrative checkpoint; canonical `.runs/handoffs/TASK-00132/land.md`
+owns subsequent bridge, delivery and resource results. Original independent reports and minimum-lane advisories
+remain preserved. No generic bus, whole-library or consumer qualification, merge, release or deployment is claimed.
 
 ## Canonical Common adoption — TASK-00110 accepted checkpoint
 
