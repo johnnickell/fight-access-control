@@ -5,18 +5,19 @@ dependencies, acceptance, and verification.
 
 ## What's Next?
 
-First ready Task: [TASK-00089](00089-TASK.md) — Compose scoped execution and timeline reads.
+Active Task: [TASK-00090](00090-TASK.md) — Compose independent protected-detail metadata and body reads.
 
 ## In Progress
 
-No Tasks are currently in this state.
+| Order | TASK ID | Title | Parent TICKET | Status | Blocked by | PR |
+| --- | --- | --- | --- | --- | --- | --- |
+| 90 | [TASK-00090](00090-TASK.md) | Compose independent protected-detail metadata and body reads | [TICKET-00029](../tickets/00029-TICKET.md) — Compose scoped execution and protected-detail access | in-progress | [TASK-00084](00084-TASK.md) | — |
 
 ## Ready Frontier
 
 | Order | TASK ID | Title | Parent TICKET | Status | Blocked by | PR |
 | --- | --- | --- | --- | --- | --- | --- |
 | 89 | [TASK-00089](00089-TASK.md) | Compose scoped execution and timeline reads | [TICKET-00029](../tickets/00029-TICKET.md) — Compose scoped execution and protected-detail access | ready-for-agent | [TASK-00084](00084-TASK.md) | — |
-| 90 | [TASK-00090](00090-TASK.md) | Compose independent protected-detail metadata and body reads | [TICKET-00029](../tickets/00029-TICKET.md) — Compose scoped execution and protected-detail access | ready-for-agent | [TASK-00084](00084-TASK.md) | — |
 | 92 | [TASK-00092](00092-TASK.md) | Authorize retained inspection and polling recovery | [TICKET-00030](../tickets/00030-TICKET.md) — Authorize retained notices and live Subscriptions | ready-for-agent | [TASK-00084](00084-TASK.md) | — |
 | 97 | [TASK-00097](00097-TASK.md) | Authorize Task creation, producer updates and protected reads | [TICKET-00031](../tickets/00031-TICKET.md) — Authorize durable Task operations and state disclosure | ready-for-agent | [TASK-00088](00088-TASK.md), [TASK-00108](00108-TASK.md), [TASK-00110](00110-TASK.md) | — |
 | 309 | [TASK-00130](00130-TASK.md) | Qualify Agent issuance Command and Query dispatch | [TICKET-00038](../tickets/00038-TICKET.md) — Preserve message and result types through dispatch | ready-for-agent | [TASK-00182](00182-TASK.md) | — |

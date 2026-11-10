@@ -101,7 +101,7 @@ retention policy, blanket administrative grants, live protocol mechanics, consum
 | Order | TASK ID | Title | Status |
 | --- | --- | --- | --- |
 | 89 | [TASK-00089](../tasks/00089-TASK.md) | Compose scoped execution and timeline reads | ready-for-agent |
-| 90 | [TASK-00090](../tasks/00090-TASK.md) | Compose independent protected-detail metadata and body reads | ready-for-agent |
+| 90 | [TASK-00090](../tasks/00090-TASK.md) | Compose independent protected-detail metadata and body reads | in-progress |
 ## Decisions and Progress
 
 John approved item 5 of the eight-TICKET split, explicitly invoked To Tasks for this TICKET, then approved two

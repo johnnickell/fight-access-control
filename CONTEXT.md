@@ -1,5 +1,25 @@
 # Fight AccessControl Context
 
+## Protected-detail admission — TASK-00090 Work checkpoint
+
+[Protected-detail composition](docs/agent-protected-detail.md) adds inward `AgentDetailReadAdmission` and the
+consumer-owned `AgentDetailScope` port under Application/AccessControl/Agent/Detail. Real ordinary-request
+Agent authority and separately configured conjunctive metadata/body Permissions intersect trusted consumer
+structural/metadata/body scope in Common's actual ListCapturedMessages/GetCapturedDetail admission. Metadata-only
+reads remain available without body Permission; timeline/coarse Tool grants and references confer no data grants.
+Common owns relationship checks, SQL-scoped totals, safe projections, retention and bounded Base64 byte retrieval.
+No relationship store, alternate reader, grant vocabulary or Common Adapter dependency inward is introduced.
+
+Common v1.5.0 (`06fb5cd3720af9cf8295198f74040d95b64c5155`) is the first sufficient supported minimum; exact-minimum
+and restored ordinary dependency lanes exercise real Tool/bus/handler/DBAL SQLite composition. Captures are UTF-8,
+not arbitrary non-UTF-8 binary; Base64 byte chunks can split code points. Actual payload-SELECT counts prove denied
+bodies are not retrieved/decoded. Fresh requests observe changed authority/scope; resolved ordinary requests retain
+their existing principal snapshot and one nonce consumption. No continuous authority/storage guarantee is claimed.
+Canonical `.runs/handoffs/TASK-00090/work.md` owns actual checks, lock/source identities, warnings and retained runtime.
+At this Work checkpoint independent Review and nonvisual behavioral QA remain required, TASK-00090 stays in-progress,
+and its parents remain open. Package fixtures do not qualify deployed cryptography, relationships, persistence/races,
+transport/sink lifetimes, consumer adoption or the combined unassigned EPIC release. TASK-00089 remains independent.
+
 ## Notice mutation admission — TASK-00091 accepted checkpoint
 
 The [notice composition guide](docs/agent-notice-authorization.md) supplies independently configured recording and
