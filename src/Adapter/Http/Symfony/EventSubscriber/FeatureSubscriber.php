@@ -32,10 +32,10 @@ final readonly class FeatureSubscriber implements EventSubscriberInterface
      * Constructs FeatureSubscriber
      */
     public function __construct(
-        private RequestMatcherInterface $targets,
+        private RequestMatcherInterface $requestMatcher,
         private RequestAuthentication $authentication,
         private FeatureAdmission $admission,
-        private SelectedController $controllers = new SelectedController()
+        private SelectedController $selectedController = new SelectedController()
     ) {
     }
 
@@ -97,7 +97,7 @@ final readonly class FeatureSubscriber implements EventSubscriberInterface
     {
         try {
             [$action] = $this->target($event->getRequest());
-            $action->assertMatches($this->controllers->action($event->getController()));
+            $action->assertMatches($this->selectedController->action($event->getController()));
         } catch (Throwable $throwable) {
             throw new LogicException('Feature controller association failed.', previous: $throwable);
         }
@@ -110,7 +110,7 @@ final readonly class FeatureSubscriber implements EventSubscriberInterface
      */
     private function target(Request $request): array
     {
-        $target = $this->targets->matchRequest($request);
+        $target = $this->requestMatcher->matchRequest($request);
         if (
             !isset($target['_controller'], $target['_route']) ||
             $target['_controller'] !== $request->attributes->get('_controller') ||
@@ -119,6 +119,6 @@ final readonly class FeatureSubscriber implements EventSubscriberInterface
             throw new LogicException('The selected Feature target does not match native routing.');
         }
 
-        return [$this->controllers->action($target['_controller']), $target];
+        return [$this->selectedController->action($target['_controller']), $target];
     }
 }
