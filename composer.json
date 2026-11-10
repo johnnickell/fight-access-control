@@ -64,10 +64,10 @@
         "codeigniter4/framework": "Enable explicit native CodeIgniter 4 permission admission and safe JSON errors (^4.7.6).",
         "laravel/framework": "Enable explicit native Laravel permission middleware and Common safe handler (^13.40.0).",
         "slim/slim": "Enable the optional Slim permission target integration (^4.15.3).",
-        "symfony/event-dispatcher": "Enable explicit native Symfony permission admission (^8.1.5).",
+        "symfony/event-dispatcher": "Enable explicit native Symfony Permission or Feature admission (^8.1.5).",
         "symfony/http-foundation": "Enable native Symfony/Laravel requests and safe JSON responses (^8.1.11).",
         "symfony/http-kernel": "Enable native Symfony admission and Laravel HTTP failures (^8.1.11).",
-        "symfony/routing": "Enable trusted native Symfony permission target matching (^8.1.11).",
+        "symfony/routing": "Enable trusted native Symfony Permission or Feature target matching (^8.1.11).",
         "symfony/security-http": "Optionally compose native IsGranted attributes after permission admission (^8.1.11).",
         "yiisoft/router": "Enable the optional Yii 3 permission target integration (^4.0.2).",
         "zircote/swagger-php": "Generate a consumer-owned OpenAPI document from the opt-in openapi/ component catalog."

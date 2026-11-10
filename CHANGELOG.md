@@ -9,6 +9,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Optional native Symfony Feature admission before lazy controller resolution, independently selectable from
+  PermissionSubscriber. Shared effective declarations and dispatch-owned authentication preserve inherited gates,
+  trusted controller association and one Agent nonce across cooperating checks. Ordinary OFF/unmet PREVIEW is generic
+  404; faults retain Common's safe native owner. See [Symfony Feature composition](docs/symfony-feature-admission.md)
+  for actual lifecycle, optional component and consumer limits.
+
 - Optional Feature-only PSR-15 admission with shared inward restrictions, separately exercised real Slim/Yii 3
   bindings, effective inherited requirements and trusted request-owned User/Agent/anonymous context. Cooperating
   Permission gates share one authentication selection without trusting copied attributes or replaying Agent nonces.

@@ -6,6 +6,28 @@ Fight AccessControl owns framework-neutral identity, credential, session, author
 behavior shared by Fight applications. The repository-local behavioral and security authority is
 [TICKET-00001](planning/tickets/00001-TICKET.md).
 
+## Query dispatch — TASK-00128 accepted checkpoint
+
+John's 2026-11-09 amendment retains native/static mixed QueryBus fetch/dispatch and permits known caller result
+annotations, including collection elements. Each concrete handler declares its specific result or throws; dynamic
+boundaries remain validated. No automatic generic inference or generic Common supplier prerequisite is required
+for this slice. The [current dispatch manifest](docs/query-dispatch-contracts.md) maps all 22 current Query bindings,
+both production callers, supported routing/pipeline composition, exact static contracts and runtime proof. Existing
+correct result declarations/caller boundaries remain unchanged; current guide examples gain matching annotations.
+The follow-up payload clarification requires one registered Query per handler and a flat local annotation immediately
+above extraction in `handle()`. All 22 match after aligning preparation and preview while retaining their guards;
+the shared Command/Query/Event style is documented in the PHP standard, not a sibling source sweep.
+TASK-00132 owns the integrated strict page semantics; sibling Command/Event/Agent qualification remains separately owned.
+Independent Review v3 ACCEPT and complete nonvisual QA PASS cover clean candidate
+`1e0f03a9b3383c663b6bcef9896ff450e959dc2f`, without findings. QA passes 12 groups, 53 new cases /
+1,694 assertions plus 633 complementary tests / 7,491 assertions and 110 exact static diagnostics. Original full
+gate passes 7,333 tests / 80,218 assertions, exact 9,385/9,385 global and 2/2 changed statements; QA's interrupted
+extra build is not a pass. TASK-00128 is done; unfinished children keep TICKET-00038/EPIC-00016 open.
+Integrated verification and publication/final delivery checks remain pending at this administrative checkpoint;
+canonical `.runs/handoffs/TASK-00128/land.md` owns subsequent bridge, checks, delivery and resource outcomes.
+Original reports and Work history remain preserved; no whole-library/consumer qualification or delivery is claimed.
+Historical generic-typing observations below retain their original scope and are superseded for this Query slice.
+
 ## TASK-00132 paged Query contracts — accepted checkpoint
 
 The six [paged Query paths](docs/paged-queries.md) now adopt Common v1.5.0 strict construction for incoming and
@@ -103,6 +125,24 @@ unfinished children keep TICKET-00041/EPIC-00016 open. Publication/final deliver
 administrative checkpoint; canonical `.runs/handoffs/TASK-00148/land.md` owns subsequent bridge, checks, delivery
 and resource results. Original report subjects, historical Work proof and lowest-lane advisories remain preserved;
 no whole-library or actual consumer qualification, approval, merge, release or deployment is claimed.
+
+## TASK-00173 Symfony Feature admission — accepted checkpoint
+
+Optional [native Symfony Feature admission](docs/symfony-feature-admission.md) now consumes the shared effective
+requirements/evaluator at kernel.request after routing, independently of PermissionSubscriber. Trusted rematching and
+resolved-controller integrity protect supported selected code; dispatch-owned provider sharing preserves both gates'
+context and one Agent nonce. Only ordinary OFF/unmet PREVIEW is generic 404; Common retains one native safe-error owner.
+The source-linked runtime flow documents pre-validation/action and lazy-construction boundaries, eager/late-listener,
+non-JSON and real consumer limits. Minimum/core-only/native-without-Security-HTTP probes and ordinary composition remain
+distinct evidence in the canonical Work handoff. Independent Review v3 ACCEPT and complete nonvisual QA PASS
+cover `75dbe8418469b1bbf40506b364e6952430ab8c20`, with no outstanding findings: 12 QA groups including
+40 new native journeys / 211 checks and 75 existing tests / 805 assertions. Land's behavior-preserving develop
+integration retains native source/test bytes and the separate paged-query slice; fresh integrated gate passes
+7,277 tests / 80,253 assertions, exact 9,493/9,493 statements. TASK-00173 is done; unfinished children keep
+TICKET-00050/EPIC-00018 open. Publication/final delivery verification remain pending at this administrative
+checkpoint; canonical `.runs/handoffs/TASK-00173/land.md` owns subsequent bridge, delivery and resource results.
+Original independent report subjects and historical failures remain preserved. No actual consumer qualification,
+approval, merge, release or deployment is claimed.
 
 ## TASK-00172 Feature admission — accepted checkpoint
 

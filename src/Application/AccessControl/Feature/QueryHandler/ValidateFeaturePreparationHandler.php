@@ -48,8 +48,9 @@ final readonly class ValidateFeaturePreparationHandler implements QueryHandler
      */
     public function handle(QueryMessage $queryMessage): FeaturePreparationResult
     {
+        /** @var ValidateFeaturePreparation $query */
         $query = $queryMessage->payload();
-        if (!$query instanceof ValidateFeaturePreparation) {
+        if (!is_a($query, self::queryRegistration())) {
             throw new DomainException('Unexpected Feature preparation query.');
         }
 

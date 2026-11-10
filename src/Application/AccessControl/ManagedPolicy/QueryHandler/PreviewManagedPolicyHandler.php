@@ -41,8 +41,9 @@ final readonly class PreviewManagedPolicyHandler implements QueryHandler
      */
     public function handle(QueryMessage $queryMessage): ManagedPolicyPlan
     {
+        /** @var PreviewManagedPolicy $query */
         $query = $queryMessage->payload();
-        if (!$query instanceof PreviewManagedPolicy) {
+        if (!is_a($query, self::queryRegistration())) {
             throw new UnexpectedValueException('Unexpected managed-policy preview query.');
         }
 
