@@ -2,7 +2,7 @@
 id: TICKET-00025
 epic: EPIC-00014
 title: Bind Common-owned and attributed Tools to Agent Permissions
-status: ready-for-agent
+status: done
 ---
 
 # Bind Common-owned and attributed Tools to Agent Permissions
@@ -82,17 +82,17 @@ nonce consumption remains a distinct, request-scoped side effect of the current 
 
 ## Acceptance Evidence
 
-- [ ] Real mixed Common-owned/attributed Tool registry composes with complete explicit requirements and no wrappers
+- [x] Real mixed Common-owned/attributed Tool registry composes with complete explicit requirements and no wrappers
   copying Tool schemas; each missing, malformed, conflicting and foreign-definition case fails as specified,
   including a mapped attributed Tool with either equal or different requirements.
-- [ ] Every missing-Permission permutation denies before selected validation, Tool/Query/Command work, progress or
+- [x] Every missing-Permission permutation denies before selected validation, Tool/Query/Command work, progress or
   protected retry restoration/consumption; unavailable and unknown public outcomes remain equivalent.
-- [ ] Permitted discovery/invocation/retry uses the real Common paths; private paging/cursors do not cache authority.
-- [ ] Actual AccessControl provider resolution is request-local; later revocation/rotation/Permission changes affect
+- [x] Permitted discovery/invocation/retry uses the real Common paths; private paging/cursors do not cache authority.
+- [x] Actual AccessControl provider resolution is request-local; later revocation/rotation/Permission changes affect
   later requests, while already admitted short-request snapshots retain their documented semantics.
-- [ ] Existing profile Tool behavior, minimum-version composition, safe failures and unchanged alternate-path
+- [x] Existing profile Tool behavior, minimum-version composition, safe failures and unchanged alternate-path
   obligations are covered with focused tests, documentation, exact coverage and the canonical package gate.
-- [ ] Later implementation receives required independent technical Review and behavioral QA; no acceptance is
+- [x] Implementation received required independent technical Review and behavioral QA; no acceptance is
   inferred from this planning approval or the earlier research-only rejection probe.
 
 ## Exclusions
@@ -104,7 +104,7 @@ middleware, automatic grants, copied Common Tools, a new endpoint/CQRS bridge or
 
 | Order | TASK ID | Title | Status |
 | --- | --- | --- | --- |
-| 84 | [TASK-00084](../tasks/00084-TASK.md) | Protect mixed Common-owned and attributed MCP Tools | ready-for-agent |
+| 84 | [TASK-00084](../tasks/00084-TASK.md) | Protect mixed Common-owned and attributed MCP Tools | done |
 ## Decisions and Progress
 
 John approved this requirement area as item 1 of EPIC-00014's complete eight-TICKET split, then explicitly selected
@@ -113,10 +113,14 @@ this TICKET for To Tasks and approved its single-TASK plan. The complete accepte
 change and complete discovery/invocation/retry, dependency-minimum, test and documentation evidence together;
 there is no separate prefactor or testing-only TASK.
 
-TASK-00084 is ready-for-agent: Common v1.5.0 supplies the execution APIs and TASK-00108/TASK-00110 are done.
-Its satisfied dependency edges remain recorded. Controlled consumer-policy fixtures support package implementation;
-production policy/adoption is not missing operator input. Tests/docs/minimum qualification and independent acceptance
-remain with the feature; readiness does not assert implementation or authorize its execution.
+TASK-00084 has independent technical Review ACCEPT and complete nonvisual QA PASS on candidate
+`8ffa933d46e4d9b99a5105549c3d846ac94f4b62`, without findings. Its owning record retains complete mixed
+composition, tests/docs, minimum/ordinary qualification and exact full-gate evidence. All child requirements
+are accepted; automatic parent completion closes this TICKET with TASK-00084. Unfinished siblings keep
+EPIC-00014 open. Publication/final delivery verification remain pending at this administrative checkpoint;
+canonical `.runs/handoffs/TASK-00084/land.md` owns subsequent delivery and resource outcomes. Minimum-lane
+advisories and original independent subjects remain preserved. Controlled consumer-policy fixtures do not
+qualify actual consumer scope, storage, cryptography or deployment.
 
 John accepted the external-Tool architecture recommendations and requested reconciliation of these existing records.
 Explicit maps and attributes now have one-source-per-Tool semantics under TASK-00084; no new TASK, grant or Common

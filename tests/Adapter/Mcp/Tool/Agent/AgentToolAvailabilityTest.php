@@ -48,6 +48,7 @@ use Fight\Common\Application\Validation\ValidationService;
 use Fight\Common\Application\Validation\Validator;
 use Fight\Common\Domain\Value\Basic\StrictJson;
 use Fight\Test\AccessControl\Adapter\Mcp\Tool\Agent\Fixture\InteractiveProtectedTool;
+use Fight\Test\AccessControl\Adapter\Mcp\Tool\Agent\Fixture\MappedInteractiveTool;
 use Fight\Test\AccessControl\Adapter\Mcp\Tool\Agent\Fixture\ProtectedTool;
 use Fight\Test\AccessControl\Application\AccessControl\Agent\Authentication\FixedHmacSharedSecretDecipher;
 use Fight\Test\AccessControl\Application\AccessControl\Agent\Authentication\FixedHmacSignedAgentRequestVerifier;
@@ -343,6 +344,17 @@ final class AgentToolAvailabilityTest extends TestCase
         $this->exerciseInteraction(null);
     }
 
+    #[DataProvider('authorityChanges')]
+    public function test_mapped_retry_rechecks_fresh_authority(string $change): void
+    {
+        $this->exerciseInteraction($change, mapped: true);
+    }
+
+    public function test_mapped_retry_completes_with_fresh_authority(): void
+    {
+        $this->exerciseInteraction(null, mapped: true);
+    }
+
     protected function setUp(): void
     {
         $this->unitOfWork = new InMemoryUnitOfWork();
@@ -367,11 +379,15 @@ final class AgentToolAvailabilityTest extends TestCase
         $this->nonces = new InMemoryAgentRequestNonceConsumer($this->agentRepository, $this->unitOfWork);
     }
 
-    private function exerciseInteraction(?string $change): void
+    private function exerciseInteraction(?string $change, bool $mapped = false): void
     {
-        $tool = new InteractiveProtectedTool($this->dispatch($change === null ? 1 : 0));
+        $dispatch = $this->dispatch($change === null ? 1 : 0);
+        $tool = $mapped ? new MappedInteractiveTool($dispatch) : new InteractiveProtectedTool($dispatch);
         $registry = new McpToolRegistry([$tool]);
-        $catalog = new AgentToolPermissionCatalog($registry);
+        $catalog = new AgentToolPermissionCatalog(
+            $registry,
+            $mapped ? ['agents.confirm' => ['VIEW_AGENTS', 'UPDATE_AGENTS']] : []
+        );
         // Opaque-state port fixture, not cryptographic-provider qualification.
         $plaintext = '';
         $protector = $this->createMock(McpStateProtector::class);
@@ -394,6 +410,7 @@ final class AgentToolAvailabilityTest extends TestCase
         $interaction = new McpToolInteraction($protector, 'neutral-fixture-binding', confirmations: $confirmations);
         $first = new McpToolInvoker($registry, $this->availability($catalog), interaction: $interaction);
         $issued = $first->invokeRequest($this->request('tools/call', ['name' => 'agents.confirm']))->toArray();
+        $consumedRequest = $this->signedRequest('valid');
         self::assertSame('input_required', $issued['resultType']);
         self::assertSame('opaque-fixture-token', $issued['requestState']);
         self::assertArrayNotHasKey('structuredContent', $issued);
@@ -415,6 +432,19 @@ final class AgentToolAvailabilityTest extends TestCase
             self::assertSame('confirmed', $result['structuredContent']->get('label'));
             self::assertSame(1, $tool->resumes);
             self::assertSame(2, $this->nonces->consumptionCalls());
+            $replayed = new McpToolInvoker(
+                $registry,
+                $this->availability($catalog, requestOverride: $consumedRequest),
+                interaction: $interaction
+            );
+            self::assertSame(
+                ['code' => -32602, 'message' => 'Unknown or unavailable tool.'],
+                $this->rejection(fn(): McpResult => $replayed->invokeRequest(
+                    $this->request('tools/call', $parameters, 3),
+                    $progress
+                ))
+            );
+            self::assertSame(1, $tool->resumes);
         } else {
             $unknownRegistry = new McpToolRegistry([]);
             $unknown = new McpToolInvoker(
@@ -452,10 +482,11 @@ final class AgentToolAvailabilityTest extends TestCase
         bool $invalidSignature = false,
         ?AgentCredentialId $credential = null,
         string $secret = 'fixture-secret',
-        ?string $correlationId = null
+        ?string $correlationId = null,
+        ?SignedAgentRequest $requestOverride = null
     ): AgentToolAvailability {
         ++$this->requestNumber;
-        $request = $this->signedRequest('valid', $credential);
+        $request = $requestOverride ?? $this->signedRequest('valid', $credential);
         $verifier = new FixedHmacSignedAgentRequestVerifier($request, $secret);
         $this->verifiers[] = $verifier;
         $provider = new CurrentAgentPrincipalProvider(

@@ -69,6 +69,32 @@ central metadata/envelope and safe unknown/denied/internal results. Controlled m
 actual list/get plus independently admitted Query data and inert later-denied links. Work's canonical handoff owns
 exact lock/source/check evidence; independent feature Review/QA and actual consumer qualification remain separate.
 
+## Mixed Tool qualification — TASK-00084
+
+The binding extension needs no newer supplier than the current **v1.5.0 minimum** above. Production uses the
+existing `McpToolRegistry::{definition,find,available}` and exact `McpToolInfo` identities; no supplier declaration
+is copied or changed. `MixedAgentToolsTest` additionally consumes the released final Adapter Tools and owning
+Domain Queries below with a controlled QueryBus and real AccessControl request provider:
+
+| Common Adapter Tool (`Adapter/Mcp/Tool/`) | Owning Query (`Domain/Mcp/`) |
+| --- | --- |
+| `Session/SummarizeExecutionsTool` | `Session/Query/SummarizeExecutions` |
+| `Session/ListExecutionsTool` | `Session/Query/ListExecutions` |
+| `Session/GetExecutionTool` | `Session/Query/GetExecution` |
+| `Phase/ListExecutionPhasesTool` | `Phase/Query/ListExecutionPhases` |
+| `Observation/ListPhaseActivityTool` | `Observation/Query/ListPhaseActivity` |
+| `Detail/ListCapturedMessagesTool` | `Detail/Query/ListCapturedMessages` |
+| `Detail/GetCapturedDetailTool` | `Detail/Query/GetCapturedDetail` |
+
+These tests construct released Application `ExecutionSummary`, `ExecutionPage`, `PhasePage`, `ActivityPage/View`,
+`MessagePage`, `CapturedDetail` and `DetailReference` results from supported Domain session/phase/observation,
+activity target/timing/result and capture values. Native schema/output validation proves the optional typed activity
+facts survive without business-success inference, and metadata-only details retain `body_permitted: false`/null
+chunks. Common owns schema, input decoding and protocol output; AccessControl adds only configured Permission
+requirements. Explicitly mapped retry proof uses Common's existing invoker/interaction/state/confirmation ports.
+Minimum and ordinary lanes, exact lock/source identity and original warnings are retained in canonical
+`.runs/handoffs/TASK-00084/work.md`; no actual scoped Query handler/backend/consumer qualification is inferred.
+
 ## Qualification and future owners
 
 The isolated exact-minimum Composer lane pins `1.5.0`; the ordinary lane resolves the manifest normally. Both
@@ -83,7 +109,8 @@ Common's new Task/Notice/execution/protected-detail APIs are implemented and rel
 than merely planned. Domain repositories/read ports and separate `TransactionalUnitOfWork`, registered CQRS
 handlers, meaningful identities/values and outward concrete Tools are the supplier direction. TASK-00184 separates
 DBAL UoW, 00185/00186 supply repositories, 00187 handler ownership, 00188 Task projection, 00189/00190 values and
-00191 aggregate/adapter homes. None is currently consumed by AccessControl's existing feature slice. Future
-TASK-00084/00089–00102 must inspect their exact declarations, configure actual Common buses and independently
-qualify each operation/family. This baseline clears only TASK-00110's historical supplier hold, not those feature
+00191 aggregate/adapter homes. TASK-00084 now exercises the seven execution Tools through mixed protected composition
+in package tests, and TASK-00087 consumes the Prompt contracts described above. TASK-00089–00102 must inspect their
+exact declarations, configure actual Common buses and independently qualify each operation/family. This baseline
+clears only TASK-00110's historical supplier hold, not those feature
 holds, grant requirements, live-runtime requirements or separate generic typing/returned-page evidence gaps.
