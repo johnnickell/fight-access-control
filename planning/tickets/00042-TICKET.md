@@ -130,10 +130,10 @@ own focused checks, full gate/exact coverage, current docs, receipt and independ
 
 TASK-00152 inherits unfinished feature qualification through its actual local edges, not superseded supplier holds.
 TASK-00128/00129, Common v1.5.0 adoption (TASK-00110), strict ResultSet adoption (TASK-00132) and Agent conversion
-(TASK-00182) are done. TASK-00130 now permits precise handler results/known-caller annotations; TASK-00136 uses
-`eventRegistration()` with concrete subscriber annotations and routing proof. No generic or Command-result API is
-required. Their own minimum/ordinary-lane tests and independent feature acceptance remain; a source label, status
-read or schema fixture cannot substitute for that qualification.
+(TASK-00182) are done. TASK-00130 permits precise handler results/known-caller annotations and retains its own minimum/
+ordinary-lane and independent acceptance work. TASK-00136's `eventRegistration()`/concrete subscriber annotation and
+routing proof is independently accepted and done in incoming develop. No generic or Command-result API is required;
+a source label, status read or schema fixture cannot substitute for actual qualification.
 Native commitTransactional(): mixed plus matching local @var for known owned callback results remains explicitly
 sufficient, including accurate tuple/union branches. No generic UoW API/task, wrapper/result DTO or redundant check
 is introduced; that exception does not establish bus/Event inference or validate untrusted values.

@@ -88,6 +88,15 @@ callbacks. Expectations come from those current package declarations. No product
 Static collection/callback inference does not validate untrusted values, enforce PHP generics at runtime, establish
 request identity or prove business effects.
 
+TASK-00136 has a scoped operator amendment accepting static eventRegistration() plus correct local Event
+payload annotations; generic upstream Event inference is not required. Its 14 positive probes explicitly report
+Common's actual Payload return and string registration shape, three EventMessage/void callbacks, the native Clock
+instant and all eight locally annotated payload contracts. Five incompatible uses reject a Command as an Event,
+CommandMessage as EventMessage, an unrefined payload getter, nullable restoration generation and cross-purpose ID.
+These local annotations do not prove registration inference or validate untrusted payloads. Every actual mapping and
+real dispatcher/bus behavior has separate [runtime composition proof](delivery-event-contracts.md), including
+minimum/ordinary lanes. Dummy/direct handlers cannot substitute for those real production routes.
+
 TASK-00128 adds 82 exact Query probes and 28 rejected incompatible uses across all 22 declared handler results,
 permitted annotated fetch/metadata-dispatch callers, collection/list elements and actual native boundaries. Six probes
 explicitly retain interface/routing/pipeline mixed returns. John's 2026-11-09 amendment permits known caller annotations;
@@ -95,8 +104,9 @@ these fixtures do not claim automatic inference or runtime generic enforcement. 
 exercises every owned handler. See [Query dispatch contracts](query-dispatch-contracts.md) for the exhaustive manifest,
 production callers, supported registration limits and unchanged semantic owners.
 
-TASK-00129/00130 retain their separate dispatch qualification; TASK-00136 owns real Event cases. Their supplier,
-minimum/ordinary and runtime requirements are not completed by this Query proof or the initial foundation cases.
+TASK-00129/00130 retain their separate dispatch qualification. Each slice's minimum/ordinary and runtime
+requirements are not completed by another slice's proof or the initial foundation cases.
+
 TASK-00117 adds two Domain cases: 21 exact positive types and nine incompatible uses covering Permission/Role
 identities, nullable repositories and typed batches/pages, Role revisions/membership, principal lists, policy definitions
 and plan items, exact plan/Event/message shapes and typed callbacks. The owned Domain source is also checked at level 8
