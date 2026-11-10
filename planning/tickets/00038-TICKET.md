@@ -7,6 +7,17 @@ status: ready-for-agent
 
 # Preserve message and result types through dispatch
 
+## Query amendment — 2026-11-09
+
+John explicitly clarified and reinvoked Build TASK-00128: QueryBus fetch/dispatch remain mixed; each handler
+serves one registered Query and declares its specific native/PHPStan result or throws. Known caller annotations,
+including precise ResultSet elements, are permitted. They do not enforce runtime generics; genuinely dynamic
+boundaries still require validation. For TASK-00128 this supersedes the original Query inference/no-assertion and
+external generic-supplier requirements below. Qualify actual supported tagged APIs, every binding/caller and exact
+static/runtime contracts, not an unavailable generic bus relationship. See the [current manifest](../../docs/query-dispatch-contracts.md).
+Command/Event and TASK-00130's distinct Agent qualification remain separately owned; historical planning statements
+below retain their original scope/date rather than imposing a current generic hold on TASK-00128.
+
 ## Problem and Outcome
 
 A concrete handler return declaration does not give a QueryBus caller its result type when fetch/dispatch expose
@@ -89,7 +100,7 @@ John approved the complete three-TASK split, now written with kind chore and nee
 
 | TASK | Order | Delivered outcome | Actual prerequisite / local blockers |
 | --- | --- | --- | --- |
-| [TASK-00128](../tasks/00128-TASK.md) | 307 | Exact Query payload/result typing through real fetch/message dispatch, metadata operations, registrations and callers; all 22 current handlers. | Qualified/tagged Common generic Query contracts and minimum evidence; no local TASK blocker demonstrated. |
+| [TASK-00128](../tasks/00128-TASK.md) | 307 | Specific Query handler results and permitted annotated caller contracts through real fetch/message dispatch, metadata and all 22 current registrations. | Operator-amended mixed bus contract; actual supported tagged API minimum/ordinary proof, no generic supplier hold. |
 | [TASK-00129](../tasks/00129-TASK.md) | 308 | Typed Command payload/registration/handler/caller paths for all 37 existing handlers; successful handling stays void. | Qualified/tagged Common typed Command contracts and minimum evidence; no local TASK blocker demonstrated. |
 | [TASK-00130](../tasks/00130-TASK.md) | 309 | Exact payload/metadata/void Command contracts and outcome Query-result typing for Agent issuance. | Qualified/tagged generic Command/Query typing APIs plus actual conversion supplier [TASK-00182](../tasks/00182-TASK.md). No Command-result API required. |
 
@@ -115,7 +126,7 @@ examples, full gate/exact owned coverage, logs and independent Review/behavioral
 
 | Order | TASK ID | Title | Status |
 | --- | --- | --- | --- |
-| 307 | [TASK-00128](../tasks/00128-TASK.md) | Preserve types through Query dispatch | needs-info |
+| 307 | [TASK-00128](../tasks/00128-TASK.md) | Preserve types through Query dispatch | done |
 | 308 | [TASK-00129](../tasks/00129-TASK.md) | Preserve Command payload types through dispatch | needs-info |
 | 309 | [TASK-00130](../tasks/00130-TASK.md) | Qualify Agent issuance Command and Query dispatch | needs-info |
 ## Decisions and Progress

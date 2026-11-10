@@ -88,10 +88,15 @@ callbacks. Expectations come from those current package declarations. No product
 Static collection/callback inference does not validate untrusted values, enforce PHP generics at runtime, establish
 request identity or prove business effects.
 
-TASK-00128/00129/00130 may add real dispatch cases using this manifest/runner; TASK-00136 owns real Event cases.
-Those owners must prove their actual payload/result/registration relationships through qualified Common contracts,
-minimum/ordinary dependency lanes and applicable runtime composition. Local sinks/probes, dummy handlers or direct
-handler calls cannot stand in for an unqualified bus relationship. These initial cases claim none of that proof.
+TASK-00128 adds 82 exact Query probes and 28 rejected incompatible uses across all 22 declared handler results,
+permitted annotated fetch/metadata-dispatch callers, collection/list elements and actual native boundaries. Six probes
+explicitly retain interface/routing/pipeline mixed returns. John's 2026-11-09 amendment permits known caller annotations;
+these fixtures do not claim automatic inference or runtime generic enforcement. Real configured routing separately
+exercises every owned handler. See [Query dispatch contracts](query-dispatch-contracts.md) for the exhaustive manifest,
+production callers, supported registration limits and unchanged semantic owners.
+
+TASK-00129/00130 retain their separate dispatch qualification; TASK-00136 owns real Event cases. Their supplier,
+minimum/ordinary and runtime requirements are not completed by this Query proof or the initial foundation cases.
 TASK-00117 adds two Domain cases: 21 exact positive types and nine incompatible uses covering Permission/Role
 identities, nullable repositories and typed batches/pages, Role revisions/membership, principal lists, policy definitions
 and plan items, exact plan/Event/message shapes and typed callbacks. The owned Domain source is also checked at level 8

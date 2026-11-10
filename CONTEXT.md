@@ -6,6 +6,28 @@ Fight AccessControl owns framework-neutral identity, credential, session, author
 behavior shared by Fight applications. The repository-local behavioral and security authority is
 [TICKET-00001](planning/tickets/00001-TICKET.md).
 
+## Query dispatch — TASK-00128 accepted checkpoint
+
+John's 2026-11-09 amendment retains native/static mixed QueryBus fetch/dispatch and permits known caller result
+annotations, including collection elements. Each concrete handler declares its specific result or throws; dynamic
+boundaries remain validated. No automatic generic inference or generic Common supplier prerequisite is required
+for this slice. The [current dispatch manifest](docs/query-dispatch-contracts.md) maps all 22 current Query bindings,
+both production callers, supported routing/pipeline composition, exact static contracts and runtime proof. Existing
+correct result declarations/caller boundaries remain unchanged; current guide examples gain matching annotations.
+The follow-up payload clarification requires one registered Query per handler and a flat local annotation immediately
+above extraction in `handle()`. All 22 match after aligning preparation and preview while retaining their guards;
+the shared Command/Query/Event style is documented in the PHP standard, not a sibling source sweep.
+TASK-00132 owns the integrated strict page semantics; sibling Command/Event/Agent qualification remains separately owned.
+Independent Review v3 ACCEPT and complete nonvisual QA PASS cover clean candidate
+`1e0f03a9b3383c663b6bcef9896ff450e959dc2f`, without findings. QA passes 12 groups, 53 new cases /
+1,694 assertions plus 633 complementary tests / 7,491 assertions and 110 exact static diagnostics. Original full
+gate passes 7,333 tests / 80,218 assertions, exact 9,385/9,385 global and 2/2 changed statements; QA's interrupted
+extra build is not a pass. TASK-00128 is done; unfinished children keep TICKET-00038/EPIC-00016 open.
+Integrated verification and publication/final delivery checks remain pending at this administrative checkpoint;
+canonical `.runs/handoffs/TASK-00128/land.md` owns subsequent bridge, checks, delivery and resource outcomes.
+Original reports and Work history remain preserved; no whole-library/consumer qualification or delivery is claimed.
+Historical generic-typing observations below retain their original scope and are superseded for this Query slice.
+
 ## TASK-00132 paged Query contracts — accepted checkpoint
 
 The six [paged Query paths](docs/paged-queries.md) now adopt Common v1.5.0 strict construction for incoming and

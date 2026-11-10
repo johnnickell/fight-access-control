@@ -11,9 +11,11 @@ Register Application `Agent\QueryHandler\GetAgentProfileHandler` with the consum
 Its `queryRegistration()` names Domain `Agent\Query\GetAgentProfile`; dispatch through Fight Common's Query contract:
 
 ```php
+use Fight\AccessControl\Domain\AccessControl\Agent\Query\AgentProfileView;
 use Fight\AccessControl\Domain\AccessControl\Agent\Query\GetAgentProfile;
 // $queryBus is the configured Common QueryBus registering GetAgentProfileHandler.
 // $authorizedTargetId has already passed the consumer's caller/target authorization.
+/** @var AgentProfileView $profile */
 $profile = $queryBus->fetch(new GetAgentProfile($authorizedTargetId));
 ```
 
