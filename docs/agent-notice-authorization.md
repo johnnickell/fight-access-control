@@ -154,4 +154,5 @@ Exact-minimum and ordinary Composer lanes exercise this same composition. TASK/i
 actual installed tag/source/lock, complete logs/exits, owned coverage and canonical gate result. Controlled fixtures
 qualify this package integration only: not production consumer policy, persistence/crypto, handoff durability,
 authority-writer synchronization, engine races, scheduler, deployment, client receipt or sibling notice capabilities.
-Read/recovery, listening, live disclosure, subscriber inspection and publication remain independent unfinished slices.
+[Read/recovery](agent-notice-recovery.md) now has TASK-00092 Work composition, pending independent acceptance.
+Listening, live disclosure, subscriber inspection and publication remain independent unfinished slices.
