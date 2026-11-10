@@ -17,6 +17,7 @@ use Fight\AccessControl\Application\AccessControl\User\CommandHandler\DeleteUser
 use Fight\AccessControl\Application\AccessControl\User\CommandHandler\DisableUserHandler;
 use Fight\AccessControl\Application\AccessControl\User\CommandHandler\RemoveRoleFromUserHandler;
 use Fight\AccessControl\Application\AccessControl\User\PasswordManagement;
+use Fight\AccessControl\Domain\AccessControl\Audit\AnonymousId;
 use Fight\AccessControl\Domain\AccessControl\CredentialDelivery\CredentialDeliveryStatus;
 use Fight\AccessControl\Domain\AccessControl\PasswordResetGrant\PasswordResetGrant;
 use Fight\AccessControl\Domain\AccessControl\Role\Role;
@@ -93,7 +94,8 @@ final class RecoveryLifecycleTest extends TestCase
         $fixture->passwordManagement()->resetPassword(
             $fixture->userId,
             'fresh-recovery-fixture',
-            'a sufficiently long recovered password'
+            'a sufficiently long recovered password',
+            AnonymousId::generate()
         );
         self::assertTrue($fixture->grant()->isConsumed());
     }
@@ -128,7 +130,8 @@ final class RecoveryLifecycleTest extends TestCase
         $fixture->passwordManagement()->resetPassword(
             $fixture->userId,
             'recovery-fixture',
-            'a sufficiently long recovered password'
+            'a sufficiently long recovered password',
+            AnonymousId::generate()
         );
         self::assertTrue($fixture->grant()->isConsumed());
     }
@@ -144,9 +147,13 @@ final class RecoveryLifecycleTest extends TestCase
         $fixture->request('next-fixture');
         $next = $fixture->grant()->getAuthority();
         $fixture->requestEmail();
-        $fixture->emailChangeConfirmation()->confirmEmail($fixture->userId, 'email-fixture');
+        $fixture->emailChangeConfirmation()->confirmEmail($fixture->userId, 'email-fixture', AnonymousId::generate());
         $fixture->requestEmail('recovery@example.test', 'next-email-fixture');
-        $fixture->emailChangeConfirmation()->confirmEmail($fixture->userId, 'next-email-fixture');
+        $fixture->emailChangeConfirmation()->confirmEmail(
+            $fixture->userId,
+            'next-email-fixture',
+            AnonymousId::generate()
+        );
         self::assertSame('recovery@example.test', $fixture->user()->getEmail()->canonical());
         self::assertFalse($next->equals($fixture->user()->getRecoveryAuthority()));
         self::assertSame(2, $fixture->user()->getCanonicalEmailRevision());
@@ -182,7 +189,8 @@ final class RecoveryLifecycleTest extends TestCase
             $fixture->passwordManagement()->resetPassword(
                 $fixture->userId,
                 'recovery-fixture',
-                'a sufficiently long recovery password'
+                'a sufficiently long recovery password',
+                AnonymousId::generate()
             );
             self::assertTrue($fixture->grant()->isConsumed());
             self::assertNull($fixture->grant()->getDelivery()->getEncryptedMaterial());
@@ -203,7 +211,8 @@ final class RecoveryLifecycleTest extends TestCase
             $fixture->passwordManagement()->resetPassword(
                 $fixture->userId,
                 'recovery-fixture',
-                'a sufficiently long recovery password'
+                'a sufficiently long recovery password',
+                AnonymousId::generate()
             );
             self::assertTrue($fixture->grant()->isConsumed());
             self::assertSame(2, $fixture->user()->getAuthenticationVersion());
@@ -214,7 +223,8 @@ final class RecoveryLifecycleTest extends TestCase
         $fixture->passwordManagement()->resetPassword(
             $fixture->userId,
             'recovery-fixture',
-            'a sufficiently long recovery password'
+            'a sufficiently long recovery password',
+            AnonymousId::generate()
         );
         self::assertTrue($fixture->grant()->isConsumed());
     }
@@ -343,7 +353,8 @@ final class RecoveryLifecycleTest extends TestCase
                             $fixture->passwordManagement()->resetPassword(
                                 $fixture->userId,
                                 'recovery-fixture',
-                                'a sufficiently long recovery password'
+                                'a sufficiently long recovery password',
+                                AnonymousId::generate()
                             );
                         } else {
                             $this->transition($fixture, $transition);
@@ -379,13 +390,59 @@ final class RecoveryLifecycleTest extends TestCase
                 $fixture->requestEmail();
             }
 
-            $fixture->emailChangeConfirmation()->confirmEmail($fixture->userId, 'email-fixture');
+            $fixture->emailChangeConfirmation()->confirmEmail(
+                $fixture->userId,
+                'email-fixture',
+                AnonymousId::generate()
+            );
         } elseif ($transition === 'disable') {
             $fixture->disable();
         } elseif ($transition === 'delete') {
             $fixture->delete();
         } else {
             throw new RuntimeException('Unknown contract transition.');
+        }
+    }
+
+    public function test_enabled_audit_requires_explicit_origin_after_valid_credential_admission(): void
+    {
+        foreach (['reset', 'confirm'] as $operation) {
+            $fixture = new RecoveryFixture();
+            $fixture->authentication()->login('recovery@example.test', 'correct-secret');
+            $fixture->request();
+            $fixture->requestEmail();
+            $user = clone $fixture->user();
+            $resetGrant = $fixture->grant();
+            $emailGrants = $fixture->emailChangeGrantRepository->all();
+            $sessions = $fixture->refreshSessionRepository->all();
+            $evidence = $fixture->auditEvidenceRepository->all();
+            $events = count($fixture->eventDispatcher->events());
+            try {
+                if ($operation === 'reset') {
+                    $fixture->passwordManagement()->resetPassword(
+                        $fixture->userId,
+                        'recovery-fixture',
+                        'a sufficiently long recovered password'
+                    );
+                } else {
+                    $fixture->emailChangeConfirmation()->confirmEmail($fixture->userId, 'email-fixture');
+                }
+
+                self::fail('Missing originating attribution admitted a mandatory audited mutation.');
+            } catch (PasswordResetRejectedException $exception) {
+                self::assertSame(
+                    $operation === 'reset' ? 'Password reset rejected.' : 'Email change confirmation rejected.',
+                    $exception->getMessage()
+                );
+            }
+
+            self::assertEquals($user, $fixture->user());
+            self::assertEquals($resetGrant, $fixture->grant());
+            self::assertEquals($emailGrants, $fixture->emailChangeGrantRepository->all());
+            self::assertEquals($sessions, $fixture->refreshSessionRepository->all());
+            self::assertSame($evidence, $fixture->auditEvidenceRepository->all());
+            self::assertCount($events + 1, $fixture->eventDispatcher->events());
+            self::assertFalse($fixture->unitOfWork->transactionActive);
         }
     }
 
@@ -396,7 +453,8 @@ final class RecoveryLifecycleTest extends TestCase
             $fixture->passwordManagement()->resetPassword(
                 $fixture->userId,
                 'recovery-fixture',
-                'a sufficiently long recovery password'
+                'a sufficiently long recovery password',
+                AnonymousId::generate()
             );
         } catch (PasswordResetRejectedException $passwordResetRejectedException) {
             $caught = $passwordResetRejectedException;

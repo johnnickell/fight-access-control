@@ -8,8 +8,16 @@ use DateTimeImmutable;
 use Fight\AccessControl\Application\AccessControl\PasswordResetGrant\Service\PasswordResetRevocationService;
 use Fight\AccessControl\Application\AccessControl\RefreshSession\Service\SessionRevocationService;
 use Fight\AccessControl\Application\AccessControl\Timing\Service\Clock;
+use Fight\AccessControl\Domain\AccessControl\Agent\AgentId;
+use Fight\AccessControl\Domain\AccessControl\Audit\AnonymousId;
+use Fight\AccessControl\Domain\AccessControl\Audit\AuditAction;
 use Fight\AccessControl\Domain\AccessControl\Audit\AuditEvidence;
 use Fight\AccessControl\Domain\AccessControl\Audit\AuditEvidenceRepository;
+use Fight\AccessControl\Domain\AccessControl\Audit\AuditGrantState;
+use Fight\AccessControl\Domain\AccessControl\Audit\AuditSubject;
+use Fight\AccessControl\Domain\AccessControl\Audit\AuditUserOutcome;
+use Fight\AccessControl\Domain\AccessControl\Audit\AuditUserRevisions;
+use Fight\AccessControl\Domain\AccessControl\Audit\SystemId;
 use Fight\AccessControl\Domain\AccessControl\PasswordResetGrant\PasswordResetCredential;
 use Fight\AccessControl\Domain\AccessControl\PasswordResetGrant\PasswordResetGrant;
 use Fight\AccessControl\Domain\AccessControl\PasswordResetGrant\PasswordResetGrantRepository;
@@ -109,9 +117,15 @@ final readonly class PasswordManagement
                 $this->sessionRevocationService->revokeAllActiveFor($authenticatedUserId, $changedAt);
 
                 $this->auditEvidenceRepository->add(AuditEvidence::record(
-                    $authenticatedUserId->toString(),
-                    'user.password_changed',
-                    $authenticatedUserId
+                    $authenticatedUserId,
+                    new AuditSubject($authenticatedUserId),
+                    AuditAction::PASSWORD_CHANGED,
+                    $changedAt,
+                    new AuditUserOutcome(
+                        AuditUserRevisions::fromUser($user),
+                        AuditUserRevisions::fromUser($replacementUser)
+                    ),
+                    null
                 ));
 
                 return $changedAt;
@@ -134,14 +148,16 @@ final readonly class PasswordManagement
     public function resetPassword(
         UserId $userId,
         #[SensitiveParameter] string $resetCredential,
-        #[SensitiveParameter] string $plainPassword
+        #[SensitiveParameter] string $plainPassword,
+        UserId|AgentId|SystemId|AnonymousId|null $actorId = null
     ): void {
         try {
             /** @var DateTimeImmutable $completedAt */
             $completedAt = $this->unitOfWork->commitTransactional(function () use (
                 $userId,
                 $resetCredential,
-                $plainPassword
+                $plainPassword,
+                $actorId
             ): DateTimeImmutable {
                 $completedAt = $this->clock->now();
                 $user = $this->userRepository->getById($userId);
@@ -181,13 +197,19 @@ final readonly class PasswordManagement
                     throw new AuthenticationRequired('Password reset rejected.');
                 }
 
+                if ($actorId === null) {
+                    throw new AuthenticationRequired('Password reset rejected.');
+                }
+
                 $passwordHash = PasswordHash::fromString($this->passwordHasher->hash($plainPassword));
                 $replacementUser = clone $user;
                 $replacementUser->resetPassword($passwordHash, $completedAt);
+
+                $consumedGrant = $passwordResetGrant->consume($completedAt);
                 if (
                     !$this->passwordResetGrantRepository->replace(
                         $passwordResetGrant,
-                        $passwordResetGrant->consume($completedAt)
+                        $consumedGrant
                     )
                 ) {
                     throw new AuthenticationRequired('Password reset rejected.');
@@ -200,9 +222,17 @@ final readonly class PasswordManagement
                 $this->sessionRevocationService->revokeAllActiveFor($userId, $completedAt);
 
                 $this->auditEvidenceRepository->add(AuditEvidence::record(
-                    $userId->toString(),
-                    'user.password_reset_completed',
-                    $userId
+                    $actorId,
+                    new AuditSubject($userId),
+                    AuditAction::PASSWORD_RESET_COMPLETED,
+                    $completedAt,
+                    new AuditUserOutcome(
+                        AuditUserRevisions::fromUser($user),
+                        AuditUserRevisions::fromUser($replacementUser),
+                        AuditGrantState::fromGrant($passwordResetGrant),
+                        AuditGrantState::fromGrant($consumedGrant)
+                    ),
+                    null
                 ));
 
                 return $completedAt;

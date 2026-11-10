@@ -17,6 +17,7 @@ use Fight\AccessControl\Domain\AccessControl\Agent\Query\AgentView;
 use Fight\AccessControl\Domain\AccessControl\Agent\Query\GetAgentById;
 use Fight\AccessControl\Domain\AccessControl\Agent\Query\ListAgents;
 use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\Query\GetAgentOperation;
+use Fight\AccessControl\Domain\AccessControl\User\UserId;
 use Fight\Common\Domain\Messaging\Query\QueryMessage;
 use Fight\Common\Domain\Repository\Pagination;
 use Fight\Test\AccessControl\Application\AccessControl\Agent\Authentication\FixedHmacSharedSecretDecipher;
@@ -59,7 +60,7 @@ final class AgentHydrationTest extends TestCase
                 $clock,
                 $env->transaction,
                 $env->eventDispatcher
-            )->revoke('maintainer-42', $issuance->getAgentId());
+            )->revoke(UserId::generate(), $issuance->getAgentId());
         }
 
         $stored = $env->agentRepository->all()[0];

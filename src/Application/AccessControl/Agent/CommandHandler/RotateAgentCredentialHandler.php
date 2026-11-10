@@ -13,6 +13,7 @@ use Fight\AccessControl\Application\AccessControl\AgentCredentialOperation\Excep
 use Fight\AccessControl\Application\AccessControl\AgentCredentialOperation\Exception\AgentRotationConflict;
 use Fight\AccessControl\Application\AccessControl\Timing\Service\Clock;
 use Fight\AccessControl\Domain\AccessControl\Agent\AgentCredentialId;
+use Fight\AccessControl\Domain\AccessControl\Agent\AgentId;
 use Fight\AccessControl\Domain\AccessControl\Agent\AgentRepository;
 use Fight\AccessControl\Domain\AccessControl\Agent\Command\RotateAgentCredential;
 use Fight\AccessControl\Domain\AccessControl\Agent\Event\AgentCredentialLifecycleFailed;
@@ -30,12 +31,21 @@ use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\AgentRotat
 use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\Exception\AgentOperationCollisionException;
 use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\Exception\AgentOperationRejectedException;
 use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\Exception\AgentOperationUncertainException;
+use Fight\AccessControl\Domain\AccessControl\Audit\AnonymousId;
+use Fight\AccessControl\Domain\AccessControl\Audit\AuditAction;
+use Fight\AccessControl\Domain\AccessControl\Audit\AuditAgentOutcome;
+use Fight\AccessControl\Domain\AccessControl\Audit\AuditAgentState;
+use Fight\AccessControl\Domain\AccessControl\Audit\AuditCorrelation;
 use Fight\AccessControl\Domain\AccessControl\Audit\AuditEvidence;
 use Fight\AccessControl\Domain\AccessControl\Audit\AuditEvidenceRepository;
+use Fight\AccessControl\Domain\AccessControl\Audit\AuditSubject;
+use Fight\AccessControl\Domain\AccessControl\Audit\SystemId;
+use Fight\AccessControl\Domain\AccessControl\User\UserId;
 use Fight\Common\Application\Messaging\Command\CommandHandler;
 use Fight\Common\Application\Messaging\Event\EventDispatcher;
 use Fight\Common\Application\Repository\TransactionalUnitOfWork;
 use Fight\Common\Domain\Messaging\Command\CommandMessage;
+use Fight\Common\Domain\Messaging\MessageId;
 use Throwable;
 
 /**
@@ -94,6 +104,7 @@ final readonly class RotateAgentCredentialHandler implements CommandHandler
                 $issuance = $this->unitOfWork->commitTransactional(function () use (
                     $key,
                     $request,
+                    $commandMessage,
                     $resolveOnly,
                     $missingReason,
                     &$callbackCompleted,
@@ -122,10 +133,6 @@ final readonly class RotateAgentCredentialHandler implements CommandHandler
                             AgentOperationFailure::UNAUTHORIZED,
                             AgentOperationFailure::UNAVAILABLE
                         );
-                    }
-
-                    if (preg_match('/\A[A-Za-z0-9_.:-]{1,128}\z/D', $actor) !== 1) {
-                        throw new AgentIssuanceFailed();
                     }
 
                     try {
@@ -164,7 +171,11 @@ final readonly class RotateAgentCredentialHandler implements CommandHandler
                             throw new AgentOperationRejection($missingReason);
                         }
 
-                        $issuance = $this->issue($key, $request, $actor);
+                        if ($actor === null) {
+                            throw new AgentIssuanceFailed();
+                        }
+
+                        $issuance = $this->issue($key, $request, $actor, $commandMessage->id());
                         $created = true;
                     }
 
@@ -215,8 +226,12 @@ final readonly class RotateAgentCredentialHandler implements CommandHandler
     /**
      * Creates the successor through the existing atomic retirement seam inside one package transaction
      */
-    private function issue(AgentOperationKey $key, AgentRotationRequest $request, string $actor): AgentIssuance
-    {
+    private function issue(
+        AgentOperationKey $key,
+        AgentRotationRequest $request,
+        UserId|AgentId|SystemId|AnonymousId $actor,
+        MessageId $messageId
+    ): AgentIssuance {
         $canonicalRequest = $request->canonicalize();
         try {
             $agent = $this->agentRepository->getById($request->getAgentId());
@@ -317,7 +332,18 @@ final readonly class RotateAgentCredentialHandler implements CommandHandler
             );
         }
 
-        $this->auditEvidenceRepository->add(AuditEvidence::agentCredentialRotated($actor, $request->getAgentId()));
+        $this->auditEvidenceRepository->add(AuditEvidence::record(
+            $actor,
+            new AuditSubject($request->getAgentId()),
+            AuditAction::AGENT_CREDENTIAL_ROTATED,
+            $issuedAt,
+            new AuditAgentOutcome(
+                AuditAgentState::fromAgent($agent),
+                AuditAgentState::fromAgent($successor),
+                $issuance->getDeliveryId()
+            ),
+            new AuditCorrelation($messageId, $key)
+        ));
 
         return $issuance;
     }
@@ -346,7 +372,7 @@ final readonly class RotateAgentCredentialHandler implements CommandHandler
     {
         try {
             $this->eventDispatcher->trigger(new AgentCredentialLifecycleFailed(
-                'credential-operation',
+                null,
                 'Agent operation failed.'
             ));
         } catch (Throwable) {

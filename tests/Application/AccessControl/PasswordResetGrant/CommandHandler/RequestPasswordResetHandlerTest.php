@@ -6,7 +6,11 @@ namespace Fight\Test\AccessControl\Application\AccessControl\PasswordResetGrant\
 
 use DateTimeImmutable;
 use Fight\AccessControl\Application\AccessControl\PasswordResetGrant\CommandHandler\RequestPasswordResetHandler;
+use Fight\AccessControl\Domain\AccessControl\Audit\AnonymousId;
+use Fight\AccessControl\Domain\AccessControl\Audit\AuditAction;
 use Fight\AccessControl\Domain\AccessControl\Audit\AuditEvidence;
+use Fight\AccessControl\Domain\AccessControl\Audit\AuditGrantOutcome;
+use Fight\AccessControl\Domain\AccessControl\Audit\AuditGrantState;
 use Fight\AccessControl\Domain\AccessControl\PasswordResetGrant\Command\RequestPasswordReset;
 use Fight\AccessControl\Domain\AccessControl\PasswordResetGrant\Event\PasswordResetRequested;
 use Fight\AccessControl\Domain\AccessControl\PasswordResetGrant\PasswordResetCredential;
@@ -82,7 +86,16 @@ final class RequestPasswordResetHandlerTest extends TestCase
         self::assertSame('ciphertext:reset-once', $grant->getDelivery()->getEncryptedMaterial()?->reveal());
         self::assertSame('alice@example.test', $grant->getDelivery()->getEmail()->canonical());
         self::assertSame($grant->getExpiresAt(), $grant->getDelivery()->getExpiresAt());
-        self::assertSame('user.password_reset_requested', $auditEvidenceRepository->all()[0]->action());
+        $audit = $auditEvidenceRepository->all()[0];
+        self::assertSame(AuditAction::PASSWORD_RESET_REQUESTED, $audit->action());
+        self::assertInstanceOf(AnonymousId::class, $audit->actorId());
+        self::assertSame($user->getId(), $audit->getSubject()->getId());
+        self::assertEquals(new DateTimeImmutable('2026-08-20T12:00:00+00:00'), $audit->getOccurredAt());
+        $facts = $audit->getFacts();
+        self::assertInstanceOf(AuditGrantOutcome::class, $facts);
+        self::assertNull($facts->getBefore());
+        self::assertNull($facts->getReplacedPredecessor());
+        self::assertEquals(AuditGrantState::fromGrant($grant), $facts->getAfter());
         self::assertInstanceOf(PasswordResetRequested::class, $eventDispatcher->events()[0]);
         self::assertSame($grant->getDelivery()->getId(), $eventDispatcher->events()[0]->getPasswordResetDeliveryId());
     }
@@ -129,6 +142,16 @@ final class RequestPasswordResetHandlerTest extends TestCase
         );
         self::assertFalse($passwordResetGrantRepository->all()[1]->getId()->equals($predecessor->getId()));
         self::assertCount(2, $auditEvidenceRepository->all());
+        $audit = $auditEvidenceRepository->all()[1];
+        $facts = $audit->getFacts();
+        self::assertInstanceOf(AuditGrantOutcome::class, $facts);
+        self::assertEquals(AuditGrantState::fromGrant($predecessor), $facts->getBefore());
+        self::assertEquals(
+            AuditGrantState::fromGrant($passwordResetGrantRepository->all()[0]),
+            $facts->getReplacedPredecessor()
+        );
+        self::assertEquals(AuditGrantState::fromGrant($passwordResetGrantRepository->all()[1]), $facts->getAfter());
+        self::assertEquals($command->id(), $audit->getCorrelation()?->getMessageId());
         self::assertCount(2, $eventDispatcher->events());
     }
 

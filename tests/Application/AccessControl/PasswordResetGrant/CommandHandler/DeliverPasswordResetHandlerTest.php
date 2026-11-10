@@ -9,6 +9,7 @@ use Fight\AccessControl\Application\AccessControl\CredentialDelivery\Service\Cre
 use Fight\AccessControl\Application\AccessControl\CredentialDelivery\Service\CredentialDeliveryOutcome;
 use Fight\AccessControl\Application\AccessControl\PasswordResetGrant\CommandHandler\DeliverPasswordResetHandler;
 use Fight\AccessControl\Application\AccessControl\PasswordResetGrant\EventSubscriber\PasswordResetDeliverySubscriber;
+use Fight\AccessControl\Domain\AccessControl\Audit\AnonymousId;
 use Fight\AccessControl\Domain\AccessControl\CredentialDelivery\CredentialDeliveryFailure;
 use Fight\AccessControl\Domain\AccessControl\CredentialDelivery\CredentialDeliveryStatus;
 use Fight\AccessControl\Domain\AccessControl\PasswordResetGrant\Command\DeliverPasswordReset;
@@ -89,7 +90,7 @@ final class DeliverPasswordResetHandlerTest extends TestCase
         self::assertSame(2, $unitOfWork->transactions);
         self::assertSame(CredentialDeliveryStatus::DELIVERED, $stored->getDelivery()->getStatus());
         self::assertNull($stored->getDelivery()->getEncryptedMaterial());
-        self::assertSame('user.password_reset_delivery.confirmed', $auditEvidenceRepository->all()[0]->action());
+        self::assertSame('user.password_reset_delivery.confirmed', $auditEvidenceRepository->all()[0]->action()->value);
         self::assertInstanceOf(PasswordResetDeliveryConfirmed::class, $eventDispatcher->events()[0]);
         self::assertSame(DeliverPasswordReset::class, DeliverPasswordResetHandler::commandRegistration());
     }
@@ -120,7 +121,10 @@ final class DeliverPasswordResetHandlerTest extends TestCase
 
             $delivery = $passwordResetGrantRepository->getLatestByUserId($grant->getUserId())?->getDelivery();
             self::assertSame($expectedStatus, $delivery?->getStatus());
-            self::assertSame('user.password_reset_delivery.failed', $auditEvidenceRepository->all()[0]->action());
+            self::assertSame(
+                'user.password_reset_delivery.failed',
+                $auditEvidenceRepository->all()[0]->action()->value
+            );
             self::assertSame([], $eventDispatcher->events());
             self::assertStringNotContainsString(
                 'private provider detail',
@@ -144,7 +148,7 @@ final class DeliverPasswordResetHandlerTest extends TestCase
                 $provider,
                 $eventDispatcher
             )->handle(CommandMessage::create(new DeliverPasswordReset(
-                'anonymous',
+                AnonymousId::generate(),
                 UserId::generate(),
                 PasswordResetDeliveryId::generate()
             )));
@@ -256,13 +260,13 @@ final class DeliverPasswordResetHandlerTest extends TestCase
     {
         $command = $this->command($this->grant());
         self::assertEquals($command, DeliverPasswordReset::fromArray($command->toArray()));
-        self::assertSame('anonymous', $command->getActorId());
+        self::assertEquals(AnonymousId::generate(), $command->getActorId());
         self::assertSame($command->getUserId(), $command->getUserId());
         self::assertSame($command->getPasswordResetDeliveryId(), $command->getPasswordResetDeliveryId());
         self::assertArrayNotHasKey('credential', $command->toArray());
         self::assertArrayNotHasKey('ciphertext', $command->toArray());
 
-        foreach (['actor_id', 'user_id', 'password_reset_delivery_id'] as $missing) {
+        foreach (['actor_kind', 'actor_id', 'user_id', 'password_reset_delivery_id'] as $missing) {
             $data = $command->toArray();
             unset($data[$missing]);
             try {
@@ -404,7 +408,7 @@ final class DeliverPasswordResetHandlerTest extends TestCase
     private function command(PasswordResetGrant $grant): DeliverPasswordReset
     {
         return new DeliverPasswordReset(
-            'anonymous',
+            AnonymousId::generate(),
             $grant->getUserId(),
             $grant->getDelivery()->getId()
         );

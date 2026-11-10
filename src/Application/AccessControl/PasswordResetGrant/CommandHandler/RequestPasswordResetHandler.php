@@ -8,8 +8,14 @@ use DateInterval;
 use Fight\AccessControl\Application\AccessControl\PasswordResetGrant\Service\PasswordResetCredentialGenerator;
 use Fight\AccessControl\Application\AccessControl\PasswordResetGrant\Service\PasswordResetDeliveryCipher;
 use Fight\AccessControl\Application\AccessControl\Timing\Service\Clock;
+use Fight\AccessControl\Domain\AccessControl\Audit\AnonymousId;
+use Fight\AccessControl\Domain\AccessControl\Audit\AuditAction;
+use Fight\AccessControl\Domain\AccessControl\Audit\AuditCorrelation;
 use Fight\AccessControl\Domain\AccessControl\Audit\AuditEvidence;
 use Fight\AccessControl\Domain\AccessControl\Audit\AuditEvidenceRepository;
+use Fight\AccessControl\Domain\AccessControl\Audit\AuditGrantOutcome;
+use Fight\AccessControl\Domain\AccessControl\Audit\AuditGrantState;
+use Fight\AccessControl\Domain\AccessControl\Audit\AuditSubject;
 use Fight\AccessControl\Domain\AccessControl\PasswordResetGrant\Command\RequestPasswordReset;
 use Fight\AccessControl\Domain\AccessControl\PasswordResetGrant\Event\PasswordResetRequested;
 use Fight\AccessControl\Domain\AccessControl\PasswordResetGrant\PasswordResetGrant;
@@ -71,7 +77,8 @@ final readonly class RequestPasswordResetHandler implements CommandHandler
         try {
             /** @var ?PasswordResetRequested $successEvent */
             $successEvent = $this->unitOfWork->commitTransactional(function () use (
-                $command
+                $command,
+                $commandMessage
             ): ?PasswordResetRequested {
                 $user = $this->userRepository->getByEmail($command->getEmail());
                 if ($user instanceof User && $user->getEmail()->canonical() !== $command->getEmail()->canonical()) {
@@ -107,6 +114,7 @@ final readonly class RequestPasswordResetHandler implements CommandHandler
                     $user->getRecoveryAuthority()
                 );
                 $passwordResetDelivery = $passwordResetGrant->getDelivery();
+                $terminalPredecessor = $predecessorGrant;
 
                 if (
                     $predecessorGrant instanceof PasswordResetGrant
@@ -142,9 +150,18 @@ final readonly class RequestPasswordResetHandler implements CommandHandler
                 }
 
                 $this->auditEvidenceRepository->add(AuditEvidence::record(
-                    'anonymous',
-                    'user.password_reset_requested',
-                    $user->getId()
+                    AnonymousId::generate(),
+                    new AuditSubject($user->getId()),
+                    AuditAction::PASSWORD_RESET_REQUESTED,
+                    $issuedAt,
+                    new AuditGrantOutcome(
+                        $predecessorGrant === null ? null : AuditGrantState::fromGrant($predecessorGrant),
+                        AuditGrantState::fromGrant($passwordResetGrant),
+                        replacedPredecessor: $terminalPredecessor === null ? null : AuditGrantState::fromGrant(
+                            $terminalPredecessor
+                        )
+                    ),
+                    new AuditCorrelation($commandMessage->id(), null)
                 ));
 
                 return new PasswordResetRequested(

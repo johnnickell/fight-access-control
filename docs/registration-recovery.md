@@ -81,7 +81,8 @@ The opt-in `Fight.AccessControl.RecoverPendingRegistration` and `Fight.AccessCon
 OpenAPI schemas match these messages. There is no HTTP endpoint or package generic success response.
 
 Register `InvitationDeliverySubscriber` for `PendingRegistrationRecovered`; its new method dispatches
-`DeliverUserInvitation` with the admitted actor's string provenance and successor identity through the normal bus.
+`DeliverUserInvitation` with the admitted direct UserId provenance and successor identity through the normal bus; canonical payloads
+retain `actor_kind` plus `actor_id`, never a worker label replacing that origin.
 The worker claims durably, then invokes the consumer provider outside every transaction with stored
 `ActivationOrigin::REGISTRATION`, purpose `activation` and stable successor delivery ID as idempotency identity.
 Select a consumer-owned registration template from this **stored origin**, never the command/event name or route.

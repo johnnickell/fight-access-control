@@ -14,6 +14,7 @@ use Fight\AccessControl\Application\AccessControl\User\Authentication\UserAuthen
 use Fight\AccessControl\Application\AccessControl\User\CommandHandler\DeleteUserHandler;
 use Fight\AccessControl\Application\AccessControl\User\CommandHandler\DisableUserHandler;
 use Fight\AccessControl\Application\AccessControl\User\PasswordManagement;
+use Fight\AccessControl\Domain\AccessControl\Audit\AnonymousId;
 use Fight\AccessControl\Domain\AccessControl\CredentialDelivery\CredentialDeliveryStatus;
 use Fight\AccessControl\Domain\AccessControl\PasswordResetGrant\PasswordResetGrant;
 use Fight\AccessControl\Domain\AccessControl\User\Event\RedactedCommandFailed;
@@ -173,7 +174,8 @@ final class RecoveryOutcomeTest extends TestCase
             $fixture->passwordManagement()->resetPassword(
                 $fixture->userId,
                 'recovery-fixture',
-                'a sufficiently long recovered password'
+                'a sufficiently long recovered password',
+                AnonymousId::generate()
             );
         } elseif ($operation === 'password') {
             $fixture->passwordManagement()->changePassword(

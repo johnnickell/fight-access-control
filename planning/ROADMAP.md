@@ -109,9 +109,10 @@ These requirement groups are not six preselected PRs and must not create broken 
 
 TICKET-00043's complete two-TASK plan is now approved/written: [TASK-00121](tasks/00121-TASK.md) introduces fixed
 system/anonymous identities (order 401, no demonstrated blocker), then [TASK-00122](tasks/00122-TASK.md) replaces the
-shared evidence contract across the 21 existing audit-writing owners and necessary caller/test paths (order 402,
-blocked by TASK-00121). That coherent contract replacement does not absorb family optional wiring/admission or
-expanded audit coverage, nor does its planning manifest establish product/consumer qualification.
+shared evidence contract across the 21 baseline owners and necessary caller/test paths (order 402).
+Both TASKs now have independent acceptance and applicable behavioral QA; TICKET-00043 is complete. The refreshed
+replacement covers 22 actual owners / 23 evidence sites. Family optional wiring/admission, expanded outcomes and
+real consumer qualification remain unfinished in their owning records; the planning manifest itself is not proof.
 
 TICKET-00044's complete five-TASK plan is approved/written as [TASK-00123](tasks/00123-TASK.md) through
 [TASK-00127](tasks/00127-TASK.md): eight account lifecycle handlers, four invitation handlers, three password-reset

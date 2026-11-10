@@ -5,6 +5,10 @@ declare(strict_types=1);
 namespace Fight\AccessControl\Domain\AccessControl\PasswordResetGrant\Event;
 
 use DateTimeImmutable;
+use Fight\AccessControl\Domain\AccessControl\Agent\AgentId;
+use Fight\AccessControl\Domain\AccessControl\Audit\AnonymousId;
+use Fight\AccessControl\Domain\AccessControl\Audit\AuditActorKind;
+use Fight\AccessControl\Domain\AccessControl\Audit\SystemId;
 use Fight\AccessControl\Domain\AccessControl\CredentialDelivery\CredentialDeliveryTimestamp;
 use Fight\AccessControl\Domain\AccessControl\PasswordResetGrant\PasswordResetDeliveryId;
 use Fight\AccessControl\Domain\AccessControl\User\UserId;
@@ -24,7 +28,7 @@ final readonly class PasswordResetDeliveryConfirmed implements Event
      * Creates the secret-free confirmation event.
      */
     public function __construct(
-        private string $actorId,
+        private UserId|AgentId|SystemId|AnonymousId $actorId,
         private UserId $userId,
         private PasswordResetDeliveryId $passwordResetDeliveryId,
         private DateTimeImmutable $occurredAt
@@ -34,7 +38,7 @@ final readonly class PasswordResetDeliveryConfirmed implements Event
     /** @inheritDoc */
     public static function fromArray(array $data): static
     {
-        foreach (['actor_id', 'user_id', 'password_reset_delivery_id', 'occurred_at'] as $key) {
+        foreach (['actor_kind', 'actor_id', 'user_id', 'password_reset_delivery_id', 'occurred_at'] as $key) {
             if (!array_key_exists($key, $data)) {
                 throw new DomainException(sprintf('Missing required key "%s" in data array', $key));
             }
@@ -44,8 +48,10 @@ final readonly class PasswordResetDeliveryConfirmed implements Event
             }
         }
 
+        $kind = AuditActorKind::tryFrom($data['actor_kind']) ?? throw new DomainException('Unsupported actor kind.');
+
         return new static(
-            $data['actor_id'],
+            $kind->idFromString($data['actor_id']),
             UserId::fromString($data['user_id']),
             PasswordResetDeliveryId::fromString($data['password_reset_delivery_id']),
             CredentialDeliveryTimestamp::fromString($data['occurred_at'])->toDateTimeImmutable()
@@ -55,12 +61,16 @@ final readonly class PasswordResetDeliveryConfirmed implements Event
     /**
      * Returns the canonical confirmation event payload
      *
-     * @phpstan-return array{actor_id: string, user_id: string, password_reset_delivery_id: string, occurred_at: string}
+     * @phpstan-return array{
+     *     actor_kind: string, actor_id: string, user_id: string,
+     *     password_reset_delivery_id: string, occurred_at: string
+     * }
      */
     public function toArray(): array
     {
         return [
-            'actor_id'                   => $this->actorId,
+            'actor_kind'                 => AuditActorKind::forId($this->actorId)->value,
+            'actor_id'                   => $this->actorId->toString(),
             'user_id'                    => $this->userId->toString(),
             'password_reset_delivery_id' => $this->passwordResetDeliveryId->toString(),
             'occurred_at'                => $this->occurredAt->format(DATE_ATOM)
@@ -70,7 +80,7 @@ final readonly class PasswordResetDeliveryConfirmed implements Event
     /**
      * Returns the consumer actor that confirmed delivery
      */
-    public function getActorId(): string
+    public function getActorId(): UserId|AgentId|SystemId|AnonymousId
     {
         return $this->actorId;
     }

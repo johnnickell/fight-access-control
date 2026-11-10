@@ -8,6 +8,7 @@ use Fight\AccessControl\Application\AccessControl\Agent\Credential\AgentCredenti
 use Fight\AccessControl\Domain\AccessControl\Agent\AgentRepository;
 use Fight\AccessControl\Domain\AccessControl\Agent\Command\ProvisionAgent;
 use Fight\AccessControl\Domain\AccessControl\Agent\Event\AgentCredentialLifecycleFailed;
+use Fight\AccessControl\Domain\AccessControl\User\UserId;
 use Fight\Common\Adapter\Http\Error\SafeHttpDiagnostics;
 use Fight\Common\Adapter\Http\Error\SafeHttpErrorPolicy;
 use Fight\Common\Adapter\Http\Psr17\JSendResponseFactory;
@@ -62,7 +63,7 @@ final class AgentRevocationContractTest extends TestCase
                 new FixedClock($agent->getCreatedAt()),
                 $env->transaction,
                 $env->eventDispatcher
-            )->revoke('maintainer', $agent->getId());
+            )->revoke(UserId::generate(), $agent->getId());
             self::fail('Expected classified refusal.');
         } catch (Throwable $throwable) {
             self::assertInstanceOf($type, $throwable);
@@ -93,7 +94,7 @@ final class AgentRevocationContractTest extends TestCase
                 new FixedClock($env->agentRepository->all()[0]->getCreatedAt()),
                 $env->transaction,
                 $env->eventDispatcher
-            )->revoke('maintainer', $env->agentRepository->all()[0]->getId());
+            )->revoke(UserId::generate(), $env->agentRepository->all()[0]->getId());
             self::fail('Wrong identity must remain internal.');
         } catch (LogicException $logicException) {
             $this->assertSafeHttpFailure($logicException, 500);
@@ -134,7 +135,7 @@ final class AgentRevocationContractTest extends TestCase
                     new FixedClock($agent->getCreatedAt()),
                     $env->transaction,
                     $dispatcher
-                )->revoke('maintainer', $agent->getId());
+                )->revoke(UserId::generate(), $agent->getId());
                 self::fail('Revocation does not contain its primary fault as issuance success.');
             } catch (RuntimeException $failure) {
                 self::assertSame($primary, $failure);

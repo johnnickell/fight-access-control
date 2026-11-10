@@ -11,6 +11,9 @@ use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\AgentCrede
 use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\AgentOperationFailure;
 use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\AgentOperationScope;
 use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\Exception\AgentOperationRejectedException;
+use Fight\AccessControl\Domain\AccessControl\Audit\AnonymousId;
+use Fight\AccessControl\Domain\AccessControl\Audit\SystemId;
+use Fight\AccessControl\Domain\AccessControl\User\UserId;
 use Fight\Test\AccessControl\Application\AccessControl\User\InMemoryUnitOfWork;
 use LogicException;
 
@@ -30,6 +33,8 @@ final class InMemoryAgentOperationAuthorization implements AgentOperationAuthori
 
     public string $actor = 'maintainer-42';
 
+    public UserId|AgentId|SystemId|AnonymousId|null $originatingActorId;
+
     public int $calls = 0;
 
     public ?Closure $afterAuthorization = null;
@@ -45,10 +50,13 @@ final class InMemoryAgentOperationAuthorization implements AgentOperationAuthori
 
     public function __construct(private readonly InMemoryUnitOfWork $unitOfWork)
     {
+        $this->originatingActorId = UserId::generate();
     }
 
-    public function authorize(AgentOperationScope $scope, AgentCredentialDestination $destination): string
-    {
+    public function authorize(
+        AgentOperationScope $scope,
+        AgentCredentialDestination $destination
+    ): UserId|AgentId|SystemId|AnonymousId|null {
         ++$this->calls;
         if (!$this->unitOfWork->transactionActive) {
             throw new LogicException('Authorization must share the active package transaction.');
@@ -67,14 +75,14 @@ final class InMemoryAgentOperationAuthorization implements AgentOperationAuthori
         $this->holdFence();
         $this->afterAuthorization?->__invoke();
 
-        return $this->actor;
+        return $this->originatingActorId;
     }
 
     public function authorizeRotation(
         AgentOperationScope $scope,
         AgentCredentialDestination $destination,
         AgentId $target
-    ): string {
+    ): UserId|AgentId|SystemId|AnonymousId|null {
         if (
             ($this->actor !== $scope->getCallerId()
                 && !($this->readDelegations[$this->actor.':'.$scope->toString()] ?? false))
