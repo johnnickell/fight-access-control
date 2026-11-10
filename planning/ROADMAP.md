@@ -418,8 +418,8 @@ not a separate queue or authority to execute.
 | 201–202 | [TASK-00111](tasks/00111-TASK.md) → [TASK-00112](tasks/00112-TASK.md) — User revisions and synchronous capabilities | Direct synchronous owners now consume the complete User transitions; original independent acceptance remains recorded in each TASK. |
 | 203–204 | [TASK-00113](tasks/00113-TASK.md) / [TASK-00114](tasks/00114-TASK.md) — AgentName and operation/read boundaries | Independently accepted, including TASK-00114's integrated authentication-base candidate. Its canonical Land handoff and PR #158 own current delivery results. |
 
-Unfinished MCP roots TASK-00084/00087/00091/00097 now consume 108/110; existing descendants inherit those technical
-suppliers. The [Common v1.5.0 readiness amendment](epics/00014-EPIC.md#common-v150-readiness-amendment) clears their
+MCP roots TASK-00084/00087/00091/00097 consume 108/110; existing descendants inherit those technical suppliers.
+The owning TASKs distinguish accepted implementations from unfinished work. The [Common v1.5.0 readiness amendment](epics/00014-EPIC.md#common-v150-readiness-amendment) clears their
 former family/operation supplier holds; local implementation dependencies and feature verification remain. Laravel TASK-00105 and
 CodeIgniter TASK-00106 keep order 104 and their existing prerequisites: no MCP, User-decomposition or Agent-operation
 blocker is added. The broader redesign is not a blanket prerequisite or release gate for unrelated capabilities.

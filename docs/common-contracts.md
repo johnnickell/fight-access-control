@@ -109,8 +109,10 @@ Common's new Task/Notice/execution/protected-detail APIs are implemented and rel
 than merely planned. Domain repositories/read ports and separate `TransactionalUnitOfWork`, registered CQRS
 handlers, meaningful identities/values and outward concrete Tools are the supplier direction. TASK-00184 separates
 DBAL UoW, 00185/00186 supply repositories, 00187 handler ownership, 00188 Task projection, 00189/00190 values and
-00191 aggregate/adapter homes. TASK-00084 now exercises the seven execution Tools through mixed protected composition
-in package tests, and TASK-00087 consumes the Prompt contracts described above. TASK-00089–00102 must inspect their
-exact declarations, configure actual Common buses and independently qualify each operation/family. This baseline
+00191 aggregate/adapter homes. TASK-00084 exercises the seven execution Tools through mixed protected composition
+in package tests, and TASK-00087 consumes the Prompt contracts described above. TASK-00091 consumes actual Notice
+recording/removal admission, Commands, handlers, recorder/remover and DBAL storage in its independently accepted
+[mutation composition](agent-notice-authorization.md). Other TASK-00089–00090/00092–00102 must inspect their exact
+declarations, configure actual Common buses and independently qualify each operation/family. This baseline
 clears only TASK-00110's historical supplier hold, not those feature
 holds, grant requirements, live-runtime requirements or separate generic typing/returned-page evidence gaps.
