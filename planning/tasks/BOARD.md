@@ -5,11 +5,13 @@ dependencies, acceptance, and verification.
 
 ## What's Next?
 
-First ready Task: [TASK-00132](00132-TASK.md) — Enforce paged query result contracts.
+Active Task: [TASK-00128](00128-TASK.md) — Preserve types through Query dispatch.
 
 ## In Progress
 
-No Tasks are currently in this state.
+| Order | TASK ID | Title | Parent TICKET | Status | Blocked by | PR |
+| --- | --- | --- | --- | --- | --- | --- |
+| 307 | [TASK-00128](00128-TASK.md) | Preserve types through Query dispatch | [TICKET-00038](../tickets/00038-TICKET.md) — Preserve message and result types through dispatch | in-progress | — | — |
 
 ## Ready Frontier
 
@@ -74,7 +76,6 @@ No Tasks are currently in this state.
 | 100 | [TASK-00100](00100-TASK.md) | Authorize cancellation requests and intent observation | [TICKET-00031](../tickets/00031-TICKET.md) — Authorize durable Task operations and state disclosure | needs-info | [TASK-00097](00097-TASK.md), [TASK-00099](00099-TASK.md) | — |
 | 101 | [TASK-00101](00101-TASK.md) | Authorize complete MCP Task start and reconnect journeys | [TICKET-00031](../tickets/00031-TICKET.md) — Authorize durable Task operations and state disclosure | needs-info | [TASK-00084](00084-TASK.md), [TASK-00097](00097-TASK.md), [TASK-00099](00099-TASK.md), [TASK-00100](00100-TASK.md) | — |
 | 102 | [TASK-00102](00102-TASK.md) | Authorize optional full-state Task notifications | [TICKET-00031](../tickets/00031-TICKET.md) — Authorize durable Task operations and state disclosure | needs-info | [TASK-00093](00093-TASK.md), [TASK-00101](00101-TASK.md) | — |
-| 307 | [TASK-00128](00128-TASK.md) | Preserve types through Query dispatch | [TICKET-00038](../tickets/00038-TICKET.md) — Preserve message and result types through dispatch | needs-info | — | — |
 | 308 | [TASK-00129](00129-TASK.md) | Preserve Command payload types through dispatch | [TICKET-00038](../tickets/00038-TICKET.md) — Preserve message and result types through dispatch | needs-info | — | — |
 | 309 | [TASK-00130](00130-TASK.md) | Qualify Agent issuance Command and Query dispatch | [TICKET-00038](../tickets/00038-TICKET.md) — Preserve message and result types through dispatch | needs-info | [TASK-00182](00182-TASK.md) | — |
 | 315 | [TASK-00136](00136-TASK.md) | Preserve Event-driven delivery contracts | [TICKET-00040](../tickets/00040-TICKET.md) — Make command and synchronous Application contracts explicit | needs-info | — | — |

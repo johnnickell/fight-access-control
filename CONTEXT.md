@@ -6,6 +6,19 @@ Fight AccessControl owns framework-neutral identity, credential, session, author
 behavior shared by Fight applications. The repository-local behavioral and security authority is
 [TICKET-00001](planning/tickets/00001-TICKET.md).
 
+## Query dispatch — TASK-00128 Work checkpoint
+
+John's 2026-11-09 amendment retains native/static mixed QueryBus fetch/dispatch and permits known caller result
+annotations, including collection elements. Each concrete handler declares its specific result or throws; dynamic
+boundaries remain validated. No automatic generic inference or generic Common supplier prerequisite is required
+for this slice. The [current dispatch manifest](docs/query-dispatch-contracts.md) maps all 22 current Query bindings,
+both production callers, supported routing/pipeline composition, exact static contracts and runtime proof. Existing
+correct source declarations/caller boundaries remain unchanged; current guide examples gain matching annotations.
+TASK-00132 retains concurrent page semantics; sibling Command/Event/Agent qualification remains separately owned.
+Canonical TASK-00128 Work evidence owns verification and warnings. Independent Review and nonvisual QA remain
+required; this checkpoint claims neither acceptance nor whole-library/consumer qualification or delivery.
+Historical generic-typing observations below retain their original scope and are superseded for this Query slice.
+
 ## Canonical Common adoption — TASK-00110 accepted checkpoint
 
 Current composition requires Common `^1.5.0`, published tagged source

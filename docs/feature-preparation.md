@@ -18,6 +18,7 @@ snapshots. Do not substitute a provisioning result or event for validation.
 
 ```php
 use Fight\AccessControl\Application\AccessControl\Feature\QueryHandler\ValidateFeaturePreparationHandler;
+use Fight\AccessControl\Domain\AccessControl\Feature\Query\FeaturePreparationResult;
 use Fight\AccessControl\Domain\AccessControl\Feature\Query\ValidateFeaturePreparation;
 use Fight\Common\Adapter\Messaging\Query\Routing\InMemoryQueryRouter;
 use Fight\Common\Adapter\Messaging\Query\RoutingQueryBus;
@@ -26,6 +27,7 @@ use Fight\Common\Adapter\Messaging\Query\RoutingQueryBus;
 $handler = new ValidateFeaturePreparationHandler($candidateDiscovery, $featureRepository, $permissionRepository);
 $router = new InMemoryQueryRouter();
 $router->registerHandler($handler::queryRegistration(), $handler);
+/** @var FeaturePreparationResult $result */
 $result = new RoutingQueryBus($router)->fetch(new ValidateFeaturePreparation());
 if (!$result->isPrepared()) {
     // Block activation and surface safe diagnostics to authorized operators.

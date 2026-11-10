@@ -23,12 +23,14 @@ use Fight\AccessControl\Domain\AccessControl\Agent\Command\RotateAgentCredential
 use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\AgentOperationId;
 use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\AgentOperationKey;
 use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\AgentRotationRequest;
+use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\Query\AgentOperationView;
 use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\Query\GetAgentOperation;
 
 $key = new AgentOperationKey($trustedScope, AgentOperationId::generate());
 $request = new AgentRotationRequest($agentId, $currentCredentialId, $currentRevision, $registeredDestination);
 // Persist both key and ORIGINAL request before dispatch, independently of the envelope ID.
 $commandBus->execute(new RotateAgentCredential($key, $request)); // void, now or later
+/** @var AgentOperationView $view */
 $view = $queryBus->fetch(new GetAgentOperation($key, $registeredDestination));
 // Status before execution may be indeterminate. It cannot identify queue progress or rejection.
 // On response loss or execution uncertainty, retain this key AND original predecessor request.
