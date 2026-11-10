@@ -28,6 +28,25 @@
       ]
     },
     {
+      "id": "paged-query-views-and-elements",
+      "kind": "positive",
+      "file": "paged-query-positive.php",
+      "diagnostics": [
+        {"line": 24, "identifier": "phpstan.dumpType", "message": "Dumped type: Fight\\Common\\Domain\\Repository\\ResultSet<Fight\\AccessControl\\Domain\\AccessControl\\User\\Query\\UserView>"},
+        {"line": 25, "identifier": "phpstan.dumpType", "message": "Dumped type: Fight\\Common\\Domain\\Repository\\ResultSet<Fight\\AccessControl\\Domain\\AccessControl\\Role\\Query\\RoleView>"},
+        {"line": 26, "identifier": "phpstan.dumpType", "message": "Dumped type: Fight\\Common\\Domain\\Repository\\ResultSet<Fight\\AccessControl\\Domain\\AccessControl\\Permission\\Query\\PermissionView>"},
+        {"line": 27, "identifier": "phpstan.dumpType", "message": "Dumped type: Fight\\Common\\Domain\\Repository\\ResultSet<Fight\\AccessControl\\Domain\\AccessControl\\Agent\\Query\\AgentView>"},
+        {"line": 28, "identifier": "phpstan.dumpType", "message": "Dumped type: Fight\\Common\\Domain\\Repository\\ResultSet<Fight\\AccessControl\\Domain\\AccessControl\\Feature\\Query\\FeatureView>"},
+        {"line": 29, "identifier": "phpstan.dumpType", "message": "Dumped type: Fight\\Common\\Domain\\Repository\\ResultSet<Fight\\AccessControl\\Domain\\AccessControl\\RefreshSession\\Query\\SessionView>"},
+        {"line": 30, "identifier": "phpstan.dumpType", "message": "Dumped type: Fight\\AccessControl\\Domain\\AccessControl\\User\\Query\\UserView"},
+        {"line": 31, "identifier": "phpstan.dumpType", "message": "Dumped type: Fight\\AccessControl\\Domain\\AccessControl\\Role\\Query\\RoleView"},
+        {"line": 32, "identifier": "phpstan.dumpType", "message": "Dumped type: Fight\\AccessControl\\Domain\\AccessControl\\Permission\\Query\\PermissionView"},
+        {"line": 33, "identifier": "phpstan.dumpType", "message": "Dumped type: Fight\\AccessControl\\Domain\\AccessControl\\Agent\\Query\\AgentView"},
+        {"line": 34, "identifier": "phpstan.dumpType", "message": "Dumped type: Fight\\AccessControl\\Domain\\AccessControl\\Feature\\Query\\FeatureView"},
+        {"line": 35, "identifier": "phpstan.dumpType", "message": "Dumped type: Fight\\AccessControl\\Domain\\AccessControl\\RefreshSession\\Query\\SessionView"}
+      ]
+    },
+    {
       "id": "ordinary-http-native-contracts",
       "kind": "positive",
       "file": "http-positive.php",
@@ -101,7 +120,7 @@
       "kind": "positive",
       "file": "agent-worker-positive.php",
       "diagnostics": [
-        {"line": 48, "identifier": "phpstan.dumpType", "message": "Dumped type: Closure(string, Fight\\AccessControl\\Domain\\AccessControl\\Agent\\AgentId): void"},
+        {"line": 48, "identifier": "phpstan.dumpType", "message": "Dumped type: Closure(Fight\\AccessControl\\Domain\\AccessControl\\Agent\\AgentId|Fight\\AccessControl\\Domain\\AccessControl\\Audit\\AnonymousId|Fight\\AccessControl\\Domain\\AccessControl\\Audit\\SystemId|Fight\\AccessControl\\Domain\\AccessControl\\User\\UserId, Fight\\AccessControl\\Domain\\AccessControl\\Agent\\AgentId): void"},
         {"line": 49, "identifier": "phpstan.dumpType", "message": "Dumped type: Fight\\AccessControl\\Application\\AccessControl\\AgentCredentialOperation\\Delivery\\AgentDeliveryResult"},
         {"line": 50, "identifier": "phpstan.dumpType", "message": "Dumped type: array<string, Fight\\AccessControl\\Application\\AccessControl\\AgentCredentialOperation\\Delivery\\AgentDeliveryResult>"},
         {"line": 51, "identifier": "phpstan.dumpType", "message": "Dumped type: DateTimeImmutable"},
@@ -176,8 +195,8 @@
         {"line": 26, "identifier": "phpstan.dumpType", "message": "Dumped type: string"},
         {"line": 27, "identifier": "phpstan.dumpType", "message": "Dumped type: Closure(string): string"},
         {"line": 28, "identifier": "phpstan.dumpType", "message": "Dumped type: Closure(string, Fight\\AccessControl\\Domain\\AccessControl\\AgentCredentialOperation\\AgentIssuance): Fight\\AccessControl\\Domain\\AccessControl\\AgentCredentialOperation\\AgentDeliveryMaterial"},
-        {"line": 29, "identifier": "phpstan.dumpType", "message": "Dumped type: Closure(Fight\\AccessControl\\Domain\\AccessControl\\AgentCredentialOperation\\AgentOperationScope, Fight\\AccessControl\\Domain\\AccessControl\\AgentCredentialOperation\\AgentCredentialDestination): string"},
-        {"line": 30, "identifier": "phpstan.dumpType", "message": "Dumped type: Closure(Fight\\AccessControl\\Domain\\AccessControl\\AgentCredentialOperation\\AgentOperationScope, Fight\\AccessControl\\Domain\\AccessControl\\AgentCredentialOperation\\AgentCredentialDestination, Fight\\AccessControl\\Domain\\AccessControl\\Agent\\AgentId): string"},
+        {"line": 29, "identifier": "phpstan.dumpType", "message": "Dumped type: Closure(Fight\\AccessControl\\Domain\\AccessControl\\AgentCredentialOperation\\AgentOperationScope, Fight\\AccessControl\\Domain\\AccessControl\\AgentCredentialOperation\\AgentCredentialDestination): (Fight\\AccessControl\\Domain\\AccessControl\\Agent\\AgentId|Fight\\AccessControl\\Domain\\AccessControl\\Audit\\AnonymousId|Fight\\AccessControl\\Domain\\AccessControl\\Audit\\SystemId|Fight\\AccessControl\\Domain\\AccessControl\\User\\UserId|null)"},
+        {"line": 30, "identifier": "phpstan.dumpType", "message": "Dumped type: Closure(Fight\\AccessControl\\Domain\\AccessControl\\AgentCredentialOperation\\AgentOperationScope, Fight\\AccessControl\\Domain\\AccessControl\\AgentCredentialOperation\\AgentCredentialDestination, Fight\\AccessControl\\Domain\\AccessControl\\Agent\\AgentId): (Fight\\AccessControl\\Domain\\AccessControl\\Agent\\AgentId|Fight\\AccessControl\\Domain\\AccessControl\\Audit\\AnonymousId|Fight\\AccessControl\\Domain\\AccessControl\\Audit\\SystemId|Fight\\AccessControl\\Domain\\AccessControl\\User\\UserId|null)"},
         {"line": 31, "identifier": "phpstan.dumpType", "message": "Dumped type: Closure(Fight\\AccessControl\\Domain\\AccessControl\\AgentCredentialOperation\\AgentOperationScope, Fight\\AccessControl\\Domain\\AccessControl\\AgentCredentialOperation\\AgentCredentialDestination, Fight\\AccessControl\\Domain\\AccessControl\\Agent\\AgentId|null): void"},
         {"line": 32, "identifier": "phpstan.dumpType", "message": "Dumped type: Closure(Fight\\Common\\Domain\\Messaging\\Query\\QueryMessage): Fight\\AccessControl\\Domain\\AccessControl\\AgentCredentialOperation\\Query\\AgentOperationView"}
       ]

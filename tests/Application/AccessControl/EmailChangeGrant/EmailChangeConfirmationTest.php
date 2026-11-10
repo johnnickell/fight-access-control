@@ -16,6 +16,7 @@ use Fight\AccessControl\Application\AccessControl\User\Security\RefreshOutcome;
 use Fight\AccessControl\Application\AccessControl\User\Security\RefreshResult;
 use Fight\AccessControl\Application\AccessControl\User\Security\TokenSet;
 use Fight\AccessControl\Domain\AccessControl\ActivationGrant\ActivationGrant;
+use Fight\AccessControl\Domain\AccessControl\Audit\AnonymousId;
 use Fight\AccessControl\Domain\AccessControl\Audit\AuditEvidence;
 use Fight\AccessControl\Domain\AccessControl\EmailChangeGrant\EmailChangeCredential;
 use Fight\AccessControl\Domain\AccessControl\EmailChangeGrant\EmailChangeGrant;
@@ -122,7 +123,7 @@ final class EmailChangeConfirmationTest extends TestCase
             emailChangeGrantRepository: $emailChangeGrantRepository
         );
 
-        $service->confirmEmail($user->getId(), self::EMAIL_CHANGE_CREDENTIAL);
+        $service->confirmEmail($user->getId(), self::EMAIL_CHANGE_CREDENTIAL, AnonymousId::generate());
 
         $storedUser = $userRepository->getById($user->getId());
         self::assertInstanceOf(User::class, $storedUser);
@@ -137,7 +138,7 @@ final class EmailChangeConfirmationTest extends TestCase
         self::assertCount(2, $refreshSessionRepository->all());
         self::assertTrue($refreshSessionRepository->all()[0]->isRevoked());
         self::assertTrue($refreshSessionRepository->all()[1]->isRevoked());
-        self::assertSame('user.email_change_confirmed', $auditEvidenceRepository->all()[0]->action());
+        self::assertSame('user.email_change_confirmed', $auditEvidenceRepository->all()[0]->action()->value);
         self::assertSame(1, $unitOfWork->transactions);
         self::assertCount(1, $eventDispatcher->events());
         self::assertInstanceOf(EmailChangeConfirmed::class, $eventDispatcher->events()[0]);
@@ -246,7 +247,7 @@ final class EmailChangeConfirmationTest extends TestCase
 
         $this->expectException(EmailChangeConfirmationRejectedException::class);
         try {
-            $service->confirmEmail($user->getId(), $credential);
+            $service->confirmEmail($user->getId(), $credential, AnonymousId::generate());
         } finally {
             self::assertSame(
                 $condition === 'missing_user' ? null : ($condition === 'missing_reservation' ? $user : $reservedUser),
@@ -288,7 +289,7 @@ final class EmailChangeConfirmationTest extends TestCase
                     unitOfWork: $unitOfWork,
                     eventDispatcher: $eventDispatcher,
                     emailChangeGrantRepository: $emailChangeGrantRepository
-                )->confirmEmail($user->getId(), self::EMAIL_CHANGE_CREDENTIAL);
+                )->confirmEmail($user->getId(), self::EMAIL_CHANGE_CREDENTIAL, AnonymousId::generate());
                 self::fail('A stale confirmation compare-and-set was accepted.');
             } catch (EmailChangeConfirmationRejectedException) {
                 self::assertSame($reservedUser, $userRepository->getById($user->getId()));
@@ -334,7 +335,7 @@ final class EmailChangeConfirmationTest extends TestCase
                 unitOfWork: $unitOfWork,
                 eventDispatcher: $eventDispatcher,
                 emailChangeGrantRepository: $emailChangeGrantRepository
-            )->confirmEmail($user->getId(), self::EMAIL_CHANGE_CREDENTIAL);
+            )->confirmEmail($user->getId(), self::EMAIL_CHANGE_CREDENTIAL, AnonymousId::generate());
         } finally {
             self::assertSame($reservedUser, $userRepository->getById($user->getId()));
             self::assertTrue($emailChangeGrantRepository->all()[0]->isIssued());
@@ -376,7 +377,7 @@ final class EmailChangeConfirmationTest extends TestCase
                 eventDispatcher: $eventDispatcher,
                 auditEvidenceRepository: $auditEvidenceRepository,
                 emailChangeGrantRepository: $emailChangeGrantRepository
-            )->confirmEmail($user->getId(), self::EMAIL_CHANGE_CREDENTIAL);
+            )->confirmEmail($user->getId(), self::EMAIL_CHANGE_CREDENTIAL, AnonymousId::generate());
         } finally {
             self::assertSame($reservedUser, $userRepository->getById($user->getId()));
             self::assertTrue($emailChangeGrantRepository->all()[0]->isIssued());

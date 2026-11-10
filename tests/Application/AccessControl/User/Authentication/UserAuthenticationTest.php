@@ -17,6 +17,7 @@ use Fight\AccessControl\Application\AccessControl\User\Security\RefreshOutcome;
 use Fight\AccessControl\Application\AccessControl\User\Security\RefreshResult;
 use Fight\AccessControl\Application\AccessControl\User\Security\TokenSet;
 use Fight\AccessControl\Domain\AccessControl\ActivationGrant\ActivationGrant;
+use Fight\AccessControl\Domain\AccessControl\Audit\AnonymousId;
 use Fight\AccessControl\Domain\AccessControl\Audit\AuditEvidence;
 use Fight\AccessControl\Domain\AccessControl\EmailChangeGrant\EmailChangeGrant;
 use Fight\AccessControl\Domain\AccessControl\PasswordResetGrant\PasswordResetCredential;
@@ -452,7 +453,8 @@ final class UserAuthenticationTest extends TestCase
                 $this->resetService->resetPassword(
                     $this->userId,
                     $this->resetCredential,
-                    'a sufficiently long concurrent reset password'
+                    'a sufficiently long concurrent reset password',
+                    AnonymousId::generate()
                 );
 
                 return $matches;
@@ -495,7 +497,7 @@ final class UserAuthenticationTest extends TestCase
         self::assertSame(2, $authoritativeUser->getAuthenticationVersion());
         self::assertSame(2, $authoritativeUser->getAuthenticationAuthorityRevision());
         self::assertTrue($passwordResetGrantRepository->all()[0]->isConsumed());
-        self::assertSame('user.password_reset_completed', $auditEvidenceRepository->all()[0]->action());
+        self::assertSame('user.password_reset_completed', $auditEvidenceRepository->all()[0]->action()->value);
         self::assertSame([], $loginRefreshSessionRepository->all());
         self::assertCount(1, $resetEventDispatcher->events());
         self::assertInstanceOf(PasswordResetCompleted::class, $resetEventDispatcher->events()[0]);
@@ -561,7 +563,8 @@ final class UserAuthenticationTest extends TestCase
                 $this->resetService->resetPassword(
                     $this->userId,
                     $this->resetCredential,
-                    'a sufficiently long serialized reset password'
+                    'a sufficiently long serialized reset password',
+                    AnonymousId::generate()
                 );
 
                 return $matches;
@@ -663,7 +666,8 @@ final class UserAuthenticationTest extends TestCase
             $resetService->resetPassword(
                 $user->getId(),
                 self::RESET_CREDENTIAL,
-                'a sufficiently long stale reset password'
+                'a sufficiently long stale reset password',
+                AnonymousId::generate()
             );
             self::fail('Expected stale reset authority to lose to the atomic login commit.');
         } catch (PasswordResetRejectedException $passwordResetRejectedException) {
@@ -748,7 +752,8 @@ final class UserAuthenticationTest extends TestCase
         $resetService->resetPassword(
             $user->getId(),
             self::RESET_CREDENTIAL,
-            'a sufficiently long authoritative reset password'
+            'a sufficiently long authoritative reset password',
+            AnonymousId::generate()
         );
 
         $authoritativeUser = $loginUserRepository->getById($user->getId());
@@ -762,7 +767,7 @@ final class UserAuthenticationTest extends TestCase
         self::assertCount(1, $loginRefreshSessionRepository->all());
         self::assertTrue($loginRefreshSessionRepository->all()[0]->isRevoked());
         self::assertTrue($passwordResetGrantRepository->all()[0]->isConsumed());
-        self::assertSame('user.password_reset_completed', $auditEvidenceRepository->all()[0]->action());
+        self::assertSame('user.password_reset_completed', $auditEvidenceRepository->all()[0]->action()->value);
         self::assertCount(1, $loginEventDispatcher->events());
         self::assertInstanceOf(UserLoggedIn::class, $loginEventDispatcher->events()[0]);
         self::assertCount(1, $resetEventDispatcher->events());
@@ -936,7 +941,8 @@ final class UserAuthenticationTest extends TestCase
         $resetService->resetPassword(
             $user->getId(),
             self::RESET_CREDENTIAL,
-            'a sufficiently long transaction-fenced reset password'
+            'a sufficiently long transaction-fenced reset password',
+            AnonymousId::generate()
         );
 
         $authoritativeUser = $resetUserRepository->getById($user->getId());
@@ -953,7 +959,7 @@ final class UserAuthenticationTest extends TestCase
         self::assertSame(2, $authoritativeUser->getAuthenticationAuthorityRevision());
         self::assertSame([], $loginRefreshSessionRepository->all());
         self::assertTrue($passwordResetGrantRepository->all()[0]->isConsumed());
-        self::assertSame('user.password_reset_completed', $auditEvidenceRepository->all()[0]->action());
+        self::assertSame('user.password_reset_completed', $auditEvidenceRepository->all()[0]->action()->value);
         self::assertCount(1, $loginEventDispatcher->events());
         self::assertInstanceOf(RedactedCommandFailed::class, $loginEventDispatcher->events()[0]);
         self::assertSame([], $loginEventDispatcher->events()[0]->getRedactedCommandData());

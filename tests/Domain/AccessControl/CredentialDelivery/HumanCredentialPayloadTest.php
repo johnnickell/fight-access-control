@@ -107,6 +107,21 @@ final class HumanCredentialPayloadTest extends TestCase
             ]
         ];
         foreach ($cases as $class => $payload) {
+            if (
+                in_array($class, [
+                ActivationCommand\DeliverUserInvitation::class,
+                ActivationCommand\ResendInvitationDelivery::class,
+                ActivationCommand\RetryInvitationDelivery::class,
+                ActivationEvent\InvitationDeliveryResent::class,
+                ActivationEvent\InvitationDeliveryRetryRequested::class,
+                ActivationEvent\UserInvitationDelivered::class,
+                ResetCommand\DeliverPasswordReset::class,
+                ResetEvent\PasswordResetDeliveryConfirmed::class
+                ], true)
+            ) {
+                $payload = ['actor_kind' => 'user'] + $payload;
+            }
+
             yield $class => [$class, $payload];
         }
     }

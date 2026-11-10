@@ -83,7 +83,7 @@ final class DeliverUserInvitationHandlerTest extends TestCase
         self::assertSame(2, $unitOfWork->transactions);
         self::assertSame(CredentialDeliveryStatus::DELIVERED, $stored->getDelivery()->getStatus());
         self::assertNull($stored->getDelivery()->getEncryptedMaterial());
-        self::assertSame('user.invitation_delivery.confirmed', $auditEvidenceRepository->all()[0]->action());
+        self::assertSame('user.invitation_delivery.confirmed', $auditEvidenceRepository->all()[0]->action()->value);
         self::assertCount(1, $provider->invocations());
         self::assertInstanceOf(UserInvitationDelivered::class, $eventDispatcher->events()[0]);
         self::assertSame(DeliverUserInvitation::class, DeliverUserInvitationHandler::commandRegistration());
@@ -114,7 +114,7 @@ final class DeliverUserInvitationHandlerTest extends TestCase
 
             $delivery = $activationGrantRepository->getLatestByUserId($grant->getUserId())?->getDelivery();
             self::assertSame($expectedStatus, $delivery->getStatus());
-            self::assertSame('user.invitation_delivery.failed', $auditEvidenceRepository->all()[0]->action());
+            self::assertSame('user.invitation_delivery.failed', $auditEvidenceRepository->all()[0]->action()->value);
             self::assertSame([], $eventDispatcher->events());
             if ($outcome === CredentialDeliveryOutcome::RETRYABLE_FAILURE) {
                 self::assertSame(CredentialDeliveryFailure::RETRYABLE_PROVIDER, $delivery->getLastFailure());
@@ -211,7 +211,7 @@ final class DeliverUserInvitationHandlerTest extends TestCase
 
         try {
             $handler->handle(CommandMessage::create(new DeliverUserInvitation(
-                'Admin-42',
+                UserId::generate(),
                 UserId::generate(),
                 ActivationDeliveryId::generate()
             )));
@@ -326,7 +326,7 @@ final class DeliverUserInvitationHandlerTest extends TestCase
     {
         $command = $this->command($this->grant());
         self::assertEquals($command, DeliverUserInvitation::fromArray($command->toArray()));
-        self::assertSame('Admin-42', $command->getActorId());
+        self::assertInstanceOf(UserId::class, $command->getActorId());
         $event = new UserInvitationDelivered(
             $command->getActorId(),
             $command->getUserId(),
@@ -374,7 +374,7 @@ final class DeliverUserInvitationHandlerTest extends TestCase
     private function command(ActivationGrant $grant): DeliverUserInvitation
     {
         return new DeliverUserInvitation(
-            'Admin-42',
+            UserId::generate(),
             $grant->getUserId(),
             $grant->getDelivery()->getId()
         );

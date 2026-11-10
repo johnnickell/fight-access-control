@@ -13,8 +13,14 @@ use Fight\AccessControl\Domain\AccessControl\ActivationGrant\ActivationGrant;
 use Fight\AccessControl\Domain\AccessControl\ActivationGrant\ActivationGrantRepository;
 use Fight\AccessControl\Domain\AccessControl\ActivationGrant\ActivationOrigin;
 use Fight\AccessControl\Domain\AccessControl\ActivationGrant\Exception\InvitationAdministrationAuthorizationException;
+use Fight\AccessControl\Domain\AccessControl\Audit\AuditAction;
+use Fight\AccessControl\Domain\AccessControl\Audit\AuditCorrelation;
 use Fight\AccessControl\Domain\AccessControl\Audit\AuditEvidence;
 use Fight\AccessControl\Domain\AccessControl\Audit\AuditEvidenceRepository;
+use Fight\AccessControl\Domain\AccessControl\Audit\AuditGrantState;
+use Fight\AccessControl\Domain\AccessControl\Audit\AuditSubject;
+use Fight\AccessControl\Domain\AccessControl\Audit\AuditUserOutcome;
+use Fight\AccessControl\Domain\AccessControl\Audit\AuditUserRevisions;
 use Fight\AccessControl\Domain\AccessControl\User\Command\CorrectPendingInvitation;
 use Fight\AccessControl\Domain\AccessControl\User\Event\PendingInvitationCorrected;
 use Fight\AccessControl\Domain\AccessControl\User\Exception\PendingInvitationCorrectionException;
@@ -73,7 +79,10 @@ final readonly class CorrectPendingInvitationHandler implements CommandHandler
 
         try {
             /** @var PendingInvitationCorrected $event */
-            $event = $this->unitOfWork->commitTransactional(function () use ($command): PendingInvitationCorrected {
+            $event = $this->unitOfWork->commitTransactional(function () use (
+                $command,
+                $commandMessage
+            ): PendingInvitationCorrected {
                 try {
                     $this->invitationAdministrationAuthorization->assertCanCorrectInvitation(
                         $command->getActorId(),
@@ -152,9 +161,18 @@ final readonly class CorrectPendingInvitationHandler implements CommandHandler
                 }
 
                 $this->auditEvidenceRepository->add(AuditEvidence::record(
-                    $command->getActorId()->toString(),
-                    'user.pending_invitation_corrected',
-                    $command->getUserId()
+                    $command->getActorId(),
+                    new AuditSubject($command->getUserId()),
+                    AuditAction::USER_PENDING_INVITATION_CORRECTED,
+                    $issuedAt,
+                    new AuditUserOutcome(
+                        AuditUserRevisions::fromUser($user),
+                        AuditUserRevisions::fromUser($replacementUser),
+                        AuditGrantState::fromGrant($predecessor),
+                        AuditGrantState::fromGrant($successor),
+                        AuditGrantState::fromGrant($revokedPredecessor)
+                    ),
+                    new AuditCorrelation($commandMessage->id(), null)
                 ));
 
                 return new PendingInvitationCorrected(

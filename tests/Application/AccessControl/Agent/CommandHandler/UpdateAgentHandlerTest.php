@@ -549,7 +549,7 @@ final class UpdateAgentHandlerTest extends TestCase
             new FixedClock(self::NOW),
             $env->transaction,
             $env->eventDispatcher
-        )->revoke('authorized-test-actor', $id);
+        )->revoke(UserId::generate(), $id);
     }
 
     private function failure(callable $operation): Throwable

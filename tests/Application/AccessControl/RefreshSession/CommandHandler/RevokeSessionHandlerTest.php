@@ -6,7 +6,10 @@ namespace Fight\Test\AccessControl\Application\AccessControl\RefreshSession\Comm
 
 use DateTimeImmutable;
 use Fight\AccessControl\Application\AccessControl\RefreshSession\CommandHandler\RevokeSessionHandler;
+use Fight\AccessControl\Domain\AccessControl\Audit\AuditAction;
 use Fight\AccessControl\Domain\AccessControl\Audit\AuditEvidence;
+use Fight\AccessControl\Domain\AccessControl\Audit\AuditSessionRevocation;
+use Fight\AccessControl\Domain\AccessControl\Audit\AuditSubject;
 use Fight\AccessControl\Domain\AccessControl\RefreshSession\Command\RevokeSession;
 use Fight\AccessControl\Domain\AccessControl\RefreshSession\Event\RefreshSessionRevoked;
 use Fight\AccessControl\Domain\AccessControl\RefreshSession\Exception\SessionRevocationReasonException;
@@ -68,7 +71,15 @@ final class RevokeSessionHandlerTest extends TestCase
         self::assertSame(4, $rejectedReasons);
 
         $userId = UserId::fromString('018f0000-0000-7000-8000-000000000004');
-        self::assertSame([], AuditEvidence::record('Admin-42', 'user.invited', $userId)->context());
+        $evidence = AuditEvidence::record(
+            UserId::generate(),
+            new AuditSubject($userId),
+            AuditAction::SESSION_ADMINISTRATIVELY_REVOKED,
+            new DateTimeImmutable('2026-08-20T12:00:00Z'),
+            new AuditSessionRevocation(RefreshSessionId::generate(), 0, 1),
+            null
+        );
+        self::assertArrayNotHasKey('reason', $evidence->getFacts()->toArray());
     }
 
     public function test_it_revokes_an_owned_non_current_session_before_committing_once_and_emitting_success(): void
@@ -277,6 +288,7 @@ final class RevokeSessionHandlerTest extends TestCase
         $authorization = new FixedSessionAdministrationAuthorization(true);
         $auditEvidenceRepository = new InMemoryAuditEvidenceRepository($unitOfWork);
         $reason = SessionRevocationReason::fromString('Compromised device');
+        $beforeRevision = $refreshSessionRepository->getById($targetSessionId)?->getRevision();
         $command = new RevokeSession($actorId, $currentSessionId, $targetSessionId, $reason);
         $eventDispatcher = new InMemoryEventDispatcher(
             function () use ($auditEvidenceRepository, $unitOfWork): void {
@@ -300,13 +312,20 @@ final class RevokeSessionHandlerTest extends TestCase
         self::assertSame($userId, $authorization->lastUserId());
         self::assertCount(1, $auditEvidenceRepository->all());
         $evidence = $auditEvidenceRepository->all()[0];
-        self::assertSame('refresh_session.administratively_revoked', $evidence->action());
-        self::assertSame($actorId->toString(), $evidence->actorId());
-        self::assertSame($userId, $evidence->subjectId());
+        self::assertSame(AuditAction::SESSION_ADMINISTRATIVELY_REVOKED, $evidence->action());
+        self::assertSame($actorId, $evidence->actorId());
+        self::assertSame($userId, $evidence->getSubject()->getId());
+        $facts = $evidence->getFacts();
+        self::assertInstanceOf(AuditSessionRevocation::class, $facts);
         self::assertSame([
-            'refresh_session_id' => $targetSessionId->toString(),
-            'reason'             => 'Compromised device'
-        ], $evidence->context());
+            'session_id' => $targetSessionId->toString(),
+            'before'     => $beforeRevision,
+            'after'      => $refreshSessionRepository->getById($targetSessionId)->getRevision()
+        ], $facts->toArray());
+        self::assertStringNotContainsString(
+            'Compromised device',
+            json_encode($evidence->toArray(), JSON_THROW_ON_ERROR)
+        );
         self::assertCount(1, $eventDispatcher->events());
         self::assertInstanceOf(RefreshSessionRevoked::class, $eventDispatcher->events()[0]);
         self::assertArrayNotHasKey('reason', $eventDispatcher->events()[0]->toArray());

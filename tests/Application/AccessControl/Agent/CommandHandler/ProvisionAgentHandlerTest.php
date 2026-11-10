@@ -32,9 +32,16 @@ use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\Exception\
 use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\Exception\AgentOperationRejectedException;
 use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\Exception\AgentOperationUncertainException;
 use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\Query\AgentOperationView;
+use Fight\AccessControl\Domain\AccessControl\Audit\AuditAction;
+use Fight\AccessControl\Domain\AccessControl\Audit\AuditAgentOutcome;
+use Fight\AccessControl\Domain\AccessControl\Audit\AuditAgentState;
 use Fight\AccessControl\Domain\AccessControl\Audit\AuditEvidence;
+use Fight\AccessControl\Domain\AccessControl\Audit\AuditSubject;
+use Fight\AccessControl\Domain\AccessControl\Audit\AuditUserOutcome;
+use Fight\AccessControl\Domain\AccessControl\Audit\AuditUserRevisions;
 use Fight\AccessControl\Domain\AccessControl\Permission\PermissionId;
 use Fight\AccessControl\Domain\AccessControl\User\UserId;
+use Fight\AccessControl\Domain\AccessControl\User\UserState;
 use Fight\Common\Application\Error\Exception\ServiceUnavailable;
 use Fight\Common\Application\Repository\TransactionalUnitOfWork;
 use Fight\Common\Domain\Exception\DomainException;
@@ -159,10 +166,17 @@ final class ProvisionAgentHandlerTest extends TestCase
         self::assertSame('test-key-v1', $operation->getMaterial()->getKeyVersion());
         self::assertSame($environment->key, $issuance->getKey());
         self::assertSame($environment->request->getDestination(), $issuance->getDestination());
-        self::assertSame('maintainer-42', $environment->auditEvidenceRepository->all()[0]->actorId());
-        self::assertSame('agent.provisioned', $environment->auditEvidenceRepository->all()[0]->action());
-        self::assertSame($agent->getId(), $environment->auditEvidenceRepository->all()[0]->subjectId());
-        self::assertSame([], $environment->auditEvidenceRepository->all()[0]->context());
+        $audit = $environment->auditEvidenceRepository->all()[0];
+        self::assertSame($environment->operationAuthorization->originatingActorId, $audit->actorId());
+        self::assertSame(AuditAction::AGENT_PROVISIONED, $audit->action());
+        self::assertSame($agent->getId(), $audit->getSubject()->getId());
+        self::assertEquals($issuance->getIssuedAt(), $audit->getOccurredAt());
+        self::assertEquals($environment->key, $audit->getCorrelation()?->getOperationKey());
+        $facts = $audit->getFacts();
+        self::assertInstanceOf(AuditAgentOutcome::class, $facts);
+        self::assertNull($facts->getBefore());
+        self::assertEquals(AuditAgentState::fromAgent($agent), $facts->getAfter());
+        self::assertSame($issuance->getDeliveryId(), $facts->getDeliveryId());
         $event = $environment->eventDispatcher->events()[0];
         self::assertInstanceOf(AgentProvisioned::class, $event);
         self::assertSame($agent->getId(), $event->getAgentId());
@@ -358,8 +372,10 @@ final class ProvisionAgentHandlerTest extends TestCase
     }
 
     #[DataProvider('authorityFailures')]
-    public function test_current_authority_denies_before_lookup(string $case, bool $retry): void
-    {
+    public function test_authority_and_attribution_admission_preserve_resolution_boundaries(
+        string $case,
+        bool $retry
+    ): void {
         $environment = new ProvisioningEnvironment();
         if ($retry) {
             $environment->bus()->commandBus->execute(new ProvisionAgent($environment->key, $environment->request));
@@ -380,8 +396,19 @@ final class ProvisionAgentHandlerTest extends TestCase
         } elseif ($case === 'destination') {
             $environment->operationAuthorization->destinations = [];
         } else {
-            $environment->operationAuthorization->actor = 'unsafe/actor';
-            $environment->operationAuthorization->readDelegations['unsafe/actor:'.$scope->toString()] = true;
+            $environment->operationAuthorization->originatingActorId = null;
+            if ($retry) {
+                $before = $environment->auditEvidenceRepository->all();
+                $result = $environment->bus()->dispatchAndRead(new ProvisionAgent($key, $environment->request));
+                self::assertSame(
+                    $environment->agentRepository->all()[0]->getId(),
+                    $result->getIssuance()?->getAgentId()
+                );
+                self::assertSame(1, $environment->generations);
+                self::assertSame($before, $environment->auditEvidenceRepository->all());
+
+                return;
+            }
         }
 
         $this->assertRejected(
@@ -390,7 +417,7 @@ final class ProvisionAgentHandlerTest extends TestCase
             ),
             $case === 'audit identity' ? null : AgentOperationFailure::UNAUTHORIZED
         );
-        self::assertSame((int) $retry, $environment->operationRepository->reads);
+        self::assertSame($case === 'audit identity' ? 1 : (int) $retry, $environment->operationRepository->reads);
         self::assertSame((int) $retry, $environment->generations);
         self::assertCount((int) $retry, $environment->agentRepository->all());
         self::assertCount((int) $retry, $environment->auditEvidenceRepository->all());
@@ -414,7 +441,10 @@ final class ProvisionAgentHandlerTest extends TestCase
             $environment->key,
             $environment->operationRepository->operations[$environment->key->toString()]->getIssuance()->getKey()
         );
-        self::assertSame('delegated-worker-7', $environment->auditEvidenceRepository->all()[0]->actorId());
+        self::assertSame(
+            $environment->operationAuthorization->originatingActorId,
+            $environment->auditEvidenceRepository->all()[0]->actorId()
+        );
         self::assertSame([], $environment->operationAuthorization->scopes);
         $this->assertRejected(
             fn(): AgentOperationView => $environment->bus()->dispatchAndRead(new ProvisionAgent(
@@ -711,7 +741,18 @@ final class ProvisionAgentHandlerTest extends TestCase
         }
 
         $user = UserId::generate();
-        self::assertSame($user, AuditEvidence::record('maintainer', 'user.invited', $user)->subjectId());
+        $evidence = AuditEvidence::record(
+            $user,
+            new AuditSubject($user),
+            AuditAction::PASSWORD_CHANGED,
+            new DateTimeImmutable('2026-09-27T12:00:00+00:00'),
+            new AuditUserOutcome(
+                new AuditUserRevisions(UserState::ACTIVE, 1, 1, 0, 0, 0),
+                new AuditUserRevisions(UserState::ACTIVE, 2, 2, 0, 0, 0)
+            ),
+            null
+        );
+        self::assertSame($user, $evidence->getSubject()->getId());
     }
 
     private function assertSafeFailure(ProvisioningEnvironment $environment): void

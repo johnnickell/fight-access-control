@@ -13,10 +13,12 @@ new stable User ID at the consumer's admission boundary. `fromArray()` rejects m
 and extra keys, including actor, Role and credential inputs. There is no password at registration: the existing
 synchronous [`UserAuthentication::activate()`](user-authentication.md) takes the one-time credential and new password later.
 
-No authenticated actor is asserted by this command or `UserRegistered`. Audit uses fixed source `registration`,
-action `user.registered` and the new User ID, without email, credential or arbitrary caller context. That source
-marker identifies the use case, not an authenticated User, and grants no authority. The optional delivery subscriber
-uses the same source marker for immediate worker dispatch. Consumer authorization/admission cannot be derived from it.
+No authenticated actor is asserted by this command or `UserRegistered`. The in-progress
+[shared audit replacement](audit-evidence.md) explicitly establishes AnonymousId for this declared public journey,
+with action `user.registered`, the new User identity and admitted revision/grant facts, without email, credentials
+or arbitrary context. The optional delivery subscriber preserves that anonymous origin with canonical `actor_kind`
+and `actor_id`; it does not overwrite provenance with a worker label. This identity grants no authority. Current
+mandatory audit constructor wiring is unchanged, and consumer authorization/admission remains separate.
 
 Construct `RegisterUserHandler` with these dependencies, in order:
 

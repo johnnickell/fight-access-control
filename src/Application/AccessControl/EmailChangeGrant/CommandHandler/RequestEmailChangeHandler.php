@@ -9,8 +9,14 @@ use Fight\AccessControl\Application\AccessControl\EmailChangeGrant\Service\Email
 use Fight\AccessControl\Application\AccessControl\EmailChangeGrant\Service\EmailChangeCredentialGenerator;
 use Fight\AccessControl\Application\AccessControl\EmailChangeGrant\Service\EmailChangeDeliveryCipher;
 use Fight\AccessControl\Application\AccessControl\Timing\Service\Clock;
+use Fight\AccessControl\Domain\AccessControl\Audit\AuditAction;
+use Fight\AccessControl\Domain\AccessControl\Audit\AuditCorrelation;
 use Fight\AccessControl\Domain\AccessControl\Audit\AuditEvidence;
 use Fight\AccessControl\Domain\AccessControl\Audit\AuditEvidenceRepository;
+use Fight\AccessControl\Domain\AccessControl\Audit\AuditGrantState;
+use Fight\AccessControl\Domain\AccessControl\Audit\AuditSubject;
+use Fight\AccessControl\Domain\AccessControl\Audit\AuditUserOutcome;
+use Fight\AccessControl\Domain\AccessControl\Audit\AuditUserRevisions;
 use Fight\AccessControl\Domain\AccessControl\EmailChangeGrant\Command\RequestEmailChange;
 use Fight\AccessControl\Domain\AccessControl\EmailChangeGrant\EmailChangeGrant;
 use Fight\AccessControl\Domain\AccessControl\EmailChangeGrant\EmailChangeGrantRepository;
@@ -75,7 +81,10 @@ final readonly class RequestEmailChangeHandler implements CommandHandler
 
         try {
             /** @var EmailChangeRequested $event */
-            $event = $this->unitOfWork->commitTransactional(function () use ($command): EmailChangeRequested {
+            $event = $this->unitOfWork->commitTransactional(function () use (
+                $command,
+                $commandMessage
+            ): EmailChangeRequested {
                 $administrative = !$command->getActorId()->equals($command->getUserId());
                 if ($administrative) {
                     try {
@@ -138,9 +147,18 @@ final readonly class RequestEmailChangeHandler implements CommandHandler
 
                 if ($administrative) {
                     $this->auditEvidenceRepository->add(AuditEvidence::record(
-                        $command->getActorId()->toString(),
-                        'user.email_change_administratively_requested',
-                        $user->getId()
+                        $command->getActorId(),
+                        new AuditSubject($user->getId()),
+                        AuditAction::EMAIL_CHANGE_REQUESTED,
+                        $issuedAt,
+                        new AuditUserOutcome(
+                            AuditUserRevisions::fromUser($user),
+                            AuditUserRevisions::fromUser($replacement),
+                            $predecessor === null ? null : AuditGrantState::fromGrant($predecessor),
+                            AuditGrantState::fromGrant($grant),
+                            $predecessor === null ? null : AuditGrantState::fromGrant($predecessor)
+                        ),
+                        new AuditCorrelation($commandMessage->id(), null)
                     ));
                 }
 

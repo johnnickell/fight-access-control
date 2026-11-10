@@ -15,6 +15,7 @@ use Fight\AccessControl\Application\AccessControl\User\Authentication\UserAuthen
 use Fight\AccessControl\Application\AccessControl\User\CommandHandler\DeleteUserHandler;
 use Fight\AccessControl\Application\AccessControl\User\CommandHandler\DisableUserHandler;
 use Fight\AccessControl\Application\AccessControl\User\PasswordManagement;
+use Fight\AccessControl\Domain\AccessControl\Audit\AnonymousId;
 use Fight\AccessControl\Domain\AccessControl\PasswordResetGrant\PasswordResetGrant;
 use Fight\AccessControl\Domain\AccessControl\User\User;
 use PHPUnit\Framework\Attributes\CoversClass;
@@ -184,7 +185,8 @@ final class RecoveryConcurrencyTest extends TestCase
                 $other->passwordManagement()->resetPassword(
                     $other->userId,
                     'successor-fixture',
-                    'a sufficiently long recovered password'
+                    'a sufficiently long recovered password',
+                    AnonymousId::generate()
                 );
             } else {
                 $this->operate($fixture, 'redemption');
@@ -206,7 +208,8 @@ final class RecoveryConcurrencyTest extends TestCase
             $fixture->passwordManagement()->resetPassword(
                 $fixture->userId,
                 'recovery-fixture',
-                'a sufficiently long recovered password'
+                'a sufficiently long recovered password',
+                AnonymousId::generate()
             );
         } else {
             $fixture->deliver();
@@ -222,7 +225,11 @@ final class RecoveryConcurrencyTest extends TestCase
                 'a sufficiently long changed password'
             );
         } elseif ($change === 'email') {
-            $fixture->emailChangeConfirmation()->confirmEmail($fixture->userId, 'email-fixture');
+            $fixture->emailChangeConfirmation()->confirmEmail(
+                $fixture->userId,
+                'email-fixture',
+                AnonymousId::generate()
+            );
         } elseif ($change === 'disable') {
             $fixture->disable();
         } else {

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Fight\AccessControl\Application\AccessControl\PasswordResetGrant\EventSubscriber;
 
+use Fight\AccessControl\Domain\AccessControl\Audit\AnonymousId;
 use Fight\AccessControl\Domain\AccessControl\PasswordResetGrant\Command\DeliverPasswordReset;
 use Fight\AccessControl\Domain\AccessControl\PasswordResetGrant\Event\PasswordResetRequested;
 use Fight\Common\Application\Messaging\Command\CommandBus;
@@ -42,7 +43,7 @@ final readonly class PasswordResetDeliverySubscriber implements EventSubscriber
         /** @var PasswordResetRequested $event */
         $event = $eventMessage->payload();
         $this->commandBus->execute(new DeliverPasswordReset(
-            'anonymous',
+            AnonymousId::generate(),
             $event->getUserId(),
             $event->getPasswordResetDeliveryId()
         ));

@@ -61,7 +61,7 @@ final class RegistrationRecoveryRaceTest extends TestCase
                     CommandMessage::create($fixture->command($email))
                 );
                 $resend = fn() => $other->resend()->handle(CommandMessage::create(new ResendInvitationDelivery(
-                    'administrator',
+                    $fixture->actorId,
                     $fixture->initialUser->getId()
                 )));
                 $loser = new Fiber($recoveryWins ? $resend : $recovery);

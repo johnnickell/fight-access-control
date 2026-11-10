@@ -166,7 +166,7 @@ final class AgentCohortWriterTest extends TestCase
                         $env->clock,
                         $ports->transaction,
                         $ports->eventDispatcher
-                    )->revoke('operator', $agent->getId())
+                    )->revoke($actor, $agent->getId())
                 };
                 self::fail('Every writer requires a qualified current cohort.');
             } catch (AgentOperationRejectedException $failure) {

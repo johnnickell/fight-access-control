@@ -6,6 +6,23 @@ Fight AccessControl owns framework-neutral identity, credential, session, author
 behavior shared by Fight applications. The repository-local behavioral and security authority is
 [TICKET-00001](planning/tickets/00001-TICKET.md).
 
+## TASK-00132 paged Query contracts — accepted checkpoint
+
+The six [paged Query paths](docs/paged-queries.md) now adopt Common v1.5.0 strict construction for incoming and
+mapped results, check request metadata and preserve exact safe View mapping. Session reads independently check
+admitted owner/usability; Agent exact Permissions, Feature binding information and Role revisions remain intact.
+Captured page membership prevents dependency callbacks from changing enumeration; returned lists remain mutable.
+Empty/out-of-range semantics and actual persistence/ordering limits are explicit, without new locks or writes.
+Canonical `.runs/handoffs/TASK-00132/work.md` owns inventory, regressions, dependency/runtime and gate evidence.
+Independent Review v3 ACCEPT and complete nonvisual QA PASS cover candidate
+`98dcd31d4ab5e48ab4a8d9eb889dd0810b26aeba`, without findings: 11 QA scenario groups, 30 independent cases /
+787 assertions plus 106 regression tests / 866 assertions. Earlier full gate retained: 7,251 tests / 79,950
+assertions, exact 9,422/9,422 global and 142/142 owned statements, with Review-qualified prose-only follow-ups.
+TASK-00132 and eligible TICKET-00039 are done; unfinished children keep EPIC-00016 open. Publication/final delivery
+verification remain pending at this administrative checkpoint; canonical `.runs/handoffs/TASK-00132/land.md`
+owns subsequent bridge, delivery and resource results. Original independent reports and minimum-lane advisories
+remain preserved. No generic bus, whole-library or consumer qualification, merge, release or deployment is claimed.
+
 ## Canonical Common adoption — TASK-00110 accepted checkpoint
 
 Current composition requires Common `^1.5.0`, published tagged source
@@ -833,13 +850,22 @@ equality/hashing and known-type string reconstruction preserve kind. See [identi
 for the fixed-generation exception, explicit provenance, consumer kind preservation and no-authority/no-evidence-ID
 limits. Independent Review v3 ACCEPT and nonvisual QA PASS cover candidate
 `4ffca636abe6eada9293cd28325c3dd6fa38f85b` against `39691e1b4156c3e98c0d55aaf243f40c0fa4456a`;
-TASK-00121 is done. Unfinished TASK-00122 keeps TICKET-00043 and EPIC-00017 open. Publication/final delivery
+TASK-00121 is done. TASK-00122's subsequent acceptance completes TICKET-00043; unfinished family work keeps EPIC-00017 open. Publication/final delivery
 verification remain pending at this administrative checkpoint; canonical `.runs/handoffs/TASK-00121/land.md`
 owns subsequent bridge, checks, publication and resource outcomes. Original independent reports are preserved.
-No existing evidence constructor/writer or optional audit wiring changes in this prefactor. The broader destination below remains
-unimplemented apart from these two prerequisite values; its planning/source observations describe that baseline.
+No existing evidence constructor/writer or optional audit wiring changed in that prefactor. The broader destination's
+planning/source observations below describe its historical baseline; the shared replacement is now accepted separately.
 
 ## Approved explicit optional atomic audit destination
+
+TASK-00122 supplies the [typed evidence replacement](docs/audit-evidence.md): the old string/context model
+and necessary callers/fixtures/schemas are replaced across all 22 current writer owners. Its TASK and canonical
+Work handoff own implementation evidence. Independent Review ACCEPT and behavioral QA PASS accept
+`5d8ba4496a19a1b1e33e9e16283d1aac6a64ddb4`; TASK-00122 and TICKET-00043 are done. Land's behavior-preserving
+integration of current develop passed a fresh full gate (8247 tests / 81407 assertions, exact global/owned coverage).
+Canonical `.runs/handoffs/TASK-00122/land.md` owns subsequent delivery/resource results, separate from human merge. Existing mandatory
+constructor wiring and currently unaudited paths remain unchanged. The destination and historical planning
+observations below are not claims that optional auditing is implemented.
 
 John approved [EPIC-00017](planning/epics/00017-EPIC.md): explicit audit recording in all 37 current CommandHandlers
 and related synchronous account/credential/delivery/maintenance use cases. Evolve AuditEvidence and its existing

@@ -29,8 +29,13 @@ use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\Delivery\A
 use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\Delivery\AgentDeliveryReceipt;
 use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\Exception\AgentOperationRejectedException;
 use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\Query\AgentOperationView;
+use Fight\AccessControl\Domain\AccessControl\Audit\AuditAction;
+use Fight\AccessControl\Domain\AccessControl\Audit\AuditAgentOutcome;
+use Fight\AccessControl\Domain\AccessControl\Audit\AuditAgentState;
 use Fight\AccessControl\Domain\AccessControl\Audit\AuditEvidence;
+use Fight\AccessControl\Domain\AccessControl\Audit\AuditSubject;
 use Fight\AccessControl\Domain\AccessControl\Permission\PermissionId;
+use Fight\AccessControl\Domain\AccessControl\User\UserId;
 use Fight\Common\Application\Error\Exception\RateLimitExceeded;
 use Fight\Common\Application\Error\Exception\StateConflict;
 use Fight\Test\AccessControl\Application\AccessControl\Agent\Authentication\InMemoryAgentRequestNonceConsumer;
@@ -71,7 +76,7 @@ final class AgentCredentialRetirementTest extends TestCase
             self::assertInstanceOf(AgentCredentialRevoked::class, $event);
         });
 
-        $this->service($environment)->revoke('maintainer-42', $agent->getId());
+        $this->service($environment)->revoke(UserId::generate(), $agent->getId());
 
         $retired = $this->operation($environment);
         self::assertSame($original->getIssuance(), $retired->getIssuance());
@@ -93,7 +98,7 @@ final class AgentCredentialRetirementTest extends TestCase
             $this->now()->modify('+5 minutes')
         ));
         self::assertNull($nonces->expiresAt());
-        self::assertSame('agent.credential_revoked', $environment->auditEvidenceRepository->all()[1]->action());
+        self::assertSame('agent.credential_revoked', $environment->auditEvidenceRepository->all()[1]->action()->value);
         self::assertSame(
             $agent->getEncryptedHmacSharedSecretEnvelope(),
             $environment->agentRepository->all()[0]->getEncryptedHmacSharedSecretEnvelope()
@@ -147,13 +152,23 @@ final class AgentCredentialRetirementTest extends TestCase
         };
         if ($direct) {
             $environment->transaction->commitTransactional(function () use ($environment, $agent): void {
-                self::assertTrue($environment->agentRepository->replace($agent, $agent->revoke($this->now())));
-                $environment->auditEvidenceRepository->add(
-                    AuditEvidence::agentCredentialRevoked('maintainer-42', $agent->getId())
-                );
+                $revoked = $agent->revoke($this->now());
+                self::assertTrue($environment->agentRepository->replace($agent, $revoked));
+                $environment->auditEvidenceRepository->add(AuditEvidence::record(
+                    UserId::generate(),
+                    new AuditSubject($agent->getId()),
+                    AuditAction::AGENT_CREDENTIAL_REVOKED,
+                    $this->now(),
+                    new AuditAgentOutcome(
+                        AuditAgentState::fromAgent($agent),
+                        AuditAgentState::fromAgent($revoked),
+                        null
+                    ),
+                    null
+                ));
             });
         } else {
-            $this->service($environment)->revoke('maintainer-42', $agent->getId());
+            $this->service($environment)->revoke(UserId::generate(), $agent->getId());
         }
 
         self::assertSame($writes + 1, $this->operation($environment)->getStateRevision());
@@ -221,7 +236,7 @@ final class AgentCredentialRetirementTest extends TestCase
         }
 
         try {
-            $this->service($environment, $auditEvidenceRepository)->revoke('maintainer-42', $agent->getId());
+            $this->service($environment, $auditEvidenceRepository)->revoke(UserId::generate(), $agent->getId());
             self::fail('Expected transaction failure.');
         } catch (RuntimeException $runtimeException) {
             self::assertStringNotContainsString('unsafe-provider-detail', (string) $runtimeException);
@@ -260,7 +275,7 @@ final class AgentCredentialRetirementTest extends TestCase
             }
         );
         try {
-            $this->service($environment)->revoke('maintainer-42', $environment->agentRepository->all()[0]->getId());
+            $this->service($environment)->revoke(UserId::generate(), $environment->agentRepository->all()[0]->getId());
             self::fail('Revocation does not use the issuance warning exception.');
         } catch (RuntimeException $runtimeException) {
             self::assertSame($failure, $runtimeException);
@@ -270,7 +285,7 @@ final class AgentCredentialRetirementTest extends TestCase
         self::assertNull($this->operation($environment)->getMaterial());
         self::assertCount(2, $environment->auditEvidenceRepository->all());
         $this->expectException(StateConflict::class);
-        $this->service($environment)->revoke('maintainer-42', $environment->agentRepository->all()[0]->getId());
+        $this->service($environment)->revoke(UserId::generate(), $environment->agentRepository->all()[0]->getId());
     }
 
     /** @return iterable<string, array{AgentDeliveryDisposition}> */
@@ -325,7 +340,7 @@ final class AgentCredentialRetirementTest extends TestCase
             $snapshot->isSinkCleaned()
         );
         $environment->operationRepository->operations[$environment->key->toString()] = $operation;
-        $this->service($environment)->revoke('maintainer-42', $environment->agentRepository->all()[0]->getId());
+        $this->service($environment)->revoke(UserId::generate(), $environment->agentRepository->all()[0]->getId());
         $retired = $this->operation($environment);
         $expected = $disposition;
         if (in_array($disposition, [AgentDeliveryDisposition::PENDING, AgentDeliveryDisposition::RETRYABLE], true)) {
@@ -356,7 +371,7 @@ final class AgentCredentialRetirementTest extends TestCase
 
         $original = $this->operation($environment);
         $environment->operationRepository->operations[$environment->key->toString()] = $original->retireMaterial();
-        $this->service($environment)->revoke('maintainer-42', $environment->agentRepository->all()[0]->getId());
+        $this->service($environment)->revoke(UserId::generate(), $environment->agentRepository->all()[0]->getId());
         self::assertSame($original->getIssuance(), $environment->bus(
             limits: $limits
         )->dispatchAndRead(new ProvisionAgent(
@@ -399,7 +414,7 @@ final class AgentCredentialRetirementTest extends TestCase
             try {
                 if ($case === 'nested') {
                     $environment->transaction->commitTransactional(function () use ($environment, $agent): void {
-                        $this->service($environment)->revoke('maintainer-42', $agent->getId());
+                        $this->service($environment)->revoke(UserId::generate(), $agent->getId());
                     });
                 } elseif ($case === 'no transaction') {
                     $agentRepository->replace($agent, $agent->revoke($this->now()));
@@ -468,7 +483,7 @@ final class AgentCredentialRetirementTest extends TestCase
                         $agentRepository->replace($agent, $agent->revoke($this->now()));
                     });
                 } else {
-                    $this->service($environment)->revoke('maintainer-42', $agent->getId());
+                    $this->service($environment)->revoke(UserId::generate(), $agent->getId());
                 }
 
                 self::fail('Expected sanitized cancellation rejection.');
@@ -563,7 +578,7 @@ final class AgentCredentialRetirementTest extends TestCase
                 self::assertSame($before, $environment->operationAuthorization->epoch);
                 self::assertFalse($environment->operationAuthorization->delegationExpired);
             };
-            $this->service($environment)->revoke('maintainer-42', $environment->agentRepository->all()[0]->getId());
+            $this->service($environment)->revoke(UserId::generate(), $environment->agentRepository->all()[0]->getId());
             self::assertSame($before + 1, $environment->operationAuthorization->epoch);
             self::assertTrue($environment->operationAuthorization->delegationExpired);
             self::assertNull($this->operation($environment)->getMaterial());
@@ -609,7 +624,7 @@ final class AgentCredentialRetirementTest extends TestCase
             self::assertSame($original, $this->operation($environment));
         }
 
-        $this->service($environment)->revoke('maintainer-42', $agent->getId());
+        $this->service($environment)->revoke(UserId::generate(), $agent->getId());
         $revoked = $environment->agentRepository->all()[0];
         self::assertFalse($environment->agentRepository->replace($revoked, $agent));
         self::assertFalse($environment->agentRepository->replace($agent, $agent->revoke($this->now())));
