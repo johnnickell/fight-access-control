@@ -118,7 +118,9 @@ recording/removal admission, Commands, handlers, recorder/remover and DBAL stora
 policy and real routing buses, with Common DBAL repository/Task transaction/committed reads over SQLite.
 See [Task composition](agent-task-authorization.md) for independent grants, guarded worker authority, comparison
 epochs, safe faults and consumer limits. DBAL remains development-only here; no production persistence is copied.
-Other TASK-00089–00090/00092–00096 and TASK-00098–00102 must inspect their exact declarations, configure actual
+TASK-00092 independently qualifies actual summary/list/detail/recovery Queries and `notices.recover` through
+[retained read composition](agent-notice-recovery.md), with inward Agent Permission and trusted consumer scope.
+Other TASK-00089–00090/00093–00096 and TASK-00098–00102 must inspect their exact declarations, configure actual
 Common buses and independently qualify each operation/family. This baseline clears only TASK-00110's historical
 supplier hold, not those feature
 holds, grant requirements, live-runtime requirements or separate generic typing/returned-page evidence gaps.

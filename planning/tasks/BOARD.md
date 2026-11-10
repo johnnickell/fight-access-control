@@ -5,13 +5,11 @@ dependencies, acceptance, and verification.
 
 ## What's Next?
 
-Active Task: [TASK-00092](00092-TASK.md) — Authorize retained inspection and polling recovery.
+First ready Task: [TASK-00089](00089-TASK.md) — Compose scoped execution and timeline reads.
 
 ## In Progress
 
-| Order | TASK ID | Title | Parent TICKET | Status | Blocked by | PR |
-| --- | --- | --- | --- | --- | --- | --- |
-| 92 | [TASK-00092](00092-TASK.md) | Authorize retained inspection and polling recovery | [TICKET-00030](../tickets/00030-TICKET.md) — Authorize retained notices and live Subscriptions | in-progress | [TASK-00084](00084-TASK.md) | — |
+No Tasks are currently in this state.
 
 ## Ready Frontier
 
@@ -19,6 +17,8 @@ Active Task: [TASK-00092](00092-TASK.md) — Authorize retained inspection and p
 | --- | --- | --- | --- | --- | --- | --- |
 | 89 | [TASK-00089](00089-TASK.md) | Compose scoped execution and timeline reads | [TICKET-00029](../tickets/00029-TICKET.md) — Compose scoped execution and protected-detail access | ready-for-agent | [TASK-00084](00084-TASK.md) | — |
 | 90 | [TASK-00090](00090-TASK.md) | Compose independent protected-detail metadata and body reads | [TICKET-00029](../tickets/00029-TICKET.md) — Compose scoped execution and protected-detail access | ready-for-agent | [TASK-00084](00084-TASK.md) | — |
+| 93 | [TASK-00093](00093-TASK.md) | Authorize live Tool, Resource and whole-Skill change disclosure | [TICKET-00030](../tickets/00030-TICKET.md) — Authorize retained notices and live Subscriptions | ready-for-agent | [TASK-00086](00086-TASK.md), [TASK-00088](00088-TASK.md), [TASK-00092](00092-TASK.md) | — |
+| 96 | [TASK-00096](00096-TASK.md) | Authorize optional notice publication | [TICKET-00030](../tickets/00030-TICKET.md) — Authorize retained notices and live Subscriptions | ready-for-agent | [TASK-00088](00088-TASK.md), [TASK-00092](00092-TASK.md) | — |
 | 98 | [TASK-00098](00098-TASK.md) | Authorize bounded retained Task removal | [TICKET-00031](../tickets/00031-TICKET.md) — Authorize durable Task operations and state disclosure | ready-for-agent | [TASK-00097](00097-TASK.md) | — |
 | 99 | [TASK-00099](00099-TASK.md) | Authorize durable input and protected continuation | [TICKET-00031](../tickets/00031-TICKET.md) — Authorize durable Task operations and state disclosure | ready-for-agent | [TASK-00097](00097-TASK.md) | — |
 | 309 | [TASK-00130](00130-TASK.md) | Qualify Agent issuance Command and Query dispatch | [TICKET-00038](../tickets/00038-TICKET.md) — Preserve message and result types through dispatch | ready-for-agent | [TASK-00182](00182-TASK.md) | — |
@@ -52,10 +52,8 @@ Active Task: [TASK-00092](00092-TASK.md) — Authorize retained inspection and p
 
 | Order | TASK ID | Title | Parent TICKET | Status | Blocked by | PR |
 | --- | --- | --- | --- | --- | --- | --- |
-| 93 | [TASK-00093](00093-TASK.md) | Authorize live Tool, Resource and whole-Skill change disclosure | [TICKET-00030](../tickets/00030-TICKET.md) — Authorize retained notices and live Subscriptions | ready-for-agent | [TASK-00086](00086-TASK.md), [TASK-00088](00088-TASK.md), [TASK-00092](00092-TASK.md) | — |
 | 94 | [TASK-00094](00094-TASK.md) | Authorize Prompt catalog-change disclosure | [TICKET-00030](../tickets/00030-TICKET.md) — Authorize retained notices and live Subscriptions | ready-for-agent | [TASK-00087](00087-TASK.md), [TASK-00093](00093-TASK.md) | — |
 | 95 | [TASK-00095](00095-TASK.md) | Authorize current-subscriber inspection | [TICKET-00030](../tickets/00030-TICKET.md) — Authorize retained notices and live Subscriptions | ready-for-agent | [TASK-00093](00093-TASK.md) | — |
-| 96 | [TASK-00096](00096-TASK.md) | Authorize optional notice publication | [TICKET-00030](../tickets/00030-TICKET.md) — Authorize retained notices and live Subscriptions | ready-for-agent | [TASK-00088](00088-TASK.md), [TASK-00092](00092-TASK.md) | — |
 | 100 | [TASK-00100](00100-TASK.md) | Authorize cancellation requests and intent observation | [TICKET-00031](../tickets/00031-TICKET.md) — Authorize durable Task operations and state disclosure | ready-for-agent | [TASK-00097](00097-TASK.md), [TASK-00099](00099-TASK.md) | — |
 | 101 | [TASK-00101](00101-TASK.md) | Authorize complete MCP Task start and reconnect journeys | [TICKET-00031](../tickets/00031-TICKET.md) — Authorize durable Task operations and state disclosure | ready-for-agent | [TASK-00084](00084-TASK.md), [TASK-00097](00097-TASK.md), [TASK-00099](00099-TASK.md), [TASK-00100](00100-TASK.md) | — |
 | 102 | [TASK-00102](00102-TASK.md) | Authorize optional full-state Task notifications | [TICKET-00031](../tickets/00031-TICKET.md) — Authorize durable Task operations and state disclosure | ready-for-agent | [TASK-00093](00093-TASK.md), [TASK-00101](00101-TASK.md) | — |
@@ -173,6 +171,7 @@ No Tasks are currently in this state.
 | 87 | [TASK-00087](00087-TASK.md) | Authorize Agent-protected Prompt discovery and retrieval | [TICKET-00027](../tickets/00027-TICKET.md) — Authorize Prompt discovery and retrieval | done | [TASK-00108](00108-TASK.md), [TASK-00110](00110-TASK.md) | https://github.com/johnnickell/fight-access-control/pull/204 |
 | 88 | [TASK-00088](00088-TASK.md) | Revalidate bound Agent authority before protected continuation | [TICKET-00028](../tickets/00028-TICKET.md) — Revalidate Agent authority for protected continuation | done | — | https://github.com/johnnickell/fight-access-control/pull/142 |
 | 91 | [TASK-00091](00091-TASK.md) | Authorize notice recording and bounded removal | [TICKET-00030](../tickets/00030-TICKET.md) — Authorize retained notices and live Subscriptions | done | [TASK-00088](00088-TASK.md), [TASK-00108](00108-TASK.md), [TASK-00110](00110-TASK.md) | https://github.com/johnnickell/fight-access-control/pull/206 |
+| 92 | [TASK-00092](00092-TASK.md) | Authorize retained inspection and polling recovery | [TICKET-00030](../tickets/00030-TICKET.md) — Authorize retained notices and live Subscriptions | done | [TASK-00084](00084-TASK.md) | — |
 | 97 | [TASK-00097](00097-TASK.md) | Authorize Task creation, producer updates and protected reads | [TICKET-00031](../tickets/00031-TICKET.md) — Authorize durable Task operations and state disclosure | done | [TASK-00088](00088-TASK.md), [TASK-00108](00108-TASK.md), [TASK-00110](00110-TASK.md) | https://github.com/johnnickell/fight-access-control/pull/205 |
 | 103 | [TASK-00103](00103-TASK.md) | Protect Slim and Yii 3 requests through shared PSR-15 admission | [TICKET-00032](../tickets/00032-TICKET.md) — Protect native HTTP entry points across all five frameworks | done | — | https://github.com/johnnickell/fight-access-control/pull/143 |
 | 104 | [TASK-00104](00104-TASK.md) | Protect Symfony requests through native admission | [TICKET-00032](../tickets/00032-TICKET.md) — Protect native HTTP entry points across all five frameworks | done | [TASK-00103](00103-TASK.md) | https://github.com/johnnickell/fight-access-control/pull/144 |

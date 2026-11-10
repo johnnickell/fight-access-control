@@ -1,6 +1,6 @@
 # Fight AccessControl Context
 
-## Retained notice reads and recovery — TASK-00092 Work checkpoint
+## Retained notice reads and recovery — TASK-00092 accepted checkpoint
 
 [Retained notice composition](docs/agent-notice-recovery.md) now supplies inward `AgentNoticeReadAdmission` plus
 consumer `AgentNoticeReadPolicy` for Common summary/list/detail/recovery handlers. Configured direct Permissions
@@ -15,9 +15,14 @@ Common v1.5.0 (`06fb5cd3720af9cf8295198f74040d95b64c5155`) is the first sufficie
 DBAL/SQLite fixtures use actual authentication/Permissions, Sodium continuation and polling/JSON-RPC boundaries,
 including controlled recording commit followed by publication failure and authorized recovery without live runtime.
 Canonical `.runs/handoffs/TASK-00092/work.md` owns minimum/ordinary locks, runtime, focused/full-gate/exact-coverage
-results and warnings. Independent Review and nonvisual QA remain required; TASK-00092 stays open. Consumer policy,
-request lifetime/storage/cryptography, historical evidence and production authority/retention races remain unqualified;
-no live/Mercure, receipt, sibling, publication, release or deployment acceptance is claimed.
+results and warnings. Independent Review v3 ACCEPT and complete nonvisual QA PASS cover clean candidate
+`d989bdb25b897bd43c7ae87cd76e63498d18f561`: 13 independent scenarios / 235 assertions, fresh full gate
+8,631 tests / 85,965 assertions, exact 10,451/10,451 global and 6/6 owned statements. TASK-00092 is done;
+unfinished siblings keep TICKET-00030 and EPIC-00014 open. Land's behavior-preserving advanced-base integration,
+publication/final delivery verification and retirement outcomes belong to canonical `.runs/handoffs/TASK-00092/land.md`;
+delivery remains pending at this closeout checkpoint. Consumer policy, request lifetime/storage/cryptography,
+historical evidence and production authority/retention races remain unqualified; no live/Mercure, receipt, sibling,
+merge, release or deployment acceptance is claimed.
 
 ## Notice mutation admission — TASK-00091 accepted checkpoint
 

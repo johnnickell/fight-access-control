@@ -3,8 +3,8 @@
 Unreleased [TASK-00092](../planning/tasks/00092-TASK.md) adds inward `AgentNoticeReadAdmission` and consumer
 `AgentNoticeReadPolicy`. Common **v1.5.0**, published source `06fb5cd3720af9cf8295198f74040d95b64c5155`, is the
 first sufficient supported minimum for these read/recovery/polling contracts. The existing `^1.5.0` requirement
-already suffices. See the [supplier inventory](common-contracts.md). This is Work implementation, not independent
-acceptance or production consumer qualification.
+already suffices. See the [supplier inventory](common-contracts.md). Independent Review ACCEPT and nonvisual
+QA PASS cover candidate `d989bdb25b897bd43c7ae87cd76e63498d18f561`; this is not production consumer qualification.
 
 ## Ownership and request flow
 
@@ -33,8 +33,11 @@ sequenceDiagram
 
 The source owners are `src/Application/AccessControl/Agent/Notice/{AgentNoticeReadAdmission,AgentNoticeReadPolicy}`.
 They add no Query, SQL, repository, cursor codec, completeness engine, schema or Tool. The diagram describes their
-TASK-00092 source change against base `97e75f18d52bfc078dcd6cf8d25618c27edf1018`; committed revision and executable
-trace evidence are in canonical `.runs/handoffs/TASK-00092/work.md`. Screenshots cannot prove library admission,
+existing implementation at `d989bdb25b897bd43c7ae87cd76e63498d18f561` against base
+`97e75f18d52bfc078dcd6cf8d25618c27edf1018`. Solid arrows denote calls, dashed arrows returned data; the final
+reader-to-caller arrow abbreviates the return through the handler/bus. Source and executable traces are in
+canonical `.runs/handoffs/TASK-00092/work.md`. The view omits bootstrap, storage internals and failure branches;
+it is not proof of consumer policy or production concurrency. Screenshots cannot prove library admission,
 concealment, effects or continuation semantics; routed response/state tests provide Before/After evidence instead.
 
 ## Explicit composition
