@@ -9,6 +9,10 @@ metadata and availability, **not** protocol policy, an endpoint, OAuth mapping o
 instances require the same fresh provider/request as availability. Independent review/behavioral QA and actual
 consumer qualification remain separate from builder tests.
 
+[Protected detail admission](agent-protected-detail.md) separately intersects direct metadata/body Permissions and
+consumer structural scope through Common's owning Queries. Keep metadata-only Tools available without body Permission;
+coarse Tool availability and timeline references never grant protected data.
+
 [Resource authorization](agent-resource-authorization.md) is independently composed through Common's Resource hook.
 Its operational-failure behavior intentionally differs from this Tool-only neutral-denial policy.
 [Current continuation admission](agent-continuation-authorization.md) separately protects each new queued disclosure,
