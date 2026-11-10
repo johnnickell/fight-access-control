@@ -117,7 +117,13 @@ recording/removal admission, Commands, handlers, recorder/remover and DBAL stora
 `RecordTaskStateHandler` and `GetTaskHandler`, typed Task identities/definitions/states, Commands/Query, payload
 policy and real routing buses, with Common DBAL repository/Task transaction/committed reads over SQLite.
 See [Task composition](agent-task-authorization.md) for independent grants, guarded worker authority, comparison
-epochs, safe faults and consumer limits. DBAL remains development-only here; no production persistence is copied.
+epochs, safe faults and consumer limits. TASK-00098 additionally consumes actual `TaskRemovalAdmission`,
+`RemoveTasksHandler`, `RemoveTasks`, `TaskSelection` and `TaskDataRemoved` from the same sufficient v1.5.0 tag.
+Its independent Agent Permission/current consumer scope runs inside Common's whole-selection admission before
+atomic row removal. Common deliberately maps removal-admission faults to fixed `TaskRejected`; authorized missing
+identities are no-ops, not fabricated removal facts. Retained retry/comparison material is removed with the
+aggregate, without permanent identity memory. Its canonical Work handoff owns feature-specific minimum/ordinary
+and concurrent SQLite qualification. DBAL remains development-only here; no production persistence is copied.
 Other TASK-00089–00090/00092–00096 and TASK-00098–00102 must inspect their exact declarations, configure actual
 Common buses and independently qualify each operation/family. This baseline clears only TASK-00110's historical
 supplier hold, not those feature

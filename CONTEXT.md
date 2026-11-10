@@ -47,6 +47,25 @@ Its TASK and canonical Work/QA handoffs own verification. Advanced-base integrat
 checks remain pending at this closeout checkpoint; canonical `.runs/handoffs/TASK-00091/land.md` owns subsequent
 bridge, delivery and resource outcomes.
 
+## TASK-00098 bounded retained Task removal — accepted checkpoint
+
+[Task removal composition](docs/agent-task-authorization.md#bounded-retained-task-removal--slice-b) now supplies
+independent configured Agent Permission/current consumer removal scope through Common v1.5.0's actual
+`TaskRemovalAdmission` and routed `RemoveTasksHandler`. Common owns bounded whole-selection admission, atomic
+aggregate removal, authorized missing-target no-op, commit uncertainty and postcommit removal facts. No removal
+RPC, policy selector, store, scheduler or grant is added. Removal-admission faults follow Common's fixed
+`TaskRejected`, not fabricated successful absence. Retained comparison/creation retry material disappears with
+its aggregate; identity reuse is new creation, not permanent deduplication or a stale-producer fence across reuse.
+
+The canonical TASK-00098 Work handoff owns minimum/ordinary dependency/runtime identity, focused real authority/
+SQLite/bus/transaction/concurrent-lifecycle proof and full-gate/exact-coverage evidence. Controlled consumer scope,
+retention/hold and background-fence fixtures do not qualify production policy/storage/authority writers, cleanup
+scheduling, worker stopping or external effects. Independent Review v3 ACCEPT and complete nonvisual QA PASS cover
+candidate `7bb8561e3a672937128ccea77cd3d8201325b798`; TASK-00098 is done. Unfinished siblings keep TICKET-00031 and
+EPIC-00014 open. Publication/final delivery verification remain pending at this administrative closeout checkpoint;
+canonical `.runs/handoffs/TASK-00098/land.md` owns subsequent delivery/resource outcomes. No sibling, release,
+deployment or consumer qualification is claimed.
+
 ## Purpose
 
 Fight AccessControl owns framework-neutral identity, credential, session, authorization, and account-lifecycle
