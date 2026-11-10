@@ -30,7 +30,10 @@ correct result declarations/caller boundaries remain unchanged; current guide ex
 The follow-up payload clarification requires one registered Query per handler and a flat local annotation immediately
 above extraction in `handle()`. All 22 match after aligning preparation and preview while retaining their guards;
 the shared Command/Query/Event style is documented in the PHP standard, not a sibling source sweep.
-TASK-00132 owns the integrated strict page semantics; sibling Command/Event/Agent qualification remains separately owned.
+John subsequently permits this same precise-handler/known-caller result contract for TASK-00130's Agent outcome
+Queries. TASK-00136 uses `eventRegistration()` plus concrete subscriber payload annotations and real routing proof,
+not automatic generic inference or a new generic PHP/Common API. Their former generic supplier holds are cleared;
+implementation and independent acceptance remain separately owned. TASK-00132 owns integrated strict page semantics.
 Independent Review v3 ACCEPT and complete nonvisual QA PASS cover clean candidate
 `1e0f03a9b3383c663b6bcef9896ff450e959dc2f`, without findings. QA passes 12 groups, 53 new cases /
 1,694 assertions plus 633 complementary tests / 7,491 assertions and 110 exact static diagnostics. Original full
@@ -73,8 +76,13 @@ needs-info premise. Independent Review v3 ACCEPT and complete nonvisual QA PASS 
 504 tests / 5,403 assertions. QA's fresh full gate passes 7,080 tests / 78,397 assertions, exact 9,324/9,324
 statements. TASK-00110 and eligible TICKET-00034/EPIC-00015 are done. Publication/final delivery checks remain
 pending at this administrative checkpoint; canonical `.runs/handoffs/TASK-00110/land.md` owns subsequent bridge,
-delivery and resource outcomes. Original independent subjects and historical gate failures are preserved. New MCP family
-holds and generic typing/returned-page validation owners remain separate. In particular, the pre-existing
+delivery and resource outcomes. Original independent subjects and historical gate failures are preserved. The
+[Common v1.5.0 planning amendment](planning/epics/00014-EPIC.md#common-v150-readiness-amendment) clears the remaining
+MCP family availability holds without accepting their unimplemented AccessControl integrations. Minimum/ordinary-lane
+feature tests remain implementation work. Consumer ownership/scope/grants/access-change evidence are port inputs,
+not missing operator decisions or a requirement for production adoption before package work. New disclosure/publication
+composition checks permission before sending but does not exclude permission changes after that check; no send-spanning
+lock or all-writer fence is intended. Existing TASK-00088 and upstream mandatory contracts remain unchanged. In particular, the pre-existing
 Pagination constructor deprecation is inventoried, not silently replaced with behavior-changing strict validation.
 Historical checkpoints below retain their actual older minima and planning observations; this section and the
 current manifest/inventory own today's baseline. No sibling/consumer mutation, publication, merge, release or
@@ -84,7 +92,8 @@ deployment is implied by this package acceptance.
 
 John selected one supported Command/Query declaration and a flat local concrete annotation at payload extraction;
 see the [canonical PHP rule](docs/engineering/standards/PHP.md#handler-payload-declarations). This replaces the
-original generic Command supplier hold, not Query-result inference. All 37 baseline Command handlers already
+original generic Command supplier hold; Query result annotations follow TASK-00128 and its TASK-00130 amendment above.
+All 37 baseline Command handlers already
 have that declaration/flat-annotation structure; the two added issuance handlers remain TASK-00130's scope.
 John subsequently selected trusted maps matching handler declarations and focused expected-registration unit
 assertions; rejecting deliberately inconsistent explicit maps is not required. The retained Common v1.5.0

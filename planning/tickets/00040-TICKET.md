@@ -57,8 +57,18 @@ code so native/static types, actual outcomes and intentional failures agree with
   secret-bearing message or blanket serialization of internal results is introduced.
 - Presentation/catalog bindings belong to TICKET-00041 regardless of current namespace; query behavior belongs
   to TICKET-00039. This ticket owns all other Application declarations and behavior, including ports. TICKET-00038
-  owns Query/Command message generics; this ticket owns remaining Event-subscriber relationship adoption. Shared
+  owns Query/Command dispatch contracts; this ticket owns Event registration/concrete subscriber annotation qualification. Shared
   Domain types belong to TICKET-00037. Assign shared code edits once at TASK planning.
+
+## Event registration amendment
+
+John accepts TASK-00136's Event contract through `eventRegistration()` and concrete local subscriber payload
+annotations. The registration selects the Event-to-method route; PHP does not automatically infer its concrete
+payload type from that array. Prove registration, annotation, generation/actor payload and actual dispatch agree.
+No generic typing addition to PHP/Common or generic envelope/registration supplier is required. Released Common
+v1.5.0 is the baseline qualified by TASK-00110. TASK-00136 is independently accepted and done in the incoming develop
+history. Preserve its completed minimum/ordinary-lane proof, independent reports and implementation/PR evidence;
+this planning amendment neither reopens nor independently reaccepts that work. This supersedes earlier Event-only information-hold wording.
 
 ## Dependencies and Existing Work
 
@@ -100,7 +110,7 @@ All records are kind chore, orders 315–324, with empty local blocked_by; prefe
 
 | TASK | Order | Primary Application files / CommandHandlers | Delivered contract area | Status |
 | --- | --- | --- | --- | --- |
-| [TASK-00136](../tasks/00136-TASK.md) | 315 | 4 / 0 | Three Event-to-delivery subscribers and shared Clock; qualified Event typing only. | needs-info |
+| [TASK-00136](../tasks/00136-TASK.md) | 315 | 4 / 0 | Three Event-to-delivery subscribers and shared Clock; registration/local-annotation and real dispatch proof. | done |
 | [TASK-00137](../tasks/00137-TASK.md) | 316 | 10 / 8 | User creation, invitation/recovery/correction and lifecycle. | done |
 | [TASK-00138](../tasks/00138-TASK.md) | 317 | 24 / 11 | Human credential requests/workers and shared provider/cipher/invocation/results. | ready-for-agent |
 | [TASK-00139](../tasks/00139-TASK.md) | 318 | 11 / 1 | Seven synchronous User security operations, RevokeSession and helpers/results. | ready-for-agent |
@@ -130,12 +140,12 @@ use cases: correct annotations are sufficient, with no generic UoW supplier, rep
 or uniform result DTO. Do not reopen the removed hold under callback/enforcement wording. The annotation must agree
 with every actual return branch; it neither validates unrelated external data nor proves bus/Event inference.
 
-During TASK-00136's explicit Build invocation, John additionally accepted static Event class-to-method registration
-with a correct local payload `@var` in each EventMessage handler, using Common's actual eventRegistration() API.
-This scoped amendment supersedes that TASK's historical generic Event supplier hold; it does not qualify upstream
-generic inference or change TASK-00128/00129/00130. Every actual mapping/annotation, minimum/ordinary composition,
-static limitations, routing and preserved business/failure behavior still need proof. Other slices retain their
-supported Common failure/port qualification; accepted planning is not supplier qualification.
+During TASK-00136's explicit Build invocation, John accepted static Event class-to-method registration with a
+correct local payload `@var` in each EventMessage handler, using Common's actual eventRegistration() API. That
+amendment clears the historical generic Event supplier hold without claiming automatic upstream inference.
+TASK-00136's own implementation, minimum/ordinary composition and independent acceptance are now complete; preserve
+its evidence. TASK-00130's separately approved known-caller annotation contract remains governed by TICKET-00038.
+Related transaction work is neither Event typing proof nor a UoW prerequisite.
 
 ### Shared edits and complete-path acceptance
 
@@ -147,7 +157,7 @@ supported Common failure/port qualification; accepted planning is not supplier q
 - TASK-00144 reconciles recovery's existing direct QueryHandler injection with configured Query dispatch, assigning
   caller/adoption edits once with TASK-00128 and read semantics with TASK-00134. No direct-handler bypass, shadow bus
   or local assertions masquerading as generic inference. Its worker behavior does not claim TASK-00128's proof passed.
-- TASK-00128/00129 retain Query/Command generic adoption. TICKET-00037 retains shared Domain typing; EPIC-00015
+- TASK-00128/00129 retain Query/Command dispatch-contract qualification. TICKET-00037 retains shared Domain typing; EPIC-00015
   retains capability/transition/operation redesign and real Agent Command conversion; TASK-00130 retains conversion
   dispatch qualification. Current issuance/service correction does not wait for that future conversion.
 - EPIC-00017 retains optional audit feature ownership; preserve actual adopted audit atomicity here without duplicate
@@ -229,7 +239,9 @@ for profile Tool/schema agreement and no blanket architecture/Common or UoW hold
 fixes and all existing scope/blockers remain owned as above.
 
 TICKET-00042's three-TASK plan is now approved/written as TASK-00150–00152. Its early foundations remain independent;
-final enforcement consumes actual accepted contracts, retaining the Event-only hold and settled local UoW annotations.
+final enforcement consumes actual accepted contracts and settled local UoW annotations. The later Event registration/
+annotation amendment cleared the former Event-only information hold; TASK-00136's subsequent independent acceptance
+and completion are preserved in the owning record.
 
 TICKET-00045's separate administration audit plan is now approved/written as TASK-00153–00157.
 TICKET-00046's separate four-TASK Feature/policy audit plan is now approved/written as TASK-00158–00161.

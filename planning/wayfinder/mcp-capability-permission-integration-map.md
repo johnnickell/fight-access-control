@@ -63,13 +63,13 @@ WF-032: factual source investigation (Closed)
   → WF-035: same-package capability-first adapters and safe-error composition (Closed)
   → WF-034: combined release, all five frameworks and single EPIC approval (Closed)
   → EPIC-00014 (written) → TICKET-00025–00032 (accepted/written)
-  → TICKET-00025 → TASK-00084 (accepted/written; needs-info for external Common evidence)
+  → TICKET-00025 → TASK-00084 (ready; released Common v1.5.0 supplier)
   → TICKET-00026 → TASK-00085 (Resources) → TASK-00086 (complete Skills/member reads)
-  → TICKET-00027 → TASK-00087 (accepted/written; needs-info for Common Prompt contracts/minimum)
-  → TICKET-00028 → TASK-00088 (trusted current authority; ready, no local blocker)
-  → TICKET-00029 → TASK-00089 / TASK-00090 (each consumes TASK-00084; needs-info for Common scoped reads)
-  → TICKET-00030 → TASK-00091–00096 (accepted/written; needs-info for Common notice/live/publication contracts)
-  → TICKET-00031 → TASK-00097–00102 (accepted/written; needs-info for Common durable Task contracts)
+  → TICKET-00027 → TASK-00087 (ready; released Common v1.5.0 Prompt contracts)
+  → TICKET-00028 → TASK-00088 (trusted current authority; done)
+  → TICKET-00029 → TASK-00089 / TASK-00090 (ready; each waits for TASK-00084)
+  → TICKET-00030 → TASK-00091–00096 (ready; recorded local supplier edges remain)
+  → TICKET-00031 → TASK-00097–00102 (ready; recorded local supplier edges remain)
   → TICKET-00032 → TASK-00103 (Slim/Yii 3) → TASK-00104 / TASK-00105 / TASK-00106 (native peers)
   → All planning phases complete → Board-based selection via /skill:next (no automatic execution)
 ```
@@ -78,7 +78,7 @@ WF-032: factual source investigation (Closed)
 
 None. WF-032, WF-033, WF-035 and WF-034 are Closed. The single approved EPIC is now written as
 [EPIC-00014](../epics/00014-EPIC.md); this map is Closed for completed decisions/EPIC handoff, not implementation
-or complete TASK decomposition. Continue its TASK-planning handoff below without reopening settled choices.
+acceptance. All TASK decomposition is complete; use its current handoff and the Board without reopening settled choices.
 
 ## Planning handoff
 
@@ -90,13 +90,20 @@ owns the approved destination:
 | Permission-Aware MCP Integration and Framework Adapters | [EPIC-00014](../epics/00014-EPIC.md) | All planning phases accepted/written: eight TICKETs and 23 TASKs (TASK-00084–00106); consult Board, not automatic implementation |
 
 [EPIC-00014's current handoff](../epics/00014-EPIC.md#progress-and-planning-handoff) now owns the complete combined
-release, all five framework families, external qualified/tagged Common prerequisites and unassigned version.
+release, all five framework families and unassigned version. Its
+[Common v1.5.0 amendment](../epics/00014-EPIC.md#common-v150-readiness-amendment) clears former supplier holds,
+requires fresh checks rather than atomic check-and-send, and treats application policy as consumer inputs, not
+missing operator decisions. Minimum/ordinary-lane feature tests remain implementation acceptance work.
 WF-033/WF-035 retain accepted permission/scope/freshness, capability-first Adapter and safe-error guarantees.
 Runtime integrations remain opt-in; Task polling is independent of live delivery.
 
 John approved the full eight-TICKET split, now written as [TICKET-00025](../tickets/00025-TICKET.md) through
 [TICKET-00032](../tickets/00032-TICKET.md). The EPIC's current handoff owns the complete requirement/sequence table;
 all map EPIC and TICKET phases are complete. Each requirement owns its evidence and no separate testing TICKET exists.
+
+### Historical decomposition checkpoints — supplier holds superseded by v1.5.0
+
+The following records preserve the original planning observations; current statuses come from the Board.
 
 John explicitly selected TICKET-00025 for To Tasks and approved its complete single-TASK plan, now written as
 [TASK-00084](../tasks/00084-TASK.md). It is `needs-info` for actual qualified/tagged Common execution contracts and
@@ -157,8 +164,8 @@ not grounds to reopen accepted scope:
 
 - Exact public PHP APIs, Permission names/grant tiers and one-time consumer seeding: requirement/design work within
   the accepted ownership and use cases; no blanket grants or default Agent access are inferred.
-- Actual implemented Common contracts, first tagged dependency minima and supported framework ranges: verify before
-  affected implementation/adoption and release; do not invent future version numbers.
+- Released Common v1.5.0 supplies the required MCP contracts. Verify supported minimum/ordinary feature composition
+  and framework ranges during implementation and before release; no additional supplier-information hold remains.
 - Actual consumer authentication/lifetimes, storage, scope and live-client qualification: separate consumer evidence.
 
 ## Out of scope

@@ -313,9 +313,10 @@ paths) and [TASK-00130](tasks/00130-TASK.md) (amended void Agent Command and out
 Orders 307–309 follow existing Domain plans. The original generic hold on TASK-00129 was superseded by John's
 single-declaration/local-annotation and trusted matching-map decision. TASK-00128's Query amendment permits mixed
 buses and known caller annotations without its original generic supplier hold. Current dispositions and proof
-belong to their owning records; TASK-00130 retains its distinct qualified/tagged API/minimum evidence requirements.
-TASK-00130 now has the genuine TASK-00182 conversion edge, with no reverse dependency. No result-capable bus is
-required and ordinary functional conversion does not wait on downstream generic typing. Existing void handlers and
+belong to their owning records. John now extends TASK-00128's precise handler results/known-caller annotations to
+TASK-00130, clearing its generic supplier hold. Its TASK-00182 conversion edge is satisfied and retained, with no
+reverse dependency. Common v1.5.0 supplies the supported mixed-bus/void contracts; minimum/ordinary-lane tests remain
+feature acceptance work. No generic or result-capable bus is required. Existing void handlers and
 independent Query adoption retain their owners. These
 manifests are planning coverage, not executed inference/routing/consumer proof. Coordinate canonical adoption with
 TASK-00110 once; semantic owners retain their corrections and every slice retains its own tests/gate/acceptance.
@@ -338,8 +339,10 @@ inward authority/continuation. Primary manifests allocate 119 remaining Applicat
 without overlap/omission; together with 22 QueryHandler and 13 Application presentation files, all 154 baseline
 Application files have planning ownership. This is not completed source review or type/runtime/consumer qualification.
 Orders 315–324 have empty local blocked_by with no demonstrated mutual dependency. At that planning checkpoint
-nine slices were ready-for-agent and TASK-00136 was needs-info. Its later scoped operator amendment supersedes the
-generic Event supplier hold; current acceptance and completion belong to the owning TASKs and generated views.
+nine slices were ready-for-agent and TASK-00136 was needs-info. Its later operator amendment accepts
+`eventRegistration()` plus concrete subscriber annotations and real dispatch proof, without new generic typing in
+PHP/Common. TASK-00136 is now independently accepted and done; TICKET-00040 closes with all ten children terminal.
+Current acceptance and completion belong to the owning records and generated views.
 
 John removed the UoW supplier hold: native commitTransactional() remains mixed and local @var is sufficient for a
 known owned callback return. No generic UoW API/task, replacement wrapper/result DTO or redundant check is required.
@@ -411,16 +414,17 @@ not a separate queue or authority to execute.
 | 10 | [TASK-00107](tasks/00107-TASK.md) — Architecture and naming rules | Independently accepted guidance; reconciles old layout/single-service guidance with the approved target. |
 | 11 | [TASK-00108](tasks/00108-TASK.md) — MCP presentation/bindings in Adapter | Independently accepted; provides the canonical boundary before extending MCP features. |
 | 12 | [TASK-00109](tasks/00109-TASK.md) — Application capabilities and descriptive names | Independently accepted; combines cohesive inward capabilities and descriptive collaborators with 108's outward MCP boundary. |
-| 13 | [TASK-00110](tasks/00110-TASK.md) — Supported canonical Common contracts | needs-info for actual affected tagged/accepted APIs and sufficient minimum; independent ready work proceeds. |
+| 13 | [TASK-00110](tasks/00110-TASK.md) — Supported canonical Common contracts | Done: independently accepted canonical adoption of released Common v1.5.0; unfinished features retain their own integration tests/acceptance. |
 | 201–202 | [TASK-00111](tasks/00111-TASK.md) → [TASK-00112](tasks/00112-TASK.md) — User revisions and synchronous capabilities | Direct synchronous owners now consume the complete User transitions; original independent acceptance remains recorded in each TASK. |
 | 203–204 | [TASK-00113](tasks/00113-TASK.md) / [TASK-00114](tasks/00114-TASK.md) — AgentName and operation/read boundaries | Independently accepted, including TASK-00114's integrated authentication-base candidate. Its canonical Land handoff and PR #158 own current delivery results. |
 
 Unfinished MCP roots TASK-00084/00087/00091/00097 now consume 108/110; existing descendants inherit those technical
-suppliers. Their new Common family/operation tagged-contract holds remain separate. Laravel TASK-00105 and
+suppliers. The [Common v1.5.0 readiness amendment](epics/00014-EPIC.md#common-v150-readiness-amendment) clears their
+former family/operation supplier holds; local implementation dependencies and feature verification remain. Laravel TASK-00105 and
 CodeIgniter TASK-00106 keep order 104 and their existing prerequisites: no MCP, User-decomposition or Agent-operation
 blocker is added. The broader redesign is not a blanket prerequisite or release gate for unrelated capabilities.
 
-Common's inspected local `9e46565633a2ee44fefacf27fc97b6a711467190` has concurrent changes and approved refactors
+At the historical pre-adoption checkpoint, Common's inspected local `9e46565633a2ee44fefacf27fc97b6a711467190` had concurrent changes and approved refactors
 through TASK-00192: canonical MCP foundation names, separate repository/UoW/read contracts, handler-owned use cases,
 typed identities/values and Tool adapters. Those plans are orientation, not actual released/qualified API evidence.
 TASK-00110 adopts only affected consumed canonical APIs when genuinely available; individual features qualify their
@@ -440,9 +444,10 @@ status data. Retain original keys/requests, execution-time authority, atomicity,
 separation. Dispatch acceptance and status absence do not prove issuance or rollback. No returned warning or queue-
 progress promise; safe execution faults and authoritative reads carry the amended contract.
 
-No result-capable Common API is required: TASK-00182 is ready-for-agent, with no demonstrated local blocker.
-[EPIC-00016](epics/00016-EPIC.md#agent-command-result-coordination-follow-up)/TASK-00130 now qualify exact void Command
-and Query typing, not Command results, with a genuine TASK-00182 blocker and distinct generic API evidence holds.
+No result-capable Common API is required: TASK-00182 is done.
+[EPIC-00016](epics/00016-EPIC.md#agent-command-result-coordination-follow-up)/TASK-00130 qualifies exact void Command
+and annotated Query-result contracts, not Command results. Its satisfied TASK-00182 edge is retained; the generic API
+information hold is cleared by John's known-caller annotation decision.
 Conversion retains its own business/bus proof and gate; no reverse edge, earlier-task expansion or audit prerequisite.
 The follow-up is fully TASK-planned. Next: `/skill:next` for current Board selection; no execution starts automatically.
 Planning branch develop integration fast-forwarded to 3efa74d4092d98c3847f57f26896d1912b47256e with user authority,
@@ -454,6 +459,14 @@ checkpoints below remain historical; EPIC-00015's current amendments govern conf
 Next: `/skill:next` for Board-based selection; no implementation or publication starts automatically.
 
 ## Future MCP permission integration — current acceptance
+
+The [Common v1.5.0 readiness amendment](epics/00014-EPIC.md#common-v150-readiness-amendment) clears all 16 remaining
+MCP supplier-information holds. TASK-00084/00087/00089–00102 are ready-for-agent, with existing local dependency edges
+and orders unchanged; the Board distinguishes executable work from waiting work. Feature minimum/ordinary-lane tests
+and independent acceptance remain implementation work. Fresh checks are required before protected sends, not a
+guarantee excluding permission changes between check and send. Consumer ownership/scope/grants/continuity evidence
+are application inputs tested with controlled fixtures, not unresolved operator decisions or production prerequisites.
+The planning history below is superseded on those points; combined release/all five frameworks remain unchanged.
 
 TASK-00085 and TASK-00086 are independently accepted with required nonvisual QA; TICKET-00026 is done.
 Qualified TASK-00088 intake verified TASK-00086 PR #141 merged/integrated in `develop` at `7fc6c313c39df96f7e261144025433d2b5c46e31`;

@@ -13,7 +13,9 @@ status: ready-for-agent
 [TASK-00110](../tasks/00110-TASK.md) directly to TASK-00097; later Task slices inherit the baseline through existing
 suppliers. Use actual supported typed Task identities, admission ports and Commands/Queries through configured
 buses, not TaskStore/UoW or broad TaskLifecycle/InputLifecycle/CancellationLifecycle forwarding APIs. Keep policy
-inward and protocol glue in canonical adapters. Each Task-operation tagged/minimum hold and independent grant remains.
+inward and protocol glue in canonical adapters. The
+[Common v1.5.0 amendment](../epics/00014-EPIC.md#common-v150-readiness-amendment) clears Task-operation supplier holds;
+independent grants and implementation-time minimum/ordinary-lane tests remain.
 
 ## Problem and Outcome
 
@@ -53,6 +55,9 @@ Cancellation permission/acknowledgment does not prove stopping, rollback or a `c
   without turning safe failure into fabricated empty/successful state.
 - Use [TICKET-00028](00028-TICKET.md) for protected continuation and repeated live disclosure, preserving original
   credential binding and current Permissions/scope; no request snapshot held indefinitely or replayed nonce.
+  For disclosure, permission may change after the final check and before send; AccessControl does not add production
+  all-writer locking or guarantee atomic check-and-send. Preserve Common's required Task disclosure-guard/action seam,
+  document its consumer obligations separately, and prove package wiring with controlled fixtures.
 - Input authority is not continuation authority. Preserve Common's caller/Task/operation/request/group/expiry
   confirmation binding and atomic admission; partial or refused answers do not authorize destructive continuation.
   The binding must not restore consumed admission or invent exactly-once external execution after failure.
@@ -70,9 +75,13 @@ Cancellation permission/acknowledgment does not prove stopping, rollback or a `c
   Tool-start admission only; direct Task operation/read authority remains independently checked.
 - [TICKET-00030](00030-TICKET.md) supplies live Subscription composition solely for optional full-state notifications.
   Neither Task polling nor ordinary input/cancellation has a forced live dependency; no reverse blocker is added.
-- Verify Common's actual implemented/accepted/qualified/tagged Task lifecycle, input, cancellation, removal and
-  optional live contracts, plus minimum version before affected implementation/adoption. Do not create guessed PHP
-  signatures, a partial advertised extension or a local lifecycle fork from approved Common planning.
+- Common v1.5.0 supplies released Task lifecycle, input, cancellation, removal, complete MCP serving and optional live
+  contracts; TASK-00110 records canonical supplier adoption. Exercise supported-minimum/ordinary-lane feature composition
+  during implementation. Do not create guessed PHP signatures, a partial advertised extension or a local lifecycle fork.
+- Consumer scope/sharing, trusted caller/producer bindings and durable visibility epochs are supported port inputs.
+  Controlled fixtures prove package integration; production implementations are not missing operator decisions.
+  Preserve honest visibility-change/restart semantics. Input acquisition/observation also supplies Common's independent
+  cancellation-intent observation admission in TASK-00099, without a reverse dependency on cancellation mutation.
 - Consumer execution, sharing policy, storage, workers and actual client/runtime qualification remain external.
   The combined release waits for all selected scope; runtime capabilities and transport choices remain opt-in.
 
@@ -86,7 +95,7 @@ Cancellation permission/acknowledgment does not prove stopping, rollback or a `c
   failures/retries and terminal/cancel races without restoring admission or claiming exactly-once effects.
 - [ ] Polling/reconnect works without live delivery; actual optional full-state delivery rechecks authority before
   queued/baseline output and preserves ordering/current-state recovery, protected payload bounds and feed isolation.
-- [ ] Revocation/credential/Permission/scope changes or resolver faults deny the next protected boundary without
+- [ ] Revocation/credential/Permission/scope changes observed at admission, or resolver faults, deny that boundary without
   silently switching credentials, replaying a nonce, rolling back old effects or inferring that a worker stopped.
 - [ ] Minimum-supported dependency evidence, safe diagnostics, documentation, exact coverage, canonical gate and
   later independent Review/behavioral QA distinguish library proof from actual deployed worker/client qualification.
@@ -100,12 +109,12 @@ forced cancellation, receipt/processing/rollback guarantees, consumer migration 
 
 | Order | TASK ID | Title | Status |
 | --- | --- | --- | --- |
-| 97 | [TASK-00097](../tasks/00097-TASK.md) | Authorize Task creation, producer updates and protected reads | needs-info |
-| 98 | [TASK-00098](../tasks/00098-TASK.md) | Authorize bounded retained Task removal | needs-info |
-| 99 | [TASK-00099](../tasks/00099-TASK.md) | Authorize durable input and protected continuation | needs-info |
-| 100 | [TASK-00100](../tasks/00100-TASK.md) | Authorize cancellation requests and intent observation | needs-info |
-| 101 | [TASK-00101](../tasks/00101-TASK.md) | Authorize complete MCP Task start and reconnect journeys | needs-info |
-| 102 | [TASK-00102](../tasks/00102-TASK.md) | Authorize optional full-state Task notifications | needs-info |
+| 97 | [TASK-00097](../tasks/00097-TASK.md) | Authorize Task creation, producer updates and protected reads | ready-for-agent |
+| 98 | [TASK-00098](../tasks/00098-TASK.md) | Authorize bounded retained Task removal | ready-for-agent |
+| 99 | [TASK-00099](../tasks/00099-TASK.md) | Authorize durable input and protected continuation | ready-for-agent |
+| 100 | [TASK-00100](../tasks/00100-TASK.md) | Authorize cancellation requests and intent observation | ready-for-agent |
+| 101 | [TASK-00101](../tasks/00101-TASK.md) | Authorize complete MCP Task start and reconnect journeys | ready-for-agent |
+| 102 | [TASK-00102](../tasks/00102-TASK.md) | Authorize optional full-state Task notifications | ready-for-agent |
 ## Decisions and Progress
 
 John approved item 7 of the eight-TICKET split, explicitly invoked To Tasks for this requirement, then approved
@@ -120,8 +129,8 @@ six complete capability journeys. Its full accepted decomposition is now written
 | E — Complete MCP start/reconnect journeys | [TASK-00101](../tasks/00101-TASK.md) | TASK-00084, TASK-00097, TASK-00099, TASK-00100 |
 | F — Optional full-state notifications | [TASK-00102](../tasks/00102-TASK.md) | TASK-00093, TASK-00101 |
 
-All six are needs-info for implemented/independently accepted/qualified tagged Common contracts and supported-minimum
-evidence, separate from local supplier edges. Each owns real authority/Common composition, independent allow/deny/
+All six are ready-for-agent under released Common v1.5.0, with their local implementation dependency edges preserved.
+The historical planned/absent-tag holds are cleared; minimum/ordinary-lane verification remains acceptance work. Each owns real authority/Common composition, independent allow/deny/
 fault and effect proof, tests/docs/minimum qualification, exact coverage/full gate and independent Review/behavioral
 QA. No layer-only or verification-only follow-up is planned; concrete PHP APIs follow qualified implementations.
 

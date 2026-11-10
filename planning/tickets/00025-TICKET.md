@@ -12,7 +12,9 @@ status: ready-for-agent
 [EPIC-00015](../epics/00015-EPIC.md) adds canonical adapter composition from
 [TASK-00108](../tasks/00108-TASK.md) and the qualified consumed-Common baseline from
 [TASK-00110](../tasks/00110-TASK.md) as direct prerequisites of TASK-00084. This supersedes earlier Application
-placement/no-local-blocker wording, not the complete mixed-Tool journey or its separate execution-API/minimum hold.
+placement/no-local-blocker wording, not the complete mixed-Tool journey. The
+[Common v1.5.0 amendment](../epics/00014-EPIC.md#common-v150-readiness-amendment) clears the former execution-API hold;
+minimum/ordinary-lane composition tests remain implementation acceptance work.
 Use actual Common buses/use cases and canonical Adapter bindings, without copied Tools or lifecycle/Store facades.
 
 ## Problem and Outcome
@@ -71,10 +73,11 @@ nonce consumption remains a distinct, request-scoped side effect of the current 
 - [TICKET-00029](00029-TICKET.md) consumes this binding for the complete scoped execution-Tool journey.
   [TICKET-00031](00031-TICKET.md) uses it for applicable Tool-start paths, not as a substitute for Task operation checks.
 - Inspect actual accepted/tagged Common definitions, invocation/retry ordering and execution Tool APIs before affected
-  adoption. Establish/test the minimum Common version; the current `^1.4.1` constraint is not proof of new classes.
+  adoption. Common v1.5.0 supplies the execution APIs and is the current `^1.5.0` baseline; exercise minimum and ordinary
+  lanes during implementation. A stale ignored lock/vendor installation is not proof of those tagged bytes.
 - Keep Domain/Application ownership, ADR 0011's current-contract policy and the EPIC's combined-release gate.
   The approved catalog API is specified in TASK-00084; actual supplier signatures and dependency wiring still
-  require implementation-time qualification. Common's planned typed activity execution facts are reconciled there
+  require implementation-time qualification. Common v1.5.0's released typed activity execution facts are reconciled there
   and in TICKET-00029, not a new binding TASK or a reverse Common release prerequisite.
 
 ## Acceptance Evidence
@@ -101,7 +104,7 @@ middleware, automatic grants, copied Common Tools, a new endpoint/CQRS bridge or
 
 | Order | TASK ID | Title | Status |
 | --- | --- | --- | --- |
-| 84 | [TASK-00084](../tasks/00084-TASK.md) | Protect mixed Common-owned and attributed MCP Tools | needs-info |
+| 84 | [TASK-00084](../tasks/00084-TASK.md) | Protect mixed Common-owned and attributed MCP Tools | ready-for-agent |
 ## Decisions and Progress
 
 John approved this requirement area as item 1 of EPIC-00014's complete eight-TICKET split, then explicitly selected
@@ -110,14 +113,15 @@ this TICKET for To Tasks and approved its single-TASK plan. The complete accepte
 change and complete discovery/invocation/retry, dependency-minimum, test and documentation evidence together;
 there is no separate prefactor or testing-only TASK.
 
-TASK-00084 is `needs-info` pending actual qualified/tagged Common execution APIs and minimum-version evidence,
-with TASK-00108 and TASK-00110 now added as the approved canonical adapter/consumed-Common prerequisites. Requirement/TASK-plan acceptance is not implementation acceptance or
-execution authority. No source, dependency adoption, grant or publication is authorized or performed.
+TASK-00084 is ready-for-agent: Common v1.5.0 supplies the execution APIs and TASK-00108/TASK-00110 are done.
+Its satisfied dependency edges remain recorded. Controlled consumer-policy fixtures support package implementation;
+production policy/adoption is not missing operator input. Tests/docs/minimum qualification and independent acceptance
+remain with the feature; readiness does not assert implementation or authorize its execution.
 
 John accepted the external-Tool architecture recommendations and requested reconciliation of these existing records.
 Explicit maps and attributes now have one-source-per-Tool semantics under TASK-00084; no new TASK, grant or Common
-permission dependency is introduced. Common TASK-00205's merged planning adds typed activity facts, not implemented
-or tagged supplier availability. The existing qualified/tagged prerequisite and TASK-00110 edge remain unchanged.
+permission dependency is introduced. Common TASK-00205's optional typed activity facts are now released in v1.5.0.
+The original absent-tag hold is superseded; the satisfied TASK-00110 edge and combined-release scope remain.
 Agent OS documentation reconciliation is a separate operator handoff; this change does not edit that project.
 
 This TICKET's TASK planning is complete. TICKET-00026's subsequently approved TASK-00085/00086 plan is also

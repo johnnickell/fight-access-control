@@ -7,6 +7,16 @@ status: ready-for-agent
 
 # Preserve message and result types through dispatch
 
+## Agent qualification amendment
+
+John extends TASK-00128's accepted Query contract to TASK-00130: precise native/PHPStan handler results and known-
+caller annotations are sufficient while QueryBus fetch/dispatch remain mixed. There is no automatic generic inference
+or upstream generic supplier prerequisite. TASK-00182's conversion is done; its dependency edge stays recorded.
+Common v1.5.0 is the released baseline qualified by TASK-00110. TASK-00130 is ready-for-agent, retaining its own real
+converted-handler, static/runtime, minimum/ordinary-lane and independent acceptance work. The analogous Event contract
+uses `eventRegistration()` plus concrete subscriber annotations under TASK-00136, not new generic typing in PHP.
+This amendment supersedes conflicting generic-supplier/inference wording in historical checkpoints below.
+
 ## Query amendment — 2026-11-09
 
 John explicitly clarified and reinvoked Build TASK-00128: QueryBus fetch/dispatch remain mixed; each handler
@@ -25,17 +35,18 @@ unqualified mixed. Under [EPIC-00016](../epics/00016-EPIC.md), preserve the rela
 its registered handler and its result through actual configured buses. Adoption uses qualified Common contracts;
 local casts/assertions are not proof of end-to-end typing. John's later TASK-00129 amendment selects a different
 Command payload contract: one supported declaration and flat owned extraction annotation, with runtime routing
-binding through a trusted matching registration map rather than a generic supplier prerequisite. That scoped amendment governs the Command clauses below;
-Query-result inference and sibling acceptance remain unchanged.
+binding through a trusted matching registration map rather than a generic supplier prerequisite. That scoped amendment
+governs the Command clauses below. The Agent amendment also permits known-caller Query results; sibling implementation/
+acceptance remains separate.
 
 ## Use Cases and Contracts
 
 | Actor and trigger | Commands / Queries / Events | Outcome and side effects |
 | --- | --- | --- |
-| Caller fetches a Query | All owned Queries, including lists/status/counts | Static inference produces the exact declared result, collection element or explicit optional state. |
-| Caller dispatches a QueryMessage | Same Queries with message metadata | Payload/result relationship survives message creation, metadata operations and dispatch. |
+| Caller fetches a Query | All owned Queries, including lists/status/counts | Precise handler results and known-caller annotations describe the result, element or explicit optional state. |
+| Caller dispatches a QueryMessage | Same Queries with message metadata | Declared payload/result contracts and metadata remain correct through real mixed-bus dispatch. |
 | Caller dispatches a Command | All existing serializable Commands | Handler registration/payload contracts agree; successful void handling remains void. |
-| Authorized Agent caller invokes issuance and reads its outcome | Void provisioning/rotation Commands and outcome Queries delivered by EPIC-00015 | Command payload/metadata/void contracts and exact Query-result inference survive sync/async-neutral composition; this ticket qualifies typing, not conversion. |
+| Authorized Agent caller invokes issuance and reads its outcome | Void provisioning/rotation Commands and outcome Queries delivered by EPIC-00015 | Command payload/metadata/void contracts and precisely annotated Query results survive sync/async-neutral composition; typing, not conversion. |
 | Maintainer changes handler registration or caller expectations | Existing messages; no new Event | Incompatible use is rejected by static checks and applicable runtime dispatch rules, not silently asserted away. |
 
 ## Requirements and Ownership
@@ -43,25 +54,24 @@ Query-result inference and sibling acceptance remain unchanged.
 - Inventory actual Common APIs consumed along every owned Command/Query path: payload type, registration class,
   handler input, native/static return, message construction/metadata transformations, configured bus and caller.
   Reconcile all 37 current command and 22 query handlers against a refreshed candidate, not a fixed sample.
-- Common owns Query/QueryMessage/QueryHandler/QueryBus generic relationships and Command routing contracts.
-  Existing Commands use the single registration/local annotation rule in the PHP standard, not an upstream generic
-  prerequisite. Specify missing supplier guarantees precisely, then adopt actual supported APIs without a
-  copied bus, shadow message hierarchy, AccessControl compatibility shim or direct-handler bypass.
-- Preserve result inference through both fetch and dispatch. Account for scalar results, arrays/lists, typed
+- Common owns Query/QueryMessage/QueryHandler/QueryBus and Command routing contracts. The supported bus remains mixed;
+  use single payload declarations, flat owned extraction annotations, precise handler returns and permitted known-caller
+  result annotations. No upstream generic prerequisite, copied bus, shadow hierarchy, compatibility shim or bypass.
+- Preserve precise annotated result contracts through both fetch and dispatch. Account for scalar results, arrays/lists, typed
   ResultSets, safe Views, explicit optional states and the void Command contract. Registration must identify the
   payload type the handler actually accepts. For Commands the approved flat local annotation records that type;
   it is not static assignability proof. Trusted maps must match declarations; a focused expected-registration
   unit assertion suffices. Correct routing is qualified separately, not rejection of deliberately inconsistent maps.
-- Prove expected inference and rejected incompatible caller/payload/handler use with executable static-analysis
-  fixtures. Prove runtime registration, real bus routing and applicable result/failure propagation separately;
-  PHPStan generics are not a native runtime guarantee.
+- Prove concrete native/static contracts and expected incompatible-use diagnostics with executable static fixtures.
+  Prove registration, real routing and result/failure propagation separately. Known-caller annotations describe trusted
+  matching bindings; they do not prove automatic inference or validate genuinely dynamic external results.
 - Use the result/absence contracts delivered by [TICKET-00039](00039-TICKET.md) and Application contracts from
   [TICKET-00040](00040-TICKET.md). Validate coverage of every handler here, but assign semantic changes to those
   owners rather than duplicate their acceptance. Shared Domain shapes remain with TICKET-00037.
 - Qualify the amended Agent follow-up through TASK-00130, without implementing EPIC-00015's conversion. John chose
   void Commands and independent outcome Queries, invocable sync or async with no transport assumption. Qualify payload/
-  metadata/void contracts and exact Query-result inference; no result-capable Common bus is needed. Actual missing
-  generic APIs and the concrete conversion supplier hold only their affected qualification, not ordinary functional conversion.
+  metadata/void contracts and precise annotated Query results; no generic or result-capable Common bus is needed.
+  The actual conversion supplier TASK-00182 is done, with its satisfied edge retained.
 - Preserve message identity, serialization, metadata, authorization-before-work, existing facts and transactional/
   post-commit behavior. No new grant, Event, commit or result DTO is required merely to obtain generic typing.
   Raw secrets remain synchronous/non-serializable and do not become messages.
@@ -72,22 +82,21 @@ Query-result inference and sibling acceptance remain unchanged.
 existing package. Coordinate overlapping imports/dependency minima once; this requirement owns the new end-to-end
 typing guarantees, static fixtures and real dispatch proof, not a duplicate canonical migration.
 
-Before adoption, verify actual implemented/independently accepted/qualified tagged supplier APIs and a sufficient
-minimum using real AccessControl composition at that minimum and the ordinary dependency lane. Planning inspection
-of Common's mixed bus interfaces is not evidence that generic replacements have shipped. No release number is
-guessed and no external TASK is placed in local blocked_by metadata. Missing supplier evidence holds affected
-adoption; audit, local contract correction and independent work can proceed. TASK planning must record actual
-needs-info prerequisites rather than infer executability from this accepted TICKET's status.
+Common v1.5.0 provides the supported mixed-bus and message contracts; TASK-00110 and the
+[contract inventory](../../docs/common-contracts.md) record published source and canonical qualification. Exercise
+minimum and ordinary dependency lanes with the actual owned production handlers during implementation. No generic
+replacement API or new supplier evidence is needed to start TASK-00130. Readiness is not feature acceptance.
 
 ## Acceptance Evidence
 
 - [ ] A complete mapping covers every owned message, actual registered handler, payload, result and caller through
   real configured buses, including message metadata transformations and both Query invocation methods.
-- [ ] Positive fixtures infer the exact Query result/element types without caller casts or unchecked assertions.
-  Command fixtures prove actual native/static contracts and the approved local annotated extraction, not generic
-  registration assignability. Negative fixtures check actual incompatible-use diagnostics without suppression.
-- [ ] Runtime tests demonstrate actual routing, applicable registration rejection and failure propagation; generic
-  static guarantees are explicitly distinguished from native PHP checks.
+- [ ] Positive fixtures prove exact native/static handler results and permitted known-caller result/element annotations.
+  Command fixtures prove concrete contracts and approved local extraction annotations, not generic assignability.
+  Negative fixtures check actual incompatible-use diagnostics without suppression; dynamic results remain validated.
+- [ ] Runtime tests demonstrate actual routing and failure propagation; expected-registration assertions establish
+  trusted matching maps. Concrete static contracts/annotations are distinguished from native PHP checks and are not
+  advertised as generic inference.
 - [ ] Actual tagged/accepted supplier APIs and minimum/ordinary-lane evidence support newly consumed guarantees;
   unavailable proof is explicit and no Common implementation or development-snapshot adoption is substituted.
 - [ ] Message metadata, identities, secret restrictions, existing effects and configured dispatch remain intact;
@@ -109,7 +118,7 @@ John approved the complete three-TASK split, initially written with kind chore a
 | --- | --- | --- | --- |
 | [TASK-00128](../tasks/00128-TASK.md) | 307 | Specific Query handler results and permitted annotated caller contracts through real fetch/message dispatch, metadata and all 22 current registrations. | Operator-amended mixed bus contract; actual supported tagged API minimum/ordinary proof, no generic supplier hold. |
 | [TASK-00129](../tasks/00129-TASK.md) | 308 | Single Command declaration, flat owned extraction annotation and real routing/void proof for all 37 baseline handlers. | Generic and mismapped-configuration holds superseded by John's trusted matching-map decision; qualify existing tagged Common minimum/ordinary routes. |
-| [TASK-00130](../tasks/00130-TASK.md) | 309 | Exact payload/metadata/void Command contracts and outcome Query-result typing for Agent issuance. | Qualified/tagged generic Command/Query typing APIs plus actual conversion supplier [TASK-00182](../tasks/00182-TASK.md). No Command-result API required. |
+| [TASK-00130](../tasks/00130-TASK.md) | 309 | Exact payload/metadata/void Command contracts and outcome Query-result typing for Agent issuance. | Released Common v1.5.0 mixed-bus/annotated-result contract plus done conversion supplier [TASK-00182](../tasks/00182-TASK.md). No generic or Command-result API required. |
 
 The original source-name manifests account for 22 QueryHandlers and 37 CommandHandlers. TASK-00129's refreshed
 candidate retains those 37 Command paths plus two issuance handlers owned by TASK-00130. These are planning inventories,
@@ -117,15 +126,14 @@ not exhaustive source audit, generic/runtime proof or completed supplier/consume
 and follow actual moved/new/removed owners. TASK-00130 is the distinct conversion-specific Command/Query typing slice,
 not permission to implement its supplier or add placeholder handlers. The earlier result-bearing premise is superseded.
 
-TASK-00128/00129 have no demonstrated local blocker. TASK-00130 now has blocked_by TASK-00182, whose accepted conversion
-supplies the actual production paths; no reverse dependency. Actual external generic-typing evidence remains needs-info,
-not a fictitious local TASK ID or a result-capable-bus requirement. Orders 307–309 and unrelated priorities are unchanged.
-Missing generic APIs do not block TASK-00182's ordinary functional conversion; missing Query generics do not block
-independent Command adoption. No blanket wait on TASK-00110, every Domain/query correction or architecture refactor.
+TASK-00128/00129 are done. TASK-00130 retains blocked_by TASK-00182, whose accepted, completed conversion supplies the
+actual production paths; no reverse dependency. The Agent annotation amendment clears the external generic information
+hold. Orders 307–309 and unrelated priorities are unchanged. No blanket wait on generic APIs, TASK-00110, every
+Domain/query correction or architecture refactor remains.
 
 TASK-00110 retains existing canonical migration. Coordinate imports/minima/shared fixture plumbing once rather than
 copy that adoption. TICKET-00039/00040 own result/absence/failure behavior and adapt affected declarations/callers/
-dispatch fixtures in their complete changes; this ticket owns the generic relationship. Do not certify today's
+dispatch fixtures in their complete changes; this ticket owns dispatch contract qualification. Do not certify today's
 nullable signatures as the approved required-result destination or retain them as a compatibility mode. TICKET-00042
 retains whole-library enforcement and final reconciliation; each dispatch slice owns complete focused proof, current
 examples, full gate/exact owned coverage, logs and independent Review/behavioral QA. No new fixture framework is required.
@@ -136,7 +144,7 @@ examples, full gate/exact owned coverage, logs and independent Review/behavioral
 | --- | --- | --- | --- |
 | 307 | [TASK-00128](../tasks/00128-TASK.md) | Preserve types through Query dispatch | done |
 | 308 | [TASK-00129](../tasks/00129-TASK.md) | Preserve Command payload types through dispatch | done |
-| 309 | [TASK-00130](../tasks/00130-TASK.md) | Qualify Agent issuance Command and Query dispatch | needs-info |
+| 309 | [TASK-00130](../tasks/00130-TASK.md) | Qualify Agent issuance Command and Query dispatch | ready-for-agent |
 ## Decisions and Progress
 
 John subsequently selected single supported Command/Query declarations and flat local payload annotations in the
@@ -167,8 +175,8 @@ The Board still selects TASK-00107 first.
 TICKET-00039's subsequent five-TASK plan is now approved/written as TASK-00131–00135, with its ResultSet supplier
 planning gap held explicitly rather than absorbed into this ticket's generic adoption.
 
-TICKET-00040's revised ten-TASK plan is now approved/written as TASK-00136–00145. Its remaining Event typing hold
-is distinct from this ticket's Query/Command adoption; known local callback-result @var with native UoW mixed is
+TICKET-00040's revised ten-TASK plan is approved/written as TASK-00136–00145. Its former Event typing hold is now
+cleared by registration/local-annotation proof, separately from Query/Command acceptance. Known callback-result @var with native UoW mixed is
 explicitly accepted and creates no UoW supplier prerequisite.
 
 TICKET-00041's four-TASK plan is now approved/written as TASK-00146–00149; profile qualification consumes this
@@ -186,5 +194,6 @@ TICKET-00050's four-TASK Feature plan is now written as TASK-00172–00175, not 
 TICKET-00051's four-TASK portable Permission plan is now written as TASK-00176–00179, not implemented/qualified.
 TICKET-00052's reduced evidence/gap-closure plan is now TASK-00180/00181, completing EPIC-00018 TASK planning only.
 EPIC-00015's added conversion is now fully planned as TICKET-00053/TASK-00182. TASK-00130 has its real supplier edge
-and its amended void-Command/outcome-Query qualification; actual generic/canonical supplier evidence remains separate.
+and its amended void-Command/outcome-Query qualification. Canonical adoption and conversion are done; the Agent
+annotation amendment clears the old generic hold without accepting unfinished feature qualification.
 Next: `/skill:next` for current Board selection; no implementation starts here.
