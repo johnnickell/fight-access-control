@@ -1,5 +1,24 @@
 # Fight AccessControl Context
 
+## Retained notice reads and recovery — TASK-00092 Work checkpoint
+
+[Retained notice composition](docs/agent-notice-recovery.md) now supplies inward `AgentNoticeReadAdmission` plus
+consumer `AgentNoticeReadPolicy` for Common summary/list/detail/recovery handlers. Configured direct Permissions
+precede trusted whole-metadata scope; coarse `notices.recover` Tool availability supplies no read grant. The same
+configured QueryBus protects direct and Tool paths. Ordinary request principal snapshots and one nonce remain;
+every later request needs a fresh provider. Common owns all queries/storage/coherent scanning, encrypted padded
+continuation, truthful qualified status and encoded output bounds. No duplicate engine or read-side business effect
+is added. The consumer supplies caller-bound access history and explicit namespace-evidence disclosure permission;
+missing continuity stays uncertain/restart, never a fabricated complete-empty or an operator decision hold.
+
+Common v1.5.0 (`06fb5cd3720af9cf8295198f74040d95b64c5155`) is the first sufficient supported minimum. Real routed
+DBAL/SQLite fixtures use actual authentication/Permissions, Sodium continuation and polling/JSON-RPC boundaries,
+including controlled recording commit followed by publication failure and authorized recovery without live runtime.
+Canonical `.runs/handoffs/TASK-00092/work.md` owns minimum/ordinary locks, runtime, focused/full-gate/exact-coverage
+results and warnings. Independent Review and nonvisual QA remain required; TASK-00092 stays open. Consumer policy,
+request lifetime/storage/cryptography, historical evidence and production authority/retention races remain unqualified;
+no live/Mercure, receipt, sibling, publication, release or deployment acceptance is claimed.
+
 ## Notice mutation admission — TASK-00091 accepted checkpoint
 
 The [notice composition guide](docs/agent-notice-authorization.md) supplies independently configured recording and
