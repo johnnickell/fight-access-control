@@ -57,7 +57,7 @@ for TASK-00105; consumer deployment qualification remains separate. Domain/Appli
 Maintainers placing classes or naming collaborators should use the checkout-local
 [architecture target](docs/engineering/standards/Architecture.md#accesscontrol-placement-and-dependency-rules) and
 [naming rules](docs/engineering/standards/Naming.md#descriptive-collaborators-and-collections). These codify approved
-EPIC-00015 guidance. Agent MCP presentation/bindings now live in `Adapter/Mcp/{Tool,Resource,Skill}/Agent`
+EPIC-00015 guidance. Agent MCP presentation/bindings now live in `Adapter/Mcp/{Tool,Resource,Skill,Prompt}/Agent`
 ([current composition](docs/agent-profile-tools.md)); authentication, Permission policy and continuation stay inward.
 Agent authentication, credential lifecycle, delivery, maintenance and continuation now have cohesive Application
 homes, alongside Feature Discovery and authorization Admission; see the
@@ -115,7 +115,7 @@ This bounded acceptance does not qualify consumer persistence, cryptography or t
 | Login, refresh, logout, passwords and current authority | [Direct synchronous composition](docs/user-authentication.md) · [Behavioral contract](planning/tickets/00001-TICKET.md) · [Vocabulary and boundaries](CONTEXT.md#vocabulary) |
 | Roles, Permission tiers and managed policy | [Permission tiers](docs/permission-tiers.md) · [Operation outcomes](docs/operation-outcomes.md) |
 | Recoverable Agent provisioning, rotation and delivery | [Agent integration](docs/agent-integration.md) · [Conformance and evidence](docs/agent-operation-evidence.md) |
-| Agent profiles and protected MCP capabilities | [Profile Tools](docs/agent-profile-tools.md) · [Tool authorization](docs/agent-mcp-authorization.md) · [Resource authorization](docs/agent-resource-authorization.md) · [Skill authorization](docs/agent-skill-authorization.md) · [Current continuation](docs/agent-continuation-authorization.md) · [Notice mutations](docs/agent-notice-authorization.md) |
+| Agent profiles and protected MCP capabilities | [Profile Tools](docs/agent-profile-tools.md) · [Tool authorization](docs/agent-mcp-authorization.md) · [Resource authorization](docs/agent-resource-authorization.md) · [Skill authorization](docs/agent-skill-authorization.md) · [Prompt authorization](docs/agent-prompt-authorization.md) · [Current continuation](docs/agent-continuation-authorization.md) · [Notice mutations](docs/agent-notice-authorization.md) |
 | Optional HTTP Permission admission (Unreleased) | [Shared/Slim/Yii 3 composition](docs/http-permission-admission.md) · [Native Symfony composition](docs/symfony-permission-admission.md) · [Native CI4 composition](docs/codeigniter-permission-admission.md) · [Native Laravel composition](docs/laravel-permission-admission.md) |
 | Optional Feature HTTP admission (Unreleased) | [Shared/Slim/Yii 3 composition and runtime flow](docs/http-feature-admission.md) · [Native Symfony composition and runtime flow](docs/symfony-feature-admission.md) |
 | Permission-based Feature flags | [Declarations](docs/feature-references.md) · [Provisioning](docs/feature-provisioning.md) · [Preparation](docs/feature-preparation.md) · [Availability](docs/feature-availability.md) · [Management](docs/feature-management.md) · [Retirement](docs/feature-retirement.md) |

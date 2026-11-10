@@ -461,9 +461,9 @@ Next: `/skill:next` for Board-based selection; no implementation or publication 
 ## Future MCP permission integration — current acceptance
 
 The [Common v1.5.0 readiness amendment](epics/00014-EPIC.md#common-v150-readiness-amendment) clears all 16 remaining
-MCP supplier-information holds. TASK-00087/00089–00102 retain their source-record stages, with existing local dependency edges
-and orders unchanged; the Board distinguishes executable work from waiting work. Feature minimum/ordinary-lane tests
-and independent acceptance remain implementation work. Fresh checks are required before protected sends, not a
+MCP supplier-information holds. The Board owns current execution status and distinguishes executable work from
+waiting work; existing local dependency edges and orders remain unchanged. For unfinished features,
+minimum/ordinary-lane tests and independent acceptance remain implementation work. Fresh checks are required before protected sends, not a
 guarantee excluding permission changes between check and send. Consumer ownership/scope/grants/continuity evidence
 are application inputs tested with controlled fixtures, not unresolved operator decisions or production prerequisites.
 The planning history below is superseded on those points; combined release/all five frameworks remain unchanged.
