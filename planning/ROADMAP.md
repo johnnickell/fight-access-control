@@ -310,7 +310,9 @@ without waiting for later tooling. Shared cohort definitions have one owner, wit
 John explicitly selected TICKET-00038 and approved its complete three-TASK plan, now written as
 [TASK-00128](tasks/00128-TASK.md) (22 Query dispatch paths), [TASK-00129](tasks/00129-TASK.md) (37 existing void Command
 paths) and [TASK-00130](tasks/00130-TASK.md) (amended void Agent Command and outcome Query typing, not conversion).
-Orders 307–309 follow existing Domain plans; all retain actual qualified/tagged generic API/minimum evidence holds.
+Orders 307–309 follow existing Domain plans. The original generic hold on TASK-00129 was superseded by John's
+single-declaration/local-annotation and trusted matching-map decision; its current disposition belongs to the
+owning TASK. TASK-00128/00130 retain their distinct qualified/tagged generic API/minimum evidence requirements.
 TASK-00130 now has the genuine TASK-00182 conversion edge, with no reverse dependency. No result-capable bus is
 required and ordinary functional conversion does not wait on downstream generic typing. Existing void handlers and
 independent Query adoption retain their owners. These

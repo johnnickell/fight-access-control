@@ -124,7 +124,7 @@ examples, full gate/exact owned coverage, logs and independent Review/behavioral
 | Order | TASK ID | Title | Status |
 | --- | --- | --- | --- |
 | 307 | [TASK-00128](../tasks/00128-TASK.md) | Preserve types through Query dispatch | needs-info |
-| 308 | [TASK-00129](../tasks/00129-TASK.md) | Preserve Command payload types through dispatch | in-progress |
+| 308 | [TASK-00129](../tasks/00129-TASK.md) | Preserve Command payload types through dispatch | done |
 | 309 | [TASK-00130](../tasks/00130-TASK.md) | Qualify Agent issuance Command and Query dispatch | needs-info |
 ## Decisions and Progress
 
