@@ -88,7 +88,18 @@ round trips. Serializable Queries use their handlers' Common registrations; secr
 | [Maintain](agent-delivery-maintenance.md): `AgentDeliveryMaintenanceService::rewrap/expire/cleanup` | Operation repository, `AgentMaintenanceAuthorization`, `AgentDeliveryRewrapper`, `AgentCredentialCleanup`, Clock, UoW, optional `AgentMaintenancePolicy`. Original key/destination/delivery ID, plus target key version for rewrap. Safe `AgentMaintenanceResult`. Rewrap is inside a bounded fenced transaction; cleanup invocation is outside transactions between admission and acknowledgement. |
 | [Maintenance reads](agent-delivery-maintenance.md): `ListAgentDeliveryMaintenanceHandler`, `CountAgentDeliveryKeyReferencesHandler` | `AgentCredentialOperationReadRepository`, maintenance authorization and Clock. Secret-free keyset pages and global diagnostic reference counts; no material/claim/commit/events. Zero is not permission to destroy keys. |
 
-### Operation ownership and read/write composition (Unreleased)
+### Typed audit provenance (Unreleased, in progress)
+
+The [shared replacement](audit-evidence.md) changes `AgentOperationAuthorization::authorize()` and
+`authorizeRotation()` to return explicitly established nullable `UserId|AgentId|SystemId|AnonymousId` originating
+provenance. Keep actual invoker/delegation/scope/target/destination authorization independently fenced; do not parse
+its caller labels into UUIDs or grant authority from an audit ID. New audited issuance refuses null before mutation.
+Original-key resolution has no new audit-only actor requirement and creates no duplicate evidence. Revocation
+requires a direct typed actor. Current mandatory repository wiring and later delivery/maintenance audit coverage
+are unchanged; retaining origin durably for those future workers remains TICKET-00047 work. Update consumer port
+implementations directly; no compatibility readers or actual consumer qualification are supplied.
+
+## Operation ownership and read/write composition (Unreleased)
 
 `Domain\AccessControl\AgentCredentialOperation` is a distinct aggregate inside AccessControl, not a new bounded
 context. The root, `AgentCredentialOperationRepository`, keys/identities, canonical requests, original `AgentIssuance`,

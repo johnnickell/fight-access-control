@@ -8,6 +8,9 @@ use PhpParser\ParserFactory;
 
 require dirname(__DIR__).'/vendor/autoload.php';
 
+// The complete production AST and its JSON encoding coexist during structural discovery.
+ini_set('memory_limit', '256M');
+
 // Parse, never include, production inputs. A parser error aborts the entire inventory.
 $paths = json_decode(stream_get_contents(STDIN), true, flags: JSON_THROW_ON_ERROR);
 $parser = new ParserFactory()->createForHostVersion();

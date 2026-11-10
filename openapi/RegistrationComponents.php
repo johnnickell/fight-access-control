@@ -8,7 +8,7 @@ use OpenApi\Attributes as OA;
 
 #[OA\Schema(
     schema: 'Fight.AccessControl.RegisterUser',
-    description: 'Consumer-admitted pending registration. No authenticated actor, Role choice or credentials. Consumers own public exposure and response mapping.',
+    description: 'Consumer-admitted pending registration. No authenticated actor, Role choice or credentials. This declared public journey explicitly establishes AnonymousId for current audit and delivery provenance. Consumers own public exposure and response mapping.',
     required: ['user_id', 'email'],
     properties: [
         new OA\Property(property: 'user_id', type: 'string', format: 'uuid'),
@@ -19,7 +19,7 @@ use OpenApi\Attributes as OA;
 )]
 #[OA\Schema(
     schema: 'Fight.AccessControl.UserRegistered',
-    description: 'Confirmed pending User/default Roles/activation delivery/audit commit, not mail arrival or activation. No authenticated actor is asserted.',
+    description: 'Confirmed pending User/default Roles/activation delivery/audit commit, not mail arrival or activation. No authenticated actor is asserted; the current subscriber preserves this declared anonymous origin.',
     required: ['user_id', 'activation_delivery_id', 'email', 'issued_at'],
     properties: [
         new OA\Property(property: 'user_id', type: 'string', format: 'uuid'),

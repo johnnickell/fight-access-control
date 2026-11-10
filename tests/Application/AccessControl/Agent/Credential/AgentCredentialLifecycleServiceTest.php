@@ -15,6 +15,7 @@ use Fight\AccessControl\Domain\AccessControl\Agent\Event\AgentCredentialLifecycl
 use Fight\AccessControl\Domain\AccessControl\Agent\Event\AgentCredentialRevoked;
 use Fight\AccessControl\Domain\AccessControl\Agent\Event\AgentCredentialRotated;
 use Fight\AccessControl\Domain\AccessControl\Audit\AuditEvidence;
+use Fight\AccessControl\Domain\AccessControl\User\UserId;
 use Fight\Common\Application\Error\Exception\ApplicationException;
 use Fight\Common\Domain\Exception\DomainException;
 use Fight\Test\AccessControl\Application\AccessControl\Audit\Repository\InMemoryAuditEvidenceRepository;
@@ -78,8 +79,9 @@ final class AgentCredentialLifecycleServiceTest extends TestCase
             $env->transaction,
             $eventDispatcher
         );
+        $actorId = UserId::generate();
         try {
-            $service->revoke('maintainer-42', $agent->getId());
+            $service->revoke($actorId, $agent->getId());
             self::fail('Expected revocation failure.');
         } catch (ApplicationException | LogicException | RuntimeException $failure) {
             if (in_array($case, ['repository', 'publication', 'both publishers'], true)) {
@@ -107,7 +109,7 @@ final class AgentCredentialLifecycleServiceTest extends TestCase
             self::assertCount(1, $eventDispatcher->events());
             $failure = $eventDispatcher->events()[0];
             self::assertInstanceOf(AgentCredentialLifecycleFailed::class, $failure);
-            self::assertSame('maintainer-42', $failure->getActorId());
+            self::assertSame($actorId, $failure->getActorId());
             self::assertSame('Agent credential lifecycle failed.', $failure->getErrorMessage());
         }
     }
@@ -119,7 +121,7 @@ final class AgentCredentialLifecycleServiceTest extends TestCase
         $at = new DateTimeImmutable('2026-08-25T12:05:00+00:00');
         $rotated = new AgentCredentialRotated($id, $credential, 3, $at);
         $revoked = new AgentCredentialRevoked($id, $at);
-        $failed = new AgentCredentialLifecycleFailed('maintainer-42', 'Agent credential lifecycle failed.');
+        $failed = new AgentCredentialLifecycleFailed(UserId::generate(), 'Agent credential lifecycle failed.');
         foreach ([$rotated, $revoked, $failed] as $event) {
             self::assertSame($event->toArray(), $event::fromArray($event->toArray())->toArray());
             self::assertStringNotContainsString('secret', serialize($event));

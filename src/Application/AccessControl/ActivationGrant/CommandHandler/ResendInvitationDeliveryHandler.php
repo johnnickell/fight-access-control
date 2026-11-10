@@ -13,8 +13,13 @@ use Fight\AccessControl\Domain\AccessControl\ActivationGrant\ActivationGrant;
 use Fight\AccessControl\Domain\AccessControl\ActivationGrant\ActivationGrantRepository;
 use Fight\AccessControl\Domain\AccessControl\ActivationGrant\Command\ResendInvitationDelivery;
 use Fight\AccessControl\Domain\AccessControl\ActivationGrant\Event\InvitationDeliveryResent;
+use Fight\AccessControl\Domain\AccessControl\Audit\AuditAction;
+use Fight\AccessControl\Domain\AccessControl\Audit\AuditCorrelation;
 use Fight\AccessControl\Domain\AccessControl\Audit\AuditEvidence;
 use Fight\AccessControl\Domain\AccessControl\Audit\AuditEvidenceRepository;
+use Fight\AccessControl\Domain\AccessControl\Audit\AuditGrantOutcome;
+use Fight\AccessControl\Domain\AccessControl\Audit\AuditGrantState;
+use Fight\AccessControl\Domain\AccessControl\Audit\AuditSubject;
 use Fight\Common\Application\Error\Exception\StateConflict;
 use Fight\Common\Application\Messaging\Command\CommandHandler;
 use Fight\Common\Application\Messaging\Event\EventDispatcher;
@@ -68,6 +73,7 @@ final readonly class ResendInvitationDeliveryHandler implements CommandHandler
             /** @var ActivationDeliveryId $activationDeliveryId */
             $activationDeliveryId = $this->unitOfWork->commitTransactional(function () use (
                 $command,
+                $commandMessage,
                 $issuedAt
             ): ActivationDeliveryId {
                 $predecessor = $this->activationGrantRepository->getLatestByUserId($command->getUserId());
@@ -110,8 +116,15 @@ final readonly class ResendInvitationDeliveryHandler implements CommandHandler
 
                 $this->auditEvidenceRepository->add(AuditEvidence::record(
                     $command->getActorId(),
-                    'user.invitation_delivery.resent',
-                    $command->getUserId()
+                    new AuditSubject($command->getUserId()),
+                    AuditAction::INVITATION_RESENT,
+                    $issuedAt,
+                    new AuditGrantOutcome(
+                        AuditGrantState::fromGrant($predecessor),
+                        AuditGrantState::fromGrant($replacement),
+                        replacedPredecessor: AuditGrantState::fromGrant($revokedPredecessor)
+                    ),
+                    new AuditCorrelation($commandMessage->id(), null)
                 ));
 
                 return $replacement->getDelivery()->getId();

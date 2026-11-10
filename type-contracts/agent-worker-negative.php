@@ -29,7 +29,7 @@ return static function (
     UserId $userId
 ): void {
     $delivery->deliver($key, $destination, $userId);
-    $lifecycle->revoke('actor', $userId);
+    $lifecycle->revoke($userId, $userId);
     $sink->verify($lookup->lookupReceipt($issuance), $issuance);
     $decipher->materialize($issuance, $issuance);
     (static fn (AgentDeliveryResult $result): string => $result->value)(

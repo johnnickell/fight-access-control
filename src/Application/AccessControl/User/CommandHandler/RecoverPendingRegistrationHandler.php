@@ -12,8 +12,14 @@ use Fight\AccessControl\Application\AccessControl\User\Service\RegistrationRecov
 use Fight\AccessControl\Domain\AccessControl\ActivationGrant\ActivationGrant;
 use Fight\AccessControl\Domain\AccessControl\ActivationGrant\ActivationGrantRepository;
 use Fight\AccessControl\Domain\AccessControl\ActivationGrant\ActivationOrigin;
+use Fight\AccessControl\Domain\AccessControl\Audit\AuditAction;
+use Fight\AccessControl\Domain\AccessControl\Audit\AuditCorrelation;
 use Fight\AccessControl\Domain\AccessControl\Audit\AuditEvidence;
 use Fight\AccessControl\Domain\AccessControl\Audit\AuditEvidenceRepository;
+use Fight\AccessControl\Domain\AccessControl\Audit\AuditGrantState;
+use Fight\AccessControl\Domain\AccessControl\Audit\AuditSubject;
+use Fight\AccessControl\Domain\AccessControl\Audit\AuditUserOutcome;
+use Fight\AccessControl\Domain\AccessControl\Audit\AuditUserRevisions;
 use Fight\AccessControl\Domain\AccessControl\User\Command\RecoverPendingRegistration;
 use Fight\AccessControl\Domain\AccessControl\User\Event\PendingRegistrationRecovered;
 use Fight\AccessControl\Domain\AccessControl\User\Exception\RegistrationRecoveryAuthorizationException;
@@ -70,7 +76,10 @@ final readonly class RecoverPendingRegistrationHandler implements CommandHandler
 
         try {
             /** @var PendingRegistrationRecovered $event */
-            $event = $this->unitOfWork->commitTransactional(function () use ($command): PendingRegistrationRecovered {
+            $event = $this->unitOfWork->commitTransactional(function () use (
+                $command,
+                $commandMessage
+            ): PendingRegistrationRecovered {
                 try {
                     $this->registrationRecoveryAuthorization->assertCanRecoverRegistration(
                         $command->getActorId(),
@@ -138,10 +147,11 @@ final readonly class RecoverPendingRegistrationHandler implements CommandHandler
                     $replacement->getEmail(),
                     $this->invitationDeliveryCipher->encrypt($credential->toString())
                 );
+                $revokedPredecessor = $predecessor->revoke($issuedAt);
                 if (
                     !$this->activationGrantRepository->replaceWithSuccessor(
                         $predecessor,
-                        $predecessor->revoke($issuedAt),
+                        $revokedPredecessor,
                         $successor
                     )
                 ) {
@@ -149,9 +159,18 @@ final readonly class RecoverPendingRegistrationHandler implements CommandHandler
                 }
 
                 $this->auditEvidenceRepository->add(AuditEvidence::record(
-                    $command->getActorId()->toString(),
-                    'user.pending_registration_recovered',
-                    $user->getId()
+                    $command->getActorId(),
+                    new AuditSubject($user->getId()),
+                    AuditAction::USER_PENDING_REGISTRATION_RECOVERED,
+                    $issuedAt,
+                    new AuditUserOutcome(
+                        AuditUserRevisions::fromUser($user),
+                        AuditUserRevisions::fromUser($replacement),
+                        AuditGrantState::fromGrant($predecessor),
+                        AuditGrantState::fromGrant($successor),
+                        AuditGrantState::fromGrant($revokedPredecessor)
+                    ),
+                    new AuditCorrelation($commandMessage->id(), null)
                 ));
 
                 return new PendingRegistrationRecovered(

@@ -75,8 +75,8 @@ final class RestoreUserHandlerTest extends TestCase
 
         self::assertSame(UserState::ACTIVE, $userRepository->getById($user->getId())?->getState());
         self::assertSame([], $activationGrantRepository->all());
-        self::assertSame('user.restored', $auditEvidenceRepository->all()[0]->action());
-        self::assertSame($actorId->toString(), $auditEvidenceRepository->all()[0]->actorId());
+        self::assertSame('user.restored', $auditEvidenceRepository->all()[0]->action()->value);
+        self::assertSame($actorId, $auditEvidenceRepository->all()[0]->actorId());
         self::assertCount(1, $eventDispatcher->events());
         self::assertInstanceOf(UserRestored::class, $eventDispatcher->events()[0]);
         self::assertSame(UserState::ACTIVE, $eventDispatcher->events()[0]->getRestorationState());
@@ -126,7 +126,7 @@ final class RestoreUserHandlerTest extends TestCase
             $successor->getDelivery()->getId()->equals($activationGrantRepository->all()[0]->getDelivery()->getId())
         );
         self::assertSame('ciphertext:restore-credential', $successor->getDelivery()->getEncryptedMaterial()?->reveal());
-        self::assertSame('user.restored', $auditEvidenceRepository->all()[0]->action());
+        self::assertSame('user.restored', $auditEvidenceRepository->all()[0]->action()->value);
         self::assertCount(1, $eventDispatcher->events());
         self::assertInstanceOf(UserRestored::class, $eventDispatcher->events()[0]);
         self::assertSame(UserState::PENDING_ACTIVATION, $eventDispatcher->events()[0]->getRestorationState());
@@ -141,7 +141,7 @@ final class RestoreUserHandlerTest extends TestCase
             new FixedClock('2026-08-22T13:00:00+00:00'),
             new InMemoryEventDispatcher()
         )->handle(CommandMessage::create(new DeliverUserInvitation(
-            'worker',
+            $actorId,
             $user->getId(),
             $successor->getDelivery()->getId()
         )));

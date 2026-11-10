@@ -202,7 +202,7 @@ final class HumanCredentialContractTest extends TestCase
             );
             $reset = new InMemoryPasswordResetGrants($fixture->state->unitOfWork);
             self::assertTrue($reset->add($grant));
-            $command = new DeliverPasswordReset('worker', $grant->getUserId(), $grant->getDelivery()->getId());
+            $command = new DeliverPasswordReset($fixture->actorId, $grant->getUserId(), $grant->getDelivery()->getId());
         }
 
         $failure = new RuntimeException('synthetic-clock-fault');
@@ -244,7 +244,7 @@ final class HumanCredentialContractTest extends TestCase
                 'ciphertext:fixture',
                 $fixture->state->user->getRecoveryAuthority()
             );
-            $command = new DeliverPasswordReset('worker', $grant->getUserId(), $grant->getDelivery()->getId());
+            $command = new DeliverPasswordReset($fixture->actorId, $grant->getUserId(), $grant->getDelivery()->getId());
         }
 
         $otherClaim = $grant->claimDelivery(

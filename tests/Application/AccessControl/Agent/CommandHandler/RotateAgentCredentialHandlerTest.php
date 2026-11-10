@@ -95,7 +95,7 @@ final class RotateAgentCredentialHandlerTest extends TestCase
             $predecessor->getPermissionAssignmentRevision(),
             $successor->getPermissionAssignmentRevision()
         );
-        self::assertSame('agent.credential_rotated', $env->auditEvidenceRepository->all()[1]->action());
+        self::assertSame('agent.credential_rotated', $env->auditEvidenceRepository->all()[1]->action()->value);
         $original = $env->operationRepository->operations[$env->key->toString()];
         self::assertSame(AgentCredentialDisposition::SUPERSEDED, $original->getCredentialDisposition());
         self::assertSame(AgentDeliveryDisposition::RETIRED, $original->getDeliveryDisposition());
@@ -320,8 +320,19 @@ final class RotateAgentCredentialHandlerTest extends TestCase
         } elseif ($case === 'target') {
             $env->operationAuthorization->deniedTargets[] = $rotation->request->getAgentId()->toString();
         } else {
-            $env->operationAuthorization->actor = 'unsafe/actor';
-            $env->operationAuthorization->readDelegations['unsafe/actor:'.$scope->toString()] = true;
+            $env->operationAuthorization->originatingActorId = null;
+            if ($retry) {
+                $before = $env->auditEvidenceRepository->all();
+                $result = $rotation->bus()->dispatchAndRead(new RotateAgentCredential($key, $rotation->request));
+                self::assertSame(
+                    $env->agentRepository->all()[0]->getCredentialId(),
+                    $result->getIssuance()?->getCredentialId()
+                );
+                self::assertSame($generations, $env->generations);
+                self::assertSame($before, $env->auditEvidenceRepository->all());
+
+                return;
+            }
         }
 
         $this->reject(
@@ -330,7 +341,7 @@ final class RotateAgentCredentialHandlerTest extends TestCase
             ),
             $case === 'audit' ? null : AgentOperationFailure::UNAUTHORIZED
         );
-        self::assertSame($reads, $env->operationRepository->reads);
+        self::assertSame($reads + (int) ($case === 'audit'), $env->operationRepository->reads);
         self::assertSame($generations, $env->generations);
         self::assertCount($retry ? 2 : 1, $env->auditEvidenceRepository->all());
     }
@@ -437,7 +448,10 @@ final class RotateAgentCredentialHandlerTest extends TestCase
             $rotation->key,
             $env->operationRepository->operations[$rotation->key->toString()]->getIssuance()->getKey()
         );
-        self::assertSame('delegate', $env->auditEvidenceRepository->all()[1]->actorId());
+        self::assertSame(
+            $env->operationAuthorization->originatingActorId,
+            $env->auditEvidenceRepository->all()[1]->actorId()
+        );
         $this->reject(
             fn(): AgentOperationView => $rotation->bus()->dispatchAndRead(
                 new RotateAgentCredential($rotation->key, $rotation->request)

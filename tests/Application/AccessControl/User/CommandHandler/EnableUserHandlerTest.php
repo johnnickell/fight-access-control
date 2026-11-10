@@ -55,9 +55,9 @@ final class EnableUserHandlerTest extends TestCase
         $handler->handle(CommandMessage::create(new EnableUser($actorId, $user->getId())));
 
         self::assertSame(UserState::ACTIVE, $userRepository->getById($user->getId())?->getState());
-        self::assertSame('user.enabled', $auditEvidenceRepository->all()[0]->action());
-        self::assertSame($actorId->toString(), $auditEvidenceRepository->all()[0]->actorId());
-        self::assertSame($user->getId(), $auditEvidenceRepository->all()[0]->subjectId());
+        self::assertSame('user.enabled', $auditEvidenceRepository->all()[0]->action()->value);
+        self::assertSame($actorId, $auditEvidenceRepository->all()[0]->actorId());
+        self::assertSame($user->getId(), $auditEvidenceRepository->all()[0]->getSubject()->getId());
         self::assertCount(1, $eventDispatcher->events());
         self::assertInstanceOf(UserEnabled::class, $eventDispatcher->events()[0]);
     }

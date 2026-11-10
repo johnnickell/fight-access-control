@@ -15,9 +15,11 @@ use OpenApi\Attributes as OA;
 )]
 #[OA\Schema(
     schema: 'Fight.AccessControl.DeliverPasswordReset',
-    required: ['actor_id', 'user_id', 'password_reset_delivery_id'],
+    description: 'Preserve the admitted originating actor through workers. Identity supplies no authority; system and anonymous IDs are fixed nil of their distinct kinds.',
+    required: ['actor_kind', 'actor_id', 'user_id', 'password_reset_delivery_id'],
     properties: [
-        new OA\Property(property: 'actor_id', type: 'string'),
+        new OA\Property(property: 'actor_kind', type: 'string', enum: ['user', 'agent', 'system', 'anonymous']),
+        new OA\Property(property: 'actor_id', type: 'string', format: 'uuid'),
         new OA\Property(property: 'user_id', type: 'string', format: 'uuid'),
         new OA\Property(property: 'password_reset_delivery_id', type: 'string', format: 'uuid')
     ]

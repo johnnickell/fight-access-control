@@ -20,6 +20,7 @@ use Fight\AccessControl\Domain\AccessControl\ActivationGrant\ActivationOrigin;
 use Fight\AccessControl\Domain\AccessControl\ActivationGrant\Command\DeliverUserInvitation;
 use Fight\AccessControl\Domain\AccessControl\ActivationGrant\Query\FindInvitationDeliveryStatus;
 use Fight\AccessControl\Domain\AccessControl\ActivationGrant\Query\InvitationDeliveryStatusView;
+use Fight\AccessControl\Domain\AccessControl\Audit\AnonymousId;
 use Fight\AccessControl\Domain\AccessControl\CredentialDelivery\CredentialDeliveryStatus;
 use Fight\AccessControl\Domain\AccessControl\CredentialDelivery\DueCredentialDelivery;
 use Fight\AccessControl\Domain\AccessControl\CredentialDelivery\Query\CredentialDeliveryAbsent;
@@ -330,7 +331,7 @@ final class RegistrationJourneyTest extends TestCase
         self::assertInstanceOf(CommandFailedEvent::class, $workerAttempts[0]);
         $workerCommand = $workerAttempts[0]->getCommand();
         self::assertInstanceOf(DeliverUserInvitation::class, $workerCommand);
-        self::assertSame('registration', $workerCommand->getActorId());
+        self::assertEquals(AnonymousId::generate(), $workerCommand->getActorId());
         self::assertSame($command->getUserId(), $workerCommand->getUserId());
         self::assertSame('User invitation delivery failed.', $workerAttempts[0]->getErrorMessage());
         foreach ([$outerFailure, ...$workerAttempts] as $failure) {
@@ -349,7 +350,7 @@ final class RegistrationJourneyTest extends TestCase
             $fixture->userRepository->all()[0]->getRoleIds()
         );
         self::assertCount(1, $fixture->auditEvidenceRepository->all());
-        self::assertSame('user.registered', $fixture->auditEvidenceRepository->all()[0]->action());
+        self::assertSame('user.registered', $fixture->auditEvidenceRepository->all()[0]->action()->value);
         self::assertCount(1, $fixture->activationGrantRepository->all());
         $deliveryId = $fixture->activationGrantRepository->all()[0]->getDelivery()->getId();
         self::assertEquals($deliveryId, $workerCommand->getActivationDeliveryId());
@@ -370,7 +371,8 @@ final class RegistrationJourneyTest extends TestCase
         self::assertCount(1, $due);
         $provider = new RecordingCredentialDeliveryProvider();
         $this->worker($fixture, $provider)->handle(CommandMessage::create(DeliverUserInvitation::fromArray([
-            'actor_id'               => 'restarted-worker',
+            'actor_kind'             => 'anonymous',
+            'actor_id'               => AnonymousId::generate()->toString(),
             'user_id'                => $due[0]->getUserId()->toString(),
             'activation_delivery_id' => $due[0]->getDeliveryId()->toString()
         ])));
@@ -415,7 +417,7 @@ final class RegistrationJourneyTest extends TestCase
     private function deliveryCommand(RegistrationFixture $fixture): DeliverUserInvitation
     {
         return new DeliverUserInvitation(
-            'worker',
+            AnonymousId::generate(),
             $fixture->userRepository->all()[0]->getId(),
             $fixture->activationGrantRepository->all()[0]->getDelivery()->getId()
         );

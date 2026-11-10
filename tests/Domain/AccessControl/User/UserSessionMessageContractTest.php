@@ -86,9 +86,11 @@ final class UserSessionMessageContractTest extends TestCase
     {
         $id = '0199d106-4c00-7000-8000-000000000001';
         $actor = ['actor_id' => $id];
+        $invitationActor = ['actor_kind' => 'user'] + $actor;
         $user = ['user_id' => $id];
         $email = ['email' => 'contract@example.test'];
         $delivery = ['activation_delivery_id' => $id];
+        $invited = $invitationActor + $user + $delivery + $email;
         $role = $actor + ['target_user_id' => $id, 'role_id' => $id];
         $session = $user + ['refresh_session_id' => $id];
         $time = '2026-11-05T12:34:56+00:00';
@@ -101,7 +103,7 @@ final class UserSessionMessageContractTest extends TestCase
             AssignRoleToUser::class             => $role,
             RemoveRoleFromUser::class           => $role,
             CorrectPendingInvitation::class     => $actor + $user + $email,
-            InvitePendingUser::class            => $actor + $user + $email,
+            InvitePendingUser::class            => $invitationActor + $user + $email,
             RecoverPendingRegistration::class   => $actor + $user + ['expected_activation_delivery_id' => $id] + $email,
             RegisterUser::class                 => $user + $email,
             DeleteUser::class                   => $actor + $user,
@@ -125,7 +127,7 @@ final class UserSessionMessageContractTest extends TestCase
             UserDeleted::class                  => $actor + $user,
             UserDisabled::class                 => $actor + $user,
             UserEnabled::class                  => $actor + $user,
-            UserInvited::class                  => $actor + $user + $delivery + $email + ['issued_at' => $time],
+            UserInvited::class                  => $invited + ['issued_at' => $time],
             UserRegistered::class               => $registered,
             UserRestored::class                 => $restorationPayload,
             GetUserById::class                  => $user,

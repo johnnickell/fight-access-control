@@ -2,7 +2,7 @@
 id: TICKET-00043
 epic: EPIC-00017
 title: Define typed audit evidence and explicit attribution
-status: ready-for-agent
+status: done
 ---
 
 # Define typed audit evidence and explicit attribution
@@ -116,8 +116,14 @@ remain unchanged; source overlap is not a blanket dependency. Choose the impleme
 | Order | TASK ID | Title | Status |
 | --- | --- | --- | --- |
 | 401 | [TASK-00121](../tasks/00121-TASK.md) | Introduce fixed system and anonymous identities | done |
-| 402 | [TASK-00122](../tasks/00122-TASK.md) | Replace audit evidence contracts across existing writers | ready-for-agent |
+| 402 | [TASK-00122](../tasks/00122-TASK.md) | Replace audit evidence contracts across existing writers | done |
 ## Decisions and Progress
+
+Both child TASKs now have independent acceptance and applicable behavioral QA. TASK-00122's accepted typed
+replacement covers 22 actual owners / 23 sites; its current checkpoint owns exact candidate, integrated gate and
+qualification limits. TICKET-00043 closes with its children. Actual optional family wiring, expanded outcomes and
+consumer composition remain with TICKET-00044–00048; EPIC-00017 stays open. Earlier planning checkpoints below
+remain historical, not a claim that the shared replacement is still unimplemented.
 
 John approved this requirement in EPIC-00017's six-TICKET split, then the complete two-TASK plan now written as
 TASK-00121/TASK-00122. Orders 401/402 follow the existing portfolio; only TASK-00122 is blocked by TASK-00121.

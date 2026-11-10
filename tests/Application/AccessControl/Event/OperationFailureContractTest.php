@@ -17,6 +17,7 @@ use Fight\AccessControl\Application\AccessControl\User\PasswordManagement;
 use Fight\AccessControl\Application\AccessControl\User\Security\AuthenticationTokenPolicy;
 use Fight\AccessControl\Application\AccessControl\User\Service\LoginThrottle;
 use Fight\AccessControl\Domain\AccessControl\ActivationGrant\ActivationGrantRepository;
+use Fight\AccessControl\Domain\AccessControl\Audit\AnonymousId;
 use Fight\AccessControl\Domain\AccessControl\Audit\AuditEvidenceRepository;
 use Fight\AccessControl\Domain\AccessControl\EmailChangeGrant\EmailChangeGrantRepository;
 use Fight\AccessControl\Domain\AccessControl\PasswordResetGrant\PasswordResetGrantRepository;
@@ -183,14 +184,19 @@ final class OperationFailureContractTest extends TestCase
                 'resetPassword' => $passwordManagement->resetPassword(
                     $userId,
                     'synthetic-credential',
-                    'synthetic-password'
+                    'synthetic-password',
+                    AnonymousId::generate()
                 ),
                 'changePassword' => $passwordManagement->changePassword(
                     $userId,
                     'synthetic-current',
                     'synthetic-password'
                 ),
-                'confirmEmail' => $emailChangeConfirmation->confirmEmail($userId, 'synthetic-credential')
+                'confirmEmail' => $emailChangeConfirmation->confirmEmail(
+                    $userId,
+                    'synthetic-credential',
+                    AnonymousId::generate()
+                )
             };
         } catch (Throwable $throwable) {
             $caught = $throwable;

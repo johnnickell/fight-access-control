@@ -15,14 +15,21 @@ All paths below are relative to `Fight\AccessControl\Application\AccessControl`.
 | --- | --- | --- |
 | `User\Authentication\UserAuthentication` | `activate(UserId, activationCredential, plainPassword, remember): TokenSet`; `login(email, plainPassword, remember): TokenSet` | Single-use activation or verified/throttled login, complete User successor and coupled session insertion. Publish `UserActivated`/`UserLoggedIn` only after commit; return tokens only after publication. |
 | `RefreshSession\SessionLifecycle` | `refresh(refreshCredential): RefreshResult`; `logout(refreshCredential): void` | Rotation or secret-free bounded conflict; terminal replay commits revocation before outward refusal. Logout revokes only the selected current session and publishes `CurrentSessionLoggedOut` after commit. |
-| `User\PasswordManagement` | `changePassword(authenticatedUserId, currentPassword, newPassword): void`; `resetPassword(userId, resetCredential, plainPassword): void` | Verify the current password or consume the current eligible reset grant, replace User authority, cancel recovery as applicable, revoke sessions and audit together. Publish `PasswordChanged`/`PasswordResetCompleted` after commit. |
-| `EmailChangeGrant\EmailChangeConfirmation` | `confirmEmail(userId, emailChangeCredential): void` | Consume the current email grant, promote the pending identity, invalidate reset authority, revoke sessions and audit together. Publish `EmailChangeConfirmed` after commit. No token issuance. |
+| `User\PasswordManagement` | `changePassword(authenticatedUserId, currentPassword, newPassword): void`; `resetPassword(userId, resetCredential, plainPassword, actorId = null): void` | Verify the current password or consume the current eligible reset grant, replace User authority, cancel recovery as applicable, revoke sessions and audit together. Publish `PasswordChanged`/`PasswordResetCompleted` after commit. |
+| `EmailChangeGrant\EmailChangeConfirmation` | `confirmEmail(userId, emailChangeCredential, actorId = null): void` | Consume the current email grant, promote the pending identity, invalidate reset authority, revoke sessions and audit together. Publish `EmailChangeConfirmed` after commit. No token issuance. |
 
 Passwords and presented credentials remain `SensitiveParameter` inputs. Keep them out of message DTOs, application
 logs and diagnostic responses. Token results are immediate sensitive transport material, not serializable CQRS
 messages. Existing browser/portable response projections are unchanged. Entry-point authentication, authorization,
 throttling beyond the configured login port, response/log sanitization and secure transport remain consumer-owned.
 An `authenticatedUserId` argument is a trusted caller assertion, not a new authentication mechanism.
+
+The in-progress [typed audit replacement](audit-evidence.md) additionally requires explicitly admitted
+`UserId|AgentId|SystemId|AnonymousId` provenance for reset completion/email confirmation with current mandatory
+audit wiring. Their nullable last input is not permission to fabricate origin from the target User or credential.
+Missing provenance rejects generically after credential admission and before mutation; trusted callers establish
+`$originatingActorId` in the current examples. Declared public unauthenticated entry semantics may explicitly
+supply AnonymousId. This task does not make these constructors optional or add audit to other synchronous paths.
 
 ## Explicit composition
 
@@ -59,7 +66,7 @@ $emailChangeConfirmation = new EmailChangeConfirmation(
     clock: $clock,
     eventDispatcher: $eventDispatcher
 );
-$emailChangeConfirmation->confirmEmail($userId, $emailChangeCredential);
+$emailChangeConfirmation->confirmEmail($userId, $emailChangeCredential, actorId: $originatingActorId);
 ```
 
 Password consumers need ten direct dependencies, not email/activation grants, throttle, token encoding/policy or
@@ -81,7 +88,7 @@ $passwordManagement = new PasswordManagement(
     eventDispatcher: $eventDispatcher
 );
 $passwordManagement->changePassword($authenticatedUserId, $currentPassword, $newPassword);
-$passwordManagement->resetPassword($userId, $resetCredential, $plainPassword);
+$passwordManagement->resetPassword($userId, $resetCredential, $plainPassword, actorId: $originatingActorId);
 ```
 
 Token creation is one cohesive collaborator shared by authentication and refresh. `TokenIssuer` creates session

@@ -7,8 +7,12 @@ namespace Fight\AccessControl\Application\AccessControl\RefreshSession\CommandHa
 use DateTimeImmutable;
 use Fight\AccessControl\Application\AccessControl\RefreshSession\Service\SessionAdministrationAuthorization;
 use Fight\AccessControl\Application\AccessControl\Timing\Service\Clock;
+use Fight\AccessControl\Domain\AccessControl\Audit\AuditAction;
+use Fight\AccessControl\Domain\AccessControl\Audit\AuditCorrelation;
 use Fight\AccessControl\Domain\AccessControl\Audit\AuditEvidence;
 use Fight\AccessControl\Domain\AccessControl\Audit\AuditEvidenceRepository;
+use Fight\AccessControl\Domain\AccessControl\Audit\AuditSessionRevocation;
+use Fight\AccessControl\Domain\AccessControl\Audit\AuditSubject;
 use Fight\AccessControl\Domain\AccessControl\RefreshSession\Command\RevokeSession;
 use Fight\AccessControl\Domain\AccessControl\RefreshSession\Event\RefreshSessionRevoked;
 use Fight\AccessControl\Domain\AccessControl\RefreshSession\Exception\SessionAdministrationAuthorizationException;
@@ -69,7 +73,7 @@ final readonly class RevokeSessionHandler implements CommandHandler
 
         try {
             /** @var array{UserId, UserId, RefreshSessionId, DateTimeImmutable} $outcome */
-            $outcome = $this->unitOfWork->commitTransactional(function () use ($command): array {
+            $outcome = $this->unitOfWork->commitTransactional(function () use ($command, $commandMessage): array {
                 $revokedAt = $this->clock->now();
                 $refreshSession = $this->refreshSessionRepository->getById($command->getTargetSessionId());
                 if ($refreshSession !== null && !$refreshSession->getId()->equals($command->getTargetSessionId())) {
@@ -112,11 +116,17 @@ final readonly class RevokeSessionHandler implements CommandHandler
                 }
 
                 if ($reason !== null) {
-                    $this->auditEvidenceRepository->add(AuditEvidence::administrativeSessionRevocation(
+                    $this->auditEvidenceRepository->add(AuditEvidence::record(
                         $command->getActorId(),
-                        $revokedSession->getUserId(),
-                        $revokedSession->getId(),
-                        $reason
+                        new AuditSubject($revokedSession->getUserId()),
+                        AuditAction::SESSION_ADMINISTRATIVELY_REVOKED,
+                        $revokedAt,
+                        new AuditSessionRevocation(
+                            $revokedSession->getId(),
+                            $refreshSession->getRevision(),
+                            $revokedSession->getRevision()
+                        ),
+                        new AuditCorrelation($commandMessage->id(), null)
                     ));
                 }
 

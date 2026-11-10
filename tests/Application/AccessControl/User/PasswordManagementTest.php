@@ -16,7 +16,10 @@ use Fight\AccessControl\Application\AccessControl\User\Security\RefreshOutcome;
 use Fight\AccessControl\Application\AccessControl\User\Security\RefreshResult;
 use Fight\AccessControl\Application\AccessControl\User\Security\TokenSet;
 use Fight\AccessControl\Domain\AccessControl\ActivationGrant\ActivationGrant;
+use Fight\AccessControl\Domain\AccessControl\Audit\AnonymousId;
 use Fight\AccessControl\Domain\AccessControl\Audit\AuditEvidence;
+use Fight\AccessControl\Domain\AccessControl\Audit\AuditUserOutcome;
+use Fight\AccessControl\Domain\AccessControl\Audit\AuditUserRevisions;
 use Fight\AccessControl\Domain\AccessControl\EmailChangeGrant\EmailChangeGrant;
 use Fight\AccessControl\Domain\AccessControl\PasswordResetGrant\PasswordResetCredential;
 use Fight\AccessControl\Domain\AccessControl\PasswordResetGrant\PasswordResetGrant;
@@ -235,10 +238,14 @@ final class PasswordManagementTest extends TestCase
         ));
         self::assertSame(1, $refreshSessionRepository->getAllActiveByUserIdCalls());
         self::assertSame(0, $refreshSessionRepository->getByUserIdCalls());
-        self::assertSame($user->getId()->toString(), $auditEvidenceRepository->all()[0]->actorId());
-        self::assertSame('user.password_changed', $auditEvidenceRepository->all()[0]->action());
-        self::assertSame($user->getId(), $auditEvidenceRepository->all()[0]->subjectId());
-        self::assertSame([], $auditEvidenceRepository->all()[0]->context());
+        $evidence = $auditEvidenceRepository->all()[0];
+        self::assertSame($user->getId(), $evidence->actorId());
+        self::assertSame('user.password_changed', $evidence->action()->value);
+        self::assertSame($user->getId(), $evidence->getSubject()->getId());
+        $facts = $evidence->getFacts();
+        self::assertInstanceOf(AuditUserOutcome::class, $facts);
+        self::assertEquals(AuditUserRevisions::fromUser($user), $facts->getBefore());
+        self::assertSame(AuditUserRevisions::fromUser($authoritativeUser)->toArray(), $facts->toArray()['after']);
         self::assertCount(1, $eventDispatcher->events());
         self::assertInstanceOf(PasswordChanged::class, $eventDispatcher->events()[0]);
         self::assertSame($user->getId(), $eventDispatcher->events()[0]->getUserId());
@@ -487,7 +494,8 @@ final class PasswordManagementTest extends TestCase
         $service->resetPassword(
             $user->getId(),
             self::RESET_CREDENTIAL,
-            'a sufficiently long replacement password'
+            'a sufficiently long replacement password',
+            AnonymousId::generate()
         );
 
         $authoritativeUser = $userRepository->getById($user->getId());
@@ -511,10 +519,14 @@ final class PasswordManagementTest extends TestCase
         ));
         self::assertSame(1, $refreshSessionRepository->getAllActiveByUserIdCalls());
         self::assertSame(0, $refreshSessionRepository->getByUserIdCalls());
-        self::assertSame($user->getId()->toString(), $auditEvidenceRepository->all()[0]->actorId());
-        self::assertSame('user.password_reset_completed', $auditEvidenceRepository->all()[0]->action());
-        self::assertSame($user->getId(), $auditEvidenceRepository->all()[0]->subjectId());
-        self::assertSame([], $auditEvidenceRepository->all()[0]->context());
+        $evidence = $auditEvidenceRepository->all()[0];
+        self::assertEquals(AnonymousId::generate(), $evidence->actorId());
+        self::assertSame('user.password_reset_completed', $evidence->action()->value);
+        self::assertSame($user->getId(), $evidence->getSubject()->getId());
+        $facts = $evidence->getFacts();
+        self::assertInstanceOf(AuditUserOutcome::class, $facts);
+        self::assertEquals(AuditUserRevisions::fromUser($user), $facts->getBefore());
+        self::assertSame(AuditUserRevisions::fromUser($authoritativeUser)->toArray(), $facts->toArray()['after']);
         self::assertCount(1, $eventDispatcher->events());
         self::assertInstanceOf(PasswordResetCompleted::class, $eventDispatcher->events()[0]);
         self::assertSame($user->getId(), $eventDispatcher->events()[0]->getUserId());
@@ -582,7 +594,8 @@ final class PasswordManagementTest extends TestCase
             $service->resetPassword(
                 $user->getId(),
                 self::RESET_CREDENTIAL,
-                'a sufficiently long rejected replacement password'
+                'a sufficiently long rejected replacement password',
+                AnonymousId::generate()
             );
             self::fail('Expected concurrent password-reset consumption to be rejected.');
         } catch (PasswordResetRejectedException $passwordResetRejectedException) {
@@ -641,7 +654,8 @@ final class PasswordManagementTest extends TestCase
             $service->resetPassword(
                 $user->getId(),
                 self::RESET_CREDENTIAL,
-                'a sufficiently long rejected replacement password'
+                'a sufficiently long rejected replacement password',
+                AnonymousId::generate()
             );
             self::fail('Expected concurrent authentication authority to reject password reset.');
         } catch (PasswordResetRejectedException $passwordResetRejectedException) {
@@ -710,7 +724,8 @@ final class PasswordManagementTest extends TestCase
         $service->resetPassword(
             $user->getId(),
             self::RESET_CREDENTIAL,
-            'a sufficiently long replacement password'
+            'a sufficiently long replacement password',
+            AnonymousId::generate()
         );
 
         $authoritativeUser = $userRepository->getById($user->getId());
@@ -726,7 +741,7 @@ final class PasswordManagementTest extends TestCase
         self::assertTrue($refreshSessionRepository->all()[0]->isRevoked());
         self::assertFalse($passwordResetGrantRepository->all()[0]->getDelivery()->hasRecoverableMaterial());
 
-        self::assertSame('user.password_reset_completed', $auditEvidenceRepository->all()[0]->action());
+        self::assertSame('user.password_reset_completed', $auditEvidenceRepository->all()[0]->action()->value);
         self::assertCount(1, $eventDispatcher->events());
         self::assertInstanceOf(PasswordResetCompleted::class, $eventDispatcher->events()[0]);
     }
@@ -799,7 +814,8 @@ final class PasswordManagementTest extends TestCase
             $service->resetPassword(
                 $user->getId(),
                 $presentedCredential,
-                'a sufficiently long rejected replacement password'
+                'a sufficiently long rejected replacement password',
+                AnonymousId::generate()
             );
             self::fail('Expected password reset rejection.');
         } catch (PasswordResetRejectedException $passwordResetRejectedException) {
@@ -886,7 +902,8 @@ final class PasswordManagementTest extends TestCase
             $service->resetPassword(
                 $user->getId(),
                 self::RESET_CREDENTIAL,
-                'a sufficiently long rolled back password'
+                'a sufficiently long rolled back password',
+                AnonymousId::generate()
             );
             self::fail('Expected audit persistence failure.');
         } catch (RuntimeException $runtimeException) {
@@ -991,7 +1008,7 @@ final class PasswordManagementTest extends TestCase
                     'a sufficiently long new password',
                     $stored->getPasswordHash()->toString()
                 ));
-                self::assertSame('user.password_changed', $auditEvidenceRepository->all()[0]->action());
+                self::assertSame('user.password_changed', $auditEvidenceRepository->all()[0]->action()->value);
             }
 
             self::assertCount(1 + (int) $committed, $attempts);

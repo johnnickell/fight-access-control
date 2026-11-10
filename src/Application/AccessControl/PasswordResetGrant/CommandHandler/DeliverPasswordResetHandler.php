@@ -12,8 +12,13 @@ use Fight\AccessControl\Application\AccessControl\CredentialDelivery\Service\Cre
 use Fight\AccessControl\Application\AccessControl\CredentialDelivery\Service\CredentialDeliveryProvider;
 use Fight\AccessControl\Application\AccessControl\PasswordResetGrant\Service\PasswordResetDeliveryCipher;
 use Fight\AccessControl\Application\AccessControl\Timing\Service\Clock;
+use Fight\AccessControl\Domain\AccessControl\Audit\AuditAction;
+use Fight\AccessControl\Domain\AccessControl\Audit\AuditCorrelation;
 use Fight\AccessControl\Domain\AccessControl\Audit\AuditEvidence;
 use Fight\AccessControl\Domain\AccessControl\Audit\AuditEvidenceRepository;
+use Fight\AccessControl\Domain\AccessControl\Audit\AuditGrantOutcome;
+use Fight\AccessControl\Domain\AccessControl\Audit\AuditGrantState;
+use Fight\AccessControl\Domain\AccessControl\Audit\AuditSubject;
 use Fight\AccessControl\Domain\AccessControl\CredentialDelivery\CredentialDeliveryClaimToken;
 use Fight\AccessControl\Domain\AccessControl\CredentialDelivery\CredentialDeliveryFailure;
 use Fight\AccessControl\Domain\AccessControl\CredentialDelivery\Exception\CredentialDeliveryTransitionException;
@@ -29,6 +34,7 @@ use Fight\Common\Application\Messaging\Event\EventDispatcher;
 use Fight\Common\Application\Repository\TransactionalUnitOfWork;
 use Fight\Common\Domain\Messaging\Command\CommandMessage;
 use Fight\Common\Domain\Messaging\Event\CommandFailedEvent;
+use Fight\Common\Domain\Messaging\MessageId;
 use LogicException;
 use Throwable;
 
@@ -78,7 +84,13 @@ final readonly class DeliverPasswordResetHandler implements CommandHandler
             assert($claimToken instanceof CredentialDeliveryClaimToken);
 
             $attemptResult = $this->invoke($claimed, $claimToken);
-            $successEvent = $this->recordOutcome($command, $claimed, $claimToken, $attemptResult);
+            $successEvent = $this->recordOutcome(
+                $command,
+                $claimed,
+                $claimToken,
+                $attemptResult,
+                $commandMessage->id()
+            );
             if ($successEvent instanceof PasswordResetDeliveryConfirmed) {
                 $this->eventDispatcher->trigger($successEvent);
             }
@@ -187,14 +199,16 @@ final readonly class DeliverPasswordResetHandler implements CommandHandler
         DeliverPasswordReset $command,
         PasswordResetGrant $claimed,
         CredentialDeliveryClaimToken $claimToken,
-        CredentialDeliveryAttemptResult $attemptResult
+        CredentialDeliveryAttemptResult $attemptResult,
+        MessageId $messageId
     ): ?PasswordResetDeliveryConfirmed {
         /** @var ?PasswordResetDeliveryConfirmed $successEvent */
         $successEvent = $this->unitOfWork->commitTransactional(function () use (
             $command,
             $claimed,
             $claimToken,
-            $attemptResult
+            $attemptResult,
+            $messageId
         ): ?PasswordResetDeliveryConfirmed {
             $user = $this->userRepository->getById($command->getUserId());
             if ($user instanceof User && !$user->getId()->equals($command->getUserId())) {
@@ -251,15 +265,23 @@ final readonly class DeliverPasswordResetHandler implements CommandHandler
                 );
             }
 
-            $action = 'user.password_reset_delivery.failed';
+            $action = AuditAction::PASSWORD_RESET_DELIVERY_FAILED;
             if ($outcome === CredentialDeliveryOutcome::DELIVERED) {
-                $action = 'user.password_reset_delivery.confirmed';
+                $action = AuditAction::PASSWORD_RESET_DELIVERY_CONFIRMED;
             }
 
             $this->auditEvidenceRepository->add(AuditEvidence::record(
                 $command->getActorId(),
+                new AuditSubject($command->getUserId()),
                 $action,
-                $command->getUserId()
+                $occurredAt,
+                new AuditGrantOutcome(
+                    AuditGrantState::fromGrant($current),
+                    AuditGrantState::fromGrant($replacement),
+                    $replacement->getDelivery()->getStatus(),
+                    $attemptResult->getFailure()
+                ),
+                new AuditCorrelation($messageId, null)
             ));
 
             if ($outcome !== CredentialDeliveryOutcome::DELIVERED) {

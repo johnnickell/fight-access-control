@@ -11,8 +11,14 @@ use Fight\AccessControl\Application\AccessControl\Timing\Service\Clock;
 use Fight\AccessControl\Domain\AccessControl\ActivationGrant\ActivationGrant;
 use Fight\AccessControl\Domain\AccessControl\ActivationGrant\ActivationGrantRepository;
 use Fight\AccessControl\Domain\AccessControl\ActivationGrant\ActivationOrigin;
+use Fight\AccessControl\Domain\AccessControl\Audit\AuditAction;
+use Fight\AccessControl\Domain\AccessControl\Audit\AuditCorrelation;
 use Fight\AccessControl\Domain\AccessControl\Audit\AuditEvidence;
 use Fight\AccessControl\Domain\AccessControl\Audit\AuditEvidenceRepository;
+use Fight\AccessControl\Domain\AccessControl\Audit\AuditGrantState;
+use Fight\AccessControl\Domain\AccessControl\Audit\AuditSubject;
+use Fight\AccessControl\Domain\AccessControl\Audit\AuditUserOutcome;
+use Fight\AccessControl\Domain\AccessControl\Audit\AuditUserRevisions;
 use Fight\AccessControl\Domain\AccessControl\User\Command\RestoreUser;
 use Fight\AccessControl\Domain\AccessControl\User\Event\UserRestored;
 use Fight\AccessControl\Domain\AccessControl\User\Exception\UserLifecycleException;
@@ -70,7 +76,7 @@ final readonly class RestoreUserHandler implements CommandHandler
 
         try {
             /** @var UserRestored $event */
-            $event = $this->unitOfWork->commitTransactional(function () use ($command): UserRestored {
+            $event = $this->unitOfWork->commitTransactional(function () use ($command, $commandMessage): UserRestored {
                 $user = $this->userRepository->getById($command->getUserId());
                 if ($user === null) {
                     throw new ResourceNotFound('The user cannot be restored.');
@@ -93,6 +99,7 @@ final readonly class RestoreUserHandler implements CommandHandler
                 }
 
                 $activationDeliveryId = null;
+                $successor = null;
                 if ($command->getRestorationState() === UserState::PENDING_ACTIVATION) {
                     $issuedAt = $this->clock->now();
                     $credential = $this->activationCredentialGenerator->generate();
@@ -113,9 +120,17 @@ final readonly class RestoreUserHandler implements CommandHandler
                 }
 
                 $this->auditEvidenceRepository->add(AuditEvidence::record(
-                    $command->getActorId()->toString(),
-                    'user.restored',
-                    $command->getUserId()
+                    $command->getActorId(),
+                    new AuditSubject($command->getUserId()),
+                    AuditAction::USER_RESTORED,
+                    $now,
+                    new AuditUserOutcome(
+                        AuditUserRevisions::fromUser($user),
+                        AuditUserRevisions::fromUser($replacementUser),
+                        null,
+                        $successor === null ? null : AuditGrantState::fromGrant($successor)
+                    ),
+                    new AuditCorrelation($commandMessage->id(), null)
                 ));
 
                 return new UserRestored(

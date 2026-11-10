@@ -88,7 +88,7 @@ over HTTP. All names below have the `Fight.AccessControl.` prefix:
 | Component | Canonical value |
 | --- | --- |
 | `ActivationOrigin` (v0.7.0) | String enum `private_invitation` or `registration`; stored activation journey for consumer template selection, not caller authority |
-| `DeliverPasswordReset` | `actor_id` (an arbitrary string, including worker provenance), UUID `user_id` and `password_reset_delivery_id` |
+| `DeliverPasswordReset` | required `actor_kind` (`user`, `agent`, `system`, `anonymous`), UUID `actor_id`, `user_id` and `password_reset_delivery_id`; system/anonymous use fixed nil, never missing-origin fallback |
 | `FindCredentialDeliveryStatus` | `purpose` (`activation`, `password_reset`, `email_change`) and nonempty UUID `delivery_id` |
 | `FindDueCredentialDeliveries` | `at` (`date-time`, including fractional seconds) and positive integer `limit`; no default or upper bound is imposed |
 | `CredentialDeliveryStatus` | Found `CredentialDeliveryStatusView`: purpose, delivery/User IDs, revision, status, due/expiry times, attempt count and nullable attempt/outcome/failure history |

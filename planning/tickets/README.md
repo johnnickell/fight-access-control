@@ -46,7 +46,7 @@ This generated index is a projection; individual records remain canonical.
 | [TICKET-00040](00040-TICKET.md) | Make command and synchronous Application contracts explicit | ready-for-agent |
 | [TICKET-00041](00041-TICKET.md) | Align presentation and integration contracts | ready-for-agent |
 | [TICKET-00042](00042-TICKET.md) | Enforce and demonstrate whole-library type correctness | ready-for-agent |
-| [TICKET-00043](00043-TICKET.md) | Define typed audit evidence and explicit attribution | ready-for-agent |
+| [TICKET-00043](00043-TICKET.md) | Define typed audit evidence and explicit attribution | done |
 | [TICKET-00044](00044-TICKET.md) | Audit User account and credential journeys | ready-for-agent |
 | [TICKET-00045](00045-TICKET.md) | Audit Role, membership and Agent administration | ready-for-agent |
 | [TICKET-00046](00046-TICKET.md) | Audit Feature and managed-policy changes | ready-for-agent |
