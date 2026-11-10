@@ -5,18 +5,19 @@ dependencies, acceptance, and verification.
 
 ## What's Next?
 
-First ready Task: [TASK-00084](00084-TASK.md) — Protect mixed Common-owned and attributed MCP Tools.
+Active Task: [TASK-00087](00087-TASK.md) — Authorize Agent-protected Prompt discovery and retrieval.
 
 ## In Progress
 
-No Tasks are currently in this state.
+| Order | TASK ID | Title | Parent TICKET | Status | Blocked by | PR |
+| --- | --- | --- | --- | --- | --- | --- |
+| 87 | [TASK-00087](00087-TASK.md) | Authorize Agent-protected Prompt discovery and retrieval | [TICKET-00027](../tickets/00027-TICKET.md) — Authorize Prompt discovery and retrieval | in-progress | [TASK-00108](00108-TASK.md), [TASK-00110](00110-TASK.md) | — |
 
 ## Ready Frontier
 
 | Order | TASK ID | Title | Parent TICKET | Status | Blocked by | PR |
 | --- | --- | --- | --- | --- | --- | --- |
 | 84 | [TASK-00084](00084-TASK.md) | Protect mixed Common-owned and attributed MCP Tools | [TICKET-00025](../tickets/00025-TICKET.md) — Bind Common-owned and attributed Tools to Agent Permissions | ready-for-agent | [TASK-00108](00108-TASK.md), [TASK-00110](00110-TASK.md) | — |
-| 87 | [TASK-00087](00087-TASK.md) | Authorize Agent-protected Prompt discovery and retrieval | [TICKET-00027](../tickets/00027-TICKET.md) — Authorize Prompt discovery and retrieval | ready-for-agent | [TASK-00108](00108-TASK.md), [TASK-00110](00110-TASK.md) | — |
 | 91 | [TASK-00091](00091-TASK.md) | Authorize notice recording and bounded removal | [TICKET-00030](../tickets/00030-TICKET.md) — Authorize retained notices and live Subscriptions | ready-for-agent | [TASK-00088](00088-TASK.md), [TASK-00108](00108-TASK.md), [TASK-00110](00110-TASK.md) | — |
 | 97 | [TASK-00097](00097-TASK.md) | Authorize Task creation, producer updates and protected reads | [TICKET-00031](../tickets/00031-TICKET.md) — Authorize durable Task operations and state disclosure | ready-for-agent | [TASK-00088](00088-TASK.md), [TASK-00108](00108-TASK.md), [TASK-00110](00110-TASK.md) | — |
 | 309 | [TASK-00130](00130-TASK.md) | Qualify Agent issuance Command and Query dispatch | [TICKET-00038](../tickets/00038-TICKET.md) — Preserve message and result types through dispatch | ready-for-agent | [TASK-00182](00182-TASK.md) | — |

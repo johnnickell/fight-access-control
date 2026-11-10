@@ -166,6 +166,10 @@ previous-iteration support; completed TASKs and earlier guidance cannot require 
 - Repositories are Domain interfaces beside their aggregate. Use canonical add/getById/remove where appropriate,
   preserving actual CAS/uniqueness/coupled-write and transaction-duration fence contracts, not replacing them with
   get-then-save. Keep UoW separate; do not create Application Store/save ports or preflight reservation calls.
+- TASK-00087 adds optional [Prompt authorization](../../docs/agent-prompt-authorization.md) under
+  `Adapter/Mcp/Prompt/Agent`: exact immutable Common definitions, conjunctive direct requirements and existing
+  ordinary-request authority, with Common-owned list/get, safe bounds and independent Query/linked-target admission.
+  Its canonical Work handoff owns verification; independent Review/QA remain required.
 - Agent profile Tools/catalogs and family availability now live in `Adapter/Mcp/{Tool,Resource,Skill}/Agent`
   under TASK-00108; authentication, Permission policy and synchronized continuation remain inward. TASK-00109
   organizes Agent Authentication/Credential/Delivery/Maintenance/Continuation, PermissionAssignment, Feature Discovery

@@ -58,6 +58,17 @@ classes are not deprecated merely because individual direct properties are. No T
 | MCP Resource and whole-Skill | Readable/protected provider, resource info/content/discovery/availability/limits; Skill availability/discovery/limits/file/frontmatter/resources/revision. Preserve whole-entry versus independent Resource grants, exact immutable descriptors, revision binding, bytes/budgets, stream cleanup and fresh request authority. |
 | Pagination and returned pages | `Pagination` type and `ResultSet` remain supported. **Pagination's public constructor is genuinely deprecated since 1.4.0**; this adoption does not silently substitute `strict()`, which rejects nonpositive bounds/unsupported directions instead of applying existing defaults/normalization. Existing Query hydration and callers retain their current semantics. This pre-existing validation change is outside the behavior-preserving foundation adoption and needs its owning pagination contract scope (TASK-00132), not import cleanup. `ResultSet` construction is **not deprecated**; its stricter optional factory does not justify changing returned-page semantics here. |
 
+## Prompt feature consumption — TASK-00087
+
+[Agent Prompt authorization](agent-prompt-authorization.md) now consumes the released `Application/Mcp/Prompt`
+`McpPrompt`, `McpPromptInfo`, `McpPromptOutput`, `McpPromptAvailability`, `McpPromptDiscovery` and `McpPromptLimits`
+contracts. The first sufficient stable minimum is v1.5.0 at the source above; existing `^1.5.0` already suffices.
+AccessControl binds actual immutable definitions and direct Agent requirements; Common retains registration/naming,
+outer/declared argument validation, selected-provider laziness, visible-catalog cursors, complete bounded output,
+central metadata/envelope and safe unknown/denied/internal results. Controlled minimum and ordinary lanes exercise
+actual list/get plus independently admitted Query data and inert later-denied links. Work's canonical handoff owns
+exact lock/source/check evidence; independent feature Review/QA and actual consumer qualification remain separate.
+
 ## Qualification and future owners
 
 The isolated exact-minimum Composer lane pins `1.5.0`; the ordinary lane resolves the manifest normally. Both
@@ -73,6 +84,6 @@ than merely planned. Domain repositories/read ports and separate `TransactionalU
 handlers, meaningful identities/values and outward concrete Tools are the supplier direction. TASK-00184 separates
 DBAL UoW, 00185/00186 supply repositories, 00187 handler ownership, 00188 Task projection, 00189/00190 values and
 00191 aggregate/adapter homes. None is currently consumed by AccessControl's existing feature slice. Future
-TASK-00084/00087/00089–00102 must inspect their exact declarations, configure actual Common buses and independently
+TASK-00084/00089–00102 must inspect their exact declarations, configure actual Common buses and independently
 qualify each operation/family. This baseline clears only TASK-00110's historical supplier hold, not those feature
 holds, grant requirements, live-runtime requirements or separate generic typing/returned-page evidence gaps.

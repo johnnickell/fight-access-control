@@ -91,7 +91,7 @@ application relationship policy, live notification mechanics, consumer changes a
 
 | Order | TASK ID | Title | Status |
 | --- | --- | --- | --- |
-| 87 | [TASK-00087](../tasks/00087-TASK.md) | Authorize Agent-protected Prompt discovery and retrieval | ready-for-agent |
+| 87 | [TASK-00087](../tasks/00087-TASK.md) | Authorize Agent-protected Prompt discovery and retrieval | in-progress |
 ## Decisions and Progress
 
 John approved item 3 of the complete eight-TICKET split, explicitly invoked To Tasks for this TICKET, then approved

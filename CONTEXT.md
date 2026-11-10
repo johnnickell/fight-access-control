@@ -6,6 +6,20 @@ Fight AccessControl owns framework-neutral identity, credential, session, author
 behavior shared by Fight applications. The repository-local behavioral and security authority is
 [TICKET-00001](planning/tickets/00001-TICKET.md).
 
+## TASK-00087 Prompt authorization — Work checkpoint
+
+Optional [Agent-protected Prompt composition](docs/agent-prompt-authorization.md) now binds nonempty conjunctive
+canonical direct Permission requirements to the actual immutable Common Prompt definition objects in
+`Adapter/Mcp/Prompt/Agent`. Common remains the only name registry, list/get engine and argument/output/error owner.
+Trusted ordinary-request Agent authority stays inward; discovery constructs no bodies and direct get needs no listing.
+Later requests recheck authority; an already resolved request retains its snapshot and consumes no nonce per definition.
+Private zero-TTL results/cursors grant no continuing access. Controlled static/Query-backed providers and inert
+Resource/Skill links retain independent current business/target admission with no automatic fetch, grant or execution.
+Common v1.5.0 is the first sufficient supported Prompt minimum; the existing ^1.5.0 manifest needs no change.
+Canonical `.runs/handoffs/TASK-00087/work.md` owns dependency/runtime, focused/full-gate and exact coverage evidence.
+Independent Review and nonvisual QA remain required; TASK stays open. No production consumer, release or deployment
+qualification or completion of EPIC-00014's combined unassigned release is claimed.
+
 ## TASK-00136 delivery Event contracts — accepted checkpoint
 
 The [delivery Event contract map](docs/delivery-event-contracts.md) records all eight existing subscriber routes,
