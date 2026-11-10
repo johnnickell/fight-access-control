@@ -13,7 +13,10 @@ annotations, including collection elements. Each concrete handler declares its s
 boundaries remain validated. No automatic generic inference or generic Common supplier prerequisite is required
 for this slice. The [current dispatch manifest](docs/query-dispatch-contracts.md) maps all 22 current Query bindings,
 both production callers, supported routing/pipeline composition, exact static contracts and runtime proof. Existing
-correct source declarations/caller boundaries remain unchanged; current guide examples gain matching annotations.
+correct result declarations/caller boundaries remain unchanged; current guide examples gain matching annotations.
+The follow-up payload clarification requires one registered Query per handler and a flat local annotation immediately
+above extraction in `handle()`. All 22 match after aligning preparation and preview while retaining their guards;
+the shared Command/Query/Event style is documented in the PHP standard, not a sibling source sweep.
 TASK-00132 retains concurrent page semantics; sibling Command/Event/Agent qualification remains separately owned.
 Canonical TASK-00128 Work evidence owns verification and warnings. Independent Review and nonvisual QA remain
 required; this checkpoint claims neither acceptance nor whole-library/consumer qualification or delivery.

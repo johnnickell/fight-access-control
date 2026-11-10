@@ -203,6 +203,17 @@ final class QueryDispatchContractTest extends TestCase
         $bus->dispatch(QueryMessage::create($query)->mergeMeta(Meta::create(['origin' => 'contract'])));
     }
 
+    #[DataProvider('bindings')]
+    public function test_registered_handler_does_not_serve_an_unrelated_query(string $name, bool $pipeline): void
+    {
+        [, $handler] = $this->fixture($name);
+        [$otherQuery] = $this->fixture($name === 'GetUserById' ? 'ListUsers' : 'GetUserById');
+        $router = new InMemoryQueryRouter();
+        $router->registerHandler($handler::queryRegistration(), $handler);
+        $this->expectException(LookupException::class);
+        $this->bus($router, $pipeline)->fetch($otherQuery);
+    }
+
     /** @return iterable<string, array{string, bool}> */
     public static function pagedBindings(): iterable
     {

@@ -25,8 +25,9 @@ $dispatchedUsers = $queryBus->dispatch($message);
 
 This is an owned caller assertion, not runtime generic enforcement or proof that arbitrary injected buses return
 that value. Compose exactly the corresponding handler. Each concrete handler already declares a specific native
-result; richer collection/list contracts declare their elements. These declarations and the two existing production
-callers need no implementation change for this amendment. No new Common API, copied bus, handler bypass, result
+result; richer collection/list contracts declare their elements. Result declarations and the two existing production
+callers need no implementation change for this amendment. The subsequent payload-style clarification adds the
+missing local annotations to preparation and preview; all other 20 handlers already match. No new Common API, copied bus, handler bypass, result
 wrapper, ignore or compatibility path is introduced. Dynamic external decoding still needs owner validation.
 
 ## Exhaustive current bindings
@@ -36,8 +37,13 @@ and handlers now live under `AgentCredentialOperation`, not `Agent`. The followi
 `src/Domain/AccessControl/<Owner>/Query/<Query>.php` and
 `src/Application/AccessControl/<Owner>/QueryHandler/<Query>Handler.php`. Every handler implements Common
 `QueryHandler`, takes `QueryMessage`, and `queryRegistration()` returns exactly its Query class. The native
-registration return is `string`; payload extraction is locally typed for that registered route (preparation and
-preview additionally validate payload type). No upstream generic registration guarantee is claimed.
+registration return is `string`. In every row, the incoming payload type is exactly the Query / registration class
+shown below: the same owning handler declares `queryRegistration()` and a flat single-line
+`/** @var <Query> $query */` immediately above `$query = $queryMessage->payload();` inside `handle()`.
+Preparation and preview retain their payload guards against `self::queryRegistration()` using native `is_a`,
+preserving wrong-message rejection and its exception before business work without analysis suppressions. The canonical shared
+[PHP convention](engineering/standards/PHP.md#message-payload-declarations) also covers CommandHandlers and Event
+Subscribers; their source qualification is separately owned. No upstream generic registration guarantee is claimed.
 
 | Owner | Query / registration class | Native result | Precise static result |
 | --- | --- | --- | --- |
@@ -120,13 +126,19 @@ Common's router accepts a string-to-QueryHandler map; it does not statically rel
 particular concrete handler or enforce its registration declaration. The exhaustive runtime matrix checks our
 actual registrations, rather than claiming unsupported generic rejection. Native PHP rejects non-Query message
 payloads and non-handler registration; unconfigured routing throws rather than fabricating an empty result.
+The retained all-handler level-8 analysis checks incoming local payload use as well as exact results. Direct
+source convention validation inventories all 22 registration/annotation/extraction pairs in Work evidence; it is
+not a product PHPUnit test of source text. Existing required static fixtures and the real 22-binding matrix remain
+the executable contract proof, rather than adding assertion-only probes or a second fixture framework. An added
+matrix scenario registers each handler alone and proves an unrelated Query cannot reach it through either bus.
 All six paged handlers additionally preserve a primary repository failure through both real bus compositions and
 both invocation methods. A pipeline test independently checks exact message forwarding and primary throwable identity. Existing semantic
 suites cover actual handler/provider failure ordering, intentional safe failures, concealment, read-only behavior
 and redaction (including operation reads' intentional sanitization rather than raw throwable propagation).
 
 Metadata replacement/merge keeps identity, timestamp and payload, leaves the original unchanged, and round-trips
-canonical wire data for every binding. No raw secret becomes serializable. No source behavior, permission/grant,
+canonical wire data for every binding. No raw secret becomes serializable. The two payload guards still reject before business work with the same exceptions; local style and the guard's
+source of the supported class change, not the accepted payload. No permission/grant,
 mutation, transaction, audit insertion or Event dispatch changes. Nonvisual executable evidence is appropriate for
 this library contract; screenshots would not prove its types or dispatch behavior. Independent Review and nonvisual
 QA, exact dependency/runtime evidence and the full gate remain distinct Work handoff obligations.
