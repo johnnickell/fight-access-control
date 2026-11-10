@@ -123,7 +123,7 @@ exact coverage, local evidence and independent Review/behavioral QA. Choose the 
 | Order | TASK ID | Title | Status |
 | --- | --- | --- | --- |
 | 310 | [TASK-00131](../tasks/00131-TASK.md) | Make required resource queries exact and non-null | done |
-| 311 | [TASK-00132](../tasks/00132-TASK.md) | Enforce paged query result contracts | ready-for-agent |
+| 311 | [TASK-00132](../tasks/00132-TASK.md) | Enforce paged query result contracts | in-progress |
 | 312 | [TASK-00133](../tasks/00133-TASK.md) | Make human credential status and discovery results explicit | done |
 | 313 | [TASK-00134](../tasks/00134-TASK.md) | Correct Agent operation, scheduler and count query contracts | done |
 | 314 | [TASK-00135](../tasks/00135-TASK.md) | Make preparation and policy-preview results truthful | done |

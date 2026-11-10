@@ -5,17 +5,18 @@ dependencies, acceptance, and verification.
 
 ## What's Next?
 
-First ready Task: [TASK-00132](00132-TASK.md) — Enforce paged query result contracts.
+Active Task: [TASK-00132](00132-TASK.md) — Enforce paged query result contracts.
 
 ## In Progress
 
-No Tasks are currently in this state.
+| Order | TASK ID | Title | Parent TICKET | Status | Blocked by | PR |
+| --- | --- | --- | --- | --- | --- | --- |
+| 311 | [TASK-00132](00132-TASK.md) | Enforce paged query result contracts | [TICKET-00039](../tickets/00039-TICKET.md) — Guarantee exact query results and explicit absence | in-progress | — | — |
 
 ## Ready Frontier
 
 | Order | TASK ID | Title | Parent TICKET | Status | Blocked by | PR |
 | --- | --- | --- | --- | --- | --- | --- |
-| 311 | [TASK-00132](00132-TASK.md) | Enforce paged query result contracts | [TICKET-00039](../tickets/00039-TICKET.md) — Guarantee exact query results and explicit absence | ready-for-agent | — | — |
 | 402 | [TASK-00122](00122-TASK.md) | Replace audit evidence contracts across existing writers | [TICKET-00043](../tickets/00043-TICKET.md) — Define typed audit evidence and explicit attribution | ready-for-agent | [TASK-00121](00121-TASK.md) | — |
 | 504 | [TASK-00173](00173-TASK.md) | Enforce Symfony Feature admission | [TICKET-00050](../tickets/00050-TICKET.md) — Enforce Feature admission across five frameworks | ready-for-agent | [TASK-00172](00172-TASK.md), [TASK-00104](00104-TASK.md) | — |
 | 504 | [TASK-00174](00174-TASK.md) | Enforce Laravel Feature admission | [TICKET-00050](../tickets/00050-TICKET.md) — Enforce Feature admission across five frameworks | ready-for-agent | [TASK-00172](00172-TASK.md) | — |

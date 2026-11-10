@@ -6,6 +6,16 @@ Fight AccessControl owns framework-neutral identity, credential, session, author
 behavior shared by Fight applications. The repository-local behavioral and security authority is
 [TICKET-00001](planning/tickets/00001-TICKET.md).
 
+## TASK-00132 paged Query contracts — Work checkpoint
+
+The six [paged Query paths](docs/paged-queries.md) now adopt Common v1.5.0 strict construction for incoming and
+mapped results, check request metadata and preserve exact safe View mapping. Session reads independently check
+admitted owner/usability; Agent exact Permissions, Feature binding information and Role revisions remain intact.
+Captured page membership prevents dependency callbacks from changing enumeration; returned lists remain mutable.
+Empty/out-of-range semantics and actual persistence/ordering limits are explicit, without new locks or writes.
+Canonical `.runs/handoffs/TASK-00132/work.md` owns inventory, regressions, dependency/runtime and gate evidence.
+Independent Review and nonvisual QA remain required; this is neither acceptance nor consumer qualification.
+
 ## Canonical Common adoption — TASK-00110 accepted checkpoint
 
 Current composition requires Common `^1.5.0`, published tagged source
