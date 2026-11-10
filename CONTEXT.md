@@ -28,6 +28,17 @@ Historical checkpoints below retain their actual older minima and planning obser
 current manifest/inventory own today's baseline. No sibling/consumer mutation, publication, merge, release or
 deployment is implied by this package acceptance.
 
+## Command payload declaration contract — TASK-00129
+
+John selected one supported Command/Query declaration and a flat local concrete annotation at payload extraction;
+see the [canonical PHP rule](docs/engineering/standards/PHP.md#handler-payload-declarations). This replaces the
+original generic Command supplier hold, not Query-result inference. All 37 baseline Command handlers already
+have that declaration/flat-annotation structure; the two added issuance handlers remain TASK-00130's scope.
+Actual Common v1.5.0 explicit-map routing does not check the declared registration: an Engineer probe registers
+one actual handler under two payloads and reaches the wrong handler. TASK-00129 records this narrower runtime
+enforcement mismatch and maintainer disposition prerequisite. Exhaustive behavioral qualification and independent
+Review/QA are not complete; no Common/local-bus implementation, sibling adoption or business change is included.
+
 ## Audit outcome inventory — TASK-00166 accepted checkpoint
 
 The [living audit matrix](docs/audit-outcome-coverage.md) reconciles the historical 37 + 7 + 8 baseline to current

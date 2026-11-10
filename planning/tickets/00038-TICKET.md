@@ -12,7 +12,10 @@ status: ready-for-agent
 A concrete handler return declaration does not give a QueryBus caller its result type when fetch/dispatch expose
 unqualified mixed. Under [EPIC-00016](../epics/00016-EPIC.md), preserve the relationship between every owned message,
 its registered handler and its result through actual configured buses. Adoption uses qualified Common contracts;
-local casts/assertions are not proof of end-to-end typing.
+local casts/assertions are not proof of end-to-end typing. John's later TASK-00129 amendment selects a different
+Command payload contract: one supported declaration and flat owned extraction annotation, with runtime routing
+binding rather than a generic supplier prerequisite. That scoped amendment governs the Command clauses below;
+Query-result inference and sibling acceptance remain unchanged.
 
 ## Use Cases and Contracts
 
@@ -29,12 +32,14 @@ local casts/assertions are not proof of end-to-end typing.
 - Inventory actual Common APIs consumed along every owned Command/Query path: payload type, registration class,
   handler input, native/static return, message construction/metadata transformations, configured bus and caller.
   Reconcile all 37 current command and 22 query handlers against a refreshed candidate, not a fixed sample.
-- Common owns Query/QueryMessage/QueryHandler/QueryBus generic relationships and corresponding Command payload/
-  handler contracts. Specify missing supplier guarantees precisely, then adopt actual supported APIs without a
+- Common owns Query/QueryMessage/QueryHandler/QueryBus generic relationships and Command routing contracts.
+  Existing Commands use the single registration/local annotation rule in the PHP standard, not an upstream generic
+  prerequisite. Specify missing supplier guarantees precisely, then adopt actual supported APIs without a
   copied bus, shadow message hierarchy, AccessControl compatibility shim or direct-handler bypass.
 - Preserve result inference through both fetch and dispatch. Account for scalar results, arrays/lists, typed
   ResultSets, safe Views, explicit optional states and the void Command contract. Registration must identify the
-  payload type the handler actually accepts; unchecked local var annotations do not establish assignability.
+  payload type the handler actually accepts. For Commands the approved flat local annotation records that type;
+  it is not static assignability proof, and runtime binding enforcement requires separate qualification.
 - Prove expected inference and rejected incompatible caller/payload/handler use with executable static-analysis
   fixtures. Prove runtime registration, real bus routing and applicable result/failure propagation separately;
   PHPStan generics are not a native runtime guarantee.
@@ -66,8 +71,9 @@ needs-info prerequisites rather than infer executability from this accepted TICK
 
 - [ ] A complete mapping covers every owned message, actual registered handler, payload, result and caller through
   real configured buses, including message metadata transformations and both Query invocation methods.
-- [ ] Positive fixtures infer the exact result/element/payload types without caller casts or unchecked assertions;
-  negative fixtures reject incompatible use rather than suppressing analysis failures.
+- [ ] Positive fixtures infer the exact Query result/element types without caller casts or unchecked assertions.
+  Command fixtures prove actual native/static contracts and the approved local annotated extraction, not generic
+  registration assignability. Negative fixtures check actual incompatible-use diagnostics without suppression.
 - [ ] Runtime tests demonstrate actual routing, applicable registration rejection and failure propagation; generic
   static guarantees are explicitly distinguished from native PHP checks.
 - [ ] Actual tagged/accepted supplier APIs and minimum/ordinary-lane evidence support newly consumed guarantees;
@@ -90,7 +96,7 @@ John approved the complete three-TASK split, now written with kind chore and nee
 | TASK | Order | Delivered outcome | Actual prerequisite / local blockers |
 | --- | --- | --- | --- |
 | [TASK-00128](../tasks/00128-TASK.md) | 307 | Exact Query payload/result typing through real fetch/message dispatch, metadata operations, registrations and callers; all 22 current handlers. | Qualified/tagged Common generic Query contracts and minimum evidence; no local TASK blocker demonstrated. |
-| [TASK-00129](../tasks/00129-TASK.md) | 308 | Typed Command payload/registration/handler/caller paths for all 37 existing handlers; successful handling stays void. | Qualified/tagged Common typed Command contracts and minimum evidence; no local TASK blocker demonstrated. |
+| [TASK-00129](../tasks/00129-TASK.md) | 308 | Single Command declaration, flat owned extraction annotation and real routing/void proof for all 37 baseline handlers. | Original generic hold superseded; actual runtime single-binding enforcement gap requires maintainer disposition, with minimum/ordinary evidence in the Work handoff. |
 | [TASK-00130](../tasks/00130-TASK.md) | 309 | Exact payload/metadata/void Command contracts and outcome Query-result typing for Agent issuance. | Qualified/tagged generic Command/Query typing APIs plus actual conversion supplier [TASK-00182](../tasks/00182-TASK.md). No Command-result API required. |
 
 Current source-name manifests account for all 22 QueryHandlers and 37 CommandHandlers. These are planning inventories,
@@ -119,6 +125,14 @@ examples, full gate/exact owned coverage, logs and independent Review/behavioral
 | 308 | [TASK-00129](../tasks/00129-TASK.md) | Preserve Command payload types through dispatch | needs-info |
 | 309 | [TASK-00130](../tasks/00130-TASK.md) | Qualify Agent issuance Command and Query dispatch | needs-info |
 ## Decisions and Progress
+
+John subsequently selected single supported Command/Query declarations and flat local payload annotations in the
+owning handler (and analogous Event-listener annotations). TASK-00129 owns only the 37 baseline Command paths;
+TASK-00128/00130/00136 keep their distinct implementation/acceptance scopes. Command generic supplier holds and
+prohibitions on the selected owned annotations are superseded, including contradictory historical wording below.
+This does not waive runtime routing qualification or imply Query-result inference. TASK-00129's Engineer found
+actual Common v1.5.0 map registration does not enforce commandRegistration(); the owning TASK records the precise
+runtime gap and required disposition, not a revived generic hold. Earlier planning checkpoints below remain history.
 
 John approved this requirement within the six-TICKET split, then the complete three-TASK plan now written as
 TASK-00128–00130. All remain needs-info, not executable adoption. Inspected installed Common v1.4.0 exposes mixed
