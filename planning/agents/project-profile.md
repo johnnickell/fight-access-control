@@ -202,7 +202,8 @@ previous-iteration support; completed TASKs and earlier guidance cannot require 
 - Command and Query handlers implement the corresponding public Fight Common handler interface and declare exactly
   one supported payload. Keep registration and the flat local extraction annotation together in the owning class,
   under the [canonical PHP rule](../../docs/engineering/standards/PHP.md#handler-payload-declarations). Routing owns
-  runtime binding, not generic inference or the annotation itself; qualify actual supplier enforcement separately.
+  runtime binding through a trusted map matching the declaration, not generic inference or annotation validation.
+  A focused expected-registration unit assertion suffices; deliberately mismatched explicit maps are outside this contract.
 - A CommandHandler owns one atomic Unit of Work: aggregate mutation and repository persistence precede one commit;
   a success event is dispatched only after that commit. The approved
   [operation-outcome amendment](../tickets/00001-TICKET.md#approved-correction-batch-amendment) governs the correction

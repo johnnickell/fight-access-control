@@ -75,9 +75,11 @@ Query handlers analogously use `/** @var GetUserById $query **/` immediately bef
 the owning listener method. This shared style rule does not implement the separately owned Query/Event slices.
 
 The annotation records the selected binding; it does not validate a message or prove static assignability between
-a registration string and a payload. PHP has no native generics. Supported routing must supply the runtime
-binding guarantee; qualify its actual configuration/validation behavior separately and report missing enforcement
-rather than claiming the annotation provides it. Do not add local buses, shadow messages or defect-hiding ignores.
+a registration string and a payload. PHP has no native generics. The handler declaration and trusted routing map
+must match; deriving registration from the declaration is the selected configuration boundary. A focused handler
+unit test asserting the expected registration class suffices for declaration proof. Qualify correct routing and
+missing-route/failure behavior separately; rejection of deliberately inconsistent explicit maps is not required.
+Do not add local buses, shadow messages, validation bridges or defect-hiding ignores.
 
 ## Expressions
 

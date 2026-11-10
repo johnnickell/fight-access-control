@@ -14,7 +14,7 @@ The ten canonical standards below are copied into this checkout for self-contain
 | [Governance](standards/Governance.md) | `b15f5ccc7804f0c3a7745aa0d7ba9f200c24f7652e81883217ae80aa7e37b81d` | `b15f5ccc7804f0c3a7745aa0d7ba9f200c24f7652e81883217ae80aa7e37b81d` |
 | [HTTP](standards/HTTP.md) | `456f7161f08bdd23063bab934ba9a26fb178f0e1ad35e0d898255dd9702626c9` | `456f7161f08bdd23063bab934ba9a26fb178f0e1ad35e0d898255dd9702626c9` |
 | [Naming](standards/Naming.md) | `783c67a53b62f9a1576a3a0c00a6438f1b6c40b0df84f268874689b715e74907` | `208e06ec365a406b5b4a2255dc4ad89fc80ae6d8735fc95eac12c9374a0da4ca` |
-| [PHP](standards/PHP.md) | `b102071e4939424796e4edc20d0b46373210634189c8f024038214e0e18cf623` | `1abce510589a1a07b0ec6b4e7b8480d072cf98ecc55084d6b93487172413a991` |
+| [PHP](standards/PHP.md) | `b102071e4939424796e4edc20d0b46373210634189c8f024038214e0e18cf623` | `1929e09d20f4a2a0f7757847b865505fba9afb8bb0ffdbf47207143622e67ffb` |
 | [Planning](standards/Planning.md) | `616c8e3a793e200747a98b9b918ed921ac17708f4e08b0925a94bd04a79a1bd1` | `ec87830d1037e31aa2c4b3af537b1628e18ea1693da428c851ed2996a1c9777d` |
 | [Review](standards/Review.md) | `46b53d075a5cae328391eb57d645404c3fb55bc76aee461def94aa123f04ea35` | `d9b77bb05bc04176f323a6c86cd1af76eb4edf76ddec3cd1df01a5ba86e4bfd5` |
 | [Testing](standards/Testing.md) | `fdab5a64ba92f406d63c28d48d6fdf800397c079c29932372746caf31f2c432f` | `2e261e828a504b579d861b01f494ec7c78bdcd96493acc5114e659827af66879` |
@@ -94,9 +94,10 @@ This adoption does not certify all existing code against the baseline. Its compa
 John explicitly selected one supported Command/Query declaration and a flat local concrete payload annotation
 inside its owning handler, with analogous Event-listener annotations. The local
 [PHP rule](standards/PHP.md#handler-payload-declarations) is canonical; it supersedes a generic Command supplier
-prerequisite and the prohibition on those selected owned annotations. Runtime routing must supply the binding,
-not the annotation or fictitious native generics. Actual missing enforcement is reported to its owner rather than
-implemented through a local bus or bridge. TASK-00129 owns the 37 baseline Command paths; Query, conversion-specific
+prerequisite and the prohibition on those selected owned annotations. John's subsequent disposition selects a
+trusted registration map matching the handler declaration, with a focused expected-registration unit assertion
+as sufficient declaration proof. Actual routing is qualified separately; rejecting deliberately inconsistent
+explicit maps is not required. Neither the annotation nor fictitious native generics supplies validation. TASK-00129 owns the 37 baseline Command paths; Query, conversion-specific
 Agent and Event slices retain their separate acceptance. Only PHP's installed digest changes; its source digest
 retains the adopted baseline. No provider standard or executable check is weakened.
 
