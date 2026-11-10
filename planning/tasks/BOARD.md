@@ -5,20 +5,21 @@ dependencies, acceptance, and verification.
 
 ## What's Next?
 
-Active Task: [TASK-00084](00084-TASK.md) — Protect mixed Common-owned and attributed MCP Tools.
+First ready Task: [TASK-00087](00087-TASK.md) — Authorize Agent-protected Prompt discovery and retrieval.
 
 ## In Progress
 
-| Order | TASK ID | Title | Parent TICKET | Status | Blocked by | PR |
-| --- | --- | --- | --- | --- | --- | --- |
-| 84 | [TASK-00084](00084-TASK.md) | Protect mixed Common-owned and attributed MCP Tools | [TICKET-00025](../tickets/00025-TICKET.md) — Bind Common-owned and attributed Tools to Agent Permissions | in-progress | [TASK-00108](00108-TASK.md), [TASK-00110](00110-TASK.md) | — |
+No Tasks are currently in this state.
 
 ## Ready Frontier
 
 | Order | TASK ID | Title | Parent TICKET | Status | Blocked by | PR |
 | --- | --- | --- | --- | --- | --- | --- |
 | 87 | [TASK-00087](00087-TASK.md) | Authorize Agent-protected Prompt discovery and retrieval | [TICKET-00027](../tickets/00027-TICKET.md) — Authorize Prompt discovery and retrieval | ready-for-agent | [TASK-00108](00108-TASK.md), [TASK-00110](00110-TASK.md) | — |
+| 89 | [TASK-00089](00089-TASK.md) | Compose scoped execution and timeline reads | [TICKET-00029](../tickets/00029-TICKET.md) — Compose scoped execution and protected-detail access | ready-for-agent | [TASK-00084](00084-TASK.md) | — |
+| 90 | [TASK-00090](00090-TASK.md) | Compose independent protected-detail metadata and body reads | [TICKET-00029](../tickets/00029-TICKET.md) — Compose scoped execution and protected-detail access | ready-for-agent | [TASK-00084](00084-TASK.md) | — |
 | 91 | [TASK-00091](00091-TASK.md) | Authorize notice recording and bounded removal | [TICKET-00030](../tickets/00030-TICKET.md) — Authorize retained notices and live Subscriptions | ready-for-agent | [TASK-00088](00088-TASK.md), [TASK-00108](00108-TASK.md), [TASK-00110](00110-TASK.md) | — |
+| 92 | [TASK-00092](00092-TASK.md) | Authorize retained inspection and polling recovery | [TICKET-00030](../tickets/00030-TICKET.md) — Authorize retained notices and live Subscriptions | ready-for-agent | [TASK-00084](00084-TASK.md) | — |
 | 97 | [TASK-00097](00097-TASK.md) | Authorize Task creation, producer updates and protected reads | [TICKET-00031](../tickets/00031-TICKET.md) — Authorize durable Task operations and state disclosure | ready-for-agent | [TASK-00088](00088-TASK.md), [TASK-00108](00108-TASK.md), [TASK-00110](00110-TASK.md) | — |
 | 309 | [TASK-00130](00130-TASK.md) | Qualify Agent issuance Command and Query dispatch | [TICKET-00038](../tickets/00038-TICKET.md) — Preserve message and result types through dispatch | ready-for-agent | [TASK-00182](00182-TASK.md) | — |
 | 326 | [TASK-00147](00147-TASK.md) | Align protected Agent profile Tool contracts | [TICKET-00041](../tickets/00041-TICKET.md) — Align presentation and integration contracts | ready-for-agent | [TASK-00128](00128-TASK.md), [TASK-00131](00131-TASK.md), [TASK-00141](00141-TASK.md) | — |
@@ -51,9 +52,6 @@ Active Task: [TASK-00084](00084-TASK.md) — Protect mixed Common-owned and attr
 
 | Order | TASK ID | Title | Parent TICKET | Status | Blocked by | PR |
 | --- | --- | --- | --- | --- | --- | --- |
-| 89 | [TASK-00089](00089-TASK.md) | Compose scoped execution and timeline reads | [TICKET-00029](../tickets/00029-TICKET.md) — Compose scoped execution and protected-detail access | ready-for-agent | [TASK-00084](00084-TASK.md) | — |
-| 90 | [TASK-00090](00090-TASK.md) | Compose independent protected-detail metadata and body reads | [TICKET-00029](../tickets/00029-TICKET.md) — Compose scoped execution and protected-detail access | ready-for-agent | [TASK-00084](00084-TASK.md) | — |
-| 92 | [TASK-00092](00092-TASK.md) | Authorize retained inspection and polling recovery | [TICKET-00030](../tickets/00030-TICKET.md) — Authorize retained notices and live Subscriptions | ready-for-agent | [TASK-00084](00084-TASK.md) | — |
 | 93 | [TASK-00093](00093-TASK.md) | Authorize live Tool, Resource and whole-Skill change disclosure | [TICKET-00030](../tickets/00030-TICKET.md) — Authorize retained notices and live Subscriptions | ready-for-agent | [TASK-00086](00086-TASK.md), [TASK-00088](00088-TASK.md), [TASK-00092](00092-TASK.md) | — |
 | 94 | [TASK-00094](00094-TASK.md) | Authorize Prompt catalog-change disclosure | [TICKET-00030](../tickets/00030-TICKET.md) — Authorize retained notices and live Subscriptions | ready-for-agent | [TASK-00087](00087-TASK.md), [TASK-00093](00093-TASK.md) | — |
 | 95 | [TASK-00095](00095-TASK.md) | Authorize current-subscriber inspection | [TICKET-00030](../tickets/00030-TICKET.md) — Authorize retained notices and live Subscriptions | ready-for-agent | [TASK-00093](00093-TASK.md) | — |
@@ -171,6 +169,7 @@ No Tasks are currently in this state.
 | 80 | [TASK-00080](00080-TASK.md) | Fence custom Role rename and removal with caller revisions | [TICKET-00024](../tickets/00024-TICKET.md) — Fence custom Role rename and removal with caller revisions | done | [TASK-00077](00077-TASK.md), [TASK-00079](00079-TASK.md) | https://github.com/johnnickell/fight-access-control/pull/132 |
 | 81 | [TASK-00081](00081-TASK.md) | Align contributor workflows with Fight Agent OS | — (standalone chore) | done | — | https://github.com/johnnickell/fight-access-control/pull/128 |
 | 82 | [TASK-00082](00082-TASK.md) | Refresh package entrypoint and enforce release version consistency | — (standalone chore) | done | — | https://github.com/johnnickell/fight-access-control/pull/133 |
+| 84 | [TASK-00084](00084-TASK.md) | Protect mixed Common-owned and attributed MCP Tools | [TICKET-00025](../tickets/00025-TICKET.md) — Bind Common-owned and attributed Tools to Agent Permissions | done | [TASK-00108](00108-TASK.md), [TASK-00110](00110-TASK.md) | — |
 | 85 | [TASK-00085](00085-TASK.md) | Authorize exact Resource discovery and reads | [TICKET-00026](../tickets/00026-TICKET.md) — Authorize Resource and whole-Skill discovery and reads | done | — | https://github.com/johnnickell/fight-access-control/pull/139 |
 | 86 | [TASK-00086](00086-TASK.md) | Authorize complete Skills and protected member reads | [TICKET-00026](../tickets/00026-TICKET.md) — Authorize Resource and whole-Skill discovery and reads | done | [TASK-00085](00085-TASK.md) | https://github.com/johnnickell/fight-access-control/pull/141 |
 | 88 | [TASK-00088](00088-TASK.md) | Revalidate bound Agent authority before protected continuation | [TICKET-00028](../tickets/00028-TICKET.md) — Revalidate Agent authority for protected continuation | done | — | https://github.com/johnnickell/fight-access-control/pull/142 |
