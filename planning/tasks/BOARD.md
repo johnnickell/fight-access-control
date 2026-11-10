@@ -5,7 +5,7 @@ dependencies, acceptance, and verification.
 
 ## What's Next?
 
-First ready Task: [TASK-00087](00087-TASK.md) — Authorize Agent-protected Prompt discovery and retrieval.
+First ready Task: [TASK-00089](00089-TASK.md) — Compose scoped execution and timeline reads.
 
 ## In Progress
 
@@ -15,7 +15,6 @@ No Tasks are currently in this state.
 
 | Order | TASK ID | Title | Parent TICKET | Status | Blocked by | PR |
 | --- | --- | --- | --- | --- | --- | --- |
-| 87 | [TASK-00087](00087-TASK.md) | Authorize Agent-protected Prompt discovery and retrieval | [TICKET-00027](../tickets/00027-TICKET.md) — Authorize Prompt discovery and retrieval | ready-for-agent | [TASK-00108](00108-TASK.md), [TASK-00110](00110-TASK.md) | — |
 | 89 | [TASK-00089](00089-TASK.md) | Compose scoped execution and timeline reads | [TICKET-00029](../tickets/00029-TICKET.md) — Compose scoped execution and protected-detail access | ready-for-agent | [TASK-00084](00084-TASK.md) | — |
 | 90 | [TASK-00090](00090-TASK.md) | Compose independent protected-detail metadata and body reads | [TICKET-00029](../tickets/00029-TICKET.md) — Compose scoped execution and protected-detail access | ready-for-agent | [TASK-00084](00084-TASK.md) | — |
 | 91 | [TASK-00091](00091-TASK.md) | Authorize notice recording and bounded removal | [TICKET-00030](../tickets/00030-TICKET.md) — Authorize retained notices and live Subscriptions | ready-for-agent | [TASK-00088](00088-TASK.md), [TASK-00108](00108-TASK.md), [TASK-00110](00110-TASK.md) | — |
@@ -172,6 +171,7 @@ No Tasks are currently in this state.
 | 84 | [TASK-00084](00084-TASK.md) | Protect mixed Common-owned and attributed MCP Tools | [TICKET-00025](../tickets/00025-TICKET.md) — Bind Common-owned and attributed Tools to Agent Permissions | done | [TASK-00108](00108-TASK.md), [TASK-00110](00110-TASK.md) | https://github.com/johnnickell/fight-access-control/pull/203 |
 | 85 | [TASK-00085](00085-TASK.md) | Authorize exact Resource discovery and reads | [TICKET-00026](../tickets/00026-TICKET.md) — Authorize Resource and whole-Skill discovery and reads | done | — | https://github.com/johnnickell/fight-access-control/pull/139 |
 | 86 | [TASK-00086](00086-TASK.md) | Authorize complete Skills and protected member reads | [TICKET-00026](../tickets/00026-TICKET.md) — Authorize Resource and whole-Skill discovery and reads | done | [TASK-00085](00085-TASK.md) | https://github.com/johnnickell/fight-access-control/pull/141 |
+| 87 | [TASK-00087](00087-TASK.md) | Authorize Agent-protected Prompt discovery and retrieval | [TICKET-00027](../tickets/00027-TICKET.md) — Authorize Prompt discovery and retrieval | done | [TASK-00108](00108-TASK.md), [TASK-00110](00110-TASK.md) | https://github.com/johnnickell/fight-access-control/pull/204 |
 | 88 | [TASK-00088](00088-TASK.md) | Revalidate bound Agent authority before protected continuation | [TICKET-00028](../tickets/00028-TICKET.md) — Revalidate Agent authority for protected continuation | done | — | https://github.com/johnnickell/fight-access-control/pull/142 |
 | 103 | [TASK-00103](00103-TASK.md) | Protect Slim and Yii 3 requests through shared PSR-15 admission | [TICKET-00032](../tickets/00032-TICKET.md) — Protect native HTTP entry points across all five frameworks | done | — | https://github.com/johnnickell/fight-access-control/pull/143 |
 | 104 | [TASK-00104](00104-TASK.md) | Protect Symfony requests through native admission | [TICKET-00032](../tickets/00032-TICKET.md) — Protect native HTTP entry points across all five frameworks | done | [TASK-00103](00103-TASK.md) | https://github.com/johnnickell/fight-access-control/pull/144 |
