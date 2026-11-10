@@ -104,7 +104,7 @@ middleware, automatic grants, copied Common Tools, a new endpoint/CQRS bridge or
 
 | Order | TASK ID | Title | Status |
 | --- | --- | --- | --- |
-| 84 | [TASK-00084](../tasks/00084-TASK.md) | Protect mixed Common-owned and attributed MCP Tools | ready-for-agent |
+| 84 | [TASK-00084](../tasks/00084-TASK.md) | Protect mixed Common-owned and attributed MCP Tools | in-progress |
 ## Decisions and Progress
 
 John approved this requirement area as item 1 of EPIC-00014's complete eight-TICKET split, then explicitly selected
@@ -113,10 +113,11 @@ this TICKET for To Tasks and approved its single-TASK plan. The complete accepte
 change and complete discovery/invocation/retry, dependency-minimum, test and documentation evidence together;
 there is no separate prefactor or testing-only TASK.
 
-TASK-00084 is ready-for-agent: Common v1.5.0 supplies the execution APIs and TASK-00108/TASK-00110 are done.
-Its satisfied dependency edges remain recorded. Controlled consumer-policy fixtures support package implementation;
-production policy/adoption is not missing operator input. Tests/docs/minimum qualification and independent acceptance
-remain with the feature; readiness does not assert implementation or authorize its execution.
+TASK-00084 is in-progress under its trusted Build Work stage: Common v1.5.0 supplies the execution APIs and
+TASK-00108/TASK-00110 are done. Its satisfied dependency edges remain recorded. The feature's Work checkpoint
+records mixed composition, tests/docs, minimum/ordinary qualification and a passing full package gate. Independent
+Review and behavioral QA remain required; Work is not acceptance. Controlled consumer-policy fixtures do not qualify
+actual consumer scope, storage, cryptography or deployment.
 
 John accepted the external-Tool architecture recommendations and requested reconciliation of these existing records.
 Explicit maps and attributes now have one-source-per-Tool semantics under TASK-00084; no new TASK, grant or Common

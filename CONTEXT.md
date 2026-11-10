@@ -6,6 +6,23 @@ Fight AccessControl owns framework-neutral identity, credential, session, author
 behavior shared by Fight applications. The repository-local behavioral and security authority is
 [TICKET-00001](planning/tickets/00001-TICKET.md).
 
+## Mixed MCP Tool Permission bindings — TASK-00084 Work checkpoint
+
+The existing immutable Adapter `AgentToolPermissionCatalog` now accepts explicit canonical Tool-name Permission
+bindings alongside attributed Tools, with exactly one nonempty validated source per Tool. Conflicts (even equal),
+unknown mappings and malformed declarations reject complete composition. Equal requirements are deduplicated in
+first-declaration order; all remaining requirements stay conjunctive. Common retains its exact definition objects,
+schemas, discovery, invocation and interaction ownership; foreign definitions deny before principal resolution.
+See [Tool composition](docs/agent-mcp-authorization.md) for the constructor, duplicate-key loader limit and examples.
+
+The mixed journey uses all seven Common execution Tools plus attributed profile Tools with one real request-scoped
+provider. Tool grants remain distinct from consumer Query scope and metadata/body admission; metadata-only protected
+reads remain supported. Fresh later pages, calls and mapped retries need fresh authority/nonce; a transport failure
+is terminal for the request. No blanket bus authentication, new grants, copied schemas or cross-request cache is added.
+Common `^1.5.0` remains the minimum; no dependency manifest change is needed. Canonical
+`.runs/handoffs/TASK-00084/work.md` owns actual lane, gate, warnings and runtime evidence. At this Work checkpoint
+independent Review/QA remain required and TASK-00084 is in-progress, not accepted, published or consumer-qualified.
+
 ## TASK-00136 delivery Event contracts — accepted checkpoint
 
 The [delivery Event contract map](docs/delivery-event-contracts.md) records all eight existing subscriber routes,
