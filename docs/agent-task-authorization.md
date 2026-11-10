@@ -1,13 +1,14 @@
-# Agent Task admission — slice A (unreleased)
+# Agent Task admission — slices A and B (unreleased)
 
 TASK-00097 composes independent direct Agent Permissions and consumer-owned scope with Common's actual Task
 creation, producer transition and complete current-state Query. It adds no Task lifecycle, persistence adapter,
-executor, scheduler, grant, protocol endpoint or advertised partial MCP Tasks extension. Input answering,
-cancellation, removal, full MCP serving and live Task output retain their later TASK owners.
+executor, scheduler, grant, protocol endpoint or advertised partial MCP Tasks extension. TASK-00098 adds independent
+bounded retained-data removal below. Input answering, cancellation, full MCP serving and live Task output retain
+their later TASK owners.
 
 ## Contracts and ownership
 
-Policy lives in `Application/AccessControl/Agent/Task`. All three admission implementations satisfy the actual
+Policy lives in `Application/AccessControl/Agent/Task`. All four admission implementations satisfy the actual
 Common `Application/Mcp/Task/Service` ports. Configure them on Common handlers, including alternate bus entry points;
 a Tool-only check is insufficient.
 
@@ -16,6 +17,7 @@ a Tool-only check is insufficient.
 | `AgentTaskAuthority::fromRequest()` | One nonempty conjunctive list of canonical `PermissionName` values over the trusted request-owned `CurrentAgentPrincipalProvider`, signed request and safe correlation ID. No human principal or copied principal factory. |
 | `AgentTaskCreationAdmission` / `AgentTaskCreationScope` | Independent creation Permission and authoritative original-operation/producer/scope decision before lookup, payload comparison or mutation, including retries. |
 | `AgentTaskUpdateAdmission` / `AgentTaskUpdateScope` | Independent producer Permission and current trusted producer/Task/operation association, before concealed lookup on each attempt. The supplied producer string is not producer authentication. |
+| `AgentTaskRemovalAdmission` / `AgentTaskRemovalScope` | Independent removal Permission and current consumer eligibility/holds/scope for every explicit identity, including missing targets and repeats, before any deletion. |
 | `AgentTaskReadAdmission` / `AgentTaskReadScope` | Independent Permission and current sharing over **all** state, messages, input definitions, results, errors and metadata. Another independently authorized Agent may read; creator identity is not required or sufficient. |
 | `AgentTaskAuthority::duringContinuation()` | Existing TASK-00088 guarded bounded action with an ephemeral authority usable only during that action. Supports trusted worker handoffs without signed-request replay or retaining a provider singleton. |
 | `AgentTaskContinuationScope` | Delegates current scope and retains the fresh guard principal. A qualified fence must recognize this wrapper and fence the exact `getScope()` consumer policy and every participating writer. It is not an authority factory. |
@@ -177,13 +179,91 @@ rollback of prior effects, stopped worker or exactly-once external execution. Se
   or private conflict material into generic facts/notices/diagnostics. Keep one redaction-aware reporting owner and
   the actual MCP-specific safe envelope; HTTP/JSend is not a Task protocol fallback.
 
+## Bounded retained Task removal — slice B
+
+Configure `AgentTaskRemovalAdmission` on Common's **actual** `RemoveTasksHandler`, including direct bus and cleanup
+entry points. Reuse the same Common repository, separate Task transaction and event dispatcher. No AccessControl
+Command, removal store, SQL, retention selector, scheduler or MCP remove RPC is supplied:
+
+```php
+use Fight\AccessControl\Application\AccessControl\Agent\Task\AgentTaskRemovalAdmission;
+use Fight\Common\Application\Mcp\Task\CommandHandler\RemoveTasksHandler;
+use Fight\Common\Domain\Mcp\Task\Command\RemoveTasks;
+use Fight\Common\Domain\Mcp\Task\TaskSelection;
+
+$removeAuthority = AgentTaskAuthority::fromRequest(
+    $provider, $signedRequest, $correlationId, [PermissionName::fromString('TASK_REMOVE')]
+);
+$remove = new RemoveTasksHandler(
+    $taskRepository,
+    $taskUnitOfWork,
+    new AgentTaskRemovalAdmission($removeAuthority, $consumerRemovalScope),
+    $eventDispatcher
+);
+$commandRouter->registerHandler($remove::commandRegistration(), $remove);
+$commandBus->execute(new RemoveTasks(TaskSelection::fromIds($scope, $taskIds)));
+```
+
+`TASK_REMOVE` is illustrative consumer configuration, **not** a seeded grant. Creation, producer update, read,
+cancellation, continuation, human roles, elapsed TTL and handle possession confer no removal authority. A remover
+need not be the creator or have read authority: the consumer scope port independently decides each current target.
+It receives the authenticated principal plus exact scope/typed identity, not full Task bodies or storage results.
+Consumers supply authoritative ownership/sharing, retention, holds and eligibility, including a policy for missing
+identities. A missing record cannot be treated as blanket authorization. Ports must not mutate business state,
+start nested Task operations or invert the consumer's global lock order while Common holds its storage lock.
+
+Common `TaskSelection` bounds one ordered list to **1–100 distinct typed Task IDs**, with a case-sensitive scope
+reference of **1–96** supported characters. Duplicate, associative, malformed, empty and over-limit selections
+reject before dispatch/mutation; there is no truncation, scan or silently skipped denied member. Common serializes
+before fresh admission of every selected identity and performs **all admission before any deletion**. Ordinary
+request authorities retain the one request's snapshot/nonce semantics; construct a new request authority for a
+later request. Background cleanup can use `AgentTaskAuthority::duringContinuation()` exactly as above with its own
+removal requirements, verified original cleanup binding and current consumer continuation scope. The qualified
+fence must support `AgentTaskContinuationScope` and coordinate participating writers. The ephemeral authority is
+usable only synchronously inside that action; queued work needs its own fresh guard, never the saved allow.
+
+### Actual outcomes, retained comparisons and failure limits
+
+- Working, outstanding-input, terminal and expired retained aggregates all require independent admission. TTL is
+  not an eligibility decision. Reads do not clean rows, renew TTL, explain expiry or authorize removal.
+- A denied **or throwing** removal admission yields Common's fixed `TaskRejected` with no private cause or target
+  detail. This is an intentional upstream removal contract, unlike slice A's operational admission-fault propagation.
+  The AccessControl port itself does not swallow faults. Never classify this fixed refusal as successful absence,
+  fabricate completion or disclose which concealed member failed. Storage/commit and postcommit failures stay distinct.
+- Allowed missing targets are no-ops. Mixed existing/missing selections remove all existing selected targets atomically.
+  `TaskDataRemoved` follows actual commit and contains only the scope and **actually removed** IDs (at most 100), never
+  bodies or fabricated missing IDs. All-missing repeats emit nothing but still recheck admission. Success is void,
+  not an assertion that every supplied identity previously existed, a worker stopped or external effects rolled back.
+- Common's aggregate row owns original operation, state/result/error/outstanding input and retained creation/update/
+  comparison/admission material. Actual removal deletes that whole row; no AccessControl copy or identity tombstone
+  remains. Comparison/retry guarantees last only while the aggregate is retained. A later admitted create with the
+  same ID is **new creation**, not deduplicated against removed history; exact retries then compare the new retained
+  creation. Do not promise permanent identity memory, comparison-token continuity, or stale-producer fencing across
+  identity reuse. Consumers needing that stronger guarantee must prevent reuse through their own operation policy.
+- Actual competing producers/removal serialize under Common's storage lock. A producer winning first may commit a
+  coherent state that is then removed; removal winning first makes a late update reject rather than upsert bodies.
+  A stale producer cannot replace a surviving terminal winner. Independently admitted later reads return coherent
+  survivors or concealed unavailable state, never a partial retained body. Unavailability does not identify its cause.
+- Precommit partial-delete failure rolls back the whole selection. Lost commit acknowledgement remains
+  `TaskStorageFailed(outcomeUncertain: true)` whether the commit happened or not; reconcile through independent
+  committed storage/current authorized reads and a newly admitted retry. A read returning null alone proves neither
+  removal nor rollback. `CommittedTaskDispatchFailed` means removal committed despite publication failure. A no-op
+  retry does not reconstruct a lost removal event. Common refuses enclosing caller transactions without committing
+  or rolling back caller work; no outbox, exactly-once dispatch, external rollback or worker interruption is implied.
+
+Use one redaction-aware safe boundary. Raw scope/storage/publisher throwables and their private causes are not public
+facts or generic logs; bounded removal IDs are still consumer-scoped data. Removal does not enable the later MCP Tasks
+extension, cancellation, input-answering or live disclosure slices.
+
 ## Qualification and limits
 
 The first sufficient tagged Common API is **v1.5.0**, source
 `06fb5cd3720af9cf8295198f74040d95b64c5155`; the manifest already requires `^1.5.0`. Supplier independent acceptance and
 release adoption are recorded in [the contract inventory](common-contracts.md). Exact-minimum and ordinary feature
 lanes, lock/source/runtime identity, focused/full gate and exact owned coverage belong to the canonical TASK-00097
-Work handoff. DBAL `^4.4` is a **development-only** dependency for actual Common SQLite adapter/transaction tests;
+Work handoff; TASK-00098's canonical Work handoff separately owns removal minimum/ordinary-lane and gate evidence.
+The installed minimum supplies `TaskRemovalAdmission`, `RemoveTasksHandler`, `TaskSelection`, `RemoveTasks` and
+`TaskDataRemoved`, with actual DBAL transaction/repository integrity, not guessed lifecycle facades. DBAL `^4.4` is a **development-only** dependency for actual Common SQLite adapter/transaction tests;
 no persistence adapter or Doctrine runtime dependency is added to the package's production policy.
 
 `AgentTaskAdmissionTest` uses real AccessControl authentication/exact Permission resolution and real Common handlers,
@@ -193,5 +273,9 @@ TTL, exact payload bound, retry/conflict/terminal winner, rollback, lost actual 
 connection, postcommit dispatch failure and current worker reporting. Existing continuation tests separately prove
 controlled all-writer schedules and binding validity. These are not real consumer persistence, cryptography, sharing,
 durable visibility history, authority writer/lock, queue-integrity, multi-process worker or external-effect qualification;
-SQLite evidence does not certify MySQL/PostgreSQL. Consumers must qualify their exact components and alternate entry
-points. Independent Review and nonvisual QA remain required; no package acceptance or combined release is self-issued.
+SQLite evidence does not certify MySQL/PostgreSQL. `AgentTaskRemovalAdmissionTest` separately exercises real routing,
+whole-selection authority/scope, all retained states, coherent row/comparison removal, retry/recreate, bounds,
+partial-delete rollback, both lost-commit outcomes, caller ownership, dispatch failure and concurrent real lifecycle/
+removal/read schedules over separate SQLite processes. Its guarded cleanup fixture proves current revocation refusal
+without nonce replay, not production retention/hold policy, cleanup scheduling, worker stopping or all-writer fences.
+Consumers must qualify their exact components and alternate entry points. Independent Review and nonvisual QA remain required; no package acceptance or combined release is self-issued.
