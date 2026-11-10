@@ -84,13 +84,13 @@ final class AgentNoticeReadAdmissionTest extends TestCase
 {
     private Connection $connection;
 
-    private RoutingCommandBus $commands;
+    private RoutingCommandBus $commandBus;
 
-    private RoutingQueryBus $queries;
+    private RoutingQueryBus $queryBus;
 
-    private InMemoryAgentRepository $agents;
+    private InMemoryAgentRepository $agentRepository;
 
-    private InMemoryPermissionRepository $permissions;
+    private InMemoryPermissionRepository $permissionRepository;
 
     private Agent $agent;
 
@@ -100,7 +100,7 @@ final class AgentNoticeReadAdmissionTest extends TestCase
 
     private SignedAgentRequest $request;
 
-    private InMemoryAgentRequestNonceConsumer $nonces;
+    private InMemoryAgentRequestNonceConsumer $agentRequestNonceConsumer;
 
     private AgentNoticeReadPolicy $policy;
 
@@ -136,11 +136,11 @@ final class AgentNoticeReadAdmissionTest extends TestCase
             'encrypted:fixture',
             $now
         )->grantPermission($this->read->getId(), $now);
-        $this->agents = new InMemoryAgentRepository();
-        $this->agents->add($this->agent);
+        $this->agentRepository = new InMemoryAgentRepository();
+        $this->agentRepository->add($this->agent);
 
-        $this->permissions = new InMemoryPermissionRepository();
-        $this->permissions->add($this->read);
+        $this->permissionRepository = new InMemoryPermissionRepository();
+        $this->permissionRepository->add($this->read);
 
         $this->key = random_bytes(32);
         $this->grant();
@@ -182,7 +182,7 @@ final class AgentNoticeReadAdmissionTest extends TestCase
             $record::commandRegistration() => $record,
             $remove::commandRegistration() => $remove
         ]);
-        $this->commands = new RoutingCommandBus($router);
+        $this->commandBus = new RoutingCommandBus($router);
         $this->newRequest();
     }
 
@@ -193,34 +193,34 @@ final class AgentNoticeReadAdmissionTest extends TestCase
         $this->record('secret', 'hidden', 'secret-topic');
         $this->grant(filters: ['id' => 'one']);
         $selection = NoticeSelection::create(['project', 'hidden']);
-        $summary = $this->queries->fetch(new SummarizeNotices($selection))->toArray();
+        $summary = $this->queryBus->fetch(new SummarizeNotices($selection))->toArray();
         self::assertSame(1, $summary['total']);
         self::assertSame([['value' => 'updates', 'count' => 1]], $summary['topics']);
         self::assertSame(['named' => 1, 'broadcast' => 0, 'unknown' => 0], $summary['audience']);
-        $page = $this->queries->fetch(new ListNotices($selection, 1, 1))->toArray();
+        $page = $this->queryBus->fetch(new ListNotices($selection, 1, 1))->toArray();
         self::assertSame(1, $page['total']);
         self::assertCount(1, $page['notices']);
-        $detail = $this->queries->fetch(new GetNotice('project', 'producer', 'one'))->toArray();
+        $detail = $this->queryBus->fetch(new GetNotice('project', 'producer', 'one'))->toArray();
         self::assertSame($page['notices'][0], $detail);
         self::assertSame('subject', $detail['relationships']['subject']);
         foreach ([['project', 'two'], ['hidden', 'secret'], ['project', 'absent']] as [$scope, $id]) {
-            self::assertNull($this->queries->fetch(new GetNotice($scope, 'producer', $id)));
+            self::assertNull($this->queryBus->fetch(new GetNotice($scope, 'producer', $id)));
         }
 
         self::assertStringNotContainsString('secret', json_encode([$summary, $page, $detail], JSON_THROW_ON_ERROR));
         $this->access = NoticeAccess::create([]);
-        self::assertSame(0, $this->queries->fetch(new SummarizeNotices($selection))->toArray()['total']);
-        self::assertNull($this->queries->fetch(new GetNotice('project', 'producer', 'one')));
-        self::assertSame(1, $this->nonces->consumptionCalls());
+        self::assertSame(0, $this->queryBus->fetch(new SummarizeNotices($selection))->toArray()['total']);
+        self::assertNull($this->queryBus->fetch(new GetNotice('project', 'producer', 'one')));
+        self::assertSame(1, $this->agentRequestNonceConsumer->consumptionCalls());
         self::assertSame(3, $this->events);
     }
 
     public function test_direct_detail_requires_no_listing_and_disappeared_detail_is_concealed(): void
     {
         $this->record('one');
-        self::assertNotNull($this->queries->fetch(new GetNotice('project', 'producer', 'one')));
+        self::assertNotNull($this->queryBus->fetch(new GetNotice('project', 'producer', 'one')));
         $this->remove('one', 1);
-        self::assertNull($this->queries->fetch(new GetNotice('project', 'producer', 'one')));
+        self::assertNull($this->queryBus->fetch(new GetNotice('project', 'producer', 'one')));
     }
 
     public function test_all_permissions_are_conjunctive_and_tool_availability_cannot_grant_read_scope(): void
@@ -239,7 +239,7 @@ final class AgentNoticeReadAdmissionTest extends TestCase
         self::assertSame([], $result['structuredContent']->get('notices'));
         self::assertSame('uncertain', $result['structuredContent']->get('status'));
         self::assertSame(1, $this->policyCalls);
-        self::assertSame(1, $this->nonces->consumptionCalls());
+        self::assertSame(1, $this->agentRequestNonceConsumer->consumptionCalls());
     }
 
     public function test_request_snapshot_survives_change_but_next_request_denies_without_policy_work(): void
@@ -248,7 +248,7 @@ final class AgentNoticeReadAdmissionTest extends TestCase
         $this->recover();
         $before = $this->agent;
         $this->agent = $this->agent->revokePermission($this->read->getId(), $this->now());
-        $this->agents->replacePermissionAssignments($before, $this->agent);
+        $this->agentRepository->replacePermissionAssignments($before, $this->agent);
         self::assertSame('complete', $this->recover()->toArray()['status']);
         $calls = $this->policyCalls;
         $this->newRequest();
@@ -268,7 +268,7 @@ final class AgentNoticeReadAdmissionTest extends TestCase
             new GetNotice('project', 'producer', 'one')
         ];
         foreach ($queries as $query) {
-            $this->assertReadFailure(fn(): mixed => $this->queries->fetch($query));
+            $this->assertReadFailure(fn(): mixed => $this->queryBus->fetch($query));
         }
 
         $this->assertReadFailure(fn(): NoticeRecoveryBatch => $this->recover());
@@ -297,7 +297,7 @@ final class AgentNoticeReadAdmissionTest extends TestCase
         )['notices']);
         self::assertSame($before, $this->connection->fetchAllAssociative('SELECT * FROM fight_notices'));
         self::assertSame(1, $this->events);
-        self::assertSame(1, $this->nonces->consumptionCalls());
+        self::assertSame(1, $this->agentRequestNonceConsumer->consumptionCalls());
     }
 
     public function test_bounded_recovery_never_advances_past_omitted_matches_and_concurrent_append_is_seen(): void
@@ -349,7 +349,7 @@ final class AgentNoticeReadAdmissionTest extends TestCase
         $router = new InMemoryQueryRouter();
         $router->registerHandlers([$handler::queryRegistration() => $handler]);
 
-        $this->queries = new RoutingQueryBus($router);
+        $this->queryBus = new RoutingQueryBus($router);
         $first = $this->recover()->toArray();
         self::assertSame(['one'], array_column($first['notices'], 'id'));
         self::assertSame('complete', $first['status']);
@@ -402,7 +402,7 @@ final class AgentNoticeReadAdmissionTest extends TestCase
         $this->grant('changed');
         $this->assertReadFailure(fn(): NoticeRecoveryBatch => $this->recover($token));
         $this->grant();
-        $this->assertReadFailure(fn(): mixed => $this->queries->fetch(new RecoverNotices(
+        $this->assertReadFailure(fn(): mixed => $this->queryBus->fetch(new RecoverNotices(
             NoticeSelection::create(['hidden']),
             $token
         )));
@@ -427,11 +427,11 @@ final class AgentNoticeReadAdmissionTest extends TestCase
             $this->record('notice-'.$index, topic: 'topic-'.$index);
         }
 
-        $this->assertReadFailure(fn(): mixed => $this->queries->fetch(new SummarizeNotices(
+        $this->assertReadFailure(fn(): mixed => $this->queryBus->fetch(new SummarizeNotices(
             NoticeSelection::create(['project'])
         )));
         $this->grant(filters: ['id' => 'notice-0']);
-        self::assertSame(1, $this->queries->fetch(new SummarizeNotices(
+        self::assertSame(1, $this->queryBus->fetch(new SummarizeNotices(
             NoticeSelection::create(['project'])
         ))->toArray()['total']);
     }
@@ -505,7 +505,7 @@ final class AgentNoticeReadAdmissionTest extends TestCase
     public function test_missing_agent_fails_fresh_authentication_and_does_not_reach_policy(): void
     {
         $this->recover();
-        $this->agents->restoreSnapshot([]);
+        $this->agentRepository->restoreSnapshot([]);
         $calls = $this->policyCalls;
         $this->newRequest();
         $this->assertReadFailure(fn(): NoticeRecoveryBatch => $this->recover());
@@ -555,7 +555,7 @@ final class AgentNoticeReadAdmissionTest extends TestCase
     private function newRequest(): void
     {
         $unit = new InMemoryUnitOfWork();
-        $this->nonces = new InMemoryAgentRequestNonceConsumer($this->agents, $unit);
+        $this->agentRequestNonceConsumer = new InMemoryAgentRequestNonceConsumer($this->agentRepository, $unit);
         $this->request = new SignedAgentRequest(
             'POST',
             'notice.example',
@@ -570,12 +570,12 @@ final class AgentNoticeReadAdmissionTest extends TestCase
             ''
         );
         $this->provider = new CurrentAgentPrincipalProvider(
-            $this->agents,
-            $this->permissions,
+            $this->agentRepository,
+            $this->permissionRepository,
             new FixedHmacSharedSecretDecipher('encrypted:'),
             new FixedHmacSignedAgentRequestVerifier($this->request, 'fixture'),
             new FixedClock($this->now()),
-            $this->nonces,
+            $this->agentRequestNonceConsumer,
             $unit
         );
         $admission = $this->admission();
@@ -598,7 +598,7 @@ final class AgentNoticeReadAdmissionTest extends TestCase
         $router = new InMemoryQueryRouter();
         $router->registerHandlers($map);
 
-        $this->queries = new RoutingQueryBus($router);
+        $this->queryBus = new RoutingQueryBus($router);
     }
 
     /** @param list<string> $requirements */
@@ -629,12 +629,12 @@ final class AgentNoticeReadAdmissionTest extends TestCase
 
     private function recover(?string $token = null, int $batch = 32, int $scan = 100): NoticeRecoveryBatch
     {
-        return $this->queries->fetch(new RecoverNotices(NoticeSelection::create(['project']), $token, $batch, $scan));
+        return $this->queryBus->fetch(new RecoverNotices(NoticeSelection::create(['project']), $token, $batch, $scan));
     }
 
     private function tool(int $budget = 1048576): McpToolInvoker
     {
-        $registry = new McpToolRegistry([new RecoverNoticesTool($this->queries, $budget)]);
+        $registry = new McpToolRegistry([new RecoverNoticesTool($this->queryBus, $budget)]);
         $catalog = new AgentToolPermissionCatalog($registry, ['notices.recover' => ['READ_NOTICES']]);
 
         return new McpToolInvoker($registry, new AgentToolAvailability(
@@ -651,7 +651,7 @@ final class AgentNoticeReadAdmissionTest extends TestCase
         string $topic = 'updates',
         string $text = 'ready'
     ): void {
-        $this->commands->execute(new RecordNotice(Notice::fromArray([
+        $this->commandBus->execute(new RecordNotice(Notice::fromArray([
             'version'       => 1,
             'id'            => $id,
             'producer'      => 'producer',
@@ -673,7 +673,7 @@ final class AgentNoticeReadAdmissionTest extends TestCase
 
     private function remove(string $id, int $position): void
     {
-        $this->commands->execute(new RemoveNotices(NoticeRemovalSelection::fromArray([
+        $this->commandBus->execute(new RemoveNotices(NoticeRemovalSelection::fromArray([
             'version'   => 1,
             'namespace' => $this->connection->fetchOne('SELECT namespace FROM fight_notice_state'),
             'targets'   => [['scope' => 'project', 'producer' => 'producer', 'id' => $id, 'position' => $position]]
