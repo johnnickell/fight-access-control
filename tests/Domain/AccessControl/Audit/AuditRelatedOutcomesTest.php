@@ -10,6 +10,7 @@ use Fight\AccessControl\Domain\AccessControl\ActivationGrant\ActivationDeliveryI
 use Fight\AccessControl\Domain\AccessControl\ActivationGrant\ActivationGrantId;
 use Fight\AccessControl\Domain\AccessControl\Audit\AuditAction;
 use Fight\AccessControl\Domain\AccessControl\Audit\AuditEvidence;
+use Fight\AccessControl\Domain\AccessControl\Audit\AuditEvidenceId;
 use Fight\AccessControl\Domain\AccessControl\Audit\AuditFeatureOutcome;
 use Fight\AccessControl\Domain\AccessControl\Audit\AuditFeatureState;
 use Fight\AccessControl\Domain\AccessControl\Audit\AuditGrantOutcome;
@@ -32,7 +33,9 @@ use Fight\AccessControl\Domain\AccessControl\Permission\Permission;
 use Fight\AccessControl\Domain\AccessControl\Permission\PermissionId;
 use Fight\AccessControl\Domain\AccessControl\Permission\PermissionName;
 use Fight\AccessControl\Domain\AccessControl\Permission\PermissionTier;
+use Fight\AccessControl\Domain\AccessControl\Role\Role;
 use Fight\AccessControl\Domain\AccessControl\Role\RoleId;
+use Fight\AccessControl\Domain\AccessControl\Role\RoleName;
 use Fight\AccessControl\Domain\AccessControl\Role\RoleRevision;
 use Fight\AccessControl\Domain\AccessControl\User\UserId;
 use Fight\AccessControl\Domain\AccessControl\User\UserState;
@@ -355,20 +358,93 @@ final class AuditRelatedOutcomesTest extends TestCase
         }
     }
 
+    /** @return iterable<string, array{bool, string, bool, bool}> */
+    public static function contradictoryCreationAndOwnership(): iterable
+    {
+        foreach ([false, true] as $hydrate) {
+            foreach (['on', 'preview'] as $status) {
+                yield 'Feature creation '.$status.' hydrate '.(int) $hydrate => [$hydrate, $status, true, true];
+            }
+
+            foreach ([[false, false], [false, true], [true, false]] as [$beforeManaged, $afterManaged]) {
+                yield 'Permission reconcile '.(int) $beforeManaged.' to '.(int) $afterManaged.' hydrate '.(int) $hydrate
+                    => [$hydrate, '', $beforeManaged, $afterManaged];
+            }
+        }
+    }
+
+    #[DataProvider('contradictoryCreationAndOwnership')]
+    public function test_creation_and_reconciliation_cannot_contradict_domain_initial_state_or_ownership(
+        bool $hydrate,
+        string $featureStatus,
+        bool $beforeManaged,
+        bool $afterManaged
+    ): void {
+        $at = new DateTimeImmutable();
+        $subject = new AuditSubject(FeatureId::generate());
+        $action = AuditAction::FEATURE_CREATED;
+        $facts = new AuditFeatureOutcome(null, new AuditFeatureState(
+            1,
+            FeatureStatus::from($featureStatus === '' ? 'off' : $featureStatus),
+            PermissionId::generate()
+        ));
+        if ($featureStatus === '') {
+            $subject = new AuditSubject(PermissionId::generate());
+            $action = AuditAction::PERMISSION_RECONCILED;
+            $facts = new AuditPermissionOutcome(
+                new AuditPermissionState(
+                    PermissionName::fromString('AUDIT_READ'),
+                    PermissionTier::ADMIN_SAFE,
+                    $beforeManaged
+                ),
+                new AuditPermissionState(
+                    PermissionName::fromString('AUDIT_WRITE'),
+                    PermissionTier::ADMIN_SAFE,
+                    $afterManaged
+                )
+            );
+        }
+
+        $this->expectException(DomainException::class);
+        if ($hydrate) {
+            AuditEvidence::fromArray([
+                'id'          => AuditEvidenceId::generate()->toString(),
+                'actor'       => ['kind' => 'system', 'id' => SystemId::generate()->toString()],
+                'subject'     => $subject->toArray(),
+                'action'      => $action->value,
+                'occurred_at' => $at->format('Y-m-d\TH:i:s.uP'),
+                'correlation' => null,
+                'facts'       => $facts->toArray()
+            ]);
+
+            return;
+        }
+
+        AuditEvidence::record(SystemId::generate(), $subject, $action, $at, $facts, null);
+    }
+
     public function test_role_permission_relationship_preserves_incarnation_and_the_related_permission(): void
     {
-        $before = RoleRevision::initial();
-        $revisions = new AuditRoleRevisions($before, $before->next());
+        $at = new DateTimeImmutable();
+        $role = Role::define(RoleId::generate(), RoleName::fromString('ROLE_AUDIT'), [], $at);
         $permission = PermissionId::generate();
-        $facts = new AuditRolePermissionOutcome($revisions, $permission);
-        self::assertSame($permission, $facts->getPermissionId());
-        self::assertSame($revisions, $facts->getRevisions());
-        foreach ([AuditAction::ROLE_PERMISSION_GRANTED, AuditAction::ROLE_PERMISSION_REVOKED] as $action) {
+        $granted = $role->grantPermissionToCustom($permission, $at);
+        $revoked = $granted->revokePermissionFromCustom($permission, $at);
+        foreach (
+            [
+                [AuditAction::ROLE_PERMISSION_GRANTED, $role, $granted],
+                [AuditAction::ROLE_PERMISSION_REVOKED, $granted, $revoked]
+            ] as [$action, $before, $after]
+        ) {
+            $revisions = new AuditRoleRevisions($before->getRevision(), $after->getRevision());
+            $facts = new AuditRolePermissionOutcome($revisions, $permission);
+            self::assertSame($permission, $facts->getPermissionId());
+            self::assertSame($revisions, $facts->getRevisions());
             $evidence = AuditEvidence::record(
                 UserId::generate(),
-                new AuditSubject(RoleId::generate()),
+                new AuditSubject($role->getId()),
                 $action,
-                new DateTimeImmutable(),
+                $at,
                 $facts,
                 null
             );

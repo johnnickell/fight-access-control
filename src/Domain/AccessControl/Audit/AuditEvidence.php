@@ -12,6 +12,7 @@ use Fight\AccessControl\Domain\AccessControl\CredentialDelivery\CredentialDelive
 use Fight\AccessControl\Domain\AccessControl\CredentialDelivery\CredentialDeliveryTimestamp;
 use Fight\AccessControl\Domain\AccessControl\EmailChangeGrant\EmailChangeGrantId;
 use Fight\AccessControl\Domain\AccessControl\Feature\FeatureId;
+use Fight\AccessControl\Domain\AccessControl\Feature\FeatureStatus;
 use Fight\AccessControl\Domain\AccessControl\PasswordResetGrant\PasswordResetGrantId;
 use Fight\AccessControl\Domain\AccessControl\Permission\PermissionId;
 use Fight\AccessControl\Domain\AccessControl\Role\RoleId;
@@ -109,7 +110,8 @@ class AuditEvidence implements Arrayable
         if ($facts instanceof AuditPermissionOutcome && $subjectId instanceof PermissionId) {
             $valid = match ($action) {
                 AuditAction::PERMISSION_CREATED => $facts->getBefore() === null,
-                AuditAction::PERMISSION_RECONCILED => $facts->getBefore() !== null && $facts->getAfter() !== null,
+                AuditAction::PERMISSION_RECONCILED => $facts->getBefore()?->toArray()['managed'] === true
+                    && $facts->getAfter()?->toArray()['managed'] === true,
                 AuditAction::PERMISSION_REMOVED => $facts->getAfter() === null,
                 default => false
             };
@@ -122,7 +124,8 @@ class AuditEvidence implements Arrayable
             $before = $facts->getBefore()?->toArray();
             $after = $facts->getAfter()?->toArray();
             $valid = match ($action) {
-                AuditAction::FEATURE_CREATED => $before === null && $after !== null && $after['revision'] === 1,
+                AuditAction::FEATURE_CREATED => $before === null && $after !== null && $after['revision'] === 1
+                    && $after['status'] === FeatureStatus::OFF->value,
                 AuditAction::FEATURE_REMOVED => $after === null,
                 AuditAction::FEATURE_STATUS_CHANGED => $before !== null && $after !== null
                     && $before['status'] !== $after['status'] && $before['permission_id'] === $after['permission_id'],
@@ -437,7 +440,7 @@ class AuditEvidence implements Arrayable
         $after = $facts->getAfter()->toArray();
         $valid = match ($this->action) {
             AuditAction::AGENT_PROVISIONED => $before === null && $after['state'] === AgentState::ACTIVE->value
-                && $facts->getDeliveryId() !== null,
+                && $after['credential_revision'] === 0 && $facts->getDeliveryId() !== null,
             AuditAction::AGENT_CREDENTIAL_ROTATED => $before !== null
                 && $before['state'] === AgentState::ACTIVE->value && $after['state'] === AgentState::ACTIVE->value
                 && $before['credential_id'] !== $after['credential_id']

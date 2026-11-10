@@ -28,6 +28,10 @@ final readonly class AuditRoleRevisions implements Arrayable
             throw new DomainException('Audit Role revisions require an existing state.');
         }
 
+        if ($before === null && !$after->isInitial()) {
+            throw new DomainException('Audit Role creation requires the initial revision of its incarnation.');
+        }
+
         if ($before !== null && $after !== null && !$before->next()->equals($after)) {
             throw new DomainException('Audit Role change must retain incarnation and advance one revision.');
         }

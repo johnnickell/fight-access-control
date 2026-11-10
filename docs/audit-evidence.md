@@ -59,17 +59,23 @@ correlation; record identity/correlation is neither authority nor universal dedu
   | Delivery confirmation/failure; invitation retry | Exact grant/delivery generation, advancing once; no replacement |
 
 - `AuditAgentOutcome` captures credential identities/revisions/lifecycle and the actual issuance delivery ID.
-  Provisioning has no predecessor; rotation advances the credential revision; revocation retains the same
-  credential tuple while changing lifecycle. Issuance requires its real scoped operation correlation.
+  Provisioning has no predecessor and starts ACTIVE at credential revision zero; rotation advances exactly once
+  from an ACTIVE predecessor to a distinct ACTIVE credential. Revocation retains the same credential identity and
+  revision while changing ACTIVE to REVOKED. Noncreation outcomes retain arbitrary authoritative existing revisions,
+  including terminal revision limits where no increment is needed. Issuance requires its real scoped operation correlation.
 - `AuditSessionRevocation` admits only session identity and actual before/after revisions. Business-required
   free-text reasons still undergo their existing validation, but are deliberately omitted from durable evidence.
   Neither string typing nor a regular expression can establish that arbitrary reason text is secret-free.
 - `AuditRoleRevisions` preserves the complete incarnation/sequence with explicit absent creation/removal state.
+  Creation requires sequence one of the supplied incarnation, without generating or replacing it. Changes retain
+  that incarnation and advance exactly once; removal retains any authoritative predecessor and no successor.
   `AuditRolePermissionOutcome` additionally admits the related `PermissionId` for grant/revoke actions.
 - `AuditFeatureOutcome` retains actual positive before/after revisions, availability status and related testing
-  Permission; creation/removal explicitly omit nonexistent state. Status and Permission changes are distinct actions.
+  Permission; creation requires OFF at revision one, and creation/removal explicitly omit nonexistent state.
+  Status and Permission changes are distinct actions.
 - `AuditPermissionOutcome` admits canonical name, tier and managed ownership before/after an actual definition change,
-  with explicit absent creation/removal state. Permissions have no package revision: none is fabricated.
+  with explicit absent creation/removal state. Reconciliation retains managed ownership in both states; it cannot
+  claim a custom Permission or demote managed ownership. Permissions have no package revision: none is fabricated.
 
 These shared construction/hydration contracts do not insert audit into currently unaudited Role, Feature or
 Permission handlers. Family wiring and expanded outcome coverage remain separate.

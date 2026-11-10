@@ -11,8 +11,10 @@ use Fight\AccessControl\Domain\AccessControl\ActivationGrant\ActivationDeliveryI
 use Fight\AccessControl\Domain\AccessControl\ActivationGrant\ActivationGrant;
 use Fight\AccessControl\Domain\AccessControl\ActivationGrant\ActivationGrantId;
 use Fight\AccessControl\Domain\AccessControl\ActivationGrant\ActivationOrigin;
+use Fight\AccessControl\Domain\AccessControl\Agent\Agent;
 use Fight\AccessControl\Domain\AccessControl\Agent\AgentCredentialId;
 use Fight\AccessControl\Domain\AccessControl\Agent\AgentId;
+use Fight\AccessControl\Domain\AccessControl\Agent\AgentName;
 use Fight\AccessControl\Domain\AccessControl\Agent\AgentState;
 use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\AgentDeliveryId;
 use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\AgentOperationId;
@@ -40,7 +42,9 @@ use Fight\AccessControl\Domain\AccessControl\EmailChangeGrant\EmailChangeGrantId
 use Fight\AccessControl\Domain\AccessControl\PasswordResetGrant\PasswordResetDeliveryId;
 use Fight\AccessControl\Domain\AccessControl\PasswordResetGrant\PasswordResetGrantId;
 use Fight\AccessControl\Domain\AccessControl\RefreshSession\RefreshSessionId;
+use Fight\AccessControl\Domain\AccessControl\Role\Role;
 use Fight\AccessControl\Domain\AccessControl\Role\RoleId;
+use Fight\AccessControl\Domain\AccessControl\Role\RoleName;
 use Fight\AccessControl\Domain\AccessControl\Role\RoleRevision;
 use Fight\AccessControl\Domain\AccessControl\User\User;
 use Fight\AccessControl\Domain\AccessControl\User\UserId;
@@ -185,31 +189,54 @@ final class AuditEvidenceContractTest extends TestCase
 
     public function test_credential_creation_rotation_and_revocation_preserve_actual_states(): void
     {
-        $credential = AgentCredentialId::generate();
-        $agentId = AgentId::generate();
-        $active = new AuditAgentState($credential, 2, AgentState::ACTIVE);
-        $successor = new AuditAgentState(AgentCredentialId::generate(), 3, AgentState::ACTIVE);
+        $at = new DateTimeImmutable();
+        $agent = Agent::provision(
+            AgentId::generate(),
+            AgentName::fromString('Audit contract'),
+            AgentCredentialId::generate(),
+            'synthetic-envelope-not-admitted',
+            $at
+        );
+        $provisioned = AuditAgentState::fromAgent($agent);
+        for ($i = 0; $i < 2; $i++) {
+            $agent = $agent->rotateRecoverableCredential(
+                $agent->getCredentialId(),
+                $agent->getCredentialRevision(),
+                AgentCredentialId::generate(),
+                'synthetic-envelope-not-admitted',
+                $at
+            );
+        }
+
+        $active = AuditAgentState::fromAgent($agent);
+        $successor = AuditAgentState::fromAgent($agent->rotateRecoverableCredential(
+            $agent->getCredentialId(),
+            $agent->getCredentialRevision(),
+            AgentCredentialId::generate(),
+            'synthetic-envelope-not-admitted',
+            $at
+        ));
         $key = new AgentOperationKey(
             new AgentOperationScope('audit-test', 'user', 'origin'),
             AgentOperationId::generate()
         );
         $correlation = new AuditCorrelation(MessageId::generate(), $key);
         $cases = [
-            [AuditAction::AGENT_PROVISIONED, new AuditAgentOutcome(null, $active, AgentDeliveryId::generate())],
+            [AuditAction::AGENT_PROVISIONED, new AuditAgentOutcome(null, $provisioned, AgentDeliveryId::generate())],
             [
                 AuditAction::AGENT_CREDENTIAL_ROTATED,
                 new AuditAgentOutcome($active, $successor, AgentDeliveryId::generate())
             ],
             [AuditAction::AGENT_CREDENTIAL_REVOKED, new AuditAgentOutcome(
                 $active,
-                new AuditAgentState($credential, 2, AgentState::REVOKED),
+                AuditAgentState::fromAgent($agent->revoke($at)),
                 null
             )]
         ];
         foreach ($cases as [$action, $facts]) {
             $evidence = AuditEvidence::record(
                 SystemId::generate(),
-                new AuditSubject($agentId),
+                new AuditSubject($agent->getId()),
                 $action,
                 new DateTimeImmutable(),
                 $facts,
@@ -236,22 +263,30 @@ final class AuditEvidenceContractTest extends TestCase
 
     public function test_role_creation_change_and_removal_keep_complete_incarnation(): void
     {
-        $revision = RoleRevision::initial();
+        $at = new DateTimeImmutable();
+        $role = Role::define(RoleId::generate(), RoleName::fromString('ROLE_AUDIT'), [], $at);
+        $managed = Role::defineManaged(RoleId::generate(), RoleName::fromString('ROLE_MANAGED_AUDIT'), [], $at);
+        $renamed = $role->renameCustom(RoleName::fromString('ROLE_RENAMED_AUDIT'), $at);
         foreach (
             [
-                [AuditAction::ROLE_CREATED, new AuditRoleRevisions(null, $revision)],
-                [AuditAction::ROLE_RENAMED, new AuditRoleRevisions($revision, $revision->next())],
-                [AuditAction::ROLE_REMOVED, new AuditRoleRevisions($revision, null)]
-            ] as [$action, $facts]
+                [$role, AuditAction::ROLE_CREATED, new AuditRoleRevisions(null, $role->getRevision())],
+                [$managed, AuditAction::ROLE_CREATED, new AuditRoleRevisions(null, $managed->getRevision())],
+                [$role, AuditAction::ROLE_RENAMED, new AuditRoleRevisions(
+                    $role->getRevision(),
+                    $renamed->getRevision()
+                )],
+                [$renamed, AuditAction::ROLE_REMOVED, new AuditRoleRevisions($renamed->getRevision(), null)]
+            ] as [$subject, $action, $facts]
         ) {
             $evidence = AuditEvidence::record(
                 UserId::generate(),
-                new AuditSubject(RoleId::generate()),
+                new AuditSubject($subject->getId()),
                 $action,
-                new DateTimeImmutable(),
+                $at,
                 $facts,
                 new AuditCorrelation(MessageId::generate(), null)
             );
+            self::assertSame($facts->toArray(), $evidence->getFacts()->toArray());
             self::assertSame($evidence->toArray(), AuditEvidence::fromArray($evidence->toArray())->toArray());
         }
     }
