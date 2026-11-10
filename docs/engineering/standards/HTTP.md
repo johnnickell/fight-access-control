@@ -10,6 +10,7 @@ Expose explicit safe Views such as `UserView`; avoid serializing raw entities. F
 
 ```php
 try {
+    /** @var UserView $userView */
     $userView = $this->queryBus->fetch(new GetUserById($userId));
 } catch (ResourceNotFound $exception) {
     return $this->errorResponder->notFound($exception);

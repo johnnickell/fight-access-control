@@ -106,7 +106,9 @@ John approved four complete ordinary ticketed feature TASKs covering all five fr
 | [TASK-00174](../tasks/00174-TASK.md) | 504 | Native Laravel middleware and existing Common safe native handler, with real kernel/router/lifetime/report/render proof. | TASK-00172 |
 | [TASK-00175](../tasks/00175-TASK.md) | 504 | Native CI4 before-filter/response short-circuit consuming TASK-00106's planned Common-backed native safe error bridge. | TASK-00172, TASK-00106 |
 
-All four are ready-for-agent because scope is settled; unfinished actual supplier edges still hold execution.
+At the planning checkpoint all four were ready-for-agent because scope was settled; actual current status belongs
+to the owning TASKs and generated child view. TASK-00172 and TASK-00173 now have independent Review ACCEPT and
+nonvisual QA PASS; unfinished Laravel/CI4 children keep this TICKET open. Actual consumer qualification remains separate.
 Orders 503/504 prefer the first complete shared path, then equal native peers without choosing a relative framework
 priority. Completed TASK-00103/00104 edges remain history. No earlier scope/order/blocker changes or new dependency
 on TASK-00171/TICKET-00051, Permission activation, all architecture/typing/audit/Common work or another native peer.
@@ -147,7 +149,7 @@ authorized private criteria before implementation/review without disclosure; cho
 | Order | TASK ID | Title | Status |
 | --- | --- | --- | --- |
 | 503 | [TASK-00172](../tasks/00172-TASK.md) | Enforce Feature admission through PSR-15 | done |
-| 504 | [TASK-00173](../tasks/00173-TASK.md) | Enforce Symfony Feature admission | ready-for-agent |
+| 504 | [TASK-00173](../tasks/00173-TASK.md) | Enforce Symfony Feature admission | done |
 | 504 | [TASK-00174](../tasks/00174-TASK.md) | Enforce Laravel Feature admission | ready-for-agent |
 | 504 | [TASK-00175](../tasks/00175-TASK.md) | Enforce CodeIgniter 4 Feature admission | ready-for-agent |
 ## Decisions and Progress

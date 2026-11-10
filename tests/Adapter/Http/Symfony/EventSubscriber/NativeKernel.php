@@ -5,10 +5,14 @@ declare(strict_types=1);
 namespace Fight\Test\AccessControl\Adapter\Http\Symfony\EventSubscriber;
 
 use Closure;
+use Fight\AccessControl\Adapter\Http\Symfony\EventSubscriber\FeatureSubscriber;
 use Fight\AccessControl\Adapter\Http\Symfony\EventSubscriber\PermissionSubscriber;
+use Fight\AccessControl\Adapter\Http\Symfony\RequestAuthentication;
 use Fight\AccessControl\Application\AccessControl\Authorization\Admission\AdmissionMode;
 use Fight\AccessControl\Application\AccessControl\Authorization\Admission\PermissionDeclaration;
 use Fight\AccessControl\Application\AccessControl\Authorization\Admission\RequestAuthority;
+use Fight\AccessControl\Application\AccessControl\Feature\Admission\FeatureAdmission;
+use Fight\AccessControl\Application\AccessControl\Feature\FeatureRequirements;
 use Fight\Common\Adapter\Http\Error\SafeHttpDiagnostics;
 use Fight\Common\Adapter\Http\Error\SafeHttpErrorPolicy;
 use Fight\Common\Adapter\Http\Error\SafeHttpProjector;
@@ -61,7 +65,11 @@ final readonly class NativeKernel
         mixed $declaration,
         mixed $controller = NativeController::class.'::handle',
         ?SafeHttpProjector $projector = null,
-        bool $handleAllThrowables = true
+        bool $handleAllThrowables = true,
+        ?FeatureAdmission $features = null,
+        mixed $requirements = null,
+        bool $permissions = true,
+        bool $featureFirst = true
     ) {
         $this->trace = new NativeTrace();
         NativeController::$trace = $this->trace;
@@ -69,7 +77,8 @@ final readonly class NativeKernel
         $this->routes = new RouteCollection();
         $this->routes->add('protected', new Route('/protected/{id}', [
             '_controller'                => $controller,
-            PermissionDeclaration::class => $declaration
+            PermissionDeclaration::class => $declaration,
+            FeatureRequirements::class   => $requirements
         ], methods: ['GET', 'POST']));
         $this->routes->add('public', new Route('/public', [
             '_controller'                => static fn(): Response => new Response('', 202),
@@ -79,7 +88,21 @@ final readonly class NativeKernel
         $this->stack = new RequestStack();
         $matcher = new UrlMatcher($this->routes, new RequestContext());
         $this->eventDispatcher->addSubscriber(new RouterListener($matcher, $this->stack));
-        $this->eventDispatcher->addSubscriber(new PermissionSubscriber($matcher, $authority));
+        $authentication = new RequestAuthentication($authority);
+        if ($features !== null && $featureFirst) {
+            $this->eventDispatcher->addSubscriber(new FeatureSubscriber($matcher, $authentication, $features));
+        }
+
+        if ($permissions) {
+            $this->eventDispatcher->addSubscriber(new PermissionSubscriber(
+                $matcher,
+                $features === null ? $authority : $authentication
+            ));
+        }
+
+        if ($features !== null && !$featureFirst) {
+            $this->eventDispatcher->addSubscriber(new FeatureSubscriber($matcher, $authentication, $features));
+        }
 
         $validation = new readonly class (new ValidationService(), $this->trace) extends SymfonyValidationSubscriber {
             public function __construct(ValidationService $service, private NativeTrace $trace)
@@ -184,6 +207,7 @@ final readonly class NativeKernel
         );
     }
 
+    /** @phpstan-impure */
     public function request(Request $request, int $type = HttpKernel::MAIN_REQUEST): Response
     {
         return $this->kernel->handle($request, $type);

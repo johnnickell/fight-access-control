@@ -46,8 +46,8 @@ relative native-peer priority. TASK-00172 consumes TASK-00170/completed TASK-001
 TASK-00104; Laravel consumes only TASK-00172; CI4 consumes TASK-00172 and TASK-00106's accepted native safe error bridge.
 Common already supplies a safe Laravel handler, whereas CI4 response helpers do not establish an exception owner.
 No TASK-00105 or portable-Permission wait, duplicate base adapter/bridge or runtime Permission activation follows.
-The plan allocates all five frameworks as 2 + 1 + 1 + 1; TASK-00172 now supplies independently accepted shared/Slim/Yii
-Feature admission. The other native slices and actual consumer qualification remain unfinished. Each slice retains
+The plan allocates all five frameworks as 2 + 1 + 1 + 1; TASK-00172 and TASK-00173 now supply independently accepted
+shared/Slim/Yii and Symfony Feature admission. Laravel/CI4 and actual consumer qualification remain unfinished. Each slice retains
 real target/status/context/order/construction/lifetime/safe error/minimum/ordinary/isolation proof and its own current
 docs/gate/exact coverage/independent acceptance.
 
@@ -310,7 +310,10 @@ without waiting for later tooling. Shared cohort definitions have one owner, wit
 John explicitly selected TICKET-00038 and approved its complete three-TASK plan, now written as
 [TASK-00128](tasks/00128-TASK.md) (22 Query dispatch paths), [TASK-00129](tasks/00129-TASK.md) (37 existing void Command
 paths) and [TASK-00130](tasks/00130-TASK.md) (amended void Agent Command and outcome Query typing, not conversion).
-Orders 307–309 follow existing Domain plans; all retain actual qualified/tagged generic API/minimum evidence holds.
+Orders 307–309 follow existing Domain plans. The original generic hold on TASK-00129 was superseded by John's
+single-declaration/local-annotation and trusted matching-map decision. TASK-00128's Query amendment permits mixed
+buses and known caller annotations without its original generic supplier hold. Current dispositions and proof
+belong to their owning records; TASK-00130 retains its distinct qualified/tagged API/minimum evidence requirements.
 TASK-00130 now has the genuine TASK-00182 conversion edge, with no reverse dependency. No result-capable bus is
 required and ordinary functional conversion does not wait on downstream generic typing. Existing void handlers and
 independent Query adoption retain their owners. These

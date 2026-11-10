@@ -47,6 +47,7 @@ use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\AgentOpera
 use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\AgentProvisioningRequest;
 
 use Fight\AccessControl\Domain\AccessControl\Agent\Command\ProvisionAgent;
+use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\Query\AgentOperationView;
 use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\Query\GetAgentOperation;
 
 // Persist this key and original request BEFORE dispatch, independently of any envelope ID.
@@ -54,6 +55,7 @@ $key = new AgentOperationKey($trustedOriginatingScope, AgentOperationId::generat
 $request = new AgentProvisioningRequest('Deployment worker', $registeredDestination);
 $command = new ProvisionAgent($key, $request);
 $commandBus->execute($command); // void; configured transport may execute now or later
+/** @var AgentOperationView $view */
 $view = $queryBus->fetch(new GetAgentOperation($key, $registeredDestination));
 if (!$view->isConfirmed()) {
     // Keep this exact key/request. Absence does not identify execution progress or prove rollback.

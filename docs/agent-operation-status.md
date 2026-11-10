@@ -19,10 +19,12 @@ lookup, reservation or persistence methods; its `Query` messages/View and Applic
 There is no Unit of Work, cipher, generator, sink, audit repository, event dispatcher or admission-limit dependency.
 
 ```php
+use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\Query\AgentOperationView;
 use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\Query\GetAgentOperation;
 
 // Use the original retained key and registered destination, not a name, path or URL.
 $query = new GetAgentOperation($retainedKey, $registeredDestination);
+/** @var AgentOperationView $view */
 $view = $queryBus->fetch($query);
 if (!$view->isConfirmed()) {
     // Outcome remains indeterminate. Keep the original key/request for authorized Command retry.
