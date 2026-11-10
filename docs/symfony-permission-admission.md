@@ -107,9 +107,14 @@ so consumer record checks cannot claim early argument-resolution protection.
 
 ## Request, subrequest and continuation lifetimes
 
-The subscriber is stateless and reusable. Each non-public request invokes the trusted factory anew; providers must
+The subscriber is reusable. Standalone registration accepts the trusted factory; optional
+[Feature composition](symfony-feature-admission.md) shares one explicit `Adapter\Http\Symfony\RequestAuthentication`
+instance across both subscribers in either order. Its private state is keyed by the actual native RequestEvent dispatch,
+not copyable attributes. Public Permission admission preserves context selected by the cooperating Feature gate and
+never bypasses its restrictions. With Permission-only registration a public route still clears incoming context.
+Each non-public request invokes the trusted factory anew; providers must
 not be captured as cached singletons. Admission removes any incoming SecurityContext and sets only the admitted
-snapshot. A public route erases it without resolving authentication. A failed admission leaves no selected context.
+snapshot. A standalone public route erases it without resolving authentication. A failed admission leaves no selected context.
 Symfony pops its RequestStack on success and handled exception; repeated requests use fresh authority, including when
 the same completed Request object is reused. The retained attribute is a **short-request snapshot**, not future authority.
 

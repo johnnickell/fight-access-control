@@ -5,11 +5,13 @@ dependencies, acceptance, and verification.
 
 ## What's Next?
 
-First ready Task: [TASK-00132](00132-TASK.md) — Enforce paged query result contracts.
+Active Task: [TASK-00173](00173-TASK.md) — Enforce Symfony Feature admission.
 
 ## In Progress
 
-No Tasks are currently in this state.
+| Order | TASK ID | Title | Parent TICKET | Status | Blocked by | PR |
+| --- | --- | --- | --- | --- | --- | --- |
+| 504 | [TASK-00173](00173-TASK.md) | Enforce Symfony Feature admission | [TICKET-00050](../tickets/00050-TICKET.md) — Enforce Feature admission across five frameworks | in-progress | [TASK-00172](00172-TASK.md), [TASK-00104](00104-TASK.md) | — |
 
 ## Ready Frontier
 
@@ -17,7 +19,6 @@ No Tasks are currently in this state.
 | --- | --- | --- | --- | --- | --- | --- |
 | 311 | [TASK-00132](00132-TASK.md) | Enforce paged query result contracts | [TICKET-00039](../tickets/00039-TICKET.md) — Guarantee exact query results and explicit absence | ready-for-agent | — | — |
 | 402 | [TASK-00122](00122-TASK.md) | Replace audit evidence contracts across existing writers | [TICKET-00043](../tickets/00043-TICKET.md) — Define typed audit evidence and explicit attribution | ready-for-agent | [TASK-00121](00121-TASK.md) | — |
-| 504 | [TASK-00173](00173-TASK.md) | Enforce Symfony Feature admission | [TICKET-00050](../tickets/00050-TICKET.md) — Enforce Feature admission across five frameworks | ready-for-agent | [TASK-00172](00172-TASK.md), [TASK-00104](00104-TASK.md) | — |
 | 504 | [TASK-00174](00174-TASK.md) | Enforce Laravel Feature admission | [TICKET-00050](../tickets/00050-TICKET.md) — Enforce Feature admission across five frameworks | ready-for-agent | [TASK-00172](00172-TASK.md) | — |
 | 504 | [TASK-00175](00175-TASK.md) | Enforce CodeIgniter 4 Feature admission | [TICKET-00050](../tickets/00050-TICKET.md) — Enforce Feature admission across five frameworks | ready-for-agent | [TASK-00172](00172-TASK.md), [TASK-00106](00106-TASK.md) | — |
 | 505 | [TASK-00176](00176-TASK.md) | Integrate portable Permissions through PSR-15 | [TICKET-00051](../tickets/00051-TICKET.md) — Enforce portable Permission declarations across five frameworks | ready-for-agent | [TASK-00171](00171-TASK.md), [TASK-00103](00103-TASK.md) | — |

@@ -68,6 +68,17 @@ administrative checkpoint; canonical `.runs/handoffs/TASK-00148/land.md` owns su
 and resource results. Original report subjects, historical Work proof and lowest-lane advisories remain preserved;
 no whole-library or actual consumer qualification, approval, merge, release or deployment is claimed.
 
+## TASK-00173 Symfony Feature admission — Work checkpoint
+
+Optional [native Symfony Feature admission](docs/symfony-feature-admission.md) now consumes the shared effective
+requirements/evaluator at kernel.request after routing, independently of PermissionSubscriber. Trusted rematching and
+resolved-controller integrity protect supported selected code; dispatch-owned provider sharing preserves both gates'
+context and one Agent nonce. Only ordinary OFF/unmet PREVIEW is generic 404; Common retains one native safe-error owner.
+The source-linked runtime flow documents pre-validation/action and lazy-construction boundaries, eager/late-listener,
+non-JSON and real consumer limits. Minimum/core-only/native-without-Security-HTTP probes and ordinary composition remain
+distinct evidence in the canonical Work handoff. Independent Review/nonvisual QA are still required; no acceptance,
+consumer qualification, publication, merge or deployment is claimed by this implementation checkpoint.
+
 ## TASK-00172 Feature admission — accepted checkpoint
 
 Optional [PSR-15 Feature admission](docs/http-feature-admission.md) now connects the effective declaration supplier
