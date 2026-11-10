@@ -322,11 +322,10 @@ discovery queries, four Agent operation/scheduler/count queries and two preparat
 current handlers have planning ownership without overlap/omission, not executed behavioral/supplier/consumer proof.
 Orders 310–314 follow existing typing work with empty local blocked_by and no demonstrated mutual dependency. At
 that planning checkpoint four slices were ready-for-agent; current status belongs to the owning TASKs and Board.
-[TASK-00132](tasks/00132-TASK.md) is now ready-for-agent: released Common v1.5.0 supplies TASK-00193's
-`ResultSet::strict()` and clears the former external planning-gap hold. It still owns explicit strict-path adoption,
-a sufficient Common minimum (at least ^1.5.0), mutable-list handling and actual AC minimum/ordinary verification.
-No new Common plan or release is needed; no Common file or local blocker edge is created by this refresh. Other
-slices retain their actual tagged/minimum/ordinary verification, complete focused proof/full gate and independent acceptance.
+At the release-readiness checkpoint, released Common v1.5.0 supplied TASK-00193's `ResultSet::strict()` and
+cleared TASK-00132's former external planning-gap hold without a new Common plan/release or local blocker edge.
+The owning TASK retains strict-path adoption, sufficient Common minimum, mutable-list handling and actual
+minimum/ordinary verification evidence; current status belongs to the owning records, not this historical planning handoff.
 
 TICKET-00040's revised complete ten-TASK plan is approved/written as [TASK-00136](tasks/00136-TASK.md) through
 [TASK-00145](tasks/00145-TASK.md): Event-driven delivery/Clock, User lifecycle, human credential workers, synchronous
