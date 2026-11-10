@@ -44,12 +44,16 @@ use Fight\AccessControl\Domain\AccessControl\Permission\PermissionRepository;
 use Fight\AccessControl\Domain\AccessControl\RefreshSession\RefreshSessionRepository;
 use Fight\AccessControl\Domain\AccessControl\Role\RoleRepository;
 use Fight\AccessControl\Domain\AccessControl\User\UserRepository;
+use Fight\Common\Adapter\Messaging\Command\Sync\Routing\InMemoryCommandRouter;
+use Fight\Common\Adapter\Messaging\Command\Sync\RoutingCommandBus;
+use Fight\Common\Application\Messaging\Command\CommandBus;
 use Fight\Common\Application\Messaging\Command\CommandHandler;
 use Fight\Common\Application\Repository\TransactionalUnitOfWork;
 use Fight\Common\Domain\Messaging\Command\Command;
 use Fight\Common\Domain\Messaging\Command\CommandMessage;
 use Fight\Common\Domain\Messaging\Event\CommandFailedEvent;
 use Fight\Common\Domain\Messaging\Event\Event;
+use Fight\Common\Domain\Messaging\Meta;
 use LogicException;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\DataProvider;
@@ -96,7 +100,7 @@ use Throwable;
 #[CoversClass(User\RestoreUserHandler::class)]
 final class HandlerFailureContractTest extends TestCase
 {
-    /** @return iterable<string, array{class-string<CommandHandler>, string, bool}> */
+    /** @return iterable<string, array{class-string<CommandHandler>, string, bool, bool}> */
     public static function operations(): iterable
     {
         $operations = [
@@ -140,7 +144,11 @@ final class HandlerFailureContractTest extends TestCase
         ];
         foreach ($operations as $handler => $message) {
             foreach ([false, true] as $notificationFails) {
-                yield $handler.(int) $notificationFails => [$handler, $message, $notificationFails];
+                foreach ([false, true] as $dispatch) {
+                    yield $handler.(int) $notificationFails.(int) $dispatch => [
+                        $handler, $message, $notificationFails, $dispatch
+                    ];
+                }
             }
         }
     }
@@ -150,7 +158,8 @@ final class HandlerFailureContractTest extends TestCase
     public function test_failure_notification_is_coarse_and_preserves_the_primary_outcome(
         string $handlerClass,
         string $message,
-        bool $notificationFails
+        bool $notificationFails,
+        bool $dispatch
     ): void {
         $primary = new RuntimeException('Synthetic operation detail.');
         $attempts = [];
@@ -167,9 +176,30 @@ final class HandlerFailureContractTest extends TestCase
         $unitOfWork->expects(self::once())->method('commitTransactional')->willThrowException($primary);
         $handler = $this->handler($handlerClass, $unitOfWork, $eventDispatcher);
         $command = $this->command($handlerClass);
+        $original = CommandMessage::create($command);
+        $replaced = $original->withMeta(Meta::create(['correlation' => 'command-contract', 'replace' => false]));
+        $merged = $replaced->mergeMeta(Meta::create(['replace' => true, 'attempt' => 2]));
+        self::assertSame([], $original->meta()->toArray());
+        self::assertSame(['correlation' => 'command-contract', 'replace' => false], $replaced->meta()->toArray());
+        self::assertSame($original->id(), $merged->id());
+        self::assertSame($original->timestamp(), $merged->timestamp());
+        self::assertSame($command, $merged->payload());
+        $decoded = CommandMessage::arrayDeserialize($merged->arraySerialize());
+        self::assertSame($merged->arraySerialize(), $decoded->arraySerialize());
+        self::assertInstanceOf($handlerClass::commandRegistration(), $decoded->payload());
+        self::assertSame($command->toArray(), $decoded->payload()->toArray());
+        self::assertSame(
+            ['correlation' => 'command-contract', 'replace' => true, 'attempt' => 2],
+            $decoded->meta()->toArray()
+        );
+        $commandBus = $this->commandBus($handler);
         $caught = null;
         try {
-            $handler->handle(CommandMessage::create($command));
+            if ($dispatch) {
+                $commandBus->dispatch($decoded);
+            } else {
+                $commandBus->execute($command);
+            }
         } catch (Throwable $throwable) {
             $caught = $throwable;
         }
@@ -177,12 +207,20 @@ final class HandlerFailureContractTest extends TestCase
         self::assertSame($primary, $caught);
         self::assertCount(1, $attempts);
         self::assertInstanceOf(CommandFailedEvent::class, $attempts[0]);
-        self::assertSame($command, $attempts[0]->getCommand());
+        self::assertSame($dispatch ? $decoded->payload() : $command, $attempts[0]->getCommand());
         $data = $attempts[0]->toArray();
         self::assertSame($message, $data['error_message']);
         self::assertSame($command->toArray(), $data['command_data']);
         self::assertSame($data, CommandFailedEvent::fromArray($data)->toArray());
         self::assertStringNotContainsString($primary->getMessage(), serialize($data));
+    }
+
+    private function commandBus(CommandHandler $handler): CommandBus
+    {
+        $router = new InMemoryCommandRouter();
+        $router->registerHandler($handler::commandRegistration(), $handler);
+
+        return new RoutingCommandBus($router);
     }
 
     /** @param class-string<CommandHandler> $handlerClass */

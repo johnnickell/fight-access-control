@@ -1,6 +1,33 @@
 {
   "cases": [
     {
+      "id": "command-dispatch-native-contracts",
+      "kind": "positive",
+      "file": "command-dispatch-positive.php",
+      "diagnostics": [
+        {"line": 14, "identifier": "phpstan.dumpType", "message": "Dumped type: Fight\\Common\\Domain\\Messaging\\Command\\CommandMessage"},
+        {"line": 15, "identifier": "phpstan.dumpType", "message": "Dumped type: Fight\\Common\\Domain\\Messaging\\Payload"},
+        {"line": 18, "identifier": "phpstan.dumpType", "message": "Dumped type: Fight\\AccessControl\\Domain\\AccessControl\\User\\Command\\RegisterUser"},
+        {"line": 19, "identifier": "phpstan.dumpType", "message": "Dumped type: Fight\\Common\\Domain\\Value\\Internet\\EmailAddress"},
+        {"line": 20, "identifier": "phpstan.dumpType", "message": "Dumped type: Closure(Fight\\Common\\Domain\\Messaging\\Command\\Command): void"},
+        {"line": 21, "identifier": "phpstan.dumpType", "message": "Dumped type: Closure(Fight\\Common\\Domain\\Messaging\\Command\\CommandMessage): void"}
+      ]
+    },
+    {
+      "id": "command-dispatch-incompatible-native-uses",
+      "kind": "negative",
+      "file": "command-dispatch-negative.php",
+      "diagnostics": [
+        {"line": 12, "identifier": "argument.type", "message": "Parameter #1 $command of method Fight\\Common\\Application\\Messaging\\Command\\CommandBus::execute() expects Fight\\Common\\Domain\\Messaging\\Command\\Command, Fight\\Common\\Domain\\Messaging\\Command\\CommandMessage given."},
+        {"line": 13, "identifier": "argument.type", "message": "Parameter #1 $commandMessage of method Fight\\Common\\Application\\Messaging\\Command\\CommandBus::dispatch() expects Fight\\Common\\Domain\\Messaging\\Command\\CommandMessage, Fight\\AccessControl\\Domain\\AccessControl\\User\\Command\\RegisterUser given."},
+        {"line": 14, "identifier": "argument.type", "message": "Parameter #1 $command of static method Fight\\Common\\Domain\\Messaging\\Command\\CommandMessage::create() expects Fight\\Common\\Domain\\Messaging\\Command\\Command, Fight\\Common\\Domain\\Messaging\\Meta given."},
+        {"line": 15, "identifier": "argument.type", "message": "Parameter #1 $result of closure expects Fight\\AccessControl\\Domain\\AccessControl\\User\\Command\\RegisterUser, null given."},
+        {"line": 15, "identifier": "method.void", "message": "Result of method Fight\\Common\\Application\\Messaging\\Command\\CommandBus::execute() (void) is used."},
+        {"line": 16, "identifier": "argument.type", "message": "Parameter #1 $result of closure expects Fight\\AccessControl\\Domain\\AccessControl\\User\\Command\\RegisterUser, null given."},
+        {"line": 16, "identifier": "method.void", "message": "Result of method Fight\\Common\\Application\\Messaging\\Command\\CommandBus::dispatch() (void) is used."}
+      ]
+    },
+    {
       "id": "query-dispatch-positive",
       "kind": "positive",
       "file": "query-dispatch-positive.php",
