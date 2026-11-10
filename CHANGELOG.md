@@ -9,6 +9,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Optional Agent-protected Common Prompt list/get composition with exact immutable definition associations,
+  nonempty conjunctive direct Permissions and trusted request-local authority. Common retains lazy content,
+  validation, safe bounded failures and private zero-TTL responses; Query data and linked Resource/Skill targets
+  need independent admission. See [Prompt authorization](docs/agent-prompt-authorization.md).
+
 - Optional native Symfony Feature admission before lazy controller resolution, independently selectable from
   PermissionSubscriber. Shared effective declarations and dispatch-owned authentication preserve inherited gates,
   trusted controller association and one Agent nonce across cooperating checks. Ordinary OFF/unmet PREVIEW is generic

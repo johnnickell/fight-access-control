@@ -1,5 +1,28 @@
 # Fight AccessControl Context
 
+## Notice mutation admission — TASK-00091 accepted checkpoint
+
+The [notice composition guide](docs/agent-notice-authorization.md) supplies independently configured recording and
+bounded removal admissions for Common's real `NoticeAdmission` / `NoticeRemovalAdmission`. Application Agent/Notice
+owns fresh original-bound Agent/direct Permission policy; consumers own current producer/scope/content/reference and
+retention decisions. Common owns routed Commands, storage-lock ordering, retry comparison, all-target preflight,
+positions/relationships/loss state, atomic mutations and actual post-commit dispatch. No new store, scheduler, grant,
+protocol glue or authority-writer lock is introduced. TASK-00088's trusted binding is reused **inside** Common's
+admission-under-storage-lock seam, not as cached pre-dispatch authority. Ordinary request snapshots and one-time nonce
+consumption remain unchanged; the existing synchronized continuation guard's contract is not modified.
+
+Common v1.5.0 (`06fb5cd3720af9cf8295198f74040d95b64c5155`) is the sufficient supported minimum. Real Common DBAL/SQLite
+fixtures exercise recording/removal, current authority after actual storage-lock waits, data/event/rollback/uncertain
+commit and dispatch-failure semantics. DBAL `^4.4` is development-only for these tests. Consumer false decisions retain
+fixed Common rejection; malformed authority and operational faults propagate to the single consumer safe reporting
+boundary, never exception-to-Boolean denial. Checks do not promise permission stability afterward or qualify real
+consumer policy, cryptography, handoffs, writer races/storage, deployment or sibling notice capabilities. Independent
+Review v3 ACCEPT and complete nonvisual QA PASS cover candidate `0689d72be2b8e1275a3ec5846a0f2f27ac660427`.
+TASK-00091 is done; unfinished siblings keep TICKET-00030/EPIC-00014 and the combined unassigned release open.
+Its TASK and canonical Work/QA handoffs own verification. Advanced-base integration, publication and final delivery
+checks remain pending at this closeout checkpoint; canonical `.runs/handoffs/TASK-00091/land.md` owns subsequent
+bridge, delivery and resource outcomes.
+
 ## Purpose
 
 Fight AccessControl owns framework-neutral identity, credential, session, authorization, and account-lifecycle
@@ -28,6 +51,26 @@ EPIC-00014 open. Publication/final delivery verification remain pending at this 
 canonical `.runs/handoffs/TASK-00097/land.md` owns subsequent checks, publication and resource outcomes.
 Original independent reports and Work history remain preserved. No later Task slice, partial MCP advertisement,
 new lifecycle/executor, automatic grant, release or deployment is implemented here.
+
+## TASK-00087 Prompt authorization — accepted checkpoint
+
+Optional [Agent-protected Prompt composition](docs/agent-prompt-authorization.md) now binds nonempty conjunctive
+canonical direct Permission requirements to the actual immutable Common Prompt definition objects in
+`Adapter/Mcp/Prompt/Agent`. Common remains the only name registry, list/get engine and argument/output/error owner.
+Trusted ordinary-request Agent authority stays inward; discovery constructs no bodies and direct get needs no listing.
+Later requests recheck authority; an already resolved request retains its snapshot and consumes no nonce per definition.
+Private zero-TTL results/cursors grant no continuing access. Controlled static/Query-backed providers and inert
+Resource/Skill links retain independent current business/target admission with no automatic fetch, grant or execution.
+Common v1.5.0 is the first sufficient supported Prompt minimum; the existing ^1.5.0 manifest needs no change.
+Canonical `.runs/handoffs/TASK-00087/work.md` owns dependency/runtime, focused/full-gate and exact coverage evidence.
+Independent Review v3 ACCEPT and complete nonvisual QA PASS cover clean candidate
+`1428f9bb9b5ff179332c1001e89009d964409986`, without findings. QA passes 12 groups / 161 new checks /
+58 responses and a fresh full gate: 8,556 tests / 84,987 assertions, exact 10,384/10,384 global and 46/46 owned
+statements. TASK-00087 and eligible TICKET-00027 are done; EPIC-00014 remains unfinished. Publication/final delivery
+verification are pending at this administrative checkpoint; canonical `.runs/handoffs/TASK-00087/land.md` owns
+subsequent bridge, checks, delivery and retirement outcomes. Original independent reports and historical failed/
+interrupted gates remain preserved. No production consumer, release or deployment qualification or completion of
+EPIC-00014's combined unassigned release is claimed.
 
 ## Mixed MCP Tool Permission bindings — TASK-00084 accepted checkpoint
 

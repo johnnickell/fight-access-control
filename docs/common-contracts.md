@@ -58,6 +58,17 @@ classes are not deprecated merely because individual direct properties are. No T
 | MCP Resource and whole-Skill | Readable/protected provider, resource info/content/discovery/availability/limits; Skill availability/discovery/limits/file/frontmatter/resources/revision. Preserve whole-entry versus independent Resource grants, exact immutable descriptors, revision binding, bytes/budgets, stream cleanup and fresh request authority. |
 | Pagination and returned pages | `Pagination` type and `ResultSet` remain supported. **Pagination's public constructor is genuinely deprecated since 1.4.0**; this adoption does not silently substitute `strict()`, which rejects nonpositive bounds/unsupported directions instead of applying existing defaults/normalization. Existing Query hydration and callers retain their current semantics. This pre-existing validation change is outside the behavior-preserving foundation adoption and needs its owning pagination contract scope (TASK-00132), not import cleanup. `ResultSet` construction is **not deprecated**; its stricter optional factory does not justify changing returned-page semantics here. |
 
+## Prompt feature consumption — TASK-00087
+
+[Agent Prompt authorization](agent-prompt-authorization.md) now consumes the released `Application/Mcp/Prompt`
+`McpPrompt`, `McpPromptInfo`, `McpPromptOutput`, `McpPromptAvailability`, `McpPromptDiscovery` and `McpPromptLimits`
+contracts. The first sufficient stable minimum is v1.5.0 at the source above; existing `^1.5.0` already suffices.
+AccessControl binds actual immutable definitions and direct Agent requirements; Common retains registration/naming,
+outer/declared argument validation, selected-provider laziness, visible-catalog cursors, complete bounded output,
+central metadata/envelope and safe unknown/denied/internal results. Controlled minimum and ordinary lanes exercise
+actual list/get plus independently admitted Query data and inert later-denied links. Work's canonical handoff owns
+exact lock/source/check evidence; independent feature Review/QA and actual consumer qualification remain separate.
+
 ## Mixed Tool qualification — TASK-00084
 
 The binding extension needs no newer supplier than the current **v1.5.0 minimum** above. Production uses the
@@ -98,13 +109,16 @@ Common's new Task/Notice/execution/protected-detail APIs are implemented and rel
 than merely planned. Domain repositories/read ports and separate `TransactionalUnitOfWork`, registered CQRS
 handlers, meaningful identities/values and outward concrete Tools are the supplier direction. TASK-00184 separates
 DBAL UoW, 00185/00186 supply repositories, 00187 handler ownership, 00188 Task projection, 00189/00190 values and
-00191 aggregate/adapter homes. TASK-00084 now exercises the seven execution Tools through mixed protected composition
-in package tests. TASK-00097 now consumes `TaskCreationAdmission`, `TaskUpdateAdmission` and
+00191 aggregate/adapter homes. TASK-00084 exercises the seven execution Tools through mixed protected composition
+in package tests, and TASK-00087 consumes the Prompt contracts described above. TASK-00091 consumes actual Notice
+recording/removal admission, Commands, handlers, recorder/remover and DBAL storage in its independently accepted
+[mutation composition](agent-notice-authorization.md). TASK-00097 consumes `TaskCreationAdmission`, `TaskUpdateAdmission` and
 `TaskReadAdmission` in inward Agent policy. Its feature tests configure actual `CreateTaskHandler`,
 `RecordTaskStateHandler` and `GetTaskHandler`, typed Task identities/definitions/states, Commands/Query, payload
 policy and real routing buses, with Common DBAL repository/Task transaction/committed reads over SQLite.
 See [Task composition](agent-task-authorization.md) for independent grants, guarded worker authority, comparison
 epochs, safe faults and consumer limits. DBAL remains development-only here; no production persistence is copied.
-Other TASK-00087/00089–00096 and TASK-00098–00102 must inspect their exact declarations, configure actual
-Common buses and independently qualify each operation/family. This baseline clears only TASK-00110's historical supplier hold, not those feature
+Other TASK-00089–00090/00092–00096 and TASK-00098–00102 must inspect their exact declarations, configure actual
+Common buses and independently qualify each operation/family. This baseline clears only TASK-00110's historical
+supplier hold, not those feature
 holds, grant requirements, live-runtime requirements or separate generic typing/returned-page evidence gaps.
