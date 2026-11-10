@@ -1,5 +1,24 @@
 # Fight AccessControl Context
 
+## Notice mutation admission — TASK-00091 Work checkpoint
+
+The [notice composition guide](docs/agent-notice-authorization.md) supplies independently configured recording and
+bounded removal admissions for Common's real `NoticeAdmission` / `NoticeRemovalAdmission`. Application Agent/Notice
+owns fresh original-bound Agent/direct Permission policy; consumers own current producer/scope/content/reference and
+retention decisions. Common owns routed Commands, storage-lock ordering, retry comparison, all-target preflight,
+positions/relationships/loss state, atomic mutations and actual post-commit dispatch. No new store, scheduler, grant,
+protocol glue or authority-writer lock is introduced. TASK-00088's trusted binding is reused **inside** Common's
+admission-under-storage-lock seam, not as cached pre-dispatch authority. Ordinary request snapshots and one-time nonce
+consumption remain unchanged; the existing synchronized continuation guard's contract is not modified.
+
+Common v1.5.0 (`06fb5cd3720af9cf8295198f74040d95b64c5155`) is the sufficient supported minimum. Real Common DBAL/SQLite
+fixtures exercise recording/removal, current authority after actual storage-lock waits, data/event/rollback/uncertain
+commit and dispatch-failure semantics. DBAL `^4.4` is development-only for these tests. Consumer false decisions retain
+fixed Common rejection; malformed authority and operational faults propagate to the single consumer safe reporting
+boundary, never exception-to-Boolean denial. Checks do not promise permission stability afterward or qualify real
+consumer policy, cryptography, handoffs, writer races/storage, deployment or sibling notice capabilities. Independent
+Review and behavioral QA remain pending; TASK-00091 remains open. Its TASK and canonical Work handoff own verification.
+
 ## Purpose
 
 Fight AccessControl owns framework-neutral identity, credential, session, authorization, and account-lifecycle

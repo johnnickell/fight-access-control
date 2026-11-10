@@ -72,7 +72,8 @@ Common's new Task/Notice/execution/protected-detail APIs are implemented and rel
 than merely planned. Domain repositories/read ports and separate `TransactionalUnitOfWork`, registered CQRS
 handlers, meaningful identities/values and outward concrete Tools are the supplier direction. TASK-00184 separates
 DBAL UoW, 00185/00186 supply repositories, 00187 handler ownership, 00188 Task projection, 00189/00190 values and
-00191 aggregate/adapter homes. None is currently consumed by AccessControl's existing feature slice. Future
-TASK-00084/00087/00089–00102 must inspect their exact declarations, configure actual Common buses and independently
+00191 aggregate/adapter homes. TASK-00091's Work now consumes actual Notice recording/removal admission, Commands,
+handlers, recorder/remover and DBAL storage in its [mutation composition](agent-notice-authorization.md); independent
+feature acceptance remains pending. Other TASK-00084/00087/00089–00102 must inspect their exact declarations, configure actual Common buses and independently
 qualify each operation/family. This baseline clears only TASK-00110's historical supplier hold, not those feature
 holds, grant requirements, live-runtime requirements or separate generic typing/returned-page evidence gaps.
