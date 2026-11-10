@@ -2,7 +2,7 @@
 id: TICKET-00027
 epic: EPIC-00014
 title: Authorize Prompt discovery and retrieval
-status: ready-for-agent
+status: done
 ---
 
 # Authorize Prompt discovery and retrieval
@@ -71,15 +71,15 @@ business transaction. Consumer provider code remains trusted application code, n
 
 ## Acceptance Evidence
 
-- [ ] Real Common Prompt composition and actual AccessControl authority checks reject missing/unknown/invalid
+- [x] Real Common Prompt composition and actual AccessControl authority checks reject missing/unknown/invalid
   requirement associations and every missing-Permission combination without provider processing.
-- [ ] Current list/get checks are independent of prior listing, cursors and earlier success; changed permissions,
+- [x] Current list/get checks are independent of prior listing, cursors and earlier success; changed permissions,
   revoked Agent or changed credentials affect later requests. Listing never builds a body.
-- [ ] Denied and unknown names retain Common's safe outcomes; invalid arguments/provider/policy failures do not
+- [x] Denied and unknown names retain Common's safe outcomes; invalid arguments/provider/policy failures do not
   expose declarations, caller data or exception text or become misleading successful empty output.
-- [ ] Permitted static and Query-backed provider journeys preserve independent Query access and later Resource
+- [x] Permitted static and Query-backed provider journeys preserve independent Query access and later Resource
   denial, exact complete output, finite budgets and private cache semantics; no automatic execution or fetch.
-- [ ] Minimum-version composition, tests/documentation, exact coverage, canonical gate and later independent
+- [x] Minimum-version composition, tests/documentation, exact coverage, canonical gate and later independent
   technical Review/behavioral QA qualify the package boundary, not actual deployed providers/clients.
 
 ## Exclusions
@@ -91,8 +91,19 @@ application relationship policy, live notification mechanics, consumer changes a
 
 | Order | TASK ID | Title | Status |
 | --- | --- | --- | --- |
-| 87 | [TASK-00087](../tasks/00087-TASK.md) | Authorize Agent-protected Prompt discovery and retrieval | in-progress |
+| 87 | [TASK-00087](../tasks/00087-TASK.md) | Authorize Agent-protected Prompt discovery and retrieval | done |
 ## Decisions and Progress
+
+### Accepted package checkpoint
+
+TASK-00087's exact candidate `1428f9bb9b5ff179332c1001e89009d964409986` has independent technical
+ACCEPT and complete nonvisual QA PASS with no findings. All acceptance evidence above is satisfied by the
+controlled package composition, minimum/ordinary lanes and complete canonical gate; see the owning TASK and
+canonical independent reports. Automatic parent completion closes this TICKET; unfinished sibling TICKETs keep
+EPIC-00014 open. Publication/final delivery remain pending at this checkpoint, with subsequent results in
+`.runs/handoffs/TASK-00087/land.md`. No deployed consumer, merge, release or deployment is qualified.
+
+### Historical planning checkpoint
 
 John approved item 3 of the complete eight-TICKET split, explicitly invoked To Tasks for this TICKET, then approved
 one complete feature TASK: [TASK-00087 — Authorize Agent-protected Prompt discovery and retrieval](../tasks/00087-TASK.md).

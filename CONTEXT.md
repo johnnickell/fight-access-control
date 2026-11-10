@@ -6,7 +6,7 @@ Fight AccessControl owns framework-neutral identity, credential, session, author
 behavior shared by Fight applications. The repository-local behavioral and security authority is
 [TICKET-00001](planning/tickets/00001-TICKET.md).
 
-## TASK-00087 Prompt authorization — Work checkpoint
+## TASK-00087 Prompt authorization — accepted checkpoint
 
 Optional [Agent-protected Prompt composition](docs/agent-prompt-authorization.md) now binds nonempty conjunctive
 canonical direct Permission requirements to the actual immutable Common Prompt definition objects in
@@ -17,8 +17,14 @@ Private zero-TTL results/cursors grant no continuing access. Controlled static/Q
 Resource/Skill links retain independent current business/target admission with no automatic fetch, grant or execution.
 Common v1.5.0 is the first sufficient supported Prompt minimum; the existing ^1.5.0 manifest needs no change.
 Canonical `.runs/handoffs/TASK-00087/work.md` owns dependency/runtime, focused/full-gate and exact coverage evidence.
-Independent Review and nonvisual QA remain required; TASK stays open. No production consumer, release or deployment
-qualification or completion of EPIC-00014's combined unassigned release is claimed.
+Independent Review v3 ACCEPT and complete nonvisual QA PASS cover clean candidate
+`1428f9bb9b5ff179332c1001e89009d964409986`, without findings. QA passes 12 groups / 161 new checks /
+58 responses and a fresh full gate: 8,556 tests / 84,987 assertions, exact 10,384/10,384 global and 46/46 owned
+statements. TASK-00087 and eligible TICKET-00027 are done; EPIC-00014 remains unfinished. Publication/final delivery
+verification are pending at this administrative checkpoint; canonical `.runs/handoffs/TASK-00087/land.md` owns
+subsequent bridge, checks, delivery and retirement outcomes. Original independent reports and historical failed/
+interrupted gates remain preserved. No production consumer, release or deployment qualification or completion of
+EPIC-00014's combined unassigned release is claimed.
 
 ## TASK-00136 delivery Event contracts — accepted checkpoint
 
