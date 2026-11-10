@@ -222,6 +222,17 @@ Historical checkpoints below retain their actual older minima and planning obser
 current manifest/inventory own today's baseline. No sibling/consumer mutation, publication, merge, release or
 deployment is implied by this package acceptance.
 
+## Agent issuance dispatch qualification — TASK-00130 Work checkpoint
+
+The [issuance dispatch map](docs/agent-issuance-dispatch-contracts.md) inventories the two real void Command
+bindings and independent GetAgentOperation Query, their concrete payload/message/metadata paths and owned callers.
+New static probes distinguish precise handlers/known-caller optional outcome annotations from natively mixed Query
+bus results; negative fixtures reject void-as-issuance and incompatible concrete uses. Runtime qualification reuses
+the accepted conversion's production handlers, real Common routing, environments and stored-outcome oracle.
+No business contract, transport, Command-result channel, generic supplier or consumer implementation changes.
+Canonical TASK-00130 Work evidence owns actual dependency lanes, checks, logs, coverage and retained runtime.
+Independent Review and nonvisual QA remain required; TASK-00130 is not self-accepted or closed here.
+
 ## Command payload declaration contract — TASK-00129
 
 John selected one supported Command/Query declaration and a flat local concrete annotation at payload extraction;

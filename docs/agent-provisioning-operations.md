@@ -66,6 +66,8 @@ if (!$view->isConfirmed()) {
 
 Register `ProvisionAgentHandler::commandRegistration()` with the configured Common CommandBus, and
 `GetAgentOperationHandler::queryRegistration()` with its QueryBus. No direct handler/result channel is needed.
+The [issuance dispatch contract map](agent-issuance-dispatch-contracts.md) records exact payload/metadata/void and
+annotated optional outcome types, concrete Common composition and executable static/runtime proof.
 Commands may be serialized, delayed, restarted and redelivered without an active submitting transport. Authenticate
 the actual executing invoker or explicitly delegated worker independently of the serialized scope and metadata;
 recheck current authority inside the package transaction on every attempt. Consumers own broker routing, worker
