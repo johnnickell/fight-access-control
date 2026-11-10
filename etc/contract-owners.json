@@ -2,6 +2,7 @@
   "schema": 1,
   "roots": ["src", "openapi"],
   "rules": [
+    {"ticket": "TICKET-00031", "task": "TASK-00097", "path": "src/Application/AccessControl/Agent/Task/.*"},
     {"ticket": "TICKET-00030", "task": "TASK-00091", "path": "src/Application/AccessControl/Agent/Notice/.*"},
     {"ticket": "TICKET-00027", "task": "TASK-00087", "path": "src/Adapter/Mcp/Prompt/Agent/.*"},
     {"ticket": "TICKET-00050", "task": "TASK-00172", "path": "src/Application/AccessControl/Feature/Admission/.*|src/Adapter/Middleware/Psr15/(FeatureMiddleware|RequestAuthentication|RequestAuthenticationState)\\.php"},
