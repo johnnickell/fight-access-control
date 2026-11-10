@@ -58,6 +58,32 @@ classes are not deprecated merely because individual direct properties are. No T
 | MCP Resource and whole-Skill | Readable/protected provider, resource info/content/discovery/availability/limits; Skill availability/discovery/limits/file/frontmatter/resources/revision. Preserve whole-entry versus independent Resource grants, exact immutable descriptors, revision binding, bytes/budgets, stream cleanup and fresh request authority. |
 | Pagination and returned pages | `Pagination` type and `ResultSet` remain supported. **Pagination's public constructor is genuinely deprecated since 1.4.0**; this adoption does not silently substitute `strict()`, which rejects nonpositive bounds/unsupported directions instead of applying existing defaults/normalization. Existing Query hydration and callers retain their current semantics. This pre-existing validation change is outside the behavior-preserving foundation adoption and needs its owning pagination contract scope (TASK-00132), not import cleanup. `ResultSet` construction is **not deprecated**; its stricter optional factory does not justify changing returned-page semantics here. |
 
+## Mixed Tool qualification — TASK-00084
+
+The binding extension needs no newer supplier than the current **v1.5.0 minimum** above. Production uses the
+existing `McpToolRegistry::{definition,find,available}` and exact `McpToolInfo` identities; no supplier declaration
+is copied or changed. `MixedAgentToolsTest` additionally consumes the released final Adapter Tools and owning
+Domain Queries below with a controlled QueryBus and real AccessControl request provider:
+
+| Common Adapter Tool (`Adapter/Mcp/Tool/`) | Owning Query (`Domain/Mcp/`) |
+| --- | --- |
+| `Session/SummarizeExecutionsTool` | `Session/Query/SummarizeExecutions` |
+| `Session/ListExecutionsTool` | `Session/Query/ListExecutions` |
+| `Session/GetExecutionTool` | `Session/Query/GetExecution` |
+| `Phase/ListExecutionPhasesTool` | `Phase/Query/ListExecutionPhases` |
+| `Observation/ListPhaseActivityTool` | `Observation/Query/ListPhaseActivity` |
+| `Detail/ListCapturedMessagesTool` | `Detail/Query/ListCapturedMessages` |
+| `Detail/GetCapturedDetailTool` | `Detail/Query/GetCapturedDetail` |
+
+These tests construct released Application `ExecutionSummary`, `ExecutionPage`, `PhasePage`, `ActivityPage/View`,
+`MessagePage`, `CapturedDetail` and `DetailReference` results from supported Domain session/phase/observation,
+activity target/timing/result and capture values. Native schema/output validation proves the optional typed activity
+facts survive without business-success inference, and metadata-only details retain `body_permitted: false`/null
+chunks. Common owns schema, input decoding and protocol output; AccessControl adds only configured Permission
+requirements. Explicitly mapped retry proof uses Common's existing invoker/interaction/state/confirmation ports.
+Minimum and ordinary lanes, exact lock/source identity and original warnings are retained in canonical
+`.runs/handoffs/TASK-00084/work.md`; no actual scoped Query handler/backend/consumer qualification is inferred.
+
 ## Qualification and future owners
 
 The isolated exact-minimum Composer lane pins `1.5.0`; the ordinary lane resolves the manifest normally. Both
@@ -72,7 +98,7 @@ Common's new Task/Notice/execution/protected-detail APIs are implemented and rel
 than merely planned. Domain repositories/read ports and separate `TransactionalUnitOfWork`, registered CQRS
 handlers, meaningful identities/values and outward concrete Tools are the supplier direction. TASK-00184 separates
 DBAL UoW, 00185/00186 supply repositories, 00187 handler ownership, 00188 Task projection, 00189/00190 values and
-00191 aggregate/adapter homes. None is currently consumed by AccessControl's existing feature slice. Future
-TASK-00084/00087/00089–00102 must inspect their exact declarations, configure actual Common buses and independently
-qualify each operation/family. This baseline clears only TASK-00110's historical supplier hold, not those feature
+00191 aggregate/adapter homes. TASK-00084 now exercises the seven execution Tools through mixed protected composition in package tests;
+other new families remain outside this feature. TASK-00087/00089–00102 must inspect their exact declarations,
+configure actual Common buses and independently qualify each operation/family. This baseline clears only TASK-00110's historical supplier hold, not those feature
 holds, grant requirements, live-runtime requirements or separate generic typing/returned-page evidence gaps.
