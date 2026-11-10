@@ -49,6 +49,8 @@ final class TaskAdmissionFixture implements AgentTaskCreationScope, AgentTaskUpd
 
     public ?Closure $afterComparison = null;
 
+    public ?Closure $beforeUpdate = null;
+
     public int $checks = 0;
 
     public readonly Agent $agent;
@@ -188,6 +190,9 @@ final class TaskAdmissionFixture implements AgentTaskCreationScope, AgentTaskUpd
         string $producer
     ): bool {
         $this->check();
+        if ($this->beforeUpdate !== null) {
+            ($this->beforeUpdate)();
+        }
 
         return $this->update && $principal->getAgentId()->equals($this->agent->getId())
             && $scope === 'scope' && $id->toString() === self::ID && $producer === 'producer';
