@@ -6,6 +6,19 @@ Fight AccessControl owns framework-neutral identity, credential, session, author
 behavior shared by Fight applications. The repository-local behavioral and security authority is
 [TICKET-00001](planning/tickets/00001-TICKET.md).
 
+## TASK-00136 delivery Event contracts — accepted checkpoint
+
+The [delivery Event contract map](docs/delivery-event-contracts.md) records all eight existing subscriber routes,
+accurate local payload annotations, optional restoration, native Clock and actual Common metadata/failure limits.
+John's scoped amendment accepts this design without generic upstream Event inference. New static and real
+dispatcher/bus composition proof preserves committed issuance, exact safe actor/generation payloads and worker
+failure/recovery semantics. Land retains TASK-00122's subsequently adopted typed actor contracts; current fixtures
+and the contract map follow typed provenance and canonical anonymous identity, not historical string sentinels. Canonical `.runs/handoffs/TASK-00136/work.md` owns
+complete inventory, tagged minimum/ordinary lanes, full-gate/exact-coverage evidence, warnings and runtime identity.
+Independent Review v3 ACCEPT and nonvisual QA PASS cover candidate
+`3b1c7f99d4812c0c3d0042b6a5e406f6722a58b9`; canonical `.runs/handoffs/TASK-00136/land.md` owns the advancing-base
+bridge, current checks, publication and resource outcomes. No whole-library or consumer qualification is claimed.
+
 ## Query dispatch — TASK-00128 accepted checkpoint
 
 John's 2026-11-09 amendment retains native/static mixed QueryBus fetch/dispatch and permits known caller result
@@ -1145,8 +1158,12 @@ non-query/non-presentation Application files and all 37 CommandHandlers without 
 and 13 Application presentation files, all 154 baseline Application files have planning ownership, not completed
 source review or executed type/runtime/supplier/consumer proof. Orders 315–324 preserve earlier scope/priority with
 empty local blocked_by and no demonstrated mutual blockers. At that planning checkpoint nine slices were
-ready-for-agent; current status belongs to the owning TASKs and Board. TASK-00136 retains needs-info for actual
-qualified/tagged Event payload/registration APIs and minimum/ordinary composition evidence.
+ready-for-agent; current status belongs to the owning TASKs and Board. TASK-00136 was needs-info for Event typing
+at that checkpoint. During its later explicit Build invocation John accepted static Event class-to-method
+registration through Common's real eventRegistration() and correct local payload `@var` extraction in EventMessage
+handlers. This scoped amendment supersedes the generic Event supplier hold, not Query/Command generic adoption.
+Actual mapping/annotation, static limitations, tagged minimum/ordinary composition and preserved delivery/failure
+behavior still require proof; no upstream generic Event inference or native generic enforcement is claimed.
 
 John explicitly removed the UoW supplier hold. Native commitTransactional() remains mixed; a matching local @var
 for the known owned callback result is sufficient, including known tuple/union branches. No generic Common UoW

@@ -338,8 +338,8 @@ inward authority/continuation. Primary manifests allocate 119 remaining Applicat
 without overlap/omission; together with 22 QueryHandler and 13 Application presentation files, all 154 baseline
 Application files have planning ownership. This is not completed source review or type/runtime/consumer qualification.
 Orders 315–324 have empty local blocked_by with no demonstrated mutual dependency. At that planning checkpoint
-nine slices were ready-for-agent; current status belongs to the owning TASKs and Board. TASK-00136 remains needs-info
-for qualified/tagged Event payload/registration APIs and minimum/ordinary proof only.
+nine slices were ready-for-agent and TASK-00136 was needs-info. Its later scoped operator amendment supersedes the
+generic Event supplier hold; current acceptance and completion belong to the owning TASKs and generated views.
 
 John removed the UoW supplier hold: native commitTransactional() remains mixed and local @var is sufficient for a
 known owned callback return. No generic UoW API/task, replacement wrapper/result DTO or redundant check is required.

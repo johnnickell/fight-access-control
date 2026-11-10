@@ -248,7 +248,9 @@ rollback and uncertain-commit resolution. The table below lists delivery-worker 
 | `FindCredentialDeliveryStatus` | `FindCredentialDeliveryStatusHandler` |
 
 Optional invitation/password-reset/email-change subscribers provide immediate post-commit dispatch, not guaranteed
-recovery. Schedule `FindDueCredentialDeliveries` with current time and a positive bound. Dispatch the returned purpose,
+recovery. Their complete [Event composition contract](delivery-event-contracts.md) records all eight static mappings,
+accepted local payload annotations, optional restoration, metadata separation and actual dispatcher failure semantics.
+Schedule `FindDueCredentialDeliveries` with current time and a positive bound. Dispatch the returned purpose,
 User ID and delivery ID through the matching direct command using the consumer's trusted audit identity. Never derive
 credentials or destinations from scheduler data. Authoritative latest generations only are returned, ordered by
 eligibility time then delivery ID: pending/due retries at due time and abandoned claims at lease expiry.

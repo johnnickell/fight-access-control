@@ -72,7 +72,6 @@ No Tasks are currently in this state.
 | 101 | [TASK-00101](00101-TASK.md) | Authorize complete MCP Task start and reconnect journeys | [TICKET-00031](../tickets/00031-TICKET.md) — Authorize durable Task operations and state disclosure | needs-info | [TASK-00084](00084-TASK.md), [TASK-00097](00097-TASK.md), [TASK-00099](00099-TASK.md), [TASK-00100](00100-TASK.md) | — |
 | 102 | [TASK-00102](00102-TASK.md) | Authorize optional full-state Task notifications | [TICKET-00031](../tickets/00031-TICKET.md) — Authorize durable Task operations and state disclosure | needs-info | [TASK-00093](00093-TASK.md), [TASK-00101](00101-TASK.md) | — |
 | 309 | [TASK-00130](00130-TASK.md) | Qualify Agent issuance Command and Query dispatch | [TICKET-00038](../tickets/00038-TICKET.md) — Preserve message and result types through dispatch | needs-info | [TASK-00182](00182-TASK.md) | — |
-| 315 | [TASK-00136](00136-TASK.md) | Preserve Event-driven delivery contracts | [TICKET-00040](../tickets/00040-TICKET.md) — Make command and synchronous Application contracts explicit | needs-info | — | — |
 
 ## Human Action
 
@@ -199,6 +198,7 @@ No Tasks are currently in this state.
 | 312 | [TASK-00133](00133-TASK.md) | Make human credential status and discovery results explicit | [TICKET-00039](../tickets/00039-TICKET.md) — Guarantee exact query results and explicit absence | done | — | https://github.com/johnnickell/fight-access-control/pull/171 |
 | 313 | [TASK-00134](00134-TASK.md) | Correct Agent operation, scheduler and count query contracts | [TICKET-00039](../tickets/00039-TICKET.md) — Guarantee exact query results and explicit absence | done | — | https://github.com/johnnickell/fight-access-control/pull/173 |
 | 314 | [TASK-00135](00135-TASK.md) | Make preparation and policy-preview results truthful | [TICKET-00039](../tickets/00039-TICKET.md) — Guarantee exact query results and explicit absence | done | — | https://github.com/johnnickell/fight-access-control/pull/174 |
+| 315 | [TASK-00136](00136-TASK.md) | Preserve Event-driven delivery contracts | [TICKET-00040](../tickets/00040-TICKET.md) — Make command and synchronous Application contracts explicit | done | — | https://github.com/johnnickell/fight-access-control/pull/200 |
 | 316 | [TASK-00137](00137-TASK.md) | Correct User account lifecycle contracts | [TICKET-00040](../tickets/00040-TICKET.md) — Make command and synchronous Application contracts explicit | done | — | https://github.com/johnnickell/fight-access-control/pull/176 |
 | 317 | [TASK-00138](00138-TASK.md) | Correct human credential request and worker contracts | [TICKET-00040](../tickets/00040-TICKET.md) — Make command and synchronous Application contracts explicit | done | — | https://github.com/johnnickell/fight-access-control/pull/177 |
 | 318 | [TASK-00139](00139-TASK.md) | Correct synchronous User and session contracts | [TICKET-00040](../tickets/00040-TICKET.md) — Make command and synchronous Application contracts explicit | done | — | https://github.com/johnnickell/fight-access-control/pull/175 |
