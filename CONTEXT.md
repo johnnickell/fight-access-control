@@ -1,5 +1,26 @@
 # Fight AccessControl Context
 
+## Durable Task input — TASK-00099 Work checkpoint
+
+The [slice C Task composition](docs/agent-task-authorization.md#durable-input-and-protected-continuation--slice-c)
+adds inward `AgentTaskInputAdmission` with separate submission, protected answer-observation and group-continuation
+requirements/scope. Independent `AgentTaskCancellationObservationAdmission` supplies Common input observation/acquisition's
+intent port but always denies cancellation mutation. Issuance/retirement use independently configured existing producer
+admission; public outstanding forms retain whole-state read admission. Common owns retained original contracts/arguments,
+immutable caller/Task/group/expiry keys, active-subset validation, atomic answers, confirmations and durable single use.
+Configured Common buses and actual `McpTaskInput` method preserve these checks without a second store/lifecycle or partial
+Tasks advertisement. Original caller continuation uses TASK-00088's existing synchronized guard and ephemeral authority,
+including independent intent requirements, never producer authority, cached answers or replayed nonces.
+
+Common v1.5.0 (`06fb5cd3720af9cf8295198f74040d95b64c5155`) is the sufficient minimum. Exact-minimum and restored ordinary
+feature lanes use real AccessControl authority/Common handlers and DBAL SQLite. Controlled scope/fence/effect fixtures
+and actual SQLite race/fault proof do not qualify consumer crypto/storage/authority writers, worker lifetimes, external
+effects or exactly-once execution. Consumption survives postcommit/response/consumer faults; uncertain commit needs
+original-operation reconciliation before any dependent effect. TASK-00099 stays in-progress pending independent Review
+and behavioral QA. Its canonical `.runs/handoffs/TASK-00099/work.md` owns exact checks, dependency/runtime identities and
+limits. Cancellation mutation/races, complete MCP activation and live state retain their sibling owners; no release,
+consumer adoption or deployment is claimed.
+
 ## Protected-detail admission — TASK-00090 accepted checkpoint
 
 [Protected-detail composition](docs/agent-protected-detail.md) adds inward `AgentDetailReadAdmission` and the

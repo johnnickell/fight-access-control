@@ -4,7 +4,8 @@
   "rules": [
     {"ticket": "TICKET-00029", "task": "TASK-00090", "path": "src/Application/AccessControl/Agent/Detail/.*"},
     {"ticket": "TICKET-00031", "task": "TASK-00098", "path": "src/Application/AccessControl/Agent/Task/AgentTaskRemoval(Admission|Scope)\\.php"},
-    {"ticket": "TICKET-00031", "task": "TASK-00097", "path": "src/Application/AccessControl/Agent/Task/.*", "except": "src/Application/AccessControl/Agent/Task/AgentTaskRemoval(Admission|Scope)\\.php"},
+    {"ticket": "TICKET-00031", "task": "TASK-00099", "path": "src/Application/AccessControl/Agent/Task/AgentTask(Input|CancellationObservation)(Admission|Scope)\\.php"},
+    {"ticket": "TICKET-00031", "task": "TASK-00097", "path": "src/Application/AccessControl/Agent/Task/.*", "except": "src/Application/AccessControl/Agent/Task/AgentTask(Removal|Input|CancellationObservation)(Admission|Scope)\\.php"},
     {"ticket": "TICKET-00030", "task": "TASK-00091", "path": "src/Application/AccessControl/Agent/Notice/.*"},
     {"ticket": "TICKET-00027", "task": "TASK-00087", "path": "src/Adapter/Mcp/Prompt/Agent/.*"},
     {"ticket": "TICKET-00050", "task": "TASK-00172", "path": "src/Application/AccessControl/Feature/Admission/.*|src/Adapter/Middleware/Psr15/(FeatureMiddleware|RequestAuthentication|RequestAuthenticationState)\\.php"},
