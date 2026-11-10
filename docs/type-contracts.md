@@ -60,6 +60,11 @@ Temporary probes are not accepted replacements for the tracked product cases.
 
 ## Current proof and remaining ownership
 
+TASK-00132 adds twelve exact paged-handler/container-element probes in `paged-query-positive.php`.
+These cover all six ResultSet<View> contracts and actual ArrayList element inference, not generic bus inference.
+Runtime routing separately qualifies strict incoming/mapped construction and request/scope validation; see
+[paged Query contracts](paged-queries.md). Existing Domain negative fixtures retain incompatible element proof.
+
 TASK-00146 adds eleven exact native HTTP probes and eight rejected incompatible uses: PSR request/handler/result,
 Symfony event tuple/callback/request, Laravel native next/response, CI4 optional denial/context, null after hook and
 native responder/application result. Wrong framework requests, copied context as authority, wrong factory inputs,

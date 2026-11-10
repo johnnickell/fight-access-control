@@ -22,6 +22,23 @@ Canonical TASK-00128 Work evidence owns verification and warnings. Independent R
 required; this checkpoint claims neither acceptance nor whole-library/consumer qualification or delivery.
 Historical generic-typing observations below retain their original scope and are superseded for this Query slice.
 
+## TASK-00132 paged Query contracts — accepted checkpoint
+
+The six [paged Query paths](docs/paged-queries.md) now adopt Common v1.5.0 strict construction for incoming and
+mapped results, check request metadata and preserve exact safe View mapping. Session reads independently check
+admitted owner/usability; Agent exact Permissions, Feature binding information and Role revisions remain intact.
+Captured page membership prevents dependency callbacks from changing enumeration; returned lists remain mutable.
+Empty/out-of-range semantics and actual persistence/ordering limits are explicit, without new locks or writes.
+Canonical `.runs/handoffs/TASK-00132/work.md` owns inventory, regressions, dependency/runtime and gate evidence.
+Independent Review v3 ACCEPT and complete nonvisual QA PASS cover candidate
+`98dcd31d4ab5e48ab4a8d9eb889dd0810b26aeba`, without findings: 11 QA scenario groups, 30 independent cases /
+787 assertions plus 106 regression tests / 866 assertions. Earlier full gate retained: 7,251 tests / 79,950
+assertions, exact 9,422/9,422 global and 142/142 owned statements, with Review-qualified prose-only follow-ups.
+TASK-00132 and eligible TICKET-00039 are done; unfinished children keep EPIC-00016 open. Publication/final delivery
+verification remain pending at this administrative checkpoint; canonical `.runs/handoffs/TASK-00132/land.md`
+owns subsequent bridge, delivery and resource results. Original independent reports and minimum-lane advisories
+remain preserved. No generic bus, whole-library or consumer qualification, merge, release or deployment is claimed.
+
 ## Canonical Common adoption — TASK-00110 accepted checkpoint
 
 Current composition requires Common `^1.5.0`, published tagged source

@@ -2,7 +2,7 @@
 id: TICKET-00039
 epic: EPIC-00016
 title: Guarantee exact query results and explicit absence
-status: ready-for-agent
+status: done
 ---
 
 # Guarantee exact query results and explicit absence
@@ -85,7 +85,7 @@ John approved the complete five-TASK split, now written with kind chore and empt
 | TASK | Order | Owned outcome / baseline handler coverage | Status / actual hold |
 | --- | --- | --- | --- |
 | [TASK-00131](../tasks/00131-TASK.md) | 310 | Six required-resource queries: exact non-null safe Views or intentional Application failure. | done; independently accepted six-query slice; other families remain unfinished. |
-| [TASK-00132](../tasks/00132-TASK.md) | 311 | Six paged queries: qualified Common container invariants plus AccessControl request/element/scope consistency. | ready-for-agent; released Common v1.5.0 ResultSet::strict() clears supplier discovery; AC adoption/minimum/ordinary proof remains required. |
+| [TASK-00132](../tasks/00132-TASK.md) | 311 | Six paged queries: qualified Common container invariants plus AccessControl request/element/scope consistency. | done; independent Review ACCEPT and nonvisual QA PASS cover the owning TASK's six-path candidate and minimum/ordinary qualification. |
 | [TASK-00133](../tasks/00133-TASK.md) | 312 | Four human credential status/due/expired queries: explicit absence/state and exact bounded work. | done; independent Review ACCEPT and nonvisual QA PASS for the owning TASK's accepted candidate. |
 | [TASK-00134](../tasks/00134-TASK.md) | 313 | Four Agent operation/scheduler/maintenance/count queries: exact authorized safe outcomes. | done; independent Review ACCEPT and nonvisual QA PASS for the bounded four-query slice; exact candidate/proof in TASK-00134. |
 | [TASK-00135](../tasks/00135-TASK.md) | 314 | Two preparation/policy-preview queries: truthful typed diagnostics/plans. | done; independent Review ACCEPT and nonvisual QA PASS for the owning TASK's accepted candidate. |
@@ -98,7 +98,7 @@ chain. Orders 310–314 follow existing typing work without renumbering it or ea
 TASK-00132's former Common planning-gap hold is cleared by released Common v1.5.0 and completed Common
 [TASK-00193](https://github.com/johnnickell/fight-common/blob/v1.5.0/planning/tasks/00193-TASK.md).
 The owning AC TASK records independent supplier acceptance, exact tag/Packagist identity and the supported
-`ResultSet::strict()` construction contract. It is ready-for-agent; no new Common plan/release is needed. Strict
+`ResultSet::strict()` construction contract. At the release-readiness checkpoint it was ready-for-agent; no new Common plan/release was needed. Strict
 construction validates local numeric/count bounds only at creation and retains a mutable shared list; legacy
 construction remains permissive. AC must explicitly adopt the strict boundary, set a sufficient minimum of at least
 Common ^1.5.0, and qualify actual minimum/ordinary lanes plus request/element/scope semantics during implementation.
@@ -123,11 +123,23 @@ exact coverage, local evidence and independent Review/behavioral QA. Choose the 
 | Order | TASK ID | Title | Status |
 | --- | --- | --- | --- |
 | 310 | [TASK-00131](../tasks/00131-TASK.md) | Make required resource queries exact and non-null | done |
-| 311 | [TASK-00132](../tasks/00132-TASK.md) | Enforce paged query result contracts | ready-for-agent |
+| 311 | [TASK-00132](../tasks/00132-TASK.md) | Enforce paged query result contracts | done |
 | 312 | [TASK-00133](../tasks/00133-TASK.md) | Make human credential status and discovery results explicit | done |
 | 313 | [TASK-00134](../tasks/00134-TASK.md) | Correct Agent operation, scheduler and count query contracts | done |
 | 314 | [TASK-00135](../tasks/00135-TASK.md) | Make preparation and policy-preview results truthful | done |
 ## Decisions and Progress
+
+### Accepted completion checkpoint
+
+TASK-00132's six paged paths have independent Review v3 ACCEPT and complete nonvisual QA PASS for
+`98dcd31d4ab5e48ab4a8d9eb889dd0810b26aeba`, without findings. Its owning TASK records the retained full gate,
+exact coverage, minimum/ordinary lanes and mutable-result/persistence limits. All five child TASKs are now done;
+automatic parent completion closes TICKET-00039. EPIC-00016 remains open for unfinished children. Publication/final
+delivery verification remain pending at this administrative checkpoint; canonical `.runs/handoffs/TASK-00132/land.md`
+owns subsequent delivery/resource outcomes. Original independent reports and historical checkpoints remain preserved.
+This rollup does not certify whole-library generic typing, suppliers, actual consumer persistence or release.
+
+### Historical child checkpoints
 
 TASK-00135's preparation/policy-preview slice is independently accepted and done at
 `853e63718e3e158171af7b2e6498ace9d971c1c1`, with Review v3 ACCEPT and nonvisual QA PASS, no findings.
