@@ -1,6 +1,6 @@
 # Ordinary HTTP failure contracts (Unreleased)
 
-Ordinary HTTP admission and error handling are **separately selected**. Use Common `^1.4.2` and its canonical
+Ordinary HTTP admission and error handling are **separately selected**. Use Common `^1.5.0` and its canonical
 safe policy/diagnostics/projector through the [PSR-15](http-permission-admission.md),
 [Symfony](symfony-permission-admission.md), [Laravel](laravel-permission-admission.md) or
 [CodeIgniter 4](codeigniter-permission-admission.md) composition. No error handler is automatically installed.
@@ -85,7 +85,7 @@ the native guides retain historical qualification only. Current Common is tagged
 
 Update nullable-result callers and generic LookupException-to-404 catches directly to the actual current use-case
 contract. Keep unknown/internal faults as server failures; do not add a compatibility reader, fallback grant or
-another renderer. Select Common `^1.4.2`, supply real request-owned authentication, safe diagnostics, finite public
+another renderer. Select Common `^1.5.0`, supply real request-owned authentication, safe diagnostics, finite public
 projections and required scheme metadata, and qualify actual middleware/listener order and final responses.
 
 Maintained native fixtures cover Slim/Yii/Symfony and present Laravel/CI4 category/privacy paths, safe metadata,

@@ -32,6 +32,7 @@ Declare requirements on each Tool's `handle()` alongside Common's metadata, for 
 #[McpToolInfo('reports.read', 'Read a report', ['type' => 'object'], ['type' => 'object'])]
 #[RequiresAgentPermission('VIEW_REPORTS')]
 #[RequiresAgentPermission('VIEW_AUDIT')]
+// Import Fight\Common\Application\Mcp\Tool\McpProgressReporter.
 public function handle(ApplicationData $input, McpProgressReporter $progress): McpToolOutput
 ```
 

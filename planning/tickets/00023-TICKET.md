@@ -30,7 +30,19 @@ registration rather than silently correcting it. An administrator restoring a de
 The same User and Roles survive either registration-recovery variant. Recovery never reapplies newly configured
 registration defaults.
 
-## Security, Validation and Failure
+## Approved request-time authorization amendment
+
+John approved [ADR 0010's request-time authorization amendment](../adr/0010-permission-eligibility-and-caller-authorization.md#approved-amendment-request-time-authorization).
+It supersedes the additional package administrator-authorization requirement below and in TASK-00075: each entry
+must authenticate its caller and check operation permission and exact target before dispatch, without keeping that
+permission locked through ordinary commit. Remove the redundant RegistrationRecoveryAuthorization port rather
+than supplying a permissive implementation. A later request checks fresh authority. Preserve all registration
+eligibility, expiry, expected-generation, User/Role, email-claim/reservation, grant, audit and business-writer fences.
+The original acceptance below remains historical; this policy amendment is not implemented or independently
+accepted. Reuse TASK-00137's lifecycle ownership for the bounded follow-up rather than duplicating TASK-00075's
+completed implementation. Workflow invocation and actual consumer qualification remain separate.
+
+## Security, Validation and Failure (original contract; read with the amendment above)
 
 - Enforce administrator authorization inside the trusted package operation for the exact target, separate from
   user-supplied actor identity; consumers also protect every exposed dispatch and query path. Design the precise

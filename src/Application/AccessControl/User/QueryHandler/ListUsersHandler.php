@@ -9,6 +9,7 @@ use Fight\AccessControl\Domain\AccessControl\User\Query\UserView;
 use Fight\AccessControl\Domain\AccessControl\User\UserRepository;
 use Fight\Common\Application\Messaging\Query\QueryHandler;
 use Fight\Common\Domain\Collection\ArrayList;
+use Fight\Common\Domain\Exception\DomainException;
 use Fight\Common\Domain\Messaging\Query\QueryMessage;
 use Fight\Common\Domain\Repository\ResultSet;
 
@@ -45,12 +46,20 @@ final readonly class ListUsersHandler implements QueryHandler
         $query = $queryMessage->payload();
 
         $users = $this->userRepository->getAll($query->getPagination());
+        $users = ResultSet::strict($users->page(), $users->perPage(), $users->totalRecords(), $users->records());
+        if (
+            $users->page() !== $query->getPagination()->page()
+            || $users->perPage() !== $query->getPagination()->perPage()
+        ) {
+            throw new DomainException('The User page does not match the requested pagination.');
+        }
+
         $views = ArrayList::of(UserView::class);
-        foreach ($users->records() as $user) {
+        foreach ($users->records()->toArray() as $user) {
             $views->add(UserView::fromUser($user));
         }
 
-        return new ResultSet(
+        return ResultSet::strict(
             $users->page(),
             $users->perPage(),
             $users->totalRecords(),

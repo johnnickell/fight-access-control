@@ -6,11 +6,11 @@ namespace Fight\Test\AccessControl\Adapter\Mcp\Tool\Agent\Fixture;
 
 use Closure;
 use Fight\AccessControl\Adapter\Mcp\Tool\Agent\Attribute\RequiresAgentPermission;
-use Fight\Common\Application\Mcp\McpProgressReporter;
 use Fight\Common\Application\Mcp\Tool\Interaction\McpInputRequest;
 use Fight\Common\Application\Mcp\Tool\Interaction\McpInputRequired;
 use Fight\Common\Application\Mcp\Tool\Interaction\McpInputResponses;
 use Fight\Common\Application\Mcp\Tool\Interaction\McpInteractiveTool;
+use Fight\Common\Application\Mcp\Tool\McpProgressReporter;
 use Fight\Common\Application\Mcp\Tool\McpToolInfo;
 use Fight\Common\Application\Mcp\Tool\McpToolOutput;
 use Fight\Common\Application\Validation\Data\ApplicationData;

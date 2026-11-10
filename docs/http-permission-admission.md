@@ -9,11 +9,22 @@ before-filter admission and its thin Common-backed selected JSON error bridge. T
 validation privacy and all seven native contracts are reconciled in [ordinary HTTP failures](ordinary-http-failures.md).
 The combined EPIC release is not yet complete.
 
-## Portable admission evidence assessment (Unreleased)
+## Feature cooperation (Unreleased)
+
+[PSR-15 Feature admission](http-feature-admission.md) now consumes effective declarations independently of this
+Permission middleware. Adjacent gates may share one `RequestAuthentication` as their trusted factory/scope; both
+restrictions still apply and copied attributes never establish authority. PUBLIC Permission admission continues to
+skip authentication, but preserves a context already selected by the cooperating Feature gate. Standalone PUBLIC
+admission still erases an incoming copied context. See the Feature guide for exact lifetime and adjacency limits.
+
+## Historical portable admission evidence assessment (Unreleased)
 
 [TASK-00180](../planning/tasks/00180-TASK.md) assesses the current source against
 [EPIC-00018](../planning/epics/00018-EPIC.md) and [TICKET-00052](../planning/tickets/00052-TICKET.md).
-This is coverage accounting, not implementation, new supplier acceptance or consumer qualification.
+The assessment below preserves its earlier inspected snapshot and original gap ownership, not the current
+implementation inventory. TASK-00170 now supplies effective Feature declarations and TASK-00172 adds the shared
+PSR-15 Feature path described above; independent acceptance is recorded by those TASKs, not inferred here.
+This is historical coverage accounting, not new supplier acceptance or consumer qualification.
 “Accepted” below identifies bounded historical supplier acceptance; current source/tests establish what remains present.
 TASK-00103–00106 have independent Review/QA evidence, with later ownership/authority/HTTP changes integrated.
 In particular, Laravel and CI4 are implemented, unlike the EPIC's older inspected-baseline paragraph.
@@ -24,8 +35,9 @@ TASK-00146 supplies the current safe-error/minimum reconciliation; older native 
 **Permission-only currently means explicit trusted `PermissionDeclaration`, not portable `RequiresPermission`.**
 All four adapter implementations call shared inward admission without Feature evaluation/discovery/repository dependencies.
 FeatureAvailability can be called independently, but is not an HTTP Feature gate. There is no production Feature
-middleware/subscriber/filter, effective hierarchy merger or AccessControl portable RequiresPermission in this snapshot.
-TASK-00170–00179 are pending/unimplemented for their new contracts, not proof supplied by future manifests.
+middleware/subscriber/filter. TASK-00170 supplies effective Feature metadata; TASK-00171 now supplies
+[portable Permission metadata](permission-requirements.md), without native activation. TASK-00172–00179 retain
+native admission/integration ownership; metadata proof is not native acceptance.
 
 | Native family | Current Permission-only evidence to reuse | Feature-only / combined disposition and actual owner |
 | --- | --- | --- |
@@ -49,14 +61,14 @@ Application test paths are under `tests/Application/AccessControl/`; production 
 | --- | --- |
 | Canonical declarations, cumulative class/method/ancestor/override/route requirements, validation before deduplication and exact action association | [FeatureFlag](../src/Application/AccessControl/Feature/Attribute/FeatureFlag.php) and [FeatureFlagTest](../tests/Application/AccessControl/Feature/Attribute/FeatureFlagTest.php) now support repeated class/method declaration-only metadata. TASK-00170 adds [effective Feature requirements](feature-references.md) and shared pure SelectedAction ancestry/association, with native construction and hierarchy tests; independent acceptance remains separate from implementation. TASK-00170 owns this Feature declaration path; TASK-00171 owns portable Permission composition. Closure/invokable/inherited association and ambiguous-target rejection must consume those outputs, not a copied adapter merger. |
 | Scoped complete discovery, preparation/provisioning/retirement and no metadata side effects | [FeatureReferenceDiscovery](../src/Application/AccessControl/Feature/Discovery/FeatureReferenceDiscovery.php), [FeatureDiscoveryResultTest](../tests/Application/AccessControl/Feature/Discovery/FeatureDiscoveryResultTest.php), [ProvisionFeaturesHandlerTest](../tests/Application/AccessControl/Feature/CommandHandler/ProvisionFeaturesHandlerTest.php), [ValidateFeaturePreparationHandlerTest](../tests/Application/AccessControl/Feature/QueryHandler/ValidateFeaturePreparationHandlerTest.php), [RemoveFeatureHandlerTest](../tests/Application/AccessControl/Feature/CommandHandler/RemoveFeatureHandlerTest.php). Reuse complete-empty versus unavailable/partial/invalid, CANDIDATE versus CURRENT and real reference/revision guards. TASK-00170 adds class/repeated/overridden-parent discovery alignment and actual composed-handler tests; no production scanner is supplied. |
-| Raw Permission validation; deliberate PUBLIC/AUTHENTICATED/PROTECTED; effective conflict rejection | [PermissionDeclaration](../src/Application/AccessControl/Authorization/Admission/PermissionDeclaration.php) and [PermissionAdmissionTest](../tests/Application/AccessControl/Authorization/Admission/PermissionAdmissionTest.php) reject associative/non-list/wrong-type/duplicate/empty protected input and requirements on other modes. Missing declaration faults; absent Attribute is not PUBLIC. Reuse these tests unchanged in meaning. Effective deduplication and PUBLIC/AUTHENTICATED-only versus inherited Attribute conflict rejection are pending TASK-00171, not proved by raw validation alone. |
+| Raw Permission validation; deliberate PUBLIC/AUTHENTICATED/PROTECTED; effective conflict rejection | [PermissionDeclaration](../src/Application/AccessControl/Authorization/Admission/PermissionDeclaration.php) and [PermissionAdmissionTest](../tests/Application/AccessControl/Authorization/Admission/PermissionAdmissionTest.php) reject associative/non-list/wrong-type/duplicate/empty protected input and requirements on other modes. Missing declaration faults; absent Attribute is not PUBLIC. Reuse these tests unchanged in meaning. TASK-00171's [Permission requirements](permission-requirements.md) add effective deduplication and PUBLIC/AUTHENTICATED-only conflict rejection with native Attribute/hierarchy tests, preserving raw validation. Native consumption remains separate. |
 | Feature restriction versus action authorization; OFF/PREVIEW/ON, exact binding identity, anonymous/User/Agent and no writes | [FeatureAvailability](../src/Application/AccessControl/Feature/Service/FeatureAvailability.php) and [FeatureAvailabilityTest](../tests/Application/AccessControl/Feature/Service/FeatureAvailabilityTest.php) establish OFF denies everyone, PREVIEW uses captured bound Permission ID (not name/role), ON allows anonymous Feature passage, and broken/mismatched bindings fault at every status. [PermissionAdmissionTest](../tests/Application/AccessControl/Authorization/Admission/PermissionAdmissionTest.php) separately proves all Permissions, User Role-derived/Agent direct authority and no administrator bypass. Neither independent result proves a combined native gate cannot bypass the other. |
 | Fresh settings but captured grants; no live/background lease | [FeatureAvailabilityConformance](../tests/Application/AccessControl/Feature/Conformance/FeatureAvailabilityConformance.php) checks status/binding changes with the same evaluator/principal and explicit later rechecks; [FeatureManagementTest](../tests/Application/AccessControl/Feature/CommandHandler/FeatureManagementTest.php) checks real setting/binding edits. Reuse this shared proof, not five copies. Actual ORM/cache freshness and all-writer storage behavior remain consumer-unqualified; refreshing settings does not refresh principal grants. |
 | Trusted current authority, no invalid-context-to-anonymous fallback, one authentication/nonce and isolated request lifetime | [RequestAuthority](../src/Application/AccessControl/Authorization/Admission/RequestAuthority.php), PermissionAdmissionTest and each native test above prove real User/Agent resolution, copied-context rejection, ordinary multiple-Permission single nonce, fresh sequential requests and supported nested isolation. Current PUBLIC admission deliberately clears context and skips authentication. These are sufficient base Permission facts, **not** a trusted cross-capability context-sharing contract. Feature context adaptation/cooperation is pending TASK-00172 and native peers; portable peers must preserve it without trusting incoming attributes. |
 | Generic Feature 404 versus missing/broken definitions, configuration/provider/storage faults and Permission refusal/challenge | FeatureAvailabilityTest already distinguishes false from missing/broken/mismatched/state/storage exceptions. Native Permission tests establish known 401/403 versus opaque 500 and validated consumer challenges. Reuse [ordinary HTTP failures](ordinary-http-failures.md) and its actual current categories; HTTP translation of ordinary Feature denial only is pending TASK-00172–00175. Do not reuse optional earlier broken-binding concealment advice as the new Feature contract. |
 | Native order, construction, target/response lifetime, exceptions and unsupported forms | The five-family references above establish existing Permission boundaries, not universal pre-construction protection. Symfony tests cover distinct main/subrequests and RequestStack restoration; Laravel covers reused/nested requests but not automatic ambient router/container restoration; CI4 covers reset sequential requests and distinct context keys, not reentrant global-service dispatch. New metadata/Feature insertion must preserve these limits in its owning native slice. Admission/merging creates no business Command/Query/Event, transaction or mutation audit; normal authentication effects remain separate. |
 | One safe reporting owner, header/negotiation/finite output/fallback, protocol exclusions | PSR native tests plus [ProtocolExclusionTest](../tests/Adapter/Middleware/Psr15/ProtocolExclusionTest.php), Symfony native tests, Laravel [SafeLifecycleTest](../tests/Adapter/Middleware/Laravel/SafeLifecycleTest.php), CI4 native tests and [SafeErrorResponderTest](../tests/Adapter/Http/CodeIgniter/SafeErrorResponderTest.php) cover sink/projector/encoder/renderer faults, one report attempt and safe finite output. Current TASK-00146 reconciles all paths. Reuse this evidence; only new Feature translation/insertion needs its supplier proof. Selected JSON is not global HTML safety; MCP/OAuth envelopes stay separate. Symfony needs `handleAllThrowables: true`; outer/later response handling is not automatically contained. |
-| Independent installation, optional dependencies, tagged sufficient minimum/ordinary lanes and current guidance | [composer.json](../composer.json) requires Common `^1.4.2` and PSR contracts, with native frameworks dev-only/suggested and no automatic registration. [Current minima and consumer bounds](ordinary-http-failures.md#consumer-obligations-and-evidence-bounds) supersede historical tag floors. TASK-00103–00106 supplied isolated/core/native lanes; TASK-00146 requalified current Common/native minima and optional no-dev lanes. Reuse their exact retained locks/tag/source/exit/acceptance evidence, not an installed path or coverage percentage. Those lanes do not yet qualify unimplemented Feature/portable selections or every version in a semver range. |
+| Independent installation, optional dependencies, tagged sufficient minimum/ordinary lanes and current guidance | [composer.json](../composer.json) requires Common `^1.5.0` and PSR contracts, with native frameworks dev-only/suggested and no automatic registration. [Current minima and consumer bounds](ordinary-http-failures.md#consumer-obligations-and-evidence-bounds) supersede historical tag floors. TASK-00103–00106 supplied isolated/core/native lanes; TASK-00146 requalified current Common/native minima and optional no-dev lanes. Reuse their exact retained locks/tag/source/exit/acceptance evidence, not an installed path or coverage percentage. Those lanes do not yet qualify unimplemented Feature/portable selections or every version in a semver range. |
 
 ### Genuine gaps and smallest recovery inputs
 
@@ -88,13 +100,15 @@ operation, compatibility mode, release, deployment or new grant is authorized by
 
 | Mode | Requirements | Behavior |
 | --- | --- | --- |
-| `PUBLIC` | Empty | No authority factory/provider resolution; remove inherited SecurityContext attribute. |
+| `PUBLIC` | Empty | No authority factory/provider resolution; remove copied SecurityContext, preserving only an active cooperating gate's privately selected context. |
 | `AUTHENTICATED` | Empty | Require one complete actual User or Agent authority, without a Permission grant. |
 | `PROTECTED` | Nonempty list of distinct `PermissionName` values | Require every named Permission. |
 
 The constructor rejects wrong types, associative arrays, duplicate names, empty protected requirements and
-requirements on other modes. Permission names retain their existing canonical validation. There is no attribute
-scanner, callback reflection policy, route-name allowlist, union/override rule or implicit public default.
+requirements on other modes. Permission names retain their existing canonical validation. Pure optional
+[PermissionRequirements](permission-requirements.md) composes portable Attributes using the shared selected-action
+traversal. Existing native adapters do not consume it automatically. There is no production scanner, route-name
+allowlist, union/override rule or implicit public default.
 A missing declaration (`null`) fails as configuration error, before resolving authentication. Invalid declarations
 normally fail at composition/bootstrap; dynamic composition faults also remain server failures.
 
@@ -106,7 +120,7 @@ replace the declaration. Every ordinary route must deliberately install its admi
 public routes. A route with no middleware is outside this adapter's coverage, **not** automatically protected.
 Audit actual consumer registration; this package cannot detect an omitted registration in another application.
 
-The required authority factory has signature `Closure(ServerRequestInterface): ?RequestAuthority`. It is **trusted
+A standalone authority factory has signature `Closure(ServerRequestInterface): ?RequestAuthority`. It is **trusted
 consumer composition**, not a request-supplied callable. Return null for genuinely absent selected authentication.
 Otherwise choose exactly one of:
 
@@ -246,7 +260,7 @@ behavior stays unchanged. Agent OS's custom mapper is not a drop-in migration ta
 
 ## Qualified minimums and limits
 
-Current package minimum is Common `^1.4.2` for the selected native safe-error composition. TASK-00146 requalifies
+Current package minimum is Common `^1.5.0` for the selected native safe-error composition. TASK-00146 requalifies
 ordinary typed categories, privacy, fallback and optional native lanes; see [current contracts](ordinary-http-failures.md).
 The full default suite rechecks shared/Slim/Yii behavior on that current installed dependency. The table and source/archive counts below preserve TASK-00103's original qualification lane,
 not the current installed lock or a claim that Laravel works with 1.4.0.

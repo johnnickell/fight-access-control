@@ -11,7 +11,7 @@ use Fight\AccessControl\Domain\AccessControl\Agent\AgentName;
 use Fight\AccessControl\Domain\AccessControl\Agent\AgentProfilePermissions;
 use Fight\AccessControl\Domain\AccessControl\Agent\AgentUpdateInitiator;
 use Fight\AccessControl\Domain\AccessControl\Agent\Command\UpdateAgent;
-use Fight\Common\Application\Mcp\McpProgressReporter;
+use Fight\Common\Application\Mcp\Tool\McpProgressReporter;
 use Fight\Common\Application\Mcp\Tool\McpTool;
 use Fight\Common\Application\Mcp\Tool\McpToolInfo;
 use Fight\Common\Application\Mcp\Tool\McpToolOutput;

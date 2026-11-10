@@ -23,16 +23,24 @@ use Psr\Http\Server\RequestHandlerInterface;
  */
 final readonly class PermissionMiddleware implements MiddlewareInterface
 {
+    private RequestAuthentication $authentication;
+
     /**
      * Constructs PermissionMiddleware
      *
-     * @phpstan-param Closure(ServerRequestInterface): ?RequestAuthority $authority
+     * @phpstan-param (Closure(ServerRequestInterface): ?RequestAuthority)|RequestAuthentication $authority
      */
     public function __construct(
         private ?PermissionDeclaration $declaration,
-        private Closure $authority,
+        Closure|RequestAuthentication $authority,
         private PermissionAdmission $admission = new PermissionAdmission()
     ) {
+        $authentication = $authority;
+        if ($authority instanceof Closure) {
+            $authentication = new RequestAuthentication($authority);
+        }
+
+        $this->authentication = $authentication;
     }
 
     /**
@@ -40,17 +48,12 @@ final readonly class PermissionMiddleware implements MiddlewareInterface
      */
     public function process(ServerRequestInterface $request, RequestHandlerInterface $handler): ResponseInterface
     {
-        $authority = null;
-        if ($this->declaration !== null && $this->declaration->mode !== AdmissionMode::PUBLIC) {
-            $authority = ($this->authority)($request);
-        }
-
-        $context = $this->admission->admit($this->declaration, $authority);
-        $request = $request->withoutAttribute(SecurityContext::class);
-        if ($context !== null) {
-            $request = $request->withAttribute(SecurityContext::class, $context);
-        }
-
-        return $handler->handle($request);
+        return $this->authentication->admit(
+            $request,
+            $handler,
+            fn(?RequestAuthority $authority): ?SecurityContext =>
+                $this->admission->admit($this->declaration, $authority),
+            $this->declaration !== null && $this->declaration->mode !== AdmissionMode::PUBLIC
+        );
     }
 }

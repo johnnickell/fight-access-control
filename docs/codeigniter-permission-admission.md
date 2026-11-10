@@ -177,7 +177,7 @@ filter: PUBLIC is not a protocol exclusion. No JSON-RPC concealment, OAuth chall
 
 ## Qualified minimum and remaining consumer duties
 
-Current package Common minimum is `^1.4.2` for the selected safe-error composition. TASK-00146 requalifies CI4
+Current package Common minimum is `^1.5.0` for the selected safe-error composition. TASK-00146 requalifies CI4
 categories/privacy and native ordering alongside the other present peers; see
 [ordinary HTTP contracts](ordinary-http-failures.md). Current full default tests recheck CI4 on that dependency.
 The identities/counts below preserve TASK-00106's original qualification, not today's installed lock.

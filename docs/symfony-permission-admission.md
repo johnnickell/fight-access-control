@@ -127,7 +127,7 @@ uses [current continuation authority](agent-continuation-authorization.md) at it
 
 ## One Common native safe error owner
 
-Select Common `^1.4.2`'s canonical `Adapter\Http\Symfony\EventSubscriber\SafeSymfonyExceptionSubscriber`, with its
+Select Common `^1.5.0`'s canonical `Adapter\Http\Symfony\EventSubscriber\SafeSymfonyExceptionSubscriber`, with its
 `Controller\SafeErrorController`, `Adapter\Http\Error\SafeHttpErrorPolicy`, required redaction-aware
 `SafeHttpDiagnostics` and optional `SafeHttpProjector`. Register `onKernelException` explicitly on
 `kernel.exception` at **64**, before Symfony ErrorListener's `logKernelException` at **0**. It is deliberately not an
@@ -166,7 +166,7 @@ JSend handler. This package installs no protocol or global allowlist and changes
 
 ## Qualified tags and remaining obligations
 
-Current package Common minimum is `^1.4.2`; current HttpFoundation/HttpKernel dev/suggestion floors are `^8.1.11`.
+Current package Common minimum is `^1.5.0`; current HttpFoundation/HttpKernel dev/suggestion floors are `^8.1.11`.
 TASK-00146 requalifies the selected Symfony safe-error contract and native minima, including the explicit Throwable
 kernel option. Routing and optional Security HTTP now also require `^8.1.11` after the older lower-bound audit
 reported advisories; supported-minimum and ordinary lanes report none. [Laravel qualification](laravel-permission-admission.md) previously established the 8.1.11 component

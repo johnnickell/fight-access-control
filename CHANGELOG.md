@@ -9,10 +9,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Optional Feature-only PSR-15 admission with shared inward restrictions, separately exercised real Slim/Yii 3
+  bindings, effective inherited requirements and trusted request-owned User/Agent/anonymous context. Cooperating
+  Permission gates share one authentication selection without trusting copied attributes or replaying Agent nonces.
+  Only ordinary OFF/unmet PREVIEW yields generic 404; binding/configuration/provider faults remain safe errors under
+  Common's existing reporting owner. See [Feature HTTP composition](docs/http-feature-admission.md).
+
+- Portable repeatable class/method `RequiresPermission` and effective `PermissionRequirements`, reusing shared
+  selected-action ancestry. Attribute-only protection and trusted route conjunction preserve parent gates, validate
+  before deduplication and reject conflicting explicit modes without changing raw declaration or admission rules.
+  Pure metadata only: no automatic native enforcement, Feature dependency or new grant. See
+  [Permission declarations](docs/permission-requirements.md).
 - Effective Feature requirements bound to trusted selected class/method, inherited/overridden/invokable or closure
   actions, with one reusable pure ancestry mechanism. Class, method, parent and explicit route gates accumulate;
   validation precedes deduplication. Scoped fixture discovery and actual preparation/provisioning/retirement callers
-  account for all declarations. No production scanner, native admission or Permission grant is supplied. See
+  account for all declarations. No production scanner or Permission grant is supplied; optional native enforcement is separately described above. See
   [Feature declarations](docs/feature-references.md).
 - Optional route-bound PSR-15 Permission admission with shared inward declarations and trusted User/Agent authority
   selection, separately qualified Slim/Yii 3 composition, request isolation and Common-owned safe HTTP errors.
@@ -32,7 +43,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   callers, hydration and consumer persistence mapping directly; no old-shape reader or backfill is supplied.
   Existing transaction, recovery and publication policies remain. Actual optional constructor wiring and expanded
   family outcomes remain separate work, not enabled by this replacement. See [typed evidence](docs/audit-evidence.md).
-- **Current ordinary HTTP composition:** require Common `^1.4.2` and optional Symfony Routing/Security HTTP
+- Adopt published Common `^1.5.0` canonical MCP foundation and HTTP adapter spellings and Skill getters, with
+  exact-minimum and ordinary composition proof. Upstream runtime identity, profile/Resource/Skill output,
+  validation, independent authority, nonce/request lifetimes and transaction/publication behavior remain.
+  No future MCP family or consumer deployment is qualified. See the [contract inventory](docs/common-contracts.md).
+- **Current ordinary HTTP composition:** require Common `^1.5.0` and optional Symfony Routing/Security HTTP
   `^8.1.11`; qualify typed 404/409/412/422 versus internal
   500, private structured validation, required metadata and one safe reporting/fallback owner. Symfony composition
   must explicitly select `handleAllThrowables: true` for PHP Errors to enter safe dispatch. Its event-map static

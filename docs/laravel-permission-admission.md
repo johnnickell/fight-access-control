@@ -8,7 +8,7 @@ User Role-derived versus Agent direct Permissions and separate target-scope auth
 
 ## Install and select deliberately
 
-The current selected combination is Common `^1.4.2`, Laravel framework `^13.40.0`, Symfony HttpFoundation/HttpKernel
+The current selected combination is Common `^1.5.0`, Laravel framework `^13.40.0`, Symfony HttpFoundation/HttpKernel
 `^8.1.11` and Event Dispatcher `^8.1.5`, on patched PHP 8.5.12. Laravel is a dev fixture and optional suggestion,
 not a required production framework. A consumer selecting Laravel installs and maintains its native components:
 
