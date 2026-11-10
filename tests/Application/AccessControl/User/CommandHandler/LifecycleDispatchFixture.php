@@ -99,7 +99,7 @@ final readonly class LifecycleDispatchFixture
 
         $this->command = match ($operation) {
             'register' => $fixture->command(),
-            'invite' => new InvitePendingUser($actorId->toString(), $userId, $email),
+            'invite' => new InvitePendingUser($actorId, $userId, $email),
             'enable' => new EnableUser($actorId, $userId),
             'disable' => new DisableUser($actorId, $userId),
             'delete' => new DeleteUser($actorId, $userId),

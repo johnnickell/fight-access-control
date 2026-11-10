@@ -66,9 +66,10 @@ final class InvitePendingUserHandlerTest extends TestCase
             $eventDispatcher
         );
         $userId = UserId::generate();
+        $actorId = UserId::generate();
 
         $handler->handle(CommandMessage::create(new InvitePendingUser(
-            'Admin-42',
+            $actorId,
             $userId,
             EmailAddress::fromString('Alice@example.test')
         )));
@@ -85,7 +86,8 @@ final class InvitePendingUserHandlerTest extends TestCase
         self::assertSame($userId, $activationGrantRepository->all()[0]->getUserId());
         self::assertSame(ActivationOrigin::PRIVATE_INVITATION, $activationGrantRepository->all()[0]->getOrigin());
         self::assertSame($userId, $activationGrantRepository->all()[0]->getDelivery()->getUserId());
-        self::assertSame($userId, $auditEvidenceRepository->all()[0]->subjectId());
+        self::assertSame($userId, $auditEvidenceRepository->all()[0]->getSubject()->getId());
+        self::assertSame($actorId, $auditEvidenceRepository->all()[0]->actorId());
         self::assertInstanceOf(UserInvited::class, $eventDispatcher->events()[0]);
     }
 
@@ -107,7 +109,7 @@ final class InvitePendingUserHandlerTest extends TestCase
         $this->expectException(StateConflict::class);
         try {
             $handler->handle(CommandMessage::create(new InvitePendingUser(
-                'Admin-42',
+                UserId::generate(),
                 UserId::generate(),
                 EmailAddress::fromString('ALICE@example.test')
             )));
@@ -133,7 +135,7 @@ final class InvitePendingUserHandlerTest extends TestCase
         $this->expectException(RuntimeException::class);
         try {
             $handler->handle(CommandMessage::create(new InvitePendingUser(
-                'Admin-42',
+                UserId::generate(),
                 UserId::generate(),
                 EmailAddress::fromString('alice@example.test')
             )));
@@ -162,12 +164,12 @@ final class InvitePendingUserHandlerTest extends TestCase
         );
 
         $handler->handle(CommandMessage::create(new InvitePendingUser(
-            'Admin-42',
+            UserId::generate(),
             UserId::generate(),
             EmailAddress::fromString('alice@example.test')
         )));
         $handler->handle(CommandMessage::create(new InvitePendingUser(
-            'Admin-42',
+            UserId::generate(),
             UserId::generate(),
             EmailAddress::fromString('bob@example.test')
         )));
@@ -193,7 +195,7 @@ final class InvitePendingUserHandlerTest extends TestCase
         $this->expectException(LogicException::class);
         try {
             $handler->handle(CommandMessage::create(new InvitePendingUser(
-                'Admin-42',
+                UserId::generate(),
                 UserId::generate(),
                 EmailAddress::fromString('alice@example.test')
             )));
@@ -227,7 +229,7 @@ final class InvitePendingUserHandlerTest extends TestCase
                 throw new RuntimeException('Synthetic notification failure.');
             });
             $command = new InvitePendingUser(
-                'test-actor',
+                UserId::generate(),
                 UserId::generate(),
                 EmailAddress::fromString('person@example.test')
             );
@@ -268,7 +270,7 @@ final class InvitePendingUserHandlerTest extends TestCase
                 self::assertSame(UserState::PENDING_ACTIVATION, $userRepository->all()[0]->getState());
                 self::assertTrue($activationGrantRepository->all()[0]->isIssued());
                 self::assertTrue($activationGrantRepository->all()[0]->getDelivery()->hasRecoverableMaterial());
-                self::assertSame('user.invited', $auditEvidenceRepository->all()[0]->action());
+                self::assertSame('user.invited', $auditEvidenceRepository->all()[0]->action()->value);
             }
         }
     }

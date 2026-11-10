@@ -1,7 +1,9 @@
 # Human delivery Event composition
 
 TASK-00136 accepts static Common `eventRegistration()` plus accurate local payload `@var` annotations. All three
-subscribers and the shared `Timing/Service/Clock` already conform; no replacement API or dispatcher is introduced.
+subscribers and the shared `Timing/Service/Clock` conform; no replacement API or dispatcher is introduced.
+The current map retains TASK-00122's adopted typed actor contracts during advancing-base integration; the original
+TASK-00136 acceptance qualified the preceding string-provenance snapshot.
 This is not generic Event inference. Common's `EventMessage::payload()` remains statically `Payload`, and its
 registration strings cannot prove the Event-to-method relationship. PHPStan fixtures explicitly retain that limit.
 
@@ -13,13 +15,13 @@ extracts the matching locally annotated fact and returns void after `execute()` 
 
 | Owner / method | Registered fact | Dispatched Command / actor |
 | --- | --- | --- |
-| ActivationGrant/EventSubscriber/InvitationDeliverySubscriber::onInvitationDeliveryResent | InvitationDeliveryResent | DeliverUserInvitation / original string actor |
-| ::onInvitationDeliveryRetryRequested | InvitationDeliveryRetryRequested | DeliverUserInvitation / original string actor |
-| ::onPendingRegistrationRecovered | PendingRegistrationRecovered | DeliverUserInvitation / explicit UserId actor converted to string |
-| ::onUserInvited | UserInvited | DeliverUserInvitation / original string actor |
-| ::onUserRegistered | UserRegistered | DeliverUserInvitation / literal registration provenance |
-| ::onUserRestored | UserRestored | DeliverUserInvitation / explicit UserId actor converted to string, only with a delivery ID |
-| PasswordResetGrant/EventSubscriber/PasswordResetDeliverySubscriber::onPasswordResetRequested | PasswordResetRequested | DeliverPasswordReset / literal anonymous provenance |
+| ActivationGrant/EventSubscriber/InvitationDeliverySubscriber::onInvitationDeliveryResent | InvitationDeliveryResent | DeliverUserInvitation / original typed actor |
+| ::onInvitationDeliveryRetryRequested | InvitationDeliveryRetryRequested | DeliverUserInvitation / original typed actor |
+| ::onPendingRegistrationRecovered | PendingRegistrationRecovered | DeliverUserInvitation / original UserId actor |
+| ::onUserInvited | UserInvited | DeliverUserInvitation / original typed actor |
+| ::onUserRegistered | UserRegistered | DeliverUserInvitation / canonical AnonymousId |
+| ::onUserRestored | UserRestored | DeliverUserInvitation / original UserId actor, only with a delivery ID |
+| PasswordResetGrant/EventSubscriber/PasswordResetDeliverySubscriber::onPasswordResetRequested | PasswordResetRequested | DeliverPasswordReset / canonical AnonymousId |
 | EmailChangeGrant/EventSubscriber/EmailChangeDeliverySubscriber::onEmailChangeRequested | EmailChangeRequested | DeliverEmailChange / original UserId actor |
 
 Every command carries the exact fact's User ID and purpose-specific delivery-generation ID. Recovery uses the

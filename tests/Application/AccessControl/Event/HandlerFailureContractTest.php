@@ -195,6 +195,7 @@ final class HandlerFailureContractTest extends TestCase
 
         $data = [
             'actor_id'                                => $id,
+            'actor_kind'                              => 'user',
             'user_id'                                 => $id,
             'target_user_id'                          => $id,
             'agent_id'                                => $id,

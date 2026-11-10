@@ -17,6 +17,7 @@ use Fight\AccessControl\Application\AccessControl\PasswordResetGrant\CommandHand
 use Fight\AccessControl\Application\AccessControl\RefreshSession\Service\SessionRevocationService;
 use Fight\AccessControl\Domain\AccessControl\ActivationGrant\ActivationGrantRepository;
 use Fight\AccessControl\Domain\AccessControl\ActivationGrant\Command\ResendInvitationDelivery;
+use Fight\AccessControl\Domain\AccessControl\Audit\AnonymousId;
 use Fight\AccessControl\Domain\AccessControl\CredentialDelivery\CredentialDeliveryFailure;
 use Fight\AccessControl\Domain\AccessControl\CredentialDelivery\CredentialDeliveryStatus;
 use Fight\AccessControl\Domain\AccessControl\CredentialDelivery\Query\FindExpiredCredentialDeliveries;
@@ -29,6 +30,7 @@ use Fight\AccessControl\Domain\AccessControl\PasswordResetGrant\PasswordResetGra
 use Fight\AccessControl\Domain\AccessControl\Role\RoleId;
 use Fight\AccessControl\Domain\AccessControl\User\Event\RedactedCommandFailed;
 use Fight\AccessControl\Domain\AccessControl\User\User;
+use Fight\AccessControl\Domain\AccessControl\User\UserId;
 use Fight\AccessControl\Domain\AccessControl\User\UserRepository;
 use Fight\Common\Application\Error\Exception\AuthenticationRequired as EmailChangeConfirmationRejectedException;
 use Fight\Common\Application\Error\Exception\StateConflict;
@@ -469,7 +471,7 @@ final class ExpiredCredentialInterleavingTest extends TestCase
             );
 
             return static fn () => $handler->handle(CommandMessage::create(new ResendInvitationDelivery(
-                'worker:replacement',
+                UserId::generate(),
                 $fixture->user->getId()
             )));
         }
@@ -542,7 +544,7 @@ final class ExpiredCredentialInterleavingTest extends TestCase
                 $eventDispatcher
             );
 
-            return static fn () => $service->confirmEmail($fixture->user->getId(), 'fixture');
+            return static fn () => $service->confirmEmail($fixture->user->getId(), 'fixture', AnonymousId::generate());
         }
 
         $handler = new CancelEmailChangeHandler(

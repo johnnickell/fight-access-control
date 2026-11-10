@@ -8,8 +8,16 @@ use DateTimeImmutable;
 use Fight\AccessControl\Application\AccessControl\PasswordResetGrant\Service\PasswordResetRevocationService;
 use Fight\AccessControl\Application\AccessControl\RefreshSession\Service\SessionRevocationService;
 use Fight\AccessControl\Application\AccessControl\Timing\Service\Clock;
+use Fight\AccessControl\Domain\AccessControl\Agent\AgentId;
+use Fight\AccessControl\Domain\AccessControl\Audit\AnonymousId;
+use Fight\AccessControl\Domain\AccessControl\Audit\AuditAction;
 use Fight\AccessControl\Domain\AccessControl\Audit\AuditEvidence;
 use Fight\AccessControl\Domain\AccessControl\Audit\AuditEvidenceRepository;
+use Fight\AccessControl\Domain\AccessControl\Audit\AuditGrantState;
+use Fight\AccessControl\Domain\AccessControl\Audit\AuditSubject;
+use Fight\AccessControl\Domain\AccessControl\Audit\AuditUserOutcome;
+use Fight\AccessControl\Domain\AccessControl\Audit\AuditUserRevisions;
+use Fight\AccessControl\Domain\AccessControl\Audit\SystemId;
 use Fight\AccessControl\Domain\AccessControl\EmailChangeGrant\EmailChangeCredential;
 use Fight\AccessControl\Domain\AccessControl\EmailChangeGrant\EmailChangeGrant;
 use Fight\AccessControl\Domain\AccessControl\EmailChangeGrant\EmailChangeGrantRepository;
@@ -55,13 +63,15 @@ final readonly class EmailChangeConfirmation
      */
     public function confirmEmail(
         UserId $userId,
-        #[SensitiveParameter] string $emailChangeCredential
+        #[SensitiveParameter] string $emailChangeCredential,
+        UserId|AgentId|SystemId|AnonymousId|null $actorId = null
     ): void {
         try {
             /** @var DateTimeImmutable $confirmedAt */
             $confirmedAt = $this->unitOfWork->commitTransactional(function () use (
                 $userId,
-                $emailChangeCredential
+                $emailChangeCredential,
+                $actorId
             ): DateTimeImmutable {
                 $confirmedAt = $this->clock->now();
                 $user = $this->userRepository->getById($userId);
@@ -101,9 +111,15 @@ final readonly class EmailChangeConfirmation
                     throw new AuthenticationRequired('Email change confirmation rejected.');
                 }
 
+                if ($actorId === null) {
+                    throw new AuthenticationRequired('Email change confirmation rejected.');
+                }
+
                 $replacementUser = clone $user;
                 $replacementUser->confirmEmailChange($confirmedAt);
-                if (!$this->emailChangeGrantRepository->replace($grant, $grant->consume($confirmedAt))) {
+
+                $consumedGrant = $grant->consume($confirmedAt);
+                if (!$this->emailChangeGrantRepository->replace($grant, $consumedGrant)) {
                     throw new AuthenticationRequired('Email change confirmation rejected.');
                 }
 
@@ -118,9 +134,17 @@ final readonly class EmailChangeConfirmation
                 $this->sessionRevocationService->revokeAllActiveFor($userId, $confirmedAt);
 
                 $this->auditEvidenceRepository->add(AuditEvidence::record(
-                    $userId->toString(),
-                    'user.email_change_confirmed',
-                    $userId
+                    $actorId,
+                    new AuditSubject($userId),
+                    AuditAction::EMAIL_CHANGE_CONFIRMED,
+                    $confirmedAt,
+                    new AuditUserOutcome(
+                        AuditUserRevisions::fromUser($user),
+                        AuditUserRevisions::fromUser($replacementUser),
+                        AuditGrantState::fromGrant($grant),
+                        AuditGrantState::fromGrant($consumedGrant)
+                    ),
+                    null
                 ));
 
                 return $confirmedAt;

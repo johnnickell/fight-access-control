@@ -13,6 +13,7 @@ use Fight\AccessControl\Domain\AccessControl\ActivationGrant\ActivationDeliveryI
 use Fight\AccessControl\Domain\AccessControl\ActivationGrant\Command\DeliverUserInvitation;
 use Fight\AccessControl\Domain\AccessControl\ActivationGrant\Event\InvitationDeliveryResent;
 use Fight\AccessControl\Domain\AccessControl\ActivationGrant\Event\InvitationDeliveryRetryRequested;
+use Fight\AccessControl\Domain\AccessControl\Audit\AnonymousId;
 use Fight\AccessControl\Domain\AccessControl\EmailChangeGrant\Command\DeliverEmailChange;
 use Fight\AccessControl\Domain\AccessControl\EmailChangeGrant\EmailChangeDeliveryId;
 use Fight\AccessControl\Domain\AccessControl\EmailChangeGrant\Event\EmailChangeRequested;
@@ -66,27 +67,27 @@ final class DeliverySubscriberCompositionTest extends TestCase
         $emailChange = EmailChangeDeliveryId::generate();
         $email = EmailAddress::fromString('delivery@example.test');
         $now = new DateTimeImmutable('2030-01-01T00:00:00Z');
-        $invitation = new DeliverUserInvitation('Admin-42', $user, $activation);
-        yield 'invited' => [new UserInvited('Admin-42', $user, $activation, $email, $now), $invitation];
-        yield 'resent' => [new InvitationDeliveryResent('Admin-42', $user, $activation), $invitation];
-        yield 'retry' => [new InvitationDeliveryRetryRequested('Admin-42', $user, $activation), $invitation];
+        $invitation = new DeliverUserInvitation($actor, $user, $activation);
+        yield 'invited' => [new UserInvited($actor, $user, $activation, $email, $now), $invitation];
+        yield 'resent' => [new InvitationDeliveryResent($actor, $user, $activation), $invitation];
+        yield 'retry' => [new InvitationDeliveryRetryRequested($actor, $user, $activation), $invitation];
         yield 'registered' => [
             new UserRegistered($user, $activation, $email, $now),
-            new DeliverUserInvitation('registration', $user, $activation)
+            new DeliverUserInvitation(AnonymousId::generate(), $user, $activation)
         ];
         yield 'recovered' => [
             new PendingRegistrationRecovered($actor, $user, ActivationDeliveryId::generate(), $activation, $email),
-            new DeliverUserInvitation($actor->toString(), $user, $activation)
+            new DeliverUserInvitation($actor, $user, $activation)
         ];
         yield 'restored-pending' => [
             new UserRestored($actor, $user, UserState::PENDING_ACTIVATION, $activation),
-            new DeliverUserInvitation($actor->toString(), $user, $activation)
+            new DeliverUserInvitation($actor, $user, $activation)
         ];
         yield 'restored-active' => [new UserRestored($actor, $user, UserState::ACTIVE), null];
         yield 'restored-without-delivery' => [new UserRestored($actor, $user, UserState::PENDING_ACTIVATION), null];
         yield 'reset' => [
             new PasswordResetRequested($user, $reset, $now),
-            new DeliverPasswordReset('anonymous', $user, $reset)
+            new DeliverPasswordReset(AnonymousId::generate(), $user, $reset)
         ];
         yield 'email-change' => [
             new EmailChangeRequested($actor, $user, $emailChange, $email, $now),
@@ -144,7 +145,7 @@ final class DeliverySubscriberCompositionTest extends TestCase
         ));
         $dispatcher->unregister($subscriber);
         $dispatcher->trigger(new InvitationDeliveryRetryRequested(
-            'Admin-42',
+            UserId::generate(),
             UserId::generate(),
             ActivationDeliveryId::generate()
         ));
@@ -174,7 +175,11 @@ final class DeliverySubscriberCompositionTest extends TestCase
         $router->registerHandler($handler::commandRegistration(), $handler);
         $userId = UserId::generate();
         try {
-            $bus->execute(new InvitePendingUser('Admin-42', $userId, EmailAddress::fromString('issued@example.test')));
+            $bus->execute(new InvitePendingUser(
+                UserId::generate(),
+                $userId,
+                EmailAddress::fromString('issued@example.test')
+            ));
             self::fail('An unconfigured delivery worker cannot appear successful.');
         } catch (EventDispatchFailed $eventDispatchFailed) {
             self::assertCount(1, $eventDispatchFailed->failures());
@@ -202,7 +207,7 @@ final class DeliverySubscriberCompositionTest extends TestCase
         $dispatcher->register(new InvitationDeliverySubscriber(new RoutingCommandBus($router)));
         try {
             $dispatcher->trigger(new InvitationDeliveryRetryRequested(
-                'Admin-42',
+                UserId::generate(),
                 UserId::generate(),
                 ActivationDeliveryId::generate()
             ));

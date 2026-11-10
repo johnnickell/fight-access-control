@@ -9,7 +9,10 @@ use Fight\AccessControl\Application\AccessControl\User\CommandHandler\CorrectPen
 use Fight\AccessControl\Domain\AccessControl\ActivationGrant\ActivationCredential;
 use Fight\AccessControl\Domain\AccessControl\ActivationGrant\ActivationGrant;
 use Fight\AccessControl\Domain\AccessControl\ActivationGrant\ActivationOrigin;
+use Fight\AccessControl\Domain\AccessControl\Audit\AuditAction;
 use Fight\AccessControl\Domain\AccessControl\Audit\AuditEvidence;
+use Fight\AccessControl\Domain\AccessControl\Audit\AuditGrantState;
+use Fight\AccessControl\Domain\AccessControl\Audit\AuditUserOutcome;
 use Fight\AccessControl\Domain\AccessControl\User\Command\CorrectPendingInvitation;
 use Fight\AccessControl\Domain\AccessControl\User\Event\PendingInvitationCorrected;
 use Fight\AccessControl\Domain\AccessControl\User\User;
@@ -121,10 +124,19 @@ final class CorrectPendingInvitationHandlerTest extends TestCase
         self::assertSame(1, $authorization->calls());
         self::assertSame($actorId, $authorization->lastActorId());
         self::assertSame($user->getId(), $authorization->lastUserId());
-        self::assertSame('user.pending_invitation_corrected', $auditEvidenceRepository->all()[0]->action());
-        self::assertSame($actorId->toString(), $auditEvidenceRepository->all()[0]->actorId());
-        self::assertSame($user->getId(), $auditEvidenceRepository->all()[0]->subjectId());
-        self::assertSame([], $auditEvidenceRepository->all()[0]->context());
+        $audit = $auditEvidenceRepository->all()[0];
+        self::assertSame(AuditAction::USER_PENDING_INVITATION_CORRECTED, $audit->action());
+        self::assertSame($actorId, $audit->actorId());
+        self::assertSame($user->getId(), $audit->getSubject()->getId());
+        self::assertEquals(new DateTimeImmutable('2026-08-22T13:00:00+00:00'), $audit->getOccurredAt());
+        $facts = $audit->getFacts();
+        self::assertInstanceOf(AuditUserOutcome::class, $facts);
+        self::assertEquals(AuditGrantState::fromGrant($predecessor), $facts->getGrantBefore());
+        self::assertEquals(
+            AuditGrantState::fromGrant($activationGrantRepository->all()[0]),
+            $facts->getReplacedPredecessor()
+        );
+        self::assertEquals(AuditGrantState::fromGrant($activationGrantRepository->all()[1]), $facts->getGrantAfter());
         self::assertCount(1, $eventDispatcher->events());
         self::assertInstanceOf(PendingInvitationCorrected::class, $eventDispatcher->events()[0]);
     }

@@ -11,6 +11,7 @@ use Fight\AccessControl\Domain\AccessControl\RefreshSession\Query\SessionView;
 use Fight\AccessControl\Domain\AccessControl\RefreshSession\RefreshSessionRepository;
 use Fight\Common\Application\Messaging\Query\QueryHandler;
 use Fight\Common\Domain\Collection\ArrayList;
+use Fight\Common\Domain\Exception\DomainException;
 use Fight\Common\Domain\Messaging\Query\QueryMessage;
 use Fight\Common\Domain\Repository\ResultSet;
 
@@ -62,12 +63,32 @@ final readonly class ListActiveSessionsHandler implements QueryHandler
             $now,
             $query->getPagination()
         );
+        $activeSessions = ResultSet::strict(
+            $activeSessions->page(),
+            $activeSessions->perPage(),
+            $activeSessions->totalRecords(),
+            $activeSessions->records()
+        );
+        if (
+            $activeSessions->page() !== $query->getPagination()->page()
+            || $activeSessions->perPage() !== $query->getPagination()->perPage()
+        ) {
+            throw new DomainException('The session page does not match the requested pagination.');
+        }
+
         $views = ArrayList::of(SessionView::class);
-        foreach ($activeSessions->records() as $refreshSession) {
+        foreach ($activeSessions->records()->toArray() as $refreshSession) {
+            if (
+                !$refreshSession->getUserId()->equals($query->getUserId())
+                || !$refreshSession->isUsableAt($now)
+            ) {
+                throw new DomainException('The session page contains an unrelated or unusable session.');
+            }
+
             $views->add(SessionView::fromSession($refreshSession, $query->getCurrentSessionId()));
         }
 
-        return new ResultSet(
+        return ResultSet::strict(
             $activeSessions->page(),
             $activeSessions->perPage(),
             $activeSessions->totalRecords(),
