@@ -3,8 +3,9 @@
 Unreleased [TASK-00091](../planning/tasks/00091-TASK.md) composes direct Agent Permissions with Common's
 `NoticeAdmission` and `NoticeRemovalAdmission`. Common **v1.5.0** is the sufficient supported minimum, already
 required by the manifest; published source is `06fb5cd3720af9cf8295198f74040d95b64c5155`. There is no AccessControl
-notice store, handler, scheduler, automatic grant or protocol engine. Independent Review and behavioral QA remain
-required. The [contract inventory](common-contracts.md) records the supplier baseline.
+notice store, handler, scheduler, automatic grant or protocol engine. Independent Review ACCEPT and nonvisual QA PASS
+cover candidate `0689d72be2b8e1275a3ec5846a0f2f27ac660427`; the TASK records acceptance and the canonical Land
+handoff owns subsequent integration/delivery outcomes. The [contract inventory](common-contracts.md) records the supplier baseline.
 
 ## Authority and ownership flow
 

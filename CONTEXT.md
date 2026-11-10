@@ -1,6 +1,6 @@
 # Fight AccessControl Context
 
-## Notice mutation admission — TASK-00091 Work checkpoint
+## Notice mutation admission — TASK-00091 accepted checkpoint
 
 The [notice composition guide](docs/agent-notice-authorization.md) supplies independently configured recording and
 bounded removal admissions for Common's real `NoticeAdmission` / `NoticeRemovalAdmission`. Application Agent/Notice
@@ -17,13 +17,42 @@ commit and dispatch-failure semantics. DBAL `^4.4` is development-only for these
 fixed Common rejection; malformed authority and operational faults propagate to the single consumer safe reporting
 boundary, never exception-to-Boolean denial. Checks do not promise permission stability afterward or qualify real
 consumer policy, cryptography, handoffs, writer races/storage, deployment or sibling notice capabilities. Independent
-Review and behavioral QA remain pending; TASK-00091 remains open. Its TASK and canonical Work handoff own verification.
+Review v3 ACCEPT and complete nonvisual QA PASS cover candidate `0689d72be2b8e1275a3ec5846a0f2f27ac660427`.
+TASK-00091 is done; unfinished siblings keep TICKET-00030/EPIC-00014 and the combined unassigned release open.
+Its TASK and canonical Work/QA handoffs own verification. Advanced-base integration, publication and final delivery
+checks remain pending at this closeout checkpoint; canonical `.runs/handoffs/TASK-00091/land.md` owns subsequent
+bridge, delivery and resource outcomes.
 
 ## Purpose
 
 Fight AccessControl owns framework-neutral identity, credential, session, authorization, and account-lifecycle
 behavior shared by Fight applications. The repository-local behavioral and security authority is
 [TICKET-00001](planning/tickets/00001-TICKET.md).
+
+## Mixed MCP Tool Permission bindings — TASK-00084 accepted checkpoint
+
+The existing immutable Adapter `AgentToolPermissionCatalog` now accepts explicit canonical Tool-name Permission
+bindings alongside attributed Tools, with exactly one nonempty validated source per Tool. Conflicts (even equal),
+unknown mappings and malformed declarations reject complete composition. Equal requirements are deduplicated in
+first-declaration order; all remaining requirements stay conjunctive. Common retains its exact definition objects,
+schemas, discovery, invocation and interaction ownership; foreign definitions deny before principal resolution.
+See [Tool composition](docs/agent-mcp-authorization.md) for the constructor, duplicate-key loader limit and examples.
+
+The mixed journey uses all seven Common execution Tools plus attributed profile Tools with one real request-scoped
+provider. Tool grants remain distinct from consumer Query scope and metadata/body admission; metadata-only protected
+reads remain supported. Fresh later pages, calls and mapped retries need fresh authority/nonce; a transport failure
+is terminal for the request. No blanket bus authentication, new grants, copied schemas or cross-request cache is added.
+Common `^1.5.0` remains the minimum; no dependency manifest change is needed. Canonical
+`.runs/handoffs/TASK-00084/work.md` owns original lane, gate, warnings and runtime evidence.
+Independent Review v3 ACCEPT and complete nonvisual QA PASS cover candidate
+`8ffa933d46e4d9b99a5105549c3d846ac94f4b62`, without findings: 12 QA groups, 107 tests /
+1,012 assertions plus 105 independent cases / 2,009 checks. Land's normal build freshly passes
+8,541 tests / 84,979 assertions, exact 10,357/10,357 statements after ordinary Laravel dependency refresh.
+TASK-00084 and eligible TICKET-00025 are done; unfinished siblings keep EPIC-00014 open.
+Publication/final delivery checks remain pending at this administrative checkpoint; canonical
+`.runs/handoffs/TASK-00084/land.md` owns subsequent delivery and resource results. Minimum-lane
+40 advisories / 12 packages remain disclosed; ordinary resolution reports none. No actual consumer
+qualification, merge, release or deployment is claimed. Original independent report subjects remain preserved.
 
 ## TASK-00136 delivery Event contracts — accepted checkpoint
 
