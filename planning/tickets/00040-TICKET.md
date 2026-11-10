@@ -2,7 +2,7 @@
 id: TICKET-00040
 epic: EPIC-00016
 title: Make command and synchronous Application contracts explicit
-status: ready-for-agent
+status: done
 ---
 
 # Make command and synchronous Application contracts explicit
@@ -163,7 +163,7 @@ No source overlap alone establishes a dependency, and no blanket wait on Common/
 
 | Order | TASK ID | Title | Status |
 | --- | --- | --- | --- |
-| 315 | [TASK-00136](../tasks/00136-TASK.md) | Preserve Event-driven delivery contracts | in-progress |
+| 315 | [TASK-00136](../tasks/00136-TASK.md) | Preserve Event-driven delivery contracts | done |
 | 316 | [TASK-00137](../tasks/00137-TASK.md) | Correct User account lifecycle contracts | done |
 | 317 | [TASK-00138](../tasks/00138-TASK.md) | Correct human credential request and worker contracts | done |
 | 318 | [TASK-00139](../tasks/00139-TASK.md) | Correct synchronous User and session contracts | done |
@@ -174,6 +174,13 @@ No source overlap alone establishes a dependency, and no blanket wait on Common/
 | 323 | [TASK-00144](../tasks/00144-TASK.md) | Correct Agent delivery, recovery and maintenance contracts | done |
 | 324 | [TASK-00145](../tasks/00145-TASK.md) | Correct authority and continuation contracts | done |
 ## Decisions and Progress
+
+All ten children are terminal following TASK-00136's independent Review ACCEPT and nonvisual QA PASS.
+Automatic parent completion closes this TICKET; EPIC-00016 remains open for its unfinished TICKETs. The owning
+TASKs retain bounded acceptance and warnings; their canonical Land handoffs own subsequent delivery/resource
+outcomes. This rollup does not claim whole-library, generic bus or actual consumer qualification.
+
+### Historical sibling acceptance checkpoints
 
 TASK-00143's bounded issuance-contract slice is independently accepted and done at clean candidate
 `1b8f7113eb30f51d34411141b6564029fbcc16e1` against `0c8fd732e5d7c11a978f41918b913021fa00ba08`, with Review
