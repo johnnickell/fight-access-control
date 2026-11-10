@@ -284,7 +284,7 @@ final class RegistrationRecoveryJourneyTest extends TestCase
         }
 
         $fixture->resend()->handle(CommandMessage::create(new ResendInvitationDelivery(
-            'administrator',
+            $fixture->actorId,
             $fixture->initialUser->getId()
         )));
         self::assertSame(ActivationOrigin::REGISTRATION, $fixture->current()->getOrigin());

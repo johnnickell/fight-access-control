@@ -58,7 +58,7 @@ final class AgentOperationTypeContractTest extends TestCase
         yield 'rotated' => [new AgentCredentialRotated($agent, $credential, 1, $now)];
         yield 'revoked' => [new AgentCredentialRevoked($agent, $now)];
         yield 'provision failure' => [new AgentProvisioningFailed('worker', 'Agent operation failed.')];
-        yield 'lifecycle failure' => [new AgentCredentialLifecycleFailed('worker', 'Agent operation failed.')];
+        yield 'lifecycle failure' => [new AgentCredentialLifecycleFailed($agent, 'Agent operation failed.')];
     }
 
     #[DataProvider('events')]

@@ -15,6 +15,7 @@ use Fight\AccessControl\Application\AccessControl\User\Authentication\UserAuthen
 use Fight\AccessControl\Application\AccessControl\User\PasswordManagement;
 use Fight\AccessControl\Application\AccessControl\User\Security\AuthenticationTokenPolicy;
 use Fight\AccessControl\Domain\AccessControl\ActivationGrant\ActivationGrantRepository;
+use Fight\AccessControl\Domain\AccessControl\Audit\AnonymousId;
 use Fight\AccessControl\Domain\AccessControl\EmailChangeGrant\EmailChangeGrantRepository;
 use Fight\AccessControl\Domain\AccessControl\PasswordResetGrant\PasswordResetCredential;
 use Fight\AccessControl\Domain\AccessControl\PasswordResetGrant\PasswordResetGrant;
@@ -96,11 +97,11 @@ final class SynchronousContractTest extends TestCase
                     'resetPassword' => $this->passwordManagement(
                         $userRepository,
                         $refreshSessionRepository, $unitOfWork, $eventDispatcher
-                    )->resetPassword($owner->getId(), self::RESET_CREDENTIAL, 'password'),
+                    )->resetPassword($owner->getId(), self::RESET_CREDENTIAL, 'password', AnonymousId::generate()),
                     'confirmEmail' => $this->emailChangeConfirmation(
                         $userRepository,
                         $refreshSessionRepository, $unitOfWork, $eventDispatcher
-                    )->confirmEmail($owner->getId(), self::EMAIL_CHANGE_CREDENTIAL),
+                    )->confirmEmail($owner->getId(), self::EMAIL_CHANGE_CREDENTIAL, AnonymousId::generate()),
                     'refresh' => $this->sessionLifecycle(
                         $userRepository,
                         $refreshSessionRepository,
@@ -158,7 +159,7 @@ final class SynchronousContractTest extends TestCase
                         $unitOfWork,
                         $eventDispatcher,
                         passwordResetGrantRepository: $grants
-                    )->resetPassword($owner->getId(), self::RESET_CREDENTIAL, 'password');
+                    )->resetPassword($owner->getId(), self::RESET_CREDENTIAL, 'password', AnonymousId::generate());
                 } else {
                     $grants = $this->createStub(EmailChangeGrantRepository::class);
                     $grants->method('getLatestByUserId')->willReturn($this->emailChangeGrant($foreign->getId()));
@@ -168,7 +169,7 @@ final class SynchronousContractTest extends TestCase
                         $unitOfWork,
                         $eventDispatcher,
                         emailChangeGrantRepository: $grants
-                    )->confirmEmail($owner->getId(), self::EMAIL_CHANGE_CREDENTIAL);
+                    )->confirmEmail($owner->getId(), self::EMAIL_CHANGE_CREDENTIAL, AnonymousId::generate());
                 }
 
                 self::fail('Unrelated grant authority was treated as ordinary rejection.');
@@ -304,7 +305,7 @@ final class SynchronousContractTest extends TestCase
                 new InMemoryRefreshSessionRepository(),
                 new InMemoryUnitOfWork(),
                 $eventDispatcher
-            )->confirmEmail(UserId::generate(), self::EMAIL_CHANGE_CREDENTIAL);
+            )->confirmEmail(UserId::generate(), self::EMAIL_CHANGE_CREDENTIAL, AnonymousId::generate());
             self::fail('An unknown fault was swallowed.');
         } catch (Throwable $throwable) {
             self::assertSame($primary, $throwable);

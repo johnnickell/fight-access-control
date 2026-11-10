@@ -87,7 +87,7 @@ final class DeliverEmailChangeHandlerTest extends TestCase
         $stored = $emailChangeGrantRepository->getLatestByUserId($grant->getUserId());
         self::assertSame(2, $unitOfWork->transactions);
         self::assertSame(CredentialDeliveryStatus::DELIVERED, $stored?->getDelivery()->getStatus());
-        self::assertSame('user.email_change_delivery.confirmed', $auditEvidenceRepository->all()[0]->action());
+        self::assertSame('user.email_change_delivery.confirmed', $auditEvidenceRepository->all()[0]->action()->value);
         self::assertInstanceOf(EmailChangeDelivered::class, $eventDispatcher->events()[0]);
         self::assertSame(DeliverEmailChange::class, DeliverEmailChangeHandler::commandRegistration());
     }
@@ -118,7 +118,7 @@ final class DeliverEmailChangeHandlerTest extends TestCase
 
             $delivery = $emailChangeGrantRepository->getLatestByUserId($grant->getUserId())?->getDelivery();
             self::assertSame($expectedStatus, $delivery?->getStatus());
-            self::assertSame('user.email_change_delivery.failed', $auditEvidenceRepository->all()[0]->action());
+            self::assertSame('user.email_change_delivery.failed', $auditEvidenceRepository->all()[0]->action()->value);
             self::assertSame([], $eventDispatcher->events());
             self::assertStringNotContainsString(
                 'vendor secret',

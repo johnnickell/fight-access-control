@@ -16,6 +16,7 @@ use Fight\AccessControl\Application\AccessControl\User\Service\RegistrationRecov
 use Fight\AccessControl\Domain\AccessControl\ActivationGrant\ActivationDeliveryId;
 use Fight\AccessControl\Domain\AccessControl\ActivationGrant\ActivationGrant;
 use Fight\AccessControl\Domain\AccessControl\ActivationGrant\Command\DeliverUserInvitation;
+use Fight\AccessControl\Domain\AccessControl\Audit\AnonymousId;
 use Fight\AccessControl\Domain\AccessControl\RefreshSession\RefreshCredential;
 use Fight\AccessControl\Domain\AccessControl\User\Command\RecoverPendingRegistration;
 use Fight\AccessControl\Domain\AccessControl\User\Exception\RegistrationRecoveryAuthorizationException;
@@ -187,10 +188,16 @@ final class RegistrationRecoveryFixture
 
     public function delivery(?ActivationGrant $grant = null): DeliverUserInvitation
     {
+        $grant ??= $this->current();
+        $actorId = $this->actorId;
+        if ($grant->getId()->equals($this->initial->getId())) {
+            $actorId = AnonymousId::generate();
+        }
+
         return new DeliverUserInvitation(
-            'worker',
+            $actorId,
             $this->initialUser->getId(),
-            ($grant ?? $this->current())->getDelivery()->getId()
+            $grant->getDelivery()->getId()
         );
     }
 

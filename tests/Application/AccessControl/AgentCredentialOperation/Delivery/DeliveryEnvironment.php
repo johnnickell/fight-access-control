@@ -12,6 +12,7 @@ use Fight\AccessControl\Domain\AccessControl\Agent\Command\ProvisionAgent;
 use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\AgentCredentialOperation;
 use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\AgentIssuance;
 use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\Delivery\AgentDeliveryPolicy;
+use Fight\AccessControl\Domain\AccessControl\User\UserId;
 use Fight\Test\AccessControl\Application\AccessControl\Agent\Credential\ProvisioningEnvironment;
 use LogicException;
 
@@ -85,6 +86,6 @@ final readonly class DeliveryEnvironment
             $this->clock,
             $this->provisioning->transaction,
             $this->provisioning->eventDispatcher
-        )->revoke('maintainer-42', $this->issuance->getAgentId());
+        )->revoke(UserId::generate(), $this->issuance->getAgentId());
     }
 }

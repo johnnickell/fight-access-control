@@ -31,12 +31,21 @@ use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\AgentProvi
 use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\Exception\AgentOperationCollisionException;
 use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\Exception\AgentOperationRejectedException;
 use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\Exception\AgentOperationUncertainException;
+use Fight\AccessControl\Domain\AccessControl\Audit\AnonymousId;
+use Fight\AccessControl\Domain\AccessControl\Audit\AuditAction;
+use Fight\AccessControl\Domain\AccessControl\Audit\AuditAgentOutcome;
+use Fight\AccessControl\Domain\AccessControl\Audit\AuditAgentState;
+use Fight\AccessControl\Domain\AccessControl\Audit\AuditCorrelation;
 use Fight\AccessControl\Domain\AccessControl\Audit\AuditEvidence;
 use Fight\AccessControl\Domain\AccessControl\Audit\AuditEvidenceRepository;
+use Fight\AccessControl\Domain\AccessControl\Audit\AuditSubject;
+use Fight\AccessControl\Domain\AccessControl\Audit\SystemId;
+use Fight\AccessControl\Domain\AccessControl\User\UserId;
 use Fight\Common\Application\Messaging\Command\CommandHandler;
 use Fight\Common\Application\Messaging\Event\EventDispatcher;
 use Fight\Common\Application\Repository\TransactionalUnitOfWork;
 use Fight\Common\Domain\Messaging\Command\CommandMessage;
+use Fight\Common\Domain\Messaging\MessageId;
 use Throwable;
 
 /**
@@ -94,6 +103,7 @@ final readonly class ProvisionAgentHandler implements CommandHandler
                 $issuance = $this->unitOfWork->commitTransactional(function () use (
                     $key,
                     $request,
+                    $commandMessage,
                     $resolveOnly,
                     &$callbackCompleted,
                     &$created
@@ -117,10 +127,6 @@ final readonly class ProvisionAgentHandler implements CommandHandler
                             AgentOperationFailure::UNAUTHORIZED,
                             AgentOperationFailure::UNAVAILABLE
                         );
-                    }
-
-                    if (preg_match('/\A[A-Za-z0-9_.:-]{1,128}\z/D', $actor) !== 1) {
-                        throw new AgentIssuanceFailed();
                     }
 
                     try {
@@ -159,7 +165,11 @@ final readonly class ProvisionAgentHandler implements CommandHandler
                             throw new AgentOperationRejection(AgentOperationFailure::CONTENTION);
                         }
 
-                        $issuance = $this->issue($key, $request, $actor);
+                        if ($actor === null) {
+                            throw new AgentIssuanceFailed();
+                        }
+
+                        $issuance = $this->issue($key, $request, $actor, $commandMessage->id());
                         $created = true;
                     }
 
@@ -207,7 +217,8 @@ final readonly class ProvisionAgentHandler implements CommandHandler
     private function issue(
         AgentOperationKey $key,
         AgentProvisioningRequest $request,
-        string $actor
+        UserId|AgentId|SystemId|AnonymousId $actor,
+        MessageId $messageId
     ): AgentIssuance {
         try {
             $this->limits->validateNewRequest($request);
@@ -289,7 +300,14 @@ final readonly class ProvisionAgentHandler implements CommandHandler
             );
         }
 
-        $this->auditEvidenceRepository->add(AuditEvidence::agentProvisioned($actor, $agentId));
+        $this->auditEvidenceRepository->add(AuditEvidence::record(
+            $actor,
+            new AuditSubject($agentId),
+            AuditAction::AGENT_PROVISIONED,
+            $issuedAt,
+            new AuditAgentOutcome(null, AuditAgentState::fromAgent($agent), $issuance->getDeliveryId()),
+            new AuditCorrelation($messageId, $key)
+        ));
 
         return $issuance;
     }

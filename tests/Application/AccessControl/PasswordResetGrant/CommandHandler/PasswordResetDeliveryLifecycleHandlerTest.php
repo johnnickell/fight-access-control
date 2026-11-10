@@ -6,6 +6,7 @@ namespace Fight\Test\AccessControl\Application\AccessControl\PasswordResetGrant\
 
 use DateTimeImmutable;
 use Fight\AccessControl\Application\AccessControl\PasswordResetGrant\CommandHandler\ExpirePasswordResetDeliveryHandler;
+use Fight\AccessControl\Domain\AccessControl\Audit\AnonymousId;
 use Fight\AccessControl\Domain\AccessControl\PasswordResetGrant\Command\ExpirePasswordResetDelivery;
 use Fight\AccessControl\Domain\AccessControl\PasswordResetGrant\Event\PasswordResetDeliveryConfirmed;
 use Fight\AccessControl\Domain\AccessControl\PasswordResetGrant\Event\PasswordResetDeliveryExpired;
@@ -153,7 +154,12 @@ final class PasswordResetDeliveryLifecycleHandlerTest extends TestCase
         $at = $grant->getExpiresAt();
         $messages = [
             new ExpirePasswordResetDelivery('expiry', $grant->getUserId(), $grant->getDelivery()->getId(), $at),
-            new PasswordResetDeliveryConfirmed('transport', $grant->getUserId(), $grant->getDelivery()->getId(), $at),
+            new PasswordResetDeliveryConfirmed(
+                AnonymousId::generate(),
+                $grant->getUserId(),
+                $grant->getDelivery()->getId(),
+                $at
+            ),
             new PasswordResetDeliveryExpired('expiry', $grant->getUserId(), $grant->getDelivery()->getId(), $at)
         ];
         foreach ($messages as $message) {
@@ -170,7 +176,7 @@ final class PasswordResetDeliveryLifecycleHandlerTest extends TestCase
             self::assertSame($at, $message->getOccurredAt());
         }
 
-        self::assertSame('transport', $messages[1]->getActorId());
+        self::assertEquals(AnonymousId::generate(), $messages[1]->getActorId());
         self::assertSame('expiry', $messages[2]->getActorId());
     }
 

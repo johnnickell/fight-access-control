@@ -64,10 +64,11 @@ qualification of a consumer database, ORM mapping, shared connection or concurre
 
 ## Audit and redacted context
 
-Current `AuditEvidence` remains required where already composed. Its subject is still `UserId|AgentId`, its actor
-and action remain strings, and its context is a named string map. The constructor validates that map shape; it
-cannot establish that arbitrary text is secret-free. Producers remain responsible for approved safe values.
-No optional-audit policy or future attribution model is introduced.
+TASK-00122's in-progress [typed evidence replacement](audit-evidence.md) removes the actor/action strings and
+arbitrary context map directly. It supplies direct typed provenance, finite subjects/actions, trusted outcome time,
+identity/correlation and bounded revision/relationship facts. Existing constructors remain mandatory-wired; actual
+optional family composition and expanded coverage are separate. Caller/fixture/schema reconciliation and full
+qualification remain unfinished; this is not an accepted or released replacement.
 
 `RedactedCommandFailed` retains named context with genuinely dynamic values, including existing booleans, nested
 safe data and nulls. The field map and outer string fields are validated, not falsely annotated as all-string

@@ -5,8 +5,13 @@ declare(strict_types=1);
 namespace Fight\AccessControl\Application\AccessControl\User\CommandHandler;
 
 use Fight\AccessControl\Application\AccessControl\Timing\Service\Clock;
+use Fight\AccessControl\Domain\AccessControl\Audit\AuditAction;
+use Fight\AccessControl\Domain\AccessControl\Audit\AuditCorrelation;
 use Fight\AccessControl\Domain\AccessControl\Audit\AuditEvidence;
 use Fight\AccessControl\Domain\AccessControl\Audit\AuditEvidenceRepository;
+use Fight\AccessControl\Domain\AccessControl\Audit\AuditSubject;
+use Fight\AccessControl\Domain\AccessControl\Audit\AuditUserOutcome;
+use Fight\AccessControl\Domain\AccessControl\Audit\AuditUserRevisions;
 use Fight\AccessControl\Domain\AccessControl\User\Command\EnableUser;
 use Fight\AccessControl\Domain\AccessControl\User\Event\UserEnabled;
 use Fight\AccessControl\Domain\AccessControl\User\Exception\UserLifecycleException;
@@ -60,7 +65,7 @@ final readonly class EnableUserHandler implements CommandHandler
 
         try {
             /** @var UserEnabled $event */
-            $event = $this->unitOfWork->commitTransactional(function () use ($command): UserEnabled {
+            $event = $this->unitOfWork->commitTransactional(function () use ($command, $commandMessage): UserEnabled {
                 $user = $this->userRepository->getById($command->getUserId());
                 if ($user === null) {
                     throw new ResourceNotFound('The user cannot be enabled.');
@@ -83,9 +88,15 @@ final readonly class EnableUserHandler implements CommandHandler
                 }
 
                 $this->auditEvidenceRepository->add(AuditEvidence::record(
-                    $command->getActorId()->toString(),
-                    'user.enabled',
-                    $command->getUserId()
+                    $command->getActorId(),
+                    new AuditSubject($command->getUserId()),
+                    AuditAction::USER_ENABLED,
+                    $now,
+                    new AuditUserOutcome(
+                        AuditUserRevisions::fromUser($user),
+                        AuditUserRevisions::fromUser($replacementUser)
+                    ),
+                    new AuditCorrelation($commandMessage->id(), null)
                 ));
 
                 return new UserEnabled($command->getActorId(), $command->getUserId());

@@ -16,6 +16,7 @@ use Fight\AccessControl\Domain\AccessControl\EmailChangeGrant\EmailChangeGrantRe
 use Fight\AccessControl\Domain\AccessControl\PasswordResetGrant\Command as ResetCommand;
 use Fight\AccessControl\Domain\AccessControl\PasswordResetGrant\PasswordResetGrantRepository;
 use Fight\AccessControl\Domain\AccessControl\User\UserRepository;
+use Fight\AccessControl\Domain\AccessControl\User\UserId;
 use Fight\Common\Application\Messaging\Command\CommandHandler;
 use Fight\Common\Domain\Messaging\Command\Command;
 use Fight\Common\Domain\Value\Internet\EmailAddress;
@@ -39,8 +40,11 @@ final readonly class HumanCredentialContractFixture
 
     public RecordingCredentialDeliveryProvider $provider;
 
+    public UserId $actorId;
+
     public function __construct(public string $purpose)
     {
+        $this->actorId = UserId::generate();
         $this->state = new ExpiredCredentialFixture($purpose);
         $this->provider = new RecordingCredentialDeliveryProvider();
     }
@@ -51,14 +55,14 @@ final readonly class HumanCredentialContractFixture
         $deliveryId = $this->state->initial->getDelivery()->getId();
 
         return match ($operation) {
-            'activation.deliver' => new ActivationCommand\DeliverUserInvitation('worker', $userId, $deliveryId),
+            'activation.deliver' => new ActivationCommand\DeliverUserInvitation($this->actorId, $userId, $deliveryId),
             'activation.expire' => new ActivationCommand\ExpireInvitationDelivery(
                 'worker',
                 $userId, $deliveryId, $this->state->expiresAt
             ),
-            'activation.resend' => new ActivationCommand\ResendInvitationDelivery('actor', $userId),
-            'activation.retry' => new ActivationCommand\RetryInvitationDelivery('actor', $userId),
-            'password_reset.deliver' => new ResetCommand\DeliverPasswordReset('worker', $userId, $deliveryId),
+            'activation.resend' => new ActivationCommand\ResendInvitationDelivery($this->actorId, $userId),
+            'activation.retry' => new ActivationCommand\RetryInvitationDelivery($this->actorId, $userId),
+            'password_reset.deliver' => new ResetCommand\DeliverPasswordReset($this->actorId, $userId, $deliveryId),
             'password_reset.expire' => new ResetCommand\ExpirePasswordResetDelivery(
                 'worker',
                 $userId, $deliveryId, $this->state->expiresAt

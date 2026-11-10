@@ -6,6 +6,9 @@ namespace Fight\Test\AccessControl\Application\AccessControl\EmailChangeGrant\Co
 
 use DateTimeImmutable;
 use Fight\AccessControl\Application\AccessControl\EmailChangeGrant\CommandHandler\RequestEmailChangeHandler;
+use Fight\AccessControl\Domain\AccessControl\Audit\AuditGrantState;
+use Fight\AccessControl\Domain\AccessControl\Audit\AuditUserOutcome;
+use Fight\AccessControl\Domain\AccessControl\Audit\AuditUserRevisions;
 use Fight\AccessControl\Domain\AccessControl\EmailChangeGrant\Command\RequestEmailChange;
 use Fight\AccessControl\Domain\AccessControl\EmailChangeGrant\EmailChangeCredential;
 use Fight\AccessControl\Domain\AccessControl\EmailChangeGrant\EmailChangeGrant;
@@ -456,10 +459,19 @@ final class RequestEmailChangeHandlerTest extends TestCase
         self::assertSame(1, $authorization->calls());
         self::assertSame($actorId, $authorization->lastActorId());
         self::assertSame($target->getId(), $authorization->lastUserId());
-        self::assertSame('user.email_change_administratively_requested', $auditEvidenceRepository->all()[0]->action());
-        self::assertSame($actorId->toString(), $auditEvidenceRepository->all()[0]->actorId());
-        self::assertSame($target->getId(), $auditEvidenceRepository->all()[0]->subjectId());
-        self::assertSame([], $auditEvidenceRepository->all()[0]->context());
+        $evidence = $auditEvidenceRepository->all()[0];
+        self::assertSame('user.email_change_administratively_requested', $evidence->action()->value);
+        self::assertSame($actorId, $evidence->actorId());
+        self::assertSame($target->getId(), $evidence->getSubject()->getId());
+        $facts = $evidence->getFacts();
+        self::assertInstanceOf(AuditUserOutcome::class, $facts);
+        self::assertEquals(AuditUserRevisions::fromUser($target), $facts->getBefore());
+        self::assertEquals(
+            AuditUserRevisions::fromUser($userRepository->getById($target->getId()))->toArray(),
+            $facts->toArray()['after']
+        );
+        self::assertNull($facts->getGrantBefore());
+        self::assertEquals(AuditGrantState::fromGrant($emailChangeGrantRepository->all()[0]), $facts->getGrantAfter());
         self::assertCount(1, $eventDispatcher->events());
     }
 

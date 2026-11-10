@@ -12,8 +12,14 @@ use Fight\AccessControl\Domain\AccessControl\ActivationGrant\ActivationDeliveryI
 use Fight\AccessControl\Domain\AccessControl\ActivationGrant\ActivationGrant;
 use Fight\AccessControl\Domain\AccessControl\ActivationGrant\ActivationGrantRepository;
 use Fight\AccessControl\Domain\AccessControl\ActivationGrant\ActivationOrigin;
+use Fight\AccessControl\Domain\AccessControl\Audit\AuditAction;
+use Fight\AccessControl\Domain\AccessControl\Audit\AuditCorrelation;
 use Fight\AccessControl\Domain\AccessControl\Audit\AuditEvidence;
 use Fight\AccessControl\Domain\AccessControl\Audit\AuditEvidenceRepository;
+use Fight\AccessControl\Domain\AccessControl\Audit\AuditGrantState;
+use Fight\AccessControl\Domain\AccessControl\Audit\AuditSubject;
+use Fight\AccessControl\Domain\AccessControl\Audit\AuditUserOutcome;
+use Fight\AccessControl\Domain\AccessControl\Audit\AuditUserRevisions;
 use Fight\AccessControl\Domain\AccessControl\User\Command\InvitePendingUser;
 use Fight\AccessControl\Domain\AccessControl\User\Event\UserInvited;
 use Fight\AccessControl\Domain\AccessControl\User\Exception\DuplicateEmailException;
@@ -73,6 +79,7 @@ final readonly class InvitePendingUserHandler implements CommandHandler
             /** @var ActivationDeliveryId $activationDeliveryId */
             $activationDeliveryId = $this->unitOfWork->commitTransactional(function () use (
                 $command,
+                $commandMessage,
                 $issuedAt
             ): ActivationDeliveryId {
                 $user = User::invite($command->getUserId(), $command->getEmail(), $issuedAt);
@@ -101,8 +108,16 @@ final readonly class InvitePendingUserHandler implements CommandHandler
 
                 $this->auditEvidenceRepository->add(AuditEvidence::record(
                     $command->getActorId(),
-                    'user.invited',
-                    $user->getId()
+                    new AuditSubject($user->getId()),
+                    AuditAction::USER_INVITED,
+                    $issuedAt,
+                    new AuditUserOutcome(
+                        null,
+                        AuditUserRevisions::fromUser($user),
+                        null,
+                        AuditGrantState::fromGrant($grant)
+                    ),
+                    new AuditCorrelation($commandMessage->id(), null)
                 ));
 
                 return $grant->getDelivery()->getId();

@@ -18,6 +18,7 @@ final class PublicMessageSamples
     public static function messages(): iterable
     {
         $values = [
+            'actor_kind'                              => 'user',
             'actor_id'                                => self::ID,
             'user_id'                                 => self::ID,
             'target_user_id'                          => self::ID,
@@ -66,10 +67,10 @@ final class PublicMessageSamples
             'referenced_permission_ids'               => [self::ID]
         ];
         $specifications = [
-            'ActivationGrant/Command/DeliverUserInvitation'                  => 'actor_id user_id activation_delivery_id',
+            'ActivationGrant/Command/DeliverUserInvitation'                  => 'actor_kind actor_id user_id activation_delivery_id',
             'ActivationGrant/Command/ExpireInvitationDelivery'               => 'actor_id user_id activation_delivery_id occurred_at',
-            'ActivationGrant/Command/ResendInvitationDelivery'               => 'actor_id user_id',
-            'ActivationGrant/Command/RetryInvitationDelivery'                => 'actor_id user_id',
+            'ActivationGrant/Command/ResendInvitationDelivery'               => 'actor_kind actor_id user_id',
+            'ActivationGrant/Command/RetryInvitationDelivery'                => 'actor_kind actor_id user_id',
             'Agent/Command/GrantPermissionToAgent'                           => 'actor_id agent_id permission_id',
             'Agent/Command/ProvisionAgent'                                   => 'namespace caller_type caller_id operation_id name destination_id destination_revision',
             'Agent/Command/ReplaceAgentPermissions'                          => 'actor_id agent_id expected_permission_assignment_revision permission_ids',
@@ -86,7 +87,7 @@ final class PublicMessageSamples
             'Feature/Command/SetFeaturePermission'                           => 'feature_id permission_id expected_revision',
             'Feature/Command/SetFeatureStatus'                               => 'feature_id status expected_revision',
             'ManagedPolicy/Command/ReconcileManagedPolicy'                   => 'permissions roles referenced_permission_ids',
-            'PasswordResetGrant/Command/DeliverPasswordReset'                => 'actor_id user_id password_reset_delivery_id',
+            'PasswordResetGrant/Command/DeliverPasswordReset'                => 'actor_kind actor_id user_id password_reset_delivery_id',
             'PasswordResetGrant/Command/ExpirePasswordResetDelivery'         => 'actor_id user_id password_reset_delivery_id occurred_at',
             'PasswordResetGrant/Command/RequestPasswordReset'                => 'email',
             'RefreshSession/Command/RevokeSession'                           => 'actor_id current_session_id target_session_id reason',
@@ -100,7 +101,7 @@ final class PublicMessageSamples
             'User/Command/DeleteUser'                                        => 'actor_id user_id',
             'User/Command/DisableUser'                                       => 'actor_id user_id',
             'User/Command/EnableUser'                                        => 'actor_id user_id',
-            'User/Command/InvitePendingUser'                                 => 'actor_id user_id email',
+            'User/Command/InvitePendingUser'                                 => 'actor_kind actor_id user_id email',
             'User/Command/RecoverPendingRegistration'                        => 'actor_id user_id expected_activation_delivery_id email',
             'User/Command/RegisterUser'                                      => 'user_id email',
             'User/Command/RemoveRoleFromUser'                                => 'actor_id target_user_id role_id',
