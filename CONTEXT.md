@@ -48,6 +48,29 @@ Fight AccessControl owns framework-neutral identity, credential, session, author
 behavior shared by Fight applications. The repository-local behavioral and security authority is
 [TICKET-00001](planning/tickets/00001-TICKET.md).
 
+## TASK-00097 durable Task admission — accepted checkpoint
+
+The [slice A Task composition](docs/agent-task-authorization.md) supplies independent configured direct Agent
+Permissions and consumer-owned creation, trusted producer and whole-state read scope through Common v1.5.0's
+actual admission ports. Real Common Commands/Query handlers, buses, separate repository/UoW/committed reads,
+original payload contracts, complete state, retry/terminal/retention and postcommit truth remain upstream-owned.
+`AgentTaskAuthority::duringContinuation()` reuses TASK-00088's guard with a bounded action-only authority and
+explicit consumer-scope fence wrapper; workers need no retained request provider or nonce replay. Original caller
+continuation remains independently bound and guarded, never inferred from producer permission or Task creation.
+
+The canonical TASK-00097 Work handoff owns exact feature minimum/ordinary-lane, SQLite/authority/current-worker,
+full-gate/exact-coverage evidence and limitations. Doctrine DBAL is development-only for Common's actual SQLite
+adapter qualification. Controlled scope/sharing/binding/visibility fixtures do not qualify actual consumer storage,
+cryptography, durable visibility epochs, authority writers/locks, queues, worker lifetimes or external effects.
+Independent Review v3 ACCEPT and complete nonvisual QA PASS cover clean candidate
+`efdc8beb9a10ea26886d16173bb2ad084d3a3167`, without findings: ten independent QA scenarios / 138 assertions
+plus 35 focused tests / 687 assertions. Earlier full gate retained: 8,527 tests / 84,834 assertions, exact
+10,397/10,397 global and 59/59 owned statements. TASK-00097 is done; unfinished children keep TICKET-00031 and
+EPIC-00014 open. Publication/final delivery verification remain pending at this administrative checkpoint;
+canonical `.runs/handoffs/TASK-00097/land.md` owns subsequent checks, publication and resource outcomes.
+Original independent reports and Work history remain preserved. No later Task slice, partial MCP advertisement,
+new lifecycle/executor, automatic grant, release or deployment is implemented here.
+
 ## TASK-00087 Prompt authorization — accepted checkpoint
 
 Optional [Agent-protected Prompt composition](docs/agent-prompt-authorization.md) now binds nonempty conjunctive
