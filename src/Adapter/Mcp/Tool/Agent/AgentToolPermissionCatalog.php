@@ -29,9 +29,36 @@ final readonly class AgentToolPermissionCatalog
      *
      * Common owns canonical identity and duplicate rejection. This construction-only predicate enumerates
      * its complete registry; it must never be used as request authorization.
+     *
+     * Bindings must have shape array<string, non-empty-list<string>>; all dynamic input is validated.
+     *
+     * @param McpToolRegistry $registry
+     * @param array<mixed> $permissionBindings
      */
-    public function __construct(McpToolRegistry $registry)
+    public function __construct(McpToolRegistry $registry, array $permissionBindings = [])
     {
+        $bindings = [];
+        foreach ($permissionBindings as $name => $values) {
+            if (
+                !is_string($name) || $registry->definition($name) === null
+                || !is_array($values) || !array_is_list($values) || $values === []
+            ) {
+                throw new DomainException('A protected Tool has invalid Agent Permission bindings.');
+            }
+
+            $permissions = [];
+            foreach ($values as $value) {
+                if (!is_string($value)) {
+                    throw new DomainException('A protected Tool has invalid Agent Permission bindings.');
+                }
+
+                $permission = PermissionName::fromString($value);
+                $permissions[$permission->toString()] ??= $permission;
+            }
+
+            $bindings[$name] = array_values($permissions);
+        }
+
         $definitions = $registry->available(new class implements McpToolAvailability {
             /**
              * @inheritDoc
@@ -46,20 +73,29 @@ final readonly class AgentToolPermissionCatalog
             $tool = $registry->find($definition->name());
             assert($tool instanceof McpTool);
             $attributes = new ReflectionMethod($tool, 'handle')->getAttributes(RequiresAgentPermission::class);
-            if ($attributes === []) {
+            $mapped = $bindings[$definition->name()] ?? null;
+            if ($attributes !== [] && $mapped !== null) {
+                throw new DomainException('A protected Tool must have exactly one Agent Permission source.');
+            }
+
+            if ($attributes === [] && $mapped === null) {
                 throw new DomainException('Every protected Tool must declare at least one Agent Permission.');
             }
 
             try {
                 $permissions = [];
                 foreach ($attributes as $attribute) {
-                    $permissions[] = $attribute->newInstance()->getPermissionName();
+                    $permission = $attribute->newInstance()->getPermissionName();
+                    $permissions[$permission->toString()] ??= $permission;
                 }
             } catch (Throwable $exception) {
                 throw new DomainException('A protected Tool has invalid Agent Permission metadata.', 0, $exception);
             }
 
-            $requirements[$definition->name()] = ['definition' => $definition, 'permissions' => $permissions];
+            $requirements[$definition->name()] = [
+                'definition'  => $definition,
+                'permissions' => $mapped ?? array_values($permissions)
+            ];
         }
 
         $this->requirements = $requirements;
