@@ -83,10 +83,15 @@ callbacks. Expectations come from those current package declarations. No product
 Static collection/callback inference does not validate untrusted values, enforce PHP generics at runtime, establish
 request identity or prove business effects.
 
-TASK-00128/00129/00130 may add real dispatch cases using this manifest/runner; TASK-00136 owns real Event cases.
-Those owners must prove their actual payload/result/registration relationships through qualified Common contracts,
-minimum/ordinary dependency lanes and applicable runtime composition. Local sinks/probes, dummy handlers or direct
-handler calls cannot stand in for an unqualified bus relationship. These initial cases claim none of that proof.
+TASK-00128/00129/00130 retain generic dispatch qualification using this manifest/runner and actual supported Common
+contracts. TASK-00136 has a scoped operator amendment accepting static eventRegistration() plus correct local Event
+payload annotations; generic upstream Event inference is not required. Its 14 positive probes explicitly report
+Common's actual Payload return and string registration shape, three EventMessage/void callbacks, the native Clock
+instant and all eight locally annotated payload contracts. Five incompatible uses reject a Command as an Event,
+CommandMessage as EventMessage, an unrefined payload getter, nullable restoration generation and cross-purpose ID.
+These local annotations do not prove registration inference or validate untrusted payloads. Every actual mapping and
+real dispatcher/bus behavior has separate [runtime composition proof](delivery-event-contracts.md), including
+minimum/ordinary lanes. Dummy/direct handlers cannot substitute for those real production routes.
 TASK-00117 adds two Domain cases: 21 exact positive types and nine incompatible uses covering Permission/Role
 identities, nullable repositories and typed batches/pages, Role revisions/membership, principal lists, policy definitions
 and plan items, exact plan/Event/message shapes and typed callbacks. The owned Domain source is also checked at level 8

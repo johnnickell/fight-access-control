@@ -1,6 +1,39 @@
 {
   "cases": [
     {
+      "id": "delivery-event-local-payload-contracts",
+      "kind": "positive",
+      "file": "delivery-event-positive.php",
+      "diagnostics": [
+        {"line": 26, "identifier": "phpstan.dumpType", "message": "Dumped type: Fight\\Common\\Domain\\Messaging\\Payload"},
+        {"line": 27, "identifier": "phpstan.dumpType", "message": "Dumped type: Closure(Fight\\Common\\Domain\\Messaging\\Event\\EventMessage): void"},
+        {"line": 28, "identifier": "phpstan.dumpType", "message": "Dumped type: Closure(Fight\\Common\\Domain\\Messaging\\Event\\EventMessage): void"},
+        {"line": 29, "identifier": "phpstan.dumpType", "message": "Dumped type: Closure(Fight\\Common\\Domain\\Messaging\\Event\\EventMessage): void"},
+        {"line": 30, "identifier": "phpstan.dumpType", "message": "Dumped type: DateTimeImmutable"},
+        {"line": 31, "identifier": "phpstan.dumpType", "message": "Dumped type: array<string, array<int, array{0: string, 1?: int}|int|string>|string>"},
+        {"line": 34, "identifier": "phpstan.dumpType", "message": "Dumped type: Fight\\AccessControl\\Domain\\AccessControl\\ActivationGrant\\ActivationDeliveryId"},
+        {"line": 37, "identifier": "phpstan.dumpType", "message": "Dumped type: string"},
+        {"line": 40, "identifier": "phpstan.dumpType", "message": "Dumped type: Fight\\AccessControl\\Domain\\AccessControl\\User\\UserId"},
+        {"line": 43, "identifier": "phpstan.dumpType", "message": "Dumped type: Fight\\AccessControl\\Domain\\AccessControl\\User\\UserId"},
+        {"line": 46, "identifier": "phpstan.dumpType", "message": "Dumped type: Fight\\AccessControl\\Domain\\AccessControl\\ActivationGrant\\ActivationDeliveryId"},
+        {"line": 49, "identifier": "phpstan.dumpType", "message": "Dumped type: Fight\\AccessControl\\Domain\\AccessControl\\ActivationGrant\\ActivationDeliveryId|null"},
+        {"line": 52, "identifier": "phpstan.dumpType", "message": "Dumped type: Fight\\AccessControl\\Domain\\AccessControl\\PasswordResetGrant\\PasswordResetDeliveryId"},
+        {"line": 55, "identifier": "phpstan.dumpType", "message": "Dumped type: Fight\\AccessControl\\Domain\\AccessControl\\EmailChangeGrant\\EmailChangeDeliveryId"}
+      ]
+    },
+    {
+      "id": "delivery-event-incompatible-envelopes-and-generations",
+      "kind": "negative",
+      "file": "delivery-event-negative.php",
+      "diagnostics": [
+        {"line": 21, "identifier": "argument.type", "message": "Parameter #1 $event of static method Fight\\Common\\Domain\\Messaging\\Event\\EventMessage::create() expects Fight\\Common\\Domain\\Messaging\\Event\\Event, Fight\\Common\\Domain\\Messaging\\Command\\Command given."},
+        {"line": 22, "identifier": "argument.type", "message": "Parameter #1 $eventMessage of method Fight\\AccessControl\\Application\\AccessControl\\ActivationGrant\\EventSubscriber\\InvitationDeliverySubscriber::onUserInvited() expects Fight\\Common\\Domain\\Messaging\\Event\\EventMessage, Fight\\Common\\Domain\\Messaging\\Command\\CommandMessage given."},
+        {"line": 23, "identifier": "method.notFound", "message": "Call to an undefined method Fight\\Common\\Domain\\Messaging\\Payload::getActivationDeliveryId()."},
+        {"line": 27, "identifier": "argument.type", "message": "Parameter #1 $delivery of closure expects Fight\\AccessControl\\Domain\\AccessControl\\ActivationGrant\\ActivationDeliveryId, Fight\\AccessControl\\Domain\\AccessControl\\ActivationGrant\\ActivationDeliveryId|null given."},
+        {"line": 28, "identifier": "argument.type", "message": "Parameter #1 $delivery of closure expects Fight\\AccessControl\\Domain\\AccessControl\\ActivationGrant\\ActivationDeliveryId, Fight\\AccessControl\\Domain\\AccessControl\\EmailChangeGrant\\EmailChangeDeliveryId given."}
+      ]
+    },
+    {
       "id": "ordinary-http-native-contracts",
       "kind": "positive",
       "file": "http-positive.php",

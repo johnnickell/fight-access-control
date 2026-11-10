@@ -22,12 +22,16 @@ use Fight\AccessControl\Domain\AccessControl\PasswordResetGrant\Event\PasswordRe
 use Fight\AccessControl\Domain\AccessControl\PasswordResetGrant\Event\PasswordResetRequested;
 use Fight\AccessControl\Domain\AccessControl\User\UserId;
 use Fight\AccessControl\Domain\AccessControl\User\UserState;
-use Fight\Common\Adapter\Messaging\Command\Sync\Routing\CommandRouter;
+use Fight\Common\Adapter\Messaging\Command\Sync\Routing\InMemoryCommandRouter;
 use Fight\Common\Adapter\Messaging\Command\Sync\RoutingCommandBus;
+use Fight\Common\Adapter\Messaging\Event\Sync\SimpleEventDispatcher;
+use Fight\Common\Application\Messaging\Event\EventDispatchFailed;
 use Fight\Common\Domain\Messaging\Command\CommandMessage;
+use Fight\Common\Domain\Messaging\Event\AllEvents;
 use Fight\Common\Domain\Messaging\Event\CommandFailedEvent;
 use Fight\Common\Domain\Messaging\Event\Event;
 use Fight\Common\Domain\Messaging\Event\EventMessage;
+use Fight\Common\Domain\Utility\ClassName;
 use Fight\Common\Domain\Value\Internet\EmailAddress;
 use Fight\Test\AccessControl\Application\AccessControl\Audit\Repository\InMemoryAuditEvidenceRepository;
 use Fight\Test\AccessControl\Application\AccessControl\CredentialDelivery\Service\RecordingCredentialDeliveryProvider;
@@ -56,12 +60,14 @@ use RuntimeException;
 #[CoversClass(PasswordResetDeliverySubscriber::class)]
 final class DeliveryFailureCompositionTest extends TestCase
 {
-    /** @return iterable<string, array{bool, string}> */
+    /** @return iterable<string, array{bool, string, bool}> */
     public static function phases(): iterable
     {
         foreach ([false, true] as $emailChange) {
             foreach (['claim', 'outcome', 'publication'] as $phase) {
-                yield (int) $emailChange.$phase => [$emailChange, $phase];
+                foreach ([false, true] as $realDispatcher) {
+                    yield (int) $emailChange.$phase.(int) $realDispatcher => [$emailChange, $phase, $realDispatcher];
+                }
             }
         }
     }
@@ -69,7 +75,8 @@ final class DeliveryFailureCompositionTest extends TestCase
     #[DataProvider('phases')]
     public function test_nested_failure_notifications_do_not_rewrite_the_committed_request(
         bool $emailChange,
-        string $phase
+        string $phase,
+        bool $realDispatcher
     ): void {
         $unitOfWork = new InMemoryUnitOfWork();
         $userRepository = new InMemoryUserRepository($unitOfWork);
@@ -87,12 +94,20 @@ final class DeliveryFailureCompositionTest extends TestCase
         };
         $attempts = [];
         $subscriber = null;
-        $eventDispatcher = new InMemoryEventDispatcher(static function (Event $event) use (
+        $observe = static function (Event $event) use (
             &$attempts,
             &$subscriber,
-            $primary
+            $primary,
+            $realDispatcher
         ): void {
             $attempts[] = $event;
+            if (
+                $realDispatcher
+                && ($event instanceof PasswordResetRequested || $event instanceof EmailChangeRequested)
+            ) {
+                return;
+            }
+
             if ($event instanceof PasswordResetRequested) {
                 self::assertInstanceOf(PasswordResetDeliverySubscriber::class, $subscriber);
                 $subscriber->onPasswordResetRequested(EventMessage::create($event));
@@ -112,7 +127,20 @@ final class DeliveryFailureCompositionTest extends TestCase
             }
 
             throw new RuntimeException('Synthetic notification failure.');
-        });
+        };
+        $eventDispatcher = new InMemoryEventDispatcher($observe);
+        if ($realDispatcher) {
+            $eventDispatcher = new SimpleEventDispatcher();
+            $eventDispatcher->addHandler(
+                ClassName::underscore(AllEvents::class),
+                static function (EventMessage $message) use ($observe): void {
+                    $event = $message->payload();
+                    self::assertInstanceOf(Event::class, $event);
+                    $observe($event);
+                }
+            );
+        }
+
         $clock = new FixedClock('2026-08-23T11:00:00+00:00');
         $provider = new RecordingCredentialDeliveryProvider(onDeliver: static function () use ($unitOfWork): void {
             self::assertFalse($unitOfWork->transactionActive);
@@ -169,8 +197,10 @@ final class DeliveryFailureCompositionTest extends TestCase
             $command = new RequestPasswordReset($user->getEmail());
         }
 
-        $router = $this->createStub(CommandRouter::class);
-        $router->method('match')->willReturn($worker);
+        $router = new InMemoryCommandRouter();
+        $router->registerHandler($worker::commandRegistration(), $worker);
+        $router->registerHandler($request::commandRegistration(), $request);
+
         $synchronousCommandBus = new RoutingCommandBus($router);
         if ($emailChange) {
             $subscriber = new EmailChangeDeliverySubscriber($synchronousCommandBus);
@@ -178,14 +208,32 @@ final class DeliveryFailureCompositionTest extends TestCase
             $subscriber = new PasswordResetDeliverySubscriber($synchronousCommandBus);
         }
 
+        if ($eventDispatcher instanceof SimpleEventDispatcher) {
+            $eventDispatcher->register($subscriber);
+        }
+
         $caught = null;
         try {
-            $request->handle(CommandMessage::create($command));
+            $synchronousCommandBus->dispatch(CommandMessage::create($command));
         } catch (RuntimeException $runtimeException) {
             $caught = $runtimeException;
         }
 
-        self::assertSame($primary, $caught);
+        if ($realDispatcher) {
+            self::assertInstanceOf(EventDispatchFailed::class, $caught);
+            self::assertCount(1, $caught->failures());
+            $workerFailure = $caught->failures()[0]->throwable();
+            if ($phase === 'publication') {
+                self::assertInstanceOf(EventDispatchFailed::class, $workerFailure);
+                self::assertCount(1, $workerFailure->failures());
+                $workerFailure = $workerFailure->failures()[0]->throwable();
+            }
+
+            self::assertSame($primary, $workerFailure);
+        } else {
+            self::assertSame($primary, $caught);
+        }
+
         self::assertFalse($unitOfWork->transactionActive);
         $grant = $passwordResetGrantRepository->getLatestByUserId($user->getId());
         self::assertNotNull($grant);

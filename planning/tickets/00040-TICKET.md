@@ -130,12 +130,12 @@ use cases: correct annotations are sufficient, with no generic UoW supplier, rep
 or uniform result DTO. Do not reopen the removed hold under callback/enforcement wording. The annotation must agree
 with every actual return branch; it neither validates unrelated external data nor proves bus/Event inference.
 
-TASK-00136 retains ONLY the separate Event envelope/payload/registration qualification hold. Installed Common v1.4.0
-is unparameterized at those relationships; actual implemented/independently accepted/qualified tagged APIs and
-sufficient-minimum/ordinary composition evidence are needed. No supplier ID is invented, no upstream plan is claimed
-scheduled, and related Common transaction implementation work is not proof of Event typing or a UoW prerequisite.
-This Event hold does not block the nine independent operation/authority slices. Other slices still verify supported
-Common failure/port APIs and actual composition; accepted planning is not supplier qualification.
+During TASK-00136's explicit Build invocation, John additionally accepted static Event class-to-method registration
+with a correct local payload `@var` in each EventMessage handler, using Common's actual eventRegistration() API.
+This scoped amendment supersedes that TASK's historical generic Event supplier hold; it does not qualify upstream
+generic inference or change TASK-00128/00129/00130. Every actual mapping/annotation, minimum/ordinary composition,
+static limitations, routing and preserved business/failure behavior still need proof. Other slices retain their
+supported Common failure/port qualification; accepted planning is not supplier qualification.
 
 ### Shared edits and complete-path acceptance
 
@@ -163,7 +163,7 @@ No source overlap alone establishes a dependency, and no blanket wait on Common/
 
 | Order | TASK ID | Title | Status |
 | --- | --- | --- | --- |
-| 315 | [TASK-00136](../tasks/00136-TASK.md) | Preserve Event-driven delivery contracts | needs-info |
+| 315 | [TASK-00136](../tasks/00136-TASK.md) | Preserve Event-driven delivery contracts | in-progress |
 | 316 | [TASK-00137](../tasks/00137-TASK.md) | Correct User account lifecycle contracts | done |
 | 317 | [TASK-00138](../tasks/00138-TASK.md) | Correct human credential request and worker contracts | done |
 | 318 | [TASK-00139](../tasks/00139-TASK.md) | Correct synchronous User and session contracts | done |
@@ -201,7 +201,8 @@ remain historical planning evidence; the generated child table reflects current 
 
 John approved this requirement in the six-TICKET split, then the revised complete ten-TASK plan, now written as
 TASK-00136–00145. At that planning checkpoint nine were ready-for-agent; current status belongs to the owning
-TASKs and generated child table. TASK-00136 remains needs-info for Event typing only. Native UoW mixed
+TASKs and generated child table. TASK-00136 was needs-info for Event typing at that checkpoint; its later scoped
+operator amendment above supersedes that hold. Native UoW mixed
 and known local callback-result @var are explicitly accepted with no UoW supplier prerequisite. No local/mutual
 blockers are demonstrated and existing TASK scope/order/blockers and Board priority remain unchanged.
 
