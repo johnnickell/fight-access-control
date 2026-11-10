@@ -46,8 +46,8 @@ relative native-peer priority. TASK-00172 consumes TASK-00170/completed TASK-001
 TASK-00104; Laravel consumes only TASK-00172; CI4 consumes TASK-00172 and TASK-00106's accepted native safe error bridge.
 Common already supplies a safe Laravel handler, whereas CI4 response helpers do not establish an exception owner.
 No TASK-00105 or portable-Permission wait, duplicate base adapter/bridge or runtime Permission activation follows.
-The plan allocates all five frameworks as 2 + 1 + 1 + 1; TASK-00172 now supplies independently accepted shared/Slim/Yii
-Feature admission. The other native slices and actual consumer qualification remain unfinished. Each slice retains
+The plan allocates all five frameworks as 2 + 1 + 1 + 1; TASK-00172 and TASK-00173 now supply independently accepted
+shared/Slim/Yii and Symfony Feature admission. Laravel/CI4 and actual consumer qualification remain unfinished. Each slice retains
 real target/status/context/order/construction/lifetime/safe error/minimum/ordinary/isolation proof and its own current
 docs/gate/exact coverage/independent acceptance.
 

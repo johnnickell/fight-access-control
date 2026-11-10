@@ -6,6 +6,9 @@ The shared `Application\AccessControl\Feature\Admission\FeatureAdmission` consum
 and a trusted `SecurityContext` or deliberate anonymous null. It accepts only actual User/Agent snapshots; another
 `AuthenticatedAuthority` kind is a configuration fault, not anonymous access.
 
+The optional [native Symfony Feature subscriber](symfony-feature-admission.md) consumes these same inward semantics
+without requiring PSR middleware or PermissionSubscriber activation; its native lifecycle and limits are distinct.
+
 ## Ownership and runtime flow
 
 The [maintained runtime image and arrow traces](http-feature-admission/README.md) provide a bounded rendered view

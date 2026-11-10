@@ -5,11 +5,11 @@ declare(strict_types=1);
 namespace Fight\AccessControl\Adapter\Http\Symfony\EventSubscriber;
 
 use Closure;
+use Fight\AccessControl\Adapter\Http\Symfony\RequestAuthentication;
 use Fight\AccessControl\Application\AccessControl\Authorization\Admission\AdmissionMode;
 use Fight\AccessControl\Application\AccessControl\Authorization\Admission\PermissionAdmission;
 use Fight\AccessControl\Application\AccessControl\Authorization\Admission\PermissionDeclaration;
 use Fight\AccessControl\Application\AccessControl\Authorization\Admission\RequestAuthority;
-use Fight\AccessControl\Application\AccessControl\Authorization\Service\SecurityContext;
 use LogicException;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 use Symfony\Component\HttpFoundation\Request;
@@ -25,16 +25,24 @@ use Symfony\Component\Routing\Matcher\RequestMatcherInterface;
  */
 final readonly class PermissionSubscriber implements EventSubscriberInterface
 {
+    private RequestAuthentication $authentication;
+
     /**
      * Constructs PermissionSubscriber
      *
-     * @phpstan-param Closure(Request): ?RequestAuthority $authority
+     * @phpstan-param (Closure(Request): ?RequestAuthority)|RequestAuthentication $authority
      */
     public function __construct(
         private RequestMatcherInterface $targets,
-        private Closure $authority,
+        Closure|RequestAuthentication $authority,
         private PermissionAdmission $admission = new PermissionAdmission()
     ) {
+        $authentication = $authority;
+        if ($authority instanceof Closure) {
+            $authentication = new RequestAuthentication($authority);
+        }
+
+        $this->authentication = $authentication;
     }
 
     /**
@@ -53,8 +61,6 @@ final readonly class PermissionSubscriber implements EventSubscriberInterface
     public function onKernelRequest(RequestEvent $event): void
     {
         $request = $event->getRequest();
-        $request->attributes->remove(SecurityContext::class);
-
         $target = $this->targets->matchRequest($request);
         if (
             !isset($target['_controller'], $target['_route']) ||
@@ -69,14 +75,11 @@ final readonly class PermissionSubscriber implements EventSubscriberInterface
             throw new LogicException('Invalid target permission declaration.');
         }
 
-        $authority = null;
-        if ($declaration !== null && $declaration->mode !== AdmissionMode::PUBLIC) {
-            $authority = ($this->authority)($request);
-        }
-
+        $authority = $this->authentication->authority(
+            $event,
+            $declaration !== null && $declaration->mode !== AdmissionMode::PUBLIC
+        );
         $context = $this->admission->admit($declaration, $authority);
-        if ($context !== null) {
-            $request->attributes->set(SecurityContext::class, $context);
-        }
+        $this->authentication->publish($event, $context);
     }
 }
