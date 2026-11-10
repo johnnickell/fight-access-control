@@ -13,7 +13,9 @@ status: ready-for-agent
 [TASK-00110](../tasks/00110-TASK.md) directly to TASK-00091; the other slices inherit that canonical adapter/
 consumed-Common baseline through TASK-00084/00087 and existing suppliers. Use actual Common Commands/Queries,
 coherent recovery readers and neutral runtime/admission ports, not combined NoticeStore/UoW or lifecycle facades.
-This supersedes earlier namespace/supplier assumptions, not distinct operation grants or each tagged/minimum hold.
+This supersedes earlier namespace/supplier assumptions, not distinct operation grants. The
+[Common v1.5.0 amendment](../epics/00014-EPIC.md#common-v150-readiness-amendment) clears the supplier holds;
+minimum/ordinary-lane and real integration tests remain implementation acceptance work.
 
 ## Problem and Outcome
 
@@ -49,10 +51,16 @@ claim recording/delivery/receipt, undo committed notices after publication failu
   not credentials or grants. Human operator access does not automatically grant Agent access.
 - Use [TICKET-00028](00028-TICKET.md) for current live/background authority, including queued disclosure and scope
   changes after opening. No stale request-provider singleton, nonce replay, silent credential switching or cached allow.
+  Check current permission before each disclosure/publication attempt; a permission change after that final check and
+  before send is possible. No send-spanning lock, all-writer fence or atomic check-and-send guarantee is intended.
+  Reuse existing current-authority facilities without changing TASK-00088's accepted implementation contract.
 - Protect catalog-change signals themselves. Tool/Resource/Skill/Prompt admission is evaluated for relevant enabled
   families without constructing protected bodies merely to decide whether a notification may be emitted.
 - Reauthorize every retained read/recovery request, not just the initial list. Preserve actual Common completeness,
   access-continuity and history-loss semantics: an empty page or earlier access is not complete catch-up evidence.
+  Prove `complete` using controlled fixtures with truthful access revisions and authorized namespace-wide continuity
+  evidence; without them preserve uncertainty/restart and authorized polling/reload, not broader grants to enable live.
+  Consumer policies and access-change evidence are application inputs, not unresolved operator decisions.
 - Enforce finite supported filter/selection/output/stream boundaries through Common; no hidden records/counts,
   private topic names or unauthorized metadata in cursors, acknowledgments, failures or diagnostic output.
 - Keep safe notices separate from protected message/tool bodies and full Task state. Task-specific state disclosure
@@ -70,8 +78,8 @@ claim recording/delivery/receipt, undo committed notices after publication failu
   invent a dependency on an unavailable family for an otherwise independent supported operation.
 - Polling Tool paths use TICKET-00025 where composed; retained reads/polling remain usable without live Subscriptions.
 - Common owns actual notice Commands/Queries, admission ports, storage, recovery, Subscription runtime and optional
-  Mercure translation. Verify implemented/independently accepted/qualified/tagged contracts and minimum versions
-  before affected integration/adoption. Common planning or uncommitted removal code is not a stable PHP contract.
+  Mercure translation, all supplied by released v1.5.0. TASK-00110 records canonical adoption. Exercise supported
+  minimum and ordinary dependency lanes with exact source/runtime evidence during feature implementation.
 - [TICKET-00031](00031-TICKET.md) consumes this live path only for optional Task-specific notifications; ordinary
   Task operations/polling have no forced Subscription dependency. No reverse dependency is introduced.
 
@@ -82,7 +90,8 @@ claim recording/delivery/receipt, undo committed notices after publication failu
 - [ ] Summary/pages/details/recovery protect rows, totals, identities, continuation and history-loss facts under
   access changes; no fabricated complete catch-up or safe-empty replacement of a storage/policy failure.
 - [ ] Live opening/filter admission and queued emission recheck current authority, credential and scope changes;
-  deny before both payload and concealed-activity signals, with no stale cached decision or replayed nonce.
+  deny changes observed at the final check before payload or concealed-activity signals, without cached decisions or
+  nonce replay. Do not require permission stability from that check through the send.
 - [ ] Independent subscriber inspection and publication prove no listen/read-to-global-inspection/broadcast grant,
   no private-to-public fallback, no bodies/full Task state in generic notices and preserved Common recovery semantics.
 - [ ] Catalog-family composition, optional/Mercure-free paths, actual finite encoded/live delivery and error/reporting
@@ -99,12 +108,12 @@ Mercure/hub operations, full Task state, consumer capture/redaction policy, rece
 
 | Order | TASK ID | Title | Status |
 | --- | --- | --- | --- |
-| 91 | [TASK-00091](../tasks/00091-TASK.md) | Authorize notice recording and bounded removal | needs-info |
-| 92 | [TASK-00092](../tasks/00092-TASK.md) | Authorize retained inspection and polling recovery | needs-info |
-| 93 | [TASK-00093](../tasks/00093-TASK.md) | Authorize live Tool, Resource and whole-Skill change disclosure | needs-info |
-| 94 | [TASK-00094](../tasks/00094-TASK.md) | Authorize Prompt catalog-change disclosure | needs-info |
-| 95 | [TASK-00095](../tasks/00095-TASK.md) | Authorize current-subscriber inspection | needs-info |
-| 96 | [TASK-00096](../tasks/00096-TASK.md) | Authorize optional notice publication | needs-info |
+| 91 | [TASK-00091](../tasks/00091-TASK.md) | Authorize notice recording and bounded removal | ready-for-agent |
+| 92 | [TASK-00092](../tasks/00092-TASK.md) | Authorize retained inspection and polling recovery | ready-for-agent |
+| 93 | [TASK-00093](../tasks/00093-TASK.md) | Authorize live Tool, Resource and whole-Skill change disclosure | ready-for-agent |
+| 94 | [TASK-00094](../tasks/00094-TASK.md) | Authorize Prompt catalog-change disclosure | ready-for-agent |
+| 95 | [TASK-00095](../tasks/00095-TASK.md) | Authorize current-subscriber inspection | ready-for-agent |
+| 96 | [TASK-00096](../tasks/00096-TASK.md) | Authorize optional notice publication | ready-for-agent |
 ## Decisions and Progress
 
 John approved item 6 of the eight-TICKET split, explicitly invoked To Tasks for this requirement, then approved
@@ -119,9 +128,10 @@ six complete capability journeys. The full accepted decomposition is written:
 | E — Current-subscriber inspection | [TASK-00095](../tasks/00095-TASK.md) | TASK-00093 for protected opening → independent inspection |
 | F — Optional notice publication | [TASK-00096](../tasks/00096-TASK.md) | TASK-00088, TASK-00092; no live/Prompt/inspection dependency |
 
-All six are needs-info for independently accepted/qualified tagged Common contracts and supported-minimum evidence,
-in addition to their local supplier edges. Source recording/removal/read ports, planned recovery/live/publication,
-and existing raw Mercure publishers are not interchangeable proof of the required qualified integration. Each TASK
+All six are ready-for-agent under released Common v1.5.0; local supplier edges still determine executability.
+The old planned/absent-tag premises are superseded by actual recording/removal, recovery, Subscription, inspection
+and publication contracts. Configured consumer policy and controlled fixtures suffice for package proof; production
+scope/grants/authority-writer integration is not a missing decision or additional readiness prerequisite. Each TASK
 owns real authority/Common composition, safe allow/deny/fault evidence, tests/docs/minimum qualification, exact
 coverage/full gate and independent Review/behavioral QA; no layer-only or verification-only follow-up is planned.
 

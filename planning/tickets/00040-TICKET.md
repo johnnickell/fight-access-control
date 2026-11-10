@@ -57,8 +57,18 @@ code so native/static types, actual outcomes and intentional failures agree with
   secret-bearing message or blanket serialization of internal results is introduced.
 - Presentation/catalog bindings belong to TICKET-00041 regardless of current namespace; query behavior belongs
   to TICKET-00039. This ticket owns all other Application declarations and behavior, including ports. TICKET-00038
-  owns Query/Command message generics; this ticket owns remaining Event-subscriber relationship adoption. Shared
+  owns Query/Command dispatch contracts; this ticket owns Event registration/concrete subscriber annotation qualification. Shared
   Domain types belong to TICKET-00037. Assign shared code edits once at TASK planning.
+
+## Event registration amendment
+
+John accepts TASK-00136's Event contract through `eventRegistration()` and concrete local subscriber payload
+annotations. The registration selects the Event-to-method route; PHP does not automatically infer its concrete
+payload type from that array. Prove registration, annotation, generation/actor payload and actual dispatch agree.
+No generic typing addition to PHP/Common or generic envelope/registration supplier is required. Released Common
+v1.5.0 is the baseline qualified by TASK-00110. TASK-00136 is ready-for-agent; implementation, minimum/ordinary-lane
+proof and independent acceptance remain its own scope. Existing implementation/PR evidence is not accepted or
+rewritten by this planning amendment. This supersedes earlier Event-only information-hold wording.
 
 ## Dependencies and Existing Work
 
@@ -100,7 +110,7 @@ All records are kind chore, orders 315–324, with empty local blocked_by; prefe
 
 | TASK | Order | Primary Application files / CommandHandlers | Delivered contract area | Status |
 | --- | --- | --- | --- | --- |
-| [TASK-00136](../tasks/00136-TASK.md) | 315 | 4 / 0 | Three Event-to-delivery subscribers and shared Clock; qualified Event typing only. | needs-info |
+| [TASK-00136](../tasks/00136-TASK.md) | 315 | 4 / 0 | Three Event-to-delivery subscribers and shared Clock; registration/local-annotation and real dispatch proof. | ready-for-agent |
 | [TASK-00137](../tasks/00137-TASK.md) | 316 | 10 / 8 | User creation, invitation/recovery/correction and lifecycle. | done |
 | [TASK-00138](../tasks/00138-TASK.md) | 317 | 24 / 11 | Human credential requests/workers and shared provider/cipher/invocation/results. | ready-for-agent |
 | [TASK-00139](../tasks/00139-TASK.md) | 318 | 11 / 1 | Seven synchronous User security operations, RevokeSession and helpers/results. | ready-for-agent |
@@ -130,12 +140,10 @@ use cases: correct annotations are sufficient, with no generic UoW supplier, rep
 or uniform result DTO. Do not reopen the removed hold under callback/enforcement wording. The annotation must agree
 with every actual return branch; it neither validates unrelated external data nor proves bus/Event inference.
 
-TASK-00136 retains ONLY the separate Event envelope/payload/registration qualification hold. Installed Common v1.4.0
-is unparameterized at those relationships; actual implemented/independently accepted/qualified tagged APIs and
-sufficient-minimum/ordinary composition evidence are needed. No supplier ID is invented, no upstream plan is claimed
-scheduled, and related Common transaction implementation work is not proof of Event typing or a UoW prerequisite.
-This Event hold does not block the nine independent operation/authority slices. Other slices still verify supported
-Common failure/port APIs and actual composition; accepted planning is not supplier qualification.
+TASK-00136's former Event-only information hold is cleared by the registration/annotation amendment above.
+Common v1.5.0's unparameterized envelope and string registration are supported, not a missing supplier. Minimum/
+ordinary-lane composition, concrete subscriber/Clock dispositions and independent acceptance remain implementation
+work. Related transaction implementation is neither Event typing proof nor a UoW prerequisite.
 
 ### Shared edits and complete-path acceptance
 
@@ -147,7 +155,7 @@ Common failure/port APIs and actual composition; accepted planning is not suppli
 - TASK-00144 reconciles recovery's existing direct QueryHandler injection with configured Query dispatch, assigning
   caller/adoption edits once with TASK-00128 and read semantics with TASK-00134. No direct-handler bypass, shadow bus
   or local assertions masquerading as generic inference. Its worker behavior does not claim TASK-00128's proof passed.
-- TASK-00128/00129 retain Query/Command generic adoption. TICKET-00037 retains shared Domain typing; EPIC-00015
+- TASK-00128/00129 retain Query/Command dispatch-contract qualification. TICKET-00037 retains shared Domain typing; EPIC-00015
   retains capability/transition/operation redesign and real Agent Command conversion; TASK-00130 retains conversion
   dispatch qualification. Current issuance/service correction does not wait for that future conversion.
 - EPIC-00017 retains optional audit feature ownership; preserve actual adopted audit atomicity here without duplicate
@@ -163,7 +171,7 @@ No source overlap alone establishes a dependency, and no blanket wait on Common/
 
 | Order | TASK ID | Title | Status |
 | --- | --- | --- | --- |
-| 315 | [TASK-00136](../tasks/00136-TASK.md) | Preserve Event-driven delivery contracts | needs-info |
+| 315 | [TASK-00136](../tasks/00136-TASK.md) | Preserve Event-driven delivery contracts | ready-for-agent |
 | 316 | [TASK-00137](../tasks/00137-TASK.md) | Correct User account lifecycle contracts | done |
 | 317 | [TASK-00138](../tasks/00138-TASK.md) | Correct human credential request and worker contracts | done |
 | 318 | [TASK-00139](../tasks/00139-TASK.md) | Correct synchronous User and session contracts | done |
@@ -201,7 +209,7 @@ remain historical planning evidence; the generated child table reflects current 
 
 John approved this requirement in the six-TICKET split, then the revised complete ten-TASK plan, now written as
 TASK-00136–00145. At that planning checkpoint nine were ready-for-agent; current status belongs to the owning
-TASKs and generated child table. TASK-00136 remains needs-info for Event typing only. Native UoW mixed
+TASKs and generated child table. TASK-00136's former Event-only information hold is now cleared. Native UoW mixed
 and known local callback-result @var are explicitly accepted with no UoW supplier prerequisite. No local/mutual
 blockers are demonstrated and existing TASK scope/order/blockers and Board priority remain unchanged.
 
@@ -221,7 +229,8 @@ for profile Tool/schema agreement and no blanket architecture/Common or UoW hold
 fixes and all existing scope/blockers remain owned as above.
 
 TICKET-00042's three-TASK plan is now approved/written as TASK-00150–00152. Its early foundations remain independent;
-final enforcement consumes actual accepted contracts, retaining the Event-only hold and settled local UoW annotations.
+final enforcement consumes actual accepted contracts and settled local UoW annotations. The later Event registration/
+annotation amendment clears the former Event-only information hold without completing its feature qualification.
 
 TICKET-00045's separate administration audit plan is now approved/written as TASK-00153–00157.
 TICKET-00046's separate four-TASK Feature/policy audit plan is now approved/written as TASK-00158–00161.

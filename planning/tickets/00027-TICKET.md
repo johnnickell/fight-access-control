@@ -12,7 +12,9 @@ status: ready-for-agent
 [EPIC-00015](../epics/00015-EPIC.md) adds canonical adapter composition from
 [TASK-00108](../tasks/00108-TASK.md) and the qualified consumed-Common baseline from
 [TASK-00110](../tasks/00110-TASK.md) as direct prerequisites of TASK-00087. This supersedes earlier placement/
-no-local-blocker wording, not Prompt independence from Tool/live features or the separate Prompt tagged/minimum hold.
+no-local-blocker wording, not Prompt independence from Tool/live features. The
+[Common v1.5.0 amendment](../epics/00014-EPIC.md#common-v150-readiness-amendment) clears the Prompt supplier hold;
+minimum/ordinary-lane tests remain implementation acceptance work.
 Keep Common-facing Prompt glue in Adapter/Mcp/Prompt/Agent and genuine policy inward; use actual Common ports/buses.
 
 ## Problem and Outcome
@@ -62,8 +64,8 @@ business transaction. Consumer provider code remains trusted application code, n
   independently, and returning a link does not force a fetch or grant its access.
 - [TICKET-00030](00030-TICKET.md) consumes this family's checks for optional Prompt catalog-change disclosure,
   without blocking ordinary Prompt list/get on live Subscriptions.
-- Reinspect actual Common Prompt implementation, independent acceptance/qualification, tagged public API and first
-  sufficient dependency minimum before adoption. Earlier uncommitted research source is not a released contract.
+- Common v1.5.0 supplies released Prompt contracts; TASK-00110 records canonical adoption. Exercise actual Prompt
+  composition at the supported minimum and ordinary lane during implementation, not as an unresolved information hold.
 - Keep EPIC-00014's combined release/current-contract rules; exact public bindings, Permission vocabulary and TASK
   boundaries remain downstream design. No consumer provider, database or runtime is implemented by this TICKET.
 
@@ -89,7 +91,7 @@ application relationship policy, live notification mechanics, consumer changes a
 
 | Order | TASK ID | Title | Status |
 | --- | --- | --- | --- |
-| 87 | [TASK-00087](../tasks/00087-TASK.md) | Authorize Agent-protected Prompt discovery and retrieval | needs-info |
+| 87 | [TASK-00087](../tasks/00087-TASK.md) | Authorize Agent-protected Prompt discovery and retrieval | ready-for-agent |
 ## Decisions and Progress
 
 John approved item 3 of the complete eight-TICKET split, explicitly invoked To Tasks for this TICKET, then approved
@@ -98,8 +100,9 @@ Its full accepted decomposition is now written, including definition association
 static/Query-backed providers, independently protected links, safe bounded errors/output, tests/docs/minimum-version
 qualification and independent Review/QA. No separate prefactor or verification-only TASK is planned.
 
-TASK-00087 is `needs-info` for implemented/independently accepted/qualified, tagged Common Prompt APIs and supported
-minimum evidence, with TASK-00108 and TASK-00110 now added as canonical adapter/consumed-Common prerequisites.
+TASK-00087 is ready-for-agent under the released Common v1.5.0 baseline; TASK-00108 and TASK-00110 are done and their
+edges remain recorded. Definition association is an implementation choice; configured consumer scope and providers
+are exercised with controlled fixtures, not prerequisites for a new operator decision or production adoption.
 Prompt serving still does not depend on TASK-00084, Resource/Skill TASK-00085/00086 or live Subscriptions/durable Tasks. Linked targets retain independent later admission.
 
 This TICKET's TASK planning is complete. TICKET-00028's approved TASK-00088 plan is now written;

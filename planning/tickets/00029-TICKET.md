@@ -12,7 +12,8 @@ status: ready-for-agent
 [EPIC-00015](../epics/00015-EPIC.md)'s canonical adapter/consumed-Common baseline reaches TASK-00089/00090 through
 TASK-00084, which now consumes [TASK-00108](../tasks/00108-TASK.md) and [TASK-00110](../tasks/00110-TASK.md).
 Use actual Common Query/admission contracts through configured buses and canonical MCP adapters, not copied readers
-or retired lifecycle/Store facades. Each scoped/protected-read tagged/minimum hold and independent grant remains.
+or retired lifecycle/Store facades. The [Common v1.5.0 amendment](../epics/00014-EPIC.md#common-v150-readiness-amendment)
+clears scoped/protected-read supplier holds; independent grants and implementation-time minimum/ordinary-lane tests remain.
 
 ## Problem and Outcome
 
@@ -56,7 +57,7 @@ protected bodies may appear only in the explicitly admitted response, never in s
 - Keep ordinary request-local authority and fresh later requests. References, historical capture, a previous page
   and a content chunk do not grant subsequent access, continuous storage or complete-capture guarantees.
 - Preserve the actual selected tagged Common output schemas, exact safe projections, finite encoded output and
-  protocol error handling. Common TASK-00205 plans optional typed activity target/timing/result facts in the existing
+  protocol error handling. Common v1.5.0 includes TASK-00205's optional typed activity target/timing/result facts in the existing
   activity output; TASK-00089 owns their scoped qualification when supplied. Those facts create no reference/body
   grants, stable history, automatic capture or business-success evidence. TASK-00090 remains independent and must
   retain metadata-only results without requiring body Permission at coarse Tool admission. AccessControl must not
@@ -66,10 +67,10 @@ protected bodies may appear only in the explicitly admitted response, never in s
 
 - TICKET-00025 supplies Tool registration/availability for the complete execution-Tool journey; these requirements
   do not block generic Tool bindings on a particular consumer data policy.
-- Existing Common `ExecutionReadAdmission`, `DetailReadAdmission`, scoped access types and owning Queries are source
-  evidence, not permission for an untagged dependency. Reinspect actual accepted/tagged contracts and minimum version.
-  The approved Common TASK-00205 plan is not implemented or tagged availability and adds no standalone blocker here;
-  Common release does not wait for this consumer's binding/scoped-read implementation or Agent OS adoption.
+- Common v1.5.0 supplies `ExecutionReadAdmission`, `DetailReadAdmission`, scoped access types, owning Queries and
+  TASK-00205's optional typed activity facts. TASK-00110 records canonical supplier adoption; feature-specific minimum/
+  ordinary-lane tests remain implementation acceptance work. No new standalone supplier blocker is needed, and Common
+  release does not wait for this consumer's binding/scoped-read implementation or Agent OS adoption.
 - [TICKET-00028](00028-TICKET.md) supplies revalidation if a consumer later performs repeated live disclosure or
   background continuation; ordinary paged/chunked request admission does not depend on adding a live transport.
 - Actual consumer relationship/persistence/transport composition and race qualification remain separate from package
@@ -99,8 +100,8 @@ retention policy, blanket administrative grants, live protocol mechanics, consum
 
 | Order | TASK ID | Title | Status |
 | --- | --- | --- | --- |
-| 89 | [TASK-00089](../tasks/00089-TASK.md) | Compose scoped execution and timeline reads | needs-info |
-| 90 | [TASK-00090](../tasks/00090-TASK.md) | Compose independent protected-detail metadata and body reads | needs-info |
+| 89 | [TASK-00089](../tasks/00089-TASK.md) | Compose scoped execution and timeline reads | ready-for-agent |
+| 90 | [TASK-00090](../tasks/00090-TASK.md) | Compose independent protected-detail metadata and body reads | ready-for-agent |
 ## Decisions and Progress
 
 John approved item 5 of the eight-TICKET split, explicitly invoked To Tasks for this TICKET, then approved two
@@ -110,8 +111,9 @@ complete journeys. Its full accepted decomposition is now written:
 - [TASK-00090 — Compose independent protected-detail metadata and body reads](../tasks/00090-TASK.md), also consuming
   TASK-00084, not TASK-00089. Protected detail remains independently admissible without timeline access.
 
-Both are needs-info for qualified/tagged Common scoped-read APIs and supported minimum evidence in addition to
-their shared TASK-00084 dependency. Each owns real Tool/Query/handler/reader composition, direct Query protection,
+Both are ready-for-agent with the Common v1.5.0 information holds cleared; their shared unfinished TASK-00084
+implementation dependency remains. Consumer relationship policy is a configured port input tested with controlled
+fixtures, not missing operator input or a production adoption prerequisite. Each owns real Tool/Query/handler/reader composition, direct Query protection,
 scope/projection/totals, fresh pages/chunks, safe truthful faults, tests/docs/gates and independent Review/QA.
 No separate layer or verification-only TASK is planned. Ordinary request reads do not depend on TASK-00088/live
 transports; actual consumer relationship/persistence/race qualification remains separate.
@@ -119,7 +121,8 @@ transports; actual consumer relationship/persistence/race qualification remains 
 John accepted the external-Tool architecture recommendations and requested reconciliation without duplicate work.
 TASK-00084 retains coarse binding; TASK-00089 qualifies applicable safe activity facts; TASK-00090 preserves independent
 structural/metadata/body admission. No new TASK, grant, dependency edge or Common release prerequisite is introduced.
-The existing needs-info holds, actual tagged/minimum qualification and combined-release boundary remain unchanged.
+The former needs-info supplier holds are cleared by v1.5.0. Feature minimum/ordinary-lane qualification and the
+combined-release boundary remain implementation/release obligations, not missing information.
 
 This TICKET's TASK planning is complete, not implementation. TICKET-00030's approved TASK-00091–00096 plan is now
 written, as is TICKET-00031's TASK-00097–00102 plan. TICKET-00032's approved TASK-00103–00106 plan is also written.
