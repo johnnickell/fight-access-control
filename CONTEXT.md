@@ -1,6 +1,6 @@
 # Fight AccessControl Context
 
-## Protected-detail admission — TASK-00090 Work checkpoint
+## Protected-detail admission — TASK-00090 accepted checkpoint
 
 [Protected-detail composition](docs/agent-protected-detail.md) adds inward `AgentDetailReadAdmission` and the
 consumer-owned `AgentDetailScope` port under Application/AccessControl/Agent/Detail. Real ordinary-request
@@ -16,8 +16,12 @@ not arbitrary non-UTF-8 binary; Base64 byte chunks can split code points. Actual
 bodies are not retrieved/decoded. Fresh requests observe changed authority/scope; resolved ordinary requests retain
 their existing principal snapshot and one nonce consumption. No continuous authority/storage guarantee is claimed.
 Canonical `.runs/handoffs/TASK-00090/work.md` owns actual checks, lock/source identities, warnings and retained runtime.
-At this Work checkpoint independent Review and nonvisual behavioral QA remain required, TASK-00090 stays in-progress,
-and its parents remain open. Package fixtures do not qualify deployed cryptography, relationships, persistence/races,
+Independent Review v3 ACCEPT and nonvisual QA PASS cover candidate
+`dbd36b9eb1b7e594d69cb0e61cc249be0d45c06a` (nine QA scenarios / 591 checks). Land's behavior-preserving
+TASK-00097/develop integration passed a fresh full gate: 8,663 tests / 86,289 assertions, exact 10,523/10,523
+statements. TASK-00090 is done; TASK-00089 keeps its parents open. Publication/final delivery checks are pending
+at this checkpoint; canonical `.runs/handoffs/TASK-00090/land.md` owns subsequent outcomes and the provenance bridge.
+Original independent subjects and Work history remain preserved. Package fixtures do not qualify deployed cryptography, relationships, persistence/races,
 transport/sink lifetimes, consumer adoption or the combined unassigned EPIC release. TASK-00089 remains independent.
 
 ## Notice mutation admission — TASK-00091 accepted checkpoint

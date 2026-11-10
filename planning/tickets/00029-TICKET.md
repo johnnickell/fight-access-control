@@ -101,8 +101,15 @@ retention policy, blanket administrative grants, live protocol mechanics, consum
 | Order | TASK ID | Title | Status |
 | --- | --- | --- | --- |
 | 89 | [TASK-00089](../tasks/00089-TASK.md) | Compose scoped execution and timeline reads | ready-for-agent |
-| 90 | [TASK-00090](../tasks/00090-TASK.md) | Compose independent protected-detail metadata and body reads | in-progress |
+| 90 | [TASK-00090](../tasks/00090-TASK.md) | Compose independent protected-detail metadata and body reads | done |
 ## Decisions and Progress
+
+TASK-00090 has independently accepted protected-detail composition and required nonvisual QA; its owning record
+identifies the accepted candidate and canonical Land outcome. TASK-00089 remains ready and independent, so this
+TICKET and EPIC-00014 remain open. TASK-00084's integrated binding is available. No combined release or actual
+consumer relationship/storage qualification is claimed.
+
+### Historical planning checkpoint
 
 John approved item 5 of the eight-TICKET split, explicitly invoked To Tasks for this TICKET, then approved two
 complete journeys. Its full accepted decomposition is now written:
