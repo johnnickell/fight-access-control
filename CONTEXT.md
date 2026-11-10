@@ -6,6 +6,23 @@ Fight AccessControl owns framework-neutral identity, credential, session, author
 behavior shared by Fight applications. The repository-local behavioral and security authority is
 [TICKET-00001](planning/tickets/00001-TICKET.md).
 
+## TASK-00097 durable Task admission — Work checkpoint
+
+The [slice A Task composition](docs/agent-task-authorization.md) supplies independent configured direct Agent
+Permissions and consumer-owned creation, trusted producer and whole-state read scope through Common v1.5.0's
+actual admission ports. Real Common Commands/Query handlers, buses, separate repository/UoW/committed reads,
+original payload contracts, complete state, retry/terminal/retention and postcommit truth remain upstream-owned.
+`AgentTaskAuthority::duringContinuation()` reuses TASK-00088's guard with a bounded action-only authority and
+explicit consumer-scope fence wrapper; workers need no retained request provider or nonce replay. Original caller
+continuation remains independently bound and guarded, never inferred from producer permission or Task creation.
+
+The canonical TASK-00097 Work handoff owns exact feature minimum/ordinary-lane, SQLite/authority/current-worker,
+full-gate/exact-coverage evidence and limitations. Doctrine DBAL is development-only for Common's actual SQLite
+adapter qualification. Controlled scope/sharing/binding/visibility fixtures do not qualify actual consumer storage,
+cryptography, durable visibility epochs, authority writers/locks, queues, worker lifetimes or external effects.
+Independent Review/nonvisual QA remain required; TASK-00097 stays in-progress. No later Task slice, partial MCP
+advertisement, new lifecycle/executor, automatic grant, release, publication or deployment is implemented here.
+
 ## TASK-00136 delivery Event contracts — accepted checkpoint
 
 The [delivery Event contract map](docs/delivery-event-contracts.md) records all eight existing subscriber routes,
