@@ -1,6 +1,16 @@
 # Fight AccessControl Context
 
-## Current-subscriber inspection — TASK-00095 Work checkpoint
+## Current-subscriber inspection — TASK-00095 accepted checkpoint
+
+Independent Review v3 ACCEPT and nonvisual qa-02 PASS cover candidate
+`4afcfc70b66c22042ad9349d5f2e524ec591cd16`. TASK-00095 is done for package acceptance and required verification:
+QA's seven scenarios pass 7 tests / 149 assertions; its fresh complete gate passes 8,892 tests / 90,077 assertions
+and exact 10,644/10,644 statements. Canonical Review/QA preserve subjects and qualification limits.
+Publication and final delivery remain pending at administrative closeout; `.runs/handoffs/TASK-00095/land.md`
+owns current delivery/resource results. Minimum compatibility has 43 advisories / 13 packages; ordinary none.
+Other EPIC scope, the combined unassigned release and production consumer qualification remain separate.
+
+### Historical Work checkpoint
 
 [Subscriber inspection composition](docs/agent-subscriber-inspection.md) adds inward
 `AgentSubscriberReadAdmission` and consumer `AgentSubscriberReadPolicy` over Common's actual summary/list admission.
