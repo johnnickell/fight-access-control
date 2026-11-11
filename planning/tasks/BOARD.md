@@ -5,11 +5,13 @@ dependencies, acceptance, and verification.
 
 ## What's Next?
 
-First ready Task: [TASK-00089](00089-TASK.md) — Compose scoped execution and timeline reads.
+Active Task: [TASK-00095](00095-TASK.md) — Authorize current-subscriber inspection.
 
 ## In Progress
 
-No Tasks are currently in this state.
+| Order | TASK ID | Title | Parent TICKET | Status | Blocked by | PR |
+| --- | --- | --- | --- | --- | --- | --- |
+| 95 | [TASK-00095](00095-TASK.md) | Authorize current-subscriber inspection | [TICKET-00030](../tickets/00030-TICKET.md) — Authorize retained notices and live Subscriptions | in-progress | [TASK-00093](00093-TASK.md) | — |
 
 ## Ready Frontier
 
@@ -17,7 +19,6 @@ No Tasks are currently in this state.
 | --- | --- | --- | --- | --- | --- | --- |
 | 89 | [TASK-00089](00089-TASK.md) | Compose scoped execution and timeline reads | [TICKET-00029](../tickets/00029-TICKET.md) — Compose scoped execution and protected-detail access | ready-for-agent | [TASK-00084](00084-TASK.md) | — |
 | 94 | [TASK-00094](00094-TASK.md) | Authorize Prompt catalog-change disclosure | [TICKET-00030](../tickets/00030-TICKET.md) — Authorize retained notices and live Subscriptions | ready-for-agent | [TASK-00087](00087-TASK.md), [TASK-00093](00093-TASK.md) | — |
-| 95 | [TASK-00095](00095-TASK.md) | Authorize current-subscriber inspection | [TICKET-00030](../tickets/00030-TICKET.md) — Authorize retained notices and live Subscriptions | ready-for-agent | [TASK-00093](00093-TASK.md) | — |
 | 101 | [TASK-00101](00101-TASK.md) | Authorize complete MCP Task start and reconnect journeys | [TICKET-00031](../tickets/00031-TICKET.md) — Authorize durable Task operations and state disclosure | ready-for-agent | [TASK-00084](00084-TASK.md), [TASK-00097](00097-TASK.md), [TASK-00099](00099-TASK.md), [TASK-00100](00100-TASK.md) | — |
 | 329 | [TASK-00152](00152-TASK.md) | Enforce and qualify the integrated library contracts | [TICKET-00042](../tickets/00042-TICKET.md) — Enforce and demonstrate whole-library type correctness | ready-for-agent | [TASK-00150](00150-TASK.md), [TASK-00151](00151-TASK.md), [TASK-00115](00115-TASK.md), [TASK-00116](00116-TASK.md), [TASK-00117](00117-TASK.md), [TASK-00118](00118-TASK.md), [TASK-00119](00119-TASK.md), [TASK-00120](00120-TASK.md), [TASK-00128](00128-TASK.md), [TASK-00129](00129-TASK.md), [TASK-00130](00130-TASK.md), [TASK-00131](00131-TASK.md), [TASK-00132](00132-TASK.md), [TASK-00133](00133-TASK.md), [TASK-00134](00134-TASK.md), [TASK-00135](00135-TASK.md), [TASK-00136](00136-TASK.md), [TASK-00137](00137-TASK.md), [TASK-00138](00138-TASK.md), [TASK-00139](00139-TASK.md), [TASK-00140](00140-TASK.md), [TASK-00141](00141-TASK.md), [TASK-00142](00142-TASK.md), [TASK-00143](00143-TASK.md), [TASK-00144](00144-TASK.md), [TASK-00145](00145-TASK.md), [TASK-00146](00146-TASK.md), [TASK-00147](00147-TASK.md), [TASK-00148](00148-TASK.md), [TASK-00149](00149-TASK.md) | — |
 | 404 | [TASK-00124](00124-TASK.md) | Audit invitation delivery and expiry | [TICKET-00044](../tickets/00044-TICKET.md) — Audit User account and credential journeys | ready-for-agent | [TASK-00122](00122-TASK.md) | — |

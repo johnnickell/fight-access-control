@@ -1,5 +1,25 @@
 # Fight AccessControl Context
 
+## Current-subscriber inspection — TASK-00095 Work checkpoint
+
+[Subscriber inspection composition](docs/agent-subscriber-inspection.md) adds inward
+`AgentSubscriberReadAdmission` and consumer `AgentSubscriberReadPolicy` over Common's actual summary/list admission.
+Independent conjunctive direct Permissions precede trusted whole-registration metadata scope. Common owns actual
+TASK-00093 registrations, complete-selection counts, bounded live scans/pages, freshness and safe failure wrapping.
+Listen/read/publication grants, caller selectors, identities, role labels, request IDs and heartbeats confer no
+inspection grant. Resolved ordinary requests retain their snapshot and one nonce; later requests reauthenticate.
+No Tool, schema, store, SQL, lifecycle, heartbeat renewal, cleanup or business event is added.
+
+Common ^1.5.0 remains sufficient, tagged source `06fb5cd3720af9cf8295198f74040d95b64c5155`. Controlled real
+AccessControl/Common SQLite fixtures cover protected opening → direct/routed inspection, concealed whole rows and
+counts, requested/accepted filters/references, changing scope/authority/pages, clean close, native worker SIGKILL,
+late observation/renewal, cleanup and committed two-connection scan interleaving. These are live observations,
+not guaranteed presence, historical absence, delivery/receipt or frozen browsing. The canonical
+`.runs/handoffs/TASK-00095/work.md` owns exact minimum/ordinary dependency/runtime, gate/coverage results and warnings.
+Independent Review and nonvisual behavioral QA remain pending at this Work checkpoint; TASK-00095 stays open.
+Production consumer policy/storage/clock/process/concurrency/safe-sink qualification, adoption, release and deployment
+remain separate and unclaimed.
+
 ## Live Tool, Resource and whole-Skill disclosure — TASK-00093 accepted checkpoint
 
 [Live disclosure composition](docs/agent-live-disclosure.md) adds optional canonical Subscription adapters and

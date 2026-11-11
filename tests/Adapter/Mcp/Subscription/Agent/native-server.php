@@ -107,8 +107,17 @@ $authority = new AgentNoticeAuthority(
 );
 $connection = DriverManager::getConnection(['driver' => 'pdo_sqlite', 'memory' => true]);
 new DbalNoticeSchema()->install($connection);
-$tracking = DriverManager::getConnection(['driver' => 'pdo_sqlite', 'memory' => true]);
-new DbalSubscriptionSchema()->install($tracking);
+$trackingPath = getenv('INSPECTION_TRACKING_PATH');
+$trackingParameters = ['driver' => 'pdo_sqlite', 'memory' => true];
+if ($trackingPath !== false) {
+    $trackingParameters = ['driver' => 'pdo_sqlite', 'path' => $trackingPath];
+}
+
+$tracking = DriverManager::getConnection($trackingParameters);
+if ($trackingPath === false) {
+    new DbalSubscriptionSchema()->install($tracking);
+}
+
 $transaction = new DbalNoticeTransaction($connection);
 $admission = new class implements NoticeAdmission {
     public function admit(Notice $notice): void
@@ -175,7 +184,7 @@ $subscriptions = new McpSubscriptions(
     $live,
     NoticeSelection::create(['project']),
     resources: false,
-    lifetimeSeconds: 1,
+    lifetimeSeconds: $trackingPath === false ? 3 : 30,
     waitMicroseconds: 10000,
     maxFrameBytes: 8192
 );

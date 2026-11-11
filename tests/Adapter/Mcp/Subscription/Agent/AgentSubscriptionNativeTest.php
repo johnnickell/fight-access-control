@@ -84,7 +84,8 @@ final class AgentSubscriptionNativeTest extends TestCase
             }
 
             $early = (hrtime(true) - $started) / 1000000000;
-            self::assertLessThan(0.9, $early, $wire.$process->getErrorOutput());
+            // Allow cold Composer/bootstrap time while still requiring frames well before finite closure.
+            self::assertLessThan(2.5, $early, $wire.$process->getErrorOutput());
             self::assertFalse(feof($socket));
             self::assertSame('notifications/subscriptions/acknowledged', $frames[0]['method']);
             self::assertSame(['toolsListChanged' => true], $frames[0]['params']['notifications']);
@@ -94,7 +95,7 @@ final class AgentSubscriptionNativeTest extends TestCase
             self::assertStringContainsString('X-Accel-Buffering: no', $wire);
             $wire .= stream_get_contents($socket);
             fclose($socket);
-            self::assertGreaterThanOrEqual(0.9, (hrtime(true) - $started) / 1000000000);
+            self::assertGreaterThanOrEqual($early + 1.0, (hrtime(true) - $started) / 1000000000);
             self::assertStringContainsString('"resultType":"complete"', $wire);
             self::assertStringNotContainsString('private-', $wire);
             self::assertStringNotContainsString('Controlled native failure', $process->getErrorOutput());

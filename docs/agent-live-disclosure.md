@@ -7,6 +7,10 @@ publication are recorded in the [contract inventory](common-contracts.md). Indep
 QA PASS cover candidate `55b9ccb0b6ad6ef3533d99e99cae63ab98cb7657`; the owning TASK and canonical Land handoff
 retain integration/delivery provenance. This is library composition, not consumer adoption or production qualification.
 
+Independent [current-subscriber inspection](agent-subscriber-inspection.md) consumes these real registrations
+through Common summary/list Queries. Listening never grants access to subscriber identities, requested/accepted
+filters, references, freshness or full-selection aggregates; inspection has its own configured admission.
+
 ## Runtime ownership
 
 ```mermaid
