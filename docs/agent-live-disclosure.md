@@ -27,6 +27,7 @@ sequenceDiagram
     Live->>Store: Open and renew owned registration
     Live->>Agent: Recheck accepted subset
     Live-->>HTTP: First acknowledgment, exact request ID type
+    HTTP-->>Caller: First acknowledgment and flush
     loop Bounded follow
         Live->>Query: Recover committed notices with complete continuity
         Live->>Agent: Current signal admission
@@ -40,8 +41,8 @@ sequenceDiagram
     Live->>Store: Close owned technical registration
 ```
 
-Existing implementation view for this TASK's source candidate (the canonical Work handoff records its full commit
-and tested-content mapping). Common arrows describe released source `06fb5cd3720af9cf8295198f74040d95b64c5155`.
+Existing implementation view at `59f4b90961d1f180eba869c16856c262054b4b68`; later handoff-prose changes retain
+these source/test bytes. Common arrows describe released source `06fb5cd3720af9cf8295198f74040d95b64c5155`.
 Solid arrows are calls, dashed arrows returned frames/data. Family metadata checks inside Agent admission are
 abbreviated; the emitter drives execution, so frame-return arrows do not imply a background worker or durable queue.
 Source: `src/Adapter/Mcp/Subscription/Agent/{AgentSubscriptionAdmission,AgentSubscriptionFamilies}.php`,
@@ -173,7 +174,7 @@ admitted retained recovery remain distinct scenarios. The native fixture uses an
 request tests separately prove authentication and one nonce without replay.
 
 Minimum/ordinary dependency identities, exact coverage, complete gate logs, warnings and runtime locators belong to
-the canonical Work handoff. Minimum-lane development dependencies report 40 advisories in 12 packages; ordinary
+the canonical Work handoff. Minimum compatibility resolution reports 40 advisories in 12 packages; ordinary
 resolution reports none. These fixtures qualify package composition, **not** production consumer DB/crypto/policy,
 all authority writers, access-history restoration, concurrency schedules, proxies, buffering or client receipt.
 Nonvisual actual wire/admission/Query/state evidence is useful here; UI screenshots would prove none of these rules.
