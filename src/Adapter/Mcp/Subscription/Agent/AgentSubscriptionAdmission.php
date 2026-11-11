@@ -47,7 +47,9 @@ final readonly class AgentSubscriptionAdmission implements McpSubscriptionAdmiss
     {
         if (
             $subscriber !== $this->subscriberReference
-            || !in_array($filter, ['toolsListChanged', 'resourcesListChanged', 'resourceSubscriptions'], true)
+            || !in_array($filter, [
+                'toolsListChanged', 'resourcesListChanged', 'resourceSubscriptions', 'promptsListChanged'
+            ], true)
             || (($filter === 'resourceSubscriptions') !== ($uri !== null))
         ) {
             return false;
