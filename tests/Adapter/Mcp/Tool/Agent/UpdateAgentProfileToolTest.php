@@ -9,6 +9,7 @@ use Fight\AccessControl\Domain\AccessControl\Agent\AgentId;
 use Fight\AccessControl\Domain\AccessControl\Agent\Command\UpdateAgent;
 use Fight\AccessControl\Domain\AccessControl\Agent\Exception\AgentNameException;
 use Fight\AccessControl\Domain\AccessControl\Authorization\AuthenticatedPrincipalType;
+use Fight\Common\Application\Error\Exception\InvalidInput;
 use Fight\Common\Application\Mcp\Tool\McpProgressReporter;
 use Fight\Common\Application\Messaging\Command\SynchronousCommandBus;
 use Fight\Common\Application\Validation\Data\ApplicationData;
@@ -17,6 +18,7 @@ use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 use RuntimeException;
+use stdClass;
 
 #[CoversClass(UpdateAgentProfileTool::class)]
 final class UpdateAgentProfileToolTest extends TestCase
@@ -29,6 +31,15 @@ final class UpdateAgentProfileToolTest extends TestCase
         yield 'unicode empty' => ["\u{00A0}\u{3000}"];
         yield 'too long' => [str_repeat('é', 121)];
         yield 'invalid encoding' => ["\xFF"];
+    }
+
+    /** @return iterable<string, array{array<string, mixed>}> */
+    public static function malformedInput(): iterable
+    {
+        yield 'missing' => [[]];
+        foreach ([null, false, 42, 1.5, [], new stdClass()] as $value) {
+            yield get_debug_type($value) => [['name' => $value]];
+        }
     }
 
     /** @return iterable<string, array{string, string}> */
@@ -85,6 +96,21 @@ final class UpdateAgentProfileToolTest extends TestCase
         $this->expectException(AgentNameException::class);
         $env->update($synchronousCommandBus)->handle(
             new ApplicationData(['name' => $name]),
+            $this->createStub(McpProgressReporter::class)
+        );
+    }
+
+    /** @param array<string, mixed> $input */
+    #[DataProvider('malformedInput')]
+    public function test_dynamic_application_data_rejects_non_string_name_before_dispatch(array $input): void
+    {
+        $env = new ProfileToolEnvironment();
+        $synchronousCommandBus = $this->createMock(SynchronousCommandBus::class);
+        $synchronousCommandBus->expects(self::never())->method('execute');
+        $this->expectException(InvalidInput::class);
+        $this->expectExceptionMessage('The Agent name is invalid.');
+        $env->update($synchronousCommandBus)->handle(
+            new ApplicationData($input),
             $this->createStub(McpProgressReporter::class)
         );
     }
