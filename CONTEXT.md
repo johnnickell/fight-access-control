@@ -1,6 +1,6 @@
 # Fight AccessControl Context
 
-## Optional Prompt catalog-change disclosure — TASK-00094 Work
+## Optional Prompt catalog-change disclosure — TASK-00094 accepted checkpoint
 
 [Prompt live composition](docs/agent-live-disclosure.md#optional-prompt-catalog-changes--task-00094) extends the
 existing canonical Subscription admission with optional `AgentPromptPermissionCatalog` metadata eligibility. The
@@ -15,10 +15,12 @@ acknowledgment/standard frames, bounds, source/tracking and safe fault closure. 
 block ordinary live families or subscription-free Prompt serving. Committed notices remain independently recoverable
 after delivery failure, without complete-capture, stable-revision, receipt or exactly-once guarantees. Controlled
 real-authority/SQLite/native HTTP tests and canonical `.runs/handoffs/TASK-00094/work.md` own actual minimum/ordinary
-identities, runtime, checks, coverage, warnings and limitations. Independent Review and behavioral QA remain required;
-TASK-00094 stays open. Consumer capture/redaction/policy/history/crypto/storage, production concurrency/authority
-writers and deployed buffering/client receipt remain unqualified. No adoption, publication, release or deployment
-is claimed.
+identities, runtime, checks, coverage, warnings and limitations. Independent Review ACCEPT and behavioral QA PASS
+cover candidate `fb58cb81cae6bed995eb31f0a3b68123f0aa6c67`; TASK-00094 is done for package acceptance.
+Publication and final delivery are pending at this closeout checkpoint; canonical `.runs/handoffs/TASK-00094/land.md`
+owns subsequent delivery and retirement results. Consumer capture/redaction/policy/history/crypto/storage,
+production concurrency/authority writers and deployed buffering/client receipt remain unqualified. No adoption,
+merge, release or deployment is claimed.
 
 ## Live Tool, Resource and whole-Skill disclosure — TASK-00093 accepted checkpoint
 
