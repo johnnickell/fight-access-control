@@ -1,6 +1,6 @@
 # Fight AccessControl Context
 
-## Optional notice publication — TASK-00096 Work checkpoint
+## Optional notice publication — TASK-00096 accepted checkpoint
 
 [Explicit publication composition](docs/agent-notice-publication.md) adds inward `AgentNoticePublicationPolicy`
 and consumer `AgentNoticePublicationScope` over Common v1.5.0's actual publication-policy seam. Each attempt
@@ -14,9 +14,29 @@ Real authority, routed Common recording/inspection/recovery, SQLite and controll
 safe projections, independent grants, changed current authority/scope, precommit failure, committed publication
 failure/repeated attempts, recovery/retention truth and disabled output. Common ^1.5.0 remains sufficient;
 optional Mercure ^0.7 is suggested, development-only for package tests. The canonical Work handoff owns exact
-minimum/ordinary dependency/runtime/gate evidence and warnings. TASK-00096 stays in-progress pending independent
-Review and behavioral QA. Package fixtures do not qualify consumer policy, storage/crypto/authority races,
+minimum/ordinary dependency/runtime/gate evidence and warnings. Independent Review v3 ACCEPT and complete nonvisual
+QA PASS cover candidate `65034aff05c08adaca806f840aa4920c55c6a081`: 14 independent scenarios / 191 assertions plus
+63 focused tests / 944 assertions, without blockers. TASK-00096 is done; unfinished siblings keep TICKET-00030 and
+EPIC-00014 open. Behavior-preserving advanced-base integration, final verification/publication and retirement remain
+pending at this closeout checkpoint; canonical `.runs/handoffs/TASK-00096/land.md` owns subsequent results and provenance.
+Package fixtures do not qualify consumer policy, storage/crypto/authority races,
 deployed hub/browser entitlement, receipt, MCP live-wire support, adoption, release or deployment.
+
+## TASK-00147 protected profile Tool contracts — accepted checkpoint
+
+The [current six-declaration/member dispositions](docs/agent-profile-tools.md#current-contract-dispositions-task-00147)
+retain exact Common descriptor/Permission/request/nonce contracts, real routed profile/update handlers, safe exact-class
+failure constants and normalized void acknowledgement. Dynamic ApplicationData name extraction now validates its
+string instead of asserting mixed input; known Query result annotations follow TASK-00128's ratified amendment.
+New behavioral/static checks distinguish schemas, actual cohort/name refusal, internal identity/subclass faults,
+no-op persistence and committed publication failure. No extra workflow, result DTO, read or Event is introduced.
+Canonical `.runs/handoffs/TASK-00147/work.md` owns verification and limitations. Independent Review v3 ACCEPT and
+nonvisual QA PASS cover clean candidate `8d05c188ea86a3f0b2df5ae289ee60e5feea6251`, without blockers.
+TASK-00147 and eligible TICKET-00041 are done; EPIC-00016 remains open for integrated enforcement. Earlier full gate
+retained; current documentation/planning checks cover administrative closeout. Minimum advisories and the failed
+supplementary older-analyzer check remain explicit limitations. Publication/final delivery checks are pending at
+this checkpoint; canonical `.runs/handoffs/TASK-00147/land.md` owns subsequent bridge/delivery/resource outcomes.
+This is not consumer, whole-library, approval, merge or release qualification.
 
 ## Durable Task input — TASK-00099 accepted checkpoint
 
