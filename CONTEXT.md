@@ -1,5 +1,23 @@
 # Fight AccessControl Context
 
+## Optional notice publication — TASK-00096 Work checkpoint
+
+[Explicit publication composition](docs/agent-notice-publication.md) adds inward `AgentNoticePublicationPolicy`
+and consumer `AgentNoticePublicationScope` over Common v1.5.0's actual publication-policy seam. Each attempt
+reuses original-bound `AgentNoticeAuthority` for fresh direct operation Permissions, then consumer topic/mode/
+whole-audience/field disclosure. Common owns committed reconstruction, encoded bounds, statuses, diagnostics,
+synchronous acknowledged-commit handoff and public/private Mercure adapters. No broadcaster, retry engine,
+new grant, read lease, send-spanning lock or automatic registration is added. Private denial/fault/unsupported
+output never falls back to public. Permission may change after the final check before sending.
+
+Real authority, routed Common recording/inspection/recovery, SQLite and controlled-hub `Update` tests cover
+safe projections, independent grants, changed current authority/scope, precommit failure, committed publication
+failure/repeated attempts, recovery/retention truth and disabled output. Common ^1.5.0 remains sufficient;
+optional Mercure ^0.7 is suggested, development-only for package tests. The canonical Work handoff owns exact
+minimum/ordinary dependency/runtime/gate evidence and warnings. TASK-00096 stays in-progress pending independent
+Review and behavioral QA. Package fixtures do not qualify consumer policy, storage/crypto/authority races,
+deployed hub/browser entitlement, receipt, MCP live-wire support, adoption, release or deployment.
+
 ## Durable Task input — TASK-00099 accepted checkpoint
 
 The [slice C Task composition](docs/agent-task-authorization.md#durable-input-and-protected-continuation--slice-c)

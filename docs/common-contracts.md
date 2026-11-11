@@ -95,6 +95,20 @@ requirements. Explicitly mapped retry proof uses Common's existing invoker/inter
 Minimum and ordinary lanes, exact lock/source identity and original warnings are retained in canonical
 `.runs/handoffs/TASK-00084/work.md`; no actual scoped Query handler/backend/consumer qualification is inferred.
 
+## Optional notice publication — TASK-00096
+
+The [publication composition](agent-notice-publication.md) consumes Common v1.5.0's actual
+`Application/Mcp/Notice/Publication/{NoticePublicationPolicy,NoticePublicationGrant,NoticePublication,
+RecordNoticeAndPublish,NoticePublicationStatus,NoticePublicationDiagnostics}` plus routed recording/inspection/
+recovery and committed DBAL readers. `AgentNoticePublicationPolicy` supplies fresh independent current operation
+Permissions before consumer whole-audience/topic/mode/field scope. No raw-publisher-only substitution, policy or
+transport fork is added. Common `Adapter/Socket/{MercureHubPublisher,PrivateMercureHubPublisher}` supplies actual
+public/private `Update` translation; optional `symfony/mercure ^0.7` has qualified minimum 0.7.0. Common's sufficient
+minimum remains published v1.5.0 at the exact source above. Canonical TASK-00096 Work evidence owns feature-specific
+minimum/ordinary locks, PHP runtime, tests and full gate. Controlled hub/consumer fixtures do not qualify actual
+browser entitlement, deployed policy/races, receipt or MCP live wire support. Independent feature acceptance stays
+separate.
+
 ## Qualification and future owners
 
 The isolated exact-minimum Composer lane pins `1.5.0`; the ordinary lane resolves the manifest normally. Both

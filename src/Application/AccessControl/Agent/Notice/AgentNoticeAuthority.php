@@ -20,7 +20,7 @@ use SensitiveParameter;
 /**
  * Class AgentNoticeAuthority
  *
- * Resolves original bound authority afresh at Common's storage-locked admission point, not a continuing lease.
+ * Resolves original bound authority afresh at the owning admission point, not a continuing lease.
  */
 final readonly class AgentNoticeAuthority
 {
