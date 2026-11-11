@@ -2,7 +2,7 @@
 id: TICKET-00041
 epic: EPIC-00016
 title: Align presentation and integration contracts
-status: ready-for-agent
+status: done
 ---
 
 # Align presentation and integration contracts
@@ -138,10 +138,16 @@ No consumer/Common edits, compatibility mode, new business policy/grant/endpoint
 | Order | TASK ID | Title | Status |
 | --- | --- | --- | --- |
 | 325 | [TASK-00146](../tasks/00146-TASK.md) | Qualify ordinary HTTP contracts and safe failures | done |
-| 326 | [TASK-00147](../tasks/00147-TASK.md) | Align protected Agent profile Tool contracts | in-progress |
+| 326 | [TASK-00147](../tasks/00147-TASK.md) | Align protected Agent profile Tool contracts | done |
 | 327 | [TASK-00148](../tasks/00148-TASK.md) | Align Resource and Skill binding contracts | done |
 | 328 | [TASK-00149](../tasks/00149-TASK.md) | Align public payload schemas and declarative metadata | done |
 ## Decisions and Progress
+
+All four children are terminal after TASK-00147's independent Review ACCEPT and nonvisual QA PASS, so automatic
+parent completion closes this TICKET. Each owning TASK/report retains its bounded acceptance and verification;
+this rollup does not supply integrated whole-library or consumer qualification. TICKET-00042 retains final
+enforcement/reconciliation. TASK-00147's canonical Land handoff owns its subsequent publication/resource results.
+Historical planning observations below retain their original checkpoint scope.
 
 John approved this requirement in the six-TICKET split, then the complete four-TASK plan now written as
 TASK-00146–00149. At that planning checkpoint all were ready-for-agent; TASK-00147 waited on
