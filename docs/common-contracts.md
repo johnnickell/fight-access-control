@@ -95,6 +95,18 @@ requirements. Explicitly mapped retry proof uses Common's existing invoker/inter
 Minimum and ordinary lanes, exact lock/source identity and original warnings are retained in canonical
 `.runs/handoffs/TASK-00084/work.md`; no actual scoped Query handler/backend/consumer qualification is inferred.
 
+## Live Subscription composition — TASK-00093
+
+[Live disclosure](agent-live-disclosure.md) consumes v1.5.0's actual
+`Application/Mcp/Subscription/{McpSubscriptionAdmission,McpSubscriptions,McpSubscriptionFilter,McpSubscriptionExecution}`,
+shared `RecoverNotices` Query/handler/recovery ports, DBAL notice/tracking adapters and
+`Adapter/Mcp/Http/{McpRequestHandler,McpResponseFactory,McpEventStream,McpResponseEmitter}`. No live manager, tracking
+store, source reader or notification protocol is copied. Optional Adapter Agent family glue depends inward on
+original-bound current authority and consumer scope. Live Queries use independent producer/source context;
+public read/recovery remains separately admitted. Native whole-frame fixtures, minimum/ordinary resolution and
+controlled failure/concurrency proof are recorded in canonical TASK-00093 Work evidence; production qualification,
+independent Review/QA, Prompt signals, inspection and publication remain distinct.
+
 ## Optional notice publication — TASK-00096
 
 The [publication composition](agent-notice-publication.md) consumes Common v1.5.0's actual
@@ -145,7 +157,7 @@ TASK-00100 now composes actual `TaskCancellationAdmission`, `RequestTaskCancella
 Independent mutation/observation authority runs before protected lookup; Common owns durable intent, committed-reader
 confirmation, terminal/repeat no-ops and safe method bounds. Its canonical Work handoff owns minimum/ordinary and
 cross-process SQLite/race/fault qualification; consumer stopping is not supplied or certified.
-Other TASK-00089–00090/00093–00096 and TASK-00101–00102 must inspect their exact declarations, configure actual
+Other TASK-00089–00090/00094–00095 and TASK-00101–00102 must inspect their exact declarations, configure actual
 Common buses and independently qualify each operation/family. This baseline clears only TASK-00110's historical
 supplier hold, not those feature
 holds, grant requirements, live-runtime requirements or separate generic typing/returned-page evidence gaps.
