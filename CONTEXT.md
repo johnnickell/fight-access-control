@@ -1,6 +1,6 @@
 # Fight AccessControl Context
 
-## Durable Task input — TASK-00099 Work checkpoint
+## Durable Task input — TASK-00099 accepted checkpoint
 
 The [slice C Task composition](docs/agent-task-authorization.md#durable-input-and-protected-continuation--slice-c)
 adds inward `AgentTaskInputAdmission` with separate submission, protected answer-observation and group-continuation
@@ -16,9 +16,12 @@ Common v1.5.0 (`06fb5cd3720af9cf8295198f74040d95b64c5155`) is the sufficient min
 feature lanes use real AccessControl authority/Common handlers and DBAL SQLite. Controlled scope/fence/effect fixtures
 and actual SQLite race/fault proof do not qualify consumer crypto/storage/authority writers, worker lifetimes, external
 effects or exactly-once execution. Consumption survives postcommit/response/consumer faults; uncertain commit needs
-original-operation reconciliation before any dependent effect. TASK-00099 stays in-progress pending independent Review
-and behavioral QA. Its canonical `.runs/handoffs/TASK-00099/work.md` owns exact checks, dependency/runtime identities and
-limits. Cancellation mutation/races, complete MCP activation and live state retain their sibling owners; no release,
+original-operation reconciliation before any dependent effect. Independent Review v3 ACCEPT and complete nonvisual
+QA PASS cover clean candidate `92e29e30860cdfe538b45f3d90cf2077bc6b5968`: 11 QA groups / 217 checks.
+TASK-00099 is done; unfinished siblings keep TICKET-00031 and EPIC-00014 open. Its canonical
+`.runs/handoffs/TASK-00099/work.md` owns original checks, dependency/runtime identities and limits; canonical
+`.runs/handoffs/TASK-00099/land.md` owns advanced-base integration, current verification and delivery/retirement
+outcomes, pending at this closeout checkpoint. Cancellation mutation/races, complete MCP activation and live state retain their sibling owners; no release,
 consumer adoption or deployment is claimed.
 
 ## Retained notice reads and recovery — TASK-00092 accepted checkpoint
