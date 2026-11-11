@@ -55,13 +55,13 @@ final readonly class RegisterUserHandler implements CommandHandler
         private UserRepository $userRepository,
         private RoleRepository $roleRepository,
         private ActivationGrantRepository $activationGrantRepository,
-        private AuditEvidenceRepository $auditEvidenceRepository,
         private TransactionalUnitOfWork $unitOfWork,
         private ActivationCredentialGenerator $activationCredentialGenerator,
         private InvitationDeliveryCipher $invitationDeliveryCipher,
         private Clock $clock,
         private EventDispatcher $eventDispatcher,
-        array $defaultRoleNames
+        array $defaultRoleNames,
+        private ?AuditEvidenceRepository $auditEvidenceRepository = null
     ) {
         if ($defaultRoleNames === []) {
             throw new LogicException('Registration requires default Roles.');
@@ -152,7 +152,7 @@ final readonly class RegisterUserHandler implements CommandHandler
                     throw new LogicException('The activation grant could not be added.');
                 }
 
-                $this->auditEvidenceRepository->add(AuditEvidence::record(
+                $this->auditEvidenceRepository?->add(AuditEvidence::record(
                     AnonymousId::generate(),
                     new AuditSubject($user->getId()),
                     AuditAction::USER_REGISTERED,

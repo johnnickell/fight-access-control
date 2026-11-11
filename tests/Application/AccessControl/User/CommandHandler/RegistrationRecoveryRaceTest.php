@@ -355,10 +355,10 @@ final class RegistrationRecoveryRaceTest extends TestCase
                 $fixture->userRepository,
                 new SessionRevocationService($refreshSessionRepository),
                 new FixedClock('2030-01-02T00:00:00Z'),
-                $fixture->auditEvidenceRepository,
                 $fixture->unitOfWork,
                 new InMemoryEventDispatcher(),
-                new InMemoryPasswordResetGrants($fixture->unitOfWork)
+                new InMemoryPasswordResetGrants($fixture->unitOfWork),
+                $fixture->auditEvidenceRepository
             );
             if ($recoveryFirst) {
                 $fixture->handler()->handle(CommandMessage::create($fixture->command()));
@@ -404,9 +404,9 @@ final class RegistrationRecoveryRaceTest extends TestCase
                 new FixedCredentialGenerator('restored-private-credential'),
                 new PrefixInvitationDeliveryCipher(),
                 new FixedClock('2030-01-02T00:00:02Z'),
-                $fixture->auditEvidenceRepository,
                 $fixture->unitOfWork,
-                new InMemoryEventDispatcher()
+                new InMemoryEventDispatcher(),
+                $fixture->auditEvidenceRepository
             )->handle(CommandMessage::create(new RestoreUser(
                 $fixture->actorId,
                 $fixture->initialUser->getId(),

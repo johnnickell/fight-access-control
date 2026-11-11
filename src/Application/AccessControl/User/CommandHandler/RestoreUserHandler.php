@@ -52,9 +52,9 @@ final readonly class RestoreUserHandler implements CommandHandler
         private ActivationCredentialGenerator $activationCredentialGenerator,
         private InvitationDeliveryCipher $invitationDeliveryCipher,
         private Clock $clock,
-        private AuditEvidenceRepository $auditEvidenceRepository,
         private TransactionalUnitOfWork $unitOfWork,
-        private EventDispatcher $eventDispatcher
+        private EventDispatcher $eventDispatcher,
+        private ?AuditEvidenceRepository $auditEvidenceRepository = null
     ) {
     }
 
@@ -119,7 +119,7 @@ final readonly class RestoreUserHandler implements CommandHandler
                     $activationDeliveryId = $successor->getDelivery()->getId();
                 }
 
-                $this->auditEvidenceRepository->add(AuditEvidence::record(
+                $this->auditEvidenceRepository?->add(AuditEvidence::record(
                     $command->getActorId(),
                     new AuditSubject($command->getUserId()),
                     AuditAction::USER_RESTORED,

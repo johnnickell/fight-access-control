@@ -10,8 +10,10 @@ TASK-00122's [typed evidence replacement](audit-evidence.md) supplies direct typ
 subjects/actions, unique evidence identity, actual time/revisions/relationships/correlation and admitted facts.
 All 22 current writer owners and their necessary callers/fixtures use the new construction contract. The TASK
 and canonical Work handoff own package verification; this inventory is not independent acceptance.
-Current writers still require an audit repository; other owners have no audit injection. Neither condition proves
-complete branch coverage or participation in the actual transaction. **Optional auditing does not yet ship.**
+Unreleased TASK-00123 now supports optional last nullable audit storage on the eight account lifecycle handlers.
+Other current writers still require storage; unaudited owners remain unchanged. Constructor presence alone proves
+neither complete branch coverage nor participation in the actual transaction. No release or consumer qualification
+is implied.
 
 The approved destination uses the existing cohesive evidence/repository boundary, explicit optional **last nullable**
 audit injection per outcome owner, direct typed originating identities, package-defined actions, unique evidence
@@ -90,6 +92,14 @@ cases or factory names. Every family still needs candidate-compatible enabled/di
 ## User account and credential handlers (20)
 
 ### Account — [TASK-00123](../planning/tasks/00123-TASK.md), profile U
+
+All eight rows now support optional last nullable storage. `W` below means evidence **when enabled**, not a
+promise for omitted/null composition. Existing business-required actors remain mandatory; registration explicitly
+establishes AnonymousId. No additional audit-only actor field is needed. The existing complete typed outcome sites
+remain inside the same mutation transactions; disabled execution retains all business admission and coupled effects.
+There is no pure no-change command success branch here: same-email registration recovery replaces a generation;
+invalid repeated lifecycle transitions reject. Rejections and lost transactions add no committed record. See
+[current constructors](user-lifecycle-contracts.md#optional-account-audit-composition).
 
 | Entry | Observed audit and meaningful/conditional/no-work disposition |
 | --- | --- |
@@ -206,7 +216,7 @@ Detailed candidate/log identities belong in ignored TASK-owned handoffs, not a p
 
 | Acceptance owner | Existing executable starting points (current behavior, not claimed future audit proof) | Remaining owned proof |
 | --- | --- | --- |
-| TASK-00123 | [User lifecycle](../tests/Application/AccessControl/User/CommandHandler/UserLifecycleContractTest.php), [registration recovery races](../tests/Application/AccessControl/User/CommandHandler/RegistrationRecoveryRaceTest.php) | Eight handlers, anonymous/admin provenance, all coupled state/evidence and failures. |
+| TASK-00123 | [Optional account audit](../tests/Application/AccessControl/User/CommandHandler/OptionalLifecycleAuditTest.php), [dispatch outcomes](../tests/Application/AccessControl/User/CommandHandler/UserLifecycleDispatchTest.php), [User lifecycle](../tests/Application/AccessControl/User/CommandHandler/UserLifecycleContractTest.php), [registration recovery races](../tests/Application/AccessControl/User/CommandHandler/RegistrationRecoveryRaceTest.php) | Eight handlers, enabled/null/omitted storage, typed/anonymous/admin provenance, actual revision/grant/message facts, retained admission, coupled state/evidence and failures. Independent acceptance and real consumer qualification remain separate. |
 | TASK-00124 | [Invitation delivery](../tests/Application/AccessControl/ActivationGrant/CommandHandler/DeliverUserInvitationHandlerTest.php), [expiry recovery](../tests/Application/AccessControl/CredentialDelivery/QueryHandler/ExpiredCredentialRecoveryTest.php) | Four owners, both origins, retry/resend/expiry and committed failures versus temporary claims. |
 | TASK-00125 | [Reset request](../tests/Application/AccessControl/PasswordResetGrant/CommandHandler/RequestPasswordResetHandlerTest.php), [recovery outcomes](../tests/Application/AccessControl/PasswordResetGrant/RecoveryOutcomeTest.php) | Anonymous/no-work concealment, delivery/failure/expiry, preserved recovery binding. |
 | TASK-00126 | [Email request](../tests/Application/AccessControl/EmailChangeGrant/CommandHandler/RequestEmailChangeHandlerTest.php), [expiry](../tests/Application/AccessControl/EmailChangeGrant/CommandHandler/ExpireEmailChangeHandlerTest.php) | Self-service plus admin, delivery/failure and full reservation expiry. |

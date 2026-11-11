@@ -40,9 +40,12 @@ reserve state nor prove final eligibility. The handler revalidates current origi
 ## Composition and atomic persistence
 
 Construct `RecoverPendingRegistrationHandler` with, in order: Domain `UserRepository`, `ActivationGrantRepository`,
-Application `RegistrationRecoveryAuthorization`, Domain `AuditEvidenceRepository`, Common `TransactionalUnitOfWork`,
-Application `ActivationCredentialGenerator`, `InvitationDeliveryCipher`, Timing `Clock`, Common `EventDispatcher`.
-Register it through `commandRegistration()`. No Role repository or default-Role configuration belongs here.
+Application `RegistrationRecoveryAuthorization`, Common `TransactionalUnitOfWork`, Application
+`ActivationCredentialGenerator`, `InvitationDeliveryCipher`, Timing `Clock`, Common `EventDispatcher`, and optional
+last `?AuditEvidenceRepository $auditEvidenceRepository = null` (Unreleased TASK-00123). Register it through
+`commandRegistration()`. Omitted/null intentionally disables durable audit, not target authorization or expected-state
+fences. Configured evidence failure aborts staged work; no fallback repository is used. No Role repository or
+default-Role configuration belongs here.
 
 Within one transaction:
 

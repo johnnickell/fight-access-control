@@ -49,12 +49,12 @@ final readonly class RecoverPendingRegistrationHandler implements CommandHandler
         private UserRepository $userRepository,
         private ActivationGrantRepository $activationGrantRepository,
         private RegistrationRecoveryAuthorization $registrationRecoveryAuthorization,
-        private AuditEvidenceRepository $auditEvidenceRepository,
         private TransactionalUnitOfWork $unitOfWork,
         private ActivationCredentialGenerator $activationCredentialGenerator,
         private InvitationDeliveryCipher $invitationDeliveryCipher,
         private Clock $clock,
-        private EventDispatcher $eventDispatcher
+        private EventDispatcher $eventDispatcher,
+        private ?AuditEvidenceRepository $auditEvidenceRepository = null
     ) {
     }
 
@@ -158,7 +158,7 @@ final readonly class RecoverPendingRegistrationHandler implements CommandHandler
                     throw new StateConflict('The pending registration changed concurrently.');
                 }
 
-                $this->auditEvidenceRepository->add(AuditEvidence::record(
+                $this->auditEvidenceRepository?->add(AuditEvidence::record(
                     $command->getActorId(),
                     new AuditSubject($user->getId()),
                     AuditAction::USER_PENDING_REGISTRATION_RECOVERED,

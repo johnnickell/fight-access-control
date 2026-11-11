@@ -89,7 +89,9 @@ The in-progress [audit contract replacement](audit-evidence.md) additionally req
 `actor_id` on invitation delivery/resend/retry and reset delivery payloads and their affected Events. Direct
 UserId/AgentId/SystemId/AnonymousId values preserve the admitted origin; workers do not parse labels or substitute
 themselves. Deliberate public registration/reset-request subscribers establish AnonymousId. Other current human
-message contracts, mandatory constructor wiring and unaudited expiry paths are unchanged.
+message contracts, worker mandatory constructor wiring and unaudited expiry paths are unchanged. Unreleased
+TASK-00123 separately makes the eight account lifecycle handlers' final audit repository optional; this does not
+make their delivery subscribers/workers optional-audit writers.
 Timestamp-bearing payloads require an explicit valid RFC3339 instant, never relative dates or calendar rollover.
 Canonical field names, nullability and existing timestamp output precision are unchanged. `fromArray()` remains a
 dynamic input boundary; exact `toArray()` shapes describe validated output, not unchecked input assertions.

@@ -9,7 +9,10 @@ shape validation is not authorization, diagnostic sanitization or consumer persi
 
 The [living audit outcome matrix](audit-outcome-coverage.md) reconciles every current handler and related sensitive/
 worker entry with EPIC-00017's approved optional-audit target and its pending family/conformance proof. Current
-required writers and this guide's implemented guarantees remain the baseline; optional auditing is not yet shipped.
+writers and this guide's implemented guarantees remain the baseline except the eight account lifecycle handlers:
+Unreleased TASK-00123 supports explicit optional last audit injection there. Omitted/null disables durability only;
+configured audit still joins the mutation transaction and fails staged work on error. Remaining families retain
+current required wiring until their own optionality work lands.
 
 ## Notifications and callers
 
@@ -121,7 +124,8 @@ Direct grant issuance and claim/outcome persistence cannot bypass current eligib
 Current constructor composition requires:
 
 - `DeliverPasswordResetHandler`: append the shared `UserRepository` after the dispatcher.
-- `DisableUserHandler` and `DeleteUserHandler`: append the shared `PasswordResetGrantRepository` after the dispatcher.
+- `DisableUserHandler` and `DeleteUserHandler`: the shared `PasswordResetGrantRepository` follows the dispatcher;
+  Unreleased TASK-00123 moves optional nullable `AuditEvidenceRepository` to the final argument.
 - `PasswordManagement`, `EmailChangeConfirmation` and `RequestPasswordResetHandler`: retain shared User/reset-grant/
   audit composition. Their [direct constructors](user-authentication.md#explicit-composition) need no unrelated
   activation, login or token ports.
