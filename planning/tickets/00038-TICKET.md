@@ -2,7 +2,7 @@
 id: TICKET-00038
 epic: EPIC-00016
 title: Preserve message and result types through dispatch
-status: ready-for-agent
+status: done
 ---
 
 # Preserve message and result types through dispatch
@@ -12,8 +12,9 @@ status: ready-for-agent
 John extends TASK-00128's accepted Query contract to TASK-00130: precise native/PHPStan handler results and known-
 caller annotations are sufficient while QueryBus fetch/dispatch remain mixed. There is no automatic generic inference
 or upstream generic supplier prerequisite. TASK-00182's conversion is done; its dependency edge stays recorded.
-Common v1.5.0 is the released baseline qualified by TASK-00110. TASK-00130 is ready-for-agent, retaining its own real
-converted-handler, static/runtime, minimum/ordinary-lane and independent acceptance work. The analogous Event contract
+Common v1.5.0 is the released baseline qualified by TASK-00110. TASK-00130 now has independent Review ACCEPT and nonvisual QA PASS for its real converted-handler,
+static/runtime and minimum/ordinary-lane qualification. All three children are terminal, closing this TICKET;
+acceptance evidence and delivery/resource outcomes remain with the owning TASK and canonical handoffs. The analogous Event contract
 uses `eventRegistration()` plus concrete subscriber annotations under TASK-00136, not new generic typing in PHP.
 This amendment supersedes conflicting generic-supplier/inference wording in historical checkpoints below.
 
@@ -144,7 +145,7 @@ examples, full gate/exact owned coverage, logs and independent Review/behavioral
 | --- | --- | --- | --- |
 | 307 | [TASK-00128](../tasks/00128-TASK.md) | Preserve types through Query dispatch | done |
 | 308 | [TASK-00129](../tasks/00129-TASK.md) | Preserve Command payload types through dispatch | done |
-| 309 | [TASK-00130](../tasks/00130-TASK.md) | Qualify Agent issuance Command and Query dispatch | in-progress |
+| 309 | [TASK-00130](../tasks/00130-TASK.md) | Qualify Agent issuance Command and Query dispatch | done |
 ## Decisions and Progress
 
 John subsequently selected single supported Command/Query declarations and flat local payload annotations in the

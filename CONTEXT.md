@@ -1,5 +1,29 @@
 # Fight AccessControl Context
 
+## Retained notice reads and recovery — TASK-00092 accepted checkpoint
+
+[Retained notice composition](docs/agent-notice-recovery.md) now supplies inward `AgentNoticeReadAdmission` plus
+consumer `AgentNoticeReadPolicy` for Common summary/list/detail/recovery handlers. Configured direct Permissions
+precede trusted whole-metadata scope; coarse `notices.recover` Tool availability supplies no read grant. The same
+configured QueryBus protects direct and Tool paths. Ordinary request principal snapshots and one nonce remain;
+every later request needs a fresh provider. Common owns all queries/storage/coherent scanning, encrypted padded
+continuation, truthful qualified status and encoded output bounds. No duplicate engine or read-side business effect
+is added. The consumer supplies caller-bound access history and explicit namespace-evidence disclosure permission;
+missing continuity stays uncertain/restart, never a fabricated complete-empty or an operator decision hold.
+
+Common v1.5.0 (`06fb5cd3720af9cf8295198f74040d95b64c5155`) is the first sufficient supported minimum. Real routed
+DBAL/SQLite fixtures use actual authentication/Permissions, Sodium continuation and polling/JSON-RPC boundaries,
+including controlled recording commit followed by publication failure and authorized recovery without live runtime.
+Canonical `.runs/handoffs/TASK-00092/work.md` owns minimum/ordinary locks, runtime, focused/full-gate/exact-coverage
+results and warnings. Independent Review v3 ACCEPT and complete nonvisual QA PASS cover clean candidate
+`d989bdb25b897bd43c7ae87cd76e63498d18f561`: 13 independent scenarios / 235 assertions, fresh full gate
+8,631 tests / 85,965 assertions, exact 10,451/10,451 global and 6/6 owned statements. TASK-00092 is done;
+unfinished siblings keep TICKET-00030 and EPIC-00014 open. Land's behavior-preserving advanced-base integration,
+publication/final delivery verification and retirement outcomes belong to canonical `.runs/handoffs/TASK-00092/land.md`;
+delivery remains pending at this closeout checkpoint. Consumer policy, request lifetime/storage/cryptography,
+historical evidence and production authority/retention races remain unqualified; no live/Mercure, receipt, sibling,
+merge, release or deployment acceptance is claimed.
+
 ## Protected-detail admission — TASK-00090 accepted checkpoint
 
 [Protected-detail composition](docs/agent-protected-detail.md) adds inward `AgentDetailReadAdmission` and the
@@ -222,7 +246,7 @@ Historical checkpoints below retain their actual older minima and planning obser
 current manifest/inventory own today's baseline. No sibling/consumer mutation, publication, merge, release or
 deployment is implied by this package acceptance.
 
-## Agent issuance dispatch qualification — TASK-00130 Work checkpoint
+## Agent issuance dispatch qualification — TASK-00130 accepted checkpoint
 
 The [issuance dispatch map](docs/agent-issuance-dispatch-contracts.md) inventories the two real void Command
 bindings and independent GetAgentOperation Query, their concrete payload/message/metadata paths and owned callers.
@@ -230,8 +254,13 @@ New static probes distinguish precise handlers/known-caller optional outcome ann
 bus results; negative fixtures reject void-as-issuance and incompatible concrete uses. Runtime qualification reuses
 the accepted conversion's production handlers, real Common routing, environments and stored-outcome oracle.
 No business contract, transport, Command-result channel, generic supplier or consumer implementation changes.
-Canonical TASK-00130 Work evidence owns actual dependency lanes, checks, logs, coverage and retained runtime.
-Independent Review and nonvisual QA remain required; TASK-00130 is not self-accepted or closed here.
+Canonical TASK-00130 Work evidence owns actual dependency lanes, checks, logs, coverage and runtime identity.
+Independent Review v3 ACCEPT and complete nonvisual QA PASS cover clean candidate
+`10385f66d55715325604117a881962b868722a84`, without blockers. TASK-00130 and eligible TICKET-00038 are done;
+unfinished presentation/enforcement TICKETs keep EPIC-00016 open. Original independent subjects and minimum-lane
+advisories remain preserved. Integration verification, publication and final delivery checks are pending at this
+administrative checkpoint; canonical `.runs/handoffs/TASK-00130/land.md` owns the advancing-base bridge and
+subsequent delivery/resource results. This is not whole-library, consumer, merge, release or deployment qualification.
 
 ## Command payload declaration contract — TASK-00129
 

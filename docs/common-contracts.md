@@ -124,7 +124,9 @@ atomic row removal. Common deliberately maps removal-admission faults to fixed `
 identities are no-ops, not fabricated removal facts. Retained retry/comparison material is removed with the
 aggregate, without permanent identity memory. Its canonical Work handoff owns feature-specific minimum/ordinary
 and concurrent SQLite qualification. DBAL remains development-only here; no production persistence is copied.
-Other TASK-00089–00090/00092–00096 and TASK-00098–00102 must inspect their exact declarations, configure actual
+TASK-00092 independently qualifies actual summary/list/detail/recovery Queries and `notices.recover` through
+[retained read composition](agent-notice-recovery.md), with inward Agent Permission and trusted consumer scope.
+Other TASK-00089–00090/00093–00096 and TASK-00099–00102 must inspect their exact declarations, configure actual
 Common buses and independently qualify each operation/family. This baseline clears only TASK-00110's historical
 supplier hold, not those feature
 holds, grant requirements, live-runtime requirements or separate generic typing/returned-page evidence gaps.
