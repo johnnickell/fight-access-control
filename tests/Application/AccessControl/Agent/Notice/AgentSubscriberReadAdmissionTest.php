@@ -211,6 +211,34 @@ final class AgentSubscriberReadAdmissionTest extends TestCase
                 $wire .= $line;
             }
 
+            $process->signal(9);
+            $process->wait();
+            fclose($socket);
+            $before = $connection->fetchAllAssociative('SELECT * FROM fight_mcp_subscriptions');
+            $diagnostics = json_encode([
+                'rows'    => $before,
+                'running' => $process->isRunning(),
+                'stderr'  => $process->getErrorOutput()
+            ], JSON_THROW_ON_ERROR);
+            self::assertFalse($process->isRunning(), $diagnostics);
+            self::assertTrue($process->hasBeenSignaled(), $diagnostics);
+            self::assertSame(9, $process->getTermSignal(), $diagnostics);
+            self::assertCount(1, $before, $diagnostics);
+            $row = $before[0];
+            self::assertMatchesRegularExpression('/\\A[0-9a-f]{32}\\z/D', $row['registration_id'], $diagnostics);
+            self::assertMatchesRegularExpression('/\\A[0-9a-f]{32}\\z/D', $row['owner'], $diagnostics);
+            self::assertSame(0, (int) $row['closed_at'], $diagnostics);
+            self::assertGreaterThanOrEqual((int) $row['opened_at'], (int) $row['observed_at'], $diagnostics);
+            self::assertGreaterThan((int) $row['observed_at'], (int) $row['expires_at'], $diagnostics);
+            $context = json_decode($row['context'], true, flags: JSON_THROW_ON_ERROR);
+            self::assertSame('trusted-native', $context['subscriber'], $diagnostics);
+            self::assertSame(NoticeSelection::create(['project'])->toArray(), $context['selection'], $diagnostics);
+            self::assertSame([
+                'toolsListChanged'   => true,
+                'promptsListChanged' => true
+            ], $context['requested'], $diagnostics);
+            self::assertSame(['toolsListChanged' => true], $context['accepted'], $diagnostics);
+
             $policy = $this->createStub(AgentSubscriberReadPolicy::class);
             $policy->method('accessFor')->willReturn(SubscriberAccess::create(['project']));
             $admission = new AgentSubscriberReadAdmission(
@@ -220,24 +248,59 @@ final class AgentSubscriberReadAdmissionTest extends TestCase
                 [PermissionName::fromString('INSPECT')],
                 $policy
             );
-            $now = time();
-            $handler = new SummarizeSubscribersHandler(
-                $admission,
-                new DbalSubscriberReader($connection, 'controlled-worker-sqlite', static function () use (&$now): int {
+            // Classify retained evidence as of its persisted observation, not current connectivity.
+            $now = (int) $row['observed_at'];
+            $reader = new DbalSubscriberReader(
+                $connection,
+                'controlled-worker-sqlite',
+                static function () use (&$now): int {
                     return $now;
-                })
+                }
             );
-            $query = QueryMessage::create(new SummarizeSubscribers(SubscriberSelection::create(['project'])));
-            self::assertSame(1, $handler->handle($query)->toArray()['states']['recently_observed']);
-            $process->stop(0, 9);
-            fclose($socket);
-            self::assertFalse($process->isRunning());
-            self::assertSame(1, $handler->handle($query)->toArray()['states']['recently_observed']);
-            $before = $connection->fetchAllAssociative('SELECT * FROM fight_mcp_subscriptions');
-            $now += 6;
-            self::assertSame(1, $handler->handle($query)->toArray()['states']['stale_uncertain']);
-            self::assertSame($before, $connection->fetchAllAssociative('SELECT * FROM fight_mcp_subscriptions'));
-            $row = $before[0];
+            $handler = new SummarizeSubscribersHandler($admission, $reader);
+            $selection = SubscriberSelection::create(['project']);
+            $query = QueryMessage::create(new SummarizeSubscribers($selection));
+            $summary = $handler->handle($query)->toArray();
+            $diagnostics .= json_encode(['summary' => $summary], JSON_THROW_ON_ERROR);
+            self::assertSame(1, $summary['subscriptions'], $diagnostics);
+            self::assertSame(1, $summary['subscriber_ids'], $diagnostics);
+            self::assertSame($now, $summary['scope']['queried_at'], $diagnostics);
+            self::assertSame('live', $summary['scope']['consistency'], $diagnostics);
+            self::assertSame($now, $summary['oldest_observed_at'], $diagnostics);
+            self::assertSame($now, $summary['latest_observed_at'], $diagnostics);
+            self::assertSame([
+                'recently_observed' => 1,
+                'disconnected'      => 0,
+                'stale_uncertain'   => 0
+            ], $summary['states'], $diagnostics);
+            $page = new ListSubscribersHandler($admission, $reader)
+                ->handle(QueryMessage::create(new ListSubscribers($selection)))->toArray();
+            self::assertSame(1, $page['total'], $diagnostics);
+            self::assertCount(1, $page['subscribers'], $diagnostics);
+            $view = $page['subscribers'][0];
+            self::assertSame($row['registration_id'], $view['registration_id'], $diagnostics);
+            self::assertSame($context['subscriber'], $view['subscriber'], $diagnostics);
+            self::assertSame($context['selection'], $view['notice_selection'], $diagnostics);
+            self::assertSame($context['requested'], json_decode($view['requested']->toString(), true), $diagnostics);
+            self::assertSame($context['accepted'], json_decode($view['accepted']->toString(), true), $diagnostics);
+            self::assertSame((int) $row['opened_at'], $view['opened_at'], $diagnostics);
+            self::assertSame($now, $view['observed_at'], $diagnostics);
+            self::assertSame((int) $row['expires_at'], $view['expires_at'], $diagnostics);
+            self::assertNull($view['closed_at'], $diagnostics);
+            self::assertSame('recently_observed', $view['state'], $diagnostics);
+            foreach ([(int) $row['expires_at'], (int) $row['expires_at'] + 1] as $now) {
+                $expired = $handler->handle($query)->toArray();
+                $diagnostics .= json_encode(['summary' => $expired], JSON_THROW_ON_ERROR);
+                self::assertSame($now, $expired['scope']['queried_at'], $diagnostics);
+                self::assertSame(1, $expired['subscriptions'], $diagnostics);
+                self::assertSame([
+                    'recently_observed' => 0,
+                    'disconnected'      => 0,
+                    'stale_uncertain'   => 1
+                ], $expired['states'], $diagnostics);
+                self::assertSame($before, $connection->fetchAllAssociative('SELECT * FROM fight_mcp_subscriptions'));
+            }
+
             try {
                 new DbalSubscriptionStore($connection)->heartbeat(
                     $row['registration_id'],
@@ -250,12 +313,103 @@ final class AgentSubscriberReadAdmissionTest extends TestCase
                 self::assertSame(1, $handler->handle($query)->toArray()['states']['stale_uncertain']);
             }
 
+            self::assertSame($before, $connection->fetchAllAssociative('SELECT * FROM fight_mcp_subscriptions'));
             self::assertSame(1, new DbalSubscriptionStore($connection)->cleanup($now, 256));
             self::assertSame(0, $handler->handle($query)->toArray()['subscriptions']);
             self::assertSame(1, $this->nonces->consumptionCalls());
         } finally {
             $process->stop(0, 9);
             $connection->close();
+            unlink($path);
+        }
+    }
+
+    public function test_forward_heartbeat_after_query_clock_sampling_is_an_uncertain_live_observation(): void
+    {
+        $path = tempnam(sys_get_temp_dir(), 'inspection-heartbeat-');
+        self::assertIsString($path);
+        $writer = DriverManager::getConnection(['driver' => 'pdo_sqlite', 'path' => $path]);
+        $connection = DriverManager::getConnection(['driver' => 'pdo_sqlite', 'path' => $path]);
+        try {
+            new DbalSubscriptionSchema()->install($writer);
+            $store = new DbalSubscriptionStore($writer);
+            $registration = str_repeat('a', 32);
+            $owner = str_repeat('f', 32);
+            $context = [
+                'subscriber' => 'trusted-worker',
+                'selection'  => NoticeSelection::create(['project'], ['topic' => 'catalog'])->toArray(),
+                'requested'  => ['toolsListChanged' => true, 'promptsListChanged' => true],
+                'accepted'   => ['toolsListChanged' => true]
+            ];
+            $store->open($registration, $owner, $context, 100, 105);
+            $policy = $this->createStub(AgentSubscriberReadPolicy::class);
+            $policy->method('accessFor')->willReturn(SubscriberAccess::create(['project']));
+            $admission = new AgentSubscriberReadAdmission(
+                $this->provider,
+                $this->request,
+                'inspect',
+                [PermissionName::fromString('INSPECT')],
+                $policy
+            );
+            $baselineReader = new DbalSubscriberReader(
+                $connection,
+                'controlled-shared-sqlite',
+                static fn(): int => 100
+            );
+            $selection = SubscriberSelection::create(['project']);
+            $query = QueryMessage::create(new SummarizeSubscribers($selection));
+            $baseline = new SummarizeSubscribersHandler($admission, $baselineReader)->handle($query)->toArray();
+            self::assertSame(1, $baseline['states']['recently_observed']);
+            $reader = new DbalSubscriberReader(
+                $connection,
+                'controlled-shared-sqlite',
+                static function () use ($store, $registration, $owner): int {
+                    $queriedAt = 100;
+                    $store->heartbeat($registration, $owner, $queriedAt + 1, $queriedAt + 6);
+
+                    return $queriedAt;
+                }
+            );
+            $summaryHandler = new SummarizeSubscribersHandler($admission, $reader);
+            $summary = $summaryHandler->handle($query)->toArray();
+            $rows = $connection->fetchAllAssociative('SELECT * FROM fight_mcp_subscriptions');
+            $diagnostics = json_encode(['summary' => $summary, 'rows' => $rows], JSON_THROW_ON_ERROR);
+            self::assertSame(100, $summary['scope']['queried_at'], $diagnostics);
+            self::assertSame(101, $summary['latest_observed_at'], $diagnostics);
+            self::assertSame(1, $summary['subscriptions'], $diagnostics);
+            self::assertSame(1, $summary['subscriber_ids'], $diagnostics);
+            self::assertSame([
+                'recently_observed' => 0,
+                'disconnected'      => 0,
+                'stale_uncertain'   => 1
+            ], $summary['states'], $diagnostics);
+            self::assertSame('live', $summary['scope']['consistency'], $diagnostics);
+            self::assertFalse($writer->isTransactionActive());
+            self::assertCount(1, $rows, $diagnostics);
+            self::assertSame(101, (int) $rows[0]['observed_at'], $diagnostics);
+            self::assertSame(106, (int) $rows[0]['expires_at'], $diagnostics);
+            self::assertSame(0, (int) $rows[0]['closed_at'], $diagnostics);
+            $page = new ListSubscribersHandler($admission, $baselineReader)
+                ->handle(QueryMessage::create(new ListSubscribers($selection)))->toArray();
+            self::assertSame(100, $page['scope']['queried_at'], $diagnostics);
+            self::assertSame(1, $page['total'], $diagnostics);
+            self::assertCount(1, $page['subscribers'], $diagnostics);
+            $view = $page['subscribers'][0];
+            self::assertSame($registration, $view['registration_id'], $diagnostics);
+            self::assertSame($context['subscriber'], $view['subscriber'], $diagnostics);
+            self::assertSame($context['selection'], $view['notice_selection'], $diagnostics);
+            self::assertSame($context['requested'], json_decode($view['requested']->toString(), true), $diagnostics);
+            self::assertSame($context['accepted'], json_decode($view['accepted']->toString(), true), $diagnostics);
+            self::assertSame(100, $view['opened_at'], $diagnostics);
+            self::assertSame(101, $view['observed_at'], $diagnostics);
+            self::assertSame(106, $view['expires_at'], $diagnostics);
+            self::assertNull($view['closed_at'], $diagnostics);
+            self::assertSame('stale_uncertain', $view['state'], $diagnostics);
+            self::assertSame($rows, $connection->fetchAllAssociative('SELECT * FROM fight_mcp_subscriptions'));
+            self::assertSame(1, $this->nonces->consumptionCalls());
+        } finally {
+            $connection->close();
+            $writer->close();
             unlink($path);
         }
     }

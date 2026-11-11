@@ -1,6 +1,16 @@
 # Fight AccessControl Context
 
-## Current-subscriber inspection — TASK-00095 accepted checkpoint
+## Current-subscriber inspection — lifecycle-test repair pending acceptance
+
+TASK-00095 is in-progress for a bounded test correction after the integrated candidate's later mandatory gate failed.
+A deterministic committed forward heartbeat between query-clock sampling and scanning proves truthful uncertain
+freshness, not a production defect or the exact historical failure cause. Native worker assertions now send SIGKILL
+immediately after acknowledgment, verify retained unclosed evidence and classify at controlled persisted observation
+and expiry instants; recent as-of evidence never implies current connectivity. Production contracts and incoming
+optional Prompt behavior are unchanged. Canonical `.runs/handoffs/TASK-00095/work.md` owns repair verification;
+fresh independent Review and behavioral QA remain required. Historical acceptance below is not repair acceptance.
+
+### Historical accepted checkpoint
 
 Independent Review v3 ACCEPT and nonvisual qa-02 PASS cover candidate
 `4afcfc70b66c22042ad9349d5f2e524ec591cd16`. TASK-00095 is done for package acceptance and required verification:
