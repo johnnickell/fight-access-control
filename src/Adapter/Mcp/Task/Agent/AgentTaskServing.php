@@ -13,7 +13,7 @@ use Fight\Common\Adapter\Messaging\Command\Sync\RoutingCommandBus;
 use Fight\Common\Adapter\Messaging\Query\Routing\InMemoryQueryRouter;
 use Fight\Common\Adapter\Messaging\Query\RoutingQueryBus;
 use Fight\Common\Application\Mcp\Capability\McpCapabilityRegistry;
-use Fight\Common\Application\Mcp\McpServerInfo;
+use Fight\Common\Application\Mcp\Protocol\McpServerInfo;
 use Fight\Common\Application\Mcp\Task\CommandHandler\CreateTaskHandler;
 use Fight\Common\Application\Mcp\Task\CommandHandler\RequestTaskCancellationHandler;
 use Fight\Common\Application\Mcp\Task\CommandHandler\SupplyTaskInputHandler;
