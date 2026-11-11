@@ -1,6 +1,32 @@
 {
   "cases": [
     {
+      "id": "profile-tool-native-and-annotated-contracts",
+      "kind": "positive",
+      "file": "profile-tool-positive.php",
+      "diagnostics": [
+        {"line": 35, "identifier": "phpstan.dumpType", "message": "Dumped type: Fight\\Common\\Application\\Mcp\\Tool\\McpToolOutput"},
+        {"line": 36, "identifier": "phpstan.dumpType", "message": "Dumped type: Fight\\Common\\Application\\Mcp\\Tool\\McpToolOutput"},
+        {"line": 37, "identifier": "phpstan.dumpType", "message": "Dumped type: non-empty-list<Fight\\AccessControl\\Domain\\AccessControl\\Permission\\PermissionName>|null"},
+        {"line": 38, "identifier": "phpstan.dumpType", "message": "Dumped type: bool"},
+        {"line": 39, "identifier": "phpstan.dumpType", "message": "Dumped type: Fight\\AccessControl\\Domain\\AccessControl\\Permission\\PermissionName"},
+        {"line": 40, "identifier": "phpstan.dumpType", "message": "Dumped type: Fight\\Common\\Application\\Mcp\\Tool\\McpToolFailureMap"},
+        {"line": 41, "identifier": "phpstan.dumpType", "message": "Dumped type: mixed"},
+        {"line": 42, "identifier": "phpstan.dumpType", "message": "Dumped type: mixed"},
+        {"line": 45, "identifier": "phpstan.dumpType", "message": "Dumped type: array{agent_id: string, name: string}"}
+      ]
+    },
+    {
+      "id": "profile-tool-incompatible-boundaries",
+      "kind": "negative",
+      "file": "profile-tool-negative.php",
+      "diagnostics": [
+        {"line": 25, "identifier": "argument.type", "message": "Parameter #1 $tool of method Fight\\AccessControl\\Adapter\\Mcp\\Tool\\Agent\\AgentToolAvailability::isAvailable() expects Fight\\Common\\Application\\Mcp\\Tool\\McpToolInfo, Fight\\Common\\Application\\Validation\\Data\\ApplicationData given."},
+        {"line": 26, "identifier": "argument.type", "message": "Parameter #1 $input of method Fight\\AccessControl\\Adapter\\Mcp\\Tool\\Agent\\GetAgentProfileTool::handle() expects Fight\\Common\\Application\\Validation\\Data\\ApplicationData, Fight\\Common\\Application\\Mcp\\Tool\\McpToolInfo given."},
+        {"line": 27, "identifier": "argument.type", "message": "Parameter #1 $value of function count expects array|Countable, list<Fight\\AccessControl\\Domain\\AccessControl\\Permission\\PermissionName>|null given."}
+      ]
+    },
+    {
       "id": "agent-dispatch-concrete-and-annotated-contracts",
       "kind": "positive",
       "file": "agent-dispatch-positive.php",

@@ -60,6 +60,13 @@ Temporary probes are not accepted replacements for the tracked product cases.
 
 ## Current proof and remaining ownership
 
+TASK-00147 adds nine positive profile Tool/catalog/Attribute/availability/failure-map probes and three rejected
+incompatible descriptor/input/nullable requirement uses. Dynamic ApplicationData and QueryBus results deliberately
+remain mixed; the known profile caller annotation exports the exact minimal array shape under TASK-00128's amendment.
+Runtime extraction validates dynamic strings separately. Real configured Common invocation and package handlers,
+exact-class failures, schemas, nonce, persisted rename/no-op and publication truth have separate
+[profile Tool evidence](agent-profile-tools.md#current-contract-dispositions-task-00147).
+
 TASK-00132 adds twelve exact paged-handler/container-element probes in `paged-query-positive.php`.
 These cover all six ResultSet<View> contracts and actual ArrayList element inference, not generic bus inference.
 Runtime routing separately qualifies strict incoming/mapped construction and request/scope validation; see

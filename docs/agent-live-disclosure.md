@@ -3,8 +3,9 @@
 Unreleased [TASK-00093](../planning/tasks/00093-TASK.md) composes Common's actual Subscription admission,
 retained source Queries, tracking and native HTTP delivery. The sufficient minimum is **Common v1.5.0**, source
 `06fb5cd3720af9cf8295198f74040d95b64c5155`; the existing `^1.5.0` requirement suffices. Supplier acceptance and
-publication are recorded in the [contract inventory](common-contracts.md). Independent feature Review and QA remain
-required. This is library composition, not consumer adoption or production qualification.
+publication are recorded in the [contract inventory](common-contracts.md). Independent Review ACCEPT and nonvisual
+QA PASS cover candidate `55b9ccb0b6ad6ef3533d99e99cae63ab98cb7657`; the owning TASK and canonical Land handoff
+retain integration/delivery provenance. This is library composition, not consumer adoption or production qualification.
 
 ## Runtime ownership
 
@@ -178,4 +179,5 @@ the canonical Work handoff. Minimum compatibility resolution reports 40 advisori
 resolution reports none. These fixtures qualify package composition, **not** production consumer DB/crypto/policy,
 all authority writers, access-history restoration, concurrency schedules, proxies, buffering or client receipt.
 Nonvisual actual wire/admission/Query/state evidence is useful here; UI screenshots would prove none of these rules.
-Independent Review and behavioral QA are still required. No release, deployment or exactly-once delivery is claimed.
+Independent Review and behavioral QA accept the named candidate above. No release, deployment or exactly-once
+delivery is claimed.

@@ -139,6 +139,13 @@ Tool availability must not manufacture all-project, reference, metadata or body 
 `chunk: null`; do not require a body Permission merely to expose these Tools. TASK-00089/00090 own downstream
 scoped-read integration, not this coarse capability grant.
 
+TASK-00147's [six-declaration contract dispositions](agent-profile-tools.md#current-contract-dispositions-task-00147)
+include this catalog, Attribute and availability plus the actual mixed execution Tool additions from TASK-00084.
+Their construction/decision contracts remain unchanged. Dynamic configuration validation and the exact immutable
+descriptor check are not Query result assertions; the profile caller uses TASK-00128's permitted known-result annotation.
+Tool argument extraction independently validates its dynamic string before Domain construction. Neither annotation
+nor validation authorizes direct handling.
+
 The first recognized Tool decision lazily calls the provider once. It retains the complete immutable principal, or
 retains unresolved status on **any** resolution failure, for that request only. It never retries authentication while
 iterating Tools. Missing/foreign definitions deny without resolving authority. Every declared Permission must match;

@@ -1,6 +1,6 @@
 # Fight AccessControl Context
 
-## Live Tool, Resource and whole-Skill disclosure — TASK-00093 Work checkpoint
+## Live Tool, Resource and whole-Skill disclosure — TASK-00093 accepted checkpoint
 
 [Live disclosure composition](docs/agent-live-disclosure.md) adds optional canonical Subscription adapters and
 consumer `AgentSubscriptionScope`, reusing original-bound `AgentNoticeAuthority` at Common's opening and final
@@ -16,9 +16,29 @@ fixtures exercise authority, routed DBAL SQLite/Sodium recovery/tracking, native
 changes/faults and whole-Skill/member admission. The canonical `.runs/handoffs/TASK-00093/work.md` owns actual
 dependency/runtime/check/coverage evidence and limitations. Work's full gate passes 8,752 tests / 87,604 assertions,
 exact 10,625/10,625 global and 82/82 new adapter statements; minimum/ordinary focused lanes each pass 25 tests /
-160 assertions. Independent Review/QA remain required at this checkpoint; TASK-00093 stays open. Consumer policy/
+160 assertions. Independent Review v3 ACCEPT and complete nonvisual QA PASS cover candidate
+`55b9ccb0b6ad6ef3533d99e99cae63ab98cb7657`: 16 QA groups / 130 checks. TASK-00093 is done;
+unfinished siblings keep TICKET-00030 and EPIC-00014 open. Advanced-base integration, final verification,
+publication and retirement outcomes belong to canonical `.runs/handoffs/TASK-00093/land.md`, pending at this
+closeout checkpoint. Consumer policy/
 history/crypto/storage, all authority writers, production concurrency and proxy/SAPI/client buffering remain unqualified. Neither acknowledgment nor emitted
 bytes prove receipt/processing or exactly-once delivery. No adoption, release or deployment is claimed.
+
+## TASK-00147 protected profile Tool contracts — accepted checkpoint
+
+The [current six-declaration/member dispositions](docs/agent-profile-tools.md#current-contract-dispositions-task-00147)
+retain exact Common descriptor/Permission/request/nonce contracts, real routed profile/update handlers, safe exact-class
+failure constants and normalized void acknowledgement. Dynamic ApplicationData name extraction now validates its
+string instead of asserting mixed input; known Query result annotations follow TASK-00128's ratified amendment.
+New behavioral/static checks distinguish schemas, actual cohort/name refusal, internal identity/subclass faults,
+no-op persistence and committed publication failure. No extra workflow, result DTO, read or Event is introduced.
+Canonical `.runs/handoffs/TASK-00147/work.md` owns verification and limitations. Independent Review v3 ACCEPT and
+nonvisual QA PASS cover clean candidate `8d05c188ea86a3f0b2df5ae289ee60e5feea6251`, without blockers.
+TASK-00147 and eligible TICKET-00041 are done; EPIC-00016 remains open for integrated enforcement. Earlier full gate
+retained; current documentation/planning checks cover administrative closeout. Minimum advisories and the failed
+supplementary older-analyzer check remain explicit limitations. Publication/final delivery checks are pending at
+this checkpoint; canonical `.runs/handoffs/TASK-00147/land.md` owns subsequent bridge/delivery/resource outcomes.
+This is not consumer, whole-library, approval, merge or release qualification.
 
 ## Durable Task input — TASK-00099 accepted checkpoint
 
