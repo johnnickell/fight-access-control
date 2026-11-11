@@ -45,10 +45,10 @@ final readonly class DisableUserHandler implements CommandHandler
         private UserRepository $userRepository,
         private SessionRevocationService $sessionRevocationService,
         private Clock $clock,
-        private AuditEvidenceRepository $auditEvidenceRepository,
         private TransactionalUnitOfWork $unitOfWork,
         private EventDispatcher $eventDispatcher,
-        private PasswordResetGrantRepository $passwordResetGrantRepository
+        private PasswordResetGrantRepository $passwordResetGrantRepository,
+        private ?AuditEvidenceRepository $auditEvidenceRepository = null
     ) {
     }
 
@@ -101,7 +101,7 @@ final readonly class DisableUserHandler implements CommandHandler
                     $now
                 );
 
-                $this->auditEvidenceRepository->add(AuditEvidence::record(
+                $this->auditEvidenceRepository?->add(AuditEvidence::record(
                     $command->getActorId(),
                     new AuditSubject($command->getUserId()),
                     AuditAction::USER_DISABLED,

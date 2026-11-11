@@ -2,7 +2,8 @@
 
 TASK-00122 replaces the pre-v1 evidence and persisted contract directly across existing writers and their
 current callers, fixtures and schemas. The TASK and canonical Work handoff own package verification evidence.
-No release, consumer adoption, independent acceptance or expanded audit coverage is claimed by this document.
+TASK-00123 adds optional composition for the eight User account lifecycle handlers described below. No release,
+consumer adoption or independent acceptance is claimed by this document.
 
 ## Current construction and persistence
 
@@ -120,9 +121,16 @@ The approved family composition is a **last nullable repository dependency**: om
 audit; no enable flag or no-op repository is required. Enabled evidence needs provenance before its first required
 mutation, while pure no-change/disabled execution gains no new audit-only actor obligation. TASK-00122 defines this
 contract; TICKET-00044 through TICKET-00047 own actual optional constructor wiring, family admission and expanded
-outcomes. Existing mandatory constructors have not become optional merely because the shared contract changed.
-TASK-00167 adds reusable [transaction/storage conformance](audit-transaction-conformance.md) around an existing
-enabled writer, reopened modeled representation and wrong-connection controls. It does not qualify family optionality,
+outcomes. TASK-00123 now implements this composition for InvitePendingUser, RegisterUser, CorrectPendingInvitation,
+RecoverPendingRegistration, EnableUser, DisableUser, DeleteUser and RestoreUser. Their final
+`?AuditEvidenceRepository $auditEvidenceRepository = null` argument may be omitted or explicitly null; no evidence
+or evidence identity is constructed in that composition. All existing business-required actors remain required;
+public registration deliberately establishes AnonymousId only for enabled evidence. No new audit-only actor input
+is needed in this slice because its existing typed Commands already supply sufficient provenance. Target admission,
+Role/reference fences and coupled persistence do not depend on enabling audit. Other family constructors remain
+unchanged until their owning TASKs implement optionality.
+TASK-00167 adds reusable [transaction/storage conformance](audit-transaction-conformance.md) around the enabled
+writer, reopened modeled representation and wrong-connection controls. It does not qualify family optionality,
 SQL storage or physical restart. TICKET-00048 retains complete cross-family reconciliation and real consumer qualification.
 Consumers still own persistence,
 access/retention, schema/deployment and actual connection/race/restore qualification; no backfill is provided.

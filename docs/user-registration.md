@@ -13,25 +13,29 @@ new stable User ID at the consumer's admission boundary. `fromArray()` rejects m
 and extra keys, including actor, Role and credential inputs. There is no password at registration: the existing
 synchronous [`UserAuthentication::activate()`](user-authentication.md) takes the one-time credential and new password later.
 
-No authenticated actor is asserted by this command or `UserRegistered`. The in-progress
+No authenticated actor is asserted by this command or `UserRegistered`. The
 [shared audit replacement](audit-evidence.md) explicitly establishes AnonymousId for this declared public journey,
 with action `user.registered`, the new User identity and admitted revision/grant facts, without email, credentials
 or arbitrary context. The optional delivery subscriber preserves that anonymous origin with canonical `actor_kind`
 and `actor_id`; it does not overwrite provenance with a worker label. This identity grants no authority. Current
-mandatory audit constructor wiring is unchanged, and consumer authorization/admission remains separate.
+Unreleased TASK-00123 makes account-handler auditing optional; consumer authorization/admission remains separate.
 
 Construct `RegisterUserHandler` with these dependencies, in order:
 
 1. Domain `UserRepository`
 2. Domain `RoleRepository`
 3. Domain `ActivationGrantRepository`
-4. Domain `AuditEvidenceRepository`
-5. Common `TransactionalUnitOfWork`
-6. Application `ActivationCredentialGenerator`
-7. Application `InvitationDeliveryCipher`
-8. Application Timing `Clock`
-9. Common `EventDispatcher`
-10. Nonempty consumer configuration `list<string> $defaultRoleNames`
+4. Common `TransactionalUnitOfWork`
+5. Application `ActivationCredentialGenerator`
+6. Application `InvitationDeliveryCipher`
+7. Application Timing `Clock`
+8. Common `EventDispatcher`
+9. Nonempty consumer configuration `list<string> $defaultRoleNames`
+10. Optional last `?AuditEvidenceRepository $auditEvidenceRepository = null`
+
+This is the current Unreleased constructor, not the historical v0.7.0 signature. Omitted/null disables durable
+audit without changing Role/email/grant admission. With storage supplied, evidence is required in that same
+transaction; storage failure rolls back all staged work. Later opt-in does not backfill prior registrations.
 
 Names must pass `RoleName::fromString()`. Empty configuration, invalid names and `ROLE_SUPER_ADMIN` reject handler
 construction. Repeated names form one set. There is no global `ROLE_USER` requirement; other managed or custom

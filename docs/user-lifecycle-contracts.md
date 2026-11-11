@@ -5,6 +5,41 @@ with Common's configured command router/bus; canonical message decoding does not
 This correction changes intentional Application failure categories, not wire fields, Domain repository nullability,
 account policy or the separate generic Command/Event inference contract.
 
+## Optional account audit composition
+
+Unreleased TASK-00123 changes all eight constructors to a last nullable
+`?AuditEvidenceRepository $auditEvidenceRepository = null`. Omitted and explicit null both disable durable audit;
+there is no no-op repository, enable flag or later backfill. Supplied evidence storage remains required within the
+handler's actual mutation transaction/connection. A failing configured writer cannot downgrade to disabled mode.
+
+The preceding required arguments, in order, are:
+
+| Handler | Required arguments before optional audit |
+| --- | --- |
+| InvitePendingUser | userRepository, activationGrantRepository, unitOfWork, activationCredentialGenerator, invitationDeliveryCipher, clock, eventDispatcher |
+| RegisterUser | userRepository, roleRepository, activationGrantRepository, unitOfWork, activationCredentialGenerator, invitationDeliveryCipher, clock, eventDispatcher, defaultRoleNames |
+| CorrectPendingInvitation | userRepository, activationGrantRepository, invitationAdministrationAuthorization, unitOfWork, activationCredentialGenerator, invitationDeliveryCipher, clock, eventDispatcher |
+| RecoverPendingRegistration | userRepository, activationGrantRepository, registrationRecoveryAuthorization, unitOfWork, activationCredentialGenerator, invitationDeliveryCipher, clock, eventDispatcher |
+| EnableUser | userRepository, unitOfWork, eventDispatcher, clock |
+| DisableUser / DeleteUser | userRepository, sessionRevocationService, clock, unitOfWork, eventDispatcher, passwordResetGrantRepository |
+| RestoreUser | userRepository, activationGrantRepository, activationCredentialGenerator, invitationDeliveryCipher, clock, unitOfWork, eventDispatcher |
+
+Update positional callers directly; named `auditEvidenceRepository` callers retain that name. No old-order facade
+or migration is supplied. Existing business-required actor fields stay required even when disabled. Invitation
+retains its explicit typed origin; registration deliberately establishes AnonymousId, never its target as an
+authenticated actor. The other six retain business-required UserId actors and existing target/entry authorization.
+This slice needs no additional audit-only actor input or missing-origin substitution.
+
+Enabled evidence records one meaningful outcome per successful command: initial User/activation issuance; pending
+correction/recovery with original and retained cancelled predecessor plus successor; or actual lifecycle transition.
+Same-address expired registration recovery still issues a new generation and gets one record, not a User-change
+record plus a helper record. Existing invalid/repeated transitions reject; no new idempotent no-change branch is
+introduced. Read/validation alone produces none. Default-Role and expected-state fences remain in disabled mode too.
+Bulk session/reset cancellation belongs to disable/delete's single account outcome, not duplicate helper evidence.
+Pending restoration records its fresh private activation relationship; active restoration has none. Evidence
+uses actual User counters and message/grant/delivery IDs, with no email, credentials, reason or diagnostic capture.
+See the [typed contract](audit-evidence.md) and [complete outcome matrix](audit-outcome-coverage.md).
+
 ## Intentional outcomes
 
 | Operation | Absence / refusal / concurrency |
@@ -59,15 +94,15 @@ rethrown diagnostics or infer rollback from an HTTP failure.
 
 The existing [operation outcomes](operation-outcomes.md), [registration](user-registration.md),
 [registration recovery](registration-recovery.md) and [delivery](credential-delivery.md) guides remain authoritative
-for complete composition. Optional-audit redesign and broader credential/session helper corrections have separate
-owners; this slice does not adopt them or claim consumer persistence qualification.
+for complete composition. Other audit families and broader credential/session helper corrections retain separate
+owners; account optionality does not implement them or claim consumer persistence qualification.
 
 ## PHP caller changes and evidence
 
 Update affected Application catches to the categories above; retain Domain construction/transition catches at their
 own boundaries. Update named constructor arguments on registration/invitation/recovery to
 `activationCredentialGenerator`, `invitationDeliveryCipher`, and recovery's `registrationRecoveryAuthorization`.
-Positional dependency order and success wire shapes are unchanged. Apply the pre-v1 current-contract policy directly,
+Success wire shapes are unchanged. TASK-00123's current positional order is documented above. Apply the pre-v1 current-contract policy directly,
 without aliases, nullable legacy modes, result DTOs or automatic stale-intent retries.
 
 Native `commitTransactional()` remains `mixed`; each handler annotates its known owned callback result locally
@@ -76,7 +111,9 @@ bus inference. The [static fixtures](type-contracts.md) assert all eight void me
 ports, and reject incompatible identities/using void as a result. `UserLifecycleDispatchTest` exercises all eight
 real registered paths, serialized envelopes, late audit rollback, both modeled commit-acknowledgement outcomes and
 post-commit double publication failure. Existing registration/recovery/lifecycle/race suites retain their detailed
-behavioral proof. Independent Review and nonvisual QA remain separate.
+behavioral proof. `OptionalLifecycleAuditTest` additionally exercises explicit null/omitted composition, typed
+invitation origins, exact persisted User/grant/revision/message evidence, admission with audit disabled, rollback,
+primary audit fault identity, rejected repeats and pending restoration. Independent Review and nonvisual QA remain separate.
 
 Consumers must qualify actual authorization lifetime, storage identity mapping, shared connection/locks, uniqueness,
 all-writer CAS, audit atomicity, process restart/uncertainty, provider behavior and safe response/log boundaries.

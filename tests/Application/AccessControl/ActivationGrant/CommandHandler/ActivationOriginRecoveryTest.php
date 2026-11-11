@@ -382,12 +382,12 @@ final class ActivationOriginRecoveryTest extends TestCase
                 $fixture->userRepository,
                 $fixture->activationGrantRepository,
                 new ActivationService\FixedInvitationAdministrationAuthorization(true),
-                $fixture->auditEvidenceRepository,
                 $fixture->unitOfWork,
                 new ActivationService\FixedCredentialGenerator('corrected-fixture'),
                 new ActivationService\PrefixInvitationDeliveryCipher(),
                 new FixedClock('2030-01-01T00:01:00Z'),
-                $eventDispatcher
+                $eventDispatcher,
+                $fixture->auditEvidenceRepository
             );
             try {
                 $handler->handle(CommandMessage::create(new CorrectPendingInvitation(

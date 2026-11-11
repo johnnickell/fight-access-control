@@ -276,7 +276,7 @@ final class AgentTaskInputAdmissionTest extends TestCase
         self::assertFalse($this->observe($queryBus)->get('groups')->get($new[0])->get('ready'));
     }
 
-    public function test_that_each_new_acquisition_and_effect_rechecks_original_authority_without_nonce_replay(): void
+    public function test_that_despite_intent_each_effect_rechecks_original_authority_without_nonce_replay(): void
     {
         foreach (['revoked', 'rotated', 'permission', 'intent permission', 'definition', 'scope', 'fault'] as $change) {
             $fixture = new TaskInputAdmissionFixture();
@@ -284,6 +284,9 @@ final class AgentTaskInputAdmissionTest extends TestCase
             [$commandBus, $queryBus, $repository] = $this->buses($fixture, $connection);
             [$group, $second] = $this->issue($commandBus, $repository, true);
             $commandBus->execute($this->supply([$group => $this->answer(), $second => $this->answer()]));
+            $cancellation = new TaskCancellationFixture($connection);
+            $cancellation->cancel();
+            $intent = $cancellation->intent()->get('cancellation')->toString();
             $auth = $fixture->auth;
             $binding = AgentContinuationBinding::fromRequest($auth->provider, $auth->request, 'original');
             $state = new ControlledContinuationAuthority(
@@ -326,7 +329,12 @@ final class AgentTaskInputAdmissionTest extends TestCase
             self::assertSame(1, $effects);
             self::assertTrue($this->observe($queryBus)->get('groups')->get($group)->get('consumed'));
             // A later group is new work, not a retry token for the consumed admission.
-            [$next, $last] = $this->request($commandBus, $repository, true, 4);
+            [$next, $last] = $this->request(
+                $commandBus,
+                $repository,
+                true,
+                $repository->read('scope', $this->id())->version()
+            );
             $commandBus->execute($this->supply([$next => $this->answer(), $last => $this->answer()]));
             $agent = $auth->agent;
             match ($change) {
@@ -370,6 +378,7 @@ final class AgentTaskInputAdmissionTest extends TestCase
             self::assertSame(1, $effects);
             self::assertFalse($this->observe($queryBus)->get('groups')->get($next)->get('consumed'));
             self::assertSame(1, $auth->nonce->consumptionCalls());
+            self::assertSame($intent, $cancellation->intent()->get('cancellation')->toString());
             self::assertFalse($state->held);
         }
     }

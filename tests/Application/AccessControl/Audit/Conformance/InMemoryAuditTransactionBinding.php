@@ -216,10 +216,10 @@ final class InMemoryAuditTransactionBinding implements AuditTransactionBinding
 
         return new EnableUserHandler(
             $userRepository,
-            $auditEvidenceRepository,
             $unitOfWork,
             $eventDispatcher,
-            new FixedClock('2030-01-02T03:04:05.123456-04:00')
+            new FixedClock('2030-01-02T03:04:05.123456-04:00'),
+            $auditEvidenceRepository
         );
     }
 }

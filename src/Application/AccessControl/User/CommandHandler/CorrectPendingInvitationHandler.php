@@ -52,12 +52,12 @@ final readonly class CorrectPendingInvitationHandler implements CommandHandler
         private UserRepository $userRepository,
         private ActivationGrantRepository $activationGrantRepository,
         private InvitationAdministrationAuthorization $invitationAdministrationAuthorization,
-        private AuditEvidenceRepository $auditEvidenceRepository,
         private TransactionalUnitOfWork $unitOfWork,
         private ActivationCredentialGenerator $activationCredentialGenerator,
         private InvitationDeliveryCipher $invitationDeliveryCipher,
         private Clock $clock,
-        private EventDispatcher $eventDispatcher
+        private EventDispatcher $eventDispatcher,
+        private ?AuditEvidenceRepository $auditEvidenceRepository = null
     ) {
     }
 
@@ -160,7 +160,7 @@ final readonly class CorrectPendingInvitationHandler implements CommandHandler
                     throw new StateConflict('The activation grant changed concurrently.');
                 }
 
-                $this->auditEvidenceRepository->add(AuditEvidence::record(
+                $this->auditEvidenceRepository?->add(AuditEvidence::record(
                     $command->getActorId(),
                     new AuditSubject($command->getUserId()),
                     AuditAction::USER_PENDING_INVITATION_CORRECTED,

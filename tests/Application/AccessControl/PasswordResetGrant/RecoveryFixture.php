@@ -267,10 +267,10 @@ final class RecoveryFixture
             $this->userRepository,
             new SessionRevocationService($this->refreshSessionRepository),
             new FixedClock($this->now),
-            $this->auditEvidenceRepository,
             $this->unitOfWork,
             $this->eventDispatcher,
-            $this->passwordResetGrantRepository
+            $this->passwordResetGrantRepository,
+            $this->auditEvidenceRepository
         )->handle(CommandMessage::create(new DisableUser(UserId::generate(), $this->userId)));
     }
 
@@ -280,10 +280,10 @@ final class RecoveryFixture
             $this->userRepository,
             new SessionRevocationService($this->refreshSessionRepository),
             new FixedClock($this->now),
-            $this->auditEvidenceRepository,
             $this->unitOfWork,
             $this->eventDispatcher,
-            $this->passwordResetGrantRepository
+            $this->passwordResetGrantRepository,
+            $this->auditEvidenceRepository
         )->handle(CommandMessage::create(new DeleteUser(UserId::generate(), $this->userId)));
     }
 
@@ -291,10 +291,10 @@ final class RecoveryFixture
     {
         new EnableUserHandler(
             $this->userRepository,
-            $this->auditEvidenceRepository,
             $this->unitOfWork,
             $this->eventDispatcher,
-            new FixedClock($this->now)
+            new FixedClock($this->now),
+            $this->auditEvidenceRepository
         )
             ->handle(CommandMessage::create(new EnableUser(UserId::generate(), $this->userId)));
     }
@@ -307,9 +307,9 @@ final class RecoveryFixture
             new FixedCredentialGenerator('activation-fixture'),
             new PrefixInvitationDeliveryCipher(),
             new FixedClock($this->now),
-            $this->auditEvidenceRepository,
             $this->unitOfWork,
-            $this->eventDispatcher
+            $this->eventDispatcher,
+            $this->auditEvidenceRepository
         )->handle(CommandMessage::create(new RestoreUser(UserId::generate(), $this->userId, $state)));
     }
 
