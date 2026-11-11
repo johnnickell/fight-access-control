@@ -33,9 +33,14 @@ use Fight\AccessControl\Domain\AccessControl\Audit\AuditSubject;
 use Fight\AccessControl\Domain\AccessControl\Audit\AuditUserOutcome;
 use Fight\AccessControl\Domain\AccessControl\Audit\AuditUserRevisions;
 use Fight\AccessControl\Domain\AccessControl\Audit\SystemId;
+use Fight\AccessControl\Domain\AccessControl\CredentialDelivery\CredentialDeliveryFailure;
 use Fight\AccessControl\Domain\AccessControl\CredentialDelivery\CredentialDeliveryStatus;
+use Fight\AccessControl\Domain\AccessControl\EmailChangeGrant\EmailChangeDeliveryId;
+use Fight\AccessControl\Domain\AccessControl\EmailChangeGrant\EmailChangeGrantId;
 use Fight\AccessControl\Domain\AccessControl\Feature\FeatureId;
 use Fight\AccessControl\Domain\AccessControl\Feature\FeatureStatus;
+use Fight\AccessControl\Domain\AccessControl\PasswordResetGrant\PasswordResetDeliveryId;
+use Fight\AccessControl\Domain\AccessControl\PasswordResetGrant\PasswordResetGrantId;
 use Fight\AccessControl\Domain\AccessControl\Permission\PermissionId;
 use Fight\AccessControl\Domain\AccessControl\Permission\PermissionName;
 use Fight\AccessControl\Domain\AccessControl\Permission\PermissionTier;
@@ -69,6 +74,27 @@ abstract class AuditStorageConformance extends TestCase
                         new AgentOperationScope('audit-model', 'user', $userId->toString()),
                         AgentOperationId::generate()
                     ))
+                );
+            }
+
+            [$subject, $action, $facts] = $this->facts()[0];
+            $operationKey = new AgentOperationKey(
+                new AgentOperationScope('audit-model', 'user', $userId->toString()),
+                AgentOperationId::generate()
+            );
+            $correlations = [
+                null,
+                new AuditCorrelation(MessageId::generate(), null),
+                new AuditCorrelation(null, $operationKey)
+            ];
+            foreach ($correlations as $correlation) {
+                $records[] = AuditEvidence::record(
+                    $actor,
+                    $subject,
+                    $action,
+                    new DateTimeImmutable('2030-01-02T03:04:05.123456-04:00'),
+                    $facts,
+                    $correlation
                 );
             }
         }
@@ -142,7 +168,7 @@ abstract class AuditStorageConformance extends TestCase
         $user = new AuditSubject(UserId::generate());
         $roleSubject = new AuditSubject(RoleId::generate());
 
-        return [
+        $facts = [
             [$user, AuditAction::PASSWORD_CHANGED, new AuditUserOutcome($before, $after)],
             [$user, AuditAction::INVITATION_DELIVERY_CONFIRMED, new AuditGrantOutcome(
                 new AuditGrantState($grant, 4, $delivery),
@@ -175,5 +201,121 @@ abstract class AuditStorageConformance extends TestCase
                 new AuditPermissionState(PermissionName::fromString('AUDIT_MODEL'), PermissionTier::ADMIN_SAFE, false)
             )]
         ];
+
+        $activationBefore = new AuditGrantState($grant, 4, $delivery);
+        $activationRetained = new AuditGrantState($grant, 5, $delivery);
+        $activationAfter = new AuditGrantState(ActivationGrantId::generate(), 0, ActivationDeliveryId::generate());
+        $reset = PasswordResetGrantId::generate();
+        $resetDelivery = PasswordResetDeliveryId::generate();
+        $resetBefore = new AuditGrantState($reset, 4, $resetDelivery);
+        $resetAfter = new AuditGrantState($reset, 5, $resetDelivery);
+        $email = EmailChangeGrantId::generate();
+        $emailDelivery = EmailChangeDeliveryId::generate();
+        $emailBefore = new AuditGrantState($email, 4, $emailDelivery);
+        $emailAfter = new AuditGrantState($email, 5, $emailDelivery);
+        $pendingBefore = new AuditUserRevisions(UserState::PENDING_ACTIVATION, 1, 0, 0, 0, 0);
+        $pendingAfter = new AuditUserRevisions(UserState::PENDING_ACTIVATION, 1, 0, 0, 0, 1);
+        $facts[] = [$user, AuditAction::USER_INVITED, new AuditUserOutcome(
+            null,
+            $pendingBefore,
+            null,
+            $activationAfter
+        )];
+        $facts[] = [$user, AuditAction::USER_PENDING_INVITATION_CORRECTED, new AuditUserOutcome(
+            $pendingBefore,
+            $pendingAfter,
+            $activationBefore,
+            $activationAfter,
+            $activationRetained
+        )];
+        $facts[] = [$user, AuditAction::PASSWORD_RESET_COMPLETED, new AuditUserOutcome(
+            $before,
+            $after,
+            $resetBefore,
+            $resetAfter
+        )];
+        $facts[] = [$user, AuditAction::EMAIL_CHANGE_REQUESTED, new AuditUserOutcome(
+            $before,
+            new AuditUserRevisions(UserState::ACTIVE, 3, 7, 2, 6, 1),
+            $emailBefore,
+            new AuditGrantState(EmailChangeGrantId::generate(), 0, EmailChangeDeliveryId::generate()),
+            $emailBefore
+        )];
+        $facts[] = [$user, AuditAction::INVITATION_RESENT, new AuditGrantOutcome(
+            $activationBefore,
+            $activationAfter,
+            null,
+            null,
+            $activationRetained
+        )];
+        $newReset = new AuditGrantState(PasswordResetGrantId::generate(), 0, PasswordResetDeliveryId::generate());
+        $facts[] = [$user, AuditAction::PASSWORD_RESET_REQUESTED, new AuditGrantOutcome(null, $newReset)];
+        // Reset replacement can retain an already-terminal predecessor without another revision advance.
+        $facts[] = [$user, AuditAction::PASSWORD_RESET_REQUESTED, new AuditGrantOutcome(
+            $resetBefore,
+            $newReset,
+            null,
+            null,
+            $resetBefore
+        )];
+        foreach (
+            [
+                [$activationBefore, $activationRetained, AuditAction::INVITATION_DELIVERY_FAILED,
+                    AuditAction::INVITATION_DELIVERY_CONFIRMED],
+                [$resetBefore, $resetAfter, AuditAction::PASSWORD_RESET_DELIVERY_FAILED,
+                    AuditAction::PASSWORD_RESET_DELIVERY_CONFIRMED],
+                [$emailBefore, $emailAfter, AuditAction::EMAIL_CHANGE_DELIVERY_FAILED,
+                    AuditAction::EMAIL_CHANGE_DELIVERY_CONFIRMED]
+            ] as [$grantBefore, $grantAfter, $failedAction, $confirmedAction]
+        ) {
+            foreach (CredentialDeliveryFailure::cases() as $failure) {
+                $status = CredentialDeliveryStatus::RETRY_PENDING;
+                if ($failure === CredentialDeliveryFailure::PERMANENT_PROVIDER) {
+                    $status = CredentialDeliveryStatus::PERMANENT_FAILURE;
+                }
+
+                $facts[] = [$user, $failedAction, new AuditGrantOutcome($grantBefore, $grantAfter, $status, $failure)];
+            }
+
+            $unclassifiedStatuses = [
+                CredentialDeliveryStatus::RETRY_PENDING,
+                CredentialDeliveryStatus::PERMANENT_FAILURE
+            ];
+            foreach ($unclassifiedStatuses as $status) {
+                $facts[] = [$user, $failedAction, new AuditGrantOutcome($grantBefore, $grantAfter, $status)];
+            }
+
+            $facts[] = [$user, $confirmedAction, new AuditGrantOutcome(
+                $grantBefore,
+                $grantAfter,
+                CredentialDeliveryStatus::DELIVERED
+            )];
+        }
+
+        $credential = AgentCredentialId::generate();
+        $facts[] = [new AuditSubject(AgentId::generate()), AuditAction::AGENT_CREDENTIAL_REVOKED, new AuditAgentOutcome(
+            new AuditAgentState($credential, 3, AgentState::ACTIVE),
+            new AuditAgentState($credential, 3, AgentState::REVOKED),
+            null
+        )];
+        $facts[] = [new AuditSubject(FeatureId::generate()), AuditAction::FEATURE_PERMISSION_CHANGED,
+            new AuditFeatureOutcome(
+                new AuditFeatureState(3, FeatureStatus::PREVIEW, $permission),
+                new AuditFeatureState(4, FeatureStatus::PREVIEW, PermissionId::generate())
+            )];
+        $facts[] = [new AuditSubject(FeatureId::generate()), AuditAction::FEATURE_REMOVED, new AuditFeatureOutcome(
+            new AuditFeatureState(3, FeatureStatus::ON, $permission),
+            null
+        )];
+        $facts[] = [new AuditSubject($permission), AuditAction::PERMISSION_RECONCILED, new AuditPermissionOutcome(
+            new AuditPermissionState(PermissionName::fromString('AUDIT_MODEL'), PermissionTier::ADMIN_SAFE, true),
+            new AuditPermissionState(PermissionName::fromString('AUDIT_MODEL'), PermissionTier::SUPER_ADMIN_ONLY, true)
+        )];
+        $facts[] = [new AuditSubject($permission), AuditAction::PERMISSION_REMOVED, new AuditPermissionOutcome(
+            new AuditPermissionState(PermissionName::fromString('AUDIT_MODEL'), PermissionTier::ADMIN_SAFE, false),
+            null
+        )];
+
+        return $facts;
     }
 }

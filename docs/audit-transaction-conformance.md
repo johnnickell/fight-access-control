@@ -90,11 +90,30 @@ the same atomicity oracle used by positive cases, so its expected overall result
 UoW decoration or repository-generated business outcome makes the positive composition work.
 
 The storage corpus crosses all four actor kinds (including equal UUID text for User/Agent and distinct fixed-nil
-System/Anonymous), all five primary subject kinds and all eight current fact value shapes. Whole-payload equality
-preserves unique non-nil evidence IDs, precise occurrence time/offset, complete before/after revisions and Role
-incarnation, relationship IDs, Agent delivery identity and complete scoped operation/message correlation. Creation
-and removal retain absent predecessor/successor state, not fabricated revisions. This is representation coverage,
-not execution/authorization qualification of each represented family's writer.
+System/Anonymous), all five primary subject kinds and all eight current fact value shapes. Its 40 fact samples per
+actor plus absent/message-only/operation-only correlation samples produce 172 records. Whole-payload equality checks
+unique non-nil evidence IDs, precise occurrence time/offset, complete supplied revisions and Role incarnation,
+relationship IDs, Agent delivery identity and complete scoped operation/message correlation.
+
+| Supported field variation | Corpus observation after reopening |
+| --- | --- |
+| Grant kind and delivery ID | Activation, password-reset and email-change references in both User and grant-only outcomes. |
+| Delivery failure/status | All three admitted failure classifications with their matching retry/permanent status, both failed statuses with null classification, delivered with null failure and issuance with null status/failure. |
+| User relationships | Absent relationships, initial grant, same-generation transition and replacement with actual before/after plus retained predecessor. |
+| Retained predecessor | Cancelled activation predecessor advances once; already-terminal reset/email-change predecessors retain their revision. |
+| Other nullable states | User/Agent creation, Agent revocation without delivery, Feature/Permission creation, populated before/after and removal; Role creation/update/removal. |
+| Correlation | Absent, message-only, operation-only and both, with the operation's complete scope. |
+
+`LossyAuditStorageBinding` deliberately drops failure classification, User relationships or retained predecessor, or
+collapses grant kind to activation. Default-suite sensitivity cases require actual payload corruption and rejection
+by the same reusable round-trip test (equality failure or explicit hydration rejection). A mapper that always nulls
+failure classification therefore cannot qualify. These controls test the oracle, not a demonstrated data-loss fault
+in the reference repository. They do not introduce another gate or leave the default suite failing.
+
+Creation and removal retain absent predecessor/successor state, not fabricated revisions. This is representative
+current-field storage coverage, not every action/enum combination or execution/authorization qualification of each
+represented family's writer. Consumers extend the corpus when their supported representation grows; whole-array
+equality cannot detect loss of a populated value never supplied to a binding.
 
 ## Safety and qualification limits
 

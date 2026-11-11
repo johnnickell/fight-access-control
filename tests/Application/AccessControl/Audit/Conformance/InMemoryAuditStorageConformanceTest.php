@@ -8,12 +8,40 @@ use Fight\AccessControl\Domain\AccessControl\Audit\AuditEvidence;
 use Fight\Common\Domain\Exception\DomainException;
 use Fight\Test\AccessControl\Application\AccessControl\Audit\Repository\MappedAuditEvidenceRepository;
 use Fight\Test\AccessControl\Application\AccessControl\User\InMemoryUnitOfWork;
+use PHPUnit\Exception as PHPUnitException;
 use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\Attributes\DataProvider;
 use RuntimeException;
 
 #[CoversClass(AuditEvidence::class)]
 final class InMemoryAuditStorageConformanceTest extends AuditStorageConformance
 {
+    /** @return iterable<string, array{string}> */
+    public static function mappingLosses(): iterable
+    {
+        foreach (['failure', 'user-relationships', 'retained-predecessor', 'grant-kind'] as $loss) {
+            yield $loss => [$loss];
+        }
+    }
+
+    #[DataProvider('mappingLosses')]
+    public function test_storage_oracle_rejects_loss_of_populated_supported_fields(string $loss): void
+    {
+        $test = 'test_all_supported_fact_shapes_and_actor_kinds_survive_storage_reopening';
+        $binding = new LossyAuditStorageBinding($test);
+        $binding->loss = $loss;
+        try {
+            $binding->test_all_supported_fact_shapes_and_actor_kinds_survive_storage_reopening();
+        } catch (PHPUnitException | DomainException) {
+            // Equality failure or explicit hydration rejection both disqualify the broken binding.
+            self::assertTrue($binding->changed, 'Rejection must follow actual corruption, not invalid corpus setup.');
+
+            return;
+        }
+
+        self::fail('The reusable storage oracle qualified a deliberately lossy mapping: '.$loss);
+    }
+
     public function test_unsupported_mapping_fails_the_enabled_write_without_silent_discard(): void
     {
         $binding = new InMemoryAuditTransactionBinding();
