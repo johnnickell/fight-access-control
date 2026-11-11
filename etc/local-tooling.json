@@ -1,23 +1,10 @@
 {
   "project": "fight-access-control",
-  "running": [
-    "php"
-  ],
   "gate": [
     "./bin/.build-full"
   ],
   "outputs": [
     "var/reports"
-  ],
-  "runtime_probes": [
-    [
-      "exec",
-      "-T",
-      "php",
-      "sh",
-      "-ec",
-      "php -r 'echo json_encode([PHP_VERSION, get_loaded_extensions(), ini_get_all(null, false)]);'; composer --version; git --version"
-    ]
   ],
   "directories": [
     "var/cache"
