@@ -1,5 +1,23 @@
 # Fight AccessControl Context
 
+## Complete guarded Task serving — TASK-00101 Work checkpoint
+
+[Slice E composition](docs/agent-task-authorization.md#complete-guarded-mcp-serving--slice-e) adds canonical
+`AgentTaskServing` and request-scoped `AgentTaskRequestAdmission`. All four real Common serving handlers are
+mandatory; the exact Tool registry receives real Agent Permission binding before complete Task activation.
+The existing Common HTTP guard selects independently configured acknowledgment versus ongoing-state admissions
+only after transport/protocol/mirror validation. Creation, Tool availability, input/cancel and producer/original
+continuation grants remain separate. Common owns negotiation, original retained state, safe errors, encoded bounds
+and lifecycle truth; consumers own submission/reconciliation, storage, scope and workers. No live output is enabled.
+
+Controlled actual HTTP/SQLite fixtures cover commit then TCP disconnect, independent producer reconstruction and
+fresh reconnect/get, complete input/confirmation/cancellation flow, denied ongoing operations after admitted start,
+postcommit/response/submission faults and exact final encoded response bounds. Common v1.5.0 source
+`06fb5cd3720af9cf8295198f74040d95b64c5155` remains sufficient; minimum/ordinary lane identities and actual checks
+belong to canonical `.runs/handoffs/TASK-00101/work.md`. Independent Review and nonvisual QA remain pending at this
+Work checkpoint; TASK-00101 stays open. This is not production crypto/storage/all-writer fencing, external-effect,
+worker/client/proxy qualification, optional live-state acceptance, adoption, release or deployment.
+
 ## Live Tool, Resource and whole-Skill disclosure — TASK-00093 accepted checkpoint
 
 [Live disclosure composition](docs/agent-live-disclosure.md) adds optional canonical Subscription adapters and
