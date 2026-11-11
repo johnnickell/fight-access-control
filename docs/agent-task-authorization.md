@@ -1,14 +1,14 @@
-# Agent Task admission — slices A and B (unreleased)
+# Agent Task admission — slices A, B and C (unreleased)
 
 TASK-00097 composes independent direct Agent Permissions and consumer-owned scope with Common's actual Task
 creation, producer transition and complete current-state Query. It adds no Task lifecycle, persistence adapter,
 executor, scheduler, grant, protocol endpoint or advertised partial MCP Tasks extension. TASK-00098 adds independent
-bounded retained-data removal below. Input answering, cancellation, full MCP serving and live Task output retain
-their later TASK owners.
+bounded retained-data removal below. TASK-00099 adds durable input admission and protected continuation below.
+Cancellation mutation, full MCP serving and live Task output retain their later TASK owners.
 
 ## Contracts and ownership
 
-Policy lives in `Application/AccessControl/Agent/Task`. All four admission implementations satisfy the actual
+Policy lives in `Application/AccessControl/Agent/Task`. The admission implementations satisfy the actual
 Common `Application/Mcp/Task/Service` ports. Configure them on Common handlers, including alternate bus entry points;
 a Tool-only check is insufficient.
 
@@ -255,6 +255,123 @@ Use one redaction-aware safe boundary. Raw scope/storage/publisher throwables an
 facts or generic logs; bounded removal IDs are still consumer-scoped data. Removal does not enable the later MCP Tasks
 extension, cancellation, input-answering or live disclosure slices.
 
+## Durable input and protected continuation — slice C
+
+`AgentTaskInputAdmission` implements Common's actual `TaskInputAdmission`, with **three independently configured**
+`AgentTaskAuthority` instances (submission, protected answer observation, group acquisition) and an
+`AgentTaskInputScope`. `AgentTaskCancellationObservationAdmission` separately implements Common's required intent
+observation port using its own authority and `AgentTaskCancellationObservationScope`. Its cancellation-mutation
+method always denies: this slice cannot request cancellation. No new grant names are seeded.
+
+### Composition and ordered flow
+
+Configure the existing `AgentTaskUpdateAdmission` with a separate illustrative `INPUT_ISSUE` requirement for both
+`RequestTaskInputHandler` and `RetireTaskInputHandler`. Do not reuse a general producer-update grant implicitly.
+Use independent whole-state `AgentTaskReadAdmission` for public outstanding forms through `GetTaskHandler`;
+answer observation through `GetTaskInputHandler` is a **different**, more sensitive permission: it returns original
+operation/arguments, accepted answers, group names/status and cancellation intent, not just outstanding forms.
+Scope must admit that complete projection. The consumer binds trusted producer/observer/original caller, Task,
+operation and original arguments through authoritative policy, not metadata or supplied caller strings.
+
+Configure the actual Common handlers on the same command/query routers and separate Task transaction used above:
+
+```php
+$inputAdmission = new AgentTaskInputAdmission(
+    $submissionAuthority, $answerObservationAuthority, $continuationAuthority, $consumerInputScope
+);
+$intentAdmission = new AgentTaskCancellationObservationAdmission($intentAuthority, $consumerIntentScope);
+$supply = new SupplyTaskInputHandler(
+    $taskRepository, $taskUnitOfWork, $inputAdmission, $payloadPolicy, $eventDispatcher, $millisecondClock
+);
+$acquire = new AcquireTaskInputHandler(
+    $taskRepository, $taskUnitOfWork, $inputAdmission, $intentAdmission,
+    $payloadPolicy, $eventDispatcher, $millisecondClock
+);
+$observe = new GetTaskInputHandler($committedTaskReader, $inputAdmission, $intentAdmission, $millisecondClock);
+$commandRouter->registerHandler($supply::commandRegistration(), $supply);
+$commandRouter->registerHandler($acquire::commandRegistration(), $acquire);
+$queryRouter->registerHandler($observe::queryRegistration(), $observe);
+```
+
+Types in that excerpt live under AccessControl `Application/AccessControl/Agent/Task` and Common
+`Application/Mcp/Task/{CommandHandler,QueryHandler}`. Dispatch actual `RequestTaskInput`, `RetireTaskInput`,
+`SupplyTaskInput`, `AcquireTaskInput` and `GetTaskInput` payloads through configured buses, not injected handlers or
+an AccessControl lifecycle facade. `TaskInputForms::batch()` retains supported server-authored form/confirmation
+contracts. Common alone creates immutable request keys; clients supply answers, never replacement validators.
+
+The following maintained **runtime-flow diagram** describes slice C's implementation in the TASK-00099 candidate
+(the canonical Work handoff identifies its exact committed revision). Arrows mean ordered runtime calls, not static
+dependencies or proof of production fencing. Source anchors below identify the compressed bus hops.
+
+```text
+Trusted producer -> RequestTaskInput bus -> serialized independent issuer admission -> Common retained contracts
+Trusted reader   -> GetTask query        -> independent complete-state admission    -> public outstanding forms
+Trusted caller   -> SupplyTaskInput bus  -> serialized submission admission          -> retained active validation
+                                                                                   -> atomic answer commit
+Trusted observer -> GetTaskInput query   -> answer + intent observation admissions   -> protected answers/definition
+Original binding -> existing synchronized continuation guard (current authority + consumer scope)
+                 -> AcquireTaskInput bus -> group continuation + intent admissions  -> durable single-use commit
+                 -> bounded consumer effect only after confirmed acquisition, inside original guard
+```
+
+Source trace: [input policy](../src/Application/AccessControl/Agent/Task/AgentTaskInputAdmission.php) delegates to
+independent authorities before scope; [intent policy](../src/Application/AccessControl/Agent/Task/AgentTaskCancellationObservationAdmission.php)
+neither grants nor mutates cancellation; [real buses and SQLite journeys](../tests/Application/AccessControl/Agent/Task/AgentTaskInputAdmissionTest.php)
+register Common's actual handlers. Common v1.5.0 owns the compressed handler/storage/validation/commit arrows.
+The final arrow is controlled consumer-fixture work, not a supplied executor or external-effect qualification.
+The existing slice A Mermaid remains a view of that earlier boundary, not this input flow.
+
+### Binding, consumption and failure semantics
+
+- Ordinary outer envelope parsing/finite shape checks remain Common-owned and may precede admission. Within its
+  serialized boundary, Common checks submission before retained lookup/active protected form validation. Empty,
+  all-ignored and authorized terminal submissions are safe no-ops; inactive keys run no protected validator and
+  grant nothing. Every selected active response validates before **any** response is admitted. Partial submissions
+  retain accepted evidence and leave remaining requests outstanding. Conflicting duplicate answers cannot replace
+  earlier answers. A request's public schema excludes private runtime rules/labels.
+- Common retains the immutable original operation/arguments, caller, Task/scope-derived lifetime request identities,
+  group and expiry. Consumer scope independently verifies original binding before those protected operations.
+  Supplying another caller/Task/group, changing current operation definitions or presenting an old handle grants
+  nothing. Retained contracts, not current mutable Tool definitions, validate answers. Whole-state sharing remains
+  a separate consumer decision; it does not grant submission or protected answer observation.
+- Consumer-designated confirmation requires **every** requested accept. Partial accept is not destructive approval;
+  decline/cancel retires that group, not the whole Task. Acquisition checks both continuation and independent
+  cancellation-intent observation, then Common atomically consumes exactly one complete unexpired eligible group.
+  Input acceptance is not acquisition, and acquisition is not an execution receipt. Cancellation intent is not
+  cancellation mutation, stopping or rollback. TASK-00100 owns actual cancellation-intent races.
+- For each new protected continuation, use the **original caller** binding with `AgentTaskAuthority::duringContinuation()`
+  under TASK-00088's existing guard and qualified `AgentTaskContinuationScope` fence, configure the acquisition
+  handler's continuation **and intent-observation** authorities with that action-scoped value, include both sets of
+  independent Permission requirements in the guard's conjunctive requirements, execute acquisition synchronously and perform
+  only a bounded consumer effect after **confirmed** acquisition within that guard. Observation/submission/producer
+  authorities do not replace original authority. If acquisition and effect are separate invocations, recheck the
+  original guard for the effect too; an acquired group does not become a reusable authorization token.
+- Every new guarded action checks current original Agent/credential/direct Permissions, provenance age and scope.
+  Rotation, revocation, Permission/definition/scope change or resolver fault denies the next step; no nonce replay,
+  credential switching or refreshed five-minute provenance. Ordinary requests still share their one request-local
+  snapshot/nonce result; do not retain them as worker authority. Qualify global lock order and all participating
+  authority/scope writers in the consumer, not by nesting unknown/reentrant guards.
+- Common deliberately sanitizes throwing input/issuer/acquisition admissions to fixed `TaskRejected`; protected
+  observation faults/denials return concealed `null`. These are **upstream-specific** contracts, not this adapter
+  swallowing operational faults. Do not treat them as successful absence, empty answer sets or permission to retry
+  external effects. Raw private causes, validators, answers and bindings never belong in generic notices/logs.
+- Precommit failure rolls back admission; uncertain commit remains uncertain whether consumed or not. Resolve that
+  original operation through independent committed storage and authorized reads before any dependent action.
+  A confirmed consumed group never becomes unconsumed after dispatch/response/consumer failure. Postcommit
+  `CommittedTaskDispatchFailed` is committed consumption, not effect approval or a retry token. A crash after
+  acquisition can leave consumed-without-effect; a lost external response can leave an uncertain external outcome.
+  No blind redispatch, exactly-once effect, compensating rollback or outbox is supplied.
+- Common bounds lifetime issuance to **1024 keys**, retained groups and total retained keys to **16**, and retained
+  input bookkeeping to **32768 encoded bytes**, composed with aggregate/state bounds above. Explicit authorized
+  retirement removes a group's payload but keeps the constant-size lifetime high-water mark; keys cannot be reused
+  or truncated. No hidden indefinite payload archive is introduced. Removal of the whole Task still ends those
+  retention guarantees as described in slice B.
+
+`McpTaskInput`'s actual `tasks/update` method uses the same admitted bus and returns the safe complete acknowledgment
+without private answer/binding diagnostics. Method-level tests do not register or advertise a partial Tasks extension.
+Full MCP start/reconnect/negotiation activation remains TASK-00101; ordinary stateless interaction/exact-key/replay and
+confirmation behavior is unchanged. Polling/input require no live Subscription runtime.
+
 ## Qualification and limits
 
 The first sufficient tagged Common API is **v1.5.0**, source
@@ -278,4 +395,16 @@ whole-selection authority/scope, all retained states, coherent row/comparison re
 partial-delete rollback, both lost-commit outcomes, caller ownership, dispatch failure and concurrent real lifecycle/
 removal/read schedules over separate SQLite processes. Its guarded cleanup fixture proves current revocation refusal
 without nonce replay, not production retention/hold policy, cleanup scheduling, worker stopping or all-writer fences.
-Consumers must qualify their exact components and alternate entry points. Independent Review and nonvisual QA remain required; no package acceptance or combined release is self-issued.
+Consumers must qualify their exact components and alternate entry points.
+
+`AgentTaskInputAdmissionTest` separately exercises real authentication/Permission resolution, actual input issuance,
+partial/ignored/mixed invalid batches, immutable accepted evidence, confirmation refusal/single-use, protected observation,
+method acknowledgments, bounded retained capacity, retirement/high-water preservation, changed original authority and
+no nonce replay. Separate SQLite processes contend behind the actual namespace lock for conflicting answers and
+producer-terminal races. Actual SQLite rollback, both lost commit acknowledgment outcomes and postcommit publication
+failure preserve admission truth. The consumer scope/fence/cryptography/effect and authority-writer fixtures remain
+controlled inputs, not deployed storage/locking/worker/external-effect qualification. Common v1.5.0 is sufficient for
+all consumed input/confirmation/acquisition APIs; exact-minimum and restored ordinary lanes and their lock/runtime
+identities belong to TASK-00099's canonical Work handoff. No new production dependencies or optional MCP capability
+registration are added. Independent Review and nonvisual QA remain required; no package acceptance or combined release
+is self-issued.

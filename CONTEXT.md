@@ -1,5 +1,29 @@
 # Fight AccessControl Context
 
+## Durable Task input — TASK-00099 accepted checkpoint
+
+The [slice C Task composition](docs/agent-task-authorization.md#durable-input-and-protected-continuation--slice-c)
+adds inward `AgentTaskInputAdmission` with separate submission, protected answer-observation and group-continuation
+requirements/scope. Independent `AgentTaskCancellationObservationAdmission` supplies Common input observation/acquisition's
+intent port but always denies cancellation mutation. Issuance/retirement use independently configured existing producer
+admission; public outstanding forms retain whole-state read admission. Common owns retained original contracts/arguments,
+immutable caller/Task/group/expiry keys, active-subset validation, atomic answers, confirmations and durable single use.
+Configured Common buses and actual `McpTaskInput` method preserve these checks without a second store/lifecycle or partial
+Tasks advertisement. Original caller continuation uses TASK-00088's existing synchronized guard and ephemeral authority,
+including independent intent requirements, never producer authority, cached answers or replayed nonces.
+
+Common v1.5.0 (`06fb5cd3720af9cf8295198f74040d95b64c5155`) is the sufficient minimum. Exact-minimum and restored ordinary
+feature lanes use real AccessControl authority/Common handlers and DBAL SQLite. Controlled scope/fence/effect fixtures
+and actual SQLite race/fault proof do not qualify consumer crypto/storage/authority writers, worker lifetimes, external
+effects or exactly-once execution. Consumption survives postcommit/response/consumer faults; uncertain commit needs
+original-operation reconciliation before any dependent effect. Independent Review v3 ACCEPT and complete nonvisual
+QA PASS cover clean candidate `92e29e30860cdfe538b45f3d90cf2077bc6b5968`: 11 QA groups / 217 checks.
+TASK-00099 is done; unfinished siblings keep TICKET-00031 and EPIC-00014 open. Its canonical
+`.runs/handoffs/TASK-00099/work.md` owns original checks, dependency/runtime identities and limits; canonical
+`.runs/handoffs/TASK-00099/land.md` owns advanced-base integration, current verification and delivery/retirement
+outcomes, pending at this closeout checkpoint. Cancellation mutation/races, complete MCP activation and live state retain their sibling owners; no release,
+consumer adoption or deployment is claimed.
+
 ## Retained notice reads and recovery — TASK-00092 accepted checkpoint
 
 [Retained notice composition](docs/agent-notice-recovery.md) now supplies inward `AgentNoticeReadAdmission` plus
