@@ -1,5 +1,16 @@
 # Fight AccessControl Context
 
+## TASK-00147 protected profile Tool contracts — Engineer checkpoint
+
+The [current six-declaration/member dispositions](docs/agent-profile-tools.md#current-contract-dispositions-task-00147)
+retain exact Common descriptor/Permission/request/nonce contracts, real routed profile/update handlers, safe exact-class
+failure constants and normalized void acknowledgement. Dynamic ApplicationData name extraction now validates its
+string instead of asserting mixed input; known Query result annotations follow TASK-00128's ratified amendment.
+New behavioral/static checks distinguish schemas, actual cohort/name refusal, internal identity/subclass faults,
+no-op persistence and committed publication failure. No extra workflow, result DTO, read or Event is introduced.
+Canonical `.runs/handoffs/TASK-00147/work.md` owns verification and limitations. Independent Review/nonvisual QA
+remain required and TASK-00147 stays open; this is not consumer, whole-library, publication or release qualification.
+
 ## Durable Task input — TASK-00099 accepted checkpoint
 
 The [slice C Task composition](docs/agent-task-authorization.md#durable-input-and-protected-continuation--slice-c)
