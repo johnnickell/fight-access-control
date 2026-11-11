@@ -31,30 +31,37 @@ final class TaskInputRaceWorker
         $transaction = new DbalTaskTransaction($connection);
         $repository = new DbalTaskRepository($transaction);
         $fixture = new TaskInputAdmissionFixture();
-        $events = new SimpleEventDispatcher();
+        $eventDispatcher = new SimpleEventDispatcher();
         $policy = new ToolTaskPayloadPolicy(static fn(): bool => true);
         $clock = static fn(): int => 1794312000000;
-        $supply = new SupplyTaskInputHandler($repository, $transaction, $fixture->input(), $policy, $events, $clock);
+        $supply = new SupplyTaskInputHandler(
+            $repository,
+            $transaction,
+            $fixture->input(),
+            $policy,
+            $eventDispatcher,
+            $clock
+        );
         $record = new RecordTaskStateHandler(
             $repository,
             $transaction,
             new AgentTaskUpdateAdmission($fixture->auth->authority('TASK_UPDATE'), $fixture->auth),
             $policy,
-            $events,
+            $eventDispatcher,
             $clock
         );
         $router = new InMemoryCommandRouter();
         $router->registerHandler($supply::commandRegistration(), $supply);
         $router->registerHandler($record::commandRegistration(), $record);
 
-        $commands = new RoutingCommandBus($router);
+        $commandBus = new RoutingCommandBus($router);
         file_put_contents($ready, 'ready');
         try {
             $id = TaskId::fromString(TaskAdmissionFixture::ID);
             if ($mode === 'terminal') {
-                $commands->execute(new RecordTaskState('scope', $id, 'producer', 2, TaskState::create('cancelled')));
+                $commandBus->execute(new RecordTaskState('scope', $id, 'producer', 2, TaskState::create('cancelled')));
             } else {
-                $commands->execute(new SupplyTaskInput('scope', $id, 'caller', StrictJson::fromObject([
+                $commandBus->execute(new SupplyTaskInput('scope', $id, 'caller', StrictJson::fromObject([
                     $key => (object) ['action' => 'accept', 'content' => (object) ['value' => $value]]
                 ])));
             }

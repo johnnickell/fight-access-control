@@ -119,85 +119,85 @@ final class AgentTaskInputAdmissionTest extends TestCase
     public function test_that_real_partial_validation_is_atomic_and_inactive_keys_do_not_replace_evidence(): void
     {
         $fixture = new TaskInputAdmissionFixture();
-        [$commands, $queries, $repository] = $this->buses($fixture, $this->database());
-        [$group, $second] = $this->issue($commands, $repository);
+        [$commandBus, $queryBus, $repository] = $this->buses($fixture, $this->database());
+        [$group, $second] = $this->issue($commandBus, $repository);
         $before = $this->snapshot($repository);
         foreach ([StrictJson::fromObject(), StrictJson::fromObject(['unknown' => 'not a response'])] as $empty) {
-            $commands->execute(new SupplyTaskInput('scope', $this->id(), 'caller', $empty));
+            $commandBus->execute(new SupplyTaskInput('scope', $this->id(), 'caller', $empty));
             self::assertSame($before, $this->snapshot($repository));
         }
 
-        $this->rejects(fn() => $commands->execute($this->supply([
+        $this->rejects(fn() => $commandBus->execute($this->supply([
             $group => $this->answer(), $second => $this->answer('accept', 'invalid')
         ])));
         self::assertSame($before, $this->snapshot($repository));
-        $commands->execute($this->supply([$group => $this->answer(), 'unknown' => 'ignored']));
-        $view = $queries->fetch(new GetTask('scope', $this->id()));
+        $commandBus->execute($this->supply([$group => $this->answer(), 'unknown' => 'ignored']));
+        $view = $queryBus->fetch(new GetTask('scope', $this->id()));
         self::assertSame([$second], array_keys($view->get('state')->get('input')->properties()));
         self::assertStringNotContainsString('rules', $view->toString());
-        $observed = $this->observe($queries)->get('groups')->get($group);
+        $observed = $this->observe($queryBus)->get('groups')->get($group);
         self::assertFalse($observed->get('ready'));
         self::assertSame(7, $observed->get('answers')->get($group)->get('content')->get('value'));
         $accepted = $this->snapshot($repository);
-        $commands->execute($this->supply([$group => $this->answer('cancel'), 'unknown' => null]));
+        $commandBus->execute($this->supply([$group => $this->answer('cancel'), 'unknown' => null]));
         self::assertSame($accepted, $this->snapshot($repository));
-        $commands->execute($this->supply([$second => $this->answer()]));
-        self::assertTrue($this->observe($queries)->get('groups')->get($group)->get('ready'));
+        $commandBus->execute($this->supply([$second => $this->answer()]));
+        self::assertTrue($this->observe($queryBus)->get('groups')->get($group)->get('ready'));
         self::assertSame(1, $fixture->auth->nonce->consumptionCalls());
     }
 
     public function test_that_confirmation_requires_every_accept_and_consumption_survives_failure(): void
     {
         $fixture = new TaskInputAdmissionFixture();
-        [$commands, $queries, $repository] = $this->buses($fixture, $this->database());
-        [$group, $second] = $this->issue($commands, $repository, true);
-        $commands->execute($this->supply([$group => $this->answer()]));
-        $this->conflicts(fn() => $commands->execute($this->acquire($group)));
-        $commands->execute($this->supply([$second => $this->answer()]));
+        [$commandBus, $queryBus, $repository] = $this->buses($fixture, $this->database());
+        [$group, $second] = $this->issue($commandBus, $repository, true);
+        $commandBus->execute($this->supply([$group => $this->answer()]));
+        $this->conflicts(fn() => $commandBus->execute($this->acquire($group)));
+        $commandBus->execute($this->supply([$second => $this->answer()]));
         $fixture->continuation = false;
-        $this->rejects(fn() => $commands->execute($this->acquire($group)));
-        self::assertTrue($this->observe($queries)->get('groups')->get($group)->get('ready'));
+        $this->rejects(fn() => $commandBus->execute($this->acquire($group)));
+        self::assertTrue($this->observe($queryBus)->get('groups')->get($group)->get('ready'));
         $fixture->continuation = true;
         $fixture->intent = false;
-        $this->rejects(fn() => $commands->execute($this->acquire($group)));
-        self::assertNull($queries->fetch(new GetTaskInput('scope', $this->id(), 'caller')));
+        $this->rejects(fn() => $commandBus->execute($this->acquire($group)));
+        self::assertNull($queryBus->fetch(new GetTaskInput('scope', $this->id(), 'caller')));
         $fixture->intent = true;
         $this->publicationFails = true;
         try {
-            $commands->execute($this->acquire($group));
+            $commandBus->execute($this->acquire($group));
             self::fail('Postcommit publication failure must remain truthful.');
         } catch (CommittedTaskDispatchFailed) {
-            self::assertTrue($this->observe($queries)->get('groups')->get($group)->get('consumed'));
+            self::assertTrue($this->observe($queryBus)->get('groups')->get($group)->get('consumed'));
         }
 
         $this->publicationFails = false;
-        $this->conflicts(fn() => $commands->execute($this->acquire($group)));
-        self::assertFalse($this->observe($queries)->get('groups')->get($group)->get('ready'));
-        self::assertSame('working', $queries->fetch(new GetTask('scope', $this->id()))->get('state')->get('status'));
+        $this->conflicts(fn() => $commandBus->execute($this->acquire($group)));
+        self::assertFalse($this->observe($queryBus)->get('groups')->get($group)->get('ready'));
+        self::assertSame('working', $queryBus->fetch(new GetTask('scope', $this->id()))->get('state')->get('status'));
     }
 
     public function test_that_decline_and_cancel_retire_only_the_confirmation_group(): void
     {
         foreach (['decline', 'cancel'] as $action) {
             $fixture = new TaskInputAdmissionFixture();
-            [$commands, $queries, $repository] = $this->buses($fixture, $this->database());
-            [$group, $second] = $this->issue($commands, $repository, true);
-            $commands->execute($this->supply([$group => $this->answer($action)]));
-            $state = $this->observe($queries)->get('groups')->get($group);
+            [$commandBus, $queryBus, $repository] = $this->buses($fixture, $this->database());
+            [$group, $second] = $this->issue($commandBus, $repository, true);
+            $commandBus->execute($this->supply([$group => $this->answer($action)]));
+            $state = $this->observe($queryBus)->get('groups')->get($group);
             self::assertTrue($state->get('refused'));
             self::assertFalse($state->get('ready'));
             self::assertFalse($state->get('answers')->has($second));
-            $taskState = $queries->fetch(new GetTask('scope', $this->id()))->get('state');
+            $taskState = $queryBus->fetch(new GetTask('scope', $this->id()))->get('state');
             self::assertSame('working', $taskState->get('status'));
-            $this->conflicts(fn() => $commands->execute($this->acquire($group)));
+            $this->conflicts(fn() => $commandBus->execute($this->acquire($group)));
         }
     }
 
     public function test_that_exact_binding_scope_and_expiry_deny_transplant_without_changing_answers(): void
     {
         $fixture = new TaskInputAdmissionFixture();
-        [$commands, $queries, $repository] = $this->buses($fixture, $this->database());
-        [$group, $second] = $this->issue($commands, $repository);
+        [$commandBus, $queryBus, $repository] = $this->buses($fixture, $this->database());
+        [$group, $second] = $this->issue($commandBus, $repository);
         $before = $this->snapshot($repository);
         foreach (
             [
@@ -206,48 +206,48 @@ final class AgentTaskInputAdmissionTest extends TestCase
                 ['scope', TaskId::fromString(str_repeat('a', 32)), 'caller']
             ] as [$scope, $id, $caller]
         ) {
-            $this->rejects(fn() => $commands->execute(new SupplyTaskInput(
+            $this->rejects(fn() => $commandBus->execute(new SupplyTaskInput(
                 $scope,
                 $id,
                 $caller,
                 StrictJson::fromObject([$group => $this->answer()])
             )));
-            self::assertNull($queries->fetch(new GetTaskInput($scope, $id, $caller)));
-            $this->rejects(fn() => $commands->execute(new AcquireTaskInput($scope, $id, $caller, $group)));
+            self::assertNull($queryBus->fetch(new GetTaskInput($scope, $id, $caller)));
+            $this->rejects(fn() => $commandBus->execute(new AcquireTaskInput($scope, $id, $caller, $group)));
         }
 
         self::assertSame($before, $this->snapshot($repository));
         $fixture->group = $second;
-        $this->rejects(fn() => $commands->execute($this->acquire($group)));
+        $this->rejects(fn() => $commandBus->execute($this->acquire($group)));
         $fixture->group = null;
         $this->now += 500;
-        $commands->execute($this->supply([$group => $this->answer(), $second => $this->answer()]));
-        self::assertTrue($this->observe($queries)->get('groups')->get($group)->get('expired'));
-        self::assertSame([], $this->observe($queries)->get('groups')->get($group)->get('answers')->properties());
-        $this->conflicts(fn() => $commands->execute($this->acquire($group)));
+        $commandBus->execute($this->supply([$group => $this->answer(), $second => $this->answer()]));
+        self::assertTrue($this->observe($queryBus)->get('groups')->get($group)->get('expired'));
+        self::assertSame([], $this->observe($queryBus)->get('groups')->get($group)->get('answers')->properties());
+        $this->conflicts(fn() => $commandBus->execute($this->acquire($group)));
     }
 
     public function test_that_scope_faults_and_missing_independent_intent_permission_fail_closed(): void
     {
         $fixture = new TaskInputAdmissionFixture();
-        [$commands, $queries, $repository] = $this->buses($fixture, $this->database());
-        [$group] = $this->issue($commands, $repository);
+        [$commandBus, $queryBus, $repository] = $this->buses($fixture, $this->database());
+        [$group] = $this->issue($commandBus, $repository);
         $before = $this->snapshot($repository);
         $fixture->fault = true;
-        $this->rejects(fn() => $commands->execute($this->supply([$group => $this->answer()])));
-        $this->rejects(fn() => $commands->execute($this->acquire($group)));
-        self::assertNull($queries->fetch(new GetTaskInput('scope', $this->id(), 'caller')));
+        $this->rejects(fn() => $commandBus->execute($this->supply([$group => $this->answer()])));
+        $this->rejects(fn() => $commandBus->execute($this->acquire($group)));
+        self::assertNull($queryBus->fetch(new GetTaskInput('scope', $this->id(), 'caller')));
         self::assertSame($before, $this->snapshot($repository));
         $fixture->fault = false;
         $fixture->submission = false;
-        $this->rejects(fn() => $commands->execute($this->supply([$group => $this->answer()])));
+        $this->rejects(fn() => $commandBus->execute($this->supply([$group => $this->answer()])));
         $fixture->observation = false;
-        self::assertNull($queries->fetch(new GetTaskInput('scope', $this->id(), 'caller')));
+        self::assertNull($queryBus->fetch(new GetTaskInput('scope', $this->id(), 'caller')));
         $missing = new TaskInputAdmissionFixture(['INPUT_OBSERVE', 'INPUT_CONTINUE']);
         $repositoryConnection = $this->database();
-        [$missingCommands, $missingQueries] = $this->buses($missing, $repositoryConnection);
-        self::assertNull($missingQueries->fetch(new GetTaskInput('scope', $this->id(), 'caller')));
-        $this->rejects(fn() => $missingCommands->execute($this->acquire($group)));
+        [$missingCommandBus, $missingQueryBus] = $this->buses($missing, $repositoryConnection);
+        self::assertNull($missingQueryBus->fetch(new GetTaskInput('scope', $this->id(), 'caller')));
+        $this->rejects(fn() => $missingCommandBus->execute($this->acquire($group)));
         self::assertSame(0, $repositoryConnection->fetchOne('SELECT COUNT(*) FROM fight_tasks'));
     }
 
@@ -255,25 +255,25 @@ final class AgentTaskInputAdmissionTest extends TestCase
     {
         $fixture = new TaskInputAdmissionFixture();
         $connection = $this->database();
-        [$commands, $queries, $repository] = $this->buses($fixture, $connection);
-        [$group, $second] = $this->issue($commands, $repository);
+        [$commandBus, $queryBus, $repository] = $this->buses($fixture, $connection);
+        [$group, $second] = $this->issue($commandBus, $repository);
         $ungranted = new TaskInputAdmissionFixture(['TASK_UPDATE', 'TASK_READ', 'INPUT_SUBMIT']);
         [$denied] = $this->buses($ungranted, $connection);
         $this->rejects(fn() => $denied->execute(new RetireTaskInput('scope', $this->id(), 'producer', 2, $group)));
-        $commands->execute(new RetireTaskInput('scope', $this->id(), 'producer', 2, $group));
-        self::assertSame([], $this->observe($queries)->get('groups')->properties());
-        $new = $this->request($commands, $repository, false, 3);
+        $commandBus->execute(new RetireTaskInput('scope', $this->id(), 'producer', 2, $group));
+        self::assertSame([], $this->observe($queryBus)->get('groups')->properties());
+        $new = $this->request($commandBus, $repository, false, 3);
         self::assertNotContains($group, $new);
         self::assertNotContains($second, $new);
-        $commands->execute(new RecordTaskState('scope', $this->id(), 'producer', 4, TaskState::create('cancelled')));
+        $commandBus->execute(new RecordTaskState('scope', $this->id(), 'producer', 4, TaskState::create('cancelled')));
         $terminal = $this->snapshot($repository);
-        $commands->execute($this->supply([$new[0] => 'invalid inactive response']));
+        $commandBus->execute($this->supply([$new[0] => 'invalid inactive response']));
         self::assertSame($terminal, $this->snapshot($repository));
         $fixture->submission = false;
-        $this->rejects(fn() => $commands->execute($this->supply([])));
+        $this->rejects(fn() => $commandBus->execute($this->supply([])));
         $fixture->submission = true;
-        $this->conflicts(fn() => $commands->execute($this->acquire($new[0])));
-        self::assertFalse($this->observe($queries)->get('groups')->get($new[0])->get('ready'));
+        $this->conflicts(fn() => $commandBus->execute($this->acquire($new[0])));
+        self::assertFalse($this->observe($queryBus)->get('groups')->get($new[0])->get('ready'));
     }
 
     public function test_that_each_new_acquisition_and_effect_rechecks_original_authority_without_nonce_replay(): void
@@ -281,19 +281,19 @@ final class AgentTaskInputAdmissionTest extends TestCase
         foreach (['revoked', 'rotated', 'permission', 'intent permission', 'definition', 'scope', 'fault'] as $change) {
             $fixture = new TaskInputAdmissionFixture();
             $connection = $this->database();
-            [$commands, $queries, $repository] = $this->buses($fixture, $connection);
-            [$group, $second] = $this->issue($commands, $repository, true);
-            $commands->execute($this->supply([$group => $this->answer(), $second => $this->answer()]));
+            [$commandBus, $queryBus, $repository] = $this->buses($fixture, $connection);
+            [$group, $second] = $this->issue($commandBus, $repository, true);
+            $commandBus->execute($this->supply([$group => $this->answer(), $second => $this->answer()]));
             $auth = $fixture->auth;
             $binding = AgentContinuationBinding::fromRequest($auth->provider, $auth->request, 'original');
             $state = new ControlledContinuationAuthority(
                 $auth->agent,
                 $auth->permissionRepository->getByIds($auth->agent->getPermissionIds())
             );
-            $agents = $this->createStub(AgentRepository::class);
-            $agents->method('getOperationContract')->willReturnCallback($state->readContract(...));
-            $agents->method('getById')->willReturnCallback(static fn(): ?Agent => $state->readAgent());
-            $permissions = new InMemoryPermissionRepository(getByIdsResult: $state->readPermissions(...));
+            $agentRepository = $this->createStub(AgentRepository::class);
+            $agentRepository->method('getOperationContract')->willReturnCallback($state->readContract(...));
+            $agentRepository->method('getById')->willReturnCallback(static fn(): ?Agent => $state->readAgent());
+            $permissionRepository = new InMemoryPermissionRepository(getByIdsResult: $state->readPermissions(...));
             $fence = $this->createStub(AgentContinuationFence::class);
             $fence->method('synchronized')->willReturnCallback(
                 static function (AgentId $id, AgentContinuationScope $scope, Closure $admit) use ($state): void {
@@ -303,8 +303,8 @@ final class AgentTaskInputAdmissionTest extends TestCase
                 }
             );
             $guard = new AgentContinuationGuard(
-                $agents,
-                $permissions,
+                $agentRepository,
+                $permissionRepository,
                 new FixedClock(TaskAdmissionFixture::now()),
                 $fence
             );
@@ -324,10 +324,10 @@ final class AgentTaskInputAdmissionTest extends TestCase
                 }
             );
             self::assertSame(1, $effects);
-            self::assertTrue($this->observe($queries)->get('groups')->get($group)->get('consumed'));
+            self::assertTrue($this->observe($queryBus)->get('groups')->get($group)->get('consumed'));
             // A later group is new work, not a retry token for the consumed admission.
-            [$next, $last] = $this->request($commands, $repository, true, 4);
-            $commands->execute($this->supply([$next => $this->answer(), $last => $this->answer()]));
+            [$next, $last] = $this->request($commandBus, $repository, true, 4);
+            $commandBus->execute($this->supply([$next => $this->answer(), $last => $this->answer()]));
             $agent = $auth->agent;
             match ($change) {
                 'revoked' => $state->agent = $agent->revoke(TaskAdmissionFixture::now()),
@@ -368,7 +368,7 @@ final class AgentTaskInputAdmissionTest extends TestCase
             }
 
             self::assertSame(1, $effects);
-            self::assertFalse($this->observe($queries)->get('groups')->get($next)->get('consumed'));
+            self::assertFalse($this->observe($queryBus)->get('groups')->get($next)->get('consumed'));
             self::assertSame(1, $auth->nonce->consumptionCalls());
             self::assertFalse($state->held);
         }
@@ -378,13 +378,13 @@ final class AgentTaskInputAdmissionTest extends TestCase
     {
         $fixture = new TaskInputAdmissionFixture();
         $connection = $this->database();
-        [$commands, $queries, $repository] = $this->buses($fixture, $connection);
-        [$group, $second] = $this->issue($commands, $repository, true);
-        $commands->execute($this->supply([$group => $this->answer(), $second => $this->answer()]));
+        [$commandBus, $queryBus, $repository] = $this->buses($fixture, $connection);
+        [$group, $second] = $this->issue($commandBus, $repository, true);
+        $commandBus->execute($this->supply([$group => $this->answer(), $second => $this->answer()]));
         $before = $this->snapshot($repository);
         $connection->beginTransaction();
         try {
-            $commands->execute($this->acquire($group));
+            $commandBus->execute($this->acquire($group));
             self::fail('Caller-owned transactions must be refused.');
         } catch (LogicException) {
             self::assertTrue($connection->isTransactionActive());
@@ -396,14 +396,14 @@ final class AgentTaskInputAdmissionTest extends TestCase
             "CREATE TRIGGER task_fail BEFORE INSERT ON fight_tasks BEGIN SELECT RAISE(ABORT, 'private'); END"
         );
         try {
-            $commands->execute($this->acquire($group));
+            $commandBus->execute($this->acquire($group));
             self::fail('Actual storage failure must roll back acquisition.');
         } catch (TaskStorageFailed $taskStorageFailed) {
             self::assertFalse($taskStorageFailed->outcomeUncertain());
         }
 
         self::assertSame($before, $this->snapshot($repository));
-        self::assertTrue($this->observe($queries)->get('groups')->get($group)->get('ready'));
+        self::assertTrue($this->observe($queryBus)->get('groups')->get($group)->get('ready'));
     }
 
     public function test_that_both_lost_commit_outcomes_require_authorized_reconciliation_not_blind_execution(): void
@@ -431,9 +431,9 @@ final class AgentTaskInputAdmissionTest extends TestCase
             try {
                 new DbalTaskSchema()->install($connection);
                 $fixture = new TaskInputAdmissionFixture();
-                [$commands, , $repository] = $this->buses($fixture, $connection);
-                [$group, $second] = $this->issue($commands, $repository, true);
-                $commands->execute($this->supply([$group => $this->answer(), $second => $this->answer()]));
+                [$commandBus, , $repository] = $this->buses($fixture, $connection);
+                [$group, $second] = $this->issue($commandBus, $repository, true);
+                $commandBus->execute($this->supply([$group => $this->answer(), $second => $this->answer()]));
                 [$worker] = $this->buses($fixture, $uncertain);
                 try {
                     $worker->execute($this->acquire($group));
@@ -466,9 +466,9 @@ final class AgentTaskInputAdmissionTest extends TestCase
     public function test_that_actual_tasks_update_uses_the_same_admission_and_safe_acknowledgment(): void
     {
         $fixture = new TaskInputAdmissionFixture();
-        [$commands, $queries, $repository] = $this->buses($fixture, $this->database());
-        [$group] = $this->issue($commands, $repository);
-        $method = new McpTaskInput($commands, 'scope', 'caller');
+        [$commandBus, $queryBus, $repository] = $this->buses($fixture, $this->database());
+        [$group] = $this->issue($commandBus, $repository);
+        $method = new McpTaskInput($commandBus, 'scope', 'caller');
         $metadata = McpRequestMetadata::fromObject(StrictJson::fromObject([
             McpRequestMetadata::PROTOCOL_VERSION_KEY    => '2025-11-25',
             McpRequestMetadata::CLIENT_CAPABILITIES_KEY => (object) [
@@ -490,7 +490,7 @@ final class AgentTaskInputAdmissionTest extends TestCase
 
         $fixture->submission = true;
         self::assertSame(['resultType' => 'complete'], $method->handle($request)->toArray());
-        self::assertSame(7, $this->observe($queries)->get('groups')->get($group)
+        self::assertSame(7, $this->observe($queryBus)->get('groups')->get($group)
             ->get('answers')->get($group)->get('content')->get('value'));
         self::assertSame(1, $fixture->auth->nonce->consumptionCalls());
     }
@@ -505,8 +505,8 @@ final class AgentTaskInputAdmissionTest extends TestCase
             $connection = DriverManager::getConnection(['driver' => 'pdo_sqlite', 'path' => $path]);
             new DbalTaskSchema()->install($connection);
             $fixture = new TaskInputAdmissionFixture();
-            [$commands, $queries, $repository] = $this->buses($fixture, $connection);
-            [$group, $second] = $this->issue($commands, $repository);
+            [$commandBus, $queryBus, $repository] = $this->buses($fixture, $connection);
+            [$group, $second] = $this->issue($commandBus, $repository);
             $connection->beginTransaction();
             $connection->executeStatement('UPDATE fight_task_state SET version = version WHERE singleton = 1');
             $code = 'require "vendor/autoload.php"; ';
@@ -528,7 +528,7 @@ final class AgentTaskInputAdmissionTest extends TestCase
                 self::assertSame(0, $one->wait(), $one->getErrorOutput());
                 self::assertSame(0, $two->wait(), $two->getErrorOutput());
                 $task = $repository->read('scope', $this->id());
-                $observed = $this->observe($queries)->get('groups')->get($group);
+                $observed = $this->observe($queryBus)->get('groups')->get($group);
                 self::assertFalse($observed->get('consumed'));
                 self::assertFalse($observed->get('answers')->has($second));
                 if ($task->state()->isTerminal()) {
@@ -585,38 +585,38 @@ final class AgentTaskInputAdmissionTest extends TestCase
     public function test_that_consumer_failure_after_confirmed_acquisition_never_restores_admission(): void
     {
         $fixture = new TaskInputAdmissionFixture();
-        [$commands, $queries, $repository] = $this->buses($fixture, $this->database());
-        [$group, $second] = $this->issue($commands, $repository, true);
-        $commands->execute($this->supply([$group => $this->answer(), $second => $this->answer()]));
-        $commands->execute($this->acquire($group));
+        [$commandBus, $queryBus, $repository] = $this->buses($fixture, $this->database());
+        [$group, $second] = $this->issue($commandBus, $repository, true);
+        $commandBus->execute($this->supply([$group => $this->answer(), $second => $this->answer()]));
+        $commandBus->execute($this->acquire($group));
 
         $primary = new RuntimeException('Controlled consumer effect failure.');
         try {
             throw $primary;
         } catch (RuntimeException $runtimeException) {
             self::assertSame($primary, $runtimeException);
-            self::assertTrue($this->observe($queries)->get('groups')->get($group)->get('consumed'));
+            self::assertTrue($this->observe($queryBus)->get('groups')->get($group)->get('consumed'));
         }
 
-        $this->conflicts(fn() => $commands->execute($this->acquire($group)));
+        $this->conflicts(fn() => $commandBus->execute($this->acquire($group)));
     }
 
     public function test_that_retained_capacity_rejects_atomically_without_truncation_or_key_reuse(): void
     {
         $fixture = new TaskInputAdmissionFixture();
-        [$commands, $queries, $repository] = $this->buses($fixture, $this->database());
-        $keys = $this->issue($commands, $repository);
+        [$commandBus, $queryBus, $repository] = $this->buses($fixture, $this->database());
+        $keys = $this->issue($commandBus, $repository);
         for ($version = 2; $version < 9; ++$version) {
-            $keys = [...$keys, ...$this->request($commands, $repository, false, $version)];
+            $keys = [...$keys, ...$this->request($commandBus, $repository, false, $version)];
         }
 
         // request() returns every currently active key; the actual retained set still has exactly 16 distinct keys.
         $task = $repository->read('scope', $this->id());
         self::assertCount(16, $task->inputs()->active('caller', $this->now));
         $before = $this->snapshot($repository);
-        $this->conflicts(fn(): array => $this->request($commands, $repository, false, 9));
+        $this->conflicts(fn(): array => $this->request($commandBus, $repository, false, 9));
         self::assertSame($before, $this->snapshot($repository));
-        $outstanding = $queries->fetch(new GetTask('scope', $this->id()))->get('state')->get('input');
+        $outstanding = $queryBus->fetch(new GetTask('scope', $this->id()))->get('state')->get('input');
         self::assertCount(16, $outstanding->properties());
         self::assertCount(16, array_unique($keys));
     }
@@ -637,8 +637,8 @@ final class AgentTaskInputAdmissionTest extends TestCase
     ): array {
         $transaction = new DbalTaskTransaction($connection);
         $repository = new DbalTaskRepository($transaction);
-        $events = new SimpleEventDispatcher();
-        $events->addHandler(ClassName::underscore(TaskChanged::class), function (EventMessage $message): void {
+        $eventDispatcher = new SimpleEventDispatcher();
+        $eventDispatcher->addHandler(ClassName::underscore(TaskChanged::class), function (EventMessage $message): void {
             ++$this->events;
             if ($this->publicationFails) {
                 throw new RuntimeException('Private publisher failure.');
@@ -670,7 +670,7 @@ final class AgentTaskInputAdmissionTest extends TestCase
                 $transaction,
                 new AgentTaskCreationAdmission($auth->authority('TASK_CREATE'), $auth),
                 $payload,
-                $events,
+                $eventDispatcher,
                 $clock
             ),
             new RecordTaskStateHandler(
@@ -678,13 +678,13 @@ final class AgentTaskInputAdmissionTest extends TestCase
                 $transaction,
                 new AgentTaskUpdateAdmission($auth->authority('TASK_UPDATE'), $auth),
                 $payload,
-                $events,
+                $eventDispatcher,
                 $clock
             ),
-            new RequestTaskInputHandler($repository, $transaction, $issuer, $payload, $events, $clock),
-            new RetireTaskInputHandler($repository, $transaction, $issuer, $payload, $events, $clock),
-            new SupplyTaskInputHandler($repository, $transaction, $input, $payload, $events, $clock),
-            new AcquireTaskInputHandler($repository, $transaction, $input, $intent, $payload, $events, $clock)
+            new RequestTaskInputHandler($repository, $transaction, $issuer, $payload, $eventDispatcher, $clock),
+            new RetireTaskInputHandler($repository, $transaction, $issuer, $payload, $eventDispatcher, $clock),
+            new SupplyTaskInputHandler($repository, $transaction, $input, $payload, $eventDispatcher, $clock),
+            new AcquireTaskInputHandler($repository, $transaction, $input, $intent, $payload, $eventDispatcher, $clock)
         ];
         foreach ($handlers as $handler) {
             $router->registerHandler($handler::commandRegistration(), $handler);
@@ -705,16 +705,16 @@ final class AgentTaskInputAdmissionTest extends TestCase
     }
 
     /** @return list<string> */
-    private function issue(RoutingCommandBus $commands, DbalTaskRepository $repository, bool $confirm = false): array
+    private function issue(RoutingCommandBus $commandBus, DbalTaskRepository $repository, bool $confirm = false): array
     {
-        $commands->execute(new CreateTask(TaskAdmissionFixture::definition(), TaskState::create('working')));
+        $commandBus->execute(new CreateTask(TaskAdmissionFixture::definition(), TaskState::create('working')));
 
-        return $this->request($commands, $repository, $confirm, 1);
+        return $this->request($commandBus, $repository, $confirm, 1);
     }
 
     /** @return list<string> */
     private function request(
-        RoutingCommandBus $commands,
+        RoutingCommandBus $commandBus,
         DbalTaskRepository $repository,
         bool $confirm,
         int $version
@@ -726,7 +726,7 @@ final class AgentTaskInputAdmissionTest extends TestCase
         ], [['field' => 'value', 'label' => 'Private rule label', 'rules' => 'required']]);
         $forms = ['first' => $form, 'second' => $form];
         $input = $confirm ? McpInputRequired::confirmation($forms) : McpInputRequired::fromRequests($forms);
-        $commands->execute(new RequestTaskInput(
+        $commandBus->execute(new RequestTaskInput(
             'scope',
             $this->id(),
             'producer',
@@ -737,9 +737,9 @@ final class AgentTaskInputAdmissionTest extends TestCase
         return array_keys($repository->read('scope', $this->id())->inputs()->active('caller', $this->now));
     }
 
-    private function observe(RoutingQueryBus $queries): StrictJson
+    private function observe(RoutingQueryBus $queryBus): StrictJson
     {
-        $view = $queries->fetch(new GetTaskInput('scope', $this->id(), 'caller'));
+        $view = $queryBus->fetch(new GetTaskInput('scope', $this->id(), 'caller'));
         self::assertInstanceOf(StrictJson::class, $view);
 
         return $view;
