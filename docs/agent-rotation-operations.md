@@ -39,6 +39,8 @@ $view = $queryBus->fetch(new GetAgentOperation($key, $registeredDestination));
 
 Register `RotateAgentCredentialHandler::commandRegistration()` through the configured supported Common CommandBus;
 register the existing `GetAgentOperationHandler` through its QueryBus. No service facade or result channel remains.
+See the [issuance dispatch contract map](agent-issuance-dispatch-contracts.md) for concrete metadata/void handling,
+precise annotated optional outcome types and executable qualification; bus Query methods remain mixed.
 The Command round-trips original scoped key, Agent, expected credential ID/revision and destination ID/revision as
 strict secret-free fields. It preserves the canonical marker/bytes and original predecessor across envelope changes.
 Confirmed Query issuance identifies the original Agent/credential/revision, delivery ID, destination and write order,

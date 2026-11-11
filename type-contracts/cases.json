@@ -1,6 +1,54 @@
 {
   "cases": [
     {
+      "id": "agent-dispatch-concrete-and-annotated-contracts",
+      "kind": "positive",
+      "file": "agent-dispatch-positive.php",
+      "diagnostics": [
+        {"line": 30, "identifier": "phpstan.dumpType", "message": "Dumped type: Fight\\Common\\Domain\\Messaging\\Command\\CommandMessage"},
+        {"line": 31, "identifier": "phpstan.dumpType", "message": "Dumped type: Fight\\Common\\Domain\\Messaging\\Payload"},
+        {"line": 34, "identifier": "phpstan.dumpType", "message": "Dumped type: Fight\\AccessControl\\Domain\\AccessControl\\Agent\\Command\\ProvisionAgent"},
+        {"line": 35, "identifier": "phpstan.dumpType", "message": "Dumped type: Fight\\AccessControl\\Domain\\AccessControl\\AgentCredentialOperation\\AgentOperationKey"},
+        {"line": 36, "identifier": "phpstan.dumpType", "message": "Dumped type: Fight\\AccessControl\\Domain\\AccessControl\\AgentCredentialOperation\\AgentProvisioningRequest"},
+        {"line": 40, "identifier": "phpstan.dumpType", "message": "Dumped type: Fight\\AccessControl\\Domain\\AccessControl\\AgentCredentialOperation\\AgentRotationRequest"},
+        {"line": 41, "identifier": "phpstan.dumpType", "message": "Dumped type: Fight\\AccessControl\\Domain\\AccessControl\\Agent\\AgentCredentialId"},
+        {"line": 42, "identifier": "phpstan.dumpType", "message": "Dumped type: Closure(Fight\\Common\\Domain\\Messaging\\Command\\Command): void"},
+        {"line": 43, "identifier": "phpstan.dumpType", "message": "Dumped type: Closure(Fight\\Common\\Domain\\Messaging\\Command\\CommandMessage): void"},
+        {"line": 44, "identifier": "phpstan.dumpType", "message": "Dumped type: Closure(Fight\\Common\\Domain\\Messaging\\Command\\CommandMessage): void"},
+        {"line": 45, "identifier": "phpstan.dumpType", "message": "Dumped type: Closure(Fight\\Common\\Domain\\Messaging\\Command\\CommandMessage): void"},
+        {"line": 50, "identifier": "phpstan.dumpType", "message": "Dumped type: Fight\\Common\\Domain\\Messaging\\Query\\QueryMessage"},
+        {"line": 51, "identifier": "phpstan.dumpType", "message": "Dumped type: Fight\\Common\\Domain\\Messaging\\Payload"},
+        {"line": 54, "identifier": "phpstan.dumpType", "message": "Dumped type: Fight\\AccessControl\\Domain\\AccessControl\\AgentCredentialOperation\\Query\\GetAgentOperation"},
+        {"line": 55, "identifier": "phpstan.dumpType", "message": "Dumped type: Fight\\AccessControl\\Domain\\AccessControl\\AgentCredentialOperation\\Query\\AgentOperationView"},
+        {"line": 56, "identifier": "phpstan.dumpType", "message": "Dumped type: mixed"},
+        {"line": 57, "identifier": "phpstan.dumpType", "message": "Dumped type: mixed"},
+        {"line": 62, "identifier": "phpstan.dumpType", "message": "Dumped type: Fight\\AccessControl\\Domain\\AccessControl\\AgentCredentialOperation\\Query\\AgentOperationView"},
+        {"line": 63, "identifier": "phpstan.dumpType", "message": "Dumped type: Fight\\AccessControl\\Domain\\AccessControl\\AgentCredentialOperation\\Query\\AgentOperationView"},
+        {"line": 64, "identifier": "phpstan.dumpType", "message": "Dumped type: Fight\\AccessControl\\Domain\\AccessControl\\AgentCredentialOperation\\AgentIssuance|null"},
+        {"line": 65, "identifier": "phpstan.dumpType", "message": "Dumped type: Fight\\AccessControl\\Domain\\AccessControl\\AgentCredentialOperation\\AgentDeliveryDisposition|null"},
+        {"line": 66, "identifier": "phpstan.dumpType", "message": "Dumped type: Fight\\AccessControl\\Domain\\AccessControl\\AgentCredentialOperation\\AgentCredentialDisposition|null"},
+        {"line": 67, "identifier": "phpstan.dumpType", "message": "Dumped type: Fight\\AccessControl\\Domain\\AccessControl\\Agent\\AgentCredentialId|null"}
+      ]
+    },
+    {
+      "id": "agent-dispatch-incompatible-results-and-payloads",
+      "kind": "negative",
+      "file": "agent-dispatch-negative.php",
+      "diagnostics": [
+        {"line": 23, "identifier": "argument.type", "message": "Parameter #1 $issuance of closure expects Fight\\AccessControl\\Domain\\AccessControl\\AgentCredentialOperation\\AgentIssuance, null given."},
+        {"line": 23, "identifier": "method.void", "message": "Result of method Fight\\Common\\Application\\Messaging\\Command\\CommandBus::execute() (void) is used."},
+        {"line": 25, "identifier": "argument.type", "message": "Parameter #1 $issuance of closure expects Fight\\AccessControl\\Domain\\AccessControl\\AgentCredentialOperation\\AgentIssuance, null given."},
+        {"line": 25, "identifier": "method.void", "message": "Result of method Fight\\Common\\Application\\Messaging\\Command\\CommandBus::dispatch() (void) is used."},
+        {"line": 27, "identifier": "argument.type", "message": "Parameter #1 $command of static method Fight\\Common\\Domain\\Messaging\\Command\\CommandMessage::create() expects Fight\\Common\\Domain\\Messaging\\Command\\Command, Fight\\AccessControl\\Domain\\AccessControl\\AgentCredentialOperation\\Query\\GetAgentOperation given."},
+        {"line": 28, "identifier": "argument.type", "message": "Parameter #1 $query of static method Fight\\Common\\Domain\\Messaging\\Query\\QueryMessage::create() expects Fight\\Common\\Domain\\Messaging\\Query\\Query, Fight\\AccessControl\\Domain\\AccessControl\\Agent\\Command\\ProvisionAgent given."},
+        {"line": 29, "identifier": "argument.type", "message": "Parameter #1 $command of method Fight\\Common\\Application\\Messaging\\Command\\CommandBus::execute() expects Fight\\Common\\Domain\\Messaging\\Command\\Command, Fight\\AccessControl\\Domain\\AccessControl\\AgentCredentialOperation\\Query\\GetAgentOperation given."},
+        {"line": 30, "identifier": "argument.type", "message": "Parameter #1 $query of method Fight\\Common\\Application\\Messaging\\Query\\QueryBus::fetch() expects Fight\\Common\\Domain\\Messaging\\Query\\Query, Fight\\AccessControl\\Domain\\AccessControl\\Agent\\Command\\RotateAgentCredential given."},
+        {"line": 33, "identifier": "argument.type", "message": "Parameter #1 $issuance of closure expects Fight\\AccessControl\\Domain\\AccessControl\\AgentCredentialOperation\\AgentIssuance, Fight\\AccessControl\\Domain\\AccessControl\\AgentCredentialOperation\\AgentIssuance|null given."},
+        {"line": 35, "identifier": "argument.type", "message": "Parameter #1 $state of closure expects Fight\\AccessControl\\Domain\\AccessControl\\AgentCredentialOperation\\AgentCredentialDisposition, Fight\\AccessControl\\Domain\\AccessControl\\AgentCredentialOperation\\AgentDeliveryDisposition|null given."},
+        {"line": 37, "identifier": "argument.type", "message": "Parameter #2 $request of class Fight\\AccessControl\\Domain\\AccessControl\\Agent\\Command\\RotateAgentCredential constructor expects Fight\\AccessControl\\Domain\\AccessControl\\AgentCredentialOperation\\AgentRotationRequest, Fight\\AccessControl\\Domain\\AccessControl\\AgentCredentialOperation\\AgentProvisioningRequest given."}
+      ]
+    },
+    {
       "id": "delivery-event-local-payload-contracts",
       "kind": "positive",
       "file": "delivery-event-positive.php",

@@ -315,10 +315,10 @@ single-declaration/local-annotation and trusted matching-map decision. TASK-0012
 buses and known caller annotations without its original generic supplier hold. Current dispositions and proof
 belong to their owning records. John now extends TASK-00128's precise handler results/known-caller annotations to
 TASK-00130, clearing its generic supplier hold. Its TASK-00182 conversion edge is satisfied and retained, with no
-reverse dependency. Common v1.5.0 supplies the supported mixed-bus/void contracts; minimum/ordinary-lane tests remain
-feature acceptance work. No generic or result-capable bus is required. Existing void handlers and
-independent Query adoption retain their owners. These
-manifests are planning coverage, not executed inference/routing/consumer proof. Coordinate canonical adoption with
+reverse dependency. Common v1.5.0 supplies the supported mixed-bus/void contracts. TASK-00130 now has independent
+Review ACCEPT and nonvisual QA PASS, including minimum/ordinary-lane proof; all three terminal children close
+TICKET-00038. No generic or result-capable bus is required. Existing void handlers and independent Query adoption
+retain their owners. The owning records retain bounded package proof, not whole-library or consumer qualification. Coordinate canonical adoption with
 TASK-00110 once; semantic owners retain their corrections and every slice retains its own tests/gate/acceptance.
 
 TICKET-00039's complete five-TASK plan is approved/written as [TASK-00131](tasks/00131-TASK.md) through

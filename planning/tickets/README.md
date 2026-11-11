@@ -41,7 +41,7 @@ This generated index is a projection; individual records remain canonical.
 | [TICKET-00035](00035-TICKET.md) | Encapsulate User authentication transitions and synchronous use cases | done |
 | [TICKET-00036](00036-TICKET.md) | Clarify Agent name and credential-operation domain ownership | done |
 | [TICKET-00037](00037-TICKET.md) | Make Domain and repository contracts precise | done |
-| [TICKET-00038](00038-TICKET.md) | Preserve message and result types through dispatch | ready-for-agent |
+| [TICKET-00038](00038-TICKET.md) | Preserve message and result types through dispatch | done |
 | [TICKET-00039](00039-TICKET.md) | Guarantee exact query results and explicit absence | done |
 | [TICKET-00040](00040-TICKET.md) | Make command and synchronous Application contracts explicit | done |
 | [TICKET-00041](00041-TICKET.md) | Align presentation and integration contracts | ready-for-agent |
