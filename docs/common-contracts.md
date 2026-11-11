@@ -107,6 +107,20 @@ public read/recovery remains separately admitted. Native whole-frame fixtures, m
 controlled failure/concurrency proof are recorded in canonical TASK-00093 Work evidence; production qualification,
 independent Review/QA, Prompt signals, inspection and publication remain distinct.
 
+## Optional notice publication — TASK-00096
+
+The [publication composition](agent-notice-publication.md) consumes Common v1.5.0's actual
+`Application/Mcp/Notice/Publication/{NoticePublicationPolicy,NoticePublicationGrant,NoticePublication,
+RecordNoticeAndPublish,NoticePublicationStatus,NoticePublicationDiagnostics}` plus routed recording/inspection/
+recovery and committed DBAL readers. `AgentNoticePublicationPolicy` supplies fresh independent current operation
+Permissions before consumer whole-audience/topic/mode/field scope. No raw-publisher-only substitution, policy or
+transport fork is added. Common `Adapter/Socket/{MercureHubPublisher,PrivateMercureHubPublisher}` supplies actual
+public/private `Update` translation; optional `symfony/mercure ^0.7` has qualified minimum 0.7.0. Common's sufficient
+minimum remains published v1.5.0 at the exact source above. Canonical TASK-00096 Work evidence owns feature-specific
+minimum/ordinary locks, PHP runtime, tests and full gate. Controlled hub/consumer fixtures do not qualify actual
+browser entitlement, deployed policy/races, receipt or MCP live wire support. Independent feature acceptance stays
+separate.
+
 ## Qualification and future owners
 
 The isolated exact-minimum Composer lane pins `1.5.0`; the ordinary lane resolves the manifest normally. Both
@@ -138,7 +152,12 @@ aggregate, without permanent identity memory. Its canonical Work handoff owns fe
 and concurrent SQLite qualification. DBAL remains development-only here; no production persistence is copied.
 TASK-00092 independently qualifies actual summary/list/detail/recovery Queries and `notices.recover` through
 [retained read composition](agent-notice-recovery.md), with inward Agent Permission and trusted consumer scope.
-Other TASK-00089–00090/00094–00096 and TASK-00099–00102 must inspect their exact declarations, configure actual
+TASK-00100 now composes actual `TaskCancellationAdmission`, `RequestTaskCancellationHandler`,
+`GetTaskCancellationHandler`, their owning Command/Query and `McpTaskCancellation` method from the same v1.5.0 tag.
+Independent mutation/observation authority runs before protected lookup; Common owns durable intent, committed-reader
+confirmation, terminal/repeat no-ops and safe method bounds. Its canonical Work handoff owns minimum/ordinary and
+cross-process SQLite/race/fault qualification; consumer stopping is not supplied or certified.
+Other TASK-00089–00090/00094–00095 and TASK-00101–00102 must inspect their exact declarations, configure actual
 Common buses and independently qualify each operation/family. This baseline clears only TASK-00110's historical
 supplier hold, not those feature
 holds, grant requirements, live-runtime requirements or separate generic typing/returned-page evidence gaps.

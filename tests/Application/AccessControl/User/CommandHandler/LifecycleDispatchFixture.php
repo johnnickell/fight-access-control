@@ -25,6 +25,7 @@ use Fight\AccessControl\Domain\AccessControl\User\Command\EnableUser;
 use Fight\AccessControl\Domain\AccessControl\User\Command\InvitePendingUser;
 use Fight\AccessControl\Domain\AccessControl\User\Command\RecoverPendingRegistration;
 use Fight\AccessControl\Domain\AccessControl\User\Command\RestoreUser;
+use Fight\AccessControl\Domain\AccessControl\User\Exception\RegistrationRecoveryAuthorizationException;
 use Fight\AccessControl\Domain\AccessControl\User\UserId;
 use Fight\AccessControl\Domain\AccessControl\User\UserState;
 use Fight\Common\Adapter\Messaging\Command\Sync\Routing\InMemoryCommandRouter;
@@ -59,7 +60,10 @@ final readonly class LifecycleDispatchFixture
         string $operation,
         bool $failAudit = false,
         ?InMemoryEventDispatcher $eventDispatcher = null,
-        ?TransactionalUnitOfWork $unitOfWork = null
+        ?TransactionalUnitOfWork $unitOfWork = null,
+        bool $auditEnabled = true,
+        bool $omitAudit = false,
+        bool $authorized = true
     ) {
         $fixture = new RegistrationFixture(eventDispatcher: $eventDispatcher);
         $this->registration = $fixture;
@@ -71,6 +75,7 @@ final readonly class LifecycleDispatchFixture
         $generator = new FixedCredentialGenerator('new-lifecycle-credential');
         $cipher = new PrefixInvitationDeliveryCipher();
         $transaction = $unitOfWork ?? $fixture->unitOfWork;
+        $auditArguments = $omitAudit ? [] : [$auditEnabled ? $this->audit : null];
         $sessions = new SessionRevocationService(new InMemoryRefreshSessionRepository($fixture->unitOfWork));
         $resets = new InMemoryPasswordResetGrants($fixture->unitOfWork);
         $grant = null;
@@ -112,48 +117,48 @@ final readonly class LifecycleDispatchFixture
                 $fixture->userRepository,
                 $fixture->roleRepository,
                 $fixture->activationGrantRepository,
-                $this->audit,
                 $transaction,
                 $generator,
                 $cipher,
                 $clock,
                 $fixture->eventDispatcher,
-                ['ROLE_MEMBER', 'ROLE_READER']
+                ['ROLE_MEMBER', 'ROLE_READER'],
+                ...$auditArguments
             ),
             'invite' => new InvitePendingUserHandler(
                 $fixture->userRepository,
                 $fixture->activationGrantRepository,
-                $this->audit,
                 $transaction,
                 $generator,
                 $cipher,
                 $clock,
-                $fixture->eventDispatcher
+                $fixture->eventDispatcher,
+                ...$auditArguments
             ),
             'enable' => new EnableUserHandler(
                 $fixture->userRepository,
-                $this->audit,
                 $transaction,
                 $fixture->eventDispatcher,
-                $clock
+                $clock,
+                ...$auditArguments
             ),
             'disable' => new DisableUserHandler(
                 $fixture->userRepository,
                 $sessions,
                 $clock,
-                $this->audit,
                 $transaction,
                 $fixture->eventDispatcher,
-                $resets
+                $resets,
+                ...$auditArguments
             ),
             'delete' => new DeleteUserHandler(
                 $fixture->userRepository,
                 $sessions,
                 $clock,
-                $this->audit,
                 $transaction,
                 $fixture->eventDispatcher,
-                $resets
+                $resets,
+                ...$auditArguments
             ),
             'restore' => new RestoreUserHandler(
                 $fixture->userRepository,
@@ -161,35 +166,42 @@ final readonly class LifecycleDispatchFixture
                 $generator,
                 $cipher,
                 $clock,
-                $this->audit,
                 $transaction,
-                $fixture->eventDispatcher
+                $fixture->eventDispatcher,
+                ...$auditArguments
             ),
             'correct' => new CorrectPendingInvitationHandler(
                 $fixture->userRepository,
                 $fixture->activationGrantRepository,
-                new ActivationService\FixedInvitationAdministrationAuthorization(true),
-                $this->audit,
+                new ActivationService\FixedInvitationAdministrationAuthorization($authorized),
                 $transaction,
                 $generator,
                 $cipher,
                 $clock,
-                $fixture->eventDispatcher
+                $fixture->eventDispatcher,
+                ...$auditArguments
             ),
             default => new RecoverPendingRegistrationHandler(
                 $fixture->userRepository,
                 $fixture->activationGrantRepository,
-                new class implements RegistrationRecoveryAuthorization {
-                    public function assertCanRecoverRegistration(UserId $actorId, UserId $userId): void
+                new readonly class ($authorized) implements RegistrationRecoveryAuthorization {
+                    public function __construct(private bool $authorized)
                     {
                     }
+
+                    public function assertCanRecoverRegistration(UserId $actorId, UserId $userId): void
+                    {
+                        if (!$this->authorized) {
+                            throw new RegistrationRecoveryAuthorizationException('Recovery is not authorized.');
+                        }
+                    }
                 },
-                $this->audit,
                 $transaction,
                 $generator,
                 $cipher,
                 $clock,
-                $fixture->eventDispatcher
+                $fixture->eventDispatcher,
+                ...$auditArguments
             )
         };
         $router = new InMemoryCommandRouter();

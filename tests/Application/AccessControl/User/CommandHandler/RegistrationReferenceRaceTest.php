@@ -194,13 +194,13 @@ final class RegistrationReferenceRaceTest extends TestCase
                 $userRepository,
                 $fixture->competingRoles($other),
                 $winnerActivationGrantRepository,
-                $winnerAuditEvidenceRepository,
                 $other,
                 new FixedCredentialGenerator('competing-registration-fixture'),
                 new PrefixInvitationDeliveryCipher(),
                 new FixedClock('2030-01-01T00:00:00Z'),
                 $winnerEventDispatcher,
-                ['ROLE_READER']
+                ['ROLE_READER'],
+                $winnerAuditEvidenceRepository
             )->handle(CommandMessage::create($command));
         });
         $loser = $fixture->command();

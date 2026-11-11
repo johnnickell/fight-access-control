@@ -79,12 +79,12 @@ final class CorrectPendingInvitationHandlerTest extends TestCase
             $userRepository,
             $activationGrantRepository,
             $authorization,
-            $auditEvidenceRepository,
             $unitOfWork,
             new FixedCredentialGenerator('activate-new'),
             new PrefixInvitationDeliveryCipher(),
             new FixedClock('2026-08-22T13:00:00+00:00'),
-            $eventDispatcher
+            $eventDispatcher,
+            $auditEvidenceRepository
         );
         $actorId = UserId::generate();
 
@@ -499,12 +499,12 @@ final class CorrectPendingInvitationHandlerTest extends TestCase
             $userRepository,
             $activationGrantRepository,
             $authorization,
-            $auditEvidenceRepository,
             $unitOfWork,
             new FixedCredentialGenerator('activate-new'),
             new PrefixInvitationDeliveryCipher(),
             new FixedClock('2026-08-22T13:00:00+00:00'),
-            $eventDispatcher
+            $eventDispatcher,
+            $auditEvidenceRepository
         );
     }
 

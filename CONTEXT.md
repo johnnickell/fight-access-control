@@ -24,6 +24,49 @@ closeout checkpoint. Consumer policy/
 history/crypto/storage, all authority writers, production concurrency and proxy/SAPI/client buffering remain unqualified. Neither acknowledgment nor emitted
 bytes prove receipt/processing or exactly-once delivery. No adoption, release or deployment is claimed.
 
+## Optional notice publication — TASK-00096 accepted checkpoint
+
+[Explicit publication composition](docs/agent-notice-publication.md) adds inward `AgentNoticePublicationPolicy`
+and consumer `AgentNoticePublicationScope` over Common v1.5.0's actual publication-policy seam. Each attempt
+reuses original-bound `AgentNoticeAuthority` for fresh direct operation Permissions, then consumer topic/mode/
+whole-audience/field disclosure. Common owns committed reconstruction, encoded bounds, statuses, diagnostics,
+synchronous acknowledged-commit handoff and public/private Mercure adapters. No broadcaster, retry engine,
+new grant, read lease, send-spanning lock or automatic registration is added. Private denial/fault/unsupported
+output never falls back to public. Permission may change after the final check before sending.
+
+Real authority, routed Common recording/inspection/recovery, SQLite and controlled-hub `Update` tests cover
+safe projections, independent grants, changed current authority/scope, precommit failure, committed publication
+failure/repeated attempts, recovery/retention truth and disabled output. Common ^1.5.0 remains sufficient;
+optional Mercure ^0.7 is suggested, development-only for package tests. The canonical Work handoff owns exact
+minimum/ordinary dependency/runtime/gate evidence and warnings. Independent Review v3 ACCEPT and complete nonvisual
+QA PASS cover candidate `65034aff05c08adaca806f840aa4920c55c6a081`: 14 independent scenarios / 191 assertions plus
+63 focused tests / 944 assertions, without blockers. TASK-00096 is done; unfinished siblings keep TICKET-00030 and
+EPIC-00014 open. Behavior-preserving advanced-base integration, final verification/publication and retirement remain
+pending at this closeout checkpoint; canonical `.runs/handoffs/TASK-00096/land.md` owns subsequent results and provenance.
+Package fixtures do not qualify consumer policy, storage/crypto/authority races,
+deployed hub/browser entitlement, receipt, MCP live-wire support, adoption, release or deployment.
+
+## Cancellation admission — TASK-00100 accepted checkpoint
+
+[Slice D Task composition](docs/agent-task-authorization.md#cancellation-requests-and-intent-observation--slice-d)
+adds `AgentTaskCancellationAdmission` with independent configured cancellation/observation Agent authorities,
+`AgentTaskCancellationScope` and the existing observation scope. Actual Common cancellation Commands/intent Queries
+and `McpTaskCancellation` use these admissions; input/confirmation uses the independently protected intent port.
+Common owns serialization, retained intent, committed-reader confirmation, safe repeats/terminal no-ops and bounded
+acknowledgment. Neither cancellation Permission nor intent observation grants state/result access or worker control.
+Ordinary requests retain their snapshot/nonce; original-bound protected continuation still rechecks current authority.
+
+Common v1.5.0 (`06fb5cd3720af9cf8295198f74040d95b64c5155`) remains sufficient. Real routed SQLite fixtures exercise
+both lock orders for cancellation/input/confirmation/terminal races, durable cross-process reads, rollback,
+uncertain commit and postcommit/response loss. Intent preserves answers/consumption/terminal winners and proves no
+stop, rollback or actual outcome. Controlled scope/fence/consumer-effect proof does not qualify production storage,
+authority writers, cryptography, workers or exactly-once external effects. The canonical TASK-00100 Work handoff
+owns dependency/runtime/check evidence. Independent Review v3 ACCEPT and nonvisual QA PASS cover candidate
+`cbc442a10b34ccace1cc20cdebbb1c409dca2026` (nine QA groups / 776 checks). TASK-00100 is done; TASK-00101/00102
+keep its parents open. Canonical `.runs/handoffs/TASK-00100/land.md` owns advancing-base integration verification,
+publication and retirement outcomes, pending at this closeout checkpoint. Complete MCP activation and live Task
+output remain downstream, without a partial extension advertisement or live-delivery prerequisite.
+
 ## TASK-00147 protected profile Tool contracts — accepted checkpoint
 
 The [current six-declaration/member dispositions](docs/agent-profile-tools.md#current-contract-dispositions-task-00147)
@@ -1164,14 +1207,34 @@ planning/source observations below describe its historical baseline; the shared 
 
 ## Approved explicit optional atomic audit destination
 
+TASK-00167's [test-only conformance](docs/audit-transaction-conformance.md) now exercises the existing enabled
+EnableUserHandler with ordinary shared transactions, reopened modeled User/evidence bytes, audit rollback,
+concurrency loss, both commit-uncertainty outcomes, publication failure and two-active-composition wrong-connection
+controls. Independent Review v3 ACCEPT and nonvisual QA PASS cover `c14704b259a48e9287b43bcb9d4ba5775c40531d`
+(22 scenarios / 510 QA checks). Land's behavior-preserving integration of develop
+`12aeb8464230892ff5eea04da037ca079fb8016c` adapts the supplied audit repository to the enabled writer's new final
+constructor argument and passes a fresh full gate: 8,839 tests / 89,522 assertions, exact 10,551/10,551 statements.
+TASK-00167 is done; unfinished children keep TICKET-00048/EPIC-00017 open. Publication/final verification remain
+pending at this administrative checkpoint; canonical `.runs/handoffs/TASK-00167/land.md` owns subsequent bridge,
+delivery and resource outcomes. Original independent reports and earlier Work/Review/QA counts remain distinct.
+No production API, family optionality, real SQL/process/consumer qualification or workaround retirement is supplied.
+
 TASK-00122 supplies the [typed evidence replacement](docs/audit-evidence.md): the old string/context model
 and necessary callers/fixtures/schemas are replaced across all 22 current writer owners. Its TASK and canonical
 Work handoff own implementation evidence. Independent Review ACCEPT and behavioral QA PASS accept
 `5d8ba4496a19a1b1e33e9e16283d1aac6a64ddb4`; TASK-00122 and TICKET-00043 are done. Land's behavior-preserving
 integration of current develop passed a fresh full gate (8247 tests / 81407 assertions, exact global/owned coverage).
-Canonical `.runs/handoffs/TASK-00122/land.md` owns subsequent delivery/resource results, separate from human merge. Existing mandatory
-constructor wiring and currently unaudited paths remain unchanged. The destination and historical planning
-observations below are not claims that optional auditing is implemented.
+Canonical `.runs/handoffs/TASK-00122/land.md` owns subsequent delivery/resource results, separate from human merge. TASK-00123 now implements optional last
+nullable storage for the eight account lifecycle handlers; other family constructors and
+currently unaudited paths remain unchanged. See [current account composition](docs/user-lifecycle-contracts.md#optional-account-audit-composition).
+Omitted/null disables durable evidence without changing business-required typed actors, target/default-Role/CAS
+admission or coupled persistence. Enabled evidence retains the actual mutation transaction, trusted time,
+authoritative revisions/grant/delivery/message correlation and ordinary User publication-failure propagation.
+Independent Review ACCEPT and complete nonvisual QA PASS cover TASK-00123 candidate
+`a5e5934ea83a420674a27f9dd1217658402a5732`; TASK-00123 is done, with unfinished siblings keeping its parents open.
+Canonical `.runs/handoffs/TASK-00123/land.md` owns the integration bridge and subsequent verification, publication
+and resource outcomes, pending at this closeout checkpoint. Real consumer connection qualification remains separate. The destination and historical
+planning observations below do not claim complete optional auditing.
 
 John approved [EPIC-00017](planning/epics/00017-EPIC.md): explicit audit recording in all 37 current CommandHandlers
 and related synchronous account/credential/delivery/maintenance use cases. Evolve AuditEvidence and its existing
