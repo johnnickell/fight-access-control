@@ -1,6 +1,6 @@
 # Fight AccessControl Context
 
-## Complete guarded Task serving — TASK-00101 Work checkpoint
+## Complete guarded Task serving — TASK-00101 accepted checkpoint
 
 [Slice E composition](docs/agent-task-authorization.md#complete-guarded-mcp-serving--slice-e) adds canonical
 `AgentTaskServing` and request-scoped `AgentTaskRequestAdmission`. All four real Common serving handlers are
@@ -14,9 +14,15 @@ Controlled actual HTTP/SQLite fixtures cover commit then TCP disconnect, indepen
 fresh reconnect/get, complete input/confirmation/cancellation flow, denied ongoing operations after admitted start,
 postcommit/response/submission faults and exact final encoded response bounds. Common v1.5.0 source
 `06fb5cd3720af9cf8295198f74040d95b64c5155` remains sufficient; minimum/ordinary lane identities and actual checks
-belong to canonical `.runs/handoffs/TASK-00101/work.md`. Independent Review and nonvisual QA remain pending at this
-Work checkpoint; TASK-00101 stays open. This is not production crypto/storage/all-writer fencing, external-effect,
-worker/client/proxy qualification, optional live-state acceptance, adoption, release or deployment.
+belong to canonical `.runs/handoffs/TASK-00101/work.md`. Independent Review v3 ACCEPT and complete nonvisual QA
+PASS cover clean candidate `f979e009b6f8f4831d5ac405b5503b7b34fe363d`, without open findings: eight QA scenario
+groups include independent actual HTTP/state and native disconnect/producer/reconnect proof. TASK-00101 is done;
+TASK-00102 keeps TICKET-00031 and EPIC-00014 open. Earlier full gate retained: 8,898 tests / 90,048 assertions,
+exact 10,678/10,678 statements (40/40 new adapters). Administrative planning/documentation checks qualify closeout.
+Publication/final verification and retirement remain pending at this checkpoint; canonical
+`.runs/handoffs/TASK-00101/land.md` owns subsequent delivery outcomes. Minimum-lane advisories remain disclosed,
+not fixed; ordinary dependencies report none. This is not production crypto/storage/all-writer fencing,
+external-effect, worker/client/proxy qualification, optional live-state acceptance, adoption, release or deployment.
 
 ## Live Tool, Resource and whole-Skill disclosure — TASK-00093 accepted checkpoint
 

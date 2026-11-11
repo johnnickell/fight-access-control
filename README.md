@@ -57,8 +57,8 @@ for TASK-00105; consumer deployment qualification remains separate. Domain/Appli
 Maintainers placing classes or naming collaborators should use the checkout-local
 [architecture target](docs/engineering/standards/Architecture.md#accesscontrol-placement-and-dependency-rules) and
 [naming rules](docs/engineering/standards/Naming.md#descriptive-collaborators-and-collections). These codify approved
-EPIC-00015 guidance. Agent MCP presentation/bindings now live in `Adapter/Mcp/{Tool,Resource,Skill,Prompt}/Agent`
-([current composition](docs/agent-profile-tools.md)); authentication, Permission policy and continuation stay inward.
+EPIC-00015 guidance. Agent MCP presentation/bindings now live in `Adapter/Mcp/{Tool,Resource,Skill,Prompt,Task}/Agent`
+([current composition](docs/agent-profile-tools.md), [complete guarded Task serving](docs/agent-task-authorization.md#complete-guarded-mcp-serving--slice-e)); authentication, Permission policy and continuation stay inward.
 Agent authentication, credential lifecycle, delivery, maintenance and continuation now have cohesive Application
 homes, alongside Feature Discovery and authorization Admission; see the
 [current composition map](docs/agent-integration.md#public-composition-map). User secret-bearing operations now use
