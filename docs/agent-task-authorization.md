@@ -1,11 +1,11 @@
-# Agent Task admission — slices A, B, C and D (unreleased)
+# Agent Task admission — slices A–E (unreleased)
 
 TASK-00097 composes independent direct Agent Permissions and consumer-owned scope with Common's actual Task
 creation, producer transition and complete current-state Query. It adds no Task lifecycle, persistence adapter,
 executor, scheduler, grant, protocol endpoint or advertised partial MCP Tasks extension. TASK-00098 adds independent
 bounded retained-data removal below. TASK-00099 adds durable input admission and protected continuation below.
-TASK-00100 adds independent cancellation requests and protected intent observation below. Full MCP serving and live
-Task output retain their later TASK owners.
+TASK-00100 adds independent cancellation requests and protected intent observation below. TASK-00101 adds explicit
+complete MCP serving and independent handle-response admission below. Optional live Task output remains TASK-00102.
 
 ## Contracts and ownership
 
@@ -467,6 +467,116 @@ focused/full-gate and exact coverage evidence. Separate SQLite processes exercis
 in both cancellation/input/confirmation/terminal orders and current scope after waiting. These prove package
 composition, not consumer production storage, cryptography, authority/scope writers, global fences, queues,
 worker stop behavior or external effects. Independent Review and nonvisual behavioral QA remain separate obligations.
+
+## Complete guarded MCP serving — slice E
+
+`Adapter/Mcp/Task/Agent/AgentTaskServing` assembles actual Common creation/get/input/cancel handlers into configured
+Common routing buses, then the **same** `McpTasks` instance into Tool invocation and the capability registry.
+Its constructor requires all four concrete suppliers; there is no flag, nullable mutation supplier or partial
+extension. `capabilities()` constructs `AgentToolPermissionCatalog` and `AgentToolAvailability` against the exact
+supplied Tool registry, requiring attributed or explicit nonempty conjunctive declarations before activation.
+It copies no Tool/schema/protocol implementation. The architecture collector permits only the four consumed
+Common routing bus/router Adapter classes for this outward composition; Application/Domain gain no mechanism
+dependency. Consumers still construct their Task-capable Tools and own submission, producer/input/continuation
+buses, operation identity, storage and worker policy.
+
+### Independent acknowledgment versus state response
+
+`AgentTaskRequestAdmission` is a **request-scoped** adapter implementing Common's `McpInvocationGuard` and
+`TaskReadAdmission`. Share that exact instance between the existing guarded HTTP endpoint and `GetTaskHandler`.
+Common validates Origin, POST, Accept/Content-Type, bounded body, protocol and exact method/name/parameter mirrors
+before invoking the guard. It first delegates to the consumer invocation guard, then selects independently
+configured `AgentTaskReadAdmission` for `tools/call` acknowledgment or `tasks/get` whole-state disclosure.
+Other methods select no read admission; a missing or refused guard cannot read or obtain comparison context.
+No `_meta`, Tool capability, handle, creator identity or role supplies a grant. A guard refusal clears selection.
+Direct producer/state use cases compose their own ordinary admission; they must not borrow this HTTP context.
+
+```php
+use Fight\AccessControl\Adapter\Mcp\Task\Agent\AgentTaskRequestAdmission;
+use Fight\AccessControl\Adapter\Mcp\Task\Agent\AgentTaskServing;
+
+$responseAdmission = new AgentTaskRequestAdmission(
+    $consumerInvocationGuard,
+    new AgentTaskReadAdmission($independentAckAuthority, $ackScope),
+    new AgentTaskReadAdmission($independentStateAuthority, $stateScope)
+);
+$read = new GetTaskHandler($committedTaskReader, $responseAdmission, $payloadPolicy, $millisecondClock);
+$serving = new AgentTaskServing($create, $read, $supplyInput, $cancel, $scope, $caller);
+// The consumer Tool implements Common McpTaskTool and creates through this admitted bus.
+$tool = $consumerTaskToolFactory($serving->commandBus());
+$registry = new McpToolRegistry([$tool, ...$ordinaryTools]);
+$capabilities = $serving->capabilities(
+    $serverInfo, $registry, $provider, $signedRequest, $correlationId, $discoverySecret,
+    ['consumer.operation' => ['TOOL_START']]
+);
+// Existing Common McpRequestHandler; no second endpoint or alternate error renderer.
+$endpoint = new McpRequestHandler($capabilities, $originPolicy, $responseAdmission, $responseFactory);
+```
+
+Names in the mapping are illustrative consumer declarations, not seeded grants. Use the scope/admission classes
+and Common handler imports from earlier sections. `AgentTaskReadAdmission` and Common require admission over the
+complete retained state before projection even for an acknowledgment; the acknowledgment then exposes only
+Common's Task metadata, not result/error/forms or original operation context. This is conservative full-state
+admission followed by metadata projection, **not** a separate metadata-only storage reader. Configure the
+acknowledgment requirement/scope independently from ongoing state access. Creation can commit while acknowledgment
+is denied; this never creates a read grant, returns fabricated state or implies that the work disappeared.
+
+The provider, all admissions, response selector, serving composition, registry and endpoint belong to one request.
+Do not share them concurrently, retain them in workers or reuse an acknowledgment-selected context for direct
+reads/later requests. Ordinary request checks share the one authenticated snapshot and nonce. A later request
+reconstructs its provider and independently checks current authority/scope. Producer reporting and original-caller
+protected continuation retain slices A/C/D's separate authorities and existing synchronized guard.
+
+### Native protocol, durable order and limits
+
+This maintained ordered runtime view describes slice E's production composition and controlled tests. The canonical
+TASK-00101 Work handoff maps it to the committed revision and qualification logs.
+
+```text
+Common guarded HTTP -> verified mirrors -> consumer guard / independent response-purpose binding
+                    -> actual Tool availability -> required Task declaration -> argument validation
+                    -> consumer McpTaskTool.start -> admitted CreateTask bus -> durable commit
+                    -> consumer submission / reconciliation (not a package executor)
+                    -> GetTask through independent acknowledgment admission -> Common metadata acknowledgment
+TCP disconnect      -> independent producer reconstruction -> admitted RecordTaskState -> durable outcome
+New HTTP request    -> fresh provider / tasks/get state admission -> original complete retained state
+New input/cancel    -> independently admitted actual Commands -> bounded acknowledgment, not execution/stop proof
+```
+
+Source anchors: [serving](../src/Adapter/Mcp/Task/Agent/AgentTaskServing.php),
+[response-purpose binding](../src/Adapter/Mcp/Task/Agent/AgentTaskRequestAdmission.php),
+[real guarded composition](../tests/Adapter/Mcp/Task/Agent/AgentTaskServingTest.php), and
+[native TCP disconnect/independent producer/reconnect](../tests/Adapter/Mcp/Task/Agent/AgentTaskNativeTest.php).
+The text diagram is its authoring source; no live Subscription, Mercure, introspection or removal runtime participates.
+
+- The actual extension declaration is `io.modelcontextprotocol/tasks: {}`. Common owns per-request negotiation and
+  `tasks/get`, `tasks/update`, `tasks/cancel`; Task input also requires `elicitation.form`. Every Task method's
+  `MCP-Name` mirror is the exact `taskId`. Task starts require current support **before** entering the Tool.
+  Ordinary non-Task Tools need no Task declaration. Direct Task-capable `handle()` must remain synchronous or refuse
+  inaccessible asynchronous work; `start()` returns a handle only after actual durable creation.
+- Common's committed read must resolve a newly created handle before acknowledgment. Submission failure after
+  creation, postcommit event failure, response denial/fault/oversize and disconnect cannot roll back confirmed
+  creation. Missing submission acknowledgment leaves consumer execution uncertain. A durable Task is not an outbox,
+  execution receipt or exactly-once promise. Precommit/uncertain commit and reconciliation follow the earlier slices.
+- Common retrieves original stored contracts and full outstanding forms/results/errors without rerunning the Tool.
+  Completed Tool `isError: true` remains completed, not failed JSON-RPC execution. No status/result upload, truncation,
+  redacted successful substitute or old method alias is added. Safe unavailable/denied/internal distinctions remain
+  Common-owned, without JSend or raw private causes.
+- `maxResponseBytes` defaults to Common's 65536 and must be 1–65536. It applies to the **final encoded** response,
+  including escaping/multibyte content, nested results, revision/central server metadata and outer JSON-RPC envelope.
+  The exact-bound test passes at the actual byte count and safely fails one byte below it while preserving the
+  stored-valid original. Storage-valid state is not necessarily serving-budget-valid.
+- The optional existing `McpToolInteraction` can be supplied to `capabilities()` for ordinary stateless/destructive
+  confirmation Tools. Common continues to own interaction/progress semantics and guarded HTTP progressive output;
+  Task cancellation does not replace request-progress cancellation. No live Task output is enabled by this factory.
+
+Exact-minimum and ordinary dependency lanes, full gate, executable statement coverage and original failures/warnings
+belong to TASK-00101's canonical Work handoff. Native fixtures use actual Common HTTP/SQLite and AccessControl
+Permission/nonce paths with controlled verifier/crypto/scope inputs. Separate supplier tests retain rollback,
+uncertain commit, single-use input, original-bound continuation and real SQLite race proof. These do not qualify
+consumer storage/cryptography/all-writer fences, submission/queue/worker recovery, external effects, production
+proxy/SAPI/client behavior, live state, adoption, deployment or the combined release. Independent Review and
+nonvisual behavioral QA remain required.
 
 ## Qualification and limits
 
