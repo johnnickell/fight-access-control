@@ -56,7 +56,8 @@ final class InMemoryUserRepository implements UserRepository
         private readonly ?Closure $beforeAddWithRoleAssignments = null,
         private readonly ?Closure $afterAddWithRoleAssignments = null,
         private readonly ?Closure $beforeReplacePendingRegistration = null,
-        private readonly ?Closure $beforeValidateRecoveryAuthority = null
+        private readonly ?Closure $beforeValidateRecoveryAuthority = null,
+        private readonly ?Closure $beforeReplaceLifecycleState = null
     ) {
         $this->state = $state ?? new InMemoryUserRepositoryState();
         $this->authenticationAuthorityFenceOwner = $unitOfWork ?? new stdClass();
@@ -436,6 +437,7 @@ final class InMemoryUserRepository implements UserRepository
 
     public function replaceLifecycleState(User $expected, User $replacement): bool
     {
+        $this->beforeReplaceLifecycleState?->__invoke();
         if (!$this->replaceLifecycleStateSucceeds) {
             return false;
         }
@@ -446,6 +448,11 @@ final class InMemoryUserRepository implements UserRepository
         }
 
         return $this->replaceAt($index, $replacement);
+    }
+
+    public function transactionIdentity(): ?InMemoryUnitOfWork
+    {
+        return $this->unitOfWork;
     }
 
     public function bindRefreshSessionRepository(InMemoryRefreshSessionRepository $refreshSessionRepository): void

@@ -1124,6 +1124,12 @@ planning/source observations below describe its historical baseline; the shared 
 
 ## Approved explicit optional atomic audit destination
 
+TASK-00167's [test-only conformance](docs/audit-transaction-conformance.md) now exercises the existing enabled
+EnableUserHandler with ordinary shared transactions, reopened modeled User/evidence bytes, audit rollback,
+concurrency loss, both commit-uncertainty outcomes, publication failure and two-active-composition wrong-connection
+controls. Its canonical Work handoff owns checks and limitations; independent Review and nonvisual QA remain required.
+No production API, family optionality, real SQL/process/consumer qualification or workaround retirement is supplied.
+
 TASK-00122 supplies the [typed evidence replacement](docs/audit-evidence.md): the old string/context model
 and necessary callers/fixtures/schemas are replaced across all 22 current writer owners. Its TASK and canonical
 Work handoff own implementation evidence. Independent Review ACCEPT and behavioral QA PASS accept

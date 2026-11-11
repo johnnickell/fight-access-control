@@ -121,5 +121,8 @@ audit; no enable flag or no-op repository is required. Enabled evidence needs pr
 mutation, while pure no-change/disabled execution gains no new audit-only actor obligation. TASK-00122 defines this
 contract; TICKET-00044 through TICKET-00047 own actual optional constructor wiring, family admission and expanded
 outcomes. Existing mandatory constructors have not become optional merely because the shared contract changed.
-TICKET-00048 retains cross-family conformance and real consumer qualification. Consumers still own persistence,
+TASK-00167 adds reusable [transaction/storage conformance](audit-transaction-conformance.md) around an existing
+enabled writer, reopened modeled representation and wrong-connection controls. It does not qualify family optionality,
+SQL storage or physical restart. TICKET-00048 retains complete cross-family reconciliation and real consumer qualification.
+Consumers still own persistence,
 access/retention, schema/deployment and actual connection/race/restore qualification; no backfill is provided.
