@@ -155,12 +155,12 @@ final class InvitePendingUserHandlerTest extends TestCase
         $handler = new InvitePendingUserHandler(
             new InMemoryUserRepository(),
             $activationGrantRepository,
-            new InMemoryAuditEvidenceRepository(),
             new InMemoryUnitOfWork(),
             new FixedCredentialGenerator('activate-once'),
             new PrefixInvitationDeliveryCipher(),
             $clock,
-            new InMemoryEventDispatcher()
+            new InMemoryEventDispatcher(),
+            new InMemoryAuditEvidenceRepository()
         );
 
         $handler->handle(CommandMessage::create(new InvitePendingUser(
@@ -285,12 +285,12 @@ final class InvitePendingUserHandlerTest extends TestCase
         return new InvitePendingUserHandler(
             $userRepository,
             $activationGrantRepository,
-            $auditEvidenceRepository,
             $unitOfWork,
             new FixedCredentialGenerator('activate-once'),
             new PrefixInvitationDeliveryCipher(),
             new FixedClock('2026-08-18T12:00:00+00:00'),
-            $eventDispatcher
+            $eventDispatcher,
+            $auditEvidenceRepository
         );
     }
 }

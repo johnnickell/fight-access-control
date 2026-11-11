@@ -246,10 +246,10 @@ final class DeleteUserHandlerTest extends TestCase
             $userRepository,
             new SessionRevocationService($refreshSessionRepository),
             new FixedClock(new DateTimeImmutable('2026-08-20T12:00:00+00:00')),
-            $auditEvidenceRepository,
             $unitOfWork,
             $eventDispatcher,
-            new InMemoryPasswordResetGrants($unitOfWork)
+            new InMemoryPasswordResetGrants($unitOfWork),
+            $auditEvidenceRepository
         );
     }
 

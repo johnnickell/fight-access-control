@@ -467,59 +467,59 @@ final class HandlerFailureContractTest extends TestCase
             User\CorrectPendingInvitationHandler::class => new User\CorrectPendingInvitationHandler(
                 $userRepository,
                 $activationGrantRepository, $this->createStub(InvitationAdministrationAuthorization::class),
-                $auditEvidenceRepository, $unitOfWork, $credentials, $cipher, $clock, $eventDispatcher
+                $unitOfWork, $credentials, $cipher, $clock, $eventDispatcher, $auditEvidenceRepository
             ),
             User\DeleteUserHandler::class => new User\DeleteUserHandler(
                 $userRepository,
                 new SessionRevocationService($refreshSessionRepository),
                 $clock,
-                $auditEvidenceRepository,
                 $unitOfWork,
                 $eventDispatcher,
-                $passwordResetGrantRepository
+                $passwordResetGrantRepository,
+                $auditEvidenceRepository
             ),
             User\DisableUserHandler::class => new User\DisableUserHandler(
                 $userRepository,
                 new SessionRevocationService($refreshSessionRepository),
                 $clock,
-                $auditEvidenceRepository,
                 $unitOfWork,
                 $eventDispatcher,
-                $passwordResetGrantRepository
+                $passwordResetGrantRepository,
+                $auditEvidenceRepository
             ),
             User\EnableUserHandler::class => new User\EnableUserHandler(
                 $userRepository,
-                $auditEvidenceRepository,
                 $unitOfWork,
                 $eventDispatcher,
-                $clock
+                $clock,
+                $auditEvidenceRepository
             ),
             User\InvitePendingUserHandler::class => new User\InvitePendingUserHandler(
                 $userRepository,
                 $activationGrantRepository,
-                $auditEvidenceRepository,
                 $unitOfWork,
                 $credentials,
                 $cipher,
                 $clock,
-                $eventDispatcher
+                $eventDispatcher,
+                $auditEvidenceRepository
             ),
             User\RecoverPendingRegistrationHandler::class => new User\RecoverPendingRegistrationHandler(
                 $userRepository,
                 $activationGrantRepository, $this->createStub(RegistrationRecoveryAuthorization::class),
-                $auditEvidenceRepository, $unitOfWork, $credentials, $cipher, $clock, $eventDispatcher
+                $unitOfWork, $credentials, $cipher, $clock, $eventDispatcher, $auditEvidenceRepository
             ),
             User\RegisterUserHandler::class => new User\RegisterUserHandler(
                 $userRepository,
                 $roleRepository,
                 $activationGrantRepository,
-                $auditEvidenceRepository,
                 $unitOfWork,
                 $credentials,
                 $cipher,
                 $clock,
                 $eventDispatcher,
-                ['ROLE_MEMBER']
+                ['ROLE_MEMBER'],
+                $auditEvidenceRepository
             ),
             User\RestoreUserHandler::class => new User\RestoreUserHandler(
                 $userRepository,
@@ -527,9 +527,9 @@ final class HandlerFailureContractTest extends TestCase
                 $credentials,
                 $cipher,
                 $clock,
-                $auditEvidenceRepository,
                 $unitOfWork,
-                $eventDispatcher
+                $eventDispatcher,
+                $auditEvidenceRepository
             ),
             default => throw new LogicException('Unsupported handler fixture.')
         };

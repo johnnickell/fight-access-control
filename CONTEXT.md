@@ -1166,9 +1166,17 @@ and necessary callers/fixtures/schemas are replaced across all 22 current writer
 Work handoff own implementation evidence. Independent Review ACCEPT and behavioral QA PASS accept
 `5d8ba4496a19a1b1e33e9e16283d1aac6a64ddb4`; TASK-00122 and TICKET-00043 are done. Land's behavior-preserving
 integration of current develop passed a fresh full gate (8247 tests / 81407 assertions, exact global/owned coverage).
-Canonical `.runs/handoffs/TASK-00122/land.md` owns subsequent delivery/resource results, separate from human merge. Existing mandatory
-constructor wiring and currently unaudited paths remain unchanged. The destination and historical planning
-observations below are not claims that optional auditing is implemented.
+Canonical `.runs/handoffs/TASK-00122/land.md` owns subsequent delivery/resource results, separate from human merge. TASK-00123 now implements optional last
+nullable storage for the eight account lifecycle handlers; other family constructors and
+currently unaudited paths remain unchanged. See [current account composition](docs/user-lifecycle-contracts.md#optional-account-audit-composition).
+Omitted/null disables durable evidence without changing business-required typed actors, target/default-Role/CAS
+admission or coupled persistence. Enabled evidence retains the actual mutation transaction, trusted time,
+authoritative revisions/grant/delivery/message correlation and ordinary User publication-failure propagation.
+Independent Review ACCEPT and complete nonvisual QA PASS cover TASK-00123 candidate
+`a5e5934ea83a420674a27f9dd1217658402a5732`; TASK-00123 is done, with unfinished siblings keeping its parents open.
+Canonical `.runs/handoffs/TASK-00123/land.md` owns the integration bridge and subsequent verification, publication
+and resource outcomes, pending at this closeout checkpoint. Real consumer connection qualification remains separate. The destination and historical
+planning observations below do not claim complete optional auditing.
 
 John approved [EPIC-00017](planning/epics/00017-EPIC.md): explicit audit recording in all 37 current CommandHandlers
 and related synchronous account/credential/delivery/maintenance use cases. Evolve AuditEvidence and its existing

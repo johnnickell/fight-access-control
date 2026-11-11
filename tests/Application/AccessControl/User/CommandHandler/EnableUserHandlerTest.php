@@ -45,10 +45,10 @@ final class EnableUserHandlerTest extends TestCase
         );
         $handler = new EnableUserHandler(
             $userRepository,
-            $auditEvidenceRepository,
             $unitOfWork,
             $eventDispatcher,
-            new FixedClock('2026-01-01T00:00:00+00:00')
+            new FixedClock('2026-01-01T00:00:00+00:00'),
+            $auditEvidenceRepository
         );
         $actorId = UserId::generate();
 
@@ -124,10 +124,10 @@ final class EnableUserHandlerTest extends TestCase
             try {
                 new EnableUserHandler(
                     $userRepository,
-                    $auditEvidenceRepository,
                     $unitOfWork,
                     $eventDispatcher,
-                    new FixedClock('2026-01-01T00:00:00+00:00')
+                    new FixedClock('2026-01-01T00:00:00+00:00'),
+                    $auditEvidenceRepository
                 )->handle(
                     CommandMessage::create(new EnableUser(UserId::generate(), $user->getId()))
                 );
@@ -150,10 +150,10 @@ final class EnableUserHandlerTest extends TestCase
         try {
             new EnableUserHandler(
                 $userRepository,
-                $auditEvidenceRepository,
                 $unitOfWork,
                 $eventDispatcher,
-                new FixedClock('2026-01-01T00:00:00+00:00')
+                new FixedClock('2026-01-01T00:00:00+00:00'),
+                $auditEvidenceRepository
             )->handle(
                 CommandMessage::create(new EnableUser(UserId::generate(), UserId::generate()))
             );
@@ -176,10 +176,10 @@ final class EnableUserHandlerTest extends TestCase
         try {
             new EnableUserHandler(
                 $userRepository,
-                $auditEvidenceRepository,
                 $unitOfWork,
                 $eventDispatcher,
-                new FixedClock('2026-01-01T00:00:00+00:00')
+                new FixedClock('2026-01-01T00:00:00+00:00'),
+                $auditEvidenceRepository
             )->handle(
                 CommandMessage::create(new EnableUser(UserId::generate(), $user->getId()))
             );

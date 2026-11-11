@@ -40,10 +40,10 @@ final readonly class EnableUserHandler implements CommandHandler
      */
     public function __construct(
         private UserRepository $userRepository,
-        private AuditEvidenceRepository $auditEvidenceRepository,
         private TransactionalUnitOfWork $unitOfWork,
         private EventDispatcher $eventDispatcher,
-        private Clock $clock
+        private Clock $clock,
+        private ?AuditEvidenceRepository $auditEvidenceRepository = null
     ) {
     }
 
@@ -87,7 +87,7 @@ final readonly class EnableUserHandler implements CommandHandler
                     throw new StateConflict('The user lifecycle state changed concurrently.');
                 }
 
-                $this->auditEvidenceRepository->add(AuditEvidence::record(
+                $this->auditEvidenceRepository?->add(AuditEvidence::record(
                     $command->getActorId(),
                     new AuditSubject($command->getUserId()),
                     AuditAction::USER_ENABLED,

@@ -93,13 +93,13 @@ final class RegistrationFixture
             $this->userRepository,
             $roleRepository ?? $this->roleRepository,
             $this->activationGrantRepository,
-            $this->auditEvidenceRepository,
             $unitOfWork ?? $this->unitOfWork,
             new FixedCredentialGenerator('registration-fixture-credential'),
             new PrefixInvitationDeliveryCipher(),
             new FixedClock('2030-01-01T00:00:00Z'),
             $this->eventDispatcher,
-            $names
+            $names,
+            $this->auditEvidenceRepository
         );
     }
 

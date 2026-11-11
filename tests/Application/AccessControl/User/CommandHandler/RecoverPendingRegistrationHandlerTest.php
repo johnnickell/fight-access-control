@@ -438,12 +438,12 @@ final class RecoverPendingRegistrationHandlerTest extends TestCase
                 $fixture->userRepository,
                 $fixture->activationGrantRepository,
                 $fixture->authorization(),
-                $fixture->auditEvidenceRepository,
                 $fixture->unitOfWork,
                 $generator,
                 $cipher,
                 new FixedClock('2030-01-02Z'),
-                $eventDispatcher
+                $eventDispatcher,
+                $fixture->auditEvidenceRepository
             );
             $command = $fixture->command();
             try {

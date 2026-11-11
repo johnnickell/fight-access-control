@@ -303,12 +303,12 @@ final class RegistrationRecoveryJourneyTest extends TestCase
             $fixture->userRepository,
             $fixture->activationGrantRepository,
             new ActivationService\FixedInvitationAdministrationAuthorization(true),
-            $fixture->auditEvidenceRepository,
             $fixture->unitOfWork,
             new FixedCredentialGenerator('private-correction'),
             new PrefixInvitationDeliveryCipher(),
             new FixedClock('2030-01-02T00:00:00Z'),
-            new InMemoryEventDispatcher()
+            new InMemoryEventDispatcher(),
+            $fixture->auditEvidenceRepository
         );
         try {
             $private->handle(CommandMessage::create(new CorrectPendingInvitation(

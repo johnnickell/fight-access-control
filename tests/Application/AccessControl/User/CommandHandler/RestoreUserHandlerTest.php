@@ -369,9 +369,9 @@ final class RestoreUserHandlerTest extends TestCase
             new FixedCredentialGenerator('restore-credential'),
             new PrefixInvitationDeliveryCipher(),
             new FixedClock('2026-08-21T12:00:00+00:00'),
-            $auditEvidenceRepository,
             $unitOfWork,
-            $eventDispatcher
+            $eventDispatcher,
+            $auditEvidenceRepository
         );
     }
 

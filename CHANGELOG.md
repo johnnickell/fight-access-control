@@ -46,14 +46,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- **Breaking pre-v1 User lifecycle constructor order:** InvitePendingUser, RegisterUser, CorrectPendingInvitation,
+  RecoverPendingRegistration, EnableUser, DisableUser, DeleteUser and RestoreUser handlers now take optional nullable
+  audit storage last. Omitted/null disables durable evidence; configured write failure still aborts the atomic
+  outcome. Existing typed actors, public-registration AnonymousId, target/default-Role/CAS checks, coupled effects
+  and ordinary post-commit failure behavior remain. Other audit families are unchanged. See
+  [lifecycle composition](docs/user-lifecycle-contracts.md#optional-account-audit-composition).
 - **Breaking pre-v1 audit evidence contract:** replace actor/action strings and arbitrary context with direct typed
   originating identities, finite subjects/actions, unique evidence identity, trusted outcome time, actual revisions,
   relationships/correlation and admitted facts across existing writers. Current invitation/reset messages persist
   actor kind plus ID; synchronous reset/confirmation require explicit origin for their mandatory audited mutations.
   Agent authorization returns typed originating attribution separately from real-invoker policy. Update current
   callers, hydration and consumer persistence mapping directly; no old-shape reader or backfill is supplied.
-  Existing transaction, recovery and publication policies remain. Actual optional constructor wiring and expanded
-  family outcomes remain separate work, not enabled by this replacement. See [typed evidence](docs/audit-evidence.md).
+  Existing transaction, recovery and publication policies remain. The account lifecycle optional wiring is
+  described above; other family wiring and expanded outcomes remain separate work, not enabled by this replacement. See [typed evidence](docs/audit-evidence.md).
 - Adopt published Common `^1.5.0` canonical MCP foundation and HTTP adapter spellings and Skill getters, with
   exact-minimum and ordinary composition proof. Upstream runtime identity, profile/Resource/Skill output,
   validation, independent authority, nonce/request lifetimes and transaction/publication behavior remain.
