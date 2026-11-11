@@ -1,6 +1,6 @@
 # Fight AccessControl Context
 
-## Cancellation admission — TASK-00100 Work checkpoint
+## Cancellation admission — TASK-00100 accepted checkpoint
 
 [Slice D Task composition](docs/agent-task-authorization.md#cancellation-requests-and-intent-observation--slice-d)
 adds `AgentTaskCancellationAdmission` with independent configured cancellation/observation Agent authorities,
@@ -15,8 +15,11 @@ both lock orders for cancellation/input/confirmation/terminal races, durable cro
 uncertain commit and postcommit/response loss. Intent preserves answers/consumption/terminal winners and proves no
 stop, rollback or actual outcome. Controlled scope/fence/consumer-effect proof does not qualify production storage,
 authority writers, cryptography, workers or exactly-once external effects. The canonical TASK-00100 Work handoff
-owns dependency/runtime/check evidence. Independent Review and behavioral QA remain pending; complete MCP activation
-and live Task output remain downstream, without a partial extension advertisement or live-delivery prerequisite.
+owns dependency/runtime/check evidence. Independent Review v3 ACCEPT and nonvisual QA PASS cover candidate
+`cbc442a10b34ccace1cc20cdebbb1c409dca2026` (nine QA groups / 776 checks). TASK-00100 is done; TASK-00101/00102
+keep its parents open. Canonical `.runs/handoffs/TASK-00100/land.md` owns advancing-base integration verification,
+publication and retirement outcomes, pending at this closeout checkpoint. Complete MCP activation and live Task
+output remain downstream, without a partial extension advertisement or live-delivery prerequisite.
 
 ## TASK-00147 protected profile Tool contracts — accepted checkpoint
 
