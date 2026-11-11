@@ -1,14 +1,21 @@
 # Fight AccessControl Context
 
-## Current-subscriber inspection — lifecycle-test repair pending acceptance
+## Current-subscriber inspection — accepted lifecycle-test repair
 
-TASK-00095 is in-progress for a bounded test correction after the integrated candidate's later mandatory gate failed.
+TASK-00095 is done for independently accepted package implementation and required QA after its bounded lifecycle-test correction.
 A deterministic committed forward heartbeat between query-clock sampling and scanning proves truthful uncertain
 freshness, not a production defect or the exact historical failure cause. Native worker assertions now send SIGKILL
 immediately after acknowledgment, verify retained unclosed evidence and classify at controlled persisted observation
 and expiry instants; recent as-of evidence never implies current connectivity. Production contracts and incoming
 optional Prompt behavior are unchanged. Canonical `.runs/handoffs/TASK-00095/work.md` owns repair verification;
-fresh independent Review and behavioral QA remain required. Historical acceptance below is not repair acceptance.
+independent Review v3 ACCEPT and nonvisual qa-repair-01 PASS cover candidate
+`b8df3471bdde41611b2c55059b39da61d674e2d9`, base `82499db9d9029679ce41c5502dcd67dbeeaf1b3a`.
+QA's seven groups/154 checks and fresh complete gate pass (8,913 tests / 90,384 assertions,
+exact 10,654/10,654 statements). Publication/final verification are pending at this closeout checkpoint;
+canonical `.runs/handoffs/TASK-00095/land.md` owns the advancing-base bridge and delivery/resource results.
+Minimum compatibility retains 43 advisories / 13 packages; ordinary none. Production consumer qualification,
+other unfinished EPIC scope and the combined unassigned release remain separate. Historical acceptance below
+retains its original subject, not repair acceptance.
 
 ### Historical accepted checkpoint
 
@@ -39,6 +46,30 @@ not guaranteed presence, historical absence, delivery/receipt or frozen browsing
 Independent Review and nonvisual behavioral QA remain pending at this Work checkpoint; TASK-00095 stays open.
 Production consumer policy/storage/clock/process/concurrency/safe-sink qualification, adoption, release and deployment
 remain separate and unclaimed.
+
+## Complete guarded Task serving — TASK-00101 accepted checkpoint
+
+[Slice E composition](docs/agent-task-authorization.md#complete-guarded-mcp-serving--slice-e) adds canonical
+`AgentTaskServing` and request-scoped `AgentTaskRequestAdmission`. All four real Common serving handlers are
+mandatory; the exact Tool registry receives real Agent Permission binding before complete Task activation.
+The existing Common HTTP guard selects independently configured acknowledgment versus ongoing-state admissions
+only after transport/protocol/mirror validation. Creation, Tool availability, input/cancel and producer/original
+continuation grants remain separate. Common owns negotiation, original retained state, safe errors, encoded bounds
+and lifecycle truth; consumers own submission/reconciliation, storage, scope and workers. No live output is enabled.
+
+Controlled actual HTTP/SQLite fixtures cover commit then TCP disconnect, independent producer reconstruction and
+fresh reconnect/get, complete input/confirmation/cancellation flow, denied ongoing operations after admitted start,
+postcommit/response/submission faults and exact final encoded response bounds. Common v1.5.0 source
+`06fb5cd3720af9cf8295198f74040d95b64c5155` remains sufficient; minimum/ordinary lane identities and actual checks
+belong to canonical `.runs/handoffs/TASK-00101/work.md`. Independent Review v3 ACCEPT and complete nonvisual QA
+PASS cover clean candidate `f979e009b6f8f4831d5ac405b5503b7b34fe363d`, without open findings: eight QA scenario
+groups include independent actual HTTP/state and native disconnect/producer/reconnect proof. TASK-00101 is done;
+TASK-00102 keeps TICKET-00031 and EPIC-00014 open. Earlier full gate retained: 8,898 tests / 90,048 assertions,
+exact 10,678/10,678 statements (40/40 new adapters). Administrative planning/documentation checks qualify closeout.
+Publication/final verification and retirement remain pending at this checkpoint; canonical
+`.runs/handoffs/TASK-00101/land.md` owns subsequent delivery outcomes. Minimum-lane advisories remain disclosed,
+not fixed; ordinary dependencies report none. This is not production crypto/storage/all-writer fencing,
+external-effect, worker/client/proxy qualification, optional live-state acceptance, adoption, release or deployment.
 
 ## Optional Prompt catalog-change disclosure — TASK-00094 accepted checkpoint
 

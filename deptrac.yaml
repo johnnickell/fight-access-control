@@ -37,6 +37,10 @@ deptrac:
           collectors:
               - type: classLike
                 value: ^Fight\\Common\\Adapter\\Http\\Error\\.*
+        - name: CommonTaskRouting
+          collectors:
+              - type: classLike
+                value: ^Fight\\Common\\Adapter\\Messaging\\(Command\\Sync\\(Routing\\InMemoryCommandRouter|RoutingCommandBus)|Query\\(Routing\\InMemoryQueryRouter|RoutingQueryBus))$
         - name: CommonDomain
           collectors:
               - type: classLike
@@ -71,6 +75,7 @@ deptrac:
             - SymfonyHttp
             - CodeIgniterHttp
             - CommonHttpError
+            - CommonTaskRouting
             - PhpInternal
         PsrHttp: []
         LaravelHttp: []
@@ -78,6 +83,10 @@ deptrac:
         CodeIgniterHttp: []
         CommonHttpError:
             - CommonApplication
+            - PhpInternal
+        CommonTaskRouting:
+            - CommonApplication
+            - CommonDomain
             - PhpInternal
         CommonDomain:
             - PhpInternal
