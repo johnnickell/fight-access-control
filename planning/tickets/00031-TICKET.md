@@ -112,7 +112,7 @@ forced cancellation, receipt/processing/rollback guarantees, consumer migration 
 | 97 | [TASK-00097](../tasks/00097-TASK.md) | Authorize Task creation, producer updates and protected reads | done |
 | 98 | [TASK-00098](../tasks/00098-TASK.md) | Authorize bounded retained Task removal | done |
 | 99 | [TASK-00099](../tasks/00099-TASK.md) | Authorize durable input and protected continuation | done |
-| 100 | [TASK-00100](../tasks/00100-TASK.md) | Authorize cancellation requests and intent observation | ready-for-agent |
+| 100 | [TASK-00100](../tasks/00100-TASK.md) | Authorize cancellation requests and intent observation | done |
 | 101 | [TASK-00101](../tasks/00101-TASK.md) | Authorize complete MCP Task start and reconnect journeys | ready-for-agent |
 | 102 | [TASK-00102](../tasks/00102-TASK.md) | Authorize optional full-state Task notifications | ready-for-agent |
 ## Decisions and Progress
