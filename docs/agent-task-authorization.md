@@ -1,10 +1,11 @@
-# Agent Task admission — slices A, B and C (unreleased)
+# Agent Task admission — slices A, B, C and D (unreleased)
 
 TASK-00097 composes independent direct Agent Permissions and consumer-owned scope with Common's actual Task
 creation, producer transition and complete current-state Query. It adds no Task lifecycle, persistence adapter,
 executor, scheduler, grant, protocol endpoint or advertised partial MCP Tasks extension. TASK-00098 adds independent
 bounded retained-data removal below. TASK-00099 adds durable input admission and protected continuation below.
-Cancellation mutation, full MCP serving and live Task output retain their later TASK owners.
+TASK-00100 adds independent cancellation requests and protected intent observation below. Full MCP serving and live
+Task output retain their later TASK owners.
 
 ## Contracts and ownership
 
@@ -371,6 +372,101 @@ The existing slice A Mermaid remains a view of that earlier boundary, not this i
 without private answer/binding diagnostics. Method-level tests do not register or advertise a partial Tasks extension.
 Full MCP start/reconnect/negotiation activation remains TASK-00101; ordinary stateless interaction/exact-key/replay and
 confirmation behavior is unchanged. Polling/input require no live Subscription runtime.
+
+## Cancellation requests and intent observation — slice D
+
+`AgentTaskCancellationAdmission` implements Common's actual `TaskCancellationAdmission` with **independent**
+cancellation and observation `AgentTaskAuthority` instances and consumer scopes. Mutation uses the new
+`AgentTaskCancellationScope`; observation reuses `AgentTaskCancellationObservationScope`. A consumer may retain
+slice C's observation-only admission where mutation must always be disabled. Neither class supplies default grants.
+Illustrative `TASK_CANCEL` and `INTENT_OBSERVE` names are consumer configuration, not seeded Permissions.
+
+```php
+use Fight\AccessControl\Application\AccessControl\Agent\Task\AgentTaskCancellationAdmission;
+use Fight\Common\Application\Mcp\Task\CommandHandler\RequestTaskCancellationHandler;
+use Fight\Common\Application\Mcp\Task\QueryHandler\GetTaskCancellationHandler;
+
+$intentAdmission = new AgentTaskCancellationAdmission(
+    $cancellationAuthority, $consumerCancellationScope, $intentObservationAuthority, $consumerIntentScope
+);
+$cancel = new RequestTaskCancellationHandler(
+    $taskRepository, $taskUnitOfWork, $committedTaskReader, $intentAdmission, $eventDispatcher, $millisecondClock
+);
+$observeIntent = new GetTaskCancellationHandler($committedTaskReader, $intentAdmission, $millisecondClock);
+$commandRouter->registerHandler($cancel::commandRegistration(), $cancel);
+$queryRouter->registerHandler($observeIntent::queryRegistration(), $observeIntent);
+```
+
+Dispatch actual Common `Domain/Mcp/Task/Command/RequestTaskCancellation` and
+`Domain/Mcp/Task/Query/GetTaskCancellation` payloads through these configured buses. Reuse this intent admission
+on `GetTaskInputHandler` and `AcquireTaskInputHandler` when composing slice C; their independent observation
+requirement is not satisfied by cancellation Permission. Keep creation, read, producer, input and original-bound
+continuation grants separate. Scope binds the **trusted requester or observer**, exact Task/namespace and original
+operation through authoritative consumer relationships, never caller-supplied identity, metadata or a known handle.
+Missing-target and terminal policy must also be explicit; unavailable policy throws, not permissive success.
+
+### Ordered runtime flow
+
+This maintained text diagram describes slice D's candidate; the canonical TASK-00100 Work handoff identifies its
+revision and original executable evidence. Arrows are actual ordered calls, not a production lock qualification.
+
+```text
+Trusted requester -> Common RequestTaskCancellation bus -> separate Task transaction / namespace lock
+                  -> cancellation Agent Permission + consumer scope -> retained lookup
+                  -> first intent commit -> independent committed-reader confirmation -> postcommit fact -> safe ack
+Trusted observer  -> Common GetTaskCancellation query -> independent observation Permission + scope
+                  -> coherent committed retained intent projection (id / version / cancellation)
+Original binding  -> existing current continuation guard -> input acquisition + intent observation -> bounded effect
+Trusted producer  -> independently admitted RecordTaskState bus -> actual terminal outcome, preserving prior intent
+```
+
+Source anchors: [cancellation policy](../src/Application/AccessControl/Agent/Task/AgentTaskCancellationAdmission.php),
+[scope](../src/Application/AccessControl/Agent/Task/AgentTaskCancellationScope.php),
+[real bus/fault/method/race journeys](../tests/Application/AccessControl/Agent/Task/AgentTaskCancellationAdmissionTest.php)
+and [original-bound continuation despite intent](../tests/Application/AccessControl/Agent/Task/AgentTaskInputAdmissionTest.php).
+No AccessControl cancellation ledger, lifecycle wrapper, stopping callback, scheduler or new protocol state exists.
+
+### Durable truth, races and safe boundaries
+
+- Common serializes cancellation and checks current admission **before retained lookup**, on first, repeat,
+  terminal, missing and cross-scope calls. Ordinary calls retain the one request's authenticated snapshot and nonce;
+  later requests require fresh providers. For background cancellation/observation, use slice A's action-scoped
+  authority under the existing guard with the appropriate independent requirements and qualified consumer fence.
+- First cancellation retains one bounded intent (request time and version), then confirms it through the committed
+  reader before acknowledgment. An admitted repeat or known-terminal request is a void no-op: no new event, timestamp,
+  TTL renewal, consumed-group reset, answer erasure or additional stopping obligation. A terminal no-op need not
+  create intent and reveals no actual result/error. Missing/expired state rejects and is never recreated.
+- The separate intent Query returns only `id`, `version`, `cancellation`; it discloses no Task state, original
+  arguments, input answers or terminal result. Observation does not consume intent. Admission denial or fault yields
+  Common's concealed `null`; it is not proof that intent/state is absent. Cancellation admission faults yield fixed
+  `TaskRejected` without private causes. The AccessControl adapter itself does not swallow operational faults.
+- Cancellation is **not terminal state or form refusal**. Real input issuance, accepted answers and confirmation
+  acquisition can follow intent. Both lock orders preserve lifetime identities, accepted evidence and consumed
+  single-use admission. A stale producer version conflicts; a newly admitted producer can report actual completed,
+  failed or cancelled outcome without clearing intent. A terminal winner cannot be reopened by late input or cancel.
+- Protected effects still use the original caller binding and current continuation Permission/scope, independently
+  of cancellation or earlier answers. Revocation, credential rotation, direct Permission/definition/scope changes and
+  resolver faults deny the next step without nonce replay or credential adoption. Denial proves no worker-stop fact.
+- Real precommit failure rolls back intent. Lost commit acknowledgment remains uncertain in **both** actual outcomes;
+  reconcile original retained state with an independent currently authorized reader before dependent effects.
+  Postcommit read/removal/expiry uncertainty withholds acknowledgment without claiming rollback. Publication failure
+  leaves intent committed; a repeat does not recreate a lost event. Caller transactions are refused without touching
+  unrelated work. Missed delivery, disconnect, response loss, TTL and data removal never prove observation or stopping.
+- Controlled consumers distinguish admitted intent, observation, attempted stop and actual outcome. Work can complete
+  or fail despite intent; external response loss remains uncertain. Consumed confirmations survive consumer faults;
+  no automatic external retry, exactly-once effect, rollback, compensation or forced termination is supplied.
+- Common's `McpTaskCancellation` method requires negotiated `tasks/cancel` and exactly one canonical 32-hex `taskId`,
+  returning only bounded `resultType: complete` (128-byte budget). Invalid/denied requests use its existing safe
+  protocol errors; other faults retain the central safe internal-error boundary, never raw private causes.
+  `notifications/cancelled`/request-progress cancellation is not durable cancellation. Method tests neither register
+  nor advertise a partial Tasks extension. Complete activation remains TASK-00101; no live delivery is required.
+
+The sufficient minimum remains Common **v1.5.0**, source `06fb5cd3720af9cf8295198f74040d95b64c5155`.
+TASK-00100's canonical Work handoff owns exact-minimum/restored ordinary locks, installed-source/runtime identity,
+focused/full-gate and exact coverage evidence. Separate SQLite processes exercise real namespace-lock contention
+in both cancellation/input/confirmation/terminal orders and current scope after waiting. These prove package
+composition, not consumer production storage, cryptography, authority/scope writers, global fences, queues,
+worker stop behavior or external effects. Independent Review and nonvisual behavioral QA remain separate obligations.
 
 ## Qualification and limits
 

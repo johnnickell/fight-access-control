@@ -22,6 +22,27 @@ pending at this closeout checkpoint; canonical `.runs/handoffs/TASK-00096/land.m
 Package fixtures do not qualify consumer policy, storage/crypto/authority races,
 deployed hub/browser entitlement, receipt, MCP live-wire support, adoption, release or deployment.
 
+## Cancellation admission — TASK-00100 accepted checkpoint
+
+[Slice D Task composition](docs/agent-task-authorization.md#cancellation-requests-and-intent-observation--slice-d)
+adds `AgentTaskCancellationAdmission` with independent configured cancellation/observation Agent authorities,
+`AgentTaskCancellationScope` and the existing observation scope. Actual Common cancellation Commands/intent Queries
+and `McpTaskCancellation` use these admissions; input/confirmation uses the independently protected intent port.
+Common owns serialization, retained intent, committed-reader confirmation, safe repeats/terminal no-ops and bounded
+acknowledgment. Neither cancellation Permission nor intent observation grants state/result access or worker control.
+Ordinary requests retain their snapshot/nonce; original-bound protected continuation still rechecks current authority.
+
+Common v1.5.0 (`06fb5cd3720af9cf8295198f74040d95b64c5155`) remains sufficient. Real routed SQLite fixtures exercise
+both lock orders for cancellation/input/confirmation/terminal races, durable cross-process reads, rollback,
+uncertain commit and postcommit/response loss. Intent preserves answers/consumption/terminal winners and proves no
+stop, rollback or actual outcome. Controlled scope/fence/consumer-effect proof does not qualify production storage,
+authority writers, cryptography, workers or exactly-once external effects. The canonical TASK-00100 Work handoff
+owns dependency/runtime/check evidence. Independent Review v3 ACCEPT and nonvisual QA PASS cover candidate
+`cbc442a10b34ccace1cc20cdebbb1c409dca2026` (nine QA groups / 776 checks). TASK-00100 is done; TASK-00101/00102
+keep its parents open. Canonical `.runs/handoffs/TASK-00100/land.md` owns advancing-base integration verification,
+publication and retirement outcomes, pending at this closeout checkpoint. Complete MCP activation and live Task
+output remain downstream, without a partial extension advertisement or live-delivery prerequisite.
+
 ## TASK-00147 protected profile Tool contracts — accepted checkpoint
 
 The [current six-declaration/member dispositions](docs/agent-profile-tools.md#current-contract-dispositions-task-00147)

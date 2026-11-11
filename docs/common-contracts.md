@@ -140,7 +140,12 @@ aggregate, without permanent identity memory. Its canonical Work handoff owns fe
 and concurrent SQLite qualification. DBAL remains development-only here; no production persistence is copied.
 TASK-00092 independently qualifies actual summary/list/detail/recovery Queries and `notices.recover` through
 [retained read composition](agent-notice-recovery.md), with inward Agent Permission and trusted consumer scope.
-Other TASK-00089–00090/00093–00096 and TASK-00099–00102 must inspect their exact declarations, configure actual
+TASK-00100 now composes actual `TaskCancellationAdmission`, `RequestTaskCancellationHandler`,
+`GetTaskCancellationHandler`, their owning Command/Query and `McpTaskCancellation` method from the same v1.5.0 tag.
+Independent mutation/observation authority runs before protected lookup; Common owns durable intent, committed-reader
+confirmation, terminal/repeat no-ops and safe method bounds. Its canonical Work handoff owns minimum/ordinary and
+cross-process SQLite/race/fault qualification; consumer stopping is not supplied or certified.
+Other TASK-00089–00090/00093–00096 and TASK-00101–00102 must inspect their exact declarations, configure actual
 Common buses and independently qualify each operation/family. This baseline clears only TASK-00110's historical
 supplier hold, not those feature
 holds, grant requirements, live-runtime requirements or separate generic typing/returned-page evidence gaps.
