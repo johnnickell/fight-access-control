@@ -8,17 +8,22 @@ use Fight\AccessControl\Adapter\Mcp\Tool\Agent\AgentProfileToolFailures;
 use Fight\AccessControl\Adapter\Mcp\Tool\Agent\GetAgentProfileTool;
 use Fight\AccessControl\Adapter\Mcp\Tool\Agent\UpdateAgentProfileTool;
 use Fight\AccessControl\Application\AccessControl\Agent\CommandHandler\UpdateAgentHandler;
+use Fight\AccessControl\Application\AccessControl\Agent\QueryHandler\GetAgentProfileHandler;
 use Fight\AccessControl\Domain\AccessControl\Agent\AgentName;
 use Fight\AccessControl\Domain\AccessControl\Agent\AgentProfilePermissions;
+use Fight\AccessControl\Domain\AccessControl\Agent\AgentRepository;
 use Fight\AccessControl\Domain\AccessControl\Agent\AgentUpdateInitiator;
 use Fight\AccessControl\Domain\AccessControl\Agent\Command\UpdateAgent;
 use Fight\AccessControl\Domain\AccessControl\Agent\Event\AgentNameChanged;
 use Fight\AccessControl\Domain\AccessControl\Agent\Exception\AgentNameException;
+use Fight\AccessControl\Domain\AccessControl\Agent\Exception\AgentNameUpdateConflictException;
 use Fight\AccessControl\Domain\AccessControl\Agent\Exception\AgentUpdateException;
 use Fight\AccessControl\Domain\AccessControl\Agent\Query\AgentProfileView;
 use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\AgentOperationFailure;
 use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\Exception\AgentOperationRejectedException;
 use Fight\AccessControl\Domain\AccessControl\Permission\PermissionName;
+use Fight\Common\Adapter\Messaging\Query\Routing\InMemoryQueryRouter;
+use Fight\Common\Adapter\Messaging\Query\RoutingQueryBus;
 use Fight\Common\Application\Error\Exception\InvalidInput;
 use Fight\Common\Application\Error\Exception\ResourceNotFound;
 use Fight\Common\Application\Error\Exception\StateConflict;
@@ -33,7 +38,9 @@ use Fight\Common\Application\Mcp\Tool\McpToolDiscovery;
 use Fight\Common\Application\Mcp\Tool\McpToolInvocation;
 use Fight\Common\Application\Messaging\Command\SynchronousCommandBus;
 use Fight\Common\Application\Messaging\Query\QueryBus;
+use Fight\Common\Domain\Exception\DomainException;
 use Fight\Common\Domain\Messaging\Command\CommandMessage;
+use Fight\Common\Domain\Messaging\Event\CommandFailedEvent;
 use Fight\Common\Domain\Messaging\Event\Event;
 use Fight\Test\AccessControl\Adapter\Mcp\Tool\Agent\Fixture\ProfileToolEnvironment;
 use Fight\Test\AccessControl\Application\AccessControl\Event\InMemoryEventDispatcher;
@@ -42,6 +49,7 @@ use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 use RuntimeException;
+use UnexpectedValueException;
 
 #[CoversClass(GetAgentProfileTool::class)]
 #[CoversClass(UpdateAgentProfileTool::class)]
@@ -71,6 +79,39 @@ final class AgentProfileToolsTest extends TestCase
         foreach (['agent_id', 'initiator', 'credential_id', 'permissions', 'state'] as $field) {
             yield $field => ['agent.profile.update', ['name' => 'Valid', $field => 'forbidden']];
         }
+    }
+
+    public function test_registered_schemas_match_exact_minimal_profile_and_name_only_input(): void
+    {
+        $env = new ProfileToolEnvironment();
+        $env->invoker();
+
+        $output = [
+            'type'                 => 'object',
+            'properties'           => ['agent_id' => ['type' => 'string'], 'name' => ['type' => 'string']],
+            'required'             => ['agent_id', 'name'],
+            'additionalProperties' => false
+        ];
+        foreach (['agent.profile.read', 'agent.profile.update'] as $name) {
+            $definition = $env->registry->definition($name);
+            self::assertNotNull($definition);
+            self::assertSame($output, json_decode($definition->outputSchema()->toString(), true));
+            self::assertFalse($definition->requiresFormElicitation());
+            $input = json_decode($definition->inputSchema()->toString(), true);
+            self::assertSame('object', $input['type']);
+            self::assertFalse($input['additionalProperties']);
+            if ($name === 'agent.profile.read') {
+                self::assertSame(['type' => 'object', 'additionalProperties' => false], $input);
+            } else {
+                self::assertSame(['name'], array_keys($input['properties']));
+                self::assertSame(['name'], $input['required']);
+                self::assertSame('string', $input['properties']['name']['type']);
+            }
+        }
+
+        self::assertSame(0, $env->nonces->consumptionCalls());
+        self::assertSame(0, $env->storage->agentRepository->nameWrites);
+        self::assertSame([], $env->storage->eventDispatcher->events());
     }
 
     public function test_real_rename_and_noop_share_acknowledgement_but_only_real_change_writes_and_publishes(): void
@@ -275,7 +316,7 @@ final class AgentProfileToolsTest extends TestCase
 
     public function test_unknown_storage_and_post_commit_publication_errors_are_publicly_redacted(): void
     {
-        foreach (['read', 'write', 'publication'] as $stage) {
+        foreach (['read', 'write', 'publication', 'double publication', 'subclass'] as $stage) {
             $env = new ProfileToolEnvironment();
             $failure = new RuntimeException('PRIVATE fixture credential envelope / permissions / storage / stack');
             $queryBus = null;
@@ -288,6 +329,22 @@ final class AgentProfileToolsTest extends TestCase
                 $env->storage->eventDispatcher = new InMemoryEventDispatcher(
                     static function (Event $event) use ($env, $failure): void {
                         self::assertFalse($env->storage->transaction->transactionActive);
+                        if ($event instanceof AgentNameChanged) {
+                            throw $failure;
+                        }
+
+                        throw new RuntimeException('Secondary private notification failure.');
+                    }
+                );
+            }
+
+            if ($stage === 'subclass') {
+                $subclassFailure = new class extends StateConflict {
+                };
+                $env->storage->agentRepository->beforeNameWrite = static fn(): never => throw $subclassFailure;
+            } elseif ($stage === 'publication') {
+                $env->storage->eventDispatcher = new InMemoryEventDispatcher(
+                    static function (Event $event) use ($failure): void {
                         if ($event instanceof AgentNameChanged) {
                             throw $failure;
                         }
@@ -318,10 +375,65 @@ final class AgentProfileToolsTest extends TestCase
             self::assertStringNotContainsString('PRIVATE', json_encode($response, JSON_THROW_ON_ERROR));
             $current = $env->storage->agentRepository->getById($env->original->getId());
             self::assertNotNull($current);
-            self::assertSame(
-                $stage === 'publication' ? 'Committed name' : 'Production deployment',
-                $current->getName()->toString()
-            );
+            $expectedName = 'Production deployment';
+            if (in_array($stage, ['publication', 'double publication'], true)) {
+                $expectedName = 'Committed name';
+            }
+
+            self::assertSame($expectedName, $current->getName()->toString());
+        }
+    }
+
+    public function test_real_read_handler_rejects_wrong_repository_identity_as_internal_not_absence(): void
+    {
+        $env = new ProfileToolEnvironment();
+        $other = new ProfileToolEnvironment();
+        $repository = $this->createMock(AgentRepository::class);
+        $repository->expects(self::once())->method('getById')->with($env->original->getId())
+            ->willReturn($other->original);
+        $router = new InMemoryQueryRouter();
+        $router->registerHandler(GetAgentProfileHandler::queryRegistration(), new GetAgentProfileHandler($repository));
+
+        $invoker = $env->invoker(new RoutingQueryBus($router));
+        try {
+            $invoker->invoke('agent.profile.read', (object) []);
+            self::fail('An inconsistent repository identity must not return a profile.');
+        } catch (DomainException $domainException) {
+            self::assertInstanceOf(DomainException::class, $domainException->getPrevious());
+            self::assertInstanceOf(UnexpectedValueException::class, $domainException->getPrevious()->getPrevious());
+        }
+
+        self::assertSame(1, $env->nonces->consumptionCalls());
+        self::assertSame(0, $env->storage->agentRepository->nameWrites);
+        self::assertSame([], $env->storage->eventDispatcher->events());
+    }
+
+    public function test_real_handler_conflict_and_cohort_refusal_keep_exact_safe_failure_bindings(): void
+    {
+        foreach (['name conflict', 'cohort refusal'] as $case) {
+            $env = new ProfileToolEnvironment();
+            if ($case === 'name conflict') {
+                $env->storage->agentRepository->beforeNameWrite = static fn(): never =>
+                    throw new AgentNameUpdateConflictException('Private repository diagnostic.');
+            } else {
+                $env->storage->operationRepository->operations = [];
+            }
+
+            $result = $this->wireResult($env->invoker()->invoke('agent.profile.update', ['name' => 'Refused']));
+            self::assertSame([
+                'resultType' => 'complete',
+                'content'    => [[
+                    'type' => 'text',
+                    'text' => 'The Agent profile operation could not be completed.'
+                ]],
+                'isError'    => true
+            ], $result);
+            self::assertSame($env->original, $env->storage->agentRepository->getById($env->original->getId()));
+            self::assertSame(0, $env->storage->agentRepository->nameWrites);
+            $events = $env->storage->eventDispatcher->events();
+            self::assertCount(1, $events);
+            self::assertInstanceOf(CommandFailedEvent::class, $events[0]);
+            self::assertStringNotContainsString('Private', json_encode($events[0]->toArray(), JSON_THROW_ON_ERROR));
         }
     }
 
@@ -332,8 +444,7 @@ final class AgentProfileToolsTest extends TestCase
             new AgentNameException('private'),
             new InvalidInput('private'),
             new StateConflict('private'),
-            new ResourceNotFound('private'),
-            new AgentOperationRejectedException(AgentOperationFailure::CONFLICT)
+            new ResourceNotFound('private')
         ];
         foreach ($failures as $failure) {
             self::assertNotNull($map->messageFor($failure));
@@ -345,6 +456,12 @@ final class AgentProfileToolsTest extends TestCase
             'The Agent profile operation could not be completed.',
             $map->messageFor(new AgentOperationRejectedException(AgentOperationFailure::CONFLICT))
         );
+        self::assertNull($map->messageFor(new class extends ResourceNotFound {
+        }));
+        self::assertNull($map->messageFor(new class extends InvalidInput {
+        }));
+        self::assertNull($map->messageFor(new class extends StateConflict {
+        }));
         self::assertNull($map->messageFor(new RuntimeException('private')));
         self::assertNull($map->messageFor(new AgentUpdateException('private')));
     }

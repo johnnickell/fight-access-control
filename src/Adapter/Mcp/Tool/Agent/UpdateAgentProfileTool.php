@@ -11,6 +11,7 @@ use Fight\AccessControl\Domain\AccessControl\Agent\AgentName;
 use Fight\AccessControl\Domain\AccessControl\Agent\AgentProfilePermissions;
 use Fight\AccessControl\Domain\AccessControl\Agent\AgentUpdateInitiator;
 use Fight\AccessControl\Domain\AccessControl\Agent\Command\UpdateAgent;
+use Fight\Common\Application\Error\Exception\InvalidInput;
 use Fight\Common\Application\Mcp\Tool\McpProgressReporter;
 use Fight\Common\Application\Mcp\Tool\McpTool;
 use Fight\Common\Application\Mcp\Tool\McpToolInfo;
@@ -64,8 +65,11 @@ final readonly class UpdateAgentProfileTool implements McpTool
     {
         $principal = $this->provider->resolve($this->request, $this->correlationId);
         $id = $principal->getAgentId();
-        /** @var string $inputName */
         $inputName = $input->get('name');
+        if (!is_string($inputName)) {
+            throw new InvalidInput('The Agent name is invalid.');
+        }
+
         $name = AgentName::fromString($inputName);
         $this->synchronousCommandBus->execute(new UpdateAgent(new AgentUpdateInitiator($id), $id, $name->toString()));
 
