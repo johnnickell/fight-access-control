@@ -128,5 +128,9 @@ or evidence identity is constructed in that composition. All existing business-r
 public registration deliberately establishes AnonymousId only for enabled evidence. No new audit-only actor input
 is needed in this slice because its existing typed Commands already supply sufficient provenance. Target admission,
 Role/reference fences and coupled persistence do not depend on enabling audit. Other family constructors remain
-unchanged until their owning TASKs implement optionality. TICKET-00048 retains cross-family conformance and real consumer qualification. Consumers still own persistence,
+unchanged until their owning TASKs implement optionality.
+TASK-00167 adds reusable [transaction/storage conformance](audit-transaction-conformance.md) around the enabled
+writer, reopened modeled representation and wrong-connection controls. It does not qualify family optionality,
+SQL storage or physical restart. TICKET-00048 retains complete cross-family reconciliation and real consumer qualification.
+Consumers still own persistence,
 access/retention, schema/deployment and actual connection/race/restore qualification; no backfill is provided.
