@@ -7,6 +7,9 @@ namespace Fight\Test\AccessControl\Adapter\Mcp\Subscription\Agent;
 use DateTimeImmutable;
 use Doctrine\DBAL\Connection;
 use Doctrine\DBAL\DriverManager;
+use Fight\AccessControl\Adapter\Mcp\Prompt\Agent\AgentPromptAvailability;
+use Fight\AccessControl\Adapter\Mcp\Prompt\Agent\AgentPromptPermissionBinding;
+use Fight\AccessControl\Adapter\Mcp\Prompt\Agent\AgentPromptPermissionCatalog;
 use Fight\AccessControl\Adapter\Mcp\Resource\Agent\AgentResourcePermissionBinding;
 use Fight\AccessControl\Adapter\Mcp\Resource\Agent\AgentResourcePermissionCatalog;
 use Fight\AccessControl\Adapter\Mcp\Skill\Agent\AgentSkillPermissionBinding;
@@ -58,6 +61,9 @@ use Fight\Common\Application\Mcp\Notice\Service\NoticeReadAdmission;
 use Fight\Common\Application\Mcp\Notice\Service\NoticeRecorder;
 use Fight\Common\Application\Mcp\Notice\Service\NoticeRecovery;
 use Fight\Common\Application\Mcp\Notice\Service\NoticeRecoveryIdentity;
+use Fight\Common\Application\Mcp\Prompt\McpPromptDiscovery;
+use Fight\Common\Application\Mcp\Prompt\McpPromptInfo;
+use Fight\Common\Application\Mcp\Prompt\McpPromptOutput;
 use Fight\Common\Application\Mcp\Protocol\McpRequest;
 use Fight\Common\Application\Mcp\Protocol\McpRequestMetadata;
 use Fight\Common\Application\Mcp\Protocol\McpServerInfo;
@@ -81,6 +87,7 @@ use Fight\Common\Domain\Mcp\Subscription\Query\ListSubscribers;
 use Fight\Common\Domain\Mcp\Subscription\Query\SummarizeSubscribers;
 use Fight\Common\Domain\Mcp\Subscription\SubscriberSelection;
 use Fight\Common\Domain\Value\Basic\StrictJson;
+use Fight\Test\AccessControl\Adapter\Mcp\Prompt\Agent\Fixture\PromptProvider;
 use Fight\Test\AccessControl\Adapter\Mcp\Resource\Agent\Fixture\ResourceProvider;
 use Fight\Test\AccessControl\Adapter\Mcp\Skill\Agent\Fixture\SkillRevision;
 use Fight\Test\AccessControl\Application\AccessControl\Agent\Authentication\FixedHmacSharedSecretDecipher;
@@ -127,6 +134,8 @@ final class AgentSubscriptionAdmissionTest extends TestCase
 
     private bool $scopeAllowed = true;
 
+    private bool $promptScopeAllowed = true;
+
     private ?Throwable $scopeFailure = null;
 
     private bool $continuity = true;
@@ -153,7 +162,7 @@ final class AgentSubscriptionAdmissionTest extends TestCase
             $now
         );
         $this->permissionRepository = new InMemoryPermissionRepository();
-        foreach (['LISTEN', 'SIGNAL', 'TOOL'] as $index => $name) {
+        foreach (['LISTEN', 'SIGNAL', 'TOOL', 'PROMPT', 'PROMPT_SIGNAL'] as $index => $name) {
             $permission = Permission::defineManaged(
                 PermissionId::fromString('018f0000-0000-7000-8000-'.sprintf('%012d', 510 + $index)),
                 PermissionName::fromString($name),
@@ -194,12 +203,17 @@ final class AgentSubscriptionAdmissionTest extends TestCase
         );
         $this->binding = AgentContinuationBinding::fromRequest($provider, $request, 'live');
         $this->scope = $this->createStub(AgentSubscriptionScope::class);
-        $this->scope->method('allows')->willReturnCallback(function (): bool {
+        $this->scope->method('allows')->willReturnCallback(function (
+            AuthenticatedAgentPrincipal $principal,
+            string $filter
+        ): bool {
             if ($this->scopeFailure !== null) {
                 throw $this->scopeFailure;
             }
 
-            return $this->scopeAllowed;
+            return $this->scopeAllowed && ($filter !== 'promptsListChanged' || (
+                $this->promptScopeAllowed && $principal->hasPermission(PermissionName::fromString('PROMPT_SIGNAL'))
+            ));
         });
         $this->connection = DriverManager::getConnection(['driver' => 'pdo_sqlite', 'memory' => true]);
         new DbalNoticeSchema()->install($this->connection);
@@ -1157,6 +1171,320 @@ final class AgentSubscriptionAdmissionTest extends TestCase
         self::assertCount(1, $this->failures);
     }
 
+    public function test_prompt_optional_enabled_disabled_absent_empty_and_unrequested_subsets(): void
+    {
+        [$catalog, $provider] = $this->prompts();
+        foreach (['enabled', 'disabled', 'absent', 'empty', 'unrequested', 'scope'] as $mode) {
+            $this->promptScopeAllowed = $mode !== 'scope';
+            $selected = match ($mode) {
+                'absent' => null,
+                'empty' => new AgentPromptPermissionCatalog([]),
+                default => $catalog
+            };
+            $body = $this->body(
+                admission: $this->admission(prompts: $selected),
+                prompts: $mode !== 'disabled',
+                requestedPrompts: $mode !== 'unrequested'
+            );
+            $ack = json_decode(substr($body->read(8192), 6), true, flags: JSON_THROW_ON_ERROR);
+            $expected = ['toolsListChanged' => true];
+            if ($mode === 'enabled') {
+                $expected['promptsListChanged'] = true;
+            }
+
+            self::assertSame($expected, $ack['params']['notifications'], $mode);
+            $this->record('prompt-'.$mode, 'mcp.prompts.list_changed');
+            $wire = $body->read(8192);
+            if ($mode === 'enabled') {
+                self::assertStringContainsString('notifications\\/prompts\\/list_changed', $wire);
+            } else {
+                self::assertSame(": keepalive\n\n", $wire, $mode);
+            }
+
+            $body->close();
+        }
+
+        self::assertSame(1, $provider->definitions);
+        self::assertSame(0, $provider->calls);
+        self::assertSame([], $provider->arguments);
+        self::assertSame(1, $this->nonces->consumptionCalls());
+        self::assertSame([], $this->failures);
+        $families = new AgentSubscriptionFamilies(promptCatalog: $catalog);
+        self::assertFalse($families->allows($this->principal(), 'promptsListChanged', 'docs:forged'));
+    }
+
+    public function test_prompt_advertisement_derives_only_from_actual_optional_common_registration(): void
+    {
+        [$catalog, $provider] = $this->prompts();
+        $discovery = $this->promptDiscovery($catalog, 'advertisement');
+        $subscriptions = new McpSubscriptions(
+            $this->queryBus,
+            new DbalSubscriptionStore($this->tracking),
+            $this->admission(prompts: $catalog),
+            NoticeSelection::create(['project']),
+            tools: false,
+            resources: false,
+            prompts: true
+        );
+        self::assertSame(['promptsListChanged'], $subscriptions->supported());
+        $server = new McpServerInfo('fixture', '1');
+        self::assertSame(['listChanged' => false], new McpCapabilityRegistry(
+            $server,
+            [$discovery]
+        )->advertisedCapabilities()['prompts']);
+        self::assertSame(['listChanged' => true], new McpCapabilityRegistry(
+            $server,
+            [$discovery],
+            $subscriptions
+        )->advertisedCapabilities()['prompts']);
+        self::assertSame(0, $provider->calls);
+        self::assertSame(1, $provider->definitions);
+    }
+
+    public function test_same_id_prompt_streams_keep_independent_scope_and_generic_tracking(): void
+    {
+        [$catalog, $provider] = $this->prompts();
+        $scope = $this->createStub(AgentSubscriptionScope::class);
+        $scope->method('allows')->willReturnCallback(
+            static fn(AuthenticatedAgentPrincipal $principal, string $filter, ?string $uri, ?Notice $notice): bool =>
+                $notice === null
+        );
+        $other = new AgentSubscriptionAdmission(
+            'other',
+            $this->authority('LISTEN'),
+            $this->authority('SIGNAL'),
+            $scope,
+            new AgentSubscriptionFamilies(promptCatalog: $catalog)
+        );
+        $one = $this->body(id: 7, admission: $this->admission(prompts: $catalog), prompts: true);
+        $two = $this->body(id: 7, admission: $other, prompts: true);
+        self::assertStringContainsString('promptsListChanged', $one->read(8192));
+        self::assertStringContainsString('promptsListChanged', $two->read(8192));
+        self::assertSame(2, (int) $this->tracking->fetchOne(
+            'SELECT COUNT(DISTINCT registration_id) FROM fight_mcp_subscriptions'
+        ));
+        $this->record('prompt-isolation', 'mcp.prompts.list_changed');
+        self::assertStringContainsString('notifications\\/prompts\\/list_changed', $one->read(8192));
+        $one->close();
+        self::assertSame(": keepalive\n\n", $two->read(8192));
+        $two->close();
+        self::assertSame(0, $provider->calls);
+        self::assertSame([], $this->failures);
+    }
+
+    public function test_prompt_final_check_after_tracking_wait_does_not_reuse_earlier_scope(): void
+    {
+        [$catalog, $provider] = $this->prompts();
+        $store = new ControlledSubscriptionStore(new DbalSubscriptionStore($this->tracking));
+        $body = $this->body(store: $store, admission: $this->admission(prompts: $catalog), prompts: true);
+        self::assertStringContainsString('promptsListChanged', $body->read(8192));
+        $this->record('queued-prompt', 'mcp.prompts.list_changed');
+        $store->beforeHeartbeat = function (int $count): void {
+            if ($count === 4) {
+                $this->promptScopeAllowed = false;
+            }
+        };
+        self::assertSame(": keepalive\n\n", $body->read(8192));
+        self::assertGreaterThanOrEqual(4, $store->heartbeats);
+        $body->close();
+        self::assertSame(0, $provider->calls);
+        self::assertSame([], $this->failures);
+    }
+
+    /** @return iterable<string, array{string}> */
+    public static function promptChanges(): iterable
+    {
+        $changes = ['LISTEN', 'SIGNAL', 'PROMPT_SIGNAL', 'PROMPT', 'scope', 'revocation', 'rotation', 'absent'];
+        foreach ($changes as $change) {
+            yield $change => [$change];
+        }
+    }
+
+    #[DataProvider('promptChanges')]
+    public function test_queued_prompt_rechecks_current_original_authority_and_scope(string $change): void
+    {
+        [$catalog, $provider] = $this->prompts();
+        $body = $this->body(admission: $this->admission(prompts: $catalog), prompts: true);
+        self::assertStringContainsString('promptsListChanged', $body->read(8192));
+        $this->record('queued-prompt', 'mcp.prompts.list_changed');
+        if ($change === 'scope') {
+            $this->promptScopeAllowed = false;
+        } elseif ($change === 'revocation') {
+            $this->save($this->agent->revoke($this->clock->now()));
+        } elseif ($change === 'rotation') {
+            $this->save($this->agent->rotateRecoverableCredential(
+                $this->agent->getCredentialId(),
+                $this->agent->getCredentialRevision(),
+                AgentCredentialId::fromString('018f0000-0000-7000-8000-000000000999'),
+                'encrypted:successor',
+                $this->clock->now()
+            ));
+        } elseif ($change === 'absent') {
+            $this->agentRepository->restoreSnapshot([]);
+        } else {
+            $this->save($this->agent->revokePermission($this->permissions[$change]->getId(), $this->clock->now()));
+        }
+
+        self::assertSame(": keepalive\n\n", $body->read(8192));
+        $body->close();
+        self::assertSame(0, $provider->calls);
+        self::assertSame([], $provider->arguments);
+        self::assertSame(1, $this->nonces->consumptionCalls());
+        self::assertSame([], $this->failures);
+    }
+
+    public function test_prompt_visibility_is_not_signal_scope_and_signal_does_not_grant_later_get(): void
+    {
+        [$catalog, $provider] = $this->prompts();
+        $this->save($this->agent->revokePermission($this->permissions['PROMPT_SIGNAL']->getId(), $this->clock->now()));
+        $discovery = $this->promptDiscovery($catalog, 'visible');
+        $metadata = McpRequestMetadata::fromObject(StrictJson::fromObject([
+            McpRequestMetadata::PROTOCOL_VERSION_KEY    => McpResponder::PROTOCOL_VERSION,
+            McpRequestMetadata::CLIENT_CAPABILITIES_KEY => StrictJson::fromObject([])
+        ]));
+        $visible = $discovery->handle(new McpRequest(1, 'prompts/list', [], $metadata))->toArray();
+        self::assertCount(1, $visible['prompts']);
+        $body = $this->body(admission: $this->admission(prompts: $catalog), prompts: true);
+        self::assertStringNotContainsString('promptsListChanged', $body->read(8192));
+        $body->close();
+        $this->save($this->agent->grantPermission($this->permissions['PROMPT_SIGNAL']->getId(), $this->clock->now()));
+        $body = $this->body(admission: $this->admission(prompts: $catalog), prompts: true);
+        self::assertStringContainsString('promptsListChanged', $body->read(8192));
+        $this->record('allowed-prompt', 'mcp.prompts.list_changed');
+        self::assertStringContainsString('notifications\\/prompts\\/list_changed', $body->read(8192));
+        $body->close();
+        $this->save($this->agent->revokePermission($this->permissions['PROMPT']->getId(), $this->clock->now()));
+        $discovery = $this->promptDiscovery($catalog, 'denied-later');
+        $hidden = $discovery->handle(new McpRequest(2, 'prompts/list', [], $metadata))->toArray();
+        self::assertSame([], $hidden['prompts']);
+        $responder = new McpResponder(new McpCapabilityRegistry(new McpServerInfo('fixture', '1'), [$discovery]));
+        $response = $responder->respond(json_encode([
+            'jsonrpc' => '2.0', 'id' => 3, 'method' => 'prompts/get', 'params' => [
+                'name'  => 'protected_prompt',
+                '_meta' => [
+                    McpRequestMetadata::PROTOCOL_VERSION_KEY    => McpResponder::PROTOCOL_VERSION,
+                    McpRequestMetadata::CLIENT_CAPABILITIES_KEY => StrictJson::fromObject([])
+                ]
+            ]
+        ], JSON_THROW_ON_ERROR))->toArray();
+        self::assertArrayHasKey('error', $response);
+        self::assertSame(0, $provider->calls);
+        self::assertSame([], $provider->arguments);
+    }
+
+    /** @return iterable<string, array{string}> */
+    public static function promptFaults(): iterable
+    {
+        foreach (['scope', 'resolver', 'source', 'tracking', 'transport'] as $fault) {
+            yield $fault => [$fault];
+        }
+    }
+
+    #[DataProvider('promptFaults')]
+    public function test_prompt_fault_closure_retains_committed_recovery_without_content_or_wire_diagnostics(
+        string $fault
+    ): void {
+        [$catalog, $provider] = $this->prompts();
+        $body = $this->body(admission: $this->admission(prompts: $catalog), prompts: true);
+        self::assertStringContainsString('promptsListChanged', $body->read(8192));
+        $this->record('retained-prompt', 'mcp.prompts.list_changed');
+        if ($fault === 'scope') {
+            $this->scopeFailure = new RuntimeException('private-prompt-body-secret');
+        } elseif ($fault === 'resolver') {
+            $this->permissionRepository->remove($this->permissions['PROMPT']);
+        } elseif ($fault === 'source') {
+            $this->sourceFailure = new RuntimeException('private-source-credential');
+        } elseif ($fault === 'tracking') {
+            $this->tracking->executeStatement('DROP TABLE fight_mcp_subscriptions');
+        }
+
+        if ($fault === 'transport') {
+            try {
+                $body->emitNext(static function (): void {
+                    throw new RuntimeException('private-transport');
+                });
+                self::fail('Transport failure must propagate');
+            } catch (RuntimeException $failure) {
+                self::assertSame('private-transport', $failure->getMessage());
+            }
+        } else {
+            self::assertSame('', $body->read(8192));
+            self::assertTrue($body->eof());
+            self::assertNotEmpty($this->failures);
+        }
+
+        $body->close();
+        self::assertSame(0, $provider->calls);
+        self::assertSame(1, (int) $this->connection->fetchOne('SELECT COUNT(*) FROM fight_notices'));
+        // Restore the independent read fixture; delivery faults never remove committed source notices.
+        if ($fault === 'resolver') {
+            $this->permissionRepository->add($this->permissions['PROMPT']);
+        }
+
+        $read = Permission::defineManaged(
+            PermissionId::fromString('018f0000-0000-7000-8000-000000000799'),
+            PermissionName::fromString('READ_NOTICES'),
+            PermissionTier::ADMIN_SAFE,
+            $this->clock->now()
+        );
+        $this->permissionRepository->add($read);
+        $this->save($this->agent->grantPermission($read->getId(), $this->clock->now()));
+        foreach (['first', 'repeat'] as $nonce) {
+            $batch = $this->recovery($nonce);
+            self::assertSame('complete', $batch->status());
+            self::assertSame('retained-prompt', $batch->notices()[0]->notice()->toArray()['id']);
+        }
+    }
+
+    /** @return array{AgentPromptPermissionCatalog, PromptProvider} */
+    private function prompts(): array
+    {
+        $provider = new PromptProvider(McpPromptInfo::fromArray([
+            'name'      => 'protected_prompt',
+            'arguments' => [['name' => 'required_argument', 'required' => true]]
+        ]), static function (): McpPromptOutput {
+            throw new RuntimeException('private-prompt-body-must-not-be-constructed');
+        });
+
+        return [new AgentPromptPermissionCatalog([
+            new AgentPromptPermissionBinding($provider, ['PROMPT'])
+        ]), $provider];
+    }
+
+    private function promptDiscovery(AgentPromptPermissionCatalog $catalog, string $nonce): McpPromptDiscovery
+    {
+        $unit = new InMemoryUnitOfWork();
+        $request = new SignedAgentRequest(
+            'POST',
+            'live.example',
+            '/mcp',
+            '',
+            $this->clock->now(),
+            $nonce,
+            $this->agent->getCredentialId(),
+            'HMAC-SHA256',
+            'signature',
+            null,
+            ''
+        );
+        $provider = new CurrentAgentPrincipalProvider(
+            $this->agentRepository,
+            $this->permissionRepository,
+            new FixedHmacSharedSecretDecipher('encrypted:'),
+            new FixedHmacSignedAgentRequestVerifier($request, 'fixture'),
+            $this->clock,
+            new InMemoryAgentRequestNonceConsumer($this->agentRepository, $unit),
+            $unit
+        );
+
+        return new McpPromptDiscovery(
+            $catalog->prompts(),
+            new AgentPromptAvailability($catalog, $provider, $request, $nonce),
+            str_repeat('k', 32),
+            'prompt-live-fixture'
+        );
+    }
+
     private function principal(): AuthenticatedAgentPrincipal
     {
         return $this->authority('LISTEN')->resolve();
@@ -1173,8 +1501,10 @@ final class AgentSubscriptionAdmissionTest extends TestCase
         );
     }
 
-    private function admission(string $subscriber = 'subscriber'): AgentSubscriptionAdmission
-    {
+    private function admission(
+        string $subscriber = 'subscriber',
+        ?AgentPromptPermissionCatalog $prompts = null
+    ): AgentSubscriptionAdmission {
         $registry = new McpToolRegistry([new RecoverNoticesTool($this->queryBus)]);
 
         return new AgentSubscriptionAdmission(
@@ -1184,7 +1514,8 @@ final class AgentSubscriptionAdmissionTest extends TestCase
             $this->scope,
             new AgentSubscriptionFamilies(
                 $registry,
-                new AgentToolPermissionCatalog($registry, ['notices.recover' => ['TOOL']])
+                new AgentToolPermissionCatalog($registry, ['notices.recover' => ['TOOL']]),
+                promptCatalog: $prompts
             )
         );
     }
@@ -1194,11 +1525,13 @@ final class AgentSubscriptionAdmissionTest extends TestCase
         string $subscriber = 'subscriber',
         ?McpSubscriptionStore $store = null,
         ?AgentSubscriptionAdmission $admission = null,
-        ?NoticeSelection $selection = null
+        ?NoticeSelection $selection = null,
+        bool $prompts = false,
+        bool $requestedPrompts = true
     ): McpEventStream {
         $request = new McpRequest($id, 'subscriptions/listen', ['notifications' => StrictJson::fromObject([
             'toolsListChanged'      => true,
-            'promptsListChanged'    => true,
+            'promptsListChanged'    => $requestedPrompts,
             'resourcesListChanged'  => true,
             'resourceSubscriptions' => ['docs:requested-private']
         ])], McpRequestMetadata::fromObject(StrictJson::fromObject([
@@ -1212,7 +1545,8 @@ final class AgentSubscriptionAdmissionTest extends TestCase
             $selection ?? NoticeSelection::create(['project']),
             resources: false,
             lifetimeSeconds: 1,
-            waitMicroseconds: 10000
+            waitMicroseconds: 10000,
+            prompts: $prompts
         );
         $responder = new McpResponder(new McpCapabilityRegistry(new McpServerInfo('fixture', '1'), []));
 

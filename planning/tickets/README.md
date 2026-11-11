@@ -33,7 +33,7 @@ This generated index is a projection; individual records remain canonical.
 | [TICKET-00027](00027-TICKET.md) | Authorize Prompt discovery and retrieval | done |
 | [TICKET-00028](00028-TICKET.md) | Revalidate Agent authority for protected continuation | done |
 | [TICKET-00029](00029-TICKET.md) | Compose scoped execution and protected-detail access | ready-for-agent |
-| [TICKET-00030](00030-TICKET.md) | Authorize retained notices and live Subscriptions | ready-for-agent |
+| [TICKET-00030](00030-TICKET.md) | Authorize retained notices and live Subscriptions | done |
 | [TICKET-00031](00031-TICKET.md) | Authorize durable Task operations and state disclosure | ready-for-agent |
 | [TICKET-00032](00032-TICKET.md) | Protect native HTTP entry points across all five frameworks | done |
 | [TICKET-00033](00033-TICKET.md) | Clarify architecture and capability ownership before extending integrations | done |

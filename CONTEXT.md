@@ -30,6 +30,28 @@ Independent Review and nonvisual behavioral QA remain pending at this Work check
 Production consumer policy/storage/clock/process/concurrency/safe-sink qualification, adoption, release and deployment
 remain separate and unclaimed.
 
+## Optional Prompt catalog-change disclosure — TASK-00094 accepted checkpoint
+
+[Prompt live composition](docs/agent-live-disclosure.md#optional-prompt-catalog-changes--task-00094) extends the
+existing canonical Subscription admission with optional `AgentPromptPermissionCatalog` metadata eligibility. The
+same immutable definitions serve ordinary Common Prompt discovery; current whole-catalog signal scope and configured
+activity Permissions remain independent of list/get visibility. Original-bound listen/disclosure authority, current
+Agent/credential/Permissions and consumer scope are rechecked at each queued/final signal check, without nonce replay,
+credential switching or a send-spanning lock. Listening/emission invokes no Prompt body/argument validation, linked
+read, business Query/effect or Tool/model execution. Later ordinary requests independently reauthorize.
+
+Common v1.5.0 (`06fb5cd3720af9cf8295198f74040d95b64c5155`) remains sufficient. Common owns optional flags, actual
+acknowledgment/standard frames, bounds, source/tracking and safe fault closure. Missing Prompt composition does not
+block ordinary live families or subscription-free Prompt serving. Committed notices remain independently recoverable
+after delivery failure, without complete-capture, stable-revision, receipt or exactly-once guarantees. Controlled
+real-authority/SQLite/native HTTP tests and canonical `.runs/handoffs/TASK-00094/work.md` own actual minimum/ordinary
+identities, runtime, checks, coverage, warnings and limitations. Independent Review ACCEPT and behavioral QA PASS
+cover candidate `fb58cb81cae6bed995eb31f0a3b68123f0aa6c67`; TASK-00094 is done for package acceptance.
+Publication and final delivery are pending at this closeout checkpoint; canonical `.runs/handoffs/TASK-00094/land.md`
+owns subsequent delivery and retirement results. Consumer capture/redaction/policy/history/crypto/storage,
+production concurrency/authority writers and deployed buffering/client receipt remain unqualified. No adoption,
+merge, release or deployment is claimed.
+
 ## Live Tool, Resource and whole-Skill disclosure — TASK-00093 accepted checkpoint
 
 [Live disclosure composition](docs/agent-live-disclosure.md) adds optional canonical Subscription adapters and

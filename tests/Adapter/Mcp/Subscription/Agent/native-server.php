@@ -3,6 +3,8 @@
 declare(strict_types=1);
 
 use Doctrine\DBAL\DriverManager;
+use Fight\AccessControl\Adapter\Mcp\Prompt\Agent\AgentPromptPermissionBinding;
+use Fight\AccessControl\Adapter\Mcp\Prompt\Agent\AgentPromptPermissionCatalog;
 use Fight\AccessControl\Adapter\Mcp\Subscription\Agent\AgentSubscriptionAdmission;
 use Fight\AccessControl\Adapter\Mcp\Subscription\Agent\AgentSubscriptionFamilies;
 use Fight\AccessControl\Adapter\Mcp\Tool\Agent\AgentToolPermissionCatalog;
@@ -44,6 +46,10 @@ use Fight\Common\Application\Mcp\Notice\Service\NoticeReadAdmission;
 use Fight\Common\Application\Mcp\Notice\Service\NoticeRecorder;
 use Fight\Common\Application\Mcp\Notice\Service\NoticeRecovery;
 use Fight\Common\Application\Mcp\Notice\Service\NoticeRecoveryIdentity;
+use Fight\Common\Application\Mcp\Prompt\McpPromptAvailability;
+use Fight\Common\Application\Mcp\Prompt\McpPromptDiscovery;
+use Fight\Common\Application\Mcp\Prompt\McpPromptInfo;
+use Fight\Common\Application\Mcp\Prompt\McpPromptOutput;
 use Fight\Common\Application\Mcp\Protocol\McpServerInfo;
 use Fight\Common\Application\Mcp\Subscription\McpSubscriptions;
 use Fight\Common\Application\Mcp\Tool\McpToolAvailability;
@@ -54,6 +60,7 @@ use Fight\Common\Application\Mcp\Tool\McpToolInvoker;
 use Fight\Common\Application\Mcp\Tool\McpToolRegistry;
 use Fight\Common\Domain\Mcp\Notice\Notice;
 use Fight\Common\Domain\Mcp\Notice\NoticeSelection;
+use Fight\Test\AccessControl\Adapter\Mcp\Prompt\Agent\Fixture\PromptProvider;
 use Fight\Test\AccessControl\Application\AccessControl\Agent\Repository\InMemoryAgentRepository;
 use Fight\Test\AccessControl\Application\AccessControl\Permission\Repository\InMemoryPermissionRepository;
 use Fight\Test\AccessControl\Application\AccessControl\Timing\Service\FixedClock;
@@ -126,23 +133,30 @@ $admission = new class implements NoticeAdmission {
 };
 $dispatcher = new SimpleEventDispatcher();
 $recorder = new NoticeRecorder(new DbalNoticeRepository($transaction), $transaction, $admission, $dispatcher);
-$source = new class ($recorder) implements NoticeReadAdmission {
+$promptEnabled = ($_SERVER['REQUEST_URI'] ?? '') === '/prompt';
+$source = new class ($recorder, $promptEnabled) implements NoticeReadAdmission {
     private int $calls = 0;
 
-    public function __construct(private readonly NoticeRecorder $recorder)
+    public function __construct(private readonly NoticeRecorder $recorder, private readonly bool $prompts)
     {
     }
 
     public function currentAccess(NoticeSelection $selection): NoticeAccess
     {
         if (++$this->calls === 2) {
-            $this->recorder->record(Notice::fromArray([
+            $types = ['mcp.tools.list_changed'];
+            if ($this->prompts) {
+                $types[] = 'mcp.prompts.list_changed';
+            }
+
+            foreach ($types as $index => $type) {
+                $this->recorder->record(Notice::fromArray([
                 'version'       => 1,
-                'id'            => 'native-one',
+                'id'            => 'native-'.$index,
                 'producer'      => 'producer',
                 'scope'         => 'project',
                 'topic'         => 'catalog',
-                'type'          => 'mcp.tools.list_changed',
+                'type'          => $type,
                 'occurred_at'   => null,
                 'metadata'      => [],
                 'relationships' => [
@@ -153,7 +167,8 @@ $source = new class ($recorder) implements NoticeReadAdmission {
                     'event'      => null,
                     'action'     => null
                 ]
-            ]));
+                ]));
+            }
         }
 
         return NoticeAccess::create(['project'], [], new NoticeRecoveryIdentity('producer-source', 'epoch-1', true));
@@ -174,9 +189,19 @@ $scope = new class implements AgentSubscriptionScope {
         return true;
     }
 };
+$promptProvider = new PromptProvider(McpPromptInfo::fromArray([
+    'name'      => 'private-prompt-name',
+    'arguments' => [['name' => 'private-required', 'required' => true]]
+]), static function (): McpPromptOutput {
+    throw new RuntimeException('private-prompt-body-provider-must-not-run');
+});
+$promptCatalog = new AgentPromptPermissionCatalog([
+    new AgentPromptPermissionBinding($promptProvider, ['LIVE_FIXTURE'])
+]);
 $live = new AgentSubscriptionAdmission('trusted-native', $authority, $authority, $scope, new AgentSubscriptionFamilies(
     $registry,
-    $catalog
+    $catalog,
+    promptCatalog: $promptEnabled ? $promptCatalog : null
 ));
 $subscriptions = new McpSubscriptions(
     $queryBus,
@@ -186,7 +211,8 @@ $subscriptions = new McpSubscriptions(
     resources: false,
     lifetimeSeconds: $trackingPath === false ? 3 : 30,
     waitMicroseconds: 10000,
-    maxFrameBytes: 8192
+    maxFrameBytes: 8192,
+    prompts: $promptEnabled
 );
 $availability = new class implements McpToolAvailability {
     public function isAvailable(McpToolInfo $tool): bool
@@ -194,9 +220,22 @@ $availability = new class implements McpToolAvailability {
         return true;
     }
 };
+$promptAvailability = new class implements McpPromptAvailability {
+    public function isAvailable(McpPromptInfo $prompt): bool
+    {
+        throw new RuntimeException('private-request-snapshot-must-not-run-for-live');
+    }
+};
+$promptDiscovery = new McpPromptDiscovery(
+    $promptCatalog->prompts(),
+    $promptAvailability,
+    str_repeat('p', 32),
+    'native-prompts'
+);
 $capabilities = new McpCapabilityRegistry(new McpServerInfo('native-fixture', '1'), [
     new McpToolDiscovery($registry, $availability, str_repeat('k', 32)),
-    new McpToolInvocation(new McpToolInvoker($registry, $availability))
+    new McpToolInvocation(new McpToolInvoker($registry, $availability)),
+    ...($promptEnabled ? [$promptDiscovery] : [])
 ], $subscriptions);
 $guard = new class implements McpInvocationGuard {
     public function allows(string $method, ?string $name): bool

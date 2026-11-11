@@ -9,6 +9,7 @@ use Fight\AccessControl\Adapter\Mcp\Subscription\Agent\AgentSubscriptionFamilies
 use Fight\Common\Application\Mcp\McpResponder;
 use Fight\Common\Application\Mcp\Protocol\McpRequestMetadata;
 use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 use stdClass;
 use Symfony\Component\Process\Process;
@@ -17,8 +18,19 @@ use Symfony\Component\Process\Process;
 #[CoversClass(AgentSubscriptionFamilies::class)]
 final class AgentSubscriptionNativeTest extends TestCase
 {
-    public function test_native_http_delivers_ack_and_signal_before_finite_completion_and_preserves_guards(): void
+    /** @return iterable<string, array{string, int|string}> */
+    public static function nativeFamilies(): iterable
     {
+        yield 'ordinary without Prompt' => ['/mcp', '007'];
+        yield 'mixed escaped string ID' => ['/prompt', "007\"/é\r\ndata: inert"];
+        yield 'mixed integer ID' => ['/prompt', 7];
+    }
+
+    #[DataProvider('nativeFamilies')]
+    public function test_native_http_delivers_ack_and_signal_before_finite_completion_and_preserves_guards(
+        string $path,
+        int|string $id
+    ): void {
         $listener = stream_socket_server('tcp://127.0.0.1:0', $errorCode, $error);
         self::assertIsResource($listener);
         $address = stream_socket_get_name($listener, false);
@@ -48,7 +60,7 @@ final class AgentSubscriptionNativeTest extends TestCase
             stream_set_timeout($socket, 3);
             $json = json_encode([
                 'jsonrpc' => '2.0',
-                'id'      => '007',
+                'id'      => $id,
                 'method'  => 'subscriptions/listen',
                 'params'  => [
                     '_meta'         => [
@@ -59,7 +71,7 @@ final class AgentSubscriptionNativeTest extends TestCase
                 ]
             ], JSON_THROW_ON_ERROR);
             $request = implode("\r\n", [
-                'POST /mcp HTTP/1.1',
+                'POST '.$path.' HTTP/1.1',
                 'Host: '.$address,
                 'Accept: application/json, text/event-stream',
                 'Content-Type: application/json',
@@ -74,11 +86,13 @@ final class AgentSubscriptionNativeTest extends TestCase
             fwrite($socket, $request);
             $wire = '';
             $frames = [];
-            while (!feof($socket) && count($frames) < 2) {
+            $expectedFrames = $path === '/prompt' ? 3 : 2;
+            while (!feof($socket) && count($frames) < $expectedFrames) {
                 $line = fgets($socket);
                 self::assertNotFalse($line, $process->getErrorOutput());
                 $wire .= $line;
                 if (str_starts_with($line, 'data: ')) {
+                    self::assertLessThanOrEqual(8192, strlen($line) + 1);
                     $frames[] = json_decode(substr($line, 6), true, flags: JSON_THROW_ON_ERROR);
                 }
             }
@@ -86,15 +100,28 @@ final class AgentSubscriptionNativeTest extends TestCase
             $early = (hrtime(true) - $started) / 1000000000;
             // Allow cold Composer/bootstrap time while still requiring frames well before finite closure.
             self::assertLessThan(2.5, $early, $wire.$process->getErrorOutput());
+            self::assertStringNotContainsString('"resultType":"complete"', $wire);
             self::assertFalse(feof($socket));
             self::assertSame('notifications/subscriptions/acknowledged', $frames[0]['method']);
-            self::assertSame(['toolsListChanged' => true], $frames[0]['params']['notifications']);
-            self::assertSame('007', $frames[0]['params']['_meta']['io.modelcontextprotocol/subscriptionId']);
+            $expected = ['toolsListChanged' => true];
+            if ($path === '/prompt') {
+                $expected['promptsListChanged'] = true;
+                self::assertSame('notifications/prompts/list_changed', $frames[2]['method']);
+                self::assertSame(['_meta'], array_keys($frames[2]['params']));
+            }
+
+            self::assertSame($expected, $frames[0]['params']['notifications']);
+            foreach ($frames as $frame) {
+                self::assertSame($id, $frame['params']['_meta']['io.modelcontextprotocol/subscriptionId']);
+                self::assertSame('2.0', $frame['jsonrpc']);
+            }
+
             self::assertSame('notifications/tools/list_changed', $frames[1]['method']);
             self::assertStringContainsString('HTTP/1.1 200 OK', $wire);
             self::assertStringContainsString('X-Accel-Buffering: no', $wire);
             $wire .= stream_get_contents($socket);
             fclose($socket);
+            // Exclude native server/bootstrap latency; bytes must arrive well before stream closure.
             self::assertGreaterThanOrEqual($early + 1.0, (hrtime(true) - $started) / 1000000000);
             self::assertStringContainsString('"resultType":"complete"', $wire);
             self::assertStringNotContainsString('private-', $wire);
