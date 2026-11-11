@@ -1,5 +1,27 @@
 # Fight AccessControl Context
 
+## Optional notice publication — TASK-00096 accepted checkpoint
+
+[Explicit publication composition](docs/agent-notice-publication.md) adds inward `AgentNoticePublicationPolicy`
+and consumer `AgentNoticePublicationScope` over Common v1.5.0's actual publication-policy seam. Each attempt
+reuses original-bound `AgentNoticeAuthority` for fresh direct operation Permissions, then consumer topic/mode/
+whole-audience/field disclosure. Common owns committed reconstruction, encoded bounds, statuses, diagnostics,
+synchronous acknowledged-commit handoff and public/private Mercure adapters. No broadcaster, retry engine,
+new grant, read lease, send-spanning lock or automatic registration is added. Private denial/fault/unsupported
+output never falls back to public. Permission may change after the final check before sending.
+
+Real authority, routed Common recording/inspection/recovery, SQLite and controlled-hub `Update` tests cover
+safe projections, independent grants, changed current authority/scope, precommit failure, committed publication
+failure/repeated attempts, recovery/retention truth and disabled output. Common ^1.5.0 remains sufficient;
+optional Mercure ^0.7 is suggested, development-only for package tests. The canonical Work handoff owns exact
+minimum/ordinary dependency/runtime/gate evidence and warnings. Independent Review v3 ACCEPT and complete nonvisual
+QA PASS cover candidate `65034aff05c08adaca806f840aa4920c55c6a081`: 14 independent scenarios / 191 assertions plus
+63 focused tests / 944 assertions, without blockers. TASK-00096 is done; unfinished siblings keep TICKET-00030 and
+EPIC-00014 open. Behavior-preserving advanced-base integration, final verification/publication and retirement remain
+pending at this closeout checkpoint; canonical `.runs/handoffs/TASK-00096/land.md` owns subsequent results and provenance.
+Package fixtures do not qualify consumer policy, storage/crypto/authority races,
+deployed hub/browser entitlement, receipt, MCP live-wire support, adoption, release or deployment.
+
 ## Cancellation admission — TASK-00100 accepted checkpoint
 
 [Slice D Task composition](docs/agent-task-authorization.md#cancellation-requests-and-intent-observation--slice-d)
