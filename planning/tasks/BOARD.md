@@ -5,11 +5,13 @@ dependencies, acceptance, and verification.
 
 ## What's Next?
 
-First ready Task: [TASK-00089](00089-TASK.md) — Compose scoped execution and timeline reads.
+Active Task: [TASK-00100](00100-TASK.md) — Authorize cancellation requests and intent observation.
 
 ## In Progress
 
-No Tasks are currently in this state.
+| Order | TASK ID | Title | Parent TICKET | Status | Blocked by | PR |
+| --- | --- | --- | --- | --- | --- | --- |
+| 100 | [TASK-00100](00100-TASK.md) | Authorize cancellation requests and intent observation | [TICKET-00031](../tickets/00031-TICKET.md) — Authorize durable Task operations and state disclosure | in-progress | [TASK-00097](00097-TASK.md), [TASK-00099](00099-TASK.md) | — |
 
 ## Ready Frontier
 
@@ -18,7 +20,6 @@ No Tasks are currently in this state.
 | 89 | [TASK-00089](00089-TASK.md) | Compose scoped execution and timeline reads | [TICKET-00029](../tickets/00029-TICKET.md) — Compose scoped execution and protected-detail access | ready-for-agent | [TASK-00084](00084-TASK.md) | — |
 | 93 | [TASK-00093](00093-TASK.md) | Authorize live Tool, Resource and whole-Skill change disclosure | [TICKET-00030](../tickets/00030-TICKET.md) — Authorize retained notices and live Subscriptions | ready-for-agent | [TASK-00086](00086-TASK.md), [TASK-00088](00088-TASK.md), [TASK-00092](00092-TASK.md) | — |
 | 96 | [TASK-00096](00096-TASK.md) | Authorize optional notice publication | [TICKET-00030](../tickets/00030-TICKET.md) — Authorize retained notices and live Subscriptions | ready-for-agent | [TASK-00088](00088-TASK.md), [TASK-00092](00092-TASK.md) | — |
-| 100 | [TASK-00100](00100-TASK.md) | Authorize cancellation requests and intent observation | [TICKET-00031](../tickets/00031-TICKET.md) — Authorize durable Task operations and state disclosure | ready-for-agent | [TASK-00097](00097-TASK.md), [TASK-00099](00099-TASK.md) | — |
 | 326 | [TASK-00147](00147-TASK.md) | Align protected Agent profile Tool contracts | [TICKET-00041](../tickets/00041-TICKET.md) — Align presentation and integration contracts | ready-for-agent | [TASK-00128](00128-TASK.md), [TASK-00131](00131-TASK.md), [TASK-00141](00141-TASK.md) | — |
 | 400 | [TASK-00167](00167-TASK.md) | Provide reusable audit transaction conformance | [TICKET-00048](../tickets/00048-TICKET.md) — Qualify audit composition and document consumer adoption | ready-for-agent | [TASK-00122](00122-TASK.md) | — |
 | 403 | [TASK-00123](00123-TASK.md) | Audit User creation, recovery and administration | [TICKET-00044](../tickets/00044-TICKET.md) — Audit User account and credential journeys | ready-for-agent | [TASK-00122](00122-TASK.md) | — |

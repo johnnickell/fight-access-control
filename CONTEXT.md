@@ -1,5 +1,23 @@
 # Fight AccessControl Context
 
+## Cancellation admission — TASK-00100 Work checkpoint
+
+[Slice D Task composition](docs/agent-task-authorization.md#cancellation-requests-and-intent-observation--slice-d)
+adds `AgentTaskCancellationAdmission` with independent configured cancellation/observation Agent authorities,
+`AgentTaskCancellationScope` and the existing observation scope. Actual Common cancellation Commands/intent Queries
+and `McpTaskCancellation` use these admissions; input/confirmation uses the independently protected intent port.
+Common owns serialization, retained intent, committed-reader confirmation, safe repeats/terminal no-ops and bounded
+acknowledgment. Neither cancellation Permission nor intent observation grants state/result access or worker control.
+Ordinary requests retain their snapshot/nonce; original-bound protected continuation still rechecks current authority.
+
+Common v1.5.0 (`06fb5cd3720af9cf8295198f74040d95b64c5155`) remains sufficient. Real routed SQLite fixtures exercise
+both lock orders for cancellation/input/confirmation/terminal races, durable cross-process reads, rollback,
+uncertain commit and postcommit/response loss. Intent preserves answers/consumption/terminal winners and proves no
+stop, rollback or actual outcome. Controlled scope/fence/consumer-effect proof does not qualify production storage,
+authority writers, cryptography, workers or exactly-once external effects. The canonical TASK-00100 Work handoff
+owns dependency/runtime/check evidence. Independent Review and behavioral QA remain pending; complete MCP activation
+and live Task output remain downstream, without a partial extension advertisement or live-delivery prerequisite.
+
 ## Durable Task input — TASK-00099 accepted checkpoint
 
 The [slice C Task composition](docs/agent-task-authorization.md#durable-input-and-protected-continuation--slice-c)
