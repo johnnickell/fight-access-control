@@ -48,8 +48,11 @@ final readonly class IssuanceBusFixture
     {
         $this->commandBus->execute($command);
 
-        return $this->queryBus->fetch(
+        /** @var AgentOperationView $view Known matching GetAgentOperationHandler registration */
+        $view = $this->queryBus->fetch(
             new GetAgentOperation($command->getKey(), $command->getRequest()->getDestination())
         );
+
+        return $view;
     }
 }
