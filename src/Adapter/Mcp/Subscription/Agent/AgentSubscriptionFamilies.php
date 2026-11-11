@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Fight\AccessControl\Adapter\Mcp\Subscription\Agent;
 
+use Fight\AccessControl\Adapter\Mcp\Prompt\Agent\AgentPromptPermissionBinding;
+use Fight\AccessControl\Adapter\Mcp\Prompt\Agent\AgentPromptPermissionCatalog;
 use Fight\AccessControl\Adapter\Mcp\Resource\Agent\AgentResourcePermissionCatalog;
 use Fight\AccessControl\Adapter\Mcp\Skill\Agent\AgentSkillPermissionCatalog;
 use Fight\AccessControl\Adapter\Mcp\Tool\Agent\AgentToolPermissionCatalog;
@@ -33,7 +35,8 @@ final readonly class AgentSubscriptionFamilies
         private ?McpToolRegistry $toolRegistry = null,
         private ?AgentToolPermissionCatalog $toolCatalog = null,
         private ?AgentResourcePermissionCatalog $resourceCatalog = null,
-        private ?AgentSkillPermissionCatalog $skillCatalog = null
+        private ?AgentSkillPermissionCatalog $skillCatalog = null,
+        private ?AgentPromptPermissionCatalog $promptCatalog = null
     ) {
         if (($toolRegistry === null) !== ($toolCatalog === null)) {
             throw new LogicException('Subscription Tool composition must share a registry and catalog.');
@@ -75,6 +78,18 @@ final readonly class AgentSubscriptionFamilies
             };
 
             return $this->toolRegistry->available($availability) !== [];
+        }
+
+        if ($filter === 'promptsListChanged') {
+            if ($uri !== null || $this->promptCatalog === null) {
+                return false;
+            }
+
+            return array_any(
+                $this->promptCatalog->prompts(),
+                fn(AgentPromptPermissionBinding $prompt): bool =>
+                    $this->permitted($principal, $this->promptCatalog->requirementsFor($prompt->info()))
+            );
         }
 
         if ($this->resourceCatalog === null) {
