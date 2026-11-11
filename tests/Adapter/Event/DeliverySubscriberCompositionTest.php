@@ -165,12 +165,12 @@ final class DeliverySubscriberCompositionTest extends TestCase
         $handler = new InvitePendingUserHandler(
             $users,
             $grants,
-            $audit,
             $unitOfWork,
             new FixedCredentialGenerator('synthetic-invitation'),
             new PrefixInvitationDeliveryCipher(),
             new FixedClock('2030-01-01T00:00:00Z'),
-            $dispatcher
+            $dispatcher,
+            $audit
         );
         $router->registerHandler($handler::commandRegistration(), $handler);
         $userId = UserId::generate();

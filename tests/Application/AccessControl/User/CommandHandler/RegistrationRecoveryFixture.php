@@ -104,12 +104,12 @@ final class RegistrationRecoveryFixture
             $this->userRepository,
             $this->activationGrantRepository,
             $authorization ?? $this->authorization(),
-            $this->auditEvidenceRepository,
             $unitOfWork ?? $this->unitOfWork,
             new FixedCredentialGenerator('recovered-registration-credential'),
             new PrefixInvitationDeliveryCipher(),
             new FixedClock($at),
-            $eventDispatcher ?? $this->eventDispatcher
+            $eventDispatcher ?? $this->eventDispatcher,
+            $this->auditEvidenceRepository
         );
     }
 

@@ -173,24 +173,24 @@ final class UserLifecycleContractTest extends TestCase
         $sessions = new SessionRevocationService($this->createStub(RefreshSessionRepository::class));
         $resets = $this->createStub(PasswordResetGrantRepository::class);
         $handler = match ($operation) {
-            'enable' => new EnableUserHandler($userRepository, $audit, $unitOfWork, $eventDispatcher, $clock),
+            'enable' => new EnableUserHandler($userRepository, $unitOfWork, $eventDispatcher, $clock, $audit),
             'disable' => new DisableUserHandler(
                 $userRepository,
                 $sessions,
                 $clock,
-                $audit,
                 $unitOfWork,
                 $eventDispatcher,
-                $resets
+                $resets,
+                $audit
             ),
             'delete' => new DeleteUserHandler(
                 $userRepository,
                 $sessions,
                 $clock,
-                $audit,
                 $unitOfWork,
                 $eventDispatcher,
-                $resets
+                $resets,
+                $audit
             ),
             'restore' => new RestoreUserHandler(
                 $userRepository,
@@ -198,31 +198,31 @@ final class UserLifecycleContractTest extends TestCase
                 $generator,
                 $cipher,
                 $clock,
-                $audit,
                 $unitOfWork,
-                $eventDispatcher
+                $eventDispatcher,
+                $audit
             ),
             'correct' => new CorrectPendingInvitationHandler(
                 $userRepository,
                 $grantRepository,
                 $this->createStub(InvitationAdministrationAuthorization::class),
-                $audit,
                 $unitOfWork,
                 $generator,
                 $cipher,
                 $clock,
-                $eventDispatcher
+                $eventDispatcher,
+                $audit
             ),
             default => new RecoverPendingRegistrationHandler(
                 $userRepository,
                 $grantRepository,
                 $this->createStub(RegistrationRecoveryAuthorization::class),
-                $audit,
                 $unitOfWork,
                 $generator,
                 $cipher,
                 $clock,
-                $eventDispatcher
+                $eventDispatcher,
+                $audit
             )
         };
         $command = match ($operation) {
