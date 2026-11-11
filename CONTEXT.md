@@ -1164,7 +1164,13 @@ planning/source observations below describe its historical baseline; the shared 
 TASK-00167's [test-only conformance](docs/audit-transaction-conformance.md) now exercises the existing enabled
 EnableUserHandler with ordinary shared transactions, reopened modeled User/evidence bytes, audit rollback,
 concurrency loss, both commit-uncertainty outcomes, publication failure and two-active-composition wrong-connection
-controls. Its canonical Work handoff owns checks and limitations; independent Review and nonvisual QA remain required.
+controls. Independent Review v3 ACCEPT and nonvisual QA PASS cover `c14704b259a48e9287b43bcb9d4ba5775c40531d`
+(22 scenarios / 510 QA checks). Land's behavior-preserving integration of develop
+`12aeb8464230892ff5eea04da037ca079fb8016c` adapts the supplied audit repository to the enabled writer's new final
+constructor argument and passes a fresh full gate: 8,839 tests / 89,522 assertions, exact 10,551/10,551 statements.
+TASK-00167 is done; unfinished children keep TICKET-00048/EPIC-00017 open. Publication/final verification remain
+pending at this administrative checkpoint; canonical `.runs/handoffs/TASK-00167/land.md` owns subsequent bridge,
+delivery and resource outcomes. Original independent reports and earlier Work/Review/QA counts remain distinct.
 No production API, family optionality, real SQL/process/consumer qualification or workaround retirement is supplied.
 
 TASK-00122 supplies the [typed evidence replacement](docs/audit-evidence.md): the old string/context model

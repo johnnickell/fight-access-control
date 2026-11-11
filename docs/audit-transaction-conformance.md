@@ -123,8 +123,9 @@ free-text reasons. A future free-text field needs field-specific safety admissio
 sanitizer. Evidence and identifiers are not automatically public/log-safe: protect storage access, retention, test
 artifacts and publication independently. Re-thrown faults still need consumer response/log sanitation.
 
-Pending family proof remains with TASK-00123–00127 and TASK-00153–00165 (including no-change, retained-key replay,
-changed-subject batches and external send/cleanup distinctions). Actual Role create/rename/remove composition remains
+Family proof remains with its owners: TASK-00123's lifecycle optionality has separate acceptance; pending
+TASK-00124–00127 and TASK-00153–00165 retain no-change, retained-key replay, changed-subject batches and external
+send/cleanup distinctions. Actual Role create/rename/remove composition remains
 TASK-00168; integrated reconciliation remains TASK-00169. No scenario is silently skipped or counted as family proof.
 Existing entry, target/scope, reference, cohort and restoration fences remain unchanged. Provenance grants nothing.
 

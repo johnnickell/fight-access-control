@@ -5,13 +5,11 @@ dependencies, acceptance, and verification.
 
 ## What's Next?
 
-Active Task: [TASK-00167](00167-TASK.md) — Provide reusable audit transaction conformance.
+First ready Task: [TASK-00089](00089-TASK.md) — Compose scoped execution and timeline reads.
 
 ## In Progress
 
-| Order | TASK ID | Title | Parent TICKET | Status | Blocked by | PR |
-| --- | --- | --- | --- | --- | --- | --- |
-| 400 | [TASK-00167](00167-TASK.md) | Provide reusable audit transaction conformance | [TICKET-00048](../tickets/00048-TICKET.md) — Qualify audit composition and document consumer adoption | in-progress | [TASK-00122](00122-TASK.md) | — |
+No Tasks are currently in this state.
 
 ## Ready Frontier
 
@@ -211,6 +209,7 @@ No Tasks are currently in this state.
 | 327 | [TASK-00148](00148-TASK.md) | Align Resource and Skill binding contracts | [TICKET-00041](../tickets/00041-TICKET.md) — Align presentation and integration contracts | done | — | https://github.com/johnnickell/fight-access-control/pull/184 |
 | 328 | [TASK-00149](00149-TASK.md) | Align public payload schemas and declarative metadata | [TICKET-00041](../tickets/00041-TICKET.md) — Align presentation and integration contracts | done | [TASK-00133](00133-TASK.md) | https://github.com/johnnickell/fight-access-control/pull/185 |
 | 399 | [TASK-00166](00166-TASK.md) | Maintain complete audit outcome coverage | [TICKET-00048](../tickets/00048-TICKET.md) — Qualify audit composition and document consumer adoption | done | — | https://github.com/johnnickell/fight-access-control/pull/188 |
+| 400 | [TASK-00167](00167-TASK.md) | Provide reusable audit transaction conformance | [TICKET-00048](../tickets/00048-TICKET.md) — Qualify audit composition and document consumer adoption | done | [TASK-00122](00122-TASK.md) | — |
 | 401 | [TASK-00121](00121-TASK.md) | Introduce fixed system and anonymous identities | [TICKET-00043](../tickets/00043-TICKET.md) — Define typed audit evidence and explicit attribution | done | — | https://github.com/johnnickell/fight-access-control/pull/189 |
 | 402 | [TASK-00122](00122-TASK.md) | Replace audit evidence contracts across existing writers | [TICKET-00043](../tickets/00043-TICKET.md) — Define typed audit evidence and explicit attribution | done | [TASK-00121](00121-TASK.md) | https://github.com/johnnickell/fight-access-control/pull/198 |
 | 403 | [TASK-00123](00123-TASK.md) | Audit User creation, recovery and administration | [TICKET-00044](../tickets/00044-TICKET.md) — Audit User account and credential journeys | done | [TASK-00122](00122-TASK.md) | https://github.com/johnnickell/fight-access-control/pull/215 |
