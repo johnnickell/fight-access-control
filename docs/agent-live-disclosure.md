@@ -1,4 +1,4 @@
-# Agent live Tool, Resource and whole-Skill disclosure
+# Agent live Tool, Resource, whole-Skill and Prompt disclosure
 
 Unreleased [TASK-00093](../planning/tasks/00093-TASK.md) composes Common's actual Subscription admission,
 retained source Queries, tracking and native HTTP delivery. The sufficient minimum is **Common v1.5.0**, source
@@ -119,8 +119,78 @@ filtered registry. `AgentSubscriptionFamilies` is only metadata eligibility, not
   qualify another provider's current-authority integration rather than bypass its independent protection.
 
 Skills use `resourcesListChanged` / `resourceSubscriptions` and standard Resource notifications. No Skill method or
-flag is invented. Prompt signals, subscriber inspection, publication/Mercure and full Task state are excluded and
-remain separately owned. Their absence does not block enabled Tool/Resource listening.
+flag is invented. Optional Prompt signals are described below. Subscriber inspection, publication/Mercure and full
+Task state remain separately owned. Their absence does not block enabled Tool/Resource listening.
+
+## Optional Prompt catalog changes — TASK-00094
+
+TASK-00094 extends the same admission and family metadata predicate; it adds no engine, store, registration database,
+change detector or notification vocabulary. Common v1.5.0 is the sufficient tagged minimum for both Prompt serving and
+`McpSubscriptions(prompts: true)`. The [Prompt guide](agent-prompt-authorization.md) owns ordinary discovery/retrieval.
+
+Pass the **same** `AgentPromptPermissionCatalog` used to register `McpPromptDiscovery($promptCatalog->prompts(), ...)`:
+
+```php
+$families = new AgentSubscriptionFamilies(
+    $toolRegistry, $toolCatalog, $resourceCatalog, $skillCatalog,
+    promptCatalog: $promptCatalog
+);
+$admission = new AgentSubscriptionAdmission(
+    $trustedSubscriberReference, $openingAuthority, $disclosureAuthority, $consumerSignalScope, $families
+);
+$subscriptions = new McpSubscriptions(
+    $independentSourceQueryBus, $commonSubscriptionStore, $admission, $trustedSourceSelection,
+    tools: $toolRegistry !== null, resources: $resourceCatalog !== null,
+    maxFrameBytes: 8192, prompts: $promptCatalog !== null
+);
+```
+
+Register the ordinary Prompt capability and this Subscription composition together in Common's capability registry.
+Common derives `prompts.listChanged` from actual registration, not an authored capability flag. Subscription-free
+Prompt serving keeps it false and remains fully usable. Missing Prompt composition leaves ordinary live families
+usable; `prompts: false`, absent/empty catalog, an unrequested filter or failed current eligibility acknowledges no
+Prompt filter. Do not enable a supported family without its corresponding serving capability. Support advertisement
+is composition-wide, while acknowledgment is the requested and currently admitted subset, not a continuing lease.
+
+`promptsListChanged` requires at least one exact bound definition's conjunctive requirements under the **fresh**
+principal. That metadata eligibility is necessary but **not** whole-catalog disclosure permission. Configure
+`AgentSubscriptionScope` to independently require current Prompt catalog-activity Permissions and authoritative
+whole-signal scope at opening and each nonnull notice. For example a consumer may require `DISCLOSE_PROMPT_CHANGES`
+separately from its configured retrieval requirements; this is illustrative, not a package-defined grant. Do not
+infer activity access from some visible/retrievable Prompt, a family grant, a topic or intended recipients. Concealed
+changes must deny the whole signal even when ordinary list/get remains allowed.
+
+The predicate reads only immutable definitions already captured by `AgentPromptPermissionBinding`. It never calls
+an original provider's `info()` again, `get()`, request-scoped `AgentPromptAvailability`, required-argument validation,
+a business Query, content stream, linked Resource/Skill/file/network read, Tool/model execution or business mutation.
+Provider faults from later independently admitted retrieval remain ordinary Prompt failures; live does not probe a
+body to discover them. Consumer static/Query-backed providers and linked targets retain their existing admission.
+After a signal, a later list/get authenticates anew and can deny before argument validation/provider execution.
+No signal grants retrieval, linked access, execution or a stable catalog revision.
+
+Consumers explicitly capture/select safe changes into the same committed notice source using
+`mcp.prompts.list_changed`. Common maps that type to `notifications/prompts/list_changed`, with no Prompt name, body,
+arguments or source metadata projection. It uses the same exact subscription-ID type, bounds, final post-tracking
+admission, failure closure and generic tracking as ordinary families. Current original Agent/credential binding,
+listen/disclosure requirements, Prompt eligibility and consumer scope are rechecked; no opening snapshot, signature,
+nonce replay or successor credential supplies continuing authority. Permission can change after the final check
+before send; no send-spanning lock or atomic check-and-send guarantee is added.
+
+A policy/resolver/source/tracking fault is not a Boolean denial or healthy empty/completed stream. Common's single
+redaction-aware diagnostic sink owns failures; consumers must not log raw exception messages/credentials. Transport
+failure/disconnect preserves committed notices. Independently authorized [retained recovery](agent-notice-recovery.md)
+can recover them repeatedly; reconnect needs fresh authentication and starts at current, not a durable delivery
+checkpoint. Neither repeated recovery nor a signal proves every change was captured, a stable revision, receipt,
+processing or exactly-once behavior. Safe consumer capture/redaction, real production scope/history/crypto/storage,
+authority writers/concurrency, deployment and proxy/SAPI/client buffering remain separately qualified.
+
+Work tests use real Agent authority, Common Prompt registration/discovery, routed notice recovery, DBAL SQLite
+tracking/source and native HTTP mixed Tool/Prompt frames, including escaped string and integer correlations. Required
+arguments and throwing content providers prove non-invocation. Queued scope/Permission/visibility/Agent changes,
+revocation/rotation, post-tracking denial, same-ID isolation, fault closure and repeated committed recovery are
+controlled package evidence, not production consumer qualification. Minimum/ordinary identities, runtime, counts,
+exact coverage, warnings and full-gate logs belong to canonical `.runs/handoffs/TASK-00094/work.md`. Independent Review
+and behavioral QA are still required; TASK-00093's acceptance above does not accept this extension.
 
 ## Shared source, independent recovery and truthful failure
 
@@ -137,9 +207,9 @@ Public reads/recovery still use [TASK-00092 admission](agent-notice-recovery.md)
 Interrupted/failed streams do not delete committed notices or grant recovery. Recording/publication are separate
 operations. Generic notices must contain only safe metadata, never protected message/Tool bodies or full Task state.
 
-Common recognizes `mcp.tools.list_changed`, `mcp.resources.list_changed`, and selected `mcp.resources.updated` with
-exact `mcp/uri`. Output is respectively `notifications/tools/list_changed`, `notifications/resources/list_changed`
-and `notifications/resources/updated`. Source metadata is not copied into these standard frames. Correlation is
+Common recognizes `mcp.tools.list_changed`, `mcp.prompts.list_changed`, `mcp.resources.list_changed`, and selected
+`mcp.resources.updated` with exact `mcp/uri`. Output is respectively `notifications/tools/list_changed`,
+`notifications/prompts/list_changed`, `notifications/resources/list_changed` and `notifications/resources/updated`. Source metadata is not copied into these standard frames. Correlation is
 `params._meta['io.modelcontextprotocol/subscriptionId']` with the **original integer or string** request ID; tracking
 uses separate random registration and owner IDs, so simultaneous callers reusing JSON-RPC IDs are isolated.
 
@@ -175,8 +245,8 @@ admitted retained recovery remain distinct scenarios. The native fixture uses an
 request tests separately prove authentication and one nonce without replay.
 
 Minimum/ordinary dependency identities, exact coverage, complete gate logs, warnings and runtime locators belong to
-the canonical Work handoff. Minimum compatibility resolution reports 40 advisories in 12 packages; ordinary
-resolution reports none. These fixtures qualify package composition, **not** production consumer DB/crypto/policy,
+the canonical Work handoff. TASK-00093's minimum checkpoint reported 40 advisories in 12 packages; TASK-00094's
+current minimum lane reports 43 advisories in 13 packages. Its ordinary resolution reports none. These fixtures qualify package composition, **not** production consumer DB/crypto/policy,
 all authority writers, access-history restoration, concurrency schedules, proxies, buffering or client receipt.
 Nonvisual actual wire/admission/Query/state evidence is useful here; UI screenshots would prove none of these rules.
 Independent Review and behavioral QA accept the named candidate above. No release, deployment or exactly-once
