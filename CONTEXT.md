@@ -1,5 +1,24 @@
 # Fight AccessControl Context
 
+## Live Tool, Resource and whole-Skill disclosure — TASK-00093 Work checkpoint
+
+[Live disclosure composition](docs/agent-live-disclosure.md) adds optional canonical Subscription adapters and
+consumer `AgentSubscriptionScope`, reusing original-bound `AgentNoticeAuthority` at Common's opening and final
+signal checks. Listen, independent whole-signal disclosure, family availability and current consumer scope remain
+separate; one visible item does not authorize concealed catalog activity. Exact selected Resource/complete-Skill
+member metadata is checked without content opening or Tool execution. Common owns source Queries, technical
+tracking, standard frames, bounds and safe failure/closure. Source producer access does not grant recipient
+disclosure or require the listener's public browse Permission; retained recovery independently uses TASK-00092.
+No send-spanning lock, Task-state, Prompt, inspection, publication/Mercure or second runtime is introduced.
+
+Common v1.5.0 (`06fb5cd3720af9cf8295198f74040d95b64c5155`) remains the sufficient minimum. Controlled real-package
+fixtures exercise authority, routed DBAL SQLite/Sodium recovery/tracking, native HTTP pre-closure frames, queued
+changes/faults and whole-Skill/member admission. The canonical `.runs/handoffs/TASK-00093/work.md` owns actual
+dependency/runtime/check/coverage evidence and limitations. Work verification and independent Review/QA remain
+required at this checkpoint; TASK-00093 stays open. Consumer policy/history/crypto/storage, all authority writers,
+production concurrency and proxy/SAPI/client buffering remain unqualified. Neither acknowledgment nor emitted
+bytes prove receipt/processing or exactly-once delivery. No adoption, release or deployment is claimed.
+
 ## Durable Task input — TASK-00099 accepted checkpoint
 
 The [slice C Task composition](docs/agent-task-authorization.md#durable-input-and-protected-continuation--slice-c)

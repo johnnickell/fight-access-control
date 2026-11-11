@@ -110,7 +110,7 @@ Mercure/hub operations, full Task state, consumer capture/redaction policy, rece
 | --- | --- | --- | --- |
 | 91 | [TASK-00091](../tasks/00091-TASK.md) | Authorize notice recording and bounded removal | done |
 | 92 | [TASK-00092](../tasks/00092-TASK.md) | Authorize retained inspection and polling recovery | done |
-| 93 | [TASK-00093](../tasks/00093-TASK.md) | Authorize live Tool, Resource and whole-Skill change disclosure | ready-for-agent |
+| 93 | [TASK-00093](../tasks/00093-TASK.md) | Authorize live Tool, Resource and whole-Skill change disclosure | in-progress |
 | 94 | [TASK-00094](../tasks/00094-TASK.md) | Authorize Prompt catalog-change disclosure | ready-for-agent |
 | 95 | [TASK-00095](../tasks/00095-TASK.md) | Authorize current-subscriber inspection | ready-for-agent |
 | 96 | [TASK-00096](../tasks/00096-TASK.md) | Authorize optional notice publication | ready-for-agent |

@@ -20,7 +20,8 @@ use SensitiveParameter;
 /**
  * Class AgentNoticeAuthority
  *
- * Resolves original bound authority afresh at Common's storage-locked admission point, not a continuing lease.
+ * Resolves original bound authority afresh at Common's notice admission or live disclosure check, not a lease.
+ * Storage locking belongs to mutation composition; live checks promise no send-spanning synchronization.
  */
 final readonly class AgentNoticeAuthority
 {
