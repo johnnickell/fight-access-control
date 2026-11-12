@@ -5,13 +5,11 @@ dependencies, acceptance, and verification.
 
 ## What's Next?
 
-Active Task: [TASK-00102](00102-TASK.md) — Authorize optional full-state Task notifications.
+First ready Task: [TASK-00089](00089-TASK.md) — Compose scoped execution and timeline reads.
 
 ## In Progress
 
-| Order | TASK ID | Title | Parent TICKET | Status | Blocked by | PR |
-| --- | --- | --- | --- | --- | --- | --- |
-| 102 | [TASK-00102](00102-TASK.md) | Authorize optional full-state Task notifications | [TICKET-00031](../tickets/00031-TICKET.md) — Authorize durable Task operations and state disclosure | in-progress | [TASK-00093](00093-TASK.md), [TASK-00101](00101-TASK.md) | — |
+No Tasks are currently in this state.
 
 ## Ready Frontier
 
@@ -170,6 +168,7 @@ No Tasks are currently in this state.
 | 99 | [TASK-00099](00099-TASK.md) | Authorize durable input and protected continuation | [TICKET-00031](../tickets/00031-TICKET.md) — Authorize durable Task operations and state disclosure | done | [TASK-00097](00097-TASK.md) | https://github.com/johnnickell/fight-access-control/pull/211 |
 | 100 | [TASK-00100](00100-TASK.md) | Authorize cancellation requests and intent observation | [TICKET-00031](../tickets/00031-TICKET.md) — Authorize durable Task operations and state disclosure | done | [TASK-00097](00097-TASK.md), [TASK-00099](00099-TASK.md) | https://github.com/johnnickell/fight-access-control/pull/214 |
 | 101 | [TASK-00101](00101-TASK.md) | Authorize complete MCP Task start and reconnect journeys | [TICKET-00031](../tickets/00031-TICKET.md) — Authorize durable Task operations and state disclosure | done | [TASK-00084](00084-TASK.md), [TASK-00097](00097-TASK.md), [TASK-00099](00099-TASK.md), [TASK-00100](00100-TASK.md) | https://github.com/johnnickell/fight-access-control/pull/220 |
+| 102 | [TASK-00102](00102-TASK.md) | Authorize optional full-state Task notifications | [TICKET-00031](../tickets/00031-TICKET.md) — Authorize durable Task operations and state disclosure | done | [TASK-00093](00093-TASK.md), [TASK-00101](00101-TASK.md) | — |
 | 103 | [TASK-00103](00103-TASK.md) | Protect Slim and Yii 3 requests through shared PSR-15 admission | [TICKET-00032](../tickets/00032-TICKET.md) — Protect native HTTP entry points across all five frameworks | done | — | https://github.com/johnnickell/fight-access-control/pull/143 |
 | 104 | [TASK-00104](00104-TASK.md) | Protect Symfony requests through native admission | [TICKET-00032](../tickets/00032-TICKET.md) — Protect native HTTP entry points across all five frameworks | done | [TASK-00103](00103-TASK.md) | https://github.com/johnnickell/fight-access-control/pull/144 |
 | 104 | [TASK-00105](00105-TASK.md) | Protect Laravel requests through native middleware | [TICKET-00032](../tickets/00032-TICKET.md) — Protect native HTTP entry points across all five frameworks | done | [TASK-00103](00103-TASK.md) | https://github.com/johnnickell/fight-access-control/pull/160 |
