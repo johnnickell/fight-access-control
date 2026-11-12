@@ -390,12 +390,12 @@ final class DeliverUserInvitationHandlerTest extends TestCase
     ): DeliverUserInvitationHandler {
         return new DeliverUserInvitationHandler(
             $activationGrantRepository,
-            $auditEvidenceRepository,
             $unitOfWork,
             new PrefixInvitationDeliveryCipher(),
             $provider ?? new RecordingCredentialDeliveryProvider(),
             $clock ?? new FixedClock('2026-08-23T11:00:00+00:00'),
-            $eventDispatcher ?? new InMemoryEventDispatcher()
+            $eventDispatcher ?? new InMemoryEventDispatcher(),
+            $auditEvidenceRepository
         );
     }
 }

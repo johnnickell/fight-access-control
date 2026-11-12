@@ -1,6 +1,15 @@
 # Fight AccessControl Context
 
-## TASK-00152 integrated enforcement — Work continuation
+## TASK-00152 advancing-base verification hold
+
+The current base adds accepted Task-live and invitation-audit contracts plus a substantive Unit-only line-coverage
+requirement. Bounded evidence recovery demonstrates an unmet Unit requirement; the existing all-suite statement
+gate is not equivalent. Integration preserves existing accepted behavior, but current semantic/evidence reconciliation
+and verification are not complete. See [TASK-00152](planning/tasks/00152-TASK.md) and its canonical Work handoff.
+Original independent reports and the earlier no-pending reconciliation below retain their exact earlier candidate;
+no current whole-library acceptance, publication or consumer qualification is implied.
+
+## Historical TASK-00152 integrated enforcement — earlier Work candidate
 
 The approved bounded precision amendment corrects eight demonstrated static obligations in User, both Permission
 constructor adapters and subscription-family composition, without changing their requirement ownership or historical
@@ -11,6 +20,35 @@ now has no pending primary or secondary concerns, including later actual capabil
 Work evidence, not whole-library acceptance: fresh independent Review/nonvisual QA remain required, and actual
 consumer qualification is separate.
 The canonical `.runs/handoffs/TASK-00152/work.md` owns exact candidate, checks, warnings and remaining scope.
+
+## Optional complete Task live state — TASK-00102 accepted checkpoint
+
+[Optional Task live composition](docs/agent-task-live.md) adds current original-bound Task signal and complete-state
+read admissions, consumer `AgentTaskDisclosurePolicy`, and the required Common disclosure guard/action integration
+through the existing continuation guard/fence. `AgentTaskServing::tasks()` exposes the identical ordinary capability;
+optional Subscriptions attach to its existing registry. Complete state comes only from shared Common Task Queries,
+never general notices/tracking/Mercure. Independent listening, Task signal, read and consumer field/visibility scope
+remain mandatory. No opening snapshot, nonce replay, credential switch, new engine or production lock is introduced.
+
+Common v1.5.0 source `06fb5cd3720af9cf8295198f74040d95b64c5155` remains sufficient. Controlled real-authority,
+SQLite, shared read/live revision, guarded handoff and native independent-process fixtures own package proof;
+canonical `.runs/handoffs/TASK-00102/work.md` records actual checks, dependency/runtime identities, interrupted-run
+history and limits. Minimum qualification passes 43 Task tests / 450 assertions; the final ordinary full gate passes
+8,957 tests / 90,902 assertions and exact 10,732/10,732 statements (78/78 touched production statements).
+Minimum dependencies retain 43 advisories / 13 packages; ordinary resolution reports none.
+Independent Review v3 ACCEPT and complete nonvisual QA PASS cover clean candidate
+`5059ea4b95736f3af84c15b24b6e6a5087ea6814`, without findings. QA passes ten scenario groups / 186 independent
+driver checks plus 24 tests / 148 assertions. Review's fresh full gate passes 8,957 tests / 90,843 assertions,
+exact 10,732/10,732 statements; normal Land build validates automatic reuse with fresh planning. The earlier
+interrupted failure's lost assertion and exact timing cause remain unproven, despite successful later gates and
+QA's deliberate six-second native producer delays without retries. TASK-00102 and eligible TICKET-00031 are done
+for package acceptance; unfinished children keep EPIC-00014 open. Administrative closeout retains full-gate
+evidence with current planning/documentation checks. Publication/final verification and owned retirement are
+pending at this checkpoint; canonical `.runs/handoffs/TASK-00102/land.md` owns subsequent delivery outcomes.
+Common's mandatory consumer all-writer guard obligations remain unchanged, not production synchronization or
+atomic permission-check-and-send claims. Consumer storage/crypto/policy epochs/authority writers, proxies, workers
+and client merge/receipt remain separate qualification. Ordinary polling/input/cancel require no live activation;
+no adoption, merge, release or deployment is claimed.
 
 ## Current-subscriber inspection — accepted lifecycle-test repair
 
@@ -76,7 +114,8 @@ postcommit/response/submission faults and exact final encoded response bounds. C
 belong to canonical `.runs/handoffs/TASK-00101/work.md`. Independent Review v3 ACCEPT and complete nonvisual QA
 PASS cover clean candidate `f979e009b6f8f4831d5ac405b5503b7b34fe363d`, without open findings: eight QA scenario
 groups include independent actual HTTP/state and native disconnect/producer/reconnect proof. TASK-00101 is done;
-TASK-00102 keeps TICKET-00031 and EPIC-00014 open. Earlier full gate retained: 8,898 tests / 90,048 assertions,
+At that slice-E checkpoint, TASK-00102 kept TICKET-00031 and EPIC-00014 open.
+Earlier full gate retained: 8,898 tests / 90,048 assertions,
 exact 10,678/10,678 statements (40/40 new adapters). Administrative planning/documentation checks qualify closeout.
 Publication/final verification and retirement remain pending at this checkpoint; canonical
 `.runs/handoffs/TASK-00101/land.md` owns subsequent delivery outcomes. Minimum-lane advisories remain disclosed,
@@ -1330,8 +1369,14 @@ Work handoff own implementation evidence. Independent Review ACCEPT and behavior
 `5d8ba4496a19a1b1e33e9e16283d1aac6a64ddb4`; TASK-00122 and TICKET-00043 are done. Land's behavior-preserving
 integration of current develop passed a fresh full gate (8247 tests / 81407 assertions, exact global/owned coverage).
 Canonical `.runs/handoffs/TASK-00122/land.md` owns subsequent delivery/resource results, separate from human merge. TASK-00123 now implements optional last
-nullable storage for the eight account lifecycle handlers; other family constructors and
-currently unaudited paths remain unchanged. See [current account composition](docs/user-lifecycle-contracts.md#optional-account-audit-composition).
+nullable storage for the eight account lifecycle handlers. TASK-00124 now implements optional final storage for
+all four invitation delivery/resend/retry/expiry handlers and typed expiry Command/Event provenance; see
+[invitation composition](docs/credential-delivery.md#optional-invitation-audit-composition-unreleased). Expiry adds
+transaction-local typed outcome evidence only for committed material expiry, preserving activation authority,
+origin, admitted time and expected-state semantics. Claims/external sends remain separate; audit rollback does
+not undo those effects, and ordinary post-commit failure preserves committed evidence. Work verification and
+independent acceptance are recorded separately in TASK-00124 and its canonical handoffs. Other family constructors
+and currently unaudited paths remain unchanged. See [current account composition](docs/user-lifecycle-contracts.md#optional-account-audit-composition).
 Omitted/null disables durable evidence without changing business-required typed actors, target/default-Role/CAS
 admission or coupled persistence. Enabled evidence retains the actual mutation transaction, trusted time,
 authoritative revisions/grant/delivery/message correlation and ordinary User publication-failure propagation.

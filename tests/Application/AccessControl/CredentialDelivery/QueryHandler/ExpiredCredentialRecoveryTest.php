@@ -19,6 +19,7 @@ use Fight\AccessControl\Domain\AccessControl\ActivationGrant\ActivationOrigin;
 use Fight\AccessControl\Domain\AccessControl\ActivationGrant\ActivationGrantRepository;
 use Fight\AccessControl\Domain\AccessControl\ActivationGrant\Command\ExpireInvitationDelivery;
 use Fight\AccessControl\Domain\AccessControl\ActivationGrant\Event\InvitationDeliveryExpired;
+use Fight\AccessControl\Domain\AccessControl\Audit\SystemId;
 use Fight\AccessControl\Domain\AccessControl\CredentialDelivery\CredentialDelivery;
 use Fight\AccessControl\Domain\AccessControl\CredentialDelivery\CredentialDeliveryFailure;
 use Fight\AccessControl\Domain\AccessControl\CredentialDelivery\CredentialDeliveryStatus;
@@ -577,6 +578,11 @@ final class ExpiredCredentialRecoveryTest extends TestCase
         string $purpose
     ): void {
         foreach ([['worker:a', 'worker:b'], ['worker:b', 'worker:a']] as [$winner, $loser]) {
+            if ($purpose === 'activation') {
+                $winner = UserId::generate()->toString();
+                $loser = UserId::generate()->toString();
+            }
+
             $fixture = new ExpiredCredentialFixture($purpose);
             $first = $fixture->handler();
             $second = $fixture->handler();
@@ -640,13 +646,13 @@ final class ExpiredCredentialRecoveryTest extends TestCase
     {
         $fixture = new ExpiredCredentialFixture('activation');
         $fixture->handler()->handle(CommandMessage::create(new ExpireInvitationDelivery(
-            'worker:expiry',
+            SystemId::generate(),
             UserId::generate(),
             $fixture->activationGrantRepository->all()[0]->getDelivery()->getId(),
             $fixture->expiresAt
         )));
         $fixture->handler()->handle(CommandMessage::create(new ExpireInvitationDelivery(
-            'worker:expiry',
+            SystemId::generate(),
             $fixture->user->getId(),
             ActivationDeliveryId::generate(),
             $fixture->expiresAt
@@ -713,7 +719,7 @@ final class ExpiredCredentialRecoveryTest extends TestCase
                     $fixture->eventDispatcher
                 );
                 $command = new ExpireInvitationDelivery(
-                    'worker:expiry',
+                    SystemId::generate(),
                     $foreign->user->getId(),
                     $fixture->activationGrantRepository->all()[0]->getDelivery()->getId(),
                     $fixture->expiresAt
@@ -884,7 +890,7 @@ final class ExpiredCredentialRecoveryTest extends TestCase
         );
         self::assertSame(ExpireInvitationDelivery::class, ExpireInvitationDeliveryHandler::commandRegistration());
         $command = new ExpireInvitationDelivery(
-            'worker:expiry',
+            SystemId::generate(),
             $item->getUserId(),
             ActivationDeliveryId::fromString($item->getDeliveryId()->toString()),
             $item->getExpiresAt()
@@ -895,7 +901,7 @@ final class ExpiredCredentialRecoveryTest extends TestCase
             $command->getActivationDeliveryId(),
             $command->getOccurredAt()
         );
-        self::assertSame('worker:expiry', $event->getActorId());
+        self::assertEquals(SystemId::generate(), $event->getActorId());
         self::assertSame($item->getUserId(), $event->getUserId());
         self::assertSame($command->getActivationDeliveryId(), $event->getActivationDeliveryId());
         self::assertSame($item->getExpiresAt(), $event->getOccurredAt());
@@ -1021,7 +1027,7 @@ final class ExpiredCredentialRecoveryTest extends TestCase
         self::assertCount(1, $next);
         self::assertSame($later->getDelivery()->getId()->toString(), $next[0]->getDeliveryId()->toString());
         $fixture->handler()->handle(CommandMessage::create(new ExpireInvitationDelivery(
-            'worker:expiry',
+            SystemId::generate(),
             $later->getUserId(),
             $later->getDelivery()->getId(),
             $later->getExpiresAt()

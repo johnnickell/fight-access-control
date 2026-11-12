@@ -100,7 +100,7 @@ over HTTP. All names below have the `Fight.AccessControl.` prefix:
 | `FindExpiredCredentialDeliveries` | Explicit fractional `at` and required integer `limit` 1–100; runner guidance 50, no constructor default |
 | `ExpiredCredentialDelivery` | Purpose, exact delivery/User IDs, required nullable `email_change_grant_id`, fractional expiry instant, nonnegative revision and safe delivery status |
 | `ExpiredCredentialDeliveries` | Unpaginated array of exact expired work, maximum 100 items; empty is valid |
-| `ExpireInvitationDelivery` / `InvitationDeliveryExpired` | String actor provenance, User/activation delivery UUIDs and fractional occurrence time |
+| `ExpireInvitationDelivery` / `InvitationDeliveryExpired` | Required typed actor kind/UUID provenance, User/activation delivery UUIDs and fractional occurrence time |
 | `ExpirePasswordResetDelivery` / `PasswordResetDeliveryExpired` | String actor provenance, User/password-reset delivery UUIDs and fractional occurrence time |
 | `ExpireEmailChange` / `EmailChangeExpired` | String actor provenance, User/email grant UUIDs and fractional occurrence time |
 

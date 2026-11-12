@@ -310,7 +310,7 @@ final class HandlerFailureContractTest extends TestCase
         return match ($handlerClass) {
             Invitation\DeliverUserInvitationHandler::class => new Invitation\DeliverUserInvitationHandler(
                 $activationGrantRepository,
-                $auditEvidenceRepository, $unitOfWork, $cipher, $provider, $clock, $eventDispatcher
+                $unitOfWork, $cipher, $provider, $clock, $eventDispatcher, $auditEvidenceRepository
             ),
             Invitation\ExpireInvitationDeliveryHandler::class => new Invitation\ExpireInvitationDeliveryHandler(
                 $activationGrantRepository,
@@ -318,11 +318,11 @@ final class HandlerFailureContractTest extends TestCase
             ),
             Invitation\ResendInvitationDeliveryHandler::class => new Invitation\ResendInvitationDeliveryHandler(
                 $activationGrantRepository,
-                $auditEvidenceRepository, $unitOfWork, $credentials, $cipher, $clock, $eventDispatcher
+                $unitOfWork, $credentials, $cipher, $clock, $eventDispatcher, $auditEvidenceRepository
             ),
             Invitation\RetryInvitationDeliveryHandler::class => new Invitation\RetryInvitationDeliveryHandler(
                 $activationGrantRepository,
-                $auditEvidenceRepository, $unitOfWork, $clock, $eventDispatcher
+                $unitOfWork, $clock, $eventDispatcher, $auditEvidenceRepository
             ),
             Agent\GrantPermissionToAgentHandler::class => new Agent\GrantPermissionToAgentHandler(
                 $agentRepository,

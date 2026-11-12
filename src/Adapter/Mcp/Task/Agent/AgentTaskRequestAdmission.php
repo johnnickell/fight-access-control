@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Fight\AccessControl\Adapter\Mcp\Task\Agent;
 
+use Fight\AccessControl\Application\AccessControl\Agent\Task\AgentTaskCurrentReadAdmission;
 use Fight\AccessControl\Application\AccessControl\Agent\Task\AgentTaskReadAdmission;
 use Fight\Common\Application\Mcp\Http\McpInvocationGuard;
 use Fight\Common\Application\Mcp\Task\Exception\TaskRejected;
@@ -18,7 +19,7 @@ use Fight\Common\Domain\Mcp\Task\TaskId;
  */
 final class AgentTaskRequestAdmission implements McpInvocationGuard, TaskReadAdmission
 {
-    private ?AgentTaskReadAdmission $selectedAdmission = null;
+    private AgentTaskReadAdmission|AgentTaskCurrentReadAdmission|null $selectedAdmission = null;
 
     /**
      * Constructs AgentTaskRequestAdmission
@@ -26,7 +27,7 @@ final class AgentTaskRequestAdmission implements McpInvocationGuard, TaskReadAdm
     public function __construct(
         private readonly McpInvocationGuard $invocationGuard,
         private readonly AgentTaskReadAdmission $acknowledgmentAdmission,
-        private readonly AgentTaskReadAdmission $stateAdmission
+        private readonly AgentTaskReadAdmission|AgentTaskCurrentReadAdmission $stateAdmission
     ) {
     }
 
@@ -42,9 +43,12 @@ final class AgentTaskRequestAdmission implements McpInvocationGuard, TaskReadAdm
 
         $this->selectedAdmission = match ($method) {
             'tools/call' => $this->acknowledgmentAdmission,
-            'tasks/get' => $this->stateAdmission,
+            'tasks/get', 'subscriptions/listen' => $this->stateAdmission,
             default => null
         };
+        if ($method === 'subscriptions/listen' && !$this->stateAdmission instanceof AgentTaskCurrentReadAdmission) {
+            $this->selectedAdmission = null;
+        }
 
         return true;
     }

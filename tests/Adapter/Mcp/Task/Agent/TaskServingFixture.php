@@ -66,7 +66,9 @@ final readonly class TaskServingFixture
         ?Closure $submit = null,
         bool $publicationFails = false,
         ?CommittedTaskReader $reader = null,
-        ?McpInvocationGuard $guard = null
+        ?McpInvocationGuard $guard = null,
+        ?Closure $readFactory = null,
+        ?Closure $subscriptionsFactory = null
     ) {
         $this->lifecycle = new TaskCancellationFixture($connection, $grants);
         $auth = $this->lifecycle->input->auth;
@@ -88,10 +90,15 @@ final readonly class TaskServingFixture
                 return true;
             }
         };
+        $stateAdmission = new AgentTaskReadAdmission($auth->authority('TASK_READ'), $auth);
+        if ($readFactory !== null) {
+            $stateAdmission = $readFactory($auth);
+        }
+
         $this->admission = new AgentTaskRequestAdmission(
             $guard,
             new AgentTaskReadAdmission($auth->authority('TASK_ACK'), $auth),
-            new AgentTaskReadAdmission($auth->authority('TASK_READ'), $auth)
+            $stateAdmission
         );
         $intent = new AgentTaskCancellationAdmission(
             $auth->authority('TASK_CANCEL'),
@@ -136,7 +143,8 @@ final readonly class TaskServingFixture
             $auth->request,
             'task-serving',
             str_repeat('d', 32),
-            ['example.operation' => ['TOOL_START']]
+            ['example.operation' => ['TOOL_START']],
+            subscriptions: $subscriptionsFactory?->__invoke($this->serving, $auth, $this->registry)
         );
     }
 

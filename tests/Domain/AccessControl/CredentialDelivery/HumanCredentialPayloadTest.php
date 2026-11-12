@@ -110,6 +110,8 @@ final class HumanCredentialPayloadTest extends TestCase
             if (
                 in_array($class, [
                 ActivationCommand\DeliverUserInvitation::class,
+                ActivationCommand\ExpireInvitationDelivery::class,
+                ActivationEvent\InvitationDeliveryExpired::class,
                 ActivationCommand\ResendInvitationDelivery::class,
                 ActivationCommand\RetryInvitationDelivery::class,
                 ActivationEvent\InvitationDeliveryResent::class,

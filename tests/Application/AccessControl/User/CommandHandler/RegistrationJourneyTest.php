@@ -405,12 +405,12 @@ final class RegistrationJourneyTest extends TestCase
     ): DeliverUserInvitationHandler {
         return new DeliverUserInvitationHandler(
             $fixture->activationGrantRepository,
-            $fixture->auditEvidenceRepository,
             $fixture->unitOfWork,
             new PrefixInvitationDeliveryCipher(),
             $provider,
             new FixedClock($at),
-            $eventDispatcher ?? new InMemoryEventDispatcher()
+            $eventDispatcher ?? new InMemoryEventDispatcher(),
+            $fixture->auditEvidenceRepository
         );
     }
 

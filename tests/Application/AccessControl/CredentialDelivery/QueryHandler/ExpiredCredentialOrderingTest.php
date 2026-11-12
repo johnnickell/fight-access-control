@@ -18,6 +18,7 @@ use Fight\AccessControl\Domain\AccessControl\ActivationGrant\ActivationGrant;
 use Fight\AccessControl\Domain\AccessControl\ActivationGrant\ActivationOrigin;
 use Fight\AccessControl\Domain\AccessControl\ActivationGrant\ActivationGrantId;
 use Fight\AccessControl\Domain\AccessControl\ActivationGrant\Command\ExpireInvitationDelivery;
+use Fight\AccessControl\Domain\AccessControl\Audit\SystemId;
 use Fight\AccessControl\Domain\AccessControl\CredentialDelivery\ExpiredCredentialDelivery;
 use Fight\AccessControl\Domain\AccessControl\CredentialDelivery\Query\FindExpiredCredentialDeliveries;
 use Fight\AccessControl\Domain\AccessControl\EmailChangeGrant\Command\ExpireEmailChange;
@@ -133,7 +134,7 @@ final class ExpiredCredentialOrderingTest extends TestCase
             foreach ($page as $item) {
                 $command = match ($item->getPurpose()) {
                     'activation' => new ExpireInvitationDelivery(
-                        'worker:ordered',
+                        SystemId::generate(),
                         $item->getUserId(),
                         ActivationDeliveryId::fromString($item->getDeliveryId()->toString()),
                         $at

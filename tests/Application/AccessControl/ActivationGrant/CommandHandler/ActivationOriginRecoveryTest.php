@@ -97,10 +97,10 @@ final class ActivationOriginRecoveryTest extends TestCase
                 if ($manualRetry) {
                     new RetryInvitationDeliveryHandler(
                         $fixture->activationGrantRepository,
-                        $fixture->auditEvidenceRepository,
                         $fixture->unitOfWork,
                         new FixedClock('2030-01-01T00:00:01Z'),
-                        new InMemoryEventDispatcher()
+                        new InMemoryEventDispatcher(),
+                        $fixture->auditEvidenceRepository
                     )->handle(CommandMessage::create(new RetryInvitationDelivery(
                         SystemId::generate(),
                         $fixture->user->getId()
