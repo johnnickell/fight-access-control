@@ -1,0 +1,1771 @@
+{
+  "classes": {
+    "Fight\\Test\\AccessControl\\Adapter\\Command\\AgentAdministrationCommandTest": {
+      "file": "tests/Adapter/Command/AgentAdministrationCommandTest.php",
+      "category": "Unit",
+      "reason": "Isolated values, transitions or application behavior with controlled in-memory repositories/security/clock/UoW ports; no real storage, network or process.",
+      "methods": {}
+    },
+    "Fight\\Test\\AccessControl\\Adapter\\Command\\FeaturePolicyCommandTest": {
+      "file": "tests/Adapter/Command/FeaturePolicyCommandTest.php",
+      "category": "Unit",
+      "reason": "Isolated values, transitions or application behavior with controlled in-memory repositories/security/clock/UoW ports; no real storage, network or process.",
+      "methods": {}
+    },
+    "Fight\\Test\\AccessControl\\Adapter\\Command\\SessionCommandTest": {
+      "file": "tests/Adapter/Command/SessionCommandTest.php",
+      "category": "Unit",
+      "reason": "Isolated values, transitions or application behavior with controlled in-memory repositories/security/clock/UoW ports; no real storage, network or process.",
+      "methods": {}
+    },
+    "Fight\\Test\\AccessControl\\Adapter\\Event\\DeliverySubscriberCompositionTest": {
+      "file": "tests/Adapter/Event/DeliverySubscriberCompositionTest.php",
+      "category": "Unit",
+      "reason": "Isolated values, transitions or application behavior with controlled in-memory repositories/security/clock/UoW ports; no real storage, network or process.",
+      "methods": {}
+    },
+    "Fight\\Test\\AccessControl\\Adapter\\Http\\CodeIgniter\\IsolatedAdapterTest": {
+      "file": "tests/Adapter/Http/CodeIgniter/IsolatedAdapterTest.php",
+      "category": "Unit",
+      "reason": "Direct adapter calls with controlled request/router/kernel interfaces and in-memory authority; no real framework pipeline, storage, network or business process.",
+      "methods": {}
+    },
+    "Fight\\Test\\AccessControl\\Adapter\\Http\\CodeIgniter\\PermissionFilterTest": {
+      "file": "tests/Adapter/Http/CodeIgniter/PermissionFilterTest.php",
+      "category": "Integration",
+      "reason": "Executes native framework routing/kernel/middleware and safe-response composition; not isolated adapter attribution.",
+      "methods": {}
+    },
+    "Fight\\Test\\AccessControl\\Adapter\\Http\\CodeIgniter\\SafeErrorResponderTest": {
+      "file": "tests/Adapter/Http/CodeIgniter/SafeErrorResponderTest.php",
+      "category": "Integration",
+      "reason": "Executes native framework routing/kernel/middleware and safe-response composition; not isolated adapter attribution.",
+      "methods": {}
+    },
+    "Fight\\Test\\AccessControl\\Adapter\\Http\\Symfony\\EventSubscriber\\FeatureSubscriberTest": {
+      "file": "tests/Adapter/Http/Symfony/EventSubscriber/FeatureSubscriberTest.php",
+      "category": "Integration",
+      "reason": "Executes native framework routing/kernel/middleware and safe-response composition; not isolated adapter attribution.",
+      "methods": {}
+    },
+    "Fight\\Test\\AccessControl\\Adapter\\Http\\Symfony\\EventSubscriber\\IsolatedSubscriberTest": {
+      "file": "tests/Adapter/Http/Symfony/EventSubscriber/IsolatedSubscriberTest.php",
+      "category": "Unit",
+      "reason": "Direct adapter calls with controlled request/router/kernel interfaces and in-memory authority; no real framework pipeline, storage, network or business process.",
+      "methods": {}
+    },
+    "Fight\\Test\\AccessControl\\Adapter\\Http\\Symfony\\EventSubscriber\\PermissionSubscriberTest": {
+      "file": "tests/Adapter/Http/Symfony/EventSubscriber/PermissionSubscriberTest.php",
+      "category": "Integration",
+      "reason": "Executes native framework routing/kernel/middleware and safe-response composition; not isolated adapter attribution.",
+      "methods": {}
+    },
+    "Fight\\Test\\AccessControl\\Adapter\\Mcp\\Prompt\\Agent\\AgentPromptAvailabilityTest": {
+      "file": "tests/Adapter/Mcp/Prompt/Agent/AgentPromptAvailabilityTest.php",
+      "category": "Unit",
+      "reason": "Isolated values, transitions or application behavior with controlled in-memory repositories/security/clock/UoW ports; no real storage, network or process.",
+      "methods": {}
+    },
+    "Fight\\Test\\AccessControl\\Adapter\\Mcp\\Resource\\Agent\\AgentResourceAvailabilityTest": {
+      "file": "tests/Adapter/Mcp/Resource/Agent/AgentResourceAvailabilityTest.php",
+      "category": "Unit",
+      "reason": "Isolated values, transitions or application behavior with controlled in-memory repositories/security/clock/UoW ports; no real storage, network or process.",
+      "methods": {}
+    },
+    "Fight\\Test\\AccessControl\\Adapter\\Mcp\\Resource\\Agent\\AgentResourcePermissionCatalogTest": {
+      "file": "tests/Adapter/Mcp/Resource/Agent/AgentResourcePermissionCatalogTest.php",
+      "category": "Unit",
+      "reason": "Isolated values, transitions or application behavior with controlled in-memory repositories/security/clock/UoW ports; no real storage, network or process.",
+      "methods": {}
+    },
+    "Fight\\Test\\AccessControl\\Adapter\\Mcp\\Skill\\Agent\\AgentSkillAvailabilityTest": {
+      "file": "tests/Adapter/Mcp/Skill/Agent/AgentSkillAvailabilityTest.php",
+      "category": "Unit",
+      "reason": "Isolated values, transitions or application behavior with controlled in-memory repositories/security/clock/UoW ports; no real storage, network or process.",
+      "methods": {}
+    },
+    "Fight\\Test\\AccessControl\\Adapter\\Mcp\\Skill\\Agent\\AgentSkillPermissionCatalogTest": {
+      "file": "tests/Adapter/Mcp/Skill/Agent/AgentSkillPermissionCatalogTest.php",
+      "category": "Unit",
+      "reason": "Isolated values, transitions or application behavior with controlled in-memory repositories/security/clock/UoW ports; no real storage, network or process.",
+      "methods": {}
+    },
+    "Fight\\Test\\AccessControl\\Adapter\\Mcp\\Subscription\\Agent\\AgentSubscriptionAdmissionTest": {
+      "file": "tests/Adapter/Mcp/Subscription/Agent/AgentSubscriptionAdmissionTest.php",
+      "category": "Integration",
+      "reason": "Executes real SQLite/DBAL repository, schema and transaction behavior; retained integration protection.",
+      "methods": {}
+    },
+    "Fight\\Test\\AccessControl\\Adapter\\Mcp\\Subscription\\Agent\\AgentSubscriptionNativeTest": {
+      "file": "tests/Adapter/Mcp/Subscription/Agent/AgentSubscriptionNativeTest.php",
+      "category": "Functional",
+      "reason": "Executes native HTTP/socket/worker-process journeys with actual runtime boundaries.",
+      "methods": {}
+    },
+    "Fight\\Test\\AccessControl\\Adapter\\Mcp\\Subscription\\Agent\\AgentSubscriptionUnitTest": {
+      "file": "tests/Adapter/Mcp/Subscription/Agent/AgentSubscriptionUnitTest.php",
+      "category": "Unit",
+      "reason": "Isolated values, transitions or application behavior with controlled in-memory repositories/security/clock/UoW ports; no real storage, network or process.",
+      "methods": {}
+    },
+    "Fight\\Test\\AccessControl\\Adapter\\Mcp\\Task\\Agent\\AgentTaskLiveNativeTest": {
+      "file": "tests/Adapter/Mcp/Task/Agent/AgentTaskLiveNativeTest.php",
+      "category": "Functional",
+      "reason": "Executes native HTTP/socket/worker-process journeys with actual runtime boundaries.",
+      "methods": {}
+    },
+    "Fight\\Test\\AccessControl\\Adapter\\Mcp\\Task\\Agent\\AgentTaskLiveTest": {
+      "file": "tests/Adapter/Mcp/Task/Agent/AgentTaskLiveTest.php",
+      "category": "Integration",
+      "reason": "Executes real SQLite/DBAL repository, schema and transaction behavior; retained integration protection.",
+      "methods": {}
+    },
+    "Fight\\Test\\AccessControl\\Adapter\\Mcp\\Task\\Agent\\AgentTaskNativeTest": {
+      "file": "tests/Adapter/Mcp/Task/Agent/AgentTaskNativeTest.php",
+      "category": "Functional",
+      "reason": "Executes native HTTP/socket/worker-process journeys with actual runtime boundaries.",
+      "methods": {}
+    },
+    "Fight\\Test\\AccessControl\\Adapter\\Mcp\\Task\\Agent\\AgentTaskServingTest": {
+      "file": "tests/Adapter/Mcp/Task/Agent/AgentTaskServingTest.php",
+      "category": "Integration",
+      "reason": "Executes real SQLite/DBAL repository, schema and transaction behavior; retained integration protection.",
+      "methods": {}
+    },
+    "Fight\\Test\\AccessControl\\Adapter\\Mcp\\Task\\Agent\\AgentTaskServingUnitTest": {
+      "file": "tests/Adapter/Mcp/Task/Agent/AgentTaskServingUnitTest.php",
+      "category": "Unit",
+      "reason": "Isolated values, transitions or application behavior with controlled in-memory repositories/security/clock/UoW ports; no real storage, network or process.",
+      "methods": {}
+    },
+    "Fight\\Test\\AccessControl\\Adapter\\Mcp\\Tool\\Agent\\AgentProfileToolsTest": {
+      "file": "tests/Adapter/Mcp/Tool/Agent/AgentProfileToolsTest.php",
+      "category": "Unit",
+      "reason": "Isolated values, transitions or application behavior with controlled in-memory repositories/security/clock/UoW ports; no real storage, network or process.",
+      "methods": {}
+    },
+    "Fight\\Test\\AccessControl\\Adapter\\Mcp\\Tool\\Agent\\AgentToolAvailabilityTest": {
+      "file": "tests/Adapter/Mcp/Tool/Agent/AgentToolAvailabilityTest.php",
+      "category": "Unit",
+      "reason": "Isolated values, transitions or application behavior with controlled in-memory repositories/security/clock/UoW ports; no real storage, network or process.",
+      "methods": {}
+    },
+    "Fight\\Test\\AccessControl\\Adapter\\Mcp\\Tool\\Agent\\AgentToolPermissionCatalogTest": {
+      "file": "tests/Adapter/Mcp/Tool/Agent/AgentToolPermissionCatalogTest.php",
+      "category": "Unit",
+      "reason": "Isolated values, transitions or application behavior with controlled in-memory repositories/security/clock/UoW ports; no real storage, network or process.",
+      "methods": {}
+    },
+    "Fight\\Test\\AccessControl\\Adapter\\Mcp\\Tool\\Agent\\Attribute\\RequiresAgentPermissionTest": {
+      "file": "tests/Adapter/Mcp/Tool/Agent/Attribute/RequiresAgentPermissionTest.php",
+      "category": "Unit",
+      "reason": "Isolated values, transitions or application behavior with controlled in-memory repositories/security/clock/UoW ports; no real storage, network or process.",
+      "methods": {}
+    },
+    "Fight\\Test\\AccessControl\\Adapter\\Mcp\\Tool\\Agent\\GetAgentProfileToolTest": {
+      "file": "tests/Adapter/Mcp/Tool/Agent/GetAgentProfileToolTest.php",
+      "category": "Unit",
+      "reason": "Isolated values, transitions or application behavior with controlled in-memory repositories/security/clock/UoW ports; no real storage, network or process.",
+      "methods": {}
+    },
+    "Fight\\Test\\AccessControl\\Adapter\\Mcp\\Tool\\Agent\\MixedAgentToolsTest": {
+      "file": "tests/Adapter/Mcp/Tool/Agent/MixedAgentToolsTest.php",
+      "category": "Unit",
+      "reason": "Isolated values, transitions or application behavior with controlled in-memory repositories/security/clock/UoW ports; no real storage, network or process.",
+      "methods": {}
+    },
+    "Fight\\Test\\AccessControl\\Adapter\\Mcp\\Tool\\Agent\\UpdateAgentProfileToolTest": {
+      "file": "tests/Adapter/Mcp/Tool/Agent/UpdateAgentProfileToolTest.php",
+      "category": "Unit",
+      "reason": "Isolated values, transitions or application behavior with controlled in-memory repositories/security/clock/UoW ports; no real storage, network or process.",
+      "methods": {}
+    },
+    "Fight\\Test\\AccessControl\\Adapter\\Middleware\\Laravel\\IsolatedPermissionMiddlewareTest": {
+      "file": "tests/Adapter/Middleware/Laravel/IsolatedPermissionMiddlewareTest.php",
+      "category": "Unit",
+      "reason": "Direct adapter calls with controlled request/router/kernel interfaces and in-memory authority; no real framework pipeline, storage, network or business process.",
+      "methods": {}
+    },
+    "Fight\\Test\\AccessControl\\Adapter\\Middleware\\Laravel\\PermissionMiddlewareTest": {
+      "file": "tests/Adapter/Middleware/Laravel/PermissionMiddlewareTest.php",
+      "category": "Integration",
+      "reason": "Executes native framework routing/kernel/middleware and safe-response composition; not isolated adapter attribution.",
+      "methods": {}
+    },
+    "Fight\\Test\\AccessControl\\Adapter\\Middleware\\Laravel\\SafeLifecycleTest": {
+      "file": "tests/Adapter/Middleware/Laravel/SafeLifecycleTest.php",
+      "category": "Integration",
+      "reason": "Executes native framework routing/kernel/middleware and safe-response composition; not isolated adapter attribution.",
+      "methods": {}
+    },
+    "Fight\\Test\\AccessControl\\Adapter\\Middleware\\Psr15\\FeatureMiddlewareTest": {
+      "file": "tests/Adapter/Middleware/Psr15/FeatureMiddlewareTest.php",
+      "category": "Integration",
+      "reason": "Executes native framework routing/kernel/middleware and safe-response composition; not isolated adapter attribution.",
+      "methods": {}
+    },
+    "Fight\\Test\\AccessControl\\Adapter\\Middleware\\Psr15\\IsolatedAdmissionTest": {
+      "file": "tests/Adapter/Middleware/Psr15/IsolatedAdmissionTest.php",
+      "category": "Unit",
+      "reason": "Direct adapter calls with controlled request/router/kernel interfaces and in-memory authority; no real framework pipeline, storage, network or business process.",
+      "methods": {}
+    },
+    "Fight\\Test\\AccessControl\\Adapter\\Middleware\\Psr15\\PermissionMiddlewareTest": {
+      "file": "tests/Adapter/Middleware/Psr15/PermissionMiddlewareTest.php",
+      "category": "Integration",
+      "reason": "Executes native framework routing/kernel/middleware and safe-response composition; not isolated adapter attribution.",
+      "methods": {}
+    },
+    "Fight\\Test\\AccessControl\\Adapter\\Middleware\\Psr15\\ProtocolExclusionTest": {
+      "file": "tests/Adapter/Middleware/Psr15/ProtocolExclusionTest.php",
+      "category": "Integration",
+      "reason": "Executes native framework routing/kernel/middleware and safe-response composition; not isolated adapter attribution.",
+      "methods": {}
+    },
+    "Fight\\Test\\AccessControl\\Adapter\\Query\\PreparationPreviewQueryTest": {
+      "file": "tests/Adapter/Query/PreparationPreviewQueryTest.php",
+      "category": "Unit",
+      "reason": "Isolated values, transitions or application behavior with controlled in-memory repositories/security/clock/UoW ports; no real storage, network or process.",
+      "methods": {}
+    },
+    "Fight\\Test\\AccessControl\\Adapter\\Query\\QueryDispatchContractTest": {
+      "file": "tests/Adapter/Query/QueryDispatchContractTest.php",
+      "category": "Unit",
+      "reason": "Isolated values, transitions or application behavior with controlled in-memory repositories/security/clock/UoW ports; no real storage, network or process.",
+      "methods": {}
+    },
+    "Fight\\Test\\AccessControl\\Adapter\\Query\\RequiredResourceQueryTest": {
+      "file": "tests/Adapter/Query/RequiredResourceQueryTest.php",
+      "category": "Unit",
+      "reason": "Isolated values, transitions or application behavior with controlled in-memory repositories/security/clock/UoW ports; no real storage, network or process.",
+      "methods": {}
+    },
+    "Fight\\Test\\AccessControl\\Application\\AccessControl\\ActivationGrant\\CommandHandler\\ActivationOriginRecoveryTest": {
+      "file": "tests/Application/AccessControl/ActivationGrant/CommandHandler/ActivationOriginRecoveryTest.php",
+      "category": "Unit",
+      "reason": "Isolated values, transitions or application behavior with controlled in-memory repositories/security/clock/UoW ports; no real storage, network or process.",
+      "methods": {}
+    },
+    "Fight\\Test\\AccessControl\\Application\\AccessControl\\ActivationGrant\\CommandHandler\\DeliverUserInvitationHandlerTest": {
+      "file": "tests/Application/AccessControl/ActivationGrant/CommandHandler/DeliverUserInvitationHandlerTest.php",
+      "category": "Unit",
+      "reason": "Isolated values, transitions or application behavior with controlled in-memory repositories/security/clock/UoW ports; no real storage, network or process.",
+      "methods": {}
+    },
+    "Fight\\Test\\AccessControl\\Application\\AccessControl\\ActivationGrant\\CommandHandler\\InvitationAuditTest": {
+      "file": "tests/Application/AccessControl/ActivationGrant/CommandHandler/InvitationAuditTest.php",
+      "category": "Unit",
+      "reason": "Isolated values, transitions or application behavior with controlled in-memory repositories/security/clock/UoW ports; no real storage, network or process.",
+      "methods": {}
+    },
+    "Fight\\Test\\AccessControl\\Application\\AccessControl\\ActivationGrant\\CommandHandler\\ResendInvitationDeliveryHandlerTest": {
+      "file": "tests/Application/AccessControl/ActivationGrant/CommandHandler/ResendInvitationDeliveryHandlerTest.php",
+      "category": "Unit",
+      "reason": "Isolated values, transitions or application behavior with controlled in-memory repositories/security/clock/UoW ports; no real storage, network or process.",
+      "methods": {}
+    },
+    "Fight\\Test\\AccessControl\\Application\\AccessControl\\ActivationGrant\\CommandHandler\\RetryInvitationDeliveryHandlerTest": {
+      "file": "tests/Application/AccessControl/ActivationGrant/CommandHandler/RetryInvitationDeliveryHandlerTest.php",
+      "category": "Unit",
+      "reason": "Isolated values, transitions or application behavior with controlled in-memory repositories/security/clock/UoW ports; no real storage, network or process.",
+      "methods": {}
+    },
+    "Fight\\Test\\AccessControl\\Application\\AccessControl\\ActivationGrant\\EventSubscriber\\InvitationDeliverySubscriberTest": {
+      "file": "tests/Application/AccessControl/ActivationGrant/EventSubscriber/InvitationDeliverySubscriberTest.php",
+      "category": "Unit",
+      "reason": "Isolated values, transitions or application behavior with controlled in-memory repositories/security/clock/UoW ports; no real storage, network or process.",
+      "methods": {}
+    },
+    "Fight\\Test\\AccessControl\\Application\\AccessControl\\ActivationGrant\\QueryHandler\\FindInvitationDeliveryStatusHandlerTest": {
+      "file": "tests/Application/AccessControl/ActivationGrant/QueryHandler/FindInvitationDeliveryStatusHandlerTest.php",
+      "category": "Unit",
+      "reason": "Isolated values, transitions or application behavior with controlled in-memory repositories/security/clock/UoW ports; no real storage, network or process.",
+      "methods": {}
+    },
+    "Fight\\Test\\AccessControl\\Application\\AccessControl\\ActivationGrant\\Repository\\InMemoryActivationGrantRepositoryTest": {
+      "file": "tests/Application/AccessControl/ActivationGrant/Repository/InMemoryActivationGrantRepositoryTest.php",
+      "category": "Unit",
+      "reason": "Isolated values, transitions or application behavior with controlled in-memory repositories/security/clock/UoW ports; no real storage, network or process.",
+      "methods": {}
+    },
+    "Fight\\Test\\AccessControl\\Application\\AccessControl\\ActivationGrant\\Repository\\InMemoryActivationOriginConformanceTest": {
+      "file": "tests/Application/AccessControl/ActivationGrant/Repository/InMemoryActivationOriginConformanceTest.php",
+      "category": "Unit",
+      "reason": "Isolated values, transitions or application behavior with controlled in-memory repositories/security/clock/UoW ports; no real storage, network or process.",
+      "methods": {}
+    },
+    "Fight\\Test\\AccessControl\\Application\\AccessControl\\Agent\\Authentication\\AgentRotationAuthenticationTest": {
+      "file": "tests/Application/AccessControl/Agent/Authentication/AgentRotationAuthenticationTest.php",
+      "category": "Unit",
+      "reason": "Isolated values, transitions or application behavior with controlled in-memory repositories/security/clock/UoW ports; no real storage, network or process.",
+      "methods": {}
+    },
+    "Fight\\Test\\AccessControl\\Application\\AccessControl\\Agent\\Authentication\\CurrentAgentPrincipalProviderBehavioralConformanceTest": {
+      "file": "tests/Application/AccessControl/Agent/Authentication/CurrentAgentPrincipalProviderBehavioralConformanceTest.php",
+      "category": "Unit",
+      "reason": "Isolated values, transitions or application behavior with controlled in-memory repositories/security/clock/UoW ports; no real storage, network or process.",
+      "methods": {}
+    },
+    "Fight\\Test\\AccessControl\\Application\\AccessControl\\Agent\\Authentication\\CurrentAgentPrincipalProviderTest": {
+      "file": "tests/Application/AccessControl/Agent/Authentication/CurrentAgentPrincipalProviderTest.php",
+      "category": "Unit",
+      "reason": "Isolated values, transitions or application behavior with controlled in-memory repositories/security/clock/UoW ports; no real storage, network or process.",
+      "methods": {}
+    },
+    "Fight\\Test\\AccessControl\\Application\\AccessControl\\Agent\\Authentication\\SignedAgentRequestTest": {
+      "file": "tests/Application/AccessControl/Agent/Authentication/SignedAgentRequestTest.php",
+      "category": "Unit",
+      "reason": "Isolated values, transitions or application behavior with controlled in-memory repositories/security/clock/UoW ports; no real storage, network or process.",
+      "methods": {}
+    },
+    "Fight\\Test\\AccessControl\\Application\\AccessControl\\Agent\\CommandHandler\\AgentAdministrationContractTest": {
+      "file": "tests/Application/AccessControl/Agent/CommandHandler/AgentAdministrationContractTest.php",
+      "category": "Unit",
+      "reason": "Isolated values, transitions or application behavior with controlled in-memory repositories/security/clock/UoW ports; no real storage, network or process.",
+      "methods": {}
+    },
+    "Fight\\Test\\AccessControl\\Application\\AccessControl\\Agent\\CommandHandler\\AgentIssuanceContractTest": {
+      "file": "tests/Application/AccessControl/Agent/CommandHandler/AgentIssuanceContractTest.php",
+      "category": "Unit",
+      "reason": "Isolated values, transitions or application behavior with controlled in-memory repositories/security/clock/UoW ports; no real storage, network or process.",
+      "methods": {}
+    },
+    "Fight\\Test\\AccessControl\\Application\\AccessControl\\Agent\\CommandHandler\\AgentIssuanceDispatchContractTest": {
+      "file": "tests/Application/AccessControl/Agent/CommandHandler/AgentIssuanceDispatchContractTest.php",
+      "category": "Unit",
+      "reason": "Isolated values, transitions or application behavior with controlled in-memory repositories/security/clock/UoW ports; no real storage, network or process.",
+      "methods": {}
+    },
+    "Fight\\Test\\AccessControl\\Application\\AccessControl\\Agent\\CommandHandler\\AgentIssuanceDispatchTest": {
+      "file": "tests/Application/AccessControl/Agent/CommandHandler/AgentIssuanceDispatchTest.php",
+      "category": "Unit",
+      "reason": "Isolated values, transitions or application behavior with controlled in-memory repositories/security/clock/UoW ports; no real storage, network or process.",
+      "methods": {}
+    },
+    "Fight\\Test\\AccessControl\\Application\\AccessControl\\Agent\\CommandHandler\\AgentPermissionAssignmentHandlerTest": {
+      "file": "tests/Application/AccessControl/Agent/CommandHandler/AgentPermissionAssignmentHandlerTest.php",
+      "category": "Unit",
+      "reason": "Isolated values, transitions or application behavior with controlled in-memory repositories/security/clock/UoW ports; no real storage, network or process.",
+      "methods": {}
+    },
+    "Fight\\Test\\AccessControl\\Application\\AccessControl\\Agent\\CommandHandler\\ProvisionAgentHandlerTest": {
+      "file": "tests/Application/AccessControl/Agent/CommandHandler/ProvisionAgentHandlerTest.php",
+      "category": "Unit",
+      "reason": "Isolated values, transitions or application behavior with controlled in-memory repositories/security/clock/UoW ports; no real storage, network or process.",
+      "methods": {}
+    },
+    "Fight\\Test\\AccessControl\\Application\\AccessControl\\Agent\\CommandHandler\\RotateAgentCredentialHandlerTest": {
+      "file": "tests/Application/AccessControl/Agent/CommandHandler/RotateAgentCredentialHandlerTest.php",
+      "category": "Unit",
+      "reason": "Isolated values, transitions or application behavior with controlled in-memory repositories/security/clock/UoW ports; no real storage, network or process.",
+      "methods": {}
+    },
+    "Fight\\Test\\AccessControl\\Application\\AccessControl\\Agent\\CommandHandler\\TypedAgentAuditTest": {
+      "file": "tests/Application/AccessControl/Agent/CommandHandler/TypedAgentAuditTest.php",
+      "category": "Unit",
+      "reason": "Isolated values, transitions or application behavior with controlled in-memory repositories/security/clock/UoW ports; no real storage, network or process.",
+      "methods": {}
+    },
+    "Fight\\Test\\AccessControl\\Application\\AccessControl\\Agent\\CommandHandler\\UpdateAgentHandlerTest": {
+      "file": "tests/Application/AccessControl/Agent/CommandHandler/UpdateAgentHandlerTest.php",
+      "category": "Unit",
+      "reason": "Isolated values, transitions or application behavior with controlled in-memory repositories/security/clock/UoW ports; no real storage, network or process.",
+      "methods": {}
+    },
+    "Fight\\Test\\AccessControl\\Application\\AccessControl\\Agent\\Continuation\\AgentContinuationGuardTest": {
+      "file": "tests/Application/AccessControl/Agent/Continuation/AgentContinuationGuardTest.php",
+      "category": "Unit",
+      "reason": "Isolated values, transitions or application behavior with controlled in-memory repositories/security/clock/UoW ports; no real storage, network or process.",
+      "methods": {}
+    },
+    "Fight\\Test\\AccessControl\\Application\\AccessControl\\Agent\\Credential\\AgentCohortWriterTest": {
+      "file": "tests/Application/AccessControl/Agent/Credential/AgentCohortWriterTest.php",
+      "category": "Unit",
+      "reason": "Isolated values, transitions or application behavior with controlled in-memory repositories/security/clock/UoW ports; no real storage, network or process.",
+      "methods": {}
+    },
+    "Fight\\Test\\AccessControl\\Application\\AccessControl\\Agent\\Credential\\AgentCredentialLifecycleServiceTest": {
+      "file": "tests/Application/AccessControl/Agent/Credential/AgentCredentialLifecycleServiceTest.php",
+      "category": "Unit",
+      "reason": "Isolated values, transitions or application behavior with controlled in-memory repositories/security/clock/UoW ports; no real storage, network or process.",
+      "methods": {}
+    },
+    "Fight\\Test\\AccessControl\\Application\\AccessControl\\Agent\\Credential\\AgentCredentialRetirementTest": {
+      "file": "tests/Application/AccessControl/Agent/Credential/AgentCredentialRetirementTest.php",
+      "category": "Unit",
+      "reason": "Isolated values, transitions or application behavior with controlled in-memory repositories/security/clock/UoW ports; no real storage, network or process.",
+      "methods": {}
+    },
+    "Fight\\Test\\AccessControl\\Application\\AccessControl\\Agent\\Credential\\AgentHydrationTest": {
+      "file": "tests/Application/AccessControl/Agent/Credential/AgentHydrationTest.php",
+      "category": "Unit",
+      "reason": "Isolated values, transitions or application behavior with controlled in-memory repositories/security/clock/UoW ports; no real storage, network or process.",
+      "methods": {}
+    },
+    "Fight\\Test\\AccessControl\\Application\\AccessControl\\Agent\\Credential\\AgentRestorationWriterTest": {
+      "file": "tests/Application/AccessControl/Agent/Credential/AgentRestorationWriterTest.php",
+      "category": "Unit",
+      "reason": "Isolated values, transitions or application behavior with controlled in-memory repositories/security/clock/UoW ports; no real storage, network or process.",
+      "methods": {}
+    },
+    "Fight\\Test\\AccessControl\\Application\\AccessControl\\Agent\\Credential\\AgentRevocationContractTest": {
+      "file": "tests/Application/AccessControl/Agent/Credential/AgentRevocationContractTest.php",
+      "category": "Unit",
+      "reason": "Isolated values, transitions or application behavior with controlled in-memory repositories/security/clock/UoW ports; no real storage, network or process.",
+      "methods": {}
+    },
+    "Fight\\Test\\AccessControl\\Application\\AccessControl\\Agent\\Credential\\InMemoryAgentCanonicalConformanceTest": {
+      "file": "tests/Application/AccessControl/Agent/Credential/InMemoryAgentCanonicalConformanceTest.php",
+      "category": "Unit",
+      "reason": "Isolated values, transitions or application behavior with controlled in-memory repositories/security/clock/UoW ports; no real storage, network or process.",
+      "methods": {}
+    },
+    "Fight\\Test\\AccessControl\\Application\\AccessControl\\Agent\\Credential\\InMemoryAgentCohortConformanceTest": {
+      "file": "tests/Application/AccessControl/Agent/Credential/InMemoryAgentCohortConformanceTest.php",
+      "category": "Unit",
+      "reason": "Isolated values, transitions or application behavior with controlled in-memory repositories/security/clock/UoW ports; no real storage, network or process.",
+      "methods": {}
+    },
+    "Fight\\Test\\AccessControl\\Application\\AccessControl\\Agent\\Credential\\InMemoryAgentRestorationConformanceTest": {
+      "file": "tests/Application/AccessControl/Agent/Credential/InMemoryAgentRestorationConformanceTest.php",
+      "category": "Unit",
+      "reason": "Isolated values, transitions or application behavior with controlled in-memory repositories/security/clock/UoW ports; no real storage, network or process.",
+      "methods": {}
+    },
+    "Fight\\Test\\AccessControl\\Application\\AccessControl\\Agent\\Credential\\InMemoryAgentRestorationWithoutLookupTest": {
+      "file": "tests/Application/AccessControl/Agent/Credential/InMemoryAgentRestorationWithoutLookupTest.php",
+      "category": "Unit",
+      "reason": "Isolated values, transitions or application behavior with controlled in-memory repositories/security/clock/UoW ports; no real storage, network or process.",
+      "methods": {}
+    },
+    "Fight\\Test\\AccessControl\\Application\\AccessControl\\Agent\\Credential\\InMemoryIssuanceRecoveryConformanceTest": {
+      "file": "tests/Application/AccessControl/Agent/Credential/InMemoryIssuanceRecoveryConformanceTest.php",
+      "category": "Unit",
+      "reason": "Isolated values, transitions or application behavior with controlled in-memory repositories/security/clock/UoW ports; no real storage, network or process.",
+      "methods": {}
+    },
+    "Fight\\Test\\AccessControl\\Application\\AccessControl\\Agent\\Detail\\AgentDetailReadAdmissionTest": {
+      "file": "tests/Application/AccessControl/Agent/Detail/AgentDetailReadAdmissionTest.php",
+      "category": "Integration",
+      "reason": "Executes real SQLite/DBAL repository, schema and transaction behavior; retained integration protection.",
+      "methods": {}
+    },
+    "Fight\\Test\\AccessControl\\Application\\AccessControl\\Agent\\Detail\\AgentDetailReadAdmissionUnitTest": {
+      "file": "tests/Application/AccessControl/Agent/Detail/AgentDetailReadAdmissionUnitTest.php",
+      "category": "Unit",
+      "reason": "Isolated values, transitions or application behavior with controlled in-memory repositories/security/clock/UoW ports; no real storage, network or process.",
+      "methods": {}
+    },
+    "Fight\\Test\\AccessControl\\Application\\AccessControl\\Agent\\Notice\\AgentNoticeAdmissionTest": {
+      "file": "tests/Application/AccessControl/Agent/Notice/AgentNoticeAdmissionTest.php",
+      "category": "Integration",
+      "reason": "Executes real SQLite/DBAL repository, schema and transaction behavior; retained integration protection.",
+      "methods": {}
+    },
+    "Fight\\Test\\AccessControl\\Application\\AccessControl\\Agent\\Notice\\AgentNoticeAdmissionUnitTest": {
+      "file": "tests/Application/AccessControl/Agent/Notice/AgentNoticeAdmissionUnitTest.php",
+      "category": "Unit",
+      "reason": "Isolated values, transitions or application behavior with controlled in-memory repositories/security/clock/UoW ports; no real storage, network or process.",
+      "methods": {}
+    },
+    "Fight\\Test\\AccessControl\\Application\\AccessControl\\Agent\\Notice\\AgentNoticePublicationPolicyTest": {
+      "file": "tests/Application/AccessControl/Agent/Notice/AgentNoticePublicationPolicyTest.php",
+      "category": "Integration",
+      "reason": "Executes real SQLite/DBAL repository, schema and transaction behavior; retained integration protection.",
+      "methods": {}
+    },
+    "Fight\\Test\\AccessControl\\Application\\AccessControl\\Agent\\Notice\\AgentNoticeReadAdmissionTest": {
+      "file": "tests/Application/AccessControl/Agent/Notice/AgentNoticeReadAdmissionTest.php",
+      "category": "Integration",
+      "reason": "Executes real SQLite/DBAL repository, schema and transaction behavior; retained integration protection.",
+      "methods": {}
+    },
+    "Fight\\Test\\AccessControl\\Application\\AccessControl\\Agent\\Notice\\AgentSubscriberReadAdmissionTest": {
+      "file": "tests/Application/AccessControl/Agent/Notice/AgentSubscriberReadAdmissionTest.php",
+      "category": "Integration",
+      "reason": "Executes real SQLite/DBAL repository, schema and transaction behavior; retained integration protection.",
+      "methods": {
+        "test_all_requirements_are_conjunctive_and_scope_is_not_derived_from_selection": {
+          "category": "Unit",
+          "reason": "This method and setup use only controlled in-memory authority and scope, without the real boundary used by other methods in this class."
+        },
+        "test_invalid_requirement_configuration_rejects_before_authentication": {
+          "category": "Unit",
+          "reason": "This method and setup use only controlled in-memory authority and scope, without the real boundary used by other methods in this class."
+        },
+        "test_abrupt_real_protected_http_worker_death_stays_uncertain_until_owning_cleanup": {
+          "category": "Functional",
+          "reason": "Real HTTP server/worker process death journey, not a database-only integration."
+        }
+      }
+    },
+    "Fight\\Test\\AccessControl\\Application\\AccessControl\\Agent\\QueryHandler\\AgentQueryHandlerTest": {
+      "file": "tests/Application/AccessControl/Agent/QueryHandler/AgentQueryHandlerTest.php",
+      "category": "Unit",
+      "reason": "Isolated values, transitions or application behavior with controlled in-memory repositories/security/clock/UoW ports; no real storage, network or process.",
+      "methods": {}
+    },
+    "Fight\\Test\\AccessControl\\Application\\AccessControl\\Agent\\QueryHandler\\GetAgentProfileHandlerTest": {
+      "file": "tests/Application/AccessControl/Agent/QueryHandler/GetAgentProfileHandlerTest.php",
+      "category": "Unit",
+      "reason": "Isolated values, transitions or application behavior with controlled in-memory repositories/security/clock/UoW ports; no real storage, network or process.",
+      "methods": {}
+    },
+    "Fight\\Test\\AccessControl\\Application\\AccessControl\\Agent\\Repository\\InMemoryAgentRepositoryTest": {
+      "file": "tests/Application/AccessControl/Agent/Repository/InMemoryAgentRepositoryTest.php",
+      "category": "Unit",
+      "reason": "Isolated values, transitions or application behavior with controlled in-memory repositories/security/clock/UoW ports; no real storage, network or process.",
+      "methods": {}
+    },
+    "Fight\\Test\\AccessControl\\Application\\AccessControl\\Agent\\Task\\AgentTaskAdmissionTest": {
+      "file": "tests/Application/AccessControl/Agent/Task/AgentTaskAdmissionTest.php",
+      "category": "Integration",
+      "reason": "Executes real SQLite/DBAL repository, schema and transaction behavior; retained integration protection.",
+      "methods": {
+        "test_that_invalid_requirement_configuration_never_creates_a_permissive_default": {
+          "category": "Unit",
+          "reason": "This method and setup use only controlled in-memory authority and scope, without the real boundary used by other methods in this class."
+        },
+        "test_that_continuation_scope_is_not_an_independent_authority_factory": {
+          "category": "Unit",
+          "reason": "This method and setup use only controlled in-memory authority and scope, without the real boundary used by other methods in this class."
+        }
+      }
+    },
+    "Fight\\Test\\AccessControl\\Application\\AccessControl\\Agent\\Task\\AgentTaskAdmissionUnitTest": {
+      "file": "tests/Application/AccessControl/Agent/Task/AgentTaskAdmissionUnitTest.php",
+      "category": "Unit",
+      "reason": "Isolated values, transitions or application behavior with controlled in-memory repositories/security/clock/UoW ports; no real storage, network or process.",
+      "methods": {}
+    },
+    "Fight\\Test\\AccessControl\\Application\\AccessControl\\Agent\\Task\\AgentTaskCancellationAdmissionTest": {
+      "file": "tests/Application/AccessControl/Agent/Task/AgentTaskCancellationAdmissionTest.php",
+      "category": "Integration",
+      "reason": "Executes real SQLite/DBAL repository, schema and transaction behavior; retained integration protection.",
+      "methods": {}
+    },
+    "Fight\\Test\\AccessControl\\Application\\AccessControl\\Agent\\Task\\AgentTaskDisclosureUnitTest": {
+      "file": "tests/Application/AccessControl/Agent/Task/AgentTaskDisclosureUnitTest.php",
+      "category": "Unit",
+      "reason": "Isolated values, transitions or application behavior with controlled in-memory repositories/security/clock/UoW ports; no real storage, network or process.",
+      "methods": {}
+    },
+    "Fight\\Test\\AccessControl\\Application\\AccessControl\\Agent\\Task\\AgentTaskInputAdmissionTest": {
+      "file": "tests/Application/AccessControl/Agent/Task/AgentTaskInputAdmissionTest.php",
+      "category": "Integration",
+      "reason": "Executes real SQLite/DBAL repository, schema and transaction behavior; retained integration protection.",
+      "methods": {
+        "test_that_each_grant_is_independent_and_denial_precedes_scope": {
+          "category": "Unit",
+          "reason": "This method and setup use only controlled in-memory authority and scope, without the real boundary used by other methods in this class."
+        }
+      }
+    },
+    "Fight\\Test\\AccessControl\\Application\\AccessControl\\Agent\\Task\\AgentTaskRemovalAdmissionTest": {
+      "file": "tests/Application/AccessControl/Agent/Task/AgentTaskRemovalAdmissionTest.php",
+      "category": "Integration",
+      "reason": "Executes real SQLite/DBAL repository, schema and transaction behavior; retained integration protection.",
+      "methods": {}
+    },
+    "Fight\\Test\\AccessControl\\Application\\AccessControl\\AgentCredentialOperation\\Delivery\\AgentCredentialDeliveryServiceTest": {
+      "file": "tests/Application/AccessControl/AgentCredentialOperation/Delivery/AgentCredentialDeliveryServiceTest.php",
+      "category": "Unit",
+      "reason": "Isolated values, transitions or application behavior with controlled in-memory repositories/security/clock/UoW ports; no real storage, network or process.",
+      "methods": {}
+    },
+    "Fight\\Test\\AccessControl\\Application\\AccessControl\\AgentCredentialOperation\\Delivery\\AgentDeliveryContractTest": {
+      "file": "tests/Application/AccessControl/AgentCredentialOperation/Delivery/AgentDeliveryContractTest.php",
+      "category": "Unit",
+      "reason": "Isolated values, transitions or application behavior with controlled in-memory repositories/security/clock/UoW ports; no real storage, network or process.",
+      "methods": {}
+    },
+    "Fight\\Test\\AccessControl\\Application\\AccessControl\\AgentCredentialOperation\\Delivery\\AgentDeliveryRecoveryServiceTest": {
+      "file": "tests/Application/AccessControl/AgentCredentialOperation/Delivery/AgentDeliveryRecoveryServiceTest.php",
+      "category": "Unit",
+      "reason": "Isolated values, transitions or application behavior with controlled in-memory repositories/security/clock/UoW ports; no real storage, network or process.",
+      "methods": {}
+    },
+    "Fight\\Test\\AccessControl\\Application\\AccessControl\\AgentCredentialOperation\\Delivery\\AgentProtectedSinkContractTest": {
+      "file": "tests/Application/AccessControl/AgentCredentialOperation/Delivery/AgentProtectedSinkContractTest.php",
+      "category": "Unit",
+      "reason": "Isolated values, transitions or application behavior with controlled in-memory repositories/security/clock/UoW ports; no real storage, network or process.",
+      "methods": {}
+    },
+    "Fight\\Test\\AccessControl\\Application\\AccessControl\\AgentCredentialOperation\\Delivery\\AgentRecoveryDispatchContractTest": {
+      "file": "tests/Application/AccessControl/AgentCredentialOperation/Delivery/AgentRecoveryDispatchContractTest.php",
+      "category": "Unit",
+      "reason": "Isolated values, transitions or application behavior with controlled in-memory repositories/security/clock/UoW ports; no real storage, network or process.",
+      "methods": {}
+    },
+    "Fight\\Test\\AccessControl\\Application\\AccessControl\\AgentCredentialOperation\\Delivery\\AgentWorkerFailureSourceTest": {
+      "file": "tests/Application/AccessControl/AgentCredentialOperation/Delivery/AgentWorkerFailureSourceTest.php",
+      "category": "Unit",
+      "reason": "Isolated values, transitions or application behavior with controlled in-memory repositories/security/clock/UoW ports; no real storage, network or process.",
+      "methods": {}
+    },
+    "Fight\\Test\\AccessControl\\Application\\AccessControl\\AgentCredentialOperation\\Delivery\\AgentWorkerUncertaintyTest": {
+      "file": "tests/Application/AccessControl/AgentCredentialOperation/Delivery/AgentWorkerUncertaintyTest.php",
+      "category": "Unit",
+      "reason": "Isolated values, transitions or application behavior with controlled in-memory repositories/security/clock/UoW ports; no real storage, network or process.",
+      "methods": {}
+    },
+    "Fight\\Test\\AccessControl\\Application\\AccessControl\\AgentCredentialOperation\\Delivery\\InMemoryDeliveryLifecycleConformanceTest": {
+      "file": "tests/Application/AccessControl/AgentCredentialOperation/Delivery/InMemoryDeliveryLifecycleConformanceTest.php",
+      "category": "Unit",
+      "reason": "Isolated values, transitions or application behavior with controlled in-memory repositories/security/clock/UoW ports; no real storage, network or process.",
+      "methods": {}
+    },
+    "Fight\\Test\\AccessControl\\Application\\AccessControl\\AgentCredentialOperation\\Delivery\\InMemoryDeliveryWithoutLookupConformanceTest": {
+      "file": "tests/Application/AccessControl/AgentCredentialOperation/Delivery/InMemoryDeliveryWithoutLookupConformanceTest.php",
+      "category": "Unit",
+      "reason": "Isolated values, transitions or application behavior with controlled in-memory repositories/security/clock/UoW ports; no real storage, network or process.",
+      "methods": {}
+    },
+    "Fight\\Test\\AccessControl\\Application\\AccessControl\\AgentCredentialOperation\\Delivery\\InMemoryProtectedSinkConformanceTest": {
+      "file": "tests/Application/AccessControl/AgentCredentialOperation/Delivery/InMemoryProtectedSinkConformanceTest.php",
+      "category": "Unit",
+      "reason": "Isolated values, transitions or application behavior with controlled in-memory repositories/security/clock/UoW ports; no real storage, network or process.",
+      "methods": {}
+    },
+    "Fight\\Test\\AccessControl\\Application\\AccessControl\\AgentCredentialOperation\\Maintenance\\AgentDeliveryMaintenanceServiceTest": {
+      "file": "tests/Application/AccessControl/AgentCredentialOperation/Maintenance/AgentDeliveryMaintenanceServiceTest.php",
+      "category": "Unit",
+      "reason": "Isolated values, transitions or application behavior with controlled in-memory repositories/security/clock/UoW ports; no real storage, network or process.",
+      "methods": {}
+    },
+    "Fight\\Test\\AccessControl\\Application\\AccessControl\\AgentCredentialOperation\\Maintenance\\AgentMaintenanceContractTest": {
+      "file": "tests/Application/AccessControl/AgentCredentialOperation/Maintenance/AgentMaintenanceContractTest.php",
+      "category": "Unit",
+      "reason": "Isolated values, transitions or application behavior with controlled in-memory repositories/security/clock/UoW ports; no real storage, network or process.",
+      "methods": {}
+    },
+    "Fight\\Test\\AccessControl\\Application\\AccessControl\\AgentCredentialOperation\\QueryHandler\\AgentMaintenanceQueryTest": {
+      "file": "tests/Application/AccessControl/AgentCredentialOperation/QueryHandler/AgentMaintenanceQueryTest.php",
+      "category": "Unit",
+      "reason": "Isolated values, transitions or application behavior with controlled in-memory repositories/security/clock/UoW ports; no real storage, network or process.",
+      "methods": {}
+    },
+    "Fight\\Test\\AccessControl\\Application\\AccessControl\\AgentCredentialOperation\\QueryHandler\\AgentQueryContractTest": {
+      "file": "tests/Application/AccessControl/AgentCredentialOperation/QueryHandler/AgentQueryContractTest.php",
+      "category": "Unit",
+      "reason": "Isolated values, transitions or application behavior with controlled in-memory repositories/security/clock/UoW ports; no real storage, network or process.",
+      "methods": {}
+    },
+    "Fight\\Test\\AccessControl\\Application\\AccessControl\\AgentCredentialOperation\\QueryHandler\\GetAgentOperationHandlerTest": {
+      "file": "tests/Application/AccessControl/AgentCredentialOperation/QueryHandler/GetAgentOperationHandlerTest.php",
+      "category": "Unit",
+      "reason": "Isolated values, transitions or application behavior with controlled in-memory repositories/security/clock/UoW ports; no real storage, network or process.",
+      "methods": {}
+    },
+    "Fight\\Test\\AccessControl\\Application\\AccessControl\\AgentCredentialOperation\\QueryHandler\\ListDueAgentDeliveriesHandlerTest": {
+      "file": "tests/Application/AccessControl/AgentCredentialOperation/QueryHandler/ListDueAgentDeliveriesHandlerTest.php",
+      "category": "Unit",
+      "reason": "Isolated values, transitions or application behavior with controlled in-memory repositories/security/clock/UoW ports; no real storage, network or process.",
+      "methods": {}
+    },
+    "Fight\\Test\\AccessControl\\Application\\AccessControl\\AgentCredentialOperation\\QueryHandler\\OperationReadBoundaryTest": {
+      "file": "tests/Application/AccessControl/AgentCredentialOperation/QueryHandler/OperationReadBoundaryTest.php",
+      "category": "Unit",
+      "reason": "Isolated values, transitions or application behavior with controlled in-memory repositories/security/clock/UoW ports; no real storage, network or process.",
+      "methods": {}
+    },
+    "Fight\\Test\\AccessControl\\Application\\AccessControl\\AgentCredentialOperation\\Repository\\AgentOperationReplacementTest": {
+      "file": "tests/Application/AccessControl/AgentCredentialOperation/Repository/AgentOperationReplacementTest.php",
+      "category": "Unit",
+      "reason": "Isolated values, transitions or application behavior with controlled in-memory repositories/security/clock/UoW ports; no real storage, network or process.",
+      "methods": {}
+    },
+    "Fight\\Test\\AccessControl\\Application\\AccessControl\\Audit\\Conformance\\InMemoryAuditStorageConformanceTest": {
+      "file": "tests/Application/AccessControl/Audit/Conformance/InMemoryAuditStorageConformanceTest.php",
+      "category": "Unit",
+      "reason": "Isolated values, transitions or application behavior with controlled in-memory repositories/security/clock/UoW ports; no real storage, network or process.",
+      "methods": {}
+    },
+    "Fight\\Test\\AccessControl\\Application\\AccessControl\\Audit\\Conformance\\InMemoryAuditTransactionConformanceTest": {
+      "file": "tests/Application/AccessControl/Audit/Conformance/InMemoryAuditTransactionConformanceTest.php",
+      "category": "Unit",
+      "reason": "Isolated values, transitions or application behavior with controlled in-memory repositories/security/clock/UoW ports; no real storage, network or process.",
+      "methods": {}
+    },
+    "Fight\\Test\\AccessControl\\Application\\AccessControl\\Authorization\\Admission\\PermissionAdmissionTest": {
+      "file": "tests/Application/AccessControl/Authorization/Admission/PermissionAdmissionTest.php",
+      "category": "Unit",
+      "reason": "Isolated values, transitions or application behavior with controlled in-memory repositories/security/clock/UoW ports; no real storage, network or process.",
+      "methods": {}
+    },
+    "Fight\\Test\\AccessControl\\Application\\AccessControl\\Authorization\\Admission\\PermissionRequirementsTest": {
+      "file": "tests/Application/AccessControl/Authorization/Admission/PermissionRequirementsTest.php",
+      "category": "Unit",
+      "reason": "Isolated values, transitions or application behavior with controlled in-memory repositories/security/clock/UoW ports; no real storage, network or process.",
+      "methods": {}
+    },
+    "Fight\\Test\\AccessControl\\Application\\AccessControl\\Authorization\\Service\\AuthoritativePrincipalResolverTest": {
+      "file": "tests/Application/AccessControl/Authorization/Service/AuthoritativePrincipalResolverTest.php",
+      "category": "Unit",
+      "reason": "Isolated values, transitions or application behavior with controlled in-memory repositories/security/clock/UoW ports; no real storage, network or process.",
+      "methods": {}
+    },
+    "Fight\\Test\\AccessControl\\Application\\AccessControl\\Authorization\\Service\\AuthorityContractTest": {
+      "file": "tests/Application/AccessControl/Authorization/Service/AuthorityContractTest.php",
+      "category": "Unit",
+      "reason": "Isolated values, transitions or application behavior with controlled in-memory repositories/security/clock/UoW ports; no real storage, network or process.",
+      "methods": {}
+    },
+    "Fight\\Test\\AccessControl\\Application\\AccessControl\\Authorization\\Service\\CurrentPrincipalProviderTest": {
+      "file": "tests/Application/AccessControl/Authorization/Service/CurrentPrincipalProviderTest.php",
+      "category": "Unit",
+      "reason": "Isolated values, transitions or application behavior with controlled in-memory repositories/security/clock/UoW ports; no real storage, network or process.",
+      "methods": {}
+    },
+    "Fight\\Test\\AccessControl\\Application\\AccessControl\\Authorization\\Service\\ExactPermissionResolverTest": {
+      "file": "tests/Application/AccessControl/Authorization/Service/ExactPermissionResolverTest.php",
+      "category": "Unit",
+      "reason": "Isolated values, transitions or application behavior with controlled in-memory repositories/security/clock/UoW ports; no real storage, network or process.",
+      "methods": {}
+    },
+    "Fight\\Test\\AccessControl\\Application\\AccessControl\\Authorization\\Service\\SecurityContextTest": {
+      "file": "tests/Application/AccessControl/Authorization/Service/SecurityContextTest.php",
+      "category": "Unit",
+      "reason": "Isolated values, transitions or application behavior with controlled in-memory repositories/security/clock/UoW ports; no real storage, network or process.",
+      "methods": {}
+    },
+    "Fight\\Test\\AccessControl\\Application\\AccessControl\\CredentialDelivery\\QueryHandler\\CredentialDeliveryQueryHandlerTest": {
+      "file": "tests/Application/AccessControl/CredentialDelivery/QueryHandler/CredentialDeliveryQueryHandlerTest.php",
+      "category": "Unit",
+      "reason": "Isolated values, transitions or application behavior with controlled in-memory repositories/security/clock/UoW ports; no real storage, network or process.",
+      "methods": {}
+    },
+    "Fight\\Test\\AccessControl\\Application\\AccessControl\\CredentialDelivery\\QueryHandler\\CredentialQueryCompositionTest": {
+      "file": "tests/Application/AccessControl/CredentialDelivery/QueryHandler/CredentialQueryCompositionTest.php",
+      "category": "Unit",
+      "reason": "Isolated values, transitions or application behavior with controlled in-memory repositories/security/clock/UoW ports; no real storage, network or process.",
+      "methods": {}
+    },
+    "Fight\\Test\\AccessControl\\Application\\AccessControl\\CredentialDelivery\\QueryHandler\\CredentialQueryContractTest": {
+      "file": "tests/Application/AccessControl/CredentialDelivery/QueryHandler/CredentialQueryContractTest.php",
+      "category": "Unit",
+      "reason": "Isolated values, transitions or application behavior with controlled in-memory repositories/security/clock/UoW ports; no real storage, network or process.",
+      "methods": {}
+    },
+    "Fight\\Test\\AccessControl\\Application\\AccessControl\\CredentialDelivery\\QueryHandler\\ExpiredCredentialInterleavingTest": {
+      "file": "tests/Application/AccessControl/CredentialDelivery/QueryHandler/ExpiredCredentialInterleavingTest.php",
+      "category": "Unit",
+      "reason": "Isolated values, transitions or application behavior with controlled in-memory repositories/security/clock/UoW ports; no real storage, network or process.",
+      "methods": {}
+    },
+    "Fight\\Test\\AccessControl\\Application\\AccessControl\\CredentialDelivery\\QueryHandler\\ExpiredCredentialOrderingTest": {
+      "file": "tests/Application/AccessControl/CredentialDelivery/QueryHandler/ExpiredCredentialOrderingTest.php",
+      "category": "Unit",
+      "reason": "Isolated values, transitions or application behavior with controlled in-memory repositories/security/clock/UoW ports; no real storage, network or process.",
+      "methods": {}
+    },
+    "Fight\\Test\\AccessControl\\Application\\AccessControl\\CredentialDelivery\\QueryHandler\\ExpiredCredentialRecoveryTest": {
+      "file": "tests/Application/AccessControl/CredentialDelivery/QueryHandler/ExpiredCredentialRecoveryTest.php",
+      "category": "Unit",
+      "reason": "Isolated values, transitions or application behavior with controlled in-memory repositories/security/clock/UoW ports; no real storage, network or process.",
+      "methods": {}
+    },
+    "Fight\\Test\\AccessControl\\Application\\AccessControl\\CredentialDelivery\\QueryHandler\\OfflineCredentialExpiryRegressionTest": {
+      "file": "tests/Application/AccessControl/CredentialDelivery/QueryHandler/OfflineCredentialExpiryRegressionTest.php",
+      "category": "Unit",
+      "reason": "Isolated values, transitions or application behavior with controlled in-memory repositories/security/clock/UoW ports; no real storage, network or process.",
+      "methods": {}
+    },
+    "Fight\\Test\\AccessControl\\Application\\AccessControl\\CredentialDelivery\\Service\\CredentialDeliveryInvocationTest": {
+      "file": "tests/Application/AccessControl/CredentialDelivery/Service/CredentialDeliveryInvocationTest.php",
+      "category": "Unit",
+      "reason": "Isolated values, transitions or application behavior with controlled in-memory repositories/security/clock/UoW ports; no real storage, network or process.",
+      "methods": {}
+    },
+    "Fight\\Test\\AccessControl\\Application\\AccessControl\\CredentialDelivery\\Service\\HumanCredentialCompositionTest": {
+      "file": "tests/Application/AccessControl/CredentialDelivery/Service/HumanCredentialCompositionTest.php",
+      "category": "Unit",
+      "reason": "Isolated values, transitions or application behavior with controlled in-memory repositories/security/clock/UoW ports; no real storage, network or process.",
+      "methods": {}
+    },
+    "Fight\\Test\\AccessControl\\Application\\AccessControl\\CredentialDelivery\\Service\\HumanCredentialContractTest": {
+      "file": "tests/Application/AccessControl/CredentialDelivery/Service/HumanCredentialContractTest.php",
+      "category": "Unit",
+      "reason": "Isolated values, transitions or application behavior with controlled in-memory repositories/security/clock/UoW ports; no real storage, network or process.",
+      "methods": {}
+    },
+    "Fight\\Test\\AccessControl\\Application\\AccessControl\\EmailChangeGrant\\CommandHandler\\CancelEmailChangeHandlerTest": {
+      "file": "tests/Application/AccessControl/EmailChangeGrant/CommandHandler/CancelEmailChangeHandlerTest.php",
+      "category": "Unit",
+      "reason": "Isolated values, transitions or application behavior with controlled in-memory repositories/security/clock/UoW ports; no real storage, network or process.",
+      "methods": {}
+    },
+    "Fight\\Test\\AccessControl\\Application\\AccessControl\\EmailChangeGrant\\CommandHandler\\DeliverEmailChangeHandlerTest": {
+      "file": "tests/Application/AccessControl/EmailChangeGrant/CommandHandler/DeliverEmailChangeHandlerTest.php",
+      "category": "Unit",
+      "reason": "Isolated values, transitions or application behavior with controlled in-memory repositories/security/clock/UoW ports; no real storage, network or process.",
+      "methods": {}
+    },
+    "Fight\\Test\\AccessControl\\Application\\AccessControl\\EmailChangeGrant\\CommandHandler\\ExpireEmailChangeHandlerTest": {
+      "file": "tests/Application/AccessControl/EmailChangeGrant/CommandHandler/ExpireEmailChangeHandlerTest.php",
+      "category": "Unit",
+      "reason": "Isolated values, transitions or application behavior with controlled in-memory repositories/security/clock/UoW ports; no real storage, network or process.",
+      "methods": {}
+    },
+    "Fight\\Test\\AccessControl\\Application\\AccessControl\\EmailChangeGrant\\CommandHandler\\RequestEmailChangeHandlerTest": {
+      "file": "tests/Application/AccessControl/EmailChangeGrant/CommandHandler/RequestEmailChangeHandlerTest.php",
+      "category": "Unit",
+      "reason": "Isolated values, transitions or application behavior with controlled in-memory repositories/security/clock/UoW ports; no real storage, network or process.",
+      "methods": {}
+    },
+    "Fight\\Test\\AccessControl\\Application\\AccessControl\\EmailChangeGrant\\EmailChangeConfirmationTest": {
+      "file": "tests/Application/AccessControl/EmailChangeGrant/EmailChangeConfirmationTest.php",
+      "category": "Unit",
+      "reason": "Isolated values, transitions or application behavior with controlled in-memory repositories/security/clock/UoW ports; no real storage, network or process.",
+      "methods": {}
+    },
+    "Fight\\Test\\AccessControl\\Application\\AccessControl\\EmailChangeGrant\\Repository\\InMemoryEmailChangeGrantRepositoryTest": {
+      "file": "tests/Application/AccessControl/EmailChangeGrant/Repository/InMemoryEmailChangeGrantRepositoryTest.php",
+      "category": "Unit",
+      "reason": "Isolated values, transitions or application behavior with controlled in-memory repositories/security/clock/UoW ports; no real storage, network or process.",
+      "methods": {}
+    },
+    "Fight\\Test\\AccessControl\\Application\\AccessControl\\Event\\DeliveryFailureCompositionTest": {
+      "file": "tests/Application/AccessControl/Event/DeliveryFailureCompositionTest.php",
+      "category": "Unit",
+      "reason": "Isolated values, transitions or application behavior with controlled in-memory repositories/security/clock/UoW ports; no real storage, network or process.",
+      "methods": {}
+    },
+    "Fight\\Test\\AccessControl\\Application\\AccessControl\\Event\\HandlerFailureContractTest": {
+      "file": "tests/Application/AccessControl/Event/HandlerFailureContractTest.php",
+      "category": "Unit",
+      "reason": "Isolated values, transitions or application behavior with controlled in-memory repositories/security/clock/UoW ports; no real storage, network or process.",
+      "methods": {}
+    },
+    "Fight\\Test\\AccessControl\\Application\\AccessControl\\Event\\OperationFailureContractTest": {
+      "file": "tests/Application/AccessControl/Event/OperationFailureContractTest.php",
+      "category": "Unit",
+      "reason": "Isolated values, transitions or application behavior with controlled in-memory repositories/security/clock/UoW ports; no real storage, network or process.",
+      "methods": {}
+    },
+    "Fight\\Test\\AccessControl\\Application\\AccessControl\\Feature\\Admission\\FeatureAdmissionTest": {
+      "file": "tests/Application/AccessControl/Feature/Admission/FeatureAdmissionTest.php",
+      "category": "Unit",
+      "reason": "Isolated values, transitions or application behavior with controlled in-memory repositories/security/clock/UoW ports; no real storage, network or process.",
+      "methods": {}
+    },
+    "Fight\\Test\\AccessControl\\Application\\AccessControl\\Feature\\Attribute\\FeatureFlagTest": {
+      "file": "tests/Application/AccessControl/Feature/Attribute/FeatureFlagTest.php",
+      "category": "Unit",
+      "reason": "Isolated values, transitions or application behavior with controlled in-memory repositories/security/clock/UoW ports; no real storage, network or process.",
+      "methods": {}
+    },
+    "Fight\\Test\\AccessControl\\Application\\AccessControl\\Feature\\CommandHandler\\FeatureManagementTest": {
+      "file": "tests/Application/AccessControl/Feature/CommandHandler/FeatureManagementTest.php",
+      "category": "Unit",
+      "reason": "Isolated values, transitions or application behavior with controlled in-memory repositories/security/clock/UoW ports; no real storage, network or process.",
+      "methods": {}
+    },
+    "Fight\\Test\\AccessControl\\Application\\AccessControl\\Feature\\CommandHandler\\FeatureMutationContractTest": {
+      "file": "tests/Application/AccessControl/Feature/CommandHandler/FeatureMutationContractTest.php",
+      "category": "Unit",
+      "reason": "Isolated values, transitions or application behavior with controlled in-memory repositories/security/clock/UoW ports; no real storage, network or process.",
+      "methods": {}
+    },
+    "Fight\\Test\\AccessControl\\Application\\AccessControl\\Feature\\CommandHandler\\ProvisionFeaturesHandlerTest": {
+      "file": "tests/Application/AccessControl/Feature/CommandHandler/ProvisionFeaturesHandlerTest.php",
+      "category": "Unit",
+      "reason": "Isolated values, transitions or application behavior with controlled in-memory repositories/security/clock/UoW ports; no real storage, network or process.",
+      "methods": {}
+    },
+    "Fight\\Test\\AccessControl\\Application\\AccessControl\\Feature\\CommandHandler\\RemoveFeatureHandlerTest": {
+      "file": "tests/Application/AccessControl/Feature/CommandHandler/RemoveFeatureHandlerTest.php",
+      "category": "Unit",
+      "reason": "Isolated values, transitions or application behavior with controlled in-memory repositories/security/clock/UoW ports; no real storage, network or process.",
+      "methods": {}
+    },
+    "Fight\\Test\\AccessControl\\Application\\AccessControl\\Feature\\Conformance\\EffectiveFeatureDiscoveryTest": {
+      "file": "tests/Application/AccessControl/Feature/Conformance/EffectiveFeatureDiscoveryTest.php",
+      "category": "Unit",
+      "reason": "Isolated values, transitions or application behavior with controlled in-memory repositories/security/clock/UoW ports; no real storage, network or process.",
+      "methods": {}
+    },
+    "Fight\\Test\\AccessControl\\Application\\AccessControl\\Feature\\Conformance\\InMemoryFeatureAvailabilityConformanceTest": {
+      "file": "tests/Application/AccessControl/Feature/Conformance/InMemoryFeatureAvailabilityConformanceTest.php",
+      "category": "Unit",
+      "reason": "Isolated values, transitions or application behavior with controlled in-memory repositories/security/clock/UoW ports; no real storage, network or process.",
+      "methods": {}
+    },
+    "Fight\\Test\\AccessControl\\Application\\AccessControl\\Feature\\Conformance\\InMemoryFeatureManagementConformanceTest": {
+      "file": "tests/Application/AccessControl/Feature/Conformance/InMemoryFeatureManagementConformanceTest.php",
+      "category": "Unit",
+      "reason": "Isolated values, transitions or application behavior with controlled in-memory repositories/security/clock/UoW ports; no real storage, network or process.",
+      "methods": {}
+    },
+    "Fight\\Test\\AccessControl\\Application\\AccessControl\\Feature\\Conformance\\InMemoryFeaturePreparationConformanceTest": {
+      "file": "tests/Application/AccessControl/Feature/Conformance/InMemoryFeaturePreparationConformanceTest.php",
+      "category": "Unit",
+      "reason": "Isolated values, transitions or application behavior with controlled in-memory repositories/security/clock/UoW ports; no real storage, network or process.",
+      "methods": {}
+    },
+    "Fight\\Test\\AccessControl\\Application\\AccessControl\\Feature\\Conformance\\InMemoryFeatureRetirementConformanceTest": {
+      "file": "tests/Application/AccessControl/Feature/Conformance/InMemoryFeatureRetirementConformanceTest.php",
+      "category": "Unit",
+      "reason": "Isolated values, transitions or application behavior with controlled in-memory repositories/security/clock/UoW ports; no real storage, network or process.",
+      "methods": {}
+    },
+    "Fight\\Test\\AccessControl\\Application\\AccessControl\\Feature\\Conformance\\InMemoryPermissionFeatureReferenceConformanceTest": {
+      "file": "tests/Application/AccessControl/Feature/Conformance/InMemoryPermissionFeatureReferenceConformanceTest.php",
+      "category": "Unit",
+      "reason": "Isolated values, transitions or application behavior with controlled in-memory repositories/security/clock/UoW ports; no real storage, network or process.",
+      "methods": {}
+    },
+    "Fight\\Test\\AccessControl\\Application\\AccessControl\\Feature\\Conformance\\ManagedFeatureRemovalTest": {
+      "file": "tests/Application/AccessControl/Feature/Conformance/ManagedFeatureRemovalTest.php",
+      "category": "Unit",
+      "reason": "Isolated values, transitions or application behavior with controlled in-memory repositories/security/clock/UoW ports; no real storage, network or process.",
+      "methods": {}
+    },
+    "Fight\\Test\\AccessControl\\Application\\AccessControl\\Feature\\Discovery\\FeatureDiscoveryResultTest": {
+      "file": "tests/Application/AccessControl/Feature/Discovery/FeatureDiscoveryResultTest.php",
+      "category": "Unit",
+      "reason": "Isolated values, transitions or application behavior with controlled in-memory repositories/security/clock/UoW ports; no real storage, network or process.",
+      "methods": {}
+    },
+    "Fight\\Test\\AccessControl\\Application\\AccessControl\\Feature\\Discovery\\FeatureReferencesTest": {
+      "file": "tests/Application/AccessControl/Feature/Discovery/FeatureReferencesTest.php",
+      "category": "Unit",
+      "reason": "Isolated values, transitions or application behavior with controlled in-memory repositories/security/clock/UoW ports; no real storage, network or process.",
+      "methods": {}
+    },
+    "Fight\\Test\\AccessControl\\Application\\AccessControl\\Feature\\FeatureRequirementsTest": {
+      "file": "tests/Application/AccessControl/Feature/FeatureRequirementsTest.php",
+      "category": "Unit",
+      "reason": "Isolated values, transitions or application behavior with controlled in-memory repositories/security/clock/UoW ports; no real storage, network or process.",
+      "methods": {}
+    },
+    "Fight\\Test\\AccessControl\\Application\\AccessControl\\Feature\\QueryHandler\\ValidateFeaturePreparationHandlerTest": {
+      "file": "tests/Application/AccessControl/Feature/QueryHandler/ValidateFeaturePreparationHandlerTest.php",
+      "category": "Unit",
+      "reason": "Isolated values, transitions or application behavior with controlled in-memory repositories/security/clock/UoW ports; no real storage, network or process.",
+      "methods": {}
+    },
+    "Fight\\Test\\AccessControl\\Application\\AccessControl\\Feature\\Service\\FeatureAvailabilityTest": {
+      "file": "tests/Application/AccessControl/Feature/Service/FeatureAvailabilityTest.php",
+      "category": "Unit",
+      "reason": "Isolated values, transitions or application behavior with controlled in-memory repositories/security/clock/UoW ports; no real storage, network or process.",
+      "methods": {}
+    },
+    "Fight\\Test\\AccessControl\\Application\\AccessControl\\ManagedPolicy\\CommandHandler\\ManagedPolicyApplyIdentityTest": {
+      "file": "tests/Application/AccessControl/ManagedPolicy/CommandHandler/ManagedPolicyApplyIdentityTest.php",
+      "category": "Unit",
+      "reason": "Isolated values, transitions or application behavior with controlled in-memory repositories/security/clock/UoW ports; no real storage, network or process.",
+      "methods": {}
+    },
+    "Fight\\Test\\AccessControl\\Application\\AccessControl\\ManagedPolicy\\CommandHandler\\ManagedPolicyRemovalOutcomeTest": {
+      "file": "tests/Application/AccessControl/ManagedPolicy/CommandHandler/ManagedPolicyRemovalOutcomeTest.php",
+      "category": "Unit",
+      "reason": "Isolated values, transitions or application behavior with controlled in-memory repositories/security/clock/UoW ports; no real storage, network or process.",
+      "methods": {}
+    },
+    "Fight\\Test\\AccessControl\\Application\\AccessControl\\ManagedPolicy\\CommandHandler\\ManagedPolicyUnchangedFenceTest": {
+      "file": "tests/Application/AccessControl/ManagedPolicy/CommandHandler/ManagedPolicyUnchangedFenceTest.php",
+      "category": "Unit",
+      "reason": "Isolated values, transitions or application behavior with controlled in-memory repositories/security/clock/UoW ports; no real storage, network or process.",
+      "methods": {}
+    },
+    "Fight\\Test\\AccessControl\\Application\\AccessControl\\ManagedPolicy\\CommandHandler\\ProtectedManagedPolicyTest": {
+      "file": "tests/Application/AccessControl/ManagedPolicy/CommandHandler/ProtectedManagedPolicyTest.php",
+      "category": "Unit",
+      "reason": "Isolated values, transitions or application behavior with controlled in-memory repositories/security/clock/UoW ports; no real storage, network or process.",
+      "methods": {}
+    },
+    "Fight\\Test\\AccessControl\\Application\\AccessControl\\ManagedPolicy\\CommandHandler\\ReconcileManagedPolicyHandlerTest": {
+      "file": "tests/Application/AccessControl/ManagedPolicy/CommandHandler/ReconcileManagedPolicyHandlerTest.php",
+      "category": "Unit",
+      "reason": "Isolated values, transitions or application behavior with controlled in-memory repositories/security/clock/UoW ports; no real storage, network or process.",
+      "methods": {}
+    },
+    "Fight\\Test\\AccessControl\\Application\\AccessControl\\ManagedPolicy\\QueryHandler\\ManagedPolicyReadContractTest": {
+      "file": "tests/Application/AccessControl/ManagedPolicy/QueryHandler/ManagedPolicyReadContractTest.php",
+      "category": "Unit",
+      "reason": "Isolated values, transitions or application behavior with controlled in-memory repositories/security/clock/UoW ports; no real storage, network or process.",
+      "methods": {}
+    },
+    "Fight\\Test\\AccessControl\\Application\\AccessControl\\ManagedPolicy\\QueryHandler\\PreviewManagedPolicyHandlerTest": {
+      "file": "tests/Application/AccessControl/ManagedPolicy/QueryHandler/PreviewManagedPolicyHandlerTest.php",
+      "category": "Unit",
+      "reason": "Isolated values, transitions or application behavior with controlled in-memory repositories/security/clock/UoW ports; no real storage, network or process.",
+      "methods": {}
+    },
+    "Fight\\Test\\AccessControl\\Application\\AccessControl\\PagedQueryContractTest": {
+      "file": "tests/Application/AccessControl/PagedQueryContractTest.php",
+      "category": "Unit",
+      "reason": "Isolated values, transitions or application behavior with controlled in-memory repositories/security/clock/UoW ports; no real storage, network or process.",
+      "methods": {}
+    },
+    "Fight\\Test\\AccessControl\\Application\\AccessControl\\PasswordResetGrant\\CommandHandler\\DeliverPasswordResetHandlerTest": {
+      "file": "tests/Application/AccessControl/PasswordResetGrant/CommandHandler/DeliverPasswordResetHandlerTest.php",
+      "category": "Unit",
+      "reason": "Isolated values, transitions or application behavior with controlled in-memory repositories/security/clock/UoW ports; no real storage, network or process.",
+      "methods": {}
+    },
+    "Fight\\Test\\AccessControl\\Application\\AccessControl\\PasswordResetGrant\\CommandHandler\\PasswordResetDeliveryLifecycleHandlerTest": {
+      "file": "tests/Application/AccessControl/PasswordResetGrant/CommandHandler/PasswordResetDeliveryLifecycleHandlerTest.php",
+      "category": "Unit",
+      "reason": "Isolated values, transitions or application behavior with controlled in-memory repositories/security/clock/UoW ports; no real storage, network or process.",
+      "methods": {}
+    },
+    "Fight\\Test\\AccessControl\\Application\\AccessControl\\PasswordResetGrant\\CommandHandler\\RequestPasswordResetHandlerTest": {
+      "file": "tests/Application/AccessControl/PasswordResetGrant/CommandHandler/RequestPasswordResetHandlerTest.php",
+      "category": "Unit",
+      "reason": "Isolated values, transitions or application behavior with controlled in-memory repositories/security/clock/UoW ports; no real storage, network or process.",
+      "methods": {}
+    },
+    "Fight\\Test\\AccessControl\\Application\\AccessControl\\PasswordResetGrant\\RecoveryConcurrencyTest": {
+      "file": "tests/Application/AccessControl/PasswordResetGrant/RecoveryConcurrencyTest.php",
+      "category": "Unit",
+      "reason": "Isolated values, transitions or application behavior with controlled in-memory repositories/security/clock/UoW ports; no real storage, network or process.",
+      "methods": {}
+    },
+    "Fight\\Test\\AccessControl\\Application\\AccessControl\\PasswordResetGrant\\RecoveryLifecycleTest": {
+      "file": "tests/Application/AccessControl/PasswordResetGrant/RecoveryLifecycleTest.php",
+      "category": "Unit",
+      "reason": "Isolated values, transitions or application behavior with controlled in-memory repositories/security/clock/UoW ports; no real storage, network or process.",
+      "methods": {}
+    },
+    "Fight\\Test\\AccessControl\\Application\\AccessControl\\PasswordResetGrant\\RecoveryOutcomeTest": {
+      "file": "tests/Application/AccessControl/PasswordResetGrant/RecoveryOutcomeTest.php",
+      "category": "Unit",
+      "reason": "Isolated values, transitions or application behavior with controlled in-memory repositories/security/clock/UoW ports; no real storage, network or process.",
+      "methods": {}
+    },
+    "Fight\\Test\\AccessControl\\Application\\AccessControl\\PasswordResetGrant\\Repository\\InMemoryPasswordResetGrantsTest": {
+      "file": "tests/Application/AccessControl/PasswordResetGrant/Repository/InMemoryPasswordResetGrantsTest.php",
+      "category": "Unit",
+      "reason": "Isolated values, transitions or application behavior with controlled in-memory repositories/security/clock/UoW ports; no real storage, network or process.",
+      "methods": {}
+    },
+    "Fight\\Test\\AccessControl\\Application\\AccessControl\\PasswordResetGrant\\Repository\\InMemoryRecoveryAuthorityConformanceTest": {
+      "file": "tests/Application/AccessControl/PasswordResetGrant/Repository/InMemoryRecoveryAuthorityConformanceTest.php",
+      "category": "Unit",
+      "reason": "Isolated values, transitions or application behavior with controlled in-memory repositories/security/clock/UoW ports; no real storage, network or process.",
+      "methods": {}
+    },
+    "Fight\\Test\\AccessControl\\Application\\AccessControl\\PasswordResetGrant\\Service\\PasswordResetRevocationServiceTest": {
+      "file": "tests/Application/AccessControl/PasswordResetGrant/Service/PasswordResetRevocationServiceTest.php",
+      "category": "Unit",
+      "reason": "Isolated values, transitions or application behavior with controlled in-memory repositories/security/clock/UoW ports; no real storage, network or process.",
+      "methods": {}
+    },
+    "Fight\\Test\\AccessControl\\Application\\AccessControl\\Permission\\QueryHandler\\GetPermissionByIdHandlerTest": {
+      "file": "tests/Application/AccessControl/Permission/QueryHandler/GetPermissionByIdHandlerTest.php",
+      "category": "Unit",
+      "reason": "Isolated values, transitions or application behavior with controlled in-memory repositories/security/clock/UoW ports; no real storage, network or process.",
+      "methods": {}
+    },
+    "Fight\\Test\\AccessControl\\Application\\AccessControl\\Permission\\QueryHandler\\ListPermissionsHandlerTest": {
+      "file": "tests/Application/AccessControl/Permission/QueryHandler/ListPermissionsHandlerTest.php",
+      "category": "Unit",
+      "reason": "Isolated values, transitions or application behavior with controlled in-memory repositories/security/clock/UoW ports; no real storage, network or process.",
+      "methods": {}
+    },
+    "Fight\\Test\\AccessControl\\Application\\AccessControl\\Permission\\Repository\\InMemoryPermissionRepositoryTest": {
+      "file": "tests/Application/AccessControl/Permission/Repository/InMemoryPermissionRepositoryTest.php",
+      "category": "Unit",
+      "reason": "Isolated values, transitions or application behavior with controlled in-memory repositories/security/clock/UoW ports; no real storage, network or process.",
+      "methods": {}
+    },
+    "Fight\\Test\\AccessControl\\Application\\AccessControl\\RefreshSession\\CommandHandler\\RevokeSessionHandlerTest": {
+      "file": "tests/Application/AccessControl/RefreshSession/CommandHandler/RevokeSessionHandlerTest.php",
+      "category": "Unit",
+      "reason": "Isolated values, transitions or application behavior with controlled in-memory repositories/security/clock/UoW ports; no real storage, network or process.",
+      "methods": {}
+    },
+    "Fight\\Test\\AccessControl\\Application\\AccessControl\\RefreshSession\\QueryHandler\\ListActiveSessionsHandlerTest": {
+      "file": "tests/Application/AccessControl/RefreshSession/QueryHandler/ListActiveSessionsHandlerTest.php",
+      "category": "Unit",
+      "reason": "Isolated values, transitions or application behavior with controlled in-memory repositories/security/clock/UoW ports; no real storage, network or process.",
+      "methods": {}
+    },
+    "Fight\\Test\\AccessControl\\Application\\AccessControl\\RefreshSession\\Repository\\InMemoryRefreshSessionRepositoryTest": {
+      "file": "tests/Application/AccessControl/RefreshSession/Repository/InMemoryRefreshSessionRepositoryTest.php",
+      "category": "Unit",
+      "reason": "Isolated values, transitions or application behavior with controlled in-memory repositories/security/clock/UoW ports; no real storage, network or process.",
+      "methods": {}
+    },
+    "Fight\\Test\\AccessControl\\Application\\AccessControl\\RefreshSession\\Service\\SessionRevocationServiceTest": {
+      "file": "tests/Application/AccessControl/RefreshSession/Service/SessionRevocationServiceTest.php",
+      "category": "Unit",
+      "reason": "Isolated values, transitions or application behavior with controlled in-memory repositories/security/clock/UoW ports; no real storage, network or process.",
+      "methods": {}
+    },
+    "Fight\\Test\\AccessControl\\Application\\AccessControl\\RefreshSession\\SessionLifecycleTest": {
+      "file": "tests/Application/AccessControl/RefreshSession/SessionLifecycleTest.php",
+      "category": "Unit",
+      "reason": "Isolated values, transitions or application behavior with controlled in-memory repositories/security/clock/UoW ports; no real storage, network or process.",
+      "methods": {}
+    },
+    "Fight\\Test\\AccessControl\\Application\\AccessControl\\Role\\CommandHandler\\CustomRoleIdentityHandlerTest": {
+      "file": "tests/Application/AccessControl/Role/CommandHandler/CustomRoleIdentityHandlerTest.php",
+      "category": "Unit",
+      "reason": "Isolated values, transitions or application behavior with controlled in-memory repositories/security/clock/UoW ports; no real storage, network or process.",
+      "methods": {}
+    },
+    "Fight\\Test\\AccessControl\\Application\\AccessControl\\Role\\CommandHandler\\CustomRoleMembershipHandlerTest": {
+      "file": "tests/Application/AccessControl/Role/CommandHandler/CustomRoleMembershipHandlerTest.php",
+      "category": "Unit",
+      "reason": "Isolated values, transitions or application behavior with controlled in-memory repositories/security/clock/UoW ports; no real storage, network or process.",
+      "methods": {}
+    },
+    "Fight\\Test\\AccessControl\\Application\\AccessControl\\Role\\CommandHandler\\MembershipContractTest": {
+      "file": "tests/Application/AccessControl/Role/CommandHandler/MembershipContractTest.php",
+      "category": "Unit",
+      "reason": "Isolated values, transitions or application behavior with controlled in-memory repositories/security/clock/UoW ports; no real storage, network or process.",
+      "methods": {}
+    },
+    "Fight\\Test\\AccessControl\\Application\\AccessControl\\Role\\CommandHandler\\RoleRevisionHandlerTest": {
+      "file": "tests/Application/AccessControl/Role/CommandHandler/RoleRevisionHandlerTest.php",
+      "category": "Unit",
+      "reason": "Isolated values, transitions or application behavior with controlled in-memory repositories/security/clock/UoW ports; no real storage, network or process.",
+      "methods": {}
+    },
+    "Fight\\Test\\AccessControl\\Application\\AccessControl\\Role\\QueryHandler\\GetRoleByIdHandlerTest": {
+      "file": "tests/Application/AccessControl/Role/QueryHandler/GetRoleByIdHandlerTest.php",
+      "category": "Unit",
+      "reason": "Isolated values, transitions or application behavior with controlled in-memory repositories/security/clock/UoW ports; no real storage, network or process.",
+      "methods": {}
+    },
+    "Fight\\Test\\AccessControl\\Application\\AccessControl\\Role\\QueryHandler\\ListRolesHandlerTest": {
+      "file": "tests/Application/AccessControl/Role/QueryHandler/ListRolesHandlerTest.php",
+      "category": "Unit",
+      "reason": "Isolated values, transitions or application behavior with controlled in-memory repositories/security/clock/UoW ports; no real storage, network or process.",
+      "methods": {}
+    },
+    "Fight\\Test\\AccessControl\\Application\\AccessControl\\Role\\Repository\\InMemoryRoleRepositoryTest": {
+      "file": "tests/Application/AccessControl/Role/Repository/InMemoryRoleRepositoryTest.php",
+      "category": "Unit",
+      "reason": "Isolated values, transitions or application behavior with controlled in-memory repositories/security/clock/UoW ports; no real storage, network or process.",
+      "methods": {}
+    },
+    "Fight\\Test\\AccessControl\\Application\\AccessControl\\Role\\Repository\\InMemoryRoleRevisionConformanceTest": {
+      "file": "tests/Application/AccessControl/Role/Repository/InMemoryRoleRevisionConformanceTest.php",
+      "category": "Unit",
+      "reason": "Isolated values, transitions or application behavior with controlled in-memory repositories/security/clock/UoW ports; no real storage, network or process.",
+      "methods": {}
+    },
+    "Fight\\Test\\AccessControl\\Application\\AccessControl\\User\\ApplicationRecordsTest": {
+      "file": "tests/Application/AccessControl/User/ApplicationRecordsTest.php",
+      "category": "Unit",
+      "reason": "Isolated values, transitions or application behavior with controlled in-memory repositories/security/clock/UoW ports; no real storage, network or process.",
+      "methods": {}
+    },
+    "Fight\\Test\\AccessControl\\Application\\AccessControl\\User\\Authentication\\SynchronousContractTest": {
+      "file": "tests/Application/AccessControl/User/Authentication/SynchronousContractTest.php",
+      "category": "Unit",
+      "reason": "Isolated values, transitions or application behavior with controlled in-memory repositories/security/clock/UoW ports; no real storage, network or process.",
+      "methods": {}
+    },
+    "Fight\\Test\\AccessControl\\Application\\AccessControl\\User\\Authentication\\UserAuthenticationTest": {
+      "file": "tests/Application/AccessControl/User/Authentication/UserAuthenticationTest.php",
+      "category": "Unit",
+      "reason": "Isolated values, transitions or application behavior with controlled in-memory repositories/security/clock/UoW ports; no real storage, network or process.",
+      "methods": {}
+    },
+    "Fight\\Test\\AccessControl\\Application\\AccessControl\\User\\CommandHandler\\CorrectPendingInvitationHandlerTest": {
+      "file": "tests/Application/AccessControl/User/CommandHandler/CorrectPendingInvitationHandlerTest.php",
+      "category": "Unit",
+      "reason": "Isolated values, transitions or application behavior with controlled in-memory repositories/security/clock/UoW ports; no real storage, network or process.",
+      "methods": {}
+    },
+    "Fight\\Test\\AccessControl\\Application\\AccessControl\\User\\CommandHandler\\DeleteUserHandlerTest": {
+      "file": "tests/Application/AccessControl/User/CommandHandler/DeleteUserHandlerTest.php",
+      "category": "Unit",
+      "reason": "Isolated values, transitions or application behavior with controlled in-memory repositories/security/clock/UoW ports; no real storage, network or process.",
+      "methods": {}
+    },
+    "Fight\\Test\\AccessControl\\Application\\AccessControl\\User\\CommandHandler\\DisableUserHandlerTest": {
+      "file": "tests/Application/AccessControl/User/CommandHandler/DisableUserHandlerTest.php",
+      "category": "Unit",
+      "reason": "Isolated values, transitions or application behavior with controlled in-memory repositories/security/clock/UoW ports; no real storage, network or process.",
+      "methods": {}
+    },
+    "Fight\\Test\\AccessControl\\Application\\AccessControl\\User\\CommandHandler\\EnableUserHandlerTest": {
+      "file": "tests/Application/AccessControl/User/CommandHandler/EnableUserHandlerTest.php",
+      "category": "Unit",
+      "reason": "Isolated values, transitions or application behavior with controlled in-memory repositories/security/clock/UoW ports; no real storage, network or process.",
+      "methods": {}
+    },
+    "Fight\\Test\\AccessControl\\Application\\AccessControl\\User\\CommandHandler\\InvitePendingUserHandlerTest": {
+      "file": "tests/Application/AccessControl/User/CommandHandler/InvitePendingUserHandlerTest.php",
+      "category": "Unit",
+      "reason": "Isolated values, transitions or application behavior with controlled in-memory repositories/security/clock/UoW ports; no real storage, network or process.",
+      "methods": {}
+    },
+    "Fight\\Test\\AccessControl\\Application\\AccessControl\\User\\CommandHandler\\OptionalLifecycleAuditTest": {
+      "file": "tests/Application/AccessControl/User/CommandHandler/OptionalLifecycleAuditTest.php",
+      "category": "Unit",
+      "reason": "Isolated values, transitions or application behavior with controlled in-memory repositories/security/clock/UoW ports; no real storage, network or process.",
+      "methods": {}
+    },
+    "Fight\\Test\\AccessControl\\Application\\AccessControl\\User\\CommandHandler\\RecoverPendingRegistrationHandlerTest": {
+      "file": "tests/Application/AccessControl/User/CommandHandler/RecoverPendingRegistrationHandlerTest.php",
+      "category": "Unit",
+      "reason": "Isolated values, transitions or application behavior with controlled in-memory repositories/security/clock/UoW ports; no real storage, network or process.",
+      "methods": {}
+    },
+    "Fight\\Test\\AccessControl\\Application\\AccessControl\\User\\CommandHandler\\RegisterUserHandlerTest": {
+      "file": "tests/Application/AccessControl/User/CommandHandler/RegisterUserHandlerTest.php",
+      "category": "Unit",
+      "reason": "Isolated values, transitions or application behavior with controlled in-memory repositories/security/clock/UoW ports; no real storage, network or process.",
+      "methods": {}
+    },
+    "Fight\\Test\\AccessControl\\Application\\AccessControl\\User\\CommandHandler\\RegistrationCreationContractTest": {
+      "file": "tests/Application/AccessControl/User/CommandHandler/RegistrationCreationContractTest.php",
+      "category": "Unit",
+      "reason": "Isolated values, transitions or application behavior with controlled in-memory repositories/security/clock/UoW ports; no real storage, network or process.",
+      "methods": {}
+    },
+    "Fight\\Test\\AccessControl\\Application\\AccessControl\\User\\CommandHandler\\RegistrationJourneyTest": {
+      "file": "tests/Application/AccessControl/User/CommandHandler/RegistrationJourneyTest.php",
+      "category": "Unit",
+      "reason": "Isolated values, transitions or application behavior with controlled in-memory repositories/security/clock/UoW ports; no real storage, network or process.",
+      "methods": {}
+    },
+    "Fight\\Test\\AccessControl\\Application\\AccessControl\\User\\CommandHandler\\RegistrationRecoveryJourneyTest": {
+      "file": "tests/Application/AccessControl/User/CommandHandler/RegistrationRecoveryJourneyTest.php",
+      "category": "Unit",
+      "reason": "Isolated values, transitions or application behavior with controlled in-memory repositories/security/clock/UoW ports; no real storage, network or process.",
+      "methods": {}
+    },
+    "Fight\\Test\\AccessControl\\Application\\AccessControl\\User\\CommandHandler\\RegistrationRecoveryRaceTest": {
+      "file": "tests/Application/AccessControl/User/CommandHandler/RegistrationRecoveryRaceTest.php",
+      "category": "Unit",
+      "reason": "Isolated values, transitions or application behavior with controlled in-memory repositories/security/clock/UoW ports; no real storage, network or process.",
+      "methods": {}
+    },
+    "Fight\\Test\\AccessControl\\Application\\AccessControl\\User\\CommandHandler\\RegistrationReferenceRaceTest": {
+      "file": "tests/Application/AccessControl/User/CommandHandler/RegistrationReferenceRaceTest.php",
+      "category": "Unit",
+      "reason": "Isolated values, transitions or application behavior with controlled in-memory repositories/security/clock/UoW ports; no real storage, network or process.",
+      "methods": {}
+    },
+    "Fight\\Test\\AccessControl\\Application\\AccessControl\\User\\CommandHandler\\RestoreUserHandlerTest": {
+      "file": "tests/Application/AccessControl/User/CommandHandler/RestoreUserHandlerTest.php",
+      "category": "Unit",
+      "reason": "Isolated values, transitions or application behavior with controlled in-memory repositories/security/clock/UoW ports; no real storage, network or process.",
+      "methods": {}
+    },
+    "Fight\\Test\\AccessControl\\Application\\AccessControl\\User\\CommandHandler\\UserLifecycleContractTest": {
+      "file": "tests/Application/AccessControl/User/CommandHandler/UserLifecycleContractTest.php",
+      "category": "Unit",
+      "reason": "Isolated values, transitions or application behavior with controlled in-memory repositories/security/clock/UoW ports; no real storage, network or process.",
+      "methods": {}
+    },
+    "Fight\\Test\\AccessControl\\Application\\AccessControl\\User\\CommandHandler\\UserLifecycleDispatchTest": {
+      "file": "tests/Application/AccessControl/User/CommandHandler/UserLifecycleDispatchTest.php",
+      "category": "Unit",
+      "reason": "Isolated values, transitions or application behavior with controlled in-memory repositories/security/clock/UoW ports; no real storage, network or process.",
+      "methods": {}
+    },
+    "Fight\\Test\\AccessControl\\Application\\AccessControl\\User\\CommandHandler\\UserRoleAssignmentHandlerTest": {
+      "file": "tests/Application/AccessControl/User/CommandHandler/UserRoleAssignmentHandlerTest.php",
+      "category": "Unit",
+      "reason": "Isolated values, transitions or application behavior with controlled in-memory repositories/security/clock/UoW ports; no real storage, network or process.",
+      "methods": {}
+    },
+    "Fight\\Test\\AccessControl\\Application\\AccessControl\\User\\PasswordManagementTest": {
+      "file": "tests/Application/AccessControl/User/PasswordManagementTest.php",
+      "category": "Unit",
+      "reason": "Isolated values, transitions or application behavior with controlled in-memory repositories/security/clock/UoW ports; no real storage, network or process.",
+      "methods": {}
+    },
+    "Fight\\Test\\AccessControl\\Application\\AccessControl\\User\\QueryHandler\\GetUserByIdHandlerTest": {
+      "file": "tests/Application/AccessControl/User/QueryHandler/GetUserByIdHandlerTest.php",
+      "category": "Unit",
+      "reason": "Isolated values, transitions or application behavior with controlled in-memory repositories/security/clock/UoW ports; no real storage, network or process.",
+      "methods": {}
+    },
+    "Fight\\Test\\AccessControl\\Application\\AccessControl\\User\\QueryHandler\\ListUsersHandlerTest": {
+      "file": "tests/Application/AccessControl/User/QueryHandler/ListUsersHandlerTest.php",
+      "category": "Unit",
+      "reason": "Isolated values, transitions or application behavior with controlled in-memory repositories/security/clock/UoW ports; no real storage, network or process.",
+      "methods": {}
+    },
+    "Fight\\Test\\AccessControl\\Application\\AccessControl\\User\\Repository\\InMemoryUserRepositoryTest": {
+      "file": "tests/Application/AccessControl/User/Repository/InMemoryUserRepositoryTest.php",
+      "category": "Unit",
+      "reason": "Isolated values, transitions or application behavior with controlled in-memory repositories/security/clock/UoW ports; no real storage, network or process.",
+      "methods": {}
+    },
+    "Fight\\Test\\AccessControl\\Application\\AccessControl\\User\\Repository\\UserRepositoryTimestampContractTest": {
+      "file": "tests/Application/AccessControl/User/Repository/UserRepositoryTimestampContractTest.php",
+      "category": "Unit",
+      "reason": "Isolated values, transitions or application behavior with controlled in-memory repositories/security/clock/UoW ports; no real storage, network or process.",
+      "methods": {}
+    },
+    "Fight\\Test\\AccessControl\\Domain\\AccessControl\\ActivationGrant\\ActivationDeliveryLifecycleTest": {
+      "file": "tests/Domain/AccessControl/ActivationGrant/ActivationDeliveryLifecycleTest.php",
+      "category": "Unit",
+      "reason": "Isolated values, transitions or application behavior with controlled in-memory repositories/security/clock/UoW ports; no real storage, network or process.",
+      "methods": {}
+    },
+    "Fight\\Test\\AccessControl\\Domain\\AccessControl\\ActivationGrant\\ActivationGrantTest": {
+      "file": "tests/Domain/AccessControl/ActivationGrant/ActivationGrantTest.php",
+      "category": "Unit",
+      "reason": "Isolated values, transitions or application behavior with controlled in-memory repositories/security/clock/UoW ports; no real storage, network or process.",
+      "methods": {}
+    },
+    "Fight\\Test\\AccessControl\\Domain\\AccessControl\\ActivationGrant\\ActivationOriginTest": {
+      "file": "tests/Domain/AccessControl/ActivationGrant/ActivationOriginTest.php",
+      "category": "Unit",
+      "reason": "Isolated values, transitions or application behavior with controlled in-memory repositories/security/clock/UoW ports; no real storage, network or process.",
+      "methods": {}
+    },
+    "Fight\\Test\\AccessControl\\Domain\\AccessControl\\Agent\\AgentEventTimeTest": {
+      "file": "tests/Domain/AccessControl/Agent/AgentEventTimeTest.php",
+      "category": "Unit",
+      "reason": "Isolated values, transitions or application behavior with controlled in-memory repositories/security/clock/UoW ports; no real storage, network or process.",
+      "methods": {}
+    },
+    "Fight\\Test\\AccessControl\\Domain\\AccessControl\\Agent\\AgentMessageContractTest": {
+      "file": "tests/Domain/AccessControl/Agent/AgentMessageContractTest.php",
+      "category": "Unit",
+      "reason": "Isolated values, transitions or application behavior with controlled in-memory repositories/security/clock/UoW ports; no real storage, network or process.",
+      "methods": {}
+    },
+    "Fight\\Test\\AccessControl\\Domain\\AccessControl\\Agent\\AgentNameTest": {
+      "file": "tests/Domain/AccessControl/Agent/AgentNameTest.php",
+      "category": "Unit",
+      "reason": "Isolated values, transitions or application behavior with controlled in-memory repositories/security/clock/UoW ports; no real storage, network or process.",
+      "methods": {}
+    },
+    "Fight\\Test\\AccessControl\\Domain\\AccessControl\\Agent\\AgentProfilePermissionsTest": {
+      "file": "tests/Domain/AccessControl/Agent/AgentProfilePermissionsTest.php",
+      "category": "Unit",
+      "reason": "Isolated values, transitions or application behavior with controlled in-memory repositories/security/clock/UoW ports; no real storage, network or process.",
+      "methods": {}
+    },
+    "Fight\\Test\\AccessControl\\Domain\\AccessControl\\Agent\\AgentReconstitutionTest": {
+      "file": "tests/Domain/AccessControl/Agent/AgentReconstitutionTest.php",
+      "category": "Unit",
+      "reason": "Isolated values, transitions or application behavior with controlled in-memory repositories/security/clock/UoW ports; no real storage, network or process.",
+      "methods": {}
+    },
+    "Fight\\Test\\AccessControl\\Domain\\AccessControl\\Agent\\AgentRecoverableRotationTest": {
+      "file": "tests/Domain/AccessControl/Agent/AgentRecoverableRotationTest.php",
+      "category": "Unit",
+      "reason": "Isolated values, transitions or application behavior with controlled in-memory repositories/security/clock/UoW ports; no real storage, network or process.",
+      "methods": {}
+    },
+    "Fight\\Test\\AccessControl\\Domain\\AccessControl\\Agent\\AgentRenameTest": {
+      "file": "tests/Domain/AccessControl/Agent/AgentRenameTest.php",
+      "category": "Unit",
+      "reason": "Isolated values, transitions or application behavior with controlled in-memory repositories/security/clock/UoW ports; no real storage, network or process.",
+      "methods": {}
+    },
+    "Fight\\Test\\AccessControl\\Domain\\AccessControl\\Agent\\AgentTest": {
+      "file": "tests/Domain/AccessControl/Agent/AgentTest.php",
+      "category": "Unit",
+      "reason": "Isolated values, transitions or application behavior with controlled in-memory repositories/security/clock/UoW ports; no real storage, network or process.",
+      "methods": {}
+    },
+    "Fight\\Test\\AccessControl\\Domain\\AccessControl\\Agent\\AgentTypeContractTest": {
+      "file": "tests/Domain/AccessControl/Agent/AgentTypeContractTest.php",
+      "category": "Unit",
+      "reason": "Isolated values, transitions or application behavior with controlled in-memory repositories/security/clock/UoW ports; no real storage, network or process.",
+      "methods": {}
+    },
+    "Fight\\Test\\AccessControl\\Domain\\AccessControl\\Agent\\AuthenticatedAgentPrincipalTest": {
+      "file": "tests/Domain/AccessControl/Agent/AuthenticatedAgentPrincipalTest.php",
+      "category": "Unit",
+      "reason": "Isolated values, transitions or application behavior with controlled in-memory repositories/security/clock/UoW ports; no real storage, network or process.",
+      "methods": {}
+    },
+    "Fight\\Test\\AccessControl\\Domain\\AccessControl\\Agent\\Command\\AgentIssuanceCommandTest": {
+      "file": "tests/Domain/AccessControl/Agent/Command/AgentIssuanceCommandTest.php",
+      "category": "Unit",
+      "reason": "Isolated values, transitions or application behavior with controlled in-memory repositories/security/clock/UoW ports; no real storage, network or process.",
+      "methods": {}
+    },
+    "Fight\\Test\\AccessControl\\Domain\\AccessControl\\Agent\\Query\\AgentProfileTest": {
+      "file": "tests/Domain/AccessControl/Agent/Query/AgentProfileTest.php",
+      "category": "Unit",
+      "reason": "Isolated values, transitions or application behavior with controlled in-memory repositories/security/clock/UoW ports; no real storage, network or process.",
+      "methods": {}
+    },
+    "Fight\\Test\\AccessControl\\Domain\\AccessControl\\AgentCredentialOperation\\AgentDeliveryDiscoveryTest": {
+      "file": "tests/Domain/AccessControl/AgentCredentialOperation/AgentDeliveryDiscoveryTest.php",
+      "category": "Unit",
+      "reason": "Isolated values, transitions or application behavior with controlled in-memory repositories/security/clock/UoW ports; no real storage, network or process.",
+      "methods": {}
+    },
+    "Fight\\Test\\AccessControl\\Domain\\AccessControl\\AgentCredentialOperation\\AgentDeliveryTest": {
+      "file": "tests/Domain/AccessControl/AgentCredentialOperation/AgentDeliveryTest.php",
+      "category": "Unit",
+      "reason": "Isolated values, transitions or application behavior with controlled in-memory repositories/security/clock/UoW ports; no real storage, network or process.",
+      "methods": {}
+    },
+    "Fight\\Test\\AccessControl\\Domain\\AccessControl\\AgentCredentialOperation\\AgentMaintenanceTest": {
+      "file": "tests/Domain/AccessControl/AgentCredentialOperation/AgentMaintenanceTest.php",
+      "category": "Unit",
+      "reason": "Isolated values, transitions or application behavior with controlled in-memory repositories/security/clock/UoW ports; no real storage, network or process.",
+      "methods": {}
+    },
+    "Fight\\Test\\AccessControl\\Domain\\AccessControl\\AgentCredentialOperation\\AgentOperationCanonicalizationTest": {
+      "file": "tests/Domain/AccessControl/AgentCredentialOperation/AgentOperationCanonicalizationTest.php",
+      "category": "Unit",
+      "reason": "Isolated values, transitions or application behavior with controlled in-memory repositories/security/clock/UoW ports; no real storage, network or process.",
+      "methods": {}
+    },
+    "Fight\\Test\\AccessControl\\Domain\\AccessControl\\AgentCredentialOperation\\AgentOperationContractTest": {
+      "file": "tests/Domain/AccessControl/AgentCredentialOperation/AgentOperationContractTest.php",
+      "category": "Unit",
+      "reason": "Isolated values, transitions or application behavior with controlled in-memory repositories/security/clock/UoW ports; no real storage, network or process.",
+      "methods": {}
+    },
+    "Fight\\Test\\AccessControl\\Domain\\AccessControl\\AgentCredentialOperation\\AgentOperationHydrationTest": {
+      "file": "tests/Domain/AccessControl/AgentCredentialOperation/AgentOperationHydrationTest.php",
+      "category": "Unit",
+      "reason": "Isolated values, transitions or application behavior with controlled in-memory repositories/security/clock/UoW ports; no real storage, network or process.",
+      "methods": {}
+    },
+    "Fight\\Test\\AccessControl\\Domain\\AccessControl\\AgentCredentialOperation\\AgentOperationTest": {
+      "file": "tests/Domain/AccessControl/AgentCredentialOperation/AgentOperationTest.php",
+      "category": "Unit",
+      "reason": "Isolated values, transitions or application behavior with controlled in-memory repositories/security/clock/UoW ports; no real storage, network or process.",
+      "methods": {}
+    },
+    "Fight\\Test\\AccessControl\\Domain\\AccessControl\\AgentCredentialOperation\\AgentOperationTypeContractTest": {
+      "file": "tests/Domain/AccessControl/AgentCredentialOperation/AgentOperationTypeContractTest.php",
+      "category": "Unit",
+      "reason": "Isolated values, transitions or application behavior with controlled in-memory repositories/security/clock/UoW ports; no real storage, network or process.",
+      "methods": {}
+    },
+    "Fight\\Test\\AccessControl\\Domain\\AccessControl\\AgentCredentialOperation\\AgentOperationViewTest": {
+      "file": "tests/Domain/AccessControl/AgentCredentialOperation/AgentOperationViewTest.php",
+      "category": "Unit",
+      "reason": "Isolated values, transitions or application behavior with controlled in-memory repositories/security/clock/UoW ports; no real storage, network or process.",
+      "methods": {}
+    },
+    "Fight\\Test\\AccessControl\\Domain\\AccessControl\\Audit\\AuditCreationAdmissionTest": {
+      "file": "tests/Domain/AccessControl/Audit/AuditCreationAdmissionTest.php",
+      "category": "Unit",
+      "reason": "Isolated values, transitions or application behavior with controlled in-memory repositories/security/clock/UoW ports; no real storage, network or process.",
+      "methods": {}
+    },
+    "Fight\\Test\\AccessControl\\Domain\\AccessControl\\Audit\\AuditEvidenceContractTest": {
+      "file": "tests/Domain/AccessControl/Audit/AuditEvidenceContractTest.php",
+      "category": "Unit",
+      "reason": "Isolated values, transitions or application behavior with controlled in-memory repositories/security/clock/UoW ports; no real storage, network or process.",
+      "methods": {}
+    },
+    "Fight\\Test\\AccessControl\\Domain\\AccessControl\\Audit\\AuditEvidenceValuesTest": {
+      "file": "tests/Domain/AccessControl/Audit/AuditEvidenceValuesTest.php",
+      "category": "Unit",
+      "reason": "Isolated values, transitions or application behavior with controlled in-memory repositories/security/clock/UoW ports; no real storage, network or process.",
+      "methods": {}
+    },
+    "Fight\\Test\\AccessControl\\Domain\\AccessControl\\Audit\\AuditOutcomeAdmissionTest": {
+      "file": "tests/Domain/AccessControl/Audit/AuditOutcomeAdmissionTest.php",
+      "category": "Unit",
+      "reason": "Isolated values, transitions or application behavior with controlled in-memory repositories/security/clock/UoW ports; no real storage, network or process.",
+      "methods": {}
+    },
+    "Fight\\Test\\AccessControl\\Domain\\AccessControl\\Audit\\AuditProvenanceMessagesTest": {
+      "file": "tests/Domain/AccessControl/Audit/AuditProvenanceMessagesTest.php",
+      "category": "Unit",
+      "reason": "Isolated values, transitions or application behavior with controlled in-memory repositories/security/clock/UoW ports; no real storage, network or process.",
+      "methods": {}
+    },
+    "Fight\\Test\\AccessControl\\Domain\\AccessControl\\Audit\\AuditRelatedOutcomesTest": {
+      "file": "tests/Domain/AccessControl/Audit/AuditRelatedOutcomesTest.php",
+      "category": "Unit",
+      "reason": "Isolated values, transitions or application behavior with controlled in-memory repositories/security/clock/UoW ports; no real storage, network or process.",
+      "methods": {}
+    },
+    "Fight\\Test\\AccessControl\\Domain\\AccessControl\\Audit\\FixedActorIdentitiesTest": {
+      "file": "tests/Domain/AccessControl/Audit/FixedActorIdentitiesTest.php",
+      "category": "Unit",
+      "reason": "Isolated values, transitions or application behavior with controlled in-memory repositories/security/clock/UoW ports; no real storage, network or process.",
+      "methods": {}
+    },
+    "Fight\\Test\\AccessControl\\Domain\\AccessControl\\Authorization\\AuthenticatedPrincipalTest": {
+      "file": "tests/Domain/AccessControl/Authorization/AuthenticatedPrincipalTest.php",
+      "category": "Unit",
+      "reason": "Isolated values, transitions or application behavior with controlled in-memory repositories/security/clock/UoW ports; no real storage, network or process.",
+      "methods": {}
+    },
+    "Fight\\Test\\AccessControl\\Domain\\AccessControl\\CredentialDelivery\\CredentialDeliveryTransitionTest": {
+      "file": "tests/Domain/AccessControl/CredentialDelivery/CredentialDeliveryTransitionTest.php",
+      "category": "Unit",
+      "reason": "Isolated values, transitions or application behavior with controlled in-memory repositories/security/clock/UoW ports; no real storage, network or process.",
+      "methods": {}
+    },
+    "Fight\\Test\\AccessControl\\Domain\\AccessControl\\CredentialDelivery\\CredentialWorkIdentityTest": {
+      "file": "tests/Domain/AccessControl/CredentialDelivery/CredentialWorkIdentityTest.php",
+      "category": "Unit",
+      "reason": "Isolated values, transitions or application behavior with controlled in-memory repositories/security/clock/UoW ports; no real storage, network or process.",
+      "methods": {}
+    },
+    "Fight\\Test\\AccessControl\\Domain\\AccessControl\\CredentialDelivery\\DueCredentialDeliveryTest": {
+      "file": "tests/Domain/AccessControl/CredentialDelivery/DueCredentialDeliveryTest.php",
+      "category": "Unit",
+      "reason": "Isolated values, transitions or application behavior with controlled in-memory repositories/security/clock/UoW ports; no real storage, network or process.",
+      "methods": {}
+    },
+    "Fight\\Test\\AccessControl\\Domain\\AccessControl\\CredentialDelivery\\HumanCredentialPayloadTest": {
+      "file": "tests/Domain/AccessControl/CredentialDelivery/HumanCredentialPayloadTest.php",
+      "category": "Unit",
+      "reason": "Isolated values, transitions or application behavior with controlled in-memory repositories/security/clock/UoW ports; no real storage, network or process.",
+      "methods": {}
+    },
+    "Fight\\Test\\AccessControl\\Domain\\AccessControl\\EmailChangeGrant\\EmailChangeGrantTest": {
+      "file": "tests/Domain/AccessControl/EmailChangeGrant/EmailChangeGrantTest.php",
+      "category": "Unit",
+      "reason": "Isolated values, transitions or application behavior with controlled in-memory repositories/security/clock/UoW ports; no real storage, network or process.",
+      "methods": {}
+    },
+    "Fight\\Test\\AccessControl\\Domain\\AccessControl\\Feature\\FeatureMessagesTest": {
+      "file": "tests/Domain/AccessControl/Feature/FeatureMessagesTest.php",
+      "category": "Unit",
+      "reason": "Isolated values, transitions or application behavior with controlled in-memory repositories/security/clock/UoW ports; no real storage, network or process.",
+      "methods": {}
+    },
+    "Fight\\Test\\AccessControl\\Domain\\AccessControl\\Feature\\FeatureNameTest": {
+      "file": "tests/Domain/AccessControl/Feature/FeatureNameTest.php",
+      "category": "Unit",
+      "reason": "Isolated values, transitions or application behavior with controlled in-memory repositories/security/clock/UoW ports; no real storage, network or process.",
+      "methods": {}
+    },
+    "Fight\\Test\\AccessControl\\Domain\\AccessControl\\Feature\\FeatureTest": {
+      "file": "tests/Domain/AccessControl/Feature/FeatureTest.php",
+      "category": "Unit",
+      "reason": "Isolated values, transitions or application behavior with controlled in-memory repositories/security/clock/UoW ports; no real storage, network or process.",
+      "methods": {}
+    },
+    "Fight\\Test\\AccessControl\\Domain\\AccessControl\\Feature\\FeatureTypeContractsTest": {
+      "file": "tests/Domain/AccessControl/Feature/FeatureTypeContractsTest.php",
+      "category": "Unit",
+      "reason": "Isolated values, transitions or application behavior with controlled in-memory repositories/security/clock/UoW ports; no real storage, network or process.",
+      "methods": {}
+    },
+    "Fight\\Test\\AccessControl\\Domain\\AccessControl\\ManagedPolicy\\ManagedPolicyTest": {
+      "file": "tests/Domain/AccessControl/ManagedPolicy/ManagedPolicyTest.php",
+      "category": "Unit",
+      "reason": "Isolated values, transitions or application behavior with controlled in-memory repositories/security/clock/UoW ports; no real storage, network or process.",
+      "methods": {}
+    },
+    "Fight\\Test\\AccessControl\\Domain\\AccessControl\\ManagedPolicy\\PolicyInputContractTest": {
+      "file": "tests/Domain/AccessControl/ManagedPolicy/PolicyInputContractTest.php",
+      "category": "Unit",
+      "reason": "Isolated values, transitions or application behavior with controlled in-memory repositories/security/clock/UoW ports; no real storage, network or process.",
+      "methods": {}
+    },
+    "Fight\\Test\\AccessControl\\Domain\\AccessControl\\PasswordResetGrant\\PasswordResetDeliveryLifecycleTest": {
+      "file": "tests/Domain/AccessControl/PasswordResetGrant/PasswordResetDeliveryLifecycleTest.php",
+      "category": "Unit",
+      "reason": "Isolated values, transitions or application behavior with controlled in-memory repositories/security/clock/UoW ports; no real storage, network or process.",
+      "methods": {}
+    },
+    "Fight\\Test\\AccessControl\\Domain\\AccessControl\\PasswordResetGrant\\PasswordResetGrantSubtypeTest": {
+      "file": "tests/Domain/AccessControl/PasswordResetGrant/PasswordResetGrantSubtypeTest.php",
+      "category": "Unit",
+      "reason": "Isolated values, transitions or application behavior with controlled in-memory repositories/security/clock/UoW ports; no real storage, network or process.",
+      "methods": {}
+    },
+    "Fight\\Test\\AccessControl\\Domain\\AccessControl\\PasswordResetGrant\\RecoveryAuthorityTest": {
+      "file": "tests/Domain/AccessControl/PasswordResetGrant/RecoveryAuthorityTest.php",
+      "category": "Unit",
+      "reason": "Isolated values, transitions or application behavior with controlled in-memory repositories/security/clock/UoW ports; no real storage, network or process.",
+      "methods": {}
+    },
+    "Fight\\Test\\AccessControl\\Domain\\AccessControl\\PasswordResetGrant\\RequestPasswordResetTest": {
+      "file": "tests/Domain/AccessControl/PasswordResetGrant/RequestPasswordResetTest.php",
+      "category": "Unit",
+      "reason": "Isolated values, transitions or application behavior with controlled in-memory repositories/security/clock/UoW ports; no real storage, network or process.",
+      "methods": {}
+    },
+    "Fight\\Test\\AccessControl\\Domain\\AccessControl\\Permission\\PermissionIdTest": {
+      "file": "tests/Domain/AccessControl/Permission/PermissionIdTest.php",
+      "category": "Unit",
+      "reason": "Isolated values, transitions or application behavior with controlled in-memory repositories/security/clock/UoW ports; no real storage, network or process.",
+      "methods": {}
+    },
+    "Fight\\Test\\AccessControl\\Domain\\AccessControl\\Permission\\PermissionMessageContractTest": {
+      "file": "tests/Domain/AccessControl/Permission/PermissionMessageContractTest.php",
+      "category": "Unit",
+      "reason": "Isolated values, transitions or application behavior with controlled in-memory repositories/security/clock/UoW ports; no real storage, network or process.",
+      "methods": {}
+    },
+    "Fight\\Test\\AccessControl\\Domain\\AccessControl\\Permission\\PermissionNameTest": {
+      "file": "tests/Domain/AccessControl/Permission/PermissionNameTest.php",
+      "category": "Unit",
+      "reason": "Isolated values, transitions or application behavior with controlled in-memory repositories/security/clock/UoW ports; no real storage, network or process.",
+      "methods": {}
+    },
+    "Fight\\Test\\AccessControl\\Domain\\AccessControl\\Permission\\PermissionTest": {
+      "file": "tests/Domain/AccessControl/Permission/PermissionTest.php",
+      "category": "Unit",
+      "reason": "Isolated values, transitions or application behavior with controlled in-memory repositories/security/clock/UoW ports; no real storage, network or process.",
+      "methods": {}
+    },
+    "Fight\\Test\\AccessControl\\Domain\\AccessControl\\RefreshSession\\RefreshCredentialContractTest": {
+      "file": "tests/Domain/AccessControl/RefreshSession/RefreshCredentialContractTest.php",
+      "category": "Unit",
+      "reason": "Isolated values, transitions or application behavior with controlled in-memory repositories/security/clock/UoW ports; no real storage, network or process.",
+      "methods": {}
+    },
+    "Fight\\Test\\AccessControl\\Domain\\AccessControl\\RefreshSession\\RefreshSessionRotationTest": {
+      "file": "tests/Domain/AccessControl/RefreshSession/RefreshSessionRotationTest.php",
+      "category": "Unit",
+      "reason": "Isolated values, transitions or application behavior with controlled in-memory repositories/security/clock/UoW ports; no real storage, network or process.",
+      "methods": {}
+    },
+    "Fight\\Test\\AccessControl\\Domain\\AccessControl\\RefreshSession\\RefreshSessionTypeContractTest": {
+      "file": "tests/Domain/AccessControl/RefreshSession/RefreshSessionTypeContractTest.php",
+      "category": "Unit",
+      "reason": "Isolated values, transitions or application behavior with controlled in-memory repositories/security/clock/UoW ports; no real storage, network or process.",
+      "methods": {}
+    },
+    "Fight\\Test\\AccessControl\\Domain\\AccessControl\\Role\\RoleIdTest": {
+      "file": "tests/Domain/AccessControl/Role/RoleIdTest.php",
+      "category": "Unit",
+      "reason": "Isolated values, transitions or application behavior with controlled in-memory repositories/security/clock/UoW ports; no real storage, network or process.",
+      "methods": {}
+    },
+    "Fight\\Test\\AccessControl\\Domain\\AccessControl\\Role\\RoleMessageContractTest": {
+      "file": "tests/Domain/AccessControl/Role/RoleMessageContractTest.php",
+      "category": "Unit",
+      "reason": "Isolated values, transitions or application behavior with controlled in-memory repositories/security/clock/UoW ports; no real storage, network or process.",
+      "methods": {}
+    },
+    "Fight\\Test\\AccessControl\\Domain\\AccessControl\\Role\\RoleNameTest": {
+      "file": "tests/Domain/AccessControl/Role/RoleNameTest.php",
+      "category": "Unit",
+      "reason": "Isolated values, transitions or application behavior with controlled in-memory repositories/security/clock/UoW ports; no real storage, network or process.",
+      "methods": {}
+    },
+    "Fight\\Test\\AccessControl\\Domain\\AccessControl\\Role\\RoleRevisionTest": {
+      "file": "tests/Domain/AccessControl/Role/RoleRevisionTest.php",
+      "category": "Unit",
+      "reason": "Isolated values, transitions or application behavior with controlled in-memory repositories/security/clock/UoW ports; no real storage, network or process.",
+      "methods": {}
+    },
+    "Fight\\Test\\AccessControl\\Domain\\AccessControl\\Role\\RoleTest": {
+      "file": "tests/Domain/AccessControl/Role/RoleTest.php",
+      "category": "Unit",
+      "reason": "Isolated values, transitions or application behavior with controlled in-memory repositories/security/clock/UoW ports; no real storage, network or process.",
+      "methods": {}
+    },
+    "Fight\\Test\\AccessControl\\Domain\\AccessControl\\User\\AuthenticationDomainTest": {
+      "file": "tests/Domain/AccessControl/User/AuthenticationDomainTest.php",
+      "category": "Unit",
+      "reason": "Isolated values, transitions or application behavior with controlled in-memory repositories/security/clock/UoW ports; no real storage, network or process.",
+      "methods": {}
+    },
+    "Fight\\Test\\AccessControl\\Domain\\AccessControl\\User\\EmailChangeReservationTest": {
+      "file": "tests/Domain/AccessControl/User/EmailChangeReservationTest.php",
+      "category": "Unit",
+      "reason": "Isolated values, transitions or application behavior with controlled in-memory repositories/security/clock/UoW ports; no real storage, network or process.",
+      "methods": {}
+    },
+    "Fight\\Test\\AccessControl\\Domain\\AccessControl\\User\\InvitePendingUserTest": {
+      "file": "tests/Domain/AccessControl/User/InvitePendingUserTest.php",
+      "category": "Unit",
+      "reason": "Isolated values, transitions or application behavior with controlled in-memory repositories/security/clock/UoW ports; no real storage, network or process.",
+      "methods": {}
+    },
+    "Fight\\Test\\AccessControl\\Domain\\AccessControl\\User\\RegisterUserTest": {
+      "file": "tests/Domain/AccessControl/User/RegisterUserTest.php",
+      "category": "Unit",
+      "reason": "Isolated values, transitions or application behavior with controlled in-memory repositories/security/clock/UoW ports; no real storage, network or process.",
+      "methods": {}
+    },
+    "Fight\\Test\\AccessControl\\Domain\\AccessControl\\User\\UserIdTest": {
+      "file": "tests/Domain/AccessControl/User/UserIdTest.php",
+      "category": "Unit",
+      "reason": "Isolated values, transitions or application behavior with controlled in-memory repositories/security/clock/UoW ports; no real storage, network or process.",
+      "methods": {}
+    },
+    "Fight\\Test\\AccessControl\\Domain\\AccessControl\\User\\UserLifecycleTest": {
+      "file": "tests/Domain/AccessControl/User/UserLifecycleTest.php",
+      "category": "Unit",
+      "reason": "Isolated values, transitions or application behavior with controlled in-memory repositories/security/clock/UoW ports; no real storage, network or process.",
+      "methods": {}
+    },
+    "Fight\\Test\\AccessControl\\Domain\\AccessControl\\User\\UserRoleAssignmentTest": {
+      "file": "tests/Domain/AccessControl/User/UserRoleAssignmentTest.php",
+      "category": "Unit",
+      "reason": "Isolated values, transitions or application behavior with controlled in-memory repositories/security/clock/UoW ports; no real storage, network or process.",
+      "methods": {}
+    },
+    "Fight\\Test\\AccessControl\\Domain\\AccessControl\\User\\UserSessionMessageContractTest": {
+      "file": "tests/Domain/AccessControl/User/UserSessionMessageContractTest.php",
+      "category": "Unit",
+      "reason": "Isolated values, transitions or application behavior with controlled in-memory repositories/security/clock/UoW ports; no real storage, network or process.",
+      "methods": {}
+    },
+    "Fight\\Test\\AccessControl\\Domain\\AccessControl\\User\\UserTypeContractTest": {
+      "file": "tests/Domain/AccessControl/User/UserTypeContractTest.php",
+      "category": "Unit",
+      "reason": "Isolated values, transitions or application behavior with controlled in-memory repositories/security/clock/UoW ports; no real storage, network or process.",
+      "methods": {}
+    },
+    "Fight\\Test\\AccessControl\\OpenApi\\AgentComponentsTest": {
+      "file": "tests/OpenApi/AgentComponentsTest.php",
+      "category": "Integration",
+      "reason": "Executes swagger-php discovery of shipped metadata and generated-schema validation against payloads.",
+      "methods": {}
+    },
+    "Fight\\Test\\AccessControl\\OpenApi\\AgentDeliveryComponentsTest": {
+      "file": "tests/OpenApi/AgentDeliveryComponentsTest.php",
+      "category": "Integration",
+      "reason": "Executes swagger-php discovery of shipped metadata and generated-schema validation against payloads.",
+      "methods": {}
+    },
+    "Fight\\Test\\AccessControl\\OpenApi\\AgentNameComponentsTest": {
+      "file": "tests/OpenApi/AgentNameComponentsTest.php",
+      "category": "Integration",
+      "reason": "Executes swagger-php discovery of shipped metadata and generated-schema validation against payloads.",
+      "methods": {}
+    },
+    "Fight\\Test\\AccessControl\\OpenApi\\CatalogCompositionTest": {
+      "file": "tests/OpenApi/CatalogCompositionTest.php",
+      "category": "Integration",
+      "reason": "Executes swagger-php discovery of shipped metadata and generated-schema validation against payloads.",
+      "methods": {}
+    },
+    "Fight\\Test\\AccessControl\\OpenApi\\CredentialDeliveryComponentsTest": {
+      "file": "tests/OpenApi/CredentialDeliveryComponentsTest.php",
+      "category": "Integration",
+      "reason": "Executes swagger-php discovery of shipped metadata and generated-schema validation against payloads.",
+      "methods": {}
+    },
+    "Fight\\Test\\AccessControl\\OpenApi\\FeatureComponentsTest": {
+      "file": "tests/OpenApi/FeatureComponentsTest.php",
+      "category": "Integration",
+      "reason": "Executes swagger-php discovery of shipped metadata and generated-schema validation against payloads.",
+      "methods": {}
+    },
+    "Fight\\Test\\AccessControl\\OpenApi\\PublicPayloadContractTest": {
+      "file": "tests/OpenApi/PublicPayloadContractTest.php",
+      "category": "Integration",
+      "reason": "Executes swagger-php discovery of shipped metadata and generated-schema validation against payloads.",
+      "methods": {}
+    },
+    "Fight\\Test\\AccessControl\\OpenApi\\RegistrationComponentsTest": {
+      "file": "tests/OpenApi/RegistrationComponentsTest.php",
+      "category": "Integration",
+      "reason": "Executes swagger-php discovery of shipped metadata and generated-schema validation against payloads.",
+      "methods": {}
+    },
+    "Fight\\Test\\AccessControl\\OpenApi\\RegistrationRecoveryComponentsTest": {
+      "file": "tests/OpenApi/RegistrationRecoveryComponentsTest.php",
+      "category": "Integration",
+      "reason": "Executes swagger-php discovery of shipped metadata and generated-schema validation against payloads.",
+      "methods": {}
+    },
+    "Fight\\Test\\AccessControl\\OpenApi\\RoleRevisionComponentsTest": {
+      "file": "tests/OpenApi/RoleRevisionComponentsTest.php",
+      "category": "Integration",
+      "reason": "Executes swagger-php discovery of shipped metadata and generated-schema validation against payloads.",
+      "methods": {}
+    }
+  }
+}

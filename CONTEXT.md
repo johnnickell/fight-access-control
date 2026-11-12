@@ -1,13 +1,18 @@
 # Fight AccessControl Context
 
-## TASK-00152 advancing-base verification hold
+## TASK-00152 approved Unit-only verification recovery
 
-The current base adds accepted Task-live and invitation-audit contracts plus a substantive Unit-only line-coverage
-requirement. Bounded evidence recovery demonstrates an unmet Unit requirement; the existing all-suite statement
-gate is not equivalent. Integration preserves existing accepted behavior, but current semantic/evidence reconciliation
-and verification are not complete. See [TASK-00152](planning/tasks/00152-TASK.md) and its canonical Work handoff.
-Original independent reports and the earlier no-pending reconciliation below retain their exact earlier candidate;
-no current whole-library acceptance, publication or consumer qualification is implied.
+John approved additional isolated Unit tests, complete behavior-based suite classification, measured runtime and
+bounded coverage enforcement. The [single canonical PHPUnit execution](docs/unit-coverage.md) retains exact all-suite
+statements and separately attributes executable lines to Unit test IDs. Every src file is included; real framework,
+storage, schema and native journey protection remains separate rather than filling Unit gaps. Scoped branch data
+and the reproduced full-suite branch-instrumentation failure are reported separately, not called a branch pass.
+
+The current base also adds independently accepted Task-live and invitation-audit contracts. Their current semantic,
+caller and supplier bridge and the changed candidate's verification belong to the canonical Work handoff for
+[TASK-00152](planning/tasks/00152-TASK.md). Original independent reports and earlier reconciliation retain their exact
+historical subjects. Fresh independent Review and behavioral QA must assess this new test/enforcement work;
+no self-acceptance, publication or consumer qualification is implied.
 
 ## Historical TASK-00152 integrated enforcement — earlier Work candidate
 

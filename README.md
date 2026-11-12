@@ -144,7 +144,8 @@ cd fight-access-control
 
 `./bin/build` builds the isolated `fight-access-control` image, resolves latest-compatible dependencies into the
 ignored lockfile with `composer update`, then runs the canonical quality gate: syntax, planning, PHPCS, PHPStan,
-architecture, Rector, PHPUnit, exact statement coverage and documentation links. No application server or database
+architecture, Rector, PHPUnit, exact statement coverage, separate [Unit-line enforcement and suite evidence](docs/unit-coverage.md),
+and documentation links. No application server or database
 is required for package tests. After that initial setup, focused commands include:
 
 ```bash
