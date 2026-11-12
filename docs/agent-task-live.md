@@ -86,7 +86,8 @@ limits and TASK-00088's existing continuation contract are unchanged.
 
 ## Runtime flow
 
-Existing implementation, source revision: **WORK-CANDIDATE** (pinned after verification in the Work handoff).
+Existing implementation, source revision: `82d0853f92b5c0aac6fd5eaa28ff67481c0cef24`.
+The following documentation-only pin retains that implementation's source/test bytes.
 Solid arrows below are calls; dashed arrows are returned state/frames. This is a bounded runtime view, not a static
 outward dependency: Application policy depends only on supported Application/Domain contracts.
 
