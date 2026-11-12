@@ -6,8 +6,10 @@ The approved bounded precision amendment corrects eight demonstrated static obli
 constructor adapters and subscription-family composition, without changing their requirement ownership or historical
 acceptance. Production/OpenAPI and ordinary caller analysis now reject nullable and incompatible union uses under
 the same rules as required fixtures; test/script analysis retains its existing rules separately. See
-[type-contract enforcement](docs/type-contracts.md). Full semantic/source/dependency evidence reconciliation and fresh
-independent Review/nonvisual QA remain required; no whole-library acceptance or consumer qualification is claimed.
+[type-contract enforcement](docs/type-contracts.md). Engineer semantic/source/caller and tagged-dependency reconciliation
+now has no pending primary or secondary concerns, including later actual capability and metadata amendments. This is
+Work evidence, not whole-library acceptance: fresh independent Review/nonvisual QA remain required, and actual
+consumer qualification is separate.
 The canonical `.runs/handoffs/TASK-00152/work.md` owns exact candidate, checks, warnings and remaining scope.
 
 ## Current-subscriber inspection — accepted lifecycle-test repair
