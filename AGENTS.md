@@ -16,6 +16,13 @@ This routing path does not require reading README, architecture, full project co
 
 ## Project guidance
 
+Keep verification proportional to the changed behavior. Each added check must cover a concrete risk that
+existing checks do not already cover. Do not duplicate dependency installation, validation, test suites or
+release lanes for unchanged inputs. Reuse qualifying build evidence; run dependency preparation only on a
+cache miss. Validate tooling with its owning commands, without adding tests of wrappers, checks or release
+machinery. Investigate flaky failures; do not hide them with retries or accept a warm rerun as proof that a
+clean build works. Expand release certification only for an explicitly approved compatibility requirement.
+
 For execution or substantive planning changes, load the applicable guidance below. The read-only routing
 path above takes precedence over broad orientation reads; it does not waive engineering or delivery rules.
 
