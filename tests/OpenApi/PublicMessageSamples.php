@@ -68,7 +68,7 @@ final class PublicMessageSamples
         ];
         $specifications = [
             'ActivationGrant/Command/DeliverUserInvitation'                  => 'actor_kind actor_id user_id activation_delivery_id',
-            'ActivationGrant/Command/ExpireInvitationDelivery'               => 'actor_id user_id activation_delivery_id occurred_at',
+            'ActivationGrant/Command/ExpireInvitationDelivery'               => 'actor_kind actor_id user_id activation_delivery_id occurred_at',
             'ActivationGrant/Command/ResendInvitationDelivery'               => 'actor_kind actor_id user_id',
             'ActivationGrant/Command/RetryInvitationDelivery'                => 'actor_kind actor_id user_id',
             'Agent/Command/GrantPermissionToAgent'                           => 'actor_id agent_id permission_id',

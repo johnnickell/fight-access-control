@@ -23,6 +23,7 @@ enum AuditAction: string
     case INVITATION_RETRY_REQUESTED = 'user.invitation_delivery.retry_requested';
     case INVITATION_DELIVERY_FAILED = 'user.invitation_delivery.failed';
     case INVITATION_DELIVERY_CONFIRMED = 'user.invitation_delivery.confirmed';
+    case INVITATION_DELIVERY_EXPIRED = 'user.invitation_delivery.expired';
     case PASSWORD_RESET_REQUESTED = 'user.password_reset_requested';
     case PASSWORD_RESET_DELIVERY_FAILED = 'user.password_reset_delivery.failed';
     case PASSWORD_RESET_DELIVERY_CONFIRMED = 'user.password_reset_delivery.confirmed';

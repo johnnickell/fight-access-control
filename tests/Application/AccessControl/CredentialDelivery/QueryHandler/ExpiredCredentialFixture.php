@@ -16,6 +16,7 @@ use Fight\AccessControl\Domain\AccessControl\ActivationGrant\ActivationDeliveryI
 use Fight\AccessControl\Domain\AccessControl\ActivationGrant\ActivationGrant;
 use Fight\AccessControl\Domain\AccessControl\ActivationGrant\ActivationOrigin;
 use Fight\AccessControl\Domain\AccessControl\ActivationGrant\Command\ExpireInvitationDelivery;
+use Fight\AccessControl\Domain\AccessControl\Audit\SystemId;
 use Fight\AccessControl\Domain\AccessControl\CredentialDelivery\CredentialDeliveryClaimToken;
 use Fight\AccessControl\Domain\AccessControl\CredentialDelivery\CredentialDeliveryFailure;
 use Fight\AccessControl\Domain\AccessControl\EmailChangeGrant\Command\ExpireEmailChange;
@@ -280,7 +281,7 @@ final readonly class ExpiredCredentialFixture
 
         return match ($purpose) {
             'activation' => new ExpireInvitationDelivery(
-                $actor,
+                $actor === 'worker:expiry' ? SystemId::generate() : UserId::fromString($actor),
                 $this->user->getId(),
                 ActivationDeliveryId::fromString($this->initial->getDelivery()->getId()->toString()),
                 $at

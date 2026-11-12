@@ -9,6 +9,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Optional final audit repository composition for invitation delivery, resend, retry and expiry. Enabled outcome
+  evidence joins the actual mutation transaction; disabled composition makes no durable-audit promise. Expiry now
+  records committed material expiry with typed actor kind/UUID Command/Event payloads. This breaks the formerly
+  second audit constructor argument and string expiry actor contract; update callers directly. Separate claims,
+  external sends, recovery and ordinary post-commit failure behavior remain unchanged. See
+  [invitation composition](docs/credential-delivery.md#optional-invitation-audit-composition-unreleased).
+
 - Optional Agent-protected Common Prompt list/get composition with exact immutable definition associations,
   nonempty conjunctive direct Permissions and trusted request-local authority. Common retains lazy content,
   validation, safe bounded failures and private zero-TTL responses; Query data and linked Resource/Skill targets

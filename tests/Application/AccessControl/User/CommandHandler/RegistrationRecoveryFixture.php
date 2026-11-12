@@ -177,12 +177,12 @@ final class RegistrationRecoveryFixture
     ): DeliverUserInvitationHandler {
         return new DeliverUserInvitationHandler(
             $this->activationGrantRepository,
-            $this->auditEvidenceRepository,
             $this->unitOfWork,
             new PrefixInvitationDeliveryCipher(),
             $provider,
             new FixedClock($at),
-            new InMemoryEventDispatcher()
+            new InMemoryEventDispatcher(),
+            $this->auditEvidenceRepository
         );
     }
 
@@ -210,12 +210,12 @@ final class RegistrationRecoveryFixture
                 $uow,
                 activationGrantRepository: $this->activationGrantRepository
             ),
-            $unitOfWork === null ? $this->auditEvidenceRepository : new InMemoryAuditEvidenceRepository($uow),
             $uow,
             new FixedCredentialGenerator('resent-registration-credential'),
             new PrefixInvitationDeliveryCipher(),
             new FixedClock('2030-01-02T00:00:00Z'),
-            new InMemoryEventDispatcher()
+            new InMemoryEventDispatcher(),
+            $unitOfWork === null ? $this->auditEvidenceRepository : new InMemoryAuditEvidenceRepository($uow)
         );
     }
 

@@ -57,7 +57,7 @@ final readonly class HumanCredentialContractFixture
         return match ($operation) {
             'activation.deliver' => new ActivationCommand\DeliverUserInvitation($this->actorId, $userId, $deliveryId),
             'activation.expire' => new ActivationCommand\ExpireInvitationDelivery(
-                'worker',
+                $this->actorId,
                 $userId, $deliveryId, $this->state->expiresAt
             ),
             'activation.resend' => new ActivationCommand\ResendInvitationDelivery($this->actorId, $userId),
@@ -104,17 +104,17 @@ final readonly class HumanCredentialContractFixture
         return match ($operation) {
             'activation.deliver' => new Activation\DeliverUserInvitationHandler(
                 $activation,
-                $audit, $unitOfWork, new PrefixInvitationDeliveryCipher(), $this->provider, $clock, $events
+                $unitOfWork, new PrefixInvitationDeliveryCipher(), $this->provider, $clock, $events, $audit
             ),
             'activation.expire' => new Activation\ExpireInvitationDeliveryHandler($activation, $unitOfWork, $events),
             'activation.resend' => new Activation\ResendInvitationDeliveryHandler(
                 $activation,
-                $audit, $unitOfWork, new FixedCredentialGenerator('fresh'),
-                new PrefixInvitationDeliveryCipher(), $clock, $events
+                $unitOfWork, new FixedCredentialGenerator('fresh'),
+                new PrefixInvitationDeliveryCipher(), $clock, $events, $audit
             ),
             'activation.retry' => new Activation\RetryInvitationDeliveryHandler(
                 $activation,
-                $audit, $unitOfWork, $clock, $events
+                $unitOfWork, $clock, $events, $audit
             ),
             'password_reset.deliver' => new Reset\DeliverPasswordResetHandler(
                 $reset,

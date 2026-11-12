@@ -158,7 +158,7 @@ use OpenApi\Attributes as OA;
         new OA\Property(property: 'data', ref: '#/components/schemas/Fight.AccessControl.ExpiredCredentialDeliveries')
     ]
 )]
-#[OA\Schema(schema: 'Fight.AccessControl.ExpireInvitationDelivery', required: ['actor_id', 'user_id', 'activation_delivery_id', 'occurred_at'], properties: [new OA\Property(property: 'actor_id', type: 'string'), new OA\Property(property: 'user_id', type: 'string', format: 'uuid'), new OA\Property(property: 'activation_delivery_id', type: 'string', format: 'uuid'), new OA\Property(property: 'occurred_at', type: 'string', format: 'date-time')])]
+#[OA\Schema(schema: 'Fight.AccessControl.ExpireInvitationDelivery', required: ['actor_kind', 'actor_id', 'user_id', 'activation_delivery_id', 'occurred_at'], properties: [new OA\Property(property: 'actor_kind', type: 'string', enum: ['user', 'agent', 'system', 'anonymous']), new OA\Property(property: 'actor_id', type: 'string', format: 'uuid'), new OA\Property(property: 'user_id', type: 'string', format: 'uuid'), new OA\Property(property: 'activation_delivery_id', type: 'string', format: 'uuid'), new OA\Property(property: 'occurred_at', type: 'string', format: 'date-time')])]
 #[OA\Schema(schema: 'Fight.AccessControl.InvitationDeliveryExpired', ref: '#/components/schemas/Fight.AccessControl.ExpireInvitationDelivery')]
 #[OA\Schema(schema: 'Fight.AccessControl.PasswordResetDeliveryExpired', ref: '#/components/schemas/Fight.AccessControl.ExpirePasswordResetDelivery')]
 #[OA\Schema(schema: 'Fight.AccessControl.EmailChangeExpired', ref: '#/components/schemas/Fight.AccessControl.ExpireEmailChange')]
