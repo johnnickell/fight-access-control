@@ -50,12 +50,12 @@ final readonly class DeliverUserInvitationHandler implements CommandHandler
      */
     public function __construct(
         private ActivationGrantRepository $activationGrantRepository,
-        private AuditEvidenceRepository $auditEvidenceRepository,
         private TransactionalUnitOfWork $unitOfWork,
         private InvitationDeliveryCipher $invitationDeliveryCipher,
         private CredentialDeliveryProvider $credentialDeliveryProvider,
         private Clock $clock,
-        private EventDispatcher $eventDispatcher
+        private EventDispatcher $eventDispatcher,
+        private ?AuditEvidenceRepository $auditEvidenceRepository = null
     ) {
     }
 
@@ -244,7 +244,7 @@ final readonly class DeliverUserInvitationHandler implements CommandHandler
                 $action = AuditAction::INVITATION_DELIVERY_CONFIRMED;
             }
 
-            $this->auditEvidenceRepository->add(AuditEvidence::record(
+            $this->auditEvidenceRepository?->add(AuditEvidence::record(
                 $command->getActorId(),
                 new AuditSubject($command->getUserId()),
                 $action,

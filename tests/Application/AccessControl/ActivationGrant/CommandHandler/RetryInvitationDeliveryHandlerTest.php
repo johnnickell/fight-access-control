@@ -69,10 +69,10 @@ final class RetryInvitationDeliveryHandlerTest extends TestCase
         $eventDispatcher = new InMemoryEventDispatcher();
         $handler = new RetryInvitationDeliveryHandler(
             $activationGrantRepository,
-            $auditEvidenceRepository,
             $unitOfWork,
             new FixedClock($grant->getExpiresAt()),
-            $eventDispatcher
+            $eventDispatcher,
+            $auditEvidenceRepository
         );
 
         $rejection = null;
@@ -108,10 +108,10 @@ final class RetryInvitationDeliveryHandlerTest extends TestCase
         $auditEvidenceRepository = new InMemoryAuditEvidenceRepository($unitOfWork);
         $handler = new RetryInvitationDeliveryHandler(
             $activationGrantRepository,
-            $auditEvidenceRepository,
             $unitOfWork,
             new FixedClock('2026-08-19T12:00:00Z'),
-            $eventDispatcher
+            $eventDispatcher,
+            $auditEvidenceRepository
         );
 
         $handler->handle(CommandMessage::create(new RetryInvitationDelivery(
@@ -145,10 +145,10 @@ final class RetryInvitationDeliveryHandlerTest extends TestCase
         $eventDispatcher = new InMemoryEventDispatcher();
         $handler = new RetryInvitationDeliveryHandler(
             $activationGrantRepository,
-            new InMemoryAuditEvidenceRepository(),
             new InMemoryUnitOfWork(),
             new FixedClock('2026-08-19T12:00:00Z'),
-            $eventDispatcher
+            $eventDispatcher,
+            new InMemoryAuditEvidenceRepository()
         );
 
         $this->expectException(StateConflict::class);
@@ -167,10 +167,10 @@ final class RetryInvitationDeliveryHandlerTest extends TestCase
         $eventDispatcher = new InMemoryEventDispatcher();
         $handler = new RetryInvitationDeliveryHandler(
             new InMemoryActivationGrantRepository(),
-            new InMemoryAuditEvidenceRepository(),
             new InMemoryUnitOfWork(),
             new FixedClock('2026-08-19T12:00:00Z'),
-            $eventDispatcher
+            $eventDispatcher,
+            new InMemoryAuditEvidenceRepository()
         );
 
         $this->expectException(StateConflict::class);
@@ -193,10 +193,10 @@ final class RetryInvitationDeliveryHandlerTest extends TestCase
         $eventDispatcher = new InMemoryEventDispatcher();
         $handler = new RetryInvitationDeliveryHandler(
             $activationGrantRepository,
-            $auditEvidenceRepository,
             $unitOfWork,
             new FixedClock('2026-08-19T12:00:00Z'),
-            $eventDispatcher
+            $eventDispatcher,
+            $auditEvidenceRepository
         );
 
         $this->expectException(RuntimeException::class);
@@ -244,10 +244,10 @@ final class RetryInvitationDeliveryHandlerTest extends TestCase
         $eventDispatcher = new InMemoryEventDispatcher();
         $handler = new RetryInvitationDeliveryHandler(
             $activationGrantRepository,
-            $auditEvidenceRepository,
             new InMemoryUnitOfWork(),
             new FixedClock('2026-08-19T12:00:00Z'),
-            $eventDispatcher
+            $eventDispatcher,
+            $auditEvidenceRepository
         );
 
         $this->expectException(StateConflict::class);
@@ -305,12 +305,12 @@ final class RetryInvitationDeliveryHandlerTest extends TestCase
                 if ($subscribed) {
                     $worker = new DeliverUserInvitationHandler(
                         $activationGrantRepository,
-                        $auditEvidenceRepository,
                         $unitOfWork,
                         $cipher,
                         $provider,
                         new FixedClock($at),
-                        $eventDispatcher
+                        $eventDispatcher,
+                        $auditEvidenceRepository
                     );
                     $commandBus = $this->createMock(CommandBus::class);
                     $commandBus->expects($offset < 0 ? self::once() : self::never())->method('execute')
@@ -322,10 +322,10 @@ final class RetryInvitationDeliveryHandlerTest extends TestCase
 
                 $handler = new RetryInvitationDeliveryHandler(
                     $activationGrantRepository,
-                    $auditEvidenceRepository,
                     $unitOfWork,
                     new FixedClock($at),
-                    $eventDispatcher
+                    $eventDispatcher,
+                    $auditEvidenceRepository
                 );
                 $failure = null;
                 try {
@@ -373,10 +373,10 @@ final class RetryInvitationDeliveryHandlerTest extends TestCase
             $at = new DateTimeImmutable($time);
             $handler = new RetryInvitationDeliveryHandler(
                 $activationGrantRepository,
-                $auditEvidenceRepository,
                 $unitOfWork,
                 new FixedClock($at),
-                $eventDispatcher
+                $eventDispatcher,
+                $auditEvidenceRepository
             );
             try {
                 $handler->handle(CommandMessage::create(new RetryInvitationDelivery(
@@ -425,10 +425,10 @@ final class RetryInvitationDeliveryHandlerTest extends TestCase
         $auditEvidenceRepository = new InMemoryAuditEvidenceRepository($unitOfWork);
         $handler = new RetryInvitationDeliveryHandler(
             $activationGrantRepository,
-            $auditEvidenceRepository,
             $unitOfWork,
             $clock,
-            new InMemoryEventDispatcher()
+            new InMemoryEventDispatcher(),
+            $auditEvidenceRepository
         );
         try {
             $handler->handle(CommandMessage::create(new RetryInvitationDelivery(
@@ -449,10 +449,10 @@ final class RetryInvitationDeliveryHandlerTest extends TestCase
         $grant = $this->persistedFailedGrant($activationGrantRepository);
         $handler = new RetryInvitationDeliveryHandler(
             $activationGrantRepository,
-            new InMemoryAuditEvidenceRepository($unitOfWork),
             $unitOfWork,
             new FixedClock('2026-08-25T11:59:59Z'),
-            new InMemoryEventDispatcher()
+            new InMemoryEventDispatcher(),
+            new InMemoryAuditEvidenceRepository($unitOfWork)
         );
         $handler->handle(CommandMessage::create(new RetryInvitationDelivery(UserId::generate(), $grant->getUserId())));
 
@@ -510,10 +510,10 @@ final class RetryInvitationDeliveryHandlerTest extends TestCase
             $eventDispatcher = new InMemoryEventDispatcher();
             $handler = new RetryInvitationDeliveryHandler(
                 $activationGrantRepository,
-                $auditEvidenceRepository,
                 $unitOfWork,
                 new FixedClock('2026-08-19T12:00:00Z'),
-                $eventDispatcher
+                $eventDispatcher,
+                $auditEvidenceRepository
             );
             try {
                 $handler->handle(CommandMessage::create(new RetryInvitationDelivery(
@@ -540,10 +540,10 @@ final class RetryInvitationDeliveryHandlerTest extends TestCase
         $eventDispatcher = new InMemoryEventDispatcher();
         $handler = new RetryInvitationDeliveryHandler(
             $activationGrantRepository,
-            $auditEvidenceRepository,
             $unitOfWork,
             new FixedClock('2026-08-19T12:00:00Z'),
-            $eventDispatcher
+            $eventDispatcher,
+            $auditEvidenceRepository
         );
         try {
             $handler->handle(CommandMessage::create(new RetryInvitationDelivery(
@@ -577,10 +577,10 @@ final class RetryInvitationDeliveryHandlerTest extends TestCase
         );
         $handler = new RetryInvitationDeliveryHandler(
             $activationGrantRepository,
-            $auditEvidenceRepository,
             $unitOfWork,
             new FixedClock($grant->getExpiresAt()),
-            $eventDispatcher
+            $eventDispatcher,
+            $auditEvidenceRepository
         );
         try {
             $handler->handle(CommandMessage::create($command));
@@ -617,10 +617,10 @@ final class RetryInvitationDeliveryHandlerTest extends TestCase
         );
         $handler = new RetryInvitationDeliveryHandler(
             $activationGrantRepository,
-            $auditEvidenceRepository,
             $unitOfWork,
             new FixedClock('2026-08-19T12:00:00Z'),
-            $eventDispatcher
+            $eventDispatcher,
+            $auditEvidenceRepository
         );
         try {
             $handler->handle(CommandMessage::create(new RetryInvitationDelivery(
@@ -657,10 +657,10 @@ final class RetryInvitationDeliveryHandlerTest extends TestCase
             $loserEventDispatcher = new InMemoryEventDispatcher();
             $handler = new RetryInvitationDeliveryHandler(
                 $activationGrantRepository,
-                $auditEvidenceRepository,
                 $unitOfWork,
                 new FixedClock('2026-08-19T12:00:00Z'),
-                $loserEventDispatcher
+                $loserEventDispatcher,
+                $auditEvidenceRepository
             );
             $loser = new Fiber(static function () use ($handler, $grant): void {
                 $handler->handle(CommandMessage::create(new RetryInvitationDelivery(
@@ -673,10 +673,10 @@ final class RetryInvitationDeliveryHandlerTest extends TestCase
             if ($winner === 'retry') {
                 new RetryInvitationDeliveryHandler(
                     $activationGrantRepository,
-                    $auditEvidenceRepository,
                     $unitOfWork,
                     new FixedClock('2026-08-19T12:00:00Z'),
-                    new InMemoryEventDispatcher()
+                    new InMemoryEventDispatcher(),
+                    $auditEvidenceRepository
                 )->handle(CommandMessage::create(new RetryInvitationDelivery(UserId::generate(), $grant->getUserId())));
             } else {
                 $unitOfWork->commitTransactional(
@@ -747,10 +747,10 @@ final class RetryInvitationDeliveryHandlerTest extends TestCase
             $auditEvidenceRepository = new InMemoryAuditEvidenceRepository($unitOfWork);
             $handler = new RetryInvitationDeliveryHandler(
                 $activationGrantRepository,
-                $auditEvidenceRepository,
                 $unitOfWork,
                 new FixedClock('2026-08-19T12:00:00Z'),
-                new InMemoryEventDispatcher()
+                new InMemoryEventDispatcher(),
+                $auditEvidenceRepository
             );
             $handler->handle(CommandMessage::create(new RetryInvitationDelivery(
                 UserId::generate(),
@@ -805,12 +805,12 @@ final class RetryInvitationDeliveryHandlerTest extends TestCase
         $provider = new RecordingCredentialDeliveryProvider();
         $worker = new DeliverUserInvitationHandler(
             $activationGrantRepository,
-            $auditEvidenceRepository,
             $unitOfWork,
             $cipher,
             $provider,
             $clock,
-            $eventDispatcher
+            $eventDispatcher,
+            $auditEvidenceRepository
         );
         $commandBus = $this->createMock(CommandBus::class);
         $commandBus->expects(self::once())->method('execute')->willReturnCallback(
@@ -821,10 +821,10 @@ final class RetryInvitationDeliveryHandlerTest extends TestCase
         $eventDispatcher->register(new InvitationDeliverySubscriber($commandBus));
         $handler = new RetryInvitationDeliveryHandler(
             $activationGrantRepository,
-            $auditEvidenceRepository,
             $unitOfWork,
             $clock,
-            $eventDispatcher
+            $eventDispatcher,
+            $auditEvidenceRepository
         );
         try {
             $handler->handle(CommandMessage::create(new RetryInvitationDelivery(
@@ -857,12 +857,12 @@ final class RetryInvitationDeliveryHandlerTest extends TestCase
         $clock = new FixedClock($grant->getExpiresAt());
         $resend = new ResendInvitationDeliveryHandler(
             $activationGrantRepository,
-            $auditEvidenceRepository,
             $unitOfWork,
             new FixedCredentialGenerator('fresh-authority'),
             new PrefixInvitationDeliveryCipher(),
             $clock,
-            $eventDispatcher
+            $eventDispatcher,
+            $auditEvidenceRepository
         );
         $resend->handle(CommandMessage::create(new ResendInvitationDelivery(UserId::generate(), $grant->getUserId())));
 
@@ -884,10 +884,10 @@ final class RetryInvitationDeliveryHandlerTest extends TestCase
         self::assertTrue($activationGrantRepository->replace($claimed, $failed));
         new RetryInvitationDeliveryHandler(
             $activationGrantRepository,
-            $auditEvidenceRepository,
             $unitOfWork,
             $clock,
-            $eventDispatcher
+            $eventDispatcher,
+            $auditEvidenceRepository
         )->handle(
             CommandMessage::create(new RetryInvitationDelivery(UserId::generate(), $grant->getUserId()))
         );

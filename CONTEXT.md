@@ -1348,8 +1348,14 @@ Work handoff own implementation evidence. Independent Review ACCEPT and behavior
 `5d8ba4496a19a1b1e33e9e16283d1aac6a64ddb4`; TASK-00122 and TICKET-00043 are done. Land's behavior-preserving
 integration of current develop passed a fresh full gate (8247 tests / 81407 assertions, exact global/owned coverage).
 Canonical `.runs/handoffs/TASK-00122/land.md` owns subsequent delivery/resource results, separate from human merge. TASK-00123 now implements optional last
-nullable storage for the eight account lifecycle handlers; other family constructors and
-currently unaudited paths remain unchanged. See [current account composition](docs/user-lifecycle-contracts.md#optional-account-audit-composition).
+nullable storage for the eight account lifecycle handlers. TASK-00124 now implements optional final storage for
+all four invitation delivery/resend/retry/expiry handlers and typed expiry Command/Event provenance; see
+[invitation composition](docs/credential-delivery.md#optional-invitation-audit-composition-unreleased). Expiry adds
+transaction-local typed outcome evidence only for committed material expiry, preserving activation authority,
+origin, admitted time and expected-state semantics. Claims/external sends remain separate; audit rollback does
+not undo those effects, and ordinary post-commit failure preserves committed evidence. Work verification and
+independent acceptance are recorded separately in TASK-00124 and its canonical handoffs. Other family constructors
+and currently unaudited paths remain unchanged. See [current account composition](docs/user-lifecycle-contracts.md#optional-account-audit-composition).
 Omitted/null disables durable evidence without changing business-required typed actors, target/default-Role/CAS
 admission or coupled persistence. Enabled evidence retains the actual mutation transaction, trusted time,
 authoritative revisions/grant/delivery/message correlation and ordinary User publication-failure propagation.

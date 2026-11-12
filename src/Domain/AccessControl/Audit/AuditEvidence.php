@@ -207,6 +207,7 @@ class AuditEvidence implements Arrayable
                 AuditAction::AGENT_CREDENTIAL_REVOKED => AuditAgentOutcome::fromArray($data['facts']),
             AuditAction::INVITATION_RESENT, AuditAction::INVITATION_RETRY_REQUESTED,
             AuditAction::INVITATION_DELIVERY_FAILED, AuditAction::INVITATION_DELIVERY_CONFIRMED,
+            AuditAction::INVITATION_DELIVERY_EXPIRED,
             AuditAction::PASSWORD_RESET_REQUESTED, AuditAction::PASSWORD_RESET_DELIVERY_FAILED,
             AuditAction::PASSWORD_RESET_DELIVERY_CONFIRMED, AuditAction::EMAIL_CHANGE_DELIVERY_FAILED,
                 AuditAction::EMAIL_CHANGE_DELIVERY_CONFIRMED => AuditGrantOutcome::fromArray($data['facts']),
@@ -385,7 +386,7 @@ class AuditEvidence implements Arrayable
     {
         $grantKind = match ($this->action) {
             AuditAction::INVITATION_RESENT, AuditAction::INVITATION_RETRY_REQUESTED,
-            AuditAction::INVITATION_DELIVERY_FAILED,
+            AuditAction::INVITATION_DELIVERY_FAILED, AuditAction::INVITATION_DELIVERY_EXPIRED,
                 AuditAction::INVITATION_DELIVERY_CONFIRMED => ActivationGrantId::class,
             AuditAction::PASSWORD_RESET_REQUESTED, AuditAction::PASSWORD_RESET_DELIVERY_FAILED,
                 AuditAction::PASSWORD_RESET_DELIVERY_CONFIRMED => PasswordResetGrantId::class,
@@ -414,6 +415,9 @@ class AuditEvidence implements Arrayable
         }
 
         $validOutcome = match ($this->action) {
+            AuditAction::INVITATION_DELIVERY_EXPIRED => (
+                $facts->getDeliveryStatus() === CredentialDeliveryStatus::EXPIRED
+            ),
             AuditAction::INVITATION_DELIVERY_CONFIRMED, AuditAction::PASSWORD_RESET_DELIVERY_CONFIRMED,
                 AuditAction::EMAIL_CHANGE_DELIVERY_CONFIRMED => (
                     $facts->getDeliveryStatus() === CredentialDeliveryStatus::DELIVERED

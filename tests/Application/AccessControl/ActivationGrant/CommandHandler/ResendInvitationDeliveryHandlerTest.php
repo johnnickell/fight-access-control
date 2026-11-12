@@ -285,12 +285,12 @@ final class ResendInvitationDeliveryHandlerTest extends TestCase
     ): ResendInvitationDeliveryHandler {
         return new ResendInvitationDeliveryHandler(
             $activationGrantRepository,
-            $auditEvidenceRepository,
             $unitOfWork,
             new FixedCredentialGenerator('activate-new'),
             new PrefixInvitationDeliveryCipher(),
             new FixedClock('2026-08-19T12:00:00+00:00'),
-            $eventDispatcher
+            $eventDispatcher,
+            $auditEvidenceRepository
         );
     }
 }

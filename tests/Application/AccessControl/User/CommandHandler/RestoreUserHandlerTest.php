@@ -134,12 +134,12 @@ final class RestoreUserHandlerTest extends TestCase
         $provider = new RecordingCredentialDeliveryProvider();
         new DeliverUserInvitationHandler(
             $activationGrantRepository->restart(),
-            $auditEvidenceRepository,
             $unitOfWork,
             new PrefixInvitationDeliveryCipher(),
             $provider,
             new FixedClock('2026-08-22T13:00:00+00:00'),
-            new InMemoryEventDispatcher()
+            new InMemoryEventDispatcher(),
+            $auditEvidenceRepository
         )->handle(CommandMessage::create(new DeliverUserInvitation(
             $actorId,
             $user->getId(),

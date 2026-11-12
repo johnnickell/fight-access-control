@@ -10,7 +10,8 @@ The eleven human request/delivery/retry/resend/cancellation/expiry handlers rema
 Consumers protect every worker and alternate entry point; actor IDs, stored origin and status are not grants.
 Unknown/ineligible password-reset requests still complete without work or an existence signal. Ordinary stale,
 early or terminal expiry dispatch remains a no-op; email expiry still releases only its exact reservation in every
-supported account state. No Query/subscriber/admission policy or optional-audit feature is added here.
+supported account state. No new Query/subscriber/admission policy is introduced. Invitation audit composition is
+explicitly optional as described below; other credential families retain their current wiring.
 
 Use Common Application `StateConflict` for known request/state/CAS/claim/lease refusals and invitation retry/resend
 refusals. Email request/cancellation use `ResourceNotFound` for an absent requested User and `PermissionDenied`
@@ -86,12 +87,11 @@ verification belong to TASK-00133's local handoff, not consumer database/provide
 Human credential Commands, Queries and Events decode required fields without scalar or object coercion: identity,
 actor, email, purpose and timestamp payload fields must be strings, and discovery limits must be integers.
 The in-progress [audit contract replacement](audit-evidence.md) additionally requires `actor_kind` alongside
-`actor_id` on invitation delivery/resend/retry and reset delivery payloads and their affected Events. Direct
+`actor_id` on invitation delivery/resend/retry/expiry and reset delivery payloads and their affected Events. Direct
 UserId/AgentId/SystemId/AnonymousId values preserve the admitted origin; workers do not parse labels or substitute
 themselves. Deliberate public registration/reset-request subscribers establish AnonymousId. Other current human
-message contracts, worker mandatory constructor wiring and unaudited expiry paths are unchanged. Unreleased
-TASK-00123 separately makes the eight account lifecycle handlers' final audit repository optional; this does not
-make their delivery subscribers/workers optional-audit writers.
+message contracts and other families' constructor/expiry wiring are unchanged. TASK-00123 separately makes the
+eight account lifecycle handlers' final audit repository optional.
 Timestamp-bearing payloads require an explicit valid RFC3339 instant, never relative dates or calendar rollover.
 Canonical field names, nullability and existing timestamp output precision are unchanged. `fromArray()` remains a
 dynamic input boundary; exact `toArray()` shapes describe validated output, not unchecked input assertions.
@@ -114,11 +114,61 @@ No Query absence/failure redesign, generic bus adoption, new recovery policy or 
 expiry/recovery and generated-schema suites remain preservation evidence. Detailed declaration/member dispositions
 and standalone positive/negative static probes belong to the canonical TASK-00116 Work evidence, not public logs.
 
+## Optional invitation audit composition (Unreleased)
+
+All four invitation handlers take an optional last `?AuditEvidenceRepository $auditEvidenceRepository = null`.
+Update the formerly second repository argument on delivery/resend/retry directly; no compatibility constructor is
+provided. Expiry accepts the same final dependency. Omitted or explicit null intentionally provides no durable-audit
+guarantee. A configured repository is required persistence, never a best-effort sink. Join the grant repository's
+actual UoW connection/transaction, not an independent active transaction.
+
+```php
+$worker = new DeliverUserInvitationHandler(
+    $activationGrantRepository,
+    $unitOfWork,
+    $invitationDeliveryCipher,
+    $credentialDeliveryProvider,
+    $clock,
+    $eventDispatcher,
+    $auditEvidenceRepository,
+);
+$expiry = new ExpireInvitationDeliveryHandler(
+    $activationGrantRepository,
+    $unitOfWork,
+    $eventDispatcher,
+    $auditEvidenceRepository,
+);
+```
+
+Existing required originating actors remain required typed inputs even when audit is disabled. Expiry now also
+requires `UserId|AgentId|SystemId|AnonymousId`, serialized with both `actor_kind` and UUID `actor_id`; its Event has
+the same contract. Autonomous expiry deliberately supplies `SystemId::generate()`, not a worker label or a missing
+actor fallback. Authorized User/Agent requests keep that original identity through worker/subscriber execution.
+Actor identity, origin, correlation and delivery IDs confer no authorization. Protect alternate workers and buses.
+
+Evidence uses the shared typed User subject and grant/delivery before/after revisions, actual message correlation
+and trusted outcome time. Delivery records confirmed or committed classified failure outcomes; resend records the
+new generation plus its retained revoked predecessor; retry records the actual retry transition. Expiry records
+`user.invitation_delivery.expired` only after a successful expected-state replacement, at the Command's trusted
+admitted occurrence time. It does not expire activation authority. No evidence is added for temporary claims,
+unknown/stale/terminal/not-due expiry, failed CAS or other no-change branches. Both activation origins remain on
+the authoritative grant identified by the evidence and survive resend/retry/delivery/expiry; no origin is inferred
+from the transport or event. Evidence captures no recipient, credential, ciphertext or exception diagnostic.
+
+Claims still commit separately, provider calls remain outside transactions, and outcome state plus evidence commit
+together. Audit failure rolls back that staged outcome, **not** an already committed claim or external send. Retain
+lease/generation/receipt recovery and the stable provider idempotency identity. Lost commit acknowledgement remains
+uncertain; reconcile authoritative storage rather than assuming rollback or repeating an effect blindly. Ordinary
+post-commit publication failure still throws without erasing committed evidence. This adds no outbox, guaranteed
+notification/retry pipeline, rejected-attempt store or Agent issuance-warning behavior. Consumers separately qualify
+real storage/connection mapping, all-writer races, restart, provider effects and protected evidence access/retention.
+
 ## Composition and persistence
 
 Bind the three purpose-specific cipher capabilities (encryption and decryption), one `CredentialDeliveryProvider`,
 Domain grant repositories, audit and User repositories to the package's shared `TransactionalUnitOfWork` connection.
-Originating handlers atomically persist grant authority, encrypted delivery and audit before post-commit publication.
+Originating handlers atomically persist grant authority, encrypted delivery and configured required audit before
+post-commit publication. Invitation/account optionality is per handler, not a global repository binding.
 Do not independently commit one repository or bind participants to different transaction connections.
 
 Persist the complete delivery state: immutable delivery ID, owning User, canonical email, encrypted material, expiry,

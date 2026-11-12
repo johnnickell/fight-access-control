@@ -114,10 +114,14 @@ invalid repeated lifecycle transitions reject. Rejections and lost transactions 
 
 ### Invitations — [TASK-00124](../planning/tasks/00124-TASK.md)
 
+All four handlers now support optional final audit storage. Omitted/null intentionally disables evidence; configured
+persistence failure aborts the actual staged outcome. Existing typed actors remain required, including expiry's
+current typed Command/Event contract. See [composition](credential-delivery.md#optional-invitation-audit-composition-unreleased).
+
 | Entry | Profile | Observed audit and outcome disposition |
 | --- | --- | --- |
 | [DeliverUserInvitation](../src/Application/AccessControl/ActivationGrant/CommandHandler/DeliverUserInvitationHandler.php) | H | W delivered/retryable/permanent-failure action on committed outcome, direct typed origin. Exact origin/generation/claim required; temporary claim is not another record. Invalid/stale outcome rejects; send cannot be rolled back. |
-| [ExpireInvitationDelivery](../src/Application/AccessControl/ActivationGrant/CommandHandler/ExpireInvitationDeliveryHandler.php) | X | —. Exact original issued expired generation loses material, not activation authority merely because delivery expired. Wrong generation, early/already-clean or CAS loss returns no-work. |
+| [ExpireInvitationDelivery](../src/Application/AccessControl/ActivationGrant/CommandHandler/ExpireInvitationDeliveryHandler.php) | X | Optional final repository (TASK-00124): confirmed expiry records typed User/grant/delivery revisions, trusted admitted time and message correlation inside the outcome transaction. Exact original issued expired generation loses material, not activation authority. Wrong generation, early/already-clean or CAS loss returns no-work without evidence. |
 | [ResendInvitationDelivery](../src/Application/AccessControl/ActivationGrant/CommandHandler/ResendInvitationDeliveryHandler.php) | U | W `user.invitation_delivery.resent`, direct typed origin. Fresh grant/delivery replaces predecessor while preserving origin; invalid User/state rejects, not same-key resolution. |
 | [RetryInvitationDelivery](../src/Application/AccessControl/ActivationGrant/CommandHandler/RetryInvitationDeliveryHandler.php) | H | W `user.invitation_delivery.retry_requested`, direct typed origin. Existing usable same generation/ID becomes due; expired/unretryable rejects before mutation. No provider call within retry UoW; post-commit subscriber can fail after retry persists. |
 

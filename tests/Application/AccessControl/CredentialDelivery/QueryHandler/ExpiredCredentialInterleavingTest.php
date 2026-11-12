@@ -72,6 +72,11 @@ final class ExpiredCredentialInterleavingTest extends TestCase
         $fixture = new ExpiredCredentialFixture($purpose);
         $before = $fixture->stage('reclaimed');
         $loser = $winner === 'worker:a' ? 'worker:b' : 'worker:a';
+        if ($purpose === 'activation') {
+            $winner = UserId::generate()->toString();
+            $loser = UserId::generate()->toString();
+        }
+
         $loserEventDispatcher = new InMemoryEventDispatcher();
         $handler = $this->pausedCleanup($fixture, $loserEventDispatcher);
         $fiber = new Fiber(static fn () => $handler->handle(CommandMessage::create(
@@ -462,12 +467,12 @@ final class ExpiredCredentialInterleavingTest extends TestCase
 
             $handler = new ResendInvitationDeliveryHandler(
                 $passwordResetGrantRepository,
-                $auditEvidenceRepository,
                 $fixture->unitOfWork,
                 new FixedCredentialGenerator('replacement'),
                 new PrefixInvitationDeliveryCipher(),
                 $clock,
-                $eventDispatcher
+                $eventDispatcher,
+                $auditEvidenceRepository
             );
 
             return static fn () => $handler->handle(CommandMessage::create(new ResendInvitationDelivery(

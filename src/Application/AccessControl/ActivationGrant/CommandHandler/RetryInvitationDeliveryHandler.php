@@ -41,10 +41,10 @@ final readonly class RetryInvitationDeliveryHandler implements CommandHandler
      */
     public function __construct(
         private ActivationGrantRepository $activationGrantRepository,
-        private AuditEvidenceRepository $auditEvidenceRepository,
         private TransactionalUnitOfWork $unitOfWork,
         private Clock $clock,
-        private EventDispatcher $eventDispatcher
+        private EventDispatcher $eventDispatcher,
+        private ?AuditEvidenceRepository $auditEvidenceRepository = null
     ) {
     }
 
@@ -103,7 +103,7 @@ final readonly class RetryInvitationDeliveryHandler implements CommandHandler
                     );
                 }
 
-                $this->auditEvidenceRepository->add(AuditEvidence::record(
+                $this->auditEvidenceRepository?->add(AuditEvidence::record(
                     $command->getActorId(),
                     new AuditSubject($command->getUserId()),
                     AuditAction::INVITATION_RETRY_REQUESTED,

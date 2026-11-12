@@ -73,12 +73,12 @@ final class ActivationOriginFixture
     ): DeliverUserInvitationHandler {
         return new DeliverUserInvitationHandler(
             $this->activationGrantRepository,
-            $this->auditEvidenceRepository,
             $unitOfWork ?? $this->unitOfWork,
             new PrefixInvitationDeliveryCipher(),
             $provider,
             new FixedClock($at),
-            $eventDispatcher ?? new InMemoryEventDispatcher()
+            $eventDispatcher ?? new InMemoryEventDispatcher(),
+            $this->auditEvidenceRepository
         );
     }
 
@@ -86,12 +86,12 @@ final class ActivationOriginFixture
     {
         return new ResendInvitationDeliveryHandler(
             $this->activationGrantRepository,
-            $this->auditEvidenceRepository,
             $this->unitOfWork,
             new FixedCredentialGenerator('successor-fixture'),
             new PrefixInvitationDeliveryCipher(),
             new FixedClock('2030-01-01T00:01:00Z'),
-            $eventDispatcher ?? new InMemoryEventDispatcher()
+            $eventDispatcher ?? new InMemoryEventDispatcher(),
+            $this->auditEvidenceRepository
         );
     }
 
