@@ -1,5 +1,26 @@
 # Fight AccessControl Context
 
+## Optional complete Task live state — TASK-00102 Work checkpoint
+
+[Optional Task live composition](docs/agent-task-live.md) adds current original-bound Task signal and complete-state
+read admissions, consumer `AgentTaskDisclosurePolicy`, and the required Common disclosure guard/action integration
+through the existing continuation guard/fence. `AgentTaskServing::tasks()` exposes the identical ordinary capability;
+optional Subscriptions attach to its existing registry. Complete state comes only from shared Common Task Queries,
+never general notices/tracking/Mercure. Independent listening, Task signal, read and consumer field/visibility scope
+remain mandatory. No opening snapshot, nonce replay, credential switch, new engine or production lock is introduced.
+
+Common v1.5.0 source `06fb5cd3720af9cf8295198f74040d95b64c5155` remains sufficient. Controlled real-authority,
+SQLite, shared read/live revision, guarded handoff and native independent-process fixtures own package proof;
+canonical `.runs/handoffs/TASK-00102/work.md` records actual checks, dependency/runtime identities, interrupted-run
+history and limits. Minimum qualification passes 43 Task tests / 450 assertions; the final ordinary full gate passes
+8,957 tests / 90,902 assertions and exact 10,732/10,732 statements (78/78 touched production statements).
+Minimum dependencies retain 43 advisories / 13 packages; ordinary resolution reports none.
+Independent Review and behavioral QA remain required; TASK-00102 stays in progress. Common's mandatory consumer
+all-writer guard obligations remain unchanged, not production synchronization or atomic permission-check-and-send
+claims. Consumer storage/crypto/policy epochs/authority writers, proxies, workers and client merge/receipt remain
+separate qualification. Ordinary polling/input/cancel require no live activation; no adoption, publication, merge,
+release or deployment is claimed at this Work checkpoint.
+
 ## Current-subscriber inspection — accepted lifecycle-test repair
 
 TASK-00095 is done for independently accepted package implementation and required QA after its bounded lifecycle-test correction.

@@ -14,6 +14,7 @@ use Fight\Common\Adapter\Messaging\Query\Routing\InMemoryQueryRouter;
 use Fight\Common\Adapter\Messaging\Query\RoutingQueryBus;
 use Fight\Common\Application\Mcp\Capability\McpCapabilityRegistry;
 use Fight\Common\Application\Mcp\Protocol\McpServerInfo;
+use Fight\Common\Application\Mcp\Subscription\McpSubscriptions;
 use Fight\Common\Application\Mcp\Task\CommandHandler\CreateTaskHandler;
 use Fight\Common\Application\Mcp\Task\CommandHandler\RequestTaskCancellationHandler;
 use Fight\Common\Application\Mcp\Task\CommandHandler\SupplyTaskInputHandler;
@@ -87,6 +88,14 @@ final readonly class AgentTaskServing
     }
 
     /**
+     * Returns the identical complete Task capability for optional Common live composition
+     */
+    public function tasks(): McpTasks
+    {
+        return $this->tasks;
+    }
+
+    /**
      * Creates complete Common serving with identical Task capability and Tool definition identities
      *
      * Constructs the Permission catalog against this exact registry before advertising any capability.
@@ -102,7 +111,8 @@ final readonly class AgentTaskServing
         string $correlationId,
         string $discoverySecret,
         array $bindings = [],
-        ?McpToolInteraction $interaction = null
+        ?McpToolInteraction $interaction = null,
+        ?McpSubscriptions $subscriptions = null
     ): McpCapabilityRegistry {
         $availability = new AgentToolAvailability(
             new AgentToolPermissionCatalog($toolRegistry, $bindings),
@@ -121,6 +131,6 @@ final readonly class AgentTaskServing
             new McpToolDiscovery($toolRegistry, $availability, $discoverySecret),
             new McpToolInvocation($invoker),
             $this->tasks
-        ]);
+        ], $subscriptions);
     }
 }

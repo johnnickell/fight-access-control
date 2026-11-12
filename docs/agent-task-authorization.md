@@ -5,7 +5,9 @@ creation, producer transition and complete current-state Query. It adds no Task 
 executor, scheduler, grant, protocol endpoint or advertised partial MCP Tasks extension. TASK-00098 adds independent
 bounded retained-data removal below. TASK-00099 adds durable input admission and protected continuation below.
 TASK-00100 adds independent cancellation requests and protected intent observation below. TASK-00101 adds explicit
-complete MCP serving and independent handle-response admission below. Optional live Task output remains TASK-00102.
+complete MCP serving and independent handle-response admission below. TASK-00102 adds
+[optional complete Task notifications](agent-task-live.md), with current original-bound state admission and Common's
+required disclosure guard. Ordinary polling/input/cancel retain no live dependency.
 
 ## Contracts and ownership
 

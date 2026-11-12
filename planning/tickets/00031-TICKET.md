@@ -114,7 +114,7 @@ forced cancellation, receipt/processing/rollback guarantees, consumer migration 
 | 99 | [TASK-00099](../tasks/00099-TASK.md) | Authorize durable input and protected continuation | done |
 | 100 | [TASK-00100](../tasks/00100-TASK.md) | Authorize cancellation requests and intent observation | done |
 | 101 | [TASK-00101](../tasks/00101-TASK.md) | Authorize complete MCP Task start and reconnect journeys | done |
-| 102 | [TASK-00102](../tasks/00102-TASK.md) | Authorize optional full-state Task notifications | ready-for-agent |
+| 102 | [TASK-00102](../tasks/00102-TASK.md) | Authorize optional full-state Task notifications | in-progress |
 ## Decisions and Progress
 
 John approved item 7 of the eight-TICKET split, explicitly invoked To Tasks for this requirement, then approved
