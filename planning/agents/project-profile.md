@@ -290,6 +290,12 @@ previous-iteration support; completed TASKs and earlier guidance cannot require 
 
 ## Tests and delivery
 
+- **Explicit PHPStan scope decision (TASK-00152):** ordinary/default analysis covers production `src/` and shipped
+  `openapi/` metadata only. Do not analyze `tests/` or `scripts/`, directly or through another pass. John rejected
+  the prior split pass: "Yes. Running our tests should tell us if there are wrong argument types. We DONT TEST TESTS".
+  Keep meaningful PHPUnit behavior checks and required positive/negative production API type-contract fixtures;
+  those fixtures qualify production contracts, not tests or quality machinery. Shared framework symbol discovery,
+  existing style/Rector checks and both required production coverage gates remain unchanged.
 - In-memory repositories and service doubles belong in the matching Application test boundary. Production tests use
   CoversClass; qualifying boundary/journey tests may use CoversNothing. Metadata is not permission to test tooling. Handler tests prove post-commit event ordering and failure rethrow
   behavior outside the scoped EPIC-00009 D3 replacement exception. Acceptance of that replacement requires tests for

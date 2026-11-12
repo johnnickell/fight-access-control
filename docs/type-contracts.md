@@ -37,17 +37,18 @@ the default for ordinary caller checks: nullable arguments and partially incompa
 alongside the existing element/shape/callback rules. A concrete unchecked nullable repository-to-View call established
 the prior enforcement gap. Level 8 is selected for those checks, not as semantic certification or a numeric target.
 
-`bin/quality` separately preserves level-6 analysis of **all** tests and scripts through
-[`phpstan-tests.neon`](../phpstan-tests.neon), with no duplicated production analysis or newly excluded test paths.
+Ordinary PHPStan analyzes only `src/` and shipped `openapi/` metadata, not `tests/` or `scripts/`, under the
+[project's explicit scope decision](../planning/agents/project-profile.md#tests-and-delivery). The required static
+fixtures qualify production API inference and incompatible-use rejection; they do not test the tests or checker.
 The shared [`phpstan-base.neon`](../phpstan-base.neon) retains framework symbol discovery and bleeding-edge rules;
-separate cache directories isolate production, test/tool and fixture jobs. Deliberately malformed test arrangements
-need not satisfy production nullability rules. Known mixed bus/UoW contracts and permitted truthful local annotations
-remain unchanged. Runtime validation still owns genuinely dynamic inputs; static analysis does not prove permissions,
-identity, transaction outcomes or external consumer behavior.
+separate cache directories isolate production and fixture jobs. Symbol discovery does not add analysis inputs.
+Known mixed bus/UoW contracts and permitted truthful local annotations remain unchanged. Runtime validation still
+owns genuinely dynamic inputs; static analysis does not prove permissions, identity, transaction outcomes or
+external consumer behavior.
 
 ## Isolation and qualification
 
-The directory is outside ordinary PHPStan's `openapi/src/tests/scripts` inputs and outside PHPUnit's explicit
+The directory is outside ordinary PHPStan's `openapi/` and `src/` inputs and outside PHPUnit's explicit
 suite directories and `src` coverage scope. No ignoreErrors, baseline or production exclusion is added. PHP syntax
 and PHPCS checks include fixtures. Intentionally invalid static uses do not become runtime tests or coverage credit.
 

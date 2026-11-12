@@ -1,5 +1,15 @@
 # Fight AccessControl Context
 
+## TASK-00152 operator-requested PHPStan scope amendment
+
+John explicitly rejected PHPStan analysis of tests/scripts after the split production/test-tool passes were
+explained. Ordinary analysis now covers only production `src/` and shipped `openapi/` metadata; the separate
+tests/scripts invocation and its configuration are removed. Required production API type-contract fixtures,
+meaningful PHPUnit behavior checks, all-src Unit-only line coverage and exact all-suite statements remain.
+See the [governing scope decision](planning/agents/project-profile.md#tests-and-delivery). This same-PR amendment
+needs fresh independent Review and behavioral QA; earlier acceptance below retains its original subject and
+does not accept the new content. Canonical Work evidence owns current verification and committed mapping.
+
 ## TASK-00152 integrated contracts — independently accepted
 
 Independent Review v3 ACCEPT and nonvisual QA PASS cover candidate
@@ -36,7 +46,8 @@ no self-acceptance, publication or consumer qualification is implied.
 The approved bounded precision amendment corrects eight demonstrated static obligations in User, both Permission
 constructor adapters and subscription-family composition, without changing their requirement ownership or historical
 acceptance. Production/OpenAPI and ordinary caller analysis now reject nullable and incompatible union uses under
-the same rules as required fixtures; test/script analysis retains its existing rules separately. See
+the same rules as required fixtures. At that historical checkpoint, test/script analysis retained its existing
+rules separately; the later explicit scope amendment above removes that pass. See
 [type-contract enforcement](docs/type-contracts.md). Engineer semantic/source/caller and tagged-dependency reconciliation
 now has no pending primary or secondary concerns, including later actual capability and metadata amendments. This is
 Work evidence, not whole-library acceptance: fresh independent Review/nonvisual QA remain required, and actual

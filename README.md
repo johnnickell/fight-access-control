@@ -146,7 +146,9 @@ cd fight-access-control
 ignored lockfile with `composer update`, then runs the canonical quality gate: syntax, planning, PHPCS, PHPStan,
 architecture, Rector, PHPUnit, exact statement coverage, separate [Unit-line enforcement and suite evidence](docs/unit-coverage.md),
 and documentation links. No application server or database
-is required for package tests. After that initial setup, focused commands include:
+is required for package tests. PHPStan analyzes production `src/` and shipped `openapi/` metadata only, not tests
+or scripts; required [type-contract fixtures](docs/type-contracts.md) separately qualify the production API.
+After that initial setup, focused commands include:
 
 ```bash
 ./bin/phpunit
