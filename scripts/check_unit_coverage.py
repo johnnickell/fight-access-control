@@ -16,11 +16,23 @@ ROOT = pathlib.Path(__file__).resolve().parents[1]
 CATEGORIES = {"Unit", "Integration", "Functional"}
 
 
-def category(classes, identity):
-    cls, method = identity.split("::", 1)
-    method = re.split(r"[#@]| with data set ", method)[0]
+def category(classes, cls, method):
+    # Only call after admitting the exact expanded identity from enumeration.
     entry = classes[cls]
     return entry.get("methods", {}).get(method, entry)["category"]
+
+
+def expanded_identity(cls, name):
+    """Normalize native TeamCity display names to XML/coverage's lossless #case IDs.
+
+    PHPUnit uses 'method with data set #0' or 'method with data set "label"'
+    for display, and 'method#0' or 'method#label' for XML/raw coverage. Preserve
+    the complete case label (including punctuation); never collapse to a method.
+    """
+    match = re.fullmatch(r'(\w+) with data set (?:#(\d+)|"(.*)")', name)
+    if match:
+        name = match[1] + "#" + (match[2] if match[2] is not None else match[3])
+    return cls.lstrip("\\") + "::" + name
 
 
 def main():
@@ -33,25 +45,38 @@ def main():
     args = parser.parse_args()
     classes = json.loads((ROOT / "etc/test-categories.json").read_text())["classes"]
     discovered = {}
+    identities = {}
     for element in ET.parse(args.tests).iter():
         if element.tag.endswith("testClass"):
             name = element.attrib["name"]
             entry = classes[name]  # Unknown runnable classes fail closed.
             if not element.attrib["file"].endswith("/" + entry["file"]):
                 raise ValueError(f"Class/file identity mismatch: {name}")
+            if name in discovered:
+                raise ValueError(f"Duplicate enumerated class: {name}")
             discovered[name] = element
             for method in element:
                 if method.tag.endswith("testMethod"):
-                    if category(classes, method.attrib["id"]) not in CATEGORIES:
+                    identity = method.attrib["id"]
+                    if re.fullmatch(r"\w+", method.attrib["name"]) is None:
+                        raise ValueError("Malformed enumerated method name")
+                    base = name + "::" + method.attrib["name"]
+                    if identity != base and not identity.startswith(base + "#"):
+                        raise ValueError(f"Inconsistent enumerated identity: {identity}")
+                    if identity in identities:
+                        raise ValueError(f"Duplicate enumerated identity: {identity}")
+                    assigned = category(classes, name, method.attrib["name"])
+                    if assigned not in CATEGORIES:
                         raise ValueError("Invalid category")
+                    identities[identity] = assigned
     if not args.inspect and set(discovered) != set(classes):
         raise ValueError("Classification contains stale or undiscovered classes")
     for name in discovered:
         entry = classes[name]
         if entry["category"] not in CATEGORIES or not entry["reason"]:
             raise ValueError(f"Incomplete classification: {name}")
-        methods = {re.split(r"[#@]", m.attrib["name"])[0] for m in discovered[name]}
-        if not set(entry.get("methods", {})) <= methods:
+        methods = {m.attrib["name"] for m in discovered[name] if m.tag.endswith("testMethod")}
+        if not args.inspect and not set(entry.get("methods", {})) <= methods:
             raise ValueError(f"Stale method classification: {name}")
 
     # Keep this adapter small and pinned to the installed serialized format. It
@@ -63,14 +88,13 @@ if (($c['buildInformation']['phpCodeCoverage']['serializationFormat'] ?? null) !
     throw new RuntimeException('Unsupported coverage serialization format');
 }
 $d = $c['codeCoverage'];
-$classes = json_decode(file_get_contents('etc/test-categories.json'), true, flags: JSON_THROW_ON_ERROR)['classes'];
-$unit = [];
+$identities = json_decode(stream_get_contents(STDIN), true, flags: JSON_THROW_ON_ERROR);
+$unit = []; $seen = [];
 foreach ($d->testIds() as $index => $id) {
-    [$class, $method] = explode('::', $id, 2);
-    $method = explode('#', $method)[0];
-    if (!isset($classes[$class])) { throw new RuntimeException('Unclassified coverage test: '.$id); }
-    $entry = $classes[$class];
-    if (($entry['methods'][$method]['category'] ?? $entry['category']) === 'Unit') { $unit[$index] = true; }
+    if (!isset($identities[$id])) { throw new RuntimeException('Unknown expanded coverage test: '.$id); }
+    if (isset($seen[$id])) { throw new RuntimeException('Duplicate coverage test: '.$id); }
+    $seen[$id] = true;
+    if ($identities[$id] === 'Unit') { $unit[$index] = true; }
 }
 $files = [];
 foreach ($d->lineCoverage() as $path => $lines) {
@@ -91,10 +115,10 @@ foreach ($d->functionCoverage() as $functions) {
         }
     }
 }
-echo json_encode(['build_information' => $c['buildInformation'], 'files' => $files, 'branches' => $branches], JSON_THROW_ON_ERROR);
+echo json_encode(['build_information' => $c['buildInformation'], 'files' => $files, 'branches' => $branches, 'coverage_test_ids' => count($seen)], JSON_THROW_ON_ERROR);
 '''
     result = subprocess.run(["php", "-d", "memory_limit=1G", "-r", exporter, args.coverage],
-                            cwd=ROOT, text=True, capture_output=True, check=True)
+                            cwd=ROOT, input=json.dumps(identities), text=True, capture_output=True, check=True)
     report = json.loads(result.stdout)
     source = {str(p.relative_to(ROOT)) for p in (ROOT / "src").rglob("*.php")}
     if source != set(report["files"]):
@@ -104,39 +128,72 @@ echo json_encode(['build_information' => $c['buildInformation'], 'files' => $fil
     report["total"] = sum(f["total"] for f in report["files"].values())
     report["categories"] = {c: {"runnable": 0, "skipped": 0, "milliseconds": 0} for c in sorted(CATEGORIES)}
 
-    def attributes(line):
-        pairs = re.findall(r"(\w+)='((?:\|.|[^'])*)'", line)
+    def attributes(text):
+        fields = {}
         escapes = {"n": "\n", "r": "\r", "'": "'", "[": "[", "]": "]", "|": "|"}
-        return {key: re.sub(r"\|(.)", lambda m: escapes.get(m[1], m[1]), value) for key, value in pairs}
+        while text:
+            match = re.match(r" (\w+)='((?:\|[nr'\[\]|]|[^'|\r\n])*)'", text)
+            if match is None or match[1] in fields:
+                raise ValueError("Malformed or duplicate TeamCity attribute")
+            fields[match[1]] = re.sub(r"\|(.)", lambda m: escapes[m[1]], match[2])
+            text = text[match.end():]
+        return fields
 
     current = None
+    seen = set()
     ignored = False
     failures = 0
+    events = {"testStarted", "testFailed", "testIgnored", "testFinished"}
     for line in pathlib.Path(args.timing).read_text().splitlines():
-        if line.startswith("##teamcity[testStarted "):
-            fields = attributes(line)
-            # Native locationHint includes file, fully-qualified class and expanded method.
+        if not any(line.startswith("##teamcity[" + event) for event in events):
+            continue
+        match = re.fullmatch(r"##teamcity\[(\w+)( .*)\]", line)
+        if match is None or match[1] not in events:
+            raise ValueError("Malformed TeamCity test event")
+        event = match[1]
+        fields = attributes(match[2])
+        if event == "testStarted":
+            if current is not None:
+                raise ValueError("Nested test start without matching finish")
+            # Native locationHint includes exact file, class and expanded display name.
             parts = fields["locationHint"].split("::", 2)
-            current = category(classes, parts[1].lstrip("\\") + "::" + parts[2])
+            if len(parts) != 3:
+                raise ValueError("Malformed timing locationHint")
+            identity = expanded_identity(parts[1], parts[2])
+            if identity not in identities:
+                raise ValueError(f"Unknown expanded timing test: {identity}")
+            # Inherited/trait methods may name their declaring file, not the
+            # enumerated concrete class file. Class + expanded case is the ID.
+            if not parts[0].startswith("php_qn:///") or fields["name"] != parts[2]:
+                raise ValueError(f"Timing name/location identity mismatch: {identity}")
+            if identity in seen:
+                raise ValueError(f"Duplicate timing execution: {identity}")
+            current = (identity, fields["name"], fields["flowId"])
             ignored = False
-        elif line.startswith("##teamcity[testFailed "):
-            failures += 1
-        elif line.startswith("##teamcity[testIgnored "):
-            ignored = True
-        elif line.startswith("##teamcity[testFinished "):
-            if current is None:
-                raise ValueError("Finished test without matching start")
-            fields = attributes(line)
-            counts = report["categories"][current]
-            counts["skipped" if ignored else "runnable"] += 1
-            counts["milliseconds"] += int(fields["duration"])
-            current = None
+        else:
+            if current is None or (fields["name"], fields["flowId"]) != current[1:]:
+                raise ValueError(f"Unpaired or mismatched timing event: {event}")
+            if event == "testFailed":
+                failures += 1
+            elif event == "testIgnored":
+                if ignored:
+                    raise ValueError("Duplicate ignored event")
+                ignored = True
+            else:
+                duration = int(fields["duration"])
+                if duration < 0:
+                    raise ValueError("Negative test duration")
+                counts = report["categories"][identities[current[0]]]
+                counts["skipped" if ignored else "runnable"] += 1
+                counts["milliseconds"] += duration
+                seen.add(current[0])
+                current = None
     if current is not None:
         raise ValueError("Incomplete timing log")
-    expected = sum(1 for e in discovered.values() for m in e if m.tag.endswith("testMethod"))
-    actual = sum(c["runnable"] + c["skipped"] for c in report["categories"].values())
-    if actual != expected:
-        raise ValueError(f"Expanded timing/enumeration mismatch: {actual}/{expected}")
+    if seen != set(identities):
+        raise ValueError(f"Expanded timing/enumeration membership mismatch: {len(seen)}/{len(identities)}")
+    report["identity_admission"] = {"enumerated": len(identities), "executed": len(seen),
+                                    "coverage_subset_verified": True, "timing_membership_verified": True}
     report["failed_cases"] = failures
     report["branches"]["collected"] = report["branches"]["total"] > 0
     skipped = sum(c["skipped"] for c in report["categories"].values())
@@ -162,4 +219,6 @@ if __name__ == "__main__":
         sys.exit(main())
     except (KeyError, ValueError, OSError, ET.ParseError, subprocess.CalledProcessError) as error:
         print(f"Unit coverage qualification failed: {error}", file=sys.stderr)
+        if isinstance(error, subprocess.CalledProcessError) and error.stderr:
+            print(error.stderr, file=sys.stderr)
         sys.exit(1)

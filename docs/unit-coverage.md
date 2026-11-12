@@ -24,7 +24,11 @@ worker-process behavioral proof. Existing native pipeline, SQLite, security and 
 ## Evidence and enforcement
 
 [The checker](../scripts/check_unit_coverage.py) consumes PHPUnit/php-code-coverage's serialized per-test line hit
-maps. Only test IDs classified Unit count toward the executable line denominator. It verifies that the report
+maps. Coverage IDs must be a subset of the exact expanded IDs in the current XML enumeration before category
+lookup; legitimate runnable tests without coverage need not appear in the raw coverage map. Duplicate or
+inconsistent enumeration and unknown methods/data-provider cases fail. Class defaults classify discovered methods,
+not arbitrary methods with a known class name. Only admitted IDs classified Unit count toward the denominator.
+It verifies that the report
 contains exactly the current source file set, including files with no executable lines. Clover's all-suite metrics
 remain the input to `bin/coverage`; they are not relabeled Unit evidence.
 
@@ -45,7 +49,14 @@ unlabeled warm rerun, install a different driver implicitly or infer missing bra
 The native TeamCity event log supplies expanded runnable/data-provider counts, skipped counts and measured
 per-category test durations, including setup/teardown. Discovery, report writing and runner/coverage work outside
 those intervals are not category time; retain PHPUnit's total runtime and the native build receipt separately.
-The checker reconciles these counts with PHPUnit's expanded test enumeration. It does not use JUnit's DOM-based logger. The approximate
+The checker reconciles each start/finish pair with the exact expanded enumeration, including membership and
+one execution per ID. Names and flow IDs must agree; nested, duplicate, missing, malformed or unpaired test events
+fail. Failure/skip events must belong to the active test. The canonical expanded ID is `Class::method#case`, exactly
+as XML/raw coverage records it (or `Class::method` without a provider). Native TeamCity display names
+`method with data set #0` and `method with data set "label"` normalize to `method#0` and `method#label`;
+the complete label is preserved, including punctuation. Its location class loses only the native leading backslash.
+Inherited/trait method locations may name their declaring file rather than the concrete class file; they still
+must identify the discovered concrete class and expanded case. It does not use JUnit's DOM-based logger. The approximate
 1000:100:10 suite balance is review guidance, not a quota; no category ratio is an executable pass condition.
 
 Normal output is under ignored `var/reports/coverage/`:
@@ -57,7 +68,9 @@ Normal output is under ignored `var/reports/coverage/`:
 
 Run `python3 scripts/check_unit_coverage.py` inside the selected PHP runtime to recheck these artifacts. Their
 source freshness still requires the native build receipt and its input bridge, not a standalone checker exit.
-`--inspect` permits a focused subset and reports evidence without awarding a coverage pass. Do not load an
+`--inspect` permits focused enumeration (including part of a mixed class) and reports evidence without awarding
+a coverage pass. Exact coverage-subset admission and timing membership/pairing still apply within that enumeration;
+only full-manifest stale-entry checks are relaxed. Do not load an
 untrusted PHP coverage file.
 The normal build receipt already retains `var/reports`; no private scratch, second suite execution, dependency
 installation or product tests of the checker are required. Qualify checker changes directly with its owning command.
