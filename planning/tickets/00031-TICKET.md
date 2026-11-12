@@ -2,7 +2,7 @@
 id: TICKET-00031
 epic: EPIC-00014
 title: Authorize durable Task operations and state disclosure
-status: ready-for-agent
+status: done
 ---
 
 # Authorize durable Task operations and state disclosure
@@ -114,7 +114,7 @@ forced cancellation, receipt/processing/rollback guarantees, consumer migration 
 | 99 | [TASK-00099](../tasks/00099-TASK.md) | Authorize durable input and protected continuation | done |
 | 100 | [TASK-00100](../tasks/00100-TASK.md) | Authorize cancellation requests and intent observation | done |
 | 101 | [TASK-00101](../tasks/00101-TASK.md) | Authorize complete MCP Task start and reconnect journeys | done |
-| 102 | [TASK-00102](../tasks/00102-TASK.md) | Authorize optional full-state Task notifications | ready-for-agent |
+| 102 | [TASK-00102](../tasks/00102-TASK.md) | Authorize optional full-state Task notifications | done |
 ## Decisions and Progress
 
 John approved item 7 of the eight-TICKET split, explicitly invoked To Tasks for this requirement, then approved
@@ -129,7 +129,8 @@ six complete capability journeys. Its full accepted decomposition is now written
 | E — Complete MCP start/reconnect journeys | [TASK-00101](../tasks/00101-TASK.md) | TASK-00084, TASK-00097, TASK-00099, TASK-00100 |
 | F — Optional full-state notifications | [TASK-00102](../tasks/00102-TASK.md) | TASK-00093, TASK-00101 |
 
-All six are ready-for-agent under released Common v1.5.0, with their local implementation dependency edges preserved.
+At the accepted planning checkpoint, all six were ready-for-agent under released Common v1.5.0,
+with their local implementation dependency edges preserved.
 The historical planned/absent-tag holds are cleared; minimum/ordinary-lane verification remains acceptance work. Each owns real authority/Common composition, independent allow/deny/
 fault and effect proof, tests/docs/minimum qualification, exact coverage/full gate and independent Review/behavioral
 QA. No layer-only or verification-only follow-up is planned; concrete PHP APIs follow qualified implementations.
@@ -141,11 +142,23 @@ B does not block E, and application/input/cancel suppliers do not wait for compl
 partial extension. Ordinary polling/input/cancellation need no live enablement. F has no extra removal/Prompt/
 subscriber-inspection/Mercure blocker; full state stays outside generic notice/publication/tracking payloads.
 
-This TICKET's TASK planning is complete, not implementation. TICKET-00032's approved TASK-00103–00106 plan is also
-written; all EPIC-00014 map planning phases/full TASK plans are accepted/complete. Consult the Board for execution
+At that planning checkpoint, this TICKET's TASK planning was complete, not implementation.
+TICKET-00032's approved TASK-00103–00106 plan was also written; all EPIC-00014 map planning phases/full TASK plans are accepted/complete. Consult the Board for execution
 selection, not automatic implementation. Map stays Closed; preserve the one combined release/all five frameworks, opt-in
 capabilities and unassigned version. No implementation/source/dependency/config/grant change, commit, publication,
 adoption or release is authorized. Choose the intended checkout before separately invoked execution. Actual consumer
 storage/scope/authority-writer fences, workers, cryptography and client/runtime qualification remain separate.
 
-Next: `/skill:next` for Board-based selection; recommendation does not launch execution.
+That planning checkpoint handed execution selection to the Board, without launching a workflow.
+
+### Accepted package completion checkpoint
+
+All six child TASKs are independently accepted with required behavioral QA. TASK-00102 completes optional
+full-state notification composition at candidate `5059ea4b95736f3af84c15b24b6e6a5087ea6814`, with canonical
+Review ACCEPT and QA PASS. Its TASK and `.runs/handoffs/TASK-00102/work.md` retain minimum/full-gate evidence,
+exact statement coverage, advisory disclosure and historical interrupted-run uncertainty. TICKET-00031 is done
+for package acceptance under automatic parent completion; EPIC-00014 remains open for unfinished scope.
+Publication/final delivery and retirement are pending at this closeout checkpoint; canonical
+`.runs/handoffs/TASK-00102/land.md` owns actual outcomes. Combined release/all five frameworks and unassigned
+version remain unchanged. Actual consumer storage, authority-writer synchronization, cryptography, workers and
+client/runtime qualification remain separate; no release, adoption or deployment is claimed.
