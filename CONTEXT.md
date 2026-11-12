@@ -1,5 +1,52 @@
 # Fight AccessControl Context
 
+## Current-subscriber inspection — accepted lifecycle-test repair
+
+TASK-00095 is done for independently accepted package implementation and required QA after its bounded lifecycle-test correction.
+A deterministic committed forward heartbeat between query-clock sampling and scanning proves truthful uncertain
+freshness, not a production defect or the exact historical failure cause. Native worker assertions now send SIGKILL
+immediately after acknowledgment, verify retained unclosed evidence and classify at controlled persisted observation
+and expiry instants; recent as-of evidence never implies current connectivity. Production contracts and incoming
+optional Prompt behavior are unchanged. Canonical `.runs/handoffs/TASK-00095/work.md` owns repair verification;
+independent Review v3 ACCEPT and nonvisual qa-repair-01 PASS cover candidate
+`b8df3471bdde41611b2c55059b39da61d674e2d9`, base `82499db9d9029679ce41c5502dcd67dbeeaf1b3a`.
+QA's seven groups/154 checks and fresh complete gate pass (8,913 tests / 90,384 assertions,
+exact 10,654/10,654 statements). Publication/final verification are pending at this closeout checkpoint;
+canonical `.runs/handoffs/TASK-00095/land.md` owns the advancing-base bridge and delivery/resource results.
+Minimum compatibility retains 43 advisories / 13 packages; ordinary none. Production consumer qualification,
+other unfinished EPIC scope and the combined unassigned release remain separate. Historical acceptance below
+retains its original subject, not repair acceptance.
+
+### Historical accepted checkpoint
+
+Independent Review v3 ACCEPT and nonvisual qa-02 PASS cover candidate
+`4afcfc70b66c22042ad9349d5f2e524ec591cd16`. TASK-00095 is done for package acceptance and required verification:
+QA's seven scenarios pass 7 tests / 149 assertions; its fresh complete gate passes 8,892 tests / 90,077 assertions
+and exact 10,644/10,644 statements. Canonical Review/QA preserve subjects and qualification limits.
+Publication and final delivery remain pending at administrative closeout; `.runs/handoffs/TASK-00095/land.md`
+owns current delivery/resource results. Minimum compatibility has 43 advisories / 13 packages; ordinary none.
+Other EPIC scope, the combined unassigned release and production consumer qualification remain separate.
+
+### Historical Work checkpoint
+
+[Subscriber inspection composition](docs/agent-subscriber-inspection.md) adds inward
+`AgentSubscriberReadAdmission` and consumer `AgentSubscriberReadPolicy` over Common's actual summary/list admission.
+Independent conjunctive direct Permissions precede trusted whole-registration metadata scope. Common owns actual
+TASK-00093 registrations, complete-selection counts, bounded live scans/pages, freshness and safe failure wrapping.
+Listen/read/publication grants, caller selectors, identities, role labels, request IDs and heartbeats confer no
+inspection grant. Resolved ordinary requests retain their snapshot and one nonce; later requests reauthenticate.
+No Tool, schema, store, SQL, lifecycle, heartbeat renewal, cleanup or business event is added.
+
+Common ^1.5.0 remains sufficient, tagged source `06fb5cd3720af9cf8295198f74040d95b64c5155`. Controlled real
+AccessControl/Common SQLite fixtures cover protected opening → direct/routed inspection, concealed whole rows and
+counts, requested/accepted filters/references, changing scope/authority/pages, clean close, native worker SIGKILL,
+late observation/renewal, cleanup and committed two-connection scan interleaving. These are live observations,
+not guaranteed presence, historical absence, delivery/receipt or frozen browsing. The canonical
+`.runs/handoffs/TASK-00095/work.md` owns exact minimum/ordinary dependency/runtime, gate/coverage results and warnings.
+Independent Review and nonvisual behavioral QA remain pending at this Work checkpoint; TASK-00095 stays open.
+Production consumer policy/storage/clock/process/concurrency/safe-sink qualification, adoption, release and deployment
+remain separate and unclaimed.
+
 ## Complete guarded Task serving — TASK-00101 accepted checkpoint
 
 [Slice E composition](docs/agent-task-authorization.md#complete-guarded-mcp-serving--slice-e) adds canonical

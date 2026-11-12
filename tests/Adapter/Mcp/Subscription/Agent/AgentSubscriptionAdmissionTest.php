@@ -25,6 +25,8 @@ use Fight\AccessControl\Application\AccessControl\Agent\Continuation\AgentContin
 use Fight\AccessControl\Application\AccessControl\Agent\Notice\AgentNoticeAuthority;
 use Fight\AccessControl\Application\AccessControl\Agent\Notice\AgentNoticeReadAdmission;
 use Fight\AccessControl\Application\AccessControl\Agent\Notice\AgentNoticeReadPolicy;
+use Fight\AccessControl\Application\AccessControl\Agent\Notice\AgentSubscriberReadAdmission;
+use Fight\AccessControl\Application\AccessControl\Agent\Notice\AgentSubscriberReadPolicy;
 use Fight\AccessControl\Application\AccessControl\Agent\Notice\AgentSubscriptionScope;
 use Fight\AccessControl\Domain\AccessControl\Agent\Agent;
 use Fight\AccessControl\Domain\AccessControl\Agent\AgentCredentialId;
@@ -41,6 +43,7 @@ use Fight\Common\Adapter\Mcp\Persistence\Notice\Dbal\DbalNoticeRecoveryReader;
 use Fight\Common\Adapter\Mcp\Persistence\Notice\Dbal\DbalNoticeRepository;
 use Fight\Common\Adapter\Mcp\Persistence\Notice\Dbal\DbalNoticeSchema;
 use Fight\Common\Adapter\Mcp\Persistence\Notice\Dbal\DbalNoticeTransaction;
+use Fight\Common\Adapter\Mcp\Persistence\Subscription\Dbal\DbalSubscriberReader;
 use Fight\Common\Adapter\Mcp\Persistence\Subscription\Dbal\DbalSubscriptionSchema;
 use Fight\Common\Adapter\Mcp\Persistence\Subscription\Dbal\DbalSubscriptionStore;
 use Fight\Common\Adapter\Mcp\Tool\Notice\RecoverNoticesTool;
@@ -69,13 +72,20 @@ use Fight\Common\Application\Mcp\Resource\McpResourceContent;
 use Fight\Common\Application\Mcp\Resource\McpResourceInfo;
 use Fight\Common\Application\Mcp\Skill\McpSkillAvailability;
 use Fight\Common\Application\Mcp\Skill\McpSkillResources;
+use Fight\Common\Application\Mcp\Subscription\Exception\SubscriberReadFailed;
 use Fight\Common\Application\Mcp\Subscription\McpSubscriptions;
 use Fight\Common\Application\Mcp\Subscription\McpSubscriptionStore;
+use Fight\Common\Application\Mcp\Subscription\QueryHandler\ListSubscribersHandler;
+use Fight\Common\Application\Mcp\Subscription\QueryHandler\SummarizeSubscribersHandler;
+use Fight\Common\Application\Mcp\Subscription\Service\SubscriberAccess;
 use Fight\Common\Application\Mcp\Tool\McpToolRegistry;
 use Fight\Common\Application\Messaging\Event\EventDispatcher;
 use Fight\Common\Domain\Mcp\Notice\Notice;
 use Fight\Common\Domain\Mcp\Notice\NoticeSelection;
 use Fight\Common\Domain\Mcp\Notice\Query\RecoverNotices;
+use Fight\Common\Domain\Mcp\Subscription\Query\ListSubscribers;
+use Fight\Common\Domain\Mcp\Subscription\Query\SummarizeSubscribers;
+use Fight\Common\Domain\Mcp\Subscription\SubscriberSelection;
 use Fight\Common\Domain\Value\Basic\StrictJson;
 use Fight\Test\AccessControl\Adapter\Mcp\Prompt\Agent\Fixture\PromptProvider;
 use Fight\Test\AccessControl\Adapter\Mcp\Resource\Agent\Fixture\ResourceProvider;
@@ -95,6 +105,7 @@ use Psr\Http\Message\StreamFactoryInterface;
 use RuntimeException;
 use Throwable;
 
+#[CoversClass(AgentSubscriberReadAdmission::class)]
 #[CoversClass(AgentSubscriptionAdmission::class)]
 #[CoversClass(AgentSubscriptionFamilies::class)]
 final class AgentSubscriptionAdmissionTest extends TestCase
@@ -735,6 +746,286 @@ final class AgentSubscriptionAdmissionTest extends TestCase
         self::assertSame(1, (int) $this->connection->fetchOne('SELECT COUNT(*) FROM fight_notices'));
     }
 
+    public function test_real_opening_to_independent_inspection_protects_full_selection_and_live_pages(): void
+    {
+        $bodies = [];
+        foreach (['same', 'same', 'other', 'CONCEALED'] as $subscriber) {
+            $body = $this->body(id: 7, subscriber: $subscriber);
+            self::assertStringContainsString('acknowledged', $body->read(8192));
+            $bodies[] = $body;
+        }
+
+        $selection = SubscriberSelection::create(['project']);
+        $policy = $this->createStub(AgentSubscriberReadPolicy::class);
+        $ids = $this->tracking->fetchFirstColumn(
+            'SELECT registration_id FROM fight_mcp_subscriptions WHERE context NOT LIKE ?',
+            ['%CONCEALED%']
+        );
+        $access = SubscriberAccess::create(['project'], $ids);
+        $policy->method('accessFor')->willReturnCallback(function (
+            AuthenticatedAgentPrincipal $principal
+        ) use (&$access) {
+            self::assertTrue($principal->getAgentId()->equals($this->agent->getId()));
+
+            return $access;
+        });
+        $this->grantInspection();
+        $queryBus = $this->inspection($policy, 'inspect-one');
+        $before = $this->trackingRows();
+        $summary = $queryBus->fetch(new SummarizeSubscribers($selection))->toArray();
+        self::assertSame(3, $summary['subscriptions']);
+        self::assertSame(2, $summary['subscriber_ids']);
+        self::assertSame('live', $summary['scope']['consistency']);
+        $seen = [];
+        for ($page = 1; $page <= 3; ++$page) {
+            $data = $queryBus->fetch(new ListSubscribers($selection, $page, 1, ['opened_at' => 'ASC']))->toArray();
+            self::assertSame(3, $data['total']);
+            self::assertCount(1, $data['subscribers']);
+            $seen[] = $data['subscribers'][0]['registration_id'];
+            self::assertTrue($data['subscribers'][0]['requested']->get('promptsListChanged'));
+            self::assertNull($data['subscribers'][0]['accepted']->get('promptsListChanged'));
+            self::assertStringNotContainsString('CONCEALED', json_encode($data, JSON_THROW_ON_ERROR));
+        }
+
+        self::assertCount(3, array_unique($seen));
+        $orderedIds = $this->tracking->fetchFirstColumn(
+            <<<SQL
+            SELECT registration_id FROM fight_mcp_subscriptions WHERE context NOT LIKE ?
+            ORDER BY opened_at ASC, registration_id ASC
+            SQL,
+            ['%CONCEALED%']
+        );
+        self::assertSame($orderedIds, $seen);
+        self::assertSame($before, $this->trackingRows());
+        self::assertSame(1, $this->nonces->consumptionCalls());
+        // Consumer scope is consulted again, not copied from the previous page.
+        $access = SubscriberAccess::create(['project'], [$ids[0]]);
+        self::assertSame(1, $queryBus->fetch(new ListSubscribers($selection, 2, 1))->toArray()['total']);
+        self::assertSame([], $queryBus->fetch(new ListSubscribers($selection, 2, 1))->toArray()['subscribers']);
+        $access = SubscriberAccess::create([]);
+        self::assertSame(0, $this->inspection($policy, 'inspect-two')->fetch(
+            new SummarizeSubscribers($selection)
+        )->toArray()['subscriptions']);
+        foreach ($bodies as $body) {
+            $body->close();
+        }
+    }
+
+    public function test_listen_signal_and_tool_grants_cannot_authorize_direct_inspection_or_forged_labels(): void
+    {
+        $body = $this->body();
+        $body->read(8192);
+
+        $policy = $this->createMock(AgentSubscriberReadPolicy::class);
+        $policy->expects(self::never())->method('accessFor');
+        foreach (
+            [new SummarizeSubscribers(SubscriberSelection::create(['project'])), new ListSubscribers(
+                SubscriberSelection::create(['project'], ['subscriber' => 'SUPER_ADMIN'])
+            )] as $query
+        ) {
+            try {
+                $this->inspection($policy, bin2hex(random_bytes(8)))->fetch($query);
+                self::fail('Listen, identity labels and reused protocol IDs cannot grant inspection');
+            } catch (SubscriberReadFailed $failure) {
+                self::assertSame('Subscriber inspection unavailable.', $failure->getMessage());
+                self::assertSame(
+                    'Subscriber inspection permission is required.',
+                    $failure->getPrevious()->getMessage()
+                );
+            }
+        }
+
+        $body->close();
+    }
+
+    public function test_later_requests_recheck_permission_but_resolved_request_keeps_ordinary_snapshot(): void
+    {
+        $this->grantInspection();
+        $policy = $this->createStub(AgentSubscriberReadPolicy::class);
+        $policy->method('accessFor')->willReturn(SubscriberAccess::create(['project']));
+        $queryBus = $this->inspection($policy, 'snapshot');
+        $query = new SummarizeSubscribers(SubscriberSelection::create(['project']));
+        self::assertSame(0, $queryBus->fetch($query)->toArray()['subscriptions']);
+        $this->save($this->agent->revokePermission($this->permissions['INSPECT']->getId(), $this->clock->now()));
+        self::assertSame(0, $queryBus->fetch($query)->toArray()['subscriptions']);
+        $this->expectException(SubscriberReadFailed::class);
+        $this->inspection($policy, 'fresh')->fetch($query);
+    }
+
+    public function test_real_clean_disconnect_expiry_and_cleanup_are_observations_not_read_effects(): void
+    {
+        $this->grantInspection();
+        $policy = $this->createStub(AgentSubscriberReadPolicy::class);
+        $policy->method('accessFor')->willReturn(SubscriberAccess::create(['project']));
+        $one = $this->body();
+        $one->read(8192);
+
+        $two = $this->body();
+        $two->read(8192);
+
+        $one->close();
+        $query = new SummarizeSubscribers(SubscriberSelection::create(['project']));
+        $queryBus = $this->inspection($policy, 'lifecycle');
+        self::assertSame(
+            ['recently_observed' => 1, 'disconnected' => 1, 'stale_uncertain' => 0],
+            $queryBus->fetch($query)->toArray()['states']
+        );
+        $rows = $this->trackingRows();
+        $expired = $this->inspection($policy, 'expiry', time() + 6);
+        self::assertSame(
+            ['recently_observed' => 0, 'disconnected' => 1, 'stale_uncertain' => 1],
+            $expired->fetch($query)->toArray()['states']
+        );
+        self::assertSame($rows, $this->trackingRows());
+        // Only the owning lifecycle cleans; a late close/heartbeat cannot resurrect a removed registration.
+        self::assertSame(2, new DbalSubscriptionStore($this->tracking)->cleanup(time() + 6, 256));
+        self::assertSame(0, $expired->fetch($query)->toArray()['subscriptions']);
+        $two->close();
+        self::assertSame([], $this->trackingRows());
+    }
+
+    public function test_complete_row_scope_constrains_filters_references_freshness_and_every_total(): void
+    {
+        $this->grantInspection();
+        $bodies = [];
+        foreach ([['project'], ['hidden'], ['project', 'hidden']] as $scopes) {
+            $body = $this->body(subscriber: implode('-', $scopes), selection: NoticeSelection::create(
+                $scopes,
+                ['topic' => 'topic-'.implode('-', $scopes)]
+            ));
+            self::assertStringContainsString('acknowledged', $body->read(8192));
+            $bodies[] = $body;
+        }
+
+        $policy = $this->createStub(AgentSubscriberReadPolicy::class);
+        $policy->method('accessFor')->willReturn(SubscriberAccess::create(['project']));
+        $queryBus = $this->inspection($policy, 'whole-metadata');
+        $selection = SubscriberSelection::create(['project', 'hidden']);
+        $summary = $queryBus->fetch(new SummarizeSubscribers($selection))->toArray();
+        self::assertSame(1, $summary['subscriptions']);
+        self::assertSame(1, $summary['subscriber_ids']);
+        $page = $queryBus->fetch(new ListSubscribers($selection))->toArray();
+        self::assertSame(1, $page['total']);
+        self::assertStringNotContainsString('hidden', json_encode([$summary, $page], JSON_THROW_ON_ERROR));
+        self::assertSame(
+            ['docs:requested-private'],
+            $page['subscribers'][0]['requested']->get('resourceSubscriptions')
+        );
+        foreach (
+            [
+            ['requested_resource' => 'docs:requested-private', 'expected' => 1],
+            ['accepted_resource' => 'docs:requested-private', 'expected' => 0],
+            ['requested_filter' => 'promptsListChanged', 'expected' => 1],
+            ['accepted_filter' => 'promptsListChanged', 'expected' => 0],
+            ['topic' => 'topic-hidden', 'expected' => 0],
+            ['subscriber' => 'hidden', 'expected' => 0]
+            ] as $case
+        ) {
+            $expected = $case['expected'];
+            unset($case['expected']);
+            $selected = SubscriberSelection::create(['project', 'hidden'], $case);
+            self::assertSame(
+                $expected,
+                $queryBus->fetch(new SummarizeSubscribers($selected))->toArray()['subscriptions']
+            );
+            self::assertSame($expected, $queryBus->fetch(new ListSubscribers($selected))->toArray()['total']);
+        }
+
+        foreach ($bodies as $body) {
+            $body->close();
+        }
+    }
+
+    public function test_policy_and_storage_faults_are_explicit_safe_failures_not_empty_success(): void
+    {
+        $this->grantInspection();
+        $policy = $this->createStub(AgentSubscriberReadPolicy::class);
+        $policy->method('accessFor')->willThrowException(new RuntimeException('private-credential-filter'));
+        $selection = SubscriberSelection::create(['project']);
+        foreach ([new SummarizeSubscribers($selection), new ListSubscribers($selection)] as $query) {
+            try {
+                $this->inspection($policy, bin2hex(random_bytes(8)))->fetch($query);
+                self::fail('Policy faults cannot become denial or empty success');
+            } catch (SubscriberReadFailed $failure) {
+                self::assertSame('Subscriber inspection unavailable.', $failure->getMessage());
+                self::assertNotNull($failure->getPrevious());
+            }
+        }
+
+        $policy = $this->createStub(AgentSubscriberReadPolicy::class);
+        $policy->method('accessFor')->willReturn(SubscriberAccess::create(['project']));
+        $this->tracking->executeStatement('DROP TABLE fight_mcp_subscriptions');
+        $this->expectException(SubscriberReadFailed::class);
+        $this->inspection($policy, 'storage')->fetch(new ListSubscribers($selection));
+    }
+
+    private function grantInspection(): void
+    {
+        $permission = Permission::defineManaged(
+            PermissionId::fromString('018f0000-0000-7000-8000-000000000798'),
+            PermissionName::fromString('INSPECT'),
+            PermissionTier::ADMIN_SAFE,
+            $this->clock->now()
+        );
+        $this->permissions['INSPECT'] = $permission;
+        $this->permissionRepository->add($permission);
+        $this->save($this->agent->grantPermission($permission->getId(), $this->clock->now()));
+    }
+
+    private function inspection(
+        AgentSubscriberReadPolicy $policy,
+        string $nonce,
+        ?int $observedAt = null
+    ): RoutingQueryBus {
+        $unit = new InMemoryUnitOfWork();
+        $request = new SignedAgentRequest(
+            'POST',
+            'live.example',
+            '/inspect',
+            '',
+            $this->clock->now(),
+            $nonce,
+            $this->agent->getCredentialId(),
+            'HMAC-SHA256',
+            'signature',
+            null,
+            ''
+        );
+        $provider = new CurrentAgentPrincipalProvider(
+            $this->agentRepository,
+            $this->permissionRepository,
+            new FixedHmacSharedSecretDecipher('encrypted:'),
+            new FixedHmacSignedAgentRequestVerifier($request, 'fixture'),
+            $this->clock,
+            new InMemoryAgentRequestNonceConsumer($this->agentRepository, $unit),
+            $unit
+        );
+        $admission = new AgentSubscriberReadAdmission(
+            $provider,
+            $request,
+            'inspection',
+            [PermissionName::fromString('INSPECT')],
+            $policy
+        );
+        $reader = new DbalSubscriberReader(
+            $this->tracking,
+            'controlled-sqlite',
+            static fn(): int => $observedAt ?? time()
+        );
+        $summary = new SummarizeSubscribersHandler($admission, $reader);
+        $list = new ListSubscribersHandler($admission, $reader);
+        $router = new InMemoryQueryRouter();
+        $router->registerHandlers([$summary::queryRegistration() => $summary, $list::queryRegistration() => $list]);
+
+        return new RoutingQueryBus($router);
+    }
+
+    /** @return list<array<string, mixed>> */
+    private function trackingRows(): array
+    {
+        return $this->tracking->fetchAllAssociative('SELECT * FROM fight_mcp_subscriptions ORDER BY registration_id');
+    }
+
     private function recovery(string $nonce): NoticeRecoveryBatch
     {
         $unit = new InMemoryUnitOfWork();
@@ -1234,13 +1525,15 @@ final class AgentSubscriptionAdmissionTest extends TestCase
         string $subscriber = 'subscriber',
         ?McpSubscriptionStore $store = null,
         ?AgentSubscriptionAdmission $admission = null,
+        ?NoticeSelection $selection = null,
         bool $prompts = false,
         bool $requestedPrompts = true
     ): McpEventStream {
         $request = new McpRequest($id, 'subscriptions/listen', ['notifications' => StrictJson::fromObject([
-            'toolsListChanged'     => true,
-            'promptsListChanged'   => $requestedPrompts,
-            'resourcesListChanged' => true
+            'toolsListChanged'      => true,
+            'promptsListChanged'    => $requestedPrompts,
+            'resourcesListChanged'  => true,
+            'resourceSubscriptions' => ['docs:requested-private']
         ])], McpRequestMetadata::fromObject(StrictJson::fromObject([
             McpRequestMetadata::PROTOCOL_VERSION_KEY    => McpResponder::PROTOCOL_VERSION,
             McpRequestMetadata::CLIENT_CAPABILITIES_KEY => StrictJson::fromObject([])
@@ -1249,7 +1542,7 @@ final class AgentSubscriptionAdmissionTest extends TestCase
             $this->queryBus,
             $store ?? new DbalSubscriptionStore($this->tracking),
             $admission ?? $this->admission($subscriber),
-            NoticeSelection::create(['project']),
+            $selection ?? NoticeSelection::create(['project']),
             resources: false,
             lifetimeSeconds: 1,
             waitMicroseconds: 10000,

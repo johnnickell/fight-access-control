@@ -107,6 +107,17 @@ public read/recovery remains separately admitted. Native whole-frame fixtures, m
 controlled failure/concurrency proof are recorded in canonical TASK-00093 Work evidence; production qualification,
 independent Review/QA, Prompt signals, inspection and publication remain distinct.
 
+## Current-subscriber inspection — TASK-00095
+
+[Independent inspection](agent-subscriber-inspection.md) consumes v1.5.0's actual `SubscriberReadAdmission`,
+`SubscriberAccess`, `SubscriberReader`, summary/list handlers, selection/Queries and complete result DTOs, with
+`DbalSubscriberReader` over TASK-00093's real tracking rows. Common remains the sole lifecycle/read engine.
+Inward Agent inspection Permissions and consumer complete-metadata scope protect full-selection aggregates and
+rows independently of listen/read/publication. Existing ^1.5.0 is the first sufficient supported minimum;
+canonical TASK-00095 Work evidence owns exact minimum/ordinary locks, installed source, runtime, gate and warnings.
+Controlled SQLite/native worker/interleaving fixtures do not qualify production scope/clocks/processes/storage
+or receipt. Independent Review and behavioral QA remain separate.
+
 ## Prompt live disclosure consumption — TASK-00094
 
 The optional [Prompt live composition](agent-live-disclosure.md#optional-prompt-catalog-changes--task-00094) reuses
