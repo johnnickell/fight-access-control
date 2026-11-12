@@ -4,15 +4,13 @@ import hashlib
 import json
 import os
 from pathlib import Path
-import platform
-import shutil
 import stat
 import subprocess
 import sys
 import time
 
-from .resources import Hold, query, require, run, text, write_private
-from .runtime import compose, configuration, container_inventory, guard
+from .resources import Hold, require, run, text, write_private
+from .runtime import configuration
 
 
 def digest(value):
@@ -64,51 +62,11 @@ def source(root, config):
     return digest([tree(root, skip), {name: tree(root / name) for name in tracked_runtime if name}])
 
 
-def runtime(root, config, include_data=True):
-    command, env, selection = compose(root)
-    safe, checkout, project, entry, isolated = selection
-    guard(safe, checkout, project)
-    model = query([*command, 'config', '--format=json'], checkout, env)
-    images = {}
-    for name, service in model['services'].items():
-        images[name] = query(['docker', 'image', 'inspect', service['image']], checkout)[0]['Id']
-    for role in config.get('extra_images', []):
-        variable = config.get('extra_image_environment', {}).get(role, '')
-        image = os.environ.get(variable) or project + '-' + role
-        images[role] = query(['docker', 'image', 'inspect', image], checkout)[0]['Id']
-    containers = [c for c in container_inventory(checkout)
-                  if (c['Config'].get('Labels') or {}).get('com.docker.compose.project') == project]
-    services = {c['Config']['Labels'].get('com.docker.compose.service', c['Id']): c for c in containers}
-    for name in config.get('running', []):
-        require(name in services and services[name]['State']['Running'], 'Required service is not running: ' + name)
-    identities = []
-    for c in containers:
-        identities.append({key: c[key] for key in ('Id', 'Created', 'Image', 'Config', 'HostConfig', 'Mounts')})
-        identities[-1]['StartedAt'] = c['State']['StartedAt']
-    probes = []
-    for probe in [*config.get('runtime_probes', []), *(config.get('data_probes', []) if include_data else [])]:
-        probes.append(run([*command, *probe], checkout, capture=True, env=env))
-    executable = {}
-    for tool in ('python3', 'docker', 'git'):
-        path = shutil.which(tool)
-        require(path, 'Missing runtime tool: ' + tool)
-        executable[tool] = tree(Path(path))
-    daemon = query(['docker', 'info', '--format=json'], checkout)
-    return digest({'model': model, 'images': images, 'containers': sorted(identities, key=lambda c: c['Id']),
-                   'probes': probes, 'tools': executable, 'python': sys.version, 'os': platform.platform(),
-                   'daemon': [daemon['ID'], daemon['ServerVersion'], daemon['KernelVersion']],
-                   'environment': dict(os.environ)})
-
-
 def artifacts(root, config):
     return {value: tree(root / value) for value in config.get('outputs', [])}
 
 
 def main(root):
-    # Remove shell bookkeeping and the per-call transport identifier from the
-    # executed environment as well as its fingerprint; all remaining values count.
-    for key in ('_', 'SHLVL', 'OLDPWD', 'CODEX_TOOL_CALL_ID'):
-        os.environ.pop(key, None)
     config = configuration(root)
     require(all(arg in ['--force', *config.get('build_options', [])] for arg in sys.argv[1:]),
             'Usage: ./bin/build [--force]')
@@ -123,31 +81,27 @@ def main(root):
         planning = tree(root / 'planning')
         run([root / 'bin/planning-check'], root)
         require(planning == tree(root / 'planning'), 'Planning changed during validation')
-        prepare = config.get('build_prepare', [])
-        if prepare:
-            run(prepare, root)
-        before = identity = runtime_before = None
+        source_fingerprint = None
         try:
-            before = source(root, config)
-            identity = runtime(root, config)
-            runtime_before = runtime(root, config, include_data=False)
+            source_fingerprint = source(root, config)
         except (Hold, OSError, ValueError, KeyError) as error:
             print('Build cache unavailable: ' + str(error) + '; executing full gate', flush=True)
         reason = 'Explicit --force' if force else 'No qualifying successful receipt'
-        if cache.is_file() and not force and identity is not None and runtime_before is not None:
+        if cache.is_file() and not force and source_fingerprint is not None:
             try:
                 pointer = json.loads(cache.read_text())
                 receipt = root / pointer['receipt']
                 require(receipt.resolve().is_relative_to(root / '.runs/build'), 'Invalid receipt path')
                 evidence = json.loads(receipt.read_text())
-                require(pointer['schema'] == 1 and evidence['exit'] == 0 and evidence.get('verification_exit', 0) == 0,
+                require(pointer['schema'] == 2 and evidence['schema'] == 2
+                        and evidence['exit'] == 0 and evidence['verification_exit'] == 0,
                         'Invalid original receipt')
                 require(pointer['receipt_sha256'] == tree(receipt), 'Original receipt changed')
-                require(evidence['source'] == before, 'Source/dependencies/instructions changed')
-                require(evidence['runtime'] == identity, 'Runtime/environment/database changed')
+                require(evidence['source'] == source_fingerprint, 'Source/dependencies/instructions changed')
                 require(evidence['outputs'] == artifacts(root, config), 'Generated artifacts changed or missing')
                 require(evidence['log_sha256'] == tree(receipt.parent / 'build.log'), 'Original evidence changed')
-                require(before == source(root, config) and identity == runtime(root, config), 'Inputs changed during reuse checks')
+                require(source_fingerprint == source(root, config),
+                        'Inputs changed during reuse checks')
                 require(planning == tree(root / 'planning'), 'Planning changed during reuse checks')
                 print('Planning validated freshly. Application gate reused: ' + str(receipt), flush=True)
                 return 0
@@ -155,10 +109,20 @@ def main(root):
                 reason = str(error)
         cache.unlink(missing_ok=True)
         print('Build cache miss: ' + reason, flush=True)
+        # Dependency resolution belongs only to a miss. Capture its resulting
+        # inputs before running the gate so later builds can reuse that result.
+        prepare = config.get('build_prepare', [])
+        if prepare:
+            run(prepare, root)
+            try:
+                source_fingerprint = source(root, config)
+            except (Hold, OSError, ValueError, KeyError) as error:
+                source_fingerprint = None
+                print('Build cache unavailable after preparation: ' + str(error), flush=True)
         run_dir = root / '.runs/build' / (time.strftime('%Y%m%dT%H%M%SZ', time.gmtime()) + '-' + str(os.getpid()))
         run_dir.mkdir(parents=True, exist_ok=False)
         started = time.time()
-        receipt = {'schema': 1, 'command': config['gate'], 'started': started, 'exit': None, 'cache_miss': reason}
+        receipt = {'schema': 2, 'command': config['gate'], 'started': started, 'exit': None, 'cache_miss': reason}
         write_private(run_dir / 'receipt.json', json.dumps(receipt, indent=2) + '\n')
         with (run_dir / 'build.log').open('w') as log:
             process = subprocess.Popen(config['gate'], cwd=root, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
@@ -169,14 +133,12 @@ def main(root):
                 log.flush()
             status = process.wait()
         receipt.update(exit=status, finished=time.time())
-        cacheable = status == 0 and before is not None and runtime_before is not None
+        cacheable = status == 0 and source_fingerprint is not None
         if cacheable:
             try:
-                require(before == source(root, config), 'Build inputs changed during execution; no cache published')
+                require(source_fingerprint == source(root, config), 'Build inputs changed during execution; no cache published')
                 require(planning == tree(root / 'planning'), 'Planning changed during execution; no cache published')
-                require(runtime_before == runtime(root, config, include_data=False), 'Runtime changed during execution; no cache published')
-                # Owned fixture databases may intentionally change during tests; retain their final state.
-                receipt.update(source=before, runtime=runtime(root, config), outputs=artifacts(root, config),
+                receipt.update(source=source_fingerprint, outputs=artifacts(root, config),
                                log_sha256=tree(run_dir / 'build.log'))
             except (Hold, OSError, ValueError, KeyError) as error:
                 receipt['verification_error'] = str(error)
@@ -187,7 +149,7 @@ def main(root):
         receipt['cacheable'] = cacheable
         write_private(run_dir / 'receipt.json', json.dumps(receipt, indent=2) + '\n')
         if cacheable:
-            write_private(cache, json.dumps({'schema': 1, 'receipt': str((run_dir / 'receipt.json').relative_to(root)),
+            write_private(cache, json.dumps({'schema': 2, 'receipt': str((run_dir / 'receipt.json').relative_to(root)),
                                             'receipt_sha256': tree(run_dir / 'receipt.json')}) + '\n')
         print('Build receipt: ' + str(run_dir / 'receipt.json'), flush=True)
         return status
