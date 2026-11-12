@@ -291,7 +291,7 @@ previous-iteration support; completed TASKs and earlier guidance cannot require 
 ## Tests and delivery
 
 - In-memory repositories and service doubles belong in the matching Application test boundary. Production tests use
-  CoversClass; tooling tests use CoversNothing. Handler tests prove post-commit event ordering and failure rethrow
+  CoversClass; qualifying boundary/journey tests may use CoversNothing. Metadata is not permission to test tooling. Handler tests prove post-commit event ordering and failure rethrow
   behavior outside the scoped EPIC-00009 D3 replacement exception. Acceptance of that replacement requires tests for
   pre-commit rollback, both uncertain-commit outcomes, post-commit publication failures including both publishers
   failing, same-key recovery after response loss/restart, and authorized scheduler-only recovery without caller retry.
@@ -306,7 +306,7 @@ previous-iteration support; completed TASKs and earlier guidance cannot require 
 - Application clocks, credential generators and ciphers retain explicit inward aggregate/capability ownership,
   with matching test doubles. Existing aggregate Service homes remain current source; apply the Architecture
   semantic-capability rule during approved cohesion work, not a new cross-layer helper bucket.
-- Every production statement requires executable coverage. The isolated fight-access-control PHP container is the
+- Follow the [Unit-only line coverage and test-quality policy](../../docs/engineering/standards/Testing.md#test-quality-and-suite-balance). Every production statement still requires executable coverage; the current all-suite statement gate does not establish the new Unit-only line requirement. The isolated fight-access-control PHP container is the
   package runtime; ./bin/planning-check and ./bin/build are mandatory pre-submit gates, and the build enforces
   PHPCS, PHPStan, architecture, Rector, PHPUnit, and exact statement coverage.
 - Keep ignored run artifacts in purpose-named subdirectories: `.runs/worktree/<task-slug>/` for worktree coordination scratch (source checkouts stay outside `.runs/`),

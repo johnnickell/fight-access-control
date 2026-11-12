@@ -77,3 +77,14 @@ historical acceptance/publication and independent reports without recurring post
 
 When completing a TASK, apply [Automatic parent completion](planning/CONVENTIONS.md#automatic-parent-completion)
 in the same operation; do not leave a separate parent assessment or closeout action for the user.
+
+## Clear communication
+
+Lead human-facing replies, plans, reports, handoffs, PR descriptions and documentation with the result or
+needed action. Use familiar words, short sentences and enough context to explain why. Explain necessary
+technical terms; remove repetition and detail that does not help the reader. Preserve facts, uncertainty,
+decisions, requirement strength, domain names, code and quoted evidence. Make factual corrections explicit.
+Check clarity before sending; no separate rewriting pipeline or rigid word limit is required. Agent-facing
+instructions still need precise conditions and boundaries.
+
+Follow the local [testing guidance](docs/engineering/standards/Testing.md#test-quality-and-suite-balance) for coverage, useful tests and suite balance.
