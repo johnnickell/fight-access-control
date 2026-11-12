@@ -1,5 +1,15 @@
 # Fight AccessControl Context
 
+## TASK-00152 integrated enforcement — Work continuation
+
+The approved bounded precision amendment corrects eight demonstrated static obligations in User, both Permission
+constructor adapters and subscription-family composition, without changing their requirement ownership or historical
+acceptance. Production/OpenAPI and ordinary caller analysis now reject nullable and incompatible union uses under
+the same rules as required fixtures; test/script analysis retains its existing rules separately. See
+[type-contract enforcement](docs/type-contracts.md). Full semantic/source/dependency evidence reconciliation and fresh
+independent Review/nonvisual QA remain required; no whole-library acceptance or consumer qualification is claimed.
+The canonical `.runs/handoffs/TASK-00152/work.md` owns exact candidate, checks, warnings and remaining scope.
+
 ## Current-subscriber inspection — accepted lifecycle-test repair
 
 TASK-00095 is done for independently accepted package implementation and required QA after its bounded lifecycle-test correction.

@@ -1,0 +1,10 @@
+includes:
+    - phpstan-base.neon
+
+parameters:
+    # Preserve existing test/tool analysis without imposing production nullability rules on test arrangements.
+    level: 6
+    tmpDir: var/cache/phpstan-tests
+    paths:
+        - tests
+        - scripts

@@ -207,7 +207,8 @@ class User
      */
     public function confirmEmailChange(DateTimeImmutable $now): void
     {
-        if ($this->state !== UserState::ACTIVE || !$this->pendingEmailChange instanceof EmailAddress) {
+        $pendingEmailChange = $this->pendingEmailChange;
+        if ($this->state !== UserState::ACTIVE || !$pendingEmailChange instanceof EmailAddress) {
             throw new EmailChangeConfirmationException('The user has no confirmable email change.');
         }
 
@@ -217,7 +218,7 @@ class User
             $this->emailChangeReservationRevision,
             $this->canonicalEmailRevision
         );
-        $this->email = $this->pendingEmailChange;
+        $this->email = $pendingEmailChange;
         $this->pendingEmailChange = null;
         ++$this->authenticationVersion;
         ++$this->authenticationAuthorityRevision;
@@ -350,7 +351,7 @@ class User
      */
     public function getRoleIds(): array
     {
-        return $this->roleIds->toArray();
+        return array_values($this->roleIds->toArray());
     }
 
     /**

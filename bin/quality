@@ -24,8 +24,11 @@ python3 scripts/contract_inventory.py
 printf '[quality] PHPCS\n'
 php vendor/bin/phpcs
 
-printf '[quality] PHPStan\n'
+printf '[quality] PHPStan production contracts and ordinary caller defaults\n'
 php -d memory_limit=512M vendor/bin/phpstan analyse
+
+printf '[quality] PHPStan tests and tooling (existing rules)\n'
+php -d memory_limit=512M vendor/bin/phpstan analyse -c phpstan-tests.neon
 
 printf '[quality] Type contracts\n'
 python3 scripts/check_type_contracts.py
