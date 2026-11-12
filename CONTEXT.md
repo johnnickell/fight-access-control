@@ -1,6 +1,23 @@
 # Fight AccessControl Context
 
-## TASK-00152 approved Unit-only verification recovery
+## TASK-00152 integrated contracts — independently accepted
+
+Independent Review v3 ACCEPT and nonvisual QA PASS cover candidate
+`55cdb2325d11a6455e07dd0fdb8cfb7793737a88`, with R-01 resolved and 40 selected QA outcomes passing.
+[TASK-00152](planning/tasks/00152-TASK.md) completes sufficient ordinary static enforcement, exhaustive current
+contract/caller reconciliation and independent Unit-only line qualification. The accepted gate passes
+9,072 tests / 91,391 assertions, 50 static cases / 564 diagnostics and 10,759/10,759 Unit-only executable
+lines across all 540 src files without exclusions, separately from exact all-suite statements.
+TICKET-00042 and EPIC-00016 close automatically with their terminal children. Existing slice reports,
+qualified tagged compositions and source/evidence bridges retain their original subjects.
+
+Land's recovery integrates only develop's container Git patch; restored local inputs require fresh normal
+verification. Publication/final recovery verification and owned retirement are pending at this checkpoint;
+canonical `.runs/handoffs/TASK-00152/land.md` owns subsequent outcomes. Full branch instrumentation failures
+and scoped data remain separate, not complete-library certification. Historical minimum advisories and
+consumer qualification limits remain; no merge, release or deployment is implied.
+
+## Historical TASK-00152 approved Unit-only verification recovery
 
 John approved additional isolated Unit tests, complete behavior-based suite classification, measured runtime and
 bounded coverage enforcement. The [single canonical PHPUnit execution](docs/unit-coverage.md) retains exact all-suite

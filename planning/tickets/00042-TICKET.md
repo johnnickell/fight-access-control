@@ -2,7 +2,7 @@
 id: TICKET-00042
 epic: EPIC-00016
 title: Enforce and demonstrate whole-library type correctness
-status: ready-for-agent
+status: done
 ---
 
 # Enforce and demonstrate whole-library type correctness
@@ -69,20 +69,20 @@ establish real TASK edges during decomposition rather than placing cross-reposit
 
 ## Acceptance Evidence
 
-- [ ] A refreshed inventory accounts for every production declaration and all handlers/services/Adapters/shipped
+- [x] A refreshed inventory accounts for every production declaration and all handlers/services/Adapters/shipped
   metadata, with ownership, actual contract, disposition and traceable evidence across additions/moves/removals.
-- [ ] Every owned typing finding is corrected and verified or demonstrated not to be a defect; no sample-only,
+- [x] Every owned typing finding is corrected and verified or demonstrated not to be a defect; no sample-only,
   audit-report-only, stale-location or unreviewed-remainder completion claim remains.
-- [ ] Static enforcement and positive/negative fixtures demonstrate agreed whole-library contracts without new
+- [x] Static enforcement and positive/negative fixtures demonstrate agreed whole-library contracts without new
   suppressions concealing defects, and clearly distinguish native/runtime from generic/static guarantees.
-- [ ] Actual minimum/ordinary dependency lanes and real bus/protocol compositions substantiate newly consumed
+- [x] Actual minimum/ordinary dependency lanes and real bus/protocol compositions substantiate newly consumed
   Common promises; unavailable supplier or consumer proof is named, not inferred from local source or a tag label.
-- [ ] Runtime regressions and integration evidence cover applicable absence, lists, identity/correlation, conflict,
+- [x] Runtime regressions and integration evidence cover applicable absence, lists, identity/correlation, conflict,
   operational faults and preserved authorization/redaction/atomicity/recovery/post-commit behavior.
-- [ ] Each implementation slice retains its own focused checks, canonical full gate/exact coverage, complete local
+- [x] Each implementation slice retains its own focused checks, canonical full gate/exact coverage, complete local
   receipt, independent Review and applicable QA; final reconciliation uses current identity-compatible evidence
   and does not self-award independent acceptance or waive required checks.
-- [ ] Current contract documentation, breakage obligations and exhaustive coverage agree with the integrated
+- [x] Current contract documentation, breakage obligations and exhaustive coverage agree with the integrated
   candidate. Source audit/gate completion neither chooses a release nor qualifies an actual consumer deployment.
 
 ## Exclusions
@@ -150,12 +150,16 @@ is required for each implementation slice; planning approval supplies none of it
 | --- | --- | --- | --- |
 | 299 | [TASK-00150](../tasks/00150-TASK.md) | Maintain exhaustive declaration and contract ownership | done |
 | 300 | [TASK-00151](../tasks/00151-TASK.md) | Execute type-contract fixtures through the canonical gate | done |
-| 329 | [TASK-00152](../tasks/00152-TASK.md) | Enforce and qualify the integrated library contracts | in-progress |
+| 329 | [TASK-00152](../tasks/00152-TASK.md) | Enforce and qualify the integrated library contracts | done |
 ## Decisions and Progress
 
-Both early foundations are done at the independently accepted candidates recorded below. This TICKET remains
-open for TASK-00152 and the unfinished semantic correction suppliers. The following acceptance/Work checkpoints
-retain their original subjects and chronology; current results belong to each TASK's canonical Land receipt.
+TASK-00152 completes integrated enforcement and exhaustive reconciliation at independently accepted candidate
+`55cdb2325d11a6455e07dd0fdb8cfb7793737a88` (Review v3 ACCEPT; nonvisual QA PASS, 40 selected outcomes).
+All three children are terminal, so this TICKET closes automatically. The owning TASK records complete local
+coverage/static/runtime proof and current source/supplier bridges; this is package acceptance, not consumer
+qualification or release. Publication/final recovery verification are pending at this checkpoint; canonical
+`.runs/handoffs/TASK-00152/land.md` owns subsequent delivery and resource results. The following foundation
+acceptance/Work checkpoints retain their original subjects and contemporary unfinished-child observations.
 
 ### Historical foundation acceptance checkpoints
 
