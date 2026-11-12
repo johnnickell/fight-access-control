@@ -150,7 +150,7 @@ is required for each implementation slice; planning approval supplies none of it
 | --- | --- | --- | --- |
 | 299 | [TASK-00150](../tasks/00150-TASK.md) | Maintain exhaustive declaration and contract ownership | done |
 | 300 | [TASK-00151](../tasks/00151-TASK.md) | Execute type-contract fixtures through the canonical gate | done |
-| 329 | [TASK-00152](../tasks/00152-TASK.md) | Enforce and qualify the integrated library contracts | ready-for-agent |
+| 329 | [TASK-00152](../tasks/00152-TASK.md) | Enforce and qualify the integrated library contracts | in-progress |
 ## Decisions and Progress
 
 Both early foundations are done at the independently accepted candidates recorded below. This TICKET remains
