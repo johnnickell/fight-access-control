@@ -17,7 +17,7 @@ The ten canonical standards below are copied into this checkout for self-contain
 | [PHP](standards/PHP.md) | `b102071e4939424796e4edc20d0b46373210634189c8f024038214e0e18cf623` | `8c948208cc882f1d14db436a954187fb63c58256dca6e31c68df56708d508a2b` |
 | [Planning](standards/Planning.md) | `616c8e3a793e200747a98b9b918ed921ac17708f4e08b0925a94bd04a79a1bd1` | `ec87830d1037e31aa2c4b3af537b1628e18ea1693da428c851ed2996a1c9777d` |
 | [Review](standards/Review.md) | `46b53d075a5cae328391eb57d645404c3fb55bc76aee461def94aa123f04ea35` | `d9b77bb05bc04176f323a6c86cd1af76eb4edf76ddec3cd1df01a5ba86e4bfd5` |
-| [Testing](standards/Testing.md) | `fdab5a64ba92f406d63c28d48d6fdf800397c079c29932372746caf31f2c432f` | `2e261e828a504b579d861b01f494ec7c78bdcd96493acc5114e659827af66879` |
+| [Testing](standards/Testing.md) | `fdab5a64ba92f406d63c28d48d6fdf800397c079c29932372746caf31f2c432f` | `48012ce95ba79adfd92d355a5cd4c563f40921d253f24a225e92a66abd60fd0c` |
 
 ## Link transformations
 
@@ -170,3 +170,11 @@ hosted-check policy; OpenAPI integration-test and singular worktree-layout excep
 behavioral QA, automatic parent completion and human-signed library-release controls. A single invocation may
 delegate multiple distinct effects, but planning approval and ordinary edits do not authorize publication, and
 Build's open-PR authority does not extend to merge, release, deployment or restricted disclosure.
+
+## Test clarity and coverage amendment — 2026-11-12
+
+John required 100% Unit-only line coverage and practical guidance for clear assertions, useful DTO tests,
+tautologies, focused mutation analysis and suite balance. The local Testing standard owns the policy and
+discloses current enforcement limits. Root instructions add plain-language output guidance. Existing statement
+gates, product contracts and build/cache reuse rules remain in force. Installed hashes reflect these local
+edits; source/baseline hashes and historical acceptance remain provenance, not a claim of earlier adoption.
