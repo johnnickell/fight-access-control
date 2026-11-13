@@ -1503,6 +1503,12 @@
       "reason": "Isolated values, transitions or application behavior with controlled in-memory repositories/security/clock/UoW ports; no real storage, network or process.",
       "methods": {}
     },
+    "Fight\\Test\\AccessControl\\Domain\\AccessControl\\Audit\\AuditAgentNameOutcomeTest": {
+      "file": "tests/Domain/AccessControl/Audit/AuditAgentNameOutcomeTest.php",
+      "category": "Unit",
+      "reason": "Isolated typed name-change evidence admission and hydration with real values; no external boundary.",
+      "methods": {}
+    },
     "Fight\\Test\\AccessControl\\Domain\\AccessControl\\Audit\\AuditAuthenticationOutcomeTest": {
       "file": "tests/Domain/AccessControl/Audit/AuditAuthenticationOutcomeTest.php",
       "category": "Unit",

@@ -128,7 +128,8 @@ final class ProfileToolEnvironment
 
     public function invoker(
         ?QueryBus $queryBus = null,
-        ?SynchronousCommandBus $synchronousCommandBus = null
+        ?SynchronousCommandBus $synchronousCommandBus = null,
+        bool $audit = false
     ): McpToolInvoker {
         $queryRouter = new InMemoryQueryRouter();
         $queryRouter->registerHandler(
@@ -141,7 +142,8 @@ final class ProfileToolEnvironment
             $this->storage->agentRepository,
             new FixedClock($this->now()),
             $this->storage->transaction,
-            $this->storage->eventDispatcher
+            $this->storage->eventDispatcher,
+            $audit ? $this->storage->auditEvidenceRepository : null
         ));
         $this->registry = new McpToolRegistry([
             $this->read($queryBus ?? new RoutingQueryBus($queryRouter)),

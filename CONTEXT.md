@@ -3711,6 +3711,23 @@ read back. Final metadata delivery verification/ready state remain pending at th
 TASK landing handoff owns fresh gates, the administrative-only acceptance/QA and resolved-runtime bridge, and final
 remote/evidence verification. Original independent reports are preserved; no approval or merge is claimed. Consumer scanning/database/UI/security/runtime qualification, release and deployment remain separate.
 
+## Optional Agent name audit — TASK-00156 accepted checkpoint
+
+[Name-update composition](docs/agent-name-updates.md#optional-atomic-name-change-audit-unreleased) now supports a final
+nullable audit repository. Enabled `UpdateAgentHandler` explicitly inserts typed `agent.name_changed` evidence inside
+its existing rename transaction after a real persisted change. Existing required User/Agent provenance, name-only
+last-committed behavior, post-admission clock and all writer fences remain. Evidence uses exact persisted changedAt,
+actual message correlation and only `{name_changed: true}` facts, not names, snapshots or invented revisions.
+Omitted/null intentionally disables durable audit. Validated no-op adds none; audit failure rolls back staged state
+and evidence, uncertainty remains uncertain, and post-commit publication failure leaves both committed without a
+success acknowledgement. Independent Review ACCEPT and nonvisual QA PASS cover candidate
+`cd3b4ca0f0204f7ec30f44eceb16eddc1a907651`: 29 scenarios / 195 driver checks and fresh 63 tests / 781 assertions,
+with no findings. TASK-00156 is done; unfinished siblings keep TICKET-00045 and EPIC-00017 open. Earlier full gate
+is retained for unchanged application inputs. Publication/final delivery checks remain pending at this administrative
+checkpoint; canonical `.runs/handoffs/TASK-00156/land.md` owns subsequent delivery/resource outcomes. Original
+reports and minimum-lane warnings remain preserved. Consumer connection/mapping/fences/entry-policy qualification,
+merge, release and deployment are separate.
+
 ## Agent name updates — TASK-00069 accepted
 
 John selected the clean main checkout from `develop` `913f373` for TASK-00069 on

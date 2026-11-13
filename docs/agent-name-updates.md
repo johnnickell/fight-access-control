@@ -30,7 +30,8 @@ target and scope policy. Supplying a User or Agent ID does not prove authenticat
 authenticated principal, with distinct read/update Permissions through the reusable MCP availability boundary.
 
 Register `UpdateAgentHandler::commandRegistration()` with a **synchronous** Common CommandBus. Inject the Agent
-repository, Application Timing `Clock`, Common `TransactionalUnitOfWork` and `EventDispatcher`. The handler and bus
+repository, Application Timing `Clock`, Common `TransactionalUnitOfWork` and `EventDispatcher`, with an optional
+last nullable `AuditEvidenceRepository` as described below. The handler and bus
 return void. After successful dispatch, a consumer may acknowledge the target and validated command input:
 
 ```php
@@ -111,6 +112,41 @@ warning exception for provision/rotation does **not** apply to rename. Uncertain
 reconcile from current authoritative state under current authorization, without claiming which concurrent request
 won from a missing event.
 
+## Optional atomic name-change audit (Unreleased)
+
+TASK-00156 adds a final `?AuditEvidenceRepository $auditEvidenceRepository = null` constructor argument.
+Omitting it or passing null intentionally disables durable audit; the required User/Agent initiator is unchanged.
+To enable it, supply an adapter sharing the Agent repository's actual connection and enclosing transaction:
+
+```php
+$handler = new UpdateAgentHandler(
+    agentRepository: $agentRepository,
+    clock: $clock,
+    unitOfWork: $unitOfWork,
+    eventDispatcher: $eventDispatcher,
+    auditEvidenceRepository: $auditEvidenceRepository,
+);
+```
+
+After `rename()` returns a real persisted change, the handler explicitly adds `agent.name_changed` evidence before
+commit. It uses `AgentUpdateInitiator::getId()` directly, a typed Agent subject, a fresh evidence ID, the incoming
+message ID and **the exact repository-returned changedAt**. `AuditAgentNameOutcome` admits only
+`{name_changed: true}`: no raw old/new name, message payload, credential/issuance snapshot, synthetic name revision
+or unrelated assignment revision. Names have no field-specific safety admission and are deliberately excluded.
+No extra read or clock sample is needed. Attribution does not authenticate the caller or widen admission.
+
+Normalized active/admitted no-op produces no evidence, timestamp change or success fact. Missing/revoked targets
+and invalid input retain their failures; disabled auditing changes none of the existing writer fences. Enabled
+storage failure aborts staged name and evidence together and preserves the primary throwable, even if failure
+notification also fails. Lost commit acknowledgement remains uncertain. Confirmed commit followed by publication
+failure leaves **both** name and evidence committed but still prevents success acknowledgement. Retrying an already
+satisfied name neither duplicates evidence nor recreates lost publication/backfills history.
+
+This adds a pre-v1 persisted action/facts contract: enabled consumer mappings must support it without silently
+discarding unsupported evidence. Qualify the actual shared connection, all-writer fences, storage and access/retention
+policy before opt-in. Evidence is not automatically public/log data. No schema migration, fallback actor, new
+permission or reliable event-delivery mechanism is supplied. See [typed evidence](audit-evidence.md).
+
 ## Evidence and consumer qualification
 
 - `AgentRenameTest`: name-only immutable transition, inactive/no-op/backdated behavior, typed identity equality,
@@ -122,6 +158,14 @@ won from a missing event.
   and publishes the exact persisted fractional timestamp. Revocation defeats real and no-op attempts. Stale whole-Agent
   writes reject after rename. Later no-ops leave the timestamp intact; direct writes reject a genuinely backdating clock.
   Direct modeled writes deny missing/ambiguous correlation, missing transaction and restoration admission before sampling.
+  Enabled/disabled User and Agent origins retain exact persisted fractional time/correlation and name-only authority.
+  Shared modeled audit state proves rollback on audit failure, both uncertain-commit outcomes, committed evidence after
+  publication faults and no duplicate evidence on satisfied retry. Competing writers preserve current authority;
+  evidence records only the resumed rename's actual time, never stale authority snapshots.
+- `AuditAgentNameOutcomeTest`: complete current evidence round trips, unique identities and bounded facts; rejects
+  payload/revision fields, unconfirmed changes, mismatched subjects/actions and System/Anonymous rename attribution.
+- `AgentProfileToolsTest`: real routed principal-only Tool rename/no-op preserves identical acknowledgements and one
+  typed Agent audit record; publication faults expose no success while name and evidence remain committed.
 - `AgentNameComponentsTest`: generated additive `Fight.AccessControl.UpdateAgent` and `AgentUpdateInitiator` schemas
   match actual serialized values and the owning principal-type enum, without a schema-only raw-name length limit.
 
