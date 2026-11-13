@@ -1,13 +1,17 @@
 # Agent-protected MCP Tool composition
 
 This API originated in v0.5.0 through [TASK-00035](../planning/tasks/00035-TASK.md), first verified against
-Common v1.3.0 (`7de6cad6e8a9752973ad9f8e27e285b0c1510582`). The current checkout requires Common `^1.5.0` (tagged source
-`06fb5cd3720af9cf8295198f74040d95b64c5155`), including its seven execution Tools and canonical admission APIs.
+Common v1.3.0 (`7de6cad6e8a9752973ad9f8e27e285b0c1510582`). The current checkout requires Common `^1.5.1` (tagged source
+`c73690164a9f112dbf14d774c56a7c01519b88aa`), including its seven execution Tools and corrected scoped aggregates.
 [TASK-00108](../planning/tasks/00108-TASK.md) moves protocol bindings outward without changing wire behavior. It supplies authorization
 metadata and availability, **not** protocol policy, an endpoint, OAuth mapping or a consumer adapter.
 [Self-service profile Tools](agent-profile-tools.md) are a separate consumer of this boundary. Their request-bound
 instances require the same fresh provider/request as availability. Independent review/behavioral QA and actual
 consumer qualification remain separate from builder tests.
+
+[Scoped execution admission](agent-execution-reads.md) intersects business read Permissions with consumer
+project/session/phase/activity scope and independent reference grants on all five owning Queries. Tool capability
+alone grants no data; direct Query paths use the same handler admission.
 
 [Protected detail admission](agent-protected-detail.md) separately intersects direct metadata/body Permissions and
 consumer structural scope through Common's owning Queries. Keep metadata-only Tools available without body Permission;
@@ -136,8 +140,8 @@ The raw in-process bus remains trusted infrastructure, not another authenticated
 duplicate bus/Application authentication. Owning Query admission still enforces scoped business policy.
 Tool availability must not manufacture all-project, reference, metadata or body scope from caller selectors.
 `execution.messages` and `execution.detail` can return permitted metadata with `body_permitted: false` and
-`chunk: null`; do not require a body Permission merely to expose these Tools. TASK-00089/00090 own downstream
-scoped-read integration, not this coarse capability grant.
+`chunk: null`; do not require a body Permission merely to expose these Tools. TASK-00089/00090 own the separate
+scoped-read compositions linked above, not this coarse capability grant.
 
 TASK-00147's [six-declaration contract dispositions](agent-profile-tools.md#current-contract-dispositions-task-00147)
 include this catalog, Attribute and availability plus the actual mixed execution Tool additions from TASK-00084.

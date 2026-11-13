@@ -21,10 +21,13 @@ A persistence placement pattern is not permission to implement production persis
 
 The [complete affected contract inventory](../../docs/common-contracts.md) owns TASK-00110's canonical spelling,
 getter, construction/serialization/error semantics and future-feature boundaries. [Composer](../../composer.json)
-now requires `johnnickell/fight-common: ^1.5.0`. Exact-minimum and ordinary composition are qualified separately;
+now requires `johnnickell/fight-common: ^1.5.1` for TASK-00089's scoped activity aggregates.
+Exact-minimum and ordinary composition are qualified separately;
 a manifest alone does not prove consumer readiness. The following table remains a compact ownership index.
 
-Current supported source is Common v1.5.0, `06fb5cd3720af9cf8295198f74040d95b64c5155`, not sibling HEAD.
+Current minimum source is Common v1.5.1, `c73690164a9f112dbf14d774c56a7c01519b88aa`, not sibling HEAD.
+The [execution guide](../../docs/agent-execution-reads.md) records inward admission/scope ownership and the
+released activity-visibility correction; previous per-feature v1.5.0 qualification retains its original subject.
 Supplier acceptance, release certification/publication and exact installed tag bytes resolve the historical supplier
 hold. Commands still return void and UoW returns mixed. Independent adoption Review and behavioral QA remain required.
 

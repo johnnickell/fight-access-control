@@ -2,7 +2,7 @@
 id: TICKET-00029
 epic: EPIC-00014
 title: Compose scoped execution and protected-detail access
-status: ready-for-agent
+status: done
 ---
 
 # Compose scoped execution and protected-detail access
@@ -100,14 +100,18 @@ retention policy, blanket administrative grants, live protocol mechanics, consum
 
 | Order | TASK ID | Title | Status |
 | --- | --- | --- | --- |
-| 89 | [TASK-00089](../tasks/00089-TASK.md) | Compose scoped execution and timeline reads | ready-for-agent |
+| 89 | [TASK-00089](../tasks/00089-TASK.md) | Compose scoped execution and timeline reads | done |
 | 90 | [TASK-00090](../tasks/00090-TASK.md) | Compose independent protected-detail metadata and body reads | done |
 ## Decisions and Progress
 
-TASK-00090 has independently accepted protected-detail composition and required nonvisual QA; its owning record
-identifies the accepted candidate and canonical Land outcome. TASK-00089 remains ready and independent, so this
-TICKET and EPIC-00014 remain open. TASK-00084's integrated binding is available. No combined release or actual
-consumer relationship/storage qualification is claimed.
+Both child journeys are independently accepted with required nonvisual QA, so this TICKET is done for package
+acceptance under automatic parent completion. TASK-00089 uses Common ^1.5.1 and is accepted at
+`baf3e01bc6540b887c4afcb33b25d6d09aeb0b1b`; its owning record retains minimum/ordinary composition,
+full-gate/coverage and seven QA scenarios / 70 checks. TASK-00090's owning record preserves its independent
+protected-detail acceptance and delivery checkpoint. Timeline access remains no prerequisite to protected reads.
+TASK-00089 publication/final verification and retirement are pending at this closeout checkpoint; its canonical
+`.runs/handoffs/TASK-00089/land.md` owns subsequent results. Other EPIC children retain their own status;
+no combined release or actual consumer relationship/storage/concurrency qualification is claimed.
 
 ### Historical planning checkpoint
 

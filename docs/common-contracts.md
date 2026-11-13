@@ -1,6 +1,18 @@
 # Consumed Fight Common contracts
 
-TASK-00110 adopts **johnnickell/fight-common `^1.5.0`** for the existing package. The sufficient tagged minimum is
+TASK-00089 raises the current package requirement to **johnnickell/fight-common `^1.5.1`** for
+[scoped execution/timeline composition](agent-execution-reads.md). First sufficient scoped-aggregate tag:
+[v1.5.1](https://github.com/johnnickell/fight-common/releases/tag/v1.5.1), peeled source
+`c73690164a9f112dbf14d774c56a7c01519b88aa`, annotated tag `18b972c028803c6febf0151a91889852499e6125`.
+Its packaged TASK-00211 records independent Review ACCEPT / QA PASS for the activity-visibility correction on
+candidate `d02c326a918bc7ab09f31f0c2a136979fe3976e5` and maintenance PR #306. Actual Composer source/dist and
+remote tag agree; exact-minimum and ordinary feature qualification, lock identities and full-gate evidence live
+in TASK-00089's canonical Work handoff. API availability in v1.5.0 alone failed the one-of-two scoped summary:
+v1.5.1 applies activity restrictions before counts/usage and derived freshness/order/models. No consumer reader
+workaround or requirement weakening is used. Independent AccessControl feature acceptance remains separate.
+
+The feature-specific older minima/checkpoints below remain historical evidence, not today's manifest floor.
+TASK-00110 adopted **johnnickell/fight-common `^1.5.0`** for canonical foundations. Its sufficient tagged minimum is
 [v1.5.0](https://github.com/johnnickell/fight-common/releases/tag/v1.5.0), source
 `06fb5cd3720af9cf8295198f74040d95b64c5155`, annotated tag object
 `ef493612628e9f527bbab8ae5f114c39164df2d3`. This is a published stable release, not sibling HEAD or a development

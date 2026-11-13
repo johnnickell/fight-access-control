@@ -1,5 +1,30 @@
 # Fight AccessControl Context
 
+## Scoped execution and timeline composition — TASK-00089 accepted checkpoint
+
+[Scoped execution reads](docs/agent-execution-reads.md) now compose inward `AgentExecutionReadAdmission` and
+consumer `AgentExecutionScope` with real Common summary/list/get/phase/activity handlers/readers and the existing
+mixed-Tool binding. Conjunctive direct read Permissions precede consumer relationship grants; independent reference
+Permissions can only remove reference grants, never widen structural/activity scope or grant body bytes.
+Direct Queries retain the same admission. Ordinary requests reuse one principal/nonce; later requests reauthenticate.
+Common's invocation-local effective-access obligation remains consumer-owned, not an atomic snapshot or race guarantee.
+
+The current package floor is **Common ^1.5.1**, released source `c73690164a9f112dbf14d774c56a7c01519b88aa`.
+The earlier v1.5.0 foundation/feature minima below retain their historical scope, not today's manifest floor.
+TASK-00211's released correction resolves the original one-of-two activity-summary failure before SQL aggregation
+and derived freshness/order/model projection. Controlled real-authority/SQLite Tool and direct-Query tests prove
+count/partial usage, empty restrictions, SQL exclusion before decoding, scoped references and typed optional facts,
+fresh pages, truthful absence/retention, safe faults/encoded overflow and unchanged business state/events/body reads.
+Exact-minimum/ordinary dependency locks and canonical gate/coverage evidence belong to
+`.runs/handoffs/TASK-00089/work.md`. No historical unfinished source was recovered; this implementation starts from
+current develop ownership. Independent Review v3 ACCEPT and nonvisual QA PASS cover clean candidate
+`baf3e01bc6540b887c4afcb33b25d6d09aeb0b1b` (seven QA scenarios / 70 checks). TASK-00089 and eligible
+TICKET-00029 are done for package acceptance. Earlier full-gate evidence is retained with current closeout
+checks; publication/final verification and owned retirement are pending at this checkpoint. Canonical
+`.runs/handoffs/TASK-00089/land.md` owns subsequent delivery and cleanup outcomes.
+Actual consumer relationship/storage/crypto/transport/sink and authority-writer concurrency qualification, the
+combined unassigned EPIC release, adoption, merge and deployment remain separate.
+
 ## TASK-00152 operator-requested PHPStan scope amendment
 
 John explicitly rejected PHPStan analysis of tests/scripts after the split production/test-tool passes were

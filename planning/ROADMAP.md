@@ -838,7 +838,7 @@ The EPIC's historical pre-v1.0.0 target is not an authorization to release v1.0.
 | [EPIC-00011](epics/00011-EPIC.md) | v0.5.0 | done | 2 | 3 |
 | [EPIC-00012](epics/00012-EPIC.md) | v0.5.0 | done | 1 | 1 |
 | [EPIC-00013](epics/00013-EPIC.md) | v1.0.0 | done | 3 | 3 |
-| [EPIC-00014](epics/00014-EPIC.md) | unassigned | ready-for-agent | 8 | 23 |
+| [EPIC-00014](epics/00014-EPIC.md) | unassigned | done | 8 | 23 |
 | [EPIC-00015](epics/00015-EPIC.md) | unassigned | done | 5 | 9 |
 | [EPIC-00016](epics/00016-EPIC.md) | unassigned | done | 6 | 31 |
 | [EPIC-00017](epics/00017-EPIC.md) | unassigned | ready-for-agent | 6 | 24 |
