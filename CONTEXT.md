@@ -1,6 +1,6 @@
 # Fight AccessControl Context
 
-## Scoped execution and timeline composition — TASK-00089 Work checkpoint
+## Scoped execution and timeline composition — TASK-00089 accepted checkpoint
 
 [Scoped execution reads](docs/agent-execution-reads.md) now compose inward `AgentExecutionReadAdmission` and
 consumer `AgentExecutionScope` with real Common summary/list/get/phase/activity handlers/readers and the existing
@@ -17,7 +17,11 @@ count/partial usage, empty restrictions, SQL exclusion before decoding, scoped r
 fresh pages, truthful absence/retention, safe faults/encoded overflow and unchanged business state/events/body reads.
 Exact-minimum/ordinary dependency locks and canonical gate/coverage evidence belong to
 `.runs/handoffs/TASK-00089/work.md`. No historical unfinished source was recovered; this implementation starts from
-current develop ownership. Independent Review and nonvisual QA remain required; Work does not mark the TASK done.
+current develop ownership. Independent Review v3 ACCEPT and nonvisual QA PASS cover clean candidate
+`baf3e01bc6540b887c4afcb33b25d6d09aeb0b1b` (seven QA scenarios / 70 checks). TASK-00089 and eligible
+TICKET-00029 are done for package acceptance. Earlier full-gate evidence is retained with current closeout
+checks; publication/final verification and owned retirement are pending at this checkpoint. Canonical
+`.runs/handoffs/TASK-00089/land.md` owns subsequent delivery and cleanup outcomes.
 Actual consumer relationship/storage/crypto/transport/sink and authority-writer concurrency qualification, the
 combined unassigned EPIC release, adoption, merge and deployment remain separate.
 
