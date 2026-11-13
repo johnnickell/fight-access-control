@@ -9,8 +9,8 @@ status: ready-for-agent
 
 ## Problem and Outcome
 
-TASK-00153 and TASK-00154 supply independently accepted custom Role lifecycle and Permission audit insertion.
-User Role-membership and Agent administration insertion remain unfinished in their owning TASKs.
+TASK-00153, TASK-00154 and TASK-00157 supply independently accepted custom Role lifecycle, Role Permission and
+direct Agent Permission audit insertion. User Role-membership and Agent name insertion remain unfinished in their owning TASKs.
 Under [EPIC-00017](../epics/00017-EPIC.md), handlers record meaningful committed changes in their ordinary mutation
 transaction. Consumers should not need event inspection, repository interception or a business-aware Unit-of-Work
 decorator to obtain atomic evidence, and can explicitly omit auditing without claiming durability.
@@ -100,8 +100,8 @@ John approved the complete five-TASK plan, now written as kind chore with orders
 | [TASK-00157](../tasks/00157-TASK.md) | Direct Agent Permission assignments and actual coordinator transaction ownership | GrantPermissionToAgent, RevokePermissionFromAgent, ReplaceAgentPermissions (3). | TASK-00122 |
 
 At plan approval all five were ready-for-agent because scope was settled, each consuming TASK-00122 and inheriting
-TASK-00121. TASK-00153 and TASK-00154 now have independent acceptance and required QA; the other three remain
-unfinished. No mutual blocker is demonstrated. Orders are preference, not a serial dependency, and no earlier
+TASK-00121. TASK-00153, TASK-00154 and TASK-00157 now have independent acceptance and required QA; TASK-00155 and TASK-00156
+remain unfinished. No mutual blocker is demonstrated. Orders are preference, not a serial dependency, and no earlier
 scope/order/blockers change.
 The allocation is 3 + 2 + 2 + 1 + 3 = all 11 current handlers without overlap/omission. The shared Agent assignment
 coordinator belongs only to TASK-00157 and is not another handler. Refresh actual additions/moves/removals at execution;
@@ -145,12 +145,13 @@ disclosure and choose the execution checkout separately.
 | 409 | [TASK-00154](../tasks/00154-TASK.md) | Audit custom Role Permission changes | done |
 | 410 | [TASK-00155](../tasks/00155-TASK.md) | Audit User Role membership changes | ready-for-agent |
 | 411 | [TASK-00156](../tasks/00156-TASK.md) | Audit Agent name updates | ready-for-agent |
-| 412 | [TASK-00157](../tasks/00157-TASK.md) | Audit direct Agent Permission assignments | in-progress |
+| 412 | [TASK-00157](../tasks/00157-TASK.md) | Audit direct Agent Permission assignments | done |
 ## Decisions and Progress
 
-TASK-00153 and TASK-00154 are done for independently reviewed and QA-passed custom Role lifecycle and Permission
-behavior. Their owning records and canonical reports retain exact acceptance and verification evidence. The other
-three TASKs remain unfinished, so this TICKET and EPIC-00017 stay open. Consumer qualification remains separate.
+TASK-00153, TASK-00154 and TASK-00157 are done for independently reviewed and QA-passed custom Role lifecycle,
+Role Permission and direct Agent Permission behavior. Their owning records and canonical reports retain exact
+acceptance and verification evidence. TASK-00155 and TASK-00156 remain unfinished, so this TICKET and EPIC-00017
+stay open. Consumer qualification remains separate.
 
 ### Historical planning checkpoints
 
