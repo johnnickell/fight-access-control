@@ -51,10 +51,10 @@ final readonly class EmailChangeConfirmation
         private EmailChangeGrantRepository $emailChangeGrantRepository,
         private PasswordResetGrantRepository $passwordResetGrantRepository,
         private SessionRevocationService $sessionRevocationService,
-        private AuditEvidenceRepository $auditEvidenceRepository,
         private TransactionalUnitOfWork $unitOfWork,
         private Clock $clock,
-        private EventDispatcher $eventDispatcher
+        private EventDispatcher $eventDispatcher,
+        private ?AuditEvidenceRepository $auditEvidenceRepository = null
     ) {
     }
 
@@ -111,7 +111,7 @@ final readonly class EmailChangeConfirmation
                     throw new AuthenticationRequired('Email change confirmation rejected.');
                 }
 
-                if ($actorId === null) {
+                if ($this->auditEvidenceRepository !== null && $actorId === null) {
                     throw new AuthenticationRequired('Email change confirmation rejected.');
                 }
 
@@ -133,19 +133,21 @@ final readonly class EmailChangeConfirmation
                 );
                 $this->sessionRevocationService->revokeAllActiveFor($userId, $confirmedAt);
 
-                $this->auditEvidenceRepository->add(AuditEvidence::record(
-                    $actorId,
-                    new AuditSubject($userId),
-                    AuditAction::EMAIL_CHANGE_CONFIRMED,
-                    $confirmedAt,
-                    new AuditUserOutcome(
-                        AuditUserRevisions::fromUser($user),
-                        AuditUserRevisions::fromUser($replacementUser),
-                        AuditGrantState::fromGrant($grant),
-                        AuditGrantState::fromGrant($consumedGrant)
-                    ),
-                    null
-                ));
+                if ($actorId !== null) {
+                    $this->auditEvidenceRepository?->add(AuditEvidence::record(
+                        $actorId,
+                        new AuditSubject($userId),
+                        AuditAction::EMAIL_CHANGE_CONFIRMED,
+                        $confirmedAt,
+                        new AuditUserOutcome(
+                            AuditUserRevisions::fromUser($user),
+                            AuditUserRevisions::fromUser($replacementUser),
+                            AuditGrantState::fromGrant($grant),
+                            AuditGrantState::fromGrant($consumedGrant)
+                        ),
+                        null
+                    ));
+                }
 
                 return $confirmedAt;
             });

@@ -13,8 +13,8 @@ All paths below are relative to `Fight\AccessControl\Application\AccessControl`.
 
 | Owner | Synchronous inputs and result | Atomic effects and failure boundary |
 | --- | --- | --- |
-| `User\Authentication\UserAuthentication` | `activate(UserId, activationCredential, plainPassword, remember): TokenSet`; `login(email, plainPassword, remember): TokenSet` | Single-use activation or verified/throttled login, complete User successor and coupled session insertion. Publish `UserActivated`/`UserLoggedIn` only after commit; return tokens only after publication. |
-| `RefreshSession\SessionLifecycle` | `refresh(refreshCredential): RefreshResult`; `logout(refreshCredential): void` | Rotation or secret-free bounded conflict; terminal replay commits revocation before outward refusal. Logout revokes only the selected current session and publishes `CurrentSessionLoggedOut` after commit. |
+| `User\Authentication\UserAuthentication` | `activate(UserId, activationCredential, plainPassword, remember, actorId = null): TokenSet`; `login(email, plainPassword, remember): TokenSet` | Single-use activation or verified/throttled login, complete User successor and coupled session insertion. Publish `UserActivated`/`UserLoggedIn` only after commit; return tokens only after publication. |
+| `RefreshSession\SessionLifecycle` | `refresh(refreshCredential, actorId = null): RefreshResult`; `logout(refreshCredential, actorId = null): void` | Rotation or secret-free bounded conflict; terminal replay commits revocation before outward refusal. Logout revokes only the selected current session and publishes `CurrentSessionLoggedOut` after commit. |
 | `User\PasswordManagement` | `changePassword(authenticatedUserId, currentPassword, newPassword): void`; `resetPassword(userId, resetCredential, plainPassword, actorId = null): void` | Verify the current password or consume the current eligible reset grant, replace User authority, cancel recovery as applicable, revoke sessions and audit together. Publish `PasswordChanged`/`PasswordResetCompleted` after commit. |
 | `EmailChangeGrant\EmailChangeConfirmation` | `confirmEmail(userId, emailChangeCredential, actorId = null): void` | Consume the current email grant, promote the pending identity, invalidate reset authority, revoke sessions and audit together. Publish `EmailChangeConfirmed` after commit. No token issuance. |
 
@@ -24,12 +24,26 @@ messages. Existing browser/portable response projections are unchanged. Entry-po
 throttling beyond the configured login port, response/log sanitization and secure transport remain consumer-owned.
 An `authenticatedUserId` argument is a trusted caller assertion, not a new authentication mechanism.
 
-The in-progress [typed audit replacement](audit-evidence.md) additionally requires explicitly admitted
-`UserId|AgentId|SystemId|AnonymousId` provenance for reset completion/email confirmation with current mandatory
-audit wiring. Their nullable last input is not permission to fabricate origin from the target User or credential.
-Missing provenance rejects generically after credential admission and before mutation; trusted callers establish
-`$originatingActorId` in the current examples. Declared public unauthenticated entry semantics may explicitly
-supply AnonymousId. This task does not make these constructors optional or add audit to other synchronous paths.
+## Optional atomic audit
+
+All four direct owners and `RevokeSessionHandler` take a final
+`?AuditEvidenceRepository $auditEvidenceRepository = null`. Omission/null deliberately disables durable audit;
+configured write failure aborts the coupled transaction. Password/email constructors move their formerly required
+audit argument to this last optional position. Update positional callers directly; no compatibility mode is supplied.
+
+Enabled activation, reset completion, email confirmation, logout and terminal replay revocation require explicit
+`UserId|AgentId|SystemId|AnonymousId` provenance before the first mutation. A target UserId or an old replayed
+credential does not establish an authenticated origin. Trusted callers supply `$originatingActorId`; a deliberately
+unauthenticated entry point may supply AnonymousId. Login and successful current-credential refresh use the verified
+authoritative User; password change and session management retain their admitted authenticated actor. Provenance
+grants no permission and never replaces credentials or existing administrative checks.
+
+Disabled calls need no new audit-only actor. Enabled benign refresh conflicts and already-revoked logout helpers
+need none either. Supply refresh provenance up front when terminal replay must be handled with auditing enabled.
+Evidence records the actual committed replay revocation, not successful refresh or token receipt. Helpers return the
+actual changed predecessor/successor (null predecessor for a concurrent winner/no-change) and never write evidence.
+Administrative reasons remain business-required but are deliberately omitted from audit facts; arbitrary text is
+not safe merely because it is bounded. See [typed evidence](audit-evidence.md).
 
 ## Explicit composition
 
@@ -48,7 +62,8 @@ $refreshResult = $authenticationService->refresh($refreshCredential);
 $authenticationService->logout($refreshCredential);
 ```
 
-After, construct only the owner needed by the caller. Email confirmation has eight direct dependencies and needs
+After, construct only the owner needed by the caller. Email confirmation has seven required dependencies plus
+optional audit storage and needs
 no password/token ports, throttle, activation repository or dummy hash:
 
 ```php
@@ -61,15 +76,16 @@ $emailChangeConfirmation = new EmailChangeConfirmation(
     emailChangeGrantRepository: $emailChangeGrantRepository,
     passwordResetGrantRepository: $passwordResetGrantRepository,
     sessionRevocationService: $sessionRevocationService,
-    auditEvidenceRepository: $auditEvidenceRepository,
     unitOfWork: $unitOfWork,
     clock: $clock,
-    eventDispatcher: $eventDispatcher
+    eventDispatcher: $eventDispatcher,
+    auditEvidenceRepository: $auditEvidenceRepository
 );
 $emailChangeConfirmation->confirmEmail($userId, $emailChangeCredential, actorId: $originatingActorId);
 ```
 
-Password consumers need ten direct dependencies, not email/activation grants, throttle, token encoding/policy or
+Password consumers need nine required dependencies plus optional audit storage, not email/activation grants,
+throttle, token encoding/policy or
 refresh generation. The configured dummy hash preserves uniform failed verification behavior:
 
 ```php
@@ -79,13 +95,13 @@ $passwordManagement = new PasswordManagement(
     userRepository: $userRepository,
     passwordResetGrantRepository: $passwordResetGrantRepository,
     sessionRevocationService: $sessionRevocationService,
-    auditEvidenceRepository: $auditEvidenceRepository,
     unitOfWork: $unitOfWork,
     clock: $clock,
     passwordHasher: $passwordHasher,
     passwordValidator: $passwordValidator,
     dummyPasswordHash: $dummyPasswordHash,
-    eventDispatcher: $eventDispatcher
+    eventDispatcher: $eventDispatcher,
+    auditEvidenceRepository: $auditEvidenceRepository
 );
 $passwordManagement->changePassword($authenticatedUserId, $currentPassword, $newPassword);
 $passwordManagement->resetPassword($userId, $resetCredential, $plainPassword, actorId: $originatingActorId);
@@ -94,7 +110,7 @@ $passwordManagement->resetPassword($userId, $resetCredential, $plainPassword, ac
 Token creation is one cohesive collaborator shared by authentication and refresh. `TokenIssuer` creates session
 lifetimes and JWT/refresh results; it does not persist, commit, publish or authorize. Keep one configured
 `AuthenticationTokenPolicy` shared with `SessionLifecycle`. The existing policy/result types stay in `User\Security`.
-Session consumers need nine direct dependencies and no password, activation/email/reset grant or audit repository:
+Session consumers need nine required dependencies and an optional audit repository, without password or grant ports:
 
 ```php
 use Fight\AccessControl\Application\AccessControl\RefreshSession\SessionLifecycle;
@@ -111,10 +127,11 @@ $sessionLifecycle = new SessionLifecycle(
     refreshCredentialGenerator: $refreshCredentialGenerator,
     tokenIssuer: $tokenIssuer,
     tokenPolicy: $tokenPolicy,
-    eventDispatcher: $eventDispatcher
+    eventDispatcher: $eventDispatcher,
+    auditEvidenceRepository: $auditEvidenceRepository
 );
-$refreshResult = $sessionLifecycle->refresh($refreshCredential);
-$sessionLifecycle->logout($refreshCredential);
+$refreshResult = $sessionLifecycle->refresh($refreshCredential, actorId: $originatingActorId);
+$sessionLifecycle->logout($refreshCredential, actorId: $originatingActorId);
 
 $authentication = new UserAuthentication(
     userRepository: $userRepository,
@@ -127,13 +144,16 @@ $authentication = new UserAuthentication(
     passwordValidator: $passwordValidator,
     tokenIssuer: $tokenIssuer,
     dummyPasswordHash: $dummyPasswordHash,
-    eventDispatcher: $eventDispatcher
+    eventDispatcher: $eventDispatcher,
+    auditEvidenceRepository: $auditEvidenceRepository
 );
-$tokens = $authentication->activate($userId, $activationCredential, $plainPassword, $remember);
+$tokens = $authentication->activate(
+    $userId, $activationCredential, $plainPassword, $remember, actorId: $originatingActorId
+);
 $tokens = $authentication->login($email, $plainPassword, $remember);
 ```
 
-Authentication has eleven direct dependencies; session insertion still uses
+Authentication has eleven required dependencies and optional audit storage; session insertion still uses
 `UserRepository::replaceAuthenticationAuthorityAndAddRefreshSession()`. Supply the repository's coupled session
 storage on the actual shared connection, not a second independent insert. Password/email owners remain substantive
 use-case coordinators under their aggregate homes; no one-class helper directories or shared lifecycle facade are
@@ -144,7 +164,7 @@ needed. Normal non-sensitive Commands/Queries still traverse the configured buse
 The decomposition preserves dummy-hash/throttle/verified rehash, grant single use, security-versus-persistence
 revisions, complete expected-state CAS, coupled insertion, session lifetimes and replay/conflict behavior.
 [User transitions and recovery composition](operation-outcomes.md) define current authority and all-writer fences.
-Audit remains required on the existing password/email paths; this change does not implement future optional audit.
+Enabled evidence joins these outcomes atomically; omitted/null storage makes no durable-audit promise.
 
 Pre-commit faults roll back staged business/audit state. Lost commit acknowledgement remains indeterminate until
 an authorized authoritative read resolves state. A post-commit publisher/subscriber fault still throws with committed
@@ -193,7 +213,7 @@ Common's opt-in safe HTTP composition produces generic 401/400/403/404/409/422 r
 and 500 for internal faults. Use its public projection/constants, never dependency messages, codes, causes or traces.
 The real session Command routing tests exercise execute and serialized dispatch through that composition. This does
 not select an endpoint, JWT profile, response transport, MCP/OAuth mapping or consumer persistence implementation.
-No optional-audit redesign, new permission, Common/consumer edit or production qualification is implied.
+No new permission, Common/consumer edit or production qualification is implied.
 
 Nonvisual before/after evidence uses real direct capability calls, persisted User/grant/session/audit outcomes,
 redacted facts and deterministic competing writers, not delegation mocks or screenshots. Mirrored

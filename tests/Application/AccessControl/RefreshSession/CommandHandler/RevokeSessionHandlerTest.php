@@ -103,9 +103,9 @@ final class RevokeSessionHandlerTest extends TestCase
             $refreshSessionRepository,
             new FixedClock(new DateTimeImmutable('2026-08-20T12:00:00+00:00')),
             $authorization,
-            $auditEvidenceRepository,
             $unitOfWork,
-            $eventDispatcher
+            $eventDispatcher,
+            $auditEvidenceRepository
         );
 
         $handler->handle(CommandMessage::create(new RevokeSession(
@@ -125,7 +125,8 @@ final class RevokeSessionHandlerTest extends TestCase
         self::assertSame($targetSessionId, $event->getRefreshSessionId());
         self::assertSame('2026-08-20T12:00:00+00:00', $event->getRevokedAt()->format(DATE_ATOM));
         self::assertSame(0, $authorization->calls());
-        self::assertSame([], $auditEvidenceRepository->all());
+        self::assertCount(1, $auditEvidenceRepository->all());
+        self::assertSame(AuditAction::SESSION_REVOKED, $auditEvidenceRepository->all()[0]->action());
     }
 
     public function test_it_rejects_revoking_the_current_session_and_preserves_it(): void
@@ -243,9 +244,9 @@ final class RevokeSessionHandlerTest extends TestCase
             new ControllableRefreshSessionRepository($this->session($targetSessionId, $actorId)),
             new FailingClock($expectedFailure),
             new FixedSessionAdministrationAuthorization(true),
-            new InMemoryAuditEvidenceRepository(),
             new InMemoryUnitOfWork(),
-            $eventDispatcher
+            $eventDispatcher,
+            new InMemoryAuditEvidenceRepository()
         );
 
         $actualFailure = $this->captureFailure($handler, $command);
@@ -467,9 +468,9 @@ final class RevokeSessionHandlerTest extends TestCase
             $refreshSessionRepository,
             new FixedClock(new DateTimeImmutable('2026-08-20T12:00:00+00:00')),
             $sessionAdministrationAuthorization ?? new FixedSessionAdministrationAuthorization(true),
-            $auditEvidenceRepository ?? new InMemoryAuditEvidenceRepository($unitOfWork),
             $unitOfWork,
-            $eventDispatcher
+            $eventDispatcher,
+            $auditEvidenceRepository ?? new InMemoryAuditEvidenceRepository($unitOfWork)
         );
     }
 

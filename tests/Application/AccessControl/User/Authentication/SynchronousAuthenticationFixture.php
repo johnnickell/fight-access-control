@@ -297,7 +297,8 @@ trait SynchronousAuthenticationFixture
         ?PasswordValidator $passwordValidator = null,
         ?TokenEncoder $tokenEncoder = null,
         ?RefreshCredentialGenerator $refreshCredentialGenerator = null,
-        ?AuthenticationTokenPolicy $tokenPolicy = null
+        ?AuthenticationTokenPolicy $tokenPolicy = null,
+        ?AuditEvidenceRepository $auditEvidenceRepository = null
     ): UserAuthentication {
         $passwordSecurity = new TestPasswordSecurity();
         if (
@@ -321,7 +322,8 @@ trait SynchronousAuthenticationFixture
                 $tokenPolicy ?? AuthenticationTokenPolicy::starterDefaults(new DateInterval('PT5S'))
             ),
             PasswordHash::fromString(password_hash('dummy-password', PASSWORD_DEFAULT)),
-            $eventDispatcher
+            $eventDispatcher,
+            $auditEvidenceRepository
         );
     }
 
@@ -342,13 +344,13 @@ trait SynchronousAuthenticationFixture
             $userRepository,
             $passwordResetGrantRepository ?? new InMemoryPasswordResetGrants($unitOfWork),
             new SessionRevocationService($refreshSessionRepository),
-            $auditEvidenceRepository ?? new InMemoryAuditEvidenceRepository($unitOfWork),
             $unitOfWork,
             $authenticationClock ?? new FixedClock(new DateTimeImmutable('2026-08-19T12:00:00+00:00')),
             $passwordHasher ?? $passwordSecurity,
             $passwordValidator ?? $passwordSecurity,
             PasswordHash::fromString(password_hash('dummy-password', PASSWORD_DEFAULT)),
-            $eventDispatcher
+            $eventDispatcher,
+            $auditEvidenceRepository ?? new InMemoryAuditEvidenceRepository($unitOfWork)
         );
     }
 
@@ -360,7 +362,8 @@ trait SynchronousAuthenticationFixture
         ?Clock $authenticationClock = null,
         ?TokenEncoder $tokenEncoder = null,
         ?RefreshCredentialGenerator $refreshCredentialGenerator = null,
-        ?AuthenticationTokenPolicy $tokenPolicy = null
+        ?AuthenticationTokenPolicy $tokenPolicy = null,
+        ?AuditEvidenceRepository $auditEvidenceRepository = null
     ): SessionLifecycle {
         return new SessionLifecycle(
             $userRepository,
@@ -374,7 +377,8 @@ trait SynchronousAuthenticationFixture
                 $tokenPolicy ?? AuthenticationTokenPolicy::starterDefaults(new DateInterval('PT5S'))
             ),
             $tokenPolicy ?? AuthenticationTokenPolicy::starterDefaults(new DateInterval('PT5S')),
-            $eventDispatcher
+            $eventDispatcher,
+            $auditEvidenceRepository
         );
     }
 
@@ -393,10 +397,10 @@ trait SynchronousAuthenticationFixture
             $emailChangeGrantRepository ?? new InMemoryEmailChangeGrantRepository($unitOfWork),
             $passwordResetGrantRepository ?? new InMemoryPasswordResetGrants($unitOfWork),
             new SessionRevocationService($refreshSessionRepository),
-            $auditEvidenceRepository ?? new InMemoryAuditEvidenceRepository($unitOfWork),
             $unitOfWork,
             $authenticationClock ?? new FixedClock(new DateTimeImmutable('2026-08-19T12:00:00+00:00')),
-            $eventDispatcher
+            $eventDispatcher,
+            $auditEvidenceRepository ?? new InMemoryAuditEvidenceRepository($unitOfWork)
         );
     }
 }

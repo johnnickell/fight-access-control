@@ -19,6 +19,12 @@ enum AuditAction: string
     case USER_DISABLED = 'user.disabled';
     case USER_DELETED = 'user.deleted';
     case USER_RESTORED = 'user.restored';
+    case USER_ACTIVATED = 'user.activated';
+    case USER_LOGGED_IN = 'user.logged_in';
+    case SESSION_REFRESHED = 'refresh_session.refreshed';
+    case SESSION_LOGGED_OUT = 'refresh_session.logged_out';
+    case SESSION_REPLAY_REVOKED = 'refresh_session.replay_revoked';
+    case SESSION_REVOKED = 'refresh_session.revoked';
     case INVITATION_RESENT = 'user.invitation_delivery.resent';
     case INVITATION_RETRY_REQUESTED = 'user.invitation_delivery.retry_requested';
     case INVITATION_DELIVERY_FAILED = 'user.invitation_delivery.failed';
