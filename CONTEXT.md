@@ -6,9 +6,12 @@ John explicitly rejected PHPStan analysis of tests/scripts after the split produ
 explained. Ordinary analysis now covers only production `src/` and shipped `openapi/` metadata; the separate
 tests/scripts invocation and its configuration are removed. Required production API type-contract fixtures,
 meaningful PHPUnit behavior checks, all-src Unit-only line coverage and exact all-suite statements remain.
-See the [governing scope decision](planning/agents/project-profile.md#tests-and-delivery). This same-PR amendment
-needs fresh independent Review and behavioral QA; earlier acceptance below retains its original subject and
-does not accept the new content. Canonical Work evidence owns current verification and committed mapping.
+See the [governing scope decision](planning/agents/project-profile.md#tests-and-delivery). Independent Review v3
+ACCEPT and behavioral QA v3 PASS cover amendment candidate `a0586cffd2a2a3d735476769414d5cf7de802f35`,
+with seven affected scenarios passing and no findings. Earlier acceptance below retains its original subject.
+The qualified full gate is retained with current planning/documentation checks; canonical Work evidence owns
+its results and tested-content mapping. Same-PR publication and owned retirement are pending at this closeout
+checkpoint; canonical `.runs/handoffs/TASK-00152/land.md` owns subsequent delivery and cleanup outcomes.
 
 ## TASK-00152 integrated contracts — independently accepted
 
