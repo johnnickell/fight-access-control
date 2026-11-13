@@ -48,7 +48,7 @@ This generated index is a projection; individual records remain canonical.
 | [TICKET-00042](00042-TICKET.md) | Enforce and demonstrate whole-library type correctness | done |
 | [TICKET-00043](00043-TICKET.md) | Define typed audit evidence and explicit attribution | done |
 | [TICKET-00044](00044-TICKET.md) | Audit User account and credential journeys | done |
-| [TICKET-00045](00045-TICKET.md) | Audit Role, membership and Agent administration | ready-for-agent |
+| [TICKET-00045](00045-TICKET.md) | Audit Role, membership and Agent administration | done |
 | [TICKET-00046](00046-TICKET.md) | Audit Feature and managed-policy changes | ready-for-agent |
 | [TICKET-00047](00047-TICKET.md) | Audit Agent credential and recovery outcomes | ready-for-agent |
 | [TICKET-00048](00048-TICKET.md) | Qualify audit composition and document consumer adoption | ready-for-agent |

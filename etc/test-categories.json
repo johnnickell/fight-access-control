@@ -342,6 +342,18 @@
       "reason": "Isolated values, transitions or application behavior with controlled in-memory repositories/security/clock/UoW ports; no real storage, network or process.",
       "methods": {}
     },
+    "Fight\\Test\\AccessControl\\Application\\AccessControl\\Agent\\CommandHandler\\AgentPermissionAuditTest": {
+      "file": "tests/Application/AccessControl/Agent/CommandHandler/AgentPermissionAuditTest.php",
+      "category": "Unit",
+      "reason": "Actual handler orchestration with controlled transaction-aware in-memory assignment and evidence storage; no real database, network or process.",
+      "methods": {}
+    },
+    "Fight\\Test\\AccessControl\\Domain\\AccessControl\\Audit\\AuditAgentPermissionOutcomeTest": {
+      "file": "tests/Domain/AccessControl/Audit/AuditAgentPermissionOutcomeTest.php",
+      "category": "Unit",
+      "reason": "Typed immutable evidence admission and persistence round trips without external effects.",
+      "methods": {}
+    },
     "Fight\\Test\\AccessControl\\Application\\AccessControl\\Agent\\CommandHandler\\AgentPermissionAssignmentHandlerTest": {
       "file": "tests/Application/AccessControl/Agent/CommandHandler/AgentPermissionAssignmentHandlerTest.php",
       "category": "Unit",

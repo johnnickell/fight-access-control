@@ -9,6 +9,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Optional last nullable audit repository for direct Agent Permission grant, revocation and complete replacement.
+  Handlers own the single assignment/evidence transaction; the internal coordinator no longer commits. Enabled
+  evidence records actual assignment revisions, changed typed relationships, transition time and message correlation.
+  No-ops add none; configured audit failure rolls back, and ordinary publication failure leaves committed evidence.
+  Consumers must qualify current mappings and shared connections; omitted/null makes no durable-audit promise.
+  No legacy reader, backfill, schema operation or implicit authorization is supplied. See
+  [Agent Permission audit composition](docs/agent-administration-contracts.md#optional-direct-permission-audit-composition-unreleased).
+
 - Optional final audit repository for Agent name updates. Enabled `agent.name_changed` evidence joins the rename
   transaction with the existing typed User/Agent initiator, Agent subject, exact persisted changedAt and message ID.
   Bounded facts omit names and fabricated revisions. No-op adds none; audit failure rolls back and committed evidence

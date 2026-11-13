@@ -145,8 +145,7 @@ final class AgentCohortWriterTest extends TestCase
             $coordinator = new AgentPermissionAssignmentCoordinator(
                 $ports->agentRepository,
                 $permissionRepository,
-                $env->clock,
-                $ports->transaction
+                $env->clock
             );
             $ports->operationRepository->contract->current = null;
             $actor = UserId::generate();

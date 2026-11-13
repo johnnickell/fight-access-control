@@ -29,8 +29,8 @@ return static function (
     \PHPStan\dumpType($revoke->handle(...));
     \PHPStan\dumpType($replace->handle(...));
     \PHPStan\dumpType($update->handle(...));
-    \PHPStan\dumpType($coordinator->grant($actor, $agent, $permission));
-    \PHPStan\dumpType($coordinator->revoke($actor, $agent, $permission));
-    \PHPStan\dumpType($coordinator->replace($actor, $agent, 1, [$permission]));
+    \PHPStan\dumpType($coordinator->grant($actor, $agent, $permission)[0] ?? null);
+    \PHPStan\dumpType($coordinator->revoke($actor, $agent, $permission)[0] ?? null);
+    \PHPStan\dumpType($coordinator->replace($actor, $agent, 1, [$permission])[0] ?? null);
     \PHPStan\dumpType($repository->rename(...));
 };

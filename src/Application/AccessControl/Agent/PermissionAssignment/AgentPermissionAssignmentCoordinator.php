@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Fight\AccessControl\Application\AccessControl\Agent\PermissionAssignment;
 
+use DateTimeImmutable;
 use Fight\AccessControl\Application\AccessControl\Authorization\Service\ExactPermissionResolver;
 use Fight\AccessControl\Application\AccessControl\Timing\Service\Clock;
 use Fight\AccessControl\Domain\AccessControl\Agent\Agent;
@@ -14,6 +15,7 @@ use Fight\AccessControl\Domain\AccessControl\Agent\Event\PermissionGrantedToAgen
 use Fight\AccessControl\Domain\AccessControl\Agent\Event\PermissionRevokedFromAgent;
 use Fight\AccessControl\Domain\AccessControl\Agent\Exception\AgentPermissionAssignmentException;
 use Fight\AccessControl\Domain\AccessControl\Agent\Exception\AgentPermissionRevisionMismatchException;
+use Fight\AccessControl\Domain\AccessControl\Audit\AuditAgentPermissionOutcome;
 use Fight\AccessControl\Domain\AccessControl\Permission\Permission;
 use Fight\AccessControl\Domain\AccessControl\Permission\PermissionId;
 use Fight\AccessControl\Domain\AccessControl\Permission\PermissionRepository;
@@ -23,13 +25,12 @@ use Fight\Common\Application\Error\Exception\PreconditionFailed;
 use Fight\Common\Application\Error\Exception\ResourceNotFound;
 use Fight\Common\Application\Error\Exception\RuleViolation;
 use Fight\Common\Application\Error\Exception\StateConflict;
-use Fight\Common\Application\Repository\TransactionalUnitOfWork;
 use LogicException;
 
 /**
  * Class AgentPermissionAssignmentCoordinator
  *
- * Coordinates the internal desired-state mutation of direct Agent Permissions.
+ * Stages direct assignment changes within the caller's transaction, without recording or committing evidence.
  *
  * @internal
  */
@@ -41,137 +42,150 @@ final readonly class AgentPermissionAssignmentCoordinator
     public function __construct(
         private AgentRepository $agentRepository,
         private PermissionRepository $permissionRepository,
-        private Clock $clock,
-        private TransactionalUnitOfWork $unitOfWork
+        private Clock $clock
     ) {
     }
 
     /**
      * Grants the Permission when it is not already directly assigned
+     *
+     * @phpstan-return array{PermissionGrantedToAgent, AuditAgentPermissionOutcome, DateTimeImmutable}|null
      */
-    public function grant(UserId $actorId, AgentId $agentId, PermissionId $permissionId): ?PermissionGrantedToAgent
+    public function grant(UserId $actorId, AgentId $agentId, PermissionId $permissionId): ?array
     {
-        /** @var PermissionGrantedToAgent|null $event */
-        $event = $this->unitOfWork->commitTransactional(
-            function () use ($actorId, $agentId, $permissionId): ?PermissionGrantedToAgent {
-                $agent = $this->getAgent($agentId);
-                $permission = $this->getPermission($permissionId);
-                if ($permission->getTier() !== PermissionTier::ADMIN_SAFE) {
-                    throw new RuleViolation('The Permission is not eligible for an Agent.');
-                }
+        $agent = $this->getAgent($agentId);
+        $permission = $this->getPermission($permissionId);
+        if ($permission->getTier() !== PermissionTier::ADMIN_SAFE) {
+            throw new RuleViolation('The Permission is not eligible for an Agent.');
+        }
 
-                if (!$this->agentRepository->validatePermissionAssignments([$permission])) {
-                    throw new StateConflict('The authoritative Permission changed concurrently.');
-                }
+        if (!$this->agentRepository->validatePermissionAssignments([$permission])) {
+            throw new StateConflict('The authoritative Permission changed concurrently.');
+        }
 
-                if ($agent->hasPermission($permissionId)) {
-                    return null;
-                }
+        if ($agent->hasPermission($permissionId)) {
+            return null;
+        }
 
-                $grantedAt = $this->clock->now();
-                try {
-                    $replacement = $agent->grantPermission($permissionId, $grantedAt);
-                } catch (AgentPermissionAssignmentException $agentPermissionAssignmentException) {
-                    throw new RuleViolation(
-                        'The Agent assignment cannot change.',
-                        previous: $agentPermissionAssignmentException
-                    );
-                }
+        $grantedAt = $this->clock->now();
+        try {
+            $replacement = $agent->grantPermission($permissionId, $grantedAt);
+        } catch (AgentPermissionAssignmentException $agentPermissionAssignmentException) {
+            throw new RuleViolation(
+                'The Agent assignment cannot change.',
+                previous: $agentPermissionAssignmentException
+            );
+        }
 
-                $this->persistReplacement($agent, $replacement);
+        $this->persistReplacement($agent, $replacement);
 
-                return new PermissionGrantedToAgent($actorId, $agentId, $permissionId, $grantedAt);
-            }
-        );
-
-        return $event;
+        return [
+            new PermissionGrantedToAgent($actorId, $agentId, $permissionId, $grantedAt),
+            new AuditAgentPermissionOutcome(
+                $agent->getPermissionAssignmentRevision(),
+                $replacement->getPermissionAssignmentRevision(),
+                [$permissionId],
+                []
+            ),
+            $grantedAt
+        ];
     }
 
     /**
      * Revokes the Permission when it is directly assigned
+     *
+     * @phpstan-return array{PermissionRevokedFromAgent, AuditAgentPermissionOutcome, DateTimeImmutable}|null
      */
-    public function revoke(UserId $actorId, AgentId $agentId, PermissionId $permissionId): ?PermissionRevokedFromAgent
+    public function revoke(UserId $actorId, AgentId $agentId, PermissionId $permissionId): ?array
     {
-        /** @var PermissionRevokedFromAgent|null $event */
-        $event = $this->unitOfWork->commitTransactional(
-            function () use ($actorId, $agentId, $permissionId): ?PermissionRevokedFromAgent {
-                $agent = $this->getAgent($agentId);
-                $this->getPermission($permissionId);
-                if (!$agent->hasPermission($permissionId)) {
-                    return null;
-                }
+        $agent = $this->getAgent($agentId);
+        $this->getPermission($permissionId);
+        if (!$agent->hasPermission($permissionId)) {
+            return null;
+        }
 
-                $revokedAt = $this->clock->now();
-                try {
-                    $replacement = $agent->revokePermission($permissionId, $revokedAt);
-                } catch (AgentPermissionAssignmentException $agentPermissionAssignmentException) {
-                    throw new RuleViolation(
-                        'The Agent assignment cannot change.',
-                        previous: $agentPermissionAssignmentException
-                    );
-                }
+        $revokedAt = $this->clock->now();
+        try {
+            $replacement = $agent->revokePermission($permissionId, $revokedAt);
+        } catch (AgentPermissionAssignmentException $agentPermissionAssignmentException) {
+            throw new RuleViolation(
+                'The Agent assignment cannot change.',
+                previous: $agentPermissionAssignmentException
+            );
+        }
 
-                $this->persistReplacement($agent, $replacement);
+        $this->persistReplacement($agent, $replacement);
 
-                return new PermissionRevokedFromAgent($actorId, $agentId, $permissionId, $revokedAt);
-            }
-        );
-
-        return $event;
+        return [
+            new PermissionRevokedFromAgent($actorId, $agentId, $permissionId, $revokedAt),
+            new AuditAgentPermissionOutcome(
+                $agent->getPermissionAssignmentRevision(),
+                $replacement->getPermissionAssignmentRevision(),
+                [],
+                [$permissionId]
+            ),
+            $revokedAt
+        ];
     }
 
     /**
      * Replaces the complete direct-Permission assignment set when it differs
      *
      * @phpstan-param list<PermissionId> $permissionIds
+     * @phpstan-return array{AgentPermissionsReplaced, AuditAgentPermissionOutcome, DateTimeImmutable}|null
      */
     public function replace(
         UserId $actorId,
         AgentId $agentId,
         int $expectedPermissionAssignmentRevision,
         array $permissionIds
-    ): ?AgentPermissionsReplaced {
-        /** @var AgentPermissionsReplaced|null $event */
-        $event = $this->unitOfWork->commitTransactional(
-            function () use (
+    ): ?array {
+        $agent = $this->getAgent($agentId);
+        $normalizedPermissionIds = $this->normalizePermissionIds($permissionIds);
+        $this->assertPermissionsAreEligible($normalizedPermissionIds);
+        $replacedAt = $this->clock->now();
+        try {
+            $replacement = $agent->replacePermissions(
+                $normalizedPermissionIds,
+                $expectedPermissionAssignmentRevision,
+                $replacedAt
+            );
+        } catch (AgentPermissionRevisionMismatchException $exception) {
+            throw new PreconditionFailed('The Agent assignment revision is stale.', previous: $exception);
+        } catch (AgentPermissionAssignmentException $exception) {
+            throw new RuleViolation('The Agent assignment cannot change.', previous: $exception);
+        }
+
+        if ($replacement === $agent) {
+            return null;
+        }
+
+        $this->persistReplacement($agent, $replacement);
+        $granted = array_values(array_filter(
+            $replacement->getPermissionIds(),
+            static fn(PermissionId $id): bool => !$agent->hasPermission($id)
+        ));
+        $revoked = array_values(array_filter(
+            $agent->getPermissionIds(),
+            static fn(PermissionId $id): bool => !$replacement->hasPermission($id)
+        ));
+
+        return [
+            new AgentPermissionsReplaced(
                 $actorId,
                 $agentId,
-                $expectedPermissionAssignmentRevision,
-                $permissionIds
-            ): ?AgentPermissionsReplaced {
-                $agent = $this->getAgent($agentId);
-                $normalizedPermissionIds = $this->normalizePermissionIds($permissionIds);
-                $this->assertPermissionsAreEligible($normalizedPermissionIds);
-                $replacedAt = $this->clock->now();
-                try {
-                    $replacement = $agent->replacePermissions(
-                        $normalizedPermissionIds,
-                        $expectedPermissionAssignmentRevision,
-                        $replacedAt
-                    );
-                } catch (AgentPermissionRevisionMismatchException $exception) {
-                    throw new PreconditionFailed('The Agent assignment revision is stale.', previous: $exception);
-                } catch (AgentPermissionAssignmentException $exception) {
-                    throw new RuleViolation('The Agent assignment cannot change.', previous: $exception);
-                }
-
-                if ($replacement === $agent) {
-                    return null;
-                }
-
-                $this->persistReplacement($agent, $replacement);
-
-                return new AgentPermissionsReplaced(
-                    $actorId,
-                    $agentId,
-                    $replacement->getPermissionIds(),
-                    $replacement->getPermissionAssignmentRevision(),
-                    $replacedAt
-                );
-            }
-        );
-
-        return $event;
+                $replacement->getPermissionIds(),
+                $replacement->getPermissionAssignmentRevision(),
+                $replacedAt
+            ),
+            new AuditAgentPermissionOutcome(
+                $agent->getPermissionAssignmentRevision(),
+                $replacement->getPermissionAssignmentRevision(),
+                $granted,
+                $revoked
+            ),
+            $replacedAt
+        ];
     }
 
     /**

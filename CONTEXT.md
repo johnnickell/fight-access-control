@@ -1,5 +1,22 @@
 # Fight AccessControl Context
 
+## Direct Agent Permission audit — TASK-00157 accepted checkpoint
+
+The three direct Permission handlers now support optional last nullable audit storage. Each owns one transaction
+containing authoritative assignment mutation and explicit evidence insertion; the internal coordinator stages work
+and exposes separate typed outcome facts without committing or recording evidence. Actual assignment revisions,
+changed relationships, transition time and message correlation are retained without Agent/credential snapshots.
+Validated no-ops remain unaudited, and current eligibility/reference/cohort/CAS and ordinary publication behavior
+remain. See [current composition](docs/agent-administration-contracts.md#optional-direct-permission-audit-composition-unreleased).
+The Work gate passes 9,553 tests / 94,168 assertions and exact 11,137/11,137 all-suite statements and Unit-only lines
+across 544 source files without exclusions. Minimum composition passes 347 tests / 2,913 assertions; its 43 advisories
+across 13 packages are retained separately from the advisory-free ordinary resolution. Independent Review ACCEPT and
+nonvisual QA PASS cover candidate `b414263f6646700fb5605f3499f30c2735f636f7` (62 scenarios / 1,013 checks).
+TASK-00157 is done; unfinished siblings keep its parents open. Publication/final delivery verification remain pending
+at this administrative checkpoint. Canonical `.runs/handoffs/TASK-00157/land.md` owns subsequent delivery/retirement
+results; `.runs/handoffs/TASK-00157/work.md` owns complete execution evidence and limits. Consumer mapping/connection
+qualification, merge, release and deployment remain separate.
+
 ## Optional User Role membership audit — TASK-00155 accepted checkpoint
 
 Both membership handlers now accept optional final nullable audit storage. Enabled `AuditUserRoleOutcome` joins

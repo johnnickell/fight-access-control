@@ -37,13 +37,14 @@ use Fight\Common\Domain\Type\Arrayable;
  * @phpstan-import-type FeatureOutcomePayload from AuditFeatureOutcome
  * @phpstan-import-type PermissionOutcomePayload from AuditPermissionOutcome
  * @phpstan-import-type RolePermissionPayload from AuditRolePermissionOutcome
+ * @phpstan-import-type AgentPermissionPayload from AuditAgentPermissionOutcome
  * @phpstan-import-type UserRolePayload from AuditUserRoleOutcome
  * @phpstan-type EvidencePayload array{
  *     id: string, actor: array{kind: 'user'|'agent'|'system'|'anonymous', id: string},
  *     subject: SubjectPayload, action: string, occurred_at: string, correlation: ?CorrelationPayload,
  *     facts: UserOutcomePayload|GrantOutcomePayload|AgentOutcomePayload|SessionRevocationPayload|RevisionsPayload
  *         |FeatureOutcomePayload|PermissionOutcomePayload|RolePermissionPayload|AuthenticationOutcomePayload
- *         |AgentNameOutcomePayload|UserRolePayload
+ *         |AgentPermissionPayload|AgentNameOutcomePayload|UserRolePayload
  * }
  *
  * @phpstan-consistent-constructor
@@ -63,7 +64,8 @@ class AuditEvidence implements Arrayable
         private readonly DateTimeImmutable $occurredAt,
         private readonly AuditUserOutcome|AuditGrantOutcome|AuditAgentOutcome
         |AuditSessionRevocation|AuditRoleRevisions|AuditFeatureOutcome|AuditPermissionOutcome
-        |AuditRolePermissionOutcome|AuditAuthenticationOutcome|AuditAgentNameOutcome|AuditUserRoleOutcome $facts,
+        |AuditRolePermissionOutcome|AuditAuthenticationOutcome|AuditAgentPermissionOutcome
+        |AuditAgentNameOutcome|AuditUserRoleOutcome $facts,
         private readonly ?AuditCorrelation $correlation
     ) {
         $subjectId = $subject->getId();
@@ -96,6 +98,12 @@ class AuditEvidence implements Arrayable
 
         if ($facts instanceof AuditGrantOutcome && $subjectId instanceof UserId) {
             $this->validateGrantOutcome($facts);
+
+            return;
+        }
+
+        if ($facts instanceof AuditAgentPermissionOutcome && $subjectId instanceof AgentId) {
+            $facts->assertOutcome($action);
 
             return;
         }
@@ -179,7 +187,7 @@ class AuditEvidence implements Arrayable
         DateTimeImmutable $occurredAt,
         AuditUserOutcome|AuditGrantOutcome|AuditAgentOutcome|AuditSessionRevocation|AuditRoleRevisions
         |AuditFeatureOutcome|AuditPermissionOutcome|AuditRolePermissionOutcome|AuditAuthenticationOutcome
-        |AuditAgentNameOutcome|AuditUserRoleOutcome $facts,
+        |AuditAgentPermissionOutcome|AuditAgentNameOutcome|AuditUserRoleOutcome $facts,
         ?AuditCorrelation $correlation
     ): static {
         return new static(AuditEvidenceId::generate(), $actorId, $subject, $action, $occurredAt, $facts, $correlation);
@@ -232,6 +240,8 @@ class AuditEvidence implements Arrayable
         }
 
         $facts = match ($action) {
+            AuditAction::AGENT_PERMISSION_GRANTED, AuditAction::AGENT_PERMISSION_REVOKED,
+                AuditAction::AGENT_PERMISSIONS_REPLACED => AuditAgentPermissionOutcome::fromArray($data['facts']),
             AuditAction::AGENT_NAME_CHANGED => AuditAgentNameOutcome::fromArray($data['facts']),
             AuditAction::USER_ROLE_ASSIGNED, AuditAction::USER_ROLE_REMOVED
                 => AuditUserRoleOutcome::fromArray($data['facts']),
@@ -325,7 +335,7 @@ class AuditEvidence implements Arrayable
      */
     public function getFacts(): AuditUserOutcome|AuditGrantOutcome|AuditAgentOutcome
         |AuditSessionRevocation|AuditRoleRevisions|AuditFeatureOutcome|AuditPermissionOutcome|AuditRolePermissionOutcome
-        |AuditAuthenticationOutcome|AuditAgentNameOutcome|AuditUserRoleOutcome
+        |AuditAuthenticationOutcome|AuditAgentPermissionOutcome|AuditAgentNameOutcome|AuditUserRoleOutcome
     {
         return $this->facts;
     }

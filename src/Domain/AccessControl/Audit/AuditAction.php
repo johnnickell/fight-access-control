@@ -49,6 +49,9 @@ enum AuditAction: string
     case AGENT_PROVISIONED = 'agent.provisioned';
     case AGENT_CREDENTIAL_ROTATED = 'agent.credential_rotated';
     case AGENT_CREDENTIAL_REVOKED = 'agent.credential_revoked';
+    case AGENT_PERMISSION_GRANTED = 'agent.permission_granted';
+    case AGENT_PERMISSION_REVOKED = 'agent.permission_revoked';
+    case AGENT_PERMISSIONS_REPLACED = 'agent.permissions_replaced';
     case ROLE_CREATED = 'role.created';
     case ROLE_RENAMED = 'role.renamed';
     case ROLE_REMOVED = 'role.removed';
