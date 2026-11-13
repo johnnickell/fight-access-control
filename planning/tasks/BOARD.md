@@ -5,13 +5,11 @@ dependencies, acceptance, and verification.
 
 ## What's Next?
 
-Active Task: [TASK-00154](00154-TASK.md) — Audit custom Role Permission changes.
+First ready Task: [TASK-00127](00127-TASK.md) — Audit synchronous User security and session operations.
 
 ## In Progress
 
-| Order | TASK ID | Title | Parent TICKET | Status | Blocked by | PR |
-| --- | --- | --- | --- | --- | --- | --- |
-| 409 | [TASK-00154](00154-TASK.md) | Audit custom Role Permission changes | [TICKET-00045](../tickets/00045-TICKET.md) — Audit Role, membership and Agent administration | in-progress | [TASK-00122](00122-TASK.md) | — |
+No Tasks are currently in this state.
 
 ## Ready Frontier
 
@@ -214,6 +212,7 @@ No Tasks are currently in this state.
 | 404 | [TASK-00124](00124-TASK.md) | Audit invitation delivery and expiry | [TICKET-00044](../tickets/00044-TICKET.md) — Audit User account and credential journeys | done | [TASK-00122](00122-TASK.md) | https://github.com/johnnickell/fight-access-control/pull/224 |
 | 405 | [TASK-00125](00125-TASK.md) | Audit password-reset requests, delivery and expiry | [TICKET-00044](../tickets/00044-TICKET.md) — Audit User account and credential journeys | done | [TASK-00122](00122-TASK.md) | https://github.com/johnnickell/fight-access-control/pull/229 |
 | 406 | [TASK-00126](00126-TASK.md) | Audit email-change requests, cancellation, delivery and expiry | [TICKET-00044](../tickets/00044-TICKET.md) — Audit User account and credential journeys | done | [TASK-00122](00122-TASK.md) | https://github.com/johnnickell/fight-access-control/pull/230 |
+| 409 | [TASK-00154](00154-TASK.md) | Audit custom Role Permission changes | [TICKET-00045](../tickets/00045-TICKET.md) — Audit Role, membership and Agent administration | done | [TASK-00122](00122-TASK.md) | https://github.com/johnnickell/fight-access-control/pull/233 |
 | 499 | [TASK-00180](00180-TASK.md) | Map existing admission evidence | [TICKET-00052](../tickets/00052-TICKET.md) — Qualify independent and combined admission | done | — | https://github.com/johnnickell/fight-access-control/pull/187 |
 | 501 | [TASK-00170](00170-TASK.md) | Declare and discover effective Feature requirements | [TICKET-00049](../tickets/00049-TICKET.md) — Declare effective action requirements | done | — | https://github.com/johnnickell/fight-access-control/pull/190 |
 | 502 | [TASK-00171](00171-TASK.md) | Declare effective portable Permission requirements | [TICKET-00049](../tickets/00049-TICKET.md) — Declare effective action requirements | done | [TASK-00170](00170-TASK.md) | https://github.com/johnnickell/fight-access-control/pull/191 |

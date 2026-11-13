@@ -125,7 +125,8 @@ TASK-00122 directly; no mutual blocker is demonstrated and each retains its own 
 TICKET-00045's complete five-TASK plan is approved/written as [TASK-00153](tasks/00153-TASK.md) custom Role lifecycle,
 [TASK-00154](tasks/00154-TASK.md) Role Permissions, [TASK-00155](tasks/00155-TASK.md) User Role membership,
 [TASK-00156](tasks/00156-TASK.md) Agent names and [TASK-00157](tasks/00157-TASK.md) direct Agent Permissions/coordinator
-ownership. Orders 408–412 are ready-for-agent, each blocked only by TASK-00122 without a demonstrated mutual wait.
+ownership. TASK-00154 is independently accepted and done; the other slices remain ready-for-agent. Orders 408–412
+each depend only on TASK-00122 without a demonstrated mutual wait.
 Allocation covers 11/11 handlers as 3 + 2 + 2 + 1 + 3 plus the coordinator solely in TASK-00157, not source audit or
 transaction/consumer qualification. Reuse existing required typed actors and actual shared mutation/evidence
 transactions; preserve complete Role/assignment revisions, exact persisted rename time and validated no-change.
