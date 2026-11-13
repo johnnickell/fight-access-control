@@ -53,10 +53,51 @@ Every writer still shares transaction-duration identity/name, tier, registration
 [registration admission](user-registration.md). A preliminary read is not final admission. Consumers qualify their
 actual connection, locks, all writers, rollback and both winner orders; package models do not qualify SQL adapters.
 
+## Optional Role Permission audit composition
+
+`GrantPermissionToCustomRoleHandler` and `RevokePermissionFromCustomRoleHandler` accept a last
+`?AuditEvidenceRepository $auditEvidenceRepository = null` constructor argument. Omit it or pass null to disable
+durable evidence deliberately. Existing five-argument and named callers remain valid; to enable evidence, inject
+storage sharing the Role/Permission repositories' actual connection and owning transaction:
+
+```php
+$handler = new GrantPermissionToCustomRoleHandler(
+    roleRepository: $roleRepository,
+    permissionRepository: $permissionRepository,
+    clock: $clock,
+    unitOfWork: $unitOfWork,
+    eventDispatcher: $eventDispatcher,
+    auditEvidenceRepository: $auditEvidenceRepository,
+);
+```
+
+Use the same final argument for revocation. Both Commands still require their existing typed `UserId` actor;
+there is no new nullable actor, ambient identity lookup or fallback identity. Actor attribution supplies no entry
+permission. Current Command/Event payloads and round trips do not change.
+
+After authoritative Role replacement and before commit, the handler explicitly inserts one `ROLE_PERMISSION_GRANTED`
+or `ROLE_PERMISSION_REVOKED` outcome. Its primary subject is the Role; `AuditRolePermissionOutcome` contains the
+related Permission identity and the exact before/after Role incarnation/revisions. It does not claim a Permission
+mutation or invent a Permission revision. The occurrence time is the same trusted Clock sample used by the Role
+transition and success Event. Correlation is the actual incoming message ID, not its timestamp, payload or a generic
+idempotency key. Evidence identity is separately unique. No raw names, entities, messages or diagnostics are captured.
+See [typed evidence](audit-evidence.md) for current storage mapping and access restrictions.
+
+Already-held grants and absent revocations retain their full validation and non-writing fences, with no revision,
+success fact or mutation evidence. Configured audit failure rolls back the staged Role and evidence together; it
+never falls back to disabled execution. Concurrent loss creates no proposed-successor record. Lost acknowledgement
+remains uncertain; post-commit subscriber failure throws without undoing committed state/evidence. Revocation of an
+existing protected membership remains allowed by its existing policy; audit adds no new eligibility restriction.
+
+Consumers must opt in explicitly and qualify their real mapping, shared connection, locks, all writers, rollback,
+uncertain commit and both race winners. Package transaction-aware fixtures are not consumer database proof. This
+adds no rejected-attempt store, audit-only transaction, compatibility reader or backfill. Other Role lifecycle and
+User membership audit wiring, and removal of consumer interception workarounds, remain separately owned.
+
 ## Transactions, facts and callers
 
-One owning transaction persists the aggregate transition and any actually adopted atomic audit. These seven current
-handlers do not gain an audit dependency or new audit feature here; optional audit remains separately owned.
+One owning transaction persists the aggregate transition and any enabled atomic audit. The two Role Permission
+handlers now support the optional composition above; other membership/lifecycle audit slices remain separately owned.
 Purpose-specific success facts follow confirmed commit only. Pre-commit failure rolls back, while lost commit
 acknowledgement preserves uncertainty and a post-commit publication failure still throws with committed state intact.
 Failure notification uses coarse constant text and cannot replace the primary throwable, even if both publishers

@@ -7,7 +7,8 @@ adds [optional invitation delivery/expiry composition](credential-delivery.md#op
 TASK-00125 adds [optional reset request/delivery/expiry composition](credential-delivery.md#optional-password-reset-audit-composition-unreleased).
 TASK-00126 adds [optional email-change composition](credential-delivery.md#optional-email-change-audit-composition-unreleased)
 for request/cancel/delivery/expiry, including self-service outcomes. No release,
-consumer adoption or independent acceptance is claimed by this document.
+consumer adoption or independent acceptance is claimed by this document. TASK-00154 adds
+[optional custom Role Permission grant/revoke composition](role-membership-contracts.md#optional-role-permission-audit-composition).
 
 ## Current construction and persistence
 
@@ -83,8 +84,9 @@ correlation; record identity/correlation is neither authority nor universal dedu
   with explicit absent creation/removal state. Reconciliation retains managed ownership in both states; it cannot
   claim a custom Permission or demote managed ownership. Permissions have no package revision: none is fabricated.
 
-These shared construction/hydration contracts do not insert audit into currently unaudited Role, Feature or
-Permission handlers. Family wiring and expanded outcome coverage remain separate.
+The custom Role Permission grant/revoke handlers now explicitly insert `AuditRolePermissionOutcome` inside their
+existing transactions when storage is supplied. The shared construction/hydration contracts alone do not insert
+audit into other currently unaudited Role, Feature or Permission handlers; their family wiring remains separate.
 
 `AuditSubject` admits only the supported User, Agent, Role, Permission and Feature identities. Action/facts must
 also support that subject; accepting an identity alone does not add a new outcome or audit-writing path.

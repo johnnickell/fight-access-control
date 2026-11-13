@@ -1412,6 +1412,14 @@ planning/source observations below describe its historical baseline; the shared 
 
 ## Approved explicit optional atomic audit destination
 
+TASK-00154's Work slice adds optional last nullable audit storage to custom Role Permission grant/revoke only.
+Enabled insertion follows authoritative Role persistence inside the existing transaction, retaining the required
+typed actor, related Permission, exact Role incarnation/revisions, trusted transition time and actual message ID.
+No-change keeps validation/fences without evidence; audit failure rolls back staged state/evidence and ordinary
+uncertain/post-commit failure truth remains. See [composition](docs/role-membership-contracts.md#optional-role-permission-audit-composition).
+Other administration slices remain separately owned. Work verification and independent acceptance are separate;
+no consumer database qualification, workaround removal, publication or release is claimed here.
+
 TASK-00167's [test-only conformance](docs/audit-transaction-conformance.md) now exercises the existing enabled
 EnableUserHandler with ordinary shared transactions, reopened modeled User/evidence bytes, audit rollback,
 concurrency loss, both commit-uncertainty outcomes, publication failure and two-active-composition wrong-connection
