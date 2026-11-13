@@ -166,14 +166,16 @@ final readonly class MembershipContractFixture
                 $roleRepository,
                 $clock,
                 $unitOfWork,
-                $eventDispatcher
+                $eventDispatcher,
+                $auditEvidenceRepository
             ),
             'unassign' => new UserHandlers\RemoveRoleFromUserHandler(
                 $userRepository,
                 $roleRepository,
                 $clock,
                 $unitOfWork,
-                $eventDispatcher
+                $eventDispatcher,
+                $auditEvidenceRepository
             ),
             default => throw new LogicException('Unsupported membership operation.')
         };

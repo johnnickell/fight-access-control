@@ -1,5 +1,20 @@
 # Fight AccessControl Context
 
+## Optional User Role membership audit — TASK-00155 accepted checkpoint
+
+Both membership handlers now accept optional final nullable audit storage. Enabled `AuditUserRoleOutcome` joins
+membership persistence in the same transaction, with the required originating User actor, real assignment-counter
+transition, typed Role and observed complete Role reference revision, trusted outcome time and message correlation.
+No generic User revision, Role/authentication mutation or new caller precondition is invented. Disabled composition
+makes no durability promise; validated retries add no record. Existing User-state, managed Super Admin, reference/CAS,
+rollback, uncertain-commit and ordinary publication-failure contracts remain. See
+[current composition](docs/role-membership-contracts.md#optional-user-membership-audit-composition).
+Independent Review v3 ACCEPT and nonvisual QA PASS cover candidate
+`819e42fa58c506a37ca78af6be5f1684f57ddde4`; QA passed 43 scenarios / 466 checks without findings. TASK-00155 is done;
+unfinished siblings keep TICKET-00045/EPIC-00017 open. Publication/final-head verification remain pending at this
+checkpoint; canonical `.runs/handoffs/TASK-00155/land.md` owns delivery and retirement outcomes. Package fixtures do
+not qualify consumer storage/schema, connection/locks, entry/target authority, last-admin policy or deployment.
+
 ## Synchronous optional atomic audit — TASK-00127 accepted checkpoint
 
 The four direct User capabilities and RevokeSessionHandler now accept optional final nullable audit storage.

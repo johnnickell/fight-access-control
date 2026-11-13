@@ -9,6 +9,7 @@ TASK-00126 adds [optional email-change composition](credential-delivery.md#optio
 for request/cancel/delivery/expiry, including self-service outcomes.
 TASK-00127 adds [optional synchronous User/session composition](user-authentication.md#optional-atomic-audit).
 TASK-00154 adds [optional custom Role Permission grant/revoke composition](role-membership-contracts.md#optional-role-permission-audit-composition).
+TASK-00155 adds [optional User Role membership composition](role-membership-contracts.md#optional-user-membership-audit-composition).
 No release, consumer adoption or independent acceptance is claimed by this document.
 
 ## Current construction and persistence
@@ -38,6 +39,11 @@ correlation; record identity/correlation is neither authority nor universal dedu
   unchanged unaffected counters. Same-address pending-registration recovery may leave User counters unchanged;
   enable/restore do not invent security-counter increments. Soft deletion retains an actual successor, not
   fictitious physical removal.
+- `AuditUserRoleOutcome` captures actual before/after User counters, advancing only authorization-assignment once
+  while preserving lifecycle/authentication and other counters. It includes a typed related Role ID and the complete
+  `role_reference_revision` read for admission, not a Role mutation or a new caller precondition. Existing membership
+  reference fences do not promise an unchanged Role definition through commit. Both membership actions preserve this
+  distinction; no generic User revision is invented and no raw data/context bag is admitted.
 - `AuditGrantOutcome` captures actual grant revisions/delivery identities without implying a User mutation.
   Delivery facts carry the actual persisted `CredentialDeliveryStatus` and bounded failure classification, not provider
   diagnostics. Permanent provider failure pairs with permanent-failure state; retryable/unexpected failure pairs
@@ -90,8 +96,8 @@ correlation; record identity/correlation is neither authority nor universal dedu
   with explicit absent creation/removal state. Reconciliation retains managed ownership in both states; it cannot
   claim a custom Permission or demote managed ownership. Permissions have no package revision: none is fabricated.
 
-The custom Role Permission grant/revoke handlers now explicitly insert `AuditRolePermissionOutcome` inside their
-existing transactions when storage is supplied. The shared construction/hydration contracts alone do not insert
+The custom Role Permission grant/revoke handlers explicitly insert `AuditRolePermissionOutcome`, and the two User
+membership handlers insert `AuditUserRoleOutcome`, inside their existing transactions when storage is supplied. The shared construction/hydration contracts alone do not insert
 audit into other currently unaudited Role, Feature or Permission handlers; their family wiring remains separate.
 
 `AuditSubject` admits only the supported User, Agent, Role, Permission and Feature identities. Action/facts must

@@ -5,7 +5,7 @@ dependencies, acceptance, and verification.
 
 ## What's Next?
 
-First ready Task: [TASK-00155](00155-TASK.md) — Audit User Role membership changes.
+First ready Task: [TASK-00156](00156-TASK.md) — Audit Agent name updates.
 
 ## In Progress
 
@@ -15,7 +15,6 @@ No Tasks are currently in this state.
 
 | Order | TASK ID | Title | Parent TICKET | Status | Blocked by | PR |
 | --- | --- | --- | --- | --- | --- | --- |
-| 410 | [TASK-00155](00155-TASK.md) | Audit User Role membership changes | [TICKET-00045](../tickets/00045-TICKET.md) — Audit Role, membership and Agent administration | ready-for-agent | [TASK-00122](00122-TASK.md) | — |
 | 411 | [TASK-00156](00156-TASK.md) | Audit Agent name updates | [TICKET-00045](../tickets/00045-TICKET.md) — Audit Role, membership and Agent administration | ready-for-agent | [TASK-00122](00122-TASK.md) | — |
 | 412 | [TASK-00157](00157-TASK.md) | Audit direct Agent Permission assignments | [TICKET-00045](../tickets/00045-TICKET.md) — Audit Role, membership and Agent administration | ready-for-agent | [TASK-00122](00122-TASK.md) | — |
 | 413 | [TASK-00158](00158-TASK.md) | Audit Feature creation and retirement | [TICKET-00046](../tickets/00046-TICKET.md) — Audit Feature and managed-policy changes | ready-for-agent | [TASK-00122](00122-TASK.md) | — |
@@ -213,6 +212,7 @@ No Tasks are currently in this state.
 | 407 | [TASK-00127](00127-TASK.md) | Audit synchronous User security and session operations | [TICKET-00044](../tickets/00044-TICKET.md) — Audit User account and credential journeys | done | [TASK-00122](00122-TASK.md) | https://github.com/johnnickell/fight-access-control/pull/231 |
 | 408 | [TASK-00153](00153-TASK.md) | Audit custom Role lifecycle changes | [TICKET-00045](../tickets/00045-TICKET.md) — Audit Role, membership and Agent administration | done | [TASK-00122](00122-TASK.md) | https://github.com/johnnickell/fight-access-control/pull/232 |
 | 409 | [TASK-00154](00154-TASK.md) | Audit custom Role Permission changes | [TICKET-00045](../tickets/00045-TICKET.md) — Audit Role, membership and Agent administration | done | [TASK-00122](00122-TASK.md) | https://github.com/johnnickell/fight-access-control/pull/233 |
+| 410 | [TASK-00155](00155-TASK.md) | Audit User Role membership changes | [TICKET-00045](../tickets/00045-TICKET.md) — Audit Role, membership and Agent administration | done | [TASK-00122](00122-TASK.md) | https://github.com/johnnickell/fight-access-control/pull/236 |
 | 499 | [TASK-00180](00180-TASK.md) | Map existing admission evidence | [TICKET-00052](../tickets/00052-TICKET.md) — Qualify independent and combined admission | done | — | https://github.com/johnnickell/fight-access-control/pull/187 |
 | 501 | [TASK-00170](00170-TASK.md) | Declare and discover effective Feature requirements | [TICKET-00049](../tickets/00049-TICKET.md) — Declare effective action requirements | done | — | https://github.com/johnnickell/fight-access-control/pull/190 |
 | 502 | [TASK-00171](00171-TASK.md) | Declare effective portable Permission requirements | [TICKET-00049](../tickets/00049-TICKET.md) — Declare effective action requirements | done | [TASK-00170](00170-TASK.md) | https://github.com/johnnickell/fight-access-control/pull/191 |
