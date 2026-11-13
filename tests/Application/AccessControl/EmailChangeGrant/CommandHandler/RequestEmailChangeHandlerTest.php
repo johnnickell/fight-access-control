@@ -149,12 +149,12 @@ final class RequestEmailChangeHandlerTest extends TestCase
             $userRepository,
             $emailChangeGrantRepository,
             $authorization,
-            $auditEvidenceRepository,
             $unitOfWork,
             new FixedEmailChangeCredentialGenerator('change-once'),
             new PrefixEmailChangeDeliveryCipher(),
             new FixedClock('2026-08-22T12:00:00+00:00'),
-            $eventDispatcher
+            $eventDispatcher,
+            $auditEvidenceRepository
         );
 
         $handler->handle(CommandMessage::create(new RequestEmailChange(
@@ -189,7 +189,8 @@ final class RequestEmailChangeHandlerTest extends TestCase
         self::assertCount(1, $eventDispatcher->events());
         self::assertInstanceOf(EmailChangeRequested::class, $eventDispatcher->events()[0]);
         self::assertSame(0, $authorization->calls());
-        self::assertSame([], $auditEvidenceRepository->all());
+        self::assertCount(1, $auditEvidenceRepository->all());
+        self::assertSame($user->getId(), $auditEvidenceRepository->all()[0]->actorId());
     }
 
     public function test_a_successor_cas_loss_rolls_back_the_new_destination_reservation(): void
@@ -434,12 +435,12 @@ final class RequestEmailChangeHandlerTest extends TestCase
             $userRepository,
             $emailChangeGrantRepository,
             $authorization,
-            $auditEvidenceRepository,
             $unitOfWork,
             new FixedEmailChangeCredentialGenerator('change-once'),
             new PrefixEmailChangeDeliveryCipher(),
             new FixedClock('2026-08-22T12:00:00+00:00'),
-            $eventDispatcher
+            $eventDispatcher,
+            $auditEvidenceRepository
         );
         $actorId = UserId::generate();
 
@@ -460,7 +461,7 @@ final class RequestEmailChangeHandlerTest extends TestCase
         self::assertSame($actorId, $authorization->lastActorId());
         self::assertSame($target->getId(), $authorization->lastUserId());
         $evidence = $auditEvidenceRepository->all()[0];
-        self::assertSame('user.email_change_administratively_requested', $evidence->action()->value);
+        self::assertSame('user.email_change_requested', $evidence->action()->value);
         self::assertSame($actorId, $evidence->actorId());
         self::assertSame($target->getId(), $evidence->getSubject()->getId());
         $facts = $evidence->getFacts();
@@ -489,12 +490,12 @@ final class RequestEmailChangeHandlerTest extends TestCase
             $userRepository,
             $emailChangeGrantRepository,
             $authorization,
-            $auditEvidenceRepository,
             $unitOfWork,
             new FixedEmailChangeCredentialGenerator('change-once'),
             new PrefixEmailChangeDeliveryCipher(),
             new FixedClock('2026-08-22T12:00:00+00:00'),
-            $eventDispatcher
+            $eventDispatcher,
+            $auditEvidenceRepository
         );
         $actorId = UserId::generate();
 
@@ -527,12 +528,12 @@ final class RequestEmailChangeHandlerTest extends TestCase
             $userRepository,
             $emailChangeGrantRepository,
             new EmailChangeService\FixedEmailChangeAdministrationAuthorization(true),
-            $auditEvidenceRepository,
             $unitOfWork,
             new FixedEmailChangeCredentialGenerator('change-once'),
             new PrefixEmailChangeDeliveryCipher(),
             new FixedClock('2026-08-22T12:00:00+00:00'),
-            $eventDispatcher
+            $eventDispatcher,
+            $auditEvidenceRepository
         );
 
         $this->expectException(RuntimeException::class);
@@ -560,12 +561,12 @@ final class RequestEmailChangeHandlerTest extends TestCase
             $userRepository,
             $emailChangeGrantRepository,
             new EmailChangeService\FixedEmailChangeAdministrationAuthorization(true),
-            new InMemoryAuditEvidenceRepository($unitOfWork),
             $unitOfWork,
             new FixedEmailChangeCredentialGenerator('change-once'),
             new PrefixEmailChangeDeliveryCipher(),
             new FixedClock('2026-08-22T12:00:00+00:00'),
-            $eventDispatcher
+            $eventDispatcher,
+            new InMemoryAuditEvidenceRepository($unitOfWork)
         );
     }
 }

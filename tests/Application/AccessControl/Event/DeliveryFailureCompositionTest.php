@@ -149,23 +149,23 @@ final class DeliveryFailureCompositionTest extends TestCase
             $passwordResetGrantRepository = new InMemoryEmailChangeGrantRepository($unitOfWork);
             $worker = new DeliverEmailChangeHandler(
                 $passwordResetGrantRepository,
-                $auditEvidenceRepository,
                 $unitOfWork,
                 new PrefixEmailChangeDeliveryCipher(),
                 $provider,
                 $clock,
-                $eventDispatcher
+                $eventDispatcher,
+                $auditEvidenceRepository
             );
             $request = new RequestEmailChangeHandler(
                 $userRepository,
                 $passwordResetGrantRepository,
                 new EmailService\FixedEmailChangeAdministrationAuthorization(true),
-                $auditEvidenceRepository,
                 $unitOfWork,
                 new FixedEmailChangeCredentialGenerator('delivery-once'),
                 new PrefixEmailChangeDeliveryCipher(),
                 $clock,
-                $eventDispatcher
+                $eventDispatcher,
+                $auditEvidenceRepository
             );
             $command = new RequestEmailChange(
                 UserId::generate(),

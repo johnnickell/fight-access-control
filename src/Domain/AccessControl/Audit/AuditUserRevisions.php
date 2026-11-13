@@ -116,6 +116,7 @@ final readonly class AuditUserRevisions implements Arrayable
         $validState = match ($action) {
             AuditAction::USER_ACTIVATED => $before->state === UserState::PENDING_ACTIVATION
                 && $this->state === UserState::ACTIVE,
+            AuditAction::EMAIL_CHANGE_EXPIRED => $this->state === $before->state,
             AuditAction::USER_PENDING_INVITATION_CORRECTED, AuditAction::USER_PENDING_REGISTRATION_RECOVERED
                 => $before->state === UserState::PENDING_ACTIVATION && $this->state === $before->state,
             AuditAction::USER_ENABLED => $before->state === UserState::DISABLED && $this->state === UserState::ACTIVE,
@@ -135,7 +136,8 @@ final readonly class AuditUserRevisions implements Arrayable
             AuditAction::USER_DISABLED, AuditAction::USER_DELETED => ['authentication_version'],
             AuditAction::PASSWORD_CHANGED, AuditAction::PASSWORD_RESET_COMPLETED
                 => ['authentication_version', 'authentication_authority'],
-            AuditAction::EMAIL_CHANGE_REQUESTED, AuditAction::EMAIL_CHANGE_CANCELLED => ['email_reservation'],
+            AuditAction::EMAIL_CHANGE_REQUESTED, AuditAction::EMAIL_CHANGE_CANCELLED,
+                AuditAction::EMAIL_CHANGE_EXPIRED => ['email_reservation'],
             AuditAction::EMAIL_CHANGE_CONFIRMED
                 => ['authentication_version', 'authentication_authority', 'email_reservation', 'canonical_email'],
             AuditAction::USER_PENDING_INVITATION_CORRECTED => ['canonical_email'],
