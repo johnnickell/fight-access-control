@@ -450,6 +450,18 @@
       "reason": "Executes real SQLite/DBAL repository, schema and transaction behavior; retained integration protection.",
       "methods": {}
     },
+    "Fight\\Test\\AccessControl\\Application\\AccessControl\\Agent\\Execution\\AgentExecutionReadAdmissionTest": {
+      "file": "tests/Application/AccessControl/Agent/Execution/AgentExecutionReadAdmissionTest.php",
+      "category": "Integration",
+      "reason": "Real Common Tools/buses/handlers and DBAL SQLite scoped readers with actual AccessControl authority.",
+      "methods": {}
+    },
+    "Fight\\Test\\AccessControl\\Application\\AccessControl\\Agent\\Execution\\AgentExecutionReadAdmissionUnitTest": {
+      "file": "tests/Application/AccessControl/Agent/Execution/AgentExecutionReadAdmissionUnitTest.php",
+      "category": "Unit",
+      "reason": "Isolated admission with controlled scope and in-memory authority/nonce/clock/UoW; no real storage or transport.",
+      "methods": {}
+    },
     "Fight\\Test\\AccessControl\\Application\\AccessControl\\Agent\\Detail\\AgentDetailReadAdmissionUnitTest": {
       "file": "tests/Application/AccessControl/Agent/Detail/AgentDetailReadAdmissionUnitTest.php",
       "category": "Unit",

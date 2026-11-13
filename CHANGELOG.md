@@ -9,6 +9,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Scoped Agent execution/timeline admission through Common's real summary/list/get/phase/activity handlers.
+  Direct read Permissions intersect trusted consumer relationships; independent reference Permissions cannot
+  grant bodies or widen scope. Require Common **^1.5.1** for activity-scoped aggregate/derived-inspection correction;
+  v1.5.0 supplied the APIs but was insufficient for this guarantee. Consumers retain invocation-stability and
+  real persistence/authority-writer race qualification. See [execution reads](docs/agent-execution-reads.md).
+
 - Optional final audit repository composition for invitation delivery, resend, retry and expiry. Enabled outcome
   evidence joins the actual mutation transaction; disabled composition makes no durable-audit promise. Expiry now
   records committed material expiry with typed actor kind/UUID Command/Event payloads. This breaks the formerly

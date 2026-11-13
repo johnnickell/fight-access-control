@@ -5,17 +5,18 @@ dependencies, acceptance, and verification.
 
 ## What's Next?
 
-First ready Task: [TASK-00089](00089-TASK.md) — Compose scoped execution and timeline reads.
+Active Task: [TASK-00089](00089-TASK.md) — Compose scoped execution and timeline reads.
 
 ## In Progress
 
-No Tasks are currently in this state.
+| Order | TASK ID | Title | Parent TICKET | Status | Blocked by | PR |
+| --- | --- | --- | --- | --- | --- | --- |
+| 89 | [TASK-00089](00089-TASK.md) | Compose scoped execution and timeline reads | [TICKET-00029](../tickets/00029-TICKET.md) — Compose scoped execution and protected-detail access | in-progress | [TASK-00084](00084-TASK.md) | — |
 
 ## Ready Frontier
 
 | Order | TASK ID | Title | Parent TICKET | Status | Blocked by | PR |
 | --- | --- | --- | --- | --- | --- | --- |
-| 89 | [TASK-00089](00089-TASK.md) | Compose scoped execution and timeline reads | [TICKET-00029](../tickets/00029-TICKET.md) — Compose scoped execution and protected-detail access | ready-for-agent | [TASK-00084](00084-TASK.md) | — |
 | 405 | [TASK-00125](00125-TASK.md) | Audit password-reset requests, delivery and expiry | [TICKET-00044](../tickets/00044-TICKET.md) — Audit User account and credential journeys | ready-for-agent | [TASK-00122](00122-TASK.md) | — |
 | 406 | [TASK-00126](00126-TASK.md) | Audit email-change requests, cancellation, delivery and expiry | [TICKET-00044](../tickets/00044-TICKET.md) — Audit User account and credential journeys | ready-for-agent | [TASK-00122](00122-TASK.md) | — |
 | 407 | [TASK-00127](00127-TASK.md) | Audit synchronous User security and session operations | [TICKET-00044](../tickets/00044-TICKET.md) — Audit User account and credential journeys | ready-for-agent | [TASK-00122](00122-TASK.md) | — |

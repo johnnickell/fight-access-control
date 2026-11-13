@@ -2,6 +2,7 @@
   "schema": 1,
   "roots": ["src", "openapi"],
   "rules": [
+    {"ticket": "TICKET-00029", "task": "TASK-00089", "path": "src/Application/AccessControl/Agent/Execution/.*"},
     {"ticket": "TICKET-00029", "task": "TASK-00090", "path": "src/Application/AccessControl/Agent/Detail/.*"},
     {"ticket": "TICKET-00031", "task": "TASK-00098", "path": "src/Application/AccessControl/Agent/Task/AgentTaskRemoval(Admission|Scope)\\.php"},
     {"ticket": "TICKET-00031", "task": "TASK-00099", "path": "src/Application/AccessControl/Agent/Task/AgentTask(Input|CancellationObservation)(Admission|Scope)\\.php"},
