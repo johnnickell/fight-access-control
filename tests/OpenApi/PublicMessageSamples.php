@@ -88,7 +88,7 @@ final class PublicMessageSamples
             'Feature/Command/SetFeatureStatus'                               => 'feature_id status expected_revision',
             'ManagedPolicy/Command/ReconcileManagedPolicy'                   => 'permissions roles referenced_permission_ids',
             'PasswordResetGrant/Command/DeliverPasswordReset'                => 'actor_kind actor_id user_id password_reset_delivery_id',
-            'PasswordResetGrant/Command/ExpirePasswordResetDelivery'         => 'actor_id user_id password_reset_delivery_id occurred_at',
+            'PasswordResetGrant/Command/ExpirePasswordResetDelivery'         => 'actor_kind actor_id user_id password_reset_delivery_id occurred_at',
             'PasswordResetGrant/Command/RequestPasswordReset'                => 'email',
             'RefreshSession/Command/RevokeSession'                           => 'actor_id current_session_id target_session_id reason',
             'Role/Command/CreateCustomRole'                                  => 'actor_id role_id name',

@@ -11,8 +11,8 @@ Consumers protect every worker and alternate entry point; actor IDs, stored orig
 Unknown/ineligible password-reset requests still complete without work or an existence signal. Ordinary stale,
 early or terminal expiry dispatch remains a no-op; email expiry still releases only its exact reservation in every
 supported account state. No new Query/subscriber/admission policy is introduced. Invitation audit composition is
-explicitly optional as described below. Email-change audit is also optional under the following contract;
-password-reset composition retains its separate current wiring.
+explicitly optional as described below, as are password-reset request/delivery/expiry and email-change
+request/cancellation/delivery/expiry audit.
 
 Use Common Application `StateConflict` for known request/state/CAS/claim/lease refusals and invitation retry/resend
 refusals. Email request/cancellation use `ResourceNotFound` for an absent requested User and `PermissionDenied`
@@ -120,10 +120,10 @@ verification belong to TASK-00133's local handoff, not consumer database/provide
 Human credential Commands, Queries and Events decode required fields without scalar or object coercion: identity,
 actor, email, purpose and timestamp payload fields must be strings, and discovery limits must be integers.
 The in-progress [audit contract replacement](audit-evidence.md) additionally requires `actor_kind` alongside
-`actor_id` on invitation delivery/resend/retry/expiry and reset delivery payloads and their affected Events. Direct
+`actor_id` on invitation delivery/resend/retry/expiry and reset delivery/expiry payloads and their affected Events. Direct
 UserId/AgentId/SystemId/AnonymousId values preserve the admitted origin; workers do not parse labels or substitute
 themselves. Deliberate public registration/reset-request subscribers establish AnonymousId. Other current human
-message contracts and other families' constructor/expiry wiring are unchanged. TASK-00123 separately makes the
+message contracts and email-change constructor/expiry wiring are unchanged. TASK-00123 separately makes the
 eight account lifecycle handlers' final audit repository optional.
 Timestamp-bearing payloads require an explicit valid RFC3339 instant, never relative dates or calendar rollover.
 Canonical field names, nullability and existing timestamp output precision are unchanged. `fromArray()` remains a
@@ -146,6 +146,65 @@ No Query absence/failure redesign, generic bus adoption, new recovery policy or 
 `CredentialWorkIdentityTest` covers purpose/revision/status relationships. Existing grant, worker, repository,
 expiry/recovery and generated-schema suites remain preservation evidence. Detailed declaration/member dispositions
 and standalone positive/negative static probes belong to the canonical TASK-00116 Work evidence, not public logs.
+
+## Optional password-reset audit composition (Unreleased)
+
+`RequestPasswordResetHandler`, `DeliverPasswordResetHandler` and `ExpirePasswordResetDeliveryHandler` take an optional
+last `?AuditEvidenceRepository $auditEvidenceRepository = null`. Move the formerly third request/second delivery audit
+argument to the end. Omitted/null deliberately disables durable evidence; configured storage failures abort the staged
+outcome. Grant, User and evidence repositories must join the actual owning UoW connection, not independent transactions.
+
+```php
+$request = new RequestPasswordResetHandler(
+    $userRepository,
+    $passwordResetGrantRepository,
+    $unitOfWork,
+    $passwordResetCredentialGenerator,
+    $passwordResetDeliveryCipher,
+    $clock,
+    $eventDispatcher,
+    $auditEvidenceRepository, // Omit or pass null to disable durable audit.
+);
+$worker = new DeliverPasswordResetHandler(
+    $passwordResetGrantRepository,
+    $unitOfWork,
+    $passwordResetDeliveryCipher,
+    $credentialDeliveryProvider,
+    $clock,
+    $eventDispatcher,
+    $userRepository,
+    $auditEvidenceRepository,
+);
+$expiry = new ExpirePasswordResetDeliveryHandler(
+    $passwordResetGrantRepository,
+    $unitOfWork,
+    $eventDispatcher,
+    $auditEvidenceRepository,
+);
+```
+
+The public request deliberately establishes AnonymousId; it has no missing-principal fallback or new actor field.
+Unknown/inactive requests retain generic no-work behavior with no evidence. The request's subscriber carries that
+same anonymous origin to delivery; other trusted delivery callers supply their original typed actor explicitly.
+Existing delivery actor input remains required even when audit is disabled. Autonomous expiry supplies explicit
+SystemId; admitted User/Agent origins must not be replaced with a worker label. Expiry Command/Event now require
+`actor_kind` plus UUID `actor_id`; update current callers and storage directly, without an old string reader.
+
+Eligible issuance records User plus exact predecessor/cancelled predecessor/successor grant and delivery relationships.
+Delivery records only its committed confirmed/retryable/permanent-failure outcome, never its temporary claim. Expiry
+records `user.password_reset_delivery.expired` only after a successful exact-state replacement, with actual grant
+revisions and EXPIRED delivery status. It removes expired material, not grant authority or a completed password reset.
+Occurrence time is the owning request/outcome Clock sample or expiry's trusted admitted `occurredAt`; correlation is
+that real incoming message ID. Facts admit only finite status/failure values and typed relationships, not reasons,
+credentials, destinations, ciphertext, provider details or raw payloads. Evidence is not public/log response data.
+
+Keep User-before-grant authority validation, latest-generation/claim/lease fences, due time and full CAS unchanged.
+Absent/stale/early/terminal/failed-CAS expiry creates no record. Audit failure rolls back staged state/evidence, not an
+already committed claim or external send. Recover original work through existing lease/discovery rules. Unknown
+commit acknowledgement remains uncertain; post-commit notification failure still throws with evidence durable.
+No backfill, generic replay, transport, scheduler, consumer persistence or synchronous password-operation audit is
+added. Synchronous change/reset remains TASK-00127. Package modeled-state tests do not qualify real storage/provider
+transactions or deployment.
 
 ## Optional invitation audit composition (Unreleased)
 

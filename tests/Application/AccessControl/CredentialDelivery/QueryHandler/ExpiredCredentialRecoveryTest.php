@@ -578,10 +578,8 @@ final class ExpiredCredentialRecoveryTest extends TestCase
         string $purpose
     ): void {
         foreach ([['worker:a', 'worker:b'], ['worker:b', 'worker:a']] as [$winner, $loser]) {
-            if ($purpose !== 'password_reset') {
-                $winner = UserId::generate()->toString();
-                $loser = UserId::generate()->toString();
-            }
+            $winner = UserId::generate()->toString();
+            $loser = UserId::generate()->toString();
 
             $fixture = new ExpiredCredentialFixture($purpose);
             $first = $fixture->handler();
@@ -734,7 +732,7 @@ final class ExpiredCredentialRecoveryTest extends TestCase
                     $fixture->eventDispatcher
                 );
                 $command = new ExpirePasswordResetDelivery(
-                    'worker:expiry',
+                    SystemId::generate(),
                     $foreign->user->getId(),
                     $fixture->passwordResetGrantRepository->all()[0]->getDelivery()->getId(),
                     $fixture->expiresAt

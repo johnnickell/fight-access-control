@@ -65,7 +65,7 @@ final readonly class HumanCredentialContractFixture
             'activation.retry' => new ActivationCommand\RetryInvitationDelivery($this->actorId, $userId),
             'password_reset.deliver' => new ResetCommand\DeliverPasswordReset($this->actorId, $userId, $deliveryId),
             'password_reset.expire' => new ResetCommand\ExpirePasswordResetDelivery(
-                'worker',
+                $this->actorId,
                 $userId, $deliveryId, $this->state->expiresAt
             ),
             'password_reset.request' => new ResetCommand\RequestPasswordReset($this->state->user->getEmail()),
@@ -119,13 +119,13 @@ final readonly class HumanCredentialContractFixture
             ),
             'password_reset.deliver' => new Reset\DeliverPasswordResetHandler(
                 $reset,
-                $audit, $unitOfWork, new PrefixPasswordResetDeliveryCipher(), $this->provider, $clock, $events, $users
+                $unitOfWork, new PrefixPasswordResetDeliveryCipher(), $this->provider, $clock, $events, $users, $audit
             ),
             'password_reset.expire' => new Reset\ExpirePasswordResetDeliveryHandler($reset, $unitOfWork, $events),
             'password_reset.request' => new Reset\RequestPasswordResetHandler(
                 $users,
-                $reset, $audit, $unitOfWork, new FixedPasswordResetCredentialGenerator('fresh'),
-                new PrefixPasswordResetDeliveryCipher(), $clock, $events
+                $reset, $unitOfWork, new FixedPasswordResetCredentialGenerator('fresh'),
+                new PrefixPasswordResetDeliveryCipher(), $clock, $events, $audit
             ),
             'email_change.deliver' => new Email\DeliverEmailChangeHandler(
                 $email,

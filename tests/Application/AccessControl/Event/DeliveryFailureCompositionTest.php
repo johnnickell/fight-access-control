@@ -176,23 +176,23 @@ final class DeliveryFailureCompositionTest extends TestCase
             $passwordResetGrantRepository = new InMemoryPasswordResetGrants($unitOfWork);
             $worker = new DeliverPasswordResetHandler(
                 $passwordResetGrantRepository,
-                $auditEvidenceRepository,
                 $unitOfWork,
                 new PrefixPasswordResetDeliveryCipher(),
                 $provider,
                 $clock,
                 $eventDispatcher,
-                $userRepository
+                $userRepository,
+                $auditEvidenceRepository
             );
             $request = new RequestPasswordResetHandler(
                 $userRepository,
                 $passwordResetGrantRepository,
-                $auditEvidenceRepository,
                 $unitOfWork,
                 new FixedPasswordResetCredentialGenerator('delivery-once'),
                 new PrefixPasswordResetDeliveryCipher(),
                 $clock,
-                $eventDispatcher
+                $eventDispatcher,
+                $auditEvidenceRepository
             );
             $command = new RequestPasswordReset($user->getEmail());
         }

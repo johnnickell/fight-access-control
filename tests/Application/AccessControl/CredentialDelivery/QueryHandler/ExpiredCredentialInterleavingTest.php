@@ -72,10 +72,8 @@ final class ExpiredCredentialInterleavingTest extends TestCase
         $fixture = new ExpiredCredentialFixture($purpose);
         $before = $fixture->stage('reclaimed');
         $loser = $winner === 'worker:a' ? 'worker:b' : 'worker:a';
-        if ($purpose !== 'password_reset') {
-            $winner = UserId::generate()->toString();
-            $loser = UserId::generate()->toString();
-        }
+        $winner = UserId::generate()->toString();
+        $loser = UserId::generate()->toString();
 
         $loserEventDispatcher = new InMemoryEventDispatcher();
         $handler = $this->pausedCleanup($fixture, $loserEventDispatcher);
@@ -494,12 +492,12 @@ final class ExpiredCredentialInterleavingTest extends TestCase
         $handler = new RequestPasswordResetHandler(
             $fixture->userRepository,
             $passwordResetGrantRepository,
-            $auditEvidenceRepository,
             $fixture->unitOfWork,
             new FixedPasswordResetCredentialGenerator('replacement'),
             new PrefixPasswordResetDeliveryCipher(),
             $clock,
-            $eventDispatcher
+            $eventDispatcher,
+            $auditEvidenceRepository
         );
 
         return static fn () => $handler->handle(CommandMessage::create(new RequestPasswordReset(

@@ -49,12 +49,12 @@ final readonly class RequestPasswordResetHandler implements CommandHandler
     public function __construct(
         private UserRepository $userRepository,
         private PasswordResetGrantRepository $passwordResetGrantRepository,
-        private AuditEvidenceRepository $auditEvidenceRepository,
         private TransactionalUnitOfWork $unitOfWork,
         private PasswordResetCredentialGenerator $passwordResetCredentialGenerator,
         private PasswordResetDeliveryCipher $passwordResetDeliveryCipher,
         private Clock $clock,
-        private EventDispatcher $eventDispatcher
+        private EventDispatcher $eventDispatcher,
+        private ?AuditEvidenceRepository $auditEvidenceRepository = null
     ) {
     }
 
@@ -149,7 +149,7 @@ final readonly class RequestPasswordResetHandler implements CommandHandler
                     }
                 }
 
-                $this->auditEvidenceRepository->add(AuditEvidence::record(
+                $this->auditEvidenceRepository?->add(AuditEvidence::record(
                     AnonymousId::generate(),
                     new AuditSubject($user->getId()),
                     AuditAction::PASSWORD_RESET_REQUESTED,

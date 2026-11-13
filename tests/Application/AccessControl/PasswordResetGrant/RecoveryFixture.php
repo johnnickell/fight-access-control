@@ -164,12 +164,12 @@ final class RecoveryFixture
         new RequestPasswordResetHandler(
             $this->userRepository,
             $this->passwordResetGrantRepository,
-            $this->auditEvidenceRepository,
             $this->unitOfWork,
             new FixedPasswordResetCredentialGenerator($credential),
             new PrefixPasswordResetDeliveryCipher(),
             new FixedClock($this->now),
-            $this->eventDispatcher
+            $this->eventDispatcher,
+            $this->auditEvidenceRepository
         )->handle(CommandMessage::create(new RequestPasswordReset($this->user()->getEmail())));
     }
 
@@ -246,13 +246,13 @@ final class RecoveryFixture
         $provider = new RecordingCredentialDeliveryProvider(results: [$outcome], onDeliver: $onDeliver);
         new DeliverPasswordResetHandler(
             $this->passwordResetGrantRepository,
-            $this->auditEvidenceRepository,
             $this->unitOfWork,
             new PrefixPasswordResetDeliveryCipher(),
             $provider,
             new FixedClock($this->now),
             $this->eventDispatcher,
-            $this->userRepository
+            $this->userRepository,
+            $this->auditEvidenceRepository
         )->handle(CommandMessage::create(new DeliverPasswordReset(
             AnonymousId::generate(),
             $this->userId,

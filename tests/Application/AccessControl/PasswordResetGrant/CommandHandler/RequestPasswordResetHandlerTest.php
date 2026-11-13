@@ -355,12 +355,12 @@ final class RequestPasswordResetHandlerTest extends TestCase
         return new RequestPasswordResetHandler(
             $userRepository,
             $passwordResetGrantRepository,
-            $auditEvidenceRepository,
             $unitOfWork,
             new FixedPasswordResetCredentialGenerator($credential),
             new PrefixPasswordResetDeliveryCipher(),
             new FixedClock($now),
-            $eventDispatcher
+            $eventDispatcher,
+            $auditEvidenceRepository
         );
     }
 }
