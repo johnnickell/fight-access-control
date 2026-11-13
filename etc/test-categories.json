@@ -1137,6 +1137,18 @@
       "reason": "Isolated values, transitions or application behavior with controlled in-memory repositories/security/clock/UoW ports; no real storage, network or process.",
       "methods": {}
     },
+    "Fight\\Test\\AccessControl\\Application\\AccessControl\\Role\\CommandHandler\\RoleLifecycleAuditReferenceTest": {
+      "file": "tests/Application/AccessControl/Role/CommandHandler/RoleLifecycleAuditReferenceTest.php",
+      "category": "Unit",
+      "reason": "Role removal and registration interleavings over controlled in-memory state, audit and transaction ports; no real database, filesystem, network or process.",
+      "methods": {}
+    },
+    "Fight\\Test\\AccessControl\\Application\\AccessControl\\Role\\CommandHandler\\RoleLifecycleAuditTest": {
+      "file": "tests/Application/AccessControl/Role/CommandHandler/RoleLifecycleAuditTest.php",
+      "category": "Unit",
+      "reason": "Real values and routed handlers with controlled in-memory Role/audit persistence, clock and transaction faults; no real database, filesystem, network or process.",
+      "methods": {}
+    },
     "Fight\\Test\\AccessControl\\Application\\AccessControl\\Role\\CommandHandler\\RoleRevisionHandlerTest": {
       "file": "tests/Application/AccessControl/Role/CommandHandler/RoleRevisionHandlerTest.php",
       "category": "Unit",

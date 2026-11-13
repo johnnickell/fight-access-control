@@ -1442,8 +1442,15 @@ records the exact material transition inside its existing transaction; public re
 AnonymousId and preserve concealed no-work. Claims/external sends, recovery authority, uncertainty and ordinary
 publication failures remain distinct. See [reset composition](docs/credential-delivery.md#optional-password-reset-audit-composition-unreleased)
 and its [outcome matrix](docs/audit-outcome-coverage.md#password-reset--task-00125). Synchronous password operations
-remain TASK-00127. Independent acceptance is not claimed by this Work checkpoint. Other family constructors and
-currently unaudited paths remain unchanged. See [current account composition](docs/user-lifecycle-contracts.md#optional-account-audit-composition).
+remain TASK-00127. Independent acceptance is not claimed by this Work checkpoint. TASK-00153 now adds optional
+last nullable storage to custom Role creation, rename and removal. Explicit evidence follows authoritative
+persistence inside each ordinary transaction, preserving direct required UserId attribution, complete actual
+Role incarnation/revisions, outcome time and incoming message correlation. Validated same-name rename adds none;
+all caller/CAS/name/reference/registration guards and ordinary uncertainty/publication failures remain. See
+[Role composition](docs/role-revisions.md#optional-lifecycle-audit-unreleased) and the current
+[outcome rows](docs/audit-outcome-coverage.md#administration-handlers-11). Work verification and independent
+acceptance remain separate; real consumer mapping/connection qualification and workaround retirement are not
+claimed. Other family constructors and currently unaudited paths remain unchanged. See [current account composition](docs/user-lifecycle-contracts.md#optional-account-audit-composition).
 Omitted/null disables durable evidence without changing business-required typed actors, target/default-Role/CAS
 admission or coupled persistence. Enabled evidence retains the actual mutation transaction, trusted time,
 authoritative revisions/grant/delivery/message correlation and ordinary User publication-failure propagation.

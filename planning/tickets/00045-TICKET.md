@@ -138,7 +138,7 @@ disclosure and choose the execution checkout separately.
 
 | Order | TASK ID | Title | Status |
 | --- | --- | --- | --- |
-| 408 | [TASK-00153](../tasks/00153-TASK.md) | Audit custom Role lifecycle changes | ready-for-agent |
+| 408 | [TASK-00153](../tasks/00153-TASK.md) | Audit custom Role lifecycle changes | in-progress |
 | 409 | [TASK-00154](../tasks/00154-TASK.md) | Audit custom Role Permission changes | ready-for-agent |
 | 410 | [TASK-00155](../tasks/00155-TASK.md) | Audit User Role membership changes | ready-for-agent |
 | 411 | [TASK-00156](../tasks/00156-TASK.md) | Audit Agent name updates | ready-for-agent |

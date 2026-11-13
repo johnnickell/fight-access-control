@@ -5,11 +5,13 @@ dependencies, acceptance, and verification.
 
 ## What's Next?
 
-First ready Task: [TASK-00126](00126-TASK.md) — Audit email-change requests, cancellation, delivery and expiry.
+Active Task: [TASK-00153](00153-TASK.md) — Audit custom Role lifecycle changes.
 
 ## In Progress
 
-No Tasks are currently in this state.
+| Order | TASK ID | Title | Parent TICKET | Status | Blocked by | PR |
+| --- | --- | --- | --- | --- | --- | --- |
+| 408 | [TASK-00153](00153-TASK.md) | Audit custom Role lifecycle changes | [TICKET-00045](../tickets/00045-TICKET.md) — Audit Role, membership and Agent administration | in-progress | [TASK-00122](00122-TASK.md) | — |
 
 ## Ready Frontier
 
@@ -17,7 +19,6 @@ No Tasks are currently in this state.
 | --- | --- | --- | --- | --- | --- | --- |
 | 406 | [TASK-00126](00126-TASK.md) | Audit email-change requests, cancellation, delivery and expiry | [TICKET-00044](../tickets/00044-TICKET.md) — Audit User account and credential journeys | ready-for-agent | [TASK-00122](00122-TASK.md) | — |
 | 407 | [TASK-00127](00127-TASK.md) | Audit synchronous User security and session operations | [TICKET-00044](../tickets/00044-TICKET.md) — Audit User account and credential journeys | ready-for-agent | [TASK-00122](00122-TASK.md) | — |
-| 408 | [TASK-00153](00153-TASK.md) | Audit custom Role lifecycle changes | [TICKET-00045](../tickets/00045-TICKET.md) — Audit Role, membership and Agent administration | ready-for-agent | [TASK-00122](00122-TASK.md) | — |
 | 409 | [TASK-00154](00154-TASK.md) | Audit custom Role Permission changes | [TICKET-00045](../tickets/00045-TICKET.md) — Audit Role, membership and Agent administration | ready-for-agent | [TASK-00122](00122-TASK.md) | — |
 | 410 | [TASK-00155](00155-TASK.md) | Audit User Role membership changes | [TICKET-00045](../tickets/00045-TICKET.md) — Audit Role, membership and Agent administration | ready-for-agent | [TASK-00122](00122-TASK.md) | — |
 | 411 | [TASK-00156](00156-TASK.md) | Audit Agent name updates | [TICKET-00045](../tickets/00045-TICKET.md) — Audit Role, membership and Agent administration | ready-for-agent | [TASK-00122](00122-TASK.md) | — |
