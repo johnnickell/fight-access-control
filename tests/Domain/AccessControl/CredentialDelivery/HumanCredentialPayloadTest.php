@@ -118,6 +118,8 @@ final class HumanCredentialPayloadTest extends TestCase
                 ActivationEvent\InvitationDeliveryRetryRequested::class,
                 ActivationEvent\UserInvitationDelivered::class,
                 ResetCommand\DeliverPasswordReset::class,
+                ResetCommand\ExpirePasswordResetDelivery::class,
+                ResetEvent\PasswordResetDeliveryExpired::class,
                 ResetEvent\PasswordResetDeliveryConfirmed::class
                 ], true)
             ) {

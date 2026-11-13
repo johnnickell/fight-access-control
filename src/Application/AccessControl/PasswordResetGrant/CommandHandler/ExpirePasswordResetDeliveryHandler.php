@@ -4,6 +4,13 @@ declare(strict_types=1);
 
 namespace Fight\AccessControl\Application\AccessControl\PasswordResetGrant\CommandHandler;
 
+use Fight\AccessControl\Domain\AccessControl\Audit\AuditAction;
+use Fight\AccessControl\Domain\AccessControl\Audit\AuditCorrelation;
+use Fight\AccessControl\Domain\AccessControl\Audit\AuditEvidence;
+use Fight\AccessControl\Domain\AccessControl\Audit\AuditEvidenceRepository;
+use Fight\AccessControl\Domain\AccessControl\Audit\AuditGrantOutcome;
+use Fight\AccessControl\Domain\AccessControl\Audit\AuditGrantState;
+use Fight\AccessControl\Domain\AccessControl\Audit\AuditSubject;
 use Fight\AccessControl\Domain\AccessControl\PasswordResetGrant\Command\ExpirePasswordResetDelivery;
 use Fight\AccessControl\Domain\AccessControl\PasswordResetGrant\Event\PasswordResetDeliveryExpired;
 use Fight\AccessControl\Domain\AccessControl\PasswordResetGrant\PasswordResetGrant;
@@ -31,7 +38,8 @@ final readonly class ExpirePasswordResetDeliveryHandler implements CommandHandle
     public function __construct(
         private PasswordResetGrantRepository $passwordResetGrantRepository,
         private TransactionalUnitOfWork $unitOfWork,
-        private EventDispatcher $eventDispatcher
+        private EventDispatcher $eventDispatcher,
+        private ?AuditEvidenceRepository $auditEvidenceRepository = null
     ) {
     }
 
@@ -54,7 +62,8 @@ final readonly class ExpirePasswordResetDeliveryHandler implements CommandHandle
         try {
             /** @var ?PasswordResetDeliveryExpired $successEvent */
             $successEvent = $this->unitOfWork->commitTransactional(function () use (
-                $command
+                $command,
+                $commandMessage
             ): ?PasswordResetDeliveryExpired {
                 $passwordResetGrant = $this->passwordResetGrantRepository->getByDeliveryId(
                     $command->getPasswordResetDeliveryId()
@@ -98,6 +107,19 @@ final readonly class ExpirePasswordResetDeliveryHandler implements CommandHandle
                 if (!$this->passwordResetGrantRepository->replace($passwordResetGrant, $expiredGrant)) {
                     return null;
                 }
+
+                $this->auditEvidenceRepository?->add(AuditEvidence::record(
+                    $command->getActorId(),
+                    new AuditSubject($command->getUserId()),
+                    AuditAction::PASSWORD_RESET_DELIVERY_EXPIRED,
+                    $command->getOccurredAt(),
+                    new AuditGrantOutcome(
+                        AuditGrantState::fromGrant($passwordResetGrant),
+                        AuditGrantState::fromGrant($expiredGrant),
+                        $expiredGrant->getDelivery()->getStatus()
+                    ),
+                    new AuditCorrelation($commandMessage->id(), null)
+                ));
 
                 return new PasswordResetDeliveryExpired(
                     $command->getActorId(),

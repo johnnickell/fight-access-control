@@ -124,7 +124,7 @@ refresh or inventing rejected-attempt storage. Concurrent winner/helper no-ops m
 | --- | --- | --- | --- |
 | 403 | [TASK-00123](../tasks/00123-TASK.md) | Audit User creation, recovery and administration | done |
 | 404 | [TASK-00124](../tasks/00124-TASK.md) | Audit invitation delivery and expiry | done |
-| 405 | [TASK-00125](../tasks/00125-TASK.md) | Audit password-reset requests, delivery and expiry | ready-for-agent |
+| 405 | [TASK-00125](../tasks/00125-TASK.md) | Audit password-reset requests, delivery and expiry | done |
 | 406 | [TASK-00126](../tasks/00126-TASK.md) | Audit email-change requests, cancellation, delivery and expiry | ready-for-agent |
 | 407 | [TASK-00127](../tasks/00127-TASK.md) | Audit synchronous User security and session operations | ready-for-agent |
 ## Decisions and Progress

@@ -4,6 +4,7 @@ TASK-00122 replaces the pre-v1 evidence and persisted contract directly across e
 current callers, fixtures and schemas. The TASK and canonical Work handoff own package verification evidence.
 TASK-00123 adds optional composition for the eight User account lifecycle handlers described below; TASK-00124
 adds [optional invitation delivery/expiry composition](credential-delivery.md#optional-invitation-audit-composition-unreleased).
+TASK-00125 adds [optional reset request/delivery/expiry composition](credential-delivery.md#optional-password-reset-audit-composition-unreleased).
 No release,
 consumer adoption or independent acceptance is claimed by this document.
 
@@ -60,7 +61,7 @@ correlation; record identity/correlation is neither authority nor universal dedu
   | Resend invitation | Replacement activation issuance; retained predecessor advances once by cancellation |
   | Request password reset | Initial reset issuance or replacement retaining the cancelled/unchanged terminal predecessor |
   | Delivery confirmation/failure; invitation retry | Exact grant/delivery generation, advancing once; no replacement |
-  | Invitation delivery expiry | Exact activation grant/delivery generation, advancing once with EXPIRED delivery; no User/activation-authority mutation |
+  | Invitation/password-reset delivery expiry | Exact family grant/delivery generation, advancing once with EXPIRED delivery; no User/recovery-authority mutation |
 
 - `AuditAgentOutcome` captures credential identities/revisions/lifecycle and the actual issuance delivery ID.
   Provisioning has no predecessor and starts ACTIVE at credential revision zero; rotation advances exactly once
