@@ -199,13 +199,13 @@ final class RecoveryFixture
             $this->userRepository,
             $this->passwordResetGrantRepository,
             new SessionRevocationService($this->refreshSessionRepository),
-            $this->auditEvidenceRepository,
             $this->unitOfWork,
             new FixedClock($this->now),
             $passwords,
             $passwords,
             PasswordHash::fromString(password_hash('dummy', PASSWORD_DEFAULT)),
-            $this->eventDispatcher
+            $this->eventDispatcher,
+            $this->auditEvidenceRepository
         );
     }
 
@@ -216,10 +216,10 @@ final class RecoveryFixture
             $this->emailChangeGrantRepository,
             $this->passwordResetGrantRepository,
             new SessionRevocationService($this->refreshSessionRepository),
-            $this->auditEvidenceRepository,
             $this->unitOfWork,
             new FixedClock($this->now),
-            $this->eventDispatcher
+            $this->eventDispatcher,
+            $this->auditEvidenceRepository
         );
     }
 

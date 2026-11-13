@@ -48,16 +48,18 @@ final readonly class SessionRevocationService
     }
 
     /**
-     * Replaces the latest authoritative session state with an immutable revocation
+     * Returns the actual changed predecessor and successor, or null predecessor for a concurrent no-change
+     *
+     * @phpstan-return array{?RefreshSession, RefreshSession}
      */
-    public function revoke(RefreshSession $refreshSession): RefreshSession
+    public function revoke(RefreshSession $refreshSession): array
     {
         $attempts = 0;
         while (!$refreshSession->isRevoked() && $attempts < self::REVOCATION_RETRY_LIMIT) {
             ++$attempts;
             $revokedSession = $refreshSession->revoke();
             if ($this->refreshSessionRepository->replace($refreshSession, $revokedSession)) {
-                return $revokedSession;
+                return [$refreshSession, $revokedSession];
             }
 
             $currentSession = $this->refreshSessionRepository->getById($refreshSession->getId());
@@ -70,7 +72,7 @@ final readonly class SessionRevocationService
         }
 
         if ($refreshSession->isRevoked()) {
-            return $refreshSession;
+            return [null, $refreshSession];
         }
 
         throw new StateConflict('The refresh session changed during bounded revocation.');

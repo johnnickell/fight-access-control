@@ -428,9 +428,9 @@ final class HandlerFailureContractTest extends TestCase
                 $refreshSessionRepository,
                 $clock,
                 $this->createStub(SessionAdministrationAuthorization::class),
-                $auditEvidenceRepository,
                 $unitOfWork,
-                $eventDispatcher
+                $eventDispatcher,
+                $auditEvidenceRepository
             ),
             Role\CreateCustomRoleHandler::class => new Role\CreateCustomRoleHandler(
                 $roleRepository,

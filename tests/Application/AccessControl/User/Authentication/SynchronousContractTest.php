@@ -381,9 +381,9 @@ final class SynchronousContractTest extends TestCase
             $refreshSessionRepository,
             new FixedClock(new DateTimeImmutable('2026-08-19T12:00:00+00:00')),
             new FixedSessionAdministrationAuthorization(false),
-            new InMemoryAuditEvidenceRepository($unitOfWork),
             $unitOfWork,
-            new InMemoryEventDispatcher()
+            new InMemoryEventDispatcher(),
+            new InMemoryAuditEvidenceRepository($unitOfWork)
         );
         $this->expectException(LogicException::class);
         $handler->handle(CommandMessage::create(new RevokeSession(

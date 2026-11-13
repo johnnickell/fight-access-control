@@ -1,5 +1,17 @@
 # Fight AccessControl Context
 
+## Synchronous optional atomic audit — TASK-00127 Work
+
+The four direct User capabilities and RevokeSessionHandler now accept optional final nullable audit storage.
+[Current composition](docs/user-authentication.md#optional-atomic-audit) covers activation, login, refresh, logout,
+password change/reset, email confirmation and self/admin session management. Enabled evidence joins the owning
+transaction; disabled composition makes no durable-audit promise. Authentication facts retain actual User and
+session revisions plus activation's consumed grant. Terminal replay records its committed revocation before
+outward refusal, while benign conflicts and concurrent helper no-change produce no duplicate record. Existing
+credential, recovery, CAS, authorization and post-commit failure contracts remain. Explicit provenance is not a grant.
+The canonical TASK-00127 Work handoff owns verification; independent Review/QA and real consumer connection,
+storage, race, transport and deployment qualification remain separate.
+
 ## Scoped execution and timeline composition — TASK-00089 accepted checkpoint
 
 [Scoped execution reads](docs/agent-execution-reads.md) now compose inward `AgentExecutionReadAdmission` and

@@ -144,13 +144,13 @@ final class OperationFailureContractTest extends TestCase
             $this->createStub(UserRepository::class),
             $this->createStub(PasswordResetGrantRepository::class),
             new SessionRevocationService($refreshSessionRepository),
-            $this->createStub(AuditEvidenceRepository::class),
             $unitOfWork,
             $this->createStub(Clock::class),
             $this->createStub(PasswordHasher::class),
             $this->createStub(PasswordValidator::class),
             PasswordHash::fromString(password_hash('synthetic-password', PASSWORD_DEFAULT)),
-            $eventDispatcher
+            $eventDispatcher,
+            $this->createStub(AuditEvidenceRepository::class)
         );
         $sessionLifecycle = new SessionLifecycle(
             $this->createStub(UserRepository::class),
@@ -168,10 +168,10 @@ final class OperationFailureContractTest extends TestCase
             $this->createStub(EmailChangeGrantRepository::class),
             $this->createStub(PasswordResetGrantRepository::class),
             new SessionRevocationService($refreshSessionRepository),
-            $this->createStub(AuditEvidenceRepository::class),
             $unitOfWork,
             $this->createStub(Clock::class),
-            $eventDispatcher
+            $eventDispatcher,
+            $this->createStub(AuditEvidenceRepository::class)
         );
         $userId = UserId::generate();
         $caught = null;
