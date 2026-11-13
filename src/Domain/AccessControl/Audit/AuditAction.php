@@ -33,6 +33,7 @@ enum AuditAction: string
     case PASSWORD_RESET_REQUESTED = 'user.password_reset_requested';
     case PASSWORD_RESET_DELIVERY_FAILED = 'user.password_reset_delivery.failed';
     case PASSWORD_RESET_DELIVERY_CONFIRMED = 'user.password_reset_delivery.confirmed';
+    case PASSWORD_RESET_DELIVERY_EXPIRED = 'user.password_reset_delivery.expired';
     case PASSWORD_CHANGED = 'user.password_changed';
     case PASSWORD_RESET_COMPLETED = 'user.password_reset_completed';
     case EMAIL_CHANGE_REQUESTED = 'user.email_change_administratively_requested';

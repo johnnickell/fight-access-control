@@ -402,13 +402,13 @@ final class HandlerFailureContractTest extends TestCase
             ),
             Reset\DeliverPasswordResetHandler::class => new Reset\DeliverPasswordResetHandler(
                 $passwordResetGrantRepository,
-                $auditEvidenceRepository,
                 $unitOfWork,
                 $this->createStub(PasswordResetDeliveryCipher::class),
                 $provider,
                 $clock,
                 $eventDispatcher,
-                $userRepository
+                $userRepository,
+                $auditEvidenceRepository
             ),
             Reset\ExpirePasswordResetDeliveryHandler::class => new Reset\ExpirePasswordResetDeliveryHandler(
                 $passwordResetGrantRepository,
@@ -417,12 +417,12 @@ final class HandlerFailureContractTest extends TestCase
             Reset\RequestPasswordResetHandler::class => new Reset\RequestPasswordResetHandler(
                 $userRepository,
                 $passwordResetGrantRepository,
-                $auditEvidenceRepository,
                 $unitOfWork,
                 $this->createStub(PasswordResetCredentialGenerator::class),
                 $this->createStub(PasswordResetDeliveryCipher::class),
                 $clock,
-                $eventDispatcher
+                $eventDispatcher,
+                $auditEvidenceRepository
             ),
             RevokeSessionHandler::class => new RevokeSessionHandler(
                 $refreshSessionRepository,

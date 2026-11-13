@@ -9,6 +9,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Optional final audit storage for password-reset request, delivery and expiry. Enabled expiry records atomic typed
+  material-expiry evidence; public ineligible requests remain concealed no-work. **Breaking pre-v1 composition:** move
+  request/delivery audit arguments to the end, and replace string expiry actors with typed kind/UUID Command/Event
+  provenance. Claims, external sends, recovery authority, uncertainty and ordinary notification failures retain their
+  existing boundaries. Synchronous password change/reset is separate. See
+  [reset composition](docs/credential-delivery.md#optional-password-reset-audit-composition-unreleased).
+
 - Scoped Agent execution/timeline admission through Common's real summary/list/get/phase/activity handlers.
   Direct read Permissions intersect trusted consumer relationships; independent reference Permissions cannot
   grant bodies or widen scope. Require Common **^1.5.1** for activity-scoped aggregate/derived-inspection correction;

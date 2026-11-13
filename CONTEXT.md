@@ -1448,8 +1448,14 @@ all four invitation delivery/resend/retry/expiry handlers and typed expiry Comma
 transaction-local typed outcome evidence only for committed material expiry, preserving activation authority,
 origin, admitted time and expected-state semantics. Claims/external sends remain separate; audit rollback does
 not undo those effects, and ordinary post-commit failure preserves committed evidence. Work verification and
-independent acceptance are recorded separately in TASK-00124 and its canonical handoffs. Other family constructors
-and currently unaudited paths remain unchanged. See [current account composition](docs/user-lifecycle-contracts.md#optional-account-audit-composition).
+independent acceptance are recorded separately in TASK-00124 and its canonical handoffs. TASK-00125's Work slice
+adds optional final storage for password-reset request/delivery/expiry and typed expiry provenance. Enabled expiry
+records the exact material transition inside its existing transaction; public requests deliberately establish
+AnonymousId and preserve concealed no-work. Claims/external sends, recovery authority, uncertainty and ordinary
+publication failures remain distinct. See [reset composition](docs/credential-delivery.md#optional-password-reset-audit-composition-unreleased)
+and its [outcome matrix](docs/audit-outcome-coverage.md#password-reset--task-00125). Synchronous password operations
+remain TASK-00127. Independent acceptance is not claimed by this Work checkpoint. Other family constructors and
+currently unaudited paths remain unchanged. See [current account composition](docs/user-lifecycle-contracts.md#optional-account-audit-composition).
 Omitted/null disables durable evidence without changing business-required typed actors, target/default-Role/CAS
 admission or coupled persistence. Enabled evidence retains the actual mutation transaction, trusted time,
 authoritative revisions/grant/delivery/message correlation and ordinary User publication-failure propagation.

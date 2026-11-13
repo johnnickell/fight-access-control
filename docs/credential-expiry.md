@@ -19,13 +19,14 @@ repository to the same `TransactionalUnitOfWork` connection. Register:
 | `ExpirePasswordResetDelivery` | `ExpirePasswordResetDeliveryHandler` | Actor, User, `password_reset_delivery_id`, occurrence time |
 | `ExpireEmailChange` | `ExpireEmailChangeHandler` | Actor, User, **`email_change_grant_id`**, occurrence time |
 
-Invitation expiry now supports optional final audit storage and typed actor provenance; see
-[optional invitation audit composition](credential-delivery.md#optional-invitation-audit-composition-unreleased).
-Its Command and Event require `actor_kind` plus UUID `actor_id`, not string worker labels. Deliberate autonomous
+Invitation and password-reset expiry support optional final audit storage and typed actor provenance; see
+[invitation composition](credential-delivery.md#optional-invitation-audit-composition-unreleased) and
+[password-reset composition](credential-delivery.md#optional-password-reset-audit-composition-unreleased).
+Their Commands and Events require `actor_kind` plus UUID `actor_id`, not string worker labels. Deliberate autonomous
 cleanup supplies fixed-nil SystemId explicitly; an admitted User/Agent keeps its identity. Enabled evidence joins
 the actual successful expiry transaction at the admitted occurrence time, not discovery time. Failed CAS/no-change
 creates no evidence. Audit failure rolls back staged expiry, while post-commit notification failure retains it.
-Other families' expiry contracts remain unchanged.
+Email-change expiry remains separately owned and unchanged.
 
 Cleanup needs no cipher, key or provider capability. Bind those only to issuance/delivery handlers, not these cleanup
 handlers. Do not decrypt old material to decide whether it is expired. Queries are advisory; commands own policy,
