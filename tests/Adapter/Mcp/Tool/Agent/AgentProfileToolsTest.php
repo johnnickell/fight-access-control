@@ -21,6 +21,8 @@ use Fight\AccessControl\Domain\AccessControl\Agent\Exception\AgentUpdateExceptio
 use Fight\AccessControl\Domain\AccessControl\Agent\Query\AgentProfileView;
 use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\AgentOperationFailure;
 use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\Exception\AgentOperationRejectedException;
+use Fight\AccessControl\Domain\AccessControl\Audit\AuditAction;
+use Fight\AccessControl\Domain\AccessControl\Audit\AuditEvidence;
 use Fight\AccessControl\Domain\AccessControl\Permission\PermissionName;
 use Fight\Common\Adapter\Messaging\Query\Routing\InMemoryQueryRouter;
 use Fight\Common\Adapter\Messaging\Query\RoutingQueryBus;
@@ -117,7 +119,7 @@ final class AgentProfileToolsTest extends TestCase
     public function test_real_rename_and_noop_share_acknowledgement_but_only_real_change_writes_and_publishes(): void
     {
         $env = new ProfileToolEnvironment();
-        $invoker = $env->invoker();
+        $invoker = $env->invoker(audit: true);
         $env->provider->resolve($env->request, $env->correlationId);
         $transactions = $env->storage->transaction->transactions;
         $operations = $env->storage->operationRepository->operations;
@@ -155,6 +157,16 @@ final class AgentProfileToolsTest extends TestCase
         );
         self::assertSame(1, $env->nonces->consumptionCalls());
         self::assertSame($transactions + 2, $env->storage->transaction->transactions);
+        $records = array_values(array_filter(
+            $env->storage->auditEvidenceRepository->all(),
+            static fn(AuditEvidence $record): bool => $record->action() === AuditAction::AGENT_NAME_CHANGED
+        ));
+        self::assertCount(1, $records);
+        self::assertTrue($env->original->getId()->equals($records[0]->actorId()));
+        self::assertTrue($env->original->getId()->equals($records[0]->getSubject()->getId()));
+        self::assertSame($after->getUpdatedAt(), $records[0]->getOccurredAt());
+        self::assertNotNull($records[0]->getCorrelation()->getMessageId());
+        self::assertSame(['name_changed' => true], $records[0]->getFacts()->toArray());
     }
 
     public function test_acknowledgement_is_not_a_read_of_a_competing_later_name(): void
@@ -352,7 +364,7 @@ final class AgentProfileToolsTest extends TestCase
                 );
             }
 
-            $invoker = $env->invoker($queryBus);
+            $invoker = $env->invoker($queryBus, audit: true);
             $responder = new McpResponder(new McpCapabilityRegistry(new McpServerInfo('profile-tests', '1'), [
                 new McpToolInvocation($invoker),
                 new McpToolDiscovery($env->registry, $env->availability, str_repeat('c', 32))
@@ -381,6 +393,10 @@ final class AgentProfileToolsTest extends TestCase
             }
 
             self::assertSame($expectedName, $current->getName()->toString());
+            self::assertCount($expectedName === 'Committed name' ? 1 : 0, array_filter(
+                $env->storage->auditEvidenceRepository->all(),
+                static fn(AuditEvidence $record): bool => $record->action() === AuditAction::AGENT_NAME_CHANGED
+            ));
         }
     }
 

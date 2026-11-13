@@ -31,6 +31,7 @@ use Fight\Common\Domain\Type\Arrayable;
  * @phpstan-import-type UserOutcomePayload from AuditUserOutcome
  * @phpstan-import-type GrantOutcomePayload from AuditGrantOutcome
  * @phpstan-import-type AgentOutcomePayload from AuditAgentOutcome
+ * @phpstan-import-type AgentNameOutcomePayload from AuditAgentNameOutcome
  * @phpstan-import-type SessionRevocationPayload from AuditSessionRevocation
  * @phpstan-import-type RevisionsPayload from AuditRoleRevisions
  * @phpstan-import-type FeatureOutcomePayload from AuditFeatureOutcome
@@ -41,6 +42,7 @@ use Fight\Common\Domain\Type\Arrayable;
  *     subject: SubjectPayload, action: string, occurred_at: string, correlation: ?CorrelationPayload,
  *     facts: UserOutcomePayload|GrantOutcomePayload|AgentOutcomePayload|SessionRevocationPayload|RevisionsPayload
  *         |FeatureOutcomePayload|PermissionOutcomePayload|RolePermissionPayload|AuthenticationOutcomePayload
+ *         |AgentNameOutcomePayload
  * }
  *
  * @phpstan-consistent-constructor
@@ -60,10 +62,18 @@ class AuditEvidence implements Arrayable
         private readonly DateTimeImmutable $occurredAt,
         private readonly AuditUserOutcome|AuditGrantOutcome|AuditAgentOutcome
         |AuditSessionRevocation|AuditRoleRevisions|AuditFeatureOutcome|AuditPermissionOutcome
-        |AuditRolePermissionOutcome|AuditAuthenticationOutcome $facts,
+        |AuditRolePermissionOutcome|AuditAuthenticationOutcome|AuditAgentNameOutcome $facts,
         private readonly ?AuditCorrelation $correlation
     ) {
         $subjectId = $subject->getId();
+        if (
+            $facts instanceof AuditAgentNameOutcome && $subjectId instanceof AgentId
+            && $action === AuditAction::AGENT_NAME_CHANGED
+            && ($actorId instanceof UserId || $actorId instanceof AgentId)
+        ) {
+            return;
+        }
+
         if ($facts instanceof AuditAuthenticationOutcome && $subjectId instanceof UserId) {
             $facts->assertOutcome($action);
 
@@ -160,7 +170,8 @@ class AuditEvidence implements Arrayable
         AuditAction $action,
         DateTimeImmutable $occurredAt,
         AuditUserOutcome|AuditGrantOutcome|AuditAgentOutcome|AuditSessionRevocation|AuditRoleRevisions
-        |AuditFeatureOutcome|AuditPermissionOutcome|AuditRolePermissionOutcome|AuditAuthenticationOutcome $facts,
+        |AuditFeatureOutcome|AuditPermissionOutcome|AuditRolePermissionOutcome|AuditAuthenticationOutcome
+        |AuditAgentNameOutcome $facts,
         ?AuditCorrelation $correlation
     ): static {
         return new static(AuditEvidenceId::generate(), $actorId, $subject, $action, $occurredAt, $facts, $correlation);
@@ -213,6 +224,7 @@ class AuditEvidence implements Arrayable
         }
 
         $facts = match ($action) {
+            AuditAction::AGENT_NAME_CHANGED => AuditAgentNameOutcome::fromArray($data['facts']),
             AuditAction::USER_ACTIVATED, AuditAction::USER_LOGGED_IN,
                 AuditAction::SESSION_REFRESHED => AuditAuthenticationOutcome::fromArray($data['facts']),
             AuditAction::AGENT_PROVISIONED, AuditAction::AGENT_CREDENTIAL_ROTATED,
@@ -303,7 +315,7 @@ class AuditEvidence implements Arrayable
      */
     public function getFacts(): AuditUserOutcome|AuditGrantOutcome|AuditAgentOutcome
         |AuditSessionRevocation|AuditRoleRevisions|AuditFeatureOutcome|AuditPermissionOutcome|AuditRolePermissionOutcome
-        |AuditAuthenticationOutcome
+        |AuditAuthenticationOutcome|AuditAgentNameOutcome
     {
         return $this->facts;
     }

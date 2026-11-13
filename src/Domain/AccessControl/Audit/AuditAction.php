@@ -43,6 +43,7 @@ enum AuditAction: string
     case EMAIL_CHANGE_EXPIRED = 'user.email_change_expired';
     case EMAIL_CHANGE_CONFIRMED = 'user.email_change_confirmed';
     case SESSION_ADMINISTRATIVELY_REVOKED = 'refresh_session.administratively_revoked';
+    case AGENT_NAME_CHANGED = 'agent.name_changed';
     case AGENT_PROVISIONED = 'agent.provisioned';
     case AGENT_CREDENTIAL_ROTATED = 'agent.credential_rotated';
     case AGENT_CREDENTIAL_REVOKED = 'agent.credential_revoked';

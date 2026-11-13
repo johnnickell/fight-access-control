@@ -9,6 +9,7 @@ TASK-00126 adds [optional email-change composition](credential-delivery.md#optio
 for request/cancel/delivery/expiry, including self-service outcomes.
 TASK-00127 adds [optional synchronous User/session composition](user-authentication.md#optional-atomic-audit).
 TASK-00154 adds [optional custom Role Permission grant/revoke composition](role-membership-contracts.md#optional-role-permission-audit-composition).
+TASK-00156 adds [optional Agent name-change composition](agent-name-updates.md#optional-atomic-name-change-audit-unreleased).
 No release, consumer adoption or independent acceptance is claimed by this document.
 
 ## Current construction and persistence
@@ -71,6 +72,9 @@ correlation; record identity/correlation is neither authority nor universal dedu
   from an ACTIVE predecessor to a distinct ACTIVE credential. Revocation retains the same credential identity and
   revision while changing ACTIVE to REVOKED. Noncreation outcomes retain arbitrary authoritative existing revisions,
   including terminal revision limits where no increment is needed. Issuance requires its real scoped operation correlation.
+- `AuditAgentNameOutcome` admits only `{name_changed: true}` for `agent.name_changed`, with a typed Agent subject
+  and the existing required UserId/AgentId origin. The owning handler supplies exact persisted changedAt and actual
+  message correlation. No name text, credential snapshot, synthetic name revision or assignment revision is captured.
 - `AuditAuthenticationOutcome` combines bounded User revisions with actual session identity and creation/rotation
   revisions. Activation additionally retains the exact consumed grant/delivery generation. Login and rotation do not
   invent grant changes; refresh preserves User counters. Issuance has no session predecessor and starts at zero;

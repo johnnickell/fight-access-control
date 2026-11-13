@@ -9,6 +9,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Optional final audit repository for Agent name updates. Enabled `agent.name_changed` evidence joins the rename
+  transaction with the existing typed User/Agent initiator, Agent subject, exact persisted changedAt and message ID.
+  Bounded facts omit names and fabricated revisions. No-op adds none; audit failure rolls back and committed evidence
+  survives publication failure without a success acknowledgement. Omitted/null disables durable audit intentionally.
+  **Pre-v1 consumer obligation:** support the new action/facts mapping and qualify the actual shared connection before
+  opt-in; no backfill or new authority is supplied. See [name-update composition](docs/agent-name-updates.md#optional-atomic-name-change-audit-unreleased).
+
 - Optional final audit storage for custom Role Permission grants and revocations. Enabled evidence joins the Role
   mutation transaction and records the related Permission, exact Role incarnation/revisions, outcome time and actual
   message ID. Validated no-change creates no evidence; existing required typed actors, eligibility and fences remain.

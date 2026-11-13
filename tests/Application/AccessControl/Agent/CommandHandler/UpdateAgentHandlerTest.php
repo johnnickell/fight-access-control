@@ -24,6 +24,8 @@ use Fight\AccessControl\Domain\AccessControl\Agent\Exception\AgentNameException;
 use Fight\AccessControl\Domain\AccessControl\Agent\Exception\AgentUpdateException;
 use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\AgentOperationFailure;
 use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\Exception\AgentOperationRejectedException;
+use Fight\AccessControl\Domain\AccessControl\Audit\AuditAction;
+use Fight\AccessControl\Domain\AccessControl\Audit\AuditEvidence;
 use Fight\AccessControl\Domain\AccessControl\Permission\Permission;
 use Fight\AccessControl\Domain\AccessControl\Permission\PermissionId;
 use Fight\AccessControl\Domain\AccessControl\Permission\PermissionName;
@@ -37,6 +39,7 @@ use Fight\Common\Domain\Messaging\Event\CommandFailedEvent;
 use Fight\Common\Domain\Messaging\Event\Event;
 use Fight\Test\AccessControl\Application\AccessControl\Agent\Credential\ProvisioningEnvironment;
 use Fight\Test\AccessControl\Application\AccessControl\Agent\Credential\RotationEnvironment;
+use Fight\Test\AccessControl\Application\AccessControl\Audit\Repository\InMemoryAuditEvidenceRepository;
 use Fight\Test\AccessControl\Application\AccessControl\Event\InMemoryEventDispatcher;
 use Fight\Test\AccessControl\Application\AccessControl\Timing\Service\FixedClock;
 use Fight\Test\AccessControl\Application\AccessControl\User\InMemoryUnitOfWork;
@@ -217,6 +220,7 @@ final class UpdateAgentHandlerTest extends TestCase
         }
 
         self::assertSame(0, $env->agentRepository->nameWrites);
+        self::assertSame([], $this->nameEvidence($env));
         self::assertCount(0, array_filter(
             $env->eventDispatcher->events(),
             static fn($event): bool => $event instanceof AgentNameChanged
@@ -245,6 +249,7 @@ final class UpdateAgentHandlerTest extends TestCase
 
             self::assertSame($before, $env->agentRepository->getById($before->getId()));
             self::assertSame($operation, $env->operationRepository->operations[$env->key->toString()]);
+            self::assertSame([], $this->nameEvidence($env));
             self::assertInstanceOf(CommandFailedEvent::class, $env->eventDispatcher->events()[0]);
             $env->agentRepository->afterNameWrite = null;
             $this->handler($env)->handle($this->message($before->getId(), 'Renamed'));
@@ -274,6 +279,7 @@ final class UpdateAgentHandlerTest extends TestCase
                 ->handle($this->message($agent->getId(), 'Renamed'))));
             self::assertSame('Renamed', $env->agentRepository->getById($agent->getId())->getName()->toString());
             self::assertSame(1, $env->agentRepository->nameWrites);
+            self::assertCount(1, $this->nameEvidence($env));
             if (!$failurePublisherAlsoFails) {
                 self::assertInstanceOf(CommandFailedEvent::class, $env->eventDispatcher->events()[0]);
             }
@@ -282,6 +288,7 @@ final class UpdateAgentHandlerTest extends TestCase
             $this->handler($env)->handle($this->message($agent->getId(), 'Renamed'));
             self::assertSame([], $env->eventDispatcher->events());
             self::assertSame(1, $env->agentRepository->nameWrites);
+            self::assertCount(1, $this->nameEvidence($env));
         }
     }
 
@@ -353,6 +360,13 @@ final class UpdateAgentHandlerTest extends TestCase
         $event = array_last($env->eventDispatcher->events());
         self::assertInstanceOf(AgentNameChanged::class, $event);
         self::assertEquals($after->getUpdatedAt(), $event->getChangedAt());
+        $records = $this->nameEvidence($env);
+        self::assertCount($winner === 'name' ? 2 : 1, $records);
+        self::assertSame($after->getUpdatedAt(), array_last($records)->getOccurredAt());
+        self::assertNotSame(
+            $records[0]->getId()->toString(),
+            $env->auditEvidenceRepository->all()[0]->getId()->toString()
+        );
     }
 
     public function test_revocation_wins_against_paused_real_and_noop_rename(): void
@@ -375,6 +389,7 @@ final class UpdateAgentHandlerTest extends TestCase
             self::assertSame($revoked, $env->agentRepository->getById($before->getId()));
             self::assertSame(AgentState::REVOKED, $revoked->getState());
             self::assertSame(0, $env->agentRepository->nameWrites);
+            self::assertSame([], $this->nameEvidence($env));
         }
     }
 
@@ -517,6 +532,118 @@ final class UpdateAgentHandlerTest extends TestCase
         self::assertSame('Committed name', $env->agentRepository->getById($id)->getName()->toString());
     }
 
+    public function test_enabled_and_disabled_audit_preserve_both_required_initiator_kinds_and_exact_outcome(): void
+    {
+        foreach ([false, true] as $enabled) {
+            foreach ([UserId::generate(), AgentId::generate()] as $actor) {
+                $env = $this->environment();
+                $before = $env->agentRepository->all()[0];
+                $message = CommandMessage::create(new UpdateAgent(
+                    new AgentUpdateInitiator($actor),
+                    $before->getId(),
+                    '  Private name sentinel  '
+                ));
+                $clock = new FixedClock('2026-09-27T12:00:01.123456+00:00');
+                $handler = new UpdateAgentHandler(
+                    agentRepository: $env->agentRepository,
+                    clock: $clock,
+                    unitOfWork: $env->transaction,
+                    eventDispatcher: $env->eventDispatcher,
+                    auditEvidenceRepository: $enabled ? $env->auditEvidenceRepository : null
+                );
+                $env->transaction->beforeCommit = function () use ($env, $enabled, $before): void {
+                    self::assertTrue($env->transaction->transactionActive);
+                    self::assertTrue($env->agentRepository->contract->locked);
+                    self::assertSame(
+                        'Private name sentinel',
+                        $env->agentRepository->getById($before->getId())->getName()->toString()
+                    );
+                    self::assertCount($enabled ? 1 : 0, $this->nameEvidence($env));
+                };
+                $handler->handle($message);
+                $after = $env->agentRepository->getById($before->getId());
+                self::assertSame('Private name sentinel', $after->getName()->toString());
+                $records = $this->nameEvidence($env);
+                self::assertCount($enabled ? 1 : 0, $records);
+                if ($enabled) {
+                    $record = $records[0];
+                    self::assertSame($actor, $record->actorId());
+                    self::assertSame($before->getId(), $record->getSubject()->getId());
+                    self::assertSame($message->id(), $record->getCorrelation()->getMessageId());
+                    self::assertSame($after->getUpdatedAt(), $record->getOccurredAt());
+                    self::assertSame(['name_changed' => true], $record->getFacts()->toArray());
+                    self::assertSame($record->toArray(), AuditEvidence::fromArray($record->toArray())->toArray());
+                    self::assertStringNotContainsString('Private name sentinel', json_encode($record->toArray()));
+                }
+
+                $handler->handle($message);
+                self::assertCount($enabled ? 1 : 0, $this->nameEvidence($env));
+                self::assertSame($after, $env->agentRepository->getById($before->getId()));
+                self::assertSame(1, $env->agentRepository->nameWrites);
+                self::assertSame(2, $clock->calls());
+            }
+        }
+    }
+
+    public function test_audit_failure_rolls_back_name_and_staged_evidence_preserving_primary_fault(): void
+    {
+        $env = $this->environment();
+        $before = $env->agentRepository->all()[0];
+        $audit = new InMemoryAuditEvidenceRepository($env->transaction, failAfterSave: true);
+        $env->eventDispatcher = new InMemoryEventDispatcher(
+            static fn(): never => throw new RuntimeException('Secondary notification failure.')
+        );
+        $handler = new UpdateAgentHandler(
+            $env->agentRepository,
+            new FixedClock(self::NOW),
+            $env->transaction,
+            $env->eventDispatcher,
+            $audit
+        );
+        $failure = $this->failure(fn() => $handler->handle($this->message($before->getId(), 'Renamed')));
+        self::assertSame($audit->failure(), $failure);
+        self::assertSame($before, $env->agentRepository->getById($before->getId()));
+        self::assertSame([], $audit->all());
+        self::assertSame([], $env->eventDispatcher->events());
+        self::assertFalse($env->agentRepository->contract->locked);
+    }
+
+    public function test_lost_commit_acknowledgement_preserves_both_possible_persisted_outcomes(): void
+    {
+        foreach ([false, true] as $committed) {
+            $env = $this->environment();
+            $before = $env->agentRepository->all()[0];
+            $failure = new RuntimeException('Commit acknowledgement lost.');
+            $hook = static fn(): never => throw $failure;
+            if ($committed) {
+                $env->transaction->afterCommit = $hook;
+            } else {
+                $env->transaction->beforeCommit = $hook;
+            }
+
+            self::assertSame($failure, $this->failure(fn() => $this->handler($env)
+                ->handle($this->message($before->getId(), 'Renamed'))));
+            self::assertSame(
+                $committed ? 'Renamed' : $before->getName()->toString(),
+                $env->agentRepository->getById($before->getId())->getName()->toString()
+            );
+            self::assertCount($committed ? 1 : 0, $this->nameEvidence($env));
+            self::assertCount(0, array_filter(
+                $env->eventDispatcher->events(),
+                static fn(Event $event): bool => $event instanceof AgentNameChanged
+            ));
+        }
+    }
+
+    /** @return list<AuditEvidence> */
+    private function nameEvidence(ProvisioningEnvironment $env): array
+    {
+        return array_values(array_filter(
+            $env->auditEvidenceRepository->all(),
+            static fn(AuditEvidence $record): bool => $record->action() === AuditAction::AGENT_NAME_CHANGED
+        ));
+    }
+
     private function environment(): ProvisioningEnvironment
     {
         $env = new ProvisioningEnvironment();
@@ -532,7 +659,8 @@ final class UpdateAgentHandlerTest extends TestCase
             $env->agentRepository,
             $clock ?? new FixedClock(self::NOW),
             $env->transaction,
-            $env->eventDispatcher
+            $env->eventDispatcher,
+            $env->auditEvidenceRepository
         );
     }
 
