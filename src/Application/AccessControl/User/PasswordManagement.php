@@ -53,13 +53,13 @@ final readonly class PasswordManagement
         private UserRepository $userRepository,
         private PasswordResetGrantRepository $passwordResetGrantRepository,
         private SessionRevocationService $sessionRevocationService,
-        private AuditEvidenceRepository $auditEvidenceRepository,
         private TransactionalUnitOfWork $unitOfWork,
         private Clock $clock,
         private PasswordHasher $passwordHasher,
         private PasswordValidator $passwordValidator,
         private PasswordHash $dummyPasswordHash,
-        private EventDispatcher $eventDispatcher
+        private EventDispatcher $eventDispatcher,
+        private ?AuditEvidenceRepository $auditEvidenceRepository = null
     ) {
     }
 
@@ -116,7 +116,7 @@ final readonly class PasswordManagement
                 );
                 $this->sessionRevocationService->revokeAllActiveFor($authenticatedUserId, $changedAt);
 
-                $this->auditEvidenceRepository->add(AuditEvidence::record(
+                $this->auditEvidenceRepository?->add(AuditEvidence::record(
                     $authenticatedUserId,
                     new AuditSubject($authenticatedUserId),
                     AuditAction::PASSWORD_CHANGED,
@@ -197,7 +197,7 @@ final readonly class PasswordManagement
                     throw new AuthenticationRequired('Password reset rejected.');
                 }
 
-                if ($actorId === null) {
+                if ($this->auditEvidenceRepository !== null && $actorId === null) {
                     throw new AuthenticationRequired('Password reset rejected.');
                 }
 
@@ -221,19 +221,21 @@ final readonly class PasswordManagement
 
                 $this->sessionRevocationService->revokeAllActiveFor($userId, $completedAt);
 
-                $this->auditEvidenceRepository->add(AuditEvidence::record(
-                    $actorId,
-                    new AuditSubject($userId),
-                    AuditAction::PASSWORD_RESET_COMPLETED,
-                    $completedAt,
-                    new AuditUserOutcome(
-                        AuditUserRevisions::fromUser($user),
-                        AuditUserRevisions::fromUser($replacementUser),
-                        AuditGrantState::fromGrant($passwordResetGrant),
-                        AuditGrantState::fromGrant($consumedGrant)
-                    ),
-                    null
-                ));
+                if ($actorId !== null) {
+                    $this->auditEvidenceRepository?->add(AuditEvidence::record(
+                        $actorId,
+                        new AuditSubject($userId),
+                        AuditAction::PASSWORD_RESET_COMPLETED,
+                        $completedAt,
+                        new AuditUserOutcome(
+                            AuditUserRevisions::fromUser($user),
+                            AuditUserRevisions::fromUser($replacementUser),
+                            AuditGrantState::fromGrant($passwordResetGrant),
+                            AuditGrantState::fromGrant($consumedGrant)
+                        ),
+                        null
+                    ));
+                }
 
                 return $completedAt;
             });

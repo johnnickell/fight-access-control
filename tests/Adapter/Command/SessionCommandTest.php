@@ -104,9 +104,9 @@ final class SessionCommandTest extends TestCase
             $repository,
             new FixedClock($now),
             new FixedSessionAdministrationAuthorization($mode !== 'denied'),
-            $audit,
             $unitOfWork,
-            $events
+            $events,
+            $audit
         );
         $router = new InMemoryCommandRouter();
         if ($mode !== 'unconfigured') {
@@ -155,7 +155,7 @@ final class SessionCommandTest extends TestCase
         self::assertSame($status, $response->getStatusCode());
         self::assertStringNotContainsString('PRIVATE', (string) $response->getBody());
         self::assertSame($status === 204, $stored->all()[0]->isRevoked());
-        self::assertCount($mode === 'admin' ? 1 : 0, $audit->all());
+        self::assertCount($status === 204 ? 1 : 0, $audit->all());
         if ($status === 204) {
             self::assertTrue($unitOfWork->transactionCompleted);
             self::assertCount(1, $events->events());

@@ -541,10 +541,10 @@ final class ExpiredCredentialInterleavingTest extends TestCase
                 $emailChangeGrantRepository,
                 $fixture->passwordResetGrantRepository,
                 new SessionRevocationService($refreshSessionRepository),
-                $auditEvidenceRepository,
                 $fixture->unitOfWork,
                 $clock,
-                $eventDispatcher
+                $eventDispatcher,
+                $auditEvidenceRepository
             );
 
             return static fn () => $service->confirmEmail($fixture->user->getId(), 'fixture', AnonymousId::generate());

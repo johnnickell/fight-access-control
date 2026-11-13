@@ -73,6 +73,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- **Breaking pre-v1 synchronous audit composition:** UserAuthentication, SessionLifecycle, PasswordManagement,
+  EmailChangeConfirmation and RevokeSessionHandler take optional nullable audit storage last. Omission/null disables
+  durable evidence; configured failure aborts the coupled outcome. Activation/login/rotation/logout and self-service
+  revocation now join the existing password/email/admin paths. Explicit typed provenance is required for enabled
+  activation, logout, reset, confirmation and terminal replay revocation, never inferred from a target or old
+  credential. Committed replay revocation is evidenced before outward refusal; benign conflicts and helper no-change
+  create no duplicate evidence. Consumer mappings must admit the new actions/authentication facts; no backfill or
+  compatibility reader is supplied. See [synchronous composition](docs/user-authentication.md#optional-atomic-audit).
 - **Breaking pre-v1 User lifecycle constructor order:** InvitePendingUser, RegisterUser, CorrectPendingInvitation,
   RecoverPendingRegistration, EnableUser, DisableUser, DeleteUser and RestoreUser handlers now take optional nullable
   audit storage last. Omitted/null disables durable evidence; configured write failure still aborts the atomic
@@ -82,7 +90,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Breaking pre-v1 audit evidence contract:** replace actor/action strings and arbitrary context with direct typed
   originating identities, finite subjects/actions, unique evidence identity, trusted outcome time, actual revisions,
   relationships/correlation and admitted facts across existing writers. Current invitation/reset messages persist
-  actor kind plus ID; synchronous reset/confirmation require explicit origin for their mandatory audited mutations.
+  actor kind plus ID; synchronous reset/confirmation require explicit origin for enabled audited mutations.
   Agent authorization returns typed originating attribution separately from real-invoker policy. Update current
   callers, hydration and consumer persistence mapping directly; no old-shape reader or backfill is supplied.
   Existing transaction, recovery and publication policies remain. The account lifecycle optional wiring is

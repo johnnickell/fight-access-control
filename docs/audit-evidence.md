@@ -6,7 +6,9 @@ TASK-00123 adds optional composition for the eight User account lifecycle handle
 adds [optional invitation delivery/expiry composition](credential-delivery.md#optional-invitation-audit-composition-unreleased).
 TASK-00125 adds [optional reset request/delivery/expiry composition](credential-delivery.md#optional-password-reset-audit-composition-unreleased).
 TASK-00126 adds [optional email-change composition](credential-delivery.md#optional-email-change-audit-composition-unreleased)
-for request/cancel/delivery/expiry, including self-service outcomes. No release,
+for request/cancel/delivery/expiry, including self-service outcomes.
+TASK-00127 adds [optional synchronous User/session composition](user-authentication.md#optional-atomic-audit).
+No release,
 consumer adoption or independent acceptance is claimed by this document.
 
 ## Current construction and persistence
@@ -69,7 +71,12 @@ correlation; record identity/correlation is neither authority nor universal dedu
   from an ACTIVE predecessor to a distinct ACTIVE credential. Revocation retains the same credential identity and
   revision while changing ACTIVE to REVOKED. Noncreation outcomes retain arbitrary authoritative existing revisions,
   including terminal revision limits where no increment is needed. Issuance requires its real scoped operation correlation.
-- `AuditSessionRevocation` admits only session identity and actual before/after revisions. Business-required
+- `AuditAuthenticationOutcome` combines bounded User revisions with actual session identity and creation/rotation
+  revisions. Activation additionally retains the exact consumed grant/delivery generation. Login and rotation do not
+  invent grant changes; refresh preserves User counters. Issuance has no session predecessor and starts at zero;
+  rotation advances exactly once. Actions distinguish activation, login and successful refresh; none claims token receipt.
+- `AuditSessionRevocation` admits only session identity and actual before/after revisions for logout, terminal replay,
+  self-service management and administrative management. Business-required
   free-text reasons still undergo their existing validation, but are deliberately omitted from durable evidence.
   Neither string typing nor a regular expression can establish that arbitrary reason text is secret-free.
 - `AuditRoleRevisions` preserves the complete incarnation/sequence with explicit absent creation/removal state.
@@ -98,8 +105,11 @@ text/context. Evidence and its identifiers are nevertheless not automatically au
 Existing business authorization remains mandatory and independent. Administrative User IDs retain their policy
 checks. Registration and reset-request paths deliberately establish `AnonymousId`; this is declared public-entry
 semantics, never missing-data recovery. Password reset completion and email confirmation now accept explicit
-nullable typed provenance; with their current mandatory audit wiring, missing provenance rejects generically after
-credential admission and before the first mutation. The target User ID alone does not prove an authenticated actor.
+nullable typed provenance; with audit enabled, missing provenance rejects generically after credential admission
+and before the first mutation. The same applies to activation, logout and terminal replay. Disabled calls and pure
+no-change paths gain no new audit-only actor obligation. Login/current-credential rotation use the verified User;
+password change and session management retain their admitted actor. The target User ID alone does not prove an
+authenticated actor.
 
 `AgentOperationAuthorization` authenticates the real invoker and fences current caller/delegation/target/destination
 policy, then returns explicitly established nullable typed **originating** provenance. Null is explicit absence,
@@ -132,8 +142,12 @@ RecoverPendingRegistration, EnableUser, DisableUser, DeleteUser and RestoreUser.
 or evidence identity is constructed in that composition. All existing business-required actors remain required;
 public registration deliberately establishes AnonymousId only for enabled evidence. No new audit-only actor input
 is needed in this slice because its existing typed Commands already supply sufficient provenance. Target admission,
-Role/reference fences and coupled persistence do not depend on enabling audit. Other family constructors remain
-unchanged until their owning TASKs implement optionality.
+Role/reference fences and coupled persistence do not depend on enabling audit. TASK-00127 applies the same final
+nullable dependency to all four synchronous owners and RevokeSessionHandler, including previously mandatory
+password/email paths. Meaningful activation/login/rotation/logout/password/email and self/admin revocation outcomes
+are covered. Benign refresh conflicts, rejected work and concurrent helper no-change have no new mutation record;
+terminal replay's actually committed revocation is recorded before outward refusal. Helpers never add evidence.
+Other family constructors remain unchanged until their owning TASKs implement optionality.
 TASK-00167 adds reusable [transaction/storage conformance](audit-transaction-conformance.md) around the enabled
 writer, reopened modeled representation and wrong-connection controls. It does not qualify family optionality,
 SQL storage or physical restart. TICKET-00048 retains complete cross-family reconciliation and real consumer qualification.

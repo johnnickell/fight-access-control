@@ -12,6 +12,17 @@ use Fight\AccessControl\Application\AccessControl\User\Service\LoginThrottle;
 use Fight\AccessControl\Domain\AccessControl\ActivationGrant\ActivationCredential;
 use Fight\AccessControl\Domain\AccessControl\ActivationGrant\ActivationGrant;
 use Fight\AccessControl\Domain\AccessControl\ActivationGrant\ActivationGrantRepository;
+use Fight\AccessControl\Domain\AccessControl\Agent\AgentId;
+use Fight\AccessControl\Domain\AccessControl\Audit\AnonymousId;
+use Fight\AccessControl\Domain\AccessControl\Audit\AuditAction;
+use Fight\AccessControl\Domain\AccessControl\Audit\AuditAuthenticationOutcome;
+use Fight\AccessControl\Domain\AccessControl\Audit\AuditEvidence;
+use Fight\AccessControl\Domain\AccessControl\Audit\AuditEvidenceRepository;
+use Fight\AccessControl\Domain\AccessControl\Audit\AuditGrantState;
+use Fight\AccessControl\Domain\AccessControl\Audit\AuditSubject;
+use Fight\AccessControl\Domain\AccessControl\Audit\AuditUserOutcome;
+use Fight\AccessControl\Domain\AccessControl\Audit\AuditUserRevisions;
+use Fight\AccessControl\Domain\AccessControl\Audit\SystemId;
 use Fight\AccessControl\Domain\AccessControl\User\Event\RedactedCommandFailed;
 use Fight\AccessControl\Domain\AccessControl\User\Event\UserActivated;
 use Fight\AccessControl\Domain\AccessControl\User\Event\UserLoggedIn;
@@ -53,7 +64,8 @@ final readonly class UserAuthentication
         private PasswordValidator $passwordValidator,
         private TokenIssuer $tokenIssuer,
         private PasswordHash $dummyPasswordHash,
-        private EventDispatcher $eventDispatcher
+        private EventDispatcher $eventDispatcher,
+        private ?AuditEvidenceRepository $auditEvidenceRepository = null
     ) {
     }
 
@@ -64,7 +76,8 @@ final readonly class UserAuthentication
         UserId $userId,
         #[SensitiveParameter] string $activationCredential,
         #[SensitiveParameter] string $plainPassword,
-        bool $remember = false
+        bool $remember = false,
+        UserId|AgentId|SystemId|AnonymousId|null $actorId = null
     ): TokenSet {
         try {
             /** @var array{TokenSet, DateTimeImmutable} $activation */
@@ -72,7 +85,8 @@ final readonly class UserAuthentication
                 $userId,
                 $activationCredential,
                 $plainPassword,
-                $remember
+                $remember,
+                $actorId
             ): array {
                 $authenticatedAt = $this->clock->now();
                 $user = $this->userRepository->getById($userId);
@@ -98,6 +112,10 @@ final readonly class UserAuthentication
                     || !$grant->isUsableAt($authenticatedAt)
                     || !$grant->matchesCredential($credential)
                 ) {
+                    throw new AuthenticationRequired('Activation rejected.');
+                }
+
+                if ($this->auditEvidenceRepository !== null && $actorId === null) {
                     throw new AuthenticationRequired('Activation rejected.');
                 }
 
@@ -131,6 +149,27 @@ final readonly class UserAuthentication
                     )
                 ) {
                     throw new StateConflict('The invited account changed concurrently.');
+                }
+
+                if ($actorId !== null) {
+                    $this->auditEvidenceRepository?->add(AuditEvidence::record(
+                        $actorId,
+                        new AuditSubject($userId),
+                        AuditAction::USER_ACTIVATED,
+                        $authenticatedAt,
+                        new AuditAuthenticationOutcome(
+                            new AuditUserOutcome(
+                                AuditUserRevisions::fromUser($user),
+                                AuditUserRevisions::fromUser($replacementUser),
+                                AuditGrantState::fromGrant($grant),
+                                AuditGrantState::fromGrant($consumedGrant)
+                            ),
+                            $refreshSession->getId(),
+                            null,
+                            $refreshSession->getRevision()
+                        ),
+                        null
+                    ));
                 }
 
                 return [$tokenSet, $authenticatedAt];
@@ -225,6 +264,23 @@ final readonly class UserAuthentication
                 ) {
                     throw new AuthenticationRequired('Login rejected.');
                 }
+
+                $this->auditEvidenceRepository?->add(AuditEvidence::record(
+                    $user->getId(),
+                    new AuditSubject($user->getId()),
+                    AuditAction::USER_LOGGED_IN,
+                    $authenticatedAt,
+                    new AuditAuthenticationOutcome(
+                        new AuditUserOutcome(
+                            AuditUserRevisions::fromUser($user),
+                            AuditUserRevisions::fromUser($replacementUser)
+                        ),
+                        $refreshSession->getId(),
+                        null,
+                        $refreshSession->getRevision()
+                    ),
+                    null
+                ));
 
                 return [$tokenSet, $authenticatedAt];
             });

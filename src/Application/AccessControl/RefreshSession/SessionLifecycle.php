@@ -11,6 +11,17 @@ use Fight\AccessControl\Application\AccessControl\Timing\Service\Clock;
 use Fight\AccessControl\Application\AccessControl\User\Authentication\TokenIssuer;
 use Fight\AccessControl\Application\AccessControl\User\Security\AuthenticationTokenPolicy;
 use Fight\AccessControl\Application\AccessControl\User\Security\RefreshResult;
+use Fight\AccessControl\Domain\AccessControl\Agent\AgentId;
+use Fight\AccessControl\Domain\AccessControl\Audit\AnonymousId;
+use Fight\AccessControl\Domain\AccessControl\Audit\AuditAction;
+use Fight\AccessControl\Domain\AccessControl\Audit\AuditAuthenticationOutcome;
+use Fight\AccessControl\Domain\AccessControl\Audit\AuditEvidence;
+use Fight\AccessControl\Domain\AccessControl\Audit\AuditEvidenceRepository;
+use Fight\AccessControl\Domain\AccessControl\Audit\AuditSessionRevocation;
+use Fight\AccessControl\Domain\AccessControl\Audit\AuditSubject;
+use Fight\AccessControl\Domain\AccessControl\Audit\AuditUserOutcome;
+use Fight\AccessControl\Domain\AccessControl\Audit\AuditUserRevisions;
+use Fight\AccessControl\Domain\AccessControl\Audit\SystemId;
 use Fight\AccessControl\Domain\AccessControl\RefreshSession\Event\CurrentSessionLoggedOut;
 use Fight\AccessControl\Domain\AccessControl\RefreshSession\RefreshCredential;
 use Fight\AccessControl\Domain\AccessControl\RefreshSession\RefreshSession;
@@ -18,6 +29,7 @@ use Fight\AccessControl\Domain\AccessControl\RefreshSession\RefreshSessionId;
 use Fight\AccessControl\Domain\AccessControl\RefreshSession\RefreshSessionRepository;
 use Fight\AccessControl\Domain\AccessControl\User\Event\RedactedCommandFailed;
 use Fight\AccessControl\Domain\AccessControl\User\User;
+use Fight\AccessControl\Domain\AccessControl\User\UserId;
 use Fight\AccessControl\Domain\AccessControl\User\UserRepository;
 use Fight\AccessControl\Domain\AccessControl\User\UserState;
 use Fight\Common\Application\Error\Exception\AuthenticationRequired;
@@ -47,19 +59,23 @@ final readonly class SessionLifecycle
         private RefreshCredentialGenerator $refreshCredentialGenerator,
         private TokenIssuer $tokenIssuer,
         private AuthenticationTokenPolicy $tokenPolicy,
-        private EventDispatcher $eventDispatcher
+        private EventDispatcher $eventDispatcher,
+        private ?AuditEvidenceRepository $auditEvidenceRepository = null
     ) {
     }
 
     /**
      * Validates a refresh credential and returns a rotation or bounded-conflict outcome
      */
-    public function refresh(#[SensitiveParameter] string $refreshCredential): RefreshResult
-    {
+    public function refresh(
+        #[SensitiveParameter] string $refreshCredential,
+        UserId|AgentId|SystemId|AnonymousId|null $actorId = null
+    ): RefreshResult {
         try {
             /** @var RefreshResult|AuthenticationRequired $refreshResult */
             $refreshResult = $this->unitOfWork->commitTransactional(function () use (
-                $refreshCredential
+                $refreshCredential,
+                $actorId
             ): RefreshResult|AuthenticationRequired {
                 $authenticatedAt = $this->clock->now();
                 $credential = $this->presentedCredential($refreshCredential);
@@ -79,7 +95,13 @@ final readonly class SessionLifecycle
                         $user = $this->userRepository->getById($refreshSession->getUserId());
                     }
 
-                    return $this->resolveUsedCredential($refreshSession, $user, $credential, $authenticatedAt);
+                    return $this->resolveUsedCredential(
+                        $refreshSession,
+                        $user,
+                        $credential,
+                        $authenticatedAt,
+                        $actorId
+                    );
                 }
 
                 $user = $this->userRepository->getById($refreshSession->getUserId());
@@ -102,8 +124,25 @@ final readonly class SessionLifecycle
                         }
                     }
 
-                    return $this->resolveUsedCredential($currentSession, $user, $credential, $observedAt);
+                    return $this->resolveUsedCredential($currentSession, $user, $credential, $observedAt, $actorId);
                 }
+
+                $this->auditEvidenceRepository?->add(AuditEvidence::record(
+                    $user->getId(),
+                    new AuditSubject($user->getId()),
+                    AuditAction::SESSION_REFRESHED,
+                    $authenticatedAt,
+                    new AuditAuthenticationOutcome(
+                        new AuditUserOutcome(
+                            AuditUserRevisions::fromUser($user),
+                            AuditUserRevisions::fromUser($user)
+                        ),
+                        $rotatedSession->getId(),
+                        $refreshSession->getRevision(),
+                        $rotatedSession->getRevision()
+                    ),
+                    null
+                ));
 
                 return RefreshResult::rotated(
                     $this->tokenIssuer->issue($user, $rotatedSession, $rotatedCredential, $authenticatedAt)
@@ -125,12 +164,15 @@ final readonly class SessionLifecycle
     /**
      * Revokes only the session selected by the presented refresh credential
      */
-    public function logout(#[SensitiveParameter] string $refreshCredential): void
-    {
+    public function logout(
+        #[SensitiveParameter] string $refreshCredential,
+        UserId|AgentId|SystemId|AnonymousId|null $actorId = null
+    ): void {
         try {
             /** @var RefreshSessionId $refreshSessionId */
             $refreshSessionId = $this->unitOfWork->commitTransactional(function () use (
-                $refreshCredential
+                $refreshCredential,
+                $actorId
             ): RefreshSessionId {
                 $credential = $this->presentedCredential($refreshCredential);
                 $refreshSession = $this->refreshSessionRepository->getByCredential($credential);
@@ -142,9 +184,24 @@ final readonly class SessionLifecycle
                     throw new AuthenticationRequired('The refresh session is not authoritative.');
                 }
 
-                $refreshSession = $this->sessionRevocationService->revoke($refreshSession);
+                if (!$refreshSession->isRevoked() && $this->auditEvidenceRepository !== null && $actorId === null) {
+                    throw new AuthenticationRequired('The refresh session is not authoritative.');
+                }
 
-                return $refreshSession->getId();
+                $revokedAt = $this->clock->now();
+                [$before, $after] = $this->sessionRevocationService->revoke($refreshSession);
+                if ($before !== null && $actorId !== null) {
+                    $this->auditEvidenceRepository?->add(AuditEvidence::record(
+                        $actorId,
+                        new AuditSubject($after->getUserId()),
+                        AuditAction::SESSION_LOGGED_OUT,
+                        $revokedAt,
+                        new AuditSessionRevocation($after->getId(), $before->getRevision(), $after->getRevision()),
+                        null
+                    ));
+                }
+
+                return $after->getId();
             });
 
             $this->eventDispatcher->trigger(new CurrentSessionLoggedOut($refreshSessionId));
@@ -187,7 +244,8 @@ final readonly class SessionLifecycle
         ?RefreshSession $refreshSession,
         ?User $user,
         RefreshCredential $credential,
-        DateTimeImmutable $observedAt
+        DateTimeImmutable $observedAt,
+        UserId|AgentId|SystemId|AnonymousId|null $actorId
     ): RefreshResult|AuthenticationRequired {
         $this->assertAuthoritativeSession($refreshSession, $user, $observedAt);
         if (
@@ -200,15 +258,32 @@ final readonly class SessionLifecycle
             return RefreshResult::conflict();
         }
 
-        return $this->revokeCompromisedSession($refreshSession);
+        return $this->revokeCompromisedSession($refreshSession, $observedAt, $actorId);
     }
 
     /**
      * Revokes the authoritative session family atomically after terminal credential replay
      */
-    private function revokeCompromisedSession(RefreshSession $refreshSession): AuthenticationRequired
-    {
-        $this->sessionRevocationService->revoke($refreshSession);
+    private function revokeCompromisedSession(
+        RefreshSession $refreshSession,
+        DateTimeImmutable $observedAt,
+        UserId|AgentId|SystemId|AnonymousId|null $actorId
+    ): AuthenticationRequired {
+        if ($this->auditEvidenceRepository !== null && $actorId === null) {
+            throw new AuthenticationRequired('The refresh session is not authoritative.');
+        }
+
+        [$before, $after] = $this->sessionRevocationService->revoke($refreshSession);
+        if ($before !== null && $actorId !== null) {
+            $this->auditEvidenceRepository?->add(AuditEvidence::record(
+                $actorId,
+                new AuditSubject($after->getUserId()),
+                AuditAction::SESSION_REPLAY_REVOKED,
+                $observedAt,
+                new AuditSessionRevocation($after->getId(), $before->getRevision(), $after->getRevision()),
+                null
+            ));
+        }
 
         return new AuthenticationRequired('The refresh session is not authoritative.');
     }
