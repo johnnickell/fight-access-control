@@ -71,7 +71,8 @@ schema is supplied. Consumer transports decide how to present absence or failure
 ResultSet retains View objects: consumers must explicitly project each safe record with `toArray()` before JSON
 encoding the page. The generated schema describes that projection, not arbitrary object serialization. Empty and
 out-of-range pages are valid; no `page <= total_pages` rule is added. These samples do not qualify universal Common
-ResultSet invariants or a producer snapshot; [TASK-00132](../planning/tasks/00132-TASK.md) retains that separate hold.
+ResultSet invariants or a producer snapshot; [TASK-00132](../planning/tasks/00132-TASK.md) owns the separately qualified
+strict ResultSet runtime and request/result contract.
 The page metadata is unchanged. Pagination request `orderings` is a string-direction object, or the empty JSON array
 produced by the native empty PHP ordering map; a nonempty indexed array is invalid. Empty preparation payloads likewise
 allow `{}` or canonical `[]`, never nonempty objects/arrays. These are value shapes, not HTTP request-body policy.
@@ -100,7 +101,8 @@ Raw Agent Command names are not canonical output names: UpdateAgent retains raw 
 UTF-8 bytes before later AgentName validation. Do not apply the canonical 120-code-point limit to those raw fields.
 Provisioning's 4096-byte limit is documented rather than misrepresented as JSON Schema's character `maxLength`.
 Feature names use the current strict ASCII rule. Native FeatureFlag validation does not trim/normalize or invoke
-availability/authorization; future declaration/discovery redesign remains separately owned.
+availability/authorization; [effective declaration/discovery composition](feature-references.md) has separate
+executable evidence.
 
 Request secrets are write-only and example-free. Browser output forbids additional fields, including refresh
 credentials. Portable body-token output explicitly includes `refresh_token`; consumers still own cookies, headers,

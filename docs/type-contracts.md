@@ -30,15 +30,25 @@ or unexpected stderr. Exit 0, other exits, signals, timeouts, missing analyzer/d
 and unexpected diagnostics fail. It prints overall success only after every declared case passes. The per-process
 default timeout is 120 seconds; focused runs can set `--timeout SECONDS`.
 
-The fixture configuration [`phpstan-type-contracts.neon`](../phpstan-type-contracts.neon) includes the ordinary
-project configuration. Explicit file arguments select only each fixture; the ordinary source/caller analysis is
-still run separately and unchanged. Fixture level 8 is needed to reject passing nullable repository output to a
-non-null parameter (not checked at the existing production level 6). This is a demonstrated fixture requirement,
-not a claim that level 8 is sufficient or approved for all production boundaries.
+The fixture configuration [`phpstan-type-contracts.neon`](../phpstan-type-contracts.neon) inherits the ordinary
+production/caller rules in [`phpstan.neon.dist`](../phpstan.neon.dist). Explicit file arguments select each fixture;
+there is no stricter fixture-only level. TASK-00152 activates level 8 across every `src` and `openapi` file and as
+the default for ordinary caller checks: nullable arguments and partially incompatible union uses must reject,
+alongside the existing element/shape/callback rules. A concrete unchecked nullable repository-to-View call established
+the prior enforcement gap. Level 8 is selected for those checks, not as semantic certification or a numeric target.
+
+Ordinary PHPStan analyzes only `src/` and shipped `openapi/` metadata, not `tests/` or `scripts/`, under the
+[project's explicit scope decision](../planning/agents/project-profile.md#tests-and-delivery). The required static
+fixtures qualify production API inference and incompatible-use rejection; they do not test the tests or checker.
+The shared [`phpstan-base.neon`](../phpstan-base.neon) retains framework symbol discovery and bleeding-edge rules;
+separate cache directories isolate production and fixture jobs. Symbol discovery does not add analysis inputs.
+Known mixed bus/UoW contracts and permitted truthful local annotations remain unchanged. Runtime validation still
+owns genuinely dynamic inputs; static analysis does not prove permissions, identity, transaction outcomes or
+external consumer behavior.
 
 ## Isolation and qualification
 
-The directory is outside ordinary PHPStan's `openapi/src/tests/scripts` inputs and outside PHPUnit's explicit
+The directory is outside ordinary PHPStan's `openapi/` and `src/` inputs and outside PHPUnit's explicit
 suite directories and `src` coverage scope. No ignoreErrors, baseline or production exclusion is added. PHP syntax
 and PHPCS checks include fixtures. Intentionally invalid static uses do not become runtime tests or coverage credit.
 
@@ -210,5 +220,5 @@ tuples/unions) remains sufficient. No generic UoW supplier or redundant runtime 
 
 TASK-00150 owns exhaustive declaration/contract inventory. TASK-00152 must reconcile that inventory with accepted
 correction slices, establish sufficient whole-library rules and fixtures, justify genuine dynamic boundaries and
-trace current caller/runtime/supplier evidence. Representative cases and production PHPStan level 6 do not complete
+trace current caller/runtime/supplier evidence. The current production/caller rules and representative cases do not alone complete
 that audit. Newly discovered source defects return to their semantic owner; never hide them in fixture expectations.

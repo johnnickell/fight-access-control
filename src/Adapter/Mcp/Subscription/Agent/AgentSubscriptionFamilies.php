@@ -49,7 +49,7 @@ final readonly class AgentSubscriptionFamilies
     public function allows(AuthenticatedAgentPrincipal $principal, string $filter, ?string $uri): bool
     {
         if ($filter === 'toolsListChanged') {
-            if ($this->toolRegistry === null) {
+            if ($this->toolRegistry === null || $this->toolCatalog === null) {
                 return false;
             }
 
@@ -111,7 +111,8 @@ final readonly class AgentSubscriptionFamilies
                 $selected = [$resource, $provider];
             }
 
-            return $selected !== null && $this->resourceAllowed($principal, $selected[0], $selected[1]);
+            return $selected !== null
+                && $this->resourceAllowed($principal, $selected[0], $selected[1], $this->resourceCatalog);
         }
 
         if ($filter !== 'resourcesListChanged' || $uri !== null) {
@@ -132,7 +133,12 @@ final readonly class AgentSubscriptionFamilies
                 }
 
                 $seen[$resource->uri()] = true;
-                $available = $this->resourceAllowed($principal, $resource, $provider) || $available;
+                $available = $this->resourceAllowed(
+                    $principal,
+                    $resource,
+                    $provider,
+                    $this->resourceCatalog
+                ) || $available;
             }
         }
 
@@ -145,9 +151,10 @@ final readonly class AgentSubscriptionFamilies
     private function resourceAllowed(
         AuthenticatedAgentPrincipal $principal,
         McpResourceInfo $resource,
-        object $provider
+        object $provider,
+        AgentResourcePermissionCatalog $resourceCatalog
     ): bool {
-        if (!$this->permitted($principal, $this->resourceCatalog->requirementsFor($resource))) {
+        if (!$this->permitted($principal, $resourceCatalog->requirementsFor($resource))) {
             return false;
         }
 
@@ -165,7 +172,9 @@ final readonly class AgentSubscriptionFamilies
                 continue;
             }
 
-            $entry = $provider->findEntry($revision->entry()->get('uri'));
+            $entryUri = $revision->entry()->get('uri');
+            // StrictJson exports dynamic values; only an exact string can select the served entry.
+            $entry = is_string($entryUri) ? $provider->findEntry($entryUri) : null;
             if (
                 $entry === null
                 || !$this->permitted($principal, $this->skillCatalog->requirementsFor($entry))
@@ -174,7 +183,7 @@ final readonly class AgentSubscriptionFamilies
             }
 
             foreach ($revision->resources() as $member) {
-                if (!$this->permitted($principal, $this->resourceCatalog->requirementsFor($member))) {
+                if (!$this->permitted($principal, $resourceCatalog->requirementsFor($member))) {
                     return false;
                 }
             }

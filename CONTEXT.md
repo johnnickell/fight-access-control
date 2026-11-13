@@ -1,5 +1,62 @@
 # Fight AccessControl Context
 
+## TASK-00152 operator-requested PHPStan scope amendment
+
+John explicitly rejected PHPStan analysis of tests/scripts after the split production/test-tool passes were
+explained. Ordinary analysis now covers only production `src/` and shipped `openapi/` metadata; the separate
+tests/scripts invocation and its configuration are removed. Required production API type-contract fixtures,
+meaningful PHPUnit behavior checks, all-src Unit-only line coverage and exact all-suite statements remain.
+See the [governing scope decision](planning/agents/project-profile.md#tests-and-delivery). Independent Review v3
+ACCEPT and behavioral QA v3 PASS cover amendment candidate `a0586cffd2a2a3d735476769414d5cf7de802f35`,
+with seven affected scenarios passing and no findings. Earlier acceptance below retains its original subject.
+The qualified full gate is retained with current planning/documentation checks; canonical Work evidence owns
+its results and tested-content mapping. Same-PR publication and owned retirement are pending at this closeout
+checkpoint; canonical `.runs/handoffs/TASK-00152/land.md` owns subsequent delivery and cleanup outcomes.
+
+## TASK-00152 integrated contracts — independently accepted
+
+Independent Review v3 ACCEPT and nonvisual QA PASS cover candidate
+`55cdb2325d11a6455e07dd0fdb8cfb7793737a88`, with R-01 resolved and 40 selected QA outcomes passing.
+[TASK-00152](planning/tasks/00152-TASK.md) completes sufficient ordinary static enforcement, exhaustive current
+contract/caller reconciliation and independent Unit-only line qualification. The accepted gate passes
+9,072 tests / 91,391 assertions, 50 static cases / 564 diagnostics and 10,759/10,759 Unit-only executable
+lines across all 540 src files without exclusions, separately from exact all-suite statements.
+TICKET-00042 and EPIC-00016 close automatically with their terminal children. Existing slice reports,
+qualified tagged compositions and source/evidence bridges retain their original subjects.
+
+Land's recovery integrates only develop's container Git patch; restored local inputs require fresh normal
+verification. Publication/final recovery verification and owned retirement are pending at this checkpoint;
+canonical `.runs/handoffs/TASK-00152/land.md` owns subsequent outcomes. Full branch instrumentation failures
+and scoped data remain separate, not complete-library certification. Historical minimum advisories and
+consumer qualification limits remain; no merge, release or deployment is implied.
+
+## Historical TASK-00152 approved Unit-only verification recovery
+
+John approved additional isolated Unit tests, complete behavior-based suite classification, measured runtime and
+bounded coverage enforcement. The [single canonical PHPUnit execution](docs/unit-coverage.md) retains exact all-suite
+statements and separately attributes executable lines to Unit test IDs. Every src file is included; real framework,
+storage, schema and native journey protection remains separate rather than filling Unit gaps. Scoped branch data
+and the reproduced full-suite branch-instrumentation failure are reported separately, not called a branch pass.
+
+The current base also adds independently accepted Task-live and invitation-audit contracts. Their current semantic,
+caller and supplier bridge and the changed candidate's verification belong to the canonical Work handoff for
+[TASK-00152](planning/tasks/00152-TASK.md). Original independent reports and earlier reconciliation retain their exact
+historical subjects. Fresh independent Review and behavioral QA must assess this new test/enforcement work;
+no self-acceptance, publication or consumer qualification is implied.
+
+## Historical TASK-00152 integrated enforcement — earlier Work candidate
+
+The approved bounded precision amendment corrects eight demonstrated static obligations in User, both Permission
+constructor adapters and subscription-family composition, without changing their requirement ownership or historical
+acceptance. Production/OpenAPI and ordinary caller analysis now reject nullable and incompatible union uses under
+the same rules as required fixtures. At that historical checkpoint, test/script analysis retained its existing
+rules separately; the later explicit scope amendment above removes that pass. See
+[type-contract enforcement](docs/type-contracts.md). Engineer semantic/source/caller and tagged-dependency reconciliation
+now has no pending primary or secondary concerns, including later actual capability and metadata amendments. This is
+Work evidence, not whole-library acceptance: fresh independent Review/nonvisual QA remain required, and actual
+consumer qualification is separate.
+The canonical `.runs/handoffs/TASK-00152/work.md` owns exact candidate, checks, warnings and remaining scope.
+
 ## Optional complete Task live state — TASK-00102 accepted checkpoint
 
 [Optional Task live composition](docs/agent-task-live.md) adds current original-bound Task signal and complete-state

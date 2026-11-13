@@ -270,10 +270,10 @@ and complete gate/exact coverage. Publication/final delivery verification are pe
 current results belong to canonical `.runs/handoffs/TASK-00115/land.md` and the actual PR. TICKET-00037/EPIC-00016
 remain open for other unfinished Domain/semantic/enforcement children; consumer qualification remains separate.
 
-Both early foundations, TASK-00150 inventory and TASK-00151 fixtures, are now independently accepted at the
-historical candidates recorded below. EPIC-00016/TICKET-00042 remain open for semantic corrections and
-TASK-00152's integrated enforcement/reconciliation. Current delivery results belong to each TASK's canonical
-Land receipt and actual PR; the Board owns execution selection. No whole-library audit is complete.
+[EPIC-00016](epics/00016-EPIC.md) and [TICKET-00042](tickets/00042-TICKET.md) now close with
+[TASK-00152](tasks/00152-TASK.md)'s independently accepted integrated package. Those records own acceptance
+and qualification limits; the following foundation/planning checkpoints remain historical.
+Use the Board for current execution selection, not these completed handoffs.
 
 ### Historical foundation and planning checkpoints
 
@@ -840,7 +840,7 @@ The EPIC's historical pre-v1.0.0 target is not an authorization to release v1.0.
 | [EPIC-00013](epics/00013-EPIC.md) | v1.0.0 | done | 3 | 3 |
 | [EPIC-00014](epics/00014-EPIC.md) | unassigned | ready-for-agent | 8 | 23 |
 | [EPIC-00015](epics/00015-EPIC.md) | unassigned | done | 5 | 9 |
-| [EPIC-00016](epics/00016-EPIC.md) | unassigned | ready-for-agent | 6 | 31 |
+| [EPIC-00016](epics/00016-EPIC.md) | unassigned | done | 6 | 31 |
 | [EPIC-00017](epics/00017-EPIC.md) | unassigned | ready-for-agent | 6 | 24 |
 | [EPIC-00018](epics/00018-EPIC.md) | unassigned | ready-for-agent | 4 | 12 |
 <!-- generated:epic-status:end -->

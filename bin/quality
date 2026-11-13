@@ -24,7 +24,7 @@ python3 scripts/contract_inventory.py
 printf '[quality] PHPCS\n'
 php vendor/bin/phpcs
 
-printf '[quality] PHPStan\n'
+printf '[quality] PHPStan production contracts and ordinary caller defaults\n'
 php -d memory_limit=512M vendor/bin/phpstan analyse
 
 printf '[quality] Type contracts\n'
@@ -37,16 +37,24 @@ php vendor/bin/deptrac debug:unassigned --no-cache
 printf '[quality] Rector dry-run\n'
 php vendor/bin/rector process openapi/ src/ tests/Domain/ tests/Application/ tests/Adapter/ tests/OpenApi/ scripts/ --dry-run
 
-printf '[quality] PHPUnit\n'
-rm -f var/reports/coverage/clover.xml
+printf '[quality] PHPUnit (one execution; per-test Unit attribution)\n'
+mkdir -p var/reports/coverage
+rm -f var/reports/coverage/{clover.xml,coverage.php,tests.xml,teamcity.log,unit.json}
+php -d memory_limit=512M -d auto_prepend_file=tests/Adapter/framework-bootstrap.php vendor/bin/phpunit \
+    --list-tests-xml var/reports/coverage/tests.xml
 if find src -type f -name '*.php' -print -quit | grep -q .; then
-    XDEBUG_MODE=coverage php -d memory_limit=512M -d auto_prepend_file=tests/Adapter/framework-bootstrap.php vendor/bin/phpunit --fail-on-skipped
+    XDEBUG_MODE=coverage php -d memory_limit=512M -d auto_prepend_file=tests/Adapter/framework-bootstrap.php \
+        vendor/bin/phpunit --fail-on-skipped \
+        --coverage-php var/reports/coverage/coverage.php --log-teamcity var/reports/coverage/teamcity.log
 else
     php -d memory_limit=512M -d auto_prepend_file=tests/Adapter/framework-bootstrap.php vendor/bin/phpunit --fail-on-skipped --no-coverage
 fi
 
-printf '[quality] Exact coverage\n'
+printf '[quality] Exact all-suite statement coverage\n'
 ./bin/coverage
+
+printf '[quality] Independent Unit-only executable line coverage and suite balance\n'
+python3 scripts/check_unit_coverage.py
 
 printf '[quality] Documentation links\n'
 ./bin/documentation-check

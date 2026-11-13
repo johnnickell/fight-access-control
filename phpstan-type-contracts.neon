@@ -2,6 +2,5 @@ includes:
     - phpstan.neon.dist
 
 parameters:
-    # Level 8 checks nullable argument use; this is not a whole-library level claim.
-    level: 8
+    # Inherit the ordinary production/caller rules; probes do not rely on a stricter hidden level.
     tmpDir: var/cache/phpstan-type-contracts

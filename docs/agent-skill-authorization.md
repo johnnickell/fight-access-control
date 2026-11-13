@@ -138,11 +138,12 @@ Tool, Prompt, Resource, live disclosure or background continuation.
 At TASK-00086's checkpoint the qualified family minimum was Common **v1.3.0**, exact tagged source
 `7de6cad6e8a9752973ad9f8e27e285b0c1510582`, within unchanged `^1.3`. Its Skill/Resource contracts are identical to
 installed v1.4.0 (`87b9580c072f3149d574e09865daa79620c92118`) for the inspected paths. Actual isolated v1.3.0
-composition, not just tag presence, qualifies this minimum. TASK evidence retains exact lock/source manifests,
-commands, logs/exits and tested input mapping. The current checkout requires Common `^1.4.1`. TASK-00148 requalifies
-the actual tagged sufficient minimum **v1.4.1** (`a482c220d312d2ef7762c3f0d85d9fb76a7021fa`) and ordinary dependency
-lanes through real composition, with unchanged constraints. TASK-00110 still owns separate canonical-API adoption.
-No development snapshot or guessed future tag is required.
+composition, not just tag presence, qualifies this historical minimum. TASK evidence retains exact lock/source manifests,
+commands, logs/exits and tested input mapping. TASK-00148 then qualified tagged **v1.4.1**
+(`a482c220d312d2ef7762c3f0d85d9fb76a7021fa`) and ordinary dependency lanes under its then-current `^1.4.1` constraint.
+The current checkout requires **`^1.5.0`** after [TASK-00110's canonical adoption](common-contracts.md); its exact-minimum
+and ordinary lanes exercise actual Resource/Skill composition on tagged v1.5.0, including canonical file/limit getters.
+These executed lanes extend the earlier family proof; a development snapshot or tag label alone is not qualification.
 
 `AgentSkillPermissionCatalogTest` covers invalid requirements, malformed/foreign/inexact entries and conflicting
 immutable association. `AgentSkillAvailabilityTest` composes real Common list/get/read/responder with actual

@@ -1,0 +1,8 @@
+includes:
+    - vendor/phpstan/phpstan/conf/bleedingEdge.neon
+
+parameters:
+    scanDirectories:
+        - vendor/codeigniter4/framework/app/Config
+    scanFiles:
+        - vendor/codeigniter4/framework/system/Common.php

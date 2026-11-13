@@ -37,12 +37,11 @@ final readonly class PermissionSubscriber implements EventSubscriberInterface
         Closure|RequestAuthentication $authority,
         private PermissionAdmission $admission = new PermissionAdmission()
     ) {
-        $authentication = $authority;
         if ($authority instanceof Closure) {
-            $authentication = new RequestAuthentication($authority);
+            $authority = new RequestAuthentication($authority);
         }
 
-        $this->authentication = $authentication;
+        $this->authentication = $authority;
     }
 
     /**
