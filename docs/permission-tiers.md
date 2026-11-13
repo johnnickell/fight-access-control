@@ -49,4 +49,8 @@ The managed Super Admin Role can be assigned to a pending User for bootstrap; on
 Assignments/removals preserve expected revisions, reference checks, desired-state no-ops and post-commit events.
 The unreleased [Role and User membership contracts](role-membership-contracts.md) distinguish deliberate absence,
 rule refusal, failed caller expectations and state conflicts from wrong identities and unknown internal faults.
-Role Permission no-ops also fence the complete Role snapshot without writing.
+Role Permission no-ops also fence the complete Role snapshot without writing. Their
+[optional audit storage](role-membership-contracts.md#optional-role-permission-audit-composition) does not change
+eligibility or add an audit-only permission check: existing allowed revocations, including removal of an existing
+protected membership, remain allowed. Meaningful enabled evidence describes the Role relationship, not a Permission
+mutation; no-change retains its fences without evidence.

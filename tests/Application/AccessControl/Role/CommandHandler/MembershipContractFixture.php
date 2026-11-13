@@ -7,6 +7,7 @@ namespace Fight\Test\AccessControl\Application\AccessControl\Role\CommandHandler
 use DateTimeImmutable;
 use Fight\AccessControl\Application\AccessControl\Role\CommandHandler as RoleHandlers;
 use Fight\AccessControl\Application\AccessControl\User\CommandHandler as UserHandlers;
+use Fight\AccessControl\Domain\AccessControl\Audit\AuditEvidenceRepository;
 use Fight\AccessControl\Domain\AccessControl\Permission\Permission;
 use Fight\AccessControl\Domain\AccessControl\Permission\PermissionId;
 use Fight\AccessControl\Domain\AccessControl\Permission\PermissionName;
@@ -114,7 +115,8 @@ final readonly class MembershipContractFixture
         ?PermissionRepository $permissionRepository = null,
         ?UserRepository $userRepository = null,
         ?InMemoryEventDispatcher $eventDispatcher = null,
-        ?TransactionalUnitOfWork $unitOfWork = null
+        ?TransactionalUnitOfWork $unitOfWork = null,
+        ?AuditEvidenceRepository $auditEvidenceRepository = null
     ): CommandHandler {
         $roleRepository ??= $this->roleRepository;
         $permissionRepository ??= $this->permissionRepository;
@@ -148,14 +150,16 @@ final readonly class MembershipContractFixture
                 $permissionRepository,
                 $clock,
                 $unitOfWork,
-                $eventDispatcher
+                $eventDispatcher,
+                $auditEvidenceRepository
             ),
             'revoke' => new RoleHandlers\RevokePermissionFromCustomRoleHandler(
                 $roleRepository,
                 $permissionRepository,
                 $clock,
                 $unitOfWork,
-                $eventDispatcher
+                $eventDispatcher,
+                $auditEvidenceRepository
             ),
             'assign' => new UserHandlers\AssignRoleToUserHandler(
                 $userRepository,

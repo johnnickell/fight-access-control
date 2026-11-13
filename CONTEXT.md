@@ -1430,6 +1430,19 @@ planning/source observations below describe its historical baseline; the shared 
 
 ## Approved explicit optional atomic audit destination
 
+TASK-00154 adds optional last nullable audit storage to custom Role Permission grant/revoke only.
+Enabled insertion follows authoritative Role persistence inside the existing transaction, retaining the required
+typed actor, related Permission, exact Role incarnation/revisions, trusted transition time and actual message ID.
+No-change keeps validation/fences without evidence; audit failure rolls back staged state/evidence and ordinary
+uncertain/post-commit failure truth remains. See [composition](docs/role-membership-contracts.md#optional-role-permission-audit-composition).
+Other administration slices remain separately owned. Independent Review v3 ACCEPT and nonvisual QA PASS cover
+candidate `b0291f06d79dd9e2db1c9233a0a2b07d60426d22` (nine QA groups / 145 checks). TASK-00154 is done; unfinished
+siblings keep TICKET-00045/EPIC-00017 open. Earlier full gate retained: 9,368 tests / 93,163 assertions and exact
+10,841/10,841 statements and Unit-only executable lines. This corrects the earlier Work/TASK assertion count of
+93,209 without changing original logs/reports. Final closeout publication/resource checks remain pending at this
+checkpoint; canonical `.runs/handoffs/TASK-00154/land.md` owns delivery and retirement outcomes. No consumer database
+qualification, workaround removal, merge or release is claimed here.
+
 TASK-00167's [test-only conformance](docs/audit-transaction-conformance.md) now exercises the existing enabled
 EnableUserHandler with ordinary shared transactions, reopened modeled User/evidence bytes, audit rollback,
 concurrency loss, both commit-uncertainty outcomes, publication failure and two-active-composition wrong-connection

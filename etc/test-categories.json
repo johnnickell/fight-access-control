@@ -1143,6 +1143,12 @@
       "reason": "Isolated values, transitions or application behavior with controlled in-memory repositories/security/clock/UoW ports; no real storage, network or process.",
       "methods": {}
     },
+    "Fight\\Test\\AccessControl\\Application\\AccessControl\\Role\\CommandHandler\\RolePermissionAuditTest": {
+      "file": "tests/Application/AccessControl/Role/CommandHandler/RolePermissionAuditTest.php",
+      "category": "Unit",
+      "reason": "Public handler outcomes with controlled in-memory Role/Permission/UoW and mapped audit ports; no real storage, network or process.",
+      "methods": {}
+    },
     "Fight\\Test\\AccessControl\\Application\\AccessControl\\Role\\CommandHandler\\RoleLifecycleAuditReferenceTest": {
       "file": "tests/Application/AccessControl/Role/CommandHandler/RoleLifecycleAuditReferenceTest.php",
       "category": "Unit",

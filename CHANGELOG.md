@@ -9,6 +9,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Optional final audit storage for custom Role Permission grants and revocations. Enabled evidence joins the Role
+  mutation transaction and records the related Permission, exact Role incarnation/revisions, outcome time and actual
+  message ID. Validated no-change creates no evidence; existing required typed actors, eligibility and fences remain.
+  **Pre-v1 consumer obligation:** opt in explicitly and support the current typed evidence mapping on the same
+  transaction connection; no legacy mapping, backfill or automatic consumer adoption is provided. Command/Event
+  payloads remain unchanged. See [Role Permission composition](docs/role-membership-contracts.md#optional-role-permission-audit-composition).
+
 - Optional final audit repository for custom Role creation, rename and removal. Enabled evidence joins ordinary
   mutation transactions with the existing typed User actor, actual incarnation/revisions, outcome time and message
   correlation. Validated same-name rename adds none; audit failure rolls back, uncertain outcomes remain uncertain,

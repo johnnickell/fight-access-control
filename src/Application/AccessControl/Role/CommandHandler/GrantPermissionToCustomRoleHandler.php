@@ -5,6 +5,13 @@ declare(strict_types=1);
 namespace Fight\AccessControl\Application\AccessControl\Role\CommandHandler;
 
 use Fight\AccessControl\Application\AccessControl\Timing\Service\Clock;
+use Fight\AccessControl\Domain\AccessControl\Audit\AuditAction;
+use Fight\AccessControl\Domain\AccessControl\Audit\AuditCorrelation;
+use Fight\AccessControl\Domain\AccessControl\Audit\AuditEvidence;
+use Fight\AccessControl\Domain\AccessControl\Audit\AuditEvidenceRepository;
+use Fight\AccessControl\Domain\AccessControl\Audit\AuditRolePermissionOutcome;
+use Fight\AccessControl\Domain\AccessControl\Audit\AuditRoleRevisions;
+use Fight\AccessControl\Domain\AccessControl\Audit\AuditSubject;
 use Fight\AccessControl\Domain\AccessControl\Permission\PermissionRepository;
 use Fight\AccessControl\Domain\AccessControl\Permission\PermissionTier;
 use Fight\AccessControl\Domain\AccessControl\Role\Command\GrantPermissionToCustomRole;
@@ -39,7 +46,8 @@ final readonly class GrantPermissionToCustomRoleHandler implements CommandHandle
         private PermissionRepository $permissionRepository,
         private Clock $clock,
         private TransactionalUnitOfWork $unitOfWork,
-        private EventDispatcher $eventDispatcher
+        private EventDispatcher $eventDispatcher,
+        private ?AuditEvidenceRepository $auditEvidenceRepository = null
     ) {
     }
 
@@ -58,11 +66,12 @@ final readonly class GrantPermissionToCustomRoleHandler implements CommandHandle
     {
         /** @var GrantPermissionToCustomRole $command */
         $command = $commandMessage->payload();
+        $messageId = $commandMessage->id();
 
         try {
             /** @var CustomRolePermissionGranted|null $event */
             $event = $this->unitOfWork->commitTransactional(
-                function () use ($command): ?CustomRolePermissionGranted {
+                function () use ($command, $messageId): ?CustomRolePermissionGranted {
                     $role = $this->roleRepository->getById($command->getRoleId());
                     if ($role === null) {
                         throw new ResourceNotFound('The custom role does not exist.');
@@ -107,6 +116,20 @@ final readonly class GrantPermissionToCustomRoleHandler implements CommandHandle
                     $replacement = $role->grantPermissionToCustom($command->getPermissionId(), $grantedAt);
                     if (!$this->roleRepository->replace($role, $replacement)) {
                         throw new StateConflict('The custom role changed concurrently.');
+                    }
+
+                    if ($this->auditEvidenceRepository !== null) {
+                        $this->auditEvidenceRepository->add(AuditEvidence::record(
+                            $command->getActorId(),
+                            new AuditSubject($role->getId()),
+                            AuditAction::ROLE_PERMISSION_GRANTED,
+                            $grantedAt,
+                            new AuditRolePermissionOutcome(
+                                new AuditRoleRevisions($role->getRevision(), $replacement->getRevision()),
+                                $permission->getId()
+                            ),
+                            new AuditCorrelation($messageId, null)
+                        ));
                     }
 
                     return new CustomRolePermissionGranted(
