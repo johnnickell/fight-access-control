@@ -1442,8 +1442,11 @@ self-service plus administrative request/cancel evidence and typed expiry proven
 Expiry evidence joins the coupled User reservation/grant transaction at the admitted occurrence time, preserving
 inactive-state cleanup and no-change/CAS semantics. Claims/external sends, uncertainty and ordinary post-commit
 failure remain separate. Synchronous confirmation optional auditing belongs solely to TASK-00127; other family
-constructors and currently unaudited paths remain separately owned. This is Work implementation, not independent
-acceptance or real consumer qualification. See [current account composition](docs/user-lifecycle-contracts.md#optional-account-audit-composition).
+constructors and currently unaudited paths remain separately owned. Independent Review ACCEPT and complete
+nonvisual QA PASS cover TASK-00126 candidate `1a2b3a4b5d6451843ba5562f4d3f36dc276c8348` (12 scenarios /
+421 checks). Its TASK records package acceptance and retained full-gate evidence; canonical
+`.runs/handoffs/TASK-00126/land.md` owns subsequent delivery/retirement outcomes. Real consumer qualification
+remains separate. See [current account composition](docs/user-lifecycle-contracts.md#optional-account-audit-composition).
 Omitted/null disables durable evidence without changing business-required typed actors, target/default-Role/CAS
 admission or coupled persistence. Enabled evidence retains the actual mutation transaction, trusted time,
 authoritative revisions/grant/delivery/message correlation and ordinary User publication-failure propagation.
