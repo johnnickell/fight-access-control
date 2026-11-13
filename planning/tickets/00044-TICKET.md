@@ -126,7 +126,7 @@ refresh or inventing rejected-attempt storage. Concurrent winner/helper no-ops m
 | 404 | [TASK-00124](../tasks/00124-TASK.md) | Audit invitation delivery and expiry | done |
 | 405 | [TASK-00125](../tasks/00125-TASK.md) | Audit password-reset requests, delivery and expiry | done |
 | 406 | [TASK-00126](../tasks/00126-TASK.md) | Audit email-change requests, cancellation, delivery and expiry | ready-for-agent |
-| 407 | [TASK-00127](../tasks/00127-TASK.md) | Audit synchronous User security and session operations | in-progress |
+| 407 | [TASK-00127](../tasks/00127-TASK.md) | Audit synchronous User security and session operations | done |
 ## Decisions and Progress
 
 John approved this requirement in EPIC-00017's six-TICKET split, then the complete five-TASK plan now written as

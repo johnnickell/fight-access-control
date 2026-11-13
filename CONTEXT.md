@@ -1,6 +1,6 @@
 # Fight AccessControl Context
 
-## Synchronous optional atomic audit — TASK-00127 Work
+## Synchronous optional atomic audit — TASK-00127 accepted checkpoint
 
 The four direct User capabilities and RevokeSessionHandler now accept optional final nullable audit storage.
 [Current composition](docs/user-authentication.md#optional-atomic-audit) covers activation, login, refresh, logout,
@@ -9,8 +9,14 @@ transaction; disabled composition makes no durable-audit promise. Authentication
 session revisions plus activation's consumed grant. Terminal replay records its committed revocation before
 outward refusal, while benign conflicts and concurrent helper no-change produce no duplicate record. Existing
 credential, recovery, CAS, authorization and post-commit failure contracts remain. Explicit provenance is not a grant.
-The canonical TASK-00127 Work handoff owns verification; independent Review/QA and real consumer connection,
-storage, race, transport and deployment qualification remain separate.
+Independent Review v3 ACCEPT and nonvisual QA PASS cover candidate
+`41d03e5fe030afe7b7158fc254d5f3a43bdf8c6d` (116 scenarios / 655 checks). Land's behavior-preserving merge of
+TASK-00125's current reset-handler base passes a fresh complete gate: 9,230 tests / 92,740 assertions and exact
+10,934/10,934 statements and Unit-only lines across 543 source files, without exclusions. TASK-00127 is done;
+unfinished siblings keep its parents open. Publication/final verification and owned retirement remain pending
+at this checkpoint; canonical `.runs/handoffs/TASK-00127/land.md` owns subsequent outcomes. Sensitive non-CQRS
+contracts do not guarantee blanket native PHP serialization guards. Real consumer connection, storage, race,
+cryptography, transport and deployment qualification remain separate.
 
 ## Scoped execution and timeline composition — TASK-00089 accepted checkpoint
 
