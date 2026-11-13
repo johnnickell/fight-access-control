@@ -5,6 +5,13 @@ declare(strict_types=1);
 namespace Fight\AccessControl\Application\AccessControl\User\CommandHandler;
 
 use Fight\AccessControl\Application\AccessControl\Timing\Service\Clock;
+use Fight\AccessControl\Domain\AccessControl\Audit\AuditAction;
+use Fight\AccessControl\Domain\AccessControl\Audit\AuditCorrelation;
+use Fight\AccessControl\Domain\AccessControl\Audit\AuditEvidence;
+use Fight\AccessControl\Domain\AccessControl\Audit\AuditEvidenceRepository;
+use Fight\AccessControl\Domain\AccessControl\Audit\AuditSubject;
+use Fight\AccessControl\Domain\AccessControl\Audit\AuditUserRevisions;
+use Fight\AccessControl\Domain\AccessControl\Audit\AuditUserRoleOutcome;
 use Fight\AccessControl\Domain\AccessControl\Role\Exception\ManagedRoleException;
 use Fight\AccessControl\Domain\AccessControl\Role\Role;
 use Fight\AccessControl\Domain\AccessControl\Role\RoleName;
@@ -39,7 +46,8 @@ final readonly class AssignRoleToUserHandler implements CommandHandler
         private RoleRepository $roleRepository,
         private Clock $clock,
         private TransactionalUnitOfWork $unitOfWork,
-        private EventDispatcher $eventDispatcher
+        private EventDispatcher $eventDispatcher,
+        private ?AuditEvidenceRepository $auditEvidenceRepository = null
     ) {
     }
 
@@ -58,10 +66,14 @@ final readonly class AssignRoleToUserHandler implements CommandHandler
     {
         /** @var AssignRoleToUser $command */
         $command = $commandMessage->payload();
+        $messageId = $commandMessage->id();
 
         try {
             /** @var RoleAssignedToUser|null $event */
-            $event = $this->unitOfWork->commitTransactional(function () use ($command): ?RoleAssignedToUser {
+            $event = $this->unitOfWork->commitTransactional(function () use (
+                $command,
+                $messageId
+            ): ?RoleAssignedToUser {
                 $user = $this->userRepository->getById($command->getTargetUserId());
                 if ($user === null) {
                     throw new ResourceNotFound('The target user does not exist.');
@@ -107,6 +119,22 @@ final readonly class AssignRoleToUserHandler implements CommandHandler
                     throw new StateConflict(
                         'The user role assignments or authoritative roles changed concurrently.'
                     );
+                }
+
+                if ($this->auditEvidenceRepository !== null) {
+                    $this->auditEvidenceRepository->add(AuditEvidence::record(
+                        $command->getActorId(),
+                        new AuditSubject($user->getId()),
+                        AuditAction::USER_ROLE_ASSIGNED,
+                        $assignedAt,
+                        new AuditUserRoleOutcome(
+                            AuditUserRevisions::fromUser($user),
+                            AuditUserRevisions::fromUser($replacement),
+                            $role->getId(),
+                            $role->getRevision()
+                        ),
+                        new AuditCorrelation($messageId, null)
+                    ));
                 }
 
                 return new RoleAssignedToUser(

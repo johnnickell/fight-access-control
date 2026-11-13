@@ -16,6 +16,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   **Pre-v1 consumer obligation:** support the new action/facts mapping and qualify the actual shared connection before
   opt-in; no backfill or new authority is supplied. See [name-update composition](docs/agent-name-updates.md#optional-atomic-name-change-audit-unreleased).
 
+- Optional final audit storage for User Role assignment/removal. Enabled evidence joins the membership transaction
+  with the required originating User actor, actual assignment-counter transition, typed Role/reference revision,
+  trusted outcome time and message correlation. Validated retries add none; User-state, reserved identity, reference/
+  CAS and ordinary failure behavior remain. **Pre-v1 consumer obligation:** opt in per handler, map the current typed
+  evidence on the actual shared connection and qualify storage/fences; no compatibility reader, backfill or schema
+  change is supplied. Command/Event payloads remain unchanged. See
+  [User membership composition](docs/role-membership-contracts.md#optional-user-membership-audit-composition).
+
 - Optional final audit storage for custom Role Permission grants and revocations. Enabled evidence joins the Role
   mutation transaction and records the related Permission, exact Role incarnation/revisions, outcome time and actual
   message ID. Validated no-change creates no evidence; existing required typed actors, eligibility and fences remain.

@@ -19,6 +19,8 @@ enum AuditAction: string
     case USER_DISABLED = 'user.disabled';
     case USER_DELETED = 'user.deleted';
     case USER_RESTORED = 'user.restored';
+    case USER_ROLE_ASSIGNED = 'user.role_assigned';
+    case USER_ROLE_REMOVED = 'user.role_removed';
     case USER_ACTIVATED = 'user.activated';
     case USER_LOGGED_IN = 'user.logged_in';
     case SESSION_REFRESHED = 'refresh_session.refreshed';
