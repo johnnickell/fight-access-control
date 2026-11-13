@@ -145,7 +145,7 @@ disclosure and choose the execution checkout separately.
 | 409 | [TASK-00154](../tasks/00154-TASK.md) | Audit custom Role Permission changes | done |
 | 410 | [TASK-00155](../tasks/00155-TASK.md) | Audit User Role membership changes | ready-for-agent |
 | 411 | [TASK-00156](../tasks/00156-TASK.md) | Audit Agent name updates | ready-for-agent |
-| 412 | [TASK-00157](../tasks/00157-TASK.md) | Audit direct Agent Permission assignments | ready-for-agent |
+| 412 | [TASK-00157](../tasks/00157-TASK.md) | Audit direct Agent Permission assignments | in-progress |
 ## Decisions and Progress
 
 TASK-00153 and TASK-00154 are done for independently reviewed and QA-passed custom Role lifecycle and Permission

@@ -23,7 +23,7 @@ return static function (
     $coordinator->grant($agent, $agent, $permission);
     $coordinator->replace($actor, $agent, 1, [$agent]);
     (static fn(PermissionGrantedToAgent $event): PermissionId => $event->getPermissionId())(
-        $coordinator->grant($actor, $agent, $permission)
+        $coordinator->grant($actor, $agent, $permission)[0] ?? null
     );
     (static fn(AgentId $id): string => $id->toString())($handler->handle($message));
 };

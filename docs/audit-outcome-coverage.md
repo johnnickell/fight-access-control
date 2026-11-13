@@ -172,13 +172,15 @@ ordinary publication failure leaves committed evidence intact. Other administrat
 | [TASK-00155](../planning/tasks/00155-TASK.md) / M | [AssignRoleToUser](../src/Application/AccessControl/User/CommandHandler/AssignRoleToUserHandler.php) | —. Changed User/Role relationship; already-held no-change still full-state/reference fenced. Preserve reserved-role policy; no fabricated authentication/Role mutation. |
 | TASK-00155 / M | [RemoveRoleFromUser](../src/Application/AccessControl/User/CommandHandler/RemoveRoleFromUserHandler.php) | —. Changed User/Role relationship; already-absent no-change still validates/fences; forbidden removal rejects. |
 | [TASK-00156](../planning/tasks/00156-TASK.md) / A | [UpdateAgent](../src/Application/AccessControl/Agent/CommandHandler/UpdateAgentHandler.php) | —. Required AgentUpdateInitiator exposes real User/Agent ID. Atomic repository rename returns exact persisted changedAt; null is no-change. No pre-read/compensating read or synthetic name revision needed. |
-| [TASK-00157](../planning/tasks/00157-TASK.md) / A | [GrantPermissionToAgent](../src/Application/AccessControl/Agent/CommandHandler/GrantPermissionToAgentHandler.php) | —. Coordinator grant transaction; changed assignment advances actual assignment revision. Already-held validates eligible Permission then no-change. |
-| TASK-00157 / A | [RevokePermissionFromAgent](../src/Application/AccessControl/Agent/CommandHandler/RevokePermissionFromAgentHandler.php) | —. Coordinator revoke transaction; changed relationship/revision. Already-absent no-change; actual lookup/lifecycle/cohort refusals retained. |
-| TASK-00157 / A | [ReplaceAgentPermissions](../src/Application/AccessControl/Agent/CommandHandler/ReplaceAgentPermissionsHandler.php) | —. Coordinator complete-set transaction; expected assignment revision and exact eligible set checked even unchanged. Real change records complete before/after set/revisions once, not each helper write. |
+| [TASK-00157](../planning/tasks/00157-TASK.md) / A | [GrantPermissionToAgent](../src/Application/AccessControl/Agent/CommandHandler/GrantPermissionToAgentHandler.php) | W when enabled: `agent.permission_granted`, typed changed Permission relationship, actual before/after assignment revisions, transition time and message correlation inside the handler transaction. Already-held validates eligible Permission then no-change. |
+| TASK-00157 / A | [RevokePermissionFromAgent](../src/Application/AccessControl/Agent/CommandHandler/RevokePermissionFromAgentHandler.php) | W when enabled: `agent.permission_revoked`, changed typed relationship and actual assignment revisions in the handler transaction. Already-absent no-change; actual lookup/lifecycle/cohort refusals retained. |
+| TASK-00157 / A | [ReplaceAgentPermissions](../src/Application/AccessControl/Agent/CommandHandler/ReplaceAgentPermissionsHandler.php) | W when enabled: `agent.permissions_replaced`, only granted/revoked typed relationships and one actual revision advance in the handler transaction. Expected assignment revision and exact eligible set checked even unchanged. Empty removal is a real change; unchanged relationships are not claimed as changed. |
 
 [AgentPermissionAssignmentCoordinator](../src/Application/AccessControl/Agent/PermissionAssignment/AgentPermissionAssignmentCoordinator.php)
-currently owns grant/revoke/replace UoWs. TASK-00157 alone owns that transaction reconciliation; it is not another
-handler, acceptance supplier or record. No evidence may be appended after its commit or duplicated by helpers.
+stages grant/revoke/replace within each public handler's UoW and exposes separate authoritative facts/time alongside
+the existing Event. It neither commits nor records evidence. The handler inserts one optional record before commit;
+no Event inspection, helper duplication or nested transaction is required. See
+[composition](agent-administration-contracts.md#optional-direct-permission-audit-composition-unreleased).
 
 ## Feature and policy handlers (six)
 
