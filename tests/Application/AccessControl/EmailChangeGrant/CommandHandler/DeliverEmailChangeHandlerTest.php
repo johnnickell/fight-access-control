@@ -365,12 +365,12 @@ final class DeliverEmailChangeHandlerTest extends TestCase
                 self::assertSame($grant->getDelivery()->getId(), $due[0]->getDeliveryId());
                 new DeliverEmailChangeHandler(
                     $emailChangeGrantRepository,
-                    new InMemoryAuditEvidenceRepository($unitOfWork),
                     $unitOfWork,
                     new PrefixEmailChangeDeliveryCipher(),
                     $provider,
                     new FixedClock('2026-08-23T11:06:00+00:00'),
-                    new InMemoryEventDispatcher()
+                    new InMemoryEventDispatcher(),
+                    new InMemoryAuditEvidenceRepository($unitOfWork)
                 )->handle(CommandMessage::create($this->command($grant)));
                 self::assertSame(
                     CredentialDeliveryStatus::DELIVERED,
@@ -411,12 +411,12 @@ final class DeliverEmailChangeHandlerTest extends TestCase
     ): DeliverEmailChangeHandler {
         return new DeliverEmailChangeHandler(
             $emailChangeGrantRepository,
-            $auditEvidenceRepository,
             $unitOfWork,
             new PrefixEmailChangeDeliveryCipher(),
             $provider ?? new RecordingCredentialDeliveryProvider(),
             new FixedClock('2026-08-23T11:00:00+00:00'),
-            $eventDispatcher ?? new InMemoryEventDispatcher()
+            $eventDispatcher ?? new InMemoryEventDispatcher(),
+            $auditEvidenceRepository
         );
     }
 }

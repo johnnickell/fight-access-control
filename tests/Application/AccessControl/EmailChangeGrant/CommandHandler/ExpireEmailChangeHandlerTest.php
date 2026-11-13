@@ -6,6 +6,7 @@ namespace Fight\Test\AccessControl\Application\AccessControl\EmailChangeGrant\Co
 
 use DateTimeImmutable;
 use Fight\AccessControl\Application\AccessControl\EmailChangeGrant\CommandHandler\ExpireEmailChangeHandler;
+use Fight\AccessControl\Domain\AccessControl\Audit\SystemId;
 use Fight\AccessControl\Domain\AccessControl\EmailChangeGrant\Command\ExpireEmailChange;
 use Fight\AccessControl\Domain\AccessControl\EmailChangeGrant\EmailChangeCredential;
 use Fight\AccessControl\Domain\AccessControl\EmailChangeGrant\EmailChangeGrant;
@@ -68,7 +69,7 @@ final class ExpireEmailChangeHandlerTest extends TestCase
         );
 
         $handler->handle(CommandMessage::create(new ExpireEmailChange(
-            'email-change-expiry',
+            SystemId::generate(),
             $user->getId(),
             $grant->getId(),
             new DateTimeImmutable('2026-08-22T13:00:00+00:00')
@@ -96,7 +97,7 @@ final class ExpireEmailChangeHandlerTest extends TestCase
 
         self::assertSame(ExpireEmailChange::class, ExpireEmailChangeHandler::commandRegistration());
         self::assertEquals($command, ExpireEmailChange::fromArray($command->toArray()));
-        self::assertSame('email-change-expiry', $command->getActorId());
+        self::assertEquals(SystemId::generate(), $command->getActorId());
         self::assertSame($userId, $command->getUserId());
         self::assertSame($grant->getId(), $command->getEmailChangeGrantId());
         self::assertSame('2026-08-22T13:00:00+00:00', $command->getOccurredAt()->format(DATE_ATOM));
@@ -106,7 +107,7 @@ final class ExpireEmailChangeHandlerTest extends TestCase
         $event = $eventDispatcher->events()[0];
         self::assertInstanceOf(EmailChangeExpired::class, $event);
         self::assertEquals($event, EmailChangeExpired::fromArray($event->toArray()));
-        self::assertSame('email-change-expiry', $event->getActorId());
+        self::assertEquals(SystemId::generate(), $event->getActorId());
         self::assertSame($userId, $event->getUserId());
         self::assertSame($grant->getId(), $event->getEmailChangeGrantId());
         self::assertSame('2026-08-22T13:00:00+00:00', $event->getOccurredAt()->format(DATE_ATOM));
@@ -116,9 +117,10 @@ final class ExpireEmailChangeHandlerTest extends TestCase
 
     public function test_missing_command_and_event_data_is_rejected(): void
     {
-        foreach (['actor_id', 'user_id', 'email_change_grant_id', 'occurred_at'] as $missing) {
+        foreach (['actor_kind', 'actor_id', 'user_id', 'email_change_grant_id', 'occurred_at'] as $missing) {
             $data = [
-                'actor_id'              => 'email-change-expiry',
+                'actor_kind'            => 'system',
+                'actor_id'              => SystemId::generate()->toString(),
                 'user_id'               => UserId::generate()->toString(),
                 'email_change_grant_id' => EmailChangeGrantId::generate()->toString(),
                 'occurred_at'           => '2026-08-22T13:00:00+00:00'
@@ -138,7 +140,7 @@ final class ExpireEmailChangeHandlerTest extends TestCase
             }
         }
 
-        self::addToAssertionCount(8);
+        self::addToAssertionCount(10);
     }
 
     public function test_early_stale_unknown_and_mismatched_expiry_are_mutation_free(): void
@@ -160,7 +162,7 @@ final class ExpireEmailChangeHandlerTest extends TestCase
             }
 
             $handler->handle(CommandMessage::create(new ExpireEmailChange(
-                'email-change-expiry',
+                SystemId::generate(),
                 $commandUserId,
                 $grantId,
                 $occurredAt
@@ -267,7 +269,7 @@ final class ExpireEmailChangeHandlerTest extends TestCase
     private function command(UserId $userId, EmailChangeGrant $grant): ExpireEmailChange
     {
         return new ExpireEmailChange(
-            'email-change-expiry',
+            SystemId::generate(),
             $userId,
             $grant->getId(),
             new DateTimeImmutable('2026-08-22T13:00:00+00:00')

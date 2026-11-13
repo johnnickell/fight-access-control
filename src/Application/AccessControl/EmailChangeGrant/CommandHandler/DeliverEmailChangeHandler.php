@@ -50,12 +50,12 @@ final readonly class DeliverEmailChangeHandler implements CommandHandler
      */
     public function __construct(
         private EmailChangeGrantRepository $emailChangeGrantRepository,
-        private AuditEvidenceRepository $auditEvidenceRepository,
         private TransactionalUnitOfWork $unitOfWork,
         private EmailChangeDeliveryCipher $emailChangeDeliveryCipher,
         private CredentialDeliveryProvider $credentialDeliveryProvider,
         private Clock $clock,
-        private EventDispatcher $eventDispatcher
+        private EventDispatcher $eventDispatcher,
+        private ?AuditEvidenceRepository $auditEvidenceRepository = null
     ) {
     }
 
@@ -248,7 +248,7 @@ final readonly class DeliverEmailChangeHandler implements CommandHandler
                 $action = AuditAction::EMAIL_CHANGE_DELIVERY_CONFIRMED;
             }
 
-            $this->auditEvidenceRepository->add(AuditEvidence::record(
+            $this->auditEvidenceRepository?->add(AuditEvidence::record(
                 $command->getActorId(),
                 new AuditSubject($command->getUserId()),
                 $action,

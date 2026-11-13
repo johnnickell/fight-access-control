@@ -30,10 +30,11 @@ enum AuditAction: string
     case PASSWORD_RESET_DELIVERY_EXPIRED = 'user.password_reset_delivery.expired';
     case PASSWORD_CHANGED = 'user.password_changed';
     case PASSWORD_RESET_COMPLETED = 'user.password_reset_completed';
-    case EMAIL_CHANGE_REQUESTED = 'user.email_change_administratively_requested';
-    case EMAIL_CHANGE_CANCELLED = 'user.email_change_administratively_cancelled';
+    case EMAIL_CHANGE_REQUESTED = 'user.email_change_requested';
+    case EMAIL_CHANGE_CANCELLED = 'user.email_change_cancelled';
     case EMAIL_CHANGE_DELIVERY_FAILED = 'user.email_change_delivery.failed';
     case EMAIL_CHANGE_DELIVERY_CONFIRMED = 'user.email_change_delivery.confirmed';
+    case EMAIL_CHANGE_EXPIRED = 'user.email_change_expired';
     case EMAIL_CHANGE_CONFIRMED = 'user.email_change_confirmed';
     case SESSION_ADMINISTRATIVELY_REVOKED = 'refresh_session.administratively_revoked';
     case AGENT_PROVISIONED = 'agent.provisioned';

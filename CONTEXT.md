@@ -1442,8 +1442,18 @@ records the exact material transition inside its existing transaction; public re
 AnonymousId and preserve concealed no-work. Claims/external sends, recovery authority, uncertainty and ordinary
 publication failures remain distinct. See [reset composition](docs/credential-delivery.md#optional-password-reset-audit-composition-unreleased)
 and its [outcome matrix](docs/audit-outcome-coverage.md#password-reset--task-00125). Synchronous password operations
-remain TASK-00127. Independent acceptance is not claimed by this Work checkpoint. Other family constructors and
-currently unaudited paths remain unchanged. See [current account composition](docs/user-lifecycle-contracts.md#optional-account-audit-composition).
+remain TASK-00127. Independent acceptance is not claimed by this Work checkpoint.
+TASK-00126 now implements optional final storage for email-change request/cancel/delivery/expiry,
+self-service plus administrative request/cancel evidence and typed expiry provenance. See
+[email-change composition](docs/credential-delivery.md#optional-email-change-audit-composition-unreleased).
+Expiry evidence joins the coupled User reservation/grant transaction at the admitted occurrence time, preserving
+inactive-state cleanup and no-change/CAS semantics. Claims/external sends, uncertainty and ordinary post-commit
+failure remain separate. Synchronous confirmation optional auditing belongs solely to TASK-00127; other family
+constructors and currently unaudited paths remain separately owned. Independent Review ACCEPT and complete
+nonvisual QA PASS cover TASK-00126 candidate `1a2b3a4b5d6451843ba5562f4d3f36dc276c8348` (12 scenarios /
+421 checks). Its TASK records package acceptance and retained full-gate evidence; canonical
+`.runs/handoffs/TASK-00126/land.md` owns subsequent delivery/retirement outcomes. Real consumer qualification
+remains separate. See [current account composition](docs/user-lifecycle-contracts.md#optional-account-audit-composition).
 Omitted/null disables durable evidence without changing business-required typed actors, target/default-Role/CAS
 admission or coupled persistence. Enabled evidence retains the actual mutation transaction, trusted time,
 authoritative revisions/grant/delivery/message correlation and ordinary User publication-failure propagation.

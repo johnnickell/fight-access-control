@@ -54,12 +54,12 @@ final readonly class RequestEmailChangeHandler implements CommandHandler
         private UserRepository $userRepository,
         private EmailChangeGrantRepository $emailChangeGrantRepository,
         private EmailChangeAdministrationAuthorization $emailChangeAdministrationAuthorization,
-        private AuditEvidenceRepository $auditEvidenceRepository,
         private TransactionalUnitOfWork $unitOfWork,
         private EmailChangeCredentialGenerator $emailChangeCredentialGenerator,
         private EmailChangeDeliveryCipher $emailChangeDeliveryCipher,
         private Clock $clock,
-        private EventDispatcher $eventDispatcher
+        private EventDispatcher $eventDispatcher,
+        private ?AuditEvidenceRepository $auditEvidenceRepository = null
     ) {
     }
 
@@ -145,7 +145,7 @@ final readonly class RequestEmailChangeHandler implements CommandHandler
                     throw new StateConflict('Email-change authority changed concurrently.');
                 }
 
-                if ($administrative) {
+                if ($this->auditEvidenceRepository !== null) {
                     $this->auditEvidenceRepository->add(AuditEvidence::record(
                         $command->getActorId(),
                         new AuditSubject($user->getId()),
