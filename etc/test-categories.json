@@ -1323,6 +1323,12 @@
       "reason": "Isolated values, transitions or application behavior with controlled in-memory repositories/security/clock/UoW ports; no real storage, network or process.",
       "methods": {}
     },
+    "Fight\\Test\\AccessControl\\Application\\AccessControl\\User\\CommandHandler\\UserRoleAuditTest": {
+      "file": "tests/Application/AccessControl/User/CommandHandler/UserRoleAuditTest.php",
+      "category": "Unit",
+      "reason": "Handler outcomes with controlled shared in-memory transaction, repositories, clock and dispatcher; no real storage, network or process.",
+      "methods": {}
+    },
     "Fight\\Test\\AccessControl\\Application\\AccessControl\\User\\CommandHandler\\UserRoleAssignmentHandlerTest": {
       "file": "tests/Application/AccessControl/User/CommandHandler/UserRoleAssignmentHandlerTest.php",
       "category": "Unit",
@@ -1509,6 +1515,12 @@
       "reason": "Isolated values, transitions or application behavior with controlled in-memory repositories/security/clock/UoW ports; no real storage, network or process.",
       "methods": {}
     },
+    "Fight\\Test\\AccessControl\\Domain\\AccessControl\\Audit\\AuditAgentNameOutcomeTest": {
+      "file": "tests/Domain/AccessControl/Audit/AuditAgentNameOutcomeTest.php",
+      "category": "Unit",
+      "reason": "Isolated typed name-change evidence admission and hydration with real values; no external boundary.",
+      "methods": {}
+    },
     "Fight\\Test\\AccessControl\\Domain\\AccessControl\\Audit\\AuditAuthenticationOutcomeTest": {
       "file": "tests/Domain/AccessControl/Audit/AuditAuthenticationOutcomeTest.php",
       "category": "Unit",
@@ -1537,6 +1549,12 @@
       "file": "tests/Domain/AccessControl/Audit/AuditProvenanceMessagesTest.php",
       "category": "Unit",
       "reason": "Isolated values, transitions or application behavior with controlled in-memory repositories/security/clock/UoW ports; no real storage, network or process.",
+      "methods": {}
+    },
+    "Fight\\Test\\AccessControl\\Domain\\AccessControl\\Audit\\AuditUserRoleOutcomeTest": {
+      "file": "tests/Domain/AccessControl/Audit/AuditUserRoleOutcomeTest.php",
+      "category": "Unit",
+      "reason": "Pure typed evidence construction, admission and current-shape hydration without external effects.",
       "methods": {}
     },
     "Fight\\Test\\AccessControl\\Domain\\AccessControl\\Audit\\AuditRelatedOutcomesTest": {

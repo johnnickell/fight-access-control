@@ -91,13 +91,57 @@ existing protected membership remains allowed by its existing policy; audit adds
 
 Consumers must opt in explicitly and qualify their real mapping, shared connection, locks, all writers, rollback,
 uncertain commit and both race winners. Package transaction-aware fixtures are not consumer database proof. This
-adds no rejected-attempt store, audit-only transaction, compatibility reader or backfill. Other Role lifecycle and
-User membership audit wiring, and removal of consumer interception workarounds, remain separately owned.
+adds no rejected-attempt store, audit-only transaction, compatibility reader or backfill. Role lifecycle composition
+and removal of consumer interception workarounds retain their separate owners.
+
+## Optional User membership audit composition
+
+`AssignRoleToUserHandler` and `RemoveRoleFromUserHandler` accept the same optional final nullable
+`AuditEvidenceRepository`. Existing positional/named callers may omit it or pass null deliberately; this makes no
+durable-audit promise. Enable each handler explicitly using storage on its actual User repository/UoW connection:
+
+```php
+$handler = new AssignRoleToUserHandler(
+    userRepository: $userRepository,
+    roleRepository: $roleRepository,
+    clock: $clock,
+    unitOfWork: $unitOfWork,
+    eventDispatcher: $eventDispatcher,
+    auditEvidenceRepository: $auditEvidenceRepository,
+);
+```
+
+Removal uses the identical constructor shape. Both Commands retain their required typed originating `UserId`;
+the target User is not inferred as the actor. Provenance grants no entry, target, tenant or last-admin authority.
+No Command/Event payload, caller revision or authentication policy changes.
+
+After successful membership persistence and before that same transaction commits, one `USER_ROLE_ASSIGNED` or
+`USER_ROLE_REMOVED` record identifies the User primary subject. `AuditUserRoleOutcome` contains actual before/after
+User counters, advancing only the existing authorization-assignment revision once, and the typed related Role ID.
+`role_reference_revision` preserves the complete Role incarnation/revision read for authoritative admission. It is
+an observed reference, not a Role before/after mutation, a new expected-revision precondition or a claim that the
+Role definition stays unchanged through commit. Existing identity/reference fences remain; no stronger Role snapshot
+is inferred from sequential reads. Neither a generic User revision nor an authentication/Role change is fabricated.
+
+The evidence uses the exact trusted assignedAt/removedAt Clock sample and incoming message ID, plus its own unique
+identity. It retains no raw names, entities, messages, secrets or diagnostics. Correlation is not a deduplication key:
+a valid retry adds none, but a later real transition can use the same message correlation and receive new evidence.
+Pending, disabled and deleted Users and managed Super Admin membership retain their ordinary storage semantics.
+Already-held/already-absent intent still validates references but writes no membership, success fact or evidence.
+
+Configured audit failure rolls back staged membership/evidence; reference/CAS losers add no committed record.
+Lost commit acknowledgement remains uncertain, not automatic rollback proof or permission to retry blindly.
+Ordinary post-commit subscriber failure still throws while committed membership/evidence remain. Failure notification
+cannot replace that primary fault. No rejected-attempt store or independent audit transaction is supplied.
+Consumers must qualify current mapping, actual shared connection, all writers, locks, both race winners, rollback,
+uncertainty and evidence access/retention. Package in-memory transaction models do not qualify consumer SQL/schema,
+entry authorization or deployment. Follow [typed evidence](audit-evidence.md); no compatibility reader/backfill is added.
 
 ## Transactions, facts and callers
 
-One owning transaction persists the aggregate transition and any enabled atomic audit. The two Role Permission
-handlers now support the optional composition above; other membership/lifecycle audit slices remain separately owned.
+One owning transaction persists the aggregate transition and any enabled atomic audit. Both User membership and
+Role Permission handlers support the optional composition above; Role lifecycle composition is documented
+[separately](role-revisions.md#optional-lifecycle-audit-unreleased).
 Purpose-specific success facts follow confirmed commit only. Pre-commit failure rolls back, while lost commit
 acknowledgement preserves uncertainty and a post-commit publication failure still throws with committed state intact.
 Failure notification uses coarse constant text and cannot replace the primary throwable, even if both publishers

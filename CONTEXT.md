@@ -17,6 +17,21 @@ at this administrative checkpoint. Canonical `.runs/handoffs/TASK-00157/land.md`
 results; `.runs/handoffs/TASK-00157/work.md` owns complete execution evidence and limits. Consumer mapping/connection
 qualification, merge, release and deployment remain separate.
 
+## Optional User Role membership audit — TASK-00155 accepted checkpoint
+
+Both membership handlers now accept optional final nullable audit storage. Enabled `AuditUserRoleOutcome` joins
+membership persistence in the same transaction, with the required originating User actor, real assignment-counter
+transition, typed Role and observed complete Role reference revision, trusted outcome time and message correlation.
+No generic User revision, Role/authentication mutation or new caller precondition is invented. Disabled composition
+makes no durability promise; validated retries add no record. Existing User-state, managed Super Admin, reference/CAS,
+rollback, uncertain-commit and ordinary publication-failure contracts remain. See
+[current composition](docs/role-membership-contracts.md#optional-user-membership-audit-composition).
+Independent Review v3 ACCEPT and nonvisual QA PASS cover candidate
+`819e42fa58c506a37ca78af6be5f1684f57ddde4`; QA passed 43 scenarios / 466 checks without findings. TASK-00155 is done;
+unfinished siblings keep TICKET-00045/EPIC-00017 open. Publication/final-head verification remain pending at this
+checkpoint; canonical `.runs/handoffs/TASK-00155/land.md` owns delivery and retirement outcomes. Package fixtures do
+not qualify consumer storage/schema, connection/locks, entry/target authority, last-admin policy or deployment.
+
 ## Synchronous optional atomic audit — TASK-00127 accepted checkpoint
 
 The four direct User capabilities and RevokeSessionHandler now accept optional final nullable audit storage.
@@ -3712,6 +3727,23 @@ head `e83bd9935ec9981b0dbdf291fe70137f3cc42814`, with sanitized nonvisual QA sce
 read back. Final metadata delivery verification/ready state remain pending at this tracked checkpoint. The ignored
 TASK landing handoff owns fresh gates, the administrative-only acceptance/QA and resolved-runtime bridge, and final
 remote/evidence verification. Original independent reports are preserved; no approval or merge is claimed. Consumer scanning/database/UI/security/runtime qualification, release and deployment remain separate.
+
+## Optional Agent name audit — TASK-00156 accepted checkpoint
+
+[Name-update composition](docs/agent-name-updates.md#optional-atomic-name-change-audit-unreleased) now supports a final
+nullable audit repository. Enabled `UpdateAgentHandler` explicitly inserts typed `agent.name_changed` evidence inside
+its existing rename transaction after a real persisted change. Existing required User/Agent provenance, name-only
+last-committed behavior, post-admission clock and all writer fences remain. Evidence uses exact persisted changedAt,
+actual message correlation and only `{name_changed: true}` facts, not names, snapshots or invented revisions.
+Omitted/null intentionally disables durable audit. Validated no-op adds none; audit failure rolls back staged state
+and evidence, uncertainty remains uncertain, and post-commit publication failure leaves both committed without a
+success acknowledgement. Independent Review ACCEPT and nonvisual QA PASS cover candidate
+`cd3b4ca0f0204f7ec30f44eceb16eddc1a907651`: 29 scenarios / 195 driver checks and fresh 63 tests / 781 assertions,
+with no findings. TASK-00156 is done; unfinished siblings keep TICKET-00045 and EPIC-00017 open. Earlier full gate
+is retained for unchanged application inputs. Publication/final delivery checks remain pending at this administrative
+checkpoint; canonical `.runs/handoffs/TASK-00156/land.md` owns subsequent delivery/resource outcomes. Original
+reports and minimum-lane warnings remain preserved. Consumer connection/mapping/fences/entry-policy qualification,
+merge, release and deployment are separate.
 
 ## Agent name updates — TASK-00069 accepted
 

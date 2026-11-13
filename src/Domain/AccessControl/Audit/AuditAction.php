@@ -19,6 +19,8 @@ enum AuditAction: string
     case USER_DISABLED = 'user.disabled';
     case USER_DELETED = 'user.deleted';
     case USER_RESTORED = 'user.restored';
+    case USER_ROLE_ASSIGNED = 'user.role_assigned';
+    case USER_ROLE_REMOVED = 'user.role_removed';
     case USER_ACTIVATED = 'user.activated';
     case USER_LOGGED_IN = 'user.logged_in';
     case SESSION_REFRESHED = 'refresh_session.refreshed';
@@ -43,6 +45,7 @@ enum AuditAction: string
     case EMAIL_CHANGE_EXPIRED = 'user.email_change_expired';
     case EMAIL_CHANGE_CONFIRMED = 'user.email_change_confirmed';
     case SESSION_ADMINISTRATIVELY_REVOKED = 'refresh_session.administratively_revoked';
+    case AGENT_NAME_CHANGED = 'agent.name_changed';
     case AGENT_PROVISIONED = 'agent.provisioned';
     case AGENT_CREDENTIAL_ROTATED = 'agent.credential_rotated';
     case AGENT_CREDENTIAL_REVOKED = 'agent.credential_revoked';
