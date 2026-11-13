@@ -9,6 +9,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Optional final audit repository for custom Role creation, rename and removal. Enabled evidence joins ordinary
+  mutation transactions with the existing typed User actor, actual incarnation/revisions, outcome time and message
+  correlation. Validated same-name rename adds none; audit failure rolls back, uncertain outcomes remain uncertain,
+  and committed evidence survives ordinary publication failure. Omitted/null makes no durable-audit promise.
+  Consumers must qualify current evidence mappings and the actual shared connection before adoption; see
+  [Role composition](docs/role-revisions.md#optional-lifecycle-audit-unreleased).
+
 - Optional final audit storage for email-change request, cancellation, delivery and expiry. Self-service and
   administrative outcomes share current request/cancel action values; expiry records atomic User/grant release.
   Breaking pre-v1 changes move former mandatory storage arguments to the end, replace administrative-only action

@@ -5,6 +5,12 @@ declare(strict_types=1);
 namespace Fight\AccessControl\Application\AccessControl\Role\CommandHandler;
 
 use Fight\AccessControl\Application\AccessControl\Timing\Service\Clock;
+use Fight\AccessControl\Domain\AccessControl\Audit\AuditAction;
+use Fight\AccessControl\Domain\AccessControl\Audit\AuditCorrelation;
+use Fight\AccessControl\Domain\AccessControl\Audit\AuditEvidence;
+use Fight\AccessControl\Domain\AccessControl\Audit\AuditEvidenceRepository;
+use Fight\AccessControl\Domain\AccessControl\Audit\AuditRoleRevisions;
+use Fight\AccessControl\Domain\AccessControl\Audit\AuditSubject;
 use Fight\AccessControl\Domain\AccessControl\Role\Command\CreateCustomRole;
 use Fight\AccessControl\Domain\AccessControl\Role\Event\CustomRoleCreated;
 use Fight\AccessControl\Domain\AccessControl\Role\Exception\CustomRoleException;
@@ -36,7 +42,8 @@ final readonly class CreateCustomRoleHandler implements CommandHandler
         private RoleRepository $roleRepository,
         private Clock $clock,
         private TransactionalUnitOfWork $unitOfWork,
-        private EventDispatcher $eventDispatcher
+        private EventDispatcher $eventDispatcher,
+        private ?AuditEvidenceRepository $auditEvidenceRepository = null
     ) {
     }
 
@@ -55,10 +62,11 @@ final readonly class CreateCustomRoleHandler implements CommandHandler
     {
         /** @var CreateCustomRole $command */
         $command = $commandMessage->payload();
+        $messageId = $commandMessage->id();
 
         try {
             /** @var CustomRoleCreated $event */
-            $event = $this->unitOfWork->commitTransactional(function () use ($command): CustomRoleCreated {
+            $event = $this->unitOfWork->commitTransactional(function () use ($command, $messageId): CustomRoleCreated {
                 $existing = $this->roleRepository->getById($command->getRoleId());
                 if ($existing !== null) {
                     if (!$existing->getId()->equals($command->getRoleId())) {
@@ -88,6 +96,17 @@ final readonly class CreateCustomRoleHandler implements CommandHandler
                 }
 
                 $this->roleRepository->add($role);
+
+                if ($this->auditEvidenceRepository !== null) {
+                    $this->auditEvidenceRepository->add(AuditEvidence::record(
+                        $command->getActorId(),
+                        new AuditSubject($role->getId()),
+                        AuditAction::ROLE_CREATED,
+                        $createdAt,
+                        new AuditRoleRevisions(null, $role->getRevision()),
+                        new AuditCorrelation($messageId, null)
+                    ));
+                }
 
                 return new CustomRoleCreated(
                     $command->getActorId(),

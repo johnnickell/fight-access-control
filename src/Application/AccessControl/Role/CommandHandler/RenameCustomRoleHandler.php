@@ -5,6 +5,12 @@ declare(strict_types=1);
 namespace Fight\AccessControl\Application\AccessControl\Role\CommandHandler;
 
 use Fight\AccessControl\Application\AccessControl\Timing\Service\Clock;
+use Fight\AccessControl\Domain\AccessControl\Audit\AuditAction;
+use Fight\AccessControl\Domain\AccessControl\Audit\AuditCorrelation;
+use Fight\AccessControl\Domain\AccessControl\Audit\AuditEvidence;
+use Fight\AccessControl\Domain\AccessControl\Audit\AuditEvidenceRepository;
+use Fight\AccessControl\Domain\AccessControl\Audit\AuditRoleRevisions;
+use Fight\AccessControl\Domain\AccessControl\Audit\AuditSubject;
 use Fight\AccessControl\Domain\AccessControl\Role\Command\RenameCustomRole;
 use Fight\AccessControl\Domain\AccessControl\Role\Event\CustomRoleRenamed;
 use Fight\AccessControl\Domain\AccessControl\Role\Exception\CustomRoleException;
@@ -38,7 +44,8 @@ final readonly class RenameCustomRoleHandler implements CommandHandler
         private RoleRepository $roleRepository,
         private Clock $clock,
         private TransactionalUnitOfWork $unitOfWork,
-        private EventDispatcher $eventDispatcher
+        private EventDispatcher $eventDispatcher,
+        private ?AuditEvidenceRepository $auditEvidenceRepository = null
     ) {
     }
 
@@ -57,10 +64,11 @@ final readonly class RenameCustomRoleHandler implements CommandHandler
     {
         /** @var RenameCustomRole $command */
         $command = $commandMessage->payload();
+        $messageId = $commandMessage->id();
 
         try {
             /** @var CustomRoleRenamed|null $event */
-            $event = $this->unitOfWork->commitTransactional(function () use ($command): ?CustomRoleRenamed {
+            $event = $this->unitOfWork->commitTransactional(function () use ($command, $messageId): ?CustomRoleRenamed {
                 $role = $this->roleRepository->getById($command->getRoleId());
                 if ($role === null) {
                     throw new ResourceNotFound('The custom role does not exist.');
@@ -122,6 +130,17 @@ final readonly class RenameCustomRoleHandler implements CommandHandler
 
                 if (!$this->roleRepository->replace($role, $replacement)) {
                     throw new StateConflict('The custom role changed concurrently.');
+                }
+
+                if ($this->auditEvidenceRepository !== null) {
+                    $this->auditEvidenceRepository->add(AuditEvidence::record(
+                        $command->getActorId(),
+                        new AuditSubject($role->getId()),
+                        AuditAction::ROLE_RENAMED,
+                        $renamedAt,
+                        new AuditRoleRevisions($role->getRevision(), $replacement->getRevision()),
+                        new AuditCorrelation($messageId, null)
+                    ));
                 }
 
                 return new CustomRoleRenamed(
