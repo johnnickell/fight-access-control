@@ -79,7 +79,7 @@ final class PublicMessageSamples
             'Agent/Command/UpdateAgent'                                      => 'initiator agent_id name',
             'EmailChangeGrant/Command/CancelEmailChange'                     => 'actor_id user_id',
             'EmailChangeGrant/Command/DeliverEmailChange'                    => 'actor_id user_id email_change_delivery_id',
-            'EmailChangeGrant/Command/ExpireEmailChange'                     => 'actor_id user_id email_change_grant_id occurred_at',
+            'EmailChangeGrant/Command/ExpireEmailChange'                     => 'actor_kind actor_id user_id email_change_grant_id occurred_at',
             'EmailChangeGrant/Command/RequestEmailChange'                    => 'actor_id user_id email',
             'Feature/Command/CreateFeature'                                  => 'name permission_id',
             'Feature/Command/ProvisionFeatures'                              => 'default_permission_name',

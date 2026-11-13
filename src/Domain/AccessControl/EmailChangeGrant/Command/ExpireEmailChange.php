@@ -5,6 +5,10 @@ declare(strict_types=1);
 namespace Fight\AccessControl\Domain\AccessControl\EmailChangeGrant\Command;
 
 use DateTimeImmutable;
+use Fight\AccessControl\Domain\AccessControl\Agent\AgentId;
+use Fight\AccessControl\Domain\AccessControl\Audit\AnonymousId;
+use Fight\AccessControl\Domain\AccessControl\Audit\AuditActorKind;
+use Fight\AccessControl\Domain\AccessControl\Audit\SystemId;
 use Fight\AccessControl\Domain\AccessControl\CredentialDelivery\CredentialDeliveryTimestamp;
 use Fight\AccessControl\Domain\AccessControl\EmailChangeGrant\EmailChangeGrantId;
 use Fight\AccessControl\Domain\AccessControl\User\UserId;
@@ -24,17 +28,19 @@ final readonly class ExpireEmailChange implements Command
      * Creates an invocation-neutral expiry command.
      */
     public function __construct(
-        private string $actorId,
+        private UserId|AgentId|SystemId|AnonymousId $actorId,
         private UserId $userId,
         private EmailChangeGrantId $emailChangeGrantId,
         private DateTimeImmutable $occurredAt
     ) {
     }
 
-    /** @inheritDoc */
+    /**
+     * @inheritDoc
+     */
     public static function fromArray(array $data): static
     {
-        foreach (['actor_id', 'user_id', 'email_change_grant_id', 'occurred_at'] as $key) {
+        foreach (['actor_kind', 'actor_id', 'user_id', 'email_change_grant_id', 'occurred_at'] as $key) {
             if (!array_key_exists($key, $data)) {
                 throw new DomainException(sprintf('Missing required key "%s" in data array', $key));
             }
@@ -44,8 +50,10 @@ final readonly class ExpireEmailChange implements Command
             }
         }
 
+        $kind = AuditActorKind::tryFrom($data['actor_kind']) ?? throw new DomainException('Unsupported actor kind.');
+
         return new static(
-            $data['actor_id'],
+            $kind->idFromString($data['actor_id']),
             UserId::fromString($data['user_id']),
             EmailChangeGrantId::fromString($data['email_change_grant_id']),
             CredentialDeliveryTimestamp::fromString($data['occurred_at'])->toDateTimeImmutable()
@@ -55,12 +63,15 @@ final readonly class ExpireEmailChange implements Command
     /**
      * Returns the canonical expiry command payload
      *
-     * @phpstan-return array{actor_id: string, user_id: string, email_change_grant_id: string, occurred_at: string}
+     * @phpstan-return array{
+     *     actor_kind: string, actor_id: string, user_id: string, email_change_grant_id: string, occurred_at: string
+     * }
      */
     public function toArray(): array
     {
         return [
-            'actor_id'              => $this->actorId,
+            'actor_kind'            => AuditActorKind::forId($this->actorId)->value,
+            'actor_id'              => $this->actorId->toString(),
             'user_id'               => $this->userId->toString(),
             'email_change_grant_id' => $this->emailChangeGrantId->toString(),
             'occurred_at'           => $this->occurredAt->format('Y-m-d\TH:i:s.uP')
@@ -70,7 +81,7 @@ final readonly class ExpireEmailChange implements Command
     /**
      * Returns the actor processing terminal expiry
      */
-    public function getActorId(): string
+    public function getActorId(): UserId|AgentId|SystemId|AnonymousId
     {
         return $this->actorId;
     }

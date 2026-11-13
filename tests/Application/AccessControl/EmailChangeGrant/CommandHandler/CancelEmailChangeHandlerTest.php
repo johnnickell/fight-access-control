@@ -74,10 +74,10 @@ final class CancelEmailChangeHandlerTest extends TestCase
             $userRepository,
             $emailChangeGrantRepository,
             $authorization,
-            $auditEvidenceRepository,
             $unitOfWork,
             new FixedClock('2026-08-22T12:30:00+00:00'),
-            $eventDispatcher
+            $eventDispatcher,
+            $auditEvidenceRepository
         );
 
         $handler->handle(CommandMessage::create(new CancelEmailChange(
@@ -99,7 +99,8 @@ final class CancelEmailChangeHandlerTest extends TestCase
         self::assertCount(1, $eventDispatcher->events());
         self::assertInstanceOf(EmailChangeCancelled::class, $eventDispatcher->events()[0]);
         self::assertSame(0, $authorization->calls());
-        self::assertSame([], $auditEvidenceRepository->all());
+        self::assertCount(1, $auditEvidenceRepository->all());
+        self::assertSame($user->getId(), $auditEvidenceRepository->all()[0]->actorId());
     }
 
     public function test_command_and_success_event_round_trip_without_confirmation_material(): void
@@ -312,10 +313,10 @@ final class CancelEmailChangeHandlerTest extends TestCase
             $userRepository,
             $emailChangeGrantRepository,
             $authorization,
-            $auditEvidenceRepository,
             $unitOfWork,
             new FixedClock('2026-08-22T12:30:00+00:00'),
-            $eventDispatcher
+            $eventDispatcher,
+            $auditEvidenceRepository
         );
         $actorId = UserId::generate();
 
@@ -329,7 +330,7 @@ final class CancelEmailChangeHandlerTest extends TestCase
         self::assertSame($actorId, $authorization->lastActorId());
         self::assertSame($target->getId(), $authorization->lastUserId());
         $evidence = $auditEvidenceRepository->all()[0];
-        self::assertSame('user.email_change_administratively_cancelled', $evidence->action()->value);
+        self::assertSame('user.email_change_cancelled', $evidence->action()->value);
         self::assertSame($actorId, $evidence->actorId());
         self::assertSame($target->getId(), $evidence->getSubject()->getId());
         $facts = $evidence->getFacts();
@@ -363,10 +364,10 @@ final class CancelEmailChangeHandlerTest extends TestCase
             $userRepository,
             $emailChangeGrantRepository,
             $authorization,
-            $auditEvidenceRepository,
             $unitOfWork,
             new FixedClock('2026-08-22T12:30:00+00:00'),
-            $eventDispatcher
+            $eventDispatcher,
+            $auditEvidenceRepository
         );
 
         $this->expectException(PermissionDenied::class);
@@ -406,10 +407,10 @@ final class CancelEmailChangeHandlerTest extends TestCase
             $userRepository,
             $emailChangeGrantRepository,
             new EmailChangeService\FixedEmailChangeAdministrationAuthorization(true),
-            $auditEvidenceRepository,
             $unitOfWork,
             new FixedClock('2026-08-22T12:30:00+00:00'),
-            $eventDispatcher
+            $eventDispatcher,
+            $auditEvidenceRepository
         );
 
         $this->expectException(RuntimeException::class);
@@ -490,10 +491,10 @@ final class CancelEmailChangeHandlerTest extends TestCase
             $userRepository,
             $emailChangeGrantRepository,
             new EmailChangeService\FixedEmailChangeAdministrationAuthorization(true),
-            new InMemoryAuditEvidenceRepository($unitOfWork),
             $unitOfWork,
             new FixedClock('2026-08-22T12:30:00+00:00'),
-            $eventDispatcher
+            $eventDispatcher,
+            new InMemoryAuditEvidenceRepository($unitOfWork)
         );
     }
 }

@@ -16,6 +16,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   Consumers must qualify current evidence mappings and the actual shared connection before adoption; see
   [Role composition](docs/role-revisions.md#optional-lifecycle-audit-unreleased).
 
+- Optional final audit storage for email-change request, cancellation, delivery and expiry. Self-service and
+  administrative outcomes share current request/cancel action values; expiry records atomic User/grant release.
+  Breaking pre-v1 changes move former mandatory storage arguments to the end, replace administrative-only action
+  spellings and require typed actor-kind/UUID expiry Command/Event payloads. Update current callers and mappings
+  directly. Claims, external sends, recovery and ordinary failure propagation remain unchanged; synchronous
+  confirmation is separately owned. See [email-change composition](docs/credential-delivery.md#optional-email-change-audit-composition-unreleased).
+
 - Optional final audit storage for password-reset request, delivery and expiry. Enabled expiry records atomic typed
   material-expiry evidence; public ineligible requests remain concealed no-work. **Breaking pre-v1 composition:** move
   request/delivery audit arguments to the end, and replace string expiry actors with typed kind/UUID Command/Event

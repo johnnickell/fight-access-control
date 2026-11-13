@@ -25,6 +25,7 @@ use Fight\AccessControl\Application\AccessControl\User\Authentication\UserAuthen
 use Fight\AccessControl\Application\AccessControl\User\PasswordManagement;
 use Fight\AccessControl\Application\AccessControl\User\Security\AuthenticationTokenPolicy;
 use Fight\AccessControl\Domain\AccessControl\Audit\AnonymousId;
+use Fight\AccessControl\Domain\AccessControl\Audit\SystemId;
 use Fight\AccessControl\Domain\AccessControl\EmailChangeGrant\Command\CancelEmailChange;
 use Fight\AccessControl\Domain\AccessControl\EmailChangeGrant\Command\ExpireEmailChange;
 use Fight\AccessControl\Domain\AccessControl\EmailChangeGrant\Command\RequestEmailChange;
@@ -323,7 +324,7 @@ final class RecoveryFixture
             $this->eventDispatcher
         )
             ->handle(CommandMessage::create(new ExpireEmailChange(
-                'worker',
+                SystemId::generate(),
                 $this->userId,
                 $grant->getId(),
                 $grant->getExpiresAt()
@@ -338,12 +339,12 @@ final class RecoveryFixture
             $this->userRepository,
             $this->emailChangeGrantRepository,
             new EmailServices\FixedEmailChangeAdministrationAuthorization(true),
-            $this->auditEvidenceRepository,
             $this->unitOfWork,
             new FixedEmailChangeCredentialGenerator($credential),
             new PrefixEmailChangeDeliveryCipher(),
             new FixedClock($this->now),
-            $this->eventDispatcher
+            $this->eventDispatcher,
+            $this->auditEvidenceRepository
         )->handle(CommandMessage::create(new RequestEmailChange(
             $this->userId,
             $this->userId,
@@ -357,10 +358,10 @@ final class RecoveryFixture
             $this->userRepository,
             $this->emailChangeGrantRepository,
             new EmailServices\FixedEmailChangeAdministrationAuthorization(true),
-            $this->auditEvidenceRepository,
             $this->unitOfWork,
             new FixedClock($this->now),
-            $this->eventDispatcher
+            $this->eventDispatcher,
+            $this->auditEvidenceRepository
         )->handle(CommandMessage::create(new CancelEmailChange($this->userId, $this->userId)));
     }
 

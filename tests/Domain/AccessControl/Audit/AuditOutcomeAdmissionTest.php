@@ -15,6 +15,7 @@ use Fight\AccessControl\Domain\AccessControl\Audit\AuditUserOutcome;
 use Fight\AccessControl\Domain\AccessControl\Audit\AuditUserRevisions;
 use Fight\AccessControl\Domain\AccessControl\Audit\SystemId;
 use Fight\AccessControl\Domain\AccessControl\User\UserId;
+use Fight\AccessControl\Domain\AccessControl\User\UserState;
 use Fight\Common\Domain\Exception\DomainException;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\DataProvider;
@@ -92,6 +93,11 @@ final class AuditOutcomeAdmissionTest extends TestCase
             yield $action->value => [$action, ['active', 3, 4, 2, 5, 6], ['active', 3, 4, 2, 6, 6]];
         }
 
+        foreach (UserState::cases() as $state) {
+            yield 'email expired '.$state->value => [AuditAction::EMAIL_CHANGE_EXPIRED,
+                [$state->value, 3, 4, 2, 5, 6], [$state->value, 3, 4, 2, 6, 6]];
+        }
+
         yield 'email confirmed' => [AuditAction::EMAIL_CHANGE_CONFIRMED,
             ['active', 3, 4, 2, 5, 6], ['active', 4, 5, 2, 6, 7]];
     }
@@ -117,7 +123,7 @@ final class AuditOutcomeAdmissionTest extends TestCase
             AuditAction::USER_RESTORED => $pendingRestoration ? 'activation' : null,
             AuditAction::PASSWORD_RESET_COMPLETED => 'password_reset',
             AuditAction::EMAIL_CHANGE_REQUESTED, AuditAction::EMAIL_CHANGE_CANCELLED,
-                AuditAction::EMAIL_CHANGE_CONFIRMED => 'email_change',
+            AuditAction::EMAIL_CHANGE_EXPIRED, AuditAction::EMAIL_CHANGE_CONFIRMED => 'email_change',
             default => null
         };
         $after = null;
@@ -135,7 +141,7 @@ final class AuditOutcomeAdmissionTest extends TestCase
         if (
             in_array($action, [
                 AuditAction::PASSWORD_RESET_COMPLETED, AuditAction::EMAIL_CHANGE_CANCELLED,
-                AuditAction::EMAIL_CHANGE_CONFIRMED
+                AuditAction::EMAIL_CHANGE_EXPIRED, AuditAction::EMAIL_CHANGE_CONFIRMED
             ], true)
         ) {
             $before = $after;
